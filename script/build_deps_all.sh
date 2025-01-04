@@ -48,27 +48,6 @@ ninja && ninja install
 
 cd ../..
 
-#### protobuf ####
-git clone --recurse-submodules -b v28.2 --depth 1 --shallow-submodules https://github.com/protocolbuffers/protobuf
-
-mkdir -p protobuf/build
-cd protobuf/build
-
-$cmake .. -GNinja \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DBUILD_SHARED_LIBS=OFF \
-  -Dprotobuf_MSVC_STATIC_RUNTIME=OFF \
-  -Dprotobuf_BUILD_TESTS=OFF \
-  -DCMAKE_INSTALL_PREFIX=$INSTALL_PREFIX \
-  -Dprotobuf_BUILD_PROTOBUF_BINARIES=ON \
-  -Dprotobuf_BUILD_LIBUPB=OFF \
-  -DCMAKE_OSX_ARCHITECTURES=$1 \
-  -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 \
-  -DCMAKE_CXX_STANDARD=17
-ninja && ninja install
-
-cd ../..
-
 if [[ "$(uname -s)" == *"NT"* ]]; then
   git clone https://github.com/Microsoft/vcpkg.git
   cd vcpkg
@@ -76,7 +55,7 @@ if [[ "$(uname -s)" == *"NT"* ]]; then
   export VCPKG_LIBRARY_LINKAGE="static"
   ./bootstrap-vcpkg.sh
   ./vcpkg integrate install
-  ./vcpkg install curl:x64-windows-static --x-install-root=$INSTALL_PREFIX
+  ./vcpkg install curl:x64-mingw-static protobuf protobuf:x64-mingw-static --x-install-root=$INSTALL_PREFIX
 
   cd ..
 
@@ -85,12 +64,33 @@ if [[ "$(uname -s)" == *"NT"* ]]; then
   git checkout bb01c8db702fb41e5497aee9c0559ddf4bf13749
   sed -i 's/find_package(CURL COMPONENTS HTTP HTTPS)/find_package(CURL REQUIRED)/g' CMakeLists.txt
   mkdir build && cd build
-  cmake -GNinja .. -DCMAKE_BUILD_TYPE=Release -DCPR_USE_SYSTEM_CURL=ON -DBUILD_SHARED_LIBS=OFF -DCURL_STATICLIB=ON -DCMAKE_OSX_ARCHITECTURES=$1 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCURL_LIBRARY=../../built/x64-windows-static/lib -DCURL_INCLUDE_DIR=../../built/x64-windows-static/include -DCMAKE_INSTALL_PREFIX=$INSTALL_PREFIX
+  cmake -GNinja .. -DCMAKE_BUILD_TYPE=Release -DCPR_USE_SYSTEM_CURL=ON -DBUILD_SHARED_LIBS=OFF -DCURL_STATICLIB=ON -DCMAKE_OSX_ARCHITECTURES=$1 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCURL_LIBRARY=../../built/x64-mingw-static/lib -DCURL_INCLUDE_DIR=../../built/x64-mingw-static/include -DCMAKE_INSTALL_PREFIX=$INSTALL_PREFIX
   ninja && ninja install
 
   cd ../..
 
   else
+    #### protobuf ####
+    git clone --recurse-submodules -b v28.2 --depth 1 --shallow-submodules https://github.com/protocolbuffers/protobuf
+
+    mkdir -p protobuf/build
+    cd protobuf/build
+
+    $cmake .. -GNinja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DBUILD_SHARED_LIBS=OFF \
+      -Dprotobuf_MSVC_STATIC_RUNTIME=OFF \
+      -Dprotobuf_BUILD_TESTS=OFF \
+      -DCMAKE_INSTALL_PREFIX=$INSTALL_PREFIX \
+      -Dprotobuf_BUILD_PROTOBUF_BINARIES=ON \
+      -Dprotobuf_BUILD_LIBUPB=OFF \
+      -DCMAKE_OSX_ARCHITECTURES=$1 \
+      -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 \
+      -DCMAKE_CXX_STANDARD=17
+    ninja && ninja install
+
+    cd ../..
+
     git clone https://github.com/curl/curl.git
     cd curl
     git checkout 7eb8c048470ed2cc14dca75be9c1cdae7ac8498b

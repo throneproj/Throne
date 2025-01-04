@@ -81,9 +81,9 @@ jobs:
         uses: actions/checkout@v4.2.0
         with:
           submodules: "recursive"
-      - name: Install MSVC compiler
-        if: matrix.platform == 'windows-latest'
-        uses: ilammy/msvc-dev-cmd@v1.13.0
+#      - name: Install MSVC compiler
+#        if: matrix.platform == 'windows-latest'
+#        uses: ilammy/msvc-dev-cmd@v1.13.0
 
       - name: Download Artifacts
         uses: actions/download-artifact@v4.1.8
@@ -114,9 +114,9 @@ jobs:
       - name: Windows - Generate MakeFile and Build
         shell: bash
         if: matrix.platform == 'windows-latest'
-        env:
-          CC: cl.exe
-          CXX: cl.exe
+#        env:
+#          CC: cl.exe
+#          CXX: cl.exe
         run: |
           mkdir build
           cd build
