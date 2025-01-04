@@ -10,12 +10,12 @@ import (
 
 	"nekobox_core/server"
 
-	"nekobox_core/internal/boxbox"
+	C "github.com/sagernet/sing-box/constant"
 	_ "nekobox_core/internal/distro/all"
 )
 
 func main() {
-	fmt.Println("sing-box:", boxbox.Version)
+	fmt.Println("sing-box:", C.Version)
 	fmt.Println()
 	runtimeDebug.SetMemoryLimit(2 * 1024 * 1024 * 1024) // 2GB
 	go func() {
