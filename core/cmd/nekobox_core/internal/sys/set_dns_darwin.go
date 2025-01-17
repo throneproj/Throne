@@ -15,7 +15,7 @@ func SetSystemDNS(addr string, interfaceMonitor tun.DefaultInterfaceMonitor) err
 		return err
 	}
 
-	err = shell.Exec("networksetup", "-setdnsservers", interfaceDisplayName, addr).Attach().Run()
+	err = shell.Exec("/usr/sbin/networksetup", "-setdnsservers", interfaceDisplayName, addr).Attach().Run()
 	if err != nil {
 		return err
 	}
@@ -24,7 +24,7 @@ func SetSystemDNS(addr string, interfaceMonitor tun.DefaultInterfaceMonitor) err
 }
 
 func getInterfaceDisplayName(name string) (string, error) {
-	content, err := shell.Exec("networksetup", "-listallhardwareports").ReadOutput()
+	content, err := shell.Exec("/usr/sbin/networksetup", "-listallhardwareports").ReadOutput()
 	if err != nil {
 		return "", err
 	}
