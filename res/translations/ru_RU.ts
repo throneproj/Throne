@@ -65,7 +65,7 @@
     </message>
     <message>
         <source>Max log lines</source>
-        <translation>Макс. строк в логе</translation>
+        <translation>Макс. строк в журнале</translation>
     </message>
     <message>
         <source>Subscription</source>
@@ -97,7 +97,7 @@
     </message>
     <message>
         <source>Multiplex (mux)</source>
-        <translation>Мультиплексирование (mux)</translation>
+        <translation>Мультиплекс (mux)</translation>
     </message>
     <message>
         <source>concurrency</source>
@@ -181,15 +181,15 @@ For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mod
     </message>
     <message>
         <source>5m</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">5м</translation>
     </message>
     <message>
         <source>10m</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">10м</translation>
     </message>
     <message>
         <source>30m</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">30м</translation>
     </message>
     <message>
         <source>Listen Port</source>
@@ -267,19 +267,19 @@ For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mod
     </message>
     <message>
         <source>Proxy Format</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Формат прокси</translation>
     </message>
     <message>
         <source>Language</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Язык</translation>
     </message>
     <message>
         <source>http</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">http</translation>
     </message>
     <message>
         <source>socks</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">socks</translation>
     </message>
 </context>
 <context>
@@ -306,11 +306,11 @@ For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mod
     </message>
     <message>
         <source>Basic</source>
-        <translation>Простая</translation>
+        <translation>Базовая</translation>
     </message>
     <message>
         <source>Subscription</source>
-        <translation>Подписка (subscription)</translation>
+        <translation>Подписка</translation>
     </message>
     <message>
         <source>Front Proxy</source>
@@ -485,7 +485,7 @@ For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mod
     </message>
     <message>
         <source>Custom (%1 config)</source>
-        <translation>Кастомный (%1 конфиг)</translation>
+        <translation>Кастомный (%1 конфигурация)</translation>
     </message>
     <message>
         <source>Not set</source>
@@ -501,11 +501,11 @@ For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mod
     </message>
     <message>
         <source>httpupgrade</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">http обновление</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overrides mux to On&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Переопределяет мультиплексор на&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Enable TCP Brutal</source>
@@ -545,7 +545,7 @@ For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mod
     </message>
     <message>
         <source>http</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">http</translation>
     </message>
     <message>
         <source>header type</source>
@@ -784,7 +784,7 @@ also if the connection cannot be established with the current address family (ip
     </message>
     <message>
         <source>Export</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Экспорт</translation>
     </message>
 </context>
 <context>
@@ -867,7 +867,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Random if it&apos;s empty or zero.</source>
-        <translation>Если пусто или 0, то будет выбран случайным образом.</translation>
+        <translation>Если пусто или ноль, то будет выбран случайным образом.</translation>
     </message>
     <message>
         <source>Preview</source>
@@ -962,11 +962,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Port range</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Диапазон портов</translation>
     </message>
     <message>
         <source>Hop Interval</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Интервал Hop</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;100ms&lt;br/&gt;1s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -974,7 +974,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma seperated ranges: 100:200,500:600&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Диапазоны, разделенные запятыми: 100:200,500:600&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
 </context>
 <context>
@@ -1100,7 +1100,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;comma seperated list of subnets&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;список подсетей, разделенных запятыми&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Local Address</source>
@@ -1128,11 +1128,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>1420</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">1420</translation>
     </message>
     <message>
         <source>MTU</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">MTU</translation>
     </message>
     <message>
         <source>Workers</source>
@@ -1249,7 +1249,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>System Proxy</source>
-        <translation>Режим системного прокси</translation>
+        <translation>Системный прокси</translation>
     </message>
     <message>
         <source>Type</source>
@@ -1365,7 +1365,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Start with system</source>
-        <translation>Запускаться вместе с системой</translation>
+        <translation>Запускать вместе с системой</translation>
     </message>
     <message>
         <source>Remember last profile</source>
@@ -1708,7 +1708,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Application</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Приложение</translation>
     </message>
     <message>
         <source>Settings</source>
@@ -1716,31 +1716,31 @@ Split by line.</source>
     </message>
     <message>
         <source>Profiles</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Профили</translation>
     </message>
     <message>
         <source>Routing</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Маршрутизация</translation>
     </message>
     <message>
         <source>Destination (Domain)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Пункт назначения (Домен)</translation>
     </message>
     <message>
         <source>Process</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Процесс</translation>
     </message>
     <message>
         <source>Click To Sort By Process</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Нажмите, чтобы сортировать по процессу</translation>
     </message>
     <message>
         <source>Routing Menu</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Меню маршрутизации</translation>
     </message>
     <message>
         <source>Open Manager</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Открыть менеджер</translation>
     </message>
 </context>
 <context>
@@ -1937,27 +1937,51 @@ Release note:
     </message>
     <message>
         <source>Basic</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Основной</translation>
     </message>
     <message>
         <source>How to use</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Как пользоваться</translation>
     </message>
     <message>
         <source>Direct</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Прямой</translation>
     </message>
     <message>
         <source>Proxy</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Прокси</translation>
     </message>
     <message>
         <source>Block</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Блокировать</translation>
     </message>
     <message>
         <source>Advanced</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Расширенный</translation>
+    </message>
+	    <message>
+        <source>Loglevel</source>
+        <translation type="unfinished">Уровень журнала</translation>
+    </message>
+	    <message>
+        <source>System</source>
+        <translation type="unfinished">Системная</translation>
+    </message>
+		<message>
+        <source>Press shortcut</source>
+        <translation type="unfinished">Нажмите сочетание клавиш</translation>
+    </message>
+	    <message>
+        <source>Yes</source>
+        <translation type="unfinished">Да</translation>
+    </message>
+	    <message>
+        <source>No</source>
+        <translation type="unfinished">Нет</translation>
+    </message>
+    <message>
+        <source>Strict Route</source>
+        <translation type="unfinished">Строгий маршрут</translation>
     </message>
 </context>
 </TS>
