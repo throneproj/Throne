@@ -209,21 +209,22 @@ For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mod
     </message>
     <message>
         <source>GeoIP URL</source>
-        <translation type="unfinished">Гео IP URL</translation>
+        <translation type="unfinished">URL-адрес геоIP</translation>
     </message>
     <message>
         <source>GeoSite URL</source>
-        <translation type="unfinished">Гео адрес URL</translation>
+        <translation type="unfinished">URL-адрес геосайта</translation>
     </message>
     <message>
         <source>Download and Replace Geo files</source>
-        <translation type="unfinished">Загрузка и замена Гео файлов</translation>
+        <translation type="unfinished">Загрузка и замена Геофайлов</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Socks
                                                                 + HTTP Proxy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                             </source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Socks
+                                                                + HTTP Прокси&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Font Size</source>
@@ -283,7 +284,7 @@ For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mod
     </message>
     <message>
         <source>Removed all rule-set files</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Удалены все файлы набора правил</translation>
     </message>
 </context>
 <context>
@@ -610,15 +611,15 @@ For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mod
     </message>
     <message>
         <source>Sniff result for routing</source>
-        <translation>Сниффер для маршрутизации</translation>
+        <translation>Проверка результата для маршрутизации</translation>
     </message>
     <message>
         <source>Sniff result for destination</source>
-        <translation>Сниффер для точки назначения</translation>
+        <translation>Проверка результата для пункта назначения</translation>
     </message>
     <message>
         <source>Sniffing Mode</source>
-        <translation>Режим Сниффера</translation>
+        <translation>Режим проверки (Сниффера)</translation>
     </message>
     <message>
         <source>DNS</source>
@@ -664,11 +665,13 @@ For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mod
         <source>This is especially important and it is recommended to use the default value of &quot;localhost&quot;.
 If the default value does not work, try changing it to &quot;223.5.5.5&quot;.
 For more information, see the document &quot;Configuration/DNS&quot;.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Это очень важно, и рекомендуется использовать значение по умолчанию &quot;localhost&quot;.
+Если значение по умолчанию не работает, попробуйте изменить его на &quot;223.5.5.5&quot;.
+Дополнительную информацию см. в документе &quot;Конфигурация/DNS&quot;.</translation>
     </message>
     <message>
         <source>Sniffs the connections intial packet(s?) to identify the protocol and the SNI. Sniff result for destination also rewrites the destionation of the connection to the sniffed SNI. For more data on the sniffed protocol refer to the sing-box&apos;s documentation.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Проверяет исходный пакет(ы) подключений, чтобы идентифицировать протокол и SNI. Результат анализа для пункта назначения также преобразует пункт назначения соединения в SNI для анализа с помощью SNI. Дополнительные сведения о протоколе проверки приведены в документации slingbox&apos;s.</translation>
     </message>
     <message>
         <source>Routing Profile</source>
@@ -748,7 +751,7 @@ also if the connection cannot be established with the current address family (ip
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Following format should be used:&lt;br/&gt;domain:a.com&lt;/p&gt;&lt;p&gt;suffix:a.com&lt;/p&gt;&lt;p&gt;regex:someregex&lt;/p&gt;&lt;p&gt;rule_set:nameOfRuleSet&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Необходимо использовать следующий формат:&lt;br/&gt;domain:a.com&lt;/p&gt;&lt;p&gt;suffix:a.com&lt;/p&gt;&lt;p&gt;regex:someregex&lt;/p&gt;&lt;p&gt;rule_set:nameOfRuleSet&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Rules</source>
@@ -780,39 +783,39 @@ also if the connection cannot be established with the current address family (ip
     </message>
     <message>
         <source>Invalid state</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Неверный статус</translation>
     </message>
     <message>
         <source>The list of routing profiles is empty, this should be an unreachable state, crashes may occur now</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Список профилей маршрутизации пуст, сейчас могут происходить сбои</translation>
     </message>
     <message>
         <source>Invalid settings</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Неверные настройки</translation>
     </message>
     <message>
         <source>Routing profile cannot be empty</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Профиль маршрутизации не может быть пустым</translation>
     </message>
     <message>
         <source>DNS Rules are not valid</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Правила DNS недействительны</translation>
     </message>
     <message>
         <source>Invalid operation</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Неверная операция</translation>
     </message>
     <message>
         <source>Routing Profiles cannot be empty, try adding another profile or editing this one</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Профили маршрутизации не могут быть пустыми, попробуйте добавить другой профиль или отредактировать этот</translation>
     </message>
     <message>
         <source>Profile is Read-only</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Профиль доступен только для чтения</translation>
     </message>
     <message>
         <source>Cannot delete built-in profiles</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Невозможно удалить встроенные профили</translation>
     </message>
 </context>
 <context>
@@ -926,7 +929,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Download (Mbps)</source>
-        <translation>Скорость приема (Mbps)</translation>
+        <translation>Скорость загрузки (Мбит/с)</translation>
     </message>
     <message>
         <source>Disable MTU Discovery</source>
@@ -994,7 +997,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;100ms&lt;br/&gt;1s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;100мс&lt;br/&gt;1s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma seperated ranges: 100:200,500:600&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -1644,7 +1647,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Remove Invalid</source>
-        <translation type="unfinished">Удалить недопустимые</translation>
+        <translation type="unfinished">Удалить недействительные</translation>
     </message>
     <message>
         <source>Ctrl+Alt+I</source>
@@ -1668,7 +1671,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Remove %1 Invalid item(s) ?</source>
-        <translation type="unfinished">Удалить %1 недопустимых элементов ?</translation>
+        <translation type="unfinished">Удалить %1 неверных элементов ?</translation>
     </message>
     <message>
         <source>Replace domain server addresses with their resolved IPs?</source>
@@ -1696,19 +1699,19 @@ Split by line.</source>
     </message>
     <message>
         <source>Download</source>
-        <translation type="unfinished">Скачивание</translation>
+        <translation type="unfinished">Загрузка</translation>
     </message>
     <message>
         <source>Click To Sort By Download</source>
-        <translation type="unfinished">Нажмите, чтобы сортировать по скачиванию</translation>
+        <translation type="unfinished">Нажмите, чтобы сортировать по загрузке</translation>
     </message>
     <message>
         <source>Upload</source>
-        <translation type="unfinished">Загрузка </translation>
+        <translation type="unfinished">Выгрузка</translation>
     </message>
     <message>
         <source>Click To Sort By Upload</source>
-        <translation type="unfinished">Нажмите, чтобы сортировать по загрузке</translation>
+        <translation type="unfinished">Нажмите, чтобы сортировать по выгрузке</translation>
     </message>
     <message>
         <source>Logs</source>
@@ -1768,95 +1771,95 @@ Split by line.</source>
     </message>
     <message>
         <source>Profile test aborted</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Тест профиля прерван</translation>
     </message>
     <message>
         <source>Something is very wrong, the subject ent cannot be found!</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Что-то не так, объект не может быть найден!</translation>
     </message>
     <message>
         <source>Profile manager data is corrupted, try again.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Данные менеджера профилей повреждены, попробуйте еще раз.</translation>
     </message>
     <message>
         <source>The last speed test did not exit completely, please wait. If it persists, please restart the program.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Последний тест скорости не завершился полностью, пожалуйста, подождите. Если проблема сохраняется, пожалуйста, перезапустите программу.</translation>
     </message>
     <message>
         <source>Failed to build test config: </source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Не удалось создать тестовую конфигурацию: </translation>
     </message>
     <message>
         <source>Speedtest finished!</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Тест скорости завершен!</translation>
     </message>
     <message>
         <source>Failed to stop tests</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Не удалось остановить тест</translation>
     </message>
     <message>
         <source>You need to enable hijack DNS server first</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Сначала необходимо включить перехват DNS-сервера</translation>
     </message>
     <message>
         <source>Failed to get system dns settings</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Не удалось получить системные настройки dns</translation>
     </message>
     <message>
         <source>Failed to set system dns: </source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Не удалось установить системный DNS: </translation>
     </message>
     <message>
         <source>BuildConfig return error</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Ошибка возврата BuildConfig</translation>
     </message>
     <message>
         <source>Another profile is starting...</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Запускается другой профиль...</translation>
     </message>
     <message>
         <source>Another profile is stopping...</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Другой профиль останавливается...</translation>
     </message>
     <message>
         <source>Try to start the config, but the core has not listened to the grpc port, so restart it...</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Попробуйте запустить конфигурацию, но ядро не прослушивает порт grpc, поэтому перезапустите его...</translation>
     </message>
     <message>
         <source>Stop return error</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Остановить возврат ошибки</translation>
     </message>
     <message>
         <source>Copy core config</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Копировать ядро конфигурации</translation>
     </message>
     <message>
         <source>Copy test config</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Копировать тест конфигурации</translation>
     </message>
     <message>
         <source>Cannot start</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Невозможно запустить</translation>
     </message>
     <message>
         <source>Last download request has not finished yet</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Последний запрос на загрузку еще не завершен</translation>
     </message>
     <message>
         <source>Failed to download geoip: %1</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Не удалось загрузить геоip: %1</translation>
     </message>
     <message>
         <source>Failed to download geosite: %1</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Не удалось загрузить геосайт: %1</translation>
     </message>
     <message>
         <source>Failed to download geo assets</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Не удалось загрузить георесурсы</translation>
     </message>
     <message>
         <source>Geo Asset update completed!</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Обновление георесурсов завершено!</translation>
     </message>
 </context>
 <context>
@@ -2002,7 +2005,7 @@ Release note:
     <name>Qv2ray::ui::widgets::AutoCompleteTextEdit</name>
     <message>
         <source>You can not input space characters here.</source>
-        <translation>Сюда нельзя вводить пробелы.</translation>
+        <translation>Здесь нельзя вводить пробел.</translation>
     </message>
 </context>
 <context>
@@ -2061,7 +2064,7 @@ Release note:
     </message>
     <message>
         <source>Direct</source>
-        <translation type="unfinished">Прямой</translation>
+        <translation type="unfinished">Напрямую</translation>
     </message>
     <message>
         <source>Proxy</source>
@@ -2077,46 +2080,46 @@ Release note:
     </message>
     <message>
         <source>Invalid rules</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Неверные правила</translation>
     </message>
     <message>
         <source>Some rules could not be added:
 </source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Некоторые правила не удалось добавить:</translation>
     </message>
     <message>
         <source>Simple rule manual</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Простое руководство по правилам</translation>
     </message>
     <message>
         <source>Invalid JSON Array</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Неверный массив JSON</translation>
     </message>
     <message>
         <source>The provided input cannot be parsed to a valid route rule array:
 </source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Предоставленные входные данные не могут быть преобразованы в допустимый массив правил маршрутизации:</translation>
     </message>
     <message>
         <source>Invalid operation</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Неверная операция</translation>
     </message>
     <message>
         <source>Cannot create Route Profile with empty name</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Невозможно создать профиль маршрута с пустым именем</translation>
     </message>
     <message>
         <source>Empty Route Profile</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Пустой профиль маршрута</translation>
     </message>
     <message>
         <source>No valid rules are in the profile</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">В профиле нет действующих правил</translation>
     </message>
     <message>
         <source>Some rules could not be added, fix them before saving:
 </source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Некоторые правила не удалось добавить, исправьте их перед сохранением:</translation>
     </message>
 </context>
 </TS>
