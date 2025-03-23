@@ -61,7 +61,7 @@ void DialogVPNSettings::on_troubleshooting_clicked() {
     msg.setDefaultButton(cancel);
     msg.setEscapeButton(cancel);
 
-    auto r = msg.exec();
+    auto r = msg.exec() - 2;
     if (r == 0) {
         GetMainWindow()->StopVPNProcess();
     }

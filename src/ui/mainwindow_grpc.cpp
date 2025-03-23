@@ -272,7 +272,7 @@ void MainWindow::neko_start(int _id) {
                     msg.setDefaultButton(cancel);
                     msg.setEscapeButton(cancel);
 
-                    int r = msg.exec();
+                    int r = msg.exec() - 2;
                     if (r == 0) {
                         GetMainWindow()->StopVPNProcess();
                     }

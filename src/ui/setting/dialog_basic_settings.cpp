@@ -268,7 +268,7 @@ void DialogBasicSettings::on_set_custom_icon_clicked() {
     msg.setEscapeButton(cancel);
 
 
-    auto c = msg.exec();
+    auto c = msg.exec() - 2;
     if (c == 0) {
         auto fn = QFileDialog::getOpenFileName(this, QObject::tr("Select"), QDir::currentPath(),
                                                "*.png", nullptr, QFileDialog::Option::ReadOnly);
