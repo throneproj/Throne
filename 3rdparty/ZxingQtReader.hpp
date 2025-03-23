@@ -67,7 +67,7 @@ using ZXing::BarcodeFormat;
 using ZXing::ContentType;
 #endif
 
-using ZXing::DecodeHints;
+typedef ZXing::ReaderOptions DecodeHints;
 using ZXing::Binarizer;
 using ZXing::BarcodeFormats;
 

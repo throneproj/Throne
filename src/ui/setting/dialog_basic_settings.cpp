@@ -150,7 +150,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->ntp_server->setText(NekoGui::dataStore->ntp_server_address);
     ui->ntp_port->setText(Int2String(NekoGui::dataStore->ntp_server_port));
     ui->ntp_interval->setCurrentText(NekoGui::dataStore->ntp_interval);
-    connect(ui->ntp_enable, &QCheckBox::stateChanged, this, [=](const bool &state) {
+    connect(ui->ntp_enable, &QCheckBox::checkStateChanged, this, [=](const bool &state) {
         ui->ntp_server->setEnabled(state);
         ui->ntp_port->setEnabled(state);
         ui->ntp_interval->setEnabled(state);
@@ -251,8 +251,24 @@ void DialogBasicSettings::accept() {
 void DialogBasicSettings::on_set_custom_icon_clicked() {
     auto title = ui->set_custom_icon->text();
     QString user_icon_path = "./" + software_name.toLower() + ".png";
-    auto c = QMessageBox::question(this, title, tr("Please select a PNG file."),
-                                   tr("Select"), tr("Reset"), tr("Cancel"), 2, 2);
+
+    QMessageBox msg(
+        QMessageBox::Question,
+        title,
+        tr("Please select a PNG file."),
+        QMessageBox::NoButton,
+        this
+    );
+
+    msg.addButton(tr("Select"), QMessageBox::ActionRole);
+    msg.addButton(tr("Reset"), QMessageBox::ActionRole);
+    auto cancel = msg.addButton(tr("Cancel"), QMessageBox::ActionRole);
+
+    msg.setDefaultButton(cancel);
+    msg.setEscapeButton(cancel);
+
+
+    auto c = msg.exec();
     if (c == 0) {
         auto fn = QFileDialog::getOpenFileName(this, QObject::tr("Select"), QDir::currentPath(),
                                                "*.png", nullptr, QFileDialog::Option::ReadOnly);

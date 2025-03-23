@@ -258,10 +258,21 @@ void MainWindow::neko_start(int _id) {
         if (!error.isEmpty()) {
             if (error.contains("configure tun interface")) {
                 runOnUiThread([=] {
-                    auto r = QMessageBox::information(this, tr("Tun device misbehaving"),
-                                                      tr("If you have trouble starting VPN, you can force reset nekobox_core process here and then try starting the profile again. The error is %1").arg(error),
-                                                      tr("Reset"), tr("Cancel"), "",
-                                                      1, 1);
+
+                    QMessageBox msg(
+                        QMessageBox::Information,
+                        tr("Tun device misbehaving"),
+                        tr("If you have trouble starting VPN, you can force reset nekobox_core process here and then try starting the profile again. The error is %1").arg(error),
+                        QMessageBox::NoButton,
+                        this
+                    );
+                    msg.addButton(tr("Reset"), QMessageBox::ActionRole);
+                    auto cancel = msg.addButton(tr("Cancel"), QMessageBox::ActionRole);
+
+                    msg.setDefaultButton(cancel);
+                    msg.setEscapeButton(cancel);
+
+                    int r = msg.exec();
                     if (r == 0) {
                         GetMainWindow()->StopVPNProcess();
                     }

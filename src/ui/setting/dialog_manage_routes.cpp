@@ -87,12 +87,12 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     ui->remote_dns_strategy->addItems(qsValue);
     ui->enable_fakeip->setChecked(NekoGui::dataStore->fake_dns);
     //
-    connect(ui->use_dns_object, &QCheckBox::stateChanged, this, [=](int state) {
+    connect(ui->use_dns_object, &QCheckBox::checkStateChanged, this, [=](int state) {
         auto useDNSObject = state == Qt::Checked;
         ui->simple_dns_box->setDisabled(useDNSObject);
         ui->dns_object->setDisabled(!useDNSObject);
     });
-    ui->use_dns_object->stateChanged(Qt::Unchecked); // uncheck to uncheck
+    ui->use_dns_object->checkStateChanged(Qt::Unchecked); // uncheck to uncheck
     connect(ui->dns_document, &QPushButton::clicked, this, [=] {
         MessageBoxInfo("DNS", dnsHelpDocumentUrl);
     });

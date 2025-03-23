@@ -352,6 +352,7 @@ namespace NekoGui_rpc {
                 }
             }
         }
+        return "";
     }
 
     QString Client::SetSystemProxy(bool *rpcOK, bool enable) {
