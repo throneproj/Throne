@@ -264,19 +264,6 @@ namespace NekoGui_rpc {
         }
     }
 
-    libcore::UpdateResp Client::Update(bool *rpcOK, const libcore::UpdateReq &request) {
-        libcore::UpdateResp reply;
-        auto status = default_grpc_channel->Call("Update", request, &reply);
-
-        if (status == QNetworkReply::NoError) {
-            *rpcOK = true;
-            return reply;
-        } else {
-            NOT_OK
-            return reply;
-        }
-    }
-
     QStringList Client::GetGeoList(bool *rpcOK, GeoRuleSetType mode, const QString& basePath) {
         switch (mode) {
             case GeoRuleSetType::ip: {

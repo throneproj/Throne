@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/settings"
@@ -10,14 +9,11 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/metadata"
 	"github.com/sagernet/sing/service"
-	"io"
 	"log"
 	"nekobox_core/gen"
-	"nekobox_core/internal/boxapi"
 	"nekobox_core/internal/boxbox"
 	"nekobox_core/internal/boxmain"
 	"nekobox_core/internal/sys"
-	"net/http"
 	"os"
 	"runtime"
 	"strings"
@@ -328,98 +324,4 @@ func (s *server) IsPrivileged(ctx context.Context, _ *gen.EmptyReq) (*gen.IsPriv
 	}
 
 	return &gen.IsPrivilegedResponse{HasPrivilege: os.Geteuid() == 0}, nil
-}
-
-// TODO refactor this shit
-var updateDownloadUrl string
-
-func (s *server) Update(ctx context.Context, in *gen.UpdateReq) (*gen.UpdateResp, error) {
-	ret := &gen.UpdateResp{}
-
-	client := boxapi.CreateProxyHttpClient(boxInstance)
-
-	if in.Action == gen.UpdateAction_Check { // Check update
-		ctx, cancel := context.WithTimeout(ctx, time.Second*10)
-		defer cancel()
-
-		req, _ := http.NewRequestWithContext(ctx, "GET", "https://api.github.com/repos/Mahdi-zarei/nekoray/releases", nil)
-		resp, err := client.Do(req)
-		if err != nil {
-			ret.Error = err.Error()
-			return ret, nil
-		}
-		defer resp.Body.Close()
-
-		var v []struct {
-			HtmlUrl string `json:"html_url"`
-			Assets  []struct {
-				Name               string `json:"name"`
-				BrowserDownloadUrl string `json:"browser_download_url"`
-			} `json:"assets"`
-			Prerelease bool   `json:"prerelease"`
-			Body       string `json:"body"`
-		}
-		err = json.NewDecoder(resp.Body).Decode(&v)
-		if err != nil {
-			ret.Error = err.Error()
-			return ret, nil
-		}
-
-		var search string
-		if runtime.GOOS == "windows" && runtime.GOARCH == "amd64" {
-			search = "windows64"
-		} else if runtime.GOOS == "linux" && runtime.GOARCH == "amd64" {
-			search = "linux64"
-		} else if runtime.GOOS == "darwin" {
-			search = "macos-" + runtime.GOARCH
-		} else {
-			ret.Error = "Not official support platform"
-			return ret, nil
-		}
-
-		for _, release := range v {
-			if len(release.Assets) > 0 {
-				for _, asset := range release.Assets {
-					if strings.Contains(asset.Name, search) {
-						updateDownloadUrl = asset.BrowserDownloadUrl
-						ret.AssetsName = asset.Name
-						ret.DownloadUrl = asset.BrowserDownloadUrl
-						ret.ReleaseUrl = release.HtmlUrl
-						ret.ReleaseNote = release.Body
-						ret.IsPreRelease = release.Prerelease
-						return ret, nil // update
-					}
-				}
-			}
-		}
-	} else { // Download update
-		if updateDownloadUrl == "" {
-			ret.Error = "?"
-			return ret, nil
-		}
-
-		req, _ := http.NewRequestWithContext(ctx, "GET", updateDownloadUrl, nil)
-		resp, err := client.Do(req)
-		if err != nil {
-			ret.Error = err.Error()
-			return ret, nil
-		}
-		defer resp.Body.Close()
-
-		f, err := os.OpenFile("../nekoray.zip", os.O_TRUNC|os.O_CREATE|os.O_RDWR, 0644)
-		if err != nil {
-			ret.Error = err.Error()
-			return ret, nil
-		}
-		defer f.Close()
-
-		_, err = io.Copy(f, resp.Body)
-		if err != nil {
-			ret.Error = err.Error()
-			return ret, nil
-		}
-		f.Sync()
-	}
-
-	return ret, nil
 }

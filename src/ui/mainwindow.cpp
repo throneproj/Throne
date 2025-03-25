@@ -2073,14 +2073,14 @@ void MainWindow::DownloadAssets(const QString &geoipUrl, const QString &geositeU
     MW_show_log("Start downloading...");
     QString errors;
     if (!geoipUrl.isEmpty()) {
-        auto resp = NetworkRequestHelper::DownloadGeoAsset(geoipUrl, "geoip.db");
+        auto resp = NetworkRequestHelper::DownloadAsset(geoipUrl, "geoip.db", true);
         if (!resp.isEmpty()) {
             MW_show_log(QString(tr("Failed to download geoip: %1")).arg(resp));
             errors += "geoip: " + resp;
         }
     }
     if (!geositeUrl.isEmpty()) {
-        auto resp = NetworkRequestHelper::DownloadGeoAsset(geositeUrl, "geosite.db");
+        auto resp = NetworkRequestHelper::DownloadAsset(geositeUrl, "geosite.db", true);
         if (!resp.isEmpty()) {
             MW_show_log(QString(tr("Failed to download geosite: %1")).arg(resp));
             errors += "\ngeosite: " + resp;
@@ -2093,4 +2093,165 @@ void MainWindow::DownloadAssets(const QString &geoipUrl, const QString &geositeU
         });
     }
     MW_show_log(tr("Geo Asset update completed!"));
+}
+
+bool isNewer(QString version) {
+    version = version.mid(8); // take out nekoray-
+    auto parts = version.split('.');
+    auto currentParts = QString(NKR_VERSION).split('.');
+    std::vector<int> verNums;
+    std::vector<int> currNums;
+    // add base version first
+    verNums.push_back(parts[0].toInt());
+    verNums.push_back(parts[1].toInt());
+    verNums.push_back(parts[2].split('-')[0].toInt());
+
+    currNums.push_back(currentParts[0].toInt());
+    currNums.push_back(currentParts[1].toInt());
+    currNums.push_back(currentParts[2].split('-')[0].toInt());
+
+    // base version is equal or greater, check release mode
+    int releaseMode;
+    int partialVer = 0;
+    if (parts[2].split('-').size() > 1 && parts[2].split('-')[1].toInt() == 0 /* this makes sure it is not a number*/) {
+        partialVer = parts[3].split('-')[0].toInt();
+        auto str = parts[2].split('-')[1];
+        if (str == "rc") releaseMode = 3;
+        if (str == "beta") releaseMode = 2;
+        if (str == "alpha") releaseMode = 1;
+    } else {
+        releaseMode = 4;
+    }
+    verNums.push_back(releaseMode);
+    verNums.push_back(partialVer);
+
+    int currReleaseMode;
+    int currentPartialVer = 0;
+    if (currentParts[2].split('-').size() > 1 && currentParts[2].split('-')[1].toInt() == 0 /* this makes sure it is not a number*/) {
+        currentPartialVer = currentParts[3].split('-')[0].toInt();
+        auto str = currentParts[2].split('-')[1];
+        if (str == "rc") currReleaseMode = 3;
+        if (str == "beta") currReleaseMode = 2;
+        if (str == "alpha") currReleaseMode = 1;
+    } else {
+        currReleaseMode = 4;
+    }
+    currNums.push_back(currReleaseMode);
+    currNums.push_back(currentPartialVer);
+
+    for (int i=0;i<verNums.size();i++) {
+        if (verNums[i] > currNums[i]) return true;
+        if (verNums[i] < currNums[i]) return false;
+    }
+
+    return false;
+}
+
+void MainWindow::CheckUpdate() {
+    QString search;
+#ifdef Q_OS_WIN32
+#  ifdef Q_OS_WIN64
+	search = "windows64";
+#  else
+	search = "windows32";
+#  endif
+#endif
+#ifdef Q_OS_LINUX && Q_PROCESSOR_X86_64
+	search = "linux64"
+#endif
+#ifdef Q_OS_MACOS
+#  ifdef Q_PROCESSOR_X86_64
+	search = "macos-amd64";
+#  else
+	search = "macos-arm64";
+#  endif
+#endif
+    if (search.isEmpty()) {
+        runOnUiThread([=] {
+            MessageBoxWarning(QObject::tr("Update"), QObject::tr("Not official support platform"));
+        });
+        return;
+    }
+    
+    auto resp = NetworkRequestHelper::HttpGet("https://api.github.com/repos/Mahdi-zarei/nekoray/releases");
+    if (!resp.error.isEmpty()) {
+        runOnUiThread([=] {
+            MessageBoxWarning(QObject::tr("Update"), QObject::tr("Requesting update error: %1").arg(resp.error + "\n" + resp.data));
+        });
+        return;
+    }
+    
+    QString assets_name, release_download_url, release_url, release_note, note_pre_release;
+    bool exitFlag = false;
+    QJsonArray array = QString2QJsonArray(resp.data);
+    for (const QJsonValue value : array) {
+        QJsonObject release = value.toObject();
+        for (const QJsonValue asset : release["assets"].toArray()) {
+            if (asset["name"].toString().contains(search)) {
+                note_pre_release = release["prerelease"].toBool() ? " (Pre-release)" : "";
+                release_url = release["html_url"].toString();
+                release_note = release["body"].toString();
+                assets_name = asset["name"].toString();
+                release_download_url = asset["browser_download_url"].toString();
+                exitFlag = true;
+                break;
+            }
+        }
+        if (exitFlag) break;
+    }
+
+    if (release_download_url.isEmpty() || !isNewer(assets_name)) {
+        runOnUiThread([=] {
+            MessageBoxInfo(QObject::tr("Update"), QObject::tr("No update"));
+        });
+        return;
+    }
+
+    runOnUiThread([=] {
+        auto allow_updater = !NekoGui::dataStore->flag_use_appdata;
+        QMessageBox box(QMessageBox::Question, QObject::tr("Update") + note_pre_release,
+                        QObject::tr("Update found: %1\nRelease note:\n%2").arg(assets_name, release_note));
+        //
+        QAbstractButton *btn1 = nullptr;
+        if (allow_updater) {
+            btn1 = box.addButton(QObject::tr("Update"), QMessageBox::AcceptRole);
+        }
+        QAbstractButton *btn2 = box.addButton(QObject::tr("Open in browser"), QMessageBox::AcceptRole);
+        box.addButton(QObject::tr("Close"), QMessageBox::RejectRole);
+        box.exec();
+        //
+        if (btn1 == box.clickedButton() && allow_updater) {
+            // Download Update
+            runOnNewThread([=] {
+                if (!mu_download_update.tryLock()) {
+                    runOnUiThread([=](){
+                        MessageBoxWarning(tr("Cannot start"), tr("Last download request has not finished yet"));
+                    });
+                    return;
+                }
+                QString errors;
+                if (!release_download_url.isEmpty()) {
+                    auto res = NetworkRequestHelper::DownloadAsset(release_download_url, "nekoray.zip", false);
+                    if (!res.isEmpty()) {
+                        errors += res;
+                    }
+                }
+                mu_download_update.unlock();
+                runOnUiThread([=] {
+                    if (errors.isEmpty()) {
+                        auto q = QMessageBox::question(nullptr, QObject::tr("Update"),
+                                                       QObject::tr("Update is ready, restart to install?"));
+                        if (q == QMessageBox::StandardButton::Yes) {
+                            this->exit_reason = 1;
+                            on_menu_exit_triggered();
+                        }
+                    } else {
+                        MessageBoxWarning(tr("Failed to download update assets"), errors);
+                    }
+                });
+            });
+        } else if (btn2 == box.clickedButton()) {
+            QDesktopServices::openUrl(QUrl(release_url));
+        }
+    });
 }

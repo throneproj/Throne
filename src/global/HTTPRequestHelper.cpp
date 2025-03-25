@@ -47,7 +47,7 @@ namespace NekoGui_network {
         return "";
     }
 
-    QString NetworkRequestHelper::DownloadGeoAsset(const QString &url, const QString &fileName) {
+    QString NetworkRequestHelper::DownloadAsset(const QString &url, const QString &fileName, bool isTemp) {
         cpr::Session session;
         session.SetUrl(cpr::Url{url.toStdString()});
         if (NekoGui::dataStore->spmode_system_proxy) {
@@ -55,7 +55,8 @@ namespace NekoGui_network {
                                 {"https", "127.0.0.1:" + QString(Int2String(NekoGui::dataStore->inbound_socks_port)).toStdString()}});
         }
         auto filePath = NekoGui::GetBasePath()+ "/" + fileName;
-        auto tempFilePath = QString(filePath + ".1");
+        auto tempFilePath = QString(filePath);
+        if(isTemp) tempFilePath += ".1";
         QFile::remove(tempFilePath);
 
         std::ofstream fout;
@@ -71,10 +72,12 @@ namespace NekoGui_network {
             }
             return r.status_line.c_str();
         }
-        QFile(filePath).remove();
-        if (!tmpFile.rename(filePath)) {
-            tmpFile.remove();
-            return tmpFile.errorString();
+        if(isTemp) {
+            QFile(filePath).remove();
+            if (!tmpFile.rename(filePath)) {
+                tmpFile.remove();
+                return tmpFile.errorString();
+            }
         }
         return "";
     }
