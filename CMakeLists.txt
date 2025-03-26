@@ -12,6 +12,8 @@ if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND WIN32)
 endif ()
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Network LinguistTools)
+find_package(absl REQUIRED)
+
 
 if (NKR_CROSS)
     set_property(TARGET Qt6::moc PROPERTY IMPORTED_LOCATION /usr/bin/moc)
@@ -210,7 +212,6 @@ set(PROJECT_SOURCES
         src/stats/connectionLister/connectionLister.cpp
         src/configs/proxy/Json2Bean.cpp
         include/sys/windows/vcCheck.h
-        src/sys/windows/vcCheck.cpp
 )
 
 # Qt exe
@@ -267,5 +268,9 @@ target_link_libraries(nekoray PRIVATE
         ${NKR_EXTERNAL_TARGETS}
         ${PLATFORM_LIBRARIES}
 )
+
+# Link the Abseil libraries
+target_link_libraries(nekoray PRIVATE absl::base absl::strings)
+
 
 qt_finalize_executable(nekoray)
