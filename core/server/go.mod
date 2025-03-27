@@ -15,8 +15,8 @@ require (
 	github.com/sagernet/sing-tun v0.6.1
 	github.com/spf13/cobra v1.8.1
 	golang.org/x/sys v0.30.0
-	google.golang.org/grpc v1.64.1
-	google.golang.org/protobuf v1.34.2
+	google.golang.org/grpc v1.66.3
+	google.golang.org/protobuf v1.36.6
 )
 
 replace github.com/sagernet/sing-box => github.com/Mahdi-zarei/sing-box v1.3.5-0.20250307022037-4316c2a6260e
@@ -93,6 +93,6 @@ require (
 	golang.org/x/time v0.7.0 // indirect
 	golang.org/x/tools v0.28.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240814211410-ddb44dafa142 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250115164207-1a7da9e5054f // indirect
 	lukechampine.com/blake3 v1.3.0 // indirect
 )
