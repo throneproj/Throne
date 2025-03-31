@@ -204,7 +204,6 @@ set(PROJECT_SOURCES
         include/stats/connections/connectionLister.hpp
         src/stats/connectionLister/connectionLister.cpp
         src/configs/proxy/Json2Bean.cpp
-        include/sys/windows/vcCheck.h
         include/ui/utils/TrafficChart.h
         include/ui/utils/CustomChartView.h
         include/sys/windows/eventHandler.h

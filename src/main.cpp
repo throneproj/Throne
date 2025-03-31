@@ -68,14 +68,6 @@ int main(int argc, char* argv[]) {
     QApplication::setQuitOnLastWindowClosed(false);
     QApplication a(argc, argv);
 
-#ifdef Q_OS_WIN
-    if (!checkVCRedist())
-    {
-        QMessageBox::critical(nullptr, "Cannot run Nekoray", "You need to install VC 2022 Redistributable.<br>Download it from <a href='https://aka.ms/vs/17/release/vc_redist.x64.exe'>here</a>.");
-        return 1;
-    }
-#endif
-
     // Clean
     QDir::setCurrent(QApplication::applicationDirPath());
     if (QFile::exists("updater.old")) {
