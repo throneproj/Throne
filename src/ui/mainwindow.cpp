@@ -2187,7 +2187,7 @@ void MainWindow::CheckUpdate() {
         return;
     }
     
-    auto resp = NetworkRequestHelper::HttpGet("https://api.github.com/repos/Mahdi-zarei/nekoray/releases");
+    auto resp = NetworkRequestHelper::HttpGet("https://api.github.com/repos/parhelia512/nekoray-win7/releases");
     if (!resp.error.isEmpty()) {
         runOnUiThread([=] {
             MessageBoxWarning(QObject::tr("Update"), QObject::tr("Requesting update error: %1").arg(resp.error + "\n" + resp.data));
