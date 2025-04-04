@@ -37,7 +37,6 @@ list(APPEND CMAKE_PREFIX_PATH ${NKR_LIBS})
 if(WIN32)
     list(APPEND CMAKE_PREFIX_PATH "libs/deps/built/x64-windows-static")
 endif ()
-add_definitions(-DCURL_STATICLIB)
 
 message("[CMAKE_PREFIX_PATH] ${CMAKE_PREFIX_PATH}")
 
@@ -65,9 +64,6 @@ list(APPEND NKR_EXTERNAL_TARGETS yaml-cpp)
 
 find_package(ZXing CONFIG REQUIRED)
 list(APPEND NKR_EXTERNAL_TARGETS ZXing::ZXing)
-
-find_package(cpr REQUIRED)
-list(APPEND NKR_EXTERNAL_TARGETS cpr::cpr)
 
 set(BUILD_SHARED_LIBS OFF)
 list(APPEND NKR_EXTERNAL_TARGETS qhotkey)

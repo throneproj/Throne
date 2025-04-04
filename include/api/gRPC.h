@@ -1,7 +1,5 @@
 #pragma once
 
-#ifndef NKR_NO_GRPC
-
 #include "core/server/gen/libcore.pb.h"
 #include <QString>
 
@@ -54,4 +52,3 @@ namespace NekoGui_rpc {
 
     inline Client *defaultClient;
 } // namespace NekoGui_rpc
-#endif

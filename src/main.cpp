@@ -19,11 +19,6 @@
 #include "include/sys/windows/MiniDump.h"
 #include "include/sys/windows/vcCheck.h"
 #include "include/sys/windows/eventHandler.h"
-#pragma comment (lib, "cpr.lib")
-#pragma comment (lib, "libcurl.lib")
-#pragma comment (lib, "Ws2_32.lib")
-#pragma comment (lib, "Wldap32.lib")
-#pragma comment (lib, "Crypt32.lib")
 #endif
 
 void signal_handler(int signum) {
