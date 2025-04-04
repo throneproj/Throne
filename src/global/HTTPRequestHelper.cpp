@@ -1,42 +1,67 @@
 #include "include/global/HTTPRequestHelper.hpp"
 
-#include <QByteArray>
-#include <QMetaEnum>
+#include <QNetworkProxy>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QTimer>
-#include <QJsonObject>
-#include <QJsonArray>
 #include <QFile>
-#include <QDir>
 #include <QApplication>
-#include "cpr/cpr.h"
 
 #include "include/global/NekoGui.hpp"
 
 namespace NekoGui_network {
 
     NekoHTTPResponse NetworkRequestHelper::HttpGet(const QString &url) {
-        cpr::Session session;
+        QNetworkRequest request;
+        QNetworkAccessManager accessManager;
+        request.setUrl(url);
         if (NekoGui::dataStore->sub_use_proxy || NekoGui::dataStore->spmode_system_proxy) {
-            session.SetProxies({{"http", "127.0.0.1:" + QString(Int2String(NekoGui::dataStore->inbound_socks_port)).toStdString()},
-                                {"https", "127.0.0.1:" + QString(Int2String(NekoGui::dataStore->inbound_socks_port)).toStdString()}});
-            if (NekoGui::dataStore->started_id < 0 && NekoGui::dataStore->sub_use_proxy) {
+            QNetworkProxy p;
+            p.setType(QNetworkProxy::HttpProxy);
+            p.setHostName("127.0.0.1");
+            p.setPort(NekoGui::dataStore->inbound_socks_port);
+            accessManager.setProxy(p);
+            if (NekoGui::dataStore->started_id < 0) {
                 return NekoHTTPResponse{QObject::tr("Request with proxy but no profile started.")};
             }
         }
+        // Set attribute
+        request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+        request.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, NekoGui::dataStore->GetUserAgent());
         if (NekoGui::dataStore->sub_insecure) {
-            session.SetVerifySsl(cpr::VerifySsl{false});
+            QSslConfiguration c;
+            c.setPeerVerifyMode(QSslSocket::PeerVerifyMode::VerifyNone);
+            request.setSslConfiguration(c);
         }
-        session.SetUserAgent(cpr::UserAgent{NekoGui::dataStore->GetUserAgent().toStdString()});
-        session.SetTimeout(cpr::Timeout(10000));
-        session.SetUrl(cpr::Url(url.toStdString()));
-        auto resp = session.Get();
-        auto headerPairs = QList<QPair<QByteArray, QByteArray>>();
-        for (const auto &item: resp.header) {
-            headerPairs.append(std::pair<QByteArray, QByteArray>(QByteArray(item.first.c_str()), QByteArray(item.second.c_str())));
+        //
+        auto _reply = accessManager.get(request);
+        connect(_reply, &QNetworkReply::sslErrors, _reply, [](const QList<QSslError> &errors) {
+            QStringList error_str;
+            for (const auto &err: errors) {
+                error_str << err.errorString();
+            }
+            MW_show_log(QString("SSL Errors: %1 %2").arg(error_str.join(","), NekoGui::dataStore->sub_insecure ? "(Ignored)" : ""));
+        });
+        // Wait for response
+        auto abortTimer = new QTimer;
+        abortTimer->setSingleShot(true);
+        abortTimer->setInterval(10000);
+        connect(abortTimer, &QTimer::timeout, _reply, &QNetworkReply::abort);
+        abortTimer->start();
+        {
+            QEventLoop loop;
+            connect(_reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+            loop.exec();
         }
-        auto err = resp.error.message.empty() ? (resp.status_code == 200 ? "" : resp.status_line) : resp.error.message;
-        auto result = NekoHTTPResponse{ err.c_str(),
-                                       resp.text.c_str(), headerPairs};
+        if (abortTimer != nullptr) {
+            abortTimer->stop();
+            abortTimer->deleteLater();
+        }
+        //
+        auto result = NekoHTTPResponse{_reply->error() == QNetworkReply::NetworkError::NoError ? "" : _reply->errorString(),
+                                       _reply->readAll(), _reply->rawHeaderPairs()};
+        _reply->deleteLater();
         return result;
     }
 
@@ -47,38 +72,46 @@ namespace NekoGui_network {
         return "";
     }
 
-    QString NetworkRequestHelper::DownloadAsset(const QString &url, const QString &fileName, bool isTemp) {
-        cpr::Session session;
-        session.SetUrl(cpr::Url{url.toStdString()});
+    QString NetworkRequestHelper::DownloadAsset(const QString &url, const QString &fileName) {
+        QNetworkRequest request;
+        QNetworkAccessManager accessManager;
+        request.setUrl(url);
         if (NekoGui::dataStore->spmode_system_proxy) {
-            session.SetProxies({{"http", "127.0.0.1:" + QString(Int2String(NekoGui::dataStore->inbound_socks_port)).toStdString()},
-                                {"https", "127.0.0.1:" + QString(Int2String(NekoGui::dataStore->inbound_socks_port)).toStdString()}});
+            QNetworkProxy p;
+            p.setType(QNetworkProxy::HttpProxy);
+            p.setHostName("127.0.0.1");
+            p.setPort(NekoGui::dataStore->inbound_socks_port);
+            accessManager.setProxy(p);
+            if (NekoGui::dataStore->started_id < 0) {
+                return QObject::tr("Request with proxy but no profile started.");
+            }
         }
+
+        auto _reply = accessManager.get(request);
+        connect(_reply, &QNetworkReply::sslErrors, _reply, [](const QList<QSslError> &errors) {
+            QStringList error_str;
+            for (const auto &err: errors) {
+                error_str << err.errorString();
+            }
+            MW_show_log(QString("SSL Errors: %1").arg(error_str.join(",")));
+        });
+        QEventLoop loop;
+        connect(_reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+        loop.exec();
+        if(_reply->error() != QNetworkReply::NetworkError::NoError) {
+            return _reply->errorString();
+        }
+
         auto filePath = NekoGui::GetBasePath()+ "/" + fileName;
-        auto tempFilePath = QString(filePath);
-        if(isTemp) tempFilePath += ".1";
-        QFile::remove(tempFilePath);
-
-        std::ofstream fout;
-        fout.open(tempFilePath.toStdString(), std::ios::trunc | std::ios::out | std::ios::binary);
-        auto r = session.Download(fout);
-        fout.close();
-
-        auto tmpFile = QFile(tempFilePath);
-        if (r.status_code != 200) {
-            tmpFile.remove();
-            if (r.status_code == 0) {
-                return "Please check the URL and your network Connectivity";
-            }
-            return r.status_line.c_str();
+        auto file = QFile(filePath);
+        if (file.exists()) {
+            file.remove();
         }
-        if(isTemp) {
-            QFile(filePath).remove();
-            if (!tmpFile.rename(filePath)) {
-                tmpFile.remove();
-                return tmpFile.errorString();
-            }
+        if (!file.open(QIODevice::WriteOnly)) {
+            return QObject::tr("Could not open file.");
         }
+        file.write(_reply->readAll());
+        file.close();
         return "";
     }
 
