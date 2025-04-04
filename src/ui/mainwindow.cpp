@@ -2094,14 +2094,14 @@ void MainWindow::DownloadAssets(const QString &geoipUrl, const QString &geositeU
     MW_show_log("Start downloading...");
     QString errors;
     if (!geoipUrl.isEmpty()) {
-        auto resp = NetworkRequestHelper::DownloadAsset(geoipUrl, "geoip.db", true);
+        auto resp = NetworkRequestHelper::DownloadAsset(geoipUrl, "geoip.db");
         if (!resp.isEmpty()) {
             MW_show_log(QString(tr("Failed to download geoip: %1")).arg(resp));
             errors += "geoip: " + resp;
         }
     }
     if (!geositeUrl.isEmpty()) {
-        auto resp = NetworkRequestHelper::DownloadAsset(geositeUrl, "geosite.db", true);
+        auto resp = NetworkRequestHelper::DownloadAsset(geositeUrl, "geosite.db");
         if (!resp.isEmpty()) {
             MW_show_log(QString(tr("Failed to download geosite: %1")).arg(resp));
             errors += "\ngeosite: " + resp;
@@ -2193,7 +2193,7 @@ void MainWindow::CheckUpdate() {
         });
         return;
     }
-    
+
     auto resp = NetworkRequestHelper::HttpGet("https://api.github.com/repos/Mahdi-zarei/nekoray/releases");
     if (!resp.error.isEmpty()) {
         runOnUiThread([=] {
@@ -2201,7 +2201,7 @@ void MainWindow::CheckUpdate() {
         });
         return;
     }
-    
+
     QString assets_name, release_download_url, release_url, release_note, note_pre_release;
     bool exitFlag = false;
     QJsonArray array = QString2QJsonArray(resp.data);
@@ -2252,7 +2252,7 @@ void MainWindow::CheckUpdate() {
                 }
                 QString errors;
                 if (!release_download_url.isEmpty()) {
-                    auto res = NetworkRequestHelper::DownloadAsset(release_download_url, "nekoray.zip", false);
+                    auto res = NetworkRequestHelper::DownloadAsset(release_download_url, "nekoray.zip");
                     if (!res.isEmpty()) {
                         errors += res;
                     }
