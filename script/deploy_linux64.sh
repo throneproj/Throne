@@ -46,6 +46,7 @@ cp $QT_PLUGIN_PATH/platforms/libqxcb.so ./usr/plugins/platforms
 cp -r $QT_PLUGIN_PATH/platformthemes ./usr/plugins
 cp -r $QT_PLUGIN_PATH/imageformats ./usr/plugins
 cp -r $QT_PLUGIN_PATH/iconengines ./usr/plugins
+cp -r $QT_PLUGIN_PATH/tls ./usr/plugins
 patchelf --set-rpath '$ORIGIN/../../lib' ./usr/plugins/platforms/libqxcb.so
 patchelf --set-rpath '$ORIGIN/../../lib' ./usr/plugins/platformthemes/libqgtk3.so
 patchelf --set-rpath '$ORIGIN/../../lib' ./usr/plugins/platformthemes/libqxdgdesktopportal.so
