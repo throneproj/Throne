@@ -1608,8 +1608,7 @@ QPixmap grabScreen(QScreen* screen, bool& ok)
           "/org/freedesktop/portal/desktop/request/" +
             QDBusConnection::sessionBus().baseService().remove(':').replace('.','_') +
             "/" + token,
-          QDBusConnection::sessionBus(),
-          this);
+          QDBusConnection::sessionBus());
 
         QEventLoop loop;
         const auto gotSignal = [&p, &loop](uint status, const QVariantMap& map) {

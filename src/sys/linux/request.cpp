@@ -1,11 +1,4 @@
-//
-// Created by nullobsi on 2021/02/01.
-//
-/*
- * Implementation of interface class OrgFreedesktopPortalRequestInterface
- */
-
-#include "request.h"
+#include "include/sys/linux/request.h"
 OrgFreedesktopPortalRequestInterface::OrgFreedesktopPortalRequestInterface(
   const QString& service,
   const QString& path,

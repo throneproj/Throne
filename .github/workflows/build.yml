@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release Tag'
+        description: "Release Tag"
         required: true
       publish:
-        description: 'Publish: If want ignore'
+        description: "Publish: If want ignore"
         required: false
       artifact-pack:
-        description: 'artifact-pack: If want ignore'
+        description: "artifact-pack: If want ignore"
         required: false
 jobs:
   build-go:
@@ -141,12 +141,12 @@ jobs:
         shell: bash
         if: matrix.platform == 'ubuntu-22.04'
         run: |
-          sudo apt update && sudo apt upgrade -y
-          mkdir build 
-          cd build 
-          cmake -GNinja -DQT_VERSION_MAJOR=6  -DCMAKE_BUILD_TYPE=Release .. 
-          ninja 
-          cd .. 
+          sudo apt --fix-broken update && sudo apt upgrade -y
+          mkdir build
+          cd build
+          cmake -GNinja -DQT_VERSION_MAJOR=6  -DCMAKE_BUILD_TYPE=Release ..
+          ninja
+          cd ..
           ./script/deploy_linux64.sh
       - name: macOS - Generate MakeFile and Build
         shell: bash

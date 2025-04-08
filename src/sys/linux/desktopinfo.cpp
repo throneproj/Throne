@@ -1,4 +1,4 @@
-#include "desktopinfo.h"
+#include "include/sys/linux/desktopinfo.h"
 #include <QProcessEnvironment>
 
 DesktopInfo::DesktopInfo()

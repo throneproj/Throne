@@ -11,7 +11,7 @@ if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND WIN32)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 endif ()
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Network LinguistTools Charts)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Network LinguistTools Charts DBus)
 
 if (NKR_CROSS)
     set_property(TARGET Qt6::moc PROPERTY IMPORTED_LOCATION /usr/bin/moc)
@@ -259,7 +259,7 @@ target_sources(nekoray PRIVATE ${CMAKE_BINARY_DIR}/translations.qrc)
 # Target Link
 
 target_link_libraries(nekoray PRIVATE
-        Qt6::Widgets Qt6::Network Qt6::Charts
+        Qt6::Widgets Qt6::Network Qt6::Charts Qt6::DBus
         Threads::Threads
         ${NKR_EXTERNAL_TARGETS}
         ${PLATFORM_LIBRARIES}
