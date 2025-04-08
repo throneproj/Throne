@@ -5,6 +5,9 @@
 #include "include/global/NekoGui.hpp"
 #include "include/stats/connections/connectionLister.hpp"
 #include "utils/TrafficChart.h"
+#ifdef Q_OS_LINUX
+#include <QtDBus>
+#endif
 
 #ifndef MW_INTERFACE
 
@@ -243,3 +246,38 @@ inline MainWindow *GetMainWindow() {
 }
 
 void UI_InitMainWindow();
+
+#ifdef Q_OS_LINUX
+/*
+ * Proxy class for interface org.freedesktop.portal.Request
+ */
+class OrgFreedesktopPortalRequestInterface : public QDBusAbstractInterface
+{
+    Q_OBJECT
+public:
+    OrgFreedesktopPortalRequestInterface(const QString& service,
+                                         const QString& path,
+                                         const QDBusConnection& connection,
+                                         QObject* parent = nullptr);
+
+    ~OrgFreedesktopPortalRequestInterface();
+
+public Q_SLOTS:
+    inline QDBusPendingReply<> Close()
+    {
+        QList<QVariant> argumentList;
+        return asyncCallWithArgumentList(QStringLiteral("Close"), argumentList);
+    }
+
+Q_SIGNALS: // SIGNALS
+    void Response(uint response, QVariantMap results);
+};
+
+namespace org {
+namespace freedesktop {
+namespace portal {
+typedef ::OrgFreedesktopPortalRequestInterface Request;
+}
+}
+}
+#endif

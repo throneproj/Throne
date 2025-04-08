@@ -26,7 +26,6 @@
 #ifdef Q_OS_LINUX
 #include "include/sys/linux/LinuxCap.h"
 #include "include/sys/linux/desktopinfo.h"
-#include "include/sys/linux/request.h"
 #include <QDBusInterface>
 #include <QDBusReply>
 #include <QUuid>
@@ -1585,6 +1584,22 @@ void MainWindow::display_qr_link(bool nkrFormat) {
     w->exec();
     w->deleteLater();
 }
+
+#ifdef Q_OS_LINUX
+OrgFreedesktopPortalRequestInterface::OrgFreedesktopPortalRequestInterface(
+  const QString& service,
+  const QString& path,
+  const QDBusConnection& connection,
+  QObject* parent)
+  : QDBusAbstractInterface(service,
+                           path,
+                           "org.freedesktop.portal.Request",
+                           connection,
+                           parent)
+{}
+
+OrgFreedesktopPortalRequestInterface::~OrgFreedesktopPortalRequestInterface() {}
+#endif
 
 QPixmap grabScreen(QScreen* screen, bool& ok)
 {
