@@ -1657,13 +1657,10 @@ QPixmap grabScreen(QScreen* screen, bool& ok)
         if (p.isNull()) {
             ok = false;
         }
-    } else {
+	return p;
+    } else
 #endif
         return screen->grabWindow(0, geom.x(), geom.y(), geom.width(), geom.height());
-#ifdef Q_OS_LINUX
-    }
-    return p;
-#endif
 }
 
 void MainWindow::on_menu_scan_qr_triggered() {
