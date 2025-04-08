@@ -46,6 +46,7 @@ cp $QT_PLUGIN_PATH/platforms/libqxcb.so ./usr/plugins/platforms
 cp -r $QT_PLUGIN_PATH/platformthemes ./usr/plugins
 cp -r $QT_PLUGIN_PATH/imageformats ./usr/plugins
 cp -r $QT_PLUGIN_PATH/iconengines ./usr/plugins
+cp -r $QT_PLUGIN_PATH/tls ./usr/plugins
 patchelf --set-rpath '$ORIGIN/../../lib' ./usr/plugins/platforms/libqxcb.so
 patchelf --set-rpath '$ORIGIN/../../lib' ./usr/plugins/platformthemes/libqgtk3.so
 patchelf --set-rpath '$ORIGIN/../../lib' ./usr/plugins/platformthemes/libqxdgdesktopportal.so
@@ -53,7 +54,7 @@ patchelf --set-rpath '$ORIGIN/../../lib' ./usr/plugins/platformthemes/libqxdgdes
 # fix extra libs...
 mkdir ./usr/lib2
 ls ./usr/lib/
-cp ./usr/lib/libQt* ./usr/lib/libxcb-util* ./usr/lib/libicuuc* ./usr/lib/libicui18n* ./usr/lib/libicudata* ./usr/lib2
+cp ./usr/lib/libQt* ./usr/lib/libxcb-util* ./usr/lib/libicuuc* ./usr/lib/libicui18n* ./usr/lib/libicudata* ./usr/lib/libssl* ./usr/lib/libcrypto* ./usr/lib2
 rm -r ./usr/lib
 mv ./usr/lib2 ./usr/lib
 
