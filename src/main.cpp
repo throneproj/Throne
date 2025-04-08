@@ -20,6 +20,9 @@
 #include "include/sys/windows/vcCheck.h"
 #include "include/sys/windows/eventHandler.h"
 #endif
+#ifdef Q_OS_LINUX
+#include "include/sys/linux/desktopinfo.h"
+#endif
 
 void signal_handler(int signum) {
     if (GetMainWindow()) {
@@ -59,6 +62,12 @@ int main(int argc, char* argv[]) {
     // Core dump
 #ifdef Q_OS_WIN
     Windows_SetCrashHandler();
+#endif
+#ifdef Q_OS_LINUX
+    DesktopInfo info;
+    if (info.windowManager() == DesktopInfo::GNOME) {
+        qputenv("QT_QPA_PLATFORM", "xcb");
+    }
 #endif
 
     QApplication::setAttribute(Qt::AA_DontUseNativeDialogs);

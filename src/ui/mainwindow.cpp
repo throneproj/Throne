@@ -25,6 +25,11 @@
 #else
 #ifdef Q_OS_LINUX
 #include "include/sys/linux/LinuxCap.h"
+#include "include/sys/linux/desktopinfo.h"
+#include "include/sys/linux/request.h"
+#include <QDBusInterface>
+#include <QDBusReply>
+#include <QUuid>
 #endif
 #include <unistd.h>
 #endif
@@ -1581,6 +1586,72 @@ void MainWindow::display_qr_link(bool nkrFormat) {
     w->deleteLater();
 }
 
+QPixmap grabScreen(QScreen* screen, bool& ok)
+{
+    QPixmap p;
+    QRect geom = screen->geometry();
+#ifdef Q_OS_LINUX
+    DesktopInfo m_info;
+    if (m_info.waylandDetected()) {
+        QDBusInterface screenshotInterface(
+          QStringLiteral("org.freedesktop.portal.Desktop"),
+          QStringLiteral("/org/freedesktop/portal/desktop"),
+          QStringLiteral("org.freedesktop.portal.Screenshot"));
+
+        // unique token
+        QString token =
+          QUuid::createUuid().toString().remove('-').remove('{').remove('}');
+
+        // premake interface
+        auto* request = new OrgFreedesktopPortalRequestInterface(
+          QStringLiteral("org.freedesktop.portal.Desktop"),
+          "/org/freedesktop/portal/desktop/request/" +
+            QDBusConnection::sessionBus().baseService().remove(':').replace('.','_') +
+            "/" + token,
+          QDBusConnection::sessionBus(),
+          this);
+
+        QEventLoop loop;
+        const auto gotSignal = [&p, &loop](uint status, const QVariantMap& map) {
+            if (status == 0) {
+                // Parse this as URI to handle unicode properly
+                QUrl uri = map.value("uri").toString();
+                QString uriString = uri.toLocalFile();
+                p = QPixmap(uriString);
+                p.setDevicePixelRatio(qApp->devicePixelRatio());
+                QFile imgFile(uriString);
+                imgFile.remove();
+            }
+            loop.quit();
+        };
+
+        // prevent racy situations and listen before calling screenshot
+        QMetaObject::Connection conn = QObject::connect(
+          request, &org::freedesktop::portal::Request::Response, gotSignal);
+
+        screenshotInterface.call(
+          QStringLiteral("Screenshot"),
+          "",
+          QMap<QString, QVariant>({ { "handle_token", QVariant(token) },
+                                    { "interactive", QVariant(false) } }));
+
+        loop.exec();
+        QObject::disconnect(conn);
+        request->Close().waitForFinished();
+        request->deleteLater();
+
+        if (p.isNull()) {
+            ok = false;
+        }
+    } else {
+#endif
+        return screen->grabWindow(0, geom.x(), geom.y(), geom.width(), geom.height());
+#ifdef Q_OS_LINUX
+    }
+    return p;
+#endif
+}
+
 void MainWindow::on_menu_scan_qr_triggered() {
 #ifndef NKR_NO_ZXING
     using namespace ZXingQt;
@@ -1588,24 +1659,27 @@ void MainWindow::on_menu_scan_qr_triggered() {
     hide();
     QThread::sleep(1);
 
-    auto screen = QGuiApplication::primaryScreen();
-    auto geom = screen->geometry();
-    auto qpx = screen->grabWindow(0, geom.x(), geom.y(), geom.width(), geom.height());
+    bool ok = true;
+    QPixmap qpx(grabScreen(QGuiApplication::primaryScreen(), ok));
 
     show();
+    if (ok) {
+        auto hints = DecodeHints()
+                        .setFormats(BarcodeFormat::QRCode)
+                        .setTryRotate(false)
+                        .setBinarizer(Binarizer::FixedThreshold);
 
-    auto hints = DecodeHints()
-                     .setFormats(BarcodeFormat::QRCode)
-                     .setTryRotate(false)
-                     .setBinarizer(Binarizer::FixedThreshold);
-
-    auto result = ReadBarcode(qpx.toImage(), hints);
-    const auto &text = result.text();
-    if (text.isEmpty()) {
-        MessageBoxInfo(software_name, tr("QR Code not found"));
-    } else {
-        show_log_impl("QR Code Result:\n" + text);
-        NekoGui_sub::groupUpdater->AsyncUpdate(text);
+        auto result = ReadBarcode(qpx.toImage(), hints);
+        const auto &text = result.text();
+        if (text.isEmpty()) {
+            MessageBoxInfo(software_name, tr("QR Code not found"));
+        } else {
+            show_log_impl("QR Code Result:\n" + text);
+            NekoGui_sub::groupUpdater->AsyncUpdate(text);
+        }
+    }
+    else {
+        MessageBoxInfo(software_name, tr("Unable to capture screen"));
     }
 #endif
 }
