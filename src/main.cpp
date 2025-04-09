@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
 #endif
 #ifdef Q_OS_LINUX
     DesktopInfo info;
-    if (info.windowManager() == DesktopInfo::GNOME) {
+    if (info.waylandDetected()) {
         qputenv("QT_QPA_PLATFORM", "xcb");
     }
 #endif
