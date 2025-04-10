@@ -1820,11 +1820,11 @@ Split by line.</source>
     </message>
     <message>
         <source>Traffic Graph</source>
-        <translation type="unfinished"></translation>
+        <translation>流量图</translation>
     </message>
     <message>
         <source>Failed to download update assets</source>
-        <translation type="unfinished"></translation>
+        <translation>无法下载更新资源</translation>
     </message>
 </context>
 <context>
@@ -1967,36 +1967,35 @@ Release note:
     </message>
     <message>
         <source>Could not open file.</source>
-        <translation type="unfinished"></translation>
+        <translation>无法打开文件。</translation>
     </message>
     <message>
         <source>Not official support platform</source>
-        <translation type="unfinished"></translation>
+        <translation>非官方支持平台</translation>
     </message>
     <message>
         <source>Requesting update error: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>请求更新错误：%1</translation>
     </message>
     <message>
         <source>Traffic Chart</source>
-        <translation type="unfinished"></translation>
+        <translation>流量图表</translation>
     </message>
     <message>
         <source>Proxy Dl</source>
-        <translation type="unfinished"></translation>
+        <translation>代理下载</translation>
     </message>
     <message>
         <source>Proxy Ul</source>
-        <translation type="unfinished"></translation>
+        <translation>代理上传</translation>
     </message>
     <message>
         <source>Direct Dl</source>
-        <translation type="unfinished"></translation>
+        <translation>直连下载</translation>
     </message>
     <message>
         <source>Direct Ul</source>
-        <translation type="unfinished"></translation>
-    </message>
+        <translation>直连上传</translation>    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
