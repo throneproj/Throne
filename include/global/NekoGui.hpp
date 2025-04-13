@@ -8,13 +8,13 @@
 // Switch core support
 
 namespace NekoGui {
-    QString FindCoreAsset(const QString &name);
-
     QString FindNekoBoxCoreRealPath();
 
     bool IsAdmin(bool forceRenew=false);
 
     QString GetBasePath();
+
+    QString GetCoreAssetDir(const QString &name);
 
     bool NeedGeoAssets();
 } // namespace NekoGui

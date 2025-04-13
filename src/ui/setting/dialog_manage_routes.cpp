@@ -141,8 +141,14 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     });
 
     bool ok;
-    auto geoIpList = NekoGui_rpc::defaultClient->GetGeoList(&ok, NekoGui_rpc::GeoRuleSetType::ip, NekoGui::GetBasePath());
-    auto geoSiteList = NekoGui_rpc::defaultClient->GetGeoList(&ok, NekoGui_rpc::GeoRuleSetType::site, NekoGui::GetBasePath());
+    auto geoIpList = NekoGui_rpc::defaultClient->GetGeoList(&ok, NekoGui_rpc::GeoRuleSetType::ip, [] {
+        QString geoIpDir = NekoGui::GetCoreAssetDir("geoip.db");
+        return geoIpDir.isEmpty() ? NekoGui::GetBasePath() : geoIpDir;
+    }());
+    auto geoSiteList = NekoGui_rpc::defaultClient->GetGeoList(&ok, NekoGui_rpc::GeoRuleSetType::site, [] {
+        QString geoSiteDir = NekoGui::GetCoreAssetDir("geosite.db");
+        return geoSiteDir.isEmpty() ? NekoGui::GetBasePath() : geoSiteDir;
+    }());
     QStringList ruleItems = {"domain:", "suffix:", "regex:"};
     for (const auto& geoIP : geoIpList) {
         ruleItems.append("ruleset:"+geoIP);

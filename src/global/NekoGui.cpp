@@ -354,24 +354,6 @@ namespace NekoGui {
 
     // System Utils
 
-    QString FindCoreAsset(const QString &name) {
-        QStringList search{QApplication::applicationDirPath()};
-        search << "/usr/share/sing-geoip";
-        search << "/usr/share/sing-geosite";
-        search << "/usr/share/v2ray";
-        search << "/usr/share/sing-box";
-        search << "/usr/local/share/v2ray";
-        search << "/opt/v2ray";
-        for (const auto &dir: search) {
-            if (dir.isEmpty()) continue;
-            QFileInfo asset(dir + "/" + name);
-            if (asset.exists()) {
-                return asset.absoluteFilePath();
-            }
-        }
-        return {};
-    }
-
     QString FindNekoBoxCoreRealPath() {
         auto fn = QApplication::applicationDirPath() + "/nekobox_core";
         auto fi = QFileInfo(fn);
@@ -404,10 +386,27 @@ namespace NekoGui {
         return qApp->applicationDirPath();
     }
 
+    QString GetCoreAssetDir(const QString &name) {
+        QStringList search = {
+            QApplication::applicationDirPath(),
+            QStringLiteral("/usr/share/sing-geoip"),
+            QStringLiteral("/usr/share/sing-geosite"),
+            QStringLiteral("/usr/share/sing-box"),
+        };
+
+        for (const auto &dir: search) {
+            if (dir.isEmpty())
+                continue;
+
+            QFileInfo asset(QStringLiteral("%1/%2").arg(dir, name));
+            if (asset.exists())
+                return dir;
+        }
+
+        return QString();
+    }
+
     bool NeedGeoAssets(){
-        auto path = GetBasePath();
-        auto geoIP = QFile(path + "/geoip.db");
-        auto geoSite = QFile(path + "/geosite.db");
-        return !geoIP.exists() || !geoSite.exists();
+        return GetCoreAssetDir("geoip.db").isEmpty() || GetCoreAssetDir("geosite.db").isEmpty();
     }
 } // namespace NekoGui
