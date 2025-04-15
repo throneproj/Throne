@@ -63,12 +63,6 @@ int main(int argc, char* argv[]) {
 #ifdef Q_OS_WIN
     Windows_SetCrashHandler();
 #endif
-#ifdef Q_OS_LINUX
-    DesktopInfo info;
-    if (info.waylandDetected()) {
-        qputenv("QT_QPA_PLATFORM", "xcb");
-    }
-#endif
 
     QApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
     QApplication::setQuitOnLastWindowClosed(false);
