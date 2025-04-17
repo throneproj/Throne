@@ -52,9 +52,11 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     connect(ui->language, &QComboBox::currentIndexChanged, this, [=](int index) {
         CACHE.needRestart = true;
     });
-    connect(ui->font, &QComboBox::currentTextChanged, this, [=](const QString &font) {
+    connect(ui->font, &QComboBox::currentTextChanged, this, [=](const QString &fontName) {
+        auto font = qApp->font();
+        font.setFamily(fontName);
         qApp->setFont(font);
-        NekoGui::dataStore->font = font;
+        NekoGui::dataStore->font = fontName;
         NekoGui::dataStore->Save();
         adjustSize();
     });

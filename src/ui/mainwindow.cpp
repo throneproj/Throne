@@ -147,7 +147,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         DS_cores);
 
     if (!NekoGui::dataStore->font.isEmpty()) {
-        qApp->setFont(NekoGui::dataStore->font);
+        auto font = qApp->font();
+        font.setFamily(NekoGui::dataStore->font);
+        qApp->setFont(font);
     }
     if (NekoGui::dataStore->font_size != 0) {
         auto font = qApp->font();
