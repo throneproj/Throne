@@ -105,7 +105,6 @@ jobs:
       # ========================================================================================================= Qt Install
       - name: Install Qt
         uses: jurplel/install-qt-action@v4.1.1
-        if: matrix.platform == 'windows-latest'
         with:
           arch: ${{ matrix.qt_arch }}
           version: ${{ matrix.qt_version }}
