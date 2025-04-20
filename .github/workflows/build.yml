@@ -93,9 +93,9 @@ jobs:
         uses: actions/checkout@v4.2.2
         with:
           submodules: "recursive"
-      - name: Install MSVC compiler
+      - name: Install mingw
         if: matrix.platform == 'windows-latest'
-        uses: ilammy/msvc-dev-cmd@v1.13.0
+        uses: bwoodsend/setup-winlibs-action@v1.15
 
       - name: Download Artifacts
         uses: actions/download-artifact@v4.1.8
@@ -105,6 +105,7 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4.1.1
         with:
+          arch: win64_mingw
           version: ${{ matrix.qt_version }}
           setup-python: true
           modules: qtcharts
@@ -128,8 +129,8 @@ jobs:
         shell: bash
         if: matrix.platform == 'windows-latest'
         env:
-          CC: cl.exe
-          CXX: cl.exe
+          CC: gcc.exe
+          CXX: g++.exe
         run: |
           mkdir build
           cd build
