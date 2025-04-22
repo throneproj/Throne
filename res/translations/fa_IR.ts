@@ -2127,4 +2127,15 @@ Direct: %2</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
+<context>
+    <name>SpeedWidget</name>
+    <message>
+        <source>Proxy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Direct</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
 </TS>

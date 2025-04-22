@@ -2153,4 +2153,15 @@ Release note:
         <translation type="unfinished">Некоторые правила не удалось добавить, исправьте их перед сохранением:</translation>
     </message>
 </context>
+<context>
+    <name>SpeedWidget</name>
+    <message>
+        <source>Proxy</source>
+        <translation>Прокси</translation>
+    </message>
+    <message>
+        <source>Direct</source>
+        <translation>Напрямую</translation>
+    </message>
+</context>
 </TS>

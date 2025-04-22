@@ -47,7 +47,6 @@
 #include <QFileInfo>
 #include <QStyleHints>
 #include <QToolTip>
-#include <QtCharts>
 #include <random>
 #include <3rdparty/QHotkey/qhotkey.h>
 #include <include/api/gRPC.h>
@@ -89,7 +88,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(qApp->styleHints(), &QStyleHints::colorSchemeChanged, this, [=](const Qt::ColorScheme& scheme) {
         new SyntaxHighlighter(scheme == Qt::ColorScheme::Dark, qvLogDocument);
         themeManager->ApplyTheme(NekoGui::dataStore->theme, true);
-        if (trafficGraph) trafficGraph->updateTheme();
     });
     connect(themeManager, &ThemeManager::themeChanged, this, [=](const QString& theme){
         if (theme.toLower().contains("vista")) {
@@ -256,9 +254,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         }
     });
 
-    // setup Traffic Graph
-    trafficGraph = new TrafficChart();
-    ui->graph_tab->layout()->addWidget(trafficGraph->getChartView());
+    // setup Speed Chart
+    speedChartWidget = new SpeedWidget(this);
+    ui->graph_tab->layout()->addWidget(speedChartWidget);
 
     // table UI
     ui->proxyListTable->callback_save_order = [=] {
@@ -1165,7 +1163,15 @@ void MainWindow::refresh_status(const QString &traffic_update) {
 
 void MainWindow::update_traffic_graph(int proxyDl, int proxyUp, int directDl, int directUp)
 {
-    if (trafficGraph) trafficGraph->updateChart(proxyDl, proxyUp, directDl, directUp);;
+    if (speedChartWidget) {
+        QMap<SpeedWidget::GraphType, long> pointData;
+        pointData[SpeedWidget::OUTBOUND_PROXY_UP] = proxyUp;
+        pointData[SpeedWidget::OUTBOUND_PROXY_DOWN] = proxyDl;
+        pointData[SpeedWidget::OUTBOUND_DIRECT_UP] = directUp;
+        pointData[SpeedWidget::OUTBOUND_DIRECT_DOWN] = directDl;
+
+        speedChartWidget->AddPointData(pointData);
+    }
 }
 
 // table显示

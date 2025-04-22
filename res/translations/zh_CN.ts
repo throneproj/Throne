@@ -2083,7 +2083,7 @@ Release note:
     </message>
     <message>
         <source>Direct</source>
-        <translation>直接</translation>
+        <translation>直连</translation>
     </message>
     <message>
         <source>Proxy</source>
@@ -2139,6 +2139,17 @@ Release note:
         <source>Some rules could not be added, fix them before saving:
 </source>
         <translation>某些规则无法添加，请在保存之前修复它们：</translation>
+    </message>
+</context>
+<context>
+    <name>SpeedWidget</name>
+    <message>
+        <source>Proxy</source>
+        <translation>代理</translation>
+    </message>
+    <message>
+        <source>Direct</source>
+        <translation>直连</translation>
     </message>
 </context>
 </TS>
