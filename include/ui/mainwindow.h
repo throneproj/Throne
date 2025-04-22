@@ -4,7 +4,7 @@
 
 #include "include/global/NekoGui.hpp"
 #include "include/stats/connections/connectionLister.hpp"
-#include "utils/TrafficChart.h"
+#include "3rdparty/qv2ray/v2/ui/widgets/speedchart/SpeedWidget.hpp"
 #ifdef Q_OS_LINUX
 #include <QtDBus>
 #endif
@@ -191,7 +191,7 @@ private:
     //
     int toolTipID;
     //
-    TrafficChart* trafficGraph;
+    SpeedWidget *speedChartWidget;
 
     QList<std::shared_ptr<NekoGui::ProxyEntity>> get_now_selected_list();
 
