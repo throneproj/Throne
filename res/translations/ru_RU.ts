@@ -1835,7 +1835,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Failed to download update assets</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Не удалось загрузить обновления ресурсов</translation>
     </message>
 </context>
 <context>
@@ -1978,15 +1978,15 @@ Release note:
     </message>
     <message>
         <source>Could not open file.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Не удалось открыть файл.</translation>
     </message>
     <message>
         <source>Not official support platform</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Не официальная платформа поддержки</translation>
     </message>
     <message>
         <source>Requesting update error: %1</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Ошибка запроса обновления: %1</translation>
     </message>
     <message>
         <source>Traffic Chart</source>
@@ -1994,19 +1994,19 @@ Release note:
     </message>
     <message>
         <source>Proxy Dl</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Прокси Dl</translation>
     </message>
     <message>
         <source>Proxy Ul</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Прокси Ul</translation>
     </message>
     <message>
         <source>Direct Dl</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Напрямую Dl</translation>
     </message>
     <message>
         <source>Direct Ul</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Напрямую Ul</translation>
     </message>
 </context>
 <context>
