@@ -18,10 +18,3 @@ tar xvzf artifacts.tgz -C ../../
 cd ../..
 
 mv $DEPLOYMENT/public_res/* $DEST
-
-#### deploy qt & DLL runtime ####
-pushd $DEST
-windeployqt nekoray.exe --no-translations --no-system-d3d-compiler --no-opengl-sw --no-svg --verbose 2
-popd
-
-rm -rf $DEST/dxcompiler.dll $DEST/dxil.dll
