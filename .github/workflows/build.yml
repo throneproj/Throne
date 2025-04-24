@@ -96,16 +96,25 @@ jobs:
       - name: Install mingw
         if: matrix.platform == 'windows-latest'
         uses: bwoodsend/setup-winlibs-action@v1.15
+      - name: Install ninja-build tool
+        uses: seanmiddleditch/gha-setup-ninja@v5
 
       - name: Download Artifacts
         uses: actions/download-artifact@v4.1.8
         with:
           path: download-artifact
       # ========================================================================================================= Qt Install
-      - name: Install Qt Windows
-        shell: bash
+      - name: Qt static Cache
+        id: cache-static-Qt
         if: matrix.platform == 'windows-latest'
-        run: bash ./script/download_qtsdk_win.sh
+        uses: actions/cache@v4.2.0
+        with:
+          path: qt6/build
+          key: QtStaticCache-${{ matrix.platform }}-${{ matrix.target }}-Qt${{ matrix.qt_version }}
+      - name: Install Qt Windows
+        shell: powershell
+        if: matrix.platform == 'windows-latest' && steps.cache-static-Qt.outputs.cache-hit != 'true'
+        run: ./script/build_qt_static_windows.bat ${{ matrix.qt_version }}
       - name: Install Qt
         uses: jurplel/install-qt-action@v4.1.1
         if: matrix.platform != 'windows-latest'
@@ -114,9 +123,7 @@ jobs:
           setup-python: true
           cache: true
           cache-key-prefix: QtCache-${{ matrix.platform }}-${{ matrix.target }}
-      # ========================================================================================================= Install Ninja and Build deps
-      - name: Install ninja-build tool
-        uses: seanmiddleditch/gha-setup-ninja@v5
+      # ========================================================================================================= Build deps
       - name: Cache Download
         id: cache-deps
         uses: actions/cache@v4.2.0
@@ -135,7 +142,7 @@ jobs:
           CC: gcc.exe
           CXX: g++.exe
         run: |
-          export CMAKE_PREFIX_PATH=$PWD/qtsdk/Qt/mingw_64/lib/cmake
+          export CMAKE_PREFIX_PATH=$PWD/qt6/build/lib/cmake
           mkdir build
           cd build
           cmake -GNinja -DQT_VERSION_MAJOR=6 -DCMAKE_CXX_FLAGS="-static -DNDEBUG -s" ..
