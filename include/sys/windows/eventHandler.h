@@ -2,7 +2,7 @@
 
 #include <QAbstractNativeEventFilter>
 #include <QByteArray>
-
+#include <functional>
 
 class PowerOffTaskkillFilter : public QAbstractNativeEventFilter
 {

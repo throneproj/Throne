@@ -138,7 +138,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->ntp_server->setText(NekoGui::dataStore->ntp_server_address);
     ui->ntp_port->setText(Int2String(NekoGui::dataStore->ntp_server_port));
     ui->ntp_interval->setCurrentText(NekoGui::dataStore->ntp_interval);
-    connect(ui->ntp_enable, &QCheckBox::checkStateChanged, this, [=](const bool &state) {
+    connect(ui->ntp_enable, &QCheckBox::stateChanged, this, [=](const bool &state) {
         ui->ntp_server->setEnabled(state);
         ui->ntp_port->setEnabled(state);
         ui->ntp_interval->setEnabled(state);

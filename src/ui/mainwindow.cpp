@@ -45,7 +45,9 @@
 #include <QMessageBox>
 #include <QDir>
 #include <QFileInfo>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
 #include <QStyleHints>
+#endif
 #include <QToolTip>
 #include <random>
 #include <3rdparty/QHotkey/qhotkey.h>
@@ -79,16 +81,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     // setup log
     ui->splitter->restoreState(DecodeB64IfValid(NekoGui::dataStore->splitter_state));
-    new SyntaxHighlighter(qApp->styleHints()->colorScheme() == Qt::ColorScheme::Dark || NekoGui::dataStore->theme.toLower() == "qdarkstyle", qvLogDocument);
+    new SyntaxHighlighter(isDarkMode() || NekoGui::dataStore->theme.toLower() == "qdarkstyle", qvLogDocument);
     qvLogDocument->setUndoRedoEnabled(false);
     ui->masterLogBrowser->setUndoRedoEnabled(false);
     ui->masterLogBrowser->setDocument(qvLogDocument);
     ui->masterLogBrowser->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
     connect(qApp->styleHints(), &QStyleHints::colorSchemeChanged, this, [=](const Qt::ColorScheme& scheme) {
         new SyntaxHighlighter(scheme == Qt::ColorScheme::Dark, qvLogDocument);
         themeManager->ApplyTheme(NekoGui::dataStore->theme, true);
     });
+#endif
     connect(themeManager, &ThemeManager::themeChanged, this, [=](const QString& theme){
         if (theme.toLower().contains("vista")) {
             // light themes
@@ -98,7 +102,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             new SyntaxHighlighter(true, qvLogDocument);
         } else {
             // bi-mode themes, follow system preference
-            new SyntaxHighlighter(qApp->styleHints()->colorScheme() == Qt::ColorScheme::Dark, qvLogDocument);
+            new SyntaxHighlighter(isDarkMode(), qvLogDocument);
         }
     });
     connect(ui->masterLogBrowser->verticalScrollBar(), &QSlider::valueChanged, this, [=](int value) {
