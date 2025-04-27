@@ -112,9 +112,9 @@ jobs:
           path: qt6/build
           key: QtStaticCache-${{ matrix.platform }}-${{ matrix.target }}-Qt${{ matrix.qt_version }}
       - name: Install Qt Windows
-        shell: powershell
+        shell: bash
         if: matrix.platform == 'windows-latest' && steps.cache-static-Qt.outputs.cache-hit != 'true'
-        run: ./script/build_qt_static_windows.bat ${{ matrix.qt_version }}
+        run: ./script/build_qt_static_windows.sh ${{ matrix.qt_version }}
       - name: Install Qt
         uses: jurplel/install-qt-action@v4.1.1
         if: matrix.platform != 'windows-latest'
@@ -138,14 +138,11 @@ jobs:
       - name: Windows - Generate MakeFile and Build
         shell: bash
         if: matrix.platform == 'windows-latest'
-        env:
-          CC: gcc.exe
-          CXX: g++.exe
         run: |
           export CMAKE_PREFIX_PATH=$PWD/qt6/build/lib/cmake
           mkdir build
           cd build
-          cmake -GNinja -DQT_VERSION_MAJOR=6 -DCMAKE_CXX_FLAGS="-static -DNDEBUG -s" ..
+          cmake -GNinja -DCMAKE_CXX_FLAGS="-static -DNDEBUG -s" ..
           ninja -j2
           cd ..
           ./script/deploy_windows64.sh
@@ -156,7 +153,7 @@ jobs:
           sudo apt update && sudo apt upgrade -y
           mkdir build
           cd build
-          cmake -GNinja -DQT_VERSION_MAJOR=6  -DCMAKE_BUILD_TYPE=Release ..
+          cmake -GNinja -DCMAKE_BUILD_TYPE=Release ..
           ninja
           cd ..
           ./script/deploy_linux64.sh
@@ -166,7 +163,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -GNinja -DQT_VERSION_MAJOR=6 -DCMAKE_BUILD_TYPE=Release -DNKR_PACKAGE_MACOS=1 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=${{ matrix.target }} ..
+          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DNKR_PACKAGE_MACOS=1 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=${{ matrix.target }} ..
           ninja
           cd ..
           ./script/deploy_macos.sh ${{ matrix.target }}
