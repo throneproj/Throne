@@ -2,7 +2,7 @@
 
 Qt based Desktop cross-platform GUI proxy client, empowered by [Sing-box](https://github.com/SagerNet/sing-box)
 
-Supports Windows / Linux / MacOS out of the box. For windows 7, use [nekoray-win7](https://github.com/parhelia512/nekoray-win7)
+Supports Windows / Linux / MacOS out of the box. For Windows 7 / 8 / 8.1, use [nekoray-win7](https://github.com/parhelia512/nekoray-win7)
 
 ![image](https://github.com/user-attachments/assets/ebba3f17-01e6-4066-8eaa-b9a35dd35b08)
 
