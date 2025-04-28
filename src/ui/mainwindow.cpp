@@ -17,7 +17,7 @@
 
 #include "3rdparty/qrcodegen.hpp"
 #include "3rdparty/qv2ray/v2/ui/LogHighlighter.hpp"
-#include "3rdparty/ZxingQtReader.hpp"
+#include "3rdparty/quirc/quirc.h"
 #include "include/ui/group/dialog_edit_group.h"
 
 #ifdef Q_OS_WIN
@@ -1691,10 +1691,46 @@ QPixmap grabScreen(QScreen* screen, bool& ok)
         return screen->grabWindow(0, geom.x(), geom.y(), geom.width(), geom.height());
 }
 
-void MainWindow::on_menu_scan_qr_triggered() {
-#ifndef NKR_NO_ZXING
-    using namespace ZXingQt;
+QString readQrcode(const QImage &image)
+{
+    if (quirc_resize(m_qr, image.width(), image.height()) < 0)
+    {
+        return "";
+    }
 
+    uint8_t *rawImage = quirc_begin(m_qr, nullptr, nullptr);
+    if (rawImage == nullptr)
+    {
+        return "";
+    }
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
+    std::copy(image.constBits(), image.constBits() + image.sizeInBytes(), rawImage);
+#else
+    std::copy(image.constBits(), image.constBits() + image.byteCount(), rawImage);
+#endif
+    quirc_end(m_qr);
+
+    const int count = quirc_count(m_qr);
+    if (count < 0)
+    {
+        return "";
+    }
+
+    for (int index = 0; index < count; ++index)
+    {
+        quirc_code code;
+        quirc_extract(m_qr, index, &code);
+
+        quirc_data data;
+        const quirc_decode_error_t err = quirc_decode(&code, &data);
+        if (err == QUIRC_SUCCESS)
+        {
+            return QLatin1String((const char *)data.payload);
+        }
+    }
+}
+
+void MainWindow::on_menu_scan_qr_triggered() {
     hide();
     QThread::sleep(1);
 
@@ -1708,8 +1744,7 @@ void MainWindow::on_menu_scan_qr_triggered() {
                         .setTryRotate(false)
                         .setBinarizer(Binarizer::FixedThreshold);
 
-        auto result = ReadBarcode(qpx.toImage(), hints);
-        const auto &text = result.text();
+        const QString text = readQrcode(qpx.toImage().convertToFormat(QImage::Format_Grayscale8));
         if (text.isEmpty()) {
             MessageBoxInfo(software_name, tr("QR Code not found"));
         } else {
@@ -1720,7 +1755,6 @@ void MainWindow::on_menu_scan_qr_triggered() {
     else {
         MessageBoxInfo(software_name, tr("Unable to capture screen"));
     }
-#endif
 }
 
 void MainWindow::on_menu_clear_test_result_triggered() {

@@ -41,7 +41,7 @@ Various formats are supported, including share links, JSON array of outbounds an
 - [Qt](https://www.qt.io/)
 - [protobuf](https://github.com/protocolbuffers/protobuf)
 - [yaml-cpp](https://github.com/jbeder/yaml-cpp)
-- [zxing-cpp](https://github.com/nu-book/zxing-cpp)
+- [quirc](https://github.com/dlbeer/quirc)
 - [QHotkey](https://github.com/Skycoder42/QHotkey)
 
 ## FAQ

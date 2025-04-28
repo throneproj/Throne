@@ -22,19 +22,6 @@ clean() {
   rm -rf dl.zip yaml-* zxing-* protobuf
 }
 
-#### ZXing v2.3.0 ####
-curl -L -o dl.zip https://github.com/zxing-cpp/zxing-cpp/archive/refs/tags/v2.3.0.zip
-unzip dl.zip
-
-cd zxing-*
-mkdir -p build
-cd build
-
-$cmake .. -GNinja -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=OFF -DBUILD_BLACKBOX_TESTS=OFF -DCMAKE_OSX_ARCHITECTURES=$1 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_INSTALL_PREFIX=$INSTALL_PREFIX
-ninja && ninja install
-
-cd ../..
-
 #### yaml-cpp ####
 curl -L -o dl.zip https://github.com/jbeder/yaml-cpp/archive/refs/tags/yaml-cpp-0.7.0.zip
 unzip dl.zip

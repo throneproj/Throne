@@ -88,6 +88,11 @@ set(PROJECT_SOURCES
         3rdparty/qv2ray/v2/ui/widgets/speedchart/SpeedWidget.hpp
         3rdparty/qv2ray/v2/proxy/QvProxyConfigurator.cpp
 
+        3rdparty/quirc/decode.c
+        3rdparty/quirc/identify.c
+        3rdparty/quirc/quirc.c
+        3rdparty/quirc/version_db.c
+
         src/api/gRPC.cpp
 
         src/dataStore/Database.cpp
