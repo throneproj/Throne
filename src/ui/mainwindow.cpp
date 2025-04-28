@@ -1728,6 +1728,7 @@ QString readQrcode(const QImage &image)
             return QLatin1String((const char *)data.payload);
         }
     }
+    return "";
 }
 
 void MainWindow::on_menu_scan_qr_triggered() {
@@ -1739,11 +1740,6 @@ void MainWindow::on_menu_scan_qr_triggered() {
 
     show();
     if (ok) {
-        auto hints = DecodeHints()
-                        .setFormats(BarcodeFormat::QRCode)
-                        .setTryRotate(false)
-                        .setBinarizer(Binarizer::FixedThreshold);
-
         const QString text = readQrcode(qpx.toImage().convertToFormat(QImage::Format_Grayscale8));
         if (text.isEmpty()) {
             MessageBoxInfo(software_name, tr("QR Code not found"));

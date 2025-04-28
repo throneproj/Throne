@@ -59,9 +59,6 @@ list(APPEND NKR_EXTERNAL_TARGETS myproto)
 find_package(yaml-cpp CONFIG REQUIRED) # only Release is built
 list(APPEND NKR_EXTERNAL_TARGETS yaml-cpp)
 
-find_package(ZXing CONFIG REQUIRED)
-list(APPEND NKR_EXTERNAL_TARGETS ZXing::ZXing)
-
 set(BUILD_SHARED_LIBS OFF)
 list(APPEND NKR_EXTERNAL_TARGETS qhotkey)
 
