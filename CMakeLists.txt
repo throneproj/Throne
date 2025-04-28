@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(nekoray VERSION 0.1 LANGUAGES CXX)
+project(nekoray VERSION 0.1)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
