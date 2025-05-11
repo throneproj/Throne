@@ -103,6 +103,7 @@ namespace NekoGui {
         // Add default route chains
         routes[IranBypassChainID] = RoutingChain::GetIranDefaultChain();
         routes[ChinaBypassChainID] = RoutingChain::GetChinaDefaultChain();
+        routes[RussiaBypassChainID] = RoutingChain::GetRussiaDefaultChain();
 
         //
         if (dataStore->flag_reorder) {

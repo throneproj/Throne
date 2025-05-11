@@ -529,8 +529,9 @@ namespace NekoGui {
     }
 
     bool RoutingChain::isViewOnly() const {
-        return id == IranBypassChainID ||
-        id == ChinaBypassChainID;
+        return id == IranBypassChainID 
+        || id == ChinaBypassChainID
+        || id == RussiaBypassChainID;
     }
 
     std::shared_ptr<RoutingChain> RoutingChain::GetDefaultChain() {
@@ -586,6 +587,33 @@ namespace NekoGui {
         auto rule1 = std::make_shared<RouteRule>();
         rule1->name = "Bypass Chinese IPs and Domains";
         rule1->rule_set << QString("cn_IP") << QString("geolocation-cn_SITE") << QString("cn_SITE");
+        rule1->outboundID = -2;
+        chain->Rules << rule1;
+
+        auto rule2 = std::make_shared<RouteRule>();
+        rule2->name = "Bypass Private IPs";
+        rule2->ip_is_private = true;
+        rule1->outboundID = -2;
+        chain->Rules << rule2;
+
+        return chain;
+    }
+
+    std::shared_ptr<RoutingChain> RoutingChain::GetRussiaDefaultChain() {
+        auto chain = std::make_shared<RoutingChain>();
+        chain->name = "Bypass Russia";
+        chain->id = RussiaBypassChainID;
+        chain->save_control_no_save = true;
+
+        auto rule0 = std::make_shared<RouteRule>();
+        rule0->name = "Route DNS";
+        rule0->action = "hijack-dns";
+        rule0->protocol = "dns";
+        chain->Rules << rule0;
+
+        auto rule1 = std::make_shared<RouteRule>();
+        rule1->name = "Bypass Russian IPs and Domains";
+        rule1->rule_set << QString("antizapret");
         rule1->outboundID = -2;
         chain->Rules << rule1;
 

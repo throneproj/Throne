@@ -30,8 +30,8 @@ namespace NekoGui {
     }
 
 namespace GeoAssets {
-    inline QStringList GeoIPURLs = {"https://github.com/SagerNet/sing-geoip/releases/latest/download/geoip.db", "https://raw.githubusercontent.com/Chocolate4U/Iran-sing-box-rules/release/geoip.db"};
-    inline QStringList GeoSiteURLs = {"https://github.com/SagerNet/sing-geosite/releases/latest/download/geosite.db", "https://raw.githubusercontent.com/Chocolate4U/Iran-sing-box-rules/release/geosite.db"};
+    inline QStringList GeoIPURLs = {"https://github.com/SagerNet/sing-geoip/releases/latest/download/geoip.db", "https://raw.githubusercontent.com/Chocolate4U/Iran-sing-box-rules/release/geoip.db", "https://github.com/savely-krasovsky/antizapret-sing-box/releases/latest/download/geoip.db"};
+    inline QStringList GeoSiteURLs = {"https://github.com/SagerNet/sing-geosite/releases/latest/download/geosite.db", "https://raw.githubusercontent.com/Chocolate4U/Iran-sing-box-rules/release/geosite.db", "https://github.com/savely-krasovsky/antizapret-sing-box/releases/latest/download/geosite.db"};
     }
 
     namespace TestConfig
