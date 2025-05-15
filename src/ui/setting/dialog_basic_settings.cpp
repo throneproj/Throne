@@ -280,8 +280,7 @@ void DialogBasicSettings::on_core_settings_clicked() {
     auto core_box_underlying_dns_l = new QLabel(tr("Override underlying DNS"));
     core_box_underlying_dns_l->setToolTip(tr(
         "It is recommended to leave it blank, but it sometimes does not work, at this time you can set this option.\n"
-        "For NekoRay, this rewrites the underlying(localhost) DNS in Tun Mode.\n"
-        "For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test."));
+        "For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test."));
     core_box_underlying_dns = new MyLineEdit;
     core_box_underlying_dns->setText(NekoGui::dataStore->core_box_underlying_dns);
     core_box_underlying_dns->setMinimumWidth(300);

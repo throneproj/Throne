@@ -125,11 +125,9 @@
     </message>
     <message>
         <source>It is recommended to leave it blank, but it sometimes does not work, at this time you can set this option.
-For NekoRay, this rewrites the underlying(localhost) DNS in Tun Mode.
-For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
+For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
         <translation>建议留空，但有时会出现问题，这时可以设置这个选项。
-对于 NekoRay 来说，在 Tun 模式下会重写 underlying(localhost) DNS。
-对于 NekoBox 来说，在 Tun 模式、正常模式和 URL 测试延迟中会重写 underlying(localhost) DNS。</translation>
+对于 nekobox_core 来说，在 Tun 模式、正常模式和 URL 测试延迟中会重写 underlying(localhost) DNS。</translation>
     </message>
     <message>
         <source>Default On</source>
