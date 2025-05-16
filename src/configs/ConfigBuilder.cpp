@@ -432,12 +432,12 @@ namespace NekoGui {
         if (status->ent->type == "extracore")
         {
             auto bean = status->ent->ExtraCoreBean();
-            status->result->extraCoreData->path = bean->extraCorePath;
+            status->result->extraCoreData->path = QFileInfo(bean->extraCorePath).canonicalFilePath();
             status->result->extraCoreData->args = bean->extraCoreArgs;
             status->result->extraCoreData->config = bean->extraCoreConf;
             status->result->extraCoreData->configDir = GetBasePath();
             status->result->extraCoreData->noLog = bean->noLogs;
-            routeChain->Rules << RouteRule::get_processPath_direct_rule(bean->extraCorePath);
+            routeChain->Rules << RouteRule::get_processPath_direct_rule(status->result->extraCoreData->path);
         }
 
         // Direct domains

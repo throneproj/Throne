@@ -34,6 +34,10 @@ void EditExtraCore::onStart(std::shared_ptr<NekoGui::ProxyEntity> _ent) {
         {
             return;
         }
+        if (!QDir::current().relativeFilePath(f).startsWith("../../"))
+        {
+            f = QDir::current().relativeFilePath(f);
+        }
         if (NekoGui::profileManager->AddExtraCorePath(f)) ui->path_combo->addItem(f);
         ui->path_combo->setCurrentText(f);
         ui->path_combo->setSizeAdjustPolicy(QComboBox::AdjustToContents);
