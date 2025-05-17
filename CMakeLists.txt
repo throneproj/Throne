@@ -148,6 +148,10 @@ set(PROJECT_SOURCES
         src/ui/profile/edit_custom.cpp
         include/ui/profile/edit_custom.ui
 
+        include/ui/profile/edit_extra_core.h
+        src/ui/profile/edit_extra_core.cpp
+        include/ui/profile/edit_extra_core.ui
+
         include/ui/profile/edit_wireguard.h
         src/ui/profile/edit_wireguard.cpp
         include/ui/profile/edit_wireguard.ui
