@@ -56,9 +56,6 @@ endif ()
 include("cmake/myproto.cmake")
 list(APPEND NKR_EXTERNAL_TARGETS myproto)
 
-find_package(yaml-cpp CONFIG REQUIRED) # only Release is built
-list(APPEND NKR_EXTERNAL_TARGETS yaml-cpp)
-
 set(BUILD_SHARED_LIBS OFF)
 list(APPEND NKR_EXTERNAL_TARGETS qhotkey)
 
@@ -150,10 +147,6 @@ set(PROJECT_SOURCES
         include/ui/profile/edit_custom.h
         src/ui/profile/edit_custom.cpp
         include/ui/profile/edit_custom.ui
-
-        include/ui/profile/edit_extra_core.h
-        src/ui/profile/edit_extra_core.cpp
-        include/ui/profile/edit_extra_core.ui
 
         include/ui/profile/edit_wireguard.h
         src/ui/profile/edit_wireguard.cpp

@@ -19,21 +19,8 @@ mkdir -p $INSTALL_PREFIX
 
 #### clean ####
 clean() {
-  rm -rf dl.zip yaml-* zxing-* protobuf
+  rm -rf protobuf
 }
-
-#### yaml-cpp ####
-curl -L -o dl.zip https://github.com/jbeder/yaml-cpp/archive/refs/tags/yaml-cpp-0.7.0.zip
-unzip dl.zip
-
-cd yaml-*
-mkdir -p build
-cd build
-
-$cmake .. -GNinja -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=$1 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_INSTALL_PREFIX=$INSTALL_PREFIX
-ninja && ninja install
-
-cd ../..
 
 #### protobuf ####
 git clone --recurse-submodules -b v30.2 --depth 1 --shallow-submodules https://github.com/parhelia512/protobuf
