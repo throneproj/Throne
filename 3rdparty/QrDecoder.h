@@ -11,7 +11,7 @@ public:
     QrDecoder();
     ~QrDecoder();
 
-    QString decode(const QImage &image);
+    QVector<QString> decode(const QImage &image);
 
 private:
     quirc *m_qr;

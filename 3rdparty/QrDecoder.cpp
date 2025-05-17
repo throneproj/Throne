@@ -12,22 +12,23 @@ QrDecoder::~QrDecoder()
     quirc_destroy(m_qr);
 }
 
-QString QrDecoder::decode(const QImage &image)
+QVector<QString> QrDecoder::decode(const QImage &image)
 {
+    QVector<QString> result;
     if (m_qr == nullptr)
     {
-        return "";
+        return result;
     }
 
     if (quirc_resize(m_qr, image.width(), image.height()) < 0)
     {
-        return "";
+        return result;
     }
 
     uint8_t *rawImage = quirc_begin(m_qr, nullptr, nullptr);
     if (rawImage == nullptr)
     {
-        return "";
+        return result;
     }
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
     std::copy(image.constBits(), image.constBits() + image.sizeInBytes(), rawImage);
@@ -39,7 +40,7 @@ QString QrDecoder::decode(const QImage &image)
     const int count = quirc_count(m_qr);
     if (count < 0)
     {
-        return "";
+        return result;
     }
 
     for (int index = 0; index < count; ++index)
@@ -51,9 +52,9 @@ QString QrDecoder::decode(const QImage &image)
         const quirc_decode_error_t err = quirc_decode(&code, &data);
         if (err == QUIRC_SUCCESS)
         {
-            return QLatin1String((const char *)data.payload);
+            result.append(QLatin1String((const char *)data.payload));
         }
     }
 
-    return "";
+    return result;
 }

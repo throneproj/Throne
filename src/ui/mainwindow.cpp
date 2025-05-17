@@ -1752,12 +1752,14 @@ void MainWindow::on_menu_scan_qr_triggered() {
 
     show();
     if (ok) {
-        const QString text = QrDecoder().decode(qpx.toImage().convertToFormat(QImage::Format_Grayscale8));
-        if (text.isEmpty()) {
+        const QVector<QString> texts = QrDecoder().decode(qpx.toImage().convertToFormat(QImage::Format_Grayscale8));
+        if (texts.isEmpty()) {
             MessageBoxInfo(software_name, tr("QR Code not found"));
         } else {
-            show_log_impl("QR Code Result:\n" + text);
-            NekoGui_sub::groupUpdater->AsyncUpdate(text);
+            for (const QString &text : texts) {
+                show_log_impl("QR Code Result:\n" + text);
+                NekoGui_sub::groupUpdater->AsyncUpdate(text);
+            }
         }
     }
     else {
