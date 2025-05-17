@@ -7,6 +7,7 @@
 #include <include/configs/proxy/VMessBean.hpp>
 #include <include/configs/proxy/WireguardBean.h>
 
+#include "include/configs/proxy/ExtraCore.h"
 #include "include/configs/proxy/SSHBean.h"
 
 namespace NekoGui_fmt
@@ -222,6 +223,11 @@ namespace NekoGui_fmt
         MTU = obj["mtu"].toInt();
         useSystemInterface = obj["system"].toBool();
         return true;
+    }
+
+    bool ExtraCoreBean::TryParseJson(const QJsonObject& obj)
+    {
+        return false;
     }
 
 }

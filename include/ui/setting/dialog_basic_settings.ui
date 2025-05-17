@@ -180,6 +180,44 @@
         </widget>
        </item>
        <item>
+        <widget class="QFrame" name="frame">
+         <property name="frameShape">
+          <enum>QFrame::Shape::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Shadow::Raised</enum>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QLabel" name="label_12">
+            <property name="text">
+             <string>Speedtest mode</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="speedtest_mode">
+            <item>
+             <property name="text">
+              <string>Download + Upload</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Only Download</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Only Upload</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <widget class="QWidget" name="horizontalWidget_1" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">

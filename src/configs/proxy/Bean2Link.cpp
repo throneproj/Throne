@@ -296,4 +296,9 @@ namespace NekoGui_fmt {
         return url.toString(QUrl::FullyEncoded);
     }
 
+    QString ExtraCoreBean::ToShareLink()
+    {
+        return "Unsupported for now";
+    }
+
 } // namespace NekoGui_fmt

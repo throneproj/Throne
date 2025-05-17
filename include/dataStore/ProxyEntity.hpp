@@ -3,6 +3,7 @@
 #include "include/global/NekoGui.hpp"
 #include "include/stats/traffic/TrafficData.hpp"
 #include "include/configs/proxy/AbstractBean.hpp"
+#include "include/configs/proxy/ExtraCore.h"
 
 namespace NekoGui_fmt {
     class SocksHttpBean;
@@ -34,6 +35,8 @@ namespace NekoGui {
         int id = -1;
         int gid = 0;
         int latency = 0;
+        QString dl_speed;
+        QString ul_speed;
         std::shared_ptr<NekoGui_fmt::AbstractBean> bean;
         std::shared_ptr<NekoGui_traffic::TrafficData> traffic_data = std::make_shared<NekoGui_traffic::TrafficData>("");
 
@@ -41,7 +44,7 @@ namespace NekoGui {
 
         ProxyEntity(NekoGui_fmt::AbstractBean *bean, const QString &type_);
 
-        [[nodiscard]] QString DisplayLatency() const;
+        [[nodiscard]] QString DisplayTestResult() const;
 
         [[nodiscard]] QColor DisplayLatencyColor() const;
 
@@ -83,6 +86,10 @@ namespace NekoGui {
 
         [[nodiscard]] NekoGui_fmt::CustomBean *CustomBean() const {
             return (NekoGui_fmt::CustomBean *) bean.get();
+        };
+
+        [[nodiscard]] NekoGui_fmt::ExtraCoreBean *ExtraCoreBean() const {
+            return (NekoGui_fmt::ExtraCoreBean *) bean.get();
         };
     };
 } // namespace NekoGui

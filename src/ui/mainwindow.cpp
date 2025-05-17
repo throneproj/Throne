@@ -310,36 +310,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->proxyListTable->setTabKeyNavigation(false);
 
     // search box
-    ui->search->setVisible(false);
-    connect(shortcut_ctrl_f, &QShortcut::activated, this, [=] {
-        ui->search->setVisible(true);
-        ui->search->setFocus();
-    });
     connect(shortcut_esc, &QShortcut::activated, this, [=] {
-        if (ui->search->isVisible()) {
-            ui->search->setText("");
-            ui->search->textChanged("");
-            ui->search->setVisible(false);
-        }
         if (select_mode) {
             emit profile_selected(-1);
             select_mode = false;
             refresh_status();
-        }
-    });
-    connect(ui->search, &QLineEdit::textChanged, this, [=](const QString &text) {
-        if (text.isEmpty()) {
-            for (int i = 0; i < ui->proxyListTable->rowCount(); i++) {
-                ui->proxyListTable->setRowHidden(i, false);
-            }
-        } else {
-            QList<QTableWidgetItem *> findItem = ui->proxyListTable->findItems(text, Qt::MatchContains);
-            for (int i = 0; i < ui->proxyListTable->rowCount(); i++) {
-                ui->proxyListTable->setRowHidden(i, true);
-            }
-            for (auto item: findItem) {
-                if (item != nullptr) ui->proxyListTable->setRowHidden(item->row(), false);
-            }
         }
     });
 
@@ -409,7 +384,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     });
     connect(ui->menu_qr, &QAction::triggered, this, [=]() { display_qr_link(false); });
     connect(ui->system_dns, &QCheckBox::clicked, this, [=](bool checked) {
-        if (const auto ok = set_system_dns(checked, NekoGui::dataStore->dns_server_listen_addr); !ok) {
+        if (const auto ok = set_system_dns(checked); !ok) {
             ui->system_dns->setChecked(!checked);
         } else {
             refresh_status();
@@ -421,6 +396,24 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 #endif
 
     connect(ui->menu_server, &QMenu::aboutToShow, this, [=](){
+        if (running)
+        {
+            ui->actionSpeedtest_Current->setEnabled(true);
+        } else
+        {
+            ui->actionSpeedtest_Current->setEnabled(false);
+        }
+        if (auto selected = get_now_selected_list(); selected.empty())
+        {
+            ui->actionSpeedtest_Selected->setEnabled(false);
+            ui->actionUrl_Test_Selected->setEnabled(false);
+            ui->menu_resolve_selected->setEnabled(false);
+        } else
+        {
+            ui->actionSpeedtest_Selected->setEnabled(true);
+            ui->actionUrl_Test_Selected->setEnabled(true);
+            ui->menu_resolve_selected->setEnabled(true);
+        }
         if (!speedtestRunning.tryLock()) {
             ui->menu_server->addAction(ui->menu_stop_testing);
         } else {
@@ -452,12 +445,27 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         }
     });
     connect(ui->actionUrl_Test_Selected, &QAction::triggered, this, [=]() {
-        speedtest_current_group(get_now_selected_list());
+        urltest_current_group(get_now_selected_list());
     });
     connect(ui->actionUrl_Test_Group, &QAction::triggered, this, [=]() {
-        speedtest_current_group(NekoGui::profileManager->CurrentGroup()->Profiles());
+        urltest_current_group(NekoGui::profileManager->CurrentGroup()->ProfilesWithOrder());
     });
-    connect(ui->menu_stop_testing, &QAction::triggered, this, [=]() { stopSpeedTests(); });
+    connect(ui->actionSpeedtest_Current, &QAction::triggered, this, [=]()
+    {
+        if (running != nullptr)
+        {
+            speedtest_current_group({}, true);
+        }
+    });
+    connect(ui->actionSpeedtest_Selected, &QAction::triggered, this, [=]()
+    {
+        speedtest_current_group(get_now_selected_list());
+    });
+    connect(ui->actionSpeedtest_Group, &QAction::triggered, this, [=]()
+    {
+        speedtest_current_group(NekoGui::profileManager->CurrentGroup()->ProfilesWithOrder());
+    });
+    connect(ui->menu_stop_testing, &QAction::triggered, this, [=]() { stopTests(); });
     //
     auto set_selected_or_group = [=](int mode) {
         // 0=group 1=select 2=unknown(menu is hide)
@@ -561,7 +569,6 @@ void MainWindow::show_group(int gid) {
 
     ui->tabWidget->widget(groupId2TabIndex(gid))->layout()->addWidget(ui->proxyListTable);
 
-    // 列宽是否可调
     if (group->manually_column_width) {
         for (int i = 0; i <= 4; i++) {
             ui->proxyListTable->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Interactive);
@@ -617,8 +624,8 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
         if (NekoGui::dataStore->system_dns_set)
         {
             auto oldAddr = info.split(",")[1];
-            set_system_dns(false, oldAddr);
-            set_system_dns(true, NekoGui::dataStore->dns_server_listen_addr);
+            set_system_dns(false);
+            set_system_dns(true);
         }
     }
     if (info.contains("NeedRestart")) {
@@ -684,7 +691,7 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
                     neko_set_spmode_vpn(true, false);
                 }
                 if (NekoGui::dataStore->flag_dns_set) {
-                    set_system_dns(true, NekoGui::dataStore->dns_server_listen_addr);
+                    set_system_dns(true);
                 }
             }
             if (auto id = info.split(",")[1].toInt(); id >= 0)
@@ -692,7 +699,7 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
                 neko_start(id);
             }
             if (NekoGui::dataStore->system_dns_set) {
-                set_system_dns(true, NekoGui::dataStore->dns_server_listen_addr);
+                set_system_dns(true);
                 ui->system_dns->setChecked(true);
             }
         }
@@ -735,7 +742,7 @@ void MainWindow::on_menu_hotkey_settings_triggered() {
 
 void MainWindow::on_commitDataRequest() {
     qDebug() << "Handling DNS setting";
-    if (NekoGui::dataStore->system_dns_set) set_system_dns(false, NekoGui::dataStore->dns_server_listen_addr, false);
+    if (NekoGui::dataStore->system_dns_set) set_system_dns(false, false);
     qDebug() << "Done handling DNS setting";
     qDebug() << "Start of data save";
     //
@@ -920,6 +927,51 @@ void MainWindow::neko_set_spmode_vpn(bool enable, bool save) {
 
     if (NekoGui::dataStore->started_id >= 0) neko_start(NekoGui::dataStore->started_id);
 }
+
+void MainWindow::UpdateDataView(bool force)
+{
+    if (!force && lastUpdated.msecsTo(QDateTime::currentDateTime()) < 100)
+    {
+        return;
+    }
+    QString html;
+    if (showDownloadData)
+    {
+        qint64 count = 10*currentDownloadReport.downloadedSize / currentDownloadReport.totalSize;
+        QString progressText;
+        for (int i = 0; i < 10; i++)
+        {
+            if (count--; count >=0) progressText += "#";
+            else progressText += "-";
+        }
+        QString stat = ReadableSize(currentDownloadReport.downloadedSize) + "/" + ReadableSize(currentDownloadReport.totalSize);
+        html = QString("<p style='text-align:center;margin:0;'>Downloading %1: %2 %3</p>").arg(currentDownloadReport.fileName, stat, progressText);
+    }
+    if (showSpeedtestData)
+    {
+        html += QString(
+    "<p style='text-align:center;margin:0;'>Running Speedtest: %1</p>"
+    "<div style='text-align: center;'>"
+    "<span style='color: #3299FF;'>Dl↓ %2</span>  "
+    "<span style='color: #86C43F;'>Ul↑ %3</span>"
+    "</div>"
+    "<p style='text-align:center;margin:0;'>Server: %4, %5</p>"
+        ).arg(currentSptProfileName,
+            currentTestResult.dl_speed().c_str(),
+            currentTestResult.ul_speed().c_str(),
+            currentTestResult.server_country().c_str(),
+            currentTestResult.server_name().c_str());
+    }
+    ui->data_view->setHtml(html);
+    lastUpdated = QDateTime::currentDateTime();
+}
+
+void MainWindow::setDownloadReport(const DownloadProgressReport& report, bool show)
+{
+    showDownloadData = show;
+    currentDownloadReport = report;
+}
+
 
 void MainWindow::setupConnectionList()
 {
@@ -1376,7 +1428,7 @@ void MainWindow::refresh_table_item(const int row, const std::shared_ptr<NekoGui
     if (profile->full_test_report.isEmpty()) {
         auto color = profile->DisplayLatencyColor();
         if (color.isValid()) f->setForeground(color);
-        f->setText(profile->DisplayLatency());
+        f->setText(profile->DisplayTestResult());
     } else {
         f->setText(profile->full_test_report);
     }
@@ -1718,6 +1770,8 @@ void MainWindow::on_menu_scan_qr_triggered() {
 void MainWindow::on_menu_clear_test_result_triggered() {
     for (const auto &profile: get_selected_or_group()) {
         profile->latency = 0;
+        profile->dl_speed.clear();
+        profile->ul_speed.clear();
         profile->full_test_report = "";
         profile->Save();
     }
@@ -2048,6 +2102,7 @@ void MainWindow::on_tabWidget_customContextMenuRequested(const QPoint &p) {
     if (NekoGui::profileManager->groups.size() > 1) menu->addAction(deleteAction);
     if (!group->Profiles().empty()) {
         menu->addAction(ui->actionUrl_Test_Group);
+        menu->addAction(ui->actionSpeedtest_Group);
         menu->addAction(ui->menu_resolve_domain);
         menu->addAction(ui->menu_clear_test_result);
         menu->addAction(ui->menu_delete_repeat);

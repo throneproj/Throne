@@ -46,6 +46,7 @@ namespace NekoGui {
 
     std::shared_ptr<BuildConfigResult> BuildConfig(const std::shared_ptr<ProxyEntity> &ent, bool forTest, bool forExport, int chainID) {
         auto result = std::make_shared<BuildConfigResult>();
+        result->extraCoreData = std::make_shared<ExtraCoreData>();
         auto status = std::make_shared<BuildConfigStatus>();
         status->ent = ent;
         status->result = result;
@@ -127,6 +128,11 @@ namespace NekoGui {
 
         QJsonArray directDomainArray;
         for (const auto &item: profiles) {
+            if (item->type == "extracore")
+            {
+                MW_show_log("Skipping ExtraCore conf");
+                continue;
+            }
             if (!IsValid(item)) {
                 MW_show_log("Skipping invalid config: " + item->bean->name);
                 item->latency = -1;
@@ -423,6 +429,16 @@ namespace NekoGui {
         // Outbounds
         auto tagProxy = BuildChain(status->chainID, status);
         if (!status->result->error.isEmpty()) return;
+        if (status->ent->type == "extracore")
+        {
+            auto bean = status->ent->ExtraCoreBean();
+            status->result->extraCoreData->path = QFileInfo(bean->extraCorePath).canonicalFilePath();
+            status->result->extraCoreData->args = bean->extraCoreArgs;
+            status->result->extraCoreData->config = bean->extraCoreConf;
+            status->result->extraCoreData->configDir = GetBasePath();
+            status->result->extraCoreData->noLog = bean->noLogs;
+            routeChain->Rules << RouteRule::get_processPath_direct_rule(status->result->extraCoreData->path);
+        }
 
         // Direct domains
         bool needDirectDnsRules = false;
@@ -719,7 +735,7 @@ namespace NekoGui {
             status->inbounds.prepend(QJsonObject{
                 {"tag", "dns-in"},
                 {"type", "direct"},
-                {"listen", dataStore->dns_server_listen_addr},
+                {"listen", dataStore->dns_server_listen_lan ? "0.0.0.0" : "127.0.0.1"},
                 {"listen_port", dataStore->dns_server_listen_port},
             });
         }

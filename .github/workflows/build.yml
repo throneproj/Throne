@@ -19,19 +19,19 @@ jobs:
         include:
           - cross_os: public_res
             cross_arch: public_res
-            go_version: "1.24.2"
+            go_version: "1.24.3"
           - cross_os: windows
             cross_arch: amd64
-            go_version: "1.24.2"
+            go_version: "1.24.3"
           - cross_os: linux
             cross_arch: amd64
-            go_version: "1.24.2"
+            go_version: "1.24.3"
           - cross_os: darwin
             cross_arch: amd64
-            go_version: "1.24.2"
+            go_version: "1.24.3"
           - cross_os: darwin
             cross_arch: arm64
-            go_version: "1.24.2"
+            go_version: "1.24.3"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:

@@ -1,15 +1,12 @@
 package boxdns
 
 import (
-	"encoding/binary"
 	"fmt"
 	tun "github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common/control"
 	logger2 "github.com/sagernet/sing/common/logger"
 	"log"
 	"nekobox_core/internal/boxdns/winipcfg"
-
-	"github.com/gofrs/uuid/v5"
 )
 
 func init() {
@@ -43,12 +40,12 @@ var DnsManagerInstance *DnsManager
 
 type DnsManager struct {
 	Monitor tun.DefaultInterfaceMonitor
-	lastIfc control.Interface
+	lastIfc *control.Interface
 }
 
 func (d *DnsManager) HandleUnderlyingDNS(ifc *control.Interface, flag int) {
 	if d == nil {
-		fmt.Println("No DnsManager, you may need to restart nekoray")
+		log.Println("No DnsManager, you may need to restart nekoray")
 		return
 	}
 	if ifc == nil {
@@ -82,7 +79,7 @@ func getNameServersForInterface(luid winipcfg.LUID) ([]string, error) {
 		return nil, err
 	}
 	for _, server := range nsAddrs {
-		if server.IsValid() && server.String() != customns.String() {
+		if server.IsValid() && server.String() != localAddr && server.String() != dhcpMarkAddr {
 			nameservers = append(nameservers, server.String())
 		}
 	}
@@ -92,31 +89,4 @@ func getNameServersForInterface(luid winipcfg.LUID) ([]string, error) {
 	}
 
 	return nameservers, nil
-}
-
-func ifcIdxtoUUID(index int) (*uuid.UUID, error) {
-	luid, err := winipcfg.LUIDFromIndex(uint32(index))
-	if err != nil {
-		log.Println("Could not get luid from index")
-		return nil, err
-	}
-	guid, err := luid.GUID()
-	if err != nil {
-		log.Println("Could not get guid from luid")
-		return nil, err
-	}
-	data1 := make([]byte, 4)
-	data2 := make([]byte, 2)
-	data3 := make([]byte, 2)
-	binary.LittleEndian.PutUint32(data1, guid.Data1)
-	binary.LittleEndian.PutUint16(data2, guid.Data2)
-	binary.LittleEndian.PutUint16(data3, guid.Data3)
-	u, _ := uuid.FromBytes([]byte{
-		data1[3], data1[2], data1[1], data1[0],
-		data2[1], data2[0],
-		data3[1], data3[0],
-		guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3],
-		guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7],
-	})
-	return &u, nil
 }

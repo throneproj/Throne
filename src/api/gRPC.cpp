@@ -144,7 +144,7 @@ namespace QtGrpc {
         }
 
         QNetworkReply::NetworkError Call(const QString &methodName,
-                                         const google::protobuf::Message &req, google::protobuf::Message *rsp,
+                                         const google::protobuf::MessageLite &req, google::protobuf::MessageLite *rsp,
                                          int timeout_ms = 0) {
             if (!NekoGui::dataStore->core_running) return QNetworkReply::NetworkError(-1919);
 
@@ -264,6 +264,21 @@ namespace NekoGui_rpc {
         }
     }
 
+    libcore::QueryURLTestResponse Client::QueryURLTest(bool *rpcOK)
+    {
+        libcore::EmptyReq request;
+        libcore::QueryURLTestResponse resp;
+
+        auto status = make_grpc_channel()->Call("QueryURLTest", request, &resp);
+        if (status == QNetworkReply::NoError) {
+            *rpcOK = true;
+            return resp;
+        } else {
+            NOT_OK
+            return resp;
+        }
+    }
+
     QStringList Client::GetGeoList(bool *rpcOK, GeoRuleSetType mode, const QString& basePath) {
         switch (mode) {
             case GeoRuleSetType::ip: {
@@ -342,26 +357,10 @@ namespace NekoGui_rpc {
         return "";
     }
 
-    bool Client::GetDNSDHCPStatus(bool *rpcOK) const {
-        libcore::EmptyReq req;
-        libcore::GetDNSDHCPStatusResponse resp;
-
-        auto status = default_grpc_channel->Call("GetDNSDHCPStatus", req, &resp);
-        if (status == QNetworkReply::NoError) {
-            *rpcOK = true;
-            return resp.is_dhcp();
-        } else {
-            NOT_OK
-            return false;
-        }
-    }
-
-    QString Client::SetSystemDNS(bool *rpcOK, const QString& customNS, const bool dhcp, const bool clear) const {
+    QString Client::SetSystemDNS(bool *rpcOK, const bool clear) const {
         libcore::SetSystemDNSRequest req;
         libcore::EmptyResp resp;
 
-        req.set_custom_ns(customNS.toStdString());
-        req.set_set_dhcp(dhcp);
         req.set_clear(clear);
 
         auto status = default_grpc_channel->Call("SetSystemDNS", req, &resp);
@@ -420,6 +419,35 @@ namespace NekoGui_rpc {
         {
             NOT_OK
             return false;
+        }
+    }
+
+    libcore::SpeedTestResponse Client::SpeedTest(bool *rpcOK, const libcore::SpeedTestRequest &request)
+    {
+        libcore::SpeedTestResponse reply;
+        auto status = make_grpc_channel()->Call("SpeedTest", request, &reply);
+
+        if (status == QNetworkReply::NoError) {
+            *rpcOK = true;
+            return reply;
+        } else {
+            NOT_OK
+            return reply;
+        }
+    }
+
+    libcore::QuerySpeedTestResponse Client::QueryCurrentSpeedTests(bool *rpcOK)
+    {
+        const libcore::EmptyReq req;
+        libcore::QuerySpeedTestResponse reply;
+        auto status = make_grpc_channel()->Call("QuerySpeedTest", req, &reply);
+
+        if (status == QNetworkReply::NoError) {
+            *rpcOK = true;
+            return reply;
+        } else {
+            NOT_OK
+            return reply;
         }
     }
 

@@ -1,5 +1,7 @@
 // DO NOT INCLUDE THIS
 
+#include "Const.hpp"
+
 namespace NekoGui {
 
     class Routing : public JsonStore {
@@ -80,6 +82,7 @@ namespace NekoGui {
         QString splitter_state = "";
         bool enable_stats = true;
         QString stats_tab = ""; // either connection or log
+        int speed_test_mode = TestConfig::FULL;
 
         // Subscription
         QString user_agent = ""; // set at main.cpp
@@ -132,7 +135,7 @@ namespace NekoGui {
 
         // Hijack
         bool enable_dns_server = false;
-        QString dns_server_listen_addr = "127.0.0.1";
+        bool dns_server_listen_lan = false;
         int dns_server_listen_port = 53;
         QString dns_v4_resp = "127.0.0.1";
         QString dns_v6_resp = "::1";
@@ -143,7 +146,6 @@ namespace NekoGui {
 
         // System dns
         bool system_dns_set = false;
-        bool is_dhcp = false;
 
         // Hotkey
         QString hotkey_mainwindow = "";

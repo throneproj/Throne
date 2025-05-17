@@ -334,4 +334,17 @@ namespace NekoGui_fmt {
 
         return result;
     }
+
+    CoreObjOutboundBuildResult ExtraCoreBean::BuildCoreObjSingBox()
+    {
+        CoreObjOutboundBuildResult result;
+        QJsonObject outbound{
+            {"type", "socks"},
+            {"server", socksAddress},
+            {"server_port", socksPort},
+        };
+        result.outbound = outbound;
+        return result;
+    }
+
 } // namespace NekoGui_fmt

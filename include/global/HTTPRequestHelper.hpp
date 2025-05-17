@@ -10,6 +10,13 @@ namespace NekoGui_network {
         QList<QPair<QByteArray, QByteArray>> header;
     };
 
+    struct DownloadProgressReport
+    {
+        QString fileName;
+        qint64 downloadedSize;
+        qint64 totalSize;
+    };
+
     class NetworkRequestHelper : QObject {
         Q_OBJECT
 

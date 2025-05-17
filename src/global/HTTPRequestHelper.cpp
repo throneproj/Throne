@@ -9,6 +9,7 @@
 #include <QApplication>
 
 #include "include/global/NekoGui.hpp"
+#include "include/ui/mainwindow.h"
 
 namespace NekoGui_network {
 
@@ -95,9 +96,21 @@ namespace NekoGui_network {
             }
             MW_show_log(QString("SSL Errors: %1").arg(error_str.join(",")));
         });
+        connect(_reply, &QNetworkReply::downloadProgress, _reply, [&](qint64 bytesReceived, qint64 bytesTotal)
+        {
+            runOnUiThread([=]{
+                GetMainWindow()->setDownloadReport(DownloadProgressReport{fileName, bytesReceived, bytesTotal}, true);
+                GetMainWindow()->UpdateDataView();
+            });
+        });
         QEventLoop loop;
         connect(_reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
         loop.exec();
+        runOnUiThread([=]
+        {
+            GetMainWindow()->setDownloadReport({}, false);
+            GetMainWindow()->UpdateDataView(true);
+        });
         if(_reply->error() != QNetworkReply::NetworkError::NoError) {
             return _reply->errorString();
         }

@@ -44,7 +44,7 @@ void DialogManageRoutes::reloadProfileItems() {
 }
 
 void DialogManageRoutes::set_dns_hijack_enability(const bool enable) const {
-    ui->dnshijack_listenaddr->setEnabled(enable);
+    ui->dnshijack_allow_lan->setEnabled(enable);
     ui->dnshijack_listenport->setEnabled(enable);
     ui->dnshijack_rules->setEnabled(enable);
     ui->dnshijack_v4resp->setEnabled(enable);
@@ -131,7 +131,7 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     // hijack
     ui->dnshijack_enable->setChecked(NekoGui::dataStore->enable_dns_server);
     set_dns_hijack_enability(NekoGui::dataStore->enable_dns_server);
-    ui->dnshijack_listenaddr->setText(NekoGui::dataStore->dns_server_listen_addr);
+    ui->dnshijack_allow_lan->setChecked(NekoGui::dataStore->dns_server_listen_lan);
     ui->dnshijack_listenport->setValidator(QRegExpValidator_Number);
     ui->dnshijack_listenport->setText(Int2String(NekoGui::dataStore->dns_server_listen_port));
     ui->dnshijack_v4resp->setText(NekoGui::dataStore->dns_v4_resp);
@@ -212,8 +212,6 @@ void DialogManageRoutes::accept() {
     NekoGui::dataStore->routing->def_outbound = ui->default_out->currentText();
 
     NekoGui::dataStore->enable_dns_server = ui->dnshijack_enable->isChecked();
-    auto prevDNSListenAddr = NekoGui::dataStore->dns_server_listen_addr;
-    NekoGui::dataStore->dns_server_listen_addr = ui->dnshijack_listenaddr->text();
     NekoGui::dataStore->dns_server_listen_port = ui->dnshijack_listenport->text().toInt();
     NekoGui::dataStore->dns_v4_resp = ui->dnshijack_v4resp->text();
     NekoGui::dataStore->dns_v6_resp = ui->dnshijack_v6resp->text();
@@ -225,16 +223,10 @@ void DialogManageRoutes::accept() {
     }
     NekoGui::dataStore->dns_server_rules = dnsRules;
 
+    NekoGui::dataStore->dns_server_listen_lan = ui->dnshijack_allow_lan->isChecked();
     NekoGui::dataStore->enable_redirect = ui->redirect_enable->isChecked();
     NekoGui::dataStore->redirect_listen_address = ui->redirect_listenaddr->text();
     NekoGui::dataStore->redirect_listen_port = ui->redirect_listenport->text().toInt();
-
-    if (prevDNSListenAddr != NekoGui::dataStore->dns_server_listen_addr)
-    {
-        QStringList msg{"DNSServerChanged"};
-        msg << prevDNSListenAddr;
-        MW_dialog_message("", msg.join(","));
-    }
 
     //
     QStringList msg{"UpdateDataStore"};

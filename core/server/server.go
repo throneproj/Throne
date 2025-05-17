@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
+	"github.com/google/shlex"
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/settings"
 	"github.com/sagernet/sing-box/experimental/clashapi"
@@ -13,6 +15,7 @@ import (
 	"nekobox_core/gen"
 	"nekobox_core/internal/boxbox"
 	"nekobox_core/internal/boxmain"
+	"nekobox_core/internal/process"
 	"nekobox_core/internal/sys"
 	"os"
 	"runtime"
@@ -21,6 +24,7 @@ import (
 )
 
 var boxInstance *boxbox.Box
+var extraProcess *process.Process
 var needUnsetDNS bool
 var systemProxyController settings.SystemProxy
 var systemProxyAddr metadata.Socksaddr
@@ -57,6 +61,38 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 	if boxInstance != nil {
 		err = errors.New("instance already started")
 		return
+	}
+
+	if in.NeedExtraProcess {
+		extraConfPath := in.ExtraProcessConfDir + string(os.PathSeparator) + "extra.conf"
+		f, e := os.OpenFile(extraConfPath, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 700)
+		if e != nil {
+			err = E.Cause(e, "Failed to open extra.conf")
+			return
+		}
+		_, e = f.WriteString(in.ExtraProcessConf)
+		if e != nil {
+			err = E.Cause(e, "Failed to write extra.conf")
+			return
+		}
+		_ = f.Close()
+		args, e := shlex.Split(in.ExtraProcessArgs)
+		if e != nil {
+			err = E.Cause(e, "Failed to parse args")
+			return
+		}
+		for idx, arg := range args {
+			if strings.Contains(arg, "%s") {
+				args[idx] = fmt.Sprintf(arg, extraConfPath)
+				break
+			}
+		}
+
+		extraProcess = process.NewProcess(in.ExtraProcessPath, args, in.ExtraNoOut)
+		err = extraProcess.Start()
+		if err != nil {
+			return
+		}
 	}
 
 	boxInstance, instanceCancel, err = boxmain.Create([]byte(in.CoreConfig))
@@ -98,6 +134,11 @@ func (s *server) Stop(ctx context.Context, in *gen.EmptyReq) (out *gen.ErrorResp
 	boxInstance.CloseWithTimeout(instanceCancel, time.Second*2, log.Println)
 
 	boxInstance = nil
+
+	if extraProcess != nil {
+		extraProcess.Stop()
+		extraProcess = nil
+	}
 
 	return
 }
@@ -169,6 +210,23 @@ func (s *server) StopTest(ctx context.Context, in *gen.EmptyReq) (*gen.EmptyResp
 	testCtx, cancelTests = context.WithCancel(context.Background())
 
 	return &gen.EmptyResp{}, nil
+}
+
+func (s *server) QueryURLTest(ctx context.Context, in *gen.EmptyReq) (*gen.QueryURLTestResponse, error) {
+	results := URLReporter.Results()
+	resp := &gen.QueryURLTestResponse{}
+	for _, r := range results {
+		errStr := ""
+		if r.Error != nil {
+			errStr = r.Error.Error()
+		}
+		resp.Results = append(resp.Results, &gen.URLTestResp{
+			OutboundTag: r.Tag,
+			LatencyMs:   int32(r.Duration.Milliseconds()),
+			Error:       errStr,
+		})
+	}
+	return resp, nil
 }
 
 func (s *server) QueryStats(ctx context.Context, _ *gen.EmptyReq) (*gen.QueryStatsResp, error) {
@@ -308,4 +366,78 @@ func (s *server) IsPrivileged(ctx context.Context, _ *gen.EmptyReq) (*gen.IsPriv
 	}
 
 	return &gen.IsPrivilegedResponse{HasPrivilege: os.Geteuid() == 0}, nil
+}
+
+func (s *server) SpeedTest(ctx context.Context, in *gen.SpeedTestRequest) (*gen.SpeedTestResponse, error) {
+	if !in.TestDownload && !in.TestUpload {
+		return nil, errors.New("cannot run empty test")
+	}
+	var testInstance *boxbox.Box
+	var cancel context.CancelFunc
+	outboundTags := in.OutboundTags
+	var err error
+	if in.TestCurrent {
+		if boxInstance == nil {
+			return &gen.SpeedTestResponse{Results: []*gen.SpeedTestResult{{
+				OutboundTag: "proxy",
+				Error:       "Instance is not running",
+			}}}, nil
+		}
+		testInstance = boxInstance
+	} else {
+		testInstance, cancel, err = boxmain.Create([]byte(in.Config))
+		if err != nil {
+			return nil, err
+		}
+		defer cancel()
+		defer testInstance.Close()
+	}
+
+	if in.UseDefaultOutbound || in.TestCurrent {
+		outbound := testInstance.Outbound().Default()
+		outboundTags = []string{outbound.Tag()}
+	}
+
+	results := BatchSpeedTest(testCtx, testInstance, outboundTags, in.TestDownload, in.TestUpload)
+
+	res := make([]*gen.SpeedTestResult, 0)
+	for _, data := range results {
+		errStr := ""
+		if data.Error != nil {
+			errStr = data.Error.Error()
+		}
+		res = append(res, &gen.SpeedTestResult{
+			DlSpeed:       data.DlSpeed,
+			UlSpeed:       data.UlSpeed,
+			Latency:       data.Latency,
+			OutboundTag:   data.Tag,
+			Error:         errStr,
+			ServerName:    data.ServerName,
+			ServerCountry: data.ServerCountry,
+			Cancelled:     data.Cancelled,
+		})
+	}
+
+	return &gen.SpeedTestResponse{Results: res}, nil
+}
+
+func (s *server) QuerySpeedTest(context.Context, *gen.EmptyReq) (*gen.QuerySpeedTestResponse, error) {
+	res, isRunning := SpTQuerier.Result()
+	errStr := ""
+	if res.Error != nil {
+		errStr = res.Error.Error()
+	}
+	return &gen.QuerySpeedTestResponse{
+		Result: &gen.SpeedTestResult{
+			DlSpeed:       res.DlSpeed,
+			UlSpeed:       res.UlSpeed,
+			Latency:       res.Latency,
+			OutboundTag:   res.Tag,
+			Error:         errStr,
+			ServerName:    res.ServerName,
+			ServerCountry: res.ServerCountry,
+			Cancelled:     res.Cancelled,
+		},
+		IsRunning: isRunning,
+	}, nil
 }

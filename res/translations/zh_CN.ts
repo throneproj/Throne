@@ -125,11 +125,9 @@
     </message>
     <message>
         <source>It is recommended to leave it blank, but it sometimes does not work, at this time you can set this option.
-For NekoRay, this rewrites the underlying(localhost) DNS in Tun Mode.
-For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
+For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
         <translation>建议留空，但有时会出现问题，这时可以设置这个选项。
-对于 NekoRay 来说，在 Tun 模式下会重写 underlying(localhost) DNS。
-对于 NekoBox 来说，在 Tun 模式、正常模式和 URL 测试延迟中会重写 underlying(localhost) DNS。</translation>
+对于 nekobox_core 来说，在 Tun 模式、正常模式和 URL 测试延迟中会重写 underlying(localhost) DNS。</translation>
     </message>
     <message>
         <source>Default On</source>
@@ -618,7 +616,7 @@ For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mod
     </message>
     <message>
         <source>DNS</source>
-        <translation></translation>
+        <translation>DNS</translation>
     </message>
     <message>
         <source>Simple DNS Settings</source>
@@ -693,7 +691,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
 when set, domain destinations are resolved to IP before connect,
 also if the connection cannot be established with the current address family (ipv4, ipv6), a fallback connection is created shortly after, with the other address family.</source>
         <translation>outbound.domain_strategy
-设置后，域名目的地在连接前解析为 IP。如果无法通过当前地址 (IPv4、IPv6)建立连接，则会在稍后使用另一地址创建备用连接。</translation>
+设置后，域名目的地在连接前解析为 IP。如果无法通过当前地址 (IPv4、IPv6) 建立连接，则会在稍后使用另一地址创建备用连接。</translation>
     </message>
     <message>
         <source>Outbound Domain Strategy</source>
@@ -1540,7 +1538,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Select mode, double-click or press Enter to select a profile, press ESC to exit.</source>
-        <translation>选择模式，双击或按回车键选择一个配置文件，按ESC键退出。</translation>
+        <translation>选择模式，双击或按回车键选择一个配置文件，按 ESC 键退出。</translation>
     </message>
     <message>
         <source>Stop Testing</source>
@@ -1660,7 +1658,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Click To Sort By Download</source>
-        <translation>点击以按下载排序</translation>
+        <translation>按下载流量排序</translation>
     </message>
     <message>
         <source>Upload</source>
@@ -1668,7 +1666,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Click To Sort By Upload</source>
-        <translation>点击以按上传排序</translation>
+        <translation>按上传流量排序</translation>
     </message>
     <message>
         <source>Logs</source>
@@ -1712,11 +1710,11 @@ Split by line.</source>
     </message>
     <message>
         <source>Process</source>
-        <translation>过程</translation>
+        <translation>进程</translation>
     </message>
     <message>
         <source>Click To Sort By Process</source>
-        <translation>点击以按过程排序</translation>
+        <translation>按进程名排序</translation>
     </message>
     <message>
         <source>Routing Menu</source>

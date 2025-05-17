@@ -9,6 +9,7 @@
 #include "include/ui/profile/edit_wireguard.h"
 #include "include/ui/profile/edit_ssh.h"
 #include "include/ui/profile/edit_custom.h"
+#include "include/ui/profile/edit_extra_core.h"
 
 #include "include/configs/proxy/includes.h"
 #include "include/configs/proxy/Preset.hpp"
@@ -162,6 +163,7 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
         LOAD_TYPE("ssh")
         ui->type->addItem(tr("Custom (%1 outbound)").arg(software_core_name), "internal");
         ui->type->addItem(tr("Custom (%1 config)").arg(software_core_name), "internal-full");
+        ui->type->addItem(tr("Extra Core"), "extracore");
         LOAD_TYPE("chain")
 
         // type changed
@@ -229,6 +231,13 @@ void DialogEditProfile::typeSelected(const QString &newType) {
         customType = newEnt ? type : ent->CustomBean()->core;
         if (customType != "custom") _innerWidget->preset_core = customType;
         type = "custom";
+        ui->apply_to_group->hide();
+    } else if (type == "extracore")
+    {
+        auto _innerWidget = new EditExtraCore(this);
+        innerWidget = _innerWidget;
+        innerEditor = _innerWidget;
+        ui->apply_to_group->hide();
     } else {
         validType = false;
     }
@@ -244,7 +253,7 @@ void DialogEditProfile::typeSelected(const QString &newType) {
     }
 
     // hide some widget
-    auto showAddressPort = type != "chain" && customType != "internal" && customType != "internal-full";
+    auto showAddressPort = type != "chain" && customType != "internal" && customType != "internal-full" && type != "extracore";
     ui->address->setVisible(showAddressPort);
     ui->address_l->setVisible(showAddressPort);
     ui->port->setVisible(showAddressPort);
@@ -296,6 +305,10 @@ void DialogEditProfile::typeSelected(const QString &newType) {
             show_custom_outbound = false;
             show_custom_config = false;
         }
+    } else if (type == "extracore")
+    {
+        show_custom_outbound = false;
+        show_custom_config = false;
     }
     ui->custom_box->setVisible(show_custom_outbound);
     ui->custom_global_box->setVisible(show_custom_config);
@@ -309,7 +322,7 @@ void DialogEditProfile::typeSelected(const QString &newType) {
     delete old;
 
     // 左边 bean inner editor
-    innerEditor->get_edit_dialog = [&]() { return (QWidget *) this; };
+    innerEditor->get_edit_dialog = [&]() { return static_cast<QWidget*>(this); };
     innerEditor->get_edit_text_name = [&]() { return ui->name->text(); };
     innerEditor->get_edit_text_serverAddress = [&]() { return ui->address->text(); };
     innerEditor->get_edit_text_serverPort = [&]() { return ui->port->text(); };

@@ -36,6 +36,11 @@ namespace NekoGui_sys {
                     kill();
                 }
             }
+            if (log.contains("Extra process exited unexpectedly"))
+            {
+                MW_show_log("Extra Core exited, stopping profile...");
+                MW_dialog_message("ExternalProcess", "Crashed");
+            }
             if (logCounter.fetchAndAddRelaxed(log.count("\n")) > NekoGui::dataStore->max_log_line) return;
             MW_show_log(log);
         });
@@ -74,8 +79,8 @@ namespace NekoGui_sys {
 
                 // Restart
                 start_profile_when_core_is_up = NekoGui::dataStore->started_id;
-                MW_show_log("[ERROR] " + QObject::tr("Core exited, restarting."));
-                setTimeout([=] { Restart(); }, this, 1000);
+                MW_show_log("[Fatal] " + QObject::tr("Core exited, restarting."));
+                setTimeout([=] { Restart(); }, this, 200);
             }
         });
     }

@@ -9,3 +9,4 @@
 #include "WireguardBean.h"
 #include "SSHBean.h"
 #include "CustomBean.hpp"
+#include "ExtraCore.h"

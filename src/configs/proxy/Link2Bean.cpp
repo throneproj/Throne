@@ -394,4 +394,10 @@ namespace NekoGui_fmt {
         return true;
     }
 
+    bool ExtraCoreBean::TryParseLink(const QString& link)
+    {
+        return false;
+    }
+
+
 } // namespace NekoGui_fmt

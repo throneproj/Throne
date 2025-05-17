@@ -28,19 +28,23 @@ namespace NekoGui_rpc {
 
         void StopTests(bool *rpcOK);
 
+        libcore::QueryURLTestResponse QueryURLTest(bool *rpcOK);
+
         QStringList GetGeoList(bool *rpcOK, GeoRuleSetType mode, const QString& basePath);
 
         QString CompileGeoSet(bool *rpcOK, GeoRuleSetType mode, std::string category, const QString& basePath);
 
-        bool GetDNSDHCPStatus(bool *rpcOK) const;
-
-        QString SetSystemDNS(bool *rpcOK, const QString& customNS, bool dhcp, bool clear) const;
+        QString SetSystemDNS(bool *rpcOK, bool clear) const;
 
         libcore::ListConnectionsResp ListConnections(bool *rpcOK) const;
 
         QString CheckConfig(bool *rpcOK, const QString& config) const;
 
         bool IsPrivileged(bool *rpcOK) const;
+
+        libcore::SpeedTestResponse SpeedTest(bool *rpcOK, const libcore::SpeedTestRequest &request);
+
+        libcore::QuerySpeedTestResponse QueryCurrentSpeedTests(bool *rpcOK);
 
     private:
         std::function<std::unique_ptr<QtGrpc::Http2GrpcChannelPrivate>()> make_grpc_channel;

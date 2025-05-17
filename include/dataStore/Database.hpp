@@ -56,11 +56,16 @@ namespace NekoGui {
 
         void UpdateRouteChains(const QList<std::shared_ptr<RoutingChain>>& newChain);
 
+        QStringList GetExtraCorePaths() const;
+
+        bool AddExtraCorePath(const QString &path);
+
     private:
         // sort by id
         QList<int> profilesIdOrder;
         QList<int> groupsIdOrder;
         QList<int> routesIdOrder;
+        QSet<QString> extraCorePaths;
 
         [[nodiscard]] int NewProfileID() const;
 

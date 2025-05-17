@@ -1,6 +1,8 @@
 #pragma once
 
 #include <QMainWindow>
+#include <core/server/gen/libcore.pb.h>
+#include <include/global/HTTPRequestHelper.hpp>
 
 #include "include/global/NekoGui.hpp"
 #include "include/stats/connections/connectionLister.hpp"
@@ -85,6 +87,10 @@ public:
     void UpdateConnectionList(const QMap<QString, NekoGui_traffic::ConnectionMetadata>& toUpdate, const QMap<QString, NekoGui_traffic::ConnectionMetadata>& toAdd);
 
     void UpdateConnectionListWithRecreate(const QList<NekoGui_traffic::ConnectionMetadata>& connections);
+
+    void UpdateDataView(bool force = false);
+
+    void setDownloadReport(const DownloadProgressReport& report, bool show);
 
 signals:
 
@@ -192,6 +198,14 @@ private:
     int toolTipID;
     //
     SpeedWidget *speedChartWidget;
+    //
+    // for data view
+    QDateTime lastUpdated = QDateTime::currentDateTime();
+    QString currentSptProfileName;
+    bool showSpeedtestData = false;
+    bool showDownloadData = false;
+    libcore::SpeedTestResult currentTestResult;
+    DownloadProgressReport currentDownloadReport; // could use a list, but don't think can show more than one anyways
 
     QList<std::shared_ptr<NekoGui::ProxyEntity>> get_now_selected_list();
 
@@ -219,17 +233,21 @@ private:
 
     static void setup_grpc();
 
-    void speedtest_current_group(const QList<std::shared_ptr<NekoGui::ProxyEntity>>& profiles);
+    void urltest_current_group(const QList<std::shared_ptr<NekoGui::ProxyEntity>>& profiles);
 
-    void stopSpeedTests();
+    void stopTests();
 
-    void RunSpeedTest(const QString& config, bool useDefault, const QStringList& outboundTags, const QMap<QString, int>& tag2entID, int entID = -1);
+    void runURLTest(const QString& config, bool useDefault, const QStringList& outboundTags, const QMap<QString, int>& tag2entID, int entID = -1);
 
     void url_test_current();
 
+    void speedtest_current_group(const QList<std::shared_ptr<NekoGui::ProxyEntity>>& profiles, bool testCurrent = false);
+
+    void runSpeedTest(const QString& config, bool useDefault, bool testCurrent, const QStringList& outboundTags, const QMap<QString, int>& tag2entID, int entID = -1);
+
     static void stop_core_daemon();
 
-    bool set_system_dns(bool set, const QString& customServer, bool save_set = true);
+    bool set_system_dns(bool set, bool save_set = true);
 
     void CheckUpdate();
 

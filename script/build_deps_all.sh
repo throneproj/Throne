@@ -44,7 +44,6 @@ cd protobuf/build
 $cmake .. -GNinja \
   -DCMAKE_BUILD_TYPE=Release \
   -DBUILD_SHARED_LIBS=OFF \
-  -Dprotobuf_MSVC_STATIC_RUNTIME=OFF \
   -Dprotobuf_BUILD_TESTS=OFF \
   -DCMAKE_INSTALL_PREFIX=$INSTALL_PREFIX \
   -Dprotobuf_BUILD_PROTOBUF_BINARIES=ON \

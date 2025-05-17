@@ -293,7 +293,7 @@ namespace NekoGui {
         _add(new configItem("geoip_download_url", &geoip_download_url, itemType::string));
         _add(new configItem("geosite_download_url", &geosite_download_url, itemType::string));
         _add(new configItem("enable_dns_server", &enable_dns_server, itemType::boolean));
-        _add(new configItem("dns_server_listen_addr", &dns_server_listen_addr, itemType::string));
+        _add(new configItem("dns_server_listen_lan", &dns_server_listen_lan, itemType::boolean));
         _add(new configItem("dns_server_listen_port", &dns_server_listen_port, itemType::integer));
         _add(new configItem("dns_v4_resp", &dns_v4_resp, itemType::string));
         _add(new configItem("dns_v6_resp", &dns_v6_resp, itemType::string));
@@ -302,13 +302,13 @@ namespace NekoGui {
         _add(new configItem("redirect_listen_address", &redirect_listen_address, itemType::string));
         _add(new configItem("redirect_listen_port", &redirect_listen_port, itemType::integer));
         _add(new configItem("system_dns_set", &system_dns_set, itemType::boolean));
-        _add(new configItem("is_dhcp", &is_dhcp, itemType::boolean));
         _add(new configItem("windows_set_admin", &windows_set_admin, itemType::boolean));
         _add(new configItem("enable_stats", &enable_stats, itemType::boolean));
         _add(new configItem("stats_tab", &stats_tab, itemType::string));
         _add(new configItem("proxy_scheme", &proxy_scheme, itemType::string));
         _add(new configItem("disable_privilege_req", &disable_privilege_req, itemType::boolean));
         _add(new configItem("enable_tun_routing", &enable_tun_routing, itemType::boolean));
+        _add(new configItem("speed_test_mode", &speed_test_mode, itemType::integer));
     }
 
     void DataStore::UpdateStartedId(int id) {
