@@ -612,16 +612,10 @@ namespace NekoGui {
         chain->Rules << rule0;
 
         auto rule1 = std::make_shared<RouteRule>();
-        rule1->name = "Bypass Russian IPs and Domains";
-        rule1->rule_set << QString("antizapret");
-        rule1->outboundID = -2;
+        rule1->name = "Bypass IPs and Domains not banned in Russia";
+        rule1->rule_set << QString("antizapret_IP") << QString("antizapret_SITE");
+        rule1->outboundID = -1;
         chain->Rules << rule1;
-
-        auto rule2 = std::make_shared<RouteRule>();
-        rule2->name = "Bypass Private IPs";
-        rule2->ip_is_private = true;
-        rule1->outboundID = -2;
-        chain->Rules << rule2;
 
         return chain;
     }
