@@ -65,8 +65,8 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<NekoGui::RoutingChai
 
     // setup rule set helper
     bool ok; // for now we discard this
-    auto geoIpList = NekoGui_rpc::defaultClient->GetGeoList(&ok, NekoGui_rpc::GeoRuleSetType::ip, NekoGui::GetBasePath());
-    auto geoSiteList = NekoGui_rpc::defaultClient->GetGeoList(&ok, NekoGui_rpc::GeoRuleSetType::site, NekoGui::GetBasePath());
+    auto geoIpList = NekoGui_rpc::defaultClient->GetGeoList(&ok, NekoGui_rpc::GeoRuleSetType::ip, NekoGui::GetCoreAssetDir("geoip.db"));
+    auto geoSiteList = NekoGui_rpc::defaultClient->GetGeoList(&ok, NekoGui_rpc::GeoRuleSetType::site, NekoGui::GetCoreAssetDir("geosite.db"));
     geo_items << geoIpList << geoSiteList;
     rule_set_editor = new AutoCompleteTextEdit("", geo_items, this);
     ui->rule_attr_data->layout()->addWidget(rule_set_editor);

@@ -1,5 +1,7 @@
 // DO NOT INCLUDE THIS
 
+#include "Const.hpp"
+
 namespace NekoGui {
 
     class Routing : public JsonStore {
@@ -26,24 +28,10 @@ namespace NekoGui {
         static QStringList List();
     };
 
-    class ExtraCore : public JsonStore {
-    public:
-        QString core_map;
-
-        explicit ExtraCore();
-
-        [[nodiscard]] QString Get(const QString &id) const;
-
-        void Set(const QString &id, const QString &path);
-
-        void Delete(const QString &id);
-    };
-
     class DataStore : public JsonStore {
     public:
         // Running
 
-        QString core_token;
         int core_port = 19810;
         int started_id = -1919;
         bool core_running = false;
@@ -53,7 +41,7 @@ namespace NekoGui {
         bool need_keep_vpn_off = false;
         QString appdataDir = "";
         QStringList ignoreConnTag = {};
-        QString proxy_scheme = "http";
+        QString proxy_scheme = "{ip}:{port}";
 
         std::unique_ptr<Routing> routing;
         int imported_count = 0;
@@ -77,7 +65,6 @@ namespace NekoGui {
         QString log_level = "info";
         QString test_latency_url = "http://cp.cloudflare.com/";
         int test_concurrent = 10;
-        int traffic_loop_interval = 500;
         bool disable_traffic_stats = false;
         int current_group = 0; // group id
         QString mux_protocol = "smux";
@@ -95,6 +82,7 @@ namespace NekoGui {
         QString splitter_state = "";
         bool enable_stats = true;
         QString stats_tab = ""; // either connection or log
+        int speed_test_mode = TestConfig::FULL;
 
         // Subscription
         QString user_agent = ""; // set at main.cpp
@@ -128,11 +116,16 @@ namespace NekoGui {
 
         // VPN
         bool fake_dns = false;
-        bool auto_redirect = false;
+        bool enable_tun_routing = false;
+#ifdef Q_OS_MACOS
+        QString vpn_implementation = "gvisor";
+#else
         QString vpn_implementation = "system";
+#endif
         int vpn_mtu = 1500;
         bool vpn_ipv6 = false;
         bool vpn_strict_route = true;
+        bool disable_privilege_req = false;
 
         // NTP
         bool enable_ntp = false;
@@ -142,7 +135,7 @@ namespace NekoGui {
 
         // Hijack
         bool enable_dns_server = false;
-        QString dns_server_listen_addr = "127.0.0.1";
+        bool dns_server_listen_lan = false;
         int dns_server_listen_port = 53;
         QString dns_v4_resp = "127.0.0.1";
         QString dns_v6_resp = "::1";
@@ -153,8 +146,6 @@ namespace NekoGui {
 
         // System dns
         bool system_dns_set = false;
-        bool is_dhcp = false;
-        QStringList system_dns_servers = {};
 
         // Hotkey
         QString hotkey_mainwindow = "";
@@ -168,9 +159,6 @@ namespace NekoGui {
         QString core_box_clash_listen_addr = "127.0.0.1";
         QString core_box_clash_api_secret = "";
         QString core_box_underlying_dns = "";
-
-        // Other Core
-        ExtraCore *extraCore = new ExtraCore;
 
         // Methods
 

@@ -33,6 +33,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     D_LOAD_INT(inbound_socks_port)
     D_LOAD_INT(test_concurrent)
     D_LOAD_STRING(test_latency_url)
+    ui->speedtest_mode->setCurrentIndex(NekoGui::dataStore->speed_test_mode);
 
     connect(ui->custom_inbound_edit, &QPushButton::clicked, this, [=] {
         C_EDIT_JSON_ALLOW_EMPTY(custom_inbound)
@@ -48,27 +49,15 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     D_LOAD_BOOL(start_minimal)
     D_LOAD_INT(max_log_line)
     //
-    if (NekoGui::dataStore->traffic_loop_interval == 500) {
-        ui->rfsh_r->setCurrentIndex(0);
-    } else if (NekoGui::dataStore->traffic_loop_interval == 1000) {
-        ui->rfsh_r->setCurrentIndex(1);
-    } else if (NekoGui::dataStore->traffic_loop_interval == 2000) {
-        ui->rfsh_r->setCurrentIndex(2);
-    } else if (NekoGui::dataStore->traffic_loop_interval == 3000) {
-        ui->rfsh_r->setCurrentIndex(3);
-    } else if (NekoGui::dataStore->traffic_loop_interval == 5000) {
-        ui->rfsh_r->setCurrentIndex(4);
-    } else {
-        ui->rfsh_r->setCurrentIndex(5);
-    }
-    //
     ui->language->setCurrentIndex(NekoGui::dataStore->language);
-    connect(ui->language, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, [=](int index) {
+    connect(ui->language, &QComboBox::currentIndexChanged, this, [=](int index) {
         CACHE.needRestart = true;
     });
-    connect(ui->font, &QComboBox::currentTextChanged, this, [=](const QString &font) {
+    connect(ui->font, &QComboBox::currentTextChanged, this, [=](const QString &fontName) {
+        auto font = qApp->font();
+        font.setFamily(fontName);
         qApp->setFont(font);
-        NekoGui::dataStore->font = font;
+        NekoGui::dataStore->font = fontName;
         NekoGui::dataStore->Save();
         adjustSize();
     });
@@ -159,6 +148,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     // Security
 
     ui->utlsFingerprint->addItems(Preset::SingBox::UtlsFingerPrint);
+    ui->disable_priv_req->setChecked(NekoGui::dataStore->disable_privilege_req);
 
     D_LOAD_BOOL(skip_cert)
     ui->utlsFingerprint->setCurrentText(NekoGui::dataStore->utlsFingerprint);
@@ -178,6 +168,7 @@ void DialogBasicSettings::accept() {
     D_SAVE_INT(test_concurrent)
     D_SAVE_STRING(test_latency_url)
     NekoGui::dataStore->proxy_scheme = ui->proxy_scheme->currentText().toLower();
+    NekoGui::dataStore->speed_test_mode = ui->speedtest_mode->currentIndex();
 
     // Style
 
@@ -188,20 +179,6 @@ void DialogBasicSettings::accept() {
 
     if (NekoGui::dataStore->max_log_line <= 0) {
         NekoGui::dataStore->max_log_line = 200;
-    }
-
-    if (ui->rfsh_r->currentIndex() == 0) {
-        NekoGui::dataStore->traffic_loop_interval = 500;
-    } else if (ui->rfsh_r->currentIndex() == 1) {
-        NekoGui::dataStore->traffic_loop_interval = 1000;
-    } else if (ui->rfsh_r->currentIndex() == 2) {
-        NekoGui::dataStore->traffic_loop_interval = 2000;
-    } else if (ui->rfsh_r->currentIndex() == 3) {
-        NekoGui::dataStore->traffic_loop_interval = 3000;
-    } else if (ui->rfsh_r->currentIndex() == 4) {
-        NekoGui::dataStore->traffic_loop_interval = 5000;
-    } else {
-        NekoGui::dataStore->traffic_loop_interval = 0;
     }
 
     // Subscription
@@ -241,6 +218,7 @@ void DialogBasicSettings::accept() {
 
     D_SAVE_BOOL(skip_cert)
     NekoGui::dataStore->utlsFingerprint = ui->utlsFingerprint->currentText();
+    NekoGui::dataStore->disable_privilege_req = ui->disable_priv_req->isChecked();
 
     QStringList str{"UpdateDataStore"};
     if (CACHE.needRestart) str << "NeedRestart";
@@ -251,8 +229,24 @@ void DialogBasicSettings::accept() {
 void DialogBasicSettings::on_set_custom_icon_clicked() {
     auto title = ui->set_custom_icon->text();
     QString user_icon_path = "./" + software_name.toLower() + ".png";
-    auto c = QMessageBox::question(this, title, tr("Please select a PNG file."),
-                                   tr("Select"), tr("Reset"), tr("Cancel"), 2, 2);
+
+    QMessageBox msg(
+        QMessageBox::Question,
+        title,
+        tr("Please select a PNG file."),
+        QMessageBox::NoButton,
+        this
+    );
+
+    msg.addButton(tr("Select"), QMessageBox::ActionRole);
+    msg.addButton(tr("Reset"), QMessageBox::ActionRole);
+    auto cancel = msg.addButton(tr("Cancel"), QMessageBox::ActionRole);
+
+    msg.setDefaultButton(cancel);
+    msg.setEscapeButton(cancel);
+
+
+    auto c = msg.exec() - 2;
     if (c == 0) {
         auto fn = QFileDialog::getOpenFileName(this, QObject::tr("Select"), QDir::currentPath(),
                                                "*.png", nullptr, QFileDialog::Option::ReadOnly);
@@ -286,8 +280,7 @@ void DialogBasicSettings::on_core_settings_clicked() {
     auto core_box_underlying_dns_l = new QLabel(tr("Override underlying DNS"));
     core_box_underlying_dns_l->setToolTip(tr(
         "It is recommended to leave it blank, but it sometimes does not work, at this time you can set this option.\n"
-        "For NekoRay, this rewrites the underlying(localhost) DNS in Tun Mode.\n"
-        "For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test."));
+        "For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test."));
     core_box_underlying_dns = new MyLineEdit;
     core_box_underlying_dns->setText(NekoGui::dataStore->core_box_underlying_dns);
     core_box_underlying_dns->setMinimumWidth(300);

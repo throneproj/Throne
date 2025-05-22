@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release Tag'
+        description: "Release Tag"
         required: true
       publish:
-        description: 'Publish: If want ignore'
+        description: "Publish: If want ignore"
         required: false
       artifact-pack:
-        description: 'artifact-pack: If want ignore'
+        description: "artifact-pack: If want ignore"
         required: false
 jobs:
   build-go:
@@ -19,19 +19,19 @@ jobs:
         include:
           - cross_os: public_res
             cross_arch: public_res
-            go_version: "1.24"
+            go_version: "1.24.3"
           - cross_os: windows
             cross_arch: amd64
-            go_version: "1.24"
+            go_version: "1.24.3"
           - cross_os: linux
             cross_arch: amd64
-            go_version: "1.24"
+            go_version: "1.24.3"
           - cross_os: darwin
             cross_arch: amd64
-            go_version: "1.24"
+            go_version: "1.24.3"
           - cross_os: darwin
             cross_arch: arm64
-            go_version: "1.24"
+            go_version: "1.24.3"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
@@ -73,16 +73,16 @@ jobs:
       matrix:
         include:
           - platform: windows-latest
-            qt_version: "6.8.2"
+            qt_version: "6.9.0"
             target: amd64
           - platform: ubuntu-22.04
-            qt_version: "6.8.2"
+            qt_version: "6.9.0"
             target: amd64
           - platform: macos-latest
-            qt_version: "6.8.2"
+            qt_version: "6.9.0"
             target: x86_64
           - platform: macos-latest
-            qt_version: "6.8.2"
+            qt_version: "6.9.0"
             target: arm64
       fail-fast: false
     runs-on: ${{ matrix.platform }}
@@ -93,25 +93,37 @@ jobs:
         uses: actions/checkout@v4.2.2
         with:
           submodules: "recursive"
-      - name: Install MSVC compiler
+      - name: Install mingw
         if: matrix.platform == 'windows-latest'
-        uses: ilammy/msvc-dev-cmd@v1.13.0
+        uses: bwoodsend/setup-winlibs-action@v1.15
+      - name: Install ninja-build tool
+        uses: seanmiddleditch/gha-setup-ninja@v5
 
       - name: Download Artifacts
         uses: actions/download-artifact@v4.1.8
         with:
           path: download-artifact
       # ========================================================================================================= Qt Install
+      - name: Qt static Cache
+        id: cache-static-Qt
+        if: matrix.platform == 'windows-latest'
+        uses: actions/cache@v4.2.0
+        with:
+          path: qt6/build
+          key: QtStaticCache-${{ matrix.platform }}-${{ matrix.target }}-Qt${{ matrix.qt_version }}
+      - name: Install Qt Windows
+        shell: powershell
+        if: matrix.platform == 'windows-latest' && steps.cache-static-Qt.outputs.cache-hit != 'true'
+        run: ./script/build_qt_static_windows.bat ${{ matrix.qt_version }}
       - name: Install Qt
         uses: jurplel/install-qt-action@v4.1.1
+        if: matrix.platform != 'windows-latest'
         with:
           version: ${{ matrix.qt_version }}
           setup-python: true
           cache: true
           cache-key-prefix: QtCache-${{ matrix.platform }}-${{ matrix.target }}
-      # ========================================================================================================= 编译与 Qt 无关的依赖
-      - name: Install ninja-build tool
-        uses: seanmiddleditch/gha-setup-ninja@v5
+      # ========================================================================================================= Build deps
       - name: Cache Download
         id: cache-deps
         uses: actions/cache@v4.2.0
@@ -127,12 +139,13 @@ jobs:
         shell: bash
         if: matrix.platform == 'windows-latest'
         env:
-          CC: cl.exe
-          CXX: cl.exe
+          CC: gcc.exe
+          CXX: g++.exe
         run: |
+          export CMAKE_PREFIX_PATH=$PWD/qt6/build/lib/cmake
           mkdir build
           cd build
-          cmake -GNinja -DQT_VERSION_MAJOR=6 -DCMAKE_BUILD_TYPE=Release ..
+          cmake -GNinja -DQT_VERSION_MAJOR=6 -DCMAKE_CXX_FLAGS="-static -DNDEBUG -s" ..
           ninja -j2
           cd ..
           ./script/deploy_windows64.sh
@@ -141,11 +154,11 @@ jobs:
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt update && sudo apt upgrade -y
-          mkdir build 
-          cd build 
-          cmake -GNinja -DQT_VERSION_MAJOR=6  -DCMAKE_BUILD_TYPE=Release .. 
-          ninja 
-          cd .. 
+          mkdir build
+          cd build
+          cmake -GNinja -DQT_VERSION_MAJOR=6  -DCMAKE_BUILD_TYPE=Release ..
+          ninja
+          cd ..
           ./script/deploy_linux64.sh
       - name: macOS - Generate MakeFile and Build
         shell: bash
@@ -193,22 +206,22 @@ jobs:
           rm -rf nekoray
           ####
           mv linux64 nekoray
-          zip -r $version_standalone-linux64.zip nekoray
+          zip -9 -r $version_standalone-linux64.zip nekoray
           rm -rf nekoray
           ####
           mv windows64 nekoray
-          zip -r $version_standalone-windows64.zip nekoray
+          zip -9 -r $version_standalone-windows64.zip nekoray
           rm -rf nekoray
           ####
           mkdir Nekoray
           mv macos-arm64/nekoray.app Nekoray/nekoray.app
-          zip --symlinks -r $version_standalone-macos-arm64.zip Nekoray
+          zip -9 --symlinks -r $version_standalone-macos-arm64.zip Nekoray
           rm -rf macos-arm64
           rm -rf Nekoray
           ####
           mkdir Nekoray
           mv macos-amd64/nekoray.app Nekoray/nekoray.app
-          zip --symlinks -r $version_standalone-macos-amd64.zip Nekoray
+          zip -9 --symlinks -r $version_standalone-macos-amd64.zip Nekoray
           rm -rf macos-amd64
           rm -rf Nekoray
       - name: Clean Up

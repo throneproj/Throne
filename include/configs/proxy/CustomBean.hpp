@@ -24,7 +24,7 @@ namespace NekoGui_fmt {
         QString DisplayType() override {
             if (core == "internal") {
                 auto obj = QString2QJsonObject(config_simple);
-                return obj[IS_NEKO_BOX ? "type" : "protocol"].toString();
+                return obj["type"].toString();
             } else if (core == "internal-full") {
                 return software_core_name + " config";
             }

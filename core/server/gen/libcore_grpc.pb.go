@@ -20,21 +20,22 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	LibcoreService_Exit_FullMethodName                = "/libcore.LibcoreService/Exit"
-	LibcoreService_Update_FullMethodName              = "/libcore.LibcoreService/Update"
 	LibcoreService_Start_FullMethodName               = "/libcore.LibcoreService/Start"
 	LibcoreService_Stop_FullMethodName                = "/libcore.LibcoreService/Stop"
 	LibcoreService_CheckConfig_FullMethodName         = "/libcore.LibcoreService/CheckConfig"
 	LibcoreService_Test_FullMethodName                = "/libcore.LibcoreService/Test"
 	LibcoreService_StopTest_FullMethodName            = "/libcore.LibcoreService/StopTest"
+	LibcoreService_QueryURLTest_FullMethodName        = "/libcore.LibcoreService/QueryURLTest"
 	LibcoreService_QueryStats_FullMethodName          = "/libcore.LibcoreService/QueryStats"
 	LibcoreService_ListConnections_FullMethodName     = "/libcore.LibcoreService/ListConnections"
 	LibcoreService_GetGeoIPList_FullMethodName        = "/libcore.LibcoreService/GetGeoIPList"
 	LibcoreService_GetGeoSiteList_FullMethodName      = "/libcore.LibcoreService/GetGeoSiteList"
 	LibcoreService_CompileGeoIPToSrs_FullMethodName   = "/libcore.LibcoreService/CompileGeoIPToSrs"
 	LibcoreService_CompileGeoSiteToSrs_FullMethodName = "/libcore.LibcoreService/CompileGeoSiteToSrs"
-	LibcoreService_SetSystemProxy_FullMethodName      = "/libcore.LibcoreService/SetSystemProxy"
-	LibcoreService_GetSystemDNS_FullMethodName        = "/libcore.LibcoreService/GetSystemDNS"
 	LibcoreService_SetSystemDNS_FullMethodName        = "/libcore.LibcoreService/SetSystemDNS"
+	LibcoreService_IsPrivileged_FullMethodName        = "/libcore.LibcoreService/IsPrivileged"
+	LibcoreService_SpeedTest_FullMethodName           = "/libcore.LibcoreService/SpeedTest"
+	LibcoreService_QuerySpeedTest_FullMethodName      = "/libcore.LibcoreService/QuerySpeedTest"
 )
 
 // LibcoreServiceClient is the client API for LibcoreService service.
@@ -42,21 +43,22 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type LibcoreServiceClient interface {
 	Exit(ctx context.Context, in *EmptyReq, opts ...grpc.CallOption) (*EmptyResp, error)
-	Update(ctx context.Context, in *UpdateReq, opts ...grpc.CallOption) (*UpdateResp, error)
 	Start(ctx context.Context, in *LoadConfigReq, opts ...grpc.CallOption) (*ErrorResp, error)
 	Stop(ctx context.Context, in *EmptyReq, opts ...grpc.CallOption) (*ErrorResp, error)
 	CheckConfig(ctx context.Context, in *LoadConfigReq, opts ...grpc.CallOption) (*ErrorResp, error)
 	Test(ctx context.Context, in *TestReq, opts ...grpc.CallOption) (*TestResp, error)
 	StopTest(ctx context.Context, in *EmptyReq, opts ...grpc.CallOption) (*EmptyResp, error)
+	QueryURLTest(ctx context.Context, in *EmptyReq, opts ...grpc.CallOption) (*QueryURLTestResponse, error)
 	QueryStats(ctx context.Context, in *EmptyReq, opts ...grpc.CallOption) (*QueryStatsResp, error)
 	ListConnections(ctx context.Context, in *EmptyReq, opts ...grpc.CallOption) (*ListConnectionsResp, error)
 	GetGeoIPList(ctx context.Context, in *GeoListRequest, opts ...grpc.CallOption) (*GetGeoIPListResponse, error)
 	GetGeoSiteList(ctx context.Context, in *GeoListRequest, opts ...grpc.CallOption) (*GetGeoSiteListResponse, error)
 	CompileGeoIPToSrs(ctx context.Context, in *CompileGeoIPToSrsRequest, opts ...grpc.CallOption) (*EmptyResp, error)
 	CompileGeoSiteToSrs(ctx context.Context, in *CompileGeoSiteToSrsRequest, opts ...grpc.CallOption) (*EmptyResp, error)
-	SetSystemProxy(ctx context.Context, in *SetSystemProxyRequest, opts ...grpc.CallOption) (*EmptyResp, error)
-	GetSystemDNS(ctx context.Context, in *EmptyReq, opts ...grpc.CallOption) (*GetSystemDNSResponse, error)
 	SetSystemDNS(ctx context.Context, in *SetSystemDNSRequest, opts ...grpc.CallOption) (*EmptyResp, error)
+	IsPrivileged(ctx context.Context, in *EmptyReq, opts ...grpc.CallOption) (*IsPrivilegedResponse, error)
+	SpeedTest(ctx context.Context, in *SpeedTestRequest, opts ...grpc.CallOption) (*SpeedTestResponse, error)
+	QuerySpeedTest(ctx context.Context, in *EmptyReq, opts ...grpc.CallOption) (*QuerySpeedTestResponse, error)
 }
 
 type libcoreServiceClient struct {
@@ -71,16 +73,6 @@ func (c *libcoreServiceClient) Exit(ctx context.Context, in *EmptyReq, opts ...g
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(EmptyResp)
 	err := c.cc.Invoke(ctx, LibcoreService_Exit_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *libcoreServiceClient) Update(ctx context.Context, in *UpdateReq, opts ...grpc.CallOption) (*UpdateResp, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UpdateResp)
-	err := c.cc.Invoke(ctx, LibcoreService_Update_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -131,6 +123,16 @@ func (c *libcoreServiceClient) StopTest(ctx context.Context, in *EmptyReq, opts 
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(EmptyResp)
 	err := c.cc.Invoke(ctx, LibcoreService_StopTest_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libcoreServiceClient) QueryURLTest(ctx context.Context, in *EmptyReq, opts ...grpc.CallOption) (*QueryURLTestResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryURLTestResponse)
+	err := c.cc.Invoke(ctx, LibcoreService_QueryURLTest_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -197,30 +199,40 @@ func (c *libcoreServiceClient) CompileGeoSiteToSrs(ctx context.Context, in *Comp
 	return out, nil
 }
 
-func (c *libcoreServiceClient) SetSystemProxy(ctx context.Context, in *SetSystemProxyRequest, opts ...grpc.CallOption) (*EmptyResp, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(EmptyResp)
-	err := c.cc.Invoke(ctx, LibcoreService_SetSystemProxy_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *libcoreServiceClient) GetSystemDNS(ctx context.Context, in *EmptyReq, opts ...grpc.CallOption) (*GetSystemDNSResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetSystemDNSResponse)
-	err := c.cc.Invoke(ctx, LibcoreService_GetSystemDNS_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *libcoreServiceClient) SetSystemDNS(ctx context.Context, in *SetSystemDNSRequest, opts ...grpc.CallOption) (*EmptyResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(EmptyResp)
 	err := c.cc.Invoke(ctx, LibcoreService_SetSystemDNS_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libcoreServiceClient) IsPrivileged(ctx context.Context, in *EmptyReq, opts ...grpc.CallOption) (*IsPrivilegedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(IsPrivilegedResponse)
+	err := c.cc.Invoke(ctx, LibcoreService_IsPrivileged_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libcoreServiceClient) SpeedTest(ctx context.Context, in *SpeedTestRequest, opts ...grpc.CallOption) (*SpeedTestResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SpeedTestResponse)
+	err := c.cc.Invoke(ctx, LibcoreService_SpeedTest_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *libcoreServiceClient) QuerySpeedTest(ctx context.Context, in *EmptyReq, opts ...grpc.CallOption) (*QuerySpeedTestResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QuerySpeedTestResponse)
+	err := c.cc.Invoke(ctx, LibcoreService_QuerySpeedTest_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -232,21 +244,22 @@ func (c *libcoreServiceClient) SetSystemDNS(ctx context.Context, in *SetSystemDN
 // for forward compatibility.
 type LibcoreServiceServer interface {
 	Exit(context.Context, *EmptyReq) (*EmptyResp, error)
-	Update(context.Context, *UpdateReq) (*UpdateResp, error)
 	Start(context.Context, *LoadConfigReq) (*ErrorResp, error)
 	Stop(context.Context, *EmptyReq) (*ErrorResp, error)
 	CheckConfig(context.Context, *LoadConfigReq) (*ErrorResp, error)
 	Test(context.Context, *TestReq) (*TestResp, error)
 	StopTest(context.Context, *EmptyReq) (*EmptyResp, error)
+	QueryURLTest(context.Context, *EmptyReq) (*QueryURLTestResponse, error)
 	QueryStats(context.Context, *EmptyReq) (*QueryStatsResp, error)
 	ListConnections(context.Context, *EmptyReq) (*ListConnectionsResp, error)
 	GetGeoIPList(context.Context, *GeoListRequest) (*GetGeoIPListResponse, error)
 	GetGeoSiteList(context.Context, *GeoListRequest) (*GetGeoSiteListResponse, error)
 	CompileGeoIPToSrs(context.Context, *CompileGeoIPToSrsRequest) (*EmptyResp, error)
 	CompileGeoSiteToSrs(context.Context, *CompileGeoSiteToSrsRequest) (*EmptyResp, error)
-	SetSystemProxy(context.Context, *SetSystemProxyRequest) (*EmptyResp, error)
-	GetSystemDNS(context.Context, *EmptyReq) (*GetSystemDNSResponse, error)
 	SetSystemDNS(context.Context, *SetSystemDNSRequest) (*EmptyResp, error)
+	IsPrivileged(context.Context, *EmptyReq) (*IsPrivilegedResponse, error)
+	SpeedTest(context.Context, *SpeedTestRequest) (*SpeedTestResponse, error)
+	QuerySpeedTest(context.Context, *EmptyReq) (*QuerySpeedTestResponse, error)
 	mustEmbedUnimplementedLibcoreServiceServer()
 }
 
@@ -259,9 +272,6 @@ type UnimplementedLibcoreServiceServer struct{}
 
 func (UnimplementedLibcoreServiceServer) Exit(context.Context, *EmptyReq) (*EmptyResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Exit not implemented")
-}
-func (UnimplementedLibcoreServiceServer) Update(context.Context, *UpdateReq) (*UpdateResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
 }
 func (UnimplementedLibcoreServiceServer) Start(context.Context, *LoadConfigReq) (*ErrorResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Start not implemented")
@@ -277,6 +287,9 @@ func (UnimplementedLibcoreServiceServer) Test(context.Context, *TestReq) (*TestR
 }
 func (UnimplementedLibcoreServiceServer) StopTest(context.Context, *EmptyReq) (*EmptyResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StopTest not implemented")
+}
+func (UnimplementedLibcoreServiceServer) QueryURLTest(context.Context, *EmptyReq) (*QueryURLTestResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method QueryURLTest not implemented")
 }
 func (UnimplementedLibcoreServiceServer) QueryStats(context.Context, *EmptyReq) (*QueryStatsResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method QueryStats not implemented")
@@ -296,14 +309,17 @@ func (UnimplementedLibcoreServiceServer) CompileGeoIPToSrs(context.Context, *Com
 func (UnimplementedLibcoreServiceServer) CompileGeoSiteToSrs(context.Context, *CompileGeoSiteToSrsRequest) (*EmptyResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CompileGeoSiteToSrs not implemented")
 }
-func (UnimplementedLibcoreServiceServer) SetSystemProxy(context.Context, *SetSystemProxyRequest) (*EmptyResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetSystemProxy not implemented")
-}
-func (UnimplementedLibcoreServiceServer) GetSystemDNS(context.Context, *EmptyReq) (*GetSystemDNSResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetSystemDNS not implemented")
-}
 func (UnimplementedLibcoreServiceServer) SetSystemDNS(context.Context, *SetSystemDNSRequest) (*EmptyResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetSystemDNS not implemented")
+}
+func (UnimplementedLibcoreServiceServer) IsPrivileged(context.Context, *EmptyReq) (*IsPrivilegedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsPrivileged not implemented")
+}
+func (UnimplementedLibcoreServiceServer) SpeedTest(context.Context, *SpeedTestRequest) (*SpeedTestResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SpeedTest not implemented")
+}
+func (UnimplementedLibcoreServiceServer) QuerySpeedTest(context.Context, *EmptyReq) (*QuerySpeedTestResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method QuerySpeedTest not implemented")
 }
 func (UnimplementedLibcoreServiceServer) mustEmbedUnimplementedLibcoreServiceServer() {}
 func (UnimplementedLibcoreServiceServer) testEmbeddedByValue()                        {}
@@ -340,24 +356,6 @@ func _LibcoreService_Exit_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LibcoreServiceServer).Exit(ctx, req.(*EmptyReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _LibcoreService_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(LibcoreServiceServer).Update(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: LibcoreService_Update_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LibcoreServiceServer).Update(ctx, req.(*UpdateReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -448,6 +446,24 @@ func _LibcoreService_StopTest_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LibcoreServiceServer).StopTest(ctx, req.(*EmptyReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibcoreService_QueryURLTest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmptyReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibcoreServiceServer).QueryURLTest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibcoreService_QueryURLTest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibcoreServiceServer).QueryURLTest(ctx, req.(*EmptyReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -560,42 +576,6 @@ func _LibcoreService_CompileGeoSiteToSrs_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _LibcoreService_SetSystemProxy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SetSystemProxyRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(LibcoreServiceServer).SetSystemProxy(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: LibcoreService_SetSystemProxy_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LibcoreServiceServer).SetSystemProxy(ctx, req.(*SetSystemProxyRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _LibcoreService_GetSystemDNS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EmptyReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(LibcoreServiceServer).GetSystemDNS(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: LibcoreService_GetSystemDNS_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LibcoreServiceServer).GetSystemDNS(ctx, req.(*EmptyReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _LibcoreService_SetSystemDNS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SetSystemDNSRequest)
 	if err := dec(in); err != nil {
@@ -614,6 +594,60 @@ func _LibcoreService_SetSystemDNS_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LibcoreService_IsPrivileged_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmptyReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibcoreServiceServer).IsPrivileged(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibcoreService_IsPrivileged_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibcoreServiceServer).IsPrivileged(ctx, req.(*EmptyReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibcoreService_SpeedTest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SpeedTestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibcoreServiceServer).SpeedTest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibcoreService_SpeedTest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibcoreServiceServer).SpeedTest(ctx, req.(*SpeedTestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LibcoreService_QuerySpeedTest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmptyReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LibcoreServiceServer).QuerySpeedTest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LibcoreService_QuerySpeedTest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LibcoreServiceServer).QuerySpeedTest(ctx, req.(*EmptyReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LibcoreService_ServiceDesc is the grpc.ServiceDesc for LibcoreService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -624,10 +658,6 @@ var LibcoreService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Exit",
 			Handler:    _LibcoreService_Exit_Handler,
-		},
-		{
-			MethodName: "Update",
-			Handler:    _LibcoreService_Update_Handler,
 		},
 		{
 			MethodName: "Start",
@@ -648,6 +678,10 @@ var LibcoreService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StopTest",
 			Handler:    _LibcoreService_StopTest_Handler,
+		},
+		{
+			MethodName: "QueryURLTest",
+			Handler:    _LibcoreService_QueryURLTest_Handler,
 		},
 		{
 			MethodName: "QueryStats",
@@ -674,16 +708,20 @@ var LibcoreService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _LibcoreService_CompileGeoSiteToSrs_Handler,
 		},
 		{
-			MethodName: "SetSystemProxy",
-			Handler:    _LibcoreService_SetSystemProxy_Handler,
-		},
-		{
-			MethodName: "GetSystemDNS",
-			Handler:    _LibcoreService_GetSystemDNS_Handler,
-		},
-		{
 			MethodName: "SetSystemDNS",
 			Handler:    _LibcoreService_SetSystemDNS_Handler,
+		},
+		{
+			MethodName: "IsPrivileged",
+			Handler:    _LibcoreService_IsPrivileged_Handler,
+		},
+		{
+			MethodName: "SpeedTest",
+			Handler:    _LibcoreService_SpeedTest_Handler,
+		},
+		{
+			MethodName: "QuerySpeedTest",
+			Handler:    _LibcoreService_QuerySpeedTest_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

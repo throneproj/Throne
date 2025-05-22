@@ -1,9 +1,15 @@
 #pragma once
 
 #include <QMainWindow>
+#include <core/server/gen/libcore.pb.h>
+#include <include/global/HTTPRequestHelper.hpp>
 
 #include "include/global/NekoGui.hpp"
 #include "include/stats/connections/connectionLister.hpp"
+#include "3rdparty/qv2ray/v2/ui/widgets/speedchart/SpeedWidget.hpp"
+#ifdef Q_OS_LINUX
+#include <QtDBus>
+#endif
 
 #ifndef MW_INTERFACE
 
@@ -44,6 +50,8 @@ public:
 
     ~MainWindow() override;
 
+    void prepare_exit();
+
     void refresh_proxy_list(const int &id = -1);
 
     void show_group(int gid);
@@ -51,6 +59,8 @@ public:
     void refresh_groups();
 
     void refresh_status(const QString &traffic_update = "");
+
+    void update_traffic_graph(int proxyDl, int proxyUp, int directDl, int directUp);
 
     void neko_start(int _id = -1);
 
@@ -77,6 +87,10 @@ public:
     void UpdateConnectionList(const QMap<QString, NekoGui_traffic::ConnectionMetadata>& toUpdate, const QMap<QString, NekoGui_traffic::ConnectionMetadata>& toAdd);
 
     void UpdateConnectionListWithRecreate(const QList<NekoGui_traffic::ConnectionMetadata>& connections);
+
+    void UpdateDataView(bool force = false);
+
+    void setDownloadReport(const DownloadProgressReport& report, bool show);
 
 signals:
 
@@ -179,8 +193,19 @@ private:
     int exit_reason = 0;
     //
     QMutex mu_download_assets;
+    QMutex mu_download_update;
     //
     int toolTipID;
+    //
+    SpeedWidget *speedChartWidget;
+    //
+    // for data view
+    QDateTime lastUpdated = QDateTime::currentDateTime();
+    QString currentSptProfileName;
+    bool showSpeedtestData = false;
+    bool showDownloadData = false;
+    libcore::SpeedTestResult currentTestResult;
+    DownloadProgressReport currentDownloadReport; // could use a list, but don't think can show more than one anyways
 
     QList<std::shared_ptr<NekoGui::ProxyEntity>> get_now_selected_list();
 
@@ -208,13 +233,17 @@ private:
 
     static void setup_grpc();
 
-    void speedtest_current_group(const QList<std::shared_ptr<NekoGui::ProxyEntity>>& profiles);
+    void urltest_current_group(const QList<std::shared_ptr<NekoGui::ProxyEntity>>& profiles);
 
-    void stopSpeedTests();
+    void stopTests();
 
-    void RunSpeedTest(const QString& config, bool useDefault, const QStringList& outboundTags, const QMap<QString, int>& tag2entID, int entID = -1);
+    void runURLTest(const QString& config, bool useDefault, const QStringList& outboundTags, const QMap<QString, int>& tag2entID, int entID = -1);
 
     void url_test_current();
+
+    void speedtest_current_group(const QList<std::shared_ptr<NekoGui::ProxyEntity>>& profiles, bool testCurrent = false);
+
+    void runSpeedTest(const QString& config, bool useDefault, bool testCurrent, const QStringList& outboundTags, const QMap<QString, int>& tag2entID, int entID = -1);
 
     static void stop_core_daemon();
 
@@ -235,3 +264,38 @@ inline MainWindow *GetMainWindow() {
 }
 
 void UI_InitMainWindow();
+
+#ifdef Q_OS_LINUX
+/*
+ * Proxy class for interface org.freedesktop.portal.Request
+ */
+class OrgFreedesktopPortalRequestInterface : public QDBusAbstractInterface
+{
+    Q_OBJECT
+public:
+    OrgFreedesktopPortalRequestInterface(const QString& service,
+                                         const QString& path,
+                                         const QDBusConnection& connection,
+                                         QObject* parent = nullptr);
+
+    ~OrgFreedesktopPortalRequestInterface();
+
+public Q_SLOTS:
+    inline QDBusPendingReply<> Close()
+    {
+        QList<QVariant> argumentList;
+        return asyncCallWithArgumentList(QStringLiteral("Close"), argumentList);
+    }
+
+Q_SIGNALS: // SIGNALS
+    void Response(uint response, QVariantMap results);
+};
+
+namespace org {
+namespace freedesktop {
+namespace portal {
+typedef ::OrgFreedesktopPortalRequestInterface Request;
+}
+}
+}
+#endif

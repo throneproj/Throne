@@ -358,6 +358,7 @@ namespace NekoGui_fmt {
         if (!rawLocalAddr.isEmpty()) {
             for (const auto &item: rawLocalAddr.split("-")) localAddress += item;
         }
+        persistentKeepalive = query.queryItemValue("persistent_keepalive").toInt();
         MTU = query.queryItemValue("mtu").toInt();
         useSystemInterface = query.queryItemValue("use_system_interface") == "true";
         workerCount = query.queryItemValue("workers").toInt();
@@ -392,5 +393,11 @@ namespace NekoGui_fmt {
 
         return true;
     }
+
+    bool ExtraCoreBean::TryParseLink(const QString& link)
+    {
+        return false;
+    }
+
 
 } // namespace NekoGui_fmt

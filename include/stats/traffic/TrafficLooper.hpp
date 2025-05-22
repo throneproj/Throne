@@ -14,6 +14,7 @@ namespace NekoGui_traffic {
         QMutex loop_mutex;
 
         QList<std::shared_ptr<TrafficData>> items;
+        bool isChain;
         std::shared_ptr<TrafficData> proxy;
         std::shared_ptr<TrafficData> direct;
 

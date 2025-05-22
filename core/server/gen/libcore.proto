@@ -2,16 +2,17 @@ syntax = "proto3";
 
 package libcore;
 option go_package = "grpc_server/gen";
+option optimize_for = LITE_RUNTIME;
 
 service LibcoreService {
   rpc Exit(EmptyReq) returns (EmptyResp);
-  rpc Update(UpdateReq) returns (UpdateResp);
   //
   rpc Start(LoadConfigReq) returns (ErrorResp);
   rpc Stop(EmptyReq) returns (ErrorResp);
   rpc CheckConfig(LoadConfigReq) returns (ErrorResp);
   rpc Test(TestReq) returns (TestResp);
   rpc StopTest(EmptyReq) returns (EmptyResp);
+  rpc QueryURLTest(EmptyReq) returns (QueryURLTestResponse);
   rpc QueryStats(EmptyReq) returns (QueryStatsResp);
   rpc ListConnections(EmptyReq) returns (ListConnectionsResp);
   //
@@ -20,10 +21,12 @@ service LibcoreService {
   rpc CompileGeoIPToSrs(CompileGeoIPToSrsRequest) returns (EmptyResp);
   rpc CompileGeoSiteToSrs(CompileGeoSiteToSrsRequest) returns (EmptyResp);
   //
-  rpc SetSystemProxy(SetSystemProxyRequest) returns (EmptyResp);
-  //
-  rpc GetSystemDNS(EmptyReq) returns (GetSystemDNSResponse);
   rpc SetSystemDNS(SetSystemDNSRequest) returns (EmptyResp);
+  //
+  rpc IsPrivileged(EmptyReq) returns (IsPrivilegedResponse);
+  //
+  rpc SpeedTest(SpeedTestRequest) returns(SpeedTestResponse);
+  rpc QuerySpeedTest(EmptyReq) returns(QuerySpeedTestResponse);
 }
 
 message EmptyReq {}
@@ -37,6 +40,12 @@ message ErrorResp {
 message LoadConfigReq {
   string core_config = 1;
   bool disable_stats = 2;
+  bool need_extra_process = 3;
+  string extra_process_path = 4;
+  string extra_process_args = 5;
+  string extra_process_conf = 6;
+  string extra_process_conf_dir = 7;
+  bool extra_no_out = 8;
 }
 
 message URLTestResp {
@@ -61,26 +70,6 @@ message TestResp {
 message QueryStatsResp{
   map<string, int64> ups = 1;
   map<string, int64> downs = 2;
-  repeated string intermediate_tags = 3;
-}
-
-enum UpdateAction {
-  Check = 0;
-  Download = 1;
-}
-
-message UpdateReq {
-  UpdateAction action = 1;
-  bool check_pre_release = 2;
-}
-
-message UpdateResp {
-  string error = 1;
-  string assets_name = 2;
-  string download_url = 3;
-  string release_url = 4;
-  string release_note = 5;
-  bool is_pre_release = 6;
 }
 
 message ListConnectionsResp {
@@ -122,18 +111,43 @@ message CompileGeoSiteToSrsRequest {
   string path = 2;
 }
 
-message SetSystemProxyRequest {
-  bool enable = 1;
-  string address = 2;
-}
-
 message SetSystemDNSRequest {
   bool clear = 1;
-  repeated string servers = 2;
-  bool set_dhcp = 3;
 }
 
-message GetSystemDNSResponse {
-  repeated string servers = 1;
-  bool is_dhcp = 2;
+message IsPrivilegedResponse {
+  bool has_privilege = 1;
+}
+
+message SpeedTestRequest {
+  string config = 1;
+  repeated string outbound_tags = 2;
+  bool test_current = 3;
+  bool use_default_outbound = 4;
+  bool test_download = 5;
+  bool test_upload = 6;
+}
+
+message SpeedTestResult {
+  string dl_speed = 1;
+  string ul_speed = 2;
+  int32 latency = 3;
+  string outbound_tag = 4;
+  string error = 5;
+  string server_name = 6;
+  string server_country = 7;
+  bool cancelled = 8;
+}
+
+message SpeedTestResponse {
+  repeated SpeedTestResult results = 1;
+}
+
+message QuerySpeedTestResponse {
+  SpeedTestResult result = 1;
+  bool is_running = 2;
+}
+
+message QueryURLTestResponse {
+  repeated URLTestResp results = 1;
 }

@@ -55,7 +55,7 @@ LONG __stdcall CreateCrashHandler(EXCEPTION_POINTERS *pException) {
                 dumpText = "";
             }
             // 创建消息提示
-            QMessageBox::warning(NULL, "Application crashed",
+            QMessageBox::critical(NULL, "Application crashed",
                                  QString("ErrorCode: %1 ErrorAddr:%2 ErrorFlag: %3 ErrorPara: %4\nVersion: %5\nDump file at %6")
                                      .arg(errCode)
                                      .arg(errAddr)

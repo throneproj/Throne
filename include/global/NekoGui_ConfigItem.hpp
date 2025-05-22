@@ -29,6 +29,7 @@ namespace NekoGui_ConfigItem {
     // 可格式化对象
     class JsonStore {
     public:
+        virtual ~JsonStore() = default;
         QMap<QString, std::shared_ptr<configItem>> _map;
 
         std::function<void()> callback_after_load = nullptr;

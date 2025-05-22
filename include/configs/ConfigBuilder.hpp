@@ -4,10 +4,21 @@
 #include "include/sys/Process.hpp"
 
 namespace NekoGui {
+    class ExtraCoreData
+    {
+    public:
+        QString path;
+        QString args;
+        QString config;
+        QString configDir;
+        bool noLog;
+    };
+
     class BuildConfigResult {
     public:
         QString error;
         QJsonObject coreConfig;
+        std::shared_ptr<ExtraCoreData> extraCoreData;
 
         QList<std::shared_ptr<NekoGui_traffic::TrafficData>> outboundStats; // all, but not including "bypass" "block"
     };

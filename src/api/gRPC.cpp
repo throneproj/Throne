@@ -125,7 +125,7 @@ namespace QtGrpc {
         }
 
     public:
-        Http2GrpcChannelPrivate(const QString &url_, const QString &nekoray_auth_, const QString &serviceName_) {
+        Http2GrpcChannelPrivate(const QString &url_, const QString &serviceName_) {
             url_base = "http://" + url_;
             serviceName = serviceName_;
             //
@@ -144,7 +144,7 @@ namespace QtGrpc {
         }
 
         QNetworkReply::NetworkError Call(const QString &methodName,
-                                         const google::protobuf::Message &req, google::protobuf::Message *rsp,
+                                         const google::protobuf::MessageLite &req, google::protobuf::MessageLite *rsp,
                                          int timeout_ms = 0) {
             if (!NekoGui::dataStore->core_running) return QNetworkReply::NetworkError(-1919);
 
@@ -182,8 +182,8 @@ namespace QtGrpc {
 
 namespace NekoGui_rpc {
 
-    Client::Client(std::function<void(const QString &)> onError, const QString &target, const QString &token) {
-        this->make_grpc_channel = [=]() { return std::make_unique<QtGrpc::Http2GrpcChannelPrivate>(target, token, "libcore.LibcoreService"); };
+    Client::Client(std::function<void(const QString &)> onError, const QString &target) {
+        this->make_grpc_channel = [=]() { return std::make_unique<QtGrpc::Http2GrpcChannelPrivate>(target, "libcore.LibcoreService"); };
         this->default_grpc_channel = make_grpc_channel();
         this->onError = std::move(onError);
     }
@@ -195,7 +195,7 @@ namespace NekoGui_rpc {
     void Client::Exit() {
         libcore::EmptyReq request;
         libcore::EmptyResp reply;
-        default_grpc_channel->Call("Exit", request, &reply, 500);
+        default_grpc_channel->Call("Exit", request, &reply, 100);
     }
 
     QString Client::Start(bool *rpcOK, const libcore::LoadConfigReq &request) {
@@ -264,16 +264,18 @@ namespace NekoGui_rpc {
         }
     }
 
-    libcore::UpdateResp Client::Update(bool *rpcOK, const libcore::UpdateReq &request) {
-        libcore::UpdateResp reply;
-        auto status = default_grpc_channel->Call("Update", request, &reply);
+    libcore::QueryURLTestResponse Client::QueryURLTest(bool *rpcOK)
+    {
+        libcore::EmptyReq request;
+        libcore::QueryURLTestResponse resp;
 
+        auto status = make_grpc_channel()->Call("QueryURLTest", request, &resp);
         if (status == QNetworkReply::NoError) {
             *rpcOK = true;
-            return reply;
+            return resp;
         } else {
             NOT_OK
-            return reply;
+            return resp;
         }
     }
 
@@ -352,46 +354,13 @@ namespace NekoGui_rpc {
                 }
             }
         }
+        return "";
     }
 
-    QString Client::SetSystemProxy(bool *rpcOK, bool enable) {
-        libcore::SetSystemProxyRequest req;
-        libcore::EmptyResp resp;
-        req.set_enable(enable);
-        req.set_address(QString("127.0.0.1:" + Int2String(NekoGui::dataStore->inbound_socks_port)).toStdString());
-
-        auto status = default_grpc_channel->Call("SetSystemProxy", req, &resp);
-        if (status == QNetworkReply::NoError) {
-            *rpcOK = true;
-            return "";
-        } else {
-            NOT_OK
-            return qt_error_string(status);
-        }
-    }
-
-    libcore::GetSystemDNSResponse Client::GetSystemDNS(bool *rpcOK) const {
-        libcore::EmptyReq req;
-        libcore::GetSystemDNSResponse resp;
-
-        auto status = default_grpc_channel->Call("GetSystemDNS", req, &resp);
-        if (status == QNetworkReply::NoError) {
-            *rpcOK = true;
-            return resp;
-        } else {
-            NOT_OK
-            return {};
-        }
-    }
-
-    QString Client::SetSystemDNS(bool *rpcOK, const QStringList& servers, const bool dhcp, const bool clear) const {
+    QString Client::SetSystemDNS(bool *rpcOK, const bool clear) const {
         libcore::SetSystemDNSRequest req;
         libcore::EmptyResp resp;
 
-        for (const auto& server : servers) {
-            req.add_servers(server.toStdString());
-        }
-        req.set_set_dhcp(dhcp);
         req.set_clear(clear);
 
         auto status = default_grpc_channel->Call("SetSystemDNS", req, &resp);
@@ -436,5 +405,51 @@ namespace NekoGui_rpc {
         }
 
     }
+
+    bool Client::IsPrivileged(bool* rpcOK) const
+    {
+        auto req = libcore::EmptyReq();
+        auto resp = libcore::IsPrivilegedResponse();
+        auto status = default_grpc_channel->Call("IsPrivileged", req, &resp);
+        if (status == QNetworkReply::NoError)
+        {
+            *rpcOK = true;
+            return resp.has_privilege();
+        } else
+        {
+            NOT_OK
+            return false;
+        }
+    }
+
+    libcore::SpeedTestResponse Client::SpeedTest(bool *rpcOK, const libcore::SpeedTestRequest &request)
+    {
+        libcore::SpeedTestResponse reply;
+        auto status = make_grpc_channel()->Call("SpeedTest", request, &reply);
+
+        if (status == QNetworkReply::NoError) {
+            *rpcOK = true;
+            return reply;
+        } else {
+            NOT_OK
+            return reply;
+        }
+    }
+
+    libcore::QuerySpeedTestResponse Client::QueryCurrentSpeedTests(bool *rpcOK)
+    {
+        const libcore::EmptyReq req;
+        libcore::QuerySpeedTestResponse reply;
+        auto status = make_grpc_channel()->Call("QuerySpeedTest", req, &reply);
+
+        if (status == QNetworkReply::NoError) {
+            *rpcOK = true;
+            return reply;
+        } else {
+            NOT_OK
+            return reply;
+        }
+    }
+
 
 } // namespace NekoGui_rpc

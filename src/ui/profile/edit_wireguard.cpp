@@ -24,6 +24,7 @@ void EditWireguard::onStart(std::shared_ptr<NekoGui::ProxyEntity> _ent) {
     ui->preshared_key->setText(bean->preSharedKey);
     auto reservedStr = bean->FormatReserved().replace("-", ",");
     ui->reserved->setText(reservedStr);
+    ui->persistent_keepalive->setText(Int2String(bean->persistentKeepalive));
     ui->mtu->setText(Int2String(bean->MTU));
     ui->sys_ifc->setChecked(bean->useSystemInterface);
     ui->enable_gso->setChecked(bean->enableGSO);
@@ -43,6 +44,7 @@ bool EditWireguard::onEnd() {
         if (item.trimmed().isEmpty()) continue;
         bean->reserved += item.trimmed().toInt();
     }
+    bean->persistentKeepalive = ui->persistent_keepalive->text().toInt();
     bean->MTU = ui->mtu->text().toInt();
     bean->useSystemInterface = ui->sys_ifc->isChecked();
     bean->enableGSO = ui->enable_gso->isChecked();

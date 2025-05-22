@@ -69,14 +69,6 @@
         <translation>امنیت</translation>
     </message>
     <message>
-        <source>Statistics refresh rate</source>
-        <translation>نرخ تازه سازی آمار ترافیک</translation>
-    </message>
-    <message>
-        <source>Off</source>
-        <translation>خاموش</translation>
-    </message>
-    <message>
         <source>Connection statistics</source>
         <translation>آمار اتصال</translation>
     </message>
@@ -134,9 +126,8 @@
     </message>
     <message>
         <source>It is recommended to leave it blank, but it sometimes does not work, at this time you can set this option.
-For NekoRay, this rewrites the underlying(localhost) DNS in Tun Mode.
-For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
-        <translation type="unfinished">پیشنهاد میشود که این گزینه را انتخاب نشده باقی بگذارید ، اما گاهی اوقات کار نمیکند در این مواقع شما میتوانید این گزینه را انتخاب کنید ، برای Nekoray این گزینه دی ان اس زیربنایی را در حالت تونل بازنویسی میکند ، و برای NekoBox این گزینه دی ان اس زیربنایی را هم در حالت تونل و هم در حالت معمولی و تست آدرس بازنویسی میکند</translation>
+For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
+        <translation type="unfinished">پیشنهاد میشود که این گزینه را انتخاب نشده باقی بگذارید ، اما گاهی اوقات کار نمیکند در این مواقع شما میتوانید این گزینه را انتخاب کنید ، و برای nekobox_core این گزینه دی ان اس زیربنایی را هم در حالت تونل و هم در حالت معمولی و تست آدرس بازنویسی میکند</translation>
     </message>
     <message>
         <source>Default On</source>
@@ -265,15 +256,39 @@ For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mod
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>http</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>socks</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Removed all rule-set files</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>{ip}:{port}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>http://{ip}:{port}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>socks={ip}:{port}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Speedtest mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Download + Upload</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only Download</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only Upload</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Disable Privilege request</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -532,6 +547,10 @@ For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mod
     </message>
     <message>
         <source>header type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Extra Core</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -803,6 +822,14 @@ also if the connection cannot be established with the current address family (ip
         <source>Cannot delete built-in profiles</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Whether to listen on 0.0.0.0 so that other devices on LAN can use this server&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Allow Lan to Connect</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DialogVPNSettings</name>
@@ -834,11 +861,15 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
         <translation type="unfinished">لغو کردن</translation>
     </message>
     <message>
-        <source>Auto Redirect</source>
+        <source>Strict Route</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Strict Route</source>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, Direct IP CIDRs and rule sets will also be added to the Tun setting to be excluded at OS routing level. IMPORTANT: Large rule sets have been reported to cause massive CPU usage in windows, please enable this option with caution.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable Tun Routing</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -868,32 +899,8 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
         <translation>ویرایشگر Json</translation>
     </message>
     <message>
-        <source>Command</source>
-        <translation type="unfinished">فرمان</translation>
-    </message>
-    <message>
-        <source>Config Suffix</source>
-        <translation type="unfinished">پسوند کانفیگ</translation>
-    </message>
-    <message>
         <source>Outbound JSON, please read the documentation.</source>
         <translation>JSON خروجی، لطفاً مستندات را بخوانید.</translation>
-    </message>
-    <message>
-        <source>Please pick a core.</source>
-        <translation>لطفا یک هسته انتخاب کنید.</translation>
-    </message>
-    <message>
-        <source>Random if it&apos;s empty or zero.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Preview</source>
-        <translation type="unfinished">پیش نمایش</translation>
-    </message>
-    <message>
-        <source>Preview replace</source>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Please fill the complete config.</source>
@@ -902,6 +909,61 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
     <message>
         <source>Name cannot be empty.</source>
         <translation type="unfinished">نام نمیتواند خالی باشد</translation>
+    </message>
+</context>
+<context>
+    <name>EditExtraCore</name>
+    <message>
+        <source>Form</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Socks address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>127.0.0.1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Socks port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>1080</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Core path</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Choose from file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;args to pass to the executable. You can insert a single %s and it will be replaced with the path to a file containing the config entered below.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Args</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>run -confPath %s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;contents of the config file that will be passed to the extra core process if %s is specified in the args&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Config</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No logs</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1146,6 +1208,18 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
     </message>
     <message>
         <source>Workers</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;persistent_keepalive_interval in seconds&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Persistent Keepalive</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1783,10 +1857,6 @@ Split by line.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Failed to get system dns settings</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Failed to set system dns: </source>
         <translation type="unfinished"></translation>
     </message>
@@ -1840,6 +1910,50 @@ Split by line.</source>
     </message>
     <message>
         <source>Geo Asset update completed!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Traffic Graph</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to download update assets</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Speedtest Current</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Speedtest Selected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Speedtest Group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The last url test did not exit completely, please wait. If it persists, please restart the program.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>URL test finished!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Profile speed test aborted</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>[%1] speed test error: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>User opted for no privilege req, some features may not work</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to capture screen</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1943,10 +2057,6 @@ Direct: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Unavailable</source>
-        <translation>غیرقابل دسترس</translation>
-    </message>
-    <message>
         <source>Request with proxy but no profile started.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1972,6 +2082,18 @@ Direct: %2</source>
     </message>
     <message>
         <source>Create new subscription group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not open file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Not official support platform</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Requesting update error: %1</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2116,6 +2238,17 @@ Direct: %2</source>
     <message>
         <source>Some rules could not be added, fix them before saving:
 </source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>SpeedWidget</name>
+    <message>
+        <source>Proxy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Direct</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

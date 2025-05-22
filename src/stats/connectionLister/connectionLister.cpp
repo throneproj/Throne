@@ -26,8 +26,7 @@ namespace NekoGui_traffic
         while (true)
         {
             if (stop) return;
-            auto sleep_ms = NekoGui::dataStore->traffic_loop_interval;
-            QThread::msleep(sleep_ms);
+            QThread::msleep(1000);
 
             if (suspend || !NekoGui::dataStore->enable_stats) continue;
 

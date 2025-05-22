@@ -6,13 +6,8 @@
 
 #include <QInputDialog>
 #include <QUrlQuery>
-#include <absl/strings/internal/str_format/extension.h>
 
-#ifndef NKR_NO_YAML
-
-#include <yaml-cpp/yaml.h>
-
-#endif
+#include "3rdparty/fkYAML/node.hpp"
 
 namespace NekoGui_sub {
 
@@ -78,9 +73,6 @@ namespace NekoGui_sub {
 
         // Clash
         if (str.contains("proxies:")) {
-            runOnUiThread([=] {
-               MessageBoxWarning("Deprecated", "Clash Meta format is deprecated and will no longer be updated.");
-            });
             updateClash(str);
             return;
         }
@@ -341,51 +333,48 @@ namespace NekoGui_sub {
         }
     }
 
-
-#ifndef NKR_NO_YAML
-
-    QString Node2QString(const YAML::Node &n, const QString &def = "") {
+    QString Node2QString(const fkyaml::node &n, const QString &def = "") {
         try {
-            return n.as<std::string>().c_str();
-        } catch (const YAML::Exception &ex) {
+            return n.as_str().c_str();
+        } catch (const fkyaml::exception &ex) {
             qDebug() << ex.what();
             return def;
         }
     }
 
-    QStringList Node2QStringList(const YAML::Node &n) {
+    QStringList Node2QStringList(const fkyaml::node &n) {
         try {
-            if (n.IsSequence()) {
+            if (n.is_sequence()) {
                 QStringList list;
                 for (auto item: n) {
-                    list << item.as<std::string>().c_str();
+                    list << item.as_str().c_str();
                 }
                 return list;
             } else {
                 return {};
             }
-        } catch (const YAML::Exception &ex) {
+        } catch (const fkyaml::exception &ex) {
             qDebug() << ex.what();
             return {};
         }
     }
 
-    int Node2Int(const YAML::Node &n, const int &def = 0) {
+    int Node2Int(const fkyaml::node &n, const int &def = 0) {
         try {
-            return n.as<int>();
-        } catch (const YAML::Exception &ex) {
+            return n.as_int();
+        } catch (const fkyaml::exception &ex) {
             qDebug() << ex.what();
             return def;
         }
     }
 
-    bool Node2Bool(const YAML::Node &n, const bool &def = false) {
+    bool Node2Bool(const fkyaml::node &n, const bool &def = false) {
         try {
-            return n.as<bool>();
-        } catch (const YAML::Exception &ex) {
+            return n.as_bool();
+        } catch (const fkyaml::exception &ex) {
             try {
-                return n.as<int>();
-            } catch (const YAML::Exception &ex2) {
+                return n.as_int();
+            } catch (const fkyaml::exception &ex2) {
                 ex2.what();
             }
             qDebug() << ex.what();
@@ -394,21 +383,17 @@ namespace NekoGui_sub {
     }
 
     // NodeChild returns the first defined children or Null Node
-    YAML::Node NodeChild(const YAML::Node &n, const std::list<std::string> &keys) {
+    fkyaml::node NodeChild(const fkyaml::node &n, const std::list<std::string> &keys) {
         for (const auto &key: keys) {
-            auto child = n[key];
-            if (child.IsDefined()) return child;
+            if (n.contains(key)) return n[key];
         }
         return {};
     }
 
-#endif
-
     // https://github.com/Dreamacro/clash/wiki/configuration
     void RawUpdater::updateClash(const QString &str) {
-#ifndef NKR_NO_YAML
         try {
-            auto proxies = YAML::Load(str.toStdString())["proxies"];
+            auto proxies = fkyaml::node::deserialize(str.toStdString())["proxies"];
             for (auto proxy: proxies) {
                 auto type = Node2QString(proxy["type"]).toLower();
                 auto type_clash = type;
@@ -429,8 +414,6 @@ namespace NekoGui_sub {
                     auto bean = ent->ShadowSocksBean();
                     bean->method = Node2QString(proxy["cipher"]).replace("dummy", "none");
                     bean->password = Node2QString(proxy["password"]);
-                    auto plugin_n = proxy["plugin"];
-                    auto pluginOpts_n = proxy["plugin-opts"];
 
                     // UDP over TCP
                     if (Node2Bool(proxy["udp-over-tcp"])) {
@@ -438,7 +421,9 @@ namespace NekoGui_sub {
                         if (bean->uot == 0) bean->uot = 2;
                     }
 
-                    if (plugin_n.IsDefined() && pluginOpts_n.IsDefined()) {
+                    if (proxy.contains("plugin") && proxy.contains("plugin-opts")) {
+                        auto plugin_n = proxy["plugin"];
+                        auto pluginOpts_n = proxy["plugin-opts"];
                         QStringList ssPlugin;
                         auto plugin = Node2QString(plugin_n);
                         if (plugin == "obfs") {
@@ -463,7 +448,7 @@ namespace NekoGui_sub {
 
                     // sing-mux
                     auto smux = NodeChild(proxy, {"smux"});
-                    if (Node2Bool(smux["enabled"])) bean->mux_state = 1;
+                    if (!smux.is_null() && Node2Bool(smux["enabled"])) bean->mux_state = 1;
                 } else if (type == "socks" || type == "http") {
                     auto bean = ent->SocksHTTPBean();
                     bean->username = Node2QString(proxy["username"]);
@@ -498,15 +483,18 @@ namespace NekoGui_sub {
 
                     // sing-mux
                     auto smux = NodeChild(proxy, {"smux"});
-                    if (Node2Bool(smux["enabled"])) bean->mux_state = 1;
+                    if (!smux.is_null() && Node2Bool(smux["enabled"])) bean->mux_state = 1;
 
                     // opts
                     auto ws = NodeChild(proxy, {"ws-opts", "ws-opt"});
-                    if (ws.IsMap()) {
+                    if (ws.is_mapping()) {
                         auto headers = ws["headers"];
-                        for (auto header: headers) {
-                            if (Node2QString(header.first).toLower() == "host") {
-                                bean->stream->host = Node2QString(header.second);
+                        if (headers.is_mapping()) {
+                            for (auto header: headers.as_map()) {
+                                if (Node2QString(header.first).toLower() == "host") {
+                                    bean->stream->host = Node2QString(header.second);
+                                    break;
+                                }
                             }
                         }
                         bean->stream->path = Node2QString(ws["path"]);
@@ -515,12 +503,12 @@ namespace NekoGui_sub {
                     }
 
                     auto grpc = NodeChild(proxy, {"grpc-opts", "grpc-opt"});
-                    if (grpc.IsMap()) {
+                    if (grpc.is_mapping()) {
                         bean->stream->path = Node2QString(grpc["grpc-service-name"]);
                     }
 
                     auto reality = NodeChild(proxy, {"reality-opts"});
-                    if (reality.IsMap()) {
+                    if (reality.is_mapping()) {
                         bean->stream->reality_pbk = Node2QString(reality["public-key"]);
                         bean->stream->reality_sid = Node2QString(reality["short-id"]);
                     }
@@ -543,7 +531,7 @@ namespace NekoGui_sub {
 
                     // sing-mux
                     auto smux = NodeChild(proxy, {"smux"});
-                    if (Node2Bool(smux["enabled"])) bean->mux_state = 1;
+                    if (!smux.is_null() && Node2Bool(smux["enabled"])) bean->mux_state = 1;
 
                     // meta packet encoding
                     if (Node2Bool(proxy["xudp"])) bean->stream->packet_encoding = "xudp";
@@ -551,11 +539,14 @@ namespace NekoGui_sub {
 
                     // opts
                     auto ws = NodeChild(proxy, {"ws-opts", "ws-opt"});
-                    if (ws.IsMap()) {
+                    if (ws.is_mapping()) {
                         auto headers = ws["headers"];
-                        for (auto header: headers) {
-                            if (Node2QString(header.first).toLower() == "host") {
-                                bean->stream->host = Node2QString(header.second);
+                        if (headers.is_mapping()) {
+                            for (auto header: headers.as_map()) {
+                                if (Node2QString(header.first).toLower() == "host") {
+                                    bean->stream->host = Node2QString(header.second);
+                                    break;
+                                }
                             }
                         }
                         bean->stream->path = Node2QString(ws["path"]);
@@ -568,12 +559,12 @@ namespace NekoGui_sub {
                     }
 
                     auto grpc = NodeChild(proxy, {"grpc-opts", "grpc-opt"});
-                    if (grpc.IsMap()) {
+                    if (grpc.is_mapping()) {
                         bean->stream->path = Node2QString(grpc["grpc-service-name"]);
                     }
 
                     auto h2 = NodeChild(proxy, {"h2-opts", "h2-opt"});
-                    if (h2.IsMap()) {
+                    if (h2.is_mapping()) {
                         auto hosts = h2["host"];
                         for (auto host: hosts) {
                             bean->stream->host = Node2QString(host);
@@ -582,15 +573,17 @@ namespace NekoGui_sub {
                         bean->stream->path = Node2QString(h2["path"]);
                     }
                     auto tcp_http = NodeChild(proxy, {"http-opts", "http-opt"});
-                    if (tcp_http.IsMap()) {
+                    if (tcp_http.is_mapping()) {
                         bean->stream->network = "tcp";
                         bean->stream->header_type = "http";
                         auto headers = tcp_http["headers"];
-                        for (auto header: headers) {
-                            if (Node2QString(header.first).toLower() == "host") {
-                                bean->stream->host = Node2QString(header.second[0]);
+                        if (headers.is_mapping()) {
+                            for (auto header: headers.as_map()) {
+                                if (Node2QString(header.first).toLower() == "host") {
+                                    bean->stream->host = Node2QString(header.second[0]);
+                                    break;
+                                }
                             }
-                            break;
                         }
                         auto paths = tcp_http["path"];
                         for (auto path: paths) {
@@ -673,12 +666,11 @@ namespace NekoGui_sub {
                 NekoGui::profileManager->AddProfile(ent, gid_add_to);
                 updated_order += ent;
             }
-        } catch (const YAML::Exception &ex) {
+        } catch (const fkyaml::exception &ex) {
             runOnUiThread([=] {
                 MessageBoxWarning("YAML Exception", ex.what());
             });
         }
-#endif
     }
 
     // 在新的 thread 运行

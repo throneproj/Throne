@@ -17,17 +17,16 @@
 
 #ifdef Q_OS_WIN
 #include "include/sys/windows/MiniDump.h"
-#pragma comment (lib, "cpr.lib")
-#pragma comment (lib, "libcurl.lib")
-#pragma comment (lib, "Ws2_32.lib")
-#pragma comment (lib, "Wldap32.lib")
-#pragma comment (lib, "Crypt32.lib")
+#include "include/sys/windows/eventHandler.h"
+#endif
+#ifdef Q_OS_LINUX
+#include "include/sys/linux/desktopinfo.h"
 #endif
 
 void signal_handler(int signum) {
-    if (qApp) {
-        GetMainWindow()->on_commitDataRequest();
-        qApp->exit();
+    if (GetMainWindow()) {
+        GetMainWindow()->prepare_exit();
+        qApp->quit();
     }
 }
 
@@ -130,22 +129,6 @@ int main(int argc, char* argv[]) {
         QIcon::setThemeName("breeze");
     }
 
-    // Load coreType
-    auto coreLoaded = ReadFileText("groups/coreType");
-    if (coreLoaded.isEmpty()) {
-        NekoGui::coreType = -1;
-        loadTranslate(QLocale().name());
-        NekoGui::coreType = NekoGui::CoreType::SING_BOX;
-        QDir().mkdir("groups");
-        QFile file;
-        file.setFileName("groups/coreType");
-        file.open(QIODevice::ReadWrite | QIODevice::Truncate);
-        file.write(Int2String(NekoGui::coreType).toUtf8());
-        file.close();
-    } else {
-        NekoGui::coreType = coreLoaded.toInt();
-    }
-
     // Dir
     QDir dir;
     bool dir_success = true;
@@ -162,7 +145,7 @@ int main(int argc, char* argv[]) {
         dir_success &= dir.mkdir(RULE_SETS_DIR);
     }
     if (!dir_success) {
-        QMessageBox::warning(nullptr, "Error", "No permission to write " + dir.absolutePath());
+        QMessageBox::critical(nullptr, "Error", "No permission to write " + dir.absolutePath());
         return 1;
     }
 
@@ -248,6 +231,11 @@ int main(int argc, char* argv[]) {
         // raise main window
         MW_dialog_message("", "Raise");
     });
+
+#ifdef Q_OS_WIN
+    auto eventFilter = new PowerOffTaskkillFilter(signal_handler);
+    a.installNativeEventFilter(eventFilter);
+#endif
 
     UI_InitMainWindow();
     return QApplication::exec();

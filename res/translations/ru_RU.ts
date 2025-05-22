@@ -48,14 +48,6 @@
         <translation>Задать иконку</translation>
     </message>
     <message>
-        <source>Statistics refresh rate</source>
-        <translation>Частота обновления статистики</translation>
-    </message>
-    <message>
-        <source>Off</source>
-        <translation>Выкл</translation>
-    </message>
-    <message>
         <source>Connection statistics</source>
         <translation>Статистика подключений</translation>
     </message>
@@ -145,11 +137,9 @@
     </message>
     <message>
         <source>It is recommended to leave it blank, but it sometimes does not work, at this time you can set this option.
-For NekoRay, this rewrites the underlying(localhost) DNS in Tun Mode.
-For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
+For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
         <translation>Рекомендуется оставить параметр пустым, но иногда это не срабатывает как надо, и в таком случае можно использовать эту опцию.
-Для  NekoRay  это переопределяет нижестоящий (localhost) DNS в  Tun режиме.
-Для  NekoBox  это переопределяет нижестоящий (localhost) DNS в  Tun режиме, нормальном режиме, а также при URL тесте.</translation>
+Для  nekobox_core  это переопределяет нижестоящий (localhost) DNS в  Tun режиме, нормальном режиме, а также при URL тесте.</translation>
     </message>
     <message>
         <source>Automatic update</source>
@@ -201,7 +191,7 @@ For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mod
     </message>
     <message>
         <source>Geo Assets and Rule-sets</source>
-        <translation type="unfinished">Гео ресурсы и наборы правил</translation>
+        <translation type="unfinished">Георесурсы и наборы правил</translation>
     </message>
     <message>
         <source>Remove Generated Rule-sets</source>
@@ -217,7 +207,7 @@ For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mod
     </message>
     <message>
         <source>Download and Replace Geo files</source>
-        <translation type="unfinished">Загрузка и замена Геофайлов</translation>
+        <translation type="unfinished">Загрузить и заменить геофайлы</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Socks
@@ -275,16 +265,40 @@ For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mod
         <translation type="unfinished">Язык</translation>
     </message>
     <message>
-        <source>http</source>
-        <translation type="unfinished">http</translation>
-    </message>
-    <message>
-        <source>socks</source>
-        <translation type="unfinished">socks</translation>
-    </message>
-    <message>
         <source>Removed all rule-set files</source>
         <translation type="unfinished">Удалены все файлы набора правил</translation>
+    </message>
+    <message>
+        <source>{ip}:{port}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>http://{ip}:{port}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>socks={ip}:{port}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Speedtest mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Download + Upload</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only Download</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Only Upload</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Disable Privilege request</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -544,6 +558,10 @@ For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mod
         <source>header type</source>
         <translation type="unfinished">заголовок type</translation>
     </message>
+    <message>
+        <source>Extra Core</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DialogHotkey</name>
@@ -619,7 +637,7 @@ For NekoBox, this rewrites the underlying(localhost) DNS in Tun Mode, normal mod
     </message>
     <message>
         <source>Sniffing Mode</source>
-        <translation>Режим проверки (Сниффера)</translation>
+        <translation>Режим проверки (Сниффер)</translation>
     </message>
     <message>
         <source>DNS</source>
@@ -817,6 +835,14 @@ also if the connection cannot be established with the current address family (ip
         <source>Cannot delete built-in profiles</source>
         <translation type="unfinished">Невозможно удалить встроенные профили</translation>
     </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Whether to listen on 0.0.0.0 so that other devices on LAN can use this server&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Allow Lan to Connect</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DialogVPNSettings</name>
@@ -851,12 +877,16 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Отмена</translation>
     </message>
     <message>
-        <source>Auto Redirect</source>
-        <translation type="unfinished">Авто. перенаправление</translation>
-    </message>
-    <message>
         <source>Strict Route</source>
         <translation type="unfinished">Строгий маршрут</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, Direct IP CIDRs and rule sets will also be added to the Tun setting to be excluded at OS routing level. IMPORTANT: Large rule sets have been reported to cause massive CPU usage in windows, please enable this option with caution.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable Tun Routing</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -885,22 +915,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Редактор JSON</translation>
     </message>
     <message>
-        <source>Command</source>
-        <translation>Команда</translation>
-    </message>
-    <message>
-        <source>Config Suffix</source>
-        <translation>Суффикс конфига</translation>
-    </message>
-    <message>
-        <source>Random if it&apos;s empty or zero.</source>
-        <translation>Если пусто или ноль, то будет выбран случайным образом.</translation>
-    </message>
-    <message>
-        <source>Preview</source>
-        <translation>Предпросмотр</translation>
-    </message>
-    <message>
         <source>Outbound JSON, please read the documentation.</source>
         <translation>Outbound JSON, прочтите документацию.</translation>
     </message>
@@ -909,16 +923,63 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Пожалуйста, введите полную конфигурацию.</translation>
     </message>
     <message>
-        <source>Preview replace</source>
-        <translation>Предпросмотр замен</translation>
-    </message>
-    <message>
         <source>Name cannot be empty.</source>
         <translation>Имя не может быть пустым.</translation>
     </message>
+</context>
+<context>
+    <name>EditExtraCore</name>
     <message>
-        <source>Please pick a core.</source>
-        <translation>Пожалуйста, выберите ядро.</translation>
+        <source>Form</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Socks address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>127.0.0.1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Socks port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>1080</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Core path</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Choose from file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;args to pass to the executable. You can insert a single %s and it will be replaced with the path to a file containing the config entered below.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Args</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>run -confPath %s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;contents of the config file that will be passed to the extra core process if %s is specified in the args&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Config</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No logs</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -945,7 +1006,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Upload (Mbps)</source>
-        <translation>Скорость отдачи (Mbps)</translation>
+        <translation>Скорость выгрузки (Мбит/с)</translation>
     </message>
     <message>
         <source>Obfs Password</source>
@@ -1123,7 +1184,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Reserved</source>
-        <translation type="unfinished">Зарезервировано</translation>
+        <translation type="unfinished">Резервный (Reserved)</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;comma seperated list of subnets&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -1131,11 +1192,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Local Address</source>
-        <translation type="unfinished">Локальный адресс</translation>
+        <translation type="unfinished">Локальный адресс (Local Address)</translation>
     </message>
     <message>
         <source>Pre Shared Key</source>
-        <translation type="unfinished">Пре. общий ключ</translation>
+        <translation type="unfinished">Пре. общий ключ (Pre Shared Key)</translation>
     </message>
     <message>
         <source>Use System Interface</source>
@@ -1147,11 +1208,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Public Key</source>
-        <translation type="unfinished">Публичный ключ</translation>
+        <translation type="unfinished">Публичный ключ (Public Key)</translation>
     </message>
     <message>
         <source>Private Key</source>
-        <translation type="unfinished">Приватный ключ</translation>
+        <translation type="unfinished">Приватный ключ (Private Key)</translation>
     </message>
     <message>
         <source>1420</source>
@@ -1163,7 +1224,19 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Workers</source>
-        <translation type="unfinished">Рабочие</translation>
+        <translation type="unfinished">Рабочий</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;persistent_keepalive_interval in seconds&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Persistent Keepalive</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1802,10 +1875,6 @@ Split by line.</source>
         <translation type="unfinished">Сначала необходимо включить перехват DNS-сервера</translation>
     </message>
     <message>
-        <source>Failed to get system dns settings</source>
-        <translation type="unfinished">Не удалось получить системные настройки dns</translation>
-    </message>
-    <message>
         <source>Failed to set system dns: </source>
         <translation type="unfinished">Не удалось установить системный DNS: </translation>
     </message>
@@ -1861,6 +1930,50 @@ Split by line.</source>
         <source>Geo Asset update completed!</source>
         <translation type="unfinished">Обновление георесурсов завершено!</translation>
     </message>
+    <message>
+        <source>Traffic Graph</source>
+        <translation type="unfinished">График трафика</translation>
+    </message>
+    <message>
+        <source>Failed to download update assets</source>
+        <translation type="unfinished">Не удалось загрузить обновления ресурсов</translation>
+    </message>
+    <message>
+        <source>Speedtest Current</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Speedtest Selected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Speedtest Group</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The last url test did not exit completely, please wait. If it persists, please restart the program.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>URL test finished!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Profile speed test aborted</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>[%1] speed test error: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>User opted for no privilege req, some features may not work</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Unable to capture screen</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ProxyItem</name>
@@ -1882,10 +1995,6 @@ Split by line.</source>
 </context>
 <context>
     <name>QObject</name>
-    <message>
-        <source>Unavailable</source>
-        <translation>Недоступно</translation>
-    </message>
     <message>
         <source>Proxy: %1
 Direct: %2</source>
@@ -2000,6 +2109,18 @@ Release note:
         <source>Create new subscription group</source>
         <translation type="unfinished">Создать новую группу подписки</translation>
     </message>
+    <message>
+        <source>Could not open file.</source>
+        <translation type="unfinished">Не удалось открыть файл.</translation>
+    </message>
+    <message>
+        <source>Not official support platform</source>
+        <translation type="unfinished">Не официальная платформа поддержки</translation>
+    </message>
+    <message>
+        <source>Requesting update error: %1</source>
+        <translation type="unfinished">Ошибка запроса обновления: %1</translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -2009,15 +2130,15 @@ Release note:
     </message>
     <message>
         <source>Apply</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Применить</translation>
     </message>
     <message>
         <source>Yes</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Да</translation>
     </message>
     <message>
         <source>No</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Нет</translation>
     </message>
     <message>
         <source>OK</source>
@@ -2143,6 +2264,17 @@ Release note:
         <source>Some rules could not be added, fix them before saving:
 </source>
         <translation type="unfinished">Некоторые правила не удалось добавить, исправьте их перед сохранением:</translation>
+    </message>
+</context>
+<context>
+    <name>SpeedWidget</name>
+    <message>
+        <source>Proxy</source>
+        <translation>Прокси</translation>
+    </message>
+    <message>
+        <source>Direct</source>
+        <translation>Напрямую</translation>
     </message>
 </context>
 </TS>

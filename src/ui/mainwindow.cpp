@@ -17,7 +17,7 @@
 
 #include "3rdparty/qrcodegen.hpp"
 #include "3rdparty/qv2ray/v2/ui/LogHighlighter.hpp"
-#include "3rdparty/ZxingQtReader.hpp"
+#include "3rdparty/QrDecoder.h"
 #include "include/ui/group/dialog_edit_group.h"
 
 #ifdef Q_OS_WIN
@@ -25,6 +25,10 @@
 #else
 #ifdef Q_OS_LINUX
 #include "include/sys/linux/LinuxCap.h"
+#include "include/sys/linux/desktopinfo.h"
+#include <QDBusInterface>
+#include <QDBusReply>
+#include <QUuid>
 #endif
 #include <unistd.h>
 #endif
@@ -41,10 +45,13 @@
 #include <QMessageBox>
 #include <QDir>
 #include <QFileInfo>
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
 #include <QStyleHints>
+#endif
 #include <QToolTip>
 #include <random>
 #include <3rdparty/QHotkey/qhotkey.h>
+#include <include/api/gRPC.h>
 #include <include/global/HTTPRequestHelper.hpp>
 
 #include "include/sys/macos/MacOS.h"
@@ -72,8 +79,79 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     themeManager->ApplyTheme(NekoGui::dataStore->theme);
     ui->setupUi(this);
 
+    // setup log
+    ui->splitter->restoreState(DecodeB64IfValid(NekoGui::dataStore->splitter_state));
+    new SyntaxHighlighter(isDarkMode() || NekoGui::dataStore->theme.toLower() == "qdarkstyle", qvLogDocument);
+    qvLogDocument->setUndoRedoEnabled(false);
+    ui->masterLogBrowser->setUndoRedoEnabled(false);
+    ui->masterLogBrowser->setDocument(qvLogDocument);
+    ui->masterLogBrowser->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
+    connect(qApp->styleHints(), &QStyleHints::colorSchemeChanged, this, [=](const Qt::ColorScheme& scheme) {
+        new SyntaxHighlighter(scheme == Qt::ColorScheme::Dark, qvLogDocument);
+        themeManager->ApplyTheme(NekoGui::dataStore->theme, true);
+    });
+#endif
+    connect(themeManager, &ThemeManager::themeChanged, this, [=](const QString& theme){
+        if (theme.toLower().contains("vista")) {
+            // light themes
+            new SyntaxHighlighter(false, qvLogDocument);
+        } else if (theme.toLower().contains("qdarkstyle")) {
+            // dark themes
+            new SyntaxHighlighter(true, qvLogDocument);
+        } else {
+            // bi-mode themes, follow system preference
+            new SyntaxHighlighter(isDarkMode(), qvLogDocument);
+        }
+    });
+    connect(ui->masterLogBrowser->verticalScrollBar(), &QSlider::valueChanged, this, [=](int value) {
+        if (ui->masterLogBrowser->verticalScrollBar()->maximum() == value)
+            qvLogAutoScoll = true;
+        else
+            qvLogAutoScoll = false;
+    });
+    connect(ui->masterLogBrowser, &QTextBrowser::textChanged, this, [=]() {
+        if (!qvLogAutoScoll)
+            return;
+        auto bar = ui->masterLogBrowser->verticalScrollBar();
+        bar->setValue(bar->maximum());
+    });
+    MW_show_log = [=](const QString &log) {
+        runOnUiThread([=] { show_log_impl(log); });
+    };
+
+    // Prepare core
+    NekoGui::dataStore->core_port = MkPort();
+    if (NekoGui::dataStore->core_port <= 0) NekoGui::dataStore->core_port = 19810;
+
+    auto core_path = QApplication::applicationDirPath() + "/";
+    core_path += "nekobox_core";
+
+    QStringList args;
+    args.push_back("nekobox");
+    args.push_back("-port");
+    args.push_back(Int2String(NekoGui::dataStore->core_port));
+    if (NekoGui::dataStore->flag_debug) args.push_back("-debug");
+
+    // Start core
+    runOnUiThread(
+        [=] {
+            core_process = new NekoGui_sys::CoreProcess(core_path, args);
+            // Remember last started
+            if (NekoGui::dataStore->remember_enable && NekoGui::dataStore->remember_id >= 0) {
+                core_process->start_profile_when_core_is_up = NekoGui::dataStore->remember_id;
+            }
+            // Setup
+            setup_grpc();
+            core_process->Start();
+        },
+        DS_cores);
+
     if (!NekoGui::dataStore->font.isEmpty()) {
-        qApp->setFont(NekoGui::dataStore->font);
+        auto font = qApp->font();
+        font.setFamily(NekoGui::dataStore->font);
+        qApp->setFont(font);
     }
     if (NekoGui::dataStore->font_size != 0) {
         auto font = qApp->font();
@@ -114,9 +192,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     software_name = "Nekoray";
     software_core_name = "sing-box";
     //
-    if (QDir("dashboard").count() == 0) {
-        QDir().mkdir("dashboard");
-        QFile::copy(":/neko/dashboard-notice.html", "dashboard/index.html");
+    if (auto dashDir = QDir("dashboard"); !dashDir.exists("dashboard") && QDir().mkdir("dashboard")) {
+        if (auto dashFile = QFile(":/neko/dashboard-notice.html"); dashFile.exists() && dashFile.open(QIODevice::ReadOnly))
+        {
+            auto data = dashFile.readAll();
+            if (auto dest = QFile("dashboard/index.html"); dest.open(QIODevice::Truncate | QIODevice::WriteOnly))
+            {
+                dest.write(data);
+                dest.close();
+            }
+            dashFile.close();
+        }
     }
 
     // top bar
@@ -126,46 +212,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->toolButton_routing->setMenu(ui->menuRouting_Menu);
     ui->menubar->setVisible(false);
     connect(ui->toolButton_update, &QToolButton::clicked, this, [=] { runOnNewThread([=] { CheckUpdate(); }); });
-
-    // Setup log UI
-    ui->splitter->restoreState(DecodeB64IfValid(NekoGui::dataStore->splitter_state));
-    new SyntaxHighlighter(qApp->styleHints()->colorScheme() == Qt::ColorScheme::Dark || NekoGui::dataStore->theme.toLower() == "qdarkstyle", qvLogDocument);
-    qvLogDocument->setUndoRedoEnabled(false);
-    ui->masterLogBrowser->setUndoRedoEnabled(false);
-    ui->masterLogBrowser->setDocument(qvLogDocument);
-    ui->masterLogBrowser->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
-
-    connect(qApp->styleHints(), &QStyleHints::colorSchemeChanged, this, [=](const Qt::ColorScheme& scheme) {
-        new SyntaxHighlighter(scheme == Qt::ColorScheme::Dark, qvLogDocument);
-        themeManager->ApplyTheme(NekoGui::dataStore->theme, true);
-    });
-    connect(themeManager, &ThemeManager::themeChanged, this, [=](const QString& theme){
-        if (theme.toLower().contains("vista")) {
-            // light themes
-            new SyntaxHighlighter(false, qvLogDocument);
-        } else if (theme.toLower().contains("qdarkstyle")) {
-            // dark themes
-            new SyntaxHighlighter(true, qvLogDocument);
-        } else {
-            // bi-mode themes, follow system preference
-            new SyntaxHighlighter(qApp->styleHints()->colorScheme() == Qt::ColorScheme::Dark, qvLogDocument);
-        }
-    });
-    connect(ui->masterLogBrowser->verticalScrollBar(), &QSlider::valueChanged, this, [=](int value) {
-        if (ui->masterLogBrowser->verticalScrollBar()->maximum() == value)
-            qvLogAutoScoll = true;
-        else
-            qvLogAutoScoll = false;
-    });
-    connect(ui->masterLogBrowser, &QTextBrowser::textChanged, this, [=]() {
-        if (!qvLogAutoScoll)
-            return;
-        auto bar = ui->masterLogBrowser->verticalScrollBar();
-        bar->setValue(bar->maximum());
-    });
-    MW_show_log = [=](const QString &log) {
-        runOnUiThread([=] { show_log_impl(log); });
-    };
 
     // setup connection UI
     setupConnectionList();
@@ -211,6 +257,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             NekoGui_traffic::connection_lister->ForceUpdate();
         }
     });
+
+    // setup Speed Chart
+    speedChartWidget = new SpeedWidget(this);
+    ui->graph_tab->layout()->addWidget(speedChartWidget);
 
     // table UI
     ui->proxyListTable->callback_save_order = [=] {
@@ -260,36 +310,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->proxyListTable->setTabKeyNavigation(false);
 
     // search box
-    ui->search->setVisible(false);
-    connect(shortcut_ctrl_f, &QShortcut::activated, this, [=] {
-        ui->search->setVisible(true);
-        ui->search->setFocus();
-    });
     connect(shortcut_esc, &QShortcut::activated, this, [=] {
-        if (ui->search->isVisible()) {
-            ui->search->setText("");
-            ui->search->textChanged("");
-            ui->search->setVisible(false);
-        }
         if (select_mode) {
             emit profile_selected(-1);
             select_mode = false;
             refresh_status();
-        }
-    });
-    connect(ui->search, &QLineEdit::textChanged, this, [=](const QString &text) {
-        if (text.isEmpty()) {
-            for (int i = 0; i < ui->proxyListTable->rowCount(); i++) {
-                ui->proxyListTable->setRowHidden(i, false);
-            }
-        } else {
-            QList<QTableWidgetItem *> findItem = ui->proxyListTable->findItems(text, Qt::MatchContains);
-            for (int i = 0; i < ui->proxyListTable->rowCount(); i++) {
-                ui->proxyListTable->setRowHidden(i, true);
-            }
-            for (auto item: findItem) {
-                if (item != nullptr) ui->proxyListTable->setRowHidden(item->row(), false);
-            }
         }
     });
 
@@ -315,11 +340,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     tray->setContextMenu(trayMenu);
     connect(tray, &QSystemTrayIcon::activated, qApp, [=](QSystemTrayIcon::ActivationReason reason) {
         if (reason == QSystemTrayIcon::Trigger) {
-            if (this->isVisible()) {
-                hide();
-            } else {
-                ActivateWindow(this);
-            }
+            ActivateWindow(this);
         }
     });
 
@@ -332,7 +353,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->menu_add_from_clipboard2, &QAction::triggered, ui->menu_add_from_clipboard, &QAction::trigger);
     connect(ui->actionRestart_Proxy, &QAction::triggered, this, [=] { if (NekoGui::dataStore->started_id>=0) neko_start(NekoGui::dataStore->started_id); });
     connect(ui->actionRestart_Program, &QAction::triggered, this, [=] { MW_dialog_message("", "RestartProgram"); });
-    connect(ui->actionShow_window, &QAction::triggered, this, [=] { tray->activated(QSystemTrayIcon::ActivationReason::Trigger); });
+    connect(ui->actionShow_window, &QAction::triggered, this, [=] { ActivateWindow(this); });
     connect(ui->actionRemember_last_proxy, &QAction::triggered, this, [=](bool checked) {
         NekoGui::dataStore->remember_enable = checked;
         ui->actionRemember_last_proxy->setChecked(checked);
@@ -375,6 +396,24 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 #endif
 
     connect(ui->menu_server, &QMenu::aboutToShow, this, [=](){
+        if (running)
+        {
+            ui->actionSpeedtest_Current->setEnabled(true);
+        } else
+        {
+            ui->actionSpeedtest_Current->setEnabled(false);
+        }
+        if (auto selected = get_now_selected_list(); selected.empty())
+        {
+            ui->actionSpeedtest_Selected->setEnabled(false);
+            ui->actionUrl_Test_Selected->setEnabled(false);
+            ui->menu_resolve_selected->setEnabled(false);
+        } else
+        {
+            ui->actionSpeedtest_Selected->setEnabled(true);
+            ui->actionUrl_Test_Selected->setEnabled(true);
+            ui->menu_resolve_selected->setEnabled(true);
+        }
         if (!speedtestRunning.tryLock()) {
             ui->menu_server->addAction(ui->menu_stop_testing);
         } else {
@@ -396,20 +435,37 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             action->setChecked(NekoGui::dataStore->routing->current_route_id == route.first);
             connect(action, &QAction::triggered, this, [=]()
             {
-                if (NekoGui::dataStore->routing->current_route_id == route.first) return;
-                NekoGui::dataStore->routing->current_route_id = action->data().toInt();
+                auto routeID = action->data().toInt();
+                if (NekoGui::dataStore->routing->current_route_id == routeID) return;
+                NekoGui::dataStore->routing->current_route_id = routeID;
+                NekoGui::dataStore->routing->Save();
                 if (NekoGui::dataStore->started_id >= 0) neko_start(NekoGui::dataStore->started_id);
             });
             ui->menuRouting_Menu->addAction(action);
         }
     });
     connect(ui->actionUrl_Test_Selected, &QAction::triggered, this, [=]() {
-        speedtest_current_group(get_now_selected_list());
+        urltest_current_group(get_now_selected_list());
     });
     connect(ui->actionUrl_Test_Group, &QAction::triggered, this, [=]() {
-        speedtest_current_group(NekoGui::profileManager->CurrentGroup()->Profiles());
+        urltest_current_group(NekoGui::profileManager->CurrentGroup()->ProfilesWithOrder());
     });
-    connect(ui->menu_stop_testing, &QAction::triggered, this, [=]() { stopSpeedTests(); });
+    connect(ui->actionSpeedtest_Current, &QAction::triggered, this, [=]()
+    {
+        if (running != nullptr)
+        {
+            speedtest_current_group({}, true);
+        }
+    });
+    connect(ui->actionSpeedtest_Selected, &QAction::triggered, this, [=]()
+    {
+        speedtest_current_group(get_now_selected_list());
+    });
+    connect(ui->actionSpeedtest_Group, &QAction::triggered, this, [=]()
+    {
+        speedtest_current_group(NekoGui::profileManager->CurrentGroup()->ProfilesWithOrder());
+    });
+    connect(ui->menu_stop_testing, &QAction::triggered, this, [=]() { stopTests(); });
     //
     auto set_selected_or_group = [=](int mode) {
         // 0=group 1=select 2=unknown(menu is hide)
@@ -431,34 +487,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         ui->menu_export_config->setText(tr("Export %1 config").arg(name));
     });
     refresh_status();
-
-    // Prepare core
-    NekoGui::dataStore->core_token = GetRandomString(32);
-    NekoGui::dataStore->core_port = MkPort();
-    if (NekoGui::dataStore->core_port <= 0) NekoGui::dataStore->core_port = 19810;
-
-    auto core_path = QApplication::applicationDirPath() + "/";
-    core_path += "nekobox_core";
-
-    QStringList args;
-    args.push_back("nekobox");
-    args.push_back("-port");
-    args.push_back(Int2String(NekoGui::dataStore->core_port));
-    if (NekoGui::dataStore->flag_debug) args.push_back("-debug");
-
-    // Start core
-    runOnUiThread(
-        [=] {
-            core_process = new NekoGui_sys::CoreProcess(core_path, args);
-            // Remember last started
-            if (NekoGui::dataStore->remember_enable && NekoGui::dataStore->remember_id >= 0) {
-                core_process->start_profile_when_core_is_up = NekoGui::dataStore->remember_id;
-            }
-            // Setup
-            core_process->Start();
-            setup_grpc();
-        },
-        DS_cores);
 
     connect(qApp, &QGuiApplication::commitDataRequest, this, &MainWindow::on_commitDataRequest);
 
@@ -494,8 +522,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 void MainWindow::closeEvent(QCloseEvent *event) {
     if (tray->isVisible()) {
-        hide();          // 隐藏窗口
-        event->ignore(); // 忽略事件
+        hide();
+        event->ignore();
     }
 }
 
@@ -541,7 +569,6 @@ void MainWindow::show_group(int gid) {
 
     ui->tabWidget->widget(groupId2TabIndex(gid))->layout()->addWidget(ui->proxyListTable);
 
-    // 列宽是否可调
     if (group->manually_column_width) {
         for (int i = 0; i <= 4; i++) {
             ui->proxyListTable->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Interactive);
@@ -591,6 +618,15 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
             neko_start(NekoGui::dataStore->started_id);
         }
         refresh_status();
+    }
+    if (info.contains("DNSServerChanged"))
+    {
+        if (NekoGui::dataStore->system_dns_set)
+        {
+            auto oldAddr = info.split(",")[1];
+            set_system_dns(false);
+            set_system_dns(true);
+        }
     }
     if (info.contains("NeedRestart")) {
         auto n = QMessageBox::warning(GetMessageBoxParent(), tr("Settings changed"), tr("Restart the program to take effect."), QMessageBox::Yes | QMessageBox::No);
@@ -646,6 +682,7 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
         } else if (info == "CoreCrashed") {
             neko_stop(true);
         } else if (info.startsWith("CoreStarted")) {
+            NekoGui::IsAdmin(true);
             if (NekoGui::dataStore->remember_enable || NekoGui::dataStore->flag_restart_tun_on) {
                 if (NekoGui::dataStore->remember_spmode.contains("system_proxy")) {
                     neko_set_spmode_system_proxy(true, false);
@@ -657,7 +694,10 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
                     set_system_dns(true);
                 }
             }
-            neko_start(info.split(",")[1].toInt());
+            if (auto id = info.split(",")[1].toInt(); id >= 0)
+            {
+                neko_start(id);
+            }
             if (NekoGui::dataStore->system_dns_set) {
                 set_system_dns(true);
                 ui->system_dns->setChecked(true);
@@ -726,33 +766,36 @@ void MainWindow::on_commitDataRequest() {
     qDebug() << "End of data save";
 }
 
-void MainWindow::on_menu_exit_triggered() {
-    if (mu_exit.tryLock()) {
-        NekoGui::dataStore->prepare_exit = true;
-        //
-        neko_set_spmode_system_proxy(false, false);
-        neko_set_spmode_vpn(false, false);
-        if (NekoGui::dataStore->spmode_vpn) {
-            mu_exit.unlock(); // retry
-            return;
-        }
-        RegisterHotkey(true);
-        //
-        on_commitDataRequest();
-        //
-        NekoGui::dataStore->save_control_no_save = true; // don't change datastore after this line
-        neko_stop(false, true);
-        //
-        hide();
-        runOnNewThread([=] {
-            sem_stopped.acquire();
-            stop_core_daemon();
-            runOnUiThread([=] {
-                on_menu_exit_triggered(); // continue exit progress
-            });
-        });
+void MainWindow::prepare_exit()
+{
+    qDebug() << "prepare for exit...";
+    mu_exit.lock();
+    if (NekoGui::dataStore->prepare_exit)
+    {
+        qDebug() << "prepare exit had already succeeded, ignoring...";
+        mu_exit.unlock();
         return;
     }
+    hide();
+    tray->hide();
+    NekoGui::dataStore->prepare_exit = true;
+    //
+    neko_set_spmode_system_proxy(false, false);
+    RegisterHotkey(true);
+    //
+    on_commitDataRequest();
+    //
+    NekoGui::dataStore->save_control_no_save = true; // don't change datastore after this line
+    neko_stop(false, true);
+    //
+    sem_stopped.acquire();
+    NekoGui_rpc::defaultClient->Exit();
+    mu_exit.unlock();
+    qDebug() << "prepare exit done!";
+}
+
+void MainWindow::on_menu_exit_triggered() {
+    prepare_exit();
     //
     if (exit_reason == 1) {
         QDir::setCurrent(QApplication::applicationDirPath());
@@ -782,7 +825,6 @@ void MainWindow::on_menu_exit_triggered() {
             QProcess::startDetached(program, arguments);
         }
     }
-    tray->hide();
     QCoreApplication::quit();
 }
 
@@ -796,6 +838,11 @@ void MainWindow::neko_toggle_system_proxy() {
 }
 
 bool MainWindow::get_elevated_permissions(int reason) {
+    if (NekoGui::dataStore->disable_privilege_req)
+    {
+        MW_show_log(tr("User opted for no privilege req, some features may not work"));
+        return true;
+    }
     if (NekoGui::IsAdmin()) return true;
 #ifdef Q_OS_LINUX
     if (!Linux_HavePkexec()) {
@@ -804,22 +851,22 @@ bool MainWindow::get_elevated_permissions(int reason) {
     }
     auto n = QMessageBox::warning(GetMessageBoxParent(), software_name, tr("Please give the core root privileges"), QMessageBox::Yes | QMessageBox::No);
     if (n == QMessageBox::Yes) {
-        auto chownArgs = QString("root:root " + NekoGui::FindNekoBoxCoreRealPath());
-        auto ret = Linux_Run_Command("chown", chownArgs);
-        if (ret != 0) {
-            MW_show_log(QString("Failed to run chown %1 code is %2").arg(chownArgs).arg(ret));
-            return false;
-        }
-        auto chmodArgs = QString("u+s " + NekoGui::FindNekoBoxCoreRealPath());
-        ret = Linux_Run_Command("chmod", chmodArgs);
-        if (ret == 0) {
-            NekoGui::IsAdmin(true);
-            StopVPNProcess();
-            return true;
-        } else {
-            MW_show_log(QString("Failed to run chmod %1").arg(chmodArgs));
-            return false;
-        }
+        runOnNewThread([=]
+        {
+            auto chownArgs = QString("root:root " + NekoGui::FindNekoBoxCoreRealPath());
+            auto ret = Linux_Run_Command("chown", chownArgs);
+            if (ret != 0) {
+                MW_show_log(QString("Failed to run chown %1 code is %2").arg(chownArgs).arg(ret));
+            }
+            auto chmodArgs = QString("u+s " + NekoGui::FindNekoBoxCoreRealPath());
+            ret = Linux_Run_Command("chmod", chmodArgs);
+            if (ret == 0) {
+                StopVPNProcess();
+            } else {
+                MW_show_log(QString("Failed to run chmod %1").arg(chmodArgs));
+            }
+        });
+        return false;
     }
 #endif
 #ifdef Q_OS_WIN
@@ -880,6 +927,51 @@ void MainWindow::neko_set_spmode_vpn(bool enable, bool save) {
 
     if (NekoGui::dataStore->started_id >= 0) neko_start(NekoGui::dataStore->started_id);
 }
+
+void MainWindow::UpdateDataView(bool force)
+{
+    if (!force && lastUpdated.msecsTo(QDateTime::currentDateTime()) < 100)
+    {
+        return;
+    }
+    QString html;
+    if (showDownloadData)
+    {
+        qint64 count = 10*currentDownloadReport.downloadedSize / currentDownloadReport.totalSize;
+        QString progressText;
+        for (int i = 0; i < 10; i++)
+        {
+            if (count--; count >=0) progressText += "#";
+            else progressText += "-";
+        }
+        QString stat = ReadableSize(currentDownloadReport.downloadedSize) + "/" + ReadableSize(currentDownloadReport.totalSize);
+        html = QString("<p style='text-align:center;margin:0;'>Downloading %1: %2 %3</p>").arg(currentDownloadReport.fileName, stat, progressText);
+    }
+    if (showSpeedtestData)
+    {
+        html += QString(
+    "<p style='text-align:center;margin:0;'>Running Speedtest: %1</p>"
+    "<div style='text-align: center;'>"
+    "<span style='color: #3299FF;'>Dl↓ %2</span>  "
+    "<span style='color: #86C43F;'>Ul↑ %3</span>"
+    "</div>"
+    "<p style='text-align:center;margin:0;'>Server: %4, %5</p>"
+        ).arg(currentSptProfileName,
+            currentTestResult.dl_speed().c_str(),
+            currentTestResult.ul_speed().c_str(),
+            currentTestResult.server_country().c_str(),
+            currentTestResult.server_name().c_str());
+    }
+    ui->data_view->setHtml(html);
+    lastUpdated = QDateTime::currentDateTime();
+}
+
+void MainWindow::setDownloadReport(const DownloadProgressReport& report, bool show)
+{
+    showDownloadData = show;
+    currentDownloadReport = report;
+}
+
 
 void MainWindow::setupConnectionList()
 {
@@ -1125,6 +1217,19 @@ void MainWindow::refresh_status(const QString &traffic_update) {
     icon_status = icon_status_new;
 }
 
+void MainWindow::update_traffic_graph(int proxyDl, int proxyUp, int directDl, int directUp)
+{
+    if (speedChartWidget) {
+        QMap<SpeedWidget::GraphType, long> pointData;
+        pointData[SpeedWidget::OUTBOUND_PROXY_UP] = proxyUp;
+        pointData[SpeedWidget::OUTBOUND_PROXY_DOWN] = proxyDl;
+        pointData[SpeedWidget::OUTBOUND_DIRECT_UP] = directUp;
+        pointData[SpeedWidget::OUTBOUND_DIRECT_DOWN] = directDl;
+
+        speedChartWidget->AddPointData(pointData);
+    }
+}
+
 // table显示
 
 // refresh_groups -> show_group -> refresh_proxy_list
@@ -1323,7 +1428,7 @@ void MainWindow::refresh_table_item(const int row, const std::shared_ptr<NekoGui
     if (profile->full_test_report.isEmpty()) {
         auto color = profile->DisplayLatencyColor();
         if (color.isValid()) f->setForeground(color);
-        f->setText(profile->DisplayLatency());
+        f->setText(profile->DisplayTestResult());
     } else {
         f->setText(profile->full_test_report);
     }
@@ -1560,38 +1665,113 @@ void MainWindow::display_qr_link(bool nkrFormat) {
     w->deleteLater();
 }
 
-void MainWindow::on_menu_scan_qr_triggered() {
-#ifndef NKR_NO_ZXING
-    using namespace ZXingQt;
+#ifdef Q_OS_LINUX
+OrgFreedesktopPortalRequestInterface::OrgFreedesktopPortalRequestInterface(
+  const QString& service,
+  const QString& path,
+  const QDBusConnection& connection,
+  QObject* parent)
+  : QDBusAbstractInterface(service,
+                           path,
+                           "org.freedesktop.portal.Request",
+                           connection,
+                           parent)
+{}
 
+OrgFreedesktopPortalRequestInterface::~OrgFreedesktopPortalRequestInterface() {}
+#endif
+
+QPixmap grabScreen(QScreen* screen, bool& ok)
+{
+    QPixmap p;
+    QRect geom = screen->geometry();
+#ifdef Q_OS_LINUX
+    DesktopInfo m_info;
+    if (m_info.waylandDetected()) {
+        QDBusInterface screenshotInterface(
+          QStringLiteral("org.freedesktop.portal.Desktop"),
+          QStringLiteral("/org/freedesktop/portal/desktop"),
+          QStringLiteral("org.freedesktop.portal.Screenshot"));
+
+        // unique token
+        QString token =
+          QUuid::createUuid().toString().remove('-').remove('{').remove('}');
+
+        // premake interface
+        auto* request = new OrgFreedesktopPortalRequestInterface(
+          QStringLiteral("org.freedesktop.portal.Desktop"),
+          "/org/freedesktop/portal/desktop/request/" +
+            QDBusConnection::sessionBus().baseService().remove(':').replace('.','_') +
+            "/" + token,
+          QDBusConnection::sessionBus());
+
+        QEventLoop loop;
+        const auto gotSignal = [&p, &loop](uint status, const QVariantMap& map) {
+            if (status == 0) {
+                // Parse this as URI to handle unicode properly
+                QUrl uri = map.value("uri").toString();
+                QString uriString = uri.toLocalFile();
+                p = QPixmap(uriString);
+                p.setDevicePixelRatio(qApp->devicePixelRatio());
+                QFile imgFile(uriString);
+                imgFile.remove();
+            }
+            loop.quit();
+        };
+
+        // prevent racy situations and listen before calling screenshot
+        QMetaObject::Connection conn = QObject::connect(
+          request, &org::freedesktop::portal::Request::Response, gotSignal);
+
+        screenshotInterface.call(
+          QStringLiteral("Screenshot"),
+          "",
+          QMap<QString, QVariant>({ { "handle_token", QVariant(token) },
+                                    { "interactive", QVariant(false) } }));
+
+        loop.exec();
+        QObject::disconnect(conn);
+        request->Close().waitForFinished();
+        request->deleteLater();
+
+        if (p.isNull()) {
+            ok = false;
+        }
+	return p;
+    } else
+#endif
+        return screen->grabWindow(0, geom.x(), geom.y(), geom.width(), geom.height());
+}
+
+void MainWindow::on_menu_scan_qr_triggered() {
     hide();
     QThread::sleep(1);
 
-    auto screen = QGuiApplication::primaryScreen();
-    auto geom = screen->geometry();
-    auto qpx = screen->grabWindow(0, geom.x(), geom.y(), geom.width(), geom.height());
+    bool ok = true;
+    QPixmap qpx(grabScreen(QGuiApplication::primaryScreen(), ok));
 
     show();
-
-    auto hints = DecodeHints()
-                     .setFormats(BarcodeFormat::QRCode)
-                     .setTryRotate(false)
-                     .setBinarizer(Binarizer::FixedThreshold);
-
-    auto result = ReadBarcode(qpx.toImage(), hints);
-    const auto &text = result.text();
-    if (text.isEmpty()) {
-        MessageBoxInfo(software_name, tr("QR Code not found"));
-    } else {
-        show_log_impl("QR Code Result:\n" + text);
-        NekoGui_sub::groupUpdater->AsyncUpdate(text);
+    if (ok) {
+        const QVector<QString> texts = QrDecoder().decode(qpx.toImage().convertToFormat(QImage::Format_Grayscale8));
+        if (texts.isEmpty()) {
+            MessageBoxInfo(software_name, tr("QR Code not found"));
+        } else {
+            for (const QString &text : texts) {
+                show_log_impl("QR Code Result:\n" + text);
+                NekoGui_sub::groupUpdater->AsyncUpdate(text);
+            }
+        }
     }
-#endif
+    else {
+        MessageBoxInfo(software_name, tr("Unable to capture screen"));
+    }
 }
 
 void MainWindow::on_menu_clear_test_result_triggered() {
     for (const auto &profile: get_selected_or_group()) {
         profile->latency = 0;
+        profile->dl_speed.clear();
+        profile->ul_speed.clear();
         profile->full_test_report = "";
         profile->Save();
     }
@@ -1922,6 +2102,7 @@ void MainWindow::on_tabWidget_customContextMenuRequested(const QPoint &p) {
     if (NekoGui::profileManager->groups.size() > 1) menu->addAction(deleteAction);
     if (!group->Profiles().empty()) {
         menu->addAction(ui->actionUrl_Test_Group);
+        menu->addAction(ui->actionSpeedtest_Group);
         menu->addAction(ui->menu_resolve_domain);
         menu->addAction(ui->menu_clear_test_result);
         menu->addAction(ui->menu_delete_repeat);
@@ -2073,14 +2254,14 @@ void MainWindow::DownloadAssets(const QString &geoipUrl, const QString &geositeU
     MW_show_log("Start downloading...");
     QString errors;
     if (!geoipUrl.isEmpty()) {
-        auto resp = NetworkRequestHelper::DownloadGeoAsset(geoipUrl, "geoip.db");
+        auto resp = NetworkRequestHelper::DownloadAsset(geoipUrl, "geoip.db");
         if (!resp.isEmpty()) {
             MW_show_log(QString(tr("Failed to download geoip: %1")).arg(resp));
             errors += "geoip: " + resp;
         }
     }
     if (!geositeUrl.isEmpty()) {
-        auto resp = NetworkRequestHelper::DownloadGeoAsset(geositeUrl, "geosite.db");
+        auto resp = NetworkRequestHelper::DownloadAsset(geositeUrl, "geosite.db");
         if (!resp.isEmpty()) {
             MW_show_log(QString(tr("Failed to download geosite: %1")).arg(resp));
             errors += "\ngeosite: " + resp;
@@ -2093,4 +2274,165 @@ void MainWindow::DownloadAssets(const QString &geoipUrl, const QString &geositeU
         });
     }
     MW_show_log(tr("Geo Asset update completed!"));
+}
+
+bool isNewer(QString version) {
+    version = version.mid(8); // take out nekoray-
+    auto parts = version.split('.');
+    auto currentParts = QString(NKR_VERSION).split('.');
+    std::vector<int> verNums;
+    std::vector<int> currNums;
+    // add base version first
+    verNums.push_back(parts[0].toInt());
+    verNums.push_back(parts[1].toInt());
+    verNums.push_back(parts[2].split('-')[0].toInt());
+
+    currNums.push_back(currentParts[0].toInt());
+    currNums.push_back(currentParts[1].toInt());
+    currNums.push_back(currentParts[2].split('-')[0].toInt());
+
+    // base version is equal or greater, check release mode
+    int releaseMode;
+    int partialVer = 0;
+    if (parts[2].split('-').size() > 1 && parts[2].split('-')[1].toInt() == 0 /* this makes sure it is not a number*/) {
+        partialVer = parts[3].split('-')[0].toInt();
+        auto str = parts[2].split('-')[1];
+        if (str == "rc") releaseMode = 3;
+        if (str == "beta") releaseMode = 2;
+        if (str == "alpha") releaseMode = 1;
+    } else {
+        releaseMode = 4;
+    }
+    verNums.push_back(releaseMode);
+    verNums.push_back(partialVer);
+
+    int currReleaseMode;
+    int currentPartialVer = 0;
+    if (currentParts[2].split('-').size() > 1 && currentParts[2].split('-')[1].toInt() == 0 /* this makes sure it is not a number*/) {
+        currentPartialVer = currentParts[3].split('-')[0].toInt();
+        auto str = currentParts[2].split('-')[1];
+        if (str == "rc") currReleaseMode = 3;
+        if (str == "beta") currReleaseMode = 2;
+        if (str == "alpha") currReleaseMode = 1;
+    } else {
+        currReleaseMode = 4;
+    }
+    currNums.push_back(currReleaseMode);
+    currNums.push_back(currentPartialVer);
+
+    for (int i=0;i<verNums.size();i++) {
+        if (verNums[i] > currNums[i]) return true;
+        if (verNums[i] < currNums[i]) return false;
+    }
+
+    return false;
+}
+
+void MainWindow::CheckUpdate() {
+    QString search;
+#ifdef Q_OS_WIN32
+#  ifdef Q_OS_WIN64
+	search = "windows64";
+#  else
+	search = "windows32";
+#  endif
+#endif
+#if defined(Q_OS_LINUX) && defined(Q_PROCESSOR_X86_64)
+	search = "linux64";
+#endif
+#ifdef Q_OS_MACOS
+#  ifdef Q_PROCESSOR_X86_64
+	search = "macos-amd64";
+#  else
+	search = "macos-arm64";
+#  endif
+#endif
+    if (search.isEmpty()) {
+        runOnUiThread([=] {
+            MessageBoxWarning(QObject::tr("Update"), QObject::tr("Not official support platform"));
+        });
+        return;
+    }
+
+    auto resp = NetworkRequestHelper::HttpGet("https://api.github.com/repos/Mahdi-zarei/nekoray/releases");
+    if (!resp.error.isEmpty()) {
+        runOnUiThread([=] {
+            MessageBoxWarning(QObject::tr("Update"), QObject::tr("Requesting update error: %1").arg(resp.error + "\n" + resp.data));
+        });
+        return;
+    }
+
+    QString assets_name, release_download_url, release_url, release_note, note_pre_release;
+    bool exitFlag = false;
+    QJsonArray array = QString2QJsonArray(resp.data);
+    for (const QJsonValue value : array) {
+        QJsonObject release = value.toObject();
+        for (const QJsonValue asset : release["assets"].toArray()) {
+            if (asset["name"].toString().contains(search)) {
+                note_pre_release = release["prerelease"].toBool() ? " (Pre-release)" : "";
+                release_url = release["html_url"].toString();
+                release_note = release["body"].toString();
+                assets_name = asset["name"].toString();
+                release_download_url = asset["browser_download_url"].toString();
+                exitFlag = true;
+                break;
+            }
+        }
+        if (exitFlag) break;
+    }
+
+    if (release_download_url.isEmpty() || !isNewer(assets_name)) {
+        runOnUiThread([=] {
+            MessageBoxInfo(QObject::tr("Update"), QObject::tr("No update"));
+        });
+        return;
+    }
+
+    runOnUiThread([=] {
+        auto allow_updater = !NekoGui::dataStore->flag_use_appdata;
+        QMessageBox box(QMessageBox::Question, QObject::tr("Update") + note_pre_release,
+                        QObject::tr("Update found: %1\nRelease note:\n%2").arg(assets_name, release_note));
+        //
+        QAbstractButton *btn1 = nullptr;
+        if (allow_updater) {
+            btn1 = box.addButton(QObject::tr("Update"), QMessageBox::AcceptRole);
+        }
+        QAbstractButton *btn2 = box.addButton(QObject::tr("Open in browser"), QMessageBox::AcceptRole);
+        box.addButton(QObject::tr("Close"), QMessageBox::RejectRole);
+        box.exec();
+        //
+        if (btn1 == box.clickedButton() && allow_updater) {
+            // Download Update
+            runOnNewThread([=] {
+                if (!mu_download_update.tryLock()) {
+                    runOnUiThread([=](){
+                        MessageBoxWarning(tr("Cannot start"), tr("Last download request has not finished yet"));
+                    });
+                    return;
+                }
+                QString errors;
+                if (!release_download_url.isEmpty()) {
+                    auto res = NetworkRequestHelper::DownloadAsset(release_download_url, "nekoray.zip");
+                    if (!res.isEmpty()) {
+                        errors += res;
+                    }
+                }
+                mu_download_update.unlock();
+                runOnUiThread([=] {
+                    if (errors.isEmpty()) {
+                        auto q = QMessageBox::question(nullptr, QObject::tr("Update"),
+                                                       QObject::tr("Update is ready, restart to install?"));
+                        if (q == QMessageBox::StandardButton::Yes) {
+                            this->exit_reason = 1;
+                            on_menu_exit_triggered();
+                        }
+                    } else {
+                        MessageBoxWarning(tr("Failed to download update assets"), errors);
+                    }
+                });
+            });
+        } else if (btn2 == box.clickedButton()) {
+            QDesktopServices::openUrl(QUrl(release_url));
+        }
+    });
 }

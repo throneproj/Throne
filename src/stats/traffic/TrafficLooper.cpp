@@ -21,6 +21,8 @@ namespace NekoGui_traffic {
         proxy->uplink_rate = 0;
         proxy->downlink_rate = 0;
 
+        int proxyUp = 0, proxyDown = 0;
+
         for (const auto &item: this->items) {
             if (!resp.ups().contains(item->tag)) continue;
             auto now = elapsedTimer.elapsed();
@@ -29,20 +31,16 @@ namespace NekoGui_traffic {
             if (interval <= 0) continue;
             auto up = resp.ups().at(item->tag);
             auto down = resp.downs().at(item->tag);
+            if (item->tag == "proxy")
+            {
+                proxyUp = up;
+                proxyDown = down;
+            }
             item->uplink += up;
             item->downlink += down;
-            item->uplink_rate = up * 1000 / interval;
-            item->downlink_rate = down * 1000 / interval;
-            auto isInter = false;
-            for (const auto& inter_tag : resp.intermediate_tags())
-            {
-                if (inter_tag == item->tag)
-                {
-                    isInter = true;
-                    break;
-                }
-            }
-            if (isInter) continue;
+            item->uplink_rate = static_cast<double>(up) * 1000.0 / static_cast<double>(interval);
+            item->downlink_rate = static_cast<double>(down) * 1000.0 / static_cast<double>(interval);
+            if (item->ignoreForRate) continue;
             if (item->tag == "direct")
             {
                 direct->uplink_rate = item->uplink_rate;
@@ -53,18 +51,27 @@ namespace NekoGui_traffic {
                 proxy->downlink_rate += item->downlink_rate;
             }
         }
+        if (isChain)
+        {
+            for (const auto &item: this->items)
+            {
+                if (item->isChainTail)
+                {
+                    item->uplink += proxyUp;
+                    item->downlink += proxyDown;
+                }
+            }
+        }
     }
 
     void TrafficLooper::Loop() {
-        if (NekoGui::dataStore->disable_traffic_stats) {
-            return;
-        }
         elapsedTimer.start();
         while (true) {
-            auto sleep_ms = NekoGui::dataStore->traffic_loop_interval;
-            if (sleep_ms < 500 || sleep_ms > 5000) sleep_ms = 1000;
-            QThread::msleep(sleep_ms);
-            if (NekoGui::dataStore->traffic_loop_interval == 0) continue; // user disabled
+            QThread::msleep(1000); // refresh every one second
+
+            if (NekoGui::dataStore->disable_traffic_stats) {
+                continue;
+            }
 
             // profile start and stop
             if (!loop_enabled) {
@@ -76,6 +83,11 @@ namespace NekoGui_traffic {
                         m->refresh_status("STOP");
                     });
                 }
+                runOnUiThread([=]
+                {
+                   auto m = GetMainWindow();
+                   m->update_traffic_graph(0, 0, 0, 0);
+                });
                 continue;
             } else {
                 // 开始
@@ -96,6 +108,7 @@ namespace NekoGui_traffic {
                 auto m = GetMainWindow();
                 if (proxy != nullptr) {
                     m->refresh_status(QObject::tr("Proxy: %1\nDirect: %2").arg(proxy->DisplaySpeed(), direct->DisplaySpeed()));
+                    m->update_traffic_graph(proxy->downlink_rate, proxy->uplink_rate, direct->downlink_rate, direct->uplink_rate);
                 }
                 for (const auto &item: items) {
                     if (item->id < 0) continue;

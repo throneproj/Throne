@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(nekoray VERSION 0.1 LANGUAGES CXX)
+project(nekoray VERSION 0.1)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -11,7 +11,7 @@ if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND WIN32)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 endif ()
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Network LinguistTools)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Network LinguistTools DBus)
 
 if (NKR_CROSS)
     set_property(TARGET Qt6::moc PROPERTY IMPORTED_LOCATION /usr/bin/moc)
@@ -34,10 +34,6 @@ endif ()
 
 list(APPEND NKR_LIBS ${CMAKE_SOURCE_DIR}/libs/deps/built)
 list(APPEND CMAKE_PREFIX_PATH ${NKR_LIBS})
-if(WIN32)
-    list(APPEND CMAKE_PREFIX_PATH "libs/deps/built/x64-windows-static")
-endif ()
-add_definitions(-DCURL_STATICLIB)
 
 message("[CMAKE_PREFIX_PATH] ${CMAKE_PREFIX_PATH}")
 
@@ -60,15 +56,6 @@ endif ()
 include("cmake/myproto.cmake")
 list(APPEND NKR_EXTERNAL_TARGETS myproto)
 
-find_package(yaml-cpp CONFIG REQUIRED) # only Release is built
-list(APPEND NKR_EXTERNAL_TARGETS yaml-cpp)
-
-find_package(ZXing CONFIG REQUIRED)
-list(APPEND NKR_EXTERNAL_TARGETS ZXing::ZXing)
-
-find_package(cpr REQUIRED)
-list(APPEND NKR_EXTERNAL_TARGETS cpr::cpr)
-
 set(BUILD_SHARED_LIBS OFF)
 list(APPEND NKR_EXTERNAL_TARGETS qhotkey)
 
@@ -84,6 +71,7 @@ set(PROJECT_SOURCES
         3rdparty/base64.cpp
         3rdparty/qrcodegen.cpp
         3rdparty/QtExtKeySequenceEdit.cpp
+        3rdparty/QrDecoder.cpp
 
         3rdparty/qv2ray/v2/ui/LogHighlighter.cpp
         3rdparty/qv2ray/v2/ui/QvAutoCompleteTextEdit.cpp
@@ -91,7 +79,14 @@ set(PROJECT_SOURCES
         3rdparty/qv2ray/v2/ui/widgets/editors/w_JsonEditor.cpp
         3rdparty/qv2ray/v2/ui/widgets/editors/w_JsonEditor.hpp
         3rdparty/qv2ray/v2/ui/widgets/editors/w_JsonEditor.ui
+        3rdparty/qv2ray/v2/ui/widgets/speedchart/SpeedWidget.cpp
+        3rdparty/qv2ray/v2/ui/widgets/speedchart/SpeedWidget.hpp
         3rdparty/qv2ray/v2/proxy/QvProxyConfigurator.cpp
+
+        3rdparty/quirc/decode.c
+        3rdparty/quirc/identify.c
+        3rdparty/quirc/quirc.c
+        3rdparty/quirc/version_db.c
 
         src/api/gRPC.cpp
 
@@ -153,6 +148,10 @@ set(PROJECT_SOURCES
         src/ui/profile/edit_custom.cpp
         include/ui/profile/edit_custom.ui
 
+        include/ui/profile/edit_extra_core.h
+        src/ui/profile/edit_extra_core.cpp
+        include/ui/profile/edit_extra_core.ui
+
         include/ui/profile/edit_wireguard.h
         src/ui/profile/edit_wireguard.cpp
         include/ui/profile/edit_wireguard.ui
@@ -196,7 +195,6 @@ set(PROJECT_SOURCES
         include/ui/profile/edit_ssh.h
         include/ui/profile/edit_ssh.ui
         include/configs/proxy/SSHBean.h
-        src/sys/macos/MacOS.cpp
         include/sys/macos/MacOS.h
 
         src/sys/linux/LinuxCap.cpp
@@ -209,6 +207,7 @@ set(PROJECT_SOURCES
         include/stats/connections/connectionLister.hpp
         src/stats/connectionLister/connectionLister.cpp
         src/configs/proxy/Json2Bean.cpp
+        include/sys/windows/eventHandler.h
 )
 
 # Qt exe
@@ -260,7 +259,7 @@ target_sources(nekoray PRIVATE ${CMAKE_BINARY_DIR}/translations.qrc)
 # Target Link
 
 target_link_libraries(nekoray PRIVATE
-        Qt6::Widgets Qt6::Network
+        Qt6::Widgets Qt6::Network Qt6::DBus
         Threads::Threads
         ${NKR_EXTERNAL_TARGETS}
         ${PLATFORM_LIBRARIES}

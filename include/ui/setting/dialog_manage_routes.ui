@@ -157,27 +157,37 @@ also if the connection cannot be established with the current address family (ip
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="dnshijack_listenaddr_l">
-            <property name="text">
-             <string>Listen Address</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLineEdit" name="dnshijack_listenaddr"/>
-          </item>
-          <item row="2" column="0">
+          <item row="3" column="0">
            <widget class="QLabel" name="dnshijack_listenport_l">
             <property name="text">
              <string>Listen Port</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
+          <item row="3" column="1">
            <widget class="QLineEdit" name="dnshijack_listenport"/>
           </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="dnshijack_v4resp_l">
+            <property name="text">
+             <string>IPv4 Response</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="dnshijack_v4resp"/>
+          </item>
           <item row="5" column="0">
+           <widget class="QLabel" name="dnshijack_v6resp_l">
+            <property name="text">
+             <string>IPv6 Response</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLineEdit" name="dnshijack_v6resp"/>
+          </item>
+          <item row="6" column="0">
            <widget class="QLabel" name="dnshijack_rules_l">
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Following format should be used:&lt;br/&gt;domain:a.com&lt;/p&gt;&lt;p&gt;suffix:a.com&lt;/p&gt;&lt;p&gt;regex:someregex&lt;/p&gt;&lt;p&gt;rule_set:nameOfRuleSet&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -187,26 +197,16 @@ also if the connection cannot be established with the current address family (ip
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
+          <item row="6" column="1">
            <widget class="QTextEdit" name="dnshijack_rules"/>
           </item>
-          <item row="3" column="1">
-           <widget class="QLineEdit" name="dnshijack_v4resp"/>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="dnshijack_v4resp_l">
-            <property name="text">
-             <string>IPv4 Response</string>
+          <item row="2" column="1">
+           <widget class="QCheckBox" name="dnshijack_allow_lan">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Whether to listen on 0.0.0.0 so that other devices on LAN can use this server&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QLineEdit" name="dnshijack_v6resp"/>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="dnshijack_v6resp_l">
             <property name="text">
-             <string>IPv6 Response</string>
+             <string>Allow Lan to Connect</string>
             </property>
            </widget>
           </item>

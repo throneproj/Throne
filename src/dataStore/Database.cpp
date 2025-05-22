@@ -51,6 +51,7 @@ namespace NekoGui {
                 continue;
             }
             profiles[id] = ent;
+            if (ent->type == "extracore") extraCorePaths.insert(ent->ExtraCoreBean()->extraCorePath);
         }
         // Clear Corrupted profile
         for (auto id: delProfile) {
@@ -227,6 +228,8 @@ namespace NekoGui {
             bean = new NekoGui_fmt::SSHBean(NekoGui_fmt::SSHBean());
         } else if (type == "custom") {
             bean = new NekoGui_fmt::CustomBean();
+        } else if (type == "extracore") {
+            bean = new NekoGui_fmt::ExtraCoreBean();
         } else {
             bean = new NekoGui_fmt::AbstractBean(-114514);
         }
@@ -249,6 +252,8 @@ namespace NekoGui {
         _add(new configItem("id", &id, itemType::integer));
         _add(new configItem("gid", &gid, itemType::integer));
         _add(new configItem("yc", &latency, itemType::integer));
+        _add(new configItem("dl", &dl_speed, itemType::string));
+        _add(new configItem("ul", &ul_speed, itemType::string));
         _add(new configItem("report", &full_test_report, itemType::string));
 
         // 可以不关联 bean，只加载 ProxyEntity 的信息
@@ -260,14 +265,16 @@ namespace NekoGui {
         }
     };
 
-    QString ProxyEntity::DisplayLatency() const {
+    QString ProxyEntity::DisplayTestResult() const {
+        QString result;
         if (latency < 0) {
-            return QObject::tr("Unavailable");
+            result = "Unavailable";
         } else if (latency > 0) {
-            return UNICODE_LRO + QString("%1 ms").arg(latency);
-        } else {
-            return "";
+            result = UNICODE_LRO + QString("%1 ms").arg(latency);
         }
+        if (!dl_speed.isEmpty()) result += " ↓" + dl_speed;
+        if (!ul_speed.isEmpty()) result += " ↑" + ul_speed;
+        return result;
     }
 
     QColor ProxyEntity::DisplayLatencyColor() const {
@@ -338,6 +345,19 @@ namespace NekoGui {
         return profiles.count(id) ? profiles[id] : nullptr;
     }
 
+    QStringList ProfileManager::GetExtraCorePaths() const {
+        return extraCorePaths.values();
+    }
+
+    bool ProfileManager::AddExtraCorePath(const QString &path)
+    {
+        if (extraCorePaths.contains(path))
+        {
+            return false;
+        }
+        extraCorePaths.insert(path);
+        return true;
+    }
     // Group
 
     Group::Group() {

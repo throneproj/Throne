@@ -46,6 +46,7 @@ namespace NekoGui {
 
     std::shared_ptr<BuildConfigResult> BuildConfig(const std::shared_ptr<ProxyEntity> &ent, bool forTest, bool forExport, int chainID) {
         auto result = std::make_shared<BuildConfigResult>();
+        result->extraCoreData = std::make_shared<ExtraCoreData>();
         auto status = std::make_shared<BuildConfigStatus>();
         status->ent = ent;
         status->result = result;
@@ -127,6 +128,11 @@ namespace NekoGui {
 
         QJsonArray directDomainArray;
         for (const auto &item: profiles) {
+            if (item->type == "extracore")
+            {
+                MW_show_log("Skipping ExtraCore conf");
+                continue;
+            }
             if (!IsValid(item)) {
                 MW_show_log("Skipping invalid config: " + item->bean->name);
                 item->latency = -1;
@@ -265,6 +271,7 @@ namespace NekoGui {
         if (ents.length() > 1) {
             status->ent->traffic_data->id = status->ent->id;
             status->ent->traffic_data->tag = chainTagOut.toStdString();
+            status->ent->traffic_data->ignoreForRate = true;
             status->result->outboundStats += status->ent->traffic_data;
         }
 
@@ -275,9 +282,10 @@ namespace NekoGui {
                                const std::shared_ptr<BuildConfigStatus> &status) {
         QString chainTag = "c-" + Int2String(chainId);
         QString chainTagOut;
-        int index = 0;
+        bool lastWasEndpoint = false;
 
-        for (const auto &ent: ents) {
+        for (int index = 0; index < ents.length(); index++) {
+            const auto& ent = ents.at(index);
             auto tagOut = chainTag + "-" + Int2String(ent->id) + "-" + Int2String(index);
 
             // last profile set as "proxy"
@@ -287,10 +295,11 @@ namespace NekoGui {
 
             if (index > 0) {
                 // chain rules: past
-                auto replaced = status->outbounds.last().toObject();
+                auto replaced = (lastWasEndpoint ? status->endpoints : status->outbounds).last().toObject();
                 replaced["detour"] = tagOut;
-                status->outbounds.removeLast();
-                status->outbounds += replaced;
+                ent->traffic_data->isChainTail = true;
+                (lastWasEndpoint ? status->endpoints : status->outbounds).removeLast();
+                (lastWasEndpoint ? status->endpoints : status->outbounds) += replaced;
             } else {
                 // index == 0 means last profile in chain / not chain
                 chainTagOut = tagOut;
@@ -308,8 +317,7 @@ namespace NekoGui {
             // Bypass Lookup for the first profile
             auto serverAddress = ent->bean->serverAddress;
 
-            auto customBean = dynamic_cast<NekoGui_fmt::CustomBean *>(ent->bean.get());
-            if (customBean != nullptr && customBean->core == "internal") {
+            if (auto customBean = dynamic_cast<NekoGui_fmt::CustomBean *>(ent->bean.get()); customBean != nullptr && customBean->core == "internal") {
                 auto server = QString2QJsonObject(customBean->config_simple)["server"].toString();
                 if (!server.isEmpty()) serverAddress = server;
             }
@@ -321,11 +329,12 @@ namespace NekoGui {
             if (ent->type == "wireguard")
             {
                 status->endpoints += outbound;
+                lastWasEndpoint = true;
             } else
             {
                 status->outbounds += outbound;
+                lastWasEndpoint = false;
             }
-            index++;
         }
 
         return chainTagOut;
@@ -417,6 +426,71 @@ namespace NekoGui {
         // copy for modification
         routeChain = std::make_shared<RoutingChain>(*routeChain);
 
+        // Outbounds
+        auto tagProxy = BuildChain(status->chainID, status);
+        if (!status->result->error.isEmpty()) return;
+        if (status->ent->type == "extracore")
+        {
+            auto bean = status->ent->ExtraCoreBean();
+            status->result->extraCoreData->path = QFileInfo(bean->extraCorePath).canonicalFilePath();
+            status->result->extraCoreData->args = bean->extraCoreArgs;
+            status->result->extraCoreData->config = bean->extraCoreConf;
+            status->result->extraCoreData->configDir = GetBasePath();
+            status->result->extraCoreData->noLog = bean->noLogs;
+            routeChain->Rules << RouteRule::get_processPath_direct_rule(status->result->extraCoreData->path);
+        }
+
+        // Direct domains
+        bool needDirectDnsRules = false;
+        QJsonArray directDomains;
+        QJsonArray directRuleSets;
+        QJsonArray directSuffixes;
+        QJsonArray directKeywords;
+        QJsonArray directRegexes;
+
+        // server addresses
+        for (const auto &item: status->domainListDNSDirect) {
+            directDomains.append(item);
+            needDirectDnsRules = true;
+        }
+
+        auto sets = routeChain->get_direct_sites();
+        for (const auto &item: sets) {
+            if (item.startsWith("ruleset:")) {
+                directRuleSets << item.mid(8);
+            }
+            if (item.startsWith("domain:")) {
+                directDomains << item.mid(7);
+            }
+            if (item.startsWith("suffix:")) {
+                directSuffixes << item.mid(7);
+            }
+            if (item.startsWith("keyword:")) {
+                directKeywords << item.mid(8);
+            }
+            if (item.startsWith("regex:")) {
+                directRegexes << item.mid(6);
+            }
+            needDirectDnsRules = true;
+        }
+
+        // Direct IPs
+        QJsonArray directIPSets;
+        QJsonArray directIPCIDRs;
+
+        auto directIPraw = routeChain->get_direct_ips();
+        for (const auto &item: directIPraw)
+        {
+            if (item.startsWith("ruleset:"))
+            {
+                directIPSets << item.mid(8);
+            }
+            if (item.startsWith("ip:"))
+            {
+                directIPCIDRs << item.mid(3);
+            }
+        }
+
         // Inbounds
         // mixed-in
         if (IsValidPort(dataStore->inbound_socks_port) && !status->forTest) {
@@ -439,11 +513,18 @@ namespace NekoGui {
             inboundObj["mtu"] = dataStore->vpn_mtu;
             inboundObj["stack"] = dataStore->vpn_implementation;
             inboundObj["strict_route"] = dataStore->vpn_strict_route;
-            inboundObj["auto_redirect"] = dataStore->auto_redirect;
+#ifdef Q_OS_LINUX
+            inboundObj["auto_redirect"] = true;
+#endif
             auto tunAddress = QJsonArray{"172.19.0.1/24"};
             if (dataStore->vpn_ipv6) tunAddress += "fdfe:dcba:9876::1/96";
             inboundObj["address"] = tunAddress;
             inboundObj["domain_strategy"] = dataStore->routing->domain_strategy;
+            if (dataStore->enable_tun_routing && dataStore->routing->def_outbound == "proxy")
+            {
+                if (!directIPCIDRs.isEmpty()) inboundObj["route_exclude_address"] = directIPCIDRs;
+                if (!directIPSets.isEmpty()) inboundObj["route_exclude_address_set"] = directIPSets;
+            }
             status->inbounds += inboundObj;
         }
 
@@ -456,10 +537,6 @@ namespace NekoGui {
             ntpObj["interval"] = dataStore->ntp_interval;
             status->result->coreConfig["ntp"] = ntpObj;
         }
-
-        // Outbounds
-        auto tagProxy = BuildChain(status->chainID, status);
-        if (!status->result->error.isEmpty()) return;
 
         // direct
         status->outbounds += QJsonObject{
@@ -555,7 +632,8 @@ namespace NekoGui {
 
             // add to dns direct resolve
             if (!IsIpAddress(neededEnt->bean->serverAddress)) {
-                status->domainListDNSDirect << neededEnt->bean->serverAddress;
+                directDomains << neededEnt->bean->serverAddress;
+                needDirectDnsRules = true;
             }
         }
         auto routeRules = routeChain->get_route_rules(false, outboundMap);
@@ -657,7 +735,7 @@ namespace NekoGui {
             status->inbounds.prepend(QJsonObject{
                 {"tag", "dns-in"},
                 {"type", "direct"},
-                {"listen", dataStore->dns_server_listen_addr},
+                {"listen", dataStore->dns_server_listen_lan ? "0.0.0.0" : "127.0.0.1"},
                 {"listen_port", dataStore->dns_server_listen_port},
             });
         }
@@ -687,46 +765,13 @@ namespace NekoGui {
             dns["independent_cache"] = true;
         }
 
-        // Direct dns domains
-        bool needDirectDnsRules = false;
-        QJsonArray directDnsDomains;
-        QJsonArray directDnsRuleSets;
-        QJsonArray directDnsSuffixes;
-        QJsonArray directDnsKeywords;
-        QJsonArray directDnsRegexes;
-
-        // server addresses
-        for (const auto &item: status->domainListDNSDirect) {
-            directDnsDomains.append(item);
-            needDirectDnsRules = true;
-        }
-
-        auto sets = routeChain->get_direct_sites();
-        for (const auto &item: sets) {
-            if (item.startsWith("ruleset:")) {
-                directDnsRuleSets << item.mid(8);
-            }
-            if (item.startsWith("domain:")) {
-                directDnsDomains << item.mid(7);
-            }
-            if (item.startsWith("suffix:")) {
-                directDnsSuffixes << item.mid(7);
-            }
-            if (item.startsWith("keyword:")) {
-                directDnsKeywords << item.mid(8);
-            }
-            if (item.startsWith("regex:")) {
-                directDnsRegexes << item.mid(6);
-            }
-            needDirectDnsRules = true;
-        }
         if (needDirectDnsRules) {
             dnsRules += QJsonObject{
-                {"rule_set", directDnsRuleSets},
-                {"domain", directDnsDomains},
-                {"domain_suffix", directDnsSuffixes},
-                {"domain_keyword", directDnsKeywords},
-                {"domain_regex", directDnsRegexes},
+                {"rule_set", directRuleSets},
+                {"domain", directDomains},
+                {"domain_suffix", directSuffixes},
+                {"domain_keyword", directKeywords},
+                {"domain_regex", directRegexes},
                 {"action", "route"},
                 {"server", "dns-direct"},
             };

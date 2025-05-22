@@ -9,6 +9,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QStandardPaths>
+#include <include/api/gRPC.h>
 
 #ifdef Q_OS_WIN
 #include "include/sys/windows/guihelper.h"
@@ -238,8 +239,6 @@ namespace NekoGui {
     // datastore
 
     DataStore::DataStore() : JsonStore() {
-        _add(new configItem("extraCore", dynamic_cast<JsonStore *>(extraCore), itemType::jsonStore));
-
         _add(new configItem("user_agent2", &user_agent, itemType::string));
         _add(new configItem("test_url", &test_latency_url, itemType::string));
         _add(new configItem("current_group", &current_group, itemType::integer));
@@ -250,7 +249,6 @@ namespace NekoGui {
         _add(new configItem("mux_concurrency", &mux_concurrency, itemType::integer));
         _add(new configItem("mux_padding", &mux_padding, itemType::boolean));
         _add(new configItem("mux_default_on", &mux_default_on, itemType::boolean));
-        _add(new configItem("traffic_loop_interval", &traffic_loop_interval, itemType::integer));
         _add(new configItem("test_concurrent", &test_concurrent, itemType::integer));
         _add(new configItem("theme", &theme, itemType::string));
         _add(new configItem("custom_inbound", &custom_inbound, itemType::string));
@@ -276,7 +274,6 @@ namespace NekoGui {
         _add(new configItem("vpn_mtu", &vpn_mtu, itemType::integer));
         _add(new configItem("vpn_ipv6", &vpn_ipv6, itemType::boolean));
         _add(new configItem("vpn_strict_route", &vpn_strict_route, itemType::boolean));
-        _add(new configItem("auto_redirect", &auto_redirect, itemType::boolean));
         _add(new configItem("sub_clear", &sub_clear, itemType::boolean));
         _add(new configItem("sub_insecure", &sub_insecure, itemType::boolean));
         _add(new configItem("sub_auto_update", &sub_auto_update, itemType::integer));
@@ -296,7 +293,7 @@ namespace NekoGui {
         _add(new configItem("geoip_download_url", &geoip_download_url, itemType::string));
         _add(new configItem("geosite_download_url", &geosite_download_url, itemType::string));
         _add(new configItem("enable_dns_server", &enable_dns_server, itemType::boolean));
-        _add(new configItem("dns_server_listen_addr", &dns_server_listen_addr, itemType::string));
+        _add(new configItem("dns_server_listen_lan", &dns_server_listen_lan, itemType::boolean));
         _add(new configItem("dns_server_listen_port", &dns_server_listen_port, itemType::integer));
         _add(new configItem("dns_v4_resp", &dns_v4_resp, itemType::string));
         _add(new configItem("dns_v6_resp", &dns_v6_resp, itemType::string));
@@ -305,12 +302,13 @@ namespace NekoGui {
         _add(new configItem("redirect_listen_address", &redirect_listen_address, itemType::string));
         _add(new configItem("redirect_listen_port", &redirect_listen_port, itemType::integer));
         _add(new configItem("system_dns_set", &system_dns_set, itemType::boolean));
-        _add(new configItem("is_dhcp", &is_dhcp, itemType::boolean));
-        _add(new configItem("system_dns_servers", &system_dns_servers, itemType::stringList));
         _add(new configItem("windows_set_admin", &windows_set_admin, itemType::boolean));
         _add(new configItem("enable_stats", &enable_stats, itemType::boolean));
         _add(new configItem("stats_tab", &stats_tab, itemType::string));
         _add(new configItem("proxy_scheme", &proxy_scheme, itemType::string));
+        _add(new configItem("disable_privilege_req", &disable_privilege_req, itemType::boolean));
+        _add(new configItem("enable_tun_routing", &enable_tun_routing, itemType::boolean));
+        _add(new configItem("speed_test_mode", &speed_test_mode, itemType::integer));
     }
 
     void DataStore::UpdateStartedId(int id) {
@@ -354,51 +352,7 @@ namespace NekoGui {
         return {"Default"};
     }
 
-    // NO default extra core
-
-    ExtraCore::ExtraCore() : JsonStore() {
-        _add(new configItem("core_map", &this->core_map, itemType::string));
-    }
-
-    QString ExtraCore::Get(const QString &id) const {
-        auto obj = QString2QJsonObject(core_map);
-        for (const auto &c: obj.keys()) {
-            if (c == id) return obj[id].toString();
-        }
-        return "";
-    }
-
-    void ExtraCore::Set(const QString &id, const QString &path) {
-        auto obj = QString2QJsonObject(core_map);
-        obj[id] = path;
-        core_map = QJsonObject2QString(obj, true);
-    }
-
-    void ExtraCore::Delete(const QString &id) {
-        auto obj = QString2QJsonObject(core_map);
-        obj.remove(id);
-        core_map = QJsonObject2QString(obj, true);
-    }
-
     // System Utils
-
-    QString FindCoreAsset(const QString &name) {
-        QStringList search{QApplication::applicationDirPath()};
-        search << "/usr/share/sing-geoip";
-        search << "/usr/share/sing-geosite";
-        search << "/usr/share/v2ray";
-        search << "/usr/share/sing-box";
-        search << "/usr/local/share/v2ray";
-        search << "/opt/v2ray";
-        for (const auto &dir: search) {
-            if (dir.isEmpty()) continue;
-            QFileInfo asset(dir + "/" + name);
-            if (asset.exists()) {
-                return asset.absoluteFilePath();
-            }
-        }
-        return {};
-    }
 
     QString FindNekoBoxCoreRealPath() {
         auto fn = QApplication::applicationDirPath() + "/nekobox_core";
@@ -418,9 +372,10 @@ namespace NekoGui {
         admin = Windows_IsInAdmin();
         dataStore->windows_set_admin = admin;
 #else
-        admin = QFileInfo(FindNekoBoxCoreRealPath()).groupId() == 0;
+        bool ok;
+        auto isPrivileged = NekoGui_rpc::defaultClient->IsPrivileged(&ok);
+        admin = ok && isPrivileged;
 #endif
-
         isAdminCache = admin;
         return admin;
     };
@@ -431,10 +386,26 @@ namespace NekoGui {
         return qApp->applicationDirPath();
     }
 
+    QString GetCoreAssetDir(const QString &name) {
+        QStringList search = {
+            GetBasePath(),
+            QString("/usr/share/sing-geoip"),
+            QString("/usr/share/sing-geosite"),
+            QString("/usr/share/sing-box"),
+        };
+
+        for (const auto &dir: search) {
+            if (dir.isEmpty())
+                continue;
+
+            if (QFile(QString("%1/%2").arg(dir, name)).exists())
+                return dir;
+        }
+
+        return "";
+    }
+
     bool NeedGeoAssets(){
-        auto path = GetBasePath();
-        auto geoIP = QFile(path + "/geoip.db");
-        auto geoSite = QFile(path + "/geosite.db");
-        return !geoIP.exists() || !geoSite.exists();
+        return GetCoreAssetDir("geoip.db").isEmpty() || GetCoreAssetDir("geosite.db").isEmpty();
     }
 } // namespace NekoGui

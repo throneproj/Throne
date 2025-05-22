@@ -287,6 +287,7 @@ namespace NekoGui_fmt {
             {"pre_shared_key", preSharedKey},
             {"reserved", QListInt2QJsonArray(reserved)},
             {"allowed_ips", QListStr2QJsonArray({"0.0.0.0/0", "::/0"})},
+            {"persistent_keepalive_interval", persistentKeepalive},
         };
         QJsonObject outbound{
             {"type", "wireguard"},
@@ -333,4 +334,17 @@ namespace NekoGui_fmt {
 
         return result;
     }
+
+    CoreObjOutboundBuildResult ExtraCoreBean::BuildCoreObjSingBox()
+    {
+        CoreObjOutboundBuildResult result;
+        QJsonObject outbound{
+            {"type", "socks"},
+            {"server", socksAddress},
+            {"server_port", socksPort},
+        };
+        result.outbound = outbound;
+        return result;
+    }
+
 } // namespace NekoGui_fmt

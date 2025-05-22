@@ -5,8 +5,8 @@
 #include <QJsonDocument>
 #include <QDebug>
 
-#define LOG(...) Qv2ray::base::log_internal(__VA_ARGS__)
-#define DEBUG(...) Qv2ray::base::log_internal(__VA_ARGS__)
+#define LOG(...) qDebug() << __VA_ARGS__
+#define DEBUG(...) qDebug() << __VA_ARGS__
 namespace Qv2ray {
     namespace base {
         template<typename... T>

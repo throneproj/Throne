@@ -1,7 +1,5 @@
 #pragma once
 
-#ifndef NKR_NO_GRPC
-
 #include "core/server/gen/libcore.pb.h"
 #include <QString>
 
@@ -14,7 +12,7 @@ namespace NekoGui_rpc {
 
     class Client {
     public:
-        explicit Client(std::function<void(const QString &)> onError, const QString &target, const QString &token);
+        explicit Client(std::function<void(const QString &)> onError, const QString &target);
 
         void Exit();
 
@@ -30,21 +28,23 @@ namespace NekoGui_rpc {
 
         void StopTests(bool *rpcOK);
 
-        libcore::UpdateResp Update(bool *rpcOK, const libcore::UpdateReq &request);
+        libcore::QueryURLTestResponse QueryURLTest(bool *rpcOK);
 
         QStringList GetGeoList(bool *rpcOK, GeoRuleSetType mode, const QString& basePath);
 
         QString CompileGeoSet(bool *rpcOK, GeoRuleSetType mode, std::string category, const QString& basePath);
 
-        QString SetSystemProxy(bool *rpcOK, bool enable);
-
-        libcore::GetSystemDNSResponse GetSystemDNS(bool *rpcOK) const;
-
-        QString SetSystemDNS(bool *rpcOK, const QStringList& servers, bool dhcp, bool clear) const;
+        QString SetSystemDNS(bool *rpcOK, bool clear) const;
 
         libcore::ListConnectionsResp ListConnections(bool *rpcOK) const;
 
         QString CheckConfig(bool *rpcOK, const QString& config) const;
+
+        bool IsPrivileged(bool *rpcOK) const;
+
+        libcore::SpeedTestResponse SpeedTest(bool *rpcOK, const libcore::SpeedTestRequest &request);
+
+        libcore::QuerySpeedTestResponse QueryCurrentSpeedTests(bool *rpcOK);
 
     private:
         std::function<std::unique_ptr<QtGrpc::Http2GrpcChannelPrivate>()> make_grpc_channel;
@@ -54,4 +54,3 @@ namespace NekoGui_rpc {
 
     inline Client *defaultClient;
 } // namespace NekoGui_rpc
-#endif

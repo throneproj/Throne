@@ -7,6 +7,8 @@ namespace NekoGui_traffic {
     public:
         int id = -1; // ent id
         std::string tag;
+        bool isChainTail = false;
+        bool ignoreForRate = false;
 
         long long downlink = 0;
         long long uplink = 0;

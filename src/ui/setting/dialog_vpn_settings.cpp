@@ -15,11 +15,8 @@ DialogVPNSettings::DialogVPNSettings(QWidget *parent) : QDialog(parent), ui(new 
     ui->vpn_implementation->setCurrentText(NekoGui::dataStore->vpn_implementation);
     ui->vpn_mtu->setCurrentText(Int2String(NekoGui::dataStore->vpn_mtu));
     ui->vpn_ipv6->setChecked(NekoGui::dataStore->vpn_ipv6);
-    ui->auto_redir->setChecked(NekoGui::dataStore->auto_redirect);
-#ifndef __linux__
-    ui->auto_redir->setVisible(false);
-#endif
     ui->strict_route->setChecked(NekoGui::dataStore->vpn_strict_route);
+    ui->tun_routing->setChecked(NekoGui::dataStore->enable_tun_routing);
     ADJUST_SIZE
 }
 
@@ -35,7 +32,7 @@ void DialogVPNSettings::accept() {
     NekoGui::dataStore->vpn_mtu = mtu;
     NekoGui::dataStore->vpn_ipv6 = ui->vpn_ipv6->isChecked();
     NekoGui::dataStore->vpn_strict_route = ui->strict_route->isChecked();
-    NekoGui::dataStore->auto_redirect = ui->auto_redir->isChecked();
+    NekoGui::dataStore->enable_tun_routing = ui->tun_routing->isChecked();
     //
     QStringList msg{"UpdateDataStore"};
     msg << "VPNChanged";
@@ -44,12 +41,24 @@ void DialogVPNSettings::accept() {
 }
 
 void DialogVPNSettings::on_troubleshooting_clicked() {
-    auto r = QMessageBox::information(this, tr("Troubleshooting"),
-                                      tr("If you have trouble starting VPN, you can force reset nekobox_core process here.\n\n"
-                                         "If still not working, see documentation for more information.\n"
-                                         "https://matsuridayo.github.io/n-configuration/#vpn-tun"),
-                                      tr("Reset"), tr("Cancel"), "",
-                                      1, 1);
+
+
+    QMessageBox msg(
+        QMessageBox::Information,
+        tr("Troubleshooting"),
+        tr("If you have trouble starting VPN, you can force reset nekobox_core process here.\n\n"
+            "If still not working, see documentation for more information.\n"
+            "https://matsuridayo.github.io/n-configuration/#vpn-tun"),
+        QMessageBox::NoButton,
+        this
+    );
+    msg.addButton(tr("Reset"), QMessageBox::ActionRole);
+    auto cancel = msg.addButton(tr("Cancel"), QMessageBox::ActionRole);
+
+    msg.setDefaultButton(cancel);
+    msg.setEscapeButton(cancel);
+
+    auto r = msg.exec() - 2;
     if (r == 0) {
         GetMainWindow()->StopVPNProcess();
     }

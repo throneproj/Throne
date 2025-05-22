@@ -1,8 +1,5 @@
 #pragma once
 
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QNetworkRequest>
 #include <QObject>
 #include <functional>
 
@@ -11,6 +8,13 @@ namespace NekoGui_network {
         QString error;
         QByteArray data;
         QList<QPair<QByteArray, QByteArray>> header;
+    };
+
+    struct DownloadProgressReport
+    {
+        QString fileName;
+        qint64 downloadedSize;
+        qint64 totalSize;
     };
 
     class NetworkRequestHelper : QObject {
@@ -26,7 +30,7 @@ namespace NekoGui_network {
 
         static QString GetHeader(const QList<QPair<QByteArray, QByteArray>> &header, const QString &name);
 
-        static QString DownloadGeoAsset(const QString &url, const QString &fileName);
+        static QString DownloadAsset(const QString &url, const QString &fileName);
     };
 } // namespace NekoGui_network
 

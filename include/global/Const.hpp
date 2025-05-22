@@ -33,4 +33,14 @@ namespace GeoAssets {
     inline QStringList GeoIPURLs = {"https://github.com/SagerNet/sing-geoip/releases/latest/download/geoip.db", "https://raw.githubusercontent.com/Chocolate4U/Iran-sing-box-rules/release/geoip.db"};
     inline QStringList GeoSiteURLs = {"https://github.com/SagerNet/sing-geosite/releases/latest/download/geosite.db", "https://raw.githubusercontent.com/Chocolate4U/Iran-sing-box-rules/release/geosite.db"};
     }
+
+    namespace TestConfig
+    {
+        enum SpeedTestMode
+        {
+            FULL,
+            DL,
+            UL,
+        };
+    }
 } // namespace NekoGui

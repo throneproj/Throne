@@ -111,12 +111,17 @@
            <widget class="QComboBox" name="proxy_scheme">
             <item>
              <property name="text">
-              <string>http</string>
+              <string>{ip}:{port}</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>socks</string>
+              <string>http://{ip}:{port}</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>socks={ip}:{port}</string>
              </property>
             </item>
            </widget>
@@ -175,6 +180,44 @@
         </widget>
        </item>
        <item>
+        <widget class="QFrame" name="frame">
+         <property name="frameShape">
+          <enum>QFrame::Shape::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Shadow::Raised</enum>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QLabel" name="label_12">
+            <property name="text">
+             <string>Speedtest mode</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="speedtest_mode">
+            <item>
+             <property name="text">
+              <string>Download + Upload</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Only Download</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Only Upload</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <widget class="QWidget" name="horizontalWidget_1" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
@@ -209,47 +252,26 @@
         <layout class="QHBoxLayout" name="style_h_2">
          <item>
           <widget class="QGroupBox" name="traffic_statistics_box">
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <widget class="QLabel" name="label_16">
+           <layout class="QGridLayout" name="gridLayout_8">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_2">
               <property name="text">
-               <string>Statistics refresh rate</string>
+               <string>Font</string>
               </property>
              </widget>
             </item>
-            <item>
-             <widget class="QComboBox" name="rfsh_r">
-              <item>
-               <property name="text">
-                <string notr="true">500ms</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string notr="true">1s</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string notr="true">2s</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string notr="true">3s</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string notr="true">5s</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Off</string>
-               </property>
-              </item>
+            <item row="0" column="1">
+             <widget class="QFontComboBox" name="font"/>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_5">
+              <property name="text">
+               <string>Font Size</string>
+              </property>
              </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QComboBox" name="font_size"/>
             </item>
            </layout>
           </widget>
@@ -397,20 +419,6 @@
               </item>
              </widget>
             </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_5">
-              <property name="text">
-               <string>Font Size</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_2">
-              <property name="text">
-               <string>Font</string>
-              </property>
-             </widget>
-            </item>
             <item row="0" column="0">
              <widget class="QLabel" name="label_15">
               <property name="sizePolicy">
@@ -423,12 +431,6 @@
                <string>Language</string>
               </property>
              </widget>
-            </item>
-            <item row="1" column="2">
-             <widget class="QFontComboBox" name="font"/>
-            </item>
-            <item row="2" column="2">
-             <widget class="QComboBox" name="font_size"/>
             </item>
            </layout>
           </widget>
@@ -791,6 +793,13 @@
        <string>Security</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="QCheckBox" name="disable_priv_req">
+         <property name="text">
+          <string>Disable Privilege request</string>
+         </property>
+        </widget>
+       </item>
        <item>
         <widget class="QCheckBox" name="skip_cert">
          <property name="text">

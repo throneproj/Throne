@@ -2,22 +2,21 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/google/shlex"
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/settings"
 	"github.com/sagernet/sing-box/experimental/clashapi"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/metadata"
 	"github.com/sagernet/sing/service"
-	"io"
 	"log"
 	"nekobox_core/gen"
-	"nekobox_core/internal/boxapi"
 	"nekobox_core/internal/boxbox"
 	"nekobox_core/internal/boxmain"
+	"nekobox_core/internal/process"
 	"nekobox_core/internal/sys"
-	"net/http"
 	"os"
 	"runtime"
 	"strings"
@@ -25,6 +24,7 @@ import (
 )
 
 var boxInstance *boxbox.Box
+var extraProcess *process.Process
 var needUnsetDNS bool
 var systemProxyController settings.SystemProxy
 var systemProxyAddr metadata.Socksaddr
@@ -39,7 +39,7 @@ func (s *server) Exit(ctx context.Context, in *gen.EmptyReq) (out *gen.EmptyResp
 	out = &gen.EmptyResp{}
 
 	// Connection closed
-	os.Exit(0)
+	defer os.Exit(0)
 	return
 }
 
@@ -61,6 +61,38 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 	if boxInstance != nil {
 		err = errors.New("instance already started")
 		return
+	}
+
+	if in.NeedExtraProcess {
+		extraConfPath := in.ExtraProcessConfDir + string(os.PathSeparator) + "extra.conf"
+		f, e := os.OpenFile(extraConfPath, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 700)
+		if e != nil {
+			err = E.Cause(e, "Failed to open extra.conf")
+			return
+		}
+		_, e = f.WriteString(in.ExtraProcessConf)
+		if e != nil {
+			err = E.Cause(e, "Failed to write extra.conf")
+			return
+		}
+		_ = f.Close()
+		args, e := shlex.Split(in.ExtraProcessArgs)
+		if e != nil {
+			err = E.Cause(e, "Failed to parse args")
+			return
+		}
+		for idx, arg := range args {
+			if strings.Contains(arg, "%s") {
+				args[idx] = fmt.Sprintf(arg, extraConfPath)
+				break
+			}
+		}
+
+		extraProcess = process.NewProcess(in.ExtraProcessPath, args, in.ExtraNoOut)
+		err = extraProcess.Start()
+		if err != nil {
+			return
+		}
 	}
 
 	boxInstance, instanceCancel, err = boxmain.Create([]byte(in.CoreConfig))
@@ -102,6 +134,11 @@ func (s *server) Stop(ctx context.Context, in *gen.EmptyReq) (out *gen.ErrorResp
 	boxInstance.CloseWithTimeout(instanceCancel, time.Second*2, log.Println)
 
 	boxInstance = nil
+
+	if extraProcess != nil {
+		extraProcess.Stop()
+		extraProcess = nil
+	}
 
 	return
 }
@@ -175,6 +212,23 @@ func (s *server) StopTest(ctx context.Context, in *gen.EmptyReq) (*gen.EmptyResp
 	return &gen.EmptyResp{}, nil
 }
 
+func (s *server) QueryURLTest(ctx context.Context, in *gen.EmptyReq) (*gen.QueryURLTestResponse, error) {
+	results := URLReporter.Results()
+	resp := &gen.QueryURLTestResponse{}
+	for _, r := range results {
+		errStr := ""
+		if r.Error != nil {
+			errStr = r.Error.Error()
+		}
+		resp.Results = append(resp.Results, &gen.URLTestResp{
+			OutboundTag: r.Tag,
+			LatencyMs:   int32(r.Duration.Milliseconds()),
+			Error:       errStr,
+		})
+	}
+	return resp, nil
+}
+
 func (s *server) QueryStats(ctx context.Context, _ *gen.EmptyReq) (*gen.QueryStatsResp, error) {
 	resp := &gen.QueryStatsResp{
 		Ups:   make(map[string]int64),
@@ -190,16 +244,23 @@ func (s *server) QueryStats(ctx context.Context, _ *gen.EmptyReq) (*gen.QuerySta
 			}
 			outbounds := service.FromContext[adapter.OutboundManager](boxInstance.Context())
 			if outbounds == nil {
-				log.Println("Failed to assert outbound manager")
-				return nil, E.New("invalid outbound manager type")
+				log.Println("Failed to get outbound manager")
+				return nil, E.New("nil outbound manager")
+			}
+			endpoints := service.FromContext[adapter.EndpointManager](boxInstance.Context())
+			if endpoints == nil {
+				log.Println("Failed to get endpoint manager")
+				return nil, E.New("nil endpoint manager")
 			}
 			for _, out := range outbounds.Outbounds() {
-				if len(out.Dependencies()) > 0 {
-					resp.IntermediateTags = append(resp.IntermediateTags, out.Tag())
-				}
 				u, d := cApi.TrafficManager().TotalOutbound(out.Tag())
 				resp.Ups[out.Tag()] = u
 				resp.Downs[out.Tag()] = d
+			}
+			for _, ep := range endpoints.Endpoints() {
+				u, d := cApi.TrafficManager().TotalOutbound(ep.Tag())
+				resp.Ups[ep.Tag()] = u
+				resp.Downs[ep.Tag()] = d
 			}
 		}
 	}
@@ -297,118 +358,86 @@ func (s *server) CompileGeoSiteToSrs(ctx context.Context, in *gen.CompileGeoSite
 	return &gen.EmptyResp{}, nil
 }
 
-func (s *server) SetSystemProxy(ctx context.Context, in *gen.SetSystemProxyRequest) (*gen.EmptyResp, error) {
+func (s *server) IsPrivileged(ctx context.Context, _ *gen.EmptyReq) (*gen.IsPrivilegedResponse, error) {
+	if runtime.GOOS == "windows" {
+		return &gen.IsPrivilegedResponse{
+			HasPrivilege: false,
+		}, nil
+	}
+
+	return &gen.IsPrivilegedResponse{HasPrivilege: os.Geteuid() == 0}, nil
+}
+
+func (s *server) SpeedTest(ctx context.Context, in *gen.SpeedTestRequest) (*gen.SpeedTestResponse, error) {
+	if !in.TestDownload && !in.TestUpload {
+		return nil, errors.New("cannot run empty test")
+	}
+	var testInstance *boxbox.Box
+	var cancel context.CancelFunc
+	outboundTags := in.OutboundTags
 	var err error
-	addr := metadata.ParseSocksaddr(in.Address)
-	if systemProxyController == nil || systemProxyAddr.String() != addr.String() {
-		systemProxyController, err = settings.NewSystemProxy(context.Background(), addr, true)
+	if in.TestCurrent {
+		if boxInstance == nil {
+			return &gen.SpeedTestResponse{Results: []*gen.SpeedTestResult{{
+				OutboundTag: "proxy",
+				Error:       "Instance is not running",
+			}}}, nil
+		}
+		testInstance = boxInstance
+	} else {
+		testInstance, cancel, err = boxmain.Create([]byte(in.Config))
 		if err != nil {
 			return nil, err
 		}
-		systemProxyAddr = addr
-	}
-	if in.Enable && !systemProxyController.IsEnabled() {
-		err = systemProxyController.Enable()
-	}
-	if !in.Enable && systemProxyController.IsEnabled() {
-		err = systemProxyController.Disable()
-	}
-	if err != nil {
-		return nil, err
+		defer cancel()
+		defer testInstance.Close()
 	}
 
-	return &gen.EmptyResp{}, nil
+	if in.UseDefaultOutbound || in.TestCurrent {
+		outbound := testInstance.Outbound().Default()
+		outboundTags = []string{outbound.Tag()}
+	}
+
+	results := BatchSpeedTest(testCtx, testInstance, outboundTags, in.TestDownload, in.TestUpload)
+
+	res := make([]*gen.SpeedTestResult, 0)
+	for _, data := range results {
+		errStr := ""
+		if data.Error != nil {
+			errStr = data.Error.Error()
+		}
+		res = append(res, &gen.SpeedTestResult{
+			DlSpeed:       data.DlSpeed,
+			UlSpeed:       data.UlSpeed,
+			Latency:       data.Latency,
+			OutboundTag:   data.Tag,
+			Error:         errStr,
+			ServerName:    data.ServerName,
+			ServerCountry: data.ServerCountry,
+			Cancelled:     data.Cancelled,
+		})
+	}
+
+	return &gen.SpeedTestResponse{Results: res}, nil
 }
 
-var updateDownloadUrl string
-
-func (s *server) Update(ctx context.Context, in *gen.UpdateReq) (*gen.UpdateResp, error) {
-	ret := &gen.UpdateResp{}
-
-	client := boxapi.CreateProxyHttpClient(boxInstance)
-
-	if in.Action == gen.UpdateAction_Check { // Check update
-		ctx, cancel := context.WithTimeout(ctx, time.Second*10)
-		defer cancel()
-
-		req, _ := http.NewRequestWithContext(ctx, "GET", "https://api.github.com/repos/Mahdi-zarei/nekoray/releases", nil)
-		resp, err := client.Do(req)
-		if err != nil {
-			ret.Error = err.Error()
-			return ret, nil
-		}
-		defer resp.Body.Close()
-
-		var v []struct {
-			HtmlUrl string `json:"html_url"`
-			Assets  []struct {
-				Name               string `json:"name"`
-				BrowserDownloadUrl string `json:"browser_download_url"`
-			} `json:"assets"`
-			Prerelease bool   `json:"prerelease"`
-			Body       string `json:"body"`
-		}
-		err = json.NewDecoder(resp.Body).Decode(&v)
-		if err != nil {
-			ret.Error = err.Error()
-			return ret, nil
-		}
-
-		var search string
-		if runtime.GOOS == "windows" && runtime.GOARCH == "amd64" {
-			search = "windows64"
-		} else if runtime.GOOS == "linux" && runtime.GOARCH == "amd64" {
-			search = "linux64"
-		} else if runtime.GOOS == "darwin" {
-			search = "macos-" + runtime.GOARCH
-		} else {
-			ret.Error = "Not official support platform"
-			return ret, nil
-		}
-
-		for _, release := range v {
-			if len(release.Assets) > 0 {
-				for _, asset := range release.Assets {
-					if strings.Contains(asset.Name, search) {
-						updateDownloadUrl = asset.BrowserDownloadUrl
-						ret.AssetsName = asset.Name
-						ret.DownloadUrl = asset.BrowserDownloadUrl
-						ret.ReleaseUrl = release.HtmlUrl
-						ret.ReleaseNote = release.Body
-						ret.IsPreRelease = release.Prerelease
-						return ret, nil // update
-					}
-				}
-			}
-		}
-	} else { // Download update
-		if updateDownloadUrl == "" {
-			ret.Error = "?"
-			return ret, nil
-		}
-
-		req, _ := http.NewRequestWithContext(ctx, "GET", updateDownloadUrl, nil)
-		resp, err := client.Do(req)
-		if err != nil {
-			ret.Error = err.Error()
-			return ret, nil
-		}
-		defer resp.Body.Close()
-
-		f, err := os.OpenFile("../nekoray.zip", os.O_TRUNC|os.O_CREATE|os.O_RDWR, 0644)
-		if err != nil {
-			ret.Error = err.Error()
-			return ret, nil
-		}
-		defer f.Close()
-
-		_, err = io.Copy(f, resp.Body)
-		if err != nil {
-			ret.Error = err.Error()
-			return ret, nil
-		}
-		f.Sync()
+func (s *server) QuerySpeedTest(context.Context, *gen.EmptyReq) (*gen.QuerySpeedTestResponse, error) {
+	res, isRunning := SpTQuerier.Result()
+	errStr := ""
+	if res.Error != nil {
+		errStr = res.Error.Error()
 	}
-
-	return ret, nil
+	return &gen.QuerySpeedTestResponse{
+		Result: &gen.SpeedTestResult{
+			DlSpeed:       res.DlSpeed,
+			UlSpeed:       res.UlSpeed,
+			Latency:       res.Latency,
+			OutboundTag:   res.Tag,
+			Error:         errStr,
+			ServerName:    res.ServerName,
+			ServerCountry: res.ServerCountry,
+			Cancelled:     res.Cancelled,
+		},
+		IsRunning: isRunning,
+	}, nil
 }

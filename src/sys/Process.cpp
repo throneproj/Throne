@@ -19,7 +19,7 @@ namespace NekoGui_sys {
         }
     }
 
-    CoreProcess::CoreProcess(const QString &core_path, const QStringList &args) : QProcess() {
+    CoreProcess::CoreProcess(const QString &core_path, const QStringList &args) {
         program = core_path;
         arguments = args;
 
@@ -29,14 +29,17 @@ namespace NekoGui_sys {
                 if (log.contains("Core listening at")) {
                     // The core really started
                     NekoGui::dataStore->core_running = true;
-                    if (start_profile_when_core_is_up >= 0) {
-                        MW_dialog_message("ExternalProcess", "CoreStarted," + Int2String(start_profile_when_core_is_up));
-                        start_profile_when_core_is_up = -1;
-                    }
+                    MW_dialog_message("ExternalProcess", "CoreStarted," + Int2String(start_profile_when_core_is_up));
+                    start_profile_when_core_is_up = -1;
                 } else if (log.contains("failed to serve")) {
                     // The core failed to start
                     kill();
                 }
+            }
+            if (log.contains("Extra process exited unexpectedly"))
+            {
+                MW_show_log("Extra Core exited, stopping profile...");
+                MW_dialog_message("ExternalProcess", "Crashed");
             }
             if (logCounter.fetchAndAddRelaxed(log.count("\n")) > NekoGui::dataStore->max_log_line) return;
             MW_show_log(log);
@@ -45,18 +48,19 @@ namespace NekoGui_sys {
             auto log = readAllStandardError().trimmed();
             MW_show_log(log);
         });
-        connect(this, &QProcess::errorOccurred, this, [&](QProcess::ProcessError error) {
-            if (error == QProcess::ProcessError::FailedToStart) {
+        connect(this, &QProcess::errorOccurred, this, [&](ProcessError error) {
+            if (error == FailedToStart) {
                 failed_to_start = true;
                 MW_show_log("start core error occurred: " + errorString() + "\n");
             }
         });
-        connect(this, &QProcess::stateChanged, this, [&](QProcess::ProcessState state) {
-            if (state == QProcess::NotRunning) {
+        connect(this, &QProcess::stateChanged, this, [&](ProcessState state) {
+            if (state == NotRunning) {
                 NekoGui::dataStore->core_running = false;
+                qDebug() << "Core stated changed to not running";
             }
 
-            if (!NekoGui::dataStore->prepare_exit && state == QProcess::NotRunning) {
+            if (!NekoGui::dataStore->prepare_exit && state == NotRunning) {
                 if (failed_to_start) return; // no retry
                 if (restarting) return;
 
@@ -75,8 +79,8 @@ namespace NekoGui_sys {
 
                 // Restart
                 start_profile_when_core_is_up = NekoGui::dataStore->started_id;
-                MW_show_log("[ERROR] " + QObject::tr("Core exited, restarting."));
-                setTimeout([=] { Restart(); }, this, 1000);
+                MW_show_log("[Fatal] " + QObject::tr("Core exited, restarting."));
+                setTimeout([=] { Restart(); }, this, 200);
             }
         });
     }

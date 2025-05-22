@@ -253,16 +253,14 @@ namespace Qv2ray::components::proxy {
 #endif
 
 #ifdef Q_OS_WIN
-        if (scheme == "http") scheme = "http://";
-        else if (scheme == "socks") scheme = "socks=";
-        QString str = "{scheme}{ip}:{socks_port}";
-        str = str.replace("{scheme}", scheme)
-                  .replace("{ip}", address)
-                  .replace("{socks_port}", Int2String(socksPort));
+        if (scheme == "http") scheme = "http://{ip}:{port}";
+        else if (scheme == "socks") scheme = "socks={ip}:{port}";
+        scheme = scheme.replace("{ip}", address)
+                  .replace("{port}", Int2String(socksPort));
         //
-        LOG("Windows proxy string: " + str);
-        auto proxyStrW = new WCHAR[str.length() + 1];
-        wcscpy(proxyStrW, str.toStdWString().c_str());
+        LOG("Windows proxy string: " + scheme);
+        auto proxyStrW = new WCHAR[scheme.length() + 1];
+        wcscpy(proxyStrW, scheme.toStdWString().c_str());
         //
         __QueryProxyOptions();
 

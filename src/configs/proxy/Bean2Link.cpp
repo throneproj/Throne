@@ -260,6 +260,7 @@ namespace NekoGui_fmt {
         q.addQueryItem("peer_public_key", publicKey);
         q.addQueryItem("pre_shared_key", preSharedKey);
         q.addQueryItem("reserved", FormatReserved());
+        q.addQueryItem("persistent_keepalive", Int2String(persistentKeepalive));
         q.addQueryItem("mtu", Int2String(MTU));
         q.addQueryItem("use_system_interface", useSystemInterface ? "true":"false");
         q.addQueryItem("local_address", localAddress.join("-"));
@@ -293,6 +294,11 @@ namespace NekoGui_fmt {
         q.addQueryItem("client_version", clientVersion);
         url.setQuery(q);
         return url.toString(QUrl::FullyEncoded);
+    }
+
+    QString ExtraCoreBean::ToShareLink()
+    {
+        return "Unsupported for now";
     }
 
 } // namespace NekoGui_fmt

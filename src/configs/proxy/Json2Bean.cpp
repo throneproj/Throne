@@ -7,6 +7,7 @@
 #include <include/configs/proxy/VMessBean.hpp>
 #include <include/configs/proxy/WireguardBean.h>
 
+#include "include/configs/proxy/ExtraCore.h"
 #include "include/configs/proxy/SSHBean.h"
 
 namespace NekoGui_fmt
@@ -20,7 +21,7 @@ namespace NekoGui_fmt
             proxy_type = proxy_Hysteria;
 
             serverAddress = obj["server"].isString() ? obj["server"].toString() : "127.0.0.1";
-            serverPort = obj["server_port"].isDouble() ? obj["port"].toInt() : 1080;
+            serverPort = obj["server_port"].isDouble() ? obj["server_port"].toInt() : 1080;
             hop_interval = obj["hop_interval"].toString();
             uploadMbps = obj["up_mbps"].isDouble() ? obj["up_mbps"].toInt() : 0;
             downloadMbps = obj["down_mbps"].isDouble() ? obj["down_mbps"].toInt() : 0;
@@ -42,7 +43,7 @@ namespace NekoGui_fmt
             proxy_type = proxy_Hysteria2;
 
             serverAddress = obj["server"].isString() ? obj["server"].toString() : "127.0.0.1";
-            serverPort = obj["server_port"].isDouble() ? obj["port"].toInt() : 1080;
+            serverPort = obj["server_port"].isDouble() ? obj["server_port"].toInt() : 1080;
             serverPorts = obj["server_ports"].isArray() ? QJsonArray2QListString(obj["server_ports"].toArray()) : QStringList();
             hop_interval = obj["hop_interval"].toString();
             uploadMbps = obj["up_mbps"].isDouble() ? obj["up_mbps"].toInt() : 0;
@@ -61,7 +62,7 @@ namespace NekoGui_fmt
             proxy_type = proxy_TUIC;
 
             serverAddress = obj["server"].isString() ? obj["server"].toString() : "127.0.0.1";
-            serverPort = obj["server_port"].isDouble() ? obj["port"].toInt() : 1080;
+            serverPort = obj["server_port"].isDouble() ? obj["server_port"].toInt() : 1080;
             uuid = obj["uuid"].toString();
             password = obj["password"].toString();
             congestionControl = obj["congestion_control"].toString();
@@ -215,12 +216,18 @@ namespace NekoGui_fmt
         serverPort = peers[0].toObject()["port"].toInt();
         publicKey = peers[0].toObject()["public_key"].toString();
         reserved = QJsonArray2QListInt(peers[0].toObject()["reserved"].toArray());
+        persistentKeepalive = peers[0].toObject()["persistent_keepalive_interval"].toInt();
         workerCount = obj["workers"].toInt();
         privateKey = obj["private_key"].toString();
         localAddress = QJsonArray2QListString(obj["address"].toArray());
         MTU = obj["mtu"].toInt();
         useSystemInterface = obj["system"].toBool();
         return true;
+    }
+
+    bool ExtraCoreBean::TryParseJson(const QJsonObject& obj)
+    {
+        return false;
     }
 
 }
