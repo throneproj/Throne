@@ -185,6 +185,9 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build-cpp
+    permissions:
+      contents: write
+      actions: read
     steps:
       - name: Checking out sources
         uses: actions/checkout@v4.2.2
