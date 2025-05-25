@@ -64,6 +64,7 @@ namespace NekoGui {
         // Misc
         QString log_level = "info";
         QString test_latency_url = "http://cp.cloudflare.com/";
+        bool minimize_to_tray = true; // move app to tray instead of closing it
         int test_concurrent = 10;
         bool disable_traffic_stats = false;
         int current_group = 0; // group id

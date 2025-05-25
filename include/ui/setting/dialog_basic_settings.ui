@@ -180,6 +180,28 @@
         </widget>
        </item>
        <item>
+        <widget class="QGroupBox" name="horizontalGroupBox_1_5">
+         <layout class="QHBoxLayout" name="horizontalLayout_1_5">
+          <item>
+           <widget class="QCheckBox" name="minimize_to_tray">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Minimize to tray</string>
+            </property>
+            <property name="toolTip">
+             <string>Clicking the 'X' will move the application to the system tray instead of closing it</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <widget class="QFrame" name="frame">
          <property name="frameShape">
           <enum>QFrame::Shape::StyledPanel</enum>

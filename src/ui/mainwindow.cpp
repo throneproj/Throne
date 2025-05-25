@@ -521,6 +521,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
+    if (!NekoGui::dataStore->minimize_to_tray) {
+        on_menu_exit_triggered();
+    }
     if (tray->isVisible()) {
         hide();
         event->ignore();

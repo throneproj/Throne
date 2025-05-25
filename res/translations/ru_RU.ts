@@ -36,6 +36,14 @@
         <translation>Параллельно</translation>
     </message>
     <message>
+        <source>Minimize to tray</source>
+        <translation>Сворачивать в трей</translation>
+    </message>
+    <message>
+        <source>Clicking the 'X' will move the application to the system tray instead of closing it</source>
+        <translation>Нажатие на 'X' переместит приложение в системный трей вместо его закрытия</translation>
+    </message>
+    <message>
         <source>Style</source>
         <translation>Стиль</translation>
     </message>
