@@ -361,7 +361,11 @@ namespace NekoGui_sub {
 
     int Node2Int(const fkyaml::node &n, const int &def = 0) {
         try {
-            return n.as_int();
+            if (n.is_integer())
+                return n.as_int();
+            else if (n.is_string())
+                return atoi(n.as_str().c_str());
+            return def;
         } catch (const fkyaml::exception &ex) {
             qDebug() << ex.what();
             return def;

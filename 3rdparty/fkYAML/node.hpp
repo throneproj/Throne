@@ -14605,12 +14605,18 @@ inline namespace yaml_literals {
 #pragma clang diagnostic ignored "-Wdeprecated"
 #endif
 
+#if defined(__GNUC__) && (__GNUC__ > 6)
+#define FK_YAML_QUOTE_OPERATOR operator""_yaml
+#else
+#define FK_YAML_QUOTE_OPERATOR operator"" _yaml
+#endif
+
 /// @brief The user-defined string literal which deserializes a `char` array into a `node` object.
 /// @param s An input `char` array.
 /// @param n The size of `s`.
 /// @return The resulting `node` object deserialized from `s`.
 /// @sa https://fktn-k.github.io/fkYAML/api/operator_literal_yaml/
-inline fkyaml::node operator"" _yaml(const char* s, std::size_t n) {
+inline fkyaml::node FK_YAML_QUOTE_OPERATOR(const char* s, std::size_t n) {
     return fkyaml::node::deserialize(s, s + n);
 }
 
@@ -14619,7 +14625,7 @@ inline fkyaml::node operator"" _yaml(const char* s, std::size_t n) {
 /// @param n The size of `s`.
 /// @return The resulting `node` object deserialized from `s`.
 /// @sa https://fktn-k.github.io/fkYAML/api/operator_literal_yaml/
-inline fkyaml::node operator"" _yaml(const char16_t* s, std::size_t n) {
+inline fkyaml::node FK_YAML_QUOTE_OPERATOR(const char16_t* s, std::size_t n) {
     return fkyaml::node::deserialize(s, s + n);
 }
 
@@ -14628,7 +14634,7 @@ inline fkyaml::node operator"" _yaml(const char16_t* s, std::size_t n) {
 /// @param n The size of `s`.
 /// @return The resulting `node` object deserialized from `s`.
 /// @sa https://fktn-k.github.io/fkYAML/api/operator_literal_yaml/
-inline fkyaml::node operator"" _yaml(const char32_t* s, std::size_t n) {
+inline fkyaml::node FK_YAML_QUOTE_OPERATOR(const char32_t* s, std::size_t n) {
     return fkyaml::node::deserialize(s, s + n);
 }
 
@@ -14637,7 +14643,7 @@ inline fkyaml::node operator"" _yaml(const char32_t* s, std::size_t n) {
 /// @param s An input `char8_t` array.
 /// @param n The size of `s`.
 /// @return The resulting `node` object deserialized from `s`.
-inline fkyaml::node operator"" _yaml(const char8_t* s, std::size_t n) {
+inline fkyaml::node FK_YAML_QUOTE_OPERATOR(const char8_t* s, std::size_t n) {
     return fkyaml::node::deserialize((const char8_t*)s, (const char8_t*)s + n);
 }
 
