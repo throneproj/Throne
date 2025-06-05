@@ -18,6 +18,7 @@ const (
 	nameServerRegistryKey = "NameServer"
 	localAddr             = "127.0.0.1"
 	dhcpMarkAddr          = "127.1.2.3"
+	setMarkAddr           = "127.3.2.1"
 )
 
 var dnsIsSet bool
@@ -141,7 +142,7 @@ func (d *DnsManager) restoreSystemDNS(ifx control.Interface) {
 	newDnsServers := make([]netip.Addr, 0)
 	wasSet := false
 	for _, server := range dnsServers {
-		if server.String() == localAddr || server.String() == dhcpMarkAddr {
+		if server.String() == setMarkAddr || server.String() == dhcpMarkAddr {
 			isDhcp = server.String() == dhcpMarkAddr
 			wasSet = true
 			continue
@@ -152,6 +153,10 @@ func (d *DnsManager) restoreSystemDNS(ifx control.Interface) {
 	if !wasSet {
 		log.Println("[restoreSystemDNS] no action needed")
 		return
+	}
+
+	if len(newDnsServers) > 0 && newDnsServers[0].String() == localAddr {
+		newDnsServers = newDnsServers[1:]
 	}
 
 	if isDhcp {
@@ -181,26 +186,33 @@ func (d *DnsManager) setSystemDNS(ifx control.Interface) {
 		return
 	}
 
-	hasLocal := false
+	wasSet := false
+	wasDHCP := false
 	newDnsServers := make([]netip.Addr, 0)
 	for _, server := range dnsServers {
-		if server.String() == localAddr || server.String() == dhcpMarkAddr {
-			hasLocal = true
+		if server.String() == setMarkAddr || server.String() == dhcpMarkAddr {
+			wasSet = true
+			wasDHCP = server.String() == dhcpMarkAddr
 			continue
 		}
 		newDnsServers = append(newDnsServers, server)
 	}
+	if wasSet && len(newDnsServers) > 0 && newDnsServers[0].String() == localAddr {
+		newDnsServers = newDnsServers[1:]
+	}
 	serverAddr, _ := netip.ParseAddr("127.0.0.1")
 	newDnsServers = append([]netip.Addr{serverAddr}, newDnsServers...)
-	if !hasLocal {
-		dhcp, err := d.isIfcDNSDhcp(ifx)
-		if err != nil {
-			log.Println("[setSystemDNS] failed to determine whether ifc DNS is dhcp:", err)
-		}
-		if dhcp {
-			markAddr, _ := netip.ParseAddr(dhcpMarkAddr)
-			newDnsServers = append(newDnsServers, markAddr)
-		}
+
+	dhcp, err := d.isIfcDNSDhcp(ifx)
+	if err != nil {
+		log.Println("[setSystemDNS] failed to determine whether ifc DNS is dhcp:", err)
+	}
+	if dhcp || wasDHCP {
+		markAddr, _ := netip.ParseAddr(dhcpMarkAddr)
+		newDnsServers = append(newDnsServers, markAddr)
+	} else {
+		markAddr, _ := netip.ParseAddr(setMarkAddr)
+		newDnsServers = append(newDnsServers, markAddr)
 	}
 
 	if err = luid.SetDNS(winipcfg.AddressFamily(windows.AF_INET), newDnsServers, nil); err != nil {

@@ -78,10 +78,17 @@ func getNameServersForInterface(luid winipcfg.LUID) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	isSystemDNSAltered := false
 	for _, server := range nsAddrs {
-		if server.IsValid() && server.String() != localAddr && server.String() != dhcpMarkAddr {
+		if server.String() == setMarkAddr || server.String() == dhcpMarkAddr {
+			isSystemDNSAltered = true
+		}
+		if server.IsValid() && server.String() != setMarkAddr && server.String() != dhcpMarkAddr {
 			nameservers = append(nameservers, server.String())
 		}
+	}
+	if isSystemDNSAltered && len(nameservers) > 0 && nameservers[0] == "127.0.0.1" {
+		nameservers = nameservers[1:]
 	}
 
 	if len(nameservers) == 0 {
