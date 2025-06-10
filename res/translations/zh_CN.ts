@@ -73,7 +73,7 @@
     </message>
     <message>
         <source>Set custom icon</source>
-        <translation>自定义图标</translation>
+        <translation>设置自定义图标</translation>
     </message>
     <message>
         <source>Please select a PNG file.</source>
@@ -117,7 +117,7 @@
     </message>
     <message>
         <source>Core Options</source>
-        <translation>内核选项</translation>
+        <translation>核心选项</translation>
     </message>
     <message>
         <source>Override underlying DNS</source>
@@ -126,8 +126,8 @@
     <message>
         <source>It is recommended to leave it blank, but it sometimes does not work, at this time you can set this option.
 For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
-        <translation>建议留空，但有时会出现问题，这时可以设置这个选项。
-对于 nekobox_core 来说，在 Tun 模式、正常模式和 URL 测试延迟中会重写 underlying(localhost) DNS。</translation>
+        <translation>建议留空，但有时会不起作用，这时可设置这个选项。
+对于 nekobox_core 来说，在 Tun 模式、正常模式，还有 URL 测试中会重写底层(localhost) DNS。</translation>
     </message>
     <message>
         <source>Default On</source>
@@ -135,11 +135,11 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Multiplex (mux)</source>
-        <translation>多路复用 Mux</translation>
+        <translation>多路复用 (Mux)</translation>
     </message>
     <message>
         <source>Latency Test URL</source>
-        <translation>测试延迟 URL</translation>
+        <translation>延迟测试 URL</translation>
     </message>
     <message>
         <source>Automatic update</source>
@@ -213,7 +213,8 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Socks
                                                                 + HTTP Proxy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                             </source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Socks+ HTTP 代理&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Socks+ HTTP 代理&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+</translation>
     </message>
     <message>
         <source>Font Size</source>
@@ -233,19 +234,21 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Settings for the
                                             sing-box&apos;s built-in NTP client&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                         </source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;该设置用于 thesing-box 内置的 NTP 客户端&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;用于 sing-box 内置的 NTP 客户端的设置&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In
                                                                 minutes&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                             </source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;以分钟为单位&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;以“分”为单位&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove the
                                                         currently generated rule-sets so that they can be regenerated&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                     </source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;移除当前生成的规则集，以便重新生成&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;移除当前生成的规则集，&lt;br&gt;
+以便它们可重新生成&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Proxy Format</source>
@@ -261,35 +264,35 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>{ip}:{port}</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <source>http://{ip}:{port}</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <source>socks={ip}:{port}</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <source>Speedtest mode</source>
-        <translation type="unfinished"></translation>
+        <translation>速度测试模式</translation>
     </message>
     <message>
         <source>Download + Upload</source>
-        <translation type="unfinished"></translation>
+        <translation>下载 + 上传</translation>
     </message>
     <message>
         <source>Only Download</source>
-        <translation type="unfinished"></translation>
+        <translation>仅下载</translation>
     </message>
     <message>
         <source>Only Upload</source>
-        <translation type="unfinished"></translation>
+        <translation>仅上传</translation>
     </message>
     <message>
         <source>Disable Privilege request</source>
-        <translation type="unfinished"></translation>
+        <translation>禁用特权请求</translation>
     </message>
 </context>
 <context>
@@ -320,7 +323,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Archive</source>
-        <translation>归档</translation>
+        <translation>存档</translation>
     </message>
     <message>
         <source>Warning</source>
@@ -332,7 +335,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Copy profile share links</source>
-        <translation>复制分组内配置的分享链接</translation>
+        <translation>复制配置档分享链接</translation>
     </message>
     <message>
         <source>Copied</source>
@@ -340,7 +343,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Copy profile share links (Neko Links)</source>
-        <translation>复制分组内配置的分享链接 (Neko Links)</translation>
+        <translation>复制配置档分享链接 (Neko 链接)</translation>
     </message>
     <message>
         <source>Manually column width</source>
@@ -395,15 +398,15 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Network</source>
-        <translation>传输</translation>
+        <translation>网络</translation>
     </message>
     <message>
         <source>Security</source>
-        <translation>传输层安全</translation>
+        <translation>安全</translation>
     </message>
     <message>
         <source>Network Settings (%1)</source>
-        <translation>传输设置 (%1)</translation>
+        <translation>网络设置 (%1)</translation>
     </message>
     <message>
         <source>The underlying transport method. It must be consistent with the server, otherwise, the connection cannot be established.</source>
@@ -411,15 +414,15 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Transport Layer Security. It must be consistent with the server, otherwise, the connection cannot be established.</source>
-        <translation>传输层安全。必须与服务器一致，否则无法建立连接。</translation>
+        <translation>传输层安全性。必须与服务器一致，否则无法建立连接。</translation>
     </message>
     <message>
         <source>UDP FullCone Packet encoding for implementing features such as UDP FullCone. Server support is required, if the wrong selection is made, the connection cannot be made. Please leave it blank.</source>
-        <translation>包编码，用于实现 UDP FullCone 等特性。需要服务器支持，选错无法连接。不懂请留空。</translation>
+        <translation>用于实现诸如 UDP FullCone 等特性的 UDP FullCone 数据包编码。 需要服务器支持，若选错则无法连接。 不懂请留空。</translation>
     </message>
     <message>
         <source>When enabled, V2Ray will not check the validity of the TLS certificate provided by the remote host (the security is equivalent to plaintext)</source>
-        <translation>开启后 V2Ray 不会检查远端主机所提供的 TLS 证书的有效性 (安全性相当于明文)</translation>
+        <translation>启用时，V2Ray 不会检查远端主机所提供的 TLS 证书的有效性 (安全性相当于明文)</translation>
     </message>
     <message>
         <source>Server name indication, clear text.</source>
@@ -431,7 +434,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Allow insecure</source>
-        <translation>不检查服务器证书</translation>
+        <translation>允许不安全(不检查服务器证书)</translation>
     </message>
     <message>
         <source>Certificate</source>
@@ -447,7 +450,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Packet Encoding</source>
-        <translation>包编码</translation>
+        <translation>数据包编码</translation>
     </message>
     <message>
         <source>Settings</source>
@@ -463,7 +466,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Reality public key. If not empty, turn TLS into REALITY.</source>
-        <translation>Reality public key. 如果不为空，则将 TLS 变为 REALITY。</translation>
+        <translation>Reality 公钥。 如果不为空，则将 TLS 变为 REALITY。</translation>
     </message>
     <message>
         <source>Custom (%1 outbound)</source>
@@ -483,7 +486,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Apply settings to this group</source>
-        <translation>将设置应用于该组</translation>
+        <translation>应用设置到这一组</translation>
     </message>
     <message>
         <source>Multiplex</source>
@@ -495,11 +498,11 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>On</source>
-        <translation>开启</translation>
+        <translation>开</translation>
     </message>
     <message>
         <source>Off</source>
-        <translation>关闭</translation>
+        <translation>关</translation>
     </message>
     <message>
         <source>Confirm</source>
@@ -511,7 +514,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overrides mux to On&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;将 mux 设置为开启&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;覆盖 mux 为开启&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Enable TCP Brutal</source>
@@ -535,7 +538,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Method of http request, will be converted to uppercase&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;HTTP 请求的方法，将被转换为大写字母&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;HTTP 请求的方法，将被转换为大写&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Method</source>
@@ -547,11 +550,11 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>header type</source>
-        <translation>头部类型</translation>
+        <translation>报头类型</translation>
     </message>
     <message>
         <source>Extra Core</source>
-        <translation type="unfinished"></translation>
+        <translation>额外核心</translation>
     </message>
 </context>
 <context>
@@ -585,7 +588,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     <name>DialogManageGroups</name>
     <message>
         <source>Groups</source>
-        <translation>分组设置</translation>
+        <translation>分组</translation>
     </message>
     <message>
         <source>New group</source>
@@ -601,7 +604,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Update all subscriptions?</source>
-        <translation>更新所有订阅？</translation>
+        <translation>更新所有订阅吗？</translation>
     </message>
 </context>
 <context>
@@ -620,11 +623,11 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Sniff result for routing</source>
-        <translation>探测结果用于路由判断</translation>
+        <translation>嗅探结果用于路由判断</translation>
     </message>
     <message>
         <source>Sniff result for destination</source>
-        <translation>探测结果用于目标地址</translation>
+        <translation>嗅探结果用于目标地址</translation>
     </message>
     <message>
         <source>Direct DNS</source>
@@ -680,15 +683,15 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>Sniffs the connections intial packet(s?) to identify the protocol and the SNI. Sniff result for destination also rewrites the destionation of the connection to the sniffed SNI. For more data on the sniffed protocol refer to the sing-box&apos;s documentation.</source>
-        <translation>嗅探连接的初始数据包以识别协议和 SNI。目标嗅探结果还会将连接的目标重写为嗅探到的 SNI。有关嗅探协议的更多数据，请参阅 sing-box 的文档。</translation>
+        <translation>嗅探连接的初始数据包以识别协议和 SNI。用于目标的嗅探结果还会重写连接的目标为嗅探到的 SNI。有关嗅探协议的更多数据，请参阅 sing-box 的文档。</translation>
     </message>
     <message>
         <source>Routing Profile</source>
-        <translation>路由配置</translation>
+        <translation>路由配置档</translation>
     </message>
     <message>
         <source>The outbound tag to use when the request is not handled by any rule</source>
-        <translation>当请求未被任何规则处理时使用的出站标签</translation>
+        <translation>当请求未被任何规则处理时使用的出站标记</translation>
     </message>
     <message>
         <source>Default DNS server</source>
@@ -700,11 +703,11 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>Routing Profiles</source>
-        <translation>路由配置文件</translation>
+        <translation>路由配置档</translation>
     </message>
     <message>
         <source>New</source>
-        <translation>新的</translation>
+        <translation>新建</translation>
     </message>
     <message>
         <source>Edit</source>
@@ -719,7 +722,8 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
 when set, domain destinations are resolved to IP before connect,
 also if the connection cannot be established with the current address family (ipv4, ipv6), a fallback connection is created shortly after, with the other address family.</source>
         <translation>outbound.domain_strategy
-设置后，域名目的地在连接前解析为 IP。如果无法通过当前地址 (IPv4、IPv6) 建立连接，则会在稍后使用另一地址创建备用连接。</translation>
+设置时，域名目的地在连接前解析为 IP，
+若无法用当前地址族 (IPv4、IPv6) 建立连接，不久后用其它地址族创建退路连接。</translation>
     </message>
     <message>
         <source>Outbound Domain Strategy</source>
@@ -747,7 +751,7 @@ also if the connection cannot be established with the current address family (ip
     </message>
     <message>
         <source>How does it work?</source>
-        <translation>它是如何工作的？</translation>
+        <translation>它如何工作？</translation>
     </message>
     <message>
         <source>Listen Address</source>
@@ -795,7 +799,7 @@ also if the connection cannot be established with the current address family (ip
     </message>
     <message>
         <source>The list of routing profiles is empty, this should be an unreachable state, crashes may occur now</source>
-        <translation>路由配置文件列表为空，这应该是一个不可达状态，可能会发生崩溃</translation>
+        <translation>路由配置档列表为空，这应该是一个不可达状态，可能会发生崩溃</translation>
     </message>
     <message>
         <source>Invalid settings</source>
@@ -803,7 +807,7 @@ also if the connection cannot be established with the current address family (ip
     </message>
     <message>
         <source>Routing profile cannot be empty</source>
-        <translation>路由配置文件不能为空</translation>
+        <translation>路由配置档不能为空</translation>
     </message>
     <message>
         <source>DNS Rules are not valid</source>
@@ -815,23 +819,23 @@ also if the connection cannot be established with the current address family (ip
     </message>
     <message>
         <source>Routing Profiles cannot be empty, try adding another profile or editing this one</source>
-        <translation>路由配置文件不能为空，请尝试添加另一个配置文件或编辑此配置文件</translation>
+        <translation>路由配置档不能为空，请尝试添加另一个配置档或编辑此配置档</translation>
     </message>
     <message>
         <source>Profile is Read-only</source>
-        <translation>配置文件为只读</translation>
+        <translation>配置档为只读</translation>
     </message>
     <message>
         <source>Cannot delete built-in profiles</source>
-        <translation>无法删除内置配置文件</translation>
+        <translation>无法删除内置配置档</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Whether to listen on 0.0.0.0 so that other devices on LAN can use this server&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;是否在 0.0.0.0 上监听以便 LAN 上的其它设备可以使用这个服务器&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Allow Lan to Connect</source>
-        <translation type="unfinished"></translation>
+        <translation>允许 LAN 连接</translation>
     </message>
 </context>
 <context>
@@ -853,7 +857,7 @@ also if the connection cannot be established with the current address family (ip
 
 If still not working, see documentation for more information.
 https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
-        <translation>如果您在启动 Tun 时遇到问题，您可以在此处强制重置 nekobox_core 进程。
+        <translation>如果您在启动 Tun 时遇到问题，您可以在这里强制重置 nekobox_core 进程。
 
 如果仍然无法正常工作，请参阅文档以获取更多信息。
 https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
@@ -872,18 +876,18 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, Direct IP CIDRs and rule sets will also be added to the Tun setting to be excluded at OS routing level. IMPORTANT: Large rule sets have been reported to cause massive CPU usage in windows, please enable this option with caution.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;启用时，Direct IP CIDRs 和规则集也将被添加到 Tun 设置以在 OS 路由层级排除。 重要事项：据报告，大型规则集会导致在 Windows 中大量的 CPU 占用，请谨慎启用这个选项。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Enable Tun Routing</source>
-        <translation type="unfinished"></translation>
+        <translation>启用 Tun 路由</translation>
     </message>
 </context>
 <context>
     <name>EditChain</name>
     <message>
         <source>Select Profile</source>
-        <translation>选择配置</translation>
+        <translation>选择配置档</translation>
     </message>
     <message>
         <source>Traffic order is from top to bottom</source>
@@ -891,14 +895,14 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Name cannot be empty.</source>
-        <translation>名称不能为空</translation>
+        <translation>名称不能为空。</translation>
     </message>
 </context>
 <context>
     <name>EditCustom</name>
     <message>
         <source>Core</source>
-        <translation>内核</translation>
+        <translation>核心</translation>
     </message>
     <message>
         <source>Json Editor</source>
@@ -906,7 +910,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Outbound JSON, please read the documentation.</source>
-        <translation>填写出站 JSON 对象，详细请看文档。</translation>
+        <translation>出站 JSON 对象，详细请看文档。</translation>
     </message>
     <message>
         <source>Please fill the complete config.</source>
@@ -914,62 +918,62 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Name cannot be empty.</source>
-        <translation>名称不能为空</translation>
+        <translation>名称不能为空。</translation>
     </message>
 </context>
 <context>
     <name>EditExtraCore</name>
     <message>
         <source>Form</source>
-        <translation type="unfinished"></translation>
+        <translation>形式</translation>
     </message>
     <message>
         <source>Socks address</source>
-        <translation type="unfinished"></translation>
+        <translation>Socks 地址</translation>
     </message>
     <message>
         <source>127.0.0.1</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <source>Socks port</source>
-        <translation type="unfinished"></translation>
+        <translation>Socks 端口</translation>
     </message>
     <message>
         <source>1080</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <source>Core path</source>
-        <translation type="unfinished"></translation>
+        <translation>核心路径</translation>
     </message>
     <message>
         <source>Choose from file</source>
-        <translation type="unfinished"></translation>
+        <translation>选择自文件</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;args to pass to the executable. You can insert a single %s and it will be replaced with the path to a file containing the config entered below.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;传递给可执行文件的参数。 你可以插入单个 %s 而它将会替代为指向包含下列输入的配置的一个文件的路径。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Args</source>
-        <translation type="unfinished"></translation>
+        <translation>参数</translation>
     </message>
     <message>
         <source>run -confPath %s</source>
-        <translation type="unfinished"></translation>
+        <translation>run -confPath %s</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;contents of the config file that will be passed to the extra core process if %s is specified in the args&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;若在参数中指定 %s 则配置文件的内容将被传递给额外核心进程&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Config</source>
-        <translation type="unfinished"></translation>
+        <translation>配置</translation>
     </message>
     <message>
         <source>No logs</source>
-        <translation type="unfinished"></translation>
+        <translation>无日志</translation>
     </message>
 </context>
 <context>
@@ -992,11 +996,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Allow Insecure</source>
-        <translation>不检查服务器证书</translation>
+        <translation>允许不安全</translation>
     </message>
     <message>
         <source>Upload (Mbps)</source>
-        <translation>上传速度 (Mbps)</translation>
+        <translation>上传 (Mbps)</translation>
     </message>
     <message>
         <source>Obfs Password</source>
@@ -1036,7 +1040,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Disable SNI</source>
-        <translation>不发送服务器名称指示</translation>
+        <translation>禁用 SNI (不发送服务器名称指示)</translation>
     </message>
     <message>
         <source>Port range</source>
@@ -1218,15 +1222,15 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;persistent_keepalive_interval in seconds&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;以秒数为单位的 persistent_keepalive_interval&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Persistent Keepalive</source>
-        <translation type="unfinished"></translation>
+        <translation>持续保持活动</translation>
     </message>
 </context>
 <context>
@@ -1257,7 +1261,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Remove %1?</source>
-        <translation>删除 %1 ?</translation>
+        <translation>删除 %1 吗?</translation>
     </message>
     <message>
         <source>Archive</source>
@@ -1265,7 +1269,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Last update: %1</source>
-        <translation>最后更新 %1</translation>
+        <translation>上次更新： %1</translation>
     </message>
 </context>
 <context>
@@ -1304,7 +1308,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>You must correct these errors before continuing.</source>
-        <translation>在继续之前，您必须修正这些错误。</translation>
+        <translation>继续前您必须修正这些错误。</translation>
     </message>
     <message>
         <source>Syntax Errors</source>
@@ -1367,7 +1371,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Groups</source>
-        <translation>分组设置</translation>
+        <translation>分组</translation>
     </message>
     <message>
         <source>Stop</source>
@@ -1375,7 +1379,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Add profile from clipboard</source>
-        <translation>从剪贴板添加</translation>
+        <translation>从剪贴板添加配置档</translation>
     </message>
     <message>
         <source>Debug Info</source>
@@ -1407,11 +1411,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Settings changed, restart proxy?</source>
-        <translation>设置已改变，是否重启代理？</translation>
+        <translation>设置已改变，重启代理吗？</translation>
     </message>
     <message>
         <source>Imported %1 profile(s)</source>
-        <translation>导入了 %1 个配置</translation>
+        <translation>导入了 %1 个配置档</translation>
     </message>
     <message>
         <source>Unavailable</source>
@@ -1419,7 +1423,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Remove %1 item(s) ?</source>
-        <translation>删除 %1 个项目？</translation>
+        <translation>删除 %1 项吗？</translation>
     </message>
     <message>
         <source>Config copied</source>
@@ -1451,7 +1455,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>QR Code not found</source>
-        <translation>未扫描到二维码</translation>
+        <translation>未找到二维码</translation>
     </message>
     <message>
         <source>Move</source>
@@ -1459,27 +1463,27 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Starting profile %1</source>
-        <translation>正在启动配置 %1</translation>
+        <translation>正在启动配置档 %1</translation>
     </message>
     <message>
         <source>Stopping profile %1</source>
-        <translation>正在停止配置 %1</translation>
+        <translation>正在停止配置档 %1</translation>
     </message>
     <message>
         <source>Start with system</source>
-        <translation>跟随系统启动</translation>
+        <translation>随系统启动</translation>
     </message>
     <message>
         <source>Remember last profile</source>
-        <translation>记住最后的配置</translation>
+        <translation>记住最后的配置档</translation>
     </message>
     <message>
         <source>Remove Unavailable</source>
-        <translation>移除不可用配置</translation>
+        <translation>移除不可用配置档</translation>
     </message>
     <message>
         <source>New profile</source>
-        <translation>手动输入配置</translation>
+        <translation>新建配置档</translation>
     </message>
     <message>
         <source>Hotkey Settings</source>
@@ -1487,11 +1491,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>QR Code and link</source>
-        <translation>显示二维码和分享链接</translation>
+        <translation>二维码和分享链接</translation>
     </message>
     <message>
         <source>Copied %1 item(s)</source>
-        <translation>复制了 %1 个项目</translation>
+        <translation>复制了 %1 项</translation>
     </message>
     <message>
         <source>Full Test</source>
@@ -1503,7 +1507,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Remove Duplicates</source>
-        <translation>移除重复配置</translation>
+        <translation>移除重复项</translation>
     </message>
     <message>
         <source>Select All</source>
@@ -1515,7 +1519,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Failed to stop Tun process</source>
-        <translation>停止 Tun 失败</translation>
+        <translation>停止 Tun 进程失败</translation>
     </message>
     <message>
         <source>Enable System Proxy</source>
@@ -1543,7 +1547,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Copy links of selected</source>
-        <translation>复制选中项目的分享链接</translation>
+        <translation>复制选中项的链接</translation>
     </message>
     <message>
         <source>Clone</source>
@@ -1555,11 +1559,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Clone %1 item(s)</source>
-        <translation>克隆 %1 个项目</translation>
+        <translation>克隆 %1 项</translation>
     </message>
     <message>
         <source>Copy links of selected (Neko Links)</source>
-        <translation>复制选中项目的分享链接 (Neko Links)</translation>
+        <translation>复制选中项的链接 (Neko 链接)</translation>
     </message>
     <message>
         <source>Allow other devices to connect</source>
@@ -1567,7 +1571,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Resolve domain</source>
-        <translation>将服务器域名解析为 IP</translation>
+        <translation>解析域名为 IP</translation>
     </message>
     <message>
         <source>Export %1 config</source>
@@ -1587,11 +1591,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Not Running</source>
-        <translation>未启动</translation>
+        <translation>未运行中</translation>
     </message>
     <message>
         <source>Open Config Folder</source>
-        <translation>配置目录</translation>
+        <translation>打开配置文件夹</translation>
     </message>
     <message>
         <source>Set ignore keyword</source>
@@ -1600,7 +1604,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Set the following keywords to ignore?
 Split by line.</source>
-        <translation>将以下关键字设置为忽略？
+        <translation>设置以下关键字为忽略？
 一行一个。</translation>
     </message>
     <message>
@@ -1609,7 +1613,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Save &quot;%1&quot; as a routing rule?</source>
-        <translation>将&quot;%1&quot;保存为一条路由规则？</translation>
+        <translation>保存&quot;%1&quot;为一条路由规则吗？</translation>
     </message>
     <message>
         <source>Edit</source>
@@ -1617,7 +1621,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Show Window</source>
-        <translation>显示主窗口</translation>
+        <translation>显示窗口</translation>
     </message>
     <message>
         <source>Settings changed</source>
@@ -1625,7 +1629,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Restart the program to take effect.</source>
-        <translation>重启程序生效。</translation>
+        <translation>重启程序以生效。</translation>
     </message>
     <message>
         <source>Restart Proxy</source>
@@ -1633,7 +1637,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Failed to start profile %1</source>
-        <translation>启动配置失败: %1</translation>
+        <translation>启动配置档 %1 失败</translation>
     </message>
     <message>
         <source>Failed to stop, please restart the program.</source>
@@ -1645,7 +1649,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Select mode, double-click or press Enter to select a profile, press ESC to exit.</source>
-        <translation>选择模式，双击或按回车键选择一个配置文件，按 ESC 键退出。</translation>
+        <translation>选择模式，双击或按回车键选择一个配置档，按 ESC 键退出。</translation>
     </message>
     <message>
         <source>Stop Testing</source>
@@ -1669,23 +1673,23 @@ Split by line.</source>
     </message>
     <message>
         <source>Add new Group</source>
-        <translation>新建分组</translation>
+        <translation>添加新分组</translation>
     </message>
     <message>
         <source>Delete selected Group</source>
-        <translation>删除分组</translation>
+        <translation>删除选定分组</translation>
     </message>
     <message>
         <source>Edit selected Group</source>
-        <translation>编辑分组</translation>
+        <translation>编辑选定分组</translation>
     </message>
     <message>
         <source>Remove %1?</source>
-        <translation>删除 %1 ?</translation>
+        <translation>删除 %1 吗?</translation>
     </message>
     <message>
         <source>Url Test Selected</source>
-        <translation>URL 测试选中配置延迟</translation>
+        <translation>URL 测试(延迟)选定项</translation>
     </message>
     <message>
         <source>Ctrl+Shift+S</source>
@@ -1693,7 +1697,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Url Test Group</source>
-        <translation>URL 测试分组延迟</translation>
+        <translation>URL 测试(延迟)分组</translation>
     </message>
     <message>
         <source>Ctrl+Shift+G</source>
@@ -1709,7 +1713,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Remove Invalid</source>
-        <translation>移除无效配置</translation>
+        <translation>移除无效项</translation>
     </message>
     <message>
         <source>Ctrl+Alt+I</source>
@@ -1717,27 +1721,27 @@ Split by line.</source>
     </message>
     <message>
         <source>If you have trouble starting VPN, you can force reset nekobox_core process here and then try starting the profile again. The error is %1</source>
-        <translation>如果启动 VPN 时遇到问题，您可以在此强制重置 nekobox_core 进程，然后再次尝试启动配置文件。错误是 %1</translation>
+        <translation>如果启动 VPN 时遇到问题，您可以在这里强制重置 nekobox_core 进程，然后再次尝试启动配置档。错误是 %1</translation>
     </message>
     <message>
         <source> Confirmation </source>
-        <translation>确认</translation>
+        <translation> 确认 </translation>
     </message>
     <message>
         <source> Remove %1 item(s) ? </source>
-        <translation>移除 %1 项？</translation>
+        <translation> 移除 %1 项吗？ </translation>
     </message>
     <message>
         <source>Remove %1 Unavailable item(s) ?</source>
-        <translation>移除 %1 不可用的项？</translation>
+        <translation>移除 %1 个不可用项吗？</translation>
     </message>
     <message>
         <source>Remove %1 Invalid item(s) ?</source>
-        <translation>移除 %1 无效的项？</translation>
+        <translation>移除 %1 个无效项吗？</translation>
     </message>
     <message>
         <source>Replace domain server addresses with their resolved IPs?</source>
-        <translation>用解析后的 IP 地址替换域名服务器地址？</translation>
+        <translation>替换域名服务器地址为它们解析后的 IP 地址吗？</translation>
     </message>
     <message>
         <source>System DNS</source>
@@ -1749,7 +1753,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Click To Disable Sorting</source>
-        <translation>点击以禁用排序</translation>
+        <translation>点击以禁止排序</translation>
     </message>
     <message>
         <source>Network</source>
@@ -1765,7 +1769,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Click To Sort By Download</source>
-        <translation>按下载流量排序</translation>
+        <translation>点击按“下载”排序</translation>
     </message>
     <message>
         <source>Upload</source>
@@ -1773,7 +1777,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Click To Sort By Upload</source>
-        <translation>按上传流量排序</translation>
+        <translation>点击按“上传”排序</translation>
     </message>
     <message>
         <source>Logs</source>
@@ -1781,15 +1785,15 @@ Split by line.</source>
     </message>
     <message>
         <source>Geo Assets are missing, want to download them now?</source>
-        <translation>地理资产缺失，想马上下载吗？</translation>
+        <translation>缺少地理资料，想立即下载吗？</translation>
     </message>
     <message>
         <source>Please give the core root privileges</source>
-        <translation>请给予核心根权限</translation>
+        <translation>请给予核心 root 权限</translation>
     </message>
     <message>
         <source>Requesting permission</source>
-        <translation>请求权限</translation>
+        <translation>正在请求权限</translation>
     </message>
     <message>
         <source>Please Enter your password in the opened terminal, then try again</source>
@@ -1805,7 +1809,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Profiles</source>
-        <translation>配置文件</translation>
+        <translation>配置档</translation>
     </message>
     <message>
         <source>Routing</source>
@@ -1821,7 +1825,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Click To Sort By Process</source>
-        <translation>按进程名排序</translation>
+        <translation>点击按“进程”排序</translation>
     </message>
     <message>
         <source>Routing Menu</source>
@@ -1833,7 +1837,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Profile test aborted</source>
-        <translation>配置文件测试中止</translation>
+        <translation>配置档测试中止</translation>
     </message>
     <message>
         <source>Something is very wrong, the subject ent cannot be found!</source>
@@ -1841,7 +1845,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Profile manager data is corrupted, try again.</source>
-        <translation>配置文件管理器数据已损坏，请重试。</translation>
+        <translation>配置档管理器数据已损坏，请重试。</translation>
     </message>
     <message>
         <source>The last speed test did not exit completely, please wait. If it persists, please restart the program.</source>
@@ -1849,7 +1853,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Failed to build test config: </source>
-        <translation>构建测试配置失败：</translation>
+        <translation>构建测试配置失败： </translation>
     </message>
     <message>
         <source>Speedtest finished!</source>
@@ -1865,7 +1869,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Failed to set system dns: </source>
-        <translation>设置系统 DNS 失败：</translation>
+        <translation>设置系统 DNS 失败： </translation>
     </message>
     <message>
         <source>BuildConfig return error</source>
@@ -1873,15 +1877,15 @@ Split by line.</source>
     </message>
     <message>
         <source>Another profile is starting...</source>
-        <translation>另一个配置文件正在启动...</translation>
+        <translation>另一个配置档正在启动...</translation>
     </message>
     <message>
         <source>Another profile is stopping...</source>
-        <translation>另一个配置文件正在停止...</translation>
+        <translation>另一个配置档正在停止...</translation>
     </message>
     <message>
         <source>Try to start the config, but the core has not listened to the grpc port, so restart it...</source>
-        <translation>尝试启动配置，但核心尚未监听 grpc 端口，因此请重启它...</translation>
+        <translation>尝试启动配置，但核心尚未监听 grpc 端口，那么请重启它...</translation>
     </message>
     <message>
         <source>Stop return error</source>
@@ -1913,11 +1917,11 @@ Split by line.</source>
     </message>
     <message>
         <source>Failed to download geo assets</source>
-        <translation>下载地理资产失败</translation>
+        <translation>下载地理资料失败</translation>
     </message>
     <message>
         <source>Geo Asset update completed!</source>
-        <translation>地理资产更新完成！</translation>
+        <translation>地理资料(Geo Asset)更新完成！</translation>
     </message>
     <message>
         <source>Traffic Graph</source>
@@ -1925,43 +1929,43 @@ Split by line.</source>
     </message>
     <message>
         <source>Failed to download update assets</source>
-        <translation>无法下载更新资源</translation>
+        <translation>无法下载更新资料</translation>
     </message>
     <message>
         <source>Speedtest Current</source>
-        <translation type="unfinished"></translation>
+        <translation>速度测试当前项</translation>
     </message>
     <message>
         <source>Speedtest Selected</source>
-        <translation type="unfinished"></translation>
+        <translation>速度测试选定项</translation>
     </message>
     <message>
         <source>Speedtest Group</source>
-        <translation type="unfinished"></translation>
+        <translation>速度测试分组</translation>
     </message>
     <message>
         <source>The last url test did not exit completely, please wait. If it persists, please restart the program.</source>
-        <translation type="unfinished"></translation>
+        <translation>最后的 URL 测试未完全退出，请稍候。若情况持续，请重启该程序。</translation>
     </message>
     <message>
         <source>URL test finished!</source>
-        <translation type="unfinished"></translation>
+        <translation>URL 测试已完成!</translation>
     </message>
     <message>
         <source>Profile speed test aborted</source>
-        <translation type="unfinished"></translation>
+        <translation>配置档速度测试已中止</translation>
     </message>
     <message>
         <source>[%1] speed test error: %2</source>
-        <translation type="unfinished"></translation>
+        <translation>[%1] 速度测试错误: %2</translation>
     </message>
     <message>
         <source>User opted for no privilege req, some features may not work</source>
-        <translation type="unfinished"></translation>
+        <translation>用户选择了无特权请求，某些功能可能不能运作</translation>
     </message>
     <message>
         <source>Unable to capture screen</source>
-        <translation type="unfinished"></translation>
+        <translation>不能截屏</translation>
     </message>
 </context>
 <context>
@@ -1972,7 +1976,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Remove %1?</source>
-        <translation>删除 %1 ?</translation>
+        <translation>删除 %1 吗?</translation>
     </message>
 </context>
 <context>
@@ -1999,9 +2003,9 @@ How to update?</source>
 %2
 Deleted %3 Profiles:
 %4</source>
-        <translation>增加了 %1 个配置：
+        <translation>增加了 %1 个配置档：
 %2
-删除了 %3 个配置：
+删除了 %3 个配置档：
 %4</translation>
     </message>
     <message>
@@ -2032,7 +2036,7 @@ Direct: %2</source>
     </message>
     <message>
         <source>Update is ready, restart to install?</source>
-        <translation>更新已下载好，重启应用？</translation>
+        <translation>更新已准备好，重启进行安装吗？</translation>
     </message>
     <message>
         <source>Update found: %1
@@ -2044,7 +2048,7 @@ Release note:
     </message>
     <message>
         <source>Request with proxy but no profile started.</source>
-        <translation>即将使用代理请求，但是代理未启动。</translation>
+        <translation>用代理请求，但无配置档启动。</translation>
     </message>
     <message>
         <source>Chain Proxy</source>
@@ -2064,7 +2068,7 @@ Release note:
     </message>
     <message>
         <source>Change of %1:</source>
-        <translation>%1 变化:</translation>
+        <translation>%1 的变化:</translation>
     </message>
     <message>
         <source>Select</source>
@@ -2080,7 +2084,7 @@ Release note:
     </message>
     <message>
         <source>Core exited, restarting.</source>
-        <translation>Core 退出，正在重新启动。</translation>
+        <translation>Core 退出，正在重启。</translation>
     </message>
     <message>
         <source>Core exits too frequently, stop automatic restart this profile.</source>
@@ -2092,7 +2096,7 @@ Release note:
     </message>
     <message>
         <source>Add profiles to this group</source>
-        <translation>将配置文件添加到此组</translation>
+        <translation>添加配置档到这组</translation>
     </message>
     <message>
         <source>Create new subscription group</source>
@@ -2131,21 +2135,21 @@ Release note:
     </message>
     <message>
         <source>OK</source>
-        <translation>好的</translation>
+        <translation>确定</translation>
     </message>
 </context>
 <context>
     <name>Qv2ray::ui::widgets::AutoCompleteTextEdit</name>
     <message>
         <source>You can not input space characters here.</source>
-        <translation></translation>
+        <translation>你不能在这里输入空格。</translation>
     </message>
 </context>
 <context>
     <name>RouteItem</name>
     <message>
         <source>Route Profile</source>
-        <translation>路由配置</translation>
+        <translation>路由配置档</translation>
     </message>
     <message>
         <source>Name</source>
@@ -2157,7 +2161,7 @@ Release note:
     </message>
     <message>
         <source>New</source>
-        <translation>新的</translation>
+        <translation>新建</translation>
     </message>
     <message>
         <source>Move Up</source>
@@ -2218,7 +2222,8 @@ Release note:
     <message>
         <source>Some rules could not be added:
 </source>
-        <translation>某些规则无法添加：</translation>
+        <translation>某些规则无法添加：
+</translation>
     </message>
     <message>
         <source>Simple rule manual</source>
@@ -2231,7 +2236,8 @@ Release note:
     <message>
         <source>The provided input cannot be parsed to a valid route rule array:
 </source>
-        <translation>提供的输入无法解析为有效的路由规则数组：</translation>
+        <translation>提供的输入无法解析为有效的路由规则数组：
+</translation>
     </message>
     <message>
         <source>Invalid operation</source>
@@ -2239,20 +2245,21 @@ Release note:
     </message>
     <message>
         <source>Cannot create Route Profile with empty name</source>
-        <translation>无法使用空名称创建路由配置文件</translation>
+        <translation>无法使用空名称创建路由配置档</translation>
     </message>
     <message>
         <source>Empty Route Profile</source>
-        <translation>空路由配置文件</translation>
+        <translation>空路由配置档</translation>
     </message>
     <message>
         <source>No valid rules are in the profile</source>
-        <translation>配置文件中没有有效规则</translation>
+        <translation>配置档中没有有效规则</translation>
     </message>
     <message>
         <source>Some rules could not be added, fix them before saving:
 </source>
-        <translation>某些规则无法添加，请在保存之前修复它们：</translation>
+        <translation>某些规则无法添加，请在保存前修复它们：
+</translation>
     </message>
 </context>
 <context>
