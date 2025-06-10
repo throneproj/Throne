@@ -518,6 +518,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             });
         }
     }
+
+    // DEBUG: Set background colors to identify widgets
+    ui->centralwidget->setStyleSheet("background-color: red;");
+    ui->data_view->setStyleSheet("background-color: green;");
+    ui->toolButton_program->setStyleSheet("background-color: blue;");
+    ui->checkBox_SystemProxy->setStyleSheet("background-color: yellow;");
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
