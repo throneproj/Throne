@@ -668,6 +668,8 @@ namespace NekoGui {
         }
 
         auto ruleSetArray = QJsonArray();
+        auto geoSitePath = GetCoreAssetDir("geosite.db");
+        auto geoIpPath = GetCoreAssetDir("geoip.db");
         for (const auto &item: *neededRuleSets) {
             ruleSetArray += QJsonObject{
                 {"type", "local"},
@@ -678,12 +680,12 @@ namespace NekoGui {
             if (QFile(QString(RULE_SETS_DIR + "/%1.srs").arg(item)).exists()) continue;
             bool ok;
             auto mode = NekoGui_rpc::GeoRuleSetType::site;
-            auto geo_assert_path = GetCoreAssetDir("geosite.db");
+            auto geoAssertPath = geoSitePath;
             if (item.contains("_IP")) {
                 mode = NekoGui_rpc::GeoRuleSetType::ip;
-                geo_assert_path = GetCoreAssetDir("geoip.db");
+                geoAssertPath = geoIpPath;
             }
-            auto err = NekoGui_rpc::defaultClient->CompileGeoSet(&ok, mode, item.toStdString(), geo_assert_path);
+            auto err = NekoGui_rpc::defaultClient->CompileGeoSet(&ok, mode, item.toStdString(), geoAssertPath);
             if (!ok) {
                 MW_show_log("Failed to generate rule set asset for " + item);
                 status->result->error = err;
