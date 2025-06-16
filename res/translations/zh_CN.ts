@@ -261,35 +261,35 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>{ip}:{port}</source>
-{ip}:{port}
+	<translation>{ip}:{port}</translation>
     </message>
     <message>
         <source>http://{ip}:{port}</source>
-http://{ip}:{port}
+	<translation>http://{ip}:{port}</translation>
     </message>
     <message>
         <source>socks={ip}:{port}</source>
-socks={ip}:{port}
+	<translation>socks={ip}:{port}</translation>
     </message>
     <message>
         <source>Speedtest mode</source>
-速度测试模式
+	<translation>速度测试模式</translation>
     </message>
     <message>
         <source>Download + Upload</source>
-下载 + 上传
+	<translation>下载 + 上传</translation>
     </message>
     <message>
         <source>Only Download</source>
-仅下载
+	<translation>仅下载</translation>
     </message>
     <message>
         <source>Only Upload</source>
-仅上传
+	<translation>仅上传</translation>
     </message>
     <message>
         <source>Disable Privilege request</source>
-禁用权限请求
+	<translation>禁用权限请求</translation>
     </message>
 </context>
 <context>
@@ -551,7 +551,7 @@ socks={ip}:{port}
     </message>
     <message>
         <source>Extra Core</source>
-额外核心
+	<translation>额外核心</translation>
     </message>
 </context>
 <context>
@@ -827,11 +827,11 @@ also if the connection cannot be established with the current address family (ip
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Whether to listen on 0.0.0.0 so that other devices on LAN can use this server&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;是否监听 0.0.0.0 以便局域网中的其他设备可以使用此服务器&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+	<translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;是否监听 0.0.0.0 以便局域网中的其他设备可以使用此服务器&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Allow Lan to Connect</source>
-允许局域网连接
+	<translation>允许局域网连接</translation>
     </message>
 </context>
 <context>
@@ -872,11 +872,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, Direct IP CIDRs and rule sets will also be added to the Tun setting to be excluded at OS routing level. IMPORTANT: Large rule sets have been reported to cause massive CPU usage in windows, please enable this option with caution.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;启用时，直接 IP CIDR 和规则集也将添加到 Tun 设置中，以在操作系统路由级别被排除。重要提示：已报告大型规则集会导致 Windows 中的 CPU 使用率大幅上升，请谨慎启用此选项。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+	<translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;启用时，直接 IP CIDR 和规则集也将添加到 Tun 设置中，以在操作系统路由级别被排除。重要提示：已报告大型规则集会导致 Windows 中的 CPU 使用率大幅上升，请谨慎启用此选项。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Enable Tun Routing</source>
-启用 Tun 路由
+	<translation>启用 Tun 路由</translation>
     </message>
 </context>
 <context>
@@ -921,55 +921,55 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <name>EditExtraCore</name>
     <message>
         <source>Form</source>
-表单
+	<translation>表单</translation>
     </message>
     <message>
         <source>Socks address</source>
-Socks 地址
+	<translation>Socks 地址</translation>
     </message>
     <message>
         <source>127.0.0.1</source>
-127.0.0.1
+	<translation>127.0.0.1</translation>
     </message>
     <message>
         <source>Socks port</source>
-Socks 端口
+	<translation>Socks 端口</translation>
     </message>
     <message>
         <source>1080</source>
-1080
+	<translation>1080</translation>
     </message>
     <message>
         <source>Core path</source>
-核心路径
+	<translation>核心路径</translation>
     </message>
     <message>
         <source>Choose from file</source>
-从文件中选择
+	<translation>从文件中选择</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;args to pass to the executable. You can insert a single %s and it will be replaced with the path to a file containing the config entered below.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;传递给可执行文件的参数。您可以插入一个 %s，它将被替换为包含下面输入的配置的文件路径。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+	<translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;传递给可执行文件的参数。您可以插入一个 %s，它将被替换为包含下面输入的配置的文件路径。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Args</source>
-参数
+	<translation>参数</translation>
     </message>
     <message>
         <source>run -confPath %s</source>
-run -confPath %s
+	<translation>run -confPath %s</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;contents of the config file that will be passed to the extra core process if %s is specified in the args&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;将传递给额外核心进程的配置文件内容，如果在参数中指定了 %s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+	<translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;将传递给额外核心进程的配置文件内容，如果在参数中指定了 %s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Config</source>
-配置
+	<translation>配置</translation>
     </message>
     <message>
         <source>No logs</source>
-无日志
+	<translation>无日志</translation>
     </message>
 </context>
 <context>
@@ -1218,15 +1218,15 @@ run -confPath %s
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;persistent_keepalive_interval in seconds&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;persistent_keepalive_interval（以秒为单位）&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+	<translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;persistent_keepalive_interval（以秒为单位）&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+	<translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Persistent Keepalive</source>
-持久保持活动
+	<translation>持久保持活动</translation>
     </message>
 </context>
 <context>
@@ -1929,39 +1929,39 @@ Split by line.</source>
     </message>
     <message>
         <source>Speedtest Current</source>
-速度测试当前
+	<translation>速度测试当前</translation>
     </message>
     <message>
         <source>Speedtest Selected</source>
-速度测试已选
+	<translation>速度测试已选</translation>
     </message>
     <message>
         <source>Speedtest Group</source>
-速度测试组
+	<translation>速度测试组</translation>
     </message>
     <message>
         <source>The last url test did not exit completely, please wait. If it persists, please restart the program.</source>
-上一个 URL 测试未完全退出，请稍候。如果持续存在，请重启程序。
+	<translation>上一个 URL 测试未完全退出，请稍候。如果持续存在，请重启程序。</translation>
     </message>
     <message>
         <source>URL test finished!</source>
-URL 测试完成！
+	<translation>URL 测试完成！</translation>
     </message>
     <message>
         <source>Profile speed test aborted</source>
-配置文件速度测试已中止
+	<translation>配置文件速度测试已中止</translation>
     </message>
     <message>
         <source>[%1] speed test error: %2</source>
-[%1] 速度测试错误：%2
+	<translation>[%1] 速度测试错误：%2</translation>
     </message>
     <message>
         <source>User opted for no privilege req, some features may not work</source>
-用户选择不请求权限，某些功能可能无法正常工作
+	<translation>用户选择不请求权限，某些功能可能无法正常工作</translation>
     </message>
     <message>
         <source>Unable to capture screen</source>
-无法捕获屏幕
+	<translation>无法捕获屏幕</translation>
     </message>
 </context>
 <context>
