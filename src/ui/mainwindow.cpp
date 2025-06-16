@@ -518,6 +518,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             });
         }
     }
+    ui->data_view->setStyleSheet("background: transparent; border: none;");
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
