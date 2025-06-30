@@ -104,7 +104,7 @@ jobs:
         uses: seanmiddleditch/gha-setup-ninja@v5
 
       - name: Download Artifacts
-        uses: actions/download-artifact@v4.1.8
+        uses: actions/download-artifact@v4.3.0
         with:
           path: download-artifact
       # ========================================================================================================= Qt Install
@@ -196,7 +196,7 @@ jobs:
       - name: Checking out sources
         uses: actions/checkout@v4.2.2
       - name: Download Artifacts
-        uses: actions/download-artifact@v4.1.8
+        uses: actions/download-artifact@v4.3.0
         with:
           path: download-artifact
       - name: Pack
