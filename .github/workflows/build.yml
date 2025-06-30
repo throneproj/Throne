@@ -120,7 +120,7 @@ jobs:
         if: matrix.platform == 'windows-latest' && steps.cache-static-Qt.outputs.cache-hit != 'true'
         run: ./script/build_qt_static_windows.bat ${{ matrix.qt_version }}
       - name: Install Qt
-        uses: jurplel/install-qt-action@v4.1.1
+        uses: jurplel/install-qt-action@v4.3.0
         if: matrix.platform != 'windows-latest'
         with:
           version: ${{ matrix.qt_version }}
