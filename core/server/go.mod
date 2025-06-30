@@ -13,7 +13,7 @@ require (
 	github.com/sagernet/sing v0.6.9
 	github.com/sagernet/sing-box v1.11.10
 	github.com/sagernet/sing-dns v0.4.2
-	github.com/sagernet/sing-tun v0.6.5
+	github.com/sagernet/sing-tun v0.6.9
 	github.com/spf13/cobra v1.9.1
 	golang.org/x/sys v0.32.0
 	google.golang.org/grpc v1.71.1
