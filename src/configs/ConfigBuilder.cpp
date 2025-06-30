@@ -386,10 +386,6 @@ namespace NekoGui {
             needMux = false;
         }
 
-        if (ent->type == "vless" && outbound["flow"] != "") {
-            needMux = false;
-        }
-
         // common
         // apply domain_strategy
         outbound["domain_strategy"] = dataStore->routing->outbound_domain_strategy;
@@ -520,7 +516,7 @@ namespace NekoGui {
             if (dataStore->vpn_ipv6) tunAddress += "fdfe:dcba:9876::1/96";
             inboundObj["address"] = tunAddress;
             inboundObj["domain_strategy"] = dataStore->routing->domain_strategy;
-            if (dataStore->enable_tun_routing && dataStore->routing->def_outbound == "proxy")
+            if (dataStore->enable_tun_routing && routeChain->defaultOutboundID == proxyID)
             {
                 if (!directIPCIDRs.isEmpty()) inboundObj["route_exclude_address"] = directIPCIDRs;
                 if (!directIPSets.isEmpty()) inboundObj["route_exclude_address_set"] = directIPSets;
@@ -592,7 +588,7 @@ namespace NekoGui {
         {
             routeObj["find_process"] = true;
         }
-        if (!status->forTest) routeObj["final"] = dataStore->routing->def_outbound;
+        if (!status->forTest) routeObj["final"] = outboundIDToString(routeChain->defaultOutboundID);
 
         if (dataStore->routing->sniffing_mode != SniffingMode::DISABLE)
         {

@@ -815,6 +815,7 @@ namespace NekoGui {
 
         _add(new configItem("id", &id, itemType::integer));
         _add(new configItem("name", &name, itemType::string));
+        _add(new configItem("default_outbound", &defaultOutboundID, itemType::integer));
         _add(new configItem("rules", &castedRules, itemType::jsonStoreList));
     }
 

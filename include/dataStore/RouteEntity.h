@@ -5,6 +5,23 @@
 #include "include/global/NekoGui.hpp"
 
 namespace NekoGui {
+    enum outboundID {proxyID=-1, directID=-2, blockID=-3, dnsOutID=-4};
+    inline QString outboundIDToString(int id)
+    {
+        if (id == proxyID) return {"proxy"};
+        if (id == directID) return {"direct"};
+        if (id == blockID) return {"block"};
+        if (id == dnsOutID) return {"dns"};
+        return {"unknown"};
+    }
+    inline outboundID stringToOutboundID(const QString& out)
+    {
+        if (out == "proxy") return proxyID;
+        if (out == "direct") return directID;
+        if (out == "block") return blockID;
+        if (out == "dns_out") return dnsOutID;
+        return proxyID;
+    }
     enum inputType {trufalse, select, text};
     const int IranBypassChainID = 111111111;
     const int ChinaBypassChainID = 222222222;
@@ -57,7 +74,7 @@ namespace NekoGui {
         QList<QString> process_path_regex;
         QList<QString> rule_set;
         bool invert = false;
-        int outboundID = -2; // -1 is proxy -2 is direct -3 is block -4 is dns_out
+        int outboundID = directID; // -1 is proxy -2 is direct -3 is block -4 is dns_out
         // since sing-box 1.11.0
         QString action = "route";
 
@@ -94,6 +111,7 @@ namespace NekoGui {
         QString name = "";
         QList<std::shared_ptr<RouteRule>> Rules;
         QList<JsonStore*> castedRules;
+        int defaultOutboundID = proxyID;
 
         RoutingChain();
 

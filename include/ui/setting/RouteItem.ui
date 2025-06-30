@@ -35,6 +35,20 @@
         <widget class="QGroupBox" name="simple_direct_box">
          <layout class="QVBoxLayout" name="verticalLayout_6">
           <item>
+           <widget class="QComboBox" name="def_out">
+            <item>
+             <property name="text">
+              <string>proxy</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>direct</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item>
            <widget class="QLabel" name="label">
             <property name="text">
              <string>Direct</string>

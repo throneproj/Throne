@@ -76,7 +76,6 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     QStringList qsValue = {""};
     QString dnsHelpDocumentUrl;
 
-    ui->default_out->setCurrentText(NekoGui::dataStore->routing->def_outbound);
     ui->outbound_domain_strategy->addItems(Preset::SingBox::DomainStrategy);
     ui->domainStrategyCombo->addItems(Preset::SingBox::DomainStrategy);
     qsValue += QString("prefer_ipv4 prefer_ipv6 ipv4_only ipv6_only").split(" ");
@@ -209,7 +208,6 @@ void DialogManageRoutes::accept() {
 
     NekoGui::profileManager->UpdateRouteChains(chainList);
     NekoGui::dataStore->routing->current_route_id = currentRoute->id;
-    NekoGui::dataStore->routing->def_outbound = ui->default_out->currentText();
 
     NekoGui::dataStore->enable_dns_server = ui->dnshijack_enable->isChecked();
     NekoGui::dataStore->dns_server_listen_port = ui->dnshijack_listenport->text().toInt();
@@ -304,10 +302,6 @@ void DialogManageRoutes::on_delete_route_clicked() {
     }
 
     auto profileToDel = chainList[idx];
-    if (profileToDel->isViewOnly()) {
-        MessageBoxInfo(tr("Profile is Read-only"), tr("Cannot delete built-in profiles"));
-        return;
-    }
     chainList.removeAt(idx);
     if (profileToDel == currentRoute) {
         currentRoute = chainList[0];

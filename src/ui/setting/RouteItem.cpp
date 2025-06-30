@@ -121,6 +121,8 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<NekoGui::RoutingChai
     ui->rule_preview->setReadOnly(true);
     updateRuleSection();
 
+    ui->def_out->setCurrentText(NekoGui::outboundIDToString(chain->defaultOutboundID));
+
     // simple rules setup
     QStringList ruleItems = {"domain:", "suffix:", "regex:", "keyword:", "ip:", "processName:", "processPath:"};
     for (const auto& geoIP : geoIpList) {
@@ -337,6 +339,7 @@ void RouteItem::accept() {
         });
         return;
     }
+    chain->defaultOutboundID = NekoGui::stringToOutboundID(ui->def_out->currentText());
 
     emit settingsChanged(chain);
 

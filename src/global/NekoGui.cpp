@@ -334,7 +334,6 @@ namespace NekoGui {
         if (!Preset::SingBox::DomainStrategy.contains(domain_strategy)) domain_strategy = "";
         if (!Preset::SingBox::DomainStrategy.contains(outbound_domain_strategy)) outbound_domain_strategy = "";
         _add(new configItem("current_route_id", &this->current_route_id, itemType::integer));
-        _add(new configItem("default_outbound", &this->def_outbound, itemType::string));
         //
         _add(new configItem("remote_dns", &this->remote_dns, itemType::string));
         _add(new configItem("remote_dns_strategy", &this->remote_dns_strategy, itemType::string));

@@ -27,61 +27,8 @@
        <item>
         <widget class="QWidget" name="widget" native="true">
          <layout class="QGridLayout" name="gridLayout_2">
-          <item row="3" column="1">
-           <widget class="QComboBox" name="outbound_domain_strategy">
-            <property name="editable">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QComboBox" name="domainStrategyCombo">
-            <property name="editable">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="route_prof_l">
-            <property name="text">
-             <string>Routing Profile</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="1">
-           <widget class="QComboBox" name="default_out">
-            <item>
-             <property name="text">
-              <string notr="true">proxy</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">direct</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="5" column="0">
-           <widget class="QLabel" name="default_out_l">
-            <property name="toolTip">
-             <string>The outbound tag to use when the request is not handled by any rule</string>
-            </property>
-            <property name="text">
-             <string>Default Outbound</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_6">
-            <property name="toolTip">
-             <string notr="true">inbound.domain_strategy
-when used, domain destinations are resolved to IP before routing.</string>
-            </property>
-            <property name="text">
-             <string>Inbound Domain Strategy</string>
-            </property>
-           </widget>
+          <item row="4" column="1">
+           <widget class="QComboBox" name="route_prof"/>
           </item>
           <item row="3" column="0">
            <widget class="QLabel" name="label_3">
@@ -95,8 +42,12 @@ also if the connection cannot be established with the current address family (ip
             </property>
            </widget>
           </item>
-          <item row="4" column="1">
-           <widget class="QComboBox" name="route_prof"/>
+          <item row="3" column="1">
+           <widget class="QComboBox" name="outbound_domain_strategy">
+            <property name="editable">
+             <bool>false</bool>
+            </property>
+           </widget>
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label">
@@ -105,6 +56,17 @@ also if the connection cannot be established with the current address family (ip
             </property>
             <property name="text">
              <string>Sniffing Mode</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_6">
+            <property name="toolTip">
+             <string notr="true">inbound.domain_strategy
+when used, domain destinations are resolved to IP before routing.</string>
+            </property>
+            <property name="text">
+             <string>Inbound Domain Strategy</string>
             </property>
            </widget>
           </item>
@@ -125,6 +87,20 @@ also if the connection cannot be established with the current address family (ip
               <string>Sniff result for destination</string>
              </property>
             </item>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="route_prof_l">
+            <property name="text">
+             <string>Routing Profile</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QComboBox" name="domainStrategyCombo">
+            <property name="editable">
+             <bool>false</bool>
+            </property>
            </widget>
           </item>
          </layout>

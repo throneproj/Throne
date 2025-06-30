@@ -7,7 +7,6 @@ namespace NekoGui {
     class Routing : public JsonStore {
     public:
         int current_route_id = 0;
-        QString def_outbound = "proxy";
 
         // DNS
         QString remote_dns = "tls://8.8.8.8";

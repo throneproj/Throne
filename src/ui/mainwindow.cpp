@@ -787,9 +787,6 @@ void MainWindow::prepare_exit()
     on_commitDataRequest();
     //
     NekoGui::dataStore->save_control_no_save = true; // don't change datastore after this line
-    neko_stop(false, true);
-    //
-    sem_stopped.acquire();
     NekoGui_rpc::defaultClient->Exit();
     mu_exit.unlock();
     qDebug() << "prepare exit done!";

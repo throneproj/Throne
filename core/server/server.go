@@ -38,6 +38,14 @@ type server struct {
 func (s *server) Exit(ctx context.Context, in *gen.EmptyReq) (out *gen.EmptyResp, _ error) {
 	out = &gen.EmptyResp{}
 
+	if needUnsetDNS {
+		needUnsetDNS = false
+		err := sys.SetSystemDNS("Empty", boxInstance.Network().InterfaceMonitor())
+		if err != nil {
+			log.Println("Failed to unset system DNS:", err)
+		}
+	}
+
 	// Connection closed
 	defer os.Exit(0)
 	return
