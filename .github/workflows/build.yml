@@ -101,7 +101,7 @@ jobs:
         if: matrix.platform == 'windows-latest'
         uses: bwoodsend/setup-winlibs-action@v1.15
       - name: Install ninja-build tool
-        uses: seanmiddleditch/gha-setup-ninja@v5
+        uses: seanmiddleditch/gha-setup-ninja@v6
 
       - name: Download Artifacts
         uses: actions/download-artifact@v4.1.8
