@@ -41,6 +41,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
 
 #ifndef Q_OS_WIN
     ui->proxy_scheme_box->hide();
+    ui->windows_no_admin->hide();
 #endif
 
     // Style
@@ -149,6 +150,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
 
     ui->utlsFingerprint->addItems(Preset::SingBox::UtlsFingerPrint);
     ui->disable_priv_req->setChecked(NekoGui::dataStore->disable_privilege_req);
+    ui->windows_no_admin->setChecked(NekoGui::dataStore->disable_run_admin);
 
     D_LOAD_BOOL(skip_cert)
     ui->utlsFingerprint->setCurrentText(NekoGui::dataStore->utlsFingerprint);
@@ -219,6 +221,7 @@ void DialogBasicSettings::accept() {
     D_SAVE_BOOL(skip_cert)
     NekoGui::dataStore->utlsFingerprint = ui->utlsFingerprint->currentText();
     NekoGui::dataStore->disable_privilege_req = ui->disable_priv_req->isChecked();
+    NekoGui::dataStore->disable_run_admin = ui->windows_no_admin->isChecked();
 
     QStringList str{"UpdateDataStore"};
     if (CACHE.needRestart) str << "NeedRestart";

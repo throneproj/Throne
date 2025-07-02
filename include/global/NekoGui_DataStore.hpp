@@ -97,6 +97,7 @@ namespace NekoGui {
         // Security
         bool skip_cert = false;
         QString utlsFingerprint = "";
+        bool disable_run_admin = false; // windows only
 
         // Remember
         QStringList remember_spmode = {};

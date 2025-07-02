@@ -833,6 +833,16 @@
          </layout>
         </widget>
        </item>
+       <item>
+        <widget class="QCheckBox" name="windows_no_admin">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Do not attempt to start as Admin unless explicitly requested&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Always Start as Standard User</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </widget>

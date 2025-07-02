@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
     }
 
 #ifdef Q_OS_WIN
-    if (NekoGui::dataStore->windows_set_admin && !NekoGui::IsAdmin())
+    if (NekoGui::dataStore->windows_set_admin && !NekoGui::IsAdmin() && !NekoGui::dataStore->disable_run_admin)
     {
         NekoGui::dataStore->windows_set_admin = false; // so that if permission denied, we will run as user on the next run
         NekoGui::dataStore->Save();
