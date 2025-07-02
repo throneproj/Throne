@@ -1,5 +1,7 @@
 github.com/Mahdi-zarei/sing-box v1.3.5-0.20250701215754-027a41f0810f h1:2+ZFlamQ8KMweMhbAhXVpBxP70wlFE4DqKfXmpv5cfU=
 github.com/Mahdi-zarei/sing-box v1.3.5-0.20250701215754-027a41f0810f/go.mod h1:R2chup8y1cp/CQsTu0I8M5wiI0405t980diR0Lrv3Qk=
+github.com/Mahdi-zarei/sing-dns v0.3.0-beta.14.0.20250507225909-53baf4f30fa3 h1:HhI7jFQa1vWC92Eai/mP3Y6rpE5jtbMEFFoDz0AqsbE=
+github.com/Mahdi-zarei/sing-dns v0.3.0-beta.14.0.20250507225909-53baf4f30fa3/go.mod h1:dweQs54ng2YGzoJfz+F9dGuDNdP5pJ3PLeggnK5VWc8=
 github.com/Mahdi-zarei/speedtest-go v1.7.12 h1:KktFSpobkhIgrOd25e8IpVzVq2enpCDzQQPVtGxWZV4=
 github.com/Mahdi-zarei/speedtest-go v1.7.12/go.mod h1:b1H+UBFUnLKH1YquN2xao8d1hokcnDFFhEKDARTzddM=
 github.com/ajg/form v1.5.1 h1:t9c7v8JUKu/XxOGBU0yjNpaMloxGEJhUkqFRq0ibGeU=
