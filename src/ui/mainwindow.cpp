@@ -335,7 +335,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     trayMenu->addAction(ui->actionRestart_Proxy);
     trayMenu->addAction(ui->actionRestart_Program);
     trayMenu->addAction(ui->menu_exit);
-    tray->show();
+    tray->setVisible(!NekoGui::dataStore->disable_tray);
     tray->setContextMenu(trayMenu);
     connect(tray, &QSystemTrayIcon::activated, qApp, [=](QSystemTrayIcon::ActivationReason reason) {
         if (reason == QSystemTrayIcon::Trigger) {
@@ -524,6 +524,8 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     if (tray->isVisible()) {
         hide();
         event->ignore();
+    } else {
+        on_menu_exit_triggered();
     }
 }
 
@@ -599,6 +601,9 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
     if (info.contains("UpdateIcon")) {
         icon_status = -1;
         refresh_status();
+    }
+    if (info.contains("UpdateDisableTray")) {
+        tray->setVisible(!NekoGui::dataStore->disable_tray);
     }
     if (info.contains("UpdateDataStore")) {
         auto suggestRestartProxy = NekoGui::dataStore->Save();
