@@ -17,7 +17,7 @@ echo "📁 Project root: $PROJECT_ROOT"
 # Check dependencies
 echo "🔍 Checking dependencies..."
 missing_deps=()
-for pkg in cmake ninja qt6-base qt6-tools qt6-declarative qt6-networkauth go protobuf base-devel make; do
+for pkg in cmake ninja qt6-base qt6-tools qt6-declarative qt6-networkauth go protobuf base-devel make wget patchelf; do
     if ! pacman -Q "$pkg" &>/dev/null; then
         missing_deps+=("$pkg")
     fi
@@ -44,7 +44,7 @@ else
     echo "✅ Dependencies already built, skipping..."
 fi
 
-# Build Go core
+# Build Go core with proper build tags
 echo "🐹 Building Go core..."
 cd "$PROJECT_ROOT/core/server"
 export GOOS=linux
@@ -60,8 +60,14 @@ else
     go mod tidy
 fi
 
-# Build all Go files together
-go build -ldflags="-s -w" -o nekobox_core .
+# Get sing-box version for proper version embedding
+VERSION_SINGBOX=$(go list -m -f '{{.Version}}' github.com/sagernet/sing-box)
+echo "📦 Sing-box version: $VERSION_SINGBOX"
+
+# Build with all necessary build tags (matching original Ubuntu script)
+go build -v -o nekobox_core -trimpath -ldflags "-w -s -X 'github.com/sagernet/sing-box/constant.Version=${VERSION_SINGBOX}'" \
+    -tags "with_clash_api,with_gvisor,with_quic,with_wireguard,with_utls,with_ech,with_dhcp" .
+
 cp nekobox_core "$BUILD_DIR/"
 
 # Build updater
@@ -97,7 +103,7 @@ if [ ! -f "geosite.db" ]; then
     wget -O geosite.db "https://github.com/SagerNet/sing-geosite/releases/latest/download/geosite.db"
 fi
 
-# Create deployment
+# Create deployment with proper structure
 echo "📦 Creating deployment..."
 rm -rf "$DEPLOY_DIR"
 mkdir -p "$DEPLOY_DIR"
@@ -133,4 +139,7 @@ tar -czf nekoray-linux64.tar.gz \
 echo "🎉 Build completed!"
 echo "📁 Files in: $DEPLOY_DIR"
 echo "📦 Package: $DEPLOY_DIR/nekoray-linux64.tar.gz"
-echo "🚀 Run with: cd $DEPLOY_DIR && ./nekoray" 
+echo "🚀 Run with: cd $DEPLOY_DIR && ./nekoray"
+echo ""
+echo "⚠️  Note: This is a basic build. For a full deployment with Qt plugins and libraries,"
+echo "   consider using the original deploy_linux64.sh script or implementing linuxdeploy." 
