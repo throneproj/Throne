@@ -72,7 +72,7 @@ public:
 
     void neko_set_spmode_vpn(bool enable, bool save = true);
 
-    bool get_elevated_permissions(int reason = 3);
+    bool get_elevated_permissions(int reason = 0);
 
     void show_log_impl(const QString &log);
 
@@ -91,6 +91,8 @@ public:
     void UpdateDataView(bool force = false);
 
     void setDownloadReport(const DownloadProgressReport& report, bool show);
+
+    void reset_authentication_cache();
 
 signals:
 

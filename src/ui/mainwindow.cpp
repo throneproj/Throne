@@ -374,6 +374,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     //
     connect(ui->checkBox_VPN, &QCheckBox::clicked, this, [=](bool checked) { neko_set_spmode_vpn(checked); });
     connect(ui->checkBox_SystemProxy, &QCheckBox::clicked, this, [=](bool checked) { neko_set_spmode_system_proxy(checked); });
+    
+    // Reset authentication cache on startup
+    reset_authentication_cache();
+    
     connect(ui->menu_spmode, &QMenu::aboutToShow, this, [=]() {
         ui->menu_spmode_disabled->setChecked(!(NekoGui::dataStore->spmode_system_proxy || NekoGui::dataStore->spmode_vpn));
         ui->menu_spmode_system_proxy->setChecked(NekoGui::dataStore->spmode_system_proxy);
@@ -839,36 +843,73 @@ void MainWindow::neko_toggle_system_proxy() {
 }
 
 bool MainWindow::get_elevated_permissions(int reason) {
+    static bool auth_requested = false;
+    static bool auth_success = false;
+    
     if (NekoGui::dataStore->disable_privilege_req)
     {
         MW_show_log(tr("User opted for no privilege req, some features may not work"));
         return true;
     }
-    if (NekoGui::IsAdmin()) return true;
+    
+    // Check if we already have admin privileges
+    if (NekoGui::IsAdmin()) {
+        auth_success = true;
+        return true;
+    }
+    
 #ifdef Q_OS_LINUX
+    // If we already successfully authenticated, return true
+    if (auth_requested && auth_success) return true;
+
     if (!Linux_HavePkexec()) {
         MessageBoxWarning(software_name, "Please install \"pkexec\" first.");
         return false;
     }
-    auto n = QMessageBox::warning(GetMessageBoxParent(), software_name, tr("Please give the core root privileges"), QMessageBox::Yes | QMessageBox::No);
-    if (n == QMessageBox::Yes) {
-        runOnNewThread([=]
-        {
-            auto chownArgs = QString("root:root " + NekoGui::FindNekoBoxCoreRealPath());
-            auto ret = Linux_Run_Command("chown", chownArgs);
-            if (ret != 0) {
-                MW_show_log(QString("Failed to run chown %1 code is %2").arg(chownArgs).arg(ret));
-            }
-            auto chmodArgs = QString("u+s " + NekoGui::FindNekoBoxCoreRealPath());
-            ret = Linux_Run_Command("chmod", chmodArgs);
-            if (ret == 0) {
-                StopVPNProcess();
-            } else {
-                MW_show_log(QString("Failed to run chmod %1").arg(chmodArgs));
-            }
-        });
-        return false;
+    
+    // Only show authentication dialog once per session
+    if (!auth_requested) {
+        auto n = QMessageBox::warning(GetMessageBoxParent(), software_name, tr("Please give the core root privileges"), QMessageBox::Yes | QMessageBox::No);
+        if (n == QMessageBox::Yes) {
+            auth_requested = true;
+            runOnNewThread([=]
+            {
+                QString corePath = NekoGui::FindNekoBoxCoreRealPath();
+                QStringList cmds;
+                cmds << QString("chown root:root \"%1\"").arg(corePath);
+                cmds << QString("chmod u+s \"%1\"").arg(corePath);
+                
+                // If there's a VPN process running, kill it too
+                if (core_process && core_process->processId() > 0) {
+                    cmds << QString("kill -9 %1").arg(core_process->processId());
+                }
+                
+                int result = Linux_Run_RootScript(cmds);
+                auth_success = (result == 0);
+                
+                if (auth_success) {
+                    runOnUiThread([=] {
+                        MW_show_log(tr("Successfully set core privileges"));
+                        // If this was called from VPN activation, enable VPN mode
+                        if (reason == 3) { // VPN reason
+                            NekoGui::dataStore->spmode_vpn = true;
+                            NekoGui::dataStore->Save();
+                        }
+                        refresh_status();
+                    });
+                } else {
+                    runOnUiThread([=] {
+                        MessageBoxWarning(software_name, tr("Failed to set core privileges"));
+                        refresh_status();
+                    });
+                }
+            });
+            return false;
+        } else {
+            return false;
+        }
     }
+    return auth_success;
 #endif
 #ifdef Q_OS_WIN
     auto n = QMessageBox::warning(GetMessageBoxParent(), software_name, tr("Please run Nekoray as admin"), QMessageBox::Yes | QMessageBox::No);
@@ -902,13 +943,20 @@ bool MainWindow::get_elevated_permissions(int reason) {
     return false;
 }
 
+void MainWindow::reset_authentication_cache() {
+    // Reset the static variables in get_elevated_permissions
+    // This is a workaround since we can't directly access static variables
+    // We'll use a different approach by checking if the core file has proper permissions
+    NekoGui::IsAdmin(true); // Force renew admin check
+}
+
 void MainWindow::neko_set_spmode_vpn(bool enable, bool save) {
     if (enable == NekoGui::dataStore->spmode_vpn) return;
 
     if (enable) {
         bool requestPermission = !NekoGui::IsAdmin();
         if (requestPermission) {
-            if (!get_elevated_permissions()) {
+            if (!get_elevated_permissions(3)) { // 3 = VPN reason
                 refresh_status();
                 return;
             }
@@ -2239,10 +2287,18 @@ bool MainWindow::StopVPNProcess() {
         ok = ret == 0;
 #endif
 #ifdef Q_OS_LINUX
-        QProcess p;
-        p.start("pkexec", {"kill", "-9", Int2String(vpn_pid)});
-        p.waitForFinished();
-        ok = p.exitCode() == 0;
+        // If we already have elevated permissions, use them
+        if (NekoGui::IsAdmin()) {
+            QStringList cmds;
+            cmds << QString("kill -9 %1").arg(vpn_pid);
+            ok = Linux_Run_RootScript(cmds) == 0;
+        } else {
+            // Fallback to direct pkexec if no elevated permissions
+            QProcess p;
+            p.start("pkexec", {"kill", "-9", Int2String(vpn_pid)});
+            p.waitForFinished();
+            ok = p.exitCode() == 0;
+        }
 #endif
         ok ? vpn_pid = 0 : MessageBoxWarning(tr("Error"), tr("Failed to stop Tun process"));
         return ok;
