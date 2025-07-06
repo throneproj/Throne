@@ -109,9 +109,14 @@ echo "📚 Copying Qt libraries..."
 mkdir -p "$DEPLOY_DIR/usr/lib"
 
 # Find Qt libraries
-QT_LIB_PATH=$(find /usr/lib/qt6 -name "libQt6Core.so*" 2>/dev/null | head -1 | xargs dirname)
-if [ -z "$QT_LIB_PATH" ]; then
-    QT_LIB_PATH=$(find /usr/lib/qt -name "libQt6Core.so*" 2>/dev/null | head -1 | xargs dirname)
+QT_LIB_PATH=$(find /usr/lib/qt6 -name "libQt6Core.so*" 2>/dev/null | head -1)
+if [ -n "$QT_LIB_PATH" ]; then
+    QT_LIB_PATH=$(dirname "$QT_LIB_PATH")
+elif [ -z "$QT_LIB_PATH" ]; then
+    QT_LIB_PATH=$(find /usr/lib/qt -name "libQt6Core.so*" 2>/dev/null | head -1)
+    if [ -n "$QT_LIB_PATH" ]; then
+        QT_LIB_PATH=$(dirname "$QT_LIB_PATH")
+    fi
 fi
 
 if [ -n "$QT_LIB_PATH" ] && [ -d "$QT_LIB_PATH" ]; then
@@ -133,7 +138,29 @@ if [ -n "$QT_LIB_PATH" ] && [ -d "$QT_LIB_PATH" ]; then
     
     echo "✅ Qt libraries copied"
 else
-    echo "⚠️  Warning: Qt libraries not found. Application may not work properly."
+    echo "⚠️  Warning: Qt libraries not found. Trying alternative locations..."
+    
+    # Try to find Qt libraries in common locations
+    for qt_path in "/usr/lib/qt6" "/usr/lib/qt" "/opt/qt6/lib" "/opt/qt/lib"; do
+        if [ -d "$qt_path" ]; then
+            echo "📦 Found Qt installation at: $qt_path"
+            for lib in libQt6Core libQt6Gui libQt6Widgets libQt6Network libQt6DBus; do
+                if [ -f "$qt_path/$lib.so" ]; then
+                    cp "$qt_path/$lib.so"* "$DEPLOY_DIR/usr/lib/"
+                fi
+            done
+            break
+        fi
+    done
+    
+    # Copy additional system libraries that might be needed
+    for lib in libxcb-cursor libxcb-util libicuuc libicui18n libicudata; do
+        if [ -f "/usr/lib/$lib.so" ]; then
+            cp "/usr/lib/$lib.so"* "$DEPLOY_DIR/usr/lib/"
+        fi
+    done
+    
+    echo "✅ Qt libraries copied (alternative method)"
 fi
 
 # Fix library rpath if patchelf is available
@@ -169,7 +196,7 @@ else
 fi
 
 # Make executable
-chmod +x "$DEPLOY_DIR"/*
+chmod +x "$DEPLOY_DIR"/* 2>/dev/null || true
 
 # Create package
 cd "$DEPLOY_DIR"
@@ -181,7 +208,7 @@ tar -czf nekoray-linux64.tar.gz \
     geosite.db \
     translations/ \
     res/ \
-    usr/
+    usr/ 2>/dev/null || echo "⚠️  Warning: Some files may be missing in the package"
 
 echo "🎉 Deployment completed!"
 echo "📁 Files in: $DEPLOY_DIR"
