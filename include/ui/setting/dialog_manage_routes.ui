@@ -343,6 +343,41 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
                 <string notr="true">https://[2606:4700:4700::1111]/dns-query</string>
                </property>
               </item>
+              <item>
+               <property name="text">
+                <string notr="true">9.9.9.9</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string notr="true">149.112.112.112</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string notr="true">https://dns.quad9.net:853/dns-query</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string notr="true">https://9.9.9.9/dns-query</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string notr="true">https://149.112.112.112/dns-query</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string notr="true">https://[2620:fe::fe]/dns-query</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string notr="true">https://[2620:fe::9]/dns-query</string>
+               </property>
+              </item>
              </widget>
             </item>
             <item>
@@ -413,6 +448,36 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
               <item>
                <property name="text">
                 <string notr="true">2402:4e00::</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string notr="true">9.9.9.9</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string notr="true">149.112.112.112</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string notr="true">https://9.9.9.9/dns-query</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string notr="true">https://149.112.112.112/dns-query</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string notr="true">2620:fe::fe</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string notr="true">2620:fe::9</string>
                </property>
               </item>
              </widget>
