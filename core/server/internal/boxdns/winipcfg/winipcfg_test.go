@@ -43,7 +43,7 @@ var (
 		NextHop:     netip.MustParseAddr("172.16.1.2"),
 		Metric:      0,
 	}
-	dnsesToSet = []netip.Addr{netip.MustParseAddr("8.8.8.8"), netip.MustParseAddr("8.8.4.4")}
+	dnsesToSet = []netip.Addr{netip.MustParseAddr("8.8.8.8"), netip.MustParseAddr("8.8.4.4"), netip.MustParseAddr("9.9.9.9"), netip.MustParseAddr("149.112.112.112")}
 )
 
 func runningElevated() bool {
