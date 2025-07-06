@@ -31,6 +31,11 @@ var systemProxyAddr metadata.Socksaddr
 var instanceCancel context.CancelFunc
 var debug bool
 
+// SetDebug sets the debug flag
+func SetDebug(d bool) {
+	debug = d
+}
+
 type server struct {
 	gen.UnimplementedLibcoreServiceServer
 }

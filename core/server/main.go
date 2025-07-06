@@ -24,7 +24,7 @@ func RunCore() {
 	_port := flag.Int("port", 19810, "")
 	_debug := flag.Bool("debug", false, "")
 	flag.CommandLine.Parse(os.Args[2:])
-	debug = *_debug
+	SetDebug(*_debug)
 
 	go func() {
 		parent, err := os.FindProcess(os.Getppid())
