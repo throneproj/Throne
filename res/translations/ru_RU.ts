@@ -13,7 +13,7 @@
     </message>
     <message>
         <source>Listen Address</source>
-        <translation>Адрес входящих подключений</translation>
+        <translation>Прослушиваемый адрес</translation>
     </message>
     <message>
         <source>Custom Inbound</source>
@@ -32,12 +32,16 @@
         <translation>URL теста задержки</translation>
     </message>
     <message>
+        <source>Simple Download URL</source>
+        <translation>URL простого теста задержки</translation>
+    </message>
+    <message>
         <source>Concurrent</source>
         <translation>Параллельно</translation>
     </message>
     <message>
         <source>Style</source>
-        <translation>Стиль</translation>
+        <translation>Интерфейс</translation>
     </message>
     <message>
         <source>Theme</source>
@@ -53,11 +57,11 @@
     </message>
     <message>
         <source>Hide dashboard at startup</source>
-        <translation>Спрятать окно при старте</translation>
+        <translation>Свернуть приложение при запуске</translation>
     </message>
     <message>
         <source>Max log lines</source>
-        <translation>Макс. строк в журнале</translation>
+        <translation>Макс. строк в логах</translation>
     </message>
     <message>
         <source>Subscription</source>
@@ -65,7 +69,7 @@
     </message>
     <message>
         <source>User Agent</source>
-        <translation>Юзер Агент</translation>
+        <translation>Эмулировать Юзер Агент как:</translation>
     </message>
     <message>
         <source>Use proxy when updating subscription</source>
@@ -86,6 +90,10 @@
     <message>
         <source>Select</source>
         <translation>Выбрать</translation>
+    </message>
+    <message>
+        <source>Loglevel</source>
+        <translation>Уровень логирования</translation>
     </message>
     <message>
         <source>Multiplex (mux)</source>
@@ -114,6 +122,14 @@
     <message>
         <source>Default uTLS Fingerprint</source>
         <translation>Отпечаток uTLS по умолчанию</translation>
+    </message>
+    <message>
+        <source>Always Start as Standard User</source>
+        <translation>Всегда запускать приложения как Обычный пользователь</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Do not attempt to start as Admin unless explicitly requested&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>Не пытаться запускать приложение от имени администратора,если об этом явно не указано.</translation>
     </message>
     <message>
         <source>Please select a PNG file.</source>
@@ -147,7 +163,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Interval (minute, invalid if less than 30)</source>
-        <translation>Интервал (в минутах, значение считается неправильным, если меньше 30)</translation>
+        <translation>Интервал обновления указывается в минутах. (Мин. значение от 30 минут)</translation>
     </message>
     <message>
         <source>Disable Traffic Stats</source>
@@ -183,7 +199,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Listen Port</source>
-        <translation type="unfinished">Порт входящих подключений</translation>
+        <translation type="unfinished">Прослушиваемый порт</translation>
     </message>
     <message>
         <source>Assets</source>
@@ -199,15 +215,15 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>GeoIP URL</source>
-        <translation type="unfinished">URL-адрес геоIP</translation>
+        <translation type="unfinished">Ссылка на GeoIP</translation>
     </message>
     <message>
         <source>GeoSite URL</source>
-        <translation type="unfinished">URL-адрес геосайта</translation>
+        <translation type="unfinished">Ссылка на GeoSite</translation>
     </message>
     <message>
         <source>Download and Replace Geo files</source>
-        <translation type="unfinished">Загрузить и заменить геофайлы</translation>
+        <translation type="unfinished">Загрузить и заменить Geo файлы</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Socks
@@ -228,8 +244,8 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Might
                                                                             Improve Ping and Performance&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                                         </source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Сила
-                                                                            Улучшение пинга и производительности&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;При отключении данного пункта.
+                                                                            Уменьшается задержка (пинг) и улучшится производительность&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                                         </translation>
     </message>
     <message>
@@ -258,7 +274,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Proxy Format</source>
-        <translation type="unfinished">Формат прокси</translation>
+        <translation type="unfinished">Отображение формата Прокси</translation>
     </message>
     <message>
         <source>Language</source>
@@ -270,35 +286,35 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>{ip}:{port}</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">{ip}:{порт}</translation>
     </message>
     <message>
         <source>http://{ip}:{port}</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">http://{ip}:{порт}</translation>
     </message>
     <message>
         <source>socks={ip}:{port}</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">socks={ip}:{порт}</translation>
     </message>
     <message>
         <source>Speedtest mode</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Режим проверки интернет соединения</translation>
     </message>
     <message>
         <source>Download + Upload</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Скачивание + Загрузка</translation>
     </message>
     <message>
         <source>Only Download</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Только Загрузка</translation>
     </message>
     <message>
         <source>Only Upload</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Только Скачивание</translation>
     </message>
     <message>
         <source>Disable Privilege request</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Откл. привилегированный запрос</translation>
     </message>
 </context>
 <context>
@@ -552,7 +568,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Reality SID</source>
-        <translation type="unfinished">Настроящий SID</translation>
+        <translation type="unfinished">Настоящий SID</translation>
     </message>
     <message>
         <source>header type</source>
@@ -560,7 +576,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Extra Core</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Доп. Ядро</translation>
     </message>
 </context>
 <context>
@@ -587,7 +603,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Toggle System Proxy</source>
-        <translation type="unfinished">Переключить системный прокси</translation>
+        <translation type="unfinished">Режим проксирования</translation>
     </message>
 </context>
 <context>
@@ -677,7 +693,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Default Outbound</source>
-        <translation>Outbound по умолчанию</translation>
+        <translation>Режим работы Outbound</translation>
     </message>
     <message>
         <source>This is especially important and it is recommended to use the default value of &quot;localhost&quot;.
@@ -733,11 +749,11 @@ also if the connection cannot be established with the current address family (ip
     </message>
     <message>
         <source>Outbound Domain Strategy</source>
-        <translation type="unfinished">Правило outbound домена</translation>
+        <translation type="unfinished">Outbound-стратегия доменов</translation>
     </message>
     <message>
         <source>Inbound Domain Strategy</source>
-        <translation type="unfinished">Правило входящего домена</translation>
+        <translation type="unfinished">Inbound-стратегия доменов</translation>
     </message>
     <message>
         <source>Enable FakeIP</source>
@@ -761,11 +777,11 @@ also if the connection cannot be established with the current address family (ip
     </message>
     <message>
         <source>Listen Address</source>
-        <translation type="unfinished">Адрес входящих подключений</translation>
+        <translation type="unfinished">Прослушиваемый адрес</translation>
     </message>
     <message>
         <source>Listen Port</source>
-        <translation type="unfinished">Порт входящего подключения</translation>
+        <translation type="unfinished">Прослушиваемый порт</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Following format should be used:&lt;br/&gt;domain:a.com&lt;/p&gt;&lt;p&gt;suffix:a.com&lt;/p&gt;&lt;p&gt;regex:someregex&lt;/p&gt;&lt;p&gt;rule_set:nameOfRuleSet&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -841,7 +857,7 @@ also if the connection cannot be established with the current address family (ip
     </message>
     <message>
         <source>Allow Lan to Connect</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Разрешить подкл. по локальной сети</translation>
     </message>
 </context>
 <context>
@@ -882,11 +898,12 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, Direct IP CIDRs and rule sets will also be added to the Tun setting to be excluded at OS routing level. IMPORTANT: Large rule sets have been reported to cause massive CPU usage in windows, please enable this option with caution.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Если эта опция включена, прямые IP CIDR'ы и наборы правил также будут добавлены в настройки Tun, чтобы исключить их на уровне маршрутизации ОС.
+ВАЖНО: Сообщалось, что из-за большого кол-ва правил может вызвать повышенную нагрузку на процессор в windows, поэтому включайте эту опцию с осторожностью.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Enable Tun Routing</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Вкл. Tun маршрутизацию</translation>
     </message>
 </context>
 <context>
@@ -1034,7 +1051,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Heartbeat</source>
-        <translation>Сердцебиение (Hearbeat)</translation>
+        <translation>Сердцебиение (Heartbeat)</translation>
     </message>
     <message>
         <source>Zero Rtt Handshake</source>
@@ -1069,7 +1086,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <name>EditSSH</name>
     <message>
         <source>EditSSH</source>
-        <translation type="unfinished">РедактироватьSSH</translation>
+        <translation type="unfinished">Редактировать SSH</translation>
     </message>
     <message>
         <source>User</source>
@@ -1192,7 +1209,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Local Address</source>
-        <translation type="unfinished">Локальный адресс (Local Address)</translation>
+        <translation type="unfinished">Локальный адрес (Local Address)</translation>
     </message>
     <message>
         <source>Pre Shared Key</source>
@@ -1200,7 +1217,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Use System Interface</source>
-        <translation type="unfinished">Использовать системный интерфейс</translation>
+        <translation type="unfinished">Исп. системный интерфейс</translation>
     </message>
     <message>
         <source>Enable GSO</source>
@@ -1310,7 +1327,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Original Json may contain syntax errors. Json tree is disabled.</source>
-        <translation>Кажется, оригинальный JSON содержит синтатсические ошибки. Дерево JSON отключено.</translation>
+        <translation>Кажется, оригинальный JSON содержит синтаксические ошибки. Дерево JSON отключено.</translation>
     </message>
     <message>
         <source>You must correct these errors before continuing.</source>
@@ -1353,7 +1370,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Type</source>
-        <translation>Тип</translation>
+        <translation>Тип соединения</translation>
     </message>
     <message>
         <source>Address</source>
@@ -1365,7 +1382,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Test Result</source>
-        <translation>Результат теста</translation>
+        <translation>Задержка (пинг)</translation>
     </message>
     <message>
         <source>Traffic</source>
@@ -1429,7 +1446,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Clear Test Result</source>
-        <translation>Очистить результат теста</translation>
+        <translation>Очистить результат задержки (пинга)</translation>
     </message>
     <message>
         <source>Export %1 config</source>
@@ -1465,7 +1482,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Start with system</source>
-        <translation>Запускать вместе с системой</translation>
+        <translation>Автозапуск при загрузке</translation>
     </message>
     <message>
         <source>Remember last profile</source>
@@ -1603,7 +1620,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Set the following keywords to ignore?
 Split by line.</source>
-        <translation>Задайте ключнвые слова для игнорирования,
+        <translation>Задайте ключевые слова для игнорирования,
 каждое на отдельной строке.</translation>
     </message>
     <message>
@@ -1696,7 +1713,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Url Test Selected</source>
-        <translation type="unfinished">Тест выбранного URL</translation>
+        <translation type="unfinished">Тест задержки (пинга) выбранного профиля</translation>
     </message>
     <message>
         <source>Ctrl+Shift+S</source>
@@ -1704,7 +1721,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Url Test Group</source>
-        <translation type="unfinished">Тест группы URL</translation>
+        <translation type="unfinished">Тест задержки (пинга) до сервера</translation>
     </message>
     <message>
         <source>Ctrl+Shift+G</source>
@@ -1788,7 +1805,7 @@ Split by line.</source>
     </message>
     <message>
         <source>Logs</source>
-        <translation type="unfinished">Журналы</translation>
+        <translation type="unfinished">Логи</translation>
     </message>
     <message>
         <source>Geo Assets are missing, want to download them now?</source>
@@ -1940,31 +1957,31 @@ Split by line.</source>
     </message>
     <message>
         <source>Speedtest Current</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Тест скорость соединения текущего профиля</translation>
     </message>
     <message>
         <source>Speedtest Selected</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Тест скорость соединения выбранного профиля</translation>
     </message>
     <message>
         <source>Speedtest Group</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Проверить скорость соединения у данной группы</translation>
     </message>
     <message>
         <source>The last url test did not exit completely, please wait. If it persists, please restart the program.</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Тест задержек (пинга) завершился не полностью. Пожалуйста подождите или перезапустите программу</translation>
     </message>
     <message>
         <source>URL test finished!</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Тест задержек (пинга) завершён!</translation>
     </message>
     <message>
         <source>Profile speed test aborted</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Тест задержек (пинга) был отменён</translation>
     </message>
     <message>
         <source>[%1] speed test error: %2</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">[%1] ошибка теста скорости: %2</translation>
     </message>
     <message>
         <source>User opted for no privilege req, some features may not work</source>
@@ -2033,7 +2050,7 @@ How to update?</source>
     </message>
     <message>
         <source>Clearing servers...</source>
-        <translation>Очишаем серверы...</translation>
+        <translation>Очищаем серверы...</translation>
     </message>
     <message>
         <source>Added %1 profiles:
@@ -2172,11 +2189,11 @@ Release note:
     </message>
     <message>
         <source>Move Up</source>
-        <translation type="unfinished">Перемещать вверх</translation>
+        <translation type="unfinished">Поднять Вверх</translation>
     </message>
     <message>
         <source>Move Down</source>
-        <translation type="unfinished">Перемещать вниз</translation>
+        <translation type="unfinished">Опустить Вниз</translation>
     </message>
     <message>
         <source>Delete</source>
