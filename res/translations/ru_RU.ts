@@ -274,7 +274,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Proxy Format</source>
-        <translation type="unfinished">Отображение формата Прокси</translation>
+        <translation type="unfinished">Отображение формата прокси</translation>
     </message>
     <message>
         <source>Language</source>
@@ -302,15 +302,15 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Download + Upload</source>
-        <translation type="unfinished">Скачивание + Загрузка</translation>
+        <translation type="unfinished">Загрузка + выгрузка</translation>
     </message>
     <message>
         <source>Only Download</source>
-        <translation type="unfinished">Только Загрузка</translation>
+        <translation type="unfinished">Только загрузка</translation>
     </message>
     <message>
         <source>Only Upload</source>
-        <translation type="unfinished">Только Скачивание</translation>
+        <translation type="unfinished">Только выгрузка</translation>
     </message>
     <message>
         <source>Disable Privilege request</source>
@@ -318,7 +318,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Simple Download</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Простая загрузка</translation>
     </message>
 </context>
 <context>
@@ -365,7 +365,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Copy profile share links (Neko Links)</source>
-        <translation>Скопировать ссылки на профиль (Neko Ссылки)</translation>
+        <translation>Скопировать ссылки на профиль (Neko ссылки)</translation>
     </message>
     <message>
         <source>Copied</source>
@@ -576,11 +576,11 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>header type</source>
-        <translation type="unfinished">заголовок type</translation>
+        <translation type="unfinished">Тип заголовка</translation>
     </message>
     <message>
         <source>Extra Core</source>
-        <translation type="unfinished">Доп. Ядро</translation>
+        <translation type="unfinished">Доп. ядро</translation>
     </message>
 </context>
 <context>
@@ -1587,7 +1587,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Remove %1 item(s) ?</source>
-        <translation>Удалить %1 записей ?</translation>
+        <translation>Удалить %1 записей?</translation>
     </message>
     <message>
         <source>Copied %1 item(s)</source>
@@ -2147,11 +2147,11 @@ Release note:
     </message>
     <message>
         <source>Move Up</source>
-        <translation type="unfinished">Поднять Вверх</translation>
+        <translation type="unfinished">Поднять вверх</translation>
     </message>
     <message>
         <source>Move Down</source>
-        <translation type="unfinished">Опустить Вниз</translation>
+        <translation type="unfinished">Опустить вниз</translation>
     </message>
     <message>
         <source>Delete</source>
