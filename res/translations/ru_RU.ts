@@ -97,11 +97,15 @@
     </message>
     <message>
         <source>Multiplex (mux)</source>
-        <translation>Мультиплекс (mux)</translation>
+        <translation>Протокол мультиплексирования</translation>
     </message>
     <message>
         <source>concurrency</source>
-        <translation>многопоточность</translation>
+        <translation>Кол-во одновременных подключений</translation>
+    </message>
+    <message>
+        <source>Padding</source>
+        <translation>Отступ</translation>
     </message>
     <message>
         <source>Default On</source>
@@ -167,7 +171,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Disable Traffic Stats</source>
-        <translation type="unfinished">Отключить статистику трафика</translation>
+        <translation type="unfinished">Отключить статистику трафика профиля</translation>
     </message>
     <message>
         <source>NTP Settings</source>
@@ -244,8 +248,8 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Might
                                                                             Improve Ping and Performance&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                                         </source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;При отключении данного пункта.
-                                                                            Уменьшается задержка (пинг) и улучшится производительность&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Когда отключено,
+                                                                             использованный трафик не будет отображаться. Так же уменьшится задержка (пинг) и улучшится производительность&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                                         </translation>
     </message>
     <message>
@@ -653,7 +657,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Sniffing Mode</source>
-        <translation>Режим проверки (Сниффер)</translation>
+        <translation>Анализ трафика (Cниффинг)</translation>
     </message>
     <message>
         <source>DNS</source>
@@ -1370,7 +1374,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Type</source>
-        <translation>Тип соединения</translation>
+        <translation>Тип подписки</translation>
     </message>
     <message>
         <source>Address</source>
@@ -1386,7 +1390,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Traffic</source>
-        <translation>Трафик</translation>
+        <translation>Статистика трафика</translation>
     </message>
     <message>
         <source>Share</source>
@@ -1470,7 +1474,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Remove Duplicates</source>
-        <translation>Удалить дубликаты</translation>
+        <translation>Удалить дубликаты серверов</translation>
     </message>
     <message>
         <source>fake</source>
@@ -1526,7 +1530,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Update subscription</source>
-        <translation>Обновить подписки</translation>
+        <translation>Обновить подписку текущей группы</translation>
     </message>
     <message>
         <source>Resolve domain</source>
