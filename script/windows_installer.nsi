@@ -1,6 +1,7 @@
 Name "Nekoray"
 OutFile "NekoraySetup.exe"
-InstallDir "$PROGRAMFILES\Nekoray"
+SetShellVarContext all
+InstallDir "$APPDATA\Nekoray"
 RequestExecutionLevel admin
 
 !include MUI2.nsh

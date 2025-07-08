@@ -784,6 +784,7 @@ void MainWindow::prepare_exit()
     //
     on_commitDataRequest();
     //
+    if (running) running->Save();
     NekoGui::dataStore->save_control_no_save = true; // don't change datastore after this line
     NekoGui_rpc::defaultClient->Exit();
     mu_exit.unlock();
