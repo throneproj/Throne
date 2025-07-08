@@ -2,7 +2,7 @@ module updater
 
 go 1.22
 
-toolchain go1.24.4
+toolchain go1.24.5
 
 require github.com/codeclysm/extract/v4 v4.0.0
 
