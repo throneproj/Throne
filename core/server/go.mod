@@ -12,7 +12,7 @@ require (
 	github.com/oschwald/maxminddb-golang v1.13.1
 	github.com/sagernet/sing v0.6.11
 	github.com/sagernet/sing-box v1.11.14
-	github.com/sagernet/sing-dns v0.4.5
+	github.com/sagernet/sing-dns v0.4.6
 	github.com/sagernet/sing-tun v0.6.9
 	github.com/sagernet/sing-box v1.11.14
 	github.com/spf13/cobra v1.9.1
