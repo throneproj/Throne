@@ -2298,7 +2298,7 @@ void MainWindow::CheckUpdate() {
     for (const QJsonValue value : array) {
         QJsonObject release = value.toObject();
         for (const QJsonValue asset : release["assets"].toArray()) {
-            if (asset["name"].toString().contains(search)) {
+            if (asset["name"].toString().contains(search) && asset["name"].toString().section('.', -1) == QString("zip")) {
                 note_pre_release = release["prerelease"].toBool() ? " (Pre-release)" : "";
                 release_url = release["html_url"].toString();
                 release_note = release["body"].toString();
