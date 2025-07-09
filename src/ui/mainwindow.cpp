@@ -261,12 +261,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->graph_tab->layout()->addWidget(speedChartWidget);
 
     // table UI
-    ui->proxyListTable->callback_save_order = [=] {
+    ui->proxyListTable->rowsSwapped = [=](int row1, int row2)
+    {
         auto group = NekoGui::profileManager->CurrentGroup();
-        group->order = ui->proxyListTable->order;
-        group->Save();
+        group->SwapProfiles(row1, row2);
+        refresh_proxy_list(group->profiles[row1]);
+        refresh_proxy_list(group->profiles[row2]);
     };
-    ui->proxyListTable->refresh_data = [=](int id) { refresh_proxy_list_impl_refresh_data(id); };
     if (auto button = ui->proxyListTable->findChild<QAbstractButton *>(QString(), Qt::FindDirectChildrenOnly)) {
         // Corner Button
         connect(button, &QAbstractButton::clicked, this, [=] { refresh_proxy_list_impl(-1, {GroupSortMethod::ById}); });
@@ -446,7 +447,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         urltest_current_group(get_now_selected_list());
     });
     connect(ui->actionUrl_Test_Group, &QAction::triggered, this, [=]() {
-        urltest_current_group(NekoGui::profileManager->CurrentGroup()->ProfilesWithOrder());
+        urltest_current_group(NekoGui::profileManager->CurrentGroup()->GetProfileEnts());
     });
     connect(ui->actionSpeedtest_Current, &QAction::triggered, this, [=]()
     {
@@ -461,7 +462,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     });
     connect(ui->actionSpeedtest_Group, &QAction::triggered, this, [=]()
     {
-        speedtest_current_group(NekoGui::profileManager->CurrentGroup()->ProfilesWithOrder());
+        speedtest_current_group(NekoGui::profileManager->CurrentGroup()->GetProfileEnts());
     });
     connect(ui->menu_stop_testing, &QAction::triggered, this, [=]() { stopTests(); });
     //
@@ -805,7 +806,6 @@ void MainWindow::on_menu_exit_triggered() {
             arguments.removeFirst();
             arguments.removeAll("-tray");
             arguments.removeAll("-flag_restart_tun_on");
-            arguments.removeAll("-flag_reorder");
             arguments.removeAll("-flag_restart_dns_set");
         }
         auto program = QApplication::applicationFilePath();
@@ -1267,73 +1267,24 @@ void MainWindow::refresh_proxy_list(const int &id) {
 void MainWindow::refresh_proxy_list_impl(const int &id, GroupSortAction groupSortAction) {
     ui->proxyListTable->setUpdatesEnabled(false);
     if (id < 0) {
-        ui->proxyListTable->row2Id.clear();
-        ui->proxyListTable->setRowCount(0);
-        auto oldOrder = QList<int>();
-        oldOrder << ui->proxyListTable->order;
-        auto group = NekoGui::profileManager->CurrentGroup();
-        if (group == nullptr)
+        auto currentGroup = NekoGui::profileManager->CurrentGroup();
+        if (currentGroup == nullptr)
         {
-            ui->proxyListTable->setUpdatesEnabled(true);
+            MW_show_log("Could not find current group!");
             return;
         }
-
-        QSet<int> currProfs;
-        // remove old ones
-        ui->proxyListTable->order.clear();
-        for (const int oldID : oldOrder)
-        {
-            if (NekoGui::profileManager->GetProfile(oldID) != nullptr)
-            {
-                ui->proxyListTable->order << oldID;
-                currProfs.insert(oldID);
-            }
-        }
-
-        // add new ones
-        for (const auto& profile : NekoGui::profileManager->profiles)
-        {
-            if (profile.second->gid == group->id && !currProfs.contains(profile.first))
-            {
-                ui->proxyListTable->order << profile.first;
-            }
-        }
-
         switch (groupSortAction.method) {
             case GroupSortMethod::Raw: {
-                QList<int> newGroupOrder;
-                QSet<int> newGroupIds;
-                for (const int oldId : group->order)
-                {
-                    if (NekoGui::profileManager->GetProfile(oldId) != nullptr)
-                    {
-                        newGroupOrder << oldId;
-                        newGroupIds.insert(oldId);
-                    }
-                }
-                for (const auto& profile : NekoGui::profileManager->profiles)
-                {
-                    if (profile.second->gid == group->id && !newGroupIds.contains(profile.first))
-                    {
-                        newGroupOrder << profile.first;
-                    }
-                }
-                group->order.clear();
-                group->order << newGroupOrder;
-                ui->proxyListTable->order = group->order;
                 break;
             }
             case GroupSortMethod::ById: {
-                // Clear Order
-                ui->proxyListTable->order.clear();
-                ui->proxyListTable->callback_save_order();
                 break;
             }
             case GroupSortMethod::ByAddress:
             case GroupSortMethod::ByName:
             case GroupSortMethod::ByLatency:
             case GroupSortMethod::ByType: {
-                std::sort(ui->proxyListTable->order.begin(), ui->proxyListTable->order.end(),
+                std::sort(currentGroup->profiles.begin(), currentGroup->profiles.end(),
                           [=](int a, int b) {
                               QString ms_a;
                               QString ms_b;
@@ -1380,26 +1331,7 @@ void MainWindow::refresh_proxy_list_impl(const int &id, GroupSortAction groupSor
             }
         }
 
-        if (ui->proxyListTable->order.isEmpty())
-        {
-            for (const auto& ent : group->Profiles())
-            {
-                ui->proxyListTable->order << ent->id;
-            }
-        }
-
-        bool needSave = oldOrder.size() != ui->proxyListTable->order.size();
-        for (int i=0;i<oldOrder.size() && !needSave;i++)
-        {
-            if (oldOrder[i] != ui->proxyListTable->order[i])
-            {
-                needSave = true;
-            }
-        }
-
-        ui->proxyListTable->row2Id << ui->proxyListTable->order;
-        ui->proxyListTable->setRowCount(ui->proxyListTable->order.size());
-        ui->proxyListTable->update_order(needSave);
+        ui->proxyListTable->setRowCount(currentGroup->profiles.count());
     }
 
     // refresh data
@@ -1408,24 +1340,24 @@ void MainWindow::refresh_proxy_list_impl(const int &id, GroupSortAction groupSor
 
 void MainWindow::refresh_proxy_list_impl_refresh_data(const int &id, bool stopping) {
     ui->proxyListTable->setUpdatesEnabled(false);
+    auto currentGroup = NekoGui::profileManager->CurrentGroup();
     if (id >= 0)
     {
-        if (ui->proxyListTable->id2Row.count(id) == 0)
+        if (!currentGroup->HasProfile(id))
         {
-            qDebug("Invalid proxy list id, data might be corrupted");
             ui->proxyListTable->setUpdatesEnabled(true);
             return;
         }
-        auto rowID = ui->proxyListTable->id2Row[id];
+        auto rowID = currentGroup->profiles.indexOf(id);
         auto profile = NekoGui::profileManager->GetProfile(id);
         refresh_table_item(rowID, profile, stopping);
     } else
     {
         ui->proxyListTable->blockSignals(true);
-        for (int row = 0; row < ui->proxyListTable->rowCount(); row++) {
-            auto profileId = ui->proxyListTable->row2Id[row];
+        int row = 0;
+        for (const auto profileId : currentGroup->profiles) {
             auto profile = NekoGui::profileManager->GetProfile(profileId);
-            refresh_table_item(row, profile, stopping);
+            refresh_table_item(row++, profile, stopping);
         }
         ui->proxyListTable->blockSignals(false);
     }
@@ -1523,8 +1455,8 @@ void  MainWindow::on_menu_delete_repeat_triggered () {
     QList<std::shared_ptr<NekoGui::ProxyEntity>> out;
     QList<std::shared_ptr<NekoGui::ProxyEntity>> out_del;
 
-    NekoGui::ProfileFilter::Uniq (NekoGui::profileManager-> CurrentGroup ()-> Profiles (), out,  true ,  false );
-    NekoGui::ProfileFilter::OnlyInSrc_ByPointer (NekoGui::profileManager-> CurrentGroup ()-> Profiles (), out, out_del);
+    NekoGui::ProfileFilter::Uniq (NekoGui::profileManager-> CurrentGroup ()-> GetProfileEnts (), out,  true ,  false );
+    NekoGui::ProfileFilter::OnlyInSrc_ByPointer (NekoGui::profileManager-> CurrentGroup ()-> GetProfileEnts (), out, out_del);
 
     int  remove_display_count =  0 ;
     QString remove_display;
@@ -1539,9 +1471,9 @@ void  MainWindow::on_menu_delete_repeat_triggered () {
     if  (!out_del.empty()  &&
         QMessageBox::question ( this ,  tr ( " Confirmation " ),  tr ( " Remove %1 item(s) ? " ). arg (out_del. length ()) +  " \n "  + remove_display) == QMessageBox::StandardButton::Yes) {
         for  ( const  auto  &ent: out_del) {
-            NekoGui::profileManager-> DeleteProfile (ent-> id );
+            NekoGui::profileManager->DeleteProfile(ent-> id );
         }
-        refresh_proxy_list ();
+        refresh_proxy_list();
     }
 }
 
@@ -1868,7 +1800,7 @@ void MainWindow::on_menu_remove_invalid_triggered() {
 
     auto currentGroup = NekoGui::profileManager->GetGroup(NekoGui::dataStore->current_group);
     if (currentGroup == nullptr) return;
-    for (const auto &profile : currentGroup->Profiles()) {
+    for (const auto &profile : currentGroup->GetProfileEnts()) {
         if (!IsValid(profile)) out_del += profile;
     }
 
@@ -1927,7 +1859,8 @@ void MainWindow::on_menu_resolve_domain_triggered() {
     auto resolve_count = std::atomic<int>(0);
     NekoGui::dataStore->resolve_count = profiles.count();
 
-    for (const auto &profile: profiles) {
+    for (const auto id: profiles) {
+        auto profile = NekoGui::profileManager->GetProfile(id);
         profile->bean->ResolveDomainToIP([=] {
             profile->Save();
             if (--NekoGui::dataStore->resolve_count != 0) return;
@@ -1957,9 +1890,9 @@ QList<std::shared_ptr<NekoGui::ProxyEntity>> MainWindow::get_selected_or_group()
     QList<std::shared_ptr<NekoGui::ProxyEntity>> profiles;
     if (selected_or_group > 0) {
         profiles = get_now_selected_list();
-        if (profiles.isEmpty() && selected_or_group == 2) profiles = NekoGui::profileManager->CurrentGroup()->ProfilesWithOrder();
+        if (profiles.isEmpty() && selected_or_group == 2) profiles = NekoGui::profileManager->CurrentGroup()->GetProfileEnts();
     } else {
-        profiles = NekoGui::profileManager->CurrentGroup()->ProfilesWithOrder();
+        profiles = NekoGui::profileManager->CurrentGroup()->GetProfileEnts();
     }
     return profiles;
 }

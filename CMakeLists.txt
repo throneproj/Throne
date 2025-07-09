@@ -208,6 +208,8 @@ set(PROJECT_SOURCES
         src/stats/connectionLister/connectionLister.cpp
         src/configs/proxy/Json2Bean.cpp
         include/sys/windows/eventHandler.h
+        src/dataStore/Group.cpp
+        src/dataStore/ProxyEntity.cpp
 )
 
 # Qt exe

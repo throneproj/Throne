@@ -372,10 +372,6 @@ void MainWindow::runSpeedTest(const QString& config, bool useDefault, bool testC
     }
 }
 
-void MainWindow::stop_core_daemon() {
-    NekoGui_rpc::defaultClient->Exit();
-}
-
 bool MainWindow::set_system_dns(bool set, bool save_set) {
     if (!NekoGui::dataStore->enable_dns_server) {
         MW_show_log(tr("You need to enable hijack DNS server first"));

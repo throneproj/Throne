@@ -245,8 +245,6 @@ private:
 
     void runSpeedTest(const QString& config, bool useDefault, bool testCurrent, const QStringList& outboundTags, const QMap<QString, int>& tag2entID, int entID = -1);
 
-    static void stop_core_daemon();
-
     bool set_system_dns(bool set, bool save_set = true);
 
     void CheckUpdate();

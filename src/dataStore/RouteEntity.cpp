@@ -22,6 +22,42 @@ namespace NekoGui {
         return false;
     }
 
+        RouteRule::RouteRule() {
+        _add(new configItem("name", &name, itemType::string));
+        _add(new configItem("ip_version", &ip_version, itemType::string));
+        _add(new configItem("network", &network, itemType::string));
+        _add(new configItem("protocol", &protocol, itemType::string));
+        _add(new configItem("inbound", &inbound, itemType::stringList));
+        _add(new configItem("domain", &domain, itemType::stringList));
+        _add(new configItem("domain_suffix", &domain_suffix, itemType::stringList));
+        _add(new configItem("domain_keyword", &domain_keyword, itemType::stringList));
+        _add(new configItem("domain_regex", &domain_regex, itemType::stringList));
+        _add(new configItem("source_ip_cidr", &source_ip_cidr, itemType::stringList));
+        _add(new configItem("source_ip_is_private", &source_ip_is_private, itemType::boolean));
+        _add(new configItem("ip_cidr", &ip_cidr, itemType::stringList));
+        _add(new configItem("ip_is_private", &ip_is_private, itemType::boolean));
+        _add(new configItem("source_port", &source_port, itemType::stringList));
+        _add(new configItem("source_port_range", &source_port_range, itemType::stringList));
+        _add(new configItem("port", &port, itemType::stringList));
+        _add(new configItem("port_range", &port_range, itemType::stringList));
+        _add(new configItem("process_name", &process_name, itemType::stringList));
+        _add(new configItem("process_path", &process_path, itemType::stringList));
+        _add(new configItem("process_path_regex", &process_path_regex, itemType::stringList));
+        _add(new configItem("rule_set", &rule_set, itemType::stringList));
+        _add(new configItem("invert", &invert, itemType::boolean));
+        _add(new configItem("outboundID", &outboundID, itemType::integer));
+        _add(new configItem("actionType", &action, itemType::string));
+        _add(new configItem("rejectMethod", &rejectMethod, itemType::string));
+        _add(new configItem("noDrop", &no_drop, itemType::boolean));
+        _add(new configItem("override_address", &override_address, itemType::string));
+        _add(new configItem("override_port", &override_port, itemType::integer));
+        _add(new configItem("sniffers", &sniffers, itemType::stringList));
+        _add(new configItem("sniffOverrideDest", &sniffOverrideDest, itemType::boolean));
+        _add(new configItem("strategy", &strategy, itemType::string));
+        _add(new configItem("type", &type, itemType::integer));
+        _add(new configItem("simple_action", &simpleAction, itemType::integer));
+    }
+
     RouteRule::RouteRule(const RouteRule& other) {
         name = other.name;
         ip_version = other.ip_version;
@@ -803,6 +839,12 @@ namespace NekoGui {
         {
             return false;
         }
+    }
+
+    RoutingChain::RoutingChain() {
+        _add(new configItem("id", &id, itemType::integer));
+        _add(new configItem("name", &name, itemType::string));
+        _add(new configItem("rules", &castedRules, itemType::jsonStoreList));
     }
 
     RoutingChain::RoutingChain(const RoutingChain& other)  : JsonStore(other) {
