@@ -293,19 +293,19 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Simple Download</source>
-        <translation type="unfinished"></translation>
+{ip}:{port}
     </message>
     <message>
         <source>Simple Download URL</source>
-        <translation type="unfinished"></translation>
+http://{ip}:{port}
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Do not attempt to start as Admin unless explicitly requested&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+socks={ip}:{port}
     </message>
     <message>
         <source>Always Start as Standard User</source>
-        <translation type="unfinished"></translation>
+速度测试模式
     </message>
 </context>
 <context>
@@ -1923,11 +1923,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Outbound</source>
-        <translation type="unfinished"></translation>
+下载 + 上传
     </message>
     <message>
         <source>Click To Toggle sort by Traffic</source>
-        <translation type="unfinished"></translation>
+仅下载
     </message>
 </context>
 <context>
@@ -2078,7 +2078,7 @@ Release note:
     </message>
     <message>
         <source>Tun mode cannot be used with Custom configs</source>
-        <translation type="unfinished"></translation>
+仅上传
     </message>
 </context>
 <context>
@@ -2226,11 +2226,11 @@ Release note:
     </message>
     <message>
         <source>proxy</source>
-        <translation type="unfinished"></translation>
+禁用权限请求
     </message>
     <message>
         <source>direct</source>
-        <translation type="unfinished"></translation>
+额外核心
     </message>
 </context>
 <context>
