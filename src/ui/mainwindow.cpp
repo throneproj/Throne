@@ -944,10 +944,12 @@ bool MainWindow::get_elevated_permissions(int reason) {
 }
 
 void MainWindow::reset_authentication_cache() {
+#ifdef Q_OS_LINUX // TODO()
     // Reset the static variables in get_elevated_permissions
     // This is a workaround since we can't directly access static variables
     // We'll use a different approach by checking if the core file has proper permissions
     NekoGui::IsAdmin(true); // Force renew admin check
+#endif
 }
 
 void MainWindow::neko_set_spmode_vpn(bool enable, bool save) {
@@ -956,10 +958,17 @@ void MainWindow::neko_set_spmode_vpn(bool enable, bool save) {
     if (enable) {
         bool requestPermission = !NekoGui::IsAdmin();
         if (requestPermission) {
+            #ifdef Q_OS_LINUX
             if (!get_elevated_permissions(3)) { // 3 = VPN reason
                 refresh_status();
                 return;
             }
+            #else
+            if (!get_elevated_permissions()) {
+                refresh_status();
+                return;
+            }
+            #endif
         }
     }
 
