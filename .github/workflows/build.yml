@@ -82,6 +82,9 @@ jobs:
           - platform: ubuntu-22.04
             qt_version: "6.9.1"
             target: amd64
+          - platform: ubuntu-22.04-arm
+            qt_version: "6.9.1"
+            target: arm64
           - platform: macos-latest
             qt_version: "6.9.1"
             target: x86_64
@@ -100,9 +103,6 @@ jobs:
       - name: Install mingw
         if: matrix.platform == 'windows-latest'
         uses: bwoodsend/setup-winlibs-action@v1.15
-      - name: Install ninja-build tool
-        uses: seanmiddleditch/gha-setup-ninja@v6
-
       - name: Download Artifacts
         uses: actions/download-artifact@v4.3.0
         with:
@@ -142,14 +142,11 @@ jobs:
       - name: Windows - Generate MakeFile and Build
         shell: bash
         if: matrix.platform == 'windows-latest'
-        env:
-          CC: gcc.exe
-          CXX: g++.exe
         run: |
           export CMAKE_PREFIX_PATH=$PWD/qt6/build/lib/cmake
           mkdir build
           cd build
-          cmake -GNinja -DQT_VERSION_MAJOR=6 -DCMAKE_CXX_FLAGS="-static -DNDEBUG -s" ..
+          cmake -GNinja -DCMAKE_CXX_FLAGS="-static -DNDEBUG -s" ..
           ninja -j2
           cd ..
           ./script/deploy_windows64.sh
@@ -162,12 +159,12 @@ jobs:
           cp NekoraySetup.exe deployment/
       - name: Linux - Generate MakeFile and Build
         shell: bash
-        if: matrix.platform == 'ubuntu-22.04'
+        if: matrix.platform ~= 'ubuntu-22.04'
         run: |
           sudo apt update && sudo apt upgrade -y
           mkdir build
           cd build
-          cmake -GNinja -DQT_VERSION_MAJOR=6  -DCMAKE_BUILD_TYPE=Release ..
+          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-static-libgcc -static-libstdc++ -static" ..
           ninja
           cd ..
           ./script/deploy_linux64.sh
@@ -177,7 +174,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -GNinja -DQT_VERSION_MAJOR=6 -DCMAKE_BUILD_TYPE=Release -DNKR_PACKAGE_MACOS=1 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=${{ matrix.target }} ..
+          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DNKR_PACKAGE_MACOS=1 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=${{ matrix.target }} ..
           ninja
           cd ..
           ./script/deploy_macos.sh ${{ matrix.target }}
@@ -219,8 +216,12 @@ jobs:
           mv nekoray.deb $version_standalone-debian-x64.deb
           rm -rf nekoray
           ####
-          mv linux64 nekoray
-          zip -9 -r $version_standalone-linux64.zip nekoray
+          mv linux-amd64 nekoray
+          zip -9 -r $version_standalone-linux-amd64.zip nekoray
+          rm -rf nekoray
+          ####
+          mv linux-arm64 nekoray
+          zip -9 -r $version_standalone-linux-arm64.zip nekoray
           rm -rf nekoray
           ####
           mv NekoraySetup.exe $version_standalone-windows64-installer.exe
@@ -244,7 +245,7 @@ jobs:
           cd deployment
           rm -rf windows-arm64
           rm -rf linux-arm64
-          rm -rf linux64
+          rm -rf linux-amd64
           rm -rf windows64
           rm -rf macos-amd64
           rm -rf macos-arm64
