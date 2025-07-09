@@ -167,7 +167,7 @@ jobs:
           sudo apt update && sudo apt upgrade -y
           mkdir build
           cd build
-          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-static-libgcc -static-libstdc++" ..
+          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++" ..
           ninja
           cd ..
           ./script/deploy_linux64.sh
