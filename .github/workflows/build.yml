@@ -85,7 +85,7 @@ jobs:
           - platform: ubuntu-22.04
             qt_version: "6.9.1"
             target: amd64
-          - platform: ubuntu-22.04-arm
+          - platform: ubuntu-24.04-arm
             qt_version: "6.9.1"
             target: arm64
           - platform: macos-latest
@@ -162,12 +162,12 @@ jobs:
           cp NekoraySetup.exe deployment/
       - name: Linux - Generate MakeFile and Build
         shell: bash
-        if: contains( matrix.platform, 'ubuntu-22.04' )
+        if: contains( matrix.platform, 'ubuntu' )
         run: |
           sudo apt update && sudo apt upgrade -y
           mkdir build
           cd build
-          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-static-libgcc -static-libstdc++ -static" ..
+          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS_RELEASE="-static-libgcc -static-libstdc++" ..
           ninja
           cd ..
           ./script/deploy_linux64.sh
