@@ -32,7 +32,9 @@ public:
             id2Row[id] = i;
         }
         if (callback_save_order != nullptr && saveToFile)
+        {
             callback_save_order();
+        }
     }
 
     void update_order(bool saveToFile) {
@@ -46,28 +48,20 @@ public:
     };
 
 protected:
-    /*
-     * 2021.7.6 by gy
-     * 拖拽 继承QTableWidget overwrite dropEvent事件
-     * 功能：拖动一行到鼠标落下的位置
-     * 注意：DragDropMode相关参数的设置
-     */
     void dropEvent(QDropEvent *event) override {
-        if (order.isEmpty()) order = row2Id;
+        if (order.isEmpty()) return;
 
-        // 原行号与目标行号的确定
         int row_src, row_dst;
-        row_src = this->currentRow();                        // 原行号 可加if
-        auto id_src = row2Id[row_src];                       // id_src
-        QTableWidgetItem *item = this->itemAt(event->position().toPoint()); // 获取落点的item
+        row_src = this->currentRow();
+        auto id_src = row2Id[row_src];
+        QTableWidgetItem *item = this->itemAt(event->position().toPoint());
         if (item != nullptr) {
-            // 判断是否为空
-            row_dst = item->row(); // 不为空 获取其行号
+            row_dst = item->row();
             // Modify order
+            row2Id.swapItemsAt(row_src, row_dst);
             order.removeAt(row_src);
             order.insert(row_dst, id_src);
         } else {
-            // 落点没有item 说明拖动到了最下面
             return;
         }
 

@@ -251,12 +251,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         }
         if (index == 4)
         {
-            NekoGui_traffic::connection_lister->setSort(NekoGui_traffic::ByDownload);
-            NekoGui_traffic::connection_lister->ForceUpdate();
-        }
-        if (index == 5)
-        {
-            NekoGui_traffic::connection_lister->setSort(NekoGui_traffic::ByUpload);
+            NekoGui_traffic::connection_lister->setSort(NekoGui_traffic::ByTraffic);
             NekoGui_traffic::connection_lister->ForceUpdate();
         }
     });
@@ -793,6 +788,7 @@ void MainWindow::prepare_exit()
     //
     on_commitDataRequest();
     //
+    if (running) running->Save();
     NekoGui::dataStore->save_control_no_save = true; // don't change datastore after this line
     NekoGui_rpc::defaultClient->Exit();
     mu_exit.unlock();
@@ -1040,7 +1036,6 @@ void MainWindow::setupConnectionList()
     ui->connections->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
     ui->connections->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
     ui->connections->horizontalHeader()->setSectionResizeMode(4, QHeaderView::ResizeToContents);
-    ui->connections->horizontalHeader()->setSectionResizeMode(5, QHeaderView::ResizeToContents);
     ui->connections->verticalHeader()->hide();
     connect(ui->connections, &QTableWidget::cellClicked, this, [=](int row, int column)
     {
@@ -1080,17 +1075,16 @@ void MainWindow::UpdateConnectionList(const QMap<QString, NekoGui_traffic::Conne
         // C1: Process
         ui->connections->item(row, 1)->setText(conn.process);
 
-        // C2: Network
-        ui->connections->item(row, 2)->setText(conn.network);
+        // C2: Protocol
+        auto prot = conn.network;
+        if (!conn.protocol.isEmpty()) prot += " ("+conn.protocol+")";
+        ui->connections->item(row, 2)->setText(prot);
 
-        // C3: Protocol
-        ui->connections->item(row, 3)->setText(conn.protocol);
+        // C3: Outbound
+        ui->connections->item(row, 3)->setText(conn.outbound);
 
-        // C4: Download
-        ui->connections->item(row, 4)->setText(ReadableSize(conn.download));
-
-        // C5: Upload
-        ui->connections->item(row, 5)->setText(ReadableSize(conn.upload));
+        // C4: Traffic
+        ui->connections->item(row, 4)->setText(ReadableSize(conn.upload) + "↑" + " " + ReadableSize(conn.download) + "↓");
     }
     int row = ui->connections->rowCount();
     for (const auto& conn : toAdd)
@@ -1109,25 +1103,22 @@ void MainWindow::UpdateConnectionList(const QMap<QString, NekoGui_traffic::Conne
         f->setText(conn.process);
         ui->connections->setItem(row, 1, f);
 
-        // C2: Network
+        // C2: Protocol
         f = f0->clone();
-        f->setText(conn.network);
+        auto prot = conn.network;
+        if (!conn.protocol.isEmpty()) prot += " ("+conn.protocol+")";
+        f->setText(prot);
         ui->connections->setItem(row, 2, f);
 
-        // C3: Protocol
+        // C3: Outbound
         f = f0->clone();
-        f->setText(conn.protocol);
+        f->setText(conn.outbound);
         ui->connections->setItem(row, 3, f);
 
-        // C4: Download
+        // C4: Traffic
         f = f0->clone();
-        f->setText(ReadableSize(conn.download));
+        f->setText(ReadableSize(conn.upload) + "↑" + " " + ReadableSize(conn.download) + "↓");
         ui->connections->setItem(row, 4, f);
-
-        // C5: Upload
-        f = f0->clone();
-        f->setText(ReadableSize(conn.upload));
-        ui->connections->setItem(row, 5, f);
 
         row++;
     }
@@ -1155,25 +1146,22 @@ void MainWindow::UpdateConnectionListWithRecreate(const QList<NekoGui_traffic::C
         f->setText(conn.process);
         ui->connections->setItem(row, 1, f);
 
-        // C2: Network
+        // C2: Protocol
         f = f0->clone();
-        f->setText(conn.network);
+        auto prot = conn.network;
+        if (!conn.protocol.isEmpty()) prot += " ("+conn.protocol+")";
+        f->setText(prot);
         ui->connections->setItem(row, 2, f);
 
-        // C3: Protocol
+        // C3: Outbound
         f = f0->clone();
-        f->setText(conn.protocol);
+        f->setText(conn.outbound);
         ui->connections->setItem(row, 3, f);
 
-        // C4: Download
+        // C4: Traffic
         f = f0->clone();
-        f->setText(ReadableSize(conn.download));
+        f->setText(ReadableSize(conn.upload) + "↑" + " " + ReadableSize(conn.download) + "↓");
         ui->connections->setItem(row, 4, f);
-
-        // C5: Upload
-        f = f0->clone();
-        f->setText(ReadableSize(conn.upload));
-        ui->connections->setItem(row, 5, f);
 
         row++;
     }
@@ -1338,14 +1326,57 @@ void MainWindow::refresh_proxy_list_impl(const int &id, GroupSortAction groupSor
     if (id < 0) {
         ui->proxyListTable->row2Id.clear();
         ui->proxyListTable->setRowCount(0);
+        auto oldOrder = QList<int>();
+        oldOrder << ui->proxyListTable->order;
+        auto group = NekoGui::profileManager->CurrentGroup();
+        if (group == nullptr)
+        {
+            ui->proxyListTable->setUpdatesEnabled(true);
+            return;
+        }
+
+        QSet<int> currProfs;
+        // remove old ones
+        ui->proxyListTable->order.clear();
+        for (const int oldID : oldOrder)
+        {
+            if (NekoGui::profileManager->GetProfile(oldID) != nullptr)
+            {
+                ui->proxyListTable->order << oldID;
+                currProfs.insert(oldID);
+            }
+        }
+
+        // add new ones
+        for (const auto& profile : NekoGui::profileManager->profiles)
+        {
+            if (profile.second->gid == group->id && !currProfs.contains(profile.first))
+            {
+                ui->proxyListTable->order << profile.first;
+            }
+        }
+
         switch (groupSortAction.method) {
             case GroupSortMethod::Raw: {
-                auto group = NekoGui::profileManager->CurrentGroup();
-                if (group == nullptr)
+                QList<int> newGroupOrder;
+                QSet<int> newGroupIds;
+                for (const int oldId : group->order)
                 {
-                    ui->proxyListTable->setUpdatesEnabled(true);
-                    return;
+                    if (NekoGui::profileManager->GetProfile(oldId) != nullptr)
+                    {
+                        newGroupOrder << oldId;
+                        newGroupIds.insert(oldId);
+                    }
                 }
+                for (const auto& profile : NekoGui::profileManager->profiles)
+                {
+                    if (profile.second->gid == group->id && !newGroupIds.contains(profile.first))
+                    {
+                        newGroupOrder << profile.first;
+                    }
+                }
+                group->order.clear();
+                group->order << newGroupOrder;
                 ui->proxyListTable->order = group->order;
                 break;
             }
@@ -1405,19 +1436,27 @@ void MainWindow::refresh_proxy_list_impl(const int &id, GroupSortAction groupSor
                 break;
             }
         }
-        if (ui->proxyListTable->order.empty())
+
+        if (ui->proxyListTable->order.isEmpty())
         {
-            auto profiles = NekoGui::profileManager->GetGroup(NekoGui::dataStore->current_group)->Profiles();
-            for (const auto& ent: profiles) {
-                ui->proxyListTable->row2Id += ent->id;
+            for (const auto& ent : group->Profiles())
+            {
+                ui->proxyListTable->order << ent->id;
             }
-            ui->proxyListTable->setRowCount(profiles.size());
-        } else
-        {
-            ui->proxyListTable->row2Id << ui->proxyListTable->order;
-            ui->proxyListTable->setRowCount(ui->proxyListTable->order.size());
         }
-        ui->proxyListTable->update_order(groupSortAction.save_sort);
+
+        bool needSave = oldOrder.size() != ui->proxyListTable->order.size();
+        for (int i=0;i<oldOrder.size() && !needSave;i++)
+        {
+            if (oldOrder[i] != ui->proxyListTable->order[i])
+            {
+                needSave = true;
+            }
+        }
+
+        ui->proxyListTable->row2Id << ui->proxyListTable->order;
+        ui->proxyListTable->setRowCount(ui->proxyListTable->order.size());
+        ui->proxyListTable->update_order(needSave);
     }
 
     // refresh data
@@ -2012,24 +2051,10 @@ void MainWindow::show_log_impl(const QString &log) {
         show_log_impl("Ignored massive log of size:" + Int2String(log.size()));
         return;
     }
-    auto lines = SplitLines(log.trimmed());
-    if (lines.isEmpty()) return;
+    auto trimmed = log.trimmed();
+    if (trimmed.isEmpty()) return;
 
-    QStringList newLines;
-    auto log_ignore = NekoGui::dataStore->log_ignore;
-    for (const auto &line: lines) {
-        bool showThisLine = true;
-        for (const auto &str: log_ignore) {
-            if (line.contains(str)) {
-                showThisLine = false;
-                break;
-            }
-        }
-        if (showThisLine) newLines << line;
-    }
-    if (newLines.isEmpty()) return;
-
-    FastAppendTextDocument(newLines.join("\n"), qvLogDocument);
+    FastAppendTextDocument(trimmed, qvLogDocument);
     // qvLogDocument->setPlainText(qvLogDocument->toPlainText() + log);
     // From https://gist.github.com/jemyzhang/7130092
     auto block = qvLogDocument->begin();
@@ -2053,40 +2078,6 @@ void MainWindow::on_masterLogBrowser_customContextMenuRequested(const QPoint &po
     auto sep = new QAction(this);
     sep->setSeparator(true);
     menu->addAction(sep);
-
-    auto action_add_ignore = new QAction(this);
-    action_add_ignore->setText(tr("Set ignore keyword"));
-    connect(action_add_ignore, &QAction::triggered, this, [=] {
-        auto list = NekoGui::dataStore->log_ignore;
-        auto newStr = ui->masterLogBrowser->textCursor().selectedText().trimmed();
-        if (!newStr.isEmpty()) list << newStr;
-        bool ok;
-        newStr = QInputDialog::getMultiLineText(GetMessageBoxParent(), tr("Set ignore keyword"), tr("Set the following keywords to ignore?\nSplit by line."), list.join("\n"), &ok);
-        if (ok) {
-            NekoGui::dataStore->log_ignore = SplitLines(newStr);
-            NekoGui::dataStore->Save();
-        }
-    });
-    menu->addAction(action_add_ignore);
-
-    auto action_add_route = new QAction(this);
-    action_add_route->setText(tr("Save as route"));
-    connect(action_add_route, &QAction::triggered, this, [=] {
-        auto newStr = ui->masterLogBrowser->textCursor().selectedText().trimmed();
-        if (newStr.isEmpty()) return;
-        //
-        bool ok;
-        newStr = QInputDialog::getText(GetMessageBoxParent(), tr("Save as route"), tr("Edit"), {}, newStr, &ok).trimmed();
-        if (!ok) return;
-        if (newStr.isEmpty()) return;
-        //
-        auto select = IsIpAddress(newStr) ? 0 : 3;
-        QStringList items = {"proxyIP", "bypassIP", "blockIP", "proxyDomain", "bypassDomain", "blockDomain"};
-        auto item = QInputDialog::getItem(GetMessageBoxParent(), tr("Save as route"),
-                                          tr("Save \"%1\" as a routing rule?").arg(newStr),
-                                          items, select, false, &ok);
-    });
-    menu->addAction(action_add_route);
 
     auto action_clear = new QAction(this);
     action_clear->setText(tr("Clear"));

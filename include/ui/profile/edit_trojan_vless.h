@@ -22,6 +22,8 @@ public:
 
     bool onEnd() override;
 
+    QComboBox* flow_;
+
 private:
     Ui::EditTrojanVLESS *ui;
     std::shared_ptr<NekoGui::ProxyEntity> ent;

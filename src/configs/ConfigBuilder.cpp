@@ -56,6 +56,11 @@ namespace NekoGui {
 
         auto customBean = dynamic_cast<NekoGui_fmt::CustomBean *>(ent->bean.get());
         if (customBean != nullptr && customBean->core == "internal-full") {
+            if (dataStore->spmode_vpn)
+            {
+                status->result->error = QObject::tr("Tun mode cannot be used with Custom configs");
+                return result;
+            }
             result->coreConfig = QString2QJsonObject(customBean->config_simple);
         } else {
             BuildConfigSingBox(status);
