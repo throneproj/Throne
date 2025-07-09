@@ -128,6 +128,34 @@ namespace NekoGui_traffic
 
     void ConnectionLister::setSort(const ConnectionSort newSort)
     {
+        if (newSort == ByTraffic)
+        {
+            if (sort == ByDownload && asc)
+            {
+                sort = ByUpload;
+                asc = false;
+                return;
+            }
+            if (sort == ByUpload && asc)
+            {
+                sort = ByDownload;
+                asc = false;
+                return;
+            }
+            if (sort == ByDownload)
+            {
+                asc = true;
+                return;
+            }
+            if (sort == ByUpload)
+            {
+                asc = true;
+                return;
+            }
+            sort = ByDownload;
+            asc = false;
+            return;
+        }
         if (sort == newSort) asc = !asc;
         else
         {

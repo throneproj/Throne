@@ -118,6 +118,13 @@
        </widget>
       </item>
      </layout>
+     <zorder>label</zorder>
+     <zorder>front_proxy_l</zorder>
+     <zorder>type</zorder>
+     <zorder>label_2</zorder>
+     <zorder>landing_proxy</zorder>
+     <zorder>landing_proxy_l</zorder>
+     <zorder>name</zorder>
     </widget>
    </item>
    <item>

@@ -5,6 +5,7 @@
 
 EditTrojanVLESS::EditTrojanVLESS(QWidget *parent) : QWidget(parent), ui(new Ui::EditTrojanVLESS) {
     ui->setupUi(this);
+    flow_ = ui->flow;
 }
 
 EditTrojanVLESS::~EditTrojanVLESS() {

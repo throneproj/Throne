@@ -291,6 +291,22 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
         <source>Disable Privilege request</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Simple Download</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Simple Download URL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Do not attempt to start as Admin unless explicitly requested&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Always Start as Standard User</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>
@@ -627,10 +643,6 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
         <translation type="unfinished">دی ان اس مستقیم</translation>
     </message>
     <message>
-        <source>Default Outbound</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Sniff result for routing</source>
         <translation type="unfinished"></translation>
     </message>
@@ -682,10 +694,6 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>Routing Profile</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>The outbound tag to use when the request is not handled by any rule</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -812,14 +820,6 @@ also if the connection cannot be established with the current address family (ip
     </message>
     <message>
         <source>Routing Profiles cannot be empty, try adding another profile or editing this one</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Profile is Read-only</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Cannot delete built-in profiles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1560,27 +1560,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
         <translation>کد QR یافت نشد</translation>
     </message>
     <message>
-        <source>Set ignore keyword</source>
-        <translation>کلیدواژه نادیده گرفتن را تنظیم کنید</translation>
-    </message>
-    <message>
-        <source>Set the following keywords to ignore?
-Split by line.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Save as route</source>
-        <translation>ذخیره به عنوان مسیر</translation>
-    </message>
-    <message>
-        <source>Edit</source>
-        <translation>ویرایش کردن</translation>
-    </message>
-    <message>
-        <source>Save &quot;%1&quot; as a routing rule?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Clear</source>
         <translation>پاک کردن</translation>
     </message>
@@ -1745,28 +1724,8 @@ Split by line.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Network</source>
-        <translation type="unfinished">شبکه</translation>
-    </message>
-    <message>
         <source>Protocol</source>
         <translation type="unfinished">پروتکل</translation>
-    </message>
-    <message>
-        <source>Download</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Click To Sort By Download</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Upload</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Click To Sort By Upload</source>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Logs</source>
@@ -1956,6 +1915,14 @@ Split by line.</source>
         <source>Unable to capture screen</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Outbound</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Click To Toggle sort by Traffic</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ProxyItem</name>
@@ -2094,6 +2061,10 @@ Direct: %2</source>
     </message>
     <message>
         <source>Requesting update error: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Tun mode cannot be used with Custom configs</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2238,6 +2209,14 @@ Direct: %2</source>
     <message>
         <source>Some rules could not be added, fix them before saving:
 </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>proxy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>direct</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

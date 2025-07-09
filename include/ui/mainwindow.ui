@@ -439,28 +439,20 @@
                  </column>
                  <column>
                   <property name="text">
-                   <string>Network</string>
-                  </property>
-                 </column>
-                 <column>
-                  <property name="text">
                    <string>Protocol</string>
                   </property>
                  </column>
                  <column>
                   <property name="text">
-                   <string>Download</string>
-                  </property>
-                  <property name="toolTip">
-                   <string>Click To Sort By Download</string>
+                   <string>Outbound</string>
                   </property>
                  </column>
                  <column>
                   <property name="text">
-                   <string>Upload</string>
+                   <string>Traffic</string>
                   </property>
                   <property name="toolTip">
-                   <string>Click To Sort By Upload</string>
+                   <string>Click To Toggle sort by Traffic</string>
                   </property>
                  </column>
                 </widget>
@@ -556,7 +548,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>17</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_program">
