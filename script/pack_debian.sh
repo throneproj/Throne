@@ -5,8 +5,8 @@ version="$1"
 
 mkdir -p nekoray/DEBIAN
 mkdir -p nekoray/opt
-cp -r linux64 nekoray/opt
-mv nekoray/opt/linux64 nekoray/opt/nekoray
+cp -r linux-amd64 nekoray/opt
+mv nekoray/opt/linux-amd64 nekoray/opt/nekoray
 
 # basic
 cat >nekoray/DEBIAN/control <<-EOF
