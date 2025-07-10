@@ -293,19 +293,19 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Simple Download</source>
-        <translation type="unfinished"></translation>
+        <translation>简单下载</translation>
     </message>
     <message>
         <source>Simple Download URL</source>
-        <translation type="unfinished"></translation>
+        <translation>简单下载网址</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Do not attempt to start as Admin unless explicitly requested&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;除非明确要求，否则请不要尝试以管理员身份启动&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Always Start as Standard User</source>
-        <translation type="unfinished"></translation>
+        <translation>始终以标准用户身份启动</translation>
     </message>
 </context>
 <context>
@@ -1923,11 +1923,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Outbound</source>
-        <translation type="unfinished"></translation>
+        <translation>出站</translation>
     </message>
     <message>
         <source>Click To Toggle sort by Traffic</source>
-        <translation type="unfinished"></translation>
+        <translation>点击切换按流量排序</translation>
     </message>
 </context>
 <context>
@@ -2078,7 +2078,7 @@ Release note:
     </message>
     <message>
         <source>Tun mode cannot be used with Custom configs</source>
-        <translation type="unfinished"></translation>
+        <translation>Tun模式不能与自定义配置一起使用</translation>
     </message>
 </context>
 <context>
@@ -2226,11 +2226,11 @@ Release note:
     </message>
     <message>
         <source>proxy</source>
-        <translation type="unfinished"></translation>
+        <translation>代理</translation>
     </message>
     <message>
         <source>direct</source>
-        <translation type="unfinished"></translation>
+        <translation>直连</translation>
     </message>
 </context>
 <context>
