@@ -193,6 +193,9 @@
             <property name="text">
              <string>Disable tray</string>
             </property>
+            <property name="toolTip">
+             <string>Prevents the app from minimizing to the tray when the window is closed. The app will exit instead</string>
+            </property>
            </widget>
           </item>
          </layout>

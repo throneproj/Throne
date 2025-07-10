@@ -40,6 +40,14 @@
         <translation>Параллельно</translation>
     </message>
     <message>
+        <source>Disable tray</source>
+        <translation>Отключить трей</translation>
+    </message>
+    <message>
+        <source>Prevents the app from minimizing to the tray when the window is closed. The app will exit instead</source>
+        <translation>Предотвращает сворачивание приложения в системный трей при закрытии окна. Вместо этого приложение завершит работу</translation>
+    </message>
+    <message>
         <source>Style</source>
         <translation>Интерфейс</translation>
     </message>

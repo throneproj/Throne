@@ -142,6 +142,14 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
         <translation>测试延迟 URL</translation>
     </message>
     <message>
+        <source>Disable tray</source>
+        <translation>禁用托盘</translation>
+    </message>
+    <message>
+        <source>Prevents the app from minimizing to the tray when the window is closed. The app will exit instead</source>
+        <translation>当窗口关闭时，阻止应用程序最小化到系统托盘。应用程序将退出</translation>
+    </message>
+    <message>
         <source>Automatic update</source>
         <translation>自动更新</translation>
     </message>
