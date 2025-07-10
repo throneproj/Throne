@@ -2230,7 +2230,8 @@ Release note:
     </message>
     <message>
         <source>direct</source>
-        <translation>直连</translation>    </message>
+        <translation>直连</translation>
+    </message>
 </context>
 <context>
     <name>SpeedWidget</name>
