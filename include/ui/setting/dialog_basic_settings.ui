@@ -180,6 +180,28 @@
         </widget>
        </item>
        <item>
+        <widget class="QGroupBox" name="horizontalGroupBox_1_5">
+         <layout class="QHBoxLayout" name="horizontalLayout_1_5">
+          <item>
+           <widget class="QCheckBox" name="disable_tray">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Disable tray</string>
+            </property>
+            <property name="toolTip">
+             <string>Prevents the app from minimizing to the tray when the window is closed. The app will exit instead</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <widget class="QFrame" name="frame">
          <property name="frameShape">
           <enum>QFrame::Shape::StyledPanel</enum>

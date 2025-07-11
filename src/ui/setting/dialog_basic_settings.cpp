@@ -33,11 +33,15 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     D_LOAD_INT(inbound_socks_port)
     D_LOAD_INT(test_concurrent)
     D_LOAD_STRING(test_latency_url)
+    D_LOAD_BOOL(disable_tray)
     ui->speedtest_mode->setCurrentIndex(NekoGui::dataStore->speed_test_mode);
     ui->simple_down_url->setText(NekoGui::dataStore->simple_dl_url);
 
     connect(ui->custom_inbound_edit, &QPushButton::clicked, this, [=] {
         C_EDIT_JSON_ALLOW_EMPTY(custom_inbound)
+    });
+    connect(ui->disable_tray, &QCheckBox::stateChanged, this, [=](const bool &) {
+        CACHE.updateDisableTray = true;
     });
 
 #ifndef Q_OS_WIN
@@ -170,6 +174,7 @@ void DialogBasicSettings::accept() {
     D_SAVE_INT(inbound_socks_port)
     D_SAVE_INT(test_concurrent)
     D_SAVE_STRING(test_latency_url)
+    D_SAVE_BOOL(disable_tray)
     NekoGui::dataStore->proxy_scheme = ui->proxy_scheme->currentText().toLower();
     NekoGui::dataStore->speed_test_mode = ui->speedtest_mode->currentIndex();
     NekoGui::dataStore->simple_dl_url = ui->simple_down_url->text();
@@ -227,6 +232,7 @@ void DialogBasicSettings::accept() {
 
     QStringList str{"UpdateDataStore"};
     if (CACHE.needRestart) str << "NeedRestart";
+    if (CACHE.updateDisableTray) str << "UpdateDisableTray";
     MW_dialog_message(Dialog_DialogBasicSettings, str.join(","));
     QDialog::accept();
 }

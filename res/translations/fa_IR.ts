@@ -142,6 +142,14 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
         <translation type="unfinished">آدرس تست تاخیر</translation>
     </message>
     <message>
+        <source>Disable tray</source>
+        <translation>غیرفعال‌سازی سینی</translation>
+    </message>
+    <message>
+        <source>Prevents the app from minimizing to the tray when the window is closed. The app will exit instead</source>
+        <translation>از به حداقل بردن برنامه در سینی سیستم هنگام بستن پنجره جلوگیری می‌کند. در عوض برنامه خارج می‌شود</translation>
+    </message>
+    <message>
         <source>Automatic update</source>
         <translation type="unfinished">آپدیت اتوماتیک</translation>
     </message>

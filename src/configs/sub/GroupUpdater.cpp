@@ -752,12 +752,10 @@ namespace NekoGui_sub {
         QList<std::shared_ptr<NekoGui::ProxyEntity>> update_del;  // 更新前后都有的，需要删除的新配置
         QList<std::shared_ptr<NekoGui::ProxyEntity>> update_keep; // 更新前后都有的，被保留的旧配置
 
-        // 订阅解析前
         if (group != nullptr) {
-            in = group->Profiles();
+            in = group->GetProfileEnts();
             group->sub_last_update = QDateTime::currentMSecsSinceEpoch() / 1000;
             group->info = sub_user_info;
-            group->order.clear();
             group->Save();
             //
             if (NekoGui::dataStore->sub_clear) {
@@ -771,7 +769,7 @@ namespace NekoGui_sub {
         rawUpdater->update(content);
 
         if (group != nullptr) {
-            out_all = group->Profiles();
+            out_all = group->GetProfileEnts();
 
             QString change_text;
 
@@ -786,7 +784,6 @@ namespace NekoGui_sub {
                 NekoGui::ProfileFilter::OnlyInSrc(in, out, only_in);
                 NekoGui::ProfileFilter::OnlyInSrc(out, in, only_out);
                 NekoGui::ProfileFilter::Common(in, out, update_keep, update_del, false);
-
                 QString notice_added;
                 QString notice_deleted;
                 if (only_out.size() < 1000)
@@ -810,22 +807,22 @@ namespace NekoGui_sub {
 
 
                 // sort according to order in remote
-                group->order = {};
+                group->profiles.clear();
                 for (const auto &ent: rawUpdater->updated_order) {
                     auto deleted_index = update_del.indexOf(ent);
                     if (deleted_index >= 0) {
                         if (deleted_index >= update_keep.count()) continue; // should not happen
-                        auto ent2 = update_keep[deleted_index];
-                        group->order.append(ent2->id);
+                        const auto& ent2 = update_keep[deleted_index];
+                        group->profiles.append(ent2->id);
                     } else {
-                        group->order.append(ent->id);
+                        group->profiles.append(ent->id);
                     }
                 }
                 group->Save();
 
                 // cleanup
                 for (const auto &ent: out_all) {
-                    if (!group->order.contains(ent->id)) {
+                    if (!group->HasProfile(ent->id)) {
                         NekoGui::profileManager->DeleteProfile(ent->id);
                     }
                 }

@@ -45,7 +45,7 @@ type DnsManager struct {
 
 func (d *DnsManager) HandleUnderlyingDNS(ifc *control.Interface, flag int) {
 	if d == nil {
-		log.Println("No DnsManager, you may need to restart nekoray")
+		log.Println("No DnsManager, you may need to restart Throne")
 		return
 	}
 	if ifc == nil {
