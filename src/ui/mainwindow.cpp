@@ -602,10 +602,10 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
         icon_status = -1;
         refresh_status();
     }
-    if (info.contains("UpdateDisableTray")) {
-        tray->setVisible(!NekoGui::dataStore->disable_tray);
-    }
     if (info.contains("UpdateDataStore")) {
+        if (info.contains("UpdateDisableTray")) {
+            tray->setVisible(!NekoGui::dataStore->disable_tray);
+        }
         auto suggestRestartProxy = NekoGui::dataStore->Save();
         if (info.contains("RouteChanged")) {
             NekoGui::dataStore->routing->Save();

@@ -41,8 +41,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
         C_EDIT_JSON_ALLOW_EMPTY(custom_inbound)
     });
     connect(ui->disable_tray, &QCheckBox::stateChanged, this, [=](const bool &) {
-        D_SAVE_BOOL(disable_tray);
-        MW_dialog_message(Dialog_DialogBasicSettings, "UpdateDisableTray");
+        CACHE.updateDisableTray = true;
     });
 
 #ifndef Q_OS_WIN
@@ -233,6 +232,7 @@ void DialogBasicSettings::accept() {
 
     QStringList str{"UpdateDataStore"};
     if (CACHE.needRestart) str << "NeedRestart";
+    if (CACHE.updateDisableTray) str << "UpdateDisableTray";
     MW_dialog_message(Dialog_DialogBasicSettings, str.join(","));
     QDialog::accept();
 }
