@@ -35,6 +35,11 @@ type server struct {
 	gen.UnimplementedLibcoreServiceServer
 }
 
+// To returns a pointer to the given value.
+func To[T any](v T) *T {
+    return &v
+}
+
 func (s *server) Exit(ctx context.Context, in *gen.EmptyReq) (out *gen.EmptyResp, _ error) {
 	out = &gen.EmptyResp{}
 
@@ -57,7 +62,7 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 	defer func() {
 		out = &gen.ErrorResp{}
 		if err != nil {
-			out.Error = err.Error()
+			out.Error = To(err.Error())
 			boxInstance = nil
 		}
 	}()
@@ -71,20 +76,20 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 		return
 	}
 
-	if in.NeedExtraProcess {
-		extraConfPath := in.ExtraProcessConfDir + string(os.PathSeparator) + "extra.conf"
+	if *in.NeedExtraProcess {
+		extraConfPath := *in.ExtraProcessConfDir + string(os.PathSeparator) + "extra.conf"
 		f, e := os.OpenFile(extraConfPath, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 700)
 		if e != nil {
 			err = E.Cause(e, "Failed to open extra.conf")
 			return
 		}
-		_, e = f.WriteString(in.ExtraProcessConf)
+		_, e = f.WriteString(*in.ExtraProcessConf)
 		if e != nil {
 			err = E.Cause(e, "Failed to write extra.conf")
 			return
 		}
 		_ = f.Close()
-		args, e := shlex.Split(in.ExtraProcessArgs)
+		args, e := shlex.Split(*in.ExtraProcessArgs)
 		if e != nil {
 			err = E.Cause(e, "Failed to parse args")
 			return
@@ -96,18 +101,18 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 			}
 		}
 
-		extraProcess = process.NewProcess(in.ExtraProcessPath, args, in.ExtraNoOut)
+		extraProcess = process.NewProcess(*in.ExtraProcessPath, args, *in.ExtraNoOut)
 		err = extraProcess.Start()
 		if err != nil {
 			return
 		}
 	}
 
-	boxInstance, instanceCancel, err = boxmain.Create([]byte(in.CoreConfig))
+	boxInstance, instanceCancel, err = boxmain.Create([]byte(*in.CoreConfig))
 	if err != nil {
 		return
 	}
-	if runtime.GOOS == "darwin" && strings.Contains(in.CoreConfig, "utun") {
+	if runtime.GOOS == "darwin" && strings.Contains(*in.CoreConfig, "utun") {
 		err := sys.SetSystemDNS("172.19.0.2", boxInstance.Network().InterfaceMonitor())
 		if err != nil {
 			log.Println("Failed to set system DNS:", err)
@@ -124,7 +129,7 @@ func (s *server) Stop(ctx context.Context, in *gen.EmptyReq) (out *gen.ErrorResp
 	defer func() {
 		out = &gen.ErrorResp{}
 		if err != nil {
-			out.Error = err.Error()
+			out.Error = To(err.Error())
 		}
 	}()
 
@@ -152,10 +157,10 @@ func (s *server) Stop(ctx context.Context, in *gen.EmptyReq) (out *gen.ErrorResp
 }
 
 func (s *server) CheckConfig(ctx context.Context, in *gen.LoadConfigReq) (*gen.ErrorResp, error) {
-	err := boxmain.Check([]byte(in.CoreConfig))
+	err := boxmain.Check([]byte(*in.CoreConfig))
 	if err != nil {
 		return &gen.ErrorResp{
-			Error: err.Error(),
+			Error: To(err.Error()),
 		}, nil
 	}
 	return &gen.ErrorResp{}, nil
@@ -166,18 +171,18 @@ func (s *server) Test(ctx context.Context, in *gen.TestReq) (*gen.TestResp, erro
 	var cancel context.CancelFunc
 	var err error
 	var twice = true
-	if in.TestCurrent {
+	if *in.TestCurrent {
 		if boxInstance == nil {
 			return &gen.TestResp{Results: []*gen.URLTestResp{{
-				OutboundTag: "proxy",
-				LatencyMs:   0,
-				Error:       "Instance is not running",
+				OutboundTag: To("proxy"),
+				LatencyMs:   To(int32(0)),
+				Error:       To("Instance is not running"),
 			}}}, nil
 		}
 		testInstance = boxInstance
 		twice = false
 	} else {
-		testInstance, cancel, err = boxmain.Create([]byte(in.Config))
+		testInstance, cancel, err = boxmain.Create([]byte(*in.Config))
 		if err != nil {
 			return nil, err
 		}
@@ -186,16 +191,16 @@ func (s *server) Test(ctx context.Context, in *gen.TestReq) (*gen.TestResp, erro
 	}
 
 	outboundTags := in.OutboundTags
-	if in.UseDefaultOutbound || in.TestCurrent {
+	if *in.UseDefaultOutbound || *in.TestCurrent {
 		outbound := testInstance.Outbound().Default()
 		outboundTags = []string{outbound.Tag()}
 	}
 
-	var maxConcurrency = in.MaxConcurrency
+	var maxConcurrency = *in.MaxConcurrency
 	if maxConcurrency >= 500 || maxConcurrency == 0 {
 		maxConcurrency = MaxConcurrentTests
 	}
-	results := BatchURLTest(testCtx, testInstance, outboundTags, in.Url, int(maxConcurrency), twice)
+	results := BatchURLTest(testCtx, testInstance, outboundTags, *in.Url, int(maxConcurrency), twice)
 
 	res := make([]*gen.URLTestResp, 0)
 	for idx, data := range results {
@@ -204,9 +209,9 @@ func (s *server) Test(ctx context.Context, in *gen.TestReq) (*gen.TestResp, erro
 			errStr = data.Error.Error()
 		}
 		res = append(res, &gen.URLTestResp{
-			OutboundTag: outboundTags[idx],
-			LatencyMs:   int32(data.Duration.Milliseconds()),
-			Error:       errStr,
+			OutboundTag: To(outboundTags[idx]),
+			LatencyMs:   To(int32(data.Duration.Milliseconds())),
+			Error:       To(errStr),
 		})
 	}
 
@@ -229,9 +234,9 @@ func (s *server) QueryURLTest(ctx context.Context, in *gen.EmptyReq) (*gen.Query
 			errStr = r.Error.Error()
 		}
 		resp.Results = append(resp.Results, &gen.URLTestResp{
-			OutboundTag: r.Tag,
-			LatencyMs:   int32(r.Duration.Milliseconds()),
-			Error:       errStr,
+			OutboundTag: To(r.Tag),
+			LatencyMs:   To(int32(r.Duration.Milliseconds())),
+			Error:       To(errStr),
 		})
 	}
 	return resp, nil
@@ -297,16 +302,16 @@ func (s *server) ListConnections(ctx context.Context, in *gen.EmptyReq) (*gen.Li
 			process = spl[len(spl)-1]
 		}
 		r := &gen.ConnectionMetaData{
-			Id:        c.ID.String(),
-			CreatedAt: c.CreatedAt.UnixMilli(),
-			Upload:    c.Upload.Load(),
-			Download:  c.Download.Load(),
-			Outbound:  c.Outbound,
-			Network:   c.Metadata.Network,
-			Dest:      c.Metadata.Destination.String(),
-			Protocol:  c.Metadata.Protocol,
-			Domain:    c.Metadata.Domain,
-			Process:   process,
+			Id:        To(c.ID.String()),
+			CreatedAt: To(c.CreatedAt.UnixMilli()),
+			Upload:    To(c.Upload.Load()),
+			Download:  To(c.Download.Load()),
+			Outbound:  To(c.Outbound),
+			Network:   To(c.Metadata.Network),
+			Dest:      To(c.Metadata.Destination.String()),
+			Protocol:  To(c.Metadata.Protocol),
+			Domain:    To(c.Metadata.Domain),
+			Process:   To(process),
 		}
 		res = append(res, r)
 	}
@@ -317,7 +322,7 @@ func (s *server) ListConnections(ctx context.Context, in *gen.EmptyReq) (*gen.Li
 }
 
 func (s *server) GetGeoIPList(ctx context.Context, in *gen.GeoListRequest) (*gen.GetGeoIPListResponse, error) {
-	resp, err := boxmain.ListGeoip(in.Path + string(os.PathSeparator) + "geoip.db")
+	resp, err := boxmain.ListGeoip(*in.Path + string(os.PathSeparator) + "geoip.db")
 	if err != nil {
 		return nil, err
 	}
@@ -332,7 +337,7 @@ func (s *server) GetGeoIPList(ctx context.Context, in *gen.GeoListRequest) (*gen
 }
 
 func (s *server) GetGeoSiteList(ctx context.Context, in *gen.GeoListRequest) (*gen.GetGeoSiteListResponse, error) {
-	resp, err := boxmain.GeositeList(in.Path + string(os.PathSeparator) + "geosite.db")
+	resp, err := boxmain.GeositeList(*in.Path + string(os.PathSeparator) + "geosite.db")
 	if err != nil {
 		return nil, err
 	}
@@ -347,8 +352,8 @@ func (s *server) GetGeoSiteList(ctx context.Context, in *gen.GeoListRequest) (*g
 }
 
 func (s *server) CompileGeoIPToSrs(ctx context.Context, in *gen.CompileGeoIPToSrsRequest) (*gen.EmptyResp, error) {
-	category := strings.TrimSuffix(in.Item, "_IP")
-	err := boxmain.CompileRuleSet(in.Path+string(os.PathSeparator)+"geoip.db", category, boxmain.IpRuleSet, "./rule_sets/"+in.Item+".srs")
+	category := strings.TrimSuffix(*in.Item, "_IP")
+	err := boxmain.CompileRuleSet(*in.Path+string(os.PathSeparator)+"geoip.db", category, boxmain.IpRuleSet, "./rule_sets/"+*in.Item+".srs")
 	if err != nil {
 		return nil, err
 	}
@@ -357,8 +362,8 @@ func (s *server) CompileGeoIPToSrs(ctx context.Context, in *gen.CompileGeoIPToSr
 }
 
 func (s *server) CompileGeoSiteToSrs(ctx context.Context, in *gen.CompileGeoSiteToSrsRequest) (*gen.EmptyResp, error) {
-	category := strings.TrimSuffix(in.Item, "_SITE")
-	err := boxmain.CompileRuleSet(in.Path+string(os.PathSeparator)+"geosite.db", category, boxmain.SiteRuleSet, "./rule_sets/"+in.Item+".srs")
+	category := strings.TrimSuffix(*in.Item, "_SITE")
+	err := boxmain.CompileRuleSet(*in.Path+string(os.PathSeparator)+"geosite.db", category, boxmain.SiteRuleSet, "./rule_sets/"+*in.Item+".srs")
 	if err != nil {
 		return nil, err
 	}
@@ -369,31 +374,31 @@ func (s *server) CompileGeoSiteToSrs(ctx context.Context, in *gen.CompileGeoSite
 func (s *server) IsPrivileged(ctx context.Context, _ *gen.EmptyReq) (*gen.IsPrivilegedResponse, error) {
 	if runtime.GOOS == "windows" {
 		return &gen.IsPrivilegedResponse{
-			HasPrivilege: false,
+			HasPrivilege: To(false),
 		}, nil
 	}
 
-	return &gen.IsPrivilegedResponse{HasPrivilege: os.Geteuid() == 0}, nil
+	return &gen.IsPrivilegedResponse{HasPrivilege: To(os.Geteuid() == 0)}, nil
 }
 
 func (s *server) SpeedTest(ctx context.Context, in *gen.SpeedTestRequest) (*gen.SpeedTestResponse, error) {
-	if !in.TestDownload && !in.TestUpload && !in.SimpleDownload {
+	if !*in.TestDownload && !*in.TestUpload && !*in.SimpleDownload {
 		return nil, errors.New("cannot run empty test")
 	}
 	var testInstance *boxbox.Box
 	var cancel context.CancelFunc
 	outboundTags := in.OutboundTags
 	var err error
-	if in.TestCurrent {
+	if *in.TestCurrent {
 		if boxInstance == nil {
 			return &gen.SpeedTestResponse{Results: []*gen.SpeedTestResult{{
-				OutboundTag: "proxy",
-				Error:       "Instance is not running",
+				OutboundTag: To("proxy"),
+				Error:       To("Instance is not running"),
 			}}}, nil
 		}
 		testInstance = boxInstance
 	} else {
-		testInstance, cancel, err = boxmain.Create([]byte(in.Config))
+		testInstance, cancel, err = boxmain.Create([]byte(*in.Config))
 		if err != nil {
 			return nil, err
 		}
@@ -401,12 +406,12 @@ func (s *server) SpeedTest(ctx context.Context, in *gen.SpeedTestRequest) (*gen.
 		defer testInstance.Close()
 	}
 
-	if in.UseDefaultOutbound || in.TestCurrent {
+	if *in.UseDefaultOutbound || *in.TestCurrent {
 		outbound := testInstance.Outbound().Default()
 		outboundTags = []string{outbound.Tag()}
 	}
 
-	results := BatchSpeedTest(testCtx, testInstance, outboundTags, in.TestDownload, in.TestUpload, in.SimpleDownload, in.SimpleDownloadAddr)
+	results := BatchSpeedTest(testCtx, testInstance, outboundTags, *in.TestDownload, *in.TestUpload, *in.SimpleDownload, *in.SimpleDownloadAddr)
 
 	res := make([]*gen.SpeedTestResult, 0)
 	for _, data := range results {
@@ -415,14 +420,14 @@ func (s *server) SpeedTest(ctx context.Context, in *gen.SpeedTestRequest) (*gen.
 			errStr = data.Error.Error()
 		}
 		res = append(res, &gen.SpeedTestResult{
-			DlSpeed:       data.DlSpeed,
-			UlSpeed:       data.UlSpeed,
-			Latency:       data.Latency,
-			OutboundTag:   data.Tag,
-			Error:         errStr,
-			ServerName:    data.ServerName,
-			ServerCountry: data.ServerCountry,
-			Cancelled:     data.Cancelled,
+			DlSpeed:       To(data.DlSpeed),
+			UlSpeed:       To(data.UlSpeed),
+			Latency:       To(data.Latency),
+			OutboundTag:   To(data.Tag),
+			Error:         To(errStr),
+			ServerName:    To(data.ServerName),
+			ServerCountry: To(data.ServerCountry),
+			Cancelled:     To(data.Cancelled),
 		})
 	}
 
@@ -437,15 +442,15 @@ func (s *server) QuerySpeedTest(context.Context, *gen.EmptyReq) (*gen.QuerySpeed
 	}
 	return &gen.QuerySpeedTestResponse{
 		Result: &gen.SpeedTestResult{
-			DlSpeed:       res.DlSpeed,
-			UlSpeed:       res.UlSpeed,
-			Latency:       res.Latency,
-			OutboundTag:   res.Tag,
-			Error:         errStr,
-			ServerName:    res.ServerName,
-			ServerCountry: res.ServerCountry,
-			Cancelled:     res.Cancelled,
+			DlSpeed:       To(res.DlSpeed),
+			UlSpeed:       To(res.UlSpeed),
+			Latency:       To(res.Latency),
+			OutboundTag:   To(res.Tag),
+			Error:         To(errStr),
+			ServerName:    To(res.ServerName),
+			ServerCountry: To(res.ServerCountry),
+			Cancelled:     To(res.Cancelled),
 		},
-		IsRunning: isRunning,
+		IsRunning: To(isRunning),
 	}, nil
 }
