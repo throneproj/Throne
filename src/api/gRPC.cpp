@@ -394,7 +394,7 @@ namespace NekoGui_rpc {
         std::vector<uint8_t> rsp;
         auto status = default_grpc_channel->Call("ListConnections", spb::pb::serialize< std::string >( req ), rsp);
         if (status == QNetworkReply::NoError) {
-            resp = spb::pb::deserialize< libcore::ErrorResp >( rsp );
+            resp = spb::pb::deserialize< libcore::ListConnectionsResp >( rsp );
             *rpcOK = true;
             return resp;
         } else {
