@@ -199,9 +199,9 @@ namespace NekoGui_rpc {
         libcore::ErrorResp reply;
         std::vector<uint8_t> rsp;
         auto status = default_grpc_channel->Call("Start", spb::pb::serialize< std::string >( request ), rsp);
-        reply = spb::pb::deserialize< libcore::ErrorResp >( rsp );
 
         if (status == QNetworkReply::NoError) {
+            reply = spb::pb::deserialize< libcore::ErrorResp >( rsp );
             *rpcOK = true;
             return {reply.error.value().c_str()};
         } else {
@@ -215,9 +215,9 @@ namespace NekoGui_rpc {
         libcore::ErrorResp reply;
         std::vector<uint8_t> rsp;
         auto status = default_grpc_channel->Call("Stop", spb::pb::serialize< std::string >( request ), rsp);
-        reply = spb::pb::deserialize< libcore::ErrorResp >( rsp );
 
         if (status == QNetworkReply::NoError) {
+            reply = spb::pb::deserialize< libcore::ErrorResp >( rsp );
             *rpcOK = true;
             return {reply.error.value().c_str()};
         } else {
@@ -231,9 +231,9 @@ namespace NekoGui_rpc {
         libcore::QueryStatsResp reply;
         std::vector<uint8_t> rsp;
         auto status = default_grpc_channel->Call("QueryStats", spb::pb::serialize< std::string >( request ), rsp, 500);
-        reply = spb::pb::deserialize< libcore::QueryStatsResp >( rsp );
 
         if (status == QNetworkReply::NoError) {
+            reply = spb::pb::deserialize< libcore::QueryStatsResp >( rsp );
             return reply;
         } else {
             return {};
@@ -244,9 +244,9 @@ namespace NekoGui_rpc {
         libcore::TestResp reply;
         std::vector<uint8_t> rsp;
         auto status = make_grpc_channel()->Call("Test", spb::pb::serialize< std::string >( request ), rsp);
-        reply = spb::pb::deserialize< libcore::TestResp >( rsp );
 
         if (status == QNetworkReply::NoError) {
+            reply = spb::pb::deserialize< libcore::TestResp >( rsp );
             *rpcOK = true;
             return reply;
         } else {
@@ -274,8 +274,9 @@ namespace NekoGui_rpc {
         libcore::QueryURLTestResponse resp;
         std::vector<uint8_t> rsp;
         auto status = make_grpc_channel()->Call("QueryURLTest", spb::pb::serialize< std::string >( request ), rsp);
-        resp = spb::pb::deserialize< libcore::QueryURLTestResponse >( rsp );
+
         if (status == QNetworkReply::NoError) {
+            resp = spb::pb::deserialize< libcore::QueryURLTestResponse >( rsp );
             *rpcOK = true;
             return resp;
         } else {
@@ -293,9 +294,10 @@ namespace NekoGui_rpc {
                 req.path = basePath.toStdString();
 
                 auto status = default_grpc_channel->Call("GetGeoIPList", spb::pb::serialize< std::string >( req ), rsp);
-                resp = spb::pb::deserialize< libcore::GetGeoIPListResponse >( rsp );
+
                 if (status == QNetworkReply::NoError) {
                     QStringList res;
+                    resp = spb::pb::deserialize< libcore::GetGeoIPListResponse >( rsp );
                     for (const auto & i : resp.items) {
                         res.append(QString::fromStdString(i));
                     }
@@ -313,9 +315,10 @@ namespace NekoGui_rpc {
                 req.path = basePath.toStdString();
 
                 auto status = default_grpc_channel->Call("GetGeoSiteList", spb::pb::serialize< std::string >( req ), rsp);
-                resp = spb::pb::deserialize< libcore::GetGeoSiteListResponse >( rsp );
+
                 if (status == QNetworkReply::NoError) {
                     QStringList res;
+                    resp = spb::pb::deserialize< libcore::GetGeoSiteListResponse >( rsp );
                     for (const auto & i : resp.items) {
                         res.append(QString::fromStdString(i));
                     }
@@ -391,6 +394,7 @@ namespace NekoGui_rpc {
         std::vector<uint8_t> rsp;
         auto status = default_grpc_channel->Call("ListConnections", spb::pb::serialize< std::string >( req ), rsp);
         if (status == QNetworkReply::NoError) {
+            resp = spb::pb::deserialize< libcore::ErrorResp >( rsp );
             *rpcOK = true;
             return resp;
         } else {
@@ -407,9 +411,10 @@ namespace NekoGui_rpc {
         std::vector<uint8_t> rsp;
         req.core_config = config.toStdString();
         auto status = default_grpc_channel->Call("CheckConfig", spb::pb::serialize< std::string >( req ), rsp);
-        resp = spb::pb::deserialize< libcore::ErrorResp >( rsp );
+
         if (status == QNetworkReply::NoError)
         {
+            resp = spb::pb::deserialize< libcore::ErrorResp >( rsp );
             *rpcOK = true;
             return {resp.error.value().c_str()};
         } else
@@ -426,9 +431,10 @@ namespace NekoGui_rpc {
         auto resp = libcore::IsPrivilegedResponse();
         std::vector<uint8_t> rsp;
         auto status = default_grpc_channel->Call("IsPrivileged", spb::pb::serialize< std::string >( req ), rsp);
-        resp = spb::pb::deserialize< libcore::IsPrivilegedResponse >( rsp );
+
         if (status == QNetworkReply::NoError)
         {
+            resp = spb::pb::deserialize< libcore::IsPrivilegedResponse >( rsp );
             *rpcOK = true;
             return resp.has_privilege;
         } else
@@ -443,8 +449,9 @@ namespace NekoGui_rpc {
         libcore::SpeedTestResponse reply;
         std::vector<uint8_t> rsp;
         auto status = make_grpc_channel()->Call("SpeedTest", spb::pb::serialize< std::string >( request ), rsp);
-        reply = spb::pb::deserialize< libcore::SpeedTestResponse >( rsp );
+
         if (status == QNetworkReply::NoError) {
+            reply = spb::pb::deserialize< libcore::SpeedTestResponse >( rsp );
             *rpcOK = true;
             return reply;
         } else {
@@ -459,8 +466,9 @@ namespace NekoGui_rpc {
         libcore::QuerySpeedTestResponse reply;
         std::vector<uint8_t> rsp;
         auto status = make_grpc_channel()->Call("QuerySpeedTest", spb::pb::serialize< std::string >( req ), rsp);
-        reply = spb::pb::deserialize< libcore::QuerySpeedTestResponse >( rsp );
+
         if (status == QNetworkReply::NoError) {
+            reply = spb::pb::deserialize< libcore::QuerySpeedTestResponse >( rsp );
             *rpcOK = true;
             return reply;
         } else {
