@@ -2,8 +2,6 @@ module nekobox_core
 
 go 1.23.0
 
-toolchain go1.24.4
-
 require (
 	github.com/Mahdi-zarei/speedtest-go v1.7.12
 	github.com/dustin/go-humanize v1.0.1
@@ -14,7 +12,6 @@ require (
 	github.com/sagernet/sing-box v1.11.14
 	github.com/sagernet/sing-dns v0.4.5
 	github.com/sagernet/sing-tun v0.6.9
-	github.com/sagernet/sing-box v1.11.14
 	github.com/spf13/cobra v1.9.1
 	golang.org/x/sys v0.33.0
 	google.golang.org/grpc v1.73.0
