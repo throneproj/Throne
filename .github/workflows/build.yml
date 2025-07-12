@@ -128,17 +128,6 @@ jobs:
           setup-python: true
           cache: true
           cache-key-prefix: QtCache-${{ matrix.platform }}-${{ matrix.target }}
-      # ========================================================================================================= Build deps
-      - name: Cache Download
-        id: cache-deps
-        uses: actions/cache@v4.2.3
-        with:
-          path: libs/deps
-          key: DepsCache-${{ matrix.platform }}-${{ matrix.target }}-${{ hashFiles('script/build_deps_*.sh') }}-Qt${{ matrix.qt_version }}
-      - name: Build Dependencies
-        shell: bash
-        if: steps.cache-deps.outputs.cache-hit != 'true'
-        run: ./script/build_deps_all.sh ${{ matrix.target }}
       # ========================================================================================================= Generate MakeFile and Build
       - name: Windows - Generate MakeFile and Build
         shell: bash

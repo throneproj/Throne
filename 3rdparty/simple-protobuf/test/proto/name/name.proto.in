@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package Test@PB_PACKAGE@;
+
+//- message with collision values for djb2("name") == djb2("bkfvdzz")
+message Name { 
+    string name    = 1;
+    string bkfvdzz = 2;
+}
+
+message Recursive {
+    Name value = 1;
+}
+
+message Variant {
+    oneof oneof_field {
+        uint32 var_int = 1;
+        string var_string = 2;
+        bytes var_bytes = 3;
+        Name name = 4;
+    }
+}

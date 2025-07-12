@@ -1,0 +1,31 @@
+syntax = "proto2";
+
+//[[ repeated.type = "etl::vector<$,60>"]]
+//[[ repeated.include = "<etl/vector.h>"]]
+
+//[[ string.type = "etl::string<32>"]]
+//[[ string.include = "<etl/string.h>"]]
+
+package PhoneBook.Etl@PB_PACKAGE@;
+
+message Person {
+    //[[ string.type = "std::string"]]
+    optional string name = 1;
+    optional int32 id = 2; // Unique ID number for this person.
+    //[[ string.type = "etl::string<64>"]]
+    optional string email = 3;
+
+    enum PhoneType {
+        MOBILE = 0;
+        HOME = 1;
+        WORK = 2;
+    }
+
+    //[[ string.type = "etl::string<16>"]]
+    message PhoneNumber {
+        required string number = 1; // phone number is always required
+        optional PhoneType type = 2;
+    }
+    // all registered phones
+    repeated PhoneNumber phones = 4;
+}

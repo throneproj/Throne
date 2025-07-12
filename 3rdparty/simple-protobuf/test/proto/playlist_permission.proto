@@ -1,0 +1,12 @@
+syntax = "proto2";
+
+package spotify.playlist_permission.proto;
+
+message Capabilities { repeated PermissionLevel grantable_level = 1; }
+
+enum PermissionLevel {
+    UNKNOWN = 0;
+    BLOCKED = 1;
+    VIEWER = 2;
+    CONTRIBUTOR = 3;
+}
