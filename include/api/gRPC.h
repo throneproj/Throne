@@ -1,6 +1,8 @@
 #pragma once
 
-#include "core/server/gen/libcore.pb.h"
+#ifndef Q_MOC_RUN
+#include "libcore.pb.h"
+#endif
 #include <QString>
 
 namespace QtGrpc {

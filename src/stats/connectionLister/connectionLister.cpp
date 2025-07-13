@@ -1,5 +1,5 @@
 #include <QThread>
-#include <core/server/gen/libcore.pb.h>
+#include <libcore.pb.h>
 #include <include/api/gRPC.h>
 #include "include/ui/mainwindow_interface.h"
 #include <include/stats/connections/connectionLister.hpp>
@@ -49,20 +49,20 @@ namespace NekoGui_traffic
             QMap<QString, ConnectionMetadata> toAdd;
             QSet<QString> newState;
             QList<ConnectionMetadata> sorted;
-            auto conns = resp.connections();
+            auto conns = resp.connections;
             for (auto conn : conns)
             {
                 auto c = ConnectionMetadata();
-                c.id = QString(conn.mutable_id()->c_str());
-                c.createdAtMs = conn.created_at();
-                c.dest = QString(conn.mutable_dest()->c_str());
-                c.upload = conn.upload();
-                c.download = conn.download();
-                c.domain = QString(conn.mutable_domain()->c_str());
-                c.network = QString(conn.mutable_network()->c_str());
-                c.outbound = QString(conn.mutable_outbound()->c_str());
-                c.process = QString(conn.mutable_process()->c_str());
-                c.protocol = QString(conn.mutable_protocol()->c_str());
+                c.id = QString(conn.id.c_str());
+                c.createdAtMs = conn.created_at;
+                c.dest = QString(conn.dest.c_str());
+                c.upload = conn.upload;
+                c.download = conn.download;
+                c.domain = QString(conn.domain.c_str());
+                c.network = QString(conn.network.c_str());
+                c.outbound = QString(conn.outbound.c_str());
+                c.process = QString(conn.process.c_str());
+                c.protocol = QString(conn.protocol.c_str());
                 if (sort == Default)
                 {
                     if (state->contains(c.id))
