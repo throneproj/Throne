@@ -9,7 +9,7 @@ on:
 jobs:
   build_cmake_windows:
     name: CMake on Windows 2022
-    runs-on: windows-2022    
+    runs-on: windows-2025    
     steps:
     - uses: actions/checkout@v4
 
