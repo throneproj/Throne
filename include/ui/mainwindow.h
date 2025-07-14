@@ -1,8 +1,10 @@
 #pragma once
 
 #include <QMainWindow>
-#include <core/server/gen/libcore.pb.h>
 #include <include/global/HTTPRequestHelper.hpp>
+#ifndef Q_MOC_RUN
+#include <libcore.pb.h>
+#endif
 
 #include "include/global/NekoGui.hpp"
 #include "include/stats/connections/connectionLister.hpp"

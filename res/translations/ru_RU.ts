@@ -33,7 +33,7 @@
     </message>
     <message>
         <source>Simple Download URL</source>
-        <translation>URL простого теста задержки</translation>
+        <translation>URL для простого теста загрузки</translation>
     </message>
     <message>
         <source>Concurrent</source>
@@ -41,7 +41,7 @@
     </message>
     <message>
         <source>Disable tray</source>
-        <translation>Отключить трей</translation>
+        <translation>Откл. сворачивание в трей</translation>
     </message>
     <message>
         <source>Prevents the app from minimizing to the tray when the window is closed. The app will exit instead</source>
@@ -69,7 +69,7 @@
     </message>
     <message>
         <source>Max log lines</source>
-        <translation>Макс. строк в логах</translation>
+        <translation>Макс. кол-во строк в логах</translation>
     </message>
     <message>
         <source>Subscription</source>
@@ -195,15 +195,15 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>5m</source>
-        <translation type="unfinished">5м</translation>
+        <translation type="unfinished">5 мин.</translation>
     </message>
     <message>
         <source>10m</source>
-        <translation type="unfinished">10м</translation>
+        <translation type="unfinished">10 мин.</translation>
     </message>
     <message>
         <source>30m</source>
-        <translation type="unfinished">30м</translation>
+        <translation type="unfinished">30 мин.</translation>
     </message>
     <message>
         <source>Listen Port</source>
@@ -294,15 +294,15 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>{ip}:{port}</source>
-        <translation type="unfinished">{ip}:{порт}</translation>
+        <translation type="unfinished">{ip-адрес}:{порт}</translation>
     </message>
     <message>
         <source>http://{ip}:{port}</source>
-        <translation type="unfinished">http://{ip}:{порт}</translation>
+        <translation type="unfinished">http://{ip-адрес}:{порт}</translation>
     </message>
     <message>
         <source>socks={ip}:{port}</source>
-        <translation type="unfinished">socks={ip}:{порт}</translation>
+        <translation type="unfinished">socks={ip-адрес}:{порт}</translation>
     </message>
     <message>
         <source>Speedtest mode</source>
@@ -432,7 +432,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Custom Outbound Settings</source>
-        <translation>Доп. настройки outbound</translation>
+        <translation>Доп. настройки стратегии для Outbound</translation>
     </message>
     <message>
         <source>Custom Config Settings</source>
@@ -697,7 +697,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Format</source>
-        <translation>Форматировать</translation>
+        <translation>Форматировать текст</translation>
     </message>
     <message>
         <source>Document</source>
@@ -721,7 +721,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>Default DNS server</source>
-        <translation type="unfinished">DNS-сервер по умолчанию</translation>
+        <translation type="unfinished">Режим работы DNS-сервера по умолчанию</translation>
     </message>
     <message>
         <source>Route</source>
@@ -849,7 +849,7 @@ also if the connection cannot be established with the current address family (ip
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Whether to listen on 0.0.0.0 so that other devices on LAN can use this server&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Нужно ли прослушивать 0.0.0.0, чтобы другие устройства в локальной сети могли использовать этот сервер.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Allow Lan to Connect</source>
@@ -1071,7 +1071,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;100ms&lt;br/&gt;1s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;100мс&lt;br/&gt;1s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;100 мс&lt;br/&gt;1s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma seperated ranges: 100:200,500:600&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>

@@ -1,0 +1,123 @@
+name: Linux GPB compatibility
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    name: ${{ matrix.os }}, ${{ matrix.compiler }}-${{ matrix.version }}, ${{ matrix.build_type }}, sanitizer:${{ matrix.sanitizer }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations. Consider changing this to true when your workflow is stable.
+      fail-fast: false
+
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            compiler: gcc
+            build_type: Release
+            version: '13'
+            sanitizer: 'OFF'
+          - os: ubuntu-24.04
+            compiler: gcc
+            build_type: Release
+            version: '14'
+            sanitizer: 'ON'
+          - os: ubuntu-24.04
+            compiler: gcc
+            build_type: Release
+            version: '14'
+            sanitizer: 'OFF'
+          - os: ubuntu-24.04
+            compiler: gcc
+            build_type: Debug
+            version: '14'
+            sanitizer: 'ON'
+          - os: ubuntu-24.04
+            compiler: clang
+            build_type: Release
+            version: '14'
+            sanitizer: 'OFF'
+          - os: ubuntu-24.04
+            compiler: clang
+            build_type: Release
+            version: '15'
+            sanitizer: 'OFF'
+          - os: ubuntu-24.04
+            compiler: clang
+            build_type: Release
+            version: '16'
+            sanitizer: 'OFF'
+          - os: ubuntu-24.04
+            compiler: clang
+            build_type: Release
+            version: '17'
+            sanitizer: 'OFF'
+          - os: ubuntu-24.04
+            compiler: clang
+            build_type: Release
+            version: '18'
+            sanitizer: 'OFF'
+          - os: ubuntu-24.04
+            compiler: clang
+            build_type: Release
+            version: '18'
+            sanitizer: 'ON'
+          - os: ubuntu-24.04
+            compiler: clang
+            build_type: Debug
+            version: '18'
+            sanitizer: 'ON'
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set reusable strings
+      # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
+      id: strings
+      shell: bash
+      run: |
+        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+    - name: Install Linux dependencies
+      run: >
+          sudo apt-get install
+          protobuf-compiler
+          ninja-build
+    - name: Install gcc
+      if: matrix.compiler == 'gcc'
+      run: |
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+          sudo apt-get install g++-${{ matrix.version }}
+          sudo apt-get install gcc-${{ matrix.version }}
+          echo "CXX=g++-${{ matrix.version }}" >> ${GITHUB_ENV}
+          echo "CC=gcc-${{ matrix.version }}" >> ${GITHUB_ENV}
+    - name: Install clang
+      if: matrix.compiler == 'clang'
+      run: |
+            sudo apt-get install clang-${{ matrix.version }}
+            echo "CXX=clang++-${{ matrix.version }}" >> ${GITHUB_ENV}
+            echo "CC=clang-${{ matrix.version }}" >> ${GITHUB_ENV}
+    - name: Configure CMake
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: >
+        cmake -B ${{ steps.strings.outputs.build-output-dir }}
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DSPB_PROTO_BUILD_TESTS=ON
+        -DSPB_PROTO_BUILD_EXAMPLES=ON
+        -DSPB_PROTO_BUILD_COMPATIBILITY_TESTS=ON
+        -DSPB_PROTO_BUILD_ETL_TESTS=ON
+        -DSPB_PROTO_USE_ADDRESS_SANITIZER=${{ matrix.sanitizer }}
+        -DSPB_PROTO_USE_UB_SANITIZER=${{ matrix.sanitizer }}
+        -S ${{ github.workspace }}
+
+    - name: Build
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }}
+
+    - name: Test
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      run: ctest

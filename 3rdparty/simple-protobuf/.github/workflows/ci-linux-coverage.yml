@@ -1,0 +1,103 @@
+name: Code coverage report
+
+on:
+    push:
+        branches: ['master']
+    workflow_dispatch:
+
+permissions: write-all
+    
+# Allow one concurrent deployment
+concurrency:
+    group: 'pages'
+    cancel-in-progress: true
+
+jobs:    
+    coverage:
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+        runs-on: ubuntu-24.04
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set reusable strings
+              # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
+              id: strings
+              shell: bash
+              run: |
+                echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+            - name: Install Linux dependencies
+              run: |
+                  sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+                  sudo apt-get install ninja-build protobuf-compiler lcov g++-14 gcc-14 bc
+                  echo "CXX=g++-14" >> ${GITHUB_ENV}
+                  echo "CC=gcc-14" >> ${GITHUB_ENV}
+
+            - name: Configure CMake
+              # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+              # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+              run: >
+                cmake -B ${{ steps.strings.outputs.build-output-dir }}
+                -G Ninja .
+                -DCMAKE_C_COMPILER=gcc-14
+                -DCMAKE_CXX_COMPILER=g++-14
+                -DSPB_PROTO_BUILD_TESTS=ON
+                -DCMAKE_BUILD_TYPE=Debug
+                -DSPB_PROTO_USE_COVERAGE=ON
+                -S ${{ github.workspace }}
+
+            - name: Build
+              run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --target unit_tests
+
+            - name: Test
+              working-directory: ${{ steps.strings.outputs.build-output-dir }}
+              # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
+              # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+              run: |
+                ctest --output-on-failure
+                mkdir report
+
+            - name: coverage report
+              working-directory: ${{ steps.strings.outputs.build-output-dir }}
+              run: |
+                lcov --capture -o coverage.info  --directory . --exclude '/usr/*' --exclude '*/test/*' -q --gcov-tool gcov-14
+                coverage=$(genhtml coverage.info --include 'include/*' --output-directory report/library | grep -P 'lines\.+'| grep -oP '[0-9]+' | head -n1)
+                if (( $(echo "$coverage <= 50" | bc -l) )); then
+                  color=red
+                elif (( $(echo "$coverage > 80" | bc -l) )); then
+                  color=brightgreen
+                else
+                  color=orange
+                fi
+                curl "https://img.shields.io/badge/library_coverage-$coverage%25-$color?logo=github" > report/library/coverage.svg
+                coverage=$(genhtml coverage.info --include 'compiler/*' --output-directory report/compiler | grep -P 'lines\.+'| grep -oP '[0-9]+' | head -n1)
+                if (( $(echo "$coverage <= 50" | bc -l) )); then
+                  color=red
+                elif (( $(echo "$coverage > 80" | bc -l) )); then
+                  color=brightgreen
+                else
+                  color=orange
+                fi
+                curl "https://img.shields.io/badge/protoc_coverage-$coverage%25-$color?logo=github" > report/compiler/coverage.svg
+
+            - name: Delete deployment
+              uses: strumwolf/delete-deployment-environment@v2
+              with:
+                token: ${{ secrets.GITHUB_TOKEN }}
+                environment: github-pages
+                onlyRemoveDeployments: true
+
+            - name: Setup Pages
+              uses: actions/configure-pages@v4
+
+            - name: Upload artifact
+              uses: actions/upload-pages-artifact@v3
+              with:
+                  path: ${{ steps.strings.outputs.build-output-dir }}/report
+
+            - name: Deploy to GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@v4

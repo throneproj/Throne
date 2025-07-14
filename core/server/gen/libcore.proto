@@ -1,4 +1,4 @@
-syntax = "proto3";
+syntax = "proto2";
 
 package libcore;
 option go_package = "grpc_server/gen";
@@ -34,33 +34,33 @@ message EmptyReq {}
 message EmptyResp {}
 
 message ErrorResp {
-  string error = 1;
+  optional string error = 1 [default = ""];
 }
 
 message LoadConfigReq {
-  string core_config = 1;
-  bool disable_stats = 2;
-  bool need_extra_process = 3;
-  string extra_process_path = 4;
-  string extra_process_args = 5;
-  string extra_process_conf = 6;
-  string extra_process_conf_dir = 7;
-  bool extra_no_out = 8;
+  required string core_config = 1;
+  required bool disable_stats = 2;
+  optional bool need_extra_process = 3 [default = false];
+  optional string extra_process_path = 4 [default = ""];
+  optional string extra_process_args = 5 [default = ""];
+  optional string extra_process_conf = 6 [default = ""];
+  optional string extra_process_conf_dir = 7 [default = ""];
+  optional bool extra_no_out = 8 [default = false];
 }
 
 message URLTestResp {
-  string outbound_tag = 1;
-  int32 latency_ms = 2;
-  string error = 3;
+  required string outbound_tag = 1;
+  required int32 latency_ms = 2;
+  required string error = 3;
 }
 
 message TestReq {
-  string config = 1;
+  required string config = 1;
   repeated string outbound_tags = 2;
-  bool use_default_outbound = 3;
-  string url = 4;
-  bool test_current = 5;
-  int32 max_concurrency = 6;
+  required bool use_default_outbound = 3;
+  required string url = 4;
+  required bool test_current = 5;
+  required int32 max_concurrency = 6;
 }
 
 message TestResp {
@@ -77,16 +77,16 @@ message ListConnectionsResp {
 }
 
 message ConnectionMetaData {
-  string id = 1;
-  int64 created_at = 2;
-  int64 upload = 3;
-  int64 download = 4;
-  string outbound = 5;
-  string network = 6;
-  string dest = 7;
-  string protocol = 8;
-  string domain = 9;
-  string process = 10;
+  required string id = 1;
+  required int64 created_at = 2;
+  required int64 upload = 3;
+  required int64 download = 4;
+  required string outbound = 5;
+  required string network = 6;
+  required string dest = 7;
+  required string protocol = 8;
+  required string domain = 9;
+  required string process = 10;
 }
 
 message GetGeoIPListResponse {
@@ -98,47 +98,47 @@ message GetGeoSiteListResponse {
 }
 
 message GeoListRequest {
-  string path = 1;
+  required string path = 1;
 }
 
 message CompileGeoIPToSrsRequest {
-  string item = 1;
-  string path = 2;
+  required string item = 1;
+  required string path = 2;
 }
 
 message CompileGeoSiteToSrsRequest {
-  string item = 1;
-  string path = 2;
+  required string item = 1;
+  required string path = 2;
 }
 
 message SetSystemDNSRequest {
-  bool clear = 1;
+  required bool clear = 1;
 }
 
 message IsPrivilegedResponse {
-  bool has_privilege = 1;
+  required bool has_privilege = 1;
 }
 
 message SpeedTestRequest {
-  string config = 1;
+  required string config = 1;
   repeated string outbound_tags = 2;
-  bool test_current = 3;
-  bool use_default_outbound = 4;
-  bool test_download = 5;
-  bool test_upload = 6;
-  bool simple_download = 7;
-  string simple_download_addr = 8;
+  required bool test_current = 3;
+  required bool use_default_outbound = 4;
+  required bool test_download = 5;
+  required bool test_upload = 6;
+  required bool simple_download = 7;
+  required string simple_download_addr = 8;
 }
 
 message SpeedTestResult {
-  string dl_speed = 1;
-  string ul_speed = 2;
-  int32 latency = 3;
-  string outbound_tag = 4;
-  string error = 5;
-  string server_name = 6;
-  string server_country = 7;
-  bool cancelled = 8;
+  required string dl_speed = 1;
+  required string ul_speed = 2;
+  required int32 latency = 3;
+  required string outbound_tag = 4;
+  required string error = 5;
+  required string server_name = 6;
+  required string server_country = 7;
+  required bool cancelled = 8;
 }
 
 message SpeedTestResponse {
@@ -146,8 +146,8 @@ message SpeedTestResponse {
 }
 
 message QuerySpeedTestResponse {
-  SpeedTestResult result = 1;
-  bool is_running = 2;
+  required SpeedTestResult result = 1;
+  required bool is_running = 2;
 }
 
 message QueryURLTestResponse {

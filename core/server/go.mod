@@ -2,8 +2,6 @@ module nekobox_core
 
 go 1.23.1
 
-toolchain go1.24.4
-
 require (
 	github.com/Mahdi-zarei/speedtest-go v1.7.12
 	github.com/dustin/go-humanize v1.0.1

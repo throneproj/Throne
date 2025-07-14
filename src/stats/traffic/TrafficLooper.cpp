@@ -24,13 +24,13 @@ namespace NekoGui_traffic {
         int proxyUp = 0, proxyDown = 0;
 
         for (const auto &item: this->items) {
-            if (!resp.ups().contains(item->tag)) continue;
+            if (!resp.ups.contains(item->tag)) continue;
             auto now = elapsedTimer.elapsed();
             auto interval = now - item->last_update;
             item->last_update = now;
             if (interval <= 0) continue;
-            auto up = resp.ups().at(item->tag);
-            auto down = resp.downs().at(item->tag);
+            auto up = resp.ups.at(item->tag);
+            auto down = resp.downs.at(item->tag);
             if (item->tag == "proxy")
             {
                 proxyUp = up;

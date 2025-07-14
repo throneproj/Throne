@@ -855,6 +855,7 @@ namespace NekoGui {
             Rules.push_back(std::make_shared<RouteRule>(*item));
         }
         fn = QString(other.fn);
+        defaultOutboundID = other.defaultOutboundID;
 
         _add(new configItem("id", &id, itemType::integer));
         _add(new configItem("name", &name, itemType::string));

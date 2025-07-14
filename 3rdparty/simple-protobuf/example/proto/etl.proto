@@ -1,0 +1,43 @@
+
+syntax = "proto2";
+
+package ETL.Example;
+
+message DeviceStatus {
+    //[[ field.type = "uint32:31"]]
+    required uint32 device_id = 1;
+    //[[ field.type = "uint32:1"]]
+    required uint32 is_online = 2;
+    required uint64 last_heartbeat = 3;
+    //[[ string.type = "std::array<$,8>" ]]
+    //[[ string.include = "<array>" ]]
+    required string firmware_version = 4;
+    //[[ string.type = "etl::string<16>" ]]
+    //[[ string.include = "<etl/string.h>" ]]
+    required string name = 5;
+}
+
+message Command {
+    //[[ enum.type = "uint8"]]
+    enum CMD {
+        CMD_RST = 1;
+        CMD_READ = 2;
+        CMD_WRITE = 3;
+        CMD_TST = 4;
+    }
+    //[[ field.type = "uint8:4"]]
+    required uint32 command_id = 1; // CMD
+    //[[ field.type = "uint8:2"]]
+    required uint32 arg = 2; // argument for the command
+    //[[ field.type = "uint8:1"]]
+    required uint32 in_flag = 3; // input flag
+    //[[ field.type = "uint8:1"]]
+    required uint32 out_flag = 4; // output flag
+}
+
+//[[ repeated.type = "etl::vector<$,16>" ]]
+//[[ repeated.include = "<etl/vector.h>" ]]
+message CommandQueue {
+    repeated Command commands = 1;
+    repeated DeviceStatus statuses = 2;
+}

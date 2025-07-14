@@ -1016,10 +1016,10 @@ void MainWindow::UpdateDataView(bool force)
     "</div>"
     "<p style='text-align:center;margin:0;'>Server: %4, %5</p>"
         ).arg(currentSptProfileName,
-            currentTestResult.dl_speed().c_str(),
-            currentTestResult.ul_speed().c_str(),
-            currentTestResult.server_country().c_str(),
-            currentTestResult.server_name().c_str());
+            currentTestResult.dl_speed.c_str(),
+            currentTestResult.ul_speed.c_str(),
+            currentTestResult.server_country.c_str(),
+            currentTestResult.server_name.c_str());
     }
     ui->data_view->setHtml(html);
     lastUpdated = QDateTime::currentDateTime();
@@ -1233,7 +1233,7 @@ void MainWindow::refresh_status(const QString &traffic_update) {
         if (!NekoGui::dataStore->spmode_vpn && NekoGui::dataStore->spmode_system_proxy) tt << "[" + tr("System Proxy") + "]";
         if (NekoGui::dataStore->spmode_vpn && NekoGui::dataStore->spmode_system_proxy) tt << "[Tun+" + tr("System Proxy") + "]";
         tt << software_name;
-        if (!isTray) tt << "(" + QString(NKR_VERSION) + ")";
+        if (!isTray) tt << QString(NKR_VERSION);
         if (!NekoGui::dataStore->active_routing.isEmpty() && NekoGui::dataStore->active_routing != "Default") {
             tt << "[" + NekoGui::dataStore->active_routing + "]";
         }
