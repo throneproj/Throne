@@ -86,3 +86,7 @@ CMakeLists.txt.user*
 .vs
 out
 /libs
+
+# Ignore Arch Scripts
+script_arch/
+
