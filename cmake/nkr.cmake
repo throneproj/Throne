@@ -1,5 +1,5 @@
 # Release
-file(STRINGS nekoray_version.txt NKR_VERSION)
+set(NKR_VERSION "$ENV{INPUT_VERSION}")
 add_compile_definitions(NKR_VERSION=\"${NKR_VERSION}\")
 
 # Debug

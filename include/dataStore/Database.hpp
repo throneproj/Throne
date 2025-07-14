@@ -38,8 +38,6 @@ namespace NekoGui {
 
         void DeleteProfile(int id);
 
-        void MoveProfile(const std::shared_ptr<ProxyEntity> &ent, int gid);
-
         std::shared_ptr<ProxyEntity> GetProfile(int id);
 
         bool AddGroup(const std::shared_ptr<Group> &ent);
@@ -78,6 +76,8 @@ namespace NekoGui {
         static std::shared_ptr<Group> LoadGroup(const QString &jsonPath);
 
         static std::shared_ptr<RoutingChain> LoadRouteChain(const QString &jsonPath);
+
+        void deleteProfile(int id);
     };
 
     extern ProfileManager *profileManager;

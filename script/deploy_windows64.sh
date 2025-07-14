@@ -6,6 +6,17 @@ DEST=$DEPLOYMENT/windows64
 rm -rf $DEST
 mkdir -p $DEST
 
+#### get the pdb ####
+curl -fLJO https://github.com/rainers/cv2pdb/releases/download/v0.53/cv2pdb-0.53.zip
+7z x cv2pdb-0.53.zip -ocv2pdb
+./cv2pdb/cv2pdb64.exe ./build/nekoray.exe ./tmp.exe ./nekoray.pdb
+rm -rf cv2pdb-0.53.zip cv2pdb
+cd build
+strip -s nekoray.exe
+cd ..
+rm tmp.exe
+mv nekoray.pdb $DEST
+
 #### copy exe ####
 cp $BUILD/nekoray.exe $DEST
 

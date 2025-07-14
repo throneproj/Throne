@@ -1,0 +1,283 @@
+syntax = "proto2";
+
+//[[ repeated.type = "etl::vector<$,64>"]]
+//[[ repeated.include = "<etl/vector.h>"]]
+
+//[[ bytes.type = "etl::vector<$,8>"]]
+//[[ bytes.include = "<etl/vector.h>"]]
+
+//[[ string.type = "etl::string<16>"]]
+//[[ string.include = "<etl/string.h>"]]
+
+package Test.Etl.Scalar@PB_PACKAGE@;
+
+message Simple
+{
+    optional string value = 100;
+}
+
+message OptInt32
+{
+    optional int32 value = 1;
+}
+message ReqInt32
+{
+    required int32 value = 1;
+}
+message RepInt32
+{
+    repeated int32 value = 1;
+}
+message RepPackInt32
+{
+    repeated int32 value = 1 [ packed = true ];
+}
+
+message OptInt64
+{
+    optional int64 value = 1;
+}
+message ReqInt64
+{
+    required int64 value = 1;
+}
+message RepInt64
+{
+    repeated int64 value = 1;
+}
+message RepPackInt64
+{
+    repeated int64 value = 1 [ packed = true ];
+}
+
+message OptUint32
+{
+    optional uint32 value = 1;
+}
+message ReqUint32
+{
+    required uint32 value = 1;
+}
+message RepUint32
+{
+    repeated uint32 value = 1;
+}
+message RepPackUint32
+{
+    repeated uint32 value = 1 [ packed = true ];
+}
+
+message OptUint64
+{
+    optional uint64 value = 1;
+}
+message ReqUint64
+{
+    required uint64 value = 1;
+}
+message RepUint64
+{
+    repeated uint64 value = 1;
+}
+message RepPackUint64
+{
+    repeated uint64 value = 1 [ packed = true ];
+}
+
+message OptSint32
+{
+    optional sint32 value = 1;
+}
+message ReqSint32
+{
+    required sint32 value = 1;
+}
+message RepSint32
+{
+    repeated sint32 value = 1;
+}
+message RepPackSint32
+{
+    repeated sint32 value = 1 [ packed = true ];
+}
+
+message OptSint64
+{
+    optional sint64 value = 1;
+}
+message ReqSint64
+{
+    required sint64 value = 1;
+}
+message RepSint64
+{
+    repeated sint64 value = 1;
+}
+message RepPackSint64
+{
+    repeated sint64 value = 1 [ packed = true ];
+}
+
+message OptFixed32
+{
+    optional fixed32 value = 1;
+}
+message ReqFixed32
+{
+    required fixed32 value = 1;
+}
+message RepFixed32
+{
+    repeated fixed32 value = 1;
+}
+message RepPackFixed32
+{
+    repeated fixed32 value = 1 [ packed = true ];
+}
+
+message OptFixed64
+{
+    optional fixed64 value = 1;
+}
+message ReqFixed64
+{
+    required fixed64 value = 1;
+}
+message RepFixed64
+{
+    repeated fixed64 value = 1;
+}
+message RepPackFixed64
+{
+    repeated fixed64 value = 1 [ packed = true ];
+}
+
+message OptSfixed32
+{
+    optional sfixed32 value = 1;
+}
+message ReqSfixed32
+{
+    required sfixed32 value = 1;
+}
+message RepSfixed32
+{
+    repeated sfixed32 value = 1;
+}
+message RepPackSfixed32
+{
+    repeated sfixed32 value = 1 [ packed = true ];
+}
+
+message OptSfixed64
+{
+    optional sfixed64 value = 1;
+}
+message ReqSfixed64
+{
+    required sfixed64 value = 1;
+}
+message RepSfixed64
+{
+    repeated sfixed64 value = 1;
+}
+message RepPackSfixed64
+{
+    repeated sfixed64 value = 1 [ packed = true ];
+}
+
+message OptBool
+{
+    optional bool value = 1;
+}
+message ReqBool
+{
+    required bool value = 1;
+}
+message RepBool
+{
+    repeated bool value = 1;
+}
+
+message RepPackBool
+{
+    repeated bool value = 1 [ packed = true ];
+}
+
+message OptFloat
+{
+    optional float value = 1;
+}
+message ReqFloat
+{
+    required float value = 1;
+}
+message RepFloat
+{
+    repeated float value = 1;
+}
+
+message OptDouble
+{
+    optional double value = 1;
+}
+message ReqDouble
+{
+    required double value = 1;
+}
+message RepDouble
+{
+    repeated double value = 1;
+}
+
+message OptString
+{
+    optional string value = 1;
+}
+message ReqString
+{
+    required string value = 1;
+}
+message RepString
+{
+    repeated string value = 1;
+}
+
+message OptStringView
+{
+    optional string value = 1 [ctype = STRING_PIECE];
+}
+message ReqStringView
+{
+    required string value = 1 [ctype = STRING_PIECE];
+}
+message RepStringView
+{
+    repeated string value = 1 [ctype = STRING_PIECE];
+}
+
+message OptBytes
+{
+    optional bytes value = 1;
+}
+message ReqBytes
+{
+    required bytes value = 1;
+}
+message RepBytes
+{
+    repeated bytes value = 1;
+}
+
+message OptBytesView
+{
+    optional bytes value = 1 [ctype = STRING_PIECE];
+}
+message ReqBytesView
+{
+    required bytes value = 1 [ctype = STRING_PIECE];
+}
+message RepBytesView
+{
+    repeated bytes value = 1 [ctype = STRING_PIECE];
+}

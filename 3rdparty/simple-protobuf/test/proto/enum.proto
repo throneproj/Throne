@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package example;
+
+enum SomeEnum {
+    SOME_ENUM_UNDEFINED = 0;
+    SOME_ENUM_ONE = 1;
+    SOME_ENUM_TWO = 2;
+    SOME_ENUM_THREE = 3;
+    SOME_ENUM_FOUR = 4;
+    SOME_ENUM_FIVE = 5;
+};
+
+message SomeMessage { repeated SomeEnum values = 1; };

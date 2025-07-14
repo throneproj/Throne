@@ -4,7 +4,7 @@ project(nekoray VERSION 0.1)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
 if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND WIN32)
@@ -208,6 +208,8 @@ set(PROJECT_SOURCES
         src/stats/connectionLister/connectionLister.cpp
         src/configs/proxy/Json2Bean.cpp
         include/sys/windows/eventHandler.h
+        src/dataStore/Group.cpp
+        src/dataStore/ProxyEntity.cpp
 )
 
 # Qt exe

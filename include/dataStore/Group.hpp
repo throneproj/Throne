@@ -1,9 +1,10 @@
 #pragma once
 
-#include "include/global/NekoGui.hpp"
 #include "ProxyEntity.hpp"
+#include "include/global/NekoGui.hpp"
 
-namespace NekoGui {
+namespace NekoGui
+{
     class Group : public JsonStore {
     public:
         int id = -1;
@@ -19,14 +20,20 @@ namespace NekoGui {
         // list ui
         bool manually_column_width = false;
         QList<int> column_width;
-        QList<int> order;
+        QList<int> profiles;
 
         Group();
 
-        // 按 id 顺序
-        [[nodiscard]] QList<std::shared_ptr<ProxyEntity>> Profiles() const;
+        [[nodiscard]] QList<int> Profiles() const;
 
-        // 按 显示 顺序
-        [[nodiscard]] QList<std::shared_ptr<ProxyEntity>> ProfilesWithOrder() const;
+        [[nodiscard]] QList<std::shared_ptr<ProxyEntity>> GetProfileEnts() const;
+
+        bool RemoveProfile(int id);
+
+        bool AddProfile(int id);
+
+        bool SwapProfiles(int idx1, int idx2);
+
+        bool HasProfile(int id) const;
     };
-} // namespace NekoGui
+}// namespace NekoGui

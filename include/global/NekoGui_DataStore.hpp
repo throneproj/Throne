@@ -55,7 +55,6 @@ namespace NekoGui {
         bool flag_tray = false;
         bool flag_debug = false;
         bool flag_restart_tun_on = false;
-        bool flag_reorder = false;
         bool flag_dns_set = false;
 
         // Saved
@@ -63,6 +62,7 @@ namespace NekoGui {
         // Misc
         QString log_level = "info";
         QString test_latency_url = "http://cp.cloudflare.com/";
+        bool disable_tray = false;
         int test_concurrent = 10;
         bool disable_traffic_stats = false;
         int current_group = 0; // group id

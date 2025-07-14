@@ -564,7 +564,7 @@ void DialogEditProfile::do_apply_to_group(const std::shared_ptr<NekoGui::Group> 
     auto stream = GetStreamSettings(ent->bean.get());
 
     auto copyStream = [=](void *p) {
-        for (const auto &profile: group->Profiles()) {
+        for (const auto &profile: group->GetProfileEnts()) {
             auto newStream = GetStreamSettings(profile->bean.get());
             if (newStream == nullptr) continue;
             if (stream == newStream) continue;
@@ -575,7 +575,7 @@ void DialogEditProfile::do_apply_to_group(const std::shared_ptr<NekoGui::Group> 
     };
 
     auto copyBean = [=](void *p) {
-        for (const auto &profile: group->Profiles()) {
+        for (const auto &profile: group->GetProfileEnts()) {
             if (profile == ent) continue;
             profile->bean->_setValue(ent->bean->_name(p), p);
             // qDebug() << profile->bean->ToJsonBytes();

@@ -27,6 +27,7 @@ private:
     struct {
         QString custom_inbound;
         bool needRestart = false;
+        bool updateDisableTray = false;
     } CACHE;
 
 private slots:

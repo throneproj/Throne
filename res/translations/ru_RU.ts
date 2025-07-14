@@ -33,11 +33,19 @@
     </message>
     <message>
         <source>Simple Download URL</source>
-        <translation>URL простого теста задержки</translation>
+        <translation>URL для простого теста загрузки</translation>
     </message>
     <message>
         <source>Concurrent</source>
         <translation>Параллельно</translation>
+    </message>
+    <message>
+        <source>Disable tray</source>
+        <translation>Откл. сворачивание в трей</translation>
+    </message>
+    <message>
+        <source>Prevents the app from minimizing to the tray when the window is closed. The app will exit instead</source>
+        <translation>Предотвращает сворачивание приложения в системный трей при закрытии окна. Вместо этого приложение завершит работу</translation>
     </message>
     <message>
         <source>Style</source>
@@ -61,7 +69,7 @@
     </message>
     <message>
         <source>Max log lines</source>
-        <translation>Макс. строк в логах</translation>
+        <translation>Макс. кол-во строк в логах</translation>
     </message>
     <message>
         <source>Subscription</source>
@@ -187,15 +195,15 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>5m</source>
-        <translation type="unfinished">5м</translation>
+        <translation type="unfinished">5 мин.</translation>
     </message>
     <message>
         <source>10m</source>
-        <translation type="unfinished">10м</translation>
+        <translation type="unfinished">10 мин.</translation>
     </message>
     <message>
         <source>30m</source>
-        <translation type="unfinished">30м</translation>
+        <translation type="unfinished">30 мин.</translation>
     </message>
     <message>
         <source>Listen Port</source>
@@ -274,7 +282,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Proxy Format</source>
-        <translation type="unfinished">Отображение формата Прокси</translation>
+        <translation type="unfinished">Отображение формата прокси</translation>
     </message>
     <message>
         <source>Language</source>
@@ -286,15 +294,15 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>{ip}:{port}</source>
-        <translation type="unfinished">{ip}:{порт}</translation>
+        <translation type="unfinished">{ip-адрес}:{порт}</translation>
     </message>
     <message>
         <source>http://{ip}:{port}</source>
-        <translation type="unfinished">http://{ip}:{порт}</translation>
+        <translation type="unfinished">http://{ip-адрес}:{порт}</translation>
     </message>
     <message>
         <source>socks={ip}:{port}</source>
-        <translation type="unfinished">socks={ip}:{порт}</translation>
+        <translation type="unfinished">socks={ip-адрес}:{порт}</translation>
     </message>
     <message>
         <source>Speedtest mode</source>
@@ -302,15 +310,15 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Download + Upload</source>
-        <translation type="unfinished">Скачивание + Загрузка</translation>
+        <translation type="unfinished">Загрузка + выгрузка</translation>
     </message>
     <message>
         <source>Only Download</source>
-        <translation type="unfinished">Только Загрузка</translation>
+        <translation type="unfinished">Только загрузка</translation>
     </message>
     <message>
         <source>Only Upload</source>
-        <translation type="unfinished">Только Скачивание</translation>
+        <translation type="unfinished">Только выгрузка</translation>
     </message>
     <message>
         <source>Disable Privilege request</source>
@@ -318,7 +326,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Simple Download</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Простая загрузка</translation>
     </message>
 </context>
 <context>
@@ -365,7 +373,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Copy profile share links (Neko Links)</source>
-        <translation>Скопировать ссылки на профиль (Neko Ссылки)</translation>
+        <translation>Скопировать ссылки на профиль (Neko ссылки)</translation>
     </message>
     <message>
         <source>Copied</source>
@@ -424,7 +432,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Custom Outbound Settings</source>
-        <translation>Доп. настройки outbound</translation>
+        <translation>Доп. настройки стратегии для Outbound</translation>
     </message>
     <message>
         <source>Custom Config Settings</source>
@@ -576,11 +584,11 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>header type</source>
-        <translation type="unfinished">заголовок type</translation>
+        <translation type="unfinished">Тип заголовка</translation>
     </message>
     <message>
         <source>Extra Core</source>
-        <translation type="unfinished">Доп. Ядро</translation>
+        <translation type="unfinished">Доп. ядро</translation>
     </message>
 </context>
 <context>
@@ -689,7 +697,7 @@ For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, norma
     </message>
     <message>
         <source>Format</source>
-        <translation>Форматировать</translation>
+        <translation>Форматировать текст</translation>
     </message>
     <message>
         <source>Document</source>
@@ -713,7 +721,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>Default DNS server</source>
-        <translation type="unfinished">DNS-сервер по умолчанию</translation>
+        <translation type="unfinished">Режим работы DNS-сервера по умолчанию</translation>
     </message>
     <message>
         <source>Route</source>
@@ -841,7 +849,7 @@ also if the connection cannot be established with the current address family (ip
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Whether to listen on 0.0.0.0 so that other devices on LAN can use this server&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Нужно ли прослушивать 0.0.0.0, чтобы другие устройства в локальной сети могли использовать этот сервер.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Allow Lan to Connect</source>
@@ -1063,7 +1071,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;100ms&lt;br/&gt;1s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;100мс&lt;br/&gt;1s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;100 мс&lt;br/&gt;1s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma seperated ranges: 100:200,500:600&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -1587,7 +1595,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Remove %1 item(s) ?</source>
-        <translation>Удалить %1 записей ?</translation>
+        <translation>Удалить %1 записей?</translation>
     </message>
     <message>
         <source>Copied %1 item(s)</source>
@@ -2147,11 +2155,11 @@ Release note:
     </message>
     <message>
         <source>Move Up</source>
-        <translation type="unfinished">Поднять Вверх</translation>
+        <translation type="unfinished">Поднять вверх</translation>
     </message>
     <message>
         <source>Move Down</source>
-        <translation type="unfinished">Опустить Вниз</translation>
+        <translation type="unfinished">Опустить вниз</translation>
     </message>
     <message>
         <source>Delete</source>

@@ -1,0 +1,22 @@
+syntax = "proto2";
+
+package PhoneBook@PB_PACKAGE@;
+
+message Person {
+    optional string name = 1;
+    optional int32 id = 2; // Unique ID number for this person.
+    optional string email = 3;
+
+    enum PhoneType {
+        MOBILE = 0;
+        HOME = 1;
+        WORK = 2;
+    }
+
+    message PhoneNumber {
+        required string number = 1; // phone number is always required
+        optional PhoneType type = 2;
+    }
+    // all registered phones
+    repeated PhoneNumber phones = 4;
+}

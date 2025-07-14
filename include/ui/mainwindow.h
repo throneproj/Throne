@@ -1,8 +1,10 @@
 #pragma once
 
 #include <QMainWindow>
-#include <core/server/gen/libcore.pb.h>
 #include <include/global/HTTPRequestHelper.hpp>
+#ifndef Q_MOC_RUN
+#include <libcore.pb.h>
+#endif
 
 #include "include/global/NekoGui.hpp"
 #include "include/stats/connections/connectionLister.hpp"
@@ -246,8 +248,6 @@ private:
     void speedtest_current_group(const QList<std::shared_ptr<NekoGui::ProxyEntity>>& profiles, bool testCurrent = false);
 
     void runSpeedTest(const QString& config, bool useDefault, bool testCurrent, const QStringList& outboundTags, const QMap<QString, int>& tag2entID, int entID = -1);
-
-    static void stop_core_daemon();
 
     bool set_system_dns(bool set, bool save_set = true);
 
