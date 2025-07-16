@@ -14,14 +14,14 @@ class DialogEditGroup : public QDialog {
     Q_OBJECT
 
 public:
-    explicit DialogEditGroup(const std::shared_ptr<NekoGui::Group> &ent, QWidget *parent = nullptr);
+    explicit DialogEditGroup(const std::shared_ptr<Configs::Group> &ent, QWidget *parent = nullptr);
 
     ~DialogEditGroup() override;
 
 private:
     Ui::DialogEditGroup *ui;
 
-    std::shared_ptr<NekoGui::Group> ent;
+    std::shared_ptr<Configs::Group> ent;
 
     struct {
         int front_proxy;

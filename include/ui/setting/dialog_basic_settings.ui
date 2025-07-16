@@ -190,11 +190,11 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="text">
-             <string>Disable tray</string>
-            </property>
             <property name="toolTip">
              <string>Prevents the app from minimizing to the tray when the window is closed. The app will exit instead</string>
+            </property>
+            <property name="text">
+             <string>Disable tray</string>
             </property>
            </widget>
           </item>
@@ -414,19 +414,6 @@
                 <string notr="true">System</string>
                </property>
               </item>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="set_custom_icon">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>Set custom icon</string>
-              </property>
              </widget>
             </item>
            </layout>

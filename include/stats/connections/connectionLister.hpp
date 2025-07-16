@@ -2,7 +2,7 @@
 #include <QMutex>
 #include <QString>
 
-namespace NekoGui_traffic
+namespace Stats
 {
     constexpr int IDKEY = 242315;
 

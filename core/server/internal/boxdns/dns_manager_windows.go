@@ -1,6 +1,7 @@
 package boxdns
 
 import (
+	"Core/internal/boxdns/winipcfg"
 	"encoding/binary"
 	"github.com/gofrs/uuid/v5"
 	"github.com/sagernet/sing/common/control"
@@ -9,7 +10,6 @@ import (
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/registry"
 	"log"
-	"nekobox_core/internal/boxdns/winipcfg"
 	"net/netip"
 	"strings"
 )

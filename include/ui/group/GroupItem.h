@@ -16,13 +16,13 @@ class GroupItem : public QWidget {
     Q_OBJECT
 
 public:
-    explicit GroupItem(QWidget *parent, const std::shared_ptr<NekoGui::Group> &ent, QListWidgetItem *item);
+    explicit GroupItem(QWidget *parent, const std::shared_ptr<Configs::Group> &ent, QListWidgetItem *item);
 
     ~GroupItem() override;
 
     void refresh_data();
 
-    std::shared_ptr<NekoGui::Group> ent;
+    std::shared_ptr<Configs::Group> ent;
     QListWidgetItem *item;
 
 private:

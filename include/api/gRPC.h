@@ -9,7 +9,7 @@ namespace QtGrpc {
     class Http2GrpcChannelPrivate;
 }
 
-namespace NekoGui_rpc {
+namespace API {
     enum GeoRuleSetType {ip, site};
 
     class Client {
@@ -55,4 +55,4 @@ namespace NekoGui_rpc {
     };
 
     inline Client *defaultClient;
-} // namespace NekoGui_rpc
+} // namespace API

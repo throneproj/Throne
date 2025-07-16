@@ -125,9 +125,9 @@
     </message>
     <message>
         <source>It is recommended to leave it blank, but it sometimes does not work, at this time you can set this option.
-For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
+For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
         <translation>建议留空，但有时会不起作用，这时可设置这个选项。
-对于 nekobox_core，这个会在 Tun 模式、正常模式和 URL 测试中会重写 底层(localhost) DNS。</translation>
+对于 Core，这个会在 Tun 模式、正常模式和 URL 测试中会重写 底层(localhost) DNS。</translation>
     </message>
     <message>
         <source>Default On</source>
@@ -859,11 +859,11 @@ also if the connection cannot be established with the current address family (ip
         <translation>排除故障</translation>
     </message>
     <message>
-        <source>If you have trouble starting VPN, you can force reset nekobox_core process here.
+        <source>If you have trouble starting VPN, you can force reset Core process here.
 
 If still not working, see documentation for more information.
 https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
-        <translation>如果您在启动 Tun 时有问题，可以在这里强制重置 nekobox_core 进程。
+        <translation>如果您在启动 Tun 时有问题，可以在这里强制重置 Core 进程。
 
 如果仍无法工作，请查阅文档以获取更多信息。
 https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
@@ -1704,8 +1704,8 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Ctrl+Alt+I</translation>
     </message>
     <message>
-        <source>If you have trouble starting VPN, you can force reset nekobox_core process here and then try starting the profile again. The error is %1</source>
-        <translation>如果启动 VPN 时遇到问题，您可以在这里强制重置 nekobox_core 进程，然后再次尝试启动配置档案。错误是 %1</translation>
+        <source>If you have trouble starting VPN, you can force reset Core process here and then try starting the profile again. The error is %1</source>
+        <translation>如果启动 VPN 时遇到问题，您可以在这里强制重置 Core 进程，然后再次尝试启动配置档案。错误是 %1</translation>
     </message>
     <message>
         <source> Confirmation </source>

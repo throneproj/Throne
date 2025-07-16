@@ -1,11 +1,11 @@
 #pragma once
 
-#include "include/global/NekoGui.hpp"
+#include "include/global/Configs.hpp"
 #include "ProxyEntity.hpp"
 #include "Group.hpp"
 #include "RouteEntity.h"
 
-namespace NekoGui {
+namespace Configs {
     const int INVALID_ID = -99999;
 
     class ProfileManager : private JsonStore {
@@ -81,4 +81,4 @@ namespace NekoGui {
     };
 
     extern ProfileManager *profileManager;
-} // namespace NekoGui
+} // namespace Configs

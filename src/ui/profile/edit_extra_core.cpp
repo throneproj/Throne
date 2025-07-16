@@ -15,7 +15,7 @@ EditExtraCore::~EditExtraCore() {
     delete ui;
 }
 
-void EditExtraCore::onStart(std::shared_ptr<NekoGui::ProxyEntity> _ent) {
+void EditExtraCore::onStart(std::shared_ptr<Configs::ProxyEntity> _ent) {
     this->ent = _ent;
 
     auto bean = ent->ExtraCoreBean();
@@ -24,7 +24,7 @@ void EditExtraCore::onStart(std::shared_ptr<NekoGui::ProxyEntity> _ent) {
     ui->socks_port->setText(Int2String(bean->socksPort));
     ui->config->setPlainText(bean->extraCoreConf);
     ui->args->setText(bean->extraCoreArgs);
-    ui->path_combo->addItems(NekoGui::profileManager->GetExtraCorePaths());
+    ui->path_combo->addItems(Configs::profileManager->GetExtraCorePaths());
     ui->path_combo->setCurrentText(bean->extraCorePath);
 
     connect(ui->path_button, &QPushButton::pressed, this, [=]
@@ -38,7 +38,7 @@ void EditExtraCore::onStart(std::shared_ptr<NekoGui::ProxyEntity> _ent) {
         {
             f = QDir::current().relativeFilePath(f);
         }
-        if (NekoGui::profileManager->AddExtraCorePath(f)) ui->path_combo->addItem(f);
+        if (Configs::profileManager->AddExtraCorePath(f)) ui->path_combo->addItem(f);
         ui->path_combo->setCurrentText(f);
         ui->path_combo->setSizeAdjustPolicy(QComboBox::AdjustToContents);
         adjustSize();

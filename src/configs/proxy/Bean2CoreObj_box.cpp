@@ -1,7 +1,7 @@
 #include "include/dataStore/ProxyEntity.hpp"
 #include "include/configs/proxy/includes.h"
 
-namespace NekoGui_fmt {
+namespace Configs {
     void V2rayStreamSettings::BuildStreamSettingsSingBox(QJsonObject *outbound) {
         // https://sing-box.sagernet.org/configuration/shared/v2ray-transport
 
@@ -66,7 +66,7 @@ namespace NekoGui_fmt {
         // tls
         if (security == "tls") {
             QJsonObject tls{{"enabled", true}};
-            if (allow_insecure || NekoGui::dataStore->skip_cert) tls["insecure"] = true;
+            if (allow_insecure || Configs::dataStore->skip_cert) tls["insecure"] = true;
             if (!sni.trimmed().isEmpty()) tls["server_name"] = sni;
             if (!certificate.trimmed().isEmpty()) {
                 tls["certificate"] = certificate.trimmed();
@@ -84,7 +84,7 @@ namespace NekoGui_fmt {
             outbound->insert("tls", tls);
         } else if (security == "reality") {
             QJsonObject tls{{"enabled", true}};
-            if (allow_insecure || NekoGui::dataStore->skip_cert) tls["insecure"] = true;
+            if (allow_insecure || Configs::dataStore->skip_cert) tls["insecure"] = true;
             if (!sni.trimmed().isEmpty()) tls["server_name"] = sni;
             if (!certificate.trimmed().isEmpty()) {
                 tls["certificate"] = certificate.trimmed();
@@ -275,7 +275,7 @@ namespace NekoGui_fmt {
     CoreObjOutboundBuildResult WireguardBean::BuildCoreObjSingBox() {
         CoreObjOutboundBuildResult result;
 
-        auto tun_name = "nekoray-wg";
+        auto tun_name = "throne-wg";
 #ifdef Q_OS_MACOS
         tun_name = "uwg9";
 #endif
@@ -347,4 +347,4 @@ namespace NekoGui_fmt {
         return result;
     }
 
-} // namespace NekoGui_fmt
+} // namespace Configs

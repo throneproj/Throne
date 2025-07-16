@@ -1,5 +1,4 @@
-name: Nekoray build matrix - cmake
-
+name: Throne build matrix
 on:
   workflow_dispatch:
     inputs:
@@ -66,7 +65,7 @@ jobs:
       - name: Uploading Artifact
         uses: actions/upload-artifact@v4.6.2
         with:
-          name: NekoRay-${{ github.sha }}-Common-${{ matrix.cross_os }}-${{ matrix.cross_arch }}
+          name: Throne-${{ github.sha }}-Common-${{ matrix.cross_os }}-${{ matrix.cross_arch }}
           path: artifacts.tgz
   build-cpp:
     permissions:
@@ -146,7 +145,7 @@ jobs:
         run: |
           cp .\script\windows_installer.nsi .
           makensis windows_installer.nsi
-          cp NekoraySetup.exe deployment/
+          cp ThroneSetup.exe deployment/
       - name: Linux - Generate MakeFile and Build
         shell: bash
         if: contains( matrix.platform, 'ubuntu' )
@@ -175,7 +174,7 @@ jobs:
       - name: Uploading Artifact
         uses: actions/upload-artifact@v4.6.2
         with:
-          name: NekoRay-${{ github.sha }}-${{ matrix.platform }}-${{ matrix.target }}-Qt${{ matrix.qt_version }}
+          name: Throne-${{ github.sha }}-${{ matrix.platform }}-${{ matrix.target }}-Qt${{ matrix.qt_version }}
           path: artifacts.tgz
   publish:
     name: Pack & Publish Release
@@ -185,6 +184,8 @@ jobs:
     permissions:
       contents: write
       actions: read
+    env:
+      INPUT_VERSION: ${{ github.event.inputs.tag }}
     steps:
       - name: Checking out sources
         uses: actions/checkout@v4.2.2
@@ -199,36 +200,36 @@ jobs:
           source script/env_deploy.sh
           find . -name artifacts.tgz | xargs -n1 tar xvzf
           cd deployment
-          rm -rf *.pdb
+          rm -rf *.png *.pdb */*.pdb */*.png
           ####
           bash ../script/pack_debian.sh ${{ github.event.inputs.tag }}
-          mv nekoray.deb $version_standalone-debian-x64.deb
-          rm -rf nekoray
+          mv Throne.deb $version_standalone-debian-x64.deb
+          rm -rf Throne
           ####
-          mv linux-amd64 nekoray
-          zip -9 -r $version_standalone-linux-amd64.zip nekoray
-          rm -rf nekoray
+          mv linux-amd64 Throne
+          zip -9 -r $version_standalone-linux-amd64.zip Throne
+          rm -rf Throne
           ####
-          mv linux-arm64 nekoray
-          zip -9 -r $version_standalone-linux-arm64.zip nekoray
-          rm -rf nekoray
+          mv linux-arm64 Throne
+          zip -9 -r $version_standalone-linux-arm64.zip Throne
+          rm -rf Throne
           ####
-          mv NekoraySetup.exe $version_standalone-windows64-installer.exe
-          mv windows64 nekoray
-          zip -9 -r $version_standalone-windows64.zip nekoray
-          rm -rf nekoray
+          mv ThroneSetup.exe $version_standalone-windows64-installer.exe
+          mv windows64 Throne
+          zip -9 -r $version_standalone-windows64.zip Throne
+          rm -rf Throne
           ####
-          mkdir Nekoray
-          mv macos-arm64/nekoray.app Nekoray/nekoray.app
-          zip -9 --symlinks -r $version_standalone-macos-arm64.zip Nekoray
+          mkdir Throne
+          mv macos-arm64/Throne.app Throne/Throne.app
+          zip -9 --symlinks -r $version_standalone-macos-arm64.zip Throne
           rm -rf macos-arm64
-          rm -rf Nekoray
+          rm -rf Throne
           ####
-          mkdir Nekoray
-          mv macos-amd64/nekoray.app Nekoray/nekoray.app
-          zip -9 --symlinks -r $version_standalone-macos-amd64.zip Nekoray
+          mkdir Throne
+          mv macos-amd64/Throne.app Throne/Throne.app
+          zip -9 --symlinks -r $version_standalone-macos-amd64.zip Throne
           rm -rf macos-amd64
-          rm -rf Nekoray
+          rm -rf Throne
       - name: Clean Up
         run: |
           cd deployment

@@ -2,7 +2,7 @@
 
 #include "ProxyEntity.hpp"
 
-namespace NekoGui {
+namespace Configs {
     class ProfileFilter {
     public:
         static void Uniq(
@@ -32,4 +32,4 @@ namespace NekoGui {
             const QList<std::shared_ptr<ProxyEntity>> &dst,
             QList<std::shared_ptr<ProxyEntity>> &out);
     };
-} // namespace NekoGui
+} // namespace Configs

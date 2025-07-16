@@ -3,7 +3,7 @@
 #include "AbstractBean.hpp"
 #include "Preset.hpp"
 
-namespace NekoGui_fmt {
+namespace Configs {
     class V2rayStreamSettings : public JsonStore {
     public:
         QString network = "tcp";
@@ -106,9 +106,9 @@ namespace NekoGui_fmt {
         auto stream_item = bean->_get("stream");
         if (stream_item != nullptr) {
             auto stream_store = (JsonStore *) stream_item->ptr;
-            auto stream = (NekoGui_fmt::V2rayStreamSettings *) stream_store;
+            auto stream = (Configs::V2rayStreamSettings *) stream_store;
             return stream;
         }
         return nullptr;
     }
-} // namespace NekoGui_fmt
+} // namespace Configs

@@ -11,7 +11,7 @@
 #include <QThread>
 #include <3rdparty/WinCommander.hpp>
 
-#include "include/global/NekoGui.hpp"
+#include "include/global/Configs.hpp"
 
 #include "include/ui/mainwindow_interface.h"
 
@@ -55,7 +55,7 @@ void loadTranslate(const QString& locale) {
     }
 }
 
-#define LOCAL_SERVER_PREFIX "nekoray-"
+#define LOCAL_SERVER_PREFIX "throne-"
 
 int main(int argc, char* argv[]) {
     // Core dump
@@ -74,32 +74,32 @@ int main(int argc, char* argv[]) {
     }
 
     // Flags
-    NekoGui::dataStore->argv = QApplication::arguments();
-    if (NekoGui::dataStore->argv.contains("-many")) NekoGui::dataStore->flag_many = true;
-    if (NekoGui::dataStore->argv.contains("-appdata")) {
-        NekoGui::dataStore->flag_use_appdata = true;
-        int appdataIndex = NekoGui::dataStore->argv.indexOf("-appdata");
-        if (NekoGui::dataStore->argv.size() > appdataIndex + 1 && !NekoGui::dataStore->argv.at(appdataIndex + 1).startsWith("-")) {
-            NekoGui::dataStore->appdataDir = NekoGui::dataStore->argv.at(appdataIndex + 1);
+    Configs::dataStore->argv = QApplication::arguments();
+    if (Configs::dataStore->argv.contains("-many")) Configs::dataStore->flag_many = true;
+    if (Configs::dataStore->argv.contains("-appdata")) {
+        Configs::dataStore->flag_use_appdata = true;
+        int appdataIndex = Configs::dataStore->argv.indexOf("-appdata");
+        if (Configs::dataStore->argv.size() > appdataIndex + 1 && !Configs::dataStore->argv.at(appdataIndex + 1).startsWith("-")) {
+            Configs::dataStore->appdataDir = Configs::dataStore->argv.at(appdataIndex + 1);
         }
     }
-    if (NekoGui::dataStore->argv.contains("-tray")) NekoGui::dataStore->flag_tray = true;
-    if (NekoGui::dataStore->argv.contains("-debug")) NekoGui::dataStore->flag_debug = true;
-    if (NekoGui::dataStore->argv.contains("-flag_restart_tun_on")) NekoGui::dataStore->flag_restart_tun_on = true;
-    if (NekoGui::dataStore->argv.contains("-flag_restart_dns_set")) NekoGui::dataStore->flag_dns_set = true;
+    if (Configs::dataStore->argv.contains("-tray")) Configs::dataStore->flag_tray = true;
+    if (Configs::dataStore->argv.contains("-debug")) Configs::dataStore->flag_debug = true;
+    if (Configs::dataStore->argv.contains("-flag_restart_tun_on")) Configs::dataStore->flag_restart_tun_on = true;
+    if (Configs::dataStore->argv.contains("-flag_restart_dns_set")) Configs::dataStore->flag_dns_set = true;
 #ifdef NKR_CPP_USE_APPDATA
-    NekoGui::dataStore->flag_use_appdata = true; // Example: Package & MacOS
+    Configs::dataStore->flag_use_appdata = true; // Example: Package & MacOS
 #endif
 #ifdef NKR_CPP_DEBUG
-    NekoGui::dataStore->flag_debug = true;
+    Configs::dataStore->flag_debug = true;
 #endif
 
     // dirs & clean
     auto wd = QDir(QApplication::applicationDirPath());
-    if (NekoGui::dataStore->flag_use_appdata) {
-        QApplication::setApplicationName("nekoray");
-        if (!NekoGui::dataStore->appdataDir.isEmpty()) {
-            wd.setPath(NekoGui::dataStore->appdataDir);
+    if (Configs::dataStore->flag_use_appdata) {
+        QApplication::setApplicationName("Throne");
+        if (!Configs::dataStore->appdataDir.isEmpty()) {
+            wd.setPath(Configs::dataStore->appdataDir);
         } else {
             wd.setPath(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
         }
@@ -119,7 +119,6 @@ int main(int argc, char* argv[]) {
 
 // icons
     QIcon::setFallbackSearchPaths(QStringList{
-        ":/nekoray",
         ":/icon",
     });
 
@@ -148,18 +147,24 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // migrate the old config file
+    if (QFile::exists("groups/nekobox.json"))
+    {
+        QFile::rename("groups/nekobox.json", "configs.json");
+    }
+
     // Load dataStore
-    NekoGui::dataStore->fn = "groups/nekobox.json";
-    auto isLoaded = NekoGui::dataStore->Load();
+    Configs::dataStore->fn = "configs.json";
+    auto isLoaded = Configs::dataStore->Load();
     if (!isLoaded) {
-        NekoGui::dataStore->Save();
+        Configs::dataStore->Save();
     }
 
 #ifdef Q_OS_WIN
-    if (NekoGui::dataStore->windows_set_admin && !NekoGui::IsAdmin() && !NekoGui::dataStore->disable_run_admin)
+    if (Configs::dataStore->windows_set_admin && !Configs::IsAdmin() && !Configs::dataStore->disable_run_admin)
     {
-        NekoGui::dataStore->windows_set_admin = false; // so that if permission denied, we will run as user on the next run
-        NekoGui::dataStore->Save();
+        Configs::dataStore->windows_set_admin = false; // so that if permission denied, we will run as user on the next run
+        Configs::dataStore->Save();
         WinCommander::runProcessElevated(QApplication::applicationFilePath(), {}, "", WinCommander::SW_NORMAL, false);
         QApplication::quit();
         return 0;
@@ -167,19 +172,19 @@ int main(int argc, char* argv[]) {
 #endif
 
     // Datastore & Flags
-    if (NekoGui::dataStore->start_minimal) NekoGui::dataStore->flag_tray = true;
+    if (Configs::dataStore->start_minimal) Configs::dataStore->flag_tray = true;
 
     // load routing
-    NekoGui::dataStore->routing = std::make_unique<NekoGui::Routing>();
-    NekoGui::dataStore->routing->fn = ROUTES_PREFIX + "Default";
-    isLoaded = NekoGui::dataStore->routing->Load();
+    Configs::dataStore->routing = std::make_unique<Configs::Routing>();
+    Configs::dataStore->routing->fn = ROUTES_PREFIX + "Default";
+    isLoaded = Configs::dataStore->routing->Load();
     if (!isLoaded) {
-        NekoGui::dataStore->routing->Save();
+        Configs::dataStore->routing->Save();
     }
 
     // Translate
     QString locale;
-    switch (NekoGui::dataStore->language) {
+    switch (Configs::dataStore->language) {
         case 1: // English
             break;
         case 2:

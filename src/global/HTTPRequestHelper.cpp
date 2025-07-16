@@ -8,29 +8,29 @@
 #include <QFile>
 #include <QApplication>
 
-#include "include/global/NekoGui.hpp"
+#include "include/global/Configs.hpp"
 #include "include/ui/mainwindow.h"
 
-namespace NekoGui_network {
+namespace Configs_network {
 
-    NekoHTTPResponse NetworkRequestHelper::HttpGet(const QString &url) {
+    HTTPResponse NetworkRequestHelper::HttpGet(const QString &url) {
         QNetworkRequest request;
         QNetworkAccessManager accessManager;
         request.setUrl(url);
-        if (NekoGui::dataStore->sub_use_proxy || NekoGui::dataStore->spmode_system_proxy) {
+        if (Configs::dataStore->sub_use_proxy || Configs::dataStore->spmode_system_proxy) {
             QNetworkProxy p;
             p.setType(QNetworkProxy::HttpProxy);
             p.setHostName("127.0.0.1");
-            p.setPort(NekoGui::dataStore->inbound_socks_port);
+            p.setPort(Configs::dataStore->inbound_socks_port);
             accessManager.setProxy(p);
-            if (NekoGui::dataStore->started_id < 0) {
-                return NekoHTTPResponse{QObject::tr("Request with proxy but no profile started.")};
+            if (Configs::dataStore->started_id < 0) {
+                return HTTPResponse{QObject::tr("Request with proxy but no profile started.")};
             }
         }
         // Set attribute
         request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
-        request.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, NekoGui::dataStore->GetUserAgent());
-        if (NekoGui::dataStore->sub_insecure) {
+        request.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, Configs::dataStore->GetUserAgent());
+        if (Configs::dataStore->sub_insecure) {
             QSslConfiguration c;
             c.setPeerVerifyMode(QSslSocket::PeerVerifyMode::VerifyNone);
             request.setSslConfiguration(c);
@@ -42,7 +42,7 @@ namespace NekoGui_network {
             for (const auto &err: errors) {
                 error_str << err.errorString();
             }
-            MW_show_log(QString("SSL Errors: %1 %2").arg(error_str.join(","), NekoGui::dataStore->sub_insecure ? "(Ignored)" : ""));
+            MW_show_log(QString("SSL Errors: %1 %2").arg(error_str.join(","), Configs::dataStore->sub_insecure ? "(Ignored)" : ""));
         });
         // Wait for response
         auto abortTimer = new QTimer;
@@ -60,7 +60,7 @@ namespace NekoGui_network {
             abortTimer->deleteLater();
         }
         //
-        auto result = NekoHTTPResponse{_reply->error() == QNetworkReply::NetworkError::NoError ? "" : _reply->errorString(),
+        auto result = HTTPResponse{_reply->error() == QNetworkReply::NetworkError::NoError ? "" : _reply->errorString(),
                                        _reply->readAll(), _reply->rawHeaderPairs()};
         _reply->deleteLater();
         return result;
@@ -77,13 +77,13 @@ namespace NekoGui_network {
         QNetworkRequest request;
         QNetworkAccessManager accessManager;
         request.setUrl(url);
-        if (NekoGui::dataStore->spmode_system_proxy) {
+        if (Configs::dataStore->spmode_system_proxy) {
             QNetworkProxy p;
             p.setType(QNetworkProxy::HttpProxy);
             p.setHostName("127.0.0.1");
-            p.setPort(NekoGui::dataStore->inbound_socks_port);
+            p.setPort(Configs::dataStore->inbound_socks_port);
             accessManager.setProxy(p);
-            if (NekoGui::dataStore->started_id < 0) {
+            if (Configs::dataStore->started_id < 0) {
                 return QObject::tr("Request with proxy but no profile started.");
             }
         }
@@ -115,7 +115,7 @@ namespace NekoGui_network {
             return _reply->errorString();
         }
 
-        auto filePath = NekoGui::GetBasePath()+ "/" + fileName;
+        auto filePath = Configs::GetBasePath()+ "/" + fileName;
         auto file = QFile(filePath);
         if (file.exists()) {
             file.remove();
@@ -128,4 +128,4 @@ namespace NekoGui_network {
         return "";
     }
 
-} // namespace NekoGui_network
+} // namespace Configs_network

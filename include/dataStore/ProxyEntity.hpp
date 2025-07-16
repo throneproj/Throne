@@ -1,11 +1,11 @@
 #pragma once
 
-#include "include/global/NekoGui.hpp"
+#include "include/global/Configs.hpp"
 #include "include/stats/traffic/TrafficData.hpp"
 #include "include/configs/proxy/AbstractBean.hpp"
 #include "include/configs/proxy/ExtraCore.h"
 
-namespace NekoGui_fmt {
+namespace Configs {
     class SocksHttpBean;
 
     class ShadowSocksBean;
@@ -25,9 +25,9 @@ namespace NekoGui_fmt {
     class CustomBean;
 
     class ChainBean;
-}; // namespace NekoGui_fmt
+}; // namespace Configs
 
-namespace NekoGui {
+namespace Configs {
     class ProxyEntity : public JsonStore {
     public:
         QString type;
@@ -37,59 +37,59 @@ namespace NekoGui {
         int latency = 0;
         QString dl_speed;
         QString ul_speed;
-        std::shared_ptr<NekoGui_fmt::AbstractBean> bean;
-        std::shared_ptr<NekoGui_traffic::TrafficData> traffic_data = std::make_shared<NekoGui_traffic::TrafficData>("");
+        std::shared_ptr<Configs::AbstractBean> bean;
+        std::shared_ptr<Stats::TrafficData> traffic_data = std::make_shared<Stats::TrafficData>("");
 
         QString full_test_report;
 
-        ProxyEntity(NekoGui_fmt::AbstractBean *bean, const QString &type_);
+        ProxyEntity(Configs::AbstractBean *bean, const QString &type_);
 
         [[nodiscard]] QString DisplayTestResult() const;
 
         [[nodiscard]] QColor DisplayLatencyColor() const;
 
-        [[nodiscard]] NekoGui_fmt::ChainBean *ChainBean() const {
-            return (NekoGui_fmt::ChainBean *) bean.get();
+        [[nodiscard]] Configs::ChainBean *ChainBean() const {
+            return (Configs::ChainBean *) bean.get();
         };
 
-        [[nodiscard]] NekoGui_fmt::SocksHttpBean *SocksHTTPBean() const {
-            return (NekoGui_fmt::SocksHttpBean *) bean.get();
+        [[nodiscard]] Configs::SocksHttpBean *SocksHTTPBean() const {
+            return (Configs::SocksHttpBean *) bean.get();
         };
 
-        [[nodiscard]] NekoGui_fmt::ShadowSocksBean *ShadowSocksBean() const {
-            return (NekoGui_fmt::ShadowSocksBean *) bean.get();
+        [[nodiscard]] Configs::ShadowSocksBean *ShadowSocksBean() const {
+            return (Configs::ShadowSocksBean *) bean.get();
         };
 
-        [[nodiscard]] NekoGui_fmt::VMessBean *VMessBean() const {
-            return (NekoGui_fmt::VMessBean *) bean.get();
+        [[nodiscard]] Configs::VMessBean *VMessBean() const {
+            return (Configs::VMessBean *) bean.get();
         };
 
-        [[nodiscard]] NekoGui_fmt::TrojanVLESSBean *TrojanVLESSBean() const {
-            return (NekoGui_fmt::TrojanVLESSBean *) bean.get();
+        [[nodiscard]] Configs::TrojanVLESSBean *TrojanVLESSBean() const {
+            return (Configs::TrojanVLESSBean *) bean.get();
         };
 
-        [[nodiscard]] NekoGui_fmt::NaiveBean *NaiveBean() const {
-            return (NekoGui_fmt::NaiveBean *) bean.get();
+        [[nodiscard]] Configs::NaiveBean *NaiveBean() const {
+            return (Configs::NaiveBean *) bean.get();
         };
 
-        [[nodiscard]] NekoGui_fmt::QUICBean *QUICBean() const {
-            return (NekoGui_fmt::QUICBean *) bean.get();
+        [[nodiscard]] Configs::QUICBean *QUICBean() const {
+            return (Configs::QUICBean *) bean.get();
         };
 
-        [[nodiscard]] NekoGui_fmt::WireguardBean *WireguardBean() const {
-            return (NekoGui_fmt::WireguardBean *) bean.get();
+        [[nodiscard]] Configs::WireguardBean *WireguardBean() const {
+            return (Configs::WireguardBean *) bean.get();
         };
 
-        [[nodiscard]] NekoGui_fmt::SSHBean *SSHBean() const {
-            return (NekoGui_fmt::SSHBean *) bean.get();
+        [[nodiscard]] Configs::SSHBean *SSHBean() const {
+            return (Configs::SSHBean *) bean.get();
         };
 
-        [[nodiscard]] NekoGui_fmt::CustomBean *CustomBean() const {
-            return (NekoGui_fmt::CustomBean *) bean.get();
+        [[nodiscard]] Configs::CustomBean *CustomBean() const {
+            return (Configs::CustomBean *) bean.get();
         };
 
-        [[nodiscard]] NekoGui_fmt::ExtraCoreBean *ExtraCoreBean() const {
-            return (NekoGui_fmt::ExtraCoreBean *) bean.get();
+        [[nodiscard]] Configs::ExtraCoreBean *ExtraCoreBean() const {
+            return (Configs::ExtraCoreBean *) bean.get();
         };
     };
-} // namespace NekoGui
+} // namespace Configs

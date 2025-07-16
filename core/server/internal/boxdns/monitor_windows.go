@@ -1,12 +1,12 @@
 package boxdns
 
 import (
+	"Core/internal/boxdns/winipcfg"
 	"fmt"
 	tun "github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common/control"
 	logger2 "github.com/sagernet/sing/common/logger"
 	"log"
-	"nekobox_core/internal/boxdns/winipcfg"
 )
 
 func init() {

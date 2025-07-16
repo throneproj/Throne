@@ -1,8 +1,8 @@
 #include <include/dataStore/ProxyEntity.hpp>
 
-namespace NekoGui
+namespace Configs
 {
-    ProxyEntity::ProxyEntity(NekoGui_fmt::AbstractBean *bean, const QString &type_) {
+    ProxyEntity::ProxyEntity(Configs::AbstractBean *bean, const QString &type_) {
         if (type_ != nullptr) this->type = type_;
 
         _add(new configItem("type", &type, itemType::string));
@@ -14,7 +14,7 @@ namespace NekoGui
         _add(new configItem("report", &full_test_report, itemType::string));
 
         if (bean != nullptr) {
-            this->bean = std::shared_ptr<NekoGui_fmt::AbstractBean>(bean);
+            this->bean = std::shared_ptr<Configs::AbstractBean>(bean);
             _add(new configItem("bean", dynamic_cast<JsonStore *>(bean), itemType::jsonStore));
             _add(new configItem("traffic", dynamic_cast<JsonStore *>(traffic_data.get()), itemType::jsonStore));
         }

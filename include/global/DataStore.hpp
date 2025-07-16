@@ -2,7 +2,7 @@
 
 #include "Const.hpp"
 
-namespace NekoGui {
+namespace Configs {
 
     class Routing : public JsonStore {
     public:
@@ -172,4 +172,4 @@ namespace NekoGui {
 
     extern DataStore *dataStore;
 
-} // namespace NekoGui
+} // namespace Configs

@@ -1,14 +1,14 @@
 #pragma once
 
 #include "Const.hpp"
-#include "NekoGui_Utils.hpp"
-#include "NekoGui_ConfigItem.hpp"
-#include "NekoGui_DataStore.hpp"
+#include "Utils.hpp"
+#include "ConfigItem.hpp"
+#include "DataStore.hpp"
 
 // Switch core support
 
-namespace NekoGui {
-    QString FindNekoBoxCoreRealPath();
+namespace Configs {
+    QString FindCoreRealPath();
 
     bool IsAdmin(bool forceRenew=false);
 
@@ -17,7 +17,7 @@ namespace NekoGui {
     QString GetCoreAssetDir(const QString &name);
 
     bool NeedGeoAssets();
-} // namespace NekoGui
+} // namespace Configs
 
 #define ROUTES_PREFIX_NAME QString("route_profiles")
 #define ROUTES_PREFIX QString(ROUTES_PREFIX_NAME + "/")

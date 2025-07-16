@@ -1,4 +1,4 @@
-#include "include/global/NekoGui.hpp"
+#include "include/global/Configs.hpp"
 #include "include/configs/proxy/Preset.hpp"
 
 #include <QApplication>
@@ -20,7 +20,7 @@
 #include <unistd.h>
 #endif
 
-namespace NekoGui_ConfigItem {
+namespace Configs_ConfigItem {
 
     // 添加关联
     void JsonStore::_add(configItem *item) {
@@ -230,9 +230,9 @@ namespace NekoGui_ConfigItem {
         return ok;
     }
 
-} // namespace NekoGui_ConfigItem
+} // namespace Configs_ConfigItem
 
-namespace NekoGui {
+namespace Configs {
 
     DataStore *dataStore = new DataStore();
 
@@ -325,7 +325,7 @@ namespace NekoGui {
         if (isDefault) {
             QString version = SubStrBefore(NKR_VERSION, "-");
             if (!version.contains(".")) version = "2.0";
-            return "Nekoray" + version;
+            return "Throne" + version;
         }
         return user_agent;
     }
@@ -354,8 +354,8 @@ namespace NekoGui {
 
     // System Utils
 
-    QString FindNekoBoxCoreRealPath() {
-        auto fn = QApplication::applicationDirPath() + "/nekobox_core";
+    QString FindCoreRealPath() {
+        auto fn = QApplication::applicationDirPath() + "/Core";
         auto fi = QFileInfo(fn);
         if (fi.isSymLink()) return fi.symLinkTarget();
         return fn;
@@ -373,7 +373,7 @@ namespace NekoGui {
         dataStore->windows_set_admin = admin;
 #else
         bool ok;
-        auto isPrivileged = NekoGui_rpc::defaultClient->IsPrivileged(&ok);
+        auto isPrivileged = API::defaultClient->IsPrivileged(&ok);
         admin = ok && isPrivileged;
 #endif
         isAdminCache = admin;
@@ -408,4 +408,4 @@ namespace NekoGui {
     bool NeedGeoAssets(){
         return GetCoreAssetDir("geoip.db").isEmpty() || GetCoreAssetDir("geosite.db").isEmpty();
     }
-} // namespace NekoGui
+} // namespace Configs

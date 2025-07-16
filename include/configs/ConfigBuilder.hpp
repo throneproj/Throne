@@ -3,7 +3,7 @@
 #include "include/dataStore/ProxyEntity.hpp"
 #include "include/sys/Process.hpp"
 
-namespace NekoGui {
+namespace Configs {
     class ExtraCoreData
     {
     public:
@@ -20,7 +20,7 @@ namespace NekoGui {
         QJsonObject coreConfig;
         std::shared_ptr<ExtraCoreData> extraCoreData;
 
-        QList<std::shared_ptr<NekoGui_traffic::TrafficData>> outboundStats; // all, but not including "bypass" "block"
+        QList<std::shared_ptr<Stats::TrafficData>> outboundStats; // all, but not including "bypass" "block"
     };
 
     class BuildTestConfigResult {
@@ -66,4 +66,4 @@ namespace NekoGui {
                                const std::shared_ptr<BuildConfigStatus> &status);
 
     void BuildOutbound(const std::shared_ptr<ProxyEntity> &ent, const std::shared_ptr<BuildConfigStatus> &status, QJsonObject& outbound, const QString& tag);
-} // namespace NekoGui
+} // namespace Configs

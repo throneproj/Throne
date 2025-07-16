@@ -3,8 +3,8 @@
 #include <QObject>
 #include <functional>
 
-namespace NekoGui_network {
-    struct NekoHTTPResponse {
+namespace Configs_network {
+    struct HTTPResponse {
         QString error;
         QByteArray data;
         QList<QPair<QByteArray, QByteArray>> header;
@@ -26,12 +26,12 @@ namespace NekoGui_network {
         ;
 
     public:
-        static NekoHTTPResponse HttpGet(const QString &url);
+        static HTTPResponse HttpGet(const QString &url);
 
         static QString GetHeader(const QList<QPair<QByteArray, QByteArray>> &header, const QString &name);
 
         static QString DownloadAsset(const QString &url, const QString &fileName);
     };
-} // namespace NekoGui_network
+} // namespace Configs_network
 
-using namespace NekoGui_network;
+using namespace Configs_network;

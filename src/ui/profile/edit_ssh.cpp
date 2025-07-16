@@ -11,7 +11,7 @@ EditSSH::~EditSSH() {
     delete ui;
 }
 
-void EditSSH::onStart(std::shared_ptr<NekoGui::ProxyEntity> _ent) {
+void EditSSH::onStart(std::shared_ptr<Configs::ProxyEntity> _ent) {
     this->ent = _ent;
     auto bean = this->ent->SSHBean();
 

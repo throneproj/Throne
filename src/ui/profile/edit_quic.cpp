@@ -14,7 +14,7 @@ EditQUIC::~EditQUIC() {
     delete ui;
 }
 
-void EditQUIC::onStart(std::shared_ptr<NekoGui::ProxyEntity> _ent) {
+void EditQUIC::onStart(std::shared_ptr<Configs::ProxyEntity> _ent) {
     this->ent = _ent;
     auto bean = this->ent->QUICBean();
 
@@ -43,7 +43,7 @@ void EditQUIC::onStart(std::shared_ptr<NekoGui::ProxyEntity> _ent) {
     P_LOAD_BOOL(allowInsecure);
     P_LOAD_BOOL(disableSni);
 
-    if (bean->proxy_type == NekoGui_fmt::QUICBean::proxy_Hysteria || bean->proxy_type == NekoGui_fmt::QUICBean::proxy_Hysteria2) {
+    if (bean->proxy_type == Configs::QUICBean::proxy_Hysteria || bean->proxy_type == Configs::QUICBean::proxy_Hysteria2) {
         ui->uuid->hide();
         ui->uuid_l->hide();
         ui->uuidgen->hide();
@@ -56,7 +56,7 @@ void EditQUIC::onStart(std::shared_ptr<NekoGui::ProxyEntity> _ent) {
         ui->heartbeat_l->hide();
         ui->uos->hide();
 
-        if (bean->proxy_type == NekoGui_fmt::QUICBean::proxy_Hysteria) { // hy1
+        if (bean->proxy_type == Configs::QUICBean::proxy_Hysteria) { // hy1
             ui->password->hide();
             ui->password_l->hide();
             ui->port_range->hide();
@@ -79,7 +79,7 @@ void EditQUIC::onStart(std::shared_ptr<NekoGui::ProxyEntity> _ent) {
             ui->port_range->setText(bean->serverPorts.join(","));
             ui->hop_interval->setText(bean->hop_interval);
         }
-    } else if (bean->proxy_type == NekoGui_fmt::QUICBean::proxy_TUIC) {
+    } else if (bean->proxy_type == Configs::QUICBean::proxy_TUIC) {
         ui->uploadMbps->hide();
         ui->uploadMbps_l->hide();
         ui->downloadMbps->hide();

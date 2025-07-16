@@ -4,7 +4,7 @@
 #include "V2RayStreamSettings.hpp"
 #include "Preset.hpp"
 
-namespace NekoGui_fmt {
+namespace Configs {
     class VMessBean : public AbstractBean {
     public:
         QString uuid = "";
@@ -30,4 +30,4 @@ namespace NekoGui_fmt {
 
         QString ToShareLink() override;
     };
-} // namespace NekoGui_fmt
+} // namespace Configs

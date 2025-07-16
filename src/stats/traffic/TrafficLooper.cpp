@@ -7,17 +7,17 @@
 #include <QJsonDocument>
 #include <QElapsedTimer>
 
-namespace NekoGui_traffic {
+namespace Stats {
 
     TrafficLooper *trafficLooper = new TrafficLooper;
     QElapsedTimer elapsedTimer;
 
     void TrafficLooper::UpdateAll() {
-        if (NekoGui::dataStore->disable_traffic_stats) {
+        if (Configs::dataStore->disable_traffic_stats) {
             return;
         }
 
-        auto resp = NekoGui_rpc::defaultClient->QueryStats();
+        auto resp = API::defaultClient->QueryStats();
         proxy->uplink_rate = 0;
         proxy->downlink_rate = 0;
 
@@ -69,7 +69,7 @@ namespace NekoGui_traffic {
         while (true) {
             QThread::msleep(1000); // refresh every one second
 
-            if (NekoGui::dataStore->disable_traffic_stats) {
+            if (Configs::dataStore->disable_traffic_stats) {
                 continue;
             }
 
@@ -118,4 +118,4 @@ namespace NekoGui_traffic {
         }
     }
 
-} // namespace NekoGui_traffic
+} // namespace Stats

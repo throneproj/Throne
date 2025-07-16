@@ -1,4 +1,4 @@
-module nekobox_core
+module Core
 
 go 1.23.0
 

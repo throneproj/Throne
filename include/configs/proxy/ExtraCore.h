@@ -2,7 +2,7 @@
 
 #include "AbstractBean.hpp"
 
-namespace NekoGui_fmt {
+namespace Configs {
     class ExtraCoreBean : public AbstractBean {
     public:
         QString socksAddress = "127.0.0.1";

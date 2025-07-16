@@ -4,7 +4,7 @@
 #include "include/ui/mainwindow_interface.h"
 #include <include/stats/connections/connectionLister.hpp>
 
-namespace NekoGui_traffic
+namespace Stats
 {
     ConnectionLister* connection_lister = new ConnectionLister();
 
@@ -28,7 +28,7 @@ namespace NekoGui_traffic
             if (stop) return;
             QThread::msleep(1000);
 
-            if (suspend || !NekoGui::dataStore->enable_stats) continue;
+            if (suspend || !Configs::dataStore->enable_stats) continue;
 
             mu.lock();
             update();
@@ -39,7 +39,7 @@ namespace NekoGui_traffic
     void ConnectionLister::update()
     {
         bool ok;
-            libcore::ListConnectionsResp resp = NekoGui_rpc::defaultClient->ListConnections(&ok);
+            libcore::ListConnectionsResp resp = API::defaultClient->ListConnections(&ok);
             if (!ok)
             {
                 return;

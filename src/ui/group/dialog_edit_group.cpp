@@ -9,7 +9,7 @@
 
 #define ADJUST_SIZE runOnUiThread([=] { adjustSize(); adjustPosition(mainwindow); }, this);
 
-DialogEditGroup::DialogEditGroup(const std::shared_ptr<NekoGui::Group> &ent, QWidget *parent) : QDialog(parent), ui(new Ui::DialogEditGroup) {
+DialogEditGroup::DialogEditGroup(const std::shared_ptr<Configs::Group> &ent, QWidget *parent) : QDialog(parent), ui(new Ui::DialogEditGroup) {
     ui->setupUi(this);
     this->ent = ent;
 
@@ -26,11 +26,11 @@ DialogEditGroup::DialogEditGroup(const std::shared_ptr<NekoGui::Group> &ent, QWi
     ui->type->currentIndexChanged(ui->type->currentIndex());
     ui->manually_column_width->setChecked(ent->manually_column_width);
     ui->cat_share->setVisible(false);
-    if (NekoGui::profileManager->GetProfile(ent->front_proxy_id) == nullptr) {
+    if (Configs::profileManager->GetProfile(ent->front_proxy_id) == nullptr) {
         ent->front_proxy_id = -1;
         ent->Save();
     }
-    if (NekoGui::profileManager->GetProfile(ent->landing_proxy_id) == nullptr) {
+    if (Configs::profileManager->GetProfile(ent->landing_proxy_id) == nullptr) {
         ent->landing_proxy_id = -1;
         ent->Save();
     }
@@ -75,7 +75,7 @@ DialogEditGroup::DialogEditGroup(const std::shared_ptr<NekoGui::Group> &ent, QWi
 
     connect(ui->copy_links, &QPushButton::clicked, this, [=] {
         QStringList links;
-        for (const auto &[_, profile]: NekoGui::profileManager->profiles) {
+        for (const auto &[_, profile]: Configs::profileManager->profiles) {
             if (profile->gid != ent->id) continue;
             links += profile->bean->ToShareLink();
         }
@@ -84,7 +84,7 @@ DialogEditGroup::DialogEditGroup(const std::shared_ptr<NekoGui::Group> &ent, QWi
     });
     connect(ui->copy_links_nkr, &QPushButton::clicked, this, [=] {
         QStringList links;
-        for (const auto &[_, profile]: NekoGui::profileManager->profiles) {
+        for (const auto &[_, profile]: Configs::profileManager->profiles) {
             if (profile->gid != ent->id) continue;
             links += profile->bean->ToNekorayShareLink(profile->type);
         }
@@ -120,7 +120,7 @@ void DialogEditGroup::accept() {
 
 QStringList DialogEditGroup::load_proxy_items() {
     QStringList res = QStringList();
-    auto profiles = NekoGui::profileManager->profiles;
+    auto profiles = Configs::profileManager->profiles;
     for (const auto &item: profiles) {
         res.push_back(item.second->bean->DisplayName());
     }
@@ -129,7 +129,7 @@ QStringList DialogEditGroup::load_proxy_items() {
 }
 
 int DialogEditGroup::get_proxy_id(QString name) {
-    auto profiles = NekoGui::profileManager->profiles;
+    auto profiles = Configs::profileManager->profiles;
     for (const auto &item: profiles) {
         if (item.second->bean->DisplayName() == name) return item.first;
     }
@@ -138,6 +138,6 @@ int DialogEditGroup::get_proxy_id(QString name) {
 }
 
 QString DialogEditGroup::get_proxy_name(int id) {
-    auto profiles = NekoGui::profileManager->profiles;
+    auto profiles = Configs::profileManager->profiles;
     return profiles.count(id) == 0 ? "None" : profiles[id]->bean->DisplayName();
 }

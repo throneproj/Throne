@@ -2,7 +2,7 @@
 
 #include "include/ui/profile/dialog_edit_profile.h"
 
-namespace NekoGui
+namespace Configs
 {
     Group::Group() {
         _add(new configItem("id", &id, itemType::integer));

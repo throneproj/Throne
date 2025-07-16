@@ -1,4 +1,4 @@
-#include "include/global/NekoGui_Utils.hpp"
+#include "include/global/Utils.hpp"
 
 #include "3rdparty/base64.h"
 #include "3rdparty/QThreadCreateThread.hpp"

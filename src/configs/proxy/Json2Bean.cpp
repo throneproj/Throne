@@ -10,7 +10,7 @@
 #include "include/configs/proxy/ExtraCore.h"
 #include "include/configs/proxy/SSHBean.h"
 
-namespace NekoGui_fmt
+namespace Configs
 {
     bool QUICBean::TryParseJson(const QJsonObject& obj)
     {

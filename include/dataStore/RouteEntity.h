@@ -2,9 +2,9 @@
 
 #include <include/configs/proxy/Preset.hpp>
 
-#include "include/global/NekoGui.hpp"
+#include "include/global/Configs.hpp"
 
-namespace NekoGui {
+namespace Configs {
     enum outboundID {proxyID=-1, directID=-2, blockID=-3, dnsOutID=-4};
     inline QString outboundIDToString(int id)
     {
@@ -153,4 +153,4 @@ namespace NekoGui {
 
         static bool add_simple_process_rule(const QString& content, const std::shared_ptr<RouteRule>& rule, ruleType type);
     };
-} // namespace NekoGui
+} // namespace Configs

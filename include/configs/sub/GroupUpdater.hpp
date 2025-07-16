@@ -2,7 +2,7 @@
 
 #include "include/dataStore/Database.hpp"
 
-namespace NekoGui_sub {
+namespace Subscription {
     class RawUpdater {
     public:
         void updateClash(const QString &str);
@@ -13,7 +13,7 @@ namespace NekoGui_sub {
 
         int gid_add_to = -1;
 
-        QList<std::shared_ptr<NekoGui::ProxyEntity>> updated_order;
+        QList<std::shared_ptr<Configs::ProxyEntity>> updated_order;
     };
 
     class GroupUpdater : public QObject {
@@ -30,6 +30,6 @@ namespace NekoGui_sub {
     };
 
     extern GroupUpdater *groupUpdater;
-} // namespace NekoGui_sub
+} // namespace Subscription
 
 void UI_update_all_groups(bool onlyAllowed = false);

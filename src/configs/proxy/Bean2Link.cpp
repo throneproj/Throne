@@ -3,7 +3,7 @@
 
 #include <QUrlQuery>
 
-namespace NekoGui_fmt {
+namespace Configs {
     QString SocksHttpBean::ToShareLink() {
         QUrl url;
         if (socks_http_type == type_HTTP) { // http
@@ -141,7 +141,7 @@ namespace NekoGui_fmt {
         if (!stream->sni.isEmpty()) query.addQueryItem("sni", stream->sni);
         if (stream->allow_insecure) query.addQueryItem("allowInsecure", "1");
         if (stream->utlsFingerprint.isEmpty()) {
-            query.addQueryItem("fp", NekoGui::dataStore->utlsFingerprint);
+            query.addQueryItem("fp", Configs::dataStore->utlsFingerprint);
         } else {
             query.addQueryItem("fp", stream->utlsFingerprint);
         }
@@ -301,4 +301,4 @@ namespace NekoGui_fmt {
         return "Unsupported for now";
     }
 
-} // namespace NekoGui_fmt
+} // namespace Configs

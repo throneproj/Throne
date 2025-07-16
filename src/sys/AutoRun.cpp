@@ -3,7 +3,7 @@
 #include <QApplication>
 #include <QDir>
 
-#include "include/global/NekoGui.hpp"
+#include "include/global/Configs.hpp"
 
 // macOS headers (possibly OBJ-c)
 #if defined(Q_OS_MACOS)
@@ -177,7 +177,7 @@ void AutoRun_SetEnabled(bool enable) {
 
     appCmdList << "-tray";
 
-    if (NekoGui::dataStore->flag_use_appdata) {
+    if (Configs::dataStore->flag_use_appdata) {
         appCmdList << "-appdata";
     }
 

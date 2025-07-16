@@ -31,9 +31,6 @@ private:
     } CACHE;
 
 private slots:
-
-    void on_set_custom_icon_clicked();
-
     void on_core_settings_clicked();
 };
 

@@ -15,8 +15,13 @@
         <file>icon/material/delete.png</file>
         <file>icon/material/swap-horizontal.png</file>
     </qresource>
-    <qresource prefix="/neko">
-        <file alias="nekobox.png">public/nekobox.png</file>
+    <qresource prefix="/Throne">
+        <file alias="Throne.png">public/Throne.png</file>
+        <file alias="Dns.png">public/Dns.png</file>
+        <file alias="Off.png">public/Off.png</file>
+        <file alias="Proxy.png">public/Proxy.png</file>
+        <file alias="Proxy-Dns.png">public/Proxy-Dns.png</file>
+        <file alias="Tun.png">public/Tun.png</file>
         <file>dashboard-notice.html</file>
     </qresource>
 </RCC>

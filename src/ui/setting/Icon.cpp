@@ -1,55 +1,42 @@
 #include "include/ui/setting/Icon.hpp"
 
-#include "include/global/NekoGui.hpp"
+#include "include/global/Configs.hpp"
 
 #include <QPainter>
 
-QPixmap Icon::GetTrayIcon(Icon::TrayIconStatus status) {
+QPixmap Icon::GetTrayIcon(TrayIconStatus status) {
     QPixmap pixmap;
 
-    // software embedded icon
-    auto pixmap_read = QPixmap(QString(":/neko/") + "nekobox" + ".png");
-    if (!pixmap_read.isNull()) pixmap = pixmap_read;
-
-    // software pack icon
-    pixmap_read = QPixmap(QString("../") + "nekobox" + ".png");
-    if (!pixmap_read.isNull()) pixmap = pixmap_read;
-
-    // user icon
-    pixmap_read = QPixmap(QString("./") + "nekobox" + ".png");
-    if (!pixmap_read.isNull()) pixmap = pixmap_read;
-
-    if (status == TrayIconStatus::NONE) return pixmap;
-
-    auto p = QPainter(&pixmap);
-
-    auto side = pixmap.width();
-    auto radius = side * 0.4;
-    auto d = side * 0.4;
-    auto margin = side * 0.04;
-
-    if (status == TrayIconStatus::RUNNING) {
-        p.setBrush(QBrush(Qt::darkGreen));
-    } else if (status == TrayIconStatus::SYSTEM_PROXY) {
-        p.setBrush(QBrush(Qt::blue));
-    } else if (status == TrayIconStatus::VPN) {
-        p.setBrush(QBrush(Qt::red));
-    } else if (status == TrayIconStatus::DNS) {
-        p.setBrush(QBrush(Qt::darkMagenta));
+    if (status == NONE)
+    {
+        auto pixmap_read = QPixmap(QString(":/Throne/") + "Off" + ".png");
+        if (!pixmap_read.isNull()) pixmap = pixmap_read;
+    } else if (status == RUNNING)
+    {
+        auto pixmap_read = QPixmap(QString(":/Throne/") + "Throne" + ".png");
+        if (!pixmap_read.isNull()) pixmap = pixmap_read;
+    } else if (status == SYSTEM_PROXY_DNS)
+    {
+        auto pixmap_read = QPixmap(QString(":/Throne/") + "Proxy-Dns" + ".png");
+        if (!pixmap_read.isNull()) pixmap = pixmap_read;
+    } else if (status == SYSTEM_PROXY)
+    {
+        auto pixmap_read = QPixmap(QString(":/Throne/") + "Proxy" + ".png");
+        if (!pixmap_read.isNull()) pixmap = pixmap_read;
+    } else if (status == DNS)
+    {
+        auto pixmap_read = QPixmap(QString(":/Throne/") + "Dns" + ".png");
+        if (!pixmap_read.isNull()) pixmap = pixmap_read;
+    } else if (status == VPN)
+    {
+        auto pixmap_read = QPixmap(QString(":/Throne/") + "Tun" + ".png");
+        if (!pixmap_read.isNull()) pixmap = pixmap_read;
+    } else
+    {
+        MW_show_log("Icon::GetTrayIcon: Unknown status");
+        auto pixmap_read = QPixmap(QString(":/Throne/") + "Off" + ".png");
+        if (!pixmap_read.isNull()) pixmap = pixmap_read;
     }
-    p.drawRoundedRect(
-        QRect(side - d - margin,
-              side - d - margin,
-              d,
-              d),
-        radius,
-        radius);
-    p.end();
 
-    return pixmap;
-}
-
-QPixmap Icon::GetMaterialIcon(const QString &name) {
-    QPixmap pixmap(":/icon/material/" + name + ".png");
     return pixmap;
 }

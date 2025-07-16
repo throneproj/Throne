@@ -2,7 +2,7 @@
 
 #include <utility>
 
-#include "include/global/NekoGui.hpp"
+#include "include/global/Configs.hpp"
 
 #include <QCoreApplication>
 #include <QNetworkReply>
@@ -146,7 +146,7 @@ namespace QtGrpc {
         QNetworkReply::NetworkError Call(const QString &methodName,
                                          const std::string req, std::vector<uint8_t> &rsp,
                                          int timeout_ms = 0) {
-            if (!NekoGui::dataStore->core_running) return QNetworkReply::NetworkError(-1919);
+            if (!Configs::dataStore->core_running) return QNetworkReply::NetworkError(-1919);
 
             auto requestArray = QByteArray::fromStdString(req);
 
@@ -176,7 +176,7 @@ namespace QtGrpc {
     };
 } // namespace QtGrpc
 
-namespace NekoGui_rpc {
+namespace API {
 
     Client::Client(std::function<void(const QString &)> onError, const QString &target) {
         this->make_grpc_channel = [=]() { return std::make_unique<QtGrpc::Http2GrpcChannelPrivate>(target, "libcore.LibcoreService"); };
@@ -478,4 +478,4 @@ namespace NekoGui_rpc {
     }
 
 
-} // namespace NekoGui_rpc
+} // namespace API

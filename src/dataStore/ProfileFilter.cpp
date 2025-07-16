@@ -1,8 +1,8 @@
 #include "include/dataStore/ProfileFilter.hpp"
 
-namespace NekoGui {
+namespace Configs {
 
-    QString ProfileFilter_ent_key(const std::shared_ptr<NekoGui::ProxyEntity> &ent, bool by_address) {
+    QString ProfileFilter_ent_key(const std::shared_ptr<Configs::ProxyEntity> &ent, bool by_address) {
         by_address &= ent->type != "custom";
         return by_address ? (ent->bean->DisplayAddress() + ent->bean->DisplayType())
                           : QJsonObject2QString(ent->bean->ToJson({"c_cfg", "c_out"}), true) + ent->bean->DisplayType();
@@ -72,4 +72,4 @@ namespace NekoGui {
         }
     }
 
-} // namespace NekoGui
+} // namespace Configs

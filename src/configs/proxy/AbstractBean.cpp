@@ -4,7 +4,7 @@
 #include <QHostInfo>
 #include <QUrl>
 
-namespace NekoGui_fmt {
+namespace Configs {
     AbstractBean::AbstractBean(int version) {
         this->version = version;
         _add(new configItem("_v", &this->version, itemType::integer));
@@ -75,4 +75,4 @@ namespace NekoGui_fmt {
             onFinished();
         });
     }
-} // namespace NekoGui_fmt
+} // namespace Configs

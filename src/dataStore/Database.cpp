@@ -4,7 +4,7 @@
 
 #include <QDir>
 
-namespace NekoGui {
+namespace Configs {
 
     ProfileManager *profileManager = new ProfileManager();
 
@@ -155,38 +155,38 @@ namespace NekoGui {
     //  新建的不给 fn 和 id
 
     std::shared_ptr<ProxyEntity> ProfileManager::NewProxyEntity(const QString &type) {
-        NekoGui_fmt::AbstractBean *bean;
+        Configs::AbstractBean *bean;
 
         if (type == "socks") {
-            bean = new NekoGui_fmt::SocksHttpBean(NekoGui_fmt::SocksHttpBean::type_Socks5);
+            bean = new Configs::SocksHttpBean(Configs::SocksHttpBean::type_Socks5);
         } else if (type == "http") {
-            bean = new NekoGui_fmt::SocksHttpBean(NekoGui_fmt::SocksHttpBean::type_HTTP);
+            bean = new Configs::SocksHttpBean(Configs::SocksHttpBean::type_HTTP);
         } else if (type == "shadowsocks") {
-            bean = new NekoGui_fmt::ShadowSocksBean();
+            bean = new Configs::ShadowSocksBean();
         } else if (type == "chain") {
-            bean = new NekoGui_fmt::ChainBean();
+            bean = new Configs::ChainBean();
         } else if (type == "vmess") {
-            bean = new NekoGui_fmt::VMessBean();
+            bean = new Configs::VMessBean();
         } else if (type == "trojan") {
-            bean = new NekoGui_fmt::TrojanVLESSBean(NekoGui_fmt::TrojanVLESSBean::proxy_Trojan);
+            bean = new Configs::TrojanVLESSBean(Configs::TrojanVLESSBean::proxy_Trojan);
         } else if (type == "vless") {
-            bean = new NekoGui_fmt::TrojanVLESSBean(NekoGui_fmt::TrojanVLESSBean::proxy_VLESS);
+            bean = new Configs::TrojanVLESSBean(Configs::TrojanVLESSBean::proxy_VLESS);
         } else if (type == "hysteria") {
-            bean = new NekoGui_fmt::QUICBean(NekoGui_fmt::QUICBean::proxy_Hysteria);
+            bean = new Configs::QUICBean(Configs::QUICBean::proxy_Hysteria);
         } else if (type == "hysteria2") {
-            bean = new NekoGui_fmt::QUICBean(NekoGui_fmt::QUICBean::proxy_Hysteria2);
+            bean = new Configs::QUICBean(Configs::QUICBean::proxy_Hysteria2);
         } else if (type == "tuic") {
-            bean = new NekoGui_fmt::QUICBean(NekoGui_fmt::QUICBean::proxy_TUIC);
+            bean = new Configs::QUICBean(Configs::QUICBean::proxy_TUIC);
         } else if (type == "wireguard") {
-            bean = new NekoGui_fmt::WireguardBean(NekoGui_fmt::WireguardBean());
+            bean = new Configs::WireguardBean(Configs::WireguardBean());
         } else if (type == "ssh") {
-            bean = new NekoGui_fmt::SSHBean(NekoGui_fmt::SSHBean());
+            bean = new Configs::SSHBean(Configs::SSHBean());
         } else if (type == "custom") {
-            bean = new NekoGui_fmt::CustomBean();
+            bean = new Configs::CustomBean();
         } else if (type == "extracore") {
-            bean = new NekoGui_fmt::ExtraCoreBean();
+            bean = new Configs::ExtraCoreBean();
         } else {
-            bean = new NekoGui_fmt::AbstractBean(-114514);
+            bean = new Configs::AbstractBean(-114514);
         }
 
         auto ent = std::make_shared<ProxyEntity>(bean, type);
@@ -371,4 +371,4 @@ namespace NekoGui {
         }
     }
 
-} // namespace NekoGui
+} // namespace Configs

@@ -21,7 +21,7 @@
 #include <QToolTip>
 
 #define ADJUST_SIZE runOnUiThread([=] { adjustSize(); adjustPosition(mainwindow); }, this);
-#define LOAD_TYPE(a) ui->type->addItem(NekoGui::ProfileManager::NewProxyEntity(a)->bean->DisplayType(), a);
+#define LOAD_TYPE(a) ui->type->addItem(Configs::ProfileManager::NewProxyEntity(a)->bean->DisplayType(), a);
 
 DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId, QWidget *parent)
     : QDialog(parent), ui(new Ui::DialogEditProfile) {
@@ -174,7 +174,7 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
 
         ui->apply_to_group->hide();
     } else {
-        this->ent = NekoGui::profileManager->GetProfile(profileOrGroupId);
+        this->ent = Configs::profileManager->GetProfile(profileOrGroupId);
         if (this->ent == nullptr) return;
         this->type = ent->type;
         ui->type->setVisible(false);
@@ -259,7 +259,7 @@ void DialogEditProfile::typeSelected(const QString &newType) {
     }
 
     if (newEnt) {
-        this->ent = NekoGui::ProfileManager::NewProxyEntity(type);
+        this->ent = Configs::ProfileManager::NewProxyEntity(type);
         this->ent->gid = groupId;
     }
 
@@ -283,7 +283,7 @@ void DialogEditProfile::typeSelected(const QString &newType) {
         ui->sni->setText(stream->sni);
         ui->alpn->setText(stream->alpn);
         if (newEnt) {
-            ui->utlsFingerprint->setCurrentText(NekoGui::dataStore->utlsFingerprint);
+            ui->utlsFingerprint->setCurrentText(Configs::dataStore->utlsFingerprint);
         } else {
             ui->utlsFingerprint->setCurrentText(stream->utlsFingerprint);
         }
@@ -461,13 +461,13 @@ void DialogEditProfile::accept() {
     QStringList msg = {"accept"};
 
     if (newEnt) {
-        auto ok = NekoGui::profileManager->AddProfile(ent);
+        auto ok = Configs::profileManager->AddProfile(ent);
         if (!ok) {
             MessageBoxWarning("???", "id exists");
         }
     } else {
         auto changed = ent->Save();
-        if (changed && NekoGui::dataStore->started_id == ent->id) msg << "restart";
+        if (changed && Configs::dataStore->started_id == ent->id) msg << "restart";
     }
 
     MW_dialog_message(Dialog_DialogEditProfile, msg.join(","));
@@ -536,7 +536,7 @@ void DialogEditProfile::on_apply_to_group_clicked() {
         apply_to_group_ui[ui->custom_outbound_edit] = new FloatCheckBox(ui->custom_outbound_edit, this);
         ui->apply_to_group->setText(tr("Confirm"));
     } else {
-        auto group = NekoGui::profileManager->GetGroup(ent->gid);
+        auto group = Configs::profileManager->GetGroup(ent->gid);
         if (group == nullptr) {
             MessageBoxWarning("failed", "unknown group");
             return;
@@ -560,7 +560,7 @@ void DialogEditProfile::on_apply_to_group_clicked() {
     }
 }
 
-void DialogEditProfile::do_apply_to_group(const std::shared_ptr<NekoGui::Group> &group, QWidget *key) {
+void DialogEditProfile::do_apply_to_group(const std::shared_ptr<Configs::Group> &group, QWidget *key) {
     auto stream = GetStreamSettings(ent->bean.get());
 
     auto copyStream = [=](void *p) {

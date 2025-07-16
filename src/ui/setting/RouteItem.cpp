@@ -32,14 +32,14 @@ QString get_outbound_name(int id) {
     // -1 is proxy -2 is direct -3 is block -4 is dns-out
     if (id == -1) return "proxy";
     if (id == -2) return "direct";
-    auto profiles = NekoGui::profileManager->profiles;
+    auto profiles = Configs::profileManager->profiles;
     if (profiles.count(id)) return profiles[id]->bean->name;
     return "INVALID OUTBOUND";
 }
 
 QStringList get_all_outbounds() {
     QStringList res;
-    auto profiles = NekoGui::profileManager->profiles;
+    auto profiles = Configs::profileManager->profiles;
     for (const auto &item: profiles) {
         res.append(item.second->bean->DisplayName());
     }
@@ -47,16 +47,16 @@ QStringList get_all_outbounds() {
     return res;
 }
 
-RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<NekoGui::RoutingChain>& routeChain)
+RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RoutingChain>& routeChain)
     : QDialog(parent), ui(new Ui::RouteItem) {
     ui->setupUi(this);
 
     // make a copy
-    chain = std::make_shared<NekoGui::RoutingChain>(*routeChain);
+    chain = std::make_shared<Configs::RoutingChain>(*routeChain);
 
     // add the default rule if empty
     if (chain->Rules.empty()) {
-        auto routeItem = std::make_shared<NekoGui::RouteRule>();
+        auto routeItem = std::make_shared<Configs::RouteRule>();
         routeItem->name = "dns-hijack";
         routeItem->protocol = "dns";
         routeItem->action = "hijack-dns";
@@ -65,8 +65,8 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<NekoGui::RoutingChai
 
     // setup rule set helper
     bool ok; // for now we discard this
-    auto geoIpList = NekoGui_rpc::defaultClient->GetGeoList(&ok, NekoGui_rpc::GeoRuleSetType::ip, NekoGui::GetCoreAssetDir("geoip.db"));
-    auto geoSiteList = NekoGui_rpc::defaultClient->GetGeoList(&ok, NekoGui_rpc::GeoRuleSetType::site, NekoGui::GetCoreAssetDir("geosite.db"));
+    auto geoIpList = API::defaultClient->GetGeoList(&ok, API::GeoRuleSetType::ip, Configs::GetCoreAssetDir("geoip.db"));
+    auto geoSiteList = API::defaultClient->GetGeoList(&ok, API::GeoRuleSetType::site, Configs::GetCoreAssetDir("geosite.db"));
     geo_items << geoIpList << geoSiteList;
     rule_set_editor = new AutoCompleteTextEdit("", geo_items, this);
     ui->rule_attr_data->layout()->addWidget(rule_set_editor);
@@ -108,12 +108,12 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<NekoGui::RoutingChai
     // init outbound map
     outboundMap[0] = -1;
     outboundMap[1] = -2;
-    for (const auto& item: NekoGui::profileManager->profiles) {
+    for (const auto& item: Configs::profileManager->profiles) {
         outboundMap[outboundMap.size()] = item.second->id;
     }
 
     ui->route_name->setText(chain->name);
-    ui->rule_attr->addItems(NekoGui::RouteRule::get_attributes());
+    ui->rule_attr->addItems(Configs::RouteRule::get_attributes());
     adjustComboBoxWidth(ui->rule_attr);
     ui->rule_attr_text->hide();
     ui->rule_attr_data->setTitle("");
@@ -121,7 +121,7 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<NekoGui::RoutingChai
     ui->rule_preview->setReadOnly(true);
     updateRuleSection();
 
-    ui->def_out->setCurrentText(NekoGui::outboundIDToString(chain->defaultOutboundID));
+    ui->def_out->setCurrentText(Configs::outboundIDToString(chain->defaultOutboundID));
 
     // simple rules setup
     QStringList ruleItems = {"domain:", "suffix:", "regex:", "keyword:", "ip:", "processName:", "processPath:"};
@@ -142,9 +142,9 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<NekoGui::RoutingChai
     ui->simple_block->hide();
     ui->simple_proxy->hide();
 
-    simpleDirect->setPlainText(chain->GetSimpleRules(NekoGui::direct));
-    simpleBlock->setPlainText(chain->GetSimpleRules(NekoGui::block));
-    simpleProxy->setPlainText(chain->GetSimpleRules(NekoGui::proxy));
+    simpleDirect->setPlainText(chain->GetSimpleRules(Configs::direct));
+    simpleBlock->setPlainText(chain->GetSimpleRules(Configs::block));
+    simpleProxy->setPlainText(chain->GetSimpleRules(Configs::proxy));
 
     if (chain->isViewOnly())
     {
@@ -158,9 +158,9 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<NekoGui::RoutingChai
         if (ui->tabWidget->tabBar()->currentIndex() == 1)
         {
             QString res;
-            res += chain->UpdateSimpleRules(simpleDirect->toPlainText(), NekoGui::direct);
-            res += chain->UpdateSimpleRules(simpleBlock->toPlainText(), NekoGui::block);
-            res += chain->UpdateSimpleRules(simpleProxy->toPlainText(), NekoGui::proxy);
+            res += chain->UpdateSimpleRules(simpleDirect->toPlainText(), Configs::direct);
+            res += chain->UpdateSimpleRules(simpleBlock->toPlainText(), Configs::block);
+            res += chain->UpdateSimpleRules(simpleProxy->toPlainText(), Configs::proxy);
             if (!res.isEmpty())
             {
                 runOnUiThread([=]
@@ -176,9 +176,9 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<NekoGui::RoutingChai
             // reload
             updateRouteItemsView();
             updateRuleSection();
-            simpleDirect->setPlainText(chain->GetSimpleRules(NekoGui::direct));
-            simpleBlock->setPlainText(chain->GetSimpleRules(NekoGui::block));
-            simpleProxy->setPlainText(chain->GetSimpleRules(NekoGui::proxy));
+            simpleDirect->setPlainText(chain->GetSimpleRules(Configs::direct));
+            simpleBlock->setPlainText(chain->GetSimpleRules(Configs::block));
+            simpleProxy->setPlainText(chain->GetSimpleRules(Configs::proxy));
         }
     });
 
@@ -186,7 +186,7 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<NekoGui::RoutingChai
     {
         runOnUiThread([=]
         {
-            MessageBoxInfo(tr("Simple rule manual"), NekoGui::Information::SimpleRuleInfo);
+            MessageBoxInfo(tr("Simple rule manual"), Configs::Information::SimpleRuleInfo);
         });
     });
 
@@ -219,7 +219,7 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<NekoGui::RoutingChai
 
         connect(buttons, &QDialogButtonBox::accepted, w, [=]{
            auto err = new QString;
-           auto parsed = NekoGui::RoutingChain::parseJsonArray(QString2QJsonArray(tEdit->toPlainText()), err);
+           auto parsed = Configs::RoutingChain::parseJsonArray(QString2QJsonArray(tEdit->toPlainText()), err);
            if (!err->isEmpty()) {
                MessageBoxInfo(tr("Invalid JSON Array"), tr("The provided input cannot be parsed to a valid route rule array:\n") + *err);
                return;
@@ -311,7 +311,7 @@ void RouteItem::accept() {
         return;
     }
 
-    QList<std::shared_ptr<NekoGui::RouteRule>> tmpChain;
+    QList<std::shared_ptr<Configs::RouteRule>> tmpChain;
     for (const auto& item: chain->Rules) {
         if (!item->isEmpty()) {
             tmpChain << item;
@@ -328,9 +328,9 @@ void RouteItem::accept() {
     }
 
     QString res;
-    res += chain->UpdateSimpleRules(simpleDirect->toPlainText(), NekoGui::direct);
-    res += chain->UpdateSimpleRules(simpleBlock->toPlainText(), NekoGui::block);
-    res += chain->UpdateSimpleRules(simpleProxy->toPlainText(), NekoGui::proxy);
+    res += chain->UpdateSimpleRules(simpleDirect->toPlainText(), Configs::direct);
+    res += chain->UpdateSimpleRules(simpleBlock->toPlainText(), Configs::block);
+    res += chain->UpdateSimpleRules(simpleProxy->toPlainText(), Configs::proxy);
     if (!res.isEmpty())
     {
         runOnUiThread([=]
@@ -339,7 +339,7 @@ void RouteItem::accept() {
         });
         return;
     }
-    chain->defaultOutboundID = NekoGui::stringToOutboundID(ui->def_out->currentText());
+    chain->defaultOutboundID = Configs::stringToOutboundID(ui->def_out->currentText());
 
     emit settingsChanged(chain);
 
@@ -362,25 +362,25 @@ void RouteItem::updateRuleSection() {
     auto ruleItem = chain->Rules[currentIndex];
     auto currentAttr = ui->rule_attr->currentText();
     switch (ruleItem->get_input_type(currentAttr)) {
-        case NekoGui::trufalse: {
+        case Configs::trufalse: {
             QStringList items = {"false", "true"};
             QString currentVal = ruleItem->get_current_value_bool(currentAttr);
             showSelectItem(items, currentVal);
             break;
         }
-        case NekoGui::select: {
+        case Configs::select: {
             if (currentAttr == "outbound")
             {
                 // due to the need for mapping, we handle this in a different way...
                 showSelectItem(outbounds, get_outbound_name(ruleItem->outboundID));
                 break;
             }
-            auto items = NekoGui::RouteRule::get_values_for_field(currentAttr);
+            auto items = Configs::RouteRule::get_values_for_field(currentAttr);
             auto currentVal = ruleItem->get_current_value_string(currentAttr)[0];
             showSelectItem(items, currentVal);
             break;
         }
-        case NekoGui::text: {
+        case Configs::text: {
             auto currentItems = ruleItem->get_current_value_string(currentAttr);
             showTextEnterItem(currentItems, currentAttr == "rule_set");
             break;
@@ -401,7 +401,7 @@ void RouteItem::updateRulePreview() {
 void RouteItem::setDefaultRuleData(const QString& currentData) {
     ui->rule_attr->setCurrentText("ip_version");
     ui->rule_attr_data->setTitle("ip_version");
-    showSelectItem(NekoGui::RouteRule::get_values_for_field("ip_version"), currentData);
+    showSelectItem(Configs::RouteRule::get_values_for_field("ip_version"), currentData);
 }
 
 void RouteItem::showSelectItem(const QStringList& items, const QString& currentItem) {
@@ -433,7 +433,7 @@ void RouteItem::showTextEnterItem(const QStringList& items, bool isRuleSet) {
 
 void RouteItem::on_new_route_item_clicked() {
     if (chain->isViewOnly()) return;
-    auto routeItem = std::make_shared<NekoGui::RouteRule>();
+    auto routeItem = std::make_shared<Configs::RouteRule>();
     routeItem->name = "rule_" + Int2String(++lastNum);
     chain->Rules << routeItem;
     currentIndex = chain->Rules.size() - 1;

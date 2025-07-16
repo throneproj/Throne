@@ -3,7 +3,7 @@
 
 #include <QUrlQuery>
 
-namespace NekoGui_fmt {
+namespace Configs {
 
 #define DECODE_V2RAY_N_1                                                                                                        \
     QString linkN = DecodeB64IfValid(SubStrBefore(SubStrAfter(link, "://"), "#"), QByteArray::Base64Option::Base64UrlEncoding); \
@@ -72,7 +72,7 @@ namespace NekoGui_fmt {
         stream->reality_sid = GetQueryValue(query, "sid", "");
         stream->utlsFingerprint = GetQueryValue(query, "fp", "");
         if (stream->utlsFingerprint.isEmpty()) {
-            stream->utlsFingerprint = NekoGui::dataStore->utlsFingerprint;
+            stream->utlsFingerprint = Configs::dataStore->utlsFingerprint;
         }
         if (stream->security.isEmpty()) {
             if (!sni1.isEmpty() || !sni2.isEmpty()) stream->security = "tls";
@@ -222,7 +222,7 @@ namespace NekoGui_fmt {
             stream->reality_sid = GetQueryValue(query, "sid", "");
             stream->utlsFingerprint = GetQueryValue(query, "fp", "");
             if (stream->utlsFingerprint.isEmpty()) {
-                stream->utlsFingerprint = NekoGui::dataStore->utlsFingerprint;
+                stream->utlsFingerprint = Configs::dataStore->utlsFingerprint;
             }
 
             // mux
@@ -277,14 +277,14 @@ namespace NekoGui_fmt {
 
             auto protocolStr = (query.hasQueryItem("protocol") ? query.queryItemValue("protocol") : "udp").toLower();
             if (protocolStr == "faketcp") {
-                hyProtocol = NekoGui_fmt::QUICBean::hysteria_protocol_facktcp;
+                hyProtocol = Configs::QUICBean::hysteria_protocol_facktcp;
             } else if (protocolStr.startsWith("wechat")) {
-                hyProtocol = NekoGui_fmt::QUICBean::hysteria_protocol_wechat_video;
+                hyProtocol = Configs::QUICBean::hysteria_protocol_wechat_video;
             }
 
             if (query.hasQueryItem("auth")) {
                 authPayload = query.queryItemValue("auth");
-                authPayloadType = NekoGui_fmt::QUICBean::hysteria_auth_string;
+                authPayloadType = Configs::QUICBean::hysteria_auth_string;
             }
 
             alpn = query.queryItemValue("alpn");
@@ -400,4 +400,4 @@ namespace NekoGui_fmt {
     }
 
 
-} // namespace NekoGui_fmt
+} // namespace Configs

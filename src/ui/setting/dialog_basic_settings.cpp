@@ -5,7 +5,7 @@
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/setting/Icon.hpp"
 #include "include/global/GuiUtils.hpp"
-#include "include/global/NekoGui.hpp"
+#include "include/global/Configs.hpp"
 #include "include/global/HTTPRequestHelper.hpp"
 
 #include <QStyleFactory>
@@ -24,18 +24,18 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->inbound_socks_port_l->setText(ui->inbound_socks_port_l->text().replace("Socks", "Mixed (SOCKS+HTTP)"));
     ui->log_level->addItems(QString("trace debug info warn error fatal panic").split(" "));
     ui->mux_protocol->addItems({"h2mux", "smux", "yamux"});
-    ui->disable_stats->setChecked(NekoGui::dataStore->disable_traffic_stats);
-    ui->proxy_scheme->setCurrentText(NekoGui::dataStore->proxy_scheme);
+    ui->disable_stats->setChecked(Configs::dataStore->disable_traffic_stats);
+    ui->proxy_scheme->setCurrentText(Configs::dataStore->proxy_scheme);
 
     D_LOAD_STRING(inbound_address)
     D_LOAD_COMBO_STRING(log_level)
-    CACHE.custom_inbound = NekoGui::dataStore->custom_inbound;
+    CACHE.custom_inbound = Configs::dataStore->custom_inbound;
     D_LOAD_INT(inbound_socks_port)
     D_LOAD_INT(test_concurrent)
     D_LOAD_STRING(test_latency_url)
     D_LOAD_BOOL(disable_tray)
-    ui->speedtest_mode->setCurrentIndex(NekoGui::dataStore->speed_test_mode);
-    ui->simple_down_url->setText(NekoGui::dataStore->simple_dl_url);
+    ui->speedtest_mode->setCurrentIndex(Configs::dataStore->speed_test_mode);
+    ui->simple_down_url->setText(Configs::dataStore->simple_dl_url);
 
     connect(ui->custom_inbound_edit, &QPushButton::clicked, this, [=] {
         C_EDIT_JSON_ALLOW_EMPTY(custom_inbound)
@@ -50,12 +50,12 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
 #endif
 
     // Style
-    ui->connection_statistics->setChecked(NekoGui::dataStore->enable_stats);
+    ui->connection_statistics->setChecked(Configs::dataStore->enable_stats);
     //
     D_LOAD_BOOL(start_minimal)
     D_LOAD_INT(max_log_line)
     //
-    ui->language->setCurrentIndex(NekoGui::dataStore->language);
+    ui->language->setCurrentIndex(Configs::dataStore->language);
     connect(ui->language, &QComboBox::currentIndexChanged, this, [=](int index) {
         CACHE.needRestart = true;
     });
@@ -63,8 +63,8 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
         auto font = qApp->font();
         font.setFamily(fontName);
         qApp->setFont(font);
-        NekoGui::dataStore->font = fontName;
-        NekoGui::dataStore->Save();
+        Configs::dataStore->font = fontName;
+        Configs::dataStore->Save();
         adjustSize();
     });
     for (int i=7;i<=26;i++) {
@@ -75,8 +75,8 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
         auto font = qApp->font();
         font.setPointSize(sizeStr.toInt());
         qApp->setFont(font);
-        NekoGui::dataStore->font_size = sizeStr.toInt();
-        NekoGui::dataStore->Save();
+        Configs::dataStore->font_size = sizeStr.toInt();
+        Configs::dataStore->Save();
         adjustSize();
     });
     //
@@ -84,23 +84,23 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->theme->addItem("QDarkStyle");
     //
     bool ok;
-    auto themeId = NekoGui::dataStore->theme.toInt(&ok);
+    auto themeId = Configs::dataStore->theme.toInt(&ok);
     if (ok) {
         ui->theme->setCurrentIndex(themeId);
     } else {
-        ui->theme->setCurrentText(NekoGui::dataStore->theme);
+        ui->theme->setCurrentText(Configs::dataStore->theme);
     }
     //
     connect(ui->theme, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, [=](int index) {
         themeManager->ApplyTheme(ui->theme->currentText());
-        NekoGui::dataStore->theme = ui->theme->currentText();
-        NekoGui::dataStore->Save();
+        Configs::dataStore->theme = ui->theme->currentText();
+        Configs::dataStore->Save();
     });
 
     // Subscription
 
-    ui->user_agent->setText(NekoGui::dataStore->user_agent);
-    ui->user_agent->setPlaceholderText(NekoGui::dataStore->GetUserAgent(true));
+    ui->user_agent->setText(Configs::dataStore->user_agent);
+    ui->user_agent->setPlaceholderText(Configs::dataStore->GetUserAgent(true));
     D_LOAD_BOOL(sub_use_proxy)
     D_LOAD_BOOL(sub_clear)
     D_LOAD_BOOL(sub_insecure)
@@ -112,10 +112,10 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     // Assets
     ui->geoip_url->setEditable(true);
     ui->geosite_url->setEditable(true);
-    ui->geoip_url->addItems(NekoGui::GeoAssets::GeoIPURLs);
-    ui->geosite_url->addItems(NekoGui::GeoAssets::GeoSiteURLs);
-    ui->geoip_url->setCurrentText(NekoGui::dataStore->geoip_download_url);
-    ui->geosite_url->setCurrentText(NekoGui::dataStore->geosite_download_url);
+    ui->geoip_url->addItems(Configs::GeoAssets::GeoIPURLs);
+    ui->geosite_url->addItems(Configs::GeoAssets::GeoSiteURLs);
+    ui->geoip_url->setCurrentText(Configs::dataStore->geoip_download_url);
+    ui->geosite_url->setCurrentText(Configs::dataStore->geosite_download_url);
 
     connect(ui->download_geo_btn, &QPushButton::clicked, this, [=]() {
         MW_dialog_message(Dialog_DialogBasicSettings, "DownloadAssets;"+ui->geoip_url->currentText()+";"+ui->geosite_url->currentText());
@@ -138,13 +138,13 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     D_LOAD_BOOL(mux_default_on)
 
     // NTP
-    ui->ntp_enable->setChecked(NekoGui::dataStore->enable_ntp);
-    ui->ntp_server->setEnabled(NekoGui::dataStore->enable_ntp);
-    ui->ntp_port->setEnabled(NekoGui::dataStore->enable_ntp);
-    ui->ntp_interval->setEnabled(NekoGui::dataStore->enable_ntp);
-    ui->ntp_server->setText(NekoGui::dataStore->ntp_server_address);
-    ui->ntp_port->setText(Int2String(NekoGui::dataStore->ntp_server_port));
-    ui->ntp_interval->setCurrentText(NekoGui::dataStore->ntp_interval);
+    ui->ntp_enable->setChecked(Configs::dataStore->enable_ntp);
+    ui->ntp_server->setEnabled(Configs::dataStore->enable_ntp);
+    ui->ntp_port->setEnabled(Configs::dataStore->enable_ntp);
+    ui->ntp_interval->setEnabled(Configs::dataStore->enable_ntp);
+    ui->ntp_server->setText(Configs::dataStore->ntp_server_address);
+    ui->ntp_port->setText(Int2String(Configs::dataStore->ntp_server_port));
+    ui->ntp_interval->setCurrentText(Configs::dataStore->ntp_interval);
     connect(ui->ntp_enable, &QCheckBox::stateChanged, this, [=](const bool &state) {
         ui->ntp_server->setEnabled(state);
         ui->ntp_port->setEnabled(state);
@@ -154,11 +154,11 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     // Security
 
     ui->utlsFingerprint->addItems(Preset::SingBox::UtlsFingerPrint);
-    ui->disable_priv_req->setChecked(NekoGui::dataStore->disable_privilege_req);
-    ui->windows_no_admin->setChecked(NekoGui::dataStore->disable_run_admin);
+    ui->disable_priv_req->setChecked(Configs::dataStore->disable_privilege_req);
+    ui->windows_no_admin->setChecked(Configs::dataStore->disable_run_admin);
 
     D_LOAD_BOOL(skip_cert)
-    ui->utlsFingerprint->setCurrentText(NekoGui::dataStore->utlsFingerprint);
+    ui->utlsFingerprint->setCurrentText(Configs::dataStore->utlsFingerprint);
 }
 
 DialogBasicSettings::~DialogBasicSettings() {
@@ -170,24 +170,24 @@ void DialogBasicSettings::accept() {
 
     D_SAVE_STRING(inbound_address)
     D_SAVE_COMBO_STRING(log_level)
-    NekoGui::dataStore->custom_inbound = CACHE.custom_inbound;
+    Configs::dataStore->custom_inbound = CACHE.custom_inbound;
     D_SAVE_INT(inbound_socks_port)
     D_SAVE_INT(test_concurrent)
     D_SAVE_STRING(test_latency_url)
     D_SAVE_BOOL(disable_tray)
-    NekoGui::dataStore->proxy_scheme = ui->proxy_scheme->currentText().toLower();
-    NekoGui::dataStore->speed_test_mode = ui->speedtest_mode->currentIndex();
-    NekoGui::dataStore->simple_dl_url = ui->simple_down_url->text();
+    Configs::dataStore->proxy_scheme = ui->proxy_scheme->currentText().toLower();
+    Configs::dataStore->speed_test_mode = ui->speedtest_mode->currentIndex();
+    Configs::dataStore->simple_dl_url = ui->simple_down_url->text();
 
     // Style
 
-    NekoGui::dataStore->enable_stats = ui->connection_statistics->isChecked();
-    NekoGui::dataStore->language = ui->language->currentIndex();
+    Configs::dataStore->enable_stats = ui->connection_statistics->isChecked();
+    Configs::dataStore->language = ui->language->currentIndex();
     D_SAVE_BOOL(start_minimal)
     D_SAVE_INT(max_log_line)
 
-    if (NekoGui::dataStore->max_log_line <= 0) {
-        NekoGui::dataStore->max_log_line = 200;
+    if (Configs::dataStore->max_log_line <= 0) {
+        Configs::dataStore->max_log_line = 200;
     }
 
     // Subscription
@@ -198,18 +198,18 @@ void DialogBasicSettings::accept() {
         TM_auto_update_subsctiption_Reset_Minute(0);
     }
 
-    NekoGui::dataStore->user_agent = ui->user_agent->text();
+    Configs::dataStore->user_agent = ui->user_agent->text();
     D_SAVE_BOOL(sub_use_proxy)
     D_SAVE_BOOL(sub_clear)
     D_SAVE_BOOL(sub_insecure)
     D_SAVE_INT_ENABLE(sub_auto_update, sub_auto_update_enable)
 
     // Core
-    NekoGui::dataStore->disable_traffic_stats = ui->disable_stats->isChecked();
+    Configs::dataStore->disable_traffic_stats = ui->disable_stats->isChecked();
 
     // Assets
-    NekoGui::dataStore->geoip_download_url = ui->geoip_url->currentText();
-    NekoGui::dataStore->geosite_download_url = ui->geosite_url->currentText();
+    Configs::dataStore->geoip_download_url = ui->geoip_url->currentText();
+    Configs::dataStore->geosite_download_url = ui->geosite_url->currentText();
 
     // Mux
     D_SAVE_INT(mux_concurrency)
@@ -218,62 +218,23 @@ void DialogBasicSettings::accept() {
     D_SAVE_BOOL(mux_default_on)
 
     // NTP
-    NekoGui::dataStore->enable_ntp = ui->ntp_enable->isChecked();
-    NekoGui::dataStore->ntp_server_address = ui->ntp_server->text();
-    NekoGui::dataStore->ntp_server_port = ui->ntp_port->text().toInt();
-    NekoGui::dataStore->ntp_interval = ui->ntp_interval->currentText();
+    Configs::dataStore->enable_ntp = ui->ntp_enable->isChecked();
+    Configs::dataStore->ntp_server_address = ui->ntp_server->text();
+    Configs::dataStore->ntp_server_port = ui->ntp_port->text().toInt();
+    Configs::dataStore->ntp_interval = ui->ntp_interval->currentText();
 
     // Security
 
     D_SAVE_BOOL(skip_cert)
-    NekoGui::dataStore->utlsFingerprint = ui->utlsFingerprint->currentText();
-    NekoGui::dataStore->disable_privilege_req = ui->disable_priv_req->isChecked();
-    NekoGui::dataStore->disable_run_admin = ui->windows_no_admin->isChecked();
+    Configs::dataStore->utlsFingerprint = ui->utlsFingerprint->currentText();
+    Configs::dataStore->disable_privilege_req = ui->disable_priv_req->isChecked();
+    Configs::dataStore->disable_run_admin = ui->windows_no_admin->isChecked();
 
     QStringList str{"UpdateDataStore"};
     if (CACHE.needRestart) str << "NeedRestart";
     if (CACHE.updateDisableTray) str << "UpdateDisableTray";
     MW_dialog_message(Dialog_DialogBasicSettings, str.join(","));
     QDialog::accept();
-}
-
-void DialogBasicSettings::on_set_custom_icon_clicked() {
-    auto title = ui->set_custom_icon->text();
-    QString user_icon_path = "./" + software_name.toLower() + ".png";
-
-    QMessageBox msg(
-        QMessageBox::Question,
-        title,
-        tr("Please select a PNG file."),
-        QMessageBox::NoButton,
-        this
-    );
-
-    msg.addButton(tr("Select"), QMessageBox::ActionRole);
-    msg.addButton(tr("Reset"), QMessageBox::ActionRole);
-    auto cancel = msg.addButton(tr("Cancel"), QMessageBox::ActionRole);
-
-    msg.setDefaultButton(cancel);
-    msg.setEscapeButton(cancel);
-
-
-    auto c = msg.exec() - 2;
-    if (c == 0) {
-        auto fn = QFileDialog::getOpenFileName(this, QObject::tr("Select"), QDir::currentPath(),
-                                               "*.png", nullptr, QFileDialog::Option::ReadOnly);
-        QImage img(fn);
-        if (img.isNull() || img.height() != img.width()) {
-            MessageBoxWarning(title, tr("Please select a valid square image."));
-            return;
-        }
-        QFile::remove(user_icon_path);
-        QFile::copy(fn, user_icon_path);
-    } else if (c == 1) {
-        QFile::remove(user_icon_path);
-    } else {
-        return;
-    }
-    MW_dialog_message(Dialog_DialogBasicSettings, "UpdateIcon");
 }
 
 void DialogBasicSettings::on_core_settings_clicked() {
@@ -291,28 +252,28 @@ void DialogBasicSettings::on_core_settings_clicked() {
     auto core_box_underlying_dns_l = new QLabel(tr("Override underlying DNS"));
     core_box_underlying_dns_l->setToolTip(tr(
         "It is recommended to leave it blank, but it sometimes does not work, at this time you can set this option.\n"
-        "For nekobox_core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test."));
+        "this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test."));
     core_box_underlying_dns = new MyLineEdit;
-    core_box_underlying_dns->setText(NekoGui::dataStore->core_box_underlying_dns);
+    core_box_underlying_dns->setText(Configs::dataStore->core_box_underlying_dns);
     core_box_underlying_dns->setMinimumWidth(300);
     layout->addWidget(core_box_underlying_dns_l, ++line, 0);
     layout->addWidget(core_box_underlying_dns, line, 1);
     //
     auto core_box_clash_listen_addr_l = new QLabel("Clash Api Listen Address");
     core_box_clash_listen_addr = new MyLineEdit;
-    core_box_clash_listen_addr->setText(NekoGui::dataStore->core_box_clash_listen_addr);
+    core_box_clash_listen_addr->setText(Configs::dataStore->core_box_clash_listen_addr);
     layout->addWidget(core_box_clash_listen_addr_l, ++line, 0);
     layout->addWidget(core_box_clash_listen_addr, line, 1);
     //
     auto core_box_clash_api_l = new QLabel("Clash API Listen Port");
     core_box_clash_api = new MyLineEdit;
-    core_box_clash_api->setText(NekoGui::dataStore->core_box_clash_api > 0 ? Int2String(NekoGui::dataStore->core_box_clash_api) : "");
+    core_box_clash_api->setText(Configs::dataStore->core_box_clash_api > 0 ? Int2String(Configs::dataStore->core_box_clash_api) : "");
     layout->addWidget(core_box_clash_api_l, ++line, 0);
     layout->addWidget(core_box_clash_api, line, 1);
     //
     auto core_box_clash_api_secret_l = new QLabel("Clash API Secret");
     core_box_clash_api_secret = new MyLineEdit;
-    core_box_clash_api_secret->setText(NekoGui::dataStore->core_box_clash_api_secret);
+    core_box_clash_api_secret->setText(Configs::dataStore->core_box_clash_api_secret);
     layout->addWidget(core_box_clash_api_secret_l, ++line, 0);
     layout->addWidget(core_box_clash_api_secret, line, 1);
     //
@@ -320,10 +281,10 @@ void DialogBasicSettings::on_core_settings_clicked() {
     box->setOrientation(Qt::Horizontal);
     box->setStandardButtons(QDialogButtonBox::Cancel | QDialogButtonBox::Ok);
     connect(box, &QDialogButtonBox::accepted, w, [=] {
-        NekoGui::dataStore->core_box_underlying_dns = core_box_underlying_dns->text();
-        NekoGui::dataStore->core_box_clash_api = core_box_clash_api->text().toInt();
-        NekoGui::dataStore->core_box_clash_listen_addr = core_box_clash_listen_addr->text();
-        NekoGui::dataStore->core_box_clash_api_secret = core_box_clash_api_secret->text();
+        Configs::dataStore->core_box_underlying_dns = core_box_underlying_dns->text();
+        Configs::dataStore->core_box_clash_api = core_box_clash_api->text().toInt();
+        Configs::dataStore->core_box_clash_listen_addr = core_box_clash_listen_addr->text();
+        Configs::dataStore->core_box_clash_api_secret = core_box_clash_api_secret->text();
         MW_dialog_message(Dialog_DialogBasicSettings, "UpdateDataStore");
         w->accept();
     });

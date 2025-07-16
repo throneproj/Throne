@@ -1,9 +1,9 @@
 #pragma once
 
 #include "ProxyEntity.hpp"
-#include "include/global/NekoGui.hpp"
+#include "include/global/Configs.hpp"
 
-namespace NekoGui
+namespace Configs
 {
     class Group : public JsonStore {
     public:
@@ -36,4 +36,4 @@ namespace NekoGui
 
         bool HasProfile(int id) const;
     };
-}// namespace NekoGui
+}// namespace Configs

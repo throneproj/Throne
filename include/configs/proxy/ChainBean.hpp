@@ -1,8 +1,8 @@
 #pragma once
 
-#include "include/global/NekoGui.hpp"
+#include "include/global/Configs.hpp"
 
-namespace NekoGui_fmt {
+namespace Configs {
     class ChainBean : public AbstractBean {
     public:
         QList<int> list; // in to out
@@ -15,4 +15,4 @@ namespace NekoGui_fmt {
 
         QString DisplayAddress() override { return ""; };
     };
-} // namespace NekoGui_fmt
+} // namespace Configs

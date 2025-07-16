@@ -70,21 +70,21 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     };
 
     // Load Manager
-    NekoGui::profileManager->LoadManager();
+    Configs::profileManager->LoadManager();
 
     // Setup misc UI
     // migrate old themes
     bool isNum;
-    NekoGui::dataStore->theme.toInt(&isNum);
+    Configs::dataStore->theme.toInt(&isNum);
     if (isNum) {
-        NekoGui::dataStore->theme = "System";
+        Configs::dataStore->theme = "System";
     }
-    themeManager->ApplyTheme(NekoGui::dataStore->theme);
+    themeManager->ApplyTheme(Configs::dataStore->theme);
     ui->setupUi(this);
 
     // setup log
-    ui->splitter->restoreState(DecodeB64IfValid(NekoGui::dataStore->splitter_state));
-    new SyntaxHighlighter(isDarkMode() || NekoGui::dataStore->theme.toLower() == "qdarkstyle", qvLogDocument);
+    ui->splitter->restoreState(DecodeB64IfValid(Configs::dataStore->splitter_state));
+    new SyntaxHighlighter(isDarkMode() || Configs::dataStore->theme.toLower() == "qdarkstyle", qvLogDocument);
     qvLogDocument->setUndoRedoEnabled(false);
     ui->masterLogBrowser->setUndoRedoEnabled(false);
     ui->masterLogBrowser->setDocument(qvLogDocument);
@@ -93,7 +93,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
     connect(qApp->styleHints(), &QStyleHints::colorSchemeChanged, this, [=](const Qt::ColorScheme& scheme) {
         new SyntaxHighlighter(scheme == Qt::ColorScheme::Dark, qvLogDocument);
-        themeManager->ApplyTheme(NekoGui::dataStore->theme, true);
+        themeManager->ApplyTheme(Configs::dataStore->theme, true);
     });
 #endif
     connect(themeManager, &ThemeManager::themeChanged, this, [=](const QString& theme){
@@ -125,25 +125,24 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     };
 
     // Prepare core
-    NekoGui::dataStore->core_port = MkPort();
-    if (NekoGui::dataStore->core_port <= 0) NekoGui::dataStore->core_port = 19810;
+    Configs::dataStore->core_port = MkPort();
+    if (Configs::dataStore->core_port <= 0) Configs::dataStore->core_port = 19810;
 
     auto core_path = QApplication::applicationDirPath() + "/";
-    core_path += "nekobox_core";
+    core_path += "Core";
 
     QStringList args;
-    args.push_back("nekobox");
     args.push_back("-port");
-    args.push_back(Int2String(NekoGui::dataStore->core_port));
-    if (NekoGui::dataStore->flag_debug) args.push_back("-debug");
+    args.push_back(Int2String(Configs::dataStore->core_port));
+    if (Configs::dataStore->flag_debug) args.push_back("-debug");
 
     // Start core
     runOnUiThread(
         [=] {
-            core_process = new NekoGui_sys::CoreProcess(core_path, args);
+            core_process = new Configs_sys::CoreProcess(core_path, args);
             // Remember last started
-            if (NekoGui::dataStore->remember_enable && NekoGui::dataStore->remember_id >= 0) {
-                core_process->start_profile_when_core_is_up = NekoGui::dataStore->remember_id;
+            if (Configs::dataStore->remember_enable && Configs::dataStore->remember_id >= 0) {
+                core_process->start_profile_when_core_is_up = Configs::dataStore->remember_id;
             }
             // Setup
             setup_grpc();
@@ -151,28 +150,28 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         },
         DS_cores);
 
-    if (!NekoGui::dataStore->font.isEmpty()) {
+    if (!Configs::dataStore->font.isEmpty()) {
         auto font = qApp->font();
-        font.setFamily(NekoGui::dataStore->font);
+        font.setFamily(Configs::dataStore->font);
         qApp->setFont(font);
     }
-    if (NekoGui::dataStore->font_size != 0) {
+    if (Configs::dataStore->font_size != 0) {
         auto font = qApp->font();
-        font.setPointSize(NekoGui::dataStore->font_size);
+        font.setPointSize(Configs::dataStore->font_size);
         qApp->setFont(font);
     }
 
     speedTestThreadPool->setMaxThreadCount(10); // constant value
     //
-    connect(ui->menu_start, &QAction::triggered, this, [=]() { neko_start(); });
-    connect(ui->menu_stop, &QAction::triggered, this, [=]() { neko_stop(false, false, true); });
+    connect(ui->menu_start, &QAction::triggered, this, [=]() { profile_start(); });
+    connect(ui->menu_stop, &QAction::triggered, this, [=]() { profile_stop(false, false, true); });
     connect(ui->tabWidget->tabBar(), &QTabBar::tabMoved, this, [=](int from, int to) {
         // use tabData to track tab & gid
-        NekoGui::profileManager->groupsTabOrder.clear();
+        Configs::profileManager->groupsTabOrder.clear();
         for (int i = 0; i < ui->tabWidget->tabBar()->count(); i++) {
-            NekoGui::profileManager->groupsTabOrder += ui->tabWidget->tabBar()->tabData(i).toInt();
+            Configs::profileManager->groupsTabOrder += ui->tabWidget->tabBar()->tabData(i).toInt();
         }
-        NekoGui::profileManager->SaveManager();
+        Configs::profileManager->SaveManager();
     });
     ui->label_running->installEventFilter(this);
     ui->label_inbound->installEventFilter(this);
@@ -182,7 +181,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     RegisterHotkey(false);
     RegisterShortcuts();
     //
-    auto last_size = NekoGui::dataStore->mw_size.split("x");
+    auto last_size = Configs::dataStore->mw_size.split("x");
     if (last_size.length() == 2) {
         auto w = last_size[0].toInt();
         auto h = last_size[1].toInt();
@@ -192,11 +191,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     }
 
     // software_name
-    software_name = "Nekoray";
+    software_name = "Throne";
     software_core_name = "sing-box";
     //
     if (auto dashDir = QDir("dashboard"); !dashDir.exists("dashboard") && QDir().mkdir("dashboard")) {
-        if (auto dashFile = QFile(":/neko/dashboard-notice.html"); dashFile.exists() && dashFile.open(QIODevice::ReadOnly))
+        if (auto dashFile = QFile(":/Throne/dashboard-notice.html"); dashFile.exists() && dashFile.open(QIODevice::ReadOnly))
         {
             auto data = dashFile.readAll();
             if (auto dest = QFile("dashboard/index.html"); dest.open(QIODevice::Truncate | QIODevice::WriteOnly))
@@ -220,7 +219,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     setupConnectionList();
     for (int i=0;i<ui->stats_widget->tabBar()->count();i++)
     {
-        if (ui->stats_widget->tabBar()->tabText(i) == NekoGui::dataStore->stats_tab)
+        if (ui->stats_widget->tabBar()->tabText(i) == Configs::dataStore->stats_tab)
         {
             ui->stats_widget->tabBar()->setCurrentIndex(i);
             break;
@@ -229,15 +228,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->stats_widget->tabBar(), &QTabBar::currentChanged, this, [=](int index)
     {
         auto tabText = ui->stats_widget->tabBar()->tabText(index);
-        NekoGui::dataStore->stats_tab = tabText;
+        Configs::dataStore->stats_tab = tabText;
     });
     connect(ui->connections->horizontalHeader(), &QHeaderView::sectionClicked, this, [=](int index)
     {
         // TODO this is a very bad idea to hardcode it like this, need to refactor it later
         if (index == 0)
         {
-            NekoGui_traffic::connection_lister->setSort(NekoGui_traffic::Default);
-            NekoGui_traffic::connection_lister->ForceUpdate();
+            Stats::connection_lister->setSort(Stats::Default);
+            Stats::connection_lister->ForceUpdate();
         }
         if (index == 2 || index == 3)
         {
@@ -246,13 +245,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         }
         if (index == 1)
         {
-            NekoGui_traffic::connection_lister->setSort(NekoGui_traffic::ByProcess);
-            NekoGui_traffic::connection_lister->ForceUpdate();
+            Stats::connection_lister->setSort(Stats::ByProcess);
+            Stats::connection_lister->ForceUpdate();
         }
         if (index == 4)
         {
-            NekoGui_traffic::connection_lister->setSort(NekoGui_traffic::ByTraffic);
-            NekoGui_traffic::connection_lister->ForceUpdate();
+            Stats::connection_lister->setSort(Stats::ByTraffic);
+            Stats::connection_lister->ForceUpdate();
         }
     });
 
@@ -263,7 +262,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // table UI
     ui->proxyListTable->rowsSwapped = [=](int row1, int row2)
     {
-        auto group = NekoGui::profileManager->CurrentGroup();
+        auto group = Configs::profileManager->CurrentGroup();
         group->SwapProfiles(row1, row2);
         refresh_proxy_list(group->profiles[row1]);
         refresh_proxy_list(group->profiles[row2]);
@@ -295,8 +294,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         refresh_proxy_list_impl(-1, action);
     });
     connect(ui->proxyListTable->horizontalHeader(), &QHeaderView::sectionResized, this, [=](int logicalIndex, int oldSize, int newSize) {
-        auto group = NekoGui::profileManager->CurrentGroup();
-        if (NekoGui::dataStore->refreshing_group || group == nullptr || !group->manually_column_width) return;
+        auto group = Configs::profileManager->CurrentGroup();
+        if (Configs::dataStore->refreshing_group || group == nullptr || !group->manually_column_width) return;
         // save manually column width
         group->column_width.clear();
         for (int i = 0; i < ui->proxyListTable->horizontalHeader()->count(); i++) {
@@ -335,7 +334,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     trayMenu->addAction(ui->actionRestart_Proxy);
     trayMenu->addAction(ui->actionRestart_Program);
     trayMenu->addAction(ui->menu_exit);
-    tray->setVisible(!NekoGui::dataStore->disable_tray);
+    tray->setVisible(!Configs::dataStore->disable_tray);
     tray->setContextMenu(trayMenu);
     connect(tray, &QSystemTrayIcon::activated, qApp, [=](QSystemTrayIcon::ActivationReason reason) {
         if (reason == QSystemTrayIcon::Trigger) {
@@ -344,42 +343,42 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     });
 
     // Misc menu
-    ui->actionRemember_last_proxy->setChecked(NekoGui::dataStore->remember_enable);
+    ui->actionRemember_last_proxy->setChecked(Configs::dataStore->remember_enable);
     ui->actionStart_with_system->setChecked(AutoRun_IsEnabled());
-    ui->actionAllow_LAN->setChecked(QStringList{"::", "0.0.0.0"}.contains(NekoGui::dataStore->inbound_address));
+    ui->actionAllow_LAN->setChecked(QStringList{"::", "0.0.0.0"}.contains(Configs::dataStore->inbound_address));
 
     connect(ui->menu_open_config_folder, &QAction::triggered, this, [=] { QDesktopServices::openUrl(QUrl::fromLocalFile(QDir::currentPath())); });
     connect(ui->menu_add_from_clipboard2, &QAction::triggered, ui->menu_add_from_clipboard, &QAction::trigger);
-    connect(ui->actionRestart_Proxy, &QAction::triggered, this, [=] { if (NekoGui::dataStore->started_id>=0) neko_start(NekoGui::dataStore->started_id); });
+    connect(ui->actionRestart_Proxy, &QAction::triggered, this, [=] { if (Configs::dataStore->started_id>=0) profile_start(Configs::dataStore->started_id); });
     connect(ui->actionRestart_Program, &QAction::triggered, this, [=] { MW_dialog_message("", "RestartProgram"); });
     connect(ui->actionShow_window, &QAction::triggered, this, [=] { ActivateWindow(this); });
     connect(ui->actionRemember_last_proxy, &QAction::triggered, this, [=](bool checked) {
-        NekoGui::dataStore->remember_enable = checked;
+        Configs::dataStore->remember_enable = checked;
         ui->actionRemember_last_proxy->setChecked(checked);
-        NekoGui::dataStore->Save();
+        Configs::dataStore->Save();
     });
     connect(ui->actionStart_with_system, &QAction::triggered, this, [=](bool checked) {
         AutoRun_SetEnabled(checked);
         ui->actionStart_with_system->setChecked(checked);
     });
     connect(ui->actionAllow_LAN, &QAction::triggered, this, [=](bool checked) {
-        NekoGui::dataStore->inbound_address = checked ? "::" : "127.0.0.1";
+        Configs::dataStore->inbound_address = checked ? "::" : "127.0.0.1";
         ui->actionAllow_LAN->setChecked(checked);
         MW_dialog_message("", "UpdateDataStore");
     });
     //
-    connect(ui->checkBox_VPN, &QCheckBox::clicked, this, [=](bool checked) { neko_set_spmode_vpn(checked); });
-    connect(ui->checkBox_SystemProxy, &QCheckBox::clicked, this, [=](bool checked) { neko_set_spmode_system_proxy(checked); });
+    connect(ui->checkBox_VPN, &QCheckBox::clicked, this, [=](bool checked) { set_spmode_vpn(checked); });
+    connect(ui->checkBox_SystemProxy, &QCheckBox::clicked, this, [=](bool checked) { set_spmode_system_proxy(checked); });
     connect(ui->menu_spmode, &QMenu::aboutToShow, this, [=]() {
-        ui->menu_spmode_disabled->setChecked(!(NekoGui::dataStore->spmode_system_proxy || NekoGui::dataStore->spmode_vpn));
-        ui->menu_spmode_system_proxy->setChecked(NekoGui::dataStore->spmode_system_proxy);
-        ui->menu_spmode_vpn->setChecked(NekoGui::dataStore->spmode_vpn);
+        ui->menu_spmode_disabled->setChecked(!(Configs::dataStore->spmode_system_proxy || Configs::dataStore->spmode_vpn));
+        ui->menu_spmode_system_proxy->setChecked(Configs::dataStore->spmode_system_proxy);
+        ui->menu_spmode_vpn->setChecked(Configs::dataStore->spmode_vpn);
     });
-    connect(ui->menu_spmode_system_proxy, &QAction::triggered, this, [=](bool checked) { neko_set_spmode_system_proxy(checked); });
-    connect(ui->menu_spmode_vpn, &QAction::triggered, this, [=](bool checked) { neko_set_spmode_vpn(checked); });
+    connect(ui->menu_spmode_system_proxy, &QAction::triggered, this, [=](bool checked) { set_spmode_system_proxy(checked); });
+    connect(ui->menu_spmode_vpn, &QAction::triggered, this, [=](bool checked) { set_spmode_vpn(checked); });
     connect(ui->menu_spmode_disabled, &QAction::triggered, this, [=]() {
-        neko_set_spmode_system_proxy(false);
-        neko_set_spmode_vpn(false);
+        set_spmode_system_proxy(false);
+        set_spmode_vpn(false);
     });
     connect(ui->menu_qr, &QAction::triggered, this, [=]() { display_qr_link(false); });
     connect(ui->system_dns, &QCheckBox::clicked, this, [=](bool checked) {
@@ -425,20 +424,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         ui->menuRouting_Menu->clear();
         ui->menuRouting_Menu->addAction(ui->menu_routing_settings);
         ui->menuRouting_Menu->addSeparator();
-        for (const auto& route : NekoGui::profileManager->routes)
+        for (const auto& route : Configs::profileManager->routes)
         {
             auto* action = new QAction(ui->menuRouting_Menu);
             action->setText(route.second->name);
             action->setData(route.second->id);
             action->setCheckable(true);
-            action->setChecked(NekoGui::dataStore->routing->current_route_id == route.first);
+            action->setChecked(Configs::dataStore->routing->current_route_id == route.first);
             connect(action, &QAction::triggered, this, [=]()
             {
                 auto routeID = action->data().toInt();
-                if (NekoGui::dataStore->routing->current_route_id == routeID) return;
-                NekoGui::dataStore->routing->current_route_id = routeID;
-                NekoGui::dataStore->routing->Save();
-                if (NekoGui::dataStore->started_id >= 0) neko_start(NekoGui::dataStore->started_id);
+                if (Configs::dataStore->routing->current_route_id == routeID) return;
+                Configs::dataStore->routing->current_route_id = routeID;
+                Configs::dataStore->routing->Save();
+                if (Configs::dataStore->started_id >= 0) profile_start(Configs::dataStore->started_id);
             });
             ui->menuRouting_Menu->addAction(action);
         }
@@ -447,7 +446,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         urltest_current_group(get_now_selected_list());
     });
     connect(ui->actionUrl_Test_Group, &QAction::triggered, this, [=]() {
-        urltest_current_group(NekoGui::profileManager->CurrentGroup()->GetProfileEnts());
+        urltest_current_group(Configs::profileManager->CurrentGroup()->GetProfileEnts());
     });
     connect(ui->actionSpeedtest_Current, &QAction::triggered, this, [=]()
     {
@@ -462,7 +461,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     });
     connect(ui->actionSpeedtest_Group, &QAction::triggered, this, [=]()
     {
-        speedtest_current_group(NekoGui::profileManager->CurrentGroup()->GetProfileEnts());
+        speedtest_current_group(Configs::profileManager->CurrentGroup()->GetProfileEnts());
     });
     connect(ui->menu_stop_testing, &QAction::triggered, this, [=]() { stopTests(); });
     //
@@ -494,7 +493,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     t->start(2000);
 
     t = new QTimer;
-    connect(t, &QTimer::timeout, this, [&] { NekoGui_sys::logCounter.fetchAndStoreRelaxed(0); });
+    connect(t, &QTimer::timeout, this, [&] { Configs_sys::logCounter.fetchAndStoreRelaxed(0); });
     t->start(1000);
 
     TM_auto_update_subsctiption = new QTimer;
@@ -503,17 +502,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         if (m >= 30) TM_auto_update_subsctiption->start(m * 60 * 1000);
     };
     connect(TM_auto_update_subsctiption, &QTimer::timeout, this, [&] { UI_update_all_groups(true); });
-    TM_auto_update_subsctiption_Reset_Minute(NekoGui::dataStore->sub_auto_update);
+    TM_auto_update_subsctiption_Reset_Minute(Configs::dataStore->sub_auto_update);
 
-    if (!NekoGui::dataStore->flag_tray) show();
+    if (!Configs::dataStore->flag_tray) show();
 
-    if (NekoGui::NeedGeoAssets()) {
+    if (Configs::NeedGeoAssets()) {
         auto n = QMessageBox::warning(GetMessageBoxParent(), software_name, tr("Geo Assets are missing, want to download them now?"), QMessageBox::Yes | QMessageBox::No);
         if (n == QMessageBox::Yes) {
             runOnNewThread([=]
             {
-                DownloadAssets(!NekoGui::dataStore->geoip_download_url.isEmpty() ? NekoGui::dataStore->geoip_download_url : NekoGui::GeoAssets::GeoIPURLs[0],
-                !NekoGui::dataStore->geosite_download_url.isEmpty() ? NekoGui::dataStore->geosite_download_url : NekoGui::GeoAssets::GeoSiteURLs[0]);
+                DownloadAssets(!Configs::dataStore->geoip_download_url.isEmpty() ? Configs::dataStore->geoip_download_url : Configs::GeoAssets::GeoIPURLs[0],
+                !Configs::dataStore->geosite_download_url.isEmpty() ? Configs::dataStore->geosite_download_url : Configs::GeoAssets::GeoSiteURLs[0]);
             });
         }
     }
@@ -536,37 +535,37 @@ MainWindow::~MainWindow() {
 // Group tab manage
 
 inline int tabIndex2GroupId(int index) {
-    if (NekoGui::profileManager->groupsTabOrder.length() <= index) return -1;
-    return NekoGui::profileManager->groupsTabOrder[index];
+    if (Configs::profileManager->groupsTabOrder.length() <= index) return -1;
+    return Configs::profileManager->groupsTabOrder[index];
 }
 
 inline int groupId2TabIndex(int gid) {
-    for (int key = 0; key < NekoGui::profileManager->groupsTabOrder.count(); key++) {
-        if (NekoGui::profileManager->groupsTabOrder[key] == gid) return key;
+    for (int key = 0; key < Configs::profileManager->groupsTabOrder.count(); key++) {
+        if (Configs::profileManager->groupsTabOrder[key] == gid) return key;
     }
     return 0;
 }
 
 void MainWindow::on_tabWidget_currentChanged(int index) {
-    if (NekoGui::dataStore->refreshing_group_list) return;
-    if (tabIndex2GroupId(index) == NekoGui::dataStore->current_group) return;
+    if (Configs::dataStore->refreshing_group_list) return;
+    if (tabIndex2GroupId(index) == Configs::dataStore->current_group) return;
     show_group(tabIndex2GroupId(index));
 }
 
 void MainWindow::show_group(int gid) {
-    if (NekoGui::dataStore->refreshing_group) return;
-    NekoGui::dataStore->refreshing_group = true;
+    if (Configs::dataStore->refreshing_group) return;
+    Configs::dataStore->refreshing_group = true;
 
-    auto group = NekoGui::profileManager->GetGroup(gid);
+    auto group = Configs::profileManager->GetGroup(gid);
     if (group == nullptr) {
         MessageBoxWarning(tr("Error"), QString("No such group: %1").arg(gid));
-        NekoGui::dataStore->refreshing_group = false;
+        Configs::dataStore->refreshing_group = false;
         return;
     }
 
-    if (NekoGui::dataStore->current_group != gid) {
-        NekoGui::dataStore->current_group = gid;
-        NekoGui::dataStore->Save();
+    if (Configs::dataStore->current_group != gid) {
+        Configs::dataStore->current_group = gid;
+        Configs::dataStore->Save();
     }
 
     ui->tabWidget->widget(groupId2TabIndex(gid))->layout()->addWidget(ui->proxyListTable);
@@ -591,7 +590,7 @@ void MainWindow::show_group(int gid) {
     gsa.scroll_to_started = true;
     refresh_proxy_list_impl(-1, gsa);
 
-    NekoGui::dataStore->refreshing_group = false;
+    Configs::dataStore->refreshing_group = false;
 }
 
 // callback
@@ -604,29 +603,29 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
     }
     if (info.contains("UpdateDataStore")) {
         if (info.contains("UpdateDisableTray")) {
-            tray->setVisible(!NekoGui::dataStore->disable_tray);
+            tray->setVisible(!Configs::dataStore->disable_tray);
         }
-        auto suggestRestartProxy = NekoGui::dataStore->Save();
+        auto suggestRestartProxy = Configs::dataStore->Save();
         if (info.contains("RouteChanged")) {
-            NekoGui::dataStore->routing->Save();
+            Configs::dataStore->routing->Save();
             suggestRestartProxy = true;
         }
         if (info.contains("NeedRestart")) {
             suggestRestartProxy = false;
         }
         refresh_proxy_list();
-        if (info.contains("VPNChanged") && NekoGui::dataStore->spmode_vpn) {
+        if (info.contains("VPNChanged") && Configs::dataStore->spmode_vpn) {
             MessageBoxWarning(tr("Tun Settings changed"), tr("Restart Tun to take effect."));
         }
-        if (suggestRestartProxy && NekoGui::dataStore->started_id >= 0 &&
+        if (suggestRestartProxy && Configs::dataStore->started_id >= 0 &&
             QMessageBox::question(GetMessageBoxParent(), tr("Confirmation"), tr("Settings changed, restart proxy?")) == QMessageBox::StandardButton::Yes) {
-            neko_start(NekoGui::dataStore->started_id);
+            profile_start(Configs::dataStore->started_id);
         }
         refresh_status();
     }
     if (info.contains("DNSServerChanged"))
     {
-        if (NekoGui::dataStore->system_dns_set)
+        if (Configs::dataStore->system_dns_set)
         {
             auto oldAddr = info.split(",")[1];
             set_system_dns(false);
@@ -664,7 +663,7 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
             refresh_proxy_list();
             if (msg.contains("restart")) {
                 if (QMessageBox::question(GetMessageBoxParent(), tr("Confirmation"), tr("Settings changed, restart proxy?")) == QMessageBox::StandardButton::Yes) {
-                    neko_start(NekoGui::dataStore->started_id);
+                    profile_start(Configs::dataStore->started_id);
                 }
             }
         }
@@ -676,34 +675,34 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
         if (info.startsWith("finish")) {
             refresh_proxy_list();
             if (!info.contains("dingyue")) {
-                show_log_impl(tr("Imported %1 profile(s)").arg(NekoGui::dataStore->imported_count));
+                show_log_impl(tr("Imported %1 profile(s)").arg(Configs::dataStore->imported_count));
             }
         } else if (info == "NewGroup") {
             refresh_groups();
         }
     } else if (sender == "ExternalProcess") {
         if (info == "Crashed") {
-            neko_stop();
+            profile_stop();
         } else if (info == "CoreCrashed") {
-            neko_stop(true);
+            profile_stop(true);
         } else if (info.startsWith("CoreStarted")) {
-            NekoGui::IsAdmin(true);
-            if (NekoGui::dataStore->remember_enable || NekoGui::dataStore->flag_restart_tun_on) {
-                if (NekoGui::dataStore->remember_spmode.contains("system_proxy")) {
-                    neko_set_spmode_system_proxy(true, false);
+            Configs::IsAdmin(true);
+            if (Configs::dataStore->remember_enable || Configs::dataStore->flag_restart_tun_on) {
+                if (Configs::dataStore->remember_spmode.contains("system_proxy")) {
+                    set_spmode_system_proxy(true, false);
                 }
-                if (NekoGui::dataStore->remember_spmode.contains("vpn") || NekoGui::dataStore->flag_restart_tun_on) {
-                    neko_set_spmode_vpn(true, false);
+                if (Configs::dataStore->remember_spmode.contains("vpn") || Configs::dataStore->flag_restart_tun_on) {
+                    set_spmode_vpn(true, false);
                 }
-                if (NekoGui::dataStore->flag_dns_set) {
+                if (Configs::dataStore->flag_dns_set) {
                     set_system_dns(true);
                 }
             }
             if (auto id = info.split(",")[1].toInt(); id >= 0)
             {
-                neko_start(id);
+                profile_start(id);
             }
-            if (NekoGui::dataStore->system_dns_set) {
+            if (Configs::dataStore->system_dns_set) {
                 set_system_dns(true);
                 ui->system_dns->setChecked(true);
             }
@@ -747,27 +746,27 @@ void MainWindow::on_menu_hotkey_settings_triggered() {
 
 void MainWindow::on_commitDataRequest() {
     qDebug() << "Handling DNS setting";
-    if (NekoGui::dataStore->system_dns_set) set_system_dns(false, false);
+    if (Configs::dataStore->system_dns_set) set_system_dns(false, false);
     qDebug() << "Done handling DNS setting";
     qDebug() << "Start of data save";
     //
     if (!isMaximized()) {
-        auto olds = NekoGui::dataStore->mw_size;
+        auto olds = Configs::dataStore->mw_size;
         auto news = QString("%1x%2").arg(size().width()).arg(size().height());
         if (olds != news) {
-            NekoGui::dataStore->mw_size = news;
+            Configs::dataStore->mw_size = news;
         }
     }
     //
-    NekoGui::dataStore->splitter_state = ui->splitter->saveState().toBase64();
+    Configs::dataStore->splitter_state = ui->splitter->saveState().toBase64();
     //
-    auto last_id = NekoGui::dataStore->started_id;
-    if (NekoGui::dataStore->remember_enable && last_id >= 0) {
-        NekoGui::dataStore->remember_id = last_id;
+    auto last_id = Configs::dataStore->started_id;
+    if (Configs::dataStore->remember_enable && last_id >= 0) {
+        Configs::dataStore->remember_id = last_id;
     }
     //
-    NekoGui::dataStore->Save();
-    NekoGui::profileManager->SaveManager();
+    Configs::dataStore->Save();
+    Configs::profileManager->SaveManager();
     qDebug() << "End of data save";
 }
 
@@ -775,7 +774,7 @@ void MainWindow::prepare_exit()
 {
     qDebug() << "prepare for exit...";
     mu_exit.lock();
-    if (NekoGui::dataStore->prepare_exit)
+    if (Configs::dataStore->prepare_exit)
     {
         qDebug() << "prepare exit had already succeeded, ignoring...";
         mu_exit.unlock();
@@ -783,16 +782,16 @@ void MainWindow::prepare_exit()
     }
     hide();
     tray->hide();
-    NekoGui::dataStore->prepare_exit = true;
+    Configs::dataStore->prepare_exit = true;
     //
-    neko_set_spmode_system_proxy(false, false);
+    set_spmode_system_proxy(false, false);
     RegisterHotkey(true);
     //
     on_commitDataRequest();
     //
     if (running) running->Save();
-    NekoGui::dataStore->save_control_no_save = true; // don't change datastore after this line
-    NekoGui_rpc::defaultClient->Exit();
+    Configs::dataStore->save_control_no_save = true; // don't change datastore after this line
+    API::defaultClient->Exit();
     mu_exit.unlock();
     qDebug() << "prepare exit done!";
 }
@@ -806,7 +805,7 @@ void MainWindow::on_menu_exit_triggered() {
     } else if (exit_reason == 2 || exit_reason == 3 || exit_reason == 4) {
         QDir::setCurrent(QApplication::applicationDirPath());
 
-        auto arguments = NekoGui::dataStore->argv;
+        auto arguments = Configs::dataStore->argv;
         if (arguments.length() > 0) {
             arguments.removeFirst();
             arguments.removeAll("-tray");
@@ -830,22 +829,22 @@ void MainWindow::on_menu_exit_triggered() {
     QCoreApplication::quit();
 }
 
-void MainWindow::neko_toggle_system_proxy() {
-    auto currentState = NekoGui::dataStore->spmode_system_proxy;
+void MainWindow::toggle_system_proxy() {
+    auto currentState = Configs::dataStore->spmode_system_proxy;
     if (currentState) {
-        neko_set_spmode_system_proxy(false);
+        set_spmode_system_proxy(false);
     } else {
-        neko_set_spmode_system_proxy(true);
+        set_spmode_system_proxy(true);
     }
 }
 
 bool MainWindow::get_elevated_permissions(int reason) {
-    if (NekoGui::dataStore->disable_privilege_req)
+    if (Configs::dataStore->disable_privilege_req)
     {
         MW_show_log(tr("User opted for no privilege req, some features may not work"));
         return true;
     }
-    if (NekoGui::IsAdmin()) return true;
+    if (Configs::IsAdmin()) return true;
 #ifdef Q_OS_LINUX
     if (!Linux_HavePkexec()) {
         MessageBoxWarning(software_name, "Please install \"pkexec\" first.");
@@ -855,12 +854,12 @@ bool MainWindow::get_elevated_permissions(int reason) {
     if (n == QMessageBox::Yes) {
         runOnNewThread([=]
         {
-            auto chownArgs = QString("root:root " + NekoGui::FindNekoBoxCoreRealPath());
+            auto chownArgs = QString("root:root " + Configs::FindCoreRealPath());
             auto ret = Linux_Run_Command("chown", chownArgs);
             if (ret != 0) {
                 MW_show_log(QString("Failed to run chown %1 code is %2").arg(chownArgs).arg(ret));
             }
-            auto chmodArgs = QString("u+s " + NekoGui::FindNekoBoxCoreRealPath());
+            auto chmodArgs = QString("u+s " + Configs::FindCoreRealPath());
             ret = Linux_Run_Command("chmod", chmodArgs);
             if (ret == 0) {
                 StopVPNProcess();
@@ -872,7 +871,7 @@ bool MainWindow::get_elevated_permissions(int reason) {
     }
 #endif
 #ifdef Q_OS_WIN
-    auto n = QMessageBox::warning(GetMessageBoxParent(), software_name, tr("Please run Nekoray as admin"), QMessageBox::Yes | QMessageBox::No);
+    auto n = QMessageBox::warning(GetMessageBoxParent(), software_name, tr("Please run Throne as admin"), QMessageBox::Yes | QMessageBox::No);
     if (n == QMessageBox::Yes) {
         this->exit_reason = reason;
         on_menu_exit_triggered();
@@ -880,16 +879,16 @@ bool MainWindow::get_elevated_permissions(int reason) {
 #endif
 
 #ifdef Q_OS_MACOS
-    if (NekoGui::IsAdmin(true))
+    if (Configs::IsAdmin(true))
     {
-        NekoGui::IsAdmin(true);
+        Configs::IsAdmin(true);
         StopVPNProcess();
         return true;
     }
     auto n = QMessageBox::warning(GetMessageBoxParent(), software_name, tr("Please give the core root privileges"), QMessageBox::Yes | QMessageBox::No);
     if (n == QMessageBox::Yes)
     {
-        auto Command = QString("sudo chown root:wheel " + NekoGui::FindNekoBoxCoreRealPath() + " && " + "sudo chmod u+s "+NekoGui::FindNekoBoxCoreRealPath());
+        auto Command = QString("sudo chown root:wheel " + Configs::FindCoreRealPath() + " && " + "sudo chmod u+s "+Configs::FindCoreRealPath());
         auto ret = Mac_Run_Command(Command);
         if (ret == 0) {
             MessageBoxInfo(tr("Requesting permission"), tr("Please Enter your password in the opened terminal, then try again"));
@@ -903,11 +902,11 @@ bool MainWindow::get_elevated_permissions(int reason) {
     return false;
 }
 
-void MainWindow::neko_set_spmode_vpn(bool enable, bool save) {
-    if (enable == NekoGui::dataStore->spmode_vpn) return;
+void MainWindow::set_spmode_vpn(bool enable, bool save) {
+    if (enable == Configs::dataStore->spmode_vpn) return;
 
     if (enable) {
-        bool requestPermission = !NekoGui::IsAdmin();
+        bool requestPermission = !Configs::IsAdmin();
         if (requestPermission) {
             if (!get_elevated_permissions()) {
                 refresh_status();
@@ -917,17 +916,17 @@ void MainWindow::neko_set_spmode_vpn(bool enable, bool save) {
     }
 
     if (save) {
-        NekoGui::dataStore->remember_spmode.removeAll("vpn");
-        if (enable && NekoGui::dataStore->remember_enable) {
-            NekoGui::dataStore->remember_spmode.append("vpn");
+        Configs::dataStore->remember_spmode.removeAll("vpn");
+        if (enable && Configs::dataStore->remember_enable) {
+            Configs::dataStore->remember_spmode.append("vpn");
         }
-        NekoGui::dataStore->Save();
+        Configs::dataStore->Save();
     }
 
-    NekoGui::dataStore->spmode_vpn = enable;
+    Configs::dataStore->spmode_vpn = enable;
     refresh_status();
 
-    if (NekoGui::dataStore->started_id >= 0) neko_start(NekoGui::dataStore->started_id);
+    if (Configs::dataStore->started_id >= 0) profile_start(Configs::dataStore->started_id);
 }
 
 void MainWindow::UpdateDataView(bool force)
@@ -1003,12 +1002,12 @@ void MainWindow::setupConnectionList()
     });
 }
 
-void MainWindow::UpdateConnectionList(const QMap<QString, NekoGui_traffic::ConnectionMetadata>& toUpdate, const QMap<QString, NekoGui_traffic::ConnectionMetadata>& toAdd)
+void MainWindow::UpdateConnectionList(const QMap<QString, Stats::ConnectionMetadata>& toUpdate, const QMap<QString, Stats::ConnectionMetadata>& toAdd)
 {
     ui->connections->setUpdatesEnabled(false);
     for (int row=0;row<ui->connections->rowCount();row++)
     {
-        auto key = ui->connections->item(row, 0)->data(NekoGui_traffic::IDKEY).toString();
+        auto key = ui->connections->item(row, 0)->data(Stats::IDKEY).toString();
         if (!toUpdate.contains(key))
         {
             ui->connections->removeRow(row);
@@ -1039,7 +1038,7 @@ void MainWindow::UpdateConnectionList(const QMap<QString, NekoGui_traffic::Conne
     {
         ui->connections->insertRow(row);
         auto f0 = std::make_unique<QTableWidgetItem>();
-        f0->setData(NekoGui_traffic::IDKEY, conn.id);
+        f0->setData(Stats::IDKEY, conn.id);
 
         // C0: Dest (Domain)
         auto f = f0->clone();
@@ -1073,7 +1072,7 @@ void MainWindow::UpdateConnectionList(const QMap<QString, NekoGui_traffic::Conne
     ui->connections->setUpdatesEnabled(true);
 }
 
-void MainWindow::UpdateConnectionListWithRecreate(const QList<NekoGui_traffic::ConnectionMetadata>& connections)
+void MainWindow::UpdateConnectionListWithRecreate(const QList<Stats::ConnectionMetadata>& connections)
 {
     ui->connections->setUpdatesEnabled(false);
     ui->connections->setRowCount(0);
@@ -1082,7 +1081,7 @@ void MainWindow::UpdateConnectionListWithRecreate(const QList<NekoGui_traffic::C
     {
         ui->connections->insertRow(row);
         auto f0 = std::make_unique<QTableWidgetItem>();
-        f0->setData(NekoGui_traffic::IDKEY, conn.id);
+        f0->setData(Stats::IDKEY, conn.id);
 
         // C0: Dest (Domain)
         auto f = f0->clone();
@@ -1118,7 +1117,7 @@ void MainWindow::UpdateConnectionListWithRecreate(const QList<NekoGui_traffic::C
 
 void MainWindow::refresh_status(const QString &traffic_update) {
     auto refresh_speed_label = [=] {
-        if (NekoGui::dataStore->disable_traffic_stats) {
+        if (Configs::dataStore->disable_traffic_stats) {
             ui->label_speed->setText("");
         }
         else if (traffic_update_cache == "") {
@@ -1129,7 +1128,7 @@ void MainWindow::refresh_status(const QString &traffic_update) {
     };
 
     // From TrafficLooper
-    if (!traffic_update.isEmpty() && !NekoGui::dataStore->disable_traffic_stats) {
+    if (!traffic_update.isEmpty() && !Configs::dataStore->disable_traffic_stats) {
         traffic_update_cache = traffic_update;
         if (traffic_update == "STOP") {
             traffic_update_cache = "";
@@ -1144,7 +1143,7 @@ void MainWindow::refresh_status(const QString &traffic_update) {
     // From UI
     QString group_name;
     if (running != nullptr) {
-        auto group = NekoGui::profileManager->GetGroup(running->gid);
+        auto group = Configs::profileManager->GetGroup(running->gid);
         if (group != nullptr) group_name = group->name;
     }
 
@@ -1154,12 +1153,12 @@ void MainWindow::refresh_status(const QString &traffic_update) {
         ui->label_running->setText(txt);
     }
     //
-    auto display_socks = DisplayAddress(NekoGui::dataStore->inbound_address, NekoGui::dataStore->inbound_socks_port);
+    auto display_socks = DisplayAddress(Configs::dataStore->inbound_address, Configs::dataStore->inbound_socks_port);
     auto inbound_txt = QString("Mixed: %1").arg(display_socks);
     ui->label_inbound->setText(inbound_txt);
     //
-    ui->checkBox_VPN->setChecked(NekoGui::dataStore->spmode_vpn);
-    ui->checkBox_SystemProxy->setChecked(NekoGui::dataStore->spmode_system_proxy);
+    ui->checkBox_VPN->setChecked(Configs::dataStore->spmode_vpn);
+    ui->checkBox_SystemProxy->setChecked(Configs::dataStore->spmode_system_proxy);
     if (select_mode) {
         ui->label_running->setText(tr("Select") + " *");
         ui->label_running->setToolTip(tr("Select mode, double-click or press Enter to select a profile, press ESC to exit."));
@@ -1169,16 +1168,16 @@ void MainWindow::refresh_status(const QString &traffic_update) {
 
     auto make_title = [=](bool isTray) {
         QStringList tt;
-        if (!isTray && NekoGui::IsAdmin()) tt << "[Admin]";
+        if (!isTray && Configs::IsAdmin()) tt << "[Admin]";
         if (select_mode) tt << "[" + tr("Select") + "]";
         if (!title_error.isEmpty()) tt << "[" + title_error + "]";
-        if (NekoGui::dataStore->spmode_vpn && !NekoGui::dataStore->spmode_system_proxy) tt << "[Tun]";
-        if (!NekoGui::dataStore->spmode_vpn && NekoGui::dataStore->spmode_system_proxy) tt << "[" + tr("System Proxy") + "]";
-        if (NekoGui::dataStore->spmode_vpn && NekoGui::dataStore->spmode_system_proxy) tt << "[Tun+" + tr("System Proxy") + "]";
+        if (Configs::dataStore->spmode_vpn && !Configs::dataStore->spmode_system_proxy) tt << "[Tun]";
+        if (!Configs::dataStore->spmode_vpn && Configs::dataStore->spmode_system_proxy) tt << "[" + tr("System Proxy") + "]";
+        if (Configs::dataStore->spmode_vpn && Configs::dataStore->spmode_system_proxy) tt << "[Tun+" + tr("System Proxy") + "]";
         tt << software_name;
         if (!isTray) tt << QString(NKR_VERSION);
-        if (!NekoGui::dataStore->active_routing.isEmpty() && NekoGui::dataStore->active_routing != "Default") {
-            tt << "[" + NekoGui::dataStore->active_routing + "]";
+        if (!Configs::dataStore->active_routing.isEmpty() && Configs::dataStore->active_routing != "Default") {
+            tt << "[" + Configs::dataStore->active_routing + "]";
         }
         if (running != nullptr) tt << running->bean->DisplayTypeAndName() + "@" + group_name;
         return tt.join(isTray ? "\n" : " ");
@@ -1187,11 +1186,13 @@ void MainWindow::refresh_status(const QString &traffic_update) {
     auto icon_status_new = Icon::NONE;
 
     if (running != nullptr) {
-        if (NekoGui::dataStore->spmode_vpn) {
+        if (Configs::dataStore->spmode_vpn) {
             icon_status_new = Icon::VPN;
-        } else if (NekoGui::dataStore->system_dns_set) {
+        } else if (Configs::dataStore->system_dns_set && Configs::dataStore->spmode_system_proxy) {
+            icon_status_new = Icon::SYSTEM_PROXY_DNS;
+        } else if (Configs::dataStore->system_dns_set) {
             icon_status_new = Icon::DNS;
-        } else if (NekoGui::dataStore->spmode_system_proxy) {
+        } else if (Configs::dataStore->spmode_system_proxy) {
             icon_status_new = Icon::SYSTEM_PROXY;
         } else {
             icon_status_new = Icon::RUNNING;
@@ -1200,7 +1201,7 @@ void MainWindow::refresh_status(const QString &traffic_update) {
 
     // refresh title & window icon
     setWindowTitle(make_title(false));
-    if (icon_status_new != icon_status) QApplication::setWindowIcon(Icon::GetTrayIcon(Icon::NONE));
+    if (icon_status_new != icon_status) QApplication::setWindowIcon(GetTrayIcon(Icon::RUNNING));
 
     // refresh tray
     if (tray != nullptr) {
@@ -1228,7 +1229,7 @@ void MainWindow::update_traffic_graph(int proxyDl, int proxyUp, int directDl, in
 
 // refresh_groups -> show_group -> refresh_proxy_list
 void MainWindow::refresh_groups() {
-    NekoGui::dataStore->refreshing_group_list = true;
+    Configs::dataStore->refreshing_group_list = true;
 
     // refresh group?
     for (int i = ui->tabWidget->count() - 1; i > 0; i--) {
@@ -1236,8 +1237,8 @@ void MainWindow::refresh_groups() {
     }
 
     int index = 0;
-    for (const auto &gid: NekoGui::profileManager->groupsTabOrder) {
-        auto group = NekoGui::profileManager->GetGroup(gid);
+    for (const auto &gid: Configs::profileManager->groupsTabOrder) {
+        auto group = Configs::profileManager->GetGroup(gid);
         if (index == 0) {
             ui->tabWidget->setTabText(0, group->name);
         } else {
@@ -1253,16 +1254,16 @@ void MainWindow::refresh_groups() {
     }
 
     // show after group changed
-    if (NekoGui::profileManager->CurrentGroup() == nullptr) {
-        NekoGui::dataStore->current_group = -1;
+    if (Configs::profileManager->CurrentGroup() == nullptr) {
+        Configs::dataStore->current_group = -1;
         ui->tabWidget->setCurrentIndex(groupId2TabIndex(0));
-        show_group(NekoGui::profileManager->groupsTabOrder.count() > 0 ? NekoGui::profileManager->groupsTabOrder.first() : 0);
+        show_group(Configs::profileManager->groupsTabOrder.count() > 0 ? Configs::profileManager->groupsTabOrder.first() : 0);
     } else {
-        ui->tabWidget->setCurrentIndex(groupId2TabIndex(NekoGui::dataStore->current_group));
-        show_group(NekoGui::dataStore->current_group);
+        ui->tabWidget->setCurrentIndex(groupId2TabIndex(Configs::dataStore->current_group));
+        show_group(Configs::dataStore->current_group);
     }
 
-    NekoGui::dataStore->refreshing_group_list = false;
+    Configs::dataStore->refreshing_group_list = false;
 }
 
 void MainWindow::refresh_proxy_list(const int &id) {
@@ -1272,7 +1273,7 @@ void MainWindow::refresh_proxy_list(const int &id) {
 void MainWindow::refresh_proxy_list_impl(const int &id, GroupSortAction groupSortAction) {
     ui->proxyListTable->setUpdatesEnabled(false);
     if (id < 0) {
-        auto currentGroup = NekoGui::profileManager->CurrentGroup();
+        auto currentGroup = Configs::profileManager->CurrentGroup();
         if (currentGroup == nullptr)
         {
             MW_show_log("Could not find current group!");
@@ -1294,20 +1295,20 @@ void MainWindow::refresh_proxy_list_impl(const int &id, GroupSortAction groupSor
                               QString ms_a;
                               QString ms_b;
                               if (groupSortAction.method == GroupSortMethod::ByType) {
-                                  ms_a = NekoGui::profileManager->GetProfile(a)->bean->DisplayType();
-                                  ms_b = NekoGui::profileManager->GetProfile(b)->bean->DisplayType();
+                                  ms_a = Configs::profileManager->GetProfile(a)->bean->DisplayType();
+                                  ms_b = Configs::profileManager->GetProfile(b)->bean->DisplayType();
                               } else if (groupSortAction.method == GroupSortMethod::ByName) {
-                                  ms_a = NekoGui::profileManager->GetProfile(a)->bean->name;
-                                  ms_b = NekoGui::profileManager->GetProfile(b)->bean->name;
+                                  ms_a = Configs::profileManager->GetProfile(a)->bean->name;
+                                  ms_b = Configs::profileManager->GetProfile(b)->bean->name;
                               } else if (groupSortAction.method == GroupSortMethod::ByAddress) {
-                                  ms_a = NekoGui::profileManager->GetProfile(a)->bean->DisplayAddress();
-                                  ms_b = NekoGui::profileManager->GetProfile(b)->bean->DisplayAddress();
+                                  ms_a = Configs::profileManager->GetProfile(a)->bean->DisplayAddress();
+                                  ms_b = Configs::profileManager->GetProfile(b)->bean->DisplayAddress();
                               } else if (groupSortAction.method == GroupSortMethod::ByLatency) {
-                                  ms_a = NekoGui::profileManager->GetProfile(a)->full_test_report;
-                                  ms_b = NekoGui::profileManager->GetProfile(b)->full_test_report;
+                                  ms_a = Configs::profileManager->GetProfile(a)->full_test_report;
+                                  ms_b = Configs::profileManager->GetProfile(b)->full_test_report;
                               }
                               auto get_latency_for_sort = [](int id) {
-                                  auto i = NekoGui::profileManager->GetProfile(id)->latency;
+                                  auto i = Configs::profileManager->GetProfile(id)->latency;
                                   if (i == 0) i = 100000;
                                   if (i < 0) i = 99999;
                                   return i;
@@ -1322,8 +1323,8 @@ void MainWindow::refresh_proxy_list_impl(const int &id, GroupSortAction groupSor
                                   return ms_a > ms_b;
                               } else {
                                   if (groupSortAction.method == GroupSortMethod::ByLatency) {
-                                      auto int_a = NekoGui::profileManager->GetProfile(a)->latency;
-                                      auto int_b = NekoGui::profileManager->GetProfile(b)->latency;
+                                      auto int_a = Configs::profileManager->GetProfile(a)->latency;
+                                      auto int_b = Configs::profileManager->GetProfile(b)->latency;
                                       if (ms_a.isEmpty() && ms_b.isEmpty()) {
                                           // compare latency if full_test_report is empty
                                           return get_latency_for_sort(a) < get_latency_for_sort(b);
@@ -1345,7 +1346,7 @@ void MainWindow::refresh_proxy_list_impl(const int &id, GroupSortAction groupSor
 
 void MainWindow::refresh_proxy_list_impl_refresh_data(const int &id, bool stopping) {
     ui->proxyListTable->setUpdatesEnabled(false);
-    auto currentGroup = NekoGui::profileManager->CurrentGroup();
+    auto currentGroup = Configs::profileManager->CurrentGroup();
     if (id >= 0)
     {
         if (!currentGroup->HasProfile(id))
@@ -1354,14 +1355,14 @@ void MainWindow::refresh_proxy_list_impl_refresh_data(const int &id, bool stoppi
             return;
         }
         auto rowID = currentGroup->profiles.indexOf(id);
-        auto profile = NekoGui::profileManager->GetProfile(id);
+        auto profile = Configs::profileManager->GetProfile(id);
         refresh_table_item(rowID, profile, stopping);
     } else
     {
         ui->proxyListTable->blockSignals(true);
         int row = 0;
         for (const auto profileId : currentGroup->profiles) {
-            auto profile = NekoGui::profileManager->GetProfile(profileId);
+            auto profile = Configs::profileManager->GetProfile(profileId);
             refresh_table_item(row++, profile, stopping);
         }
         ui->proxyListTable->blockSignals(false);
@@ -1369,11 +1370,11 @@ void MainWindow::refresh_proxy_list_impl_refresh_data(const int &id, bool stoppi
     ui->proxyListTable->setUpdatesEnabled(true);
 }
 
-void MainWindow::refresh_table_item(const int row, const std::shared_ptr<NekoGui::ProxyEntity>& profile, bool stopping)
+void MainWindow::refresh_table_item(const int row, const std::shared_ptr<Configs::ProxyEntity>& profile, bool stopping)
 {
     if (profile == nullptr) return;
 
-    auto isRunning = profile->id == NekoGui::dataStore->started_id && !stopping;
+    auto isRunning = profile->id == Configs::dataStore->started_id && !stopping;
     auto f0 = std::make_unique<QTableWidgetItem>();
     f0->setData(114514, profile->id);
 
@@ -1432,13 +1433,13 @@ void MainWindow::on_proxyListTable_itemDoubleClicked(QTableWidgetItem *item) {
 }
 
 void MainWindow::on_menu_add_from_input_triggered() {
-    auto dialog = new DialogEditProfile("socks", NekoGui::dataStore->current_group, this);
+    auto dialog = new DialogEditProfile("socks", Configs::dataStore->current_group, this);
     connect(dialog, &QDialog::finished, dialog, &QDialog::deleteLater);
 }
 
 void MainWindow::on_menu_add_from_clipboard_triggered() {
     auto clipboard = QApplication::clipboard()->text();
-    NekoGui_sub::groupUpdater->AsyncUpdate(clipboard);
+    Subscription::groupUpdater->AsyncUpdate(clipboard);
 }
 
 void MainWindow::on_menu_clone_triggered() {
@@ -1453,15 +1454,15 @@ void MainWindow::on_menu_clone_triggered() {
         sls << ent->bean->ToNekorayShareLink(ent->type);
     }
 
-    NekoGui_sub::groupUpdater->AsyncUpdate(sls.join("\n"));
+    Subscription::groupUpdater->AsyncUpdate(sls.join("\n"));
 }
 
 void  MainWindow::on_menu_delete_repeat_triggered () {
-    QList<std::shared_ptr<NekoGui::ProxyEntity>> out;
-    QList<std::shared_ptr<NekoGui::ProxyEntity>> out_del;
+    QList<std::shared_ptr<Configs::ProxyEntity>> out;
+    QList<std::shared_ptr<Configs::ProxyEntity>> out_del;
 
-    NekoGui::ProfileFilter::Uniq (NekoGui::profileManager-> CurrentGroup ()-> GetProfileEnts (), out,  true ,  false );
-    NekoGui::ProfileFilter::OnlyInSrc_ByPointer (NekoGui::profileManager-> CurrentGroup ()-> GetProfileEnts (), out, out_del);
+    Configs::ProfileFilter::Uniq (Configs::profileManager-> CurrentGroup ()-> GetProfileEnts (), out,  true ,  false );
+    Configs::ProfileFilter::OnlyInSrc_ByPointer (Configs::profileManager-> CurrentGroup ()-> GetProfileEnts (), out, out_del);
 
     int  remove_display_count =  0 ;
     QString remove_display;
@@ -1476,7 +1477,7 @@ void  MainWindow::on_menu_delete_repeat_triggered () {
     if  (!out_del.empty()  &&
         QMessageBox::question ( this ,  tr ( " Confirmation " ),  tr ( " Remove %1 item(s) ? " ). arg (out_del. length ()) +  " \n "  + remove_display) == QMessageBox::StandardButton::Yes) {
         for  ( const  auto  &ent: out_del) {
-            NekoGui::profileManager->DeleteProfile(ent-> id );
+            Configs::profileManager->DeleteProfile(ent-> id );
         }
         refresh_proxy_list();
     }
@@ -1488,7 +1489,7 @@ void MainWindow::on_menu_delete_triggered() {
     if (QMessageBox::question(this, tr("Confirmation"), QString(tr("Remove %1 item(s) ?")).arg(ents.count())) ==
         QMessageBox::StandardButton::Yes) {
         for (const auto &ent: ents) {
-            NekoGui::profileManager->DeleteProfile(ent->id);
+            Configs::profileManager->DeleteProfile(ent->id);
         }
         refresh_proxy_list();
     }
@@ -1735,7 +1736,7 @@ void MainWindow::on_menu_scan_qr_triggered() {
         } else {
             for (const QString &text : texts) {
                 show_log_impl("QR Code Result:\n" + text);
-                NekoGui_sub::groupUpdater->AsyncUpdate(text);
+                Subscription::groupUpdater->AsyncUpdate(text);
             }
         }
     }
@@ -1766,18 +1767,18 @@ void MainWindow::on_menu_select_all_triggered() {
 bool mw_sub_updating = false;
 
 void MainWindow::on_menu_update_subscription_triggered() {
-    auto group = NekoGui::profileManager->CurrentGroup();
+    auto group = Configs::profileManager->CurrentGroup();
     if (group->url.isEmpty()) return;
     if (mw_sub_updating) return;
     mw_sub_updating = true;
-    NekoGui_sub::groupUpdater->AsyncUpdate(group->url, group->id, [&] { mw_sub_updating = false; });
+    Subscription::groupUpdater->AsyncUpdate(group->url, group->id, [&] { mw_sub_updating = false; });
 }
 
 void MainWindow::on_menu_remove_unavailable_triggered() {
-    QList<std::shared_ptr<NekoGui::ProxyEntity>> out_del;
+    QList<std::shared_ptr<Configs::ProxyEntity>> out_del;
 
-    for (const auto &[_, profile]: NekoGui::profileManager->profiles) {
-        if (NekoGui::dataStore->current_group != profile->gid) continue;
+    for (const auto &[_, profile]: Configs::profileManager->profiles) {
+        if (Configs::dataStore->current_group != profile->gid) continue;
         if (profile->latency < 0) out_del += profile;
     }
 
@@ -1794,16 +1795,16 @@ void MainWindow::on_menu_remove_unavailable_triggered() {
     if (!out_del.empty() &&
         QMessageBox::question(this, tr("Confirmation"), tr("Remove %1 Unavailable item(s) ?").arg(out_del.length()) + "\n" + remove_display) == QMessageBox::StandardButton::Yes) {
         for (const auto &ent: out_del) {
-            NekoGui::profileManager->DeleteProfile(ent->id);
+            Configs::profileManager->DeleteProfile(ent->id);
         }
         refresh_proxy_list();
     }
 }
 
 void MainWindow::on_menu_remove_invalid_triggered() {
-    QList<std::shared_ptr<NekoGui::ProxyEntity>> out_del;
+    QList<std::shared_ptr<Configs::ProxyEntity>> out_del;
 
-    auto currentGroup = NekoGui::profileManager->GetGroup(NekoGui::dataStore->current_group);
+    auto currentGroup = Configs::profileManager->GetGroup(Configs::dataStore->current_group);
     if (currentGroup == nullptr) return;
     for (const auto &profile : currentGroup->GetProfileEnts()) {
         if (!IsValid(profile)) out_del += profile;
@@ -1822,7 +1823,7 @@ void MainWindow::on_menu_remove_invalid_triggered() {
     if (!out_del.empty() &&
         QMessageBox::question(this, tr("Confirmation"), tr("Remove %1 Invalid item(s) ?").arg(out_del.length()) + "\n" + remove_display) == QMessageBox::StandardButton::Yes) {
         for (const auto &ent: out_del) {
-            NekoGui::profileManager->DeleteProfile(ent->id);
+            Configs::profileManager->DeleteProfile(ent->id);
         }
         refresh_proxy_list();
     }
@@ -1835,12 +1836,12 @@ void MainWindow::on_menu_resolve_selected_triggered() {
     if (mw_sub_updating) return;
     mw_sub_updating = true;
     auto resolve_count = std::atomic<int>(0);
-    NekoGui::dataStore->resolve_count = profiles.count();
+    Configs::dataStore->resolve_count = profiles.count();
 
     for (const auto &profile: profiles) {
         profile->bean->ResolveDomainToIP([=] {
             profile->Save();
-            if (--NekoGui::dataStore->resolve_count != 0) return;
+            if (--Configs::dataStore->resolve_count != 0) return;
             refresh_proxy_list();
             mw_sub_updating = false;
         });
@@ -1848,7 +1849,7 @@ void MainWindow::on_menu_resolve_selected_triggered() {
 }
 
 void MainWindow::on_menu_resolve_domain_triggered() {
-    auto currGroup = NekoGui::profileManager->GetGroup(NekoGui::dataStore->current_group);
+    auto currGroup = Configs::profileManager->GetGroup(Configs::dataStore->current_group);
     if (currGroup == nullptr) return;
 
     auto profiles = currGroup->Profiles();
@@ -1862,13 +1863,13 @@ void MainWindow::on_menu_resolve_domain_triggered() {
     if (mw_sub_updating) return;
     mw_sub_updating = true;
     auto resolve_count = std::atomic<int>(0);
-    NekoGui::dataStore->resolve_count = profiles.count();
+    Configs::dataStore->resolve_count = profiles.count();
 
     for (const auto id: profiles) {
-        auto profile = NekoGui::profileManager->GetProfile(id);
+        auto profile = Configs::profileManager->GetProfile(id);
         profile->bean->ResolveDomainToIP([=] {
             profile->Save();
-            if (--NekoGui::dataStore->resolve_count != 0) return;
+            if (--Configs::dataStore->resolve_count != 0) return;
             refresh_proxy_list();
             mw_sub_updating = false;
         });
@@ -1879,25 +1880,25 @@ void MainWindow::on_proxyListTable_customContextMenuRequested(const QPoint &pos)
     ui->menu_server->popup(ui->proxyListTable->viewport()->mapToGlobal(pos)); // 弹出菜单
 }
 
-QList<std::shared_ptr<NekoGui::ProxyEntity>> MainWindow::get_now_selected_list() {
+QList<std::shared_ptr<Configs::ProxyEntity>> MainWindow::get_now_selected_list() {
     auto items = ui->proxyListTable->selectedItems();
-    QList<std::shared_ptr<NekoGui::ProxyEntity>> list;
+    QList<std::shared_ptr<Configs::ProxyEntity>> list;
     for (auto item: items) {
         auto id = item->data(114514).toInt();
-        auto ent = NekoGui::profileManager->GetProfile(id);
+        auto ent = Configs::profileManager->GetProfile(id);
         if (ent != nullptr && !list.contains(ent)) list += ent;
     }
     return list;
 }
 
-QList<std::shared_ptr<NekoGui::ProxyEntity>> MainWindow::get_selected_or_group() {
+QList<std::shared_ptr<Configs::ProxyEntity>> MainWindow::get_selected_or_group() {
     auto selected_or_group = ui->menu_server->property("selected_or_group").toInt();
-    QList<std::shared_ptr<NekoGui::ProxyEntity>> profiles;
+    QList<std::shared_ptr<Configs::ProxyEntity>> profiles;
     if (selected_or_group > 0) {
         profiles = get_now_selected_list();
-        if (profiles.isEmpty() && selected_or_group == 2) profiles = NekoGui::profileManager->CurrentGroup()->GetProfileEnts();
+        if (profiles.isEmpty() && selected_or_group == 2) profiles = Configs::profileManager->CurrentGroup()->GetProfileEnts();
     } else {
-        profiles = NekoGui::profileManager->CurrentGroup()->GetProfileEnts();
+        profiles = Configs::profileManager->CurrentGroup()->GetProfileEnts();
     }
     return profiles;
 }
@@ -1908,7 +1909,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
             // take over by shortcut_esc
             break;
         case Qt::Key_Enter:
-            neko_start();
+            profile_start();
             break;
         default:
             QMainWindow::keyPressEvent(event);
@@ -1941,7 +1942,7 @@ void MainWindow::show_log_impl(const QString &log) {
     auto block = qvLogDocument->begin();
 
     while (block.isValid()) {
-        if (qvLogDocument->blockCount() > NekoGui::dataStore->max_log_line) {
+        if (qvLogDocument->blockCount() > Configs::dataStore->max_log_line) {
             QTextCursor cursor(block);
             block = block.next();
             cursor.select(QTextCursor::BlockUnderCursor);
@@ -1977,13 +1978,13 @@ void MainWindow::on_tabWidget_customContextMenuRequested(const QPoint &p) {
         auto* menu = new QMenu(this);
         auto* addAction = new QAction(tr("Add new Group"), this);
         connect(addAction, &QAction::triggered, this, [=]{
-            auto ent = NekoGui::ProfileManager::NewGroup();
+            auto ent = Configs::ProfileManager::NewGroup();
             auto dialog = new DialogEditGroup(ent, this);
             int ret = dialog->exec();
             dialog->deleteLater();
 
             if (ret == QDialog::Accepted) {
-                NekoGui::profileManager->AddGroup(ent);
+                Configs::profileManager->AddGroup(ent);
                 MW_dialog_message(Dialog_DialogManageGroups, "refresh-1");
             }
         });
@@ -2000,27 +2001,27 @@ void MainWindow::on_tabWidget_customContextMenuRequested(const QPoint &p) {
     auto* deleteAction = new QAction(tr("Delete selected Group"), this);
     auto* editAction = new QAction(tr("Edit selected Group"), this);
     connect(addAction, &QAction::triggered, this, [=]{
-        auto ent = NekoGui::ProfileManager::NewGroup();
+        auto ent = Configs::ProfileManager::NewGroup();
         auto dialog = new DialogEditGroup(ent, this);
         int ret = dialog->exec();
         dialog->deleteLater();
 
         if (ret == QDialog::Accepted) {
-            NekoGui::profileManager->AddGroup(ent);
+            Configs::profileManager->AddGroup(ent);
             MW_dialog_message(Dialog_DialogManageGroups, "refresh-1");
         }
     });
     connect(deleteAction, &QAction::triggered, this, [=] {
-        auto id = NekoGui::profileManager->groupsTabOrder[clickedIndex];
-        if (QMessageBox::question(this, tr("Confirmation"), tr("Remove %1?").arg(NekoGui::profileManager->groups[id]->name)) ==
+        auto id = Configs::profileManager->groupsTabOrder[clickedIndex];
+        if (QMessageBox::question(this, tr("Confirmation"), tr("Remove %1?").arg(Configs::profileManager->groups[id]->name)) ==
             QMessageBox::StandardButton::Yes) {
-            NekoGui::profileManager->DeleteGroup(id);
+            Configs::profileManager->DeleteGroup(id);
             MW_dialog_message(Dialog_DialogManageGroups, "refresh-1");
         }
     });
     connect(editAction, &QAction::triggered, this, [=]{
-        auto id = NekoGui::profileManager->groupsTabOrder[clickedIndex];
-        auto ent = NekoGui::profileManager->groups[id];
+        auto id = Configs::profileManager->groupsTabOrder[clickedIndex];
+        auto ent = Configs::profileManager->groups[id];
         auto dialog = new DialogEditGroup(ent, this);
         connect(dialog, &QDialog::finished, this, [=] {
             if (dialog->result() == QDialog::Accepted) {
@@ -2033,8 +2034,8 @@ void MainWindow::on_tabWidget_customContextMenuRequested(const QPoint &p) {
     });
     menu->addAction(addAction);
     menu->addAction(editAction);
-    auto group = NekoGui::profileManager->GetGroup(NekoGui::dataStore->current_group);
-    if (NekoGui::profileManager->groups.size() > 1) menu->addAction(deleteAction);
+    auto group = Configs::profileManager->GetGroup(Configs::dataStore->current_group);
+    if (Configs::profileManager->groups.size() > 1) menu->addAction(deleteAction);
     if (!group->Profiles().empty()) {
         menu->addAction(ui->actionUrl_Test_Group);
         menu->addAction(ui->actionSpeedtest_Group);
@@ -2103,11 +2104,11 @@ void MainWindow::RegisterHotkey(bool unregister) {
     if (unregister) return;
 
     QStringList regstr{
-        NekoGui::dataStore->hotkey_mainwindow,
-        NekoGui::dataStore->hotkey_group,
-        NekoGui::dataStore->hotkey_route,
-        NekoGui::dataStore->hotkey_system_proxy_menu,
-        NekoGui::dataStore->hotkey_toggle_system_proxy,
+        Configs::dataStore->hotkey_mainwindow,
+        Configs::dataStore->hotkey_group,
+        Configs::dataStore->hotkey_route,
+        Configs::dataStore->hotkey_system_proxy_menu,
+        Configs::dataStore->hotkey_toggle_system_proxy,
     };
 
     for (const auto &key: regstr) {
@@ -2138,16 +2139,16 @@ void MainWindow::RegisterShortcuts() {
 void MainWindow::HotkeyEvent(const QString &key) {
     if (key.isEmpty()) return;
     runOnUiThread([=] {
-        if (key == NekoGui::dataStore->hotkey_mainwindow) {
+        if (key == Configs::dataStore->hotkey_mainwindow) {
             tray->activated(QSystemTrayIcon::ActivationReason::Trigger);
-        } else if (key == NekoGui::dataStore->hotkey_group) {
+        } else if (key == Configs::dataStore->hotkey_group) {
             on_menu_manage_groups_triggered();
-        } else if (key == NekoGui::dataStore->hotkey_route) {
+        } else if (key == Configs::dataStore->hotkey_route) {
             on_menu_routing_settings_triggered();
-        } else if (key == NekoGui::dataStore->hotkey_system_proxy_menu) {
+        } else if (key == Configs::dataStore->hotkey_system_proxy_menu) {
             ui->menu_spmode->popup(QCursor::pos());
-        } else if (key == NekoGui::dataStore->hotkey_toggle_system_proxy) {
-            neko_toggle_system_proxy();
+        } else if (key == Configs::dataStore->hotkey_toggle_system_proxy) {
+            toggle_system_proxy();
         }
     });
 }
@@ -2157,9 +2158,7 @@ bool MainWindow::StopVPNProcess() {
     if (vpn_pid != 0) {
         bool ok;
 #ifdef Q_OS_WIN
-        auto ret = WinCommander::runProcessElevated("taskkill", {"/IM", "nekobox_core.exe",
-                                                                 "/FI",
-                                                                 "PID ne " + Int2String(core_process->processId())});
+        auto ret = WinCommander::runProcessElevated("taskkill", {"/F", "/PID", Int2String(vpn_pid)});
         ok = ret == 0;
 #endif
 
@@ -2211,55 +2210,69 @@ void MainWindow::DownloadAssets(const QString &geoipUrl, const QString &geositeU
     MW_show_log(tr("Geo Asset update completed!"));
 }
 
+// to parse versions of format Throne-1.2.3-beta.2 or Throne-1.2.3
 bool isNewer(QString version) {
-    version = version.mid(8); // take out nekoray-
-    auto parts = version.split('.');
-    auto currentParts = QString(NKR_VERSION).split('.');
+    if (QString(NKR_VERSION).isEmpty()) return false;
+    version = version.mid(7); // take out Throne-
+    auto parts = version.replace("-", ".").split('.');
+    auto currentParts = QString(NKR_VERSION).replace("-", ".").split('.');
+    if (parts.size() < 3 || currentParts.size() < 3)
+    {
+        MW_show_log("Version strings seem to be invalid" + QString(NKR_VERSION) + " and " + version);
+        return false;
+    }
     std::vector<int> verNums;
     std::vector<int> currNums;
     // add base version first
     verNums.push_back(parts[0].toInt());
     verNums.push_back(parts[1].toInt());
-    verNums.push_back(parts[2].split('-')[0].toInt());
+    verNums.push_back(parts[2].toInt());
+    if (parts.size() > 3)
+    {
+        if (parts[3] == "alpha") verNums.push_back(1);
+        if (parts[3] == "beta") verNums.push_back(2);
+        if (parts[3] == "rc") verNums.push_back(3);
+        if (parts.size() > 4) verNums.push_back(parts[4].toInt());
+    }
 
     currNums.push_back(currentParts[0].toInt());
     currNums.push_back(currentParts[1].toInt());
-    currNums.push_back(currentParts[2].split('-')[0].toInt());
-
-    // base version is equal or greater, check release mode
-    int releaseMode;
-    int partialVer = 0;
-    if (parts[2].split('-').size() > 1 && parts[2].split('-')[1].toInt() == 0 /* this makes sure it is not a number*/) {
-        partialVer = parts[3].split('-')[0].toInt();
-        auto str = parts[2].split('-')[1];
-        if (str == "rc") releaseMode = 3;
-        if (str == "beta") releaseMode = 2;
-        if (str == "alpha") releaseMode = 1;
-    } else {
-        releaseMode = 4;
+    currNums.push_back(currentParts[2].toInt());
+    if (currentParts.size() > 3)
+    {
+        if (currentParts[3] == "alpha") currNums.push_back(1);
+        if (currentParts[3] == "beta") currNums.push_back(2);
+        if (currentParts[3] == "rc") currNums.push_back(3);
+        if (currentParts.size() > 4) currNums.push_back(currentParts[4].toInt());
     }
-    verNums.push_back(releaseMode);
-    verNums.push_back(partialVer);
 
-    int currReleaseMode;
-    int currentPartialVer = 0;
-    if (currentParts[2].split('-').size() > 1 && currentParts[2].split('-')[1].toInt() == 0 /* this makes sure it is not a number*/) {
-        currentPartialVer = currentParts[3].split('-')[0].toInt();
-        auto str = currentParts[2].split('-')[1];
-        if (str == "rc") currReleaseMode = 3;
-        if (str == "beta") currReleaseMode = 2;
-        if (str == "alpha") currReleaseMode = 1;
-    } else {
-        currReleaseMode = 4;
+    if (verNums.size() < 3 || currNums.size() < 3)
+    {
+        MW_show_log("Version strings seem to be invalid" + QString(NKR_VERSION) + " and " + version);
+        return false;
     }
-    currNums.push_back(currReleaseMode);
-    currNums.push_back(currentPartialVer);
 
-    for (int i=0;i<verNums.size();i++) {
+    for (int i=0;i<3;i++)
+    {
         if (verNums[i] > currNums[i]) return true;
         if (verNums[i] < currNums[i]) return false;
     }
 
+    // equal base version, check beta-ness
+    if (verNums.size() == 5 && currNums.size() == 3) return false;
+    if (verNums.size() == 3 && currNums.size() == 5) return true;
+    if (verNums.size() == 5 && currNums.size() == 5)
+    {
+        for (int i=3;i<5;i++)
+        {
+            if (verNums[i] > currNums[i]) return true;
+            if (verNums[i] < currNums[i]) return false;
+        }
+    } else
+    {
+        MW_show_log("Version strings seem to be invalid" + QString(NKR_VERSION) + " and " + version);
+        return false;
+    }
     return false;
 }
 
@@ -2328,7 +2341,7 @@ void MainWindow::CheckUpdate() {
     }
 
     runOnUiThread([=] {
-        auto allow_updater = !NekoGui::dataStore->flag_use_appdata;
+        auto allow_updater = !Configs::dataStore->flag_use_appdata;
         QMessageBox box(QMessageBox::Question, QObject::tr("Update") + note_pre_release,
                         QObject::tr("Update found: %1\nRelease note:\n%2").arg(assets_name, release_note));
         //

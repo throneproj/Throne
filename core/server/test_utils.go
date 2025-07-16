@@ -1,6 +1,8 @@
 package main
 
 import (
+	"Core/internal"
+	"Core/internal/boxbox"
 	"bytes"
 	"context"
 	"errors"
@@ -10,8 +12,6 @@ import (
 	"github.com/sagernet/sing/common/metadata"
 	"github.com/sagernet/sing/service"
 	"io"
-	"nekobox_core/internal"
-	"nekobox_core/internal/boxbox"
 	"net"
 	"net/http"
 	"sync"

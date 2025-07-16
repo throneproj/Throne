@@ -1,6 +1,6 @@
 // DO NOT INCLUDE THIS
 
-namespace NekoGui_ConfigItem {
+namespace Configs_ConfigItem {
     // config 工具
     enum itemType {
         string,
@@ -26,7 +26,6 @@ namespace NekoGui_ConfigItem {
         }
     };
 
-    // 可格式化对象
     class JsonStore {
     public:
         virtual ~JsonStore() = default;
@@ -67,6 +66,6 @@ namespace NekoGui_ConfigItem {
 
         bool Load();
     };
-} // namespace NekoGui_ConfigItem
+} // namespace Configs_ConfigItem
 
-using namespace NekoGui_ConfigItem;
+using namespace Configs_ConfigItem;

@@ -1,6 +1,11 @@
 package main
 
 import (
+	"Core/gen"
+	"Core/internal/boxbox"
+	"Core/internal/boxmain"
+	"Core/internal/process"
+	"Core/internal/sys"
 	"context"
 	"errors"
 	"fmt"
@@ -12,11 +17,6 @@ import (
 	"github.com/sagernet/sing/common/metadata"
 	"github.com/sagernet/sing/service"
 	"log"
-	"nekobox_core/gen"
-	"nekobox_core/internal/boxbox"
-	"nekobox_core/internal/boxmain"
-	"nekobox_core/internal/process"
-	"nekobox_core/internal/sys"
 	"os"
 	"runtime"
 	"strings"
@@ -37,7 +37,7 @@ type server struct {
 
 // To returns a pointer to the given value.
 func To[T any](v T) *T {
-    return &v
+	return &v
 }
 
 func (s *server) Exit(ctx context.Context, in *gen.EmptyReq) (out *gen.EmptyResp, _ error) {

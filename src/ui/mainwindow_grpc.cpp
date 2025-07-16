@@ -14,7 +14,7 @@
 
 // grpc
 
-using namespace NekoGui_rpc;
+using namespace API;
 
 void MainWindow::setup_grpc() {
     // Setup Connection
@@ -22,11 +22,11 @@ void MainWindow::setup_grpc() {
         [=](const QString &errStr) {
             MW_show_log("[Error] Core: " + errStr);
         },
-        "127.0.0.1:" + Int2String(NekoGui::dataStore->core_port));
+        "127.0.0.1:" + Int2String(Configs::dataStore->core_port));
 
     // Looper
-    runOnNewThread([=] { NekoGui_traffic::trafficLooper->Loop(); });
-    runOnNewThread([=] {NekoGui_traffic::connection_lister->Loop(); });
+    runOnNewThread([=] { Stats::trafficLooper->Loop(); });
+    runOnNewThread([=] {Stats::connection_lister->Loop(); });
 }
 
 void MainWindow::runURLTest(const QString& config, bool useDefault, const QStringList& outboundTags, const QMap<QString, int>& tag2entID, int entID) {
@@ -40,9 +40,9 @@ void MainWindow::runURLTest(const QString& config, bool useDefault, const QStrin
         req.outbound_tags.push_back(item.toStdString());
     }
     req.config = config.toStdString();
-    req.url = NekoGui::dataStore->test_latency_url.toStdString();
+    req.url = Configs::dataStore->test_latency_url.toStdString();
     req.use_default_outbound = useDefault;
-    req.max_concurrency = NekoGui::dataStore->test_concurrent;
+    req.max_concurrency = Configs::dataStore->test_concurrent;
 
     auto done = new QMutex;
     done->lock();
@@ -69,7 +69,7 @@ void MainWindow::runURLTest(const QString& config, bool useDefault, const QStrin
                 if (entid == -1) {
                     continue;
                 }
-                auto ent = NekoGui::profileManager->GetProfile(entid);
+                auto ent = Configs::profileManager->GetProfile(entid);
                 if (ent == nullptr) {
                     continue;
                 }
@@ -111,7 +111,7 @@ void MainWindow::runURLTest(const QString& config, bool useDefault, const QStrin
             continue;
         }
 
-        auto ent = NekoGui::profileManager->GetProfile(entID);
+        auto ent = Configs::profileManager->GetProfile(entID);
         if (ent == nullptr) {
             MW_show_log(tr("Profile manager data is corrupted, try again."));
             continue;
@@ -131,7 +131,7 @@ void MainWindow::runURLTest(const QString& config, bool useDefault, const QStrin
     }
 }
 
-void MainWindow::urltest_current_group(const QList<std::shared_ptr<NekoGui::ProxyEntity>>& profiles) {
+void MainWindow::urltest_current_group(const QList<std::shared_ptr<Configs::ProxyEntity>>& profiles) {
     if (profiles.isEmpty()) {
         return;
     }
@@ -141,7 +141,7 @@ void MainWindow::urltest_current_group(const QList<std::shared_ptr<NekoGui::Prox
     }
 
     runOnNewThread([this, profiles]() {
-        auto buildObject = NekoGui::BuildTestConfig(profiles);
+        auto buildObject = Configs::BuildTestConfig(profiles);
         if (!buildObject->error.isEmpty()) {
             MW_show_log(tr("Failed to build test config: ") + buildObject->error);
             speedtestRunning.unlock();
@@ -201,7 +201,7 @@ void MainWindow::url_test_current() {
     runOnNewThread([=] {
         libcore::TestReq req;
         req.test_current = true;
-        req.url = NekoGui::dataStore->test_latency_url.toStdString();
+        req.url = Configs::dataStore->test_latency_url.toStdString();
 
         bool rpcOK;
         auto result = defaultClient->Test(&rpcOK, req);
@@ -223,7 +223,7 @@ void MainWindow::url_test_current() {
     });
 }
 
-void MainWindow::speedtest_current_group(const QList<std::shared_ptr<NekoGui::ProxyEntity>>& profiles, bool testCurrent)
+void MainWindow::speedtest_current_group(const QList<std::shared_ptr<Configs::ProxyEntity>>& profiles, bool testCurrent)
 {
     if (profiles.isEmpty() && !testCurrent) {
         return;
@@ -236,7 +236,7 @@ void MainWindow::speedtest_current_group(const QList<std::shared_ptr<NekoGui::Pr
     runOnNewThread([this, profiles, testCurrent]() {
         if (!testCurrent)
         {
-            auto buildObject = NekoGui::BuildTestConfig(profiles);
+            auto buildObject = Configs::BuildTestConfig(profiles);
             if (!buildObject->error.isEmpty()) {
                 MW_show_log(tr("Failed to build test config: ") + buildObject->error);
                 speedtestRunning.unlock();
@@ -274,16 +274,16 @@ void MainWindow::runSpeedTest(const QString& config, bool useDefault, bool testC
     }
 
     libcore::SpeedTestRequest req;
-    auto speedtestConf = NekoGui::dataStore->speed_test_mode;
+    auto speedtestConf = Configs::dataStore->speed_test_mode;
     for (const auto &item: outboundTags) {
         req.outbound_tags.push_back(item.toStdString());
     }
     req.config = config.toStdString();
     req.use_default_outbound = useDefault;
-    req.test_download = speedtestConf == NekoGui::TestConfig::FULL || speedtestConf == NekoGui::TestConfig::DL;
-    req.test_upload = speedtestConf == NekoGui::TestConfig::FULL || speedtestConf == NekoGui::TestConfig::UL;
-    req.simple_download = speedtestConf == NekoGui::TestConfig::SIMPLEDL;
-    req.simple_download_addr = NekoGui::dataStore->simple_dl_url.toStdString();
+    req.test_download = speedtestConf == Configs::TestConfig::FULL || speedtestConf == Configs::TestConfig::DL;
+    req.test_upload = speedtestConf == Configs::TestConfig::FULL || speedtestConf == Configs::TestConfig::UL;
+    req.simple_download = speedtestConf == Configs::TestConfig::SIMPLEDL;
+    req.simple_download_addr = Configs::dataStore->simple_dl_url.toStdString();
     req.test_current = testCurrent;
 
     // loop query result
@@ -304,7 +304,7 @@ void MainWindow::runSpeedTest(const QString& config, bool useDefault, bool testC
             {
                 continue;
             }
-            auto profile = testCurrent ? running : NekoGui::profileManager->GetProfile(tag2entID[res.result.outbound_tag.c_str()]);
+            auto profile = testCurrent ? running : Configs::profileManager->GetProfile(tag2entID[res.result.outbound_tag.c_str()]);
             if (profile == nullptr)
             {
                 continue;
@@ -350,7 +350,7 @@ void MainWindow::runSpeedTest(const QString& config, bool useDefault, bool testC
             continue;
         }
 
-        auto ent = NekoGui::profileManager->GetProfile(entID);
+        auto ent = Configs::profileManager->GetProfile(entID);
         if (ent == nullptr) {
             MW_show_log(tr("Profile manager data is corrupted, try again."));
             continue;
@@ -373,7 +373,7 @@ void MainWindow::runSpeedTest(const QString& config, bool useDefault, bool testC
 }
 
 bool MainWindow::set_system_dns(bool set, bool save_set) {
-    if (!NekoGui::dataStore->enable_dns_server) {
+    if (!Configs::dataStore->enable_dns_server) {
         MW_show_log(tr("You need to enable hijack DNS server first"));
         return false;
     }
@@ -391,23 +391,23 @@ bool MainWindow::set_system_dns(bool set, bool save_set) {
         MW_show_log(tr("Failed to set system dns: ") + res);
         return false;
     }
-    if (save_set) NekoGui::dataStore->system_dns_set = set;
+    if (save_set) Configs::dataStore->system_dns_set = set;
     return true;
 }
 
-void MainWindow::neko_start(int _id) {
-    if (NekoGui::dataStore->prepare_exit) return;
+void MainWindow::profile_start(int _id) {
+    if (Configs::dataStore->prepare_exit) return;
 #ifdef Q_OS_LINUX
-    if (NekoGui::dataStore->enable_dns_server && NekoGui::dataStore->dns_server_listen_port <= 1024) {
+    if (Configs::dataStore->enable_dns_server && Configs::dataStore->dns_server_listen_port <= 1024) {
         if (!get_elevated_permissions()) {
-            MW_show_log(QString("Failed to get admin access, cannot listen on port %1 without it").arg(NekoGui::dataStore->dns_server_listen_port));
+            MW_show_log(QString("Failed to get admin access, cannot listen on port %1 without it").arg(Configs::dataStore->dns_server_listen_port));
             return;
         }
     }
 #endif
 
     auto ents = get_now_selected_list();
-    auto ent = (_id < 0 && !ents.isEmpty()) ? ents.first() : NekoGui::profileManager->GetProfile(_id);
+    auto ent = (_id < 0 && !ents.isEmpty()) ? ents.first() : Configs::profileManager->GetProfile(_id);
     if (ent == nullptr) return;
 
     if (select_mode) {
@@ -417,7 +417,7 @@ void MainWindow::neko_start(int _id) {
         return;
     }
 
-    auto group = NekoGui::profileManager->GetGroup(ent->gid);
+    auto group = Configs::profileManager->GetGroup(ent->gid);
     if (group == nullptr || group->archive) return;
 
     auto result = BuildConfig(ent, false, false);
@@ -426,10 +426,10 @@ void MainWindow::neko_start(int _id) {
         return;
     }
 
-    auto neko_start_stage2 = [=] {
+    auto profile_start_stage2 = [=] {
         libcore::LoadConfigReq req;
         req.core_config = QJsonObject2QString(result->coreConfig, true).toStdString();
-        req.disable_stats = NekoGui::dataStore->disable_traffic_stats;
+        req.disable_stats = Configs::dataStore->disable_traffic_stats;
         if (ent->type == "extracore")
         {
             req.need_extra_process = true;
@@ -452,7 +452,7 @@ void MainWindow::neko_start(int _id) {
                     QMessageBox msg(
                         QMessageBox::Information,
                         tr("Tun device misbehaving"),
-                        tr("If you have trouble starting VPN, you can force reset nekobox_core process here and then try starting the profile again. The error is %1").arg(error),
+                        tr("If you have trouble starting VPN, you can force reset Core process here and then try starting the profile again. The error is %1").arg(error),
                         QMessageBox::NoButton,
                         this
                     );
@@ -473,14 +473,14 @@ void MainWindow::neko_start(int _id) {
             return false;
         }
         //
-        NekoGui_traffic::trafficLooper->proxy = std::make_shared<NekoGui_traffic::TrafficData>("proxy");
-        NekoGui_traffic::trafficLooper->direct = std::make_shared<NekoGui_traffic::TrafficData>("direct");
-        NekoGui_traffic::trafficLooper->items = result->outboundStats;
-        NekoGui_traffic::trafficLooper->isChain = ent->type == "chain";
-        NekoGui_traffic::trafficLooper->loop_enabled = true;
-        NekoGui_traffic::connection_lister->suspend = false;
+        Stats::trafficLooper->proxy = std::make_shared<Stats::TrafficData>("proxy");
+        Stats::trafficLooper->direct = std::make_shared<Stats::TrafficData>("direct");
+        Stats::trafficLooper->items = result->outboundStats;
+        Stats::trafficLooper->isChain = ent->type == "chain";
+        Stats::trafficLooper->loop_enabled = true;
+        Stats::connection_lister->suspend = false;
 
-        NekoGui::dataStore->UpdateStartedId(ent->id);
+        Configs::dataStore->UpdateStartedId(ent->id);
         running = ent;
 
         runOnUiThread([=] {
@@ -503,7 +503,7 @@ void MainWindow::neko_start(int _id) {
     mu_stopping.unlock();
 
     // check core state
-    if (!NekoGui::dataStore->core_running) {
+    if (!Configs::dataStore->core_running) {
         runOnUiThread(
             [=] {
                 MW_show_log(tr("Try to start the config, but the core has not listened to the grpc port, so restart it..."));
@@ -512,7 +512,7 @@ void MainWindow::neko_start(int _id) {
             },
             DS_cores);
         mu_starting.unlock();
-        return; // let CoreProcess call neko_start when core is up
+        return; // let CoreProcess call profile_start when core is up
     }
 
     // timeout message
@@ -524,12 +524,12 @@ void MainWindow::neko_start(int _id) {
     runOnNewThread([=] {
         // stop current running
         if (running != nullptr) {
-            runOnUiThread([=] { neko_stop(false, true, true); });
+            runOnUiThread([=] { profile_stop(false, true, true); });
             sem_stopped.acquire();
         }
         // do start
         MW_show_log(">>>>>>>> " + tr("Starting profile %1").arg(ent->bean->DisplayTypeAndName()));
-        if (!neko_start_stage2()) {
+        if (!profile_start_stage2()) {
             MW_show_log("<<<<<<<< " + tr("Failed to start profile %1").arg(ent->bean->DisplayTypeAndName()));
         }
         mu_starting.unlock();
@@ -540,7 +540,7 @@ void MainWindow::neko_start(int _id) {
             restartMsgbox->deleteLater();
 #ifdef Q_OS_LINUX
             // Check systemd-resolved
-            if (NekoGui::dataStore->spmode_vpn && NekoGui::dataStore->routing->direct_dns.startsWith("local") && ReadFileText("/etc/resolv.conf").contains("systemd-resolved")) {
+            if (Configs::dataStore->spmode_vpn && Configs::dataStore->routing->direct_dns.startsWith("local") && ReadFileText("/etc/resolv.conf").contains("systemd-resolved")) {
                 MW_show_log("[Warning] The default Direct DNS may not works with systemd-resolved, you may consider change your DNS settings.");
             }
 #endif
@@ -548,36 +548,36 @@ void MainWindow::neko_start(int _id) {
     });
 }
 
-void MainWindow::neko_set_spmode_system_proxy(bool enable, bool save) {
-    if (enable != NekoGui::dataStore->spmode_system_proxy) {
+void MainWindow::set_spmode_system_proxy(bool enable, bool save) {
+    if (enable != Configs::dataStore->spmode_system_proxy) {
         if (enable) {
-            auto socks_port = NekoGui::dataStore->inbound_socks_port;
-            SetSystemProxy(socks_port, socks_port, NekoGui::dataStore->proxy_scheme);
+            auto socks_port = Configs::dataStore->inbound_socks_port;
+            SetSystemProxy(socks_port, socks_port, Configs::dataStore->proxy_scheme);
         } else {
             ClearSystemProxy();
         }
     }
 
     if (save) {
-        NekoGui::dataStore->remember_spmode.removeAll("system_proxy");
-        if (enable && NekoGui::dataStore->remember_enable) {
-            NekoGui::dataStore->remember_spmode.append("system_proxy");
+        Configs::dataStore->remember_spmode.removeAll("system_proxy");
+        if (enable && Configs::dataStore->remember_enable) {
+            Configs::dataStore->remember_spmode.append("system_proxy");
         }
-        NekoGui::dataStore->Save();
+        Configs::dataStore->Save();
     }
 
-    NekoGui::dataStore->spmode_system_proxy = enable;
+    Configs::dataStore->spmode_system_proxy = enable;
     refresh_status();
 }
 
-void MainWindow::neko_stop(bool crash, bool sem, bool manual) {
-    auto id = NekoGui::dataStore->started_id;
+void MainWindow::profile_stop(bool crash, bool sem, bool manual) {
+    auto id = Configs::dataStore->started_id;
     if (id < 0) {
         if (sem) sem_stopped.release();
         return;
     }
 
-    auto neko_stop_stage2 = [=] {
+    auto profile_stop_stage2 = [=] {
         if (!crash) {
             bool rpcOK;
             QString error = defaultClient->Stop(&rpcOK);
@@ -602,17 +602,17 @@ void MainWindow::neko_stop(bool crash, bool sem, bool manual) {
     connect(restartMsgbox, &QMessageBox::accepted, this, [=] { MW_dialog_message("", "RestartProgram"); });
     auto restartMsgboxTimer = new MessageBoxTimer(this, restartMsgbox, 5000);
 
-    NekoGui_traffic::trafficLooper->loop_enabled = false;
-    NekoGui_traffic::connection_lister->suspend = true;
+    Stats::trafficLooper->loop_enabled = false;
+    Stats::connection_lister->suspend = true;
     UpdateConnectionListWithRecreate({});
-    NekoGui_traffic::trafficLooper->loop_mutex.lock();
-    NekoGui_traffic::trafficLooper->UpdateAll();
-    for (const auto &item: NekoGui_traffic::trafficLooper->items) {
+    Stats::trafficLooper->loop_mutex.lock();
+    Stats::trafficLooper->UpdateAll();
+    for (const auto &item: Stats::trafficLooper->items) {
         if (item->id < 0) continue;
-        NekoGui::profileManager->GetProfile(item->id)->Save();
+        Configs::profileManager->GetProfile(item->id)->Save();
         refresh_proxy_list(item->id);
     }
-    NekoGui_traffic::trafficLooper->loop_mutex.unlock();
+    Stats::trafficLooper->loop_mutex.unlock();
 
     restartMsgboxTimer->cancel();
     restartMsgboxTimer->deleteLater();
@@ -621,12 +621,12 @@ void MainWindow::neko_stop(bool crash, bool sem, bool manual) {
     runOnNewThread([=] {
         // do stop
         MW_show_log(">>>>>>>> " + tr("Stopping profile %1").arg(running->bean->DisplayTypeAndName()));
-        if (!neko_stop_stage2()) {
+        if (!profile_stop_stage2()) {
             MW_show_log("<<<<<<<< " + tr("Failed to stop, please restart the program."));
         }
 
-        if (manual) NekoGui::dataStore->UpdateStartedId(-1919);
-        NekoGui::dataStore->need_keep_vpn_off = false;
+        if (manual) Configs::dataStore->UpdateStartedId(-1919);
+        Configs::dataStore->need_keep_vpn_off = false;
         running = nullptr;
 
         if (sem) sem_stopped.release();

@@ -1,4 +1,5 @@
 // DO NOT INCLUDE THIS
+#pragma once
 
 #include <functional>
 #include <memory>
@@ -12,8 +13,8 @@
 #endif
 //
 
-inline QString software_name = "NekoRay";
-inline QString software_core_name = "Xray";
+inline QString software_name;
+inline QString software_core_name;
 
 // MainWindow functions
 class QWidget;

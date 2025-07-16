@@ -18,7 +18,7 @@ public:
 
     ~EditTrojanVLESS() override;
 
-    void onStart(std::shared_ptr<NekoGui::ProxyEntity> _ent) override;
+    void onStart(std::shared_ptr<Configs::ProxyEntity> _ent) override;
 
     bool onEnd() override;
 
@@ -26,5 +26,5 @@ public:
 
 private:
     Ui::EditTrojanVLESS *ui;
-    std::shared_ptr<NekoGui::ProxyEntity> ent;
+    std::shared_ptr<Configs::ProxyEntity> ent;
 };

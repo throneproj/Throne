@@ -20,12 +20,12 @@ class RouteItem : public QDialog {
     Q_OBJECT
 
 public:
-    explicit RouteItem(QWidget *parent = nullptr, const std::shared_ptr<NekoGui::RoutingChain>& routeChain = nullptr);
+    explicit RouteItem(QWidget *parent = nullptr, const std::shared_ptr<Configs::RoutingChain>& routeChain = nullptr);
     ~RouteItem() override;
 
-    std::shared_ptr<NekoGui::RoutingChain> chain;
+    std::shared_ptr<Configs::RoutingChain> chain;
 signals:
-    void settingsChanged(std::shared_ptr<NekoGui::RoutingChain> routingChain);
+    void settingsChanged(std::shared_ptr<Configs::RoutingChain> routingChain);
 
 private:
     Ui::RouteItem *ui;

@@ -61,16 +61,16 @@ bool DialogManageRoutes::validate_dns_rules(const QString &rawString) {
 
 DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(new Ui::DialogManageRoutes) {
     ui->setupUi(this);
-    auto profiles = NekoGui::profileManager->routes;
+    auto profiles = Configs::profileManager->routes;
     for (const auto &item: profiles) {
         chainList << item.second;
     }
     if (chainList.empty()) {
-        auto defaultChain = NekoGui::RoutingChain::GetDefaultChain();
-        NekoGui::profileManager->AddRouteChain(defaultChain);
+        auto defaultChain = Configs::RoutingChain::GetDefaultChain();
+        Configs::profileManager->AddRouteChain(defaultChain);
         chainList.append(defaultChain);
     }
-    currentRoute = NekoGui::profileManager->GetRouteChain(NekoGui::dataStore->routing->current_route_id);
+    currentRoute = Configs::profileManager->GetRouteChain(Configs::dataStore->routing->current_route_id);
     if (currentRoute == nullptr) currentRoute = chainList[0];
 
     QStringList qsValue = {""};
@@ -84,7 +84,7 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
 
     ui->direct_dns_strategy->addItems(qsValue);
     ui->remote_dns_strategy->addItems(qsValue);
-    ui->enable_fakeip->setChecked(NekoGui::dataStore->fake_dns);
+    ui->enable_fakeip->setChecked(Configs::dataStore->fake_dns);
     //
     connect(ui->use_dns_object, &QCheckBox::stateChanged, this, [=](int state) {
         auto useDNSObject = state == Qt::Checked;
@@ -103,16 +103,16 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
             ui->dns_object->setPlainText(QJsonObject2QString(obj, false));
         }
     });
-    ui->sniffing_mode->setCurrentIndex(NekoGui::dataStore->routing->sniffing_mode);
-    ui->outbound_domain_strategy->setCurrentText(NekoGui::dataStore->routing->outbound_domain_strategy);
-    ui->domainStrategyCombo->setCurrentText(NekoGui::dataStore->routing->domain_strategy);
-    ui->use_dns_object->setChecked(NekoGui::dataStore->routing->use_dns_object);
-    ui->dns_object->setPlainText(NekoGui::dataStore->routing->dns_object);
-    ui->remote_dns->setCurrentText(NekoGui::dataStore->routing->remote_dns);
-    ui->remote_dns_strategy->setCurrentText(NekoGui::dataStore->routing->remote_dns_strategy);
-    ui->direct_dns->setCurrentText(NekoGui::dataStore->routing->direct_dns);
-    ui->direct_dns_strategy->setCurrentText(NekoGui::dataStore->routing->direct_dns_strategy);
-    ui->dns_final_out->setCurrentText(NekoGui::dataStore->routing->dns_final_out);
+    ui->sniffing_mode->setCurrentIndex(Configs::dataStore->routing->sniffing_mode);
+    ui->outbound_domain_strategy->setCurrentText(Configs::dataStore->routing->outbound_domain_strategy);
+    ui->domainStrategyCombo->setCurrentText(Configs::dataStore->routing->domain_strategy);
+    ui->use_dns_object->setChecked(Configs::dataStore->routing->use_dns_object);
+    ui->dns_object->setPlainText(Configs::dataStore->routing->dns_object);
+    ui->remote_dns->setCurrentText(Configs::dataStore->routing->remote_dns);
+    ui->remote_dns_strategy->setCurrentText(Configs::dataStore->routing->remote_dns_strategy);
+    ui->direct_dns->setCurrentText(Configs::dataStore->routing->direct_dns);
+    ui->direct_dns_strategy->setCurrentText(Configs::dataStore->routing->direct_dns_strategy);
+    ui->dns_final_out->setCurrentText(Configs::dataStore->routing->dns_final_out);
     reloadProfileItems();
 
     connect(ui->route_profiles, &QListWidget::itemDoubleClicked, this, [=](const QListWidgetItem* item){
@@ -128,20 +128,20 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     });
 
     // hijack
-    ui->dnshijack_enable->setChecked(NekoGui::dataStore->enable_dns_server);
-    set_dns_hijack_enability(NekoGui::dataStore->enable_dns_server);
-    ui->dnshijack_allow_lan->setChecked(NekoGui::dataStore->dns_server_listen_lan);
+    ui->dnshijack_enable->setChecked(Configs::dataStore->enable_dns_server);
+    set_dns_hijack_enability(Configs::dataStore->enable_dns_server);
+    ui->dnshijack_allow_lan->setChecked(Configs::dataStore->dns_server_listen_lan);
     ui->dnshijack_listenport->setValidator(QRegExpValidator_Number);
-    ui->dnshijack_listenport->setText(Int2String(NekoGui::dataStore->dns_server_listen_port));
-    ui->dnshijack_v4resp->setText(NekoGui::dataStore->dns_v4_resp);
-    ui->dnshijack_v6resp->setText(NekoGui::dataStore->dns_v6_resp);
+    ui->dnshijack_listenport->setText(Int2String(Configs::dataStore->dns_server_listen_port));
+    ui->dnshijack_v4resp->setText(Configs::dataStore->dns_v4_resp);
+    ui->dnshijack_v6resp->setText(Configs::dataStore->dns_v6_resp);
     connect(ui->dnshijack_what, &QPushButton::clicked, this, [=] {
-        MessageBoxInfo("What is this?", NekoGui::Information::HijackInfo);
+        MessageBoxInfo("What is this?", Configs::Information::HijackInfo);
     });
 
     bool ok;
-    auto geoIpList = NekoGui_rpc::defaultClient->GetGeoList(&ok, NekoGui_rpc::GeoRuleSetType::ip, NekoGui::GetCoreAssetDir("geoip.db"));
-    auto geoSiteList = NekoGui_rpc::defaultClient->GetGeoList(&ok, NekoGui_rpc::GeoRuleSetType::site, NekoGui::GetCoreAssetDir("geosite.db"));
+    auto geoIpList = API::defaultClient->GetGeoList(&ok, API::GeoRuleSetType::ip, Configs::GetCoreAssetDir("geoip.db"));
+    auto geoSiteList = API::defaultClient->GetGeoList(&ok, API::GeoRuleSetType::site, Configs::GetCoreAssetDir("geosite.db"));
     QStringList ruleItems = {"domain:", "suffix:", "regex:"};
     for (const auto& geoIP : geoIpList) {
         ruleItems.append("ruleset:"+geoIP);
@@ -151,19 +151,19 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     }
     rule_editor = new AutoCompleteTextEdit("", ruleItems, this);
     ui->hijack_box->layout()->replaceWidget(ui->dnshijack_rules, rule_editor);
-    rule_editor->setPlainText(NekoGui::dataStore->dns_server_rules.join("\n"));
+    rule_editor->setPlainText(Configs::dataStore->dns_server_rules.join("\n"));
     ui->dnshijack_rules->hide();
 #ifndef Q_OS_LINUX
     ui->dnshijack_listenport->setVisible(false);
     ui->dnshijack_listenport_l->setVisible(false);
 #endif
 
-    ui->redirect_enable->setChecked(NekoGui::dataStore->enable_redirect);
-    ui->redirect_listenaddr->setEnabled(NekoGui::dataStore->enable_redirect);
-    ui->redirect_listenaddr->setText(NekoGui::dataStore->redirect_listen_address);
-    ui->redirect_listenport->setEnabled(NekoGui::dataStore->enable_redirect);
+    ui->redirect_enable->setChecked(Configs::dataStore->enable_redirect);
+    ui->redirect_listenaddr->setEnabled(Configs::dataStore->enable_redirect);
+    ui->redirect_listenaddr->setText(Configs::dataStore->redirect_listen_address);
+    ui->redirect_listenport->setEnabled(Configs::dataStore->enable_redirect);
     ui->redirect_listenport->setValidator(QRegExpValidator_Number);
-    ui->redirect_listenport->setText(Int2String(NekoGui::dataStore->redirect_listen_port));
+    ui->redirect_listenport->setText(Int2String(Configs::dataStore->redirect_listen_port));
 
     connect(ui->dnshijack_enable, &QCheckBox::stateChanged, this, [=](bool state) {
         set_dns_hijack_enability(state);
@@ -194,37 +194,37 @@ void DialogManageRoutes::accept() {
         return;
     }
 
-    NekoGui::dataStore->routing->sniffing_mode = ui->sniffing_mode->currentIndex();
-    NekoGui::dataStore->routing->domain_strategy = ui->domainStrategyCombo->currentText();
-    NekoGui::dataStore->routing->outbound_domain_strategy = ui->outbound_domain_strategy->currentText();
-    NekoGui::dataStore->routing->use_dns_object = ui->use_dns_object->isChecked();
-    NekoGui::dataStore->routing->dns_object = ui->dns_object->toPlainText();
-    NekoGui::dataStore->routing->remote_dns = ui->remote_dns->currentText();
-    NekoGui::dataStore->routing->remote_dns_strategy = ui->remote_dns_strategy->currentText();
-    NekoGui::dataStore->routing->direct_dns = ui->direct_dns->currentText();
-    NekoGui::dataStore->routing->direct_dns_strategy = ui->direct_dns_strategy->currentText();
-    NekoGui::dataStore->routing->dns_final_out = ui->dns_final_out->currentText();
-    NekoGui::dataStore->fake_dns = ui->enable_fakeip->isChecked();
+    Configs::dataStore->routing->sniffing_mode = ui->sniffing_mode->currentIndex();
+    Configs::dataStore->routing->domain_strategy = ui->domainStrategyCombo->currentText();
+    Configs::dataStore->routing->outbound_domain_strategy = ui->outbound_domain_strategy->currentText();
+    Configs::dataStore->routing->use_dns_object = ui->use_dns_object->isChecked();
+    Configs::dataStore->routing->dns_object = ui->dns_object->toPlainText();
+    Configs::dataStore->routing->remote_dns = ui->remote_dns->currentText();
+    Configs::dataStore->routing->remote_dns_strategy = ui->remote_dns_strategy->currentText();
+    Configs::dataStore->routing->direct_dns = ui->direct_dns->currentText();
+    Configs::dataStore->routing->direct_dns_strategy = ui->direct_dns_strategy->currentText();
+    Configs::dataStore->routing->dns_final_out = ui->dns_final_out->currentText();
+    Configs::dataStore->fake_dns = ui->enable_fakeip->isChecked();
 
-    NekoGui::profileManager->UpdateRouteChains(chainList);
-    NekoGui::dataStore->routing->current_route_id = currentRoute->id;
+    Configs::profileManager->UpdateRouteChains(chainList);
+    Configs::dataStore->routing->current_route_id = currentRoute->id;
 
-    NekoGui::dataStore->enable_dns_server = ui->dnshijack_enable->isChecked();
-    NekoGui::dataStore->dns_server_listen_port = ui->dnshijack_listenport->text().toInt();
-    NekoGui::dataStore->dns_v4_resp = ui->dnshijack_v4resp->text();
-    NekoGui::dataStore->dns_v6_resp = ui->dnshijack_v6resp->text();
+    Configs::dataStore->enable_dns_server = ui->dnshijack_enable->isChecked();
+    Configs::dataStore->dns_server_listen_port = ui->dnshijack_listenport->text().toInt();
+    Configs::dataStore->dns_v4_resp = ui->dnshijack_v4resp->text();
+    Configs::dataStore->dns_v6_resp = ui->dnshijack_v6resp->text();
     auto rawRules = rule_editor->toPlainText().split("\n");
     QStringList dnsRules;
     for (const auto& rawRule : rawRules) {
         if (rawRule.trimmed().isEmpty()) continue;
         dnsRules.append(rawRule.trimmed());
     }
-    NekoGui::dataStore->dns_server_rules = dnsRules;
+    Configs::dataStore->dns_server_rules = dnsRules;
 
-    NekoGui::dataStore->dns_server_listen_lan = ui->dnshijack_allow_lan->isChecked();
-    NekoGui::dataStore->enable_redirect = ui->redirect_enable->isChecked();
-    NekoGui::dataStore->redirect_listen_address = ui->redirect_listenaddr->text();
-    NekoGui::dataStore->redirect_listen_port = ui->redirect_listenport->text().toInt();
+    Configs::dataStore->dns_server_listen_lan = ui->dnshijack_allow_lan->isChecked();
+    Configs::dataStore->enable_redirect = ui->redirect_enable->isChecked();
+    Configs::dataStore->redirect_listen_address = ui->redirect_listenaddr->text();
+    Configs::dataStore->redirect_listen_port = ui->redirect_listenport->text().toInt();
 
     //
     QStringList msg{"UpdateDataStore"};
@@ -235,10 +235,10 @@ void DialogManageRoutes::accept() {
 }
 
 void DialogManageRoutes::on_new_route_clicked() {
-    routeChainWidget = new RouteItem(this, NekoGui::ProfileManager::NewRouteChain());
+    routeChainWidget = new RouteItem(this, Configs::ProfileManager::NewRouteChain());
     routeChainWidget->setWindowModality(Qt::ApplicationModal);
     routeChainWidget->show();
-    connect(routeChainWidget, &RouteItem::settingsChanged, this, [=](const std::shared_ptr<NekoGui::RoutingChain>& chain) {
+    connect(routeChainWidget, &RouteItem::settingsChanged, this, [=](const std::shared_ptr<Configs::RoutingChain>& chain) {
         chainList << chain;
         reloadProfileItems();
     });
@@ -269,7 +269,7 @@ void DialogManageRoutes::on_clone_route_clicked() {
     auto idx = ui->route_profiles->currentRow();
     if (idx < 0) return;
 
-    auto chainCopy = std::make_shared<NekoGui::RoutingChain>(*chainList[idx]);
+    auto chainCopy = std::make_shared<Configs::RoutingChain>(*chainList[idx]);
     chainCopy->name = chainCopy->name + " clone";
     chainCopy->id = -1;
     chainCopy->save_control_no_save = false;
@@ -284,7 +284,7 @@ void DialogManageRoutes::on_edit_route_clicked() {
     routeChainWidget = new RouteItem(this, chainList[idx]);
     routeChainWidget->setWindowModality(Qt::ApplicationModal);
     routeChainWidget->show();
-    connect(routeChainWidget, &RouteItem::settingsChanged, this, [=](const std::shared_ptr<NekoGui::RoutingChain>& chain) {
+    connect(routeChainWidget, &RouteItem::settingsChanged, this, [=](const std::shared_ptr<Configs::RoutingChain>& chain) {
         if (chain->isViewOnly()) return;
         if (currentRoute == chainList[idx]) currentRoute = chain;
         chainList[idx] = chain;

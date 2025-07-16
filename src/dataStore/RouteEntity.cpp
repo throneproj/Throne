@@ -5,7 +5,7 @@
 #include "include/configs/proxy/Preset.hpp"
 #include <iostream>
 
-namespace NekoGui {
+namespace Configs {
     QJsonArray get_as_array(const QList<QString>& str, bool castToNum = false) {
         QJsonArray res;
         for (const auto &item: str) {
@@ -181,7 +181,7 @@ namespace NekoGui {
                         obj["outbound"] = "direct";
                         break;
                     default:
-                        auto prof = NekoGui::profileManager->GetProfile(outboundID);
+                        auto prof = Configs::profileManager->GetProfile(outboundID);
                         if (prof == nullptr) {
                             MW_show_log("The outbound described in the rule chain is missing, maybe your data is corrupted");
                             return {};
