@@ -436,7 +436,7 @@ namespace API {
         {
             resp = spb::pb::deserialize< libcore::IsPrivilegedResponse >( rsp );
             *rpcOK = true;
-            return resp.has_privilege;
+            return resp.has_privilege.value();
         } else
         {
             NOT_OK
