@@ -100,7 +100,7 @@ void MainWindow::runURLTest(const QString& config, bool useDefault, const QStrin
     auto result = defaultClient->Test(&rpcOK, req);
     done->unlock();
     //
-    if (!rpcOK) return;
+    if (!rpcOK || resp.results.empty()) return;
 
     for (const auto &res: result.results) {
         if (!tag2entID.empty()) {
@@ -205,7 +205,7 @@ void MainWindow::url_test_current() {
 
         bool rpcOK;
         auto result = defaultClient->Test(&rpcOK, req);
-        if (!rpcOK) return;
+        if (!rpcOK || resp.results.empty()) return;
 
         auto latency = result.results[0].latency_ms.value();
         last_test_time = QTime::currentTime();
@@ -338,7 +338,7 @@ void MainWindow::runSpeedTest(const QString& config, bool useDefault, bool testC
     auto result = defaultClient->SpeedTest(&rpcOK, req);
     doneMu->unlock();
     //
-    if (!rpcOK) return;
+    if (!rpcOK || result.results.empty()) return;
 
     for (const auto &res: result.results) {
         if (testCurrent) entID = running ? running->id : -1;
