@@ -207,7 +207,7 @@ void MainWindow::url_test_current() {
         auto result = defaultClient->Test(&rpcOK, req);
         if (!rpcOK) return;
 
-        auto latency = result.results[0].latency_ms;
+        auto latency = result.results[0].latency_ms.value();
         last_test_time = QTime::currentTime();
 
         runOnUiThread([=] {
@@ -217,7 +217,7 @@ void MainWindow::url_test_current() {
             if (latency <= 0) {
                 ui->label_running->setText(tr("Test Result") + ": " + tr("Unavailable"));
             } else if (latency > 0) {
-                ui->label_running->setText(tr("Test Result") + ": " + QString("%1 ms").arg(latency.value()));
+                ui->label_running->setText(tr("Test Result") + ": " + QString("%1 ms").arg(latency));
             }
         });
     });
@@ -300,7 +300,7 @@ void MainWindow::runSpeedTest(const QString& config, bool useDefault, bool testC
                 break;
             }
             auto res = defaultClient->QueryCurrentSpeedTests(&ok);
-            if (!ok || !res.is_running)
+            if (!ok || !res.is_running.value())
             {
                 continue;
             }
@@ -316,7 +316,7 @@ void MainWindow::runSpeedTest(const QString& config, bool useDefault, bool testC
                 currentTestResult = res.result.value();
                 UpdateDataView();
 
-                if (res.result.value().error.value().empty() && !res.result.value().cancelled && lastProxyListUpdate.msecsTo(QDateTime::currentDateTime()) >= 500)
+                if (res.result.value().error.value().empty() && !res.result.value().cancelled.value() && lastProxyListUpdate.msecsTo(QDateTime::currentDateTime()) >= 500)
                 {
                     if (!res.result.value().dl_speed.value().empty()) profile->dl_speed = res.result.value().dl_speed.value().c_str();
                     if (!res.result.value().ul_speed.value().empty()) profile->ul_speed = res.result.value().ul_speed.value().c_str();
@@ -356,7 +356,7 @@ void MainWindow::runSpeedTest(const QString& config, bool useDefault, bool testC
             continue;
         }
 
-        if (res.cancelled) continue;
+        if (res.cancelled.value()) continue;
 
         if (res.error.value().empty()) {
             ent->dl_speed = res.dl_speed.value().c_str();
