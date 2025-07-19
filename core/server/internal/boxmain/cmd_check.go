@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/sagernet/sing-box/include"
 
-	"nekobox_core/internal/boxbox"
+	"Core/internal/boxbox"
 )
 
 func Check(content []byte) error {

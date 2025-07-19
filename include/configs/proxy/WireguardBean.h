@@ -2,7 +2,7 @@
 
 #include "AbstractBean.hpp"
 
-namespace NekoGui_fmt {
+namespace Configs {
     class WireguardBean : public AbstractBean {
     public:
         QString privateKey;
@@ -50,4 +50,4 @@ namespace NekoGui_fmt {
 
         QString ToShareLink() override;
     };
-} // namespace NekoGui_fmt
+} // namespace Configs

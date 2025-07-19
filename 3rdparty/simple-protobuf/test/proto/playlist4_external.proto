@@ -1,0 +1,13 @@
+syntax = "proto2";
+
+package spotify.playlist4.proto;
+
+import "playlist_permission.proto";
+
+message MetaItem { // its line 18
+    optional ListAttributes attributes = 1;
+    optional int32 length = 2;
+    optional spotify.playlist_permission.proto.Capabilities capabilities = 3;
+}
+
+message ListAttributes {}

@@ -1,0 +1,46 @@
+﻿---
+AccessModifierOffset: '-4'
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: 'true'
+AlignConsecutiveDeclarations: 'false'
+AlignOperands: 'false'
+AllowShortBlocksOnASingleLine: 'false'
+AllowShortCaseLabelsOnASingleLine: 'false'
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: 'false'
+AllowShortLoopsOnASingleLine: 'false'
+AlwaysBreakAfterDefinitionReturnType: None
+AlwaysBreakAfterReturnType: None
+AlwaysBreakTemplateDeclarations: 'true'
+BinPackArguments: 'true'
+BinPackParameters: 'true'
+BreakBeforeBinaryOperators: None
+BreakBeforeBraces: Allman
+BreakConstructorInitializersBeforeComma: 'true'
+ColumnLimit: 100
+ConstructorInitializerAllOnOneLineOrOnePerLine: 'false'
+Cpp11BracedListStyle: 'false'
+IndentWidth: '4'
+Language: Cpp
+NamespaceIndentation: None
+PointerAlignment: Middle
+SortIncludes: 'true'
+SpaceAfterCStyleCast: 'true'
+SpaceBeforeAssignmentOperators: 'true'
+SpaceBeforeParens: Never
+SpaceInEmptyParentheses: 'true'
+SpacesBeforeTrailingComments: '0'
+SpacesInAngles: 'true'
+SpacesInCStyleCastParentheses: 'true'
+SpacesInContainerLiterals: 'true'
+SpacesInParentheses: 'true'
+SpacesInSquareBrackets: 'true'
+Standard: Cpp11
+TabWidth: '4'
+UseTab: Never
+...
+Language: Proto
+IndentWidth: '4'
+
+...
+

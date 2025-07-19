@@ -2,7 +2,7 @@
 
 #include "AbstractBean.hpp"
 
-namespace NekoGui_fmt {
+namespace Configs {
     class CustomBean : public AbstractBean {
     public:
         QString core;
@@ -23,10 +23,11 @@ namespace NekoGui_fmt {
 
         QString DisplayType() override {
             if (core == "internal") {
-                auto obj = QString2QJsonObject(config_simple);
-                return obj["type"].toString();
+                auto type = QString2QJsonObject(config_simple)["type"].toString();
+                if (!type.isEmpty()) type[0] = type[0].toUpper();
+                return type.isEmpty() ? "Custom Outbound" : "Custom " + type + " Outbound";
             } else if (core == "internal-full") {
-                return software_core_name + " config";
+                return "Custom Config";
             }
             return core;
         };
@@ -45,4 +46,4 @@ namespace NekoGui_fmt {
 
         CoreObjOutboundBuildResult BuildCoreObjSingBox() override;
     };
-} // namespace NekoGui_fmt
+} // namespace Configs

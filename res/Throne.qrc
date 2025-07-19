@@ -1,0 +1,27 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="icon/b-internet-web-browser.png">icon/internet-web-browser.png</file>
+        <file alias="icon/b-system-run.png">icon/system-run.png</file>
+        <file alias="icon/b-preferences.png">icon/preferences.png</file>
+        <file alias="icon/b-network-server.png">icon/network-server.png</file>
+        <file alias="icon/b-dialog-question.png">icon/dialog-question.png</file>
+        <file alias="icon/b-system-software-update.png">icon/system-software-update.png</file>
+        <file alias="icon/b-network-routing.png">icon/network-routing.png</file>
+        <file>icon/material/lock-open-outline.png</file>
+        <file>icon/material/lock-outline.png</file>
+        <file>icon/material/cancel.png</file>
+        <file>icon/material/history.png</file>
+        <file>icon/material/swap-vertical.png</file>
+        <file>icon/material/delete.png</file>
+        <file>icon/material/swap-horizontal.png</file>
+    </qresource>
+    <qresource prefix="/Throne">
+        <file alias="Throne.png">public/Throne.png</file>
+        <file alias="Dns.png">public/Dns.png</file>
+        <file alias="Off.png">public/Off.png</file>
+        <file alias="Proxy.png">public/Proxy.png</file>
+        <file alias="Proxy-Dns.png">public/Proxy-Dns.png</file>
+        <file alias="Tun.png">public/Tun.png</file>
+        <file>dashboard-notice.html</file>
+    </qresource>
+</RCC>

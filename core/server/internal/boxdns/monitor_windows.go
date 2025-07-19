@@ -1,12 +1,12 @@
 package boxdns
 
 import (
+	"Core/internal/boxdns/winipcfg"
 	"fmt"
 	tun "github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common/control"
 	logger2 "github.com/sagernet/sing/common/logger"
 	"log"
-	"nekobox_core/internal/boxdns/winipcfg"
 )
 
 func init() {
@@ -45,7 +45,7 @@ type DnsManager struct {
 
 func (d *DnsManager) HandleUnderlyingDNS(ifc *control.Interface, flag int) {
 	if d == nil {
-		fmt.Println("No DnsManager, you may need to restart nekoray")
+		log.Println("No DnsManager, you may need to restart Throne")
 		return
 	}
 	if ifc == nil {
@@ -78,10 +78,17 @@ func getNameServersForInterface(luid winipcfg.LUID) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	isSystemDNSAltered := false
 	for _, server := range nsAddrs {
-		if server.IsValid() && server.String() != localAddr && server.String() != dhcpMarkAddr {
+		if server.String() == setMarkAddr || server.String() == dhcpMarkAddr {
+			isSystemDNSAltered = true
+		}
+		if server.IsValid() && server.String() != setMarkAddr && server.String() != dhcpMarkAddr {
 			nameservers = append(nameservers, server.String())
 		}
+	}
+	if isSystemDNSAltered && len(nameservers) > 0 && nameservers[0] == "127.0.0.1" {
+		nameservers = nameservers[1:]
 	}
 
 	if len(nameservers) == 0 {

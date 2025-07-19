@@ -14,7 +14,7 @@ EditChain::~EditChain() {
     delete ui;
 }
 
-void EditChain::onStart(std::shared_ptr<NekoGui::ProxyEntity> _ent) {
+void EditChain::onStart(std::shared_ptr<Configs::ProxyEntity> _ent) {
     this->ent = _ent;
     auto bean = this->ent->ChainBean();
 
@@ -49,8 +49,8 @@ void EditChain::on_select_profile_clicked() {
 }
 
 void EditChain::AddProfileToListIfExist(int profileId) {
-    auto _ent = NekoGui::profileManager->GetProfile(profileId);
-    if (_ent != nullptr && _ent->type != "chain") {
+    auto _ent = Configs::profileManager->GetProfile(profileId);
+    if (_ent != nullptr && _ent->type != "chain" && _ent->type != "extracore") {
         auto wI = new QListWidgetItem();
         wI->setData(114514, profileId);
         auto w = new ProxyItem(this, _ent, wI);
@@ -68,8 +68,8 @@ void EditChain::AddProfileToListIfExist(int profileId) {
 }
 
 void EditChain::ReplaceProfile(ProxyItem *w, int profileId) {
-    auto _ent = NekoGui::profileManager->GetProfile(profileId);
-    if (_ent != nullptr && _ent->type != "chain") {
+    auto _ent = Configs::profileManager->GetProfile(profileId);
+    if (_ent != nullptr && _ent->type != "chain" && _ent->type != "extracore") {
         w->item->setData(114514, profileId);
         w->ent = _ent;
         w->refresh_data();

@@ -44,7 +44,7 @@
         </sizepolicy>
        </property>
        <property name="icon">
-        <iconset resource="../../res/neko.qrc">
+        <iconset resource="../../res/Throne.qrc">
          <normaloff>:/icon/material/swap-horizontal.png</normaloff>:/icon/material/swap-horizontal.png</iconset>
        </property>
       </widget>
@@ -58,7 +58,7 @@
         </sizepolicy>
        </property>
        <property name="icon">
-        <iconset resource="../../res/neko.qrc">
+        <iconset resource="../../res/Throne.qrc">
          <normaloff>:/icon/material/delete.png</normaloff>:/icon/material/delete.png</iconset>
        </property>
       </widget>
@@ -140,7 +140,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../res/neko.qrc"/>
+  <include location="../../res/Throne.qrc"/>
  </resources>
  <connections/>
 </ui>

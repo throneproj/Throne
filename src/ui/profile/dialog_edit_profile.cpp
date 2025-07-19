@@ -9,6 +9,7 @@
 #include "include/ui/profile/edit_wireguard.h"
 #include "include/ui/profile/edit_ssh.h"
 #include "include/ui/profile/edit_custom.h"
+#include "include/ui/profile/edit_extra_core.h"
 
 #include "include/configs/proxy/includes.h"
 #include "include/configs/proxy/Preset.hpp"
@@ -17,9 +18,10 @@
 #include "include/global/GuiUtils.hpp"
 
 #include <QInputDialog>
+#include <QToolTip>
 
 #define ADJUST_SIZE runOnUiThread([=] { adjustSize(); adjustPosition(mainwindow); }, this);
-#define LOAD_TYPE(a) ui->type->addItem(NekoGui::ProfileManager::NewProxyEntity(a)->bean->DisplayType(), a);
+#define LOAD_TYPE(a) ui->type->addItem(Configs::ProfileManager::NewProxyEntity(a)->bean->DisplayType(), a);
 
 DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId, QWidget *parent)
     : QDialog(parent), ui(new Ui::DialogEditProfile) {
@@ -162,6 +164,7 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
         LOAD_TYPE("ssh")
         ui->type->addItem(tr("Custom (%1 outbound)").arg(software_core_name), "internal");
         ui->type->addItem(tr("Custom (%1 config)").arg(software_core_name), "internal-full");
+        ui->type->addItem(tr("Extra Core"), "extracore");
         LOAD_TYPE("chain")
 
         // type changed
@@ -171,7 +174,7 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
 
         ui->apply_to_group->hide();
     } else {
-        this->ent = NekoGui::profileManager->GetProfile(profileOrGroupId);
+        this->ent = Configs::profileManager->GetProfile(profileOrGroupId);
         if (this->ent == nullptr) return;
         this->type = ent->type;
         ui->type->setVisible(false);
@@ -210,6 +213,16 @@ void DialogEditProfile::typeSelected(const QString &newType) {
         auto _innerWidget = new EditTrojanVLESS(this);
         innerWidget = _innerWidget;
         innerEditor = _innerWidget;
+        connect(_innerWidget->flow_, &QComboBox::currentTextChanged, _innerWidget, [=](const QString &txt)
+        {
+            if (txt == "xtls-rprx-vision")
+            {
+                ui->multiplex->setDisabled(true);
+            } else
+            {
+                ui->multiplex->setDisabled(false);
+            }
+        });
     } else if (type == "hysteria" || type == "hysteria2" || type == "tuic") {
         auto _innerWidget = new EditQUIC(this);
         innerWidget = _innerWidget;
@@ -222,13 +235,20 @@ void DialogEditProfile::typeSelected(const QString &newType) {
         auto _innerWidget = new EditSSH(this);
         innerWidget = _innerWidget;
         innerEditor = _innerWidget;
-    } else if (type == "internal" || type == "internal-full") {
+    } else if (type == "internal" || type == "internal-full" || type == "custom") {
         auto _innerWidget = new EditCustom(this);
         innerWidget = _innerWidget;
         innerEditor = _innerWidget;
         customType = newEnt ? type : ent->CustomBean()->core;
-        if (customType != "custom") _innerWidget->preset_core = customType;
+        _innerWidget->preset_core = customType;
         type = "custom";
+        ui->apply_to_group->hide();
+    } else if (type == "extracore")
+    {
+        auto _innerWidget = new EditExtraCore(this);
+        innerWidget = _innerWidget;
+        innerEditor = _innerWidget;
+        ui->apply_to_group->hide();
     } else {
         validType = false;
     }
@@ -239,12 +259,12 @@ void DialogEditProfile::typeSelected(const QString &newType) {
     }
 
     if (newEnt) {
-        this->ent = NekoGui::ProfileManager::NewProxyEntity(type);
+        this->ent = Configs::ProfileManager::NewProxyEntity(type);
         this->ent->gid = groupId;
     }
 
     // hide some widget
-    auto showAddressPort = type != "chain" && customType != "internal" && customType != "internal-full";
+    auto showAddressPort = type != "chain" && customType != "internal" && customType != "internal-full" && type != "extracore";
     ui->address->setVisible(showAddressPort);
     ui->address_l->setVisible(showAddressPort);
     ui->port->setVisible(showAddressPort);
@@ -263,7 +283,7 @@ void DialogEditProfile::typeSelected(const QString &newType) {
         ui->sni->setText(stream->sni);
         ui->alpn->setText(stream->alpn);
         if (newEnt) {
-            ui->utlsFingerprint->setCurrentText(NekoGui::dataStore->utlsFingerprint);
+            ui->utlsFingerprint->setCurrentText(Configs::dataStore->utlsFingerprint);
         } else {
             ui->utlsFingerprint->setCurrentText(stream->utlsFingerprint);
         }
@@ -296,6 +316,10 @@ void DialogEditProfile::typeSelected(const QString &newType) {
             show_custom_outbound = false;
             show_custom_config = false;
         }
+    } else if (type == "extracore")
+    {
+        show_custom_outbound = false;
+        show_custom_config = false;
     }
     ui->custom_box->setVisible(show_custom_outbound);
     ui->custom_global_box->setVisible(show_custom_config);
@@ -309,7 +333,7 @@ void DialogEditProfile::typeSelected(const QString &newType) {
     delete old;
 
     // 左边 bean inner editor
-    innerEditor->get_edit_dialog = [&]() { return (QWidget *) this; };
+    innerEditor->get_edit_dialog = [&]() { return static_cast<QWidget*>(this); };
     innerEditor->get_edit_text_name = [&]() { return ui->name->text(); };
     innerEditor->get_edit_text_serverAddress = [&]() { return ui->address->text(); };
     innerEditor->get_edit_text_serverPort = [&]() { return ui->port->text(); };
@@ -437,13 +461,13 @@ void DialogEditProfile::accept() {
     QStringList msg = {"accept"};
 
     if (newEnt) {
-        auto ok = NekoGui::profileManager->AddProfile(ent);
+        auto ok = Configs::profileManager->AddProfile(ent);
         if (!ok) {
             MessageBoxWarning("???", "id exists");
         }
     } else {
         auto changed = ent->Save();
-        if (changed && NekoGui::dataStore->started_id == ent->id) msg << "restart";
+        if (changed && Configs::dataStore->started_id == ent->id) msg << "restart";
     }
 
     MW_dialog_message(Dialog_DialogEditProfile, msg.join(","));
@@ -512,7 +536,7 @@ void DialogEditProfile::on_apply_to_group_clicked() {
         apply_to_group_ui[ui->custom_outbound_edit] = new FloatCheckBox(ui->custom_outbound_edit, this);
         ui->apply_to_group->setText(tr("Confirm"));
     } else {
-        auto group = NekoGui::profileManager->GetGroup(ent->gid);
+        auto group = Configs::profileManager->GetGroup(ent->gid);
         if (group == nullptr) {
             MessageBoxWarning("failed", "unknown group");
             return;
@@ -536,11 +560,11 @@ void DialogEditProfile::on_apply_to_group_clicked() {
     }
 }
 
-void DialogEditProfile::do_apply_to_group(const std::shared_ptr<NekoGui::Group> &group, QWidget *key) {
+void DialogEditProfile::do_apply_to_group(const std::shared_ptr<Configs::Group> &group, QWidget *key) {
     auto stream = GetStreamSettings(ent->bean.get());
 
     auto copyStream = [=](void *p) {
-        for (const auto &profile: group->Profiles()) {
+        for (const auto &profile: group->GetProfileEnts()) {
             auto newStream = GetStreamSettings(profile->bean.get());
             if (newStream == nullptr) continue;
             if (stream == newStream) continue;
@@ -551,7 +575,7 @@ void DialogEditProfile::do_apply_to_group(const std::shared_ptr<NekoGui::Group> 
     };
 
     auto copyBean = [=](void *p) {
-        for (const auto &profile: group->Profiles()) {
+        for (const auto &profile: group->GetProfileEnts()) {
             if (profile == ent) continue;
             profile->bean->_setValue(ent->bean->_name(p), p);
             // qDebug() << profile->bean->ToJsonBytes();

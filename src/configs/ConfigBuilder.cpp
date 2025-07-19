@@ -10,9 +10,9 @@
 
 #define BOX_UNDERLYING_DNS_EXPORT dataStore->core_box_underlying_dns.isEmpty() ? (status->forExport ? "local" : "underlying://0.0.0.0") : dataStore->core_box_underlying_dns
 
-namespace NekoGui {
+namespace Configs {
     QString genTunName() {
-        auto tun_name = "nekoray-tun";
+        auto tun_name = "throne-tun";
 #ifdef Q_OS_MACOS
         tun_name = "utun9";
 #endif
@@ -46,6 +46,7 @@ namespace NekoGui {
 
     std::shared_ptr<BuildConfigResult> BuildConfig(const std::shared_ptr<ProxyEntity> &ent, bool forTest, bool forExport, int chainID) {
         auto result = std::make_shared<BuildConfigResult>();
+        result->extraCoreData = std::make_shared<ExtraCoreData>();
         auto status = std::make_shared<BuildConfigStatus>();
         status->ent = ent;
         status->result = result;
@@ -53,8 +54,13 @@ namespace NekoGui {
         status->forExport = forExport;
         status->chainID = chainID;
 
-        auto customBean = dynamic_cast<NekoGui_fmt::CustomBean *>(ent->bean.get());
+        auto customBean = dynamic_cast<Configs::CustomBean *>(ent->bean.get());
         if (customBean != nullptr && customBean->core == "internal-full") {
+            if (dataStore->spmode_vpn)
+            {
+                status->result->error = QObject::tr("Tun mode cannot be used with Custom configs");
+                return result;
+            }
             result->coreConfig = QString2QJsonObject(customBean->config_simple);
         } else {
             BuildConfigSingBox(status);
@@ -100,7 +106,7 @@ namespace NekoGui {
             };
         }
         bool ok;
-        auto resp = NekoGui_rpc::defaultClient->CheckConfig(&ok, QJsonObject2QString(conf, true));
+        auto resp = API::defaultClient->CheckConfig(&ok, QJsonObject2QString(conf, true));
         if (!ok)
         {
             MW_show_log("Failed to contact the Core: " + resp);
@@ -127,6 +133,11 @@ namespace NekoGui {
 
         QJsonArray directDomainArray;
         for (const auto &item: profiles) {
+            if (item->type == "extracore")
+            {
+                MW_show_log("Skipping ExtraCore conf");
+                continue;
+            }
             if (!IsValid(item)) {
                 MW_show_log("Skipping invalid config: " + item->bean->name);
                 item->latency = -1;
@@ -311,7 +322,7 @@ namespace NekoGui {
             // Bypass Lookup for the first profile
             auto serverAddress = ent->bean->serverAddress;
 
-            if (auto customBean = dynamic_cast<NekoGui_fmt::CustomBean *>(ent->bean.get()); customBean != nullptr && customBean->core == "internal") {
+            if (auto customBean = dynamic_cast<Configs::CustomBean *>(ent->bean.get()); customBean != nullptr && customBean->core == "internal") {
                 auto server = QString2QJsonObject(customBean->config_simple)["server"].toString();
                 if (!server.isEmpty()) serverAddress = server;
             }
@@ -423,6 +434,16 @@ namespace NekoGui {
         // Outbounds
         auto tagProxy = BuildChain(status->chainID, status);
         if (!status->result->error.isEmpty()) return;
+        if (status->ent->type == "extracore")
+        {
+            auto bean = status->ent->ExtraCoreBean();
+            status->result->extraCoreData->path = QFileInfo(bean->extraCorePath).canonicalFilePath();
+            status->result->extraCoreData->args = bean->extraCoreArgs;
+            status->result->extraCoreData->config = bean->extraCoreConf;
+            status->result->extraCoreData->configDir = GetBasePath();
+            status->result->extraCoreData->noLog = bean->noLogs;
+            routeChain->Rules << RouteRule::get_processPath_direct_rule(status->result->extraCoreData->path);
+        }
 
         // Direct domains
         bool needDirectDnsRules = false;
@@ -504,7 +525,7 @@ namespace NekoGui {
             if (dataStore->vpn_ipv6) tunAddress += "fdfe:dcba:9876::1/96";
             inboundObj["address"] = tunAddress;
             inboundObj["domain_strategy"] = dataStore->routing->domain_strategy;
-            if (dataStore->enable_tun_routing && dataStore->routing->def_outbound == "proxy")
+            if (dataStore->enable_tun_routing && routeChain->defaultOutboundID == proxyID)
             {
                 if (!directIPCIDRs.isEmpty()) inboundObj["route_exclude_address"] = directIPCIDRs;
                 if (!directIPSets.isEmpty()) inboundObj["route_exclude_address_set"] = directIPSets;
@@ -527,7 +548,7 @@ namespace NekoGui {
             {"type", "direct"},
             {"tag", "direct"},
         };
-        status->result->outboundStats += std::make_shared<NekoGui_traffic::TrafficData>("direct");
+        status->result->outboundStats += std::make_shared<Stats::TrafficData>("direct");
 
         // Hijack
         if (dataStore->enable_dns_server && !status->forTest)
@@ -576,7 +597,7 @@ namespace NekoGui {
         {
             routeObj["find_process"] = true;
         }
-        if (!status->forTest) routeObj["final"] = dataStore->routing->def_outbound;
+        if (!status->forTest) routeObj["final"] = outboundIDToString(routeChain->defaultOutboundID);
 
         if (dataStore->routing->sniffing_mode != SniffingMode::DISABLE)
         {
@@ -652,6 +673,8 @@ namespace NekoGui {
         }
 
         auto ruleSetArray = QJsonArray();
+        auto geoSitePath = GetCoreAssetDir("geosite.db");
+        auto geoIpPath = GetCoreAssetDir("geoip.db");
         for (const auto &item: *neededRuleSets) {
             ruleSetArray += QJsonObject{
                 {"type", "local"},
@@ -661,7 +684,13 @@ namespace NekoGui {
             };
             if (QFile(QString(RULE_SETS_DIR + "/%1.srs").arg(item)).exists()) continue;
             bool ok;
-            auto err = NekoGui_rpc::defaultClient->CompileGeoSet(&ok, item.contains("_IP") ? NekoGui_rpc::GeoRuleSetType::ip : NekoGui_rpc::GeoRuleSetType::site, item.toStdString(), GetBasePath());
+            auto mode = API::GeoRuleSetType::site;
+            auto geoAssertPath = geoSitePath;
+            if (item.contains("_IP")) {
+                mode = API::GeoRuleSetType::ip;
+                geoAssertPath = geoIpPath;
+            }
+            auto err = API::defaultClient->CompileGeoSet(&ok, mode, item.toStdString(), geoAssertPath);
             if (!ok) {
                 MW_show_log("Failed to generate rule set asset for " + item);
                 status->result->error = err;
@@ -797,7 +826,7 @@ namespace NekoGui {
         {
             if (dataStore->core_box_clash_api > 0){
                 clash_api = {
-                {"external_controller", NekoGui::dataStore->core_box_clash_listen_addr + ":" + Int2String(dataStore->core_box_clash_api)},
+                {"external_controller", Configs::dataStore->core_box_clash_listen_addr + ":" + Int2String(dataStore->core_box_clash_api)},
                 {"secret", dataStore->core_box_clash_api_secret},
                 {"external_ui", "dashboard"},
                 };
@@ -816,4 +845,4 @@ namespace NekoGui {
         status->result->coreConfig.insert("route", routeObj);
         if (!experimentalObj.isEmpty()) status->result->coreConfig.insert("experimental", experimentalObj);
     }
-} // namespace NekoGui
+} // namespace Configs

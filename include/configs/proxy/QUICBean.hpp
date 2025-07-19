@@ -2,7 +2,7 @@
 
 #include "AbstractBean.hpp"
 
-namespace NekoGui_fmt {
+namespace Configs {
     class QUICBean : public AbstractBean {
     public:
         static constexpr int proxy_Hysteria = 0;
@@ -121,4 +121,4 @@ namespace NekoGui_fmt {
 
         QString ToShareLink() override;
     };
-} // namespace NekoGui_fmt
+} // namespace Configs

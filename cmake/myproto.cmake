@@ -1,14 +1,9 @@
-find_package(Protobuf CONFIG REQUIRED)
+add_subdirectory(3rdparty/simple-protobuf)
 
-set(PROTO_FILES
-        core/server/gen/libcore.proto
-        )
+spb_protobuf_generate(PROTO_SRCS PROTO_HDRS core/server/gen/libcore.proto)
 
-add_library(myproto STATIC ${PROTO_FILES})
+add_library(myproto STATIC ${PROTO_SRCS} ${PROTO_HDRS})
 target_link_libraries(myproto
         PUBLIC
-        protobuf::libprotobuf
+        spb-proto
         )
-target_include_directories(myproto PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-
-protobuf_generate(TARGET myproto LANGUAGE cpp)

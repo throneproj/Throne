@@ -4,7 +4,7 @@
 #include "V2RayStreamSettings.hpp"
 #include "Preset.hpp"
 
-namespace NekoGui_fmt {
+namespace Configs {
     class TrojanVLESSBean : public AbstractBean {
     public:
         static constexpr int proxy_Trojan = 0;
@@ -33,4 +33,4 @@ namespace NekoGui_fmt {
 
         QString ToShareLink() override;
     };
-} // namespace NekoGui_fmt
+} // namespace Configs

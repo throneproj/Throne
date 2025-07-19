@@ -17,13 +17,13 @@ public:
 
     ~EditShadowSocks() override;
 
-    void onStart(std::shared_ptr<NekoGui::ProxyEntity> _ent) override;
+    void onStart(std::shared_ptr<Configs::ProxyEntity> _ent) override;
 
     bool onEnd() override;
 
 private:
     Ui::EditShadowSocks *ui;
-    std::shared_ptr<NekoGui::ProxyEntity> ent;
+    std::shared_ptr<Configs::ProxyEntity> ent;
 };
 
 #endif // EDIT_SHADOWSOCKS_H

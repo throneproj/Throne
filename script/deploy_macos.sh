@@ -22,13 +22,13 @@ tar xvzf artifacts.tgz -C ../../
 cd ../..
 
 mv deployment/public_res/* deployment/macos-$ARCH
-mv deployment/macos-$ARCH/* $BUILD/nekoray.app/Contents/MacOS
+mv deployment/macos-$ARCH/* $BUILD/Throne.app/Contents/MacOS
 
 #### deploy qt & DLL runtime => .app ####
 pushd $BUILD
-macdeployqt nekoray.app -verbose=3
+macdeployqt Throne.app -verbose=3
 popd
 
-codesign --force --deep --sign - $BUILD/nekoray.app
+codesign --force --deep --sign - $BUILD/Throne.app
 
-mv $BUILD/nekoray.app $DEST
+mv $BUILD/Throne.app $DEST

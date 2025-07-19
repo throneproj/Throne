@@ -45,7 +45,7 @@ private:
     QString type;
     int groupId;
     bool newEnt = false;
-    std::shared_ptr<NekoGui::ProxyEntity> ent;
+    std::shared_ptr<Configs::ProxyEntity> ent;
 
     QString network_title_base;
 
@@ -61,7 +61,7 @@ private:
 
     void editor_cache_updated_impl();
 
-    void do_apply_to_group(const std::shared_ptr<NekoGui::Group> &group, QWidget *key);
+    void do_apply_to_group(const std::shared_ptr<Configs::Group> &group, QWidget *key);
 };
 
 #endif // DIALOG_EDIT_PROFILE_H

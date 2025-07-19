@@ -1,25 +1,23 @@
-module nekobox_core
+module Core
 
 go 1.23.0
-
-toolchain go1.24.0
 
 require (
 	github.com/Mahdi-zarei/speedtest-go v1.7.12
 	github.com/dustin/go-humanize v1.0.1
 	github.com/gofrs/uuid/v5 v5.3.2
+	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/oschwald/maxminddb-golang v1.13.1
-	github.com/sagernet/sing v0.6.9
-	github.com/sagernet/sing-box v1.11.10
-	github.com/sagernet/sing-dns v0.4.2
-	github.com/sagernet/sing-tun v0.6.5
+	github.com/sagernet/sing v0.6.11
+	github.com/sagernet/sing-box v1.11.15
+	github.com/sagernet/sing-dns v0.4.6
+	github.com/sagernet/sing-tun v0.6.9
 	github.com/spf13/cobra v1.9.1
-	golang.org/x/sys v0.32.0
-	google.golang.org/grpc v1.71.1
-	google.golang.org/protobuf v1.36.6
+	golang.org/x/sys v0.34.0
+	google.golang.org/grpc v1.73.0
 )
 
-replace github.com/sagernet/sing-box => github.com/Mahdi-zarei/sing-box v1.3.5-0.20250507230012-3224655aeacf
+replace github.com/sagernet/sing-box => github.com/throneproj/sing-box v1.11.16-0.20250718050551-8b8dd68c0722
 
 replace github.com/sagernet/sing-dns => github.com/Mahdi-zarei/sing-dns v0.3.0-beta.14.0.20250507225909-53baf4f30fa3
 
@@ -27,17 +25,17 @@ require (
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/andybalholm/brotli v1.0.6 // indirect
 	github.com/caddyserver/certmagic v0.20.0 // indirect
-	github.com/cloudflare/circl v1.3.7 // indirect
+	github.com/cloudflare/circl v1.6.1 // indirect
 	github.com/cretz/bine v0.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
-	github.com/go-chi/chi/v5 v5.2.1 // indirect
+	github.com/go-chi/chi/v5 v5.2.2 // indirect
 	github.com/go-chi/render v1.0.3 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/google/btree v1.1.3 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
+	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20231101202521-4ca4178f5c7a // indirect
 	github.com/hashicorp/yamux v0.1.2 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
@@ -68,11 +66,11 @@ require (
 	github.com/sagernet/quic-go v0.49.0-beta.1 // indirect
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691 // indirect
 	github.com/sagernet/sing-mux v0.3.2 // indirect
-	github.com/sagernet/sing-quic v0.4.1 // indirect
-	github.com/sagernet/sing-shadowsocks v0.2.7 // indirect
-	github.com/sagernet/sing-shadowsocks2 v0.2.0 // indirect
+	github.com/sagernet/sing-quic v0.4.4 // indirect
+	github.com/sagernet/sing-shadowsocks v0.2.8 // indirect
+	github.com/sagernet/sing-shadowsocks2 v0.2.1 // indirect
 	github.com/sagernet/sing-shadowtls v0.2.0 // indirect
-	github.com/sagernet/sing-vmess v0.2.1 // indirect
+	github.com/sagernet/sing-vmess v0.2.3 // indirect
 	github.com/sagernet/smux v1.5.34-mod.2 // indirect
 	github.com/sagernet/utls v1.6.7 // indirect
 	github.com/sagernet/wireguard-go v0.0.1-beta.7 // indirect
@@ -84,15 +82,16 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/crypto v0.32.0 // indirect
+	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67 // indirect
 	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/net v0.34.0 // indirect
-	golang.org/x/sync v0.10.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
+	golang.org/x/sync v0.12.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/time v0.7.0 // indirect
 	golang.org/x/tools v0.28.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250115164207-1a7da9e5054f // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463 // indirect
+	google.golang.org/protobuf v1.36.6 // indirect
 	lukechampine.com/blake3 v1.3.0 // indirect
 )

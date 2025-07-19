@@ -13,7 +13,7 @@ EditVMess::~EditVMess() {
     delete ui;
 }
 
-void EditVMess::onStart(std::shared_ptr<NekoGui::ProxyEntity> _ent) {
+void EditVMess::onStart(std::shared_ptr<Configs::ProxyEntity> _ent) {
     this->ent = _ent;
     auto bean = this->ent->VMessBean();
 

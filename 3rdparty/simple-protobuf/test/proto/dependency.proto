@@ -1,0 +1,26 @@
+syntax = "proto2";
+
+package UnitTest.dependency;
+
+message A {
+    message B { optional C c = 1; }
+    message C { optional int32 b = 1; }
+    message D { optional A a = 1; }
+    message E {
+        repeated F f = 1;
+        optional int32 b = 2;
+    }
+    message F {
+        repeated E e = 1;
+        optional int32 c = 2;
+    }
+    message G {
+        optional H h = 1;
+        optional int32 b = 2;
+    }
+    message H {
+        optional G g = 1;
+        optional int32 c = 2;
+    }
+    optional int32 a = 1;
+}

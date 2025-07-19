@@ -1,0 +1,94 @@
+name: MacOS build
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    name: ${{ matrix.os }}, ${{ matrix.compiler.name || matrix.compiler }}-${{ matrix.compiler.version || 'default' }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations. Consider changing this to true when your workflow is stable.
+      fail-fast: false
+
+      matrix:
+        os: [macos-13, macos-14]
+        compiler:
+          - appleclang  # Default AppleClang per OS
+          - { name: clang, version: 14 }
+          - { name: clang, version: 15 }
+          - { name: clang, version: 16 }
+          - { name: clang, version: 17 }
+          - { name: clang, version: 18 }
+          - { name: clang, version: 19 }
+          - { name: gcc, version: 11 }
+          - { name: gcc, version: 12 }
+          #- { name: gcc, version: 13 }
+          - { name: gcc, version: 14 }
+        
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set reusable strings
+        id: strings
+        shell: bash
+        run: |
+          echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+      - name: Install Clang (if selected)
+        if: matrix.compiler.name == 'clang'
+        run: |
+          brew install llvm@${{ matrix.compiler.version }}
+          CLANG_PATH=$(brew --prefix llvm@${{ matrix.compiler.version }})
+          echo "CLANG_PATH=$CLANG_PATH/bin" >> $GITHUB_ENV
+          echo "$CLANG_PATH/bin" >> $GITHUB_PATH
+  
+      - name: Install GCC (if selected)
+        if: matrix.compiler.name == 'gcc'
+        run: |
+          brew install gcc@${{ matrix.compiler.version }}
+          GCC_PATH=$(brew --prefix gcc@${{ matrix.compiler.version }})
+          echo "GCC_PATH=$GCC_PATH/bin" >> $GITHUB_ENV
+          echo "$GCC_PATH/bin" >> $GITHUB_PATH
+
+      - name: Configure CMake
+        run: |
+          if [ "${{ matrix.compiler }}" == "appleclang" ]; then
+            cmake \
+              -B ${{ steps.strings.outputs.build-output-dir }} \
+              -DCMAKE_C_COMPILER=/Library/Developer/CommandLineTools/usr/bin/cc \
+              -DCMAKE_CXX_COMPILER=/Library/Developer/CommandLineTools/usr/bin/c++ \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DSPB_PROTO_BUILD_TESTS=ON \
+              -DSPB_PROTO_BUILD_EXAMPLES=ON \
+              -S ${{ github.workspace }}
+          elif [ "${{ matrix.compiler.name }}" == "clang" ]; then
+            cmake \
+              -B ${{ steps.strings.outputs.build-output-dir }} \
+              -DCMAKE_C_COMPILER=${{ env.CLANG_PATH }}/clang \
+              -DCMAKE_CXX_COMPILER=${{ env.CLANG_PATH }}/clang++ \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DSPB_PROTO_BUILD_TESTS=ON \
+              -DSPB_PROTO_BUILD_EXAMPLES=ON \
+              -S ${{ github.workspace }}
+          elif [ "${{ matrix.compiler.name }}" == "gcc" ]; then
+            cmake \
+              -B ${{ steps.strings.outputs.build-output-dir }} \
+              -DCMAKE_C_COMPILER=${{ env.GCC_PATH }}/gcc-${{ matrix.compiler.version }} \
+              -DCMAKE_CXX_COMPILER=${{ env.GCC_PATH }}/g++-${{ matrix.compiler.version }} \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DSPB_PROTO_BUILD_TESTS=ON \
+              -DSPB_PROTO_BUILD_EXAMPLES=ON \
+              -S ${{ github.workspace }}
+          fi
+
+      - name: Build
+        run: cmake --build ${{ steps.strings.outputs.build-output-dir }}
+
+      - name: Test
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}
+        run: ctest

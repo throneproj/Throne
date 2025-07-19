@@ -4,7 +4,7 @@
 #include "V2RayStreamSettings.hpp"
 #include "Preset.hpp"
 
-namespace NekoGui_fmt {
+namespace Configs {
     class ShadowSocksBean : public AbstractBean {
     public:
         QString method = "aes-128-gcm";
@@ -36,4 +36,4 @@ namespace NekoGui_fmt {
 
         QString ToShareLink() override;
     };
-} // namespace NekoGui_fmt
+} // namespace Configs

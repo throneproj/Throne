@@ -1,13 +1,13 @@
 package main
 
 import (
+	"Core/gen"
+	"Core/internal/boxmain"
 	"context"
 	"flag"
 	"fmt"
 	"google.golang.org/grpc"
 	"log"
-	"nekobox_core/gen"
-	"nekobox_core/internal/boxmain"
 	"net"
 	"os"
 	"runtime"
@@ -16,14 +16,14 @@ import (
 	"syscall"
 	"time"
 
+	_ "Core/internal/distro/all"
 	C "github.com/sagernet/sing-box/constant"
-	_ "nekobox_core/internal/distro/all"
 )
 
 func RunCore() {
 	_port := flag.Int("port", 19810, "")
 	_debug := flag.Bool("debug", false, "")
-	flag.CommandLine.Parse(os.Args[2:])
+	flag.CommandLine.Parse(os.Args[1:])
 	debug = *_debug
 
 	go func() {

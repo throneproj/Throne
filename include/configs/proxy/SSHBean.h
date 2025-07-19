@@ -2,7 +2,7 @@
 
 #include "AbstractBean.hpp"
 
-namespace NekoGui_fmt {
+namespace Configs {
     class SSHBean : public AbstractBean {
     public:
         QString user = "root";

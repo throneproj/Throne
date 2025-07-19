@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(nekoray VERSION 0.1 LANGUAGES CXX)
+project(Throne VERSION 0.1)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
 if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND WIN32)
@@ -32,9 +32,6 @@ endif ()
 
 #### default prefix path ####
 
-list(APPEND NKR_LIBS ${CMAKE_SOURCE_DIR}/libs/deps/built)
-list(APPEND CMAKE_PREFIX_PATH ${NKR_LIBS})
-
 message("[CMAKE_PREFIX_PATH] ${CMAKE_PREFIX_PATH}")
 
 # for some cross toolchain
@@ -56,12 +53,6 @@ endif ()
 include("cmake/myproto.cmake")
 list(APPEND NKR_EXTERNAL_TARGETS myproto)
 
-find_package(yaml-cpp CONFIG REQUIRED) # only Release is built
-list(APPEND NKR_EXTERNAL_TARGETS yaml-cpp)
-
-find_package(ZXing CONFIG REQUIRED)
-list(APPEND NKR_EXTERNAL_TARGETS ZXing::ZXing)
-
 set(BUILD_SHARED_LIBS OFF)
 list(APPEND NKR_EXTERNAL_TARGETS qhotkey)
 
@@ -70,13 +61,14 @@ set(PROJECT_SOURCES
         ${PLATFORM_SOURCES}
 
         src/main.cpp
-        src/global/NekoGui.cpp
-        src/global/NekoGui_Utils.cpp
+        src/global/Configs.cpp
+        src/global/Utils.cpp
         src/global/HTTPRequestHelper.cpp
 
         3rdparty/base64.cpp
         3rdparty/qrcodegen.cpp
         3rdparty/QtExtKeySequenceEdit.cpp
+        3rdparty/QrDecoder.cpp
 
         3rdparty/qv2ray/v2/ui/LogHighlighter.cpp
         3rdparty/qv2ray/v2/ui/QvAutoCompleteTextEdit.cpp
@@ -87,6 +79,11 @@ set(PROJECT_SOURCES
         3rdparty/qv2ray/v2/ui/widgets/speedchart/SpeedWidget.cpp
         3rdparty/qv2ray/v2/ui/widgets/speedchart/SpeedWidget.hpp
         3rdparty/qv2ray/v2/proxy/QvProxyConfigurator.cpp
+
+        3rdparty/quirc/decode.c
+        3rdparty/quirc/identify.c
+        3rdparty/quirc/quirc.c
+        3rdparty/quirc/version_db.c
 
         src/api/gRPC.cpp
 
@@ -148,6 +145,10 @@ set(PROJECT_SOURCES
         src/ui/profile/edit_custom.cpp
         include/ui/profile/edit_custom.ui
 
+        include/ui/profile/edit_extra_core.h
+        src/ui/profile/edit_extra_core.cpp
+        include/ui/profile/edit_extra_core.ui
+
         include/ui/profile/edit_wireguard.h
         src/ui/profile/edit_wireguard.cpp
         include/ui/profile/edit_wireguard.ui
@@ -182,7 +183,7 @@ set(PROJECT_SOURCES
         include/ui/setting/RouteItem.h
         include/ui/setting/RouteItem.ui
 
-        res/neko.qrc
+        res/Throne.qrc
         ${QV2RAY_RC}
         include/dataStore/RouteEntity.h
         src/dataStore/RouteEntity.cpp
@@ -204,33 +205,35 @@ set(PROJECT_SOURCES
         src/stats/connectionLister/connectionLister.cpp
         src/configs/proxy/Json2Bean.cpp
         include/sys/windows/eventHandler.h
+        src/dataStore/Group.cpp
+        src/dataStore/ProxyEntity.cpp
 )
 
 # Qt exe
-qt_add_executable(nekoray
+qt_add_executable(Throne
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
 )
 
 # Target
 
-set_property(TARGET nekoray PROPERTY AUTOUIC ON)
-set_property(TARGET nekoray PROPERTY AUTOMOC ON)
-set_property(TARGET nekoray PROPERTY AUTORCC ON)
+set_property(TARGET Throne PROPERTY AUTOUIC ON)
+set_property(TARGET Throne PROPERTY AUTOMOC ON)
+set_property(TARGET Throne PROPERTY AUTORCC ON)
 
 
 # Target Source macOS
 
-set(MACOSX_ICON ${CMAKE_SOURCE_DIR}/res/nekoray.icns)
+set(MACOSX_ICON ${CMAKE_SOURCE_DIR}/res/Throne.icns)
 if (APPLE)
-    target_sources(nekoray PRIVATE ${MACOSX_ICON})
+    target_sources(Throne PRIVATE ${MACOSX_ICON})
 endif ()
 
-set_target_properties(nekoray PROPERTIES
-        MACOSX_BUNDLE_ICON_FILE "nekoray.icns"
+set_target_properties(Throne PROPERTIES
+        MACOSX_BUNDLE_ICON_FILE "Throne.icns"
         RESOURCE ${MACOSX_ICON}
         MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/res/MacOSXBundleInfo.plist
-        MACOSX_BUNDLE_GUI_IDENTIFIER moe.nekoray.macosx
+        MACOSX_BUNDLE_GUI_IDENTIFIER moe.Throne.macosx
         MACOSX_BUNDLE TRUE
         WIN32_EXECUTABLE TRUE
 
@@ -246,19 +249,19 @@ set(TS_FILES
 set(LUPDATE_OPTIONS
         -locations none -no-obsolete
 )
-qt_add_lupdate(nekoray TS_FILES ${TS_FILES} OPTIONS ${LUPDATE_OPTIONS})
-qt_add_lrelease(nekoray TS_FILES ${TS_FILES} QM_FILES_OUTPUT_VARIABLE QM_FILES)
+qt_add_lupdate(Throne TS_FILES ${TS_FILES} OPTIONS ${LUPDATE_OPTIONS})
+qt_add_lrelease(Throne TS_FILES ${TS_FILES} QM_FILES_OUTPUT_VARIABLE QM_FILES)
 
 configure_file(res/translations/translations.qrc ${CMAKE_BINARY_DIR} COPYONLY)
-target_sources(nekoray PRIVATE ${CMAKE_BINARY_DIR}/translations.qrc)
+target_sources(Throne PRIVATE ${CMAKE_BINARY_DIR}/translations.qrc)
 
 # Target Link
 
-target_link_libraries(nekoray PRIVATE
+target_link_libraries(Throne PRIVATE
         Qt6::Widgets Qt6::Network Qt6::DBus
         Threads::Threads
         ${NKR_EXTERNAL_TARGETS}
         ${PLATFORM_LIBRARIES}
 )
 
-qt_finalize_executable(nekoray)
+qt_finalize_executable(Throne)

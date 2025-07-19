@@ -70,7 +70,7 @@ Thumbs.db
 *.exe
 
 # Custom
-/nekoray
+/Throne
 /build
 CMakeLists.txt.user*
 /cmake-build-*

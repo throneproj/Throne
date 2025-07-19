@@ -180,6 +180,28 @@
         </widget>
        </item>
        <item>
+        <widget class="QGroupBox" name="horizontalGroupBox_1_5">
+         <layout class="QHBoxLayout" name="horizontalLayout_1_5">
+          <item>
+           <widget class="QCheckBox" name="disable_tray">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>Prevents the app from minimizing to the tray when the window is closed. The app will exit instead</string>
+            </property>
+            <property name="text">
+             <string>Disable tray</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <widget class="QFrame" name="frame">
          <property name="frameShape">
           <enum>QFrame::Shape::StyledPanel</enum>
@@ -187,32 +209,55 @@
          <property name="frameShadow">
           <enum>QFrame::Shadow::Raised</enum>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
-           <widget class="QLabel" name="label_12">
-            <property name="text">
-             <string>Speedtest mode</string>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <widget class="QLabel" name="label_12">
+              <property name="text">
+               <string>Speedtest mode</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="speedtest_mode">
+              <item>
+               <property name="text">
+                <string>Download + Upload</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Only Download</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Only Upload</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Simple Download</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
-           <widget class="QComboBox" name="speedtest_mode">
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
             <item>
-             <property name="text">
-              <string>Download + Upload</string>
-             </property>
+             <widget class="QLabel" name="label_16">
+              <property name="text">
+               <string>Simple Download URL</string>
+              </property>
+             </widget>
             </item>
             <item>
-             <property name="text">
-              <string>Only Download</string>
-             </property>
+             <widget class="QLineEdit" name="simple_down_url"/>
             </item>
-            <item>
-             <property name="text">
-              <string>Only Upload</string>
-             </property>
-            </item>
-           </widget>
+           </layout>
           </item>
          </layout>
         </widget>
@@ -369,19 +414,6 @@
                 <string notr="true">System</string>
                </property>
               </item>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="set_custom_icon">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>Set custom icon</string>
-              </property>
              </widget>
             </item>
            </layout>
@@ -831,6 +863,16 @@
            </widget>
           </item>
          </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="windows_no_admin">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Do not attempt to start as Admin unless explicitly requested&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Always Start as Standard User</string>
+         </property>
         </widget>
        </item>
       </layout>

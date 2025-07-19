@@ -1,11 +1,11 @@
 #pragma once
 
-#include "include/global/NekoGui.hpp"
+#include "include/global/Configs.hpp"
 #include "ProxyEntity.hpp"
 #include "Group.hpp"
 #include "RouteEntity.h"
 
-namespace NekoGui {
+namespace Configs {
     const int INVALID_ID = -99999;
 
     class ProfileManager : private JsonStore {
@@ -38,8 +38,6 @@ namespace NekoGui {
 
         void DeleteProfile(int id);
 
-        void MoveProfile(const std::shared_ptr<ProxyEntity> &ent, int gid);
-
         std::shared_ptr<ProxyEntity> GetProfile(int id);
 
         bool AddGroup(const std::shared_ptr<Group> &ent);
@@ -56,11 +54,16 @@ namespace NekoGui {
 
         void UpdateRouteChains(const QList<std::shared_ptr<RoutingChain>>& newChain);
 
+        QStringList GetExtraCorePaths() const;
+
+        bool AddExtraCorePath(const QString &path);
+
     private:
         // sort by id
         QList<int> profilesIdOrder;
         QList<int> groupsIdOrder;
         QList<int> routesIdOrder;
+        QSet<QString> extraCorePaths;
 
         [[nodiscard]] int NewProfileID() const;
 
@@ -73,7 +76,9 @@ namespace NekoGui {
         static std::shared_ptr<Group> LoadGroup(const QString &jsonPath);
 
         static std::shared_ptr<RoutingChain> LoadRouteChain(const QString &jsonPath);
+
+        void deleteProfile(int id);
     };
 
     extern ProfileManager *profileManager;
-} // namespace NekoGui
+} // namespace Configs

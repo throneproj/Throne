@@ -7,30 +7,30 @@
 #include <QJsonDocument>
 #include <QElapsedTimer>
 
-namespace NekoGui_traffic {
+namespace Stats {
 
     TrafficLooper *trafficLooper = new TrafficLooper;
     QElapsedTimer elapsedTimer;
 
     void TrafficLooper::UpdateAll() {
-        if (NekoGui::dataStore->disable_traffic_stats) {
+        if (Configs::dataStore->disable_traffic_stats) {
             return;
         }
 
-        auto resp = NekoGui_rpc::defaultClient->QueryStats();
+        auto resp = API::defaultClient->QueryStats();
         proxy->uplink_rate = 0;
         proxy->downlink_rate = 0;
 
         int proxyUp = 0, proxyDown = 0;
 
         for (const auto &item: this->items) {
-            if (!resp.ups().contains(item->tag)) continue;
+            if (!resp.ups.contains(item->tag)) continue;
             auto now = elapsedTimer.elapsed();
             auto interval = now - item->last_update;
             item->last_update = now;
             if (interval <= 0) continue;
-            auto up = resp.ups().at(item->tag);
-            auto down = resp.downs().at(item->tag);
+            auto up = resp.ups.at(item->tag);
+            auto down = resp.downs.at(item->tag);
             if (item->tag == "proxy")
             {
                 proxyUp = up;
@@ -69,7 +69,7 @@ namespace NekoGui_traffic {
         while (true) {
             QThread::msleep(1000); // refresh every one second
 
-            if (NekoGui::dataStore->disable_traffic_stats) {
+            if (Configs::dataStore->disable_traffic_stats) {
                 continue;
             }
 
@@ -118,4 +118,4 @@ namespace NekoGui_traffic {
         }
     }
 
-} // namespace NekoGui_traffic
+} // namespace Stats
