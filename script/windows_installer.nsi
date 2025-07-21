@@ -56,8 +56,7 @@ Section "Uninstall"
 
   !insertmacro AbortOnRunningApp "$INSTDIR\Throne.exe"
 
-  Delete "$SMPROGRAMS\Throne\Throne.lnk"
-  Delete "$SMPROGRAMS\Throne\Uninstall Throne.lnk"
+  Delete "$SMPROGRAMS\Throne.lnk"
   Delete "$desktop\Throne.lnk"
   RMDir "$SMPROGRAMS\Throne"
 
