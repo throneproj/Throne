@@ -7,8 +7,12 @@ rm -rf $DEST
 mkdir -p $DEST
 
 #### Download geodata ####
+## China/Iran
 curl -fLso $DEST/geoip.db "https://github.com/SagerNet/sing-geoip/releases/latest/download/geoip.db"
 curl -fLso $DEST/geosite.db "https://github.com/SagerNet/sing-geosite/releases/latest/download/geosite.db"
+## Russia
+curl -fLso $DEST/antizapret-geoip.db "https://github.com/savely-krasovsky/antizapret-sing-box/releases/latest/download/geoip.db"
+curl -fLso $DEST/antizapret-geosite.db "https://github.com/savely-krasovsky/antizapret-sing-box/releases/latest/download/geosite.db"
 
 #### copy Throne.png ####
 cp res/public/Throne.png $DEST
