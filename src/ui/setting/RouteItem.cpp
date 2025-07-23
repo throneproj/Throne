@@ -124,7 +124,7 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RoutingChai
     ui->def_out->setCurrentText(Configs::outboundIDToString(chain->defaultOutboundID));
 
     // simple rules setup
-    QStringList ruleItems = {"domain:", "suffix:", "regex:", "keyword:", "ip:", "processName:", "processPath:"};
+    QStringList ruleItems = {"domain:", "suffix:", "regex:", "keyword:", "ip:", "processName:", "processPath:", "ruleset:"};
     for (const auto& geoIP : geoIpList) {
         ruleItems.append("ruleset:"+geoIP);
     }
@@ -288,6 +288,7 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RoutingChai
     if (chain->isViewOnly()) {
         ui->route_name->setText(chain->name + " (View only)");
         ui->route_name->setEnabled(false);
+        ui->def_out->setEnabled(false);
         ui->rule_attr_box->setEnabled(false);
         ui->new_route_item->setEnabled(false);
         ui->moveup_route_item->setEnabled(false);

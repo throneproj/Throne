@@ -676,25 +676,35 @@ namespace Configs {
         auto geoSitePath = GetCoreAssetDir("geosite.db");
         auto geoIpPath = GetCoreAssetDir("geoip.db");
         for (const auto &item: *neededRuleSets) {
-            ruleSetArray += QJsonObject{
-                {"type", "local"},
-                {"tag", item},
-                {"format", "binary"},
-                {"path", RULE_SETS_DIR + QString("/%1.srs").arg(item)},
-            };
-            if (QFile(QString(RULE_SETS_DIR + "/%1.srs").arg(item)).exists()) continue;
-            bool ok;
-            auto mode = API::GeoRuleSetType::site;
-            auto geoAssertPath = geoSitePath;
-            if (item.contains("_IP")) {
-                mode = API::GeoRuleSetType::ip;
-                geoAssertPath = geoIpPath;
+            if(item.startsWith("https://") && item.endsWith(".srs")) {
+                ruleSetArray += QJsonObject{
+                    {"type", "remote"},
+                    {"tag", routeChain->tagMap[item]},
+                    {"format", "binary"},
+                    {"url", item},
+                };
             }
-            auto err = API::defaultClient->CompileGeoSet(&ok, mode, item.toStdString(), geoAssertPath);
-            if (!ok) {
-                MW_show_log("Failed to generate rule set asset for " + item);
-                status->result->error = err;
-                return;
+            else {
+                ruleSetArray += QJsonObject{
+                    {"type", "local"},
+                    {"tag", item},
+                    {"format", "binary"},
+                    {"path", RULE_SETS_DIR + QString("/%1.srs").arg(item)},
+                };
+                if (QFile(QString(RULE_SETS_DIR + "/%1.srs").arg(item)).exists()) continue;
+                bool ok;
+                auto mode = API::GeoRuleSetType::site;
+                auto geoAssertPath = geoSitePath;
+                if (item.contains("_IP")) {
+                    mode = API::GeoRuleSetType::ip;
+                    geoAssertPath = geoIpPath;
+                }
+                auto err = API::defaultClient->CompileGeoSet(&ok, mode, item.toStdString(), geoAssertPath);
+                if (!ok) {
+                    MW_show_log("Failed to generate rule set asset for " + item);
+                    status->result->error = err;
+                    return;
+                }
             }
         }
         routeObj["rule_set"] = ruleSetArray;

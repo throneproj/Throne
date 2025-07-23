@@ -39,86 +39,86 @@ namespace Stats
     void ConnectionLister::update()
     {
         bool ok;
-            libcore::ListConnectionsResp resp = API::defaultClient->ListConnections(&ok);
-            if (!ok)
-            {
-                return;
-            }
+        libcore::ListConnectionsResp resp = API::defaultClient->ListConnections(&ok);
+        if (!ok || resp.connections.empty())
+        {
+            return;
+        }
 
-            QMap<QString, ConnectionMetadata> toUpdate;
-            QMap<QString, ConnectionMetadata> toAdd;
-            QSet<QString> newState;
-            QList<ConnectionMetadata> sorted;
-            auto conns = resp.connections;
-            for (auto conn : conns)
-            {
-                auto c = ConnectionMetadata();
-                c.id = QString(conn.id.c_str());
-                c.createdAtMs = conn.created_at;
-                c.dest = QString(conn.dest.c_str());
-                c.upload = conn.upload;
-                c.download = conn.download;
-                c.domain = QString(conn.domain.c_str());
-                c.network = QString(conn.network.c_str());
-                c.outbound = QString(conn.outbound.c_str());
-                c.process = QString(conn.process.c_str());
-                c.protocol = QString(conn.protocol.c_str());
-                if (sort == Default)
-                {
-                    if (state->contains(c.id))
-                    {
-                        toUpdate[c.id] = c;
-                    } else
-                    {
-                        toAdd[c.id] = c;
-                    }
-                } else
-                {
-                    sorted.append(c);
-                }
-                newState.insert(c.id);
-            }
-
-            state->clear();
-            for (const auto& id : newState) state->insert(id);
-
+        QMap<QString, ConnectionMetadata> toUpdate;
+        QMap<QString, ConnectionMetadata> toAdd;
+        QSet<QString> newState;
+        QList<ConnectionMetadata> sorted;
+        auto conns = resp.connections;
+        for (auto conn : conns)
+        {
+            auto c = ConnectionMetadata();
+            c.id = QString(conn.id.value().c_str());
+            c.createdAtMs = conn.created_at.value();
+            c.dest = QString(conn.dest.value().c_str());
+            c.upload = conn.upload.value();
+            c.download = conn.download.value();
+            c.domain = QString(conn.domain.value().c_str());
+            c.network = QString(conn.network.value().c_str());
+            c.outbound = QString(conn.outbound.value().c_str());
+            c.process = QString(conn.process.value().c_str());
+            c.protocol = QString(conn.protocol.value().c_str());
             if (sort == Default)
             {
-                runOnUiThread([=] {
-                    auto m = GetMainWindow();
-                    m->UpdateConnectionList(toUpdate, toAdd);
-                });
+                if (state->contains(c.id))
+                {
+                    toUpdate[c.id] = c;
+                } else
+                {
+                    toAdd[c.id] = c;
+                }
             } else
             {
-                if (sort == ByDownload)
+                sorted.append(c);
+            }
+            newState.insert(c.id);
+        }
+
+        state->clear();
+        for (const auto& id : newState) state->insert(id);
+
+        if (sort == Default)
+        {
+            runOnUiThread([=] {
+                auto m = GetMainWindow();
+                m->UpdateConnectionList(toUpdate, toAdd);
+            });
+        } else
+        {
+            if (sort == ByDownload)
+            {
+                std::sort(sorted.begin(), sorted.end(), [=](const ConnectionMetadata& a, const ConnectionMetadata& b)
                 {
-                    std::sort(sorted.begin(), sorted.end(), [=](const ConnectionMetadata& a, const ConnectionMetadata& b)
-                    {
-                        if (a.download == b.download) return asc ? a.id > b.id : a.id < b.id;
-                        return asc ? a.download < b.download : a.download > b.download;
-                    });
-                }
-                if (sort == ByUpload)
-                {
-                    std::sort(sorted.begin(), sorted.end(), [=](const ConnectionMetadata& a, const ConnectionMetadata& b)
-                    {
-                       if (a.upload == b.upload) return asc ? a.id > b.id : a.id < b.id;
-                       return asc ? a.upload < b.upload : a.upload > b.upload;
-                    });
-                }
-                if (sort == ByProcess)
-                {
-                    std::sort(sorted.begin(), sorted.end(), [=](const ConnectionMetadata& a, const ConnectionMetadata& b)
-                    {
-                        if (a.process == b.process) return asc ? a.id > b.id : a.id < b.id;
-                        return asc ? a.process > b.process : a.process < b.process;
-                    });
-                }
-                runOnUiThread([=] {
-                    auto m = GetMainWindow();
-                    m->UpdateConnectionListWithRecreate(sorted);
+                    if (a.download == b.download) return asc ? a.id > b.id : a.id < b.id;
+                    return asc ? a.download < b.download : a.download > b.download;
                 });
             }
+            if (sort == ByUpload)
+            {
+                std::sort(sorted.begin(), sorted.end(), [=](const ConnectionMetadata& a, const ConnectionMetadata& b)
+                {
+                   if (a.upload == b.upload) return asc ? a.id > b.id : a.id < b.id;
+                   return asc ? a.upload < b.upload : a.upload > b.upload;
+                });
+            }
+            if (sort == ByProcess)
+            {
+                std::sort(sorted.begin(), sorted.end(), [=](const ConnectionMetadata& a, const ConnectionMetadata& b)
+                {
+                    if (a.process == b.process) return asc ? a.id > b.id : a.id < b.id;
+                    return asc ? a.process > b.process : a.process < b.process;
+                });
+            }
+            runOnUiThread([=] {
+                auto m = GetMainWindow();
+                m->UpdateConnectionListWithRecreate(sorted);
+            });
+        }
     }
 
     void ConnectionLister::stopLoop()

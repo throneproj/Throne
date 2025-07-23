@@ -15,6 +15,46 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
+    <widget class="QGroupBox" name="generalBox">
+     <property name="title">
+      <string>General</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="route_name_l">
+        <property name="text">
+         <string>Name</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="route_name"/>
+      </item>
+      <item row="2" column="1">
+       <widget class="QComboBox" name="def_out">
+        <item>
+         <property name="text">
+          <string notr="true">proxy</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string notr="true">direct</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="def_out_l">
+        <property name="text">
+         <string>Default outbound</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
       <number>0</number>
@@ -34,20 +74,6 @@
        <item>
         <widget class="QGroupBox" name="simple_direct_box">
          <layout class="QVBoxLayout" name="verticalLayout_6">
-          <item>
-           <widget class="QComboBox" name="def_out">
-            <item>
-             <property name="text">
-              <string>proxy</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>direct</string>
-             </property>
-            </item>
-           </widget>
-          </item>
           <item>
            <widget class="QLabel" name="label">
             <property name="text">
@@ -103,16 +129,6 @@
        <item>
         <widget class="QWidget" name="widget" native="true">
          <layout class="QHBoxLayout" name="horizontalLayout">
-          <item>
-           <widget class="QLabel" name="route_name_l">
-            <property name="text">
-             <string>Name</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="route_name"/>
-          </item>
           <item>
            <widget class="QPushButton" name="route_import_json">
             <property name="text">

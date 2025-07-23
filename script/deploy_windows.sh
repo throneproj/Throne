@@ -2,7 +2,18 @@
 set -e
 
 source script/env_deploy.sh
-DEST=$DEPLOYMENT/windows64
+if [[ $1 == 'i686' ]]; then
+  ARCH="windowslegacy-386"
+  DEST=$DEPLOYMENT/windows32
+else
+  if [[ $1 == 'x86_64' ]]; then
+    ARCH="windowslegacy-amd64"
+    DEST=$DEPLOYMENT/windowslegacy64
+  else
+    ARCH="windows-amd64"
+    DEST=$DEPLOYMENT/windows64
+  fi
+fi
 rm -rf $DEST
 mkdir -p $DEST
 
@@ -21,7 +32,7 @@ mv Throne.pdb $DEST
 cp $BUILD/Throne.exe $DEST
 
 cd download-artifact
-cd *windows-amd64
+cd *$ARCH
 tar xvzf artifacts.tgz -C ../../
 cd ..
 cd *public_res

@@ -23,8 +23,6 @@ namespace Configs {
         return proxyID;
     }
     enum inputType {trufalse, select, text};
-    const int IranBypassChainID = 111111111;
-    const int ChinaBypassChainID = 222222222;
     enum ruleType {custom, simpleAddress, simpleProcessName, simpleProcessPath};
     enum simpleAction{direct, block, proxy};
     inline QString simpleActionToString(simpleAction action)
@@ -94,7 +92,7 @@ namespace Configs {
         // resolve options
         QString strategy;
 
-        [[nodiscard]] QJsonObject get_rule_json(bool forView = false, const QString& outboundTag = "");
+        [[nodiscard]] QJsonObject get_rule_json(bool forView = false, const QString& outboundTag = "", const QStringList& tagList = {});
         static QStringList get_attributes();
         static inputType get_input_type(const QString& fieldName);
         static QStringList get_values_for_field(const QString& fieldName);
@@ -112,6 +110,7 @@ namespace Configs {
         QList<std::shared_ptr<RouteRule>> Rules;
         QList<JsonStore*> castedRules;
         int defaultOutboundID = proxyID;
+        std::map<QString, QString> tagMap;
 
         RoutingChain();
 
@@ -128,10 +127,6 @@ namespace Configs {
         bool isViewOnly() const;
 
         static std::shared_ptr<RoutingChain> GetDefaultChain();
-
-        static std::shared_ptr<RoutingChain> GetIranDefaultChain();
-
-        static std::shared_ptr<RoutingChain> GetChinaDefaultChain();
 
         std::shared_ptr<QList<int>> get_used_outbounds();
 

@@ -15,10 +15,9 @@ require (
 	github.com/spf13/cobra v1.9.1
 	golang.org/x/sys v0.34.0
 	google.golang.org/grpc v1.73.0
-	google.golang.org/protobuf v1.36.6
 )
 
-replace github.com/sagernet/sing-box => github.com/Mahdi-zarei/sing-box v1.3.5-0.20250701215754-027a41f0810f
+replace github.com/sagernet/sing-box => github.com/throneproj/sing-box v1.11.16-0.20250718050551-8b8dd68c0722
 
 replace github.com/sagernet/sing-dns => github.com/Mahdi-zarei/sing-dns v0.3.0-beta.14.0.20250507225909-53baf4f30fa3
 
@@ -67,7 +66,7 @@ require (
 	github.com/sagernet/quic-go v0.49.0-beta.1 // indirect
 	github.com/sagernet/reality v0.0.0-20230406110435-ee17307e7691 // indirect
 	github.com/sagernet/sing-mux v0.3.2 // indirect
-	github.com/sagernet/sing-quic v0.4.3 // indirect
+	github.com/sagernet/sing-quic v0.4.4 // indirect
 	github.com/sagernet/sing-shadowsocks v0.2.8 // indirect
 	github.com/sagernet/sing-shadowsocks2 v0.2.1 // indirect
 	github.com/sagernet/sing-shadowtls v0.2.0 // indirect
@@ -93,5 +92,6 @@ require (
 	golang.org/x/tools v0.28.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463 // indirect
+	google.golang.org/protobuf v1.36.6 // indirect
 	lukechampine.com/blake3 v1.3.0 // indirect
 )

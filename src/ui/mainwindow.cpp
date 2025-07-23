@@ -22,6 +22,7 @@
 
 #ifdef Q_OS_WIN
 #include "3rdparty/WinCommander.hpp"
+#include "include/sys/windows/WinVersion.h"
 #else
 #ifdef Q_OS_LINUX
 #include "include/sys/linux/LinuxCap.h"
@@ -266,6 +267,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         group->SwapProfiles(row1, row2);
         refresh_proxy_list(group->profiles[row1]);
         refresh_proxy_list(group->profiles[row2]);
+        group->Save();
     };
     if (auto button = ui->proxyListTable->findChild<QAbstractButton *>(QString(), Qt::FindDirectChildrenOnly)) {
         // Corner Button
@@ -292,6 +294,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             return;
         }
         refresh_proxy_list_impl(-1, action);
+        Configs::profileManager->CurrentGroup()->Save();
     });
     connect(ui->proxyListTable->horizontalHeader(), &QHeaderView::sectionResized, this, [=](int logicalIndex, int oldSize, int newSize) {
         auto group = Configs::profileManager->CurrentGroup();
@@ -419,10 +422,59 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             ui->menu_server->removeAction(ui->menu_stop_testing);
         }
     });
+
+    QStringList profileList;
+    for(int retry = 0; retry < 3; retry++) {
+        auto resp = NetworkRequestHelper::HttpGet("https://api.github.com/repos/throneproj/routeprofiles/releases/latest");
+        if (resp.error.isEmpty()) {
+            QJsonObject release = QString2QJsonObject(resp.data);
+            for (const QJsonValue asset : release["assets"].toArray()) {
+                auto profile = asset["name"].toString();
+                if (profile.section('.', -1) == QString("json") && (profile.startsWith("bypass",Qt::CaseInsensitive) || profile.startsWith("proxy",Qt::CaseInsensitive))) {
+                    profile.chop(5);
+                    profileList.push_back(profile);
+                }
+            }
+            break;
+        }
+    }
+
     connect(ui->menuRouting_Menu, &QMenu::aboutToShow, this, [=]()
     {
         ui->menuRouting_Menu->clear();
         ui->menuRouting_Menu->addAction(ui->menu_routing_settings);
+        if(!profileList.isEmpty()) {
+            QMenu* profilesMenu = ui->menuRouting_Menu->addMenu(QObject::tr("Download Profiles"));
+            for (const auto& profile : profileList)
+            {
+                auto* action = new QAction(profilesMenu);
+                action->setText(profile);
+                connect(action, &QAction::triggered, this, [=]()
+                {
+                    auto resp = NetworkRequestHelper::HttpGet("https://github.com/throneproj/routeprofiles/releases/latest/download/" + profile + ".json");
+                    if (!resp.error.isEmpty()) {
+                        runOnUiThread([=] {
+                            MessageBoxWarning(QObject::tr("Download Profiles"), QObject::tr("Requesting profile error: %1").arg(resp.error + "\n" + resp.data));
+                        });
+                        return;
+                    }
+                    auto err = new QString;
+                    auto parsed = Configs::RoutingChain::parseJsonArray(QString2QJsonArray(resp.data), err);
+                    if (!err->isEmpty()) {
+                        MessageBoxInfo(tr("Invalid JSON Array"), tr("The provided input cannot be parsed to a valid route rule array:\n") + *err);
+                        return;
+                    }
+                    auto chain = Configs::ProfileManager::NewRouteChain();
+                    chain->name = QString(profile).replace('_', ' ');
+                    chain->defaultOutboundID = profile.startsWith("bypass",Qt::CaseInsensitive) ? Configs::proxyID : Configs::directID;
+                    chain->Rules.clear();
+                    chain->Rules << parsed;
+                    Configs::profileManager->AddRouteChain(chain);
+                });
+                profilesMenu->addAction(action);
+            }
+        }
+
         ui->menuRouting_Menu->addSeparator();
         for (const auto& route : Configs::profileManager->routes)
         {
@@ -958,10 +1010,10 @@ void MainWindow::UpdateDataView(bool force)
     "</div>"
     "<p style='text-align:center;margin:0;'>Server: %4, %5</p>"
         ).arg(currentSptProfileName,
-            currentTestResult.dl_speed.c_str(),
-            currentTestResult.ul_speed.c_str(),
-            currentTestResult.server_country.c_str(),
-            currentTestResult.server_name.c_str());
+            currentTestResult.dl_speed.value().c_str(),
+            currentTestResult.ul_speed.value().c_str(),
+            currentTestResult.server_country.value().c_str(),
+            currentTestResult.server_name.value().c_str());
     }
     ui->data_view->setHtml(html);
     lastUpdated = QDateTime::currentDateTime();
@@ -2280,16 +2332,19 @@ void MainWindow::CheckUpdate() {
     QString search;
 #ifdef Q_OS_WIN32
 #  ifdef Q_OS_WIN64
-	search = "windows64";
+    if (WinVersion::IsBuildNumGreaterOrEqual(BuildNumber::Windows_10_1809))
+        search = "windows64";
+    else
+	search = "windowslegacy64";
 #  else
 	search = "windows32";
 #  endif
 #endif
 #ifdef Q_OS_LINUX
 #  ifdef Q_PROCESSOR_X86_64
-    search = "linux-amd64";
+        search = "linux-amd64";
 #  else
-    search = "linux-arm64";
+        search = "linux-arm64";
 #  endif
 #endif
 #ifdef Q_OS_MACOS
@@ -2306,7 +2361,7 @@ void MainWindow::CheckUpdate() {
         return;
     }
 
-    auto resp = NetworkRequestHelper::HttpGet("https://api.github.com/repos/Mahdi-zarei/nekoray/releases");
+    auto resp = NetworkRequestHelper::HttpGet("https://api.github.com/repos/throneproj/Throne/releases");
     if (!resp.error.isEmpty()) {
         runOnUiThread([=] {
             MessageBoxWarning(QObject::tr("Update"), QObject::tr("Requesting update error: %1").arg(resp.error + "\n" + resp.data));
@@ -2364,7 +2419,7 @@ void MainWindow::CheckUpdate() {
                 }
                 QString errors;
                 if (!release_download_url.isEmpty()) {
-                    auto res = NetworkRequestHelper::DownloadAsset(release_download_url, "nekoray.zip");
+                    auto res = NetworkRequestHelper::DownloadAsset(release_download_url, "Throne.zip");
                     if (!res.isEmpty()) {
                         errors += res;
                     }

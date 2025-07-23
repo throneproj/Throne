@@ -17,6 +17,9 @@ mkdir -p $DEST
 #### copy binary ####
 cp $BUILD/Throne $DEST
 
+#### copy Throne.png ####
+cp ./res/public/Throne.png $DEST
+
 cd download-artifact
 cd *linux-$ARCH
 tar xvzf artifacts.tgz -C ../../

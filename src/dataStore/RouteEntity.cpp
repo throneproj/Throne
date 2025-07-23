@@ -128,7 +128,7 @@ namespace Configs {
         _add(new configItem("simple_action", &simpleAction, itemType::integer));
     }
 
-    QJsonObject RouteRule::get_rule_json(bool forView, const QString& outboundTag) {
+    QJsonObject RouteRule::get_rule_json(bool forView, const QString& outboundTag, const QStringList& tagList) {
         QJsonObject obj;
 
         if (!ip_version.isEmpty()) obj["ip_version"] = ip_version.toInt();
@@ -150,7 +150,11 @@ namespace Configs {
         if (isValidStrArray(process_name)) obj["process_name"] = get_as_array(process_name);
         if (isValidStrArray(process_path)) obj["process_path"] = get_as_array(process_path);
         if (isValidStrArray(process_path_regex)) obj["process_path_regex"] = get_as_array(process_path_regex);
-        if (isValidStrArray(rule_set)) obj["rule_set"] = get_as_array(rule_set);
+        if (isValidStrArray(rule_set))
+            if (forView)
+                obj["rule_set"] = get_as_array(rule_set);
+            else
+                obj["rule_set"] = get_as_array(tagList);
         if (invert) obj["invert"] = invert;
         // fix action type
         if (action == "route")
@@ -562,10 +566,32 @@ namespace Configs {
 
     QJsonArray RoutingChain::get_route_rules(bool forView, std::map<int, QString> outboundMap) {
         QJsonArray res;
+        QStringList tagList;
+        for (const auto& item: Rules) {
+            for (const auto& ruleItem: item->rule_set) {
+                if (!ruleItem.startsWith("https://")) {
+                    tagList.push_back(ruleItem);
+                }
+            }
+        }
+        for (const auto& item: Rules) {
+            for (const auto& ruleItem: item->rule_set) {
+                if (ruleItem.startsWith("https://") && ruleItem.endsWith(".srs")) {
+                    QString tagRemote, tmp = ruleItem.section('/', -1);
+                    tmp.chop(4);
+                    tagRemote = tmp;
+                    int index = 1;
+                    while(tagList.contains(tagRemote))
+                        tagRemote = tmp + QString::number(index++);
+                    tagMap.insert(std::map<QString, QString>::value_type(ruleItem, tagRemote));
+                    tagList.push_back(tagRemote);
+                }
+            }
+        }
         for (const auto &item: Rules) {
             auto outboundTag = QString();
             if (outboundMap.count(item->outboundID)) outboundTag = outboundMap[item->outboundID];
-            auto rule_json = item->get_rule_json(forView, outboundTag);
+            auto rule_json = item->get_rule_json(forView, outboundTag, tagList);
             if (rule_json.empty()) {
                 MW_show_log("Aborted generating routing section, an error has occurred");
                 return {};
@@ -577,8 +603,7 @@ namespace Configs {
     }
 
     bool RoutingChain::isViewOnly() const {
-        return id == IranBypassChainID ||
-        id == ChinaBypassChainID;
+        return false;
     }
 
     std::shared_ptr<RoutingChain> RoutingChain::GetDefaultChain() {
@@ -590,60 +615,6 @@ namespace Configs {
         defaultRule->protocol = "dns";
         defaultChain->Rules << defaultRule;
         return defaultChain;
-    }
-
-    std::shared_ptr<RoutingChain> RoutingChain::GetIranDefaultChain() {
-        auto chain = std::make_shared<RoutingChain>();
-        chain->name = "Bypass Iran";
-        chain->id = IranBypassChainID;
-        chain->save_control_no_save = true;
-
-        auto rule0 = std::make_shared<RouteRule>();
-        rule0->name = "Route DNS";
-        rule0->action = "hijack-dns";
-        rule0->protocol = "dns";
-        chain->Rules << rule0;
-
-        auto rule1 = std::make_shared<RouteRule>();
-        rule1->rule_set << QString("ir_IP") << QString("category-ir_SITE");
-        rule1->name = "Bypass Iran IPs and Domains";
-        rule1->outboundID = -2;
-        chain->Rules << rule1;
-
-        auto rule2 = std::make_shared<RouteRule>();
-        rule2->name = "Bypass Private IPs";
-        rule2->ip_is_private = true;
-        rule1->outboundID = -2;
-        chain->Rules << rule2;
-
-        return chain;
-    }
-
-    std::shared_ptr<RoutingChain> RoutingChain::GetChinaDefaultChain() {
-        auto chain = std::make_shared<RoutingChain>();
-        chain->name = "Bypass China";
-        chain->id = ChinaBypassChainID;
-        chain->save_control_no_save = true;
-
-        auto rule0 = std::make_shared<RouteRule>();
-        rule0->name = "Route DNS";
-        rule0->action = "hijack-dns";
-        rule0->protocol = "dns";
-        chain->Rules << rule0;
-
-        auto rule1 = std::make_shared<RouteRule>();
-        rule1->name = "Bypass Chinese IPs and Domains";
-        rule1->rule_set << QString("cn_IP") << QString("geolocation-cn_SITE") << QString("cn_SITE");
-        rule1->outboundID = -2;
-        chain->Rules << rule1;
-
-        auto rule2 = std::make_shared<RouteRule>();
-        rule2->name = "Bypass Private IPs";
-        rule2->ip_is_private = true;
-        rule1->outboundID = -2;
-        chain->Rules << rule2;
-
-        return chain;
     }
 
     std::shared_ptr<QList<int>> RoutingChain::get_used_outbounds() {
@@ -794,10 +765,10 @@ namespace Configs {
 
     bool RoutingChain::add_simple_address_rule(const QString& content, const std::shared_ptr<RouteRule>& rule)
     {
-        auto sp = content.split(":");
-        if (sp.size() != 2) return false;
-        const QString& address = sp[1];
-        const QString& subType = sp[0];
+        auto colonIdx = content.indexOf(':');
+        if (colonIdx == -1) return false;
+        const QString& address = content.mid(colonIdx+1);
+        const QString& subType = content.left(colonIdx);
         if (subType == "domain") {
             if (!rule->domain.contains(address)) rule->domain.append(address);
             return true;
@@ -866,7 +837,7 @@ namespace Configs {
     bool RoutingChain::Save() {
         castedRules.clear();
         for (const auto &item: Rules) {
-            castedRules.push_back(dynamic_cast<JsonStore*>(item.get()));
+            castedRules.push_back(item.get());
         }
         return JsonStore::Save();
     }

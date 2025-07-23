@@ -33,6 +33,12 @@ jobs:
           - cross_os: darwin
             cross_arch: arm64
             go_version: "1.24.4"
+          - cross_os: windowslegacy
+            cross_arch: amd64
+            go_version: "1.24.4"
+          - cross_os: windowslegacy
+            cross_arch: 386
+            go_version: "1.24.4"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
@@ -52,6 +58,21 @@ jobs:
           cache-dependency-path: |
             core/server/go.sum
             core/updater/go.sum
+      - name: Install Golang For Legacy Windows
+        if: matrix.cross_os == 'windowslegacy'
+        run: |
+          curl -L -o go.7z https://github.com/throneproj/env_windows_legacy/releases/download/latest/go.7z
+          7z x go.7z
+      - name: Install Protoc
+        if: matrix.cross_os != 'public_res'
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+        uses: arduino/setup-protoc@v3
+      - name: Installing protoc-gen-go
+        if: matrix.cross_os != 'public_res'
+        run: |
+          go install github.com/golang/protobuf/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
       - name: Build golang parts
         if: steps.cache-common.outputs.cache-hit != 'true'
         shell: bash
@@ -76,20 +97,26 @@ jobs:
       matrix:
         include:
           - platform: windows-latest
-            qt_version: "6.9.1"
-            target: amd64
+            qt_version: "6.9.0"
+            target: x86_64
           - platform: ubuntu-22.04
-            qt_version: "6.9.1"
+            qt_version: "6.9.0"
             target: amd64
           - platform: ubuntu-24.04-arm
-            qt_version: "6.9.1"
+            qt_version: "6.9.0"
             target: arm64
           - platform: macos-latest
-            qt_version: "6.9.1"
+            qt_version: "6.9.0"
             target: x86_64
           - platform: macos-latest
-            qt_version: "6.9.1"
+            qt_version: "6.9.0"
             target: arm64
+          - platform: windows-latest
+            qt_version: "6.2.12"
+            target: x86_64
+          - platform: windows-latest
+            qt_version: "6.2.12"
+            target: i686
       fail-fast: false
     runs-on: ${{ matrix.platform }}
     env:
@@ -103,6 +130,8 @@ jobs:
       - name: Install mingw
         if: matrix.platform == 'windows-latest'
         uses: bwoodsend/setup-winlibs-action@v1.15
+        with:
+          architecture: ${{ matrix.target }}
       - name: Download Artifacts
         uses: actions/download-artifact@v4.3.0
         with:
@@ -110,14 +139,14 @@ jobs:
       # ========================================================================================================= Qt Install
       - name: Qt static Cache
         id: cache-static-Qt
-        if: matrix.platform == 'windows-latest'
+        if: matrix.platform == 'windows-latest' && matrix.qt_version != '6.2.12'
         uses: actions/cache@v4.2.3
         with:
           path: qt6/build
           key: QtStaticCache-${{ matrix.platform }}-${{ matrix.target }}-Qt${{ matrix.qt_version }}
       - name: Install Qt Windows
         shell: powershell
-        if: matrix.platform == 'windows-latest' && steps.cache-static-Qt.outputs.cache-hit != 'true'
+        if: matrix.platform == 'windows-latest' && steps.cache-static-Qt.outputs.cache-hit != 'true' && matrix.qt_version != '6.2.12'
         run: ./script/build_qt_static_windows.bat ${{ matrix.qt_version }}
       - name: Install Qt
         uses: jurplel/install-qt-action@v4.3.0
@@ -130,7 +159,7 @@ jobs:
       # ========================================================================================================= Generate MakeFile and Build
       - name: Windows - Generate MakeFile and Build
         shell: bash
-        if: matrix.platform == 'windows-latest'
+        if: matrix.platform == 'windows-latest' && matrix.qt_version != '6.2.12'
         run: |
           export CMAKE_PREFIX_PATH=$PWD/qt6/build/lib/cmake
           mkdir build
@@ -138,10 +167,26 @@ jobs:
           cmake -GNinja -DCMAKE_CXX_FLAGS="-static" -DCMAKE_BUILD_TYPE=Debug ..
           ninja -j2
           cd ..
-          ./script/deploy_windows64.sh
+          ./script/deploy_windows.sh
+      - name: Legacy Windows - Generate MakeFile and Build
+        shell: bash
+        if: matrix.platform == 'windows-latest' && matrix.qt_version == '6.2.12'
+        run: |
+          curl -L -o qt.7z https://github.com/throneproj/env_windows_legacy/releases/download/latest/qt-${{ matrix.target }}.7z
+          7z x qt.7z
+          curl -L -o openssl.7z https://github.com/throneproj/env_windows_legacy/releases/download/latest/openssl-${{ matrix.target }}.7z
+          7z x openssl.7z
+          export CMAKE_PREFIX_PATH=$PWD/Qt/lib/cmake
+          export OPENSSL_ROOT_DIR=$PWD/openssl
+          mkdir build
+          cd build
+          cmake -GNinja -DCMAKE_CXX_FLAGS="-static" -DCMAKE_BUILD_TYPE=Debug ..
+          ninja -j2
+          cd ..
+          ./script/deploy_windows.sh ${{ matrix.target }}
       - name: Build Installer with NSIS
         shell: cmd
-        if: matrix.platform == 'windows-latest'
+        if: matrix.platform == 'windows-latest' && matrix.qt_version != '6.2.12'
         run: |
           cp .\script\windows_installer.nsi .
           makensis windows_installer.nsi
@@ -200,7 +245,7 @@ jobs:
           source script/env_deploy.sh
           find . -name artifacts.tgz | xargs -n1 tar xvzf
           cd deployment
-          rm -rf *.png *.pdb */*.pdb */*.png
+          rm -rf *.pdb win*/*.pdb
           ####
           bash ../script/pack_debian.sh ${{ github.event.inputs.tag }}
           mv Throne.deb $version_standalone-debian-x64.deb
@@ -217,6 +262,14 @@ jobs:
           mv ThroneSetup.exe $version_standalone-windows64-installer.exe
           mv windows64 Throne
           zip -9 -r $version_standalone-windows64.zip Throne
+          rm -rf Throne
+          ####
+          mv windows32 Throne
+          zip -9 -r $version_standalone-windows32.zip Throne
+          rm -rf Throne
+          ####
+          mv windowslegacy64 Throne
+          zip -9 -r $version_standalone-windowslegacy64.zip Throne
           rm -rf Throne
           ####
           mkdir Throne
@@ -237,6 +290,8 @@ jobs:
           rm -rf linux-arm64
           rm -rf linux-amd64
           rm -rf windows64
+          rm -rf windows32
+          rm -rf windowslegacy64
           rm -rf macos-amd64
           rm -rf macos-arm64
           rm -rf public_res

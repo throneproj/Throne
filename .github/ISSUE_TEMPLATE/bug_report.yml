@@ -1,0 +1,53 @@
+name: Bug report
+description: "Report Throne bug"
+body:
+  - type: dropdown
+    attributes:
+      label: Operating system
+      description: Operating system type
+      options:
+        - Windows
+        - Linux
+        - macOS
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: System version
+      description: Please provide the operating system version
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Installation type
+      description: Please provide the Throne installation type
+      options:
+        - zip
+        - exe
+        - deb
+        - package manager
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Version
+      description: Throne version.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Description
+      description: Please provide a detailed description of the error.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Reproduction
+      description: Please provide the steps to reproduce the error.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Logs
+      description: Please provide logs.
+      render: shell

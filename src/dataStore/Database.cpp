@@ -106,11 +106,10 @@ namespace Configs {
             profileManager->AddGroup(defaultGroup);
         }
 
+        // First setup
         if (routes.empty()) {
             auto defaultRoute = RoutingChain::GetDefaultChain();
             profileManager->AddRouteChain(defaultRoute);
-            routes[IranBypassChainID] = RoutingChain::GetIranDefaultChain();
-            routes[ChinaBypassChainID] = RoutingChain::GetChinaDefaultChain();
         }
     }
 
