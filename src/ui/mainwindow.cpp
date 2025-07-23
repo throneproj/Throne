@@ -797,9 +797,6 @@ void MainWindow::on_menu_hotkey_settings_triggered() {
 }
 
 void MainWindow::on_commitDataRequest() {
-    qDebug() << "Handling DNS setting";
-    if (Configs::dataStore->system_dns_set) set_system_dns(false, false);
-    qDebug() << "Done handling DNS setting";
     qDebug() << "Start of data save";
     //
     if (!isMaximized()) {
@@ -816,6 +813,7 @@ void MainWindow::on_commitDataRequest() {
     if (Configs::dataStore->remember_enable && last_id >= 0) {
         Configs::dataStore->remember_id = last_id;
     }
+    if (running) running->Save();
     //
     Configs::dataStore->Save();
     Configs::profileManager->SaveManager();
@@ -836,13 +834,18 @@ void MainWindow::prepare_exit()
     tray->hide();
     Configs::dataStore->prepare_exit = true;
     //
-    set_spmode_system_proxy(false, false);
     RegisterHotkey(true);
+    if (Configs::dataStore->system_dns_set) set_system_dns(false, false);
+    set_spmode_system_proxy(false, false);
     //
     on_commitDataRequest();
     //
-    if (running) running->Save();
     Configs::dataStore->save_control_no_save = true; // don't change datastore after this line
+    if (Configs::dataStore->spmode_vpn)
+    {
+        profile_stop(false, true);
+        sem_stopped.acquire();
+    }
     API::defaultClient->Exit();
     mu_exit.unlock();
     qDebug() << "prepare exit done!";

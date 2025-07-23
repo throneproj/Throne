@@ -676,10 +676,10 @@ namespace Configs {
         auto geoSitePath = GetCoreAssetDir("geosite.db");
         auto geoIpPath = GetCoreAssetDir("geoip.db");
         for (const auto &item: *neededRuleSets) {
-            if(item.startsWith("https://") && item.endsWith(".srs")) {
+            if(auto url = QUrl(item); url.isValid() && url.fileName().contains(".srs")) {
                 ruleSetArray += QJsonObject{
                     {"type", "remote"},
-                    {"tag", routeChain->tagMap[item]},
+                    {"tag", get_rule_set_name(item)},
                     {"format", "binary"},
                     {"url", item},
                 };

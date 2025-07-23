@@ -117,7 +117,6 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RoutingChai
     adjustComboBoxWidth(ui->rule_attr);
     ui->rule_attr_text->hide();
     ui->rule_attr_data->setTitle("");
-    ui->rule_attr_box->setEnabled(false);
     ui->rule_preview->setReadOnly(true);
     updateRuleSection();
 
@@ -145,13 +144,6 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RoutingChai
     simpleDirect->setPlainText(chain->GetSimpleRules(Configs::direct));
     simpleBlock->setPlainText(chain->GetSimpleRules(Configs::block));
     simpleProxy->setPlainText(chain->GetSimpleRules(Configs::proxy));
-
-    if (chain->isViewOnly())
-    {
-        ui->simple_direct_box->setEnabled(false);
-        ui->simple_block_box->setEnabled(false);
-        ui->simple_proxy_box->setEnabled(false);
-    }
 
     connect(ui->tabWidget->tabBar(), &QTabBar::currentChanged, this, [=]()
     {
@@ -285,18 +277,6 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RoutingChai
         on_delete_route_item_clicked();
     });
 
-    if (chain->isViewOnly()) {
-        ui->route_name->setText(chain->name + " (View only)");
-        ui->route_name->setEnabled(false);
-        ui->def_out->setEnabled(false);
-        ui->rule_attr_box->setEnabled(false);
-        ui->new_route_item->setEnabled(false);
-        ui->moveup_route_item->setEnabled(false);
-        ui->movedown_route_item->setEnabled(false);
-        ui->delete_route_item->setEnabled(false);
-        ui->route_import_json->setEnabled(false);
-    }
-
     adjustSize();
 }
 
@@ -388,7 +368,6 @@ void RouteItem::updateRuleSection() {
         }
     }
     ui->rule_name->setText(ruleItem->name);
-    ui->rule_attr_box->setDisabled(chain->isViewOnly());
 
     updateRulePreview();
 }
@@ -433,7 +412,6 @@ void RouteItem::showTextEnterItem(const QStringList& items, bool isRuleSet) {
 }
 
 void RouteItem::on_new_route_item_clicked() {
-    if (chain->isViewOnly()) return;
     auto routeItem = std::make_shared<Configs::RouteRule>();
     routeItem->name = "rule_" + Int2String(++lastNum);
     chain->Rules << routeItem;
@@ -446,7 +424,6 @@ void RouteItem::on_new_route_item_clicked() {
 }
 
 void RouteItem::on_moveup_route_item_clicked() {
-    if (chain->isViewOnly()) return;
     if (currentIndex == -1 || currentIndex == 0) return;
     auto curr = chain->Rules[currentIndex];
     chain->Rules[currentIndex] = chain->Rules[currentIndex-1];
@@ -456,7 +433,6 @@ void RouteItem::on_moveup_route_item_clicked() {
 }
 
 void RouteItem::on_movedown_route_item_clicked() {
-    if (chain->isViewOnly()) return;
     if (currentIndex == -1 || currentIndex == chain->Rules.size() - 1) return;
     auto curr = chain->Rules[currentIndex];
     chain->Rules[currentIndex] = chain->Rules[currentIndex+1];
@@ -466,7 +442,6 @@ void RouteItem::on_movedown_route_item_clicked() {
 }
 
 void RouteItem::on_delete_route_item_clicked() {
-    if (chain->isViewOnly()) return;
     if (currentIndex == -1) return;
     chain->Rules.removeAt(currentIndex);
     if (chain->Rules.empty()) currentIndex = -1;

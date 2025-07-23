@@ -3,6 +3,7 @@
 #include <include/configs/proxy/Preset.hpp>
 
 #include "include/global/Configs.hpp"
+#include <QUrl>
 
 namespace Configs {
     enum outboundID {proxyID=-1, directID=-2, blockID=-3, dnsOutID=-4};
@@ -40,6 +41,15 @@ namespace Configs {
         if (type == simpleProcessName) return {"Process Name"};
         if (type == simpleProcessPath) return {"Process Path"};
         return {"invalid"};
+    }
+
+    inline QString get_rule_set_name(QString ruleSet)
+    {
+        if (auto url = QUrl(ruleSet); url.isValid() && url.fileName().contains(".srs"))
+        {
+            return url.fileName().replace(".srs", "-srs") + "-" + Int2String(qHash(url.toEncoded()));
+        }
+        return ruleSet;
     }
 
     class RouteRule : public JsonStore {
@@ -92,7 +102,7 @@ namespace Configs {
         // resolve options
         QString strategy;
 
-        [[nodiscard]] QJsonObject get_rule_json(bool forView = false, const QString& outboundTag = "", const QStringList& tagList = {});
+        [[nodiscard]] QJsonObject get_rule_json(bool forView = false, const QString& outboundTag = "");
         static QStringList get_attributes();
         static inputType get_input_type(const QString& fieldName);
         static QStringList get_values_for_field(const QString& fieldName);
@@ -110,7 +120,6 @@ namespace Configs {
         QList<std::shared_ptr<RouteRule>> Rules;
         QList<JsonStore*> castedRules;
         int defaultOutboundID = proxyID;
-        std::map<QString, QString> tagMap;
 
         RoutingChain();
 
@@ -123,8 +132,6 @@ namespace Configs {
         void FromJson(QJsonObject object);
 
         QJsonArray get_route_rules(bool forView = false, std::map<int, QString> outboundMap = {});
-
-        bool isViewOnly() const;
 
         static std::shared_ptr<RoutingChain> GetDefaultChain();
 

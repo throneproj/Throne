@@ -285,7 +285,6 @@ void DialogManageRoutes::on_edit_route_clicked() {
     routeChainWidget->setWindowModality(Qt::ApplicationModal);
     routeChainWidget->show();
     connect(routeChainWidget, &RouteItem::settingsChanged, this, [=](const std::shared_ptr<Configs::RoutingChain>& chain) {
-        if (chain->isViewOnly()) return;
         if (currentRoute == chainList[idx]) currentRoute = chain;
         chainList[idx] = chain;
         reloadProfileItems();

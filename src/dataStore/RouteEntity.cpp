@@ -6,11 +6,12 @@
 #include <iostream>
 
 namespace Configs {
-    QJsonArray get_as_array(const QList<QString>& str, bool castToNum = false) {
+    QJsonArray get_as_array(const QList<QString>& str, bool castToNum = false, const std::function<QString(QString)>& converter = nullptr) {
         QJsonArray res;
         for (const auto &item: str) {
-            if (castToNum) res.append(item.toInt());
-            else res.append(item);
+            auto conv = converter ? converter(item) : item;
+            if (castToNum) res.append(conv.toInt());
+            else res.append(conv);
         }
         return res;
     }
@@ -128,7 +129,7 @@ namespace Configs {
         _add(new configItem("simple_action", &simpleAction, itemType::integer));
     }
 
-    QJsonObject RouteRule::get_rule_json(bool forView, const QString& outboundTag, const QStringList& tagList) {
+    QJsonObject RouteRule::get_rule_json(bool forView, const QString& outboundTag) {
         QJsonObject obj;
 
         if (!ip_version.isEmpty()) obj["ip_version"] = ip_version.toInt();
@@ -154,7 +155,7 @@ namespace Configs {
             if (forView)
                 obj["rule_set"] = get_as_array(rule_set);
             else
-                obj["rule_set"] = get_as_array(tagList);
+                obj["rule_set"] = get_as_array(rule_set, false, get_rule_set_name);
         if (invert) obj["invert"] = invert;
         // fix action type
         if (action == "route")
@@ -566,32 +567,10 @@ namespace Configs {
 
     QJsonArray RoutingChain::get_route_rules(bool forView, std::map<int, QString> outboundMap) {
         QJsonArray res;
-        QStringList tagList;
-        for (const auto& item: Rules) {
-            for (const auto& ruleItem: item->rule_set) {
-                if (!ruleItem.startsWith("https://")) {
-                    tagList.push_back(ruleItem);
-                }
-            }
-        }
-        for (const auto& item: Rules) {
-            for (const auto& ruleItem: item->rule_set) {
-                if (ruleItem.startsWith("https://") && ruleItem.endsWith(".srs")) {
-                    QString tagRemote, tmp = ruleItem.section('/', -1);
-                    tmp.chop(4);
-                    tagRemote = tmp;
-                    int index = 1;
-                    while(tagList.contains(tagRemote))
-                        tagRemote = tmp + QString::number(index++);
-                    tagMap.insert(std::map<QString, QString>::value_type(ruleItem, tagRemote));
-                    tagList.push_back(tagRemote);
-                }
-            }
-        }
         for (const auto &item: Rules) {
             auto outboundTag = QString();
-            if (outboundMap.count(item->outboundID)) outboundTag = outboundMap[item->outboundID];
-            auto rule_json = item->get_rule_json(forView, outboundTag, tagList);
+            if (outboundMap.contains(item->outboundID)) outboundTag = outboundMap[item->outboundID];
+            auto rule_json = item->get_rule_json(forView, outboundTag);
             if (rule_json.empty()) {
                 MW_show_log("Aborted generating routing section, an error has occurred");
                 return {};
@@ -600,10 +579,6 @@ namespace Configs {
         }
 
         return res;
-    }
-
-    bool RoutingChain::isViewOnly() const {
-        return false;
     }
 
     std::shared_ptr<RoutingChain> RoutingChain::GetDefaultChain() {
