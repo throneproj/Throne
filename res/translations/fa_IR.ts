@@ -114,32 +114,32 @@
     </message>
     <message>
         <source>Default uTLS Fingerprint</source>
-        <translation type="unfinished">اثرانگشت پیشفرض uTLS</translation>
+        <translation>اثرانگشت پیشفرض uTLS</translation>
     </message>
     <message>
         <source>Core Options</source>
-        <translation type="unfinished">تنظیمات هسته</translation>
+        <translation>تنظیمات هسته</translation>
     </message>
     <message>
         <source>Override underlying DNS</source>
-        <translation type="unfinished">لغو دی ان اس زیربنایی</translation>
+        <translation>لغو دی ان اس زیربنایی</translation>
     </message>
     <message>
         <source>It is recommended to leave it blank, but it sometimes does not work, at this time you can set this option.
 For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
-        <translation type="unfinished">پیشنهاد میشود که این گزینه را انتخاب نشده باقی بگذارید ، اما گاهی اوقات کار نمیکند در این مواقع شما میتوانید این گزینه را انتخاب کنید ، و برای Core این گزینه دی ان اس زیربنایی را هم در حالت تونل و هم در حالت معمولی و تست آدرس بازنویسی میکند</translation>
+        <translation>پیشنهاد میشود که این گزینه را انتخاب نشده باقی بگذارید ، اما گاهی اوقات کار نمیکند در این مواقع شما میتوانید این گزینه را انتخاب کنید ، و برای Core این گزینه دی ان اس زیربنایی را هم در حالت تونل و هم در حالت معمولی و تست آدرس بازنویسی میکند</translation>
     </message>
     <message>
         <source>Default On</source>
-        <translation type="unfinished">به صورت پیشفرض فعال</translation>
+        <translation>به صورت پیشفرض فعال</translation>
     </message>
     <message>
         <source>Multiplex (mux)</source>
-        <translation type="unfinished">Multiplex (mux)</translation>
+        <translation>Multiplex (mux)</translation>
     </message>
     <message>
         <source>Latency Test URL</source>
-        <translation type="unfinished">آدرس تست تاخیر</translation>
+        <translation>آدرس تست تاخیر</translation>
     </message>
     <message>
         <source>Disable tray</source>
@@ -151,169 +151,179 @@ For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, 
     </message>
     <message>
         <source>Automatic update</source>
-        <translation type="unfinished">آپدیت اتوماتیک</translation>
+        <translation>به‌روزرسانی اتوماتیک</translation>
     </message>
     <message>
         <source>Interval (minute, invalid if less than 30)</source>
-        <translation type="unfinished">فاصله (به دقیقا ، اگر کمتر از ۳۰ باشد نادرست است)</translation>
+        <translation>فاصله (به دقیقا ، اگر کمتر از ۳۰ باشد نادرست است)</translation>
     </message>
     <message>
         <source>Disable Traffic Stats</source>
-        <translation type="unfinished"></translation>
+        <translation>غیرفعال کردن آمار ترافیک</translation>
     </message>
     <message>
         <source>NTP Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>تنظیمات NTP</translation>
     </message>
     <message>
         <source>server</source>
-        <translation type="unfinished"></translation>
+        <translation>سرور</translation>
     </message>
     <message>
         <source>Port</source>
-        <translation type="unfinished">پورت</translation>
+        <translation>پورت</translation>
     </message>
     <message>
         <source>sync interval</source>
-        <translation type="unfinished"></translation>
+        <translation>فاصله همگام‌سازی</translation>
     </message>
     <message>
         <source>5m</source>
-        <translation type="unfinished"></translation>
+        <translation>۵ دقیقه</translation>
     </message>
     <message>
         <source>10m</source>
-        <translation type="unfinished"></translation>
+        <translation>۱۰ دقیقه</translation>
     </message>
     <message>
         <source>30m</source>
-        <translation type="unfinished"></translation>
+        <translation>۳۰ دقیقه</translation>
     </message>
     <message>
         <source>Listen Port</source>
-        <translation type="unfinished"></translation>
+        <translation>پورت شنود</translation>
     </message>
     <message>
         <source>Assets</source>
-        <translation type="unfinished"></translation>
+        <translation>منابع</translation>
     </message>
     <message>
         <source>Geo Assets and Rule-sets</source>
-        <translation type="unfinished"></translation>
+        <translation>منابع و قوانین جغرافیایی</translation>
     </message>
     <message>
         <source>Remove Generated Rule-sets</source>
-        <translation type="unfinished"></translation>
+        <translation>پاک کردن قوانین تولیدشده</translation>
     </message>
     <message>
         <source>GeoIP URL</source>
-        <translation type="unfinished"></translation>
+        <translation>نشانی GeoIP</translation>
     </message>
     <message>
         <source>GeoSite URL</source>
-        <translation type="unfinished"></translation>
+        <translation>نشانی GeoSite</translation>
     </message>
     <message>
         <source>Download and Replace Geo files</source>
-        <translation type="unfinished"></translation>
+        <translation>بارگیری و جایگزینی پرونده‌های جغرافیایی</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Socks
                                                                 + HTTP Proxy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                             </source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;پروکسی Socks
+                                                                + HTTP&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+                                                            </translation>
     </message>
     <message>
         <source>Font Size</source>
-        <translation type="unfinished"></translation>
+        <translation>اندازه قلم</translation>
     </message>
     <message>
         <source>Font</source>
-        <translation type="unfinished"></translation>
+        <translation>قلم</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Might
                                                                             Improve Ping and Performance&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                                         </source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;ممکن است
+                                                                            پینگ و کارایی را بهبود بخشد&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+                                                                        </translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Settings for the
                                             sing-box&apos;s built-in NTP client&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                         </source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;تنظیمات برای کلاینت
+                                             NTP داخلی sing-box&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+                                        </translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In
                                                                 minutes&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                             </source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;به
+                                                                دقیقه&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+                                                            </translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove the
                                                         currently generated rule-sets so that they can be regenerated&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                     </source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;پاک کردن
+                                                        مجموعه‌قوانین تولیدشده کنونی برای بازتولید آن‌ها&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+                                                    </translation>
     </message>
     <message>
         <source>Proxy Format</source>
-        <translation type="unfinished"></translation>
+        <translation>قالب پروکسی</translation>
     </message>
     <message>
         <source>Language</source>
-        <translation type="unfinished"></translation>
+        <translation>زبان</translation>
     </message>
     <message>
         <source>Removed all rule-set files</source>
-        <translation type="unfinished"></translation>
+        <translation>همه پرونده‌های مجموعه‌قوانین پاک شدند</translation>
     </message>
     <message>
         <source>{ip}:{port}</source>
-        <translation type="unfinished"></translation>
+        <translation>{ip}:{port}</translation>
     </message>
     <message>
         <source>http://{ip}:{port}</source>
-        <translation type="unfinished"></translation>
+        <translation>http://{ip}:{port}</translation>
     </message>
     <message>
         <source>socks={ip}:{port}</source>
-        <translation type="unfinished"></translation>
+        <translation>socks={ip}:{port}</translation>
     </message>
     <message>
         <source>Speedtest mode</source>
-        <translation type="unfinished"></translation>
+        <translation>حالت تست سرعت</translation>
     </message>
     <message>
         <source>Download + Upload</source>
-        <translation type="unfinished"></translation>
+        <translation>بارگیری + بارگذاری</translation>
     </message>
     <message>
         <source>Only Download</source>
-        <translation type="unfinished"></translation>
+        <translation>فقط بارگیری</translation>
     </message>
     <message>
         <source>Only Upload</source>
-        <translation type="unfinished"></translation>
+        <translation>فقط بارگذاری</translation>
     </message>
     <message>
         <source>Disable Privilege request</source>
-        <translation type="unfinished"></translation>
+        <translation>غیرفعال کردن درخواست دسترسی</translation>
     </message>
     <message>
         <source>Simple Download</source>
-        <translation type="unfinished"></translation>
+        <translation>بارگیری ساده</translation>
     </message>
     <message>
         <source>Simple Download URL</source>
-        <translation type="unfinished"></translation>
+        <translation>نشانی بارگیری ساده</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Do not attempt to start as Admin unless explicitly requested&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;تلاش برای شروع به‌عنوان مدیر انجام نشود مگر اینکه صراحتاً درخواست شده باشد&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Always Start as Standard User</source>
-        <translation type="unfinished"></translation>
+        <translation>همیشه به‌عنوان کاربر استاندارد شروع شود</translation>
     </message>
 </context>
 <context>
@@ -372,23 +382,23 @@ For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, 
     </message>
     <message>
         <source>Front Proxy</source>
-        <translation type="unfinished">پروکسی front</translation>
+        <translation>پروکسی front</translation>
     </message>
     <message>
         <source>Skip automatic update</source>
-        <translation type="unfinished">لغو آپدیت اتوماتیک</translation>
+        <translation>لغو به‌روزرسانی اتوماتیک</translation>
     </message>
     <message>
         <source>Common</source>
-        <translation type="unfinished">متداول</translation>
+        <translation>متداول</translation>
     </message>
     <message>
         <source>Share</source>
-        <translation type="unfinished">اشتراک گذاری</translation>
+        <translation>اشتراک گذاری</translation>
     </message>
     <message>
         <source>Landing Proxy</source>
-        <translation type="unfinished"></translation>
+        <translation>پروکسی مقصد</translation>
     </message>
 </context>
 <context>
@@ -439,7 +449,7 @@ For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, 
     </message>
     <message>
         <source>UDP FullCone Packet encoding for implementing features such as UDP FullCone. Server support is required, if the wrong selection is made, the connection cannot be made. Please leave it blank.</source>
-        <translation type="unfinished"></translation>
+        <translation>رمزنگاری بسته‌های UDP FullCone برای پیاده‌سازی ویژگی‌هایی مانند UDP FullCone. پشتیبانی سرور لازم است، در صورت انتخاب نادرست، اتصال برقرار نمی‌شود. لطفاً خالی بگذارید.</translation>
     </message>
     <message>
         <source>Packet Encoding</source>
@@ -451,7 +461,7 @@ For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, 
     </message>
     <message>
         <source>When enabled, V2Ray will not check the validity of the TLS certificate provided by the remote host (the security is equivalent to plaintext)</source>
-        <translation type="unfinished"></translation>
+        <translation>در صورت فعال بودن، V2Ray اعتبار گواهی TLS ارائه‌شده توسط میزبان راه دور را بررسی نمی‌کند (امنیت معادل متن ساده است)</translation>
     </message>
     <message>
         <source>Allow insecure</source>
@@ -463,11 +473,11 @@ For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, 
     </message>
     <message>
         <source>Server name indication, clear text.</source>
-        <translation type="unfinished">شناسه نام سرور ، متن صریح</translation>
+        <translation>شناسه نام سرور ، متن صریح</translation>
     </message>
     <message>
         <source>Application layer protocol negotiation, clear text. Please separate them with commas.</source>
-        <translation type="unfinished"></translation>
+        <translation>مذاکره پروتکل لایه برنامه، متن آشکار. لطفاً آن‌ها را با ویرگول جدا کنید.</translation>
     </message>
     <message>
         <source>Not set</source>
@@ -479,103 +489,103 @@ For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, 
     </message>
     <message>
         <source>TLS Security Settings</source>
-        <translation type="unfinished">تنظیمات امنیت TLS</translation>
+        <translation>تنظیمات امنیت TLS</translation>
     </message>
     <message>
         <source>TLS Camouflage Settings</source>
-        <translation type="unfinished">تنظیمات استتار TLS</translation>
+        <translation>تنظیمات استتار TLS</translation>
     </message>
     <message>
         <source>Reality public key. If not empty, turn TLS into REALITY.</source>
-        <translation type="unfinished"></translation>
+        <translation>کلید عمومی Reality. اگر خالی نباشد، TLS به REALITY تبدیل می‌شود.</translation>
     </message>
     <message>
         <source>Custom (%1 outbound)</source>
-        <translation type="unfinished"></translation>
+        <translation>سفارشی (%1 خروجی)</translation>
     </message>
     <message>
         <source>Custom (%1 config)</source>
-        <translation type="unfinished"></translation>
+        <translation>سفارشی (%1 پیکربندی)</translation>
     </message>
     <message>
         <source>Custom Outbound Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>تنظیمات خروجی سفارشی</translation>
     </message>
     <message>
         <source>Custom Config Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>تنظیمات پیکربندی سفارشی</translation>
     </message>
     <message>
         <source>Apply settings to this group</source>
-        <translation type="unfinished">تنظیمات به این گروه اعمال شود</translation>
+        <translation>تنظیمات به این گروه اعمال شود</translation>
     </message>
     <message>
         <source>Multiplex</source>
-        <translation type="unfinished"></translation>
+        <translation>چندگانه‌سازی</translation>
     </message>
     <message>
         <source>Keep Default</source>
-        <translation type="unfinished">نگه داری مقدار پیشفرض</translation>
+        <translation>نگه داری مقدار پیشفرض</translation>
     </message>
     <message>
         <source>On</source>
-        <translation type="unfinished">فعال</translation>
+        <translation>فعال</translation>
     </message>
     <message>
         <source>Off</source>
-        <translation type="unfinished">خاموش</translation>
+        <translation>خاموش</translation>
     </message>
     <message>
         <source>Confirm</source>
-        <translation type="unfinished">تایید</translation>
+        <translation>تایید</translation>
     </message>
     <message>
         <source>Server support is required</source>
-        <translation type="unfinished">نیازمند پشتیبانی در سمت سرور</translation>
+        <translation>نیازمند پشتیبانی در سمت سرور</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overrides mux to On&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;چندگانه‌سازی را به حالت فعال بازنویسی می‌کند&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Enable TCP Brutal</source>
-        <translation type="unfinished"></translation>
+        <translation>فعال کردن TCP Brutal</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Server to Client TCP Brutal Speed&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;سرعت TCP Brutal از سرور به کلاینت&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>TCP Brutal Speed</source>
-        <translation type="unfinished"></translation>
+        <translation>سرعت TCP Brutal</translation>
     </message>
     <message>
         <source>Mb/s</source>
-        <translation type="unfinished"></translation>
+        <translation>مگابیت بر ثانیه</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Method of http request, will be converted to uppercase&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;روش درخواست HTTP، به حروف بزرگ تبدیل می‌شود&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Method</source>
-        <translation type="unfinished"></translation>
+        <translation>روش</translation>
     </message>
     <message>
         <source>Reality SID</source>
-        <translation type="unfinished"></translation>
+        <translation>شناسه Reality</translation>
     </message>
     <message>
         <source>header type</source>
-        <translation type="unfinished"></translation>
+        <translation>نوع سربرگ</translation>
     </message>
     <message>
         <source>Extra Core</source>
-        <translation type="unfinished"></translation>
+        <translation>هسته اضافی</translation>
     </message>
 </context>
 <context>
@@ -594,15 +604,15 @@ For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, 
     </message>
     <message>
         <source>Trigger main window</source>
-        <translation type="unfinished">نمایش پنجره اصلی</translation>
+        <translation>نمایش پنجره اصلی</translation>
     </message>
     <message>
         <source>Proxy mode</source>
-        <translation type="unfinished"></translation>
+        <translation>حالت پروکسی</translation>
     </message>
     <message>
         <source>Toggle System Proxy</source>
-        <translation type="unfinished"></translation>
+        <translation>تغییر وضعیت پروکسی سیستم</translation>
     </message>
 </context>
 <context>
@@ -636,7 +646,7 @@ For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, 
     </message>
     <message>
         <source>Sniffing Mode</source>
-        <translation type="unfinished"></translation>
+        <translation>حالت پویش</translation>
     </message>
     <message>
         <source>Disable</source>
@@ -644,199 +654,202 @@ For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, 
     </message>
     <message>
         <source>Remote DNS</source>
-        <translation type="unfinished">دی ان اس سمت-سرور</translation>
+        <translation>دی ان اس سمت-سرور</translation>
     </message>
     <message>
         <source>Direct DNS</source>
-        <translation type="unfinished">دی ان اس مستقیم</translation>
+        <translation>دی ان اس مستقیم</translation>
     </message>
     <message>
         <source>Sniff result for routing</source>
-        <translation type="unfinished"></translation>
+        <translation>نتیجه پویش برای مسیریابی</translation>
     </message>
     <message>
         <source>Sniff result for destination</source>
-        <translation type="unfinished"></translation>
+        <translation>نتیجه پویش برای مقصد</translation>
     </message>
     <message>
         <source>Common</source>
-        <translation type="unfinished">متداول</translation>
+        <translation>متداول</translation>
     </message>
     <message>
         <source>DNS</source>
-        <translation type="unfinished">دی ان اس</translation>
+        <translation>دی‌ان‌اس</translation>
     </message>
     <message>
         <source>Simple DNS Settings</source>
-        <translation type="unfinished">تنظیمات دی ان اس ساده</translation>
+        <translation>تنظیمات دی ان اس ساده</translation>
     </message>
     <message>
         <source>Use DNS Object</source>
-        <translation type="unfinished"></translation>
+        <translation>به‌کارگیری شیء دی‌ان‌اس</translation>
     </message>
     <message>
         <source>DNS Object Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>تنظیمات شیء دی‌ان‌اس</translation>
     </message>
     <message>
         <source>Query Strategy</source>
-        <translation type="unfinished"></translation>
+        <translation>راهبرد پرس‌وجو</translation>
     </message>
     <message>
         <source>Document</source>
-        <translation type="unfinished">اسناد</translation>
+        <translation>اسناد</translation>
     </message>
     <message>
         <source>Format</source>
-        <translation type="unfinished">فرمت</translation>
+        <translation>فرمت</translation>
     </message>
     <message>
         <source>This is especially important and it is recommended to use the default value of &quot;localhost&quot;.
 If the default value does not work, try changing it to &quot;223.5.5.5&quot;.
 For more information, see the document &quot;Configuration/DNS&quot;.</source>
-        <translation type="unfinished"></translation>
+        <translation>این بسیار مهم است و توصیه می‌شود از مقدار پیش‌فرض
+        &quot;localhost&quot;
+        استفاده کنید. اگر مقدار پیش‌فرض کار نکرد، آن را به &quot;223.5.5.5&quot; تغییر دهید.
+        برای اطلاعات بیشتر، به مستند &quot;Configuration/DNS&quot; مراجعه کنید.</translation>
     </message>
     <message>
         <source>Sniffs the connections intial packet(s?) to identify the protocol and the SNI. Sniff result for destination also rewrites the destionation of the connection to the sniffed SNI. For more data on the sniffed protocol refer to the sing-box&apos;s documentation.</source>
-        <translation type="unfinished"></translation>
+        <translation>بسته‌های اولیه اتصال را پویش می‌کند تا پروتکل و SNI را شناسایی کند. نتیجه پویش برای مقصد، مقصد اتصال را به SNI پویش‌شده بازنویسی می‌کند. برای اطلاعات بیشتر درباره پروتکل پویش‌شده، به مستندات sing-box مراجعه کنید.</translation>
     </message>
     <message>
         <source>Routing Profile</source>
-        <translation type="unfinished"></translation>
+        <translation>نمایه مسیریابی</translation>
     </message>
     <message>
         <source>Default DNS server</source>
-        <translation type="unfinished"></translation>
+        <translation>سرور دی‌ان‌اس پیش‌فرض</translation>
     </message>
     <message>
         <source>Route</source>
-        <translation type="unfinished"></translation>
+        <translation>مسیر</translation>
     </message>
     <message>
         <source>Routing Profiles</source>
-        <translation type="unfinished"></translation>
+        <translation>نمایه‌های مسیریابی</translation>
     </message>
     <message>
         <source>New</source>
-        <translation type="unfinished"></translation>
+        <translation>جدید</translation>
     </message>
     <message>
         <source>Edit</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <source>Delete</source>
-        <translation type="unfinished">از بین بردن</translation>
+        <translation>از بین بردن</translation>
     </message>
     <message>
         <source>outbound.domain_strategy
 when set, domain destinations are resolved to IP before connect,
 also if the connection cannot be established with the current address family (ipv4, ipv6), a fallback connection is created shortly after, with the other address family.</source>
-        <translation type="unfinished"></translation>
+        <translation>وقتی outbound.domain_strategy تنظیم شود، مقصدهای دامنه قبل از اتصال به IP تبدیل می‌شوند، همچنین اگر اتصال با خانواده آدرس کنونی (IPv4، IPv6) برقرار نشود، اتصال جایگزین با خانواده آدرس دیگر به‌زودی ایجاد می‌شود.</translation>
     </message>
     <message>
         <source>Outbound Domain Strategy</source>
-        <translation type="unfinished"></translation>
+        <translation>راهبرد دامنه خروجی</translation>
     </message>
     <message>
         <source>Inbound Domain Strategy</source>
-        <translation type="unfinished"></translation>
+        <translation>راهبرد دامنه ورودی</translation>
     </message>
     <message>
         <source>Enable FakeIP</source>
-        <translation type="unfinished"></translation>
+        <translation>فعال کردن IP جعلی</translation>
     </message>
     <message>
         <source>Hijack</source>
-        <translation type="unfinished"></translation>
+        <translation>ربایش</translation>
     </message>
     <message>
         <source>DNS Server</source>
-        <translation type="unfinished"></translation>
+        <translation>سرور دی‌ان‌اس</translation>
     </message>
     <message>
         <source>Enable</source>
-        <translation type="unfinished">فعال کردن</translation>
+        <translation>فعال کردن</translation>
     </message>
     <message>
         <source>How does it work?</source>
-        <translation type="unfinished"></translation>
+        <translation>چگونه کار می‌کند؟</translation>
     </message>
     <message>
         <source>Listen Address</source>
-        <translation type="unfinished">آدرس درحال شنود</translation>
+        <translation>آدرس درحال شنود</translation>
     </message>
     <message>
         <source>Listen Port</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Following format should be used:&lt;br/&gt;domain:a.com&lt;/p&gt;&lt;p&gt;suffix:a.com&lt;/p&gt;&lt;p&gt;regex:someregex&lt;/p&gt;&lt;p&gt;rule_set:nameOfRuleSet&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;از قالب زیر باید استفاده شود:&lt;br/&gt;دامنه:a.com&lt;/p&gt;&lt;p&gt;پسوند:a.com&lt;/p&gt;&lt;p&gt;رجکس:someregex&lt;/p&gt;&lt;p&gt;مجموعه_قوانین:nameOfRuleSet&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Rules</source>
-        <translation type="unfinished"></translation>
+        <translation>قوانین</translation>
     </message>
     <message>
         <source>IPv4 Response</source>
-        <translation type="unfinished"></translation>
+        <translation>پاسخ IPv4</translation>
     </message>
     <message>
         <source>IPv6 Response</source>
-        <translation type="unfinished"></translation>
+        <translation>پاسخ IPv6</translation>
     </message>
     <message>
         <source>Redirect Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>تنظیمات هدایت</translation>
     </message>
     <message>
         <source>tls://8.8.8.8</source>
-        <translation type="unfinished"></translation>
+        <translation>tls://8.8.8.8</translation>
     </message>
     <message>
         <source>Clone</source>
-        <translation type="unfinished">همزادسازی</translation>
+        <translation>همزادسازی</translation>
     </message>
     <message>
         <source>Export</source>
-        <translation type="unfinished"></translation>
+        <translation>استخراج</translation>
     </message>
     <message>
         <source>Invalid state</source>
-        <translation type="unfinished"></translation>
+        <translation>وضعیت نامعتبر</translation>
     </message>
     <message>
         <source>The list of routing profiles is empty, this should be an unreachable state, crashes may occur now</source>
-        <translation type="unfinished"></translation>
+        <translation>فهرست نمایه‌های مسیریابی خالی است، این وضعیت غیرقابل دسترس است و ممکن است خرابی رخ دهد</translation>
     </message>
     <message>
         <source>Invalid settings</source>
-        <translation type="unfinished"></translation>
+        <translation>تنظیمات نادرست</translation>
     </message>
     <message>
         <source>Routing profile cannot be empty</source>
-        <translation type="unfinished"></translation>
+        <translation>نمایه مسیریابی نمی‌تواند خالی باشد</translation>
     </message>
     <message>
         <source>DNS Rules are not valid</source>
-        <translation type="unfinished"></translation>
+        <translation>قوانین دی‌ان‌اس معتبر نیستند</translation>
     </message>
     <message>
         <source>Invalid operation</source>
-        <translation type="unfinished"></translation>
+        <translation>عملیات نادرست</translation>
     </message>
     <message>
         <source>Routing Profiles cannot be empty, try adding another profile or editing this one</source>
-        <translation type="unfinished"></translation>
+        <translation>نمایه‌های مسیریابی نمی‌توانند خالی باشند، یک نمایه دیگر اضافه کنید یا این یکی را ویرایش کنید</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Whether to listen on 0.0.0.0 so that other devices on LAN can use this server&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;آیا روی 0.0.0.0 شنود کند تا دستگاه‌های دیگر در LAN بتوانند از این سرور استفاده کنند&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Allow Lan to Connect</source>
-        <translation type="unfinished"></translation>
+        <translation>اجازه اتصال به LAN</translation>
     </message>
 </context>
 <context>
@@ -847,53 +860,56 @@ also if the connection cannot be established with the current address family (ip
     </message>
     <message>
         <source>Tun Enable IPv6</source>
-        <translation type="unfinished"></translation>
+        <translation>فعال کردن IPv6 برای Tun</translation>
     </message>
     <message>
         <source>Troubleshooting</source>
-        <translation type="unfinished">عیب یابی</translation>
+        <translation>عیب یابی</translation>
     </message>
     <message>
         <source>If you have trouble starting VPN, you can force reset Core process here.
 
 If still not working, see documentation for more information.
 https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
-        <translation type="unfinished"></translation>
+        <translation>اگر در راه‌اندازی VPN مشکل دارید، می‌توانید فرآیند هسته را اینجا بازنشانی کنید.
+
+اگر همچنان کار نکرد، برای اطلاعات بیشتر به مستندات مراجعه کنید:
+https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Reset</source>
-        <translation type="unfinished">بازنشانی</translation>
+        <translation>بازنشانی</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">لغو کردن</translation>
+        <translation>لغو کردن</translation>
     </message>
     <message>
         <source>Strict Route</source>
-        <translation type="unfinished"></translation>
+        <translation>مسیر سخت‌گیرانه</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, Direct IP CIDRs and rule sets will also be added to the Tun setting to be excluded at OS routing level. IMPORTANT: Large rule sets have been reported to cause massive CPU usage in windows, please enable this option with caution.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;در صورت فعال بودن، CIDRهای IP مستقیم و مجموعه‌قوانین نیز به تنظیمات Tun اضافه می‌شوند تا در سطح مسیریابی سیستم‌عامل مستثنی شوند. مهم: گزارش شده که مجموعه‌قوانین بزرگ در ویندوز مصرف CPU زیادی دارند، لطفاً این گزینه را با احتیاط فعال کنید.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Enable Tun Routing</source>
-        <translation type="unfinished"></translation>
+        <translation>فعال کردن مسیریابی Tun</translation>
     </message>
 </context>
 <context>
     <name>EditChain</name>
     <message>
         <source>Traffic order is from top to bottom</source>
-        <translation type="unfinished">عبور ترافیک از بالا به پایین است</translation>
+        <translation>عبور ترافیک از بالا به پایین است</translation>
     </message>
     <message>
         <source>Select Profile</source>
-        <translation>انتخاب کردن پروفایل</translation>
+        <translation>انتخاب کردن نمایه</translation>
     </message>
     <message>
         <source>Name cannot be empty.</source>
-        <translation type="unfinished">نام نمیتواند خالی باشد</translation>
+        <translation>نام نمیتواند خالی باشد</translation>
     </message>
 </context>
 <context>
@@ -912,199 +928,199 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
     </message>
     <message>
         <source>Please fill the complete config.</source>
-        <translation type="unfinished"></translation>
+        <translation>لطفاً پیکربندی کامل را پر کنید.</translation>
     </message>
     <message>
         <source>Name cannot be empty.</source>
-        <translation type="unfinished">نام نمیتواند خالی باشد</translation>
+        <translation>نام نمیتواند خالی باشد</translation>
     </message>
 </context>
 <context>
     <name>EditExtraCore</name>
     <message>
         <source>Form</source>
-        <translation type="unfinished"></translation>
+        <translation>فرم</translation>
     </message>
     <message>
         <source>Socks address</source>
-        <translation type="unfinished"></translation>
+        <translation>نشانی Socks</translation>
     </message>
     <message>
         <source>127.0.0.1</source>
-        <translation type="unfinished"></translation>
+        <translation>127.0.0.1</translation>
     </message>
     <message>
         <source>Socks port</source>
-        <translation type="unfinished"></translation>
+        <translation>پورت Socks</translation>
     </message>
     <message>
         <source>1080</source>
-        <translation type="unfinished"></translation>
+        <translation>1080</translation>
     </message>
     <message>
         <source>Core path</source>
-        <translation type="unfinished"></translation>
+        <translation>مسیر هسته</translation>
     </message>
     <message>
         <source>Choose from file</source>
-        <translation type="unfinished"></translation>
+        <translation>انتخاب از پرونده</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;args to pass to the executable. You can insert a single %s and it will be replaced with the path to a file containing the config entered below.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;آرگومان‌هایی که به فایل اجرایی منتقل می‌شوند. می‌توانید %s را وارد کنید که با مسیر پرونده حاوی پیکربندی زیر جایگزین می‌شود.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Args</source>
-        <translation type="unfinished"></translation>
+        <translation>آرگومان‌ها</translation>
     </message>
     <message>
         <source>run -confPath %s</source>
-        <translation type="unfinished"></translation>
+        <translation>اجرا -مسیر_پیکربندی %s</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;contents of the config file that will be passed to the extra core process if %s is specified in the args&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;محتویات پرونده پیکربندی که به فرآیند هسته اضافی منتقل می‌شود اگر %s در آرگومان‌ها مشخص شده باشد&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Config</source>
-        <translation type="unfinished"></translation>
+        <translation>پیکربندی</translation>
     </message>
     <message>
         <source>No logs</source>
-        <translation type="unfinished"></translation>
+        <translation>بدون گزارش</translation>
     </message>
 </context>
 <context>
     <name>EditQUIC</name>
     <message>
         <source>Certificate</source>
-        <translation type="unfinished">گواهی</translation>
+        <translation>گواهی</translation>
     </message>
     <message>
         <source>Auth Type</source>
-        <translation type="unfinished"></translation>
+        <translation>نوع احراز هویت</translation>
     </message>
     <message>
         <source>Download (Mbps)</source>
-        <translation type="unfinished">دانلود (مگابیت بر ثانیه)</translation>
+        <translation>دانلود (مگابیت بر ثانیه)</translation>
     </message>
     <message>
         <source>Disable MTU Discovery</source>
-        <translation type="unfinished"></translation>
+        <translation>غیرفعال کردن کشف MTU</translation>
     </message>
     <message>
         <source>Allow Insecure</source>
-        <translation type="unfinished">اجازه ارتباطات ناامن داده شود</translation>
+        <translation>اجازه ارتباطات ناامن داده شود</translation>
     </message>
     <message>
         <source>Upload (Mbps)</source>
-        <translation type="unfinished">آپلود (مگابیت بر ثانیه)</translation>
+        <translation>آپلود (مگابیت بر ثانیه)</translation>
     </message>
     <message>
         <source>Obfs Password</source>
-        <translation type="unfinished"></translation>
+        <translation>گذرواژه مبهم‌سازی</translation>
     </message>
     <message>
         <source>SNI</source>
-        <translation type="unfinished"></translation>
+        <translation>شناسه نام سرور</translation>
     </message>
     <message>
         <source>Auth Payload</source>
-        <translation type="unfinished"></translation>
+        <translation>محموله احراز هویت</translation>
     </message>
     <message>
         <source>Disable SNI</source>
-        <translation type="unfinished"></translation>
+        <translation>غیرفعال کردن SNI</translation>
     </message>
     <message>
         <source>Password</source>
-        <translation type="unfinished">کلمه عبور</translation>
+        <translation>کلمه عبور</translation>
     </message>
     <message>
         <source>Generate UUID</source>
-        <translation type="unfinished"></translation>
+        <translation>تولید UUID</translation>
     </message>
     <message>
         <source>Heartbeat</source>
-        <translation type="unfinished"></translation>
+        <translation>ضربان قلب</translation>
     </message>
     <message>
         <source>Zero Rtt Handshake</source>
-        <translation type="unfinished"></translation>
+        <translation>دست‌دهی صفر RTT</translation>
     </message>
     <message>
         <source>Congestion Control</source>
-        <translation type="unfinished"></translation>
+        <translation>کنترل ازدحام</translation>
     </message>
     <message>
         <source>UDP Relay Mode</source>
-        <translation type="unfinished"></translation>
+        <translation>حالت رله UDP</translation>
     </message>
     <message>
         <source>Port range</source>
-        <translation type="unfinished"></translation>
+        <translation>محدوده پورت</translation>
     </message>
     <message>
         <source>Hop Interval</source>
-        <translation type="unfinished"></translation>
+        <translation>فاصله پرش</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;100ms&lt;br/&gt;1s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>100 میلی‌ثانیه<br/>1 ثانیه</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma seperated ranges: 100:200,500:600&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;محدوده‌های جدا شده با کاما: 100:200,500:600&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
 </context>
 <context>
     <name>EditSSH</name>
     <message>
         <source>EditSSH</source>
-        <translation type="unfinished"></translation>
+        <translation>ویرایش SSH</translation>
     </message>
     <message>
         <source>User</source>
-        <translation type="unfinished"></translation>
+        <translation>کاربر</translation>
     </message>
     <message>
         <source>Password</source>
-        <translation type="unfinished">کلمه عبور</translation>
+        <translation>کلمه عبور</translation>
     </message>
     <message>
         <source>Private Key</source>
-        <translation type="unfinished"></translation>
+        <translation>کلید خصوصی</translation>
     </message>
     <message>
         <source>Private Key Password</source>
-        <translation type="unfinished"></translation>
+        <translation>گذرواژه کلید خصوصی</translation>
     </message>
     <message>
         <source>Host Key</source>
-        <translation type="unfinished"></translation>
+        <translation>کلید میزبان</translation>
     </message>
     <message>
         <source>Host Key Algorithms</source>
-        <translation type="unfinished"></translation>
+        <translation>الگوریتم‌های کلید میزبان</translation>
     </message>
     <message>
         <source>Client Version</source>
-        <translation type="unfinished"></translation>
+        <translation>نسخه کلاینت</translation>
     </message>
     <message>
         <source>Private Key Path</source>
-        <translation type="unfinished"></translation>
+        <translation>مسیر کلید خصوصی</translation>
     </message>
     <message>
         <source>Choose File</source>
-        <translation type="unfinished"></translation>
+        <translation>انتخاب پرونده</translation>
     </message>
 </context>
 <context>
     <name>EditShadowSocks</name>
     <message>
         <source>Plugin Args</source>
-        <translation type="unfinished"></translation>
+        <translation>آرگومان‌های پلاگین</translation>
     </message>
     <message>
         <source>Password</source>
@@ -1120,11 +1136,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
     </message>
     <message>
         <source>Version of UDP over TCP protocol, server support is required.</source>
-        <translation type="unfinished"></translation>
+        <translation>نسخه پروتکل UDP روی TCP، پشتیبانی سرور لازم است.</translation>
     </message>
     <message>
         <source>Off</source>
-        <translation type="unfinished">خاموش</translation>
+        <translation>خاموش</translation>
     </message>
 </context>
 <context>
@@ -1153,7 +1169,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
     <name>EditVMess</name>
     <message>
         <source>Alter Id</source>
-        <translation type="unfinished"></translation>
+        <translation>شناسه تغییر</translation>
     </message>
     <message>
         <source>Security</source>
@@ -1161,74 +1177,74 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
     </message>
     <message>
         <source>UUID</source>
-        <translation type="unfinished"></translation>
+        <translation>شناسه یکتا</translation>
     </message>
     <message>
         <source>Generate UUID</source>
-        <translation type="unfinished"></translation>
+        <translation>تولید شناسه یکتا</translation>
     </message>
 </context>
 <context>
     <name>EditWireguard</name>
     <message>
         <source>EditWireguard</source>
-        <translation type="unfinished"></translation>
+        <translation>ویرایش Wireguard</translation>
     </message>
     <message>
         <source>Reserved</source>
-        <translation type="unfinished"></translation>
+        <translation>رزروشده</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;comma seperated list of subnets&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;فهرست زیرشبکه‌های جدا شده با کاما&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Local Address</source>
-        <translation type="unfinished"></translation>
+        <translation>نشانی محلی</translation>
     </message>
     <message>
         <source>Pre Shared Key</source>
-        <translation type="unfinished"></translation>
+        <translation>کلید پیش‌اشتراک‌شده</translation>
     </message>
     <message>
         <source>Use System Interface</source>
-        <translation type="unfinished"></translation>
+        <translation>استفاده از رابط سیستم</translation>
     </message>
     <message>
         <source>Enable GSO</source>
-        <translation type="unfinished"></translation>
+        <translation>فعال کردن GSO</translation>
     </message>
     <message>
         <source>Public Key</source>
-        <translation type="unfinished"></translation>
+        <translation>کلید عمومی</translation>
     </message>
     <message>
         <source>Private Key</source>
-        <translation type="unfinished"></translation>
+        <translation>کلید خصوصی</translation>
     </message>
     <message>
         <source>1420</source>
-        <translation type="unfinished"></translation>
+        <translation>1420</translation>
     </message>
     <message>
         <source>MTU</source>
-        <translation type="unfinished"></translation>
+        <translation>MTU</translation>
     </message>
     <message>
         <source>Workers</source>
-        <translation type="unfinished"></translation>
+        <translation>کارگران</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;persistent_keepalive_interval in seconds&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;فاصله نگه‌داری پایدار به ثانیه&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Persistent Keepalive</source>
-        <translation type="unfinished"></translation>
+        <translation>نگه‌داری پایدار</translation>
     </message>
 </context>
 <context>
@@ -1259,30 +1275,30 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
     </message>
     <message>
         <source>Last update: %1</source>
-        <translation type="unfinished">آخرین آپدیت : %1</translation>
+        <translation>آخرین به‌روزرسانی : %1</translation>
     </message>
     <message>
         <source>Confirmation</source>
-        <translation type="unfinished">تایید</translation>
+        <translation>تایید</translation>
     </message>
     <message>
         <source>Remove %1?</source>
-        <translation type="unfinished">حذف %1?</translation>
+        <translation>حذف %1?</translation>
     </message>
 </context>
 <context>
     <name>JsonEditor</name>
     <message>
         <source>JSON Editor</source>
-        <translation type="unfinished">ویرایشگر JSON</translation>
+        <translation>ویرایشگر JSON</translation>
     </message>
     <message>
         <source>Format JSON</source>
-        <translation type="unfinished">فرمت JSON</translation>
+        <translation>فرمت JSON</translation>
     </message>
     <message>
         <source>Remove All Comments</source>
-        <translation type="unfinished">حذف همه کامنت ها</translation>
+        <translation>حذف همه کامنت ها</translation>
     </message>
     <message>
         <source>Json Editor</source>
@@ -1290,23 +1306,23 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
     </message>
     <message>
         <source>Structure Preview</source>
-        <translation type="unfinished">پیش نمایش ساختار</translation>
+        <translation>پیش نمایش ساختار</translation>
     </message>
     <message>
         <source>OK</source>
-        <translation type="unfinished">تایید</translation>
+        <translation>تایید</translation>
     </message>
     <message>
         <source>Json Contains Syntax Errors</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <source>Original Json may contain syntax errors. Json tree is disabled.</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <source>You must correct these errors before continuing.</source>
-        <translation type="unfinished">شما باید این ایرادات را قبل از ادامه دادن اصلاح کنید</translation>
+        <translation>شما باید این ایرادات را قبل از ادامه دادن اصلاح کنید</translation>
     </message>
     <message>
         <source>Syntax Errors</source>
@@ -1314,7 +1330,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
     </message>
     <message>
         <source>Please fix the JSON errors or remove the comments before continue</source>
-        <translation type="unfinished">لطفا قبل از ادامه دادن ایرادات JSON را اصلاح کنید یا کامنت ها را حذف کنید</translation>
+        <translation>لطفا قبل از ادامه دادن ایرادات JSON را اصلاح کنید یا کامنت ها را حذف کنید</translation>
     </message>
 </context>
 <context>
@@ -1377,7 +1393,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
     </message>
     <message>
         <source>New profile</source>
-        <translation>پروفایل جدید</translation>
+        <translation>نمایه جدید</translation>
     </message>
     <message>
         <source>Groups</source>
@@ -1397,7 +1413,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
     </message>
     <message>
         <source>Add profile from clipboard</source>
-        <translation>افزودن پروفایل از کلیپ بورد</translation>
+        <translation>افزودن نمایه از کلیپ بورد</translation>
     </message>
     <message>
         <source>Delete</source>
@@ -1421,7 +1437,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
     </message>
     <message>
         <source>Export %1 config</source>
-        <translation type="unfinished"></translation>
+        <translation>استخراج پیکربندی %1</translation>
     </message>
     <message>
         <source>Reset Traffic</source>
@@ -1457,7 +1473,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
     </message>
     <message>
         <source>Remember last profile</source>
-        <translation>آخرین پروفایل را به خاطر بسپار</translation>
+        <translation>آخرین نمایه را به خاطر بسپار</translation>
     </message>
     <message>
         <source>Allow other devices to connect</source>
@@ -1537,7 +1553,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
     </message>
     <message>
         <source>Imported %1 profile(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 نمایه وارد شد</translation>
     </message>
     <message>
         <source>Not Running</source>
@@ -1549,15 +1565,15 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
     </message>
     <message>
         <source>Clone %1 item(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>همزادسازی %1 مورد</translation>
     </message>
     <message>
         <source>Remove %1 item(s) ?</source>
-        <translation type="unfinished"></translation>
+        <translation>حذف %1 مورد؟</translation>
     </message>
     <message>
         <source>Copied %1 item(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 مورد کپی شد</translation>
     </message>
     <message>
         <source>Config copied</source>
@@ -1577,7 +1593,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
     </message>
     <message>
         <source>[%1] test error: %2</source>
-        <translation type="unfinished"></translation>
+        <translation>خطای تست [%1]: %2</translation>
     </message>
     <message>
         <source>Testing</source>
@@ -1589,11 +1605,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
     </message>
     <message>
         <source>Starting profile %1</source>
-        <translation>اغاز پروفایل %1</translation>
+        <translation>اغاز نمایه %1</translation>
     </message>
     <message>
         <source>Stopping profile %1</source>
-        <translation>متوقف کردن پروفایل %1</translation>
+        <translation>متوقف کردن نمایه %1</translation>
     </message>
     <message>
         <source>Show Window</source>
@@ -1601,335 +1617,335 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
     </message>
     <message>
         <source>Settings changed</source>
-        <translation type="unfinished">تنظیمات تغییر کرد</translation>
+        <translation>تنظیمات تغییر کرد</translation>
     </message>
     <message>
         <source>Restart Proxy</source>
-        <translation type="unfinished">راه اندازی مجدد پروکسی</translation>
+        <translation>راه اندازی مجدد پروکسی</translation>
     </message>
     <message>
         <source>If there is no response for a long time, it is recommended to restart the software.</source>
-        <translation type="unfinished">اگر برای مدت زمان طولانی هیچ پاسخی دریافت نشد ، پیشنهاد میشود که نرم افزار را دوباره اجرا کنید</translation>
+        <translation>اگر برای مدت زمان طولانی هیچ پاسخی دریافت نشد ، پیشنهاد میشود که نرم افزار را دوباره اجرا کنید</translation>
     </message>
     <message>
         <source>Failed to start profile %1</source>
-        <translation type="unfinished"></translation>
+        <translation>راه‌اندازی نمایه %1 ناموفق بود</translation>
     </message>
     <message>
         <source>Failed to stop, please restart the program.</source>
-        <translation type="unfinished">توقف ناموفق بود ، لطفا برنامه را دوباره اجرا کنید</translation>
+        <translation>توقف ناموفق بود ، لطفا برنامه را دوباره اجرا کنید</translation>
     </message>
     <message>
         <source>Select mode, double-click or press Enter to select a profile, press ESC to exit.</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <source>Restart the program to take effect.</source>
-        <translation type="unfinished">برای مشاهده نتیجه برنامه را دوباره راه اندازی کنید</translation>
+        <translation>برای مشاهده نتیجه برنامه را دوباره راه اندازی کنید</translation>
     </message>
     <message>
         <source>Stop Testing</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <source>Tun device misbehaving</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <source>Reset</source>
-        <translation type="unfinished">بازنشانی</translation>
+        <translation>بازنشانی</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">لغو کردن</translation>
+        <translation>لغو کردن</translation>
     </message>
     <message>
         <source>Please run Nekoray as admin</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <source>Add new Group</source>
-        <translation type="unfinished"></translation>
+        <translation>افزودن گروه جدید</translation>
     </message>
     <message>
         <source>Delete selected Group</source>
-        <translation type="unfinished"></translation>
+        <translation>حذف گروه انتخاب‌شده</translation>
     </message>
     <message>
         <source>Edit selected Group</source>
-        <translation type="unfinished"></translation>
+        <translation>ویرایش گروه انتخاب‌شده</translation>
     </message>
     <message>
         <source>Remove %1?</source>
-        <translation type="unfinished">حذف %1?</translation>
+        <translation>حذف %1?</translation>
     </message>
     <message>
         <source>Url Test Selected</source>
-        <translation type="unfinished"></translation>
+        <translation>تست نشانی انتخاب‌شده</translation>
     </message>
     <message>
         <source>Ctrl+Shift+S</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <source>Url Test Group</source>
-        <translation type="unfinished"></translation>
+        <translation>تست نشانی گروه</translation>
     </message>
     <message>
         <source>Ctrl+Shift+G</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <source>Hidden menu</source>
-        <translation type="unfinished"></translation>
+        <translation>منوی مخفی</translation>
     </message>
     <message>
         <source>Resolve Selected Domain</source>
-        <translation type="unfinished"></translation>
+        <translation>حل دامنه انتخاب‌شده</translation>
     </message>
     <message>
         <source>Remove Invalid</source>
-        <translation type="unfinished"></translation>
+        <translation>حذف موارد نادرست</translation>
     </message>
     <message>
         <source>Ctrl+Alt+I</source>
-        <translation type="unfinished"></translation>
+        <translation>Ctrl+Alt+I</translation>
     </message>
     <message>
         <source>If you have trouble starting VPN, you can force reset Core process here and then try starting the profile again. The error is %1</source>
-        <translation type="unfinished"></translation>
+        <translation>اگر در راه‌اندازی VPN مشکل دارید، می‌توانید فرآیند هسته را اینجا بازنشانی کنید و سپس دوباره نمایه را راه‌اندازی کنید. خطا: %1</translation>
     </message>
     <message>
         <source> Confirmation </source>
-        <translation type="unfinished"></translation>
+        <translation>تأیید</translation>
     </message>
     <message>
         <source> Remove %1 item(s) ? </source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <source>Remove %1 Unavailable item(s) ?</source>
-        <translation type="unfinished"></translation>
+        <translation>حذف %1 مورد غیرقابل دسترس؟</translation>
     </message>
     <message>
         <source>Remove %1 Invalid item(s) ?</source>
-        <translation type="unfinished"></translation>
+        <translation>حذف %1 مورد نادرست؟</translation>
     </message>
     <message>
         <source>Replace domain server addresses with their resolved IPs?</source>
-        <translation type="unfinished"></translation>
+        <translation>جایگزینی نشانی‌های سرور دامنه با IPهای حل‌شده آن‌ها؟</translation>
     </message>
     <message>
         <source>System DNS</source>
-        <translation type="unfinished"></translation>
+        <translation>دی‌ان‌اس سیستم</translation>
     </message>
     <message>
         <source>Connections</source>
-        <translation type="unfinished"></translation>
+        <translation>اتصال‌ها</translation>
     </message>
     <message>
         <source>Click To Disable Sorting</source>
-        <translation type="unfinished"></translation>
+        <translation>برای غیرفعال کردن مرتب‌سازی کلیک کنید</translation>
     </message>
     <message>
         <source>Protocol</source>
-        <translation type="unfinished">پروتکل</translation>
+        <translation>پروتکل</translation>
     </message>
     <message>
         <source>Logs</source>
-        <translation type="unfinished"></translation>
+        <translation>گزارش‌ها</translation>
     </message>
     <message>
         <source>Geo Assets are missing, want to download them now?</source>
-        <translation type="unfinished"></translation>
+        <translation>منابع جغرافیایی وجود ندارند، آیا می‌خواهید اکنون آن‌ها را بارگیری کنید؟</translation>
     </message>
     <message>
         <source>Please give the core root privileges</source>
-        <translation type="unfinished"></translation>
+        <translation>لطفاً به هسته دسترسی ریشه بدهید</translation>
     </message>
     <message>
         <source>Requesting permission</source>
-        <translation type="unfinished"></translation>
+        <translation>درخواست دسترسی</translation>
     </message>
     <message>
         <source>Please Enter your password in the opened terminal, then try again</source>
-        <translation type="unfinished"></translation>
+        <translation>لطفاً گذرواژه خود را در ترمینال بازشده وارد کنید و دوباره امتحان کنید</translation>
     </message>
     <message>
         <source>Application</source>
-        <translation type="unfinished"></translation>
+        <translation>برنامه</translation>
     </message>
     <message>
         <source>Settings</source>
-        <translation type="unfinished">تنظیمات</translation>
+        <translation>تنظیمات</translation>
     </message>
     <message>
         <source>Profiles</source>
-        <translation type="unfinished"></translation>
+        <translation>نمایه‌ها</translation>
     </message>
     <message>
         <source>Routing</source>
-        <translation type="unfinished"></translation>
+        <translation>مسیریابی</translation>
     </message>
     <message>
         <source>Destination (Domain)</source>
-        <translation type="unfinished"></translation>
+        <translation>مقصد (دامنه)</translation>
     </message>
     <message>
         <source>Process</source>
-        <translation type="unfinished"></translation>
+        <translation>فرآیند</translation>
     </message>
     <message>
         <source>Click To Sort By Process</source>
-        <translation type="unfinished"></translation>
+        <translation>برای مرتب‌سازی بر اساس فرآیند کلیک کنید</translation>
     </message>
     <message>
         <source>Routing Menu</source>
-        <translation type="unfinished"></translation>
+        <translation>منوی مسیریابی</translation>
     </message>
     <message>
         <source>Open Manager</source>
-        <translation type="unfinished"></translation>
+        <translation>باز کردن مدیر</translation>
     </message>
     <message>
         <source>Profile test aborted</source>
-        <translation type="unfinished"></translation>
+        <translation>تست نمایه لغو شد</translation>
     </message>
     <message>
         <source>Something is very wrong, the subject ent cannot be found!</source>
-        <translation type="unfinished"></translation>
+        <translation>مشکلی جدی وجود دارد، موضوع موردنظر یافت نشد!</translation>
     </message>
     <message>
         <source>Profile manager data is corrupted, try again.</source>
-        <translation type="unfinished"></translation>
+        <translation>داده‌های مدیر نمایه خراب شده‌اند، دوباره امتحان کنید.</translation>
     </message>
     <message>
         <source>The last speed test did not exit completely, please wait. If it persists, please restart the program.</source>
-        <translation type="unfinished"></translation>
+        <translation>آخرین تست سرعت به‌طور کامل پایان نیافته است، لطفاً صبر کنید. اگر ادامه یافت، برنامه را دوباره راه‌اندازی کنید.</translation>
     </message>
     <message>
         <source>Failed to build test config: </source>
-        <translation type="unfinished"></translation>
+        <translation>ساخت پیکربندی تست ناموفق بود: </translation>
     </message>
     <message>
         <source>Speedtest finished!</source>
-        <translation type="unfinished"></translation>
+        <translation>تست سرعت به پایان رسید!</translation>
     </message>
     <message>
         <source>Failed to stop tests</source>
-        <translation type="unfinished"></translation>
+        <translation>توقف تست‌ها ناموفق بود</translation>
     </message>
     <message>
         <source>You need to enable hijack DNS server first</source>
-        <translation type="unfinished"></translation>
+        <translation>ابتدا باید سرور دی‌ان‌اس ربایش را فعال کنید</translation>
     </message>
     <message>
         <source>Failed to set system dns: </source>
-        <translation type="unfinished"></translation>
+        <translation>تنظیم دی‌ان‌اس سیستم ناموفق بود: </translation>
     </message>
     <message>
         <source>BuildConfig return error</source>
-        <translation type="unfinished"></translation>
+        <translation>خطای بازگشت BuildConfig</translation>
     </message>
     <message>
         <source>Another profile is starting...</source>
-        <translation type="unfinished"></translation>
+        <translation>نمایه دیگری در حال راه‌اندازی است...</translation>
     </message>
     <message>
         <source>Another profile is stopping...</source>
-        <translation type="unfinished"></translation>
+        <translation>نمایه دیگری در حال توقف است...</translation>
     </message>
     <message>
         <source>Try to start the config, but the core has not listened to the grpc port, so restart it...</source>
-        <translation type="unfinished"></translation>
+        <translation>تلاش برای شروع پیکربندی، اما هسته به پورت grpc گوش نداده است، بنابراین آن را دوباره راه‌اندازی کنید...</translation>
     </message>
     <message>
         <source>Stop return error</source>
-        <translation type="unfinished"></translation>
+        <translation>خطای بازگشت توقف</translation>
     </message>
     <message>
         <source>Copy core config</source>
-        <translation type="unfinished"></translation>
+        <translation>کپی پیکربندی هسته</translation>
     </message>
     <message>
         <source>Copy test config</source>
-        <translation type="unfinished"></translation>
+        <translation>کپی پیکربندی تست</translation>
     </message>
     <message>
         <source>Cannot start</source>
-        <translation type="unfinished"></translation>
+        <translation>نمی‌توان شروع کرد</translation>
     </message>
     <message>
         <source>Last download request has not finished yet</source>
-        <translation type="unfinished"></translation>
+        <translation>آخرین درخواست بارگیری هنوز به پایان نرسیده است</translation>
     </message>
     <message>
         <source>Failed to download geoip: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>بارگیری GeoIP ناموفق بود: %1</translation>
     </message>
     <message>
         <source>Failed to download geosite: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>بارگیری GeoSite ناموفق بود: %1</translation>
     </message>
     <message>
         <source>Failed to download geo assets</source>
-        <translation type="unfinished"></translation>
+        <translation>بارگیری منابع جغرافیایی ناموفق بود</translation>
     </message>
     <message>
         <source>Geo Asset update completed!</source>
-        <translation type="unfinished"></translation>
+        <translation>به‌روزرسانی منابع جغرافیایی کامل شد!</translation>
     </message>
     <message>
         <source>Traffic Graph</source>
-        <translation type="unfinished"></translation>
+        <translation>نمودار ترافیک</translation>
     </message>
     <message>
         <source>Failed to download update assets</source>
-        <translation type="unfinished"></translation>
+        <translation>بارگیری منابع به‌روزرسانی ناموفق بود</translation>
     </message>
     <message>
         <source>Speedtest Current</source>
-        <translation type="unfinished"></translation>
+        <translation>تست سرعت کنونی</translation>
     </message>
     <message>
         <source>Speedtest Selected</source>
-        <translation type="unfinished"></translation>
+        <translation>تست سرعت انتخاب‌شده</translation>
     </message>
     <message>
         <source>Speedtest Group</source>
-        <translation type="unfinished"></translation>
+        <translation>تست سرعت گروه</translation>
     </message>
     <message>
         <source>The last url test did not exit completely, please wait. If it persists, please restart the program.</source>
-        <translation type="unfinished"></translation>
+        <translation>آخرین تست نشانی به‌طور کامل پایان نیافته است، لطفاً صبر کنید. اگر ادامه یافت، برنامه را دوباره راه‌اندازی کنید.</translation>
     </message>
     <message>
         <source>URL test finished!</source>
-        <translation type="unfinished"></translation>
+        <translation>تست نشانی به پایان رسید!</translation>
     </message>
     <message>
         <source>Profile speed test aborted</source>
-        <translation type="unfinished"></translation>
+        <translation>تست سرعت نمایه لغو شد</translation>
     </message>
     <message>
         <source>[%1] speed test error: %2</source>
-        <translation type="unfinished"></translation>
+        <translation>خطای تست سرعت [%1]: %2</translation>
     </message>
     <message>
         <source>User opted for no privilege req, some features may not work</source>
-        <translation type="unfinished"></translation>
+        <translation>کاربر درخواست دسترسی را غیرفعال کرده است، برخی ویژگی‌ها ممکن است کار نکنند</translation>
     </message>
     <message>
         <source>Unable to capture screen</source>
-        <translation type="unfinished"></translation>
+        <translation>ناتوانی در ضبط صفحه</translation>
     </message>
     <message>
         <source>Outbound</source>
-        <translation type="unfinished"></translation>
+        <translation>خروجی</translation>
     </message>
     <message>
         <source>Click To Toggle sort by Traffic</source>
-        <translation type="unfinished"></translation>
+        <translation>برای تغییر مرتب‌سازی بر اساس ترافیک کلیک کنید</translation>
     </message>
 </context>
 <context>
@@ -1940,7 +1956,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
     </message>
     <message>
         <source>Remove %1?</source>
-        <translation type="unfinished">حذف %1?</translation>
+        <translation>حذف %1?</translation>
     </message>
 </context>
 <context>
@@ -1954,7 +1970,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
     <name>QObject</name>
     <message>
         <source>Used: %1 Remain: %2 Expire: %3</source>
-        <translation type="unfinished"></translation>
+        <translation>استفاده‌شده: %1 باقی‌مانده: %2 انقضا: %3</translation>
     </message>
     <message>
         <source>Select</source>
@@ -1972,7 +1988,9 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
         <source>Update found: %1
 Release note:
 %2</source>
-        <translation type="unfinished"></translation>
+        <translation>به‌روزرسانی یافت شد: %1
+یادداشت انتشار:
+%2</translation>
     </message>
     <message>
         <source>Open in browser</source>
@@ -1988,39 +2006,42 @@ Release note:
     </message>
     <message>
         <source>url detected</source>
-        <translation type="unfinished">آدرس شناسایی شد</translation>
+        <translation>آدرس شناسایی شد</translation>
     </message>
     <message>
         <source>%1
 How to update?</source>
-        <translation type="unfinished">چگونه بروزرسانی کنم ؟</translation>
+        <translation>چگونه بروزرسانی کنم ؟</translation>
     </message>
     <message>
         <source>Requesting subscription: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>درخواست اشتراک: %1</translation>
     </message>
     <message>
         <source>Requesting subscription %1 error: %2</source>
-        <translation type="unfinished"></translation>
+        <translation>خطای درخواست اشتراک %1: %2</translation>
     </message>
     <message>
         <source>Clearing servers...</source>
-        <translation type="unfinished">پاک کردن سرورها</translation>
+        <translation>در حال پاک کردن سرورها...</translation>
     </message>
     <message>
         <source>Added %1 profiles:
 %2
 Deleted %3 Profiles:
 %4</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 نمایه افزوده شده:
+%2
+%3 نمایه پاک شده:
+%4</translation>
     </message>
     <message>
         <source>Nothing</source>
-        <translation type="unfinished">خالی</translation>
+        <translation>خالی</translation>
     </message>
     <message>
         <source>Change of %1:</source>
-        <translation type="unfinished"></translation>
+        <translation>تغییر %1:</translation>
     </message>
     <message>
         <source>Chain Proxy</source>
@@ -2029,74 +2050,74 @@ Deleted %3 Profiles:
     <message>
         <source>Proxy: %1
 Direct: %2</source>
-        <translation type="unfinished"></translation>
+        <translation>پروکسی: %1 مستقیم: %2</translation>
     </message>
     <message>
         <source>Request with proxy but no profile started.</source>
-        <translation type="unfinished"></translation>
+        <translation>درخواست با پروکسی اما هیچ نمایه‌ای شروع نشده است.</translation>
     </message>
     <message>
         <source>Subscription request fininshed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>درخواست اشتراک به پایان رسید: %1</translation>
     </message>
     <message>
         <source>Core exited, restarting.</source>
-        <translation type="unfinished">هسته برنامه متوقف شد ، در حال راه اندازی مجدد</translation>
+        <translation>هسته برنامه متوقف شد ، در حال راه اندازی مجدد</translation>
     </message>
     <message>
         <source>Core exits too frequently, stop automatic restart this profile.</source>
-        <translation type="unfinished"></translation>
+        <translation>هسته بیش از حد متوقف می‌شود، راه‌اندازی خودکار این نمایه متوقف شود.</translation>
     </message>
     <message>
         <source>Default</source>
-        <translation type="unfinished">پیش فرض</translation>
+        <translation>پیش فرض</translation>
     </message>
     <message>
         <source>Add profiles to this group</source>
-        <translation type="unfinished"></translation>
+        <translation>افزودن نمایه‌ها به این گروه</translation>
     </message>
     <message>
         <source>Create new subscription group</source>
-        <translation type="unfinished"></translation>
+        <translation>ایجاد گروه اشتراک جدید</translation>
     </message>
     <message>
         <source>Could not open file.</source>
-        <translation type="unfinished"></translation>
+        <translation>نمی‌توان پرونده را باز کرد.</translation>
     </message>
     <message>
         <source>Not official support platform</source>
-        <translation type="unfinished"></translation>
+        <translation>پلتفرم پشتیبانی رسمی نیست</translation>
     </message>
     <message>
         <source>Requesting update error: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>خطای درخواست به‌روزرسانی: %1</translation>
     </message>
     <message>
         <source>Tun mode cannot be used with Custom configs</source>
-        <translation type="unfinished"></translation>
+        <translation>حالت Tun با پیکربندی‌های سفارشی قابل استفاده نیست</translation>
     </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">لغو کردن</translation>
+        <translation>لغو کردن</translation>
     </message>
     <message>
         <source>Apply</source>
-        <translation type="unfinished"></translation>
+        <translation>به‌کار بردن</translation>
     </message>
     <message>
         <source>Yes</source>
-        <translation type="unfinished"></translation>
+        <translation>بله</translation>
     </message>
     <message>
         <source>No</source>
-        <translation type="unfinished"></translation>
+        <translation>خیر</translation>
     </message>
     <message>
         <source>OK</source>
-        <translation type="unfinished">تایید</translation>
+        <translation>تایید</translation>
     </message>
 </context>
 <context>
@@ -2110,133 +2131,136 @@ Direct: %2</source>
     <name>RouteItem</name>
     <message>
         <source>Route Profile</source>
-        <translation type="unfinished"></translation>
+        <translation>نمایه مسیر</translation>
     </message>
     <message>
         <source>Name</source>
-        <translation type="unfinished"></translation>
+        <translation>نام</translation>
     </message>
     <message>
         <source>Rules</source>
-        <translation type="unfinished"></translation>
+        <translation>قوانین</translation>
     </message>
     <message>
         <source>New</source>
-        <translation type="unfinished"></translation>
+        <translation>جدید</translation>
     </message>
     <message>
         <source>Move Up</source>
-        <translation type="unfinished"></translation>
+        <translation>بالا بردن</translation>
     </message>
     <message>
         <source>Move Down</source>
-        <translation type="unfinished"></translation>
+        <translation>پایین آوردن</translation>
     </message>
     <message>
         <source>Delete</source>
-        <translation type="unfinished">از بین بردن</translation>
+        <translation>از بین بردن</translation>
     </message>
     <message>
         <source>Rule Attributes</source>
-        <translation type="unfinished"></translation>
+        <translation>ویژگی‌های قانون</translation>
     </message>
     <message>
         <source>Attribute</source>
-        <translation type="unfinished"></translation>
+        <translation>ویژگی</translation>
     </message>
     <message>
         <source>Name_Placeholder</source>
-        <translation type="unfinished"></translation>
+        <translation>جای‌نما_نام</translation>
     </message>
     <message>
         <source>Import JSON</source>
-        <translation type="unfinished"></translation>
+        <translation>وارد کردن JSON</translation>
     </message>
     <message>
         <source>Basic</source>
-        <translation type="unfinished">پایه</translation>
+        <translation>پایه</translation>
     </message>
     <message>
         <source>How to use</source>
-        <translation type="unfinished"></translation>
+        <translation>چگونه استفاده شود</translation>
     </message>
     <message>
         <source>Direct</source>
-        <translation type="unfinished"></translation>
+        <translation>مستقیم</translation>
     </message>
     <message>
         <source>Proxy</source>
-        <translation type="unfinished"></translation>
+        <translation>پروکسی</translation>
     </message>
     <message>
         <source>Block</source>
-        <translation type="unfinished"></translation>
+        <translation>مسدود کردن</translation>
     </message>
     <message>
         <source>Advanced</source>
-        <translation type="unfinished"></translation>
+        <translation>پیشرفته</translation>
     </message>
     <message>
         <source>Invalid rules</source>
-        <translation type="unfinished"></translation>
+        <translation>قوانین نادرست</translation>
     </message>
     <message>
         <source>Some rules could not be added:
 </source>
-        <translation type="unfinished"></translation>
+        <translation>برخی قوانین اضافه نشدند:
+</translation>
     </message>
     <message>
         <source>Simple rule manual</source>
-        <translation type="unfinished"></translation>
+        <translation>راهنمای ساده قوانین</translation>
     </message>
     <message>
         <source>Invalid JSON Array</source>
-        <translation type="unfinished"></translation>
+        <translation>آرایه JSON نادرست</translation>
     </message>
     <message>
         <source>The provided input cannot be parsed to a valid route rule array:
 </source>
-        <translation type="unfinished"></translation>
+        <translation>ورودی ارائه‌شده نمی‌تواند به آرایه قوانین مسیر معتبر تجزیه شود:
+</translation>
     </message>
     <message>
         <source>Invalid operation</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <source>Cannot create Route Profile with empty name</source>
-        <translation type="unfinished"></translation>
+        <translation>نمی‌توان نمایه مسیر با نام خالی ایجاد کرد</translation>
     </message>
     <message>
         <source>Empty Route Profile</source>
-        <translation type="unfinished"></translation>
+        <translation>نمایه مسیر خالی</translation>
     </message>
     <message>
         <source>No valid rules are in the profile</source>
-        <translation type="unfinished"></translation>
+        <translation>هیچ قانون معتبری در نمایه وجود ندارد</translation>
     </message>
     <message>
         <source>Some rules could not be added, fix them before saving:
 </source>
-        <translation type="unfinished"></translation>
+        <translation>برخی قوانین اضافه نشدند، قبل از ذخیره آن‌ها را اصلاح کنید:
+</translation>
     </message>
     <message>
         <source>proxy</source>
-        <translation type="unfinished"></translation>
+        <translation>پروکسی</translation>
     </message>
     <message>
         <source>direct</source>
-        <translation type="unfinished"></translation>
+        <translation>مستقیم</translation>
     </message>
 </context>
 <context>
     <name>SpeedWidget</name>
     <message>
         <source>Proxy</source>
-        <translation type="unfinished"></translation>
+        <translation>پروکسی</translation>
     </message>
     <message>
         <source>Direct</source>
-        <translation type="unfinished"></translation>
+        <translation>مستقیم</translation>
     </message>
 </context>
 </TS>
