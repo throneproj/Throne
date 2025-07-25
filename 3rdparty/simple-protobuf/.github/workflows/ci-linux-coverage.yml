@@ -84,7 +84,7 @@ jobs:
                 curl "https://img.shields.io/badge/protoc_coverage-$coverage%25-$color?logo=github" > report/compiler/coverage.svg
 
             - name: Delete deployment
-              uses: strumwolf/delete-deployment-environment@v2
+              uses: strumwolf/delete-deployment-environment@v3
               with:
                 token: ${{ secrets.GITHUB_TOKEN }}
                 environment: github-pages
