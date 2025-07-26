@@ -109,10 +109,22 @@ namespace Configs {
         if (routes.empty()) {
             auto defaultRoute = RoutingChain::GetDefaultChain();
             profileManager->AddRouteChain(defaultRoute);
-            routes[IranBypassChainID] = RoutingChain::GetIranDefaultChain();
-            routes[ChinaBypassChainID] = RoutingChain::GetChinaDefaultChain();
-            routes[RussiaBypassChainID] = RoutingChain::GetRussiaDefaultChain();
         }
+        
+        // Helper function to ensure bypass routes exist (they don't save to disk due to save_control_no_save)
+        auto ensureBypassRoute = [&](int chainID, std::function<std::shared_ptr<RoutingChain>()> getChainFunc) {
+            if (routes.count(chainID) == 0) {
+                routes[chainID] = getChainFunc();
+                if (!routesIdOrder.contains(chainID)) {
+                    routesIdOrder.push_back(chainID);
+                }
+            }
+        };
+        
+        // Always ensure bypass routes exist
+        ensureBypassRoute(IranBypassChainID, RoutingChain::GetIranDefaultChain);
+        ensureBypassRoute(ChinaBypassChainID, RoutingChain::GetChinaDefaultChain);
+        ensureBypassRoute(RussiaBypassChainID, RoutingChain::GetRussiaDefaultChain);
     }
 
     void ProfileManager::SaveManager() {
