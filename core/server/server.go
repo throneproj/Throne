@@ -40,6 +40,29 @@ func To[T any](v T) *T {
 	return &v
 }
 
+// findDatabaseFiles scans a directory for database files matching a pattern
+func findDatabaseFiles(basePath, pattern string) []string {
+	var files []string
+
+	// Scan the directory for files matching the pattern
+	entries, err := os.ReadDir(basePath)
+	if err != nil {
+		return files
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if strings.Contains(name, pattern) && strings.HasSuffix(name, ".db") {
+			files = append(files, name)
+		}
+	}
+
+	return files
+}
+
 func (s *server) Exit(ctx context.Context, in *gen.EmptyReq) (out *gen.EmptyResp, _ error) {
 	out = &gen.EmptyResp{}
 
@@ -321,39 +344,73 @@ func (s *server) ListConnections(ctx context.Context, in *gen.EmptyReq) (*gen.Li
 	return out, nil
 }
 
-func (s *server) GetGeoIPList(ctx context.Context, in *gen.GeoListRequest) (*gen.GetGeoIPListResponse, error) {
-	resp, err := boxmain.ListGeoip(*in.Path + string(os.PathSeparator) + "geoip.db")
-	if err != nil {
-		return nil, err
+// Helper function to get geo list items from databases
+func getGeoListItems(basePath, pattern, suffix string, listFunc func(string) ([]string, error)) ([]string, error) {
+	// Find all database files matching the pattern
+	dbFiles := findDatabaseFiles(basePath, pattern)
+
+	allResults := make(map[string]bool) // Use map to avoid duplicates
+
+	for _, filename := range dbFiles {
+		dbPath := basePath + string(os.PathSeparator) + filename
+		resp, err := listFunc(dbPath)
+		if err == nil {
+			for _, r := range resp {
+				allResults[r] = true
+			}
+		}
+	}
+
+	if len(allResults) == 0 {
+		return nil, errors.New("no " + pattern + " databases found or readable")
 	}
 
 	res := make([]string, 0)
-	for _, r := range resp {
-		r += "_IP"
-		res = append(res, r)
+	for r := range allResults {
+		res = append(res, r+suffix)
 	}
 
-	return &gen.GetGeoIPListResponse{Items: res}, nil
+	return res, nil
+}
+
+func (s *server) GetGeoIPList(ctx context.Context, in *gen.GeoListRequest) (*gen.GetGeoIPListResponse, error) {
+	items, err := getGeoListItems(*in.Path, "geoip", "_IP", boxmain.ListGeoip)
+	if err != nil {
+		return nil, err
+	}
+	return &gen.GetGeoIPListResponse{Items: items}, nil
 }
 
 func (s *server) GetGeoSiteList(ctx context.Context, in *gen.GeoListRequest) (*gen.GetGeoSiteListResponse, error) {
-	resp, err := boxmain.GeositeList(*in.Path + string(os.PathSeparator) + "geosite.db")
+	items, err := getGeoListItems(*in.Path, "geosite", "_SITE", boxmain.GeositeList)
 	if err != nil {
 		return nil, err
 	}
+	return &gen.GetGeoSiteListResponse{Items: items}, nil
+}
 
-	res := make([]string, 0)
-	for _, r := range resp {
-		r += "_SITE"
-		res = append(res, r)
+// Helper function to compile geo data to SRS
+func compileGeoToSrs(basePath, pattern, suffix string, category string, ruleSetType boxmain.RuleSetType, outputPath string) error {
+	// Find all database files matching the pattern
+	dbFiles := findDatabaseFiles(basePath, pattern)
+
+	var err error
+	for _, filename := range dbFiles {
+		dbPath := basePath + string(os.PathSeparator) + filename
+		err = boxmain.CompileRuleSet(dbPath, category, ruleSetType, outputPath)
+		if err == nil {
+			break
+		}
 	}
 
-	return &gen.GetGeoSiteListResponse{Items: res}, nil
+	return err
 }
 
 func (s *server) CompileGeoIPToSrs(ctx context.Context, in *gen.CompileGeoIPToSrsRequest) (*gen.EmptyResp, error) {
 	category := strings.TrimSuffix(*in.Item, "_IP")
-	err := boxmain.CompileRuleSet(*in.Path+string(os.PathSeparator)+"geoip.db", category, boxmain.IpRuleSet, "./rule_sets/"+*in.Item+".srs")
+	outputPath := "./rule_sets/" + *in.Item + ".srs"
+
+	err := compileGeoToSrs(*in.Path, "geoip", "_IP", category, boxmain.IpRuleSet, outputPath)
 	if err != nil {
 		return nil, err
 	}
@@ -363,7 +420,9 @@ func (s *server) CompileGeoIPToSrs(ctx context.Context, in *gen.CompileGeoIPToSr
 
 func (s *server) CompileGeoSiteToSrs(ctx context.Context, in *gen.CompileGeoSiteToSrsRequest) (*gen.EmptyResp, error) {
 	category := strings.TrimSuffix(*in.Item, "_SITE")
-	err := boxmain.CompileRuleSet(*in.Path+string(os.PathSeparator)+"geosite.db", category, boxmain.SiteRuleSet, "./rule_sets/"+*in.Item+".srs")
+	outputPath := "./rule_sets/" + *in.Item + ".srs"
+
+	err := compileGeoToSrs(*in.Path, "geosite", "_SITE", category, boxmain.SiteRuleSet, outputPath)
 	if err != nil {
 		return nil, err
 	}
