@@ -652,6 +652,7 @@ namespace Configs {
         chain->name = "Bypass Russia";
         chain->id = RussiaBypassChainID;
         chain->save_control_no_save = true;
+        chain->defaultOutboundID = -2; // Set default to direct
 
         auto rule0 = std::make_shared<RouteRule>();
         rule0->name = "Route DNS";
@@ -660,7 +661,7 @@ namespace Configs {
         chain->Rules << rule0;
 
         auto rule1 = std::make_shared<RouteRule>();
-        rule1->name = "Bypass IPs and Domains not banned in Russia";
+        rule1->name = "Proxy IPs and Domains banned in Russia";
         rule1->rule_set << QString("antizapret_IP") << QString("antizapret_SITE");
         rule1->outboundID = -1;
         chain->Rules << rule1;
