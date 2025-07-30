@@ -46,9 +46,6 @@ private:
 	int port_;
 	Conn conn_;
 	uint64_t seq_;
-
-private:
-	GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(Client);
 };
 
 } // namespace protorpc
