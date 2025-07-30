@@ -27,7 +27,7 @@ namespace API {
     QString Client::Start(bool *rpcOK, const libcore::LoadConfigReq &request) {
         libcore::ErrorResp reply;
         std::string resp, req = spb::pb::serialize<std::string>(request);
-        auto err = default_rpc_client->CallMethod("LibcoreService.Start", &req, &resp);
+        auto err = make_rpc_client()->CallMethod("LibcoreService.Start", &req, &resp);
 
         if(err.IsNil()) {
             reply = spb::pb::deserialize< libcore::ErrorResp >(resp);
@@ -43,7 +43,7 @@ namespace API {
         libcore::EmptyReq request;
         libcore::ErrorResp reply;
         std::string resp, req = spb::pb::serialize<std::string>(request);
-        auto err = default_rpc_client->CallMethod("LibcoreService.Stop", &req, &resp);
+        auto err = make_rpc_client()->CallMethod("LibcoreService.Stop", &req, &resp);
 
         if(err.IsNil()) {
             reply = spb::pb::deserialize< libcore::ErrorResp >( resp );
