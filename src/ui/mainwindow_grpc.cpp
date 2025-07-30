@@ -3,7 +3,7 @@
 #include "include/dataStore/Database.hpp"
 #include "include/configs/ConfigBuilder.hpp"
 #include "include/stats/traffic/TrafficLooper.hpp"
-#include "include/api/gRPC.h"
+#include "include/api/RPC.h"
 #include "include/ui/utils//MessageBoxTimer.h"
 #include "3rdparty/qv2ray/v2/proxy/QvProxyConfigurator.hpp"
 
@@ -22,7 +22,7 @@ void MainWindow::setup_grpc() {
         [=](const QString &errStr) {
             MW_show_log("[Error] Core: " + errStr);
         },
-        "127.0.0.1:" + Int2String(Configs::dataStore->core_port));
+        "127.0.0.1", Configs::dataStore->core_port);
 
     // Looper
     runOnNewThread([=] { Stats::trafficLooper->Loop(); });

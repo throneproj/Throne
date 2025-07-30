@@ -1,8 +1,7 @@
 syntax = "proto2";
 
 package libcore;
-option go_package = "grpc_server/gen";
-option optimize_for = LITE_RUNTIME;
+option go_package = "./;gen";
 
 service LibcoreService {
   rpc Start(LoadConfigReq) returns (ErrorResp);

@@ -1,6 +1,6 @@
 #include "include/stats/traffic/TrafficLooper.hpp"
 
-#include "include/api/gRPC.h"
+#include "include/api/RPC.h"
 #include "include/ui/mainwindow_interface.h"
 
 #include <QThread>

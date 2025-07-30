@@ -52,7 +52,6 @@
 #include <QToolTip>
 #include <random>
 #include <3rdparty/QHotkey/qhotkey.h>
-#include <include/api/gRPC.h>
 #include <include/global/HTTPRequestHelper.hpp>
 
 #include "include/sys/macos/MacOS.h"
