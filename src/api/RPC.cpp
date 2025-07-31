@@ -1,22 +1,11 @@
 #include "include/api/RPC.h"
 
-#include <utility>
-
 #include "include/global/Configs.hpp"
-
-#include <QCoreApplication>
-#include <QNetworkReply>
-#include <QTimer>
-#include <QtEndian>
-#include <QThread>
-#include <QMutex>
-#include <QAbstractNetworkCache>
 
 namespace API {
 
     Client::Client(std::function<void(const QString &)> onError, const QString &host, int port) {
         this->make_rpc_client = [=]() { return std::make_unique<protorpc::Client>(host.toStdString().c_str(), port); };
-        this->default_rpc_client = make_rpc_client();
         this->onError = std::move(onError);
     }
 

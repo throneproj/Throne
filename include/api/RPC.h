@@ -45,7 +45,6 @@ namespace API {
 
     private:
         std::function<std::unique_ptr<protorpc::Client>()> make_rpc_client;
-        std::unique_ptr<protorpc::Client> default_rpc_client;
         std::function<void(const QString &)> onError;
     };
 
