@@ -52,6 +52,7 @@
 #include <QToolTip>
 #include <random>
 #include <3rdparty/QHotkey/qhotkey.h>
+#include <3rdparty/qv2ray/v2/proxy/QvProxyConfigurator.hpp>
 #include <include/global/HTTPRequestHelper.hpp>
 
 #include "include/sys/macos/MacOS.h"
@@ -123,6 +124,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     MW_show_log = [=](const QString &log) {
         runOnUiThread([=] { show_log_impl(log); });
     };
+
+    // Listen port if random
+    if (Configs::dataStore->random_inbound_port)
+    {
+        Configs::dataStore->inbound_socks_port = MkPort();
+    }
 
     // Prepare core
     Configs::dataStore->core_port = MkPort();
@@ -266,10 +273,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // table UI
     ui->proxyListTable->rowsSwapped = [=](int row1, int row2)
     {
+        if (row1 == row2) return;
         auto group = Configs::profileManager->CurrentGroup();
-        group->SwapProfiles(row1, row2);
-        refresh_proxy_list(group->profiles[row1]);
-        refresh_proxy_list(group->profiles[row2]);
+        group->EmplaceProfile(row1, row2);
+        refresh_proxy_list();
         group->Save();
     };
     if (auto button = ui->proxyListTable->findChild<QAbstractButton *>(QString(), Qt::FindDirectChildrenOnly)) {
@@ -562,6 +569,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(t, &QTimer::timeout, this, [&] { Configs_sys::logCounter.fetchAndStoreRelaxed(0); });
     t->start(1000);
 
+    // auto update timer
     TM_auto_update_subsctiption = new QTimer;
     TM_auto_update_subsctiption_Reset_Minute = [&](int m) {
         TM_auto_update_subsctiption->stop();
@@ -569,6 +577,21 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     };
     connect(TM_auto_update_subsctiption, &QTimer::timeout, this, [&] { UI_update_all_groups(true); });
     TM_auto_update_subsctiption_Reset_Minute(Configs::dataStore->sub_auto_update);
+
+    // asset updater timer
+    auto TM_auto_reset_assets = new QTimer(this);
+    connect(TM_auto_reset_assets, &QTimer::timeout, this, [&]()
+    {
+       auto reset_interval = Configs::GeoAssets::ResetAssetsOptions[Configs::dataStore->auto_reset_assets_idx];
+       if (reset_interval > 0 && QDateTime::currentSecsSinceEpoch() - Configs::dataStore->last_asset_reset_epoch_secs > reset_interval)
+       {
+           runOnNewThread([=]
+           {
+               ResetAssets(Configs::dataStore->geoip_download_url, Configs::dataStore->geosite_download_url);
+           });
+       }
+    });
+    TM_auto_reset_assets->start(1000 * 60 * 5); // check every 5 minutes
 
     if (!Configs::dataStore->flag_tray) show();
 
@@ -671,6 +694,15 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
         if (info.contains("UpdateDisableTray")) {
             tray->setVisible(!Configs::dataStore->disable_tray);
         }
+        if (info.contains("NeedChoosePort"))
+        {
+            Configs::dataStore->inbound_socks_port = MkPort();
+            if (Configs::dataStore->spmode_system_proxy)
+            {
+                set_spmode_system_proxy(false);
+                set_spmode_system_proxy(true);
+            }
+        }
         auto suggestRestartProxy = Configs::dataStore->Save();
         if (info.contains("RouteChanged")) {
             Configs::dataStore->routing->Save();
@@ -683,7 +715,7 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
         if (info.contains("VPNChanged") && Configs::dataStore->spmode_vpn) {
             MessageBoxWarning(tr("Tun Settings changed"), tr("Restart Tun to take effect."));
         }
-        if (suggestRestartProxy && Configs::dataStore->started_id >= 0 &&
+        if ((info.contains("NeedChoosePort") || suggestRestartProxy) && Configs::dataStore->started_id >= 0 &&
             QMessageBox::question(GetMessageBoxParent(), tr("Confirmation"), tr("Settings changed, restart proxy?")) == QMessageBox::StandardButton::Yes) {
             profile_start(Configs::dataStore->started_id);
         }
@@ -709,6 +741,13 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
         auto splitted = info.split(";");
         runOnNewThread([=](){
             DownloadAssets(splitted[1], splitted[2]);
+        });
+    }
+    if (info.contains("ResetAssets"))
+    {
+        auto splitted = info.split(";");
+        runOnNewThread([=](){
+            ResetAssets(splitted[1], splitted[2]);
         });
     }
     //
@@ -2303,6 +2342,30 @@ void MainWindow::DownloadAssets(const QString &geoipUrl, const QString &geositeU
         });
     }
     MW_show_log(tr("Geo Asset update completed!"));
+}
+
+void MainWindow::ResetAssets(const QString& geoipUrl, const QString& geositeUrl)
+{
+    if (!mu_reset_assets.try_lock())
+    {
+        MW_show_log(tr("A reset of assets is already in progress"));
+        return;
+    }
+    DownloadAssets(geoipUrl, geositeUrl);
+    auto entries = QDir(RULE_SETS_DIR).entryList(QDir::Files);
+    for (const auto &item: entries) {
+        if (!QFile(RULE_SETS_DIR + "/" + item).remove()) {
+            MW_show_log("Failed to remove " + item + ", stop the core then try again");
+        }
+    }
+    MW_show_log(tr("Removed all rule-set files"));
+
+    runOnUiThread([=]
+    {
+        if (Configs::dataStore->started_id >= 0) profile_start(Configs::dataStore->started_id);
+    });
+    Configs::dataStore->last_asset_reset_epoch_secs = QDateTime::currentSecsSinceEpoch();
+    mu_reset_assets.unlock();
 }
 
 // to parse versions of format Throne-1.2.3-beta.2 or Throne-1.2.3

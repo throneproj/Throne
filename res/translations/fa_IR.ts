@@ -44,10 +44,6 @@
         <translation>هسته</translation>
     </message>
     <message>
-        <source>Select</source>
-        <translation>برگزیدن</translation>
-    </message>
-    <message>
         <source>Edit</source>
         <translation>ویرایش</translation>
     </message>
@@ -73,10 +69,6 @@
         <translation>آمار اتصال</translation>
     </message>
     <message>
-        <source>Set custom icon</source>
-        <translation>تنظیم آیکون سفارشی</translation>
-    </message>
-    <message>
         <source>Hide dashboard at startup</source>
         <translation>مخفی کردن داشبورد هنگام راه‌اندازی</translation>
     </message>
@@ -87,22 +79,6 @@
     <message>
         <source>Ignore TLS errors when updating subscription</source>
         <translation>هنگام به‌روزرسانی اشتراک، خطاهای TLS را نادیده گرفته شود</translation>
-    </message>
-    <message>
-        <source>Please select a PNG file.</source>
-        <translation>لطفاً یک فایل PNG انتخاب کنید.</translation>
-    </message>
-    <message>
-        <source>Reset</source>
-        <translation>بازنشانی</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>لغو کردن</translation>
-    </message>
-    <message>
-        <source>Please select a valid square image.</source>
-        <translation>لطفاً یک تصویر مربع معتبر انتخاب کنید.</translation>
     </message>
     <message>
         <source>Max log lines</source>
@@ -123,11 +99,6 @@
     <message>
         <source>Override underlying DNS</source>
         <translation>لغو دی ان اس زیربنایی</translation>
-    </message>
-    <message>
-        <source>It is recommended to leave it blank, but it sometimes does not work, at this time you can set this option.
-For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
-        <translation>پیشنهاد میشود که این گزینه را انتخاب نشده باقی بگذارید ، اما گاهی اوقات کار نمیکند در این مواقع شما میتوانید این گزینه را انتخاب کنید ، و برای Core این گزینه دی ان اس زیربنایی را هم در حالت تونل و هم در حالت معمولی و تست آدرس بازنویسی میکند</translation>
     </message>
     <message>
         <source>Default On</source>
@@ -278,18 +249,6 @@ For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, 
         <translation>همه پرونده‌های مجموعه‌قوانین پاک شدند</translation>
     </message>
     <message>
-        <source>{ip}:{port}</source>
-        <translation>{ip}:{port}</translation>
-    </message>
-    <message>
-        <source>http://{ip}:{port}</source>
-        <translation>http://{ip}:{port}</translation>
-    </message>
-    <message>
-        <source>socks={ip}:{port}</source>
-        <translation>socks={ip}:{port}</translation>
-    </message>
-    <message>
         <source>Speedtest mode</source>
         <translation>حالت تست سرعت</translation>
     </message>
@@ -324,6 +283,47 @@ For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, 
     <message>
         <source>Always Start as Standard User</source>
         <translation>همیشه به‌عنوان کاربر استاندارد شروع شود</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Selects a random available port on every run&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Random port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Auto Reset Assets</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Disabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Every Day</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Every 3 Days</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Every Week</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Downloads and replaces the geo asstes, and removes all generated rule-sets, then restarts the proxy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reset All Assets</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>It is recommended to leave it blank, but it sometimes does not work, at this time you can set this option.
+this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -361,10 +361,6 @@ For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, 
         <translation>لینک های اشتراک گذاری نمایه را کپی کنید</translation>
     </message>
     <message>
-        <source>Copy profile share links (Neko Links)</source>
-        <translation>لینک های اشتراک گذاری نمایه را کپی کنید (لینک های Neko)</translation>
-    </message>
-    <message>
         <source>Warning</source>
         <translation>هشدار</translation>
     </message>
@@ -399,6 +395,10 @@ For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, 
     <message>
         <source>Landing Proxy</source>
         <translation>پروکسی مقصد</translation>
+    </message>
+    <message>
+        <source>Copy profile share links (Custom Links)</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1211,10 +1211,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>استفاده از رابط سیستم</translation>
     </message>
     <message>
-        <source>Enable GSO</source>
-        <translation>فعال کردن GSO</translation>
-    </message>
-    <message>
         <source>Public Key</source>
         <translation>کلید عمومی</translation>
     </message>
@@ -1245,6 +1241,50 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Persistent Keepalive</source>
         <translation>نگه‌داری پایدار</translation>
+    </message>
+    <message>
+        <source>Amenzia Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable</source>
+        <translation type="unfinished">فعال کردن</translation>
+    </message>
+    <message>
+        <source>Junk Packet Count</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Junk Packet Min Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Junk Packet Max Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Init Packet Junk Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Response Packet Junk Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Init Packet Magic Header</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Response Packet Magic Header</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Underload Packet Magic Header</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Transport Header Magic Header</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1496,10 +1536,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>انتخاب همه</translation>
     </message>
     <message>
-        <source>Copy links of selected (Neko Links)</source>
-        <translation>کپی لینک های انتخاب شده (پیوندهای Neko)</translation>
-    </message>
-    <message>
         <source>Copy links of selected</source>
         <translation>لینک های انتخاب شده را کپی کنید</translation>
     </message>
@@ -1588,10 +1624,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>پاک کردن</translation>
     </message>
     <message>
-        <source>Failed to stop Tun process</source>
-        <translation>فرآیند Tun متوقف نشد</translation>
-    </message>
-    <message>
         <source>[%1] test error: %2</source>
         <translation>خطای تست [%1]: %2</translation>
     </message>
@@ -1658,10 +1690,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Cancel</source>
         <translation>لغو کردن</translation>
-    </message>
-    <message>
-        <source>Please run Nekoray as admin</source>
-        <translation></translation>
     </message>
     <message>
         <source>Add new Group</source>
@@ -1947,6 +1975,32 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Click To Toggle sort by Traffic</source>
         <translation>برای تغییر مرتب‌سازی بر اساس ترافیک کلیک کنید</translation>
     </message>
+    <message>
+        <source>Copy links of selected (Custom Links)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Invalid JSON Array</source>
+        <translation type="unfinished">آرایه JSON نادرست</translation>
+    </message>
+    <message>
+        <source>The provided input cannot be parsed to a valid route rule array:
+</source>
+        <translation type="unfinished">ورودی ارائه‌شده نمی‌تواند به آرایه قوانین مسیر معتبر تجزیه شود:
+</translation>
+    </message>
+    <message>
+        <source>Please run Throne as admin</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A reset of assets is already in progress</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed all rule-set files</source>
+        <translation type="unfinished">همه پرونده‌های مجموعه‌قوانین پاک شدند</translation>
+    </message>
 </context>
 <context>
     <name>ProxyItem</name>
@@ -2096,6 +2150,22 @@ Direct: %2</source>
         <source>Tun mode cannot be used with Custom configs</source>
         <translation>حالت Tun با پیکربندی‌های سفارشی قابل استفاده نیست</translation>
     </message>
+    <message>
+        <source>Processing subscription data...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Process complete, applying...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Download Profiles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Requesting profile error: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -2244,12 +2314,12 @@ Direct: %2</source>
 </translation>
     </message>
     <message>
-        <source>proxy</source>
-        <translation>پروکسی</translation>
+        <source>General</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>direct</source>
-        <translation>مستقیم</translation>
+        <source>Default outbound</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

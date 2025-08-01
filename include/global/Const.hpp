@@ -32,6 +32,7 @@ namespace Configs {
 namespace GeoAssets {
     inline QStringList GeoIPURLs = {"https://github.com/SagerNet/sing-geoip/releases/latest/download/geoip.db", "https://raw.githubusercontent.com/Chocolate4U/Iran-sing-box-rules/release/geoip.db"};
     inline QStringList GeoSiteURLs = {"https://github.com/SagerNet/sing-geosite/releases/latest/download/geosite.db", "https://raw.githubusercontent.com/Chocolate4U/Iran-sing-box-rules/release/geosite.db"};
+    inline QList ResetAssetsOptions = {0, 86400, 259200, 604800};
     }
 
     namespace TestConfig

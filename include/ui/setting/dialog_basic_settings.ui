@@ -89,6 +89,16 @@
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QCheckBox" name="random_listen_port">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Selects a random available port on every run&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Random port</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>
@@ -763,20 +773,43 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_8">
           <item>
-           <widget class="QPushButton" name="remove_srs_btn">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove the
-                                                        currently generated rule-sets so that they can be regenerated&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
-                                                    </string>
-            </property>
-            <property name="text">
-             <string>Remove Generated Rule-sets</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QWidget" name="widget" native="true">
             <layout class="QVBoxLayout" name="verticalLayout_9">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_12">
+               <item>
+                <widget class="QLabel" name="label_19">
+                 <property name="text">
+                  <string>Auto Reset Assets</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="auto_reset">
+                 <item>
+                  <property name="text">
+                   <string>Disabled</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Every Day</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Every 3 Days</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Every Week</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+              </layout>
+             </item>
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_11">
                <item>
@@ -809,6 +842,28 @@
               <widget class="QPushButton" name="download_geo_btn">
                <property name="text">
                 <string>Download and Replace Geo files</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="remove_srs_btn">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove the
+                                                        currently generated rule-sets so that they can be regenerated&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+                                                    </string>
+               </property>
+               <property name="text">
+                <string>Remove Generated Rule-sets</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="reset_assets">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Downloads and replaces the geo asstes, and removes all generated rule-sets, then restarts the proxy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>Reset All Assets</string>
                </property>
               </widget>
              </item>

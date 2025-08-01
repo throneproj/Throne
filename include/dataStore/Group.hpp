@@ -34,6 +34,8 @@ namespace Configs
 
         bool SwapProfiles(int idx1, int idx2);
 
+        bool EmplaceProfile(int idx, int newIdx);
+
         bool HasProfile(int id) const;
     };
 }// namespace Configs

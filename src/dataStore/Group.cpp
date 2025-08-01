@@ -58,6 +58,15 @@ namespace Configs
         return true;
     }
 
+    bool Group::EmplaceProfile(int idx, int newIdx)
+    {
+        if (profiles.size() <= idx || profiles.size() <= newIdx) return false;
+        profiles.insert(newIdx+1, profiles[idx]);
+        if (idx < newIdx) profiles.remove(idx);
+        else profiles.remove(idx+1);
+        return true;
+    }
+
     bool Group::HasProfile(int id) const
     {
         return profiles.contains(id);

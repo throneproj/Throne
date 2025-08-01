@@ -31,6 +31,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     D_LOAD_COMBO_STRING(log_level)
     CACHE.custom_inbound = Configs::dataStore->custom_inbound;
     D_LOAD_INT(inbound_socks_port)
+    ui->random_listen_port->setChecked(Configs::dataStore->random_inbound_port);
     D_LOAD_INT(test_concurrent)
     D_LOAD_STRING(test_latency_url)
     D_LOAD_BOOL(disable_tray)
@@ -42,6 +43,16 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     });
     connect(ui->disable_tray, &QCheckBox::stateChanged, this, [=](const bool &) {
         CACHE.updateDisableTray = true;
+    });
+    connect(ui->random_listen_port, &QCheckBox::stateChanged, this, [=](const bool &state)
+    {
+        if (state)
+        {
+            ui->inbound_socks_port->setDisabled(true);
+        } else
+        {
+            ui->inbound_socks_port->setDisabled(false);
+        }
     });
 
 #ifndef Q_OS_WIN
@@ -116,6 +127,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->geosite_url->addItems(Configs::GeoAssets::GeoSiteURLs);
     ui->geoip_url->setCurrentText(Configs::dataStore->geoip_download_url);
     ui->geosite_url->setCurrentText(Configs::dataStore->geosite_download_url);
+    ui->auto_reset->setCurrentIndex(Configs::dataStore->auto_reset_assets_idx);
 
     connect(ui->download_geo_btn, &QPushButton::clicked, this, [=]() {
         MW_dialog_message(Dialog_DialogBasicSettings, "DownloadAssets;"+ui->geoip_url->currentText()+";"+ui->geosite_url->currentText());
@@ -129,6 +141,10 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
            }
        }
        MW_show_log(tr("Removed all rule-set files"));
+    });
+    connect(ui->reset_assets, &QPushButton::clicked, this, [=]()
+    {
+        MW_dialog_message(Dialog_DialogBasicSettings, "ResetAssets;"+ui->geoip_url->currentText()+";"+ui->geosite_url->currentText());
     });
 
     // Mux
@@ -167,11 +183,17 @@ DialogBasicSettings::~DialogBasicSettings() {
 
 void DialogBasicSettings::accept() {
     // Common
+    bool needChoosePort = false;
 
     D_SAVE_STRING(inbound_address)
     D_SAVE_COMBO_STRING(log_level)
     Configs::dataStore->custom_inbound = CACHE.custom_inbound;
     D_SAVE_INT(inbound_socks_port)
+    if (!Configs::dataStore->random_inbound_port && ui->random_listen_port->isChecked())
+    {
+        needChoosePort = true;
+    }
+    Configs::dataStore->random_inbound_port = ui->random_listen_port->isChecked();
     D_SAVE_INT(test_concurrent)
     D_SAVE_STRING(test_latency_url)
     D_SAVE_BOOL(disable_tray)
@@ -210,6 +232,7 @@ void DialogBasicSettings::accept() {
     // Assets
     Configs::dataStore->geoip_download_url = ui->geoip_url->currentText();
     Configs::dataStore->geosite_download_url = ui->geosite_url->currentText();
+    Configs::dataStore->auto_reset_assets_idx = ui->auto_reset->currentIndex();
 
     // Mux
     D_SAVE_INT(mux_concurrency)
@@ -233,6 +256,7 @@ void DialogBasicSettings::accept() {
     QStringList str{"UpdateDataStore"};
     if (CACHE.needRestart) str << "NeedRestart";
     if (CACHE.updateDisableTray) str << "UpdateDisableTray";
+    if (needChoosePort) str << "NeedChoosePort";
     MW_dialog_message(Dialog_DialogBasicSettings, str.join(","));
     QDialog::accept();
 }

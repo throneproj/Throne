@@ -98,6 +98,8 @@ namespace Configs {
         // Assets
         QString geoip_download_url = "";
         QString geosite_download_url = "";
+        int auto_reset_assets_idx = 0;
+        long long last_asset_reset_epoch_secs = 0;
 
         // Security
         bool skip_cert = false;
@@ -113,6 +115,7 @@ namespace Configs {
         // Socks & HTTP Inbound
         QString inbound_address = "127.0.0.1";
         int inbound_socks_port = 2080; // Mixed, actually
+        bool random_inbound_port = false;
         QString custom_inbound = "{\"inbounds\": []}";
 
         // Routing

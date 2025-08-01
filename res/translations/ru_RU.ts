@@ -56,10 +56,6 @@
         <translation>Тема</translation>
     </message>
     <message>
-        <source>Set custom icon</source>
-        <translation>Задать иконку</translation>
-    </message>
-    <message>
         <source>Connection statistics</source>
         <translation>Статистика подключений</translation>
     </message>
@@ -96,20 +92,12 @@
         <translation>Ядро</translation>
     </message>
     <message>
-        <source>Select</source>
-        <translation>Выбрать</translation>
-    </message>
-    <message>
         <source>Multiplex (mux)</source>
         <translation>Протокол мультиплексирования</translation>
     </message>
     <message>
         <source>concurrency</source>
         <translation>Кол-во одновременных подключений</translation>
-    </message>
-    <message>
-        <source>Padding</source>
-        <translation>Отступ</translation>
     </message>
     <message>
         <source>Default On</source>
@@ -140,30 +128,8 @@
         <translation>Не пытаться запускать приложение от имени администратора,если об этом явно не указано.</translation>
     </message>
     <message>
-        <source>Please select a PNG file.</source>
-        <translation>Выберите PNG файл</translation>
-    </message>
-    <message>
-        <source>Reset</source>
-        <translation>Сброс</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>Отмена</translation>
-    </message>
-    <message>
-        <source>Please select a valid square image.</source>
-        <translation>Пожалуйста, выберите корректное квадратное изображение.</translation>
-    </message>
-    <message>
         <source>Override underlying DNS</source>
         <translation>Переопределить нижестоящий DNS</translation>
-    </message>
-    <message>
-        <source>It is recommended to leave it blank, but it sometimes does not work, at this time you can set this option.
-For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
-        <translation>Рекомендуется оставить параметр пустым, но иногда это не срабатывает как надо, и в таком случае можно использовать эту опцию.
-Для  Core  это переопределяет нижестоящий (localhost) DNS в  Tun режиме, нормальном режиме, а также при URL тесте.</translation>
     </message>
     <message>
         <source>Automatic update</source>
@@ -293,18 +259,6 @@ For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, 
         <translation type="unfinished">Удалены все файлы набора правил</translation>
     </message>
     <message>
-        <source>{ip}:{port}</source>
-        <translation type="unfinished">{ip-адрес}:{порт}</translation>
-    </message>
-    <message>
-        <source>http://{ip}:{port}</source>
-        <translation type="unfinished">http://{ip-адрес}:{порт}</translation>
-    </message>
-    <message>
-        <source>socks={ip}:{port}</source>
-        <translation type="unfinished">socks={ip-адрес}:{порт}</translation>
-    </message>
-    <message>
         <source>Speedtest mode</source>
         <translation type="unfinished">Режим проверки интернет соединения</translation>
     </message>
@@ -327,6 +281,47 @@ For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, 
     <message>
         <source>Simple Download</source>
         <translation type="unfinished">Простая загрузка</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Selects a random available port on every run&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Random port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Auto Reset Assets</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Disabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Every Day</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Every 3 Days</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Every Week</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Downloads and replaces the geo asstes, and removes all generated rule-sets, then restarts the proxy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reset All Assets</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>It is recommended to leave it blank, but it sometimes does not work, at this time you can set this option.
+this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -372,10 +367,6 @@ For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, 
         <translation>Скопировать ссылки на профиль</translation>
     </message>
     <message>
-        <source>Copy profile share links (Neko Links)</source>
-        <translation>Скопировать ссылки на профиль (Neko ссылки)</translation>
-    </message>
-    <message>
         <source>Copied</source>
         <translation>Скопировано</translation>
     </message>
@@ -402,6 +393,10 @@ For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, 
     <message>
         <source>Landing Proxy</source>
         <translation type="unfinished">Выходной прокси</translation>
+    </message>
+    <message>
+        <source>Copy profile share links (Custom Links)</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1216,10 +1211,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation type="unfinished">Исп. системный интерфейс</translation>
     </message>
     <message>
-        <source>Enable GSO</source>
-        <translation type="unfinished">Включить GSO</translation>
-    </message>
-    <message>
         <source>Public Key</source>
         <translation type="unfinished">Публичный ключ (Public Key)</translation>
     </message>
@@ -1249,6 +1240,50 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Persistent Keepalive</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Amenzia Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable</source>
+        <translation type="unfinished">Вкл</translation>
+    </message>
+    <message>
+        <source>Junk Packet Count</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Junk Packet Min Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Junk Packet Max Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Init Packet Junk Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Response Packet Junk Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Init Packet Magic Header</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Response Packet Magic Header</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Underload Packet Magic Header</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Transport Header Magic Header</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1505,10 +1540,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Выбрать всё</translation>
     </message>
     <message>
-        <source>Copy links of selected (Neko Links)</source>
-        <translation>Скопировать ссылки для выбранных (Neko links)</translation>
-    </message>
-    <message>
         <source>Copy links of selected</source>
         <translation>Скопировать ссылки для выбранных</translation>
     </message>
@@ -1614,10 +1645,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Очистить</translation>
     </message>
     <message>
-        <source>Failed to stop Tun process</source>
-        <translation>Не удалось остановить TUN-процесс</translation>
-    </message>
-    <message>
         <source>[%1] test error: %2</source>
         <translation>[%1] ошибка теста: %2</translation>
     </message>
@@ -1664,10 +1691,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Cancel</source>
         <translation type="unfinished">Отмена</translation>
-    </message>
-    <message>
-        <source>Please run Nekoray as admin</source>
-        <translation type="unfinished">Пожалуйста, запустите Nekoray от имени администратора</translation>
     </message>
     <message>
         <source>Add new Group</source>
@@ -1953,6 +1976,31 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Click To Toggle sort by Traffic</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Copy links of selected (Custom Links)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Invalid JSON Array</source>
+        <translation type="unfinished">Неверный массив JSON</translation>
+    </message>
+    <message>
+        <source>The provided input cannot be parsed to a valid route rule array:
+</source>
+        <translation type="unfinished">Предоставленные входные данные не могут быть преобразованы в допустимый массив правил маршрутизации:</translation>
+    </message>
+    <message>
+        <source>Please run Throne as admin</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A reset of assets is already in progress</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed all rule-set files</source>
+        <translation type="unfinished">Удалены все файлы набора правил</translation>
+    </message>
 </context>
 <context>
     <name>ProxyItem</name>
@@ -2104,6 +2152,22 @@ Release note:
         <source>Tun mode cannot be used with Custom configs</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Processing subscription data...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Process complete, applying...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Download Profiles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Requesting profile error: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -2249,11 +2313,11 @@ Release note:
         <translation type="unfinished">Некоторые правила не удалось добавить, исправьте их перед сохранением:</translation>
     </message>
     <message>
-        <source>proxy</source>
+        <source>General</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>direct</source>
+        <source>Default outbound</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

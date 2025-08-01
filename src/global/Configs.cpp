@@ -245,6 +245,7 @@ namespace Configs {
         _add(new configItem("current_group", &current_group, itemType::integer));
         _add(new configItem("inbound_address", &inbound_address, itemType::string));
         _add(new configItem("inbound_socks_port", &inbound_socks_port, itemType::integer));
+        _add(new configItem("random_inbound_port", &random_inbound_port, itemType::boolean));
         _add(new configItem("log_level", &log_level, itemType::string));
         _add(new configItem("mux_protocol", &mux_protocol, itemType::string));
         _add(new configItem("mux_concurrency", &mux_concurrency, itemType::integer));
@@ -292,6 +293,8 @@ namespace Configs {
         _add(new configItem("ntp_interval", &ntp_interval, itemType::string));
         _add(new configItem("geoip_download_url", &geoip_download_url, itemType::string));
         _add(new configItem("geosite_download_url", &geosite_download_url, itemType::string));
+        _add(new configItem("auto_reset_assets_idx", &auto_reset_assets_idx, itemType::integer));
+        _add(new configItem("last_asset_reset_unix_secs", &last_asset_reset_epoch_secs, itemType::integer64));
         _add(new configItem("enable_dns_server", &enable_dns_server, itemType::boolean));
         _add(new configItem("dns_server_listen_lan", &dns_server_listen_lan, itemType::boolean));
         _add(new configItem("dns_server_listen_port", &dns_server_listen_port, itemType::integer));

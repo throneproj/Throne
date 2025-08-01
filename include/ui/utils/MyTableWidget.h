@@ -22,7 +22,7 @@ protected:
             const int row_dst = item->row();
             if (rowsSwapped)
             {
-                rowsSwapped(row_dst, currentRow());
+                rowsSwapped(currentRow(), row_dst);
                 clearSelection();
             }
         }

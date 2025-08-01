@@ -44,10 +44,6 @@
         <translation>核心</translation>
     </message>
     <message>
-        <source>Select</source>
-        <translation>选择</translation>
-    </message>
-    <message>
         <source>Edit</source>
         <translation>编辑</translation>
     </message>
@@ -70,26 +66,6 @@
     <message>
         <source>Connection statistics</source>
         <translation>连接统计</translation>
-    </message>
-    <message>
-        <source>Set custom icon</source>
-        <translation>设置自定义图标</translation>
-    </message>
-    <message>
-        <source>Please select a PNG file.</source>
-        <translation>请选择一个 PNG 文件。</translation>
-    </message>
-    <message>
-        <source>Reset</source>
-        <translation>重置</translation>
-    </message>
-    <message>
-        <source>Please select a valid square image.</source>
-        <translation>请选择有效的正方形图像。</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>取消</translation>
     </message>
     <message>
         <source>Clear servers before updating subscription</source>
@@ -122,12 +98,6 @@
     <message>
         <source>Override underlying DNS</source>
         <translation>覆盖底层 DNS</translation>
-    </message>
-    <message>
-        <source>It is recommended to leave it blank, but it sometimes does not work, at this time you can set this option.
-For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
-        <translation>建议留空，但有时会不起作用，这时可设置这个选项。
-对于 Core，这个会在 Tun 模式、正常模式和 URL 测试中会重写 底层(localhost) DNS。</translation>
     </message>
     <message>
         <source>Default On</source>
@@ -270,18 +240,6 @@ For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, 
         <translation>已移除所有规则集文件</translation>
     </message>
     <message>
-        <source>{ip}:{port}</source>
-        <translation>{ip}:{port}</translation>
-    </message>
-    <message>
-        <source>http://{ip}:{port}</source>
-        <translation>http://{ip}:{port}</translation>
-    </message>
-    <message>
-        <source>socks={ip}:{port}</source>
-        <translation>socks={ip}:{port}</translation>
-    </message>
-    <message>
         <source>Speedtest mode</source>
         <translation>速度测试模式</translation>
     </message>
@@ -316,6 +274,47 @@ For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, 
     <message>
         <source>Always Start as Standard User</source>
         <translation>始终以标准用户身份启动</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Selects a random available port on every run&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Random port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Auto Reset Assets</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Disabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Every Day</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Every 3 Days</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Every Week</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Downloads and replaces the geo asstes, and removes all generated rule-sets, then restarts the proxy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reset All Assets</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>It is recommended to leave it blank, but it sometimes does not work, at this time you can set this option.
+this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -365,10 +364,6 @@ For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, 
         <translation>已复制成功</translation>
     </message>
     <message>
-        <source>Copy profile share links (Neko Links)</source>
-        <translation>复制配置档分享链接 (Neko 链接)</translation>
-    </message>
-    <message>
         <source>Manually column width</source>
         <translation>手动调节列宽</translation>
     </message>
@@ -391,6 +386,10 @@ For Core, this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, 
     <message>
         <source>Landing Proxy</source>
         <translation>落地代理</translation>
+    </message>
+    <message>
+        <source>Copy profile share links (Custom Links)</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1203,10 +1202,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>使用系统接口</translation>
     </message>
     <message>
-        <source>Enable GSO</source>
-        <translation>启用 GSO</translation>
-    </message>
-    <message>
         <source>Public Key</source>
         <translation>公钥</translation>
     </message>
@@ -1237,6 +1232,50 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Persistent Keepalive</source>
         <translation>持久保持活动</translation>
+    </message>
+    <message>
+        <source>Amenzia Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable</source>
+        <translation type="unfinished">启用</translation>
+    </message>
+    <message>
+        <source>Junk Packet Count</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Junk Packet Min Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Junk Packet Max Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Init Packet Junk Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Response Packet Junk Size</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Init Packet Magic Header</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Response Packet Magic Header</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Underload Packet Magic Header</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Transport Header Magic Header</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1524,10 +1563,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Tun 模式</translation>
     </message>
     <message>
-        <source>Failed to stop Tun process</source>
-        <translation>停止 Tun 进程失败</translation>
-    </message>
-    <message>
         <source>Enable System Proxy</source>
         <translation>启用系统代理</translation>
     </message>
@@ -1566,10 +1601,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Clone %1 item(s)</source>
         <translation>克隆 %1 项</translation>
-    </message>
-    <message>
-        <source>Copy links of selected (Neko Links)</source>
-        <translation>复制选中项的分享链接 (Neko 链接)</translation>
     </message>
     <message>
         <source>Allow other devices to connect</source>
@@ -1650,10 +1681,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Cancel</source>
         <translation>取消</translation>
-    </message>
-    <message>
-        <source>Please run Nekoray as admin</source>
-        <translation>请以管理员身份运行 Nekoray</translation>
     </message>
     <message>
         <source>Add new Group</source>
@@ -1939,6 +1966,32 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Click To Toggle sort by Traffic</source>
         <translation>点击以切换“按流量排序”</translation>
     </message>
+    <message>
+        <source>Copy links of selected (Custom Links)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Invalid JSON Array</source>
+        <translation type="unfinished">无效 JSON 数组</translation>
+    </message>
+    <message>
+        <source>The provided input cannot be parsed to a valid route rule array:
+</source>
+        <translation type="unfinished">提供的输入无法解析为有效的路由规则数组：
+</translation>
+    </message>
+    <message>
+        <source>Please run Throne as admin</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>A reset of assets is already in progress</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed all rule-set files</source>
+        <translation type="unfinished">已移除所有规则集文件</translation>
+    </message>
 </context>
 <context>
     <name>ProxyItem</name>
@@ -2090,6 +2143,22 @@ Release note:
         <source>Tun mode cannot be used with Custom configs</source>
         <translation>Tun 模式不能与自定义配置一起使用</translation>
     </message>
+    <message>
+        <source>Processing subscription data...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Process complete, applying...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Download Profiles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Requesting profile error: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -2238,12 +2307,12 @@ Release note:
 </translation>
     </message>
     <message>
-        <source>proxy</source>
-        <translation>代理</translation>
+        <source>General</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>direct</source>
-        <translation>直连</translation>
+        <source>Default outbound</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
