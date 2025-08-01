@@ -24,7 +24,7 @@ namespace Configs_network {
         session.SetUserAgent(cpr::UserAgent{Configs::dataStore->GetUserAgent().toStdString()});
         session.SetTimeout(cpr::Timeout(8000));
         session.SetUrl(cpr::Url(url.toStdString()));
-        session.SetSslOptions(cpr::Ssl(cpr::ssl::CertFile{"D:/Throne/cacert.pem"}));
+        session.SetSslOptions(cpr::Ssl(cpr::ssl::NoRevoke{true}));
         auto resp = session.Get();
         auto headerPairs = QList<QPair<QByteArray, QByteArray>>();
         for (const auto &item: resp.header) {
