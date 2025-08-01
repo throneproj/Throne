@@ -64,7 +64,7 @@ void MainWindow::runURLTest(const QString& config, bool useDefault, const QStrin
             {
                 int entid = -1;
                 if (!tag2entID.empty()) {
-                    entid = tag2entID.count(QString(res.outbound_tag.value().c_str())) == 0 ? -1 : tag2entID[QString(res.outbound_tag.value().c_str())];
+                    entid = tag2entID.count(QString::fromStdString(res.outbound_tag.value())) == 0 ? -1 : tag2entID[QString::fromStdString(res.outbound_tag.value())];
                 }
                 if (entid == -1) {
                     continue;
@@ -76,11 +76,11 @@ void MainWindow::runURLTest(const QString& config, bool useDefault, const QStrin
                 if (res.error.value().empty()) {
                 ent->latency = res.latency_ms.value();
                 } else {
-                    if (QString(res.error.value().c_str()).contains("test aborted") ||
-                        QString(res.error.value().c_str()).contains("context canceled")) ent->latency=0;
+                    if (QString::fromStdString(res.error.value()).contains("test aborted") ||
+                        QString::fromStdString(res.error.value()).contains("context canceled")) ent->latency=0;
                     else {
                         ent->latency = -1;
-                        MW_show_log(tr("[%1] test error: %2").arg(ent->bean->DisplayTypeAndName(), res.error.value().c_str()));
+                        MW_show_log(tr("[%1] test error: %2").arg(ent->bean->DisplayTypeAndName(), QString::fromStdString(res.error.value())));
                     }
                 }
                 ent->Save();
@@ -104,7 +104,7 @@ void MainWindow::runURLTest(const QString& config, bool useDefault, const QStrin
 
     for (const auto &res: result.results) {
         if (!tag2entID.empty()) {
-            entID = tag2entID.count(QString(res.outbound_tag.value().c_str())) == 0 ? -1 : tag2entID[QString(res.outbound_tag.value().c_str())];
+            entID = tag2entID.count(QString::fromStdString(res.outbound_tag.value())) == 0 ? -1 : tag2entID[QString::fromStdString(res.outbound_tag.value())];
         }
         if (entID == -1) {
             MW_show_log(tr("Something is very wrong, the subject ent cannot be found!"));
@@ -120,11 +120,11 @@ void MainWindow::runURLTest(const QString& config, bool useDefault, const QStrin
         if (res.error.value().empty()) {
             ent->latency = res.latency_ms.value();
         } else {
-            if (QString(res.error.value().c_str()).contains("test aborted") ||
-                QString(res.error.value().c_str()).contains("context canceled")) ent->latency=0;
+            if (QString::fromStdString(res.error.value()).contains("test aborted") ||
+                QString::fromStdString(res.error.value()).contains("context canceled")) ent->latency=0;
             else {
                 ent->latency = -1;
-                MW_show_log(tr("[%1] test error: %2").arg(ent->bean->DisplayTypeAndName(), res.error.value().c_str()));
+                MW_show_log(tr("[%1] test error: %2").arg(ent->bean->DisplayTypeAndName(), QString::fromStdString(res.error.value())));
             }
         }
         ent->Save();
@@ -212,7 +212,7 @@ void MainWindow::url_test_current() {
 
         runOnUiThread([=] {
             if (!result.results[0].error.value().empty()) {
-                MW_show_log(QString("UrlTest error: %1").arg(result.results[0].error.value().c_str()));
+                MW_show_log(QString("UrlTest error: %1").arg(QString::fromStdString(result.results[0].error.value())));
             }
             if (latency <= 0) {
                 ui->label_running->setText(tr("Test Result") + ": " + tr("Unavailable"));
@@ -304,7 +304,7 @@ void MainWindow::runSpeedTest(const QString& config, bool useDefault, bool testC
             {
                 continue;
             }
-            auto profile = testCurrent ? running : Configs::profileManager->GetProfile(tag2entID[res.result.value().outbound_tag.value().c_str()]);
+            auto profile = testCurrent ? running : Configs::profileManager->GetProfile(tag2entID[QString::fromStdString(res.result.value().outbound_tag.value())]);
             if (profile == nullptr)
             {
                 continue;
@@ -318,8 +318,8 @@ void MainWindow::runSpeedTest(const QString& config, bool useDefault, bool testC
 
                 if (res.result.value().error.value().empty() && !res.result.value().cancelled.value() && lastProxyListUpdate.msecsTo(QDateTime::currentDateTime()) >= 500)
                 {
-                    if (!res.result.value().dl_speed.value().empty()) profile->dl_speed = res.result.value().dl_speed.value().c_str();
-                    if (!res.result.value().ul_speed.value().empty()) profile->ul_speed = res.result.value().ul_speed.value().c_str();
+                    if (!res.result.value().dl_speed.value().empty()) profile->dl_speed = QString::fromStdString(res.result.value().dl_speed.value());
+                    if (!res.result.value().ul_speed.value().empty()) profile->ul_speed = QString::fromStdString(res.result.value().ul_speed.value());
                     if (profile->latency <= 0 && res.result.value().latency.value() > 0) profile->latency = res.result.value().latency.value();
                     refresh_proxy_list(profile->id);
                     lastProxyListUpdate = QDateTime::currentDateTime();
@@ -343,7 +343,7 @@ void MainWindow::runSpeedTest(const QString& config, bool useDefault, bool testC
     for (const auto &res: result.results) {
         if (testCurrent) entID = running ? running->id : -1;
         else {
-            entID = tag2entID.count(QString(res.outbound_tag.value().c_str())) == 0 ? -1 : tag2entID[QString(res.outbound_tag.value().c_str())];
+            entID = tag2entID.count(QString::fromStdString(res.outbound_tag.value())) == 0 ? -1 : tag2entID[QString::fromStdString(res.outbound_tag.value())];
         }
         if (entID == -1) {
             MW_show_log(tr("Something is very wrong, the subject ent cannot be found!"));
@@ -359,14 +359,14 @@ void MainWindow::runSpeedTest(const QString& config, bool useDefault, bool testC
         if (res.cancelled.value()) continue;
 
         if (res.error.value().empty()) {
-            ent->dl_speed = res.dl_speed.value().c_str();
-            ent->ul_speed = res.ul_speed.value().c_str();
+            ent->dl_speed = QString::fromStdString(res.dl_speed.value());
+            ent->ul_speed = QString::fromStdString(res.ul_speed.value());
             if (ent->latency <= 0 && res.latency.value() > 0) ent->latency = res.latency.value();
         } else {
             ent->dl_speed = "N/A";
             ent->ul_speed = "N/A";
             ent->latency = -1;
-            MW_show_log(tr("[%1] speed test error: %2").arg(ent->bean->DisplayTypeAndName(), res.error.value().c_str()));
+            MW_show_log(tr("[%1] speed test error: %2").arg(ent->bean->DisplayTypeAndName(), QString::fromStdString(res.error.value())));
         }
         ent->Save();
     }
