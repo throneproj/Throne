@@ -1,6 +1,6 @@
 #include <QThread>
 #include <libcore.pb.h>
-#include <include/api/gRPC.h>
+#include <include/api/RPC.h>
 #include "include/ui/mainwindow_interface.h"
 #include <include/stats/connections/connectionLister.hpp>
 

@@ -6,9 +6,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"google.golang.org/grpc"
 	"log"
-	"net"
 	"os"
 	"runtime"
 	runtimeDebug "runtime/debug"
@@ -46,21 +44,11 @@ func RunCore() {
 	}()
 	boxmain.DisableColor()
 
-	// GRPC
-	lis, err := net.Listen("tcp", "127.0.0.1:"+strconv.Itoa(*_port))
+	// RPC
+	fmt.Printf("Core listening at %v\n", "127.0.0.1:"+strconv.Itoa(*_port))
+	err := gen.ListenAndServeLibcoreService("tcp", "127.0.0.1:"+strconv.Itoa(*_port), new(server))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
-	}
-
-	s := grpc.NewServer(
-		grpc.MaxRecvMsgSize(1024*1024*1024), // 1 gigaByte
-		grpc.MaxSendMsgSize(1024*1024*1024), // 1 gigaByte
-	)
-	gen.RegisterLibcoreServiceServer(s, &server{})
-
-	fmt.Printf("Core listening at %v\n", lis.Addr())
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
 	}
 }
 

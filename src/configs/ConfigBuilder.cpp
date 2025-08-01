@@ -2,7 +2,7 @@
 #include "include/dataStore/Database.hpp"
 #include "include/configs/proxy/includes.h"
 #include "include/configs/proxy/Preset.hpp"
-#include "include/api/gRPC.h"
+#include "include/api/RPC.h"
 
 #include <QApplication>
 #include <QFile>

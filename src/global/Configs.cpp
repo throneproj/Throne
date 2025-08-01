@@ -9,7 +9,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QStandardPaths>
-#include <include/api/gRPC.h>
+#include <include/api/RPC.h>
 
 #ifdef Q_OS_WIN
 #include "include/sys/windows/guihelper.h"

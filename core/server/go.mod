@@ -2,12 +2,12 @@ module Core
 
 go 1.23.6
 
-toolchain go1.24.4
-
 require (
 	github.com/Mahdi-zarei/speedtest-go v1.7.12
+	github.com/chai2010/protorpc v1.1.4
 	github.com/dustin/go-humanize v1.0.1
 	github.com/gofrs/uuid/v5 v5.3.2
+	github.com/golang/protobuf v1.5.4
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/oschwald/maxminddb-golang v1.13.1
 	github.com/sagernet/sing v0.6.11
@@ -16,7 +16,6 @@ require (
 	github.com/sagernet/sing-tun v0.6.9
 	github.com/spf13/cobra v1.9.1
 	golang.org/x/sys v0.34.0
-	google.golang.org/grpc v1.74.2
 	google.golang.org/protobuf v1.36.6
 )
 
@@ -25,6 +24,8 @@ replace github.com/sagernet/sing-box => github.com/throneproj/sing-box v1.11.16-
 replace github.com/sagernet/sing-dns => github.com/Mahdi-zarei/sing-dns v0.3.0-beta.14.0.20250507225909-53baf4f30fa3
 
 replace github.com/sagernet/wireguard-go => github.com/throneproj/wireguard-go v0.0.1-beta.7.0.20250728063157-408bba78ad26
+
+replace github.com/chai2010/protorpc => ../protorpc
 
 require (
 	github.com/ajg/form v1.5.1 // indirect
@@ -97,6 +98,7 @@ require (
 	golang.org/x/time v0.7.0 // indirect
 	golang.org/x/tools v0.28.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250528174236-200df99c418a // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240227224415-6ceb2ff114de // indirect
+	google.golang.org/grpc v1.63.2 // indirect
 	lukechampine.com/blake3 v1.3.0 // indirect
 )

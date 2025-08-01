@@ -13,7 +13,7 @@
 #include <QShortcut>
 #include <QTimer>
 #include <QToolTip>
-#include <include/api/gRPC.h>
+#include <include/api/RPC.h>
 
 void DialogManageRoutes::reloadProfileItems() {
     if (chainList.empty()) {

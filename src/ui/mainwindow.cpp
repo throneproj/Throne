@@ -53,7 +53,6 @@
 #include <random>
 #include <3rdparty/QHotkey/qhotkey.h>
 #include <3rdparty/qv2ray/v2/proxy/QvProxyConfigurator.hpp>
-#include <include/api/gRPC.h>
 #include <include/global/HTTPRequestHelper.hpp>
 
 #include "include/sys/macos/MacOS.h"
