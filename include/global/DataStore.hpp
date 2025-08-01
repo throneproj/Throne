@@ -84,7 +84,7 @@ namespace Configs {
         int max_log_line = 200;
         QString splitter_state = "";
         bool enable_stats = true;
-        QString stats_tab = ""; // either connection or log
+        int stats_tab = 0; // either connection or log
         int speed_test_mode = TestConfig::FULL;
         QString simple_dl_url = "http://cachefly.cachefly.net/1mb.test";
 

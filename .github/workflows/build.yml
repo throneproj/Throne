@@ -164,7 +164,7 @@ jobs:
           export CMAKE_PREFIX_PATH=$PWD/qt6/build/lib/cmake
           mkdir build
           cd build
-          cmake -GNinja -DCMAKE_CXX_FLAGS="-static" -DCMAKE_BUILD_TYPE=Debug ..
+          cmake -GNinja -DCMAKE_CXX_FLAGS="-static" -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=OFF -DCURL_ZLIB=OFF -DCURL_USE_LIBPSL=OFF ..
           ninja -j2
           cd ..
           ./script/deploy_windows.sh
@@ -180,7 +180,7 @@ jobs:
           export OPENSSL_ROOT_DIR=$PWD/openssl
           mkdir build
           cd build
-          cmake -GNinja -DCMAKE_CXX_FLAGS="-static" -DCMAKE_BUILD_TYPE=Debug ..
+          cmake -GNinja -DCMAKE_CXX_FLAGS="-static" -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=OFF -DCURL_ZLIB=OFF -DCURL_USE_LIBPSL=OFF -DCPR_FORCE_OPENSSL_BACKEND=ON ..
           ninja -j2
           cd ..
           ./script/deploy_windows.sh ${{ matrix.target }}
@@ -195,10 +195,17 @@ jobs:
         shell: bash
         if: contains( matrix.platform, 'ubuntu' )
         run: |
-          sudo apt update && sudo apt upgrade -y
+          curl -L -o openssl.tar.gz https://github.com/kzalewski/openssl-1.1.1/archive/refs/tags/1.1.1zb_p3.tar.gz
+          tar xvzf openssl.tar.gz
+          pushd openssl-1.1.1-1.1.1zb_p3
+          ./Configure no-shared no-pinshared no-dynamic-engine no-capieng no-async --prefix=`pwd`/../openssl
+          make
+          make install_dev
+          popd
+          export OPENSSL_ROOT_DIR=$PWD/openssl
           mkdir build
           cd build
-          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++" ..
+          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++" -DBUILD_SHARED_LIBS=OFF -DCURL_ZLIB=OFF -DCURL_USE_LIBPSL=OFF ..
           ninja
           cd ..
           ./script/deploy_linux64.sh
@@ -208,7 +215,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DNKR_PACKAGE_MACOS=1 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=${{ matrix.target }} ..
+          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DNKR_PACKAGE_MACOS=1 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=${{ matrix.target }} -DBUILD_SHARED_LIBS=OFF -DCURL_ZLIB=OFF -DCURL_USE_LIBPSL=OFF ..
           ninja
           cd ..
           ./script/deploy_macos.sh ${{ matrix.target }}

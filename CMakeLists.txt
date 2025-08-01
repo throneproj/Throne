@@ -50,6 +50,12 @@ if (NKR_PACKAGE OR NKR_PACKAGE_MACOS)
     nkr_add_compile_definitions(NKR_CPP_USE_APPDATA)
 endif ()
 
+include(FetchContent)
+FetchContent_Declare(cpr GIT_REPOSITORY https://github.com/throneproj/cpr.git
+                         GIT_TAG 13bcc4e3ae53820fe453ef8917e370ce0e9d7546)
+FetchContent_MakeAvailable(cpr)
+list(APPEND NKR_EXTERNAL_TARGETS cpr::cpr)
+
 include("cmake/myproto.cmake")
 list(APPEND NKR_EXTERNAL_TARGETS myproto)
 

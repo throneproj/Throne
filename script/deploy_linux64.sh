@@ -55,7 +55,6 @@ cp -r $QT_PLUGIN_PATH/imageformats ./usr/plugins
 cp -r $QT_PLUGIN_PATH/iconengines ./usr/plugins
 cp -r $QT_PLUGIN_PATH/wayland-shell-integration ./usr/plugins
 cp -r $QT_PLUGIN_PATH/wayland-decoration-client ./usr/plugins
-cp -r $QT_PLUGIN_PATH/tls ./usr/plugins
 patchelf --set-rpath '$ORIGIN/../../lib' ./usr/plugins/platforms/libqxcb.so
 patchelf --set-rpath '$ORIGIN/../../lib' ./usr/plugins/platforms/libqwayland-generic.so
 patchelf --set-rpath '$ORIGIN/../../lib' ./usr/plugins/platformthemes/libqgtk3.so
