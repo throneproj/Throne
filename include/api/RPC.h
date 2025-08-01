@@ -4,17 +4,14 @@
 #include "libcore.pb.h"
 #endif
 #include <QString>
-
-namespace QtGrpc {
-    class Http2GrpcChannelPrivate;
-}
+#include "3rdparty/protorpc/rpc_client.h"
 
 namespace API {
     enum GeoRuleSetType {ip, site};
 
     class Client {
     public:
-        explicit Client(std::function<void(const QString &)> onError, const QString &target);
+        explicit Client(std::function<void(const QString &)> onError, const QString &host, int port);
 
         // QString returns is error string
 
@@ -47,8 +44,7 @@ namespace API {
         libcore::QuerySpeedTestResponse QueryCurrentSpeedTests(bool *rpcOK);
 
     private:
-        std::function<std::unique_ptr<QtGrpc::Http2GrpcChannelPrivate>()> make_grpc_channel;
-        std::unique_ptr<QtGrpc::Http2GrpcChannelPrivate> default_grpc_channel;
+        std::function<std::unique_ptr<protorpc::Client>()> make_rpc_client;
         std::function<void(const QString &)> onError;
     };
 

@@ -9,7 +9,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QStandardPaths>
-#include <include/api/gRPC.h>
+#include <include/api/RPC.h>
 
 #ifdef Q_OS_WIN
 #include "include/sys/windows/guihelper.h"
@@ -308,7 +308,7 @@ namespace Configs {
         _add(new configItem("windows_set_admin", &windows_set_admin, itemType::boolean));
         _add(new configItem("disable_win_admin", &disable_run_admin, itemType::boolean));
         _add(new configItem("enable_stats", &enable_stats, itemType::boolean));
-        _add(new configItem("stats_tab", &stats_tab, itemType::string));
+        _add(new configItem("stats_tab", &stats_tab, itemType::integer));
         _add(new configItem("proxy_scheme", &proxy_scheme, itemType::string));
         _add(new configItem("disable_privilege_req", &disable_privilege_req, itemType::boolean));
         _add(new configItem("enable_tun_routing", &enable_tun_routing, itemType::boolean));

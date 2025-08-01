@@ -3,7 +3,7 @@ cd qt6
 
 git switch %1
 mkdir build
-CALL .\configure.bat -release -static -prefix ./build -static-runtime -submodules qtbase,qtimageformats,qtsvg,qttranslations -skip tests -skip examples -gui -widgets -init-submodules
+CALL .\configure.bat -release -static -prefix ./build -static-runtime -submodules qtbase,qtimageformats,qtsvg,qttranslations -skip tests -skip examples -gui -widgets -no-schannel -init-submodules
 echo on branch %1
 echo config complete, building...
 cmake --build . --parallel

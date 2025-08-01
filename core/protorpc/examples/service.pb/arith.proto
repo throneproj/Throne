@@ -1,0 +1,23 @@
+// Copyright 2013 <chaishushan{AT}gmail.com>. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package service;
+
+message ArithRequest {
+	int32 a = 1;
+	int32 b = 2;
+}
+
+message ArithResponse {
+	int32 c = 1;
+}
+
+service ArithService {
+	rpc add (ArithRequest) returns (ArithResponse);
+	rpc mul (ArithRequest) returns (ArithResponse);
+	rpc div (ArithRequest) returns (ArithResponse);
+	rpc error (ArithRequest) returns (ArithResponse);
+}

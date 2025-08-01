@@ -1,0 +1,50 @@
+// Copyright 2013 <chaishushan{AT}gmail.com>. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+syntax = "proto2";
+
+//
+//	protorpc wire format wrapper
+//
+//	0. Frame Format
+//	len : uvarint64
+//	data: byte[len]
+//
+//	1. Client Send Request
+//	Send RequestHeader: sendFrame(zsock, hdr, len(hdr))
+//	Send Request: sendFrame(zsock, body, hdr.snappy_compressed_request_len)
+//
+//	2. Server Recv Request
+//	Recv RequestHeader: recvFrame(zsock, hdr, max_hdr_len, 0)
+//	Recv Request: recvFrame(zsock, body, hdr.snappy_compressed_request_len, 0)
+//
+//	3. Server Send Response
+//	Send ResponseHeader: sendFrame(zsock, hdr, len(hdr))
+//	Send Response: sendFrame(zsock, body, hdr.snappy_compressed_response_len)
+//
+//	4. Client Recv Response
+//	Recv ResponseHeader: recvFrame(zsock, hdr, max_hdr_len, 0)
+//	Recv Response: recvFrame(zsock, body, hdr.snappy_compressed_response_len, 0)
+//
+package protorpc.wire;
+option go_package = "protorpc.wire";
+
+enum Const {
+	ZERO = 0;
+	MAX_REQUEST_HEADER_LEN = 1024;
+}
+
+message RequestHeader {
+	required uint64 id = 1;
+	required string method = 2;
+
+	required uint32 raw_request_len = 3;
+}
+
+message ResponseHeader {
+	required uint64 id = 1;
+	required string error = 2;
+
+	required uint32 raw_response_len = 3;
+}

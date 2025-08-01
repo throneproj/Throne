@@ -50,6 +50,12 @@ if (NKR_PACKAGE OR NKR_PACKAGE_MACOS)
     nkr_add_compile_definitions(NKR_CPP_USE_APPDATA)
 endif ()
 
+include(FetchContent)
+FetchContent_Declare(cpr GIT_REPOSITORY https://github.com/throneproj/cpr.git
+                         GIT_TAG 13bcc4e3ae53820fe453ef8917e370ce0e9d7546)
+FetchContent_MakeAvailable(cpr)
+list(APPEND NKR_EXTERNAL_TARGETS cpr::cpr)
+
 include("cmake/myproto.cmake")
 list(APPEND NKR_EXTERNAL_TARGETS myproto)
 
@@ -85,7 +91,12 @@ set(PROJECT_SOURCES
         3rdparty/quirc/quirc.c
         3rdparty/quirc/version_db.c
 
-        src/api/gRPC.cpp
+        3rdparty/protorpc/rpc_client.cc
+        3rdparty/protorpc/rpc_conn.cc
+        3rdparty/protorpc/rpc_wire.cc
+        3rdparty/protorpc/wire.pb/wire.pb.cc
+
+        src/api/RPC.cpp
 
         src/dataStore/Database.cpp
         src/stats/traffic/TrafficLooper.cpp

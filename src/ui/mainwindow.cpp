@@ -53,7 +53,6 @@
 #include <random>
 #include <3rdparty/QHotkey/qhotkey.h>
 #include <3rdparty/qv2ray/v2/proxy/QvProxyConfigurator.hpp>
-#include <include/api/gRPC.h>
 #include <include/global/HTTPRequestHelper.hpp>
 
 #include "include/sys/macos/MacOS.h"
@@ -229,18 +228,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     // setup connection UI
     setupConnectionList();
-    for (int i=0;i<ui->stats_widget->tabBar()->count();i++)
-    {
-        if (ui->stats_widget->tabBar()->tabText(i) == Configs::dataStore->stats_tab)
-        {
-            ui->stats_widget->tabBar()->setCurrentIndex(i);
-            break;
-        }
-    }
+    ui->stats_widget->tabBar()->setCurrentIndex(Configs::dataStore->stats_tab);
     connect(ui->stats_widget->tabBar(), &QTabBar::currentChanged, this, [=](int index)
     {
-        auto tabText = ui->stats_widget->tabBar()->tabText(index);
-        Configs::dataStore->stats_tab = tabText;
+        Configs::dataStore->stats_tab = ui->stats_widget->tabBar()->currentIndex();
     });
     connect(ui->connections->horizontalHeader(), &QHeaderView::sectionClicked, this, [=](int index)
     {
@@ -1054,7 +1045,9 @@ void MainWindow::UpdateDataView(bool force)
     QString html;
     if (showDownloadData)
     {
-        qint64 count = 10*currentDownloadReport.downloadedSize / currentDownloadReport.totalSize;
+        qint64 count = 0;
+        if(currentDownloadReport.totalSize > 0) 
+            count = 10 * currentDownloadReport.downloadedSize / currentDownloadReport.totalSize;
         QString progressText;
         for (int i = 0; i < 10; i++)
         {
