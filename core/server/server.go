@@ -38,7 +38,7 @@ func To[T any](v T) *T {
 	return &v
 }
 
-func (s *server) Start(in *gen.LoadConfigReq, out *gen.ErrorResp) error {
+func (s *server) Start(in *gen.LoadConfigReq, out *gen.ErrorResp) (_ error) {
 	var err error
 
 	defer func() {
@@ -54,7 +54,7 @@ func (s *server) Start(in *gen.LoadConfigReq, out *gen.ErrorResp) error {
 
 	if boxInstance != nil {
 		err = errors.New("instance already started")
-		return err
+		return
 	}
 
 	if *in.NeedExtraProcess {
@@ -62,18 +62,18 @@ func (s *server) Start(in *gen.LoadConfigReq, out *gen.ErrorResp) error {
 		f, e := os.OpenFile(extraConfPath, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 700)
 		if e != nil {
 			err = E.Cause(e, "Failed to open extra.conf")
-			return err
+			return
 		}
 		_, e = f.WriteString(*in.ExtraProcessConf)
 		if e != nil {
 			err = E.Cause(e, "Failed to write extra.conf")
-			return err
+			return
 		}
 		_ = f.Close()
 		args, e := shlex.Split(*in.ExtraProcessArgs)
 		if e != nil {
 			err = E.Cause(e, "Failed to parse args")
-			return err
+			return
 		}
 		for idx, arg := range args {
 			if strings.Contains(arg, "%s") {
@@ -85,13 +85,13 @@ func (s *server) Start(in *gen.LoadConfigReq, out *gen.ErrorResp) error {
 		extraProcess = process.NewProcess(*in.ExtraProcessPath, args, *in.ExtraNoOut)
 		err = extraProcess.Start()
 		if err != nil {
-			return err
+			return
 		}
 	}
 
 	boxInstance, instanceCancel, err = boxmain.Create([]byte(*in.CoreConfig))
 	if err != nil {
-		return err
+		return
 	}
 	if runtime.GOOS == "darwin" && strings.Contains(*in.CoreConfig, "utun") {
 		err := sys.SetSystemDNS("172.19.0.2", boxInstance.Network().InterfaceMonitor())
@@ -101,10 +101,10 @@ func (s *server) Start(in *gen.LoadConfigReq, out *gen.ErrorResp) error {
 		needUnsetDNS = true
 	}
 
-	return nil
+	return
 }
 
-func (s *server) Stop(in *gen.EmptyReq, out *gen.ErrorResp) error {
+func (s *server) Stop(in *gen.EmptyReq, out *gen.ErrorResp) (_ error) {
 	var err error
 
 	defer func() {
@@ -114,7 +114,7 @@ func (s *server) Stop(in *gen.EmptyReq, out *gen.ErrorResp) error {
 	}()
 
 	if boxInstance == nil {
-		return err
+		return
 	}
 
 	if needUnsetDNS {
@@ -133,7 +133,7 @@ func (s *server) Stop(in *gen.EmptyReq, out *gen.ErrorResp) error {
 		extraProcess = nil
 	}
 
-	return nil
+	return
 }
 
 func (s *server) CheckConfig(in *gen.LoadConfigReq, out *gen.ErrorResp) error {
