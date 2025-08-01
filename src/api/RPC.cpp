@@ -11,7 +11,7 @@ namespace API {
 
 #define NOT_OK      \
     *rpcOK = false; \
-    onError(QString("LibcoreService error: %1\n").arg(err.String().c_str()));
+    onError(QString("LibcoreService error: %1\n").arg(QString::fromStdString(err.String())));
 
     QString Client::Start(bool *rpcOK, const libcore::LoadConfigReq &request) {
         libcore::ErrorResp reply;
@@ -21,7 +21,7 @@ namespace API {
         if(err.IsNil()) {
             reply = spb::pb::deserialize< libcore::ErrorResp >(resp);
             *rpcOK = true;
-            return {reply.error.value().c_str()};
+            return QString::fromStdString(reply.error.value());
         } else {
             NOT_OK
             return "";
@@ -37,7 +37,7 @@ namespace API {
         if(err.IsNil()) {
             reply = spb::pb::deserialize< libcore::ErrorResp >( resp );
             *rpcOK = true;
-            return {reply.error.value().c_str()};
+            return QString::fromStdString(reply.error.value());
         } else {
             NOT_OK
             return "";
@@ -163,7 +163,7 @@ namespace API {
                     return "";
                 } else {
                     NOT_OK
-                    return err.String().c_str();
+                    return QString::fromStdString(err.String());
                 }
             }
             case site: {
@@ -179,7 +179,7 @@ namespace API {
                     return "";
                 } else {
                     NOT_OK
-                    return err.String().c_str();
+                    return QString::fromStdString(err.String());
                 }
             }
         }
@@ -197,7 +197,7 @@ namespace API {
             return "";
         } else {
             NOT_OK
-            return err.String().c_str();
+            return QString::fromStdString(err.String());
         }
     }
 
@@ -213,7 +213,7 @@ namespace API {
             return reply;
         } else {
             NOT_OK
-            MW_show_log(QString("Failed to list connections: ") + err.String().c_str());
+            MW_show_log(QString("Failed to list connections: ") + QString::fromStdString(err.String()));
             return {};
         }
     }
@@ -230,11 +230,11 @@ namespace API {
         {
             reply = spb::pb::deserialize< libcore::ErrorResp >( resp );
             *rpcOK = true;
-            return {reply.error.value().c_str()};
+            return QString::fromStdString(reply.error.value());
         } else
         {
             NOT_OK
-            return err.String().c_str();
+            return QString::fromStdString(err.String());
         }
 
     }
