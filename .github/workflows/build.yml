@@ -78,6 +78,7 @@ jobs:
         shell: bash
         run: |
           [ ${{ matrix.cross_os }} == public_res ] || GOOS=${{ matrix.cross_os }} GOARCH=${{ matrix.cross_arch }} ./script/build_go.sh
+          [ ${{ matrix.cross_os }} != linux ] || [ ${{ matrix.cross_arch }} != arm64 ] || bash -x ./script/deploy_vendor.sh
           [ ${{ matrix.cross_os }} == public_res ] || exit 0
           ./script/build_public_res.sh
       - name: Tar files
@@ -244,8 +245,16 @@ jobs:
           mv ghr*linux_amd64/ghr .
           source script/env_deploy.sh
           find . -name artifacts.tgz | xargs -n1 tar xvzf
+
+          git ls-files --recurse-submodules | tar --transform="s,^,Throne-${{ github.event.inputs.tag }}/,S" -caf "deployment/Throne-${{ github.event.inputs.tag }}.tar.gz" -T-
+
           cd deployment
           rm -rf *.pdb win*/*.pdb
+          ####
+          tar -czf "vendor-${{ github.event.inputs.tag }}.tar.gz" vendor
+          tar -czf "protorpc_generated-${{ github.event.inputs.tag }}.tar.gz" gen
+          sudo apt-get install -y rpm
+          rpmbuild -bs "-D_sourcedir $PWD" "-D_srcrpmdir $PWD" ../Throne.spec
           ####
           bash ../script/pack_debian.sh ${{ github.event.inputs.tag }}
           mv Throne.deb $version_standalone-debian-x64.deb
@@ -286,6 +295,8 @@ jobs:
       - name: Clean Up
         run: |
           cd deployment
+          rm -rf vendor
+          rm -rf gen
           rm -rf windows-arm64
           rm -rf linux-arm64
           rm -rf linux-amd64
