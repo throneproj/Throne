@@ -574,10 +574,6 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
         <translation type="unfinished">Метод</translation>
     </message>
     <message>
-        <source>Reality SID</source>
-        <translation type="unfinished">Настоящий SID</translation>
-    </message>
-    <message>
         <source>header type</source>
         <translation type="unfinished">Тип заголовка</translation>
     </message>
