@@ -12,7 +12,9 @@ namespace Stats
         ByDownload,
         ByUpload,
         ByProcess,
-        ByTraffic
+        ByTraffic,
+        ByOutbound,
+        ByProtocol
     };
 
     class ConnectionMetadata

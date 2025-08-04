@@ -114,6 +114,22 @@ namespace Stats
                     return asc ? a.process > b.process : a.process < b.process;
                 });
             }
+            if (sort == ByOutbound)
+            {
+                std::sort(sorted.begin(), sorted.end(), [=](const ConnectionMetadata& a, const ConnectionMetadata& b)
+                    {
+                        if (a.outbound == b.outbound) return asc ? a.id > b.id : a.id < b.id;
+                        return asc ? a.outbound > b.outbound : a.outbound < b.outbound;
+                    });
+            }
+            if (sort == ByProtocol)
+            {
+                std::sort(sorted.begin(), sorted.end(), [=](const ConnectionMetadata& a, const ConnectionMetadata& b)
+                    {
+                        if (a.protocol == b.protocol) return asc ? a.id > b.id : a.id < b.id;
+                        return asc ? a.protocol > b.protocol : a.protocol < b.protocol;
+                    });
+            }
             runOnUiThread([=] {
                 auto m = GetMainWindow();
                 m->UpdateConnectionListWithRecreate(sorted);

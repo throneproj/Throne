@@ -235,27 +235,19 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     });
     connect(ui->connections->horizontalHeader(), &QHeaderView::sectionClicked, this, [=](int index)
     {
-        // TODO this is a very bad idea to hardcode it like this, need to refactor it later
-        if (index == 0)
-        {
-            Stats::connection_lister->setSort(Stats::Default);
+            Stats::ConnectionSort sortType;
+
+            switch (index)
+            {
+            case 1: sortType = Stats::ByProcess; break;
+            case 2: sortType = Stats::ByProtocol; break;
+            case 3: sortType = Stats::ByOutbound; break;
+            case 4: sortType = Stats::ByTraffic; break;
+            default: sortType = Stats::Default; break;
+            }
+
+            Stats::connection_lister->setSort(sortType);
             Stats::connection_lister->ForceUpdate();
-        }
-        if (index == 2 || index == 3)
-        {
-            // ignore
-            return;
-        }
-        if (index == 1)
-        {
-            Stats::connection_lister->setSort(Stats::ByProcess);
-            Stats::connection_lister->ForceUpdate();
-        }
-        if (index == 4)
-        {
-            Stats::connection_lister->setSort(Stats::ByTraffic);
-            Stats::connection_lister->ForceUpdate();
-        }
     });
 
     // setup Speed Chart

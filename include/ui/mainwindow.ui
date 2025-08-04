@@ -441,10 +441,16 @@
                   <property name="text">
                    <string>Protocol</string>
                   </property>
+                  <property name="toolTip">
+                   <string>Click To Sort By Protocol</string>
+                  </property>
                  </column>
                  <column>
                   <property name="text">
                    <string>Outbound</string>
+                  </property>
+                  <property name="toolTip">
+                   <string>Click To Sort By Outbound</string>
                   </property>
                  </column>
                  <column>

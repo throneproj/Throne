@@ -141,84 +141,84 @@
     </message>
     <message>
         <source>Disable Traffic Stats</source>
-        <translation type="unfinished">Отключить статистику трафика профиля</translation>
+        <translation>Отключить статистику трафика профиля</translation>
     </message>
     <message>
         <source>NTP Settings</source>
-        <translation type="unfinished">Настройки NTP</translation>
+        <translation>Настройки NTP</translation>
     </message>
     <message>
         <source>server</source>
-        <translation type="unfinished">Сервер</translation>
+        <translation>Сервер</translation>
     </message>
     <message>
         <source>Port</source>
-        <translation type="unfinished">Порт</translation>
+        <translation>Порт</translation>
     </message>
     <message>
         <source>sync interval</source>
-        <translation type="unfinished">Интервал синхронизации</translation>
+        <translation>Интервал синхронизации</translation>
     </message>
     <message>
         <source>5m</source>
-        <translation type="unfinished">5 мин.</translation>
+        <translation>5 мин.</translation>
     </message>
     <message>
         <source>10m</source>
-        <translation type="unfinished">10 мин.</translation>
+        <translation>10 мин.</translation>
     </message>
     <message>
         <source>30m</source>
-        <translation type="unfinished">30 мин.</translation>
+        <translation>30 мин.</translation>
     </message>
     <message>
         <source>Listen Port</source>
-        <translation type="unfinished">Прослушиваемый порт</translation>
+        <translation>Прослушиваемый порт</translation>
     </message>
     <message>
         <source>Assets</source>
-        <translation type="unfinished">Ресурсы</translation>
+        <translation>Ресурсы</translation>
     </message>
     <message>
         <source>Geo Assets and Rule-sets</source>
-        <translation type="unfinished">Георесурсы и наборы правил</translation>
+        <translation>Geo ресурсы и наборы правил</translation>
     </message>
     <message>
         <source>Remove Generated Rule-sets</source>
-        <translation type="unfinished">Удалить сгенерированные наборы правил</translation>
+        <translation>Удалить сгенерированные наборы правил</translation>
     </message>
     <message>
         <source>GeoIP URL</source>
-        <translation type="unfinished">Ссылка на GeoIP</translation>
+        <translation>Ссылка на GeoIP</translation>
     </message>
     <message>
         <source>GeoSite URL</source>
-        <translation type="unfinished">Ссылка на GeoSite</translation>
+        <translation>Ссылка на GeoSite</translation>
     </message>
     <message>
         <source>Download and Replace Geo files</source>
-        <translation type="unfinished">Загрузить и заменить Geo файлы</translation>
+        <translation>Загрузить и заменить Geo файлы</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Socks
                                                                 + HTTP Proxy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                             </source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Socks
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Socks
                                                                 + HTTP Прокси&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Font Size</source>
-        <translation type="unfinished">Размер шрифта</translation>
+        <translation>Размер шрифта</translation>
     </message>
     <message>
         <source>Font</source>
-        <translation type="unfinished">Шрифт</translation>
+        <translation>Шрифт</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Might
                                                                             Improve Ping and Performance&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                                         </source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Когда отключено,
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Когда отключено,
                                                                              использованный трафик не будет отображаться. Так же уменьшится задержка (пинг) и улучшится производительность&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                                         </translation>
     </message>
@@ -226,7 +226,7 @@
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Settings for the
                                             sing-box&apos;s built-in NTP client&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                         </source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Настройки для
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Настройки для
                                             sing-box&apos;s built-in NTP клиент&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                         </translation>
     </message>
@@ -234,7 +234,7 @@
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In
                                                                 minutes&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                             </source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In
                                                                 минут&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                             </translation>
     </message>
@@ -242,45 +242,45 @@
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove the
                                                         currently generated rule-sets so that they can be regenerated&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                     </source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Удалить
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Удалить
                                                         сгенерированные наборы правил, чтобы их можно было сгенерировать заново&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                     </translation>
     </message>
     <message>
         <source>Proxy Format</source>
-        <translation type="unfinished">Отображение формата прокси</translation>
+        <translation>Отображение формата прокси</translation>
     </message>
     <message>
         <source>Language</source>
-        <translation type="unfinished">Язык</translation>
+        <translation>Язык</translation>
     </message>
     <message>
         <source>Removed all rule-set files</source>
-        <translation type="unfinished">Удалены все файлы набора правил</translation>
+        <translation>Удалены все файлы набора правил</translation>
     </message>
     <message>
         <source>Speedtest mode</source>
-        <translation type="unfinished">Режим проверки интернет соединения</translation>
+        <translation>Режим проверки интернет соединения</translation>
     </message>
     <message>
         <source>Download + Upload</source>
-        <translation type="unfinished">Загрузка + выгрузка</translation>
+        <translation>Загрузка + выгрузка</translation>
     </message>
     <message>
         <source>Only Download</source>
-        <translation type="unfinished">Только загрузка</translation>
+        <translation>Только загрузка</translation>
     </message>
     <message>
         <source>Only Upload</source>
-        <translation type="unfinished">Только выгрузка</translation>
+        <translation>Только выгрузка</translation>
     </message>
     <message>
         <source>Disable Privilege request</source>
-        <translation type="unfinished">Откл. привилегированный запрос</translation>
+        <translation>Откл. привилегированный запрос</translation>
     </message>
     <message>
         <source>Simple Download</source>
-        <translation type="unfinished">Простая загрузка</translation>
+        <translation>Простая загрузка</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Selects a random available port on every run&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -292,36 +292,37 @@
     </message>
     <message>
         <source>Auto Reset Assets</source>
-        <translation type="unfinished"></translation>
+        <translation>Автоматически перезагружать ресурсы</translation>
     </message>
     <message>
         <source>Disabled</source>
-        <translation type="unfinished"></translation>
+        <translation>Отключено</translation>
     </message>
     <message>
         <source>Every Day</source>
-        <translation type="unfinished"></translation>
+        <translation>Каждый день</translation>
     </message>
     <message>
         <source>Every 3 Days</source>
-        <translation type="unfinished"></translation>
+        <translation>Каждые 3 дня</translation>
     </message>
     <message>
         <source>Every Week</source>
-        <translation type="unfinished"></translation>
+        <translation>Каждую неделю</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Downloads and replaces the geo asstes, and removes all generated rule-sets, then restarts the proxy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Загружает и заменяет гео-ассеты, удаляет все сгенерированные наборы правил, а затем перезапускает прокси&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Reset All Assets</source>
-        <translation type="unfinished"></translation>
+        <translation>Сбросить все ресурсы по умолч.</translation>
     </message>
     <message>
         <source>It is recommended to leave it blank, but it sometimes does not work, at this time you can set this option.
 this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
-        <translation type="unfinished"></translation>
+        <translation>Рекомендуется оставлять это значение пустым, но иногда оно не работает, и тогда вы можете установить этот параметр.
+переписывает базовый (localhost) DNS в Tun Режиме, обычном режиме, а также URL Test.</translation>
     </message>
 </context>
 <context>
@@ -392,7 +393,7 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
     </message>
     <message>
         <source>Landing Proxy</source>
-        <translation type="unfinished">Выходной прокси</translation>
+        <translation>Выходной прокси</translation>
     </message>
     <message>
         <source>Copy profile share links (Custom Links)</source>
@@ -543,23 +544,23 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overrides mux to On&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Переопределяет мультиплексор на&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Переопределяет мультиплексор на&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Enable TCP Brutal</source>
-        <translation type="unfinished">Включить TCP Brutal</translation>
+        <translation>Включить TCP Brutal</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Server to Client TCP Brutal Speed&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Brutal скорость TCP от сервера к клиенту&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Brutal скорость TCP от сервера к клиенту&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>TCP Brutal Speed</source>
-        <translation type="unfinished">TCP Brutal скорость</translation>
+        <translation>TCP Brutal скорость</translation>
     </message>
     <message>
         <source>Mb/s</source>
-        <translation type="unfinished">Мб/с</translation>
+        <translation>Мб/с</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -567,23 +568,23 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Method of http request, will be converted to uppercase&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Метод http-запроса, будет преобразован в верхний регистр&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Метод http-запроса, будет преобразован в верхний регистр&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Method</source>
-        <translation type="unfinished">Метод</translation>
+        <translation>Метод</translation>
     </message>
     <message>
         <source>Reality SID</source>
-        <translation type="unfinished">Настоящий SID</translation>
+        <translation>Reality SID</translation>
     </message>
     <message>
         <source>header type</source>
-        <translation type="unfinished">Тип заголовка</translation>
+        <translation>Тип заголовка</translation>
     </message>
     <message>
         <source>Extra Core</source>
-        <translation type="unfinished">Доп. ядро</translation>
+        <translation>Доп. ядро</translation>
     </message>
 </context>
 <context>
@@ -606,11 +607,11 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
     </message>
     <message>
         <source>Proxy mode</source>
-        <translation type="unfinished">Режим прокси</translation>
+        <translation>Режим прокси</translation>
     </message>
     <message>
         <source>Toggle System Proxy</source>
-        <translation type="unfinished">Режим проксирования</translation>
+        <translation>Переключится в режим системного прокси</translation>
     </message>
 </context>
 <context>
@@ -672,7 +673,7 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
     </message>
     <message>
         <source>Direct DNS</source>
-        <translation>DNS для &quot;прямых&quot; запросов</translation>
+        <translation>DNS для прямых запросов</translation>
     </message>
     <message>
         <source>Query Strategy</source>
@@ -702,105 +703,105 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
         <source>This is especially important and it is recommended to use the default value of &quot;localhost&quot;.
 If the default value does not work, try changing it to &quot;223.5.5.5&quot;.
 For more information, see the document &quot;Configuration/DNS&quot;.</source>
-        <translation type="unfinished">Это очень важно, и рекомендуется использовать значение по умолчанию &quot;localhost&quot;.
+        <translation>Это очень важно, и рекомендуется использовать значение по умолчанию &quot;localhost&quot;.
 Если значение по умолчанию не работает, попробуйте изменить его на &quot;223.5.5.5&quot;.
 Дополнительную информацию см. в документе &quot;Конфигурация/DNS&quot;.</translation>
     </message>
     <message>
         <source>Sniffs the connections intial packet(s?) to identify the protocol and the SNI. Sniff result for destination also rewrites the destionation of the connection to the sniffed SNI. For more data on the sniffed protocol refer to the sing-box&apos;s documentation.</source>
-        <translation type="unfinished">Проверяет исходный пакет(ы) подключений, чтобы идентифицировать протокол и SNI. Результат анализа для пункта назначения также преобразует пункт назначения соединения в SNI для анализа с помощью SNI. Дополнительные сведения о протоколе проверки приведены в документации slingbox&apos;s.</translation>
+        <translation>Проверяет исходный пакет(ы) подключений, чтобы идентифицировать протокол и SNI. Результат анализа для пункта назначения также преобразует пункт назначения соединения в SNI для анализа с помощью SNI. Дополнительные сведения о протоколе проверки приведены в документации slingbox&apos;s.</translation>
     </message>
     <message>
         <source>Routing Profile</source>
-        <translation type="unfinished">Профиль маршрутизации</translation>
+        <translation>Профиль маршрутизации</translation>
     </message>
     <message>
         <source>Default DNS server</source>
-        <translation type="unfinished">Режим работы DNS-сервера по умолчанию</translation>
+        <translation>Режим работы DNS-сервера по умолчанию</translation>
     </message>
     <message>
         <source>Route</source>
-        <translation type="unfinished">Маршрут</translation>
+        <translation>Маршрут</translation>
     </message>
     <message>
         <source>Routing Profiles</source>
-        <translation type="unfinished">Профили маршрутизации</translation>
+        <translation>Профили маршрутизации</translation>
     </message>
     <message>
         <source>New</source>
-        <translation type="unfinished">Новый</translation>
+        <translation>Новый</translation>
     </message>
     <message>
         <source>Edit</source>
-        <translation type="unfinished">Редактировать</translation>
+        <translation>Редактировать</translation>
     </message>
     <message>
         <source>Delete</source>
-        <translation type="unfinished">Удалить</translation>
+        <translation>Удалить</translation>
     </message>
     <message>
         <source>outbound.domain_strategy
 when set, domain destinations are resolved to IP before connect,
 also if the connection cannot be established with the current address family (ipv4, ipv6), a fallback connection is created shortly after, with the other address family.</source>
-        <translation type="unfinished">Если установлено значение outbound.domain_strategy
+        <translation>Если установлено значение outbound.domain_strategy
 , доменные адресаты разрешаются в IP перед подключением,
 также если соединение не может быть установлено с текущим семейством адресов (ipv4, ipv6), вскоре после этого создается резервное соединение с другим семейством адресов.</translation>
     </message>
     <message>
         <source>Outbound Domain Strategy</source>
-        <translation type="unfinished">Outbound-стратегия доменов</translation>
+        <translation>Outbound-стратегия доменов</translation>
     </message>
     <message>
         <source>Inbound Domain Strategy</source>
-        <translation type="unfinished">Inbound-стратегия доменов</translation>
+        <translation>Inbound-стратегия доменов</translation>
     </message>
     <message>
         <source>Enable FakeIP</source>
-        <translation type="unfinished">Включить поддельный IP</translation>
+        <translation>Включить поддельный IP</translation>
     </message>
     <message>
         <source>Hijack</source>
-        <translation type="unfinished">Перехват</translation>
+        <translation>Перехват</translation>
     </message>
     <message>
         <source>DNS Server</source>
-        <translation type="unfinished">DNS Сервер</translation>
+        <translation>DNS Сервер</translation>
     </message>
     <message>
         <source>Enable</source>
-        <translation type="unfinished">Вкл</translation>
+        <translation>Вкл</translation>
     </message>
     <message>
         <source>How does it work?</source>
-        <translation type="unfinished">Как это работает?</translation>
+        <translation>Как это работает?</translation>
     </message>
     <message>
         <source>Listen Address</source>
-        <translation type="unfinished">Прослушиваемый адрес</translation>
+        <translation>Прослушиваемый адрес</translation>
     </message>
     <message>
         <source>Listen Port</source>
-        <translation type="unfinished">Прослушиваемый порт</translation>
+        <translation>Прослушиваемый порт</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Following format should be used:&lt;br/&gt;domain:a.com&lt;/p&gt;&lt;p&gt;suffix:a.com&lt;/p&gt;&lt;p&gt;regex:someregex&lt;/p&gt;&lt;p&gt;rule_set:nameOfRuleSet&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Необходимо использовать следующий формат:&lt;br/&gt;domain:a.com&lt;/p&gt;&lt;p&gt;suffix:a.com&lt;/p&gt;&lt;p&gt;regex:someregex&lt;/p&gt;&lt;p&gt;rule_set:nameOfRuleSet&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Необходимо использовать следующий формат:&lt;br/&gt;domain:a.com&lt;/p&gt;&lt;p&gt;suffix:a.com&lt;/p&gt;&lt;p&gt;regex:someregex&lt;/p&gt;&lt;p&gt;rule_set:nameOfRuleSet&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Rules</source>
-        <translation type="unfinished">Правила</translation>
+        <translation>Правила</translation>
     </message>
     <message>
         <source>IPv4 Response</source>
-        <translation type="unfinished">Ответ IPv4</translation>
+        <translation>Ответ IPv4</translation>
     </message>
     <message>
         <source>IPv6 Response</source>
-        <translation type="unfinished">Ответ IPv6</translation>
+        <translation>Ответ IPv6</translation>
     </message>
     <message>
         <source>Redirect Settings</source>
-        <translation type="unfinished">Настройки перенаправления</translation>
+        <translation>Настройки перенаправления</translation>
     </message>
     <message>
         <source>tls://8.8.8.8</source>
@@ -808,47 +809,47 @@ also if the connection cannot be established with the current address family (ip
     </message>
     <message>
         <source>Clone</source>
-        <translation type="unfinished">Клонировать</translation>
+        <translation>Клонировать</translation>
     </message>
     <message>
         <source>Export</source>
-        <translation type="unfinished">Экспорт</translation>
+        <translation>Экспорт</translation>
     </message>
     <message>
         <source>Invalid state</source>
-        <translation type="unfinished">Неверный статус</translation>
+        <translation>Неверный статус</translation>
     </message>
     <message>
         <source>The list of routing profiles is empty, this should be an unreachable state, crashes may occur now</source>
-        <translation type="unfinished">Список профилей маршрутизации пуст, сейчас могут происходить сбои</translation>
+        <translation>Список профилей маршрутизации пуст, сейчас могут происходить сбои</translation>
     </message>
     <message>
         <source>Invalid settings</source>
-        <translation type="unfinished">Неверные настройки</translation>
+        <translation>Неверные настройки</translation>
     </message>
     <message>
         <source>Routing profile cannot be empty</source>
-        <translation type="unfinished">Профиль маршрутизации не может быть пустым</translation>
+        <translation>Профиль маршрутизации не может быть пустым</translation>
     </message>
     <message>
         <source>DNS Rules are not valid</source>
-        <translation type="unfinished">Правила DNS недействительны</translation>
+        <translation>Правила DNS недействительны</translation>
     </message>
     <message>
         <source>Invalid operation</source>
-        <translation type="unfinished">Неверная операция</translation>
+        <translation>Неверная операция</translation>
     </message>
     <message>
         <source>Routing Profiles cannot be empty, try adding another profile or editing this one</source>
-        <translation type="unfinished">Профили маршрутизации не могут быть пустыми, попробуйте добавить другой профиль или отредактировать этот</translation>
+        <translation>Профили маршрутизации не могут быть пустыми, попробуйте добавить другой профиль или отредактировать этот</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Whether to listen on 0.0.0.0 so that other devices on LAN can use this server&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Нужно ли прослушивать 0.0.0.0, чтобы другие устройства в локальной сети могли использовать этот сервер.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Нужно ли прослушивать 0.0.0.0, чтобы другие устройства в локальной сети могли использовать этот сервер.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Allow Lan to Connect</source>
-        <translation type="unfinished">Разрешить подкл. по локальной сети</translation>
+        <translation>Разрешить подкл. по локальной сети</translation>
     </message>
 </context>
 <context>
@@ -885,16 +886,16 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Strict Route</source>
-        <translation type="unfinished">Строгий маршрут</translation>
+        <translation>Строгий маршрут</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, Direct IP CIDRs and rule sets will also be added to the Tun setting to be excluded at OS routing level. IMPORTANT: Large rule sets have been reported to cause massive CPU usage in windows, please enable this option with caution.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Если эта опция включена, прямые IP CIDR&apos;ы и наборы правил также будут добавлены в настройки Tun, чтобы исключить их на уровне маршрутизации ОС.
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Если эта опция включена, прямые IP CIDR&apos;ы и наборы правил также будут добавлены в настройки Tun, чтобы исключить их на уровне маршрутизации ОС.
 ВАЖНО: Сообщалось, что из-за большого кол-ва правил может вызвать повышенную нагрузку на процессор в windows, поэтому включайте эту опцию с осторожностью.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Enable Tun Routing</source>
-        <translation type="unfinished">Вкл. Tun маршрутизацию</translation>
+        <translation>Вкл. Tun маршрутизацию</translation>
     </message>
 </context>
 <context>
@@ -1058,62 +1059,62 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Port range</source>
-        <translation type="unfinished">Диапазон портов</translation>
+        <translation>Диапазон портов</translation>
     </message>
     <message>
         <source>Hop Interval</source>
-        <translation type="unfinished">Интервал Hop</translation>
+        <translation>Интервал Hop</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;100ms&lt;br/&gt;1s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;100 мс&lt;br/&gt;1s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;100 мс&lt;br/&gt;1s&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma seperated ranges: 100:200,500:600&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Диапазоны, разделенные запятыми: 100:200,500:600&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Диапазоны, разделенные запятыми: 100:200,500:600&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
 </context>
 <context>
     <name>EditSSH</name>
     <message>
         <source>EditSSH</source>
-        <translation type="unfinished">Редактировать SSH</translation>
+        <translation>Редактировать SSH</translation>
     </message>
     <message>
         <source>User</source>
-        <translation type="unfinished">Пользователь</translation>
+        <translation>Пользователь</translation>
     </message>
     <message>
         <source>Password</source>
-        <translation type="unfinished">Пароль</translation>
+        <translation>Пароль</translation>
     </message>
     <message>
         <source>Private Key</source>
-        <translation type="unfinished">Приватный ключ</translation>
+        <translation>Приватный ключ</translation>
     </message>
     <message>
         <source>Private Key Password</source>
-        <translation type="unfinished">Пароль к приватному ключу</translation>
+        <translation>Пароль к приватному ключу</translation>
     </message>
     <message>
         <source>Host Key</source>
-        <translation type="unfinished">Ключ хоста</translation>
+        <translation>Ключ хоста</translation>
     </message>
     <message>
         <source>Host Key Algorithms</source>
-        <translation type="unfinished">Алгоритмы хост-ключа</translation>
+        <translation>Алгоритмы хост-ключа</translation>
     </message>
     <message>
         <source>Client Version</source>
-        <translation type="unfinished">Версия клиента</translation>
+        <translation>Версия клиента</translation>
     </message>
     <message>
         <source>Private Key Path</source>
-        <translation type="unfinished">Путь к приватному ключу</translation>
+        <translation>Путь к приватному ключу</translation>
     </message>
     <message>
         <source>Choose File</source>
-        <translation type="unfinished">Выбрать файл</translation>
+        <translation>Выбрать файл</translation>
     </message>
 </context>
 <context>
@@ -1188,47 +1189,47 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <name>EditWireguard</name>
     <message>
         <source>EditWireguard</source>
-        <translation type="unfinished">Редактировать Wireguard</translation>
+        <translation>Редактировать Wireguard</translation>
     </message>
     <message>
         <source>Reserved</source>
-        <translation type="unfinished">Резервный (Reserved)</translation>
+        <translation>Резервный (Reserved)</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;comma seperated list of subnets&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;список подсетей, разделенных запятыми&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;список подсетей, разделенных запятыми&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Local Address</source>
-        <translation type="unfinished">Локальный адрес (Local Address)</translation>
+        <translation>Локальный адрес (Local Address)</translation>
     </message>
     <message>
         <source>Pre Shared Key</source>
-        <translation type="unfinished">Пре. общий ключ (Pre Shared Key)</translation>
+        <translation>Пре. общий ключ (Pre Shared Key)</translation>
     </message>
     <message>
         <source>Use System Interface</source>
-        <translation type="unfinished">Исп. системный интерфейс</translation>
+        <translation>Исп. системный интерфейс</translation>
     </message>
     <message>
         <source>Public Key</source>
-        <translation type="unfinished">Публичный ключ (Public Key)</translation>
+        <translation>Публичный ключ (Public Key)</translation>
     </message>
     <message>
         <source>Private Key</source>
-        <translation type="unfinished">Приватный ключ (Private Key)</translation>
+        <translation>Приватный ключ (Private Key)</translation>
     </message>
     <message>
         <source>1420</source>
-        <translation type="unfinished">1420</translation>
+        <translation>1420</translation>
     </message>
     <message>
         <source>MTU</source>
-        <translation type="unfinished">MTU</translation>
+        <translation>MTU</translation>
     </message>
     <message>
         <source>Workers</source>
-        <translation type="unfinished">Рабочий</translation>
+        <translation>Рабочий</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;persistent_keepalive_interval in seconds&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -1248,7 +1249,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Enable</source>
-        <translation type="unfinished">Вкл</translation>
+        <translation>Вкл</translation>
     </message>
     <message>
         <source>Junk Packet Count</source>
@@ -1678,39 +1679,39 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Stop Testing</source>
-        <translation type="unfinished">Остановить тестирование</translation>
+        <translation>Остановить тестирование</translation>
     </message>
     <message>
         <source>Tun device misbehaving</source>
-        <translation type="unfinished">Неправильное поведение устройства Tun</translation>
+        <translation>Неправильное поведение устройства Tun</translation>
     </message>
     <message>
         <source>Reset</source>
-        <translation type="unfinished">Перезагрузить</translation>
+        <translation>Перезагрузить</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">Отмена</translation>
+        <translation>Отмена</translation>
     </message>
     <message>
         <source>Add new Group</source>
-        <translation type="unfinished">Добавить новую группу</translation>
+        <translation>Добавить новую группу</translation>
     </message>
     <message>
         <source>Delete selected Group</source>
-        <translation type="unfinished">Удалить выбранную группу</translation>
+        <translation>Удалить выбранную группу</translation>
     </message>
     <message>
         <source>Edit selected Group</source>
-        <translation type="unfinished">Редактировать выбранную группу</translation>
+        <translation>Редактировать выбранную группу</translation>
     </message>
     <message>
         <source>Remove %1?</source>
-        <translation type="unfinished">Удалить %1?</translation>
+        <translation>Удалить %1?</translation>
     </message>
     <message>
         <source>Url Test Selected</source>
-        <translation type="unfinished">Тест задержки (пинга) выбранного профиля</translation>
+        <translation>Тест задержки (пинга) выбранного профиля</translation>
     </message>
     <message>
         <source>Ctrl+Shift+S</source>
@@ -1718,7 +1719,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Url Test Group</source>
-        <translation type="unfinished">Тест задержки (пинга) до сервера</translation>
+        <translation>Тест задержки (пинга) до сервера</translation>
     </message>
     <message>
         <source>Ctrl+Shift+G</source>
@@ -1726,15 +1727,15 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Hidden menu</source>
-        <translation type="unfinished">Скрытое меню</translation>
+        <translation>Скрытое меню</translation>
     </message>
     <message>
         <source>Resolve Selected Domain</source>
-        <translation type="unfinished">Разрешить выбранный домен</translation>
+        <translation>Разрешить выбранный домен</translation>
     </message>
     <message>
         <source>Remove Invalid</source>
-        <translation type="unfinished">Удалить недействительные</translation>
+        <translation>Удалить недействительные</translation>
     </message>
     <message>
         <source>Ctrl+Alt+I</source>
@@ -1742,231 +1743,231 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>If you have trouble starting VPN, you can force reset Core process here and then try starting the profile again. The error is %1</source>
-        <translation type="unfinished">Если у вас возникли проблемы с запуском VPN, вы можете принудительно сбросить процесс Core здесь, а затем снова попробовать запустить профиль. Ошибка: %1</translation>
+        <translation>Если у вас возникли проблемы с запуском VPN, вы можете принудительно сбросить процесс Core здесь, а затем снова попробовать запустить профиль. Ошибка: %1</translation>
     </message>
     <message>
         <source> Confirmation </source>
-        <translation type="unfinished"> Подтверждение </translation>
+        <translation> Подтверждение </translation>
     </message>
     <message>
         <source> Remove %1 item(s) ? </source>
-        <translation type="unfinished"> Удалить %1 элемент(ов) ? </translation>
+        <translation> Удалить %1 элемент(ов) ? </translation>
     </message>
     <message>
         <source>Remove %1 Unavailable item(s) ?</source>
-        <translation type="unfinished">Удалить %1 недоступных элементов ?</translation>
+        <translation>Удалить %1 недоступных элементов ?</translation>
     </message>
     <message>
         <source>Remove %1 Invalid item(s) ?</source>
-        <translation type="unfinished">Удалить %1 неверных элементов ?</translation>
+        <translation>Удалить %1 неверных элементов ?</translation>
     </message>
     <message>
         <source>Replace domain server addresses with their resolved IPs?</source>
-        <translation type="unfinished">Заменить адреса доменных серверов на их разрешенные IP-адреса?</translation>
+        <translation>Заменить адреса доменных серверов на их разрешенные IP-адреса?</translation>
     </message>
     <message>
         <source>System DNS</source>
-        <translation type="unfinished">Системный DNS</translation>
+        <translation>Системный DNS</translation>
     </message>
     <message>
         <source>Connections</source>
-        <translation type="unfinished">Подключения</translation>
+        <translation>Подключения</translation>
     </message>
     <message>
         <source>Click To Disable Sorting</source>
-        <translation type="unfinished">Нажмите, чтобы отключить сортировку</translation>
+        <translation>Нажмите, чтобы отключить сортировку</translation>
     </message>
     <message>
         <source>Protocol</source>
-        <translation type="unfinished">Протокол</translation>
+        <translation>Протокол</translation>
     </message>
     <message>
         <source>Logs</source>
-        <translation type="unfinished">Логи</translation>
+        <translation>Логи</translation>
     </message>
     <message>
         <source>Geo Assets are missing, want to download them now?</source>
-        <translation type="unfinished">Георесурсы отсутствуют. Хотите загрузить их сейчас?</translation>
+        <translation>Георесурсы отсутствуют. Хотите загрузить их сейчас?</translation>
     </message>
     <message>
         <source>Please give the core root privileges</source>
-        <translation type="unfinished">Пожалуйста, предоставьте ядру права root.</translation>
+        <translation>Пожалуйста, предоставьте ядру права root.</translation>
     </message>
     <message>
         <source>Requesting permission</source>
-        <translation type="unfinished">Запрос разрешения</translation>
+        <translation>Запрос разрешения</translation>
     </message>
     <message>
         <source>Please Enter your password in the opened terminal, then try again</source>
-        <translation type="unfinished">Введите пароль в открывшемся терминале и повторите попытку.</translation>
+        <translation>Введите пароль в открывшемся терминале и повторите попытку.</translation>
     </message>
     <message>
         <source>Application</source>
-        <translation type="unfinished">Приложение</translation>
+        <translation>Приложение</translation>
     </message>
     <message>
         <source>Settings</source>
-        <translation type="unfinished">Настройки</translation>
+        <translation>Настройки</translation>
     </message>
     <message>
         <source>Profiles</source>
-        <translation type="unfinished">Профили</translation>
+        <translation>Профили</translation>
     </message>
     <message>
         <source>Routing</source>
-        <translation type="unfinished">Маршрутизация</translation>
+        <translation>Маршрутизация</translation>
     </message>
     <message>
         <source>Destination (Domain)</source>
-        <translation type="unfinished">Пункт назначения (Домен)</translation>
+        <translation>Пункт назначения (Домен)</translation>
     </message>
     <message>
         <source>Process</source>
-        <translation type="unfinished">Процесс</translation>
+        <translation>Процесс</translation>
     </message>
     <message>
         <source>Click To Sort By Process</source>
-        <translation type="unfinished">Нажмите, чтобы сортировать по процессу</translation>
+        <translation>Нажмите, чтобы сортировать по процессу</translation>
     </message>
     <message>
         <source>Routing Menu</source>
-        <translation type="unfinished">Меню маршрутизации</translation>
+        <translation>Меню маршрутизации</translation>
     </message>
     <message>
         <source>Open Manager</source>
-        <translation type="unfinished">Открыть менеджер</translation>
+        <translation>Открыть менеджер</translation>
     </message>
     <message>
         <source>Profile test aborted</source>
-        <translation type="unfinished">Тест профиля прерван</translation>
+        <translation>Тест профиля прерван</translation>
     </message>
     <message>
         <source>Something is very wrong, the subject ent cannot be found!</source>
-        <translation type="unfinished">Что-то не так, объект не может быть найден!</translation>
+        <translation>Что-то не так, объект не может быть найден!</translation>
     </message>
     <message>
         <source>Profile manager data is corrupted, try again.</source>
-        <translation type="unfinished">Данные менеджера профилей повреждены, попробуйте еще раз.</translation>
+        <translation>Данные менеджера профилей повреждены, попробуйте еще раз.</translation>
     </message>
     <message>
         <source>The last speed test did not exit completely, please wait. If it persists, please restart the program.</source>
-        <translation type="unfinished">Последний тест скорости не завершился полностью, пожалуйста, подождите. Если проблема сохраняется, пожалуйста, перезапустите программу.</translation>
+        <translation>Последний тест скорости не завершился полностью, пожалуйста, подождите. Если проблема сохраняется, пожалуйста, перезапустите программу.</translation>
     </message>
     <message>
         <source>Failed to build test config: </source>
-        <translation type="unfinished">Не удалось создать тестовую конфигурацию: </translation>
+        <translation>Не удалось создать тестовую конфигурацию: </translation>
     </message>
     <message>
         <source>Speedtest finished!</source>
-        <translation type="unfinished">Тест скорости завершен!</translation>
+        <translation>Тест скорости завершен!</translation>
     </message>
     <message>
         <source>Failed to stop tests</source>
-        <translation type="unfinished">Не удалось остановить тест</translation>
+        <translation>Не удалось остановить тест</translation>
     </message>
     <message>
         <source>You need to enable hijack DNS server first</source>
-        <translation type="unfinished">Сначала необходимо включить перехват DNS-сервера</translation>
+        <translation>Сначала необходимо включить перехват DNS-сервера</translation>
     </message>
     <message>
         <source>Failed to set system dns: </source>
-        <translation type="unfinished">Не удалось установить системный DNS: </translation>
+        <translation>Не удалось установить системный DNS: </translation>
     </message>
     <message>
         <source>BuildConfig return error</source>
-        <translation type="unfinished">Ошибка возврата BuildConfig</translation>
+        <translation>Ошибка возврата BuildConfig</translation>
     </message>
     <message>
         <source>Another profile is starting...</source>
-        <translation type="unfinished">Запускается другой профиль...</translation>
+        <translation>Запускается другой профиль...</translation>
     </message>
     <message>
         <source>Another profile is stopping...</source>
-        <translation type="unfinished">Другой профиль останавливается...</translation>
+        <translation>Другой профиль останавливается...</translation>
     </message>
     <message>
         <source>Try to start the config, but the core has not listened to the grpc port, so restart it...</source>
-        <translation type="unfinished">Попробуйте запустить конфигурацию, но ядро не прослушивает порт grpc, поэтому перезапустите его...</translation>
+        <translation>Попробуйте запустить конфигурацию, но ядро не прослушивает порт grpc, поэтому перезапустите его...</translation>
     </message>
     <message>
         <source>Stop return error</source>
-        <translation type="unfinished">Остановить возврат ошибки</translation>
+        <translation>Остановить возврат ошибки</translation>
     </message>
     <message>
         <source>Copy core config</source>
-        <translation type="unfinished">Копировать ядро конфигурации</translation>
+        <translation>Копировать ядро конфигурации</translation>
     </message>
     <message>
         <source>Copy test config</source>
-        <translation type="unfinished">Копировать тест конфигурации</translation>
+        <translation>Копировать тест конфигурации</translation>
     </message>
     <message>
         <source>Cannot start</source>
-        <translation type="unfinished">Невозможно запустить</translation>
+        <translation>Невозможно запустить</translation>
     </message>
     <message>
         <source>Last download request has not finished yet</source>
-        <translation type="unfinished">Последний запрос на загрузку еще не завершен</translation>
+        <translation>Последний запрос на загрузку еще не завершен</translation>
     </message>
     <message>
         <source>Failed to download geoip: %1</source>
-        <translation type="unfinished">Не удалось загрузить геоip: %1</translation>
+        <translation>Не удалось загрузить GeoIP: %1</translation>
     </message>
     <message>
         <source>Failed to download geosite: %1</source>
-        <translation type="unfinished">Не удалось загрузить геосайт: %1</translation>
+        <translation>Не удалось загрузить GeoSite: %1</translation>
     </message>
     <message>
         <source>Failed to download geo assets</source>
-        <translation type="unfinished">Не удалось загрузить георесурсы</translation>
+        <translation>Не удалось загрузить GEO ресурсы</translation>
     </message>
     <message>
         <source>Geo Asset update completed!</source>
-        <translation type="unfinished">Обновление георесурсов завершено!</translation>
+        <translation>Обновление GEO ресурсов завершено!</translation>
     </message>
     <message>
         <source>Traffic Graph</source>
-        <translation type="unfinished">График трафика</translation>
+        <translation>График трафика</translation>
     </message>
     <message>
         <source>Failed to download update assets</source>
-        <translation type="unfinished">Не удалось загрузить обновления ресурсов</translation>
+        <translation>Не удалось загрузить обновления ресурсов</translation>
     </message>
     <message>
         <source>Speedtest Current</source>
-        <translation type="unfinished">Тест скорость соединения текущего профиля</translation>
+        <translation>Тест скорость соединения текущего профиля</translation>
     </message>
     <message>
         <source>Speedtest Selected</source>
-        <translation type="unfinished">Тест скорость соединения выбранного профиля</translation>
+        <translation>Тест скорость соединения выбранного профиля</translation>
     </message>
     <message>
         <source>Speedtest Group</source>
-        <translation type="unfinished">Проверить скорость соединения у данной группы</translation>
+        <translation>Проверить скорость соединения у данной группы</translation>
     </message>
     <message>
         <source>The last url test did not exit completely, please wait. If it persists, please restart the program.</source>
-        <translation type="unfinished">Тест задержек (пинга) завершился не полностью. Пожалуйста подождите или перезапустите программу</translation>
+        <translation>Тест задержек (пинга) завершился не полностью. Пожалуйста подождите или перезапустите программу</translation>
     </message>
     <message>
         <source>URL test finished!</source>
-        <translation type="unfinished">Тест задержек (пинга) завершён!</translation>
+        <translation>Тест задержек (пинга) завершён!</translation>
     </message>
     <message>
         <source>Profile speed test aborted</source>
-        <translation type="unfinished">Тест задержек (пинга) был отменён</translation>
+        <translation>Тест задержек (пинга) был отменён</translation>
     </message>
     <message>
         <source>[%1] speed test error: %2</source>
-        <translation type="unfinished">[%1] ошибка теста скорости: %2</translation>
+        <translation>[%1] ошибка теста скорости: %2</translation>
     </message>
     <message>
         <source>User opted for no privilege req, some features may not work</source>
-        <translation type="unfinished"></translation>
+        <translation>Пользователь решил не запрашивать привилегии, некоторые функции могут не работать</translation>
     </message>
     <message>
         <source>Unable to capture screen</source>
-        <translation type="unfinished"></translation>
+        <translation>Невозможно захватить экран</translation>
     </message>
     <message>
         <source>Outbound</source>
@@ -1974,32 +1975,32 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Click To Toggle sort by Traffic</source>
-        <translation type="unfinished"></translation>
+        <translation>Нажмите,чтобы переключить сортировку по трафику</translation>
     </message>
     <message>
         <source>Copy links of selected (Custom Links)</source>
-        <translation type="unfinished"></translation>
+        <translation>Скопированы выбранные ссылки (пользовательские ссылки)</translation>
     </message>
     <message>
         <source>Invalid JSON Array</source>
-        <translation type="unfinished">Неверный массив JSON</translation>
+        <translation>Неверный массив JSON</translation>
     </message>
     <message>
         <source>The provided input cannot be parsed to a valid route rule array:
 </source>
-        <translation type="unfinished">Предоставленные входные данные не могут быть преобразованы в допустимый массив правил маршрутизации:</translation>
+        <translation>Предоставленные входные данные не могут быть преобразованы в допустимый массив правил маршрутизации:</translation>
     </message>
     <message>
         <source>Please run Throne as admin</source>
-        <translation type="unfinished"></translation>
+        <translation>Пожалуйста запустите Throne от имени администратора</translation>
     </message>
     <message>
         <source>A reset of assets is already in progress</source>
-        <translation type="unfinished"></translation>
+        <translation>Происходит перезагрузка ресурсов</translation>
     </message>
     <message>
         <source>Removed all rule-set files</source>
-        <translation type="unfinished">Удалены все файлы набора правил</translation>
+        <translation>Удалены все файлы набора правил</translation>
     </message>
 </context>
 <context>
@@ -2017,7 +2018,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <name>QGuiApplication</name>
     <message>
         <source>QT_LAYOUT_DIRECTION</source>
-        <translation></translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2130,66 +2131,66 @@ Release note:
     </message>
     <message>
         <source>Add profiles to this group</source>
-        <translation type="unfinished">Добавить профили в эту группу</translation>
+        <translation>Добавить профили в эту группу</translation>
     </message>
     <message>
         <source>Create new subscription group</source>
-        <translation type="unfinished">Создать новую группу подписки</translation>
+        <translation>Создать новую группу подписки</translation>
     </message>
     <message>
         <source>Could not open file.</source>
-        <translation type="unfinished">Не удалось открыть файл.</translation>
+        <translation>Не удалось открыть файл.</translation>
     </message>
     <message>
         <source>Not official support platform</source>
-        <translation type="unfinished">Не официальная платформа поддержки</translation>
+        <translation>Не официальная платформа поддержки</translation>
     </message>
     <message>
         <source>Requesting update error: %1</source>
-        <translation type="unfinished">Ошибка запроса обновления: %1</translation>
+        <translation>Ошибка запроса обновления: %1</translation>
     </message>
     <message>
         <source>Tun mode cannot be used with Custom configs</source>
-        <translation type="unfinished"></translation>
+        <translation>Режим Tun нельзя использовать с польз. конфигурациями</translation>
     </message>
     <message>
         <source>Processing subscription data...</source>
-        <translation type="unfinished"></translation>
+        <translation>Идёт обработка данных подписок...</translation>
     </message>
     <message>
         <source>Process complete, applying...</source>
-        <translation type="unfinished"></translation>
+        <translation>Процесс завершён, идёт приминение...</translation>
     </message>
     <message>
         <source>Download Profiles</source>
-        <translation type="unfinished"></translation>
+        <translation>Скачивание Профилей</translation>
     </message>
     <message>
         <source>Requesting profile error: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>У запрашиваемого профиля,ошибка: %1</translation>
     </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">Отмена</translation>
+        <translation>Отмена</translation>
     </message>
     <message>
         <source>Apply</source>
-        <translation type="unfinished">Применить</translation>
+        <translation>Применить</translation>
     </message>
     <message>
         <source>Yes</source>
-        <translation type="unfinished">Да</translation>
+        <translation>Да</translation>
     </message>
     <message>
         <source>No</source>
-        <translation type="unfinished">Нет</translation>
+        <translation>Нет</translation>
     </message>
     <message>
         <source>OK</source>
-        <translation type="unfinished">OK</translation>
+        <translation>OK</translation>
     </message>
 </context>
 <context>
@@ -2203,122 +2204,122 @@ Release note:
     <name>RouteItem</name>
     <message>
         <source>Route Profile</source>
-        <translation type="unfinished">Профиль маршрута</translation>
+        <translation>Профиль маршрута</translation>
     </message>
     <message>
         <source>Name</source>
-        <translation type="unfinished">Имя</translation>
+        <translation>Имя</translation>
     </message>
     <message>
         <source>Rules</source>
-        <translation type="unfinished">Правила</translation>
+        <translation>Правила</translation>
     </message>
     <message>
         <source>New</source>
-        <translation type="unfinished">Новый</translation>
+        <translation>Новый</translation>
     </message>
     <message>
         <source>Move Up</source>
-        <translation type="unfinished">Поднять вверх</translation>
+        <translation>Поднять вверх</translation>
     </message>
     <message>
         <source>Move Down</source>
-        <translation type="unfinished">Опустить вниз</translation>
+        <translation>Опустить вниз</translation>
     </message>
     <message>
         <source>Delete</source>
-        <translation type="unfinished">Удалить</translation>
+        <translation>Удалить</translation>
     </message>
     <message>
         <source>Rule Attributes</source>
-        <translation type="unfinished">Правила атрибута</translation>
+        <translation>Правила атрибута</translation>
     </message>
     <message>
         <source>Attribute</source>
-        <translation type="unfinished">Атрибут</translation>
+        <translation>Атрибут</translation>
     </message>
     <message>
         <source>Name_Placeholder</source>
-        <translation type="unfinished">Имя_пространства</translation>
+        <translation>Имя_пространства</translation>
     </message>
     <message>
         <source>Import JSON</source>
-        <translation type="unfinished">Импорт JSON</translation>
+        <translation>Импорт JSON</translation>
     </message>
     <message>
         <source>Basic</source>
-        <translation type="unfinished">Основной</translation>
+        <translation>Основной</translation>
     </message>
     <message>
         <source>How to use</source>
-        <translation type="unfinished">Как пользоваться</translation>
+        <translation>Как пользоваться</translation>
     </message>
     <message>
         <source>Direct</source>
-        <translation type="unfinished">Напрямую</translation>
+        <translation>Напрямую</translation>
     </message>
     <message>
         <source>Proxy</source>
-        <translation type="unfinished">Прокси</translation>
+        <translation>Прокси</translation>
     </message>
     <message>
         <source>Block</source>
-        <translation type="unfinished">Блокировать</translation>
+        <translation>Блокировать</translation>
     </message>
     <message>
         <source>Advanced</source>
-        <translation type="unfinished">Расширенный</translation>
+        <translation>Расширенный</translation>
     </message>
     <message>
         <source>Invalid rules</source>
-        <translation type="unfinished">Неверные правила</translation>
+        <translation>Неверные правила</translation>
     </message>
     <message>
         <source>Some rules could not be added:
 </source>
-        <translation type="unfinished">Некоторые правила не удалось добавить:</translation>
+        <translation>Некоторые правила не удалось добавить:</translation>
     </message>
     <message>
         <source>Simple rule manual</source>
-        <translation type="unfinished">Простое руководство по правилам</translation>
+        <translation>Простое руководство по правилам</translation>
     </message>
     <message>
         <source>Invalid JSON Array</source>
-        <translation type="unfinished">Неверный массив JSON</translation>
+        <translation>Неверный массив JSON</translation>
     </message>
     <message>
         <source>The provided input cannot be parsed to a valid route rule array:
 </source>
-        <translation type="unfinished">Предоставленные входные данные не могут быть преобразованы в допустимый массив правил маршрутизации:</translation>
+        <translation>Предоставленные входные данные не могут быть преобразованы в допустимый массив правил маршрутизации:</translation>
     </message>
     <message>
         <source>Invalid operation</source>
-        <translation type="unfinished">Неверная операция</translation>
+        <translation>Неверная операция</translation>
     </message>
     <message>
         <source>Cannot create Route Profile with empty name</source>
-        <translation type="unfinished">Невозможно создать профиль маршрута с пустым именем</translation>
+        <translation>Невозможно создать профиль маршрута с пустым именем</translation>
     </message>
     <message>
         <source>Empty Route Profile</source>
-        <translation type="unfinished">Пустой профиль маршрута</translation>
+        <translation>Пустой профиль маршрута</translation>
     </message>
     <message>
         <source>No valid rules are in the profile</source>
-        <translation type="unfinished">В профиле нет действующих правил</translation>
+        <translation>В профиле нет действующих правил</translation>
     </message>
     <message>
         <source>Some rules could not be added, fix them before saving:
 </source>
-        <translation type="unfinished">Некоторые правила не удалось добавить, исправьте их перед сохранением:</translation>
+        <translation>Некоторые правила не удалось добавить, исправьте их перед сохранением:</translation>
     </message>
     <message>
         <source>General</source>
-        <translation type="unfinished"></translation>
+        <translation>Основное</translation>
     </message>
     <message>
         <source>Default outbound</source>
-        <translation type="unfinished"></translation>
+        <translation>Стандарт. Outbound</translation>
     </message>
 </context>
 <context>
