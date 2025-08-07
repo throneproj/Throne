@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"os"
 	"runtime"
 	runtimeDebug "runtime/debug"
@@ -45,7 +46,17 @@ func RunCore() {
 	boxmain.DisableColor()
 
 	// RPC
-	fmt.Printf("Core listening at %v\n", "127.0.0.1:"+strconv.Itoa(*_port))
+	go func() {
+		for {
+			time.Sleep(100 * time.Millisecond)
+			conn, err := net.Dial("tcp", "127.0.0.1:"+strconv.Itoa(*_port))
+			if err == nil {
+				conn.Close()
+				fmt.Printf("Core listening at %v\n", "127.0.0.1:"+strconv.Itoa(*_port))
+				return
+			}
+		}
+	}()
 	err := gen.ListenAndServeLibcoreService("tcp", "127.0.0.1:"+strconv.Itoa(*_port), new(server))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)

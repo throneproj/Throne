@@ -101,6 +101,17 @@ namespace Qv2ray::ui::widgets {
         if (c)
             c->setWidget(this);
 
+        if (lineUnderCursor().isEmpty()) {
+            c->setCompletionPrefix("");
+            c->popup()->setCurrentIndex(c->completionModel()->index(0, 0));
+        } else if (auto word = lineUnderCursor(); word != c->completionPrefix()) {
+            c->setCompletionPrefix(word);
+            c->popup()->setCurrentIndex(c->completionModel()->index(0, 0));
+        }
+        QRect cr = cursorRect();
+        cr.setWidth(c->popup()->sizeHintForColumn(0) + c->popup()->verticalScrollBar()->sizeHint().width());
+        c->complete(cr); // popup it up!
+
         QPlainTextEdit::focusInEvent(e);
     }
 
@@ -136,7 +147,19 @@ namespace Qv2ray::ui::widgets {
 
         QPlainTextEdit::keyPressEvent(e);
 
-        if (!c || (hasCtrlOrShiftModifier && e->text().isEmpty()))
+        if (!c)
+            return;
+
+        if (lineUnderCursor().isEmpty()) {
+            c->setCompletionPrefix("");
+            c->popup()->setCurrentIndex(c->completionModel()->index(0, 0));
+            QRect cr = cursorRect();
+            cr.setWidth(c->popup()->sizeHintForColumn(0) + c->popup()->verticalScrollBar()->sizeHint().width());
+            c->complete(cr); // popup it up!
+            return;
+        }
+
+        if (hasCtrlOrShiftModifier && e->text().isEmpty())
             return;
 
         // if we have other modifiers, or the text is empty, or the line does not start with our prefix.

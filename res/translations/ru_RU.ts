@@ -73,7 +73,7 @@
     </message>
     <message>
         <source>User Agent</source>
-        <translation>Эмулировать Юзер Агент как:</translation>
+        <translation>Эмулировать User Agent как:</translation>
     </message>
     <message>
         <source>Use proxy when updating subscription</source>
@@ -125,7 +125,7 @@
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Do not attempt to start as Admin unless explicitly requested&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>Не пытаться запускать приложение от имени администратора,если об этом явно не указано.</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Не пытаться запускать приложение от имени администратора,если об этом явно не указано&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Override underlying DNS</source>
@@ -197,14 +197,15 @@
     </message>
     <message>
         <source>Download and Replace Geo files</source>
-        <translation>Загрузить и заменить Geo файлы</translation>
+        <translation>Загрузить и заменить Geo ресурсы</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Socks
                                                                 + HTTP Proxy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                             </source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Socks
-                                                                + HTTP Прокси&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+                                                                + HTTP Прокси&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+                                                            </translation>
     </message>
     <message>
         <source>Font Size</source>
@@ -284,11 +285,11 @@
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Selects a random available port on every run&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Выбирает случайный доступный порт при каждом запуске&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Random port</source>
-        <translation type="unfinished"></translation>
+        <translation>Исп. случайный порт</translation>
     </message>
     <message>
         <source>Auto Reset Assets</source>
@@ -397,7 +398,7 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
     </message>
     <message>
         <source>Copy profile share links (Custom Links)</source>
-        <translation type="unfinished"></translation>
+        <translation>Копировать ссылки профиля в буфер обмена (польз. ссылки)</translation>
     </message>
 </context>
 <context>
@@ -964,11 +965,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Choose from file</source>
-        <translation type="unfinished"></translation>
+        <translation>Выбрать из файла</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;args to pass to the executable. You can insert a single %s and it will be replaced with the path to a file containing the config entered below.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;аргументы, которые будут переданы исполняемому файлу. Вы можете вставить один символ %s, и он будет заменен на путь к файлу, содержащему конфигурацию, введенную ниже.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Args</source>
@@ -980,7 +981,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;contents of the config file that will be passed to the extra core process if %s is specified in the args&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;содержимое конфигурационного файла, которое будет передано дополнительному процессу ядра, если %s указано в аргументах&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Config</source>
@@ -1245,7 +1246,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Amenzia Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Настройка Amenzia</translation>
     </message>
     <message>
         <source>Enable</source>
@@ -1787,7 +1788,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Geo Assets are missing, want to download them now?</source>
-        <translation>Георесурсы отсутствуют. Хотите загрузить их сейчас?</translation>
+        <translation>Geo ресурсы отсутствуют. Хотите загрузить их сейчас?</translation>
     </message>
     <message>
         <source>Please give the core root privileges</source>
@@ -2000,7 +2001,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Removed all rule-set files</source>
-        <translation>Удалены все файлы набора правил</translation>
+        <translation>Удалены все файлы c наборами правил</translation>
     </message>
 </context>
 <context>

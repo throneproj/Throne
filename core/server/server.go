@@ -49,7 +49,7 @@ func (s *server) Start(in *gen.LoadConfigReq, out *gen.ErrorResp) (_ error) {
 	}()
 
 	if debug {
-		log.Println("Start:", in.CoreConfig)
+		log.Println("Start:", *in.CoreConfig)
 	}
 
 	if boxInstance != nil {
@@ -420,15 +420,15 @@ func (s *server) QuerySpeedTest(in *gen.EmptyReq, out *gen.QuerySpeedTestRespons
 		errStr = res.Error.Error()
 	}
 	out.Result = &gen.SpeedTestResult{
-			DlSpeed:       To(res.DlSpeed),
-			UlSpeed:       To(res.UlSpeed),
-			Latency:       To(res.Latency),
-			OutboundTag:   To(res.Tag),
-			Error:         To(errStr),
-			ServerName:    To(res.ServerName),
-			ServerCountry: To(res.ServerCountry),
-			Cancelled:     To(res.Cancelled),
-		}
+		DlSpeed:       To(res.DlSpeed),
+		UlSpeed:       To(res.UlSpeed),
+		Latency:       To(res.Latency),
+		OutboundTag:   To(res.Tag),
+		Error:         To(errStr),
+		ServerName:    To(res.ServerName),
+		ServerCountry: To(res.ServerCountry),
+		Cancelled:     To(res.Cancelled),
+	}
 	out.IsRunning = To(isRunning)
 	return nil
 }
