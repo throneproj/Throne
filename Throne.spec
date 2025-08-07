@@ -2,7 +2,7 @@ Name: Throne
 Version: 1.0.0
 Release: 0%{?autorelease}
 Summary: Qt based cross-platform GUI proxy configuration manager (backend: sing-box)
-URL: https://github.com/huakim/nekoray
+URL: https://github.com/throneproj/Throne
 License: GPLv3
 
 Source0: %{url}/releases/download/%{version}/%{name}-%{version}.tar.gz
