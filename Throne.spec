@@ -91,17 +91,17 @@ cat << EOF > %{buildroot}%{_bindir}/throne
 %{_libdir}/%{name}/%{name} -appdata "${@}"
 EOF
 
-cat << EOF > %{buildroot}%{_datadir}/applications/%{name}.desktop
+cat << EOF > %{buildroot}%{_datadir}/applications/throne.desktop
 [Desktop Entry]
 Version=1.0
 Terminal=false
 Type=Application
-Name=nekoray
+Name=throne
 Categories=Network;
 Comment=Qt based cross-platform GUI proxy configuration manager (backend: sing-box)
 Comment[zh_CN]=基于 Qt 的跨平台代理配置管理器 (后端 sing-box)
 Keywords=Internet;VPN;Proxy;sing-box;
-Exec=%{_bindir}/%{name}
+Exec=%{_bindir}/throne
 Icon=%{_datadir}/icons/%{name}.ico
 EOF
 
