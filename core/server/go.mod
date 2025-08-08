@@ -1,6 +1,6 @@
 module Core
 
-go 1.23
+go 1.23.6
 
 require (
 	github.com/Mahdi-zarei/speedtest-go v1.7.12
