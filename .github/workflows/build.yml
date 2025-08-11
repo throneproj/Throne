@@ -78,6 +78,7 @@ jobs:
         shell: bash
         run: |
           [ ${{ matrix.cross_os }} == public_res ] || GOOS=${{ matrix.cross_os }} GOARCH=${{ matrix.cross_arch }} ./script/build_go.sh
+          [ ${{ matrix.cross_os }} != linux ] || [ ${{ matrix.cross_arch }} != arm64 ] || bash -x ./script/deploy_vendor.sh
           [ ${{ matrix.cross_os }} == public_res ] || exit 0
           ./script/build_public_res.sh
       - name: Tar files
@@ -244,6 +245,14 @@ jobs:
           mv ghr*linux_amd64/ghr .
           source script/env_deploy.sh
           find . -name artifacts.tgz | xargs -n1 tar xvzf
+          ##
+          mv -T deployment/vendor core/server/vendor
+          mv -T deployment/gen/*.go core/server/gen/
+          git add -f core/server/gen/*.go
+          git add -r core/server/vendor
+          ##
+          git ls-files --recurse-submodules | tar --transform="s,^,Throne-${{ github.event.inputs.tag }}/,S" -caf "deployment/Throne-${{ github.event.inputs.tag }}-unified_source.tar.gz" -T-
+          ##
           cd deployment
           rm -rf *.pdb win*/*.pdb
           ####
