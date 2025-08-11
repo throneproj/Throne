@@ -771,103 +771,91 @@
          <property name="title">
           <string>Geo Assets and Rule-sets</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_8">
-          <item>
-           <widget class="QWidget" name="widget" native="true">
-            <layout class="QVBoxLayout" name="verticalLayout_9">
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_12">
-               <item>
-                <widget class="QLabel" name="label_19">
-                 <property name="text">
-                  <string>Auto Reset Assets</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QComboBox" name="auto_reset">
-                 <item>
-                  <property name="text">
-                   <string>Disabled</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Every Day</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Every 3 Days</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Every Week</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_11">
-               <item>
-                <widget class="QLabel" name="geoip_url_l">
-                 <property name="text">
-                  <string>GeoIP URL</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QComboBox" name="geoip_url"/>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_14">
-               <item>
-                <widget class="QLabel" name="geosite_url_l">
-                 <property name="text">
-                  <string>GeoSite URL</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QComboBox" name="geosite_url"/>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <widget class="QPushButton" name="download_geo_btn">
-               <property name="text">
-                <string>Download and Replace Geo files</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="remove_srs_btn">
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove the
+         <layout class="QGridLayout" name="gridLayout_9">
+          <item row="0" column="2">
+           <widget class="QComboBox" name="auto_reset">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <item>
+             <property name="text">
+              <string>Disabled</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Every Day</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Every 3 Days</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Every Week</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="3" column="0" colspan="3">
+           <widget class="QPushButton" name="download_geo_btn">
+            <property name="text">
+             <string>Download and Replace Geo files</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2">
+           <widget class="QComboBox" name="geosite_url"/>
+          </item>
+          <item row="0" column="0" colspan="2">
+           <widget class="QLabel" name="label_19">
+            <property name="text">
+             <string>Auto Reset Assets</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QComboBox" name="geoip_url"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="geosite_url_l">
+            <property name="text">
+             <string>GeoSite URL</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0" colspan="3">
+           <widget class="QPushButton" name="reset_assets">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Downloads and replaces the geo asstes, and removes all generated rule-sets, then restarts the proxy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Reset All Assets</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="geoip_url_l">
+            <property name="text">
+             <string>GeoIP URL</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0" colspan="3">
+           <widget class="QPushButton" name="remove_srs_btn">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove the
                                                         currently generated rule-sets so that they can be regenerated&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                     </string>
-               </property>
-               <property name="text">
-                <string>Remove Generated Rule-sets</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="reset_assets">
-               <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Downloads and replaces the geo asstes, and removes all generated rule-sets, then restarts the proxy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="text">
-                <string>Reset All Assets</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
+            </property>
+            <property name="text">
+             <string>Remove Generated Rule-sets</string>
+            </property>
            </widget>
           </item>
          </layout>

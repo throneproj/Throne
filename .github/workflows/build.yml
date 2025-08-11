@@ -246,10 +246,11 @@ jobs:
           source script/env_deploy.sh
           find . -name artifacts.tgz | xargs -n1 tar xvzf
           ##
+          mkdir -pv core/server/gen ||:
+          rm -rfv core/server/vendor ||:
           mv -T deployment/vendor core/server/vendor
-          mv -T deployment/gen/*.go core/server/gen/
-          git add -f core/server/gen/*.go
-          git add -r core/server/vendor
+          mv deployment/gen/*.go core/server/gen/
+          git add -f core/server/gen/*.go core/server/vendor
           ##
           git ls-files --recurse-submodules | tar --transform="s,^,Throne-${{ github.event.inputs.tag }}/,S" -caf "deployment/Throne-${{ github.event.inputs.tag }}-unified_source.tar.gz" -T-
           ##

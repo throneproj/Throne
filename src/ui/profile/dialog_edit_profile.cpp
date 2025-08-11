@@ -21,8 +21,8 @@
 #include <QToolTip>
 #include <QtGlobal>
 
-#if QT_VERSION <= QT_VERSION_CHECK(6, 6, 3)
-#define checkStateChanged stateChanged
+#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
+#define stateChanged checkStateChanged
 #endif
 
 #define ADJUST_SIZE runOnThread([=,this] { adjustSize(); adjustPosition(mainwindow); }, this);
@@ -140,7 +140,7 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
     emit ui->security->currentTextChanged(ui->security->currentText());
 
     // for fragment
-    connect(ui->tls_frag, &QCheckBox::checkStateChanged, this, [=,this](bool state)
+    connect(ui->tls_frag, &QCheckBox::stateChanged, this, [=,this](bool state)
     {
         ui->tls_frag_fall_delay->setEnabled(state);
     });
