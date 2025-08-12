@@ -419,6 +419,28 @@ namespace Configs {
         return true;
     }
 
+    bool TailscaleBean::TryParseLink(const QString &link)
+    {
+        auto url = QUrl(link);
+        if (!url.isValid()) return false;
+        auto query = GetQuery(url);
+        name = url.fragment(QUrl::FullyDecoded);
+
+        state_directory = QUrl::fromPercentEncoding(query.queryItemValue("state_directory").toUtf8());
+        auth_key = QUrl::fromPercentEncoding(query.queryItemValue("auth_key").toUtf8());
+        control_url = QUrl::fromPercentEncoding(query.queryItemValue("control_url").toUtf8());
+        ephemeral = query.queryItemValue("ephemeral") == "true";
+        hostname = QUrl::fromPercentEncoding(query.queryItemValue("hostname").toUtf8());
+        accept_routes = query.queryItemValue("accept_routes") == "true";
+        exit_node = query.queryItemValue("exit_node");
+        exit_node_allow_lan_access = query.queryItemValue("exit_node_allow_lan_access") == "true";
+        advertise_routes = QUrl::fromPercentEncoding(query.queryItemValue("advertise_routes").toUtf8()).split(",");
+        advertise_exit_node = query.queryItemValue("advertise_exit_node") == "true";
+        globalDNS = query.queryItemValue("globalDNS") == "true";
+
+        return true;
+    }
+
     bool SSHBean::TryParseLink(const QString &link) {
         auto url = QUrl(link);
         if (!url.isValid()) return false;

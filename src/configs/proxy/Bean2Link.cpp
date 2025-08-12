@@ -323,6 +323,28 @@ namespace Configs {
         return url.toString(QUrl::FullyEncoded);
     }
 
+    QString TailscaleBean::ToShareLink()
+    {
+        QUrl url;
+        url.setScheme("ts");
+        url.setHost("tailscale");
+        if (!name.isEmpty()) url.setFragment(name);
+        QUrlQuery q;
+        q.addQueryItem("state_directory", QUrl::toPercentEncoding(state_directory));
+        q.addQueryItem("auth_key", QUrl::toPercentEncoding(auth_key));
+        q.addQueryItem("control_url", QUrl::toPercentEncoding(control_url));
+        q.addQueryItem("ephemeral", ephemeral ? "true" : "false");
+        q.addQueryItem("hostname", QUrl::toPercentEncoding(hostname));
+        q.addQueryItem("accept_routes", accept_routes ? "true" : "false");
+        q.addQueryItem("exit_node", exit_node);
+        q.addQueryItem("exit_node_allow_lan_access", exit_node_allow_lan_access ? "true" : "false");
+        q.addQueryItem("advertise_routes", QUrl::toPercentEncoding(advertise_routes.join(",")));
+        q.addQueryItem("advertise_exit_node", advertise_exit_node ? "true" : "false");
+        q.addQueryItem("global_dns", globalDNS ? "true" : "false");
+        url.setQuery(q);
+        return url.toString(QUrl::FullyEncoded);
+    }
+
     QString SSHBean::ToShareLink() {
         QUrl url;
         url.setScheme("ssh");

@@ -144,6 +144,10 @@ set(PROJECT_SOURCES
         include/ui/profile/edit_anytls.h
         src/ui/profile/edit_anytls.cpp
         include/ui/profile/edit_anytls.ui
+        include/ui/profile/edit_tailscale.h
+        src/ui/profile/edit_tailscale.cpp
+        include/ui/profile/edit_tailscale.ui
+        include/configs/proxy/Tailscale.hpp
 
         include/ui/profile/edit_quic.h
         src/ui/profile/edit_quic.cpp

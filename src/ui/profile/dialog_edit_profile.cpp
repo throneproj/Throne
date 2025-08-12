@@ -8,6 +8,7 @@
 #include "include/ui/profile/edit_quic.h"
 #include "include/ui/profile/edit_anytls.h"
 #include "include/ui/profile/edit_wireguard.h"
+#include "include/ui/profile/edit_tailscale.h"
 #include "include/ui/profile/edit_ssh.h"
 #include "include/ui/profile/edit_custom.h"
 #include "include/ui/profile/edit_extra_core.h"
@@ -19,7 +20,6 @@
 #include "include/global/GuiUtils.hpp"
 
 #include <QInputDialog>
-#include <QToolTip>
 
 #define ADJUST_SIZE runOnThread([=,this] { adjustSize(); adjustPosition(mainwindow); }, this);
 #define LOAD_TYPE(a) ui->type->addItem(Configs::ProfileManager::NewProxyEntity(a)->bean->DisplayType(), a);
@@ -158,6 +158,7 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
         LOAD_TYPE("tuic")
         LOAD_TYPE("anytls")
         LOAD_TYPE("wireguard")
+        LOAD_TYPE("tailscale")
         LOAD_TYPE("ssh")
         ui->type->addItem(tr("Custom (%1 outbound)").arg(software_core_name), "internal");
         ui->type->addItem(tr("Custom (%1 config)").arg(software_core_name), "internal-full");
@@ -232,6 +233,10 @@ void DialogEditProfile::typeSelected(const QString &newType) {
         auto _innerWidget = new EditWireguard(this);
         innerWidget = _innerWidget;
         innerEditor = _innerWidget;
+    } else if (type == "tailscale") {
+        auto _innerWidget = new EditTailScale(this);
+        innerWidget = _innerWidget;
+        innerEditor = _innerWidget;
     } else if (type == "ssh") {
         auto _innerWidget = new EditSSH(this);
         innerWidget = _innerWidget;
@@ -265,7 +270,7 @@ void DialogEditProfile::typeSelected(const QString &newType) {
     }
 
     // hide some widget
-    auto showAddressPort = type != "chain" && customType != "internal" && customType != "internal-full" && type != "extracore";
+    auto showAddressPort = type != "chain" && customType != "internal" && customType != "internal-full" && type != "extracore" && type != "tailscale";
     ui->address->setVisible(showAddressPort);
     ui->address_l->setVisible(showAddressPort);
     ui->port->setVisible(showAddressPort);

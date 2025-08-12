@@ -8,6 +8,7 @@
 #include "QUICBean.hpp"
 #include "AnyTLSBean.hpp"
 #include "WireguardBean.h"
+#include "Tailscale.hpp"
 #include "SSHBean.h"
 #include "CustomBean.hpp"
 #include "ExtraCore.h"

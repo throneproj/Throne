@@ -180,6 +180,8 @@ namespace Configs {
             bean = new Configs::AnyTLSBean();
         } else if (type == "wireguard") {
             bean = new Configs::WireguardBean(Configs::WireguardBean());
+        } else if (type == "tailscale") {
+            bean = new Configs::TailscaleBean(Configs::TailscaleBean());
         } else if (type == "ssh") {
             bean = new Configs::SSHBean(Configs::SSHBean());
         } else if (type == "custom") {

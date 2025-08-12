@@ -97,7 +97,7 @@ namespace Configs {
         {
             auto out = ent->bean->BuildCoreObjSingBox();
             auto outArr = QJsonArray{out.outbound};
-            auto key = ent->type == "wireguard" ? "endpoints" : "outbounds";
+            auto key = ent->bean->IsEndpoint() ? "endpoints" : "outbounds";
             conf = {
             {key, outArr},
             };
@@ -178,7 +178,7 @@ namespace Configs {
                     QString tag = "proxy";
                     if (index > 1) tag += Int2String(index);
                     outbound.insert("tag", tag);
-                    if (outbound["type"] == "wireguard")
+                    if (outbound["type"] == "wireguard" || outbound["type"] == "tailscale")
                     {
                         endpointArray.append(outbound);
                     } else
@@ -328,7 +328,7 @@ namespace Configs {
                 status->domainListDNSDirect += serverAddress;
             }
 
-            if (ent->type == "wireguard")
+            if (ent->bean->IsEndpoint())
             {
                 status->endpoints += outbound;
                 lastWasEndpoint = true;
@@ -791,11 +791,23 @@ namespace Configs {
         QJsonArray dnsRules;
 
         // Remote
-        auto remoteDnsObj = BuildDnsObject(dataStore->routing->remote_dns, dataStore->spmode_vpn);
-        remoteDnsObj["tag"] = "dns-remote";
-        remoteDnsObj["domain_resolver"] = "dns-local";
-        remoteDnsObj["detour"] = tagProxy;
-        dnsServers += remoteDnsObj;
+        if (status->ent->type == "tailscale")
+        {
+            auto tailDns = QJsonObject{
+                {"type", "tailscale"},
+                {"tag", "dns-remote"},
+                {"endpoint", "proxy"},
+                {"accept_default_resolvers", status->ent->TailscaleBean()->globalDNS},
+            };
+            dnsServers += tailDns;
+        } else
+        {
+            auto remoteDnsObj = BuildDnsObject(dataStore->routing->remote_dns, dataStore->spmode_vpn);
+            remoteDnsObj["tag"] = "dns-remote";
+            remoteDnsObj["domain_resolver"] = "dns-local";
+            remoteDnsObj["detour"] = tagProxy;
+            dnsServers += remoteDnsObj;
+        }
 
         // Direct
         auto directDNSAddress = dataStore->routing->direct_dns;

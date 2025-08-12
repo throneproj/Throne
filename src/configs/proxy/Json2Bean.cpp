@@ -1,15 +1,4 @@
-
-
-#include <include/configs/proxy/QUICBean.hpp>
-#include <include/configs/proxy/ShadowSocksBean.hpp>
-#include <include/configs/proxy/SocksHttpBean.hpp>
-#include <include/configs/proxy/TrojanVLESSBean.hpp>
-#include <include/configs/proxy/VMessBean.hpp>
-#include <include/configs/proxy/AnyTLSBean.hpp>
-#include <include/configs/proxy/WireguardBean.h>
-
-#include "include/configs/proxy/ExtraCore.h"
-#include "include/configs/proxy/SSHBean.h"
+#include <include/configs/proxy/includes.h>
 
 namespace Configs
 {
@@ -257,6 +246,23 @@ namespace Configs
         {
             enable_amnezia = true;
         }
+
+        return true;
+    }
+
+    bool TailscaleBean::TryParseJson(const QJsonObject& obj)
+    {
+        name = obj["tag"].toString();
+        state_directory = obj["state_directory"].toString();
+        auth_key = obj["auth_key"].toString();
+        control_url = obj["control_url"].toString();
+        ephemeral = obj["ephemeral"].toBool();
+        hostname = obj["hostname"].toString();
+        accept_routes = obj["accept_routes"].toBool();
+        exit_node = obj["exit_node"].toString();
+        exit_node_allow_lan_access = obj["exit_node_allow_lan_access"].toBool();
+        advertise_routes = QJsonArray2QListString(obj["advertise_routes"].toArray());
+        advertise_exit_node = obj["advertise_exit_node"].toBool();
 
         return true;
     }

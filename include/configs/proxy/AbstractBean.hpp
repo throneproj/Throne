@@ -50,6 +50,8 @@ namespace Configs {
         virtual CoreObjOutboundBuildResult BuildCoreObjSingBox() { return {}; };
 
         virtual QString ToShareLink() { return {}; };
+
+        virtual bool IsEndpoint() { return false; };
     };
 
 } // namespace Configs

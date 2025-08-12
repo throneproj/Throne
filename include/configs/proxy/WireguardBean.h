@@ -70,5 +70,7 @@ namespace Configs {
         bool TryParseJson(const QJsonObject &obj);
 
         QString ToShareLink() override;
+
+        bool IsEndpoint() override {return true;}
     };
 } // namespace Configs

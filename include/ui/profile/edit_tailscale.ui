@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>EditTailScale</class>
+ <widget class="QWidget" name="EditTailScale">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>385</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QFormLayout" name="formLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>State directory</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="state_dir"/>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Auth key</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QLineEdit" name="auth_key"/>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>Control URL</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QLineEdit" name="control_plane"/>
+   </item>
+   <item row="7" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>Hostname</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="1">
+    <widget class="QLineEdit" name="hostname"/>
+   </item>
+   <item row="13" column="0">
+    <widget class="QCheckBox" name="accept_route">
+     <property name="text">
+      <string>Accept routes</string>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="0">
+    <widget class="QCheckBox" name="ephemeral">
+     <property name="text">
+      <string>Ephemeral</string>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="0">
+    <widget class="QCheckBox" name="exit_node_lan_access">
+     <property name="text">
+      <string>Exit node allow lan access</string>
+     </property>
+    </widget>
+   </item>
+   <item row="15" column="0">
+    <widget class="QCheckBox" name="advertise_exit_node">
+     <property name="text">
+      <string>Advertise exit node</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="0">
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>Exit node</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="1">
+    <widget class="QLineEdit" name="exit_node"/>
+   </item>
+   <item row="10" column="0">
+    <widget class="QLabel" name="label_6">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;comma seperated list of subnets&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>Advertise routes</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="1">
+    <widget class="QLineEdit" name="advertise_routes"/>
+   </item>
+   <item row="11" column="0">
+    <widget class="QCheckBox" name="global_dns">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;use tailscale dns as the remote dns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>Global DNS</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

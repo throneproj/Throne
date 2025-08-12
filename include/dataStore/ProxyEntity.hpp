@@ -22,6 +22,8 @@ namespace Configs {
 
     class WireguardBean;
 
+    class TailscaleBean;
+
     class SSHBean;
 
     class CustomBean;
@@ -85,6 +87,11 @@ namespace Configs {
         [[nodiscard]] Configs::WireguardBean *WireguardBean() const {
             return (Configs::WireguardBean *) bean.get();
         };
+
+        [[nodiscard]] Configs::TailscaleBean *TailscaleBean() const
+        {
+            return (Configs::TailscaleBean *) bean.get();
+        }
 
         [[nodiscard]] Configs::SSHBean *SSHBean() const {
             return (Configs::SSHBean *) bean.get();
