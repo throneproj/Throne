@@ -13,11 +13,11 @@
     </message>
     <message>
         <source>Listen Address</source>
-        <translation>Прослушиваемый адрес</translation>
+        <translation>Прослушиваемый адрес:</translation>
     </message>
     <message>
         <source>Custom Inbound</source>
-        <translation>Кастомный inbound</translation>
+        <translation>Польз. настройки Inbound</translation>
     </message>
     <message>
         <source>Edit</source>
@@ -57,7 +57,7 @@
     </message>
     <message>
         <source>Connection statistics</source>
-        <translation>Статистика подключений</translation>
+        <translation>Вкл.статистику трафика</translation>
     </message>
     <message>
         <source>Hide dashboard at startup</source>
@@ -173,7 +173,7 @@
     </message>
     <message>
         <source>Listen Port</source>
-        <translation>Прослушиваемый порт</translation>
+        <translation>Прослушиваемый порт:</translation>
     </message>
     <message>
         <source>Assets</source>
@@ -278,6 +278,10 @@
     <message>
         <source>Disable Privilege request</source>
         <translation>Откл. привилегированный запрос</translation>
+    </message>
+    <message>
+        <source>Use Mozilla Certificate Store</source>
+        <translation>Исп. сертификат Mozilla Store</translation>
     </message>
     <message>
         <source>Simple Download</source>
@@ -682,7 +686,11 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
     </message>
     <message>
         <source>Remote DNS</source>
-        <translation>Удаленный DNS</translation>
+        <translation>Удалённый DNS</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;examples:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://domain/path&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://domain/path&lt;/p&gt;&lt;p&gt;quic://domain:4632&lt;/p&gt;&lt;p&gt;etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Примеры адресов:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://domain/path&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://domain/path&lt;/p&gt;&lt;p&gt;quic://domain:4632&lt;/p&gt;&lt;p&gt;etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>DNS Object Settings</source>
@@ -711,6 +719,14 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>Sniffs the connections intial packet(s?) to identify the protocol and the SNI. Sniff result for destination also rewrites the destionation of the connection to the sniffed SNI. For more data on the sniffed protocol refer to the sing-box&apos;s documentation.</source>
         <translation>Проверяет исходный пакет(ы) подключений, чтобы идентифицировать протокол и SNI. Результат анализа для пункта назначения также преобразует пункт назначения соединения в SNI для анализа с помощью SNI. Дополнительные сведения о протоколе проверки приведены в документации slingbox&apos;s.</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable to resolve domains to IP before routing based on the strategy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Включить преобразование доменов в IP-адреса перед маршрутизацией на основе стратегии&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Resolve domains to IP before connect, also affects the server address as well&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Прежде чем подключаться, преобразуйте домены в IP-адреса, это также влияет на адрес сервера.;/p&gt;&lt;/body&gt;&lt;/html&gt;/html&gt;</translation>
     </message>
     <message>
         <source>Routing Profile</source>
@@ -778,11 +794,11 @@ also if the connection cannot be established with the current address family (ip
     </message>
     <message>
         <source>Listen Address</source>
-        <translation>Прослушиваемый адрес</translation>
+        <translation>Прослушиваемый адрес:</translation>
     </message>
     <message>
         <source>Listen Port</source>
-        <translation>Прослушиваемый порт</translation>
+        <translation>Прослушиваемый порт:</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Following format should be used:&lt;br/&gt;domain:a.com&lt;/p&gt;&lt;p&gt;suffix:a.com&lt;/p&gt;&lt;p&gt;regex:someregex&lt;/p&gt;&lt;p&gt;rule_set:nameOfRuleSet&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -1419,7 +1435,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Traffic</source>
-        <translation>Статистика трафика</translation>
+        <translation>Исход. / Входящий трафик</translation>
     </message>
     <message>
         <source>Share</source>
@@ -1519,11 +1535,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Remember last profile</source>
-        <translation>Запомнить последний профиль</translation>
+        <translation>Исп. последний профиль при запуске</translation>
     </message>
     <message>
         <source>Allow other devices to connect</source>
-        <translation>Разрешить подключаться другим устройствам</translation>
+        <translation>Разрешить подкл. другим устройствам</translation>
     </message>
     <message>
         <source>Remove Unavailable</source>
@@ -2164,7 +2180,7 @@ Release note:
     </message>
     <message>
         <source>Download Profiles</source>
-        <translation>Скачивание Профилей</translation>
+        <translation>Загрузить польз. профиль</translation>
     </message>
     <message>
         <source>Requesting profile error: %1</source>
