@@ -23,6 +23,35 @@ namespace Configs {
         return url.toString(QUrl::FullyEncoded);
     }
 
+    QString AnyTlsBean::ToShareLink() {
+        QUrl url;
+        QUrlQuery query;
+        url.setScheme("anytls");
+        url.setUserName(password);
+        url.setHost(serverAddress);
+        url.setPort(serverPort);
+        if (!name.isEmpty()) url.setFragment(name);
+
+        //  security
+        query.addQueryItem("security", stream->security == "" ? "none" : stream->security);
+
+        if (!stream->sni.isEmpty()) query.addQueryItem("sni", stream->sni);
+        if (!stream->alpn.isEmpty()) query.addQueryItem("alpn", stream->alpn);
+        if (stream->allow_insecure) query.addQueryItem("insecure", "1");
+        if (!stream->utlsFingerprint.isEmpty()) query.addQueryItem("fp", stream->utlsFingerprint);
+        if (stream->enable_tls_fragment) query.addQueryItem("fragment", "1");
+        if (!stream->tls_fragment_fallback_delay.isEmpty()) query.addQueryItem("fragment_fallback_delay", stream->tls_fragment_fallback_delay);
+        if (stream->enable_tls_record_fragment) query.addQueryItem("record_fragment", "1");
+
+        if (stream->security == "reality") {
+            query.addQueryItem("pbk", stream->reality_pbk);
+            if (!stream->reality_sid.isEmpty()) query.addQueryItem("sid", stream->reality_sid);
+        }
+
+        url.setQuery(query);
+        return url.toString(QUrl::FullyEncoded);
+    }
+
     QString TrojanVLESSBean::ToShareLink() {
         QUrl url;
         QUrlQuery query;

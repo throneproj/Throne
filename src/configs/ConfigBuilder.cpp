@@ -374,7 +374,7 @@ namespace Configs {
 
         auto stream = GetStreamSettings(ent->bean.get());
         if (stream != nullptr) {
-            if (stream->network == "grpc" || stream->network == "quic" || (stream->network == "http" && stream->security == "tls")) {
+            if (stream->network == "grpc" || stream->network == "quic" || stream->network == "anytls" || (stream->network == "http" && stream->security == "tls")) {
                 needMux = false;
             }
         }

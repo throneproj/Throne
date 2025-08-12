@@ -42,6 +42,43 @@ namespace Configs {
         return !serverAddress.isEmpty();
     }
 
+    bool AnyTlsBean::TryParseLink(const QString &link) {
+        auto url = QUrl(link);
+        if (!url.isValid()) return false;
+        auto query = GetQuery(url);
+
+        name = url.fragment(QUrl::FullyDecoded);
+        serverAddress = url.host();
+        serverPort = url.port();
+        password = url.userName();
+        if (serverPort == -1) serverPort = 443;
+
+        // security
+
+        stream->security = GetQueryValue(query, "security", "").replace("none", "");
+        auto sni1 = GetQueryValue(query, "sni");
+        auto sni2 = GetQueryValue(query, "peer");
+        if (!sni1.isEmpty()) stream->sni = sni1;
+        if (!sni2.isEmpty()) stream->sni = sni2;
+        stream->alpn = GetQueryValue(query, "alpn");
+        stream->allow_insecure = QStringList{"1", "true"}.contains(query.queryItemValue("insecure"));
+        stream->reality_pbk = GetQueryValue(query, "pbk", "");
+        stream->reality_sid = GetQueryValue(query, "sid", "");
+        stream->utlsFingerprint = GetQueryValue(query, "fp", "");
+        if (query.queryItemValue("fragment") == "1") stream->enable_tls_fragment = true;
+        stream->tls_fragment_fallback_delay = query.queryItemValue("fragment_fallback_delay");
+        if (query.queryItemValue("record_fragment") == "1") stream->enable_tls_record_fragment = true;
+        if (stream->utlsFingerprint.isEmpty()) {
+            stream->utlsFingerprint = dataStore->utlsFingerprint;
+        }
+        if (stream->security.isEmpty()) {
+            if (!sni1.isEmpty() || !sni2.isEmpty()) stream->security = "tls";
+            if (!stream->reality_pbk.isEmpty()) stream->security = "reality";
+        }
+
+        return !(password.isEmpty() || serverAddress.isEmpty());
+    }
+
     bool TrojanVLESSBean::TryParseLink(const QString &link) {
         auto url = QUrl(link);
         if (!url.isValid()) return false;

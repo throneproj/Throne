@@ -6,6 +6,7 @@
 #include "include/ui/profile/edit_vmess.h"
 #include "include/ui/profile/edit_trojan_vless.h"
 #include "include/ui/profile/edit_quic.h"
+#include "include/ui/profile/edit_anytls.h"
 #include "include/ui/profile/edit_wireguard.h"
 #include "include/ui/profile/edit_ssh.h"
 #include "include/ui/profile/edit_custom.h"
@@ -171,6 +172,7 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
         LOAD_TYPE("hysteria")
         LOAD_TYPE("hysteria2")
         LOAD_TYPE("tuic")
+        LOAD_TYPE("anytls")
         LOAD_TYPE("wireguard")
         LOAD_TYPE("ssh")
         ui->type->addItem(tr("Custom (%1 outbound)").arg(software_core_name), "internal");
@@ -236,6 +238,10 @@ void DialogEditProfile::typeSelected(const QString &newType) {
         });
     } else if (type == "hysteria" || type == "hysteria2" || type == "tuic") {
         auto _innerWidget = new EditQUIC(this);
+        innerWidget = _innerWidget;
+        innerEditor = _innerWidget;
+    } else if (type == "anytls") {
+        auto _innerWidget = new EditAnyTls(this);
         innerWidget = _innerWidget;
         innerEditor = _innerWidget;
     } else if (type == "wireguard") {
@@ -380,7 +386,7 @@ void DialogEditProfile::typeSelected(const QString &newType) {
         ui->network->setVisible(false);
         ui->network_box->setVisible(false);
     }
-    if (type == "vmess" || type == "vless" || type == "trojan" || type == "http") {
+    if (type == "vmess" || type == "vless" || type == "trojan" || type == "http" || type == "anytls") {
         ui->security->setVisible(true);
         ui->security_l->setVisible(true);
     } else {

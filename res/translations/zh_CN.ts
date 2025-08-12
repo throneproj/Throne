@@ -277,44 +277,45 @@
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Selects a random available port on every run&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;每次运行时选择一个随机可用端口&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Random port</source>
-        <translation type="unfinished"></translation>
+        <translation>随机端口</translation>
     </message>
     <message>
         <source>Auto Reset Assets</source>
-        <translation type="unfinished"></translation>
+        <translation>自动重置资产</translation>
     </message>
     <message>
         <source>Disabled</source>
-        <translation type="unfinished"></translation>
+        <translation>禁用</translation>
     </message>
     <message>
         <source>Every Day</source>
-        <translation type="unfinished"></translation>
+        <translation>每天</translation>
     </message>
     <message>
         <source>Every 3 Days</source>
-        <translation type="unfinished"></translation>
+        <translation>每3天</translation>
     </message>
     <message>
         <source>Every Week</source>
-        <translation type="unfinished"></translation>
+        <translation>每周</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Downloads and replaces the geo asstes, and removes all generated rule-sets, then restarts the proxy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;下载和替换地理资产(geo asstes)，并移除所有生成的规则，然后重新启动该代理&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Reset All Assets</source>
-        <translation type="unfinished"></translation>
+        <translation>重置所有资产</translation>
     </message>
     <message>
         <source>It is recommended to leave it blank, but it sometimes does not work, at this time you can set this option.
 this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
-        <translation type="unfinished"></translation>
+        <translation>建议留空，但是有时不起效，此时你可以设置这个选项。
+这会在 Tun 模式、普通模式以及 URL 测试中重写底层 (localhost) DNS。</translation>
     </message>
 </context>
 <context>
@@ -389,7 +390,7 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
     </message>
     <message>
         <source>Copy profile share links (Custom Links)</source>
-        <translation type="unfinished"></translation>
+        <translation>复制配置档分享链接(自定义链接)</translation>
     </message>
 </context>
 <context>
@@ -1235,47 +1236,47 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Amenzia Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Amenzia 设置</translation>
     </message>
     <message>
         <source>Enable</source>
-        <translation type="unfinished">启用</translation>
+        <translation>启用</translation>
     </message>
     <message>
         <source>Junk Packet Count</source>
-        <translation type="unfinished"></translation>
+        <translation>垃圾数据包数量</translation>
     </message>
     <message>
         <source>Junk Packet Min Size</source>
-        <translation type="unfinished"></translation>
+        <translation>垃圾数据包最小尺寸</translation>
     </message>
     <message>
         <source>Junk Packet Max Size</source>
-        <translation type="unfinished"></translation>
+        <translation>垃圾数据包最大尺寸</translation>
     </message>
     <message>
         <source>Init Packet Junk Size</source>
-        <translation type="unfinished"></translation>
+        <translation>初始数据包垃圾大小</translation>
     </message>
     <message>
         <source>Response Packet Junk Size</source>
-        <translation type="unfinished"></translation>
+        <translation>响应数据包垃圾大小</translation>
     </message>
     <message>
         <source>Init Packet Magic Header</source>
-        <translation type="unfinished"></translation>
+        <translation>初始数据包魔术报头</translation>
     </message>
     <message>
         <source>Response Packet Magic Header</source>
-        <translation type="unfinished"></translation>
+        <translation>响应数据包魔术报头</translation>
     </message>
     <message>
         <source>Underload Packet Magic Header</source>
-        <translation type="unfinished"></translation>
+        <translation>欠载数据包魔法报头</translation>
     </message>
     <message>
         <source>Transport Header Magic Header</source>
-        <translation type="unfinished"></translation>
+        <translation>传送报头魔法报头</translation>
     </message>
 </context>
 <context>
@@ -1968,29 +1969,29 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Copy links of selected (Custom Links)</source>
-        <translation type="unfinished"></translation>
+        <translation>复制选定项的链接(自定义链接)</translation>
     </message>
     <message>
         <source>Invalid JSON Array</source>
-        <translation type="unfinished">无效 JSON 数组</translation>
+        <translation>无效 JSON 数组</translation>
     </message>
     <message>
         <source>The provided input cannot be parsed to a valid route rule array:
 </source>
-        <translation type="unfinished">提供的输入无法解析为有效的路由规则数组：
+        <translation>提供的输入无法解析为有效的路由规则数组:
 </translation>
     </message>
     <message>
         <source>Please run Throne as admin</source>
-        <translation type="unfinished"></translation>
+        <translation>请以管理员身份运行 Throne</translation>
     </message>
     <message>
         <source>A reset of assets is already in progress</source>
-        <translation type="unfinished"></translation>
+        <translation>资产的重置已在进行中</translation>
     </message>
     <message>
         <source>Removed all rule-set files</source>
-        <translation type="unfinished">已移除所有规则集文件</translation>
+        <translation>已移除所有规则集文件</translation>
     </message>
 </context>
 <context>
@@ -2145,19 +2146,19 @@ Release note:
     </message>
     <message>
         <source>Processing subscription data...</source>
-        <translation type="unfinished"></translation>
+        <translation>正在处理订阅数据...</translation>
     </message>
     <message>
         <source>Process complete, applying...</source>
-        <translation type="unfinished"></translation>
+        <translation>处理完成，正在应用...</translation>
     </message>
     <message>
         <source>Download Profiles</source>
-        <translation type="unfinished"></translation>
+        <translation>下载配置档</translation>
     </message>
     <message>
         <source>Requesting profile error: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>请求配置档时出错: %1</translation>
     </message>
 </context>
 <context>
@@ -2308,11 +2309,11 @@ Release note:
     </message>
     <message>
         <source>General</source>
-        <translation type="unfinished"></translation>
+        <translation>常规</translation>
     </message>
     <message>
         <source>Default outbound</source>
-        <translation type="unfinished"></translation>
+        <translation>默认出站</translation>
     </message>
 </context>
 <context>

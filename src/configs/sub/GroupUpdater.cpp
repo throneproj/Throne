@@ -172,6 +172,13 @@ namespace Subscription {
             if (!ok) return;
         }
 
+        // AnyTls
+        if (str.startsWith("anytls://")) {
+            ent = Configs::ProfileManager::NewProxyEntity("anytls");
+            auto ok = ent->AnyTlsBean()->TryParseLink(str);
+            if (!ok) return;
+        }
+
         // Hysteria1
         if (str.startsWith("hysteria://")) {
             needFix = false;
@@ -287,6 +294,13 @@ namespace Subscription {
             if (out["type"] == "trojan") {
                 ent = Configs::ProfileManager::NewProxyEntity("trojan");
                 auto ok = ent->TrojanVLESSBean()->TryParseJson(out);
+                if (!ok) continue;
+            }
+
+            // AnyTls
+            if (out["type"] == "anytls") {
+                ent = Configs::ProfileManager::NewProxyEntity("anytls");
+                auto ok = ent->AnyTlsBean()->TryParseJson(out);
                 if (!ok) continue;
             }
 
@@ -455,8 +469,22 @@ namespace Subscription {
                     auto bean = ent->SocksHTTPBean();
                     bean->username = Node2QString(proxy["username"]);
                     bean->password = Node2QString(proxy["password"]);
-                    if (Node2Bool(proxy["tls"])) bean->stream->security = "tls";
-                    if (Node2Bool(proxy["skip-cert-verify"])) bean->stream->allow_insecure = true;
+                    if (type == "http") {
+                        if (Node2Bool(proxy["tls"])) bean->stream->security = "tls";
+                        if (Node2Bool(proxy["skip-cert-verify"])) bean->stream->allow_insecure = true;
+                        bean->stream->sni = FIRST_OR_SECOND(Node2QString(proxy["sni"]), Node2QString(proxy["servername"]));
+                        bean->stream->alpn = Node2QStringList(proxy["alpn"]).join(",");
+                        bean->stream->utlsFingerprint = Node2QString(proxy["client-fingerprint"]);
+                        if (bean->stream->utlsFingerprint.isEmpty()) {
+                            bean->stream->utlsFingerprint = Configs::dataStore->utlsFingerprint;
+                        }
+
+                        auto reality = NodeChild(proxy, {"reality-opts"});
+                        if (reality.is_mapping()) {
+                            bean->stream->reality_pbk = Node2QString(reality["public-key"]);
+                            bean->stream->reality_sid = Node2QString(reality["short-id"]);
+                        }
+                    }
                 } else if (type == "trojan" || type == "vless") {
                     needFix = true;
                     auto bean = ent->TrojanVLESSBean();
@@ -526,7 +554,6 @@ namespace Subscription {
                     if (Node2Bool(proxy["tls"])) bean->stream->security = "tls";
                     if (Node2Bool(proxy["skip-cert-verify"])) bean->stream->allow_insecure = true;
                     bean->stream->utlsFingerprint = Node2QString(proxy["client-fingerprint"]);
-                    bean->stream->utlsFingerprint = Node2QString(proxy["client-fingerprint"]);
                     if (bean->stream->utlsFingerprint.isEmpty()) {
                         bean->stream->utlsFingerprint = Configs::dataStore->utlsFingerprint;
                     }
@@ -592,6 +619,24 @@ namespace Subscription {
                             bean->stream->path = Node2QString(path);
                             break;
                         }
+                    }
+                } else if (type == "anytls") {
+                    needFix = true;
+                    auto bean = ent->AnyTlsBean();
+                    bean->password = Node2QString(proxy["password"]);
+                    if (Node2Bool(proxy["tls"])) bean->stream->security = "tls";
+                    if (Node2Bool(proxy["skip-cert-verify"])) bean->stream->allow_insecure = true;
+                    bean->stream->sni = FIRST_OR_SECOND(Node2QString(proxy["sni"]), Node2QString(proxy["servername"]));
+                    bean->stream->alpn = Node2QStringList(proxy["alpn"]).join(",");
+                    bean->stream->utlsFingerprint = Node2QString(proxy["client-fingerprint"]);
+                    if (bean->stream->utlsFingerprint.isEmpty()) {
+                        bean->stream->utlsFingerprint = Configs::dataStore->utlsFingerprint;
+                    }
+
+                    auto reality = NodeChild(proxy, {"reality-opts"});
+                    if (reality.is_mapping()) {
+                        bean->stream->reality_pbk = Node2QString(reality["public-key"]);
+                        bean->stream->reality_sid = Node2QString(reality["short-id"]);
                     }
                 } else if (type == "hysteria") {
                     auto bean = ent->QUICBean();

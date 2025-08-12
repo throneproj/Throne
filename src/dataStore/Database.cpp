@@ -176,6 +176,8 @@ namespace Configs {
             bean = new Configs::QUICBean(Configs::QUICBean::proxy_Hysteria2);
         } else if (type == "tuic") {
             bean = new Configs::QUICBean(Configs::QUICBean::proxy_TUIC);
+        } else if (type == "anytls") {
+            bean = new Configs::AnyTlsBean();
         } else if (type == "wireguard") {
             bean = new Configs::WireguardBean(Configs::WireguardBean());
         } else if (type == "ssh") {

@@ -6,6 +6,7 @@
 #include "VMessBean.hpp"
 #include "TrojanVLESSBean.hpp"
 #include "QUICBean.hpp"
+#include "AnyTlsBean.hpp"
 #include "WireguardBean.h"
 #include "SSHBean.h"
 #include "CustomBean.hpp"
