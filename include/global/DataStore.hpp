@@ -86,6 +86,7 @@ namespace Configs {
         int stats_tab = 0; // either connection or log
         int speed_test_mode = TestConfig::FULL;
         QString simple_dl_url = "http://cachefly.cachefly.net/1mb.test";
+        bool allow_beta_update = false;
 
         // Subscription
         QString user_agent = ""; // set at main.cpp

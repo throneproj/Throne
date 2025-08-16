@@ -15,8 +15,8 @@ namespace Configs {
         bool useSystemInterface = false;
         int workerCount = 0;
 
-        // Amenzia Options
-        bool enable_amenzia = false;
+        // Amnezia Options
+        bool enable_amnezia = false;
         int junk_packet_count;
         int junk_packet_min_size;
         int junk_packet_max_size;
@@ -38,7 +38,7 @@ namespace Configs {
             _add(new configItem("use_system_proxy", &useSystemInterface, itemType::boolean));
             _add(new configItem("worker_count", &workerCount, itemType::integer));
 
-            _add(new configItem("enable_amenzia", &enable_amenzia, itemType::boolean));
+            _add(new configItem("enable_amnezia", &enable_amnezia, itemType::boolean));
             _add(new configItem("junk_packet_count", &junk_packet_count, itemType::integer));
             _add(new configItem("junk_packet_min_size", &junk_packet_min_size, itemType::integer));
             _add(new configItem("junk_packet_max_size", &junk_packet_max_size, itemType::integer));
@@ -70,5 +70,7 @@ namespace Configs {
         bool TryParseJson(const QJsonObject &obj);
 
         QString ToShareLink() override;
+
+        bool IsEndpoint() override {return true;}
     };
 } // namespace Configs

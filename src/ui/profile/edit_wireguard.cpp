@@ -29,7 +29,7 @@ void EditWireguard::onStart(std::shared_ptr<Configs::ProxyEntity> _ent) {
     ui->local_addr->setText(bean->localAddress.join(","));
     ui->workers->setText(Int2String(bean->workerCount));
 
-    ui->enable_amenzia->setChecked(bean->enable_amenzia);
+    ui->enable_amnezia->setChecked(bean->enable_amnezia);
     ui->junk_packet_count->setText(Int2String(bean->junk_packet_count));
     ui->junk_packet_min_size->setText(Int2String(bean->junk_packet_min_size));
     ui->junk_packet_max_size->setText(Int2String(bean->junk_packet_max_size));
@@ -59,7 +59,7 @@ bool EditWireguard::onEnd() {
     bean->localAddress = ui->local_addr->text().replace(" ", "").split(",");
     bean->workerCount = ui->workers->text().toInt();
 
-    bean->enable_amenzia = ui->enable_amenzia->isChecked();
+    bean->enable_amnezia = ui->enable_amnezia->isChecked();
     bean->junk_packet_count = ui->junk_packet_count->text().toInt();
     bean->junk_packet_min_size = ui->junk_packet_min_size->text().toInt();
     bean->junk_packet_max_size = ui->junk_packet_max_size->text().toInt();

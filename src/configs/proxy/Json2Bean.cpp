@@ -1,15 +1,4 @@
-
-
-#include <include/configs/proxy/QUICBean.hpp>
-#include <include/configs/proxy/ShadowSocksBean.hpp>
-#include <include/configs/proxy/SocksHttpBean.hpp>
-#include <include/configs/proxy/TrojanVLESSBean.hpp>
-#include <include/configs/proxy/VMessBean.hpp>
-#include <include/configs/proxy/AnyTlsBean.hpp>
-#include <include/configs/proxy/WireguardBean.h>
-
-#include "include/configs/proxy/ExtraCore.h"
-#include "include/configs/proxy/SSHBean.h"
+#include <include/configs/proxy/includes.h>
 
 namespace Configs
 {
@@ -135,10 +124,6 @@ namespace Configs
         stream->packet_encoding = obj["packet_encoding"].toString();
         mux_state = obj["multiplex"].isObject() ? (obj["multiplex"].toObject()["enabled"].toBool() ? 1 : 2) : 0;
         stream->security = obj["tls"].isObject() ? "tls" : "";
-        if (obj["tls"].toObject()["reality"].toObject()["enabled"].toBool())
-        {
-            stream->security = "reality";
-        }
         stream->reality_pbk = obj["tls"].toObject()["reality"].toObject()["public_key"].toString();
         stream->reality_sid = obj["tls"].toObject()["reality"].toObject()["short_id"].toString();
         stream->utlsFingerprint = obj["tls"].toObject()["utls"].toObject()["fingerprint"].toString();
@@ -180,10 +165,6 @@ namespace Configs
         stream->packet_encoding = obj["packet_encoding"].toString();
         mux_state = obj["multiplex"].isObject() ? (obj["multiplex"].toObject()["enabled"].toBool() ? 1 : 2) : 0;
         stream->security = obj["tls"].isObject() ? "tls" : "";
-        if (obj["tls"].toObject()["reality"].toObject()["enabled"].toBool())
-        {
-            stream->security = "reality";
-        }
         stream->reality_pbk = obj["tls"].toObject()["reality"].toObject()["public_key"].toString();
         stream->reality_sid = obj["tls"].toObject()["reality"].toObject()["short_id"].toString();
         stream->utlsFingerprint = obj["tls"].toObject()["utls"].toObject()["fingerprint"].toString();
@@ -214,7 +195,7 @@ namespace Configs
         return true;
     }
 
-    bool AnyTlsBean::TryParseJson(const QJsonObject& obj)
+    bool AnyTLSBean::TryParseJson(const QJsonObject& obj)
     {
         name = obj["tag"].toString();
         serverAddress = obj["server"].toString();
@@ -224,10 +205,6 @@ namespace Configs
         idle_session_timeout = obj["idle_session_timeout"].toInt();
         min_idle_session = obj["min_idle_session"].toInt();
         stream->security = obj["tls"].isObject() ? "tls" : "";
-        if (obj["tls"].toObject()["reality"].toObject()["enabled"].toBool())
-        {
-            stream->security = "reality";
-        }
         stream->reality_pbk = obj["tls"].toObject()["reality"].toObject()["public_key"].toString();
         stream->reality_sid = obj["tls"].toObject()["reality"].toObject()["short_id"].toString();
         stream->utlsFingerprint = obj["tls"].toObject()["utls"].toObject()["fingerprint"].toString();
@@ -267,8 +244,25 @@ namespace Configs
         transport_packet_magic_header = obj["transport_packet_magic_header"].toInt();
         if (junk_packet_count > 0 || junk_packet_min_size > 0 || junk_packet_max_size > 0)
         {
-            enable_amenzia = true;
+            enable_amnezia = true;
         }
+
+        return true;
+    }
+
+    bool TailscaleBean::TryParseJson(const QJsonObject& obj)
+    {
+        name = obj["tag"].toString();
+        state_directory = obj["state_directory"].toString();
+        auth_key = obj["auth_key"].toString();
+        control_url = obj["control_url"].toString();
+        ephemeral = obj["ephemeral"].toBool();
+        hostname = obj["hostname"].toString();
+        accept_routes = obj["accept_routes"].toBool();
+        exit_node = obj["exit_node"].toString();
+        exit_node_allow_lan_access = obj["exit_node_allow_lan_access"].toBool();
+        advertise_routes = QJsonArray2QListString(obj["advertise_routes"].toArray());
+        advertise_exit_node = obj["advertise_exit_node"].toBool();
 
         return true;
     }

@@ -172,10 +172,10 @@ namespace Subscription {
             if (!ok) return;
         }
 
-        // AnyTls
+        // AnyTLS
         if (str.startsWith("anytls://")) {
             ent = Configs::ProfileManager::NewProxyEntity("anytls");
-            auto ok = ent->AnyTlsBean()->TryParseLink(str);
+            auto ok = ent->AnyTLSBean()->TryParseLink(str);
             if (!ok) return;
         }
 
@@ -297,10 +297,10 @@ namespace Subscription {
                 if (!ok) continue;
             }
 
-            // AnyTls
+            // AnyTLS
             if (out["type"] == "anytls") {
                 ent = Configs::ProfileManager::NewProxyEntity("anytls");
-                auto ok = ent->AnyTlsBean()->TryParseJson(out);
+                auto ok = ent->AnyTLSBean()->TryParseJson(out);
                 if (!ok) continue;
             }
 
@@ -622,7 +622,7 @@ namespace Subscription {
                     }
                 } else if (type == "anytls") {
                     needFix = true;
-                    auto bean = ent->AnyTlsBean();
+                    auto bean = ent->AnyTLSBean();
                     bean->password = Node2QString(proxy["password"]);
                     if (Node2Bool(proxy["tls"])) bean->stream->security = "tls";
                     if (Node2Bool(proxy["skip-cert-verify"])) bean->stream->allow_insecure = true;

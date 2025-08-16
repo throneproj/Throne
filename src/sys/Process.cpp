@@ -5,6 +5,8 @@
 #include <QDir>
 #include <QApplication>
 
+#include "include/ui/mainwindow.h"
+
 namespace Configs_sys {
     CoreProcess::~CoreProcess() {
     }
@@ -59,7 +61,8 @@ namespace Configs_sys {
                 if (failed_to_start) return; // no retry
                 if (restarting) return;
 
-                MW_dialog_message("ExternalProcess", "CoreCrashed");
+                MW_show_log("[Fatal] " + QObject::tr("Core exited, cleaning up..."));
+                GetMainWindow()->profile_stop(true, true);
 
                 // Retry rate limit
                 if (coreRestartTimer.isValid()) {
@@ -74,7 +77,7 @@ namespace Configs_sys {
 
                 // Restart
                 start_profile_when_core_is_up = Configs::dataStore->started_id;
-                MW_show_log("[Fatal] " + QObject::tr("Core exited, restarting."));
+                MW_show_log("[Warn] " + QObject::tr("Restarting the core ..."));
                 setTimeout([=,this] { Restart(); }, this, 200);
             }
         });

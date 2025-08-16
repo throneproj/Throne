@@ -73,36 +73,15 @@ namespace Configs {
             if (!alpn.trimmed().isEmpty()) {
                 tls["alpn"] = QListStr2QJsonArray(alpn.split(","));
             }
-            if (QString fp = utlsFingerprint; !fp.isEmpty()) {
-                tls["utls"] = QJsonObject{
-                    {"enabled", true},
-                    {"fingerprint", fp},
-                };
-            }
-            if (enable_tls_fragment)
-            {
-                tls["fragment"] = enable_tls_fragment;
-                if (!tls_fragment_fallback_delay.isEmpty()) tls["fragment_fallback_delay"] = tls_fragment_fallback_delay;
-            }
-            if (enable_tls_record_fragment) tls["record_fragment"] = enable_tls_record_fragment;
-            outbound->insert("tls", tls);
-        } else if (security == "reality") {
-            QJsonObject tls{{"enabled", true}};
-            if (allow_insecure || Configs::dataStore->skip_cert) tls["insecure"] = true;
-            if (!sni.trimmed().isEmpty()) tls["server_name"] = sni;
-            if (!certificate.trimmed().isEmpty()) {
-                tls["certificate"] = certificate.trimmed();
-            }
-            if (!alpn.trimmed().isEmpty()) {
-                tls["alpn"] = QListStr2QJsonArray(alpn.split(","));
-            }
-            tls["reality"] = QJsonObject{
-                                {"enabled", true},
-                                {"public_key", reality_pbk},
-                                {"short_id", reality_sid.split(",")[0]},
-                            };
             QString fp = utlsFingerprint;
-            if (fp.isEmpty()) fp = "random";
+            if (!reality_pbk.trimmed().isEmpty()) {
+                tls["reality"] = QJsonObject{
+                    {"enabled", true},
+                    {"public_key", reality_pbk},
+                    {"short_id", reality_sid.split(",")[0]},
+                };
+                if (fp.isEmpty()) fp = "random";
+            }
             if (!fp.isEmpty()) {
                 tls["utls"] = QJsonObject{
                         {"enabled", true},
@@ -171,7 +150,7 @@ namespace Configs {
         return result;
     }
 
-    CoreObjOutboundBuildResult AnyTlsBean::BuildCoreObjSingBox() {
+    CoreObjOutboundBuildResult AnyTLSBean::BuildCoreObjSingBox() {
         CoreObjOutboundBuildResult result;
 
         QJsonObject outbound{
@@ -327,7 +306,7 @@ namespace Configs {
             {"system", useSystemInterface},
             {"workers", workerCount}
         };
-        if (enable_amenzia)
+        if (enable_amnezia)
         {
             outbound["junk_packet_count"] = junk_packet_count;
             outbound["junk_packet_min_size"] = junk_packet_min_size;
@@ -339,6 +318,27 @@ namespace Configs {
             outbound["underload_packet_magic_header"] = underload_packet_magic_header;
             outbound["transport_packet_magic_header"] = transport_packet_magic_header;
         }
+
+        result.outbound = outbound;
+        return result;
+    }
+
+    CoreObjOutboundBuildResult TailscaleBean::BuildCoreObjSingBox()
+    {
+        CoreObjOutboundBuildResult result;
+        QJsonObject outbound{
+            {"type", "tailscale"},
+            {"state_directory", state_directory},
+            {"auth_key", auth_key},
+            {"control_url", control_url},
+            {"ephemeral", ephemeral},
+            {"hostname", hostname},
+            {"accept_routes", accept_routes},
+            {"exit_node", exit_node},
+            {"exit_node_allow_lan_access", exit_node_allow_lan_access},
+            {"advertise_routes", QListStr2QJsonArray(advertise_routes)},
+            {"advertise_exit_node", advertise_exit_node},
+        };
 
         result.outbound = outbound;
         return result;

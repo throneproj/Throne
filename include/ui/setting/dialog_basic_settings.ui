@@ -208,6 +208,13 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QCheckBox" name="allow_beta">
+            <property name="text">
+             <string>Allow updating to beta versions</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>

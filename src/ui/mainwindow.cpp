@@ -141,7 +141,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     QStringList args;
     args.push_back("-port");
     args.push_back(Int2String(Configs::dataStore->core_port));
-    if (Configs::dataStore->flag_debug) args.push_back("-debug");
+    if (Configs::dataStore->log_level == "debug") args.push_back("-debug");
 
     // Start core
     runOnThread(
@@ -772,8 +772,6 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
     } else if (sender == "ExternalProcess") {
         if (info == "Crashed") {
             profile_stop();
-        } else if (info == "CoreCrashed") {
-            profile_stop(true);
         } else if (info.startsWith("CoreStarted")) {
             Configs::IsAdmin(true);
             if (Configs::dataStore->remember_enable || Configs::dataStore->flag_restart_tun_on) {
@@ -879,7 +877,6 @@ void MainWindow::prepare_exit()
     //
     Configs::dataStore->save_control_no_save = true; // don't change datastore after this line
     profile_stop(false, true);
-    sem_stopped.acquire();
 
     QMutex coreKillMu;
     coreKillMu.lock();
@@ -2469,6 +2466,7 @@ void MainWindow::CheckUpdate() {
     QJsonArray array = QString2QJsonArray(resp.data);
     for (const QJsonValue value : array) {
         QJsonObject release = value.toObject();
+        if (release["prerelease"].toBool() && !Configs::dataStore->allow_beta_update) continue;
         for (const QJsonValue asset : release["assets"].toArray()) {
             if (asset["name"].toString().contains(search) && asset["name"].toString().section('.', -1) == QString("zip")) {
                 note_pre_release = release["prerelease"].toBool() ? " (Pre-release)" : "";

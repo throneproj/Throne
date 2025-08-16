@@ -2,27 +2,27 @@
 
 #include <QWidget>
 #include "profile_editor.h"
-#include "ui_edit_anytls.h"
+#include "ui_edit_tailscale.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-    class EditAnyTLS;
+    class EditTailScale;
 }
 QT_END_NAMESPACE
 
-class EditAnyTLS : public QWidget, public ProfileEditor {
+class EditTailScale : public QWidget, public ProfileEditor {
     Q_OBJECT
 
 public:
-    explicit EditAnyTLS(QWidget *parent = nullptr);
+    explicit EditTailScale(QWidget *parent = nullptr);
 
-    ~EditAnyTLS() override;
+    ~EditTailScale() override;
 
     void onStart(std::shared_ptr<Configs::ProxyEntity> _ent) override;
 
     bool onEnd() override;
 
 private:
-    Ui::EditAnyTLS *ui;
+    Ui::EditTailScale *ui;
     std::shared_ptr<Configs::ProxyEntity> ent;
 };

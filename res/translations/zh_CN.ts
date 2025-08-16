@@ -317,6 +317,10 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
         <translation>建议留空，但是有时不起效，此时你可以设置这个选项。
 这会在 Tun 模式、普通模式以及 URL 测试中重写底层 (localhost) DNS。</translation>
     </message>
+    <message>
+        <source>Use Mozilla Certificate Store</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>
@@ -579,6 +583,30 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
         <source>Extra Core</source>
         <translation>额外核心</translation>
     </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;May degrade performance, try record fragment first&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable TLS fragment</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;time format, like 500ms, 10ms etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fallback Delay</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable TLS Record Fragment</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reality short id. Accept only one value.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DialogHotkey</name>
@@ -647,10 +675,6 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
     <message>
         <source>Sniff result for routing</source>
         <translation>用于路由判断的嗅探结果</translation>
-    </message>
-    <message>
-        <source>Sniff result for destination</source>
-        <translation>用于目标的嗅探结果</translation>
     </message>
     <message>
         <source>Direct DNS</source>
@@ -731,13 +755,6 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>Delete</source>
         <translation>删除</translation>
-    </message>
-    <message>
-        <source>outbound.domain_strategy
-when set, domain destinations are resolved to IP before connect,
-also if the connection cannot be established with the current address family (ipv4, ipv6), a fallback connection is created shortly after, with the other address family.</source>
-        <translation>outbound.domain_strategy
-设置时，域目标在连接前解析为 IP，此外，如果无法用当前地址族 (IPv4、IPv6) 建立连接，则会在稍后使用另一地址族创建后备连接。</translation>
     </message>
     <message>
         <source>Outbound Domain Strategy</source>
@@ -843,6 +860,14 @@ also if the connection cannot be established with the current address family (ip
         <source>Allow Lan to Connect</source>
         <translation>允许局域网连接</translation>
     </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Resolve domains to IP before connect, also affects the server address as well&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;examples:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://domain/path&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://domain/path&lt;/p&gt;&lt;p&gt;quic://domain:4632&lt;/p&gt;&lt;p&gt;etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DialogVPNSettings</name>
@@ -887,6 +912,25 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Enable Tun Routing</source>
         <translation>启用 Tun 路由</translation>
+    </message>
+</context>
+<context>
+    <name>EditAnyTLS</name>
+    <message>
+        <source>Password</source>
+        <translation type="unfinished">密码</translation>
+    </message>
+    <message>
+        <source>Idle Session Check Interval</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Idle Session Timeout</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Min Idle Session</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1235,10 +1279,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>持久保持活动</translation>
     </message>
     <message>
-        <source>Amenzia Settings</source>
-        <translation>Amenzia 设置</translation>
-    </message>
-    <message>
         <source>Enable</source>
         <translation>启用</translation>
     </message>
@@ -1277,6 +1317,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Transport Header Magic Header</source>
         <translation>传送报头魔法报头</translation>
+    </message>
+    <message>
+        <source>Amnezia Settings</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1992,6 +2036,14 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Removed all rule-set files</source>
         <translation>已移除所有规则集文件</translation>
+    </message>
+    <message>
+        <source>Click To Sort By Protocol</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Click To Sort By Outbound</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

@@ -37,6 +37,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     D_LOAD_BOOL(disable_tray)
     ui->speedtest_mode->setCurrentIndex(Configs::dataStore->speed_test_mode);
     ui->simple_down_url->setText(Configs::dataStore->simple_dl_url);
+    ui->allow_beta->setChecked(Configs::dataStore->allow_beta_update);
 
     connect(ui->custom_inbound_edit, &QPushButton::clicked, this, [=,this] {
         C_EDIT_JSON_ALLOW_EMPTY(custom_inbound)
@@ -201,6 +202,7 @@ void DialogBasicSettings::accept() {
     Configs::dataStore->proxy_scheme = ui->proxy_scheme->currentText().toLower();
     Configs::dataStore->speed_test_mode = ui->speedtest_mode->currentIndex();
     Configs::dataStore->simple_dl_url = ui->simple_down_url->text();
+    Configs::dataStore->allow_beta_update = ui->allow_beta->isChecked();
 
     // Style
 

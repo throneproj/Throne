@@ -325,6 +325,10 @@
 this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Use Mozilla Certificate Store</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>
@@ -587,6 +591,30 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
         <source>Extra Core</source>
         <translation>هسته اضافی</translation>
     </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;May degrade performance, try record fragment first&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable TLS fragment</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;time format, like 500ms, 10ms etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fallback Delay</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable TLS Record Fragment</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reality short id. Accept only one value.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DialogHotkey</name>
@@ -665,10 +693,6 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
         <translation>نتیجه پویش برای مسیریابی</translation>
     </message>
     <message>
-        <source>Sniff result for destination</source>
-        <translation>نتیجه پویش برای مقصد</translation>
-    </message>
-    <message>
         <source>Common</source>
         <translation>متداول</translation>
     </message>
@@ -740,12 +764,6 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>Delete</source>
         <translation>از بین بردن</translation>
-    </message>
-    <message>
-        <source>outbound.domain_strategy
-when set, domain destinations are resolved to IP before connect,
-also if the connection cannot be established with the current address family (ipv4, ipv6), a fallback connection is created shortly after, with the other address family.</source>
-        <translation>وقتی outbound.domain_strategy تنظیم شود، مقصدهای دامنه قبل از اتصال به IP تبدیل می‌شوند، همچنین اگر اتصال با خانواده آدرس کنونی (IPv4، IPv6) برقرار نشود، اتصال جایگزین با خانواده آدرس دیگر به‌زودی ایجاد می‌شود.</translation>
     </message>
     <message>
         <source>Outbound Domain Strategy</source>
@@ -851,6 +869,14 @@ also if the connection cannot be established with the current address family (ip
         <source>Allow Lan to Connect</source>
         <translation>اجازه اتصال به LAN</translation>
     </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Resolve domains to IP before connect, also affects the server address as well&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;examples:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://domain/path&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://domain/path&lt;/p&gt;&lt;p&gt;quic://domain:4632&lt;/p&gt;&lt;p&gt;etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DialogVPNSettings</name>
@@ -895,6 +921,25 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Enable Tun Routing</source>
         <translation>فعال کردن مسیریابی Tun</translation>
+    </message>
+</context>
+<context>
+    <name>EditAnyTLS</name>
+    <message>
+        <source>Password</source>
+        <translation type="unfinished">کلمه عبور</translation>
+    </message>
+    <message>
+        <source>Idle Session Check Interval</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Idle Session Timeout</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Min Idle Session</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1243,10 +1288,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>نگه‌داری پایدار</translation>
     </message>
     <message>
-        <source>Amenzia Settings</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Enable</source>
         <translation type="unfinished">فعال کردن</translation>
     </message>
@@ -1284,6 +1325,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Transport Header Magic Header</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Amnezia Settings</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2000,6 +2045,14 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Removed all rule-set files</source>
         <translation type="unfinished">همه پرونده‌های مجموعه‌قوانین پاک شدند</translation>
+    </message>
+    <message>
+        <source>Click To Sort By Protocol</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Click To Sort By Outbound</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

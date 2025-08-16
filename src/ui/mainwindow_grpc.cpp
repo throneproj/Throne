@@ -524,8 +524,7 @@ void MainWindow::profile_start(int _id) {
     runOnNewThread([=, this] {
         // stop current running
         if (running != nullptr) {
-            runOnUiThread([=,this] { profile_stop(false, true, true); });
-            sem_stopped.acquire();
+            profile_stop(false, true, true);
         }
         // do start
         MW_show_log(">>>>>>>> " + tr("Starting profile %1").arg(ent->bean->DisplayTypeAndName()));
@@ -564,12 +563,11 @@ void MainWindow::set_spmode_system_proxy(bool enable, bool save) {
     refresh_status();
 }
 
-void MainWindow::profile_stop(bool crash, bool sem, bool manual) {
-    auto id = Configs::dataStore->started_id;
-    if (id < 0) {
-        if (sem) sem_stopped.release();
+void MainWindow::profile_stop(bool crash, bool block, bool manual) {
+    if (running == nullptr) {
         return;
     }
+    auto id = running->id;
 
     auto profile_stop_stage2 = [=,this] {
         if (!crash) {
@@ -586,9 +584,10 @@ void MainWindow::profile_stop(bool crash, bool sem, bool manual) {
     };
 
     if (!mu_stopping.tryLock()) {
-        if (sem) sem_stopped.release();
         return;
     }
+    QMutex blocker;
+    if (block) blocker.lock();
 
     // timeout message
     auto restartMsgbox = new QMessageBox(QMessageBox::Question, software_name, tr("If there is no response for a long time, it is recommended to restart the software."),
@@ -612,7 +611,7 @@ void MainWindow::profile_stop(bool crash, bool sem, bool manual) {
     restartMsgboxTimer->deleteLater();
     restartMsgbox->deleteLater();
 
-    runOnNewThread([=, this] {
+    runOnNewThread([=, this, &blocker] {
         // do stop
         MW_show_log(">>>>>>>> " + tr("Stopping profile %1").arg(running->bean->DisplayTypeAndName()));
         if (!profile_stop_stage2()) {
@@ -623,13 +622,19 @@ void MainWindow::profile_stop(bool crash, bool sem, bool manual) {
         Configs::dataStore->need_keep_vpn_off = false;
         running = nullptr;
 
-        if (sem) sem_stopped.release();
+        if (block) blocker.unlock();
 
-        runOnUiThread([=, this] {
+        runOnUiThread([=, this, &blocker] {
             refresh_status();
             refresh_proxy_list_impl_refresh_data(id, true);
 
             mu_stopping.unlock();
         });
     });
+
+    if (block)
+    {
+        blocker.lock();
+        blocker.unlock();
+    }
 }

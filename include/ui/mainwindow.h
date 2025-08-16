@@ -66,7 +66,7 @@ public:
 
     void profile_start(int _id = -1);
 
-    void profile_stop(bool crash = false, bool sem = false, bool manual = false);
+    void profile_stop(bool crash = false, bool block = false, bool manual = false);
 
     void set_spmode_system_proxy(bool enable, bool save = true);
 
@@ -193,7 +193,6 @@ private:
     QMutex mu_starting;
     QMutex mu_stopping;
     QMutex mu_exit;
-    QSemaphore sem_stopped;
     int exit_reason = 0;
     //
     QMutex mu_download_assets;

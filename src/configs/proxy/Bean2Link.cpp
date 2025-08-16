@@ -23,7 +23,7 @@ namespace Configs {
         return url.toString(QUrl::FullyEncoded);
     }
 
-    QString AnyTlsBean::ToShareLink() {
+    QString AnyTLSBean::ToShareLink() {
         QUrl url;
         QUrlQuery query;
         url.setScheme("anytls");
@@ -33,7 +33,9 @@ namespace Configs {
         if (!name.isEmpty()) url.setFragment(name);
 
         //  security
-        query.addQueryItem("security", stream->security == "" ? "none" : stream->security);
+        auto security = stream->security;
+        if (security == "tls" && !stream->reality_pbk.trimmed().isEmpty()) security = "reality";
+        query.addQueryItem("security", security == "" ? "none" : security);
 
         if (!stream->sni.isEmpty()) query.addQueryItem("sni", stream->sni);
         if (!stream->alpn.isEmpty()) query.addQueryItem("alpn", stream->alpn);
@@ -43,7 +45,7 @@ namespace Configs {
         if (!stream->tls_fragment_fallback_delay.isEmpty()) query.addQueryItem("fragment_fallback_delay", stream->tls_fragment_fallback_delay);
         if (stream->enable_tls_record_fragment) query.addQueryItem("record_fragment", "1");
 
-        if (stream->security == "reality") {
+        if (security == "reality") {
             query.addQueryItem("pbk", stream->reality_pbk);
             if (!stream->reality_sid.isEmpty()) query.addQueryItem("sid", stream->reality_sid);
         }
@@ -62,7 +64,9 @@ namespace Configs {
         if (!name.isEmpty()) url.setFragment(name);
 
         //  security
-        query.addQueryItem("security", stream->security == "" ? "none" : stream->security);
+        auto security = stream->security;
+        if (security == "tls" && !stream->reality_pbk.trimmed().isEmpty()) security = "reality";
+        query.addQueryItem("security", security == "" ? "none" : security);
 
         if (!stream->sni.isEmpty()) query.addQueryItem("sni", stream->sni);
         if (!stream->alpn.isEmpty()) query.addQueryItem("alpn", stream->alpn);
@@ -72,7 +76,7 @@ namespace Configs {
         if (!stream->tls_fragment_fallback_delay.isEmpty()) query.addQueryItem("fragment_fallback_delay", stream->tls_fragment_fallback_delay);
         if (stream->enable_tls_record_fragment) query.addQueryItem("record_fragment", "1");
 
-        if (stream->security == "reality") {
+        if (security == "reality") {
             query.addQueryItem("pbk", stream->reality_pbk);
             if (!stream->reality_sid.isEmpty()) query.addQueryItem("sid", stream->reality_sid);
         }
@@ -168,7 +172,9 @@ namespace Configs {
         query.addQueryItem("encryption", security);
 
         //  security
-        query.addQueryItem("security", stream->security == "" ? "none" : stream->security);
+        auto security = stream->security;
+        if (security == "tls" && !stream->reality_pbk.trimmed().isEmpty()) security = "reality";
+        query.addQueryItem("security", security == "" ? "none" : security);
 
         if (!stream->sni.isEmpty()) query.addQueryItem("sni", stream->sni);
         if (stream->allow_insecure) query.addQueryItem("allowInsecure", "1");
@@ -181,7 +187,7 @@ namespace Configs {
         if (!stream->tls_fragment_fallback_delay.isEmpty()) query.addQueryItem("fragment_fallback_delay", stream->tls_fragment_fallback_delay);
         if (stream->enable_tls_record_fragment) query.addQueryItem("record_fragment", "1");
 
-        if (stream->security == "reality") {
+        if (security == "reality") {
             query.addQueryItem("pbk", stream->reality_pbk);
             if (!stream->reality_sid.isEmpty()) query.addQueryItem("sid", stream->reality_sid);
         }
@@ -300,9 +306,9 @@ namespace Configs {
         q.addQueryItem("use_system_interface", useSystemInterface ? "true":"false");
         q.addQueryItem("local_address", localAddress.join("-"));
         q.addQueryItem("workers", Int2String(workerCount));
-        if (enable_amenzia)
+        if (enable_amnezia)
         {
-            q.addQueryItem("enable_amenzia", "true");
+            q.addQueryItem("enable_amnezia", "true");
             q.addQueryItem("junk_packet_count", Int2String(junk_packet_count));
             q.addQueryItem("junk_packet_min_size", Int2String(junk_packet_min_size));
             q.addQueryItem("junk_packet_max_size", Int2String(junk_packet_max_size));
@@ -313,6 +319,28 @@ namespace Configs {
             q.addQueryItem("underload_packet_magic_header", Int2String(underload_packet_magic_header));
             q.addQueryItem("transport_packet_magic_header", Int2String(transport_packet_magic_header));
         }
+        url.setQuery(q);
+        return url.toString(QUrl::FullyEncoded);
+    }
+
+    QString TailscaleBean::ToShareLink()
+    {
+        QUrl url;
+        url.setScheme("ts");
+        url.setHost("tailscale");
+        if (!name.isEmpty()) url.setFragment(name);
+        QUrlQuery q;
+        q.addQueryItem("state_directory", QUrl::toPercentEncoding(state_directory));
+        q.addQueryItem("auth_key", QUrl::toPercentEncoding(auth_key));
+        q.addQueryItem("control_url", QUrl::toPercentEncoding(control_url));
+        q.addQueryItem("ephemeral", ephemeral ? "true" : "false");
+        q.addQueryItem("hostname", QUrl::toPercentEncoding(hostname));
+        q.addQueryItem("accept_routes", accept_routes ? "true" : "false");
+        q.addQueryItem("exit_node", exit_node);
+        q.addQueryItem("exit_node_allow_lan_access", exit_node_allow_lan_access ? "true" : "false");
+        q.addQueryItem("advertise_routes", QUrl::toPercentEncoding(advertise_routes.join(",")));
+        q.addQueryItem("advertise_exit_node", advertise_exit_node ? "true" : "false");
+        q.addQueryItem("global_dns", globalDNS ? "true" : "false");
         url.setQuery(q);
         return url.toString(QUrl::FullyEncoded);
     }

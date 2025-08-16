@@ -123,11 +123,11 @@
    <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
-      <string>Amenzia Settings</string>
+      <string>Amnezia Settings</string>
      </property>
      <layout class="QFormLayout" name="formLayout">
       <item row="0" column="0">
-       <widget class="QCheckBox" name="enable_amenzia">
+       <widget class="QCheckBox" name="enable_amnezia">
         <property name="text">
          <string>Enable</string>
         </property>

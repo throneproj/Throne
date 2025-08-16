@@ -5,7 +5,7 @@
 #include "Preset.hpp"
 
 namespace Configs {
-    class AnyTlsBean : public AbstractBean {
+    class AnyTLSBean : public AbstractBean {
     public:
         QString password = "";
         int idle_session_check_interval = 30;
@@ -14,7 +14,7 @@ namespace Configs {
 
         std::shared_ptr<V2rayStreamSettings> stream = std::make_shared<V2rayStreamSettings>();
 
-        AnyTlsBean() : AbstractBean(0) {
+        AnyTLSBean() : AbstractBean(0) {
             _add(new configItem("password", &password, itemType::string));
             _add(new configItem("idle_session_check_interval", &idle_session_check_interval, itemType::integer));
             _add(new configItem("idle_session_timeout", &idle_session_timeout, itemType::integer));
@@ -22,7 +22,7 @@ namespace Configs {
             _add(new configItem("stream", dynamic_cast<JsonStore *>(stream.get()), itemType::jsonStore));
         };
 
-        QString DisplayType() override { return "AnyTls"; };
+        QString DisplayType() override { return "AnyTLS"; };
 
         CoreObjOutboundBuildResult BuildCoreObjSingBox() override;
 

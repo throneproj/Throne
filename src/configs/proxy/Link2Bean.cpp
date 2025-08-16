@@ -42,7 +42,7 @@ namespace Configs {
         return !serverAddress.isEmpty();
     }
 
-    bool AnyTlsBean::TryParseLink(const QString &link) {
+    bool AnyTLSBean::TryParseLink(const QString &link) {
         auto url = QUrl(link);
         if (!url.isValid()) return false;
         auto query = GetQuery(url);
@@ -55,7 +55,7 @@ namespace Configs {
 
         // security
 
-        stream->security = GetQueryValue(query, "security", "").replace("none", "");
+        stream->security = "tls";
         auto sni1 = GetQueryValue(query, "sni");
         auto sni2 = GetQueryValue(query, "peer");
         if (!sni1.isEmpty()) stream->sni = sni1;
@@ -70,10 +70,6 @@ namespace Configs {
         if (query.queryItemValue("record_fragment") == "1") stream->enable_tls_record_fragment = true;
         if (stream->utlsFingerprint.isEmpty()) {
             stream->utlsFingerprint = dataStore->utlsFingerprint;
-        }
-        if (stream->security.isEmpty()) {
-            if (!sni1.isEmpty() || !sni2.isEmpty()) stream->security = "tls";
-            if (!stream->reality_pbk.isEmpty()) stream->security = "reality";
         }
 
         return !(password.isEmpty() || serverAddress.isEmpty());
@@ -98,7 +94,11 @@ namespace Configs {
         }
         stream->network = type;
 
-        stream->security = GetQueryValue(query, "security", "").replace("none", "");
+        if (proxy_type == proxy_Trojan) {
+            stream->security = GetQueryValue(query, "security", "tls").replace("reality", "tls").replace("none", "");
+        } else {
+            stream->security = GetQueryValue(query, "security", "").replace("reality", "tls").replace("none", "");
+        }
         auto sni1 = GetQueryValue(query, "sni");
         auto sni2 = GetQueryValue(query, "peer");
         if (!sni1.isEmpty()) stream->sni = sni1;
@@ -116,7 +116,6 @@ namespace Configs {
         }
         if (stream->security.isEmpty()) {
             if (!sni1.isEmpty() || !sni2.isEmpty()) stream->security = "tls";
-            if (!stream->reality_pbk.isEmpty()) stream->security = "reality";
         }
 
         // type
@@ -406,7 +405,7 @@ namespace Configs {
         useSystemInterface = query.queryItemValue("use_system_interface") == "true";
         workerCount = query.queryItemValue("workers").toInt();
 
-        enable_amenzia = query.queryItemValue("enable_amenzia") == "true";
+        enable_amnezia = query.queryItemValue("enable_amnezia") == "true";
         junk_packet_count = query.queryItemValue("junk_packet_count").toInt();
         junk_packet_min_size = query.queryItemValue("junk_packet_min_size").toInt();
         junk_packet_max_size = query.queryItemValue("junk_packet_max_size").toInt();
@@ -416,6 +415,28 @@ namespace Configs {
         response_packet_magic_header = query.queryItemValue("response_packet_magic_header").toInt();
         underload_packet_magic_header = query.queryItemValue("underload_packet_magic_header").toInt();
         transport_packet_magic_header = query.queryItemValue("transport_packet_magic_header").toInt();
+
+        return true;
+    }
+
+    bool TailscaleBean::TryParseLink(const QString &link)
+    {
+        auto url = QUrl(link);
+        if (!url.isValid()) return false;
+        auto query = GetQuery(url);
+        name = url.fragment(QUrl::FullyDecoded);
+
+        state_directory = QUrl::fromPercentEncoding(query.queryItemValue("state_directory").toUtf8());
+        auth_key = QUrl::fromPercentEncoding(query.queryItemValue("auth_key").toUtf8());
+        control_url = QUrl::fromPercentEncoding(query.queryItemValue("control_url").toUtf8());
+        ephemeral = query.queryItemValue("ephemeral") == "true";
+        hostname = QUrl::fromPercentEncoding(query.queryItemValue("hostname").toUtf8());
+        accept_routes = query.queryItemValue("accept_routes") == "true";
+        exit_node = query.queryItemValue("exit_node");
+        exit_node_allow_lan_access = query.queryItemValue("exit_node_allow_lan_access") == "true";
+        advertise_routes = QUrl::fromPercentEncoding(query.queryItemValue("advertise_routes").toUtf8()).split(",");
+        advertise_exit_node = query.queryItemValue("advertise_exit_node") == "true";
+        globalDNS = query.queryItemValue("globalDNS") == "true";
 
         return true;
     }

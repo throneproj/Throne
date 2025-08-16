@@ -13,11 +13,11 @@
     </message>
     <message>
         <source>Listen Address</source>
-        <translation>Прослушиваемый адрес</translation>
+        <translation>Прослушиваемый адрес:</translation>
     </message>
     <message>
         <source>Custom Inbound</source>
-        <translation>Кастомный inbound</translation>
+        <translation>Польз. настройки Inbound</translation>
     </message>
     <message>
         <source>Edit</source>
@@ -57,7 +57,7 @@
     </message>
     <message>
         <source>Connection statistics</source>
-        <translation>Статистика подключений</translation>
+        <translation>Вкл.статистику трафика</translation>
     </message>
     <message>
         <source>Hide dashboard at startup</source>
@@ -173,7 +173,7 @@
     </message>
     <message>
         <source>Listen Port</source>
-        <translation>Прослушиваемый порт</translation>
+        <translation>Прослушиваемый порт:</translation>
     </message>
     <message>
         <source>Assets</source>
@@ -280,6 +280,10 @@
         <translation>Откл. привилегированный запрос</translation>
     </message>
     <message>
+        <source>Use Mozilla Certificate Store</source>
+        <translation>Исп. сертификат Mozilla Store</translation>
+    </message>
+    <message>
         <source>Simple Download</source>
         <translation>Простая загрузка</translation>
     </message>
@@ -324,6 +328,10 @@
 this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
         <translation>Рекомендуется оставлять это значение пустым, но иногда оно не работает, и тогда вы можете установить этот параметр.
 переписывает базовый (localhost) DNS в Tun Режиме, обычном режиме, а также URL Test.</translation>
+    </message>
+    <message>
+        <source>Use Mozilla Certificate Store</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -587,6 +595,30 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
         <source>Extra Core</source>
         <translation>Доп. ядро</translation>
     </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;May degrade performance, try record fragment first&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable TLS fragment</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;time format, like 500ms, 10ms etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fallback Delay</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable TLS Record Fragment</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reality short id. Accept only one value.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DialogHotkey</name>
@@ -657,10 +689,6 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
         <translation>Проверка результата для маршрутизации</translation>
     </message>
     <message>
-        <source>Sniff result for destination</source>
-        <translation>Проверка результата для пункта назначения</translation>
-    </message>
-    <message>
         <source>Sniffing Mode</source>
         <translation>Анализ трафика (Cниффинг)</translation>
     </message>
@@ -682,7 +710,11 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
     </message>
     <message>
         <source>Remote DNS</source>
-        <translation>Удаленный DNS</translation>
+        <translation>Удалённый DNS</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;examples:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://domain/path&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://domain/path&lt;/p&gt;&lt;p&gt;quic://domain:4632&lt;/p&gt;&lt;p&gt;etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Примеры адресов:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://domain/path&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://domain/path&lt;/p&gt;&lt;p&gt;quic://domain:4632&lt;/p&gt;&lt;p&gt;etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>DNS Object Settings</source>
@@ -713,6 +745,14 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <translation>Проверяет исходный пакет(ы) подключений, чтобы идентифицировать протокол и SNI. Результат анализа для пункта назначения также преобразует пункт назначения соединения в SNI для анализа с помощью SNI. Дополнительные сведения о протоколе проверки приведены в документации slingbox&apos;s.</translation>
     </message>
     <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable to resolve domains to IP before routing based on the strategy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Включить преобразование доменов в IP-адреса перед маршрутизацией на основе стратегии&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Resolve domains to IP before connect, also affects the server address as well&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Прежде чем подключаться, преобразуйте домены в IP-адреса, это также влияет на адрес сервера.;/p&gt;&lt;/body&gt;&lt;/html&gt;/html&gt;</translation>
+    </message>
+    <message>
         <source>Routing Profile</source>
         <translation>Профиль маршрутизации</translation>
     </message>
@@ -739,14 +779,6 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>Delete</source>
         <translation>Удалить</translation>
-    </message>
-    <message>
-        <source>outbound.domain_strategy
-when set, domain destinations are resolved to IP before connect,
-also if the connection cannot be established with the current address family (ipv4, ipv6), a fallback connection is created shortly after, with the other address family.</source>
-        <translation>Если установлено значение outbound.domain_strategy
-, доменные адресаты разрешаются в IP перед подключением,
-также если соединение не может быть установлено с текущим семейством адресов (ipv4, ipv6), вскоре после этого создается резервное соединение с другим семейством адресов.</translation>
     </message>
     <message>
         <source>Outbound Domain Strategy</source>
@@ -778,11 +810,11 @@ also if the connection cannot be established with the current address family (ip
     </message>
     <message>
         <source>Listen Address</source>
-        <translation>Прослушиваемый адрес</translation>
+        <translation>Прослушиваемый адрес:</translation>
     </message>
     <message>
         <source>Listen Port</source>
-        <translation>Прослушиваемый порт</translation>
+        <translation>Прослушиваемый порт:</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Following format should be used:&lt;br/&gt;domain:a.com&lt;/p&gt;&lt;p&gt;suffix:a.com&lt;/p&gt;&lt;p&gt;regex:someregex&lt;/p&gt;&lt;p&gt;rule_set:nameOfRuleSet&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -852,6 +884,14 @@ also if the connection cannot be established with the current address family (ip
         <source>Allow Lan to Connect</source>
         <translation>Разрешить подкл. по локальной сети</translation>
     </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Resolve domains to IP before connect, also affects the server address as well&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;examples:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://domain/path&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://domain/path&lt;/p&gt;&lt;p&gt;quic://domain:4632&lt;/p&gt;&lt;p&gt;etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>DialogVPNSettings</name>
@@ -897,6 +937,25 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Enable Tun Routing</source>
         <translation>Вкл. Tun маршрутизацию</translation>
+    </message>
+</context>
+<context>
+    <name>EditAnyTLS</name>
+    <message>
+        <source>Password</source>
+        <translation type="unfinished">Пароль</translation>
+    </message>
+    <message>
+        <source>Idle Session Check Interval</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Idle Session Timeout</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Min Idle Session</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1245,10 +1304,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Amenzia Settings</source>
-        <translation>Настройка Amenzia</translation>
-    </message>
-    <message>
         <source>Enable</source>
         <translation>Вкл</translation>
     </message>
@@ -1286,6 +1341,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Transport Header Magic Header</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Amnezia Settings</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1419,7 +1478,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Traffic</source>
-        <translation>Статистика трафика</translation>
+        <translation>Исход. / Входящий трафик</translation>
     </message>
     <message>
         <source>Share</source>
@@ -1519,11 +1578,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Remember last profile</source>
-        <translation>Запомнить последний профиль</translation>
+        <translation>Исп. последний профиль при запуске</translation>
     </message>
     <message>
         <source>Allow other devices to connect</source>
-        <translation>Разрешить подключаться другим устройствам</translation>
+        <translation>Разрешить подкл. другим устройствам</translation>
     </message>
     <message>
         <source>Remove Unavailable</source>
@@ -2003,6 +2062,14 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Removed all rule-set files</source>
         <translation>Удалены все файлы c наборами правил</translation>
     </message>
+    <message>
+        <source>Click To Sort By Protocol</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Click To Sort By Outbound</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ProxyItem</name>
@@ -2164,7 +2231,7 @@ Release note:
     </message>
     <message>
         <source>Download Profiles</source>
-        <translation>Скачивание Профилей</translation>
+        <translation>Загрузить польз. профиль</translation>
     </message>
     <message>
         <source>Requesting profile error: %1</source>

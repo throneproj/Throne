@@ -314,6 +314,7 @@ namespace Configs {
         _add(new configItem("enable_tun_routing", &enable_tun_routing, itemType::boolean));
         _add(new configItem("speed_test_mode", &speed_test_mode, itemType::integer));
         _add(new configItem("use_mozilla_certs", &use_mozilla_certs, itemType::boolean));
+        _add(new configItem("allow_beta_update", &allow_beta_update, itemType::boolean));
     }
 
     void DataStore::UpdateStartedId(int id) {
