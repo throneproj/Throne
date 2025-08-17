@@ -139,9 +139,6 @@ int main(int argc, char* argv[]) {
     if (!dir.exists(ROUTES_PREFIX_NAME)) {
         dir_success &= dir.mkdir(ROUTES_PREFIX_NAME);
     }
-    if (!dir.exists(RULE_SETS_DIR)) {
-        dir_success &= dir.mkdir(RULE_SETS_DIR);
-    }
     if (!dir_success) {
         QMessageBox::critical(nullptr, "Error", "No permission to write " + dir.absolutePath());
         return 1;

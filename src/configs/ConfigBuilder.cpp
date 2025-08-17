@@ -41,7 +41,7 @@ namespace Configs {
 
     // Common
 
-    std::shared_ptr<BuildConfigResult> BuildConfig(const std::shared_ptr<ProxyEntity> &ent, bool forTest, bool forExport, int chainID) {
+    std::shared_ptr<BuildConfigResult> BuildConfig(const std::shared_ptr<ProxyEntity> &ent, const std::map<std::string, std::string>& ruleSetMap, bool forTest, bool forExport, int chainID) {
         auto result = std::make_shared<BuildConfigResult>();
         result->extraCoreData = std::make_shared<ExtraCoreData>();
         auto status = std::make_shared<BuildConfigStatus>();
@@ -60,7 +60,7 @@ namespace Configs {
             }
             result->coreConfig = QString2QJsonObject(customBean->config_simple);
         } else {
-            BuildConfigSingBox(status);
+            BuildConfigSingBox(status, ruleSetMap);
         }
 
         // apply custom config
@@ -116,7 +116,7 @@ namespace Configs {
     }
 
 
-    std::shared_ptr<BuildTestConfigResult> BuildTestConfig(const QList<std::shared_ptr<ProxyEntity>>& profiles) {
+    std::shared_ptr<BuildTestConfigResult> BuildTestConfig(const QList<std::shared_ptr<ProxyEntity>>& profiles, const std::map<std::string, std::string>& ruleSetMap) {
         auto results = std::make_shared<BuildTestConfigResult>();
 
         QJsonArray outboundArray = {
@@ -140,7 +140,7 @@ namespace Configs {
                 item->latency = -1;
                 continue;
             }
-            auto res = BuildConfig(item, true, false, ++index);
+            auto res = BuildConfig(item, ruleSetMap, true, false, ++index);
             if (!res->error.isEmpty()) {
                 results->error = res->error;
                 return results;
@@ -502,13 +502,27 @@ namespace Configs {
     }
 
 
-    void BuildConfigSingBox(const std::shared_ptr<BuildConfigStatus> &status) {
+    void BuildConfigSingBox(const std::shared_ptr<BuildConfigStatus> &status, const std::map<std::string, std::string>& ruleSetMap) {
         // Prefetch
         auto routeChain = profileManager->GetRouteChain(dataStore->routing->current_route_id);
         if (routeChain == nullptr) {
             status->result->error = "Routing profile does not exist, try resetting the route profile in Routing Settings";
             return;
         }
+
+        // will be removed on November 1st, 2025
+        for (auto ruleItem = routeChain->Rules.begin(); ruleItem != routeChain->Rules.end(); ++ruleItem) {
+            for (auto ruleSetItem = (*ruleItem)->rule_set.begin(); ruleSetItem != (*ruleItem)->rule_set.end(); ++ruleSetItem) {
+                if ((*ruleSetItem).endsWith("_IP")) {
+                    *ruleSetItem = "geoip-" + (*ruleSetItem).left((*ruleSetItem).length() - 3);
+                }
+                if ((*ruleSetItem).endsWith("_SITE")) {
+                    *ruleSetItem = "geosite-" + (*ruleSetItem).left((*ruleSetItem).length() - 5);
+                }
+            }
+        }
+        routeChain->Save();
+        
         // copy for modification
         routeChain = std::make_shared<RoutingChain>(*routeChain);
 
@@ -660,12 +674,6 @@ namespace Configs {
         // custom inbound
         if (!status->forTest) QJSONARRAY_ADD(status->inbounds, QString2QJsonObject(dataStore->custom_inbound)["inbounds"].toArray())
 
-        // Routing
-        if (NeedGeoAssets()) {
-            status->result->error = "Geo Assets are missing, please download them through Basic Settings -> Assets";
-            return;
-        }
-
         // manage routing section
         auto routeObj = QJsonObject();
         if (dataStore->spmode_vpn) {
@@ -753,8 +761,6 @@ namespace Configs {
         }
 
         auto ruleSetArray = QJsonArray();
-        auto geoSitePath = GetCoreAssetDir("geosite.db");
-        auto geoIpPath = GetCoreAssetDir("geoip.db");
         for (const auto &item: *neededRuleSets) {
             if(auto url = QUrl(item); url.isValid() && url.fileName().contains(".srs")) {
                 ruleSetArray += QJsonObject{
@@ -764,28 +770,15 @@ namespace Configs {
                     {"url", item},
                 };
             }
-            else {
-                ruleSetArray += QJsonObject{
-                    {"type", "local"},
-                    {"tag", item},
-                    {"format", "binary"},
-                    {"path", RULE_SETS_DIR + QString("/%1.srs").arg(item)},
-                };
-                if (QFile(QString(RULE_SETS_DIR + "/%1.srs").arg(item)).exists()) continue;
-                bool ok;
-                auto mode = API::GeoRuleSetType::site;
-                auto geoAssertPath = geoSitePath;
-                if (item.contains("_IP")) {
-                    mode = API::GeoRuleSetType::ip;
-                    geoAssertPath = geoIpPath;
+            else
+                if(ruleSetMap.count(item.toStdString()) > 0) {
+                    ruleSetArray += QJsonObject{
+                        {"type", "remote"},
+                        {"tag", item},
+                        {"format", "binary"},
+                        {"url", get_jsdelivr_link(QString::fromStdString(ruleSetMap.at(item.toStdString())))},
+                    };
                 }
-                auto err = API::defaultClient->CompileGeoSet(&ok, mode, item.toStdString(), geoAssertPath);
-                if (!ok) {
-                    MW_show_log("Failed to generate rule set asset for " + item);
-                    status->result->error = err;
-                    return;
-                }
-            }
         }
         routeObj["rule_set"] = ruleSetArray;
 
@@ -946,6 +939,13 @@ namespace Configs {
             {
                 experimentalObj["clash_api"] = clash_api;
             }
+
+            QJsonObject cache_file = {
+                {"enabled", true},
+                {"store_fakeip", true},
+                {"store_rdrc", true}
+            };
+            experimentalObj["cache_file"] = cache_file;
         }
 
         status->result->coreConfig.insert("log", QJsonObject{{"level", dataStore->log_level}});

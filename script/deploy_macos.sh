@@ -12,17 +12,16 @@ DEST=$DEPLOYMENT/macos-$ARCH
 rm -rf $DEST
 mkdir -p $DEST
 
-#### copy golang & public_res => .app ####
+#### copy golang => .app ####
 cd download-artifact
 cd *darwin-$ARCH
 tar xvzf artifacts.tgz -C ../../
-cd ..
-cd *public_res
-tar xvzf artifacts.tgz -C ../../
 cd ../..
 
-mv deployment/public_res/* deployment/macos-$ARCH
 mv deployment/macos-$ARCH/* $BUILD/Throne.app/Contents/MacOS
+
+#### download srslist ####
+curl -fLso $BUILD/Throne.app/Contents/MacOS/srslist "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/list"
 
 #### deploy qt & DLL runtime => .app ####
 pushd $BUILD

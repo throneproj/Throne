@@ -54,11 +54,11 @@ namespace Configs {
 
     bool IsValid(const std::shared_ptr<ProxyEntity> &ent);
 
-    std::shared_ptr<BuildTestConfigResult> BuildTestConfig(const QList<std::shared_ptr<ProxyEntity>>& profiles);
+    std::shared_ptr<BuildTestConfigResult> BuildTestConfig(const QList<std::shared_ptr<ProxyEntity>>& profiles, const std::map<std::string, std::string>& ruleSetMap);
 
-    std::shared_ptr<BuildConfigResult> BuildConfig(const std::shared_ptr<ProxyEntity> &ent, bool forTest, bool forExport, int chainID = 0);
+    std::shared_ptr<BuildConfigResult> BuildConfig(const std::shared_ptr<ProxyEntity> &ent, const std::map<std::string, std::string>& ruleSetMap, bool forTest, bool forExport, int chainID = 0);
 
-    void BuildConfigSingBox(const std::shared_ptr<BuildConfigStatus> &status);
+    void BuildConfigSingBox(const std::shared_ptr<BuildConfigStatus> &status, const std::map<std::string, std::string>& ruleSetMap);
 
     QJsonObject BuildDnsObject(QString address, bool tunEnabled);
 
@@ -68,4 +68,37 @@ namespace Configs {
                                const std::shared_ptr<BuildConfigStatus> &status);
 
     void BuildOutbound(const std::shared_ptr<ProxyEntity> &ent, const std::shared_ptr<BuildConfigStatus> &status, QJsonObject& outbound, const QString& tag);
+
+    inline QString get_jsdelivr_link(QString link)
+    {
+        if(dataStore->routing->ruleset_mirror == Mirrors::GITHUB)
+            return link;
+        if(auto url = QUrl(link); url.isValid() && url.host() == "raw.githubusercontent.com")
+        {
+            QStringList list = url.path().split('/');      
+            QString result;
+            switch(dataStore->routing->ruleset_mirror) {
+            case Mirrors::GCORE: result = "https://gcore.jsdelivr.net/gh"; break;
+            case Mirrors::QUANTIL: result = "https://quantil.jsdelivr.net/gh"; break;
+            case Mirrors::FASTLY: result = "https://fastly.jsdelivr.net/gh"; break;
+            case Mirrors::CDN: result = "https://cdn.jsdelivr.net/gh"; break;
+            default: result = "https://testingcf.jsdelivr.net/gh";
+            }
+
+            int index = 0;
+            foreach(QString item, list)
+            {
+                if(!item.isEmpty())
+                {
+                    if(index == 2)
+                        result += "@" + item;
+                    else
+                        result += "/" + item;
+                    index++;
+                }
+            }
+            return result;
+        }
+        return link;
+    }
 } // namespace Configs

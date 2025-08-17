@@ -7,8 +7,6 @@
 #include "3rdparty/protorpc/rpc_client.h"
 
 namespace API {
-    enum GeoRuleSetType {ip, site};
-
     class Client {
     public:
         explicit Client(std::function<void(const QString &)> onError, const QString &host, int port);
@@ -26,10 +24,6 @@ namespace API {
         void StopTests(bool *rpcOK);
 
         libcore::QueryURLTestResponse QueryURLTest(bool *rpcOK);
-
-        QStringList GetGeoList(bool *rpcOK, GeoRuleSetType mode, const QString& basePath);
-
-        QString CompileGeoSet(bool *rpcOK, GeoRuleSetType mode, std::string category, const QString& basePath);
 
         QString SetSystemDNS(bool *rpcOK, bool clear) const;
 

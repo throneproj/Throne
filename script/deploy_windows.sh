@@ -47,6 +47,9 @@ if [ -f "./build/Throne.exe" ]; then
 fi
 
 
+#### download srslist ####
+curl -fLso $DEST/srslist "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/list"
+
 #### copy exe ####
 echo "---> Copying C++ executable..."
 cp $BUILD/Throne.exe $DEST
@@ -55,10 +58,6 @@ cp $BUILD/Throne.exe $DEST
 echo "---> Extracting Go core for arch: $GO_ARCH_ARTIFACT"
 cd download-artifact
 cd *$GO_ARCH_ARTIFACT
-tar xvzf artifacts.tgz -C ../../
-cd ..
-echo "---> Extracting public resources..."
-cd *public_res
 tar xvzf artifacts.tgz -C ../../
 cd ../..
 

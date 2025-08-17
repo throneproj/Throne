@@ -121,33 +121,6 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     // Core
     ui->groupBox_core->setTitle(software_core_name);
 
-    // Assets
-    ui->geoip_url->setEditable(true);
-    ui->geosite_url->setEditable(true);
-    ui->geoip_url->addItems(Configs::GeoAssets::GeoIPURLs);
-    ui->geosite_url->addItems(Configs::GeoAssets::GeoSiteURLs);
-    ui->geoip_url->setCurrentText(Configs::dataStore->geoip_download_url);
-    ui->geosite_url->setCurrentText(Configs::dataStore->geosite_download_url);
-    ui->auto_reset->setCurrentIndex(Configs::dataStore->auto_reset_assets_idx);
-
-    connect(ui->download_geo_btn, &QPushButton::clicked, this, [=,this]() {
-        MW_dialog_message(Dialog_DialogBasicSettings, "DownloadAssets;"+ui->geoip_url->currentText()+";"+ui->geosite_url->currentText());
-    });
-    connect(ui->remove_srs_btn, &QPushButton::clicked, this, [=,this](){
-       auto rsDir = QDir(RULE_SETS_DIR);
-       auto entries = rsDir.entryList(QDir::Files);
-       for (const auto &item: entries) {
-           if (!QFile(RULE_SETS_DIR + "/" + item).remove()) {
-               MW_show_log("Failed to remove " + item + ", stop the core then try again");
-           }
-       }
-       MW_show_log(tr("Removed all rule-set files"));
-    });
-    connect(ui->reset_assets, &QPushButton::clicked, this, [=,this]()
-    {
-        MW_dialog_message(Dialog_DialogBasicSettings, "ResetAssets;"+ui->geoip_url->currentText()+";"+ui->geosite_url->currentText());
-    });
-
     // Mux
     D_LOAD_INT(mux_concurrency)
     D_LOAD_COMBO_STRING(mux_protocol)
@@ -231,11 +204,6 @@ void DialogBasicSettings::accept() {
 
     // Core
     Configs::dataStore->disable_traffic_stats = ui->disable_stats->isChecked();
-
-    // Assets
-    Configs::dataStore->geoip_download_url = ui->geoip_url->currentText();
-    Configs::dataStore->geosite_download_url = ui->geosite_url->currentText();
-    Configs::dataStore->auto_reset_assets_idx = ui->auto_reset->currentIndex();
 
     // Mux
     D_SAVE_INT(mux_concurrency)

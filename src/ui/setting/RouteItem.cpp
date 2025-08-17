@@ -47,7 +47,7 @@ QStringList get_all_outbounds() {
     return res;
 }
 
-RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RoutingChain>& routeChain)
+RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RoutingChain>& routeChain, const std::map<std::string, std::string>& ruleSetMap)
     : QDialog(parent), ui(new Ui::RouteItem) {
     ui->setupUi(this);
 
@@ -64,10 +64,9 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RoutingChai
     }
 
     // setup rule set helper
-    bool ok; // for now we discard this
-    auto geoIpList = API::defaultClient->GetGeoList(&ok, API::GeoRuleSetType::ip, Configs::GetCoreAssetDir("geoip.db"));
-    auto geoSiteList = API::defaultClient->GetGeoList(&ok, API::GeoRuleSetType::site, Configs::GetCoreAssetDir("geosite.db"));
-    geo_items << geoIpList << geoSiteList;
+    for (const auto& item : ruleSetMap) {
+        geo_items.append(QString::fromStdString(item.first));
+    }
     rule_set_editor = new AutoCompleteTextEdit("", geo_items, this);
     ui->rule_attr_data->layout()->addWidget(rule_set_editor);
     ui->rule_attr_data->adjustSize();
@@ -124,11 +123,8 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RoutingChai
 
     // simple rules setup
     QStringList ruleItems = {"domain:", "suffix:", "regex:", "keyword:", "ip:", "processName:", "processPath:", "ruleset:"};
-    for (const auto& geoIP : geoIpList) {
-        ruleItems.append("ruleset:"+geoIP);
-    }
-    for (const auto& geoSite: geoSiteList) {
-        ruleItems.append("ruleset:"+geoSite);
+    for (const auto& item : ruleSetMap) {
+        ruleItems.append("ruleset:" + QString::fromStdString(item.first));
     }
     simpleDirect = new AutoCompleteTextEdit("", ruleItems, this);
     simpleBlock = new AutoCompleteTextEdit("", ruleItems, this);

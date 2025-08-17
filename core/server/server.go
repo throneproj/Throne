@@ -296,58 +296,6 @@ func (s *server) ListConnections(in *gen.EmptyReq, out *gen.ListConnectionsResp)
 	return nil
 }
 
-func (s *server) GetGeoIPList(in *gen.GeoListRequest, out *gen.GetGeoIPListResponse) error {
-	resp, err := boxmain.ListGeoip(*in.Path + string(os.PathSeparator) + "geoip.db")
-	if err != nil {
-		return err
-	}
-
-	res := make([]string, 0)
-	for _, r := range resp {
-		r += "_IP"
-		res = append(res, r)
-	}
-
-	out.Items = res
-	return nil
-}
-
-func (s *server) GetGeoSiteList(in *gen.GeoListRequest, out *gen.GetGeoSiteListResponse) error {
-	resp, err := boxmain.GeositeList(*in.Path + string(os.PathSeparator) + "geosite.db")
-	if err != nil {
-		return err
-	}
-
-	res := make([]string, 0)
-	for _, r := range resp {
-		r += "_SITE"
-		res = append(res, r)
-	}
-
-	out.Items = res
-	return nil
-}
-
-func (s *server) CompileGeoIPToSrs(in *gen.CompileGeoIPToSrsRequest, out *gen.EmptyResp) error {
-	category := strings.TrimSuffix(*in.Item, "_IP")
-	err := boxmain.CompileRuleSet(*in.Path+string(os.PathSeparator)+"geoip.db", category, boxmain.IpRuleSet, "./rule_sets/"+*in.Item+".srs")
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *server) CompileGeoSiteToSrs(in *gen.CompileGeoSiteToSrsRequest, out *gen.EmptyResp) error {
-	category := strings.TrimSuffix(*in.Item, "_SITE")
-	err := boxmain.CompileRuleSet(*in.Path+string(os.PathSeparator)+"geosite.db", category, boxmain.SiteRuleSet, "./rule_sets/"+*in.Item+".srs")
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (s *server) IsPrivileged(in *gen.EmptyReq, out *gen.IsPrivilegedResponse) error {
 	if runtime.GOOS == "windows" {
 		out.HasPrivilege = To(false)

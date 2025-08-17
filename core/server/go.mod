@@ -9,7 +9,6 @@ require (
 	github.com/gofrs/uuid/v5 v5.3.2
 	github.com/golang/protobuf v1.5.4
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
-	github.com/oschwald/maxminddb-golang v1.13.1
 	github.com/sagernet/sing v0.7.5
 	github.com/sagernet/sing-box v1.12.1
 	github.com/sagernet/sing-tun v0.7.0-beta.1

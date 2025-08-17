@@ -59,7 +59,7 @@ bool DialogManageRoutes::validate_dns_rules(const QString &rawString) {
     return true;
 }
 
-DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(new Ui::DialogManageRoutes) {
+DialogManageRoutes::DialogManageRoutes(QWidget *parent, const std::map<std::string, std::string>& dataMap) : QDialog(parent), ui(new Ui::DialogManageRoutes) {
     ui->setupUi(this);
     auto profiles = Configs::profileManager->routes;
     for (const auto &item: profiles) {
@@ -104,6 +104,7 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
         }
     });
     ui->sniffing_mode->setCurrentIndex(Configs::dataStore->routing->sniffing_mode);
+    ui->ruleset_mirror->setCurrentIndex(Configs::dataStore->routing->ruleset_mirror);
     ui->outbound_domain_strategy->setCurrentText(Configs::dataStore->routing->outbound_domain_strategy);
     ui->domainStrategyCombo->setCurrentText(Configs::dataStore->routing->domain_strategy);
     ui->use_dns_object->setChecked(Configs::dataStore->routing->use_dns_object);
@@ -139,15 +140,10 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
         MessageBoxInfo("What is this?", Configs::Information::HijackInfo);
     });
 
-    bool ok;
-    auto geoIpList = API::defaultClient->GetGeoList(&ok, API::GeoRuleSetType::ip, Configs::GetCoreAssetDir("geoip.db"));
-    auto geoSiteList = API::defaultClient->GetGeoList(&ok, API::GeoRuleSetType::site, Configs::GetCoreAssetDir("geosite.db"));
+    ruleSetMap = dataMap;
     QStringList ruleItems = {"domain:", "suffix:", "regex:"};
-    for (const auto& geoIP : geoIpList) {
-        ruleItems.append("ruleset:"+geoIP);
-    }
-    for (const auto& geoSite: geoSiteList) {
-        ruleItems.append("ruleset:"+geoSite);
+    for (const auto& item : ruleSetMap) {
+        ruleItems.append("ruleset:" + QString::fromStdString(item.first));
     }
     rule_editor = new AutoCompleteTextEdit("", ruleItems, this);
     ui->hijack_box->layout()->replaceWidget(ui->dnshijack_rules, rule_editor);
@@ -195,6 +191,7 @@ void DialogManageRoutes::accept() {
     }
 
     Configs::dataStore->routing->sniffing_mode = ui->sniffing_mode->currentIndex();
+    Configs::dataStore->routing->ruleset_mirror = ui->ruleset_mirror->currentIndex();
     Configs::dataStore->routing->domain_strategy = ui->domainStrategyCombo->currentText();
     Configs::dataStore->routing->outbound_domain_strategy = ui->outbound_domain_strategy->currentText();
     Configs::dataStore->routing->use_dns_object = ui->use_dns_object->isChecked();
@@ -235,7 +232,7 @@ void DialogManageRoutes::accept() {
 }
 
 void DialogManageRoutes::on_new_route_clicked() {
-    routeChainWidget = new RouteItem(this, Configs::ProfileManager::NewRouteChain());
+    routeChainWidget = new RouteItem(this, Configs::ProfileManager::NewRouteChain(), ruleSetMap);
     routeChainWidget->setWindowModality(Qt::ApplicationModal);
     routeChainWidget->show();
     connect(routeChainWidget, &RouteItem::settingsChanged, this, [=,this](const std::shared_ptr<Configs::RoutingChain>& chain) {
@@ -281,7 +278,7 @@ void DialogManageRoutes::on_edit_route_clicked() {
     auto idx = ui->route_profiles->currentRow();
     if (idx < 0) return;
 
-    routeChainWidget = new RouteItem(this, chainList[idx]);
+    routeChainWidget = new RouteItem(this, chainList[idx], ruleSetMap);
     routeChainWidget->setWindowModality(Qt::ApplicationModal);
     routeChainWidget->show();
     connect(routeChainWidget, &RouteItem::settingsChanged, this, [=,this](const std::shared_ptr<Configs::RoutingChain>& chain) {

@@ -13,11 +13,6 @@ service LibcoreService {
   rpc QueryStats(EmptyReq) returns (QueryStatsResp);
   rpc ListConnections(EmptyReq) returns (ListConnectionsResp);
   //
-  rpc GetGeoIPList(GeoListRequest) returns (GetGeoIPListResponse);
-  rpc GetGeoSiteList(GeoListRequest) returns (GetGeoSiteListResponse);
-  rpc CompileGeoIPToSrs(CompileGeoIPToSrsRequest) returns (EmptyResp);
-  rpc CompileGeoSiteToSrs(CompileGeoSiteToSrsRequest) returns (EmptyResp);
-  //
   rpc SetSystemDNS(SetSystemDNSRequest) returns (EmptyResp);
   //
   rpc IsPrivileged(EmptyReq) returns (IsPrivilegedResponse);
@@ -86,28 +81,6 @@ message ConnectionMetaData {
   optional string process = 10 [default = ""];
 }
 
-message GetGeoIPListResponse {
-  repeated string items = 1;
-}
-
-message GetGeoSiteListResponse {
-  repeated string items = 2;
-}
-
-message GeoListRequest {
-  optional string path = 1 [default = ""];
-}
-
-message CompileGeoIPToSrsRequest {
-  optional string item = 1 [default = ""];
-  optional string path = 2 [default = ""];
-}
-
-message CompileGeoSiteToSrsRequest {
-  optional string item = 1 [default = ""];
-  optional string path = 2 [default = ""];
-}
-
 message SetSystemDNSRequest {
   optional bool clear = 1 [default = false];
 }
@@ -149,4 +122,8 @@ message QuerySpeedTestResponse {
 
 message QueryURLTestResponse {
   repeated URLTestResp results = 1;
+}
+
+message RuleSet{
+  map<string, string> items = 1;
 }

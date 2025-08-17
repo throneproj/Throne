@@ -426,14 +426,45 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         }
     });
 
+	auto srslist = QFile(QString("%1/%2").arg(qApp->applicationDirPath(), "srslist"));
+    if (srslist.exists()) {
+        if (srslist.open(QIODevice::ReadOnly)) {
+            QByteArray byteArray = srslist.readAll();
+            srslist.close();
+            std::vector<uint8_t> srsvec;
+            srsvec.assign(byteArray.begin(), byteArray.end());
+            ruleSetMap = spb::pb::deserialize<libcore::RuleSet>(srsvec).items;
+        }
+    }
+
+    auto getRuleSet = [=,this]
+    {
+        QString err;
+        for(int retry = 0; retry < 5; retry++) {
+            auto resp = NetworkRequestHelper::HttpGet(Configs::get_jsdelivr_link("https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/list"));
+            if (resp.error.isEmpty()) {
+                std::vector<uint8_t> respvec;
+                respvec.assign(resp.data.begin(), resp.data.end());
+                auto reply = spb::pb::deserialize<libcore::RuleSet>(respvec);
+                ruleSetMap = reply.items;
+                return;
+            }
+            else
+                err = resp.error;
+            QThread::sleep(30);
+        }
+        MW_show_log(QObject::tr("Requesting rule-set list error: %1").arg(err));
+    };
+    runOnNewThread(getRuleSet);
+
     auto getRemoteRouteProfiles = [=,this]
     {
-        auto resp = NetworkRequestHelper::HttpGet("https://api.github.com/repos/throneproj/routeprofiles/releases/latest");
+        auto resp = NetworkRequestHelper::HttpGet("https://api.github.com/repos/throneproj/routeprofiles/git/trees/profile");
         if (resp.error.isEmpty()) {
             QStringList newRemoteRouteProfiles;
             QJsonObject release = QString2QJsonObject(resp.data);
-            for (const QJsonValue asset : release["assets"].toArray()) {
-                auto profile = asset["name"].toString();
+            for (const QJsonValue asset : release["tree"].toArray()) {
+                auto profile = asset["path"].toString();
                 if (profile.section('.', -1) == QString("json") && (profile.startsWith("bypass",Qt::CaseInsensitive) || profile.startsWith("proxy",Qt::CaseInsensitive))) {
                     profile.chop(5);
                     newRemoteRouteProfiles.push_back(profile);
@@ -448,8 +479,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     connect(ui->menuRouting_Menu, &QMenu::aboutToShow, this, [=,this]()
     {
-        // refresh it on every menu show
-        runOnNewThread(getRemoteRouteProfiles);
+        if(remoteRouteProfiles.isEmpty())
+            runOnNewThread(getRemoteRouteProfiles);
         ui->menuRouting_Menu->clear();
         ui->menuRouting_Menu->addAction(ui->menu_routing_settings);
         mu_remoteRouteProfiles.lock();
@@ -461,7 +492,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                 action->setText(profile);
                 connect(action, &QAction::triggered, this, [=,this]()
                 {
-                    auto resp = NetworkRequestHelper::HttpGet("https://github.com/throneproj/routeprofiles/releases/latest/download/" + profile + ".json");
+                    auto resp = NetworkRequestHelper::HttpGet(Configs::get_jsdelivr_link("https://raw.githubusercontent.com/throneproj/routeprofiles/profile/" + profile + ".json"));
                     if (!resp.error.isEmpty()) {
                         runOnUiThread([=,this] {
                             MessageBoxWarning(QObject::tr("Download Profiles"), QObject::tr("Requesting profile error: %1").arg(resp.error + "\n" + resp.data));
@@ -571,33 +602,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(TM_auto_update_subsctiption, &QTimer::timeout, this, [&] { UI_update_all_groups(true); });
     TM_auto_update_subsctiption_Reset_Minute(Configs::dataStore->sub_auto_update);
 
-    // asset updater timer
-    auto TM_auto_reset_assets = new QTimer(this);
-    connect(TM_auto_reset_assets, &QTimer::timeout, this, [&]()
-    {
-       auto reset_interval = Configs::GeoAssets::ResetAssetsOptions[Configs::dataStore->auto_reset_assets_idx];
-       if (reset_interval > 0 && QDateTime::currentSecsSinceEpoch() - Configs::dataStore->last_asset_reset_epoch_secs > reset_interval)
-       {
-           runOnNewThread([=,this]
-           {
-               ResetAssets(Configs::dataStore->geoip_download_url, Configs::dataStore->geosite_download_url);
-           });
-       }
-    });
-    TM_auto_reset_assets->start(1000 * 60 * 5); // check every 5 minutes
-
     if (!Configs::dataStore->flag_tray) show();
 
-    if (Configs::NeedGeoAssets()) {
-        auto n = QMessageBox::warning(GetMessageBoxParent(), software_name, tr("Geo Assets are missing, want to download them now?"), QMessageBox::Yes | QMessageBox::No);
-        if (n == QMessageBox::Yes) {
-            runOnNewThread([=,this]
-            {
-                DownloadAssets(!Configs::dataStore->geoip_download_url.isEmpty() ? Configs::dataStore->geoip_download_url : Configs::GeoAssets::GeoIPURLs[0],
-                !Configs::dataStore->geosite_download_url.isEmpty() ? Configs::dataStore->geosite_download_url : Configs::GeoAssets::GeoSiteURLs[0]);
-            });
-        }
-    }
     ui->data_view->setStyleSheet("background: transparent; border: none;");
 }
 
@@ -730,19 +736,6 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
             on_menu_exit_triggered();
         }
     }
-    if (info.contains("DownloadAssets")) {
-        auto splitted = info.split(";");
-        runOnNewThread([=,this](){
-            DownloadAssets(splitted[1], splitted[2]);
-        });
-    }
-    if (info.contains("ResetAssets"))
-    {
-        auto splitted = info.split(";");
-        runOnNewThread([=,this](){
-            ResetAssets(splitted[1], splitted[2]);
-        });
-    }
     //
     if (info == "RestartProgram") {
         this->exit_reason = 2;
@@ -829,7 +822,14 @@ void MainWindow::on_menu_manage_groups_triggered() {
 }
 
 void MainWindow::on_menu_routing_settings_triggered() {
-    USE_DIALOG(DialogManageRoutes)
+    if (dialog_is_using) return;
+    dialog_is_using = true;
+    auto dialog = new DialogManageRoutes(this, ruleSetMap);
+    connect(dialog, &QDialog::finished, this, [=,this] {
+        dialog->deleteLater();
+        dialog_is_using = false;
+    });
+    dialog->show();
 }
 
 void MainWindow::on_menu_vpn_settings_triggered() {
@@ -1648,7 +1648,7 @@ void MainWindow::on_menu_export_config_triggered() {
     auto ent = ents.first();
     if (ent->bean->DisplayCoreType() != software_core_name) return;
 
-    auto result = BuildConfig(ent, false, true);
+    auto result = BuildConfig(ent, ruleSetMap, false, true);
     QString config_core = QJsonObject2QString(result->coreConfig, true);
     QApplication::clipboard()->setText(config_core);
 
@@ -1660,11 +1660,11 @@ void MainWindow::on_menu_export_config_triggered() {
     msg.setDefaultButton(QMessageBox::Ok);
     msg.exec();
     if (msg.clickedButton() == button_1) {
-        result = BuildConfig(ent, false, false);
+        result = BuildConfig(ent, ruleSetMap, false, false);
         config_core = QJsonObject2QString(result->coreConfig, true);
         QApplication::clipboard()->setText(config_core);
     } else if (msg.clickedButton() == button_2) {
-        result = BuildConfig(ent, true, false);
+        result = BuildConfig(ent, ruleSetMap, true, false);
         config_core = QJsonObject2QString(result->coreConfig, true);
         QApplication::clipboard()->setText(config_core);
     }
@@ -2302,62 +2302,6 @@ bool MainWindow::StopVPNProcess() {
     waitStop.unlock();
 
     return true;
-}
-
-void MainWindow::DownloadAssets(const QString &geoipUrl, const QString &geositeUrl) {
-    if (!mu_download_assets.tryLock()) {
-        runOnUiThread([=,this](){
-            MessageBoxWarning(tr("Cannot start"), tr("Last download request has not finished yet"));
-        });
-        return;
-    }
-    MW_show_log("Start downloading...");
-    QString errors;
-    if (!geoipUrl.isEmpty()) {
-        auto resp = NetworkRequestHelper::DownloadAsset(geoipUrl, "geoip.db");
-        if (!resp.isEmpty()) {
-            MW_show_log(QString(tr("Failed to download geoip: %1")).arg(resp));
-            errors += "geoip: " + resp;
-        }
-    }
-    if (!geositeUrl.isEmpty()) {
-        auto resp = NetworkRequestHelper::DownloadAsset(geositeUrl, "geosite.db");
-        if (!resp.isEmpty()) {
-            MW_show_log(QString(tr("Failed to download geosite: %1")).arg(resp));
-            errors += "\ngeosite: " + resp;
-        }
-    }
-    mu_download_assets.unlock();
-    if (!errors.isEmpty()) {
-        runOnUiThread([=,this](){
-            MessageBoxWarning(tr("Failed to download geo assets"), errors);
-        });
-    }
-    MW_show_log(tr("Geo Asset update completed!"));
-}
-
-void MainWindow::ResetAssets(const QString& geoipUrl, const QString& geositeUrl)
-{
-    if (!mu_reset_assets.try_lock())
-    {
-        MW_show_log(tr("A reset of assets is already in progress"));
-        return;
-    }
-    DownloadAssets(geoipUrl, geositeUrl);
-    auto entries = QDir(RULE_SETS_DIR).entryList(QDir::Files);
-    for (const auto &item: entries) {
-        if (!QFile(RULE_SETS_DIR + "/" + item).remove()) {
-            MW_show_log("Failed to remove " + item + ", stop the core then try again");
-        }
-    }
-    MW_show_log(tr("Removed all rule-set files"));
-
-    runOnUiThread([=,this]
-    {
-        if (Configs::dataStore->started_id >= 0) profile_start(Configs::dataStore->started_id);
-    });
-    Configs::dataStore->last_asset_reset_epoch_secs = QDateTime::currentSecsSinceEpoch();
-    mu_reset_assets.unlock();
 }
 
 bool isNewer(QString assetName) {
