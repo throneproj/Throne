@@ -10,18 +10,16 @@ source script/env_deploy.sh
 [ "$GOOS" == "darwin" ] && [ "$GOARCH" == "amd64" ] && DEST=$DEPLOYMENT/macos-amd64 || true
 [ "$GOOS" == "darwin" ] && [ "$GOARCH" == "arm64" ] && DEST=$DEPLOYMENT/macos-arm64 || true
 
-if [[ -z "$GOCMD" ]]; then
-  if [[ "$GOOS" == "windowslegacy" ]]; then
-    GOOS="windows"
-    GOCMD="$PWD/go/bin/go"
-    if [[ $GOARCH == 'amd64' ]]; then
-      DEST=$DEPLOYMENT/windowslegacy64
-    else
-      DEST=$DEPLOYMENT/windows32
-    fi
+if [[ "$GOOS" == "windowslegacy" ]]; then
+  GOOS="windows"
+  GOCMD="$PWD/go/bin/go"
+  if [[ $GOARCH == 'amd64' ]]; then
+    DEST=$DEPLOYMENT/windowslegacy64
   else
-    GOCMD="go"
+    DEST=$DEPLOYMENT/windows32
   fi
+else
+  GOCMD="go"
 fi
 
 if [ -z $DEST ]; then
@@ -36,7 +34,7 @@ export CGO_ENABLED=0
 #### Go: updater ####
 [ "$GOOS" == "darwin" ] || (
 cd core/updater
-$GOCMD build -o $DEST -trimpath -ldflags "-w -s"
+$GOCMD build ${GOFLAGS:-} -o $DEST -trimpath -ldflags "-w -s"
 )
 
 #### Go: core ####
@@ -46,5 +44,5 @@ cd gen
 protoc -I . --go_out=. --protorpc_out=. libcore.proto
 ) || :
 VERSION_SINGBOX="${VERSION_SINGBOX:-$(go list -m -f '{{.Version}}' github.com/sagernet/sing-box)}"
-$GOCMD build -v -o $DEST -trimpath -ldflags "-w -s -X 'github.com/sagernet/sing-box/constant.Version=${VERSION_SINGBOX}'" -tags "with_clash_api,with_gvisor,with_quic,with_wireguard,with_utls,with_dhcp,with_tailscale"
+$GOCMD build ${GOFLAGS:-} -v -o $DEST -trimpath -ldflags "-w -s -X 'github.com/sagernet/sing-box/constant.Version=${VERSION_SINGBOX}'" -tags "with_clash_api,with_gvisor,with_quic,with_wireguard,with_utls,with_dhcp,with_tailscale"
 popd
