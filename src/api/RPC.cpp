@@ -9,11 +9,15 @@ namespace API {
         this->onError = std::move(onError);
     }
 
+#define CHECK(method) \
+if (!Configs::dataStore->core_running) MW_show_log("Cannot invoke method" + QString(method) + ", core is not running");
+
 #define NOT_OK      \
     *rpcOK = false; \
     onError(QString("LibcoreService error: %1\n").arg(QString::fromStdString(err.String())));
 
     QString Client::Start(bool *rpcOK, const libcore::LoadConfigReq &request) {
+        CHECK("Start")
         libcore::ErrorResp reply;
         std::string resp, req = spb::pb::serialize<std::string>(request);
         auto err = make_rpc_client()->CallMethod("LibcoreService.Start", &req, &resp);
@@ -29,6 +33,7 @@ namespace API {
     }
 
     QString Client::Stop(bool *rpcOK) {
+        CHECK("Stop")
         libcore::EmptyReq request;
         libcore::ErrorResp reply;
         std::string resp, req = spb::pb::serialize<std::string>(request);
@@ -45,6 +50,7 @@ namespace API {
     }
 
     libcore::QueryStatsResp Client::QueryStats() {
+        CHECK("QueryStats")
         libcore::EmptyReq request;
         libcore::QueryStatsResp reply;
         std::string resp, req = spb::pb::serialize<std::string>(request);
@@ -59,6 +65,7 @@ namespace API {
     }
 
     libcore::TestResp Client::Test(bool *rpcOK, const libcore::TestReq &request) {
+        CHECK("Test")
         libcore::TestResp reply;
         std::string resp, req = spb::pb::serialize<std::string>(request);
         auto err = make_rpc_client()->CallMethod("LibcoreService.Test", &req, &resp);
@@ -74,6 +81,7 @@ namespace API {
     }
 
     void Client::StopTests(bool *rpcOK) {
+        CHECK("StopTests")
         const libcore::EmptyReq request;
         std::string resp, req = spb::pb::serialize<std::string>(request);
         auto err = make_rpc_client()->CallMethod("LibcoreService.StopTest", &req, &resp);
@@ -87,6 +95,7 @@ namespace API {
 
     libcore::QueryURLTestResponse Client::QueryURLTest(bool *rpcOK)
     {
+        CHECK("QueryURLTest")
         libcore::EmptyReq request;
         libcore::QueryURLTestResponse reply;
         std::string resp, req = spb::pb::serialize<std::string>(request);
@@ -187,6 +196,7 @@ namespace API {
     }
 
     QString Client::SetSystemDNS(bool *rpcOK, const bool clear) const {
+        CHECK("SetSystemDNS")
         libcore::SetSystemDNSRequest request;
         request.clear = clear;
         std::string resp, req = spb::pb::serialize<std::string>(request);
@@ -203,6 +213,7 @@ namespace API {
 
     libcore::ListConnectionsResp Client::ListConnections(bool* rpcOK) const
     {
+        CHECK("ListConnections")
         libcore::EmptyReq request;
         libcore::ListConnectionsResp reply;
         std::string resp, req = spb::pb::serialize<std::string>(request);
@@ -220,6 +231,7 @@ namespace API {
 
     QString Client::CheckConfig(bool* rpcOK, const QString& config) const
     {
+        CHECK("CheckConfig")
         libcore::LoadConfigReq request;
         libcore::ErrorResp reply;
         request.core_config = config.toStdString();
@@ -241,6 +253,7 @@ namespace API {
 
     bool Client::IsPrivileged(bool* rpcOK) const
     {
+        CHECK("IsPrivileged")
         libcore::EmptyReq request;
         libcore::IsPrivilegedResponse reply;
         std::string resp, req = spb::pb::serialize<std::string>(request);
@@ -260,6 +273,7 @@ namespace API {
 
     libcore::SpeedTestResponse Client::SpeedTest(bool *rpcOK, const libcore::SpeedTestRequest &request)
     {
+        CHECK("SpeedTest")
         libcore::SpeedTestResponse reply;
         std::string resp, req = spb::pb::serialize<std::string>(request);
         auto err = make_rpc_client()->CallMethod("LibcoreService.SpeedTest", &req, &resp);
@@ -276,6 +290,7 @@ namespace API {
 
     libcore::QuerySpeedTestResponse Client::QueryCurrentSpeedTests(bool *rpcOK)
     {
+        CHECK("QueryCurrentSpeedTests")
         const libcore::EmptyReq request;
         libcore::QuerySpeedTestResponse reply;
         std::string resp, req = spb::pb::serialize<std::string>(request);

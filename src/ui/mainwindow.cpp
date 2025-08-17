@@ -157,6 +157,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         },
         DS_cores);
 
+#ifdef Q_OS_LINUX
+    for (int i=0;i<20;i++)
+    {
+        QThread::msleep(100);
+        if (Configs::dataStore->core_running) break;
+    }
+    if (!Configs::dataStore->core_running) qDebug() << "[Warn] Core is taking too much time to start";
+#endif
+
     if (!Configs::dataStore->font.isEmpty()) {
         auto font = qApp->font();
         font.setFamily(Configs::dataStore->font);

@@ -207,7 +207,11 @@ namespace Configs {
         dnsObj["rules"] = dnsRulesObj;
         results->coreConfig["dns"] = dnsObj;
         results->coreConfig["route"] = QJsonObject{
-            {"auto_detect_interface", true}
+            {"auto_detect_interface", true},
+            {"default_domain_resolver", QJsonObject{
+                    {"server", "dns-direct"},
+                    {"strategy", dataStore->routing->outbound_domain_strategy},
+               }}
         };
 
         return results;

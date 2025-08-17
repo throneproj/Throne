@@ -43,7 +43,7 @@ const ::protorpc::Error Client::callMethod(
 	if(!conn_.IsValid()) {
 		if(!conn_.DialTCP(host_.c_str(), port_)) {
 			return ::protorpc::Error::New(
-				std::string("protorpc.Client.callMethod: DialTCP fail, ") +
+				std::string("protorpc.Client.callMethod: DialTCP fail, method ") + method + " ," +
 				std::string("host: ") + host_ + std::string(":") + std::to_string(static_cast<long long>(port_))
 			);
 		}
