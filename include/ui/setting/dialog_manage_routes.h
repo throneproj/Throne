@@ -18,7 +18,7 @@ class DialogManageRoutes : public QDialog {
     Q_OBJECT
 
 public:
-    explicit DialogManageRoutes(QWidget *parent = nullptr);
+    explicit DialogManageRoutes(QWidget *parent = nullptr, const std::map<std::string, std::string>& dataMap = {});
 
     ~DialogManageRoutes() override;
 
@@ -34,6 +34,8 @@ private:
     std::shared_ptr<Configs::RoutingChain> currentRoute;
 
     int tooltipID = 0;
+
+    std::map<std::string, std::string> ruleSetMap;
 
     void set_dns_hijack_enability(bool enable) const;
 

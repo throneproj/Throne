@@ -29,12 +29,6 @@ namespace Configs {
         inline QString SimpleRuleInfo = "You can add rules with the following format:\ndomain:<your-domain>\nsuffix:<your-domain-suffix>\nkeyword:<your-domain-keyword>\nregex:<your-domain-keyword>\nruleset:<ruleset-name> or ruleset:<remote-ruleset-URL>\nip:<ip-cidr>\nprocessName:<process name>\nprocessPath:<process path>\nRules are validated on tab change or when pressing ok.\nImportant: On saving the rules, the previous rules are discarded, meaning\nany changes made to the generated rules in the Advanced tab will be lost.";
     }
 
-namespace GeoAssets {
-    inline QStringList GeoIPURLs = {"https://github.com/SagerNet/sing-geoip/releases/latest/download/geoip.db", "https://raw.githubusercontent.com/Chocolate4U/Iran-sing-box-rules/release/geoip.db"};
-    inline QStringList GeoSiteURLs = {"https://github.com/SagerNet/sing-geosite/releases/latest/download/geosite.db", "https://raw.githubusercontent.com/Chocolate4U/Iran-sing-box-rules/release/geosite.db"};
-    inline QList ResetAssetsOptions = {0, 86400, 259200, 604800};
-    }
-
     namespace TestConfig
     {
         enum SpeedTestMode
@@ -43,6 +37,19 @@ namespace GeoAssets {
             DL,
             UL,
             SIMPLEDL,
+        };
+    }
+
+    namespace Mirrors
+    {
+        enum Mirrors
+        {
+            GITHUB,
+            CLOUDFLARE,
+            GCORE,
+            QUANTIL,
+            FASTLY,
+            CDN,
         };
     }
 } // namespace Configs

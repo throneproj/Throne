@@ -95,6 +95,47 @@
             </property>
            </widget>
           </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="ruleset_mirror_l">
+            <property name="text">
+             <string>Remote Rule-set Mirror</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QComboBox" name="ruleset_mirror">
+            <item>
+             <property name="text">
+              <string>GitHub</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>jsDelivr(Cloudflare)</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>jsDelivr(Gcore)</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>jsDelivr(Quantil)</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>jsDelivr(Fastly)</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>jsDelivr(CDN)</string>
+             </property>
+            </item>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>

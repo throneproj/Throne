@@ -117,7 +117,7 @@
     </message>
     <message>
         <source>Prevents the app from minimizing to the tray when the window is closed. The app will exit instead</source>
-        <translation>当窗口关闭时，阻止应用程序最小化到系统托盘。应用程序将退出</translation>
+        <translation>防止应用在窗口关闭时最小化到托盘。相反应用将退出</translation>
     </message>
     <message>
         <source>Automatic update</source>
@@ -319,7 +319,7 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
     </message>
     <message>
         <source>Use Mozilla Certificate Store</source>
-        <translation type="unfinished"></translation>
+        <translation>使用 Mozilla 证书存储库</translation>
     </message>
 </context>
 <context>
@@ -366,7 +366,7 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
     </message>
     <message>
         <source>Copied</source>
-        <translation>已复制成功</translation>
+        <translation>已复制</translation>
     </message>
     <message>
         <source>Manually column width</source>
@@ -585,27 +585,27 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;May degrade performance, try record fragment first&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;可能降低性能，请先尝试记录片段&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Enable TLS fragment</source>
-        <translation type="unfinished"></translation>
+        <translation>启用 TLS 片段</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;time format, like 500ms, 10ms etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;时间格式，如 500ms, 10ms 等&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Fallback Delay</source>
-        <translation type="unfinished"></translation>
+        <translation>回退延时</translation>
     </message>
     <message>
         <source>Enable TLS Record Fragment</source>
-        <translation type="unfinished"></translation>
+        <translation>启用 TLS 记录片段</translation>
     </message>
     <message>
         <source>Reality short id. Accept only one value.</source>
-        <translation type="unfinished"></translation>
+        <translation>Reality 短 ID。 仅接受一个值。</translation>
     </message>
 </context>
 <context>
@@ -862,11 +862,11 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Resolve domains to IP before connect, also affects the server address as well&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;连接前解析地址为 IP，也会影响服务器地址&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;examples:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://domain/path&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://domain/path&lt;/p&gt;&lt;p&gt;quic://domain:4632&lt;/p&gt;&lt;p&gt;etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;示例:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://domain/path&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://domain/path&lt;/p&gt;&lt;p&gt;quic://domain:4632&lt;/p&gt;&lt;p&gt;等&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
 </context>
 <context>
@@ -918,19 +918,19 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <name>EditAnyTLS</name>
     <message>
         <source>Password</source>
-        <translation type="unfinished">密码</translation>
+        <translation>密码</translation>
     </message>
     <message>
         <source>Idle Session Check Interval</source>
-        <translation type="unfinished"></translation>
+        <translation>空闲会话检查时间间隔</translation>
     </message>
     <message>
         <source>Idle Session Timeout</source>
-        <translation type="unfinished"></translation>
+        <translation>空闲会话超时</translation>
     </message>
     <message>
         <source>Min Idle Session</source>
-        <translation type="unfinished"></translation>
+        <translation>最小空闲会话</translation>
     </message>
 </context>
 <context>
@@ -1320,7 +1320,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Amnezia Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Amnezia 设置</translation>
     </message>
 </context>
 <context>
@@ -1469,7 +1469,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Add profile from clipboard</source>
-        <translation>添加剪贴板中的配置档</translation>
+        <translation>添加来自剪贴板的配置档</translation>
     </message>
     <message>
         <source>Debug Info</source>
@@ -1501,7 +1501,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Settings changed, restart proxy?</source>
-        <translation>设置已改变，是否重启代理？</translation>
+        <translation>设置已改变，重启代理吗？</translation>
     </message>
     <message>
         <source>Imported %1 profile(s)</source>
@@ -1633,7 +1633,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Copy links of selected</source>
-        <translation>复制选中项的分享链接</translation>
+        <translation>复制选中项的链接</translation>
     </message>
     <message>
         <source>Clone</source>
@@ -1673,7 +1673,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Not Running</source>
-        <translation>未运行</translation>
+        <translation>未在运行</translation>
     </message>
     <message>
         <source>Open Config Folder</source>
@@ -1777,7 +1777,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>If you have trouble starting VPN, you can force reset Core process here and then try starting the profile again. The error is %1</source>
-        <translation>如果启动 VPN 时遇到问题，您可以在这里强制重置 Core 进程，然后再次尝试启动配置档案。错误是 %1</translation>
+        <translation>如果启动 VPN 时有问题，您可以在这里强制重置 Core 进程，然后再次尝试启动配置档。错误是 %1</translation>
     </message>
     <message>
         <source> Confirmation </source>
@@ -1789,11 +1789,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Remove %1 Unavailable item(s) ?</source>
-        <translation>移除 %1 个不可用项目？</translation>
+        <translation>移除 %1 个不可用项吗？</translation>
     </message>
     <message>
         <source>Remove %1 Invalid item(s) ?</source>
-        <translation>移除 %1 个无效项目吗？</translation>
+        <translation>移除 %1 个无效项吗？</translation>
     </message>
     <message>
         <source>Replace domain server addresses with their resolved IPs?</source>
@@ -1861,7 +1861,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Click To Sort By Process</source>
-        <translation>点击以“按进程名排序”</translation>
+        <translation>点击以“按进程排序”</translation>
     </message>
     <message>
         <source>Routing Menu</source>
@@ -2039,11 +2039,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Click To Sort By Protocol</source>
-        <translation type="unfinished"></translation>
+        <translation>点击“按协议排序”</translation>
     </message>
     <message>
         <source>Click To Sort By Outbound</source>
-        <translation type="unfinished"></translation>
+        <translation>点击“按出站排序”</translation>
     </message>
 </context>
 <context>

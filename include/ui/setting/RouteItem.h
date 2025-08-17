@@ -20,7 +20,7 @@ class RouteItem : public QDialog {
     Q_OBJECT
 
 public:
-    explicit RouteItem(QWidget *parent = nullptr, const std::shared_ptr<Configs::RoutingChain>& routeChain = nullptr);
+    explicit RouteItem(QWidget *parent = nullptr, const std::shared_ptr<Configs::RoutingChain>& routeChain = nullptr, const std::map<std::string, std::string>& ruleSetMap = {});
     ~RouteItem() override;
 
     std::shared_ptr<Configs::RoutingChain> chain;
@@ -66,7 +66,7 @@ private:
     void updateRulePreview();
 
     void updateRouteItemsView();
-    private slots:
+private slots:
     void accept() override;
 
     void on_new_route_item_clicked();

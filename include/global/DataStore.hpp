@@ -24,6 +24,7 @@ namespace Configs {
         QString domain_strategy = "AsIs";
         QString outbound_domain_strategy = "AsIs";
         int sniffing_mode = SniffingMode::FOR_ROUTING;
+        int ruleset_mirror = Mirrors::CLOUDFLARE;
 
         explicit Routing(int preset = 0);
 
@@ -94,12 +95,6 @@ namespace Configs {
         bool sub_clear = false;
         bool sub_insecure = false;
         int sub_auto_update = -30;
-
-        // Assets
-        QString geoip_download_url = "";
-        QString geosite_download_url = "";
-        int auto_reset_assets_idx = 0;
-        long long last_asset_reset_epoch_secs = 0;
 
         // Security
         bool skip_cert = false;

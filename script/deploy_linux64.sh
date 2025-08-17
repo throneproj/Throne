@@ -20,15 +20,13 @@ cp $BUILD/Throne $DEST
 #### copy Throne.png ####
 cp ./res/public/Throne.png $DEST
 
+#### download srslist ####
+curl -fLso $DEST/srslist "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/list"
+
 cd download-artifact
 cd *linux-$ARCH
 tar xvzf artifacts.tgz -C ../../
-cd ..
-cd *public_res
-tar xvzf artifacts.tgz -C ../../
 cd ../..
-
-mv $DEPLOYMENT/public_res/* $DEST
 
 sudo add-apt-repository universe
 sudo apt install libfuse2

@@ -28,15 +28,13 @@ cd ..
 rm tmp.exe
 mv Throne.pdb $DEST
 
+#### download srslist ####
+curl -fLso $DEST/srslist "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/list"
+
 #### copy exe ####
 cp $BUILD/Throne.exe $DEST
 
 cd download-artifact
 cd *$ARCH
 tar xvzf artifacts.tgz -C ../../
-cd ..
-cd *public_res
-tar xvzf artifacts.tgz -C ../../
 cd ../..
-
-mv $DEPLOYMENT/public_res/* $DEST

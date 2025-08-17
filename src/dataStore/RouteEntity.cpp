@@ -23,7 +23,7 @@ namespace Configs {
         return false;
     }
 
-        RouteRule::RouteRule() {
+    RouteRule::RouteRule() {
         _add(new configItem("name", &name, itemType::string));
         _add(new configItem("ip_version", &ip_version, itemType::string));
         _add(new configItem("network", &network, itemType::string));
@@ -615,7 +615,7 @@ namespace Configs {
         for (const auto& item: Rules) {
             if (item->outboundID == -2) {
                 for (const auto& rset: item->rule_set) {
-                    if (rset.endsWith("_SITE")) res << QString("ruleset:" + rset);
+                    if (rset.startsWith("geosite-")) res << QString("ruleset:" + rset);
                 }
                 for (const auto& domain: item->domain) {
                     res << QString("domain:" + domain);
@@ -640,7 +640,7 @@ namespace Configs {
         for (const auto& item: Rules) {
             if (item->outboundID == -2) {
                 for (const auto& rset: item->rule_set) {
-                    if (rset.endsWith("_IP")) res << QString("ruleset:" + rset);
+                    if (rset.startsWith("geoip-")) res << QString("ruleset:" + rset);
                 }
                 for (const auto& domain: item->ip_cidr) {
                     res << QString("ip:" + domain);
