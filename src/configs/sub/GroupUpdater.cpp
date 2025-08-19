@@ -469,8 +469,8 @@ namespace Subscription {
                     auto bean = ent->SocksHTTPBean();
                     bean->username = Node2QString(proxy["username"]);
                     bean->password = Node2QString(proxy["password"]);
-                    if (type == "http") {
-                        if (Node2Bool(proxy["tls"])) bean->stream->security = "tls";
+                    if (type == "http" && Node2Bool(proxy["tls"])) {
+                        bean->stream->security = "tls";
                         if (Node2Bool(proxy["skip-cert-verify"])) bean->stream->allow_insecure = true;
                         bean->stream->sni = FIRST_OR_SECOND(Node2QString(proxy["sni"]), Node2QString(proxy["servername"]));
                         bean->stream->alpn = Node2QStringList(proxy["alpn"]).join(",");

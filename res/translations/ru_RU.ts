@@ -13,11 +13,11 @@
     </message>
     <message>
         <source>Listen Address</source>
-        <translation>Прослушиваемый адрес:</translation>
+        <translation>Прослушиваемый адрес</translation>
     </message>
     <message>
         <source>Custom Inbound</source>
-        <translation>Польз. настройки Inbound</translation>
+        <translation>Кастомный inbound</translation>
     </message>
     <message>
         <source>Edit</source>
@@ -61,7 +61,7 @@
     </message>
     <message>
         <source>Connection statistics</source>
-        <translation>Вкл.статистику траффика</translation>
+        <translation>Статистика подключений</translation>
     </message>
     <message>
         <source>Hide dashboard at startup</source>
@@ -145,7 +145,7 @@
     </message>
     <message>
         <source>Disable Traffic Stats</source>
-        <translation>Отключить статистику траффика профиля</translation>
+        <translation>Отключить статистику трафика профиля</translation>
     </message>
     <message>
         <source>NTP Settings</source>
@@ -177,7 +177,7 @@
     </message>
     <message>
         <source>Listen Port</source>
-        <translation>Прослушиваемый порт:</translation>
+        <translation>Прослушиваемый порт</translation>
     </message>
     <message>
         <source>Assets</source>
@@ -224,7 +224,7 @@
                                                                             Improve Ping and Performance&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                                         </source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Когда отключено,
-                                                                             использованный траффик не будет отображаться. Так же уменьшится задержка (пинг) и улучшится производительность&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+                                                                             использованный трафик не будет отображаться. Так же уменьшится задержка (пинг) и улучшится производительность&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                                         </translation>
     </message>
     <message>
@@ -297,7 +297,7 @@
     </message>
     <message>
         <source>Auto Reset Assets</source>
-        <translation>Автоматическое обновление Geo ресурсов</translation>
+        <translation>Автоматически перезагружать ресурсы</translation>
     </message>
     <message>
         <source>Disabled</source>
@@ -321,7 +321,7 @@
     </message>
     <message>
         <source>Reset All Assets</source>
-        <translation>Сбросить все ресурсы по умолчанию</translation>
+        <translation>Сбросить все ресурсы по умолч.</translation>
     </message>
     <message>
         <source>It is recommended to leave it blank, but it sometimes does not work, at this time you can set this option.
@@ -437,7 +437,7 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
     </message>
     <message>
         <source>Custom Outbound Settings</source>
-        <translation>Доп. настройки для Outbound стратегии</translation>
+        <translation>Доп. настройки стратегии для Outbound</translation>
     </message>
     <message>
         <source>Custom Config Settings</source>
@@ -513,7 +513,7 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
     </message>
     <message>
         <source>Certificate</source>
-        <translation>Исп. Сертификат</translation>
+        <translation>Сертификат</translation>
     </message>
     <message>
         <source>Server name indication, clear text.</source>
@@ -553,20 +553,19 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overrides mux to On&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Заставляет Mux работать принудительно&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Переопределяет мультиплексор на&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Enable TCP Brutal</source>
-        <translation>Вкл. Brutal алгоритм TCP</translation>
+        <translation>Включить TCP Brutal</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Server to Client TCP Brutal Speed&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Скорость передачи данных от сервера к клиенту по TCP с использованием Brutal алгоритма.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Brutal скорость TCP от сервера к клиенту&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>TCP Brutal Speed</source>
         <translation>TCP Brutal скорость</translation>
-        <translation>Скорость агресив. TCP</translation>
     </message>
     <message>
         <source>Mb/s</source>
@@ -598,7 +597,7 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;May degrade performance, try record fragment first&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Может ухудшить производительность, сначала попробуйте записать фрагмент&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Enable TLS fragment</source>
@@ -691,7 +690,7 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
     </message>
     <message>
         <source>Sniffing Mode</source>
-        <translation>Анализ траффика (Cниффинг)</translation>
+        <translation>Анализ трафика (Cниффинг)</translation>
     </message>
     <message>
         <source>DNS</source>
@@ -711,7 +710,7 @@ this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also U
     </message>
     <message>
         <source>Remote DNS</source>
-        <translation>Удалённый DNS</translation>
+        <translation>Удаленный DNS</translation>
     </message>
     <message>
         <source>DNS Object Settings</source>
@@ -740,14 +739,6 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>Sniffs the connections intial packet(s?) to identify the protocol and the SNI. Sniff result for destination also rewrites the destionation of the connection to the sniffed SNI. For more data on the sniffed protocol refer to the sing-box&apos;s documentation.</source>
         <translation>Проверяет исходный пакет(ы) подключений, чтобы идентифицировать протокол и SNI. Результат анализа для пункта назначения также преобразует пункт назначения соединения в SNI для анализа с помощью SNI. Дополнительные сведения о протоколе проверки приведены в документации slingbox&apos;s.</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable to resolve domains to IP before routing based on the strategy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Включить преобразование доменов в IP-адреса перед маршрутизацией на основе стратегии&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Resolve domains to IP before connect, also affects the server address as well&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Прежде чем подключаться, преобразуйте домены в IP-адреса, это также влияет на адрес сервера&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Routing Profile</source>
@@ -807,11 +798,11 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>Listen Address</source>
-        <translation>Прослушиваемый адрес:</translation>
+        <translation>Прослушиваемый адрес</translation>
     </message>
     <message>
         <source>Listen Port</source>
-        <translation>Прослушиваемый порт:</translation>
+        <translation>Прослушиваемый порт</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Following format should be used:&lt;br/&gt;domain:a.com&lt;/p&gt;&lt;p&gt;suffix:a.com&lt;/p&gt;&lt;p&gt;regex:someregex&lt;/p&gt;&lt;p&gt;rule_set:nameOfRuleSet&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -835,7 +826,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>tls://8.8.8.8</source>
-        <translation>tls://8.8.8.8</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Clone</source>
@@ -883,11 +874,11 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Resolve domains to IP before connect, also affects the server address as well&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Прежде чем подключаться, преобразуйте домены в IP-адреса, это также влияет на адрес сервера.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Прежде чем подключаться, преобразуйте домены в IP-адреса, это также влияет на адрес сервера&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;examples:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://domain/path&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://domain/path&lt;/p&gt;&lt;p&gt;quic://domain:4632&lt;/p&gt;&lt;p&gt;etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Примеры адресов:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://domain/path&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://domain/path&lt;/p&gt;&lt;p&gt;quic://domain:4632&lt;/p&gt;&lt;p&gt;etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -940,7 +931,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <name>EditAnyTLS</name>
     <message>
         <source>Password</source>
-        <translation>Пароль</translation>
+        <translation type="unfinished">Пароль</translation>
     </message>
     <message>
         <source>Idle Session Check Interval</source>
@@ -959,7 +950,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <name>EditChain</name>
     <message>
         <source>Traffic order is from top to bottom</source>
-        <translation>Порядок траффика сверху вниз</translation>
+        <translation>Порядок трафика сверху вниз</translation>
     </message>
     <message>
         <source>Select Profile</source>
@@ -1001,19 +992,19 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Socks address</source>
-        <translation>Адрес socks</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>127.0.0.1</source>
-        <translation>127.0.0.1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Socks port</source>
-        <translation>Порт socks</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>1080</source>
-        <translation>1080</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Core path</source>
@@ -1290,7 +1281,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;persistent_keepalive_interval in seconds&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;интервал постоянного поддержания соединения в секундах&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -1373,7 +1364,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Last update: %1</source>
-        <translation>Последнее обновление подписки: %1</translation>
+        <translation>Последнее обновление: %1</translation>
     </message>
     <message>
         <source>Confirmation</source>
@@ -1447,7 +1438,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Update</source>
-        <translation>Обновить приложение</translation>
+        <translation>Обновление</translation>
     </message>
     <message>
         <source>Tun Mode</source>
@@ -1467,7 +1458,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Name</source>
-        <translation>Имя профиля</translation>
+        <translation>Имя</translation>
     </message>
     <message>
         <source>Test Result</source>
@@ -1475,7 +1466,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Traffic</source>
-        <translation>Исходящий / Входящий</translation>
+        <translation>Статистика трафика</translation>
     </message>
     <message>
         <source>Share</source>
@@ -1495,7 +1486,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>New profile</source>
-        <translation>Создать новый профиль</translation>
+        <translation>Новый профиль</translation>
     </message>
     <message>
         <source>Groups</source>
@@ -1543,7 +1534,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Reset Traffic</source>
-        <translation>Сбросить траффик</translation>
+        <translation>Сбросить трафик</translation>
     </message>
     <message>
         <source>Scan QR Code</source>
@@ -1575,11 +1566,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Remember last profile</source>
-        <translation>Исп. последний профиль при запуске</translation>
+        <translation>Запомнить последний профиль</translation>
     </message>
     <message>
         <source>Allow other devices to connect</source>
-        <translation>Разрешить подкл. к другим устройствам</translation>
+        <translation>Разрешить подключаться другим устройствам</translation>
     </message>
     <message>
         <source>Remove Unavailable</source>
@@ -1591,15 +1582,15 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Hotkey Settings</source>
-        <translation>Настройки горячих клавиш</translation>
+        <translation>Настройки комбинаций клавиш</translation>
     </message>
     <message>
         <source>Select All</source>
-        <translation>Выделеть всё</translation>
+        <translation>Выбрать всё</translation>
     </message>
     <message>
         <source>Copy links of selected</source>
-        <translation>Скопировать выбранные ссылки</translation>
+        <translation>Скопировать ссылки для выбранных</translation>
     </message>
     <message>
         <source>Enable Tun</source>
@@ -1772,7 +1763,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Ctrl+Shift+S</source>
-        <translation>Ctrl+Shift+S</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Url Test Group</source>
@@ -1780,7 +1771,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Ctrl+Shift+G</source>
-        <translation>Ctrl+Shift+G</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Hidden menu</source>
@@ -1796,7 +1787,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Ctrl+Alt+I</source>
-        <translation>Ctrl+Alt+I</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>If you have trouble starting VPN, you can force reset Core process here and then try starting the profile again. The error is %1</source>
@@ -1828,7 +1819,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Connections</source>
-        <translation>Маршрутизация траффика</translation>
+        <translation>Подключения</translation>
     </message>
     <message>
         <source>Click To Disable Sorting</source>
@@ -1840,7 +1831,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Logs</source>
-        <translation>Журнал</translation>
+        <translation>Логи</translation>
     </message>
     <message>
         <source>Geo Assets are missing, want to download them now?</source>
@@ -1860,19 +1851,19 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Application</source>
-        <translation>Настройка приложения</translation>
+        <translation>Приложение</translation>
     </message>
     <message>
         <source>Settings</source>
-        <translation>Доп. Настройки</translation>
+        <translation>Настройки</translation>
     </message>
     <message>
         <source>Profiles</source>
-        <translation>Настройка профилей</translation>
+        <translation>Профили</translation>
     </message>
     <message>
         <source>Routing</source>
-        <translation>Настройка  маршрутизации</translation>
+        <translation>Маршрутизация</translation>
     </message>
     <message>
         <source>Destination (Domain)</source>
@@ -1984,7 +1975,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Traffic Graph</source>
-        <translation>Анализ траффика</translation>
+        <translation>График трафика</translation>
     </message>
     <message>
         <source>Failed to download update assets</source>
@@ -2032,11 +2023,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Click To Toggle sort by Traffic</source>
-        <translation>Нажмите,чтобы переключить сортировку по траффику</translation>
+        <translation>Нажмите,чтобы переключить сортировку по трафику</translation>
     </message>
     <message>
         <source>Copy links of selected (Custom Links)</source>
-        <translation>Скопировать выбранные ссылки (пользовательские ссылки)</translation>
+        <translation>Скопированы выбранные ссылки (пользовательские ссылки)</translation>
     </message>
     <message>
         <source>Invalid JSON Array</source>
@@ -2122,7 +2113,7 @@ How to update?</source>
     </message>
     <message>
         <source>Subscription request fininshed: %1</source>
-        <translation>Запрос на подписки завершен: %1</translation>
+        <translation>Запрос подписки завершен: %1</translation>
     </message>
     <message>
         <source>Clearing servers...</source>
@@ -2144,7 +2135,7 @@ Deleted %3 Profiles:
     </message>
     <message>
         <source>Change of %1:</source>
-        <translation>Изменение в параметрах профиля %1:</translation>
+        <translation>Изменение %1:</translation>
     </message>
     <message>
         <source>Core exits too frequently, stop automatic restart this profile.</source>
@@ -2160,7 +2151,7 @@ Deleted %3 Profiles:
     </message>
     <message>
         <source>Update</source>
-        <translation>Обновить приложение</translation>
+        <translation>Обновление</translation>
     </message>
     <message>
         <source>No update</source>
@@ -2188,7 +2179,7 @@ Release note:
     </message>
     <message>
         <source>Used: %1 Remain: %2 Expire: %3</source>
-        <translation>Исп. траффика: %1, осталось траффика: %2, Дата оканчание подписки: %3</translation>
+        <translation>Использовано: %1, осталось: %2, истекло: %3</translation>
     </message>
     <message>
         <source>Default</source>
@@ -2228,7 +2219,7 @@ Release note:
     </message>
     <message>
         <source>Download Profiles</source>
-        <translation>Загрузить польз. профиль</translation>
+        <translation>Скачивание Профилей</translation>
     </message>
     <message>
         <source>Requesting profile error: %1</source>
