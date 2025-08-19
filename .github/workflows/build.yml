@@ -248,9 +248,10 @@ jobs:
           mv deployment/gen/*.go core/server/gen/
           git add -f core/server/gen/*.go core/server/vendor SingBox.Version
           ##
-          git ls-files --recurse-submodules | tar --transform="s,^,Throne-${{ github.event.inputs.tag }}/,S" -caf "deployment/Throne-${{ github.event.inputs.tag }}-unified_source.tar.gz" -T-
+          git ls-files --recurse-submodules | tar --transform="s,^,Throne-unified-source-${{ github.event.inputs.tag }}/,S" -c --xz -f "deployment/Throne-unified-source-${{ github.event.inputs.tag }}.tar.xz" -T-
           ##
           cd deployment
+          sha256sum "Throne-unified-source-${{ github.event.inputs.tag }}.tar.xz" > "Throne-unified-source-${{ github.event.inputs.tag }}.tar.xz.sha256sum"
           rm -rf *.pdb win*/*.pdb
           ####
           bash ../script/pack_debian.sh ${{ github.event.inputs.tag }}
