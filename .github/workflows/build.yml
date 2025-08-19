@@ -243,9 +243,10 @@ jobs:
           ##
           mkdir -pv core/server/gen ||:
           rm -rfv core/server/vendor ||:
+          mv deployment/Throne.Sagernet.SingBox.Version.txt SingBox.Version
           mv -T deployment/vendor core/server/vendor
           mv deployment/gen/*.go core/server/gen/
-          git add -f core/server/gen/*.go core/server/vendor
+          git add -f core/server/gen/*.go core/server/vendor SingBox.Version
           ##
           git ls-files --recurse-submodules | tar --transform="s,^,Throne-${{ github.event.inputs.tag }}/,S" -caf "deployment/Throne-${{ github.event.inputs.tag }}-unified_source.tar.gz" -T-
           ##
