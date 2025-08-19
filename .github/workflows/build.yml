@@ -74,8 +74,8 @@ jobs:
         if: steps.cache-common.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          [ ${{ matrix.cross_os }} != linux ] || [ ${{ matrix.cross_arch }} != arm64 ] || bash -x ./script/deploy_vendor.sh
           GOOS=${{ matrix.cross_os }} GOARCH=${{ matrix.cross_arch }} ./script/build_go.sh
+          [ ${{ matrix.cross_os }} != linux ] || [ ${{ matrix.cross_arch }} != arm64 ] || bash -x ./script/deploy_vendor.sh
       - name: Tar files
         if: steps.cache-common.outputs.cache-hit != 'true'
         run: tar czvf artifacts.tgz ./deployment
