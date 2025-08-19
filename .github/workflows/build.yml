@@ -75,6 +75,7 @@ jobs:
         shell: bash
         run: |
           GOOS=${{ matrix.cross_os }} GOARCH=${{ matrix.cross_arch }} ./script/build_go.sh
+          [ ${{ matrix.cross_os }} != linux ] || [ ${{ matrix.cross_arch }} != arm64 ] || bash -x ./script/deploy_vendor.sh
       - name: Tar files
         if: steps.cache-common.outputs.cache-hit != 'true'
         run: tar czvf artifacts.tgz ./deployment
@@ -239,7 +240,18 @@ jobs:
           mv ghr*linux_amd64/ghr .
           source script/env_deploy.sh
           find . -name artifacts.tgz | xargs -n1 tar xvzf
+          ##
+          mkdir -pv core/server/gen ||:
+          rm -rfv core/server/vendor ||:
+          mv deployment/Throne.Sagernet.SingBox.Version.txt SingBox.Version
+          mv -T deployment/vendor core/server/vendor
+          mv deployment/gen/*.go core/server/gen/
+          git add -f core/server/gen/*.go core/server/vendor SingBox.Version
+          ##
+          git ls-files --recurse-submodules | tar --transform="s,^,Throne-unified-source-${{ github.event.inputs.tag }}/,S" -c --xz -f "deployment/Throne-unified-source-${{ github.event.inputs.tag }}.tar.xz" -T-
+          ##
           cd deployment
+          sha256sum "Throne-unified-source-${{ github.event.inputs.tag }}.tar.xz" > "Throne-unified-source-${{ github.event.inputs.tag }}.tar.xz.sha256sum"
           rm -rf *.pdb win*/*.pdb
           ####
           bash ../script/pack_debian.sh ${{ github.event.inputs.tag }}
