@@ -64,3 +64,9 @@ Also the `System DNS` feature will change your system's DNS settings, which is a
 
 **Is setting the `SUID` bit really needed on Linux?** <br/>
 To create and manage a system TUN interface, root access is required, without it, you will have to grant the Core some `Cap_xxx_admin` and still, need to enter your password 3 to 4 times per TUN activation. You can also opt to disable the automatic privilege escalation in `Basic Settings`->`Security`, but note that features that require root access will stop working unless you manually grant the needed permissions.
+
+**Why does my internet stop working after I force quit Throne?** <br/>
+If Throne is force-quit while `System proxy` is enabled, the process ends immediately and Throne cannot reset the proxy. <br/>
+Solution:
+- Always close Throne normally.
+- If you force quit by accident, open Throne again, enable `System proxy`, then disable it- this will reset the settings.
