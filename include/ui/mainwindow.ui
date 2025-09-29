@@ -655,9 +655,9 @@
     <string>Exit</string>
    </property>
   </action>
-  <action name="actionShow_window">
+  <action name="actionToggle_window">
    <property name="text">
-    <string>Show Window</string>
+    <string>Toggle Window</string>
    </property>
   </action>
   <action name="menu_basic_settings">
