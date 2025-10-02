@@ -71,6 +71,10 @@
         <source>Max log lines</source>
         <translation>Макс. кол-во строк в логах</translation>
     </message>
+	<message>
+        <source>Network</source>
+        <translation>Сеть</translation>
+    </message>
     <message>
         <source>Subscription</source>
         <translation>Подписка</translation>
@@ -80,12 +84,12 @@
         <translation>User Agent</translation>
     </message>
     <message>
-        <source>Use proxy when updating subscription</source>
-        <translation>Использовать прокси при обновлении подписки</translation>
+        <source>Use proxy</source>
+        <translation>Использовать прокси</translation>
     </message>
     <message>
-        <source>Ignore TLS errors when updating subscription</source>
-        <translation>Игнорировать ошибки TLS при обновлении подписки</translation>
+        <source>Ignore TLS errors</source>
+        <translation>Игнорировать ошибки TLS</translation>
     </message>
     <message>
         <source>Clear servers before updating subscription</source>
@@ -150,6 +154,10 @@
     <message>
         <source>Interval (minute, invalid if less than 30)</source>
         <translation>Интервал (в минутах; неверно, если значение меньше 30)</translation>
+    </message>
+	<message>
+        <source>Loglevel</source>
+        <translation>Уровень логирования</translation>
     </message>
     <message>
         <source>Disable Traffic Stats</source>
@@ -751,6 +759,10 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>Routing Profile</source>
         <translation>Профиль маршрутизации</translation>
+    </message>
+    <message>
+        <source>Remote Rule-set Mirror</source>
+        <translation>Источник профилей маршрутизации</translation>
     </message>
     <message>
         <source>Default DNS server</source>
@@ -1512,6 +1524,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Настройки маршрутизации</translation>
     </message>
     <message>
+        <source>Hide window</source>
+        <translation>Скрыть окно</translation>
+    </message>
+    <message>
         <source>Add profile from clipboard</source>
         <translation>Добавить профиль из буфера обмена</translation>
     </message>
@@ -2223,6 +2239,10 @@ Release note:
     <message>
         <source>Process complete, applying...</source>
         <translation>Процесс завершён, применение...</translation>
+    </message>
+    <message>
+        <source>Enable AdBlock</source>
+        <translation>Включить AdBlock</translation>
     </message>
     <message>
         <source>Download Profiles</source>
