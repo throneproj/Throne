@@ -2271,7 +2271,7 @@ Release note:
     </message>
     <message>
         <source>Restarting the core ...</source>
-        <translation>Перезапуск ядра</translation>
+        <translation>Перезапуск ядра...</translation>
     </message>
 </context>
 <context>
