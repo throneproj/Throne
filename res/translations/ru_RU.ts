@@ -133,7 +133,7 @@
     </message>
     <message>
         <source>Always Start as Standard User</source>
-        <translation>Всегда запускать приложения как обычный пользователь</translation>
+        <translation>Всегда запускать Throne от имени обычного пользователя</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Do not attempt to start as Admin unless explicitly requested&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -212,7 +212,7 @@
                                             sing-box&apos;s built-in NTP client&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                         </source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Настройки для встроенного в
-                                            sing-box&apos;s NTP-клиента&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+                                            NTP-клиента sing-box&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                         </translation>
     </message>
     <message>
@@ -269,31 +269,31 @@
     </message>
     <message>
         <source>Network Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Настройки соединения</translation>
     </message>
     <message>
         <source>Test Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Настройки тестирования</translation>
     </message>
     <message>
         <source>Only Country</source>
-        <translation type="unfinished"></translation>
+        <translation>Только проверка страны</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;timeout in milliseconds&lt;br/&gt;applies to all tests individually&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Таймаут в миллисекундах&lt;br/&gt;Применяется ко всем тестам индивидуально&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Timeout</source>
-        <translation type="unfinished"></translation>
+        <translation>Таймаут</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Timeout for URLtest in ms&lt;br/&gt;Note that muxed connections take a much longer time for their initial request, and setting this value too low will cause the test to falsely report that the config is not working&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Таймаут для теста задержки в мс&lt;br/&gt;Обратите внимание, что мультиплексированным соединениям требуется намного больше времени для изначального запроса, отчего выбор слишком низкого значения в этом поле может привести к ложноотрицательным результатам тестирования такой конфигурации&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Show System DNS option</source>
-        <translation type="unfinished"></translation>
+        <translation>Отображать режим «Системный DNS»</translation>
     </message>
 </context>
 <context>
@@ -320,7 +320,7 @@
     </message>
     <message>
         <source>Basic</source>
-        <translation>Стандартная</translation>
+        <translation>Стандартный</translation>
     </message>
     <message>
         <source>Subscription</source>
@@ -610,11 +610,11 @@
     </message>
     <message>
         <source>Global</source>
-        <translation type="unfinished"></translation>
+        <translation>Глобальные</translation>
     </message>
     <message>
         <source>Shortcuts</source>
-        <translation type="unfinished"></translation>
+        <translation>Горячие клавиши</translation>
     </message>
 </context>
 <context>
@@ -852,35 +852,35 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>GitHub</source>
-        <translation type="unfinished"></translation>
+        <translation>GitHub</translation>
     </message>
     <message>
         <source>jsDelivr(Cloudflare)</source>
-        <translation type="unfinished"></translation>
+        <translation>jsDelivr (Cloudflare)</translation>
     </message>
     <message>
         <source>jsDelivr(Gcore)</source>
-        <translation type="unfinished"></translation>
+        <translation>jsDelivr (Gcore)</translation>
     </message>
     <message>
         <source>jsDelivr(Quantil)</source>
-        <translation type="unfinished"></translation>
+        <translation>jsDelivr (Quantil)</translation>
     </message>
     <message>
         <source>jsDelivr(Fastly)</source>
-        <translation type="unfinished"></translation>
+        <translation>jsDelivr (Fastly)</translation>
     </message>
     <message>
         <source>jsDelivr(CDN)</source>
-        <translation type="unfinished"></translation>
+        <translation>jsDelivr (CDN)</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Local DNS can not be used in some configurations, you will have to set an ip here to be used as local dns in such situations&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Локальный DNS невозможно использовать в некоторых конфигурациях — в подобных ситуациях вам потребуется вручную ввести IP в этом поле для использования в качестве локального DNS&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Local Override</source>
-        <translation type="unfinished"></translation>
+        <translation>Назначить локал. DNS</translation>
     </message>
 </context>
 <context>
@@ -1212,59 +1212,59 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <name>EditTailScale</name>
     <message>
         <source>Form</source>
-        <translation type="unfinished">Форма</translation>
+        <translation>Форма</translation>
     </message>
     <message>
         <source>State directory</source>
-        <translation type="unfinished"></translation>
+        <translation>Директория состояния</translation>
     </message>
     <message>
         <source>Auth key</source>
-        <translation type="unfinished"></translation>
+        <translation>Ключ авторизации</translation>
     </message>
     <message>
         <source>Control URL</source>
-        <translation type="unfinished"></translation>
+        <translation>Контролирующий URL</translation>
     </message>
     <message>
         <source>Hostname</source>
-        <translation type="unfinished"></translation>
+        <translation>Имя хоста</translation>
     </message>
     <message>
         <source>Accept routes</source>
-        <translation type="unfinished"></translation>
+        <translation>Приём маршрутов</translation>
     </message>
     <message>
         <source>Ephemeral</source>
-        <translation type="unfinished"></translation>
+        <translation>Эфемерный узел</translation>
     </message>
     <message>
         <source>Exit node allow lan access</source>
-        <translation type="unfinished"></translation>
+        <translation>Выходной узел: разрешить доступ к LAN</translation>
     </message>
     <message>
         <source>Advertise exit node</source>
-        <translation type="unfinished"></translation>
+        <translation>Объявлять выходной узел</translation>
     </message>
     <message>
         <source>Exit node</source>
-        <translation type="unfinished"></translation>
+        <translation>Выходной узел</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;comma seperated list of subnets&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Список подсетей, разделенных запятыми&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Список подсетей, разделенных запятыми&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Advertise routes</source>
-        <translation type="unfinished"></translation>
+        <translation>Объявлять маршруты</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;use tailscale dns as the remote dns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Использовать DNS Tailscale в качестве удалённого DNS&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Global DNS</source>
-        <translation type="unfinished"></translation>
+        <translation>Глобальный DNS</translation>
     </message>
 </context>
 <context>
@@ -1412,7 +1412,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Basic</source>
-        <translation>Обычный</translation>
+        <translation>Стандартный</translation>
     </message>
     <message>
         <source>Subscription</source>
@@ -2096,7 +2096,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Add profile from File</source>
-        <translation type="unfinished"></translation>
+        <translation>Добавить профиль из файла</translation>
     </message>
 </context>
 <context>
@@ -2263,15 +2263,15 @@ Release note:
     </message>
     <message>
         <source>Local DNS and Tun mode do not work together, please set an IP to be used as the Local DNS server in the Routing Settings -&gt; Local override</source>
-        <translation type="unfinished"></translation>
+        <translation>Локальный DNS и режим TUN не могут работать вместе. Пожалуйста, введите IP для использования в качестве локального DNS в меню «Настройки маршрутизации» → «Назначить локал. DNS»</translation>
     </message>
     <message>
         <source>Core exited, cleaning up...</source>
-        <translation type="unfinished"></translation>
+        <translation>Ядро завершило работу, очистка...</translation>
     </message>
     <message>
         <source>Restarting the core ...</source>
-        <translation type="unfinished"></translation>
+        <translation>Перезапуск ядра</translation>
     </message>
 </context>
 <context>
@@ -2352,7 +2352,7 @@ Release note:
     </message>
     <message>
         <source>Basic</source>
-        <translation>Основной</translation>
+        <translation>Основные настройки</translation>
     </message>
     <message>
         <source>How to use</source>
@@ -2372,7 +2372,7 @@ Release note:
     </message>
     <message>
         <source>Advanced</source>
-        <translation>Расширенный</translation>
+        <translation>Дополнительно</translation>
     </message>
     <message>
         <source>Invalid rules</source>
