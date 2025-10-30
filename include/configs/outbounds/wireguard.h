@@ -1,4 +1,5 @@
 #pragma once
+#include "include/configs/baseConfig.h"
 #include "include/configs/common/Outbound.h"
 
 namespace Configs
@@ -31,9 +32,10 @@ namespace Configs
         BuildResult Build() override;
     };
 
-    class wireguard : public outbound
+    class wireguard : public baseConfig, public outboundMeta
     {
         public:
+        std::shared_ptr<OutboundCommons> commons = std::make_shared<OutboundCommons>();
         QString private_key;
         std::shared_ptr<Peer> peer = std::make_shared<Peer>();
         QStringList address;
@@ -54,8 +56,10 @@ namespace Configs
         int underload_packet_magic_header = 0;
         int transport_packet_magic_header = 0;
 
-        wireguard() : outbound()
+        wireguard()
         {
+            _add(new configItem("commons", dynamic_cast<JsonStore *>(commons.get()), jsonStore));
+
             _add(new configItem("private_key", &private_key, itemType::string));
             _add(new configItem("peer", dynamic_cast<JsonStore *>(peer.get()), jsonStore));
             _add(new configItem("address", &address, itemType::stringList));
@@ -83,12 +87,11 @@ namespace Configs
         QJsonObject ExportToJson() override;
         BuildResult Build() override;
 
-        void SetPort(int newPort) override;
-        QString GetPort();
-        void SetAddress(QString newAddr) override;
-        QString GetAddress() override;
+        // outboundMeta overrides
         QString DisplayAddress() override;
+        QString DisplayName() override;
         QString DisplayType() override;
+        QString DisplayTypeAndName() override;
         bool IsEndpoint() override;
     };
 }

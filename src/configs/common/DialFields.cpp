@@ -18,7 +18,7 @@ namespace Configs {
     }
     bool DialFields::ParseFromJson(const QJsonObject& object)
     {
-        if (object.isEmpty()) return false;
+        if (object == nullptr) return false;
 
         if (object.contains("reuse_addr")) reuse_addr = object["reuse_addr"].toBool();
         if (object.contains("connect_timeout")) connect_timeout = object["connect_timeout"].toString();

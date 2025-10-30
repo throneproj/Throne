@@ -27,14 +27,6 @@ namespace Configs
             _add(new configItem("multiplex", dynamic_cast<JsonStore *>(multiplex.get()), jsonStore));
         }
 
-        bool HasMux() override {
-            return true;
-        }
-
-        std::shared_ptr<Multiplex> GetMux() override {
-            return multiplex;
-        }
-
         // baseConfig overrides
         bool ParseFromLink(const QString& link) override;
         bool ParseFromJson(const QJsonObject& object) override;
@@ -42,6 +34,11 @@ namespace Configs
         QJsonObject ExportToJson() override;
         BuildResult Build() override;
 
+        // outboundMeta overrides
+        QString DisplayAddress() override;
+        QString DisplayName() override;
         QString DisplayType() override;
+        QString DisplayTypeAndName() override;
+        bool IsEndpoint() override;
     };
 }

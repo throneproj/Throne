@@ -1,10 +1,5 @@
 #pragma once
-#include <QHostInfo>
-#include <utility>
 #include "DialFields.h"
-#include "multiplex.h"
-#include "TLS.h"
-#include "transport.h"
 #include "include/configs/baseConfig.h"
 
 namespace Configs
@@ -24,85 +19,6 @@ namespace Configs
             _add(new configItem("server", &server, string));
             _add(new configItem("server_port", &server_port, integer));
             _add(new configItem("dial_fields", dynamic_cast<JsonStore *>(dialFields.get()), jsonStore));
-        }
-
-        void ResolveDomainToIP(const std::function<void()> &onFinished) {
-            bool noResolve = false;
-            auto serverAddr = GetAddress();
-            if (IsIpAddress(serverAddr) || serverAddr.isEmpty()) noResolve = true;
-            if (noResolve) {
-                onFinished();
-                return;
-            }
-            QHostInfo::lookupHost(serverAddr, QApplication::instance(), [=, this](const QHostInfo &host) {
-                auto addrs = host.addresses();
-                if (!addrs.isEmpty()) SetAddress(addrs.first().toString());
-                onFinished();
-            });
-        }
-
-        virtual void SetAddress(QString newAddr) {
-            server = std::move(newAddr);
-        }
-
-        virtual QString GetAddress()
-        {
-            return server;
-        }
-
-        virtual void SetPort(int newPort) {
-            server_port = newPort;
-        }
-
-        virtual QString GetPort() {
-            return QString::number(server_port);
-        }
-
-        virtual QString DisplayAddress()
-        {
-            return ::DisplayAddress(server, server_port);
-        }
-
-        virtual QString DisplayName()
-        {
-            if (name.isEmpty()) {
-                return DisplayAddress();
-            }
-            return name;
-        }
-
-        virtual QString DisplayType() { return {}; };
-
-        QString DisplayTypeAndName()
-        {
-            return QString("[%1] %2").arg(DisplayType(), DisplayName());
-        }
-
-        virtual bool HasMux() { return false; }
-
-        virtual bool HasTransport() { return false; }
-
-        virtual bool HasTLS() { return false; }
-
-        virtual bool MustTLS() { return false; }
-
-        virtual std::shared_ptr<TLS> GetTLS() { return std::make_shared<TLS>(); }
-
-        virtual std::shared_ptr<Transport> GetTransport() { return std::make_shared<Transport>(); }
-
-        virtual std::shared_ptr<Multiplex> GetMux() { return std::make_shared<Multiplex>(); }
-
-        virtual bool IsEndpoint() { return false; };
-
-        QString ExportJsonLink() {
-            auto json = ExportToJson();
-            QUrl url;
-            url.setScheme("json");
-            url.setHost("throne");
-            url.setFragment(QJsonObject2QString(json, true)
-                                .toUtf8()
-                                .toBase64(QByteArray::Base64UrlEncoding));
-            return url.toString();
         }
 
         // baseConfig overrides

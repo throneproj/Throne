@@ -51,21 +51,6 @@ namespace Configs
             _add(new configItem("brutal", dynamic_cast<JsonStore *>(brutal.get()), jsonStore));
         }
 
-        int getMuxState() {
-            if (enabled) return 1;
-            if (!unspecified) return 2;
-            return 0;
-        }
-
-        void saveMuxState(int state) {
-            if (state == 1) {
-                enabled = true;
-                return;
-            }
-            enabled = false;
-            if (state == 0) unspecified = true;
-        }
-
         // baseConfig overrides
         bool ParseFromLink(const QString& link) override;
         bool ParseFromJson(const QJsonObject& object) override;

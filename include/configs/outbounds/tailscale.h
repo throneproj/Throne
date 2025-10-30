@@ -1,11 +1,14 @@
 #pragma once
+#include "include/configs/baseConfig.h"
 #include "include/configs/common/Outbound.h"
 
 namespace Configs
 {
-    class tailscale : public outbound
+    class tailscale : public baseConfig, public outboundMeta
     {
         public:
+        std::shared_ptr<OutboundCommons> commons = std::make_shared<OutboundCommons>();
+
         QString state_directory = "$HOME/.tailscale";
         QString auth_key;
         QString control_url = "https://controlplane.tailscale.com";
@@ -18,8 +21,9 @@ namespace Configs
         bool advertise_exit_node = false;
         bool globalDNS = false;
 
-        tailscale() : outbound()
+        tailscale()
         {
+            _add(new configItem("commons", dynamic_cast<JsonStore *>(commons.get()), jsonStore));
             _add(new configItem("state_directory", &state_directory, itemType::string));
             _add(new configItem("auth_key", &auth_key, itemType::string));
             _add(new configItem("control_url", &control_url, itemType::string));
@@ -40,10 +44,11 @@ namespace Configs
         QJsonObject ExportToJson() override;
         BuildResult Build() override;
 
-        void SetAddress(QString newAddr) override;
-        QString GetAddress() override;
+        // outboundMeta overrides
         QString DisplayAddress() override;
+        QString DisplayName() override;
         QString DisplayType() override;
+        QString DisplayTypeAndName() override;
         bool IsEndpoint() override;
     };
 }

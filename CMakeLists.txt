@@ -256,6 +256,7 @@ set(PROJECT_SOURCES
         src/configs/outbounds/anyTLS.cpp
         src/configs/outbounds/http.cpp
         src/configs/outbounds/hysteria.cpp
+        src/configs/outbounds/hysteria2.cpp
         src/configs/outbounds/shadowsocks.cpp
         src/configs/outbounds/socks.cpp
         src/configs/outbounds/ssh.cpp
@@ -266,30 +267,8 @@ set(PROJECT_SOURCES
         src/configs/outbounds/vmess.cpp
         src/configs/outbounds/wireguard.cpp
         include/configs/generate.h
-        src/configs/generate.cpp
         include/configs/common/utils.h
         src/configs/common/utils.cpp
-        include/configs/outbounds/custom.h
-        include/configs/outbounds/chain.h
-        include/configs/outbounds/extracore.h
-        include/ui/profile/edit_socks.h
-        src/ui/profile/edit_socks.cpp
-        include/ui/profile/edit_socks.ui
-        include/ui/profile/edit_http.h
-        src/ui/profile/edit_http.cpp
-        include/ui/profile/edit_http.ui
-        include/ui/profile/edit_trojan.h
-        src/ui/profile/edit_trojan.cpp
-        include/ui/profile/edit_trojan.ui
-        include/ui/profile/edit_hysteria.h
-        src/ui/profile/edit_hysteria.cpp
-        include/ui/profile/edit_hysteria.ui
-        include/ui/profile/edit_tuic.h
-        src/ui/profile/edit_tuic.cpp
-        include/ui/profile/edit_tuic.ui
-        include/ui/profile/edit_advanced.h
-        src/ui/profile/edit_advanced.cpp
-        include/ui/profile/edit_advanced.ui
 )
 
 if (NOT APPLE AND Qt6_VERSION VERSION_GREATER_EQUAL 6.9.0)

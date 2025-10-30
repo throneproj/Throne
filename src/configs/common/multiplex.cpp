@@ -1,4 +1,7 @@
 #include "include/configs/common/multiplex.h"
+
+#include <QUrlQuery>
+
 #include "include/configs/common/utils.h"
 
 namespace Configs {
@@ -15,7 +18,7 @@ namespace Configs {
     }
     bool TcpBrutal::ParseFromJson(const QJsonObject& object)
     {
-        if (object.isEmpty()) return false;
+        if (object == nullptr) return false;
         if (object.contains("enabled")) enabled = object["enabled"].toBool();
         if (object.contains("up_mbps")) up_mbps = object["up_mbps"].toInt();
         if (object.contains("down_mbps")) down_mbps = object["down_mbps"].toInt();
@@ -51,8 +54,7 @@ namespace Configs {
         auto query = QUrlQuery(url.query(QUrl::ComponentFormattingOption::FullyDecoded));
 
         if (query.hasQueryItem("mux")) enabled = query.queryItemValue("mux") == "true";
-        else unspecified = true;
-        if (query.hasQueryItem("mux_protocol")) protocol = query.queryItemValue("mux_protocol");
+        protocol = query.hasQueryItem("mux_protocol") ? query.queryItemValue("mux_protocol") : "smux";
         if (query.hasQueryItem("mux_max_connections")) max_connections = query.queryItemValue("mux_max_connections").toInt();
         if (query.hasQueryItem("mux_min_streams")) min_streams = query.queryItemValue("mux_min_streams").toInt();
         if (query.hasQueryItem("mux_max_streams")) max_streams = query.queryItemValue("mux_max_streams").toInt();
@@ -62,13 +64,8 @@ namespace Configs {
     }
     bool Multiplex::ParseFromJson(const QJsonObject& object)
     {
-        if (object.isEmpty())
-        {
-            unspecified = true;
-            return false;
-        }
+        if (object == nullptr) return false;
         if (object.contains("enabled")) enabled = object["enabled"].toBool();
-        else unspecified = true;
         if (object.contains("protocol")) protocol = object["protocol"].toString();
         if (object.contains("max_connections")) max_connections = object["max_connections"].toInt();
         if (object.contains("min_streams")) min_streams = object["min_streams"].toInt();
@@ -105,13 +102,7 @@ namespace Configs {
     }
     BuildResult Multiplex::Build()
     {
-        auto obj = ExportToJson();
-        if (unspecified && dataStore->mux_default_on) obj["enabled"] = true;
-        if (!obj["enabled"].toBool()) return {{}, ""};
-        if (protocol.isEmpty()) obj["protocol"] = dataStore->mux_protocol;
-        if (max_streams == 0 && max_connections == 0 && min_streams == 0) obj["max_streams"] = dataStore->mux_concurrency;
-        if (dataStore->mux_padding) obj["padding"] = true;
-        return {obj, ""};
+        return {ExportToJson(), ""};
     }
 }
 

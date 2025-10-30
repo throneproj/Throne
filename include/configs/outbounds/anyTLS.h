@@ -22,18 +22,6 @@ namespace Configs
             _add(new configItem("tls", dynamic_cast<JsonStore *>(tls.get()), jsonStore));
         }
 
-        bool HasTLS() override {
-            return true;
-        }
-
-        bool MustTLS() override {
-            return true;
-        }
-
-        std::shared_ptr<TLS> GetTLS() override {
-            return tls;
-        }
-
         // baseConfig overrides
         bool ParseFromLink(const QString& link) override;
         bool ParseFromJson(const QJsonObject& object) override;
@@ -41,6 +29,11 @@ namespace Configs
         QJsonObject ExportToJson() override;
         BuildResult Build() override;
 
+        // outboundMeta overrides
+        QString DisplayAddress() override;
+        QString DisplayName() override;
         QString DisplayType() override;
+        QString DisplayTypeAndName() override;
+        bool IsEndpoint() override;
     };
 }

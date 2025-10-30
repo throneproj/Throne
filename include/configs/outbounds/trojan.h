@@ -22,30 +22,6 @@ namespace Configs
             _add(new configItem("transport", dynamic_cast<JsonStore *>(transport.get()), jsonStore));
         }
 
-        bool HasTLS() override {
-            return true;
-        }
-
-        bool HasMux() override {
-            return true;
-        }
-
-        bool HasTransport() override {
-            return true;
-        }
-
-        std::shared_ptr<TLS> GetTLS() override {
-            return tls;
-        }
-
-        std::shared_ptr<Multiplex> GetMux() override {
-            return multiplex;
-        }
-
-        std::shared_ptr<Transport> GetTransport() override {
-            return transport;
-        }
-
         // baseConfig overrides
         bool ParseFromLink(const QString& link) override;
         bool ParseFromJson(const QJsonObject& object) override;
@@ -53,6 +29,11 @@ namespace Configs
         QJsonObject ExportToJson() override;
         BuildResult Build() override;
 
+        // outboundMeta overrides
+        QString DisplayAddress() override;
+        QString DisplayName() override;
         QString DisplayType() override;
+        QString DisplayTypeAndName() override;
+        bool IsEndpoint() override;
     };
 }

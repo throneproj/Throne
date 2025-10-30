@@ -18,30 +18,4 @@ namespace Configs
             baseObject[key] = obj[key];
         }
     }
-
-    QStringList jsonObjectToQStringList(const QJsonObject& obj)
-    {
-        auto result = QStringList();
-        for (const auto& key : obj.keys())
-        {
-            result << key << obj[key].toString();
-        }
-        return result;
-    }
-
-    QJsonObject qStringListToJsonObject(const QStringList& list)
-    {
-        auto result = QJsonObject();
-        if (list.count() %2 != 0)
-        {
-            qDebug() << "QStringList of odd length in qStringListToJsonObject:" << list;
-            return result;
-        }
-        for (int i=0;i<list.size();i+=2)
-        {
-            result[list[i]] = list[i+1];
-        }
-        return result;
-    }
-
 }

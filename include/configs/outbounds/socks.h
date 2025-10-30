@@ -27,6 +27,11 @@ namespace Configs
         QJsonObject ExportToJson() override;
         BuildResult Build() override;
 
+        // outboundMeta overrides
+        QString DisplayAddress() override;
+        QString DisplayName() override;
         QString DisplayType() override;
+        QString DisplayTypeAndName() override;
+        bool IsEndpoint() override;
     };
 }
