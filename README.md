@@ -1,3 +1,7 @@
+:cn: [中文](README_zh.md)
+
+:ru: [Русский](README_ru.md)
+
 # Throne (Formerly Nekoray)
 
 Qt based Desktop cross-platform GUI proxy utility, empowered by [Sing-box](https://github.com/SagerNet/sing-box)
