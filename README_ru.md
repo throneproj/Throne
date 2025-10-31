@@ -5,9 +5,10 @@
 # Throne (бывш. Nekoray)
 Кросс-платформенный компьютерный прокси-клиент с графическим интерфейсом на базе Qt, преемник [Sing-box](https://github.com/SagerNet/sing-box).
 
+
 Поддерживает Windows 11/10/8/7 / Linux / MacOS "из коробки".
 
-<img width="1002" height="789" alt="image" src="https://github.com/user-attachments/assets/45a23c6c-b716-4acf-8281-63d35cac8457" />
+<img width="1199" height="941" alt="image" src="https://github.com/user-attachments/assets/dcb7c23a-6c81-4955-88db-3fb75df69f3b" />
 
 ### Примечание для MacOS
 Экосистема Apple имеет строгую политику безопасности, и так как Throne не имеет подписанного сертификата, вам нужно избавиться от карантина, используя `xattr -d com.apple.quarantine /path/to/throne.app`. Также, чтобы встроенная функция повышения полномочий работала, у `Terminal` должен быть доступ к `Full Disk`.
