@@ -1,3 +1,7 @@
+:uk: [English](README.md)
+
+:ru: [Русский](README_ru.md)
+
 # Throne (原先的 Nekoray)
 
 基于 Qt 的跨平台的桌面 GUI 代理客户端，授权自 [Sing-box](https://github.com/SagerNet/sing-box)
