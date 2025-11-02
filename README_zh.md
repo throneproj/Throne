@@ -1,6 +1,6 @@
-:uk: [English](README.md)
+<img src="https://raw.githubusercontent.com/HatScripts/circle-flags/c888ec17d0fb23ad9131fe1de34b7bf88ff5d9fc/flags/gb.svg" width="20" /> [English](README.md)
 
-:ru: [Русский](README_ru.md)
+<img src="https://raw.githubusercontent.com/HatScripts/circle-flags/c888ec17d0fb23ad9131fe1de34b7bf88ff5d9fc/flags/ru.svg" width="20" /> [Русский](README_ru.md)
 
 # Throne (原先的 Nekoray)
 
