@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/HatScripts/circle-flags/c888ec17d0fb23ad9131fe1de34b7bf88ff5d9fc/flags/cn.svg" width="20" /> :cn: [中文](README_zh.md)
+<img src="https://raw.githubusercontent.com/HatScripts/circle-flags/c888ec17d0fb23ad9131fe1de34b7bf88ff5d9fc/flags/cn.svg" width="20" /> [中文](README_zh.md)
 
 <img src="https://raw.githubusercontent.com/HatScripts/circle-flags/c888ec17d0fb23ad9131fe1de34b7bf88ff5d9fc/flags/ru.svg" width="20" /> [Русский](README_ru.md)
 
