@@ -219,7 +219,7 @@
              </item>
              <item>
               <property name="text">
-               <string notr="true">tcp</string>
+               <string notr="true"/>
               </property>
              </item>
              <item>
