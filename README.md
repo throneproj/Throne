@@ -56,7 +56,7 @@ Various formats are supported, including share links, JSON array of outbounds an
 
 ## FAQ
 **How does this project differ from the original Nekoray?** <br/>
-Nekoray's developer partially abandoned the project on Decemeber of 2023, some minor updates were done recently but the project is now officially archived. This project was meant to continue the way of the original project, with lots of improvements, tons of new features and also, removal of obsolete features and simplifications.
+Nekoray's developer partially abandoned the project on December of 2023, some minor updates were done recently but the project is now officially archived. This project was meant to continue the way of the original project, with lots of improvements, tons of new features and also, removal of obsolete features and simplifications.
 
 **Why does my Anti-Virus detect Throne and/or its Core as malware?** <br/>
 Throne's built-in update functionallity downloads the new release, removes the old files and replaces them with the new ones, which is quite simliar to what malwares do, remove your files and replace them with an encrypted version of your files.
