@@ -39,16 +39,7 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
     network_title_base = ui->network_box->title();
     connect(ui->network, &QComboBox::currentTextChanged, this, [=,this](const QString &txt) {
         ui->network_box->setTitle(network_title_base.arg(txt));
-        if (txt == "tcp") {
-            ui->headers->setVisible(false);
-            ui->headers_l->setVisible(false);
-            ui->method->setVisible(false);
-            ui->method_l->setVisible(false);
-            ui->path->setVisible(true);
-            ui->path_l->setVisible(true);
-            ui->host->setVisible(true);
-            ui->host_l->setVisible(true);
-        } else if (txt == "grpc") {
+        if (txt == "grpc") {
             ui->headers->setVisible(false);
             ui->headers_l->setVisible(false);
             ui->method->setVisible(false);
@@ -353,7 +344,11 @@ void DialogEditProfile::typeSelected(const QString &newType) {
     if (ent->outbound->HasTransport()) {
         ui->network_l->setVisible(true);
         ui->network->setVisible(true);
-        ui->network_box->setVisible(true);
+        if (ui->network->currentText() == "tcp") {
+            ui->network_box->setVisible(false);
+        } else {
+            ui->network_box->setVisible(true);
+        }
     } else {
         ui->network_l->setVisible(false);
         ui->network->setVisible(false);
@@ -382,7 +377,7 @@ void DialogEditProfile::typeSelected(const QString &newType) {
     ui->stream_box->setVisible(streamBoxVisible);
 
     auto rightNoBox = (ui->security_box->isHidden() && ui->network_box->isHidden() && ui->tls_camouflage_box->isHidden());
-    if (rightNoBox && !ui->right_all_w->isHidden()) {
+    if (rightNoBox && !ent->outbound->HasTLS() && !ent->outbound->HasTransport() && !ui->right_all_w->isHidden()) {
         ui->right_all_w->setVisible(false);
     }
 
