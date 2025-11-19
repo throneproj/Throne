@@ -344,7 +344,7 @@ void DialogEditProfile::typeSelected(const QString &newType) {
     if (ent->outbound->HasTransport()) {
         ui->network_l->setVisible(true);
         ui->network->setVisible(true);
-        if (ui->network->currentText().isEmpty()) {
+        if (ui->network->currentText() == "tcp") {
             ui->network_box->setVisible(false);
         } else {
             ui->network_box->setVisible(true);
