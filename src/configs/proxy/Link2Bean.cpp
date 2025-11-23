@@ -132,6 +132,8 @@ namespace Configs {
             stream->host = GetQueryValue(query, "host", "");
         } else if (stream->network == "grpc") {
             stream->path = GetQueryValue(query, "serviceName", "");
+            stream->header_type = "";
+            stream->host = "";
         } else if (stream->network == "tcp") {
             if (GetQueryValue(query, "headerType") == "http") {
                 stream->header_type = "http";
@@ -288,6 +290,8 @@ namespace Configs {
                 stream->host = GetQueryValue(query, "host", "");
             } else if (stream->network == "grpc") {
                 stream->path = GetQueryValue(query, "serviceName", "");
+                stream->header_type = "";
+                stream->host = "";
             } else if (stream->network == "tcp") {
                 if (GetQueryValue(query, "headerType") == "http") {
                     stream->header_type = "http";
