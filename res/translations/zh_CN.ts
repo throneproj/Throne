@@ -176,7 +176,7 @@
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Settings for the
                                             sing-box&apos;s built-in NTP client&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                         </source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;用于 sing-box 的内置 NTP 客户端的设置&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;适用于 sing-box 的内置 NTP 客户端的设置&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
 </translation>
     </message>
     <message>
@@ -287,7 +287,7 @@
     </message>
     <message>
         <source>Only Country</source>
-        <translation type="unfinished"></translation>
+        <translation>仅国别</translation>
     </message>
 </context>
 <context>
@@ -846,35 +846,35 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>GitHub</source>
-        <translation type="unfinished"></translation>
+        <translation>GitHub</translation>
     </message>
     <message>
         <source>jsDelivr(Cloudflare)</source>
-        <translation type="unfinished"></translation>
+        <translation>jsDelivr(Cloudflare)</translation>
     </message>
     <message>
         <source>jsDelivr(Gcore)</source>
-        <translation type="unfinished"></translation>
+        <translation>jsDelivr(Gcore)</translation>
     </message>
     <message>
         <source>jsDelivr(Quantil)</source>
-        <translation type="unfinished"></translation>
+        <translation>jsDelivr(Quantil)</translation>
     </message>
     <message>
         <source>jsDelivr(Fastly)</source>
-        <translation type="unfinished"></translation>
+        <translation>jsDelivr(Fastly)</translation>
     </message>
     <message>
         <source>jsDelivr(CDN)</source>
-        <translation type="unfinished"></translation>
+        <translation>jsDelivr(CDN)</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Local DNS can not be used in some configurations, you will have to set an ip here to be used as local dns in such situations&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;在某些配置中无法使用本地 DNS，在这种情况下您必须在这里设置一个IP 作为本地 DNS 使用&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Local Override</source>
-        <translation type="unfinished"></translation>
+        <translation>本地覆盖</translation>
     </message>
 </context>
 <context>
@@ -1254,11 +1254,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Form</source>
-        <translation type="unfinished">表单</translation>
+        <translation>表单</translation>
     </message>
     <message>
         <source>Ephemeral</source>
-        <translation type="unfinished"></translation>
+        <translation>Ephemeral (短暂)</translation>
     </message>
 </context>
 <context>
@@ -2257,15 +2257,15 @@ Release note:
     </message>
     <message>
         <source>Local DNS and Tun mode do not work together, please set an IP to be used as the Local DNS server in the Routing Settings -&gt; Local override</source>
-        <translation type="unfinished"></translation>
+        <translation>本地 NDS 和 Tun 模式不能同时使用，请在「路由设置 → 本地覆盖」中设置一个 IP 用作本地 DNS 服务器</translation>
     </message>
     <message>
         <source>Core exited, cleaning up...</source>
-        <translation type="unfinished"></translation>
+        <translation>核心已退出，正在清理...</translation>
     </message>
     <message>
         <source>Restarting the core ...</source>
-        <translation type="unfinished"></translation>
+        <translation>正在重新启动核心...</translation>
     </message>
 </context>
 <context>
