@@ -9,15 +9,15 @@
     </message>
     <message>
         <source>Common</source>
-        <translation>Общие</translation>
+        <translation>Основные</translation>
     </message>
     <message>
         <source>Listen Address</source>
-        <translation>Прослушиваемый адрес</translation>
+        <translation>Прослушиваемый адрес:</translation>
     </message>
     <message>
         <source>Custom Inbound</source>
-        <translation>Польз. inbound</translation>
+        <translation>Польз. настройки Inbound</translation>
     </message>
     <message>
         <source>Edit</source>
@@ -26,6 +26,10 @@
     <message>
         <source>Enable</source>
         <translation>Включить</translation>
+    </message>
+    <message>
+        <source>Test Settings</source>
+        <translation>Настроки теста сети</translation>
     </message>
     <message>
         <source>Latency Test URL</source>
@@ -38,6 +42,18 @@
     <message>
         <source>Concurrent</source>
         <translation>Кол-во потоков</translation>
+    </message>
+    <message>
+        <source>Timeout</source>
+        <translation>Тайм-аут</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Timeout for URLtest in ms&lt;br/&gt;Note that muxed connections take a much longer time for their initial request, and setting this value too low will cause the test to falsely report that the config is not working&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Таймаут для теста задержки в мс&lt;br/&gt;Обратите внимание, что мультиплексированным соединениям требуется намного больше времени для изначального запроса, отчего выбор слишком низкого значения в этом поле может привести к ложноотрицательным результатам тестирования такой конфигурации&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;timeout in milliseconds&lt;br/&gt;applies to all tests individually&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Таймаут в миллисекундах&lt;br/&gt;Применяется ко всем тестам индивидуально&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Disable tray</source>
@@ -60,12 +76,20 @@
         <translation>Тема</translation>
     </message>
     <message>
+        <source>Enable Custom Icons</source>
+        <translation>Исп. польз. иконки</translation>
+    </message>
+    <message>
         <source>Connection statistics</source>
         <translation>Статистика подключения</translation>
     </message>
     <message>
         <source>Hide dashboard at startup</source>
         <translation>Запускать приложение свёрнутым</translation>
+    </message>
+    <message>
+        <source>Show System DNS option</source>
+        <translation>Отображать режим «Системный DNS»</translation>
     </message>
     <message>
         <source>Max log lines</source>
@@ -77,15 +101,15 @@
     </message>
     <message>
         <source>User Agent</source>
-        <translation>User Agent</translation>
+        <translation>Эмулировать User Agent как:</translation>
     </message>
     <message>
-        <source>Use proxy</source>
-        <translation>Использовать прокси</translation>
+        <source>Use proxy when updating subscription</source>
+        <translation>Использовать прокси при обновлении подписки</translation>
     </message>
     <message>
-        <source>Ignore TLS errors</source>
-        <translation>Игнорировать ошибки TLS</translation>
+        <source>Ignore TLS errors when updating subscription</source>
+        <translation>Игнорировать ошибки TLS при обновлении подписки</translation>
     </message>
     <message>
         <source>Clear servers before updating subscription</source>
@@ -96,12 +120,12 @@
         <translation>Включить отправку HWID, модели устройства и версии ОС при обновлении подписки</translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;HWID=%1&lt;/p&gt;&lt;p&gt;OS=%2&lt;/p&gt;&lt;p&gt;OS Version=%3&lt;/p&gt;&lt;p&gt;Model=%4&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;HWID=%1&lt;/p&gt;&lt;p&gt;ОС=%2&lt;/p&gt;&lt;p&gt;Версия ОС=%3&lt;/p&gt;&lt;p&gt;Модель=%4&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
         <source>Core</source>
         <translation>Ядро</translation>
+    </message>
+    <message>
+        <source>Loglevel</source>
+        <translation>Уровнь журнала</translation>
     </message>
     <message>
         <source>Multiplex (mux)</source>
@@ -137,7 +161,23 @@
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Do not attempt to start as Admin unless explicitly requested&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Не пытаться запускать приложение от имени администратора, если явно не запрошено&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Не пытаться запускать приложение от имени администратора,если об этом явно не указано&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Override underlying DNS</source>
+        <translation>Переопределить нижестоящий DNS</translation>
+    </message>
+    <message>
+        <source>Network Settings</source>
+        <translation>Настройки соединения</translation>
+    </message>
+    <message>
+        <source>Use proxy</source>
+        <translation>Исп. прокси</translation>
+    </message>
+    <message>
+        <source>Ignore TLS errors</source>
+        <translation>Игнорировать ошибки TLS</translation>
     </message>
     <message>
         <source>Automatic update</source>
@@ -145,7 +185,7 @@
     </message>
     <message>
         <source>Interval (minute, invalid if less than 30)</source>
-        <translation>Интервал (в минутах; неверно, если значение меньше 30)</translation>
+        <translation>Интервал обновления указывается в минутах. (Мин. значение от 30 минут)</translation>
     </message>
     <message>
         <source>Disable Traffic Stats</source>
@@ -181,7 +221,31 @@
     </message>
     <message>
         <source>Listen Port</source>
-        <translation>Прослушиваемый порт</translation>
+        <translation>Прослушиваемый порт:</translation>
+    </message>
+    <message>
+        <source>Assets</source>
+        <translation>Ресурсы</translation>
+    </message>
+    <message>
+        <source>Geo Assets and Rule-sets</source>
+        <translation>Geo-ресурсы и наборы правил</translation>
+    </message>
+    <message>
+        <source>Remove Generated Rule-sets</source>
+        <translation>Удалить сгенерированные наборы правил</translation>
+    </message>
+    <message>
+        <source>GeoIP URL</source>
+        <translation>Ссылка на GeoIP</translation>
+    </message>
+    <message>
+        <source>GeoSite URL</source>
+        <translation>Ссылка на GeoSite</translation>
+    </message>
+    <message>
+        <source>Download and Replace Geo files</source>
+        <translation>Загрузить и заменить Geo-ресурсы</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Socks
@@ -203,7 +267,7 @@
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Might
                                                                             Improve Ping and Performance&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                                         </source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Может
+         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Может
                                                                             улучшить пинг и производительность&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                                                         </translation>
     </message>
@@ -212,7 +276,7 @@
                                             sing-box&apos;s built-in NTP client&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                         </source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Настройки для встроенного в
-                                            NTP-клиента sing-box&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+                                            sing-box&apos;s NTP-клиента&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
                                         </translation>
     </message>
     <message>
@@ -224,28 +288,40 @@
                                                             </translation>
     </message>
     <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove the
+                                                        currently generated rule-sets so that they can be regenerated&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+                                                    </source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Удалить
+                                                        сгенерированные наборы правил, чтобы их можно было сгенерировать заново&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+                                                    </translation>
+    </message>
+    <message>
         <source>Proxy Format</source>
-        <translation>Формат прокси</translation>
+        <translation>Отображение формата прокси</translation>
     </message>
     <message>
         <source>Language</source>
         <translation>Язык</translation>
     </message>
     <message>
+        <source>Removed all rule-set files</source>
+        <translation>Удалены все файлы набора правил</translation>
+    </message>
+    <message>
         <source>Speedtest mode</source>
-        <translation>Режим проверки скорости</translation>
+        <translation>Режим проверки интернет соединения</translation>
     </message>
     <message>
         <source>Download + Upload</source>
-        <translation>Скачивание + загрузка</translation>
+        <translation>Загрузка + выгрузка</translation>
     </message>
     <message>
         <source>Only Download</source>
-        <translation>Только скачивание</translation>
+        <translation>Только загрузка</translation>
     </message>
     <message>
         <source>Only Upload</source>
-        <translation>Только загрузка</translation>
+        <translation>Только выгрузка</translation>
     </message>
     <message>
         <source>Disable Privilege request</source>
@@ -256,44 +332,54 @@
         <translation>Простая загрузка</translation>
     </message>
     <message>
+        <source>Only Country</source>
+        <translation>Только проверка страны</translation>
+    </message>
+    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Selects a random available port on every run&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Выбирает случайный доступный порт при каждом запуске&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Random port</source>
-        <translation>Случайный порт</translation>
+        <translation>Исп. случайный порт</translation>
+    </message>
+    <message>
+        <source>Auto Reset Assets</source>
+        <translation>Автоматическое обновление Geo ресурсов</translation>
+    </message>
+    <message>
+        <source>Disabled</source>
+        <translation>Отключено</translation>
+    </message>
+    <message>
+        <source>Every Day</source>
+        <translation>Каждый день</translation>
+    </message>
+    <message>
+        <source>Every 3 Days</source>
+        <translation>Каждые 3 дня</translation>
+    </message>
+    <message>
+        <source>Every Week</source>
+        <translation>Каждую неделю</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Downloads and replaces the geo asstes, and removes all generated rule-sets, then restarts the proxy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Загружает и заменяет GEO-ресурсы, удаляет все сгенерированные наборы правил и перезапускает прокси&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Reset All Assets</source>
+        <translation>Сбросить все ресурсы по умолчанию</translation>
+    </message>
+    <message>
+        <source>It is recommended to leave it blank, but it sometimes does not work, at this time you can set this option.
+this rewrites the underlying(localhost) DNS in Tun Mode, normal mode, and also URL Test.</source>
+        <translation>Рекомендуется оставлять пустым, но иногда это не работает — в таком случае и стоит использовать этот параметр.
+Переопределяет нижестоящий (localhost) DNS в режиме TUN, обычном режиме и тесте задержки.</translation>
     </message>
     <message>
         <source>Use Mozilla Certificate Store</source>
         <translation>Исп. хранилище сертификатов Mozilla</translation>
-    </message>
-    <message>
-        <source>Network Settings</source>
-        <translation>Настройки соединения</translation>
-    </message>
-    <message>
-        <source>Test Settings</source>
-        <translation>Настройки тестирования</translation>
-    </message>
-    <message>
-        <source>Only Country</source>
-        <translation>Только проверка страны</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;timeout in milliseconds&lt;br/&gt;applies to all tests individually&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Таймаут в миллисекундах&lt;br/&gt;Применяется ко всем тестам индивидуально&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Timeout</source>
-        <translation>Таймаут</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Timeout for URLtest in ms&lt;br/&gt;Note that muxed connections take a much longer time for their initial request, and setting this value too low will cause the test to falsely report that the config is not working&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Таймаут для теста задержки в мс&lt;br/&gt;Обратите внимание, что мультиплексированным соединениям требуется намного больше времени для изначального запроса, отчего выбор слишком низкого значения в этом поле может привести к ложноотрицательным результатам тестирования такой конфигурации&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Show System DNS option</source>
-        <translation>Отображать режим «Системный DNS»</translation>
     </message>
 </context>
 <context>
@@ -320,7 +406,7 @@
     </message>
     <message>
         <source>Basic</source>
-        <translation>Стандартный</translation>
+        <translation>Базовая</translation>
     </message>
     <message>
         <source>Subscription</source>
@@ -356,7 +442,7 @@
     </message>
     <message>
         <source>Common</source>
-        <translation>Основные</translation>
+        <translation>Общие</translation>
     </message>
     <message>
         <source>Share</source>
@@ -368,7 +454,7 @@
     </message>
     <message>
         <source>Copy profile share links (Custom Links)</source>
-        <translation>Копировать ссылки профилей (польз. ссылки)</translation>
+        <translation>Копировать ссылки профиля в буфер обмена (польз. ссылки)</translation>
     </message>
 </context>
 <context>
@@ -379,7 +465,7 @@
     </message>
     <message>
         <source>Common</source>
-        <translation>Основные</translation>
+        <translation>Общие</translation>
     </message>
     <message>
         <source>Type</source>
@@ -395,7 +481,7 @@
     </message>
     <message>
         <source>Name</source>
-        <translation>Название</translation>
+        <translation>Имя</translation>
     </message>
     <message>
         <source>Custom Outbound Settings</source>
@@ -475,7 +561,7 @@
     </message>
     <message>
         <source>Certificate</source>
-        <translation>Сертификат</translation>
+        <translation>Исп. Сертификат</translation>
     </message>
     <message>
         <source>Server name indication, clear text.</source>
@@ -511,7 +597,7 @@
     </message>
     <message>
         <source>Confirm</source>
-        <translation>Подтвердить</translation>
+        <translation>Подтверждение</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overrides mux to On&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -519,7 +605,7 @@
     </message>
     <message>
         <source>Enable TCP Brutal</source>
-        <translation>Включить TCP Brutal</translation>
+        <translation>Вкл. Brutal алгоритм TCP</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Server to Client TCP Brutal Speed&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -528,6 +614,10 @@
     <message>
         <source>TCP Brutal Speed</source>
         <translation>Скорость TCP Brutal</translation>
+    </message>
+    <message>
+        <source>Advanced Settings</source>
+        <translation>Дополнительные настройки</translation>
     </message>
     <message>
         <source>Mb/s</source>
@@ -586,7 +676,7 @@
     <name>DialogHotkey</name>
     <message>
         <source>Hotkey</source>
-        <translation>Горячие клавиши</translation>
+        <translation>Настройки горячих клавиш</translation>
     </message>
     <message>
         <source>Show routes</source>
@@ -608,14 +698,6 @@
         <source>Toggle System Proxy</source>
         <translation>Вкл. системный прокси</translation>
     </message>
-    <message>
-        <source>Global</source>
-        <translation>Глобальные</translation>
-    </message>
-    <message>
-        <source>Shortcuts</source>
-        <translation>Горячие клавиши</translation>
-    </message>
 </context>
 <context>
     <name>DialogManageGroups</name>
@@ -633,7 +715,7 @@
     </message>
     <message>
         <source>Confirmation</source>
-        <translation>Подтверждение</translation>
+        <translation>Подтвердить</translation>
     </message>
     <message>
         <source>Update all subscriptions?</source>
@@ -644,11 +726,11 @@
     <name>DialogManageRoutes</name>
     <message>
         <source>Routes</source>
-        <translation>Маршруты</translation>
+        <translation>Настройки маршрутизации</translation>
     </message>
     <message>
         <source>Common</source>
-        <translation>Основные</translation>
+        <translation>Общие</translation>
     </message>
     <message>
         <source>Disable</source>
@@ -660,7 +742,7 @@
     </message>
     <message>
         <source>Sniffing Mode</source>
-        <translation>Анализ трафика (сниффинг)</translation>
+        <translation>Анализ трафика (Cниффинг)</translation>
     </message>
     <message>
         <source>DNS</source>
@@ -673,6 +755,14 @@
     <message>
         <source>Direct DNS</source>
         <translation>DNS для прямых запросов</translation>
+    </message>
+    <message>
+        <source>Local Override</source>
+        <translation>Назначить локал. DNS</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Local DNS can not be used in some configurations, you will have to set an ip here to be used as local dns in such situations&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;В некоторых конфигурациях локальный DNS не может быть использован, в таких случаях вам необходимо будет установить здесь IP-адрес, который будет использоваться в качестве локального DNS&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Query Strategy</source>
@@ -711,12 +801,20 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <translation>Проверяет исходный пакет(ы) подключений, чтобы идентифицировать протокол и SNI. «Проверка трафика для пункта назначения» переписывает пункт назначения соединения на найденный SNI. Дополнительные сведения о протоколе проверки приведены в документации sing-box.</translation>
     </message>
     <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable to resolve domains to IP before routing based on the strategy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Включить преобразование доменов в IP-адреса перед маршрутизацией на основе стратегии&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Resolve domains to IP before connect, also affects the server address as well&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Преобразовывать домены в IP-адреса перед подключением, также затрагивает адреса серверов&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
         <source>Routing Profile</source>
         <translation>Профиль маршрутизации</translation>
     </message>
     <message>
         <source>Remote Rule-set Mirror</source>
-        <translation>Источник профилей маршрутизации</translation>
+        <translation>Удалённое зеркало набора правил</translation>
     </message>
     <message>
         <source>Default DNS server</source>
@@ -772,11 +870,11 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>Listen Address</source>
-        <translation>Прослушиваемый адрес</translation>
+        <translation>Прослушиваемый адрес:</translation>
     </message>
     <message>
         <source>Listen Port</source>
-        <translation>Прослушиваемый порт</translation>
+        <translation>Прослушиваемый порт:</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Following format should be used:&lt;br/&gt;domain:a.com&lt;/p&gt;&lt;p&gt;suffix:a.com&lt;/p&gt;&lt;p&gt;regex:someregex&lt;/p&gt;&lt;p&gt;rule_set:nameOfRuleSet&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -797,6 +895,10 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>Redirect Settings</source>
         <translation>Настройки перенаправления</translation>
+    </message>
+    <message>
+        <source>tls://8.8.8.8</source>
+        <translation>tls://8.8.8.8</translation>
     </message>
     <message>
         <source>Clone</source>
@@ -844,50 +946,18 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Resolve domains to IP before connect, also affects the server address as well&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Преобразовывать домены в IP-адреса перед подключением, также затрагивает адреса серверов&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Прежде чем подключаться, преобразуйте домены в IP-адреса, это также влияет на адрес сервера.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;examples:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://domain/path&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://domain/path&lt;/p&gt;&lt;p&gt;quic://domain:4632&lt;/p&gt;&lt;p&gt;etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;examples:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://домен/путь&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://домен/путь&lt;/p&gt;&lt;p&gt;quic://домен:4632&lt;/p&gt;&lt;p&gt;etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>GitHub</source>
-        <translation>GitHub</translation>
-    </message>
-    <message>
-        <source>jsDelivr(Cloudflare)</source>
-        <translation>jsDelivr (Cloudflare)</translation>
-    </message>
-    <message>
-        <source>jsDelivr(Gcore)</source>
-        <translation>jsDelivr (Gcore)</translation>
-    </message>
-    <message>
-        <source>jsDelivr(Quantil)</source>
-        <translation>jsDelivr (Quantil)</translation>
-    </message>
-    <message>
-        <source>jsDelivr(Fastly)</source>
-        <translation>jsDelivr (Fastly)</translation>
-    </message>
-    <message>
-        <source>jsDelivr(CDN)</source>
-        <translation>jsDelivr (CDN)</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Local DNS can not be used in some configurations, you will have to set an ip here to be used as local dns in such situations&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Локальный DNS невозможно использовать в некоторых конфигурациях — в подобных ситуациях вам потребуется вручную ввести IP в этом поле для использования в качестве локального DNS&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Local Override</source>
-        <translation>Назначить локал. DNS</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Примеры адресов:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://domain/path&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://domain/path&lt;/p&gt;&lt;p&gt;quic://domain:4632&lt;/p&gt;&lt;p&gt;etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
 </context>
 <context>
     <name>DialogVPNSettings</name>
     <message>
         <source>Tun Settings</source>
-        <translation>Настройки TUN</translation>
+        <translation>Настройки режима TUN</translation>
     </message>
     <message>
         <source>Tun Enable IPv6</source>
@@ -940,7 +1010,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Idle Session Timeout</source>
-        <translation>Таймаут неактивной сессии</translation>
+        <translation>Тайм-аут неактивной сессии</translation>
     </message>
     <message>
         <source>Min Idle Session</source>
@@ -1209,65 +1279,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
 </context>
 <context>
-    <name>EditTailScale</name>
-    <message>
-        <source>Form</source>
-        <translation>Форма</translation>
-    </message>
-    <message>
-        <source>State directory</source>
-        <translation>Директория состояния</translation>
-    </message>
-    <message>
-        <source>Auth key</source>
-        <translation>Ключ авторизации</translation>
-    </message>
-    <message>
-        <source>Control URL</source>
-        <translation>Контролирующий URL</translation>
-    </message>
-    <message>
-        <source>Hostname</source>
-        <translation>Имя хоста</translation>
-    </message>
-    <message>
-        <source>Accept routes</source>
-        <translation>Приём маршрутов</translation>
-    </message>
-    <message>
-        <source>Ephemeral</source>
-        <translation>Эфемерный узел</translation>
-    </message>
-    <message>
-        <source>Exit node allow lan access</source>
-        <translation>Выходной узел: разрешить доступ к LAN</translation>
-    </message>
-    <message>
-        <source>Advertise exit node</source>
-        <translation>Объявлять выходной узел</translation>
-    </message>
-    <message>
-        <source>Exit node</source>
-        <translation>Выходной узел</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;comma seperated list of subnets&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Список подсетей, разделенных запятыми&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Advertise routes</source>
-        <translation>Объявлять маршруты</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;use tailscale dns as the remote dns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Использовать DNS Tailscale в качестве удалённого DNS&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Global DNS</source>
-        <translation>Глобальный DNS</translation>
-    </message>
-</context>
-<context>
     <name>EditTrojanVLESS</name>
     <message>
         <source>Password</source>
@@ -1321,11 +1332,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Public Key</source>
-        <translation>Публичный ключ</translation>
+        <translation>Публичный ключ (Public Key)</translation>
     </message>
     <message>
         <source>Private Key</source>
-        <translation>Приватный ключ</translation>
+        <translation>Приватный ключ (Private Key)</translation>
     </message>
     <message>
         <source>1420</source>
@@ -1412,7 +1423,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Basic</source>
-        <translation>Стандартный</translation>
+        <translation>Базовая</translation>
     </message>
     <message>
         <source>Subscription</source>
@@ -1424,7 +1435,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Last update: %1</source>
-        <translation>Последнее обновление: %1</translation>
+        <translation>Последнее обновление подписки: %1</translation>
     </message>
     <message>
         <source>Confirmation</source>
@@ -1498,7 +1509,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Update</source>
-        <translation>Обновление</translation>
+        <translation>Обновить приложение</translation>
     </message>
     <message>
         <source>Tun Mode</source>
@@ -1518,15 +1529,15 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Name</source>
-        <translation>Название</translation>
+        <translation>Имя профиля</translation>
     </message>
     <message>
         <source>Test Result</source>
-        <translation>Результат теста</translation>
+        <translation>Задержка (пинг)</translation>
     </message>
     <message>
         <source>Traffic</source>
-        <translation>Трафик</translation>
+        <translation>Исходящий / Входящий</translation>
     </message>
     <message>
         <source>Share</source>
@@ -1546,7 +1557,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>New profile</source>
-        <translation>Новый профиль</translation>
+        <translation>Создать новый профиль</translation>
     </message>
     <message>
         <source>Groups</source>
@@ -1565,12 +1576,12 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Настройки маршрутизации</translation>
     </message>
     <message>
-        <source>Hide window</source>
-        <translation>Скрыть окно</translation>
-    </message>
-    <message>
         <source>Add profile from clipboard</source>
         <translation>Добавить профиль из буфера обмена</translation>
+    </message>
+    <message>
+        <source>Hide window</source>
+        <translation>Свернуть приложение</translation>
     </message>
     <message>
         <source>Delete</source>
@@ -1599,6 +1610,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Reset Traffic</source>
         <translation>Сбросить трафик</translation>
+    </message>
+    <message>
+        <source>Add profile from File</source>
+        <translation>Добавить профиль из файла</translation>
     </message>
     <message>
         <source>Scan QR Code</source>
@@ -1630,11 +1645,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Remember last profile</source>
-        <translation>Запомнить последний профиль</translation>
+        <translation>Исп. последний профиль при запуске</translation>
     </message>
     <message>
         <source>Allow other devices to connect</source>
-        <translation>Разрешить подключаться другим устройствам</translation>
+        <translation>Разрешить подкл. к другим устройствам</translation>
     </message>
     <message>
         <source>Remove Unavailable</source>
@@ -1654,7 +1669,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Copy links of selected</source>
-        <translation>Скопировать ссылки выбранных</translation>
+        <translation>Скопировать выбранные ссылки</translation>
     </message>
     <message>
         <source>Enable Tun</source>
@@ -1670,11 +1685,12 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Resolve domain</source>
+        <translatorcomment>Ну слово &quot;разрешить&quot; можно использоваться и в значении &quot;разобраться&quot;</translatorcomment>
         <translation>Разрешить домен</translation>
     </message>
     <message>
         <source>Tun Settings</source>
-        <translation>Настройки режима TUN</translation>
+        <translation>Настройки туннелирования (TUN)</translation>
     </message>
     <message>
         <source>Restart Program</source>
@@ -1822,7 +1838,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Url Test Selected</source>
-        <translation>Тест задержки выбранного профиля</translation>
+        <translation>Тест задержки (пинга) выбранного профиля</translation>
     </message>
     <message>
         <source>Ctrl+Shift+S</source>
@@ -1830,7 +1846,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Url Test Group</source>
-        <translation>Тест задержки всей группы</translation>
+        <translation>Тест задержки (пинга) всей группы</translation>
     </message>
     <message>
         <source>Ctrl+Shift+G</source>
@@ -1866,11 +1882,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Remove %1 Unavailable item(s) ?</source>
-        <translation>Удалить %1 недоступных элемент(ов)?</translation>
+        <translation>Удалить %1 недоступных элементов ?</translation>
     </message>
     <message>
         <source>Remove %1 Invalid item(s) ?</source>
-        <translation>Удалить %1 неверных элемент(ов)?</translation>
+        <translation>Удалить %1 недоступных элемент(ов)?</translation>
     </message>
     <message>
         <source>Replace domain server addresses with their resolved IPs?</source>
@@ -1882,7 +1898,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Connections</source>
-        <translation>Подключения</translation>
+        <translation>Маршрутизация трафика</translation>
     </message>
     <message>
         <source>Click To Disable Sorting</source>
@@ -1894,7 +1910,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Logs</source>
-        <translation>Логи</translation>
+        <translation>Журнал</translation>
+    </message>
+    <message>
+        <source>Geo Assets are missing, want to download them now?</source>
+        <translation>Geo-ресурсы отсутствуют. Хотите загрузить их сейчас?</translation>
     </message>
     <message>
         <source>Please give the core root privileges</source>
@@ -1910,19 +1930,19 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Application</source>
-        <translation>Приложение</translation>
+        <translation>Настройка приложения</translation>
     </message>
     <message>
         <source>Settings</source>
-        <translation>Настройки</translation>
+        <translation>Доп. Настройки</translation>
     </message>
     <message>
         <source>Profiles</source>
-        <translation>Профили</translation>
+        <translation>Настройка профилей</translation>
     </message>
     <message>
         <source>Routing</source>
-        <translation>Маршрутизация</translation>
+        <translation>Настройка  маршрутизации</translation>
     </message>
     <message>
         <source>Destination (Domain)</source>
@@ -1966,7 +1986,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Speedtest finished!</source>
-        <translation>Тест скорости завершён!</translation>
+        <translation>Тест скорости завершен!</translation>
     </message>
     <message>
         <source>Failed to stop tests</source>
@@ -1993,8 +2013,8 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Другой профиль останавливается...</translation>
     </message>
     <message>
-        <source>Try to start the config, but the core has not listened to the RPC port, so restart it...</source>
-        <translation>Попытка запустить конфигурацию — ядро не прослушивает порт RPC, поэтому перезапустите его...</translation>
+        <source>Try to start the config, but the core has not listened to the grpc port, so restart it...</source>
+        <translation>Попытка запустить конфигурацию — ядро не прослушивает порт gRPC, поэтому перезапустите его...</translation>
     </message>
     <message>
         <source>Stop return error</source>
@@ -2017,16 +2037,32 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Последний запрос на загрузку еще не завершён</translation>
     </message>
     <message>
+        <source>Failed to download geoip: %1</source>
+        <translation>Не удалось загрузить GeoIP: %1</translation>
+    </message>
+    <message>
+        <source>Failed to download geosite: %1</source>
+        <translation>Не удалось загрузить GeoSite: %1</translation>
+    </message>
+    <message>
+        <source>Failed to download geo assets</source>
+        <translation>Не удалось загрузить Geo-ресурсы</translation>
+    </message>
+    <message>
+        <source>Geo Asset update completed!</source>
+        <translation>Обновление Geo-ресурсов завершено!</translation>
+    </message>
+    <message>
         <source>Traffic Graph</source>
         <translation>График соединения</translation>
     </message>
     <message>
         <source>Failed to download update assets</source>
-        <translation>Не удалось загрузить обновлённые ресурсы</translation>
+        <translation>Не удалось загрузить обновления ресурсов</translation>
     </message>
     <message>
         <source>Speedtest Current</source>
-        <translation>Тест скорости текущего профиля</translation>
+        <translation>Тест скорости соединения текущего профиля</translation>
     </message>
     <message>
         <source>Speedtest Selected</source>
@@ -2034,11 +2070,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Speedtest Group</source>
-        <translation>Тест скорости всей группы</translation>
+        <translation>Проверить скорость соединения у данной группы</translation>
     </message>
     <message>
         <source>The last url test did not exit completely, please wait. If it persists, please restart the program.</source>
-        <translation>Тест задержки не завершился до конца —&#xa0;пожалуйста, подождите. Если такое поведение повторяется, перезапустите программу</translation>
+		<translation>Тест задержки не завершился до конца — пожалуйста, подождите. Если такое поведение повторяется, перезапустите программу</translation>
     </message>
     <message>
         <source>URL test finished!</source>
@@ -2079,12 +2115,19 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>The provided input cannot be parsed to a valid route rule array:
 </source>
-        <translation>Введённые данные не могут быть преобразованы в допустимый массив правил маршрутизации:
-</translation>
+        <translation>Введённые данные не могут быть преобразованы в допустимый массив правил маршрутизации:</translation>
     </message>
     <message>
         <source>Please run Throne as admin</source>
         <translation>Пожалуйста, запустите Throne от имени администратора</translation>
+    </message>
+    <message>
+        <source>A reset of assets is already in progress</source>
+        <translation>Сброс ресурсов уже запущен</translation>
+    </message>
+    <message>
+        <source>Removed all rule-set files</source>
+        <translation>Все файлы набора правил удалены</translation>
     </message>
     <message>
         <source>Click To Sort By Protocol</source>
@@ -2093,10 +2136,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Click To Sort By Outbound</source>
         <translation>Нажмите для сортировки по Outbound</translation>
-    </message>
-    <message>
-        <source>Add profile from File</source>
-        <translation>Добавить профиль из файла</translation>
     </message>
 </context>
 <context>
@@ -2145,7 +2184,7 @@ How to update?</source>
     </message>
     <message>
         <source>Requesting subscription: %1</source>
-        <translation>Запрос подписки: %1</translation>
+        <translation>Запрос обновления подписки: %1</translation>
     </message>
     <message>
         <source>Requesting subscription %1 error: %2</source>
@@ -2175,11 +2214,15 @@ Deleted %3 Profiles:
     </message>
     <message>
         <source>Change of %1:</source>
-        <translation>Изменение %1:</translation>
+        <translation>Изменения в параметрах подписки %1 следующиие:</translation>
     </message>
     <message>
         <source>Core exits too frequently, stop automatic restart this profile.</source>
         <translation>Ядро слишком часто останавливается, отмена автоматического перезапуска этого профиля.</translation>
+    </message>
+    <message>
+        <source>Core exited, restarting.</source>
+        <translation>Ядро остановлено, перезапуск.</translation>
     </message>
     <message>
         <source>Select</source>
@@ -2187,7 +2230,7 @@ Deleted %3 Profiles:
     </message>
     <message>
         <source>Update</source>
-        <translation>Обновление</translation>
+        <translation>Обновить приложение</translation>
     </message>
     <message>
         <source>No update</source>
@@ -2215,7 +2258,7 @@ Release note:
     </message>
     <message>
         <source>Used: %1 Remain: %2 Expire: %3</source>
-        <translation>Использовано: %1, осталось: %2, истекает: %3</translation>
+        <translation>Использовано трафика: %1, Осталось трафика: %2, Дата оканчание подписки: %3</translation>
     </message>
     <message>
         <source>Default</source>
@@ -2247,31 +2290,23 @@ Release note:
     </message>
     <message>
         <source>Processing subscription data...</source>
-        <translation>Идёт обработка данных подписки...</translation>
+        <translation>Идёт обработка данных подписок...</translation>
     </message>
     <message>
         <source>Process complete, applying...</source>
-        <translation>Процесс завершён, применение...</translation>
+        <translation>Запрос и обработка данных завершена. Идёт применение изменений.</translation>
     </message>
     <message>
         <source>Download Profiles</source>
-        <translation>Загрузка профилей</translation>
+        <translation>Загрузить польз. профиль</translation>
+    </message>
+    <message>
+        <source>Enable AdBlock</source>
+        <translation>Включить AdBlock</translation>
     </message>
     <message>
         <source>Requesting profile error: %1</source>
         <translation>Ошибка запроса профиля: %1</translation>
-    </message>
-    <message>
-        <source>Local DNS and Tun mode do not work together, please set an IP to be used as the Local DNS server in the Routing Settings -&gt; Local override</source>
-        <translation>Локальный DNS и режим TUN не могут работать вместе. Пожалуйста, введите IP для использования в качестве локального DNS в меню «Настройки маршрутизации» → «Назначить локал. DNS»</translation>
-    </message>
-    <message>
-        <source>Core exited, cleaning up...</source>
-        <translation>Ядро завершило работу, очистка...</translation>
-    </message>
-    <message>
-        <source>Restarting the core ...</source>
-        <translation>Перезапуск ядра...</translation>
     </message>
 </context>
 <context>
@@ -2312,7 +2347,7 @@ Release note:
     </message>
     <message>
         <source>Name</source>
-        <translation>Название</translation>
+        <translation>Имя</translation>
     </message>
     <message>
         <source>Rules</source>
@@ -2352,7 +2387,7 @@ Release note:
     </message>
     <message>
         <source>Basic</source>
-        <translation>Основные настройки</translation>
+        <translation>Основной</translation>
     </message>
     <message>
         <source>How to use</source>
@@ -2372,7 +2407,7 @@ Release note:
     </message>
     <message>
         <source>Advanced</source>
-        <translation>Дополнительно</translation>
+        <translation>Расширенный</translation>
     </message>
     <message>
         <source>Invalid rules</source>
@@ -2381,8 +2416,7 @@ Release note:
     <message>
         <source>Some rules could not be added:
 </source>
-        <translation>Некоторые правила не удалось добавить:
-</translation>
+        <translation>Некоторые правила не удалось добавить:</translation>
     </message>
     <message>
         <source>Simple rule manual</source>
@@ -2395,8 +2429,7 @@ Release note:
     <message>
         <source>The provided input cannot be parsed to a valid route rule array:
 </source>
-        <translation>Введённые данные не могут быть преобразованы в допустимый массив правил маршрутизации:
-</translation>
+        <translation>Введённые данные не могут быть преобразованы в допустимый массив правил маршрутизации:</translation>
     </message>
     <message>
         <source>Invalid operation</source>
@@ -2417,8 +2450,7 @@ Release note:
     <message>
         <source>Some rules could not be added, fix them before saving:
 </source>
-        <translation>Некоторые правила не удалось добавить, исправьте их перед сохранением:
-</translation>
+        <translation>Некоторые правила не удалось добавить, исправьте их перед сохранением:</translation>
     </message>
     <message>
         <source>General</source>
