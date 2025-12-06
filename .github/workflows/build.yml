@@ -15,30 +15,30 @@ jobs:
     strategy:
       matrix:
         include:
-          - cross_os: windows
-            cross_arch: amd64
-            go_version: "1.25.5"
-          - cross_os: windows
-            cross_arch: arm64
-            go_version: "1.25.5"
-          - cross_os: linux
-            cross_arch: amd64
-            go_version: "1.25.5"
-          - cross_os: linux
-            cross_arch: arm64
-            go_version: "1.25.5"
-          - cross_os: darwin
-            cross_arch: amd64
-            go_version: "1.24.11"
-          - cross_os: darwin
-            cross_arch: arm64
-            go_version: "1.25.5"
+          # - cross_os: windows
+          #   cross_arch: amd64
+          #   go_version: "1.25.5"
+          # - cross_os: windows
+          #   cross_arch: arm64
+          #   go_version: "1.25.5"
+          # - cross_os: linux
+          #   cross_arch: amd64
+          #   go_version: "1.25.5"
+          # - cross_os: linux
+          #   cross_arch: arm64
+          #   go_version: "1.25.5"
+          # - cross_os: darwin
+          #   cross_arch: amd64
+          #   go_version: "1.24.11"
+          # - cross_os: darwin
+          #   cross_arch: arm64
+          #   go_version: "1.25.5"
           - cross_os: windowslegacy
             cross_arch: amd64
-            go_version: "1.25.5"
+            go_version: "1.19"
           - cross_os: windowslegacy
             cross_arch: 386
-            go_version: "1.25.5"
+            go_version: "1.19"
       fail-fast: false
     runs-on: ubuntu-latest
     steps:
