@@ -116,6 +116,7 @@ namespace Configs {
         int sub_auto_update = -30;
         bool sub_clear = false;
         bool sub_send_hwid = false;
+        QString sub_custom_hwid_params = ""; // Custom system parameters: format "hwid=value,os=value,osVersion=value,model=value"
 
         // Security
         bool skip_cert = false;

@@ -7,6 +7,8 @@
 #include <QTimer>
 #include <QFile>
 #include <QApplication>
+#include <QMap>
+#include <QStringList>
 
 #include "include/global/Configs.hpp"
 #include "include/ui/mainwindow.h"
@@ -40,11 +42,42 @@ namespace Configs_network {
         //Attach HWID and device info headers if enabled in settings
         if (sendHwid) {
             auto details = GetDeviceDetails();
-           
-            if (!details.hwid.isEmpty()) request.setRawHeader("x-hwid", details.hwid.toUtf8());
-            if (!details.os.isEmpty()) request.setRawHeader("x-device-os", details.os.toUtf8());
-            if (!details.osVersion.isEmpty()) request.setRawHeader("x-ver-os", details.osVersion.toUtf8());
-            if (!details.model.isEmpty()) request.setRawHeader("x-device-model", details.model.toUtf8());
+
+            // Parse custom parameters if provided
+            QMap<QString, QString> customParams;
+            if (!Configs::dataStore->sub_custom_hwid_params.isEmpty()) {
+                QStringList pairs = Configs::dataStore->sub_custom_hwid_params.split(',');
+                for (const QString &pair : pairs) {
+                    QString trimmed = pair.trimmed();
+                    int eqPos = trimmed.indexOf('=');
+                    if (eqPos > 0) {
+                        QString key = trimmed.left(eqPos).trimmed();
+                        QString value = trimmed.mid(eqPos + 1).trimmed();
+                        // Validate: key must be one of the allowed parameters, value must not contain newlines
+                        if (!key.isEmpty() && !value.isEmpty() &&
+                            !value.contains('\n') && !value.contains('\r') &&
+                            value.length() < 1000) { // Reasonable length limit
+                            QString lowerKey = key.toLower();
+                            // Only accept known parameter keys
+                            if (lowerKey == "hwid" || lowerKey == "os" ||
+                                lowerKey == "osversion" || lowerKey == "model") {
+                                customParams[lowerKey] = value;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Use custom values if provided, otherwise use default values
+            QString hwid = customParams.contains("hwid") ? customParams["hwid"] : details.hwid;
+            QString os = customParams.contains("os") ? customParams["os"] : details.os;
+            QString osVersion = customParams.contains("osversion") ? customParams["osversion"] : details.osVersion;
+            QString model = customParams.contains("model") ? customParams["model"] : details.model;
+
+            if (!hwid.isEmpty()) request.setRawHeader("x-hwid", hwid.toUtf8());
+            if (!os.isEmpty()) request.setRawHeader("x-device-os", os.toUtf8());
+            if (!osVersion.isEmpty()) request.setRawHeader("x-ver-os", osVersion.toUtf8());
+            if (!model.isEmpty()) request.setRawHeader("x-device-model", model.toUtf8());
         }
         //
         auto _reply = accessManager.get(request);
@@ -59,7 +92,7 @@ namespace Configs_network {
         QEventLoop loop;
         connect(_reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
         loop.exec();
-        
+
         //
         auto result = HTTPResponse{_reply->error() == QNetworkReply::NetworkError::NoError ? "" : _reply->errorString(),
                                        _reply->readAll(), _reply->rawHeaderPairs()};
