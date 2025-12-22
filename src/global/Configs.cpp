@@ -329,6 +329,14 @@ namespace Configs {
         _add(new configItem("xray_log_level", &xray_log_level, itemType::string));
         _add(new configItem("xray_mux_concurrency", &xray_mux_concurrency, itemType::integer));
         _add(new configItem("xray_mux_default_on", &xray_mux_default_on, itemType::boolean));
+        _add(new configItem("auto_test_enable", &auto_test_enable, itemType::boolean));
+        _add(new configItem("auto_test_interval_seconds", &auto_test_interval_seconds, itemType::integer));
+        _add(new configItem("auto_test_proxy_count", &auto_test_proxy_count, itemType::integer));
+        _add(new configItem("auto_test_working_pool_size", &auto_test_working_pool_size, itemType::integer));
+        _add(new configItem("auto_test_latency_threshold_ms", &auto_test_latency_threshold_ms, itemType::integer));
+        _add(new configItem("auto_test_failure_retry_count", &auto_test_failure_retry_count, itemType::integer));
+        _add(new configItem("auto_test_target_url", &auto_test_target_url, itemType::string));
+        _add(new configItem("auto_test_tun_failover", &auto_test_tun_failover, itemType::boolean));
     }
 
     void DataStore::UpdateStartedId(int id) {

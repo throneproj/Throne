@@ -147,6 +147,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     //init HWID data
     runOnNewThread([=, this] {GetDeviceDetails(); });
 
+    // Initialize ProxyAutoTester
+    proxyAutoTester = std::make_unique<Stats::ProxyAutoTester>(this);
+
     // Prepare core
     Configs::dataStore->core_port = MkPort();
     if (Configs::dataStore->core_port <= 0) Configs::dataStore->core_port = 19810;
@@ -800,6 +803,16 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
         if ((info.contains("NeedChoosePort") || suggestRestartProxy) && Configs::dataStore->started_id >= 0 &&
             QMessageBox::question(GetMessageBoxParent(), tr("Confirmation"), tr("Settings changed, restart proxy?")) == QMessageBox::StandardButton::Yes) {
             profile_start(Configs::dataStore->started_id);
+        }
+        // Restart auto-tester if settings changed
+        if (proxyAutoTester) {
+            if (Configs::dataStore->auto_test_enable) {
+                proxyAutoTester->Reset();
+                proxyAutoTester->Start();
+                MW_show_log("[Auto-Test] Restarted with new settings");
+            } else {
+                proxyAutoTester->Stop();
+            }
         }
         refresh_status();
     }
@@ -1650,8 +1663,14 @@ void MainWindow::refresh_table_item(const int row, const std::shared_ptr<Configs
     f = f0->clone();
     if (profile->full_test_report.isEmpty()) {
         auto color = profile->DisplayLatencyColor();
+        // Add working status indicator for auto-tested proxies
+        QString workingIndicator = "";
+        if (Configs::dataStore->auto_test_enable && profile->is_working) {
+            workingIndicator = "✓ ";
+            color = Qt::darkGreen; // Override color for working proxies
+        }
         if (color.isValid()) f->setForeground(color);
-        f->setText(profile->DisplayTestResult());
+        f->setText(workingIndicator + profile->DisplayTestResult());
     } else {
         f->setText(profile->full_test_report);
     }

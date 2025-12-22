@@ -8,6 +8,7 @@
 
 #include "include/global/Configs.hpp"
 #include "include/stats/connections/connectionLister.hpp"
+#include "include/stats/autotester/ProxyAutoTester.hpp"
 #include "3rdparty/qv2ray/v2/ui/widgets/speedchart/SpeedWidget.hpp"
 #ifdef Q_OS_LINUX
 #include <QtDBus>
@@ -68,6 +69,8 @@ public:
     void profile_stop(bool crash = false, bool block = false, bool manual = false);
 
     void set_spmode_system_proxy(bool enable, bool save = true);
+
+    std::unique_ptr<Stats::ProxyAutoTester> proxyAutoTester;
 
     void toggle_system_proxy();
 

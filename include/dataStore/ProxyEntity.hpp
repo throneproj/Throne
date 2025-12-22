@@ -42,6 +42,10 @@ namespace Configs {
 
         QString full_test_report;
 
+        // Auto-testing status
+        bool is_working = false;
+        qint64 last_auto_test_time = 0;
+
         ProxyEntity(Configs::outbound *outbound, Configs::AbstractBean *bean, const QString &type_);
 
         [[nodiscard]] QString DisplayTestResult() const;

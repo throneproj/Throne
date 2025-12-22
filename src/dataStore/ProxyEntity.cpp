@@ -14,6 +14,8 @@ namespace Configs
         _add(new configItem("ul", &ul_speed, itemType::string));
         _add(new configItem("report", &full_test_report, itemType::string));
         _add(new configItem("country", &test_country, itemType::string));
+        _add(new configItem("is_working", &is_working, itemType::boolean));
+        _add(new configItem("last_auto_test_time", &last_auto_test_time, itemType::integer64));
 
         if (bean != nullptr) {
             this->_bean = std::shared_ptr<Configs::AbstractBean>(bean);

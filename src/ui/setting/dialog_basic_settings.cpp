@@ -45,6 +45,16 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->simple_down_url->setText(Configs::dataStore->simple_dl_url);
     ui->allow_beta->setChecked(Configs::dataStore->allow_beta_update);
 
+    // Auto-testing
+    D_LOAD_BOOL(auto_test_enable)
+    ui->auto_test_interval_seconds->setValue(Configs::dataStore->auto_test_interval_seconds);
+    ui->auto_test_proxy_count->setValue(Configs::dataStore->auto_test_proxy_count);
+    ui->auto_test_working_pool_size->setValue(Configs::dataStore->auto_test_working_pool_size);
+    ui->auto_test_latency_threshold_ms->setValue(Configs::dataStore->auto_test_latency_threshold_ms);
+    ui->auto_test_failure_retry_count->setValue(Configs::dataStore->auto_test_failure_retry_count);
+    D_LOAD_STRING(auto_test_target_url)
+    D_LOAD_BOOL(auto_test_tun_failover)
+
     connect(ui->custom_inbound_edit, &QPushButton::clicked, this, [=,this] {
         C_EDIT_JSON_ALLOW_EMPTY(custom_inbound)
     });
@@ -228,6 +238,16 @@ void DialogBasicSettings::accept() {
     Configs::dataStore->url_test_timeout_ms = ui->url_timeout->text().toInt();
     Configs::dataStore->speed_test_timeout_ms = ui->test_timeout->text().toInt();
     Configs::dataStore->allow_beta_update = ui->allow_beta->isChecked();
+
+    // Auto-testing
+    D_SAVE_BOOL(auto_test_enable)
+    Configs::dataStore->auto_test_interval_seconds = ui->auto_test_interval_seconds->value();
+    Configs::dataStore->auto_test_proxy_count = ui->auto_test_proxy_count->value();
+    Configs::dataStore->auto_test_working_pool_size = ui->auto_test_working_pool_size->value();
+    Configs::dataStore->auto_test_latency_threshold_ms = ui->auto_test_latency_threshold_ms->value();
+    Configs::dataStore->auto_test_failure_retry_count = ui->auto_test_failure_retry_count->value();
+    D_SAVE_STRING(auto_test_target_url)
+    D_SAVE_BOOL(auto_test_tun_failover)
 
     // Style
 

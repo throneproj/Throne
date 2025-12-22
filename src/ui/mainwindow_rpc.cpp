@@ -29,6 +29,14 @@ void MainWindow::setup_rpc() {
     // Looper
     runOnNewThread([=] { Stats::trafficLooper->Loop(); });
     runOnNewThread([=] {Stats::connection_lister->Loop(); });
+
+    // Start auto-testing if enabled (access via GetMainWindow since this is static)
+    auto mw = GetMainWindow();
+    if (Configs::dataStore->auto_test_enable && mw && mw->proxyAutoTester) {
+        mw->proxyAutoTester->Start();
+        MW_show_log("[Auto-Test] Started with interval of " + 
+                    Int2String(Configs::dataStore->auto_test_interval_seconds) + " seconds");
+    }
 }
 
 void MainWindow::runURLTest(const QString& config, const QString& xrayConfig, bool useDefault, const QStringList& outboundTags, const QMap<QString, int>& tag2entID, int entID) {

@@ -281,6 +281,170 @@
         </widget>
        </item>
        <item>
+        <widget class="QGroupBox" name="groupBox_auto_test">
+         <property name="title">
+          <string>Auto-Testing</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_auto_test">
+          <item row="0" column="0" colspan="2">
+           <widget class="QCheckBox" name="auto_test_enable">
+            <property name="text">
+             <string>Enable Auto-Testing</string>
+            </property>
+            <property name="toolTip">
+             <string>Automatically test proxies in the background and maintain a pool of working proxies</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_auto_test_interval">
+            <property name="text">
+             <string>Test Interval (seconds)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="auto_test_interval_seconds">
+            <property name="minimum">
+             <number>30</number>
+            </property>
+            <property name="maximum">
+             <number>86400</number>
+            </property>
+            <property name="value">
+             <number>300</number>
+            </property>
+            <property name="toolTip">
+             <string>How often to run the test cycle</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_auto_test_proxy_count">
+            <property name="text">
+             <string>Proxies Per Cycle</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QSpinBox" name="auto_test_proxy_count">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="value">
+             <number>10</number>
+            </property>
+            <property name="toolTip">
+             <string>Number of proxies to test in each cycle</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_auto_test_pool_size">
+            <property name="text">
+             <string>Working Pool Size</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QSpinBox" name="auto_test_working_pool_size">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>50</number>
+            </property>
+            <property name="value">
+             <number>2</number>
+            </property>
+            <property name="toolTip">
+             <string>Maximum number of verified working proxies to maintain</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_auto_test_threshold">
+            <property name="text">
+             <string>Latency Threshold (ms)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QSpinBox" name="auto_test_latency_threshold_ms">
+            <property name="minimum">
+             <number>100</number>
+            </property>
+            <property name="maximum">
+             <number>10000</number>
+            </property>
+            <property name="value">
+             <number>1000</number>
+            </property>
+            <property name="singleStep">
+             <number>100</number>
+            </property>
+            <property name="toolTip">
+             <string>Maximum latency to consider a proxy as working</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_auto_test_retry">
+            <property name="text">
+             <string>Failure Retry Count</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QSpinBox" name="auto_test_failure_retry_count">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>10</number>
+            </property>
+            <property name="value">
+             <number>2</number>
+            </property>
+            <property name="toolTip">
+             <string>Number of retry attempts before considering a proxy as failed</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="label_auto_test_url">
+            <property name="text">
+             <string>Test Target URL</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QLineEdit" name="auto_test_target_url">
+            <property name="text">
+             <string>http://cp.cloudflare.com/</string>
+            </property>
+            <property name="toolTip">
+             <string>URL to test proxies against</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0" colspan="2">
+           <widget class="QCheckBox" name="auto_test_tun_failover">
+            <property name="text">
+             <string>Enable TUN Failover</string>
+            </property>
+            <property name="toolTip">
+             <string>Automatically switch to another working proxy when TUN mode proxy fails</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <widget class="QWidget" name="horizontalWidget_1" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">

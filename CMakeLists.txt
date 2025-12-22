@@ -96,6 +96,8 @@ set(PROJECT_SOURCES
 
         src/dataStore/Database.cpp
         src/stats/traffic/TrafficLooper.cpp
+        include/stats/autotester/ProxyAutoTester.hpp
+        src/stats/autotester/ProxyAutoTester.cpp
         src/dataStore/ProfileFilter.cpp
 
         src/configs/proxy/AbstractBean.cpp
