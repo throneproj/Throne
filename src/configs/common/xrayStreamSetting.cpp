@@ -205,7 +205,7 @@ namespace Configs {
         auto query = QUrlQuery(url.query());
 
         if (query.hasQueryItem("host")) host = query.queryItemValue("host");
-        if (query.hasQueryItem("path")) path = query.queryItemValue("path");
+        if (query.hasQueryItem("path")) path = query.queryItemValue("path", QUrl::FullyDecoded);
         if (query.hasQueryItem("mode")) mode = query.queryItemValue("mode");
         if (query.hasQueryItem("extra")) ParseExtraJson(query.queryItemValue("extra", QUrl::FullyDecoded));
         if (query.hasQueryItem("headers")) headers = query.queryItemValue("headers").split(",");
