@@ -52,7 +52,7 @@ namespace Configs
 
         if (query.queryItemValue("type") == "xhttp"
             || query.queryItemValue("security") == "reality"
-            || query.queryItemValue("encryption") != "none"
+            || (query.queryItemValue("encryption") != "none" && query.queryItemValue("encryption") != "")
             || query.queryItemValue("extra") != "") return true;
         return false;
     }
