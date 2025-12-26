@@ -25,3 +25,8 @@ tar xvzf artifacts.tgz -C ../../
 cd ../..
 cp deployment/linux-$ARCH/Core $DEST
 rm -rf deployment/linux-$ARCH
+
+# handle debug info
+objcopy --only-keep-debug $DEST/Throne $DEST/Throne.debug
+strip --strip-debug --strip-unneeded $DEST/Throne
+objcopy --add-gnu-debuglink=$DEST/Throne.debug $DEST/Throne

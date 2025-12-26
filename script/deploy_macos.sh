@@ -31,4 +31,7 @@ popd
 
 codesign --force --deep --sign - $BUILD/Throne.app
 
+dsymutil $BUILD/Throne.app/Contents/MacOS/Throne
+strip -S $BUILD/Throne.app/Contents/MacOS/Throne
+
 mv $BUILD/Throne.app $DEST

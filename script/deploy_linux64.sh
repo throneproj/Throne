@@ -66,3 +66,8 @@ mv ./usr/lib2 ./usr/lib
 # fix lib rpath
 cd $DEST
 patchelf --set-rpath '$ORIGIN/usr/lib' ./Throne
+
+# handle debug info
+objcopy --only-keep-debug $DEST/Throne $DEST/Throne.debug
+strip --strip-debug --strip-unneeded $DEST/Throne
+objcopy --add-gnu-debuglink=$DEST/Throne.debug $DEST/Throne
