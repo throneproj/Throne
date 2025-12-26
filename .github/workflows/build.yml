@@ -188,7 +188,7 @@ jobs:
           mkdir build
           cd build
           curl -fLso srslist.h "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/srslist.h"
-          cmake -GNinja -DCMAKE_CXX_FLAGS="-static" -DCMAKE_BUILD_TYPE=Debug ..
+          cmake -GNinja -DCMAKE_CXX_FLAGS="-static" -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
           ninja
           cd ..
           ./script/deploy_windows.sh
@@ -203,7 +203,7 @@ jobs:
           mkdir build
           cd build
           curl -fLso srslist.h "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/srslist.h"
-          cmake -GNinja -DCMAKE_CXX_FLAGS="-static" -DCMAKE_BUILD_TYPE=Debug ..
+          cmake -GNinja -DCMAKE_CXX_FLAGS="-static" -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
           ninja
           cd ..
           ./script/deploy_windows.sh ${{ matrix.target }}
@@ -234,7 +234,7 @@ jobs:
           mkdir build
           cd build
           curl -fLso srslist.h "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/srslist.h"
-          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++" ..
+          cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++" ..
           ninja
           cd ..
           ./script/deploy_linux64.sh
@@ -245,7 +245,7 @@ jobs:
           mkdir build
           cd build
           curl -fLso srslist.h "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/srslist.h"
-          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc" ..
+          cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc" ..
           ninja
           cd ..
           ./script/deploy_linux64_system_qt.sh
@@ -256,7 +256,7 @@ jobs:
           mkdir build
           cd build
           curl -fLso srslist.h "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/srslist.h"
-          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DNKR_PACKAGE_MACOS=1 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=${{ matrix.target }} ..
+          cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DNKR_PACKAGE_MACOS=1 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=${{ matrix.target }} ..
           ninja
           cd ..
           ./script/deploy_macos.sh ${{ matrix.target }}
@@ -267,7 +267,7 @@ jobs:
           mkdir build
           cd build
           curl -fLso srslist.h "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/srslist.h"
-          cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DNKR_PACKAGE_MACOS=1 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=${{ matrix.target }} ..
+          cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DNKR_PACKAGE_MACOS=1 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=${{ matrix.target }} ..
           ninja
           cd ..
           ./script/deploy_macos.sh

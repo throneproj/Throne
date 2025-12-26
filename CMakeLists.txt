@@ -30,6 +30,11 @@ else ()
     include("cmake/linux/linux.cmake")
 endif ()
 
+#### For Dumps ####
+if (NOT MSVC)
+    add_compile_options(-fno-omit-frame-pointer)
+endif()
+
 #### default prefix path ####
 
 message("[CMAKE_PREFIX_PATH] ${CMAKE_PREFIX_PATH}")
