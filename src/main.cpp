@@ -22,6 +22,7 @@
 #include <qfontdatabase.h>
 #endif
 #ifdef Q_OS_LINUX
+#include <include/sys/linux/coreDump.h>
 #include <qfontdatabase.h>
 #endif
 
@@ -63,6 +64,9 @@ int main(int argc, char* argv[]) {
     // Core dump
 #ifdef Q_OS_WIN
     Windows_SetCrashHandler();
+#endif
+#ifdef Q_OS_LINUX
+    enable_core_dumps();
 #endif
 
     QApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
