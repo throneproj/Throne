@@ -10,6 +10,10 @@ set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
 if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND WIN32)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 endif ()
+if(MSVC)
+    cmake_policy(SET CMP0091 NEW)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Network LinguistTools DBus)
 

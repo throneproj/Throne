@@ -20,11 +20,6 @@ mkdir -p $DEST
 #### copy exe ####
 cp $BUILD/Throne.exe $DEST
 
-#### extract debug info and strip the binary ####
-objcopy --only-keep-debug $DEST/Throne.exe $DEST/Throne.debug
-strip --strip-debug --strip-unneeded $DEST/Throne.exe
-objcopy --add-gnu-debuglink=$DEST/Throne.debug $DEST/Throne.exe
-
 cd download-artifact
 cd *$ARCH
 tar xvzf artifacts.tgz -C ../../
