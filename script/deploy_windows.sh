@@ -19,6 +19,7 @@ mkdir -p $DEST
 
 #### copy exe ####
 cp $BUILD/Throne.exe $DEST
+cp $BUILD/*pdb $DEST || true
 
 cd download-artifact
 cd *$ARCH
