@@ -202,7 +202,7 @@ jobs:
         if: matrix.platform == 'windows-latest' && matrix.qt_version != '6.2.12'
         run: |
           export CMAKE_PREFIX_PATH=$PWD/qt6/build/lib/cmake
-          export OPENSSL_ROOT_DIR="$VCPKG_ROOT/installed/x64-windows-static"
+          export OPENSSL_ROOT_DIR="C:/vcpkg/installed/x64-windows-static"
           mkdir build
           cd build
           curl -fLso srslist.h "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/srslist.h"
