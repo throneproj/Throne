@@ -136,8 +136,13 @@ jobs:
         uses: actions/checkout@v4.2.2
         with:
           submodules: "recursive"
+      - name: Install mingw (Legacy windows)
+        if: matrix.platform == 'windows-latest' && matrix.qt_version == '6.2.12'
+        uses: bwoodsend/setup-winlibs-action@v1.15
+        with:
+          architecture: ${{ matrix.target }}
       - name: Install MSVC compiler
-        if: matrix.platform == 'windows-latest'
+        if: matrix.platform == 'windows-latest' && matrix.qt_version != '6.2.12'
         uses: ilammy/msvc-dev-cmd@v1.13.0
         with:
           arch: ${{ matrix.target }}
@@ -197,11 +202,7 @@ jobs:
         if: matrix.platform == 'windows-latest' && matrix.qt_version != '6.2.12'
         run: |
           export CMAKE_PREFIX_PATH=$PWD/qt6/build/lib/cmake
-          if [ -d "$PWD/openssl" ]; then
-          export OPENSSL_ROOT_DIR=$PWD/openssl
-          else
-          export OPENSSL_ROOT_DIR="%VCPKG_ROOT%/installed/x64-windows-static"
-          fi
+          export OPENSSL_ROOT_DIR="$VCPKG_ROOT/installed/x64-windows-static"
           mkdir build
           cd build
           curl -fLso srslist.h "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/srslist.h"
@@ -220,7 +221,7 @@ jobs:
           mkdir build
           cd build
           curl -fLso srslist.h "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/srslist.h"
-          cmake -GNinja -DCMAKE_CXX_FLAGS="-static" -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+          cmake -GNinja -DCMAKE_CXX_FLAGS="-static" -DCMAKE_BUILD_TYPE=Release ..
           ninja
           cd ..
           ./script/deploy_windows.sh ${{ matrix.target }}
