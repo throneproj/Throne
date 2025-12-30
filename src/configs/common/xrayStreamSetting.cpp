@@ -117,7 +117,7 @@ namespace Configs {
         if (query.hasQueryItem("pbk")) password = query.queryItemValue("pbk");
         if (query.hasQueryItem("fp")) fingerprint = query.queryItemValue("fp");
         if (query.hasQueryItem("sid")) shortId = query.queryItemValue("sid");
-        if (query.hasQueryItem("spiderx")) spiderX = query.queryItemValue("spiderx");
+        if (query.hasQueryItem("spx")) spiderX = query.queryItemValue("spx");
         return true;
 
     }
@@ -139,7 +139,7 @@ namespace Configs {
         if (!fingerprint.isEmpty()) query.addQueryItem("fp", fingerprint);
         if (!password.isEmpty()) query.addQueryItem("pbk", password);
         if (!shortId.isEmpty()) query.addQueryItem("sid", shortId);
-        if (!spiderX.isEmpty()) query.addQueryItem("spiderx", spiderX);
+        if (!spiderX.isEmpty()) query.addQueryItem("spx", spiderX);
         return query.toString(QUrl::FullyEncoded);
     }
 
