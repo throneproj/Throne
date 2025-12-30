@@ -168,31 +168,34 @@ namespace Configs {
         if (obj.contains("headers") && obj["headers"].isArray()) {
             headers = QJsonArray2QListString(obj["headers"].toArray());
         }
-        if (obj.contains("xPaddingBytes")) xPaddingBytes = obj["xPaddingBytes"].toString();
+        if (obj.contains("xPaddingBytes")) {
+            xPaddingBytes = obj["xPaddingBytes"].toVariant().toString();
+        }
         if (obj.contains("noGRPCHeader")) noGRPCHeader = obj["noGRPCHeader"].toBool();
         if (obj.contains("scMaxEachPostBytes")) {
-            if (obj["scMaxEachPostBytes"].isString()) scMaxEachPostBytes = obj["scMaxEachPostBytes"].toString().toInt();
-            else scMaxEachPostBytes = obj["scMaxEachPostBytes"].toInt();
+            scMaxEachPostBytes = obj["scMaxEachPostBytes"].toVariant().toString();
         }
         if (obj.contains("scMinPostsIntervalMs")) {
-            if (obj["scMinPostsIntervalMs"].isString()) scMinPostsIntervalMs = obj["scMinPostsIntervalMs"].toString().toInt();
-            else scMinPostsIntervalMs = obj["scMinPostsIntervalMs"].toInt();
+            scMinPostsIntervalMs = obj["scMinPostsIntervalMs"].toVariant().toString();
         }
         if (auto xmuxObj = obj["xmux"].toObject(); !xmuxObj.isEmpty()) {
-            if (xmuxObj.contains("maxConcurrency")) maxConcurrency = xmuxObj["maxConcurrency"].toString();
+            if (xmuxObj.contains("maxConcurrency")) {
+                maxConcurrency = xmuxObj["maxConcurrency"].toVariant().toString();
+            }
             if (xmuxObj.contains("maxConnections")) {
-                if (xmuxObj["maxConnections"].isString()) maxConnections = xmuxObj["maxConnections"].toString().toInt();
-                else maxConnections = xmuxObj["maxConnections"].toInt();
+                maxConnections = xmuxObj["maxConnections"].toVariant().toString();
             }
             if (xmuxObj.contains("cMaxReuseTimes")) {
-                if (xmuxObj["cMaxReuseTimes"].isString()) cMaxReuseTimes = xmuxObj["cMaxReuseTimes"].toString().toInt();
-                else cMaxReuseTimes = xmuxObj["cMaxReuseTimes"].toInt();
+                cMaxReuseTimes = xmuxObj["cMaxReuseTimes"].toVariant().toString();
             }
-            if (xmuxObj.contains("hMaxRequestTimes")) hMaxRequestTimes = xmuxObj["hMaxRequestTimes"].toString();
-            if (xmuxObj.contains("hMaxReusableSecs")) hMaxReusableSecs = xmuxObj["hMaxReusableSecs"].toString();
+            if (xmuxObj.contains("hMaxRequestTimes")) {
+                hMaxRequestTimes = xmuxObj["hMaxRequestTimes"].toVariant().toString();
+            }
+            if (xmuxObj.contains("hMaxReusableSecs")) {
+                hMaxReusableSecs = xmuxObj["hMaxReusableSecs"].toVariant().toString();
+            }
             if (xmuxObj.contains("hKeepAlivePeriod")) {
-                if (xmuxObj["hKeepAlivePeriod"].isString()) hKeepAlivePeriod = xmuxObj["hKeepAlivePeriod"].toString().toInt();
-                else hKeepAlivePeriod = xmuxObj["hKeepAlivePeriod"].toInt();
+                hKeepAlivePeriod = xmuxObj["hKeepAlivePeriod"].toVariant().toLongLong();
             }
         }
         return true;
@@ -209,16 +212,20 @@ namespace Configs {
         if (query.hasQueryItem("mode")) mode = query.queryItemValue("mode");
         if (query.hasQueryItem("extra")) ParseExtraJson(query.queryItemValue("extra", QUrl::FullyDecoded));
         if (query.hasQueryItem("headers")) headers = query.queryItemValue("headers").split(",");
-        if (query.hasQueryItem("x_padding_bytes")) xPaddingBytes = query.queryItemValue("xpaddingbytes");
-        if (query.hasQueryItem("no_grpc_header")) noGRPCHeader = query.queryItemValue("nogrpcheader").replace("1", "true") == "true";
-        if (query.hasQueryItem("sc_max_each_post_bytes")) scMaxEachPostBytes = query.queryItemValue("sc_max_each_post_bytes").toInt();
-        if (query.hasQueryItem("sc_min_posts_interval_ms")) scMinPostsIntervalMs = query.queryItemValue("sc_min_posts_interval_ms").toInt();
+        if (query.hasQueryItem("x_padding_bytes")) xPaddingBytes = query.queryItemValue("x_padding_bytes");
+        if (query.hasQueryItem("no_grpc_header")) noGRPCHeader = query.queryItemValue("no_grpc_header").replace("1", "true") == "true";
+
+        if (query.hasQueryItem("sc_max_each_post_bytes")) scMaxEachPostBytes = query.queryItemValue("sc_max_each_post_bytes");
+        if (query.hasQueryItem("sc_min_posts_interval_ms")) scMinPostsIntervalMs = query.queryItemValue("sc_min_posts_interval_ms");
+
         if (query.hasQueryItem("max_concurrency")) maxConcurrency = query.queryItemValue("max_concurrency");
-        if (query.hasQueryItem("max_connections")) maxConnections = query.queryItemValue("max_connections").toInt();
-        if (query.hasQueryItem("max_reuse_times")) cMaxReuseTimes = query.queryItemValue("max_reuse_times").toInt();
+        if (query.hasQueryItem("max_connections")) maxConnections = query.queryItemValue("max_connections");
+
+        if (query.hasQueryItem("max_reuse_times")) cMaxReuseTimes = query.queryItemValue("max_reuse_times");
+
         if (query.hasQueryItem("max_request_times")) hMaxRequestTimes = query.queryItemValue("max_request_times");
         if (query.hasQueryItem("max_reusable_secs")) hMaxReusableSecs = query.queryItemValue("max_reusable_secs");
-        if (query.hasQueryItem("keep_alive_period")) hKeepAlivePeriod = query.queryItemValue("keep_alive_period").toInt();
+        if (query.hasQueryItem("keep_alive_period")) hKeepAlivePeriod = query.queryItemValue("keep_alive_period").toLongLong();
         return true;
     }
 
@@ -253,19 +260,20 @@ namespace Configs {
         if (!host.isEmpty()) obj["host"] = host;
         if (!path.isEmpty()) obj["path"] = path;
         if (!mode.isEmpty()) obj["mode"] = mode;
+
         QJsonObject extraObj;
         if (!headers.isEmpty()) extraObj["headers"] = qStringListToJsonObject(headers);
         if (!xPaddingBytes.isEmpty()) extraObj["xPaddingBytes"] = xPaddingBytes;
         if (noGRPCHeader) extraObj["noGRPCHeader"] = true;
-        if (scMaxEachPostBytes > 0) extraObj["scMaxEachPostBytes"] = scMaxEachPostBytes;
-        if (scMinPostsIntervalMs > 0) extraObj["scMinPostsIntervalMs"] = scMinPostsIntervalMs;
+        if (!scMaxEachPostBytes.isEmpty()) extraObj["scMaxEachPostBytes"] = scMaxEachPostBytes;
+        if (!scMinPostsIntervalMs.isEmpty()) extraObj["scMinPostsIntervalMs"] = scMinPostsIntervalMs;
         QJsonObject xmuxObj;
         if (!maxConcurrency.isEmpty()) xmuxObj["maxConcurrency"] = maxConcurrency;
-        if (maxConnections > 0) xmuxObj["maxConnections"] = maxConnections;
-        if (cMaxReuseTimes > 0) xmuxObj["cMaxReuseTimes"] = cMaxReuseTimes;
+        if (!maxConnections.isEmpty()) xmuxObj["maxConnections"] = maxConnections;
+        if (!cMaxReuseTimes.isEmpty()) xmuxObj["cMaxReuseTimes"] = cMaxReuseTimes;
         if (!hMaxRequestTimes.isEmpty()) xmuxObj["hMaxRequestTimes"] = hMaxRequestTimes;
         if (!hMaxReusableSecs.isEmpty()) xmuxObj["hMaxReusableSecs"] = hMaxReusableSecs;
-        if (hKeepAlivePeriod > 0) xmuxObj["hMaxReusableSecs"] = hMaxReusableSecs;
+        if (hKeepAlivePeriod > 0) xmuxObj["hKeepAlivePeriod"] = hKeepAlivePeriod;
         if (!xmuxObj.isEmpty()) extraObj["xmux"] = xmuxObj;
         if (!extraObj.isEmpty()) obj["extra"] = extraObj;
         return obj;

@@ -59,15 +59,15 @@ namespace Configs {
         QStringList headers;
         QString xPaddingBytes;
         bool noGRPCHeader = false;
-        int scMaxEachPostBytes = 0; // packet-up only
-        int scMinPostsIntervalMs = 0; // packet-up only
+        QString scMaxEachPostBytes; // packet-up only
+        QString scMinPostsIntervalMs; // packet-up only
         // extra/xmux
         QString maxConcurrency;
-        int maxConnections = 0;
-        int cMaxReuseTimes = 0;
+        QString maxConnections;
+        QString cMaxReuseTimes;
         QString hMaxRequestTimes;
         QString hMaxReusableSecs;
-        int hKeepAlivePeriod = 0;
+        long long hKeepAlivePeriod = 0;
         // todo do we need to add downloadsettings or is it useless?
 
         xrayXHTTP() {
@@ -77,14 +77,14 @@ namespace Configs {
             _add(new configItem("headers", &headers, stringList));
             _add(new configItem("xPaddingBytes", &xPaddingBytes, string));
             _add(new configItem("noGRPCHeader", &noGRPCHeader, boolean));
-            _add(new configItem("scMaxEachPostBytes", &scMaxEachPostBytes, integer));
-            _add(new configItem("scMinPostsIntervalMs", &scMinPostsIntervalMs, integer));
+            _add(new configItem("scMaxEachPostBytes", &scMaxEachPostBytes, string));
+            _add(new configItem("scMinPostsIntervalMs", &scMinPostsIntervalMs, string));
             _add(new configItem("maxConcurrency", &maxConcurrency, string));
-            _add(new configItem("maxConnections", &maxConnections, integer));
-            _add(new configItem("cMaxReuseTimes", &cMaxReuseTimes, integer));
+            _add(new configItem("maxConnections", &maxConnections, string));
+            _add(new configItem("cMaxReuseTimes", &cMaxReuseTimes, string));
             _add(new configItem("hMaxRequestTimes", &hMaxRequestTimes, string));
             _add(new configItem("hMaxReusableSecs", &hMaxReusableSecs, string));
-            _add(new configItem("hKeepAlivePeriod", &hKeepAlivePeriod, integer));
+            _add(new configItem("hKeepAlivePeriod", &hKeepAlivePeriod, integer64));
         }
 
         QString getHeadersString();
