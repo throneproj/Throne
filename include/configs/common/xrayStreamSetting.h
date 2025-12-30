@@ -68,7 +68,8 @@ namespace Configs {
         QString hMaxRequestTimes;
         QString hMaxReusableSecs;
         long long hKeepAlivePeriod = 0;
-        // todo do we need to add downloadsettings or is it useless?
+        // extra/downloadSettings
+        QString downloadSettings;
 
         xrayXHTTP() {
             _add(new configItem("host", &host, string));
@@ -85,6 +86,7 @@ namespace Configs {
             _add(new configItem("hMaxRequestTimes", &hMaxRequestTimes, string));
             _add(new configItem("hMaxReusableSecs", &hMaxReusableSecs, string));
             _add(new configItem("hKeepAlivePeriod", &hKeepAlivePeriod, integer64));
+            _add(new configItem("downloadSettings", &downloadSettings, string));
         }
 
         QString getHeadersString();

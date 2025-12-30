@@ -178,6 +178,13 @@ namespace Configs {
         if (obj.contains("scMinPostsIntervalMs")) {
             scMinPostsIntervalMs = obj["scMinPostsIntervalMs"].toVariant().toString();
         }
+        if (obj.contains("downloadSettings")) {
+            if (obj["downloadSettings"].isObject()) {
+                downloadSettings = QJsonObject2QString(obj["downloadSettings"].toObject(), true);
+            } else if (obj["downloadSettings"].isString()) {
+                downloadSettings = obj["downloadSettings"].toString();
+            }
+        }
         if (auto xmuxObj = obj["xmux"].toObject(); !xmuxObj.isEmpty()) {
             if (xmuxObj.contains("maxConcurrency")) {
                 maxConcurrency = xmuxObj["maxConcurrency"].toVariant().toString();
@@ -267,6 +274,11 @@ namespace Configs {
         if (noGRPCHeader) extraObj["noGRPCHeader"] = true;
         if (!scMaxEachPostBytes.isEmpty()) extraObj["scMaxEachPostBytes"] = scMaxEachPostBytes;
         if (!scMinPostsIntervalMs.isEmpty()) extraObj["scMinPostsIntervalMs"] = scMinPostsIntervalMs;
+        if (!downloadSettings.isEmpty()) {
+            if (auto dsObj = QString2QJsonObject(downloadSettings); !dsObj.isEmpty()) {
+                extraObj["downloadSettings"] = dsObj;
+            }
+        }
         QJsonObject xmuxObj;
         if (!maxConcurrency.isEmpty()) xmuxObj["maxConcurrency"] = maxConcurrency;
         if (!maxConnections.isEmpty()) xmuxObj["maxConnections"] = maxConnections;

@@ -30,6 +30,7 @@ public slots:
 
 private slots:
     void on_certificate_edit_clicked();
+    void on_xray_downloadsettings_edit_clicked();
 private:
     Ui::DialogEditProfile *ui;
 

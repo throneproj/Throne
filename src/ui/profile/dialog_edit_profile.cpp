@@ -17,6 +17,7 @@
 
 #include "3rdparty/qv2ray/v2/ui/widgets/editors/w_JsonEditor.hpp"
 #include "include/global/GuiUtils.hpp"
+#include "include/global/Utils.hpp"
 
 #include <QInputDialog>
 
@@ -615,6 +616,14 @@ void DialogEditProfile::editor_cache_updated_impl() {
         ui->certificate_edit->setText(tr("Already set"));
     }
 
+    if (ent != nullptr && ent->outbound->IsXray()) {
+        auto xrayStream = ent->outbound->GetXrayStream();
+        // show state on button like other cached editors
+        ui->xray_downloadsettings_edit->setText(
+            xrayStream->xhttp->downloadSettings.isEmpty() ? tr("Not set") : tr("Already set"));
+        ui->xray_downloadsettings_edit->setEnabled(xrayStream->network == "xhttp");
+    }
+
     // CACHE macro
     for (auto a: innerEditor->get_editor_cached()) {
         if (a.second.isEmpty()) {
@@ -632,4 +641,18 @@ void DialogEditProfile::on_certificate_edit_clicked() {
         CACHE.certificate = txt.split("\n", Qt::SkipEmptyParts);
         editor_cache_updated_impl();
     }
+}
+
+void DialogEditProfile::on_xray_downloadsettings_edit_clicked() {
+    if (ent == nullptr || !ent->outbound->IsXray()) return;
+    auto xrayStream = ent->outbound->GetXrayStream();
+    if (xrayStream->network != "xhttp") return;
+
+    auto editor = new JsonEditor(QString2QJsonObject(xrayStream->xhttp->downloadSettings), this);
+    auto result = editor->OpenEditor();
+    xrayStream->xhttp->downloadSettings = QJsonObject2QString(result, true);
+    if (result.isEmpty()) xrayStream->xhttp->downloadSettings = "";
+    editor->deleteLater();
+
+    editor_cache_updated_impl();
 }
