@@ -380,6 +380,13 @@ jobs:
           zip -9 --symlinks -r $version_standalone-macoslegacy-amd64.zip Throne
           rm -rf macos-legacy-amd64
           rm -rf Throne
+          ####
+          zip -9 -r debug-symbols.zip debug
+      - name: Uploading Debug Artifact
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: Debug-${{ github.sha }}
+          path: deployment/debug-symbols.zip
       - name: Clean Up
         run: |
           cd deployment
@@ -394,6 +401,7 @@ jobs:
           rm -rf macos-legacy-amd64
           rm -rf linux-system-qt-amd64
           rm -rf *.pdb
+          rm -rf debug*
       - name: Uploading Artifact
         uses: actions/upload-artifact@v4.6.2
         with:
