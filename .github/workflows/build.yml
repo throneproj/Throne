@@ -322,7 +322,7 @@ jobs:
           source script/env_deploy.sh
           find . -name artifacts.tgz | xargs -n1 tar xvzf
           cd deployment
-          rm -rf *.pdb win*/*.pdb
+          mkdir debug
           ####
           bash ../script/pack_debian.sh ${{ github.event.inputs.tag }}
           mv Throne.deb $version_standalone-debian-x64.deb
@@ -333,10 +333,12 @@ jobs:
           rm -rf Throne
           ####
           mv linux-amd64 Throne
+          mv Throne/Throne.debug debug/$version_standalone-linux-amd64.debug
           zip -9 -r $version_standalone-linux-amd64.zip Throne
           rm -rf Throne
           ####
           mv linux-arm64 Throne
+          mv Throne/Throne.debug debug/$version_standalone-linux-arm64.debug
           zip -9 -r $version_standalone-linux-arm64.zip Throne
           rm -rf Throne
           ####
@@ -346,6 +348,7 @@ jobs:
           rm -rf Throne
           ####
           mv windows32 Throne
+          mv Throne/Throne.pdb debug/$version_standalone-windows32.pdb
           zip -9 -r $version_standalone-windows32.zip Throne
           rm -rf Throne
           ####
@@ -359,18 +362,21 @@ jobs:
           ####
           mkdir Throne
           mv macos-arm64/Throne.app Throne/Throne.app
+          mv -r Throne/Throne.app/Contents/MacOS/Throne.dSYM debug/$version_standalone-macos-arm64.dSYM
           zip -9 --symlinks -r $version_standalone-macos-arm64.zip Throne
           rm -rf macos-arm64
           rm -rf Throne
           ####
           mkdir Throne
           mv macos-amd64/Throne.app Throne/Throne.app
+          mv -r Throne/Throne.app/Contents/MacOS/Throne.dSYM debug/$version_standalone-macos-amd64.dSYM
           zip -9 --symlinks -r $version_standalone-macos-amd64.zip Throne
           rm -rf macos-amd64
           rm -rf Throne
           ####
           mkdir Throne
           mv macos-legacy-amd64/Throne.app Throne/Throne.app
+          mv -r Throne/Throne.app/Contents/MacOS/Throne.dSYM debug/$version_standalone-macoslegacy-amd64.dSYM
           zip -9 --symlinks -r $version_standalone-macoslegacy-amd64.zip Throne
           rm -rf macos-legacy-amd64
           rm -rf Throne

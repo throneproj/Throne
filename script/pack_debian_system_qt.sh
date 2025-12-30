@@ -7,6 +7,7 @@ mkdir -p Throne/DEBIAN
 mkdir -p Throne/opt
 cp -r linux-system-qt-amd64 Throne/opt
 mv Throne/opt/linux-system-qt-amd64 Throne/opt/Throne
+rm Throne/opt/Throne/Throne.debug
 
 # basic
 cat >Throne/DEBIAN/control <<-EOF
