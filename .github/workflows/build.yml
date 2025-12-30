@@ -348,7 +348,7 @@ jobs:
           rm -rf Throne
           ####
           mv windows32 Throne
-          mv Throne/Throne.pdb debug/$version_standalone-windows32.pdb
+          mv Throne/Throne.pdb debug/$version_standalone-windows32.pdb || true
           zip -9 -r $version_standalone-windows32.zip Throne
           rm -rf Throne
           ####
