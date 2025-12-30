@@ -344,6 +344,7 @@ jobs:
           ####
           mv ThroneSetup.exe $version_standalone-windows64-installer.exe
           mv windows64 Throne
+          mv Throne/Throne.pdb debug/$version_standalone-windows64.pdb
           zip -9 -r $version_standalone-windows64.zip Throne
           rm -rf Throne
           ####
@@ -391,6 +392,7 @@ jobs:
           rm -rf macos-amd64
           rm -rf macos-arm64
           rm -rf macos-legacy-amd64
+          rm -rf linux-system-qt-amd64
           rm -rf *.pdb
       - name: Uploading Artifact
         uses: actions/upload-artifact@v4.6.2
