@@ -79,7 +79,7 @@ namespace Configs {
         // Misc
         QString mainWindowGeometry;
         QString log_level = "info";
-        QString test_latency_url = "http://cp.cloudflare.com/";
+        QString test_latency_url = "https://www.google.com/generate_204";
         int url_test_timeout_ms = 3000;
         bool disable_tray = false;
         int test_concurrent = 10;
