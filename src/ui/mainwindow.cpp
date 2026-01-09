@@ -2576,7 +2576,7 @@ bool isNewer(QString assetName) {
         }
     } else
     {
-        MW_show_log("Version strings seem to be invalid" + QString(NKR_VERSION) + " and " + version);
+		MW_show_log("There are no updates. You have the latest version - " + QString(NKR_VERSION));
         return false;
     }
     return false;
