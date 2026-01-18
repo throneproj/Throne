@@ -96,6 +96,15 @@ set(PROJECT_SOURCES
         3rdparty/protorpc/rpc_wire.cc
         3rdparty/protorpc/wire.pb/wire.pb.cc
 
+        3rdparty/SQLiteCpp/src/Backup.cpp
+        3rdparty/SQLiteCpp/src/Column.cpp
+        3rdparty/SQLiteCpp/src/Database.cpp
+        3rdparty/SQLiteCpp/src/Exception.cpp
+        3rdparty/SQLiteCpp/src/Savepoint.cpp
+        3rdparty/SQLiteCpp/src/sqlite3.c
+        3rdparty/SQLiteCpp/src/Statement.cpp
+        3rdparty/SQLiteCpp/src/Transaction.cpp
+
         src/api/RPC.cpp
 
         src/dataStore/Database.cpp
@@ -303,6 +312,11 @@ set(PROJECT_SOURCES
         include/ui/profile/edit_xrayvless.h
         src/ui/profile/edit_xrayvless.cpp
         include/ui/profile/edit_xrayvless.ui
+        include/database/Database.h
+        include/database/ProfilesRepo.h
+        include/database/GroupsRepo.h
+        include/database/RoutesRepo.h
+        include/database/SettingsRepo.h
 )
 
 if (NOT APPLE AND Qt6_VERSION VERSION_GREATER_EQUAL 6.9.0)
