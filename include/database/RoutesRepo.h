@@ -1,0 +1,72 @@
+#pragma once
+
+#include "Database.h"
+#include "include/database/entities/RouteProfile.h"
+#include "include/database/entities/RouteRule.h"
+#include <memory>
+#include <mutex>
+#include <map>
+#include <QString>
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QMutex>
+
+namespace Configs {
+    class RoutesRepo {
+    private:
+        Database& db;
+        mutable std::mutex mutex;
+        // Identity map: id -> weak_ptr<RouteProfile>
+        mutable std::map<int, std::weak_ptr<RouteProfile>> identityMap;
+
+        // Helper to serialize RouteRule to JSON
+        QJsonObject routeRuleToJson(const RouteRule* rule) const;
+        
+        // Helper to deserialize RouteRule from JSON
+        std::shared_ptr<RouteRule> routeRuleFromJson(const QJsonObject& json) const;
+        
+        // Helper to serialize RouteProfile to JSON
+        QJsonObject routeProfileToJson(const RouteProfile* routeProfile) const;
+        
+        // Helper to deserialize RouteProfile from JSON
+        std::shared_ptr<RouteProfile> routeProfileFromJson(const QJsonObject& json) const;
+        
+        // Save route profile to database (internal helper)
+        void saveToDatabase(const RouteProfile* routeProfile, int id) const;
+        
+        // Load route profile from database (including rules)
+        std::shared_ptr<RouteProfile> loadFromDatabase(int id) const;
+        
+        // Create tables if they don't exist
+        void createTables() const;
+
+    public:
+        explicit RoutesRepo(Database& database);
+        
+        // Create a new route profile (doesn't save to DB yet, id will be -1)
+        [[nodiscard]] static std::shared_ptr<RouteProfile> NewRouteProfile();
+        
+        // Add route profile to database (assigns ID and saves)
+        bool AddRouteProfile(std::shared_ptr<RouteProfile>& routeProfile);
+        
+        // Get route profile by ID (uses identity map)
+        std::shared_ptr<RouteProfile> GetRouteProfile(int id) const;
+        
+        // Delete route profile from database
+        void DeleteRouteProfile(int id);
+        
+        // Update route profiles (replaces all)
+        void UpdateRouteProfiles(const QList<std::shared_ptr<RouteProfile>>& routeProfiles);
+        
+        // Get all route profile IDs in order
+        QList<int> GetAllRouteProfileIds() const;
+        
+        // Get next available route profile ID
+        int NewRouteProfileID() const;
+        
+        // Save route profile to database (manual save, like old Save() method)
+        // Only saves if route profile has a valid ID (id >= 0)
+        bool Save(const std::shared_ptr<RouteProfile>& routeProfile);
+    };
+}

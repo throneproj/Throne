@@ -1,0 +1,336 @@
+#include "include/database/GroupsRepo.h"
+#include "include/database/entities/Group.h"
+#include "include/global/Utils.hpp"
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QMutexLocker>
+
+namespace Configs {
+    GroupsRepo::GroupsRepo(Database& database) : db(database) {
+        createTables();
+    }
+
+    void GroupsRepo::createTables() const {
+        // Create groups table
+        db.exec(R"(
+            CREATE TABLE IF NOT EXISTS groups (
+                id INTEGER PRIMARY KEY,
+                archive INTEGER NOT NULL DEFAULT 0,
+                skip_auto_update INTEGER NOT NULL DEFAULT 0,
+                name TEXT NOT NULL DEFAULT '',
+                url TEXT,
+                info TEXT,
+                sub_last_update INTEGER NOT NULL DEFAULT 0,
+                front_proxy_id INTEGER NOT NULL DEFAULT -1,
+                landing_proxy_id INTEGER NOT NULL DEFAULT -1,
+                manually_column_width INTEGER NOT NULL DEFAULT 0,
+                column_width_json TEXT,
+                profiles_json TEXT NOT NULL DEFAULT '[]',
+                created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+                updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+            )
+        )");
+        
+        // Create groups_order table to store UI tab order
+        db.exec(R"(
+            CREATE TABLE IF NOT EXISTS groups_order (
+                group_id INTEGER NOT NULL PRIMARY KEY,
+                display_order INTEGER NOT NULL
+            )
+        )");
+    }
+
+    QJsonObject GroupsRepo::groupToJson(const Group* group) const {
+        QJsonObject json;
+        
+        json["id"] = group->id;
+        json["archive"] = group->archive;
+        json["skip_auto_update"] = group->skip_auto_update;
+        json["name"] = group->name;
+        json["url"] = group->url;
+        json["info"] = group->info;
+        json["sub_last_update"] = static_cast<qint64>(group->sub_last_update);
+        json["front_proxy_id"] = group->front_proxy_id;
+        json["landing_proxy_id"] = group->landing_proxy_id;
+        json["manually_column_width"] = group->manually_column_width;
+        json["column_width"] = QListInt2QJsonArray(group->column_width);
+        json["profiles"] = QListInt2QJsonArray(group->profiles);
+        
+        return json;
+    }
+
+    std::shared_ptr<Group> GroupsRepo::groupFromJson(const QJsonObject& json) const {
+        auto group = std::make_shared<Group>();
+        
+        group->id = json["id"].toInt();
+        group->archive = json["archive"].toBool();
+        group->skip_auto_update = json["skip_auto_update"].toBool();
+        group->name = json["name"].toString();
+        group->url = json["url"].toString();
+        group->info = json["info"].toString();
+        group->sub_last_update = json["sub_last_update"].toVariant().toLongLong();
+        group->front_proxy_id = json["front_proxy_id"].toInt();
+        group->landing_proxy_id = json["landing_proxy_id"].toInt();
+        group->manually_column_width = json["manually_column_width"].toBool();
+        group->column_width = QJsonArray2QListInt(json["column_width"].toArray());
+        group->profiles = QJsonArray2QListInt(json["profiles"].toArray());
+        
+        return group;
+    }
+
+    void GroupsRepo::saveToDatabase(const Group* group, int id) const {
+        QMutexLocker locker(&mutex);
+        
+        // Serialize lists to JSON strings
+        QJsonArray columnWidthArray = QListInt2QJsonArray(group->column_width);
+        QJsonArray profilesArray = QListInt2QJsonArray(group->profiles);
+        
+        QJsonDocument columnWidthDoc(columnWidthArray);
+        QJsonDocument profilesDoc(profilesArray);
+        
+        QString columnWidthJson = QString::fromUtf8(columnWidthDoc.toJson(QJsonDocument::Compact));
+        QString profilesJson = QString::fromUtf8(profilesDoc.toJson(QJsonDocument::Compact));
+        
+        // Check if group exists
+        auto checkQuery = db.query("SELECT id FROM groups WHERE id = ?", id);
+        bool exists = checkQuery && checkQuery->executeStep();
+        
+        if (exists) {
+            // Update
+            db.exec(R"(
+                UPDATE groups 
+                SET archive = ?, skip_auto_update = ?, name = ?, url = ?, info = ?,
+                    sub_last_update = ?, front_proxy_id = ?, landing_proxy_id = ?,
+                    manually_column_width = ?, column_width_json = ?, profiles_json = ?,
+                    updated_at = strftime('%s', 'now')
+                WHERE id = ?
+            )",
+                group->archive ? 1 : 0,
+                group->skip_auto_update ? 1 : 0,
+                group->name.toStdString(),
+                group->url.toStdString(),
+                group->info.toStdString(),
+                static_cast<long long>(group->sub_last_update),
+                group->front_proxy_id,
+                group->landing_proxy_id,
+                group->manually_column_width ? 1 : 0,
+                columnWidthJson.toStdString(),
+                profilesJson.toStdString(),
+                id
+            );
+        } else {
+            // Insert
+            db.exec(R"(
+                INSERT INTO groups 
+                (id, archive, skip_auto_update, name, url, info, sub_last_update,
+                 front_proxy_id, landing_proxy_id, manually_column_width, 
+                 column_width_json, profiles_json)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            )",
+                id,
+                group->archive ? 1 : 0,
+                group->skip_auto_update ? 1 : 0,
+                group->name.toStdString(),
+                group->url.toStdString(),
+                group->info.toStdString(),
+                static_cast<long long>(group->sub_last_update),
+                group->front_proxy_id,
+                group->landing_proxy_id,
+                group->manually_column_width ? 1 : 0,
+                columnWidthJson.toStdString(),
+                profilesJson.toStdString()
+            );
+        }
+    }
+
+    std::shared_ptr<Group> GroupsRepo::loadFromDatabase(int id) const {
+        auto query = db.query(R"(
+            SELECT id, archive, skip_auto_update, name, url, info, sub_last_update,
+                   front_proxy_id, landing_proxy_id, manually_column_width,
+                   column_width_json, profiles_json
+            FROM groups WHERE id = ?
+        )", id);
+        if (!query || !query->executeStep()) {
+            return nullptr;
+        }
+        
+        QJsonObject json;
+        json["id"] = query->getColumn(0).getInt();
+        json["archive"] = query->getColumn(1).getInt() != 0;
+        json["skip_auto_update"] = query->getColumn(2).getInt() != 0;
+        json["name"] = QString::fromStdString(query->getColumn(3).getText());
+        json["url"] = QString::fromStdString(query->getColumn(4).getText());
+        json["info"] = QString::fromStdString(query->getColumn(5).getText());
+        json["sub_last_update"] = query->getColumn(6).getInt64();
+        json["front_proxy_id"] = query->getColumn(7).getInt();
+        json["landing_proxy_id"] = query->getColumn(8).getInt();
+        json["manually_column_width"] = query->getColumn(9).getInt() != 0;
+        
+        // Parse JSON arrays
+        QString columnWidthJsonStr = QString::fromStdString(query->getColumn(10).getText());
+        if (!columnWidthJsonStr.isEmpty()) {
+            QJsonDocument columnWidthDoc = QJsonDocument::fromJson(columnWidthJsonStr.toUtf8());
+            if (!columnWidthDoc.isNull() && columnWidthDoc.isArray()) {
+                json["column_width"] = columnWidthDoc.array();
+            }
+        }
+        
+        QString profilesJsonStr = QString::fromStdString(query->getColumn(11).getText());
+        if (!profilesJsonStr.isEmpty()) {
+            QJsonDocument profilesDoc = QJsonDocument::fromJson(profilesJsonStr.toUtf8());
+            if (!profilesDoc.isNull() && profilesDoc.isArray()) {
+                json["profiles"] = profilesDoc.array();
+            }
+        }
+        
+        return groupFromJson(json);
+    }
+
+    std::shared_ptr<Group> GroupsRepo::NewGroup() {
+        return std::make_shared<Group>();
+    }
+
+    bool GroupsRepo::AddGroup(std::shared_ptr<Group>& group) {
+        QMutexLocker locker(&mutex);
+        
+        if (group->id >= 0) {
+            return false; // Already has an ID
+        }
+        
+        int newId = NewGroupID();
+        group->id = newId;
+        
+        // Save to database first
+        saveToDatabase(group.get(), newId);
+        
+        // Add to order (append to end)
+        int maxOrder = -1;
+        auto maxOrderQuery = db.query("SELECT MAX(display_order) FROM groups_order");
+        if (maxOrderQuery && maxOrderQuery->executeStep()) {
+            maxOrder = maxOrderQuery->getColumn(0).getInt();
+        }
+        db.exec("INSERT INTO groups_order (group_id, display_order) VALUES (?, ?)",
+            newId,
+            maxOrder + 1
+        );
+        
+        // Add to identity map
+        identityMap[newId] = std::weak_ptr<Group>(group);
+        
+        return true;
+    }
+
+    std::shared_ptr<Group> GroupsRepo::GetGroup(int id) const {
+        QMutexLocker locker(&mutex);
+        
+        // Check identity map first
+        auto it = identityMap.find(id);
+        if (it != identityMap.end()) {
+            auto shared = it->second.lock();
+            if (shared) {
+                return shared; // Return existing instance
+            } else {
+                // Weak pointer expired, remove from map
+                identityMap.erase(it);
+            }
+        }
+        
+        // Load from database
+        auto group = loadFromDatabase(id);
+        if (!group) {
+            return nullptr;
+        }
+        
+        // Add to identity map
+        identityMap[id] = std::weak_ptr<Group>(group);
+        
+        return group;
+    }
+
+    void GroupsRepo::DeleteGroup(int id) {
+        QMutexLocker locker(&mutex);
+        
+        // Remove from identity map
+        identityMap.erase(id);
+        
+        // Remove from order
+        db.exec("DELETE FROM groups_order WHERE group_id = ?", id);
+        
+        // Delete from database
+        db.exec("DELETE FROM groups WHERE id = ?", id);
+    }
+
+    QList<int> GroupsRepo::GetAllGroupIds() const {
+        QMutexLocker locker(&mutex);
+        
+        QList<int> ids;
+        auto query = db.query("SELECT id FROM groups ORDER BY id");
+        if (query) {
+            while (query->executeStep()) {
+                ids.append(query->getColumn(0).getInt());
+            }
+        }
+        return ids;
+    }
+
+    int GroupsRepo::NewGroupID() const {
+        // Atomically increment and get the new ID using RETURNING clause
+        // Note: This method is called from within methods that already hold the mutex lock
+        auto query = db.query("UPDATE entity_ids SET group_last_id = group_last_id + 1 RETURNING group_last_id");
+        if (query && query->executeStep()) {
+            return query->getColumn(0).getInt();
+        }
+        
+        // Fallback if RETURNING is not supported (shouldn't happen with modern SQLite)
+        return 0;
+    }
+
+    QList<int> GroupsRepo::GetGroupsTabOrder() const {
+        QMutexLocker locker(&mutex);
+        
+        QList<int> order;
+        auto query = db.query("SELECT group_id FROM groups_order ORDER BY display_order");
+        if (query) {
+            while (query->executeStep()) {
+                order.append(query->getColumn(0).getInt());
+            }
+        }
+        return order;
+    }
+
+    void GroupsRepo::SetGroupsTabOrder(const QList<int>& order) {
+        QMutexLocker locker(&mutex);
+        
+        // Clear existing order
+        db.exec("DELETE FROM groups_order");
+        
+        // Insert new order
+        int displayOrder = 0;
+        for (int groupId : order) {
+            db.exec("INSERT INTO groups_order (group_id, display_order) VALUES (?, ?)",
+                groupId,
+            displayOrder++
+            );
+        }
+    }
+
+    bool GroupsRepo::Save(const std::shared_ptr<Group>& group) {
+        if (!group) {
+            return false;
+        }
+        
+        if (group->id < 0) {
+            return false; // Group doesn't have an ID, use AddGroup instead
+        }
+        
+        QMutexLocker locker(&mutex);
+        
+        // Save to database
+        saveToDatabase(group.get(), group->id);
+        
+        // Update identity map
+        identityMap[group->id] = std::weak_ptr<Group>(group);
+        
+        return true;
+    }
+}

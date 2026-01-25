@@ -308,8 +308,8 @@ namespace Configs {
         return ent;
     }
 
-    std::shared_ptr<Group> ProfileManager::NewGroup() {
-        auto ent = std::make_shared<Group>();
+    std::shared_ptr<GroupDeprecated> ProfileManager::NewGroup() {
+        auto ent = std::make_shared<GroupDeprecated>();
         return ent;
     }
 
@@ -385,7 +385,7 @@ namespace Configs {
 
     void ProfileManager::BatchDeleteProfiles(const QList<int>& ids)
     {
-        QSet<std::shared_ptr<Group>> changed_groups;
+        QSet<std::shared_ptr<GroupDeprecated>> changed_groups;
         QSet<int> deleted_ids;
         for (auto id : ids)
         {
@@ -444,8 +444,8 @@ namespace Configs {
     }
     // Group
 
-    std::shared_ptr<Group> ProfileManager::LoadGroup(const QString &jsonPath) {
-        auto ent = std::make_shared<Group>();
+    std::shared_ptr<GroupDeprecated> ProfileManager::LoadGroup(const QString &jsonPath) {
+        auto ent = std::make_shared<GroupDeprecated>();
         ent->fn = jsonPath;
         ent->Load();
         return ent;
@@ -459,7 +459,7 @@ namespace Configs {
         }
     }
 
-    bool ProfileManager::AddGroup(const std::shared_ptr<Group> &ent) {
+    bool ProfileManager::AddGroup(const std::shared_ptr<GroupDeprecated> &ent) {
         if (ent->id >= 0) {
             return false;
         }
@@ -487,11 +487,11 @@ namespace Configs {
         QFile(QString("groups/%1.json").arg(gid)).remove();
     }
 
-    std::shared_ptr<Group> ProfileManager::GetGroup(int id) {
+    std::shared_ptr<GroupDeprecated> ProfileManager::GetGroup(int id) {
         return groups.count(id) ? groups[id] : nullptr;
     }
 
-    std::shared_ptr<Group> ProfileManager::CurrentGroup() {
+    std::shared_ptr<GroupDeprecated> ProfileManager::CurrentGroup() {
         return GetGroup(dataStore->current_group);
     }
 

@@ -1,6 +1,7 @@
+#pragma once
+
 #include <3rdparty/SQLiteCpp/include/SQLiteCpp.h>
 #include <string>
-#include <vector>
 #include <iostream>
 
 class Database {
@@ -8,7 +9,10 @@ class Database {
 
 public:
     Database(const std::string& path) 
-        : db(path, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE) {}
+        : db(path, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE) {
+        // Enable foreign key support
+        db.exec("PRAGMA foreign_keys = ON");
+    }
 
     // 1. Recursive template to bind arguments one by one
     template<typename T, typename... Rest>

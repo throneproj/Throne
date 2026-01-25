@@ -4,7 +4,7 @@
 
 namespace Configs
 {
-    Group::Group() {
+    GroupDeprecated::GroupDeprecated() {
         _add(new configItem("id", &id, itemType::integer));
         _add(new configItem("front_proxy_id", &front_proxy_id, itemType::integer));
         _add(new configItem("landing_proxy_id", &landing_proxy_id, itemType::integer));
@@ -19,11 +19,11 @@ namespace Configs
         _add(new configItem("column_width", &column_width, itemType::integerList));
     }
 
-    QList<int> Group::Profiles() const {
+    QList<int> GroupDeprecated::Profiles() const {
         return profiles;
     }
 
-    QList<std::shared_ptr<ProxyEntity>> Group::GetProfileEnts() const
+    QList<std::shared_ptr<ProxyEntity>> GroupDeprecated::GetProfileEnts() const
     {
         auto res = QList<std::shared_ptr<ProxyEntity>>{};
         for (auto id : profiles)
@@ -34,7 +34,7 @@ namespace Configs
     }
 
 
-    bool Group::AddProfile(int id)
+    bool GroupDeprecated::AddProfile(int id)
     {
         if (HasProfile(id))
         {
@@ -44,21 +44,21 @@ namespace Configs
         return true;
     }
 
-    bool Group::RemoveProfile(int id)
+    bool GroupDeprecated::RemoveProfile(int id)
     {
         if (!HasProfile(id)) return false;
         profiles.removeAll(id);
         return true;
     }
 
-    bool Group::SwapProfiles(int idx1, int idx2)
+    bool GroupDeprecated::SwapProfiles(int idx1, int idx2)
     {
         if (profiles.size() <= idx1 || profiles.size() <= idx2) return false;
         profiles.swapItemsAt(idx1, idx2);
         return true;
     }
 
-    bool Group::EmplaceProfile(int idx, int newIdx)
+    bool GroupDeprecated::EmplaceProfile(int idx, int newIdx)
     {
         if (profiles.size() <= idx || profiles.size() <= newIdx) return false;
         profiles.insert(newIdx+1, profiles[idx]);
@@ -67,7 +67,7 @@ namespace Configs
         return true;
     }
 
-    bool Group::HasProfile(int id) const
+    bool GroupDeprecated::HasProfile(int id) const
     {
         return profiles.contains(id);
     }

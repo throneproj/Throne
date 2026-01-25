@@ -18,7 +18,7 @@ namespace Configs {
         // Manager
 
         std::map<int, std::shared_ptr<ProxyEntity>> profiles;
-        std::map<int, std::shared_ptr<Group>> groups;
+        std::map<int, std::shared_ptr<GroupDeprecated>> groups;
         std::map<int, std::shared_ptr<RoutingChain>> routes;
 
         ProfileManager();
@@ -30,7 +30,7 @@ namespace Configs {
 
         [[nodiscard]] static std::shared_ptr<ProxyEntity> NewProxyEntity(const QString &type);
 
-        [[nodiscard]] static std::shared_ptr<Group> NewGroup();
+        [[nodiscard]] static std::shared_ptr<GroupDeprecated> NewGroup();
 
         [[nodiscard]] static std::shared_ptr<RoutingChain> NewRouteChain();
 
@@ -44,13 +44,13 @@ namespace Configs {
 
         std::shared_ptr<ProxyEntity> GetProfile(int id);
 
-        bool AddGroup(const std::shared_ptr<Group> &ent);
+        bool AddGroup(const std::shared_ptr<GroupDeprecated> &ent);
 
         void DeleteGroup(int gid);
 
-        std::shared_ptr<Group> GetGroup(int id);
+        std::shared_ptr<GroupDeprecated> GetGroup(int id);
 
-        std::shared_ptr<Group> CurrentGroup();
+        std::shared_ptr<GroupDeprecated> CurrentGroup();
 
         bool AddRouteChain(const std::shared_ptr<RoutingChain>& chain);
 
@@ -77,7 +77,7 @@ namespace Configs {
 
         static std::shared_ptr<ProxyEntity> LoadProxyEntity(const QString &jsonPath);
 
-        static std::shared_ptr<Group> LoadGroup(const QString &jsonPath);
+        static std::shared_ptr<GroupDeprecated> LoadGroup(const QString &jsonPath);
 
         static std::shared_ptr<RoutingChain> LoadRouteChain(const QString &jsonPath);
 

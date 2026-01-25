@@ -317,6 +317,23 @@ set(PROJECT_SOURCES
         include/database/GroupsRepo.h
         include/database/RoutesRepo.h
         include/database/SettingsRepo.h
+
+        include/database/entities/Profile.h
+        include/database/entities/Group.h
+        include/database/entities/RouteProfile.h
+        include/database/entities/RouteRule.h
+
+        src/database/entities/Profile.cpp
+        src/database/entities/Group.cpp
+        src/database/entities/RouteProfile.cpp
+        src/database/entities/RouteRule.cpp
+
+        src/database/ProfilesRepo.cpp
+        src/database/GroupsRepo.cpp
+        src/database/RoutesRepo.cpp
+
+        include/database/DatabaseManager.h
+        src/database/DatabaseManager.cpp
 )
 
 if (NOT APPLE AND Qt6_VERSION VERSION_GREATER_EQUAL 6.9.0)

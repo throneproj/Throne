@@ -1,11 +1,10 @@
 #pragma once
 
-#include "ProxyEntity.hpp"
 #include "include/global/Configs.hpp"
 
 namespace Configs
 {
-    class GroupDeprecated : public JsonStore {
+    class Group {
     public:
         int id = -1;
         bool archive = false;
@@ -22,11 +21,9 @@ namespace Configs
         QList<int> column_width;
         QList<int> profiles;
 
-        GroupDeprecated();
+        Group() = default;
 
         [[nodiscard]] QList<int> Profiles() const;
-
-        [[nodiscard]] QList<std::shared_ptr<ProxyEntity>> GetProfileEnts() const;
 
         bool RemoveProfile(int id);
 

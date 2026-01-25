@@ -52,11 +52,11 @@ namespace Configs {
         return ruleSet;
     }
 
-    class RouteRule : public JsonStore {
+    class RouteRuleDeprecated : public JsonStore {
     public:
-        RouteRule();
+        RouteRuleDeprecated();
 
-        RouteRule(const RouteRule& other);
+        RouteRuleDeprecated(const RouteRuleDeprecated& other);
 
         QString name = "";
         int type = custom;
@@ -106,7 +106,7 @@ namespace Configs {
         static QStringList get_attributes();
         static inputType get_input_type(const QString& fieldName);
         static QStringList get_values_for_field(const QString& fieldName);
-        static std::shared_ptr<RouteRule> get_processPath_direct_rule(QString processPath);
+        static std::shared_ptr<RouteRuleDeprecated> get_processPath_direct_rule(QString processPath);
         QStringList get_current_value_string(const QString& fieldName);
         [[nodiscard]] QString get_current_value_bool(const QString& fieldName) const;
         void set_field_value(const QString& fieldName, const QStringList& value);
@@ -117,7 +117,7 @@ namespace Configs {
     public:
         int id = -1;
         QString name = "";
-        QList<std::shared_ptr<RouteRule>> Rules;
+        QList<std::shared_ptr<RouteRuleDeprecated>> Rules;
         QList<JsonStore*> castedRules;
         int defaultOutboundID = proxyID;
 
@@ -125,7 +125,7 @@ namespace Configs {
 
         RoutingChain(const RoutingChain& other);
 
-        static QList<std::shared_ptr<RouteRule>> parseJsonArray(const QJsonArray& arr, QString* parseError);
+        static QList<std::shared_ptr<RouteRuleDeprecated>> parseJsonArray(const QJsonArray& arr, QString* parseError);
 
         bool Save() override;
 
@@ -149,10 +149,10 @@ namespace Configs {
     private:
         static bool need_add_simple_rule_item(const QString& content, ruleType type);
 
-        static bool add_simple_rule(const QString& content, const std::shared_ptr<RouteRule>& rule, ruleType type);
+        static bool add_simple_rule(const QString& content, const std::shared_ptr<RouteRuleDeprecated>& rule, ruleType type);
 
-        static bool add_simple_address_rule(const QString& content, const std::shared_ptr<RouteRule>& rule);
+        static bool add_simple_address_rule(const QString& content, const std::shared_ptr<RouteRuleDeprecated>& rule);
 
-        static bool add_simple_process_rule(const QString& content, const std::shared_ptr<RouteRule>& rule, ruleType type);
+        static bool add_simple_process_rule(const QString& content, const std::shared_ptr<RouteRuleDeprecated>& rule, ruleType type);
     };
 } // namespace Configs
