@@ -2480,8 +2480,10 @@ void MainWindow::loadShortcuts()
     for (QList<QAction *> actions = findChildren<QAction *>(); QAction *action : actions)
     {
         if (action->data().isNull() || action->data().toString().isEmpty()) continue;
-        if (mp.count(action->data().toString()) == 0) action->setShortcut(QKeySequence());
-        else action->setShortcut(mp[action->data().toString()]);
+        // Only apply saved shortcut if user has defined one; preserve default UI shortcuts otherwise
+        if (mp.count(action->data().toString()) > 0) {
+            action->setShortcut(mp[action->data().toString()]);
+        }
     }
 
     RegisterHiddenMenuShortcuts();

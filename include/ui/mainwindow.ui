@@ -657,6 +657,9 @@
    <property name="text">
     <string>Exit</string>
    </property>
+   <property name="shortcut">
+    <string notr="true">Ctrl+Shift+W</string>
+   </property>
   </action>
   <action name="actionShow_window">
    <property name="text">
@@ -667,15 +670,24 @@
    <property name="text">
     <string>Basic Settings</string>
    </property>
+   <property name="shortcut">
+    <string notr="true">Ctrl+,</string>
+   </property>
   </action>
   <action name="menu_add_from_input">
    <property name="text">
     <string>New profile</string>
    </property>
+   <property name="shortcut">
+    <string notr="true">Ctrl+N</string>
+   </property>
   </action>
   <action name="menu_manage_groups">
    <property name="text">
     <string>Groups</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true">Ctrl+G</string>
    </property>
   </action>
   <action name="menu_start">
@@ -697,6 +709,9 @@
   <action name="menu_routing_settings">
    <property name="text">
     <string>Routing Settings</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true">Ctrl+Shift+O</string>
    </property>
   </action>
   <action name="menu_add_from_clipboard">
@@ -781,6 +796,9 @@
   <action name="menu_scan_qr">
    <property name="text">
     <string>Scan QR Code</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true">Ctrl+Shift+Q</string>
    </property>
   </action>
   <action name="menu_spmode_system_proxy">
@@ -867,6 +885,9 @@
    <property name="text">
     <string>Hotkey Settings</string>
    </property>
+   <property name="shortcut">
+    <string notr="true">Ctrl+K</string>
+   </property>
   </action>
   <action name="menu_select_all">
    <property name="text">
@@ -947,15 +968,24 @@
    <property name="text">
     <string>Tun Settings</string>
    </property>
+   <property name="shortcut">
+    <string notr="true">Ctrl+T</string>
+   </property>
   </action>
   <action name="actionRestart_Program">
    <property name="text">
     <string>Restart Program</string>
    </property>
+   <property name="shortcut">
+    <string notr="true">Ctrl+F5</string>
+   </property>
   </action>
   <action name="menu_open_config_folder">
    <property name="text">
     <string>Open Config Folder</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true">Ctrl+Shift+E</string>
    </property>
   </action>
   <action name="actionfake_4">
@@ -978,10 +1008,16 @@
    <property name="text">
     <string>Restart Proxy</string>
    </property>
+   <property name="shortcut">
+    <string notr="true">F5</string>
+   </property>
   </action>
   <action name="menu_stop_testing">
    <property name="text">
     <string>Stop Testing</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true">Ctrl+.</string>
    </property>
   </action>
   <action name="actionUrl_Test_Selected">
@@ -1037,25 +1073,40 @@
    <property name="text">
     <string>Speedtest Current</string>
    </property>
+   <property name="shortcut">
+    <string notr="true">F6</string>
+   </property>
   </action>
   <action name="actionSpeedtest_Selected">
    <property name="text">
     <string>Speedtest Selected</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true">Ctrl+Shift+P</string>
    </property>
   </action>
   <action name="actionSpeedtest_Group">
    <property name="text">
     <string>Speedtest Group</string>
    </property>
+   <property name="shortcut">
+    <string notr="true">Ctrl+Alt+P</string>
+   </property>
   </action>
   <action name="actionHide_window">
    <property name="text">
     <string>Hide window</string>
    </property>
+   <property name="shortcut">
+    <string notr="true">Ctrl+H</string>
+   </property>
   </action>
   <action name="actionAdd_profile_from_File">
    <property name="text">
     <string>Add profile from File</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true">Ctrl+O</string>
    </property>
   </action>
  </widget>
