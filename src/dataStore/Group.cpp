@@ -28,7 +28,12 @@ namespace Configs
         auto res = QList<std::shared_ptr<ProxyEntity>>{};
         for (auto id : profiles)
         {
-            res.append(profileManager->GetProfile(id));
+            auto ent = profileManager->GetProfile(id);
+            if (ent) {
+                res.append(ent);
+            } else {
+                qDebug() << "Found missing profile ID:" << id;
+            }
         }
         return res;
     }
