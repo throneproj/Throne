@@ -4,6 +4,8 @@
 #include "include/ui/mainwindow_interface.h"
 #include <include/stats/connections/connectionLister.hpp>
 
+
+
 namespace Stats
 {
     ConnectionLister* connection_lister = new ConnectionLister();
@@ -28,7 +30,7 @@ namespace Stats
             if (stop) return;
             QThread::msleep(1000);
 
-            if (suspend || !Configs::dataStore->enable_stats) continue;
+            if (suspend || !Configs::dataManager->settingsRepo->enable_stats) continue;
 
             mu.lock();
             update();

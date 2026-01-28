@@ -1,9 +1,9 @@
 #include "include/ui/profile/edit_chain.h"
 
+
+#include "include/database/ProfilesRepo.h"
 #include "include/ui/mainwindow_interface.h"
 #include "include/ui/profile/ProxyItem.h"
-
-#include "include/dataStore/Database.hpp"
 
 EditChain::EditChain(QWidget *parent) : QWidget(parent), ui(new Ui::EditChain) {
     ui->setupUi(this);
@@ -13,7 +13,7 @@ EditChain::~EditChain() {
     delete ui;
 }
 
-void EditChain::onStart(std::shared_ptr<Configs::ProxyEntity> _ent) {
+void EditChain::onStart(std::shared_ptr<Configs::Profile> _ent) {
     this->ent = _ent;
     auto outbound = this->ent->Chain();
 
@@ -48,7 +48,7 @@ void EditChain::on_select_profile_clicked() {
 }
 
 void EditChain::AddProfileToListIfExist(int profileId) {
-    auto _ent = Configs::profileManager->GetProfile(profileId);
+    auto _ent = Configs::dataManager->profilesRepo->GetProfile(profileId);
     if (_ent != nullptr && _ent->type != "chain" && _ent->type != "extracore") {
         auto wI = new QListWidgetItem();
         wI->setData(114514, profileId);
@@ -67,7 +67,7 @@ void EditChain::AddProfileToListIfExist(int profileId) {
 }
 
 void EditChain::ReplaceProfile(ProxyItem *w, int profileId) {
-    auto _ent = Configs::profileManager->GetProfile(profileId);
+    auto _ent = Configs::dataManager->profilesRepo->GetProfile(profileId);
     if (_ent != nullptr && _ent->type != "chain" && _ent->type != "extracore") {
         w->item->setData(114514, profileId);
         w->ent = _ent;

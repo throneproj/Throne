@@ -19,16 +19,14 @@
 #include "include/configs/outbounds/vmess.h"
 #include "include/configs/outbounds/xrayVless.h"
 
-#include "include/global/Configs.hpp"
 #include "include/global/CountryHelper.hpp"
 #include "include/stats/traffic/TrafficData.hpp"
-#include "include/configs/proxy/AbstractBean.hpp"
-#include "include/configs/proxy/ExtraCore.h"
 
 namespace Configs {
     class Profile {
     public:
         QString type;
+        QString name;
 
         int id = -1;
         int gid = 0;
@@ -36,14 +34,13 @@ namespace Configs {
         QString dl_speed;
         QString ul_speed;
         QString test_country;
-        std::shared_ptr<Configs::AbstractBean> _bean;
         std::shared_ptr<Configs::outbound> outbound;
         std::shared_ptr<Stats::TrafficData> traffic_data = std::make_shared<Stats::TrafficData>("");
 
         QString full_test_report;
 
         Profile() = default;
-        Profile(Configs::outbound *outbound, Configs::AbstractBean *bean, const QString &type_);
+        Profile(Configs::outbound *outbound, const QString &type_);
 
         [[nodiscard]] QString DisplayTestResult() const;
 
@@ -112,5 +109,31 @@ namespace Configs {
         [[nodiscard]] Configs::extracore *ExtraCore() const {
             return dynamic_cast<Configs::extracore *>(outbound.get());
         };
+    };
+    class ProfileFilter {
+    public:
+        static void Uniq(
+            const QList<std::shared_ptr<Profile>> &in,
+            QList<std::shared_ptr<Profile>> &out,
+            bool keep_last = false   // def keep first
+        );
+
+        static void Common(
+            const QList<std::shared_ptr<Profile>> &src,
+            const QList<std::shared_ptr<Profile>> &dst,
+            QList<std::shared_ptr<Profile>> &outSrc,
+            QList<std::shared_ptr<Profile>> &outDst
+        );
+
+        static void OnlyInSrc(
+            const QList<std::shared_ptr<Profile>> &src,
+            const QList<std::shared_ptr<Profile>> &dst,
+            QList<std::shared_ptr<Profile>> &out
+        );
+
+        static void OnlyInSrc_ByPointer(
+            const QList<std::shared_ptr<Profile>> &src,
+            const QList<std::shared_ptr<Profile>> &dst,
+            QList<std::shared_ptr<Profile>> &out);
     };
 } // namespace Configs

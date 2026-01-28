@@ -18,11 +18,11 @@ public:
 
     ~EditTailScale() override;
 
-    void onStart(std::shared_ptr<Configs::ProxyEntity> _ent) override;
+    void onStart(std::shared_ptr<Configs::Profile> _ent) override;
 
     bool onEnd() override;
 
 private:
     Ui::EditTailScale *ui;
-    std::shared_ptr<Configs::ProxyEntity> ent;
+    std::shared_ptr<Configs::Profile> ent;
 };

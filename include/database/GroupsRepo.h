@@ -5,10 +5,7 @@
 #include <memory>
 #include <mutex>
 #include <map>
-#include <QString>
 #include <QJsonObject>
-#include <QJsonDocument>
-#include <QMutex>
 
 namespace Configs {
     class GroupsRepo {
@@ -44,6 +41,9 @@ namespace Configs {
         
         // Get group by ID (uses identity map)
         std::shared_ptr<Group> GetGroup(int id) const;
+        
+        // Get current group (reads current_group from SettingsRepo and returns the group)
+        std::shared_ptr<Group> CurrentGroup() const;
         
         // Delete group from database
         void DeleteGroup(int id);

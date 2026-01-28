@@ -1,9 +1,11 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include "include/database/entities/RouteProfile.h"
-#include "include/dataStore/Database.hpp"
-#include "include/configs/proxy/Preset.hpp"
 #include <iostream>
+
+#include "include/database/ProfilesRepo.h"
+
+#include "include/global/Configs.hpp"
 
 namespace Configs {
     bool isOutboundIDValid(int id) {
@@ -13,16 +15,14 @@ namespace Configs {
             case -2:
                 return true;
             default:
-                return profileManager->profiles.count(id) > 0;
+                return Configs::dataManager->profilesRepo->GetProfile(id) != nullptr;
         }
     }
 
     int getOutboundID(const QString& name) {
         if (name == "proxy") return -1;
         if (name == "direct") return -2;
-        for (const auto& item: profileManager->profiles) {
-            if (item.second->outbound->name == name) return item.first;
-        }
+        if (auto profile = Configs::dataManager->profilesRepo->GetProfileByName(name)) return profile->id;
 
         return INVALID_ID;
     }
@@ -103,13 +103,13 @@ namespace Configs {
                 MW_show_log("Aborted generating routing section, an error has occurred");
                 return {};
             }
-            if (!added_adblock && Configs::dataStore->adblock_enable && rule_json["action"] == "route") {
+            if (!added_adblock && Configs::dataManager->settingsRepo->adblock_enable && rule_json["action"] == "route") {
                 res += createAdblockRule();
                 added_adblock = true;
             }                
             res += rule_json;
         }
-        if (!added_adblock && Configs::dataStore->adblock_enable)
+        if (!added_adblock && Configs::dataManager->settingsRepo->adblock_enable)
             res += createAdblockRule();
 
         return res;

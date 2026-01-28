@@ -7,13 +7,15 @@
 #include <QJsonDocument>
 #include <QElapsedTimer>
 
+
+
 namespace Stats {
 
     TrafficLooper *trafficLooper = new TrafficLooper;
     QElapsedTimer elapsedTimer;
 
     void TrafficLooper::UpdateAll() {
-        if (Configs::dataStore->disable_traffic_stats) {
+        if (Configs::dataManager->settingsRepo->disable_traffic_stats) {
             return;
         }
 
@@ -69,7 +71,7 @@ namespace Stats {
         while (true) {
             QThread::msleep(1000); // refresh every one second
 
-            if (Configs::dataStore->disable_traffic_stats) {
+            if (Configs::dataManager->settingsRepo->disable_traffic_stats) {
                 continue;
             }
 

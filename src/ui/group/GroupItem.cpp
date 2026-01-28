@@ -6,6 +6,9 @@
 
 #include <QMessageBox>
 
+#include "include/database/GroupsRepo.h"
+
+
 QString ParseSubInfo(const QString &info) {
     if (info.trimmed().isEmpty()) return "";
 
@@ -105,7 +108,7 @@ void GroupItem::on_edit_clicked() {
     auto dialog = new DialogEditGroup(ent, parentWindow);
     connect(dialog, &QDialog::finished, this, [=,this] {
         if (dialog->result() == QDialog::Accepted) {
-            ent->Save();
+            Configs::dataManager->groupsRepo->Save(ent);
             refresh_data();
             MW_dialog_message(Dialog_DialogManageGroups, "refresh" + Int2String(ent->id));
         }
@@ -115,10 +118,10 @@ void GroupItem::on_edit_clicked() {
 }
 
 void GroupItem::on_remove_clicked() {
-    if (Configs::profileManager->groups.size() <= 1) return;
+    if (Configs::dataManager->groupsRepo->GetAllGroupIds().size() <= 1) return;
     if (QMessageBox::question(this, tr("Confirmation"), tr("Remove %1?").arg(ent->name)) ==
         QMessageBox::StandardButton::Yes) {
-        Configs::profileManager->DeleteGroup(ent->id);
+        Configs::dataManager->groupsRepo->DeleteGroup(ent->id);
         MW_dialog_message(Dialog_DialogManageGroups, "refresh-1");
         delete item;
     }

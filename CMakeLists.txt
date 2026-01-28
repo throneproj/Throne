@@ -107,15 +107,7 @@ set(PROJECT_SOURCES
 
         src/api/RPC.cpp
 
-        src/dataStore/Database.cpp
         src/stats/traffic/TrafficLooper.cpp
-        src/dataStore/ProfileFilter.cpp
-
-        src/configs/proxy/AbstractBean.cpp
-        src/configs/proxy/Bean2CoreObj_box.cpp
-        src/configs/proxy/Bean2Link.cpp
-        src/configs/proxy/Link2Bean.cpp
-        include/configs/proxy/ChainBean.hpp # translate
 
         include/configs/sub/GroupUpdater.hpp
         src/configs/sub/GroupUpdater.cpp
@@ -158,7 +150,6 @@ set(PROJECT_SOURCES
         include/ui/profile/edit_tailscale.h
         src/ui/profile/edit_tailscale.cpp
         include/ui/profile/edit_tailscale.ui
-        include/configs/proxy/Tailscale.hpp
         include/ui/profile/edit_trojan.h
         src/ui/profile/edit_trojan.cpp
         include/ui/profile/edit_trojan.ui
@@ -219,13 +210,10 @@ set(PROJECT_SOURCES
 
         res/Throne.qrc
         ${QV2RAY_RC}
-        include/dataStore/RouteEntity.h
-        src/dataStore/RouteEntity.cpp
         res/darkstyle.qrc
         src/ui/profile/edit_ssh.cpp
         include/ui/profile/edit_ssh.h
         include/ui/profile/edit_ssh.ui
-        include/configs/proxy/SSHBean.h
         include/sys/macos/MacOS.h
 
         src/sys/linux/LinuxCap.cpp
@@ -237,10 +225,7 @@ set(PROJECT_SOURCES
         include/ui/mainwindow_interface.h
         include/stats/connections/connectionLister.hpp
         src/stats/connectionLister/connectionLister.cpp
-        src/configs/proxy/Json2Bean.cpp
         include/sys/windows/eventHandler.h
-        src/dataStore/Group.cpp
-        src/dataStore/ProxyEntity.cpp
         include/configs/baseConfig.h
         include/configs/common/DialFields.h
         include/configs/common/TLS.h
@@ -334,6 +319,9 @@ set(PROJECT_SOURCES
 
         include/database/DatabaseManager.h
         src/database/DatabaseManager.cpp
+
+        include/database/SettingsRepo.h
+        src/database/SettingsRepo.cpp
 )
 
 if (NOT APPLE AND Qt6_VERSION VERSION_GREATER_EQUAL 6.9.0)

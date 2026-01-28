@@ -12,7 +12,7 @@ EditVMess::~EditVMess() {
     delete ui;
 }
 
-void EditVMess::onStart(std::shared_ptr<Configs::ProxyEntity> _ent) {
+void EditVMess::onStart(std::shared_ptr<Configs::Profile> _ent) {
     this->ent = _ent;
     auto outbound = this->ent->VMess();
 

@@ -17,7 +17,7 @@ public:
 
     ~EditHysteria() override;
 
-    void onStart(std::shared_ptr<Configs::ProxyEntity> _ent) override;
+    void onStart(std::shared_ptr<Configs::Profile> _ent) override;
 
     bool onEnd() override;
 
@@ -26,7 +26,7 @@ public:
     void editHysteriaLayout(const QString& version);
 private:
     Ui::EditHysteria *ui;
-    std::shared_ptr<Configs::ProxyEntity> ent;
+    std::shared_ptr<Configs::Profile> ent;
 };
 
 #endif

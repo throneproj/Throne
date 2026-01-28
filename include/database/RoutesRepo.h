@@ -2,7 +2,6 @@
 
 #include "Database.h"
 #include "include/database/entities/RouteProfile.h"
-#include "include/database/entities/RouteRule.h"
 #include <memory>
 #include <mutex>
 #include <map>
@@ -61,6 +60,8 @@ namespace Configs {
         
         // Get all route profile IDs in order
         QList<int> GetAllRouteProfileIds() const;
+
+        QList<std::shared_ptr<RouteProfile>> GetAllRouteProfiles() const;
         
         // Get next available route profile ID
         int NewRouteProfileID() const;

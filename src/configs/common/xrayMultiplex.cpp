@@ -2,6 +2,9 @@
 
 #include <QUrlQuery>
 
+
+
+
 namespace Configs {
     bool xrayMultiplex::ParseFromLink(const QString &link) {
         auto url = QUrl(link);
@@ -42,9 +45,9 @@ namespace Configs {
 
     BuildResult xrayMultiplex::Build() {
         auto obj = ExportToJson();
-        if (useDefault && dataStore->xray_mux_default_on) obj["enabled"] = true;
+        if (useDefault && Configs::dataManager->settingsRepo->xray_mux_default_on) obj["enabled"] = true;
         if (!obj["enabled"].toBool()) return {{}, ""};
-        if (dataStore->xray_mux_concurrency > 0 && concurrency <= 0) obj["concurrency"] = concurrency;
+        if (Configs::dataManager->settingsRepo->xray_mux_concurrency > 0 && concurrency <= 0) obj["concurrency"] = concurrency;
         if (xudpConcurrency > 0) obj["xudpConcurrency"] = xudpConcurrency;
         return {obj, ""};
     }

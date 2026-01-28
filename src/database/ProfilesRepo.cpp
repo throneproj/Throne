@@ -1,14 +1,10 @@
 #include "include/database/ProfilesRepo.h"
-#include "include/database/entities/Profile.h"
-#include "include/configs/proxy/includes.h"
-#include "include/configs/common/Outbound.h"
-#include "include/stats/traffic/TrafficData.hpp"
-#include "include/global/Utils.hpp"
-#include "include/global/Configs.hpp"
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
-#include <QMutexLocker>
+
+
+
 
 namespace Configs {
     ProfilesRepo::ProfilesRepo(Database& database) : db(database) {
@@ -24,6 +20,7 @@ namespace Configs {
             CREATE TABLE IF NOT EXISTS profiles (
                 id INTEGER PRIMARY KEY,
                 type TEXT NOT NULL,
+                name TEXT,
                 gid INTEGER NOT NULL DEFAULT 0,
                 latency INTEGER NOT NULL DEFAULT 0,
                 dl_speed TEXT,
@@ -38,8 +35,9 @@ namespace Configs {
             )
         )");
         
-        // Create index for faster lookups
+        // Create indexes for faster lookups
         db.exec("CREATE INDEX IF NOT EXISTS idx_profiles_gid ON profiles(gid)");
+        db.exec("CREATE INDEX IF NOT EXISTS idx_profiles_name ON profiles(name)");
     }
 
     QJsonObject ProfilesRepo::profileToJson(const Profile* profile) const {
@@ -47,6 +45,7 @@ namespace Configs {
         
         // Simple fields
         json["type"] = profile->type;
+        json["name"] = profile->outbound->name;
         json["id"] = profile->id;
         json["gid"] = profile->gid;
         json["latency"] = profile->latency;
@@ -75,6 +74,7 @@ namespace Configs {
         
         // Simple fields
         profile->type = json["type"].toString();
+        profile->name = json["name"].toString();
         profile->id = json["id"].toInt();
         profile->gid = json["gid"].toInt();
         profile->latency = json["latency"].toInt();
@@ -130,7 +130,6 @@ namespace Configs {
         }
         
         profile->outbound = std::shared_ptr<Configs::outbound>(outbound);
-        profile->_bean = nullptr; // Bean is legacy, not used in new implementation
         profile->traffic_data = std::make_shared<Stats::TrafficData>("");
         
         // Parse complex objects from JSON
@@ -144,6 +143,8 @@ namespace Configs {
                 trafficJsonStore->FromJson(json["traffic"].toObject());
             }
         }
+        
+        profile->name = profile->outbound->name;
         
         return profile;
     }
@@ -172,6 +173,9 @@ namespace Configs {
             }
         }
         
+        // Sync name with outbound->name if outbound exists
+        QString name = profile->outbound->name;
+        
         // Check if profile exists
         auto checkQuery = db.query("SELECT id FROM profiles WHERE id = ?", id);
         bool exists = checkQuery && checkQuery->executeStep();
@@ -180,12 +184,13 @@ namespace Configs {
             // Update
             db.exec(R"(
                 UPDATE profiles 
-                SET type = ?, gid = ?, latency = ?, dl_speed = ?, ul_speed = ?, 
+                SET type = ?, name = ?, gid = ?, latency = ?, dl_speed = ?, ul_speed = ?, 
                     test_country = ?, full_test_report = ?, outbound_json = ?, 
                     traffic_json = ?, updated_at = strftime('%s', 'now')
                 WHERE id = ?
             )", 
                 profile->type.toStdString(),
+                name.toStdString(),
                 profile->gid,
                 profile->latency,
                 profile->dl_speed.toStdString(),
@@ -200,12 +205,13 @@ namespace Configs {
             // Insert
             db.exec(R"(
                 INSERT INTO profiles 
-                (id, type, gid, latency, dl_speed, ul_speed, test_country, 
+                (id, type, name, gid, latency, dl_speed, ul_speed, test_country, 
                  full_test_report, outbound_json, traffic_json)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             )",
                 id,
                 profile->type.toStdString(),
+                name.toStdString(),
                 profile->gid,
                 profile->latency,
                 profile->dl_speed.toStdString(),
@@ -220,7 +226,7 @@ namespace Configs {
 
     std::shared_ptr<Profile> ProfilesRepo::loadFromDatabase(int id) const {
         auto query = db.query(R"(
-            SELECT id, type, gid, latency, dl_speed, ul_speed, test_country, 
+            SELECT id, type, name, gid, latency, dl_speed, ul_speed, test_country, 
                    full_test_report, outbound_json, traffic_json
             FROM profiles WHERE id = ?
         )", id);
@@ -231,21 +237,22 @@ namespace Configs {
         QJsonObject json;
         json["id"] = query->getColumn(0).getInt();
         json["type"] = QString::fromStdString(query->getColumn(1).getText());
-        json["gid"] = query->getColumn(2).getInt();
-        json["latency"] = query->getColumn(3).getInt();
-        json["dl_speed"] = QString::fromStdString(query->getColumn(4).getText());
-        json["ul_speed"] = QString::fromStdString(query->getColumn(5).getText());
-        json["test_country"] = QString::fromStdString(query->getColumn(6).getText());
-        json["full_test_report"] = QString::fromStdString(query->getColumn(7).getText());
+        json["name"] = QString::fromStdString(query->getColumn(2).getText());
+        json["gid"] = query->getColumn(3).getInt();
+        json["latency"] = query->getColumn(4).getInt();
+        json["dl_speed"] = QString::fromStdString(query->getColumn(5).getText());
+        json["ul_speed"] = QString::fromStdString(query->getColumn(6).getText());
+        json["test_country"] = QString::fromStdString(query->getColumn(7).getText());
+        json["full_test_report"] = QString::fromStdString(query->getColumn(8).getText());
         
         // Parse complex objects
-        QString outboundJsonStr = QString::fromStdString(query->getColumn(8).getText());
+        QString outboundJsonStr = QString::fromStdString(query->getColumn(9).getText());
         QJsonDocument outboundDoc = QJsonDocument::fromJson(outboundJsonStr.toUtf8());
         if (!outboundDoc.isNull() && outboundDoc.isObject()) {
             json["outbound"] = outboundDoc.object();
         }
         
-        QString trafficJsonStr = QString::fromStdString(query->getColumn(9).getText());
+        QString trafficJsonStr = QString::fromStdString(query->getColumn(10).getText());
         if (!trafficJsonStr.isEmpty()) {
             QJsonDocument trafficDoc = QJsonDocument::fromJson(trafficJsonStr.toUtf8());
             if (!trafficDoc.isNull() && trafficDoc.isObject()) {
@@ -253,7 +260,9 @@ namespace Configs {
             }
         }
         
-        return profileFromJson(json);
+        auto profile = profileFromJson(json);
+
+        return profile;
     }
 
     std::shared_ptr<Profile> ProfilesRepo::NewProfile(const QString &type) {
@@ -298,7 +307,7 @@ namespace Configs {
         }
         
         // Bean is legacy, pass nullptr
-        return std::make_shared<Profile>(outbound, nullptr, type);
+        return std::make_shared<Profile>(outbound, type);
     }
 
     bool ProfilesRepo::AddProfile(std::shared_ptr<Profile>& profile, int gid) {
@@ -310,7 +319,7 @@ namespace Configs {
         
         int newId = NewProfileID();
         profile->id = newId;
-        profile->gid = gid < 0 ? dataStore->current_group : gid;
+        profile->gid = gid < 0 ? Configs::dataManager->settingsRepo->current_group : gid;
         
         // Save to database first
         saveToDatabase(profile.get(), newId);
@@ -324,7 +333,7 @@ namespace Configs {
     bool ProfilesRepo::AddProfileBatch(QList<std::shared_ptr<Profile>>& profiles, int gid) {
         QMutexLocker locker(&mutex);
         
-        gid = gid < 0 ? dataStore->current_group : gid;
+        gid = gid < 0 ? Configs::dataManager->settingsRepo->current_group : gid;
         
         for (auto& profile : profiles) {
             if (profile->id >= 0) continue; // Skip if already has ID
@@ -368,6 +377,51 @@ namespace Configs {
         identityMap[id] = std::weak_ptr<Profile>(profile);
         
         return profile;
+    }
+
+    QList<std::shared_ptr<Profile>> ProfilesRepo::GetProfileBatch(QList<int> ids) {
+        QMutexLocker locker(&mutex);
+        QList<std::shared_ptr<Profile>> profiles;
+        for (auto& id : ids) {
+            if (auto it = identityMap.find(id); it != identityMap.end()) {
+                if (auto shared = it->second.lock()) {
+                    profiles.push_back(shared);
+                    continue;
+                }
+            }
+            auto profile = loadFromDatabase(id);
+            if (!profile) {
+                MW_show_log("Failed to load profile from database, db is corrupted");
+                return {};
+            }
+            identityMap[id] = std::weak_ptr<Profile>(profile);
+            profiles.push_back(profile);
+        }
+
+        return profiles;
+    }
+
+    std::shared_ptr<Profile> ProfilesRepo::GetProfileByName(const QString& name) {
+        // Query by name using the index
+        auto query = db.query("SELECT id FROM profiles WHERE name = ? LIMIT 1", name.toStdString());
+        if (!query || !query->executeStep()) {
+            return nullptr;
+        }
+        
+        int id = query->getColumn(0).getInt();
+        return GetProfile(id);
+    }
+
+    QStringList ProfilesRepo::GetAllProfileNames() {
+        auto query = db.query("SELECT name FROM profiles");
+        if (!query || !query->executeStep()) {
+            return {};
+        }
+        QStringList names;
+        while (query->executeStep()) {
+            names.append(QString(query->getColumn(0).getString().c_str()));
+        }
+        return names;
     }
 
     void ProfilesRepo::DeleteProfile(int id) {

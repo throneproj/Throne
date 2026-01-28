@@ -1,9 +1,10 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include "include/database/entities/RouteRule.h"
-#include "include/dataStore/Database.hpp"
-#include "include/configs/proxy/Preset.hpp"
-#include <iostream>
+
+
+#include "include/database/ProfilesRepo.h"
+#include "include/global/Configs.hpp"
 
 namespace Configs {
     QJsonArray get_as_array(const QList<QString>& str, bool castToNum = false, const std::function<QString(QString)>& converter = nullptr) {
@@ -116,7 +117,7 @@ namespace Configs {
                         obj["outbound"] = "direct";
                         break;
                     default:
-                        auto prof = Configs::profileManager->GetProfile(outboundID);
+                        auto prof = Configs::dataManager->profilesRepo->GetProfile(outboundID);
                         if (prof == nullptr) {
                             MW_show_log("The outbound described in the rule chain is missing, maybe your data is corrupted");
                             return {};
@@ -204,23 +205,23 @@ namespace Configs {
             return {"", "tcp", "udp"};
         }
         if (fieldName == "protocol") {
-            auto resp = Preset::SingBox::SniffProtocols;
+            auto resp = SingboxOptions::SniffProtocols;
             resp.prepend("");
             return resp;
         }
         if (fieldName == "action")
         {
-            return Preset::SingBox::ActionTypes;
+            return SingboxOptions::ActionTypes;
         }
         if (fieldName == "method")
         {
-            auto resp = Preset::SingBox::rejectMethods;
+            auto resp = SingboxOptions::rejectMethods;
             resp.prepend("");
             return resp;
         }
         if (fieldName == "strategy")
         {
-            auto resp = Preset::SingBox::DomainStrategy;
+            auto resp = DomainStrategy::DomainStrategy;
             resp.prepend("");
             return resp;
         }

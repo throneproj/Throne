@@ -1,12 +1,48 @@
 #pragma once
-
-#include <include/configs/proxy/Preset.hpp>
-
-#include "include/global/Configs.hpp"
-#include "include/dataStore/RouteEntity.h"
 #include <QUrl>
+#include <QJsonObject>
 
 namespace Configs {
+    enum inputType {trufalse, select, text};
+
+    enum outboundID {proxyID=-1, directID=-2, blockID=-3, dnsOutID=-4};
+    inline QString outboundIDToString(int id)
+    {
+        if (id == proxyID) return {"proxy"};
+        if (id == directID) return {"direct"};
+        if (id == blockID) return {"block"};
+        if (id == dnsOutID) return {"dns"};
+        return {"unknown"};
+    }
+    inline outboundID stringToOutboundID(const QString& out)
+    {
+        if (out == "proxy") return proxyID;
+        if (out == "direct") return directID;
+        if (out == "block") return blockID;
+        if (out == "dns_out") return dnsOutID;
+        return proxyID;
+    }
+
+    enum ruleType {custom, simpleAddress, simpleProcessName, simpleProcessPath};
+
+    inline QString ruleTypeToString(ruleType type)
+    {
+        if (type == custom) return {"custom"};
+        if (type == simpleAddress) return {"Address"};
+        if (type == simpleProcessName) return {"Process Name"};
+        if (type == simpleProcessPath) return {"Process Path"};
+        return {"invalid"};
+    }
+
+    inline QString get_rule_set_name(QString ruleSet)
+    {
+        if (auto url = QUrl(ruleSet); url.isValid() && url.fileName().contains(".srs"))
+        {
+            return url.fileName().replace(".srs", "-srs") + "-" + QString::number(qHash(url.toEncoded()));
+        }
+        return ruleSet;
+    }
+
     class RouteRule {
     public:
         RouteRule() = default;

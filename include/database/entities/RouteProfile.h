@@ -1,14 +1,21 @@
 #pragma once
 
-#include <include/configs/proxy/Preset.hpp>
-
-#include "include/global/Configs.hpp"
-#include "include/dataStore/RouteEntity.h"
 #include "include/database/entities/RouteRule.h"
 #include <QUrl>
 #include <QJsonArray>
 
 namespace Configs {
+    const int INVALID_ID = -99999;
+
+    enum simpleAction{direct, block, proxy};
+    inline QString simpleActionToString(simpleAction action)
+    {
+        if (action == direct) return {"direct"};
+        if (action == block) return {"block"};
+        if (action == proxy) return {"proxy"};
+        return {"invalid"};
+    }
+
     class RouteProfile {
     public:
         int id = -1;

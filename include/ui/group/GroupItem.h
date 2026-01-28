@@ -3,8 +3,8 @@
 #include <QWidget>
 #include <QListWidgetItem>
 
-#include "include/dataStore/Database.hpp"
 #include "ui_GroupItem.h"
+#include "include/database/entities/Group.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {

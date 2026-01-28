@@ -2,14 +2,11 @@
 
 #include "Database.h"
 #include "include/database/entities/Profile.h"
-#include "include/global/Configs.hpp"
 #include <memory>
 #include <mutex>
 #include <map>
 #include <QString>
 #include <QJsonObject>
-#include <QJsonDocument>
-#include <QMutex>
 
 namespace Configs {
     class ProfilesRepo {
@@ -48,7 +45,13 @@ namespace Configs {
         
         // Get profile by ID (uses identity map)
         std::shared_ptr<Profile> GetProfile(int id) const;
-        
+
+        QList<std::shared_ptr<Profile>> GetProfileBatch(QList<int> ids);
+
+        std::shared_ptr<Profile> GetProfileByName(const QString &name);
+
+        QStringList GetAllProfileNames();
+
         // Delete profile from database
         void DeleteProfile(int id);
         

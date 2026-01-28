@@ -1,18 +1,16 @@
 #include "include/ui/profile/edit_shadowsocks.h"
 
-#include "include/configs/proxy/Preset.hpp"
-
 EditShadowSocks::EditShadowSocks(QWidget *parent) : QWidget(parent),
                                                     ui(new Ui::EditShadowSocks) {
     ui->setupUi(this);
-    ui->method->addItems(Preset::SingBox::ShadowsocksMethods);
+    ui->method->addItems(Configs::shadowsocksMethods);
 }
 
 EditShadowSocks::~EditShadowSocks() {
     delete ui;
 }
 
-void EditShadowSocks::onStart(std::shared_ptr<Configs::ProxyEntity> _ent) {
+void EditShadowSocks::onStart(std::shared_ptr<Configs::Profile> _ent) {
     this->ent = _ent;
     auto outbound = this->ent->ShadowSocks();
 

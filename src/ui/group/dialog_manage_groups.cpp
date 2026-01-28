@@ -1,6 +1,5 @@
 #include "include/ui/group/dialog_manage_groups.h"
 
-#include "include/dataStore/Database.hpp"
 #include "include/configs/sub/GroupUpdater.hpp"
 #include "include/global/GuiUtils.hpp"
 #include "include/ui/group/GroupItem.h"
@@ -10,8 +9,11 @@
 #include <QListWidgetItem>
 #include <QMessageBox>
 
+#include "include/database/GroupsRepo.h"
+
+
 #define AddGroupToListIfExist(_id)                       \
-    auto __ent = Configs::profileManager->GetGroup(_id); \
+    auto __ent = Configs::dataManager->groupsRepo->GetGroup(_id); \
     if (__ent != nullptr) {                              \
         auto wI = new QListWidgetItem();                 \
         auto w = new GroupItem(this, __ent, wI);         \
@@ -23,7 +25,7 @@
 DialogManageGroups::DialogManageGroups(QWidget *parent) : QDialog(parent), ui(new Ui::DialogManageGroups) {
     ui->setupUi(this);
 
-    for (auto id: Configs::profileManager->groupsTabOrder) {
+    for (auto id: Configs::dataManager->groupsRepo->GetGroupsTabOrder()) {
         AddGroupToListIfExist(id)
     }
 
@@ -38,13 +40,13 @@ DialogManageGroups::~DialogManageGroups() {
 }
 
 void DialogManageGroups::on_add_clicked() {
-    auto ent = Configs::ProfileManager::NewGroup();
+    auto ent = Configs::dataManager->groupsRepo->NewGroup();
     auto dialog = new DialogEditGroup(ent, this);
     int ret = dialog->exec();
     dialog->deleteLater();
 
     if (ret == QDialog::Accepted) {
-        Configs::profileManager->AddGroup(ent);
+        Configs::dataManager->groupsRepo->AddGroup(ent);
         AddGroupToListIfExist(ent->id);
         MW_dialog_message(Dialog_DialogManageGroups, "refresh-1");
     }

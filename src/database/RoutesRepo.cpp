@@ -1,7 +1,5 @@
 #include "include/database/RoutesRepo.h"
-#include "include/database/entities/RouteProfile.h"
-#include "include/database/entities/RouteRule.h"
-#include "include/global/Utils.hpp"
+#include "include/global/Configs.hpp"
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QMutexLocker>
@@ -550,6 +548,42 @@ namespace Configs {
             }
         }
         return ids;
+    }
+
+    QList<std::shared_ptr<RouteProfile>> RoutesRepo::GetAllRouteProfiles() const {
+        QMutexLocker locker(&mutex);
+        QList<std::shared_ptr<RouteProfile>> routeProfiles;
+        
+        // Get all route profile IDs
+        auto query = db.query("SELECT id FROM route_profiles ORDER BY id");
+        if (query) {
+            while (query->executeStep()) {
+                int id = query->getColumn(0).getInt();
+                
+                // Check identity map first (we already have the lock)
+                auto it = identityMap.find(id);
+                if (it != identityMap.end()) {
+                    auto shared = it->second.lock();
+                    if (shared) {
+                        routeProfiles.append(shared);
+                        continue; // Use existing instance from identity map
+                    } else {
+                        // Weak pointer expired, remove from map
+                        identityMap.erase(it);
+                    }
+                }
+                
+                // Load from database (loadFromDatabase doesn't lock mutex)
+                auto routeProfile = loadFromDatabase(id);
+                if (routeProfile) {
+                    // Add to identity map
+                    identityMap[id] = std::weak_ptr<RouteProfile>(routeProfile);
+                    routeProfiles.append(routeProfile);
+                }
+            }
+        }
+        
+        return routeProfiles;
     }
 
     int RoutesRepo::NewRouteProfileID() const {

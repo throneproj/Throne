@@ -5,6 +5,8 @@
 
 #include "include/configs/common/utils.h"
 
+
+
 namespace Configs {
     bool xrayTLS::ParseFromLink(const QString &link) {
         auto url = QUrl(link);
@@ -53,7 +55,7 @@ namespace Configs {
 
     BuildResult xrayTLS::Build() {
         auto obj = ExportToJson();
-        if (fingerprint.isEmpty() && !dataStore->utlsFingerprint.isEmpty()) obj["fingerprint"] = dataStore->utlsFingerprint;
+        if (fingerprint.isEmpty() && !Configs::dataManager->settingsRepo->utlsFingerprint.isEmpty()) obj["fingerprint"] = Configs::dataManager->settingsRepo->utlsFingerprint;
         return {obj, ""};
     }
 
@@ -105,7 +107,7 @@ namespace Configs {
 
     BuildResult xrayReality::Build() {
         auto obj = ExportToJson();
-        if (fingerprint.isEmpty() && !dataStore->utlsFingerprint.isEmpty()) obj["fingerprint"] = dataStore->utlsFingerprint;
+        if (fingerprint.isEmpty() && !Configs::dataManager->settingsRepo->utlsFingerprint.isEmpty()) obj["fingerprint"] = Configs::dataManager->settingsRepo->utlsFingerprint;
         return {obj, ""};
     }
 

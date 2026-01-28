@@ -1,6 +1,8 @@
 #include "include/configs/common/multiplex.h"
 #include "include/configs/common/utils.h"
 
+
+
 namespace Configs {
     bool TcpBrutal::ParseFromLink(const QString& link)
     {
@@ -107,11 +109,11 @@ namespace Configs {
     BuildResult Multiplex::Build()
     {
         auto obj = ExportToJson();
-        if (unspecified && dataStore->mux_default_on) obj["enabled"] = true;
+        if (unspecified && Configs::dataManager->settingsRepo->mux_default_on) obj["enabled"] = true;
         if (!obj["enabled"].toBool()) return {{}, ""};
-        if (protocol.isEmpty()) obj["protocol"] = dataStore->mux_protocol;
-        if (max_streams == 0 && max_connections == 0 && min_streams == 0) obj["max_streams"] = dataStore->mux_concurrency;
-        if (dataStore->mux_padding) obj["padding"] = true;
+        if (protocol.isEmpty()) obj["protocol"] = Configs::dataManager->settingsRepo->mux_protocol;
+        if (max_streams == 0 && max_connections == 0 && min_streams == 0) obj["max_streams"] = Configs::dataManager->settingsRepo->mux_concurrency;
+        if (Configs::dataManager->settingsRepo->mux_padding) obj["padding"] = true;
         return {obj, ""};
     }
 }

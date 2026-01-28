@@ -1,7 +1,8 @@
-#include "include/database/DatabaseManager.h"
-#include "include/database/ProfilesRepo.h"
 #include "include/database/GroupsRepo.h"
+#include "include/database/ProfilesRepo.h"
 #include "include/database/RoutesRepo.h"
+
+#include "include/global/Configs.hpp"
 
 namespace Configs {
     DatabaseManager::DatabaseManager(const std::string& dbPath)
@@ -43,5 +44,6 @@ namespace Configs {
         profilesRepo = std::make_unique<ProfilesRepo>(db);
         groupsRepo = std::make_unique<GroupsRepo>(db);
         routesRepo = std::make_unique<RoutesRepo>(db);
+        settingsRepo = std::make_unique<SettingsRepo>(db);
     }
 }

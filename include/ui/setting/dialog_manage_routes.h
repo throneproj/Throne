@@ -7,6 +7,7 @@
 #include "include/global/Configs.hpp"
 #include "include/ui/setting/RouteItem.h"
 #include "ui_dialog_manage_routes.h"
+#include "include/database/entities/RouteProfile.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -29,9 +30,9 @@ private:
 
     void reloadProfileItems();
 
-    QList<std::shared_ptr<Configs::RoutingChain>> chainList;
+    QList<std::shared_ptr<Configs::RouteProfile>> chainList;
 
-    std::shared_ptr<Configs::RoutingChain> currentRoute;
+    std::shared_ptr<Configs::RouteProfile> currentRoute;
 
     int tooltipID = 0;
 

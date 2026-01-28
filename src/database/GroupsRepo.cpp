@@ -1,9 +1,12 @@
-#include "include/database/GroupsRepo.h"
 #include "include/database/entities/Group.h"
+#include "include/database/GroupsRepo.h"
 #include "include/global/Utils.hpp"
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QMutexLocker>
+
+#include "include/global/Configs.hpp"
+
 
 namespace Configs {
     GroupsRepo::GroupsRepo(Database& database) : db(database) {
@@ -245,6 +248,18 @@ namespace Configs {
         identityMap[id] = std::weak_ptr<Group>(group);
         
         return group;
+    }
+
+    std::shared_ptr<Group> GroupsRepo::CurrentGroup() const {
+        // Read current_group from SettingsRepo
+        if (!Configs::dataManager || !Configs::dataManager->settingsRepo) {
+            return nullptr;
+        }
+        
+        int currentGroupId = Configs::dataManager->settingsRepo->current_group;
+        
+        // Retrieve and return the group with that ID
+        return GetGroup(currentGroupId);
     }
 
     void GroupsRepo::DeleteGroup(int id) {

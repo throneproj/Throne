@@ -1,17 +1,15 @@
-#pragma once
-
 #include "Database.h"
+#include "include/database/SettingsRepo.h"
 #include <string>
 #include <memory>
 
-// Forward declarations
 namespace Configs {
-    class ProfilesRepo;
-    class GroupsRepo;
     class RoutesRepo;
-}
+    class GroupsRepo;
+    class ProfilesRepo;
 
-namespace Configs {
+    void initDB(const std::string& dbPath);
+
     class DatabaseManager {
     private:
         Database db;
@@ -22,6 +20,7 @@ namespace Configs {
         std::unique_ptr<ProfilesRepo> profilesRepo;
         std::unique_ptr<GroupsRepo> groupsRepo;
         std::unique_ptr<RoutesRepo> routesRepo;
+        std::unique_ptr<SettingsRepo> settingsRepo;
 
         explicit DatabaseManager(const std::string& dbPath);
         ~DatabaseManager() = default;
@@ -34,4 +33,6 @@ namespace Configs {
         Database& getDatabase() { return db; }
         const Database& getDatabase() const { return db; }
     };
+
+    inline DatabaseManager* dataManager;
 }

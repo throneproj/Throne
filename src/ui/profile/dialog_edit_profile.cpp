@@ -12,16 +12,19 @@
 #include "include/ui/profile/edit_custom.h"
 #include "include/ui/profile/edit_extra_core.h"
 
-#include "include/configs/proxy/includes.h"
-#include "include/configs/proxy/Preset.hpp"
-
 #include "3rdparty/qv2ray/v2/ui/widgets/editors/w_JsonEditor.hpp"
 #include "include/global/GuiUtils.hpp"
 #include "include/global/Utils.hpp"
 
 #include <QInputDialog>
 
+#include "include/configs/common/TLS.h"
 #include "include/configs/common/utils.h"
+#include "include/configs/common/xrayStreamSetting.h"
+#include "include/database/ProfilesRepo.h"
+
+
+
 #include "include/ui/profile/edit_advanced.h"
 #include "include/ui/profile/edit_hysteria.h"
 #include "include/ui/profile/edit_socks.h"
@@ -30,7 +33,7 @@
 #include "include/ui/profile/edit_xrayvless.h"
 
 #define ADJUST_SIZE runOnThread([=,this] { adjustSize(); adjustPosition(mainwindow); }, this);
-#define LOAD_TYPE(a) ui->type->addItem(Configs::ProfileManager::NewProxyEntity(a)->outbound->DisplayType(), a);
+#define LOAD_TYPE(a) ui->type->addItem(Configs::dataManager->profilesRepo->NewProfile(a)->outbound->DisplayType(), a);
 
 void DialogEditProfile::toggleSingboxWidgets(bool show) {
     ui->stream_box->setVisible(show);
@@ -114,7 +117,7 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
             ui->ws_early_data_name->setVisible(false);
             ui->ws_early_data_name_l->setVisible(false);
         }
-        if (!ui->utlsFingerprint->count()) ui->utlsFingerprint->addItems(Preset::SingBox::UtlsFingerPrint);
+        if (!ui->utlsFingerprint->count()) ui->utlsFingerprint->addItems(Configs::tlsFingerprints);
         int networkBoxVisible = 0;
         for (auto label: ui->network_box->findChildren<QLabel *>()) {
             if (!label->isHidden()) networkBoxVisible++;
@@ -224,7 +227,7 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
             typeSelected(ui->type->itemData(index).toString());
         });
     } else {
-        this->ent = Configs::profileManager->GetProfile(profileOrGroupId);
+        this->ent = Configs::dataManager->profilesRepo->GetProfile(profileOrGroupId);
         if (this->ent == nullptr) return;
         this->type = ent->type;
         ui->type->setVisible(false);
@@ -336,7 +339,7 @@ void DialogEditProfile::typeSelected(const QString &newType) {
     }
 
     if (newEnt) {
-        this->ent = Configs::ProfileManager::NewProxyEntity(type);
+        this->ent = Configs::dataManager->profilesRepo->NewProfile(type);
         this->ent->gid = groupId;
     }
 
@@ -365,7 +368,7 @@ void DialogEditProfile::typeSelected(const QString &newType) {
         ui->sni->setText(tls->server_name);
         ui->alpn->setText(tls->alpn.join(","));
         if (newEnt) {
-            ui->utlsFingerprint->setCurrentText(Configs::dataStore->utlsFingerprint);
+            ui->utlsFingerprint->setCurrentText(Configs::dataManager->settingsRepo->utlsFingerprint);
         } else {
             ui->utlsFingerprint->setCurrentText(tls->utls->fingerPrint);
         }
@@ -606,13 +609,13 @@ void DialogEditProfile::accept() {
     QStringList msg = {"accept"};
 
     if (newEnt) {
-        auto ok = Configs::profileManager->AddProfile(ent);
+        auto ok = Configs::dataManager->profilesRepo->AddProfile(ent);
         if (!ok) {
             MessageBoxWarning("???", "id exists");
         }
     } else {
-        auto changed = ent->Save();
-        if (changed && Configs::dataStore->started_id == ent->id) msg << "restart";
+        auto changed = Configs::dataManager->profilesRepo->Save(ent);
+        if (changed && Configs::dataManager->settingsRepo->started_id == ent->id) msg << "restart";
     }
 
     MW_dialog_message(Dialog_DialogEditProfile, msg.join(","));

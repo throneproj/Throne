@@ -14,7 +14,7 @@ EditXrayVless::~EditXrayVless() {
     delete ui;
 }
 
-void EditXrayVless::onStart(std::shared_ptr<Configs::ProxyEntity> _ent) {
+void EditXrayVless::onStart(std::shared_ptr<Configs::Profile> _ent) {
     this->ent = _ent;
     auto outbound = _ent->XrayVLESS();
 

@@ -1,7 +1,7 @@
 #include "include/ui/setting/RouteItem.h"
-#include "include/dataStore/RouteEntity.h"
-#include "include/dataStore/Database.hpp"
 #include "include/api/RPC.h"
+#include "include/database/ProfilesRepo.h"
+#include "include/global/Configs.hpp"
 
 void adjustComboBoxWidth(const QComboBox *comboBox) {
     int maxWidth = 0;
@@ -32,27 +32,22 @@ QString get_outbound_name(int id) {
     // -1 is proxy -2 is direct -3 is block -4 is dns-out
     if (id == -1) return "proxy";
     if (id == -2) return "direct";
-    auto profiles = Configs::profileManager->profiles;
-    if (profiles.count(id)) return profiles[id]->outbound->name;
+    if (auto profile = Configs::dataManager->profilesRepo->GetProfile(id)) return profile->name;
     return "INVALID OUTBOUND";
 }
 
 QStringList get_all_outbounds() {
-    QStringList res;
-    auto profiles = Configs::profileManager->profiles;
-    for (const auto &item: profiles) {
-        res.append(item.second->outbound->DisplayName());
-    }
+    auto profilesNames = Configs::dataManager->profilesRepo->GetAllProfileNames();
 
-    return res;
+    return profilesNames;
 }
 
-RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RoutingChain>& routeChain)
+RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfile>& routeChain)
     : QDialog(parent), ui(new Ui::RouteItem) {
     ui->setupUi(this);
 
     // make a copy
-    chain = std::make_shared<Configs::RoutingChain>(*routeChain);
+    chain = std::make_shared<Configs::RouteProfile>(*routeChain);
 
     // add the default rule if empty
     if (chain->Rules.empty()) {
@@ -107,8 +102,8 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RoutingChai
     // init outbound map
     outboundMap[0] = -1;
     outboundMap[1] = -2;
-    for (const auto& item: Configs::profileManager->profiles) {
-        outboundMap[outboundMap.size()] = item.second->id;
+    for (const auto& item: Configs::dataManager->profilesRepo->GetAllProfileIds()) {
+        outboundMap[outboundMap.size()] = item;
     }
 
     ui->route_name->setText(chain->name);
@@ -207,7 +202,7 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RoutingChai
 
         connect(buttons, &QDialogButtonBox::accepted, w, [=,this]{
            auto err = new QString;
-           auto parsed = Configs::RoutingChain::parseJsonArray(QString2QJsonArray(tEdit->toPlainText()), err);
+           auto parsed = Configs::RouteProfile::parseJsonArray(QString2QJsonArray(tEdit->toPlainText()), err);
            if (!err->isEmpty()) {
                MessageBoxInfo(tr("Invalid JSON Array"), tr("The provided input cannot be parsed to a valid route rule array:\n") + *err);
                return;

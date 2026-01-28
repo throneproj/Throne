@@ -1,6 +1,5 @@
 #include "include/ui/mainwindow.h"
 
-#include "include/dataStore/ProfileFilter.hpp"
 #include "include/configs/sub/GroupUpdater.hpp"
 #include "include/sys/Process.hpp"
 #include "include/sys/AutoRun.hpp"
@@ -18,6 +17,14 @@
 #include "3rdparty/qv2ray/v2/ui/LogHighlighter.hpp"
 #include "3rdparty/QrDecoder.h"
 #include "include/configs/generate.h"
+#include "include/database/GroupsRepo.h"
+#include "include/database/ProfilesRepo.h"
+
+
+#include "include/database/RoutesRepo.h"
+
+
+
 #include "include/ui/group/dialog_edit_group.h"
 
 #ifdef Q_OS_WIN
@@ -73,17 +80,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         });
     };
 
-    // Load Manager
-    Configs::profileManager->LoadManager();
-
     // Setup misc UI
     // migrate old themes
     bool isNum;
-    Configs::dataStore->theme.toInt(&isNum);
+    Configs::dataManager->settingsRepo->theme.toInt(&isNum);
     if (isNum) {
-        Configs::dataStore->theme = "System";
+        Configs::dataManager->settingsRepo->theme = "System";
     }
-    themeManager->ApplyTheme(Configs::dataStore->theme);
+    themeManager->ApplyTheme(Configs::dataManager->settingsRepo->theme);
     ui->setupUi(this);
 
     // init shortcuts
@@ -91,14 +95,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     loadShortcuts();
 
     // geometry remembering
-    if (!Configs::dataStore->mainWindowGeometry.isEmpty()) {
-        auto geo = DecodeB64IfValid(Configs::dataStore->mainWindowGeometry);
+    if (!Configs::dataManager->settingsRepo->mainWindowGeometry.isEmpty()) {
+        auto geo = DecodeB64IfValid(Configs::dataManager->settingsRepo->mainWindowGeometry);
         this->restoreGeometry(geo);
     }
 
     // setup log
-    ui->splitter->restoreState(DecodeB64IfValid(Configs::dataStore->splitter_state));
-    new SyntaxHighlighter(isDarkMode() || Configs::dataStore->theme.toLower() == "qdarkstyle", qvLogDocument);
+    ui->splitter->restoreState(DecodeB64IfValid(Configs::dataManager->settingsRepo->splitter_state));
+    new SyntaxHighlighter(isDarkMode() || Configs::dataManager->settingsRepo->theme.toLower() != "qdarkstyle", qvLogDocument);
     qvLogDocument->setUndoRedoEnabled(false);
     ui->masterLogBrowser->setUndoRedoEnabled(false);
     ui->masterLogBrowser->setDocument(qvLogDocument);
@@ -107,7 +111,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
     connect(qApp->styleHints(), &QStyleHints::colorSchemeChanged, this, [=,this](const Qt::ColorScheme& scheme) {
         new SyntaxHighlighter(scheme == Qt::ColorScheme::Dark, qvLogDocument);
-        themeManager->ApplyTheme(Configs::dataStore->theme, true);
+        themeManager->ApplyTheme(Configs::dataManager->settingsRepo->theme, true);
     });
 #endif
     connect(themeManager, &ThemeManager::themeChanged, this, [=,this](const QString& theme){
@@ -139,33 +143,33 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     };
 
     // Listen port if random
-    if (Configs::dataStore->random_inbound_port)
+    if (Configs::dataManager->settingsRepo->random_inbound_port)
     {
-        Configs::dataStore->inbound_socks_port = MkPort();
+        Configs::dataManager->settingsRepo->inbound_socks_port = MkPort();
     }
 
     //init HWID data
     runOnNewThread([=, this] {GetDeviceDetails(); });
 
     // Prepare core
-    Configs::dataStore->core_port = MkPort();
-    if (Configs::dataStore->core_port <= 0) Configs::dataStore->core_port = 19810;
+    Configs::dataManager->settingsRepo->core_port = MkPort();
+    if (Configs::dataManager->settingsRepo->core_port <= 0) Configs::dataManager->settingsRepo->core_port = 19810;
 
     auto core_path = QApplication::applicationDirPath() + "/";
     core_path += "Core";
 
     QStringList args;
     args.push_back("-port");
-    args.push_back(Int2String(Configs::dataStore->core_port));
-    if (Configs::dataStore->log_level == "debug") args.push_back("-debug");
+    args.push_back(Int2String(Configs::dataManager->settingsRepo->core_port));
+    if (Configs::dataManager->settingsRepo->log_level == "debug") args.push_back("-debug");
 
     // Start core
     runOnThread(
         [=,this] {
             core_process = new Configs_sys::CoreProcess(core_path, args);
             // Remember last started
-            if (Configs::dataStore->remember_enable && Configs::dataStore->remember_id >= 0) {
-                core_process->start_profile_when_core_is_up = Configs::dataStore->remember_id;
+            if (Configs::dataManager->settingsRepo->remember_enable && Configs::dataManager->settingsRepo->remember_id >= 0) {
+                core_process->start_profile_when_core_is_up = Configs::dataManager->settingsRepo->remember_id;
             }
             // Setup
             setup_rpc();
@@ -177,19 +181,19 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     for (int i=0;i<20;i++)
     {
         QThread::msleep(100);
-        if (Configs::dataStore->core_running) break;
+        if (Configs::dataManager->settingsRepo->core_running) break;
     }
-    if (!Configs::dataStore->core_running) qDebug() << "[Warn] Core is taking too much time to start";
+    if (!Configs::dataManager->settingsRepo->core_running) qDebug() << "[Warn] Core is taking too much time to start";
 #endif
 
-    if (!Configs::dataStore->font.isEmpty()) {
+    if (!Configs::dataManager->settingsRepo->font.isEmpty()) {
         auto font = qApp->font();
-        font.setFamily(Configs::dataStore->font);
+        font.setFamily(Configs::dataManager->settingsRepo->font);
         qApp->setFont(font);
     }
-    if (Configs::dataStore->font_size != 0) {
+    if (Configs::dataManager->settingsRepo->font_size != 0) {
         auto font = qApp->font();
-        font.setPointSize(Configs::dataStore->font_size);
+        font.setPointSize(Configs::dataManager->settingsRepo->font_size);
         qApp->setFont(font);
     }
 
@@ -199,11 +203,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->menu_stop, &QAction::triggered, this, [=,this]() { profile_stop(false, false, true); });
     connect(ui->tabWidget->tabBar(), &QTabBar::tabMoved, this, [=,this](int from, int to) {
         // use tabData to track tab & gid
-        Configs::profileManager->groupsTabOrder.clear();
+        QList<int> tabOrder;
         for (int i = 0; i < ui->tabWidget->tabBar()->count(); i++) {
-            Configs::profileManager->groupsTabOrder += ui->tabWidget->tabBar()->tabData(i).toInt();
+            tabOrder += ui->tabWidget->tabBar()->tabData(i).toInt();
         }
-        Configs::profileManager->SaveManager();
+        Configs::dataManager->groupsRepo->SetGroupsTabOrder(tabOrder);
     });
     ui->label_running->installEventFilter(this);
     ui->label_inbound->installEventFilter(this);
@@ -212,7 +216,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     //
     RegisterHotkey(false);
     //
-    auto last_size = Configs::dataStore->mw_size.split("x");
+    auto last_size = Configs::dataManager->settingsRepo->mw_size.split("x");
     if (last_size.length() == 2) {
         auto w = last_size[0].toInt();
         auto h = last_size[1].toInt();
@@ -255,10 +259,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     // setup connection UI
     setupConnectionList();
-    ui->stats_widget->tabBar()->setCurrentIndex(Configs::dataStore->stats_tab);
+    ui->stats_widget->tabBar()->setCurrentIndex(Configs::dataManager->settingsRepo->stats_tab);
     connect(ui->stats_widget->tabBar(), &QTabBar::currentChanged, this, [=,this](int index)
     {
-        Configs::dataStore->stats_tab = ui->stats_widget->tabBar()->currentIndex();
+        Configs::dataManager->settingsRepo->stats_tab = ui->stats_widget->tabBar()->currentIndex();
     });
     connect(ui->connections->horizontalHeader(), &QHeaderView::sectionClicked, this, [=,this](int index)
     {
@@ -285,10 +289,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->proxyListTable->rowsSwapped = [=,this](int row1, int row2)
     {
         if (row1 == row2) return;
-        auto group = Configs::profileManager->CurrentGroup();
+        auto group = Configs::dataManager->groupsRepo->CurrentGroup();
         group->EmplaceProfile(row1, row2);
         refresh_proxy_list();
-        group->Save();
+        Configs::dataManager->groupsRepo->Save(group);
     };
     if (auto button = ui->proxyListTable->findChild<QAbstractButton *>(QString(), Qt::FindDirectChildrenOnly)) {
         // Corner Button
@@ -315,18 +319,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             return;
         }
         refresh_proxy_list_impl(-1, action);
-        Configs::profileManager->CurrentGroup()->Save();
+        Configs::dataManager->groupsRepo->Save(Configs::dataManager->groupsRepo->CurrentGroup());
     });
     connect(ui->proxyListTable->horizontalHeader(), &QHeaderView::sectionResized, this, [=, this](int logicalIndex, int oldSize, int newSize) {
-        auto group = Configs::profileManager->CurrentGroup();
-        if (Configs::dataStore->refreshing_group || group == nullptr || !group->manually_column_width) return;
+        auto group = Configs::dataManager->groupsRepo->CurrentGroup();
+        if (Configs::dataManager->settingsRepo->refreshing_group || group == nullptr || !group->manually_column_width) return;
         // save manually column width
         group->column_width.clear();
         for (int i = 0; i < ui->proxyListTable->horizontalHeader()->count(); i++) {
             group->column_width.push_back(ui->proxyListTable->horizontalHeader()->sectionSize(i));
         }
         group->column_width[logicalIndex] = newSize;
-        group->Save();
+        Configs::dataManager->groupsRepo->Save(Configs::dataManager->groupsRepo->CurrentGroup());
     });
     ui->proxyListTable->verticalHeader()->setDefaultSectionSize(24);
     ui->proxyListTable->setTabKeyNavigation(false);
@@ -371,7 +375,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     trayMenu->addAction(ui->actionRestart_Proxy);
     trayMenu->addAction(ui->actionRestart_Program);
     trayMenu->addAction(ui->menu_exit);
-    tray->setVisible(!Configs::dataStore->disable_tray);
+    tray->setVisible(!Configs::dataManager->settingsRepo->disable_tray);
     tray->setContextMenu(trayMenu);
     connect(tray, &QSystemTrayIcon::activated, qApp, [=, this](QSystemTrayIcon::ActivationReason reason) {
         if (reason == QSystemTrayIcon::Trigger) {
@@ -380,37 +384,37 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     });
 
     // Misc menu
-    ui->actionRemember_last_proxy->setChecked(Configs::dataStore->remember_enable);
+    ui->actionRemember_last_proxy->setChecked(Configs::dataManager->settingsRepo->remember_enable);
     ui->actionStart_with_system->setChecked(AutoRun_IsEnabled());
-    ui->actionAllow_LAN->setChecked(QStringList{"::", "0.0.0.0"}.contains(Configs::dataStore->inbound_address));
+    ui->actionAllow_LAN->setChecked(QStringList{"::", "0.0.0.0"}.contains(Configs::dataManager->settingsRepo->inbound_address));
 
     connect(ui->actionHide_window, &QAction::triggered, this, [=, this](){ HideWindow(this); });
     connect(ui->menu_open_config_folder, &QAction::triggered, this, [=,this] { QDesktopServices::openUrl(QUrl::fromLocalFile(QDir::currentPath())); });
     connect(ui->menu_add_from_clipboard2, &QAction::triggered, ui->menu_add_from_clipboard, &QAction::trigger);
-    connect(ui->actionRestart_Proxy, &QAction::triggered, this, [=,this] { if (Configs::dataStore->started_id>=0) profile_start(Configs::dataStore->started_id); });
+    connect(ui->actionRestart_Proxy, &QAction::triggered, this, [=,this] { if (Configs::dataManager->settingsRepo->started_id>=0) profile_start(Configs::dataManager->settingsRepo->started_id); });
     connect(ui->actionRestart_Program, &QAction::triggered, this, [=,this] { MW_dialog_message("", "RestartProgram"); });
     connect(ui->actionShow_window, &QAction::triggered, this, [=,this] { ActivateWindow(this); });
     connect(ui->actionRemember_last_proxy, &QAction::triggered, this, [=,this](bool checked) {
-        Configs::dataStore->remember_enable = checked;
+        Configs::dataManager->settingsRepo->remember_enable = checked;
         ui->actionRemember_last_proxy->setChecked(checked);
-        Configs::dataStore->Save();
+        Configs::dataManager->settingsRepo->Save();
     });
     connect(ui->actionStart_with_system, &QAction::triggered, this, [=,this](bool checked) {
         AutoRun_SetEnabled(checked);
         ui->actionStart_with_system->setChecked(checked);
     });
     connect(ui->actionAllow_LAN, &QAction::triggered, this, [=,this](bool checked) {
-        Configs::dataStore->inbound_address = checked ? "::" : "127.0.0.1";
+        Configs::dataManager->settingsRepo->inbound_address = checked ? "::" : "127.0.0.1";
         ui->actionAllow_LAN->setChecked(checked);
-        MW_dialog_message("", "UpdateDataStore");
+        MW_dialog_message("", "UpdateConfigs::dataManager->settingsRepo");
     });
     //
     connect(ui->checkBox_VPN, &QCheckBox::clicked, this, [=,this](bool checked) { set_spmode_vpn(checked); });
     connect(ui->checkBox_SystemProxy, &QCheckBox::clicked, this, [=,this](bool checked) { set_spmode_system_proxy(checked); });
     connect(ui->menu_spmode, &QMenu::aboutToShow, this, [=,this]() {
-        ui->menu_spmode_disabled->setChecked(!(Configs::dataStore->spmode_system_proxy || Configs::dataStore->spmode_vpn));
-        ui->menu_spmode_system_proxy->setChecked(Configs::dataStore->spmode_system_proxy);
-        ui->menu_spmode_vpn->setChecked(Configs::dataStore->spmode_vpn);
+        ui->menu_spmode_disabled->setChecked(!(Configs::dataManager->settingsRepo->spmode_system_proxy || Configs::dataManager->settingsRepo->spmode_vpn));
+        ui->menu_spmode_system_proxy->setChecked(Configs::dataManager->settingsRepo->spmode_system_proxy);
+        ui->menu_spmode_vpn->setChecked(Configs::dataManager->settingsRepo->spmode_vpn);
     });
     connect(ui->menu_spmode_system_proxy, &QAction::triggered, this, [=,this](bool checked) { set_spmode_system_proxy(checked); });
     connect(ui->menu_spmode_vpn, &QAction::triggered, this, [=,this](bool checked) { set_spmode_vpn(checked); });
@@ -426,7 +430,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             refresh_status();
         }
     });
-    if (Configs::dataStore->show_system_dns) ui->system_dns->show();
+    if (Configs::dataManager->settingsRepo->show_system_dns) ui->system_dns->show();
     else ui->system_dns->hide();
 
     connect(ui->menu_server, &QMenu::aboutToShow, this, [=,this](){
@@ -486,12 +490,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         auto* actionAdblock = new QAction(ui->menuRouting_Menu);
         actionAdblock->setText("Enable AdBlock");
         actionAdblock->setCheckable(true);
-        actionAdblock->setChecked(Configs::dataStore->adblock_enable);
+        actionAdblock->setChecked(Configs::dataManager->settingsRepo->adblock_enable);
         connect(actionAdblock, &QAction::triggered, this, [=,this](bool checked) {
-            Configs::dataStore->adblock_enable = checked;
+            Configs::dataManager->settingsRepo->adblock_enable = checked;
             actionAdblock->setChecked(checked);
-            Configs::dataStore->Save();
-            if (Configs::dataStore->started_id >= 0) profile_start(Configs::dataStore->started_id);
+            Configs::dataManager->settingsRepo->Save();
+            if (Configs::dataManager->settingsRepo->started_id >= 0) profile_start(Configs::dataManager->settingsRepo->started_id);
         });
         ui->menuRouting_Menu->addAction(actionAdblock);
 
@@ -512,7 +516,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                         return;
                     }
                     auto err = new QString;
-                    auto parsed = Configs::RoutingChain::parseJsonArray(QString2QJsonArray(resp.data), err);
+                    auto parsed = Configs::RouteProfile::parseJsonArray(QString2QJsonArray(resp.data), err);
                     if (!err->isEmpty()) {
                         runOnUiThread([=,this]
                         {
@@ -520,12 +524,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                         });
                         return;
                     }
-                    auto chain = Configs::ProfileManager::NewRouteChain();
+                    auto chain = Configs::dataManager->routesRepo->NewRouteProfile();
                     chain->name = QString(profile).replace('_', ' ');
                     chain->defaultOutboundID = profile.startsWith("bypass",Qt::CaseInsensitive) ? Configs::proxyID : Configs::directID;
                     chain->Rules.clear();
                     chain->Rules << parsed;
-                    Configs::profileManager->AddRouteChain(chain);
+                    Configs::dataManager->routesRepo->AddRouteProfile(chain);
                 });
                 profilesMenu->addAction(action);
             }
@@ -533,20 +537,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         mu_remoteRouteProfiles.unlock();
 
         ui->menuRouting_Menu->addSeparator();
-        for (const auto& route : Configs::profileManager->routes)
+        for (const auto& route : Configs::dataManager->routesRepo->GetAllRouteProfiles())
         {
             auto* action = new QAction(ui->menuRouting_Menu);
-            action->setText(route.second->name);
-            action->setData(route.second->id);
+            action->setText(route->name);
+            action->setData(route->id);
             action->setCheckable(true);
-            action->setChecked(Configs::dataStore->routing->current_route_id == route.first);
+            action->setChecked(Configs::dataManager->settingsRepo->current_route_id == route->id);
             connect(action, &QAction::triggered, this, [=,this]()
             {
                 auto routeID = action->data().toInt();
-                if (Configs::dataStore->routing->current_route_id == routeID) return;
-                Configs::dataStore->routing->current_route_id = routeID;
-                Configs::dataStore->routing->Save();
-                if (Configs::dataStore->started_id >= 0) profile_start(Configs::dataStore->started_id);
+                if (Configs::dataManager->settingsRepo->current_route_id == routeID) return;
+                Configs::dataManager->settingsRepo->current_route_id = routeID;
+                Configs::dataManager->settingsRepo->Save();
+                if (Configs::dataManager->settingsRepo->started_id >= 0) profile_start(Configs::dataManager->settingsRepo->started_id);
             });
             ui->menuRouting_Menu->addAction(action);
         }
@@ -555,7 +559,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         urltest_current_group(get_now_selected_list());
     });
     connect(ui->actionUrl_Test_Group, &QAction::triggered, this, [=,this]() {
-        urltest_current_group(Configs::profileManager->CurrentGroup()->GetProfileEnts());
+        urltest_current_group(Configs::dataManager->profilesRepo->GetProfileBatch(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles()));
     });
     connect(ui->actionSpeedtest_Current, &QAction::triggered, this, [=,this]()
     {
@@ -570,7 +574,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     });
     connect(ui->actionSpeedtest_Group, &QAction::triggered, this, [=,this]()
     {
-        speedtest_current_group(Configs::profileManager->CurrentGroup()->GetProfileEnts());
+        speedtest_current_group(Configs::dataManager->profilesRepo->GetProfileBatch(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles()));
     });
     connect(ui->menu_stop_testing, &QAction::triggered, this, [=,this]() { stopTests(); });
     //
@@ -630,9 +634,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         if (m >= 30) TM_auto_update_subsctiption->start(m * 60 * 1000);
     };
     connect(TM_auto_update_subsctiption, &QTimer::timeout, this, [&] { UI_update_all_groups(true); });
-    TM_auto_update_subsctiption_Reset_Minute(Configs::dataStore->sub_auto_update);
+    TM_auto_update_subsctiption_Reset_Minute(Configs::dataManager->settingsRepo->sub_auto_update);
 
-    if (!Configs::dataStore->flag_tray) show();
+    if (!Configs::dataManager->settingsRepo->flag_tray) show();
 
     ui->data_view->setStyleSheet("background: transparent; border: none;");
 }
@@ -702,37 +706,37 @@ MainWindow::~MainWindow() {
 // Group tab manage
 
 inline int tabIndex2GroupId(int index) {
-    if (Configs::profileManager->groupsTabOrder.length() <= index) return -1;
-    return Configs::profileManager->groupsTabOrder[index];
+    if (Configs::dataManager->groupsRepo->GetGroupsTabOrder().length() <= index) return -1;
+    return Configs::dataManager->groupsRepo->GetGroupsTabOrder()[index];
 }
 
 inline int groupId2TabIndex(int gid) {
-    for (int key = 0; key < Configs::profileManager->groupsTabOrder.count(); key++) {
-        if (Configs::profileManager->groupsTabOrder[key] == gid) return key;
+    for (int key = 0; key < Configs::dataManager->groupsRepo->GetGroupsTabOrder().count(); key++) {
+        if (Configs::dataManager->groupsRepo->GetGroupsTabOrder()[key] == gid) return key;
     }
     return 0;
 }
 
 void MainWindow::on_tabWidget_currentChanged(int index) {
-    if (Configs::dataStore->refreshing_group_list) return;
-    if (tabIndex2GroupId(index) == Configs::dataStore->current_group) return;
+    if (Configs::dataManager->settingsRepo->refreshing_group_list) return;
+    if (tabIndex2GroupId(index) == Configs::dataManager->settingsRepo->current_group) return;
     show_group(tabIndex2GroupId(index));
 }
 
 void MainWindow::show_group(int gid) {
-    if (Configs::dataStore->refreshing_group) return;
-    Configs::dataStore->refreshing_group = true;
+    if (Configs::dataManager->settingsRepo->refreshing_group) return;
+    Configs::dataManager->settingsRepo->refreshing_group = true;
 
-    auto group = Configs::profileManager->GetGroup(gid);
+    auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
     if (group == nullptr) {
         MessageBoxWarning(tr("Error"), QString("No such group: %1").arg(gid));
-        Configs::dataStore->refreshing_group = false;
+        Configs::dataManager->settingsRepo->refreshing_group = false;
         return;
     }
 
-    if (Configs::dataStore->current_group != gid) {
-        Configs::dataStore->current_group = gid;
-        Configs::dataStore->Save();
+    if (Configs::dataManager->settingsRepo->current_group != gid) {
+        Configs::dataManager->settingsRepo->current_group = gid;
+        Configs::dataManager->settingsRepo->Save();
     }
 
     ui->tabWidget->widget(groupId2TabIndex(gid))->layout()->addWidget(ui->proxyListTable);
@@ -757,7 +761,7 @@ void MainWindow::show_group(int gid) {
     gsa.scroll_to_started = true;
     refresh_proxy_list_impl(-1, gsa);
 
-    Configs::dataStore->refreshing_group = false;
+    Configs::dataManager->settingsRepo->refreshing_group = false;
 }
 
 // callback
@@ -768,45 +772,45 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
         icon_status = -1;
         refresh_status();
     }
-    if (info.contains("UpdateDataStore")) {
+    if (info.contains("UpdateConfigs::dataManager->settingsRepo")) {
         if (info.contains("UpdateDisableTray")) {
-            tray->setVisible(!Configs::dataStore->disable_tray);
+            tray->setVisible(!Configs::dataManager->settingsRepo->disable_tray);
         }
         if (info.contains("UpdateSystemDns"))
         {
-            if (Configs::dataStore->show_system_dns) ui->system_dns->show();
+            if (Configs::dataManager->settingsRepo->show_system_dns) ui->system_dns->show();
             else ui->system_dns->hide();
         }
         if (info.contains("NeedChoosePort"))
         {
-            Configs::dataStore->inbound_socks_port = MkPort();
-            if (Configs::dataStore->spmode_system_proxy)
+            Configs::dataManager->settingsRepo->inbound_socks_port = MkPort();
+            if (Configs::dataManager->settingsRepo->spmode_system_proxy)
             {
                 set_spmode_system_proxy(false);
                 set_spmode_system_proxy(true);
             }
         }
-        auto suggestRestartProxy = Configs::dataStore->Save();
+        auto suggestRestartProxy = Configs::dataManager->settingsRepo->Save();
         if (info.contains("RouteChanged")) {
-            Configs::dataStore->routing->Save();
+            Configs::dataManager->settingsRepo->Save();
             suggestRestartProxy = true;
         }
         if (info.contains("NeedRestart")) {
             suggestRestartProxy = false;
         }
         refresh_proxy_list();
-        if (info.contains("VPNChanged") && Configs::dataStore->spmode_vpn) {
+        if (info.contains("VPNChanged") && Configs::dataManager->settingsRepo->spmode_vpn) {
             MessageBoxWarning(tr("Tun Settings changed"), tr("Restart Tun to take effect."));
         }
-        if ((info.contains("NeedChoosePort") || suggestRestartProxy) && Configs::dataStore->started_id >= 0 &&
+        if ((info.contains("NeedChoosePort") || suggestRestartProxy) && Configs::dataManager->settingsRepo->started_id >= 0 &&
             QMessageBox::question(GetMessageBoxParent(), tr("Confirmation"), tr("Settings changed, restart proxy?")) == QMessageBox::StandardButton::Yes) {
-            profile_start(Configs::dataStore->started_id);
+            profile_start(Configs::dataManager->settingsRepo->started_id);
         }
         refresh_status();
     }
     if (info.contains("DNSServerChanged"))
     {
-        if (Configs::dataStore->system_dns_set)
+        if (Configs::dataManager->settingsRepo->system_dns_set)
         {
             auto oldAddr = info.split(",")[1];
             set_system_dns(false);
@@ -842,7 +846,7 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
             refresh_proxy_list();
             if (msg.contains("restart")) {
                 if (QMessageBox::question(GetMessageBoxParent(), tr("Confirmation"), tr("Settings changed, restart proxy?")) == QMessageBox::StandardButton::Yes) {
-                    profile_start(Configs::dataStore->started_id);
+                    profile_start(Configs::dataManager->settingsRepo->started_id);
                 }
             }
         }
@@ -854,7 +858,7 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
         if (info.startsWith("finish")) {
             refresh_proxy_list();
             if (!info.contains("dingyue")) {
-                show_log_impl(tr("Imported %1 profile(s)").arg(Configs::dataStore->imported_count));
+                show_log_impl(tr("Imported %1 profile(s)").arg(Configs::dataManager->settingsRepo->imported_count));
             }
         } else if (info == "NewGroup") {
             refresh_groups();
@@ -864,20 +868,20 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
             profile_stop();
         } else if (info.startsWith("CoreStarted")) {
             Configs::IsAdmin(true);
-            if (Configs::dataStore->remember_spmode.contains("system_proxy")) {
+            if (Configs::dataManager->settingsRepo->remember_spmode.contains("system_proxy")) {
                 set_spmode_system_proxy(true, false);
             }
-            if (Configs::dataStore->remember_spmode.contains("vpn") || Configs::dataStore->flag_restart_tun_on) {
+            if (Configs::dataManager->settingsRepo->remember_spmode.contains("vpn") || Configs::dataManager->settingsRepo->flag_restart_tun_on) {
                 set_spmode_vpn(true, false);
             }
-            if (Configs::dataStore->flag_dns_set) {
+            if (Configs::dataManager->settingsRepo->flag_dns_set) {
                 set_system_dns(true);
             }
             if (auto id = info.split(",")[1].toInt(); id >= 0)
             {
                 profile_start(id);
             }
-            if (Configs::dataStore->system_dns_set) {
+            if (Configs::dataManager->settingsRepo->system_dns_set) {
                 set_system_dns(true);
                 ui->system_dns->setChecked(true);
             }
@@ -938,25 +942,24 @@ void MainWindow::on_menu_hotkey_settings_triggered() {
 void MainWindow::on_commitDataRequest() {
     qDebug() << "Start of data save";
     //
-    Configs::dataStore->mainWindowGeometry = this->saveGeometry().toBase64(QByteArray::Base64Encoding);
+    Configs::dataManager->settingsRepo->mainWindowGeometry = this->saveGeometry().toBase64(QByteArray::Base64Encoding);
     if (!isMaximized()) {
-        auto olds = Configs::dataStore->mw_size;
+        auto olds = Configs::dataManager->settingsRepo->mw_size;
         auto news = QString("%1x%2").arg(size().width()).arg(size().height());
         if (olds != news) {
-            Configs::dataStore->mw_size = news;
+            Configs::dataManager->settingsRepo->mw_size = news;
         }
     }
     //
-    Configs::dataStore->splitter_state = ui->splitter->saveState().toBase64();
+    Configs::dataManager->settingsRepo->splitter_state = ui->splitter->saveState().toBase64();
     //
-    auto last_id = Configs::dataStore->started_id;
-    if (Configs::dataStore->remember_enable && last_id >= 0) {
-        Configs::dataStore->remember_id = last_id;
+    auto last_id = Configs::dataManager->settingsRepo->started_id;
+    if (Configs::dataManager->settingsRepo->remember_enable && last_id >= 0) {
+        Configs::dataManager->settingsRepo->remember_id = last_id;
     }
-    if (running) running->Save();
+    if (running) Configs::dataManager->profilesRepo->Save(running);
     //
-    Configs::dataStore->Save();
-    Configs::profileManager->SaveManager();
+    Configs::dataManager->settingsRepo->Save();
     qDebug() << "End of data save";
 }
 
@@ -964,23 +967,23 @@ void MainWindow::prepare_exit()
 {
     qDebug() << "prepare for exit...";
     mu_exit.lock();
-    if (Configs::dataStore->prepare_exit)
+    if (Configs::dataManager->settingsRepo->prepare_exit)
     {
         qDebug() << "prepare exit had already succeeded, ignoring...";
         mu_exit.unlock();
         return;
     }
     HideWindow(this);
-    Configs::dataStore->prepare_exit = true;
+    Configs::dataManager->settingsRepo->prepare_exit = true;
     //
     RegisterHiddenMenuShortcuts(true);
     RegisterHotkey(true);
-    if (Configs::dataStore->system_dns_set) set_system_dns(false, false);
+    if (Configs::dataManager->settingsRepo->system_dns_set) set_system_dns(false, false);
     set_spmode_system_proxy(false, false);
     //
     on_commitDataRequest();
     //
-    Configs::dataStore->save_control_no_save = true; // don't change datastore after this line
+    Configs::dataManager->settingsRepo->noSave = true; // don't change Configs::dataManager->settingsRepo after this line
     profile_stop(false, true);
 
     runOnThread([=, this]()
@@ -1006,7 +1009,7 @@ void MainWindow::on_menu_exit_triggered() {
     } else if (exit_reason == 2 || exit_reason == 3 || exit_reason == 4) {
         QDir::setCurrent(QApplication::applicationDirPath());
 
-        auto arguments = Configs::dataStore->argv;
+        auto arguments = Configs::dataManager->settingsRepo->argv;
         if (arguments.length() > 0) {
             arguments.removeFirst();
             arguments.removeAll("-tray");
@@ -1031,7 +1034,7 @@ void MainWindow::on_menu_exit_triggered() {
 }
 
 void MainWindow::toggle_system_proxy() {
-    auto currentState = Configs::dataStore->spmode_system_proxy;
+    auto currentState = Configs::dataManager->settingsRepo->spmode_system_proxy;
     if (currentState) {
         set_spmode_system_proxy(false);
     } else {
@@ -1040,7 +1043,7 @@ void MainWindow::toggle_system_proxy() {
 }
 
 bool MainWindow::get_elevated_permissions(int reason) {
-    if (Configs::dataStore->disable_privilege_req)
+    if (Configs::dataManager->settingsRepo->disable_privilege_req)
     {
         MW_show_log(tr("User opted for no privilege req, some features may not work"));
         return true;
@@ -1103,7 +1106,7 @@ bool MainWindow::get_elevated_permissions(int reason) {
 }
 
 void MainWindow::set_spmode_vpn(bool enable, bool save) {
-    if (enable == Configs::dataStore->spmode_vpn) return;
+    if (enable == Configs::dataManager->settingsRepo->spmode_vpn) return;
 
     if (enable) {
         bool requestPermission = !Configs::IsAdmin();
@@ -1116,17 +1119,17 @@ void MainWindow::set_spmode_vpn(bool enable, bool save) {
     }
 
     if (save) {
-        Configs::dataStore->remember_spmode.removeAll("vpn");
+        Configs::dataManager->settingsRepo->remember_spmode.removeAll("vpn");
         if (enable) {
-            Configs::dataStore->remember_spmode.append("vpn");
+            Configs::dataManager->settingsRepo->remember_spmode.append("vpn");
         }
-        Configs::dataStore->Save();
+        Configs::dataManager->settingsRepo->Save();
     }
 
-    Configs::dataStore->spmode_vpn = enable;
+    Configs::dataManager->settingsRepo->spmode_vpn = enable;
     refresh_status();
 
-    if (Configs::dataStore->started_id >= 0) profile_start(Configs::dataStore->started_id);
+    if (Configs::dataManager->settingsRepo->started_id >= 0) profile_start(Configs::dataManager->settingsRepo->started_id);
 }
 
 void MainWindow::UpdateDataView(bool force)
@@ -1345,12 +1348,12 @@ void MainWindow::setSearchState(bool enable)
     }
 }
 
-QList<std::shared_ptr<Configs::ProxyEntity>> MainWindow::filterProfilesList(const QList<int>& profiles)
+QList<std::shared_ptr<Configs::Profile>> MainWindow::filterProfilesList(const QList<int>& profiles)
 {
-    QList<std::shared_ptr<Configs::ProxyEntity>> res;
+    QList<std::shared_ptr<Configs::Profile>> res;
     for (const auto& id : profiles)
     {
-        auto profile = Configs::profileManager->GetProfile(id);
+        auto profile = Configs::dataManager->profilesRepo->GetProfile(id);
         if (!profile)
         {
             MW_show_log("Null profile, maybe data is corrupted");
@@ -1365,7 +1368,7 @@ QList<std::shared_ptr<Configs::ProxyEntity>> MainWindow::filterProfilesList(cons
 
 void MainWindow::refresh_status(const QString &traffic_update) {
     auto refresh_speed_label = [=,this] {
-        if (Configs::dataStore->disable_traffic_stats) {
+        if (Configs::dataManager->settingsRepo->disable_traffic_stats) {
             ui->label_speed->setText("");
         }
         else if (traffic_update_cache == "") {
@@ -1376,7 +1379,7 @@ void MainWindow::refresh_status(const QString &traffic_update) {
     };
 
     // From TrafficLooper
-    if (!traffic_update.isEmpty() && !Configs::dataStore->disable_traffic_stats) {
+    if (!traffic_update.isEmpty() && !Configs::dataManager->settingsRepo->disable_traffic_stats) {
         traffic_update_cache = traffic_update;
         if (traffic_update == "STOP") {
             traffic_update_cache = "";
@@ -1391,7 +1394,7 @@ void MainWindow::refresh_status(const QString &traffic_update) {
     // From UI
     QString group_name;
     if (running != nullptr) {
-        auto group = Configs::profileManager->GetGroup(running->gid);
+        auto group = Configs::dataManager->groupsRepo->GetGroup(running->gid);
         if (group != nullptr) group_name = group->name;
     }
 
@@ -1399,12 +1402,12 @@ void MainWindow::refresh_status(const QString &traffic_update) {
         ui->label_running->setText(running ? QString("[%1] %2").arg(group_name, running->outbound->DisplayName()).left(30) : tr("Not Running"));
     }
     //
-    auto display_socks = DisplayAddress(Configs::dataStore->inbound_address, Configs::dataStore->inbound_socks_port);
+    auto display_socks = DisplayAddress(Configs::dataManager->settingsRepo->inbound_address, Configs::dataManager->settingsRepo->inbound_socks_port);
     auto inbound_txt = QString("Mixed: %1").arg(display_socks);
     ui->label_inbound->setText(inbound_txt);
     //
-    ui->checkBox_VPN->setChecked(Configs::dataStore->spmode_vpn);
-    ui->checkBox_SystemProxy->setChecked(Configs::dataStore->spmode_system_proxy);
+    ui->checkBox_VPN->setChecked(Configs::dataManager->settingsRepo->spmode_vpn);
+    ui->checkBox_SystemProxy->setChecked(Configs::dataManager->settingsRepo->spmode_system_proxy);
     if (select_mode) {
         ui->label_running->setText(tr("Select") + " *");
         ui->label_running->setToolTip(tr("Select mode, double-click or press Enter to select a profile, press ESC to exit."));
@@ -1417,13 +1420,13 @@ void MainWindow::refresh_status(const QString &traffic_update) {
         if (!isTray && Configs::IsAdmin()) tt << "[Admin]";
         if (select_mode) tt << "[" + tr("Select") + "]";
         if (!title_error.isEmpty()) tt << "[" + title_error + "]";
-        if (Configs::dataStore->spmode_vpn && !Configs::dataStore->spmode_system_proxy) tt << "[Tun]";
-        if (!Configs::dataStore->spmode_vpn && Configs::dataStore->spmode_system_proxy) tt << "[" + tr("System Proxy") + "]";
-        if (Configs::dataStore->spmode_vpn && Configs::dataStore->spmode_system_proxy) tt << "[Tun+" + tr("System Proxy") + "]";
+        if (Configs::dataManager->settingsRepo->spmode_vpn && !Configs::dataManager->settingsRepo->spmode_system_proxy) tt << "[Tun]";
+        if (!Configs::dataManager->settingsRepo->spmode_vpn && Configs::dataManager->settingsRepo->spmode_system_proxy) tt << "[" + tr("System Proxy") + "]";
+        if (Configs::dataManager->settingsRepo->spmode_vpn && Configs::dataManager->settingsRepo->spmode_system_proxy) tt << "[Tun+" + tr("System Proxy") + "]";
         tt << software_name;
         if (!isTray) tt << QString(NKR_VERSION);
-        if (!Configs::dataStore->active_routing.isEmpty() && Configs::dataStore->active_routing != "Default") {
-            tt << "[" + Configs::dataStore->active_routing + "]";
+        if (!Configs::dataManager->settingsRepo->active_routing.isEmpty() && Configs::dataManager->settingsRepo->active_routing != "Default") {
+            tt << "[" + Configs::dataManager->settingsRepo->active_routing + "]";
         }
         if (running != nullptr) tt << running->outbound->DisplayTypeAndName() + "@" + group_name;
         return tt.join(isTray ? "\n" : " ");
@@ -1432,13 +1435,13 @@ void MainWindow::refresh_status(const QString &traffic_update) {
     auto icon_status_new = Icon::NONE;
 
     if (running != nullptr) {
-        if (Configs::dataStore->spmode_vpn) {
+        if (Configs::dataManager->settingsRepo->spmode_vpn) {
             icon_status_new = Icon::VPN;
-        } else if (Configs::dataStore->system_dns_set && Configs::dataStore->spmode_system_proxy) {
+        } else if (Configs::dataManager->settingsRepo->system_dns_set && Configs::dataManager->settingsRepo->spmode_system_proxy) {
             icon_status_new = Icon::SYSTEM_PROXY_DNS;
-        } else if (Configs::dataStore->system_dns_set) {
+        } else if (Configs::dataManager->settingsRepo->system_dns_set) {
             icon_status_new = Icon::DNS;
-        } else if (Configs::dataStore->spmode_system_proxy) {
+        } else if (Configs::dataManager->settingsRepo->spmode_system_proxy) {
             icon_status_new = Icon::SYSTEM_PROXY;
         } else {
             icon_status_new = Icon::RUNNING;
@@ -1475,7 +1478,7 @@ void MainWindow::update_traffic_graph(int proxyDl, int proxyUp, int directDl, in
 
 // refresh_groups -> show_group -> refresh_proxy_list
 void MainWindow::refresh_groups() {
-    Configs::dataStore->refreshing_group_list = true;
+    Configs::dataManager->settingsRepo->refreshing_group_list = true;
 
     // refresh group?
     for (int i = ui->tabWidget->count() - 1; i > 0; i--) {
@@ -1483,8 +1486,8 @@ void MainWindow::refresh_groups() {
     }
 
     int index = 0;
-    for (const auto &gid: Configs::profileManager->groupsTabOrder) {
-        auto group = Configs::profileManager->GetGroup(gid);
+    for (const auto &gid: Configs::dataManager->groupsRepo->GetGroupsTabOrder()) {
+        auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
         if (index == 0) {
             ui->tabWidget->setTabText(0, group->name);
         } else {
@@ -1500,16 +1503,16 @@ void MainWindow::refresh_groups() {
     }
 
     // show after group changed
-    if (Configs::profileManager->CurrentGroup() == nullptr) {
-        Configs::dataStore->current_group = -1;
+    if (Configs::dataManager->groupsRepo->CurrentGroup() == nullptr) {
+        Configs::dataManager->settingsRepo->current_group = -1;
         ui->tabWidget->setCurrentIndex(groupId2TabIndex(0));
-        show_group(Configs::profileManager->groupsTabOrder.count() > 0 ? Configs::profileManager->groupsTabOrder.first() : 0);
+        show_group(Configs::dataManager->groupsRepo->GetGroupsTabOrder().count() > 0 ? Configs::dataManager->groupsRepo->GetGroupsTabOrder().first() : 0);
     } else {
-        ui->tabWidget->setCurrentIndex(groupId2TabIndex(Configs::dataStore->current_group));
-        show_group(Configs::dataStore->current_group);
+        ui->tabWidget->setCurrentIndex(groupId2TabIndex(Configs::dataManager->settingsRepo->current_group));
+        show_group(Configs::dataManager->settingsRepo->current_group);
     }
 
-    Configs::dataStore->refreshing_group_list = false;
+    Configs::dataManager->settingsRepo->refreshing_group_list = false;
 }
 
 void MainWindow::refresh_proxy_list(const int &id) {
@@ -1519,7 +1522,7 @@ void MainWindow::refresh_proxy_list(const int &id) {
 void MainWindow::refresh_proxy_list_impl(const int &id, GroupSortAction groupSortAction) {
     ui->proxyListTable->setUpdatesEnabled(false);
     if (id < 0) {
-        auto currentGroup = Configs::profileManager->CurrentGroup();
+        auto currentGroup = Configs::dataManager->groupsRepo->CurrentGroup();
         if (currentGroup == nullptr)
         {
             MW_show_log("Could not find current group!");
@@ -1541,20 +1544,20 @@ void MainWindow::refresh_proxy_list_impl(const int &id, GroupSortAction groupSor
                               QString ms_a;
                               QString ms_b;
                               if (groupSortAction.method == GroupSortMethod::ByType) {
-                                  ms_a = Configs::profileManager->GetProfile(a)->outbound->DisplayType();
-                                  ms_b = Configs::profileManager->GetProfile(b)->outbound->DisplayType();
+                                  ms_a = Configs::dataManager->profilesRepo->GetProfile(a)->outbound->DisplayType();
+                                  ms_b = Configs::dataManager->profilesRepo->GetProfile(b)->outbound->DisplayType();
                               } else if (groupSortAction.method == GroupSortMethod::ByName) {
-                                  ms_a = Configs::profileManager->GetProfile(a)->outbound->name;
-                                  ms_b = Configs::profileManager->GetProfile(b)->outbound->name;
+                                  ms_a = Configs::dataManager->profilesRepo->GetProfile(a)->outbound->name;
+                                  ms_b = Configs::dataManager->profilesRepo->GetProfile(b)->outbound->name;
                               } else if (groupSortAction.method == GroupSortMethod::ByAddress) {
-                                  ms_a = Configs::profileManager->GetProfile(a)->outbound->DisplayAddress();
-                                  ms_b = Configs::profileManager->GetProfile(b)->outbound->DisplayAddress();
+                                  ms_a = Configs::dataManager->profilesRepo->GetProfile(a)->outbound->DisplayAddress();
+                                  ms_b = Configs::dataManager->profilesRepo->GetProfile(b)->outbound->DisplayAddress();
                               } else if (groupSortAction.method == GroupSortMethod::ByLatency) {
-                                  ms_a = Configs::profileManager->GetProfile(a)->full_test_report;
-                                  ms_b = Configs::profileManager->GetProfile(b)->full_test_report;
+                                  ms_a = Configs::dataManager->profilesRepo->GetProfile(a)->full_test_report;
+                                  ms_b = Configs::dataManager->profilesRepo->GetProfile(b)->full_test_report;
                               }
                               auto get_latency_for_sort = [](int id) {
-                                  auto i = Configs::profileManager->GetProfile(id)->latency;
+                                  auto i = Configs::dataManager->profilesRepo->GetProfile(id)->latency;
                                   if (i == 0) i = 100000;
                                   if (i < 0) i = 99999;
                                   return i;
@@ -1569,8 +1572,8 @@ void MainWindow::refresh_proxy_list_impl(const int &id, GroupSortAction groupSor
                                   return ms_a > ms_b;
                               } else {
                                   if (groupSortAction.method == GroupSortMethod::ByLatency) {
-                                      auto int_a = Configs::profileManager->GetProfile(a)->latency;
-                                      auto int_b = Configs::profileManager->GetProfile(b)->latency;
+                                      auto int_a = Configs::dataManager->profilesRepo->GetProfile(a)->latency;
+                                      auto int_b = Configs::dataManager->profilesRepo->GetProfile(b)->latency;
                                       if (ms_a.isEmpty() && ms_b.isEmpty()) {
                                           // compare latency if full_test_report is empty
                                           return get_latency_for_sort(a) < get_latency_for_sort(b);
@@ -1590,7 +1593,7 @@ void MainWindow::refresh_proxy_list_impl(const int &id, GroupSortAction groupSor
 
 void MainWindow::refresh_proxy_list_impl_refresh_data(const int &id, bool stopping) {
     ui->proxyListTable->setUpdatesEnabled(false);
-    auto currentGroup = Configs::profileManager->CurrentGroup();
+    auto currentGroup = Configs::dataManager->groupsRepo->CurrentGroup();
     if (currentGroup == nullptr) return;
     if (id >= 0)
     {
@@ -1599,7 +1602,7 @@ void MainWindow::refresh_proxy_list_impl_refresh_data(const int &id, bool stoppi
             ui->proxyListTable->setUpdatesEnabled(true);
             return;
         }
-        auto profile = Configs::profileManager->GetProfile(id);
+        auto profile = Configs::dataManager->profilesRepo->GetProfile(id);
         if (filterProfilesList({id}).isEmpty())
         {
             ui->proxyListTable->setUpdatesEnabled(true);
@@ -1621,11 +1624,11 @@ void MainWindow::refresh_proxy_list_impl_refresh_data(const int &id, bool stoppi
     ui->proxyListTable->setUpdatesEnabled(true);
 }
 
-void MainWindow::refresh_table_item(const int row, const std::shared_ptr<Configs::ProxyEntity>& profile, bool stopping)
+void MainWindow::refresh_table_item(const int row, const std::shared_ptr<Configs::Profile>& profile, bool stopping)
 {
     if (profile == nullptr) return;
 
-    auto isRunning = profile->id == Configs::dataStore->started_id && !stopping;
+    auto isRunning = profile->id == Configs::dataManager->settingsRepo->started_id && !stopping;
     auto f0 = std::make_unique<QTableWidgetItem>();
     f0->setData(114514, profile->id);
 
@@ -1684,7 +1687,7 @@ void MainWindow::on_proxyListTable_itemDoubleClicked(QTableWidgetItem *item) {
 }
 
 void MainWindow::on_menu_add_from_input_triggered() {
-    auto dialog = new DialogEditProfile("socks", Configs::dataStore->current_group, this);
+    auto dialog = new DialogEditProfile("socks", Configs::dataManager->settingsRepo->current_group, this);
     connect(dialog, &QDialog::finished, dialog, &QDialog::deleteLater);
 }
 
@@ -1709,11 +1712,11 @@ void MainWindow::on_menu_clone_triggered() {
 }
 
 void  MainWindow::on_menu_delete_repeat_triggered () {
-    QList<std::shared_ptr<Configs::ProxyEntity>> out;
-    QList<std::shared_ptr<Configs::ProxyEntity>> out_del;
+    QList<std::shared_ptr<Configs::Profile>> out;
+    QList<std::shared_ptr<Configs::Profile>> out_del;
 
-    Configs::ProfileFilter::Uniq (Configs::profileManager-> CurrentGroup ()-> GetProfileEnts (), out,  false );
-    Configs::ProfileFilter::OnlyInSrc_ByPointer (Configs::profileManager-> CurrentGroup ()-> GetProfileEnts (), out, out_del);
+    Configs::ProfileFilter::Uniq (Configs::dataManager->profilesRepo->GetProfileBatch(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles()), out,  false );
+    Configs::ProfileFilter::OnlyInSrc_ByPointer (Configs::dataManager->profilesRepo->GetProfileBatch(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles()), out, out_del);
 
     int  remove_display_count =  0 ;
     QString remove_display;
@@ -1731,7 +1734,7 @@ void  MainWindow::on_menu_delete_repeat_triggered () {
         for (const auto &ent: out_del) {
             del_ids += ent->id;
         }
-        Configs::profileManager->BatchDeleteProfiles(del_ids);
+        Configs::dataManager->profilesRepo->BatchDeleteProfiles(del_ids);
         refresh_proxy_list();
     }
 }
@@ -1745,7 +1748,7 @@ void MainWindow::on_menu_delete_triggered() {
         for (const auto &ent: ents) {
             del_ids += ent->id;
         }
-        Configs::profileManager->BatchDeleteProfiles(del_ids);
+        Configs::dataManager->profilesRepo->BatchDeleteProfiles(del_ids);
         refresh_proxy_list();
     }
 }
@@ -1755,7 +1758,7 @@ void MainWindow::on_menu_reset_traffic_triggered() {
     if (ents.count() == 0) return;
     for (const auto &ent: ents) {
         ent->traffic_data->Reset();
-        ent->Save();
+        Configs::dataManager->profilesRepo->Save(ent);
         refresh_proxy_list(ent->id);
     }
 }
@@ -2017,7 +2020,7 @@ void MainWindow::on_menu_clear_test_result_triggered() {
         profile->dl_speed.clear();
         profile->ul_speed.clear();
         profile->full_test_report = "";
-        profile->Save();
+        Configs::dataManager->profilesRepo->Save(profile);
     }
     refresh_proxy_list();
 }
@@ -2033,7 +2036,7 @@ void MainWindow::on_menu_select_all_triggered() {
 bool mw_sub_updating = false;
 
 void MainWindow::on_menu_update_subscription_triggered() {
-    auto group = Configs::profileManager->CurrentGroup();
+    auto group = Configs::dataManager->groupsRepo->CurrentGroup();
     if (group->url.isEmpty()) return;
     if (mw_sub_updating) return;
     mw_sub_updating = true;
@@ -2041,10 +2044,11 @@ void MainWindow::on_menu_update_subscription_triggered() {
 }
 
 void MainWindow::on_menu_remove_unavailable_triggered() {
-    QList<std::shared_ptr<Configs::ProxyEntity>> out_del;
+    QList<std::shared_ptr<Configs::Profile>> out_del;
 
-    for (const auto &[_, profile]: Configs::profileManager->profiles) {
-        if (Configs::dataStore->current_group != profile->gid) continue;
+    for (const auto &profileID: Configs::dataManager->profilesRepo->GetAllProfileIds()) {
+        auto profile = Configs::dataManager->profilesRepo->GetProfile(profileID);
+        if (Configs::dataManager->settingsRepo->current_group != profile->gid) continue;
         if (profile->latency < 0) out_del += profile;
     }
 
@@ -2064,7 +2068,7 @@ void MainWindow::on_menu_remove_unavailable_triggered() {
         for (const auto &ent: out_del) {
             del_ids += ent->id;
         }
-        Configs::profileManager->BatchDeleteProfiles(del_ids);
+        Configs::dataManager->profilesRepo->BatchDeleteProfiles(del_ids);
         refresh_proxy_list();
     }
 }
@@ -2072,16 +2076,17 @@ void MainWindow::on_menu_remove_unavailable_triggered() {
 void MainWindow::on_menu_remove_invalid_triggered() {
     runOnNewThread([=,this]
     {
-        QList<std::shared_ptr<Configs::ProxyEntity>> out_del;
+        QList<std::shared_ptr<Configs::Profile>> out_del;
 
-     auto currentGroup = Configs::profileManager->GetGroup(Configs::dataStore->current_group);
+     auto currentGroup = Configs::dataManager->groupsRepo->CurrentGroup();
      if (currentGroup == nullptr) return;
      std::atomic counter(0);
      QMutex mu;
      QMutex access;
-     int profileSize = currentGroup->GetProfileEnts().size();
+     int profileSize = currentGroup->Profiles().size();
      mu.lock();
-     for (const auto& profile : currentGroup->GetProfileEnts()) {
+     for (const auto& profileID : currentGroup->Profiles()) {
+         auto profile = Configs::dataManager->profilesRepo->GetProfile(profileID);
          parallelCoreCallPool->start([&out_del, profile, &counter, &mu, profileSize, &access]
          {
              if (!IsValid(profile))
@@ -2114,7 +2119,7 @@ void MainWindow::on_menu_remove_invalid_triggered() {
          for (const auto &ent: out_del) {
              del_ids += ent->id;
          }
-         Configs::profileManager->BatchDeleteProfiles(del_ids);
+         Configs::dataManager->profilesRepo->BatchDeleteProfiles(del_ids);
          refresh_proxy_list();
      }
      });
@@ -2128,12 +2133,12 @@ void MainWindow::on_menu_resolve_selected_triggered() {
     if (mw_sub_updating) return;
     mw_sub_updating = true;
     auto resolve_count = std::atomic<int>(0);
-    Configs::dataStore->resolve_count = profiles.count();
+    Configs::dataManager->settingsRepo->resolve_count = profiles.count();
 
     for (const auto &profile: profiles) {
         profile->outbound->ResolveDomainToIP([=,this] {
-            profile->Save();
-            if (--Configs::dataStore->resolve_count != 0) return;
+            Configs::dataManager->profilesRepo->Save(profile);
+            if (--Configs::dataManager->settingsRepo->resolve_count != 0) return;
             refresh_proxy_list();
             mw_sub_updating = false;
         });
@@ -2141,7 +2146,7 @@ void MainWindow::on_menu_resolve_selected_triggered() {
 }
 
 void MainWindow::on_menu_resolve_domain_triggered() {
-    auto currGroup = Configs::profileManager->GetGroup(Configs::dataStore->current_group);
+    auto currGroup = Configs::dataManager->groupsRepo->GetGroup(Configs::dataManager->settingsRepo->current_group);
     if (currGroup == nullptr) return;
 
     auto profiles = currGroup->Profiles();
@@ -2155,13 +2160,13 @@ void MainWindow::on_menu_resolve_domain_triggered() {
     if (mw_sub_updating) return;
     mw_sub_updating = true;
     auto resolve_count = std::atomic<int>(0);
-    Configs::dataStore->resolve_count = profiles.count();
+    Configs::dataManager->settingsRepo->resolve_count = profiles.count();
 
     for (const auto id: profiles) {
-        auto profile = Configs::profileManager->GetProfile(id);
+        auto profile = Configs::dataManager->profilesRepo->GetProfile(id);
         profile->outbound->ResolveDomainToIP([=,this] {
-            profile->Save();
-            if (--Configs::dataStore->resolve_count != 0) return;
+            Configs::dataManager->profilesRepo->Save(profile);
+            if (--Configs::dataManager->settingsRepo->resolve_count != 0) return;
             refresh_proxy_list();
             mw_sub_updating = false;
         });
@@ -2172,25 +2177,25 @@ void MainWindow::on_proxyListTable_customContextMenuRequested(const QPoint &pos)
     ui->menu_server->popup(ui->proxyListTable->viewport()->mapToGlobal(pos)); // 弹出菜单
 }
 
-QList<std::shared_ptr<Configs::ProxyEntity>> MainWindow::get_now_selected_list() {
+QList<std::shared_ptr<Configs::Profile>> MainWindow::get_now_selected_list() {
     auto items = ui->proxyListTable->selectedItems();
-    QList<std::shared_ptr<Configs::ProxyEntity>> list;
+    QList<std::shared_ptr<Configs::Profile>> list;
     for (auto item: items) {
         auto id = item->data(114514).toInt();
-        auto ent = Configs::profileManager->GetProfile(id);
+        auto ent = Configs::dataManager->profilesRepo->GetProfile(id);
         if (ent != nullptr && !list.contains(ent)) list += ent;
     }
     return list;
 }
 
-QList<std::shared_ptr<Configs::ProxyEntity>> MainWindow::get_selected_or_group() {
+QList<std::shared_ptr<Configs::Profile>> MainWindow::get_selected_or_group() {
     auto selected_or_group = ui->menu_server->property("selected_or_group").toInt();
-    QList<std::shared_ptr<Configs::ProxyEntity>> profiles;
+    QList<std::shared_ptr<Configs::Profile>> profiles;
     if (selected_or_group > 0) {
         profiles = get_now_selected_list();
-        if (profiles.isEmpty() && selected_or_group == 2) profiles = Configs::profileManager->CurrentGroup()->GetProfileEnts();
+        if (profiles.isEmpty() && selected_or_group == 2) profiles = Configs::dataManager->profilesRepo->GetProfileBatch(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles());
     } else {
-        profiles = Configs::profileManager->CurrentGroup()->GetProfileEnts();
+        profiles = Configs::dataManager->profilesRepo->GetProfileBatch(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles());
     }
     return profiles;
 }
@@ -2234,7 +2239,7 @@ void MainWindow::show_log_impl(const QString &log) {
     auto block = qvLogDocument->begin();
 
     while (block.isValid()) {
-        if (qvLogDocument->blockCount() > Configs::dataStore->max_log_line) {
+        if (qvLogDocument->blockCount() > Configs::dataManager->settingsRepo->max_log_line) {
             QTextCursor cursor(block);
             block = block.next();
             cursor.select(QTextCursor::BlockUnderCursor);
@@ -2270,13 +2275,13 @@ void MainWindow::on_tabWidget_customContextMenuRequested(const QPoint &p) {
         auto* menu = new QMenu(this);
         auto* addAction = new QAction(tr("Add new Group"), this);
         connect(addAction, &QAction::triggered, this, [=,this]{
-            auto ent = Configs::ProfileManager::NewGroup();
+            auto ent = Configs::dataManager->groupsRepo->NewGroup();
             auto dialog = new DialogEditGroup(ent, this);
             int ret = dialog->exec();
             dialog->deleteLater();
 
             if (ret == QDialog::Accepted) {
-                Configs::profileManager->AddGroup(ent);
+                Configs::dataManager->groupsRepo->AddGroup(ent);
                 MW_dialog_message(Dialog_DialogManageGroups, "refresh-1");
             }
         });
@@ -2293,31 +2298,31 @@ void MainWindow::on_tabWidget_customContextMenuRequested(const QPoint &p) {
     auto* deleteAction = new QAction(tr("Delete selected Group"), this);
     auto* editAction = new QAction(tr("Edit selected Group"), this);
     connect(addAction, &QAction::triggered, this, [=,this]{
-        auto ent = Configs::ProfileManager::NewGroup();
+        auto ent = Configs::dataManager->groupsRepo->NewGroup();
         auto dialog = new DialogEditGroup(ent, this);
         int ret = dialog->exec();
         dialog->deleteLater();
 
         if (ret == QDialog::Accepted) {
-            Configs::profileManager->AddGroup(ent);
+            Configs::dataManager->groupsRepo->AddGroup(ent);
             MW_dialog_message(Dialog_DialogManageGroups, "refresh-1");
         }
     });
     connect(deleteAction, &QAction::triggered, this, [=,this] {
-        auto id = Configs::profileManager->groupsTabOrder[clickedIndex];
-        if (QMessageBox::question(this, tr("Confirmation"), tr("Remove %1?").arg(Configs::profileManager->groups[id]->name)) ==
+        auto id = Configs::dataManager->groupsRepo->GetGroupsTabOrder()[clickedIndex];
+        if (QMessageBox::question(this, tr("Confirmation"), tr("Remove %1?").arg(Configs::dataManager->groupsRepo->GetGroup(id)->name)) ==
             QMessageBox::StandardButton::Yes) {
-            Configs::profileManager->DeleteGroup(id);
+            Configs::dataManager->groupsRepo->DeleteGroup(id);
             MW_dialog_message(Dialog_DialogManageGroups, "refresh-1");
         }
     });
     connect(editAction, &QAction::triggered, this, [=,this]{
-        auto id = Configs::profileManager->groupsTabOrder[clickedIndex];
-        auto ent = Configs::profileManager->groups[id];
+        auto id = Configs::dataManager->groupsRepo->GetGroupsTabOrder()[clickedIndex];
+        auto ent = Configs::dataManager->groupsRepo->GetGroup(id);
         auto dialog = new DialogEditGroup(ent, this);
         connect(dialog, &QDialog::finished, this, [=,this] {
             if (dialog->result() == QDialog::Accepted) {
-                ent->Save();
+                Configs::dataManager->groupsRepo->Save(ent);
                 MW_dialog_message(Dialog_DialogManageGroups, "refresh" + Int2String(ent->id));
             }
             dialog->deleteLater();
@@ -2326,8 +2331,8 @@ void MainWindow::on_tabWidget_customContextMenuRequested(const QPoint &p) {
     });
     menu->addAction(addAction);
     menu->addAction(editAction);
-    auto group = Configs::profileManager->GetGroup(Configs::dataStore->current_group);
-    if (Configs::profileManager->groups.size() > 1) menu->addAction(deleteAction);
+    auto group = Configs::dataManager->groupsRepo->GetGroup(Configs::dataManager->settingsRepo->current_group);
+    if (Configs::dataManager->groupsRepo->GetAllGroupIds().size() > 1) menu->addAction(deleteAction);
     if (!group->Profiles().empty()) {
         menu->addAction(ui->actionUrl_Test_Group);
         menu->addAction(ui->actionSpeedtest_Group);
@@ -2393,14 +2398,14 @@ void MainWindow::RegisterHotkey(bool unregister) {
         auto hk = RegisteredHotkey.takeFirst();
         hk->deleteLater();
     }
-    if (unregister || Configs::dataStore->prepare_exit) return;
+    if (unregister || Configs::dataManager->settingsRepo->prepare_exit) return;
 
     QStringList regstr{
-        Configs::dataStore->hotkey_mainwindow,
-        Configs::dataStore->hotkey_group,
-        Configs::dataStore->hotkey_route,
-        Configs::dataStore->hotkey_system_proxy_menu,
-        Configs::dataStore->hotkey_toggle_system_proxy,
+        Configs::dataManager->settingsRepo->hotkey_mainwindow,
+        Configs::dataManager->settingsRepo->hotkey_group,
+        Configs::dataManager->settingsRepo->hotkey_route,
+        Configs::dataManager->settingsRepo->hotkey_system_proxy_menu,
+        Configs::dataManager->settingsRepo->hotkey_toggle_system_proxy,
     };
 
     for (const auto &key: regstr) {
@@ -2476,7 +2481,7 @@ QList<QAction*> MainWindow::getActionsForShortcut()
 
 void MainWindow::loadShortcuts()
 {
-    auto mp = Configs::dataStore->shortcuts->shortcuts;
+    auto mp = Configs::dataManager->settingsRepo->shortcuts;
     for (QList<QAction *> actions = findChildren<QAction *>(); QAction *action : actions)
     {
         if (action->data().isNull() || action->data().toString().isEmpty()) continue;
@@ -2491,15 +2496,15 @@ void MainWindow::loadShortcuts()
 void MainWindow::HotkeyEvent(const QString &key) {
     if (key.isEmpty()) return;
     runOnUiThread([=,this] {
-        if (key == Configs::dataStore->hotkey_mainwindow) {
+        if (key == Configs::dataManager->settingsRepo->hotkey_mainwindow) {
             tray->activated(QSystemTrayIcon::ActivationReason::Trigger);
-        } else if (key == Configs::dataStore->hotkey_group) {
+        } else if (key == Configs::dataManager->settingsRepo->hotkey_group) {
             on_menu_manage_groups_triggered();
-        } else if (key == Configs::dataStore->hotkey_route) {
+        } else if (key == Configs::dataManager->settingsRepo->hotkey_route) {
             on_menu_routing_settings_triggered();
-        } else if (key == Configs::dataStore->hotkey_system_proxy_menu) {
+        } else if (key == Configs::dataManager->settingsRepo->hotkey_system_proxy_menu) {
             ui->menu_spmode->popup(QCursor::pos());
-        } else if (key == Configs::dataStore->hotkey_toggle_system_proxy) {
+        } else if (key == Configs::dataManager->settingsRepo->hotkey_toggle_system_proxy) {
             toggle_system_proxy();
         }
     });
@@ -2633,7 +2638,7 @@ void MainWindow::CheckUpdate() {
     QJsonArray array = QString2QJsonArray(resp.data);
     for (const QJsonValue value : array) {
         QJsonObject release = value.toObject();
-        if (release["prerelease"].toBool() && !Configs::dataStore->allow_beta_update) continue;
+        if (release["prerelease"].toBool() && !Configs::dataManager->settingsRepo->allow_beta_update) continue;
         for (const QJsonValue asset : release["assets"].toArray()) {
             if (asset["name"].toString().contains(search) && asset["name"].toString().section('.', -1) == QString("zip")) {
                 note_pre_release = release["prerelease"].toBool() ? " (Pre-release)" : "";
@@ -2656,7 +2661,7 @@ void MainWindow::CheckUpdate() {
     }
 
     runOnUiThread([=,this] {
-        auto allow_updater = !Configs::dataStore->flag_use_appdata;
+        auto allow_updater = !Configs::dataManager->settingsRepo->flag_use_appdata;
         QMessageBox box(QMessageBox::Question, QObject::tr("Update") + note_pre_release,
                         QObject::tr("Update found: %1\nRelease note:\n%2").arg(assets_name, release_note));
         //

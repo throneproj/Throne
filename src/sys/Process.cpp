@@ -5,6 +5,8 @@
 #include <QDir>
 #include <QApplication>
 
+
+
 #include "include/ui/mainwindow.h"
 
 namespace Configs_sys {
@@ -22,10 +24,10 @@ namespace Configs_sys {
 
         connect(this, &QProcess::readyReadStandardOutput, this, [&]() {
             auto log = readAllStandardOutput();
-            if (!Configs::dataStore->core_running) {
+            if (!Configs::dataManager->settingsRepo->core_running) {
                 if (log.contains("Core listening at")) {
                     // The core really started
-                    Configs::dataStore->core_running = true;
+                    Configs::dataManager->settingsRepo->core_running = true;
                     MW_dialog_message("ExternalProcess", "CoreStarted," + Int2String(start_profile_when_core_is_up));
                     start_profile_when_core_is_up = -1;
                 } else if (log.contains("failed to serve")) {
@@ -38,7 +40,7 @@ namespace Configs_sys {
                 MW_show_log("Extra Core exited, stopping profile...");
                 MW_dialog_message("ExternalProcess", "Crashed");
             }
-            if (logCounter.fetchAndAddRelaxed(log.count("\n")) > Configs::dataStore->max_log_line) return;
+            if (logCounter.fetchAndAddRelaxed(log.count("\n")) > Configs::dataManager->settingsRepo->max_log_line) return;
             MW_show_log(log);
         });
         connect(this, &QProcess::readyReadStandardError, this, [&]() {
@@ -53,11 +55,11 @@ namespace Configs_sys {
         });
         connect(this, &QProcess::stateChanged, this, [&](ProcessState state) {
             if (state == NotRunning) {
-                Configs::dataStore->core_running = false;
+                Configs::dataManager->settingsRepo->core_running = false;
                 qDebug() << "Core stated changed to not running";
             }
 
-            if (!Configs::dataStore->prepare_exit && state == NotRunning) {
+            if (!Configs::dataManager->settingsRepo->prepare_exit && state == NotRunning) {
                 if (failed_to_start) return; // no retry
                 if (restarting) return;
 
@@ -79,7 +81,7 @@ namespace Configs_sys {
                 }
 
                 // Restart
-                start_profile_when_core_is_up = Configs::dataStore->started_id;
+                start_profile_when_core_is_up = Configs::dataManager->settingsRepo->started_id;
                 MW_show_log("[Warn] " + QObject::tr("Restarting the core ..."));
                 setTimeout([=,this] { Restart(); }, this, 200);
             }

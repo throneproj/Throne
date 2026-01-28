@@ -9,7 +9,7 @@ EditHttp::~EditHttp() {
     delete ui;
 }
 
-void EditHttp::onStart(std::shared_ptr<Configs::ProxyEntity> _ent) {
+void EditHttp::onStart(std::shared_ptr<Configs::Profile> _ent) {
     this->ent = _ent;
     auto outbound = this->ent->Http();
 

@@ -1,6 +1,5 @@
 #include "include/ui/mainwindow.h"
 
-#include "include/dataStore/Database.hpp"
 #include "include/stats/traffic/TrafficLooper.hpp"
 #include "include/api/RPC.h"
 #include "include/ui/utils//MessageBoxTimer.h"
@@ -12,6 +11,9 @@
 #include <QMessageBox>
 
 #include "include/configs/generate.h"
+#include "include/database/GroupsRepo.h"
+#include "include/database/ProfilesRepo.h"
+
 #include "include/sys/Process.hpp"
 
 // rpc
@@ -24,7 +26,7 @@ void MainWindow::setup_rpc() {
         [=](const QString &errStr) {
             MW_show_log("[Error] Core: " + errStr);
         },
-        "127.0.0.1", Configs::dataStore->core_port);
+        "127.0.0.1", Configs::dataManager->settingsRepo->core_port);
 
     // Looper
     runOnNewThread([=] { Stats::trafficLooper->Loop(); });
@@ -42,10 +44,10 @@ void MainWindow::runURLTest(const QString& config, const QString& xrayConfig, bo
         req.outbound_tags.push_back(item.toStdString());
     }
     req.config = config.toStdString();
-    req.url = Configs::dataStore->test_latency_url.toStdString();
+    req.url = Configs::dataManager->settingsRepo->test_latency_url.toStdString();
     req.use_default_outbound = useDefault;
-    req.max_concurrency = Configs::dataStore->test_concurrent;
-    req.test_timeout_ms = Configs::dataStore->url_test_timeout_ms;
+    req.max_concurrency = Configs::dataManager->settingsRepo->test_concurrent;
+    req.test_timeout_ms = Configs::dataManager->settingsRepo->url_test_timeout_ms;
     req.xray_config = xrayConfig.toStdString();
     req.need_xray = !xrayConfig.isEmpty();
 
@@ -74,7 +76,7 @@ void MainWindow::runURLTest(const QString& config, const QString& xrayConfig, bo
                 if (entid == -1) {
                     continue;
                 }
-                auto ent = Configs::profileManager->GetProfile(entid);
+                auto ent = Configs::dataManager->profilesRepo->GetProfile(entid);
                 if (ent == nullptr) {
                     continue;
                 }
@@ -88,7 +90,7 @@ void MainWindow::runURLTest(const QString& config, const QString& xrayConfig, bo
                         MW_show_log(tr("[%1] test error: %2").arg(ent->outbound->DisplayTypeAndName(), QString::fromStdString(res.error.value())));
                     }
                 }
-                ent->Save();
+                Configs::dataManager->profilesRepo->Save(ent);
                 needRefresh = true;
             }
             if (needRefresh)
@@ -116,7 +118,7 @@ void MainWindow::runURLTest(const QString& config, const QString& xrayConfig, bo
             continue;
         }
 
-        auto ent = Configs::profileManager->GetProfile(entID);
+        auto ent = Configs::dataManager->profilesRepo->GetProfile(entID);
         if (ent == nullptr) {
             MW_show_log(tr("Profile manager data is corrupted, try again."));
             continue;
@@ -132,11 +134,11 @@ void MainWindow::runURLTest(const QString& config, const QString& xrayConfig, bo
                 MW_show_log(tr("[%1] test error: %2").arg(ent->outbound->DisplayTypeAndName(), QString::fromStdString(res.error.value())));
             }
         }
-        ent->Save();
+        Configs::dataManager->profilesRepo->Save(ent);
     }
 }
 
-void MainWindow::urltest_current_group(const QList<std::shared_ptr<Configs::ProxyEntity>>& profiles) {
+void MainWindow::urltest_current_group(const QList<std::shared_ptr<Configs::Profile>>& profiles) {
     if (profiles.isEmpty()) {
         return;
     }
@@ -147,7 +149,7 @@ void MainWindow::urltest_current_group(const QList<std::shared_ptr<Configs::Prox
 
     runOnNewThread([this, profiles]() {
         stopSpeedtest.store(false);
-        auto speedTestFunc = [=, this](const QList<std::shared_ptr<Configs::ProxyEntity>>& profileSlice) {
+        auto speedTestFunc = [=, this](const QList<std::shared_ptr<Configs::Profile>>& profileSlice) {
             auto buildObject = Configs::BuildTestConfig(profileSlice);
             if (!buildObject->error.isEmpty()) {
                 MW_show_log(tr("Failed to build test config for batch: ") + buildObject->error);
@@ -213,7 +215,7 @@ void MainWindow::url_test_current() {
     runOnNewThread([=,this] {
         libcore::TestReq req;
         req.test_current = true;
-        req.url = Configs::dataStore->test_latency_url.toStdString();
+        req.url = Configs::dataManager->settingsRepo->test_latency_url.toStdString();
 
         bool rpcOK;
         auto result = defaultClient->Test(&rpcOK, req);
@@ -235,7 +237,7 @@ void MainWindow::url_test_current() {
     });
 }
 
-void MainWindow::speedtest_current_group(const QList<std::shared_ptr<Configs::ProxyEntity>>& profiles, bool testCurrent)
+void MainWindow::speedtest_current_group(const QList<std::shared_ptr<Configs::Profile>>& profiles, bool testCurrent)
 {
     if (profiles.isEmpty() && !testCurrent) {
         return;
@@ -249,7 +251,7 @@ void MainWindow::speedtest_current_group(const QList<std::shared_ptr<Configs::Pr
         stopSpeedtest.store(false);
         if (!testCurrent)
         {
-            auto speedTestFunc = [=, this](const QList<std::shared_ptr<Configs::ProxyEntity>>& profileSlice) {
+            auto speedTestFunc = [=, this](const QList<std::shared_ptr<Configs::Profile>>& profileSlice) {
                 auto buildObject = Configs::BuildTestConfig(profileSlice);
                 if (!buildObject->error.isEmpty()) {
                     MW_show_log(tr("Failed to build batch test config: ") + buildObject->error);
@@ -291,7 +293,7 @@ void MainWindow::querySpeedtest(QDateTime lastProxyListUpdate, const QMap<QStrin
     {
         return;
     }
-    auto profile = testCurrent ? running : Configs::profileManager->GetProfile(tag2entID[QString::fromStdString(res.result.value().outbound_tag.value())]);
+    auto profile = testCurrent ? running : Configs::dataManager->profilesRepo->GetProfile(tag2entID[QString::fromStdString(res.result.value().outbound_tag.value())]);
     if (profile == nullptr)
     {
         return;
@@ -325,7 +327,7 @@ void MainWindow::queryCountryTest(const QMap<QString, int>& tag2entID, bool test
     }
     for (const auto& result : res.results)
     {
-        auto profile = testCurrent ? running : Configs::profileManager->GetProfile(tag2entID[QString::fromStdString(result.outbound_tag.value())]);
+        auto profile = testCurrent ? running : Configs::dataManager->profilesRepo->GetProfile(tag2entID[QString::fromStdString(result.outbound_tag.value())]);
         if (profile == nullptr)
         {
             return;
@@ -351,7 +353,7 @@ void MainWindow::runSpeedTest(const QString& config, const QString& xrayConfig, 
     }
 
     libcore::SpeedTestRequest req;
-    auto speedtestConf = Configs::dataStore->speed_test_mode;
+    auto speedtestConf = Configs::dataManager->settingsRepo->speed_test_mode;
     for (const auto &item: outboundTags) {
         req.outbound_tags.push_back(item.toStdString());
     }
@@ -360,11 +362,11 @@ void MainWindow::runSpeedTest(const QString& config, const QString& xrayConfig, 
     req.test_download = speedtestConf == Configs::TestConfig::FULL || speedtestConf == Configs::TestConfig::DL;
     req.test_upload = speedtestConf == Configs::TestConfig::FULL || speedtestConf == Configs::TestConfig::UL;
     req.simple_download = speedtestConf == Configs::TestConfig::SIMPLEDL;
-    req.simple_download_addr = Configs::dataStore->simple_dl_url.toStdString();
+    req.simple_download_addr = Configs::dataManager->settingsRepo->simple_dl_url.toStdString();
     req.test_current = testCurrent;
-    req.timeout_ms = Configs::dataStore->speed_test_timeout_ms;
+    req.timeout_ms = Configs::dataManager->settingsRepo->speed_test_timeout_ms;
     req.only_country = speedtestConf == Configs::TestConfig::COUNTRY;
-    req.country_concurrency = Configs::dataStore->test_concurrent;
+    req.country_concurrency = Configs::dataManager->settingsRepo->test_concurrent;
     req.xray_config = xrayConfig.toStdString();
     req.need_xray = !xrayConfig.isEmpty();
 
@@ -412,7 +414,7 @@ void MainWindow::runSpeedTest(const QString& config, const QString& xrayConfig, 
             continue;
         }
 
-        auto ent = Configs::profileManager->GetProfile(entID);
+        auto ent = Configs::dataManager->profilesRepo->GetProfile(entID);
         if (ent == nullptr) {
             MW_show_log(tr("Profile manager data is corrupted, try again."));
             continue;
@@ -432,12 +434,12 @@ void MainWindow::runSpeedTest(const QString& config, const QString& xrayConfig, 
             ent->test_country = "";
             MW_show_log(tr("[%1] speed test error: %2").arg(ent->outbound->DisplayTypeAndName(), QString::fromStdString(res.error.value())));
         }
-        ent->Save();
+        Configs::dataManager->profilesRepo->Save(ent);
     }
 }
 
 bool MainWindow::set_system_dns(bool set, bool save_set) {
-    if (!Configs::dataStore->enable_dns_server) {
+    if (!Configs::dataManager->settingsRepo->enable_dns_server) {
         MW_show_log(tr("You need to enable hijack DNS server first"));
         return false;
     }
@@ -455,23 +457,23 @@ bool MainWindow::set_system_dns(bool set, bool save_set) {
         MW_show_log(tr("Failed to set system dns: ") + res);
         return false;
     }
-    if (save_set) Configs::dataStore->system_dns_set = set;
+    if (save_set) Configs::dataManager->settingsRepo->system_dns_set = set;
     return true;
 }
 
 void MainWindow::profile_start(int _id) {
-    if (Configs::dataStore->prepare_exit) return;
+    if (Configs::dataManager->settingsRepo->prepare_exit) return;
 #ifdef Q_OS_LINUX
-    if (Configs::dataStore->enable_dns_server && Configs::dataStore->dns_server_listen_port <= 1024) {
+    if (Configs::dataManager->settingsRepo->enable_dns_server && Configs::dataManager->settingsRepo->dns_server_listen_port <= 1024) {
         if (!get_elevated_permissions()) {
-            MW_show_log(QString("Failed to get admin access, cannot listen on port %1 without it").arg(Configs::dataStore->dns_server_listen_port));
+            MW_show_log(QString("Failed to get admin access, cannot listen on port %1 without it").arg(Configs::dataManager->settingsRepo->dns_server_listen_port));
             return;
         }
     }
 #endif
 
     auto ents = get_now_selected_list();
-    auto ent = (_id < 0 && !ents.isEmpty()) ? ents.first() : Configs::profileManager->GetProfile(_id);
+    auto ent = (_id < 0 && !ents.isEmpty()) ? ents.first() : Configs::dataManager->profilesRepo->GetProfile(_id);
     if (ent == nullptr) return;
 
     if (select_mode) {
@@ -481,7 +483,7 @@ void MainWindow::profile_start(int _id) {
         return;
     }
 
-    auto group = Configs::profileManager->GetGroup(ent->gid);
+    auto group = Configs::dataManager->groupsRepo->GetGroup(ent->gid);
     if (group == nullptr || group->archive) return;
 
     auto result = Configs::BuildSingBoxConfig(ent);
@@ -493,7 +495,7 @@ void MainWindow::profile_start(int _id) {
     auto profile_start_stage2 = [=, this] {
         libcore::LoadConfigReq req;
         req.core_config = QJsonObject2QString(result->coreConfig, true).toStdString();
-        req.disable_stats = Configs::dataStore->disable_traffic_stats;
+        req.disable_stats = Configs::dataManager->settingsRepo->disable_traffic_stats;
         req.xray_config = QJsonObject2QString(result->xrayConfig, true).toStdString();
         req.need_xray = !result->xrayConfig.isEmpty();
         if (ent->type == "extracore")
@@ -546,7 +548,7 @@ void MainWindow::profile_start(int _id) {
         Stats::trafficLooper->loop_enabled = true;
         Stats::connection_lister->suspend = false;
 
-        Configs::dataStore->UpdateStartedId(ent->id);
+        Configs::dataManager->settingsRepo->UpdateStartedId(ent->id);
         running = ent;
 
         runOnUiThread([=, this] {
@@ -569,7 +571,7 @@ void MainWindow::profile_start(int _id) {
     mu_stopping.unlock();
 
     // check core state
-    if (!Configs::dataStore->core_running) {
+    if (!Configs::dataManager->settingsRepo->core_running) {
         runOnThread(
             [=, this] {
                 MW_show_log(tr("Try to start the config, but the core has not listened to the RPC port, so restart it..."));
@@ -613,24 +615,24 @@ void MainWindow::profile_start(int _id) {
 }
 
 void MainWindow::set_spmode_system_proxy(bool enable, bool save) {
-    if (enable != Configs::dataStore->spmode_system_proxy) {
+    if (enable != Configs::dataManager->settingsRepo->spmode_system_proxy) {
         if (enable) {
-            auto socks_port = Configs::dataStore->inbound_socks_port;
-            SetSystemProxy(socks_port, socks_port, Configs::dataStore->proxy_scheme);
+            auto socks_port = Configs::dataManager->settingsRepo->inbound_socks_port;
+            SetSystemProxy(socks_port, socks_port, Configs::dataManager->settingsRepo->proxy_scheme);
         } else {
             ClearSystemProxy();
         }
     }
 
     if (save) {
-        Configs::dataStore->remember_spmode.removeAll("system_proxy");
-        if (enable && Configs::dataStore->remember_enable) {
-            Configs::dataStore->remember_spmode.append("system_proxy");
+        Configs::dataManager->settingsRepo->remember_spmode.removeAll("system_proxy");
+        if (enable && Configs::dataManager->settingsRepo->remember_enable) {
+            Configs::dataManager->settingsRepo->remember_spmode.append("system_proxy");
         }
-        Configs::dataStore->Save();
+        Configs::dataManager->settingsRepo->Save();
     }
 
-    Configs::dataStore->spmode_system_proxy = enable;
+    Configs::dataManager->settingsRepo->spmode_system_proxy = enable;
     refresh_status();
 }
 
@@ -673,7 +675,7 @@ void MainWindow::profile_stop(bool crash, bool block, bool manual) {
     Stats::trafficLooper->UpdateAll();
     for (const auto &item: Stats::trafficLooper->items) {
         if (item->id < 0) continue;
-        Configs::profileManager->GetProfile(item->id)->Save();
+        Configs::dataManager->profilesRepo->Save(Configs::dataManager->profilesRepo->GetProfile(item->id));
         refresh_proxy_list(item->id);
     }
     Stats::trafficLooper->loop_mutex.unlock();
@@ -689,8 +691,8 @@ void MainWindow::profile_stop(bool crash, bool block, bool manual) {
             MW_show_log("<<<<<<<< " + tr("Failed to stop, please restart the program."));
         }
 
-        if (manual) Configs::dataStore->UpdateStartedId(-1919);
-        Configs::dataStore->need_keep_vpn_off = false;
+        if (manual) Configs::dataManager->settingsRepo->UpdateStartedId(-1919);
+        Configs::dataManager->settingsRepo->need_keep_vpn_off = false;
         running = nullptr;
 
         if (block) blocker.unlock();

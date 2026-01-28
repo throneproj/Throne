@@ -1,6 +1,6 @@
 #pragma once
-
-#include "include/global/Configs.hpp"
+#include <QList>
+#include <QString>
 
 namespace Configs
 {
