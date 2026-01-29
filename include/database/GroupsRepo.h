@@ -30,6 +30,8 @@ namespace Configs {
         // Create tables if they don't exist
         void createTables() const;
 
+        // Get next available group ID
+        int NewGroupID() const;
     public:
         explicit GroupsRepo(Database& database);
         
@@ -50,9 +52,6 @@ namespace Configs {
         
         // Get all group IDs in order
         QList<int> GetAllGroupIds() const;
-        
-        // Get next available group ID
-        int NewGroupID() const;
         
         // Get groups tab order (UI display order)
         QList<int> GetGroupsTabOrder() const;

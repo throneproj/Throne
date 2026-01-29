@@ -3,7 +3,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
-
+#include "include/database/GroupsRepo.h"
 
 
 namespace Configs {
@@ -138,8 +138,7 @@ namespace Configs {
         }
         
         if (json.contains("traffic") && json["traffic"].isObject() && profile->traffic_data) {
-            auto trafficJsonStore = dynamic_cast<JsonStore*>(profile->traffic_data.get());
-            if (trafficJsonStore) {
+            if (auto trafficJsonStore = dynamic_cast<JsonStore*>(profile->traffic_data.get())) {
                 trafficJsonStore->FromJson(json["traffic"].toObject());
             }
         }
@@ -150,8 +149,6 @@ namespace Configs {
     }
 
     void ProfilesRepo::saveToDatabase(const Profile* profile, int id) const {
-        QMutexLocker locker(&mutex);
-        
         QJsonObject json = profileToJson(profile);
         QJsonDocument doc(json);
         QString jsonStr = QString::fromUtf8(doc.toJson(QJsonDocument::Compact));
@@ -320,6 +317,14 @@ namespace Configs {
         int newId = NewProfileID();
         profile->id = newId;
         profile->gid = gid < 0 ? Configs::dataManager->settingsRepo->current_group : gid;
+
+        // Add it to the group first
+        if (auto group = dataManager->groupsRepo->GetGroup(profile->gid)) {
+            group->AddProfile(profile->id);
+            dataManager->groupsRepo->Save(group);
+        } else {
+            return false;
+        }
         
         // Save to database first
         saveToDatabase(profile.get(), newId);
@@ -334,6 +339,8 @@ namespace Configs {
         QMutexLocker locker(&mutex);
         
         gid = gid < 0 ? Configs::dataManager->settingsRepo->current_group : gid;
+        auto group = dataManager->groupsRepo->GetGroup(gid);
+        if (!group) return false;
         
         for (auto& profile : profiles) {
             if (profile->id >= 0) continue; // Skip if already has ID
@@ -341,6 +348,9 @@ namespace Configs {
             int newId = NewProfileID();
             profile->id = newId;
             profile->gid = gid;
+
+            // Add it to the group first
+            group->AddProfile(profile->id);
             
             // Save to database first
             saveToDatabase(profile.get(), newId);
@@ -348,6 +358,8 @@ namespace Configs {
             // Add to identity map
             identityMap[newId] = std::weak_ptr<Profile>(profile);
         }
+
+        dataManager->groupsRepo->Save(group);
         
         return true;
     }
@@ -356,10 +368,8 @@ namespace Configs {
         QMutexLocker locker(&mutex);
         
         // Check identity map first
-        auto it = identityMap.find(id);
-        if (it != identityMap.end()) {
-            auto shared = it->second.lock();
-            if (shared) {
+        if (auto it = identityMap.find(id); it != identityMap.end()) {
+            if (auto shared = it->second.lock()) {
                 return shared; // Return existing instance
             } else {
                 // Weak pointer expired, remove from map
@@ -425,8 +435,14 @@ namespace Configs {
     }
 
     void ProfilesRepo::DeleteProfile(int id) {
+        auto profile = GetProfile(id);
+        auto group = dataManager->groupsRepo->GetGroup(profile->gid);
+        if (group) {
+            group->RemoveProfile(id);
+            dataManager->groupsRepo->Save(group);
+        }
+
         QMutexLocker locker(&mutex);
-        
         // Remove from identity map
         identityMap.erase(id);
         
@@ -435,22 +451,28 @@ namespace Configs {
     }
 
     void ProfilesRepo::BatchDeleteProfiles(const QList<int>& ids) {
-        QMutexLocker locker(&mutex);
-        
-        // Remove from identity map
-        for (int id : ids) {
-            identityMap.erase(id);
+        QSet<std::shared_ptr<Group>> groups;
+        for (auto& id : ids) {
+            if (auto profile = GetProfile(id)) {
+                if (auto group = dataManager->groupsRepo->GetGroup(profile->gid)) {
+                    group->RemoveProfile(id);
+                    groups.insert(group);
+                }
+            }
         }
-        
+        for (auto& group : groups) {
+            dataManager->groupsRepo->Save(group);
+        }
+
+        QMutexLocker locker(&mutex);
         // Delete from database
         for (int id : ids) {
+            identityMap.erase(id);
             db.exec("DELETE FROM profiles WHERE id = ?", id);
         }
     }
 
     QList<int> ProfilesRepo::GetAllProfileIds() const {
-        QMutexLocker locker(&mutex);
-        
         QList<int> ids;
         auto query = db.query("SELECT id FROM profiles ORDER BY id");
         if (query) {
@@ -482,13 +504,15 @@ namespace Configs {
             return false; // Profile doesn't have an ID, use AddProfile instead
         }
         
-        QMutexLocker locker(&mutex);
-        
-        // Save to database
-        saveToDatabase(profile.get(), profile->id);
-        
-        // Update identity map
-        identityMap[profile->id] = std::weak_ptr<Profile>(profile);
+        runOnNewThread([=, this] {
+            QMutexLocker locker(&mutex);
+
+            // Save to database
+            saveToDatabase(profile.get(), profile->id);
+
+            // Update identity map
+            identityMap[profile->id] = std::weak_ptr<Profile>(profile);
+        });
         
         return true;
     }

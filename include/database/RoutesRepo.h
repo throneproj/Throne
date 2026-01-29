@@ -40,6 +40,9 @@ namespace Configs {
         // Create tables if they don't exist
         void createTables() const;
 
+        // Get next available route profile ID
+        int NewRouteProfileID() const;
+
     public:
         explicit RoutesRepo(Database& database);
         
@@ -62,9 +65,6 @@ namespace Configs {
         QList<int> GetAllRouteProfileIds() const;
 
         QList<std::shared_ptr<RouteProfile>> GetAllRouteProfiles() const;
-        
-        // Get next available route profile ID
-        int NewRouteProfileID() const;
         
         // Save route profile to database (manual save, like old Save() method)
         // Only saves if route profile has a valid ID (id >= 0)

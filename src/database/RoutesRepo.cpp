@@ -25,7 +25,6 @@ namespace Configs {
         // Create route_rules table
         db.exec(R"(
             CREATE TABLE IF NOT EXISTS route_rules (
-                id INTEGER PRIMARY KEY,
                 route_profile_id INTEGER NOT NULL,
                 rule_order INTEGER NOT NULL,
                 name TEXT NOT NULL DEFAULT '',
@@ -61,6 +60,7 @@ namespace Configs {
                 sniffers_json TEXT,
                 sniff_override_dest INTEGER NOT NULL DEFAULT 0,
                 strategy TEXT,
+                PRIMARY KEY (route_profile_id, rule_order),
                 FOREIGN KEY(route_profile_id) REFERENCES route_profiles(id) ON DELETE CASCADE
             )
         )");
@@ -187,8 +187,6 @@ namespace Configs {
     }
 
     void RoutesRepo::saveToDatabase(const RouteProfile* routeProfile, int id) const {
-        QMutexLocker locker(&mutex);
-        
         // Check if route profile exists
         auto checkQuery = db.query("SELECT id FROM route_profiles WHERE id = ?", id);
         bool exists = checkQuery && checkQuery->executeStep();
@@ -266,7 +264,7 @@ namespace Configs {
                  process_name_json, process_path_json, process_path_regex_json, rule_set_json,
                  invert, outbound_id, action, reject_method, no_drop,
                  override_address, override_port, sniffers_json, sniff_override_dest, strategy)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             )",
                 id,
                 ruleOrder++,
@@ -460,10 +458,8 @@ namespace Configs {
         QMutexLocker locker(&mutex);
         
         // Check identity map first
-        auto it = identityMap.find(id);
-        if (it != identityMap.end()) {
-            auto shared = it->second.lock();
-            if (shared) {
+        if (auto it = identityMap.find(id); it != identityMap.end()) {
+            if (auto shared = it->second.lock()) {
                 return shared; // Return existing instance
             } else {
                 // Weak pointer expired, remove from map
@@ -509,23 +505,10 @@ namespace Configs {
         // Add or update route profiles
         for (const auto& routeProfile : routeProfiles) {
             newIds.insert(routeProfile->id);
-            if (routeProfile->id >= 0) {
-                // Update existing
-                saveToDatabase(routeProfile.get(), routeProfile->id);
-                // Update identity map if exists
-                auto it = identityMap.find(routeProfile->id);
-                if (it != identityMap.end()) {
-                    auto shared = it->second.lock();
-                    if (shared) {
-                        // Update the existing object
-                        *shared = *routeProfile;
-                    }
-                }
-            } else {
-                // Add new
-                auto mutableRouteProfile = const_cast<std::shared_ptr<RouteProfile>&>(routeProfile);
-                AddRouteProfile(mutableRouteProfile);
+            if (routeProfile->id < 0) {
+                routeProfile->id = NewRouteProfileID();
             }
+            saveToDatabase(routeProfile.get(), routeProfile->id);
         }
         
         // Delete route profiles that are no longer in the list
@@ -538,8 +521,6 @@ namespace Configs {
     }
 
     QList<int> RoutesRepo::GetAllRouteProfileIds() const {
-        QMutexLocker locker(&mutex);
-        
         QList<int> ids;
         auto query = db.query("SELECT id FROM route_profiles ORDER BY id");
         if (query) {
@@ -561,10 +542,8 @@ namespace Configs {
                 int id = query->getColumn(0).getInt();
                 
                 // Check identity map first (we already have the lock)
-                auto it = identityMap.find(id);
-                if (it != identityMap.end()) {
-                    auto shared = it->second.lock();
-                    if (shared) {
+                if (auto it = identityMap.find(id); it != identityMap.end()) {
+                    if (auto shared = it->second.lock()) {
                         routeProfiles.append(shared);
                         continue; // Use existing instance from identity map
                     } else {
@@ -607,13 +586,15 @@ namespace Configs {
             return false; // Route profile doesn't have an ID, use AddRouteProfile instead
         }
         
-        QMutexLocker locker(&mutex);
-        
-        // Save to database
-        saveToDatabase(routeProfile.get(), routeProfile->id);
-        
-        // Update identity map
-        identityMap[routeProfile->id] = std::weak_ptr<RouteProfile>(routeProfile);
+        runOnNewThread([=, this] {
+            QMutexLocker locker(&mutex);
+
+            // Save to database
+            saveToDatabase(routeProfile.get(), routeProfile->id);
+
+            // Update identity map
+            identityMap[routeProfile->id] = std::weak_ptr<RouteProfile>(routeProfile);
+        });
         
         return true;
     }

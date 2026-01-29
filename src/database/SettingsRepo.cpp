@@ -4,6 +4,8 @@
 #include <QMutexLocker>
 #include <QDebug>
 
+#include "include/global/Utils.hpp"
+
 namespace Configs {
     const QSet<QString> boolKeys = {
             "disable_tray",
@@ -112,7 +114,8 @@ namespace Configs {
             "dns_object",
             "dns_final_out",
             "domain_strategy",
-            "outbound_domain_strategy"
+            "outbound_domain_strategy",
+            "simple_dl_url"
         };
 
     SettingsRepo::SettingsRepo(Database& database) : db(database) {
@@ -469,8 +472,9 @@ namespace Configs {
     }
 
     bool SettingsRepo::Save() {
-        QMutexLocker locker(&mutex);
-        saveAllSettings();
+        runOnNewThread([=, this] {
+            saveAllSettings();
+        });
         return true;
     }
 

@@ -706,13 +706,15 @@ MainWindow::~MainWindow() {
 // Group tab manage
 
 inline int tabIndex2GroupId(int index) {
-    if (Configs::dataManager->groupsRepo->GetGroupsTabOrder().length() <= index) return -1;
-    return Configs::dataManager->groupsRepo->GetGroupsTabOrder()[index];
+    auto tabOrder = Configs::dataManager->groupsRepo->GetGroupsTabOrder();
+    if (tabOrder.length() <= index) return -1;
+    return tabOrder[index];
 }
 
 inline int groupId2TabIndex(int gid) {
-    for (int key = 0; key < Configs::dataManager->groupsRepo->GetGroupsTabOrder().count(); key++) {
-        if (Configs::dataManager->groupsRepo->GetGroupsTabOrder()[key] == gid) return key;
+    auto tabOrder = Configs::dataManager->groupsRepo->GetGroupsTabOrder();
+    for (int key = 0; key < tabOrder.count(); key++) {
+        if (tabOrder[key] == gid) return key;
     }
     return 0;
 }

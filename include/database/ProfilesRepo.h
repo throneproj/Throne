@@ -31,6 +31,9 @@ namespace Configs {
         // Create tables if they don't exist
         void createTables() const;
 
+        // Get next available profile ID
+        int NewProfileID() const;
+
     public:
         explicit ProfilesRepo(Database& database);
         
@@ -60,9 +63,6 @@ namespace Configs {
         
         // Get all profile IDs in order
         QList<int> GetAllProfileIds() const;
-        
-        // Get next available profile ID
-        int NewProfileID() const;
         
         // Save profile to database (manual save, like old Save() method)
         // Only saves if profile has a valid ID (id >= 0)

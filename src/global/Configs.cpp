@@ -13,6 +13,8 @@
 #include <utility>
 #include <include/api/RPC.h>
 
+#include "include/database/GroupsRepo.h"
+#include "include/database/RoutesRepo.h"
 
 
 #ifdef Q_OS_WIN
@@ -247,6 +249,16 @@ namespace Configs_ConfigItem {
 namespace Configs {
     void initDB(const std::string& dbPath) {
         dataManager = new DatabaseManager(dbPath);
+
+        if (dataManager->groupsRepo->GetAllGroupIds().empty()) {
+            auto defaultGroup = GroupsRepo::NewGroup();
+            defaultGroup->name = QObject::tr("Default");
+            dataManager->groupsRepo->AddGroup(defaultGroup);
+        }
+        if (dataManager->routesRepo->GetAllRouteProfileIds().empty()) {
+            auto defaultRoute = RouteProfile::GetDefaultChain();
+            dataManager->routesRepo->AddRouteProfile(defaultRoute);
+        }
     }
 
     QString FindCoreRealPath() {

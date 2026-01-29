@@ -82,8 +82,6 @@ namespace Configs {
     }
 
     void GroupsRepo::saveToDatabase(const Group* group, int id) const {
-        QMutexLocker locker(&mutex);
-        
         // Serialize lists to JSON strings
         QJsonArray columnWidthArray = QListInt2QJsonArray(group->column_width);
         QJsonArray profilesArray = QListInt2QJsonArray(group->profiles);
@@ -227,10 +225,8 @@ namespace Configs {
         QMutexLocker locker(&mutex);
         
         // Check identity map first
-        auto it = identityMap.find(id);
-        if (it != identityMap.end()) {
-            auto shared = it->second.lock();
-            if (shared) {
+        if (auto it = identityMap.find(id); it != identityMap.end()) {
+            if (auto shared = it->second.lock()) {
                 return shared; // Return existing instance
             } else {
                 // Weak pointer expired, remove from map
@@ -276,8 +272,6 @@ namespace Configs {
     }
 
     QList<int> GroupsRepo::GetAllGroupIds() const {
-        QMutexLocker locker(&mutex);
-        
         QList<int> ids;
         auto query = db.query("SELECT id FROM groups ORDER BY id");
         if (query) {
@@ -301,8 +295,6 @@ namespace Configs {
     }
 
     QList<int> GroupsRepo::GetGroupsTabOrder() const {
-        QMutexLocker locker(&mutex);
-        
         QList<int> order;
         auto query = db.query("SELECT group_id FROM groups_order ORDER BY display_order");
         if (query) {
@@ -314,19 +306,19 @@ namespace Configs {
     }
 
     void GroupsRepo::SetGroupsTabOrder(const QList<int>& order) {
-        QMutexLocker locker(&mutex);
-        
-        // Clear existing order
-        db.exec("DELETE FROM groups_order");
-        
-        // Insert new order
-        int displayOrder = 0;
-        for (int groupId : order) {
-            db.exec("INSERT INTO groups_order (group_id, display_order) VALUES (?, ?)",
-                groupId,
-            displayOrder++
-            );
-        }
+        runOnNewThread([=,this] {
+            // Clear existing order
+            db.exec("DELETE FROM groups_order");
+
+            // Insert new order
+            int displayOrder = 0;
+            for (int groupId : order) {
+                db.exec("INSERT INTO groups_order (group_id, display_order) VALUES (?, ?)",
+                    groupId,
+                displayOrder++
+                );
+            }
+        });
     }
 
     bool GroupsRepo::Save(const std::shared_ptr<Group>& group) {
@@ -338,13 +330,15 @@ namespace Configs {
             return false; // Group doesn't have an ID, use AddGroup instead
         }
         
-        QMutexLocker locker(&mutex);
-        
-        // Save to database
-        saveToDatabase(group.get(), group->id);
-        
-        // Update identity map
-        identityMap[group->id] = std::weak_ptr<Group>(group);
+        runOnNewThread([=, this] {
+            QMutexLocker locker(&mutex);
+
+            // Save to database
+            saveToDatabase(group.get(), group->id);
+
+            // Update identity map
+            identityMap[group->id] = std::weak_ptr<Group>(group);
+        });
         
         return true;
     }
