@@ -215,8 +215,6 @@ namespace Configs {
     }
 
     void SettingsRepo::loadAllSettings() {
-        QMutexLocker locker(&mutex);
-        
         // Load all settings from database
         auto query = db.query("SELECT key, value FROM settings");
         if (query) {
@@ -439,13 +437,13 @@ namespace Configs {
             {"extra_core_paths", extraCorePaths},
         };
 
+        std::vector<std::pair<std::string, std::string>> keyValues;
+        keyValues.reserve(settings.size());
         for (const auto& entry : settings) {
             QString valueStr = valueToString(entry.value, entry.key);
-            db.exec("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
-                entry.key.toStdString(),
-                valueStr.toStdString()
-            );
+            keyValues.emplace_back(entry.key.toStdString(), valueStr.toStdString());
         }
+        db.execBatchSettingsReplace(keyValues);
     }
 
     void SettingsRepo::UpdateStartedId(int id) {

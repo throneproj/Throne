@@ -221,6 +221,63 @@ namespace Configs {
         }
     }
 
+    Database::ProfileInsertRow ProfilesRepo::profileToInsertRow(const Profile* profile, int id, int gid) const {
+        QString outboundJson;
+        QString trafficJson;
+        if (profile->outbound) {
+            outboundJson = QString::fromUtf8(QJsonDocument(profile->outbound->ExportToJson()).toJson(QJsonDocument::Compact));
+        }
+        if (profile->traffic_data) {
+            auto trafficJsonStore = dynamic_cast<JsonStore*>(profile->traffic_data.get());
+            if (trafficJsonStore) {
+                trafficJson = QString::fromUtf8(QJsonDocument(trafficJsonStore->ToJson()).toJson(QJsonDocument::Compact));
+            }
+        }
+        QString name = profile->outbound ? profile->outbound->name : QString();
+        Database::ProfileInsertRow row;
+        row.id = id;
+        row.type = profile->type.toStdString();
+        row.name = name.toStdString();
+        row.gid = gid;
+        row.latency = profile->latency;
+        row.dl_speed = profile->dl_speed.toStdString();
+        row.ul_speed = profile->ul_speed.toStdString();
+        row.test_country = profile->test_country.toStdString();
+        row.full_test_report = profile->full_test_report.toStdString();
+        row.outbound_json = outboundJson.toStdString();
+        row.traffic_json = trafficJson.toStdString();
+        return row;
+    }
+
+    std::shared_ptr<Profile> ProfilesRepo::profileFromRow(SQLite::Statement& stmt) const {
+        QJsonObject json;
+        json["id"] = stmt.getColumn(0).getInt();
+        json["type"] = QString::fromStdString(stmt.getColumn(1).getText());
+        json["name"] = QString::fromStdString(stmt.getColumn(2).getText());
+        json["gid"] = stmt.getColumn(3).getInt();
+        json["latency"] = stmt.getColumn(4).getInt();
+        json["dl_speed"] = QString::fromStdString(stmt.getColumn(5).getText());
+        json["ul_speed"] = QString::fromStdString(stmt.getColumn(6).getText());
+        json["test_country"] = QString::fromStdString(stmt.getColumn(7).getText());
+        json["full_test_report"] = QString::fromStdString(stmt.getColumn(8).getText());
+        
+        QString outboundJsonStr = QString::fromStdString(stmt.getColumn(9).getText());
+        QJsonDocument outboundDoc = QJsonDocument::fromJson(outboundJsonStr.toUtf8());
+        if (!outboundDoc.isNull() && outboundDoc.isObject()) {
+            json["outbound"] = outboundDoc.object();
+        }
+        
+        QString trafficJsonStr = QString::fromStdString(stmt.getColumn(10).getText());
+        if (!trafficJsonStr.isEmpty()) {
+            QJsonDocument trafficDoc = QJsonDocument::fromJson(trafficJsonStr.toUtf8());
+            if (!trafficDoc.isNull() && trafficDoc.isObject()) {
+                json["traffic"] = trafficDoc.object();
+            }
+        }
+        
+        return profileFromJson(json);
+    }
+
     std::shared_ptr<Profile> ProfilesRepo::loadFromDatabase(int id) const {
         auto query = db.query(R"(
             SELECT id, type, name, gid, latency, dl_speed, ul_speed, test_country, 
@@ -230,36 +287,7 @@ namespace Configs {
         if (!query || !query->executeStep()) {
             return nullptr;
         }
-        
-        QJsonObject json;
-        json["id"] = query->getColumn(0).getInt();
-        json["type"] = QString::fromStdString(query->getColumn(1).getText());
-        json["name"] = QString::fromStdString(query->getColumn(2).getText());
-        json["gid"] = query->getColumn(3).getInt();
-        json["latency"] = query->getColumn(4).getInt();
-        json["dl_speed"] = QString::fromStdString(query->getColumn(5).getText());
-        json["ul_speed"] = QString::fromStdString(query->getColumn(6).getText());
-        json["test_country"] = QString::fromStdString(query->getColumn(7).getText());
-        json["full_test_report"] = QString::fromStdString(query->getColumn(8).getText());
-        
-        // Parse complex objects
-        QString outboundJsonStr = QString::fromStdString(query->getColumn(9).getText());
-        QJsonDocument outboundDoc = QJsonDocument::fromJson(outboundJsonStr.toUtf8());
-        if (!outboundDoc.isNull() && outboundDoc.isObject()) {
-            json["outbound"] = outboundDoc.object();
-        }
-        
-        QString trafficJsonStr = QString::fromStdString(query->getColumn(10).getText());
-        if (!trafficJsonStr.isEmpty()) {
-            QJsonDocument trafficDoc = QJsonDocument::fromJson(trafficJsonStr.toUtf8());
-            if (!trafficDoc.isNull() && trafficDoc.isObject()) {
-                json["traffic"] = trafficDoc.object();
-            }
-        }
-        
-        auto profile = profileFromJson(json);
-
-        return profile;
+        return profileFromRow(*query);
     }
 
     std::shared_ptr<Profile> ProfilesRepo::NewProfile(const QString &type) {
@@ -308,106 +336,125 @@ namespace Configs {
     }
 
     bool ProfilesRepo::AddProfile(std::shared_ptr<Profile>& profile, int gid) {
-        QMutexLocker locker(&mutex);
-        
-        if (profile->id >= 0) {
-            return false; // Already has an ID
-        }
-        
+        if (profile->id >= 0) return false;
         int newId = NewProfileID();
         profile->id = newId;
         profile->gid = gid < 0 ? Configs::dataManager->settingsRepo->current_group : gid;
-
-        // Add it to the group first
+        QMutexLocker locker(&mutex);
+        identityMap[newId] = std::weak_ptr<Profile>(profile);
+        saveToDatabase(profile.get(), profile->id);
         if (auto group = dataManager->groupsRepo->GetGroup(profile->gid)) {
             group->AddProfile(profile->id);
             dataManager->groupsRepo->Save(group);
         } else {
             return false;
         }
-        
-        // Save to database first
-        saveToDatabase(profile.get(), newId);
-        
-        // Add to identity map
-        identityMap[newId] = std::weak_ptr<Profile>(profile);
-        
         return true;
     }
 
     bool ProfilesRepo::AddProfileBatch(QList<std::shared_ptr<Profile>>& profiles, int gid) {
-        QMutexLocker locker(&mutex);
-        
         gid = gid < 0 ? Configs::dataManager->settingsRepo->current_group : gid;
         auto group = dataManager->groupsRepo->GetGroup(gid);
         if (!group) return false;
-        
-        for (auto& profile : profiles) {
-            if (profile->id >= 0) continue; // Skip if already has ID
-            
-            int newId = NewProfileID();
-            profile->id = newId;
-            profile->gid = gid;
 
-            // Add it to the group first
-            group->AddProfile(profile->id);
-            
-            // Save to database first
-            saveToDatabase(profile.get(), newId);
-            
-            // Add to identity map
-            identityMap[newId] = std::weak_ptr<Profile>(profile);
+        QList<std::shared_ptr<Profile>> toAdd;
+        for (auto& profile : profiles) {
+            if (profile->id < 0) toAdd.append(profile);
+        }
+        if (toAdd.isEmpty()) return true;
+
+        int n = toAdd.size();
+        int firstId = NewProfileIDRange(n);
+
+        QMutexLocker locker(&mutex);
+        for (int i = 0; i < n; ++i) {
+            int id = firstId + i;
+            toAdd[i]->id = id;
+            toAdd[i]->gid = gid;
+            identityMap[id] = std::weak_ptr<Profile>(toAdd[i]);
         }
 
+        std::vector<Database::ProfileInsertRow> rows;
+        rows.reserve(n);
+        for (int i = 0; i < n; ++i) {
+            rows.push_back(profileToInsertRow(toAdd[i].get(), toAdd[i]->id, toAdd[i]->gid));
+        }
+        db.execBatchInsertProfiles(rows);
+
+        for (const auto& profile : toAdd) {
+            group->AddProfile(profile->id);
+        }
         dataManager->groupsRepo->Save(group);
-        
+
         return true;
     }
 
     std::shared_ptr<Profile> ProfilesRepo::GetProfile(int id) const {
         QMutexLocker locker(&mutex);
-        
-        // Check identity map first
         if (auto it = identityMap.find(id); it != identityMap.end()) {
-            if (auto shared = it->second.lock()) {
-                return shared; // Return existing instance
-            } else {
-                // Weak pointer expired, remove from map
-                identityMap.erase(it);
-            }
+            if (auto shared = it->second.lock()) return shared;
+            identityMap.erase(it);
         }
-        
-        // Load from database
         auto profile = loadFromDatabase(id);
-        if (!profile) {
-            return nullptr;
-        }
-        
-        // Add to identity map
+        if (!profile) return nullptr;
         identityMap[id] = std::weak_ptr<Profile>(profile);
-        
         return profile;
     }
 
     QList<std::shared_ptr<Profile>> ProfilesRepo::GetProfileBatch(QList<int> ids) {
-        QMutexLocker locker(&mutex);
         QList<std::shared_ptr<Profile>> profiles;
-        for (auto& id : ids) {
-            if (auto it = identityMap.find(id); it != identityMap.end()) {
+        if (ids.isEmpty()) return profiles;
+
+        std::map<int, std::shared_ptr<Profile>> byId;
+        QList<int> missingIds;
+        QMutexLocker locker(&mutex);
+        for (int id : ids) {
+            auto it = identityMap.find(id);
+            if (it != identityMap.end()) {
                 if (auto shared = it->second.lock()) {
-                    profiles.push_back(shared);
+                    byId[id] = shared;
                     continue;
                 }
+                identityMap.erase(it);
             }
-            auto profile = loadFromDatabase(id);
-            if (!profile) {
-                MW_show_log("Failed to load profile from database, db is corrupted");
-                return {};
+            missingIds.append(id);
+        }
+        if (missingIds.isEmpty()) {
+            for (int id : ids) {
+                auto it = byId.find(id);
+                if (it != byId.end()) profiles.push_back(it->second);
             }
-            identityMap[id] = std::weak_ptr<Profile>(profile);
-            profiles.push_back(profile);
+            return profiles;
         }
 
+        QString idList;
+        for (int i = 0; i < missingIds.size(); ++i) {
+            if (i > 0) idList += ",";
+            idList += QString::number(missingIds[i]);
+        }
+        std::string sql = "SELECT id, type, name, gid, latency, dl_speed, ul_speed, test_country, "
+                         "full_test_report, outbound_json, traffic_json FROM profiles WHERE id IN (" +
+                         idList.toStdString() + ") ORDER BY id";
+        auto query = db.query(sql);
+        if (!query) {
+            MW_show_log("Failed to load profiles from database, db is corrupted");
+            for (int id : ids) {
+                auto it = byId.find(id);
+                if (it != byId.end()) profiles.push_back(it->second);
+            }
+            return profiles;
+        }
+        while (query->executeStep()) {
+            auto profile = profileFromRow(*query);
+            byId[profile->id] = profile;
+        }
+        for (const auto& p : byId) {
+            if (missingIds.contains(p.first)) identityMap[p.first] = std::weak_ptr<Profile>(p.second);
+        }
+        for (int id : ids) {
+            auto it = byId.find(id);
+            if (it != byId.end()) profiles.push_back(it->second);
+        }
         return profiles;
     }
 
@@ -424,9 +471,7 @@ namespace Configs {
 
     QStringList ProfilesRepo::GetAllProfileNames() {
         auto query = db.query("SELECT name FROM profiles");
-        if (!query || !query->executeStep()) {
-            return {};
-        }
+        if (!query) return {};
         QStringList names;
         while (query->executeStep()) {
             names.append(QString(query->getColumn(0).getString().c_str()));
@@ -436,17 +481,15 @@ namespace Configs {
 
     void ProfilesRepo::DeleteProfile(int id) {
         auto profile = GetProfile(id);
-        auto group = dataManager->groupsRepo->GetGroup(profile->gid);
-        if (group) {
-            group->RemoveProfile(id);
-            dataManager->groupsRepo->Save(group);
+        if (profile) {
+            auto group = dataManager->groupsRepo->GetGroup(profile->gid);
+            if (group) {
+                group->RemoveProfile(id);
+                dataManager->groupsRepo->Save(group);
+            }
         }
-
         QMutexLocker locker(&mutex);
-        // Remove from identity map
         identityMap.erase(id);
-        
-        // Delete from database
         db.exec("DELETE FROM profiles WHERE id = ?", id);
     }
 
@@ -463,12 +506,11 @@ namespace Configs {
         for (auto& group : groups) {
             dataManager->groupsRepo->Save(group);
         }
-
         QMutexLocker locker(&mutex);
-        // Delete from database
-        for (int id : ids) {
-            identityMap.erase(id);
-            db.exec("DELETE FROM profiles WHERE id = ?", id);
+        for (int id : ids) identityMap.erase(id);
+        if (!ids.isEmpty()) {
+            std::vector<int> idVec(ids.begin(), ids.end());
+            db.execDeleteByIdIn("profiles", "id", idVec);
         }
     }
 
@@ -484,14 +526,22 @@ namespace Configs {
     }
 
     int ProfilesRepo::NewProfileID() const {
-        // Atomically increment and get the new ID using RETURNING clause
-        // Note: This method is called from within methods that already hold the mutex lock
+        // Atomically increment and get the new ID using RETURNING clause (DB atomic, no lock required)
         auto query = db.query("UPDATE entity_ids SET profile_last_id = profile_last_id + 1 RETURNING profile_last_id");
         if (query && query->executeStep()) {
             return query->getColumn(0).getInt();
         }
-        
-        // Fallback if RETURNING is not supported (shouldn't happen with modern SQLite)
+        return 0;
+    }
+
+    int ProfilesRepo::NewProfileIDRange(int n) const {
+        if (n <= 0) return 0;
+        // Atomically reserve n IDs; RETURNING gives the new value (old + n), so first ID = newValue - n + 1
+        auto query = db.query("UPDATE entity_ids SET profile_last_id = profile_last_id + ? RETURNING profile_last_id", n);
+        if (query && query->executeStep()) {
+            int newValue = query->getColumn(0).getInt();
+            return newValue - n + 1;
+        }
         return 0;
     }
 
@@ -506,11 +556,7 @@ namespace Configs {
         
         runOnNewThread([=, this] {
             QMutexLocker locker(&mutex);
-
-            // Save to database
             saveToDatabase(profile.get(), profile->id);
-
-            // Update identity map
             identityMap[profile->id] = std::weak_ptr<Profile>(profile);
         });
         

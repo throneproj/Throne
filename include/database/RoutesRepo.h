@@ -2,6 +2,7 @@
 
 #include "Database.h"
 #include "include/database/entities/RouteProfile.h"
+#include <3rdparty/SQLiteCpp/include/SQLiteCpp.h>
 #include <memory>
 #include <mutex>
 #include <map>
@@ -36,6 +37,12 @@ namespace Configs {
         
         // Load route profile from database (including rules)
         std::shared_ptr<RouteProfile> loadFromDatabase(int id) const;
+        
+        // Build route profile from current row (id, name, default_outbound_id); rules left empty
+        std::shared_ptr<RouteProfile> routeProfileFromProfileRow(SQLite::Statement& stmt) const;
+        
+        // Build rule JSON from current row; rule columns start at baseCol (0 = name at col 0, 1 = name at col 1)
+        QJsonObject ruleJsonFromRow(SQLite::Statement& stmt, int baseCol) const;
         
         // Create tables if they don't exist
         void createTables() const;

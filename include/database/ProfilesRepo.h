@@ -2,6 +2,7 @@
 
 #include "Database.h"
 #include "include/database/entities/Profile.h"
+#include <3rdparty/SQLiteCpp/include/SQLiteCpp.h>
 #include <memory>
 #include <mutex>
 #include <map>
@@ -24,15 +25,23 @@ namespace Configs {
         
         // Save profile to database (internal helper)
         void saveToDatabase(const Profile* profile, int id) const;
-        
+
+        // Build one row for batch insert (same columns as saveToDatabase)
+        Database::ProfileInsertRow profileToInsertRow(const Profile* profile, int id, int gid) const;
+
         // Load profile from database
         std::shared_ptr<Profile> loadFromDatabase(int id) const;
+        
+        // Build profile from current row of a SELECT (same columns as loadFromDatabase)
+        std::shared_ptr<Profile> profileFromRow(SQLite::Statement& stmt) const;
         
         // Create tables if they don't exist
         void createTables() const;
 
-        // Get next available profile ID
+        // Get next available profile ID (single)
         int NewProfileID() const;
+        // Allocate a contiguous block of n IDs; returns first ID (use firstId, firstId+1, ..., firstId+n-1). DB atomic, no lock required.
+        int NewProfileIDRange(int n) const;
 
     public:
         explicit ProfilesRepo(Database& database);

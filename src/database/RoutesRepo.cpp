@@ -305,8 +305,59 @@ namespace Configs {
         }
     }
 
+    QJsonObject RoutesRepo::ruleJsonFromRow(SQLite::Statement& stmt, int baseCol) const {
+        QJsonObject ruleJson;
+        ruleJson["name"] = QString::fromStdString(stmt.getColumn(baseCol + 0).getText());
+        ruleJson["type"] = stmt.getColumn(baseCol + 1).getInt();
+        ruleJson["simpleAction"] = stmt.getColumn(baseCol + 2).getInt();
+        ruleJson["ip_version"] = QString::fromStdString(stmt.getColumn(baseCol + 3).getText());
+        ruleJson["network"] = QString::fromStdString(stmt.getColumn(baseCol + 4).getText());
+        ruleJson["protocol"] = QString::fromStdString(stmt.getColumn(baseCol + 5).getText());
+        
+        auto parseJsonArray = [](const std::string& s) {
+            QJsonDocument doc = QJsonDocument::fromJson(QString::fromStdString(s).toUtf8());
+            return doc.isArray() ? doc.array() : QJsonArray();
+        };
+        ruleJson["inbound"] = parseJsonArray(stmt.getColumn(baseCol + 6).getText());
+        ruleJson["domain"] = parseJsonArray(stmt.getColumn(baseCol + 7).getText());
+        ruleJson["domain_suffix"] = parseJsonArray(stmt.getColumn(baseCol + 8).getText());
+        ruleJson["domain_keyword"] = parseJsonArray(stmt.getColumn(baseCol + 9).getText());
+        ruleJson["domain_regex"] = parseJsonArray(stmt.getColumn(baseCol + 10).getText());
+        ruleJson["source_ip_cidr"] = parseJsonArray(stmt.getColumn(baseCol + 11).getText());
+        ruleJson["source_ip_is_private"] = stmt.getColumn(baseCol + 12).getInt() != 0;
+        ruleJson["ip_cidr"] = parseJsonArray(stmt.getColumn(baseCol + 13).getText());
+        ruleJson["ip_is_private"] = stmt.getColumn(baseCol + 14).getInt() != 0;
+        ruleJson["source_port"] = parseJsonArray(stmt.getColumn(baseCol + 15).getText());
+        ruleJson["source_port_range"] = parseJsonArray(stmt.getColumn(baseCol + 16).getText());
+        ruleJson["port"] = parseJsonArray(stmt.getColumn(baseCol + 17).getText());
+        ruleJson["port_range"] = parseJsonArray(stmt.getColumn(baseCol + 18).getText());
+        ruleJson["process_name"] = parseJsonArray(stmt.getColumn(baseCol + 19).getText());
+        ruleJson["process_path"] = parseJsonArray(stmt.getColumn(baseCol + 20).getText());
+        ruleJson["process_path_regex"] = parseJsonArray(stmt.getColumn(baseCol + 21).getText());
+        ruleJson["rule_set"] = parseJsonArray(stmt.getColumn(baseCol + 22).getText());
+        ruleJson["invert"] = stmt.getColumn(baseCol + 23).getInt() != 0;
+        ruleJson["outboundID"] = stmt.getColumn(baseCol + 24).getInt();
+        ruleJson["action"] = QString::fromStdString(stmt.getColumn(baseCol + 25).getText());
+        ruleJson["rejectMethod"] = QString::fromStdString(stmt.getColumn(baseCol + 26).getText());
+        ruleJson["no_drop"] = stmt.getColumn(baseCol + 27).getInt() != 0;
+        ruleJson["override_address"] = QString::fromStdString(stmt.getColumn(baseCol + 28).getText());
+        ruleJson["override_port"] = QString::fromStdString(stmt.getColumn(baseCol + 29).getText());
+        ruleJson["sniffers"] = parseJsonArray(stmt.getColumn(baseCol + 30).getText());
+        ruleJson["sniffOverrideDest"] = stmt.getColumn(baseCol + 31).getInt() != 0;
+        ruleJson["strategy"] = QString::fromStdString(stmt.getColumn(baseCol + 32).getText());
+        return ruleJson;
+    }
+
+    std::shared_ptr<RouteProfile> RoutesRepo::routeProfileFromProfileRow(SQLite::Statement& stmt) const {
+        QJsonObject json;
+        json["id"] = stmt.getColumn(0).getInt();
+        json["name"] = QString::fromStdString(stmt.getColumn(1).getText());
+        json["defaultOutboundID"] = stmt.getColumn(2).getInt();
+        json["rules"] = QJsonArray();
+        return routeProfileFromJson(json);
+    }
+
     std::shared_ptr<RouteProfile> RoutesRepo::loadFromDatabase(int id) const {
-        // Load route profile
         auto profileQuery = db.query(R"(
             SELECT id, name, default_outbound_id
             FROM route_profiles WHERE id = ?
@@ -315,13 +366,8 @@ namespace Configs {
             return nullptr;
         }
         
-        QJsonObject json;
-        json["id"] = profileQuery->getColumn(0).getInt();
-        json["name"] = QString::fromStdString(profileQuery->getColumn(1).getText());
-        json["defaultOutboundID"] = profileQuery->getColumn(2).getInt();
+        auto routeProfile = routeProfileFromProfileRow(*profileQuery);
         
-        // Load rules
-        QJsonArray rulesArray;
         auto rulesQuery = db.query(R"(
             SELECT name, type, simple_action, ip_version, network, protocol,
                    inbound_json, domain_json, domain_suffix_json, domain_keyword_json, domain_regex_json,
@@ -334,101 +380,11 @@ namespace Configs {
         )", id);
         if (rulesQuery) {
             while (rulesQuery->executeStep()) {
-                QJsonObject ruleJson;
-                ruleJson["name"] = QString::fromStdString(rulesQuery->getColumn(0).getText());
-                ruleJson["type"] = rulesQuery->getColumn(1).getInt();
-                ruleJson["simpleAction"] = rulesQuery->getColumn(2).getInt();
-                ruleJson["ip_version"] = QString::fromStdString(rulesQuery->getColumn(3).getText());
-                ruleJson["network"] = QString::fromStdString(rulesQuery->getColumn(4).getText());
-                ruleJson["protocol"] = QString::fromStdString(rulesQuery->getColumn(5).getText());
-                
-                // Parse JSON arrays
-                QString inboundJsonStr = QString::fromStdString(rulesQuery->getColumn(6).getText());
-                QJsonDocument inboundDoc = QJsonDocument::fromJson(inboundJsonStr.toUtf8());
-                ruleJson["inbound"] = inboundDoc.isArray() ? inboundDoc.array() : QJsonArray();
-                
-                QString domainJsonStr = QString::fromStdString(rulesQuery->getColumn(7).getText());
-                QJsonDocument domainDoc = QJsonDocument::fromJson(domainJsonStr.toUtf8());
-                ruleJson["domain"] = domainDoc.isArray() ? domainDoc.array() : QJsonArray();
-                
-                QString domainSuffixJsonStr = QString::fromStdString(rulesQuery->getColumn(8).getText());
-                QJsonDocument domainSuffixDoc = QJsonDocument::fromJson(domainSuffixJsonStr.toUtf8());
-                ruleJson["domain_suffix"] = domainSuffixDoc.isArray() ? domainSuffixDoc.array() : QJsonArray();
-                
-                QString domainKeywordJsonStr = QString::fromStdString(rulesQuery->getColumn(9).getText());
-                QJsonDocument domainKeywordDoc = QJsonDocument::fromJson(domainKeywordJsonStr.toUtf8());
-                ruleJson["domain_keyword"] = domainKeywordDoc.isArray() ? domainKeywordDoc.array() : QJsonArray();
-                
-                QString domainRegexJsonStr = QString::fromStdString(rulesQuery->getColumn(10).getText());
-                QJsonDocument domainRegexDoc = QJsonDocument::fromJson(domainRegexJsonStr.toUtf8());
-                ruleJson["domain_regex"] = domainRegexDoc.isArray() ? domainRegexDoc.array() : QJsonArray();
-                
-                QString sourceIpCidrJsonStr = QString::fromStdString(rulesQuery->getColumn(11).getText());
-                QJsonDocument sourceIpCidrDoc = QJsonDocument::fromJson(sourceIpCidrJsonStr.toUtf8());
-                ruleJson["source_ip_cidr"] = sourceIpCidrDoc.isArray() ? sourceIpCidrDoc.array() : QJsonArray();
-                
-                ruleJson["source_ip_is_private"] = rulesQuery->getColumn(12).getInt() != 0;
-                
-                QString ipCidrJsonStr = QString::fromStdString(rulesQuery->getColumn(13).getText());
-                QJsonDocument ipCidrDoc = QJsonDocument::fromJson(ipCidrJsonStr.toUtf8());
-                ruleJson["ip_cidr"] = ipCidrDoc.isArray() ? ipCidrDoc.array() : QJsonArray();
-                
-                ruleJson["ip_is_private"] = rulesQuery->getColumn(14).getInt() != 0;
-                
-                QString sourcePortJsonStr = QString::fromStdString(rulesQuery->getColumn(15).getText());
-                QJsonDocument sourcePortDoc = QJsonDocument::fromJson(sourcePortJsonStr.toUtf8());
-                ruleJson["source_port"] = sourcePortDoc.isArray() ? sourcePortDoc.array() : QJsonArray();
-                
-                QString sourcePortRangeJsonStr = QString::fromStdString(rulesQuery->getColumn(16).getText());
-                QJsonDocument sourcePortRangeDoc = QJsonDocument::fromJson(sourcePortRangeJsonStr.toUtf8());
-                ruleJson["source_port_range"] = sourcePortRangeDoc.isArray() ? sourcePortRangeDoc.array() : QJsonArray();
-                
-                QString portJsonStr = QString::fromStdString(rulesQuery->getColumn(17).getText());
-                QJsonDocument portDoc = QJsonDocument::fromJson(portJsonStr.toUtf8());
-                ruleJson["port"] = portDoc.isArray() ? portDoc.array() : QJsonArray();
-                
-                QString portRangeJsonStr = QString::fromStdString(rulesQuery->getColumn(18).getText());
-                QJsonDocument portRangeDoc = QJsonDocument::fromJson(portRangeJsonStr.toUtf8());
-                ruleJson["port_range"] = portRangeDoc.isArray() ? portRangeDoc.array() : QJsonArray();
-                
-                QString processNameJsonStr = QString::fromStdString(rulesQuery->getColumn(19).getText());
-                QJsonDocument processNameDoc = QJsonDocument::fromJson(processNameJsonStr.toUtf8());
-                ruleJson["process_name"] = processNameDoc.isArray() ? processNameDoc.array() : QJsonArray();
-                
-                QString processPathJsonStr = QString::fromStdString(rulesQuery->getColumn(20).getText());
-                QJsonDocument processPathDoc = QJsonDocument::fromJson(processPathJsonStr.toUtf8());
-                ruleJson["process_path"] = processPathDoc.isArray() ? processPathDoc.array() : QJsonArray();
-                
-                QString processPathRegexJsonStr = QString::fromStdString(rulesQuery->getColumn(21).getText());
-                QJsonDocument processPathRegexDoc = QJsonDocument::fromJson(processPathRegexJsonStr.toUtf8());
-                ruleJson["process_path_regex"] = processPathRegexDoc.isArray() ? processPathRegexDoc.array() : QJsonArray();
-                
-                QString ruleSetJsonStr = QString::fromStdString(rulesQuery->getColumn(22).getText());
-                QJsonDocument ruleSetDoc = QJsonDocument::fromJson(ruleSetJsonStr.toUtf8());
-                ruleJson["rule_set"] = ruleSetDoc.isArray() ? ruleSetDoc.array() : QJsonArray();
-                
-                ruleJson["invert"] = rulesQuery->getColumn(23).getInt() != 0;
-                ruleJson["outboundID"] = rulesQuery->getColumn(24).getInt();
-                ruleJson["action"] = QString::fromStdString(rulesQuery->getColumn(25).getText());
-                ruleJson["rejectMethod"] = QString::fromStdString(rulesQuery->getColumn(26).getText());
-                ruleJson["no_drop"] = rulesQuery->getColumn(27).getInt() != 0;
-                ruleJson["override_address"] = QString::fromStdString(rulesQuery->getColumn(28).getText());
-                ruleJson["override_port"] = QString::fromStdString(rulesQuery->getColumn(29).getText());
-                
-                QString sniffersJsonStr = QString::fromStdString(rulesQuery->getColumn(30).getText());
-                QJsonDocument sniffersDoc = QJsonDocument::fromJson(sniffersJsonStr.toUtf8());
-                ruleJson["sniffers"] = sniffersDoc.isArray() ? sniffersDoc.array() : QJsonArray();
-                
-                ruleJson["sniffOverrideDest"] = rulesQuery->getColumn(31).getInt() != 0;
-                ruleJson["strategy"] = QString::fromStdString(rulesQuery->getColumn(32).getText());
-                
-                rulesArray.append(ruleJson);
+                routeProfile->Rules.append(routeRuleFromJson(ruleJsonFromRow(*rulesQuery, 0)));
             }
         }
         
-        json["rules"] = rulesArray;
-        
-        return routeProfileFromJson(json);
+        return routeProfile;
     }
 
     std::shared_ptr<RouteProfile> RoutesRepo::NewRouteProfile() {
@@ -436,63 +392,34 @@ namespace Configs {
     }
 
     bool RoutesRepo::AddRouteProfile(std::shared_ptr<RouteProfile>& routeProfile) {
-        QMutexLocker locker(&mutex);
-        
-        if (routeProfile->id >= 0) {
-            return false; // Already has an ID
-        }
-        
+        if (routeProfile->id >= 0) return false;
         int newId = NewRouteProfileID();
         routeProfile->id = newId;
-        
-        // Save to database first
-        saveToDatabase(routeProfile.get(), newId);
-        
-        // Add to identity map
+        QMutexLocker locker(&mutex);
         identityMap[newId] = std::weak_ptr<RouteProfile>(routeProfile);
-        
+        saveToDatabase(routeProfile.get(), routeProfile->id);
         return true;
     }
 
     std::shared_ptr<RouteProfile> RoutesRepo::GetRouteProfile(int id) const {
         QMutexLocker locker(&mutex);
-        
-        // Check identity map first
         if (auto it = identityMap.find(id); it != identityMap.end()) {
-            if (auto shared = it->second.lock()) {
-                return shared; // Return existing instance
-            } else {
-                // Weak pointer expired, remove from map
-                identityMap.erase(it);
-            }
+            if (auto shared = it->second.lock()) return shared;
+            identityMap.erase(it);
         }
-        
-        // Load from database
         auto routeProfile = loadFromDatabase(id);
-        if (!routeProfile) {
-            return nullptr;
-        }
-        
-        // Add to identity map
+        if (!routeProfile) return nullptr;
         identityMap[id] = std::weak_ptr<RouteProfile>(routeProfile);
-        
         return routeProfile;
     }
 
     void RoutesRepo::DeleteRouteProfile(int id) {
         QMutexLocker locker(&mutex);
-        
-        // Remove from identity map
         identityMap.erase(id);
-        
-        // Delete from database (CASCADE will delete rules)
         db.exec("DELETE FROM route_profiles WHERE id = ?", id);
     }
 
     void RoutesRepo::UpdateRouteProfiles(const QList<std::shared_ptr<RouteProfile>>& routeProfiles) {
-        QMutexLocker locker(&mutex);
-        
-        // Get all existing IDs
         QSet<int> existingIds;
         auto query = db.query("SELECT id FROM route_profiles");
         if (query) {
@@ -500,9 +427,9 @@ namespace Configs {
                 existingIds.insert(query->getColumn(0).getInt());
             }
         }
-        
+
+        QMutexLocker locker(&mutex);
         QSet<int> newIds;
-        // Add or update route profiles
         for (const auto& routeProfile : routeProfiles) {
             newIds.insert(routeProfile->id);
             if (routeProfile->id < 0) {
@@ -510,13 +437,18 @@ namespace Configs {
             }
             saveToDatabase(routeProfile.get(), routeProfile->id);
         }
-        
-        // Delete route profiles that are no longer in the list
+
+        std::vector<int> toDelete;
         for (int id : existingIds) {
-            if (!newIds.contains(id)) {
-                identityMap.erase(id);
-                db.exec("DELETE FROM route_profiles WHERE id = ?", id);
-            }
+            if (!newIds.contains(id)) toDelete.push_back(id);
+        }
+
+        for (const auto& routeProfile : routeProfiles) {
+            identityMap[routeProfile->id] = std::weak_ptr<RouteProfile>(routeProfile);
+        }
+        for (int id : toDelete) identityMap.erase(id);
+        if (!toDelete.empty()) {
+            db.execDeleteByIdIn("route_profiles", "id", toDelete);
         }
     }
 
@@ -532,42 +464,67 @@ namespace Configs {
     }
 
     QList<std::shared_ptr<RouteProfile>> RoutesRepo::GetAllRouteProfiles() const {
-        QMutexLocker locker(&mutex);
         QList<std::shared_ptr<RouteProfile>> routeProfiles;
-        
-        // Get all route profile IDs
-        auto query = db.query("SELECT id FROM route_profiles ORDER BY id");
-        if (query) {
-            while (query->executeStep()) {
-                int id = query->getColumn(0).getInt();
-                
-                // Check identity map first (we already have the lock)
-                if (auto it = identityMap.find(id); it != identityMap.end()) {
-                    if (auto shared = it->second.lock()) {
-                        routeProfiles.append(shared);
-                        continue; // Use existing instance from identity map
-                    } else {
-                        // Weak pointer expired, remove from map
-                        identityMap.erase(it);
-                    }
+        std::map<int, std::shared_ptr<RouteProfile>> byId;
+        QList<int> idsInOrder;
+
+        auto profileQuery = db.query("SELECT id, name, default_outbound_id FROM route_profiles ORDER BY id");
+        if (!profileQuery) return routeProfiles;
+
+        QMutexLocker locker(&mutex);
+        while (profileQuery->executeStep()) {
+            int id = profileQuery->getColumn(0).getInt();
+            std::shared_ptr<RouteProfile> profile;
+            auto it = identityMap.find(id);
+            if (it != identityMap.end()) {
+                if (auto shared = it->second.lock()) {
+                    byId[id] = shared;
+                    idsInOrder.append(id);
+                    continue;
                 }
-                
-                // Load from database (loadFromDatabase doesn't lock mutex)
-                auto routeProfile = loadFromDatabase(id);
-                if (routeProfile) {
-                    // Add to identity map
-                    identityMap[id] = std::weak_ptr<RouteProfile>(routeProfile);
-                    routeProfiles.append(routeProfile);
+                identityMap.erase(it);
+            }
+            profile = routeProfileFromProfileRow(*profileQuery);
+            byId[id] = profile;
+            idsInOrder.append(id);
+            identityMap[id] = std::weak_ptr<RouteProfile>(profile);
+        }
+
+        if (byId.empty()) return routeProfiles;
+        
+        // Build IN list for rules
+        QString idList;
+        for (int i = 0; i < idsInOrder.size(); ++i) {
+            if (i > 0) idList += ",";
+            idList += QString::number(idsInOrder[i]);
+        }
+        std::string rulesSql = "SELECT route_profile_id, name, type, simple_action, ip_version, network, protocol,"
+                   "inbound_json, domain_json, domain_suffix_json, domain_keyword_json, domain_regex_json,"
+                   "source_ip_cidr_json, source_ip_is_private, ip_cidr_json, ip_is_private,"
+                   "source_port_json, source_port_range_json, port_json, port_range_json,"
+                   "process_name_json, process_path_json, process_path_regex_json, rule_set_json,"
+                   "invert, outbound_id, action, reject_method, no_drop,"
+                   "override_address, override_port, sniffers_json, sniff_override_dest, strategy "
+                   "FROM route_rules WHERE route_profile_id IN (" + idList.toStdString() + ") ORDER BY route_profile_id, rule_order";
+        auto rulesQuery = db.query(rulesSql);
+        if (rulesQuery) {
+            while (rulesQuery->executeStep()) {
+                int profileId = rulesQuery->getColumn(0).getInt();
+                auto it = byId.find(profileId);
+                if (it != byId.end()) {
+                    it->second->Rules.append(routeRuleFromJson(ruleJsonFromRow(*rulesQuery, 1)));
                 }
             }
         }
         
+        for (int id : idsInOrder) {
+            routeProfiles.append(byId[id]);
+        }
         return routeProfiles;
     }
 
     int RoutesRepo::NewRouteProfileID() const {
-        // Atomically increment and get the new ID using RETURNING clause
-        // Note: This method is called from within methods that already hold the mutex lock
+        // Atomically increment and get the new ID (DB atomic, no lock required)
         auto query = db.query("UPDATE entity_ids SET route_profile_last_id = route_profile_last_id + 1 RETURNING route_profile_last_id");
         if (query && query->executeStep()) {
             return query->getColumn(0).getInt();
@@ -588,11 +545,7 @@ namespace Configs {
         
         runOnNewThread([=, this] {
             QMutexLocker locker(&mutex);
-
-            // Save to database
             saveToDatabase(routeProfile.get(), routeProfile->id);
-
-            // Update identity map
             identityMap[routeProfile->id] = std::weak_ptr<RouteProfile>(routeProfile);
         });
         

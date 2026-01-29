@@ -193,56 +193,32 @@ namespace Configs {
 
     bool GroupsRepo::AddGroup(std::shared_ptr<Group>& group) {
         QMutexLocker locker(&mutex);
-        
-        if (group->id >= 0) {
-            return false; // Already has an ID
-        }
-        
+        if (group->id >= 0) return false;
         int newId = NewGroupID();
         group->id = newId;
-        
-        // Save to database first
-        saveToDatabase(group.get(), newId);
-        
-        // Add to order (append to end)
+        identityMap[newId] = std::weak_ptr<Group>(group);
+        saveToDatabase(group.get(), group->id);
         int maxOrder = -1;
         auto maxOrderQuery = db.query("SELECT MAX(display_order) FROM groups_order");
         if (maxOrderQuery && maxOrderQuery->executeStep()) {
             maxOrder = maxOrderQuery->getColumn(0).getInt();
         }
         db.exec("INSERT INTO groups_order (group_id, display_order) VALUES (?, ?)",
-            newId,
+            group->id,
             maxOrder + 1
         );
-        
-        // Add to identity map
-        identityMap[newId] = std::weak_ptr<Group>(group);
-        
         return true;
     }
 
     std::shared_ptr<Group> GroupsRepo::GetGroup(int id) const {
         QMutexLocker locker(&mutex);
-        
-        // Check identity map first
         if (auto it = identityMap.find(id); it != identityMap.end()) {
-            if (auto shared = it->second.lock()) {
-                return shared; // Return existing instance
-            } else {
-                // Weak pointer expired, remove from map
-                identityMap.erase(it);
-            }
+            if (auto shared = it->second.lock()) return shared;
+            identityMap.erase(it);
         }
-        
-        // Load from database
         auto group = loadFromDatabase(id);
-        if (!group) {
-            return nullptr;
-        }
-        
-        // Add to identity map
+        if (!group) return nullptr;
         identityMap[id] = std::weak_ptr<Group>(group);
-        
         return group;
     }
 
@@ -260,14 +236,8 @@ namespace Configs {
 
     void GroupsRepo::DeleteGroup(int id) {
         QMutexLocker locker(&mutex);
-        
-        // Remove from identity map
         identityMap.erase(id);
-        
-        // Remove from order
         db.exec("DELETE FROM groups_order WHERE group_id = ?", id);
-        
-        // Delete from database
         db.exec("DELETE FROM groups WHERE id = ?", id);
     }
 
@@ -306,17 +276,16 @@ namespace Configs {
     }
 
     void GroupsRepo::SetGroupsTabOrder(const QList<int>& order) {
-        runOnNewThread([=,this] {
-            // Clear existing order
+        runOnNewThread([=, this] {
             db.exec("DELETE FROM groups_order");
-
-            // Insert new order
-            int displayOrder = 0;
-            for (int groupId : order) {
-                db.exec("INSERT INTO groups_order (group_id, display_order) VALUES (?, ?)",
-                    groupId,
-                displayOrder++
-                );
+            if (!order.isEmpty()) {
+                std::vector<int> pairs;
+                pairs.reserve(order.size() * 2);
+                for (int i = 0; i < order.size(); ++i) {
+                    pairs.push_back(order[i]);
+                    pairs.push_back(i);
+                }
+                db.execBatchInsertIntPairs("groups_order", "group_id", "display_order", pairs);
             }
         });
     }
@@ -332,11 +301,7 @@ namespace Configs {
         
         runOnNewThread([=, this] {
             QMutexLocker locker(&mutex);
-
-            // Save to database
             saveToDatabase(group.get(), group->id);
-
-            // Update identity map
             identityMap[group->id] = std::weak_ptr<Group>(group);
         });
         

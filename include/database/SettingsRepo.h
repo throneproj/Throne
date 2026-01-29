@@ -14,8 +14,7 @@ namespace Configs {
     class SettingsRepo {
     private:
         Database& db;
-        mutable QMutex mutex;
-        
+
         // Helper methods
         void createTables() const;
         void loadAllSettings();
