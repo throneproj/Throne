@@ -124,6 +124,12 @@ set(PROJECT_SOURCES
         src/ui/mainwindow.cpp
         include/ui/mainwindow.h
         include/ui/mainwindow.ui
+        include/ui/utils/ProfilesTableModel.h
+        src/ui/utils/ProfilesTableModel.cpp
+        include/ui/utils/ProfilesTableView.h
+        src/ui/utils/ProfilesTableView.cpp
+        include/ui/utils/ProfilesTableVerticalHeader.h
+        src/ui/utils/ProfilesTableVerticalHeader.cpp
 
         include/ui/profile/dialog_edit_profile.h
         src/ui/profile/dialog_edit_profile.cpp

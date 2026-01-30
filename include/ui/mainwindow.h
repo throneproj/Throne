@@ -16,7 +16,6 @@
 
 #ifndef MW_INTERFACE
 
-#include <QTableWidgetItem>
 #include <QKeyEvent>
 #include <QSystemTrayIcon>
 #include <QProcess>
@@ -28,6 +27,7 @@
 
 #include "group/GroupSort.hpp"
 #include "include/global/GuiUtils.hpp"
+#include "include/ui/utils/ProfilesTableModel.h"
 #include "ui_mainwindow.h"
 
 #endif
@@ -152,9 +152,9 @@ private slots:
 
     void on_menu_update_subscription_triggered();
 
-    void on_proxyListTable_itemDoubleClicked(QTableWidgetItem *item);
+    void on_profilesTableView_doubleClicked(const QModelIndex &index);
 
-    void on_proxyListTable_customContextMenuRequested(const QPoint &pos);
+    void on_profilesTableView_customContextMenuRequested(const QPoint &pos);
 
     void on_tabWidget_currentChanged(int index);
 
@@ -215,6 +215,8 @@ private:
     bool searchEnabled = false;
     QString searchString;
 
+    ProfilesTableModel *profilesTableModel = nullptr;
+
     void setSearchState(bool enable);
 
     QList<std::shared_ptr<Configs::Profile>> filterProfilesList(const QList<int>& profiles);
@@ -228,8 +230,6 @@ private:
     void refresh_proxy_list_impl(const int &id = -1);
 
     void refresh_proxy_list_impl_refresh_data(const int &id = -1, bool stopping = false);
-
-    void refresh_table_item(int row, const std::shared_ptr<Configs::Profile>& profile, bool stopping);
 
     void parseQrImage(const QPixmap *image);
 

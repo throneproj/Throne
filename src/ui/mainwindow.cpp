@@ -41,6 +41,7 @@
 #endif
 
 #include <QClipboard>
+#include <QModelIndex>
 #include <QLabel>
 #include <QTextBlock>
 #include <QScrollBar>
@@ -285,8 +286,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     speedChartWidget = new SpeedWidget(this);
     ui->graph_tab->layout()->addWidget(speedChartWidget);
 
-    // table UI
-    ui->proxyListTable->rowsSwapped = [=,this](int row1, int row2)
+    // table UI: model-backed view with on-demand row data
+    profilesTableModel = new ProfilesTableModel(this);
+    profilesTableModel->setCacheSize(100);
+    ui->profilesTableView->setModel(profilesTableModel);
+    ui->profilesTableView->rowsSwapped = [=,this](int row1, int row2)
     {
         if (row1 == row2) return;
         auto group = Configs::dataManager->groupsRepo->CurrentGroup();
@@ -294,7 +298,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         refresh_proxy_list();
         Configs::dataManager->groupsRepo->Save(group);
     };
-    connect(ui->proxyListTable->horizontalHeader(), &QHeaderView::sectionClicked, this, [=, this](int logicalIndex) {
+    connect(ui->profilesTableView->horizontalHeader(), &QHeaderView::sectionClicked, this, [=, this](int logicalIndex) {
         GroupSortAction action;
         if (proxy_last_order == logicalIndex) {
             action.descending = true;
@@ -329,19 +333,21 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             });
         });
     });
-    connect(ui->proxyListTable->horizontalHeader(), &QHeaderView::sectionResized, this, [=, this](int logicalIndex, int oldSize, int newSize) {
+    connect(ui->profilesTableView->horizontalHeader(), &QHeaderView::sectionResized, this, [=, this](int logicalIndex, int oldSize, int newSize) {
         auto group = Configs::dataManager->groupsRepo->CurrentGroup();
         if (Configs::dataManager->settingsRepo->refreshing_group || group == nullptr || !group->manually_column_width) return;
-        // save manually column width
         group->column_width.clear();
-        for (int i = 0; i < ui->proxyListTable->horizontalHeader()->count(); i++) {
-            group->column_width.push_back(ui->proxyListTable->horizontalHeader()->sectionSize(i));
+        for (int i = 0; i < ui->profilesTableView->horizontalHeader()->count(); i++) {
+            group->column_width.push_back(ui->profilesTableView->horizontalHeader()->sectionSize(i));
         }
         group->column_width[logicalIndex] = newSize;
         Configs::dataManager->groupsRepo->Save(Configs::dataManager->groupsRepo->CurrentGroup());
     });
-    ui->proxyListTable->verticalHeader()->setDefaultSectionSize(24);
-    ui->proxyListTable->setTabKeyNavigation(false);
+    ui->profilesTableView->verticalHeader()->setDefaultSectionSize(24);
+    ui->profilesTableView->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    ui->profilesTableView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    ui->profilesTableView->verticalScrollBar()->setSingleStep(6);
+    ui->profilesTableView->setTabKeyNavigation(false);
 
     // search box
     setSearchState(false);
@@ -749,21 +755,23 @@ void MainWindow::show_group(int gid) {
         Configs::dataManager->settingsRepo->Save();
     }
 
-    ui->tabWidget->widget(groupId2TabIndex(gid))->layout()->addWidget(ui->proxyListTable);
+    ui->tabWidget->widget(groupId2TabIndex(gid))->layout()->addWidget(ui->profilesTableView);
 
+    auto *hHeader = ui->profilesTableView->horizontalHeader();
+    hHeader->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    hHeader->setSectionResizeMode(1, QHeaderView::Stretch);
+    hHeader->setSectionResizeMode(2, QHeaderView::Stretch);
+    hHeader->setSectionResizeMode(3, QHeaderView::ResizeToContents);
+    hHeader->setSectionResizeMode(4, QHeaderView::ResizeToContents);
     if (group->manually_column_width) {
         for (int i = 0; i <= 4; i++) {
-            ui->proxyListTable->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Interactive);
+            hHeader->setSectionResizeMode(i, QHeaderView::Interactive);
             auto size = group->column_width.value(i);
-            if (size <= 0) size = ui->proxyListTable->horizontalHeader()->defaultSectionSize();
-            ui->proxyListTable->horizontalHeader()->resizeSection(i, size);
+            if (size <= 0) {
+                size = hHeader->sectionSize(i);
+            }
+            hHeader->resizeSection(i, size);
         }
-    } else {
-        ui->proxyListTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-        ui->proxyListTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-        ui->proxyListTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
-        ui->proxyListTable->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
-        ui->proxyListTable->horizontalHeader()->setSectionResizeMode(4, QHeaderView::ResizeToContents);
     }
 
     // show proxies
@@ -1528,7 +1536,6 @@ void MainWindow::refresh_proxy_list(const int &id) {
 }
 
 void MainWindow::refresh_proxy_list_impl(const int &id) {
-    ui->proxyListTable->setUpdatesEnabled(false);
     if (id < 0) {
         if (auto currentGroup = Configs::dataManager->groupsRepo->CurrentGroup(); currentGroup == nullptr)
         {
@@ -1541,90 +1548,36 @@ void MainWindow::refresh_proxy_list_impl(const int &id) {
 }
 
 void MainWindow::refresh_proxy_list_impl_refresh_data(const int &id, bool stopping) {
-    ui->proxyListTable->setUpdatesEnabled(false);
     auto currentGroup = Configs::dataManager->groupsRepo->CurrentGroup();
     if (currentGroup == nullptr) return;
     if (id >= 0)
     {
         if (!currentGroup->HasProfile(id))
-        {
-            ui->proxyListTable->setUpdatesEnabled(true);
             return;
-        }
-        auto profile = Configs::dataManager->profilesRepo->GetProfile(id);
         if (filterProfilesList({id}).isEmpty())
-        {
-            ui->proxyListTable->setUpdatesEnabled(true);
             return;
-        }
-        auto rowID = currentGroup->profiles.indexOf(id);
-        refresh_table_item(rowID, profile, stopping);
+        profilesTableModel->refreshProfileId(id);
     } else
     {
-        ui->proxyListTable->blockSignals(true);
-        int row = 0;
         auto profiles = filterProfilesList(currentGroup->profiles);
-        ui->proxyListTable->setRowCount(profiles.count());
-        for (const auto& profile : profiles) {
-            refresh_table_item(row++, profile, stopping);
+        QList<int> ids;
+        for (const auto &p : profiles)
+            ids.append(p->id);
+        profilesTableModel->setProfileIds(ids);
+
+        auto *vHeader = ui->profilesTableView->verticalHeader();
+        int count = profilesTableModel->rowCount();
+        for (int i = 0; i < count; ++i) {
+            vHeader->setSectionResizeMode(i, (i == count - 1) ? QHeaderView::Stretch : QHeaderView::Fixed);
         }
-        ui->proxyListTable->blockSignals(false);
     }
-    ui->proxyListTable->setUpdatesEnabled(true);
-}
-
-void MainWindow::refresh_table_item(const int row, const std::shared_ptr<Configs::Profile>& profile, bool stopping)
-{
-    if (profile == nullptr) return;
-
-    auto isRunning = profile->id == Configs::dataManager->settingsRepo->started_id && !stopping;
-    auto f0 = std::make_unique<QTableWidgetItem>();
-    f0->setData(114514, profile->id);
-
-    // Check state
-    auto check = f0->clone();
-    check->setText(isRunning ? "✓" : Int2String(row + 1) + "  ");
-    ui->proxyListTable->setVerticalHeaderItem(row, check);
-
-    // C0: Type
-    auto f = f0->clone();
-    f->setText(profile->outbound->DisplayType());
-    if (isRunning) f->setForeground(palette().link());
-    ui->proxyListTable->setItem(row, 0, f);
-
-    // C1: Address+Port
-    f = f0->clone();
-    f->setText(profile->outbound->DisplayAddress());
-    if (isRunning) f->setForeground(palette().link());
-    ui->proxyListTable->setItem(row, 1, f);
-
-    // C2: Name
-    f = f0->clone();
-    f->setText(profile->outbound->name);
-    if (isRunning) f->setForeground(palette().link());
-    ui->proxyListTable->setItem(row, 2, f);
-
-    // C3: Test Result
-    f = f0->clone();
-    if (profile->full_test_report.isEmpty()) {
-        auto color = profile->DisplayLatencyColor();
-        if (color.isValid()) f->setForeground(color);
-        f->setText(profile->DisplayTestResult());
-    } else {
-        f->setText(profile->full_test_report);
-    }
-    ui->proxyListTable->setItem(row, 3, f);
-
-    // C4: Traffic
-    f = f0->clone();
-    f->setText(profile->traffic_data->DisplayTraffic());
-    ui->proxyListTable->setItem(row, 4, f);
 }
 
 // table菜单相关
 
-void MainWindow::on_proxyListTable_itemDoubleClicked(QTableWidgetItem *item) {
-    auto id = item->data(114514).toInt();
+void MainWindow::on_profilesTableView_doubleClicked(const QModelIndex &index) {
+    if (!index.isValid() || !profilesTableModel) return;
+    int id = profilesTableModel->data(index, ProfilesTableModel::ProfileIdRole).toInt();
     if (select_mode) {
         emit profile_selected(id);
         select_mode = false;
@@ -1979,7 +1932,7 @@ void MainWindow::on_menu_select_all_triggered() {
         ui->masterLogBrowser->selectAll();
         return;
     }
-    ui->proxyListTable->selectAll();
+    ui->profilesTableView->selectAll();
 }
 
 bool mw_sub_updating = false;
@@ -2122,15 +2075,16 @@ void MainWindow::on_menu_resolve_domain_triggered() {
     }
 }
 
-void MainWindow::on_proxyListTable_customContextMenuRequested(const QPoint &pos) {
-    ui->menu_server->popup(ui->proxyListTable->viewport()->mapToGlobal(pos)); // 弹出菜单
+void MainWindow::on_profilesTableView_customContextMenuRequested(const QPoint &pos) {
+    ui->menu_server->popup(ui->profilesTableView->viewport()->mapToGlobal(pos));
 }
 
 QList<std::shared_ptr<Configs::Profile>> MainWindow::get_now_selected_list() {
-    auto items = ui->proxyListTable->selectedItems();
     QList<std::shared_ptr<Configs::Profile>> list;
-    for (auto item: items) {
-        auto id = item->data(114514).toInt();
+    if (!profilesTableModel) return list;
+    QModelIndexList indices = ui->profilesTableView->selectionModel()->selectedRows(0);
+    for (const QModelIndex &idx : indices) {
+        int id = profilesTableModel->data(idx, ProfilesTableModel::ProfileIdRole).toInt();
         auto ent = Configs::dataManager->profilesRepo->GetProfile(id);
         if (ent != nullptr && !list.contains(ent)) list += ent;
     }
