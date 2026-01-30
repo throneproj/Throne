@@ -1,11 +1,15 @@
 #pragma once
 #include <QList>
+#include <QMutex>
 #include <QString>
+
+#include "include/ui/group/GroupSort.hpp"
 
 namespace Configs
 {
     class Group {
     public:
+        QMutex mutex;
         int id = -1;
         bool archive = false;
         bool skip_auto_update = false;
@@ -24,6 +28,8 @@ namespace Configs
         Group() = default;
 
         [[nodiscard]] QList<int> Profiles() const;
+
+        bool SortProfiles(GroupSortAction method);
 
         bool RemoveProfile(int id);
 

@@ -294,10 +294,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         refresh_proxy_list();
         Configs::dataManager->groupsRepo->Save(group);
     };
-    if (auto button = ui->proxyListTable->findChild<QAbstractButton *>(QString(), Qt::FindDirectChildrenOnly)) {
-        // Corner Button
-        connect(button, &QAbstractButton::clicked, this, [=,this] { refresh_proxy_list_impl(-1, {GroupSortMethod::ById}); });
-    }
     connect(ui->proxyListTable->horizontalHeader(), &QHeaderView::sectionClicked, this, [=, this](int logicalIndex) {
         GroupSortAction action;
         if (proxy_last_order == logicalIndex) {
@@ -318,8 +314,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         } else {
             return;
         }
-        refresh_proxy_list_impl(-1, action);
-        Configs::dataManager->groupsRepo->Save(Configs::dataManager->groupsRepo->CurrentGroup());
+        runOnNewThread([=, this] {
+            auto currGroup = Configs::dataManager->groupsRepo->CurrentGroup();
+            if (currGroup == nullptr) return;
+            if (!currGroup->SortProfiles(action)) {
+                runOnUiThread([=] {
+                    MessageBoxWarning("Action already in progress", "A sort action is already in progress");
+                });
+                return;
+            }
+            Configs::dataManager->groupsRepo->Save(Configs::dataManager->groupsRepo->CurrentGroup());
+            runOnUiThread([=, this] {
+                refresh_proxy_list();
+            });
+        });
     });
     connect(ui->proxyListTable->horizontalHeader(), &QHeaderView::sectionResized, this, [=, this](int logicalIndex, int oldSize, int newSize) {
         auto group = Configs::dataManager->groupsRepo->CurrentGroup();
@@ -759,9 +767,7 @@ void MainWindow::show_group(int gid) {
     }
 
     // show proxies
-    GroupSortAction gsa;
-    gsa.scroll_to_started = true;
-    refresh_proxy_list_impl(-1, gsa);
+    refresh_proxy_list_impl(-1);
 
     Configs::dataManager->settingsRepo->refreshing_group = false;
 }
@@ -1518,77 +1524,18 @@ void MainWindow::refresh_groups() {
 }
 
 void MainWindow::refresh_proxy_list(const int &id) {
-    refresh_proxy_list_impl(id, {});
+    refresh_proxy_list_impl(id);
 }
 
-void MainWindow::refresh_proxy_list_impl(const int &id, GroupSortAction groupSortAction) {
+void MainWindow::refresh_proxy_list_impl(const int &id) {
     ui->proxyListTable->setUpdatesEnabled(false);
     if (id < 0) {
-        auto currentGroup = Configs::dataManager->groupsRepo->CurrentGroup();
-        if (currentGroup == nullptr)
+        if (auto currentGroup = Configs::dataManager->groupsRepo->CurrentGroup(); currentGroup == nullptr)
         {
             MW_show_log("Could not find current group!");
             return;
         }
-        switch (groupSortAction.method) {
-            case GroupSortMethod::Raw: {
-                break;
-            }
-            case GroupSortMethod::ById: {
-                break;
-            }
-            case GroupSortMethod::ByAddress:
-            case GroupSortMethod::ByName:
-            case GroupSortMethod::ByLatency:
-            case GroupSortMethod::ByType: {
-                std::sort(currentGroup->profiles.begin(), currentGroup->profiles.end(),
-                          [=,this](int a, int b) {
-                              QString ms_a;
-                              QString ms_b;
-                              if (groupSortAction.method == GroupSortMethod::ByType) {
-                                  ms_a = Configs::dataManager->profilesRepo->GetProfile(a)->outbound->DisplayType();
-                                  ms_b = Configs::dataManager->profilesRepo->GetProfile(b)->outbound->DisplayType();
-                              } else if (groupSortAction.method == GroupSortMethod::ByName) {
-                                  ms_a = Configs::dataManager->profilesRepo->GetProfile(a)->outbound->name;
-                                  ms_b = Configs::dataManager->profilesRepo->GetProfile(b)->outbound->name;
-                              } else if (groupSortAction.method == GroupSortMethod::ByAddress) {
-                                  ms_a = Configs::dataManager->profilesRepo->GetProfile(a)->outbound->DisplayAddress();
-                                  ms_b = Configs::dataManager->profilesRepo->GetProfile(b)->outbound->DisplayAddress();
-                              } else if (groupSortAction.method == GroupSortMethod::ByLatency) {
-                                  ms_a = Configs::dataManager->profilesRepo->GetProfile(a)->full_test_report;
-                                  ms_b = Configs::dataManager->profilesRepo->GetProfile(b)->full_test_report;
-                              }
-                              auto get_latency_for_sort = [](int id) {
-                                  auto i = Configs::dataManager->profilesRepo->GetProfile(id)->latency;
-                                  if (i == 0) i = 100000;
-                                  if (i < 0) i = 99999;
-                                  return i;
-                              };
-                              if (groupSortAction.descending) {
-                                  if (groupSortAction.method == GroupSortMethod::ByLatency) {
-                                      if (ms_a.isEmpty() && ms_b.isEmpty()) {
-                                          // compare latency if full_test_report is empty
-                                          return get_latency_for_sort(a) > get_latency_for_sort(b);
-                                      }
-                                  }
-                                  return ms_a > ms_b;
-                              } else {
-                                  if (groupSortAction.method == GroupSortMethod::ByLatency) {
-                                      auto int_a = Configs::dataManager->profilesRepo->GetProfile(a)->latency;
-                                      auto int_b = Configs::dataManager->profilesRepo->GetProfile(b)->latency;
-                                      if (ms_a.isEmpty() && ms_b.isEmpty()) {
-                                          // compare latency if full_test_report is empty
-                                          return get_latency_for_sort(a) < get_latency_for_sort(b);
-                                      }
-                                  }
-                                  return ms_a < ms_b;
-                              }
-                          });
-                break;
-            }
-        }
     }
-
     // refresh data
     refresh_proxy_list_impl_refresh_data(id);
 }

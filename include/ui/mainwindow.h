@@ -225,7 +225,7 @@ private:
 
     void dialog_message_impl(const QString &sender, const QString &info);
 
-    void refresh_proxy_list_impl(const int &id = -1, GroupSortAction groupSortAction = {});
+    void refresh_proxy_list_impl(const int &id = -1);
 
     void refresh_proxy_list_impl_refresh_data(const int &id = -1, bool stopping = false);
 
