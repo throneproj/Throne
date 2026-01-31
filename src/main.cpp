@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
     if (Configs::dataManager->settingsRepo->argv.contains("-flag_restart_tun_on")) Configs::dataManager->settingsRepo->flag_restart_tun_on = true;
     if (Configs::dataManager->settingsRepo->argv.contains("-flag_restart_dns_set")) Configs::dataManager->settingsRepo->flag_dns_set = true;
 #ifdef NKR_CPP_USE_APPDATA
-    Configs::dataStore->flag_use_appdata = true; // Example: Package & MacOS
+    Configs::dataManager->settingsRepo->flag_use_appdata = true; // Example: Package & MacOS
 #endif
 #ifdef NKR_CPP_DEBUG
     Configs::dataManager->settingsRepo->flag_debug = true;
@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
     }
 #endif
 
-    // Datastore & Flags
+    // dataManager->settingsRepo & Flags
     if (Configs::dataManager->settingsRepo->start_minimal) Configs::dataManager->settingsRepo->flag_tray = true;
 
     // Translate
