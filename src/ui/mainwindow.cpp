@@ -1366,12 +1366,13 @@ void MainWindow::setSearchState(bool enable)
     }
 }
 
-QList<std::shared_ptr<Configs::Profile>> MainWindow::filterProfilesList(const QList<int>& profiles)
+QList<int> MainWindow::filterProfilesList(const QList<int>& profileIDs)
 {
-    QList<std::shared_ptr<Configs::Profile>> res;
-    for (const auto& id : profiles)
+    if (searchString.isEmpty()) return profileIDs;
+    QList<int> res;
+    auto profiles = Configs::dataManager->profilesRepo->GetProfileBatch(profileIDs);
+    for (const auto& profile : profiles)
     {
-        auto profile = Configs::dataManager->profilesRepo->GetProfile(id);
         if (!profile)
         {
             MW_show_log("Null profile, maybe data is corrupted");
@@ -1379,7 +1380,7 @@ QList<std::shared_ptr<Configs::Profile>> MainWindow::filterProfilesList(const QL
         }
         if (searchString.isEmpty() || profile->outbound->name.contains(searchString, Qt::CaseInsensitive) || profile->outbound->server.contains(searchString, Qt::CaseInsensitive)
             || (searchString.startsWith("CODE:") && searchString.mid(5) == profile->test_country))
-            res.append(profile);
+            res.append(profile->id);
     }
     return res;
 }
@@ -1561,11 +1562,8 @@ void MainWindow::refresh_proxy_list_impl_refresh_data(const int &id, bool stoppi
         profilesTableModel->refreshProfileId(id);
     } else
     {
-        auto profiles = filterProfilesList(currentGroup->profiles);
-        QList<int> ids;
-        for (const auto &p : profiles)
-            ids.append(p->id);
-        profilesTableModel->setProfileIds(ids);
+        auto profileIDs = filterProfilesList(currentGroup->profiles);
+        profilesTableModel->setProfileIds(profileIDs);
     }
 }
 

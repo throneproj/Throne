@@ -87,7 +87,6 @@ void ProfilesTableView::dropEvent(QDropEvent *event) {
                     newRow--;
                 }
             }
-            qDebug() << "new row is"<<newRow;
             rowsSwapped(rowNum, newRow);
             event->accept();
         } else {

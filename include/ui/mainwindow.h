@@ -219,7 +219,7 @@ private:
 
     void setSearchState(bool enable);
 
-    QList<std::shared_ptr<Configs::Profile>> filterProfilesList(const QList<int>& profiles);
+    QList<int> filterProfilesList(const QList<int>& profileIDs);
 
     QList<std::shared_ptr<Configs::Profile>> get_now_selected_list();
 
