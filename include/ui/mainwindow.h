@@ -221,9 +221,9 @@ private:
 
     QList<int> filterProfilesList(const QList<int>& profileIDs);
 
-    QList<std::shared_ptr<Configs::Profile>> get_now_selected_list();
+    QList<int> get_now_selected_list();
 
-    QList<std::shared_ptr<Configs::Profile>> get_selected_or_group();
+    QList<int> get_selected_or_group();
 
     void dialog_message_impl(const QString &sender, const QString &info);
 
@@ -257,7 +257,7 @@ private:
 
     static void setup_rpc();
 
-    void urltest_current_group(const QList<std::shared_ptr<Configs::Profile>>& profiles);
+    void urltest_current_group(const QList<int>& profileIDs);
 
     void stopTests();
 
@@ -265,7 +265,7 @@ private:
 
     void url_test_current();
 
-    void speedtest_current_group(const QList<std::shared_ptr<Configs::Profile>>& profiles, bool testCurrent = false);
+    void speedtest_current_group(const QList<int>& profileIDs, bool testCurrent = false);
 
     void runSpeedTest(const QString& config, const QString& xrayConfig, bool useDefault, bool testCurrent, const QStringList& outboundTags, const QMap<QString, int>& tag2entID, int entID = -1);
 

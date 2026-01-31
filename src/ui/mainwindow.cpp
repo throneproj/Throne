@@ -575,7 +575,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         urltest_current_group(get_now_selected_list());
     });
     connect(ui->actionUrl_Test_Group, &QAction::triggered, this, [=,this]() {
-        urltest_current_group(Configs::dataManager->profilesRepo->GetProfileBatch(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles()));
+        urltest_current_group(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles());
     });
     connect(ui->actionSpeedtest_Current, &QAction::triggered, this, [=,this]()
     {
@@ -590,7 +590,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     });
     connect(ui->actionSpeedtest_Group, &QAction::triggered, this, [=,this]()
     {
-        speedtest_current_group(Configs::dataManager->profilesRepo->GetProfileBatch(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles()));
+        speedtest_current_group(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles());
     });
     connect(ui->menu_stop_testing, &QAction::triggered, this, [=,this]() { stopTests(); });
     //
@@ -1596,13 +1596,14 @@ void MainWindow::on_menu_add_from_clipboard_triggered() {
 }
 
 void MainWindow::on_menu_clone_triggered() {
-    auto ents = get_now_selected_list();
-    if (ents.isEmpty()) return;
+    auto entIDs = get_now_selected_list();
+    if (entIDs.isEmpty()) return;
 
-    auto btn = QMessageBox::question(this, tr("Clone"), tr("Clone %1 item(s)").arg(ents.count()));
+    auto btn = QMessageBox::question(this, tr("Clone"), tr("Clone %1 item(s)").arg(entIDs.count()));
     if (btn != QMessageBox::Yes) return;
 
     QStringList sls;
+    auto ents = Configs::dataManager->profilesRepo->GetProfileBatch(entIDs);
     for (const auto &ent: ents) {
         sls << ent->outbound->ExportJsonLink();
     }
@@ -1639,13 +1640,13 @@ void  MainWindow::on_menu_delete_repeat_triggered () {
 }
 
 void MainWindow::on_menu_delete_triggered() {
-    auto ents = get_now_selected_list();
-    if (ents.count() == 0) return;
-    if (QMessageBox::question(this, tr("Confirmation"), QString(tr("Remove %1 item(s) ?")).arg(ents.count())) ==
+    auto entIDs = get_now_selected_list();
+    if (entIDs.count() == 0) return;
+    if (QMessageBox::question(this, tr("Confirmation"), QString(tr("Remove %1 item(s) ?")).arg(entIDs.count())) ==
         QMessageBox::StandardButton::Yes) {
         QList<int> del_ids;
-        for (const auto &ent: ents) {
-            del_ids += ent->id;
+        for (const auto &entID: entIDs) {
+            del_ids += entID;
         }
         Configs::dataManager->profilesRepo->BatchDeleteProfiles(del_ids);
         refresh_proxy_list();
@@ -1653,9 +1654,10 @@ void MainWindow::on_menu_delete_triggered() {
 }
 
 void MainWindow::on_menu_reset_traffic_triggered() {
-    auto ents = get_now_selected_list();
-    if (ents.count() == 0) return;
-    for (const auto &ent: ents) {
+    auto entIDs = get_now_selected_list();
+    if (entIDs.count() == 0) return;
+    auto ents = Configs::dataManager->profilesRepo->GetProfileBatch(entIDs);
+    for (const auto& ent: ents) {
         ent->traffic_data->Reset();
         Configs::dataManager->profilesRepo->Save(ent);
         refresh_proxy_list(ent->id);
@@ -1667,8 +1669,9 @@ void MainWindow::on_menu_copy_links_triggered() {
         ui->masterLogBrowser->copy();
         return;
     }
-    auto ents = get_now_selected_list();
+    auto entIDs = get_now_selected_list();
     QStringList links;
+    auto ents = Configs::dataManager->profilesRepo->GetProfileBatch(entIDs);
     for (const auto &ent: ents) {
         links += ent->outbound->ExportToLink();
     }
@@ -1678,8 +1681,9 @@ void MainWindow::on_menu_copy_links_triggered() {
 }
 
 void MainWindow::on_menu_copy_links_nkr_triggered() {
-    auto ents = get_now_selected_list();
+    auto entIDs = get_now_selected_list();
     QStringList links;
+    auto ents = Configs::dataManager->profilesRepo->GetProfileBatch(entIDs);
     for (const auto &ent: ents) {
         links += ent->outbound->ExportJsonLink();
     }
@@ -1691,7 +1695,7 @@ void MainWindow::on_menu_copy_links_nkr_triggered() {
 void MainWindow::on_menu_export_config_triggered() {
     auto ents = get_now_selected_list();
     if (ents.count() != 1) return;
-    auto ent = ents.first();
+    auto ent = Configs::dataManager->profilesRepo->GetProfile(ents.first());
 
     auto result = Configs::BuildSingBoxConfig(ent);
     QString config_core = QJsonObject2QString(result->coreConfig, true);
@@ -1799,10 +1803,11 @@ void MainWindow::display_qr_link(bool nkrFormat) {
         }
     };
 
-    auto link = ents.first()->outbound->ExportToLink();
-    auto link_nk = ents.first()->outbound->ExportToLink();
+    auto ent = Configs::dataManager->profilesRepo->GetProfile(ents.first());
+    auto link = ent->outbound->ExportToLink();
+    auto link_nk = ent->outbound->ExportToLink();
     auto w = new W(link, link_nk);
-    w->setWindowTitle(ents.first()->outbound->DisplayTypeAndName());
+    w->setWindowTitle(ent->outbound->DisplayTypeAndName());
     w->exec();
     w->deleteLater();
 }
@@ -1914,12 +1919,14 @@ void MainWindow::on_menu_scan_qr_triggered() {
 }
 
 void MainWindow::on_menu_clear_test_result_triggered() {
-    for (const auto &profile: get_selected_or_group()) {
-        profile->latency = 0;
-        profile->dl_speed.clear();
-        profile->ul_speed.clear();
-        profile->full_test_report = "";
-        Configs::dataManager->profilesRepo->Save(profile);
+    auto entIDs = get_selected_or_group();
+    auto ents = Configs::dataManager->profilesRepo->GetProfileBatch(entIDs);
+    for (const auto &ent: ents) {
+        ent->latency = 0;
+        ent->dl_speed.clear();
+        ent->ul_speed.clear();
+        ent->full_test_report = "";
+        Configs::dataManager->profilesRepo->Save(ent);
     }
     refresh_proxy_list();
 }
@@ -2034,7 +2041,8 @@ void MainWindow::on_menu_resolve_selected_triggered() {
     auto resolve_count = std::atomic<int>(0);
     Configs::dataManager->settingsRepo->resolve_count = profiles.count();
 
-    for (const auto &profile: profiles) {
+    auto ents = Configs::dataManager->profilesRepo->GetProfileBatch(profiles);
+    for (const auto &profile: ents) {
         profile->outbound->ResolveDomainToIP([=,this] {
             Configs::dataManager->profilesRepo->Save(profile);
             if (--Configs::dataManager->settingsRepo->resolve_count != 0) return;
@@ -2076,28 +2084,27 @@ void MainWindow::on_profilesTableView_customContextMenuRequested(const QPoint &p
     ui->menu_server->popup(ui->profilesTableView->viewport()->mapToGlobal(pos));
 }
 
-QList<std::shared_ptr<Configs::Profile>> MainWindow::get_now_selected_list() {
-    QList<std::shared_ptr<Configs::Profile>> list;
+QList<int> MainWindow::get_now_selected_list() {
+    QList<int> list;
     if (!profilesTableModel) return list;
     QModelIndexList indices = ui->profilesTableView->selectionModel()->selectedRows(0);
     for (const QModelIndex &idx : indices) {
         int id = profilesTableModel->data(idx, ProfilesTableModel::ProfileIdRole).toInt();
-        auto ent = Configs::dataManager->profilesRepo->GetProfile(id);
-        if (ent != nullptr && !list.contains(ent)) list += ent;
+        list << id;
     }
     return list;
 }
 
-QList<std::shared_ptr<Configs::Profile>> MainWindow::get_selected_or_group() {
+QList<int> MainWindow::get_selected_or_group() {
     auto selected_or_group = ui->menu_server->property("selected_or_group").toInt();
-    QList<std::shared_ptr<Configs::Profile>> profiles;
+    QList<int> profileIDs;
     if (selected_or_group > 0) {
-        profiles = get_now_selected_list();
-        if (profiles.isEmpty() && selected_or_group == 2) profiles = Configs::dataManager->profilesRepo->GetProfileBatch(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles());
+        profileIDs = get_now_selected_list();
+        if (profileIDs.isEmpty() && selected_or_group == 2) profileIDs = Configs::dataManager->groupsRepo->CurrentGroup()->Profiles();
     } else {
-        profiles = Configs::dataManager->profilesRepo->GetProfileBatch(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles());
+        profileIDs = Configs::dataManager->groupsRepo->CurrentGroup()->Profiles();
     }
-    return profiles;
+    return profileIDs;
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event) {
