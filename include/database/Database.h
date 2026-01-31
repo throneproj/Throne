@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <utility>
+#include <type_traits>
 
 namespace Configs {
     struct ProfileInsertRow {
@@ -38,14 +39,28 @@ namespace Configs {
             db.exec("PRAGMA foreign_keys = ON");
         }
 
-        // 1. Recursive template to bind arguments one by one
+        // 1. Bind one argument; explicit overloads avoid ambiguity on Linux (int32_t/int64_t/uint32_t)
+        template<typename T>
+        std::enable_if_t<std::is_integral_v<std::decay_t<T>>> bindOne(SQLite::Statement& query, int index, T&& value) {
+            query.bind(index, static_cast<int64_t>(value));
+        }
+        template<typename T>
+        std::enable_if_t<std::is_floating_point_v<std::decay_t<T>>> bindOne(SQLite::Statement& query, int index, T&& value) {
+            query.bind(index, static_cast<double>(value));
+        }
+        void bindOne(SQLite::Statement& query, int index, const std::string& value) {
+            query.bind(index, value);
+        }
+        void bindOne(SQLite::Statement& query, int index, const char* value) {
+            query.bind(index, value);
+        }
+
         template<typename T, typename... Rest>
         void bindArgs(SQLite::Statement& query, int index, T&& first, Rest&&... rest) {
-            query.bind(index, std::forward<T>(first));
+            bindOne(query, index, std::forward<T>(first));
             bindArgs(query, index + 1, std::forward<Rest>(rest)...);
         }
 
-        // Base case for recursion
         void bindArgs(SQLite::Statement& query, int index) {
             // No more args to bind
         }
