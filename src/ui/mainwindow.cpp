@@ -2221,11 +2221,19 @@ void MainWindow::on_tabWidget_customContextMenuRequested(const QPoint &p) {
     ui->tabWidget->setCurrentIndex(clickedIndex);
     auto* menu = new QMenu(this);
 
+    auto* refreshWidthAction = new QAction(tr("Refresh column widths"), this);
     auto* addAction = new QAction(tr("Add new Group"), this);
     auto* deleteAction = new QAction(tr("Delete selected Group"), this);
     auto* editAction = new QAction(tr("Edit selected Group"), this);
+    connect(refreshWidthAction, &QAction::triggered, this, [=, this] {
+        auto id = Configs::dataManager->groupsRepo->GetGroupsTabOrder()[clickedIndex];
+        auto ent = Configs::dataManager->groupsRepo->GetGroup(id);
+        ent->column_width.clear();
+        Configs::dataManager->groupsRepo->Save(ent);
+        show_group(id);
+    });
     connect(addAction, &QAction::triggered, this, [=,this]{
-        auto ent = Configs::dataManager->groupsRepo->NewGroup();
+        auto ent = Configs::GroupsRepo::NewGroup();
         auto dialog = new DialogEditGroup(ent, this);
         int ret = dialog->exec();
         dialog->deleteLater();
@@ -2256,6 +2264,7 @@ void MainWindow::on_tabWidget_customContextMenuRequested(const QPoint &p) {
         });
         dialog->show();
     });
+    menu->addAction(refreshWidthAction);
     menu->addAction(addAction);
     menu->addAction(editAction);
     auto group = Configs::dataManager->groupsRepo->GetGroup(Configs::dataManager->settingsRepo->current_group);
