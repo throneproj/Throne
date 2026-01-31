@@ -13,6 +13,7 @@ namespace Configs
         if (!mutex.tryLock()) {
             return false;
         }
+        auto allProfs = dataManager->profilesRepo->GetProfileBatch(profiles); // to warm up the cache
         switch (sortAction.method) {
             case GroupSortMethod::Raw: {
                 break;
