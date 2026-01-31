@@ -26,7 +26,7 @@ DialogVPNSettings::DialogVPNSettings(QWidget *parent) : QDialog(parent), ui(new 
         ui->vpn_implementation->setEnabled(false);
     }
 #else
-    ui->vpn_implementation->addItems(Preset::SingBox::VpnImplementation);
+    ui->vpn_implementation->addItems(Configs::VPNImplementation::VPNImplementation);
     ui->vpn_implementation->setCurrentText(Configs::dataManager->settingsRepo->vpn_implementation);
 #endif
     ui->vpn_mtu->setCurrentText(Int2String(Configs::dataManager->settingsRepo->vpn_mtu));
