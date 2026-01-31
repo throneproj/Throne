@@ -206,10 +206,10 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RoutingChai
         layout->addWidget(buttons, line, 0);
 
         connect(buttons, &QDialogButtonBox::accepted, w, [=,this]{
-           auto err = new QString;
-           auto parsed = Configs::RoutingChain::parseJsonArray(QString2QJsonArray(tEdit->toPlainText()), err);
-           if (!err->isEmpty()) {
-               MessageBoxInfo(tr("Invalid JSON Array"), tr("The provided input cannot be parsed to a valid route rule array:\n") + *err);
+           QString err;
+           auto parsed = Configs::RoutingChain::parseJsonArray(QString2QJsonArray(tEdit->toPlainText()), &err);
+           if (!err.isEmpty()) {
+               MessageBoxInfo(tr("Invalid JSON Array"), tr("The provided input cannot be parsed to a valid route rule array:\n") + err);
                return;
            }
            chain->Rules.clear();

@@ -4,6 +4,7 @@
 #include "include/ui/profile/ProxyItem.h"
 
 #include "include/dataStore/Database.hpp"
+#include "include/global/Const.hpp"
 
 EditChain::EditChain(QWidget *parent) : QWidget(parent), ui(new Ui::EditChain) {
     ui->setupUi(this);
@@ -51,7 +52,7 @@ void EditChain::AddProfileToListIfExist(int profileId) {
     auto _ent = Configs::profileManager->GetProfile(profileId);
     if (_ent != nullptr && _ent->type != "chain" && _ent->type != "extracore") {
         auto wI = new QListWidgetItem();
-        wI->setData(114514, profileId);
+        wI->setData(Configs::PROXY_ITEM_ID_ROLE, profileId);
         auto w = new ProxyItem(this, _ent, wI);
         ui->listWidget->addItem(wI);
         ui->listWidget->setItemWidget(wI, w);

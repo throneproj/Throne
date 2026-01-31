@@ -227,12 +227,13 @@ namespace Configs {
             ent->_remove("bean");
         }
 
-        if (!QString2QJsonObject(QString(fileContent.toStdString().c_str())).contains("outbound"))
-        {
-            migrateBeanToOutbound(ent);
-            ent->Save();
+        if (ent) {
+            if (!QString2QJsonObject(fileContent).contains("outbound")) {
+                migrateBeanToOutbound(ent);
+                ent->Save();
+            }
+            ent->_bean = nullptr;
         }
-        ent->_bean = nullptr;
         return ent;
     }
 

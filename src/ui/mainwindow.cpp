@@ -19,6 +19,7 @@
 #include "3rdparty/QrDecoder.h"
 #include "include/configs/generate.h"
 #include "include/ui/group/dialog_edit_group.h"
+#include "include/global/Const.hpp"
 
 #ifdef Q_OS_WIN
 #include "3rdparty/WinCommander.hpp"
@@ -1627,7 +1628,7 @@ void MainWindow::refresh_table_item(const int row, const std::shared_ptr<Configs
 
     auto isRunning = profile->id == Configs::dataStore->started_id && !stopping;
     auto f0 = std::make_unique<QTableWidgetItem>();
-    f0->setData(114514, profile->id);
+    f0->setData(Configs::PROXY_ITEM_ID_ROLE, profile->id);
 
     // Check state
     auto check = f0->clone();
@@ -1672,7 +1673,7 @@ void MainWindow::refresh_table_item(const int row, const std::shared_ptr<Configs
 // table菜单相关
 
 void MainWindow::on_proxyListTable_itemDoubleClicked(QTableWidgetItem *item) {
-    auto id = item->data(114514).toInt();
+    auto id = item->data(Configs::PROXY_ITEM_ID_ROLE).toInt();
     if (select_mode) {
         emit profile_selected(id);
         select_mode = false;
@@ -2176,7 +2177,7 @@ QList<std::shared_ptr<Configs::ProxyEntity>> MainWindow::get_now_selected_list()
     auto items = ui->proxyListTable->selectedItems();
     QList<std::shared_ptr<Configs::ProxyEntity>> list;
     for (auto item: items) {
-        auto id = item->data(114514).toInt();
+        auto id = item->data(Configs::PROXY_ITEM_ID_ROLE).toInt();
         auto ent = Configs::profileManager->GetProfile(id);
         if (ent != nullptr && !list.contains(ent)) list += ent;
     }

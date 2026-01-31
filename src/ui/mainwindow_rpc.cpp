@@ -51,6 +51,8 @@ void MainWindow::runURLTest(const QString& config, const QString& xrayConfig, bo
 
     auto done = new QMutex;
     done->lock();
+    // Lambda захватывает [=,this] и done по значению. done управляется worker-потоком:
+    // главный поток разблокирует done после Test(), worker проверяет try_lock() и завершается.
     runOnNewThread([=,this]
     {
         bool ok;
@@ -105,7 +107,9 @@ void MainWindow::runURLTest(const QString& config, const QString& xrayConfig, bo
     auto result = defaultClient->Test(&rpcOK, req);
     done->unlock();
     //
-    if (!rpcOK || result.results.empty()) return;
+    if (!rpcOK || result.results.empty()) {
+        return;
+    }
 
     for (const auto &res: result.results) {
         if (!tag2entID.empty()) {
@@ -371,6 +375,8 @@ void MainWindow::runSpeedTest(const QString& config, const QString& xrayConfig, 
     // loop query result
     auto doneMu = new QMutex;
     doneMu->lock();
+    // Lambda захватывает [=,this] и doneMu по значению. doneMu управляется worker-потоком:
+    // главный поток разблокирует doneMu после SpeedTest(), worker проверяет try_lock() и завершается.
     runOnNewThread([=,this]
     {
         QDateTime lastProxyListUpdate = QDateTime::currentDateTime();
@@ -400,7 +406,9 @@ void MainWindow::runSpeedTest(const QString& config, const QString& xrayConfig, 
     auto result = defaultClient->SpeedTest(&rpcOK, req);
     doneMu->unlock();
     //
-    if (!rpcOK || result.results.empty()) return;
+    if (!rpcOK || result.results.empty()) {
+        return;
+    }
 
     for (const auto &res: result.results) {
         if (testCurrent) entID = running ? running->id : -1;

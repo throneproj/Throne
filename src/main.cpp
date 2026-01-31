@@ -230,7 +230,7 @@ int main(int argc, char* argv[]) {
     loadTranslate(locale);
 
     // Check if another instance is running
-    QByteArray hashBytes = QCryptographicHash::hash(wd.absolutePath().toUtf8(), QCryptographicHash::Md5).toBase64(QByteArray::OmitTrailingEquals);
+    QByteArray hashBytes = QCryptographicHash::hash(wd.absolutePath().toUtf8(), QCryptographicHash::Sha256).toBase64(QByteArray::OmitTrailingEquals);
     hashBytes.replace('+', '0').replace('/', '1');
     auto serverName = LOCAL_SERVER_PREFIX + QString::fromUtf8(hashBytes);
     qDebug() << "server name: " << serverName;
@@ -245,7 +245,7 @@ int main(int argc, char* argv[]) {
 
     // QLocalServer
     QLocalServer server(qApp);
-    server.setSocketOptions(QLocalServer::WorldAccessOption);
+    server.setSocketOptions(QLocalServer::UserAccessOption);
     if (!server.listen(serverName)) {
         qWarning() << "Failed to start QLocalServer! Error:" << server.errorString();
         return 1;

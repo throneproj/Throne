@@ -59,4 +59,7 @@ namespace Configs {
     namespace Xray {
         inline QStringList XrayLogLevels = {"debug", "info", "warning", "error", "none"};
     }
+
+    // Role для хранения ID профиля в QListWidgetItem/QTableWidgetItem
+    constexpr int PROXY_ITEM_ID_ROLE = 114514;
 } // namespace Configs

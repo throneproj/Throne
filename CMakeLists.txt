@@ -223,8 +223,6 @@ set(PROJECT_SOURCES
 
         src/sys/macos/MacOS.cpp
 
-        src/sys/AutoRun.cpp
-        src/sys/Process.cpp
         include/ui/mainwindow_interface.h
         include/stats/connections/connectionLister.hpp
         src/stats/connectionLister/connectionLister.cpp
@@ -276,21 +274,6 @@ set(PROJECT_SOURCES
         include/configs/outbounds/custom.h
         include/configs/outbounds/chain.h
         include/configs/outbounds/extracore.h
-        include/ui/profile/edit_socks.h
-        src/ui/profile/edit_socks.cpp
-        include/ui/profile/edit_socks.ui
-        include/ui/profile/edit_http.h
-        src/ui/profile/edit_http.cpp
-        include/ui/profile/edit_http.ui
-        include/ui/profile/edit_trojan.h
-        src/ui/profile/edit_trojan.cpp
-        include/ui/profile/edit_trojan.ui
-        include/ui/profile/edit_hysteria.h
-        src/ui/profile/edit_hysteria.cpp
-        include/ui/profile/edit_hysteria.ui
-        include/ui/profile/edit_tuic.h
-        src/ui/profile/edit_tuic.cpp
-        include/ui/profile/edit_tuic.ui
         include/ui/profile/edit_advanced.h
         src/ui/profile/edit_advanced.cpp
         include/ui/profile/edit_advanced.ui

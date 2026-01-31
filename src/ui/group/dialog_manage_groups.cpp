@@ -5,6 +5,7 @@
 #include "include/global/GuiUtils.hpp"
 #include "include/ui/group/GroupItem.h"
 #include "include/ui/group/dialog_edit_group.h"
+#include "include/global/Const.hpp"
 
 #include <QInputDialog>
 #include <QListWidgetItem>
@@ -15,7 +16,7 @@
     if (__ent != nullptr) {                              \
         auto wI = new QListWidgetItem();                 \
         auto w = new GroupItem(this, __ent, wI);         \
-        wI->setData(114514, _id);                        \
+        wI->setData(Configs::PROXY_ITEM_ID_ROLE, _id);                        \
         ui->listWidget->addItem(wI);                     \
         ui->listWidget->setItemWidget(wI, w);            \
     }
