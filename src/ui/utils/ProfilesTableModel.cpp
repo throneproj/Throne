@@ -4,8 +4,10 @@
 #include "include/configs/common/Outbound.h"
 #include "include/stats/traffic/TrafficData.hpp"
 #include <QApplication>
+#include <QMimeData>
 #include <QPalette>
 
+#include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
 
 ProfilesTableModel::ProfilesTableModel(QObject *parent)
@@ -24,10 +26,31 @@ int ProfilesTableModel::columnCount(const QModelIndex &parent) const {
 Qt::ItemFlags ProfilesTableModel::flags(const QModelIndex &index) const {
     Qt::ItemFlags defaultFlags = QAbstractTableModel::flags(index);
     if (index.isValid()) {
-        return Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | defaultFlags;
+        return Qt::ItemIsDragEnabled | defaultFlags;
     }
-    // Allow dropping on empty space (to move to the end)
     return Qt::ItemIsDropEnabled | defaultFlags;
+}
+
+Qt::DropActions ProfilesTableModel::supportedDropActions() const {
+    return Qt::MoveAction;
+}
+
+QStringList ProfilesTableModel::mimeTypes() const {
+    return {"application/profile-row-number"};
+}
+
+QMimeData* ProfilesTableModel::mimeData(const QModelIndexList &indexes) const {
+    auto *mimeData = new QMimeData;
+    QByteArray encodedData;
+
+    QDataStream stream(&encodedData, QIODevice::WriteOnly);
+
+    if (!indexes.isEmpty()) {
+        stream << indexes.at(0).row();
+    }
+
+    mimeData->setData("application/profile-row-number", encodedData);
+    return mimeData;
 }
 
 void ProfilesTableModel::ensureCached(int profileId) const {
@@ -80,7 +103,7 @@ void ProfilesTableModel::evictOne() const {
 QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
     if (!index.isValid() || index.row() < 0 || index.row() >= m_profileIds.size()
         || index.column() < 0 || index.column() >= 5) {
-        return QVariant();
+        return {};
     }
     const int profileId = m_profileIds[index.row()];
     if (role == ProfileIdRole) {
@@ -88,7 +111,7 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
     }
     ensureCached(profileId);
     auto it = m_cache.constFind(profileId);
-    if (it == m_cache.constEnd()) return QVariant();
+    if (it == m_cache.constEnd()) return {};
     const CachedRow &row = it.value();
 
     if (role == Qt::DisplayRole) {
@@ -98,7 +121,7 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
         case 2: return row.name;
         case 3: return row.testResult;
         case 4: return row.traffic;
-        default: return QVariant();
+        default: return {};
         }
     }
     if (role == Qt::ForegroundRole) {
@@ -108,13 +131,13 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
         if (row.foreground.isValid()) {
             return row.foreground;
         }
-        return QVariant();
+        return {};
     }
-    return QVariant();
+    return {};
 }
 
 QVariant ProfilesTableModel::headerData(int section, Qt::Orientation orientation, int role) const {
-    if (role != Qt::DisplayRole) return QVariant();
+    if (role != Qt::DisplayRole) return {};
     if (orientation == Qt::Horizontal) {
         switch (section) {
         case 0: return tr("Type");
@@ -122,15 +145,20 @@ QVariant ProfilesTableModel::headerData(int section, Qt::Orientation orientation
         case 2: return tr("Name");
         case 3: return tr("Test Result");
         case 4: return tr("Traffic");
-        default: return QVariant();
+        default: return {};
         }
     }
-    return QVariant();
+    return {};
 }
 
 void ProfilesTableModel::setProfileIds(const QList<int> &ids) {
     beginResetModel();
     m_profileIds = ids;
+    id2row.clear();
+    int idx=0;
+    for (const auto &id : ids) {
+        id2row.insert(id, idx++);
+    }
     m_cache.clear();
     m_lruOrder.clear();
     endResetModel();
@@ -142,15 +170,22 @@ int ProfilesTableModel::profileIdAt(int row) const {
 }
 
 void ProfilesTableModel::refreshProfileId(int profileId) {
-    for (int r = 0; r < m_profileIds.size(); ++r) {
-        if (m_profileIds[r] == profileId) {
-            m_cache.remove(profileId);
-            m_lruOrder.removeAll(profileId);
-            QModelIndex top = index(r, 0);
-            QModelIndex bottom = index(r, columnCount() - 1);
-            emit dataChanged(top, bottom);
-            return;
-        }
+    if (!id2row.contains(profileId)) return;
+    auto r = id2row.value(profileId);
+    m_cache.remove(profileId);
+    m_lruOrder.removeAll(profileId);
+    QModelIndex top = index(r, 0);
+    QModelIndex bottom = index(r, columnCount() - 1);
+    emit dataChanged(top, bottom);
+}
+
+void ProfilesTableModel::emplaceProfiles(int row1, int row2) {
+    if (m_profileIds.size() <= row1 || m_profileIds.size() <= row2) return;
+    m_profileIds.insert(row2+1, m_profileIds[row1]);
+    if (row1 < row2) m_profileIds.remove(row1);
+    else m_profileIds.remove(row1+1);
+    for (int i = std::max(std::min(row1, row2), 0); i <= std::max(row1, row2); ++i) {
+        refreshProfileId(m_profileIds[i]);
     }
 }
 
@@ -163,7 +198,7 @@ void ProfilesTableModel::setCacheSize(int size) {
 }
 
 QString ProfilesTableModel::rowLabel(int row) const {
-    if (row < 0 || row >= m_profileIds.size()) return QString();
+    if (row < 0 || row >= m_profileIds.size()) return {};
     int id = m_profileIds[row];
     if (Configs::dataManager->settingsRepo->started_id == id) {
         return QStringLiteral("✓");

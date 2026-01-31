@@ -292,10 +292,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->profilesTableView->setModel(profilesTableModel);
     ui->profilesTableView->rowsSwapped = [=,this](int row1, int row2)
     {
+        if (!searchString.isEmpty()) return;
         if (row1 == row2) return;
         auto group = Configs::dataManager->groupsRepo->CurrentGroup();
         group->EmplaceProfile(row1, row2);
-        refresh_proxy_list();
+        profilesTableModel->emplaceProfiles(row1, row2);
         Configs::dataManager->groupsRepo->Save(group);
     };
     connect(ui->profilesTableView->horizontalHeader(), &QHeaderView::sectionClicked, this, [=, this](int logicalIndex) {
@@ -343,6 +344,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         group->column_width[logicalIndex] = newSize;
         Configs::dataManager->groupsRepo->Save(Configs::dataManager->groupsRepo->CurrentGroup());
     });
+    ui->profilesTableView->verticalHeader()->setStretchLastSection(false);
     ui->profilesTableView->verticalHeader()->setDefaultSectionSize(24);
     ui->profilesTableView->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     ui->profilesTableView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
@@ -1564,12 +1566,6 @@ void MainWindow::refresh_proxy_list_impl_refresh_data(const int &id, bool stoppi
         for (const auto &p : profiles)
             ids.append(p->id);
         profilesTableModel->setProfileIds(ids);
-
-        auto *vHeader = ui->profilesTableView->verticalHeader();
-        int count = profilesTableModel->rowCount();
-        for (int i = 0; i < count; ++i) {
-            vHeader->setSectionResizeMode(i, (i == count - 1) ? QHeaderView::Stretch : QHeaderView::Fixed);
-        }
     }
 }
 

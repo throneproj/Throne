@@ -1,10 +1,9 @@
 #include "include/ui/utils/ProfilesTableView.h"
 #include "include/ui/utils/ProfilesTableVerticalHeader.h"
 #include "include/ui/utils/ProfilesTableModel.h"
-#include <QDragEnterEvent>
 #include <QDragMoveEvent>
-#include <QDropEvent>
 #include <QHeaderView>
+#include <QMimeData>
 
 ProfilesTableView::ProfilesTableView(QWidget *parent)
     : QTableView(parent) {
@@ -27,3 +26,71 @@ void ProfilesTableView::setModel(QAbstractItemModel *model) {
         m_verticalHeader->setProfilesModel(nullptr);
     }
 }
+
+void ProfilesTableView::dragEnterEvent(QDragEnterEvent *event) {
+    if (event->mimeData()->hasFormat("application/profile-row-number")) {
+
+        event->accept();
+        QTableView::dragEnterEvent(event);
+    } else {
+        event->ignore();
+    }
+}
+
+void ProfilesTableView::dragMoveEvent(QDragMoveEvent *event) {
+    if (event->mimeData()->hasFormat("application/profile-row-number")) {
+        QPoint pos = event->position().toPoint();
+        QModelIndex targetIndex = indexAt(pos);
+        if (!targetIndex.isValid()) {
+            QModelIndex lastRowIndex = model()->index(model()->rowCount() - 1, 0);
+            QRect rect = visualRect(lastRowIndex);
+            if (event->pos().y() > rect.bottom()) {
+                QPoint fakePos(rect.center().x(), rect.bottom() - 5);
+
+                QDragMoveEvent fakeEvent(
+                    fakePos,
+                    event->possibleActions(),
+                    event->mimeData(),
+                    event->mouseButtons(),
+                    event->keyboardModifiers()
+                );
+                QTableView::dragMoveEvent(&fakeEvent);
+                event->accept();
+                return;
+            }
+        }
+        event->accept();
+        QTableView::dragMoveEvent(event);
+    } else {
+        event->ignore();
+    }
+}
+
+void ProfilesTableView::dropEvent(QDropEvent *event) {
+        if (event->source() == this && event->mimeData()->hasFormat("application/profile-row-number")) {
+
+            QByteArray encodedData = event->mimeData()->data("application/profile-row-number");
+            QDataStream stream(&encodedData, QIODevice::ReadOnly);
+            int rowNum;
+            stream >> rowNum;
+
+            QPoint pos = event->position().toPoint();
+            QModelIndex targetIndex = indexAt(pos);
+
+            int newRow;
+            if (!targetIndex.isValid()) {
+                newRow = model()->rowCount() - 1;
+            } else {
+                DropIndicatorPosition indicatorPos = dropIndicatorPosition();
+                newRow = targetIndex.row();
+                if (indicatorPos == AboveItem) {
+                    newRow--;
+                }
+            }
+            qDebug() << "new row is"<<newRow;
+            rowsSwapped(rowNum, newRow);
+            event->accept();
+        } else {
+            QTableView::dropEvent(event);
+        }
+    }
