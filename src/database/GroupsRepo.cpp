@@ -162,7 +162,7 @@ namespace Configs {
         json["name"] = QString::fromStdString(query->getColumn(3).getText());
         json["url"] = QString::fromStdString(query->getColumn(4).getText());
         json["info"] = QString::fromStdString(query->getColumn(5).getText());
-        json["sub_last_update"] = query->getColumn(6).getInt64();
+        json["sub_last_update"] = static_cast<qint64>(query->getColumn(6).getInt64());
         json["front_proxy_id"] = query->getColumn(7).getInt();
         json["landing_proxy_id"] = query->getColumn(8).getInt();
 
