@@ -21,7 +21,6 @@ namespace Configs
         int landing_proxy_id = -1;
 
         // list ui
-        bool manually_column_width = false;
         QList<int> column_width;
         QList<int> profiles;
 

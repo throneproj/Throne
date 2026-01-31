@@ -336,7 +336,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     });
     connect(ui->profilesTableView->horizontalHeader(), &QHeaderView::sectionResized, this, [=, this](int logicalIndex, int oldSize, int newSize) {
         auto group = Configs::dataManager->groupsRepo->CurrentGroup();
-        if (Configs::dataManager->settingsRepo->refreshing_group || group == nullptr || !group->manually_column_width) return;
+        if (Configs::dataManager->settingsRepo->refreshing_group || group == nullptr) return;
         group->column_width.clear();
         for (int i = 0; i < ui->profilesTableView->horizontalHeader()->count(); i++) {
             group->column_width.push_back(ui->profilesTableView->horizontalHeader()->sectionSize(i));
@@ -760,24 +760,29 @@ void MainWindow::show_group(int gid) {
     ui->tabWidget->widget(groupId2TabIndex(gid))->layout()->addWidget(ui->profilesTableView);
 
     auto *hHeader = ui->profilesTableView->horizontalHeader();
-    hHeader->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    hHeader->setSectionResizeMode(1, QHeaderView::Stretch);
-    hHeader->setSectionResizeMode(2, QHeaderView::Stretch);
-    hHeader->setSectionResizeMode(3, QHeaderView::ResizeToContents);
-    hHeader->setSectionResizeMode(4, QHeaderView::ResizeToContents);
-    if (group->manually_column_width) {
-        for (int i = 0; i <= 4; i++) {
-            hHeader->setSectionResizeMode(i, QHeaderView::Interactive);
-            auto size = group->column_width.value(i);
-            if (size <= 0) {
-                size = hHeader->sectionSize(i);
-            }
-            hHeader->resizeSection(i, size);
-        }
+    if (group->column_width.isEmpty() || group->column_width[0] <= 0) {
+        group->column_width.clear();
+        for (int i=0;i<=4;i++) group->column_width.push_back(0);
+        hHeader->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        hHeader->setSectionResizeMode(1, QHeaderView::Stretch);
+        hHeader->setSectionResizeMode(2, QHeaderView::Stretch);
+        hHeader->setSectionResizeMode(3, QHeaderView::ResizeToContents);
+        hHeader->setSectionResizeMode(4, QHeaderView::ResizeToContents);
     }
 
     // show proxies
     refresh_proxy_list_impl(-1);
+
+    for (int i = 0; i <= 4; i++) {
+        hHeader->setSectionResizeMode(i, QHeaderView::Interactive);
+        auto size = group->column_width.value(i);
+        if (size <= 0) {
+            size = hHeader->sectionSize(i);
+        }
+        group->column_width[i] = size;
+        hHeader->resizeSection(i, size);
+    }
+    Configs::dataManager->groupsRepo->Save(group);
 
     Configs::dataManager->settingsRepo->refreshing_group = false;
 }
@@ -1539,12 +1544,10 @@ void MainWindow::refresh_proxy_list(const int &id) {
 }
 
 void MainWindow::refresh_proxy_list_impl(const int &id) {
-    if (id < 0) {
-        if (auto currentGroup = Configs::dataManager->groupsRepo->CurrentGroup(); currentGroup == nullptr)
-        {
-            MW_show_log("Could not find current group!");
-            return;
-        }
+    if (auto currentGroup = Configs::dataManager->groupsRepo->CurrentGroup(); currentGroup == nullptr)
+    {
+        MW_show_log("Could not find current group!");
+        return;
     }
     // refresh data
     refresh_proxy_list_impl_refresh_data(id);

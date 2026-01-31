@@ -22,12 +22,10 @@ DialogEditGroup::DialogEditGroup(const std::shared_ptr<Configs::Group> &ent, QWi
     });
 
     ui->name->setText(ent->name);
-    ui->archive->setChecked(ent->archive);
     ui->skip_auto_update->setChecked(ent->skip_auto_update);
     ui->url->setText(ent->url);
     ui->type->setCurrentIndex(ent->url.isEmpty() ? 0 : 1);
     ui->type->currentIndexChanged(ui->type->currentIndex());
-    ui->manually_column_width->setChecked(ent->manually_column_width);
     ui->cat_share->setVisible(false);
     if (Configs::dataManager->profilesRepo->GetProfile(ent->front_proxy_id) == nullptr) {
         ent->front_proxy_id = -1;
@@ -113,9 +111,7 @@ void DialogEditGroup::accept() {
     }
     ent->name = ui->name->text();
     ent->url = ui->url->text();
-    ent->archive = ui->archive->isChecked();
     ent->skip_auto_update = ui->skip_auto_update->isChecked();
-    ent->manually_column_width = ui->manually_column_width->isChecked();
     ent->front_proxy_id = CACHE.front_proxy;
     ent->landing_proxy_id = LANDING.landing_proxy;
     QDialog::accept();

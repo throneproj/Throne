@@ -26,7 +26,6 @@ namespace Configs {
                 sub_last_update INTEGER NOT NULL DEFAULT 0,
                 front_proxy_id INTEGER NOT NULL DEFAULT -1,
                 landing_proxy_id INTEGER NOT NULL DEFAULT -1,
-                manually_column_width INTEGER NOT NULL DEFAULT 0,
                 column_width_json TEXT,
                 profiles_json TEXT NOT NULL DEFAULT '[]',
                 created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
@@ -55,7 +54,6 @@ namespace Configs {
         json["sub_last_update"] = static_cast<qint64>(group->sub_last_update);
         json["front_proxy_id"] = group->front_proxy_id;
         json["landing_proxy_id"] = group->landing_proxy_id;
-        json["manually_column_width"] = group->manually_column_width;
         json["column_width"] = QListInt2QJsonArray(group->column_width);
         json["profiles"] = QListInt2QJsonArray(group->profiles);
         
@@ -74,7 +72,6 @@ namespace Configs {
         group->sub_last_update = json["sub_last_update"].toVariant().toLongLong();
         group->front_proxy_id = json["front_proxy_id"].toInt();
         group->landing_proxy_id = json["landing_proxy_id"].toInt();
-        group->manually_column_width = json["manually_column_width"].toBool();
         group->column_width = QJsonArray2QListInt(json["column_width"].toArray());
         group->profiles = QJsonArray2QListInt(json["profiles"].toArray());
         
@@ -102,7 +99,7 @@ namespace Configs {
                 UPDATE groups 
                 SET archive = ?, skip_auto_update = ?, name = ?, url = ?, info = ?,
                     sub_last_update = ?, front_proxy_id = ?, landing_proxy_id = ?,
-                    manually_column_width = ?, column_width_json = ?, profiles_json = ?,
+                    column_width_json = ?, profiles_json = ?,
                     updated_at = strftime('%s', 'now')
                 WHERE id = ?
             )",
@@ -114,7 +111,6 @@ namespace Configs {
                 static_cast<long long>(group->sub_last_update),
                 group->front_proxy_id,
                 group->landing_proxy_id,
-                group->manually_column_width ? 1 : 0,
                 columnWidthJson.toStdString(),
                 profilesJson.toStdString(),
                 id
@@ -124,9 +120,9 @@ namespace Configs {
             db.exec(R"(
                 INSERT INTO groups 
                 (id, archive, skip_auto_update, name, url, info, sub_last_update,
-                 front_proxy_id, landing_proxy_id, manually_column_width, 
+                 front_proxy_id, landing_proxy_id,
                  column_width_json, profiles_json)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             )",
                 id,
                 group->archive ? 1 : 0,
@@ -137,7 +133,6 @@ namespace Configs {
                 static_cast<long long>(group->sub_last_update),
                 group->front_proxy_id,
                 group->landing_proxy_id,
-                group->manually_column_width ? 1 : 0,
                 columnWidthJson.toStdString(),
                 profilesJson.toStdString()
             );
@@ -147,7 +142,7 @@ namespace Configs {
     std::shared_ptr<Group> GroupsRepo::loadFromDatabase(int id) const {
         auto query = db.query(R"(
             SELECT id, archive, skip_auto_update, name, url, info, sub_last_update,
-                   front_proxy_id, landing_proxy_id, manually_column_width,
+                   front_proxy_id, landing_proxy_id,
                    column_width_json, profiles_json
             FROM groups WHERE id = ?
         )", id);
@@ -165,10 +160,9 @@ namespace Configs {
         json["sub_last_update"] = query->getColumn(6).getInt64();
         json["front_proxy_id"] = query->getColumn(7).getInt();
         json["landing_proxy_id"] = query->getColumn(8).getInt();
-        json["manually_column_width"] = query->getColumn(9).getInt() != 0;
-        
+
         // Parse JSON arrays
-        QString columnWidthJsonStr = QString::fromStdString(query->getColumn(10).getText());
+        QString columnWidthJsonStr = QString::fromStdString(query->getColumn(9).getText());
         if (!columnWidthJsonStr.isEmpty()) {
             QJsonDocument columnWidthDoc = QJsonDocument::fromJson(columnWidthJsonStr.toUtf8());
             if (!columnWidthDoc.isNull() && columnWidthDoc.isArray()) {
@@ -176,7 +170,7 @@ namespace Configs {
             }
         }
         
-        QString profilesJsonStr = QString::fromStdString(query->getColumn(11).getText());
+        QString profilesJsonStr = QString::fromStdString(query->getColumn(10).getText());
         if (!profilesJsonStr.isEmpty()) {
             QJsonDocument profilesDoc = QJsonDocument::fromJson(profilesJsonStr.toUtf8());
             if (!profilesDoc.isNull() && profilesDoc.isArray()) {

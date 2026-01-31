@@ -82,6 +82,7 @@ namespace Configs
         {
             return false;
         }
+        column_width.clear();
         profiles.append(id);
         return true;
     }

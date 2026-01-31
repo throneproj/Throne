@@ -221,7 +221,7 @@ namespace Configs {
         }
     }
 
-    Database::ProfileInsertRow ProfilesRepo::profileToInsertRow(const Profile* profile, int id, int gid) const {
+    ProfileInsertRow ProfilesRepo::profileToInsertRow(const Profile* profile, int id, int gid) const {
         QString outboundJson;
         QString trafficJson;
         if (profile->outbound) {
@@ -234,7 +234,7 @@ namespace Configs {
             }
         }
         QString name = profile->outbound ? profile->outbound->name : QString();
-        Database::ProfileInsertRow row;
+        ProfileInsertRow row;
         row.id = id;
         row.type = profile->type.toStdString();
         row.name = name.toStdString();
@@ -374,7 +374,7 @@ namespace Configs {
             identityMap[id] = std::weak_ptr<Profile>(toAdd[i]);
         }
 
-        std::vector<Database::ProfileInsertRow> rows;
+        std::vector<ProfileInsertRow> rows;
         rows.reserve(n);
         for (int i = 0; i < n; ++i) {
             rows.push_back(profileToInsertRow(toAdd[i].get(), toAdd[i]->id, toAdd[i]->gid));
@@ -399,6 +399,26 @@ namespace Configs {
         if (!profile) return nullptr;
         identityMap[id] = std::weak_ptr<Profile>(profile);
         return profile;
+    }
+
+    std::map<int, std::shared_ptr<Profile>> ProfilesRepo::loadProfilesByIdsChunk(const QList<int>& chunkIds) const {
+        std::map<int, std::shared_ptr<Profile>> result;
+        if (chunkIds.isEmpty()) return result;
+        QString idList;
+        for (int i = 0; i < chunkIds.size(); ++i) {
+            if (i > 0) idList += ",";
+            idList += QString::number(chunkIds[i]);
+        }
+        std::string sql = "SELECT id, type, name, gid, latency, dl_speed, ul_speed, test_country, "
+                         "full_test_report, outbound_json, traffic_json FROM profiles WHERE id IN (" +
+                         idList.toStdString() + ") ORDER BY id";
+        auto query = db.query(sql);
+        if (!query) return result;
+        while (query->executeStep()) {
+            auto profile = profileFromRow(*query);
+            result[profile->id] = std::move(profile);
+        }
+        return result;
     }
 
     QList<std::shared_ptr<Profile>> ProfilesRepo::GetProfileBatch(QList<int> ids) {
@@ -427,26 +447,12 @@ namespace Configs {
             return profiles;
         }
 
-        QString idList;
-        for (int i = 0; i < missingIds.size(); ++i) {
-            if (i > 0) idList += ",";
-            idList += QString::number(missingIds[i]);
-        }
-        std::string sql = "SELECT id, type, name, gid, latency, dl_speed, ul_speed, test_country, "
-                         "full_test_report, outbound_json, traffic_json FROM profiles WHERE id IN (" +
-                         idList.toStdString() + ") ORDER BY id";
-        auto query = db.query(sql);
-        if (!query) {
-            MW_show_log("Failed to load profiles from database, db is corrupted");
-            for (int id : ids) {
-                auto it = byId.find(id);
-                if (it != byId.end()) profiles.push_back(it->second);
-            }
-            return profiles;
-        }
-        while (query->executeStep()) {
-            auto profile = profileFromRow(*query);
-            byId[profile->id] = profile;
+        for (int off = 0; off < missingIds.size(); off += Configs::BATCH_LIMIT) {
+            int end = std::min(off + Configs::BATCH_LIMIT, static_cast<int>(missingIds.size()));
+            QList<int> chunk;
+            for (int i = off; i < end; ++i) chunk.append(missingIds[i]);
+            std::map<int, std::shared_ptr<Profile>> loaded = loadProfilesByIdsChunk(chunk);
+            for (auto& p : loaded) byId[p.first] = std::move(p.second);
         }
         for (const auto& p : byId) {
             if (missingIds.contains(p.first)) identityMap[p.first] = std::weak_ptr<Profile>(p.second);

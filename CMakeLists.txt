@@ -304,6 +304,7 @@ set(PROJECT_SOURCES
         src/ui/profile/edit_xrayvless.cpp
         include/ui/profile/edit_xrayvless.ui
         include/database/Database.h
+        src/database/Database.cpp
         include/database/ProfilesRepo.h
         include/database/GroupsRepo.h
         include/database/RoutesRepo.h

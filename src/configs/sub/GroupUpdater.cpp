@@ -12,8 +12,6 @@
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
 
-
-
 namespace Subscription {
 
     GroupUpdater *groupUpdater = new GroupUpdater;
@@ -444,13 +442,13 @@ namespace Subscription {
             MW_show_log("<<<<<<<< " + QObject::tr("Subscription request fininshed: %1").arg(groupName));
         }
 
-        QList<std::shared_ptr<Configs::Profile>> in;          // 更新前
-        QList<std::shared_ptr<Configs::Profile>> out_all;     // 更新前 + 更新后
-        QList<std::shared_ptr<Configs::Profile>> out;         // 更新后
-        QList<std::shared_ptr<Configs::Profile>> only_in;     // 只在更新前有的
-        QList<std::shared_ptr<Configs::Profile>> only_out;    // 只在更新后有的
-        QList<std::shared_ptr<Configs::Profile>> update_del;  // 更新前后都有的，需要删除的新配置
-        QList<std::shared_ptr<Configs::Profile>> update_keep; // 更新前后都有的，被保留的旧配置
+        QList<std::shared_ptr<Configs::Profile>> in;
+        QList<std::shared_ptr<Configs::Profile>> out_all;
+        QList<std::shared_ptr<Configs::Profile>> out;
+        QList<std::shared_ptr<Configs::Profile>> only_in;
+        QList<std::shared_ptr<Configs::Profile>> only_out;
+        QList<std::shared_ptr<Configs::Profile>> update_del;
+        QList<std::shared_ptr<Configs::Profile>> update_keep;
 
         if (group != nullptr) {
             in = Configs::dataManager->profilesRepo->GetProfileBatch(group->Profiles());

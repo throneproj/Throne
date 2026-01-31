@@ -27,13 +27,16 @@ namespace Configs {
         void saveToDatabase(const Profile* profile, int id) const;
 
         // Build one row for batch insert (same columns as saveToDatabase)
-        Database::ProfileInsertRow profileToInsertRow(const Profile* profile, int id, int gid) const;
+        ProfileInsertRow profileToInsertRow(const Profile* profile, int id, int gid) const;
 
         // Load profile from database
         std::shared_ptr<Profile> loadFromDatabase(int id) const;
         
         // Build profile from current row of a SELECT (same columns as loadFromDatabase)
         std::shared_ptr<Profile> profileFromRow(SQLite::Statement& stmt) const;
+
+        // Load profiles for given ids (one SELECT IN chunk). Does not touch identity map.
+        std::map<int, std::shared_ptr<Profile>> loadProfilesByIdsChunk(const QList<int>& ids) const;
         
         // Create tables if they don't exist
         void createTables() const;

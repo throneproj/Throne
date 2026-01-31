@@ -357,6 +357,33 @@ namespace Configs {
         return routeProfileFromJson(json);
     }
 
+    void RoutesRepo::loadRulesForProfileIdsChunk(const QList<int>& profileIds, std::map<int, std::shared_ptr<RouteProfile>>& byId) const {
+        if (profileIds.isEmpty()) return;
+        QString idList;
+        for (int i = 0; i < profileIds.size(); ++i) {
+            if (i > 0) idList += ",";
+            idList += QString::number(profileIds[i]);
+        }
+        std::string sql =
+            "SELECT route_profile_id, name, type, simple_action, ip_version, network, protocol, "
+            "inbound_json, domain_json, domain_suffix_json, domain_keyword_json, domain_regex_json, "
+            "source_ip_cidr_json, source_ip_is_private, ip_cidr_json, ip_is_private, "
+            "source_port_json, source_port_range_json, port_json, port_range_json, "
+            "process_name_json, process_path_json, process_path_regex_json, rule_set_json, "
+            "invert, outbound_id, action, reject_method, no_drop, "
+            "override_address, override_port, sniffers_json, sniff_override_dest, strategy "
+            "FROM route_rules WHERE route_profile_id IN (" + idList.toStdString() + ") ORDER BY route_profile_id, rule_order";
+        auto rulesQuery = db.query(sql);
+        if (!rulesQuery) return;
+        while (rulesQuery->executeStep()) {
+            int profileId = rulesQuery->getColumn(0).getInt();
+            auto it = byId.find(profileId);
+            if (it != byId.end()) {
+                it->second->Rules.append(routeRuleFromJson(ruleJsonFromRow(*rulesQuery, 1)));
+            }
+        }
+    }
+
     std::shared_ptr<RouteProfile> RoutesRepo::loadFromDatabase(int id) const {
         auto profileQuery = db.query(R"(
             SELECT id, name, default_outbound_id
@@ -491,30 +518,12 @@ namespace Configs {
         }
 
         if (byId.empty()) return routeProfiles;
-        
-        // Build IN list for rules
-        QString idList;
-        for (int i = 0; i < idsInOrder.size(); ++i) {
-            if (i > 0) idList += ",";
-            idList += QString::number(idsInOrder[i]);
-        }
-        std::string rulesSql = "SELECT route_profile_id, name, type, simple_action, ip_version, network, protocol,"
-                   "inbound_json, domain_json, domain_suffix_json, domain_keyword_json, domain_regex_json,"
-                   "source_ip_cidr_json, source_ip_is_private, ip_cidr_json, ip_is_private,"
-                   "source_port_json, source_port_range_json, port_json, port_range_json,"
-                   "process_name_json, process_path_json, process_path_regex_json, rule_set_json,"
-                   "invert, outbound_id, action, reject_method, no_drop,"
-                   "override_address, override_port, sniffers_json, sniff_override_dest, strategy "
-                   "FROM route_rules WHERE route_profile_id IN (" + idList.toStdString() + ") ORDER BY route_profile_id, rule_order";
-        auto rulesQuery = db.query(rulesSql);
-        if (rulesQuery) {
-            while (rulesQuery->executeStep()) {
-                int profileId = rulesQuery->getColumn(0).getInt();
-                auto it = byId.find(profileId);
-                if (it != byId.end()) {
-                    it->second->Rules.append(routeRuleFromJson(ruleJsonFromRow(*rulesQuery, 1)));
-                }
-            }
+
+        for (int off = 0; off < idsInOrder.size(); off += Configs::BATCH_LIMIT) {
+            int end = std::min(off + Configs::BATCH_LIMIT, static_cast<int>(idsInOrder.size()));
+            QList<int> chunk;
+            for (int i = off; i < end; ++i) chunk.append(idsInOrder[i]);
+            loadRulesForProfileIdsChunk(chunk, byId);
         }
         
         for (int id : idsInOrder) {

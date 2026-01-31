@@ -43,6 +43,9 @@ namespace Configs {
         
         // Build rule JSON from current row; rule columns start at baseCol (0 = name at col 0, 1 = name at col 1)
         QJsonObject ruleJsonFromRow(SQLite::Statement& stmt, int baseCol) const;
+
+        // Load rules for given profile ids (one SELECT IN chunk); appends to byId[profileId]->Rules.
+        void loadRulesForProfileIdsChunk(const QList<int>& profileIds, std::map<int, std::shared_ptr<RouteProfile>>& byId) const;
         
         // Create tables if they don't exist
         void createTables() const;
