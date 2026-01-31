@@ -14,15 +14,6 @@ namespace Configs
         QStringList headers;
         std::shared_ptr<TLS> tls = std::make_shared<TLS>();
 
-        http() : outbound()
-        {
-            _add(new configItem("username", &username, string));
-            _add(new configItem("password", &password, string));
-            _add(new configItem("path", &path, string));
-            _add(new configItem("headers", &headers, stringList));
-            _add(new configItem("tls", dynamic_cast<JsonStore *>(tls.get()), jsonStore));
-        }
-
         bool HasTLS() override {
             return true;
         }

@@ -27,6 +27,18 @@ void ProfilesTableView::setModel(QAbstractItemModel *model) {
     }
 }
 
+int ProfilesTableView::firstVisibleRow() {
+    QRect rect = this->viewport()->rect();
+
+    QModelIndex topIndex = indexAt(rect.topLeft());
+
+    if (!topIndex.isValid()) return 0;
+
+    int startRow = topIndex.row();
+    return startRow;
+}
+
+
 void ProfilesTableView::dragEnterEvent(QDragEnterEvent *event) {
     if (event->mimeData()->hasFormat("application/profile-row-number")) {
 
@@ -67,29 +79,28 @@ void ProfilesTableView::dragMoveEvent(QDragMoveEvent *event) {
 }
 
 void ProfilesTableView::dropEvent(QDropEvent *event) {
-        if (event->source() == this && event->mimeData()->hasFormat("application/profile-row-number")) {
+    if (event->source() == this && event->mimeData()->hasFormat("application/profile-row-number")) {
+        QByteArray encodedData = event->mimeData()->data("application/profile-row-number");
+        QDataStream stream(&encodedData, QIODevice::ReadOnly);
+        int rowNum;
+        stream >> rowNum;
 
-            QByteArray encodedData = event->mimeData()->data("application/profile-row-number");
-            QDataStream stream(&encodedData, QIODevice::ReadOnly);
-            int rowNum;
-            stream >> rowNum;
+        QPoint pos = event->position().toPoint();
+        QModelIndex targetIndex = indexAt(pos);
 
-            QPoint pos = event->position().toPoint();
-            QModelIndex targetIndex = indexAt(pos);
-
-            int newRow;
-            if (!targetIndex.isValid()) {
-                newRow = model()->rowCount() - 1;
-            } else {
-                DropIndicatorPosition indicatorPos = dropIndicatorPosition();
-                newRow = targetIndex.row();
-                if (indicatorPos == AboveItem) {
-                    newRow--;
-                }
-            }
-            rowsSwapped(rowNum, newRow);
-            event->accept();
+        int newRow;
+        if (!targetIndex.isValid()) {
+            newRow = model()->rowCount() - 1;
         } else {
-            QTableView::dropEvent(event);
+            DropIndicatorPosition indicatorPos = dropIndicatorPosition();
+            newRow = targetIndex.row();
+            if (indicatorPos == AboveItem) {
+                newRow--;
+            }
         }
+        rowsSwapped(rowNum, newRow);
+        event->accept();
+    } else {
+        QTableView::dropEvent(event);
     }
+}

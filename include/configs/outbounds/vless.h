@@ -18,16 +18,6 @@ namespace Configs
         std::shared_ptr<Multiplex> multiplex = std::make_shared<Multiplex>();
         std::shared_ptr<Transport> transport = std::make_shared<Transport>();
 
-        vless() : outbound()
-        {
-            _add(new configItem("uuid", &uuid, string));
-            _add(new configItem("flow", &flow, string));
-            _add(new configItem("tls", dynamic_cast<JsonStore *>(tls.get()), jsonStore));
-            _add(new configItem("packet_encoding", &packet_encoding, string));
-            _add(new configItem("multiplex", dynamic_cast<JsonStore *>(multiplex.get()), jsonStore));
-            _add(new configItem("transport", dynamic_cast<JsonStore *>(transport.get()), jsonStore));
-        }
-
         bool HasTLS() override {
             return true;
         }

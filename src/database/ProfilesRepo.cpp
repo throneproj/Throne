@@ -60,10 +60,7 @@ namespace Configs {
         }
         
         if (profile->traffic_data) {
-            auto trafficJsonStore = dynamic_cast<JsonStore*>(profile->traffic_data.get());
-            if (trafficJsonStore) {
-                json["traffic"] = trafficJsonStore->ToJson();
-            }
+            json["traffic"] = profile->traffic_data->ExportToJson();
         }
         
         return json;
@@ -138,9 +135,7 @@ namespace Configs {
         }
         
         if (json.contains("traffic") && json["traffic"].isObject() && profile->traffic_data) {
-            if (auto trafficJsonStore = dynamic_cast<JsonStore*>(profile->traffic_data.get())) {
-                trafficJsonStore->FromJson(json["traffic"].toObject());
-            }
+            profile->traffic_data->ParseFromJson(json["traffic"].toObject());
         }
         
         profile->name = profile->outbound->name;
@@ -163,11 +158,8 @@ namespace Configs {
         }
         
         if (profile->traffic_data) {
-            auto trafficJsonStore = dynamic_cast<JsonStore*>(profile->traffic_data.get());
-            if (trafficJsonStore) {
-                QJsonDocument trafficDoc(trafficJsonStore->ToJson());
-                trafficJson = QString::fromUtf8(trafficDoc.toJson(QJsonDocument::Compact));
-            }
+            QJsonDocument trafficDoc(profile->traffic_data->ExportToJson());
+            trafficJson = QString::fromUtf8(trafficDoc.toJson(QJsonDocument::Compact));
         }
         
         // Sync name with outbound->name if outbound exists
@@ -228,10 +220,7 @@ namespace Configs {
             outboundJson = QString::fromUtf8(QJsonDocument(profile->outbound->ExportToJson()).toJson(QJsonDocument::Compact));
         }
         if (profile->traffic_data) {
-            auto trafficJsonStore = dynamic_cast<JsonStore*>(profile->traffic_data.get());
-            if (trafficJsonStore) {
-                trafficJson = QString::fromUtf8(QJsonDocument(trafficJsonStore->ToJson()).toJson(QJsonDocument::Compact));
-            }
+            trafficJson = QString::fromUtf8(QJsonDocument(profile->traffic_data->ExportToJson()).toJson(QJsonDocument::Compact));
         }
         QString name = profile->outbound ? profile->outbound->name : QString();
         ProfileInsertRow row;

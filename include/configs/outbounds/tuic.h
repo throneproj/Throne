@@ -20,17 +20,9 @@ namespace Configs
         QString heartbeat;
         std::shared_ptr<TLS> tls = std::make_shared<TLS>();
 
-        tuic() : outbound()
+        tuic()
         {
             tls->utls->supported = false;
-            _add(new configItem("uuid", &uuid, string));
-            _add(new configItem("password", &password, string));
-            _add(new configItem("congestion_control", &congestion_control, string));
-            _add(new configItem("udp_relay_mode", &udp_relay_mode, string));
-            _add(new configItem("udp_over_stream", &udp_over_stream, boolean));
-            _add(new configItem("zero_rtt_handshake", &zero_rtt_handshake, boolean));
-            _add(new configItem("heartbeat", &heartbeat, string));
-            _add(new configItem("tls", dynamic_cast<JsonStore *>(tls.get()), jsonStore));
         }
 
         bool HasTLS() override {

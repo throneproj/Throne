@@ -1,5 +1,6 @@
 #include "include/ui/mainwindow.h"
 
+#include <QAbstractItemView>
 #include "include/configs/sub/GroupUpdater.hpp"
 #include "include/sys/Process.hpp"
 #include "include/sys/AutoRun.hpp"
@@ -753,6 +754,9 @@ void MainWindow::show_group(int gid) {
     }
 
     if (Configs::dataManager->settingsRepo->current_group != gid) {
+        auto lastGroup = Configs::dataManager->groupsRepo->CurrentGroup();
+        lastGroup->scroll_last_profile = ui->profilesTableView->firstVisibleRow();
+        Configs::dataManager->groupsRepo->Save(lastGroup);
         Configs::dataManager->settingsRepo->current_group = gid;
         Configs::dataManager->settingsRepo->Save();
     }
@@ -783,6 +787,21 @@ void MainWindow::show_group(int gid) {
         hHeader->resizeSection(i, size);
     }
     Configs::dataManager->groupsRepo->Save(group);
+
+    if (group->scroll_last_profile >= 0) {
+        int rowCount = profilesTableModel->rowCount();
+        int targetRow = group->scroll_last_profile;
+        if (targetRow >= rowCount && rowCount > 0) targetRow = rowCount - 1;
+        if (targetRow >= 0) {
+            // TODO try to find a more stable way
+            QTimer::singleShot(0, ui->profilesTableView, [=, this]() {
+                QModelIndex idx = profilesTableModel->index(targetRow, 0);
+                if (idx.isValid()) {
+                    ui->profilesTableView->scrollTo(idx, QAbstractItemView::PositionAtTop);
+                }
+            });
+        }
+    }
 
     Configs::dataManager->settingsRepo->refreshing_group = false;
 }

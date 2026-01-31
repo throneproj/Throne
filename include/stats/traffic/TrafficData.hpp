@@ -1,9 +1,10 @@
 #pragma once
 
 #include "include/global/Configs.hpp"
+#include "include/configs/baseConfig.h"
 
 namespace Stats {
-    class TrafficData : public JsonStore {
+    class TrafficData : public Configs::baseConfig {
     public:
         int id = -1; // ent id
         std::string tag;
@@ -17,10 +18,11 @@ namespace Stats {
 
         long long last_update;
 
+        bool ParseFromJson(const QJsonObject& object) override;
+        QJsonObject ExportToJson() override;
+
         explicit TrafficData(std::string tag) {
             this->tag = std::move(tag);
-            _add(new configItem("dl", &downlink, itemType::integer64));
-            _add(new configItem("ul", &uplink, itemType::integer64));
         };
 
         void Reset() {

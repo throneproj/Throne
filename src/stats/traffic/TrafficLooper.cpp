@@ -120,4 +120,17 @@ namespace Stats {
         }
     }
 
+    bool TrafficData::ParseFromJson(const QJsonObject& object) {
+        if (object.isEmpty()) return false;
+        if (object.contains("dl")) downlink = object["dl"].toInt();
+        if (object.contains("up")) uplink = object["up"].toInt();
+        return true;
+    }
+    QJsonObject TrafficData::ExportToJson() {
+        QJsonObject obj;
+        obj["dl"] = downlink;
+        obj["up"] = uplink;
+        return obj;
+    }
+
 } // namespace Stats

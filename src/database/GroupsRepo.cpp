@@ -28,6 +28,7 @@ namespace Configs {
                 landing_proxy_id INTEGER NOT NULL DEFAULT -1,
                 column_width_json TEXT,
                 profiles_json TEXT NOT NULL DEFAULT '[]',
+                scroll_last_profile INTEGER NOT NULL DEFAULT -1,
                 created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
             )
@@ -56,6 +57,7 @@ namespace Configs {
         json["landing_proxy_id"] = group->landing_proxy_id;
         json["column_width"] = QListInt2QJsonArray(group->column_width);
         json["profiles"] = QListInt2QJsonArray(group->profiles);
+        json["scroll_last_profile"] = group->scroll_last_profile;
         
         return json;
     }
@@ -74,6 +76,7 @@ namespace Configs {
         group->landing_proxy_id = json["landing_proxy_id"].toInt();
         group->column_width = QJsonArray2QListInt(json["column_width"].toArray());
         group->profiles = QJsonArray2QListInt(json["profiles"].toArray());
+        group->scroll_last_profile = json["scroll_last_profile"].toInt(-1);
         
         return group;
     }
@@ -99,7 +102,7 @@ namespace Configs {
                 UPDATE groups 
                 SET archive = ?, skip_auto_update = ?, name = ?, url = ?, info = ?,
                     sub_last_update = ?, front_proxy_id = ?, landing_proxy_id = ?,
-                    column_width_json = ?, profiles_json = ?,
+                    column_width_json = ?, profiles_json = ?, scroll_last_profile = ?,
                     updated_at = strftime('%s', 'now')
                 WHERE id = ?
             )",
@@ -113,6 +116,7 @@ namespace Configs {
                 group->landing_proxy_id,
                 columnWidthJson.toStdString(),
                 profilesJson.toStdString(),
+                group->scroll_last_profile,
                 id
             );
         } else {
@@ -121,8 +125,8 @@ namespace Configs {
                 INSERT INTO groups 
                 (id, archive, skip_auto_update, name, url, info, sub_last_update,
                  front_proxy_id, landing_proxy_id,
-                 column_width_json, profiles_json)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 column_width_json, profiles_json, scroll_last_profile)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             )",
                 id,
                 group->archive ? 1 : 0,
@@ -134,7 +138,8 @@ namespace Configs {
                 group->front_proxy_id,
                 group->landing_proxy_id,
                 columnWidthJson.toStdString(),
-                profilesJson.toStdString()
+                profilesJson.toStdString(),
+                group->scroll_last_profile
             );
         }
     }
@@ -143,7 +148,7 @@ namespace Configs {
         auto query = db.query(R"(
             SELECT id, archive, skip_auto_update, name, url, info, sub_last_update,
                    front_proxy_id, landing_proxy_id,
-                   column_width_json, profiles_json
+                   column_width_json, profiles_json, scroll_last_profile
             FROM groups WHERE id = ?
         )", id);
         if (!query || !query->executeStep()) {
@@ -176,6 +181,10 @@ namespace Configs {
             if (!profilesDoc.isNull() && profilesDoc.isArray()) {
                 json["profiles"] = profilesDoc.array();
             }
+        }
+
+        if (query->getColumnCount() > 11) {
+            json["scroll_last_profile"] = query->getColumn(11).getInt();
         }
         
         return groupFromJson(json);

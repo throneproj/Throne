@@ -20,14 +20,6 @@ namespace Configs
         bool invalid = false;
         std::shared_ptr<DialFields> dialFields = std::make_shared<DialFields>();
 
-        outbound()
-        {
-            _add(new configItem("name", &name, string));
-            _add(new configItem("server", &server, string));
-            _add(new configItem("server_port", &server_port, integer));
-            _add(new configItem("dial_fields", dynamic_cast<JsonStore *>(dialFields.get()), jsonStore));
-        }
-
         void ResolveDomainToIP(const std::function<void()> &onFinished) {
             bool noResolve = false;
             auto serverAddr = GetAddress();

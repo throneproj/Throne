@@ -23,6 +23,8 @@ namespace Configs
         // list ui
         QList<int> column_width;
         QList<int> profiles;
+        /// Last profile index (row in profiles list / QTableView) for scroll position; -1 = none
+        int scroll_last_profile = -1;
 
         Group() = default;
 
