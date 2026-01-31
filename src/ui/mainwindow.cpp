@@ -754,9 +754,10 @@ void MainWindow::show_group(int gid) {
     }
 
     if (Configs::dataManager->settingsRepo->current_group != gid) {
-        auto lastGroup = Configs::dataManager->groupsRepo->CurrentGroup();
-        lastGroup->scroll_last_profile = ui->profilesTableView->firstVisibleRow();
-        Configs::dataManager->groupsRepo->Save(lastGroup);
+        if (auto lastGroup = Configs::dataManager->groupsRepo->CurrentGroup()) {
+            lastGroup->scroll_last_profile = ui->profilesTableView->firstVisibleRow();
+            Configs::dataManager->groupsRepo->Save(lastGroup);
+        }
         Configs::dataManager->settingsRepo->current_group = gid;
         Configs::dataManager->settingsRepo->Save();
     }
