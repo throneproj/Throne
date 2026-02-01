@@ -1056,17 +1056,12 @@ bool MainWindow::get_elevated_permissions(int reason) {
     if (n == QMessageBox::Yes) {
         runOnNewThread([=,this]
         {
-            auto chownArgs = QString("root:root " + Configs::FindCoreRealPath());
-            auto ret = Linux_Run_Command("chown", chownArgs);
-            if (ret != 0) {
-                MW_show_log(QString("Failed to run chown %1 code is %2").arg(chownArgs).arg(ret));
-            }
-            auto chmodArgs = QString("u+s " + Configs::FindCoreRealPath());
-            ret = Linux_Run_Command("chmod", chmodArgs);
+            auto corePath = Configs::FindCoreRealPath();
+            auto ret = Linux_ElevateCorePermissions(corePath);
             if (ret == 0) {
                 StopVPNProcess();
             } else {
-                MW_show_log(QString("Failed to run chmod %1").arg(chmodArgs));
+                MW_show_log(QString("Failed to elevate core permissions (chown/chmod) for %1, code %2").arg(corePath).arg(ret));
             }
         });
         return false;

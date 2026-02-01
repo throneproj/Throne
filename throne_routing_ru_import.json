@@ -1,0 +1,35 @@
+[
+  {
+    "action": "hijack-dns",
+    "protocol": "dns"
+  },
+  {
+    "action": "route",
+    "rule_set": ["https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/sing-box/rule-set-geosite/geosite-category-gov-ru.srs"],
+    "outbound": "direct"
+  },
+  {
+    "action": "route",
+    "rule_set": ["https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/sing-box/rule-set-geosite/geosite-ru-available-only-inside.srs"],
+    "outbound": "direct"
+  },
+  {
+    "action": "route",
+    "outbound": "direct",
+    "process_name": ["cursor"]
+  },
+  {
+    "action": "route",
+    "rule_set": ["geosite-ru-blocked"],
+    "outbound": "proxy"
+  },
+  {
+    "action": "route",
+    "rule_set": ["geoip-ru-blocked-community"],
+    "outbound": "proxy"
+  },
+  {
+    "action": "reject",
+    "rule_set": ["throne-adblocksingbox"]
+  }
+]

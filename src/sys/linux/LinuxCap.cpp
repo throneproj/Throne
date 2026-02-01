@@ -9,6 +9,14 @@ int Linux_Run_Command(const QString &commandName, const QString &args) {
     return system(command.toStdString().c_str());
 }
 
+int Linux_ElevateCorePermissions(const QString &corePath) {
+    // Single pkexec so user is asked for password only once (chown + chmod).
+    // Path is passed as separate argument ($1), so no shell escaping is needed.
+    return QProcess::execute("pkexec", QStringList() << "sh" << "-c"
+                             << "chown root:root \"$1\" && chmod u+s \"$1\""
+                             << "sh" << corePath);
+}
+
 bool Linux_HavePkexec() {
     QProcess p;
     p.setProgram("pkexec");
