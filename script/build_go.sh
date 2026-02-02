@@ -2,6 +2,13 @@
 set -e
 
 source script/env_deploy.sh
+# По умолчанию для Linux: текущая ОС и архитектура
+if [ -z "$GOOS" ] && [ -z "$GOARCH" ]; then
+  case "$(uname -s)" in
+    Linux)  export GOOS=linux; export GOARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/');;
+    Darwin) export GOOS=darwin; export GOARCH=$(uname -m | sed 's/x86_64/amd64/;s/arm64/arm64/');;
+  esac
+fi
 [ "$GOOS" == "windows" ] && [ "$GOARCH" == "amd64" ] && DEST=$DEPLOYMENT/windows64 || true
 [ "$GOOS" == "windows" ] && [ "$GOARCH" == "386" ] && DEST=$DEPLOYMENT/windows32 || true
 [ "$GOOS" == "windows" ] && [ "$GOARCH" == "arm64" ] && DEST=$DEPLOYMENT/windows-arm64 || true
@@ -31,6 +38,31 @@ if [ -z $DEST ]; then
   echo "Please set GOOS GOARCH"
   exit 1
 fi
+
+# PATH: плагины protoc (go install кладёт в GOPATH/bin)
+export PATH="$(go env GOPATH 2>/dev/null)/bin:$PATH"
+
+# Проект требует Go 1.25+ (core/server и core/protorpc)
+need_go_minor=25
+go_minor=$(go version 2>/dev/null | sed -n 's/.*go1\.\([0-9]*\).*/\1/p')
+if [ -z "$go_minor" ] || [ "$go_minor" -lt "$need_go_minor" ]; then
+  echo "Требуется Go 1.25+, в PATH сейчас: $(go version 2>/dev/null || echo 'go не найден')."
+  echo "Установите с https://go.dev/dl/ и добавьте bin в PATH (например export PATH=\"/usr/local/go/bin:\$PATH\")."
+  exit 1
+fi
+
+if ! command -v protoc-gen-go &>/dev/null; then
+  echo "protoc-gen-go не найден. Установите:"
+  echo "  go install google.golang.org/protobuf/cmd/protoc-gen-go@latest"
+  echo "  (и protoc-gen-protorpc: cd core/protorpc && go install ./protoc-gen-protorpc)"
+  exit 1
+fi
+if ! command -v protoc-gen-protorpc &>/dev/null; then
+  echo "protoc-gen-protorpc не найден. Соберите из репозитория:"
+  echo "  cd core/protorpc && go install ./protoc-gen-protorpc"
+  exit 1
+fi
+
 rm -rf $DEST
 mkdir -p $DEST
 

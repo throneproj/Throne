@@ -11,7 +11,10 @@ fi
 
 source script/env_deploy.sh
 DEST=$DEPLOYMENT/linux-$ARCH
-rm -rf $DEST
+# Локальная сборка: не затирать DEST, если нет CI-артефакта (Core уже от build_go.sh)
+if [ -d "download-artifact" ]; then
+  rm -rf $DEST
+fi
 mkdir -p $DEST
 
 #### copy binary ####
@@ -20,10 +23,17 @@ cp $BUILD/Throne $DEST
 #### copy Throne.png ####
 cp ./res/public/Throne.png $DEST
 
-cd download-artifact
-cd *linux-$ARCH
-tar xvzf artifacts.tgz -C ../../
-cd ../..
+#### copy Core (CI artifact или локальный build_go.sh) ####
+if [ -d "download-artifact" ]; then
+  cd download-artifact
+  cd *linux-$ARCH
+  tar xvzf artifacts.tgz -C ../../
+  cd ../..
+else
+  if [ ! -f "$DEST/Core" ]; then
+    echo "Предупреждение: $DEST/Core не найден. Соберите Core: GOOS=linux GOARCH=$ARCH ./script/build_go.sh"
+  fi
+fi
 
 sudo add-apt-repository universe
 sudo apt install libfuse2

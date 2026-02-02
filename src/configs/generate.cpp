@@ -755,9 +755,13 @@ namespace Configs {
         route["rule_set"] = ruleSetArray;
         route["final"] = outboundIDToString(routeChain->defaultOutboundID);
         if (Configs::dataManager->settingsRepo->enable_stats)  route["find_process"] = true;
-        route["default_domain_resolver"] = QJsonObject{
-                                {"server", "dns-direct"},
-                                {"strategy", Configs::dataManager->settingsRepo->outbound_domain_strategy}};
+        QJsonObject defaultDomainResolver{{"server", "dns-direct"}};
+        const QString &strat = Configs::dataManager->settingsRepo->outbound_domain_strategy;
+        if (!strat.isEmpty() && strat != "AsIs" &&
+            (strat == "prefer_ipv4" || strat == "prefer_ipv6" || strat == "ipv4_only" || strat == "ipv6_only")) {
+            defaultDomainResolver["strategy"] = strat;
+        }
+        route["default_domain_resolver"] = defaultDomainResolver;
         if (Configs::dataManager->settingsRepo->spmode_vpn) route["auto_detect_interface"] = true;
 
         ctx->buildConfigResult->coreConfig["route"] = route;
@@ -1061,12 +1065,15 @@ namespace Configs {
         ctx->outbounds << QJsonObject{{"type", "direct"}, {"tag", "direct"}};
         ctx->buildConfigResult->coreConfig["outbounds"] = ctx->outbounds;
         ctx->buildConfigResult->coreConfig["endpoints"] = ctx->endpoints;
+        QJsonObject defaultDomainResolver{{"server", "dns-direct"}};
+        const QString &strat = Configs::dataManager->settingsRepo->outbound_domain_strategy;
+        if (!strat.isEmpty() && strat != "AsIs" &&
+            (strat == "prefer_ipv4" || strat == "prefer_ipv6" || strat == "ipv4_only" || strat == "ipv6_only")) {
+            defaultDomainResolver["strategy"] = strat;
+        }
         ctx->buildConfigResult->coreConfig["route"] = QJsonObject{
                 {"auto_detect_interface", true},
-                {"default_domain_resolver", QJsonObject{
-                        {"server", "dns-direct"},
-                        {"strategy", Configs::dataManager->settingsRepo->outbound_domain_strategy},
-                   }}
+                {"default_domain_resolver", defaultDomainResolver}
         };
         res->coreConfig = ctx->buildConfigResult->coreConfig;
         res->xrayConfig = ctx->buildConfigResult->xrayConfig;

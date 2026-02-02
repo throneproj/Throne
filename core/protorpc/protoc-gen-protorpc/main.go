@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"log"
 	"os"
+	"strings"
 	"text/template"
 
 	plugin "github.com/chai2010/protorpc/protoc-gen-plugin"
@@ -30,6 +31,22 @@ type protorpcPlugin struct{}
 func (p *protorpcPlugin) Name() string        { return "protorpc-go" }
 func (p *protorpcPlugin) FileNameExt() string { return ".pb.protorpc.go" }
 
+// goPackageName returns the Go package name from go_package option (e.g. "gen" from "./;gen"),
+// so generated code matches the package from protoc-gen-go and can live in the same directory.
+func goPackageName(file *generator.FileDescriptor) string {
+	goPkg := file.GetOptions().GetGoPackage()
+	if goPkg == "" {
+		return file.GetPackage()
+	}
+	if sc := strings.IndexByte(goPkg, ';'); sc >= 0 {
+		return goPkg[sc+1:]
+	}
+	if slash := strings.LastIndex(goPkg, "/"); slash >= 0 {
+		return goPkg[slash+1:]
+	}
+	return goPkg
+}
+
 func (p *protorpcPlugin) HeaderCode(g *generator.Generator, file *generator.FileDescriptor) string {
 	const tmpl = `
 {{- $G := .G -}}
@@ -42,7 +59,7 @@ func (p *protorpcPlugin) HeaderCode(g *generator.Generator, file *generator.File
 //
 // source: {{$File.GetName}}
 
-package {{$File.PackageName}}
+package {{.GoPkg}}
 
 import (
 	"fmt"
@@ -74,10 +91,12 @@ var (
 		struct {
 			G      *generator.Generator
 			File   *generator.FileDescriptor
+			GoPkg  string
 			Prefix string
 		}{
 			G:      g,
 			File:   file,
+			GoPkg:  goPackageName(file),
 			Prefix: flagPrefix,
 		},
 	)

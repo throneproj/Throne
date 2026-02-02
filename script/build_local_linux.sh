@@ -22,13 +22,13 @@ check_deps() {
     command -v ninja >/dev/null || missing="$missing ninja"
     command -v protoc >/dev/null || missing="$missing protobuf-compiler"
     if ! pkg-config --exists Qt6Widgets 2>/dev/null; then
-        missing="$missing Qt6 (qt6-base-dev qt6-tools-dev qt6-network-dev libqt6dbus6-dev)"
+        missing="$missing Qt6 (qt6-base-dev qt6-tools-dev)"
     fi
     if [ -n "$missing" ]; then
         echo "Установите зависимости, например:"
         echo "  sudo apt update"
         echo "  sudo apt install -y build-essential cmake ninja-build protobuf-compiler \\"
-        echo "    qt6-base-dev qt6-tools-dev qt6-network-dev libqt6dbus6-dev"
+        echo "    qt6-base-dev qt6-tools-dev"
         echo "  Go 1.25+ — не из apt: скачайте с https://go.dev/dl/ и добавьте bin/ в PATH (или export GO_BIN=/path/to/go/bin)."
         echo "Не хватает: $missing"
         return 1
@@ -56,8 +56,8 @@ if [ -n "$go_minor" ] && [ "$go_minor" -lt "$need_go_minor" ]; then
 fi
 
 if ! command -v protoc-gen-go >/dev/null 2>&1; then
-    echo "protoc-gen-go не найден. Установите: go install github.com/golang/protobuf/protoc-gen-go@latest"
-    echo "  (и protoc-gen-protorpc: go install github.com/chai2010/protorpc/protoc-gen-protorpc@latest)"
+    echo "protoc-gen-go не найден. Установите: go install google.golang.org/protobuf/cmd/protoc-gen-go@latest"
+    echo "  (и protoc-gen-protorpc: cd core/protorpc && go install ./protoc-gen-protorpc)"
     exit 1
 fi
 

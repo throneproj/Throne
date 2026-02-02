@@ -19,12 +19,21 @@ cp $BUILD/Throne $DEST
 cp ./res/public/Throne.png $DEST
 
 #### copy Core ####
-cd download-artifact
-cd *linux-$ARCH
-tar xvzf artifacts.tgz -C ../../
-cd ../..
-cp deployment/linux-$ARCH/Core $DEST
-rm -rf deployment/linux-$ARCH
+if [ -d "download-artifact" ]; then
+  cd download-artifact
+  cd *linux-$ARCH
+  tar xvzf artifacts.tgz -C ../../
+  cd ../..
+  cp deployment/linux-$ARCH/Core $DEST
+  rm -rf deployment/linux-$ARCH
+else
+  # локальная сборка: Core уже в deployment/linux-$ARCH от build_go.sh
+  if [ -f "deployment/linux-$ARCH/Core" ]; then
+    cp deployment/linux-$ARCH/Core $DEST
+  else
+    echo "Предупреждение: deployment/linux-$ARCH/Core не найден. Соберите Core: ./script/build_go.sh"
+  fi
+fi
 
 # handle debug info
 objcopy --only-keep-debug $DEST/Throne $DEST/Throne.debug
