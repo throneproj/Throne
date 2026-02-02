@@ -210,6 +210,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             tabOrder += ui->tabWidget->tabBar()->tabData(i).toInt();
         }
         Configs::dataManager->groupsRepo->SetGroupsTabOrder(tabOrder);
+        on_tabWidget_currentChanged(ui->tabWidget->tabBar()->currentIndex());
     });
     ui->label_running->installEventFilter(this);
     ui->label_inbound->installEventFilter(this);
@@ -738,8 +739,9 @@ inline int groupId2TabIndex(int gid) {
 
 void MainWindow::on_tabWidget_currentChanged(int index) {
     if (Configs::dataManager->settingsRepo->refreshing_group_list) return;
-    if (tabIndex2GroupId(index) == Configs::dataManager->settingsRepo->current_group) return;
-    show_group(tabIndex2GroupId(index));
+    auto gid = tabIndex2GroupId(index);
+    if (gid == Configs::dataManager->settingsRepo->current_group) return;
+    show_group(gid);
 }
 
 void MainWindow::show_group(int gid) {
