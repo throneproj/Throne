@@ -5,6 +5,8 @@
 
 #include "include/configs/common/utils.h"
 
+
+
 namespace Configs {
     bool uTLS::ParseFromLink(const QString& link)
     {
@@ -43,9 +45,9 @@ namespace Configs {
     {
         if (!supported) return {};
         auto obj = ExportToJson();
-        if ((obj.isEmpty() || obj["enabled"].toBool() == false || fingerPrint.isEmpty()) && !dataStore->utlsFingerprint.isEmpty()) {
+        if ((obj.isEmpty() || obj["enabled"].toBool() == false || fingerPrint.isEmpty()) && !Configs::dataManager->settingsRepo->utlsFingerprint.isEmpty()) {
             obj["enabled"] = true;
-            obj["fingerprint"] = dataStore->utlsFingerprint;
+            obj["fingerprint"] = Configs::dataManager->settingsRepo->utlsFingerprint;
         }
         return {obj, ""};
     }

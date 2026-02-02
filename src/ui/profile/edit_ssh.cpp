@@ -9,7 +9,7 @@ EditSSH::~EditSSH() {
     delete ui;
 }
 
-void EditSSH::onStart(std::shared_ptr<Configs::ProxyEntity> _ent) {
+void EditSSH::onStart(std::shared_ptr<Configs::Profile> _ent) {
     this->ent = _ent;
     auto outbound = this->ent->SSH();
 

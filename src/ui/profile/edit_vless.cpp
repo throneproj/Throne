@@ -16,7 +16,7 @@ EditVless::~EditVless() {
     delete ui;
 }
 
-void EditVless::onStart(std::shared_ptr<Configs::ProxyEntity> _ent) {
+void EditVless::onStart(std::shared_ptr<Configs::Profile> _ent) {
     this->ent = _ent;
     auto outbound = this->ent->VLESS();
 

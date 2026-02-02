@@ -1,6 +1,5 @@
 #include "include/ui/setting/dialog_vpn_settings.h"
 
-#include "include/configs/proxy/Preset.hpp"
 #include "include/global/GuiUtils.hpp"
 #include "include/global/Configs.hpp"
 #include "include/ui/mainwindow_interface.h"
@@ -9,6 +8,8 @@
 #endif
 
 #include <QMessageBox>
+
+
 #define ADJUST_SIZE runOnThread([=,this] { adjustSize(); adjustPosition(mainwindow); }, this);
 DialogVPNSettings::DialogVPNSettings(QWidget *parent) : QDialog(parent), ui(new Ui::DialogVPNSettings) {
     ui->setupUi(this);
@@ -16,22 +17,22 @@ DialogVPNSettings::DialogVPNSettings(QWidget *parent) : QDialog(parent), ui(new 
 
 #ifdef Q_OS_WIN
     if (WinVersion::IsBuildNumGreaterOrEqual(BuildNumber::Windows_10_1507)) {
-        ui->vpn_implementation->addItems(Preset::SingBox::VpnImplementation);
-        ui->vpn_implementation->setCurrentText(Configs::dataStore->vpn_implementation);
+        ui->vpn_implementation->addItems(Configs::VPNImplementation::VPNImplementation);
+        ui->vpn_implementation->setCurrentText(Configs::dataManager->settingsRepo->vpn_implementation);
     }
     else {
-        ui->vpn_implementation->addItems(Preset::SingBox::VpnImplementation);
+        ui->vpn_implementation->addItems(Configs::VPNImplementation::VPNImplementation);
         ui->vpn_implementation->setCurrentText("gvisor");
         ui->vpn_implementation->setEnabled(false);
     }
 #else
-    ui->vpn_implementation->addItems(Preset::SingBox::VpnImplementation);
-    ui->vpn_implementation->setCurrentText(Configs::dataStore->vpn_implementation);
+    ui->vpn_implementation->addItems(Configs::VPNImplementation::VPNImplementation);
+    ui->vpn_implementation->setCurrentText(Configs::dataManager->settingsRepo->vpn_implementation);
 #endif
-    ui->vpn_mtu->setCurrentText(Int2String(Configs::dataStore->vpn_mtu));
-    ui->vpn_ipv6->setChecked(Configs::dataStore->vpn_ipv6);
-    ui->strict_route->setChecked(Configs::dataStore->vpn_strict_route);
-    ui->tun_routing->setChecked(Configs::dataStore->enable_tun_routing);
+    ui->vpn_mtu->setCurrentText(Int2String(Configs::dataManager->settingsRepo->vpn_mtu));
+    ui->vpn_ipv6->setChecked(Configs::dataManager->settingsRepo->vpn_ipv6);
+    ui->strict_route->setChecked(Configs::dataManager->settingsRepo->vpn_strict_route);
+    ui->tun_routing->setChecked(Configs::dataManager->settingsRepo->enable_tun_routing);
     ADJUST_SIZE
 }
 
@@ -43,13 +44,13 @@ void DialogVPNSettings::accept() {
     //
     auto mtu = ui->vpn_mtu->currentText().toInt();
     if (mtu > 10000 || mtu < 1000) mtu = 9000;
-    Configs::dataStore->vpn_implementation = ui->vpn_implementation->currentText();
-    Configs::dataStore->vpn_mtu = mtu;
-    Configs::dataStore->vpn_ipv6 = ui->vpn_ipv6->isChecked();
-    Configs::dataStore->vpn_strict_route = ui->strict_route->isChecked();
-    Configs::dataStore->enable_tun_routing = ui->tun_routing->isChecked();
+    Configs::dataManager->settingsRepo->vpn_implementation = ui->vpn_implementation->currentText();
+    Configs::dataManager->settingsRepo->vpn_mtu = mtu;
+    Configs::dataManager->settingsRepo->vpn_ipv6 = ui->vpn_ipv6->isChecked();
+    Configs::dataManager->settingsRepo->vpn_strict_route = ui->strict_route->isChecked();
+    Configs::dataManager->settingsRepo->enable_tun_routing = ui->tun_routing->isChecked();
     //
-    QStringList msg{"UpdateDataStore"};
+    QStringList msg{"UpdateConfigs::dataManager->settingsRepo"};
     msg << "VPNChanged";
     MW_dialog_message("", msg.join(","));
     QDialog::accept();

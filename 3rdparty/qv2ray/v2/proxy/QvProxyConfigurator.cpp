@@ -17,7 +17,6 @@
 #include <QProcess>
 
 #include "3rdparty/qv2ray/wrapper.hpp"
-#include "include/configs/proxy/Preset.hpp"
 #include "include/global/Configs.hpp"
 
 #define QV_MODULE_NAME "SystemProxy"

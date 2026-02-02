@@ -96,17 +96,18 @@ set(PROJECT_SOURCES
         3rdparty/protorpc/rpc_wire.cc
         3rdparty/protorpc/wire.pb/wire.pb.cc
 
+        3rdparty/SQLiteCpp/src/Backup.cpp
+        3rdparty/SQLiteCpp/src/Column.cpp
+        3rdparty/SQLiteCpp/src/Database.cpp
+        3rdparty/SQLiteCpp/src/Exception.cpp
+        3rdparty/SQLiteCpp/src/Savepoint.cpp
+        3rdparty/SQLiteCpp/src/sqlite3.c
+        3rdparty/SQLiteCpp/src/Statement.cpp
+        3rdparty/SQLiteCpp/src/Transaction.cpp
+
         src/api/RPC.cpp
 
-        src/dataStore/Database.cpp
         src/stats/traffic/TrafficLooper.cpp
-        src/dataStore/ProfileFilter.cpp
-
-        src/configs/proxy/AbstractBean.cpp
-        src/configs/proxy/Bean2CoreObj_box.cpp
-        src/configs/proxy/Bean2Link.cpp
-        src/configs/proxy/Link2Bean.cpp
-        include/configs/proxy/ChainBean.hpp # translate
 
         include/configs/sub/GroupUpdater.hpp
         src/configs/sub/GroupUpdater.cpp
@@ -123,6 +124,12 @@ set(PROJECT_SOURCES
         src/ui/mainwindow.cpp
         include/ui/mainwindow.h
         include/ui/mainwindow.ui
+        include/ui/utils/ProfilesTableModel.h
+        src/ui/utils/ProfilesTableModel.cpp
+        include/ui/utils/ProfilesTableView.h
+        src/ui/utils/ProfilesTableView.cpp
+        include/ui/utils/ProfilesTableVerticalHeader.h
+        src/ui/utils/ProfilesTableVerticalHeader.cpp
 
         include/ui/profile/dialog_edit_profile.h
         src/ui/profile/dialog_edit_profile.cpp
@@ -149,7 +156,6 @@ set(PROJECT_SOURCES
         include/ui/profile/edit_tailscale.h
         src/ui/profile/edit_tailscale.cpp
         include/ui/profile/edit_tailscale.ui
-        include/configs/proxy/Tailscale.hpp
         include/ui/profile/edit_trojan.h
         src/ui/profile/edit_trojan.cpp
         include/ui/profile/edit_trojan.ui
@@ -210,13 +216,10 @@ set(PROJECT_SOURCES
 
         res/Throne.qrc
         ${QV2RAY_RC}
-        include/dataStore/RouteEntity.h
-        src/dataStore/RouteEntity.cpp
         res/darkstyle.qrc
         src/ui/profile/edit_ssh.cpp
         include/ui/profile/edit_ssh.h
         include/ui/profile/edit_ssh.ui
-        include/configs/proxy/SSHBean.h
         include/sys/macos/MacOS.h
 
         src/sys/linux/LinuxCap.cpp
@@ -226,10 +229,7 @@ set(PROJECT_SOURCES
         include/ui/mainwindow_interface.h
         include/stats/connections/connectionLister.hpp
         src/stats/connectionLister/connectionLister.cpp
-        src/configs/proxy/Json2Bean.cpp
         include/sys/windows/eventHandler.h
-        src/dataStore/Group.cpp
-        src/dataStore/ProxyEntity.cpp
         include/configs/baseConfig.h
         include/configs/common/DialFields.h
         include/configs/common/TLS.h
@@ -286,6 +286,32 @@ set(PROJECT_SOURCES
         include/ui/profile/edit_xrayvless.h
         src/ui/profile/edit_xrayvless.cpp
         include/ui/profile/edit_xrayvless.ui
+        include/database/Database.h
+        src/database/Database.cpp
+        include/database/ProfilesRepo.h
+        include/database/GroupsRepo.h
+        include/database/RoutesRepo.h
+        include/database/SettingsRepo.h
+
+        include/database/entities/Profile.h
+        include/database/entities/Group.h
+        include/database/entities/RouteProfile.h
+        include/database/entities/RouteRule.h
+
+        src/database/entities/Profile.cpp
+        src/database/entities/Group.cpp
+        src/database/entities/RouteProfile.cpp
+        src/database/entities/RouteRule.cpp
+
+        src/database/ProfilesRepo.cpp
+        src/database/GroupsRepo.cpp
+        src/database/RoutesRepo.cpp
+
+        include/database/DatabaseManager.h
+        src/database/DatabaseManager.cpp
+
+        include/database/SettingsRepo.h
+        src/database/SettingsRepo.cpp
 )
 
 if (NOT APPLE AND Qt6_VERSION VERSION_GREATER_EQUAL 6.9.0)

@@ -11,7 +11,7 @@ EditSocks::~EditSocks() {
     delete ui;
 }
 
-void EditSocks::onStart(std::shared_ptr<Configs::ProxyEntity> _ent) {
+void EditSocks::onStart(std::shared_ptr<Configs::Profile> _ent) {
     this->ent = _ent;
     auto outbound = this->ent->Socks();
 

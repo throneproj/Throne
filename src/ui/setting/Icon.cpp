@@ -4,13 +4,14 @@
 
 #include <QPainter>
 
+
 QPixmap Icon::GetTrayIcon(TrayIconStatus status) {
     QPixmap pixmap;
     QPixmap pixmap_read;
 
     if (status == NONE)
     {
-        if (Configs::dataStore->use_custom_icons) {
+        if (Configs::dataManager->settingsRepo->use_custom_icons) {
             pixmap_read = QPixmap(QString("icons/") + "Off" + ".png");
         }
         if (pixmap_read.isNull()) {
@@ -19,7 +20,7 @@ QPixmap Icon::GetTrayIcon(TrayIconStatus status) {
         if (!pixmap_read.isNull()) pixmap = pixmap_read;
     } else if (status == RUNNING)
     {
-        if (Configs::dataStore->use_custom_icons) {
+        if (Configs::dataManager->settingsRepo->use_custom_icons) {
             pixmap_read = QPixmap(QString("icons/") + "Throne" + ".png");
         }
         if (pixmap_read.isNull()) {
@@ -28,7 +29,7 @@ QPixmap Icon::GetTrayIcon(TrayIconStatus status) {
         if (!pixmap_read.isNull()) pixmap = pixmap_read;
     } else if (status == SYSTEM_PROXY_DNS)
     {
-        if (Configs::dataStore->use_custom_icons) {
+        if (Configs::dataManager->settingsRepo->use_custom_icons) {
             pixmap_read = QPixmap(QString("icons/") + "Proxy-Dns" + ".png");
         }
         if (pixmap_read.isNull()) {
@@ -37,7 +38,7 @@ QPixmap Icon::GetTrayIcon(TrayIconStatus status) {
         if (!pixmap_read.isNull()) pixmap = pixmap_read;
     } else if (status == SYSTEM_PROXY)
     {
-        if (Configs::dataStore->use_custom_icons) {
+        if (Configs::dataManager->settingsRepo->use_custom_icons) {
             pixmap_read = QPixmap(QString("icons/") + "Proxy" + ".png");
         }
         if (pixmap_read.isNull()) {
@@ -46,7 +47,7 @@ QPixmap Icon::GetTrayIcon(TrayIconStatus status) {
         if (!pixmap_read.isNull()) pixmap = pixmap_read;
     } else if (status == DNS)
     {
-        if (Configs::dataStore->use_custom_icons) {
+        if (Configs::dataManager->settingsRepo->use_custom_icons) {
             pixmap_read = QPixmap(QString("icons/") + "Dns" + ".png");
         }
         if (pixmap_read.isNull()) {
@@ -55,7 +56,7 @@ QPixmap Icon::GetTrayIcon(TrayIconStatus status) {
         if (!pixmap_read.isNull()) pixmap = pixmap_read;
     } else if (status == VPN)
     {
-        if (Configs::dataStore->use_custom_icons) {
+        if (Configs::dataManager->settingsRepo->use_custom_icons) {
             pixmap_read = QPixmap(QString("icons/") + "Tun" + ".png");
         }
         if (pixmap_read.isNull()) {
@@ -65,7 +66,7 @@ QPixmap Icon::GetTrayIcon(TrayIconStatus status) {
     } else
     {
         MW_show_log("Icon::GetTrayIcon: Unknown status");
-        if (Configs::dataStore->use_custom_icons) {
+        if (Configs::dataManager->settingsRepo->use_custom_icons) {
             pixmap_read = QPixmap(QString("icons/") + "Off" + ".png");
         }
         if (pixmap_read.isNull()) {

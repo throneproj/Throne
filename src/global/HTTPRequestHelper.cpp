@@ -10,6 +10,8 @@
 #include <QMap>
 #include <QStringList>
 
+
+
 #include "include/global/Configs.hpp"
 #include "include/ui/mainwindow.h"
 #include "include/global/DeviceDetailsHelper.hpp"
@@ -21,20 +23,20 @@ namespace Configs_network {
         QNetworkAccessManager accessManager;
         accessManager.setTransferTimeout(10000);
         request.setUrl(url);
-        if (Configs::dataStore->net_use_proxy || Configs::dataStore->spmode_system_proxy) {
-            if (Configs::dataStore->started_id < 0) {
+        if (Configs::dataManager->settingsRepo->net_use_proxy || Configs::dataManager->settingsRepo->spmode_system_proxy) {
+            if (Configs::dataManager->settingsRepo->started_id < 0) {
                 return HTTPResponse{QObject::tr("Request with proxy but no profile started.")};
             }
             QNetworkProxy p;
             p.setType(QNetworkProxy::HttpProxy);
-            p.setHostName(Configs::dataStore->inbound_address == "::" ? "127.0.0.1" : Configs::dataStore->inbound_address);
-            p.setPort(Configs::dataStore->inbound_socks_port);
+            p.setHostName(Configs::dataManager->settingsRepo->inbound_address == "::" ? "127.0.0.1" : Configs::dataManager->settingsRepo->inbound_address);
+            p.setPort(Configs::dataManager->settingsRepo->inbound_socks_port);
             accessManager.setProxy(p);
         }
         // Set attribute
         request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
-        request.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, Configs::dataStore->GetUserAgent());
-        if (Configs::dataStore->net_insecure) {
+        request.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, Configs::dataManager->settingsRepo->GetUserAgent());
+        if (Configs::dataManager->settingsRepo->net_insecure) {
             QSslConfiguration c;
             c.setPeerVerifyMode(QSslSocket::PeerVerifyMode::VerifyNone);
             request.setSslConfiguration(c);
@@ -45,8 +47,8 @@ namespace Configs_network {
 
             // Parse custom parameters if provided
             QMap<QString, QString> customParams;
-            if (!Configs::dataStore->sub_custom_hwid_params.isEmpty()) {
-                QStringList pairs = Configs::dataStore->sub_custom_hwid_params.split(',');
+            if (!Configs::dataManager->settingsRepo->sub_custom_hwid_params.isEmpty()) {
+                QStringList pairs = Configs::dataManager->settingsRepo->sub_custom_hwid_params.split(',');
                 for (const QString &pair : pairs) {
                     QString trimmed = pair.trimmed();
                     int eqPos = trimmed.indexOf('=');
@@ -86,7 +88,7 @@ namespace Configs_network {
             for (const auto &err: errors) {
                 error_str << err.errorString();
             }
-            MW_show_log(QString("SSL Errors: %1 %2").arg(error_str.join(","), Configs::dataStore->net_insecure ? "(Ignored)" : ""));
+            MW_show_log(QString("SSL Errors: %1 %2").arg(error_str.join(","), Configs::dataManager->settingsRepo->net_insecure ? "(Ignored)" : ""));
         });
         // Wait for response
         QEventLoop loop;
@@ -111,17 +113,17 @@ namespace Configs_network {
         QNetworkRequest request;
         QNetworkAccessManager accessManager;
         request.setUrl(url);
-        if (Configs::dataStore->net_use_proxy || Configs::dataStore->spmode_system_proxy) {
-            if (Configs::dataStore->started_id < 0) {
+        if (Configs::dataManager->settingsRepo->net_use_proxy || Configs::dataManager->settingsRepo->spmode_system_proxy) {
+            if (Configs::dataManager->settingsRepo->started_id < 0) {
                 return QObject::tr("Request with proxy but no profile started.");
             }
             QNetworkProxy p;
             p.setType(QNetworkProxy::HttpProxy);
-            p.setHostName(Configs::dataStore->inbound_address == "::" ? "127.0.0.1" : Configs::dataStore->inbound_address);
-            p.setPort(Configs::dataStore->inbound_socks_port);
+            p.setHostName(Configs::dataManager->settingsRepo->inbound_address == "::" ? "127.0.0.1" : Configs::dataManager->settingsRepo->inbound_address);
+            p.setPort(Configs::dataManager->settingsRepo->inbound_socks_port);
             accessManager.setProxy(p);
         }
-        if (Configs::dataStore->net_insecure) {
+        if (Configs::dataManager->settingsRepo->net_insecure) {
             QSslConfiguration c;
             c.setPeerVerifyMode(QSslSocket::PeerVerifyMode::VerifyNone);
             request.setSslConfiguration(c);
@@ -133,7 +135,7 @@ namespace Configs_network {
             for (const auto &err: errors) {
                 error_str << err.errorString();
             }
-            MW_show_log(QString("SSL Errors: %1 %2").arg(error_str.join(","), Configs::dataStore->net_insecure ? "(Ignored)" : ""));
+            MW_show_log(QString("SSL Errors: %1 %2").arg(error_str.join(","), Configs::dataManager->settingsRepo->net_insecure ? "(Ignored)" : ""));
         });
         connect(_reply, &QNetworkReply::downloadProgress, _reply, [&](qint64 bytesReceived, qint64 bytesTotal)
         {

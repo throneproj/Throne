@@ -2,13 +2,14 @@
 
 #include "Const.hpp"
 #include "Utils.hpp"
-#include "ConfigItem.hpp"
-#include "DataStore.hpp"
+#include "include/database/DatabaseManager.h"
 #include <srslist.h>
 
 // Switch core support
 
 namespace Configs {
+    void initDB(const std::string& dbPath);
+
     QString FindCoreRealPath();
 
     bool IsAdmin(bool forceRenew=false);

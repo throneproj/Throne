@@ -9,12 +9,6 @@ namespace Configs
         QString config;
         QString type; // one of outbound or fullconfig TODO use consts
 
-        Custom() : outbound()
-        {
-            _add(new configItem("config", &config, string));
-            _add(new configItem("type", &type, string));
-        }
-
         bool ParseFromJson(const QJsonObject &object) override {
             if (object.isEmpty()) return false;
             if (object.contains("name")) name = object["name"].toString();

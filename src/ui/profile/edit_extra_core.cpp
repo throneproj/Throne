@@ -2,8 +2,8 @@
 
 #include <QFileDialog>
 
-#include "include/configs/proxy/ExtraCore.h"
-#include "include/configs/proxy/Preset.hpp"
+
+
 #include "include/ui/profile/dialog_edit_profile.h"
 
 EditExtraCore::EditExtraCore(QWidget *parent) : QWidget(parent),
@@ -15,7 +15,7 @@ EditExtraCore::~EditExtraCore() {
     delete ui;
 }
 
-void EditExtraCore::onStart(std::shared_ptr<Configs::ProxyEntity> _ent) {
+void EditExtraCore::onStart(std::shared_ptr<Configs::Profile> _ent) {
     this->ent = _ent;
 
     auto outbound = ent->ExtraCore();
@@ -24,7 +24,7 @@ void EditExtraCore::onStart(std::shared_ptr<Configs::ProxyEntity> _ent) {
     ui->socks_port->setText(Int2String(outbound->socksPort));
     ui->config->setPlainText(outbound->extraCoreConf);
     ui->args->setText(outbound->extraCoreArgs);
-    ui->path_combo->addItems(Configs::profileManager->GetExtraCorePaths());
+    ui->path_combo->addItems(Configs::dataManager->settingsRepo->GetExtraCorePaths());
     ui->path_combo->setCurrentText(outbound->extraCorePath);
 
     connect(ui->path_button, &QPushButton::pressed, this, [=,this]
@@ -38,7 +38,7 @@ void EditExtraCore::onStart(std::shared_ptr<Configs::ProxyEntity> _ent) {
         {
             f = QDir::current().relativeFilePath(f);
         }
-        if (Configs::profileManager->AddExtraCorePath(f)) ui->path_combo->addItem(f);
+        if (Configs::dataManager->settingsRepo->AddExtraCorePath(f)) ui->path_combo->addItem(f);
         ui->path_combo->setCurrentText(f);
         ui->path_combo->setSizeAdjustPolicy(QComboBox::AdjustToContents);
         adjustSize();

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "include/dataStore/Database.hpp"
+#include <include/database/entities/Profile.h>
 
 namespace Subscription {
     class RawUpdater {
@@ -15,7 +15,7 @@ namespace Subscription {
 
         int gid_add_to = -1;
 
-        QList<std::shared_ptr<Configs::ProxyEntity>> updated_order;
+        QList<std::shared_ptr<Configs::Profile>> updated_order;
     };
 
     class GroupUpdater : public QObject {

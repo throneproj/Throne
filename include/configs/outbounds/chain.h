@@ -9,11 +9,6 @@ namespace Configs
         public:
         QList<int> list; // from in to out
 
-        chain() : outbound()
-        {
-            _add(new configItem("list", &list, integerList));
-        }
-
         QString DisplayType() override { return QObject::tr("Chain Proxy"); };
 
         QString DisplayAddress() override { return ""; };

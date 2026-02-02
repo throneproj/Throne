@@ -1,8 +1,11 @@
 #pragma once
 #include <QJsonArray>
 #include <QJsonObject>
-#include <include/dataStore/ProxyEntity.hpp>
 #include <include/stats/traffic/TrafficData.hpp>
+
+
+
+#include "include/database/entities/Profile.h"
 
 namespace Configs
 {
@@ -87,7 +90,7 @@ namespace Configs
         bool forExport = false;
         bool tunEnabled = false;
         bool isResolvedUsed = false;
-        std::shared_ptr<ProxyEntity> ent = std::make_shared<ProxyEntity>(nullptr, nullptr, nullptr);
+        std::shared_ptr<Profile> ent = std::make_shared<Profile>(nullptr, nullptr);
         std::shared_ptr<BuildPrerequisities> buildPrerequisities = std::make_shared<BuildPrerequisities>();
         OSType os;
 
@@ -101,13 +104,13 @@ namespace Configs
 
     inline QString get_jsdelivr_link(QString link)
     {
-        if(dataStore->routing->ruleset_mirror == Mirrors::GITHUB)
+        if(Configs::dataManager->settingsRepo->ruleset_mirror == Mirrors::GITHUB)
             return link;
         if(auto url = QUrl(link); url.isValid() && url.host() == "raw.githubusercontent.com")
         {
             QStringList list = url.path().split('/');
             QString result;
-            switch(dataStore->routing->ruleset_mirror) {
+            switch(Configs::dataManager->settingsRepo->ruleset_mirror) {
             case Mirrors::GCORE: result = "https://gcore.jsdelivr.net/gh"; break;
             case Mirrors::QUANTIL: result = "https://quantil.jsdelivr.net/gh"; break;
             case Mirrors::FASTLY: result = "https://fastly.jsdelivr.net/gh"; break;
@@ -152,7 +155,7 @@ namespace Configs
 
     void buildXrayConfig(std::shared_ptr<BuildSingBoxConfigContext> &ctx);
 
-    std::shared_ptr<BuildConfigResult> BuildSingBoxConfig(const std::shared_ptr<ProxyEntity> &ent);
+    std::shared_ptr<BuildConfigResult> BuildSingBoxConfig(const std::shared_ptr<Profile> &ent);
 
     class BuildTestConfigResult {
     public:
@@ -165,7 +168,7 @@ namespace Configs
         QStringList outboundTags;
     };
 
-    bool IsValid(const std::shared_ptr<ProxyEntity> &ent);
+    bool IsValid(const std::shared_ptr<Profile> &ent);
 
-    std::shared_ptr<BuildTestConfigResult> BuildTestConfig(const QList<std::shared_ptr<ProxyEntity> > &profiles);
+    std::shared_ptr<BuildTestConfigResult> BuildTestConfig(const QList<std::shared_ptr<Profile> > &profiles);
 }

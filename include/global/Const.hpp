@@ -10,6 +10,16 @@ namespace Configs {
         };
     }
 
+    namespace DomainStrategy {
+        inline QStringList DomainStrategy = {"", "ipv4_only", "ipv6_only", "prefer_ipv4", "prefer_ipv6"};
+    }
+
+    namespace SingboxOptions {
+        inline QStringList SniffProtocols = {"http", "tls", "quic", "stun", "dns", "bittorrent", "dtls", "ssh", "rdp"};
+        inline QStringList ActionTypes = {"route", "reject", "hijack-dns", "route-options", "sniff", "resolve"};
+        inline QStringList rejectMethods = {"default", "drop"};
+    }
+
     namespace SniffingMode {
         enum SniffingMode {
             DISABLE,
@@ -54,6 +64,10 @@ namespace Configs {
             FASTLY,
             CDN,
         };
+    }
+
+    namespace VPNImplementation {
+        inline QStringList VPNImplementation = {"system", "gvisor", "mixed"};
     }
 
     namespace Xray {

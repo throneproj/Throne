@@ -9,13 +9,13 @@
 #include "include/global/Configs.hpp"
 #include "include/stats/connections/connectionLister.hpp"
 #include "3rdparty/qv2ray/v2/ui/widgets/speedchart/SpeedWidget.hpp"
+#include "include/database/entities/Profile.h"
 #ifdef Q_OS_LINUX
 #include <QtDBus>
 #endif
 
 #ifndef MW_INTERFACE
 
-#include <QTableWidgetItem>
 #include <QKeyEvent>
 #include <QSystemTrayIcon>
 #include <QProcess>
@@ -26,9 +26,8 @@
 #include <QThreadPool>
 
 #include "group/GroupSort.hpp"
-
-#include "include/dataStore/ProxyEntity.hpp"
 #include "include/global/GuiUtils.hpp"
+#include "include/ui/utils/ProfilesTableModel.h"
 #include "ui_mainwindow.h"
 
 #endif
@@ -153,9 +152,9 @@ private slots:
 
     void on_menu_update_subscription_triggered();
 
-    void on_proxyListTable_itemDoubleClicked(QTableWidgetItem *item);
+    void on_profilesTableView_doubleClicked(const QModelIndex &index);
 
-    void on_proxyListTable_customContextMenuRequested(const QPoint &pos);
+    void on_profilesTableView_customContextMenuRequested(const QPoint &pos);
 
     void on_tabWidget_currentChanged(int index);
 
@@ -179,7 +178,7 @@ private:
     //
     QString title_error;
     int icon_status = -1;
-    std::shared_ptr<Configs::ProxyEntity> running;
+    std::shared_ptr<Configs::Profile> running;
     QString traffic_update_cache;
     qint64 last_test_time = 0;
     //
@@ -216,21 +215,21 @@ private:
     bool searchEnabled = false;
     QString searchString;
 
+    ProfilesTableModel *profilesTableModel = nullptr;
+
     void setSearchState(bool enable);
 
-    QList<std::shared_ptr<Configs::ProxyEntity>> filterProfilesList(const QList<int>& profiles);
+    QList<int> filterProfilesList(const QList<int>& profileIDs);
 
-    QList<std::shared_ptr<Configs::ProxyEntity>> get_now_selected_list();
+    QList<int> get_now_selected_list();
 
-    QList<std::shared_ptr<Configs::ProxyEntity>> get_selected_or_group();
+    QList<int> get_selected_or_group();
 
     void dialog_message_impl(const QString &sender, const QString &info);
 
-    void refresh_proxy_list_impl(const int &id = -1, GroupSortAction groupSortAction = {});
+    void refresh_proxy_list_impl(const int &id = -1);
 
     void refresh_proxy_list_impl_refresh_data(const int &id = -1, bool stopping = false);
-
-    void refresh_table_item(int row, const std::shared_ptr<Configs::ProxyEntity>& profile, bool stopping);
 
     void parseQrImage(const QPixmap *image);
 
@@ -258,7 +257,7 @@ private:
 
     static void setup_rpc();
 
-    void urltest_current_group(const QList<std::shared_ptr<Configs::ProxyEntity>>& profiles);
+    void urltest_current_group(const QList<int>& profileIDs);
 
     void stopTests();
 
@@ -266,7 +265,7 @@ private:
 
     void url_test_current();
 
-    void speedtest_current_group(const QList<std::shared_ptr<Configs::ProxyEntity>>& profiles, bool testCurrent = false);
+    void speedtest_current_group(const QList<int>& profileIDs, bool testCurrent = false);
 
     void runSpeedTest(const QString& config, const QString& xrayConfig, bool useDefault, bool testCurrent, const QStringList& outboundTags, const QMap<QString, int>& tag2entID, int entID = -1);
 

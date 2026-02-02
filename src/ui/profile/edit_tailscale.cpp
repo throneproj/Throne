@@ -1,7 +1,5 @@
 #include "include/ui/profile/edit_tailscale.h"
 
-#include "include/configs/proxy/Tailscale.hpp"
-
 EditTailScale::EditTailScale(QWidget *parent) : QWidget(parent), ui(new Ui::EditTailScale) {
     ui->setupUi(this);
 }
@@ -10,7 +8,7 @@ EditTailScale::~EditTailScale() {
     delete ui;
 }
 
-void EditTailScale::onStart(std::shared_ptr<Configs::ProxyEntity> _ent) {
+void EditTailScale::onStart(std::shared_ptr<Configs::Profile> _ent) {
     this->ent = _ent;
     auto outbound = this->ent->Tailscale();
 

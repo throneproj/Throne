@@ -1,12 +1,18 @@
 #include "include/configs/generate.h"
-#include "include/dataStore/Database.hpp"
-#include "include/configs/proxy/includes.h"
 #include "include/api/RPC.h"
 #include "include/global/Configs.hpp"
 #include "include/global/Utils.hpp"
 
 #include <QApplication>
 #include <QFileInfo>
+
+
+#include "include/database/GroupsRepo.h"
+#include "include/database/ProfilesRepo.h"
+#include "include/database/RoutesRepo.h"
+
+
+#include "include/database/entities/Profile.h"
 
 namespace Configs {
 
@@ -52,7 +58,7 @@ namespace Configs {
         return Unknown;
     }
 
-    QStringList getChainDomains (const std::shared_ptr<ProxyEntity>& ent, QString &error)
+    QStringList getChainDomains (const std::shared_ptr<Profile>& ent, QString &error)
     {
         QStringList domains;
         auto chain = ent->Chain();
@@ -64,7 +70,7 @@ namespace Configs {
         auto entIDs = ent->Chain()->list;
         for (int id : entIDs)
         {
-            if (auto subEnt = profileManager->GetProfile(id); subEnt != nullptr)
+            if (auto subEnt = Configs::dataManager->profilesRepo->GetProfile(id); subEnt != nullptr)
             {
                 if (auto addr = subEnt->outbound->GetAddress(); !addr.isEmpty() && !IsIpAddress(addr)) domains.append(addr);
             }
@@ -77,7 +83,7 @@ namespace Configs {
         QStringList domains;
         for (const auto &id: entIDs)
         {
-            if (auto ent = profileManager->GetProfile(id); ent != nullptr)
+            if (auto ent = Configs::dataManager->profilesRepo->GetProfile(id); ent != nullptr)
             {
                 if (ent->type == "extracore") continue;
                 if (ent->type == "chain") domains << getChainDomains(ent, error);
@@ -92,7 +98,7 @@ namespace Configs {
     }
 
     void CalculatePrerequisities(std::shared_ptr<BuildSingBoxConfigContext> &ctx) {
-        ctx->tunEnabled = dataStore->spmode_vpn;
+        ctx->tunEnabled = Configs::dataManager->settingsRepo->spmode_vpn;
         ctx->os = getOS();
         if (ctx->os == Linux)
         {
@@ -101,7 +107,7 @@ namespace Configs {
         auto preReqs = ctx->buildPrerequisities;
         
         // Get route chain
-        auto routeChain = profileManager->GetRouteChain(dataStore->routing->current_route_id);
+        auto routeChain = Configs::dataManager->routesRepo->GetRouteProfile(Configs::dataManager->settingsRepo->current_route_id);
         if (routeChain == nullptr) {
             ctx->error = "Routing profile does not exist, try resetting the route profile in Routing Settings";
             return;
@@ -116,7 +122,7 @@ namespace Configs {
         int suffix = 0;
         for (const auto &item: *neededOutbounds) {
             if (item < 0) continue;
-            auto neededEnt = profileManager->GetProfile(item);
+            auto neededEnt = Configs::dataManager->profilesRepo->GetProfile(item);
             if (neededEnt == nullptr) {
                 ctx->error = "The routing profile is referencing outbounds that no longer exists, consider revising your settings";
                 return;
@@ -169,7 +175,7 @@ namespace Configs {
             for (const auto &addr: entAddrs) preReqs->dnsDeps->directDomains << addr;
             preReqs->dnsDeps->needDirectDnsRules = true;
         }
-        if (auto group = profileManager->GetGroup(ctx->ent->gid); group != nullptr)
+        if (auto group = Configs::dataManager->groupsRepo->GetGroup(ctx->ent->gid); group != nullptr)
         {
             QList<int> groupEnts;
             if (auto frontEntID = group->front_proxy_id; frontEntID >= 0) groupEnts << frontEntID;
@@ -183,8 +189,8 @@ namespace Configs {
         }
 
         // Hijack
-        if (dataStore->enable_dns_server) {
-            for (const auto& rule : dataStore->dns_server_rules) {
+        if (Configs::dataManager->settingsRepo->enable_dns_server) {
+            for (const auto& rule : Configs::dataManager->settingsRepo->dns_server_rules) {
                 if (rule.startsWith("ruleset:")) {
                     preReqs->hijackDeps->hijackGeoAssets << rule.mid(8);
                 }
@@ -233,22 +239,22 @@ namespace Configs {
     }
 
     void buildLogSections(std::shared_ptr<BuildSingBoxConfigContext> &ctx) {
-        ctx->buildConfigResult->coreConfig.insert("log", QJsonObject{{"level", dataStore->log_level}});
+        ctx->buildConfigResult->coreConfig.insert("log", QJsonObject{{"level", Configs::dataManager->settingsRepo->log_level}});
     }
 
     void buildNTPSection(std::shared_ptr<BuildSingBoxConfigContext> &ctx) {
-        if (dataStore->enable_ntp) {
+        if (Configs::dataManager->settingsRepo->enable_ntp) {
             QJsonObject ntpObj;
             ntpObj["enabled"] = true;
-            ntpObj["server"] = dataStore->ntp_server_address;
-            ntpObj["server_port"] = dataStore->ntp_server_port;
-            ntpObj["interval"] = dataStore->ntp_interval;
+            ntpObj["server"] = Configs::dataManager->settingsRepo->ntp_server_address;
+            ntpObj["server_port"] = Configs::dataManager->settingsRepo->ntp_server_port;
+            ntpObj["interval"] = Configs::dataManager->settingsRepo->ntp_interval;
             ctx->buildConfigResult->coreConfig["ntp"] = ntpObj;
         }
     }
 
     void buildCertificateSection(std::shared_ptr<BuildSingBoxConfigContext> &ctx) {
-        ctx->buildConfigResult->coreConfig.insert("certificate", QJsonObject{{"store", dataStore->use_mozilla_certs ? "mozilla" : "system"}});
+        ctx->buildConfigResult->coreConfig.insert("certificate", QJsonObject{{"store", Configs::dataManager->settingsRepo->use_mozilla_certs ? "mozilla" : "system"}});
     }
 
     QJsonObject buildDnsObj(QString address, std::shared_ptr<BuildSingBoxConfigContext> &ctx) {
@@ -259,7 +265,7 @@ namespace Configs {
             if (ctx->tunEnabled && ctx->os == Darwin) {
                 return {
                     {"type", "udp"},
-                    {"server", dataStore->core_box_underlying_dns}
+                    {"server", Configs::dataManager->settingsRepo->core_box_underlying_dns}
                 };
             }
             return {{"type", "local"}};
@@ -319,14 +325,14 @@ namespace Configs {
     }
 
     void buildDNSSection(std::shared_ptr<BuildSingBoxConfigContext> &ctx, bool useDnsObj) {
-        if (getOS() == Darwin && dataStore->core_box_underlying_dns.isEmpty() && dataStore->spmode_vpn)
+        if (getOS() == Darwin && Configs::dataManager->settingsRepo->core_box_underlying_dns.isEmpty() && Configs::dataManager->settingsRepo->spmode_vpn)
         {
             ctx->error = QObject::tr("Local DNS and Tun mode do not work together, please set an IP to be used as the Local DNS server in the Routing Settings -> Local override");
             return;
         }
 
-        if (dataStore->routing->use_dns_object && useDnsObj) {
-            ctx->buildConfigResult->coreConfig["dns"] = QString2QJsonObject(dataStore->routing->dns_object);
+        if (Configs::dataManager->settingsRepo->use_dns_object && useDnsObj) {
+            ctx->buildConfigResult->coreConfig["dns"] = QString2QJsonObject(Configs::dataManager->settingsRepo->dns_object);
             return;
         }
 
@@ -355,7 +361,7 @@ namespace Configs {
                 servers += tailDns;
             } else
             {
-                auto remoteDnsObj = buildDnsObj(dataStore->routing->remote_dns, ctx);
+                auto remoteDnsObj = buildDnsObj(Configs::dataManager->settingsRepo->remote_dns, ctx);
                 remoteDnsObj["tag"] = "dns-remote";
                 remoteDnsObj["domain_resolver"] = "dns-local";
                 remoteDnsObj["detour"] = "proxy";
@@ -364,10 +370,10 @@ namespace Configs {
         }
 
         // direct
-        auto directDnsObj = buildDnsObj(dataStore->routing->direct_dns, ctx);
+        auto directDnsObj = buildDnsObj(Configs::dataManager->settingsRepo->direct_dns, ctx);
         directDnsObj["tag"] = "dns-direct";
         directDnsObj["domain_resolver"] = "dns-local";
-        if (dataStore->routing->dns_final_out == "direct") {
+        if (Configs::dataManager->settingsRepo->dns_final_out == "direct") {
             servers.prepend(directDnsObj);
         } else {
             servers.append(directDnsObj);
@@ -393,7 +399,7 @@ namespace Configs {
         }
 
         // HijackRules
-        if (dataStore->enable_dns_server && !ctx->forTest)
+        if (Configs::dataManager->settingsRepo->enable_dns_server && !ctx->forTest)
         {
             rules += QJsonObject{
                         {"rule_set", hijackDeps->hijackGeoAssets},
@@ -403,10 +409,10 @@ namespace Configs {
                         {"query_type", "A"},
                         {"action", "predefined"},
                         {"rcode", "NOERROR"},
-                        {"answer", QString("* IN A %1").arg(dataStore->dns_v4_resp)},
+                        {"answer", QString("* IN A %1").arg(Configs::dataManager->settingsRepo->dns_v4_resp)},
                     };
 
-            if (!dataStore->dns_v6_resp.isEmpty())
+            if (!Configs::dataManager->settingsRepo->dns_v6_resp.isEmpty())
             {
                 rules += QJsonObject{
                             {"rule_set", hijackDeps->hijackGeoAssets},
@@ -416,13 +422,13 @@ namespace Configs {
                             {"query_type", "AAAA"},
                             {"action", "predefined"},
                             {"rcode", "NOERROR"},
-                            {"answer", QString("* IN AAAA %1").arg(dataStore->dns_v6_resp)},
+                            {"answer", QString("* IN AAAA %1").arg(Configs::dataManager->settingsRepo->dns_v6_resp)},
                         };
             }
         }
 
         // FakeIP
-        if (dataStore->fake_dns) {
+        if (Configs::dataManager->settingsRepo->fake_dns) {
             servers += QJsonObject{
                     {"tag", "dns-fake"},
                     {"type", "fakeip"},
@@ -453,7 +459,7 @@ namespace Configs {
         }
 
         // Local
-        auto dnsLocalAddress = dataStore->core_box_underlying_dns.isEmpty() ? "local" : dataStore->core_box_underlying_dns;
+        auto dnsLocalAddress = Configs::dataManager->settingsRepo->core_box_underlying_dns.isEmpty() ? "local" : Configs::dataManager->settingsRepo->core_box_underlying_dns;
         auto dnsLocalObj = buildDnsObj(dnsLocalAddress, ctx);
         dnsLocalObj["tag"] = "dns-local";
         servers += dnsLocalObj;
@@ -474,27 +480,27 @@ namespace Configs {
             QJsonObject inboundObj;
             inboundObj["tag"] = "mixed-in";
             inboundObj["type"] = "mixed";
-            inboundObj["listen"] = dataStore->inbound_address;
-            inboundObj["listen_port"] = dataStore->inbound_socks_port;
+            inboundObj["listen"] = Configs::dataManager->settingsRepo->inbound_address;
+            inboundObj["listen_port"] = Configs::dataManager->settingsRepo->inbound_socks_port;
             inbounds += inboundObj;
         }
 
         // Tun
-        if (dataStore->spmode_vpn && !ctx->forTest) {
+        if (Configs::dataManager->settingsRepo->spmode_vpn && !ctx->forTest) {
             QJsonObject inboundObj;
             inboundObj["tag"] = "tun-in";
             inboundObj["type"] = "tun";
             inboundObj["interface_name"] = genTunName();
             inboundObj["auto_route"] = true;
-            inboundObj["mtu"] = dataStore->vpn_mtu;
-            inboundObj["stack"] = dataStore->vpn_implementation;
-            inboundObj["strict_route"] = dataStore->vpn_strict_route;
+            inboundObj["mtu"] = Configs::dataManager->settingsRepo->vpn_mtu;
+            inboundObj["stack"] = Configs::dataManager->settingsRepo->vpn_implementation;
+            inboundObj["strict_route"] = Configs::dataManager->settingsRepo->vpn_strict_route;
             if (ctx->os == Linux) inboundObj["auto_redirect"] = true;
             auto tunAddress = QJsonArray{"172.19.0.1/24"};
-            if (dataStore->vpn_ipv6) tunAddress += "fdfe:dcba:9876::1/96";
+            if (Configs::dataManager->settingsRepo->vpn_ipv6) tunAddress += "fdfe:dcba:9876::1/96";
             inboundObj["address"] = tunAddress;
 
-            if (ctx->buildPrerequisities->routingDeps->defaultOutboundID == proxyID && dataStore->enable_tun_routing)
+            if (ctx->buildPrerequisities->routingDeps->defaultOutboundID == proxyID && Configs::dataManager->settingsRepo->enable_tun_routing)
             {
                 QJsonArray routeExcludeAddrs = {"127.0.0.0/8"};
                 QJsonArray routeExcludeSets;
@@ -507,36 +513,36 @@ namespace Configs {
         }
 
         // Hijack
-        if (dataStore->enable_redirect && !ctx->forTest) {
+        if (Configs::dataManager->settingsRepo->enable_redirect && !ctx->forTest) {
             inbounds.prepend(QJsonObject{
                 {"tag", "hijack"},
                 {"type", "direct"},
-                {"listen", dataStore->redirect_listen_address},
-                {"listen_port", dataStore->redirect_listen_port},
+                {"listen", Configs::dataManager->settingsRepo->redirect_listen_address},
+                {"listen_port", Configs::dataManager->settingsRepo->redirect_listen_port},
             });
         }
-        if (dataStore->enable_dns_server && !ctx->forTest) {
+        if (Configs::dataManager->settingsRepo->enable_dns_server && !ctx->forTest) {
             inbounds.prepend(QJsonObject{
                 {"tag", "dns-in"},
                 {"type", "direct"},
-                {"listen", dataStore->dns_server_listen_lan ? "0.0.0.0" : "127.1.1.1"},
-                {"listen_port", dataStore->dns_server_listen_port},
+                {"listen", Configs::dataManager->settingsRepo->dns_server_listen_lan ? "0.0.0.0" : "127.1.1.1"},
+                {"listen_port", Configs::dataManager->settingsRepo->dns_server_listen_port},
             });
         }
 
         // custom
-        if (!ctx->forTest) QJSONARRAY_ADD(inbounds, QString2QJsonObject(dataStore->custom_inbound)["inbounds"].toArray())
+        if (!ctx->forTest) QJSONARRAY_ADD(inbounds, QString2QJsonObject(Configs::dataManager->settingsRepo->custom_inbound)["inbounds"].toArray())
         ctx->buildConfigResult->coreConfig["inbounds"] = inbounds;
     }
 
-    void entIDListtoEntList(const QList<int>& entIDs, QList<std::shared_ptr<ProxyEntity>> &ents, QString& error)
+    void entIDListtoEntList(const QList<int>& entIDs, QList<std::shared_ptr<Profile>> &ents, QString& error)
     {
         bool hasExtracore = false;
         bool hasCustom = false;
         bool hasXray = false;
         for (auto id : entIDs)
         {
-            auto ent = profileManager->GetProfile(id);
+            auto ent = Configs::dataManager->profilesRepo->GetProfile(id);
             if (ent == nullptr)
             {
                 error = "Null proxy in chain, you may want to check your configs";
@@ -559,7 +565,7 @@ namespace Configs {
     }
 
     QList<int> unwrapChain(int entID) {
-        auto ent = profileManager->GetProfile(entID);
+        auto ent = Configs::dataManager->profilesRepo->GetProfile(entID);
         if (ent == nullptr)
         {
             return {};
@@ -574,7 +580,7 @@ namespace Configs {
 
     void buildOutboundChain(std::shared_ptr<BuildSingBoxConfigContext> &ctx, const QList<int>& entIDs, const QString& prefix, bool includeProxy, bool link, int xrayPort = -1)
     {
-        QList<std::shared_ptr<ProxyEntity>> ents;
+        QList<std::shared_ptr<Profile>> ents;
         entIDListtoEntList(entIDs, ents, ctx->error);
         for (int idx = 0; idx < ents.size(); idx++)
         {
@@ -619,7 +625,7 @@ namespace Configs {
         // First, our own ent
         bool noChain = ctx->ent->outbound->IsXray();
         QList<int> entIDs;
-        auto group = profileManager->GetGroup(ctx->ent->gid);
+        auto group = Configs::dataManager->groupsRepo->GetGroup(ctx->ent->gid);
         if (group == nullptr)
         {
             ctx->error = "No group found for ent, data is corrupted";
@@ -656,16 +662,16 @@ namespace Configs {
     }
 
     void buildRouteSection(std::shared_ptr<BuildSingBoxConfigContext> &ctx) {
-        auto routeChain = profileManager->GetRouteChain(dataStore->routing->current_route_id);
+        auto routeChain = Configs::dataManager->routesRepo->GetRouteProfile(Configs::dataManager->settingsRepo->current_route_id);
         if (routeChain == nullptr) {
             ctx->error = "Routing profile does not exist, try resetting the route profile in Routing Settings";
             return;
         }
-        routeChain = std::make_shared<RoutingChain>(*routeChain);
+        routeChain = std::make_shared<RouteProfile>(*routeChain);
         auto routeDeps = ctx->buildPrerequisities->routingDeps;
 
         // hijack
-        if (dataStore->enable_dns_server && !ctx->forTest)
+        if (Configs::dataManager->settingsRepo->enable_dns_server && !ctx->forTest)
         {
             auto sniffRule = std::make_shared<RouteRule>();
             sniffRule->action = "sniff";
@@ -678,7 +684,7 @@ namespace Configs {
             routeChain->Rules.prepend(redirRule);
             routeChain->Rules.prepend(sniffRule);
         }
-        if (dataStore->enable_redirect && !ctx->forTest) {
+        if (Configs::dataManager->settingsRepo->enable_redirect && !ctx->forTest) {
             auto sniffRule = std::make_shared<RouteRule>();
             sniffRule->action = "sniff";
             sniffRule->sniffOverrideDest = true;
@@ -687,15 +693,15 @@ namespace Configs {
         }
 
         // sniff and resolve
-        if (!dataStore->routing->domain_strategy.isEmpty())
+        if (!Configs::dataManager->settingsRepo->domain_strategy.isEmpty())
         {
             auto resolveRule = std::make_shared<RouteRule>();
             resolveRule->action = "resolve";
-            resolveRule->strategy = dataStore->routing->domain_strategy;
+            resolveRule->strategy = Configs::dataManager->settingsRepo->domain_strategy;
             resolveRule->inbound = {"mixed-in", "tun-in"};
             routeChain->Rules.prepend(resolveRule);
         }
-        if (dataStore->routing->sniffing_mode != SniffingMode::DISABLE)
+        if (Configs::dataManager->settingsRepo->sniffing_mode != SniffingMode::DISABLE)
         {
             auto sniffRule = std::make_shared<RouteRule>();
             sniffRule->action = "sniff";
@@ -734,7 +740,7 @@ namespace Configs {
         }
 
         // add block
-        if (dataStore->adblock_enable) {
+        if (Configs::dataManager->settingsRepo->adblock_enable) {
             ruleSetArray += QJsonObject{
                         {"type", "remote"},
                         {"tag", "throne-adblocksingbox"},
@@ -748,11 +754,11 @@ namespace Configs {
         route["rules"] = routeRules;
         route["rule_set"] = ruleSetArray;
         route["final"] = outboundIDToString(routeChain->defaultOutboundID);
-        if (dataStore->enable_stats)  route["find_process"] = true;
+        if (Configs::dataManager->settingsRepo->enable_stats)  route["find_process"] = true;
         route["default_domain_resolver"] = QJsonObject{
                                 {"server", "dns-direct"},
-                                {"strategy", dataStore->routing->outbound_domain_strategy}};
-        if (dataStore->spmode_vpn) route["auto_detect_interface"] = true;
+                                {"strategy", Configs::dataManager->settingsRepo->outbound_domain_strategy}};
+        if (Configs::dataManager->settingsRepo->spmode_vpn) route["auto_detect_interface"] = true;
 
         ctx->buildConfigResult->coreConfig["route"] = route;
     }
@@ -764,14 +770,14 @@ namespace Configs {
         QJsonObject clash_api = {
             {"default_mode", ""} // dummy to make sure it is created
         };
-        if (dataStore->core_box_clash_api > 0){
+        if (Configs::dataManager->settingsRepo->core_box_clash_api > 0){
             clash_api = {
-                {"external_controller", dataStore->core_box_clash_listen_addr + ":" + Int2String(dataStore->core_box_clash_api)},
-                {"secret", dataStore->core_box_clash_api_secret},
+                {"external_controller", Configs::dataManager->settingsRepo->core_box_clash_listen_addr + ":" + Int2String(Configs::dataManager->settingsRepo->core_box_clash_api)},
+                {"secret", Configs::dataManager->settingsRepo->core_box_clash_api_secret},
                 {"external_ui", "dashboard"},
                 };
         }
-        if (dataStore->core_box_clash_api > 0 || dataStore->enable_stats)
+        if (Configs::dataManager->settingsRepo->core_box_clash_api > 0 || Configs::dataManager->settingsRepo->enable_stats)
         {
             experimentalObj["clash_api"] = clash_api;
         }
@@ -814,8 +820,8 @@ namespace Configs {
         }
 
         ctx->buildConfigResult->xrayConfig["log"] = QJsonObject{
-        {"loglevel", dataStore->xray_log_level},
-        {"access", dataStore->xray_log_level == "info" ? "" : "none"}
+        {"loglevel", Configs::dataManager->settingsRepo->xray_log_level},
+        {"access", Configs::dataManager->settingsRepo->xray_log_level == "info" ? "" : "none"}
         };
         ctx->buildConfigResult->xrayConfig["inbounds"] = inbounds;
         ctx->buildConfigResult->xrayConfig["outbounds"] = outbounds;
@@ -825,7 +831,7 @@ namespace Configs {
         };
     }
 
-    std::shared_ptr<BuildConfigResult> BuildSingBoxConfig(const std::shared_ptr<ProxyEntity>& ent) {
+    std::shared_ptr<BuildConfigResult> BuildSingBoxConfig(const std::shared_ptr<Profile>& ent) {
         if (ent->type == "custom")
         {
             auto res = std::make_shared<BuildConfigResult>();
@@ -904,7 +910,7 @@ namespace Configs {
         return ctx->buildConfigResult;
     }
 
-    bool IsValid(const std::shared_ptr<ProxyEntity>& ent)
+    bool IsValid(const std::shared_ptr<Profile>& ent)
     {
         if (ent->type == "chain")
         {
@@ -916,7 +922,7 @@ namespace Configs {
             }
             for (int eId : chain->list)
             {
-                auto e = profileManager->GetProfile(eId);
+                auto e = Configs::dataManager->profilesRepo->GetProfile(eId);
                 if (e == nullptr)
                 {
                     MW_show_log("Null ent in validator");
@@ -968,7 +974,7 @@ namespace Configs {
         return false;
     }
 
-    std::shared_ptr<BuildTestConfigResult> BuildTestConfig(const QList<std::shared_ptr<ProxyEntity> > &profiles)
+    std::shared_ptr<BuildTestConfigResult> BuildTestConfig(const QList<std::shared_ptr<Profile> > &profiles)
     {
         auto res = std::make_shared<BuildTestConfigResult>();
         auto ctx = std::make_shared<BuildSingBoxConfigContext>();
@@ -1030,7 +1036,7 @@ namespace Configs {
                 }
             }
             auto IDs = unwrapChain(item->id);
-            auto group = profileManager->GetGroup(item->gid);
+            auto group = Configs::dataManager->groupsRepo->GetGroup(item->gid);
             if (group == nullptr) {
                 res->error = "Null group on profile, data is corrupted";
                 return res;
@@ -1059,7 +1065,7 @@ namespace Configs {
                 {"auto_detect_interface", true},
                 {"default_domain_resolver", QJsonObject{
                         {"server", "dns-direct"},
-                        {"strategy", dataStore->routing->outbound_domain_strategy},
+                        {"strategy", Configs::dataManager->settingsRepo->outbound_domain_strategy},
                    }}
         };
         res->coreConfig = ctx->buildConfigResult->coreConfig;

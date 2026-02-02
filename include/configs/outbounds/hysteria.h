@@ -26,27 +26,9 @@ namespace Configs
 
         std::shared_ptr<TLS> tls = std::make_shared<TLS>();
 
-        hysteria() : outbound()
+        hysteria()
         {
-            tls->utls->supported = false;
-            _add(new configItem("protocol_version", &protocol_version, string));
-            _add(new configItem("server_ports", &server_ports, stringList));
-            _add(new configItem("hop_interval", &hop_interval, string));
-            _add(new configItem("up_mbps", &up_mbps, integer));
-            _add(new configItem("down_mbps", &down_mbps, integer));
-            _add(new configItem("obfs", &obfs, string));
-
-            // Hysteria1
-            _add(new configItem("auth_type", &auth_type, string));
-            _add(new configItem("auth", &auth, string));
-            _add(new configItem("recv_window_conn", &recv_window_conn, integer));
-            _add(new configItem("recv_window", &recv_window, integer));
-            _add(new configItem("disable_mtu_discovery", &disable_mtu_discovery, boolean));
-
-            // Hysteria2
-            _add(new configItem("password", &password, string));
-
-            _add(new configItem("tls", dynamic_cast<JsonStore *>(tls.get()), jsonStore));
+            tls->utls->supported = false;;
         }
 
         bool HasTLS() override {

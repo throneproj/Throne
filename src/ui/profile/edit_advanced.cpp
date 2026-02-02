@@ -2,9 +2,7 @@
 
 #include <QInputDialog>
 
-#include "include/dataStore/ProxyEntity.hpp"
-
-EditAdvanced::EditAdvanced(QWidget *parent, const std::shared_ptr<Configs::ProxyEntity> &_ent)
+EditAdvanced::EditAdvanced(QWidget *parent, const std::shared_ptr<Configs::Profile> &_ent)
     : QDialog(parent)
     , ui(new Ui::EditAdvanced)
 {

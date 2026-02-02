@@ -2,12 +2,12 @@
 
 #include <QPushButton>
 
-#include "include/dataStore/ProxyEntity.hpp"
+#include "include/database/entities/Profile.h"
 #include "include/global/GuiUtils.hpp"
 
 class ProfileEditor {
 public:
-    virtual void onStart(std::shared_ptr<Configs::ProxyEntity> ent) = 0;
+    virtual void onStart(std::shared_ptr<Configs::Profile> ent) = 0;
 
     virtual bool onEnd() = 0;
 

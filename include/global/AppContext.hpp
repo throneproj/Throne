@@ -1,7 +1,6 @@
 #pragma once
 
 #include "include/global/Configs.hpp"
-#include "include/dataStore/Database.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/stats/traffic/TrafficLooper.hpp"
 #include "include/stats/connections/connectionLister.hpp"
@@ -24,8 +23,6 @@ public:
     }
 
     // Доступ к глобальным синглтонам
-    DataStore* dataStore() const { return Configs::dataStore; }
-    ProfileManager* profileManager() const { return Configs::profileManager; }
     ThemeManager* themeManager() const { return ThemeManager::instance(); }
     Stats::TrafficLooper* trafficLooper() const { return Stats::trafficLooper; }
     ConnectionLister* connectionLister() const { return Stats::connection_lister; }

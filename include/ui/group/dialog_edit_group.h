@@ -1,8 +1,8 @@
 #pragma once
 
 #include <QDialog>
-#include "include/dataStore/Group.hpp"
 #include "ui_dialog_edit_group.h"
+#include "include/database/entities/Group.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {

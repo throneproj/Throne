@@ -177,7 +177,7 @@ void AutoRun_SetEnabled(bool enable) {
 
     appCmdList << "-tray";
 
-    if (Configs::dataStore->flag_use_appdata) {
+    if (Configs::dataManager->settingsRepo->flag_use_appdata) {
         appCmdList << "-appdata";
     }
 

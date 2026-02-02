@@ -2,11 +2,8 @@
 
 #include <QClipboard>
 
-#include "include/dataStore/Database.hpp"
-
 #include "3rdparty/qv2ray/v2/ui/widgets/editors/w_JsonEditor.hpp"
 #include "include/global/GuiUtils.hpp"
-#include "include/configs/proxy/Preset.hpp"
 
 #include <QFile>
 #include <QMessageBox>
@@ -14,6 +11,10 @@
 #include <QTimer>
 #include <QToolTip>
 #include <include/api/RPC.h>
+
+#include "include/database/RoutesRepo.h"
+
+
 
 void DialogManageRoutes::reloadProfileItems() {
     if (chainList.empty()) {
@@ -61,31 +62,31 @@ bool DialogManageRoutes::validate_dns_rules(const QString &rawString) {
 
 DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(new Ui::DialogManageRoutes) {
     ui->setupUi(this);
-    auto profiles = Configs::profileManager->routes;
+    auto profiles = Configs::dataManager->routesRepo->GetAllRouteProfiles();
     for (const auto &item: profiles) {
-        chainList << item.second;
+        chainList << item;
     }
     if (chainList.empty()) {
-        auto defaultChain = Configs::RoutingChain::GetDefaultChain();
-        Configs::profileManager->AddRouteChain(defaultChain);
+        auto defaultChain = Configs::RouteProfile::GetDefaultChain();
+        Configs::dataManager->routesRepo->AddRouteProfile(defaultChain);
         chainList.append(defaultChain);
     }
-    currentRoute = Configs::profileManager->GetRouteChain(Configs::dataStore->routing->current_route_id);
+    currentRoute = Configs::dataManager->routesRepo->GetRouteProfile(Configs::dataManager->settingsRepo->current_route_id);
     if (currentRoute == nullptr) currentRoute = chainList[0];
 
     QStringList qsValue = {""};
     QString dnsHelpDocumentUrl;
 
-    ui->outbound_domain_strategy->addItems(Preset::SingBox::DomainStrategy);
-    ui->domainStrategyCombo->addItems(Preset::SingBox::DomainStrategy);
+    ui->outbound_domain_strategy->addItems(Configs::DomainStrategy::DomainStrategy);
+    ui->domainStrategyCombo->addItems(Configs::DomainStrategy::DomainStrategy);
     qsValue += QString("prefer_ipv4 prefer_ipv6 ipv4_only ipv6_only").split(" ");
     ui->dns_object->setPlaceholderText(DecodeB64IfValid("ewogICJzZXJ2ZXJzIjogW10sCiAgInJ1bGVzIjogW10sCiAgImZpbmFsIjogIiIsCiAgInN0cmF0ZWd5IjogIiIsCiAgImRpc2FibGVfY2FjaGUiOiBmYWxzZSwKICAiZGlzYWJsZV9leHBpcmUiOiBmYWxzZSwKICAiaW5kZXBlbmRlbnRfY2FjaGUiOiBmYWxzZSwKICAicmV2ZXJzZV9tYXBwaW5nIjogZmFsc2UsCiAgImZha2VpcCI6IHt9Cn0="));
     dnsHelpDocumentUrl = "https://sing-box.sagernet.org/configuration/dns/";
 
     ui->direct_dns_strategy->addItems(qsValue);
     ui->remote_dns_strategy->addItems(qsValue);
-    ui->local_override->setText(Configs::dataStore->core_box_underlying_dns);
-    ui->enable_fakeip->setChecked(Configs::dataStore->fake_dns);
+    ui->local_override->setText(Configs::dataManager->settingsRepo->core_box_underlying_dns);
+    ui->enable_fakeip->setChecked(Configs::dataManager->settingsRepo->fake_dns);
     //
     connect(ui->use_dns_object, &QCheckBox::stateChanged, this, [=,this](int state) {
         auto useDNSObject = state == Qt::Checked;
@@ -104,17 +105,17 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
             ui->dns_object->setPlainText(QJsonObject2QString(obj, false));
         }
     });
-    ui->sniffing_mode->setCurrentIndex(Configs::dataStore->routing->sniffing_mode);
-    ui->ruleset_mirror->setCurrentIndex(Configs::dataStore->routing->ruleset_mirror);
-    ui->outbound_domain_strategy->setCurrentText(Configs::dataStore->routing->outbound_domain_strategy);
-    ui->domainStrategyCombo->setCurrentText(Configs::dataStore->routing->domain_strategy);
-    ui->use_dns_object->setChecked(Configs::dataStore->routing->use_dns_object);
-    ui->dns_object->setPlainText(Configs::dataStore->routing->dns_object);
-    ui->remote_dns->setCurrentText(Configs::dataStore->routing->remote_dns);
-    ui->remote_dns_strategy->setCurrentText(Configs::dataStore->routing->remote_dns_strategy);
-    ui->direct_dns->setCurrentText(Configs::dataStore->routing->direct_dns);
-    ui->direct_dns_strategy->setCurrentText(Configs::dataStore->routing->direct_dns_strategy);
-    ui->dns_final_out->setCurrentText(Configs::dataStore->routing->dns_final_out);
+    ui->sniffing_mode->setCurrentIndex(Configs::dataManager->settingsRepo->sniffing_mode);
+    ui->ruleset_mirror->setCurrentIndex(Configs::dataManager->settingsRepo->ruleset_mirror);
+    ui->outbound_domain_strategy->setCurrentText(Configs::dataManager->settingsRepo->outbound_domain_strategy);
+    ui->domainStrategyCombo->setCurrentText(Configs::dataManager->settingsRepo->domain_strategy);
+    ui->use_dns_object->setChecked(Configs::dataManager->settingsRepo->use_dns_object);
+    ui->dns_object->setPlainText(Configs::dataManager->settingsRepo->dns_object);
+    ui->remote_dns->setCurrentText(Configs::dataManager->settingsRepo->remote_dns);
+    ui->remote_dns_strategy->setCurrentText(Configs::dataManager->settingsRepo->remote_dns_strategy);
+    ui->direct_dns->setCurrentText(Configs::dataManager->settingsRepo->direct_dns);
+    ui->direct_dns_strategy->setCurrentText(Configs::dataManager->settingsRepo->direct_dns_strategy);
+    ui->dns_final_out->setCurrentText(Configs::dataManager->settingsRepo->dns_final_out);
     reloadProfileItems();
 
     connect(ui->route_profiles, &QListWidget::itemDoubleClicked, this, [=,this](const QListWidgetItem* item){
@@ -130,13 +131,13 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     });
 
     // hijack
-    ui->dnshijack_enable->setChecked(Configs::dataStore->enable_dns_server);
-    set_dns_hijack_enability(Configs::dataStore->enable_dns_server);
-    ui->dnshijack_allow_lan->setChecked(Configs::dataStore->dns_server_listen_lan);
+    ui->dnshijack_enable->setChecked(Configs::dataManager->settingsRepo->enable_dns_server);
+    set_dns_hijack_enability(Configs::dataManager->settingsRepo->enable_dns_server);
+    ui->dnshijack_allow_lan->setChecked(Configs::dataManager->settingsRepo->dns_server_listen_lan);
     ui->dnshijack_listenport->setValidator(QRegExpValidator_Number);
-    ui->dnshijack_listenport->setText(Int2String(Configs::dataStore->dns_server_listen_port));
-    ui->dnshijack_v4resp->setText(Configs::dataStore->dns_v4_resp);
-    ui->dnshijack_v6resp->setText(Configs::dataStore->dns_v6_resp);
+    ui->dnshijack_listenport->setText(Int2String(Configs::dataManager->settingsRepo->dns_server_listen_port));
+    ui->dnshijack_v4resp->setText(Configs::dataManager->settingsRepo->dns_v4_resp);
+    ui->dnshijack_v6resp->setText(Configs::dataManager->settingsRepo->dns_v6_resp);
     connect(ui->dnshijack_what, &QPushButton::clicked, this, [=,this] {
         MessageBoxInfo("What is this?", Configs::Information::HijackInfo);
     });
@@ -147,19 +148,19 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     }
     rule_editor = new AutoCompleteTextEdit("", ruleItems, this);
     ui->hijack_box->layout()->replaceWidget(ui->dnshijack_rules, rule_editor);
-    rule_editor->setPlainText(Configs::dataStore->dns_server_rules.join("\n"));
+    rule_editor->setPlainText(Configs::dataManager->settingsRepo->dns_server_rules.join("\n"));
     ui->dnshijack_rules->hide();
 #ifndef Q_OS_LINUX
     ui->dnshijack_listenport->setVisible(false);
     ui->dnshijack_listenport_l->setVisible(false);
 #endif
 
-    ui->redirect_enable->setChecked(Configs::dataStore->enable_redirect);
-    ui->redirect_listenaddr->setEnabled(Configs::dataStore->enable_redirect);
-    ui->redirect_listenaddr->setText(Configs::dataStore->redirect_listen_address);
-    ui->redirect_listenport->setEnabled(Configs::dataStore->enable_redirect);
+    ui->redirect_enable->setChecked(Configs::dataManager->settingsRepo->enable_redirect);
+    ui->redirect_listenaddr->setEnabled(Configs::dataManager->settingsRepo->enable_redirect);
+    ui->redirect_listenaddr->setText(Configs::dataManager->settingsRepo->redirect_listen_address);
+    ui->redirect_listenport->setEnabled(Configs::dataManager->settingsRepo->enable_redirect);
     ui->redirect_listenport->setValidator(QRegExpValidator_Number);
-    ui->redirect_listenport->setText(Int2String(Configs::dataStore->redirect_listen_port));
+    ui->redirect_listenport->setText(Int2String(Configs::dataManager->settingsRepo->redirect_listen_port));
 
     connect(ui->dnshijack_enable, &QCheckBox::stateChanged, this, [=,this](bool state) {
         set_dns_hijack_enability(state);
@@ -190,42 +191,42 @@ void DialogManageRoutes::accept() {
         return;
     }
 
-    Configs::dataStore->routing->sniffing_mode = ui->sniffing_mode->currentIndex();
-    Configs::dataStore->routing->ruleset_mirror = ui->ruleset_mirror->currentIndex();
-    Configs::dataStore->routing->domain_strategy = ui->domainStrategyCombo->currentText();
-    Configs::dataStore->routing->outbound_domain_strategy = ui->outbound_domain_strategy->currentText();
-    Configs::dataStore->routing->use_dns_object = ui->use_dns_object->isChecked();
-    Configs::dataStore->routing->dns_object = ui->dns_object->toPlainText();
-    Configs::dataStore->routing->remote_dns = ui->remote_dns->currentText();
-    Configs::dataStore->routing->remote_dns_strategy = ui->remote_dns_strategy->currentText();
-    Configs::dataStore->routing->direct_dns = ui->direct_dns->currentText();
-    Configs::dataStore->routing->direct_dns_strategy = ui->direct_dns_strategy->currentText();
-    Configs::dataStore->core_box_underlying_dns = ui->local_override->text().trimmed();
-    Configs::dataStore->routing->dns_final_out = ui->dns_final_out->currentText();
-    Configs::dataStore->fake_dns = ui->enable_fakeip->isChecked();
+    Configs::dataManager->settingsRepo->sniffing_mode = ui->sniffing_mode->currentIndex();
+    Configs::dataManager->settingsRepo->ruleset_mirror = ui->ruleset_mirror->currentIndex();
+    Configs::dataManager->settingsRepo->domain_strategy = ui->domainStrategyCombo->currentText();
+    Configs::dataManager->settingsRepo->outbound_domain_strategy = ui->outbound_domain_strategy->currentText();
+    Configs::dataManager->settingsRepo->use_dns_object = ui->use_dns_object->isChecked();
+    Configs::dataManager->settingsRepo->dns_object = ui->dns_object->toPlainText();
+    Configs::dataManager->settingsRepo->remote_dns = ui->remote_dns->currentText();
+    Configs::dataManager->settingsRepo->remote_dns_strategy = ui->remote_dns_strategy->currentText();
+    Configs::dataManager->settingsRepo->direct_dns = ui->direct_dns->currentText();
+    Configs::dataManager->settingsRepo->direct_dns_strategy = ui->direct_dns_strategy->currentText();
+    Configs::dataManager->settingsRepo->core_box_underlying_dns = ui->local_override->text().trimmed();
+    Configs::dataManager->settingsRepo->dns_final_out = ui->dns_final_out->currentText();
+    Configs::dataManager->settingsRepo->fake_dns = ui->enable_fakeip->isChecked();
 
-    Configs::profileManager->UpdateRouteChains(chainList);
-    Configs::dataStore->routing->current_route_id = currentRoute->id;
+    Configs::dataManager->routesRepo->UpdateRouteProfiles(chainList);
+    Configs::dataManager->settingsRepo->current_route_id = currentRoute->id;
 
-    Configs::dataStore->enable_dns_server = ui->dnshijack_enable->isChecked();
-    Configs::dataStore->dns_server_listen_port = ui->dnshijack_listenport->text().toInt();
-    Configs::dataStore->dns_v4_resp = ui->dnshijack_v4resp->text();
-    Configs::dataStore->dns_v6_resp = ui->dnshijack_v6resp->text();
+    Configs::dataManager->settingsRepo->enable_dns_server = ui->dnshijack_enable->isChecked();
+    Configs::dataManager->settingsRepo->dns_server_listen_port = ui->dnshijack_listenport->text().toInt();
+    Configs::dataManager->settingsRepo->dns_v4_resp = ui->dnshijack_v4resp->text();
+    Configs::dataManager->settingsRepo->dns_v6_resp = ui->dnshijack_v6resp->text();
     auto rawRules = rule_editor->toPlainText().split("\n");
     QStringList dnsRules;
     for (const auto& rawRule : rawRules) {
         if (rawRule.trimmed().isEmpty()) continue;
         dnsRules.append(rawRule.trimmed());
     }
-    Configs::dataStore->dns_server_rules = dnsRules;
+    Configs::dataManager->settingsRepo->dns_server_rules = dnsRules;
 
-    Configs::dataStore->dns_server_listen_lan = ui->dnshijack_allow_lan->isChecked();
-    Configs::dataStore->enable_redirect = ui->redirect_enable->isChecked();
-    Configs::dataStore->redirect_listen_address = ui->redirect_listenaddr->text();
-    Configs::dataStore->redirect_listen_port = ui->redirect_listenport->text().toInt();
+    Configs::dataManager->settingsRepo->dns_server_listen_lan = ui->dnshijack_allow_lan->isChecked();
+    Configs::dataManager->settingsRepo->enable_redirect = ui->redirect_enable->isChecked();
+    Configs::dataManager->settingsRepo->redirect_listen_address = ui->redirect_listenaddr->text();
+    Configs::dataManager->settingsRepo->redirect_listen_port = ui->redirect_listenport->text().toInt();
 
     //
-    QStringList msg{"UpdateDataStore"};
+    QStringList msg{"UpdateConfigs::dataManager->settingsRepo"};
     msg << "RouteChanged";
     MW_dialog_message("", msg.join(","));
 
@@ -233,10 +234,10 @@ void DialogManageRoutes::accept() {
 }
 
 void DialogManageRoutes::on_new_route_clicked() {
-    routeChainWidget = new RouteItem(this, Configs::ProfileManager::NewRouteChain());
+    routeChainWidget = new RouteItem(this, Configs::dataManager->routesRepo->NewRouteProfile());
     routeChainWidget->setWindowModality(Qt::ApplicationModal);
     routeChainWidget->show();
-    connect(routeChainWidget, &RouteItem::settingsChanged, this, [=,this](const std::shared_ptr<Configs::RoutingChain>& chain) {
+    connect(routeChainWidget, &RouteItem::settingsChanged, this, [=,this](const std::shared_ptr<Configs::RouteProfile>& chain) {
         chainList << chain;
         reloadProfileItems();
     });
@@ -267,10 +268,9 @@ void DialogManageRoutes::on_clone_route_clicked() {
     auto idx = ui->route_profiles->currentRow();
     if (idx < 0) return;
 
-    auto chainCopy = std::make_shared<Configs::RoutingChain>(*chainList[idx]);
+    auto chainCopy = std::make_shared<Configs::RouteProfile>(*chainList[idx]);
     chainCopy->name = chainCopy->name + " clone";
     chainCopy->id = -1;
-    chainCopy->save_control_no_save = false;
     chainList.append(chainCopy);
     reloadProfileItems();
 }
@@ -282,7 +282,7 @@ void DialogManageRoutes::on_edit_route_clicked() {
     routeChainWidget = new RouteItem(this, chainList[idx]);
     routeChainWidget->setWindowModality(Qt::ApplicationModal);
     routeChainWidget->show();
-    connect(routeChainWidget, &RouteItem::settingsChanged, this, [=,this](const std::shared_ptr<Configs::RoutingChain>& chain) {
+    connect(routeChainWidget, &RouteItem::settingsChanged, this, [=,this](const std::shared_ptr<Configs::RouteProfile>& chain) {
         if (currentRoute == chainList[idx]) currentRoute = chain;
         chainList[idx] = chain;
         reloadProfileItems();

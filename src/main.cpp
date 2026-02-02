@@ -11,6 +11,7 @@
 #include <QThread>
 #include <3rdparty/WinCommander.hpp>
 
+
 #include "include/global/Configs.hpp"
 
 #include "include/ui/mainwindow_interface.h"
@@ -96,33 +97,19 @@ int main(int argc, char* argv[]) {
         QFile::remove("updater.old");
     }
 
-    // Flags
-    Configs::dataStore->argv = QApplication::arguments();
-    if (Configs::dataStore->argv.contains("-many")) Configs::dataStore->flag_many = true;
-    if (Configs::dataStore->argv.contains("-appdata")) {
-        Configs::dataStore->flag_use_appdata = true;
-        int appdataIndex = Configs::dataStore->argv.indexOf("-appdata");
-        if (Configs::dataStore->argv.size() > appdataIndex + 1 && !Configs::dataStore->argv.at(appdataIndex + 1).startsWith("-")) {
-            Configs::dataStore->appdataDir = Configs::dataStore->argv.at(appdataIndex + 1);
-        }
-    }
-    if (Configs::dataStore->argv.contains("-tray")) Configs::dataStore->flag_tray = true;
-    if (Configs::dataStore->argv.contains("-debug")) Configs::dataStore->flag_debug = true;
-    if (Configs::dataStore->argv.contains("-flag_restart_tun_on")) Configs::dataStore->flag_restart_tun_on = true;
-    if (Configs::dataStore->argv.contains("-flag_restart_dns_set")) Configs::dataStore->flag_dns_set = true;
-#ifdef NKR_CPP_USE_APPDATA
-    Configs::dataStore->flag_use_appdata = true; // Example: Package & MacOS
-#endif
-#ifdef NKR_CPP_DEBUG
-    Configs::dataStore->flag_debug = true;
-#endif
+    QStringList arguments = QApplication::arguments();
 
     // dirs & clean
     auto wd = QDir(QApplication::applicationDirPath());
-    if (Configs::dataStore->flag_use_appdata) {
+    if (arguments.contains("-appdata")) {
+        QString appDataDir;
+        int appdataIndex = arguments.indexOf("-appdata");
+        if (arguments.size() > appdataIndex + 1 && !arguments.at(appdataIndex + 1).startsWith("-")) {
+            appDataDir = arguments.at(appdataIndex + 1);
+        }
         QApplication::setApplicationName("Throne");
-        if (!Configs::dataStore->appdataDir.isEmpty()) {
-            wd.setPath(Configs::dataStore->appdataDir);
+        if (!appDataDir.isEmpty()) {
+            wd.setPath(appDataDir);
         } else {
             wd.setPath(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
         }
@@ -131,6 +118,30 @@ int main(int argc, char* argv[]) {
     if (!wd.exists("config")) wd.mkdir("config");
     QDir::setCurrent(wd.absoluteFilePath("config"));
     QDir("temp").removeRecursively();
+
+    // Load database
+    Configs::initDB(QString(QDir::currentPath() + QDir::separator() + "throne.db").toStdString());
+
+    // Store Flags
+    Configs::dataManager->settingsRepo->argv = arguments;
+    if (Configs::dataManager->settingsRepo->argv.contains("-many")) Configs::dataManager->settingsRepo->flag_many = true;
+    if (Configs::dataManager->settingsRepo->argv.contains("-appdata")) {
+        Configs::dataManager->settingsRepo->flag_use_appdata = true;
+        int appdataIndex = Configs::dataManager->settingsRepo->argv.indexOf("-appdata");
+        if (Configs::dataManager->settingsRepo->argv.size() > appdataIndex + 1 && !Configs::dataManager->settingsRepo->argv.at(appdataIndex + 1).startsWith("-")) {
+            Configs::dataManager->settingsRepo->appdataDir = Configs::dataManager->settingsRepo->argv.at(appdataIndex + 1);
+        }
+    }
+    if (Configs::dataManager->settingsRepo->argv.contains("-tray")) Configs::dataManager->settingsRepo->flag_tray = true;
+    if (Configs::dataManager->settingsRepo->argv.contains("-debug")) Configs::dataManager->settingsRepo->flag_debug = true;
+    if (Configs::dataManager->settingsRepo->argv.contains("-flag_restart_tun_on")) Configs::dataManager->settingsRepo->flag_restart_tun_on = true;
+    if (Configs::dataManager->settingsRepo->argv.contains("-flag_restart_dns_set")) Configs::dataManager->settingsRepo->flag_dns_set = true;
+#ifdef NKR_CPP_USE_APPDATA
+    Configs::dataManager->settingsRepo->flag_use_appdata = true; // Example: Package & MacOS
+#endif
+#ifdef NKR_CPP_DEBUG
+    Configs::dataManager->settingsRepo->flag_debug = true;
+#endif
 
 #ifdef Q_OS_LINUX
     QApplication::addLibraryPath(QApplication::applicationDirPath() + "/usr/plugins");
@@ -150,68 +161,23 @@ int main(int argc, char* argv[]) {
         QIcon::setThemeName("breeze");
     }
 
-    // Dir
-    QDir dir;
-    bool dir_success = true;
-    if (!dir.exists("profiles")) {
-        dir_success &= dir.mkdir("profiles");
-    }
-    if (!dir.exists("groups")) {
-        dir_success &= dir.mkdir("groups");
-    }
-    if (!dir.exists(ROUTES_PREFIX_NAME)) {
-        dir_success &= dir.mkdir(ROUTES_PREFIX_NAME);
-    }
-    if (!dir_success) {
-        QMessageBox::critical(nullptr, "Error", "No permission to write " + dir.absolutePath());
-        return 1;
-    }
-
-    // migrate the old config file
-    if (QFile::exists("groups/nekobox.json"))
-    {
-        QFile::rename("groups/nekobox.json", "configs.json");
-    }
-
-    // Load dataStore
-    Configs::dataStore->fn = "configs.json";
-    auto isLoaded = Configs::dataStore->Load();
-    if (!isLoaded) {
-        Configs::dataStore->Save();
-    }
-
 #ifdef Q_OS_WIN
-    if (Configs::dataStore->windows_set_admin && !Configs::IsAdmin() && !Configs::dataStore->disable_run_admin)
+    if (Configs::dataManager->settingsRepo->windows_set_admin && !Configs::IsAdmin() && !Configs::dataManager->settingsRepo->disable_run_admin)
     {
-        Configs::dataStore->windows_set_admin = false; // so that if permission denied, we will run as user on the next run
-        Configs::dataStore->Save();
+        Configs::dataManager->settingsRepo->windows_set_admin = false; // so that if permission denied, we will run as user on the next run
+        Configs::dataManager->settingsRepo->Save();
         WinCommander::runProcessElevated(QApplication::applicationFilePath(), {}, "", WinCommander::SW_NORMAL, false);
         QApplication::quit();
         return 0;
     }
 #endif
 
-    // Datastore & Flags
-    if (Configs::dataStore->start_minimal) Configs::dataStore->flag_tray = true;
-
-    // load routing and shortcuts
-    Configs::dataStore->routing = std::make_unique<Configs::Routing>();
-    Configs::dataStore->routing->fn = ROUTES_PREFIX + "Default";
-    isLoaded = Configs::dataStore->routing->Load();
-    if (!isLoaded) {
-        Configs::dataStore->routing->Save();
-    }
-
-    Configs::dataStore->shortcuts = std::make_unique<Configs::Shortcuts>();
-    Configs::dataStore->shortcuts->fn = "shortcuts.json";
-    isLoaded = Configs::dataStore->shortcuts->Load();
-    if (!isLoaded) {
-        Configs::dataStore->shortcuts->Save();
-    }
+    // dataManager->settingsRepo & Flags
+    if (Configs::dataManager->settingsRepo->start_minimal) Configs::dataManager->settingsRepo->flag_tray = true;
 
     // Translate
     QString locale;
-    switch (Configs::dataStore->language) {
+    switch (Configs::dataManager->settingsRepo->language) {
         case 1: // English
             break;
         case 2:

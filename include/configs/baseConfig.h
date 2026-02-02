@@ -10,9 +10,11 @@ namespace Configs
         QString error;
     };
 
-    class baseConfig : public JsonStore
+    class baseConfig
     {
     public:
+        virtual ~baseConfig() = default;
+
         virtual bool ParseFromLink(const QString& link) {
             return false;
         }

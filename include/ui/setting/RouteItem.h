@@ -6,9 +6,9 @@
 #include <QStringListModel>
 #include <QShortcut>
 
-#include "include/dataStore/RouteEntity.h"
 #include "3rdparty/qv2ray/v2/ui/QvAutoCompleteTextEdit.hpp"
 #include "ui_RouteItem.h"
+#include "include/database/entities/RouteProfile.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -20,12 +20,12 @@ class RouteItem : public QDialog {
     Q_OBJECT
 
 public:
-    explicit RouteItem(QWidget *parent = nullptr, const std::shared_ptr<Configs::RoutingChain>& routeChain = nullptr);
+    explicit RouteItem(QWidget *parent = nullptr, const std::shared_ptr<Configs::RouteProfile>& routeChain = nullptr);
     ~RouteItem() override;
 
-    std::shared_ptr<Configs::RoutingChain> chain;
+    std::shared_ptr<Configs::RouteProfile> chain;
 signals:
-    void settingsChanged(std::shared_ptr<Configs::RoutingChain> routingChain);
+    void settingsChanged(std::shared_ptr<Configs::RouteProfile> routingChain);
 
 private:
     Ui::RouteItem *ui;

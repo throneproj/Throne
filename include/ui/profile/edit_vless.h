@@ -18,12 +18,12 @@ public:
 
     ~EditVless() override;
 
-    void onStart(std::shared_ptr<Configs::ProxyEntity> _ent) override;
+    void onStart(std::shared_ptr<Configs::Profile> _ent) override;
 
     bool onEnd() override;
 
     QComboBox *_flow;
 private:
     Ui::EditVless *ui;
-    std::shared_ptr<Configs::ProxyEntity> ent;
+    std::shared_ptr<Configs::Profile> ent;
 };

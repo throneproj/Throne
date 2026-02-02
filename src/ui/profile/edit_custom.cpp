@@ -1,7 +1,6 @@
 #include "include/ui/profile/edit_custom.h"
 
 #include "3rdparty/qv2ray/v2/ui/widgets/editors/w_JsonEditor.hpp"
-#include "include/dataStore/Database.hpp"
 
 #include <QMessageBox>
 #include <QClipboard>
@@ -21,7 +20,7 @@ EditCustom::~EditCustom() {
     delete ui;
 }
 
-void EditCustom::onStart(std::shared_ptr<Configs::ProxyEntity> _ent) {
+void EditCustom::onStart(std::shared_ptr<Configs::Profile> _ent) {
     this->ent = _ent;
     auto outbound = this->ent->Custom();
 

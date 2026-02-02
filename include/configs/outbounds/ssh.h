@@ -15,18 +15,6 @@ namespace Configs
         QStringList host_key_algorithms;
         QString client_version;
 
-        ssh() : outbound()
-        {
-            _add(new configItem("user", &user, string));
-            _add(new configItem("password", &password, string));
-            _add(new configItem("private_key", &private_key, string));
-            _add(new configItem("private_key_path", &private_key_path, string));
-            _add(new configItem("private_key_passphrase", &private_key_passphrase, string));
-            _add(new configItem("host_key", &host_key, stringList));
-            _add(new configItem("host_key_algorithms", &host_key_algorithms, stringList));
-            _add(new configItem("client_version", &client_version, string));
-        }
-
         // baseConfig overrides
         bool ParseFromLink(const QString& link) override;
         bool ParseFromJson(const QJsonObject& object) override;
