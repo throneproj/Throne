@@ -14,6 +14,7 @@ export INPUT_VERSION="${INPUT_VERSION:-0.1}"
 echo "=== Throne local build (linux/$GOARCH) ==="
 
 # 1. Зависимости (запустить с sudo при необходимости)
+# Go 1.25+ в Ubuntu нет — ставится отдельно: https://go.dev/dl/ или через go install/toochain
 check_deps() {
     local missing=""
     command -v cmake >/dev/null || missing="cmake"
@@ -26,8 +27,9 @@ check_deps() {
     if [ -n "$missing" ]; then
         echo "Установите зависимости, например:"
         echo "  sudo apt update"
-        echo "  sudo apt install -y build-essential cmake ninja-build golang protobuf-compiler \\"
+        echo "  sudo apt install -y build-essential cmake ninja-build protobuf-compiler \\"
         echo "    qt6-base-dev qt6-tools-dev qt6-network-dev libqt6dbus6-dev"
+        echo "  Go 1.25+ — не из apt: скачайте с https://go.dev/dl/ и добавьте bin/ в PATH (или export GO_BIN=/path/to/go/bin)."
         echo "Не хватает: $missing"
         return 1
     fi
@@ -39,9 +41,19 @@ if ! check_deps; then
 fi
 
 # PATH: protoc-gen-go, protoc-gen-protorpc (go install → GOPATH/bin); кастомный Go (1.25+)
-# Для Go 1.25: export GO_BIN=/path/to/go/bin перед запуском
+# Для Go 1.25: export GO_BIN=/path/to/go/bin перед запуском (в Ubuntu только 1.22 в пакетах)
 [ -n "$GO_BIN" ] && export PATH="$GO_BIN:$PATH"
 export PATH="$(go env GOPATH 2>/dev/null)/bin:$PATH"
+
+# Проверка версии Go: Core требует 1.25+, в репозиториях Ubuntu только 1.22
+need_go_minor=25
+go_minor=$(go version 2>/dev/null | sed -n 's/.*go1\.\([0-9]*\).*/\1/p')
+if [ -n "$go_minor" ] && [ "$go_minor" -lt "$need_go_minor" ]; then
+    echo "Требуется Go 1.25+, в PATH сейчас: $(go version 2>/dev/null || echo 'go не найден')."
+    echo "Установите Go 1.25+ с https://go.dev/dl/ и добавьте каталог bin в PATH,"
+    echo "или укажите: export GO_BIN=/путь/к/go/bin перед запуском скрипта."
+    exit 1
+fi
 
 if ! command -v protoc-gen-go >/dev/null 2>&1; then
     echo "protoc-gen-go не найден. Установите: go install github.com/golang/protobuf/protoc-gen-go@latest"

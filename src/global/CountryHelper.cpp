@@ -9,5 +9,5 @@ QString CountryCodeToFlag(const QString& countryCode) {
     for (uint& code : ucs4) {
         code += 0x1F1A5;
     }
-    return QString::fromUcs4(ucs4.data(), countryCode.length());
+    return QString::fromUcs4(reinterpret_cast<const char32_t*>(ucs4.data()), ucs4.size());
 }

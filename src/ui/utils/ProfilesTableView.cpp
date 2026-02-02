@@ -56,15 +56,15 @@ void ProfilesTableView::dragMoveEvent(QDragMoveEvent *event) {
         if (!targetIndex.isValid()) {
             QModelIndex lastRowIndex = model()->index(model()->rowCount() - 1, 0);
             QRect rect = visualRect(lastRowIndex);
-            if (event->pos().y() > rect.bottom()) {
+            if (pos.y() > rect.bottom()) {
                 QPoint fakePos(rect.center().x(), rect.bottom() - 5);
 
                 QDragMoveEvent fakeEvent(
                     fakePos,
                     event->possibleActions(),
                     event->mimeData(),
-                    event->mouseButtons(),
-                    event->keyboardModifiers()
+                    event->buttons(),
+                    event->modifiers()
                 );
                 QTableView::dragMoveEvent(&fakeEvent);
                 event->accept();

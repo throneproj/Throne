@@ -72,7 +72,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     // Style
     ui->connection_statistics->setChecked(Configs::dataManager->settingsRepo->enable_stats);
     ui->show_sys_dns->setChecked(Configs::dataManager->settingsRepo->show_system_dns);
-    connect(ui->show_sys_dns, &QCheckBox::stateChanged, this, [=]
+    connect(ui->show_sys_dns, &QCheckBox::stateChanged, this, [=, this]
     {
         CACHE.updateSystemDns = true;
     });
