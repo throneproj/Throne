@@ -29,6 +29,9 @@ namespace Configs
                                   [&](int a, int b) {
                                       auto profA = dataManager->profilesRepo->GetProfile(a);
                                       auto profB = dataManager->profilesRepo->GetProfile(b);
+                                      if (!profA && !profB) return false;
+                                      if (!profA) return false;  // null after non-null
+                                      if (!profB) return true;
                                       QString ms_a;
                                       QString ms_b;
                                       if (sortAction.method == GroupSortMethod::ByType) {

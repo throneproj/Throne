@@ -107,7 +107,7 @@ void MainWindow::runURLTest(const QString& config, const QString& xrayConfig, bo
     });
     bool rpcOK;
     auto result = defaultClient->Test(&rpcOK, req);
-    done->unlock();
+    struct UnlockGuard { QMutex* m; ~UnlockGuard() { if (m) m->unlock(); } } unlockGuard{done};
     //
     if (!rpcOK || result.results.empty()) {
         return;
@@ -408,7 +408,7 @@ void MainWindow::runSpeedTest(const QString& config, const QString& xrayConfig, 
     });
     bool rpcOK;
     auto result = defaultClient->SpeedTest(&rpcOK, req);
-    doneMu->unlock();
+    struct UnlockGuard { QMutex* m; ~UnlockGuard() { if (m) m->unlock(); } } unlockGuard{doneMu};
     //
     if (!rpcOK || result.results.empty()) {
         return;

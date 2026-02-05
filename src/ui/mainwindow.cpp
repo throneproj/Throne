@@ -534,12 +534,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                         });
                         return;
                     }
-                    auto err = new QString;
-                    auto parsed = Configs::RouteProfile::parseJsonArray(QString2QJsonArray(resp.data), err);
-                    if (!err->isEmpty()) {
+                    QString err;
+                    auto parsed = Configs::RouteProfile::parseJsonArray(QString2QJsonArray(resp.data), &err);
+                    if (!err.isEmpty()) {
                         runOnUiThread([=,this]
                         {
-                            MessageBoxInfo(tr("Invalid JSON Array"), tr("The provided input cannot be parsed to a valid route rule array:\n") + *err);
+                            MessageBoxInfo(tr("Invalid JSON Array"), tr("The provided input cannot be parsed to a valid route rule array:\n") + err);
                         });
                         return;
                     }
