@@ -45,7 +45,7 @@ fi
 [ -n "$GO_BIN" ] && export PATH="$GO_BIN:$PATH"
 export PATH="$(go env GOPATH 2>/dev/null)/bin:$PATH"
 
-# Проверка версии Go: Core требует 1.25+, в репозиториях Ubuntu только 1.22
+# Проверка версии Go: Core требует 1.25+
 need_go_minor=25
 go_minor=$(go version 2>/dev/null | sed -n 's/.*go1\.\([0-9]*\).*/\1/p')
 if [ -n "$go_minor" ] && [ "$go_minor" -lt "$need_go_minor" ]; then

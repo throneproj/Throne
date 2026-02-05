@@ -118,14 +118,14 @@ namespace Configs {
         // Routing
         int current_route_id = 0;
         QString remote_dns = "tls://8.8.8.8";
-        QString remote_dns_strategy = "";
-        QString direct_dns = "localhost";
-        QString direct_dns_strategy = "";
+        QString remote_dns_strategy = "prefer_ipv4";
+        QString direct_dns = "8.8.8.8";
+        QString direct_dns_strategy = "prefer_ipv4";
         bool use_dns_object = false;
         QString dns_object = "";
         QString dns_final_out = "proxy";
-        QString domain_strategy = "AsIs";
-        QString outbound_domain_strategy = "AsIs";
+        QString domain_strategy = "prefer_ipv4";
+        QString outbound_domain_strategy = "prefer_ipv4";
         int sniffing_mode = SniffingMode::FOR_ROUTING;
         int ruleset_mirror = Mirrors::CLOUDFLARE;
 

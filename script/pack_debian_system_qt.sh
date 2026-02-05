@@ -35,6 +35,9 @@ Description: Qt based cross-platform GUI proxy configuration manager (backend: s
 EOF
 
 cat >Throne/DEBIAN/postinst <<-EOF
+# TUN mode needs root: setuid on Core so user is not prompted for password after each install/upgrade
+chown root:root /opt/Throne/Core 2>/dev/null && chmod u+s /opt/Throne/Core 2>/dev/null || true
+
 cat >/usr/share/applications/Throne.desktop<<-END
 [Desktop Entry]
 Name=Throne
