@@ -117,7 +117,7 @@ namespace Configs {
         QMap<QString, QKeySequence> shortcuts;
 
         // Routing
-        int current_route_id = 0;
+        int current_route_id = 1;
         QString remote_dns = "tls://8.8.8.8";
         QString remote_dns_strategy = "";
         QString direct_dns = "localhost";
@@ -125,8 +125,8 @@ namespace Configs {
         bool use_dns_object = false;
         QString dns_object = "";
         QString dns_final_out = "proxy";
-        QString domain_strategy = "AsIs";
-        QString outbound_domain_strategy = "AsIs";
+        QString domain_strategy = "";
+        QString outbound_domain_strategy = "";
         int sniffing_mode = SniffingMode::FOR_ROUTING;
         int ruleset_mirror = Mirrors::CLOUDFLARE;
 
