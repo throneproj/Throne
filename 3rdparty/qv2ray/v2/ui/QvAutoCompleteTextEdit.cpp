@@ -65,6 +65,7 @@ namespace Qv2ray::ui::widgets {
     AutoCompleteTextEdit::AutoCompleteTextEdit(const QString &prefix, const QStringList &sourceStrings, QWidget *parent) : QPlainTextEdit(parent) {
         this->prefix = prefix;
         this->setLineWrapMode(QPlainTextEdit::NoWrap);
+        this->setTabChangesFocus(true);
         c = new QCompleter(this);
         c->setModel(new QStringListModel(sourceStrings, c));
         c->setWidget(this);
