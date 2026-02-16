@@ -116,6 +116,11 @@ namespace Qv2ray::ui::widgets {
     }
 
     void AutoCompleteTextEdit::keyPressEvent(QKeyEvent *e) {
+        if (e->key() == Qt::Key_Tab || e->key() == Qt::Key_Backtab) {
+            QPlainTextEdit::keyPressEvent(e);
+            return;
+        }
+
         const bool hasCtrlOrShiftModifier = e->modifiers().testFlag(Qt::ControlModifier) || e->modifiers().testFlag(Qt::ShiftModifier);
         const bool hasOtherModifiers = (e->modifiers() != Qt::NoModifier) && !hasCtrlOrShiftModifier; // has other modifiers
         //
