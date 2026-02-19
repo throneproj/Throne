@@ -68,3 +68,6 @@ Solution:
 
 **Where are the downloadable route profiles/rulesets coming from?**<br/>
 They are located at the [routeprofiles](https://github.com/throneproj/routeprofiles) repository.
+
+**How does "Throne-\<version\>-debian-system-qt-x64.deb" differ from "Throne-\<version\>-debian-x64.deb" and why is the latter 3 times heavier then the former?**<br/>
+The first one does not pack the Qt libraries and relies on those installed on the host. The second one packs everything needed with itself, thus being heavier. The reason the first one exists is that on legacy systems provided Qt libraries use unsupported system features. If a graphical interface fails to load for your system, you may try to download the system-qt version and install fitting Qt libraries from your package manager or compile them from source.
