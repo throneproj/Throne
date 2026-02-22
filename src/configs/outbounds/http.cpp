@@ -15,6 +15,25 @@ namespace Configs {
         outbound::ParseFromLink(link);
         username = url.userName();
         password = url.password();
+
+        // Handle v2rayN format: credentials are base64-encoded in the username field
+        // e.g. http://base64(token)@server:port
+        // If decoded string has no ':', SubStrBefore/After both return the full string,
+        // so username == password == decoded_token (matches expected behavior).
+        if (password.isEmpty() && !username.isEmpty()) {
+            QString decoded = DecodeB64IfValid(username);
+            if (!decoded.isEmpty()) {
+                username = SubStrBefore(decoded, ":");
+                password = SubStrAfter(decoded, ":");
+            }
+        }
+
+        // Handle single-credential format: http://:token@server:port
+        // Some providers set password only; username should equal password.
+        if (username.isEmpty() && !password.isEmpty()) {
+            username = password;
+        }
+
         if (query.hasQueryItem("path")) path = query.queryItemValue("path");
         if (query.hasQueryItem("headers")) headers = query.queryItemValue("headers").split(",");
         if (url.scheme() == "https" || query.queryItemValue("security") == "tls")
