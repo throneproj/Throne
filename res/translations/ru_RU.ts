@@ -354,15 +354,15 @@ Release note:
     </message>
     <message>
         <source>5m</source>
-        <translation>5 мин.</translation>
+        <translation>5m</translation>
     </message>
     <message>
         <source>10m</source>
-        <translation>10 мин.</translation>
+        <translation>10m</translation>
     </message>
     <message>
         <source>30m</source>
-        <translation>30 мин.</translation>
+        <translation>30m</translation>
     </message>
     <message>
         <source>Listen Port</source>
