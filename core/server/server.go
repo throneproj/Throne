@@ -10,6 +10,7 @@ import (
 	"ThroneCore/internal/xray"
 	"ThroneCore/test_utils"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/google/shlex"
@@ -20,6 +21,7 @@ import (
 	"github.com/sagernet/sing/service"
 	"github.com/xtls/xray-core/core"
 	"log"
+	"net/netip"
 	"os"
 	"runtime"
 	"strings"
@@ -42,6 +44,53 @@ type server struct {
 // To returns a pointer to the given value.
 func To[T any](v T) *T {
 	return &v
+}
+
+func deriveTunDNSFromCoreConfig(coreConfig string) (string, bool) {
+	var config map[string]any
+	if err := json.Unmarshal([]byte(coreConfig), &config); err != nil {
+		return "", false
+	}
+
+	inboundsRaw, ok := config["inbounds"].([]any)
+	if !ok {
+		return "", false
+	}
+
+	for _, inboundRaw := range inboundsRaw {
+		inbound, ok := inboundRaw.(map[string]any)
+		if !ok {
+			continue
+		}
+
+		tag, _ := inbound["tag"].(string)
+		inboundType, _ := inbound["type"].(string)
+		if tag != "tun-in" && inboundType != "tun" {
+			continue
+		}
+
+		addressRaw, ok := inbound["address"].([]any)
+		if !ok {
+			continue
+		}
+		for _, raw := range addressRaw {
+			cidr, ok := raw.(string)
+			if !ok {
+				continue
+			}
+			prefix, err := netip.ParsePrefix(cidr)
+			if err != nil || !prefix.Addr().Is4() {
+				continue
+			}
+			dnsIP := prefix.Addr().Next()
+			if !dnsIP.IsValid() || !dnsIP.Is4() {
+				return "", false
+			}
+			return dnsIP.String(), true
+		}
+	}
+
+	return "", false
 }
 
 func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.ErrorResp, _ error) {
@@ -122,8 +171,12 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 		}
 		return
 	}
-	if runtime.GOOS == "darwin" && strings.Contains(*in.CoreConfig, "tun-in") && strings.Contains(*in.CoreConfig, "172.19.0.1/24") {
-		err := sys.SetSystemDNS("172.19.0.2", boxInstance.Network().InterfaceMonitor())
+	if runtime.GOOS == "darwin" {
+		tunDNS, ok := deriveTunDNSFromCoreConfig(*in.CoreConfig)
+		if !ok {
+			return
+		}
+		err := sys.SetSystemDNS(tunDNS, boxInstance.Network().InterfaceMonitor())
 		if err != nil {
 			log.Println("Failed to set system DNS:", err)
 		}

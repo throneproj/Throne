@@ -512,8 +512,11 @@ namespace Configs {
             inboundObj["stack"] = Configs::dataManager->settingsRepo->vpn_implementation;
             inboundObj["strict_route"] = Configs::dataManager->settingsRepo->vpn_strict_route;
             if (ctx->os == Linux) inboundObj["auto_redirect"] = true;
-            auto tunAddress = QJsonArray{"172.19.0.1/24"};
-            if (Configs::dataManager->settingsRepo->vpn_ipv6) tunAddress += "fdfe:dcba:9876::1/96";
+            const auto useCustomTunAddresses = Configs::dataManager->settingsRepo->vpn_use_custom_interface_addresses;
+            const auto tunIPv4CIDR = useCustomTunAddresses ? Configs::dataManager->settingsRepo->vpn_tun_ipv4_cidr : QString("172.19.0.1/24");
+            const auto tunIPv6CIDR = useCustomTunAddresses ? Configs::dataManager->settingsRepo->vpn_tun_ipv6_cidr : QString("fdfe:dcba:9876::1/96");
+            auto tunAddress = QJsonArray{tunIPv4CIDR};
+            if (Configs::dataManager->settingsRepo->vpn_ipv6) tunAddress += tunIPv6CIDR;
             inboundObj["address"] = tunAddress;
 
             if (Configs::dataManager->settingsRepo->enable_tun_routing)
@@ -1143,4 +1146,3 @@ namespace Configs {
         return res;
     }
 }
-

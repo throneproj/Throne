@@ -107,6 +107,50 @@
     </widget>
    </item>
    <item>
+    <widget class="QGroupBox" name="tunAddressGroupBox">
+     <property name="title">
+      <string>Tun Address</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout">
+      <item row="0" column="0" colspan="2">
+       <widget class="QCheckBox" name="use_custom_interface_addresses">
+        <property name="text">
+         <string>Use different interface addresses</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_tun_ipv4">
+        <property name="text">
+         <string>IPv4 CIDR</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="tun_ipv4_cidr">
+        <property name="placeholderText">
+         <string notr="true">172.19.0.1/24</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_tun_ipv6">
+        <property name="text">
+         <string>IPv6 CIDR</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="tun_ipv6_cidr">
+        <property name="placeholderText">
+         <string notr="true">fdfe:dcba:9876::1/96</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
       <widget class="QPushButton" name="troubleshooting">
@@ -130,6 +174,8 @@
   <tabstop>vpn_implementation</tabstop>
   <tabstop>vpn_mtu</tabstop>
   <tabstop>vpn_ipv6</tabstop>
+  <tabstop>tun_ipv4_cidr</tabstop>
+  <tabstop>tun_ipv6_cidr</tabstop>
   <tabstop>strict_route</tabstop>
   <tabstop>troubleshooting</tabstop>
  </tabstops>

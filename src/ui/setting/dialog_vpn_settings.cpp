@@ -8,9 +8,30 @@
 #endif
 
 #include <QMessageBox>
+#include <QHostAddress>
 
 
 #define ADJUST_SIZE runOnThread([=,this] { adjustSize(); adjustPosition(mainwindow); }, this);
+
+namespace {
+    bool IsValidCIDR(const QString &cidr, const QAbstractSocket::NetworkLayerProtocol protocol) {
+        const auto parts = cidr.trimmed().split("/");
+        if (parts.size() != 2) return false;
+
+        bool ok = false;
+        const int prefix = parts[1].toInt(&ok);
+        if (!ok) return false;
+
+        QHostAddress host;
+        if (!host.setAddress(parts[0].trimmed())) return false;
+        if (host.protocol() != protocol) return false;
+
+        if (protocol == QAbstractSocket::IPv4Protocol) return prefix >= 0 && prefix <= 32;
+        if (protocol == QAbstractSocket::IPv6Protocol) return prefix >= 0 && prefix <= 128;
+        return false;
+    }
+}
+
 DialogVPNSettings::DialogVPNSettings(QWidget *parent) : QDialog(parent), ui(new Ui::DialogVPNSettings) {
     ui->setupUi(this);
     ADD_ASTERISK(this);
@@ -33,6 +54,15 @@ DialogVPNSettings::DialogVPNSettings(QWidget *parent) : QDialog(parent), ui(new 
     ui->vpn_ipv6->setChecked(Configs::dataManager->settingsRepo->vpn_ipv6);
     ui->strict_route->setChecked(Configs::dataManager->settingsRepo->vpn_strict_route);
     ui->tun_routing->setChecked(Configs::dataManager->settingsRepo->enable_tun_routing);
+    ui->use_custom_interface_addresses->setChecked(Configs::dataManager->settingsRepo->vpn_use_custom_interface_addresses);
+    ui->tun_ipv4_cidr->setText(Configs::dataManager->settingsRepo->vpn_tun_ipv4_cidr);
+    ui->tun_ipv6_cidr->setText(Configs::dataManager->settingsRepo->vpn_tun_ipv6_cidr);
+    const auto updateAddressInputsState = [this](bool enabled) {
+        ui->tun_ipv4_cidr->setEnabled(enabled);
+        ui->tun_ipv6_cidr->setEnabled(enabled);
+    };
+    updateAddressInputsState(ui->use_custom_interface_addresses->isChecked());
+    connect(ui->use_custom_interface_addresses, &QCheckBox::toggled, this, updateAddressInputsState);
     ADJUST_SIZE
 }
 
@@ -44,11 +74,26 @@ void DialogVPNSettings::accept() {
     //
     auto mtu = ui->vpn_mtu->currentText().toInt();
     if (mtu > 10000 || mtu < 1000) mtu = 9000;
+    const auto useCustomTunAddresses = ui->use_custom_interface_addresses->isChecked();
+    const auto tunIPv4CIDR = ui->tun_ipv4_cidr->text().trimmed();
+    const auto tunIPv6CIDR = ui->tun_ipv6_cidr->text().trimmed();
+    if (useCustomTunAddresses && !IsValidCIDR(tunIPv4CIDR, QAbstractSocket::IPv4Protocol)) {
+        QMessageBox::warning(this, tr("Invalid Tun Address"), tr("IPv4 CIDR is invalid."));
+        return;
+    }
+    if (useCustomTunAddresses && !IsValidCIDR(tunIPv6CIDR, QAbstractSocket::IPv6Protocol)) {
+        QMessageBox::warning(this, tr("Invalid Tun Address"), tr("IPv6 CIDR is invalid."));
+        return;
+    }
+
     Configs::dataManager->settingsRepo->vpn_implementation = ui->vpn_implementation->currentText();
     Configs::dataManager->settingsRepo->vpn_mtu = mtu;
     Configs::dataManager->settingsRepo->vpn_ipv6 = ui->vpn_ipv6->isChecked();
     Configs::dataManager->settingsRepo->vpn_strict_route = ui->strict_route->isChecked();
     Configs::dataManager->settingsRepo->enable_tun_routing = ui->tun_routing->isChecked();
+    Configs::dataManager->settingsRepo->vpn_use_custom_interface_addresses = useCustomTunAddresses;
+    Configs::dataManager->settingsRepo->vpn_tun_ipv4_cidr = tunIPv4CIDR;
+    Configs::dataManager->settingsRepo->vpn_tun_ipv6_cidr = tunIPv6CIDR;
     //
     QStringList msg{"UpdateConfigs::dataManager->settingsRepo"};
     msg << "VPNChanged";
