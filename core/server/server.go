@@ -13,6 +13,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
+	"net/netip"
+	"os"
+	"runtime"
+	"strings"
+	"time"
+
 	"github.com/google/shlex"
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/experimental/clashapi"
@@ -20,12 +27,6 @@ import (
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/service"
 	"github.com/xtls/xray-core/core"
-	"log"
-	"net/netip"
-	"os"
-	"runtime"
-	"strings"
-	"time"
 )
 
 var boxInstance *boxbox.Box
@@ -46,15 +47,17 @@ func To[T any](v T) *T {
 	return &v
 }
 
-func deriveTunDNSFromCoreConfig(coreConfig string) (string, bool) {
+var ErrNoInboundsInCoreConfig = errors.New("couldn't find \"inbounds\" in the core configuration")
+
+func deriveTunDNSFromCoreConfig(coreConfig string) (string, error) {
 	var config map[string]any
 	if err := json.Unmarshal([]byte(coreConfig), &config); err != nil {
-		return "", false
+		return "", err
 	}
 
 	inboundsRaw, ok := config["inbounds"].([]any)
 	if !ok {
-		return "", false
+		return "", ErrNoInboundsInCoreConfig
 	}
 
 	for _, inboundRaw := range inboundsRaw {
@@ -84,13 +87,13 @@ func deriveTunDNSFromCoreConfig(coreConfig string) (string, bool) {
 			}
 			dnsIP := prefix.Addr().Next()
 			if !dnsIP.IsValid() || !dnsIP.Is4() {
-				return "", false
+				return "", fmt.Errorf("got invalid DNS IP derived from inbound address: %s", dnsIP)
 			}
-			return dnsIP.String(), true
+			return dnsIP.String(), nil
 		}
 	}
 
-	return "", false
+	return "", ErrNoInboundsInCoreConfig
 }
 
 func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.ErrorResp, _ error) {
@@ -172,11 +175,11 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 		return
 	}
 	if runtime.GOOS == "darwin" {
-		tunDNS, ok := deriveTunDNSFromCoreConfig(*in.CoreConfig)
-		if !ok {
-			return
+		tunDNS, err := deriveTunDNSFromCoreConfig(*in.CoreConfig)
+		if err != nil {
+			log.Println("Failed to extract IP for system DNS:", err)
 		}
-		err := sys.SetSystemDNS(tunDNS, boxInstance.Network().InterfaceMonitor())
+		err = sys.SetSystemDNS(tunDNS, boxInstance.Network().InterfaceMonitor())
 		if err != nil {
 			log.Println("Failed to set system DNS:", err)
 		}
