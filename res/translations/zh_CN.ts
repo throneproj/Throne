@@ -1190,6 +1190,34 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Enable Tun Routing</source>
         <translation>启用 Tun 路由</translation>
     </message>
+    <message>
+        <source>Tun Address</source>
+        <translation>Tun 地址</translation>
+    </message>
+    <message>
+        <source>Use different interface addresses</source>
+        <translation>使用不同的接口地址</translation>
+    </message>
+    <message>
+        <source>IPv4 CIDR</source>
+        <translation>IPv4 CIDR</translation>
+    </message>
+    <message>
+        <source>IPv6 CIDR</source>
+        <translation>IPv6 CIDR</translation>
+    </message>
+    <message>
+        <source>Invalid Tun Address</source>
+        <translation>Tun 地址无效</translation>
+    </message>
+    <message>
+        <source>IPv4 CIDR is invalid.</source>
+        <translation>IPv4 CIDR 无效。</translation>
+    </message>
+    <message>
+        <source>IPv6 CIDR is invalid.</source>
+        <translation>IPv6 CIDR 无效。</translation>
+    </message>
 </context>
 <context>
     <name>EditAdvanced</name>

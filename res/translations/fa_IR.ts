@@ -1196,6 +1196,34 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Enable Tun Routing</source>
         <translation>فعال کردن مسیریابی Tun</translation>
     </message>
+    <message>
+        <source>Tun Address</source>
+        <translation>آدرس Tun</translation>
+    </message>
+    <message>
+        <source>Use different interface addresses</source>
+        <translation>استفاده از آدرس‌های متفاوت برای رابط‌ها</translation>
+    </message>
+    <message>
+        <source>IPv4 CIDR</source>
+        <translation>CIDR IPv4</translation>
+    </message>
+    <message>
+        <source>IPv6 CIDR</source>
+        <translation>CIDR IPv6</translation>
+    </message>
+    <message>
+        <source>Invalid Tun Address</source>
+        <translation>آدرس Tun نامعتبر است</translation>
+    </message>
+    <message>
+        <source>IPv4 CIDR is invalid.</source>
+        <translation>CIDR IPv4 نامعتبر است.</translation>
+    </message>
+    <message>
+        <source>IPv6 CIDR is invalid.</source>
+        <translation>CIDR IPv6 نامعتبر است.</translation>
+    </message>
 </context>
 <context>
     <name>EditAdvanced</name>
