@@ -1195,8 +1195,8 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Tun 地址</translation>
     </message>
     <message>
-        <source>Use different interface addresses</source>
-        <translation>使用不同的接口地址</translation>
+        <source>Restore default addresses</source>
+        <translation>恢复默认地址</translation>
     </message>
     <message>
         <source>IPv4 CIDR</source>

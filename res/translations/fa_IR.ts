@@ -1201,8 +1201,8 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>آدرس Tun</translation>
     </message>
     <message>
-        <source>Use different interface addresses</source>
-        <translation>استفاده از آدرس‌های متفاوت برای رابط‌ها</translation>
+        <source>Restore default addresses</source>
+        <translation>بازگردانی آدرس‌های پیش‌فرض</translation>
     </message>
     <message>
         <source>IPv4 CIDR</source>
