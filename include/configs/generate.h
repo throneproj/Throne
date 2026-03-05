@@ -66,6 +66,7 @@ namespace Configs
         QString error;
         bool isChained = false;
         QJsonObject coreConfig;
+        QString tunIPv4CIDR;
         bool isXrayNeeded = false;
         QJsonObject xrayConfig;
         std::shared_ptr<ExtraCoreData> extraCoreData = std::make_shared<ExtraCoreData>();

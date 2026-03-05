@@ -681,6 +681,7 @@ void MainWindow::profile_start(int _id) {
     auto profile_start_stage2 = [=, this] {
         libcore::LoadConfigReq req;
         req.core_config = QJsonObject2QString(result->coreConfig, true).toStdString();
+        req.tun_ipv4_cidr = result->tunIPv4CIDR.toStdString();
         req.disable_stats = Configs::dataManager->settingsRepo->disable_traffic_stats;
         req.xray_config = QJsonObject2QString(result->xrayConfig, true).toStdString();
         req.need_xray = !result->xrayConfig.isEmpty();

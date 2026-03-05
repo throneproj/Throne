@@ -515,6 +515,7 @@ namespace Configs {
             const auto useCustomTunAddresses = Configs::dataManager->settingsRepo->vpn_use_custom_interface_addresses;
             const auto tunIPv4CIDR = useCustomTunAddresses ? Configs::dataManager->settingsRepo->vpn_tun_ipv4_cidr : QString("172.19.0.1/24");
             const auto tunIPv6CIDR = useCustomTunAddresses ? Configs::dataManager->settingsRepo->vpn_tun_ipv6_cidr : QString("fdfe:dcba:9876::1/96");
+            ctx->buildConfigResult->tunIPv4CIDR = tunIPv4CIDR;
             auto tunAddress = QJsonArray{tunIPv4CIDR};
             if (Configs::dataManager->settingsRepo->vpn_ipv6) tunAddress += tunIPv6CIDR;
             inboundObj["address"] = tunAddress;

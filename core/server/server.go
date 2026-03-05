@@ -10,7 +10,6 @@ import (
 	"ThroneCore/internal/xray"
 	"ThroneCore/test_utils"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -45,55 +44,6 @@ type server struct {
 // To returns a pointer to the given value.
 func To[T any](v T) *T {
 	return &v
-}
-
-var ErrNoInboundsInCoreConfig = errors.New("couldn't find \"inbounds\" in the core configuration")
-
-func deriveTunDNSFromCoreConfig(coreConfig string) (string, error) {
-	var config map[string]any
-	if err := json.Unmarshal([]byte(coreConfig), &config); err != nil {
-		return "", err
-	}
-
-	inboundsRaw, ok := config["inbounds"].([]any)
-	if !ok {
-		return "", ErrNoInboundsInCoreConfig
-	}
-
-	for _, inboundRaw := range inboundsRaw {
-		inbound, ok := inboundRaw.(map[string]any)
-		if !ok {
-			continue
-		}
-
-		tag, _ := inbound["tag"].(string)
-		inboundType, _ := inbound["type"].(string)
-		if tag != "tun-in" && inboundType != "tun" {
-			continue
-		}
-
-		addressRaw, ok := inbound["address"].([]any)
-		if !ok {
-			continue
-		}
-		for _, raw := range addressRaw {
-			cidr, ok := raw.(string)
-			if !ok {
-				continue
-			}
-			prefix, err := netip.ParsePrefix(cidr)
-			if err != nil || !prefix.Addr().Is4() {
-				continue
-			}
-			dnsIP := prefix.Addr().Next()
-			if !dnsIP.IsValid() || !dnsIP.Is4() {
-				return "", fmt.Errorf("got invalid DNS IP derived from inbound address: %s", dnsIP)
-			}
-			return dnsIP.String(), nil
-		}
-	}
-
-	return "", ErrNoInboundsInCoreConfig
 }
 
 func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.ErrorResp, _ error) {
@@ -174,15 +124,46 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 		}
 		return
 	}
-	if runtime.GOOS == "darwin" {
-		tunDNS, err := deriveTunDNSFromCoreConfig(*in.CoreConfig)
-		if err != nil {
-			log.Println("Failed to extract IP for system DNS:", err)
+
+	if runtime.GOOS == "darwin" && strings.Contains(*in.CoreConfig, "tun-in") {
+		stopAllCores := func() {
+			boxInstance.CloseWithTimeout(instanceCancel, time.Second*2, log.Println, true)
+			boxInstance = nil
+			if extraProcess != nil {
+				extraProcess.Stop()
+				extraProcess = nil
+			}
+			if xrayInstance != nil {
+				xrayInstance.Close()
+				xrayInstance = nil
+			}
 		}
-		err = sys.SetSystemDNS(tunDNS, boxInstance.Network().InterfaceMonitor())
-		if err != nil {
+
+		tunCIDR := in.GetTunIpv4Cidr()
+		if tunCIDR == "" {
+			err = errors.New("tun_ipv4_cidr is required for tun-in on macOS")
+			stopAllCores()
+			return
+		}
+
+		tunPrefix, parseErr := netip.ParsePrefix(tunCIDR)
+		if parseErr != nil || !tunPrefix.Addr().Is4() {
+			err = fmt.Errorf("invalid tun_ipv4_cidr %q", tunCIDR)
+			stopAllCores()
+			return
+		}
+
+		tunDNS := tunPrefix.Addr().Next()
+		if !tunDNS.IsValid() || !tunDNS.Is4() {
+			err = fmt.Errorf("got invalid DNS IP from tun_ipv4_cidr: %s", tunDNS)
+			stopAllCores()
+			return
+		}
+
+		if err := sys.SetSystemDNS(tunDNS.String(), boxInstance.Network().InterfaceMonitor()); err != nil {
 			log.Println("Failed to set system DNS:", err)
 		}
+
 		needUnsetDNS = true
 	}
 

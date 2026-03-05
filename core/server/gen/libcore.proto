@@ -45,6 +45,7 @@ message LoadConfigReq {
   optional bool extra_no_out = 8 [default = false];
   optional bool need_xray = 9 [default = false];
   optional string xray_config = 10 [default = ""];
+  optional string tun_ipv4_cidr = 11 [default = ""];
 }
 
 message URLTestResp {
