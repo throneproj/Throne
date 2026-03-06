@@ -9,6 +9,7 @@ namespace GroupSortMethod {
         ByName,
         ByTestResult,
         ById,
+        ByTraffic,
     };
 }
 

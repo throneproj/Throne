@@ -330,6 +330,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             action.method = GroupSortMethod::ByName;
         } else if (logicalIndex == 3) {
             action.method = GroupSortMethod::ByTestResult;
+        } else if (logicalIndex == 4) {
+            action.method = GroupSortMethod::ByTraffic;
         } else {
             return;
         }
@@ -360,78 +362,125 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->profilesTableView->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->profilesTableView->horizontalHeader(), &QWidget::customContextMenuRequested, this, [this](const QPoint& pos) {
         auto* header = ui->profilesTableView->horizontalHeader();
-        if (header->logicalIndexAt(pos) != 3) return;
+        int columnIndex = header->logicalIndexAt(pos);
         auto group = Configs::dataManager->groupsRepo->CurrentGroup();
         if (group == nullptr) return;
-        QMenu menu(this);
-        auto* includeLabel = menu.addAction(tr("Include:"));
-        includeLabel->setEnabled(false);
+        if (columnIndex == 3) {
+            QMenu menu(this);
+            auto* includeLabel = menu.addAction(tr("Include:"));
+            includeLabel->setEnabled(false);
 
-        auto* actionShowOutIP = menu.addAction(tr("Out IP"));
-        actionShowOutIP->setCheckable(true);
-        actionShowOutIP->setChecked(group->test_items_to_show == Configs::testShowItems::all ||
-                             group->test_items_to_show == Configs::testShowItems::ipOnly);
+            auto* actionShowOutIP = menu.addAction(tr("Out IP"));
+            actionShowOutIP->setCheckable(true);
+            actionShowOutIP->setChecked(group->test_items_to_show == Configs::testShowItems::all ||
+                group->test_items_to_show == Configs::testShowItems::ipOnly);
 
-        auto* actionShowSpeed = menu.addAction(tr("Speed"));
-        actionShowSpeed->setCheckable(true);
-        actionShowSpeed->setChecked(group->test_items_to_show == Configs::testShowItems::all ||
-                             group->test_items_to_show == Configs::testShowItems::speedOnly);
+            auto* actionShowSpeed = menu.addAction(tr("Speed"));
+            actionShowSpeed->setCheckable(true);
+            actionShowSpeed->setChecked(group->test_items_to_show == Configs::testShowItems::all ||
+                group->test_items_to_show == Configs::testShowItems::speedOnly);
 
-        auto updateTestItemsToShow = [this, group, actionShowOutIP, actionShowSpeed] {
-            const bool ip = actionShowOutIP->isChecked();
-            const bool speed = actionShowSpeed->isChecked();
-            if (ip && speed) group->test_items_to_show = Configs::testShowItems::all;
-            else if (ip) group->test_items_to_show = Configs::testShowItems::ipOnly;
-            else if (speed) group->test_items_to_show = Configs::testShowItems::speedOnly;
-            else group->test_items_to_show = Configs::testShowItems::none;
-            Configs::dataManager->groupsRepo->Save(group);
-            refresh_proxy_list();
-        };
-
-        connect(actionShowOutIP, &QAction::triggered, this, updateTestItemsToShow);
-        connect(actionShowSpeed, &QAction::triggered, this, updateTestItemsToShow);
-
-        menu.addSeparator();
-        auto* sortByLabel = menu.addAction(tr("Sort By:"));
-        sortByLabel->setEnabled(false);
-
-        struct SortOption { int value; QString label; };
-        QList<SortOption> options = {
-            { static_cast<int>(Configs::testBy::latency), tr("Latency") },
-            { static_cast<int>(Configs::testBy::dlSpeed), tr("Download Speed") },
-            { static_cast<int>(Configs::testBy::ulSpeed), tr("Upload Speed") },
-            { static_cast<int>(Configs::testBy::ipOut), tr("IP Out") }
-        };
-        for (const auto& opt : options) {
-            auto* act = menu.addAction(opt.label);
-            act->setData(opt.value);
-            act->setCheckable(true);
-            act->setChecked(static_cast<int>(group->test_sort_by) == opt.value);
-        }
-
-        auto* chosen = menu.exec(header->mapToGlobal(pos));
-        if (chosen == nullptr || !chosen->data().isValid()) return;
-
-        int testSortBy = chosen->data().toInt();
-        group->test_sort_by = static_cast<Configs::testBy>(testSortBy);
-        Configs::dataManager->groupsRepo->Save(group);
-        GroupSortAction action;
-        action.method = GroupSortMethod::ByTestResult;
-        action.descending = false;
-        runOnNewThread([=, this] {
-            auto currGroup = Configs::dataManager->groupsRepo->CurrentGroup();
-            if (currGroup == nullptr) return;
-            if (!currGroup->SortProfiles(action)) {
-                runOnUiThread([=] {
-                    MessageBoxWarning("Action already in progress", "A sort action is already in progress");
-                });
-                return;
-            }
-            Configs::dataManager->groupsRepo->Save(Configs::dataManager->groupsRepo->CurrentGroup());
-            runOnUiThread([=, this] {
+            auto updateTestItemsToShow = [this, group, actionShowOutIP, actionShowSpeed] {
+                const bool ip = actionShowOutIP->isChecked();
+                const bool speed = actionShowSpeed->isChecked();
+                if (ip && speed) group->test_items_to_show = Configs::testShowItems::all;
+                else if (ip) group->test_items_to_show = Configs::testShowItems::ipOnly;
+                else if (speed) group->test_items_to_show = Configs::testShowItems::speedOnly;
+                else group->test_items_to_show = Configs::testShowItems::none;
+                Configs::dataManager->groupsRepo->Save(group);
                 refresh_proxy_list();
-            });
-        });
+                };
+
+            connect(actionShowOutIP, &QAction::triggered, this, updateTestItemsToShow);
+            connect(actionShowSpeed, &QAction::triggered, this, updateTestItemsToShow);
+
+            menu.addSeparator();
+            auto* sortByLabel = menu.addAction(tr("Sort By:"));
+            sortByLabel->setEnabled(false);
+
+            struct SortOption { int value; QString label; };
+            QList<SortOption> options = {
+                { static_cast<int>(Configs::testBy::latency), tr("Latency") },
+                { static_cast<int>(Configs::testBy::dlSpeed), tr("Download Speed") },
+                { static_cast<int>(Configs::testBy::ulSpeed), tr("Upload Speed") },
+                { static_cast<int>(Configs::testBy::ipOut), tr("IP Out") }
+            };
+            for (const auto& opt : options) {
+                auto* act = menu.addAction(opt.label);
+                act->setData(opt.value);
+                act->setCheckable(true);
+                act->setChecked(static_cast<int>(group->test_sort_by) == opt.value);
+            }
+
+            auto* chosen = menu.exec(header->mapToGlobal(pos));
+            if (chosen == nullptr || !chosen->data().isValid()) return;
+
+            int testSortBy = chosen->data().toInt();
+            group->test_sort_by = static_cast<Configs::testBy>(testSortBy);
+            Configs::dataManager->groupsRepo->Save(group);
+            GroupSortAction action;
+            action.method = GroupSortMethod::ByTestResult;
+            action.descending = false;
+            runOnNewThread([=, this] {
+                auto currGroup = Configs::dataManager->groupsRepo->CurrentGroup();
+                if (currGroup == nullptr) return;
+                if (!currGroup->SortProfiles(action)) {
+                    runOnUiThread([=] {
+                        MessageBoxWarning("Action already in progress", "A sort action is already in progress");
+                        });
+                    return;
+                }
+                Configs::dataManager->groupsRepo->Save(Configs::dataManager->groupsRepo->CurrentGroup());
+                runOnUiThread([=, this] {
+                    refresh_proxy_list();
+                    });
+                });
+            return;
+        }
+        if (columnIndex == 4) {
+            QMenu menu(this);
+            auto* sortByLabel = menu.addAction(tr("Sort By:"));
+            sortByLabel->setEnabled(false);
+
+            struct TrafficSortOption { int value; QString label; };
+            QList<TrafficSortOption> options = {
+                { 0, tr("Total") },
+                { 1, tr("Downloaded") },
+                { 2, tr("Uploaded") }
+            };
+
+            for (const auto& opt : options) {
+                auto* act = menu.addAction(opt.label);
+                act->setData(opt.value);
+                act->setCheckable(true);
+                act->setChecked(static_cast<int>(group->traffic_sort_by) == opt.value);
+            }
+
+            auto* chosen = menu.exec(header->mapToGlobal(pos));
+            if (chosen == nullptr || !chosen->data().isValid()) return;
+
+            int trafficSortBy = chosen->data().toInt();
+            group->traffic_sort_by = static_cast<Configs::trafficBy>(trafficSortBy);
+            Configs::dataManager->groupsRepo->Save(group);
+            GroupSortAction action;
+            action.method = GroupSortMethod::ByTraffic;
+            action.descending = false;
+            runOnNewThread([=, this] {
+                auto currGroup = Configs::dataManager->groupsRepo->CurrentGroup();
+                if (currGroup == nullptr) return;
+                if (!currGroup->SortProfiles(action)) {
+                    runOnUiThread([=] {
+                        MessageBoxWarning("Action already in progress", "A sort action is already in progress");
+                        });
+                    return;
+                }
+                Configs::dataManager->groupsRepo->Save(Configs::dataManager->groupsRepo->CurrentGroup());
+                runOnUiThread([=, this] {
+                    refresh_proxy_list();
+                    });
+                });
+            return;
+        }
     });
     ui->profilesTableView->verticalHeader()->setStretchLastSection(false);
     ui->profilesTableView->verticalHeader()->setDefaultSectionSize(24);
