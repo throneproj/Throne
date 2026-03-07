@@ -662,7 +662,7 @@
     <string>Start</string>
    </property>
    <property name="shortcut">
-    <string>Return</string>
+    <string notr="true">Return</string>
    </property>
   </action>
   <action name="menu_stop">
@@ -691,7 +691,7 @@
     <string>Delete</string>
    </property>
    <property name="shortcut">
-    <string>Del</string>
+    <string notr="true">Del</string>
    </property>
   </action>
   <action name="menu_add_from_clipboard2">
@@ -974,7 +974,7 @@
     <string>Url Test Selected</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+S</string>
+    <string notr="true">Ctrl+Shift+S</string>
    </property>
    <property name="visible">
     <bool>true</bool>
@@ -988,7 +988,7 @@
     <string>Url Test Group</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+G</string>
+    <string notr="true">Ctrl+Shift+G</string>
    </property>
    <property name="visible">
     <bool>true</bool>
@@ -1007,7 +1007,7 @@
     <string>Remove Invalid</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Alt+I</string>
+    <string notr="true">Ctrl+Alt+I</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::TextHeuristicRole</enum>
