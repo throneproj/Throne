@@ -552,15 +552,15 @@ namespace Configs {
             if (Configs::dataManager->settingsRepo->vpn_ipv6) tunAddress += tunIPv6CIDR;
             inboundObj["address"] = tunAddress;
 
+            QJsonArray routeExcludeAddrs = {"127.0.0.0/8"};
+            QJsonArray routeExcludeSets;
             if (Configs::dataManager->settingsRepo->enable_tun_routing)
             {
-                QJsonArray routeExcludeAddrs = {"127.0.0.0/8"};
-                QJsonArray routeExcludeSets;
                 for (auto item: tunDeps->directIPCIDRs) routeExcludeAddrs << item;
                 for (auto item: tunDeps->directIPSets) routeExcludeSets << item;
-                inboundObj["route_exclude_address"] = routeExcludeAddrs;
-                if (!routeExcludeSets.isEmpty()) inboundObj["route_exclude_address_set"] = routeExcludeSets;
             }
+            inboundObj["route_exclude_address"] = routeExcludeAddrs;
+            if (!routeExcludeSets.isEmpty()) inboundObj["route_exclude_address_set"] = routeExcludeSets;
             inbounds += inboundObj;
         }
 
