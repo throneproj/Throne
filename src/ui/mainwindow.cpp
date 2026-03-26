@@ -535,7 +535,62 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     trayMenu->addAction(ui->actionRemember_last_proxy);
     trayMenu->addAction(ui->actionAllow_LAN);
     trayMenu->addSeparator();
-    trayMenu->addMenu(ui->menu_spmode);
+    // Select Server submenu (dynamically populated)
+    trayServerMenu = new QMenu(tr("Select Server"));
+    trayMenu->addMenu(trayServerMenu);
+    connect(trayServerMenu, &QMenu::aboutToShow, this, [=, this]() {
+        trayServerMenu->clear();
+        // Stop action if a profile is running
+        if (running) {
+            auto *stopAction = trayServerMenu->addAction(tr("Stop: %1").arg(running->name));
+            connect(stopAction, &QAction::triggered, this, [=, this]() { profile_stop(false, false, true); });
+            trayServerMenu->addSeparator();
+        }
+        // Collect non-archived groups
+        auto groupIds = Configs::dataManager->groupsRepo->GetGroupsTabOrder();
+        QList<std::pair<std::shared_ptr<Configs::Group>, QList<int>>> activeGroups;
+        for (int gid : groupIds) {
+            auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
+            if (!group || group->archive) continue;
+            activeGroups.append({group, group->Profiles()});
+        }
+        bool multiGroup = activeGroups.size() > 1;
+        for (const auto &[group, profileIds] : activeGroups) {
+            QMenu *targetMenu = multiGroup ? trayServerMenu->addMenu(group->name) : trayServerMenu;
+            for (int pid : profileIds) {
+                auto profile = Configs::dataManager->profilesRepo->GetProfile(pid);
+                if (!profile) continue;
+                auto *action = targetMenu->addAction(profile->name);
+                action->setCheckable(true);
+                action->setChecked(running && running->id == profile->id);
+                connect(action, &QAction::triggered, this, [=, this]() { profile_start(pid); });
+            }
+        }
+    });
+    trayMenu->addSeparator();
+    // Dedicated System Proxy submenu for tray (avoids sharing ui->menu_spmode)
+    traySpModeMenu = new QMenu(tr("System Proxy"));
+    auto *traySpModeSystemProxy = new QAction(tr("Enable System Proxy"), traySpModeMenu);
+    traySpModeSystemProxy->setCheckable(true);
+    auto *traySpModeVpn = new QAction(tr("Enable Tun"), traySpModeMenu);
+    traySpModeVpn->setCheckable(true);
+    auto *traySpModeDisabled = new QAction(tr("Disable"), traySpModeMenu);
+    traySpModeDisabled->setCheckable(true);
+    traySpModeMenu->addAction(traySpModeSystemProxy);
+    traySpModeMenu->addAction(traySpModeVpn);
+    traySpModeMenu->addAction(traySpModeDisabled);
+    connect(traySpModeMenu, &QMenu::aboutToShow, this, [=, this]() {
+        traySpModeDisabled->setChecked(!(Configs::dataManager->settingsRepo->spmode_system_proxy || Configs::dataManager->settingsRepo->spmode_vpn));
+        traySpModeSystemProxy->setChecked(Configs::dataManager->settingsRepo->spmode_system_proxy);
+        traySpModeVpn->setChecked(Configs::dataManager->settingsRepo->spmode_vpn);
+    });
+    connect(traySpModeSystemProxy, &QAction::triggered, this, [=, this](bool checked) { set_spmode_system_proxy(checked); });
+    connect(traySpModeVpn, &QAction::triggered, this, [=, this](bool checked) { set_spmode_vpn(checked); });
+    connect(traySpModeDisabled, &QAction::triggered, this, [=, this]() {
+        set_spmode_system_proxy(false);
+        set_spmode_vpn(false);
+    });
+    trayMenu->addMenu(traySpModeMenu);
     trayMenu->addSeparator();
     trayMenu->addAction(ui->actionRestart_Proxy);
     trayMenu->addAction(ui->actionRestart_Program);
@@ -544,8 +599,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     tray->setContextMenu(trayMenu);
     connect(tray, &QSystemTrayIcon::activated, qApp, [=, this](QSystemTrayIcon::ActivationReason reason) {
         if (reason == QSystemTrayIcon::Trigger) {
+#ifndef Q_OS_MAC
             ActivateWindow(this);
             refresh_proxy_list_column_size();
+#endif
         }
     });
 
