@@ -2,6 +2,7 @@
 
 #include <QAbstractItemView>
 #include <QMenu>
+#include "include/global/Utils.hpp"
 #include "include/configs/sub/GroupUpdater.hpp"
 #include "include/sys/Process.hpp"
 #include "include/sys/AutoRun.hpp"
@@ -535,7 +536,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     trayMenu->addAction(ui->actionRemember_last_proxy);
     trayMenu->addAction(ui->actionAllow_LAN);
     trayMenu->addSeparator();
-    // Select Server submenu (dynamically populated)
+    // Select Server submenu (dynamically populated with pagination)
+    constexpr int PAGE_SIZE = 15;
     trayServerMenu = new QMenu(tr("Select Server"));
     trayMenu->addMenu(trayServerMenu);
     connect(trayServerMenu, &QMenu::aboutToShow, this, [=, this]() {
@@ -546,51 +548,59 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             connect(stopAction, &QAction::triggered, this, [=, this]() { profile_stop(false, false, true); });
             trayServerMenu->addSeparator();
         }
-        // Collect non-archived groups
+        // Build flat list of profiles, starting from the group of the running profile or currentGroup
+        int startGroupId = Configs::dataManager->settingsRepo->current_group;
+        if (running) startGroupId = running->gid;
         auto groupIds = Configs::dataManager->groupsRepo->GetGroupsTabOrder();
-        QList<std::pair<std::shared_ptr<Configs::Group>, QList<int>>> activeGroups;
+        // Reorder groupIds so startGroupId comes first
+        int startIdx = groupIds.indexOf(startGroupId);
+        if (startIdx > 0) {
+            QList<int> reordered = groupIds.mid(startIdx) + groupIds.mid(0, startIdx);
+            groupIds = reordered;
+        }
+        QList<std::pair<QString, int>> allProfiles; // (display name, profile id)
         for (int gid : groupIds) {
             auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
             if (!group || group->archive) continue;
-            activeGroups.append({group, group->Profiles()});
-        }
-        bool multiGroup = activeGroups.size() > 1;
-        for (const auto &[group, profileIds] : activeGroups) {
-            QMenu *targetMenu = multiGroup ? trayServerMenu->addMenu(group->name) : trayServerMenu;
-            for (int pid : profileIds) {
+            for (int pid : group->Profiles()) {
                 auto profile = Configs::dataManager->profilesRepo->GetProfile(pid);
                 if (!profile) continue;
-                auto *action = targetMenu->addAction(profile->name);
-                action->setCheckable(true);
-                action->setChecked(running && running->id == profile->id);
-                connect(action, &QAction::triggered, this, [=, this]() { profile_start(pid); });
+                allProfiles.append({profile->name, profile->id});
             }
+        }
+        int totalProfiles = allProfiles.size();
+        // Clamp page
+        int maxPage = qMax(0, (totalProfiles - 1) / PAGE_SIZE);
+        trayServerPage = qBound(0, trayServerPage, maxPage);
+        int offset = trayServerPage * PAGE_SIZE;
+        int end = qMin(offset + PAGE_SIZE, totalProfiles);
+        // Show ↑ if not on first page
+        if (trayServerPage > 0) {
+            auto *upAction = trayServerMenu->addAction(QStringLiteral("\u2191"));
+            connect(upAction, &QAction::triggered, this, [=, this]() {
+                trayServerPage--;
+                trayServerMenu->popup(trayServerMenu->pos());
+            });
+        }
+        // Show profiles for current page
+        for (int i = offset; i < end; i++) {
+            const auto &[name, pid] = allProfiles[i];
+            auto *action = trayServerMenu->addAction(name);
+            action->setCheckable(true);
+            action->setChecked(running && running->id == pid);
+            connect(action, &QAction::triggered, this, [=, this]() { profile_start(pid); });
+        }
+        // Show ↓ if not on last page
+        if (trayServerPage < maxPage) {
+            auto *downAction = trayServerMenu->addAction(QStringLiteral("\u2193"));
+            connect(downAction, &QAction::triggered, this, [=, this]() {
+                trayServerPage++;
+                trayServerMenu->popup(trayServerMenu->pos());
+            });
         }
     });
     trayMenu->addSeparator();
-    // Dedicated System Proxy submenu for tray (avoids sharing ui->menu_spmode)
-    traySpModeMenu = new QMenu(tr("System Proxy"));
-    auto *traySpModeSystemProxy = new QAction(tr("Enable System Proxy"), traySpModeMenu);
-    traySpModeSystemProxy->setCheckable(true);
-    auto *traySpModeVpn = new QAction(tr("Enable Tun"), traySpModeMenu);
-    traySpModeVpn->setCheckable(true);
-    auto *traySpModeDisabled = new QAction(tr("Disable"), traySpModeMenu);
-    traySpModeDisabled->setCheckable(true);
-    traySpModeMenu->addAction(traySpModeSystemProxy);
-    traySpModeMenu->addAction(traySpModeVpn);
-    traySpModeMenu->addAction(traySpModeDisabled);
-    connect(traySpModeMenu, &QMenu::aboutToShow, this, [=, this]() {
-        traySpModeDisabled->setChecked(!(Configs::dataManager->settingsRepo->spmode_system_proxy || Configs::dataManager->settingsRepo->spmode_vpn));
-        traySpModeSystemProxy->setChecked(Configs::dataManager->settingsRepo->spmode_system_proxy);
-        traySpModeVpn->setChecked(Configs::dataManager->settingsRepo->spmode_vpn);
-    });
-    connect(traySpModeSystemProxy, &QAction::triggered, this, [=, this](bool checked) { set_spmode_system_proxy(checked); });
-    connect(traySpModeVpn, &QAction::triggered, this, [=, this](bool checked) { set_spmode_vpn(checked); });
-    connect(traySpModeDisabled, &QAction::triggered, this, [=, this]() {
-        set_spmode_system_proxy(false);
-        set_spmode_vpn(false);
-    });
-    trayMenu->addMenu(traySpModeMenu);
+    trayMenu->addMenu(ui->menu_spmode);
     trayMenu->addSeparator();
     trayMenu->addAction(ui->actionRestart_Proxy);
     trayMenu->addAction(ui->actionRestart_Program);
@@ -599,10 +609,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     tray->setContextMenu(trayMenu);
     connect(tray, &QSystemTrayIcon::activated, qApp, [=, this](QSystemTrayIcon::ActivationReason reason) {
         if (reason == QSystemTrayIcon::Trigger) {
-#ifndef Q_OS_MAC
-            ActivateWindow(this);
-            refresh_proxy_list_column_size();
-#endif
+            if (getOS() == Darwin) {
+                tray->contextMenu()->popup(QCursor::pos());
+            } else {
+                ActivateWindow(this);
+                refresh_proxy_list_column_size();
+            }
         }
     });
 
