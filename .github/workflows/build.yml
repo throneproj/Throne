@@ -17,42 +17,33 @@ jobs:
         include:
           - cross_os: windows
             cross_arch: amd64
-            platform: ubuntu-latest
             go_version: "1.25.8"
           - cross_os: windows
             cross_arch: arm64
-            platform: ubuntu-latest
             go_version: "1.25.8"
           - cross_os: linux
             cross_arch: amd64
-            platform: ubuntu-latest
             go_version: "1.25.8"
           - cross_os: linux
             cross_arch: arm64
-            platform: ubuntu-latest
             go_version: "1.25.8"
           - cross_os: darwin
             cross_arch: amd64
-            platform: macos-latest
             go_version: "1.25.8"
           - cross_os: darwin
             cross_arch: arm64
-            platform: macos-latest
             go_version: "1.25.8"
           - cross_os: darwin-legacy
             cross_arch: amd64
-            platform: ubuntu-latest
             go_version: "1.25.8"
           - cross_os: windowslegacy
             cross_arch: amd64
-            platform: ubuntu-latest
             go_version: "1.25.8"
           - cross_os: windowslegacy
             cross_arch: 386
-            platform: ubuntu-latest
             go_version: "1.25.8"
       fail-fast: false
-    runs-on: ${{ matrix.platform }}
+    runs-on: macos-latest
     steps:
       - name: Checking out sources
         uses: actions/checkout@v4.2.2
@@ -70,16 +61,18 @@ jobs:
           cache-dependency-path: |
             core/server/go.sum
       - name: Install Golang For Legacy OS
-        if: matrix.cross_os == 'windowslegacy' || matrix.cross_os == 'darwin-legacy'
+        if: steps.cache-common.outputs.cache-hit != 'true' && contains( matrix.cross_os, 'legacy' )
         run: |
-          curl -L -o go.7z https://github.com/throneproj/env_windows_legacy/releases/download/latest/go.7z
-          7z x go.7z
+          curl -L -o go.zip https://github.com/throneproj/env_windows_legacy/releases/download/latest/go.zip
+          7z x go.zip
       - name: Install Protoc
+        if: steps.cache-common.outputs.cache-hit != 'true'
         uses: arduino/setup-protoc@v3
         with:
           version: "31.1"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Installing protoc-gen-go
+        if: steps.cache-common.outputs.cache-hit != 'true'
         run: |
           go install github.com/golang/protobuf/protoc-gen-go@latest
           go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
@@ -150,51 +143,15 @@ jobs:
         with:
           architecture: ${{ matrix.target }}
       - name: Install MSVC compiler
-        if: matrix.platform == 'windows-latest' && matrix.qt_version != '6.2.12'
-        uses: ilammy/msvc-dev-cmd@v1.13.0
-        with:
-          arch: ${{ matrix.target }}
-      - name: Install MSVC compiler (WoA)
-        if: matrix.platform == 'windows-11-arm'
+        if: contains( matrix.platform, 'windows' ) && matrix.qt_version != '6.2.12'
         uses: ilammy/msvc-dev-cmd@v1
         with:
-          arch: arm64
+          arch: ${{ matrix.target }}
       - name: Download Artifacts
         uses: actions/download-artifact@v4.3.0
         with:
           path: download-artifact
       # ========================================================================================================= Qt Install
-      - name: Install OpenSSL (Windows Legacy)
-        if: matrix.platform == 'windows-latest' && matrix.qt_version == '6.2.12'
-        shell: bash
-        run: |
-          curl -L -o openssl.7z https://github.com/throneproj/env_windows_legacy/releases/download/latest/openssl-${{ matrix.target }}.7z
-          7z x openssl.7z
-      - name: OpenSSL Cache
-        id: cache-openssl
-        if: matrix.platform == 'windows-latest' && matrix.qt_version != '6.2.12'
-        uses: actions/cache@v4.2.3
-        with:
-          path: C:/vcpkg/installed/x64-windows-static
-          key: OpenSSLCache-${{ matrix.platform }}-${{ matrix.target }}
-      - name: Install OpenSSL (Windows)
-        if: matrix.platform == 'windows-latest' && steps.cache-openssl.outputs.cache-hit != 'true' && matrix.qt_version != '6.2.12'
-        shell: powershell
-        run: |
-          echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
-          vcpkg install openssl:x64-windows-static
-      - name: Qt static Cache
-        id: cache-static-Qt
-        if: matrix.platform == 'windows-latest' && matrix.qt_version != '6.2.12'
-        uses: actions/cache@v4.2.3
-        with:
-          path: qt6/build
-          key: QtStaticCache-${{ matrix.platform }}-${{ matrix.target }}-Qt${{ matrix.qt_version }}-${{ hashFiles('script/build_qt_static_windows.bat') }}
-      - name: Install Qt Windows
-        shell: cmd
-        if: matrix.platform == 'windows-latest' && steps.cache-static-Qt.outputs.cache-hit != 'true' && matrix.qt_version != '6.2.12'
-        run: |
-          ./script/build_qt_static_windows.bat ${{ matrix.qt_version }}
       - name: Install Qt
         uses: jurplel/install-qt-action@v4.3.0
         if: matrix.platform != 'windows-latest'
@@ -208,8 +165,12 @@ jobs:
         shell: bash
         if: matrix.platform == 'windows-latest' && matrix.qt_version != '6.2.12'
         run: |
-          export CMAKE_PREFIX_PATH=$PWD/qt6/build/lib/cmake
-          export OPENSSL_ROOT_DIR="C:/vcpkg/installed/x64-windows-static"
+          curl -L -o qt.7z https://github.com/throneproj/buildqt/releases/download/Qt_${{ matrix.qt_version }}/Qt_${{ matrix.qt_version }}.7z
+          7z x qt.7z
+          curl -L -o openssl.7z https://github.com/throneproj/env_windows_legacy/releases/download/latest/openssl-msvc.7z
+          7z x openssl.7z
+          export CMAKE_PREFIX_PATH=$PWD/Qt/lib/cmake
+          export OPENSSL_ROOT_DIR=$PWD/openssl
           mkdir build
           cd build
           curl -fLso srslist.h "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/srslist.h"
@@ -223,6 +184,8 @@ jobs:
         run: |
           curl -L -o qt.7z https://github.com/throneproj/env_windows_legacy/releases/download/latest/qt-${{ matrix.target }}.7z
           7z x qt.7z
+          curl -L -o openssl.7z https://github.com/throneproj/env_windows_legacy/releases/download/latest/openssl-${{ matrix.target }}.7z
+          7z x openssl.7z
           export CMAKE_PREFIX_PATH=$PWD/Qt/lib/cmake
           export OPENSSL_ROOT_DIR=$PWD/openssl
           mkdir build

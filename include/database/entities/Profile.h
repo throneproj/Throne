@@ -17,6 +17,7 @@
 #include "include/configs/outbounds/tuic.h"
 #include "include/configs/outbounds/juicity.h"
 #include "include/configs/outbounds/trusttunnel.h"
+#include "include/configs/outbounds/naive.h"
 #include "include/configs/outbounds/shadowtls.h"
 #include "include/configs/outbounds/vless.h"
 #include "include/configs/outbounds/vmess.h"
@@ -42,6 +43,8 @@ namespace Configs {
         qint64 traffic_uplink = 0;
 
         QString ip_out;
+
+        QString runningCountryInfo; // volatile, not saved to db
 
         Profile() = default;
         Profile(Configs::outbound *outbound, const QString &type_);
@@ -109,6 +112,10 @@ namespace Configs {
 
         [[nodiscard]] Configs::trusttunnel *TrustTunnel() const {
             return dynamic_cast<Configs::trusttunnel *>(outbound.get());
+        };
+
+        [[nodiscard]] Configs::naive *Naive() const {
+            return dynamic_cast<Configs::naive *>(outbound.get());
         };
 
         [[nodiscard]] Configs::shadowtls *ShadowTLS() const {

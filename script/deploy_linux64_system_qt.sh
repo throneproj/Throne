@@ -24,6 +24,7 @@ cd *linux-$ARCH
 tar xvzf artifacts.tgz -C ../../
 cd ../..
 cp deployment/linux-$ARCH/ThroneCore $DEST
+cp deployment/linux-$ARCH/libcronet.so $DEST
 rm -rf deployment/linux-$ARCH
 
 # handle debug info

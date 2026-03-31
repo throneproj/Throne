@@ -25,6 +25,19 @@
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
        <widget class="QToolButton" name="toolButton_program">
+        <property name="styleSheet">
+         <string notr="true">QToolButton {
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+QToolButton::menu-indicator {
+    subcontrol-origin: border;
+    subcontrol-position: bottom right;
+    right: 2px;
+    bottom: 3px;
+}</string>
+        </property>
         <property name="text">
          <string>Application</string>
         </property>
@@ -47,6 +60,19 @@
       </item>
       <item>
        <widget class="QToolButton" name="toolButton_preferences">
+        <property name="styleSheet">
+         <string notr="true">QToolButton {
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+QToolButton::menu-indicator {
+    subcontrol-origin: border;
+    subcontrol-position: bottom right;
+    right: 2px;
+    bottom: 3px;
+}</string>
+        </property>
         <property name="text">
          <string>Settings</string>
         </property>
@@ -69,6 +95,19 @@
       </item>
       <item>
        <widget class="QToolButton" name="toolButton_server">
+        <property name="styleSheet">
+         <string notr="true">QToolButton {
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+QToolButton::menu-indicator {
+    subcontrol-origin: border;
+    subcontrol-position: bottom right;
+    right: 2px;
+    bottom: 3px;
+}</string>
+        </property>
         <property name="text">
          <string>Profiles</string>
         </property>
@@ -91,6 +130,19 @@
       </item>
       <item>
        <widget class="QToolButton" name="toolButton_routing">
+        <property name="styleSheet">
+         <string notr="true">QToolButton {
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+QToolButton::menu-indicator {
+    subcontrol-origin: border;
+    subcontrol-position: bottom right;
+    right: 2px;
+    bottom: 3px;
+}</string>
+        </property>
         <property name="text">
          <string>Routing</string>
         </property>
@@ -212,6 +264,40 @@
        <enum>Qt::Orientation::Vertical</enum>
       </property>
       <widget class="QTabWidget" name="tabWidget">
+       <property name="styleSheet">
+        <string notr="true">QTabWidget::tab-bar {
+    left: 2px;
+}
+
+QTabBar {
+    background: transparent;
+    qproperty-drawBase: 0;
+}
+
+QTabBar::tab {
+    background-color: palette(button);
+    color: palette(button-text);
+
+    border: 1px solid palette(mid);
+
+    border-radius: 4px;
+    padding: 3px 5px;
+    margin-right: 1px;
+}
+
+QTabBar::tab:selected {
+    border: 1px solid palette(highlight);
+    background-color: palette(window); 
+}
+
+QTabBar::tab:!selected {
+    border: 1px solid palette(button);
+}
+
+QTabBar::tab:hover:!selected {
+    background-color: palette(light);
+}</string>
+       </property>
        <property name="currentIndex">
         <number>0</number>
        </property>
@@ -302,6 +388,40 @@
             <widget class="QTabWidget" name="stats_widget">
              <property name="autoFillBackground">
               <bool>true</bool>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QTabWidget::tab-bar {
+    left: 2px;
+}
+
+QTabBar {
+    background: transparent;
+    qproperty-drawBase: 0;
+}
+
+QTabBar::tab {
+    background-color: palette(button);
+    color: palette(button-text);
+
+    border: 1px solid palette(mid);
+
+    border-radius: 4px;
+    padding: 3px 5px;
+    margin-right: 1px;
+}
+
+QTabBar::tab:selected {
+    border: 1px solid palette(highlight);
+    background-color: palette(window); 
+}
+
+QTabBar::tab:!selected {
+    border: 1px solid palette(button);
+}
+
+QTabBar::tab:hover:!selected {
+    background-color: palette(light);
+}</string>
              </property>
              <property name="tabPosition">
               <enum>QTabWidget::TabPosition::North</enum>
@@ -475,15 +595,15 @@
      </widget>
     </item>
     <item>
-     <layout class="QGridLayout" name="horizontalLayout">
-      <item row="0" column="0" colspan="2">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
        <widget class="QLabel" name="label_running">
         <property name="text">
          <string/>
         </property>
        </widget>
       </item>
-      <item row="0" column="2">
+      <item>
        <widget class="QLabel" name="label_inbound">
         <property name="text">
          <string/>
@@ -493,17 +613,7 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="3">
-       <widget class="QLabel" name="label_outbound">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="4">
+      <item>
        <widget class="QLabel" name="label_speed">
         <property name="text">
          <string/>

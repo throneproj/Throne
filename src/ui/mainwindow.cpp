@@ -1713,7 +1713,16 @@ void MainWindow::refresh_status(const QString &traffic_update) {
     }
 
     if (QDateTime::currentSecsSinceEpoch() - last_test_time > 2) {
-        ui->label_running->setText(running ? QString("[%1]\n%2").arg(group_name, running->outbound->DisplayName()) : tr("Not Running"));
+        QString runningLabelText;
+        if (running) {
+            runningLabelText = QString("[%1] %2").arg(group_name, running->outbound->DisplayName());
+            if (!running->runningCountryInfo.isEmpty()) {
+                runningLabelText += "\n" + running->runningCountryInfo;
+            }
+        } else {
+            runningLabelText = tr("Not Running");
+        }
+        ui->label_running->setText(runningLabelText);
     }
     //
     auto display_socks = DisplayAddress(Configs::dataManager->settingsRepo->inbound_address, Configs::dataManager->settingsRepo->inbound_socks_port);
@@ -1742,7 +1751,12 @@ void MainWindow::refresh_status(const QString &traffic_update) {
         if (!Configs::dataManager->settingsRepo->active_routing.isEmpty() && Configs::dataManager->settingsRepo->active_routing != "Default") {
             tt << "[" + Configs::dataManager->settingsRepo->active_routing + "]";
         }
-        if (running != nullptr) tt << running->outbound->DisplayTypeAndName() + "@" + group_name;
+        if (running != nullptr) {
+            tt << running->outbound->DisplayTypeAndName() + "@" + group_name;
+            if (!running->runningCountryInfo.isEmpty()) {
+                tt << running->runningCountryInfo;
+            }
+        }
         return tt.join(isTray ? "\n" : " ");
     };
 

@@ -432,6 +432,8 @@ void MainWindow::speedtest_current_group(const QList<int>& profileIDs, bool test
         return;
     }
 
+    currentUnderTest.store(true);
+
     runOnNewThread([this, profileIDs, testCurrent]() {
         stopSpeedtest.store(false);
         if (!testCurrent)
@@ -462,6 +464,7 @@ void MainWindow::speedtest_current_group(const QList<int>& profileIDs, bool test
         } else
         {
             runSpeedTest("", "", true, true, {}, {});
+            currentUnderTest.store(false);
         }
 
         speedtestRunning.unlock();
@@ -472,7 +475,7 @@ void MainWindow::speedtest_current_group(const QList<int>& profileIDs, bool test
     });
 }
 
-void MainWindow::querySpeedtest(QDateTime lastProxyListUpdate, const QMap<QString, int>& tag2entID, bool testCurrent)
+void MainWindow::querySpeedtest(const QMap<QString, int>& tag2entID, bool testCurrent)
 {
     bool ok;
     auto res = defaultClient->QueryCurrentSpeedTests(&ok);
@@ -485,21 +488,20 @@ void MainWindow::querySpeedtest(QDateTime lastProxyListUpdate, const QMap<QStrin
     {
         return;
     }
-    runOnUiThread([=, this, &lastProxyListUpdate]
+    runOnUiThread([=, this]
     {
         showSpeedtestData = true;
         currentSptProfileName = profile->outbound->name;
         currentTestResult = res.result.value();
         UpdateDataView();
 
-        if (res.result.value().error.value().empty() && !res.result.value().cancelled.value() && lastProxyListUpdate.msecsTo(QDateTime::currentDateTime()) >= 500)
+        if (res.result.value().error.value().empty() && !res.result.value().cancelled.value())
         {
             if (!res.result.value().dl_speed.value().empty()) profile->dl_speed = QString::fromStdString(res.result.value().dl_speed.value());
             if (!res.result.value().ul_speed.value().empty()) profile->ul_speed = QString::fromStdString(res.result.value().ul_speed.value());
             if (profile->latency <= 0 && res.result.value().latency.value() > 0) profile->latency = res.result.value().latency.value();
             if (!res.result->server_country.value().empty()) profile->test_country = CountryNameToCode(QString::fromStdString(res.result.value().server_country.value()));
             refresh_proxy_list({profile->id});
-            lastProxyListUpdate = QDateTime::currentDateTime();
         }
     });
 }
@@ -562,7 +564,6 @@ void MainWindow::runSpeedTest(const QString& config, const QString& xrayConfig, 
     doneMu->lock();
     runOnNewThread([=,this]
     {
-        QDateTime lastProxyListUpdate = QDateTime::currentDateTime();
         while (true) {
             QThread::msleep(100);
             if (doneMu->tryLock())
@@ -574,7 +575,7 @@ void MainWindow::runSpeedTest(const QString& config, const QString& xrayConfig, 
                 queryCountryTest(tag2entID, testCurrent);
             } else
             {
-                querySpeedtest(lastProxyListUpdate, tag2entID, testCurrent);
+                querySpeedtest(tag2entID, testCurrent);
             }
         }
         runOnUiThread([=, this]
@@ -746,11 +747,11 @@ void MainWindow::profile_start(int _id) {
                 QJsonDocument doc = QJsonDocument::fromJson(resp.data);
                 if (doc.isObject()) {
                     QJsonObject obj = doc.object();
-                    QString ip = obj["query"].toString();
                     QString city = obj["city"].toString();
                     QString countryName = obj["country"].toString();
                     QString countryCode = obj["countryCode"].toString();
-                    ui->label_outbound->setText(QString("🌐 %1\n%2 %3, %4").arg(ip, CountryCodeToFlag(countryCode), countryName, city));
+                    if (running) running->runningCountryInfo = QString("%1 %2, %3").arg(CountryCodeToFlag(countryCode), countryName, city);
+                    refresh_status();
                 }
             }
         });
@@ -839,6 +840,11 @@ void MainWindow::profile_stop(bool crash, bool block, bool manual) {
     auto id = running->id;
 
     auto profile_stop_stage2 = [=,this] {
+        if (currentUnderTest.load()) {
+            bool ok;
+            defaultClient->StopTests(&ok);
+            if (!ok) MW_show_log("Failed to stop profile tests!");
+        }
         if (!crash) {
             bool rpcOK;
             QString error = defaultClient->Stop(&rpcOK);
@@ -891,7 +897,6 @@ void MainWindow::profile_stop(bool crash, bool block, bool manual) {
 
             refresh_status();
             refresh_proxy_list({id});
-            ui->label_outbound->setText("");
 
             mu_stopping.unlock();
         }, true);

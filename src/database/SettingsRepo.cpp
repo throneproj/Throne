@@ -44,7 +44,8 @@ namespace Configs {
             "log_enable_include",
             "log_enable_exclude",
             "enable_dns_in",
-            "enable_warp"
+            "enable_warp",
+            "enable_dns_routing"
         };
 
         const QSet<QString> intKeys = {
@@ -352,6 +353,7 @@ namespace Configs {
                 else if (key == "warp_public_key") warp_public_key = varValue.toString();
                 else if (key == "warp_ifc_addrs") warp_ifc_addrs = varValue.toStringList();
                 else if (key == "warp_ep") warp_ep = varValue.toString();
+                else if (key == "enable_dns_routing") enable_dns_routing = varValue.toBool();
             }
         }
     }
@@ -477,7 +479,8 @@ namespace Configs {
             {"warp_private_key", warp_private_key},
             {"warp_public_key", warp_public_key},
             {"warp_ifc_addrs", warp_ifc_addrs},
-            {"warp_ep", warp_ep}
+            {"warp_ep", warp_ep},
+            {"enable_dns_routing", enable_dns_routing}
         };
 
         std::vector<std::pair<std::string, std::string>> keyValues;

@@ -127,6 +127,8 @@ namespace Configs {
             outbound = new Configs::Custom();
         } else if (type == "extracore") {
             outbound = new Configs::extracore();
+        } else if (Configs::HasNaive() && type == "naive") {
+            outbound = new Configs::naive();
         } else {
             outbound = new Configs::outbound();
             outbound->invalid = true;
@@ -308,6 +310,8 @@ namespace Configs {
             outbound = new Configs::Custom();
         } else if (type == "extracore") {
             outbound = new Configs::extracore();
+        } else if (Configs::HasNaive() && type == "naive") {
+            outbound = new Configs::naive();
         } else {
             outbound = new Configs::outbound();
             outbound->invalid = true;

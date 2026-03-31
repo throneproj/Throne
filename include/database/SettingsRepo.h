@@ -129,6 +129,7 @@ namespace Configs {
         QString remote_dns_strategy = "";
         QString direct_dns = "localhost";
         QString direct_dns_strategy = "";
+        bool enable_dns_routing = true;
         bool use_dns_object = false;
         QString dns_object = "";
         QString dns_final_out = "proxy";

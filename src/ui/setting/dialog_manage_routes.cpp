@@ -115,6 +115,7 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     ui->direct_dns->setCurrentText(Configs::dataManager->settingsRepo->direct_dns);
     ui->direct_dns_strategy->setCurrentText(Configs::dataManager->settingsRepo->direct_dns_strategy);
     ui->dns_final_out->setCurrentText(Configs::dataManager->settingsRepo->dns_final_out);
+    ui->enable_dns_routing->setChecked(Configs::dataManager->settingsRepo->enable_dns_routing);
     reloadProfileItems();
 
     connect(ui->route_profiles, &QListWidget::itemDoubleClicked, this, [=,this](const QListWidgetItem* item){
@@ -239,6 +240,7 @@ void DialogManageRoutes::accept() {
     Configs::dataManager->settingsRepo->core_box_underlying_dns = ui->local_override->text().trimmed();
     Configs::dataManager->settingsRepo->dns_final_out = ui->dns_final_out->currentText();
     Configs::dataManager->settingsRepo->fake_dns = ui->enable_fakeip->isChecked();
+    Configs::dataManager->settingsRepo->enable_dns_routing = ui->enable_dns_routing->isChecked();
 
     Configs::dataManager->routesRepo->UpdateRouteProfiles(chainList);
     Configs::dataManager->settingsRepo->current_route_id = currentRoute->id;

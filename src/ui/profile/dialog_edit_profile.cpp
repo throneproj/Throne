@@ -32,6 +32,7 @@
 #include "include/ui/profile/edit_tuic.h"
 #include "include/ui/profile/edit_juicity.h"
 #include "include/ui/profile/edit_trusttunnel.h"
+#include "include/ui/profile/edit_naive.h"
 #include "include/ui/profile/edit_shadowtls.h"
 #include "include/ui/profile/edit_xrayvless.h"
 
@@ -240,6 +241,7 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
         LOAD_TYPE("hysteria")
         LOAD_TYPE("tuic")
         LOAD_TYPE("juicity")
+        if (Configs::HasNaive()) LOAD_TYPE("naive")
         LOAD_TYPE("trusttunnel")
         LOAD_TYPE("anytls")
         LOAD_TYPE("shadowtls")
@@ -368,6 +370,10 @@ void DialogEditProfile::typeSelected(const QString &newType) {
     } else if (type == "extracore")
     {
         auto _innerWidget = new EditExtraCore(this);
+        innerWidget = _innerWidget;
+        innerEditor = _innerWidget;
+    } else if (Configs::HasNaive() && type == "naive") {
+        auto _innerWidget = new EditNaive(this);
         innerWidget = _innerWidget;
         innerEditor = _innerWidget;
     } else {

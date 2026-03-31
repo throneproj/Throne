@@ -278,6 +278,13 @@ namespace Subscription {
             if (!ok) return;
         }
 
+        // Naive
+        if ((str.startsWith("naive+https://") || str.startsWith("naive+quic://")) && Configs::HasNaive()) {
+            ent = Configs::ProfilesRepo::NewProfile("naive");
+            auto ok = ent->Naive()->ParseFromLink(str);
+            if (!ok) return;
+        }
+
         if (ent == nullptr) return;
 
         // End
@@ -414,6 +421,13 @@ namespace Subscription {
             if (out["type"] == "ssh") {
                 ent = Configs::ProfilesRepo::NewProfile("ssh");
                 auto ok = ent->SSH()->ParseFromJson(out);
+                if (!ok) continue;
+            }
+
+            // Naive
+            if (Configs::HasNaive() && out["type"] == "naive") {
+                ent = Configs::ProfilesRepo::NewProfile("naive");
+                auto ok = ent->Naive()->ParseFromJson(out);
                 if (!ok) continue;
             }
 

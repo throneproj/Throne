@@ -191,24 +191,26 @@ namespace Configs {
         }
 
         // Direct domains
-        auto sets = routeChain->get_direct_sites();
-        for (const auto &item: sets) {
-            if (item.startsWith("ruleset:")) {
-                preReqs->dnsDeps->directRuleSets << item.mid(8);
+        if (dataManager->settingsRepo->enable_dns_routing) {
+            auto sets = routeChain->get_direct_sites();
+            for (const auto &item: sets) {
+                if (item.startsWith("ruleset:")) {
+                    preReqs->dnsDeps->directRuleSets << item.mid(8);
+                }
+                if (item.startsWith("domain:")) {
+                    preReqs->dnsDeps->directDomains << item.mid(7);
+                }
+                if (item.startsWith("suffix:")) {
+                    preReqs->dnsDeps->directSuffixes << item.mid(7);
+                }
+                if (item.startsWith("keyword:")) {
+                    preReqs->dnsDeps->directKeywords << item.mid(8);
+                }
+                if (item.startsWith("regex:")) {
+                    preReqs->dnsDeps->directRegexes << item.mid(6);
+                }
+                preReqs->dnsDeps->needDirectDnsRules = true;
             }
-            if (item.startsWith("domain:")) {
-                preReqs->dnsDeps->directDomains << item.mid(7);
-            }
-            if (item.startsWith("suffix:")) {
-                preReqs->dnsDeps->directSuffixes << item.mid(7);
-            }
-            if (item.startsWith("keyword:")) {
-                preReqs->dnsDeps->directKeywords << item.mid(8);
-            }
-            if (item.startsWith("regex:")) {
-                preReqs->dnsDeps->directRegexes << item.mid(6);
-            }
-            preReqs->dnsDeps->needDirectDnsRules = true;
         }
         if (auto entAddrs = getEntDomains({ctx->ent->id}, ctx->error); !entAddrs.isEmpty())
         {

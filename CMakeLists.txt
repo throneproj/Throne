@@ -170,6 +170,9 @@ set(PROJECT_SOURCES
         include/ui/profile/edit_shadowtls.h
         src/ui/profile/edit_shadowtls.cpp
         include/ui/profile/edit_shadowtls.ui
+        include/ui/profile/edit_naive.h
+        src/ui/profile/edit_naive.cpp
+        include/ui/profile/edit_naive.ui
 
         include/ui/profile/edit_custom.h
         src/ui/profile/edit_custom.cpp
@@ -253,6 +256,7 @@ set(PROJECT_SOURCES
         include/configs/outbounds/tuic.h
         include/configs/outbounds/juicity.h
         include/configs/outbounds/trusttunnel.h
+        include/configs/outbounds/naive.h
         include/configs/outbounds/shadowtls.h
         include/configs/outbounds/anyTLS.h
         include/configs/outbounds/ssh.h
@@ -269,6 +273,7 @@ set(PROJECT_SOURCES
         src/configs/outbounds/tuic.cpp
         src/configs/outbounds/juicity.cpp
         src/configs/outbounds/trusttunnel.cpp
+        src/configs/outbounds/naive.cpp
         src/configs/outbounds/shadowtls.cpp
         src/configs/outbounds/vless.cpp
         src/configs/outbounds/vmess.cpp
