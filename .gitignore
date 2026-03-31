@@ -149,3 +149,4 @@ srslist.h
 /deployment
 /neko*.sh
 /qtsdk
+script/qt6
