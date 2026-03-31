@@ -599,7 +599,21 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         }
     });
     trayMenu->addSeparator();
-    trayMenu->addMenu(ui->menu_spmode);
+    // MacOS cannot reuse menus across different parents properly
+    if (getOS() == Darwin) {
+        auto* traySpmodeMenu = new QMenu(ui->menu_spmode->title(), trayMenu);
+        traySpmodeMenu->addAction(ui->menu_spmode_system_proxy);
+        traySpmodeMenu->addAction(ui->menu_spmode_vpn);
+        traySpmodeMenu->addAction(ui->menu_spmode_disabled);
+        connect(traySpmodeMenu, &QMenu::aboutToShow, this, [=,this]() {
+            ui->menu_spmode_disabled->setChecked(!(Configs::dataManager->settingsRepo->spmode_system_proxy || Configs::dataManager->settingsRepo->spmode_vpn));
+            ui->menu_spmode_system_proxy->setChecked(Configs::dataManager->settingsRepo->spmode_system_proxy);
+            ui->menu_spmode_vpn->setChecked(Configs::dataManager->settingsRepo->spmode_vpn);
+        });
+        trayMenu->addMenu(traySpmodeMenu);
+    } else {
+        trayMenu->addMenu(ui->menu_spmode);
+    }
     trayMenu->addSeparator();
     trayMenu->addAction(ui->actionRestart_Proxy);
     trayMenu->addAction(ui->actionRestart_Program);
