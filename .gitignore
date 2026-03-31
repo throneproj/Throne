@@ -1,48 +1,88 @@
-# This file is used to ignore files which are generated
 # ----------------------------------------------------------------------------
-
+# General temporary / backup files
+# ----------------------------------------------------------------------------
 *~
 *.autosave
-*.a
-*.core
-*.moc
-*.o
-*.obj
 *.orig
 *.rej
-*.so
-*.so.*
-*_pch.h.cpp
-*_resource.rc
 .#*
 *.*#
-core
-!core/
-tags
+*.debug
+*.flc
+.*.swp
 .DS_Store
 .directory
-*.debug
-/Makefile*
-*.prl
+Thumbs.db
+
+# ----------------------------------------------------------------------------
+# Compiled / binary files
+# ----------------------------------------------------------------------------
+*.a
+*.core
+core
+!core/
+*.o
+*.obj
+*.so
+*.so.*
+*.dll
+*.exe
 *.app
+*.res
+
+# ----------------------------------------------------------------------------
+# Qt / C++ generated files
+# ----------------------------------------------------------------------------
+*.moc
+*_pch.h.cpp
+*_resource.rc
 moc_*.cpp
 ui_*.h
 qrc_*.cpp
-Thumbs.db
-*.res
+*.prl
+
+# Qt Creator
+*.pro.user*
+/CMakeLists.txt.user
+
+# ----------------------------------------------------------------------------
+# Build systems (CMake / Ninja / Make)
+# ----------------------------------------------------------------------------
+/Makefile*
 /.qmake.cache
 /.qmake.stash
 
-# qtcreator generated files
-*.pro.user*
+/build
+/build-*
+/cmake-build-*
+/build*/
+/build.ninja
+/ninja
+/ninja.bootstrap
 
-# xemacs temporary files
-*.flc
+# Ninja outputs
+.ninja_deps
+.ninja_log
 
-# Vim temporary files
-.*.swp
+# Performance tests / ninja artifacts
+/build_log_perftest
+/canon_perftest
+/clparser_perftest
+/elide_middle_perftest
+/depfile_parser_perftest
+/hash_collision_bench
+/ninja_test
+/manifest_parser_perftest
+/graph.png
 
-# Visual Studio generated files
+# ----------------------------------------------------------------------------
+# Python
+# ----------------------------------------------------------------------------
+*.pyc
+
+# ----------------------------------------------------------------------------
+# Visual Studio
+# ----------------------------------------------------------------------------
 *.ib_pdb_index
 *.idb
 *.ilk
@@ -50,40 +90,62 @@ Thumbs.db
 *.sln
 *.suo
 *.vcproj
+*.vcxproj
 *vcproj.*.*.user
+*vcxproj.*
 *.ncb
 *.sdf
 *.opensdf
-*.vcxproj
-*vcxproj.*
 
-# MinGW generated files
+/.vs/
+/out/
+.vs
+out
+
+# ----------------------------------------------------------------------------
+# MinGW
+# ----------------------------------------------------------------------------
 *.Debug
 *.Release
 
-# Python byte code
-*.pyc
-
-# Binaries
-# --------
-*.dll
-*.exe
-
-# Custom
-/Throne
-/build
-CMakeLists.txt.user*
-/cmake-build-*
-/build-*
+# ----------------------------------------------------------------------------
+# IDEs
+# ----------------------------------------------------------------------------
 .vscode
+/.vscode/
 .idea
 
+# Eclipse
+.project
+.cproject
+
+# Sublime
+*.sublime-project
+*.sublime-workspace
+
+# clangd / ccls
+/.clangd/
+/compile_commands.json
+/.cache/
+/.ccls-cache/
+
+# ----------------------------------------------------------------------------
+# Docs / patches
+# ----------------------------------------------------------------------------
+*.patch
+/doc/manual.html
+/doc/doxygen
+
+# ----------------------------------------------------------------------------
+# Custom project files
+# ----------------------------------------------------------------------------
+/Throne
+/libs
+srslist.h
+
+# ----------------------------------------------------------------------------
 # Deploy
+# ----------------------------------------------------------------------------
 /deployment
 /neko*.sh
 /qtsdk
-
-.vs
-out
-/libs
-srslist.h
