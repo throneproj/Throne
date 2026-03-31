@@ -63,6 +63,8 @@ namespace Configs {
 
         QList<std::shared_ptr<Profile>> GetProfileBatch(QList<int> ids);
 
+        QList<std::pair<int, QString> > GetProfileIDNameMappedBatch(QList<int> ids);
+
         std::shared_ptr<Profile> GetProfileByName(const QString &name);
 
         QList<std::pair<int, QString> > GetAllProfileIDNameMapped();

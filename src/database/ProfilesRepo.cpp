@@ -2,6 +2,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <map>
 
 #include "include/database/GroupsRepo.h"
 #include "include/ui/mainwindow.h"
@@ -444,6 +445,40 @@ namespace Configs {
             if (it != byId.end()) profiles.push_back(it->second);
         }
         return profiles;
+    }
+
+    QList<std::pair<int, QString> > ProfilesRepo::GetProfileIDNameMappedBatch(QList<int> ids) {
+        QList<std::pair<int, QString> > result;
+        if (ids.isEmpty()) return result;
+
+        std::map<int, QString> idToName;
+
+        for (int off = 0; off < ids.size(); off += Configs::BATCH_LIMIT_READ) {
+            const int end = std::min(off + Configs::BATCH_LIMIT_READ, static_cast<int>(ids.size()));
+            const auto chunk = ids.sliced(off, end - off);
+            if (chunk.isEmpty()) continue;
+
+            QString idList;
+            for (int i = 0; i < chunk.size(); ++i) {
+                if (i > 0) idList += ",";
+                idList += QString::number(chunk[i]);
+            }
+            const std::string sql = "SELECT id, name FROM profiles WHERE id IN (" + idList.toStdString() + ") ORDER BY id";
+            auto query = db.query(sql);
+            if (!query) continue;
+            while (query->executeStep()) {
+                const int id = query->getColumn(0).getInt();
+                idToName[id] = QString::fromStdString(query->getColumn(1).getText());
+            }
+        }
+
+        for (int id : ids) {
+            const auto it = idToName.find(id);
+            if (it != idToName.end()) {
+                result.append({it->first, it->second});
+            }
+        }
+        return result;
     }
 
     std::shared_ptr<Profile> ProfilesRepo::GetProfileByName(const QString& name) {

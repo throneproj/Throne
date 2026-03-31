@@ -562,10 +562,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         for (int gid : groupIds) {
             auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
             if (!group || group->archive) continue;
-            for (int pid : group->Profiles()) {
-                auto profile = Configs::dataManager->profilesRepo->GetProfile(pid);
-                if (!profile) continue;
-                allProfiles.append({profile->name, profile->id});
+            auto profilesNameID = Configs::dataManager->profilesRepo->GetProfileIDNameMappedBatch(group->Profiles());
+            for (const auto&[id, name] : profilesNameID) {
+                allProfiles.append({name, id});
             }
         }
         int totalProfiles = allProfiles.size();
