@@ -620,13 +620,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
        trayServerPage = 0;
     });
     connect(tray, &QSystemTrayIcon::activated, qApp, [=, this](QSystemTrayIcon::ActivationReason reason) {
-        if (reason == QSystemTrayIcon::Trigger) {
-            if (getOS() == Darwin) {
-                tray->contextMenu()->popup(QCursor::pos());
-            } else {
-                ActivateWindow(this);
-                refresh_proxy_list_column_size();
-            }
+        if (reason == QSystemTrayIcon::Trigger && getOS() != Darwin) {
+            ActivateWindow(this);
+            refresh_proxy_list_column_size();
         }
     });
 
