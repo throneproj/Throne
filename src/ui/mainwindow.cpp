@@ -558,16 +558,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             QList<int> reordered = groupIds.mid(startIdx) + groupIds.mid(0, startIdx);
             groupIds = reordered;
         }
-        QList<std::pair<QString, int>> allProfiles; // (display name, profile id)
-        for (int gid : groupIds) {
+        QList<int> allProfileIDs;
+        for (auto gid : groupIds) {
             auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
-            if (!group || group->archive) continue;
-            auto profilesNameID = Configs::dataManager->profilesRepo->GetProfileIDNameMappedBatch(group->Profiles());
-            for (const auto&[id, name] : profilesNameID) {
-                allProfiles.append({name, id});
-            }
+            allProfileIDs.append(group->Profiles());
         }
-        int totalProfiles = allProfiles.size();
+        int totalProfiles = allProfileIDs.size();
         // Clamp page
         int maxPage = qMax(0, (totalProfiles - 1) / PAGE_SIZE);
         trayServerPage = qBound(0, trayServerPage, maxPage);
@@ -582,12 +578,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             });
         }
         // Show profiles for current page
-        for (int i = offset; i < end; i++) {
-            const auto &[name, pid] = allProfiles[i];
+        auto neededProfilesIDNames = Configs::dataManager->profilesRepo->GetProfileIDNameMappedBatch(allProfileIDs.sliced(offset, end - offset));
+        for (const auto&[id, name] : neededProfilesIDNames) {
             auto *action = trayServerMenu->addAction(name);
             action->setCheckable(true);
-            action->setChecked(running && running->id == pid);
-            connect(action, &QAction::triggered, this, [=, this]() { profile_start(pid); });
+            action->setChecked(running && running->id == id);
+            connect(action, &QAction::triggered, this, [=, this]() { profile_start(id); });
         }
         // Show ↓ if not on last page
         if (trayServerPage < maxPage) {
