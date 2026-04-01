@@ -136,6 +136,11 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     ui->simple_block->hide();
     ui->simple_proxy->hide();
 
+    // Подключаем подсветку комментариев (#)
+    directHighlighter = new RouteRuleHighlighter(simpleDirect->document());
+    blockHighlighter = new RouteRuleHighlighter(simpleBlock->document());
+    proxyHighlighter = new RouteRuleHighlighter(simpleProxy->document());
+
     simpleDirect->setPlainText(chain->GetSimpleRules(Configs::direct));
     simpleBlock->setPlainText(chain->GetSimpleRules(Configs::block));
     simpleProxy->setPlainText(chain->GetSimpleRules(Configs::proxy));

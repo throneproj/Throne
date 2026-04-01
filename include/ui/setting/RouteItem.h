@@ -9,6 +9,7 @@
 #include "3rdparty/qv2ray/v2/ui/QvAutoCompleteTextEdit.hpp"
 #include "ui_RouteItem.h"
 #include "include/database/entities/RouteProfile.h"
+#include "include/ui/setting/RouteRuleHighlighter.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -52,6 +53,11 @@ private:
     AutoCompleteTextEdit* simpleBlock;
 
     AutoCompleteTextEdit* simpleProxy;
+
+    // Хайлайтеры для подсветки комментариев (#) в текстовых полях
+    RouteRuleHighlighter* directHighlighter = nullptr;
+    RouteRuleHighlighter* blockHighlighter = nullptr;
+    RouteRuleHighlighter* proxyHighlighter = nullptr;
 
     [[nodiscard]] int getIndexOf(const QString& name) const;
 

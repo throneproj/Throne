@@ -209,6 +209,8 @@ set(PROJECT_SOURCES
         src/ui/setting/RouteItem.cpp
         include/ui/setting/RouteItem.h
         include/ui/setting/RouteItem.ui
+        src/ui/setting/RouteRuleHighlighter.cpp
+        include/ui/setting/RouteRuleHighlighter.h
 
         res/Throne.qrc
         ${QV2RAY_RC}
