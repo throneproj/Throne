@@ -52,6 +52,13 @@ namespace Configs {
         QString UpdateSimpleRules(const QString& content, simpleAction action);
 
         void FilterEmptyRules();
+
+        /// Сырой текст из вкладки Basic для каждого действия, используется для сохранения комментариев (#) при переключении вкладок
+        struct RawSimpleRules {
+            QString direct;
+            QString proxy;
+            QString block;
+        } rawSimpleRulesText;
     private:
         static bool add_simple_rule(const QString& content, const std::shared_ptr<RouteRule>& rule, ruleType type);
 

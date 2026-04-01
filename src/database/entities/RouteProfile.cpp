@@ -110,6 +110,7 @@ namespace Configs {
             Rules.push_back(std::make_shared<RouteRule>(*item));
         }
         defaultOutboundID = other.defaultOutboundID;
+        rawSimpleRulesText = other.rawSimpleRulesText;
     }
 
     QList<std::shared_ptr<RouteRule>> RouteProfile::parseJsonArray(const QJsonArray& arr, QString* parseError) {
@@ -288,8 +289,20 @@ namespace Configs {
         }
     }
 
+    /// Возвращает указатель на поле хранения сырого текста для заданного действия
+    static QString* rawTextForAction(simpleAction action, RouteProfile::RawSimpleRules& storage) {
+        if (action == direct) return &storage.direct;
+        if (action == block) return &storage.block;
+        return &storage.proxy;
+    }
+
     QString RouteProfile::GetSimpleRules(simpleAction action)
     {
+        // Если есть кеш сырого текста из UpdateSimpleRules, вернуть его для сохранения комментариев
+        const QString* cached = rawTextForAction(action, const_cast<RouteProfile::RawSimpleRules&>(rawSimpleRulesText));
+        if (!cached->isEmpty()) return *cached;
+
+        // Фоллбек: перегенерация из структурированных правил (первое открытие до редактирования в Basic)
         QList<int> types;
         if (action == proxy) {
             types << simpleAddressProxy;
@@ -322,9 +335,11 @@ namespace Configs {
         return res;
     }
 
-
     QString RouteProfile::UpdateSimpleRules(const QString& content, simpleAction action)
     {
+        // Сохраняем исходный текст (с комментариями), чтобы GetSimpleRules мог восстановить его при переключении вкладки
+        *rawTextForAction(action, rawSimpleRulesText) = content;
+
         QString res;
         auto items = content.split("\n");
         QList<ruleType> types;
@@ -346,6 +361,8 @@ namespace Configs {
         }
         for (const auto& raw : items) {
             if (raw.trimmed().isEmpty()) continue;
+            // Пропускаем строки-комментарии (начинающиеся с #)
+            if (raw.trimmed().startsWith("#")) continue;
             auto type = get_rule_type(raw, action);
             if (type == custom) {
                 res += "invalid rule:" + raw + "\n";
