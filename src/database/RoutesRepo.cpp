@@ -17,10 +17,18 @@ namespace Configs {
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL DEFAULT '',
                 default_outbound_id INTEGER NOT NULL DEFAULT -1,
+                simple_rules_direct TEXT,
+                simple_rules_proxy TEXT,
+                simple_rules_block TEXT,
                 created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
             )
         )");
+
+        // Миграция: добавляем столбцы для существующих баз
+        db.exec("ALTER TABLE route_profiles ADD COLUMN simple_rules_direct TEXT");
+        db.exec("ALTER TABLE route_profiles ADD COLUMN simple_rules_proxy TEXT");
+        db.exec("ALTER TABLE route_profiles ADD COLUMN simple_rules_block TEXT");
         
         // Create route_rules table
         db.exec(R"(
@@ -161,11 +169,19 @@ namespace Configs {
 
     std::shared_ptr<RouteProfile> RoutesRepo::routeProfileFromJson(const QJsonObject& json) const {
         auto routeProfile = std::make_shared<RouteProfile>();
-        
+
         routeProfile->id = json["id"].toInt();
         routeProfile->name = json["name"].toString();
         routeProfile->defaultOutboundID = json["defaultOutboundID"].toInt();
-        
+
+        // Восстанавливаем сырой текст вкладки Basic из БД
+        if (json.contains("simple_rules_direct"))
+            routeProfile->rawSimpleRulesText.direct = json["simple_rules_direct"].toString();
+        if (json.contains("simple_rules_proxy"))
+            routeProfile->rawSimpleRulesText.proxy = json["simple_rules_proxy"].toString();
+        if (json.contains("simple_rules_block"))
+            routeProfile->rawSimpleRulesText.block = json["simple_rules_block"].toString();
+
         // Load rules
         if (json.contains("rules") && json["rules"].isArray()) {
             QJsonArray rulesArray = json["rules"].toArray();
@@ -176,7 +192,7 @@ namespace Configs {
                 }
             }
         }
-        
+
         return routeProfile;
     }
 
@@ -188,12 +204,20 @@ namespace Configs {
         if (exists) {
             // Update route profile
             db.exec(R"(
-                UPDATE route_profiles 
-                SET name = ?, default_outbound_id = ?, updated_at = strftime('%s', 'now')
+                UPDATE route_profiles
+                SET name = ?,
+                    default_outbound_id = ?,
+                    simple_rules_direct = ?,
+                    simple_rules_proxy = ?,
+                    simple_rules_block = ?,
+                    updated_at = strftime('%s', 'now')
                 WHERE id = ?
             )",
                 routeProfile->name.toStdString(),
                 routeProfile->defaultOutboundID,
+                routeProfile->rawSimpleRulesText.direct.toUtf8().constData(),
+                routeProfile->rawSimpleRulesText.proxy.toUtf8().constData(),
+                routeProfile->rawSimpleRulesText.block.toUtf8().constData(),
                 id
             );
             
@@ -202,12 +226,15 @@ namespace Configs {
         } else {
             // Insert route profile
             db.exec(R"(
-                INSERT INTO route_profiles (id, name, default_outbound_id)
-                VALUES (?, ?, ?)
+                INSERT INTO route_profiles (id, name, default_outbound_id, simple_rules_direct, simple_rules_proxy, simple_rules_block)
+                VALUES (?, ?, ?, ?, ?, ?)
             )",
                 id,
                 routeProfile->name.toStdString(),
-                routeProfile->defaultOutboundID
+                routeProfile->defaultOutboundID,
+                routeProfile->rawSimpleRulesText.direct.toUtf8().constData(),
+                routeProfile->rawSimpleRulesText.proxy.toUtf8().constData(),
+                routeProfile->rawSimpleRulesText.block.toUtf8().constData()
             );
         }
         
@@ -346,6 +373,13 @@ namespace Configs {
         json["name"] = QString::fromStdString(stmt.getColumn(1).getText());
         json["defaultOutboundID"] = stmt.getColumn(2).getInt();
         json["rules"] = QJsonArray();
+        // Восстанавливаем сырой текст Basic таба (может быть NULL для старых баз)
+        if (!stmt.getColumn(3).isNull())
+            json["simple_rules_direct"] = QString::fromStdString(stmt.getColumn(3).getText());
+        if (!stmt.getColumn(4).isNull())
+            json["simple_rules_proxy"] = QString::fromStdString(stmt.getColumn(4).getText());
+        if (!stmt.getColumn(5).isNull())
+            json["simple_rules_block"] = QString::fromStdString(stmt.getColumn(5).getText());
         return routeProfileFromJson(json);
     }
 
@@ -378,7 +412,7 @@ namespace Configs {
 
     std::shared_ptr<RouteProfile> RoutesRepo::loadFromDatabase(int id) const {
         auto profileQuery = db.query(R"(
-            SELECT id, name, default_outbound_id
+            SELECT id, name, default_outbound_id, simple_rules_direct, simple_rules_proxy, simple_rules_block
             FROM route_profiles WHERE id = ?
         )", id);
         if (!profileQuery || !profileQuery->executeStep()) {
@@ -487,7 +521,7 @@ namespace Configs {
         std::map<int, std::shared_ptr<RouteProfile>> byId;
         QList<int> idsInOrder;
 
-        auto profileQuery = db.query("SELECT id, name, default_outbound_id FROM route_profiles ORDER BY id");
+        auto profileQuery = db.query("SELECT id, name, default_outbound_id, simple_rules_direct, simple_rules_proxy, simple_rules_block FROM route_profiles ORDER BY id");
         if (!profileQuery) return routeProfiles;
 
         QMutexLocker locker(&mutex);
