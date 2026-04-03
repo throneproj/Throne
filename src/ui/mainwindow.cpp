@@ -267,6 +267,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->toolButton_preferences->setMenu(ui->menu_preferences);
     ui->toolButton_server->setMenu(ui->menu_server);
     ui->toolButton_routing->setMenu(ui->menuRouting_Menu);
+
+    // Добавляем контекстное меню по правому клику на кнопку Routing
+    ui->toolButton_routing->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->toolButton_routing, &QWidget::customContextMenuRequested, this, [=,this](const QPoint& pos) {
+        // Открываем диалог управления маршрутизацией с включенной вкладкой Route
+        auto dialog = new DialogManageRoutes(this, true);
+        dialog->exec();
+        dialog->deleteLater();
+    });
+
     ui->menubar->setVisible(false);
     connect(ui->toolButton_update, &QToolButton::clicked, this, [=,this] { runOnNewThread([=,this] { CheckUpdate(); }); });
     if (!QFile::exists(QApplication::applicationDirPath() + "/updater") && !QFile::exists(QApplication::applicationDirPath() + "/updater.exe"))

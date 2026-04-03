@@ -59,7 +59,7 @@ bool DialogManageRoutes::validate_dns_rules(const QString &rawString) {
     return true;
 }
 
-DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(new Ui::DialogManageRoutes) {
+DialogManageRoutes::DialogManageRoutes(QWidget *parent, bool startOnRoutingTab) : QDialog(parent), ui(new Ui::DialogManageRoutes) {
     ui->setupUi(this);
     auto profiles = Configs::dataManager->routesRepo->GetAllRouteProfiles();
     for (const auto &item: profiles) {
@@ -205,6 +205,11 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     });
 
     ADD_ASTERISK(this)
+
+    // При открытии по ПКМ на кнопке Routing сразу переключаемся на вкладку Route (последняя)
+    if (startOnRoutingTab) {
+        ui->tabWidget->setCurrentIndex(4);
+    }
 }
 
 void DialogManageRoutes::updateCurrentRouteProfile(int idx) {

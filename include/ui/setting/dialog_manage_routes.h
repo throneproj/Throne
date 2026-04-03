@@ -19,12 +19,14 @@ class DialogManageRoutes : public QDialog {
     Q_OBJECT
 
 public:
-    explicit DialogManageRoutes(QWidget *parent = nullptr);
+    explicit DialogManageRoutes(QWidget *parent = nullptr, bool startOnRoutingTab = false);
 
     ~DialogManageRoutes() override;
 
-private:
+public:
     Ui::DialogManageRoutes *ui;
+
+private:
 
     RouteItem* routeChainWidget;
 
@@ -43,6 +45,8 @@ private:
     QShortcut* deleteShortcut;
 
     AutoCompleteTextEdit* rule_editor;
+
+
 public slots:
     void accept() override;
 
