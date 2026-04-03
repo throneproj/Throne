@@ -126,6 +126,296 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tab_enhanced">
+      <attribute name="title">
+       <string>Basic+</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_enhanced">
+       <item>
+        <widget class="QTabWidget" name="enhanced_tabWidget">
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="tab_enhanced_proxy">
+          <attribute name="title">
+           <string>Proxy</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_enhanced_proxy">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_enhanced_proxy">
+             <item>
+              <widget class="QGroupBox" name="enhanced_proxy_ip_box">
+               <property name="title">
+                <string>IPs</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_enhanced_proxy_ip">
+                <item>
+                 <widget class="QTextEdit" name="enhanced_proxy_ip"/>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="enhanced_proxy_domain_box">
+               <property name="title">
+                <string>Domains</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_enhanced_proxy_domain">
+                <item>
+                 <widget class="QTextEdit" name="enhanced_proxy_domain"/>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="enhanced_proxy_process_box">
+               <property name="title">
+                <string>Processes</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_enhanced_proxy_process">
+                <item>
+                 <widget class="QTextEdit" name="enhanced_proxy_process"/>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_enhanced_proxy_ruleset">
+             <item>
+              <widget class="QPushButton" name="enhanced_proxy_ruleset_toggle">
+               <property name="text">
+                <string>▼ Ruleset (URI)</string>
+               </property>
+               <property name="checkable">
+                <bool>true</bool>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+               <property name="autoDefault">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QTextEdit" name="enhanced_proxy_ruleset">
+               <property name="visible">
+                <bool>true</bool>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>50</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>50</height>
+                </size>
+               </property>
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tab_enhanced_direct">
+          <attribute name="title">
+           <string>Direct</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_enhanced_direct">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_enhanced_direct">
+             <item>
+              <widget class="QGroupBox" name="enhanced_direct_ip_box">
+               <property name="title">
+                <string>IPs</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_enhanced_direct_ip">
+                <item>
+                 <widget class="QTextEdit" name="enhanced_direct_ip"/>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="enhanced_direct_domain_box">
+               <property name="title">
+                <string>Domains</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_enhanced_direct_domain">
+                <item>
+                 <widget class="QTextEdit" name="enhanced_direct_domain"/>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="enhanced_direct_process_box">
+               <property name="title">
+                <string>Processes</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_enhanced_direct_process">
+                <item>
+                 <widget class="QTextEdit" name="enhanced_direct_process"/>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_enhanced_direct_ruleset">
+             <item>
+              <widget class="QPushButton" name="enhanced_direct_ruleset_toggle">
+               <property name="text">
+                <string>▼ Ruleset (URI)</string>
+               </property>
+               <property name="checkable">
+                <bool>true</bool>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+               <property name="autoDefault">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QTextEdit" name="enhanced_direct_ruleset">
+               <property name="visible">
+                <bool>true</bool>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>50</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>50</height>
+                </size>
+               </property>
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tab_enhanced_block">
+          <attribute name="title">
+           <string>Block</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_enhanced_block">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_enhanced_block">
+             <item>
+              <widget class="QGroupBox" name="enhanced_block_ip_box">
+               <property name="title">
+                <string>IPs</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_enhanced_block_ip">
+                <item>
+                 <widget class="QTextEdit" name="enhanced_block_ip"/>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="enhanced_block_domain_box">
+               <property name="title">
+                <string>Domains</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_enhanced_block_domain">
+                <item>
+                 <widget class="QTextEdit" name="enhanced_block_domain"/>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="enhanced_block_process_box">
+               <property name="title">
+                <string>Processes</string>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_enhanced_block_process">
+                <item>
+                 <widget class="QTextEdit" name="enhanced_block_process"/>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_enhanced_block_ruleset">
+             <item>
+              <widget class="QPushButton" name="enhanced_block_ruleset_toggle">
+               <property name="text">
+                <string>▼ Ruleset (URI)</string>
+               </property>
+               <property name="checkable">
+                <bool>true</bool>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+               <property name="autoDefault">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QTextEdit" name="enhanced_block_ruleset">
+               <property name="visible">
+                <bool>true</bool>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>50</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>50</height>
+                </size>
+               </property>
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
      <widget class="QWidget" name="tab">
       <attribute name="title">
        <string>Advanced</string>
