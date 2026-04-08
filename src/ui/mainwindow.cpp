@@ -1040,11 +1040,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(TM_auto_update_subsctiption, &QTimer::timeout, this, [&] { UI_update_all_groups(true); });
     TM_auto_update_subsctiption_Reset_Minute(Configs::dataManager->settingsRepo->sub_auto_update);
 
-    if (Configs::dataManager->settingsRepo->sub_auto_update >= 30) {
-        QTimer::singleShot(0, this, [] {
-            UI_update_all_groups(true);
-        });
-    }
+    // Force refresh all subscription groups once startup settles.
+    QTimer::singleShot(3000, this, [this] {
+        UI_update_all_groups(false);
+    });
 
     if (!Configs::dataManager->settingsRepo->flag_tray) show();
 

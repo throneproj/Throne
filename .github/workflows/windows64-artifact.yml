@@ -1,0 +1,100 @@
+name: Throne windows64 artifact
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag/version for artifact naming"
+        required: true
+        default: "1.0.0"
+
+jobs:
+  build-go-windows64:
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    env:
+      DEST: ${{ github.workspace }}/deployment/windows-amd64
+    steps:
+      - name: Checking out sources
+        uses: actions/checkout@v4.2.2
+      - name: Install Golang
+        uses: actions/setup-go@v5.5.0
+        with:
+          go-version: "1.25.9"
+          cache-dependency-path: |
+            core/server/go.sum
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "31.1"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Installing protoc-gen-go
+        run: |
+          go install github.com/golang/protobuf/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+      - name: Build golang parts
+        shell: bash
+        run: |
+          GOOS=windows GOARCH=amd64 ./script/build_go.sh
+      - name: Tar files
+        run: tar czvf artifacts.tgz ./deployment
+      - name: Uploading Artifact
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: Throne-${{ github.sha }}-Common-windows-amd64
+          path: artifacts.tgz
+
+  build-windows64:
+    runs-on: windows-latest
+    needs:
+      - build-go-windows64
+    permissions:
+      contents: read
+    env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+      INPUT_VERSION: ${{ github.event.inputs.tag }}
+      DEST: ${{ github.workspace }}/deployment/windows-amd64
+      DEST_SUFFIX: windows-amd64
+      ARCH: x64
+    steps:
+      - name: Checking out sources
+        uses: actions/checkout@v4.2.2
+        with:
+          submodules: "recursive"
+      - name: Install MSVC compiler
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4.3.0
+        with:
+          path: download-artifact
+      - name: Windows - Generate MakeFile and Build
+        shell: bash
+        run: |
+          curl -L -o qt.7z https://github.com/throneproj/buildqt/releases/download/Qt_6.11.0/Qt_6.11.0_x64.7z
+          7z x qt.7z
+          curl -L -o openssl.7z https://github.com/throneproj/env_windows_legacy/releases/download/latest/openssl_x64.7z
+          7z x openssl.7z
+          export CMAKE_PREFIX_PATH=$PWD/Qt/lib/cmake
+          export OPENSSL_ROOT_DIR=$PWD/openssl
+          mkdir build
+          cd build
+          curl -fLso srslist.h "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/srslist.h"
+          cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+          ninja
+          cd ..
+          ./script/deploy_windows.sh
+      - name: Package windows64
+        shell: pwsh
+        run: |
+          Set-Location deployment
+          if (Test-Path Throne) { Remove-Item -Recurse -Force Throne }
+          Move-Item windows-amd64 Throne
+          Compress-Archive -Path Throne -DestinationPath "Throne-${{ github.event.inputs.tag }}-windows64.zip" -CompressionLevel Optimal -Force
+      - name: Upload windows64 artifact
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: Throne-${{ github.event.inputs.tag }}-windows64
+          path: deployment/Throne-${{ github.event.inputs.tag }}-windows64.zip
