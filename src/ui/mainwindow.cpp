@@ -1040,6 +1040,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(TM_auto_update_subsctiption, &QTimer::timeout, this, [&] { UI_update_all_groups(true); });
     TM_auto_update_subsctiption_Reset_Minute(Configs::dataManager->settingsRepo->sub_auto_update);
 
+    if (Configs::dataManager->settingsRepo->sub_auto_update >= 30) {
+        QTimer::singleShot(0, this, [] {
+            UI_update_all_groups(true);
+        });
+    }
+
     if (!Configs::dataManager->settingsRepo->flag_tray) show();
 
     ui->data_view->setStyleSheet("background: transparent; border: none;");
