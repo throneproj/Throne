@@ -2,6 +2,209 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="ru_RU">
 <context>
+    <name>QObject</name>
+    <message>
+        <source>Request with proxy but no profile started.</source>
+        <translation>Запрос через прокси, но профиль не запущен.</translation>
+    </message>
+    <message>
+        <source>Could not open file.</source>
+        <translation>Не удалось открыть файл.</translation>
+    </message>
+    <message>
+        <source>Proxy: %1
+Direct: %2</source>
+        <translation>Прокси: %1
+Напрямую: %2</translation>
+    </message>
+    <message>
+        <source>Add profiles to this group</source>
+        <translation>Добавить профили в эту группу</translation>
+    </message>
+    <message>
+        <source>Create new subscription group</source>
+        <translation>Создать новую группу подписки</translation>
+    </message>
+    <message>
+        <source>url detected</source>
+        <translation>Обнаружен URL</translation>
+    </message>
+    <message>
+        <source>%1
+How to update?</source>
+        <translation>%1
+Как обновить?</translation>
+    </message>
+    <message>
+        <source>Requesting subscription: %1</source>
+        <translation>Запрос подписки: %1</translation>
+    </message>
+    <message>
+        <source>Requesting subscription %1 error: %2</source>
+        <translation>Ошибка запроса подписки %1: %2</translation>
+    </message>
+    <message>
+        <source>Subscription request fininshed: %1</source>
+        <translation>Запрос подписки завершён: %1</translation>
+    </message>
+    <message>
+        <source>Clearing servers...</source>
+        <translation>Очистка серверов...</translation>
+    </message>
+    <message>
+        <source>Processing subscription data...</source>
+        <translation>Идёт обработка данных подписки...</translation>
+    </message>
+    <message>
+        <source>Process complete, applying...</source>
+        <translation>Процесс завершён, применение...</translation>
+    </message>
+    <message>
+        <source>Added %1 profiles:
+%2
+Deleted %3 Profiles:
+%4</source>
+        <translation>Добавлено %1 профилей:
+%2
+Удалено %3 профилей:
+%4</translation>
+    </message>
+    <message>
+        <source>Nothing</source>
+        <translation>Ничего</translation>
+    </message>
+    <message>
+        <source>Change of %1:</source>
+        <translation>Изменение %1:</translation>
+    </message>
+    <message>
+        <source>Core exited, cleaning up...</source>
+        <translation>Ядро завершило работу, очистка...</translation>
+    </message>
+    <message>
+        <source>Core exits too frequently, stop automatic restart this profile.</source>
+        <translation>Ядро слишком часто останавливается, отмена автоматического перезапуска этого профиля.</translation>
+    </message>
+    <message>
+        <source>Restarting the core ...</source>
+        <translation>Перезапуск ядра...</translation>
+    </message>
+    <message>
+        <source>Download Profiles</source>
+        <translation>Скачать профили</translation>
+    </message>
+    <message>
+        <source>Requesting profile error: %1</source>
+        <translation>Ошибка запроса профиля: %1</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>Обновление</translation>
+    </message>
+    <message>
+        <source>Not official support platform</source>
+        <translation>Платформа официально не поддерживается</translation>
+    </message>
+    <message>
+        <source>Requesting update error: %1</source>
+        <translation>Ошибка запроса обновления: %1</translation>
+    </message>
+    <message>
+        <source>No update</source>
+        <translation>Обновлений нет</translation>
+    </message>
+    <message>
+        <source>Update found: %1
+Release note:
+%2</source>
+        <translation>Найдено обновление: %1
+Список изменений:
+%2</translation>
+    </message>
+    <message>
+        <source>Open in browser</source>
+        <translation>Открыть в браузере</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Закрыть</translation>
+    </message>
+    <message>
+        <source>Update is ready, restart to install?</source>
+        <translation>Обновление готово, перезапустить программу для установки?</translation>
+    </message>
+    <message>
+        <source>Select</source>
+        <translation>Выбор</translation>
+    </message>
+    <message>
+        <source>Debug Check</source>
+        <translation>Проверка отладки</translation>
+    </message>
+    <message>
+        <source>No VLess profiles found.</source>
+        <translation>Профили VLess не найдены.</translation>
+    </message>
+    <message>
+        <source>Debug Check Results</source>
+        <translation>Результаты проверки</translation>
+    </message>
+    <message>
+        <source>After this is complete, copy the output using the button and send it to support.
+Debug info does not contain any personal information.</source>
+        <translation>После завершения скопируйте результат с помощью кнопки и отправьте в поддержку.
+Отладочная информация не содержит персональных данных.</translation>
+    </message>
+    <message>
+        <source>Wait...</source>
+        <translation>Подождите...</translation>
+    </message>
+    <message>
+        <source>Copy to Clipboard</source>
+        <translation>Копировать в буфер обмена</translation>
+    </message>
+    <message>
+        <source>[UpdateConf] All groups processed.</source>
+        <translation>[UpdateConf] Все группы обработаны.</translation>
+    </message>
+    <message>
+        <source>null</source>
+        <translation>не найдена</translation>
+    </message>
+    <message>
+        <source>no URL</source>
+        <translation>нет URL</translation>
+    </message>
+    <message>
+        <source>archived</source>
+        <translation>в архиве</translation>
+    </message>
+    <message>
+        <source>auto-update disabled</source>
+        <translation>автообновление отключено</translation>
+    </message>
+    <message>
+        <source>[UpdateConf] Skipping group %1 (%2)</source>
+        <translation>[UpdateConf] Пропуск группы %1 (%2)</translation>
+    </message>
+    <message>
+        <source>[UpdateConf] Fetching group %1: %2</source>
+        <translation>[UpdateConf] Загрузка группы %1: %2</translation>
+    </message>
+    <message>
+        <source>[UpdateConf] Already updating, please wait...</source>
+        <translation>[UpdateConf] Обновление уже выполняется, подождите...</translation>
+    </message>
+    <message>
+        <source>[UpdateConf] Starting update — %1 group(s) in tab order.</source>
+        <translation>[UpdateConf] Начало обновления — %1 групп(а) в порядке вкладок.</translation>
+    </message>
+    <message>
+        <source>[UpdateConf] No groups found. Add a subscription group with a URL first.</source>
+        <translation>[UpdateConf] Группы не найдены. Сначала добавьте группу подписки с URL.</translation>
+    </message>
+</context>
+<context>
     <name>DialogBasicSettings</name>
     <message>
         <source>Basic Settings</source>
@@ -2700,6 +2903,48 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Stop: %1</source>
         <translation>Остановить: %1</translation>
+    </message>
+    <message>
+        <source>Update Conf</source>
+        <translation>Обновить Конфиг</translation>
+    </message>
+    <message>
+        <source>Debug</source>
+        <translation>Дебаг</translation>
+    </message>
+    <message>
+        <source>[UpdateConf] Button clicked.</source>
+        <translation>[UpdateConf] Кнопка нажата.</translation>
+    </message>
+    <message>
+        <source>Set Subscription URL</source>
+        <translation>Указать URL подписки</translation>
+    </message>
+    <message>
+        <source>We couldn&apos;t find the dynamic config URL for group &quot;%1&quot;.
+Please type /config into @shadowlos_bot and input one of the URLs that work:</source>
+        <translation>Не удалось найти URL динамической конфигурации для группы «%1».
+Введите /config в @shadowlos_bot и укажите один из рабочих URL:</translation>
+    </message>
+    <message>
+        <source>[UpdateConf] Saved URL for group &quot;%1&quot;.</source>
+        <translation>[UpdateConf] URL сохранён для группы «%1».</translation>
+    </message>
+    <message>
+        <source>Debug check: updating subscriptions...</source>
+        <translation>Проверка: обновление подписок...</translation>
+    </message>
+    <message>
+        <source>Debug check: starting checks for %1 VLess profile(s)...</source>
+        <translation>Проверка: запуск проверки для %1 профиля(ей) VLess...</translation>
+    </message>
+    <message>
+        <source>Debug check [%1/%2]: %3</source>
+        <translation>Проверка [%1/%2]: %3</translation>
+    </message>
+    <message>
+        <source>Debug check finished.</source>
+        <translation>Проверка завершена.</translation>
     </message>
 </context>
 <context>
