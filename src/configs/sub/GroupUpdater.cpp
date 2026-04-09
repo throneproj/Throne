@@ -872,7 +872,7 @@ bool UI_update_all_groups_Updating = false;
 
 void serialUpdateSubscription(const QList<int> &groupsTabOrder, int _order, bool onlyAllowed) {
     if (_order >= groupsTabOrder.size()) {
-        MW_show_log("[UpdateConf] All groups processed.");
+        MW_show_log(QObject::tr("[UpdateConf] All groups processed."));
         UI_update_all_groups_Updating = false;
         return;
     }
@@ -880,11 +880,11 @@ void serialUpdateSubscription(const QList<int> &groupsTabOrder, int _order, bool
     // calculate this group
     auto group = Configs::dataManager->groupsRepo->GetGroup(groupsTabOrder[_order]);
     if (group == nullptr || should_skip_group(group)) {
-        QString reason = (group == nullptr) ? "null"
-                       : group->url.isEmpty() ? "no URL"
-                       : group->archive       ? "archived"
-                                              : "auto-update disabled";
-        MW_show_log(QString("[UpdateConf] Skipping group %1 (%2)").arg(_order).arg(reason));
+        QString reason = (group == nullptr)       ? QObject::tr("null")
+                       : group->url.isEmpty()     ? QObject::tr("no URL")
+                       : group->archive           ? QObject::tr("archived")
+                                                  : QObject::tr("auto-update disabled");
+        MW_show_log(QObject::tr("[UpdateConf] Skipping group %1 (%2)").arg(_order).arg(reason));
         serialUpdateSubscription(groupsTabOrder, _order + 1, onlyAllowed);
         return;
     }
@@ -900,7 +900,7 @@ void serialUpdateSubscription(const QList<int> &groupsTabOrder, int _order, bool
     }
 
     // Async update current group
-    MW_show_log(QString("[UpdateConf] Fetching group %1: %2").arg(_order).arg(group->name));
+    MW_show_log(QObject::tr("[UpdateConf] Fetching group %1: %2").arg(_order).arg(group->name));
     UI_update_all_groups_Updating = true;
     Subscription::groupUpdater->AsyncUpdate(group->url, group->id, [=] {
         serialUpdateSubscription(groupsTabOrder, nextOrder, onlyAllowed);
@@ -913,14 +913,14 @@ bool UI_update_all_groups_is_updating() {
 
 void UI_update_all_groups(bool onlyAllowed) {
     if (UI_update_all_groups_Updating) {
-        MW_show_log("[UpdateConf] Already updating, please wait...");
+        MW_show_log(QObject::tr("[UpdateConf] Already updating, please wait..."));
         return;
     }
 
     auto groupsTabOrder = Configs::dataManager->groupsRepo->GetGroupsTabOrder();
-    MW_show_log(QString("[UpdateConf] Starting update — %1 group(s) in tab order.").arg(groupsTabOrder.size()));
+    MW_show_log(QObject::tr("[UpdateConf] Starting update — %1 group(s) in tab order.").arg(groupsTabOrder.size()));
     if (groupsTabOrder.isEmpty()) {
-        MW_show_log("[UpdateConf] No groups found. Add a subscription group with a URL first.");
+        MW_show_log(QObject::tr("[UpdateConf] No groups found. Add a subscription group with a URL first."));
         return;
     }
     serialUpdateSubscription(groupsTabOrder, 0, onlyAllowed);
