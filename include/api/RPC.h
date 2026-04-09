@@ -48,6 +48,10 @@ namespace API {
 
         libcore::GenWgKeyPairResponse GenWgKeyPair(bool *rpcOK);
 
+        bool CheckNaive(bool* rpcOK) const;
+
+        libcore::DebugCheckResult DebugCheck(bool *rpcOK, const libcore::DebugCheckRequest &request);
+
     private:
         class LocalSocketChannel;
         std::unique_ptr<LocalSocketChannel> channel;

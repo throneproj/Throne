@@ -469,4 +469,39 @@ namespace API {
         }
     }
 
+    bool Client::CheckNaive(bool* rpcOK) const
+    {
+        libcore::EmptyReq request;
+        libcore::CheckNaiveResponse reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("CheckNaive", spb::pb::serialize<std::string>(request), resp);
+
+        if (status == CALL_OK)
+        {
+            reply = spb::pb::deserialize<libcore::CheckNaiveResponse>(resp);
+            *rpcOK = true;
+            return reply.has_naive.value();
+        } else
+        {
+            NOT_OK
+            return false;
+        }
+    }
+
+    libcore::DebugCheckResult Client::DebugCheck(bool *rpcOK, const libcore::DebugCheckRequest &request)
+    {
+        libcore::DebugCheckResult reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("DebugCheck", spb::pb::serialize<std::string>(request), resp, 120000);
+
+        if (status == CALL_OK) {
+            reply = spb::pb::deserialize<libcore::DebugCheckResult>(resp);
+            *rpcOK = true;
+            return reply;
+        } else {
+            NOT_OK
+            return {};
+        }
+    }
+
 } // namespace API
