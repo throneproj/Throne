@@ -229,6 +229,75 @@ QToolButton::menu-indicator {
        </widget>
       </item>
       <item>
+       <widget class="QToolButton" name="toolButton_update_subs">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QToolButton {
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+QToolButton::menu-indicator {
+    subcontrol-origin: border;
+    subcontrol-position: bottom right;
+    right: 2px;
+    bottom: 3px;
+}</string>
+        </property>
+        <property name="text">
+         <string>Update Conf</string>
+        </property>
+        <property name="icon">
+         <iconset theme="b-system-software-update"/>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonStyle::ToolButtonTextUnderIcon</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="toolButton_debug">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QToolButton {
+    padding-left: 8px;
+    padding-right: 8px;
+}</string>
+        </property>
+        <property name="text">
+         <string>Debug</string>
+        </property>
+        <property name="icon">
+         <iconset theme="b-system-run"/>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonStyle::ToolButtonTextUnderIcon</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
          <widget class="QCheckBox" name="checkBox_VPN">

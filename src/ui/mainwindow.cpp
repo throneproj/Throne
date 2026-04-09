@@ -337,6 +337,31 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     {
         ui->toolButton_update->hide();
     }
+    connect(ui->toolButton_update_subs, &QToolButton::clicked, this, [=,this] {
+        MW_show_log(tr("[UpdateConf] Button clicked."));
+        // For groups that have profiles but no subscription URL, ask the user once.
+        for (int gid : Configs::dataManager->groupsRepo->GetAllGroupIds()) {
+            auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
+            if (!group || group->archive || !group->url.isEmpty() || group->profiles.isEmpty())
+                continue;
+            bool ok;
+            QString url = QInputDialog::getText(
+                this,
+                tr("Set Subscription URL"),
+                tr("We couldn't find the dynamic config URL for group \"%1\".\n"
+                   "Please type /config into @shadowlos_bot and input one of the URLs that work:").arg(group->name),
+                QLineEdit::Normal, QString(), &ok);
+            if (ok && !url.trimmed().isEmpty()) {
+                group->url = url.trimmed();
+                Configs::dataManager->groupsRepo->Save(group);
+                MW_show_log(tr("[UpdateConf] Saved URL for group \"%1\".").arg(group->name));
+            }
+        }
+        UI_update_all_groups(false);
+    });
+    connect(ui->toolButton_debug, &QToolButton::clicked, this, [=,this] {
+        runOnNewThread([=,this] { check_all_vless_profiles(); });
+    });
 
     // setup connection UI
     setupConnectionList();

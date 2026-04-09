@@ -17,8 +17,12 @@
 #include <QVBoxLayout>
 #include <QApplication>
 #include <QClipboard>
+#include <QScrollBar>
+#include <QPointer>
+#include <QLabel>
 
 #include "include/configs/generate.h"
+#include "include/configs/sub/GroupUpdater.hpp"
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
 
@@ -917,53 +921,45 @@ void MainWindow::profile_stop(bool crash, bool block, bool manual) {
 
 // ─── Debug Check All VLess ─────────────────────────────────────────────────
 
-static void showDebugCheckDialog(const QString &text) {
-    runOnUiThread([text] {
-        auto *dialog = new QDialog(GetMainWindow());
-        dialog->setWindowTitle(QObject::tr("Debug Check Results"));
-        dialog->setAttribute(Qt::WA_DeleteOnClose);
-        dialog->resize(700, 500);
+// Indices into the lines list where each profile's block starts.
+// Each profile occupies 5 lines:
+//   [0] header   "[N/T] Name (type)"
+//   [1] IP check
+//   [2] TCP check
+//   [3] UDP check
+//   [4] blank separator
 
-        auto *layout = new QVBoxLayout(dialog);
+static const int LINES_PER_PROFILE = 5;
 
-        auto *edit = new QPlainTextEdit(dialog);
-        edit->setReadOnly(true);
-        edit->setPlainText(text);
-        QFont mono("Monospace");
-        mono.setStyleHint(QFont::Monospace);
-        edit->setFont(mono);
-        layout->addWidget(edit);
+// Lines before the first profile block.
+static const int HEADER_LINES = 5; // title, timestamp, profile count, sub-update status, blank
 
-        auto *buttons = new QDialogButtonBox(dialog);
-        auto *copyBtn = buttons->addButton(QObject::tr("Copy to Clipboard"), QDialogButtonBox::ActionRole);
-        buttons->addButton(QDialogButtonBox::Close);
-        QObject::connect(copyBtn, &QPushButton::clicked, dialog, [text] {
-            QApplication::clipboard()->setText(text);
-        });
-        QObject::connect(buttons, &QDialogButtonBox::rejected, dialog, &QDialog::close);
-        layout->addWidget(buttons);
-
-        dialog->setLayout(layout);
-        dialog->show();
-    });
+static QString pendingBlock(int idx, int total, const QString &name, const QString &type) {
+    return QString("[%1/%2] %3 (%4)\n"
+                   "  IP Check  : PENDING\n"
+                   "  TCP (1MB) : PENDING\n"
+                   "  UDP/DNS   : PENDING\n")
+        .arg(idx).arg(total).arg(name).arg(type);
 }
 
 void MainWindow::check_all_vless_profiles() {
-    // Collect all vless / xrayvless profiles across all groups
-    QList<std::shared_ptr<Configs::Profile>> vlessProfiles;
-    for (int gid : Configs::dataManager->groupsRepo->GetAllGroupIds()) {
-        auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
-        if (!group) continue;
-        for (int pid : group->Profiles()) {
-            auto ent = Configs::dataManager->profilesRepo->GetProfile(pid);
-            if (!ent) continue;
-            if (ent->type == "vless" || ent->type == "xrayvless") {
-                vlessProfiles.append(ent);
+    // ── 1. Collect vless profiles ───────────────────────────────────────────
+    auto collectVless = [] {
+        QList<std::shared_ptr<Configs::Profile>> result;
+        for (int gid : Configs::dataManager->groupsRepo->GetAllGroupIds()) {
+            auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
+            if (!group) continue;
+            for (int pid : group->Profiles()) {
+                auto ent = Configs::dataManager->profilesRepo->GetProfile(pid);
+                if (ent && (ent->type == "vless" || ent->type == "xrayvless"))
+                    result.append(ent);
             }
         }
-    }
+        return result;
+    };
 
-    if (vlessProfiles.isEmpty()) {
+    auto initialProfiles = collectVless();
+    if (initialProfiles.isEmpty()) {
         runOnUiThread([] {
             QMessageBox::information(GetMainWindow(), QObject::tr("Debug Check"),
                                      QObject::tr("No VLess profiles found."));
@@ -971,53 +967,145 @@ void MainWindow::check_all_vless_profiles() {
         return;
     }
 
-    MW_show_log(tr("Starting debug check for %1 VLess profile(s)…").arg(vlessProfiles.size()));
+    // ── 2. Build initial PENDING text and open the dialog immediately ───────
+    QString initialText;
+    initialText += "=== Throne VLess Debug Check ===\n";
+    initialText += QString("Timestamp : %1\n").arg(QDateTime::currentDateTime().toString(Qt::ISODate));
+    initialText += QString("Profiles  : %1\n").arg(initialProfiles.size());
+    initialText += "Subscriptions : Updating...\n";
+    initialText += "\n";
+    for (int i = 0; i < initialProfiles.size(); ++i)
+        initialText += pendingBlock(i + 1, initialProfiles.size(),
+                                    initialProfiles[i]->outbound->name,
+                                    initialProfiles[i]->type);
+    initialText += "=== Running... ===";
 
+    // Create the dialog on the UI thread and keep safe pointers via QPointer.
+    QPointer<QPlainTextEdit> edit;
+    QPointer<QPushButton>    copyBtn;
+    runOnUiThread([&] {
+        auto *dialog = new QDialog(GetMainWindow());
+        dialog->setWindowTitle(QObject::tr("Debug Check Results"));
+        dialog->setAttribute(Qt::WA_DeleteOnClose);
+        dialog->resize(700, 500);
+
+        auto *layout = new QVBoxLayout(dialog);
+
+        edit = new QPlainTextEdit(dialog);
+        edit->setReadOnly(true);
+        edit->setPlainText(initialText);
+        QFont mono("Monospace");
+        mono.setStyleHint(QFont::Monospace);
+        edit->setFont(mono);
+        layout->addWidget(edit);
+
+        auto *supportLabel = new QLabel(
+            QObject::tr("After this is complete, copy the output using the button and send it to support.\n"
+                        "Debug info does not contain any personal information."),
+            dialog);
+        supportLabel->setWordWrap(true);
+        layout->addWidget(supportLabel);
+
+        auto *buttons = new QDialogButtonBox(dialog);
+        copyBtn = buttons->addButton(QObject::tr("Wait..."), QDialogButtonBox::ActionRole);
+        copyBtn->setEnabled(false);
+        QObject::connect(copyBtn, &QPushButton::clicked, dialog, [edit] {
+            if (edit) QApplication::clipboard()->setText(edit->toPlainText());
+        });
+        layout->addWidget(buttons);
+
+        dialog->setLayout(layout);
+        dialog->show();
+    }, true); // wait=true so pointers are valid before we continue
+
+    // Helper: replace the full text in the editor from the background thread.
+    // QPointer copy is safe — becomes null automatically when the widget is destroyed.
+    auto updateEdit = [edit](const QString &text) {
+        runOnUiThread([edit, text] {
+            if (!edit) return;
+            int scrollPos = edit->verticalScrollBar()->value();
+            edit->setPlainText(text);
+            edit->verticalScrollBar()->setValue(scrollPos);
+        });
+    };
+
+    // ── 3. Update subscriptions ─────────────────────────────────────────────
+    MW_show_log(tr("Debug check: updating subscriptions..."));
+    runOnUiThread([&] { UI_update_all_groups(false); }, true);
+
+    // Poll until the subscription updater finishes (max ~60 s).
+    for (int waited = 0; waited < 600 && UI_update_all_groups_is_updating(); ++waited)
+        QThread::msleep(100);
+
+    // ── 4. Re-collect profiles (subscription may have added/removed some) ───
+    auto profiles = collectVless();
+    const int total = profiles.size();
+    MW_show_log(tr("Debug check: starting checks for %1 VLess profile(s)...").arg(total));
+
+    // Rebuild the text with the fresh profile list, all still PENDING.
     QStringList lines;
     lines << "=== Throne VLess Debug Check ===";
     lines << QString("Timestamp : %1").arg(QDateTime::currentDateTime().toString(Qt::ISODate));
-    lines << QString("Profiles  : %1").arg(vlessProfiles.size());
+    lines << QString("Profiles  : %1").arg(total);
+    lines << "Subscriptions : Updated";
     lines << "";
+    for (int i = 0; i < total; ++i) {
+        lines << QString("[%1/%2] %3 (%4)").arg(i+1).arg(total)
+                     .arg(profiles[i]->outbound->name).arg(profiles[i]->type);
+        lines << "  IP Check  : PENDING";
+        lines << "  TCP (1MB) : PENDING";
+        lines << "  UDP/DNS   : PENDING";
+        lines << "";
+    }
+    lines << "=== Running... ===";
+    updateEdit(lines.join("\n"));
 
+    // Helper: overwrite the 3 result lines for profile at position idx (0-based).
+    auto setProfileLines = [&](int idx, const QString &ip, const QString &tcp, const QString &udp) {
+        int base = HEADER_LINES + idx * LINES_PER_PROFILE;
+        // base+0 is the "[N/T] Name" header — keep it; replace +1,+2,+3
+        lines[base + 1] = ip;
+        lines[base + 2] = tcp;
+        lines[base + 3] = udp;
+        updateEdit(lines.join("\n"));
+    };
+
+    // ── 5. Run checks ───────────────────────────────────────────────────────
     const int timeoutMs = 30000;
-    int idx = 0;
 
-    for (const auto &ent : vlessProfiles) {
-        ++idx;
-        const QString profileLabel = QString("[%1/%2] %3 (%4)")
-            .arg(idx).arg(vlessProfiles.size())
-            .arg(ent->outbound->name)
-            .arg(ent->type);
-        MW_show_log(tr("Debug check: ") + ent->outbound->name);
+    for (int idx = 0; idx < total; ++idx) {
+        const auto &ent = profiles[idx];
+        const int base  = HEADER_LINES + idx * LINES_PER_PROFILE;
+
+        // Mark as RUNNING
+        lines[base + 1] = "  IP Check  : RUNNING";
+        lines[base + 2] = "  TCP (1MB) : RUNNING";
+        lines[base + 3] = "  UDP/DNS   : RUNNING";
+        updateEdit(lines.join("\n"));
+
+        MW_show_log(tr("Debug check [%1/%2]: %3").arg(idx+1).arg(total).arg(ent->outbound->name));
 
         auto buildObject = Configs::BuildTestConfig({ent});
         if (!buildObject->error.isEmpty()) {
-            lines << profileLabel;
-            lines << QString("  ERROR: Could not build test config: %1").arg(buildObject->error);
-            lines << "";
+            setProfileLines(idx,
+                QString("  ERROR: Could not build test config: %1").arg(buildObject->error),
+                "", "");
             continue;
         }
 
-        // Determine config string and outbound tag
-        QString configStr;
-        QString outboundTag;
-        bool useDefault = false;
-        bool needXray = false;
-        QString xrayConfig;
+        QString configStr, outboundTag, xrayConfig;
+        bool useDefault = false, needXray = false;
 
         if (buildObject->fullConfigs.contains(ent->id)) {
             configStr  = buildObject->fullConfigs[ent->id];
             useDefault = true;
         } else if (!buildObject->outboundTags.isEmpty()) {
-            configStr    = QJsonObject2QString(buildObject->coreConfig, false);
-            outboundTag  = buildObject->outboundTags.first();
-            useDefault   = false;
-            needXray     = buildObject->isXrayNeeded;
-            xrayConfig   = needXray ? QJsonObject2QString(buildObject->xrayConfig, false) : "";
+            configStr   = QJsonObject2QString(buildObject->coreConfig, false);
+            outboundTag = buildObject->outboundTags.first();
+            needXray    = buildObject->isXrayNeeded;
+            xrayConfig  = needXray ? QJsonObject2QString(buildObject->xrayConfig, false) : "";
         } else {
-            lines << profileLabel;
-            lines << "  ERROR: Empty test config produced.";
-            lines << "";
+            setProfileLines(idx, "  ERROR: Empty test config produced.", "", "");
             continue;
         }
 
@@ -1033,56 +1121,53 @@ void MainWindow::check_all_vless_profiles() {
         bool rpcOK = false;
         auto result = defaultClient->DebugCheck(&rpcOK, req);
 
-        lines << profileLabel;
         if (!rpcOK) {
-            lines << "  ERROR: RPC call failed (core not running?)";
-            lines << "";
+            setProfileLines(idx, "  ERROR: RPC call failed (core not running?)", "", "");
             continue;
         }
-
-        // Top-level error (e.g. config parse failure)
         if (!result.error.value().empty()) {
-            lines << QString("  ERROR: %1").arg(QString::fromStdString(result.error.value()));
-            lines << "";
+            setProfileLines(idx,
+                QString("  ERROR: %1").arg(QString::fromStdString(result.error.value())),
+                "", "");
             continue;
         }
 
         const QString realIP  = QString::fromStdString(result.real_ip.value());
         const QString proxyIP = QString::fromStdString(result.proxy_ip.value());
 
-        // 1. IP check
-        if (result.ip_changed.value()) {
-            lines << QString("  IP Check  : PASS  (%1  →  %2)").arg(realIP, proxyIP);
-        } else if (proxyIP.isEmpty()) {
-            lines << QString("  IP Check  : FAIL  (could not reach ipify via proxy; real IP: %1)").arg(realIP);
-        } else {
-            lines << QString("  IP Check  : WARN  IP did not change (real: %1, proxy: %2)")
-                         .arg(realIP, proxyIP);
+        QString ipLine, tcpLine, udpLine;
+
+        if (result.ip_changed.value())
+            ipLine = QString("  IP Check  : PASS  ([hidden]  →  %1)").arg(proxyIP);
+        else if (proxyIP.isEmpty())
+            ipLine = QString("  IP Check  : FAIL  (could not reach ipify)");
+        else
+            ipLine = QString("  IP Check  : WARN  IP unchanged (proxy: %1)").arg(proxyIP);
+
+        if (result.tcp_ok.value())
+            tcpLine = QString("  TCP (1MB) : PASS  (%1 bytes)").arg(result.tcp_bytes.value());
+        else {
+            const QString e = QString::fromStdString(result.tcp_error.value());
+            tcpLine = QString("  TCP (1MB) : FAIL  %1").arg(e.isEmpty() ? "(unknown)" : e);
         }
 
-        // 2. TCP 1 MB
-        if (result.tcp_ok.value()) {
-            lines << QString("  TCP (1MB) : PASS  (%1 bytes downloaded)")
-                         .arg(result.tcp_bytes.value());
-        } else {
-            const QString tcpErr = QString::fromStdString(result.tcp_error.value());
-            lines << QString("  TCP (1MB) : FAIL  %1").arg(tcpErr.isEmpty() ? "(unknown error)" : tcpErr);
+        if (result.udp_ok.value())
+            udpLine = "  UDP/DNS   : PASS  (youtube.com DNS via 8.8.8.8:53 over UDP)";
+        else {
+            const QString e = QString::fromStdString(result.udp_error.value());
+            udpLine = QString("  UDP/DNS   : FAIL  %1").arg(e.isEmpty() ? "(unknown)" : e);
         }
 
-        // 3. UDP / YouTube DNS
-        if (result.udp_ok.value()) {
-            lines << "  UDP/DNS   : PASS  (YouTube DNS query via 8.8.8.8:53 over UDP succeeded)";
-        } else {
-            const QString udpErr = QString::fromStdString(result.udp_error.value());
-            lines << QString("  UDP/DNS   : FAIL  %1").arg(udpErr.isEmpty() ? "(unknown error)" : udpErr);
-        }
-
-        lines << "";
+        setProfileLines(idx, ipLine, tcpLine, udpLine);
     }
 
-    lines << "=== End of Debug Check ===";
-
-    const QString report = lines.join("\n");
+    // ── 6. Mark done ────────────────────────────────────────────────────────
+    lines.last() = "=== Done ===";
+    updateEdit(lines.join("\n"));
+    runOnUiThread([copyBtn] {
+        if (!copyBtn) return;
+        copyBtn->setText(QObject::tr("Copy to Clipboard"));
+        copyBtn->setEnabled(true);
+    });
     MW_show_log(tr("Debug check finished."));
-    showDebugCheckDialog(report);
 }

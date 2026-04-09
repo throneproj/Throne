@@ -691,6 +691,15 @@ namespace Subscription {
                 case 1: createNewGroup = true;
                 case 0: asURL = true; break;
             }
+            // When adding to the current group via URL, save the URL so
+            // "Update Conf" can re-fetch it later.
+            if (asURL && !createNewGroup) {
+                auto currentGroup = Configs::dataManager->groupsRepo->CurrentGroup();
+                if (currentGroup && currentGroup->url.isEmpty()) {
+                    currentGroup->url = content;
+                    Configs::dataManager->groupsRepo->Save(currentGroup);
+                }
+            }
         }
 
         runOnNewThread([=,this] {
@@ -863,6 +872,7 @@ bool UI_update_all_groups_Updating = false;
 
 void serialUpdateSubscription(const QList<int> &groupsTabOrder, int _order, bool onlyAllowed) {
     if (_order >= groupsTabOrder.size()) {
+        MW_show_log("[UpdateConf] All groups processed.");
         UI_update_all_groups_Updating = false;
         return;
     }
@@ -870,6 +880,11 @@ void serialUpdateSubscription(const QList<int> &groupsTabOrder, int _order, bool
     // calculate this group
     auto group = Configs::dataManager->groupsRepo->GetGroup(groupsTabOrder[_order]);
     if (group == nullptr || should_skip_group(group)) {
+        QString reason = (group == nullptr) ? "null"
+                       : group->url.isEmpty() ? "no URL"
+                       : group->archive       ? "archived"
+                                              : "auto-update disabled";
+        MW_show_log(QString("[UpdateConf] Skipping group %1 (%2)").arg(_order).arg(reason));
         serialUpdateSubscription(groupsTabOrder, _order + 1, onlyAllowed);
         return;
     }
@@ -885,18 +900,28 @@ void serialUpdateSubscription(const QList<int> &groupsTabOrder, int _order, bool
     }
 
     // Async update current group
+    MW_show_log(QString("[UpdateConf] Fetching group %1: %2").arg(_order).arg(group->name));
     UI_update_all_groups_Updating = true;
     Subscription::groupUpdater->AsyncUpdate(group->url, group->id, [=] {
         serialUpdateSubscription(groupsTabOrder, nextOrder, onlyAllowed);
     });
 }
 
+bool UI_update_all_groups_is_updating() {
+    return UI_update_all_groups_Updating;
+}
+
 void UI_update_all_groups(bool onlyAllowed) {
     if (UI_update_all_groups_Updating) {
-        MW_show_log("The last subscription update has not exited.");
+        MW_show_log("[UpdateConf] Already updating, please wait...");
         return;
     }
 
     auto groupsTabOrder = Configs::dataManager->groupsRepo->GetGroupsTabOrder();
+    MW_show_log(QString("[UpdateConf] Starting update — %1 group(s) in tab order.").arg(groupsTabOrder.size()));
+    if (groupsTabOrder.isEmpty()) {
+        MW_show_log("[UpdateConf] No groups found. Add a subscription group with a URL first.");
+        return;
+    }
     serialUpdateSubscription(groupsTabOrder, 0, onlyAllowed);
 }
