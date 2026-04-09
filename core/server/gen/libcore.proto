@@ -24,6 +24,10 @@ service LibcoreService {
   rpc QueryIPTest(EmptyReq) returns (QueryIPTestResponse);
   //
   rpc GenWgKeyPair(EmptyReq) returns (GenWgKeyPairResponse);
+  //
+  rpc CheckNaive(EmptyReq) returns (CheckNaiveResponse);
+  //
+  rpc DebugCheck(DebugCheckRequest) returns (DebugCheckResult);
 }
 
 message EmptyReq {}
@@ -172,4 +176,31 @@ message GenWgKeyPairResponse {
   optional string private_key = 1 [default = ""];
   optional string public_key = 2 [default = ""];
   optional string error = 3 [default = ""];
+}
+
+message CheckNaiveResponse {
+  optional bool has_naive = 1 [default = false];
+}
+
+message DebugCheckRequest {
+  optional string config = 1 [default = ""];
+  optional bool use_default_outbound = 2 [default = false];
+  optional string outbound_tag = 3 [default = ""];
+  optional string profile_name = 4 [default = ""];
+  optional int32 timeout_ms = 5 [default = 0];
+  optional bool need_xray = 6 [default = false];
+  optional string xray_config = 7 [default = ""];
+}
+
+message DebugCheckResult {
+  optional string profile_name = 1 [default = ""];
+  optional string real_ip = 2 [default = ""];
+  optional string proxy_ip = 3 [default = ""];
+  optional bool ip_changed = 4 [default = false];
+  optional bool tcp_ok = 5 [default = false];
+  optional int64 tcp_bytes = 6 [default = 0];
+  optional bool udp_ok = 7 [default = false];
+  optional string error = 8 [default = ""];
+  optional string tcp_error = 9 [default = ""];
+  optional string udp_error = 10 [default = ""];
 }

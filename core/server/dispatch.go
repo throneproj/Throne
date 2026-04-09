@@ -273,6 +273,28 @@ func dispatch(methodName string, payload []byte) ([]byte, error) {
 		}
 		return proto.Marshal(resp)
 
+	case "CheckNaive":
+		req := &gen.EmptyReq{}
+		if err := proto.Unmarshal(payload, req); err != nil {
+			return nil, err
+		}
+		resp, err := s.CheckNaive(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return proto.Marshal(resp)
+
+	case "DebugCheck":
+		req := &gen.DebugCheckRequest{}
+		if err := proto.Unmarshal(payload, req); err != nil {
+			return nil, err
+		}
+		resp, err := s.DebugCheck(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return proto.Marshal(resp)
+
 	default:
 		return nil, fmt.Errorf("unknown method: %s", methodName)
 	}

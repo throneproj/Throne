@@ -912,6 +912,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         iptest_current_group(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles());
     });
     connect(ui->menu_stop_testing, &QAction::triggered, this, [=,this]() { stopTests(); });
+    connect(ui->actionDebug_Check_All_Vless, &QAction::triggered, this, [=,this]() {
+        runOnNewThread([=,this] { check_all_vless_profiles(); });
+    });
     //
     auto set_selected_or_group = [=,this](int mode) {
         // 0=group 1=select 2=unknown(menu is hide)

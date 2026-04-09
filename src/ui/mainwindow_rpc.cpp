@@ -10,6 +10,13 @@
 #include <QDesktopServices>
 #include <QMessageBox>
 #include <QJsonDocument>
+#include <QDateTime>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QPlainTextEdit>
+#include <QVBoxLayout>
+#include <QApplication>
+#include <QClipboard>
 
 #include "include/configs/generate.h"
 #include "include/database/GroupsRepo.h"
@@ -908,4 +915,176 @@ void MainWindow::profile_stop(bool crash, bool block, bool manual) {
             mu_stopping.unlock();
         }, true);
     }, block);
+}
+
+// ─── Debug Check All VLess ─────────────────────────────────────────────────
+
+static void showDebugCheckDialog(const QString &text) {
+    runOnUiThread([text] {
+        auto *dialog = new QDialog(GetMainWindow());
+        dialog->setWindowTitle(QObject::tr("Debug Check Results"));
+        dialog->setAttribute(Qt::WA_DeleteOnClose);
+        dialog->resize(700, 500);
+
+        auto *layout = new QVBoxLayout(dialog);
+
+        auto *edit = new QPlainTextEdit(dialog);
+        edit->setReadOnly(true);
+        edit->setPlainText(text);
+        QFont mono("Monospace");
+        mono.setStyleHint(QFont::Monospace);
+        edit->setFont(mono);
+        layout->addWidget(edit);
+
+        auto *buttons = new QDialogButtonBox(dialog);
+        auto *copyBtn = buttons->addButton(QObject::tr("Copy to Clipboard"), QDialogButtonBox::ActionRole);
+        buttons->addButton(QDialogButtonBox::Close);
+        QObject::connect(copyBtn, &QPushButton::clicked, dialog, [text] {
+            QApplication::clipboard()->setText(text);
+        });
+        QObject::connect(buttons, &QDialogButtonBox::rejected, dialog, &QDialog::close);
+        layout->addWidget(buttons);
+
+        dialog->setLayout(layout);
+        dialog->show();
+    });
+}
+
+void MainWindow::check_all_vless_profiles() {
+    // Collect all vless / xrayvless profiles across all groups
+    QList<std::shared_ptr<Configs::Profile>> vlessProfiles;
+    for (int gid : Configs::dataManager->groupsRepo->GetAllGroupIds()) {
+        auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
+        if (!group) continue;
+        for (int pid : group->Profiles()) {
+            auto ent = Configs::dataManager->profilesRepo->GetProfile(pid);
+            if (!ent) continue;
+            if (ent->type == "vless" || ent->type == "xrayvless") {
+                vlessProfiles.append(ent);
+            }
+        }
+    }
+
+    if (vlessProfiles.isEmpty()) {
+        runOnUiThread([] {
+            QMessageBox::information(GetMainWindow(), QObject::tr("Debug Check"),
+                                     QObject::tr("No VLess profiles found."));
+        }, true);
+        return;
+    }
+
+    MW_show_log(tr("Starting debug check for %1 VLess profile(s)…").arg(vlessProfiles.size()));
+
+    QStringList lines;
+    lines << "=== Throne VLess Debug Check ===";
+    lines << QString("Timestamp : %1").arg(QDateTime::currentDateTime().toString(Qt::ISODate));
+    lines << QString("Profiles  : %1").arg(vlessProfiles.size());
+    lines << "";
+
+    const int timeoutMs = 30000;
+    int idx = 0;
+
+    for (const auto &ent : vlessProfiles) {
+        ++idx;
+        const QString profileLabel = QString("[%1/%2] %3 (%4)")
+            .arg(idx).arg(vlessProfiles.size())
+            .arg(ent->outbound->name)
+            .arg(ent->type);
+        MW_show_log(tr("Debug check: ") + ent->outbound->name);
+
+        auto buildObject = Configs::BuildTestConfig({ent});
+        if (!buildObject->error.isEmpty()) {
+            lines << profileLabel;
+            lines << QString("  ERROR: Could not build test config: %1").arg(buildObject->error);
+            lines << "";
+            continue;
+        }
+
+        // Determine config string and outbound tag
+        QString configStr;
+        QString outboundTag;
+        bool useDefault = false;
+        bool needXray = false;
+        QString xrayConfig;
+
+        if (buildObject->fullConfigs.contains(ent->id)) {
+            configStr  = buildObject->fullConfigs[ent->id];
+            useDefault = true;
+        } else if (!buildObject->outboundTags.isEmpty()) {
+            configStr    = QJsonObject2QString(buildObject->coreConfig, false);
+            outboundTag  = buildObject->outboundTags.first();
+            useDefault   = false;
+            needXray     = buildObject->isXrayNeeded;
+            xrayConfig   = needXray ? QJsonObject2QString(buildObject->xrayConfig, false) : "";
+        } else {
+            lines << profileLabel;
+            lines << "  ERROR: Empty test config produced.";
+            lines << "";
+            continue;
+        }
+
+        libcore::DebugCheckRequest req;
+        req.config               = configStr.toStdString();
+        req.use_default_outbound = useDefault;
+        req.outbound_tag         = outboundTag.toStdString();
+        req.profile_name         = ent->outbound->name.toStdString();
+        req.timeout_ms           = timeoutMs;
+        req.need_xray            = needXray;
+        req.xray_config          = xrayConfig.toStdString();
+
+        bool rpcOK = false;
+        auto result = defaultClient->DebugCheck(&rpcOK, req);
+
+        lines << profileLabel;
+        if (!rpcOK) {
+            lines << "  ERROR: RPC call failed (core not running?)";
+            lines << "";
+            continue;
+        }
+
+        // Top-level error (e.g. config parse failure)
+        if (!result.error.value().empty()) {
+            lines << QString("  ERROR: %1").arg(QString::fromStdString(result.error.value()));
+            lines << "";
+            continue;
+        }
+
+        const QString realIP  = QString::fromStdString(result.real_ip.value());
+        const QString proxyIP = QString::fromStdString(result.proxy_ip.value());
+
+        // 1. IP check
+        if (result.ip_changed.value()) {
+            lines << QString("  IP Check  : PASS  (%1  →  %2)").arg(realIP, proxyIP);
+        } else if (proxyIP.isEmpty()) {
+            lines << QString("  IP Check  : FAIL  (could not reach ipify via proxy; real IP: %1)").arg(realIP);
+        } else {
+            lines << QString("  IP Check  : WARN  IP did not change (real: %1, proxy: %2)")
+                         .arg(realIP, proxyIP);
+        }
+
+        // 2. TCP 1 MB
+        if (result.tcp_ok.value()) {
+            lines << QString("  TCP (1MB) : PASS  (%1 bytes downloaded)")
+                         .arg(result.tcp_bytes.value());
+        } else {
+            const QString tcpErr = QString::fromStdString(result.tcp_error.value());
+            lines << QString("  TCP (1MB) : FAIL  %1").arg(tcpErr.isEmpty() ? "(unknown error)" : tcpErr);
+        }
+
+        // 3. UDP / YouTube DNS
+        if (result.udp_ok.value()) {
+            lines << "  UDP/DNS   : PASS  (YouTube DNS query via 8.8.8.8:53 over UDP succeeded)";
+        } else {
+            const QString udpErr = QString::fromStdString(result.udp_error.value());
+            lines << QString("  UDP/DNS   : FAIL  %1").arg(udpErr.isEmpty() ? "(unknown error)" : udpErr);
+        }
+
+        lines << "";
+    }
+
+    lines << "=== End of Debug Check ===";
+
+    const QString report = lines.join("\n");
+    MW_show_log(tr("Debug check finished."));
+    showDebugCheckDialog(report);
 }

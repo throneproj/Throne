@@ -588,3 +588,62 @@ func (s *server) GenWgKeyPair(ctx context.Context, _ *gen.EmptyReq) (out *gen.Ge
 	res.PublicKey = To(privateKey.PublicKey().String())
 	return &res, nil
 }
+
+func (s *server) CheckNaive(ctx context.Context, _ *gen.EmptyReq) (*gen.CheckNaiveResponse, error) {
+	return &gen.CheckNaiveResponse{HasNaive: To(true)}, nil
+}
+
+func (s *server) DebugCheck(ctx context.Context, in *gen.DebugCheckRequest) (*gen.DebugCheckResult, error) {
+	res := &gen.DebugCheckResult{
+		ProfileName: in.ProfileName,
+		RealIp:      To(""),
+		ProxyIp:     To(""),
+		IpChanged:   To(false),
+		TcpOk:       To(false),
+		TcpBytes:    To(int64(0)),
+		UdpOk:       To(false),
+		Error:       To(""),
+		TcpError:    To(""),
+		UdpError:    To(""),
+	}
+
+	if *in.NeedXray {
+		xrayInst, err := xray.CreateXrayInstance(*in.XrayConfig)
+		if err != nil {
+			res.Error = To(err.Error())
+			return res, nil
+		}
+		if err = xrayInst.Start(); err != nil {
+			res.Error = To(err.Error())
+			return res, nil
+		}
+		defer func() { common.Must(xrayInst.Close()) }()
+	}
+
+	testInstance, cancel, err := boxmain.Create([]byte(*in.Config))
+	if err != nil {
+		res.Error = To(err.Error())
+		return res, nil
+	}
+	defer testInstance.CloseWithTimeout(cancel, 2*time.Second, log.Println, false)
+
+	timeout := time.Duration(*in.TimeoutMs) * time.Millisecond
+	checkResult := test_utils.RunDebugCheck(test_utils.TestCtx, testInstance, *in.OutboundTag, *in.UseDefaultOutbound, timeout)
+
+	res.RealIp = To(checkResult.RealIP)
+	res.ProxyIp = To(checkResult.ProxyIP)
+	res.IpChanged = To(checkResult.IPChanged)
+	res.TcpOk = To(checkResult.TCPOk)
+	res.TcpBytes = To(checkResult.TCPBytes)
+	res.UdpOk = To(checkResult.UDPOk)
+	if checkResult.Error != nil {
+		res.Error = To(checkResult.Error.Error())
+	}
+	if checkResult.TCPError != nil {
+		res.TcpError = To(checkResult.TCPError.Error())
+	}
+	if checkResult.UDPError != nil {
+		res.UdpError = To(checkResult.UDPError.Error())
+	}
+	return res, nil
+}

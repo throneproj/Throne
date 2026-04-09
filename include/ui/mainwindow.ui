@@ -749,6 +749,8 @@ QTabBar::tab:hover:!selected {
     <addaction name="actionSpeedtest_Current"/>
     <addaction name="actionSpeedtest_Selected"/>
     <addaction name="actionResolve_Selected_Out_IP"/>
+    <addaction name="separator"/>
+    <addaction name="actionDebug_Check_All_Vless"/>
    </widget>
    <widget class="QMenu" name="menuHidden_menu">
     <property name="title">
@@ -1106,6 +1108,11 @@ QTabBar::tab:hover:!selected {
   <action name="actionRestart_Proxy">
    <property name="text">
     <string>Restart Core</string>
+   </property>
+  </action>
+  <action name="actionDebug_Check_All_Vless">
+   <property name="text">
+    <string>Debug Check All VLess</string>
    </property>
   </action>
   <action name="menu_stop_testing">
