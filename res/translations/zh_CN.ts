@@ -168,6 +168,18 @@ Release note:
         <source>Listen Address</source>
         <translation>监听地址</translation>
     </message>
+	<message>
+        <source>Enable Authorization</source>
+        <translation>启用身份验证</translation>
+    </message>
+	<message>
+        <source>Inbound Username</source>
+        <translation>入站用户名</translation>
+    </message>
+	<message>
+        <source>Inbound Password</source>
+        <translation>入站密码</translation>
+    </message>
     <message>
         <source>concurrency</source>
         <translation>并发</translation>
@@ -216,6 +228,14 @@ Release note:
         <source>Connection statistics</source>
         <translation>连接统计</translation>
     </message>
+	<message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, If the currently active profile needs to be removed, it will be stopped and removed, otherwise it will not be removed at all&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;启用时，如果需要移除当前活动的配置档，则它会被停止并移除，不启用的话则完全不会被移除&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+	<message>
+        <source>Allow stopping the active profile</source>
+        <translation>允许停止活动配置档</translation>
+    </message>
     <message>
         <source>Clear servers before updating subscription</source>
         <translation>更新订阅前清除服务器</translation>
@@ -223,10 +243,6 @@ Release note:
     <message>
         <source>Hide dashboard at startup</source>
         <translation>启动时隐藏仪表盘</translation>
-    </message>
-    <message>
-        <source>Max log lines</source>
-        <translation>最多日志行数限制</translation>
     </message>
     <message>
         <source>Skip TLS certificate authentication by default (allowInsecure)</source>
@@ -252,6 +268,55 @@ Release note:
         <source>Latency Test URL</source>
         <translation>延迟测试 URL</translation>
     </message>
+	<message>
+        <source>Concurrency</source>
+        <translation>并发数</translation>
+    </message>
+	<message>
+        <source>Logging</source>
+        <translation>日志</translation>
+    </message>
+	<message>
+        <source>Max log lines</source>
+        <translation>最多日志行数</translation>
+    </message>
+	<message>
+        <source>Sing-box Log level</source>
+        <translation>Sing-box 日志级别</translation>
+    </message>
+	<message>
+        <source>Xray Log level</source>
+        <translation>Xray 日志级别</translation>
+    </message>
+	<message>
+        <source>Log Filtering</source>
+        <translation>日志筛选</translation>
+    </message>
+	<message>
+        <source>Include Keywords</source>
+        <translation>包含关键字</translation>
+    </message>
+	<message>
+        <source>Include Regex</source>
+        <translation>包含正则表达式</translation>
+    </message>
+	<message>
+        <source>Enable Include Rules</source>
+        <translation>启用「包含」规则</translation>
+    </message>
+	<message>
+        <source>Enable Exclude Rulesg</source>
+        <translation>启用「排除」规则</translation>
+    </message>
+	<message>
+        <source>Exclude Keywords</source>
+        <translation>排除关键字</translation>
+    </message>
+	<message>
+        <source>Exclude Regex</source>
+        <translation>排除正则表达式</translation>
+    </message>
+	
     <message>
         <source>Disable tray</source>
         <translation>禁用托盘</translation>
@@ -295,6 +360,14 @@ Release note:
     <message>
         <source>Disable Traffic Stats</source>
         <translation>禁用流量统计</translation>
+    </message>
+	<message>
+        <source>DNS Server Port</source>
+        <translation>DNS 服务器端口</translation>
+    </message>
+	<message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A DNS server for local use will be deployed on this port&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;用于本地使用的 DNS 服务器将部署在这个端口上&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>NTP Settings</source>
@@ -369,6 +442,10 @@ Release note:
     <message>
         <source>Language</source>
         <translation>语言</translation>
+    </message>
+	<message>
+        <source>Testing</source>
+        <translation>测试</translation>
     </message>
     <message>
         <source>Speedtest mode</source>
@@ -453,6 +530,10 @@ Release note:
     <message>
         <source>Use proxy</source>
         <translation>使用代理</translation>
+    </message>
+	<message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use proxy for subscription request, update request etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;对订阅请求、更新请求等使用代理&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Ignore TLS errors</source>
