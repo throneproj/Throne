@@ -21,7 +21,7 @@ void DialogManageRoutes::reloadProfileItems() {
         return;
     }
 
-    QSignalBlocker blocker = QSignalBlocker(ui->route_prof); // apparently the currentIndexChanged will make us crash if we clear the QComboBox
+    QSignalBlocker blocker = QSignalBlocker(ui->route_prof);
     ui->route_prof->clear();
 
     ui->route_profiles->clear();
@@ -130,7 +130,6 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
         on_delete_route_clicked();
     });
 
-    // hijack
     ui->dnshijack_enable->setChecked(Configs::dataManager->settingsRepo->enable_dns_server);
     set_dns_hijack_enability(Configs::dataManager->settingsRepo->enable_dns_server);
     ui->dnshijack_allow_lan->setChecked(Configs::dataManager->settingsRepo->dns_server_listen_lan);
@@ -170,7 +169,6 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
         ui->redirect_listenport->setEnabled(state);
     });
 
-    // warp
     ui->enable_warp->setChecked(Configs::dataManager->settingsRepo->enable_warp);
     ui->warp_private_key->setText(Configs::dataManager->settingsRepo->warp_private_key);
     ui->warp_public_key->setText(Configs::dataManager->settingsRepo->warp_public_key);
@@ -257,19 +255,38 @@ void DialogManageRoutes::accept() {
     }
     Configs::dataManager->settingsRepo->dns_server_rules = dnsRules;
 
-    Configs::dataManager->settingsRepo->dns_server_listen_lan = ui->dnshijack_allow_lan->isChecked();
+    {
+        bool newLan = ui->dnshijack_allow_lan->isChecked();
+        bool wasLan = Configs::dataManager->settingsRepo->dns_server_listen_lan;
+        if (newLan && !wasLan) {
+            auto btn = QMessageBox::warning(
+                this,
+                tr("Security Warning"),
+                tr("Enabling LAN DNS server will listen on 0.0.0.0:%1.\n\n"
+                   "Any device on your local network will be able to query this DNS server, "
+                   "which may reveal your routing rules, blocked domains, and network topology.\n\n"
+                   "Only enable this if you intend to share DNS with trusted LAN devices.\n\n"
+                   "Are you sure?").arg(Configs::dataManager->settingsRepo->dns_server_listen_port),
+                QMessageBox::Yes | QMessageBox::No,
+                QMessageBox::No
+            );
+            if (btn != QMessageBox::Yes) {
+                ui->dnshijack_allow_lan->setChecked(false);
+                newLan = false;
+            }
+        }
+        Configs::dataManager->settingsRepo->dns_server_listen_lan = newLan;
+    }
     Configs::dataManager->settingsRepo->enable_redirect = ui->redirect_enable->isChecked();
     Configs::dataManager->settingsRepo->redirect_listen_address = ui->redirect_listenaddr->text();
     Configs::dataManager->settingsRepo->redirect_listen_port = ui->redirect_listenport->text().toInt();
 
-    // warp
     Configs::dataManager->settingsRepo->enable_warp = ui->enable_warp->isChecked();
     Configs::dataManager->settingsRepo->warp_ep = ui->warp_ep->text();
     Configs::dataManager->settingsRepo->warp_ifc_addrs = SplitAndTrim(ui->warp_ifc_addrs->text(), ",", false);
     Configs::dataManager->settingsRepo->warp_private_key = ui->warp_private_key->text();
     Configs::dataManager->settingsRepo->warp_public_key = ui->warp_public_key->text();
 
-    //
     QStringList msg{"UpdateConfigs::dataManager->settingsRepo"};
     msg << "RouteChanged";
     MW_dialog_message("", msg.join(","));
