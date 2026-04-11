@@ -27,8 +27,6 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     : QDialog(parent), ui(new Ui::DialogBasicSettings) {
     ui->setupUi(this);
     ADD_ASTERISK(this);
-
-    // Common
     ui->inbound_socks_port_l->setText(ui->inbound_socks_port_l->text().replace("Socks", "Mixed (SOCKS+HTTP)"));
     ui->log_level->addItems(QString("trace debug info warn error fatal panic").split(" "));
     ui->xray_loglevel->addItems(Configs::Xray::XrayLogLevels);
@@ -75,7 +73,6 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->windows_no_admin->hide();
 #endif
 
-    // Logging
     ui->max_log_line->setText(QString::number(Configs::dataManager->settingsRepo->max_log_line));
     ui->log_level->setCurrentText(Configs::dataManager->settingsRepo->log_level);
     ui->xray_loglevel->setCurrentText(Configs::dataManager->settingsRepo->xray_log_level);
@@ -90,7 +87,6 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     connect(ui->log_include_regex, &QTextEdit::textChanged, this, [this] { applyRegexHighlighting(); });
     connect(ui->log_exclude_regex, &QTextEdit::textChanged, this, [this] { applyRegexHighlighting(); });
 
-    // Style
     ui->connection_statistics->setChecked(Configs::dataManager->settingsRepo->enable_stats);
     ui->show_sys_dns->setChecked(Configs::dataManager->settingsRepo->show_system_dns);
     connect(ui->show_sys_dns, &QCheckBox::stateChanged, this, [=]
@@ -100,10 +96,8 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
 #ifndef Q_OS_WIN
     ui->show_sys_dns->hide();
 #endif
-    //
     D_LOAD_BOOL(start_minimal)
     ui->skip_delete_confirm->setChecked(Configs::dataManager->settingsRepo->skip_delete_confirmation);
-    //
     ui->language->setCurrentIndex(Configs::dataManager->settingsRepo->language);
     connect(ui->language, &QComboBox::currentIndexChanged, this, [=,this](int index) {
         CACHE.needRestart = true;
@@ -128,7 +122,6 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
         Configs::dataManager->settingsRepo->Save();
         adjustSize();
     });
-    //
     ui->theme->addItems(QStyleFactory::keys());
     ui->theme->addItem("QDarkStyle");
     ui->enable_custom_icon->setChecked(Configs::dataManager->settingsRepo->use_custom_icons);
@@ -155,7 +148,6 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
             }
         }
     });
-    //
     bool ok;
     auto themeId = Configs::dataManager->settingsRepo->theme.toInt(&ok);
     if (ok) {
@@ -163,14 +155,11 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     } else {
         ui->theme->setCurrentText(Configs::dataManager->settingsRepo->theme);
     }
-    //
     connect(ui->theme, &QComboBox::currentIndexChanged, this, [=,this](int index) {
         themeManager->ApplyTheme(ui->theme->currentText());
         Configs::dataManager->settingsRepo->theme = ui->theme->currentText();
         Configs::dataManager->settingsRepo->Save();
     });
-
-    // Subscription
 
     ui->user_agent->setText(Configs::dataManager->settingsRepo->user_agent);
     ui->user_agent->setPlaceholderText(Configs::dataManager->settingsRepo->GetUserAgent(true));
@@ -188,7 +177,6 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
                 details.osVersion.isEmpty() ? "N/A" : details.osVersion,
                 details.model.isEmpty() ? "N/A" : details.model));
 
-    // Mux
     D_LOAD_INT(mux_concurrency)
     D_LOAD_COMBO_STRING(mux_protocol)
     D_LOAD_BOOL(mux_padding)
@@ -196,13 +184,11 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->dns_in_port->setValidator(new QIntValidator(1, 65535, ui->dns_in_port));
     ui->dns_in_port->setText(Int2String(Configs::dataManager->settingsRepo->core_dns_in_port));
 
-    // Xray
     ui->xray_mux_concurrency->setText(Int2String(Configs::dataManager->settingsRepo->xray_mux_concurrency));
     ui->xray_default_mux->setChecked(Configs::dataManager->settingsRepo->xray_mux_default_on);
     ui->vless_xray_pref->addItems(Configs::Xray::XrayVlessPreferenceString);
     ui->vless_xray_pref->setCurrentIndex(Configs::dataManager->settingsRepo->xray_vless_preference);
 
-    // NTP
     ui->ntp_enable->setChecked(Configs::dataManager->settingsRepo->enable_ntp);
     ui->ntp_server->setEnabled(Configs::dataManager->settingsRepo->enable_ntp);
     ui->ntp_port->setEnabled(Configs::dataManager->settingsRepo->enable_ntp);
@@ -215,8 +201,6 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
         ui->ntp_port->setEnabled(state);
         ui->ntp_interval->setEnabled(state);
     });
-
-    // Security
 
     ui->utlsFingerprint->addItems(Configs::tlsFingerprints);
     ui->disable_priv_req->setChecked(Configs::dataManager->settingsRepo->disable_privilege_req);
@@ -260,7 +244,6 @@ void DialogBasicSettings::applyRegexHighlighting() {
 }
 
 void DialogBasicSettings::accept() {
-    // Common
     bool needChoosePort = false;
 
     D_SAVE_STRING(inbound_address)
@@ -284,7 +267,6 @@ void DialogBasicSettings::accept() {
     D_SAVE_STRING(inbound_user)
     D_SAVE_STRING(inbound_pass)
 
-    // Logging
     auto oldMaxLogLines = Configs::dataManager->settingsRepo->max_log_line;
     Configs::dataManager->settingsRepo->max_log_line = ui->max_log_line->text().toInt();
     if (oldMaxLogLines != Configs::dataManager->settingsRepo->max_log_line) CACHE.updateMaxLogLines = true;
@@ -305,8 +287,6 @@ void DialogBasicSettings::accept() {
         if (regexValidator.setPattern(line); regexValidator.isValid()) Configs::dataManager->settingsRepo->log_exclude_regex << line;
     }
 
-    // Style
-
     Configs::dataManager->settingsRepo->enable_stats = ui->connection_statistics->isChecked();
     Configs::dataManager->settingsRepo->language = ui->language->currentIndex();
     auto oldUseCustomIcon = Configs::dataManager->settingsRepo->use_custom_icons;
@@ -320,8 +300,6 @@ void DialogBasicSettings::accept() {
         Configs::dataManager->settingsRepo->max_log_line = 200;
     }
 
-    // Subscription
-
     if (ui->sub_auto_update_enable->isChecked()) {
         TM_auto_update_subsctiption_Reset_Minute(ui->sub_auto_update->text().toInt());
     } else {
@@ -331,33 +309,74 @@ void DialogBasicSettings::accept() {
     Configs::dataManager->settingsRepo->user_agent = ui->user_agent->text();
     D_SAVE_BOOL(net_use_proxy)
     D_SAVE_BOOL(sub_clear)
-    D_SAVE_BOOL(net_insecure)
-    D_SAVE_BOOL(sub_send_hwid)
+    {
+        bool newInsecure = ui->net_insecure->isChecked();
+        bool wasInsecure = Configs::dataManager->settingsRepo->net_insecure;
+        if (newInsecure && !wasInsecure) {
+            auto btn = QMessageBox::warning(
+                this,
+                tr("Security Warning"),
+                tr("Disabling TLS certificate verification exposes you to man-in-the-middle attacks.\n\n"
+                   "An attacker on your network can silently replace subscription content with a malicious "
+                   "proxy configuration and intercept your traffic.\n\n"
+                   "Only enable this if you fully trust every network between you and your subscription server.\n\n"
+                   "Are you sure you want to disable TLS verification?"),
+                QMessageBox::Yes | QMessageBox::No,
+                QMessageBox::No
+            );
+            if (btn != QMessageBox::Yes) {
+                ui->net_insecure->setChecked(false);
+                newInsecure = false;
+            }
+        }
+        Configs::dataManager->settingsRepo->net_insecure = newInsecure;
+    }
+    {
+        bool newHwid = ui->sub_send_hwid->isChecked();
+        bool wasHwid = Configs::dataManager->settingsRepo->sub_send_hwid;
+        if (newHwid && !wasHwid) {
+            auto btn = QMessageBox::warning(
+                this,
+                tr("Privacy Warning"),
+                tr("Enabling HWID sending will attach the following device identifiers to every "
+                   "subscription request:\n\n"
+                   "  • Hardware ID (machine serial / machine-id)\n"
+                   "  • Operating system and version\n"
+                   "  • Device model\n\n"
+                   "The subscription server will be able to permanently identify and track your "
+                   "physical device across IPs and sessions.\n\n"
+                   "This is a significant privacy risk if you are in a country with active "
+                   "internet censorship.\n\n"
+                   "Are you sure you want to enable HWID sending?"),
+                QMessageBox::Yes | QMessageBox::No,
+                QMessageBox::No
+            );
+            if (btn != QMessageBox::Yes) {
+                ui->sub_send_hwid->setChecked(false);
+                newHwid = false;
+            }
+        }
+        Configs::dataManager->settingsRepo->sub_send_hwid = newHwid;
+    }
     D_SAVE_STRING(sub_custom_hwid_params)
     D_SAVE_INT_ENABLE(sub_auto_update, sub_auto_update_enable)
 
-    // Core
     Configs::dataManager->settingsRepo->disable_traffic_stats = ui->disable_stats->isChecked();
     Configs::dataManager->settingsRepo->core_dns_in_port = ui->dns_in_port->text().toInt();
 
-    // Xray
     Configs::dataManager->settingsRepo->xray_mux_concurrency = ui->xray_mux_concurrency->text().toInt();
     Configs::dataManager->settingsRepo->xray_mux_default_on = ui->xray_default_mux->isChecked();
     Configs::dataManager->settingsRepo->xray_vless_preference = static_cast<Configs::Xray::XrayVlessPreference>(ui->vless_xray_pref->currentIndex());
 
-    // Mux
     D_SAVE_INT(mux_concurrency)
     D_SAVE_COMBO_STRING(mux_protocol)
     D_SAVE_BOOL(mux_padding)
     D_SAVE_BOOL(mux_default_on)
 
-    // NTP
     Configs::dataManager->settingsRepo->enable_ntp = ui->ntp_enable->isChecked();
     Configs::dataManager->settingsRepo->ntp_server_address = ui->ntp_server->text();
     Configs::dataManager->settingsRepo->ntp_server_port = ui->ntp_port->text().toInt();
     Configs::dataManager->settingsRepo->ntp_interval = ui->ntp_interval->currentText();
-
-    // Security
 
     D_SAVE_BOOL(skip_cert)
     Configs::dataManager->settingsRepo->utlsFingerprint = ui->utlsFingerprint->currentText();
@@ -388,25 +407,21 @@ void DialogBasicSettings::on_core_settings_clicked() {
     MyLineEdit *core_box_clash_api;
     MyLineEdit *core_box_clash_api_secret;
     MyLineEdit *core_box_clash_listen_addr;
-    //
     auto core_box_clash_listen_addr_l = new QLabel("Clash Api Listen Address");
     core_box_clash_listen_addr = new MyLineEdit;
     core_box_clash_listen_addr->setText(Configs::dataManager->settingsRepo->core_box_clash_listen_addr);
     layout->addWidget(core_box_clash_listen_addr_l, ++line, 0);
     layout->addWidget(core_box_clash_listen_addr, line, 1);
-    //
     auto core_box_clash_api_l = new QLabel("Clash API Listen Port");
     core_box_clash_api = new MyLineEdit;
     core_box_clash_api->setText(Configs::dataManager->settingsRepo->core_box_clash_api > 0 ? Int2String(Configs::dataManager->settingsRepo->core_box_clash_api) : "");
     layout->addWidget(core_box_clash_api_l, ++line, 0);
     layout->addWidget(core_box_clash_api, line, 1);
-    //
     auto core_box_clash_api_secret_l = new QLabel("Clash API Secret");
     core_box_clash_api_secret = new MyLineEdit;
     core_box_clash_api_secret->setText(Configs::dataManager->settingsRepo->core_box_clash_api_secret);
     layout->addWidget(core_box_clash_api_secret_l, ++line, 0);
     layout->addWidget(core_box_clash_api_secret, line, 1);
-    //
     auto box = new QDialogButtonBox;
     box->setOrientation(Qt::Horizontal);
     box->setStandardButtons(QDialogButtonBox::Cancel | QDialogButtonBox::Ok);
@@ -419,7 +434,6 @@ void DialogBasicSettings::on_core_settings_clicked() {
     });
     connect(box, &QDialogButtonBox::rejected, w, &QDialog::reject);
     layout->addWidget(box, ++line, 1);
-    //
     ADD_ASTERISK(w)
     w->exec();
     w->deleteLater();
