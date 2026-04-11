@@ -81,8 +81,8 @@ namespace Configs {
         const QSet<QString> stringListKeys = {
             "spmode2",
             "dns_server_rules",
-            "log_ignore",  // Not in _add() but exists as QStringList in DataStore
-            "extra_core_paths",  // Extra core paths list
+            "log_ignore",
+            "extra_core_paths",
             "log_include_keyword",
             "log_include_regex",
             "log_exclude_keyword",
@@ -143,10 +143,22 @@ namespace Configs {
     SettingsRepo::SettingsRepo(Database& database) : db(database) {
         createTables();
         loadAllSettings();
+        
+        bool needSave = false;
+        if (inbound_user.isEmpty()) {
+            inbound_user = GetRandomString(16);
+            inbound_pass = GetRandomString(24);
+            inbound_auth = true;
+            needSave = true;
+        }
+        if (core_box_clash_api_secret.isEmpty()) {
+            core_box_clash_api_secret = GetRandomString(32);
+            needSave = true;
+        }
+        if (needSave) Save();
     }
 
     void SettingsRepo::createTables() const {
-        // Create key-value table for settings
         db.exec(R"(
             CREATE TABLE IF NOT EXISTS settings (
                 key TEXT PRIMARY KEY,
@@ -157,7 +169,6 @@ namespace Configs {
 
     QString SettingsRepo::valueToString(const QVariant& value, const QString& key) const {
         if (key == "shortcuts") {
-            // Serialize shortcuts map as JSON object
             QJsonObject obj;
             auto shortcutsMap = value.value<QMap<QString,QKeySequence>>();
             for (auto it = shortcutsMap.begin(); it != shortcutsMap.end(); ++it) {
@@ -166,7 +177,6 @@ namespace Configs {
             QJsonDocument doc(obj);
             return QString::fromUtf8(doc.toJson(QJsonDocument::Compact));
         } else if (stringListKeys.contains(key)) {
-            // Serialize QStringList as JSON array
             QJsonArray arr;
             QStringList list = value.toStringList();
             for (const QString& item : list) {
@@ -181,14 +191,12 @@ namespace Configs {
         } else if (stringKeys.contains(key)) {
             return value.toString();
         } else {
-            // Unknown key - log and default to string
             qDebug() << "SettingsRepo::valueToString: Unknown key type for key:" << key << ", defaulting to string";
             return value.toString();
         }
     }
 
     QVariant SettingsRepo::stringToValue(const QString& str, const QString& key) const {
-        // Special handling for shortcuts (JSON object)
         if (key == "shortcuts") {
             QJsonDocument doc = QJsonDocument::fromJson(str.toUtf8());
             if (doc.isObject()) {
@@ -204,9 +212,7 @@ namespace Configs {
             return QVariant::fromValue(QMap<QString, QKeySequence>());
         }
         
-        // Determine type based on key lists
         if (stringListKeys.contains(key)) {
-            // Try to parse as JSON array
             QJsonDocument doc = QJsonDocument::fromJson(str.toUtf8());
             if (doc.isArray()) {
                 QStringList list;
@@ -226,14 +232,12 @@ namespace Configs {
         } else if (stringKeys.contains(key)) {
             return str;
         } else {
-            // Unknown key - log and default to string
             qDebug() << "SettingsRepo::stringToValue: Unknown key type for key:" << key << ", defaulting to string";
             return str;
         }
     }
 
     void SettingsRepo::loadAllSettings() {
-        // Load all settings from database
         auto query = db.query("SELECT key, value FROM settings");
         if (query) {
             while (query->executeStep()) {
@@ -242,7 +246,6 @@ namespace Configs {
                 
                 QVariant varValue = stringToValue(value, key);
                 
-                // Map keys to fields (matching DataStore key names)
                 if (key == "main_window_geometry") mainWindowGeometry = varValue.toString();
                 else if (key == "log_level") log_level = varValue.toString();
                 else if (key == "test_url") test_latency_url = varValue.toString();
