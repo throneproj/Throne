@@ -215,6 +215,7 @@ set(PROJECT_SOURCES
         res/Throne.qrc
         ${QV2RAY_RC}
         res/darkstyle.qrc
+        res/opusfusion.qrc
         src/ui/profile/edit_ssh.cpp
         include/ui/profile/edit_ssh.h
         include/ui/profile/edit_ssh.ui

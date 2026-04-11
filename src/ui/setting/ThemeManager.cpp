@@ -28,6 +28,11 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
         f.open(QFile::ReadOnly | QFile::Text);
         QTextStream ts(&f);
         qApp->setStyleSheet(ts.readAll());
+    } else if (lowerTheme == "opusfusion") {
+        QFile f(":/opusfusion/opusfusion_dark.qss"); // OpusFusion theme
+        f.open(QFile::ReadOnly | QFile::Text);
+        QTextStream ts(&f);
+        qApp->setStyleSheet(ts.readAll());
     } else {
         qApp->setStyleSheet("");
         qApp->setStyle(theme);

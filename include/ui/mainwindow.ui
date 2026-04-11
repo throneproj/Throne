@@ -243,6 +243,9 @@
          </property>
          <item row="0" column="0">
           <widget class="ProfilesTableView" name="profilesTableView">
+           <property name="showGrid">
+            <bool>false</bool>
+           </property>
            <property name="contextMenuPolicy">
             <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
            </property>
@@ -250,7 +253,7 @@
             <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
            </property>
            <property name="alternatingRowColors">
-            <bool>true</bool>
+            <bool>false</bool>
            </property>
            <property name="selectionBehavior">
             <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
@@ -394,6 +397,9 @@
                <item>
                 <widget class="QTableWidget" name="connections">
                  <property name="autoFillBackground">
+                  <bool>false</bool>
+                 </property>
+                 <property name="showGrid">
                   <bool>false</bool>
                  </property>
                  <column>

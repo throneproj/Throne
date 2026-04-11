@@ -370,6 +370,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         Configs::dataManager->groupsRepo->Save(Configs::dataManager->groupsRepo->CurrentGroup());
     });
     ui->profilesTableView->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
+    ui->profilesTableView->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
+    ui->profilesTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->profilesTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    ui->profilesTableView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    ui->profilesTableView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    ui->profilesTableView->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
+    ui->profilesTableView->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
+    ui->profilesTableView->horizontalHeader()->setSectionResizeMode(4, QHeaderView::ResizeToContents);
     connect(ui->profilesTableView->horizontalHeader(), &QWidget::customContextMenuRequested, this, [this](const QPoint& pos) {
         auto* header = ui->profilesTableView->horizontalHeader();
         int columnIndex = header->logicalIndexAt(pos);
@@ -492,9 +500,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             return;
         }
     });
-    ui->profilesTableView->verticalHeader()->setStretchLastSection(false);
-    ui->profilesTableView->verticalHeader()->setDefaultSectionSize(24);
-    ui->profilesTableView->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    ui->profilesTableView->verticalHeader()->hide();
+    // ui->profilesTableView->verticalHeader()->setStretchLastSection(false);
+    // ui->profilesTableView->verticalHeader()->setDefaultSectionSize(24);
+    // ui->profilesTableView->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     ui->profilesTableView->setTabKeyNavigation(false);
 
     // search box
@@ -1010,7 +1019,7 @@ void MainWindow::show_group(int gid) {
         }
         for (int i=0;i<=4;i++) {
             auto size = hHeader->sectionSize(i);
-            hHeader->setSectionResizeMode(i, QHeaderView::Interactive);
+            // hHeader->setSectionResizeMode(i, QHeaderView::Fixed);
             hHeader->resizeSection(i, size);
         }
         hHeader->adjustPositions();
@@ -1071,7 +1080,7 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
     {
         if (Configs::dataManager->settingsRepo->system_dns_set)
         {
-            auto oldAddr = info.split(",")[1];
+            auto oldAddr = info.split(',')[1];
             set_system_dns(false);
             set_system_dns(true);
         }
@@ -1100,7 +1109,7 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
     }
     // sender
     if (sender == Dialog_DialogEditProfile) {
-        auto msg = info.split(",");
+        auto msg = info.split(',');
         if (msg.contains("accept")) {
             refresh_proxy_list({}, true);
             if (msg.contains("restart")) {
@@ -1136,7 +1145,7 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
             if (Configs::dataManager->settingsRepo->flag_dns_set) {
                 set_system_dns(true);
             }
-            if (auto id = info.split(",")[1].toInt(); id >= 0)
+            if (auto id = info.split(',')[1].toInt(); id >= 0)
             {
                 profile_start(id);
             }
@@ -1441,6 +1450,7 @@ void MainWindow::setDownloadReport(const DownloadProgressReport& report, bool sh
 void MainWindow::setupConnectionList()
 {
     ui->connections->horizontalHeader()->setHighlightSections(false);
+    ui->connections->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
     ui->connections->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->connections->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
     ui->connections->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
@@ -2350,8 +2360,8 @@ inline void FastAppendTextDocument(const QString &message, QTextDocument *doc) {
     QTextCursor cursor(doc);
     cursor.movePosition(QTextCursor::End);
     cursor.beginEditBlock();
-    cursor.insertBlock();
     cursor.insertText(message);
+    cursor.insertBlock();
     cursor.endEditBlock();
 }
 
@@ -2375,12 +2385,14 @@ void MainWindow::log_process_loop() {
         while (logQueue.isEmpty()) {
             logWaiter.wait(&logMutex);
         }
-        auto logLines = logQueue.dequeue().split("\n");
+        auto logLines = logQueue.dequeue().split('\n');
 
         QString batchToPrint;
         for (const auto& logLine : logLines) {
-            if (should_print_log(logLine)) {
-                batchToPrint += logLine + "\n";
+            QString trimmed = logLine.trimmed();
+
+            if (should_print_log(trimmed)) {
+                batchToPrint += trimmed + "\n";
             }
         }
         logMutex.unlock();
@@ -2394,7 +2406,7 @@ void MainWindow::log_process_loop() {
 }
 
 bool MainWindow::should_print_log(const QString &log) {
-    if (log.trimmed().isEmpty()) return false;
+    if (log.isEmpty()) return false;
     bool result = true;
     if (Configs::dataManager->settingsRepo->log_enable_include) {
         result = false;
@@ -2707,7 +2719,7 @@ bool isNewer(QString assetName) {
     auto spl = assetName.split('-');
     version += spl[0]; // version: 1.2.3
     if (spl[1].contains("beta") || spl[1].contains("alpha") || spl[1].contains("rc")) version += "."+spl[1]; // .beta.13
-    auto parts = version.split("."); // [1,2,3,beta,13]
+    auto parts = version.split('.'); // [1,2,3,beta,13]
     auto currentParts = QString(NKR_VERSION).replace("-", ".").split('.');
     if (parts.size() < 3 || currentParts.size() < 3)
     {
