@@ -368,9 +368,9 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     ui->simple_proxy->hide();
 
     // Подключаем подсветку комментариев (#) для Basic полей
-    directHighlighter = new RouteRuleHighlighter(simpleDirect->document(), true);
-    blockHighlighter = new RouteRuleHighlighter(simpleBlock->document(), true);
-    proxyHighlighter = new RouteRuleHighlighter(simpleProxy->document(), true);
+    directHighlighter = new RouteRuleHighlighter(simpleDirect->document(), false);
+    blockHighlighter = new RouteRuleHighlighter(simpleBlock->document(), false);
+    proxyHighlighter = new RouteRuleHighlighter(simpleProxy->document(), false);
 
     // Enhanced Basic поля - создаём AutoCompleteTextEdit для каждой комбинации действия и типа
     // Используем тот же список подсказок, что и для Basic
@@ -412,19 +412,19 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     ui->enhanced_block_domain->hide();
     ui->enhanced_block_process->hide();
 
-    // Подключаем подсветку комментариев (#) и ошибок для Enhanced Basic полей
-    enhanced_direct_ip_highlighter = new RouteRuleHighlighter(enhanced_direct_ip->document(), true);
-    enhanced_direct_domain_highlighter = new RouteRuleHighlighter(enhanced_direct_domain->document(), true);
-    enhanced_direct_process_highlighter = new RouteRuleHighlighter(enhanced_direct_process->document(), true);
-    enhanced_direct_ruleset_highlighter = new RouteRuleHighlighter(enhanced_direct_ruleset->document(), true);
-    enhanced_proxy_ip_highlighter = new RouteRuleHighlighter(enhanced_proxy_ip->document(), true);
-    enhanced_proxy_domain_highlighter = new RouteRuleHighlighter(enhanced_proxy_domain->document(), true);
-    enhanced_proxy_process_highlighter = new RouteRuleHighlighter(enhanced_proxy_process->document(), true);
-    enhanced_proxy_ruleset_highlighter = new RouteRuleHighlighter(enhanced_proxy_ruleset->document(), true);
-    enhanced_block_ip_highlighter = new RouteRuleHighlighter(enhanced_block_ip->document(), true);
-    enhanced_block_domain_highlighter = new RouteRuleHighlighter(enhanced_block_domain->document(), true);
-    enhanced_block_process_highlighter = new RouteRuleHighlighter(enhanced_block_process->document(), true);
-    enhanced_block_ruleset_highlighter = new RouteRuleHighlighter(enhanced_block_ruleset->document(), true);
+    // Подключаем подсветку комментариев (#) для Enhanced Basic полей
+    enhanced_direct_ip_highlighter = new RouteRuleHighlighter(enhanced_direct_ip->document(), false);
+    enhanced_direct_domain_highlighter = new RouteRuleHighlighter(enhanced_direct_domain->document(), false);
+    enhanced_direct_process_highlighter = new RouteRuleHighlighter(enhanced_direct_process->document(), false);
+    enhanced_direct_ruleset_highlighter = new RouteRuleHighlighter(enhanced_direct_ruleset->document(), false);
+    enhanced_proxy_ip_highlighter = new RouteRuleHighlighter(enhanced_proxy_ip->document(), false);
+    enhanced_proxy_domain_highlighter = new RouteRuleHighlighter(enhanced_proxy_domain->document(), false);
+    enhanced_proxy_process_highlighter = new RouteRuleHighlighter(enhanced_proxy_process->document(), false);
+    enhanced_proxy_ruleset_highlighter = new RouteRuleHighlighter(enhanced_proxy_ruleset->document(), false);
+    enhanced_block_ip_highlighter = new RouteRuleHighlighter(enhanced_block_ip->document(), false);
+    enhanced_block_domain_highlighter = new RouteRuleHighlighter(enhanced_block_domain->document(), false);
+    enhanced_block_process_highlighter = new RouteRuleHighlighter(enhanced_block_process->document(), false);
+    enhanced_block_ruleset_highlighter = new RouteRuleHighlighter(enhanced_block_ruleset->document(), false);
 
     simpleDirect->setPlainText(chain->GetSimpleRules(Configs::direct));
     simpleBlock->setPlainText(chain->GetSimpleRules(Configs::block));
@@ -461,17 +461,24 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
 
     // Подключаем сворачивание/разворачивание для Rulesets полей
     // При клике на кнопку меняем значок и показываем/скрываем поле
-    connect(ui->enhanced_direct_ruleset_toggle, &QPushButton::toggled, this, [=](bool checked) {
+    // Синхронизируем состояние всех трёх кнопок
+    auto syncRulesetToggles = [this](bool checked) {
         ui->enhanced_direct_ruleset_toggle->setText(checked ? "▼ Ruleset (URI)" : "▶ Ruleset (URI)");
         ui->enhanced_direct_ruleset->setVisible(checked);
-    });
-    connect(ui->enhanced_proxy_ruleset_toggle, &QPushButton::toggled, this, [=](bool checked) {
         ui->enhanced_proxy_ruleset_toggle->setText(checked ? "▼ Ruleset (URI)" : "▶ Ruleset (URI)");
         ui->enhanced_proxy_ruleset->setVisible(checked);
-    });
-    connect(ui->enhanced_block_ruleset_toggle, &QPushButton::toggled, this, [=](bool checked) {
         ui->enhanced_block_ruleset_toggle->setText(checked ? "▼ Ruleset (URI)" : "▶ Ruleset (URI)");
         ui->enhanced_block_ruleset->setVisible(checked);
+    };
+
+    connect(ui->enhanced_direct_ruleset_toggle, &QPushButton::toggled, this, [=](bool checked) {
+        syncRulesetToggles(checked);
+    });
+    connect(ui->enhanced_proxy_ruleset_toggle, &QPushButton::toggled, this, [=](bool checked) {
+        syncRulesetToggles(checked);
+    });
+    connect(ui->enhanced_block_ruleset_toggle, &QPushButton::toggled, this, [=](bool checked) {
+        syncRulesetToggles(checked);
     });
 
     // Нет textChanged сигналов - сохранение только при переключении вкладок
@@ -483,24 +490,17 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
 
         if (currentIdx == 2)  // Переход НА Advanced - сохраняем всё в цепь
         {
-            QString errors;
-
             // Сначала собираем данные с ТЕКУЩЕЙ вкладки перед переходом
             if (lastTabIndex == 0) {
                 // С Basic - обновляем цепь из Basic
-                errors += chain->UpdateSimpleRules(simpleDirect->toPlainText(), Configs::direct);
-                errors += chain->UpdateSimpleRules(simpleBlock->toPlainText(), Configs::block);
-                errors += chain->UpdateSimpleRules(simpleProxy->toPlainText(), Configs::proxy);
+                chain->UpdateSimpleRules(simpleDirect->toPlainText(), Configs::direct);
+                chain->UpdateSimpleRules(simpleBlock->toPlainText(), Configs::block);
+                chain->UpdateSimpleRules(simpleProxy->toPlainText(), Configs::proxy);
             } else if (lastTabIndex == 1) {
                 // С Basic+ - обновляем цепь из Enhanced
-                errors += updateChainFromEnhanced(Configs::direct);
-                errors += updateChainFromEnhanced(Configs::proxy);
-                errors += updateChainFromEnhanced(Configs::block);
-            }
-
-            // Показываем ошибки если есть
-            if (!errors.isEmpty()) {
-                showSyncErrors(errors);
+                updateChainFromEnhanced(Configs::direct);
+                updateChainFromEnhanced(Configs::proxy);
+                updateChainFromEnhanced(Configs::block);
             }
 
             currentIndex = -1;
@@ -509,35 +509,21 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
         }
         else if (currentIdx == 1)  // Переход НА Basic+ - сохраняем Basic и загружаем Enhanced
         {
-            QString errors;
-
-            // Сохраняем Basic в цепь с проверкой ошибок
-            errors += chain->UpdateSimpleRules(simpleDirect->toPlainText(), Configs::direct);
-            errors += chain->UpdateSimpleRules(simpleBlock->toPlainText(), Configs::block);
-            errors += chain->UpdateSimpleRules(simpleProxy->toPlainText(), Configs::proxy);
-
-            // Показываем ошибки если есть
-            if (!errors.isEmpty()) {
-                showSyncErrors(errors);
-            }
+            // Сохраняем Basic в цепь
+            chain->UpdateSimpleRules(simpleDirect->toPlainText(), Configs::direct);
+            chain->UpdateSimpleRules(simpleBlock->toPlainText(), Configs::block);
+            chain->UpdateSimpleRules(simpleProxy->toPlainText(), Configs::proxy);
 
             // Обновляем Enhanced из цепи (с фильтрацией)
             refreshEnhancedFromChain();
         }
         else  // Переход НА Basic (индекс 0) - сохраняем Enhanced и загружаем Basic
         {
-            QString errors;
-
             if (lastTabIndex == 1) {
                 // Сохраняем Enhanced в цепь перед переходом
-                errors += updateChainFromEnhanced(Configs::direct);
-                errors += updateChainFromEnhanced(Configs::proxy);
-                errors += updateChainFromEnhanced(Configs::block);
-
-                // Показываем ошибки если есть
-                if (!errors.isEmpty()) {
-                    showSyncErrors(errors);
-                }
+                updateChainFromEnhanced(Configs::direct);
+                updateChainFromEnhanced(Configs::proxy);
+                updateChainFromEnhanced(Configs::block);
             }
 
             // Обновляем Basic из цепи
@@ -916,39 +902,6 @@ void RouteItem::refreshEnhancedFromChain()
     enhanced_block_ruleset->setPlainText(filterRulesets(chain->GetSimpleRules(Configs::block)));
 }
 
-void RouteItem::showSyncErrors(const QString& errors)
-{
-    if (errors.isEmpty()) return;
-
-    // Включаем подсветку ошибок
-    enableErrorHighlight();
-
-    // Показываем ошибки в окне
-    QMessageBox::warning(this, tr("Syntax Errors"),
-        tr("Some rules have syntax errors and will be highlighted in red:\n\n") + errors);
-}
-
-void RouteItem::enableErrorHighlight()
-{
-    // Включаем подсветку ошибок для Basic полей
-    if (directHighlighter) directHighlighter->setErrorHighlightEnabled(true);
-    if (blockHighlighter) blockHighlighter->setErrorHighlightEnabled(true);
-    if (proxyHighlighter) proxyHighlighter->setErrorHighlightEnabled(true);
-
-    // Включаем подсветку ошибок для Enhanced Basic полей
-    if (enhanced_direct_ip_highlighter) enhanced_direct_ip_highlighter->setErrorHighlightEnabled(true);
-    if (enhanced_direct_domain_highlighter) enhanced_direct_domain_highlighter->setErrorHighlightEnabled(true);
-    if (enhanced_direct_process_highlighter) enhanced_direct_process_highlighter->setErrorHighlightEnabled(true);
-    if (enhanced_direct_ruleset_highlighter) enhanced_direct_ruleset_highlighter->setErrorHighlightEnabled(true);
-    if (enhanced_proxy_ip_highlighter) enhanced_proxy_ip_highlighter->setErrorHighlightEnabled(true);
-    if (enhanced_proxy_domain_highlighter) enhanced_proxy_domain_highlighter->setErrorHighlightEnabled(true);
-    if (enhanced_proxy_process_highlighter) enhanced_proxy_process_highlighter->setErrorHighlightEnabled(true);
-    if (enhanced_proxy_ruleset_highlighter) enhanced_proxy_ruleset_highlighter->setErrorHighlightEnabled(true);
-    if (enhanced_block_ip_highlighter) enhanced_block_ip_highlighter->setErrorHighlightEnabled(true);
-    if (enhanced_block_domain_highlighter) enhanced_block_domain_highlighter->setErrorHighlightEnabled(true);
-    if (enhanced_block_process_highlighter) enhanced_block_process_highlighter->setErrorHighlightEnabled(true);
-    if (enhanced_block_ruleset_highlighter) enhanced_block_ruleset_highlighter->setErrorHighlightEnabled(true);
-}
 
 
 void RouteItem::accept() {
