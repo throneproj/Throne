@@ -4,12 +4,23 @@
 #include <QTimer>
 #include <QDir>
 #include <QApplication>
-
-
+#include <QRegularExpression>
 
 #include "include/ui/mainwindow.h"
 
 namespace Configs_sys {
+
+    static inline QString sanitizeLog(const QByteArray &raw) {
+        QString s = QString::fromUtf8(raw);
+        static const QRegularExpression ansiRe(QStringLiteral("\x1B\\[[0-9;]*[A-Za-z]"));
+        s.remove(ansiRe);
+        static const QRegularExpression escRe(QStringLiteral("\x1B[^\\[]?"));
+        s.remove(escRe);
+        static const QRegularExpression ctrlRe(
+            QStringLiteral("[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]"));
+        s.remove(ctrlRe);
+        return s;
+    }
     CoreProcess::~CoreProcess() {
     }
 
@@ -26,12 +37,10 @@ namespace Configs_sys {
             auto log = readAllStandardOutput();
             if (!Configs::dataManager->settingsRepo->core_running) {
                 if (log.contains("Core listening at")) {
-                    // The core really started
                     Configs::dataManager->settingsRepo->core_running = true;
                     MW_dialog_message("ExternalProcess", "CoreStarted," + Int2String(start_profile_when_core_is_up));
                     start_profile_when_core_is_up = -1;
                 } else if (log.contains("failed to serve")) {
-                    // The core failed to start
                     kill();
                 }
             }
@@ -41,11 +50,11 @@ namespace Configs_sys {
                 MW_dialog_message("ExternalProcess", "Crashed");
             }
             if (logCounter.fetchAndAddRelaxed(log.count("\n")) > Configs::dataManager->settingsRepo->max_log_line) return;
-            MW_show_log(log);
+            MW_show_log(sanitizeLog(log));
         });
         connect(this, &QProcess::readyReadStandardError, this, [&]() {
             auto log = readAllStandardError().trimmed();
-            MW_show_log(log);
+            MW_show_log(sanitizeLog(log));
         });
         connect(this, &QProcess::errorOccurred, this, [&](ProcessError error) {
             if (error == FailedToStart) {
@@ -60,14 +69,13 @@ namespace Configs_sys {
             }
 
             if (!Configs::dataManager->settingsRepo->prepare_exit && state == NotRunning) {
-                if (failed_to_start) return; // no retry
+                if (failed_to_start) return;
                 if (restarting) return;
 
                 MW_show_log("[Fatal] " + QObject::tr("Core exited, cleaning up..."));
 
                 GetMainWindow()->profile_stop(true, true);
 
-                // Retry rate limit
                 if (coreRestartTimer.isValid()) {
                     if (coreRestartTimer.restart() < 10 * 1000) {
                         coreRestartTimer = QElapsedTimer();
@@ -78,7 +86,6 @@ namespace Configs_sys {
                     coreRestartTimer.start();
                 }
 
-                // Restart
                 start_profile_when_core_is_up = Configs::dataManager->settingsRepo->started_id;
                 MW_show_log("[Warn] " + QObject::tr("Restarting the core ..."));
                 setTimeout([=,this] { Restart(); }, this, 200);
