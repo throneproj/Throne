@@ -292,6 +292,13 @@ void HideWindow(QWidget *w) {
 }
 
 void runOnUiThread(const std::function<void()> &callback, bool wait) {
+    // Check if mainwindow exists
+    if (!mainwindow) {
+        // Main window not yet created or already destroyed - execute callback directly
+        callback();
+        return;
+    }
+    
     // any thread
     auto thread = mainwindow->thread();
     if (thread == QThread::currentThread()) {

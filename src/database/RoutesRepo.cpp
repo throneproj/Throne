@@ -26,9 +26,12 @@ namespace Configs {
         )");
 
         // Миграция: добавляем столбцы для существующих баз
-        db.exec("ALTER TABLE route_profiles ADD COLUMN simple_rules_direct TEXT");
-        db.exec("ALTER TABLE route_profiles ADD COLUMN simple_rules_proxy TEXT");
-        db.exec("ALTER TABLE route_profiles ADD COLUMN simple_rules_block TEXT");
+        if (!routeProfilesColumnExists("simple_rules_direct"))
+            db.exec("ALTER TABLE route_profiles ADD COLUMN simple_rules_direct TEXT");
+        if (!routeProfilesColumnExists("simple_rules_proxy"))
+            db.exec("ALTER TABLE route_profiles ADD COLUMN simple_rules_proxy TEXT");
+        if (!routeProfilesColumnExists("simple_rules_block"))
+            db.exec("ALTER TABLE route_profiles ADD COLUMN simple_rules_block TEXT");
         
         // Create route_rules table
         db.exec(R"(
@@ -81,6 +84,15 @@ namespace Configs {
 
     bool RoutesRepo::routeRulesColumnExists(const char* columnName) const {
         auto pragma = db.query("PRAGMA table_info(route_rules)");
+        if (!pragma) return false;
+        while (pragma->executeStep()) {
+            if (pragma->getColumn(1).getText() == std::string(columnName)) return true;
+        }
+        return false;
+    }
+
+    bool RoutesRepo::routeProfilesColumnExists(const char* columnName) const {
+        auto pragma = db.query("PRAGMA table_info(route_profiles)");
         if (!pragma) return false;
         while (pragma->executeStep()) {
             if (pragma->getColumn(1).getText() == std::string(columnName)) return true;
