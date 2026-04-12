@@ -313,41 +313,6 @@ QToolButton::menu-indicator {
        <enum>Qt::Orientation::Vertical</enum>
       </property>
       <widget class="QTabWidget" name="tabWidget">
-       <property name="styleSheet">
-        <string notr="true">QTabWidget::tab-bar {
-    left: 2px;
-}
-
-QTabBar {
-    background: transparent;
-    qproperty-drawBase: 0;
-}
-
-QTabBar::tab {
-    background-color: palette(button);
-    color: palette(button-text);
-
-    border: 1px solid palette(midlight);
-
-    border-radius: 4px;
-    padding: 2px 4px;
-    margin-right: 1px;
-}
-
-QTabBar::tab:selected {
-    border: 1px solid palette(highlight);
-    background-color: palette(window); 
-}
-
-QTabBar::tab:!selected {
-    border: 1px solid palette(button);
-}
-
-QTabBar::tab:hover:!selected {
-    border: 1px solid palette(button);
-    background-color: palette(midlight);
-}</string>
-       </property>
        <property name="currentIndex">
         <number>0</number>
        </property>
@@ -441,41 +406,6 @@ QTabBar::tab:hover:!selected {
             <widget class="QTabWidget" name="stats_widget">
              <property name="autoFillBackground">
               <bool>true</bool>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">QTabWidget::tab-bar {
-    left: 2px;
-}
-
-QTabBar {
-    background: transparent;
-    qproperty-drawBase: 0;
-}
-
-QTabBar::tab {
-    background-color: palette(button);
-    color: palette(button-text);
-
-    border: 1px solid palette(midlight);
-
-    border-radius: 4px;
-    padding: 2px 4px;
-    margin-right: 1px;
-}
-
-QTabBar::tab:selected {
-    border: 1px solid palette(highlight);
-    background-color: palette(window); 
-}
-
-QTabBar::tab:!selected {
-    border: 1px solid palette(button);
-}
-
-QTabBar::tab:hover:!selected {
-    border: 1px solid palette(button);
-    background-color: palette(midlight);
-}</string>
              </property>
              <property name="tabPosition">
               <enum>QTabWidget::TabPosition::North</enum>
