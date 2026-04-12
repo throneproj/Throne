@@ -9,12 +9,17 @@
 #include <QPushButton>
 #include <QDesktopServices>
 #include <QMessageBox>
+#include <QJsonDocument>
 
 #include "include/configs/generate.h"
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
 
 #include "include/sys/Process.hpp"
+
+#include <algorithm>
+
+#include <memory>
 
 // rpc
 
@@ -70,6 +75,8 @@ void MainWindow::runURLTest(const QString& config, const QString& xrayConfig, bo
             QList<int> profileIDs;
             for (const auto& res : resp.results)
             {
+                dataViewHtmlGenerator_.addTestProgress();
+                UpdateDataView();
                 int entid = -1;
                 if (!tag2entID.empty()) {
                     entid = tag2entID.count(QString::fromStdString(res.outbound_tag.value())) == 0 ? -1 : tag2entID[QString::fromStdString(res.outbound_tag.value())];
@@ -97,6 +104,7 @@ void MainWindow::runURLTest(const QString& config, const QString& xrayConfig, bo
             }
             if (needRefresh)
             {
+                UpdateDataView(true);
                 runOnUiThread([=,this]{
                     refresh_proxy_list(profileIDs);
                 });
@@ -176,6 +184,8 @@ void MainWindow::runIPTest(const QString& config, const QString& xrayConfig, boo
             QList<int> profileIDs;
             for (const auto& res : resp.results)
             {
+                dataViewHtmlGenerator_.addTestProgress();
+                UpdateDataView();
                 int entid = -1;
                 if (!tag2entID.empty()) {
                     entid = tag2entID.count(QString::fromStdString(res.outbound_tag.value())) == 0 ? -1 : tag2entID[QString::fromStdString(res.outbound_tag.value())];
@@ -204,6 +214,7 @@ void MainWindow::runIPTest(const QString& config, const QString& xrayConfig, boo
             }
             if (needRefresh)
             {
+                UpdateDataView(true);
                 runOnUiThread([=,this]{
                     refresh_proxy_list(profileIDs);
                 });
@@ -259,6 +270,8 @@ void MainWindow::urltest_current_group(const QList<int>& profileIDs) {
 
     runOnNewThread([this, profileIDs]() {
         stopSpeedtest.store(false);
+        dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::Url, profileIDs.size());
+        UpdateDataView(true);
         auto speedTestFunc = [=, this](const QList<std::shared_ptr<Configs::Profile>>& profileSlice, const QList<int>& ids) {
             auto buildObject = Configs::BuildTestConfig(profileSlice);
             if (!buildObject->error.isEmpty()) {
@@ -309,6 +322,8 @@ void MainWindow::urltest_current_group(const QList<int>& profileIDs) {
             }
             speedTestFunc(profiles, profileIDsSlice);
         }
+        dataViewHtmlGenerator_.clearTestSections();
+        UpdateDataView(true);
         speedtestRunning.unlock();
         if (currentGroup->auto_clear_unavailable) {
             MW_show_log("URL test finished, clearing unavailable profiles...");
@@ -370,6 +385,8 @@ void MainWindow::iptest_current_group(const QList<int>& profileIDs) {
 
     runOnNewThread([this, profileIDs]() {
         stopSpeedtest.store(false);
+        dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::Ip, profileIDs.size());
+        UpdateDataView(true);
         auto ipTestFunc = [=, this](const QList<std::shared_ptr<Configs::Profile>>& profileSlice, const QList<int>& ids) {
             auto buildObject = Configs::BuildTestConfig(profileSlice);
             if (!buildObject->error.isEmpty()) {
@@ -416,6 +433,8 @@ void MainWindow::iptest_current_group(const QList<int>& profileIDs) {
             auto profiles = Configs::dataManager->profilesRepo->GetProfileBatch(profileIDsSlice);
             ipTestFunc(profiles, profileIDsSlice);
         }
+        dataViewHtmlGenerator_.clearTestSections();
+        UpdateDataView(true);
         speedtestRunning.unlock();
         MW_show_log(tr("IP test finished!"));
     });
@@ -431,10 +450,14 @@ void MainWindow::speedtest_current_group(const QList<int>& profileIDs, bool test
         return;
     }
 
+    currentUnderTest.store(testCurrent);
+
     runOnNewThread([this, profileIDs, testCurrent]() {
         stopSpeedtest.store(false);
         if (!testCurrent)
         {
+            dataViewHtmlGenerator_.seedSpeedTest(profileIDs.size());
+            UpdateDataView(true);
             auto speedTestFunc = [=, this](const QList<std::shared_ptr<Configs::Profile>>& profileSlice) {
                 auto buildObject = Configs::BuildTestConfig(profileSlice);
                 if (!buildObject->error.isEmpty()) {
@@ -449,20 +472,24 @@ void MainWindow::speedtest_current_group(const QList<int>& profileIDs, bool test
 
                 if (!buildObject->outboundTags.empty()) {
                     auto xrayConf = buildObject->isXrayNeeded ? QJsonObject2QString(buildObject->xrayConfig, true) : "";
-                    runSpeedTest(QJsonObject2QString(buildObject->coreConfig, false), xrayConf, false, false, buildObject->outboundTags, buildObject->tag2entID);
+                    runSpeedTest(QJsonObject2QString(buildObject->coreConfig, false), xrayConf, false, false, buildObject->outboundTags, buildObject->tag2entID, -1);
                 }
             };
-            for (int i=0;i<profileIDs.length();i+=100) {
+            int stepSize = Configs::dataManager->settingsRepo->speed_test_mode == Configs::TestConfig::COUNTRY ? 100 : 1;
+            for (int i=0;i<profileIDs.length();i+=stepSize) {
                 if (stopSpeedtest.load()) break;
-                auto profileIDsSlice = profileIDs.mid(i, 100);
+                auto profileIDsSlice = profileIDs.mid(i, stepSize);
                 auto profiles = Configs::dataManager->profilesRepo->GetProfileBatch(profileIDsSlice);
                 speedTestFunc(profiles);
             }
         } else
         {
-            runSpeedTest("", "", true, true, {}, {});
+            dataViewHtmlGenerator_.seedSpeedTest(1);
+            runSpeedTest("", "", true, true, {}, {}, -1);
+            currentUnderTest.store(false);
         }
-
+        dataViewHtmlGenerator_.clearTestSections();
+        UpdateDataView(true);
         speedtestRunning.unlock();
         runOnUiThread([=,this]{
             refresh_proxy_list(profileIDs);
@@ -471,7 +498,7 @@ void MainWindow::speedtest_current_group(const QList<int>& profileIDs, bool test
     });
 }
 
-void MainWindow::querySpeedtest(QDateTime lastProxyListUpdate, const QMap<QString, int>& tag2entID, bool testCurrent)
+void MainWindow::querySpeedtest(const QMap<QString, int>& tag2entID, bool testCurrent)
 {
     bool ok;
     auto res = defaultClient->QueryCurrentSpeedTests(&ok);
@@ -484,21 +511,18 @@ void MainWindow::querySpeedtest(QDateTime lastProxyListUpdate, const QMap<QStrin
     {
         return;
     }
-    runOnUiThread([=, this, &lastProxyListUpdate]
+    runOnUiThread([=, this]
     {
-        showSpeedtestData = true;
-        currentSptProfileName = profile->outbound->name;
-        currentTestResult = res.result.value();
+        dataViewHtmlGenerator_.setSpeedtestProgress(profile->outbound->name, res.result.value());
         UpdateDataView();
 
-        if (res.result.value().error.value().empty() && !res.result.value().cancelled.value() && lastProxyListUpdate.msecsTo(QDateTime::currentDateTime()) >= 500)
+        if (res.result.value().error.value().empty() && !res.result.value().cancelled.value())
         {
             if (!res.result.value().dl_speed.value().empty()) profile->dl_speed = QString::fromStdString(res.result.value().dl_speed.value());
             if (!res.result.value().ul_speed.value().empty()) profile->ul_speed = QString::fromStdString(res.result.value().ul_speed.value());
             if (profile->latency <= 0 && res.result.value().latency.value() > 0) profile->latency = res.result.value().latency.value();
             if (!res.result->server_country.value().empty()) profile->test_country = CountryNameToCode(QString::fromStdString(res.result.value().server_country.value()));
             refresh_proxy_list({profile->id});
-            lastProxyListUpdate = QDateTime::currentDateTime();
         }
     });
 }
@@ -513,6 +537,8 @@ void MainWindow::queryCountryTest(const QMap<QString, int>& tag2entID, bool test
     }
     for (const auto& result : res.results)
     {
+        dataViewHtmlGenerator_.addTestProgress();
+        UpdateDataView();
         auto profile = testCurrent ? running : Configs::dataManager->profilesRepo->GetProfile(tag2entID[QString::fromStdString(result.outbound_tag.value())]);
         if (profile == nullptr)
         {
@@ -528,6 +554,7 @@ void MainWindow::queryCountryTest(const QMap<QString, int>& tag2entID, bool test
             }
         });
     }
+    UpdateDataView(true);
 }
 
 
@@ -556,12 +583,16 @@ void MainWindow::runSpeedTest(const QString& config, const QString& xrayConfig, 
     req.xray_config = xrayConfig.toStdString();
     req.need_xray = !xrayConfig.isEmpty();
 
+    if (speedtestConf != Configs::TestConfig::COUNTRY) {
+        dataViewHtmlGenerator_.addTestProgress();
+        UpdateDataView();
+    }
+
     // loop query result
     auto doneMu = new QMutex;
     doneMu->lock();
     runOnNewThread([=,this]
     {
-        QDateTime lastProxyListUpdate = QDateTime::currentDateTime();
         while (true) {
             QThread::msleep(100);
             if (doneMu->tryLock())
@@ -573,14 +604,9 @@ void MainWindow::runSpeedTest(const QString& config, const QString& xrayConfig, 
                 queryCountryTest(tag2entID, testCurrent);
             } else
             {
-                querySpeedtest(lastProxyListUpdate, tag2entID, testCurrent);
+                querySpeedtest(tag2entID, testCurrent);
             }
         }
-        runOnUiThread([=, this]
-        {
-            showSpeedtestData = false;
-            UpdateDataView(true);
-        });
         doneMu->unlock();
         delete doneMu;
     });
@@ -739,6 +765,19 @@ void MainWindow::profile_start(int _id) {
         runOnUiThread([=, this] {
             refresh_status();
             refresh_proxy_list({ent->id});
+
+            auto resp = NetworkRequestHelper::HttpGet("http://ip-api.com/json/", false, true);
+            if (resp.error.isEmpty()) {
+                QJsonDocument doc = QJsonDocument::fromJson(resp.data);
+                if (doc.isObject()) {
+                    QJsonObject obj = doc.object();
+                    QString city = obj["city"].toString();
+                    QString countryName = obj["country"].toString();
+                    QString countryCode = obj["countryCode"].toString();
+                    if (running) running->runningCountryInfo = QString("%1 %2, %3").arg(CountryCodeToFlag(countryCode), countryName, city);
+                    refresh_status();
+                }
+            }
         });
 
         return true;
@@ -825,6 +864,11 @@ void MainWindow::profile_stop(bool crash, bool block, bool manual) {
     auto id = running->id;
 
     auto profile_stop_stage2 = [=,this] {
+        if (currentUnderTest.load()) {
+            bool ok;
+            defaultClient->StopTests(&ok);
+            if (!ok) MW_show_log("Failed to stop profile tests!");
+        }
         if (!crash) {
             bool rpcOK;
             QString error = defaultClient->Stop(&rpcOK);

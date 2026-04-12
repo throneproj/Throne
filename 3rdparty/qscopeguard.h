@@ -37,14 +37,11 @@
 **
 ****************************************************************************/
 
-#ifndef QSCOPEGUARD_H
-#define QSCOPEGUARD_H
+#pragma once
 
 #include <QtCore/qglobal.h>
 
-
 QT_BEGIN_NAMESPACE
-
 
 template <typename F> class QScopeGuard;
 template <typename F> QScopeGuard<F> qScopeGuard(F f);
@@ -92,5 +89,3 @@ QScopeGuard<F> qScopeGuard(F f)
 }
 
 QT_END_NAMESPACE
-
-#endif // QSCOPEGUARD_H

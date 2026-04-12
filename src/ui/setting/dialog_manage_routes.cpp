@@ -99,7 +99,7 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent, bool startOnRoutingTab) 
     connect(ui->format_dns_object, &QPushButton::clicked, this, [=,this] {
         auto obj = QString2QJsonObject(ui->dns_object->toPlainText());
         if (obj.isEmpty()) {
-            MessageBoxInfo("DNS", "invaild json");
+            MessageBoxInfo("DNS", "Invalid json");
         } else {
             ui->dns_object->setPlainText(QJsonObject2QString(obj, false));
         }
@@ -115,6 +115,7 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent, bool startOnRoutingTab) 
     ui->direct_dns->setCurrentText(Configs::dataManager->settingsRepo->direct_dns);
     ui->direct_dns_strategy->setCurrentText(Configs::dataManager->settingsRepo->direct_dns_strategy);
     ui->dns_final_out->setCurrentText(Configs::dataManager->settingsRepo->dns_final_out);
+    ui->enable_dns_routing->setChecked(Configs::dataManager->settingsRepo->enable_dns_routing);
     reloadProfileItems();
 
     connect(ui->route_profiles, &QListWidget::itemDoubleClicked, this, [=,this](const QListWidgetItem* item){
@@ -200,6 +201,7 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent, bool startOnRoutingTab) 
         ui->warp_private_key->setText(conf->privateKey);
         ui->warp_public_key->setText(conf->publicKey);
         ui->warp_ep->setText(conf->endpoint);
+        ui->warp_ifc_addrs->setText(conf->ipv4Address + "/32," + conf->ipv6Address + "/128");
         ui->warp_autogen->setText("Success!");
         setTimeout([=,this] { ui->warp_autogen->setText(originalText); }, this, 2000);
     });
@@ -243,6 +245,7 @@ void DialogManageRoutes::accept() {
     Configs::dataManager->settingsRepo->core_box_underlying_dns = ui->local_override->text().trimmed();
     Configs::dataManager->settingsRepo->dns_final_out = ui->dns_final_out->currentText();
     Configs::dataManager->settingsRepo->fake_dns = ui->enable_fakeip->isChecked();
+    Configs::dataManager->settingsRepo->enable_dns_routing = ui->enable_dns_routing->isChecked();
 
     Configs::dataManager->routesRepo->UpdateRouteProfiles(chainList);
     Configs::dataManager->settingsRepo->current_route_id = currentRoute->id;

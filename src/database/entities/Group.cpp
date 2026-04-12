@@ -5,8 +5,30 @@
 
 namespace Configs
 {
+    void Group::clearCalculatedColumnWidth() {
+        calculated_column_width.clear();
+    }
+
     QList<int> Group::Profiles() const {
         return profiles;
+    }
+
+    double bitrateToBps(const QString& str)
+    {
+        if (str.endsWith("Gbps", Qt::CaseInsensitive)) {
+            double val = str.left(str.size() - 4).toDouble();
+            return val * 1e9;
+        }
+        if (str.endsWith("Mbps", Qt::CaseInsensitive)) {
+            double val = str.left(str.size() - 4).toDouble();
+            return val * 1e6;
+        }
+        if (str.endsWith("Kbps", Qt::CaseInsensitive)) {
+            double val = str.left(str.size() - 4).toDouble();
+            return val * 1e3;
+        }
+        if (str == "N/A") return -1;
+        return 0.0;
     }
 
     bool Group::SortProfiles(GroupSortAction sortAction) {
@@ -52,10 +74,10 @@ namespace Configs
                                               return sortAction.descending ? get_latency_for_sort(profA) > get_latency_for_sort(profB) : get_latency_for_sort(profA) < get_latency_for_sort(profB);
                                           }
                                           if (test_sort_by == testBy::dlSpeed) {
-                                              return sortAction.descending ? profA->dl_speed > profB->dl_speed : profA->dl_speed < profB->dl_speed;
+                                              return sortAction.descending ? bitrateToBps(profA->dl_speed) > bitrateToBps(profB->dl_speed) : bitrateToBps(profA->dl_speed) < bitrateToBps(profB->dl_speed);
                                           }
                                           if (test_sort_by == testBy::ulSpeed) {
-                                              return sortAction.descending ? profA->ul_speed > profB->ul_speed : profA->ul_speed < profB->ul_speed;
+                                              return sortAction.descending ? bitrateToBps(profA->ul_speed) > bitrateToBps(profB->ul_speed) : bitrateToBps(profA->ul_speed) < bitrateToBps(profB->ul_speed);
                                           }
                                           if (test_sort_by == testBy::ipOut) {
                                               return sortAction.descending ? profA->ip_out > profB->ip_out : profA->ip_out < profB->ip_out;

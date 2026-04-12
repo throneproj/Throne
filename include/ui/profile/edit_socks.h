@@ -1,5 +1,4 @@
-#ifndef EDIT_SOCKS_H
-#define EDIT_SOCKS_H
+#pragma once
 
 #include <QWidget>
 #include "profile_editor.h"
@@ -25,5 +24,3 @@ private:
     Ui::EditSocks *ui;
     std::shared_ptr<Configs::Profile> ent;
 };
-
-#endif // EDIT_SOCKS_H

@@ -8,6 +8,8 @@ namespace Configs_network {
         QString privateKey;
         QString publicKey;
         QString endpoint;
+        QString ipv4Address;
+        QString ipv6Address;
     };
 
     std::shared_ptr<warpConfig> genWarpConfig(QString *error, QString privateKey, QString publicKey);

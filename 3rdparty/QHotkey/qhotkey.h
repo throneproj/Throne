@@ -1,5 +1,4 @@
-#ifndef QHOTKEY_H
-#define QHOTKEY_H
+#pragma once
 
 #include <QObject>
 #include <QKeySequence>
@@ -122,5 +121,3 @@ QHOTKEY_HASH_SEED QHOTKEY_EXPORT qHash(QHotkey::NativeShortcut key, QHOTKEY_HASH
 QHOTKEY_EXPORT Q_DECLARE_LOGGING_CATEGORY(logQHotkey)
 
 Q_DECLARE_METATYPE(QHotkey::NativeShortcut)
-
-#endif // QHOTKEY_H

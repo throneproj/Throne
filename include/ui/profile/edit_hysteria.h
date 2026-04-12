@@ -1,5 +1,4 @@
-#ifndef EDIT_HYSTERIA_H
-#define EDIT_HYSTERIA_H
+#pragma once
 
 #include <QWidget>
 #include "profile_editor.h"
@@ -29,4 +28,3 @@ private:
     std::shared_ptr<Configs::Profile> ent;
 };
 
-#endif

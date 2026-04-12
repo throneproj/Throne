@@ -12,8 +12,7 @@ namespace Configs {
     private:
         Database& db;
         mutable std::mutex mutex;
-        // Identity map: id -> weak_ptr<Group>
-        mutable std::map<int, std::weak_ptr<Group>> identityMap;
+        mutable std::map<int, std::shared_ptr<Group>> memMap;
 
         // Helper to serialize Group to JSON
         QJsonObject groupToJson(const Group* group) const;

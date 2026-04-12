@@ -18,12 +18,12 @@
 
 namespace Configs_network {
 
-    HTTPResponse NetworkRequestHelper::HttpGet(const QString &url, bool sendHwid) {
+    HTTPResponse NetworkRequestHelper::HttpGet(const QString &url, bool sendHwid, bool useProxy) {
         QNetworkRequest request;
         QNetworkAccessManager accessManager;
         accessManager.setTransferTimeout(10000);
         request.setUrl(url);
-        if (Configs::dataManager->settingsRepo->net_use_proxy || Configs::dataManager->settingsRepo->spmode_system_proxy) {
+        if (Configs::dataManager->settingsRepo->net_use_proxy || Configs::dataManager->settingsRepo->spmode_system_proxy || useProxy) {
             if (Configs::dataManager->settingsRepo->started_id < 0) {
                 return HTTPResponse{QObject::tr("Request with proxy but no profile started.")};
             }
@@ -31,6 +31,10 @@ namespace Configs_network {
             p.setType(QNetworkProxy::HttpProxy);
             p.setHostName(Configs::dataManager->settingsRepo->inbound_address == "::" ? "127.0.0.1" : Configs::dataManager->settingsRepo->inbound_address);
             p.setPort(Configs::dataManager->settingsRepo->inbound_socks_port);
+            if (Configs::dataManager->settingsRepo->inbound_auth) {
+                p.setUser(Configs::dataManager->settingsRepo->inbound_user);
+                p.setPassword(Configs::dataManager->settingsRepo->inbound_pass);
+            }
             accessManager.setProxy(p);
         }
         // Set attribute
@@ -121,6 +125,10 @@ namespace Configs_network {
             p.setType(QNetworkProxy::HttpProxy);
             p.setHostName(Configs::dataManager->settingsRepo->inbound_address == "::" ? "127.0.0.1" : Configs::dataManager->settingsRepo->inbound_address);
             p.setPort(Configs::dataManager->settingsRepo->inbound_socks_port);
+            if (Configs::dataManager->settingsRepo->inbound_auth) {
+                p.setUser(Configs::dataManager->settingsRepo->inbound_user);
+                p.setPassword(Configs::dataManager->settingsRepo->inbound_pass);
+            }
             accessManager.setProxy(p);
         }
         if (Configs::dataManager->settingsRepo->net_insecure) {

@@ -29,6 +29,7 @@
 
 #include "group/GroupSort.hpp"
 #include "include/global/GuiUtils.hpp"
+#include "include/ui/utils/DataViewHtmlGenerator.h"
 #include "include/ui/utils/ProfilesTableModel.h"
 #include "ui_mainwindow.h"
 
@@ -164,11 +165,14 @@ private:
     Ui::MainWindow *ui;
     ProfilesTableModel *profilesTableModel = nullptr;
     QSystemTrayIcon *tray;
+    QMenu *trayServerMenu = nullptr;
+    int trayServerPage = 0;
     QShortcut *shortcut_esc = new QShortcut(QKeySequence::Cancel, this);
     //
     QThreadPool *parallelCoreCallPool = new QThreadPool(this);
     std::atomic<bool> stopSpeedtest = false;
     QMutex speedtestRunning;
+    std::atomic<bool> currentUnderTest = false;
     //
     Configs_sys::CoreProcess *core_process;
     qint64 vpn_pid = 0;
@@ -199,11 +203,7 @@ private:
     //
     // for data view
     QDateTime lastUpdated = QDateTime::currentDateTime();
-    QString currentSptProfileName;
-    bool showSpeedtestData = false;
-    bool showDownloadData = false;
-    libcore::SpeedTestResult currentTestResult;
-    DownloadProgressReport currentDownloadReport; // could use a list, but don't think can show more than one anyways
+    DataViewHtmlGenerator dataViewHtmlGenerator_;
 
     // shortcuts
     QList<QShortcut*> hiddenMenuShortcuts;
@@ -244,6 +244,8 @@ private:
     void clearUnavailableProfiles(bool confirm = true, QList<int> profileIDs = {});
 
     void dialog_message_impl(const QString &sender, const QString &info);
+
+    void refresh_proxy_list_column_size();
 
     void refresh_proxy_list_impl(const QList<int> &ids = {}, bool mayNeedReset = false);
 
@@ -297,7 +299,7 @@ private:
 
     void setupConnectionList();
 
-    void querySpeedtest(QDateTime lastProxyListUpdate, const QMap<QString, int>& tag2entID, bool testCurrent);
+    void querySpeedtest(const QMap<QString, int>& tag2entID, bool testCurrent);
 
     void queryCountryTest(const QMap<QString, int>& tag2entID, bool testCurrent);
 

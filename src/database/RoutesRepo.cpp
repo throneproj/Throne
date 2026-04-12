@@ -67,10 +67,25 @@ namespace Configs {
                 sniffers_json TEXT,
                 sniff_override_dest INTEGER NOT NULL DEFAULT 0,
                 strategy TEXT,
+                wifi_ssid_json TEXT,
+                wifi_bssid_json TEXT,
                 PRIMARY KEY (route_profile_id, rule_order),
                 FOREIGN KEY(route_profile_id) REFERENCES route_profiles(id) ON DELETE CASCADE
             )
         )");
+        if (!routeRulesColumnExists("wifi_ssid_json"))
+            db.exec("ALTER TABLE route_rules ADD COLUMN wifi_ssid_json TEXT");
+        if (!routeRulesColumnExists("wifi_bssid_json"))
+            db.exec("ALTER TABLE route_rules ADD COLUMN wifi_bssid_json TEXT");
+    }
+
+    bool RoutesRepo::routeRulesColumnExists(const char* columnName) const {
+        auto pragma = db.query("PRAGMA table_info(route_rules)");
+        if (!pragma) return false;
+        while (pragma->executeStep()) {
+            if (pragma->getColumn(1).getText() == std::string(columnName)) return true;
+        }
+        return false;
     }
 
     QJsonObject RoutesRepo::routeRuleToJson(const RouteRule* rule) const {
@@ -97,6 +112,8 @@ namespace Configs {
         json["process_name"] = QListStr2QJsonArray(rule->process_name);
         json["process_path"] = QListStr2QJsonArray(rule->process_path);
         json["process_path_regex"] = QListStr2QJsonArray(rule->process_path_regex);
+        json["wifi_ssid"] = QListStr2QJsonArray(rule->wifi_ssid);
+        json["wifi_bssid"] = QListStr2QJsonArray(rule->wifi_bssid);
         json["rule_set"] = QListStr2QJsonArray(rule->rule_set);
         json["invert"] = rule->invert;
         json["outboundID"] = rule->outboundID;
@@ -136,6 +153,8 @@ namespace Configs {
         rule->process_name = QJsonArray2QListString(json["process_name"].toArray());
         rule->process_path = QJsonArray2QListString(json["process_path"].toArray());
         rule->process_path_regex = QJsonArray2QListString(json["process_path_regex"].toArray());
+        rule->wifi_ssid = QJsonArray2QListString(json["wifi_ssid"].toArray());
+        rule->wifi_bssid = QJsonArray2QListString(json["wifi_bssid"].toArray());
         rule->rule_set = QJsonArray2QListString(json["rule_set"].toArray());
         rule->invert = json["invert"].toBool();
         rule->outboundID = json["outboundID"].toInt();
@@ -258,6 +277,8 @@ namespace Configs {
             QJsonArray processPathRegexArray = QListStr2QJsonArray(rule->process_path_regex);
             QJsonArray ruleSetArray = QListStr2QJsonArray(rule->rule_set);
             QJsonArray sniffersArray = QListStr2QJsonArray(rule->sniffers);
+            QJsonArray wifiSsidArray = QListStr2QJsonArray(rule->wifi_ssid);
+            QJsonArray wifiBssidArray = QListStr2QJsonArray(rule->wifi_bssid);
             
             QString inboundJson = QString::fromUtf8(QJsonDocument(inboundArray).toJson(QJsonDocument::Compact));
             QString domainJson = QString::fromUtf8(QJsonDocument(domainArray).toJson(QJsonDocument::Compact));
@@ -275,6 +296,8 @@ namespace Configs {
             QString processPathRegexJson = QString::fromUtf8(QJsonDocument(processPathRegexArray).toJson(QJsonDocument::Compact));
             QString ruleSetJson = QString::fromUtf8(QJsonDocument(ruleSetArray).toJson(QJsonDocument::Compact));
             QString sniffersJson = QString::fromUtf8(QJsonDocument(sniffersArray).toJson(QJsonDocument::Compact));
+            QString wifiSsidJson = QString::fromUtf8(QJsonDocument(wifiSsidArray).toJson(QJsonDocument::Compact));
+            QString wifiBssidJson = QString::fromUtf8(QJsonDocument(wifiBssidArray).toJson(QJsonDocument::Compact));
             
             db.exec(R"(
                 INSERT INTO route_rules 
@@ -284,8 +307,9 @@ namespace Configs {
                  source_port_json, source_port_range_json, port_json, port_range_json,
                  process_name_json, process_path_json, process_path_regex_json, rule_set_json,
                  invert, outbound_id, action, reject_method, no_drop,
-                 override_address, override_port, sniffers_json, sniff_override_dest, strategy)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 override_address, override_port, sniffers_json, sniff_override_dest, strategy,
+                 wifi_ssid_json, wifi_bssid_json)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             )",
                 id,
                 ruleOrder++,
@@ -320,7 +344,9 @@ namespace Configs {
                 rule->override_port.toStdString(),
                 sniffersJson.toStdString(),
                 rule->sniffOverrideDest ? 1 : 0,
-                rule->strategy.toStdString()
+                rule->strategy.toStdString(),
+                wifiSsidJson.toStdString(),
+                wifiBssidJson.toStdString()
             );
         }
     }
@@ -364,6 +390,8 @@ namespace Configs {
         ruleJson["sniffers"] = parseJsonArray(stmt.getColumn(baseCol + 29).getText());
         ruleJson["sniffOverrideDest"] = stmt.getColumn(baseCol + 30).getInt() != 0;
         ruleJson["strategy"] = QString::fromStdString(stmt.getColumn(baseCol + 31).getText());
+        ruleJson["wifi_ssid"] = parseJsonArray(stmt.getColumn(baseCol + 32).getText());
+        ruleJson["wifi_bssid"] = parseJsonArray(stmt.getColumn(baseCol + 33).getText());
         return ruleJson;
     }
 
@@ -397,7 +425,8 @@ namespace Configs {
             "source_port_json, source_port_range_json, port_json, port_range_json, "
             "process_name_json, process_path_json, process_path_regex_json, rule_set_json, "
             "invert, outbound_id, action, reject_method, no_drop, "
-            "override_address, override_port, sniffers_json, sniff_override_dest, strategy "
+            "override_address, override_port, sniffers_json, sniff_override_dest, strategy, "
+            "wifi_ssid_json, wifi_bssid_json "
             "FROM route_rules WHERE route_profile_id IN (" + idList.toStdString() + ") ORDER BY route_profile_id, rule_order";
         auto rulesQuery = db.query(sql);
         if (!rulesQuery) return;
@@ -428,7 +457,8 @@ namespace Configs {
                    source_port_json, source_port_range_json, port_json, port_range_json,
                    process_name_json, process_path_json, process_path_regex_json, rule_set_json,
                    invert, outbound_id, action, reject_method, no_drop,
-                   override_address, override_port, sniffers_json, sniff_override_dest, strategy
+                   override_address, override_port, sniffers_json, sniff_override_dest, strategy,
+                   wifi_ssid_json, wifi_bssid_json
             FROM route_rules WHERE route_profile_id = ? ORDER BY rule_order
         )", id);
         if (rulesQuery) {

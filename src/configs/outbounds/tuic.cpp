@@ -27,7 +27,7 @@ namespace Configs {
         
         if (server_port == 0) server_port = 443;
 
-        return !(uuid.isEmpty() || password.isEmpty() || server.isEmpty());
+        return !(uuid.isEmpty() || server.isEmpty());
     }
 
     bool tuic::ParseFromJson(const QJsonObject& object)
@@ -68,7 +68,7 @@ namespace Configs {
         QUrlQuery query;
         url.setScheme("tuic");
         url.setUserName(uuid);
-        url.setPassword(password);
+        if (!password.isEmpty()) url.setPassword(password);
         url.setHost(server);
         url.setPort(server_port);
         if (!name.isEmpty()) url.setFragment(name);

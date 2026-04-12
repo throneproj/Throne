@@ -3,7 +3,7 @@
 #include <QWidget>
 #include <QListWidgetItem>
 #include <QDialog>
-#include <QStringListModel>
+#include <QEvent>
 #include <QShortcut>
 
 #include "3rdparty/qv2ray/v2/ui/QvAutoCompleteTextEdit.hpp"
@@ -11,11 +11,7 @@
 #include "include/database/entities/RouteProfile.h"
 #include "include/ui/setting/RouteRuleHighlighter.h"
 
-QT_BEGIN_NAMESPACE
-namespace Ui {
-    class RouteItem;
-}
-QT_END_NAMESPACE
+class QListWidget;
 
 class RouteItem : public QDialog {
     Q_OBJECT
@@ -36,12 +32,6 @@ private:
 
     QStringList geo_items;
 
-    AutoCompleteTextEdit* rule_set_editor;
-
-    QStringList current_helper_items;
-
-    QStringListModel* helperModel;
-
     QShortcut* deleteShortcut;
 
     QStringList outbounds;
@@ -53,6 +43,8 @@ private:
     AutoCompleteTextEdit* simpleBlock;
 
     AutoCompleteTextEdit* simpleProxy;
+
+    QListWidget* ruleAttrPlusList = nullptr;
 
     // Enhanced Basic поля (12 текстовых редакторов для 3 действий × 4 типов)
     AutoCompleteTextEdit* enhanced_direct_ip;
@@ -92,17 +84,33 @@ private:
 
     [[nodiscard]] int getIndexOf(const QString& name) const;
 
-    void showSelectItem(const QStringList& items, const QString& currentItem);
+    void ensurePlusTabBuiltOnce();
 
-    void showTextEnterItem(const QStringList& items, bool isRuleSet);
+    void removeAllAttributeTabsExceptPlus();
 
-    void setDefaultRuleData(const QString& currentData);
+    void syncPlusListCheckStatesFromRule();
+
+    void persistCurrentRuleAttrTabLabel();
+
+    void applyStoredRuleAttrTabSelection();
+
+    void syncRuleActionCombo();
+
+    void rebuildRuleAttributeTabs();
+
+    [[nodiscard]] QWidget* makeAttributeEditorPage(const QString& attr);
 
     void updateRuleSection();
 
     void updateRulePreview();
 
     void updateRouteItemsView();
+
+    void applyAttributeVisibilityChange(const QString& attr, bool visible);
+
+protected:
+    bool eventFilter(QObject* watched, QEvent* event) override;
+
 private slots:
     void accept() override;
 

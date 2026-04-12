@@ -28,7 +28,7 @@ namespace Configs
 
         hysteria()
         {
-            tls->utls->supported = false;;
+            tls->utls->supported = false;
         }
 
         bool HasTLS() override {

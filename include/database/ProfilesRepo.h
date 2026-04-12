@@ -63,6 +63,8 @@ namespace Configs {
 
         QList<std::shared_ptr<Profile>> GetProfileBatch(QList<int> ids);
 
+        QList<std::pair<int, QString> > GetProfileIDNameMappedBatch(QList<int> ids);
+
         std::shared_ptr<Profile> GetProfileByName(const QString &name);
 
         QList<std::pair<int, QString> > GetAllProfileIDNameMapped();
@@ -70,7 +72,7 @@ namespace Configs {
         QStringList GetAllProfileNames();
         
         // Delete multiple profiles
-        bool BatchDeleteProfiles(const QList<int>& ids);
+        bool BatchDeleteProfiles(QList<int>& ids, bool stopRunningProfile = false);
         
         // Get all profile IDs in order
         QList<int> GetAllProfileIds() const;

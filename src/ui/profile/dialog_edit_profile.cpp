@@ -30,6 +30,10 @@
 #include "include/ui/profile/edit_socks.h"
 #include "include/ui/profile/edit_trojan.h"
 #include "include/ui/profile/edit_tuic.h"
+#include "include/ui/profile/edit_juicity.h"
+#include "include/ui/profile/edit_trusttunnel.h"
+#include "include/ui/profile/edit_naive.h"
+#include "include/ui/profile/edit_shadowtls.h"
 #include "include/ui/profile/edit_xrayvless.h"
 
 #define ADJUST_SIZE runOnThread([=,this] { adjustSize(); adjustPosition(mainwindow); }, this);
@@ -236,7 +240,11 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
         ui->type->addItem("VLESS (Xray)", "xrayvless");
         LOAD_TYPE("hysteria")
         LOAD_TYPE("tuic")
+        LOAD_TYPE("juicity")
+        if (Configs::HasNaive()) LOAD_TYPE("naive")
+        LOAD_TYPE("trusttunnel")
         LOAD_TYPE("anytls")
+        LOAD_TYPE("shadowtls")
         LOAD_TYPE("wireguard")
         LOAD_TYPE("tailscale")
         LOAD_TYPE("ssh")
@@ -324,8 +332,20 @@ void DialogEditProfile::typeSelected(const QString &newType) {
         auto _innerWidget = new EditTuic(this);
         innerWidget = _innerWidget;
         innerEditor = _innerWidget;
+    } else if (type == "juicity") {
+        auto _innerWidget = new EditJuicity(this);
+        innerWidget = _innerWidget;
+        innerEditor = _innerWidget;
+    } else if (type == "trusttunnel") {
+        auto _innerWidget = new EditTrustTunnel(this);
+        innerWidget = _innerWidget;
+        innerEditor = _innerWidget;
     } else if (type == "anytls") {
         auto _innerWidget = new EditAnyTLS(this);
+        innerWidget = _innerWidget;
+        innerEditor = _innerWidget;
+    } else if (type == "shadowtls") {
+        auto _innerWidget = new EditShadowTLS(this);
         innerWidget = _innerWidget;
         innerEditor = _innerWidget;
     } else if (type == "wireguard") {
@@ -350,6 +370,10 @@ void DialogEditProfile::typeSelected(const QString &newType) {
     } else if (type == "extracore")
     {
         auto _innerWidget = new EditExtraCore(this);
+        innerWidget = _innerWidget;
+        innerEditor = _innerWidget;
+    } else if (Configs::HasNaive() && type == "naive") {
+        auto _innerWidget = new EditNaive(this);
         innerWidget = _innerWidget;
         innerEditor = _innerWidget;
     } else {

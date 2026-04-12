@@ -56,7 +56,7 @@ namespace Subscription {
             auto obj = doc.object();
             bool hasInbound = obj.contains("inbounds");
             bool hasOutbound = obj.contains("outbounds") || obj.contains("endpoints");
-            if (hasInbound && hasOutbound) return SingBoxSubType::fullConfig;
+            // if (hasInbound && hasOutbound) return SingBoxSubType::fullConfig;
             if (hasOutbound) return SingBoxSubType::outboundInJson;
             if (obj.contains("type")) return SingBoxSubType::outboundObject;
             return SingBoxSubType::invalid;
@@ -243,6 +243,27 @@ namespace Subscription {
             if (!ok) return;
         }
 
+        // Juicity
+        if (str.startsWith("juicity://")) {
+            ent = Configs::ProfilesRepo::NewProfile("juicity");
+            auto ok = ent->Juicity()->ParseFromLink(str);
+            if (!ok) return;
+        }
+
+        // TrustTunnel
+        if (str.startsWith("tt://")) {
+            ent = Configs::ProfilesRepo::NewProfile("trusttunnel");
+            auto ok = ent->TrustTunnel()->ParseFromLink(str);
+            if (!ok) return;
+        }
+
+        // ShadowTLS
+        if (str.startsWith("shadowtls://")) {
+            ent = Configs::ProfilesRepo::NewProfile("shadowtls");
+            auto ok = ent->ShadowTLS()->ParseFromLink(str);
+            if (!ok) return;
+        }
+
         // Wireguard
         if (str.startsWith("wg://")) {
             ent = Configs::ProfilesRepo::NewProfile("wireguard");
@@ -254,6 +275,13 @@ namespace Subscription {
         if (str.startsWith("ssh://")) {
             ent = Configs::ProfilesRepo::NewProfile("ssh");
             auto ok = ent->SSH()->ParseFromLink(str);
+            if (!ok) return;
+        }
+
+        // Naive
+        if ((str.startsWith("naive+https://") || str.startsWith("naive+quic://")) && Configs::HasNaive()) {
+            ent = Configs::ProfilesRepo::NewProfile("naive");
+            auto ok = ent->Naive()->ParseFromLink(str);
             if (!ok) return;
         }
 
@@ -361,6 +389,27 @@ namespace Subscription {
                 if (!ok) continue;
             }
 
+            // Juicity
+            if (out["type"] == "juicity") {
+                ent = Configs::ProfilesRepo::NewProfile("juicity");
+                auto ok = ent->Juicity()->ParseFromJson(out);
+                if (!ok) continue;
+            }
+
+            // TrustTunnel
+            if (out["type"] == "trusttunnel") {
+                ent = Configs::ProfilesRepo::NewProfile("trusttunnel");
+                auto ok = ent->TrustTunnel()->ParseFromJson(out);
+                if (!ok) continue;
+            }
+
+            // ShadowTLS
+            if (out["type"] == "shadowtls") {
+                ent = Configs::ProfilesRepo::NewProfile("shadowtls");
+                auto ok = ent->ShadowTLS()->ParseFromJson(out);
+                if (!ok) continue;
+            }
+
             // Wireguard
             if (out["type"] == "wireguard") {
                 ent = Configs::ProfilesRepo::NewProfile("wireguard");
@@ -372,6 +421,13 @@ namespace Subscription {
             if (out["type"] == "ssh") {
                 ent = Configs::ProfilesRepo::NewProfile("ssh");
                 auto ok = ent->SSH()->ParseFromJson(out);
+                if (!ok) continue;
+            }
+
+            // Naive
+            if (Configs::HasNaive() && out["type"] == "naive") {
+                ent = Configs::ProfilesRepo::NewProfile("naive");
+                auto ok = ent->Naive()->ParseFromJson(out);
                 if (!ok) continue;
             }
 
@@ -585,7 +641,7 @@ namespace Subscription {
             //
             if (Configs::dataManager->settingsRepo->sub_clear) {
                 MW_show_log(QObject::tr("Clearing servers..."));
-                if (!Configs::dataManager->profilesRepo->BatchDeleteProfiles(group->Profiles())) {
+                if (!Configs::dataManager->profilesRepo->BatchDeleteProfiles(group->profiles, Configs::dataManager->settingsRepo->allow_stopping_active_profile)) {
                     runOnUiThread([=] {
                         MessageBoxWarning("Internal Error", "DB Error when deleting profiles, Please try again.");
                     });
@@ -671,7 +727,7 @@ namespace Subscription {
                         del_ids.append(ent->id);
                     }
                 }
-                if (!Configs::dataManager->profilesRepo->BatchDeleteProfiles(del_ids)) {
+                if (!Configs::dataManager->profilesRepo->BatchDeleteProfiles(del_ids, Configs::dataManager->settingsRepo->allow_stopping_active_profile)) {
                     runOnUiThread([=] {
                        MessageBoxWarning("Internal error", "DB Error when deleting profiles, data may be corrupted");
                     });

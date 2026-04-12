@@ -16,6 +16,44 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QTabWidget" name="tabWidget">
+     <property name="styleSheet">
+      <string notr="true">QTabWidget::pane {
+    margin-top: 1px;
+    background: palette(base);
+    border: 1px solid palette(mid);
+    border-radius: 4px;
+}
+
+QTabBar {
+    background: transparent;
+    qproperty-drawBase: 0;
+}
+
+QTabBar::tab {
+    background-color: palette(button);
+    color: palette(button-text);
+
+    border: 1px solid palette(midlight);
+    border-radius: 4px;
+
+    padding: 2px 4px;
+    margin-right: 1px;
+}
+
+QTabBar::tab:selected {
+    border: 1px solid palette(highlight);
+    background-color: palette(window); 
+}
+
+QTabBar::tab:!selected {
+    border: 1px solid palette(button);
+}
+
+QTabBar::tab:hover:!selected {
+    border: 1px solid palette(button);
+    background-color: palette(midlight);
+}</string>
+     </property>
      <property name="currentIndex">
       <number>0</number>
      </property>
@@ -94,8 +132,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>360</width>
-            <height>264</height>
+            <width>362</width>
+            <height>272</height>
            </rect>
           </property>
          </widget>

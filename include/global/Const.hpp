@@ -17,7 +17,7 @@ namespace Configs {
     namespace SingboxOptions {
         inline QStringList SniffProtocols = {"http", "tls", "quic", "stun", "dns", "bittorrent", "dtls", "ssh", "rdp"};
         inline QStringList ActionTypes = {"route", "reject", "hijack-dns", "route-options", "sniff", "resolve"};
-        inline QStringList rejectMethods = {"default", "drop"};
+        inline QStringList rejectMethods = {"default", "drop", "reply"};
     }
 
     namespace SniffingMode {

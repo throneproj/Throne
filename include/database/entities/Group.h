@@ -43,6 +43,7 @@ namespace Configs
 
         // list ui
         QList<int> column_width;
+        QList<int> calculated_column_width; // memory only, no need to save to db
         QList<int> profiles;
         int scroll_last_profile = -1;
         testBy test_sort_by = testBy::latency;
@@ -50,6 +51,8 @@ namespace Configs
         testShowItems test_items_to_show = testShowItems::all;
 
         Group() = default;
+
+        void clearCalculatedColumnWidth();
 
         [[nodiscard]] QList<int> Profiles() const;
 

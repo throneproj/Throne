@@ -14,8 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef QUIRC_INTERNAL_H_
-#define QUIRC_INTERNAL_H_
+#pragma once
 
 #include <assert.h>
 #include <stdlib.h>
@@ -139,5 +138,3 @@ struct quirc_version_info {
 };
 
 extern const struct quirc_version_info quirc_version_db[QUIRC_MAX_VERSION + 1];
-
-#endif

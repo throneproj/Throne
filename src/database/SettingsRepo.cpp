@@ -44,7 +44,10 @@ namespace Configs {
             "log_enable_include",
             "log_enable_exclude",
             "enable_dns_in",
-            "enable_warp"
+            "enable_warp",
+            "enable_dns_routing",
+            "inbound_auth",
+               "allow_stopping_active_profile"
         };
 
         const QSet<QString> intKeys = {
@@ -132,7 +135,9 @@ namespace Configs {
             "simple_dl_url",
             "warp_private_key",
             "warp_public_key",
-            "warp_ep"
+            "warp_ep",
+            "inbound_user",
+            "inbound_pass"
         };
 
     SettingsRepo::SettingsRepo(Database& database) : db(database) {
@@ -352,6 +357,11 @@ namespace Configs {
                 else if (key == "warp_public_key") warp_public_key = varValue.toString();
                 else if (key == "warp_ifc_addrs") warp_ifc_addrs = varValue.toStringList();
                 else if (key == "warp_ep") warp_ep = varValue.toString();
+                else if (key == "enable_dns_routing") enable_dns_routing = varValue.toBool();
+                else if (key == "inbound_auth") inbound_auth = varValue.toBool();
+                else if (key == "inbound_user") inbound_user = varValue.toString();
+                else if (key == "inbound_pass") inbound_pass = varValue.toString();
+                else if (key == "allow_stopping_active_profile") allow_stopping_active_profile = varValue.toBool();
             }
         }
     }
@@ -477,7 +487,12 @@ namespace Configs {
             {"warp_private_key", warp_private_key},
             {"warp_public_key", warp_public_key},
             {"warp_ifc_addrs", warp_ifc_addrs},
-            {"warp_ep", warp_ep}
+            {"warp_ep", warp_ep},
+            {"enable_dns_routing", enable_dns_routing},
+            {"inbound_auth", inbound_auth},
+            {"inbound_user", inbound_user},
+            {"inbound_pass", inbound_pass},
+            {"allow_stopping_active_profile", allow_stopping_active_profile}
         };
 
         std::vector<std::pair<std::string, std::string>> keyValues;

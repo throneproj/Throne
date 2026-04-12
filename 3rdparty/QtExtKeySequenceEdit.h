@@ -1,3 +1,5 @@
+#pragma once
+
 #include <QKeySequenceEdit>
 
 class QtExtKeySequenceEdit : public QKeySequenceEdit {

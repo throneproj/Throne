@@ -1,6 +1,4 @@
-#ifndef DIALOG_EDIT_PROFILE_H
-#define DIALOG_EDIT_PROFILE_H
-
+#pragma once
 #include <QDialog>
 #include "profile_editor.h"
 
@@ -61,5 +59,3 @@ private:
 
     void editor_cache_updated_impl();
 };
-
-#endif // DIALOG_EDIT_PROFILE_H

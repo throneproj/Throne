@@ -442,4 +442,23 @@ namespace API {
         }
     }
 
+    bool Client::CheckNaive(bool* rpcOK) const
+    {
+        libcore::EmptyReq request;
+        libcore::CheckNaiveResponse reply;
+        std::vector<uint8_t> resp;
+        auto status = default_grpc_channel->Call("CheckNaive", spb::pb::serialize<std::string>(request), resp);
+
+        if (status == QNetworkReply::NoError)
+        {
+            reply = spb::pb::deserialize<libcore::CheckNaiveResponse>(resp);
+            *rpcOK = true;
+            return reply.has_naive.value();
+        } else
+        {
+            NOT_OK
+            return false;
+        }
+    }
+
 } // namespace API

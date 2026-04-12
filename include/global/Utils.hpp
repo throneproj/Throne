@@ -16,7 +16,7 @@
 // OS
 enum osType
 {
-    Unknown = 0,
+    unknown = 0,
     Linux = 1,
     Windows = 2,
     Darwin = 3,
@@ -33,7 +33,7 @@ inline osType getOS()
 #ifdef Q_OS_WIN
     return Windows;
 #endif
-    return Unknown;
+    return unknown;
 }
 
 inline QString getOSString() {
@@ -47,7 +47,7 @@ inline QString getOSString() {
     if (os == Windows) {
         return "Windows";
     }
-    if (os == Unknown) {
+    if (os == unknown) {
         return "Unknown";
     }
     return "Unknown";
@@ -107,8 +107,6 @@ QByteArray DecodeB64IfValid(const QString &input, QByteArray::Base64Options opti
 // URL
 
 class QUrlQuery;
-
-#define GetQuery(url) QUrlQuery((url).query(QUrl::ComponentFormattingOption::FullyDecoded));
 
 QString GetQueryValue(const QUrlQuery &q, const QString &key, const QString &def = "");
 

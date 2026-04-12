@@ -1,5 +1,4 @@
-#ifndef QHOTKEY_P_H
-#define QHOTKEY_P_H
+#pragma once
 
 #include "qhotkey.h"
 #include <QAbstractNativeEventFilter>
@@ -54,5 +53,3 @@ private:
 	{\
 		return hotkeyPrivate;\
 	}
-
-#endif // QHOTKEY_P_H

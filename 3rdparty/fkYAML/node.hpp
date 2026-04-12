@@ -6,8 +6,7 @@
 // SPDX-FileCopyrightText: 2023-2025 Kensuke Fukutani <fktn.dev@gmail.com>
 // SPDX-License-Identifier: MIT
 
-#ifndef FK_YAML_NODE_HPP
-#define FK_YAML_NODE_HPP
+#pragma once
 
 #include <algorithm>
 #include <cstdint>
@@ -4113,26 +4112,36 @@ private:
                 // followed by the comment prefix " #".
                 // Also, flow indicators are not allowed to be followed after a space in a flow context.
                 // See https://yaml.org/spec/1.2.2/#733-plain-style for more details.
-                switch (sv[pos + 1]) {
-                case ' ':
-                case '\t':
-                case '\n':
-                case '#':
-                    ends_loop = true;
-                    break;
-                case ':':
-                    // " :" is permitted in a plain style string token, but not when followed by a space.
-                    ends_loop = (pos < sv.size() - 2) && (sv[pos + 2] == ' ');
-                    break;
-                case '{':
-                case '}':
-                case '[':
-                case ']':
-                case ',':
-                    ends_loop = (m_state & flow_context_bit);
-                    break;
-                default:
-                    break;
+                {
+                    const std::size_t next_non_space = sv.find_first_not_of(" \t", pos + 1);
+                    if (next_non_space == str_view::npos) {
+                        ends_loop = true;
+                        break;
+                    }
+
+                    const char next_char = sv[next_non_space];
+                    switch (next_char) {
+                    case '\n':
+                    case '#':
+                        ends_loop = true;
+                        break;
+                    case ':':
+                        // " :" is permitted in a plain style string token, but not when followed by a space.
+                        if (next_non_space + 1 < sv.size()) {
+                            const char after_colon = sv[next_non_space + 1];
+                            ends_loop = (after_colon == ' ' || after_colon == '\t' || after_colon == '\n');
+                        }
+                        break;
+                    case '{':
+                    case '}':
+                    case '[':
+                    case ']':
+                    case ',':
+                        ends_loop = (m_state & flow_context_bit);
+                        break;
+                    default:
+                        break;
+                    }
                 }
                 break;
             case ':':
@@ -14722,5 +14731,3 @@ private:
 };
 
 } // namespace std
-
-#endif /* FK_YAML_NODE_HPP */

@@ -36,6 +36,10 @@ namespace Configs_network {
             p.setType(QNetworkProxy::HttpProxy);
             p.setHostName(Configs::dataManager->settingsRepo->inbound_address == "::" ? "127.0.0.1" : Configs::dataManager->settingsRepo->inbound_address);
             p.setPort(Configs::dataManager->settingsRepo->inbound_socks_port);
+            if (Configs::dataManager->settingsRepo->inbound_auth) {
+                p.setUser(Configs::dataManager->settingsRepo->inbound_user);
+                p.setPassword(Configs::dataManager->settingsRepo->inbound_pass);
+            }
             accessManager.setProxy(p);
         }
         // Set attribute
@@ -78,6 +82,14 @@ namespace Configs_network {
         if (config->endpoint.isEmpty()) {
             config->endpoint = "engage.cloudflareclient.com:2408";
         }
+
+        auto ifcAddrObj = jsonResp["interface"].toObject()["addresses"].toObject();
+        if (ifcAddrObj.isEmpty()) {
+            *error = "Received invalid response: " + rawResponse;
+            return config;
+        }
+        config->ipv4Address = ifcAddrObj["v4"].toString();
+        config->ipv6Address = ifcAddrObj["v6"].toString();
 
         return config;
     }

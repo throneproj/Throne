@@ -28,6 +28,10 @@ Apple platforms have a very strict security policy and since Throne does not hav
 - Hysteria
 - Hysteria2
 - AnyTLS
+- NaïveProxy
+- Juicity
+- TrustTunnel
+- ShadowTLS
 - Wireguard
 - SSH
 - Custom Outbound

@@ -26,7 +26,7 @@ namespace Configs_network {
         ;
 
     public:
-        static HTTPResponse HttpGet(const QString &url, bool sendHwid = false);
+        static HTTPResponse HttpGet(const QString &url, bool sendHwid = false, bool useProxy = false);
 
         static QString GetHeader(const QList<QPair<QByteArray, QByteArray>> &header, const QString &name);
 

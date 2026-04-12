@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Database.h"
 #include "include/global/Const.hpp"
 #include <QMutexLocker>
@@ -107,6 +109,7 @@ namespace Configs {
         bool sub_clear = false;
         bool sub_send_hwid = false;
         QString sub_custom_hwid_params = "";
+        bool allow_stopping_active_profile = false;
 
         // Security
         bool skip_cert = false;
@@ -127,6 +130,7 @@ namespace Configs {
         QString remote_dns_strategy = "";
         QString direct_dns = "localhost";
         QString direct_dns_strategy = "";
+        bool enable_dns_routing = true;
         bool use_dns_object = false;
         QString dns_object = "";
         QString dns_final_out = "proxy";
@@ -141,6 +145,9 @@ namespace Configs {
         bool random_inbound_port = false;
         QString custom_inbound = "{\"inbounds\": []}";
         QString proxy_scheme = "{ip}:{port}";
+        bool inbound_auth = false;
+        QString inbound_user = "";
+        QString inbound_pass = "";
 
         // Routing
         QString custom_route_global = "{\"rules\": []}";
@@ -176,7 +183,7 @@ namespace Configs {
         bool enable_warp = false;
         QString warp_private_key = "";
         QString warp_public_key = "";
-        QStringList warp_ifc_addrs = {"172.27.1.0/28", "2606:4700:110:8604:e69c:1aea:bd1e:5daf/120"};
+        QStringList warp_ifc_addrs = {};
         QString warp_ep = "";
 
         // Hijack

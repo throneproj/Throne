@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>780</width>
-    <height>728</height>
+    <height>802</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -56,6 +56,44 @@
    </item>
    <item>
     <widget class="QTabWidget" name="tabWidget">
+     <property name="styleSheet">
+      <string notr="true">QTabWidget::pane {
+    margin-top: 1px;
+    background: palette(base);
+    border: 1px solid palette(mid);
+    border-radius: 4px;
+}
+
+QTabBar {
+    background: transparent;
+    qproperty-drawBase: 0;
+}
+
+QTabBar::tab {
+    background-color: palette(button);
+    color: palette(button-text);
+
+    border: 1px solid palette(midlight);
+    border-radius: 4px;
+
+    padding: 2px 4px;
+    margin-right: 1px;
+}
+
+QTabBar::tab:selected {
+    border: 1px solid palette(highlight);
+    background-color: palette(window); 
+}
+
+QTabBar::tab:!selected {
+    border: 1px solid palette(button);
+}
+
+QTabBar::tab:hover:!selected {
+    border: 1px solid palette(button);
+    background-color: palette(midlight);
+}</string>
+     </property>
      <property name="currentIndex">
       <number>0</number>
      </property>
@@ -439,102 +477,237 @@
          <property name="title">
           <string>Rules</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
           <item>
-           <widget class="QListWidget" name="route_items"/>
-          </item>
-          <item>
-           <widget class="QWidget" name="widget_2" native="true">
-            <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <widget class="QFrame" name="frame">
+            <property name="frameShape">
+             <enum>QFrame::Shape::NoFrame</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Shadow::Raised</enum>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_9">
+             <property name="spacing">
+              <number>7</number>
+             </property>
+             <property name="leftMargin">
+              <number>5</number>
+             </property>
+             <property name="topMargin">
+              <number>5</number>
+             </property>
+             <property name="rightMargin">
+              <number>5</number>
+             </property>
+             <property name="bottomMargin">
+              <number>5</number>
+             </property>
              <item>
-              <widget class="QPushButton" name="new_route_item">
-               <property name="text">
-                <string>New</string>
-               </property>
-              </widget>
+              <widget class="QListWidget" name="route_items"/>
              </item>
              <item>
-              <widget class="QPushButton" name="moveup_route_item">
-               <property name="text">
-                <string>Move Up</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="movedown_route_item">
-               <property name="text">
-                <string>Move Down</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="delete_route_item">
-               <property name="text">
-                <string>Delete</string>
-               </property>
+              <widget class="QWidget" name="widget_2" native="true">
+               <layout class="QHBoxLayout" name="horizontalLayout_2">
+                <item>
+                 <widget class="QPushButton" name="new_route_item">
+                  <property name="text">
+                   <string>New</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="moveup_route_item">
+                  <property name="text">
+                   <string>Move Up</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="movedown_route_item">
+                  <property name="text">
+                   <string>Move Down</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="delete_route_item">
+                  <property name="text">
+                   <string>Delete</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </widget>
              </item>
             </layout>
            </widget>
           </item>
           <item>
-           <widget class="QGroupBox" name="rule_attr_box">
-            <property name="title">
-             <string>Rule Attributes</string>
-            </property>
+           <widget class="QFrame" name="rule_attr_box">
             <layout class="QVBoxLayout" name="verticalLayout">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>5</number>
+             </property>
+             <property name="rightMargin">
+              <number>5</number>
+             </property>
+             <property name="bottomMargin">
+              <number>5</number>
+             </property>
              <item>
-              <widget class="QWidget" name="widget_3" native="true">
-               <layout class="QHBoxLayout" name="horizontalLayout_3">
-                <item>
-                 <widget class="QLabel" name="rule_name_l">
-                  <property name="text">
-                   <string>Name</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QLineEdit" name="rule_name"/>
-                </item>
-                <item>
-                 <widget class="QLabel" name="rule_attr_l">
-                  <property name="text">
-                   <string>Attribute</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QComboBox" name="rule_attr"/>
-                </item>
-               </layout>
+              <layout class="QHBoxLayout" name="horizontalLayout_5">
+               <item>
+                <widget class="QLabel" name="rule_name_l">
+                 <property name="text">
+                  <string>Name</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="rule_name"/>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QLabel" name="rule_preview_l">
+               <property name="text">
+                <string>Preview</string>
+               </property>
               </widget>
              </item>
              <item>
-              <widget class="QGroupBox" name="rule_attr_data">
-               <property name="title">
-                <string>Name_Placeholder</string>
+              <widget class="QTextBrowser" name="rule_preview">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>120</height>
+                </size>
                </property>
-               <layout class="QHBoxLayout" name="horizontalLayout_4">
-                <item>
-                 <widget class="QTextBrowser" name="rule_preview">
-                  <property name="minimumSize">
-                   <size>
-                    <width>190</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPlainTextEdit" name="rule_attr_text"/>
-                </item>
-                <item>
-                 <widget class="QComboBox" name="rule_attr_selector"/>
-                </item>
-               </layout>
+               <property name="documentTitle">
+                <string notr="true"/>
+               </property>
+               <property name="openExternalLinks">
+                <bool>false</bool>
+               </property>
               </widget>
              </item>
             </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="title">
+          <string>Rule Settings</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <property name="spacing">
+           <number>7</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_action">
+            <property name="leftMargin">
+             <number>4</number>
+            </property>
+            <property name="rightMargin">
+             <number>4</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="rule_action_l">
+              <property name="text">
+               <string>Action</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="rule_action_combo"/>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QTabWidget" name="rule_attr_tabs">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>100</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QTabWidget::pane {
+    margin-top: 1px;
+    background: palette(base);
+    border: 1px solid palette(mid);
+    border-radius: 4px;
+}
+
+QTabBar {
+    background: transparent;
+    qproperty-drawBase: 0;
+}
+
+QTabBar::tab {
+    background-color: palette(button);
+    color: palette(button-text);
+
+    border: 1px solid palette(midlight);
+    border-radius: 4px;
+
+    padding: 2px 4px;
+    margin-right: 1px;
+}
+
+QTabBar::tab:selected {
+    border: 1px solid palette(highlight);
+    background-color: palette(window); 
+}
+
+QTabBar::tab:!selected {
+    border: 1px solid palette(button);
+}
+
+QTabBar::tab:hover:!selected {
+    border: 1px solid palette(button);
+    background-color: palette(midlight);
+}</string>
+            </property>
+            <property name="currentIndex">
+             <number>-1</number>
+            </property>
            </widget>
           </item>
          </layout>

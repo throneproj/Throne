@@ -6,19 +6,16 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+if (NOT APPLE)
+    set(CMAKE_UNITY_BUILD_BATCH_SIZE 32)
+endif ()
 if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+    string(REPLACE "/Zi" "/Z7" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
 endif()
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Network LinguistTools DBus)
-
-if (NKR_CROSS)
-    set_property(TARGET Qt6::moc PROPERTY IMPORTED_LOCATION /usr/bin/moc)
-    set_property(TARGET Qt6::uic PROPERTY IMPORTED_LOCATION /usr/bin/uic)
-    set_property(TARGET Qt6::rcc PROPERTY IMPORTED_LOCATION /usr/bin/rcc)
-    set_property(TARGET Qt6::lrelease PROPERTY IMPORTED_LOCATION /usr/bin/lrelease)
-    set_property(TARGET Qt6::lupdate PROPERTY IMPORTED_LOCATION /usr/bin/lupdate)
-endif ()
 
 #### Platform Variables ####
 if (APPLE)
@@ -41,8 +38,6 @@ message("[CMAKE_PREFIX_PATH] ${CMAKE_PREFIX_PATH}")
 # for some cross toolchain
 list(APPEND CMAKE_FIND_ROOT_PATH ${CMAKE_PREFIX_PATH})
 message("[CMAKE_FIND_ROOT_PATH] ${CMAKE_FIND_ROOT_PATH}")
-
-#### NKR ####
 
 include("cmake/print.cmake")
 include("cmake/nkr.cmake")
@@ -109,7 +104,6 @@ set(PROJECT_SOURCES
 
         include/sys/Process.hpp
         src/sys/Process.cpp
-        src/sys/AutoRun.cpp
 
         include/ui/setting/ThemeManager.hpp
         src/ui/setting/ThemeManager.cpp
@@ -119,6 +113,8 @@ set(PROJECT_SOURCES
         src/ui/mainwindow.cpp
         include/ui/mainwindow.h
         include/ui/mainwindow.ui
+        include/ui/utils/DataViewHtmlGenerator.h
+        src/ui/utils/DataViewHtmlGenerator.cpp
         include/ui/utils/ProfilesTableModel.h
         src/ui/utils/ProfilesTableModel.cpp
         include/ui/utils/ProfilesTableView.h
@@ -167,6 +163,18 @@ set(PROJECT_SOURCES
         include/ui/profile/edit_tuic.h
         src/ui/profile/edit_tuic.cpp
         include/ui/profile/edit_tuic.ui
+        include/ui/profile/edit_juicity.h
+        src/ui/profile/edit_juicity.cpp
+        include/ui/profile/edit_juicity.ui
+        include/ui/profile/edit_trusttunnel.h
+        src/ui/profile/edit_trusttunnel.cpp
+        include/ui/profile/edit_trusttunnel.ui
+        include/ui/profile/edit_shadowtls.h
+        src/ui/profile/edit_shadowtls.cpp
+        include/ui/profile/edit_shadowtls.ui
+        include/ui/profile/edit_naive.h
+        src/ui/profile/edit_naive.cpp
+        include/ui/profile/edit_naive.ui
 
         include/ui/profile/edit_custom.h
         src/ui/profile/edit_custom.cpp
@@ -225,7 +233,6 @@ set(PROJECT_SOURCES
 
         src/sys/macos/MacOS.cpp
 
-        src/sys/AutoRun.cpp
         src/sys/Process.cpp
         include/ui/mainwindow_interface.h
         include/stats/connections/connectionLister.hpp
@@ -252,6 +259,10 @@ set(PROJECT_SOURCES
         include/configs/outbounds/hysteria.h
         include/configs/outbounds/vless.h
         include/configs/outbounds/tuic.h
+        include/configs/outbounds/juicity.h
+        include/configs/outbounds/trusttunnel.h
+        include/configs/outbounds/naive.h
+        include/configs/outbounds/shadowtls.h
         include/configs/outbounds/anyTLS.h
         include/configs/outbounds/ssh.h
         
@@ -265,6 +276,10 @@ set(PROJECT_SOURCES
         src/configs/outbounds/tailscale.cpp
         src/configs/outbounds/trojan.cpp
         src/configs/outbounds/tuic.cpp
+        src/configs/outbounds/juicity.cpp
+        src/configs/outbounds/trusttunnel.cpp
+        src/configs/outbounds/naive.cpp
+        src/configs/outbounds/shadowtls.cpp
         src/configs/outbounds/vless.cpp
         src/configs/outbounds/vmess.cpp
         src/configs/outbounds/wireguard.cpp
@@ -368,7 +383,9 @@ set_target_properties(Throne PROPERTIES
         MACOSX_BUNDLE_GUI_IDENTIFIER moe.Throne.macosx
         MACOSX_BUNDLE TRUE
         WIN32_EXECUTABLE TRUE
+        UNITY_BUILD ON
 )
+set_property(SOURCE "3rdparty/SQLiteCpp/src/sqlite3.c" PROPERTY SKIP_UNITY_BUILD_INCLUSION ON)
 
 # Target Source Translations
 

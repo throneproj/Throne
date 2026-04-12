@@ -141,7 +141,16 @@ namespace Configs {
         QJsonObject object;
         if (type.isEmpty() || type == "tcp") return object;
         if (!type.isEmpty()) object["type"] = type;
-        if (!path.isEmpty()) object["path"] = path;
+        if (path.contains("?ed=")) {
+            auto spl = path.split("?ed=");
+            object["path"] = spl[0];
+            object["max_early_data"] = spl[1].toInt();
+            object["early_data_header_name"] = "Sec-WebSocket-Protocol";
+        } else {
+            if (!path.isEmpty()) object["path"] = path;
+            if (max_early_data > 0) object["max_early_data"] = max_early_data;
+            if (!early_data_header_name.isEmpty()) object["early_data_header_name"] = early_data_header_name;
+        }
         if (!method.isEmpty()) object["method"] = method;
         if (!headers.isEmpty()) {
             object["headers"] = qStringListToJsonObject(headers);
@@ -156,8 +165,6 @@ namespace Configs {
         }
         if (!idle_timeout.isEmpty()) object["idle_timeout"] = idle_timeout;
         if (!ping_timeout.isEmpty()) object["ping_timeout"] = ping_timeout;
-        if (max_early_data > 0) object["max_early_data"] = max_early_data;
-        if (!early_data_header_name.isEmpty()) object["early_data_header_name"] = early_data_header_name;
         if (!service_name.isEmpty()) object["service_name"] = service_name;
         return object;
     }

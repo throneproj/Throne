@@ -222,7 +222,7 @@ namespace Configs {
         if (group->id >= 0) return false;
         int newId = NewGroupID();
         group->id = newId;
-        identityMap[newId] = std::weak_ptr<Group>(group);
+        memMap[newId] = group;
         saveToDatabase(group.get(), group->id);
         int maxOrder = -1;
         auto maxOrderQuery = db.query("SELECT MAX(display_order) FROM groups_order");
@@ -238,13 +238,12 @@ namespace Configs {
 
     std::shared_ptr<Group> GroupsRepo::GetGroup(int id) const {
         QMutexLocker locker(&mutex);
-        if (auto it = identityMap.find(id); it != identityMap.end()) {
-            if (auto shared = it->second.lock()) return shared;
-            identityMap.erase(it);
+        if (auto it = memMap.find(id); it != memMap.end()) {
+            return it->second;
         }
         auto group = loadFromDatabase(id);
         if (!group) return nullptr;
-        identityMap[id] = std::weak_ptr<Group>(group);
+        memMap[id] = group;
         return group;
     }
 
@@ -262,7 +261,7 @@ namespace Configs {
 
     void GroupsRepo::DeleteGroup(int id) {
         QMutexLocker locker(&mutex);
-        identityMap.erase(id);
+        memMap.erase(id);
         db.exec("DELETE FROM groups_order WHERE group_id = ?", id);
         db.exec("DELETE FROM groups WHERE id = ?", id);
     }
@@ -325,7 +324,7 @@ namespace Configs {
         
         QMutexLocker locker(&mutex);
         saveToDatabase(group.get(), group->id);
-        identityMap[group->id] = std::weak_ptr<Group>(group);
+        memMap[group->id] = group;
         
         return true;
     }

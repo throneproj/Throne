@@ -2,6 +2,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <map>
 
 #include "include/database/GroupsRepo.h"
 #include "include/ui/mainwindow.h"
@@ -108,8 +109,14 @@ namespace Configs {
             outbound = new Configs::hysteria();
         } else if (type == "tuic") {
             outbound = new Configs::tuic();
+        } else if (type == "juicity") {
+            outbound = new Configs::juicity();
+        } else if (type == "trusttunnel") {
+            outbound = new Configs::trusttunnel();
         } else if (type == "anytls") {
             outbound = new Configs::anyTLS();
+        } else if (type == "shadowtls") {
+            outbound = new Configs::shadowtls();
         } else if (type == "wireguard") {
             outbound = new Configs::wireguard();
         } else if (type == "tailscale") {
@@ -120,6 +127,8 @@ namespace Configs {
             outbound = new Configs::Custom();
         } else if (type == "extracore") {
             outbound = new Configs::extracore();
+        } else if (Configs::HasNaive() && type == "naive") {
+            outbound = new Configs::naive();
         } else {
             outbound = new Configs::outbound();
             outbound->invalid = true;
@@ -283,8 +292,14 @@ namespace Configs {
             outbound = new Configs::hysteria();
         } else if (type == "tuic") {
             outbound = new Configs::tuic();
+        } else if (type == "juicity") {
+            outbound = new Configs::juicity();
+        } else if (type == "trusttunnel") {
+            outbound = new Configs::trusttunnel();
         } else if (type == "anytls") {
             outbound = new Configs::anyTLS();
+        } else if (type == "shadowtls") {
+            outbound = new Configs::shadowtls();
         } else if (type == "wireguard") {
             outbound = new Configs::wireguard();
         } else if (type == "tailscale") {
@@ -295,6 +310,8 @@ namespace Configs {
             outbound = new Configs::Custom();
         } else if (type == "extracore") {
             outbound = new Configs::extracore();
+        } else if (Configs::HasNaive() && type == "naive") {
+            outbound = new Configs::naive();
         } else {
             outbound = new Configs::outbound();
             outbound->invalid = true;
@@ -434,6 +451,40 @@ namespace Configs {
         return profiles;
     }
 
+    QList<std::pair<int, QString> > ProfilesRepo::GetProfileIDNameMappedBatch(QList<int> ids) {
+        QList<std::pair<int, QString> > result;
+        if (ids.isEmpty()) return result;
+
+        std::map<int, QString> idToName;
+
+        for (int off = 0; off < ids.size(); off += Configs::BATCH_LIMIT_READ) {
+            const int end = std::min(off + Configs::BATCH_LIMIT_READ, static_cast<int>(ids.size()));
+            const auto chunk = ids.sliced(off, end - off);
+            if (chunk.isEmpty()) continue;
+
+            QString idList;
+            for (int i = 0; i < chunk.size(); ++i) {
+                if (i > 0) idList += ",";
+                idList += QString::number(chunk[i]);
+            }
+            const std::string sql = "SELECT id, name FROM profiles WHERE id IN (" + idList.toStdString() + ") ORDER BY id";
+            auto query = db.query(sql);
+            if (!query) continue;
+            while (query->executeStep()) {
+                const int id = query->getColumn(0).getInt();
+                idToName[id] = QString::fromStdString(query->getColumn(1).getText());
+            }
+        }
+
+        for (int id : ids) {
+            const auto it = idToName.find(id);
+            if (it != idToName.end()) {
+                result.append({it->first, it->second});
+            }
+        }
+        return result;
+    }
+
     std::shared_ptr<Profile> ProfilesRepo::GetProfileByName(const QString& name) {
         // Query by name using the index
         auto query = db.query("SELECT id FROM profiles WHERE name = ? LIMIT 1", name.toStdString());
@@ -465,13 +516,14 @@ namespace Configs {
         return names;
     }
 
-    bool ProfilesRepo::BatchDeleteProfiles(const QList<int>& ids) {
+    bool ProfilesRepo::BatchDeleteProfiles(QList<int>& ids, bool stopRunningProfile) {
         QSet<int> groupIDs;
+        if (ids.contains(dataManager->settingsRepo->started_id)) {
+            if (stopRunningProfile) GetMainWindow()->profile_stop(false, true, false);
+            else ids.removeAll(dataManager->settingsRepo->started_id);
+        }
         auto profiles = GetProfileBatch(ids);
         for (const auto& ent : profiles) {
-            if (ent->id == dataManager->settingsRepo->started_id) {
-                GetMainWindow()->profile_stop(false, true, false);
-            }
             groupIDs.insert(ent->gid);
         }
         for (auto groupID : groupIDs) {

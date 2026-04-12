@@ -16,6 +16,44 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QTabWidget" name="tabWidget">
+     <property name="styleSheet">
+      <string notr="true">QTabWidget::pane {
+    margin-top: 1px;
+    background: palette(base);
+    border: 1px solid palette(mid);
+    border-radius: 4px;
+}
+
+QTabBar {
+    background: transparent;
+    qproperty-drawBase: 0;
+}
+
+QTabBar::tab {
+    background-color: palette(button);
+    color: palette(button-text);
+
+    border: 1px solid palette(midlight);
+    border-radius: 4px;
+
+    padding: 2px 4px;
+    margin-right: 1px;
+}
+
+QTabBar::tab:selected {
+    border: 1px solid palette(highlight);
+    background-color: palette(window); 
+}
+
+QTabBar::tab:!selected {
+    border: 1px solid palette(button);
+}
+
+QTabBar::tab:hover:!selected {
+    border: 1px solid palette(button);
+    background-color: palette(midlight);
+}</string>
+     </property>
      <property name="currentIndex">
       <number>0</number>
      </property>
@@ -344,28 +382,20 @@
           <string>Simple DNS Settings</string>
          </property>
          <layout class="QGridLayout" name="gridLayout">
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_9">
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_8">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;examples:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://domain/path&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://domain/path&lt;/p&gt;&lt;p&gt;quic://domain:4632&lt;/p&gt;&lt;p&gt;etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>This is especially important and it is recommended to use the default value of &quot;localhost&quot;.
+If the default value does not work, try changing it to &quot;223.5.5.5&quot;.
+For more information, see the document &quot;Configuration/DNS&quot;.</string>
             </property>
             <property name="text">
-             <string>Remote DNS</string>
-            </property>
-            <property name="buddy">
-             <cstring>widget</cstring>
+             <string>Direct DNS</string>
             </property>
            </widget>
           </item>
-          <item row="5" column="2">
+          <item row="6" column="3">
            <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <widget class="QLabel" name="dns_final_out_l">
-              <property name="text">
-               <string>Default DNS server</string>
-              </property>
-             </widget>
-            </item>
             <item>
              <widget class="QComboBox" name="dns_final_out">
               <item>
@@ -380,81 +410,26 @@
               </item>
              </widget>
             </item>
-           </layout>
-          </item>
-          <item row="3" column="2">
-           <widget class="QLineEdit" name="local_override"/>
-          </item>
-          <item row="1" column="2">
-           <layout class="QHBoxLayout" name="horizontalLayout_7">
             <item>
-             <widget class="QComboBox" name="remote_dns">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="editable">
-               <bool>true</bool>
-              </property>
-              <item>
-               <property name="text">
-                <string notr="true">tls://8.8.8.8</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string notr="true">tls://1.1.1.1</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string notr="true">8.8.8.8</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string notr="true">1.1.1.1</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_10">
+             <widget class="QCheckBox" name="enable_fakeip">
               <property name="text">
-               <string>Query Strategy</string>
+               <string>Enable FakeIP</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="remote_dns_strategy"/>
+             <widget class="QCheckBox" name="enable_dns_routing">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, domains destined for direct outbound will also be resolved using direct dns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Enable DNS Routing</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Local DNS can not be used in some configurations, you will have to set an ip here to be used as local dns in such situations&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Local Override</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_8">
-            <property name="toolTip">
-             <string>This is especially important and it is recommended to use the default value of &quot;localhost&quot;.
-If the default value does not work, try changing it to &quot;223.5.5.5&quot;.
-For more information, see the document &quot;Configuration/DNS&quot;.</string>
-            </property>
-            <property name="text">
-             <string>Direct DNS</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="2">
+          <item row="2" column="3">
            <layout class="QHBoxLayout" name="horizontalLayout_8">
             <item>
              <widget class="QComboBox" name="direct_dns">
@@ -506,10 +481,87 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
             </item>
            </layout>
           </item>
-          <item row="5" column="0">
-           <widget class="QCheckBox" name="enable_fakeip">
+          <item row="1" column="3">
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <widget class="QComboBox" name="remote_dns">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="editable">
+               <bool>true</bool>
+              </property>
+              <item>
+               <property name="text">
+                <string notr="true">tls://8.8.8.8</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string notr="true">tls://1.1.1.1</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string notr="true">8.8.8.8</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string notr="true">1.1.1.1</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_10">
+              <property name="text">
+               <string>Query Strategy</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="remote_dns_strategy"/>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_9">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;examples:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://domain/path&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://domain/path&lt;/p&gt;&lt;p&gt;quic://domain:4632&lt;/p&gt;&lt;p&gt;etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="text">
-             <string>Enable FakeIP</string>
+             <string>Remote DNS</string>
+            </property>
+            <property name="buddy">
+             <cstring>widget</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="3">
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QLineEdit" name="local_override"/>
+            </item>
+           </layout>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Local DNS can not be used in some configurations, you will have to set an ip here to be used as local dns in such situations&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Local Override</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLabel" name="dns_final_out_l">
+            <property name="text">
+             <string>Default DNS server</string>
             </property>
            </widget>
           </item>

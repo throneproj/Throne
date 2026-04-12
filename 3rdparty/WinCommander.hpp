@@ -20,8 +20,7 @@
 **
 ****************************************************************************/
 
-#ifndef WINCOMMANDER_H
-#define WINCOMMANDER_H
+#pragma once
 
 #include <QString>
 #include <QStringList>
@@ -37,5 +36,3 @@ public:
                                    const QString &workingDir = QString(),
                                    int nShow = SW_SHOWMINIMIZED, bool aWait = true);
 };
-
-#endif // WINCOMMANDER_H

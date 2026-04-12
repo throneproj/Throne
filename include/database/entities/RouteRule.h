@@ -1,6 +1,7 @@
 #pragma once
 #include <QUrl>
 #include <QJsonObject>
+#include <QSet>
 
 namespace Configs {
     enum inputType {trufalse, select, text};
@@ -74,6 +75,8 @@ namespace Configs {
         QList<QString> process_name;
         QList<QString> process_path;
         QList<QString> process_path_regex;
+        QList<QString> wifi_ssid;
+        QList<QString> wifi_bssid;
         QList<QString> rule_set;
         bool invert = false;
         int outboundID = directID; // -1 is proxy -2 is direct -3 is block -4 is dns_out
@@ -96,8 +99,16 @@ namespace Configs {
         // resolve options
         QString strategy;
 
+        QSet<QString> uiVisibleAttributes;
+        bool uiAttributeTabsSeeded = false;
+        QString uiActiveAttributeTabLabel;
+
         [[nodiscard]] QJsonObject get_rule_json(bool forView = false, const QString& outboundTag = "");
         static QStringList get_attributes();
+        static QStringList tab_attributes();
+        [[nodiscard]] static bool is_attribute_at_default(RouteRule& rule, const QString& attr);
+        void clear_attribute_value(const QString& attr);
+        void ensure_ui_visible_attribute_tabs_seeded();
         static inputType get_input_type(const QString& fieldName);
         static QStringList get_values_for_field(const QString& fieldName);
         static std::shared_ptr<RouteRule> get_processPath_direct_rule(QString processPath);

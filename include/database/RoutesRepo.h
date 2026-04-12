@@ -50,6 +50,8 @@ namespace Configs {
         // Create tables if they don't exist
         void createTables() const;
 
+        [[nodiscard]] bool routeRulesColumnExists(const char* columnName) const;
+
         // Get next available route profile ID
         int NewRouteProfileID() const;
 

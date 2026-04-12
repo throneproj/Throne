@@ -28,10 +28,8 @@
 #endif
 
 void signal_handler(int signum) {
-    if (GetMainWindow()) {
-        GetMainWindow()->prepare_exit();
-        qApp->quit();
-    }
+    GetMainWindow()->prepare_exit();
+    qApp->quit();
 }
 
 QTranslator* trans = nullptr;
@@ -169,7 +167,7 @@ int main(int argc, char* argv[]) {
     {
         Configs::dataManager->settingsRepo->windows_set_admin = false; // so that if permission denied, we will run as user on the next run
         Configs::dataManager->settingsRepo->Save();
-        WinCommander::runProcessElevated(QApplication::applicationFilePath(), {}, "", WinCommander::SW_NORMAL, false);
+        WinCommander::runProcessElevated(QApplication::applicationFilePath(), {}, "", 1, false);
         QApplication::quit();
         return 0;
     }

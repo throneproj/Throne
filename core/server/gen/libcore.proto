@@ -24,6 +24,8 @@ service LibcoreService {
   rpc QueryIPTest(EmptyReq) returns (QueryIPTestResponse);
   //
   rpc GenWgKeyPair(EmptyReq) returns (GenWgKeyPairResponse);
+  //
+  rpc CheckNaive(EmptyReq) returns (CheckNaiveResponse);
 }
 
 message EmptyReq {}
@@ -173,4 +175,8 @@ message GenWgKeyPairResponse {
   optional string private_key = 1 [default = ""];
   optional string public_key = 2 [default = ""];
   optional string error = 3 [default = ""];
+}
+
+message CheckNaiveResponse {
+  optional bool has_naive = 1 [default = false];
 }

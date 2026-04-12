@@ -12,6 +12,10 @@
 #include "include/sys/windows/WinVersion.h"
 #include <Windows.h>
 
+#ifndef NTSTATUS
+	using NTSTATUS = LONG;
+#endif
+
 extern "C" NTSTATUS __stdcall RtlGetVersion(OSVERSIONINFOEXW * lpVersionInformation);
 
 bool WinVersion::GetVersion(VersionInfo& info)
