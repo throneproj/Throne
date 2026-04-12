@@ -416,11 +416,7 @@ namespace Configs {
         auto directDnsObj = buildDnsObj(Configs::dataManager->settingsRepo->direct_dns, ctx);
         directDnsObj["tag"] = "dns-direct";
         directDnsObj["domain_resolver"] = "dns-local";
-        if (Configs::dataManager->settingsRepo->dns_final_out == "direct") {
-            servers.prepend(directDnsObj);
-        } else {
-            servers.append(directDnsObj);
-        }
+        servers.append(directDnsObj);
 
         // Handle localhost
         if (!ctx->forTest) {
@@ -503,10 +499,12 @@ namespace Configs {
         }
 
         // final rule: proxy
+        auto finalStrategy = dataManager->settingsRepo->dns_final_out == "remote" ? dataManager->settingsRepo->remote_dns_strategy : dataManager->settingsRepo->direct_dns_strategy;
+        auto finalDNS = dataManager->settingsRepo->dns_final_out == "remote" ? "dns-remote" : "dns-direct";
         rules += QJsonObject{
-            {"strategy", dataManager->settingsRepo->remote_dns_strategy},
+            {"strategy", finalStrategy},
             {"action", "route"},
-            {"server", "dns-remote"},
+            {"server", finalDNS},
         };
 
         // Local

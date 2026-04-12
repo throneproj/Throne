@@ -23,6 +23,8 @@ private:
 
     std::shared_ptr<Configs::Group> ent;
 
+    QMap<int, QString> proxyMapping;
+
     struct {
         int front_proxy;
     } CACHE;
@@ -34,10 +36,6 @@ private:
 private slots:
 
     void accept() override;
-
-    QStringList load_proxy_items();
-
-    int get_proxy_id(QString);
 
     QString get_proxy_name(int id);
 };
