@@ -241,6 +241,10 @@ private:
 
     QList<int> get_selected_or_group();
 
+    void saveProfileFocusState();
+
+    void restoreProfileFocusState();
+
     void clearUnavailableProfiles(bool confirm = true, QList<int> profileIDs = {});
 
     void dialog_message_impl(const QString &sender, const QString &info);

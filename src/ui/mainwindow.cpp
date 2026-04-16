@@ -2,6 +2,8 @@
 
 #include <QAbstractItemView>
 #include <QMenu>
+#include <ranges>
+
 #include "include/configs/sub/GroupUpdater.hpp"
 #include "include/sys/Process.hpp"
 #include "include/sys/AutoRun.hpp"
@@ -1082,6 +1084,7 @@ void MainWindow::show_group(int gid) {
     }
 
     if (Configs::dataManager->settingsRepo->current_group != gid) {
+        saveProfileFocusState();
         if (auto lastGroup = Configs::dataManager->groupsRepo->CurrentGroup()) {
             lastGroup->scroll_last_profile = ui->profilesTableView->firstVisibleRow();
             Configs::dataManager->groupsRepo->Save(lastGroup);
@@ -1898,7 +1901,9 @@ void MainWindow::refresh_proxy_list_column_size() {
 }
 
 void MainWindow::refresh_proxy_list(const QList<int>& ids, bool mayNeedReset) {
+    if (!Configs::dataManager->settingsRepo->refreshing_group) saveProfileFocusState();
     refresh_proxy_list_impl(ids, mayNeedReset);
+    if (mayNeedReset) restoreProfileFocusState();
 }
 
 void MainWindow::refresh_proxy_list_impl(const QList<int>& ids, bool mayNeedReset) {
@@ -2434,6 +2439,60 @@ QList<int> MainWindow::get_selected_or_group() {
         profileIDs = Configs::dataManager->groupsRepo->CurrentGroup()->Profiles();
     }
     return profileIDs;
+}
+
+void MainWindow::saveProfileFocusState() {
+    auto group = Configs::dataManager->groupsRepo->CurrentGroup();
+    if (group == nullptr) return;
+
+    if (!profilesTableModel) return;
+    QModelIndexList indices = ui->profilesTableView->selectionModel()->selectedRows(0);
+    group->selectedProfilesIdIdxPairs.clear();
+
+    for (const QModelIndex &idx : indices) {
+        group->selectedProfilesIdIdxPairs << std::make_pair(profilesTableModel->profileIdAt(idx.row()), idx.row());
+    }
+}
+
+void MainWindow::restoreProfileFocusState() {
+    auto group = Configs::dataManager->groupsRepo->CurrentGroup();
+    if (group == nullptr || group->selectedProfilesIdIdxPairs.isEmpty()) return;
+
+    QList<int> newIndexes;
+    for (auto &id: group->selectedProfilesIdIdxPairs | std::views::keys) {
+        if (auto newIdx = profilesTableModel->indexOfProfile(id); newIdx != -1) {
+            newIndexes << newIdx;
+        }
+    }
+
+    ui->profilesTableView->setFocus();
+
+    if (!newIndexes.isEmpty()) {
+        // some profiles were selected, some of them remain, select the remaining ones
+        QItemSelection selection;
+
+        for (int row : newIndexes) {
+            QModelIndex left  = profilesTableModel->index(row, 0);
+            QModelIndex right = profilesTableModel->index(row, profilesTableModel->columnCount() - 1);
+            selection.select(left, right);
+        }
+        ui->profilesTableView->selectionModel()->select(selection, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+        ui->profilesTableView->selectionModel()->setCurrentIndex(profilesTableModel->index(newIndexes.first(), 0), QItemSelectionModel::NoUpdate);
+        return;
+    }
+
+    auto desiredIndex = group->selectedProfilesIdIdxPairs.first().second;
+    desiredIndex = std::min(desiredIndex, static_cast<int>(profilesTableModel->profileIds().size() - 1));
+    if (desiredIndex < 0) return;
+
+    if (group->selectedProfilesIdIdxPairs.size() == 1) {
+        QItemSelection selection;
+        QModelIndex left  = profilesTableModel->index(desiredIndex, 0);
+        QModelIndex right = profilesTableModel->index(desiredIndex, profilesTableModel->columnCount() - 1);
+        selection.select(left, right);
+        ui->profilesTableView->selectionModel()->select(selection, QItemSelectionModel::Select);
+    }
+    ui->profilesTableView->selectionModel()->setCurrentIndex(profilesTableModel->index(desiredIndex, 0), QItemSelectionModel::NoUpdate);
 }
 
 void MainWindow::clearUnavailableProfiles(bool confirm, QList<int> profileIDs) {

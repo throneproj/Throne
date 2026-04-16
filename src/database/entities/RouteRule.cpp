@@ -285,7 +285,7 @@ namespace Configs {
             return {"", "4", "6"};
         }
         if (fieldName == "network") {
-            return {"", "tcp", "udp"};
+            return {"", "tcp", "udp", "icmp"};
         }
         if (fieldName == "protocol") {
             auto resp = SingboxOptions::SniffProtocols;

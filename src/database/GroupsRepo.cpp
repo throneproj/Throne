@@ -209,6 +209,7 @@ namespace Configs {
         json["scroll_last_profile"] = query->getColumn(12).getInt();
         json["test_sort_by"] = query->getColumn(13).getInt();
         json["traffic_sort_by"] = query->getColumn(14).getInt();
+        json["test_items_to_show"] = query->getColumn(15).getInt();
         
         return groupFromJson(json);
     }

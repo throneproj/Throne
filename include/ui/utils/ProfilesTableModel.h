@@ -40,6 +40,8 @@ public:
 
     void emplaceProfiles(int row1, int row2);
 
+    int indexOfProfile(int id);
+
     // Row label for vertical header: "✓" for running row, else "row+1  ".
     QString rowLabel(int row) const;
 

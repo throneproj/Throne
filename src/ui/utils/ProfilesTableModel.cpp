@@ -193,6 +193,11 @@ void ProfilesTableModel::emplaceProfiles(int row1, int row2) {
     }
 }
 
+int ProfilesTableModel::indexOfProfile(int id) {
+    if (id2row.contains(id)) return id2row.value(id);
+    return -1;
+}
+
 QString ProfilesTableModel::rowLabel(int row) const {
     if (row < 0 || row >= m_profileIds.size()) return {};
     int id = m_profileIds[row];
