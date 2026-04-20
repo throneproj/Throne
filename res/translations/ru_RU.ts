@@ -2017,6 +2017,14 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Настройки маршрутизации</translation>
     </message>
     <message>
+        <source>Enable AdBlock</source>
+        <translation>Включить AdBlock</translation>
+    </message>
+    <message>
+        <source>Enable Warp</source>
+        <translation>Включить Warp</translation>
+    </message>
+    <message>
         <source>Restart Core</source>
         <translation>Перезапуск ядра</translation>
     </message>
@@ -2609,6 +2617,14 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Add profile from File</source>
         <translation>Добавить профиль из файла</translation>
+    </message>
+    <message>
+        <source>Select Server</source>
+        <translation>Выбрать сервер</translation>
+    </message>
+    <message>
+        <source>Stop: %1</source>
+        <translation>Остановить: %1</translation>
     </message>
 </context>
 <context>
