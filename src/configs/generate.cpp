@@ -387,47 +387,52 @@ namespace Configs {
         QJsonArray rules;
         // remote
         if (!ctx->forTest) {
+            auto remoteDnsObj = buildDnsObj(Configs::dataManager->settingsRepo->remote_dns, ctx);
+            remoteDnsObj["tag"] = "dns-remote";
+            remoteDnsObj["domain_resolver"] = "dns-local";
+            remoteDnsObj["detour"] = "proxy";
+            servers += remoteDnsObj;
+
             if (isTailscale)
             {
                 auto tailscale = ctx->ent->Tailscale();
-                if (tailscale == nullptr)
+                if (tailscale != nullptr)
                 {
-                    ctx->error = "Corrupted state, needed tailscale been but could not cast";
-                    return;
-                }
-                auto tailDns = QJsonObject{
+                    // Add an additional DNS server for Tailscale MagicDNS
+                    servers += QJsonObject{
                         {"type", "tailscale"},
-                        {"tag", "dns-remote"},
+                        {"tag", "dns-tailscale"},
                         {"endpoint", "proxy"},
+                        {"domain_resolver", "dns-local"},
                         {"accept_default_resolvers", tailscale->globalDNS},
                     };
-                servers += tailDns;
+                    
+                    // Route Tailscale internal domains to MagicDNS
+                    rules.prepend(QJsonObject{
+                        {"domain_suffix", QJsonArray{"ts.net", "tailscale.net"}},
+                        {"action", "route"},
+                        {"server", "dns-tailscale"},
+                    });
+                }
 
-                // Add direct rules for tailscale control plane and services to avoid circular dependency
-                rules += QJsonObject{
+                // Add direct bootstrap rules for tailscale control plane and services
+                rules.prepend(QJsonObject{
                     {"domain", QJsonArray{
                         "controlplane.tailscale.com", 
                         "login.tailscale.com",
                         "log.tailscale.io",
-                        "signaler-pa.clients6.google.com"
+                        "signaler-pa.clients6.google.com",
+                        "100.115.246.32"
                     }},
                     {"domain_suffix", QJsonArray{
                         "tailscale.com", 
                         "tailscale.net", 
                         "tailscale.io",
-                        "ts.net",
                         "derp.tailscale.com"
                     }},
                     {"action", "route"},
                     {"server", "dns-direct"},
-                };
-            } else
-            {
-                auto remoteDnsObj = buildDnsObj(Configs::dataManager->settingsRepo->remote_dns, ctx);
-                remoteDnsObj["tag"] = "dns-remote";
-                remoteDnsObj["domain_resolver"] = "dns-local";
-                remoteDnsObj["detour"] = "proxy";
-                servers += remoteDnsObj;
+                });
             }
         }
 
