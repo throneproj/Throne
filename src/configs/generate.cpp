@@ -402,6 +402,14 @@ namespace Configs {
                         {"accept_default_resolvers", tailscale->globalDNS},
                     };
                 servers += tailDns;
+
+                // Add direct rules for tailscale control plane and services to avoid circular dependency
+                rules += QJsonObject{
+                    {"domain", QJsonArray{"controlplane.tailscale.com"}},
+                    {"domain_suffix", QJsonArray{".ts.net", "tailscale.net"}},
+                    {"action", "route"},
+                    {"server", "dns-direct"},
+                };
             } else
             {
                 auto remoteDnsObj = buildDnsObj(Configs::dataManager->settingsRepo->remote_dns, ctx);
@@ -515,7 +523,8 @@ namespace Configs {
 
         auto dnsObj = QJsonObject{
             {"servers", servers},
-            {"rules", rules}
+            {"rules", rules},
+            {"final", "dns-local"}
         };
         if (independentCache) dnsObj["independent_cache"] = true;
         ctx->buildConfigResult->coreConfig["dns"] = dnsObj;
