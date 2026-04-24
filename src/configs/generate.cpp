@@ -405,8 +405,19 @@ namespace Configs {
 
                 // Add direct rules for tailscale control plane and services to avoid circular dependency
                 rules += QJsonObject{
-                    {"domain", QJsonArray{"controlplane.tailscale.com"}},
-                    {"domain_suffix", QJsonArray{".ts.net", "tailscale.net"}},
+                    {"domain", QJsonArray{
+                        "controlplane.tailscale.com", 
+                        "login.tailscale.com",
+                        "log.tailscale.io",
+                        "signaler-pa.clients6.google.com"
+                    }},
+                    {"domain_suffix", QJsonArray{
+                        "tailscale.com", 
+                        "tailscale.net", 
+                        "tailscale.io",
+                        "ts.net",
+                        "derp.tailscale.com"
+                    }},
                     {"action", "route"},
                     {"server", "dns-direct"},
                 };
