@@ -434,6 +434,7 @@ namespace Configs {
         // direct
         auto directDnsObj = buildDnsObj(Configs::dataManager->settingsRepo->direct_dns, ctx);
         directDnsObj["tag"] = "dns-direct";
+        directDnsObj["domain_resolver"] = "dns-local";
         servers.append(directDnsObj);
 
         // Handle localhost
@@ -533,8 +534,7 @@ namespace Configs {
 
         auto dnsObj = QJsonObject{
             {"servers", servers},
-            {"rules", rules},
-            {"final", "dns-local"}
+            {"rules", rules}
         };
         if (independentCache) dnsObj["independent_cache"] = true;
         ctx->buildConfigResult->coreConfig["dns"] = dnsObj;
