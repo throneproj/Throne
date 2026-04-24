@@ -420,15 +420,12 @@ namespace Configs {
                     {"domain", QJsonArray{
                         "controlplane.tailscale.com", 
                         "login.tailscale.com",
-                        "log.tailscale.io",
-                        "signaler-pa.clients6.google.com",
-                        "100.115.246.32"
+                        "log.tailscale.io"
                     }},
                     {"domain_suffix", QJsonArray{
                         "tailscale.com", 
                         "tailscale.net", 
-                        "tailscale.io",
-                        "derp.tailscale.com"
+                        "tailscale.io"
                     }},
                     {"action", "route"},
                     {"server", "dns-direct"},
