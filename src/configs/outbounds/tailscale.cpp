@@ -110,7 +110,6 @@ namespace Configs {
         if (exit_node_allow_lan_access) object["exit_node_allow_lan_access"] = exit_node_allow_lan_access;
         if (!advertise_routes.isEmpty()) object["advertise_routes"] = QListStr2QJsonArray(advertise_routes);
         if (advertise_exit_node) object["advertise_exit_node"] = advertise_exit_node;
-        if (globalDNS) object["globalDNS"] = globalDNS;
         return {object, ""};
     }
 
