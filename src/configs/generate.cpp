@@ -389,7 +389,6 @@ namespace Configs {
         if (!ctx->forTest) {
             auto remoteDnsObj = buildDnsObj(Configs::dataManager->settingsRepo->remote_dns, ctx);
             remoteDnsObj["tag"] = "dns-remote";
-            remoteDnsObj["domain_resolver"] = "dns-local";
             remoteDnsObj["detour"] = "proxy";
             servers += remoteDnsObj;
 
@@ -403,7 +402,6 @@ namespace Configs {
                         {"type", "tailscale"},
                         {"tag", "dns-tailscale"},
                         {"endpoint", "proxy"},
-                        {"domain_resolver", "dns-local"},
                         {"accept_default_resolvers", tailscale->globalDNS},
                     };
                     
@@ -436,7 +434,6 @@ namespace Configs {
         // direct
         auto directDnsObj = buildDnsObj(Configs::dataManager->settingsRepo->direct_dns, ctx);
         directDnsObj["tag"] = "dns-direct";
-        directDnsObj["domain_resolver"] = "dns-local";
         servers.append(directDnsObj);
 
         // Handle localhost
