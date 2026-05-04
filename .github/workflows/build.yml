@@ -282,75 +282,75 @@ jobs:
           sudo apt install nsis
           cp ./script/windows_installer.nsi .
           makensis windows_installer.nsi
-          cp ThroneSetup.exe deployment/Throne-${{ github.event.inputs.tag }}-windows-universal-installer.exe
+          cp ThroneSetup.exe deployment/Throne-windows-universal-installer.exe
           ####
           cd deployment
           mkdir debug
           ####
           bash ../script/pack_debian.sh ${{ github.event.inputs.tag }} amd64
-          mv Throne.deb Throne-${{ github.event.inputs.tag }}-debian-amd64.deb
+          mv Throne.deb Throne-debian-amd64.deb
           rm -rf Throne
           ####
           bash ../script/pack_debian.sh ${{ github.event.inputs.tag }} amd64 systemqt
-          mv Throne.deb Throne-${{ github.event.inputs.tag }}-debian-amd64-system-qt.deb
+          mv Throne.deb Throne-debian-amd64-system-qt.deb
           rm -rf Throne
           ####
           bash ../script/pack_debian.sh ${{ github.event.inputs.tag }} arm64
-          mv Throne.deb Throne-${{ github.event.inputs.tag }}-debian-arm64.deb
+          mv Throne.deb Throne-debian-arm64.deb
           rm -rf Throne
           ####
           bash ../script/pack_debian.sh ${{ github.event.inputs.tag }} arm64 systemqt
-          mv Throne.deb Throne-${{ github.event.inputs.tag }}-debian-arm64-system-qt.deb
+          mv Throne.deb Throne-debian-arm64-system-qt.deb
           rm -rf Throne
           ####
           mv linux-amd64 Throne
           mv Throne/Throne.debug debug/Throne-${{ github.event.inputs.tag }}-linux-amd64.debug
-          zip -9 -r Throne-${{ github.event.inputs.tag }}-linux-amd64.zip Throne
+          zip -9 -r Throne-linux-amd64.zip Throne
           rm -rf Throne
           ####
           mv linux-arm64 Throne
           mv Throne/Throne.debug debug/Throne-${{ github.event.inputs.tag }}-linux-arm64.debug
-          zip -9 -r Throne-${{ github.event.inputs.tag }}-linux-arm64.zip Throne
+          zip -9 -r Throne-linux-arm64.zip Throne
           rm -rf Throne
           ####
           mv windows-amd64 Throne
           mv Throne/Throne.pdb debug/Throne-${{ github.event.inputs.tag }}-windows-amd64.pdb
-          zip -9 -r Throne-${{ github.event.inputs.tag }}-windows64.zip Throne
+          zip -9 -r Throne-windows64.zip Throne
           rm -rf Throne
           ####
           mv windows-arm64 Throne
           mv Throne/Throne.pdb debug/Throne-${{ github.event.inputs.tag }}-windows-arm64.pdb
-          zip -9 -r Throne-${{ github.event.inputs.tag }}-windows-arm64.zip Throne
+          zip -9 -r Throne-windows-arm64.zip Throne
           rm -rf Throne
           ####
           mv windowslegacy-386 Throne
           mv Throne/Throne.pdb debug/Throne-${{ github.event.inputs.tag }}-windowslegacy-386.pdb
-          zip -9 -r Throne-${{ github.event.inputs.tag }}-windows32.zip Throne
+          zip -9 -r Throne-windows32.zip Throne
           rm -rf Throne
           ####
           mv windowslegacy-amd64 Throne
           mv Throne/Throne.pdb debug/Throne-${{ github.event.inputs.tag }}-windowslegacy-amd64.pdb
-          zip -9 -r Throne-${{ github.event.inputs.tag }}-windowslegacy64.zip Throne
+          zip -9 -r Throne-windowslegacy64.zip Throne
           rm -rf Throne
           ####
           mkdir Throne
           mv darwin-arm64/Throne.app Throne/Throne.app
           mv Throne/Throne.app/Contents/MacOS/Throne.dSYM debug/Throne-${{ github.event.inputs.tag }}-macos-arm64.dSYM
-          zip -9 --symlinks -r Throne-${{ github.event.inputs.tag }}-macos-arm64.zip Throne
+          zip -9 --symlinks -r Throne-macos-arm64.zip Throne
           rm -rf darwin-arm64
           rm -rf Throne
           ####
           mkdir Throne
           mv darwin-amd64/Throne.app Throne/Throne.app
           mv Throne/Throne.app/Contents/MacOS/Throne.dSYM debug/Throne-${{ github.event.inputs.tag }}-macos-amd64.dSYM
-          zip -9 --symlinks -r Throne-${{ github.event.inputs.tag }}-macos-amd64.zip Throne
+          zip -9 --symlinks -r Throne-macos-amd64.zip Throne
           rm -rf darwin-amd64
           rm -rf Throne
           ####
           mkdir Throne
           mv darwinlegacy-amd64/Throne.app Throne/Throne.app
           mv Throne/Throne.app/Contents/MacOS/Throne.dSYM debug/Throne-${{ github.event.inputs.tag }}-macoslegacy-amd64.dSYM
-          zip -9 --symlinks -r Throne-${{ github.event.inputs.tag }}-macoslegacy-amd64.zip Throne
+          zip -9 --symlinks -r Throne-macoslegacy-amd64.zip Throne
           rm -rf darwinlegacy-amd64
           rm -rf Throne
           ####
