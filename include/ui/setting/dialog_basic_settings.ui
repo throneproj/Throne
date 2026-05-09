@@ -74,7 +74,7 @@ QTabBar::tab:hover:!selected {
       <enum>QTabWidget::TabShape::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>5</number>
      </property>
      <widget class="QWidget" name="tab_1">
       <attribute name="title">
@@ -1133,6 +1133,112 @@ QTabBar::tab:hover:!selected {
           </item>
          </layout>
         </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_backup">
+      <attribute name="title">
+       <string>Backup &amp; Restore</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_backup">
+       <item>
+        <widget class="QGroupBox" name="groupBox_backup_create">
+         <property name="title">
+          <string>Create Backup</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_backup_create">
+          <item>
+           <widget class="QLabel" name="label_backup_desc">
+            <property name="text">
+             <string>Create a portable backup file containing all profiles, groups, routes, settings, and custom icons.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_backup_btn">
+            <item>
+             <widget class="QPushButton" name="backup_create">
+              <property name="text">
+               <string>Create Backup...</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_backup">
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_backup_restore">
+         <property name="title">
+          <string>Restore Backup</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_backup_restore">
+          <item>
+           <widget class="QLabel" name="label_restore_desc">
+            <property name="text">
+             <string>Restore from a backup file. All current profiles, groups, routes, and settings will be replaced. The application must be restarted after restore.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_restore_btn">
+            <item>
+             <widget class="QPushButton" name="backup_restore">
+              <property name="text">
+               <string>Restore from Backup...</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_restore">
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_backup">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>

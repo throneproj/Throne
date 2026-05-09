@@ -1,4 +1,5 @@
 #include "include/database/Database.h"
+#include <3rdparty/SQLiteCpp/include/Backup.h>
 
 namespace Configs {
     void Database::maybeCheckpoint(int count) {
@@ -135,5 +136,17 @@ namespace Configs {
         } catch (std::exception& e) {
             std::cerr << "DB Error: " << e.what() << std::endl;
         }
+    }
+
+    void Database::backupTo(const std::string& destPath) {
+        SQLite::Database destDb(destPath, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+        SQLite::Backup backup(destDb, db);
+        backup.executeStep(-1);
+    }
+
+    void Database::restoreFrom(const std::string& srcPath) {
+        SQLite::Database srcDb(srcPath, SQLite::OPEN_READONLY);
+        SQLite::Backup restore(db, srcDb);
+        restore.executeStep(-1);
     }
 }

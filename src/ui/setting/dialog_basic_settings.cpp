@@ -18,6 +18,13 @@
 #include <QTextBlock>
 #include <QTextCursor>
 #include <qfontdatabase.h>
+#include <QDateTime>
+#include <QDataStream>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QSysInfo>
+#include <QDir>
+#include <QStandardPaths>
 
 
 
@@ -380,6 +387,191 @@ void DialogBasicSettings::accept() {
     if (needChoosePort) str << "NeedChoosePort";
     MW_dialog_message(Dialog_DialogBasicSettings, str.join(","));
     QDialog::accept();
+}
+
+// Backup archive format:
+//   [magic: "NKRB" 4 bytes]
+//   [format_version: quint32]  -- identifies archive structure, increment on breaking layout changes
+//   [metadata: QString]        -- compact JSON: backup_version, created_at, platform
+//   [files: QMap<QString,QByteArray>]  -- "database" + optional "icons/<name>" entries
+static constexpr quint32 BACKUP_FORMAT_VERSION = 1;
+// backup_version (inside JSON metadata) is the semantic content version:
+//   v1: database + icons
+static constexpr int BACKUP_CONTENT_VERSION = 1;
+
+void DialogBasicSettings::on_backup_create_clicked() {
+    Configs::dataManager->settingsRepo->Save();
+
+    QString filePath = QFileDialog::getSaveFileName(
+        this,
+        tr("Create Backup"),
+        QDir::homePath() + "/Throne-backup.thrbackup",
+        tr("Throne Backup (*.thrbackup)")
+    );
+    if (filePath.isEmpty()) return;
+
+    QString tempDbPath = QDir::temp().filePath("Thr_backup_tmp.db");
+    QFile::remove(tempDbPath);
+
+    try {
+        Configs::dataManager->getDatabase().backupTo(tempDbPath.toStdString());
+    } catch (std::exception& e) {
+        QFile::remove(tempDbPath);
+        QMessageBox::critical(this, tr("Backup Failed"),
+            tr("Failed to create database snapshot: %1").arg(e.what()));
+        return;
+    }
+
+    QFile tempDbFile(tempDbPath);
+    if (!tempDbFile.open(QIODevice::ReadOnly)) {
+        QFile::remove(tempDbPath);
+        QMessageBox::critical(this, tr("Backup Failed"), tr("Failed to read database snapshot."));
+        return;
+    }
+    QByteArray dbBytes = tempDbFile.readAll();
+    tempDbFile.close();
+    QFile::remove(tempDbPath);
+
+    QMap<QString, QByteArray> files;
+    files["database"] = dbBytes;
+
+    QDir iconsDir("icons");
+    if (iconsDir.exists()) {
+        for (const QFileInfo& entry : iconsDir.entryInfoList(QDir::Files)) {
+            QFile iconFile(entry.absoluteFilePath());
+            if (iconFile.open(QIODevice::ReadOnly)) {
+                files["icons/" + entry.fileName()] = iconFile.readAll();
+            }
+        }
+    }
+
+    QFile outFile(filePath);
+    if (!outFile.open(QIODevice::WriteOnly)) {
+        QMessageBox::critical(this, tr("Backup Failed"),
+            tr("Cannot write to: %1").arg(filePath));
+        return;
+    }
+
+    QDataStream stream(&outFile);
+    stream.setByteOrder(QDataStream::LittleEndian);
+    stream.setVersion(QDataStream::Qt_6_0);
+
+    stream.writeRawData("THRN", 4);
+    stream << BACKUP_FORMAT_VERSION;
+
+    QJsonObject meta;
+    meta["backup_version"] = BACKUP_CONTENT_VERSION;
+    meta["created_at"] = QDateTime::currentDateTime().toString(Qt::TextDate);
+    meta["platform"] = QSysInfo::kernelType();
+    stream << QString::fromUtf8(QJsonDocument(meta).toJson(QJsonDocument::Compact));
+
+    stream << files;
+    outFile.close();
+
+    QMessageBox::information(this, tr("Backup Created"),
+        tr("Backup created successfully:\n%1").arg(filePath));
+}
+
+void DialogBasicSettings::on_backup_restore_clicked() {
+    QString filePath = QFileDialog::getOpenFileName(
+        this,
+        tr("Restore Backup"),
+        QDir::homePath(),
+        tr("Throne Backup (*.thrbackup)")
+    );
+    if (filePath.isEmpty()) return;
+
+    QFile inFile(filePath);
+    if (!inFile.open(QIODevice::ReadOnly)) {
+        QMessageBox::critical(this, tr("Restore Failed"),
+            tr("Cannot open backup file: %1").arg(filePath));
+        return;
+    }
+
+    QDataStream stream(&inFile);
+    stream.setByteOrder(QDataStream::LittleEndian);
+    stream.setVersion(QDataStream::Qt_6_0);
+
+    char magic[4];
+    if (stream.readRawData(magic, 4) != 4 || strncmp(magic, "THRN", 4) != 0) {
+        QMessageBox::critical(this, tr("Restore Failed"),
+            tr("Not a valid Throne backup file."));
+        return;
+    }
+
+    quint32 formatVersion;
+    stream >> formatVersion;
+    if (formatVersion != BACKUP_FORMAT_VERSION) {
+        QMessageBox::critical(this, tr("Restore Failed"),
+            tr("Unsupported backup format version: %1.\nThis backup may have been created with a newer version of the application.")
+                .arg(formatVersion));
+        return;
+    }
+
+    QString metaJson;
+    stream >> metaJson;
+    QJsonObject meta = QJsonDocument::fromJson(metaJson.toUtf8()).object();
+    QString createdAt = meta["created_at"].toString();
+
+    QMap<QString, QByteArray> files;
+    stream >> files;
+    inFile.close();
+
+    if (!files.contains("database")) {
+        QMessageBox::critical(this, tr("Restore Failed"),
+            tr("Backup file is missing the database."));
+        return;
+    }
+
+    auto result = QMessageBox::warning(
+        this,
+        tr("Confirm Restore"),
+        tr("Restore backup created on %1?\n\n"
+           "This will replace all current profiles, groups, routes, and settings.\n\n"
+           "The settings dialog will close and the application must be restarted to complete the restore.")
+            .arg(createdAt.isEmpty() ? tr("unknown date") : createdAt),
+        QMessageBox::Ok | QMessageBox::Cancel,
+        QMessageBox::Cancel
+    );
+    if (result != QMessageBox::Ok) return;
+
+    QString tempDbPath = QDir::temp().filePath("Thr_restore_tmp.db");
+    QFile tempDbFile(tempDbPath);
+    if (!tempDbFile.open(QIODevice::WriteOnly)) {
+        QMessageBox::critical(this, tr("Restore Failed"),
+            tr("Failed to create temporary file for restore."));
+        return;
+    }
+    tempDbFile.write(files["database"]);
+    tempDbFile.close();
+
+    try {
+        Configs::dataManager->getDatabase().restoreFrom(tempDbPath.toStdString());
+    } catch (std::exception& e) {
+        QFile::remove(tempDbPath);
+        QMessageBox::critical(this, tr("Restore Failed"),
+            tr("Failed to restore database: %1").arg(e.what()));
+        return;
+    }
+    QFile::remove(tempDbPath);
+
+    QDir iconsDir("icons");
+    iconsDir.mkpath(".");
+    for (auto it = files.constBegin(); it != files.constEnd(); ++it) {
+        if (it.key().startsWith("icons/")) {
+            QString iconName = it.key().mid(6);
+            if (iconName.isEmpty()) continue;
+            QFile iconFile(iconsDir.filePath(iconName));
+            if (iconFile.open(QIODevice::WriteOnly)) {
+                iconFile.write(it.value());
+            }
+        }
+    }
+
+    QMessageBox::information(this, tr("Restore Complete"),
+        tr("Backup restored successfully. Throne will now restart for the changes to take effect."));
+    MW_dialog_message(Dialog_DialogBasicSettings, "RestartProgram");
+    QDialog::reject();
 }
 
 void DialogBasicSettings::on_core_settings_clicked() {
