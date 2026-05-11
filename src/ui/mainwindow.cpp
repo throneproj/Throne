@@ -1388,6 +1388,15 @@ void MainWindow::prepare_exit()
     Configs::dataManager->settingsRepo->prepare_exit = true;
     //
     set_spmode_system_proxy(false, false);
+    // Issue #1334: when no profile is running, set_spmode_system_proxy() skips its
+    // ClearSystemProxy() call (the `if (running)` branch), and the subsequent
+    // profile_stop() also no-ops (running == nullptr). Force-clear once here to
+    // cover that path. When a profile IS running, the normal flow already clears
+    // proxy twice (set_spmode_system_proxy + profile_stop_stage2), so skip the
+    // redundant call to avoid extra QProcess::execute invocations on Linux.
+    if (running == nullptr) {
+        set_system_proxy(true);
+    }
     if (Configs::dataManager->settingsRepo->system_dns_set) set_system_dns(false, false);
     RegisterHiddenMenuShortcuts(true);
     RegisterHotkey(true);
