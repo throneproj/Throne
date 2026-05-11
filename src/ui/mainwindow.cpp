@@ -2411,26 +2411,48 @@ void MainWindow::on_menu_remove_invalid_triggered() {
 
      auto currentGroup = Configs::dataManager->groupsRepo->CurrentGroup();
      if (currentGroup == nullptr) return;
+     const auto profileIDs = currentGroup->Profiles();
+     const int profileSize = profileIDs.size();
+     // Guard against empty group: with profileSize == 0 the worker mutex is never
+     // unlocked (no lambda is queued) and the worker thread would deadlock forever.
+     // See issue #1313.
+     if (profileSize == 0) return;
      std::atomic counter(0);
-     QMutex mu;
-     QMutex access;
-     int profileSize = currentGroup->Profiles().size();
-     mu.lock();
-     for (const auto& profileID : currentGroup->Profiles()) {
+     QMutex joinMu;   // released by the last increment of `counter` (worker or
+                      // orphan-branch on main thread); main thread blocks on
+                      // re-lock below until all workers report in.
+     QMutex outDelMu; // serializes appends to `out_del` from worker threads.
+     joinMu.lock();
+     for (const auto& profileID : profileIDs) {
          auto profile = Configs::dataManager->profilesRepo->GetProfile(profileID);
-         parallelCoreCallPool->start([&out_del, profile, &counter, &mu, profileSize, &access]
+         if (profile == nullptr) {
+             // Profile ID present in group but profile not in DB (orphan / deleted).
+             // Still count it so the join-mutex can be unlocked.
+             if (++counter == profileSize) joinMu.unlock();
+             continue;
+         }
+         parallelCoreCallPool->start([&out_del, profile, &counter, &joinMu, profileSize, &outDelMu]
          {
-             if (!IsValid(profile))
-             {
-                 access.lock();
-                 out_del += profile;
-                 access.unlock();
+             // Defensive: if IsValid throws (gRPC failure, OOM, anything else in
+             // Build()/CheckConfig path), the counter increment below MUST still
+             // run, otherwise joinMu never unlocks and the main thread deadlocks
+             // on the join re-lock. catch(...) is intentionally broader than the
+             // `catch (const std::exception&)` pattern used elsewhere in this file:
+             // it must catch every throwable to guarantee progress on the counter.
+             try {
+                 if (!IsValid(profile))
+                 {
+                     QMutexLocker locker(&outDelMu);
+                     out_del += profile;
+                 }
+             } catch (...) {
+                 // Swallow: final outcome of this profile is "not added to out_del".
              }
-             if (++counter == profileSize) mu.unlock();
+             if (++counter == profileSize) joinMu.unlock();
          });
      }
-     mu.lock();
-     mu.unlock();
+     joinMu.lock();
+     joinMu.unlock();
 
      int remove_display_count = 0;
      QString remove_display;
