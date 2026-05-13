@@ -4,6 +4,88 @@
 #include "include/configs/common/utils.h"
 
 namespace Configs {
+    namespace {
+        QString qs(const std::string& value) {
+            return QString::fromStdString(value);
+        }
+
+        bool hasText(const std::string& value) {
+            return !value.empty();
+        }
+
+        void addXmuxField(QJsonObject& xmux, const QString& key, const std::string& value) {
+            if (hasText(value)) xmux[key] = qs(value);
+        }
+
+        void addXPaddingFields(QJsonObject& extra, bool obfsMode, const std::string& key,
+                               const std::string& header, const std::string& placement,
+                               const std::string& method) {
+            if (obfsMode) extra["xPaddingObfsMode"] = true;
+            if (hasText(key)) extra["xPaddingKey"] = qs(key);
+            if (hasText(header)) extra["xPaddingHeader"] = qs(header);
+            if (hasText(placement)) extra["xPaddingPlacement"] = qs(placement);
+            if (hasText(method)) extra["xPaddingMethod"] = qs(method);
+        }
+
+        QJsonObject buildXmuxObject(const clash::xhttpReuseSettings& reuse) {
+            QJsonObject xmux;
+            addXmuxField(xmux, "maxConcurrency", reuse.max_concurrency);
+            addXmuxField(xmux, "maxConnections", reuse.max_connections);
+            addXmuxField(xmux, "cMaxReuseTimes", reuse.c_max_reuse_times);
+            addXmuxField(xmux, "hMaxRequestTimes", reuse.h_max_request_times);
+            addXmuxField(xmux, "hMaxReusableSecs", reuse.h_max_reusable_secs);
+            if (hasText(reuse.h_keep_alive_period)) {
+                xmux["hKeepAlivePeriod"] = qs(reuse.h_keep_alive_period).toLongLong();
+            }
+            return xmux;
+        }
+
+        QJsonObject buildDownloadSettingsObject(const clash::xhttpDownloadSettings& settings) {
+            QJsonObject object;
+            if (hasText(settings.server)) object["address"] = qs(settings.server);
+            object["port"] = int(settings.port);
+            object["network"] = "xhttp";
+
+            if (!settings.reality_opts.public_key.empty()) {
+                object["security"] = "reality";
+                QJsonObject reality;
+                reality["show"] = false;
+                if (hasText(settings.servername)) reality["serverName"] = qs(settings.servername);
+                if (hasText(settings.client_fingerprint)) reality["fingerprint"] = qs(settings.client_fingerprint);
+                reality["publicKey"] = qs(settings.reality_opts.public_key);
+                if (hasText(settings.reality_opts.short_id)) reality["shortId"] = qs(settings.reality_opts.short_id);
+                object["realitySettings"] = reality;
+            } else if (settings.tls) {
+                object["security"] = "tls";
+                QJsonObject tls;
+                if (hasText(settings.servername)) tls["serverName"] = qs(settings.servername);
+                tls["allowInsecure"] = false;
+                if (!settings.alpn.empty()) {
+                    QJsonArray alpn;
+                    for (const auto& item : settings.alpn) alpn.append(qs(item));
+                    tls["alpn"] = alpn;
+                }
+                if (hasText(settings.client_fingerprint)) tls["fingerprint"] = qs(settings.client_fingerprint);
+                object["tlsSettings"] = tls;
+            }
+
+            QJsonObject xhttp;
+            if (hasText(settings.host)) xhttp["host"] = qs(settings.host);
+            if (hasText(settings.path)) xhttp["path"] = qs(settings.path);
+            xhttp["mode"] = hasText(settings.mode) ? qs(settings.mode) : "auto";
+
+            QJsonObject extra;
+            addXPaddingFields(extra, settings.x_padding_obfs_mode, settings.x_padding_key,
+                              settings.x_padding_header, settings.x_padding_placement,
+                              settings.x_padding_method);
+            if (auto xmux = buildXmuxObject(settings.reuse_settings); !xmux.isEmpty()) extra["xmux"] = xmux;
+            if (!extra.isEmpty()) xhttp["extra"] = extra;
+
+            object["xhttpSettings"] = xhttp;
+            return object;
+        }
+    }
+
     bool xrayTLS::ParseFromLink(const QString &link) {
         auto url = QUrl(link);
         if (!url.isValid()) return false;
@@ -147,6 +229,19 @@ namespace Configs {
         if (obj.contains("xPaddingBytes")) {
             xPaddingBytes = obj["xPaddingBytes"].toVariant().toString();
         }
+        if (obj.contains("xPaddingObfsMode")) xPaddingObfsMode = obj["xPaddingObfsMode"].toBool();
+        if (obj.contains("xPaddingKey")) {
+            xPaddingKey = obj["xPaddingKey"].toString();
+        }
+        if (obj.contains("xPaddingHeader")) {
+            xPaddingHeader = obj["xPaddingHeader"].toString();
+        }
+        if (obj.contains("xPaddingPlacement")) {
+            xPaddingPlacement = obj["xPaddingPlacement"].toString();
+        }
+        if (obj.contains("xPaddingMethod")) {
+            xPaddingMethod = obj["xPaddingMethod"].toString();
+        }
         if (obj.contains("noGRPCHeader")) noGRPCHeader = obj["noGRPCHeader"].toBool();
         if (obj.contains("scMaxEachPostBytes")) {
             scMaxEachPostBytes = obj["scMaxEachPostBytes"].toVariant().toString();
@@ -179,6 +274,7 @@ namespace Configs {
             }
             if (xmuxObj.contains("hKeepAlivePeriod")) {
                 hKeepAlivePeriod = xmuxObj["hKeepAlivePeriod"].toVariant().toLongLong();
+                hKeepAlivePeriodSet = true;
             }
         }
         return true;
@@ -215,7 +311,10 @@ namespace Configs {
 
         if (query.hasQueryItem("max_request_times")) hMaxRequestTimes = query.queryItemValue("max_request_times");
         if (query.hasQueryItem("max_reusable_secs")) hMaxReusableSecs = query.queryItemValue("max_reusable_secs");
-        if (query.hasQueryItem("keep_alive_period")) hKeepAlivePeriod = query.queryItemValue("keep_alive_period").toLongLong();
+        if (query.hasQueryItem("keep_alive_period")) {
+            hKeepAlivePeriod = query.queryItemValue("keep_alive_period").toLongLong();
+            hKeepAlivePeriodSet = true;
+        }
         return true;
     }
 
@@ -224,9 +323,40 @@ namespace Configs {
         if (object.contains("host")) host = object["host"].toString();
         if (object.contains("path")) path = object["path"].toString();
         if (object.contains("mode")) mode = object["mode"].toString();
+        ParseExtraJson(QJsonObject2QString(object, true));
         if (auto exObj = object["extra"].toObject(); !exObj.isEmpty()) {
             ParseExtraJson(QJsonObject2QString(exObj, true));
         }
+        return true;
+    }
+
+    bool xrayXHTTP::ParseFromClash(const clash::Proxies& object) {
+        const auto& opts = object.xhttp_opts;
+        host = qs(opts.host);
+        path = qs(opts.path);
+        mode = hasText(opts.mode) ? qs(opts.mode) : "auto";
+
+        xPaddingObfsMode = opts.x_padding_obfs_mode;
+        xPaddingKey = qs(opts.x_padding_key);
+        xPaddingHeader = qs(opts.x_padding_header);
+        xPaddingPlacement = qs(opts.x_padding_placement);
+        xPaddingMethod = qs(opts.x_padding_method);
+        scMinPostsIntervalMs = qs(opts.sc_min_posts_interval_ms);
+
+        maxConcurrency = qs(opts.reuse_settings.max_concurrency);
+        maxConnections = qs(opts.reuse_settings.max_connections);
+        cMaxReuseTimes = qs(opts.reuse_settings.c_max_reuse_times);
+        hMaxRequestTimes = qs(opts.reuse_settings.h_max_request_times);
+        hMaxReusableSecs = qs(opts.reuse_settings.h_max_reusable_secs);
+        if (hasText(opts.reuse_settings.h_keep_alive_period)) {
+            hKeepAlivePeriod = qs(opts.reuse_settings.h_keep_alive_period).toLongLong();
+            hKeepAlivePeriodSet = true;
+        }
+
+        if (opts.has_download_settings) {
+            downloadSettings = QJsonObject2QString(buildDownloadSettingsObject(opts.download_settings), true);
+        }
+
         return true;
     }
 
@@ -255,6 +385,11 @@ namespace Configs {
         QJsonObject extraObj;
         if (!headers.isEmpty()) extraObj["headers"] = qStringListToJsonObject(headers);
         if (!xPaddingBytes.isEmpty()) extraObj["xPaddingBytes"] = xPaddingBytes;
+        if (xPaddingObfsMode) extraObj["xPaddingObfsMode"] = true;
+        if (!xPaddingKey.isEmpty()) extraObj["xPaddingKey"] = xPaddingKey;
+        if (!xPaddingHeader.isEmpty()) extraObj["xPaddingHeader"] = xPaddingHeader;
+        if (!xPaddingPlacement.isEmpty()) extraObj["xPaddingPlacement"] = xPaddingPlacement;
+        if (!xPaddingMethod.isEmpty()) extraObj["xPaddingMethod"] = xPaddingMethod;
         if (noGRPCHeader) extraObj["noGRPCHeader"] = true;
         if (!scMaxEachPostBytes.isEmpty()) extraObj["scMaxEachPostBytes"] = scMaxEachPostBytes;
         if (!scMinPostsIntervalMs.isEmpty()) extraObj["scMinPostsIntervalMs"] = scMinPostsIntervalMs;
@@ -269,7 +404,7 @@ namespace Configs {
         if (!cMaxReuseTimes.isEmpty()) xmuxObj["cMaxReuseTimes"] = cMaxReuseTimes;
         if (!hMaxRequestTimes.isEmpty()) xmuxObj["hMaxRequestTimes"] = hMaxRequestTimes;
         if (!hMaxReusableSecs.isEmpty()) xmuxObj["hMaxReusableSecs"] = hMaxReusableSecs;
-        if (hKeepAlivePeriod > 0) xmuxObj["hKeepAlivePeriod"] = hKeepAlivePeriod;
+        if (hKeepAlivePeriodSet) xmuxObj["hKeepAlivePeriod"] = hKeepAlivePeriod;
         if (!xmuxObj.isEmpty()) extraObj["xmux"] = xmuxObj;
         if (!extraObj.isEmpty()) obj["extra"] = extraObj;
         return obj;
@@ -520,7 +655,7 @@ namespace Configs {
 
     bool xrayStreamSetting::ParseFromClash(const clash::Proxies& object) {
         if (!object.network.empty()) network = QString::fromStdString(object.network);
-        if (network != "raw" && network != "ws" && network != "grpc") return false;
+        if (network != "raw" && network != "ws" && network != "grpc" && network != "xhttp") return false;
         if (object.tls) {
             if (object.reality_opts.public_key.empty()) {
                 security = "tls";
@@ -530,6 +665,7 @@ namespace Configs {
                 reality->ParseFromClash(object);
             }
         }
+        if (network == "xhttp") xhttp->ParseFromClash(object);
         if (network == "ws") {
             if (object.ws_opts.v2ray_http_upgrade) {
                 network = "httpupgrade";

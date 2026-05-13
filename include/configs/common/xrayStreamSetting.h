@@ -44,6 +44,11 @@ namespace Configs {
         // extra
         QStringList headers;
         QString xPaddingBytes;
+        bool xPaddingObfsMode = false;
+        QString xPaddingKey;
+        QString xPaddingHeader;
+        QString xPaddingPlacement;
+        QString xPaddingMethod;
         bool noGRPCHeader = false;
         QString scMaxEachPostBytes; // packet-up only
         QString scMinPostsIntervalMs; // packet-up only
@@ -54,12 +59,14 @@ namespace Configs {
         QString hMaxRequestTimes;
         QString hMaxReusableSecs;
         long long hKeepAlivePeriod = 0;
+        bool hKeepAlivePeriodSet = false;
         // extra/downloadSettings
         QString downloadSettings;
 
         bool ParseExtraJson(QString str);
         bool ParseFromLink(const QString& link) override;
         bool ParseFromJson(const QJsonObject& object) override;
+        bool ParseFromClash(const clash::Proxies& object) override;
         QString ExportToLink() override;
         QJsonObject ExportToJson() override;
         BuildResult Build() override;

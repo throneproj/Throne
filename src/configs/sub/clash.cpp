@@ -80,6 +80,57 @@ void from_node(const fkyaml::node& node, grpcOpts& opts) {
     load_opt(node, "grpc-service-name", opts.grpc_service_name);
 }
 
+void from_node(const fkyaml::node& node, xhttpReuseSettings& opts) {
+    load_opt(node, "max-concurrency", opts.max_concurrency);
+    load_opt(node, "max-connections", opts.max_connections);
+    load_opt(node, "c-max-reuse-times", opts.c_max_reuse_times);
+    load_opt(node, "h-max-request-times", opts.h_max_request_times);
+    load_opt(node, "h-max-reusable-secs", opts.h_max_reusable_secs);
+    load_opt(node, "h-keep-alive-period", opts.h_keep_alive_period);
+}
+
+void from_node(const fkyaml::node& node, xhttpDownloadSettings& opts) {
+    load_opt(node, "host", opts.host);
+    load_opt(node, "path", opts.path);
+    load_opt(node, "mode", opts.mode);
+    load_opt(node, "server", opts.server);
+    load_opt(node, "port", opts.port);
+    load_opt(node, "tls", opts.tls);
+    if (node.is_mapping() && node.contains("alpn")) {
+        if (node["alpn"].is_string()) {
+            opts.alpn.push_back(node["alpn"].get_value<std::string>());
+        } else if (node["alpn"].is_sequence()) {
+            opts.alpn = node["alpn"].get_value<std::vector<std::string>>();
+        }
+    }
+    load_opt(node, "servername", opts.servername);
+    load_opt(node, "client-fingerprint", opts.client_fingerprint);
+    load_opt(node, "reality-opts", opts.reality_opts);
+    load_opt(node, "x-padding-obfs-mode", opts.x_padding_obfs_mode);
+    load_opt(node, "x-padding-key", opts.x_padding_key);
+    load_opt(node, "x-padding-header", opts.x_padding_header);
+    load_opt(node, "x-padding-placement", opts.x_padding_placement);
+    load_opt(node, "x-padding-method", opts.x_padding_method);
+    load_opt(node, "reuse-settings", opts.reuse_settings);
+}
+
+void from_node(const fkyaml::node& node, xhttpOpts& opts) {
+    load_opt(node, "host", opts.host);
+    load_opt(node, "path", opts.path);
+    load_opt(node, "mode", opts.mode);
+    load_opt(node, "x-padding-obfs-mode", opts.x_padding_obfs_mode);
+    load_opt(node, "x-padding-key", opts.x_padding_key);
+    load_opt(node, "x-padding-header", opts.x_padding_header);
+    load_opt(node, "x-padding-placement", opts.x_padding_placement);
+    load_opt(node, "x-padding-method", opts.x_padding_method);
+    load_opt(node, "sc-min-posts-interval-ms", opts.sc_min_posts_interval_ms);
+    load_opt(node, "reuse-settings", opts.reuse_settings);
+    if (node.is_mapping() && node.contains("download-settings")) {
+        opts.has_download_settings = true;
+        opts.download_settings = node["download-settings"].get_value<xhttpDownloadSettings>();
+    }
+}
+
 void from_node(const fkyaml::node& node, httpOpts& opts) {
     if (node.is_mapping() && node.contains("headers")) {
         opts.headers = node["headers"].get_value<std::map<std::string, std::vector<std::string>>>();
@@ -154,6 +205,7 @@ void from_node(const fkyaml::node& node, Proxies& p) {
     load_opt(node, "network", p.network);
     load_opt(node, "ws-opts", p.ws_opts);
     load_opt(node, "ws-headers", p.ws_headers);
+    load_opt(node, "xhttp-opts", p.xhttp_opts);
     load_opt(node, "h2-opts", p.h2_opts);
     load_opt(node, "http-opts", p.http_opts);
     load_opt(node, "grpc-opts", p.grpc_opts);

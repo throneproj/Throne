@@ -59,6 +59,49 @@ struct realityOpts {
     std::string short_id;
 };
 
+struct xhttpReuseSettings {
+    std::string max_concurrency;
+    std::string max_connections;
+    std::string c_max_reuse_times;
+    std::string h_max_request_times;
+    std::string h_max_reusable_secs;
+    std::string h_keep_alive_period;
+};
+
+struct xhttpDownloadSettings {
+    std::string host;
+    std::string path;
+    std::string mode;
+    std::string server;
+    MyInt port;
+    MyBool tls;
+    std::vector<std::string> alpn;
+    std::string servername;
+    std::string client_fingerprint;
+    realityOpts reality_opts;
+    MyBool x_padding_obfs_mode;
+    std::string x_padding_key;
+    std::string x_padding_header;
+    std::string x_padding_placement;
+    std::string x_padding_method;
+    xhttpReuseSettings reuse_settings;
+};
+
+struct xhttpOpts {
+    std::string host;
+    std::string path;
+    std::string mode;
+    MyBool x_padding_obfs_mode;
+    std::string x_padding_key;
+    std::string x_padding_header;
+    std::string x_padding_placement;
+    std::string x_padding_method;
+    std::string sc_min_posts_interval_ms;
+    xhttpReuseSettings reuse_settings;
+    bool has_download_settings = false;
+    xhttpDownloadSettings download_settings;
+};
+
 struct obfs {
     std::string mode;
     std::string host;
@@ -98,6 +141,7 @@ struct Proxies {
     std::string network;
     wsOpts ws_opts;
     std::map<std::string, std::string> ws_headers;
+    xhttpOpts xhttp_opts;
     h2Opts h2_opts;
     httpOpts http_opts;
     grpcOpts grpc_opts;
@@ -165,6 +209,9 @@ void from_node(const fkyaml::node& node, MyInt& i);
 void from_node(const fkyaml::node& node, WgReserved& w);
 void from_node(const fkyaml::node& node, smuxOpts& opts);
 void from_node(const fkyaml::node& node, grpcOpts& opts);
+void from_node(const fkyaml::node& node, xhttpReuseSettings& opts);
+void from_node(const fkyaml::node& node, xhttpDownloadSettings& opts);
+void from_node(const fkyaml::node& node, xhttpOpts& opts);
 void from_node(const fkyaml::node& node, httpOpts& opts);
 void from_node(const fkyaml::node& node, h2Opts& opts);
 void from_node(const fkyaml::node& node, wsOpts& opts);
