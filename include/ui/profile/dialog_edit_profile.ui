@@ -1104,6 +1104,53 @@
               </property>
              </widget>
             </item>
+            <item row="10" column="0" colspan="2">
+             <widget class="QCheckBox" name="xray_xpadding_obfs_mode">
+              <property name="text">
+               <string>XPadding Obfs Mode</string>
+              </property>
+             </widget>
+            </item>
+            <item row="10" column="2">
+             <widget class="QLabel" name="label_xpadding_key">
+              <property name="text">
+               <string>XPadding Key</string>
+              </property>
+             </widget>
+            </item>
+            <item row="10" column="3">
+             <widget class="QLineEdit" name="xray_xpadding_key"/>
+            </item>
+            <item row="10" column="4">
+             <widget class="QLabel" name="label_xpadding_header">
+              <property name="text">
+               <string>XPadding Header</string>
+              </property>
+             </widget>
+            </item>
+            <item row="10" column="5">
+             <widget class="QLineEdit" name="xray_xpadding_header"/>
+            </item>
+            <item row="11" column="0">
+             <widget class="QLabel" name="label_xpadding_placement">
+              <property name="text">
+               <string>XPadding Placement</string>
+              </property>
+             </widget>
+            </item>
+            <item row="11" column="1" colspan="2">
+             <widget class="QComboBox" name="xray_xpadding_placement"/>
+            </item>
+            <item row="11" column="3" colspan="2">
+             <widget class="QLabel" name="label_xpadding_method">
+              <property name="text">
+               <string>XPadding Method</string>
+              </property>
+             </widget>
+            </item>
+            <item row="11" column="5">
+             <widget class="QComboBox" name="xray_xpadding_method"/>
+            </item>
             <item row="5" column="4">
              <widget class="QLabel" name="label_25">
               <property name="text">

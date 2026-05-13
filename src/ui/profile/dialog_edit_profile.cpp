@@ -61,6 +61,8 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
     ui->xray_network->addItems(Configs::XrayNetworks);
     ui->xray_fp->addItems(Configs::tlsFingerprints);
     ui->xray_mode->addItems(Configs::XrayXHTTPModes);
+    ui->xray_xpadding_placement->addItems({"", "queryInHeader", "cookie", "header", "query"});
+    ui->xray_xpadding_method->addItems({"", "repeat-x", "tokenish"});
     ui->xray_ed_length->setValidator(new QIntValidator(0, 8192));
     toggleXrayWidgets(false);
 
@@ -466,6 +468,11 @@ void DialogEditProfile::typeSelected(const QString &newType) {
         updateXrayCommons(xrayStream->network);
 
         ui->xray_xpaddingbytes->setText(xrayStream->xhttp->xPaddingBytes);
+        ui->xray_xpadding_obfs_mode->setChecked(xrayStream->xhttp->xPaddingObfsMode);
+        ui->xray_xpadding_key->setText(xrayStream->xhttp->xPaddingKey);
+        ui->xray_xpadding_header->setText(xrayStream->xhttp->xPaddingHeader);
+        ui->xray_xpadding_placement->setCurrentText(xrayStream->xhttp->xPaddingPlacement);
+        ui->xray_xpadding_method->setCurrentText(xrayStream->xhttp->xPaddingMethod);
         ui->xray_no_grpc->setChecked(xrayStream->xhttp->noGRPCHeader);
         ui->xray_scMaxEachPostBytes->setText(xrayStream->xhttp->scMaxEachPostBytes);
         ui->xray_scMinPostsIntervalMs->setText(xrayStream->xhttp->scMinPostsIntervalMs);
@@ -682,6 +689,11 @@ bool DialogEditProfile::onEnd() {
             xrayStream->xhttp->mode = ui->xray_mode->currentText();
             xrayStream->xhttp->headers = Configs::parseHeaderPairs(ui->xray_headers->text());
             xrayStream->xhttp->xPaddingBytes = ui->xray_xpaddingbytes->text();
+            xrayStream->xhttp->xPaddingObfsMode = ui->xray_xpadding_obfs_mode->isChecked();
+            xrayStream->xhttp->xPaddingKey = ui->xray_xpadding_key->text();
+            xrayStream->xhttp->xPaddingHeader = ui->xray_xpadding_header->text();
+            xrayStream->xhttp->xPaddingPlacement = ui->xray_xpadding_placement->currentText();
+            xrayStream->xhttp->xPaddingMethod = ui->xray_xpadding_method->currentText();
             xrayStream->xhttp->noGRPCHeader = ui->xray_no_grpc->isChecked();
             xrayStream->xhttp->scMaxEachPostBytes = ui->xray_scMaxEachPostBytes->text();
             xrayStream->xhttp->scMinPostsIntervalMs = ui->xray_scMinPostsIntervalMs->text();
