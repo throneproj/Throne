@@ -37,6 +37,10 @@ func CheckParentProcess() {
 		return
 	}
 
+	if runtime.GOOS == "linux" && os.Getenv("THRONE_CORE_PKEXEC") == "1" && parentBase == "pkexec" {
+		return
+	}
+
 	if parentDir != selfDir || parentBase != "Throne" {
 		log.Fatalf("parent check failed: unexpected parent %q", parentPath)
 	}

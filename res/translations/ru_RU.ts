@@ -2656,6 +2656,46 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Пользователь решил не запрашивать привилегии, некоторые функции могут не работать</translation>
     </message>
     <message>
+        <source>Core root privileges granted for %1</source>
+        <translation>Права root выданы ядру %1</translation>
+    </message>
+    <message>
+        <source>Core privileges granted, restarting core to enable TUN...</source>
+        <translation>Права ядру выданы, перезапуск ядра для включения TUN...</translation>
+    </message>
+    <message>
+        <source>Re-enabling TUN after core privilege restart...</source>
+        <translation>Повторное включение TUN после перезапуска ядра с правами...</translation>
+    </message>
+    <message>
+        <source>Core still has no root privileges after permission grant; check setuid and filesystem mount options.</source>
+        <translation>У ядра всё ещё нет прав root после выдачи прав; проверьте setuid и параметры монтирования файловой системы.</translation>
+    </message>
+    <message>
+        <source>ThroneCore is on a nosuid mount; using pkexec fallback for TUN.</source>
+        <translation>ThroneCore находится на разделе с nosuid; для TUN используется fallback через pkexec.</translation>
+    </message>
+    <message>
+        <source>setuid did not grant root, but mount is not nosuid; leaving pkexec fallback disabled.</source>
+        <translation>setuid не дал права root, но раздел не nosuid; fallback через pkexec не включён.</translation>
+    </message>
+    <message>
+        <source>ThroneCore started through pkexec but still has no root privileges; disabling TUN.</source>
+        <translation>ThroneCore запущен через pkexec, но всё ещё без прав root; TUN отключён.</translation>
+    </message>
+    <message>
+        <source>Root core start failed, disabling TUN and restarting the core without pkexec.</source>
+        <translation>Запуск ядра с правами root не удался, TUN отключён, ядро перезапускается без pkexec.</translation>
+    </message>
+    <message>
+        <source>Root core start was cancelled or failed; TUN was not enabled.</source>
+        <translation>Запуск ядра с правами root отменён или завершился ошибкой; TUN не включён.</translation>
+    </message>
+    <message>
+        <source>TUN is enabled, but generated sing-box config has no tun inbound.</source>
+        <translation>TUN включён, но в сгенерированной конфигурации sing-box нет tun inbound.</translation>
+    </message>
+    <message>
         <source>Unable to capture screen</source>
         <translation>Невозможно захватить экран</translation>
     </message>

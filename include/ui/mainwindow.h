@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QMainWindow>
+#include <functional>
 #include <include/global/HTTPRequestHelper.hpp>
 #ifndef Q_MOC_RUN
 #include <core/server/gen/libcore.pb.h>
@@ -77,13 +78,17 @@ public:
 
     void set_spmode_vpn(bool enable, bool save = true);
 
-    bool get_elevated_permissions(int reason = 3);
+    bool get_elevated_permissions(int reason = 3, const std::function<void(bool)> &callback = {});
 
     void start_select_mode(QObject *context, const std::function<void(int)> &callback);
 
     void RegisterHotkey(bool unregister);
 
     bool StopVPNProcess();
+
+    void restart_core_for_tun_enable(bool usePkexec);
+
+    void disable_tun_after_root_start_failure();
 
     void UpdateConnectionList(const QMap<QString, Stats::ConnectionMetadata>& toUpdate, const QMap<QString, Stats::ConnectionMetadata>& toAdd);
 

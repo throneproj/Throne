@@ -40,6 +40,10 @@ namespace Configs_sys {
             if (error == FailedToStart) {
                 failed_to_start = true;
                 MW_show_log("start core error occurred: " + errorString() + "\n");
+                if (last_start_used_pkexec && !root_start_failed_reported) {
+                    root_start_failed_reported = true;
+                    MW_dialog_message("ExternalProcess", "RootStartFailed");
+                }
             }
         });
         connect(this, &QProcess::stateChanged, this, [&](ProcessState state) {
@@ -49,6 +53,15 @@ namespace Configs_sys {
             }
 
             if (!Configs::dataManager->settingsRepo->prepare_exit && state == NotRunning) {
+                if (last_start_used_pkexec && !core_reported_started) {
+                    failed_to_start = true;
+                    MW_show_log("[Error] " + QObject::tr("Root core start was cancelled or failed; TUN was not enabled."));
+                    if (!root_start_failed_reported) {
+                        root_start_failed_reported = true;
+                        MW_dialog_message("ExternalProcess", "RootStartFailed");
+                    }
+                    return;
+                }
                 if (failed_to_start) return; // no retry
                 if (restarting) return;
 
@@ -78,11 +91,28 @@ namespace Configs_sys {
     void CoreProcess::Start() {
         if (started) return;
         started = true;
+        failed_to_start = false;
+        core_reported_started = false;
+        root_start_failed_reported = false;
+        last_start_used_pkexec = false;
 
         auto env = QProcessEnvironment::systemEnvironment();
         env.insert("THRONE_CORE_SOCKET", m_socketName);
         if (m_debugMode) env.insert("THRONE_CORE_DEBUG", "1");
         setProcessEnvironment(env);
+#ifdef Q_OS_LINUX
+        if (use_pkexec) {
+            QStringList pkexecArgs;
+            pkexecArgs << "env";
+            pkexecArgs << "THRONE_CORE_SOCKET=" + m_socketName;
+            pkexecArgs << "THRONE_CORE_PKEXEC=1";
+            if (m_debugMode) pkexecArgs << "THRONE_CORE_DEBUG=1";
+            pkexecArgs << program;
+            last_start_used_pkexec = true;
+            start("pkexec", pkexecArgs);
+            return;
+        }
+#endif
         start(program, {});
     }
 
@@ -93,6 +123,18 @@ namespace Configs_sys {
         started = false;
         Start();
         restarting = false;
+    }
+
+    void CoreProcess::SetUsePkexec(bool enable) {
+        use_pkexec = enable;
+    }
+
+    bool CoreProcess::IsUsingPkexec() const {
+        return use_pkexec;
+    }
+
+    void CoreProcess::MarkCoreReportedStarted() {
+        core_reported_started = true;
     }
 
 } // namespace Configs_sys

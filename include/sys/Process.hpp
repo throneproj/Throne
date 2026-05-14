@@ -24,6 +24,12 @@ namespace Configs_sys {
 
         void Restart();
 
+        void SetUsePkexec(bool enable);
+
+        bool IsUsingPkexec() const;
+
+        void MarkCoreReportedStarted();
+
         int start_profile_when_core_is_up = -1;
 
     private:
@@ -32,6 +38,10 @@ namespace Configs_sys {
         bool show_stderr = false;
         bool failed_to_start = false;
         bool restarting = false;
+        bool use_pkexec = false;
+        bool last_start_used_pkexec = false;
+        bool core_reported_started = false;
+        bool root_start_failed_reported = false;
 
         QElapsedTimer coreRestartTimer;
 

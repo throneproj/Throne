@@ -9,6 +9,7 @@
 #include <QPushButton>
 #include <QDesktopServices>
 #include <QMessageBox>
+#include <QJsonArray>
 #include <QJsonDocument>
 
 #include "include/configs/generate.h"
@@ -707,6 +708,19 @@ void MainWindow::profile_start(int _id) {
     if (!result->error.isEmpty()) {
         MessageBoxWarning(tr("BuildConfig return error"), result->error);
         return;
+    }
+    if (Configs::dataManager->settingsRepo->spmode_vpn) {
+        bool hasTunInbound = false;
+        for (const auto inboundValue: result->coreConfig["inbounds"].toArray()) {
+            const auto inbound = inboundValue.toObject();
+            if (inbound["tag"].toString() == "tun-in" || inbound["type"].toString() == "tun") {
+                hasTunInbound = true;
+                break;
+            }
+        }
+        if (!hasTunInbound) {
+            MW_show_log("[Warn] " + tr("TUN is enabled, but generated sing-box config has no tun inbound."));
+        }
     }
 
     auto profile_start_stage2 = [=, this] {

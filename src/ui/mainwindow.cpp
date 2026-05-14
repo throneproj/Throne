@@ -40,7 +40,10 @@
 #include "include/sys/linux/LinuxCap.h"
 #include <QDBusInterface>
 #include <QDBusReply>
+#include <QStandardPaths>
 #include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/statvfs.h>
 #endif
 #ifdef Q_OS_MACOS
 #include <sys/socket.h>
@@ -63,6 +66,7 @@
 #include <QTimer>
 #include <QMessageBox>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
 #include <QStyleHints>
@@ -78,6 +82,55 @@
 
 #include "include/sys/macos/MacOS.h"
 
+#ifdef Q_OS_LINUX
+namespace {
+    QString LinuxProcessExePath(qint64 pid) {
+        QFileInfo exeInfo(QString("/proc/%1/exe").arg(pid));
+        const auto path = exeInfo.symLinkTarget();
+        if (path.endsWith(" (deleted)")) return path.left(path.size() - 10);
+        return path;
+    }
+
+    bool LinuxPathHasNoSuid(const QString &path) {
+        const auto encodedPath = QFile::encodeName(path);
+        struct statvfs fsInfo {};
+        if (statvfs(encodedPath.constData(), &fsInfo) != 0) return false;
+        return (fsInfo.f_flag & ST_NOSUID) != 0;
+    }
+
+    QString LinuxCorePrivilegeDiagnostics() {
+        const auto corePath = Configs::FindCoreRealPath();
+        QStringList parts;
+
+        const auto encodedPath = QFile::encodeName(corePath);
+        struct stat fileInfo {};
+        if (stat(encodedPath.constData(), &fileInfo) == 0) {
+            parts << QString("mode=%1 uid=%2 gid=%3")
+                         .arg(QString::number(fileInfo.st_mode & 07777, 8))
+                         .arg(fileInfo.st_uid)
+                         .arg(fileInfo.st_gid);
+        } else {
+            parts << QString("stat failed for %1").arg(corePath);
+        }
+
+        const auto findmnt = QStandardPaths::findExecutable("findmnt");
+        if (!findmnt.isEmpty()) {
+            QProcess process;
+            process.setProgram(findmnt);
+            process.setArguments({"-no", "TARGET,OPTIONS", "-T", corePath});
+            process.setProcessChannelMode(QProcess::SeparateChannels);
+            process.start();
+            if (process.waitForFinished(1000) && process.exitStatus() == QProcess::NormalExit && process.exitCode() == 0) {
+                const auto mountInfo = QString::fromLocal8Bit(process.readAllStandardOutput()).simplified();
+                if (!mountInfo.isEmpty()) parts << QString("mount=%1").arg(mountInfo);
+            }
+        }
+
+        return parts.join("; ");
+    }
+}
+#endif
+
 void UI_InitMainWindow() {
     mainwindow = new MainWindow;
 }
@@ -91,7 +144,11 @@ bool MainWindow::verify_core_pid(QLocalSocket *socket) {
     struct ucred cred = {};
     socklen_t credLen = sizeof(cred);
     if (getsockopt(static_cast<int>(socket->socketDescriptor()), SOL_SOCKET, SO_PEERCRED, &cred, &credLen) == 0) {
-        return static_cast<qint64>(cred.pid) == expectedPid;
+        if (static_cast<qint64>(cred.pid) == expectedPid) return true;
+        if (core_process->IsUsingPkexec()) {
+            return QFileInfo(LinuxProcessExePath(cred.pid)).canonicalFilePath() ==
+                   QFileInfo(Configs::FindCoreRealPath()).canonicalFilePath();
+        }
     }
     return false;
 #elif defined(Q_OS_MACOS)
@@ -230,7 +287,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         }
         setup_rpc(socket);
         auto profileId = core_process ? core_process->start_profile_when_core_is_up : -1;
-        if (core_process) core_process->start_profile_when_core_is_up = -1;
+        if (core_process) {
+            core_process->MarkCoreReportedStarted();
+            core_process->start_profile_when_core_is_up = -1;
+        }
         Configs::dataManager->settingsRepo->core_running = true;
         MW_dialog_message("ExternalProcess", "CoreStarted," + Int2String(profileId));
     });
@@ -1279,18 +1339,53 @@ void MainWindow::dialog_message_impl(const QString &sender, const QString &info)
     } else if (sender == "ExternalProcess") {
         if (info == "Crashed") {
             profile_stop();
+        } else if (info == "RootStartFailed") {
+            disable_tun_after_root_start_failure();
         } else if (info.startsWith("CoreStarted")) {
-            Configs::IsAdmin(true);
+            const bool corePrivileged = Configs::IsAdmin(true);
             if (Configs::dataManager->settingsRepo->system_proxy_enabled) {
                 set_spmode_system_proxy(true, false);
             }
+            bool tunRestoreStartedProfile = false;
             if (Configs::dataManager->settingsRepo->tun_mode_enabled || Configs::dataManager->settingsRepo->flag_restart_tun_on) {
-                set_spmode_vpn(true, false);
+                const bool afterPrivilegeRestart = Configs::dataManager->settingsRepo->flag_restart_tun_on;
+                if (afterPrivilegeRestart) {
+                    MW_show_log(tr("Re-enabling TUN after core privilege restart..."));
+                }
+                if (afterPrivilegeRestart && !corePrivileged) {
+#ifdef Q_OS_LINUX
+                    MW_show_log(tr("Core still has no root privileges after permission grant; check setuid and filesystem mount options."));
+                    MW_show_log(QString("ThroneCore privilege diagnostics: %1").arg(LinuxCorePrivilegeDiagnostics()));
+                    if (!core_process->IsUsingPkexec()) {
+                        if (LinuxPathHasNoSuid(Configs::FindCoreRealPath())) {
+                            MW_show_log(tr("ThroneCore is on a nosuid mount; using pkexec fallback for TUN."));
+                            Configs::dataManager->settingsRepo->flag_restart_tun_on = true;
+                            Configs::dataManager->settingsRepo->Save();
+                            restart_core_for_tun_enable(true);
+                            refresh_status();
+                            return;
+                        }
+                        MW_show_log(tr("setuid did not grant root, but mount is not nosuid; leaving pkexec fallback disabled."));
+                        disable_tun_after_root_start_failure();
+                        return;
+                    }
+                    MW_show_log(tr("ThroneCore started through pkexec but still has no root privileges; disabling TUN."));
+                    disable_tun_after_root_start_failure();
+#else
+                    MW_show_log(tr("Core still has no root privileges after permission grant; check setuid and filesystem mount options."));
+                    refresh_status();
+#endif
+                    return;
+                } else {
+                    Configs::dataManager->settingsRepo->flag_restart_tun_on = false;
+                    tunRestoreStartedProfile = !Configs::dataManager->settingsRepo->spmode_vpn && Configs::dataManager->settingsRepo->started_id >= 0;
+                    set_spmode_vpn(true, false);
+                }
             }
             if (Configs::dataManager->settingsRepo->flag_dns_set) {
                 set_system_dns(true);
             }
-            if (auto id = info.split(",")[1].toInt(); id >= 0)
+            if (auto id = info.split(",")[1].toInt(); id >= 0 && !tunRestoreStartedProfile)
             {
                 profile_start(id);
             }
@@ -1454,7 +1549,7 @@ void MainWindow::toggle_system_proxy() {
     }
 }
 
-bool MainWindow::get_elevated_permissions(int reason) {
+bool MainWindow::get_elevated_permissions(int reason, const std::function<void(bool)> &callback) {
     if (Configs::dataManager->settingsRepo->disable_privilege_req)
     {
         MW_show_log(tr("User opted for no privilege req, some features may not work"));
@@ -1464,26 +1559,42 @@ bool MainWindow::get_elevated_permissions(int reason) {
 #ifdef Q_OS_LINUX
     if (!Linux_HavePkexec()) {
         MessageBoxWarning(software_name, "Please install \"pkexec\" first.");
+        if (callback) callback(false);
         return false;
     }
     auto n = QMessageBox::warning(GetMessageBoxParent(), software_name, tr("Please give the core root privileges"), QMessageBox::Yes | QMessageBox::No);
     if (n == QMessageBox::Yes) {
         runOnNewThread([=,this]
         {
-            auto chownArgs = QString("root:root " + Configs::FindCoreRealPath());
+            auto corePath = Configs::FindCoreRealPath();
+            auto finish = [=, this](bool granted) {
+                if (callback) {
+                    callback(granted);
+                } else if (granted) {
+                    StopVPNProcess();
+                }
+            };
+
+            auto chownArgs = QString("root:root " + corePath);
             auto ret = Linux_Run_Command("chown", chownArgs);
             if (ret != 0) {
                 MW_show_log(QString("Failed to run chown %1 code is %2").arg(chownArgs).arg(ret));
+                finish(false);
+                return;
             }
-            auto chmodArgs = QString("u+s " + Configs::FindCoreRealPath());
+            auto chmodArgs = QString("u+s " + corePath);
             ret = Linux_Run_Command("chmod", chmodArgs);
             if (ret == 0) {
-                StopVPNProcess();
+                MW_show_log(tr("Core root privileges granted for %1").arg(corePath));
+                finish(true);
             } else {
                 MW_show_log(QString("Failed to run chmod %1").arg(chmodArgs));
+                finish(false);
             }
         });
         return false;
+    } else if (callback) {
+        callback(false);
     }
 #endif
 #ifdef Q_OS_WIN
@@ -1491,6 +1602,8 @@ bool MainWindow::get_elevated_permissions(int reason) {
     if (n == QMessageBox::Yes) {
         this->exit_reason = reason;
         on_menu_exit_triggered();
+    } else if (callback) {
+        callback(false);
     }
 #endif
 
@@ -1507,11 +1620,15 @@ bool MainWindow::get_elevated_permissions(int reason) {
         auto ret = Mac_Run_Command(Command);
         if (ret == 0) {
             MessageBoxInfo(tr("Requesting permission"), tr("Please Enter your password in the opened terminal, then try again"));
+            if (callback) callback(false);
             return false;
         } else {
             MW_show_log(QString("Failed to run %1 with %2").arg(Command).arg(ret));
+            if (callback) callback(false);
             return false;
         }
+    } else if (callback) {
+        callback(false);
     }
 #endif
     return false;
@@ -1556,7 +1673,34 @@ void MainWindow::set_spmode_vpn(bool enable, bool save) {
     if (enable) {
         bool requestPermission = !Configs::IsAdmin();
         if (requestPermission) {
-            if (!get_elevated_permissions()) {
+#ifdef Q_OS_LINUX
+            if (LinuxPathHasNoSuid(Configs::FindCoreRealPath())) {
+                if (save) {
+                    Configs::dataManager->settingsRepo->tun_mode_enabled = true;
+                }
+                Configs::dataManager->settingsRepo->flag_restart_tun_on = true;
+                Configs::dataManager->settingsRepo->Save();
+                MW_show_log(tr("ThroneCore is on a nosuid mount; using pkexec fallback for TUN."));
+                restart_core_for_tun_enable(true);
+                refresh_status();
+                return;
+            }
+#endif
+            auto enableTunAfterPrivilege = [=, this](bool granted) {
+                if (!granted) {
+                    runOnUiThread([=, this] { refresh_status(); });
+                    return;
+                }
+
+                if (save) {
+                    Configs::dataManager->settingsRepo->tun_mode_enabled = true;
+                    Configs::dataManager->settingsRepo->Save();
+                }
+                Configs::dataManager->settingsRepo->flag_restart_tun_on = true;
+                MW_show_log(tr("Core privileges granted, restarting core to enable TUN..."));
+                restart_core_for_tun_enable(false);
+            };
+            if (!get_elevated_permissions(3, enableTunAfterPrivilege)) {
                 refresh_status();
                 return;
             }
@@ -2994,6 +3138,42 @@ bool MainWindow::StopVPNProcess() {
     }, DS_cores, true);
 
     return true;
+}
+
+void MainWindow::restart_core_for_tun_enable(bool usePkexec) {
+    if (QThread::currentThread() != qApp->thread()) {
+        runOnUiThread([=, this] { restart_core_for_tun_enable(usePkexec); });
+        return;
+    }
+
+    const auto profileId = Configs::dataManager->settingsRepo->started_id;
+    if (running != nullptr) {
+        profile_stop(true, true);
+    }
+
+    runOnThread([=, this]
+    {
+        core_process->SetUsePkexec(usePkexec);
+        core_process->start_profile_when_core_is_up = profileId;
+        core_process->Restart();
+    }, DS_cores);
+}
+
+void MainWindow::disable_tun_after_root_start_failure() {
+    Configs::dataManager->settingsRepo->flag_restart_tun_on = false;
+    Configs::dataManager->settingsRepo->spmode_vpn = false;
+    Configs::dataManager->settingsRepo->tun_mode_enabled = false;
+    Configs::dataManager->settingsRepo->Save();
+    MW_show_log(tr("Root core start failed, disabling TUN and restarting the core without pkexec."));
+
+    runOnThread([=, this]
+    {
+        core_process->SetUsePkexec(false);
+        core_process->start_profile_when_core_is_up = -1;
+        core_process->Restart();
+    }, DS_cores);
+
+    refresh_status();
 }
 
 bool isNewer(QString assetName) {
