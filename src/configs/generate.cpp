@@ -4,7 +4,6 @@
 
 #include <QApplication>
 #include <QFileInfo>
-#include <QSet>
 
 
 #include "include/database/GroupsRepo.h"
@@ -1347,31 +1346,10 @@ namespace Configs {
         return ctx->buildConfigResult;
     }
 
-    // Internal implementation with a visited-set for cycle detection across recursive
-    // chain validation. Callers should use the public IsValid() wrapper below.
-    // Hardened against null `ent`, null `ent->outbound`, and circular chain references
-    // (e.g. chain A->B->A would previously cause unbounded recursion -> stack overflow).
-    // See issue #1313.
-    static bool IsValidImpl(const std::shared_ptr<Profile>& ent, QSet<int>& visited)
+    bool IsValid(const std::shared_ptr<Profile>& ent)
     {
-        if (ent == nullptr)
-        {
-            MW_show_log("IsValid: null ent");
-            return false;
-        }
         if (ent->type == "chain")
         {
-            // Path-based cycle detection: ent->id is recorded only while it sits on
-            // the current recursion path. This catches true cycles (A->B->A) without
-            // false-positives on DAGs where the same chain appears in multiple sibling
-            // branches (A->[B,B] or A->[B,C] where C->B). The id is removed before
-            // returning true so siblings can re-traverse the same subtree.
-            if (visited.contains(ent->id))
-            {
-                MW_show_log("Chain cycle detected at ent ID=" + QString::number(ent->id));
-                return false;
-            }
-            visited.insert(ent->id);
             auto chain = ent->Chain();
             if (chain == nullptr)
             {
@@ -1386,13 +1364,12 @@ namespace Configs {
                     MW_show_log("Null ent in validator");
                     return false;
                 }
-                if (!IsValidImpl(e, visited))
+                if (!IsValid(e))
                 {
                     MW_show_log("Invalid ent in chain: ID=" + QString::number(eId));
                     return false;
                 }
             }
-            visited.remove(ent->id);
             return true;
         }
         QJsonObject conf;
@@ -1423,11 +1400,6 @@ namespace Configs {
         }
         if (!fullConf)
         {
-            if (ent->outbound == nullptr)
-            {
-                MW_show_log("IsValid: ent->outbound is null");
-                return false;
-            }
             auto out = ent->outbound->Build();
             auto outArr = QJsonArray{out.object};
             auto key = ent->outbound->IsEndpoint() ? "endpoints" : "outbounds";
@@ -1445,15 +1417,8 @@ namespace Configs {
         }
         if (resp.isEmpty()) return true;
         // else
-        QString name = (ent->outbound != nullptr) ? ent->outbound->name : QStringLiteral("<no outbound>");
-        MW_show_log("Invalid ent " + name + ": " + resp);
+        MW_show_log("Invalid ent " + ent->outbound->name + ": " + resp);
         return false;
-    }
-
-    bool IsValid(const std::shared_ptr<Profile>& ent)
-    {
-        QSet<int> visited;
-        return IsValidImpl(ent, visited);
     }
 
     std::shared_ptr<BuildTestConfigResult> BuildTestConfig(const QList<std::shared_ptr<Profile> > &profiles)

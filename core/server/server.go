@@ -206,29 +206,14 @@ func (s *server) CheckConfig(ctx context.Context, in *gen.LoadConfigReq) (out *g
 	out = &gen.ErrorResp{}
 	// Recover from panics inside boxmain.Check (e.g. malformed configs that trigger
 	// sing-box internal panics). Without this, the panic propagates to main() which
-	// calls os.Exit(0) and kills the entire core process, losing all gRPC clients.
-	// See issue #1313 (Error panic in "Remove Invalid").
-	//
-	// The full goroutine stack goes only to the operator log (stderr). The wire
-	// response carries just the panic value, which is what the UI surfaces via
-	// MW_show_log; this keeps internal file paths and addresses out of the GUI.
+	// calls os.Exit(0) and kills the entire core process. The full goroutine stack
+	// goes to the operator log; the wire response carries only the panic value.
 	defer func() {
 		if r := recover(); r != nil {
-			// Format the panic value defensively: a String()/Error() method that
-			// itself panics would propagate from inside this deferred func and
-			// re-trigger main()'s process-killing recover. Nested recover guards us.
-			panicVal := func() (s string) {
-				defer func() {
-					if rr := recover(); rr != nil {
-						s = "<unprintable panic value>"
-					}
-				}()
-				return fmt.Sprintf("%v", r)
-			}()
 			buf := make([]byte, 4096)
 			n := runtime.Stack(buf, false)
-			log.Printf("CheckConfig panic: %s\n%s", panicVal, buf[:n])
-			out.Error = To("CheckConfig panic: " + panicVal)
+			log.Printf("CheckConfig panic: %v\n%s", r, buf[:n])
+			out.Error = To(fmt.Sprintf("CheckConfig panic: %v", r))
 		}
 	}()
 	err := boxmain.Check([]byte(*in.CoreConfig))
