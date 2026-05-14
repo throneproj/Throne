@@ -25,17 +25,22 @@
 
 using namespace API;
 
-void MainWindow::setup_rpc() {
-    // Setup Connection
+void MainWindow::setup_rpc(QLocalSocket *socket) {
+    // Replace old client (core restart case)
+    delete defaultClient;
+
     defaultClient = new Client(
         [=](const QString &errStr) {
             MW_show_log("[Error] Core: " + errStr);
         },
-        "127.0.0.1:" + Int2String(Configs::dataManager->settingsRepo->core_port));
+        socket);
 
-    // Looper
-    runOnNewThread([=] { Stats::trafficLooper->Loop(); });
-    runOnNewThread([=] {Stats::connection_lister->Loop(); });
+    // Loopers run for the lifetime of the app, start only once
+    if (!rpc_started) {
+        rpc_started = true;
+        runOnNewThread([=] { Stats::trafficLooper->Loop(); });
+        runOnNewThread([=] { Stats::connection_lister->Loop(); });
+    }
 }
 
 void MainWindow::runURLTest(const QString& config, const QString& xrayConfig, bool useDefault, const QStringList& outboundTags, const QMap<QString, int>& tag2entID, int entID) {
@@ -834,39 +839,6 @@ void MainWindow::profile_start(int _id) {
             restartMsgbox->deleteLater();
         });
     });
-}
-
-void MainWindow::set_system_proxy(bool mustDisable) {
-    if (!mustDisable && Configs::dataManager->settingsRepo->spmode_system_proxy) {
-        auto socks_port = Configs::dataManager->settingsRepo->inbound_socks_port;
-        SetSystemProxy(socks_port, socks_port, Configs::dataManager->settingsRepo->proxy_scheme);
-    } else {
-        ClearSystemProxy();
-    }
-}
-
-void MainWindow::set_spmode_system_proxy(bool enable, bool save) {
-    if (enable && Configs::dataManager->settingsRepo->disable_mixed_inbound) {
-        runOnUiThread([=] {
-           MessageBoxWarning("Invalid Operation", "Cannot set system proxy when mixed inbound is disabled.");
-        });
-        ui->checkBox_SystemProxy->setChecked(false);
-        return;
-    }
-    Configs::dataManager->settingsRepo->spmode_system_proxy = enable;
-    if (running) {
-        set_system_proxy(false);
-        if (!enable && Configs::dataManager->settingsRepo->reset_proxy_on_disable_sp) {
-            profile_start(running->id);
-        }
-    }
-
-    if (save) {
-        Configs::dataManager->settingsRepo->system_proxy_enabled = enable && Configs::dataManager->settingsRepo->remember_enable;
-        Configs::dataManager->settingsRepo->Save();
-    }
-
-    refresh_status();
 }
 
 void MainWindow::profile_stop(bool crash, bool block, bool manual) {

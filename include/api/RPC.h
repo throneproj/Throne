@@ -5,14 +5,14 @@
 #endif
 #include <QString>
 
-namespace QtGrpc {
-    class Http2GrpcChannelPrivate;
-}
+class QLocalSocket;
 
 namespace API {
     class Client {
     public:
-        explicit Client(std::function<void(const QString &)> onError, const QString &target);
+        explicit Client(std::function<void(const QString &)> onError, QLocalSocket *socket);
+
+        ~Client();
 
         // QString returns is error string
 
@@ -34,7 +34,7 @@ namespace API {
 
         QString SetSystemDNS(bool *rpcOK, bool clear) const;
 
-        libcore::ListConnectionsResp ListConnections() const;
+        [[nodiscard]] libcore::ListConnectionsResp ListConnections() const;
 
         QString CheckConfig(bool *rpcOK, const QString& config) const;
 
@@ -49,8 +49,8 @@ namespace API {
         libcore::GenWgKeyPairResponse GenWgKeyPair(bool *rpcOK);
 
     private:
-        std::function<std::unique_ptr<QtGrpc::Http2GrpcChannelPrivate>()> make_grpc_channel;
-        std::unique_ptr<QtGrpc::Http2GrpcChannelPrivate> default_grpc_channel;
+        class LocalSocketChannel;
+        std::unique_ptr<LocalSocketChannel> channel;
         std::function<void(const QString &)> onError;
     };
 

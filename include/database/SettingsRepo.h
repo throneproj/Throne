@@ -38,7 +38,7 @@ namespace Configs {
         // Public fields (mirroring DataStore interface for direct access)
         
         // Running (not saved to DB, runtime state only)
-        int core_port = 19810;
+        QString core_socket_name = "";
         int started_id = -1919;
         bool core_running = false;
         bool prepare_exit = false;

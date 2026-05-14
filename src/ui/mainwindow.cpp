@@ -34,15 +34,22 @@
 #ifdef Q_OS_WIN
 #include "3rdparty/WinCommander.hpp"
 #include "include/sys/windows/WinVersion.h"
+#include <Wbemidl.h>
 #else
 #ifdef Q_OS_LINUX
 #include "include/sys/linux/LinuxCap.h"
 #include <QDBusInterface>
 #include <QDBusReply>
-#include <QUuid>
+#include <sys/socket.h>
+#endif
+#ifdef Q_OS_MACOS
+#include <sys/socket.h>
+#include <sys/un.h>
 #endif
 #include <unistd.h>
 #endif
+
+#include <QUuid>
 
 #include <QClipboard>
 #include <QModelIndex>
@@ -73,6 +80,38 @@
 
 void UI_InitMainWindow() {
     mainwindow = new MainWindow;
+}
+
+bool MainWindow::verify_core_pid(QLocalSocket *socket) {
+    if (!core_process) return false;
+    qint64 expectedPid = core_process->processId();
+    if (expectedPid <= 0) return false;
+
+#if defined(Q_OS_LINUX)
+    struct ucred cred = {};
+    socklen_t credLen = sizeof(cred);
+    if (getsockopt(static_cast<int>(socket->socketDescriptor()), SOL_SOCKET, SO_PEERCRED, &cred, &credLen) == 0) {
+        return static_cast<qint64>(cred.pid) == expectedPid;
+    }
+    return false;
+#elif defined(Q_OS_MACOS)
+    pid_t pid = 0;
+    socklen_t pidLen = sizeof(pid);
+    if (getsockopt(static_cast<int>(socket->socketDescriptor()), SOL_LOCAL, LOCAL_PEERPID, &pid, &pidLen) == 0) {
+        return static_cast<qint64>(pid) == expectedPid;
+    }
+    return false;
+#elif defined(Q_OS_WIN)
+    ULONG pid = 0;
+    HANDLE hPipe = reinterpret_cast<HANDLE>(static_cast<qintptr>(socket->socketDescriptor()));
+    if (GetNamedPipeClientProcessId(hPipe, &pid)) {
+        return static_cast<qint64>(pid) == expectedPid;
+    }
+    return false;
+#else
+    Q_UNUSED(socket)
+    return true;
+#endif
 }
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
@@ -166,27 +205,46 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     runOnNewThread([=, this] {GetDeviceDetails(); });
 
     // Prepare core
-    Configs::dataManager->settingsRepo->core_port = MkPort();
-    if (Configs::dataManager->settingsRepo->core_port <= 0) Configs::dataManager->settingsRepo->core_port = 19810;
-
     auto core_path = QApplication::applicationDirPath() + "/";
     core_path += "ThroneCore";
 
-    QStringList args;
-    args.push_back("-port");
-    args.push_back(Int2String(Configs::dataManager->settingsRepo->core_port));
-    if (Configs::dataManager->settingsRepo->log_level == "debug") args.push_back("-debug");
+    bool coreDebugMode = (Configs::dataManager->settingsRepo->log_level == "debug");
+
+    // Create IPC server with a random UUID name
+    Configs::dataManager->settingsRepo->core_socket_name =
+        "throneIPC-" + QUuid::createUuid().toString(QUuid::WithoutBraces);
+    core_server = new QLocalServer(this);
+    core_server->setSocketOptions(QLocalServer::UserAccessOption);
+    if (!core_server->listen(Configs::dataManager->settingsRepo->core_socket_name)) {
+        qWarning() << "Failed to start IPC server:" << core_server->errorString();
+        qApp->quit();
+    }
+
+    connect(core_server, &QLocalServer::newConnection, this, [=, this]() {
+        auto socket = core_server->nextPendingConnection();
+        if (!verify_core_pid(socket)) {
+            MW_show_log("[Warn] IPC connection from unexpected process rejected");
+            socket->close();
+            socket->deleteLater();
+            return;
+        }
+        setup_rpc(socket);
+        auto profileId = core_process ? core_process->start_profile_when_core_is_up : -1;
+        if (core_process) core_process->start_profile_when_core_is_up = -1;
+        Configs::dataManager->settingsRepo->core_running = true;
+        MW_dialog_message("ExternalProcess", "CoreStarted," + Int2String(profileId));
+    });
 
     // Start core
+    auto socketFullName = core_server->fullServerName();
     runOnThread(
-        [=,this] {
-            core_process = new Configs_sys::CoreProcess(core_path, args);
-            // Remember last started
-            if (Configs::dataManager->settingsRepo->remember_enable && Configs::dataManager->settingsRepo->remember_id >= 0) {
-                core_process->start_profile_when_core_is_up = Configs::dataManager->settingsRepo->remember_id;
+        [=, this] {
+            core_process = new Configs_sys::CoreProcess(core_path, socketFullName, coreDebugMode);
+            if (Configs::dataManager->settingsRepo->remember_enable &&
+                Configs::dataManager->settingsRepo->remember_id >= 0) {
+                core_process->start_profile_when_core_is_up =
+                    Configs::dataManager->settingsRepo->remember_id;
             }
-            // Setup
-            setup_rpc();
             core_process->Start();
         },
         DS_cores);
@@ -1329,7 +1387,7 @@ void MainWindow::prepare_exit()
     }
     Configs::dataManager->settingsRepo->prepare_exit = true;
     //
-    set_spmode_system_proxy(false, false);
+    set_system_proxy(true);
     if (Configs::dataManager->settingsRepo->system_dns_set) set_system_dns(false, false);
     RegisterHiddenMenuShortcuts(true);
     RegisterHotkey(true);
@@ -1376,7 +1434,7 @@ void MainWindow::on_menu_exit_triggered() {
             if (exit_reason == 3) arguments << "-flag_restart_tun_on";
             if (exit_reason == 4) arguments << "-flag_restart_dns_set";
 #ifdef Q_OS_WIN
-            WinCommander::runProcessElevated(program, arguments, "", WinCommander::SW_NORMAL, false);
+            WinCommander::runProcessElevated(program, arguments, "", 1, false);
 #else
             QProcess::startDetached(program, arguments);
 #endif
@@ -1457,6 +1515,39 @@ bool MainWindow::get_elevated_permissions(int reason) {
     }
 #endif
     return false;
+}
+
+void MainWindow::set_system_proxy(bool mustDisable) {
+    if (!mustDisable && Configs::dataManager->settingsRepo->spmode_system_proxy) {
+        auto socks_port = Configs::dataManager->settingsRepo->inbound_socks_port;
+        SetSystemProxy(socks_port, socks_port, Configs::dataManager->settingsRepo->proxy_scheme);
+    } else {
+        ClearSystemProxy();
+    }
+}
+
+void MainWindow::set_spmode_system_proxy(bool enable, bool save) {
+    if (enable && Configs::dataManager->settingsRepo->disable_mixed_inbound) {
+        runOnUiThread([=] {
+           MessageBoxWarning("Invalid Operation", "Cannot set system proxy when mixed inbound is disabled.");
+        });
+        ui->checkBox_SystemProxy->setChecked(false);
+        return;
+    }
+    Configs::dataManager->settingsRepo->spmode_system_proxy = enable;
+    if (running) {
+        set_system_proxy(false);
+        if (!enable && Configs::dataManager->settingsRepo->reset_proxy_on_disable_sp) {
+            profile_start(running->id);
+        }
+    }
+
+    if (save) {
+        Configs::dataManager->settingsRepo->system_proxy_enabled = enable && Configs::dataManager->settingsRepo->remember_enable;
+        Configs::dataManager->settingsRepo->Save();
+    }
+
+    refresh_status();
 }
 
 void MainWindow::set_spmode_vpn(bool enable, bool save) {
@@ -2324,6 +2415,9 @@ void MainWindow::on_menu_remove_invalid_triggered() {
      QMutex mu;
      QMutex access;
      int profileSize = currentGroup->Profiles().size();
+     // Empty group: no worker is ever queued, so the join-mutex would never be
+     // unlocked and the worker thread would block forever on mu.lock() below.
+     if (profileSize == 0) return;
      mu.lock();
      for (const auto& profileID : currentGroup->Profiles()) {
          auto profile = Configs::dataManager->profilesRepo->GetProfile(profileID);

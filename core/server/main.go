@@ -1,20 +1,18 @@
 package main
 
 import (
-	"ThroneCore/gen"
 	"ThroneCore/internal/boxmain"
+	"ThroneCore/ipc"
+	"ThroneCore/parentcheck"
 	"ThroneCore/test_utils"
 	"context"
-	"flag"
 	"fmt"
 	"github.com/xtls/xray-core/core"
-	"google.golang.org/grpc"
 	"log"
 	"net"
 	"os"
 	"runtime"
 	runtimeDebug "runtime/debug"
-	"strconv"
 	"syscall"
 	"time"
 
@@ -23,11 +21,15 @@ import (
 )
 
 func RunCore() {
-	_port := flag.Int("port", 19810, "")
-	_debug := flag.Bool("debug", false, "")
-	flag.CommandLine.Parse(os.Args[1:])
-	debug = *_debug
+	socketName := os.Getenv("THRONE_CORE_SOCKET")
+	if socketName == "" {
+		log.Fatal("THRONE_CORE_SOCKET not set")
+	}
+	debug = os.Getenv("THRONE_CORE_DEBUG") == "1"
 
+	parentcheck.CheckParentProcess()
+
+	// Exit when parent dies
 	go func() {
 		parent, err := os.FindProcess(os.Getppid())
 		if err != nil {
@@ -46,24 +48,26 @@ func RunCore() {
 			}
 		}
 	}()
+
 	boxmain.DisableColor()
 
-	// GRPC
-	lis, err := net.Listen("tcp", "127.0.0.1:"+strconv.Itoa(*_port))
+	// Connect to GUI IPC socket, retry up to 10 times
+	var conn net.Conn
+	var err error
+	for i := 0; i < 10; i++ {
+		conn, err = ipc.ConnectIPC(socketName)
+		if err == nil {
+			break
+		}
+		log.Printf("IPC connect attempt %d/10 failed: %v", i+1, err)
+		time.Sleep(500 * time.Millisecond)
+	}
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Fatalf("failed to connect to GUI socket after 10 attempts: %v", err)
 	}
 
-	s := grpc.NewServer(
-		grpc.MaxRecvMsgSize(1024*1024*1024), // 1 gigaByte
-		grpc.MaxSendMsgSize(1024*1024*1024), // 1 gigaByte
-	)
-	gen.RegisterLibcoreServiceServer(s, &server{})
-
-	fmt.Printf("Core listening at %v\n", lis.Addr())
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
-	}
+	fmt.Println("Core Has Successfully Connected to Throne!")
+	runDispatch(conn)
 }
 
 func main() {
@@ -84,7 +88,6 @@ func main() {
 			time.Sleep(2 * time.Second)
 			runtime.ReadMemStats(&memStats)
 			if memStats.HeapAlloc > 1.5*1024*1024*1024 {
-				// too much memory for sing-box, crash
 				panic("Memory has reached 1.5 GB, this is not normal")
 			}
 		}
