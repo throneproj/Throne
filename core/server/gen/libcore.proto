@@ -6,6 +6,7 @@ option go_package = "./;gen";
 service LibcoreService {
   rpc Start(LoadConfigReq) returns (ErrorResp);
   rpc Stop(EmptyReq) returns (ErrorResp);
+  rpc Shutdown(EmptyReq) returns (ErrorResp);
   rpc CheckConfig(LoadConfigReq) returns (ErrorResp);
   rpc Test(TestReq) returns (TestResp);
   rpc StopTest(EmptyReq) returns (EmptyResp);

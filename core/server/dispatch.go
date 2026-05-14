@@ -119,6 +119,17 @@ func dispatch(methodName string, payload []byte) ([]byte, error) {
 		}
 		return proto.Marshal(resp)
 
+	case "Shutdown":
+		req := &gen.EmptyReq{}
+		if err := proto.Unmarshal(payload, req); err != nil {
+			return nil, err
+		}
+		resp, err := s.Shutdown(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return proto.Marshal(resp)
+
 	case "CheckConfig":
 		req := &gen.LoadConfigReq{}
 		if err := proto.Unmarshal(payload, req); err != nil {

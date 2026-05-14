@@ -13,9 +13,12 @@ namespace Configs_sys {
     CoreProcess::~CoreProcess() {
     }
 
-    void CoreProcess::Kill() {
+    void CoreProcess::Kill(int timeoutMs) {
+        if (state() == NotRunning) return;
         kill();
-        waitForFinished();
+        if (!waitForFinished(timeoutMs)) {
+            MW_show_log("[Warn] " + QObject::tr("Core process did not exit within %1 ms. Continuing shutdown.").arg(timeoutMs));
+        }
     }
 
     CoreProcess::CoreProcess(const QString &core_path, const QString &socketName, bool debugMode)

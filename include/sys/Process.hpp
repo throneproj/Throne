@@ -18,7 +18,7 @@ namespace Configs_sys {
 
         void Start();
 
-        void Kill();
+        void Kill(int timeoutMs = 3000);
 
         CoreProcess(const QString &core_path, const QString &socketName, bool debugMode);
 

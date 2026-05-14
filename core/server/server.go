@@ -202,6 +202,15 @@ func (s *server) Stop(ctx context.Context, in *gen.EmptyReq) (out *gen.ErrorResp
 	return
 }
 
+func (s *server) Shutdown(ctx context.Context, in *gen.EmptyReq) (out *gen.ErrorResp, _ error) {
+	out, _ = s.Stop(ctx, in)
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		os.Exit(0)
+	}()
+	return
+}
+
 func (s *server) CheckConfig(ctx context.Context, in *gen.LoadConfigReq) (out *gen.ErrorResp, _ error) {
 	out = &gen.ErrorResp{}
 	// Recover from panics inside boxmain.Check (e.g. malformed configs that trigger

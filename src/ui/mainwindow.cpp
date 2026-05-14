@@ -5,6 +5,7 @@
 #include <ranges>
 
 #include "include/configs/sub/GroupUpdater.hpp"
+#include "include/api/RPC.h"
 #include "include/sys/Process.hpp"
 #include "include/sys/AutoRun.hpp"
 
@@ -1491,6 +1492,12 @@ void MainWindow::prepare_exit()
     //
     Configs::dataManager->settingsRepo->noSave = true; // don't change Configs::dataManager->settingsRepo after this line
     profile_stop(false, true);
+
+    if (API::defaultClient != nullptr && Configs::dataManager->settingsRepo->core_running) {
+        bool rpcOK = false;
+        const auto error = API::defaultClient->Shutdown(&rpcOK);
+        if (rpcOK && !error.isEmpty()) MW_show_log("[Warn] " + tr("Core shutdown returned error: %1").arg(error));
+    }
 
     runOnThread([=, this]()
     {

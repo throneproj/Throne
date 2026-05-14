@@ -20,6 +20,8 @@ namespace API {
 
         QString Stop(bool *rpcOK);
 
+        QString Shutdown(bool *rpcOK);
+
         libcore::QueryStatsResp QueryStats();
 
         libcore::TestResp Test(bool *rpcOK, const libcore::TestReq &request);

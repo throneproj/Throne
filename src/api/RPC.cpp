@@ -247,6 +247,22 @@ namespace API {
         }
     }
 
+    QString Client::Shutdown(bool *rpcOK) {
+        libcore::EmptyReq request;
+        libcore::ErrorResp reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("Shutdown", spb::pb::serialize<std::string>(request), resp, 3000);
+
+        if (status == CALL_OK) {
+            reply = spb::pb::deserialize<libcore::ErrorResp>(resp);
+            *rpcOK = true;
+            return QString::fromStdString(reply.error.value());
+        } else {
+            NOT_OK
+            return "";
+        }
+    }
+
     libcore::QueryStatsResp Client::QueryStats() {
         libcore::EmptyReq request;
         libcore::QueryStatsResp reply;
