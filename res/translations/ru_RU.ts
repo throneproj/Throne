@@ -694,6 +694,18 @@
         <translation>Настройки скачивания</translation>
     </message>
     <message>
+        <source>XHTTP Parameters</source>
+        <translation>Параметры XHTTP</translation>
+    </message>
+    <message>
+        <source>Padding Obfuscation</source>
+        <translation>Обфускация padding</translation>
+    </message>
+    <message>
+        <source>XMUX</source>
+        <translation>XMUX</translation>
+    </message>
+    <message>
         <source>Max Connections</source>
         <translation>Макс. подключений</translation>
     </message>
@@ -788,6 +800,200 @@
     <message>
         <source>Reality short id. Accept only one value.</source>
         <translation>Reality short id. Принимает только одно значение.</translation>
+    </message>
+    <message>
+        <source>JSON: %1
+%2</source>
+        <translation>JSON: %1
+%2</translation>
+    </message>
+    <message>
+        <source>XHTTP mode: auto usually uses packet-up, REALITY uses stream-one, and REALITY with downloadSettings uses stream-up. downloadSettings is removed when saving stream-one mode.</source>
+        <translation>Режим XHTTP: auto обычно использует packet-up, для REALITY используется stream-one, а при downloadSettings переключается на stream-up. При сохранении stream-one параметр downloadSettings удаляется.</translation>
+    </message>
+    <message>
+        <source>Range of extra XHTTP padding bytes. Default: 100-1000. If set, both bounds must be positive.</source>
+        <translation>Диапазон дополнительных байтов заполнения XHTTP. По умолчанию: 100-1000. Если поле задано, обе границы должны быть положительными.</translation>
+    </message>
+    <message>
+        <source>Server Max Header Bytes</source>
+        <translation>Макс. размер заголовков сервера</translation>
+    </message>
+    <message>
+        <source>Maximum request header size accepted by the server. Default: 8192.</source>
+        <translation>Максимальный размер заголовков запроса, принимаемый сервером. По умолчанию: 8192.</translation>
+    </message>
+    <message>
+        <source>Enable Padding Obfuscation</source>
+        <translation>Включить обфускацию padding</translation>
+    </message>
+    <message>
+        <source>Enable custom X-Padding placement, key, header, and method. When disabled, the client uses Referer?...x_padding and the server uses X-Padding.</source>
+        <translation>Включает настраиваемые placement, key, header и method для X-Padding. Если выключено, клиент использует Referer?...x_padding, а сервер использует X-Padding.</translation>
+    </message>
+    <message>
+        <source>Padding Method</source>
+        <translation>Метод padding</translation>
+    </message>
+    <message>
+        <source>Padding value format: repeat-x or tokenish. Default: repeat-x.</source>
+        <translation>Формат значения padding: repeat-x или tokenish. По умолчанию: repeat-x.</translation>
+    </message>
+    <message>
+        <source>Padding Placement</source>
+        <translation>Размещение padding</translation>
+    </message>
+    <message>
+        <source>Where X-Padding is sent: queryInHeader, cookie, header, or query. Default: queryInHeader.</source>
+        <translation>Куда отправляется X-Padding: queryInHeader, cookie, header или query. По умолчанию: queryInHeader.</translation>
+    </message>
+    <message>
+        <source>Padding Key</source>
+        <translation>Ключ padding</translation>
+    </message>
+    <message>
+        <source>Query or cookie key for X-Padding, and query key inside queryInHeader. Default: x_padding.</source>
+        <translation>Ключ query или cookie для X-Padding, а также query-ключ внутри queryInHeader. По умолчанию: x_padding.</translation>
+    </message>
+    <message>
+        <source>Padding Header</source>
+        <translation>Заголовок padding</translation>
+    </message>
+    <message>
+        <source>Header name used by header or queryInHeader padding. Default: X-Padding.</source>
+        <translation>Имя заголовка для padding через header или queryInHeader. По умолчанию: X-Padding.</translation>
+    </message>
+    <message>
+        <source>Packet-up upload POST size: client split size and server reject limit. Default: 1000000.</source>
+        <translation>Размер upload POST для packet-up: размер разделения на клиенте и лимит отклонения на сервере. По умолчанию: 1000000.</translation>
+    </message>
+    <message>
+        <source>Packet-up client interval between upload POST requests per proxied connection, in milliseconds. Default: 30.</source>
+        <translation>Интервал клиента packet-up между upload POST-запросами на одно проксируемое соединение, в миллисекундах. По умолчанию: 30.</translation>
+    </message>
+    <message>
+        <source>Max Buffered Posts</source>
+        <translation>Макс. буферизованных POST</translation>
+    </message>
+    <message>
+        <source>Packet-up server upload queue size per proxied connection. Default: 30.</source>
+        <translation>Размер очереди upload на сервере packet-up для одного проксируемого соединения. По умолчанию: 30.</translation>
+    </message>
+    <message>
+        <source>Uplink HTTP Method</source>
+        <translation>HTTP-метод uplink</translation>
+    </message>
+    <message>
+        <source>HTTP method for upload requests. Default: POST. Xray uppercases it; GET is accepted only in packet-up mode.</source>
+        <translation>HTTP-метод upload-запросов. По умолчанию: POST. Xray переводит значение в верхний регистр; GET принимается только в режиме packet-up.</translation>
+    </message>
+    <message>
+        <source>Uplink Data Placement</source>
+        <translation>Размещение данных uplink</translation>
+    </message>
+    <message>
+        <source>Where upload data is placed. Default: auto. cookie/header are accepted only in packet-up mode; auto/body are always accepted.</source>
+        <translation>Куда помещаются upload-данные. По умолчанию: auto. cookie/header принимаются только в режиме packet-up; auto/body принимаются всегда.</translation>
+    </message>
+    <message>
+        <source>Uplink Data Key</source>
+        <translation>Ключ данных uplink</translation>
+    </message>
+    <message>
+        <source>Key used when upload data is placed in a cookie or header. Defaults: X-Data for auto/header, x_data for cookie.</source>
+        <translation>Ключ, используемый при размещении upload-данных в cookie или header. По умолчанию: X-Data для auto/header, x_data для cookie.</translation>
+    </message>
+    <message>
+        <source>Uplink Chunk Size</source>
+        <translation>Размер фрагмента uplink</translation>
+    </message>
+    <message>
+        <source>Packet-up header/cookie payload chunk size range. Defaults: cookie 2-3 KiB, header 3-4 KB, otherwise scMaxEachPostBytes. Values below 64 are clamped.</source>
+        <translation>Диапазон размера фрагмента payload для header/cookie в packet-up. По умолчанию: cookie 2-3 КиБ, header 3-4 КБ, иначе scMaxEachPostBytes. Значения ниже 64 ограничиваются.</translation>
+    </message>
+    <message>
+        <source>Client-side stream-up/stream-one option: do not add Content-Type: application/grpc to upload requests.</source>
+        <translation>Клиентская опция stream-up/stream-one: не добавлять Content-Type: application/grpc в upload-запросы.</translation>
+    </message>
+    <message>
+        <source>No SSE Headers</source>
+        <translation>Без заголовков SSE</translation>
+    </message>
+    <message>
+        <source>Server-side downstream/stream-one option: do not send Content-Type: text/event-stream in responses.</source>
+        <translation>Серверная опция downstream/stream-one: не отправлять Content-Type: text/event-stream в ответах.</translation>
+    </message>
+    <message>
+        <source>Stream Up Server Seconds</source>
+        <translation>Время stream-up на сервере</translation>
+    </message>
+    <message>
+        <source>Stream-up server interval for periodic xPaddingBytes keepalive writes, in seconds. Default: 20-80; values &lt;= 0 disable periodic padding.</source>
+        <translation>Серверный интервал stream-up для периодических keepalive-записей xPaddingBytes, в секундах. По умолчанию: 20-80; значения &lt;= 0 отключают периодический padding.</translation>
+    </message>
+    <message>
+        <source>Session Placement</source>
+        <translation>Размещение session ID</translation>
+    </message>
+    <message>
+        <source>Where the XHTTP session id is sent: path, cookie, header, or query. Default: path.</source>
+        <translation>Куда отправляется XHTTP session id: path, cookie, header или query. По умолчанию: path.</translation>
+    </message>
+    <message>
+        <source>Session Key</source>
+        <translation>Ключ session ID</translation>
+    </message>
+    <message>
+        <source>Key used for the session id outside path placement. Defaults: x_session for cookie/query, X-Session for header.</source>
+        <translation>Ключ для session id при размещении не через path. По умолчанию: x_session для cookie/query, X-Session для header.</translation>
+    </message>
+    <message>
+        <source>Sequence Placement</source>
+        <translation>Размещение sequence</translation>
+    </message>
+    <message>
+        <source>Where the XHTTP packet sequence is sent: path, cookie, header, or query. Default: path.</source>
+        <translation>Куда отправляется sequence пакета XHTTP: path, cookie, header или query. По умолчанию: path.</translation>
+    </message>
+    <message>
+        <source>Sequence Key</source>
+        <translation>Ключ sequence</translation>
+    </message>
+    <message>
+        <source>Key used for the sequence value outside path placement. Defaults: x_seq for cookie/query, X-Seq for header.</source>
+        <translation>Ключ для sequence при размещении не через path. По умолчанию: x_seq для cookie/query, X-Seq для header.</translation>
+    </message>
+    <message>
+        <source>Client-side H2/H3 xmux limit: maximum concurrent uses per underlying connection. Cannot be used together with maxConnections. Empty xmux defaults to 1-1.</source>
+        <translation>Клиентский лимит xmux для H2/H3: максимум одновременных использований одного нижележащего соединения. Нельзя использовать вместе с maxConnections. Пустой xmux по умолчанию: 1-1.</translation>
+    </message>
+    <message>
+        <source>Client-side H2/H3 xmux limit: maximum parallel underlying connections. Cannot be used together with maxConcurrency.</source>
+        <translation>Клиентский лимит xmux для H2/H3: максимум параллельных нижележащих соединений. Нельзя использовать вместе с maxConcurrency.</translation>
+    </message>
+    <message>
+        <source>Client-side H2/H3 xmux limit: maximum times an underlying connection may be selected for reuse.</source>
+        <translation>Клиентский лимит xmux для H2/H3: максимум выборов нижележащего соединения для переиспользования.</translation>
+    </message>
+    <message>
+        <source>Client-side H2/H3 xmux limit: maximum upload/download requests per underlying connection. Empty xmux defaults to 600-900.</source>
+        <translation>Клиентский лимит xmux для H2/H3: максимум upload/download-запросов на одно нижележащее соединение. Пустой xmux по умолчанию: 600-900.</translation>
+    </message>
+    <message>
+        <source>Client-side H2/H3 xmux limit: maximum seconds an underlying connection stays reusable. Empty xmux defaults to 1800-3000.</source>
+        <translation>Клиентский лимит xmux для H2/H3: максимум секунд, пока нижележащее соединение остается переиспользуемым. Пустой xmux по умолчанию: 1800-3000.</translation>
+    </message>
+    <message>
+        <source>Client-side H2/H3 keepalive interval for underlying connections, in seconds. 0 uses Xray defaults; negative values disable keepalive where supported.</source>
+        <translation>Клиентский интервал keepalive для нижележащих H2/H3-соединений, в секундах. 0 использует значения Xray по умолчанию; отрицательные значения отключают keepalive там, где это поддерживается.</translation>
+    </message>
+    <message>
+        <source>Client-only downstream streamSettings, including address and port, for an independent download path. Not allowed in stream-one and removed when saving stream-one mode.</source>
+        <translation>Клиентские downstream streamSettings, включая адрес и порт, для независимого пути скачивания. Не разрешено в stream-one и удаляется при сохранении режима stream-one.</translation>
+    </message>
+    <message>
+        <source>XHTTP maxConnections cannot be specified together with maxConcurrency.</source>
+        <translation>В XHTTP нельзя одновременно указывать maxConnections и maxConcurrency.</translation>
     </message>
 </context>
 <context>
