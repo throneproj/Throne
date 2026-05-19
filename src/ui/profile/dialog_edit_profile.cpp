@@ -78,7 +78,6 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
     ui->right_layout->setAlignment(Qt::AlignTop);
     ui->verticalLayout_5->setAlignment(Qt::AlignTop);
     ui->verticalLayout_8->setAlignment(Qt::AlignTop);
-    ui->verticalLayout_10->setAlignment(Qt::AlignTop);
 
     // Xray init
     ui->xray_security->addItems({"", "tls", "reality"});
