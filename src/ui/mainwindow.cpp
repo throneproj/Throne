@@ -321,11 +321,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->toolButton_server->setMenu(ui->menu_server);
     ui->toolButton_routing->setMenu(ui->menuRouting_Menu);
     ui->menubar->setVisible(false);
+    // Client self-update is disabled in UI. Dynamic config/subscription updates stay available below.
+    ui->toolButton_update->hide();
+    /*
     connect(ui->toolButton_update, &QToolButton::clicked, this, [=,this] { runOnNewThread([=,this] { CheckUpdate(); }); });
     if (!QFile::exists(QApplication::applicationDirPath() + "/updater") && !QFile::exists(QApplication::applicationDirPath() + "/updater.exe"))
     {
         ui->toolButton_update->hide();
     }
+    */
     connect(ui->toolButton_update_subs, &QToolButton::clicked, this, [=,this] {
         MW_show_log(tr("[UpdateConf] Button clicked."));
         // For groups that have profiles but no subscription URL, ask the user once.

@@ -60,6 +60,8 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->speedtest_mode->setCurrentIndex(Configs::dataManager->settingsRepo->speed_test_mode);
     ui->test_timeout->setText(Int2String(Configs::dataManager->settingsRepo->speed_test_timeout_ms));
     ui->simple_down_url->setText(Configs::dataManager->settingsRepo->simple_dl_url);
+    // Beta update option only affects client self-update, now disabled in UI.
+    ui->allow_beta->hide();
     ui->allow_beta->setChecked(Configs::dataManager->settingsRepo->allow_beta_update);
     ui->disable_mixed_inbound->setChecked(Configs::dataManager->settingsRepo->disable_mixed_inbound);
     D_LOAD_BOOL(inbound_auth)
