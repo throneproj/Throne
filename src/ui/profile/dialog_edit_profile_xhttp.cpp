@@ -6,75 +6,11 @@
 #include <QAbstractButton>
 #include <QGridLayout>
 #include <QLabel>
-#include <QWidget>
 
 namespace {
-constexpr int kXHTTPWideColumnWidth = 760;
-
-struct GridPlacement {
-    QWidget *widget;
-    int row;
-    int column;
-    int rowSpan = 1;
-    int columnSpan = 1;
-};
-
-void moveGridWidget(QGridLayout *layout, QWidget *widget, int row, int column,
-                    int rowSpan = 1, int columnSpan = 1) {
-    layout->removeWidget(widget);
-    layout->addWidget(widget, row, column, rowSpan, columnSpan);
-}
-
-void applyGridPlacements(QGridLayout *layout, std::initializer_list<GridPlacement> placements) {
-    for (const auto& placement : placements) {
-        moveGridWidget(layout, placement.widget, placement.row, placement.column,
-                       placement.rowSpan, placement.columnSpan);
-    }
-}
-
-void setPairGridStretch(QGridLayout *layout, bool wide) {
-    layout->setColumnStretch(0, 0);
+void setXHTTPGridStretch(QGridLayout *layout) {
     layout->setColumnStretch(1, 1);
-    layout->setColumnStretch(2, 0);
-    layout->setColumnStretch(3, wide ? 1 : 0);
-}
-
-int xhttpNaturalWidth(QWidget *widget) {
-    if (!widget || widget->isHidden()) return 0;
-    if (auto *layout = widget->layout()) {
-        layout->invalidate();
-        layout->activate();
-    }
-    return widget->sizeHint()
-        .expandedTo(widget->minimumSizeHint())
-        .expandedTo(widget->minimumSize())
-        .width();
-}
-
-bool xhttpControlsShown(const Ui::DialogEditProfile *ui) {
-    return !ui->xray_widget->isHidden() &&
-           !ui->xray_network_box->isHidden() &&
-           !ui->xray_xhttp_box->isHidden();
-}
-
-int xhttpAvailableColumnWidth(const Ui::DialogEditProfile *ui) {
-    const auto viewportWidth = ui->dialog_scroll_area->viewport()
-                                   ? ui->dialog_scroll_area->viewport()->width()
-                                   : 0;
-    if (viewportWidth <= 0) return ui->xray_widget->width();
-
-    const auto margins = ui->dialog_layout->contentsMargins();
-    const auto spacing = qMax(0, ui->dialog_layout->spacing());
-    int consumedWidth = margins.left() + margins.right();
-    int visibleColumnsBeforeXray = 0;
-
-    for (auto *column : {ui->left_w, ui->right_all_w}) {
-        if (column->isHidden()) continue;
-        consumedWidth += xhttpNaturalWidth(column);
-        visibleColumnsBeforeXray++;
-    }
-    consumedWidth += visibleColumnsBeforeXray * spacing;
-    return qMax(0, viewportWidth - consumedWidth);
+    layout->setColumnStretch(3, 1);
 }
 }
 
@@ -93,6 +29,12 @@ void DialogEditProfile::setXrayXHTTPHelp(QWidget *caption, QWidget *field,
 }
 
 void DialogEditProfile::setupXrayXHTTPControls() {
+    setXHTTPGridStretch(ui->gridLayout_xray_xhttp_common);
+    setXHTTPGridStretch(ui->gridLayout_xray_xhttp_padding);
+    setXHTTPGridStretch(ui->gridLayout_xray_xhttp_packet);
+    setXHTTPGridStretch(ui->gridLayout_xray_xhttp_xmux);
+
+    ui->verticalLayout_xray_xhttp->setAlignment(Qt::AlignTop);
     ui->xray_mode->addItems(Configs::XrayXHTTPModes);
     ui->xray_xpadding_method->addItems({"", "repeat-x", "tokenish"});
     ui->xray_xpadding_method->setEditable(true);
@@ -110,6 +52,9 @@ void DialogEditProfile::setupXrayXHTTPControls() {
 }
 
 void DialogEditProfile::setupXrayXHTTPDescriptions() {
+    ui->xray_xhttp_packet_box->setTitle(tr("Upload / Stream Tuning"));
+    ui->xray_xhttp_xmux_box->setTitle(tr("Xmux Reuse"));
+
     setXrayXHTTPHelp(ui->label_21, ui->xray_mode, tr("Mode"), "mode",
                      tr("XHTTP mode: auto usually uses packet-up, REALITY uses stream-one, "
                         "and REALITY with downloadSettings uses stream-up. downloadSettings "
@@ -201,120 +146,22 @@ void DialogEditProfile::setupXrayXHTTPDescriptions() {
                      tr("Client-only downstream streamSettings, including address and port, for an independent download path. Not allowed in stream-one and removed when saving stream-one mode."));
 }
 
-bool DialogEditProfile::updateXrayXHTTPResponsiveLayout() {
-    const auto isXHTTP = xhttpControlsShown(ui);
-    const auto availableXrayWidth = xhttpAvailableColumnWidth(ui);
-    const auto currentWideOverflows = xhttpLayoutInitialized && xhttpWideLayout &&
-                                      xhttpNaturalWidth(ui->xray_xhttp_box) > availableXrayWidth;
-    const bool wide = isXHTTP && isVisible() &&
-                      availableXrayWidth >= kXHTTPWideColumnWidth &&
-                      !currentWideOverflows;
-
-    if (xhttpLayoutInitialized && wide == xhttpWideLayout) return false;
-    xhttpLayoutInitialized = true;
-    xhttpWideLayout = wide;
-
-    auto *paramsLayout = ui->gridLayout_xray_xhttp_params;
-    auto *paddingLayout = ui->gridLayout_xray_xhttp_padding;
-    auto *xmuxLayout = ui->gridLayout_xray_xhttp_xmux;
-    setPairGridStretch(paramsLayout, wide);
-    setPairGridStretch(paddingLayout, wide);
-    setPairGridStretch(xmuxLayout, wide);
-
-    if (wide) {
-        applyGridPlacements(paramsLayout, {
-            {ui->xray_no_grpc, 0, 0, 1, 2}, {ui->xray_no_sse, 0, 2, 1, 2},
-            {ui->label_21, 1, 0}, {ui->xray_mode, 1, 1},
-            {ui->label_23, 1, 2}, {ui->xray_xpaddingbytes, 1, 3},
-            {ui->xray_serverMaxHeaderBytes_l, 2, 0}, {ui->xray_serverMaxHeaderBytes, 2, 1},
-            {ui->label_24, 2, 2}, {ui->xray_scMaxEachPostBytes, 2, 3},
-            {ui->label_25, 3, 0}, {ui->xray_scMinPostsIntervalMs, 3, 1},
-            {ui->xray_scMaxBufferedPosts_l, 3, 2}, {ui->xray_scMaxBufferedPosts, 3, 3},
-            {ui->xray_uplink_http_method_l, 4, 0}, {ui->xray_uplink_http_method, 4, 1},
-            {ui->xray_uplink_data_placement_l, 4, 2}, {ui->xray_uplink_data_placement, 4, 3},
-            {ui->xray_uplink_data_key_l, 5, 0}, {ui->xray_uplink_data_key, 5, 1},
-            {ui->xray_uplink_chunk_size_l, 5, 2}, {ui->xray_uplink_chunk_size, 5, 3},
-            {ui->xray_scStreamUpServerSecs_l, 6, 0}, {ui->xray_scStreamUpServerSecs, 6, 1},
-            {ui->xray_session_placement_l, 6, 2}, {ui->xray_session_placement, 6, 3},
-            {ui->xray_session_key_l, 7, 0}, {ui->xray_session_key, 7, 1},
-            {ui->xray_seq_placement_l, 7, 2}, {ui->xray_seq_placement, 7, 3},
-            {ui->xray_seq_key_l, 8, 0}, {ui->xray_seq_key, 8, 1},
-            {ui->label_32, 9, 0}, {ui->xray_downloadsettings_edit, 9, 1, 1, 3},
-        });
-        applyGridPlacements(paddingLayout, {
-            {ui->xray_xpadding_obfs_mode, 0, 0, 1, 4},
-            {ui->label_xpadding_method, 1, 0}, {ui->xray_xpadding_method, 1, 1},
-            {ui->label_xpadding_placement, 1, 2}, {ui->xray_xpadding_placement, 1, 3},
-            {ui->label_xpadding_key, 2, 0}, {ui->xray_xpadding_key, 2, 1},
-            {ui->label_xpadding_header, 2, 2}, {ui->xray_xpadding_header, 2, 3},
-        });
-        applyGridPlacements(xmuxLayout, {
-            {ui->label_26, 0, 0}, {ui->xray_max_concurrency, 0, 1},
-            {ui->label_31, 0, 2}, {ui->xray_max_connections, 0, 3},
-            {ui->label_27, 1, 0}, {ui->xray_hMaxRequestTimes, 1, 1},
-            {ui->label_28, 1, 2}, {ui->xray_hMaxReusableSecs, 1, 3},
-            {ui->label_29, 2, 0}, {ui->xray_max_reuse_times, 2, 1},
-            {ui->label_30, 2, 2}, {ui->xray_keep_alive_period, 2, 3},
-        });
-    } else {
-        applyGridPlacements(paramsLayout, {
-            {ui->xray_no_grpc, 0, 0}, {ui->xray_no_sse, 0, 1},
-            {ui->label_21, 1, 0}, {ui->xray_mode, 1, 1},
-            {ui->label_23, 2, 0}, {ui->xray_xpaddingbytes, 2, 1},
-            {ui->xray_serverMaxHeaderBytes_l, 3, 0}, {ui->xray_serverMaxHeaderBytes, 3, 1},
-            {ui->label_24, 4, 0}, {ui->xray_scMaxEachPostBytes, 4, 1},
-            {ui->label_25, 5, 0}, {ui->xray_scMinPostsIntervalMs, 5, 1},
-            {ui->xray_scMaxBufferedPosts_l, 6, 0}, {ui->xray_scMaxBufferedPosts, 6, 1},
-            {ui->xray_uplink_http_method_l, 7, 0}, {ui->xray_uplink_http_method, 7, 1},
-            {ui->xray_uplink_data_placement_l, 8, 0}, {ui->xray_uplink_data_placement, 8, 1},
-            {ui->xray_uplink_data_key_l, 9, 0}, {ui->xray_uplink_data_key, 9, 1},
-            {ui->xray_uplink_chunk_size_l, 10, 0}, {ui->xray_uplink_chunk_size, 10, 1},
-            {ui->xray_scStreamUpServerSecs_l, 11, 0}, {ui->xray_scStreamUpServerSecs, 11, 1},
-            {ui->xray_session_placement_l, 12, 0}, {ui->xray_session_placement, 12, 1},
-            {ui->xray_session_key_l, 13, 0}, {ui->xray_session_key, 13, 1},
-            {ui->xray_seq_placement_l, 14, 0}, {ui->xray_seq_placement, 14, 1},
-            {ui->xray_seq_key_l, 15, 0}, {ui->xray_seq_key, 15, 1},
-            {ui->label_32, 16, 0}, {ui->xray_downloadsettings_edit, 16, 1},
-        });
-        applyGridPlacements(paddingLayout, {
-            {ui->xray_xpadding_obfs_mode, 0, 0, 1, 2},
-            {ui->label_xpadding_method, 1, 0}, {ui->xray_xpadding_method, 1, 1},
-            {ui->label_xpadding_placement, 2, 0}, {ui->xray_xpadding_placement, 2, 1},
-            {ui->label_xpadding_key, 3, 0}, {ui->xray_xpadding_key, 3, 1},
-            {ui->label_xpadding_header, 4, 0}, {ui->xray_xpadding_header, 4, 1},
-        });
-        applyGridPlacements(xmuxLayout, {
-            {ui->label_26, 0, 0}, {ui->xray_max_concurrency, 0, 1},
-            {ui->label_31, 1, 0}, {ui->xray_max_connections, 1, 1},
-            {ui->label_27, 2, 0}, {ui->xray_hMaxRequestTimes, 2, 1},
-            {ui->label_28, 3, 0}, {ui->xray_hMaxReusableSecs, 3, 1},
-            {ui->label_29, 4, 0}, {ui->xray_max_reuse_times, 4, 1},
-            {ui->label_30, 5, 0}, {ui->xray_keep_alive_period, 5, 1},
-        });
-    }
-
-    ui->xray_xhttp_params_box->updateGeometry();
-    ui->xray_xhttp_padding_box->updateGeometry();
-    ui->xray_xhttp_xmux_box->updateGeometry();
-    ui->xray_xhttp_box->updateGeometry();
-    ui->xray_widget->updateGeometry();
-    return true;
-}
-
 void DialogEditProfile::updateXrayXHTTPControls() {
     const auto obfsEnabled = ui->xray_xpadding_obfs_mode->isChecked();
     const auto showDownloadSettings = ui->xray_mode->currentText() != "stream-one";
 
+    ui->xray_xhttp_packet_box->setVisible(true);
+    ui->xray_xhttp_xmux_box->setVisible(true);
     ui->label_32->setVisible(showDownloadSettings);
     ui->xray_downloadsettings_edit->setVisible(showDownloadSettings);
 
     const QList<QWidget *> obfsWidgets = {
-        ui->label_xpadding_method, ui->xray_xpadding_method,
+        ui->label_xpadding_method,    ui->xray_xpadding_method,
         ui->label_xpadding_placement, ui->xray_xpadding_placement,
-        ui->label_xpadding_key, ui->xray_xpadding_key,
-        ui->label_xpadding_header, ui->xray_xpadding_header,
+        ui->label_xpadding_key,       ui->xray_xpadding_key,
+        ui->label_xpadding_header,    ui->xray_xpadding_header,
     };
-    for (auto *widget : obfsWidgets) {
+    for (auto widget : obfsWidgets) {
         widget->setEnabled(obfsEnabled);
         widget->setVisible(obfsEnabled);
     }

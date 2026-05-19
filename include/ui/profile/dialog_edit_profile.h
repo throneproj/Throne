@@ -1,6 +1,5 @@
 #pragma once
 #include <QDialog>
-#include <QMargins>
 #include "profile_editor.h"
 
 #include "include/ui/utils/FloatCheckBox.h"
@@ -10,11 +9,6 @@
 namespace Ui {
     class DialogEditProfile;
 }
-
-class QResizeEvent;
-class QSize;
-class QShowEvent;
-class QSpacerItem;
 
 class DialogEditProfile : public QDialog {
     Q_OBJECT
@@ -49,11 +43,6 @@ private:
     std::shared_ptr<Configs::Profile> ent;
 
     QString network_title_base;
-    bool postShowFitDone = false;
-    bool xhttpLayoutInitialized = false;
-    bool xhttpWideLayout = false;
-    QMargins xrayLayoutBaseMargins;
-    QSpacerItem *xrayTopSpacer{};
 
     struct {
         QStringList certificate;
@@ -64,30 +53,15 @@ private:
 
     void updateXrayCommons(QString network);
 
-    void setupDialogLayoutBehavior();
-
     void setupXrayXHTTPControls();
 
     void updateXrayXHTTPControls();
 
     void setupXrayXHTTPDescriptions();
 
-    void setXrayXHTTPHelp(QWidget *caption, QWidget *field, const QString &text,
-                          const QString &jsonKey, const QString &description);
+    void setXrayXHTTPHelp(QWidget *caption, QWidget *field, const QString &text, const QString &jsonKey, const QString &description);
 
     void queueRefreshDialogLayout();
-
-    bool updateXrayXHTTPResponsiveLayout();
-
-    void updateDialogColumnSizing();
-
-    QSize visibleDialogContentSize() const;
-
-    void updateXrayVerticalOffset();
-
-    void refreshDialogLayout();
-
-    void fitDialogToContent();
 
     bool validateHeaders();
 
@@ -96,8 +70,4 @@ private:
     bool onEnd();
 
     void editor_cache_updated_impl();
-
-    void resizeEvent(QResizeEvent *event) override;
-
-    void showEvent(QShowEvent *event) override;
 };

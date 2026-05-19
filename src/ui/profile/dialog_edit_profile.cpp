@@ -17,6 +17,7 @@
 #include "include/global/Utils.hpp"
 
 #include <QInputDialog>
+#include <QLabel>
 
 #include "include/configs/common/TLS.h"
 #include "include/configs/common/utils.h"
@@ -39,8 +40,15 @@
 
 #define LOAD_TYPE(a) ui->type->addItem(Configs::dataManager->profilesRepo->NewProfile(a)->outbound->DisplayType(), a);
 
+namespace {
+constexpr int kXrayXHTTPNetworkMinWidth = 760;
+}
+
 void DialogEditProfile::queueRefreshDialogLayout() {
-    runOnThread([=,this] { refreshDialogLayout(); }, this);
+    runOnThread([=,this] {
+        adjustSize();
+        adjustPosition(mainwindow);
+    }, this);
 }
 
 void DialogEditProfile::toggleSingboxWidgets(bool show) {
@@ -58,7 +66,19 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
     : QDialog(parent), ui(new Ui::DialogEditProfile) {
     // setup UI
     ui->setupUi(this);
-    setupDialogLayoutBehavior();
+    auto setXrayXHTTPNetworkVisible = [=,this](bool visible) {
+        ui->xray_network_scroll->setMinimumWidth(visible ? kXrayXHTTPNetworkMinWidth : 0);
+        ui->xray_xhttp_box->setVisible(visible);
+    };
+    ui->dialog_layout->setStretch(0, 0);
+    ui->dialog_layout->setStretch(1, 1);
+    ui->dialog_layout->setStretch(2, 1);
+    ui->dialog_layout->setAlignment(ui->left, Qt::AlignTop);
+    ui->left->setAlignment(Qt::AlignTop);
+    ui->right_layout->setAlignment(Qt::AlignTop);
+    ui->verticalLayout_5->setAlignment(Qt::AlignTop);
+    ui->verticalLayout_8->setAlignment(Qt::AlignTop);
+    ui->verticalLayout_10->setAlignment(Qt::AlignTop);
 
     // Xray init
     ui->xray_security->addItems({"", "tls", "reality"});
@@ -191,7 +211,7 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
             ui->xray_widget->show();
             ui->xray_network_box->setVisible(true);
             if (txt == "xhttp") {
-                ui->xray_xhttp_box->setVisible(true);
+                setXrayXHTTPNetworkVisible(true);
                 ui->xray_ed_label->setVisible(false);
                 ui->xray_ed_length->setVisible(false);
                 ui->xray_headers_l->setVisible(true);
@@ -199,7 +219,7 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
                 ui->xray_multi_mode->setVisible(false);
                 updateXrayXHTTPControls();
             } else {
-                ui->xray_xhttp_box->setVisible(false);
+                setXrayXHTTPNetworkVisible(false);
                 if (txt == "grpc") {
                     ui->xray_ed_label->setVisible(false);
                     ui->xray_ed_length->setVisible(false);
@@ -603,7 +623,8 @@ void DialogEditProfile::typeSelected(const QString &newType) {
 
     editor_cache_updated_impl();
     runOnThread([=,this] {
-        fitDialogToContent();
+        adjustSize();
+        adjustPosition(mainwindow);
         if (isHidden()) show();
     }, this);
 }
