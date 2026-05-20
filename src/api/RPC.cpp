@@ -449,6 +449,10 @@ namespace API {
 
     bool Client::IsPrivileged(bool* rpcOK) const
     {
+        if (rpcOK != nullptr) *rpcOK = false;
+        if (!channel) {
+            return false;
+        }
         libcore::EmptyReq request;
         libcore::IsPrivilegedResponse reply;
         std::vector<uint8_t> resp;

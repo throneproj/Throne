@@ -1,4 +1,5 @@
 #include <csignal>
+#include <exception>
 
 #include <QApplication>
 #include <QCryptographicHash>
@@ -9,6 +10,8 @@
 #include <QLocalSocket>
 #include <QLocalServer>
 #include <QThread>
+#include <QFileInfo>
+#include <QRegularExpression>
 #include <3rdparty/WinCommander.hpp>
 
 
@@ -34,6 +37,48 @@ void signal_handler(int signum) {
 
 QTranslator* trans = nullptr;
 QTranslator* trans_qt = nullptr;
+
+namespace {
+    QDir getWorkingDirectory(const QStringList& arguments) {
+        auto wd = QDir(QApplication::applicationDirPath());
+
+        if (arguments.contains("-appdata")) {
+            QString appDataDir;
+            const int appdataIndex = arguments.indexOf("-appdata");
+            if (arguments.size() > appdataIndex + 1 && !arguments.at(appdataIndex + 1).startsWith("-")) {
+                appDataDir = arguments.at(appdataIndex + 1);
+            }
+            QApplication::setApplicationName("Throne");
+            if (!appDataDir.isEmpty()) {
+                wd.setPath(appDataDir);
+            } else {
+                wd.setPath(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
+            }
+            return wd;
+        }
+
+#if defined(Q_OS_MACOS) || defined(NKR_CPP_USE_APPDATA)
+        QApplication::setApplicationName("Throne");
+        wd.setPath(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
+#endif
+        return wd;
+    }
+
+    QString getInstanceServerName(const QDir& wd) {
+        QByteArray hashBytes = QCryptographicHash::hash(wd.absolutePath().toUtf8(), QCryptographicHash::Md5).toBase64(QByteArray::OmitTrailingEquals);
+        hashBytes.replace('+', '0').replace('/', '1');
+        auto serverName = QStringLiteral("throne-") + QString::fromUtf8(hashBytes);
+#ifdef Q_OS_MACOS
+        QString runtimeBase = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+        auto ipcDir = QDir(runtimeBase + "/throne-ipc");
+        if (!ipcDir.exists()) ipcDir.mkpath(".");
+        const auto safeName = QString(serverName).replace(QRegularExpression("[^A-Za-z0-9._-]"), "_");
+        return ipcDir.absoluteFilePath(safeName + ".sock");
+#else
+        return serverName;
+#endif
+    }
+}
 
 void loadTranslate(const QString& locale) {
     QT_TRANSLATE_NOOP("QPlatformTheme", "Cancel");
@@ -98,27 +143,22 @@ int main(int argc, char* argv[]) {
     QStringList arguments = QApplication::arguments();
 
     // dirs & clean
-    auto wd = QDir(QApplication::applicationDirPath());
-    if (arguments.contains("-appdata")) {
-        QString appDataDir;
-        int appdataIndex = arguments.indexOf("-appdata");
-        if (arguments.size() > appdataIndex + 1 && !arguments.at(appdataIndex + 1).startsWith("-")) {
-            appDataDir = arguments.at(appdataIndex + 1);
-        }
-        QApplication::setApplicationName("Throne");
-        if (!appDataDir.isEmpty()) {
-            wd.setPath(appDataDir);
-        } else {
-            wd.setPath(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation));
-        }
-    }
+    auto wd = getWorkingDirectory(arguments);
     if (!wd.exists()) wd.mkpath(wd.absolutePath());
     if (!wd.exists("config")) wd.mkdir("config");
     QDir::setCurrent(wd.absoluteFilePath("config"));
     QDir("temp").removeRecursively();
 
     // Load database
-    Configs::initDB(QString(QDir::currentPath() + QDir::separator() + "throne.db").toStdString());
+    try {
+        Configs::initDB(QString(QDir::currentPath() + QDir::separator() + "throne.db").toStdString());
+    } catch (const std::exception& e) {
+        MessageBoxWarning(
+            "Database initialization failed",
+            QString("Failed to open the database in:\n%1\n\n%2").arg(QDir::currentPath(), e.what())
+        );
+        return 1;
+    }
 
     // Store Flags
     Configs::dataManager->settingsRepo->argv = arguments;
@@ -134,7 +174,7 @@ int main(int argc, char* argv[]) {
     if (Configs::dataManager->settingsRepo->argv.contains("-debug")) Configs::dataManager->settingsRepo->flag_debug = true;
     if (Configs::dataManager->settingsRepo->argv.contains("-flag_restart_tun_on")) Configs::dataManager->settingsRepo->flag_restart_tun_on = true;
     if (Configs::dataManager->settingsRepo->argv.contains("-flag_restart_dns_set")) Configs::dataManager->settingsRepo->flag_dns_set = true;
-#ifdef NKR_CPP_USE_APPDATA
+#if defined(Q_OS_MACOS) || defined(NKR_CPP_USE_APPDATA)
     Configs::dataManager->settingsRepo->flag_use_appdata = true; // Example: Package & MacOS
 #endif
 #ifdef NKR_CPP_DEBUG
@@ -197,9 +237,7 @@ int main(int argc, char* argv[]) {
     loadTranslate(locale);
 
     // Check if another instance is running
-    QByteArray hashBytes = QCryptographicHash::hash(wd.absolutePath().toUtf8(), QCryptographicHash::Md5).toBase64(QByteArray::OmitTrailingEquals);
-    hashBytes.replace('+', '0').replace('/', '1');
-    auto serverName = LOCAL_SERVER_PREFIX + QString::fromUtf8(hashBytes);
+    auto serverName = getInstanceServerName(wd);
     qDebug() << "server name: " << serverName;
     QLocalSocket socket;
     socket.connectToServer(serverName);
@@ -212,10 +250,18 @@ int main(int argc, char* argv[]) {
 
     // QLocalServer
     QLocalServer server(qApp);
+#ifndef Q_OS_MACOS
     server.setSocketOptions(QLocalServer::WorldAccessOption);
+#endif
+    QLocalServer::removeServer(serverName);
     if (!server.listen(serverName)) {
-        qWarning() << "Failed to start QLocalServer! Error:" << server.errorString();
-        return 1;
+        qWarning() << "Failed to start QLocalServer, retrying after cleanup. Error:" << server.errorString();
+        server.close();
+        QLocalServer::removeServer(serverName);
+        if (!server.listen(serverName)) {
+            qWarning() << "Failed to start QLocalServer! Error:" << server.errorString();
+            return 1;
+        }
     }
     QObject::connect(&server, &QLocalServer::newConnection, qApp, [&] {
         auto s = server.nextPendingConnection();

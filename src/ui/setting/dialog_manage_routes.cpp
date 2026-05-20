@@ -143,7 +143,7 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     });
 
     QStringList ruleItems = {"domain:", "suffix:", "regex:"};
-    for (const auto& item : ruleSetMap) {
+    for (const auto& item : Configs::ruleSetMap) {
         ruleItems.append("ruleset:" + QString::fromStdString(item.first));
     }
     rule_editor = new AutoCompleteTextEdit("", ruleItems, this);

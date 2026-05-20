@@ -88,9 +88,13 @@ namespace Configs {
         admin = Windows_IsInAdmin();
         Configs::dataManager->settingsRepo->windows_set_admin = admin;
 #else
-        bool ok;
-        auto isPrivileged = API::defaultClient->IsPrivileged(&ok);
-        admin = ok && isPrivileged;
+        if (API::defaultClient != nullptr) {
+            bool ok = false;
+            auto isPrivileged = API::defaultClient->IsPrivileged(&ok);
+            admin = ok && isPrivileged;
+        } else {
+            admin = false;
+        }
 #endif
         isAdminCache = admin;
         return admin;

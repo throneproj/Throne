@@ -1146,15 +1146,17 @@ namespace Configs {
                             {"url", item},
                         };
             }
-            else
-                if(ruleSetMap.contains(item.toStdString())) {
+            else {
+                const auto remoteUrl = GetRuleSetRemoteUrl(item);
+                if (!remoteUrl.isEmpty()) {
                     ruleSetArray += QJsonObject{
                                 {"type", "remote"},
                                 {"tag", item},
                                 {"format", "binary"},
-                                {"url", get_jsdelivr_link(QString::fromStdString(ruleSetMap.at(item.toStdString())))},
+                                {"url", get_jsdelivr_link(remoteUrl)},
                             };
                 }
+            }
         }
 
         // add block
