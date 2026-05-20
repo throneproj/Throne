@@ -102,6 +102,9 @@ set(PROJECT_SOURCES
         include/sys/Process.hpp
         src/sys/Process.cpp
 
+        include/sys/DPICheck.hpp
+        src/sys/DPICheck.cpp
+
         include/ui/setting/ThemeManager.hpp
         src/ui/setting/ThemeManager.cpp
         src/ui/setting/Icon.cpp

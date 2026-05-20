@@ -112,6 +112,7 @@ namespace Configs {
         bool sub_send_hwid = false;
         QString sub_custom_hwid_params = "";
         bool allow_stopping_active_profile = false;
+        bool dpi_consent = false;
 
         // Security
         bool skip_cert = false;

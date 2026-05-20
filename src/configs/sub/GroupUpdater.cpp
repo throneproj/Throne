@@ -11,6 +11,8 @@
 #include "include/configs/common/utils.h"
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
+#include "include/global/Configs.hpp"
+#include "include/sys/DPICheck.hpp"
 
 namespace Subscription {
 
@@ -744,6 +746,15 @@ namespace Subscription {
 
             content = resp.data;
             sub_user_info = NetworkRequestHelper::GetHeader(resp.header, "Subscription-UserInfo");
+
+            const QString dpiConsentHeader = NetworkRequestHelper::GetHeader(resp.header, "DPI_CONSENT");
+            if (!dpiConsentHeader.isEmpty()) {
+                Configs::dataManager->settingsRepo->dpi_consent =
+                    dpiConsentHeader.compare(QStringLiteral("true"), Qt::CaseInsensitive) == 0;
+                Configs::dataManager->settingsRepo->Save();
+                if (Configs::dataManager->settingsRepo->dpi_consent)
+                    DpiCheck::TryRunDaily();
+            }
 
             MW_show_log("<<<<<<<< " + QObject::tr("Subscription request fininshed: %1").arg(groupName));
         }

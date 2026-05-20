@@ -15,6 +15,7 @@
 #include "include/global/Configs.hpp"
 
 #include "include/ui/mainwindow_interface.h"
+#include "include/sys/DPICheck.hpp"
 
 #ifdef Q_OS_WIN
 #include "include/sys/windows/MiniDump.h"
@@ -247,6 +248,8 @@ int main(int argc, char* argv[]) {
         signal_handler(0);
     });
 #endif
+
+    DpiCheck::TryRunDaily();
 
     UI_InitMainWindow();
     return QApplication::exec();
