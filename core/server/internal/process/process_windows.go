@@ -5,6 +5,7 @@ package process
 import (
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"syscall"
@@ -146,16 +147,37 @@ func findProcess(name string) (uint32, error) {
 	return 0, fmt.Errorf("process %q not found", name)
 }
 
-// MakeConfigReadable best-effort grants the local Users group read access to
-// path so a de-privileged child can read it. With the linked-token path the
-// child is the same user at a lower integrity level and can already read it,
-// so a failure here is non-fatal.
-func MakeConfigReadable(path string) error {
+// createSecureConfigFile creates the extra-process config file. On Windows
+// %TEMP% is a per-user directory and creating a symlink needs a privilege
+// unprivileged users lack, so an ordinary O_CREATE|O_EXCL temp file (the
+// default of os.CreateTemp) already creates a clean, un-hijackable file.
+func createSecureConfigFile() (*os.File, string, error) {
+	f, err := os.CreateTemp("", "throne-extra-*.conf")
+	if err != nil {
+		return nil, "", err
+	}
+	return f, f.Name(), nil
+}
+
+// makeConfigReadable best-effort grants the local Users group read access so a
+// de-privileged child can read the config. To avoid a path swap between
+// creation and the ACL change, it reopens the file WITHOUT following a reparse
+// point and verifies (by volume + file id) that it is the very object we
+// created before touching the DACL through that handle. A failure is
+// non-fatal: with the linked-token path the child is the same user at lower
+// integrity and can already read it.
+func makeConfigReadable(f *os.File) error {
 	usersSid, err := windows.CreateWellKnownSid(windows.WinBuiltinUsersSid)
 	if err != nil {
 		return nil
 	}
-	sd, err := windows.GetNamedSecurityInfo(path, windows.SE_FILE_OBJECT, windows.DACL_SECURITY_INFORMATION)
+	h, err := reopenSameObject(f)
+	if err != nil {
+		return nil
+	}
+	defer windows.CloseHandle(h)
+
+	sd, err := windows.GetSecurityInfo(h, windows.SE_FILE_OBJECT, windows.DACL_SECURITY_INFORMATION)
 	if err != nil {
 		return nil
 	}
@@ -177,7 +199,47 @@ func MakeConfigReadable(path string) error {
 	if err != nil {
 		return nil
 	}
-	_ = windows.SetNamedSecurityInfo(path, windows.SE_FILE_OBJECT,
+	_ = windows.SetSecurityInfo(h, windows.SE_FILE_OBJECT,
 		windows.DACL_SECURITY_INFORMATION, nil, nil, merged, nil)
 	return nil
+}
+
+// reopenSameObject opens f's path for DACL editing (WRITE_DAC|READ_CONTROL)
+// without following a final reparse point, then confirms it is the same
+// filesystem object as f (same volume + file id, not a reparse point). This
+// defeats a symlink/path swap performed after the file was created.
+func reopenSameObject(f *os.File) (windows.Handle, error) {
+	namep, err := windows.UTF16PtrFromString(f.Name())
+	if err != nil {
+		return 0, err
+	}
+	h, err := windows.CreateFile(
+		namep,
+		windows.WRITE_DAC|windows.READ_CONTROL,
+		windows.FILE_SHARE_READ|windows.FILE_SHARE_WRITE|windows.FILE_SHARE_DELETE,
+		nil,
+		windows.OPEN_EXISTING,
+		windows.FILE_FLAG_OPEN_REPARSE_POINT|windows.FILE_FLAG_BACKUP_SEMANTICS,
+		0,
+	)
+	if err != nil {
+		return 0, err
+	}
+	var reopened, original windows.ByHandleFileInformation
+	if err = windows.GetFileInformationByHandle(h, &reopened); err != nil {
+		_ = windows.CloseHandle(h)
+		return 0, err
+	}
+	if err = windows.GetFileInformationByHandle(windows.Handle(f.Fd()), &original); err != nil {
+		_ = windows.CloseHandle(h)
+		return 0, err
+	}
+	if reopened.VolumeSerialNumber != original.VolumeSerialNumber ||
+		reopened.FileIndexHigh != original.FileIndexHigh ||
+		reopened.FileIndexLow != original.FileIndexLow ||
+		reopened.FileAttributes&windows.FILE_ATTRIBUTE_REPARSE_POINT != 0 {
+		_ = windows.CloseHandle(h)
+		return 0, errors.New("config file identity mismatch (possible path swap)")
+	}
+	return h, nil
 }

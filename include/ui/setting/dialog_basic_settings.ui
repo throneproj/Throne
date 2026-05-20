@@ -435,6 +435,13 @@ QTabBar::tab:hover:!selected {
                </property>
               </widget>
              </item>
+             <item>
+              <widget class="QCheckBox" name="log_auto_scroll">
+               <property name="text">
+                <string>Auto-scroll log</string>
+               </property>
+              </widget>
+             </item>
             </layout>
            </widget>
           </item>
@@ -444,7 +451,7 @@ QTabBar::tab:hover:!selected {
              <item>
               <widget class="QLabel" name="label_3">
                <property name="text">
-                <string notr="true">Sing-box Log level</string>
+                <string>Sing-box Log level</string>
                </property>
               </widget>
              </item>
@@ -1150,9 +1157,49 @@ QTabBar::tab:hover:!selected {
           <item>
            <widget class="QLabel" name="label_backup_desc">
             <property name="text">
-             <string>Create a portable backup file containing all profiles, groups, routes, settings, and custom icons.</string>
+             <string>Create a portable backup file. Choose which parts to include:</string>
             </property>
             <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="backup_inc_profiles">
+            <property name="text">
+             <string>Profiles (groups and proxies)</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="backup_inc_routes">
+            <property name="text">
+             <string>Routing profiles</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="backup_inc_settings">
+            <property name="text">
+             <string>Settings</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="backup_inc_icons">
+            <property name="text">
+             <string>Custom icons</string>
+            </property>
+            <property name="checked">
              <bool>true</bool>
             </property>
            </widget>
@@ -1193,7 +1240,7 @@ QTabBar::tab:hover:!selected {
           <item>
            <widget class="QLabel" name="label_restore_desc">
             <property name="text">
-             <string>Restore from a backup file. All current profiles, groups, routes, and settings will be replaced. The application must be restarted after restore.</string>
+             <string>Restore from a backup file. You can choose which parts to restore; each selected part replaces the current data. The application restarts after restore.</string>
             </property>
             <property name="wordWrap">
              <bool>true</bool>

@@ -419,6 +419,14 @@ Debug info does not contain any personal information.</source>
         <translation>Логирование</translation>
     </message>
     <message>
+        <source>Auto-scroll log</source>
+        <translation>Авто-скролл логов</translation>
+    </message>
+    <message>
+        <source>Sing-box Log level</source>
+        <translation>Уровень логирования Sing-box</translation>
+    </message>
+    <message>
         <source>Xray Log level</source>
         <translation>Уровень логирования Xray</translation>
     </message>

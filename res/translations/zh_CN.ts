@@ -285,6 +285,10 @@ Release note:
         <translation>最多日志行数</translation>
     </message>
     <message>
+        <source>Auto-scroll log</source>
+        <translation>自动滚动日志</translation>
+    </message>
+    <message>
         <source>Sing-box Log level</source>
         <translation>Sing-box 日志级别</translation>
     </message>

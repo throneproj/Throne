@@ -17,6 +17,9 @@ func CheckParentProcess() {
 	if err != nil {
 		log.Fatalf("parent check: cannot read parent executable: %v", err)
 	}
+	if resolved, err := filepath.EvalSymlinks(parentPath); err == nil {
+		parentPath = resolved
+	}
 
 	selfPath, err := os.Executable()
 	if err != nil {

@@ -25,6 +25,21 @@ namespace Configs {
         long long traffic_dl = 0;
         long long traffic_up = 0;
     };
+    // Which logical categories a backup contains / a restore should apply.
+    // profiles -> groups, groups_order, profiles tables
+    // routes   -> route_profiles, route_rules tables
+    // settings -> settings table
+    // icons    -> icons/ folder (handled by the UI layer, not the database)
+    struct BackupParts {
+        bool profiles = false;
+        bool routes = false;
+        bool settings = false;
+        bool icons = false;
+
+        [[nodiscard]] bool anyDb() const { return profiles || routes || settings; }
+        [[nodiscard]] bool any() const { return profiles || routes || settings || icons; }
+    };
+
     // Max bound parameters per statement (SQLite default SQLITE_MAX_VARIABLE_NUMBER is 999).
     constexpr int BATCH_LIMIT_WRITE = 1500;
     constexpr int BATCH_LIMIT_READ = 4096;
@@ -236,5 +251,15 @@ namespace Configs {
         void backupTo(const std::string& destPath);
         // Throws std::exception on failure.
         void restoreFrom(const std::string& srcPath);
+
+        // Create a snapshot at destPath containing only the selected categories.
+        // entity_ids is always retained so restored IDs stay consistent.
+        // Caller must delete destPath if it already exists. Throws on failure.
+        void backupSelective(const std::string& destPath, const BackupParts& parts);
+
+        // Replace the selected categories in the live database with the contents
+        // of the snapshot at srcPath. Only columns present in both schemas are
+        // copied, so backups from other versions still restore. Throws on failure.
+        void restoreSelective(const std::string& srcPath, const BackupParts& parts);
     };
 }

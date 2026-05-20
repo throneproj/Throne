@@ -50,13 +50,14 @@ namespace Configs {
             {"skip_delete_confirmation",      &skip_delete_confirmation},
             {"log_enable_include",            &log_enable_include},
             {"log_enable_exclude",            &log_enable_exclude},
+            {"log_auto_scroll",               &log_auto_scroll},
             {"enable_warp",                   &enable_warp},
             {"enable_dns_routing",            &enable_dns_routing},
             {"inbound_auth",                  &inbound_auth},
             {"allow_stopping_active_profile", &allow_stopping_active_profile},
             {"disable_mixed_inbound",         &disable_mixed_inbound},
-            {"system_proxy_enabled",          &system_proxy_enabled},
-            {"tun_mode_enabled",              &tun_mode_enabled},
+            {"system_proxy_enabled",          &remember_system_proxy},
+            {"tun_mode_enabled",              &remember_tun},
             {"reset_proxy_on_disable_sp", &reset_proxy_on_disable_sp},
         };
 

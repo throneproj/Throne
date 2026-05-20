@@ -12,7 +12,6 @@ namespace Configs
         QString path;
         QString args;
         QString config;
-        QString configDir;
         bool noLog;
     };
 

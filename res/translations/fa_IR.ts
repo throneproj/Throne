@@ -212,6 +212,10 @@ Release note:
         <translation>حداکثر خطوط فایل لاگ</translation>
     </message>
     <message>
+        <source>Auto-scroll log</source>
+        <translation>پیمایش خودکار لاگ</translation>
+    </message>
+    <message>
         <source>Skip TLS certificate authentication by default (allowInsecure)</source>
         <translation>رد شدن از احراز هویت گواهی TLS به طور پیش فرض (allowInsecure)</translation>
     </message>

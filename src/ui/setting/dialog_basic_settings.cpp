@@ -25,6 +25,11 @@
 #include <QSysInfo>
 #include <QDir>
 #include <QStandardPaths>
+#include <QCheckBox>
+#include <QVBoxLayout>
+#include <QDialogButtonBox>
+#include <QLabel>
+#include <QPushButton>
 
 
 
@@ -55,6 +60,8 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->speedtest_mode->setCurrentIndex(Configs::dataManager->settingsRepo->speed_test_mode);
     ui->test_timeout->setText(Int2String(Configs::dataManager->settingsRepo->speed_test_timeout_ms));
     ui->simple_down_url->setText(Configs::dataManager->settingsRepo->simple_dl_url);
+    // Beta update option only affects client self-update, now disabled in UI.
+    ui->allow_beta->hide();
     ui->allow_beta->setChecked(Configs::dataManager->settingsRepo->allow_beta_update);
     ui->disable_mixed_inbound->setChecked(Configs::dataManager->settingsRepo->disable_mixed_inbound);
     D_LOAD_BOOL(inbound_auth)
@@ -86,6 +93,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
 
     // Logging
     ui->max_log_line->setText(QString::number(Configs::dataManager->settingsRepo->max_log_line));
+    D_LOAD_BOOL(log_auto_scroll)
     ui->log_level->setCurrentText(Configs::dataManager->settingsRepo->log_level);
     ui->xray_loglevel->setCurrentText(Configs::dataManager->settingsRepo->xray_log_level);
     ui->enable_log_include->setChecked(Configs::dataManager->settingsRepo->log_enable_include);
@@ -303,6 +311,7 @@ void DialogBasicSettings::accept() {
     Configs::dataManager->settingsRepo->xray_log_level = ui->xray_loglevel->currentText();
     Configs::dataManager->settingsRepo->log_enable_include = ui->enable_log_include->isChecked();
     Configs::dataManager->settingsRepo->log_enable_exclude = ui->enable_log_exclude->isChecked();
+    D_SAVE_BOOL(log_auto_scroll)
     Configs::dataManager->settingsRepo->log_include_keyword = SplitAndTrim(ui->log_include_keyword->toPlainText(), "\n", false);
     Configs::dataManager->settingsRepo->log_exclude_keyword = SplitAndTrim(ui->log_exclude_keyword->toPlainText(), "\n", false);
 
@@ -390,17 +399,55 @@ void DialogBasicSettings::accept() {
 }
 
 // Backup archive format:
-//   [magic: "NKRB" 4 bytes]
+//   [magic: "THRN" 4 bytes]
 //   [format_version: quint32]  -- identifies archive structure, increment on breaking layout changes
-//   [metadata: QString]        -- compact JSON: backup_version, created_at, platform
-//   [files: QMap<QString,QByteArray>]  -- "database" + optional "icons/<name>" entries
-static constexpr quint32 BACKUP_FORMAT_VERSION = 1;
-// backup_version (inside JSON metadata) is the semantic content version:
-//   v1: database + icons
-static constexpr int BACKUP_CONTENT_VERSION = 1;
+//   [metadata: QString]        -- compact JSON: backup_version, created_at, platform, parts
+//   [files: QMap<QString,QByteArray>]  -- optional "database" + optional "icons/<name>" entries
+// v1: full database snapshot + icons (no "parts" metadata; treated as all parts present).
+// v2: selective database snapshot (only chosen categories retained) + "parts" metadata
+//     describing which of profiles/routes/settings/icons the file contains.
+static constexpr quint32 BACKUP_FORMAT_VERSION = 2;
+static constexpr int BACKUP_CONTENT_VERSION = 2;
+
+// Build a BackupParts from the metadata of an opened archive.
+//  - v2 archives carry an explicit "parts" object.
+//  - v1 archives are full snapshots: profiles/routes/settings are all present,
+//    icons are present only if the archive actually carries icon entries.
+static Configs::BackupParts BackupPartsFromMeta(quint32 formatVersion, const QJsonObject& meta,
+                                                const QMap<QString, QByteArray>& files) {
+    Configs::BackupParts p;
+    bool hasIcons = false;
+    for (auto it = files.constBegin(); it != files.constEnd(); ++it) {
+        if (it.key().startsWith("icons/")) { hasIcons = true; break; }
+    }
+    if (formatVersion >= 2 && meta.contains("parts")) {
+        const QJsonObject po = meta["parts"].toObject();
+        p.profiles = po["profiles"].toBool() && files.contains("database");
+        p.routes = po["routes"].toBool() && files.contains("database");
+        p.settings = po["settings"].toBool() && files.contains("database");
+        p.icons = po["icons"].toBool() && hasIcons;
+    } else {
+        p.profiles = p.routes = p.settings = files.contains("database");
+        p.icons = hasIcons;
+    }
+    return p;
+}
 
 void DialogBasicSettings::on_backup_create_clicked() {
-    Configs::dataManager->settingsRepo->Save();
+    Configs::BackupParts parts;
+    parts.profiles = ui->backup_inc_profiles->isChecked();
+    parts.routes = ui->backup_inc_routes->isChecked();
+    parts.settings = ui->backup_inc_settings->isChecked();
+    parts.icons = ui->backup_inc_icons->isChecked();
+
+    if (!parts.any()) {
+        QMessageBox::warning(this, tr("Create Backup"),
+            tr("Select at least one part to include in the backup."));
+        return;
+    }
+
+    // Persist current in-memory settings so the snapshot reflects them.
+    if (parts.settings) Configs::dataManager->settingsRepo->Save();
 
     QString filePath = QFileDialog::getSaveFileName(
         this,
@@ -410,37 +457,40 @@ void DialogBasicSettings::on_backup_create_clicked() {
     );
     if (filePath.isEmpty()) return;
 
-    QString tempDbPath = QDir::temp().filePath("Thr_backup_tmp.db");
-    QFile::remove(tempDbPath);
-
-    try {
-        Configs::dataManager->getDatabase().backupTo(tempDbPath.toStdString());
-    } catch (std::exception& e) {
-        QFile::remove(tempDbPath);
-        QMessageBox::critical(this, tr("Backup Failed"),
-            tr("Failed to create database snapshot: %1").arg(e.what()));
-        return;
-    }
-
-    QFile tempDbFile(tempDbPath);
-    if (!tempDbFile.open(QIODevice::ReadOnly)) {
-        QFile::remove(tempDbPath);
-        QMessageBox::critical(this, tr("Backup Failed"), tr("Failed to read database snapshot."));
-        return;
-    }
-    QByteArray dbBytes = tempDbFile.readAll();
-    tempDbFile.close();
-    QFile::remove(tempDbPath);
-
     QMap<QString, QByteArray> files;
-    files["database"] = dbBytes;
 
-    QDir iconsDir("icons");
-    if (iconsDir.exists()) {
-        for (const QFileInfo& entry : iconsDir.entryInfoList(QDir::Files)) {
-            QFile iconFile(entry.absoluteFilePath());
-            if (iconFile.open(QIODevice::ReadOnly)) {
-                files["icons/" + entry.fileName()] = iconFile.readAll();
+    if (parts.anyDb()) {
+        QString tempDbPath = QDir::temp().filePath("Thr_backup_tmp.db");
+        QFile::remove(tempDbPath);
+
+        try {
+            Configs::dataManager->getDatabase().backupSelective(tempDbPath.toStdString(), parts);
+        } catch (std::exception& e) {
+            QFile::remove(tempDbPath);
+            QMessageBox::critical(this, tr("Backup Failed"),
+                tr("Failed to create database snapshot: %1").arg(e.what()));
+            return;
+        }
+
+        QFile tempDbFile(tempDbPath);
+        if (!tempDbFile.open(QIODevice::ReadOnly)) {
+            QFile::remove(tempDbPath);
+            QMessageBox::critical(this, tr("Backup Failed"), tr("Failed to read database snapshot."));
+            return;
+        }
+        files["database"] = tempDbFile.readAll();
+        tempDbFile.close();
+        QFile::remove(tempDbPath);
+    }
+
+    if (parts.icons) {
+        QDir iconsDir("icons");
+        if (iconsDir.exists()) {
+            for (const QFileInfo& entry : iconsDir.entryInfoList(QDir::Files)) {
+                QFile iconFile(entry.absoluteFilePath());
+                if (iconFile.open(QIODevice::ReadOnly)) {
+                    files["icons/" + entry.fileName()] = iconFile.readAll();
+                }
             }
         }
     }
@@ -459,17 +509,31 @@ void DialogBasicSettings::on_backup_create_clicked() {
     stream.writeRawData("THRN", 4);
     stream << BACKUP_FORMAT_VERSION;
 
+    QJsonObject partsObj;
+    partsObj["profiles"] = parts.profiles;
+    partsObj["routes"] = parts.routes;
+    partsObj["settings"] = parts.settings;
+    partsObj["icons"] = parts.icons;
+
     QJsonObject meta;
     meta["backup_version"] = BACKUP_CONTENT_VERSION;
     meta["created_at"] = QDateTime::currentDateTime().toString(Qt::TextDate);
     meta["platform"] = QSysInfo::kernelType();
+    meta["parts"] = partsObj;
     stream << QString::fromUtf8(QJsonDocument(meta).toJson(QJsonDocument::Compact));
 
     stream << files;
     outFile.close();
 
+    QStringList included;
+    if (parts.profiles) included << tr("Profiles");
+    if (parts.routes) included << tr("Routing profiles");
+    if (parts.settings) included << tr("Settings");
+    if (parts.icons) included << tr("Custom icons");
+
     QMessageBox::information(this, tr("Backup Created"),
-        tr("Backup created successfully:\n%1").arg(filePath));
+        tr("Backup created successfully:\n%1\n\nIncluded: %2")
+            .arg(filePath, included.join(", ")));
 }
 
 void DialogBasicSettings::on_backup_restore_clicked() {
@@ -501,7 +565,7 @@ void DialogBasicSettings::on_backup_restore_clicked() {
 
     quint32 formatVersion;
     stream >> formatVersion;
-    if (formatVersion != BACKUP_FORMAT_VERSION) {
+    if (formatVersion < 1 || formatVersion > BACKUP_FORMAT_VERSION) {
         QMessageBox::critical(this, tr("Restore Failed"),
             tr("Unsupported backup format version: %1.\nThis backup may have been created with a newer version of the application.")
                 .arg(formatVersion));
@@ -517,56 +581,110 @@ void DialogBasicSettings::on_backup_restore_clicked() {
     stream >> files;
     inFile.close();
 
-    if (!files.contains("database")) {
+    Configs::BackupParts avail = BackupPartsFromMeta(formatVersion, meta, files);
+    if (!avail.any()) {
         QMessageBox::critical(this, tr("Restore Failed"),
-            tr("Backup file is missing the database."));
+            tr("This backup file does not contain any restorable data."));
         return;
     }
 
-    auto result = QMessageBox::warning(
-        this,
-        tr("Confirm Restore"),
-        tr("Restore backup created on %1?\n\n"
-           "This will replace all current profiles, groups, routes, and settings.\n\n"
-           "The settings dialog will close and the application must be restarted to complete the restore.")
-            .arg(createdAt.isEmpty() ? tr("unknown date") : createdAt),
-        QMessageBox::Ok | QMessageBox::Cancel,
-        QMessageBox::Cancel
-    );
-    if (result != QMessageBox::Ok) return;
+    // Let the user pick which of the available parts to restore.
+    QDialog dlg(this);
+    dlg.setWindowTitle(tr("Restore Backup"));
+    auto* layout = new QVBoxLayout(&dlg);
+    auto* header = new QLabel(
+        tr("Backup created on %1.\nSelect which parts to restore:")
+            .arg(createdAt.isEmpty() ? tr("unknown date") : createdAt), &dlg);
+    header->setWordWrap(true);
+    layout->addWidget(header);
 
-    QString tempDbPath = QDir::temp().filePath("Thr_restore_tmp.db");
-    QFile tempDbFile(tempDbPath);
-    if (!tempDbFile.open(QIODevice::WriteOnly)) {
-        QMessageBox::critical(this, tr("Restore Failed"),
-            tr("Failed to create temporary file for restore."));
+    auto* cbProfiles = new QCheckBox(tr("Profiles (groups and proxies)"), &dlg);
+    auto* cbRoutes = new QCheckBox(tr("Routing profiles"), &dlg);
+    auto* cbSettings = new QCheckBox(tr("Settings"), &dlg);
+    auto* cbIcons = new QCheckBox(tr("Custom icons"), &dlg);
+    for (auto* cb : {cbProfiles, cbRoutes, cbSettings, cbIcons}) cb->setChecked(true);
+    cbProfiles->setEnabled(avail.profiles);
+    cbProfiles->setChecked(avail.profiles);
+    cbRoutes->setEnabled(avail.routes);
+    cbRoutes->setChecked(avail.routes);
+    cbSettings->setEnabled(avail.settings);
+    cbSettings->setChecked(avail.settings);
+    cbIcons->setEnabled(avail.icons);
+    cbIcons->setChecked(avail.icons);
+    layout->addWidget(cbProfiles);
+    layout->addWidget(cbRoutes);
+    layout->addWidget(cbSettings);
+    layout->addWidget(cbIcons);
+
+    auto* warn = new QLabel(
+        tr("Each selected part replaces the current data. This cannot be undone.\n"
+           "Throne will restart to complete the restore."), &dlg);
+    warn->setWordWrap(true);
+    layout->addWidget(warn);
+
+    auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dlg);
+    buttons->button(QDialogButtonBox::Ok)->setText(tr("Restore"));
+    layout->addWidget(buttons);
+    connect(buttons, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
+
+    if (dlg.exec() != QDialog::Accepted) return;
+
+    Configs::BackupParts chosen;
+    chosen.profiles = avail.profiles && cbProfiles->isChecked();
+    chosen.routes = avail.routes && cbRoutes->isChecked();
+    chosen.settings = avail.settings && cbSettings->isChecked();
+    chosen.icons = avail.icons && cbIcons->isChecked();
+
+    if (!chosen.any()) {
+        QMessageBox::warning(this, tr("Restore Backup"),
+            tr("Select at least one part to restore."));
         return;
     }
-    tempDbFile.write(files["database"]);
-    tempDbFile.close();
 
-    try {
-        Configs::dataManager->getDatabase().restoreFrom(tempDbPath.toStdString());
-    } catch (std::exception& e) {
+    if (chosen.anyDb()) {
+        QString tempDbPath = QDir::temp().filePath("Thr_restore_tmp.db");
         QFile::remove(tempDbPath);
-        QMessageBox::critical(this, tr("Restore Failed"),
-            tr("Failed to restore database: %1").arg(e.what()));
-        return;
-    }
-    QFile::remove(tempDbPath);
+        QFile tempDbFile(tempDbPath);
+        if (!tempDbFile.open(QIODevice::WriteOnly)) {
+            QMessageBox::critical(this, tr("Restore Failed"),
+                tr("Failed to create temporary file for restore."));
+            return;
+        }
+        tempDbFile.write(files["database"]);
+        tempDbFile.close();
 
-    QDir iconsDir("icons");
-    iconsDir.mkpath(".");
-    for (auto it = files.constBegin(); it != files.constEnd(); ++it) {
-        if (it.key().startsWith("icons/")) {
-            QString iconName = it.key().mid(6);
-            if (iconName.isEmpty()) continue;
-            QFile iconFile(iconsDir.filePath(iconName));
-            if (iconFile.open(QIODevice::WriteOnly)) {
-                iconFile.write(it.value());
+        try {
+            Configs::dataManager->getDatabase().restoreSelective(tempDbPath.toStdString(), chosen);
+        } catch (std::exception& e) {
+            QFile::remove(tempDbPath);
+            QMessageBox::critical(this, tr("Restore Failed"),
+                tr("Failed to restore database: %1").arg(e.what()));
+            return;
+        }
+        QFile::remove(tempDbPath);
+    }
+
+    if (chosen.icons) {
+        QDir iconsDir("icons");
+        iconsDir.mkpath(".");
+        for (auto it = files.constBegin(); it != files.constEnd(); ++it) {
+            if (it.key().startsWith("icons/")) {
+                QString iconName = it.key().mid(6);
+                if (iconName.isEmpty()) continue;
+                QFile iconFile(iconsDir.filePath(iconName));
+                if (iconFile.open(QIODevice::WriteOnly)) {
+                    iconFile.write(it.value());
+                }
             }
         }
     }
+
+    // The in-memory SettingsRepo still holds the pre-restore values. The restart
+    // path runs prepare_exit() -> on_commitDataRequest() -> settingsRepo->Save(),
+    // which would write those stale values straight back over the freshly
+    // restored settings table. Suppress that save so the restore survives.
+    if (chosen.settings) Configs::dataManager->settingsRepo->noSave = true;
 
     QMessageBox::information(this, tr("Restore Complete"),
         tr("Backup restored successfully. Throne will now restart for the changes to take effect."));

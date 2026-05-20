@@ -37,11 +37,14 @@
 using namespace API;
 
 void MainWindow::setup_rpc(QLocalSocket *socket) {
-    // Replace old client (core restart case)
+    // The Client is long-lived and never recreated; on core restart we only
+    // swap the underlying connection so worker threads holding `defaultClient`
+    // never touch freed memory.
     QMutexLocker lock(&defaultClientMutex);
-    auto oldClientPtr = defaultClient;
-    defaultClient = new Client(socket);
-    delete oldClientPtr;
+    if (defaultClient == nullptr) {
+        defaultClient = new Client();
+    }
+    defaultClient->Reconnect(socket);
 
     // Loopers run for the lifetime of the app, start only once
     if (!rpc_started) {
@@ -730,7 +733,6 @@ void MainWindow::profile_start(int _id) {
             req.extra_process_path = result->extraCoreData->path.toStdString();
             req.extra_process_args = result->extraCoreData->args.toStdString();
             req.extra_process_conf = result->extraCoreData->config.toStdString();
-            req.extra_process_conf_dir = result->extraCoreData->configDir.toStdString();
             req.extra_no_out = result->extraCoreData->noLog;
         }
         //

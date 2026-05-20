@@ -88,22 +88,64 @@ func userEnv(env []string, ruid int) []string {
 	return append(out, "HOME="+u.HomeDir, "USER="+u.Username, "LOGNAME="+u.Username)
 }
 
-// MakeConfigReadable ensures path can be read by the de-privileged extra
-// process. The exact target uid/gid is known, so ownership is transferred and
-// the mode kept tight (0600) rather than world-exposing a config that may
-// carry secrets.
-func MakeConfigReadable(path string) error {
+// makeConfigReadable ensures the de-privileged extra process can read the
+// config the (possibly elevated) Core just wrote. Every change is made on the
+// open file descriptor (fchown/fchmod), never by re-resolving the path, so a
+// symlink swapped in at the path after creation cannot redirect a privileged
+// chown/chmod onto an attacker-chosen target. The exact target uid/gid is
+// known, so the mode stays tight (0600) instead of world-exposing a config
+// that may carry secrets.
+func makeConfigReadable(f *os.File) error {
 	if os.Geteuid() != 0 {
-		return os.Chmod(path, 0o600)
+		return f.Chmod(0o600) // fchmod(fd)
 	}
 	ruid := os.Getuid()
 	rgid := os.Getgid()
 	if ruid == 0 {
-		// Start() will refuse to launch in this case anyway.
+		// Start() refuses to launch in this case anyway.
 		return nil
 	}
-	if err := os.Chown(path, ruid, rgid); err != nil {
+	if err := f.Chown(ruid, rgid); err != nil { // fchown(fd): symlink-proof
 		return err
 	}
-	return os.Chmod(path, 0o600)
+	return f.Chmod(0o600) // fchmod(fd)
+}
+
+// createSecureConfigFile creates the extra-process config file with a
+// race-free, symlink-proof scheme and returns the open file plus the path to
+// remove on cleanup.
+//
+// When not elevated there is no privilege boundary, so an ordinary temp file
+// is fine. When elevated (setuid-root) the invoking user controls $TMPDIR, so
+// os.TempDir() is untrusted: we instead create a fresh private directory in
+// the standard, root-owned, sticky /tmp. Its random name can't be predicted
+// and, being a root-owned entry in a sticky directory, it can't be unlinked or
+// swapped by another user. The directory is left root-owned and chmod'd to
+// 0711 (search-only): the child can traverse to the known config path but no
+// unprivileged user can write into it or list it, while the config file itself
+// (fchown'd to the user, 0600) stays secret. cleanup removes the directory.
+func createSecureConfigFile() (*os.File, string, error) {
+	if os.Geteuid() != 0 {
+		f, err := os.CreateTemp("", "throne-extra-*.conf")
+		if err != nil {
+			return nil, "", err
+		}
+		return f, f.Name(), nil
+	}
+
+	dir, err := os.MkdirTemp("/tmp", "throne-extra-")
+	if err != nil {
+		return nil, "", err
+	}
+	// fchmod the directory via its own descriptor (no path re-resolution).
+	if d, derr := os.Open(dir); derr == nil {
+		_ = d.Chmod(0o711)
+		_ = d.Close()
+	}
+	f, err := os.CreateTemp(dir, "extra-*.conf")
+	if err != nil {
+		_ = os.RemoveAll(dir)
+		return nil, "", err
+	}
+	return f, dir, nil
 }

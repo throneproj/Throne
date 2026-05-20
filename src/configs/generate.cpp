@@ -304,7 +304,6 @@ namespace Configs {
             ctx->buildConfigResult->extraCoreData->path = QFileInfo(outbound->extraCorePath).canonicalFilePath();
             ctx->buildConfigResult->extraCoreData->args = outbound->extraCoreArgs;
             ctx->buildConfigResult->extraCoreData->config = outbound->extraCoreConf;
-            ctx->buildConfigResult->extraCoreData->configDir = GetBasePath();
             ctx->buildConfigResult->extraCoreData->noLog = outbound->noLogs;
         }
     }

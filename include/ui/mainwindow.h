@@ -23,6 +23,7 @@
 #include <QProcess>
 #include <QTextDocument>
 #include <QShortcut>
+#include <QCheckBox>
 #include <QSemaphore>
 #include <QMutex>
 #include <QThreadPool>
@@ -177,12 +178,12 @@ private:
     std::atomic<bool> currentUnderTest = false;
     //
     Configs_sys::CoreProcess *core_process = nullptr;
+    QMutex coreProcessMutex; // serializes core_process init (DS_cores) vs IPC newConnection (UI)
     QLocalServer *core_server = nullptr;
     bool rpc_started = false;
     QMutex defaultClientMutex;
     qint64 vpn_pid = 0;
     //
-    bool qvLogAutoScoll = true;
     QTextDocument *qvLogDocument = new QTextDocument(this);
     //
     QString title_error;

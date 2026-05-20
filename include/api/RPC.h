@@ -10,9 +10,13 @@ class QLocalSocket;
 namespace API {
     class Client {
     public:
-        explicit Client(QLocalSocket *socket);
+        Client();
 
         ~Client();
+
+        // Adopt a freshly connected socket, replacing any previous
+        // connection. The Client itself is long-lived and never recreated.
+        void Reconnect(QLocalSocket *socket);
 
         // QString returns is error string
 

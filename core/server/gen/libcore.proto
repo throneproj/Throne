@@ -45,7 +45,6 @@ message LoadConfigReq {
   optional string extra_process_path = 4 [default = ""];
   optional string extra_process_args = 5 [default = ""];
   optional string extra_process_conf = 6 [default = ""];
-  optional string extra_process_conf_dir = 7 [default = ""];
   optional bool extra_no_out = 8 [default = false];
   optional bool need_xray = 9 [default = false];
   optional string xray_config = 10 [default = ""];

@@ -86,6 +86,7 @@ namespace Configs {
         QStringList log_include_regex = {};
         QStringList log_exclude_keyword = {};
         QStringList log_exclude_regex = {};
+        bool log_auto_scroll = true;
         bool start_minimal = false;
         int max_log_line = 200;
         QString splitter_state = "";
@@ -119,8 +120,8 @@ namespace Configs {
         bool use_mozilla_certs = false;
 
         // Remember
-        bool system_proxy_enabled = false;
-        bool tun_mode_enabled = false;
+        bool remember_system_proxy = false;
+        bool remember_tun = false;
         int remember_id = -1919;
         bool remember_enable = false;
         bool windows_set_admin = false;
