@@ -1068,6 +1068,30 @@ namespace Configs {
 
         // rules
         auto routeRules = routeChain->get_route_rules(false, routeDeps->outboundMap);
+        if (Configs::dataManager->settingsRepo->dpi_consent && !ctx->forTest) {
+            QJsonArray dpiProcessPaths;
+            auto dpiDir = QApplication::applicationDirPath() + "/dpi-checker";
+#ifdef Q_OS_WIN
+            dpiProcessPaths.append((dpiDir + "/dpi_launch.exe").replace("/", "\\"));
+            dpiProcessPaths.append((dpiDir + "/dpi_detector.exe").replace("/", "\\"));
+#else
+            dpiProcessPaths.append(dpiDir + "/dpi_launch");
+            dpiProcessPaths.append(dpiDir + "/dpi_detector");
+#endif
+            routeRules.prepend(QJsonObject{
+                {"action", "route"},
+                {"process_path", dpiProcessPaths},
+                {"outbound", "direct"},
+            });
+            if (!Configs::dataManager->settingsRepo->disable_mixed_inbound) {
+                routeRules.prepend(QJsonObject{
+                    {"action", "route"},
+                    {"inbound", QJsonArray{QStringLiteral("mixed-in")}},
+                    {"process_path", dpiProcessPaths},
+                    {"outbound", "direct"},
+                });
+            }
+        }
         routeRules.prepend(QJsonObject{
             {"action", "route"},
             {"process_path", FindCoreRealPath()},
@@ -1140,7 +1164,9 @@ namespace Configs {
         route["rules"] = routeRules;
         route["rule_set"] = ruleSetArray;
         route["final"] = outboundIDToString(routeChain->defaultOutboundID);
-        if (Configs::dataManager->settingsRepo->enable_stats)  route["find_process"] = true;
+        if (Configs::dataManager->settingsRepo->enable_stats
+            || (Configs::dataManager->settingsRepo->dpi_consent && !ctx->forTest))
+            route["find_process"] = true;
         route["default_domain_resolver"] = QJsonObject{
                                 {"server", "dns-direct"},
                                 {"strategy", Configs::dataManager->settingsRepo->default_domain_strategy}};

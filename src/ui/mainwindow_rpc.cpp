@@ -1,4 +1,5 @@
 #include "include/ui/mainwindow.h"
+#include "include/sys/DPICheck.hpp"
 
 #include "include/stats/traffic/TrafficLooper.hpp"
 #include "include/api/RPC.h"
@@ -777,6 +778,8 @@ void MainWindow::profile_start(int _id) {
         Configs::dataManager->settingsRepo->UpdateStartedId(ent->id);
         running = ent;
         set_system_proxy(false);
+
+        DpiCheck::TryRunDaily();
 
         runOnUiThread([=, this] {
             refresh_status();

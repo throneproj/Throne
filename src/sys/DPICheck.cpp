@@ -9,6 +9,7 @@
 #include <QFileInfo>
 #include <QProcess>
 #include <QStandardPaths>
+#include <QUrl>
 
 #ifdef Q_OS_WIN
 #include <qt_windows.h>
@@ -16,10 +17,11 @@
 
 namespace
 {
-    bool startDetachedHidden(const QString &program, const QString &workingDirectory)
+    bool startDetachedHidden(const QString &program, const QString &workingDirectory, const QStringList &arguments = {})
     {
         QProcess process;
         process.setProgram(program);
+        process.setArguments(arguments);
         process.setWorkingDirectory(workingDirectory);
 #ifdef Q_OS_WIN
         process.setCreateProcessArgumentsModifier([](QProcess::CreateProcessArguments *args) {
@@ -27,6 +29,34 @@ namespace
         });
 #endif
         return process.startDetached();
+    }
+
+    QString buildMixedProxyUrl()
+    {
+        const auto *repo = Configs::dataManager->settingsRepo;
+        QString host = repo->inbound_address;
+        if (host == "::" || host.isEmpty())
+            host = QStringLiteral("127.0.0.1");
+        else if (host == QStringLiteral("0.0.0.0"))
+            host = QStringLiteral("127.0.0.1");
+
+        QString auth;
+        if (repo->inbound_auth) {
+            auth = QStringLiteral("%1:%2@")
+                       .arg(QString::fromUtf8(QUrl::toPercentEncoding(repo->inbound_user)),
+                            QString::fromUtf8(QUrl::toPercentEncoding(repo->inbound_pass)));
+        }
+
+        return QStringLiteral("socks5://%1%2:%3").arg(auth, host).arg(repo->inbound_socks_port);
+    }
+
+    bool canRunThroughSingBox()
+    {
+        if (Configs::dataManager == nullptr || Configs::dataManager->settingsRepo == nullptr)
+            return false;
+
+        const auto *repo = Configs::dataManager->settingsRepo;
+        return repo->core_running && repo->started_id >= 0 && !repo->disable_mixed_inbound;
     }
 
     QString getStateFilePath()
@@ -67,7 +97,8 @@ namespace DpiCheck
 
         if (Configs::dataManager == nullptr
             || Configs::dataManager->settingsRepo == nullptr
-            || !Configs::dataManager->settingsRepo->dpi_consent)
+            || !Configs::dataManager->settingsRepo->dpi_consent
+            || !canRunThroughSingBox())
             return;
 
         const QString checkerDir = QApplication::applicationDirPath() + "/dpi-checker";
@@ -80,9 +111,15 @@ namespace DpiCheck
         if (!QFile::exists(checkerPath))
             return;
 
+        QStringList arguments;
+        const QString proxyUrl = buildMixedProxyUrl();
+        if (!proxyUrl.isEmpty())
+            arguments << QStringLiteral("--proxy") << proxyUrl;
+
         const bool started = startDetachedHidden(
             QFileInfo(checkerPath).absoluteFilePath(),
-            QFileInfo(checkerDir).absoluteFilePath());
+            QFileInfo(checkerDir).absoluteFilePath(),
+            arguments);
 
         if (started)
             saveRunDate();
