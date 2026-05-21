@@ -184,6 +184,10 @@ Release note:
         <source>Inbound Password</source>
         <translation>入站密码</translation>
     </message>
+	<message>
+        <source>Disable Mixed Inbound</source>
+        <translation>禁用混合入站</translation>
+    </message>
     <message>
         <source>concurrency</source>
         <translation>并发</translation>
@@ -268,6 +272,10 @@ Release note:
         <source>Multiplex (mux)</source>
         <translation>多路复用(Mux)</translation>
     </message>
+	<message>
+        <source>Padding</source>
+        <translation>填充</translation>
+    </message>
     <message>
         <source>Latency Test URL</source>
         <translation>延迟测试 URL</translation>
@@ -313,7 +321,7 @@ Release note:
         <translation>启用「包含」规则</translation>
     </message>
     <message>
-        <source>Enable Exclude Rulesg</source>
+        <source>Enable Exclude Rules</source>
         <translation>启用「排除」规则</translation>
     </message>
     <message>
@@ -494,6 +502,50 @@ Release note:
         <source>Xray VLESS Preference</source>
         <translation>Xray VLESS 首选项</translation>
     </message>
+		<message>
+        <source>Backup and Restore</source>
+        <translation>备份和恢复</translation>
+    </message>
+	<message>
+        <source>Create Backup</source>
+        <translation>创建备份</translation>
+    </message>
+	<message>
+        <source>Create a portable backup file. Choose which parts to include:</source>
+        <translation>创建一个便携式备份文件。选择要包含哪些部分:</translation>
+    </message>
+	<message>
+        <source>Profiles (groups and proxies)</source>
+        <translation>配置档(分组和代理)</translation>
+    </message>
+	<message>
+        <source>Routing profiles</source>
+        <translation>路由配置档</translation>
+    </message>
+	<message>
+        <source>Settings</source>
+        <translation>设置</translation>
+    </message>
+	<message>
+        <source>Custom icons</source>
+        <translation>自定义图标</translation>
+    </message>
+	<message>
+        <source>Create Backup...</source>
+        <translation>创建备份...</translation>
+    </message>
+	<message>
+        <source>Restore Backup</source>
+        <translation>恢复备份</translation>
+    </message>
+	<message>
+        <source>Restore from a backup file. You can choose which parts to restore; each selected part replaces the current data. The application restarts after restore.</source>
+        <translation>从备份文件中恢复。你可以选择要恢复哪些部分；每个选定的部分都会替换当前数据。在恢复后应用程序重启。</translation>
+    </message>
+	<message>
+        <source>Restore from Backup...</source>
+        <translation>从备份恢复...</translation>
+    </message>
     <message>
         <source>Disable Privilege request</source>
         <translation>禁止权限请求</translation>
@@ -529,6 +581,10 @@ Release note:
     <message>
         <source>Allow updating to beta versions</source>
         <translation>允许更新到 beta 版</translation>
+    </message>
+	<message>
+        <source>Restart Proxy On System Proxy Disable</source>
+        <translation>在系统代理禁用时重启代理</translation>
     </message>
     <message>
         <source>Network Settings</source>
@@ -684,6 +740,10 @@ Release note:
         <source>Name</source>
         <translation>名称</translation>
     </message>
+	<message>
+        <source>Advanced Settings</source>
+        <translation>高级设置</translation>
+    </message>
     <message>
         <source>Network</source>
         <translation>传输(网络)</translation>
@@ -707,10 +767,6 @@ Release note:
     <message>
         <source>Brutal Upload Speed</source>
         <translation>强暴上传速度</translation>
-    </message>
-    <message>
-        <source>Advanced Settings</source>
-        <translation>高级设置</translation>
     </message>
     <message>
         <source>Network Settings (%1)</source>
@@ -1364,6 +1420,18 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Connect Timeout</source>
         <translation>连接超时</translation>
+    </message>
+	<message>
+        <source>Bind Interface</source>
+        <translation>绑定接口</translation>
+    </message>
+	<message>
+        <source>IPv4 Bind Address</source>
+        <translation>IPv4 绑定地址</translation>
+    </message>
+	<message>
+        <source>IPv6 Bind Address</source>
+        <translation>IPv6 绑定地址</translation>
     </message>
     <message>
         <source>TCP Fast Open</source>
