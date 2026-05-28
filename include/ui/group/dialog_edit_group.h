@@ -1,8 +1,11 @@
 #pragma once
 
 #include <QDialog>
+#include <QHash>
 #include "ui_dialog_edit_group.h"
 #include "include/database/entities/Group.h"
+
+class QComboBox;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -30,6 +33,10 @@ private:
     struct {
         int landing_proxy;
     } LANDING;
+
+    QHash<QString, int> proxyNameToId;
+
+    int resolve_proxy_selection(QComboBox *combo, int fallback) const;
 
 private slots:
 

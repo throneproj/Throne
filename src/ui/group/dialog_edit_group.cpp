@@ -66,6 +66,8 @@ DialogEditGroup::DialogEditGroup(const std::shared_ptr<Configs::Group> &ent, QWi
         }
     }
     QStringList proxyNameList;
+    proxyNameToId.clear();
+    proxyNameToId.insert("None", -1);
     ui->front_proxy->setMaxCount(200);
     ui->landing_proxy->setMaxCount(200);
     ui->front_proxy->blockSignals(true);
@@ -78,6 +80,9 @@ DialogEditGroup::DialogEditGroup(const std::shared_ptr<Configs::Group> &ent, QWi
     int comboCount = 1; // "None" already added
     for (const auto&[id, name] : proxyList) {
         proxyNameList.append(name);
+        if (!proxyNameToId.contains(name)) {
+            proxyNameToId.insert(name, id);
+        }
         if (comboCount < comboCap) {
             ui->front_proxy->addItem(name, QVariant(id));
             ui->landing_proxy->addItem(name, QVariant(id));
@@ -112,7 +117,13 @@ DialogEditGroup::DialogEditGroup(const std::shared_ptr<Configs::Group> &ent, QWi
             debounce->start();
         });
         connect(completer, qOverload<const QString&>(&QCompleter::activated),
-                         lineEdit, [lineEdit](const QString& text) { lineEdit->setText(text); });
+                         lineEdit, [combo, lineEdit](const QString& text) {
+            lineEdit->setText(text);
+            const int index = combo->findText(text, Qt::MatchExactly);
+            if (index >= 0) {
+                combo->setCurrentIndex(index);
+            }
+        });
     };
 
     ui->front_proxy->setEditable(true);
@@ -171,6 +182,25 @@ DialogEditGroup::~DialogEditGroup() {
     delete ui;
 }
 
+int DialogEditGroup::resolve_proxy_selection(QComboBox *combo, int fallback) const {
+    const QString text = combo->currentText().trimmed();
+    if (text.isEmpty() || text == "None") {
+        return -1;
+    }
+
+    const int index = combo->findText(text, Qt::MatchExactly);
+    if (index >= 0) {
+        return combo->itemData(index).value<int>();
+    }
+
+    auto it = proxyNameToId.constFind(text);
+    if (it != proxyNameToId.constEnd()) {
+        return it.value();
+    }
+
+    return fallback;
+}
+
 void DialogEditGroup::accept() {
     if (ent->id >= 0) { // already a group
         if (!ent->url.isEmpty() && ui->url->text().isEmpty()) {
@@ -182,8 +212,8 @@ void DialogEditGroup::accept() {
     ent->auto_clear_unavailable = ui->auto_clear_unavailable->isChecked();
     ent->url = ui->url->text();
     ent->skip_auto_update = ui->skip_auto_update->isChecked();
-    ent->front_proxy_id = CACHE.front_proxy;
-    ent->landing_proxy_id = LANDING.landing_proxy;
+    ent->front_proxy_id = resolve_proxy_selection(ui->front_proxy, CACHE.front_proxy);
+    ent->landing_proxy_id = resolve_proxy_selection(ui->landing_proxy, LANDING.landing_proxy);
     QDialog::accept();
 }
 
