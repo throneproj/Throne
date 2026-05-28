@@ -1107,8 +1107,8 @@ namespace Configs {
 
         // Also add the needed socks inbound bridges. Loopback-protect bridges
         // have no sing-box ingress to pair with (their inbound routes straight
-        // to `direct`), so the singIngressTags index only advances for normal
-        // xray->sing bridges.
+        // to the hidden `xray-direct`), so the singIngressTags index only
+        // advances for normal xray->sing bridges.
         int loopbackBridgeCount = 0;
         for (const auto& b : ctx->xrayToSingBridges) if (b.loopbackProtect) loopbackBridgeCount++;
         if (ctx->xrayToSingBridges.size() - loopbackBridgeCount != ctx->singIngressTags.size()) {
@@ -1139,6 +1139,13 @@ namespace Configs {
             inboundArr.append(socksBridge);
         }
         ctx->buildConfigResult->coreConfig["inbounds"] = inboundArr;
+
+        if (loopbackBridgeCount > 0) {
+            ctx->outbounds.append(QJsonObject{
+                {"type", "direct"},
+                {"tag", "xray-direct"}
+            });
+        }
 
         // Add the direct outbound
         ctx->outbounds.append(QJsonObject{
@@ -1254,8 +1261,9 @@ namespace Configs {
         }
 
         // map ingress socks inbounds to their corresponding outbounds.
-        // Loopback-protect bridges route to `direct` (auto_detect_interface
-        // bypasses TUN); normal bridges route to the paired sing-box ingress.
+        // Loopback-protect bridges route to hidden `xray-direct`
+        // (auto_detect_interface bypasses TUN); normal bridges route to the
+        // paired sing-box ingress.
         int routeLoopbackBridgeCount = 0;
         for (const auto& b : ctx->xrayToSingBridges) if (b.loopbackProtect) routeLoopbackBridgeCount++;
         if (ctx->xrayToSingBridges.size() - routeLoopbackBridgeCount != ctx->singIngressTags.size()) {
@@ -1268,7 +1276,7 @@ namespace Configs {
             QString inboundTag, outboundTag;
             if (bridgeConf.loopbackProtect) {
                 inboundTag = "bridge-loopback-" + Int2String(bridgeConf.port);
-                outboundTag = "direct";
+                outboundTag = "xray-direct";
             } else {
                 inboundTag = "bridge-" + ctx->singIngressTags[routeSingIngressIdx];
                 outboundTag = ctx->singIngressTags[routeSingIngressIdx];
