@@ -885,6 +885,23 @@ namespace Configs {
                 return;
             }
             object["tag"] = tag;
+            if (bridgeConfig.loopbackProtect) {
+                auto streamSettings = object["streamSettings"].toObject();
+                const auto network = streamSettings["network"].toString();
+                if (network == "xhttp" || network == "splithttp") {
+                    auto xhttpSettings = streamSettings["xhttpSettings"].toObject();
+                    if (xhttpSettings.isEmpty()) xhttpSettings = streamSettings["splithttpSettings"].toObject();
+                    auto extraSettings = xhttpSettings["extra"].toObject();
+                    if (extraSettings.contains("downloadSettings")) {
+                        // XHTTP downloadSettings gets its own stream config;
+                        // penetrate makes Xray copy this sockopt there too.
+                        auto sockopt = streamSettings["sockopt"].toObject();
+                        sockopt["penetrate"] = true;
+                        streamSettings["sockopt"] = sockopt;
+                        object["streamSettings"] = streamSettings;
+                    }
+                }
+            }
             // A bridge always requires chaining the preceding hop into it,
             // even when `link` is false (single-hop route groups). nextTag
             // already encodes whether anything follows, so honoring it
