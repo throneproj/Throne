@@ -205,12 +205,15 @@ QList<int> MkManyPorts(int num) {
     QList<int> res;
     QList<QTcpServer*> servers;
     for (int i=0;i<num;i++) {
-        QTcpServer s;
-        s.listen();
-        servers.append(&s);
-        res.append(s.serverPort());
+        auto server = new QTcpServer();
+        server->listen();
+        servers.append(server);
+        res.append(server->serverPort());
     }
-    for (const auto s: servers) s->close();
+    for (const auto s: servers) {
+        s->close();
+        delete s;
+    }
     servers.clear();
     return res;
 }
