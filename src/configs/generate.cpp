@@ -590,12 +590,13 @@ namespace Configs {
                 };
         }
 
+        const bool useDirectFinalDNS = dataManager->settingsRepo->dns_final_out == "direct";
+
         // Symmetric to the direct carve-out above: when the final DNS is direct,
         // proxy-routed sites would otherwise resolve via direct DNS, so route
-        // them to remote DNS (when final is remote they reach it via the final
-        // rule, and the direct carve-out already runs first to keep server
-        // hostnames on direct DNS).
-        if (dnsDeps->needProxyDnsRules && dataManager->settingsRepo->dns_final_out != "remote") {
+        // them to remote DNS. "proxy" and "remote" both use remote DNS; only
+        // explicit "direct" should fall back to local DNS.
+        if (dnsDeps->needProxyDnsRules && useDirectFinalDNS) {
             rules += QJsonObject{
                     {"rule_set", dnsDeps->proxyRuleSets},
                     {"domain", dnsDeps->proxyDomains},
@@ -609,8 +610,8 @@ namespace Configs {
         }
 
         // final rule: proxy
-        auto finalStrategy = dataManager->settingsRepo->dns_final_out == "remote" ? dataManager->settingsRepo->remote_dns_strategy : dataManager->settingsRepo->direct_dns_strategy;
-        auto finalDNS = dataManager->settingsRepo->dns_final_out == "remote" ? "dns-remote" : "dns-direct";
+        auto finalStrategy = useDirectFinalDNS ? dataManager->settingsRepo->direct_dns_strategy : dataManager->settingsRepo->remote_dns_strategy;
+        auto finalDNS = useDirectFinalDNS ? "dns-direct" : "dns-remote";
         rules += QJsonObject{
             {"strategy", finalStrategy},
             {"action", "route"},
