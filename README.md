@@ -33,7 +33,7 @@ Apple platforms have a very strict security policy and since Throne does not hav
 - TrustTunnel
 - ShadowTLS
 - Wireguard
-- AmenziaWg
+- AmneziaWG
 - SSH
 - Xray VLESS
 - Custom Outbound (Both Sing-box and Xray)
