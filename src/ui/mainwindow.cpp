@@ -512,11 +512,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // ui->profilesTableView->verticalHeader()->setDefaultSectionSize(24);
     // ui->profilesTableView->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     ui->profilesTableView->setTabKeyNavigation(false);
-    ui->profilesTableView->horizontalHeader()->setResizeContentsPrecision(0);
+    //ui->profilesTableView->horizontalHeader()->setResizeContentsPrecision(0);
 
-    connect(ui->profilesTableView->verticalScrollBar(), &QScrollBar::valueChanged, ui->profilesTableView, [=, this] {
+   /* connect(ui->profilesTableView->verticalScrollBar(), &QScrollBar::valueChanged, ui->profilesTableView, [=, this] {
         refresh_proxy_list_column_size();
-    });
+    });*/
 
     // search box
     connect(static_cast<ProfilesTableFilterHeader*>(ui->profilesTableView->horizontalHeader()), &ProfilesTableFilterHeader::typeFilterChanged, this, [=,this](const QString& currentText)
@@ -640,7 +640,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(tray, &QSystemTrayIcon::activated, qApp, [=, this](QSystemTrayIcon::ActivationReason reason) {
         if (reason == QSystemTrayIcon::Trigger && getOS() != Darwin) {
             ActivateWindow(this);
-            refresh_proxy_list_column_size();
+            //refresh_proxy_list_column_size();
         }
     });
 
@@ -1953,7 +1953,7 @@ void MainWindow::refresh_proxy_list_impl(const QList<int>& ids, bool mayNeedRese
     // refresh data
     refresh_proxy_list_impl_refresh_data(ids, mayNeedReset);
     // now refresh column sizes
-    refresh_proxy_list_column_size();
+    //refresh_proxy_list_column_size();
 }
 
 void MainWindow::refresh_proxy_list_impl_refresh_data(const QList<int>& ids, bool mayNeedReset) {
