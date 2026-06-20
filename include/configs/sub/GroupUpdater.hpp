@@ -11,6 +11,8 @@ namespace Subscription {
         invalid,
     };
     enum class XraySubType {
+        fullConfig,
+        fullConfigJsonArray,
         outboundInJson,
         outboundJsonArray,
         outboundObject,

@@ -6,7 +6,9 @@
 
 #include <QInputDialog>
 #include <QUrlQuery>
+#include <QJsonArray>
 #include <QJsonDocument>
+#include <QStringList>
 
 #include "include/configs/common/utils.h"
 #include "include/database/GroupsRepo.h"
@@ -76,22 +78,57 @@ namespace Subscription {
     // Xray uses "protocol" instead of sing-box's "type" field on outbounds, so
     // we can disambiguate by inspecting individual outbound objects rather than
     // the wrapper.
+    bool isXrayOutboundObject(const QJsonObject &object) {
+        return object.contains("protocol");
+    }
+
+    bool hasXrayOutbound(const QJsonArray &outbounds) {
+        for (const auto &item : outbounds) {
+            if (item.isObject() && isXrayOutboundObject(item.toObject())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool isXrayFullConfigObject(const QJsonObject &object) {
+        if (!object.contains("outbounds")) return false;
+        if (!hasXrayOutbound(object["outbounds"].toArray())) return false;
+        return object.contains("inbounds") ||
+               object.contains("routing") ||
+               object.contains("dns") ||
+               object.contains("log") ||
+               object.contains("policy") ||
+               object.contains("remarks") ||
+               object.contains("meta");
+    }
+
     XraySubType getXraySubType(const QJsonDocument &doc) {
         if (doc.isObject()) {
             auto obj = doc.object();
+            if (isXrayFullConfigObject(obj)) return XraySubType::fullConfig;
             if (obj.contains("outbounds")) {
-                for (const auto &item : obj["outbounds"].toArray()) {
-                    if (item.isObject() && item.toObject().contains("protocol")) {
-                        return XraySubType::outboundInJson;
-                    }
+                const auto outbounds = obj["outbounds"].toArray();
+                if (hasXrayOutbound(outbounds)) {
+                    return XraySubType::outboundInJson;
                 }
             }
-            if (obj.contains("protocol")) return XraySubType::outboundObject;
+            if (isXrayOutboundObject(obj)) return XraySubType::outboundObject;
             return XraySubType::invalid;
         }
         if (doc.isArray() && !doc.array().empty()) {
-            auto first = doc.array().first();
-            if (first.isObject() && first.toObject().contains("protocol")) {
+            auto hasFullConfig = false;
+            auto hasOutboundObject = false;
+            for (const auto &item : doc.array()) {
+                if (!item.isObject()) continue;
+                const auto obj = item.toObject();
+                if (isXrayFullConfigObject(obj)) hasFullConfig = true;
+                if (isXrayOutboundObject(obj)) hasOutboundObject = true;
+            }
+            if (hasFullConfig) {
+                return XraySubType::fullConfigJsonArray;
+            }
+            if (hasOutboundObject) {
                 return XraySubType::outboundJsonArray;
             }
         }
@@ -124,7 +161,37 @@ namespace Subscription {
         return normalized;
     }
 
-    std::shared_ptr<Configs::Profile> makeProfileForXrayOutbound(const QJsonObject &out) {
+    std::shared_ptr<Configs::Profile> makeProfileForXrayFullConfig(const QJsonObject &config) {
+        if (config.isEmpty()) return nullptr;
+        auto ent = Configs::ProfilesRepo::NewProfile("custom");
+        auto custom = ent->Custom();
+        custom->type = Configs::Custom::CustomXrayFullConfig;
+        custom->config = QJsonObject2QString(config, false);
+        custom->import_source = "xrayjson";
+        const QStringList nameKeys = {"remarks", "remark", "name", "tag"};
+        for (const auto &key : nameKeys) {
+            if (auto name = config[key].toString(); !name.isEmpty()) {
+                custom->name = name;
+                break;
+            }
+        }
+        if (custom->name.isEmpty()) custom->name = "Xray Config";
+        return ent;
+    }
+
+    void applyXrayTlsSettings(Configs::TLS *tls, const QJsonObject &tlsSettings) {
+        if (tls == nullptr || tlsSettings.isEmpty()) return;
+        tls->enabled = true;
+        if (tlsSettings.contains("serverName")) tls->server_name = tlsSettings["serverName"].toString();
+        if (tlsSettings.contains("allowInsecure")) tls->insecure = tlsSettings["allowInsecure"].toBool();
+        if (tlsSettings.contains("alpn")) tls->alpn = QJsonArray2QListString(tlsSettings["alpn"].toArray());
+        if (tlsSettings.contains("fingerprint")) {
+            tls->utls->enabled = true;
+            tls->utls->fingerPrint = tlsSettings["fingerprint"].toString();
+        }
+    }
+
+    std::shared_ptr<Configs::Profile> makeProfileForXrayOutbound(const QJsonObject &out, const QString &nameHint = {}) {
         if (out.isEmpty()) return nullptr;
         auto protocol = out["protocol"].toString();
         // System protocols don't make sense as user profiles.
@@ -135,13 +202,44 @@ namespace Subscription {
         if (protocol == "vless") {
             if (auto normalized = normalizeXrayVlessForParse(out); !normalized.isEmpty()) {
                 ent = Configs::ProfilesRepo::NewProfile("xrayvless");
-                if (ent->XrayVLESS()->ParseFromJson(normalized)) return ent;
+                if (ent->XrayVLESS()->ParseFromJson(normalized)) {
+                    if (!nameHint.isEmpty()) ent->XrayVLESS()->name = nameHint;
+                    return ent;
+                }
+            }
+        }
+        if (protocol == "hysteria" || protocol == "hysteria2") {
+            auto settings = out["settings"].toObject();
+            auto streamSettings = out["streamSettings"].toObject();
+            auto hysteriaSettings = streamSettings["hysteriaSettings"].toObject();
+            auto auth = hysteriaSettings["auth"].toString();
+            if (auth.isEmpty()) auth = settings["password"].toString();
+            if (auth.isEmpty()) auth = settings["auth"].toString();
+            if (!settings.isEmpty() && !auth.isEmpty()) {
+                ent = Configs::ProfilesRepo::NewProfile("hysteria");
+                auto hysteria = ent->Hysteria();
+                hysteria->protocol_version = protocol == "hysteria2" ? "2" : QString::number(settings["version"].toInt(2));
+                if (hysteria->protocol_version != "2") hysteria->protocol_version = "2";
+                hysteria->server = settings["address"].toString();
+                hysteria->server_port = settings["port"].toInt();
+                hysteria->password = auth;
+                hysteria->name = nameHint.isEmpty() ? out["tag"].toString() : nameHint;
+                applyXrayTlsSettings(hysteria->tls.get(), streamSettings["tlsSettings"].toObject());
+                hysteria->tls->enabled = true;
+                if (!hysteria->server.isEmpty() && hysteria->server_port > 0) return ent;
             }
         }
         ent = Configs::ProfilesRepo::NewProfile("custom");
         ent->Custom()->type = Configs::Custom::CustomXrayOutbound;
         ent->Custom()->config = QJsonObject2QString(out, false);
-        if (auto tag = out["tag"].toString(); !tag.isEmpty()) ent->Custom()->name = tag;
+        if (!nameHint.isEmpty()) ent->Custom()->name = nameHint;
+        else if (auto tag = out["tag"].toString(); !tag.isEmpty()) ent->Custom()->name = tag;
+        return ent;
+    }
+
+    std::shared_ptr<Configs::Profile> makeProfileForXrayConfig(const QJsonObject &config) {
+        auto ent = makeProfileForXrayFullConfig(config);
+        if (ent != nullptr && ent->outbound != nullptr) ent->outbound->import_source = "xrayjson";
         return ent;
     }
 
@@ -164,6 +262,16 @@ namespace Subscription {
             // "protocol", which lets us cleanly disambiguate from sing-box
             // configs that share the "outbounds" wrapper).
             auto xrayType = getXraySubType(doc);
+            if (xrayType == XraySubType::fullConfig) {
+                if (auto e = makeProfileForXrayConfig(doc.object()); e != nullptr) {
+                    updated_order += e;
+                }
+                return;
+            }
+            if (xrayType == XraySubType::fullConfigJsonArray) {
+                updateXray(doc, xrayType);
+                return;
+            }
             if (xrayType == XraySubType::outboundObject) {
                 if (auto e = makeProfileForXrayOutbound(doc.object()); e != nullptr) {
                     updated_order += e;
@@ -529,6 +637,23 @@ namespace Subscription {
     void RawUpdater::updateXray(const QJsonDocument &doc, XraySubType type)
     {
         QJsonArray outbounds;
+        if (type == XraySubType::fullConfig) {
+            if (auto e = makeProfileForXrayConfig(doc.object()); e != nullptr) {
+                updated_order += e;
+            }
+            return;
+        }
+        if (type == XraySubType::fullConfigJsonArray) {
+            for (const auto &item : doc.array()) {
+                if (!item.isObject()) continue;
+                auto obj = item.toObject();
+                if (!isXrayFullConfigObject(obj)) continue;
+                if (auto e = makeProfileForXrayConfig(obj); e != nullptr) {
+                    updated_order += e;
+                }
+            }
+            return;
+        }
         if (type == XraySubType::outboundInJson) {
             outbounds = doc.object()["outbounds"].toArray();
         } else if (type == XraySubType::outboundJsonArray) {
@@ -669,6 +794,32 @@ namespace Subscription {
         }
     }
 
+    bool isXrayJsonSubscription(const QString &content) {
+        QJsonParseError error;
+        auto doc = QJsonDocument::fromJson(content.toUtf8(), &error);
+        if (error.error != QJsonParseError::NoError) return false;
+        return getXraySubType(doc) != XraySubType::invalid;
+    }
+
+    QString appendSubscriptionClientType(const QString &rawUrl, const QString &clientType) {
+        auto url = QUrl(rawUrl);
+        if (!url.isValid() || url.scheme().isEmpty() || url.host().isEmpty()) return {};
+
+        auto path = url.path();
+        const auto parts = path.split('/', Qt::SkipEmptyParts);
+        if (!parts.isEmpty()) {
+            const auto last = parts.last();
+            if (last == "json" || last == "v2ray-json") return {};
+        }
+        if (path.endsWith('/')) path.chop(1);
+        url.setPath(path + "/" + clientType);
+        return url.toString(QUrl::FullyEncoded);
+    }
+
+    bool isXrayJsonProfile(const std::shared_ptr<Configs::Profile> &ent) {
+        return ent != nullptr && ent->outbound != nullptr && ent->outbound->import_source == "xrayjson";
+    }
+
     // 在新的 thread 运行
     void GroupUpdater::AsyncUpdate(const QString &str, int _sub_gid, const std::function<void()> &finish) {
         auto content = str.trimmed();
@@ -717,6 +868,7 @@ namespace Subscription {
 
         // 准备
         QString sub_user_info;
+        QString xrayJsonContent;
         bool asURL = _sub_gid >= 0 || _not_sub_as_url; // 把 _str 当作 url 处理（下载内容）
         auto content = _str.trimmed();
         auto group = Configs::dataManager->groupsRepo->GetGroup(_sub_gid);
@@ -737,6 +889,17 @@ namespace Subscription {
             sub_user_info = NetworkRequestHelper::GetHeader(resp.header, "Subscription-UserInfo");
 
             MW_show_log("<<<<<<<< " + QObject::tr("Subscription request fininshed: %1").arg(groupName));
+
+            if (!isXrayJsonSubscription(content)) {
+                if (auto jsonUrl = appendSubscriptionClientType(_str.trimmed(), "json"); !jsonUrl.isEmpty()) {
+                    MW_show_log(">>>>>>>> " + QObject::tr("Requesting Xray JSON subscription: %1").arg(groupName));
+                    auto jsonResp = NetworkRequestHelper::HttpGet(jsonUrl, Configs::dataManager->settingsRepo->sub_send_hwid);
+                    if (jsonResp.error.isEmpty() && isXrayJsonSubscription(jsonResp.data)) {
+                        xrayJsonContent = jsonResp.data;
+                        MW_show_log("<<<<<<<< " + QObject::tr("Xray JSON subscription request fininshed: %1").arg(groupName));
+                    }
+                }
+            }
         }
 
         QList<std::shared_ptr<Configs::Profile>> in;
@@ -760,8 +923,13 @@ namespace Subscription {
         }
 
         MW_show_log(">>>>>>>> " + QObject::tr("Processing subscription data..."));
-        rawUpdater->update(content);
+        const bool usingXrayJsonSubscription = !xrayJsonContent.isEmpty();
+        rawUpdater->update(usingXrayJsonSubscription ? xrayJsonContent : content);
+        QList<std::shared_ptr<Configs::Profile>> uniqueUpdated;
+        Configs::ProfileFilter::Uniq(rawUpdater->updated_order, uniqueUpdated, true, true);
+        rawUpdater->updated_order = uniqueUpdated;
         content.clear();
+        xrayJsonContent.clear();
         Configs::dataManager->profilesRepo->AddProfileBatch(rawUpdater->updated_order, rawUpdater->gid_add_to);
         MW_show_log(">>>>>>>> " + QObject::tr("Process complete, applying..."));
 
@@ -788,9 +956,9 @@ namespace Subscription {
                 QList<std::shared_ptr<Configs::Profile>> out;
                 // find and delete not updated profile by ProfileFilter
                 Configs::ProfileFilter::OnlyInSrc_ByPointer(out_all, in, out);
-                Configs::ProfileFilter::OnlyInSrc(in, out, only_in, false);
-                Configs::ProfileFilter::OnlyInSrc(out, in, only_out, false);
-                Configs::ProfileFilter::Common(in, out, update_keep, update_del, false);
+                Configs::ProfileFilter::OnlyInSrc(in, out, only_in, true);
+                Configs::ProfileFilter::OnlyInSrc(out, in, only_out, true);
+                Configs::ProfileFilter::Common(in, out, update_keep, update_del, true);
                 QString notice_added;
                 QString notice_deleted;
                 if (only_out.size() < 1000)
@@ -816,11 +984,15 @@ namespace Subscription {
                 // sort according to order in remote
                 group->profiles.clear();
                 for (const auto &ent: rawUpdater->updated_order) {
+                    if (usingXrayJsonSubscription) {
+                        group->profiles.append(ent->id);
+                        continue;
+                    }
                     auto deleted_index = update_del.indexOf(ent);
                     if (deleted_index >= 0) {
                         if (deleted_index >= update_keep.count()) continue; // should not happen
                         const auto& ent2 = update_keep[deleted_index];
-                        group->profiles.append(ent2->id);
+                        group->profiles.append(isXrayJsonProfile(ent) && !isXrayJsonProfile(ent2) ? ent->id : ent2->id);
                     } else {
                         group->profiles.append(ent->id);
                     }

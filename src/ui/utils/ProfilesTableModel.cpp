@@ -100,7 +100,7 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
 
     if (role == Qt::DisplayRole) {
         switch (index.column()) {
-        case 0: return profile->outbound ? profile->outbound->DisplayType() : QString();
+        case 0: return profile->outbound ? profile->outbound->DisplayTypeLabel() : QString();
         case 1: return profile->outbound ? profile->outbound->DisplayAddress() : QString();
         case 2: return profile->outbound ? profile->outbound->name : QString();
         case 3: return profile->DisplayTestResult();

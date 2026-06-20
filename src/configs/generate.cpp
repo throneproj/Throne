@@ -3,7 +3,11 @@
 #include "include/global/Configs.hpp"
 
 #include <QApplication>
+#include <QFile>
 #include <QFileInfo>
+#include <QProcess>
+#include <QRegularExpression>
+#include <QTextStream>
 
 
 #include "include/database/GroupsRepo.h"
@@ -15,6 +19,7 @@
 #include "include/sys/linux/systemChecks.h"
 
 #include <algorithm>
+#include <limits>
 #include <string_view>
 
 namespace {
@@ -24,6 +29,138 @@ namespace {
         auto it = std::lower_bound(ruleSetList.begin(), ruleSetList.end(), key,
             [](const auto& e, std::string_view k) { return e.first < k; });
         return (it != ruleSetList.end() && it->first == key) ? it->second : std::string_view{};
+    }
+
+    bool isVirtualDefaultInterface(const QString &name) {
+        const auto lower = name.toLower();
+        if (lower == "lo" || lower == "lo0" || lower == "throne-tun") return true;
+        const QStringList prefixes = {
+            "tun", "tap", "utun", "wg", "tailscale", "docker", "br-",
+            "veth", "virbr", "zt", "nebula", "ham", "cni", "podman",
+        };
+        for (const auto &prefix : prefixes) {
+            if (lower.startsWith(prefix)) return true;
+        }
+        return false;
+    }
+
+#ifdef Q_OS_LINUX
+    bool interfaceIsUp(const QString &name) {
+        QFile operstate("/sys/class/net/" + name + "/operstate");
+        if (!operstate.open(QIODevice::ReadOnly | QIODevice::Text)) return true;
+        const auto state = QString::fromUtf8(operstate.readAll()).trimmed();
+        return state.isEmpty() || state == "up" || state == "unknown";
+    }
+
+    QString linuxDefaultInterfaceFromRoute() {
+        QFile routeFile("/proc/net/route");
+        if (!routeFile.open(QIODevice::ReadOnly | QIODevice::Text)) return {};
+
+        QString bestName;
+        int bestMetric = std::numeric_limits<int>::max();
+        QTextStream stream(&routeFile);
+        bool firstLine = true;
+        while (!stream.atEnd()) {
+            const auto line = stream.readLine();
+            if (firstLine) {
+                firstLine = false;
+                continue;
+            }
+            const auto fields = line.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+            if (fields.size() < 8 || fields[1] != "00000000") continue;
+
+            const auto name = fields[0];
+            if (isVirtualDefaultInterface(name) || !interfaceIsUp(name)) continue;
+
+            bool ok = false;
+            const auto metric = fields[6].toInt(&ok);
+            const auto effectiveMetric = ok ? metric : 0;
+            if (bestName.isEmpty() || effectiveMetric < bestMetric) {
+                bestName = name;
+                bestMetric = effectiveMetric;
+            }
+        }
+        return bestName;
+    }
+#endif
+
+#ifdef Q_OS_MACOS
+    QString macDefaultInterfaceFromRoute() {
+        QProcess route;
+        route.start("/sbin/route", {"-n", "get", "default"});
+        if (!route.waitForFinished(1000)) return {};
+        const auto output = QString::fromUtf8(route.readAllStandardOutput());
+        for (const auto &line : output.split('\n')) {
+            const auto trimmed = line.trimmed();
+            if (!trimmed.startsWith("interface:")) continue;
+            const auto ifc = trimmed.mid(QString("interface:").size()).trimmed();
+            return isVirtualDefaultInterface(ifc) ? QString{} : ifc;
+        }
+        return {};
+    }
+#endif
+
+    QString platformDefaultInterface() {
+#ifdef Q_OS_LINUX
+        return linuxDefaultInterfaceFromRoute();
+#elif defined(Q_OS_MACOS)
+        return macDefaultInterfaceFromRoute();
+#else
+        return {};
+#endif
+    }
+
+    QString resolveDefaultInterface() {
+        auto ifc = platformDefaultInterface();
+        if (!ifc.isEmpty()) return ifc;
+        bool ifcOK = false;
+        ifc = API::defaultClient->GetDefaultInterface(&ifcOK);
+        return ifcOK ? ifc : QString{};
+    }
+
+    void bindXrayOutboundToInterface(QJsonObject &outbound, const QString &interfaceName) {
+        if (interfaceName.isEmpty()) return;
+        const auto protocol = outbound["protocol"].toString();
+        if (protocol == "blackhole" || protocol == "dns" || protocol == "loopback") return;
+
+        auto streamSettings = outbound["streamSettings"].toObject();
+        auto sockopt = streamSettings["sockopt"].toObject();
+        sockopt["interface"] = interfaceName;
+
+        const auto network = streamSettings["network"].toString();
+        if (network == "xhttp" || network == "splithttp") {
+            auto xhttpSettings = streamSettings["xhttpSettings"].toObject();
+            if (xhttpSettings.isEmpty()) xhttpSettings = streamSettings["splithttpSettings"].toObject();
+            if (xhttpSettings["extra"].toObject().contains("downloadSettings")) {
+                sockopt["penetrate"] = true;
+            }
+        }
+
+        streamSettings["sockopt"] = sockopt;
+        outbound["streamSettings"] = streamSettings;
+    }
+
+    QString canonicalOrOriginalPath(const QString &path) {
+        auto canonical = QFileInfo(path).canonicalFilePath();
+        return canonical.isEmpty() ? path : canonical;
+    }
+
+    QString throneCoreProcessPath() {
+        return canonicalOrOriginalPath(QApplication::applicationDirPath() + "/ThroneCore");
+    }
+
+    QString routeProcessPath(QString path) {
+#ifdef Q_OS_WIN
+        path.replace("/", "\\");
+#endif
+        return path;
+    }
+
+    QJsonArray coreEgressProcessPaths(const QString &extraCorePath, bool includeXrayCore) {
+        QJsonArray paths;
+        if (!extraCorePath.isEmpty()) paths.append(routeProcessPath(extraCorePath));
+        if (includeXrayCore) paths.append(routeProcessPath(throneCoreProcessPath()));
+        return paths;
     }
 }
 
@@ -135,9 +272,9 @@ namespace Configs {
         // empty and the build falls back to the loopback bridge.
         if (ctx->tunEnabled && !ctx->forTest && !ctx->forExport)
         {
-            bool ifcOK = false;
-            auto ifc = API::defaultClient->GetDefaultInterface(&ifcOK);
-            if (ifcOK && !ifc.isEmpty()) ctx->defaultInterface = ifc;
+            auto ifc = resolveDefaultInterface();
+            if (!ifc.isEmpty()) ctx->defaultInterface = ifc;
+            if (!ctx->defaultInterface.isEmpty()) MW_show_log("[interface-bind] default interface: " + ctx->defaultInterface);
         }
         auto preReqs = ctx->buildPrerequisities;
         
@@ -551,21 +688,12 @@ namespace Configs {
                 };
         }
 
-        // process_path matching forces sing-box's process finder, which is very
-        // heavy on Windows (large latency spikes). It's only needed to keep an
-        // extra core's egress out of the proxy/TUN loop — sing-box's own egress
-        // is handled by auto_detect_interface and xray by its loopback bridges —
-        // so only emit the direct-DNS carve-out when an extra core is present.
-        if (!ctx->forTest && !ctx->buildConfigResult->extraCoreData->path.isEmpty())
+        // Keep external core egress DNS out of the proxy/TUN loop.
+        const bool needXrayCoreDirect = ctx->buildConfigResult->isXrayNeeded || !ctx->xrayOutbounds.isEmpty();
+        if (!ctx->forTest && (!ctx->buildConfigResult->extraCoreData->path.isEmpty() || needXrayCoreDirect))
         {
-            QJsonArray coreProcessPaths;
-            auto extraCorePath = ctx->buildConfigResult->extraCoreData->path;
-#ifdef Q_OS_WIN
-            extraCorePath.replace("/", "\\");
-#endif
-            coreProcessPaths.append(extraCorePath);
             rules += QJsonObject{
-                {"process_path", coreProcessPaths},
+                {"process_path", coreEgressProcessPaths(ctx->buildConfigResult->extraCoreData->path, needXrayCoreDirect)},
                 {"action", "route"},
                 {"strategy", dataManager->settingsRepo->direct_dns_strategy},
                 {"server", "dns-direct"},
@@ -1051,6 +1179,17 @@ namespace Configs {
                 }}
             });
             userXrayConfig["inbounds"] = inbounds;
+            if (!ctx->defaultInterface.isEmpty()) {
+                auto outbounds = userXrayConfig["outbounds"].toArray();
+                for (auto i = 0; i < outbounds.size(); i++) {
+                    if (!outbounds[i].isObject()) continue;
+                    auto outbound = outbounds[i].toObject();
+                    bindXrayOutboundToInterface(outbound, ctx->defaultInterface);
+                    outbounds[i] = outbound;
+                }
+                userXrayConfig["outbounds"] = outbounds;
+                MW_show_log("[interface-bind] full xray config egress bound to default interface " + ctx->defaultInterface);
+            }
             ctx->buildConfigResult->xrayConfig = userXrayConfig;
             ctx->buildConfigResult->isXrayNeeded = true;
         }
@@ -1321,21 +1460,15 @@ namespace Configs {
         // own (id-translated) rules and get only the structural plumbing prepended below.
         auto routeRules = routeChain->isRaw ? rawRouteObj.value("rules").toArray()
                                             : routeChain->get_route_rules(false, routeDeps->outboundMap);
-        // See buildDNSSection: only carve the core's own egress out to `direct`
-        // via process_path when an extra core is in the chain. Otherwise we'd
-        // force the (Windows-heavy) process finder even though sing-box loopback
-        // is handled by auto_detect_interface and xray by its loopback bridges.
-        if (!ctx->buildConfigResult->extraCoreData->path.isEmpty())
+        // Keep external core egress out of the proxy/TUN loop. This is required
+        // for full Xray configs because their own routing owns the final egress;
+        // if sing-box captures ThroneCore again it loops back into proxy.
+        const bool needXrayCoreDirect = !ctx->forTest && (ctx->buildConfigResult->isXrayNeeded || !ctx->xrayOutbounds.isEmpty());
+        if (!ctx->buildConfigResult->extraCoreData->path.isEmpty() || needXrayCoreDirect)
         {
-            QJsonArray coreProcessPaths;
-            auto extraCorePath = ctx->buildConfigResult->extraCoreData->path;
-#ifdef Q_OS_WIN
-            extraCorePath.replace("/", "\\");
-#endif
-            coreProcessPaths.append(extraCorePath);
             routeRules.prepend(QJsonObject{
                 {"action", "route"},
-                {"process_path", coreProcessPaths},
+                {"process_path", coreEgressProcessPaths(ctx->buildConfigResult->extraCoreData->path, needXrayCoreDirect)},
                 {"outbound", "direct"},
             });
         }
@@ -1770,9 +1903,8 @@ namespace Configs {
         // bypass via the test route's auto_detect_interface. On RPC failure we
         // simply don't bind.
         {
-            bool ifcOK = false;
-            auto ifc = API::defaultClient->GetDefaultInterface(&ifcOK);
-            if (ifcOK && !ifc.isEmpty()) ctx->defaultInterface = ifc;
+            auto ifc = resolveDefaultInterface();
+            if (!ifc.isEmpty()) ctx->defaultInterface = ifc;
         }
         QList<int> entIDs;
         for (const auto& proxy : profiles) entIDs << proxy->id;

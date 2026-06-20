@@ -17,6 +17,7 @@ namespace Configs
     {
     public:
         QString name;
+        QString import_source;
         QString server;
         int server_port = 0;
         bool invalid = false;
@@ -71,7 +72,14 @@ namespace Configs
 
         QString DisplayTypeAndName()
         {
-            return QString("[%1] %2").arg(DisplayType(), DisplayName());
+            return QString("[%1] %2").arg(DisplayTypeLabel(), DisplayName());
+        }
+
+        QString DisplayTypeLabel()
+        {
+            auto type = DisplayType();
+            if (import_source == "xrayjson") type += " (Xray JSON)";
+            return type;
         }
 
         virtual bool IsXray() { return false; }
@@ -106,6 +114,7 @@ namespace Configs
             auto json = ExportToJson();
             if (stripMetadata) {
                 json.remove("tag");
+                json.remove("import_source");
             }
             QUrl url;
             url.setScheme("json");

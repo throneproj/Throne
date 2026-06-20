@@ -22,6 +22,7 @@ namespace Configs {
     bool xrayVless::ParseFromJson(const QJsonObject &object) {
         if (object.isEmpty() || object["protocol"].toString() != "vless") return false;
         if (object.contains("tag")) name = object["tag"].toString();
+        if (object.contains("import_source")) import_source = object["import_source"].toString();
         if (auto settingsObj = object["settings"].toObject(); !settingsObj.isEmpty()) {
             if (settingsObj.contains("address")) server = settingsObj["address"].toString();
             if (settingsObj.contains("port")) server_port = settingsObj["port"].toInt();
@@ -71,6 +72,7 @@ namespace Configs {
     QJsonObject xrayVless::ExportToJson() {
         QJsonObject object;
         if (!name.isEmpty()) object["tag"] = name;
+        if (!import_source.isEmpty()) object["import_source"] = import_source;
         object["protocol"] = "vless";
         QJsonObject settings;
         settings["address"] = server;
