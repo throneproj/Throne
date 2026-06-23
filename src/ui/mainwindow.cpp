@@ -705,6 +705,27 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     } else {
         trayMenu->addMenu(ui->menu_spmode);
     }
+
+    auto* trayRoutingMenu = new QMenu(tr("Select Routing"), trayMenu);
+    connect(trayRoutingMenu, &QMenu::aboutToShow, this, [=,this]() {
+        trayRoutingMenu->clear();
+        for (const auto& route : Configs::dataManager->routesRepo->GetAllRouteProfiles()) {
+            auto* action = new QAction(trayRoutingMenu);
+            action->setText(route->name);
+            action->setData(route->id);
+            action->setCheckable(true);
+            action->setChecked(Configs::dataManager->settingsRepo->current_route_id == route->id);
+            connect(action, &QAction::triggered, this, [=,this]() {
+                auto routeID = action->data().toInt();
+                if (Configs::dataManager->settingsRepo->current_route_id == routeID) return;
+                Configs::dataManager->settingsRepo->current_route_id = routeID;
+                Configs::dataManager->settingsRepo->Save();
+                if (Configs::dataManager->settingsRepo->started_id >= 0) profile_start(Configs::dataManager->settingsRepo->started_id);
+            });
+            trayRoutingMenu->addAction(action);
+        }
+    });
+    trayMenu->addMenu(trayRoutingMenu);
     trayMenu->addSeparator();
     trayMenu->addAction(ui->actionRestart_Proxy);
     trayMenu->addAction(ui->actionRestart_Program);
