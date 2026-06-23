@@ -1993,6 +1993,9 @@ void MainWindow::refresh_status(const QString &traffic_update) {
         ui->label_running->setToolTip({});
     }
 
+    auto route = Configs::dataManager->routesRepo->GetRouteProfile(Configs::dataManager->settingsRepo->current_route_id);
+    QString activeRouteName = (route && route->name != "Default") ? route->name : "";
+
     auto make_title = [=,this](bool isTray) {
         QStringList tt;
         if (!isTray && Configs::IsAdmin()) tt << "[Admin]";
@@ -2003,9 +2006,8 @@ void MainWindow::refresh_status(const QString &traffic_update) {
         if (Configs::dataManager->settingsRepo->spmode_vpn && Configs::dataManager->settingsRepo->spmode_system_proxy) tt << "[Tun+" + tr("System Proxy") + "]";
         tt << software_name;
         if (!isTray) tt << QString(NKR_VERSION);
-        auto route = Configs::dataManager->routesRepo->GetRouteProfile(Configs::dataManager->settingsRepo->current_route_id);
-        if (route && route->name != "Default") {
-            tt << "[" + route->name + "]";
+        if (!activeRouteName.isEmpty()) {
+            tt << "[" + activeRouteName + "]";
         }
         if (running != nullptr) {
             tt << running->outbound->DisplayTypeAndName() + "@" + group_name;
