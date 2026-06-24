@@ -1,0 +1,18 @@
+# Pinned SHA-256 checksums for prebuilt binaries fetched at build time.
+# Format:  <remote-filename>  <sha256>
+#
+# build_go.sh fails closed if a fetched artifact does not match the hash here.
+# To populate a real value: run the build once, copy the "actual sha256"
+# printed in the ERROR, verify it against the official release, then paste it
+# below (replacing PUT_REAL_SHA256_HERE). Re-pin whenever the upstream
+# release is intentionally bumped.
+#
+# updater (https://github.com/throneproj/updater/releases)
+updater-linux-amd64        PUT_REAL_SHA256_HERE
+updater-linux-arm64        PUT_REAL_SHA256_HERE
+updater-windows-x64.exe    PUT_REAL_SHA256_HERE
+updater-windows-x86.exe    PUT_REAL_SHA256_HERE
+#
+# libcronet (https://github.com/SagerNet/cronet-go/releases)
+libcronet-windows-amd64.dll  PUT_REAL_SHA256_HERE
+libcronet-windows-arm64.dll  PUT_REAL_SHA256_HERE

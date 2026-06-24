@@ -3309,7 +3309,9 @@ void MainWindow::CheckUpdate() {
         return;
     }
 
-    auto resp = NetworkRequestHelper::HttpGet("https://api.github.com/repos/throneproj/Throne/releases");
+    // forceSecure: the update channel must always verify TLS, even if the user
+    // enabled net_insecure for subscriptions. A MITM here leads to code execution.
+    auto resp = NetworkRequestHelper::HttpGet("https://api.github.com/repos/throneproj/Throne/releases", false, false, true);
     if (!resp.error.isEmpty()) {
         runOnUiThread([=,this] {
             MessageBoxWarning(QObject::tr("Update"), QObject::tr("Requesting update error: %1").arg(resp.error + "\n" + resp.data));
@@ -3368,9 +3370,21 @@ void MainWindow::CheckUpdate() {
                 }
                 QString errors;
                 if (!release_download_url.isEmpty()) {
-                    auto res = NetworkRequestHelper::DownloadAsset(release_download_url, "Throne.zip");
-                    if (!res.isEmpty()) {
-                        errors += res;
+                    // Only ever fetch the update payload over verified TLS from a
+                    // trusted GitHub host. Reject anything else to stop a tampered
+                    // API response from redirecting the download to an attacker.
+                    const QUrl dlUrl(release_download_url);
+                    const QString host = dlUrl.host();
+                    const bool trustedHost = host == "github.com"
+                        || host.endsWith(".github.com")
+                        || host.endsWith(".githubusercontent.com");
+                    if (dlUrl.scheme() != "https" || !trustedHost) {
+                        errors += tr("Refused update download from untrusted URL: %1").arg(release_download_url);
+                    } else {
+                        auto res = NetworkRequestHelper::DownloadAsset(release_download_url, "Throne.zip", true);
+                        if (!res.isEmpty()) {
+                            errors += res;
+                        }
                     }
                 }
                 mu_download_update.unlock();

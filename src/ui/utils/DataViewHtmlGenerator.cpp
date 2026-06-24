@@ -76,12 +76,12 @@ QString DataViewHtmlGenerator::downloadSectionHtml() {
     const QString stat =
         ReadableSize(download_.report.downloadedSize) + "/" + ReadableSize(download_.report.totalSize);
     return QString("<p style='text-align:center;margin:0;'>Downloading %1: %2 %3</p>")
-        .arg(download_.report.fileName, stat, progressText);
+        .arg(download_.report.fileName.toHtmlEscaped(), stat, progressText);
 }
 
 QString DataViewHtmlGenerator::speedtestSectionHtml() {
     if (speedtest_.kind == SpeedtestPanelState::Kind::Speed) {
-        auto firstLine = QStringLiteral("Running Speedtest: %1").arg(speedtest_.profileName);
+        auto firstLine = QStringLiteral("Running Speedtest: %1").arg(speedtest_.profileName.toHtmlEscaped());
         if (speedtest_.totalProfiles > 1) {
             firstLine += QString(" (%1 / %2)").arg(Int2String(testProgress.load()), Int2String(speedtest_.totalProfiles));
         }
@@ -93,8 +93,9 @@ QString DataViewHtmlGenerator::speedtestSectionHtml() {
            "<span style='color: #86C43F;'>Ul↑ %3</span>"
            "</div>"
            "<p style='text-align:center;margin:0;'>Server: %4%5, %6</p>")
-            .arg(firstLine, speedtest_.dlSpeed, speedtest_.ulSpeed, speedtest_.serverCountryFlag, speedtest_.serverCountry,
-                speedtest_.serverName);
+            .arg(firstLine, speedtest_.dlSpeed.toHtmlEscaped(), speedtest_.ulSpeed.toHtmlEscaped(),
+                speedtest_.serverCountryFlag, speedtest_.serverCountry.toHtmlEscaped(),
+                speedtest_.serverName.toHtmlEscaped());
     } else {
         QString res;
         auto content = QString("Running Country Test");

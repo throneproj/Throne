@@ -26,11 +26,15 @@ namespace Configs_network {
         ;
 
     public:
-        static HTTPResponse HttpGet(const QString &url, bool sendHwid = false, bool useProxy = false);
+        // forceSecure overrides the global net_insecure setting and always
+        // enforces TLS certificate verification. Used for trust-critical
+        // channels (e.g. the auto-update download) that must never be served
+        // over an unverified connection.
+        static HTTPResponse HttpGet(const QString &url, bool sendHwid = false, bool useProxy = false, bool forceSecure = false);
 
         static QString GetHeader(const QList<QPair<QByteArray, QByteArray>> &header, const QString &name);
 
-        static QString DownloadAsset(const QString &url, const QString &fileName);
+        static QString DownloadAsset(const QString &url, const QString &fileName, bool forceSecure = false);
     };
 } // namespace Configs_network
 

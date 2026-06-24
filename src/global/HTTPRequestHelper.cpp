@@ -18,7 +18,7 @@
 
 namespace Configs_network {
 
-    HTTPResponse NetworkRequestHelper::HttpGet(const QString &url, bool sendHwid, bool useProxy) {
+    HTTPResponse NetworkRequestHelper::HttpGet(const QString &url, bool sendHwid, bool useProxy, bool forceSecure) {
         QNetworkRequest request;
         QNetworkAccessManager accessManager;
         accessManager.setTransferTimeout(10000);
@@ -40,7 +40,7 @@ namespace Configs_network {
         // Set attribute
         request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
         request.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, Configs::dataManager->settingsRepo->GetUserAgent());
-        if (Configs::dataManager->settingsRepo->net_insecure) {
+        if (Configs::dataManager->settingsRepo->net_insecure && !forceSecure) {
             QSslConfiguration c;
             c.setPeerVerifyMode(QSslSocket::PeerVerifyMode::VerifyNone);
             request.setSslConfiguration(c);
@@ -113,7 +113,7 @@ namespace Configs_network {
         return "";
     }
 
-    QString NetworkRequestHelper::DownloadAsset(const QString &url, const QString &fileName) {
+    QString NetworkRequestHelper::DownloadAsset(const QString &url, const QString &fileName, bool forceSecure) {
         QNetworkRequest request;
         QNetworkAccessManager accessManager;
         request.setUrl(url);
@@ -131,19 +131,19 @@ namespace Configs_network {
             }
             accessManager.setProxy(p);
         }
-        if (Configs::dataManager->settingsRepo->net_insecure) {
+        if (Configs::dataManager->settingsRepo->net_insecure && !forceSecure) {
             QSslConfiguration c;
             c.setPeerVerifyMode(QSslSocket::PeerVerifyMode::VerifyNone);
             request.setSslConfiguration(c);
         }
 
         auto _reply = accessManager.get(request);
-        connect(_reply, &QNetworkReply::sslErrors, _reply, [](const QList<QSslError> &errors) {
+        connect(_reply, &QNetworkReply::sslErrors, _reply, [forceSecure](const QList<QSslError> &errors) {
             QStringList error_str;
             for (const auto &err: errors) {
                 error_str << err.errorString();
             }
-            MW_show_log(QString("SSL Errors: %1 %2").arg(error_str.join(","), Configs::dataManager->settingsRepo->net_insecure ? "(Ignored)" : ""));
+            MW_show_log(QString("SSL Errors: %1 %2").arg(error_str.join(","), (Configs::dataManager->settingsRepo->net_insecure && !forceSecure) ? "(Ignored)" : ""));
         });
         connect(_reply, &QNetworkReply::downloadProgress, _reply, [&](qint64 bytesReceived, qint64 bytesTotal)
         {
