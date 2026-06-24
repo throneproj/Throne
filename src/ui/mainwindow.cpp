@@ -1629,17 +1629,16 @@ bool MainWindow::get_elevated_permissions(int reason) {
     if (n == QMessageBox::Yes) {
         runOnNewThread([=,this]
         {
-            auto chownArgs = QString("root:root " + Configs::FindCoreRealPath());
-            auto ret = Linux_Run_Command("chown", chownArgs);
+            const auto corePath = Configs::FindCoreRealPath();
+            auto ret = Linux_Run_Command("chown", {"root:root", corePath});
             if (ret != 0) {
-                MW_show_log(QString("Failed to run chown %1 code is %2").arg(chownArgs).arg(ret));
+                MW_show_log(QString("Failed to run chown root:root %1 code is %2").arg(corePath).arg(ret));
             }
-            auto chmodArgs = QString("u+s " + Configs::FindCoreRealPath());
-            ret = Linux_Run_Command("chmod", chmodArgs);
+            ret = Linux_Run_Command("chmod", {"u+s", corePath});
             if (ret == 0) {
                 StopVPNProcess();
             } else {
-                MW_show_log(QString("Failed to run chmod %1").arg(chmodArgs));
+                MW_show_log(QString("Failed to run chmod u+s %1").arg(corePath));
             }
         });
         return false;
@@ -1662,13 +1661,13 @@ bool MainWindow::get_elevated_permissions(int reason) {
     auto n = QMessageBox::warning(GetMessageBoxParent(), software_name, tr("Please give the core root privileges"), QMessageBox::Yes | QMessageBox::No);
     if (n == QMessageBox::Yes)
     {
-        auto Command = QString("sudo chown root:wheel '%1' && sudo chmod u+s '%1'").arg(Configs::FindCoreRealPath());
-        auto ret = Mac_Run_Command(Command);
+        const auto corePath = Configs::FindCoreRealPath();
+        auto ret = Mac_Run_Command(corePath);
         if (ret == 0) {
             MessageBoxInfo(tr("Requesting permission"), tr("Please Enter your password in the opened terminal, then try again"));
             return false;
         } else {
-            MW_show_log(QString("Failed to run %1 with %2").arg(Command).arg(ret));
+            MW_show_log(QString("Failed to request privileges for %1 with %2").arg(corePath).arg(ret));
             return false;
         }
     }
