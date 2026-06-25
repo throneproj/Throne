@@ -3,11 +3,7 @@
 #include "include/global/Configs.hpp"
 
 #include <QApplication>
-#include <QFile>
 #include <QFileInfo>
-#include <QProcess>
-#include <QRegularExpression>
-#include <QTextStream>
 
 
 #include "include/database/GroupsRepo.h"
@@ -19,7 +15,6 @@
 #include "include/sys/linux/systemChecks.h"
 
 #include <algorithm>
-#include <limits>
 #include <string_view>
 
 namespace {
@@ -31,90 +26,9 @@ namespace {
         return (it != ruleSetList.end() && it->first == key) ? it->second : std::string_view{};
     }
 
-    bool isVirtualDefaultInterface(const QString &name) {
-        const auto lower = name.toLower();
-        if (lower == "lo" || lower == "lo0" || lower == "throne-tun") return true;
-        const QStringList prefixes = {
-            "tun", "tap", "utun", "wg", "tailscale", "docker", "br-",
-            "veth", "virbr", "zt", "nebula", "ham", "cni", "podman",
-        };
-        for (const auto &prefix : prefixes) {
-            if (lower.startsWith(prefix)) return true;
-        }
-        return false;
-    }
-
-#ifdef Q_OS_LINUX
-    bool interfaceIsUp(const QString &name) {
-        QFile operstate("/sys/class/net/" + name + "/operstate");
-        if (!operstate.open(QIODevice::ReadOnly | QIODevice::Text)) return true;
-        const auto state = QString::fromUtf8(operstate.readAll()).trimmed();
-        return state.isEmpty() || state == "up" || state == "unknown";
-    }
-
-    QString linuxDefaultInterfaceFromRoute() {
-        QFile routeFile("/proc/net/route");
-        if (!routeFile.open(QIODevice::ReadOnly | QIODevice::Text)) return {};
-
-        QString bestName;
-        int bestMetric = std::numeric_limits<int>::max();
-        QTextStream stream(&routeFile);
-        bool firstLine = true;
-        while (!stream.atEnd()) {
-            const auto line = stream.readLine();
-            if (firstLine) {
-                firstLine = false;
-                continue;
-            }
-            const auto fields = line.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
-            if (fields.size() < 8 || fields[1] != "00000000") continue;
-
-            const auto name = fields[0];
-            if (isVirtualDefaultInterface(name) || !interfaceIsUp(name)) continue;
-
-            bool ok = false;
-            const auto metric = fields[6].toInt(&ok);
-            const auto effectiveMetric = ok ? metric : 0;
-            if (bestName.isEmpty() || effectiveMetric < bestMetric) {
-                bestName = name;
-                bestMetric = effectiveMetric;
-            }
-        }
-        return bestName;
-    }
-#endif
-
-#ifdef Q_OS_MACOS
-    QString macDefaultInterfaceFromRoute() {
-        QProcess route;
-        route.start("/sbin/route", {"-n", "get", "default"});
-        if (!route.waitForFinished(1000)) return {};
-        const auto output = QString::fromUtf8(route.readAllStandardOutput());
-        for (const auto &line : output.split('\n')) {
-            const auto trimmed = line.trimmed();
-            if (!trimmed.startsWith("interface:")) continue;
-            const auto ifc = trimmed.mid(QString("interface:").size()).trimmed();
-            return isVirtualDefaultInterface(ifc) ? QString{} : ifc;
-        }
-        return {};
-    }
-#endif
-
-    QString platformDefaultInterface() {
-#ifdef Q_OS_LINUX
-        return linuxDefaultInterfaceFromRoute();
-#elif defined(Q_OS_MACOS)
-        return macDefaultInterfaceFromRoute();
-#else
-        return {};
-#endif
-    }
-
     QString resolveDefaultInterface() {
-        auto ifc = platformDefaultInterface();
-        if (!ifc.isEmpty()) return ifc;
         bool ifcOK = false;
-        ifc = API::defaultClient->GetDefaultInterface(&ifcOK);
+        auto ifc = API::defaultClient->GetDefaultInterface(&ifcOK);
         return ifcOK ? ifc : QString{};
     }
 
