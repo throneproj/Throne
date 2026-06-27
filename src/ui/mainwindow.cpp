@@ -664,19 +664,20 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                 connect(groupMenu, &QMenu::aboutToShow, this, [=, this]() {
                     groupMenu->clear();
                     auto profiles = group->Profiles();
+                    Configs::dataManager->profilesRepo->GetProfileBatch(profiles);
                     auto neededProfilesIDNames = Configs::dataManager->profilesRepo->GetProfileIDNameMappedBatch(profiles);
                     for (const auto&[id, name] : neededProfilesIDNames) {
                         QString displayName = name;
                         std::shared_ptr<Configs::Profile> profile;
-                        if (displayName.isEmpty()) {
+                        if (displayName.trimmed().isEmpty()) {
                             profile = Configs::dataManager->profilesRepo->GetProfile(id);
                             if (profile && profile->outbound) {
                                 displayName = profile->outbound->DisplayName();
                             }
                         }
-                        if (displayName.isEmpty()) {
-                            QString pType = profile ? profile->type : QStringLiteral("unknown");
-                            displayName = QString("[%1] (ID: %2)").arg(pType, QString::number(id));
+                        if (displayName.trimmed().isEmpty()) {
+                            const QString pType = (profile && profile->outbound && !profile->outbound->DisplayType().isEmpty()) ? profile->outbound->DisplayType() : ((profile && !profile->type.isEmpty()) ? profile->type : tr("unknown"));
+                            displayName = tr("[%1] (ID: %2)").arg(pType, QString::number(id));
                         }
                         auto *action = groupMenu->addAction(displayName);
                         action->setCheckable(true);
@@ -1346,19 +1347,20 @@ void MainWindow::rebuildTrayServerMenu() {
     QList<int> pageIds;
     pageIds.reserve(end - start);
     for (int i = start; i < end; ++i) pageIds.append(profiles[i]);
+    Configs::dataManager->profilesRepo->GetProfileBatch(pageIds);
     auto mappedIdNames = Configs::dataManager->profilesRepo->GetProfileIDNameMappedBatch(pageIds);
     for (const auto&[id, name] : mappedIdNames) {
         QString displayName = name;
         std::shared_ptr<Configs::Profile> profile;
-        if (displayName.isEmpty()) {
+        if (displayName.trimmed().isEmpty()) {
             profile = Configs::dataManager->profilesRepo->GetProfile(id);
             if (profile && profile->outbound) {
                 displayName = profile->outbound->DisplayName();
             }
         }
-        if (displayName.isEmpty()) {
-            QString pType = profile ? profile->type : QStringLiteral("unknown");
-            displayName = QString("[%1] (ID: %2)").arg(pType, QString::number(id));
+        if (displayName.trimmed().isEmpty()) {
+            const QString pType = (profile && profile->outbound && !profile->outbound->DisplayType().isEmpty()) ? profile->outbound->DisplayType() : ((profile && !profile->type.isEmpty()) ? profile->type : tr("unknown"));
+            displayName = tr("[%1] (ID: %2)").arg(pType, QString::number(id));
         }
         auto *action = trayServerMenu->addAction(displayName);
         action->setCheckable(true);
