@@ -75,6 +75,8 @@ public:
 
     void profile_stop(bool crash = false, bool block = false, bool manual = false);
 
+    int get_profile_to_start();
+
     void set_spmode_system_proxy(bool enable, bool save = true);
 
     void toggle_system_proxy();
@@ -208,6 +210,7 @@ private:
     QString title_error;
     int icon_status = -1;
     std::shared_ptr<Configs::Profile> running;
+    int last_running_profile_id = -1;
     // True from the moment a profile start is kicked off until it succeeds or
     // fails; drives the start/stop button's transient "Connecting" state.
     bool m_profileConnecting = false;

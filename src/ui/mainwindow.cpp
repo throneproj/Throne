@@ -187,6 +187,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     setActionsData();
     loadShortcuts();
 
+    last_running_profile_id = Configs::dataManager->settingsRepo->remember_id;
+
     // geometry remembering
     if (!Configs::dataManager->settingsRepo->mainWindowGeometry.isEmpty()) {
         auto geo = DecodeB64IfValid(Configs::dataManager->settingsRepo->mainWindowGeometry);
@@ -2299,8 +2301,8 @@ void MainWindow::refresh_startstop_button() {
     if (m_profileConnecting) state = StartStopButton::State::Connecting;
     else if (m_profileDisconnecting) state = StartStopButton::State::Disconnecting;
     else if (running != nullptr) state = StartStopButton::State::Running;
-    else if (get_now_selected_list().size() == 1) state = StartStopButton::State::Idle;
-    else state = StartStopButton::State::Disabled; // nothing, or multiple, selected
+    else if (get_profile_to_start() >= 0) state = StartStopButton::State::Idle;
+    else state = StartStopButton::State::Disabled;
     btn->setState(state);
 }
 
