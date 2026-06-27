@@ -765,7 +765,7 @@ void MainWindow::profile_start(int _id) {
     }
 #endif
 
-    Database::ProfileEntity *ent = nullptr;
+    std::shared_ptr<Configs::Profile> ent = nullptr;
     if (_id >= 0) {
         ent = Configs::dataManager->profilesRepo->GetProfile(_id);
     } else {
