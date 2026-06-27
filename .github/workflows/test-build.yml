@@ -1,0 +1,81 @@
+name: Test Build Windows
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  build-go:
+    runs-on: ubuntu-22.04
+    env:
+      DEST: ${{ github.workspace }}/deployment/windows-amd64
+    steps:
+      - name: Checking out sources
+        uses: actions/checkout@v4.2.2
+      - name: Install Golang
+        uses: actions/setup-go@v5.5.0
+        with:
+          go-version: "1.26.3"
+          cache: false
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "31.1"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Installing protoc-gen-go
+        run: |
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.6.2
+      - name: Build golang parts
+        shell: bash
+        run: |
+          GOOS=windows GOARCH=amd64 ./script/build_go.sh
+      - name: Tar files
+        run: tar czvf artifacts.tgz ./deployment
+      - name: Uploading Artifact
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: Throne-${{ github.sha }}-Common-windows-amd64
+          path: artifacts.tgz
+
+  build-cpp:
+    needs: build-go
+    runs-on: windows-latest
+    env:
+      DEST_SUFFIX: windows-amd64
+      DEST: ${{ github.workspace }}/deployment/windows-amd64
+      ARCH: x64
+    steps:
+      - name: Checking out sources
+        uses: actions/checkout@v4.2.2
+        with:
+          submodules: "recursive"
+      - name: Install MSVC compiler
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4.3.0
+        with:
+          path: download-artifact
+      - name: Windows - Generate MakeFile and Build
+        shell: bash
+        run: |
+          curl -L -o qt.7z https://github.com/throneproj/buildqt/releases/download/Qt_6.11.1/Qt_6.11.1_x64.7z
+          7z x qt.7z
+          curl -L -o openssl.7z https://github.com/throneproj/env_windows_legacy/releases/download/latest/openssl_x64.7z
+          7z x openssl.7z
+          export CMAKE_PREFIX_PATH=$PWD/Qt/lib/cmake
+          export OPENSSL_ROOT_DIR=$PWD/openssl
+          mkdir build
+          cd build
+          curl -fLso srslist.h "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/srslist.h"
+          cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+          ninja
+          cd ..
+          ./script/deploy_windows.sh
+      - name: Upload Windows Executable
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: Throne-Windows-x64
+          path: deployment/windows-amd64
