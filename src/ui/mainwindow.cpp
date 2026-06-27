@@ -666,7 +666,19 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                     auto profiles = group->Profiles();
                     auto neededProfilesIDNames = Configs::dataManager->profilesRepo->GetProfileIDNameMappedBatch(profiles);
                     for (const auto&[id, name] : neededProfilesIDNames) {
-                        auto *action = groupMenu->addAction(name);
+                        QString displayName = name;
+                        std::shared_ptr<Configs::Profile> profile;
+                        if (displayName.isEmpty()) {
+                            profile = Configs::dataManager->profilesRepo->GetProfile(id);
+                            if (profile && profile->outbound) {
+                                displayName = profile->outbound->DisplayName();
+                            }
+                        }
+                        if (displayName.isEmpty()) {
+                            QString pType = profile ? profile->type : QStringLiteral("unknown");
+                            displayName = QString("[%1] (ID: %2)").arg(pType, QString::number(id));
+                        }
+                        auto *action = groupMenu->addAction(displayName);
                         action->setCheckable(true);
                         action->setChecked(running && running->id == id);
                         connect(action, &QAction::triggered, this, [=, this]() { profile_start(id); });
@@ -1336,7 +1348,19 @@ void MainWindow::rebuildTrayServerMenu() {
     for (int i = start; i < end; ++i) pageIds.append(profiles[i]);
     auto mappedIdNames = Configs::dataManager->profilesRepo->GetProfileIDNameMappedBatch(pageIds);
     for (const auto&[id, name] : mappedIdNames) {
-        auto *action = trayServerMenu->addAction(name);
+        QString displayName = name;
+        std::shared_ptr<Configs::Profile> profile;
+        if (displayName.isEmpty()) {
+            profile = Configs::dataManager->profilesRepo->GetProfile(id);
+            if (profile && profile->outbound) {
+                displayName = profile->outbound->DisplayName();
+            }
+        }
+        if (displayName.isEmpty()) {
+            QString pType = profile ? profile->type : QStringLiteral("unknown");
+            displayName = QString("[%1] (ID: %2)").arg(pType, QString::number(id));
+        }
+        auto *action = trayServerMenu->addAction(displayName);
         action->setCheckable(true);
         action->setChecked(running && running->id == id);
         connect(action, &QAction::triggered, this, [=, this]() { profile_start(id); });
