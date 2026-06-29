@@ -171,6 +171,7 @@ namespace Configs {
         int inbound_socks_port = 2080; // Mixed, actually
         bool random_inbound_port = false;
         QString custom_inbound = "{\"inbounds\": []}";
+        QString port_forwards = "{\"rules\": []}";
         QString proxy_scheme = "{ip}:{port}";
         bool inbound_auth = false;
         QString inbound_user = "";

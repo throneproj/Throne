@@ -757,6 +757,22 @@ namespace Configs {
             });
         }
 
+        // port forwarding
+        int forwardIdx = 0;
+        for (const auto &item: QString2QJsonObject(Configs::dataManager->settingsRepo->port_forwards)["rules"].toArray()) {
+            auto rule = item.toObject();
+            if (rule["remote"].toString().isEmpty() || rule["listen_port"].toInt() <= 0) continue;
+            QJsonObject forwardObj;
+            forwardObj["tag"] = "forward-" + QString::number(forwardIdx++);
+            forwardObj["type"] = "direct";
+            forwardObj["listen"] = rule["listen"].toString().isEmpty() ? "127.0.0.1" : rule["listen"].toString();
+            forwardObj["listen_port"] = rule["listen_port"].toInt();
+            forwardObj["override_address"] = rule["remote"].toString();
+            if (rule["remote_port"].toInt() > 0) forwardObj["override_port"] = rule["remote_port"].toInt();
+            if (auto network = rule["network"].toString(); !network.isEmpty()) forwardObj["network"] = network;
+            inbounds += forwardObj;
+        }
+
         // custom
         QJSONARRAY_ADD(inbounds, QString2QJsonObject(Configs::dataManager->settingsRepo->custom_inbound)["inbounds"].toArray())
         ctx->buildConfigResult->coreConfig["inbounds"] = inbounds;

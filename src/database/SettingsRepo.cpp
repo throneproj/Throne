@@ -105,6 +105,7 @@ namespace Configs {
             {"fragment_sleep",             &fragment_sleep},
             {"theme",                      &theme},
             {"custom_inbound",             &custom_inbound},
+            {"port_forwards",              &port_forwards},
             {"custom_route",               &custom_route_global},
             {"font",                       &font},
             {"hk_mw",                      &hotkey_mainwindow},
