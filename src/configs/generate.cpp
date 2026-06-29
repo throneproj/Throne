@@ -764,7 +764,9 @@ namespace Configs {
             if (!rule["enabled"].toBool(true)) continue;
             if (rule["remote"].toString().isEmpty() || rule["listen_port"].toInt() <= 0) continue;
             QJsonObject forwardObj;
-            forwardObj["tag"] = "forward-" + QString::number(forwardIdx++);
+            auto forwardTag = "forward-" + QString::number(forwardIdx++);
+            ctx->forwardTags += forwardTag;
+            forwardObj["tag"] = forwardTag;
             forwardObj["type"] = "direct";
             forwardObj["listen"] = rule["listen"].toString().isEmpty() ? "127.0.0.1" : rule["listen"].toString();
             forwardObj["listen_port"] = rule["listen_port"].toInt();
@@ -1457,6 +1459,18 @@ namespace Configs {
             route["final"] = dataManager->settingsRepo->enable_warp ? "warp-bypass" : "proxy";
         } else {
             route["final"] = outboundIDToString(defOut);
+        }
+        // Forwards have a fixed override destination, so they must skip
+        // sniff/dns-hijack and profile routing and egress straight through the
+        // active proxy. A terminal route rule placed first does exactly that.
+        if (!ctx->forwardTags.isEmpty()) {
+            auto rules = route["rules"].toArray();
+            rules.prepend(QJsonObject{
+                {"inbound", ctx->forwardTags},
+                {"action", "route"},
+                {"outbound", route.value("final")},
+            });
+            route["rules"] = rules;
         }
         if (Configs::dataManager->settingsRepo->enable_stats && !route.contains("find_process"))  route["find_process"] = true;
         if (!route.contains("default_domain_resolver"))

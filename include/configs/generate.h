@@ -153,6 +153,10 @@ namespace Configs
         QJsonArray xrayOutbounds;
         QList<QString> xrayIngressTags;
         QList<QString> singIngressTags;
+        // Tags of the port-forward `direct` inbounds. They get a terminal route
+        // rule to the active proxy so they bypass sniff/dns-hijack and always
+        // egress through `final` regardless of profile rules.
+        QJsonArray forwardTags;
         QList<coreBridgeConfig> singToXrayBridges;
         QList<coreBridgeConfig> xrayToSingBridges;
         std::shared_ptr<BuildConfigResult> buildConfigResult = std::make_shared<BuildConfigResult>();
