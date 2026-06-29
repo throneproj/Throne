@@ -22,6 +22,11 @@ namespace Stats {
         long long alignMinute(long long secs) { return (secs / 60) * 60; }
     }
 
+    bool TrafficStatsManager::aggregationDisabled() {
+        return Configs::dataManager && Configs::dataManager->settingsRepo &&
+               Configs::dataManager->settingsRepo->disable_traffic_aggregation;
+    }
+
     void TrafficStatsManager::Init() {
         if (started.exchange(true)) return;
         // Catch-up pass first (downsample anything that aged past the minute
@@ -58,6 +63,7 @@ namespace Stats {
     }
 
     void TrafficStatsManager::AddConfigDelta(int profileId, long long up, long long down) {
+        if (aggregationDisabled()) return;
         if (up == 0 && down == 0) return;
         const long long nowBucket = alignMinute(QDateTime::currentSecsSinceEpoch());
         QList<Configs::ConfigTrafficRow> cfg;
@@ -77,6 +83,7 @@ namespace Stats {
 
     void TrafficStatsManager::AddAppDelta(const QString& processName, const QString& path,
                                           long long up, long long down) {
+        if (aggregationDisabled()) return;
         if (processName.isEmpty() || (up == 0 && down == 0)) return;
         const long long nowBucket = alignMinute(QDateTime::currentSecsSinceEpoch());
         QList<Configs::ConfigTrafficRow> cfg;
@@ -109,6 +116,7 @@ namespace Stats {
     }
 
     void TrafficStatsManager::Flush() {
+        if (aggregationDisabled()) return;
         QList<Configs::ConfigTrafficRow> cfg;
         QList<Configs::AppTrafficRow> app;
         {
@@ -122,6 +130,7 @@ namespace Stats {
     void TrafficStatsManager::SnapshotConfigMeta(int profileId, const QString& name,
                                                  const QString& groupName, const QString& type,
                                                  const QString& serverAddress) {
+        if (aggregationDisabled()) return;
         if (!Configs::dataManager || !Configs::dataManager->trafficStatsRepo) return;
         if (profileId < 0 && profileId != DIRECT_STAT_PROFILE_ID) return;
         const long long now = QDateTime::currentSecsSinceEpoch();
@@ -141,13 +150,12 @@ namespace Stats {
     }
 
     void TrafficStatsManager::runRollupOnce() {
+        if (aggregationDisabled()) return;
         if (!Configs::dataManager || !Configs::dataManager->trafficStatsRepo) return;
         const long long now = QDateTime::currentSecsSinceEpoch();
         Configs::dataManager->trafficStatsRepo->RollupMinuteToHour(now - kMinuteWindowSecs);
 
-        int days = Configs::dataManager->settingsRepo
-                       ? Configs::dataManager->settingsRepo->traffic_stats_retention_days
-                       : 90;
+        int days = Configs::dataManager->settingsRepo->traffic_stats_retention_days;
         if (days < 1) days = 1;
         Configs::dataManager->trafficStatsRepo->PruneHour(now - static_cast<long long>(days) * 86400LL);
     }

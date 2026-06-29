@@ -68,8 +68,6 @@ namespace Configs {
         SQLite::Database db;
         std::atomic<int> writeCount{0};
         void maybeCheckpoint(int count);
-        // Run VACUUM once at startup if the free-list has grown large enough to be
-        // worth reclaiming (see VACUUM_MIN_* thresholds). No-op otherwise.
         void maybeVacuum();
 
         void execDeleteByIdInChunk(const std::string& table, const std::string& idColumn, const std::vector<int>& ids);

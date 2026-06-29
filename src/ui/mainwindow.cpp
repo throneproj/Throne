@@ -30,6 +30,7 @@
 
 
 #include "include/database/RoutesRepo.h"
+#include "include/global/Common.h"
 
 #include "include/ui/utils/ProfilesTableFilterHeader.h"
 
@@ -186,6 +187,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // init shortcuts
     setActionsData();
     loadShortcuts();
+
+    last_running_profile_id = Configs::dataManager->settingsRepo->remember_id;
 
     // geometry remembering
     if (!Configs::dataManager->settingsRepo->mainWindowGeometry.isEmpty()) {
@@ -363,6 +366,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->toolButton_routing->setMenu(ui->menuRouting_Menu);
     ui->toolButton_tools->setMenu(ui->menuTools);
     ui->menubar->setVisible(false);
+    ui->actionTraffic_Stats->setVisible(!Configs::dataManager->settingsRepo->disable_traffic_aggregation);
     connect(ui->actionTraffic_Stats, &QAction::triggered, this, [=]() {
         USE_DIALOG(DialogTrafficStats)
     });
@@ -1349,6 +1353,7 @@ void MainWindow::rebuildTrayServerMenu() {
     for (int i = start; i < end; ++i) pageIds.append(profiles[i]);
     Configs::dataManager->profilesRepo->GetProfileBatch(pageIds);
     auto mappedIdNames = Configs::dataManager->profilesRepo->GetProfileIDNameMappedBatch(pageIds);
+    mappedIdNames = FixProfileDisplayName(mappedIdNames);
     for (const auto&[id, name] : mappedIdNames) {
         QString displayName = name;
         std::shared_ptr<Configs::Profile> profile;
@@ -1557,6 +1562,7 @@ void MainWindow::dialog_message_impl(MwMessage cmd, const QStringList &args) {
     switch (cmd) {
     case MwMessage::UpdateSettings: {
         updateLogFilterFields();
+        ui->actionTraffic_Stats->setVisible(!settings->disable_traffic_aggregation);
         if (changed(MwArg::TrayIcon)) {
             icon_status = -1;
         }
@@ -2325,8 +2331,8 @@ void MainWindow::refresh_startstop_button() {
     if (m_profileConnecting) state = StartStopButton::State::Connecting;
     else if (m_profileDisconnecting) state = StartStopButton::State::Disconnecting;
     else if (running != nullptr) state = StartStopButton::State::Running;
-    else if (get_now_selected_list().size() == 1) state = StartStopButton::State::Idle;
-    else state = StartStopButton::State::Disabled; // nothing, or multiple, selected
+    else if (get_profile_to_start() >= 0) state = StartStopButton::State::Idle;
+    else state = StartStopButton::State::Disabled;
     btn->setState(state);
 }
 
@@ -3362,12 +3368,24 @@ void MainWindow::RegisterHotkey(bool unregister) {
     }
 }
 
-void MainWindow::registerMenuShortcuts(QMenu *menu) {
+void MainWindow::collectMenuShortcuts(QMenu *menu, QSet<QKeySequence> &out) {
     for (const auto &action: menu->actions()) {
         if (auto *sub = action->menu()) {
-            registerMenuShortcuts(sub);
+            collectMenuShortcuts(sub, out);
         } else if (!action->shortcut().isEmpty()) {
-            hiddenMenuShortcuts.append(new QShortcut(action->shortcut(), this, [=,this](){
+            out.insert(action->shortcut());
+        }
+    }
+}
+
+void MainWindow::registerMenuShortcuts(QMenu *menu, QSet<QKeySequence> &claimed) {
+    for (const auto &action: menu->actions()) {
+        if (auto *sub = action->menu()) {
+            registerMenuShortcuts(sub, claimed);
+        } else if (!action->shortcut().isEmpty()) {
+            if (claimed.contains(action->shortcut())) continue;
+            claimed.insert(action->shortcut());
+            hiddenMenuShortcuts.append(new QShortcut(action->shortcut(), this, [=](){
                 action->trigger();
             }));
         }
@@ -3380,11 +3398,17 @@ void MainWindow::RegisterHiddenMenuShortcuts(bool unregister) {
 
     if (unregister) return;
 
-    registerMenuShortcuts(ui->menuHidden_menu);
-    // menu_server used to ride along on a toolbutton's menu, which kept its action
-    // shortcuts (Start/Return, Delete/Del, …) alive. It's now a right-click-only
-    // popup, so — like the hidden menu — its shortcuts must be registered manually.
-    registerMenuShortcuts(ui->menu_server);
+    // Seed with the shortcuts Qt already activates on its own: these menus are
+    // attached to visible toolButtons via setMenu(), so their actions' shortcuts
+    // are registered automatically. We must not register them a second time.
+    QSet<QKeySequence> claimed;
+    collectMenuShortcuts(ui->menu_program, claimed);
+    collectMenuShortcuts(ui->menu_preferences, claimed);
+    collectMenuShortcuts(ui->menuRouting_Menu, claimed);
+    collectMenuShortcuts(ui->menuTools, claimed);
+
+    registerMenuShortcuts(ui->menuHidden_menu, claimed);
+    registerMenuShortcuts(ui->menu_server, claimed);
 }
 
 void MainWindow::setActionsData()

@@ -107,6 +107,7 @@ namespace Configs {
         // Traffic-statistics module: days of hour-resolution history to retain
         // (the 48h minute-resolution window is fixed). Clamped to >= 1 in use.
         int traffic_stats_retention_days = 90;
+        bool disable_traffic_aggregation = false;
         int speed_test_mode = TestConfig::FULL;
         int speed_test_timeout_ms = 5000;
         QString simple_dl_url = "http://cachefly.cachefly.net/1mb.test";

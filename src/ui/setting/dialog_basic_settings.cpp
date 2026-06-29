@@ -106,6 +106,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
 
     // Style
     ui->connection_statistics->setChecked(Configs::dataManager->settingsRepo->enable_stats);
+    ui->disable_traffic_aggregation->setChecked(Configs::dataManager->settingsRepo->disable_traffic_aggregation);
     ui->show_sys_dns->setChecked(Configs::dataManager->settingsRepo->show_system_dns);
     connect(ui->show_sys_dns, &QCheckBox::stateChanged, this, [=]
     {
@@ -344,6 +345,7 @@ void DialogBasicSettings::accept() {
     // Style
 
     Configs::dataManager->settingsRepo->enable_stats = ui->connection_statistics->isChecked();
+    Configs::dataManager->settingsRepo->disable_traffic_aggregation = ui->disable_traffic_aggregation->isChecked();
     Configs::dataManager->settingsRepo->language = ui->language->currentIndex();
     auto oldUseCustomIcon = Configs::dataManager->settingsRepo->use_custom_icons;
     Configs::dataManager->settingsRepo->use_custom_icons = ui->enable_custom_icon->isChecked();

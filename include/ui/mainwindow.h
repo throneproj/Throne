@@ -24,6 +24,8 @@
 #include <QProcess>
 #include <QTextDocument>
 #include <QShortcut>
+#include <QKeySequence>
+#include <QSet>
 #include <QCheckBox>
 #include <QSemaphore>
 #include <QMutex>
@@ -74,6 +76,8 @@ public:
     void profile_start(int _id = -1);
 
     void profile_stop(bool crash = false, bool block = false, bool manual = false);
+
+    int get_profile_to_start();
 
     void set_spmode_system_proxy(bool enable, bool save = true);
 
@@ -208,6 +212,7 @@ private:
     QString title_error;
     int icon_status = -1;
     std::shared_ptr<Configs::Profile> running;
+    int last_running_profile_id = -1;
     // True from the moment a profile start is kicked off until it succeeds or
     // fails; drives the start/stop button's transient "Connecting" state.
     bool m_profileConnecting = false;
@@ -346,7 +351,13 @@ private:
     // Register a QShortcut for every action in `menu` (recursing into submenus),
     // appending them to hiddenMenuShortcuts. Needed because the menubar is hidden,
     // so actions reachable only through popup menus get no shortcut on their own.
-    void registerMenuShortcuts(QMenu *menu);
+    // `claimed` holds the key sequences already handled (either by Qt automatically
+    // or by an earlier call); shortcuts already in it are skipped to avoid the
+    // ambiguous-shortcut conflict that breaks actions shared with other menus.
+    void registerMenuShortcuts(QMenu *menu, QSet<QKeySequence> &claimed);
+    // Collect the shortcut key sequences of every action in `menu` (recursing into
+    // submenus) into `out`, without registering anything.
+    void collectMenuShortcuts(QMenu *menu, QSet<QKeySequence> &out);
 
     void setActionsData();
 

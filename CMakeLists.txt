@@ -214,6 +214,7 @@ set(PROJECT_SOURCES
 
         src/ui/stats/dialog_traffic_stats.cpp
         include/ui/stats/dialog_traffic_stats.h
+        include/ui/stats/dialog_traffic_stats.ui
         src/ui/stats/TrafficChartWidget.cpp
         include/ui/stats/TrafficChartWidget.h
 
@@ -369,6 +370,8 @@ set(PROJECT_SOURCES
         src/sys/linux/systemChecks.cpp
         include/configs/sub/warp.h
         src/configs/sub/warp.cpp
+        include/global/Common.h
+        src/global/Common.cpp
 )
 
 if (NOT APPLE AND Qt6_VERSION VERSION_GREATER_EQUAL 6.9.0)

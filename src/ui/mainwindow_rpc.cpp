@@ -727,6 +727,33 @@ void MainWindow::checkDefaultInterfaceChange() {
     profile_start(startedId);
 }
 
+int MainWindow::get_profile_to_start() {
+    auto ents = get_now_selected_list();
+    if (ents.size() == 1) {
+        return ents.first();
+    }
+    if (ents.isEmpty()) {
+        if (last_running_profile_id >= 0 && Configs::dataManager->profilesRepo->GetProfile(last_running_profile_id) != nullptr) {
+            return last_running_profile_id;
+        }
+        int rememberId = Configs::dataManager->settingsRepo->remember_id;
+        if (rememberId >= 0 && Configs::dataManager->profilesRepo->GetProfile(rememberId) != nullptr) {
+            return rememberId;
+        }
+        auto currentGroup = Configs::dataManager->groupsRepo->CurrentGroup();
+        if (currentGroup) {
+            auto profiles = currentGroup->Profiles();
+            if (!profiles.isEmpty()) {
+                int firstId = profiles.first();
+                if (Configs::dataManager->profilesRepo->GetProfile(firstId) != nullptr) {
+                    return firstId;
+                }
+            }
+        }
+    }
+    return -1;
+}
+
 void MainWindow::profile_start(int _id) {
     if (Configs::dataManager->settingsRepo->prepare_exit) return;
 #ifdef Q_OS_LINUX
@@ -738,9 +765,18 @@ void MainWindow::profile_start(int _id) {
     }
 #endif
 
-    auto ents = get_now_selected_list();
-    auto ent = (_id < 0 && !ents.isEmpty()) ? Configs::dataManager->profilesRepo->GetProfile(ents.first()) : Configs::dataManager->profilesRepo->GetProfile(_id);
+    std::shared_ptr<Configs::Profile> ent = nullptr;
+    if (_id >= 0) {
+        ent = Configs::dataManager->profilesRepo->GetProfile(_id);
+    } else {
+        int startId = get_profile_to_start();
+        if (startId >= 0) {
+            ent = Configs::dataManager->profilesRepo->GetProfile(startId);
+        }
+    }
     if (ent == nullptr) return;
+
+    last_running_profile_id = ent->id;
 
     if (select_mode) {
         emit profile_selected(ent->id);

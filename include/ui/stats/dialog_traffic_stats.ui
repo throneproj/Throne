@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DialogTrafficStats</class>
+ <widget class="QDialog" name="DialogTrafficStats">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>900</width>
+    <height>620</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Traffic Statistics</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="topLayout">
+     <item>
+      <widget class="QLabel" name="periodLabel">
+       <property name="text">
+        <string>Period:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="periodCombo">
+       <item>
+        <property name="text">
+         <string>Last 24 hours</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Last 7 days</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Last 30 days</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Last 90 days</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <spacer name="topSpacerLeft">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QLabel" name="summaryLabel">
+       <property name="styleSheet">
+        <string notr="true">font-weight: 600;</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="topSpacerRight">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="refreshBtn">
+       <property name="text">
+        <string>Refresh</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="TrafficChartWidget" name="chart" native="true"/>
+   </item>
+   <item>
+    <widget class="QTabWidget" name="tabs">
+     <property name="styleSheet">
+      <string notr="true">QTabWidget::pane {
+    margin-top: 1px;
+    border-radius: 4px;
+}
+
+QTabBar {
+    background: transparent;
+    qproperty-drawBase: 0;
+}
+
+QTabBar::tab {
+    border: 1px solid #777777;
+    border-radius: 4px;
+
+    padding: 2px 4px;
+    margin-right: 1px;
+}
+
+QTabBar::tab:selected {
+    border: 1px solid palette(highlight);
+}</string>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QTableWidget" name="profileTable">
+      <attribute name="title">
+       <string>By Profile</string>
+      </attribute>
+      <property name="alternatingRowColors">
+       <bool>true</bool>
+      </property>
+      <property name="selectionMode">
+       <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
+      </property>
+      <property name="selectionBehavior">
+       <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+      </property>
+      <property name="showGrid">
+       <bool>false</bool>
+      </property>
+      <property name="sortingEnabled">
+       <bool>true</bool>
+      </property>
+      <property name="editTriggers">
+       <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+      </property>
+      <attribute name="horizontalHeaderHighlightSections">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="verticalHeaderVisible">
+       <bool>false</bool>
+      </attribute>
+      <column>
+       <property name="text">
+        <string>Profile</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Group</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Download</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Upload</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Total</string>
+       </property>
+      </column>
+     </widget>
+     <widget class="QTableWidget" name="appTable">
+      <attribute name="title">
+       <string>By App</string>
+      </attribute>
+      <property name="alternatingRowColors">
+       <bool>true</bool>
+      </property>
+      <property name="selectionMode">
+       <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
+      </property>
+      <property name="selectionBehavior">
+       <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+      </property>
+      <property name="showGrid">
+       <bool>false</bool>
+      </property>
+      <property name="sortingEnabled">
+       <bool>true</bool>
+      </property>
+      <property name="editTriggers">
+       <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+      </property>
+      <attribute name="horizontalHeaderHighlightSections">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="verticalHeaderVisible">
+       <bool>false</bool>
+      </attribute>
+      <column>
+       <property name="text">
+        <string>App</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Download</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Upload</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Total</string>
+       </property>
+      </column>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TrafficChartWidget</class>
+   <extends>QWidget</extends>
+   <header>include/ui/stats/TrafficChartWidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

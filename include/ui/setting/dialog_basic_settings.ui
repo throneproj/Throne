@@ -627,6 +627,16 @@ QTabBar::tab:hover:!selected {
               </property>
              </widget>
             </item>
+            <item row="1" column="0" colspan="3">
+             <widget class="QCheckBox" name="disable_traffic_aggregation">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fully disables the traffic aggregation feature (per-config and per-app usage history kept in a separate database, shown in the Traffic Stats dashboard). Does not affect the per-profile traffic counters in the main window.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Disable Traffic Aggregation</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>

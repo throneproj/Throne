@@ -26,6 +26,7 @@ namespace Configs {
             {"skip_cert",                     &skip_cert},
             {"fakedns",                       &fake_dns},
             {"disable_traffic_stats",         &disable_traffic_stats},
+            {"disable_traffic_aggregation",   &disable_traffic_aggregation},
             {"vpn_ipv6",                      &vpn_ipv6},
             {"vpn_strict_route",              &vpn_strict_route},
             {"sub_clear",                     &sub_clear},

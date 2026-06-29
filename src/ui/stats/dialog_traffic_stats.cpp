@@ -11,14 +11,12 @@
 
 #include <QComboBox>
 #include <QDateTime>
-#include <QHBoxLayout>
 #include <QHash>
 #include <QHeaderView>
 #include <QLabel>
 #include <QPushButton>
 #include <QTabWidget>
 #include <QTableWidget>
-#include <QVBoxLayout>
 
 #include <algorithm>
 
@@ -41,104 +39,43 @@ namespace {
             return data(Qt::UserRole).toLongLong() < other.data(Qt::UserRole).toLongLong();
         }
     };
-
-    QTableWidget* makeStatsTable(const QStringList& headers) {
-        auto* t = new QTableWidget();
-        t->setColumnCount(headers.size());
-        t->setHorizontalHeaderLabels(headers);
-        t->verticalHeader()->setVisible(false);
-        t->setSelectionBehavior(QAbstractItemView::SelectRows);
-        t->setSelectionMode(QAbstractItemView::SingleSelection);
-        t->setEditTriggers(QAbstractItemView::NoEditTriggers);
-        t->setAlternatingRowColors(true);
-        t->setShowGrid(false);
-        t->setSortingEnabled(true);
-        t->horizontalHeader()->setHighlightSections(false);
-        return t;
-    }
 }
 
-DialogTrafficStats::DialogTrafficStats(QWidget* parent) : QDialog(parent) {
-    setWindowTitle(tr("Traffic Statistics"));
-    resize(900, 620);
+DialogTrafficStats::DialogTrafficStats(QWidget* parent) : QDialog(parent), ui(new Ui::DialogTrafficStats) {
+    ui->setupUi(this);
 
-    auto* root = new QVBoxLayout(this);
+    // The chart and tables take the lion's share of the height; the top controls
+    // stay at their natural size. (Box-layout stretch factors don't round-trip
+    // cleanly through uic, so they're set here rather than in the .ui.)
+    ui->verticalLayout->setStretch(1, 2); // chart
+    ui->verticalLayout->setStretch(2, 3); // tabs
 
-    // --- top controls -----------------------------------------------------
-    auto* top = new QHBoxLayout();
-    top->addWidget(new QLabel(tr("Period:")));
-    periodCombo_ = new QComboBox(this);
-    periodCombo_->addItem(tr("Last 24 hours"));
-    periodCombo_->addItem(tr("Last 7 days"));
-    periodCombo_->addItem(tr("Last 30 days"));
-    periodCombo_->addItem(tr("Last 90 days"));
-    top->addWidget(periodCombo_);
-    top->addStretch(1);
-    summaryLabel_ = new QLabel(this);
-    summaryLabel_->setStyleSheet("font-weight: 600;");
-    top->addWidget(summaryLabel_);
-    top->addStretch(1);
-    auto* refreshBtn = new QPushButton(tr("Refresh"), this);
-    top->addWidget(refreshBtn);
-    root->addLayout(top);
-
-    // --- chart ------------------------------------------------------------
-    chart_ = new TrafficChartWidget(this);
-    root->addWidget(chart_, 2);
-
-    // --- breakdown tables -------------------------------------------------
-    tabs_ = new QTabWidget(this);
-    tabs_->setStyleSheet(R"(
-        QTabWidget::pane {
-            margin-top: 1px;
-            border-radius: 4px;
-        }
-
-        QTabBar {
-            background: transparent;
-            qproperty-drawBase: 0;
-        }
-
-        QTabBar::tab {
-            border: 1px solid #777777;
-            border-radius: 4px;
-
-            padding: 2px 4px;
-            margin-right: 1px;
-        }
-
-        QTabBar::tab:selected {
-            border: 1px solid palette(highlight);
-        }
-    )");
-    profileTable_ = makeStatsTable({tr("Profile"), tr("Group"), tr("Download"), tr("Upload"), tr("Total")});
-    profileTable_->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    profileTable_->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    // Section resize modes are per-column, so they stay in code rather than the
+    // .ui: the name columns stretch to fill, the figure columns hug their content.
+    ui->profileTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    ui->profileTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     for (int c = 2; c <= 4; ++c)
-        profileTable_->horizontalHeader()->setSectionResizeMode(c, QHeaderView::ResizeToContents);
+        ui->profileTable->horizontalHeader()->setSectionResizeMode(c, QHeaderView::ResizeToContents);
 
-    appTable_ = makeStatsTable({tr("App"), tr("Download"), tr("Upload"), tr("Total")});
-    appTable_->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    ui->appTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
     for (int c = 1; c <= 3; ++c)
-        appTable_->horizontalHeader()->setSectionResizeMode(c, QHeaderView::ResizeToContents);
-
-    tabs_->addTab(profileTable_, tr("By Profile"));
-    tabs_->addTab(appTable_, tr("By App"));
-    root->addWidget(tabs_, 3);
+        ui->appTable->horizontalHeader()->setSectionResizeMode(c, QHeaderView::ResizeToContents);
 
     // The chart and summary reflect the active tab's dimension, so refresh when
     // switching tabs, changing the period, or on explicit request.
-    connect(refreshBtn, &QPushButton::clicked, this, [this] { refresh(); });
-    connect(periodCombo_, &QComboBox::currentIndexChanged, this, [this](int) { refresh(); });
-    connect(tabs_, &QTabWidget::currentChanged, this, [this](int) { refresh(); });
+    connect(ui->refreshBtn, &QPushButton::clicked, this, [this] { refresh(); });
+    connect(ui->periodCombo, &QComboBox::currentIndexChanged, this, [this](int) { refresh(); });
+    connect(ui->tabs, &QTabWidget::currentChanged, this, [this](int) { refresh(); });
 
     refresh();
 }
 
-DialogTrafficStats::~DialogTrafficStats() = default;
+DialogTrafficStats::~DialogTrafficStats() {
+    delete ui;
+}
 
 long long DialogTrafficStats::selectedWindowSecs() const {
-    switch (periodCombo_->currentIndex()) {
+    switch (ui->periodCombo->currentIndex()) {
         case 1: return 7LL * 86400LL;
         case 2: return 30LL * 86400LL;
         case 3: return 90LL * 86400LL;
@@ -149,7 +86,7 @@ long long DialogTrafficStats::selectedWindowSecs() const {
 
 long long DialogTrafficStats::selectedBucketSecs() const {
     // Hourly buckets for the 24h view, daily buckets for the longer ranges.
-    return periodCombo_->currentIndex() == 0 ? 3600LL : 86400LL;
+    return ui->periodCombo->currentIndex() == 0 ? 3600LL : 86400LL;
 }
 
 void DialogTrafficStats::refresh() {
@@ -171,7 +108,7 @@ void DialogTrafficStats::refresh() {
     populateProfileTable(from, now);
     populateAppTable(from, now);
 
-    const bool byApp = tabs_->currentIndex() == 1;
+    const bool byApp = ui->tabs->currentIndex() == 1;
     const auto series = byApp ? repo->QueryAppSeries(from, now, bucket, tzOffset)
                               : repo->QueryConfigSeries(from, now, bucket, tzOffset);
 
@@ -202,9 +139,9 @@ void DialogTrafficStats::refresh() {
         bars.append(bar);
     }
     const int stride = qMax(1, (static_cast<int>(bars.size()) + 7) / 8);
-    chart_->setData(bars, stride, bucket);
+    ui->chart->setData(bars, stride, bucket);
 
-    summaryLabel_->setText(tr("Download: %1     Upload: %2     Total: %3")
+    ui->summaryLabel->setText(tr("Download: %1     Upload: %2     Total: %3")
                                .arg(ReadableSize(totalDown), ReadableSize(totalUp),
                                     ReadableSize(totalDown + totalUp)));
 }
@@ -230,8 +167,8 @@ void DialogTrafficStats::populateProfileTable(long long fromSecs, long long toSe
         otherUp += usage[i].up;
     }
 
-    profileTable_->setSortingEnabled(false);
-    profileTable_->setRowCount(shown + (hasOther ? 1 : 0));
+    ui->profileTable->setSortingEnabled(false);
+    ui->profileTable->setRowCount(shown + (hasOther ? 1 : 0));
     for (int i = 0; i < shown; ++i) {
         const auto& u = usage[i];
         QString name, group;
@@ -250,21 +187,21 @@ void DialogTrafficStats::populateProfileTable(long long fromSecs, long long toSe
                 name = tr("Profile #%1 (deleted)").arg(u.profile_id);
             }
         }
-        profileTable_->setItem(i, 0, new QTableWidgetItem(name));
-        profileTable_->setItem(i, 1, new QTableWidgetItem(group));
-        profileTable_->setItem(i, 2, new TrafficStatsSizeItem(ReadableSize(u.down), u.down));
-        profileTable_->setItem(i, 3, new TrafficStatsSizeItem(ReadableSize(u.up), u.up));
-        profileTable_->setItem(i, 4, new TrafficStatsSizeItem(ReadableSize(u.down + u.up), u.down + u.up));
+        ui->profileTable->setItem(i, 0, new QTableWidgetItem(name));
+        ui->profileTable->setItem(i, 1, new QTableWidgetItem(group));
+        ui->profileTable->setItem(i, 2, new TrafficStatsSizeItem(ReadableSize(u.down), u.down));
+        ui->profileTable->setItem(i, 3, new TrafficStatsSizeItem(ReadableSize(u.up), u.up));
+        ui->profileTable->setItem(i, 4, new TrafficStatsSizeItem(ReadableSize(u.down + u.up), u.down + u.up));
     }
     if (hasOther) {
-        profileTable_->setItem(shown, 0, new QTableWidgetItem(tr("Other")));
-        profileTable_->setItem(shown, 1, new QTableWidgetItem(QString()));
-        profileTable_->setItem(shown, 2, new TrafficStatsSizeItem(ReadableSize(otherDown), otherDown));
-        profileTable_->setItem(shown, 3, new TrafficStatsSizeItem(ReadableSize(otherUp), otherUp));
-        profileTable_->setItem(shown, 4, new TrafficStatsSizeItem(ReadableSize(otherDown + otherUp), otherDown + otherUp));
+        ui->profileTable->setItem(shown, 0, new QTableWidgetItem(tr("Other")));
+        ui->profileTable->setItem(shown, 1, new QTableWidgetItem(QString()));
+        ui->profileTable->setItem(shown, 2, new TrafficStatsSizeItem(ReadableSize(otherDown), otherDown));
+        ui->profileTable->setItem(shown, 3, new TrafficStatsSizeItem(ReadableSize(otherUp), otherUp));
+        ui->profileTable->setItem(shown, 4, new TrafficStatsSizeItem(ReadableSize(otherDown + otherUp), otherDown + otherUp));
     }
-    profileTable_->setSortingEnabled(true);
-    profileTable_->sortItems(4, Qt::DescendingOrder);
+    ui->profileTable->setSortingEnabled(true);
+    ui->profileTable->sortItems(4, Qt::DescendingOrder);
 }
 
 void DialogTrafficStats::populateAppTable(long long fromSecs, long long toSecs) {
@@ -284,22 +221,22 @@ void DialogTrafficStats::populateAppTable(long long fromSecs, long long toSecs) 
         otherUp += usage[i].up;
     }
 
-    appTable_->setSortingEnabled(false);
-    appTable_->setRowCount(shown + (hasOther ? 1 : 0));
+    ui->appTable->setSortingEnabled(false);
+    ui->appTable->setRowCount(shown + (hasOther ? 1 : 0));
     for (int i = 0; i < shown; ++i) {
         const auto& u = usage[i];
         QString name = u.process_name.isEmpty() ? tr("Unknown") : u.process_name;
-        appTable_->setItem(i, 0, new QTableWidgetItem(name));
-        appTable_->setItem(i, 1, new TrafficStatsSizeItem(ReadableSize(u.down), u.down));
-        appTable_->setItem(i, 2, new TrafficStatsSizeItem(ReadableSize(u.up), u.up));
-        appTable_->setItem(i, 3, new TrafficStatsSizeItem(ReadableSize(u.down + u.up), u.down + u.up));
+        ui->appTable->setItem(i, 0, new QTableWidgetItem(name));
+        ui->appTable->setItem(i, 1, new TrafficStatsSizeItem(ReadableSize(u.down), u.down));
+        ui->appTable->setItem(i, 2, new TrafficStatsSizeItem(ReadableSize(u.up), u.up));
+        ui->appTable->setItem(i, 3, new TrafficStatsSizeItem(ReadableSize(u.down + u.up), u.down + u.up));
     }
     if (hasOther) {
-        appTable_->setItem(shown, 0, new QTableWidgetItem(tr("Other")));
-        appTable_->setItem(shown, 1, new TrafficStatsSizeItem(ReadableSize(otherDown), otherDown));
-        appTable_->setItem(shown, 2, new TrafficStatsSizeItem(ReadableSize(otherUp), otherUp));
-        appTable_->setItem(shown, 3, new TrafficStatsSizeItem(ReadableSize(otherDown + otherUp), otherDown + otherUp));
+        ui->appTable->setItem(shown, 0, new QTableWidgetItem(tr("Other")));
+        ui->appTable->setItem(shown, 1, new TrafficStatsSizeItem(ReadableSize(otherDown), otherDown));
+        ui->appTable->setItem(shown, 2, new TrafficStatsSizeItem(ReadableSize(otherUp), otherUp));
+        ui->appTable->setItem(shown, 3, new TrafficStatsSizeItem(ReadableSize(otherDown + otherUp), otherDown + otherUp));
     }
-    appTable_->setSortingEnabled(true);
-    appTable_->sortItems(3, Qt::DescendingOrder);
+    ui->appTable->setSortingEnabled(true);
+    ui->appTable->sortItems(3, Qt::DescendingOrder);
 }

@@ -77,6 +77,8 @@ namespace Stats {
 
         // One downsample+prune maintenance pass.
         void runRollupOnce();
+
+        [[nodiscard]] static bool aggregationDisabled();
     };
 
     extern TrafficStatsManager* trafficStatsManager;

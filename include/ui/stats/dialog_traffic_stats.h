@@ -2,11 +2,13 @@
 
 #include <QDialog>
 
-class QComboBox;
-class QLabel;
-class QTabWidget;
-class QTableWidget;
-class TrafficChartWidget;
+#include "ui_dialog_traffic_stats.h"
+
+QT_BEGIN_NAMESPACE
+namespace Ui {
+    class DialogTrafficStats;
+}
+QT_END_NAMESPACE
 
 // The traffic-statistics dashboard. Reads the per-config and per-app time series
 // from TrafficStatsRepo and presents, for a selectable period: a stacked bar
@@ -29,10 +31,5 @@ private:
     long long selectedWindowSecs() const;
     long long selectedBucketSecs() const;
 
-    QComboBox* periodCombo_ = nullptr;
-    QLabel* summaryLabel_ = nullptr;
-    TrafficChartWidget* chart_ = nullptr;
-    QTabWidget* tabs_ = nullptr;
-    QTableWidget* profileTable_ = nullptr;
-    QTableWidget* appTable_ = nullptr;
+    Ui::DialogTrafficStats* ui;
 };
