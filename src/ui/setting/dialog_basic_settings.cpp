@@ -27,9 +27,14 @@
 #include <QStandardPaths>
 #include <QCheckBox>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QPushButton>
+#include <QTableWidget>
+#include <QHeaderView>
+#include <QComboBox>
+#include <QJsonArray>
 
 #include "include/ui/mainwindow.h"
 
@@ -49,6 +54,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
 
     D_LOAD_STRING(inbound_address)
     CACHE.custom_inbound = Configs::dataManager->settingsRepo->custom_inbound;
+    CACHE.port_forwards = Configs::dataManager->settingsRepo->port_forwards;
     D_LOAD_INT(inbound_socks_port)
     ui->random_listen_port->setChecked(Configs::dataManager->settingsRepo->random_inbound_port);
     D_LOAD_INT(test_concurrent)
@@ -299,6 +305,7 @@ void DialogBasicSettings::accept() {
 
     D_SAVE_STRING(inbound_address)
     Configs::dataManager->settingsRepo->custom_inbound = CACHE.custom_inbound;
+    Configs::dataManager->settingsRepo->port_forwards = CACHE.port_forwards;
     D_SAVE_INT(inbound_socks_port)
     if (!Configs::dataManager->settingsRepo->random_inbound_port && ui->random_listen_port->isChecked())
     {
@@ -758,6 +765,108 @@ void DialogBasicSettings::on_core_settings_clicked() {
     layout->addWidget(box, ++line, 1);
     //
     ADD_ASTERISK(w)
+    w->exec();
+    w->deleteLater();
+}
+
+void DialogBasicSettings::on_port_forward_edit_clicked() {
+    auto w = new QDialog(this);
+    w->setWindowTitle(tr("Port Forwarding"));
+    auto layout = new QVBoxLayout(w);
+
+    auto hint = new QLabel(tr("Forward a local port to a remote address through the active proxy."));
+    hint->setWordWrap(true);
+    layout->addWidget(hint);
+
+    auto table = new QTableWidget(0, 6, w);
+    table->setHorizontalHeaderLabels({tr("Name"), tr("Listen Address"), tr("Listen Port"),
+                                      tr("Remote Host"), tr("Remote Port"), tr("Protocol")});
+    table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    table->verticalHeader()->hide();
+    layout->addWidget(table);
+
+    auto networkToIndex = [](const QString &network) {
+        if (network == "tcp") return 1;
+        if (network == "udp") return 2;
+        return 0;
+    };
+    auto addRow = [=](const QJsonObject &rule) {
+        int row = table->rowCount();
+        table->insertRow(row);
+        table->setItem(row, 0, new QTableWidgetItem(rule["name"].toString()));
+        table->setItem(row, 1, new QTableWidgetItem(rule["listen"].toString("127.0.0.1")));
+        table->setItem(row, 2, new QTableWidgetItem(rule.contains("listen_port") ? Int2String(rule["listen_port"].toInt()) : ""));
+        table->setItem(row, 3, new QTableWidgetItem(rule["remote"].toString()));
+        table->setItem(row, 4, new QTableWidgetItem(rule.contains("remote_port") ? Int2String(rule["remote_port"].toInt()) : ""));
+        auto network = new QComboBox;
+        network->addItems({"TCP + UDP", "TCP", "UDP"});
+        network->setCurrentIndex(networkToIndex(rule["network"].toString()));
+        table->setCellWidget(row, 5, network);
+    };
+
+    for (const auto &item: QString2QJsonObject(CACHE.port_forwards)["rules"].toArray()) {
+        addRow(item.toObject());
+    }
+
+    auto buttonsLayout = new QHBoxLayout;
+    auto addButton = new QPushButton(tr("Add"));
+    auto removeButton = new QPushButton(tr("Remove"));
+    buttonsLayout->addWidget(addButton);
+    buttonsLayout->addWidget(removeButton);
+    buttonsLayout->addStretch();
+    layout->addLayout(buttonsLayout);
+    connect(addButton, &QPushButton::clicked, w, [=] { addRow({}); });
+    connect(removeButton, &QPushButton::clicked, w, [=] {
+        if (auto row = table->currentRow(); row >= 0) table->removeRow(row);
+    });
+
+    auto box = new QDialogButtonBox(QDialogButtonBox::Cancel | QDialogButtonBox::Ok);
+    layout->addWidget(box);
+    connect(box, &QDialogButtonBox::rejected, w, &QDialog::reject);
+    connect(box, &QDialogButtonBox::accepted, w, [=,this] {
+        QJsonArray rules;
+        QStringList usedPorts;
+        for (int row = 0; row < table->rowCount(); ++row) {
+            auto cellText = [=](int col) { return table->item(row, col) ? table->item(row, col)->text().trimmed() : QString(); };
+            auto remote = cellText(3);
+            auto listenPort = cellText(2).toInt();
+            auto remotePort = cellText(4).toInt();
+            if (remote.isEmpty() && cellText(2).isEmpty() && cellText(4).isEmpty()) continue; // skip empty row
+            if (listenPort < 1 || listenPort > 65535) {
+                QMessageBox::warning(w, tr("Port Forwarding"), tr("Listen port must be between 1 and 65535 (row %1).").arg(row + 1));
+                return;
+            }
+            if (remote.isEmpty()) {
+                QMessageBox::warning(w, tr("Port Forwarding"), tr("Remote host is required (row %1).").arg(row + 1));
+                return;
+            }
+            if (remotePort < 1 || remotePort > 65535) {
+                QMessageBox::warning(w, tr("Port Forwarding"), tr("Remote port must be between 1 and 65535 (row %1).").arg(row + 1));
+                return;
+            }
+            auto listen = cellText(1).isEmpty() ? "127.0.0.1" : cellText(1);
+            if (auto endpoint = listen + ":" + Int2String(listenPort); usedPorts.contains(endpoint)) {
+                QMessageBox::warning(w, tr("Port Forwarding"), tr("Duplicate listen address %1.").arg(endpoint));
+                return;
+            } else {
+                usedPorts << endpoint;
+            }
+            auto networkCombo = qobject_cast<QComboBox*>(table->cellWidget(row, 5));
+            rules += QJsonObject{
+                {"name", cellText(0)},
+                {"listen", listen},
+                {"listen_port", listenPort},
+                {"remote", remote},
+                {"remote_port", remotePort},
+                {"network", QStringList{"", "tcp", "udp"}.value(networkCombo ? networkCombo->currentIndex() : 0)},
+            };
+        }
+        CACHE.port_forwards = QJsonObject2QString(QJsonObject{{"rules", rules}}, true);
+        w->accept();
+    });
+
+    ADD_ASTERISK(w)
+    w->resize(640, 320);
     w->exec();
     w->deleteLater();
 }

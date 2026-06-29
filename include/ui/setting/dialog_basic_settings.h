@@ -28,6 +28,7 @@ private:
 
     struct {
         QString custom_inbound;
+        QString port_forwards;
         bool needRestart = false;
         bool updateDisableTray = false;
         bool updateTrayIcon = false;
@@ -38,6 +39,7 @@ private:
 
 private slots:
     void on_core_settings_clicked();
+    void on_port_forward_edit_clicked();
     void on_backup_create_clicked();
     void on_backup_restore_clicked();
 };
