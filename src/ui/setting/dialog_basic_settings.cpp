@@ -778,10 +778,11 @@ void DialogBasicSettings::on_port_forward_edit_clicked() {
     hint->setWordWrap(true);
     layout->addWidget(hint);
 
-    auto table = new QTableWidget(0, 6, w);
-    table->setHorizontalHeaderLabels({tr("Name"), tr("Listen Address"), tr("Listen Port"),
+    auto table = new QTableWidget(0, 7, w);
+    table->setHorizontalHeaderLabels({tr("Enabled"), tr("Name"), tr("Listen Address"), tr("Listen Port"),
                                       tr("Remote Host"), tr("Remote Port"), tr("Protocol")});
     table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    table->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     table->verticalHeader()->hide();
     layout->addWidget(table);
 
@@ -793,15 +794,20 @@ void DialogBasicSettings::on_port_forward_edit_clicked() {
     auto addRow = [=](const QJsonObject &rule) {
         int row = table->rowCount();
         table->insertRow(row);
-        table->setItem(row, 0, new QTableWidgetItem(rule["name"].toString()));
-        table->setItem(row, 1, new QTableWidgetItem(rule["listen"].toString("127.0.0.1")));
-        table->setItem(row, 2, new QTableWidgetItem(rule.contains("listen_port") ? Int2String(rule["listen_port"].toInt()) : ""));
-        table->setItem(row, 3, new QTableWidgetItem(rule["remote"].toString()));
-        table->setItem(row, 4, new QTableWidgetItem(rule.contains("remote_port") ? Int2String(rule["remote_port"].toInt()) : ""));
+        auto enabled = new QTableWidgetItem;
+        enabled->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+        enabled->setCheckState(rule["enabled"].toBool(true) ? Qt::Checked : Qt::Unchecked);
+        enabled->setTextAlignment(Qt::AlignCenter);
+        table->setItem(row, 0, enabled);
+        table->setItem(row, 1, new QTableWidgetItem(rule["name"].toString()));
+        table->setItem(row, 2, new QTableWidgetItem(rule["listen"].toString("127.0.0.1")));
+        table->setItem(row, 3, new QTableWidgetItem(rule.contains("listen_port") ? Int2String(rule["listen_port"].toInt()) : ""));
+        table->setItem(row, 4, new QTableWidgetItem(rule["remote"].toString()));
+        table->setItem(row, 5, new QTableWidgetItem(rule.contains("remote_port") ? Int2String(rule["remote_port"].toInt()) : ""));
         auto network = new QComboBox;
         network->addItems({"TCP + UDP", "TCP", "UDP"});
         network->setCurrentIndex(networkToIndex(rule["network"].toString()));
-        table->setCellWidget(row, 5, network);
+        table->setCellWidget(row, 6, network);
     };
 
     for (const auto &item: QString2QJsonObject(CACHE.port_forwards)["rules"].toArray()) {
@@ -828,10 +834,10 @@ void DialogBasicSettings::on_port_forward_edit_clicked() {
         QStringList usedPorts;
         for (int row = 0; row < table->rowCount(); ++row) {
             auto cellText = [=](int col) { return table->item(row, col) ? table->item(row, col)->text().trimmed() : QString(); };
-            auto remote = cellText(3);
-            auto listenPort = cellText(2).toInt();
-            auto remotePort = cellText(4).toInt();
-            if (remote.isEmpty() && cellText(2).isEmpty() && cellText(4).isEmpty()) continue; // skip empty row
+            auto remote = cellText(4);
+            auto listenPort = cellText(3).toInt();
+            auto remotePort = cellText(5).toInt();
+            if (remote.isEmpty() && cellText(3).isEmpty() && cellText(5).isEmpty()) continue; // skip empty row
             if (listenPort < 1 || listenPort > 65535) {
                 QMessageBox::warning(w, tr("Port Forwarding"), tr("Listen port must be between 1 and 65535 (row %1).").arg(row + 1));
                 return;
@@ -844,16 +850,17 @@ void DialogBasicSettings::on_port_forward_edit_clicked() {
                 QMessageBox::warning(w, tr("Port Forwarding"), tr("Remote port must be between 1 and 65535 (row %1).").arg(row + 1));
                 return;
             }
-            auto listen = cellText(1).isEmpty() ? "127.0.0.1" : cellText(1);
+            auto listen = cellText(2).isEmpty() ? "127.0.0.1" : cellText(2);
             if (auto endpoint = listen + ":" + Int2String(listenPort); usedPorts.contains(endpoint)) {
                 QMessageBox::warning(w, tr("Port Forwarding"), tr("Duplicate listen address %1.").arg(endpoint));
                 return;
             } else {
                 usedPorts << endpoint;
             }
-            auto networkCombo = qobject_cast<QComboBox*>(table->cellWidget(row, 5));
+            auto networkCombo = qobject_cast<QComboBox*>(table->cellWidget(row, 6));
             rules += QJsonObject{
-                {"name", cellText(0)},
+                {"enabled", table->item(row, 0) && table->item(row, 0)->checkState() == Qt::Checked},
+                {"name", cellText(1)},
                 {"listen", listen},
                 {"listen_port", listenPort},
                 {"remote", remote},

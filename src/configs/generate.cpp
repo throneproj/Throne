@@ -761,6 +761,7 @@ namespace Configs {
         int forwardIdx = 0;
         for (const auto &item: QString2QJsonObject(Configs::dataManager->settingsRepo->port_forwards)["rules"].toArray()) {
             auto rule = item.toObject();
+            if (!rule["enabled"].toBool(true)) continue;
             if (rule["remote"].toString().isEmpty() || rule["listen_port"].toInt() <= 0) continue;
             QJsonObject forwardObj;
             forwardObj["tag"] = "forward-" + QString::number(forwardIdx++);
