@@ -5,6 +5,8 @@
 #include <ranges>
 
 #include "include/configs/sub/GroupUpdater.hpp"
+#include "include/configs/sub/RouteUpdater.hpp"
+#include "include/global/PeriodicRunner.hpp"
 #include "include/sys/Process.hpp"
 #include "include/sys/AutoRun.hpp"
 #include "include/sys/UrlScheme.hpp"
@@ -198,7 +200,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     // setup log
     ui->splitter->restoreState(DecodeB64IfValid(Configs::dataManager->settingsRepo->splitter_state));
-    new SyntaxHighlighter(themeUsesDarkLog(Configs::dataManager->settingsRepo->theme), qvLogDocument);
+    setLogHighlighter(themeUsesDarkLog(Configs::dataManager->settingsRepo->theme));
     qvLogDocument->setUndoRedoEnabled(false);
     qvLogDocument->setMaximumBlockCount(Configs::dataManager->settingsRepo->max_log_line);
     ui->masterLogBrowser->setUndoRedoEnabled(false);
@@ -211,12 +213,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
     connect(qApp->styleHints(), &QStyleHints::colorSchemeChanged, this, [=,this](const Qt::ColorScheme& scheme) {
-        new SyntaxHighlighter(scheme == Qt::ColorScheme::Dark, qvLogDocument);
+        setLogHighlighter(scheme == Qt::ColorScheme::Dark);
         themeManager->ApplyTheme(Configs::dataManager->settingsRepo->theme, true);
     });
 #endif
     connect(themeManager, &ThemeManager::themeChanged, this, [=,this](const QString& theme){
-        new SyntaxHighlighter(themeUsesDarkLog(theme), qvLogDocument);
+        setLogHighlighter(themeUsesDarkLog(theme));
         scheduleProxyListRefresh();
     });
     MW_show_log = [=,this](const QString &log) {
@@ -364,7 +366,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->toolButton_program->setMenu(ui->menu_program);
     ui->toolButton_preferences->setMenu(ui->menu_preferences);
     ui->toolButton_routing->setMenu(ui->menuRouting_Menu);
+    ui->toolButton_testing->setMenu(ui->menuTesting);
     ui->toolButton_tools->setMenu(ui->menuTools);
+    ui->toolButton_program->installEventFilter(this);
     ui->menubar->setVisible(false);
     ui->actionTraffic_Stats->setVisible(!Configs::dataManager->settingsRepo->disable_traffic_aggregation);
     connect(ui->actionTraffic_Stats, &QAction::triggered, this, [=]() {
@@ -601,6 +605,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->profilesTableView->horizontalHeader()->setResizeContentsPrecision(0);
 
     connect(ui->profilesTableView->verticalScrollBar(), &QScrollBar::valueChanged, ui->profilesTableView, [=, this] {
+        if (!ui->profilesTableView->isVisible()) return;
         refresh_proxy_list_column_size();
     });
 
@@ -807,13 +812,6 @@ connect(ui->actionRestart_Proxy, &QAction::triggered, this, [=,this] {
     else ui->system_dns->hide();
 
     connect(ui->menu_server, &QMenu::aboutToShow, this, [=,this](){
-        if (running)
-        {
-            ui->actionSpeedtest_Current->setEnabled(true);
-        } else
-        {
-            ui->actionSpeedtest_Current->setEnabled(false);
-        }
         if (auto selected = get_now_selected_list(); selected.empty())
         {
             ui->actionSpeedtest_Selected->setEnabled(false);
@@ -832,6 +830,17 @@ connect(ui->actionRestart_Proxy, &QAction::triggered, this, [=,this] {
         } else {
             speedtestRunning.unlock();
             ui->menu_server->removeAction(ui->menu_stop_testing);
+        }
+    });
+
+    connect(ui->menuTesting, &QMenu::aboutToShow, this, [=,this](){
+        // Speedtest Current only makes sense against a live instance.
+        ui->actionSpeedtest_Current->setEnabled(running != nullptr);
+        if (!speedtestRunning.tryLock()) {
+            ui->menuTesting->addAction(ui->menu_stop_testing);
+        } else {
+            speedtestRunning.unlock();
+            ui->menuTesting->removeAction(ui->menu_stop_testing);
         }
     });
 
@@ -1110,14 +1119,36 @@ connect(ui->actionRestart_Proxy, &QAction::triggered, this, [=,this] {
     m_defaultInterfaceWatch->setInterval(3000);
     connect(m_defaultInterfaceWatch, &QTimer::timeout, this, [this] { checkDefaultInterfaceChange(); });
 
-    // auto update timer
-    TM_auto_update_subsctiption = new QTimer;
-    TM_auto_update_subsctiption_Reset_Minute = [&](int m) {
-        TM_auto_update_subsctiption->stop();
-        if (m >= 30) TM_auto_update_subsctiption->start(m * 60 * 1000);
-    };
-    connect(TM_auto_update_subsctiption, &QTimer::timeout, this, [&] { UI_update_all_groups(true); });
-    TM_auto_update_subsctiption_Reset_Minute(Configs::dataManager->settingsRepo->sub_auto_update);
+    // Periodic auto-update jobs. The runner persists each job's last-run time and re-runs
+    // it once its own interval has elapsed, so closing the app past the interval (or the
+    // machine sleeping) still triggers an update on the next launch instead of resetting
+    // the clock. Subscriptions and remote routing profiles each carry their own interval.
+    {
+        auto* runner = Throne::PeriodicRunner::instance();
+        // Settings store the interval sign-encoded (negative = disabled); < 30 min is
+        // treated as off, matching the "invalid if less than 30" UI hint.
+        const auto minutesOf = [](int v) { return v >= 30 ? v : 0; };
+        runner->Add({
+            tr("subscriptions"),
+            [minutesOf] { return minutesOf(Configs::dataManager->settingsRepo->sub_auto_update); },
+            [] { return Configs::dataManager->settingsRepo->sub_auto_update_last; },
+            [](qint64 t) {
+                Configs::dataManager->settingsRepo->sub_auto_update_last = t;
+                Configs::dataManager->settingsRepo->Save();
+            },
+            [] { UI_update_all_groups(true); },
+        });
+        runner->Add({
+            tr("routing profiles"),
+            [minutesOf] { return minutesOf(Configs::dataManager->settingsRepo->route_auto_update); },
+            [] { return Configs::dataManager->settingsRepo->route_auto_update_last; },
+            [](qint64 t) {
+                Configs::dataManager->settingsRepo->route_auto_update_last = t;
+                Configs::dataManager->settingsRepo->Save();
+            },
+            [] { UI_update_all_remote_routes(true); },
+        });
+    }
 
     if (!Configs::dataManager->settingsRepo->flag_tray) show();
 
@@ -1139,6 +1170,14 @@ void MainWindow::applyLogBrowserFont() {
     if (pt <= 0) pt = Configs::dataManager->settingsRepo->font_size;
     if (pt > 0) logFont.setPointSize(pt);
     ui->masterLogBrowser->setFont(logFont);
+}
+
+void MainWindow::setLogHighlighter(bool darkMode) {
+    // A QSyntaxHighlighter attaches itself to the document and is never evicted
+    // by constructing another, so recreating one per theme change would stack
+    // them up and re-run every rule on every insert. Delete the old one first.
+    delete logHighlighter;
+    logHighlighter = new SyntaxHighlighter(darkMode, qvLogDocument);
 }
 
 void MainWindow::changeEvent(QEvent *event) {
@@ -1191,6 +1230,7 @@ void MainWindow::changeEvent(QEvent *event) {
 void MainWindow::showEvent(QShowEvent *event) {
     QMainWindow::showEvent(event);
     syncConnectionViewState();
+    scheduleProxyListRefresh();
 }
 
 void MainWindow::hideEvent(QHideEvent *event) {
@@ -1499,6 +1539,11 @@ void MainWindow::handle_deeplink_impl(const QString &url) {
         return;
     }
 
+    if (cmd.compare("remoteroute", Qt::CaseInsensitive) == 0) {
+        handle_add_remote_routes(url);
+        return;
+    }
+
     MW_show_log(tr("Ignored deeplink with unknown command: %1").arg(cmd));
 }
 
@@ -1521,6 +1566,48 @@ void MainWindow::handle_import_route(const QString &url) {
     }
 
     Configs::dataManager->routesRepo->AddRouteProfile(profile);
+}
+
+void MainWindow::handle_add_remote_routes(const QString &url) {
+    bool wasRemoteRouteLink = false;
+    QString error;
+    auto profiles = Configs::RouteProfile::FromRemoteRoutesLink(url, &wasRemoteRouteLink, &error);
+    if (profiles.isEmpty()) {
+        MessageBoxWarning(tr("Add remote routing profiles"),
+                          error.isEmpty() ? tr("The link did not contain any valid remote routing profiles.") : error);
+        return;
+    }
+
+    ActivateWindow(this);
+
+    QString prompt = tr("Add these remote routing profiles?") + "\n";
+    for (int i = 0; i < profiles.size(); ++i) {
+        prompt += QString("\n%1. %2  (%3: %4)")
+                      .arg(i + 1)
+                      .arg(profiles[i]->remoteURL, tr("auto update"), profiles[i]->autoUpdate ? tr("On") : tr("Off"));
+    }
+    if (QMessageBox::question(GetMessageBoxParent(), tr("Add remote routing profiles"), prompt) != QMessageBox::StandardButton::Yes) {
+        return;
+    }
+
+    for (auto &profile : profiles) {
+        Configs::dataManager->routesRepo->AddRouteProfile(profile);
+    }
+
+    // Fetch the freshly added profiles so they have rules right away. Runs off the UI thread and
+    // persists each result; a failed fetch just leaves an empty, updatable profile.
+    const auto added = profiles;
+    runOnNewThread([added] {
+        int ok = 0;
+        for (const auto &p : added) {
+            QString warnings;
+            const QString err = RouteUpdate::UpdateProfile(p, &warnings);
+            Configs::dataManager->routesRepo->Save(p);
+            if (err.isEmpty()) ok++;
+            else MW_show_log(QObject::tr("Remote routing profile %1 failed: %2").arg(p->remoteURL, err));
+        }
+        MW_show_log(QObject::tr("Added remote routing profiles: %1 of %2 fetched").arg(ok).arg(added.size()));
+    });
 }
 
 void MainWindow::handle_addsub(const QString &url, const QString &name, bool autoUpdate) {
@@ -1587,6 +1674,9 @@ void MainWindow::dialog_message_impl(MwMessage cmd, const QStringList &args) {
             AutoRun_FixPrivilegeIfNeeded();
         }
         auto suggestRestartProxy = settings->Save();
+        // Pick up any changed auto-update interval immediately instead of waiting for the
+        // next poll (e.g. the user just enabled or shortened a job).
+        Throne::PeriodicRunner::instance()->CheckNow();
         if (changed(MwArg::Route)) {
             settings->Save();
             suggestRestartProxy = true;
@@ -2392,10 +2482,16 @@ void MainWindow::refresh_groups() {
 
 void MainWindow::refresh_proxy_list_column_size() {
     auto group = Configs::dataManager->groupsRepo->CurrentGroup();
-    if (!group) return;
+    if (!group || !ui->profilesTableView->isVisible()) return;
 
     auto *hHeader = dynamic_cast<ProfilesTableFilterHeader*>(ui->profilesTableView->horizontalHeader());
     QTimer::singleShot(0, ui->profilesTableView, [=, this]() {
+        // Stop the resizeSection / scrollbar-policy changes below from re-entering
+        // this routine via the vertical scrollbar's valueChanged signal.
+        if (m_adjustingColumns) return;
+        m_adjustingColumns = true;
+        QScrollBar *vBar = ui->profilesTableView->verticalScrollBar();
+        const bool vBarBlocked = vBar->blockSignals(true);
         hHeader->blockSignals(true);
         if (group->column_width.isEmpty()) {
             hHeader->setSectionResizeMode(0, QHeaderView::ResizeToContents);
@@ -2433,6 +2529,8 @@ void MainWindow::refresh_proxy_list_column_size() {
         }
         hHeader->adjustPositions();
         hHeader->blockSignals(false);
+        vBar->blockSignals(vBarBlocked);
+        m_adjustingColumns = false;
     });
 }
 
@@ -2817,7 +2915,7 @@ void MainWindow::on_menu_scan_qr_triggered() {
 }
 
 void MainWindow::on_menu_clear_test_result_triggered() {
-    auto entIDs = get_selected_or_group();
+    auto entIDs = Configs::dataManager->groupsRepo->CurrentGroup()->Profiles();
     auto ents = Configs::dataManager->profilesRepo->GetProfileBatch(entIDs);
     if (ents.empty()) return;
     for (const auto &ent: ents) {
@@ -3116,60 +3214,76 @@ void MainWindow::log_process_loop() {
         while (logQueue.isEmpty()) {
             logWaiter.wait(&logMutex);
         }
-        auto logLines = logQueue.dequeue().split("\n");
+        // Drain the whole queue and snapshot the filter fields in one locked,
+        // O(1) step, then release the lock before doing the filtering work. A
+        // burst of messages becomes a single UI append instead of one per line,
+        // and producers calling append_log() aren't blocked on the regex work.
+        QQueue<QString> pending;
+        pending.swap(logQueue);
+        const LogFilter filter{
+            Configs::dataManager->settingsRepo->log_enable_include,
+            Configs::dataManager->settingsRepo->log_enable_exclude,
+            includeKeywords, excludeKeywords, includeCombined, excludeCombined,
+        };
+        logMutex.unlock();
 
         QString batchToPrint;
-        for (const auto& logLine : logLines) {
-            if (should_print_log(logLine)) {
-                batchToPrint += logLine + "\n";
+        for (const auto& entry : pending) {
+            for (const auto& logLine : entry.split('\n')) {
+                if (should_print_log(logLine, filter)) {
+                    batchToPrint += logLine;
+                    batchToPrint += '\n';
+                }
             }
         }
-        logMutex.unlock();
 
         if (!batchToPrint.isEmpty()) {
             QString trimmedBatch = batchToPrint.trimmed();
             runOnUiThread([trimmedBatch = std::move(trimmedBatch), this] {
                 auto bar = ui->masterLogBrowser->verticalScrollBar();
-                auto layout = qvLogDocument->documentLayout();
-                // Anchor to the block at the top of the viewport; if trim shifts its
-                // document-Y afterwards, we replay the original sub-block offset.
-                QTextBlock anchorBlock = ui->masterLogBrowser->cursorForPosition(QPoint(0, 0)).block();
-                int viewportOffset = bar->value() - static_cast<int>(layout->blockBoundingRect(anchorBlock).y());
-                FastAppendTextDocument(trimmedBatch, qvLogDocument);
                 if (Configs::dataManager->settingsRepo->log_auto_scroll) {
+                    FastAppendTextDocument(trimmedBatch, qvLogDocument);
                     bar->setValue(bar->maximum());
-                } else if (anchorBlock.isValid()) {
-                    int newY = static_cast<int>(layout->blockBoundingRect(anchorBlock).y());
-                    bar->setValue(newY + viewportOffset);
+                } else {
+                    auto layout = qvLogDocument->documentLayout();
+                    // Anchor to the block at the top of the viewport; if the append
+                    // shifts its document-Y, replay the original sub-block offset.
+                    QTextBlock anchorBlock = ui->masterLogBrowser->cursorForPosition(QPoint(0, 0)).block();
+                    int viewportOffset = bar->value() - static_cast<int>(layout->blockBoundingRect(anchorBlock).y());
+                    FastAppendTextDocument(trimmedBatch, qvLogDocument);
+                    if (anchorBlock.isValid()) {
+                        int newY = static_cast<int>(layout->blockBoundingRect(anchorBlock).y());
+                        bar->setValue(newY + viewportOffset);
+                    }
                 }
             });
         }
     }
 }
 
-bool MainWindow::should_print_log(const QString &log) {
-    if (log.trimmed().isEmpty()) return false;
+bool MainWindow::should_print_log(const QString &log, const LogFilter &filter) {
+    if (QStringView(log).trimmed().isEmpty()) return false;
     bool result = true;
-    if (Configs::dataManager->settingsRepo->log_enable_include) {
+    if (filter.enableInclude) {
         result = false;
-        for (const auto& includeKeyword : includeKeywords) {
+        for (const auto& includeKeyword : filter.includeKeywords) {
             if (log.contains(includeKeyword)) {
                 result = true;
                 break;
             }
         }
-        if (!includeCombined.pattern().isEmpty() && includeCombined.match(log).hasMatch()) {
+        if (!result && !filter.includeCombined.pattern().isEmpty() && filter.includeCombined.match(log).hasMatch()) {
             result = true;
         }
     }
-    if (result && Configs::dataManager->settingsRepo->log_enable_exclude) {
-        for (const auto& excludeKeyword : excludeKeywords) {
+    if (result && filter.enableExclude) {
+        for (const auto& excludeKeyword : filter.excludeKeywords) {
             if (log.contains(excludeKeyword)) {
                 result = false;
                 break;
             }
         }
-        if (!excludeCombined.pattern().isEmpty() && excludeCombined.match(log).hasMatch()) {
+        if (result && !filter.excludeCombined.pattern().isEmpty() && filter.excludeCombined.match(log).hasMatch()) {
             result = false;
         }
     }
@@ -3263,11 +3377,6 @@ void MainWindow::on_tabWidget_customContextMenuRequested(const QPoint &p) {
     auto group = Configs::dataManager->groupsRepo->GetGroup(Configs::dataManager->settingsRepo->current_group);
     if (Configs::dataManager->groupsRepo->GetAllGroupIds().size() > 1) menu->addAction(deleteAction);
     if (!group->Profiles().empty()) {
-        menu->addAction(ui->actionUrl_Test_Group);
-        menu->addAction(ui->actionSpeedtest_Group);
-        menu->addAction(ui->actionResolve_Out_IP);
-        menu->addAction(ui->menu_resolve_domain);
-        menu->addAction(ui->menu_clear_test_result);
         menu->addAction(ui->menu_delete_repeat);
         menu->addAction(ui->menu_remove_unavailable);
         menu->addAction(ui->menu_remove_invalid);
@@ -3286,6 +3395,12 @@ void MainWindow::on_tabWidget_customContextMenuRequested(const QPoint &p) {
 // eventFilter
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *event) {
+    if (event->type() == QEvent::Resize && obj == ui->toolButton_program) {
+        const int h = ui->toolButton_program->height();
+        if (h > 0 && ui->toolButton_startstop->height() != h) {
+            ui->toolButton_startstop->setFixedSize(h, h);
+        }
+    }
     // Pin the "Select Server" submenu when its row is clicked (a hover only peeks).
     // The parent item has a submenu so it never emits triggered(); instead we map
     // the release position onto the tray menu and check it landed on that row.
@@ -3405,6 +3520,7 @@ void MainWindow::RegisterHiddenMenuShortcuts(bool unregister) {
     collectMenuShortcuts(ui->menu_program, claimed);
     collectMenuShortcuts(ui->menu_preferences, claimed);
     collectMenuShortcuts(ui->menuRouting_Menu, claimed);
+    collectMenuShortcuts(ui->menuTesting, claimed);
     collectMenuShortcuts(ui->menuTools, claimed);
 
     registerMenuShortcuts(ui->menuHidden_menu, claimed);

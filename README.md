@@ -46,6 +46,8 @@ Apple platforms have a very strict security policy and since Throne does not hav
 
 Various formats are supported, including share links, various JSON representation of Sing-box configs, and v2rayN link format as well as limited support for Shadowsocks and Clash formats.
 
+Deeplinks are also supported, read the [documentation](https://throneproj.github.io/advanced/deeplinks/) for more information.
+
 ## Credits
 
 - [SagerNet/sing-box](https://github.com/SagerNet/sing-box)

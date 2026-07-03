@@ -197,6 +197,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     D_LOAD_BOOL(sub_send_hwid)
     D_LOAD_STRING(sub_custom_hwid_params)
     D_LOAD_INT_ENABLE(sub_auto_update, sub_auto_update_enable)
+    D_LOAD_INT_ENABLE(route_auto_update, route_auto_update_enable)
     auto details = GetDeviceDetails();
 	ui->sub_send_hwid->setToolTip(
         ui->sub_send_hwid->toolTip()
@@ -359,12 +360,8 @@ void DialogBasicSettings::accept() {
     }
 
     // Subscription
-
-    if (ui->sub_auto_update_enable->isChecked()) {
-        TM_auto_update_subsctiption_Reset_Minute(ui->sub_auto_update->text().toInt());
-    } else {
-        TM_auto_update_subsctiption_Reset_Minute(0);
-    }
+    // Intervals are just persisted here; the PeriodicRunner reads them live and is
+    // re-checked from the UpdateSettings handler, so no timer needs restarting.
 
     Configs::dataManager->settingsRepo->user_agent = ui->user_agent->text();
     D_SAVE_BOOL(net_use_proxy)
@@ -373,6 +370,7 @@ void DialogBasicSettings::accept() {
     D_SAVE_BOOL(sub_send_hwid)
     D_SAVE_STRING(sub_custom_hwid_params)
     D_SAVE_INT_ENABLE(sub_auto_update, sub_auto_update_enable)
+    D_SAVE_INT_ENABLE(route_auto_update, route_auto_update_enable)
 
     // Core
     Configs::dataManager->settingsRepo->disable_traffic_stats = ui->disable_stats->isChecked();

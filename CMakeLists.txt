@@ -59,6 +59,8 @@ set(PROJECT_SOURCES
         src/main.cpp
         src/global/Configs.cpp
         src/global/Utils.cpp
+        include/global/PeriodicRunner.hpp
+        src/global/PeriodicRunner.cpp
         src/global/HTTPRequestHelper.cpp
         src/global/DeviceDetailsHelper.cpp
         src/global/CountryHelper.cpp
@@ -99,6 +101,8 @@ set(PROJECT_SOURCES
 
         include/configs/sub/GroupUpdater.hpp
         src/configs/sub/GroupUpdater.cpp
+        include/configs/sub/RouteUpdater.hpp
+        src/configs/sub/RouteUpdater.cpp
         src/configs/sub/clash.cpp
 
         include/sys/Process.hpp

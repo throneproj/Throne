@@ -47,6 +47,8 @@ namespace Configs_sys {
 
 class StayOpenMenu;
 
+namespace Qv2ray::ui { class SyntaxHighlighter; }
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
     class MainWindow;
@@ -261,14 +263,32 @@ private:
     QMutex logMutex;
     QQueue<QString> logQueue;
     QWaitCondition logWaiter;
+    Qv2ray::ui::SyntaxHighlighter *logHighlighter = nullptr;
+
+    // Immutable snapshot of the log filter fields. The log thread copies these
+    // under logMutex (Qt containers are copy-on-write, so it's O(1)) and then
+    // filters without holding the lock, so producers calling append_log() are
+    // never blocked on the regex/keyword work.
+    struct LogFilter {
+        bool enableInclude = false;
+        bool enableExclude = false;
+        QStringList includeKeywords;
+        QStringList excludeKeywords;
+        QRegularExpression includeCombined;
+        QRegularExpression excludeCombined;
+    };
 
     void append_log(const QString &log);
 
     void log_process_loop();
 
-    bool should_print_log(const QString &log);
+    bool should_print_log(const QString &log, const LogFilter &filter);
 
     void updateLogFilterFields();
+
+    // (Re)installs the log syntax highlighter, deleting any previous one so
+    // highlighters don't stack up (and keep re-highlighting) on theme changes.
+    void setLogHighlighter(bool darkMode);
 
     QList<int> filterProfilesList(const QList<int>& profileIDs);
 
@@ -292,6 +312,10 @@ private:
     void handle_addsub(const QString &url, const QString &name, bool autoUpdate);
 
     void handle_import_route(const QString &url);
+
+    // throne://remoteRoute?data=<...> : add one or more remote routing profiles. The data is
+    // (base64 of) a JSON array of {url, auto_update[, name]} objects.
+    void handle_add_remote_routes(const QString &url);
 
     // Routes user-supplied text: throne:// links go to the deeplink handler, the
     // rest to the subscription/profile importer.
@@ -332,6 +356,8 @@ private:
     // Debounced refresh_proxy_list trigger for font/theme/resize events.
     QTimer *m_proxyListRefreshDebounce = nullptr;
     void scheduleProxyListRefresh();
+
+    bool m_adjustingColumns = false;
 
     // Watches the physical default-route interface while a profile whose Xray
     // egress is interface-bound (sockopt.interface) is running. A static bind is

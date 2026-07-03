@@ -1,13 +1,22 @@
 #include "include/ui/widget/StartStopButton.hpp"
 
 #include <QConicalGradient>
+#include <QEvent>
 #include <QLinearGradient>
+#include <QPainter>
 #include <QPainterPath>
+#include <QPixmap>
 #include <QPropertyAnimation>
 #include <QRadialGradient>
+#include <QStyle>
 #include <QStyleOptionToolButton>
+#include <QTimer>
 #include <QtMath>
-#include <QStylePainter>
+
+namespace {
+constexpr int kGlowPeriodMs = 3400;  // one full breath
+constexpr int kGlowIntervalMs = 33;  // ~30fps; the slow breath needs no more
+}  // namespace
 
 StartStopButton::StartStopButton(QWidget *parent) : QToolButton(parent) {
     setFocusPolicy(Qt::NoFocus);
@@ -30,12 +39,14 @@ StartStopButton::StartStopButton(QWidget *parent) : QToolButton(parent) {
     // glow is a 0..1 phase advanced at a constant rate; paint maps it through a
     // raised cosine, so the breath rises and falls at equal rates and dwells
     // equally at bright and dim (InOutSine here lingered dim and rushed the peak).
-    m_glowAnim = new QPropertyAnimation(this, "glow", this);
-    m_glowAnim->setStartValue(0.0);
-    m_glowAnim->setEndValue(1.0);
-    m_glowAnim->setDuration(3400);
-    m_glowAnim->setLoopCount(-1);
-    m_glowAnim->setEasingCurve(QEasingCurve::Linear);
+    // A 3.4s breath needs nowhere near the display refresh rate, so we drive it
+    // from a ~30fps timer instead of a vsync-locked QPropertyAnimation; the phase
+    // is read from an elapsed clock so the cadence is immune to timer jitter.
+    m_glowTimer = new QTimer(this);
+    m_glowTimer->setInterval(kGlowIntervalMs);
+    m_glowTimer->setTimerType(Qt::CoarseTimer);
+    connect(m_glowTimer, &QTimer::timeout, this,
+            [this] { setGlow((m_glowClock.elapsed() % kGlowPeriodMs) / qreal(kGlowPeriodMs)); });
 
     connect(this, &QAbstractButton::pressed, this, [this] { animate(m_pressAnim, 1.0, 110); });
     connect(this, &QAbstractButton::released, this, [this] { animate(m_pressAnim, 0.0, 160); });
@@ -95,8 +106,7 @@ void StartStopButton::applyState(bool animated) {
         m_ringColor = ringTarget;
     }
 
-    setLoopRunning(m_spinAnim, m_state == State::Connecting || m_state == State::Disconnecting);
-    setLoopRunning(m_glowAnim, m_state == State::Running);
+    updateLoops();
     update();
 }
 
@@ -116,8 +126,57 @@ void StartStopButton::setLoopRunning(QPropertyAnimation *anim, bool running) {
     }
     anim->stop();
     if (anim == m_spinAnim) m_spin = 0.0;
-    if (anim == m_glowAnim) m_glow = 0.0;
     update();
+}
+
+void StartStopButton::setGlowRunning(bool running) {
+    if (running) {
+        if (!m_glowTimer->isActive()) {
+            m_glowClock.restart();
+            setGlow(0.0);
+            m_glowTimer->start();
+        }
+        return;
+    }
+    m_glowTimer->stop();
+    setGlow(0.0);
+}
+
+// Start/stop the looping animations for the current state, but only while the
+// button is on screen; hideEvent/showEvent toggle m_shown so a minimised or
+// hidden-to-tray window stops driving repaints for nobody.
+void StartStopButton::updateLoops() {
+    const bool spinning = m_state == State::Connecting || m_state == State::Disconnecting;
+    setLoopRunning(m_spinAnim, m_shown && spinning);
+    setGlowRunning(m_shown && m_state == State::Running);
+}
+
+void StartStopButton::showEvent(QShowEvent *e) {
+    QToolButton::showEvent(e);
+    m_shown = true;
+    updateLoops();
+}
+
+void StartStopButton::hideEvent(QHideEvent *e) {
+    m_shown = false;
+    setLoopRunning(m_spinAnim, false);
+    setGlowRunning(false);
+    QToolButton::hideEvent(e);
+}
+
+void StartStopButton::changeEvent(QEvent *e) {
+    switch (e->type()) {
+        case QEvent::StyleChange:
+        case QEvent::PaletteChange:
+        case QEvent::ThemeChange:
+            // The cached chrome depends on the active style/palette; drop it so
+            // the next paint re-renders it with the new look.
+            m_chromeCache = QPixmap();
+            break;
+        default:
+            break;
+    }
+    QToolButton::changeEvent(e);
 }
 
 // --- colours -------------------------------------------------------------
@@ -160,11 +219,12 @@ QColor StartStopButton::targetRingColor() const {
 
 // --- painting ------------------------------------------------------------
 
-void StartStopButton::paintEvent(QPaintEvent *) {
-    QStylePainter p(this);
-    p.setRenderHint(QPainter::Antialiasing, true);
+void StartStopButton::ensureChromeCache() {
+    if (size().isEmpty()) {
+        m_chromeCache = QPixmap();
+        return;
+    }
 
-    // 1. Standard tool-button chrome, so it matches the sibling toolbar buttons.
     QStyleOptionToolButton opt;
     initStyleOption(&opt);
     opt.text.clear();
@@ -179,7 +239,42 @@ void StartStopButton::paintEvent(QPaintEvent *) {
         opt.state |= QStyle::State_Enabled;
         opt.state &= ~QStyle::State_Sunken;
     }
-    p.drawComplexControl(QStyle::CC_ToolButton, opt);
+
+    // Only the size, DPR, and style state (enabled/hover/sunken/…) affect the
+    // chrome; when they are unchanged the previous render is reused verbatim.
+    const qreal dpr = devicePixelRatioF();
+    const uint stateKey = static_cast<uint>(opt.state);
+    const uint subKey = static_cast<uint>(opt.activeSubControls);
+    if (!m_chromeCache.isNull() && m_chromeKeySize == size() && qFuzzyCompare(m_chromeKeyDpr, dpr) &&
+        m_chromeKeyState == stateKey && m_chromeKeySub == subKey) {
+        return;
+    }
+
+    QPixmap pm(size() * dpr);
+    pm.setDevicePixelRatio(dpr);
+    pm.fill(Qt::transparent);
+    QPainter pp(&pm);
+    pp.setRenderHint(QPainter::Antialiasing, true);
+    style()->drawComplexControl(QStyle::CC_ToolButton, &opt, &pp, this);
+    pp.end();
+
+    m_chromeCache = pm;
+    m_chromeKeySize = size();
+    m_chromeKeyDpr = dpr;
+    m_chromeKeyState = stateKey;
+    m_chromeKeySub = subKey;
+}
+
+void StartStopButton::paintEvent(QPaintEvent *) {
+    QPainter p(this);
+    p.setRenderHint(QPainter::Antialiasing, true);
+
+    // 1. Standard tool-button chrome, so it matches the sibling toolbar buttons.
+    //    It never animates, so it is rendered through QStyle once and the cached
+    //    pixmap is blitted here; the looping running/connecting repaints would
+    //    otherwise re-run the full (possibly stylesheet-backed) style per frame.
+    ensureChromeCache();
+    p.drawPixmap(0, 0, m_chromeCache);
 
     // 2. Custom indicator, centred in the content area.
     const QRectF cr = contentsRect();

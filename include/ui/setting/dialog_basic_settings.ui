@@ -802,34 +802,24 @@ QTabBar::tab:hover:!selected {
        <string>Subscription</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_7">
-       <item row="7" column="0" colspan="2">
-        <widget class="QCheckBox" name="sub_send_hwid">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;HWID=%1&lt;/p&gt;&lt;p&gt;OS=%2&lt;/p&gt;&lt;p&gt;OS Version=%3&lt;/p&gt;&lt;p&gt;Model=%4&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>Enable sending HWID, device model, and OS version when updating subscription</string>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="1">
+       <item row="9" column="1">
         <widget class="QLineEdit" name="sub_custom_hwid_params">
          <property name="placeholderText">
           <string>hwid=custom_value,os=custom_os,osVersion=custom_version,model=custom_model</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
-        <widget class="MyLineEdit" name="user_agent"/>
-       </item>
-       <item row="3" column="0">
+       <item row="4" column="0">
         <widget class="QCheckBox" name="sub_clear">
          <property name="text">
           <string>Clear servers before updating subscription</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="0">
+       <item row="2" column="1">
+        <widget class="MyLineEdit" name="user_agent"/>
+       </item>
+       <item row="1" column="0">
         <widget class="QLabel" name="label_20">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
@@ -838,21 +828,11 @@ QTabBar::tab:hover:!selected {
           </sizepolicy>
          </property>
          <property name="text">
-          <string>Automatic update</string>
+          <string>Subscription auto update</string>
          </property>
         </widget>
        </item>
-       <item row="8" column="0">
-        <widget class="QLabel" name="label_custom_hwid_params">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Format: hwid=value,os=value,osVersion=value,model=value&lt;/p&gt;&lt;p&gt;Leave empty to use default values. Only specify the parameters you want to override.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>Custom System Parameters (optional)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
+       <item row="1" column="1">
         <layout class="QHBoxLayout" name="horizontalLayout_5">
          <item>
           <widget class="QCheckBox" name="sub_auto_update_enable">
@@ -886,20 +866,87 @@ QTabBar::tab:hover:!selected {
          </item>
         </layout>
        </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_4">
+       <item row="8" column="0" colspan="2">
+        <widget class="QCheckBox" name="sub_send_hwid">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;HWID=%1&lt;/p&gt;&lt;p&gt;OS=%2&lt;/p&gt;&lt;p&gt;OS Version=%3&lt;/p&gt;&lt;p&gt;Model=%4&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
-          <string>User Agent</string>
+          <string>Enable sending HWID, device model, and OS version when updating subscription</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="0">
+       <item row="9" column="0">
+        <widget class="QLabel" name="label_custom_hwid_params">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Format: hwid=value,os=value,osVersion=value,model=value&lt;/p&gt;&lt;p&gt;Leave empty to use default values. Only specify the parameters you want to override.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Custom System Parameters (optional)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
         <widget class="QCheckBox" name="allow_stopping_active_profile">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, If the currently active profile needs to be removed, it will be stopped and removed, otherwise it will not be removed at all&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string>Allow stopping the active profile</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>User Agent</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <layout class="QHBoxLayout" name="horizontalLayout_route_auto_update">
+         <item>
+          <widget class="QCheckBox" name="route_auto_update_enable">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Enable</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_route_auto_update_interval">
+           <property name="text">
+            <string>Interval (minute, invalid if less than 30)</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="route_auto_update">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_route_auto_update">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Routing profiles auto update</string>
          </property>
         </widget>
        </item>

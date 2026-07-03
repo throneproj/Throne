@@ -719,7 +719,11 @@ namespace Configs {
             if (Configs::dataManager->settingsRepo->vpn_ipv6) tunAddress += tunIPv6CIDR;
             inboundObj["address"] = tunAddress;
 
-            QJsonArray routeExcludeAddrs = {"127.0.0.0/8", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "169.254.0.0/16", "224.0.0.0/4", "255.255.255.255/32"};
+            QJsonArray routeExcludeAddrs;
+            if (!Configs::dataManager->settingsRepo->disable_private_range_bypass) routeExcludeAddrs = {
+                "127.0.0.0/8", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "169.254.0.0/16", "224.0.0.0/4",
+                "255.255.255.255/32"
+            };
             QJsonArray routeExcludeSets;
             if (Configs::dataManager->settingsRepo->enable_tun_routing)
             {

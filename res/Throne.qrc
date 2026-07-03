@@ -8,6 +8,7 @@
         <file alias="icon/b-system-software-update.png">icon/system-software-update.png</file>
         <file alias="icon/b-network-routing.png">icon/network-routing.png</file>
         <file alias="icon/b-tools-button.png">icon/tools-button.png</file>
+        <file alias="icon/b-testing-button.png">icon/testing-button.png</file>
         <file>icon/filter.png</file>
         <file>icon/material/lock-open-outline.png</file>
         <file>icon/material/lock-outline.png</file>

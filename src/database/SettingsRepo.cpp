@@ -65,6 +65,7 @@ namespace Configs {
             {"dns_disable_cache", &dns_disable_cache},
             {"dns_disable_expire", &dns_disable_expire},
             {"dns_reverse_mapping", &dns_reverse_mapping},
+            {"disable_private_range_bypass", &disable_private_range_bypass},
         };
 
         intMap = {
@@ -79,6 +80,7 @@ namespace Configs {
             {"stats_tab",              &stats_tab},
             {"traffic_stats_retention_days", &traffic_stats_retention_days},
             {"sub_auto_update",        &sub_auto_update},
+            {"route_auto_update",      &route_auto_update},
             {"vpn_mtu",                &vpn_mtu},
             {"ntp_server_port",        &ntp_server_port},
             {"dns_server_listen_port", &dns_server_listen_port},
@@ -207,6 +209,10 @@ namespace Configs {
                 bool ok;
                 int v = str.toInt(&ok);
                 xray_vless_preference = static_cast<Xray::XrayVlessPreference>(ok ? v : 0);
+            } else if (key == "sub_auto_update_last") {
+                sub_auto_update_last = str.toLongLong();
+            } else if (key == "route_auto_update_last") {
+                route_auto_update_last = str.toLongLong();
             }
         }
     }
@@ -215,7 +221,7 @@ namespace Configs {
         if (noSave) return;
 
         std::vector<std::pair<std::string, std::string>> keyValues;
-        keyValues.reserve(boolMap.size() + intMap.size() + stringMap.size() + stringListMap.size() + 2);
+        keyValues.reserve(boolMap.size() + intMap.size() + stringMap.size() + stringListMap.size() + 4);
 
         for (auto it = boolMap.begin(); it != boolMap.end(); ++it)
             keyValues.emplace_back(it.key().toStdString(), *it.value() ? "true" : "false");
@@ -243,6 +249,13 @@ namespace Configs {
 
         keyValues.emplace_back("xray_vless_preference",
             QString::number(static_cast<int>(xray_vless_preference)).toStdString());
+
+        // qint64 last-run timestamps for the periodic auto-update jobs (out of range for
+        // the int map, so persisted here alongside the other special cases).
+        keyValues.emplace_back("sub_auto_update_last",
+            QString::number(sub_auto_update_last).toStdString());
+        keyValues.emplace_back("route_auto_update_last",
+            QString::number(route_auto_update_last).toStdString());
 
         db.execBatchSettingsReplace(keyValues);
     }

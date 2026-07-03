@@ -226,6 +226,10 @@ namespace Configs {
         isRaw = other.isRaw;
         rawRoute = other.rawRoute;
         preventModifications = other.preventModifications;
+        isRemote = other.isRemote;
+        remoteURL = other.remoteURL;
+        autoUpdate = other.autoUpdate;
+        remoteLastUpdate = other.remoteLastUpdate;
     }
 
     static void appendWarning(QString* warnings, const QString& msg) {
@@ -283,8 +287,12 @@ namespace Configs {
                 parseError->append(QString("expected array of json objects but have member of type '%1'").arg(item.type()));
                 return {};
             }
-            auto rule = parse_rule_object(item.toObject(), warnings);
-            rule->name = "imported rule #" + Int2String(ruleID++);
+            const QJsonObject ro = item.toObject();
+            auto rule = parse_rule_object(ro, warnings);
+            // Preserve an explicit name if the array carries one (our exported rules do); plain
+            // sing-box rule arrays have no name, so those still get a stable placeholder.
+            const QString nm = ro.value("name").toString();
+            rule->name = nm.isEmpty() ? ("imported rule #" + Int2String(ruleID++)) : nm;
             rules << rule;
         }
 
@@ -416,6 +424,68 @@ namespace Configs {
 
         fatalError->append("Unsupported input");
         return nullptr;
+    }
+
+    QList<std::shared_ptr<RouteProfile>> RouteProfile::FromRemoteRoutesLink(const QString& input, bool* wasRemoteRouteLink, QString* error) {
+        if (wasRemoteRouteLink) *wasRemoteRouteLink = false;
+        const QString text = input.trimmed();
+        if (!text.startsWith("throne://", Qt::CaseInsensitive)) return {};
+        const QUrl u(text);
+        if (u.host().compare("remoteroute", Qt::CaseInsensitive) != 0) return {};
+        if (wasRemoteRouteLink) *wasRemoteRouteLink = true;
+
+        const QString dataParam = QUrlQuery(u).queryItemValue("data", QUrl::FullyDecoded).trimmed();
+        if (dataParam.isEmpty()) {
+            if (error) *error = "The link did not contain any data.";
+            return {};
+        }
+
+        // data is a JSON array of {url, auto_update[, name]} objects, optionally base64-encoded
+        // (url-safe or standard); also tolerates {"routes": [...]}.
+        auto parseArray = [](const QString& s) -> QJsonArray {
+            const auto doc = QJsonDocument::fromJson(s.toUtf8());
+            if (doc.isArray()) return doc.array();
+            if (doc.isObject()) return doc.object().value("routes").toArray();
+            return {};
+        };
+        QJsonArray arr = parseArray(dataParam);
+        if (arr.isEmpty()) {
+            arr = parseArray(QString::fromUtf8(QByteArray::fromBase64(dataParam.toUtf8(), QByteArray::Base64UrlEncoding)));
+            if (arr.isEmpty()) arr = parseArray(QString::fromUtf8(QByteArray::fromBase64(dataParam.toUtf8())));
+        }
+        if (arr.isEmpty()) {
+            if (error) *error = "The link data is not a valid list of remote routing profiles.";
+            return {};
+        }
+
+        QList<std::shared_ptr<RouteProfile>> res;
+        for (const auto& v : arr) {
+            if (!v.isObject()) continue;
+            const QJsonObject o = v.toObject();
+            const QString eurl = o.value("url").toString().trimmed();
+            if (!eurl.startsWith("http://", Qt::CaseInsensitive) && !eurl.startsWith("https://", Qt::CaseInsensitive)) continue;
+            const QJsonValue auv = o.contains("auto_update") ? o.value("auto_update")
+                                 : o.contains("autoUpdate")  ? o.value("autoUpdate")
+                                                             : o.value("autoupdate");
+            bool autoUpdate = false;
+            if (auv.isBool()) autoUpdate = auv.toBool();
+            else if (auv.isDouble()) autoUpdate = auv.toInt() != 0;
+            else if (auv.isString()) {
+                const QString s = auv.toString().trimmed().toLower();
+                autoUpdate = s == "1" || s == "true" || s == "on" || s == "yes";
+            }
+
+            auto profile = std::make_shared<RouteProfile>();
+            profile->id = -1;
+            profile->isRemote = true;
+            profile->remoteURL = eurl;
+            profile->autoUpdate = autoUpdate;
+            profile->name = o.value("name").toString().trimmed();
+            if (profile->name.isEmpty()) profile->name = QUrl(eurl).host();
+            res << profile;
+        }
+        if (res.isEmpty() && error) *error = "The link did not contain any valid http(s) routing profile URLs.";
+        return res;
     }
 
     QJsonArray RouteProfile::get_route_rules(bool forView, std::map<int, QString> outboundMap) {

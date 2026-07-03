@@ -2,12 +2,16 @@
 #include "include/database/ProfilesRepo.h"
 #include "include/database/GroupsRepo.h"
 #include "include/global/Configs.hpp"
+#include "include/configs/sub/RouteUpdater.hpp"
 
 #include <QComboBox>
+#include <QDialogButtonBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QListWidget>
+#include <QMessageBox>
 #include <QPlainTextEdit>
+#include <QPushButton>
 #include <QSizePolicy>
 #include <QStackedWidget>
 #include <QGridLayout>
@@ -221,6 +225,8 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
         on_delete_route_item_clicked();
     });
 
+    setupRemoteSection();
+
     updateRuleSection();
     adjustSize();
 }
@@ -229,12 +235,123 @@ RouteItem::~RouteItem() {
     delete ui;
 }
 
+void RouteItem::setupRemoteSection() {
+    // The box is defined in RouteItem.ui; hide it for plain structured profiles.
+    if (!chain->isRemote) {
+        ui->remoteBox->hide();
+        return;
+    }
+    ui->remoteUrlEdit->setText(chain->remoteURL);
+    ui->autoUpdateCheck->setChecked(chain->autoUpdate);
+    connect(ui->remotePreviewBtn, &QPushButton::clicked, this, [this] { fetchRemote(false); });
+    connect(ui->remoteFetchBtn, &QPushButton::clicked, this, [this] { fetchRemote(true); });
+}
+
+void RouteItem::fetchRemote(bool applyToChain) {
+    const QString url = ui->remoteUrlEdit->text().trimmed();
+    if (!url.startsWith("http://", Qt::CaseInsensitive) && !url.startsWith("https://", Qt::CaseInsensitive)) {
+        MessageBoxWarning(tr("Invalid URL"), tr("Enter a valid http(s) URL first."));
+        return;
+    }
+    if (applyToChain && !chain->IsEmpty()) {
+        if (QMessageBox::question(this, tr("Fetch from remote"),
+                                  tr("This will replace the current rules with the ones fetched from the URL. Continue?"))
+            != QMessageBox::StandardButton::Yes) {
+            return;
+        }
+    }
+
+    ui->remotePreviewBtn->setEnabled(false);
+    ui->remoteFetchBtn->setEnabled(false);
+    const QString origFetch = ui->remoteFetchBtn->text();
+    const QString origPreview = ui->remotePreviewBtn->text();
+    (applyToChain ? ui->remoteFetchBtn : ui->remotePreviewBtn)->setText(tr("Fetching..."));
+
+    // Reflect the current name field so the "fill name if empty" step in UpdateProfile sees
+    // what the user has typed (and doesn't overwrite it with the remote name).
+    const QString currentName = ui->route_name->text();
+
+    runOnNewThread([=, this] {
+        // For a preview we work on a throwaway copy so the editor's rules are untouched.
+        auto target = applyToChain ? chain : std::make_shared<Configs::RouteProfile>(*chain);
+        target->isRemote = true;
+        target->remoteURL = url;
+        target->name = currentName;
+        QString warnings;
+        const QString err = RouteUpdate::UpdateProfile(target, &warnings);
+        runOnUiThread([=, this] {
+            ui->remotePreviewBtn->setEnabled(true);
+            ui->remoteFetchBtn->setEnabled(true);
+            ui->remoteFetchBtn->setText(origFetch);
+            ui->remotePreviewBtn->setText(origPreview);
+            if (!err.isEmpty()) {
+                MessageBoxWarning(tr("Could not fetch routing profile"), err);
+                return;
+            }
+            if (applyToChain) {
+                reloadRuleViewsFromChain();
+                const QString msg = tr("Loaded %1 rule(s) from the remote URL.").arg(target->Rules.size());
+                if (warnings.isEmpty()) MessageBoxInfo(tr("Fetched"), msg);
+                else MessageBoxInfo(tr("Fetched with warnings"), msg + "\n\n" + warnings);
+            } else {
+                auto* dlg = new QDialog(this);
+                dlg->setAttribute(Qt::WA_DeleteOnClose);
+                dlg->setWindowTitle(tr("Remote routing profile preview"));
+                auto* lay = new QVBoxLayout(dlg);
+                auto* header = new QLabel(tr("%1 — %2 rule(s)").arg(target->name.isEmpty() ? tr("(unnamed)") : target->name)
+                                              .arg(target->Rules.size()), dlg);
+                lay->addWidget(header);
+                if (!warnings.isEmpty()) {
+                    auto* warn = new QLabel(warnings, dlg);
+                    warn->setStyleSheet(QStringLiteral("color: #c62828;"));
+                    warn->setWordWrap(true);
+                    lay->addWidget(warn);
+                }
+                auto* view = new QPlainTextEdit(dlg);
+                view->setReadOnly(true);
+                view->setPlainText(QJsonObject2QString(target->ToShareObject(), false));
+                view->setLineWrapMode(QPlainTextEdit::NoWrap);
+                lay->addWidget(view, 1);
+                auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, Qt::Horizontal, dlg);
+                connect(buttons, &QDialogButtonBox::rejected, dlg, &QDialog::reject);
+                connect(buttons, &QDialogButtonBox::accepted, dlg, &QDialog::accept);
+                lay->addWidget(buttons);
+                dlg->resize(560, 460);
+                dlg->show();
+            }
+        });
+    });
+}
+
+void RouteItem::reloadRuleViewsFromChain() {
+    currentIndex = -1;
+    // A Fetch may have adopted the remote profile name (when the field was empty).
+    ui->route_name->setText(chain->name);
+    updateRouteItemsView();
+    updateRuleSection();
+    simpleDirect->setPlainText(chain->GetSimpleRules(Configs::bypass));
+    simpleBlock->setPlainText(chain->GetSimpleRules(Configs::block));
+    simpleProxy->setPlainText(chain->GetSimpleRules(Configs::proxy));
+    simpleWarpBypass->setPlainText(chain->GetSimpleRules(Configs::warpBypass));
+    ui->def_out->setCurrentText(Configs::outboundIDToString(chain->defaultOutboundID));
+}
+
 void RouteItem::accept() {
     chain->name = ui->route_name->text();
 
     if (chain->name == "") {
         MessageBoxWarning(tr("Invalid operation"), tr("Cannot create Route Profile with empty name"));
         return;
+    }
+
+    if (chain->isRemote) {
+        const QString url = ui->remoteUrlEdit->text().trimmed();
+        if (url.isEmpty()) {
+            MessageBoxWarning(tr("Invalid operation"), tr("Remote routing profiles need a URL."));
+            return;
+        }
+        chain->remoteURL = url;
+        chain->autoUpdate = ui->autoUpdateCheck->isChecked();
     }
 
     QString res;
@@ -250,7 +367,9 @@ void RouteItem::accept() {
     }
     chain->FilterEmptyRules();
 
-    if (chain->IsEmpty()) {
+    // A remote profile may legitimately be saved before its first fetch (rules are pulled
+    // later via Fetch / Update); only plain profiles must be non-empty.
+    if (!chain->isRemote && chain->IsEmpty()) {
         MessageBoxInfo(tr("Empty Route Profile"), tr("No valid rules are in the profile"));
         return;
     }

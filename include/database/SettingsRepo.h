@@ -127,7 +127,11 @@ namespace Configs {
 
         // Subscription
         QString user_agent = ""; // set at main.cpp
+        // Auto-update interval in minutes; sign encodes the enable checkbox (negative =
+        // disabled), magnitude is the interval (ignored if < 30). *_last is the epoch-seconds
+        // of the last auto-update sweep, used to decide when the next one is due.
         int sub_auto_update = -30;
+        qint64 sub_auto_update_last = 0;
         bool sub_clear = false;
         bool sub_send_hwid = false;
         QString sub_custom_hwid_params = "";
@@ -149,6 +153,10 @@ namespace Configs {
 
         // Routing
         int current_route_id = 1;
+        // Remote routing-profile auto-update, same sign-encoded-interval scheme as
+        // sub_auto_update (negative = disabled, magnitude = minutes). Default: daily.
+        int route_auto_update = -1440;
+        qint64 route_auto_update_last = 0;
         QString remote_dns = "8.8.8.8";
         QString remote_dns_strategy = "";
         QString direct_dns = "localhost";
@@ -195,6 +203,7 @@ namespace Configs {
         bool vpn_strict_route = true;
 #endif
         int vpn_mtu = 1500;
+        bool disable_private_range_bypass = false;
         bool vpn_ipv6 = false;
         QString vpn_tun_ipv4_cidr = "172.19.0.1/24";
         QString vpn_tun_ipv6_cidr = "fdfe:dcba:9876::1/96";

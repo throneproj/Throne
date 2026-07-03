@@ -683,6 +683,16 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
                </property>
               </widget>
              </item>
+             <item>
+              <widget class="QPushButton" name="update_route">
+               <property name="toolTip">
+                <string>Update the selected remote routing profile, or all of them</string>
+               </property>
+               <property name="text">
+                <string>Update</string>
+               </property>
+              </widget>
+             </item>
             </layout>
            </widget>
           </item>

@@ -103,6 +103,16 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QCheckBox" name="disable_priv_range">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Allows traffics destined for private ranges to be hijacked into The Core&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Disable Private Range Bypass</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>

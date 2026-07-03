@@ -2,8 +2,11 @@
 
 #include <QToolButton>
 #include <QColor>
+#include <QElapsedTimer>
+#include <QPixmap>
 
 class QPropertyAnimation;
+class QTimer;
 
 // A self-painted start/stop control for the main toolbar.
 //
@@ -59,11 +62,17 @@ public:
 
 protected:
     void paintEvent(QPaintEvent *) override;
+    void showEvent(QShowEvent *) override;
+    void hideEvent(QHideEvent *) override;
+    void changeEvent(QEvent *) override;
 
 private:
     void applyState(bool animated);
     void animate(QPropertyAnimation *anim, const QVariant &to, int duration);
     void setLoopRunning(QPropertyAnimation *anim, bool running);
+    void setGlowRunning(bool running);
+    void updateLoops();
+    void ensureChromeCache();
 
     QColor modeColor(Mode m) const;
     QColor idleRingColor() const;
@@ -85,5 +94,22 @@ private:
     QPropertyAnimation *m_pressAnim = nullptr;
     QPropertyAnimation *m_ringColorAnim = nullptr;
     QPropertyAnimation *m_spinAnim = nullptr;
-    QPropertyAnimation *m_glowAnim = nullptr;
+
+    // The running "breath" is a slow 3.4s cycle, so it is driven by a ~30fps
+    // timer rather than a vsync-locked animation. Phase comes from an elapsed
+    // clock so the cadence is independent of timer jitter.
+    QTimer *m_glowTimer = nullptr;
+    QElapsedTimer m_glowClock;
+
+    // Looping animations run only while the button is actually on screen.
+    bool m_shown = false;
+
+    // The standard tool-button chrome never animates; it is rendered through
+    // QStyle once and the cached pixmap is blitted on the looping frames.
+    // Rebuilt only when the size, device-pixel-ratio, or style state change.
+    QPixmap m_chromeCache;
+    QSize m_chromeKeySize;
+    qreal m_chromeKeyDpr = 0.0;
+    uint m_chromeKeyState = 0;
+    uint m_chromeKeySub = 0;
 };

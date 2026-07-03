@@ -20,7 +20,7 @@
    <string notr="true">Throne</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,0">
+   <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,1,0">
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
@@ -150,6 +150,48 @@ QToolButton::menu-indicator {
        </widget>
       </item>
       <item>
+       <widget class="QToolButton" name="toolButton_testing">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QToolButton {
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+QToolButton::menu-indicator {
+    subcontrol-origin: border;
+    subcontrol-position: bottom right;
+    right: 2px;
+    bottom: 3px;
+}</string>
+        </property>
+        <property name="text">
+         <string>Testing</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../../res/Throne.qrc">
+          <normaloff>:/icon/b-testing-button.png</normaloff>:/icon/b-testing-button.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="popupMode">
+         <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonStyle::ToolButtonTextUnderIcon</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QToolButton" name="toolButton_tools">
         <property name="minimumSize">
          <size>
@@ -204,6 +246,19 @@ QToolButton::menu-indicator {
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
+         <spacer name="verticalSpacer_modes_top">
+          <property name="orientation">
+           <enum>Qt::Orientation::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
          <widget class="QCheckBox" name="checkBox_VPN">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -229,6 +284,19 @@ QToolButton::menu-indicator {
            <string>System Proxy</string>
           </property>
          </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_modes_bottom">
+          <property name="orientation">
+           <enum>Qt::Orientation::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </item>
@@ -704,19 +772,18 @@ QTabBar::tab:selected {
     <addaction name="separator"/>
     <addaction name="menu_start"/>
     <addaction name="menu_stop"/>
+    <addaction name="menu_share_item"/>
+    <addaction name="menu_delete"/>
     <addaction name="separator"/>
     <addaction name="menu_select_all"/>
     <addaction name="menu_clone"/>
-    <addaction name="menu_reset_traffic"/>
-    <addaction name="menu_delete"/>
-    <addaction name="menu_share_item"/>
     <addaction name="separator"/>
     <addaction name="actionUrl_Test_Selected"/>
-    <addaction name="menu_resolve_selected"/>
-    <addaction name="actionClear_Test_Result"/>
-    <addaction name="actionSpeedtest_Current"/>
     <addaction name="actionSpeedtest_Selected"/>
     <addaction name="actionResolve_Selected_Out_IP"/>
+    <addaction name="menu_resolve_selected"/>
+    <addaction name="actionClear_Test_Result"/>
+    <addaction name="menu_reset_traffic"/>
    </widget>
    <widget class="QMenu" name="menuHidden_menu">
     <property name="title">
@@ -745,11 +812,23 @@ QTabBar::tab:selected {
     <addaction name="actionTraffic_Stats"/>
     <addaction name="actionCheck_For_Update"/>
    </widget>
+   <widget class="QMenu" name="menuTesting">
+    <property name="title">
+     <string>Testing</string>
+    </property>
+    <addaction name="actionSpeedtest_Current"/>
+    <addaction name="actionUrl_Test_Group"/>
+    <addaction name="actionSpeedtest_Group"/>
+    <addaction name="actionResolve_Out_IP"/>
+    <addaction name="menu_resolve_domain"/>
+    <addaction name="menu_clear_test_result"/>
+   </widget>
    <addaction name="menu_program"/>
    <addaction name="menu_preferences"/>
    <addaction name="menu_server"/>
    <addaction name="menuHidden_menu"/>
    <addaction name="menuRouting_Menu"/>
+   <addaction name="menuTesting"/>
    <addaction name="menuTools"/>
   </widget>
   <action name="menu_exit">
@@ -850,7 +929,7 @@ QTabBar::tab:selected {
   </action>
   <action name="menu_clear_test_result">
    <property name="text">
-    <string>Clear Test Result</string>
+    <string>Clear Group test result</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+Shift+C</string>
@@ -1034,7 +1113,7 @@ QTabBar::tab:selected {
   </action>
   <action name="menu_resolve_domain">
    <property name="text">
-    <string>Resolve domain</string>
+    <string>Resolve Domain for group</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+Shift+I</string>
@@ -1175,7 +1254,7 @@ QTabBar::tab:selected {
   </action>
   <action name="actionResolve_Out_IP">
    <property name="text">
-    <string>Resolve Out IP</string>
+    <string>Resolve out IP for group</string>
    </property>
   </action>
   <action name="actionResolve_Selected_Out_IP">

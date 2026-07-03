@@ -65,6 +65,80 @@
     </widget>
    </item>
    <item>
+    <widget class="QGroupBox" name="remoteBox">
+     <property name="title">
+      <string>Remote source</string>
+     </property>
+     <layout class="QVBoxLayout" name="remoteBoxLayout">
+      <item>
+       <layout class="QHBoxLayout" name="remoteUrlRow">
+        <item>
+         <widget class="QLabel" name="remoteUrlLabel">
+          <property name="text">
+           <string>URL</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="remoteUrlEdit">
+          <property name="placeholderText">
+           <string>https://... (throne://route link, base64, or JSON)</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="remoteActionRow">
+        <item>
+         <widget class="QCheckBox" name="autoUpdateCheck">
+          <property name="toolTip">
+           <string>Re-fetch this profile from the URL when subscriptions auto-update.&#10;Your local edits are overwritten on each update.</string>
+          </property>
+          <property name="text">
+           <string>Auto update</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="remoteActionSpacer">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="remotePreviewBtn">
+          <property name="toolTip">
+           <string>Fetch the URL and show the routing profile without changing the current rules.</string>
+          </property>
+          <property name="text">
+           <string>Preview</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="remoteFetchBtn">
+          <property name="toolTip">
+           <string>Fetch the URL and replace the current rules with the fetched ones.</string>
+          </property>
+          <property name="text">
+           <string>Fetch</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="styleSheet">
       <string notr="true">QTabWidget::pane {
