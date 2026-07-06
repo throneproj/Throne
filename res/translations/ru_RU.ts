@@ -3303,4 +3303,75 @@ Release note:
         <translation>Напрямую</translation>
     </message>
 </context>
+    <context>
+        <name>StartStopButton</name>
+    <message>
+        <source>Select a profile to start</source>
+        <translation>Выберите профиль для подключения</translation>
+    </message>
+    <message>
+        <source>Connecting…</source>
+        <translation>Подключение…</translation>
+    </message>
+    <message>
+        <source>Stopping…</source>
+        <translation>Отключение…</translation>
+    </message>
+</context>
+    <context>
+        <name>TrafficChartWidget</name>
+    <message>
+        <source>Download</source>
+        <translation>Скачивание</translation>
+    </message>
+    <message>
+        <source>Upload</source>
+        <translation>Отдача</translation>
+    </message>
+    <message>
+        <source>No traffic recorded for this period</source>
+        <translation>Нет данных о трафике за этот период</translation>
+    </message>
+</context>
+    <context>
+        <name>GroupUpdater</name>
+    <message>
+        <source>%1
+How to update?</source>
+        <translation>%1
+Выберите способ обновления:</translation>
+    </message>
+    <message>
+        <source>Added %1 profiles:
+%2
+Deleted %3 Profiles:
+%4</source>
+        <translation>Добавлено профилей: %1
+%2
+Удалено профилей: %3
+%4</translation>
+    </message>
+</context>
+    <context>
+        <name>PeriodicRunner</name>
+    <message>
+        <source>Auto-update: running %1</source>
+        <translation>Автообновление: запуск %1</translation>
+    </message>
+    </context>
+    <context>
+        <name>RouteUpdater</name>
+    <message>
+        <source>remote URL is empty</source>
+        <translation>Удалённый URL не указан</translation>
+    </message>
+    <message>
+        <source>internal error: null profile</source>
+        <translation>Внутренняя ошибка: пустой профиль</translation>
+    </message>
+    <message>
+        <source>not a remote routing profile</source>
+        <translation>Профиль не является удалённым</translation>
+    </message>
+</context>
 </TS>
