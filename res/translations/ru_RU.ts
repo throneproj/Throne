@@ -475,6 +475,34 @@
         <source>Backup restored successfully. Throne will now restart for the changes to take effect.</source>
         <translation>Резервная копия успешно восстановлена. Throne будет перезапущен для применения изменений.</translation>
     </message>
+    <message>
+        <source>Backup created on %1.
+Select which parts to restore:</source>
+        <translation>Резервная копия создана %1.
+Выберите разделы для восстановления:</translation>
+    </message>
+    <message>
+        <source>Restore</source>
+        <translation>Восстановить</translation>
+    </message>
+    <message>
+        <source>unknown date</source>
+        <translation>неизвестная дата</translation>
+    </message>
+    <message>
+        <source>Backup created successfully:
+%1
+
+Included: %2</source>
+        <translation>Резервная копия успешно создана:
+%1
+
+Включено: %2</translation>
+    </message>
+    <message>
+        <source>Select at least one part to restore.</source>
+        <translation>Выберите хотя бы один раздел для восстановления.</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>
@@ -1431,6 +1459,26 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>Update finished with errors</source>
         <translation>Обновление завершено с ошибками</translation>
+    </message>
+    <message>
+        <source>Imported with warnings</source>
+        <translation>Импортировано с предупреждениями</translation>
+    </message>
+    <message>
+        <source>Structured profile</source>
+        <translation>Структурированный профиль</translation>
+    </message>
+    <message>
+        <source>Raw profile</source>
+        <translation>Raw-профиль</translation>
+    </message>
+    <message>
+        <source>Remote profile</source>
+        <translation>Удалённый профиль</translation>
+    </message>
+    <message>
+        <source>Add these remote routing profiles?</source>
+        <translation>Добавить эти удалённые профили маршрутизации?</translation>
     </message>
 </context>
 <context>
@@ -3481,6 +3529,18 @@ Release note:
         <source>Remote routing profile preview</source>
         <translation>Предпросмотр удалённого профиля</translation>
     </message>
+    <message>
+        <source>This will replace the current rules with the ones fetched from the URL. Continue?</source>
+        <translation>Это перезапишет текущие правила новыми из ссылки. Продолжить?</translation>
+    </message>
+    <message>
+        <source>Enter a valid http(s) URL first.</source>
+        <translation>Сначала введите корректный http(s) URL.</translation>
+    </message>
+    <message>
+        <source>Remote routing profiles need a URL.</source>
+        <translation>Для удалённых профилей маршрутизации необходим URL.</translation>
+    </message>
 </context>
 <context>
     <name>SpeedWidget</name>
@@ -3607,6 +3667,29 @@ Deleted %3 Profiles:
     <message>
         <source>Unknown</source>
         <translation>Неизвестно</translation>
+    </message>
+</context>
+    <context>
+        <name>edit_wireguard</name>
+    <message>
+        <source>Generating config...</source>
+        <translation>Генерация конфигурации…</translation>
+    </message>
+    <message>
+        <source>Success!</source>
+        <translation>Успешно!</translation>
+    </message>
+    <message>
+        <source>Getting keypair...</source>
+        <translation>Получение пары ключей…</translation>
+    </message>
+    <message>
+        <source>Failed to generate warp config</source>
+        <translation>Не удалось сгенерировать конфигурацию Warp</translation>
+    </message>
+    <message>
+        <source>Failed to get key pair</source>
+        <translation>Не удалось получить пару ключей</translation>
     </message>
 </context>
 </TS>
