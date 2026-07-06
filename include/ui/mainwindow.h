@@ -397,7 +397,9 @@ private:
 
     bool verify_core_pid(QLocalSocket *socket);
 
-    void urltest_current_group(const QList<int>& profileIDs);
+    void urltest_current_group(const QList<int>& profileIDs, const std::function<void()>& onDone = nullptr);
+
+    void autobalance_current_group();
 
     void iptest_current_group(const QList<int>& profileIDs);
 

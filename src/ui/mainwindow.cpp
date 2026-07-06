@@ -978,6 +978,10 @@ connect(ui->actionRestart_Proxy, &QAction::triggered, this, [=,this] {
     {
         speedtest_current_group(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles());
     });
+    connect(ui->actionAuto_Balance_Group, &QAction::triggered, this, [=,this]()
+    {
+        autobalance_current_group();
+    });
     connect(ui->actionResolve_Selected_Out_IP, &QAction::triggered, this, [=,this]() {
         iptest_current_group(get_now_selected_list());
     });

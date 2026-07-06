@@ -797,6 +797,7 @@ QTabBar::tab:selected {
     <addaction name="menu_clear_test_result"/>
     <addaction name="menu_delete_repeat"/>
     <addaction name="actionSpeedtest_Group"/>
+    <addaction name="actionAuto_Balance_Group"/>
     <addaction name="actionResolve_Out_IP"/>
     <addaction name="actionRefresh_Column_Widths"/>
    </widget>
@@ -819,6 +820,7 @@ QTabBar::tab:selected {
     <addaction name="actionSpeedtest_Current"/>
     <addaction name="actionUrl_Test_Group"/>
     <addaction name="actionSpeedtest_Group"/>
+    <addaction name="actionAuto_Balance_Group"/>
     <addaction name="actionResolve_Out_IP"/>
     <addaction name="menu_resolve_domain"/>
     <addaction name="menu_clear_test_result"/>
@@ -1226,6 +1228,17 @@ QTabBar::tab:selected {
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+Shift+P</string>
+   </property>
+  </action>
+  <action name="actionAuto_Balance_Group">
+   <property name="text">
+    <string>Auto Balance Group</string>
+   </property>
+   <property name="toolTip">
+    <string>URL test the group, remove unavailable profiles, then run a speed test</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true">Ctrl+Shift+B</string>
    </property>
   </action>
   <action name="actionSpeedtest_Group">

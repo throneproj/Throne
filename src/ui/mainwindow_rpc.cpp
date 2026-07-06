@@ -265,7 +265,7 @@ void MainWindow::runIPTest(const QString& config, const QString& xrayConfig, boo
     }
 }
 
-void MainWindow::urltest_current_group(const QList<int>& profileIDs) {
+void MainWindow::urltest_current_group(const QList<int>& profileIDs, const std::function<void()>& onDone) {
     if (profileIDs.isEmpty()) {
         return;
     }
@@ -274,7 +274,7 @@ void MainWindow::urltest_current_group(const QList<int>& profileIDs) {
         return;
     }
 
-    runOnNewThread([this, profileIDs]() {
+    runOnNewThread([this, profileIDs, onDone]() {
         stopSpeedtest.store(false);
         dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::Url, profileIDs.size());
         UpdateDataView(true);
@@ -331,13 +331,50 @@ void MainWindow::urltest_current_group(const QList<int>& profileIDs) {
         dataViewHtmlGenerator_.clearTestSections();
         UpdateDataView(true);
         speedtestRunning.unlock();
-        if (currentGroup->auto_clear_unavailable) {
+        if (currentGroup && currentGroup->auto_clear_unavailable) {
             MW_show_log("URL test finished, clearing unavailable profiles...");
             runOnUiThread([=, this] {
                clearUnavailableProfiles(false, profileIDs);
             });
         }
         MW_show_log(tr("URL test finished!"));
+        if (onDone) onDone();
+    });
+}
+
+void MainWindow::autobalance_current_group() {
+    auto group = Configs::dataManager->groupsRepo->CurrentGroup();
+    if (!group) return;
+    auto profileIDs = group->Profiles();
+    if (profileIDs.isEmpty()) {
+        MW_show_log(tr("Auto balance: the current group is empty."));
+        return;
+    }
+    auto gid = group->id;
+    MW_show_log(tr("Auto balance: step 1/3 - URL test for %1 profile(s)...").arg(profileIDs.size()));
+    urltest_current_group(profileIDs, [this, gid, profileIDs]() {
+        // Runs on the urltest worker thread after the test has fully finished
+        // and the speedtestRunning mutex has been released.
+        runOnUiThread([this, gid, profileIDs] {
+            if (stopSpeedtest.load()) {
+                MW_show_log(tr("Auto balance: aborted."));
+                return;
+            }
+            auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
+            if (!group || Configs::dataManager->groupsRepo->CurrentGroup()->id != gid) {
+                MW_show_log(tr("Auto balance: group changed, aborting."));
+                return;
+            }
+            MW_show_log(tr("Auto balance: step 2/3 - removing unavailable profiles..."));
+            clearUnavailableProfiles(false, profileIDs);
+            auto remaining = group->Profiles();
+            if (remaining.isEmpty()) {
+                MW_show_log(tr("Auto balance: no available profiles left after cleanup."));
+                return;
+            }
+            MW_show_log(tr("Auto balance: step 3/3 - speed test for %1 profile(s)...").arg(remaining.size()));
+            speedtest_current_group(remaining);
+        });
     });
 }
 
