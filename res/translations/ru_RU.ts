@@ -3541,6 +3541,18 @@ Release note:
         <source>Remote routing profiles need a URL.</source>
         <translation>Для удалённых профилей маршрутизации необходим URL.</translation>
     </message>
+    <message>
+        <source>Could not fetch routing profile</source>
+        <translation>Не удалось загрузить профиль маршрутизации</translation>
+    </message>
+    <message>
+        <source>Loaded %1 rule(s) from the remote URL.</source>
+        <translation>Загружено правил из URL: %1</translation>
+    </message>
+    <message>
+        <source>Fetched with warnings</source>
+        <translation>Загружено с предупреждениями</translation>
+    </message>
 </context>
 <context>
     <name>SpeedWidget</name>
