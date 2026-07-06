@@ -427,6 +427,54 @@
         <source>Image Files (*.png)</source>
         <translation>Изображения (*.png)</translation>
     </message>
+    <message>
+        <source>Create Backup</source>
+        <translation>Создать резервную копию</translation>
+    </message>
+    <message>
+        <source>Restore Backup</source>
+        <translation>Восстановить из копии</translation>
+    </message>
+    <message>
+        <source>Backup Created</source>
+        <translation>Резервная копия создана</translation>
+    </message>
+    <message>
+        <source>Backup Failed</source>
+        <translation>Ошибка создания копии</translation>
+    </message>
+    <message>
+        <source>Restore Complete</source>
+        <translation>Восстановление завершено</translation>
+    </message>
+    <message>
+        <source>Restore Failed</source>
+        <translation>Ошибка восстановления</translation>
+    </message>
+    <message>
+        <source>Profiles (groups and proxies)</source>
+        <translation>Профили (группы и прокси)</translation>
+    </message>
+    <message>
+        <source>Routing profiles</source>
+        <translation>Профили маршрутизации</translation>
+    </message>
+    <message>
+        <source>Custom icons</source>
+        <translation>Пользовательские иконки</translation>
+    </message>
+    <message>
+        <source>Throne Backup (*.thrbackup)</source>
+        <translation>Резервная копия Throne (*.thrbackup)</translation>
+    </message>
+    <message>
+        <source>Select at least one part to include in the backup.</source>
+        <translation>Выберите хотя бы один компонент для создания резервной копии.</translation>
+    </message>
+    <message>
+        <source>Backup restored successfully. Throne will now restart for the changes to take effect.</source>
+        <translation>Резервная копия успешно восстановлена. Throne будет перезапущен для применения изменений.</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>
