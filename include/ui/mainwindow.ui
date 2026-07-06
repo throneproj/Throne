@@ -809,6 +809,7 @@ QTabBar::tab:selected {
     <property name="title">
      <string>Tools</string>
     </property>
+    <addaction name="actionRuntime_Stats"/>
     <addaction name="actionTraffic_Stats"/>
     <addaction name="actionCheck_For_Update"/>
    </widget>
@@ -1280,6 +1281,11 @@ QTabBar::tab:selected {
   <action name="actionClear_Test_Result">
    <property name="text">
     <string>Clear Test Result</string>
+   </property>
+  </action>
+  <action name="actionRuntime_Stats">
+   <property name="text">
+    <string>Runtime Stats</string>
    </property>
   </action>
   <action name="actionTraffic_Stats">

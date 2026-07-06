@@ -20,6 +20,7 @@
 #include "include/ui/setting/dialog_vpn_settings.h"
 #include "include/ui/setting/dialog_hotkey.h"
 #include "include/ui/stats/dialog_traffic_stats.h"
+#include "include/ui/stats/dialog_runtime_stats.h"
 #include "include/ui/widget/StartStopButton.hpp"
 #include "include/ui/widget/StayOpenMenu.hpp"
 
@@ -370,6 +371,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->toolButton_tools->setMenu(ui->menuTools);
     ui->toolButton_program->installEventFilter(this);
     ui->menubar->setVisible(false);
+    connect(ui->actionRuntime_Stats, &QAction::triggered, this, [=]() {
+        USE_DIALOG(DialogRuntimeStats)
+    });
     ui->actionTraffic_Stats->setVisible(!Configs::dataManager->settingsRepo->disable_traffic_aggregation);
     connect(ui->actionTraffic_Stats, &QAction::triggered, this, [=]() {
         USE_DIALOG(DialogTrafficStats)
@@ -1729,6 +1733,17 @@ void MainWindow::dialog_message_impl(MwMessage cmd, const QStringList &args) {
 }
 
 // top bar & tray menu
+
+qint64 MainWindow::GetCorePid() {
+    QMutexLocker lock(&coreProcessMutex);
+    return core_process ? core_process->processId() : 0;
+}
+
+QString MainWindow::GetRunningConfigName() {
+    auto ent = running;
+    if (ent == nullptr || ent->outbound == nullptr) return {};
+    return ent->outbound->DisplayTypeAndName();
+}
 
 void MainWindow::on_menu_basic_settings_triggered() {
     USE_DIALOG(DialogBasicSettings)

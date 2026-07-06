@@ -63,6 +63,12 @@ public:
 
     ~MainWindow() override;
 
+    // Runtime Stats panel helpers, read on the UI thread. GetCorePid returns 0
+    // when the core process isn't running; GetRunningConfigName is empty when no
+    // profile is active.
+    qint64 GetCorePid();
+    QString GetRunningConfigName();
+
     void prepare_exit();
 
     void refresh_proxy_list(const QList<int> &ids = {}, bool mayNeedReset = false);

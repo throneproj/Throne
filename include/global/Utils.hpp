@@ -57,6 +57,10 @@ inline QString getOSString() {
 inline QString software_name;
 inline QString software_core_name;
 
+// Epoch-seconds when the app started; set once in main(). Read by the Runtime
+// Stats panel to display Throne's uptime.
+inline qint64 appStartEpoch = 0;
+
 // MainWindow functions
 class QWidget;
 inline QWidget *mainwindow;
