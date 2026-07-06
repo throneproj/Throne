@@ -1396,6 +1396,18 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <source>Local Override</source>
         <translation>Назначить локал. DNS</translation>
     </message>
+    <message>
+        <source>Import from clipboard</source>
+        <translation>Импортировать из буфера обмена</translation>
+    </message>
+    <message>
+        <source>Update all</source>
+        <translation>Обновить все</translation>
+    </message>
+    <message>
+        <source>Update selected</source>
+        <translation>Обновить выбранные</translation>
+    </message>
 </context>
 <context>
     <name>DialogVPNSettings</name>
@@ -2962,6 +2974,58 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Stop: %1</source>
         <translation>Остановить: %1</translation>
+    </message>
+    <message>
+        <source>Add subscription</source>
+        <translation>Добавить подписку</translation>
+    </message>
+    <message>
+        <source>Select Routing</source>
+        <translation>Выбор маршрутизации</translation>
+    </message>
+    <message>
+        <source>No servers</source>
+        <translation>Нет серверов</translation>
+    </message>
+    <message>
+        <source>Back to groups</source>
+        <translation>Назад к группам</translation>
+    </message>
+    <message>
+        <source>Previous %1</source>
+        <translation>Предыдущие %1</translation>
+    </message>
+    <message>
+        <source>More (%1)</source>
+        <translation>Ещё (%1)</translation>
+    </message>
+    <message>
+        <source> — page %1/%2</source>
+        <translation> — страница %1/%2</translation>
+    </message>
+    <message>
+        <source>subscriptions</source>
+        <translation>подписки</translation>
+    </message>
+    <message>
+        <source>routing profiles</source>
+        <translation>профили маршрутизации</translation>
+    </message>
+    <message>
+        <source>Import routing profile</source>
+        <translation>Импорт профиля маршрутизации</translation>
+    </message>
+    <message>
+        <source>Imported profile</source>
+        <translation>Профиль импортирован</translation>
+    </message>
+    <message>
+        <source>Update found: %1
+Release note:
+%2</source>
+        <translation>Найдено обновление: %1
+Описание релиза:
+%2</translation>
     </message>
 </context>
 <context>
