@@ -3051,6 +3051,36 @@ Release note:
 Описание релиза:
 %2</translation>
     </message>
+    <message>
+        <source>Add this subscription?
+
+Name: %1
+URL: %2
+Auto update: %3</source>
+        <translation>Добавить эту подписку?
+
+Имя: %1
+URL: %2
+Автообновление: %3</translation>
+    </message>
+    <message>
+        <source>Add this routing profile?
+
+Name: %1</source>
+        <translation>Добавить этот профиль маршрутизации?
+
+Имя: %1</translation>
+    </message>
+    <message>
+        <source>The link did not contain a subscription URL.</source>
+        <translation>Ссылка не содержит URL подписки.</translation>
+    </message>
+    <message>
+        <source>The link could not be parsed:
+</source>
+        <translation>Не удалось распознать ссылку:
+</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableFilterHeader</name>
@@ -3482,11 +3512,11 @@ Release note:
         <name>TrafficChartWidget</name>
     <message>
         <source>Download</source>
-        <translation>Скачивание</translation>
+        <translation>Входящий</translation>
     </message>
     <message>
         <source>Upload</source>
-        <translation>Отдача</translation>
+        <translation>Исходящий</translation>
     </message>
     <message>
         <source>No traffic recorded for this period</source>
@@ -3543,6 +3573,40 @@ Deleted %3 Profiles:
     <message>
         <source>Prevent modifications</source>
         <translation>Запретить изменения</translation>
+    </message>
+</context>
+    <context>
+        <name>DialogRuntimeStats</name>
+    <message>
+        <source>%1 active   ·   %2 TCP   ·   %3 UDP</source>
+        <translation>%1 активных   ·   %2 TCP   ·   %3 UDP</translation>
+    </message>
+    <message>
+        <source>No active config</source>
+        <translation>Нет активного подключения</translation>
+    </message>
+    <message>
+        <source>Due now</source>
+        <translation>Прямо сейчас</translation>
+    </message>
+</context>
+    <context>
+        <name>DialogTrafficStats</name>
+    <message>
+        <source>Download: %1     Upload: %2     Total: %3</source>
+        <translation>Входящий: %1     Исходящий: %2     Всего: %3</translation>
+    </message>
+    <message>
+        <source>Profile #%1 (deleted)</source>
+        <translation>Профиль №%1 (удалён)</translation>
+    </message>
+    <message>
+        <source>Other</source>
+        <translation>Другое</translation>
+    </message>
+    <message>
+        <source>Unknown</source>
+        <translation>Неизвестно</translation>
     </message>
 </context>
 </TS>
