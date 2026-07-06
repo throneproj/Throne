@@ -9,6 +9,7 @@
 #include <QLocalSocket>
 #include <QLocalServer>
 #include <QThread>
+#include <QDateTime>
 #include <3rdparty/WinCommander.hpp>
 
 
@@ -155,6 +156,9 @@ int main(int argc, char* argv[]) {
     if (!wd.exists("config")) wd.mkdir("config");
     QDir::setCurrent(wd.absoluteFilePath("config"));
     QDir("temp").removeRecursively();
+
+    // Record app start for the Runtime Stats uptime readout.
+    appStartEpoch = QDateTime::currentSecsSinceEpoch();
 
     // Load database
     Configs::initDB(QString(QDir::currentPath() + QDir::separator() + "throne.db").toStdString());

@@ -108,6 +108,9 @@ set(PROJECT_SOURCES
         include/sys/Process.hpp
         src/sys/Process.cpp
 
+        include/sys/ProcessMetrics.hpp
+        src/sys/ProcessMetrics.cpp
+
         include/sys/UrlScheme.hpp
         src/sys/UrlScheme.cpp
 
@@ -221,6 +224,12 @@ set(PROJECT_SOURCES
         include/ui/stats/dialog_traffic_stats.ui
         src/ui/stats/TrafficChartWidget.cpp
         include/ui/stats/TrafficChartWidget.h
+
+        src/ui/stats/dialog_runtime_stats.cpp
+        include/ui/stats/dialog_runtime_stats.h
+        include/ui/stats/dialog_runtime_stats.ui
+        src/ui/stats/MiniChartWidget.cpp
+        include/ui/stats/MiniChartWidget.h
 
         src/ui/setting/dialog_hotkey.cpp
         include/ui/setting/dialog_hotkey.h
