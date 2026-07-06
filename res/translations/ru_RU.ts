@@ -1408,6 +1408,30 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <source>Update selected</source>
         <translation>Обновить выбранные</translation>
     </message>
+    <message>
+        <source>Paste a Throne route link, a remoteRoute link, a base64 blob, or a JSON rule array</source>
+        <translation>Вставьте ссылку маршрута Throne, ссылку remoteRoute, base64 или массив правил JSON</translation>
+    </message>
+    <message>
+        <source>Add remote routing profiles</source>
+        <translation>Добавить удалённые профили маршрутизации</translation>
+    </message>
+    <message>
+        <source>No remote profiles</source>
+        <translation>Нет удалённых профилей</translation>
+    </message>
+    <message>
+        <source>Update complete</source>
+        <translation>Обновление завершено</translation>
+    </message>
+    <message>
+        <source>Update cancelled</source>
+        <translation>Обновление отменено</translation>
+    </message>
+    <message>
+        <source>Update finished with errors</source>
+        <translation>Обновление завершено с ошибками</translation>
+    </message>
 </context>
 <context>
     <name>DialogVPNSettings</name>
@@ -3403,6 +3427,30 @@ Release note:
         <source>Default outbound</source>
         <translation>Outbound по умолчанию</translation>
     </message>
+    <message>
+        <source>%1 — %2 rule(s)</source>
+        <translation>%1 — правил: %2</translation>
+    </message>
+    <message>
+        <source>(unnamed)</source>
+        <translation>(без названия)</translation>
+    </message>
+    <message>
+        <source>Fetch from remote</source>
+        <translation>Загрузить</translation>
+    </message>
+    <message>
+        <source>Fetching...</source>
+        <translation>Загрузка…</translation>
+    </message>
+    <message>
+        <source>Fetched</source>
+        <translation>Загружено</translation>
+    </message>
+    <message>
+        <source>Remote routing profile preview</source>
+        <translation>Предпросмотр удалённого профиля</translation>
+    </message>
 </context>
 <context>
     <name>SpeedWidget</name>
@@ -3484,6 +3532,17 @@ Deleted %3 Profiles:
     <message>
         <source>not a remote routing profile</source>
         <translation>Профиль не является удалённым</translation>
+    </message>
+</context>
+    <context>
+        <name>RawRouteItem</name>
+    <message>
+        <source>Raw route</source>
+        <translation>Raw route</translation>
+    </message>
+    <message>
+        <source>Prevent modifications</source>
+        <translation>Запретить изменения</translation>
     </message>
 </context>
 </TS>
