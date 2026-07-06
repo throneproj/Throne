@@ -21,18 +21,46 @@ namespace Configs {
 
     bool mieru::ParseFromLink(const QString& link)
     {
+        // We support mieru's "simple" sharing link (mierus://user:pass@host?...).
+        // The "standard" mieru:// link is a base64-encoded protobuf blob with no
+        // authority/query that cannot be mapped onto our fields; reject it here so
+        // it is discarded cleanly instead of imported as a garbage profile.
         auto url = QUrl(link);
-        if (!url.isValid()) return false;
+        if (!url.isValid() || url.host().isEmpty() || url.query().isEmpty()) return false;
         auto query = QUrlQuery(url.query());
 
         outbound::ParseFromLink(link);
         username = url.userName();
         password = url.password();
 
-        if (query.hasQueryItem("transport")) transport = query.queryItemValue("transport").toUpper();
+        // mieru pairs every port with its own protocol; we only model a single
+        // transport, so adopt the first one advertised.
+        const auto protocols = query.allQueryItemValues("protocol");
+        if (!protocols.isEmpty()) transport = protocols.first().toUpper();
+
+        // mieru lists each port (single or range) as a repeated "port" item. Map
+        // the first single port to server_port (the shared address:port field) and
+        // keep the rest in server_ports, normalising any extra single port to an
+        // "N-N" range since the core only accepts ranges in server_ports.
+        QStringList ranges;
+        bool haveSinglePort = false;
+        server_port = 0;
+        for (auto port : query.allQueryItemValues("port")) {
+            port = port.trimmed();
+            if (port.isEmpty()) continue;
+            if (port.contains('-')) {
+                ranges << port;
+            } else if (!haveSinglePort) {
+                server_port = port.toInt();
+                haveSinglePort = true;
+            } else {
+                ranges << QStringLiteral("%1-%1").arg(port);
+            }
+        }
+        server_ports = ranges.join(",");
+
         if (query.hasQueryItem("multiplexing")) multiplexing = query.queryItemValue("multiplexing");
-        if (query.hasQueryItem("traffic_pattern")) traffic_pattern = query.queryItemValue("traffic_pattern");
-        if (query.hasQueryItem("server_ports")) server_ports = query.queryItemValue("server_ports");
+        if (query.hasQueryItem("traffic-pattern")) traffic_pattern = query.queryItemValue("traffic-pattern");
 
         return true;
     }
@@ -62,19 +90,35 @@ namespace Configs {
 
     QString mieru::ExportToLink()
     {
+        // Emit mieru's "simple" sharing link:
+        //   mierus://user:pass@host?profile=...&port=...&protocol=...
+        // mieru carries no authority port, so every port (the single server_port
+        // plus each server_ports range) is emitted as a repeated "port" item, each
+        // paired with a matching "protocol" so the two lists line up.
         QUrl url;
         QUrlQuery query;
-        url.setScheme("mieru");
+        url.setScheme("mierus");
         url.setUserName(username);
         url.setPassword(password);
         url.setHost(server);
-        url.setPort(server_port);
         if (!name.isEmpty()) url.setFragment(name);
 
-        if (!transport.isEmpty()) query.addQueryItem("transport", transport);
+        // mieru requires a profile name; we don't model one, so use "default".
+        query.addQueryItem("profile", "default");
+
+        const auto protocol = transport.isEmpty() ? QStringLiteral("TCP") : transport.toUpper();
+        auto addPort = [&](const QString& port) {
+            query.addQueryItem("port", port);
+            query.addQueryItem("protocol", protocol);
+        };
+        if (server_port > 0) addPort(QString::number(server_port));
+        for (auto part : server_ports.split(',', Qt::SkipEmptyParts)) {
+            part = part.trimmed();
+            if (!part.isEmpty()) addPort(part);
+        }
+
         if (!multiplexing.isEmpty()) query.addQueryItem("multiplexing", multiplexing);
-        if (!traffic_pattern.isEmpty()) query.addQueryItem("traffic_pattern", traffic_pattern);
-        if (!server_ports.isEmpty()) query.addQueryItem("server_ports", server_ports);
+        if (!traffic_pattern.isEmpty()) query.addQueryItem("traffic-pattern", traffic_pattern);
 
         mergeUrlQuery(query, outbound::ExportToLink());
 

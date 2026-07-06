@@ -60,6 +60,9 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 
 	if debug {
 		log.Println("Start:", *in.CoreConfig)
+		if in.XrayConfig != nil {
+			log.Println("Start Xray:", *in.XrayConfig)
+		}
 	}
 
 	if boxInstance != nil {

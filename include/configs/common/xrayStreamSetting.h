@@ -55,8 +55,10 @@ namespace Configs {
         QString xPaddingPlacement;
         QString xPaddingMethod;
         QString uplinkHTTPMethod;
-        QString sessionPlacement;
-        QString sessionKey;
+        QString sessionIDPlacement;
+        QString sessionIDKey;
+        QString sessionIDTable;
+        QString sessionIDLength;
         QString seqPlacement;
         QString seqKey;
         QString uplinkDataPlacement;

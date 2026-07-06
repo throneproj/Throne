@@ -133,7 +133,7 @@ namespace Configs {
         // test/export builds (an export must stay machine-portable) and when TUN
         // is off (no loop to prevent). On any RPC failure defaultInterface stays
         // empty and the build falls back to the loopback bridge.
-        if (ctx->tunEnabled && !ctx->forTest && !ctx->forExport)
+        if (ctx->tunEnabled)
         {
             bool ifcOK = false;
             auto ifc = API::defaultClient->GetDefaultInterface(&ifcOK);

@@ -12,7 +12,7 @@ require (
 	github.com/sagernet/sing-tun v0.8.11
 	github.com/spf13/cobra v1.10.2
 	github.com/tailscale/go-winio v0.0.0-20231025203758-c4f33415bf55
-	github.com/xtls/xray-core v1.260327.1-0.20260609205355-da21a8f77f31
+	github.com/xtls/xray-core v1.260327.1-0.20260627131803-45cf2898ab12
 	golang.org/x/crypto v0.53.0
 	golang.org/x/sys v0.46.0
 	google.golang.org/grpc v1.81.1
@@ -34,7 +34,7 @@ require (
 	github.com/apernet/quic-go v0.59.1-0.20260425001925-6c6cc9bcb716 // indirect
 	github.com/caddyserver/certmagic v0.25.2 // indirect
 	github.com/caddyserver/zerossl v0.1.5 // indirect
-	github.com/cloudflare/circl v1.6.3 // indirect
+	github.com/cloudflare/circl v1.6.4 // indirect
 	github.com/coder/websocket v1.8.14 // indirect
 	github.com/coreos/go-iptables v0.7.1-0.20240112124308-65c67c9f46e6 // indirect
 	github.com/cretz/bine v0.2.0 // indirect
@@ -87,7 +87,7 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/pion/dtls/v3 v3.1.4 // indirect
 	github.com/pion/logging v0.2.4 // indirect
-	github.com/pion/stun/v3 v3.1.5 // indirect
+	github.com/pion/stun/v3 v3.1.6 // indirect
 	github.com/pion/transport/v4 v4.0.2 // indirect
 	github.com/pires/go-proxyproto v0.12.0 // indirect
 	github.com/prometheus-community/pro-bing v0.4.0 // indirect
@@ -169,7 +169,7 @@ require (
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/exp v0.0.0-20251219203646-944ab1f22d93 // indirect
 	golang.org/x/mod v0.36.0 // indirect
-	golang.org/x/net v0.55.0 // indirect
+	golang.org/x/net v0.56.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.21.0 // indirect
 	golang.org/x/term v0.44.0 // indirect

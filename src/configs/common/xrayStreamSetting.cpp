@@ -96,6 +96,10 @@ namespace Configs {
                 "uplinkHTTPMethod",
                 "sessionPlacement",
                 "sessionKey",
+                "sessionIDPlacement",
+                "sessionIDKey",
+                "sessionIDTable",
+                "sessionIDLength",
                 "seqPlacement",
                 "seqKey",
                 "uplinkDataPlacement",
@@ -201,8 +205,12 @@ namespace Configs {
             parseString(obj, "xPaddingPlacement", config->xPaddingPlacement);
             parseString(obj, "xPaddingMethod", config->xPaddingMethod);
             parseString(obj, "uplinkHTTPMethod", config->uplinkHTTPMethod);
-            parseString(obj, "sessionPlacement", config->sessionPlacement);
-            parseString(obj, "sessionKey", config->sessionKey);
+            parseString(obj, "sessionPlacement", config->sessionIDPlacement); // legacy alias (pre-v26.6.22 Xray)
+            parseString(obj, "sessionIDPlacement", config->sessionIDPlacement);
+            parseString(obj, "sessionKey", config->sessionIDKey); // legacy alias (pre-v26.6.22 Xray)
+            parseString(obj, "sessionIDKey", config->sessionIDKey);
+            parseString(obj, "sessionIDTable", config->sessionIDTable);
+            parseVariantString(obj, "sessionIDLength", config->sessionIDLength);
             parseString(obj, "seqPlacement", config->seqPlacement);
             parseString(obj, "seqKey", config->seqKey);
             parseString(obj, "uplinkDataPlacement", config->uplinkDataPlacement);
@@ -486,8 +494,10 @@ namespace Configs {
         exportString(extraObj, "xPaddingPlacement", xPaddingPlacement);
         exportString(extraObj, "xPaddingMethod", xPaddingMethod);
         exportString(extraObj, "uplinkHTTPMethod", uplinkHTTPMethod);
-        exportString(extraObj, "sessionPlacement", sessionPlacement);
-        exportString(extraObj, "sessionKey", sessionKey);
+        exportString(extraObj, "sessionIDPlacement", sessionIDPlacement);
+        exportString(extraObj, "sessionIDKey", sessionIDKey);
+        exportString(extraObj, "sessionIDTable", sessionIDTable);
+        exportString(extraObj, "sessionIDLength", sessionIDLength);
         exportString(extraObj, "seqPlacement", seqPlacement);
         exportString(extraObj, "seqKey", seqKey);
         exportString(extraObj, "uplinkDataPlacement", uplinkDataPlacement);

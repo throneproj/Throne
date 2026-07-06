@@ -111,11 +111,20 @@ void DialogEditProfile::setupXrayXHTTPDescriptions() {
                      tr("Stream Up Server Seconds"), "scStreamUpServerSecs",
                      tr("Stream-up server interval for periodic xPaddingBytes keepalive writes, in seconds. Default: 20-80; values <= 0 disable periodic padding."));
     setXrayXHTTPHelp(ui->xray_session_placement_l, ui->xray_session_placement,
-                     tr("Session Placement"), "sessionPlacement",
+                     tr("Session Placement"), "sessionIDPlacement",
                      tr("Where the XHTTP session id is sent: path, cookie, header, or query. Default: path."));
     setXrayXHTTPHelp(ui->xray_session_key_l, ui->xray_session_key,
-                     tr("Session Key"), "sessionKey",
+                     tr("Session Key"), "sessionIDKey",
                      tr("Key used for the session id outside path placement. Defaults: x_session for cookie/query, X-Session for header."));
+    setXrayXHTTPHelp(ui->xray_session_id_table_l, ui->xray_session_id_table,
+                     tr("Session ID Table"), "sessionIDTable",
+                     tr("Charset for generating the XHTTP session id: a predefined name "
+                        "(number, hex, HEX, base36, BASE36, alphabet, ALPHABET, Alphabet, Base62) "
+                        "or a literal ASCII string. Empty falls back to a random UUID."));
+    setXrayXHTTPHelp(ui->xray_session_id_length_l, ui->xray_session_id_length,
+                     tr("Session ID Length"), "sessionIDLength",
+                     tr("Length range of the generated session id, e.g. 8-16. "
+                        "Only used together with sessionIDTable; \"from\" must be greater than 0."));
     setXrayXHTTPHelp(ui->xray_seq_placement_l, ui->xray_seq_placement,
                      tr("Sequence Placement"), "seqPlacement",
                      tr("Where the XHTTP packet sequence is sent: path, cookie, header, or query. Default: path."));

@@ -512,8 +512,10 @@ void DialogEditProfile::typeSelected(const QString &newType) {
         ui->xray_xpadding_placement->setCurrentText(xrayStream->xhttp->xPaddingPlacement);
         ui->xray_xpadding_method->setCurrentText(xrayStream->xhttp->xPaddingMethod);
         ui->xray_uplink_http_method->setCurrentText(xrayStream->xhttp->uplinkHTTPMethod);
-        ui->xray_session_placement->setCurrentText(xrayStream->xhttp->sessionPlacement);
-        ui->xray_session_key->setText(xrayStream->xhttp->sessionKey);
+        ui->xray_session_placement->setCurrentText(xrayStream->xhttp->sessionIDPlacement);
+        ui->xray_session_key->setText(xrayStream->xhttp->sessionIDKey);
+        ui->xray_session_id_table->setText(xrayStream->xhttp->sessionIDTable);
+        ui->xray_session_id_length->setText(xrayStream->xhttp->sessionIDLength);
         ui->xray_seq_placement->setCurrentText(xrayStream->xhttp->seqPlacement);
         ui->xray_seq_key->setText(xrayStream->xhttp->seqKey);
         ui->xray_uplink_data_placement->setCurrentText(xrayStream->xhttp->uplinkDataPlacement);
@@ -751,8 +753,10 @@ bool DialogEditProfile::onEnd() {
             xrayStream->xhttp->xPaddingPlacement = ui->xray_xpadding_placement->currentText();
             xrayStream->xhttp->xPaddingMethod = ui->xray_xpadding_method->currentText();
             xrayStream->xhttp->uplinkHTTPMethod = ui->xray_uplink_http_method->currentText();
-            xrayStream->xhttp->sessionPlacement = ui->xray_session_placement->currentText();
-            xrayStream->xhttp->sessionKey = ui->xray_session_key->text();
+            xrayStream->xhttp->sessionIDPlacement = ui->xray_session_placement->currentText();
+            xrayStream->xhttp->sessionIDKey = ui->xray_session_key->text();
+            xrayStream->xhttp->sessionIDTable = ui->xray_session_id_table->text();
+            xrayStream->xhttp->sessionIDLength = ui->xray_session_id_length->text();
             xrayStream->xhttp->seqPlacement = ui->xray_seq_placement->currentText();
             xrayStream->xhttp->seqKey = ui->xray_seq_key->text();
             xrayStream->xhttp->uplinkDataPlacement = ui->xray_uplink_data_placement->currentText();

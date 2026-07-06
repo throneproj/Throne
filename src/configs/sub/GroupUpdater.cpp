@@ -318,8 +318,9 @@ namespace Subscription {
             if (!ok) return;
         }
 
-        // Mieru
-        if (str.startsWith("mieru://")) {
+        // Mieru (mierus:// is the "simple" sharing link; the base64 "standard"
+        // mieru:// link is rejected inside ParseFromLink rather than mis-parsed)
+        if (str.startsWith("mierus://") || str.startsWith("mieru://")) {
             ent = Configs::ProfilesRepo::NewProfile("mieru");
             auto ok = ent->Mieru()->ParseFromLink(str);
             if (!ok) return;
