@@ -639,6 +639,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     tray->setIcon(GetTrayIcon(Icon::NONE));
     QApplication::setWindowIcon(Icon::GetTrayIcon(Icon::NONE));
     trayMenu = new QMenu();
+    trayMenu->setStyleSheet(QStringLiteral("QMenu::item { padding: 10px 24px 10px 28px; min-height: 28px; }"));
     trayMenu->addAction(ui->actionShow_window);
     trayMenu->addSeparator();
     trayMenu->addAction(ui->actionStart_with_system);
