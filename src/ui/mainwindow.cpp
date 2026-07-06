@@ -80,6 +80,8 @@
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
 #include <QStyleHints>
 #endif
+#include <QProxyStyle>
+#include <QStyleOptionMenuItem>
 #include <QFileDialog>
 #include <QToolTip>
 #include <QMimeData>
@@ -106,6 +108,33 @@ dialog->show();
 void UI_InitMainWindow() {
     mainwindow = new MainWindow;
 }
+
+namespace {
+constexpr int kExtraItemHeight = 18;
+
+class TrayMenuProxyStyle : public QProxyStyle {
+    bool m_submenusOnly;
+public:
+    explicit TrayMenuProxyStyle(QObject *parent = nullptr, bool submenusOnly = false)
+        : QProxyStyle(), m_submenusOnly(submenusOnly) {
+        setParent(parent);
+    }
+
+    QSize sizeFromContents(ContentsType type, const QStyleOption *option, const QSize &size, const QWidget *widget) const override {
+        QSize sz = QProxyStyle::sizeFromContents(type, option, size, widget);
+        if (type == CT_MenuItem) {
+            if (!m_submenusOnly) {
+                sz.setHeight(sz.height() + kExtraItemHeight);
+            } else if (const auto *menuOpt = qstyleoption_cast<const QStyleOptionMenuItem *>(option)) {
+                if (menuOpt->menuItemType == QStyleOptionMenuItem::SubMenu) {
+                    sz.setHeight(sz.height() + kExtraItemHeight);
+                }
+            }
+        }
+        return sz;
+    }
+};
+} // namespace
 
 // Caller must hold coreProcessMutex (reads core_process lock-free by design).
 bool MainWindow::verify_core_pid(QLocalSocket *socket) {
@@ -639,6 +668,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     tray->setIcon(GetTrayIcon(Icon::NONE));
     QApplication::setWindowIcon(Icon::GetTrayIcon(Icon::NONE));
     trayMenu = new QMenu();
+    trayMenu->setStyle(new TrayMenuProxyStyle(trayMenu, true));
     trayMenu->addAction(ui->actionShow_window);
     trayMenu->addSeparator();
     trayMenu->addAction(ui->actionStart_with_system);
@@ -694,6 +724,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // MacOS cannot reuse menus across different parents properly
     if (getOS() == Darwin) {
         auto* traySpmodeMenu = new QMenu(ui->menu_spmode->title(), trayMenu);
+        traySpmodeMenu->setStyle(new TrayMenuProxyStyle(traySpmodeMenu));
         traySpmodeMenu->addAction(ui->menu_spmode_system_proxy);
         traySpmodeMenu->addAction(ui->menu_spmode_vpn);
         traySpmodeMenu->addAction(ui->menu_spmode_disabled);
@@ -704,10 +735,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         });
         trayMenu->addMenu(traySpmodeMenu);
     } else {
+        ui->menu_spmode->setStyle(new TrayMenuProxyStyle(ui->menu_spmode));
         trayMenu->addMenu(ui->menu_spmode);
     }
 
     auto* trayRoutingMenu = new QMenu(tr("Select Routing"), trayMenu);
+    trayRoutingMenu->setStyle(new TrayMenuProxyStyle(trayRoutingMenu));
     connect(trayRoutingMenu, &QMenu::aboutToShow, this, [=,this]() {
         trayRoutingMenu->clear();
         for (const auto& route : Configs::dataManager->routesRepo->GetAllRouteProfiles()) {
