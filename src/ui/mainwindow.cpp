@@ -113,6 +113,7 @@ void UI_InitMainWindow() {
 
 namespace {
 constexpr int kExtraItemHeight = 18;
+constexpr int kTrayFontAddition = 2;
 
 class TrayMenuProxyStyle : public QProxyStyle {
     bool m_submenusOnly;
@@ -134,7 +135,7 @@ public:
 
                 if (enlarge) {
                     QStyleOptionMenuItem largerOpt = *menuOpt;
-                    largerOpt.font.setPointSize(largerOpt.font.pointSize() + 3);
+                    largerOpt.font.setPointSize(largerOpt.font.pointSize() + kTrayFontAddition);
                     QSize sz = QProxyStyle::sizeFromContents(type, &largerOpt, size, widget);
                     
                     // Manually calculate text width difference because base style might ignore option->font
@@ -167,7 +168,7 @@ public:
 
                 if (enlarge) {
                     QStyleOptionMenuItem largerOpt = *menuOpt;
-                    largerOpt.font.setPointSize(largerOpt.font.pointSize() + 3);
+                    largerOpt.font.setPointSize(largerOpt.font.pointSize() + kTrayFontAddition);
                     QProxyStyle::drawControl(element, &largerOpt, painter, widget);
                     return;
                 }
