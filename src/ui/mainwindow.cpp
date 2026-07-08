@@ -2,6 +2,7 @@
 
 #include <QAbstractItemView>
 #include <QMenu>
+#include <QPainter>
 #include <ranges>
 
 #include "include/configs/sub/GroupUpdater.hpp"
@@ -122,17 +123,57 @@ public:
     }
 
     QSize sizeFromContents(ContentsType type, const QStyleOption *option, const QSize &size, const QWidget *widget) const override {
-        QSize sz = QProxyStyle::sizeFromContents(type, option, size, widget);
         if (type == CT_MenuItem) {
-            if (!m_submenusOnly) {
-                sz.setHeight(sz.height() + kExtraItemHeight);
-            } else if (const auto *menuOpt = qstyleoption_cast<const QStyleOptionMenuItem *>(option)) {
-                if (menuOpt->menuItemType == QStyleOptionMenuItem::SubMenu) {
+            if (const auto *menuOpt = qstyleoption_cast<const QStyleOptionMenuItem *>(option)) {
+                bool enlarge = false;
+                if (!m_submenusOnly) {
+                    enlarge = true;
+                } else if (menuOpt->menuItemType == QStyleOptionMenuItem::SubMenu) {
+                    enlarge = true;
+                }
+
+                if (enlarge) {
+                    QStyleOptionMenuItem largerOpt = *menuOpt;
+                    largerOpt.font.setPointSize(largerOpt.font.pointSize() + 3);
+                    QSize sz = QProxyStyle::sizeFromContents(type, &largerOpt, size, widget);
+                    
+                    // Manually calculate text width difference because base style might ignore option->font
+                    QFontMetrics fm(largerOpt.font);
+                    QFontMetrics fmDefault(menuOpt->font);
+                    int widthLarger = fm.horizontalAdvance(largerOpt.text);
+                    int widthDefault = fmDefault.horizontalAdvance(menuOpt->text);
+                    int diffWidth = widthLarger - widthDefault;
+                    if (diffWidth > 0) {
+                        sz.setWidth(sz.width() + diffWidth);
+                    }
+
                     sz.setHeight(sz.height() + kExtraItemHeight);
+                    return sz;
                 }
             }
         }
-        return sz;
+        return QProxyStyle::sizeFromContents(type, option, size, widget);
+    }
+
+    void drawControl(ControlElement element, const QStyleOption *option, QPainter *painter, const QWidget *widget) const override {
+        if (element == CE_MenuItem) {
+            if (const auto *menuOpt = qstyleoption_cast<const QStyleOptionMenuItem *>(option)) {
+                bool enlarge = false;
+                if (!m_submenusOnly) {
+                    enlarge = true;
+                } else if (menuOpt->menuItemType == QStyleOptionMenuItem::SubMenu) {
+                    enlarge = true;
+                }
+
+                if (enlarge) {
+                    QStyleOptionMenuItem largerOpt = *menuOpt;
+                    largerOpt.font.setPointSize(largerOpt.font.pointSize() + 3);
+                    QProxyStyle::drawControl(element, &largerOpt, painter, widget);
+                    return;
+                }
+            }
+        }
+        QProxyStyle::drawControl(element, option, painter, widget);
     }
 };
 } // namespace
@@ -675,9 +716,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     trayMenu = new QMenu();
     if (settings->enlarge_tray_menu) {
         trayMenu->setStyle(new TrayMenuProxyStyle(trayMenu, true));
-        QFont f = trayMenu->font();
-        f.setPointSize(f.pointSize() + 1);
-        trayMenu->setFont(f);
     }
     trayMenu->addAction(ui->actionShow_window);
     trayMenu->addSeparator();
@@ -687,9 +725,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     trayMenu->addSeparator();
     // Select Server submenu (dynamically populated by groups)
     trayServerMenu = new StayOpenMenu(tr("Select Server"));
-    if (settings->enlarge_tray_menu) {
-        trayServerMenu->setFont(trayMenu->font());
-    }
     trayMenu->addMenu(trayServerMenu);
     trayMenu->installEventFilter(this);
     connect(trayServerMenu, &QMenu::aboutToShow, this, [=, this]() {
@@ -738,8 +773,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     if (getOS() == Darwin) {
         auto* traySpmodeMenu = new QMenu(ui->menu_spmode->title(), trayMenu);
         if (settings->enlarge_tray_menu) {
-            traySpmodeMenu->setStyle(new TrayMenuProxyStyle(traySpmodeMenu));
-            traySpmodeMenu->setFont(trayMenu->font());
+            traySpmodeMenu->setStyle(new TrayMenuProxyStyle(traySpmodeMenu, false));
         }
         traySpmodeMenu->addAction(ui->menu_spmode_system_proxy);
         traySpmodeMenu->addAction(ui->menu_spmode_vpn);
@@ -752,16 +786,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         trayMenu->addMenu(traySpmodeMenu);
     } else {
         if (settings->enlarge_tray_menu) {
-            ui->menu_spmode->setStyle(new TrayMenuProxyStyle(ui->menu_spmode));
-            ui->menu_spmode->setFont(trayMenu->font());
+            ui->menu_spmode->setStyle(new TrayMenuProxyStyle(ui->menu_spmode, false));
         }
         trayMenu->addMenu(ui->menu_spmode);
     }
 
     auto* trayRoutingMenu = new QMenu(tr("Select Routing"), trayMenu);
     if (settings->enlarge_tray_menu) {
-        trayRoutingMenu->setStyle(new TrayMenuProxyStyle(trayRoutingMenu));
-        trayRoutingMenu->setFont(trayMenu->font());
+        trayRoutingMenu->setStyle(new TrayMenuProxyStyle(trayRoutingMenu, false));
     }
     connect(trayRoutingMenu, &QMenu::aboutToShow, this, [=,this]() {
         trayRoutingMenu->clear();
