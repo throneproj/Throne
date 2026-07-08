@@ -683,6 +683,13 @@ QTabBar::tab:hover:!selected {
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QCheckBox" name="enlarge_tray_menu">
+              <property name="text">
+               <string>Enlarge tray menu buttons</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>

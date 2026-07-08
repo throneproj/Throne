@@ -118,9 +118,13 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     //
     D_LOAD_BOOL(start_minimal)
     ui->skip_delete_confirm->setChecked(Configs::dataManager->settingsRepo->skip_delete_confirmation);
+    D_LOAD_BOOL(enlarge_tray_menu)
     //
     ui->language->setCurrentIndex(Configs::dataManager->settingsRepo->language);
     connect(ui->language, &QComboBox::currentIndexChanged, this, [=,this](int index) {
+        CACHE.needRestart = true;
+    });
+    connect(ui->enlarge_tray_menu, &QCheckBox::stateChanged, this, [=,this](const bool &) {
         CACHE.needRestart = true;
     });
     connect(ui->font, &QComboBox::currentTextChanged, this, [=,this](const QString &fontName) {
@@ -354,6 +358,7 @@ void DialogBasicSettings::accept() {
     D_SAVE_BOOL(start_minimal)
     Configs::dataManager->settingsRepo->skip_delete_confirmation = ui->skip_delete_confirm->isChecked();
     Configs::dataManager->settingsRepo->show_system_dns = ui->show_sys_dns->isChecked();
+    D_SAVE_BOOL(enlarge_tray_menu)
 
     if (Configs::dataManager->settingsRepo->max_log_line <= 0) {
         Configs::dataManager->settingsRepo->max_log_line = 200;

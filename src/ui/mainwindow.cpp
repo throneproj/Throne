@@ -668,11 +668,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     this->refresh_groups();
 
     // Setup Tray
+    auto &settings = Configs::dataManager->settingsRepo;
     tray = new QSystemTrayIcon(nullptr);
     tray->setIcon(GetTrayIcon(Icon::NONE));
     QApplication::setWindowIcon(Icon::GetTrayIcon(Icon::NONE));
     trayMenu = new QMenu();
-    trayMenu->setStyle(new TrayMenuProxyStyle(trayMenu, true));
+    if (settings->enlarge_tray_menu) {
+        trayMenu->setStyle(new TrayMenuProxyStyle(trayMenu, true));
+        QFont f = trayMenu->font();
+        f.setPointSize(f.pointSize() + 1);
+        trayMenu->setFont(f);
+    }
     trayMenu->addAction(ui->actionShow_window);
     trayMenu->addSeparator();
     trayMenu->addAction(ui->actionStart_with_system);
@@ -681,6 +687,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     trayMenu->addSeparator();
     // Select Server submenu (dynamically populated by groups)
     trayServerMenu = new StayOpenMenu(tr("Select Server"));
+    if (settings->enlarge_tray_menu) {
+        trayServerMenu->setFont(trayMenu->font());
+    }
     trayMenu->addMenu(trayServerMenu);
     trayMenu->installEventFilter(this);
     connect(trayServerMenu, &QMenu::aboutToShow, this, [=, this]() {
@@ -728,7 +737,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // MacOS cannot reuse menus across different parents properly
     if (getOS() == Darwin) {
         auto* traySpmodeMenu = new QMenu(ui->menu_spmode->title(), trayMenu);
-        traySpmodeMenu->setStyle(new TrayMenuProxyStyle(traySpmodeMenu));
+        if (settings->enlarge_tray_menu) {
+            traySpmodeMenu->setStyle(new TrayMenuProxyStyle(traySpmodeMenu));
+            traySpmodeMenu->setFont(trayMenu->font());
+        }
         traySpmodeMenu->addAction(ui->menu_spmode_system_proxy);
         traySpmodeMenu->addAction(ui->menu_spmode_vpn);
         traySpmodeMenu->addAction(ui->menu_spmode_disabled);
@@ -739,12 +751,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         });
         trayMenu->addMenu(traySpmodeMenu);
     } else {
-        ui->menu_spmode->setStyle(new TrayMenuProxyStyle(ui->menu_spmode));
+        if (settings->enlarge_tray_menu) {
+            ui->menu_spmode->setStyle(new TrayMenuProxyStyle(ui->menu_spmode));
+            ui->menu_spmode->setFont(trayMenu->font());
+        }
         trayMenu->addMenu(ui->menu_spmode);
     }
 
     auto* trayRoutingMenu = new QMenu(tr("Select Routing"), trayMenu);
-    trayRoutingMenu->setStyle(new TrayMenuProxyStyle(trayRoutingMenu));
+    if (settings->enlarge_tray_menu) {
+        trayRoutingMenu->setStyle(new TrayMenuProxyStyle(trayRoutingMenu));
+        trayRoutingMenu->setFont(trayMenu->font());
+    }
     connect(trayRoutingMenu, &QMenu::aboutToShow, this, [=,this]() {
         trayRoutingMenu->clear();
         for (const auto& route : Configs::dataManager->routesRepo->GetAllRouteProfiles()) {
