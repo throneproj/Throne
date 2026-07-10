@@ -37,6 +37,11 @@ func (d *DnsManager) HandleSystemDNS(ifc *control.Interface, flag int) {
 		if d.lastIfc != nil && d.lastIfc.Index != ifc.Index {
 			d.restoreSystemDNS(*d.lastIfc)
 		}
+		// Track the interface that now holds (or was just cleared of) the local
+		// DNS marker. Without this, a default-route move A->B->C only ever
+		// restored A, leaving 127.1.1.1 stranded on B — that interface's lookups
+		// then fail whenever the hijack-dns listener isn't the one answering it.
+		d.lastIfc = ifc
 	}
 }
 
@@ -242,7 +247,6 @@ func (d *DnsManager) SetSystemDNS(ifc *control.Interface, clear bool) error {
 	if clear {
 		dnsIsSet = false
 		d.restoreSystemDNS(*ifc)
-		return nil
 		return nil
 	} else {
 		dnsIsSet = true

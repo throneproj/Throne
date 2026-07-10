@@ -12,6 +12,8 @@
 #include <QMessageBox>
 #include <QJsonDocument>
 #include <QFile>
+#include <QNetworkInterface>
+#include <QHostAddress>
 
 #include "include/configs/generate.h"
 #include "include/database/GroupsRepo.h"
@@ -702,25 +704,92 @@ bool MainWindow::set_system_dns(bool set, bool save_set) {
     return true;
 }
 
+namespace {
+// An interface-bound Xray egress pins its outbound socket to a specific physical
+// interface via sockopt.interface (IP_UNICAST_IF on Windows). That pin keeps
+// working as long as the interface itself is up with a routable address — even
+// if the OS's *preferred* default route later moves elsewhere (a second NIC
+// coming up, an automatic-metric change, Wi-Fi and Ethernet both connected).
+// So "GetDefaultInterface() now names a different interface" is NOT by itself a
+// reason to rebuild: we only need to rebind (via a restart) once the bound
+// interface has actually gone down. Restarting on every preferred-default change
+// turned benign interface churn into a restart storm — a full VPN blackout every
+// few seconds that also tore down the DNS resolvers, surfacing as lookup errors.
+//
+// The name here is what GetDefaultInterface() returns, i.e. Go's
+// net.Interface.Name, which on Windows is the adapter friendly name and maps to
+// QNetworkInterface::humanReadableName() (name() is matched too, defensively).
+bool egressInterfaceStillUsable(const QString &name) {
+    if (name.isEmpty()) return false;
+    for (const auto &ni : QNetworkInterface::allInterfaces()) {
+        if (ni.humanReadableName() != name && ni.name() != name) continue;
+        if (!ni.flags().testFlag(QNetworkInterface::IsUp)) return false;
+        // A disconnected/unplugged adapter keeps its row but loses its routable
+        // address (drops to APIPA 169.254.x / IPv6 link-local, or nothing). Treat
+        // presence of any non-loopback, non-link-local address as "still viable".
+        for (const auto &entry : ni.addressEntries()) {
+            const QHostAddress ip = entry.ip();
+            if (ip.isNull() || ip.isLoopback() || ip.isLinkLocal()) continue;
+            return true;
+        }
+        return false;
+    }
+    return false; // no longer present -> gone
+}
+
+// The watch fires every 3s (m_defaultInterfaceWatch). Require the bound egress
+// to look down for kIfcDownTicks (~6s) before a prompt rebind, or merely
+// deprioritized-but-still-up for kIfcMovedTicks (~30s) before a slow rebind.
+constexpr int kIfcDownTicks = 2;
+constexpr int kIfcMovedTicks = 10;
+}
+
 void MainWindow::checkDefaultInterfaceChange() {
     if (running == nullptr || m_boundEgressInterface.isEmpty()) {
         if (m_defaultInterfaceWatch) m_defaultInterfaceWatch->stop();
-        m_ifcChangeStreak = 0;
+        m_ifcDownStreak = 0;
+        m_ifcMovedStreak = 0;
         return;
     }
     bool ok = false;
     QString cur = defaultClient->GetDefaultInterface(&ok);
     if (!ok || cur.isEmpty() || cur == m_boundEgressInterface) {
-        m_ifcChangeStreak = 0;
+        // Still pinned to the preferred default (or detection unavailable): idle.
+        m_ifcDownStreak = 0;
+        m_ifcMovedStreak = 0;
         return;
     }
-    if (++m_ifcChangeStreak < 2) return;
 
-    m_ifcChangeStreak = 0;
+    // The preferred default route moved off the interface our Xray egress is
+    // pinned to. Two cases, handled at deliberately different speeds so ordinary
+    // interface churn (a second NIC appearing, an automatic-metric change, Wi-Fi
+    // and Ethernet both up) can never trigger a restart storm:
+    const bool boundUsable = egressInterfaceStillUsable(m_boundEgressInterface);
+    if (!boundUsable) {
+        // Bound interface is unplugged/disabled/gone: the pin is dead, so rebind
+        // promptly (~6s) onto the new default.
+        m_ifcMovedStreak = 0;
+        if (++m_ifcDownStreak < kIfcDownTicks) return;
+    } else {
+        // Bound interface still looks up (present, IsUp, has a routable address)
+        // yet the OS has preferred another interface for a sustained stretch. The
+        // pin usually still carries traffic, so only rebind if this persists —
+        // e.g. the bound link quietly lost its own default route while keeping
+        // its address. Confirm over ~30s so a metric blip or a briefly-appearing
+        // NIC is ignored. The rebuild re-pins to the new default, so this fires
+        // at most once per real change rather than looping.
+        m_ifcDownStreak = 0;
+        if (++m_ifcMovedStreak < kIfcMovedTicks) return;
+    }
+
+    m_ifcDownStreak = 0;
+    m_ifcMovedStreak = 0;
     if (m_defaultInterfaceWatch) m_defaultInterfaceWatch->stop(); // re-armed on successful restart
     const int startedId = running->id;
-    MW_show_log(tr("[interface-bind] default route changed (%1 -> %2), restarting profile")
-                    .arg(m_boundEgressInterface, cur));
+    MW_show_log(tr("[interface-bind] rebinding egress: bound interface %1 %2 (default route now %3)")
+                    .arg(m_boundEgressInterface,
+                         boundUsable ? tr("deprioritized too long") : tr("is down"),
+                         cur));
     profile_start(startedId);
 }
 
@@ -902,7 +971,8 @@ void MainWindow::profile_start(int _id) {
             // Arm the default-interface watch when this profile baked a static
             // egress interface bind; otherwise make sure it's stopped.
             m_boundEgressInterface = result->boundInterface;
-            m_ifcChangeStreak = 0;
+            m_ifcDownStreak = 0;
+            m_ifcMovedStreak = 0;
             if (m_boundEgressInterface.isEmpty()) m_defaultInterfaceWatch->stop();
             else m_defaultInterfaceWatch->start();
 
@@ -1059,7 +1129,8 @@ void MainWindow::profile_stop(bool crash, bool block, bool manual) {
             // Interface-bound egress (if any) is gone; stop watching the route.
             if (m_defaultInterfaceWatch) m_defaultInterfaceWatch->stop();
             m_boundEgressInterface.clear();
-            m_ifcChangeStreak = 0;
+            m_ifcDownStreak = 0;
+            m_ifcMovedStreak = 0;
 
             m_profileDisconnecting = false;
             refresh_status();
