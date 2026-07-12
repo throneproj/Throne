@@ -559,6 +559,22 @@ Release note:
         <translation>设置</translation>
     </message>
 	<message>
+        <source>Backup Created</source>
+        <translation>备份已创建</translation>
+    </message>
+    <message>
+        <source>Backup Failed</source>
+        <translation>备份失败</translation>
+    </message>
+    <message>
+        <source>Restore Complete</source>
+        <translation>恢复完成</translation>
+    </message>
+    <message>
+        <source>Restore Failed</source>
+        <translation>恢复失败</translation>
+    </message>
+	<message>
         <source>Custom icons</source>
         <translation>自定义图标</translation>
     </message>
@@ -577,6 +593,46 @@ Release note:
 	<message>
         <source>Restore from Backup...</source>
         <translation>从备份恢复...</translation>
+    </message>
+    <message>
+        <source>Throne Backup (*.thrbackup)</source>
+        <translation>Throne 备份 (*.thrbackup)</translation>
+    </message>
+    <message>
+        <source>Select at least one part to include in the backup.</source>
+        <translation>至少选择一个部分以包含在备份中。</translation>
+    </message>
+    <message>
+        <source>Backup restored successfully. Throne will now restart for the changes to take effect.</source>
+        <translation>备份成功恢复。 Throne 现在将要重启以使得更改生效。</translation>
+    </message>
+    <message>
+        <source>Backup created on %1.
+Select which parts to restore:</source>
+        <translation>备份创建在 %1。
+选择要恢复哪些部分:</translation>
+    </message>
+    <message>
+        <source>Restore</source>
+        <translation>恢复</translation>
+    </message>
+    <message>
+        <source>unknown date</source>
+        <translation>未知日期</translation>
+    </message>
+    <message>
+        <source>Backup created successfully:
+%1
+
+Included: %2</source>
+        <translation>备份成功创建:
+%1
+
+Включено: %2</translation>
+    </message>
+    <message>
+        <source>Select at least one part to restore.</source>
+        <translation>至少选择一个要恢复的部分。</translation>
     </message>
     <message>
         <source>Disable Privilege request</source>
@@ -1388,6 +1444,62 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
 	<message>
         <source>Cache Capacity</source>
         <translation>缓存容量</translation>
+    </message>
+    <message>
+        <source>Import from clipboard</source>
+        <translation>从剪贴板导入</translation>
+    </message>
+    <message>
+        <source>Update all</source>
+        <translation>更新全部</translation>
+    </message>
+    <message>
+        <source>Update selected</source>
+        <translation>更新选定项</translation>
+    </message>
+    <message>
+        <source>Paste a Throne route link, a remoteRoute link, a base64 blob, or a JSON rule array</source>
+        <translation>粘贴一个 Throne 路由链接，一个 remoteRoute 链接，一个 base64 blob 或者一个 JSON 规则数组</translation>
+    </message>
+    <message>
+        <source>Add remote routing profiles</source>
+        <translation>添加远程路由配置档</translation>
+    </message>
+    <message>
+        <source>No remote profiles</source>
+        <translation>无远程路由配置档</translation>
+    </message>
+    <message>
+        <source>Update complete</source>
+        <translation>更新完成</translation>
+    </message>
+    <message>
+        <source>Update cancelled</source>
+        <translation>更新已取消</translation>
+    </message>
+    <message>
+        <source>Update finished with errors</source>
+        <translation>带错误完成更新</translation>
+    </message>
+    <message>
+        <source>Imported with warnings</source>
+        <translation>带警告导入</translation>
+    </message>
+    <message>
+        <source>Structured profile</source>
+        <translation>结构化配置档</translation>
+    </message>
+    <message>
+        <source>Raw profile</source>
+        <translation>原始配置档</translation>
+    </message>
+    <message>
+        <source>Remote profile</source>
+        <translation>远程配置档</translation>
+    </message>
+    <message>
+        <source>Add these remote routing profiles?</source>
+        <translation>添加这些远程路由配置档吗?</translation>
     </message>
 </context>
 <context>
@@ -2356,7 +2468,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Testing</source>
-        <translation>正在测试</translation>
+        <translation>测试</translation>
     </message>
     <message>
         <source>Update</source>
@@ -2928,6 +3040,89 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Stop: %1</source>
         <translation>停止: %1</translation>
     </message>
+
+    <message>
+        <source>Add subscription</source>
+        <translation>添加订阅</translation>
+    </message>
+    <message>
+        <source>Select Routing</source>
+        <translation>选择路由</translation>
+    </message>
+    <message>
+        <source>No servers</source>
+        <translation>无服务器</translation>
+    </message>
+    <message>
+        <source>Back to groups</source>
+        <translation>返回到分组</translation>
+    </message>
+    <message>
+        <source>Previous %1</source>
+        <translation>上一个 %1</translation>
+    </message>
+    <message>
+        <source>More (%1)</source>
+        <translation>更多 (%1)</translation>
+    </message>
+    <message>
+        <source> — page %1/%2</source>
+        <translation> — 第 %1/%2 页</translation>
+    </message>
+    <message>
+        <source>subscriptions</source>
+        <translation>订阅</translation>
+    </message>
+    <message>
+        <source>routing profiles</source>
+        <translation>路由配置档</translation>
+    </message>
+    <message>
+        <source>Import routing profile</source>
+        <translation>导入路由配置档</translation>
+    </message>
+    <message>
+        <source>Imported profile</source>
+        <translation>已导入配置档</translation>
+    </message>
+    <message>
+        <source>Update found: %1
+Release note:
+%2</source>
+        <translation>发现更新: %1
+发行备注:
+%2</translation>
+    </message>
+    <message>
+        <source>Add this subscription?
+
+Name: %1
+URL: %2
+Auto update: %3</source>
+        <translation>添加这个订阅吗?
+
+名称: %1
+URL: %2
+自动更新: %3</translation>
+    </message>
+    <message>
+        <source>Add this routing profile?
+
+Name: %1</source>
+        <translation>添加这个路由配置档吗?
+
+名称: %1</translation>
+    </message>
+    <message>
+        <source>The link did not contain a subscription URL.</source>
+        <translation>该链接不包含订阅 URL。</translation>
+    </message>
+    <message>
+        <source>The link could not be parsed:
+</source>
+        <translation>该链接无法解析:
+</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableModel</name>
@@ -3124,6 +3319,54 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Default outbound</source>
         <translation>默认出站</translation>
     </message>
+    <message>
+        <source>%1 — %2 rule(s)</source>
+        <translation>%1 — %2 条规则</translation>
+    </message>
+    <message>
+        <source>(unnamed)</source>
+        <translation>(未命名)</translation>
+    </message>
+    <message>
+        <source>Fetch from remote</source>
+        <translation>从远端获取</translation>
+    </message>
+    <message>
+        <source>Fetching...</source>
+        <translation>获取中…</translation>
+    </message>
+    <message>
+        <source>Fetched</source>
+        <translation>已获取</translation>
+    </message>
+    <message>
+        <source>Remote routing profile preview</source>
+        <translation>远程路由配置档预览</translation>
+    </message>
+    <message>
+        <source>This will replace the current rules with the ones fetched from the URL. Continue?</source>
+        <translation>这样将会用从该 URL 获取的规则来替换当前规则。 继续吗?</translation>
+    </message>
+    <message>
+        <source>Enter a valid http(s) URL first.</source>
+        <translation>首先输入一个有效的 http(s) URL。</translation>
+    </message>
+    <message>
+        <source>Remote routing profiles need a URL.</source>
+        <translation>远程路由配置档需要一个 URL。</translation>
+    </message>
+    <message>
+        <source>Could not fetch routing profile</source>
+        <translation>无法获取路由配置档</translation>
+    </message>
+    <message>
+        <source>Loaded %1 rule(s) from the remote URL.</source>
+        <translation>已从远程 URL 加载 %1 条规则。</translation>
+    </message>
+    <message>
+        <source>Fetched with warnings</source>
+        <translation>已获取，但带警告</translation>
+    </message>
 </context>
 <context>
     <name>SpeedWidget</name>
@@ -3134,6 +3377,145 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Direct</source>
         <translation>直连</translation>
+    </message>
+</context>
+<context>
+        <name>StartStopButton</name>
+    <message>
+        <source>Select a profile to start</source>
+        <translation>选择要启动的一个配置档</translation>
+    </message>
+    <message>
+        <source>Connecting…</source>
+        <translation>连接中…</translation>
+    </message>
+    <message>
+        <source>Stopping…</source>
+        <translation>正在停止…</translation>
+    </message>
+</context>
+    <context>
+        <name>TrafficChartWidget</name>
+    <message>
+        <source>Download</source>
+        <translation>下载</translation>
+    </message>
+    <message>
+        <source>Upload</source>
+        <translation>上传</translation>
+    </message>
+    <message>
+        <source>No traffic recorded for this period</source>
+        <translation>这个周期无流量记录</translation>
+    </message>
+</context>
+    <context>
+        <name>GroupUpdater</name>
+    <message>
+        <source>%1
+How to update?</source>
+        <translation>%1
+如何更新?</translation>
+    </message>
+    <message>
+        <source>Added %1 profiles:
+%2
+Deleted %3 Profiles:
+%4</source>
+        <translation>添加配置档数量: %1
+%2
+删除配置数量: %3
+%4</translation>
+    </message>
+</context>
+    <context>
+        <name>PeriodicRunner</name>
+    <message>
+        <source>Auto-update: running %1</source>
+        <translation>自动更新: 正在运行 %1</translation>
+    </message>
+    </context>
+    <context>
+        <name>RouteUpdater</name>
+    <message>
+        <source>remote URL is empty</source>
+        <translation>远程 URL 为空</translation>
+    </message>
+    <message>
+        <source>internal error: null profile</source>
+        <translation>内部错误: 虚配置档</translation>
+    </message>
+    <message>
+        <source>not a remote routing profile</source>
+        <translation>不是一个远程路由配置档</translation>
+    </message>
+</context>
+    <context>
+        <name>RawRouteItem</name>
+    <message>
+        <source>Raw route</source>
+        <translation>原始路由</translation>
+    </message>
+    <message>
+        <source>Prevent modifications</source>
+        <translation>防止修改</translation>
+    </message>
+</context>
+    <context>
+        <name>DialogRuntimeStats</name>
+    <message>
+        <source>%1 active   ·   %2 TCP   ·   %3 UDP</source>
+        <translation>%1 活动   ·   %2 TCP   ·   %3 UDP</translation>
+    </message>
+    <message>
+        <source>No active config</source>
+        <translation>无活动配置</translation>
+    </message>
+    <message>
+        <source>Due now</source>
+        <translation>到期</translation>
+    </message>
+</context>
+    <context>
+        <name>DialogTrafficStats</name>
+    <message>
+        <source>Download: %1     Upload: %2     Total: %3</source>
+        <translation>下载: %1     上传: %2     合计: %3</translation>
+    </message>
+    <message>
+        <source>Profile #%1 (deleted)</source>
+        <translation>配置档 №%1 (已删除)</translation>
+    </message>
+    <message>
+        <source>Other</source>
+        <translation>其它</translation>
+    </message>
+    <message>
+        <source>Unknown</source>
+        <translation>未知</translation>
+    </message>
+</context>
+    <context>
+        <name>edit_wireguard</name>
+    <message>
+        <source>Generating config...</source>
+        <translation>正在生成配置…</translation>
+    </message>
+    <message>
+        <source>Success!</source>
+        <translation>成功!</translation>
+    </message>
+    <message>
+        <source>Getting keypair...</source>
+        <translation>正在获取钥匙对…</translation>
+    </message>
+    <message>
+        <source>Failed to generate warp config</source>
+        <translation>生成 warp 配置失败</translation>
+    </message>
+    <message>
+        <source>Failed to get key pair</source>
+        <translation>获取钥匙对失败</translation>
     </message>
 </context>
 </TS>
