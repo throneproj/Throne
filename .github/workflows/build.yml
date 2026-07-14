@@ -108,7 +108,7 @@ jobs:
         if: steps.cache-common.outputs.cache-hit != 'true'
         run: tar czvf artifacts.tgz ./deployment
       - name: Uploading Artifact
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: Throne-${{ github.sha }}-Common-${{ matrix.cross_os }}-${{ matrix.cross_arch }}
           path: artifacts.tgz
@@ -253,7 +253,7 @@ jobs:
         shell: bash
         run: tar czvf artifacts.tgz ./deployment
       - name: Uploading Artifact
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: Throne-${{ github.sha }}-${{ matrix.dest_suffix }}
           path: artifacts.tgz
@@ -355,7 +355,7 @@ jobs:
           ####
           zip -9 -r debug-symbols.zip debug
       - name: Uploading Debug Artifact
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: Debug-${{ github.sha }}
           path: deployment/debug-symbols.zip
@@ -376,7 +376,7 @@ jobs:
           rm -rf *.pdb
           rm -rf debug*
       - name: Uploading Artifact
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: Deployment-${{ github.sha }}
           path: deployment
