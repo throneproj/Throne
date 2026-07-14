@@ -182,7 +182,7 @@ jobs:
         with:
           arch: ${{ matrix.target }}
       - name: Download Artifacts
-        uses: actions/download-artifact@v4.3.0
+        uses: actions/download-artifact@v8.0.1
         with:
           path: download-artifact
       # ========================================================================================================= Qt Install
@@ -269,7 +269,7 @@ jobs:
       - name: Checking out sources
         uses: actions/checkout@v4.3.1
       - name: Download Artifacts
-        uses: actions/download-artifact@v4.3.0
+        uses: actions/download-artifact@v8.0.1
         with:
           path: download-artifact
       - name: Pack
