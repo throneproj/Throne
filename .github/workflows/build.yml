@@ -57,7 +57,7 @@ jobs:
           key: CommonCache-${{ matrix.cross_os }}-${{ matrix.cross_arch }}-${{ hashFiles('script/build_go.sh', 'core/*') }}-${{ matrix.go_version }}
       - name: Install Golang
         if: steps.cache-common.outputs.cache-hit != 'true'
-        uses: actions/setup-go@v5.6.0
+        uses: actions/setup-go@v6.5.0
         with:
           go-version: ${{ matrix.go_version }}
           cache-dependency-path: |
