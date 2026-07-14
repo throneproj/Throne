@@ -94,7 +94,7 @@ jobs:
               uses: actions/configure-pages@v6
 
             - name: Upload artifact
-              uses: actions/upload-pages-artifact@v3
+              uses: actions/upload-pages-artifact@v5
               with:
                   path: ${{ steps.strings.outputs.build-output-dir }}/report
 
