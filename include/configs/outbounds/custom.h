@@ -86,6 +86,15 @@ namespace Configs
             return type;
         };
 
+        bool IsEndpoint() override
+        {
+            // Only raw sing-box outbound JSON can describe an endpoint; Xray
+            // subtypes and full configs never do.
+            if (type != CustomOutbound) return false;
+            const auto t = QString2QJsonObject(config)["type"].toString();
+            return t == "wireguard" || t == "tailscale";
+        }
+
         bool IsXray() override { return type == CustomXrayOutbound; }
 
         bool IsXrayFullConfig() override { return type == CustomXrayFullConfig; }
