@@ -1,4 +1,5 @@
 #include "include/ui/profile/edit_hysteria.h"
+#include "include/global/Utils.hpp"
 
 EditHysteria::EditHysteria(QWidget *parent)
     : QWidget(parent),
@@ -6,6 +7,7 @@ EditHysteria::EditHysteria(QWidget *parent)
     ui->setupUi(this);
 
     _protocol_version = ui->protocol_version;
+    _obfuscation_type = ui->obfuscation_type;
 }
 
 EditHysteria::~EditHysteria() {
@@ -28,7 +30,11 @@ void EditHysteria::onStart(std::shared_ptr<Configs::Profile> _ent) {
     ui->recv_window_conn->setText(Int2String(outbound->recv_window_conn));
     ui->disable_mtu_discovery->setChecked(outbound->disable_mtu_discovery);
     ui->password->setText(outbound->password);
-    editHysteriaLayout(outbound->protocol_version);
+    ui->min_packet_size->setText(Int2String(outbound->min_packet_size));
+    ui->max_packet_size->setText(Int2String(outbound->max_packet_size));
+    ui->obfuscation_type->setCurrentText(outbound->obfs_type);
+    ui->password->setText(outbound->password);
+    editHysteriaLayout(outbound->protocol_version, outbound->obfs_type);
 }
 
 bool EditHysteria::onEnd() {
@@ -45,10 +51,13 @@ bool EditHysteria::onEnd() {
     outbound->recv_window_conn = ui->recv_window_conn->text().toInt();
     outbound->disable_mtu_discovery = ui->disable_mtu_discovery->isChecked();
     outbound->password = ui->password->text();
+    outbound->min_packet_size = ui->min_packet_size->text().toInt();
+    outbound->max_packet_size = ui->max_packet_size->text().toInt();
+    outbound->obfs_type = ui->obfuscation_type->currentText();
     return true;
 }
 
-void EditHysteria::editHysteriaLayout(const QString& version) {
+void EditHysteria::editHysteriaLayout(const QString& version, const QString& obfs_type) {
     if (version == "1")
     {
         ui->auth_type->setVisible(true);
@@ -62,6 +71,12 @@ void EditHysteria::editHysteriaLayout(const QString& version) {
         ui->disable_mtu_discovery->setVisible(true);
         ui->password->setVisible(false);
         ui->password_l->setVisible(false);
+        ui->min_packet_size->setVisible(false);
+        ui->min_packet_size_l->setVisible(false);
+        ui->max_packet_size->setVisible(false);
+        ui->max_packet_size_l->setVisible(false);
+        ui->obfuscation_type->setVisible(false);
+        ui->obfuscation_type_l->setVisible(false);
     } else
     {
         ui->auth_type->setVisible(false);
@@ -75,5 +90,19 @@ void EditHysteria::editHysteriaLayout(const QString& version) {
         ui->disable_mtu_discovery->setVisible(false);
         ui->password->setVisible(true);
         ui->password_l->setVisible(true);
+        ui->obfuscation_type->setVisible(true);
+        ui->obfuscation_type_l->setVisible(true);
+        if (obfs_type == "gecko") {
+            ui->min_packet_size->setVisible(true);
+            ui->min_packet_size_l->setVisible(true);
+            ui->max_packet_size->setVisible(true);
+            ui->max_packet_size_l->setVisible(true);
+        }
+        if (obfs_type == "salamander") {
+            ui->min_packet_size->setVisible(false);
+            ui->min_packet_size_l->setVisible(false);
+            ui->max_packet_size->setVisible(false);
+            ui->max_packet_size_l->setVisible(false);
+        }
     }
 }

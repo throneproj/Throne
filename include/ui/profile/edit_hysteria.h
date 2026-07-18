@@ -21,8 +21,9 @@ public:
     bool onEnd() override;
 
     QComboBox *_protocol_version;
+    QComboBox *_obfuscation_type;
 
-    void editHysteriaLayout(const QString& version);
+    void editHysteriaLayout(const QString& version, const QString& obfs_type);
 private:
     Ui::EditHysteria *ui;
     std::shared_ptr<Configs::Profile> ent;

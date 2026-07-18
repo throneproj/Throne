@@ -419,10 +419,22 @@ void DialogEditProfile::typeSelected(const QString &newType) {
         auto _innerWidget = new EditHysteria(this);
         innerWidget = _innerWidget;
         innerEditor = _innerWidget;
-        connect(_innerWidget->_protocol_version, &QComboBox::currentTextChanged, _innerWidget, [=,this](const QString &txt)
-        {
-            _innerWidget->editHysteriaLayout(txt);
+
+        auto updateLayout = [_innerWidget, this]() {
+            _innerWidget->editHysteriaLayout(
+                _innerWidget->_protocol_version->currentText(),
+                _innerWidget->_obfuscation_type->currentText()
+            );
             queueRefreshDialogLayout();
+        };
+
+        connect(_innerWidget->_protocol_version, &QComboBox::currentTextChanged, _innerWidget, [=](const QString &)
+        {
+            updateLayout();
+        });
+        connect(_innerWidget->_obfuscation_type, &QComboBox::currentTextChanged, _innerWidget, [=](const QString &)
+        {
+            updateLayout();
         });
     } else if (type == "tuic") {
         auto _innerWidget = new EditTuic(this);

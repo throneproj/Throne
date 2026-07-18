@@ -61,6 +61,14 @@ namespace Configs {
             if (query.hasQueryItem("obfs-password")) {
                 obfs = query.queryItemValue("obfs-password", QUrl::FullyDecoded);
             }
+            if (query.hasQueryItem("min_packet_size") || query.hasQueryItem("max_packet_size")) {
+                obfs_type = "gecko";
+            }
+            else {
+                obfs_type = "obfs";
+            }
+            if (query.hasQueryItem("min_packet_size")) min_packet_size = query.queryItemValue("min_packet_size").toInt();
+            if (query.hasQueryItem("max_packet_size")) max_packet_size = query.queryItemValue("max_packet_size").toInt();
         }
         
         if (query.hasQueryItem("upmbps")) up_mbps = query.queryItemValue("upmbps").toInt();
@@ -112,6 +120,9 @@ namespace Configs {
             if (object.contains("obfs")) {
                 auto obfsObj = object["obfs"].toObject();
                 if (obfsObj.contains("password")) obfs = obfsObj["password"].toString();
+                if (obfsObj.contains("type")) obfs_type = obfsObj["type"].toString();
+                if (obfsObj.contains("min_packet_size")) min_packet_size = obfsObj["min_packet_size"].toInt();
+                if (obfsObj.contains("max_packet_size")) max_packet_size = obfsObj["max_packet_size"].toInt();
             }
             if (object.contains("obfsPassword")) obfs = object["obfsPassword"].toString();
             if (object.contains("password")) password = object["password"].toString();
@@ -219,6 +230,8 @@ namespace Configs {
             }
             if (!obfs.isEmpty()) {
                 query.addQueryItem("obfs-password", QUrl::toPercentEncoding(obfs));
+                if (min_packet_size > 0) query.addQueryItem("min_packet_size", QString::number(min_packet_size));
+                if (max_packet_size > 0) query.addQueryItem("max_packet_size", QString::number(max_packet_size));
             }
         }
         
@@ -273,8 +286,10 @@ namespace Configs {
         } else {
             if (!obfs.isEmpty()) {
                 object["obfs"] = QJsonObject{
-                    {"type", "salamander"},
+                    {"type", obfs_type},
                     {"password", obfs},
+                    {"min_packet_size", min_packet_size},
+                    {"max_packet_size", max_packet_size},
                 };
             }
             if (!password.isEmpty()) object["password"] = password;
@@ -312,10 +327,20 @@ namespace Configs {
             if (disable_mtu_discovery) object["disable_mtu_discovery"] = disable_mtu_discovery;
         } else {
             if (!obfs.isEmpty()) {
-                object["obfs"] = QJsonObject{
-                    {"type", "salamander"},
-                    {"password", obfs},
-                };
+                if (obfs_type == "salamander") {
+                    object["obfs"] = QJsonObject{
+                        {"type", obfs_type},
+                        {"password", obfs},
+                    };
+                }
+                if (obfs_type == "gecko") {
+                    object["obfs"] = QJsonObject{
+                        {"type", obfs_type},
+                        {"password", obfs},
+                        {"min_packet_size", min_packet_size},
+                        {"max_packet_size", max_packet_size},
+                    };
+                }
             }
             if (!password.isEmpty()) object["password"] = password;
         }

@@ -6,41 +6,16 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>363</height>
+    <width>443</width>
+    <height>535</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string notr="true">Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <widget class="QLabel" name="protocol_version_l">
-     <property name="text">
-      <string>Protocol Version</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="1">
-    <widget class="QComboBox" name="protocol_version">
-     <item>
-      <property name="text">
-       <string notr="true">1</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string notr="true">2</string>
-      </property>
-     </item>
-    </widget>
-   </item>
-   <item row="4" column="0">
-    <widget class="QLabel" name="label_4">
-     <property name="text">
-      <string>Down Mbps</string>
-     </property>
-    </widget>
+   <item row="11" column="1">
+    <widget class="QLineEdit" name="max_packet_size"/>
    </item>
    <item row="7" column="1">
     <widget class="QLineEdit" name="auth"/>
@@ -64,12 +39,28 @@
      </item>
     </widget>
    </item>
-   <item row="8" column="0">
-    <widget class="QLabel" name="recv_window_conn_l">
+   <item row="1" column="1">
+    <widget class="QLineEdit" name="server_ports"/>
+   </item>
+   <item row="14" column="1">
+    <widget class="QCheckBox" name="disable_mtu_discovery">
      <property name="text">
-      <string>Recv window conn</string>
+      <string>Disable Mtu Discovery</string>
      </property>
     </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QLineEdit" name="up_mbps"/>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Server Ports</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QLineEdit" name="down_mbps"/>
    </item>
    <item row="2" column="0">
     <widget class="QLabel" name="label_2">
@@ -78,13 +69,58 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="1">
-    <widget class="QLineEdit" name="obfs"/>
+   <item row="8" column="1">
+    <widget class="QComboBox" name="obfuscation_type">
+     <item>
+      <property name="text">
+       <string>salamander</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>gecko</string>
+      </property>
+     </item>
+    </widget>
    </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label">
+   <item row="10" column="1">
+    <widget class="QLineEdit" name="min_packet_size"/>
+   </item>
+   <item row="10" column="0">
+    <widget class="QLabel" name="min_packet_size_l">
      <property name="text">
-      <string>Server Ports</string>
+      <string>Minimum Packet Size</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>Down Mbps</string>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="0">
+    <widget class="QLabel" name="recv_window_conn_l">
+     <property name="text">
+      <string>Recv window conn</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="0">
+    <widget class="QLabel" name="auth_l">
+     <property name="text">
+      <string>Authentication Payload</string>
+     </property>
+    </widget>
+   </item>
+   <item row="15" column="1">
+    <widget class="QLineEdit" name="password"/>
+   </item>
+   <item row="13" column="0">
+    <widget class="QLabel" name="recv_window_l">
+     <property name="text">
+      <string>Recv window</string>
      </property>
     </widget>
    </item>
@@ -95,8 +131,22 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="1">
-    <widget class="QLineEdit" name="down_mbps"/>
+   <item row="12" column="1">
+    <widget class="QLineEdit" name="recv_window_conn"/>
+   </item>
+   <item row="0" column="1">
+    <widget class="QComboBox" name="protocol_version">
+     <item>
+      <property name="text">
+       <string notr="true">1</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string notr="true">2</string>
+      </property>
+     </item>
+    </widget>
    </item>
    <item row="3" column="0">
     <widget class="QLabel" name="label_3">
@@ -105,58 +155,49 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="1">
-    <widget class="QLineEdit" name="server_ports"/>
-   </item>
-   <item row="7" column="0">
-    <widget class="QLabel" name="auth_l">
-     <property name="text">
-      <string>Authentication Payload</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QLineEdit" name="hop_interval"/>
-   </item>
-   <item row="3" column="1">
-    <widget class="QLineEdit" name="up_mbps"/>
-   </item>
-   <item row="8" column="1">
-    <widget class="QLineEdit" name="recv_window_conn"/>
-   </item>
-   <item row="5" column="0">
-    <widget class="QLabel" name="label_5">
-     <property name="text">
-      <string>Obfuscation Password</string>
-     </property>
-    </widget>
-   </item>
-   <item row="9" column="0">
-    <widget class="QLabel" name="recv_window_l">
-     <property name="text">
-      <string>Recv window</string>
-     </property>
-    </widget>
-   </item>
-   <item row="9" column="1">
-    <widget class="QLineEdit" name="recv_window"/>
-   </item>
-   <item row="10" column="1">
-    <widget class="QCheckBox" name="disable_mtu_discovery">
-     <property name="text">
-      <string>Disable Mtu Discovery</string>
-     </property>
-    </widget>
-   </item>
-   <item row="11" column="0">
+   <item row="15" column="0">
     <widget class="QLabel" name="password_l">
      <property name="text">
       <string>Password</string>
      </property>
     </widget>
    </item>
-   <item row="11" column="1">
-    <widget class="QLineEdit" name="password"/>
+   <item row="0" column="0">
+    <widget class="QLabel" name="protocol_version_l">
+     <property name="text">
+      <string>Protocol Version</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QLineEdit" name="hop_interval"/>
+   </item>
+   <item row="13" column="1">
+    <widget class="QLineEdit" name="recv_window"/>
+   </item>
+   <item row="11" column="0">
+    <widget class="QLabel" name="max_packet_size_l">
+     <property name="text">
+      <string>Maximum Packet Size</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="0">
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>Obfuscation Password</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="1">
+    <widget class="QLineEdit" name="obfs"/>
+   </item>
+   <item row="8" column="0">
+    <widget class="QLabel" name="obfuscation_type_l">
+     <property name="text">
+      <string>Obfuscation</string>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>
