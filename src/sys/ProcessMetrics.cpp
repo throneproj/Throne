@@ -61,22 +61,7 @@ namespace {
             r.cpuNs = (k.QuadPart + u.QuadPart) * 100ULL;
         }
 
-        struct ProcMemCountersEx2 {
-            DWORD   cb;
-            DWORD   PageFaultCount;
-            SIZE_T  PeakWorkingSetSize;
-            SIZE_T  WorkingSetSize;
-            SIZE_T  QuotaPeakPagedPoolUsage;
-            SIZE_T  QuotaPagedPoolUsage;
-            SIZE_T  QuotaPeakNonPagedPoolUsage;
-            SIZE_T  QuotaNonPagedPoolUsage;
-            SIZE_T  PagefileUsage;
-            SIZE_T  PeakPagefileUsage;
-            SIZE_T  PrivateUsage;
-            SIZE_T  PrivateWorkingSetSize;
-            ULONG64 SharedCommitUsage;
-        };
-        ProcMemCountersEx2 ex2{};
+        PROCESS_MEMORY_COUNTERS_EX2 ex2{};
         ex2.cb = sizeof(ex2);
         if (GetProcessMemoryInfo(h, reinterpret_cast<PROCESS_MEMORY_COUNTERS*>(&ex2), sizeof(ex2))
             && ex2.PrivateWorkingSetSize > 0) {
