@@ -335,7 +335,7 @@ namespace Configs {
     QString RouteProfile::ToShareLink() {
         const auto json = QJsonDocument(ToShareObject()).toJson(QJsonDocument::Compact);
         const auto b64 = json.toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
-        return QStringLiteral("throne://route?data=") + QString::fromLatin1(b64);
+        return QStringLiteral("throne://route/") + QString::fromLatin1(b64);
     }
 
     std::shared_ptr<RouteProfile> RouteProfile::FromShareInput(const QString& input, QString* fatalError, QString* warnings, bool* wasOldArray) {
@@ -346,14 +346,14 @@ namespace Configs {
             return nullptr;
         }
 
-        // throne://route?data=<base64> deep link
-        if (text.startsWith("throne://", Qt::CaseInsensitive)) {
+        // throne://route/<base64> deep link
+        if (text.startsWith("throne://route/", Qt::CaseInsensitive)) {
             const QUrl u(text);
-            if (u.host().compare("route", Qt::CaseInsensitive) != 0) {
-                fatalError->append("Unsupported deep link command");
+            if (!u.isValid()) {
+                fatalError->append("Deep link is invalid");
                 return nullptr;
             }
-            text = QUrlQuery(u).queryItemValue("data", QUrl::FullyDecoded).trimmed();
+            text = u.path().mid(1);
             if (text.isEmpty()) {
                 fatalError->append("Deep link has no data");
                 return nullptr;

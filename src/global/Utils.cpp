@@ -16,6 +16,8 @@
 #include <QRegularExpression>
 #include <QDateTime>
 #include <QLocale>
+#include <QCheckBox>
+#include <QLayout>
 
 #ifdef Q_OS_WIN
 #include "include/sys/windows/guihelper.h"
@@ -288,6 +290,26 @@ int MessageBoxWarning(const QString &title, const QString &text) {
 
 int MessageBoxInfo(const QString &title, const QString &text) {
     return QMessageBox::information(GetMessageBoxParent(), title, text);
+}
+
+int MessageBoxCheck(const QString &title, const QString &text, const QString &checkBoxText, bool &isChecked) {
+    QMessageBox msgBox(GetMessageBoxParent());
+    msgBox.setWindowTitle(title);
+    msgBox.setText(text);
+    msgBox.setIcon(QMessageBox::Question);
+    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Ok);
+
+    QCheckBox *checkBox = new QCheckBox(checkBoxText);
+    checkBox->setChecked(isChecked);
+
+    dynamic_cast< QGridLayout *>(msgBox.layout())->addWidget(checkBox, 1, 2);
+
+    int result = msgBox.exec();
+
+    isChecked = checkBox->isChecked();
+
+    return result;
 }
 
 void ActivateWindow(QWidget *w) {

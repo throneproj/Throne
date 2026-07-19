@@ -559,7 +559,7 @@ Release note:
         <translation>پروکسی مقصد</translation>
     </message>
     <message>
-        <source>Copy profile share links (Custom Links)</source>
+        <source>Copy profile share links (Deep Links)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2109,7 +2109,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>انتخاب همه</translation>
     </message>
     <message>
-        <source>Copy links of selected (Json Links)</source>
+        <source>Copy links of selected (Deep Links)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

@@ -1383,21 +1383,32 @@ void MainWindow::handle_deeplink_impl(const QString &url) {
     const QUrl u(url);
     // QUrl lowercases the host, so "throne://AddSub/" arrives with host "addsub".
     const QString cmd = u.host();
-    const QUrlQuery q(u);
 
-    if (cmd.compare("addsub", Qt::CaseInsensitive) == 0) {
-        const QString subUrl = q.queryItemValue("url", QUrl::FullyDecoded);
-        const QString name = q.queryItemValue("name", QUrl::FullyDecoded);
-        const QString autoUpdateRaw = q.queryItemValue("autoupdate", QUrl::FullyDecoded).trimmed().toLower();
-        // Default ON when the param is absent (matches normal subscription behavior).
-        const bool autoUpdate = autoUpdateRaw.isEmpty() || autoUpdateRaw == "1"
-            || autoUpdateRaw == "true" || autoUpdateRaw == "on" || autoUpdateRaw == "yes";
-        handle_addsub(subUrl, name, autoUpdate);
+    if (cmd.compare("add", Qt::CaseInsensitive) == 0) {
+        Subscription::groupUpdater->AsyncUpdate(url);
+        return;
+    }
+
+    QString base64 = u.path();
+    if (base64.startsWith('/')) {
+        base64 = base64.mid(1); 
+    }
+    else {
         return;
     }
 
     if (cmd.compare("route", Qt::CaseInsensitive) == 0) {
-        handle_import_route(url);
+        handle_import_route(base64);
+        return;
+    }
+
+    const QString data = DecodeB64IfValid(base64);
+    if (data.isEmpty()) return;
+    const QUrl link(data);
+    if (!link.isValid()) return;
+
+    if (cmd.compare("addsub", Qt::CaseInsensitive) == 0) {
+        handle_addsub(link.toString(QUrl::RemoveFragment), link.fragment());
         return;
     }
 
@@ -1472,7 +1483,7 @@ void MainWindow::handle_add_remote_routes(const QString &url) {
     });
 }
 
-void MainWindow::handle_addsub(const QString &url, const QString &name, bool autoUpdate) {
+void MainWindow::handle_addsub(const QString &url, const QString &name) {
     if (url.isEmpty()) {
         MessageBoxWarning(tr("Add subscription"), tr("The link did not contain a subscription URL."));
         return;
@@ -1481,9 +1492,10 @@ void MainWindow::handle_addsub(const QString &url, const QString &name, bool aut
     ActivateWindow(this);
 
     const QString groupName = FIRST_OR_SECOND(name, QUrl(url).host());
-    const auto prompt = tr("Add this subscription?\n\nName: %1\nURL: %2\nAuto update: %3")
-                            .arg(groupName, url, autoUpdate ? tr("On") : tr("Off"));
-    if (QMessageBox::question(GetMessageBoxParent(), tr("Add subscription"), prompt) != QMessageBox::StandardButton::Yes) {
+    const auto prompt = tr("Add this subscription?\n\nName: %1\nURL: %2")
+                            .arg(groupName, url);
+    bool autoUpdate = true;
+    if (MessageBoxCheck(tr("Add subscription"), prompt, tr("Auto update"), autoUpdate) != QMessageBox::Ok) {
         return;
     }
 
@@ -2613,7 +2625,7 @@ void MainWindow::display_qr_link(bool nkrFormat) {
         QImage im;
         //
         QString link;
-        QString link_nk;
+        QString link_deep;
 
         void show_qr(const QSize &size) const {
             auto side = size.height() - 20 - l2->size().height() - cb->size().height();
@@ -2622,8 +2634,8 @@ void MainWindow::display_qr_link(bool nkrFormat) {
             l->resize(side, side);
         }
 
-        void refresh(bool is_nk) {
-            auto link_display = is_nk ? link_nk : link;
+        void refresh(bool is_deep) {
+            auto link_display = is_deep ? link_deep : link;
             l2->setPlainText(link_display);
             constexpr qint32 qr_padding = 2;
             //
@@ -2644,9 +2656,9 @@ void MainWindow::display_qr_link(bool nkrFormat) {
             }
         }
 
-        W(const QString &link_, const QString &link_nk_) {
+        W(const QString &link_, const QString &link_deep_) {
             link = link_;
-            link_nk = link_nk_;
+            link_deep = link_deep_;
             //
             setLayout(new QVBoxLayout);
             setMinimumSize(256, 256);
@@ -2661,7 +2673,7 @@ void MainWindow::display_qr_link(bool nkrFormat) {
             l->setScaledContents(true);
             layout()->addWidget(l);
             cb = new QCheckBox;
-            cb->setText("Neko Links");
+            cb->setText("Deep Link");
             layout()->addWidget(cb);
             l2 = new QPlainTextEdit();
             l2->setReadOnly(true);
@@ -2678,8 +2690,8 @@ void MainWindow::display_qr_link(bool nkrFormat) {
 
     auto ent = Configs::dataManager->profilesRepo->GetProfile(ents.first());
     auto link = ent->outbound->ExportToLink();
-    auto link_nk = ent->outbound->ExportToLink();
-    auto w = new W(link, link_nk);
+    auto link_deep = ent->outbound->ExportJsonLink();
+    auto w = new W(link, link_deep);
     w->setWindowTitle(ent->outbound->DisplayTypeAndName());
     w->exec();
     w->deleteLater();

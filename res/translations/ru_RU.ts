@@ -719,8 +719,8 @@ Throne will restart to complete the restore.</source>
         <translation>Выходной прокси</translation>
     </message>
     <message>
-        <source>Copy profile share links (Custom Links)</source>
-        <translation>Копировать ссылки профилей (польз. ссылки)</translation>
+        <source>Copy profile share links (Deep Links)</source>
+        <translation>Копировать ссылки профилей (Диплинк)</translation>
     </message>
 </context>
 <context>
@@ -3312,8 +3312,8 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Выбрать все</translation>
     </message>
     <message>
-        <source>Copy links of selected (Json Links)</source>
-        <translation>Копировать ссылки выбранных (JSON)</translation>
+        <source>Copy links of selected (Deep Links)</source>
+        <translation>Копировать ссылки выбранных (Диплинк)</translation>
     </message>
     <message>
         <source>Copy links of selected</source>

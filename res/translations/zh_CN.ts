@@ -732,8 +732,8 @@ Throne will restart to complete the restore.</source>
         <translation>落地代理</translation>
     </message>
     <message>
-        <source>Copy profile share links (Custom Links)</source>
-        <translation>复制配置档分享链接(自定义链接)</translation>
+        <source>Copy profile share links (Deep Links)</source>
+        <translation>复制配置档分享链接(深度链接)</translation>
     </message>
     <message>
         <source>Advanced Settings</source>
@@ -3414,8 +3414,8 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>全选</translation>
     </message>
     <message>
-        <source>Copy links of selected (Json Links)</source>
-        <translation>复制选中项的链接 (Json 链接)</translation>
+        <source>Copy links of selected (Deep Links)</source>
+        <translation>复制选中项的链接 (深度链接)</translation>
     </message>
     <message>
         <source>Copy links of selected</source>

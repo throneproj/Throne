@@ -260,6 +260,23 @@ namespace Subscription {
             ent->outbound->ParseFromJson(data);
         }
 
+        // throne://add/ deep link
+        if (str.startsWith("throne://add/", Qt::CaseInsensitive)) {
+            auto link = QUrl(str);
+            if (!link.isValid()) return;
+            auto dataBytes = DecodeB64IfValid(link.path().mid(1));
+            if (dataBytes.isEmpty()) return;
+            auto data = QJsonDocument::fromJson(dataBytes).object();
+            if (data.isEmpty()) return;
+            if (data.contains("protocol")) {
+                ent = Configs::ProfilesRepo::NewProfile("xray" + data["protocol"].toString());
+            } else {
+                ent = data["type"].toString() == "hysteria2" ? Configs::ProfilesRepo::NewProfile("hysteria") : Configs::ProfilesRepo::NewProfile(data["type"].toString());
+            }
+            if (ent->outbound->invalid) return;
+            ent->outbound->ParseFromJson(data);
+        }
+
         // Json
         if (str.startsWith('{')) {
             ent = Configs::ProfilesRepo::NewProfile("custom");

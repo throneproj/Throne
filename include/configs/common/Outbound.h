@@ -107,13 +107,10 @@ namespace Configs
             if (stripMetadata) {
                 json.remove("tag");
             }
-            QUrl url;
-            url.setScheme("json");
-            url.setHost("throne");
-            url.setFragment(QJsonObject2QString(json, true)
+            const auto b64 = QJsonObject2QString(json, true)
                                 .toUtf8()
-                                .toBase64(QByteArray::Base64UrlEncoding));
-            return url.toString(QUrl::FullyEncoded);
+                                .toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
+            return QStringLiteral("throne://add/") + QString::fromLatin1(b64);
         }
 
         // baseConfig overrides
