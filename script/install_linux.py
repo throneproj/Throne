@@ -201,6 +201,9 @@ def run(main):
         scr.addstr(1, 0, "|")
         main(scr, 2)
 
+    with open('/dev/tty') as tty:
+        os.dup2(tty.fileno(), 0)
+    
     curses.wrapper(wrapped)
 
 
@@ -259,7 +262,7 @@ Categories=Network;Application;
 
             with open(tmpdir / "Version", "w") as file:
                 file.write(version)
-            install(tmpdir / "Version", APPDIR / "Version", 644)
+            install(tmpdir / "Version", APPDIR / "Version", 0o644)
 
             y = message(scr, y, f"Installing binaries to {APPDIR}")
             for name in ("ThroneCore", "Throne"):
@@ -272,7 +275,7 @@ Categories=Network;Application;
             install(tmpdir / "Throne/Throne.png", APPDIR / "Throne.png", 0o644)
 
             y = message(scr, y, f"Installing .desktop to {DESKTOPDIR}")
-            install(tmpdir / "Throne.desktop", DESKTOPDIR / "Throne.desktop", 644)
+            install(tmpdir / "Throne.desktop", DESKTOPDIR / "Throne.desktop", 0o644)
 
     elif action == "Uninstall":
         if version is None:
