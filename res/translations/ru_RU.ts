@@ -176,12 +176,24 @@
         <translation>URL GeoIP-ресурса</translation>
     </message>
     <message>
+        <source>Download geoip.dat now from the URL on the left</source>
+        <translation>Загрузить файл geoip.dat прямо сейчас по ссылке слева</translation>
+    </message>
+    <message>
+        <source>Download</source>
+        <translation>Загрузить</translation>
+    </message>
+    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;URL for geosite.dat, downloaded when a full Xray config&apos;s routing needs geosite: rules.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;URL-адрес файла geosite.dat, загружаемого, когда для маршрутизации полной конфигурации Xray требуются правила geosite:.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>GeoSite Asset URL</source>
         <translation>URL GeoSite-ресурса</translation>
+    </message>
+    <message>
+        <source>Download geosite.dat now from the URL on the left</source>
+        <translation>Загрузить файл geosite.dat прямо сейчас по ссылке слева</translation>
     </message>
     <message>
         <source>Backup and Restore</source>
@@ -310,6 +322,14 @@
     <message>
         <source>Disable Traffic Aggregation</source>
         <translation>Отключить агрегацию трафика</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show each config&apos;s security next to its type in the proxy list, e.g. &quot;Trojan (WebSocket+TLS)&quot;. Insecure configs are marked with a warning sign.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Отображать безопасность каждой конфигурации рядом с ее типом в списке прокси-серверов, например, &quot;Trojan (WebSocket+TLS)&quot;. Небезопасные конфигурации помечены предупреждающим знаком.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Show Config Security</source>
+        <translation>Отображать безопасность конфигураций</translation>
     </message>
     <message>
         <source>Subscription auto update</source>
@@ -596,6 +616,18 @@ Select which parts to restore:</source>
     <message>
         <source>unknown date</source>
         <translation>неизвестная дата</translation>
+    </message>
+    <message>
+        <source>Download geo asset</source>
+        <translation>Загрузка гео-файла</translation>
+    </message>
+    <message>
+        <source>Please enter a URL for %1 first.</source>
+        <translation>Пожалуйста, сначала введите URL-адрес для %1.</translation>
+    </message>
+    <message>
+        <source>Downloading Xray geo asset: %1</source>
+        <translation>Загрузка гео-файла Xray: %1</translation>
     </message>
     <message>
         <source>Failed to create database snapshot: %1</source>
@@ -1569,16 +1601,20 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <translation>Источник профилей маршрутизации</translation>
     </message>
     <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If not empty, resolves domains in requests according to the strategy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Если не пусто, разрешает домены в запросах в соответствии со стратегией&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
         <source>Default DNS server</source>
         <translation>DNS-сервер по умолчанию</translation>
     </message>
     <message>
         <source>Disable Cache</source>
-        <translation type="unfinished"></translation>
+        <translation>Отключить кэш</translation>
     </message>
     <message>
         <source>Disable Expire</source>
-        <translation type="unfinished"></translation>
+        <translation>Отключить Expire</translation>
     </message>
     <message>
         <source>Reverse Mapping</source>
@@ -1586,7 +1622,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>Cache Capacity</source>
-        <translation type="unfinished"></translation>
+        <translation>Емкость кэша</translation>
     </message>
     <message>
         <source>Route</source>
@@ -1702,7 +1738,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>auto update</source>
-        <translation type="unfinished"></translation>
+        <translation>авто-обновление</translation>
     </message>
     <message>
         <source>On</source>
@@ -1828,7 +1864,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>There are no remote routing profiles to update.</source>
-        <translation type="unfinished"></translation>
+        <translation>Нет профилей удаленной маршрутизации для обновления.</translation>
     </message>
     <message>
         <source>Updating...</source>
@@ -2333,20 +2369,12 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 <context>
     <name>EditDirect</name>
     <message>
-        <source>Form</source>
-        <translation>Форма</translation>
-    </message>
-    <message>
         <source>Use the Advanced section to specify bind options</source>
         <translation>Используйте Доп. настройки, чтобы указать параметры привязки</translation>
     </message>
 </context>
 <context>
     <name>EditExtraCore</name>
-    <message>
-        <source>Form</source>
-        <translation>Форма</translation>
-    </message>
     <message>
         <source>Socks address</source>
         <translation>Адрес SOCKS</translation>
@@ -2399,10 +2427,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 <context>
     <name>EditHttp</name>
     <message>
-        <source>Form</source>
-        <translation>Форма</translation>
-    </message>
-    <message>
         <source>Username</source>
         <translation>Имя пользователя</translation>
     </message>
@@ -2413,10 +2437,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 </context>
 <context>
     <name>EditHysteria</name>
-    <message>
-        <source>Form</source>
-        <translation>Форма</translation>
-    </message>
     <message>
         <source>Protocol Version</source>
         <translation>Версия протокола</translation>
@@ -2469,10 +2489,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 <context>
     <name>EditJuicity</name>
     <message>
-        <source>Form</source>
-        <translation>Форма</translation>
-    </message>
-    <message>
         <source>Password</source>
         <translation>Пароль</translation>
     </message>
@@ -2511,10 +2527,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 <context>
     <name>EditNaive</name>
     <message>
-        <source>Form</source>
-        <translation>Форма</translation>
-    </message>
-    <message>
         <source>Password</source>
         <translation>Пароль</translation>
     </message>
@@ -2537,10 +2549,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 </context>
 <context>
     <name>EditSSH</name>
-    <message>
-        <source>EditSSH</source>
-        <translation>Редактирование SSH</translation>
-    </message>
     <message>
         <source>User</source>
         <translation>Пользователь</translation>
@@ -2604,10 +2612,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 <context>
     <name>EditShadowTLS</name>
     <message>
-        <source>Form</source>
-        <translation>Форма</translation>
-    </message>
-    <message>
         <source>Password</source>
         <translation>Пароль</translation>
     </message>
@@ -2631,10 +2635,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 <context>
     <name>EditSocks</name>
     <message>
-        <source>Form</source>
-        <translation>Форма</translation>
-    </message>
-    <message>
         <source>Password</source>
         <translation>Пароль</translation>
     </message>
@@ -2657,10 +2657,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 </context>
 <context>
     <name>EditTailScale</name>
-    <message>
-        <source>Form</source>
-        <translation>Форма</translation>
-    </message>
     <message>
         <source>State directory</source>
         <translation>Директория состояния</translation>
@@ -2717,20 +2713,12 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 <context>
     <name>EditTrojan</name>
     <message>
-        <source>Form</source>
-        <translation>Форма</translation>
-    </message>
-    <message>
         <source>Password</source>
         <translation>Пароль</translation>
     </message>
 </context>
 <context>
     <name>EditTrustTunnel</name>
-    <message>
-        <source>Form</source>
-        <translation>Форма</translation>
-    </message>
     <message>
         <source>Password</source>
         <translation>Пароль</translation>
@@ -2778,10 +2766,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 </context>
 <context>
     <name>EditTuic</name>
-    <message>
-        <source>Form</source>
-        <translation>Форма</translation>
-    </message>
     <message>
         <source>Heartbeat</source>
         <translation>Сердцебиение (Heartbeat)</translation>
@@ -2867,10 +2851,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 </context>
 <context>
     <name>EditWireguard</name>
-    <message>
-        <source>EditWireguard</source>
-        <translation>Редактирование WireGuard</translation>
-    </message>
     <message>
         <source>Reserved</source>
         <translation>Резервный (Reserved)</translation>
@@ -3026,10 +3006,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 </context>
 <context>
     <name>EditXrayVless</name>
-    <message>
-        <source>Form</source>
-        <translation>Форма</translation>
-    </message>
     <message>
         <source>UUID</source>
         <translation>UUID</translation>
@@ -3332,6 +3308,22 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Обновить подписку</translation>
     </message>
     <message>
+        <source>Remove Insecure Configs</source>
+        <translation>Удалить небезопасные конфигурации</translation>
+    </message>
+    <message>
+        <source>Edit current Group</source>
+        <translation>Редактировать текущую группу</translation>
+    </message>
+    <message>
+        <source>Delete current Group</source>
+        <translation>Удалить текущую группу</translation>
+    </message>
+    <message>
+        <source>Update all subscriptions</source>
+        <translation>Обновить все подписки</translation>
+    </message>
+    <message>
         <source>Runtime Stats</source>
         <translation>Статистика выполнения</translation>
     </message>
@@ -3377,11 +3369,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Ignored deeplink with unknown command: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Проигнорирована глубокая ссылка с неизвестной командой: %1</translation>
     </message>
     <message>
         <source>Note:</source>
-        <translation type="unfinished"></translation>
+        <translation>Примечание:</translation>
     </message>
     <message>
         <source>Add remote routing profiles</source>
@@ -3389,7 +3381,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>The link did not contain any valid remote routing profiles.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ссылка не содержала никаких допустимых профилей удаленной маршрутизации.</translation>
     </message>
     <message>
         <source>Add these remote routing profiles?</source>
@@ -3397,7 +3389,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>auto update</source>
-        <translation type="unfinished"></translation>
+        <translation>авто-обновление</translation>
     </message>
     <message>
         <source>On</source>
@@ -3418,6 +3410,40 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Confirmation</source>
         <translation>Подтверждение</translation>
+    </message>
+    <message>
+        <source>Type</source>
+        <translation>Тип</translation>
+    </message>
+    <message>
+        <source>Security</source>
+        <translation>Безопасность</translation>
+    </message>
+    <message>
+        <source>Update all subscriptions?</source>
+        <translation>Обновить все подписки?</translation>
+    </message>
+    <message>
+        <source>Enable AdBlock</source>
+        <translation>Включить AdBlock</translation>
+    </message>
+    <message>
+        <source>Enable Warp</source>
+        <translation>Включить Warp</translation>
+    </message>
+    <message>
+        <source>Add this subscription?
+
+Name: %1
+URL: %2</source>
+        <translation>Добавить эту подписку?
+
+Имя: %1
+URL: %2</translation>
+    </message>
+    <message>
+        <source>Auto update</source>
+        <translation>Авто-обновление</translation>
     </message>
     <message>
         <source>Settings changed, restart proxy?</source>
@@ -3476,6 +3502,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>[%1] ошибка теста: %2</translation>
     </message>
     <message>
+        <source>a tested profile</source>
+        <translation>тестируемый профиль</translation>
+    </message>
+    <message>
         <source>[%1] IP test error: %2</source>
         <translation>[%1] Ошибка теста IP: %2</translation>
     </message>
@@ -3508,10 +3538,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Не удалось собрать общую тестовую конфигурацию для группы: </translation>
     </message>
     <message>
-        <source>[interface-bind] default route changed (%1 -&gt; %2), restarting profile</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Geo asset files required</source>
         <translation>Требуются Geo-файлы</translation>
     </message>
@@ -3534,14 +3560,6 @@ Download them now?</source>
     <message>
         <source>Geo assets installed</source>
         <translation>Загрузка Гео-файлов</translation>
-    </message>
-    <message>
-        <source>Geo data files were downloaded successfully.
-
-Please start your profile again.</source>
-        <translation>Geo-файлы были успешно загружены.
-
-Пожалуйста, запустите свой профиль заново.</translation>
     </message>
     <message>
         <source>If there is no response for a long time, it is recommended to restart the software.</source>
@@ -3680,6 +3698,14 @@ Please start your profile again.</source>
         <translation>Результаты теста скопированы в буфер обмена!</translation>
     </message>
     <message>
+        <source>No insecure configs found.</source>
+        <translation>Небезопасных конфигураций не обнаружено.</translation>
+    </message>
+    <message>
+        <source>Remove %1 insecure config(s)?</source>
+        <translation>Удалить %1 небезопасных конфигураций?</translation>
+    </message>
+    <message>
         <source>Replace domain server addresses with their resolved IPs?</source>
         <translation>Заменить домены в адресах серверов на их разрешённые IP-адреса?</translation>
     </message>
@@ -3714,10 +3740,6 @@ Please start your profile again.</source>
     <message>
         <source>Please Enter your password in the opened terminal, then try again</source>
         <translation>Введите пароль в открывшемся терминале и повторите попытку.</translation>
-    </message>
-    <message>
-        <source>Application</source>
-        <translation>Приложение</translation>
     </message>
     <message>
         <source>Settings</source>
@@ -3778,6 +3800,14 @@ Please start your profile again.</source>
     <message>
         <source>Failed to set system dns: </source>
         <translation>Не удалось установить системный DNS: </translation>
+    </message>
+    <message>
+        <source>Geo data files were downloaded successfully.
+
+Please try again.</source>
+        <translation>Гео-файлы были успешно загружены.
+
+Пожалуйста, попробуйте еще раз.</translation>
     </message>
     <message>
         <source>BuildConfig return error</source>
@@ -3918,18 +3948,6 @@ Please start your profile again.</source>
         <translation>Профиль импортирован</translation>
     </message>
     <message>
-        <source>Add this subscription?
-
-Name: %1
-URL: %2
-Auto update: %3</source>
-        <translation>Добавить эту подписку?
-
-Имя: %1
-URL: %2
-Автообновление: %3</translation>
-    </message>
-    <message>
         <source>Add this routing profile?
 
 Name: %1</source>
@@ -3969,6 +3987,10 @@ Name: %1</source>
 </context>
 <context>
     <name>ProfilesTableModel</name>
+    <message>
+        <source>This config&apos;s traffic is not properly protected.</source>
+        <translation>Трафик этой конфигурации не защищен должным образом.</translation>
+    </message>
     <message>
         <source>Type</source>
         <translation>Тип</translation>
@@ -4208,6 +4230,48 @@ Release note:
         <source>Remote routing profiles: %1 updated, %2 failed</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Downloaded Xray geo asset: %1</source>
+        <translation>Загружен гео-файл Xray: %1</translation>
+    </message>
+    <message>
+        <source>Download geo asset</source>
+        <translation>Загрузка гео-файла</translation>
+    </message>
+    <message>
+        <source>%1 was downloaded successfully.</source>
+        <translation>%1 был успешно загружен.</translation>
+    </message>
+    <message>
+        <source>Failed to download %1:
+%2</source>
+        <translation>Не удалось загрузить %1:
+%2</translation>
+    </message>
+    <message>
+        <source>Reality</source>
+        <translation>Reality</translation>
+    </message>
+    <message>
+        <source>Insecure TLS</source>
+        <translation>Небезопасный TLS</translation>
+    </message>
+    <message>
+        <source>TLS</source>
+        <translation>TLS</translation>
+    </message>
+    <message>
+        <source>Raw</source>
+        <translation>Raw</translation>
+    </message>
+    <message>
+        <source>Encrypted</source>
+        <translation>Зашифрованный</translation>
+    </message>
+    <message>
+        <source>Weak Cipher</source>
+        <translation>Слабый шифр</translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -4323,7 +4387,7 @@ Your local edits are overwritten on each update.</source>
     </message>
     <message>
         <source>Auto update</source>
-        <translation type="unfinished"></translation>
+        <translation>Авто-обновление</translation>
     </message>
     <message>
         <source>Fetch the URL and show the routing profile without changing the current rules.</source>
