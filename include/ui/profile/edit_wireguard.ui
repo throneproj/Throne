@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>EditWireguard</string>
+   <string notr="true">EditWireguard</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
