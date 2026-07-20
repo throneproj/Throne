@@ -918,7 +918,7 @@ connect(ui->actionRestart_Proxy, &QAction::triggered, this, [=,this] {
         ui->menuRouting_Menu->addAction(ui->menu_routing_settings);
 
         auto* actionAdblock = new QAction(ui->menuRouting_Menu);
-        actionAdblock->setText("Enable AdBlock");
+        actionAdblock->setText(tr("Enable AdBlock"));
         actionAdblock->setCheckable(true);
         actionAdblock->setChecked(Configs::dataManager->settingsRepo->adblock_enable);
         connect(actionAdblock, &QAction::triggered, this, [=,this](bool checked) {
@@ -930,7 +930,7 @@ connect(ui->actionRestart_Proxy, &QAction::triggered, this, [=,this] {
         ui->menuRouting_Menu->addAction(actionAdblock);
 
         auto* actionWarp = new QAction(ui->menuRouting_Menu);
-        actionWarp->setText("Enable Warp");
+        actionWarp->setText(tr("Enable Warp"));
         actionWarp->setCheckable(true);
         actionWarp->setChecked(Configs::dataManager->settingsRepo->enable_warp);
         connect(actionWarp, &QAction::triggered, this, [=,this](bool checked) {
