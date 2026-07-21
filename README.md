@@ -15,7 +15,7 @@ Apple platforms have a very strict security policy and since Throne does not hav
 
 # Linux CLI installer
 ```bash
-curl -fsSL https://raw.githubusercontent.com/throneproj/Throne/main/script/install_linux.py | sudo python3
+curl -fsSL https://raw.githubusercontent.com/throneproj/Throne/dev/script/install_linux.py | sudo python3
 ```
 
 ### RPM repository
