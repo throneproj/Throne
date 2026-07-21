@@ -167,7 +167,15 @@
         <source>Xray VLESS Preference</source>
         <translation>Xray VLESS 首选项</translation>
     </message>
-    <message>
+	<message>
+        <source>Download geoip.dat now from the URL on the left</source>
+        <translation>现在从左边的 URL 下载 geoip.dat</translation>
+    </message>
+	<message>
+        <source>Download</source>
+        <translation>下载</translation>
+    </message>
+	<message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;URL for geoip.dat, downloaded when a full Xray config&apos;s routing needs geoip: rules.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;geoip.dat 的 URL，当完整的 Xray 配置的路由需要 geoip: 规则时下载。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
@@ -178,6 +186,14 @@
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;URL for geosite.dat, downloaded when a full Xray config&apos;s routing needs geosite: rules.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;geosite.dat 的 URL，当完整的 Xray 配置的路由需要 geosite: 规则时下载。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+	<message>
+        <source>Download geosite.dat now from the URL on the left</source>
+        <translation>现在从左边的 URL 下载 geosite.dat</translation>
+    </message>
+	<message>
+        <source>Download</source>
+        <translation>下载</translation>
     </message>
     <message>
         <source>GeoSite Asset URL</source>
@@ -506,6 +522,14 @@
         <translation>超时</translation>
     </message>
     <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show each config's security next to its type in the proxy list, e.g. &quot;Trojan (WebSocket+TLS)&quot;. Insecure configs are marked with a warning sign.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;在代理列表中在每个配置的类型旁边显示其安全性，例如 &quot;Trojan (WebSocket+TLS)&quot;。不安全的配置会用一个警告符号标记。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+	<message>
+        <source>Show Config Security</source>
+        <translation>显示配置安全性</translation>
+    </message>
+    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Timeout for URLtest in ms&lt;br/&gt;Note that muxed connections take a much longer time for their initial request, and setting this value too low will cause the test to falsely report that the config is not working&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;以毫秒为单位的 URL 测试的超时&lt;br/&gt;注意，复用连接在其初始请求时耗时更长，而且这个值设置过低将会导致测试误报该配置无效&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
@@ -590,6 +614,18 @@ Select which parts to restore:</source>
     <message>
         <source>unknown date</source>
         <translation>未知日期</translation>
+    </message>
+    <message>
+        <source>Download geo asset</source>
+        <translation>下载 geo 资源</translation>
+    </message>
+    <message>
+        <source>Please enter a URL for %1 first.</source>
+        <translation>请首先输入一个 %1 的 URL。</translation>
+    </message>
+    <message>
+        <source>Downloading Xray geo asset: %1</source>
+        <translation>正在下载 Xray geo 资源: %1</translation>
     </message>
     <message>
         <source>Failed to create database snapshot: %1</source>
@@ -920,7 +956,7 @@ Throne will restart to complete the restore.</source>
     </message>
     <message>
         <source>EarlyData Length</source>
-        <translation>Длина EarlyData</translation>
+        <translation>EarlyData 长度</translation>
     </message>
     <message>
         <source>Multi Mode</source>
@@ -1092,7 +1128,7 @@ Throne will restart to complete the restore.</source>
     </message>
     <message>
         <source>Padding Obfuscation</source>
-        <translation>Обфускация padding</translation>
+        <translation>填充混淆</translation>
     </message>
     <message>
         <source>Max Connections</source>
@@ -1246,99 +1282,99 @@ Throne will restart to complete the restore.</source>
     </message>
     <message>
         <source>Query or cookie key for X-Padding, and query key inside queryInHeader. Default: x_padding.</source>
-        <translation>Ключ query или cookie для X-Padding, а также query-ключ внутри queryInHeader. По умолчанию: x_padding.</translation>
+        <translation>X-Padding 的查询或 cookie 键,以及 queryInHeader 内的查询键。默认: x_padding.</translation>
     </message>
     <message>
         <source>Padding Header</source>
-        <translation>Заголовок padding</translation>
+        <translation>Padding 报头</translation>
     </message>
     <message>
         <source>Header name used by header or queryInHeader padding. Default: X-Padding.</source>
-        <translation>Имя заголовка для padding через header или queryInHeader. По умолчанию: X-Padding.</translation>
+        <translation>被 header 或 queryInHeader padding (填充) 使用的报头名称。默认: X-Padding。</translation>
     </message>
     <message>
         <source>Packet-up upload POST size: client split size and server reject limit. Default: 1000000.</source>
-        <translation>Размер upload POST для packet-up: размер разделения на клиенте и лимит отклонения на сервере. По умолчанию: 1000000.</translation>
+        <translation>Packet-up (上行数据包)上传 POST 大小: 客户端分片大小 (client split size)和服务器拒绝上限 (server reject limit)。 默认: 1000000。</translation>
     </message>
     <message>
         <source>Packet-up client interval between upload POST requests per proxied connection, in milliseconds. Default: 30.</source>
-        <translation>Интервал клиента packet-up между upload POST-запросами на одно проксируемое соединение, в миллисекундах. По умолчанию: 30.</translation>
+        <translation>每个代理的连接的上传 POST 请求之间的 Packet-up (上行数据包)客户端间隔时间, 以毫秒为单位。 默认: 30.</translation>
     </message>
     <message>
         <source>Max Buffered Posts</source>
-        <translation>Макс. буферизованных POST</translation>
+        <translation>最大缓冲的 POST</translation>
     </message>
     <message>
         <source>Packet-up server upload queue size per proxied connection. Default: 30.</source>
-        <translation>Размер очереди upload на сервере packet-up для одного проксируемого соединения. По умолчанию: 30.</translation>
+        <translation>每个代理的连接的 Packet-up (上行数据包)服务器上传队列大小。 默认: 30.</translation>
     </message>
     <message>
         <source>Uplink HTTP Method</source>
-        <translation>HTTP-метод uplink</translation>
+        <translation>上联 HTTP 方式</translation>
     </message>
     <message>
         <source>HTTP method for upload requests. Default: POST. Xray uppercases it; GET is accepted only in packet-up mode.</source>
-        <translation>HTTP-метод upload-запросов. По умолчанию: POST. Xray переводит значение в верхний регистр; GET принимается только в режиме packet-up.</translation>
+        <translation>上传请求的 HTTP 方法。 默认: POST 。Xray 会把它转为大写; 仅在 Packet-up 模式中才接受 GET 。</translation>
     </message>
     <message>
         <source>Uplink Data Placement</source>
-        <translation>Размещение данных uplink</translation>
+        <translation>上行数据放置</translation>
     </message>
     <message>
         <source>Where upload data is placed. Default: auto. cookie/header are accepted only in packet-up mode; auto/body are always accepted.</source>
-        <translation>Куда помещаются upload-данные. По умолчанию: auto. cookie/header принимаются только в режиме packet-up; auto/body принимаются всегда.</translation>
+        <translation>放置上传数据的位置。 默认: auto. cookie/header 仅在 packet-up 模式中被接受; auto/body 则始终被接受。</translation>
     </message>
     <message>
         <source>Uplink Data Key</source>
-        <translation>Ключ данных uplink</translation>
+        <translation>上行数据键</translation>
     </message>
     <message>
         <source>Key used when upload data is placed in a cookie or header. Defaults: X-Data for auto/header, x_data for cookie.</source>
-        <translation>Ключ, используемый при размещении upload-данных в cookie или header. По умолчанию: X-Data для auto/header, x_data для cookie.</translation>
+        <translation>当上传数据被放在 cookie 或 header 中时使用的键。 默认: X-Data 用于 auto/header, x_data 用于 cookie。</translation>
     </message>
     <message>
         <source>Uplink Chunk Size</source>
-        <translation>Размер фрагмента uplink</translation>
+        <translation>上行分块大小</translation>
     </message>
     <message>
         <source>Packet-up header/cookie payload chunk size range. Defaults: cookie 2-3 KiB, header 3-4 KB, otherwise scMaxEachPostBytes. Values below 64 are clamped.</source>
-        <translation>Диапазон размера фрагмента payload для header/cookie в packet-up. По умолчанию: cookie 2-3 КиБ, header 3-4 КБ, иначе scMaxEachPostBytes. Значения ниже 64 ограничиваются.</translation>
+        <translation>Packet-up 中 header/cookie 的载荷(payload)分块大小。默认: cookie 2-3 KiB, header 3-4 KB, 否则为 scMaxEachPostBytes。 低于 64 的值会被限断。</translation>
     </message>
     <message>
         <source>Client-side stream-up/stream-one option: do not add Content-Type: application/grpc to upload requests.</source>
-        <translation>Клиентская опция stream-up/stream-one: не добавлять Content-Type: application/grpc в upload-запросы.</translation>
+        <translation>客户端的 stream-up/stream-one 选项: 不添加 Content-Type: application/grpc 到上传请求。</translation>
     </message>
     <message>
         <source>No SSE Headers</source>
-        <translation>Без заголовков SSE</translation>
+        <translation>无报头 SSE</translation>
     </message>
     <message>
         <source>Server-side downstream/stream-one option: do not send Content-Type: text/event-stream in responses.</source>
-        <translation>Серверная опция downstream/stream-one: не отправлять Content-Type: text/event-stream в ответах.</translation>
+        <translation>服务器端 downstream/stream-one 选项: 不在响应中发送 Content-Type: text/event-stream 。</translation>
     </message>
     <message>
         <source>Stream Up Server Seconds</source>
-        <translation>Время stream-up на сервере</translation>
+        <translation>服务器 stream-up (上行流)秒数</translation>
     </message>
     <message>
         <source>Stream-up server interval for periodic xPaddingBytes keepalive writes, in seconds. Default: 20-80; values &lt;= 0 disable periodic padding.</source>
-        <translation>Серверный интервал stream-up для периодических keepalive-записей xPaddingBytes, в секундах. По умолчанию: 20-80; значения &lt;= 0 отключают периодический padding.</translation>
+        <translation>周期性 xPaddingBytes 的 keepalive (保活)写入的上行流服务器时间间隔, 以秒为单位。 默认: 20-80; 不大于 0 的值禁止周期性填充。</translation>
     </message>
     <message>
         <source>Session Placement</source>
-        <translation>Размещение session ID</translation>
+        <translation>会话放置位置</translation>
     </message>
     <message>
         <source>Where the XHTTP session id is sent: path, cookie, header, or query. Default: path.</source>
-        <translation>Куда отправляется XHTTP session id: path, cookie, header или query. По умолчанию: path.</translation>
+        <translation>发送 XHTTP session id (会话ID)到的位置: path, cookie, header 或 query。默认: path。</translation>
     </message>
     <message>
         <source>Session Key</source>
-        <translation>Ключ session ID</translation>
+        <translation>会话 ID 键</translation>
     </message>
     <message>
         <source>Key used for the session id outside path placement. Defaults: x_session for cookie/query, X-Session for header.</source>
-        <translation>Ключ для session id при размещении не через path. По умолчанию: x_session для cookie/query, X-Session для header.</translation>
+        <translation>用于在 path 外放置的会话 ID 的键。默认: x_session 用于 cookie/query, X-Session 用于 header。</translation>
     </message>
     <message>
         <source>Session ID Table</source>
@@ -1358,51 +1394,51 @@ Throne will restart to complete the restore.</source>
     </message>
     <message>
         <source>Sequence Placement</source>
-        <translation>Размещение sequence</translation>
+        <translation>序列放置位置</translation>
     </message>
     <message>
         <source>Where the XHTTP packet sequence is sent: path, cookie, header, or query. Default: path.</source>
-        <translation>Куда отправляется sequence пакета XHTTP: path, cookie, header или query. По умолчанию: path.</translation>
+        <translation>发送 XHTTP 数据包序列的位置: path, cookie, header 或 query。 默认: path。</translation>
     </message>
     <message>
         <source>Sequence Key</source>
-        <translation>Ключ sequence</translation>
+        <translation>序列键</translation>
     </message>
     <message>
         <source>Key used for the sequence value outside path placement. Defaults: x_seq for cookie/query, X-Seq for header.</source>
-        <translation>Ключ для sequence при размещении не через path. По умолчанию: x_seq для cookie/query, X-Seq для header.</translation>
+        <translation>用于 path (路径)外放置的序列值的键。 默认: x_seq 用于 cookie/query, X-Seq 用于 header。</translation>
     </message>
     <message>
         <source>Client-side H2/H3 xmux limit: maximum concurrent uses per underlying connection. Cannot be used together with maxConnections. Empty xmux defaults to 1-1.</source>
-        <translation>Клиентский лимит xmux для H2/H3: максимум одновременных использований одного нижележащего соединения. Нельзя использовать вместе с maxConnections. Пустой xmux по умолчанию: 1-1.</translation>
+        <translation>客户端侧 H2/H3 xmux 限制: 每个底层连接使用的最大并发用量。 不能与 maxConnections 一起使用。空白 xmux 默认为: 1-1.</translation>
     </message>
     <message>
         <source>Client-side H2/H3 xmux limit: maximum parallel underlying connections. Cannot be used together with maxConcurrency.</source>
-        <translation>Клиентский лимит xmux для H2/H3: максимум параллельных нижележащих соединений. Нельзя использовать вместе с maxConcurrency.</translation>
+        <translation>客户端侧 H2/H3 xmux 限制: 最大并行的底层连接数。 不能与 maxConcurrency 一起使用。</translation>
     </message>
     <message>
         <source>Client-side H2/H3 xmux limit: maximum times an underlying connection may be selected for reuse.</source>
-        <translation>Клиентский лимит xmux для H2/H3: максимум выборов нижележащего соединения для переиспользования.</translation>
+        <translation>客户端侧 H2/H3 xmux 限制: 一个底层连接可被选择重复使用的最大次数。</translation>
     </message>
     <message>
         <source>Client-side H2/H3 xmux limit: maximum upload/download requests per underlying connection. Empty xmux defaults to 600-900.</source>
-        <translation>Клиентский лимит xmux для H2/H3: максимум upload/download-запросов на одно нижележащее соединение. Пустой xmux по умолчанию: 600-900.</translation>
+        <translation>客户端侧 H2/H3 xmux 限制: 每个底层连接的最大 upload/download (上传/下载)请求数。 空 xmux 默认: 600-900。</translation>
     </message>
     <message>
         <source>Client-side H2/H3 xmux limit: maximum seconds an underlying connection stays reusable. Empty xmux defaults to 1800-3000.</source>
-        <translation>Клиентский лимит xmux для H2/H3: максимум секунд, пока нижележащее соединение остается переиспользуемым. Пустой xmux по умолчанию: 1800-3000.</translation>
+        <translation>客户端侧 H2/H3 xmux 限制: 一个底层连接保持可复用的最多秒数。 空 xmux 默认: 1800-3000。</translation>
     </message>
     <message>
         <source>Client-side H2/H3 keepalive interval for underlying connections, in seconds. 0 uses Xray defaults; negative values disable keepalive where supported.</source>
-        <translation>Клиентский интервал keepalive для нижележащих H2/H3-соединений, в секундах. 0 использует значения Xray по умолчанию; отрицательные значения отключают keepalive там, где это поддерживается.</translation>
+        <translation>客户端侧底层 H2/H3 连接的 keepalive (保活)间隔, 以秒为单位。 0 使用 Xray 默认值; 负值在支持的情况下会禁用保活功能。</translation>
     </message>
     <message>
         <source>Client-only downstream streamSettings, including address and port, for an independent download path. Not allowed in stream-one and removed when saving stream-one mode.</source>
-        <translation>Клиентские downstream streamSettings, включая адрес и порт, для независимого пути скачивания. Не разрешено в stream-one и удаляется при сохранении режима stream-one.</translation>
+        <translation>仅客户端 downstream (下游的) streamSettings, 包括地址和端口，用于独立的下载路径。该选项在 stream-one 中不被允许，并在保存 stream-one 模式时会被移除。</translation>
     </message>
     <message>
         <source>XHTTP maxConnections cannot be specified together with maxConcurrency.</source>
-        <translation>В XHTTP нельзя одновременно указывать maxConnections и maxConcurrency.</translation>
+        <translation>XHTTP 中 maxConnections 不能与 maxConcurrency 同时指定。</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TLS ClientHello 分片。该实现 (built-in / custom) 以及 &amp;quot;Keep Default&amp;quot; (保持默认)的行为在&amp;quot;设置 &gt; 核心&amp;quot;中配置。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -1596,6 +1632,10 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>Remote Rule-set Mirror</source>
         <translation>远程规则集镜像</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If not empty, resolves domains in requests according to the strategy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;如果不为空，则根据策略解析请求中的域&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Default DNS server</source>
@@ -1957,11 +1997,11 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>CPU</source>
-        <translation>ЦП</translation>
+        <translation>CPU</translation>
     </message>
     <message>
         <source>RAM</source>
-        <translation>ОЗУ</translation>
+        <translation>内存</translation>
     </message>
     <message>
         <source>Disabled</source>
@@ -1973,7 +2013,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>in %1</source>
-        <translation>в %1</translation>
+        <translation>于 %1</translation>
     </message>
     <message>
         <source>Unavailable</source>
@@ -1985,7 +2025,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>Runtime Statistics</source>
-        <translation>Статистика выполнения</translation>
+        <translation>运行时统计</translation>
     </message>
     <message>
         <source>Process</source>
@@ -2021,35 +2061,35 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>Schedule</source>
-        <translation>Расписание </translation>
+        <translation>调度 </translation>
     </message>
     <message>
         <source>Next sub update</source>
-        <translation>След. обновл. подписки</translation>
+        <translation>下一次订阅更新</translation>
     </message>
     <message>
         <source>Next remote route update</source>
-        <translation>След. обновл. удаленной маршрутизации</translation>
+        <translation>下一次远程路由更新</translation>
     </message>
     <message>
         <source>System</source>
-        <translation>Система</translation>
+        <translation>系统</translation>
     </message>
     <message>
         <source>Databases</source>
-        <translation>Базы данных</translation>
+        <translation>数据库</translation>
     </message>
     <message>
         <source>Uptime</source>
-        <translation>Время работы</translation>
+        <translation>正常运行时间</translation>
     </message>
     <message>
         <source>Running Config</source>
-        <translation>Текущая конфигурация</translation>
+        <translation>正在运行的配置</translation>
     </message>
     <message>
         <source>Country</source>
-        <translation>Страна</translation>
+        <translation>国别</translation>
     </message>
     <message>
         <source>Config</source>
@@ -2061,7 +2101,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>Ping</source>
-        <translation>Задержка</translation>
+        <translation>Ping</translation>
     </message>
 </context>
 <context>
@@ -2088,43 +2128,43 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>Traffic Statistics</source>
-        <translation>Статистика трафика</translation>
+        <translation>流量统计</translation>
     </message>
     <message>
         <source>Period:</source>
-        <translation>Период:</translation>
+        <translation>周期:</translation>
     </message>
     <message>
         <source>Last 24 hours</source>
-        <translation>Последние 24 часа</translation>
+        <translation>最后 24 小时</translation>
     </message>
     <message>
         <source>Last 7 days</source>
-        <translation>Последние 7 дней</translation>
+        <translation>最后 7 天</translation>
     </message>
     <message>
         <source>Last 30 days</source>
-        <translation>Последние 30 дней</translation>
+        <translation>最后 30 天</translation>
     </message>
     <message>
         <source>Last 90 days</source>
-        <translation>Последние 90 дней</translation>
+        <translation>最后 90 天</translation>
     </message>
     <message>
         <source>Refresh</source>
-        <translation>Обновить</translation>
+        <translation>刷新</translation>
     </message>
     <message>
         <source>By Profile</source>
-        <translation>По профилю</translation>
+        <translation>按配置档</translation>
     </message>
     <message>
         <source>Profile</source>
-        <translation>Профиль</translation>
+        <translation>配置档</translation>
     </message>
     <message>
         <source>Group</source>
-        <translation>Группа</translation>
+        <translation>分组</translation>
     </message>
     <message>
         <source>Download</source>
@@ -2136,15 +2176,15 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>Total</source>
-        <translation>Всего</translation>
+        <translation>合计</translation>
     </message>
     <message>
         <source>By App</source>
-        <translation>По приложению</translation>
+        <translation>按应用</translation>
     </message>
     <message>
         <source>App</source>
-        <translation>Приложение</translation>
+        <translation>应用</translation>
     </message>
 </context>
 <context>
@@ -2358,11 +2398,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Profiles that use an extra core can only be the final hop in the chain. Move it to the top of the list.</source>
-        <translation>Профили, использующие extra-core, могут быть только последним звеном в цепочке. Переместите его в начало списка.</translation>
+        <translation>使用额外核心的配置档只可以作为(代理)链中的最后一跳。把它移到列表的顶部。</translation>
     </message>
     <message>
         <source>Only one extra-core profile is allowed in a chain.</source>
-        <translation>В цепочке допускается только один extra-core профиль.</translation>
+        <translation>在代理链中仅允许一个  extra-core  配置档</translation>
     </message>
 </context>
 <context>
@@ -2377,15 +2417,15 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Outbound JSON, please read the documentation.</source>
-        <translation>出站 JSON，详细请阅读文档。</translation>
+        <translation>出站 JSON，详情请阅读文档。</translation>
     </message>
     <message>
         <source>Xray outbound JSON, please read the Xray documentation.</source>
-        <translation>Xray Outbound JSON — пожалуйста, прочтите документацию.</translation>
+        <translation>Xray Outbound JSON，详情请阅读 Xray 文档。</translation>
     </message>
     <message>
         <source>Xray full config (Throne adds a socks inbound and uses sing-box for tun/routing).</source>
-        <translation>Полная конфигурация Xray (Throne добавляет socks inbound и использует sing-box для tun / маршрутизации).</translation>
+        <translation>Xray 完整配置 (Throne 添加一个 socks inbound (套接字入站)并把 sing-box 用于 tun / 路由)。</translation>
     </message>
     <message>
         <source>Please fill the complete config.</source>
@@ -2399,20 +2439,12 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 <context>
     <name>EditDirect</name>
     <message>
-        <source>Form</source>
-        <translation>表单</translation>
-    </message>
-    <message>
         <source>Use the Advanced section to specify bind options</source>
         <translation>使用高级部分指定绑定选项</translation>
     </message>
 </context>
 <context>
     <name>EditExtraCore</name>
-    <message>
-        <source>Form</source>
-        <translation>表单</translation>
-    </message>
     <message>
         <source>Socks address</source>
         <translation>Socks 地址</translation>
@@ -2465,10 +2497,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 <context>
     <name>EditHttp</name>
     <message>
-        <source>Form</source>
-        <translation>表单</translation>
-    </message>
-    <message>
         <source>Username</source>
         <translation>用户名</translation>
     </message>
@@ -2479,10 +2507,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 </context>
 <context>
     <name>EditHysteria</name>
-    <message>
-        <source>Form</source>
-        <translation>表单</translation>
-    </message>
     <message>
         <source>Protocol Version</source>
         <translation>协议版本</translation>
@@ -2525,7 +2549,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Disable Mtu Discovery</source>
-        <translation>禁用 mtu 探索</translation>
+        <translation>禁用 MTU 探索</translation>
     </message>
     <message>
         <source>Password</source>
@@ -2534,10 +2558,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 </context>
 <context>
     <name>EditJuicity</name>
-    <message>
-        <source>Form</source>
-        <translation>表单</translation>
-    </message>
     <message>
         <source>Password</source>
         <translation>密码</translation>
@@ -2576,10 +2596,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 </context>
 <context>
     <name>EditNaive</name>
-    <message>
-        <source>Form</source>
-        <translation>表单</translation>
-    </message>
     <message>
         <source>Password</source>
         <translation>密码</translation>
@@ -2670,24 +2686,8 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 <context>
     <name>EditShadowTLS</name>
     <message>
-        <source>Form</source>
-        <translation>表单</translation>
-    </message>
-    <message>
         <source>Password</source>
         <translation>密码</translation>
-    </message>
-    <message>
-        <source>1</source>
-        <translation>1</translation>
-    </message>
-    <message>
-        <source>2</source>
-        <translation>2</translation>
-    </message>
-    <message>
-        <source>3</source>
-        <translation>3</translation>
     </message>
     <message>
         <source>Version</source>
@@ -2696,10 +2696,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 </context>
 <context>
     <name>EditSocks</name>
-    <message>
-        <source>Form</source>
-        <translation>表单</translation>
-    </message>
     <message>
         <source>Password</source>
         <translation>密码</translation>
@@ -2712,21 +2708,9 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Username</source>
         <translation>用户名</translation>
     </message>
-    <message>
-        <source>5</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>4</source>
-        <translation></translation>
-    </message>
 </context>
 <context>
     <name>EditTailScale</name>
-    <message>
-        <source>Form</source>
-        <translation>表单</translation>
-    </message>
     <message>
         <source>State directory</source>
         <translation>状态目录</translation>
@@ -2783,10 +2767,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 <context>
     <name>EditTrojan</name>
     <message>
-        <source>Form</source>
-        <translation>表单</translation>
-    </message>
-    <message>
         <source>Password</source>
         <translation>密码</translation>
     </message>
@@ -2794,44 +2774,16 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 <context>
     <name>EditTrustTunnel</name>
     <message>
-        <source>Form</source>
-        <translation>表单</translation>
-    </message>
-    <message>
         <source>Password</source>
         <translation>密码</translation>
     </message>
     <message>
         <source>Health Check</source>
-        <translation>Проверка доступности (Health Check)</translation>
+        <translation>健康度检查</translation>
     </message>
     <message>
         <source>Username</source>
         <translation>用户名</translation>
-    </message>
-    <message>
-        <source>bbr</source>
-        <translation>bbr</translation>
-    </message>
-    <message>
-        <source>cubic</source>
-        <translation>cubic</translation>
-    </message>
-    <message>
-        <source>reno</source>
-        <translation>Reno</translation>
-    </message>
-    <message>
-        <source>bbr_standard</source>
-        <translation>BBR Standard</translation>
-    </message>
-    <message>
-        <source>bbr2</source>
-        <translation>BBR v2</translation>
-    </message>
-    <message>
-        <source>bbr_variant</source>
-        <translation>Вариант BBR</translation>
     </message>
     <message>
         <source>Congestion Control</source>
@@ -2844,10 +2796,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 </context>
 <context>
     <name>EditTuic</name>
-    <message>
-        <source>Form</source>
-        <translation>表单</translation>
-    </message>
     <message>
         <source>Heartbeat</source>
         <translation>心跳包</translation>
@@ -2869,28 +2817,8 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>UUID</translation>
     </message>
     <message>
-        <source>bbr</source>
-        <translation>bbr</translation>
-    </message>
-    <message>
-        <source>cubic</source>
-        <translation>cubic</translation>
-    </message>
-    <message>
-        <source>new_reno</source>
-        <translation>new_reno</translation>
-    </message>
-    <message>
         <source>Congestion Control</source>
         <translation>拥塞控制</translation>
-    </message>
-    <message>
-        <source>native</source>
-        <translation>native</translation>
-    </message>
-    <message>
-        <source>quic</source>
-        <translation>quic</translation>
     </message>
     <message>
         <source>UDP over Stream</source>
@@ -2967,7 +2895,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Cookie Reply Packet Magic Header (H3)</source>
-        <translation>Cookie 恢复数据包魔术报头 (H3)</translation>
+        <translation>Cookie 回复数据包魔术报头 (H3)</translation>
     </message>
     <message>
         <source>Junk Packet Count (Jc)</source>
@@ -3129,10 +3057,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 <context>
     <name>EditXrayVless</name>
     <message>
-        <source>Form</source>
-        <translation>表单</translation>
-    </message>
-    <message>
         <source>UUID</source>
         <translation>UUID</translation>
     </message>
@@ -3283,7 +3207,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>New profile</source>
-        <translation>手动新建配置档</translation>
+        <translation>新建配置档</translation>
     </message>
     <message>
         <source>Groups</source>
@@ -3303,7 +3227,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Resolve Domain for group</source>
-        <translation>为该分组解析域名</translation>
+        <translation>为分组解析域名</translation>
     </message>
     <message>
         <source>Restart Core</source>
@@ -3315,7 +3239,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Add profile from clipboard</source>
-        <translation>从剪贴板添加配置档</translation>
+        <translation>添加剪贴板中的配置档</translation>
     </message>
     <message>
         <source>Delete</source>
@@ -3335,7 +3259,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Resolve out IP for group</source>
-        <translation>为该分组解析 IP</translation>
+        <translation>为分组解析 IP</translation>
     </message>
     <message>
         <source>Clear Test Result</source>
@@ -3351,11 +3275,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Click to sort by traffic; right-click to choose total/down/up</source>
-        <translation>Нажмите, чтобы отсортировать по трафику; щелкните правой кнопкой мыши, чтобы настроить сортировку</translation>
+        <translation>点击按流量排序; 右击选择“合计/下载/上传”</translation>
     </message>
     <message>
         <source>Click to sort by speed; right-click to choose total/down/up</source>
-        <translation>Нажмите, чтобы отсортировать по скорости; щелкните правой кнопкой мыши, чтобы настроить сортировку</translation>
+        <translation>点击按速度排序; 右击选择“合计/下载/上传”</translation>
     </message>
     <message>
         <source>Clear Group test result</source>
@@ -3387,7 +3311,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Start with system</source>
-        <translation>跟随系统启动</translation>
+        <translation>随系统启动</translation>
     </message>
     <message>
         <source>Remember last profile</source>
@@ -3415,11 +3339,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Copy links of selected (Deep Links)</source>
-        <translation>复制选中项的链接 (深度链接)</translation>
+        <translation>复制选定项的链接 (深度链接)</translation>
     </message>
     <message>
         <source>Copy links of selected</source>
-        <translation>复制选中项的链接</translation>
+        <translation>复制选定项的链接</translation>
     </message>
     <message>
         <source>Enable Tun</source>
@@ -3467,7 +3391,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Export Xray config</source>
-        <translation>Экспортировать конфиг Xray</translation>
+        <translation>导出 Xray 配置</translation>
     </message>
     <message>
         <source>Copy Test Result</source>
@@ -3522,6 +3446,40 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>确认</translation>
     </message>
     <message>
+        <source>Type</source>
+        <translation>类型</translation>
+    </message>
+    <message>
+        <source>Security</source>
+        <translation>安全加密</translation>
+    </message>
+    <message>
+        <source>Update all subscriptions?</source>
+        <translation>更新所有订阅吗?</translation>
+    </message>
+    <message>
+        <source>Enable AdBlock</source>
+        <translation>启用 AdBlock (广告屏蔽)</translation>
+    </message>
+    <message>
+        <source>Enable Warp</source>
+        <translation>启用 Warp</translation>
+    </message>
+    <message>
+        <source>Add this subscription?
+
+Name: %1
+URL: %2</source>
+        <translation>添加这个订阅?
+
+名称: %1
+URL: %2</translation>
+    </message>
+    <message>
+        <source>Auto update</source>
+        <translation>自动更新</translation>
+    </message>
+    <message>
         <source>Settings changed, restart proxy?</source>
         <translation>设置已改变，重启代理吗？</translation>
     </message>
@@ -3547,7 +3505,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Select mode, double-click or press Enter to select a profile, press ESC to exit.</source>
-        <translation>选择模式，双击或按回车键选择一个配置档，按 ESC 键退出。</translation>
+        <translation>选择模式，双击或按 ENTER 键选择一个配置档，按 ESC 键退出。</translation>
     </message>
     <message>
         <source>Clone %1 item(s)</source>
@@ -3582,8 +3540,12 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>[%1] IP 测试错误: %2</translation>
     </message>
     <message>
+        <source>a tested profile</source>
+        <translation>测试配置档</translation>
+    </message>
+    <message>
         <source>Failed to build test config for batch: </source>
-        <translation>构建测试配置用于批处理失败: </translation>
+        <translation>为批处理构建测试配置失败: </translation>
     </message>
     <message>
         <source>Testing</source>
@@ -3615,35 +3577,35 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Geo asset files required</source>
-        <translation>Требуются Geo-файлы</translation>
+        <translation>需要 Geo 资源文件</translation>
     </message>
     <message>
         <source>The Xray config &quot;%1&quot; uses geoip/geosite routing rules, but the required data files (geoip.dat / geosite.dat) are not installed.
 
 Download them now?</source>
-        <translation>В конфигурации Xray &quot;%1&quot; используются правила маршрутизации geoip/geosite, но необходимые файлы данных (geoip.dat / geosite.dat) не установлены.
+        <translation>Xray 配置 &quot;%1&quot; 使用了 geoip/geosite 路由规则，但未安装所需的数据文件 (geoip.dat / geosite.dat)。
 
-Загрузить их сейчас?</translation>
+立即安装它们吗?</translation>
     </message>
     <message>
         <source>Geo asset download failed</source>
-        <translation>Ошибка при загрузке Geo-файлов</translation>
+        <translation>Geo 资源下载失败</translation>
     </message>
     <message>
         <source>Downloaded Xray geo asset files.</source>
-        <translation>Загружены файлы гео-ресурсов Xray.</translation>
+        <translation>已下载的 Xray geo 资源文件。</translation>
     </message>
     <message>
         <source>Geo assets installed</source>
-        <translation>Загрузка Гео-файлов</translation>
+        <translation>Geo 资源已安装</translation>
     </message>
     <message>
         <source>Geo data files were downloaded successfully.
 
 Please start your profile again.</source>
-        <translation>Geo-файлы были успешно загружены.
+        <translation>Geo 数据文件被成功下载。
 
-Пожалуйста, запустите свой профиль заново.</translation>
+请再次启动你的配置档。</translation>
     </message>
     <message>
         <source>If there is no response for a long time, it is recommended to restart the software.</source>
@@ -3685,6 +3647,22 @@ Please start your profile again.</source>
         <source>Add new Group</source>
         <translation>添加新分组</translation>
     </message>
+	<message>
+		<source>Edit current Group</source>
+		<translation>编辑当前分组</translation>
+	</message>
+	<message>
+		<source>Delete current Group</source>
+		<translation>删除当前分组</translation>
+	</message>
+	<message>
+		<source>Update all subscriptions</source>
+		<translation>更新所有订阅</translation>
+	</message>
+	<message>
+		<source>Remove Insecure Configs</source>
+		<translation>移除不安全的配置</translation>
+	</message>
     <message>
         <source>Delete selected Group</source>
         <translation>删除选定分组</translation>
@@ -3731,7 +3709,7 @@ Please start your profile again.</source>
     </message>
     <message>
         <source>Enable Filter</source>
-        <translation>Включить фильтр</translation>
+        <translation>启用筛选器</translation>
     </message>
     <message>
         <source>Include:</source>
@@ -3767,19 +3745,27 @@ Please start your profile again.</source>
     </message>
     <message>
         <source>Total</source>
-        <translation>Всего</translation>
+        <translation>合计</translation>
     </message>
     <message>
         <source>Downloaded</source>
-        <translation>Получено (↓)</translation>
+        <translation>下载 (↓)</translation>
     </message>
     <message>
         <source>Uploaded</source>
-        <translation>Отправлено (↑)</translation>
+        <translation>上传 (↑)</translation>
     </message>
     <message>
         <source> Test result(s) copied to clipboard!</source>
-        <translation>Результаты теста скопированы в буфер обмена!</translation>
+        <translation>测试结果已被复制到剪贴板!</translation>
+    </message>
+    <message>
+        <source>No insecure configs found.</source>
+        <translation>找不到不安全的配置。</translation>
+    </message>
+    <message>
+        <source>Remove %1 insecure config(s)?</source>
+        <translation>移除 %1 个不安全的配置吗?</translation>
     </message>
     <message>
         <source>Replace domain server addresses with their resolved IPs?</source>
@@ -3795,7 +3781,7 @@ Please start your profile again.</source>
     </message>
     <message>
         <source>Click To Disable Sorting</source>
-        <translation>点击以禁用排序</translation>
+        <translation>点击以“禁用排序”</translation>
     </message>
     <message>
         <source>Protocol</source>
@@ -3807,7 +3793,7 @@ Please start your profile again.</source>
     </message>
     <message>
         <source>Please give the core root privileges</source>
-        <translation>请赋予核心根(root)权限</translation>
+        <translation>请赋予核心 root 权限</translation>
     </message>
     <message>
         <source>Requesting permission</source>
@@ -3923,7 +3909,7 @@ Please start your profile again.</source>
     </message>
     <message>
         <source>Failed to download update assets</source>
-        <translation>下载更新资产失败</translation>
+        <translation>下载更新资料失败</translation>
     </message>
     <message>
         <source>Speedtest Current</source>
@@ -3989,7 +3975,7 @@ Please start your profile again.</source>
     </message>
     <message>
         <source>Add profile from File</source>
-        <translation>从文件添加配置档</translation>
+        <translation>添加文件中的配置档</translation>
     </message>
     <message>
         <source>Select Server</source>
@@ -4075,7 +4061,7 @@ Name: %1</source>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enables the following config to be used as egress, useful for bypassing services restrciting non-warp VPNs&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;启用以下配置作为出口(egress)使用，对于绕过限制非 warp VPNs 的服务很有用&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;启用以下配置作为出口 (egress) 使用，对于绕过限制非 warp VPNs 的服务很有用&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Enable Warp</source>
@@ -4170,23 +4156,27 @@ Release note:
     <name>ProfilesTableFilterHeader</name>
     <message>
         <source>Filter...</source>
-        <translation>Фильтр...</translation>
+        <translation>筛选...</translation>
     </message>
     <message>
         <source>Filter by country...</source>
-        <translation>Фильтр по странам...</translation>
+        <translation>按国别筛选...</translation>
     </message>
     <message>
         <source>Disable Filter</source>
-        <translation>Выключить фильтр</translation>
+        <translation>禁用筛选</translation>
     </message>
     <message>
         <source>Enable Filter</source>
-        <translation>Включить фильтр</translation>
+        <translation>启用筛选</translation>
     </message>
 </context>
 <context>
     <name>ProfilesTableModel</name>
+    <message>
+        <source>This config&apos;s traffic is not properly protected.</source>
+        <translation>这个配置的流量未适当保护。</translation>
+    </message>
     <message>
         <source>Type</source>
         <translation>类型</translation>
@@ -4274,7 +4264,7 @@ How to update?</source>
     </message>
     <message>
         <source>Subscription request fininshed: %1</source>
-        <translation>订阅请求完成: %1</translation>
+        <translation>完成了订阅请求: %1</translation>
     </message>
     <message>
         <source>Clearing servers...</source>
@@ -4316,7 +4306,7 @@ Deleted %3 Profiles:
     </message>
     <message>
         <source>Restarting the core ...</source>
-        <translation>正在重新启动核心...</translation>
+        <translation>正在重启核心...</translation>
     </message>
     <message>
         <source>Download Profiles</source>
@@ -4328,7 +4318,7 @@ Deleted %3 Profiles:
     </message>
     <message>
         <source>Added remote routing profiles: %1 of %2 fetched</source>
-        <translation>添加了远程路由配置档:取得了 %1 / %2</translation>
+        <translation>添加了远程路由配置档: 取得了 %1 / %2</translation>
     </message>
     <message>
         <source>Update</source>
@@ -4376,7 +4366,7 @@ Release note:
     </message>
     <message>
         <source>Used: %1 Remain: %2 Expire: %3</source>
-        <translation>已用 %1 剩余 %2 过期 %3</translation>
+        <translation>已用: %1 剩余: %2 过期: %3</translation>
     </message>
     <message>
         <source>Default</source>
@@ -4426,6 +4416,48 @@ Release note:
         <source>Remote routing profiles: %1 updated, %2 failed</source>
         <translation>远程路由配置档: 更新了 %1 个,失败了 %2 个</translation>
     </message>
+        <message>
+        <source>Downloaded Xray geo asset: %1</source>
+        <translation>已下载 Xray geo 资源: %1</translation>
+    </message>
+    <message>
+        <source>Download geo asset</source>
+        <translation>下载 geo 资源</translation>
+    </message>
+    <message>
+        <source>%1 was downloaded successfully.</source>
+        <translation>%1 被成功下载。</translation>
+    </message>
+    <message>
+        <source>Failed to download %1:
+%2</source>
+        <translation>下载 %1 失败:
+%2</translation>
+    </message>
+    <message>
+        <source>Reality</source>
+        <translation>Reality</translation>
+    </message>
+    <message>
+        <source>Insecure TLS</source>
+        <translation>不安全的 TLS</translation>
+    </message>
+    <message>
+        <source>TLS</source>
+        <translation>TLS</translation>
+    </message>
+    <message>
+        <source>Raw</source>
+        <translation>Raw</translation>
+    </message>
+    <message>
+        <source>Encrypted</source>
+        <translation>加密</translation>
+    </message>
+    <message>
+        <source>Weak Cipher</source>
+        <translation>弱加密</translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -4454,14 +4486,14 @@ Release note:
     <name>Qv2ray::ui::widgets::AutoCompleteTextEdit</name>
     <message>
         <source>You can not input space characters here.</source>
-        <translation>您不能在这里输入空格字符。</translation>
+        <translation>你不能在这里输入空格字符。</translation>
     </message>
 </context>
 <context>
     <name>RawRouteItem</name>
     <message>
         <source>Raw routing profile</source>
-        <translation>Raw-профиль маршрутизации</translation>
+        <translation>原始路由配置档</translation>
     </message>
     <message>
         <source>Name</source>
@@ -4471,17 +4503,17 @@ Release note:
         <source>Use the route object exactly as written (outbound ids are still resolved to tags).
 Throne will NOT add its DNS-hijack or xray bridge plumbing, so DNS, chained/xray
 outbounds and other Throne features may break. For advanced users only.</source>
-        <translation>Использовать raw-профиль маршрутизации точно так, как написано (outbounds идентификаторы по-прежнему преобразуются в теги).
-В Throne не будут добавлены функции DNS-hijack или xray bridge, поэтому могут нарушаться функции DNS, chained/xray
-outbounds и другие функции Throne. Только для опытных пользователей.</translation>
+        <translation>按原样使用路由对象 (outbounds 标识符仍被解析为标记)。
+在 Throne 中「不会」添加它的 DNS-hijack (DNS劫持)或 xray bridge plumbing (桥接)，所以 DNS、链式/xray
+出口和其它 Throne 功能可能会失效。仅限高级用户。</translation>
     </message>
     <message>
         <source>Valid JSON</source>
-        <translation>Верный JSON</translation>
+        <translation>有效 JSON</translation>
     </message>
     <message>
         <source>Invalid JSON: %1 (offset %2)</source>
-        <translation>Неверный JSON: %1 (символ %2)</translation>
+        <translation>无效 JSON: %1 (偏移 %2)</translation>
     </message>
     <message>
         <source>Format JSON</source>
@@ -4493,7 +4525,7 @@ outbounds и другие функции Throne. Только для опытн�
     </message>
     <message>
         <source>The route must be a valid JSON object</source>
-        <translation>Маршрут должен быть корректным JSON</translation>
+        <translation>路由必须是一个有效的 JSON 对象</translation>
     </message>
     <message>
         <source>Invalid operation</source>
@@ -4501,11 +4533,11 @@ outbounds и другие функции Throne. Только для опытн�
     </message>
     <message>
         <source>Cannot create Route Profile with empty name</source>
-        <translation>无法使用空名称创建路由配置档</translation>
+        <translation>无法用空名称创建路由配置档</translation>
     </message>
     <message>
         <source>Invalid route</source>
-        <translation>Неверный маршрут</translation>
+        <translation>无效路由</translation>
     </message>
     <message>
         <source>Prevent modifications</source>
@@ -4524,7 +4556,7 @@ outbounds и другие функции Throne. Только для опытн�
     </message>
     <message>
         <source>Remote source</source>
-        <translation>Удаленный источник</translation>
+        <translation>远程来源</translation>
     </message>
     <message>
         <source>URL</source>
@@ -4554,7 +4586,7 @@ Your local edits are overwritten on each update.</source>
     </message>
     <message>
         <source>Fetch</source>
-        <translation>Получить</translation>
+        <translation>获取</translation>
     </message>
     <message>
         <source>Warp-bypass</source>
@@ -4582,7 +4614,7 @@ Your local edits are overwritten on each update.</source>
     </message>
     <message>
         <source>Preview</source>
-        <translation>Предпросмотр</translation>
+        <translation>预览</translation>
     </message>
     <message>
         <source>Rule Settings</source>
@@ -4590,7 +4622,7 @@ Your local edits are overwritten on each update.</source>
     </message>
     <message>
         <source>Action</source>
-        <translation>Действие</translation>
+        <translation>动作</translation>
     </message>
     <message>
         <source>Basic</source>
@@ -4648,7 +4680,7 @@ Your local edits are overwritten on each update.</source>
     </message>
     <message>
         <source>Check attributes to show as tabs; unchecking clears their values.</source>
-        <translation>Отметьте атрибуты, чтобы отобразить их во вкладках; снятие отметки очистит их значения.</translation>
+        <translation>勾选显示为标签的属性; 取消勾选则清除它们的值。</translation>
     </message>
     <message>
         <source>Some rules could not be added, fix them before saving:
@@ -4678,7 +4710,7 @@ Your local edits are overwritten on each update.</source>
     </message>
     <message>
         <source>Invalid URL</source>
-        <translation>Неверный URL</translation>
+        <translation>无效 URL</translation>
     </message>
     <message>
         <source>Fetching...</source>
@@ -4796,7 +4828,7 @@ Your local edits are overwritten on each update.</source>
     <name>TrayProfileSelector</name>
     <message>
         <source>Search…</source>
-        <translation>Поиск…</translation>
+        <translation>搜索</translation>
     </message>
     <message>
         <source>Close</source>
@@ -4812,11 +4844,11 @@ Your local edits are overwritten on each update.</source>
     </message>
     <message>
         <source>No matches</source>
-        <translation>Нет совпадений</translation>
+        <translation>无匹配</translation>
     </message>
     <message>
         <source>No routing profiles</source>
-        <translation>Нет профилей маршрутизации</translation>
+        <translation>无路由配置档</translation>
     </message>
     <message>
         <source>Select Server</source>
@@ -4832,7 +4864,7 @@ Your local edits are overwritten on each update.</source>
     </message>
     <message>
         <source>Page %1/%2</source>
-        <translation>Страница %1/%2</translation>
+        <translation>页面 %1/%2</translation>
     </message>
 </context>
 <context>
