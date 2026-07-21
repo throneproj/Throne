@@ -37,6 +37,7 @@ def install(src: Path, dest: Path, mode: int) -> None:
     shutil.copy2(src, dest)
     os.chmod(dest, mode)
 
+
 # Removes a path if it exists, ignores missing paths
 def remove_path(path: Path) -> bool:
     if path.is_symlink() or path.is_file():
@@ -201,9 +202,9 @@ def run(main):
         scr.addstr(1, 0, "|")
         main(scr, 2)
 
-    with open('/dev/tty') as tty:
+    with open("/dev/tty") as tty:
         os.dup2(tty.fileno(), 0)
-    
+
     curses.wrapper(wrapped)
 
 
@@ -213,6 +214,20 @@ def main(scr, y):
     version = get_installed_version(APPDIR)
     if version:
         y = message(scr, y, f"Looks like you already have Throne ({version}) installed")
+        bar(scr, y, 0, "|", "", C_DIM)
+        scr.refresh()
+        y += 1
+
+    releases = get_github_releases()
+
+    y = message(scr, y, f"Lastest Stable release: {releases['stable'][0]['version']}")
+    y = message(
+        scr, y, f"Lastest Unstable release: {releases['unstable'][0]['version']}"
+    )
+
+    bar(scr, y, 0, "|", "", C_DIM)
+    scr.refresh()
+    y += 1
 
     action, y = select(
         scr,
@@ -232,7 +247,7 @@ def main(scr, y):
         with TemporaryDirectory() as tmp:
             tmpdir = Path(tmp)
 
-            release = get_github_releases()[branch.lower()][0]
+            release = releases[branch.lower()][0]
             version = release["version"]
             url = release["assets"][arch]
 
@@ -284,26 +299,26 @@ Categories=Network;Application;
             scr.refresh()
             scr.getch()
             exit()
- 
+
         confirm, y = select(
             scr,
             y,
             "Are you sure you want to uninstall Throne?",
             ["Yes", "No"],
         )
- 
+
         if confirm == "No":
             scr.addstr(y, 0, "└  Press any key to exit")
             scr.refresh()
             scr.getch()
             exit()
- 
+
         y = message(scr, y, f"Removing binaries from {APPDIR}")
         remove_path(APPDIR)
- 
+
         y = message(scr, y, f"Removing .desktop file from {DESKTOPDIR}")
         remove_path(DESKTOPDIR / "Throne.desktop")
- 
+
         y = message(scr, y, "Uninstallation successfully completed!")
     scr.addstr(y, 0, "└  Press any key to exit")
     scr.refresh()
