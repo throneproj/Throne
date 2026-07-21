@@ -220,9 +220,9 @@ def main(scr, y):
 
     releases = get_github_releases()
 
-    y = message(scr, y, f"Lastest Stable release: {releases['stable'][0]['version']}")
+    y = message(scr, y, f"Latest Stable release: {releases['stable'][0]['version']}")
     y = message(
-        scr, y, f"Lastest Unstable release: {releases['unstable'][0]['version']}"
+        scr, y, f"Latest Unstable release: {releases['unstable'][0]['version']}"
     )
 
     bar(scr, y, 0, "|", "", C_DIM)
