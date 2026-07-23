@@ -26,6 +26,7 @@
 #include <QDir>
 #include <QStandardPaths>
 #include <QCheckBox>
+#include <QScreen>
 #include <QVBoxLayout>
 #include <QDialogButtonBox>
 #include <QLabel>
@@ -232,6 +233,14 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->dns_in_port->setValidator(new QIntValidator(1, 65535, ui->dns_in_port));
     ui->dns_in_port->setText(Int2String(Configs::dataManager->settingsRepo->core_dns_in_port));
 
+    // Clash API (was behind a "Core Options" popup)
+    ui->core_box_clash_listen_addr->setText(Configs::dataManager->settingsRepo->core_box_clash_listen_addr);
+    ui->core_box_clash_api->setValidator(new QIntValidator(1, 65535, ui->core_box_clash_api));
+    ui->core_box_clash_api->setText(Configs::dataManager->settingsRepo->core_box_clash_api > 0
+                                        ? Int2String(Configs::dataManager->settingsRepo->core_box_clash_api)
+                                        : "");
+    ui->core_box_clash_api_secret->setText(Configs::dataManager->settingsRepo->core_box_clash_api_secret);
+
     // Xray
     ui->xray_mux_concurrency->setText(Int2String(Configs::dataManager->settingsRepo->xray_mux_concurrency));
     ui->xray_default_mux->setChecked(Configs::dataManager->settingsRepo->xray_mux_default_on);
@@ -268,6 +277,19 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
 
     D_LOAD_BOOL(skip_cert)
     ui->utlsFingerprint->setCurrentText(Configs::dataManager->settingsRepo->utlsFingerprint);
+
+    // The .ui geometry is a design-time hint only: the size the content actually
+    // needs depends on the platform's font metrics and on the active translation,
+    // and both run larger than what the layout was drawn against. Held at the
+    // designed size, the tab's rows get handed less height than their minimum and
+    // Qt lays them out overlapping each other (#1671). Size to the content
+    // instead, bounded by the screen so the button box stays reachable.
+    QSize want = sizeHint();
+    if (const QScreen *scr = parent ? parent->screen() : screen()) {
+        const QRect avail = scr->availableGeometry();
+        want = want.boundedTo(QSize(avail.width() - 24, avail.height() - 72));
+    }
+    resize(want);
 }
 
 DialogBasicSettings::~DialogBasicSettings() {
@@ -386,6 +408,9 @@ void DialogBasicSettings::accept() {
     // Core
     Configs::dataManager->settingsRepo->disable_traffic_stats = ui->disable_stats->isChecked();
     Configs::dataManager->settingsRepo->core_dns_in_port = ui->dns_in_port->text().toInt();
+    Configs::dataManager->settingsRepo->core_box_clash_listen_addr = ui->core_box_clash_listen_addr->text();
+    Configs::dataManager->settingsRepo->core_box_clash_api = ui->core_box_clash_api->text().toInt();
+    Configs::dataManager->settingsRepo->core_box_clash_api_secret = ui->core_box_clash_api_secret->text();
 
     // Xray
     Configs::dataManager->settingsRepo->xray_mux_concurrency = ui->xray_mux_concurrency->text().toInt();
@@ -767,49 +792,3 @@ void DialogBasicSettings::on_backup_restore_clicked() {
     QDialog::reject();
 }
 
-void DialogBasicSettings::on_core_settings_clicked() {
-    auto w = new QDialog(this);
-    w->setWindowTitle(software_core_name + " Core Options");
-    auto layout = new QGridLayout;
-    w->setLayout(layout);
-    //
-    auto line = -1;
-    MyLineEdit *core_box_clash_api;
-    MyLineEdit *core_box_clash_api_secret;
-    MyLineEdit *core_box_clash_listen_addr;
-    //
-    auto core_box_clash_listen_addr_l = new QLabel("Clash Api Listen Address");
-    core_box_clash_listen_addr = new MyLineEdit;
-    core_box_clash_listen_addr->setText(Configs::dataManager->settingsRepo->core_box_clash_listen_addr);
-    layout->addWidget(core_box_clash_listen_addr_l, ++line, 0);
-    layout->addWidget(core_box_clash_listen_addr, line, 1);
-    //
-    auto core_box_clash_api_l = new QLabel("Clash API Listen Port");
-    core_box_clash_api = new MyLineEdit;
-    core_box_clash_api->setText(Configs::dataManager->settingsRepo->core_box_clash_api > 0 ? Int2String(Configs::dataManager->settingsRepo->core_box_clash_api) : "");
-    layout->addWidget(core_box_clash_api_l, ++line, 0);
-    layout->addWidget(core_box_clash_api, line, 1);
-    //
-    auto core_box_clash_api_secret_l = new QLabel("Clash API Secret");
-    core_box_clash_api_secret = new MyLineEdit;
-    core_box_clash_api_secret->setText(Configs::dataManager->settingsRepo->core_box_clash_api_secret);
-    layout->addWidget(core_box_clash_api_secret_l, ++line, 0);
-    layout->addWidget(core_box_clash_api_secret, line, 1);
-    //
-    auto box = new QDialogButtonBox;
-    box->setOrientation(Qt::Horizontal);
-    box->setStandardButtons(QDialogButtonBox::Cancel | QDialogButtonBox::Ok);
-    connect(box, &QDialogButtonBox::accepted, w, [=,this] {
-        Configs::dataManager->settingsRepo->core_box_clash_api = core_box_clash_api->text().toInt();
-        Configs::dataManager->settingsRepo->core_box_clash_listen_addr = core_box_clash_listen_addr->text();
-        Configs::dataManager->settingsRepo->core_box_clash_api_secret = core_box_clash_api_secret->text();
-        MW_dialog_message(MwMessage::UpdateSettings, {});
-        w->accept();
-    });
-    connect(box, &QDialogButtonBox::rejected, w, &QDialog::reject);
-    layout->addWidget(box, ++line, 1);
-    //
-    ADD_ASTERISK(w)
-    w->exec();
-    w->deleteLater();
-}

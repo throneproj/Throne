@@ -41,7 +41,6 @@ private:
     } CACHE;
 
 private slots:
-    void on_core_settings_clicked();
     void on_backup_create_clicked();
     void on_backup_restore_clicked();
     void on_xray_geoip_download_clicked();

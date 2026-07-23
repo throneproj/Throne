@@ -37,6 +37,13 @@
     padding-right: 8px;
 }
 
+/* The indicator shares the bottom row with the label (ToolButtonTextUnderIcon),
+   so the widest button in any language is the tight one -- its text runs closest
+   to the arrow. It fits because the drawn chevron only occupies the middle of
+   its 16px subcontrol box, leaving ~14px clear at the button edge against the
+   label's ~14.5px of slack. Don't pad the buttons to "fix" this: that widens
+   all five for a gap only one of them ever needs (#1665). If a future
+   translation looks cramped here, check that label first. */
 QToolButton::menu-indicator {
     subcontrol-origin: border;
     subcontrol-position: bottom right;
@@ -79,6 +86,13 @@ QToolButton::menu-indicator {
     padding-right: 8px;
 }
 
+/* The indicator shares the bottom row with the label (ToolButtonTextUnderIcon),
+   so the widest button in any language is the tight one -- its text runs closest
+   to the arrow. It fits because the drawn chevron only occupies the middle of
+   its 16px subcontrol box, leaving ~14px clear at the button edge against the
+   label's ~14.5px of slack. Don't pad the buttons to "fix" this: that widens
+   all five for a gap only one of them ever needs (#1665). If a future
+   translation looks cramped here, check that label first. */
 QToolButton::menu-indicator {
     subcontrol-origin: border;
     subcontrol-position: bottom right;
@@ -121,6 +135,13 @@ QToolButton::menu-indicator {
     padding-right: 8px;
 }
 
+/* The indicator shares the bottom row with the label (ToolButtonTextUnderIcon),
+   so the widest button in any language is the tight one -- its text runs closest
+   to the arrow. It fits because the drawn chevron only occupies the middle of
+   its 16px subcontrol box, leaving ~14px clear at the button edge against the
+   label's ~14.5px of slack. Don't pad the buttons to "fix" this: that widens
+   all five for a gap only one of them ever needs (#1665). If a future
+   translation looks cramped here, check that label first. */
 QToolButton::menu-indicator {
     subcontrol-origin: border;
     subcontrol-position: bottom right;
@@ -163,6 +184,13 @@ QToolButton::menu-indicator {
     padding-right: 8px;
 }
 
+/* The indicator shares the bottom row with the label (ToolButtonTextUnderIcon),
+   so the widest button in any language is the tight one -- its text runs closest
+   to the arrow. It fits because the drawn chevron only occupies the middle of
+   its 16px subcontrol box, leaving ~14px clear at the button edge against the
+   label's ~14.5px of slack. Don't pad the buttons to "fix" this: that widens
+   all five for a gap only one of them ever needs (#1665). If a future
+   translation looks cramped here, check that label first. */
 QToolButton::menu-indicator {
     subcontrol-origin: border;
     subcontrol-position: bottom right;
@@ -205,6 +233,13 @@ QToolButton::menu-indicator {
     padding-right: 8px;
 }
 
+/* The indicator shares the bottom row with the label (ToolButtonTextUnderIcon),
+   so the widest button in any language is the tight one -- its text runs closest
+   to the arrow. It fits because the drawn chevron only occupies the middle of
+   its 16px subcontrol box, leaving ~14px clear at the button edge against the
+   label's ~14.5px of slack. Don't pad the buttons to "fix" this: that widens
+   all five for a gap only one of them ever needs (#1665). If a future
+   translation looks cramped here, check that label first. */
 QToolButton::menu-indicator {
     subcontrol-origin: border;
     subcontrol-position: bottom right;

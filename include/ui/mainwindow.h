@@ -357,6 +357,15 @@ private:
 
     void applyLogBrowserFont();
 
+    // Re-derives the top bar's sizing from the current font and translation, and
+    // raises the window's minimum to whatever the layout actually needs. Called
+    // at startup and on every font change.
+    void applyTopBarMetrics();
+
+    // The window minimum the .ui was designed with; applyTopBarMetrics() only ever
+    // grows past this, so a smaller font returns to the designed floor.
+    QSize designMinimumSize;
+
     // Debounced refresh_proxy_list trigger for font/theme/resize events.
     QTimer *m_proxyListRefreshDebounce = nullptr;
     void scheduleProxyListRefresh();

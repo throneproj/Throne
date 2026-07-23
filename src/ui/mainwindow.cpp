@@ -372,18 +372,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->toolButton_tools->setMenu(ui->menuTools);
     ui->toolButton_program->installEventFilter(this);
 
-    // Give the menu toolButtons a uniform width (the widest one's) so the top
-    // bar reads as an even row. The start/stop button keeps its own square size.
-    const QList<QToolButton*> menuButtons = {
-        ui->toolButton_program, ui->toolButton_preferences, ui->toolButton_testing,
-        ui->toolButton_routing, ui->toolButton_tools,
-    };
-    int uniformButtonWidth = 0;
-    for (auto* b : menuButtons) {
-        b->ensurePolished();
-        uniformButtonWidth = qMax(uniformButtonWidth, b->sizeHint().width());
-    }
-    for (auto* b : menuButtons) b->setMinimumWidth(uniformButtonWidth);
+    designMinimumSize = minimumSize();
+    applyTopBarMetrics();
 
     ui->menubar->setVisible(false);
     connect(ui->actionRuntime_Stats, &QAction::triggered, this, [=]() {
@@ -1165,6 +1155,38 @@ void MainWindow::applyLogBrowserFont() {
     ui->masterLogBrowser->setFont(logFont);
 }
 
+void MainWindow::applyTopBarMetrics() {
+    // Give the menu toolButtons a uniform width (the widest one's) so the top
+    // bar reads as an even row. The start/stop button keeps its own square size.
+    const QList<QToolButton*> menuButtons = {
+        ui->toolButton_program, ui->toolButton_preferences, ui->toolButton_testing,
+        ui->toolButton_routing, ui->toolButton_tools,
+    };
+    // Drop the previous run's floor first: a stale minimum would otherwise be
+    // baked into minimumSizeHint() below and never shrink back.
+    for (auto* b : menuButtons) b->setMinimumWidth(0);
+
+    // Content width only -- deliberately no padding for the drop-down arrow. The
+    // arrow shares the bottom row with the label but the drawn chevron still clears
+    // it (see ::menu-indicator in the .ui); reserving room here would widen all
+    // five buttons for a gap only the widest one ever needs.
+    int uniformButtonWidth = 0;
+    for (auto* b : menuButtons) {
+        b->ensurePolished();
+        uniformButtonWidth = qMax(uniformButtonWidth, b->sizeHint().width());
+    }
+    for (auto* b : menuButtons) b->setMinimumWidth(uniformButtonWidth);
+
+    // The top bar's footprint depends on the active translation and font size --
+    // the Russian labels run to roughly twice the length of the English ones. The
+    // designed 800x600 floor then no longer fits the row, and the widgets after it
+    // (the mode checkboxes, data_view) get squeezed past their own minimums and
+    // clipped. Follow what the layout actually needs instead (#1665).
+    const QSize contentMin = minimumSizeHint();
+    setMinimumSize(qMax(designMinimumSize.width(), contentMin.width()),
+                   qMax(designMinimumSize.height(), contentMin.height()));
+}
+
 void MainWindow::setLogHighlighter(bool darkMode) {
     // A QSyntaxHighlighter attaches itself to the document and is never evicted
     // by constructing another, so recreating one per theme change would stack
@@ -1208,6 +1230,10 @@ void MainWindow::changeEvent(QEvent *event) {
             w->updateGeometry();
         };
         forceFontReapply(ui->profilesTableView);
+
+        // The toolButton widths and the window floor were derived from the old
+        // font; redo them now that the stylesheet caches above are clean.
+        applyTopBarMetrics();
     }
     if (event->type() == QEvent::FontChange ||
         event->type() == QEvent::PaletteChange ||
