@@ -3590,6 +3590,22 @@ Download them now?</source>
         <translation>Некорректное поведение устройства TUN</translation>
     </message>
     <message>
+        <source>Strict routing unavailable</source>
+        <translation>Строгая маршрутизация недоступна</translation>
+    </message>
+    <message>
+        <source>Windows could not enable strict routing. Open Tun Settings, disable Strict Route, and start the profile again.
+
+Disabling Strict Route may cause DNS leaks.
+
+Error: %1</source>
+        <translation>Windows не удалось включить строгую маршрутизацию. Откройте «Настройки режима TUN», отключите «Строгий маршрут» и снова запустите профиль.
+
+Отключение строгой маршрутизации может привести к утечкам DNS.
+
+Ошибка: %1</translation>
+    </message>
+    <message>
         <source>Reset</source>
         <translation>Сброс</translation>
     </message>

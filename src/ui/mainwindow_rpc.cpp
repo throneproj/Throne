@@ -941,6 +941,16 @@ void MainWindow::profile_start(int _id) {
             if (handleXrayGeoAssetError(error, ent->outbound->DisplayTypeAndName())) {
                 return false;
             }
+            if (error.contains("Fwpm", Qt::CaseInsensitive)) {
+                runOnUiThread([=, this] {
+                    MessageBoxWarning(
+                        tr("Strict routing unavailable"),
+                        tr("Windows could not enable strict routing. Open Tun Settings, "
+                           "disable Strict Route, and start the profile again.\n\n"
+                           "Disabling Strict Route may cause DNS leaks.\n\nError: %1").arg(error));
+                });
+                return false;
+            }
             if (error.contains("configure tun interface")) {
                 runOnUiThread([=, this] {
 
