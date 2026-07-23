@@ -78,7 +78,7 @@ void loadTranslate(const QString& locale) {
     trans_qt = new QTranslator;
     QLocale::setDefault(QLocale(locale));
     //
-    if (trans->load(":/translations/" + locale + ".qm")) {
+    if (trans->load("/translations/" + locale + ".qm")) {
         QCoreApplication::installTranslator(trans);
     }
 }
