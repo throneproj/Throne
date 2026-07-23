@@ -136,10 +136,6 @@
         <translation>Вкл. по умолчанию</translation>
     </message>
     <message>
-        <source>Core Options</source>
-        <translation>Параметры ядра</translation>
-    </message>
-    <message>
         <source>outbound</source>
         <translation type="unfinished"></translation>
     </message>
@@ -166,6 +162,18 @@
     <message>
         <source>Xray VLESS Preference</source>
         <translation>Предпочтение Xray для VLESS</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Settings for the sing-box&apos;s built-in NTP client&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Настройки встроенного NTP-клиента sing-box&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In minutes&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;В минутах&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Xray Geo Assets</source>
+        <translation>Гео-ресурсы Xray</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;URL for geoip.dat, downloaded when a full Xray config&apos;s routing needs geoip: rules.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -264,6 +272,10 @@
         <translation>Перезапускать профиль при выкл. Системного прокси</translation>
     </message>
     <message>
+        <source>Inbound Settings</source>
+        <translation>Настройки Inbound</translation>
+    </message>
+    <message>
         <source>Testing</source>
         <translation>Проверка</translation>
     </message>
@@ -352,6 +364,22 @@
         <translation>Авто-обновление профилей маршрутизации</translation>
     </message>
     <message>
+        <source>Clash API</source>
+        <translation>Clash API</translation>
+    </message>
+    <message>
+        <source>Secret</source>
+        <translation>Secret</translation>
+    </message>
+    <message>
+        <source>Miscellaneous</source>
+        <translation>Прочее</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Might Improve Ping and Performance&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Может улучшить пинг и производительность&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
         <source>Disable Traffic Stats</source>
         <translation>Отключить статистику трафика</translation>
     </message>
@@ -416,18 +444,6 @@
         <translation>Интервал синхронизации</translation>
     </message>
     <message>
-        <source>5m</source>
-        <translation>5m</translation>
-    </message>
-    <message>
-        <source>10m</source>
-        <translation>10m</translation>
-    </message>
-    <message>
-        <source>30m</source>
-        <translation>30m</translation>
-    </message>
-    <message>
         <source>Listen Port</source>
         <translation>Прослушиваемый порт</translation>
     </message>
@@ -446,30 +462,6 @@
     <message>
         <source>Font</source>
         <translation>Шрифт</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Might
-                                                                            Improve Ping and Performance&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
-                                                                        </source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Может
-                                                                            улучшить пинг и производительность&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
-                                                                        </translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Settings for the
-                                            sing-box&apos;s built-in NTP client&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
-                                        </source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Настройки встроенного
-                                            NTP-клиента sing-box&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
-                                        </translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In
-                                                                minutes&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
-                                                            </source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Через
-                                                                минут&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
-                                                            </translation>
     </message>
     <message>
         <source>Proxy Format</source>
@@ -1750,15 +1742,15 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>a routing rule list</source>
-        <translation type="unfinished"></translation>
+        <translation>список правил маршрутизации</translation>
     </message>
     <message>
         <source>routing profile &quot;%1&quot;</source>
-        <translation type="unfinished"></translation>
+        <translation>профиль маршрутизации &quot;%1&quot;</translation>
     </message>
     <message>
         <source>Import %1 from the clipboard?</source>
-        <translation type="unfinished"></translation>
+        <translation>Импортировать %1 из буфера обмена?</translation>
     </message>
     <message>
         <source>Import routing profile</source>
@@ -1766,12 +1758,13 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>Invalid input</source>
-        <translation type="unfinished"></translation>
+        <translation>Неверный ввод</translation>
     </message>
     <message>
         <source>Could not import this routing profile:
 </source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось импортировать этот профиль маршрутизации:
+</translation>
     </message>
     <message>
         <source>Invalid operation</source>
@@ -1784,7 +1777,8 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>Updated %1, failed %2:
 %3</source>
-        <translation type="unfinished"></translation>
+        <translation>Обновлено %1, неудачно %2:
+%3</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Whether to listen on 0.0.0.0 so that other devices on LAN can use this server&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -1856,7 +1850,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>Cancelling...</source>
-        <translation type="unfinished"></translation>
+        <translation>Отмена...</translation>
     </message>
     <message>
         <source>No remote profiles</source>
@@ -1868,15 +1862,15 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>Updating...</source>
-        <translation type="unfinished"></translation>
+        <translation>Обновление...</translation>
     </message>
     <message>
         <source>Updating (%1 / %2)</source>
-        <translation type="unfinished"></translation>
+        <translation>Обновление (%1 / %2)</translation>
     </message>
     <message>
         <source>Cancelled: updated %1 of %2, %3 failed.</source>
-        <translation type="unfinished"></translation>
+        <translation>Отменено: обновлено %1 из %2, %3 не удалось.</translation>
     </message>
     <message>
         <source>Update complete</source>
@@ -1888,7 +1882,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>Updated %1 remote routing profile(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>Обновлены профили удаленной маршрутизации - %1.</translation>
     </message>
     <message>
         <source>Update finished with errors</source>
@@ -1943,7 +1937,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>in %1</source>
-        <translation>в %1</translation>
+        <translation>через %1</translation>
     </message>
     <message>
         <source>Unavailable</source>
@@ -1951,7 +1945,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>N/A</source>
-        <translation type="unfinished"></translation>
+        <translation>Недоступно</translation>
     </message>
     <message>
         <source>Runtime Statistics</source>
@@ -3221,7 +3215,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Tools</source>
-        <translation>Инструменты</translation>
+        <translation>Утилиты</translation>
     </message>
     <message>
         <source>Click to sort by traffic; right-click to choose total/down/up</source>
@@ -3230,6 +3224,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Click to sort by speed; right-click to choose total/down/up</source>
         <translation>Нажмите, чтобы отсортировать по скорости; щелкните правой кнопкой мыши, чтобы настроить сортировку</translation>
+    </message>
+    <message>
+        <source>Manage Groups</source>
+        <translation>Управление группами</translation>
     </message>
     <message>
         <source>Clear Group test result</source>
@@ -3388,18 +3386,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Добавить эти удалённые профили маршрутизации?</translation>
     </message>
     <message>
-        <source>auto update</source>
-        <translation>авто-обновление</translation>
-    </message>
-    <message>
-        <source>On</source>
-        <translation>Вкл.</translation>
-    </message>
-    <message>
-        <source>Off</source>
-        <translation>Выкл.</translation>
-    </message>
-    <message>
         <source>Tun Settings changed</source>
         <translation>Настройки TUN изменены</translation>
     </message>
@@ -3413,11 +3399,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Type</source>
-        <translation>Тип</translation>
+        <translation>Типу</translation>
     </message>
     <message>
         <source>Security</source>
-        <translation>Безопасность</translation>
+        <translation>Безопасности</translation>
     </message>
     <message>
         <source>Update all subscriptions?</source>
@@ -3536,6 +3522,22 @@ URL: %2</translation>
     <message>
         <source>Failed to build batch test config: </source>
         <translation>Не удалось собрать общую тестовую конфигурацию для группы: </translation>
+    </message>
+    <message>
+        <source>a required category</source>
+        <translation>обязательная категория</translation>
+    </message>
+    <message>
+        <source>Geo asset missing category</source>
+        <translation>Отсутствует Geo категория</translation>
+    </message>
+    <message>
+        <source>The Xray config &quot;%1&quot; needs &quot;%2&quot;, but the installed %3 does not contain it.
+
+Re-downloading from the same source will not fix this — the data file does not include that category. Set the GeoIP/GeoSite asset URL in Settings to a source that provides &quot;%2&quot;, then delete %3 from the app folder and download it again.</source>
+        <translation>В конфигурации Xray &quot;%1&quot; требуется &quot;%2&quot;, но установленный %3 его не содержит.
+
+Если повторная загрузка из того же источника не решит проблему — файл данных не включает эту категорию. В настройках установите URL-адрес ресурса GeoIP/GeoSite на источник, предоставляющий &quot;%2&quot;, затем удалите %3 из папки приложения и загрузите его снова.</translation>
     </message>
     <message>
         <source>Geo asset files required</source>
@@ -3763,7 +3765,7 @@ Error: %1</source>
     </message>
     <message>
         <source>Routing</source>
-        <translation>Маршрутизация</translation>
+        <translation>Маршруты</translation>
     </message>
     <message>
         <source>Destination (Domain)</source>
@@ -3910,16 +3912,6 @@ Please try again.</source>
         <translation>Outbound</translation>
     </message>
     <message>
-        <source>Invalid JSON Array</source>
-        <translation>Неверный массив JSON</translation>
-    </message>
-    <message>
-        <source>The provided input cannot be parsed to a valid route rule array:
-</source>
-        <translation>Введённые данные не могут быть преобразованы в допустимый массив правил маршрутизации:
-</translation>
-    </message>
-    <message>
         <source>Please run Throne as admin</source>
         <translation>Пожалуйста, запустите Throne от имени администратора</translation>
     </message>
@@ -3949,11 +3941,11 @@ Please try again.</source>
     </message>
     <message>
         <source>subscriptions</source>
-        <translation>подписки</translation>
+        <translation>подписок</translation>
     </message>
     <message>
         <source>routing profiles</source>
-        <translation>профили маршрутизации</translation>
+        <translation>профилей маршрутизации</translation>
     </message>
     <message>
         <source>Import routing profile</source>
@@ -4053,8 +4045,24 @@ Name: %1</source>
         <translation>Запрос через прокси, но профиль не запущен.</translation>
     </message>
     <message>
+        <source>Download failed: server returned HTTP status %1.</source>
+        <translation>Загрузка не удалась: сервер вернул HTTP-статус %1.</translation>
+    </message>
+    <message>
+        <source>Download failed: the server returned an empty response.</source>
+        <translation>Загрузка не удалась: сервер вернул пустой ответ.</translation>
+    </message>
+    <message>
         <source>Could not open file.</source>
         <translation>Не удалось открыть файл.</translation>
+    </message>
+    <message>
+        <source>Could not write file.</source>
+        <translation>Не удалось записать файл.</translation>
+    </message>
+    <message>
+        <source>Could not save downloaded file.</source>
+        <translation>Не удалось сохранить загруженный файл.</translation>
     </message>
     <message>
         <source>Proxy: %1
@@ -4127,6 +4135,10 @@ Deleted %3 Profiles:
         <translation>Изменение %1:</translation>
     </message>
     <message>
+        <source>Change of %1</source>
+        <translation>Изменение %1</translation>
+    </message>
+    <message>
         <source>Core exited, cleaning up...</source>
         <translation>Ядро завершило работу, очистка...</translation>
     </message>
@@ -4148,7 +4160,7 @@ Deleted %3 Profiles:
     </message>
     <message>
         <source>Added remote routing profiles: %1 of %2 fetched</source>
-        <translation type="unfinished"></translation>
+        <translation>Добавлены профили удаленной маршрутизации: получено %1 из %2.</translation>
     </message>
     <message>
         <source>Update</source>
@@ -4208,7 +4220,7 @@ Release note:
     </message>
     <message>
         <source>Auto-update: running %1</source>
-        <translation>Автообновление: запуск %1</translation>
+        <translation>Запуск автообновления %1</translation>
     </message>
     <message>
         <source>internal error: null profile</source>
@@ -4224,27 +4236,27 @@ Release note:
     </message>
     <message>
         <source>could not parse a routing profile from the response</source>
-        <translation type="unfinished"></translation>
+        <translation>не удалось обработать профиль маршрутизации из ответа</translation>
     </message>
     <message>
         <source>the remote content is a raw routing profile, which is not supported for remote profiles yet</source>
-        <translation type="unfinished"></translation>
+        <translation>удаленный контент представляет собой Raw-профиль маршрутизации, поддержка которого для удаленных профилей пока отсутствует</translation>
     </message>
     <message>
         <source>Updating remote routing profile: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Обновление профиля удаленной маршрутизации: %1</translation>
     </message>
     <message>
         <source>Remote routing profile %1 failed: %2</source>
-        <translation type="unfinished"></translation>
+        <translation>Ошибка получения профиля удаленной маршрутизации %1: %2</translation>
     </message>
     <message>
         <source>Remote routing profile updated: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Профиль удаленной маршрутизации обновлен: %1</translation>
     </message>
     <message>
         <source>Remote routing profiles: %1 updated, %2 failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Удаленные профили маршрутизации: %1 обновлено, %2 неудачно</translation>
     </message>
     <message>
         <source>Downloaded Xray geo asset: %1</source>
@@ -4394,7 +4406,7 @@ outbounds и другие функции Throne. Только для опытн�
     </message>
     <message>
         <source>https://... (throne://route link, base64, or JSON)</source>
-        <translation type="unfinished"></translation>
+        <translation>https://... (throne://route link, base64, или JSON)</translation>
     </message>
     <message>
         <source>Re-fetch this profile from the URL when subscriptions auto-update.
