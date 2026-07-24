@@ -310,6 +310,7 @@ namespace Configs {
             {
                 preReqs->dnsDeps->directDomains << addr;
             }
+            if (!addrs.isEmpty()) preReqs->dnsDeps->needDirectDnsRules = true;
         }
 
         // Hijack
