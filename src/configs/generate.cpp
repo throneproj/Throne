@@ -652,31 +652,57 @@ namespace Configs {
         }
 
         if (dnsDeps->needDirectDnsRules) {
-            rules += QJsonObject{
-                    {"rule_set", dnsDeps->directRuleSets},
-                    {"domain", dnsDeps->directDomains},
-                    {"domain_suffix", dnsDeps->directSuffixes},
-                    {"domain_keyword", dnsDeps->directKeywords},
-                    {"domain_regex", dnsDeps->directRegexes},
-                    {"action", "route"},
-                    {"strategy", dataManager->settingsRepo->direct_dns_strategy},
-                    {"server", "dns-direct"},
-                };
+            // sing-box matches rule_set with AND against the other condition
+            // types (domain/suffix/keyword/regex are OR'd among themselves), so
+            // the rule_set needs its own rule — otherwise plain domains only
+            // match when they also match the rule_set, and proxy server domains
+            // would never reach dns-direct.
+            if (!dnsDeps->directRuleSets.isEmpty()) {
+                rules += QJsonObject{
+                        {"rule_set", dnsDeps->directRuleSets},
+                        {"action", "route"},
+                        {"strategy", dataManager->settingsRepo->direct_dns_strategy},
+                        {"server", "dns-direct"},
+                    };
+            }
+            if (!dnsDeps->directDomains.isEmpty() || !dnsDeps->directSuffixes.isEmpty() ||
+                !dnsDeps->directKeywords.isEmpty() || !dnsDeps->directRegexes.isEmpty()) {
+                rules += QJsonObject{
+                        {"domain", dnsDeps->directDomains},
+                        {"domain_suffix", dnsDeps->directSuffixes},
+                        {"domain_keyword", dnsDeps->directKeywords},
+                        {"domain_regex", dnsDeps->directRegexes},
+                        {"action", "route"},
+                        {"strategy", dataManager->settingsRepo->direct_dns_strategy},
+                        {"server", "dns-direct"},
+                    };
+            }
         }
 
         const bool useDirectFinalDNS = dataManager->settingsRepo->dns_final_out == "direct";
 
         if (dnsDeps->needProxyDnsRules && useDirectFinalDNS) {
-            rules += QJsonObject{
-                    {"rule_set", dnsDeps->proxyRuleSets},
-                    {"domain", dnsDeps->proxyDomains},
-                    {"domain_suffix", dnsDeps->proxySuffixes},
-                    {"domain_keyword", dnsDeps->proxyKeywords},
-                    {"domain_regex", dnsDeps->proxyRegexes},
-                    {"action", "route"},
-                    {"strategy", dataManager->settingsRepo->remote_dns_strategy},
-                    {"server", "dns-remote"},
-                };
+            // Same AND-vs-OR pitfall as the direct rules above.
+            if (!dnsDeps->proxyRuleSets.isEmpty()) {
+                rules += QJsonObject{
+                        {"rule_set", dnsDeps->proxyRuleSets},
+                        {"action", "route"},
+                        {"strategy", dataManager->settingsRepo->remote_dns_strategy},
+                        {"server", "dns-remote"},
+                    };
+            }
+            if (!dnsDeps->proxyDomains.isEmpty() || !dnsDeps->proxySuffixes.isEmpty() ||
+                !dnsDeps->proxyKeywords.isEmpty() || !dnsDeps->proxyRegexes.isEmpty()) {
+                rules += QJsonObject{
+                        {"domain", dnsDeps->proxyDomains},
+                        {"domain_suffix", dnsDeps->proxySuffixes},
+                        {"domain_keyword", dnsDeps->proxyKeywords},
+                        {"domain_regex", dnsDeps->proxyRegexes},
+                        {"action", "route"},
+                        {"strategy", dataManager->settingsRepo->remote_dns_strategy},
+                        {"server", "dns-remote"},
+                    };
+            }
         }
 
         // final rule: proxy
