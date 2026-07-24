@@ -214,6 +214,7 @@ namespace Configs {
                         ctx->error = "Chain hops in routing profile cannot use an extra core, a custom full config, or be of type chain";
                         return;
                     }
+                    if (usesXrayCore(hopEnt)) ctx->proxyUsesXray = true;
                     // Collect domains for DNS direct rules
                     if (auto addrs = getEntDomains({hopID}, ctx->error); !addrs.empty()) {
                         if (!ctx->error.isEmpty()) return;
@@ -230,6 +231,7 @@ namespace Configs {
                 suffix += chain->list.size();
             } else {
                 // Single-hop outbound (existing logic)
+                if (usesXrayCore(neededEnt)) ctx->proxyUsesXray = true;
                 if (auto entAddrs = getEntDomains({neededEnt->id}, ctx->error); !entAddrs.empty())
                 {
                     if (!ctx->error.isEmpty()) return;
@@ -304,6 +306,10 @@ namespace Configs {
             QList<int> groupEnts;
             if (auto frontEntID = group->front_proxy_id; frontEntID >= 0) groupEnts << frontEntID;
             if (auto landingEntID = group->landing_proxy_id; landingEntID >= 0) groupEnts << landingEntID;
+            for (const auto &id : groupEnts)
+            {
+                if (auto pe = Configs::dataManager->profilesRepo->GetProfile(id); pe != nullptr && usesXrayCore(pe)) ctx->proxyUsesXray = true;
+            }
             auto addrs = getEntDomains(groupEnts, ctx->error);
             if (!ctx->error.isEmpty()) return;
             for (const auto &addr: addrs)
@@ -584,6 +590,19 @@ namespace Configs {
                     {"action", "predefined"},
                     {"query_type", "AAAA"},
                     {"rcode", "NXDOMAIN"},
+                };
+        }
+
+        // Xray bridge hops resolve their own server domains through dns-in
+        // (wired via xray_outbound_dns_address). Those queries bootstrap the
+        // chain itself, so they must never be routed over the proxy — that
+        // deadlocks the chain before it can come up.
+        if (!ctx->forTest && ctx->proxyUsesXray) {
+            rules += QJsonObject{
+                    {"inbound", QJsonArray{"dns-in"}},
+                    {"action", "route"},
+                    {"strategy", dataManager->settingsRepo->direct_dns_strategy},
+                    {"server", "dns-direct"},
                 };
         }
 
