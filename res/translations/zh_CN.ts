@@ -167,15 +167,27 @@
         <source>Xray VLESS Preference</source>
         <translation>Xray VLESS 首选项</translation>
     </message>
-	<message>
-        <source>Download geoip.dat now from the URL on the left</source>
-        <translation>现在从左边的 URL 下载 geoip.dat</translation>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Settings for the sing-box&apos;s built-in NTP client&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;singbox 的内置 NTP 客户端的设置&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
-	<message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In minutes&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;分钟为单位&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Xray Geo Assets</source>
+        <translation>Xray Geo 资源</translation>
+    </message>
+    <message>
+        <source>Download geoip.dat now from the URL on the left</source>
+        <translation>立即从左边的 URL 下载 geoip.dat</translation>
+    </message>
+    <message>
         <source>Download</source>
         <translation>下载</translation>
     </message>
-	<message>
+    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;URL for geoip.dat, downloaded when a full Xray config&apos;s routing needs geoip: rules.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;geoip.dat 的 URL，当完整的 Xray 配置的路由需要 geoip: 规则时下载。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
@@ -187,13 +199,9 @@
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;URL for geosite.dat, downloaded when a full Xray config&apos;s routing needs geosite: rules.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;geosite.dat 的 URL，当完整的 Xray 配置的路由需要 geosite: 规则时下载。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
-	<message>
+    <message>
         <source>Download geosite.dat now from the URL on the left</source>
-        <translation>现在从左边的 URL 下载 geosite.dat</translation>
-    </message>
-	<message>
-        <source>Download</source>
-        <translation>下载</translation>
+        <translation>立即从左边的 URL 下载 geosite.dat</translation>
     </message>
     <message>
         <source>GeoSite Asset URL</source>
@@ -266,6 +274,10 @@
     <message>
         <source>Restart Proxy On System Proxy Disable</source>
         <translation>在系统代理禁用时重启代理</translation>
+    </message>
+    <message>
+        <source>Inbound Settings</source>
+        <translation>入站设置</translation>
     </message>
     <message>
         <source>Testing</source>
@@ -347,6 +359,17 @@
         <source>Routing profiles auto update</source>
         <translation>路由配置档自动更新</translation>
     </message>
+    <message>
+        <source>Secret</source>
+        <translation>加密</translation>
+    </message>
+    <message>
+        <source>Miscellaneous</source>
+        <translation>杂项</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Might Improve Ping and Performance&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;可能改善延迟和性能&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     <message>
         <source>Disable Traffic Stats</source>
         <translation>禁用流量统计</translation>
@@ -443,25 +466,6 @@
         <translation>字体</translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Might
-                                                                            Improve Ping and Performance&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
-                                                                        </source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;可能改善延迟和性能&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Settings for the
-                                            sing-box&apos;s built-in NTP client&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
-                                        </source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;适用于 sing-box 的内置 NTP 客户端的设置&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
-</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In
-                                                                minutes&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
-                                                            </source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;分钟为单位&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
         <source>Proxy Format</source>
         <translation>代理格式</translation>
     </message>
@@ -522,10 +526,10 @@
         <translation>超时</translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show each config's security next to its type in the proxy list, e.g. &quot;Trojan (WebSocket+TLS)&quot;. Insecure configs are marked with a warning sign.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show each config&apos;s security next to its type in the proxy list, e.g. &quot;Trojan (WebSocket+TLS)&quot;. Insecure configs are marked with a warning sign.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;在代理列表中在每个配置的类型旁边显示其安全性，例如 &quot;Trojan (WebSocket+TLS)&quot;。不安全的配置会用一个警告符号标记。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
-	<message>
+    <message>
         <source>Show Config Security</source>
         <translation>显示配置安全性</translation>
     </message>
@@ -1310,7 +1314,7 @@ Throne will restart to complete the restore.</source>
     </message>
     <message>
         <source>Uplink HTTP Method</source>
-        <translation>上联 HTTP 方式</translation>
+        <translation>上行 HTTP 方式</translation>
     </message>
     <message>
         <source>HTTP method for upload requests. Default: POST. Xray uppercases it; GET is accepted only in packet-up mode.</source>
@@ -1957,10 +1961,6 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <translation>嗅探模式(流量探测)</translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If not empty, resolves domains in requests according to the strategy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;如果非空，根据策略解析请求中的域&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
         <source>Sniff result for routing</source>
         <translation>用于路由判断的嗅探结果</translation>
     </message>
@@ -2402,7 +2402,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Only one extra-core profile is allowed in a chain.</source>
-        <translation>在代理链中仅允许一个  extra-core  配置档</translation>
+        <translation>在代理链中仅允许一个  extra-core  配置档。</translation>
     </message>
 </context>
 <context>
@@ -3227,7 +3227,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Resolve Domain for group</source>
-        <translation>为分组解析域名</translation>
+        <translation>对本组解析域名</translation>
     </message>
     <message>
         <source>Restart Core</source>
@@ -3259,7 +3259,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Resolve out IP for group</source>
-        <translation>为分组解析 IP</translation>
+        <translation>对本组解析 IP</translation>
     </message>
     <message>
         <source>Clear Test Result</source>
@@ -3282,8 +3282,12 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>点击按速度排序; 右击选择“合计/下载/上传”</translation>
     </message>
     <message>
+        <source>Manage Groups</source>
+        <translation>管理分组</translation>
+    </message>
+    <message>
         <source>Clear Group test result</source>
-        <translation>清除分组测试结果</translation>
+        <translation>清除本组测试结果</translation>
     </message>
     <message>
         <source>Scan QR Code</source>
@@ -3576,6 +3580,22 @@ URL: %2</translation>
         <translation>[interface-bind] 默认路由已更改 (%1 -&gt; %2), 正在重启配置档</translation>
     </message>
     <message>
+        <source>a required category</source>
+        <translation>一个必需的类别</translation>
+    </message>
+    <message>
+        <source>Geo asset missing category</source>
+        <translation>Geo 资源缺失类别</translation>
+    </message>
+    <message>
+        <source>The Xray config &quot;%1&quot; needs &quot;%2&quot;, but the installed %3 does not contain it.
+
+Re-downloading from the same source will not fix this — the data file does not include that category. Set the GeoIP/GeoSite asset URL in Settings to a source that provides &quot;%2&quot;, then delete %3 from the app folder and download it again.</source>
+        <translation>Xray 配置 &quot;%1&quot; 需要 &quot;%2&quot;, 但安装的 %3 不包含它。
+
+从同一来源重新下载无法修复这个问题 — 数据文件不包含该列表。在「设置」中设置 GeoIP/GeoSite 资源 URL 为一个提供 &quot;%2&quot; 的来源，然后从应用文件夹中删除 %3 并重新下载它。</translation>
+    </message>
+    <message>
         <source>Geo asset files required</source>
         <translation>需要 Geo 资源文件</translation>
     </message>
@@ -3647,22 +3667,22 @@ Please start your profile again.</source>
         <source>Add new Group</source>
         <translation>添加新分组</translation>
     </message>
-	<message>
-		<source>Edit current Group</source>
-		<translation>编辑当前分组</translation>
-	</message>
-	<message>
-		<source>Delete current Group</source>
-		<translation>删除当前分组</translation>
-	</message>
-	<message>
-		<source>Update all subscriptions</source>
-		<translation>更新所有订阅</translation>
-	</message>
-	<message>
-		<source>Remove Insecure Configs</source>
-		<translation>移除不安全的配置</translation>
-	</message>
+    <message>
+        <source>Edit current Group</source>
+        <translation>编辑当前分组</translation>
+    </message>
+    <message>
+        <source>Delete current Group</source>
+        <translation>删除当前分组</translation>
+    </message>
+    <message>
+        <source>Update all subscriptions</source>
+        <translation>更新所有订阅</translation>
+    </message>
+    <message>
+        <source>Remove Insecure Configs</source>
+        <translation>移除不安全的配置</translation>
+    </message>
     <message>
         <source>Delete selected Group</source>
         <translation>删除选定分组</translation>
@@ -3681,7 +3701,7 @@ Please start your profile again.</source>
     </message>
     <message>
         <source>Url Test Group</source>
-        <translation>URL 测试分组</translation>
+        <translation>URL 测试本组</translation>
     </message>
     <message>
         <source>Hidden menu</source>
@@ -3909,7 +3929,7 @@ Please start your profile again.</source>
     </message>
     <message>
         <source>Failed to download update assets</source>
-        <translation>下载更新资料失败</translation>
+        <translation>下载更新资源失败</translation>
     </message>
     <message>
         <source>Speedtest Current</source>
@@ -3921,7 +3941,7 @@ Please start your profile again.</source>
     </message>
     <message>
         <source>Speedtest Group</source>
-        <translation>速度测试该分组</translation>
+        <translation>速度测试本组</translation>
     </message>
     <message>
         <source>The last url test did not exit completely, please wait. If it persists, please restart the program.</source>
@@ -4056,16 +4076,8 @@ Name: %1</source>
         <translation>更新</translation>
     </message>
     <message>
-        <source>Enable AdBlock</source>
-        <translation>启用广告屏蔽</translation>
-    </message>
-    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enables the following config to be used as egress, useful for bypassing services restrciting non-warp VPNs&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;启用以下配置作为出口 (egress) 使用，对于绕过限制非 warp VPNs 的服务很有用&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Enable Warp</source>
-        <translation>启用 Warp</translation>
     </message>
     <message>
         <source>Endpoint</source>
@@ -4129,7 +4141,7 @@ Name: %1</source>
     </message>
     <message>
         <source>Back to groups</source>
-        <translation>返回到分组</translation>
+        <translation>返回分组</translation>
     </message>
     <message>
         <source>Previous %1</source>
@@ -4223,8 +4235,24 @@ Release note:
         <translation>用代理请求，但未启动代理配置档。</translation>
     </message>
     <message>
+        <source>Download failed: server returned HTTP status %1.</source>
+        <translation>下载失败: 服务器返回 HTTP 状态 %1。</translation>
+    </message>
+    <message>
+        <source>Download failed: the server returned an empty response.</source>
+        <translation>下载失败: 服务器返回一个空响应。</translation>
+    </message>
+    <message>
         <source>Could not open file.</source>
         <translation>无法打开文件。</translation>
+    </message>
+    <message>
+        <source>Could not write file.</source>
+        <translation>无法写入文件。</translation>
+    </message>
+    <message>
+        <source>Could not save downloaded file.</source>
+        <translation>无法保存下载的文件。</translation>
     </message>
     <message>
         <source>Proxy: %1
@@ -4295,6 +4323,10 @@ Deleted %3 Profiles:
     <message>
         <source>Change of %1:</source>
         <translation>%1 的变化:</translation>
+    </message>
+    <message>
+        <source>Change of %1</source>
+        <translation>%1 的变化</translation>
     </message>
     <message>
         <source>Core exited, cleaning up...</source>
@@ -4416,7 +4448,7 @@ Release note:
         <source>Remote routing profiles: %1 updated, %2 failed</source>
         <translation>远程路由配置档: 更新了 %1 个,失败了 %2 个</translation>
     </message>
-        <message>
+    <message>
         <source>Downloaded Xray geo asset: %1</source>
         <translation>已下载 Xray geo 资源: %1</translation>
     </message>
@@ -4533,7 +4565,7 @@ outbounds and other Throne features may break. For advanced users only.</source>
     </message>
     <message>
         <source>Cannot create Route Profile with empty name</source>
-        <translation>无法用空名称创建路由配置档</translation>
+        <translation>无法创建带空名称的路由配置档</translation>
     </message>
     <message>
         <source>Invalid route</source>
@@ -4828,7 +4860,7 @@ Your local edits are overwritten on each update.</source>
     <name>TrayProfileSelector</name>
     <message>
         <source>Search…</source>
-        <translation>搜索</translation>
+        <translation>搜索...</translation>
     </message>
     <message>
         <source>Close</source>
@@ -4836,7 +4868,7 @@ Your local edits are overwritten on each update.</source>
     </message>
     <message>
         <source>Back to groups</source>
-        <translation>返回到分组</translation>
+        <translation>返回分组</translation>
     </message>
     <message>
         <source>Select Routing</source>
