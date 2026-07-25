@@ -755,8 +755,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     tray->setContextMenu(trayMenu);
     connect(tray, &QSystemTrayIcon::activated, qApp, [=, this](QSystemTrayIcon::ActivationReason reason) {
         if (reason == QSystemTrayIcon::Trigger && getOS() != Darwin) {
-            ActivateWindow(this);
-            refresh_proxy_list_column_size();
+            if (isVisible()) {
+                HideWindow(this);
+            } else {
+                ActivateWindow(this);
+                refresh_proxy_list_column_size();
+            }
         }
     });
 
