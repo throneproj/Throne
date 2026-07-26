@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QCryptographicHash>
 #include <QDir>
+#include <QFileInfo>
 #include <QTranslator>
 #include <QMessageBox>
 #include <QStandardPaths>
@@ -73,12 +74,20 @@ void loadTranslate(const QString& locale) {
     if (trans_qt != nullptr) {
         trans_qt->deleteLater();
     }
-    //
     trans = new QTranslator;
     trans_qt = new QTranslator;
     QLocale::setDefault(QLocale(locale));
     //
-    if (trans->load("/translations/" + locale + ".qm")) {
+    const QString diskPath="/translations/" + locale + ".qm";
+    const QString qrcPath=":/translations/" + locale + ".qm";
+    bool loadOK=false;
+    if (QFileInfo::exists(diskPath)) {
+        loadOK=trans->load(diskPath);
+    }
+    if (!loadOK) {
+        loadOK=trans->load(qrcPath);
+    }
+    if (loadOK) {
         QCoreApplication::installTranslator(trans);
     }
 }
