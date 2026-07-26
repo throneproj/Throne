@@ -7,6 +7,20 @@
 #include <QHeaderView>
 #include <QKeyEvent>
 #include <QMimeData>
+#include <QStyledItemDelegate>
+
+class SelectionAwareDelegate : public QStyledItemDelegate {
+public:
+    using QStyledItemDelegate::QStyledItemDelegate;
+
+protected:
+    void initStyleOption(QStyleOptionViewItem *option, const QModelIndex &index) const override {
+        QStyledItemDelegate::initStyleOption(option, index);
+        if (option->state & QStyle::State_Selected) {
+            option->palette.setBrush(QPalette::Text, option->palette.highlightedText());
+        }
+    }
+};
 
 ProfilesTableView::ProfilesTableView(QWidget *parent)
     : QTableView(parent) {
@@ -21,6 +35,7 @@ ProfilesTableView::ProfilesTableView(QWidget *parent)
     setVerticalHeader(m_verticalHeader);
     m_filterHeader = new ProfilesTableFilterHeader(this);
     setHorizontalHeader(m_filterHeader);
+    setItemDelegate(new SelectionAwareDelegate(this));
 }
 
 void ProfilesTableView::setModel(QAbstractItemModel *model) {
