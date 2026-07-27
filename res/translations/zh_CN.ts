@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="zh">
+<TS version="2.1" language="zh_CN">
 <context>
     <name>DialogBasicSettings</name>
     <message>
@@ -86,6 +86,14 @@
     <message>
         <source>Clear servers before updating subscription</source>
         <translation>更新订阅前清除服务器</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, a window listing added / updated / deleted profiles is shown after a manual subscription update. The same information is always written to the log.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;启用时，在手动更新订阅后显示一个窗口，列出增加/更新/删除的配置档。 同样的信息始终写到日志。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Show the changes window after a manual subscription update</source>
+        <translation>订阅手动更新后显示变化窗口</translation>
     </message>
     <message>
         <source>Enable sending HWID, device model, and OS version when updating subscription</source>
@@ -897,7 +905,7 @@ Throne will restart to complete the restore.</source>
     </message>
     <message>
         <source>Fragment</source>
-        <translation>分段</translation>
+        <translation>分片</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TLS ClientHello fragmentation. The implementation (built-in / custom) and the &amp;quot;Keep Default&amp;quot; behaviour are configured in Settings &gt; Core.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -1221,7 +1229,7 @@ Throne will restart to complete the restore.</source>
     </message>
     <message>
         <source>Fallback Delay</source>
-        <translation>回退延时</translation>
+        <translation>后备延时</translation>
     </message>
     <message>
         <source>Enable TLS Record Fragment</source>
@@ -1395,7 +1403,7 @@ Throne will restart to complete the restore.</source>
     </message>
     <message>
         <source>Length range of the generated session id, e.g. 8-16. Only used together with sessionIDTable; &quot;from&quot; must be greater than 0.</source>
-        <translation>生成的会话 ID 的长度范围，例如 8-16。仅配合 sessionIDTable 一起使用；“from” (从)必须大于 0。</translation>
+        <translation>生成的会话 ID 的长度范围，例如 8-16。仅配合 sessionIDTable 一起使用； “from” (从)必须大于 0。</translation>
     </message>
     <message>
         <source>Sequence Placement</source>
@@ -2062,15 +2070,15 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>Schedule</source>
-        <translation>调度 </translation>
+        <translation>调度计划</translation>
     </message>
     <message>
         <source>Next sub update</source>
-        <translation>下一次订阅更新</translation>
+        <translation>下次订阅更新</translation>
     </message>
     <message>
         <source>Next remote route update</source>
-        <translation>下一次远程路由更新</translation>
+        <translation>下次远程路由更新</translation>
     </message>
     <message>
         <source>System</source>
@@ -2109,7 +2117,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <name>DialogTrafficStats</name>
     <message>
         <source>Download: %1     Upload: %2     Total: %3</source>
-        <translation>下载: %1     上传: %2     合计: %3</translation>
+        <translation>下载(↓): %1  上传(↑): %2  合计(Σ): %3</translation>
     </message>
     <message>
         <source>Direct</source>
@@ -2169,15 +2177,15 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>Download</source>
-        <translation>下载</translation>
+        <translation>下载(↓)</translation>
     </message>
     <message>
         <source>Upload</source>
-        <translation>上传</translation>
+        <translation>上传(↑)</translation>
     </message>
     <message>
         <source>Total</source>
-        <translation>合计</translation>
+        <translation>合计(Σ)</translation>
     </message>
     <message>
         <source>By App</source>
@@ -2514,7 +2522,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Down Mbps</source>
-        <translation>下行 Mbps</translation>
+        <translation>下行(↓ Mbps)</translation>
     </message>
     <message>
         <source>Recv window conn</source>
@@ -2534,7 +2542,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Up Mbps</source>
-        <translation>上行 Mbps</translation>
+        <translation>上行(↑ Mbps)</translation>
     </message>
     <message>
         <source>Authentication Payload</source>
@@ -2562,10 +2570,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Password</source>
         <translation>密码</translation>
-    </message>
-    <message>
-        <source>UUID</source>
-        <translation>UUID</translation>
     </message>
 </context>
 <context>
@@ -2612,10 +2616,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Congestion Control</source>
         <translation>拥塞控制</translation>
-    </message>
-    <message>
-        <source>QUIC</source>
-        <translation>QUIC</translation>
     </message>
 </context>
 <context>
@@ -2790,10 +2790,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <source>Congestion Control</source>
         <translation>拥塞控制</translation>
     </message>
-    <message>
-        <source>QUIC</source>
-        <translation>QUIC</translation>
-    </message>
 </context>
 <context>
     <name>EditTuic</name>
@@ -2812,10 +2808,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Zero RTT Handshake</source>
         <translation>零 RTT 握手</translation>
-    </message>
-    <message>
-        <source>UUID</source>
-        <translation>UUID</translation>
     </message>
     <message>
         <source>Congestion Control</source>
@@ -2837,10 +2829,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation></translation>
     </message>
     <message>
-        <source>UUID</source>
-        <translation>UUID</translation>
-    </message>
-    <message>
         <source>Packet Encoding</source>
         <translation>数据包编码</translation>
     </message>
@@ -2851,10 +2839,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 </context>
 <context>
     <name>EditVless</name>
-    <message>
-        <source>UUID</source>
-        <translation>UUID</translation>
-    </message>
     <message>
         <source>Packet Encoding</source>
         <translation>数据包编码</translation>
@@ -2904,7 +2888,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Response Packet Magic Header (H2)</source>
-        <translation>响应数据包魔术报头r (H2)</translation>
+        <translation>响应数据包魔术报头 (H2)</translation>
     </message>
     <message>
         <source>Init Packet Junk Size (S1)</source>
@@ -2973,14 +2957,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Private Key</source>
         <translation>私钥</translation>
-    </message>
-    <message>
-        <source>1420</source>
-        <translation>1420</translation>
-    </message>
-    <message>
-        <source>MTU</source>
-        <translation>MTU</translation>
     </message>
     <message>
         <source>Workers</source>
@@ -3057,10 +3033,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 </context>
 <context>
     <name>EditXrayVless</name>
-    <message>
-        <source>UUID</source>
-        <translation>UUID</translation>
-    </message>
     <message>
         <source>Encryption</source>
         <translation>加密</translation>
@@ -3475,7 +3447,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
 
 Name: %1
 URL: %2</source>
-        <translation>添加这个订阅?
+        <translation>添加这个订阅吗?
 
 名称: %1
 URL: %2</translation>
@@ -3754,11 +3726,11 @@ Please start your profile again.</source>
     </message>
     <message>
         <source>Download Speed</source>
-        <translation>下载速度</translation>
+        <translation>下载速度(↓)</translation>
     </message>
     <message>
         <source>Upload Speed</source>
-        <translation>上传速度</translation>
+        <translation>上传速度(↑)</translation>
     </message>
     <message>
         <source>IP Out</source>
@@ -4307,15 +4279,19 @@ How to update?</source>
         <source>Process complete, applying...</source>
         <translation>处理完成，正在应用...</translation>
     </message>
-    <message>
+	<message>
         <source>Added %1 profiles:
 %2
-Deleted %3 Profiles:
-%4</source>
-        <translation>添加了 %1 个配置档：
+Updated %3 profiles:
+%4
+Deleted %5 Profiles:
+%6</source>
+        <translation>增加了 %1 个配置档：
 %2
-删除了 %3 个配置档：
-%4</translation>
+更新了 %3 个配置档：
+%4
+删除了 %5 个配置档：
+%6</translation>
     </message>
     <message>
         <source>Nothing</source>
@@ -4323,11 +4299,11 @@ Deleted %3 Profiles:
     </message>
     <message>
         <source>Change of %1:</source>
-        <translation>%1 的变化:</translation>
+        <translation>「%1」的变化:</translation>
     </message>
     <message>
         <source>Change of %1</source>
-        <translation>%1 的变化</translation>
+        <translation>「%1」的变化</translation>
     </message>
     <message>
         <source>Core exited, cleaning up...</source>
@@ -4379,7 +4355,7 @@ Release note:
     </message>
     <message>
         <source>Open in browser</source>
-        <translation>在浏览器打开</translation>
+        <translation>浏览器中打开</translation>
     </message>
     <message>
         <source>Close</source>
@@ -4846,11 +4822,11 @@ Your local edits are overwritten on each update.</source>
     <name>TrafficChartWidget</name>
     <message>
         <source>Download</source>
-        <translation>下载</translation>
+        <translation>下载(↓)</translation>
     </message>
     <message>
         <source>Upload</source>
-        <translation>上传</translation>
+        <translation>上传(↑)</translation>
     </message>
     <message>
         <source>No traffic recorded for this period</source>
