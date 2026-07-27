@@ -344,6 +344,14 @@
         <translation>Отображать безопасность конфигураций</translation>
     </message>
     <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, a window listing added / updated / deleted profiles is shown after a manual subscription update. The same information is always written to the log.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Если эта опция включена, после обновления подписки вручную отображается окно со списком добавленных, обновленных и удаленных профилей. Эта же информация всегда записывается в журнал.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Show the changes window after a manual subscription update</source>
+        <translation>Отображать окно с изменениями после обновления подписки вручную</translation>
+    </message>
+    <message>
         <source>Subscription auto update</source>
         <translation>Авто-обновление подписки</translation>
     </message>
@@ -2162,6 +2170,14 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Disable Private Range Bypass</source>
         <translation>Отключить обход частного диапазона</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Required on newer Linux kernels for the system and mixed stacks to pass traffic. While enabled, this machine cannot be used as a network gateway for other devices.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Требуется в новых версиях ядра Linux для пропуска трафика через системный и смешанный стеки. При включении этой функции данный компьютер нельзя использовать в качестве сетевого шлюза для других устройств.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Auto Redirect</source>
+        <translation>Автоматическое перенаправление</translation>
     </message>
     <message>
         <source>Tun Address</source>
@@ -4119,12 +4135,16 @@ How to update?</source>
     <message>
         <source>Added %1 profiles:
 %2
-Deleted %3 Profiles:
-%4</source>
+Updated %3 profiles:
+%4
+Deleted %5 Profiles:
+%6</source>
         <translation>Добавлено %1 профилей:
 %2
-Удалено %3 профилей:
-%4</translation>
+Обновлено %3 профилей:
+%4
+Удалено %5 профилей:
+%6</translation>
     </message>
     <message>
         <source>Nothing</source>
