@@ -194,6 +194,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->user_agent->setText(Configs::dataManager->settingsRepo->user_agent);
     ui->user_agent->setPlaceholderText(Configs::dataManager->settingsRepo->GetUserAgent(true));
     D_LOAD_BOOL(net_use_proxy)
+    D_LOAD_BOOL(allow_stopping_active_profile)
     D_LOAD_BOOL(sub_clear)
     D_LOAD_BOOL(sub_show_change_popup)
     D_LOAD_BOOL(net_insecure)
@@ -399,6 +400,7 @@ void DialogBasicSettings::accept() {
 
     Configs::dataManager->settingsRepo->user_agent = ui->user_agent->text();
     D_SAVE_BOOL(net_use_proxy)
+    D_SAVE_BOOL(allow_stopping_active_profile)
     D_SAVE_BOOL(sub_clear)
     D_SAVE_BOOL(sub_show_change_popup)
     D_SAVE_BOOL(net_insecure)
