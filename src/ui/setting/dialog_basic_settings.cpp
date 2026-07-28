@@ -7,6 +7,7 @@
 #include "include/global/Configs.hpp"
 #include "include/global/HTTPRequestHelper.hpp"
 #include "include/global/DeviceDetailsHelper.hpp"
+#include "include/configs/common/utils.h"
 
 #include <QStyleFactory>
 #include <QFileDialog>
@@ -248,6 +249,32 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->xray_default_mux->setChecked(Configs::dataManager->settingsRepo->xray_mux_default_on);
     ui->vless_xray_pref->addItems(Configs::Xray::XrayVlessPreferenceString);
     ui->vless_xray_pref->setCurrentIndex(Configs::dataManager->settingsRepo->xray_vless_preference);
+    D_LOAD_BOOL(xray_fragment_default_on)
+    ui->xray_fragment_mode->setCurrentIndex(
+        Configs::dataManager->settingsRepo->xray_fragment_mode == "tcp" ? 1 : 0);
+    D_LOAD_STRING(xray_fragment_packets)
+    D_LOAD_STRING(xray_fragment_size)
+    D_LOAD_STRING(xray_fragment_sleep)
+    D_LOAD_STRING(xray_fragment_max_split)
+    const QRegularExpression xraySingleRange("^[0-9]+(-[0-9]+)?$");
+    const QRegularExpression xrayRangeList(
+        "^[0-9]+(-[0-9]+)?(\\s*,\\s*[0-9]+(-[0-9]+)?)*$");
+    ui->xray_fragment_packets->setValidator(
+        new QRegularExpressionValidator(xraySingleRange, this));
+    ui->xray_fragment_size->setValidator(
+        new QRegularExpressionValidator(xrayRangeList, this));
+    ui->xray_fragment_sleep->setValidator(
+        new QRegularExpressionValidator(xrayRangeList, this));
+    ui->xray_fragment_max_split->setValidator(
+        new QRegularExpressionValidator(xraySingleRange, this));
+    auto syncXrayFragmentParams = [this] {
+        const bool tcpStream = ui->xray_fragment_mode->currentIndex() == 1;
+        ui->xray_fragment_packets_l->setEnabled(tcpStream);
+        ui->xray_fragment_packets->setEnabled(tcpStream);
+    };
+    connect(ui->xray_fragment_mode, &QComboBox::currentIndexChanged, this,
+            [syncXrayFragmentParams](int) { syncXrayFragmentParams(); });
+    syncXrayFragmentParams();
     D_LOAD_STRING(xray_geoip_url)
     D_LOAD_STRING(xray_geosite_url)
     ui->xray_geoip_url->setPlaceholderText("https://github.com/Loyalsoldier/v2ray-rules-dat/raw/release/geoip.dat");
@@ -327,6 +354,39 @@ void DialogBasicSettings::applyRegexHighlighting() {
 }
 
 void DialogBasicSettings::accept() {
+    QString normalized;
+    if (ui->xray_fragment_mode->currentIndex() == 1 &&
+        !Configs::normalizeXrayFragmentRange(
+            ui->xray_fragment_packets->text(), 1, &normalized)) {
+        QMessageBox::warning(this, tr("Invalid Xray TLS fragment settings"),
+            tr("Packets must be a positive integer or ascending range, for example 1-3."));
+        return;
+    }
+    if (ui->xray_fragment_mode->currentIndex() == 1) {
+        ui->xray_fragment_packets->setText(normalized);
+    }
+    if (!Configs::normalizeXrayFragmentRangeList(
+            ui->xray_fragment_size->text(), true, &normalized)) {
+        QMessageBox::warning(this, tr("Invalid Xray TLS fragment settings"),
+            tr("Fragment packet length must be a comma-separated list of ascending ranges, and its last range must be greater than 0."));
+        return;
+    }
+    ui->xray_fragment_size->setText(normalized);
+    if (!Configs::normalizeXrayFragmentRangeList(
+            ui->xray_fragment_sleep->text(), false, &normalized)) {
+        QMessageBox::warning(this, tr("Invalid Xray TLS fragment settings"),
+            tr("Fragment interval must be a comma-separated list of ascending ranges."));
+        return;
+    }
+    ui->xray_fragment_sleep->setText(normalized);
+    if (!Configs::normalizeXrayFragmentRange(
+            ui->xray_fragment_max_split->text(), 0, &normalized)) {
+        QMessageBox::warning(this, tr("Invalid Xray TLS fragment settings"),
+            tr("Maximum fragment count must be 0, a positive integer, or an ascending range."));
+        return;
+    }
+    ui->xray_fragment_max_split->setText(normalized);
+
     // Common
     bool needChoosePort = false;
 
@@ -420,6 +480,13 @@ void DialogBasicSettings::accept() {
     Configs::dataManager->settingsRepo->xray_mux_concurrency = ui->xray_mux_concurrency->text().toInt();
     Configs::dataManager->settingsRepo->xray_mux_default_on = ui->xray_default_mux->isChecked();
     Configs::dataManager->settingsRepo->xray_vless_preference = static_cast<Configs::Xray::XrayVlessPreference>(ui->vless_xray_pref->currentIndex());
+    D_SAVE_BOOL(xray_fragment_default_on)
+    Configs::dataManager->settingsRepo->xray_fragment_mode =
+        ui->xray_fragment_mode->currentIndex() == 1 ? "tcp" : "tlshello";
+    D_SAVE_STRING(xray_fragment_packets)
+    D_SAVE_STRING(xray_fragment_size)
+    D_SAVE_STRING(xray_fragment_sleep)
+    D_SAVE_STRING(xray_fragment_max_split)
     D_SAVE_STRING(xray_geoip_url)
     D_SAVE_STRING(xray_geosite_url)
 

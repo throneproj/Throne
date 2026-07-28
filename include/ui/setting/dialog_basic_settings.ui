@@ -1223,11 +1223,139 @@ QTabBar::tab:hover:!selected {
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QComboBox" name="vless_xray_pref"/>
-          </item>
-         </layout>
-        </widget>
+           <item row="1" column="1">
+            <widget class="QComboBox" name="vless_xray_pref"/>
+           </item>
+           <item row="2" column="0" colspan="2">
+            <widget class="QGroupBox" name="xray_fragment_box">
+             <property name="title">
+              <string>TLS Fragment</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_xray_fragment">
+              <item row="0" column="0">
+               <widget class="QLabel" name="xray_fragment_mode_l">
+                <property name="text">
+                 <string>Mode</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="xray_fragment_mode">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TLS Hello splits the TLS handshake packet. TCP Stream splits the selected client Write calls.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>TLS Hello</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>TCP Stream</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QLabel" name="xray_fragment_packets_l">
+                <property name="text">
+                 <string>Packets</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="3">
+               <widget class="QLineEdit" name="xray_fragment_packets">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TCP Stream mode only: client Write call number or range to fragment (e.g. 1-3).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="4">
+               <widget class="QLabel" name="xray_fragment_size_l">
+                <property name="text">
+                 <string>Fragment Packet Length</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="5">
+               <widget class="QLineEdit" name="xray_fragment_size">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma-separated fragment-size ranges. The Nth value applies to the Nth fragment and the last value repeats (e.g. 3-5,6-8,10-20).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="xray_fragment_sleep_l">
+                <property name="text">
+                 <string>Fragment Interval</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLineEdit" name="xray_fragment_sleep">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma-separated delay ranges. The Nth value applies after the Nth fragment and the last value repeats (e.g. 10-20).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QLabel" name="xray_fragment_max_split_l">
+                <property name="text">
+                 <string>Maximum Fragment Count</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="3">
+               <widget class="QLineEdit" name="xray_fragment_max_split">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum fragment count per processed packet, as an integer or range. 0 means unlimited.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="4" colspan="2">
+               <layout class="QHBoxLayout" name="horizontalLayout_xray_fragment_default">
+                <item>
+                 <spacer name="horizontalSpacer_xray_fragment">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="xray_fragment_default_on">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fragment Xray TLS and REALITY profiles whose TLS Fragment setting is left on &amp;quot;Keep Default&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>Default On</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
        </item>
        <item>
         <spacer name="verticalSpacer_core">

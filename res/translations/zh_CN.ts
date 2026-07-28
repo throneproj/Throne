@@ -393,7 +393,79 @@
     </message>
     <message>
         <source>TLS Fragment</source>
-        <translation>TLS 分段</translation>
+        <translation>TLS 分片</translation>
+    </message>
+    <message>
+        <source>Mode</source>
+        <translation>模式</translation>
+    </message>
+    <message>
+        <source>TLS Hello</source>
+        <translation>TLS Hello</translation>
+    </message>
+    <message>
+        <source>TCP Stream</source>
+        <translation>TCP 流</translation>
+    </message>
+    <message>
+        <source>Packets</source>
+        <translation>写入范围</translation>
+    </message>
+    <message>
+        <source>Fragment Packet Length</source>
+        <translation>分片包长</translation>
+    </message>
+    <message>
+        <source>Fragment Interval</source>
+        <translation>分片间隔</translation>
+    </message>
+    <message>
+        <source>Maximum Fragment Count</source>
+        <translation>最大分片次数</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TLS Hello splits the TLS handshake packet. TCP Stream splits the selected client Write calls.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TLS Hello 对 TLS 握手包进行切片；TCP 流对指定范围内的客户端写入调用进行切片。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TCP Stream mode only: client Write call number or range to fragment (e.g. 1-3).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;仅用于 TCP 流模式：需要分片的客户端写入调用序号或范围（例如 1-3）。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma-separated fragment-size ranges. The Nth value applies to the Nth fragment and the last value repeats (e.g. 3-5,6-8,10-20).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;以逗号分隔的分片大小范围。第 N 项作用于第 N 个分片，最后一项会重复使用（例如 3-5,6-8,10-20）。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma-separated delay ranges. The Nth value applies after the Nth fragment and the last value repeats (e.g. 10-20).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;以逗号分隔的睡眠范围。第 N 项作用于第 N 个分片之后，最后一项会重复使用（例如 10-20）。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum fragment count per processed packet, as an integer or range. 0 means unlimited.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;每个被处理数据包的最大分片数，可填写整数或范围；0 表示不限制。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fragment Xray TLS and REALITY profiles whose TLS Fragment setting is left on &amp;quot;Keep Default&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;为 TLS 分片设置保留为“保持默认”的 Xray TLS 和 REALITY 节点启用分片。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Invalid Xray TLS fragment settings</source>
+        <translation>Xray TLS 分片设置无效</translation>
+    </message>
+    <message>
+        <source>Packets must be a positive integer or ascending range, for example 1-3.</source>
+        <translation>写入范围必须是正整数或递增范围，例如 1-3。</translation>
+    </message>
+    <message>
+        <source>Fragment packet length must be a comma-separated list of ascending ranges, and its last range must be greater than 0.</source>
+        <translation>分片包长必须是以逗号分隔的递增范围列表，并且最后一个范围必须大于 0。</translation>
+    </message>
+    <message>
+        <source>Fragment interval must be a comma-separated list of ascending ranges.</source>
+        <translation>分片间隔必须是以逗号分隔的递增范围列表。</translation>
+    </message>
+    <message>
+        <source>Maximum fragment count must be 0, a positive integer, or an ascending range.</source>
+        <translation>最大分片次数必须是 0、正整数或递增范围。</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Which TLS fragmentation implementation profiles use: built-in (sing-box tls.fragment) or custom (Hiddify dialer-level ClientHello fragmentation).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -842,6 +914,14 @@ Throne will restart to complete the restore.</source>
     <message>
         <source>Multiplex</source>
         <translation>多路复用</translation>
+    </message>
+    <message>
+        <source>TLS Fragment</source>
+        <translation>TLS 分片</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;FinalMask TLS fragmentation for this Xray profile. &amp;quot;Keep Default&amp;quot; follows the global &amp;quot;Default On&amp;quot; setting in Settings &gt; Core.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;此 Xray 节点的 FinalMask TLS 分片设置。“保持默认”会跟随“设置 &gt; 核心”中的全局“默认开启”设置。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Keep Default</source>
@@ -1452,18 +1532,6 @@ Throne will restart to complete the restore.</source>
     <message>
         <source>XHTTP maxConnections cannot be specified together with maxConcurrency.</source>
         <translation>XHTTP 中 maxConnections 不能与 maxConcurrency 同时指定。</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TLS ClientHello 分片。该实现 (built-in / custom) 以及 &amp;quot;Keep Default&amp;quot; (保持默认)的行为在&amp;quot;设置 &gt; 核心&amp;quot;中配置。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;May degrade performance, try record fragment first&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;可能降低性能，请先尝试记录片段&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Enable TLS fragment</source>
-        <translation>启用 TLS 片段</translation>
     </message>
 </context>
 <context>

@@ -17,4 +17,10 @@ namespace Configs
     QString getHeadersString(QStringList headers);
 
     QStringList parseHeaderPairs(const QString& rawHeader);
+
+    bool normalizeXrayFragmentRange(const QString& value, qint64 minimum,
+                                    QString* normalized);
+
+    bool normalizeXrayFragmentRangeList(const QString& value, bool positiveLast,
+                                        QString* normalized);
 }

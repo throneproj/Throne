@@ -181,6 +181,38 @@
             <item row="1" column="1">
              <widget class="QComboBox" name="xray_security"/>
             </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="xray_fragment_l">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;FinalMask TLS fragmentation for this Xray profile. &amp;quot;Keep Default&amp;quot; follows the global &amp;quot;Default On&amp;quot; setting in Settings &gt; Core.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>TLS Fragment</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QComboBox" name="xray_fragment">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;FinalMask TLS fragmentation for this Xray profile. &amp;quot;Keep Default&amp;quot; follows the global &amp;quot;Default On&amp;quot; setting in Settings &gt; Core.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <item>
+               <property name="text">
+                <string>Keep Default</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Enabled</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Disabled</string>
+               </property>
+              </item>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>

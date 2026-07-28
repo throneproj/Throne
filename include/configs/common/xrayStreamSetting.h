@@ -152,6 +152,21 @@ namespace Configs {
         std::shared_ptr<xrayWS> ws = std::make_shared<xrayWS>();
         std::shared_ptr<xrayHttpUpgrade> httpupgrade = std::make_shared<xrayHttpUpgrade>();
         std::shared_ptr<xrayGRPC> grpc = std::make_shared<xrayGRPC>();
+        // Profile-level FinalMask fragment tri-state. Unspecified profiles
+        // inherit xray_fragment_default_on.
+        bool fragment = false;
+        bool fragment_unspecified = true;
+
+        int getFragmentState() const {
+            if (fragment) return 1;
+            if (fragment_unspecified) return 0;
+            return 2;
+        }
+        void saveFragmentState(int state) {
+            fragment = state == 1;
+            fragment_unspecified = state == 0;
+        }
+        bool FragmentEffectivelyOn() const;
 
         bool ParseFromLink(const QString& link) override;
         bool ParseFromJson(const QJsonObject& object) override;

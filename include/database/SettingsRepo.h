@@ -264,6 +264,18 @@ namespace Configs {
         QString xray_log_level = "warning";
         int xray_mux_concurrency = 8;
         bool xray_mux_default_on = false;
+        // Xray FinalMask fragmentation for standard TLS/REALITY profiles.
+        // Profiles left on "Keep Default" inherit xray_fragment_default_on;
+        // explicit profile selections override that default.
+        // "tlshello" fragments the TLS ClientHello, while "tcp" fragments the
+        // configured range of client Write calls. Size/sleep are comma-separated
+        // Int32Range sequences mapped to FinalMask lengths/delays.
+        bool xray_fragment_default_on = false;
+        QString xray_fragment_mode = "tlshello";
+        QString xray_fragment_packets = "1-3";
+        QString xray_fragment_size = "10-20";
+        QString xray_fragment_sleep = "10-20";
+        QString xray_fragment_max_split = "3-6";
         Xray::XrayVlessPreference xray_vless_preference = Xray::XhttpAndReality;
         // Download URLs for the Xray routing data files (geoip.dat / geosite.dat).
         // Needed when a full Xray config's routing references geoip:/geosite: tags.

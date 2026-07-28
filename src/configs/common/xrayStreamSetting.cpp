@@ -13,6 +13,23 @@ namespace Configs {
             return !value.empty();
         }
 
+        QJsonArray xrayFragmentRangeArray(const QString& value, const QString& fallback,
+                                          bool positiveLast) {
+            auto parse = [positiveLast](const QString& source) {
+                QString normalized;
+                if (!normalizeXrayFragmentRangeList(source, positiveLast, &normalized)) {
+                    return QJsonArray{};
+                }
+
+                QJsonArray result;
+                for (const auto& range : normalized.split(',')) result.append(range);
+                return result;
+            };
+
+            QJsonArray result = parse(value);
+            return result.isEmpty() ? parse(fallback) : result;
+        }
+
         void addXmuxField(QJsonObject& xmux, const QString& key, const std::string& value) {
             if (hasText(value)) xmux[key] = qs(value);
         }
@@ -750,6 +767,13 @@ namespace Configs {
         if (query.hasQueryItem("type")) network = query.queryItemValue("type").replace("tcp", "raw");
         if (!Configs::XrayNetworks.contains(network)) return false;
         if (query.hasQueryItem("security")) security = query.queryItemValue("security");
+        if (query.hasQueryItem("xray_fragment")) {
+            fragment = query.queryItemValue("xray_fragment") == "true";
+            fragment_unspecified = false;
+        } else {
+            fragment = false;
+            fragment_unspecified = true;
+        }
         if (security == "tls") TLS->ParseFromLink(link);
         else if (security == "reality") reality->ParseFromLink(link);
         if (network == "xhttp") xhttp->ParseFromLink(link);
@@ -766,6 +790,13 @@ namespace Configs {
         if (object.contains("network")) network = object.value("network").toString();
         if (!Configs::XrayNetworks.contains(network)) return false;
         if (object.contains("security")) security = object.value("security").toString();
+        if (object.contains("fragment")) {
+            fragment = object["fragment"].toBool();
+            fragment_unspecified = false;
+        } else {
+            fragment = false;
+            fragment_unspecified = true;
+        }
         if (security == "tls" && object["tlsSettings"].isObject()) TLS->ParseFromJson(object["tlsSettings"].toObject());
         else if (security == "reality" && object["realitySettings"].isObject()) reality->ParseFromJson(object["realitySettings"].toObject());
         if (network == "xhttp" && object["xhttpSettings"].isObject()) xhttp->ParseFromJson(object["xhttpSettings"].toObject());
@@ -776,6 +807,8 @@ namespace Configs {
     }
 
     bool xrayStreamSetting::ParseFromClash(const clash::Proxies& object) {
+        fragment = false;
+        fragment_unspecified = true;
         if (!object.network.empty()) network = QString::fromStdString(object.network);
         if (network != "raw" && network != "ws" && network != "grpc" && network != "xhttp") return false;
         if (object.tls) {
@@ -804,6 +837,9 @@ namespace Configs {
         QUrlQuery query;
         if (!network.isEmpty()) query.addQueryItem("type", network);
         if (!security.isEmpty()) query.addQueryItem("security", security);
+        if (!fragment_unspecified) {
+            query.addQueryItem("xray_fragment", fragment ? "true" : "false");
+        }
         if (security == "tls") mergeUrlQuery(query, TLS->ExportToLink());
         if (security == "reality") mergeUrlQuery(query, reality->ExportToLink());
         if (network == "xhttp") mergeUrlQuery(query, xhttp->ExportToLink());
@@ -817,6 +853,9 @@ namespace Configs {
         QJsonObject object;
         object["network"] = network;
         object["security"] = security;
+        // Internal profile metadata; Build() removes it before passing the
+        // streamSettings object to Xray.
+        if (!fragment_unspecified) object["fragment"] = fragment;
         if (security == "tls") object["tlsSettings"] = TLS->ExportToJson();
         else if (security == "reality") object["realitySettings"] = reality->ExportToJson();
         if (network == "xhttp") object["xhttpSettings"] = xhttp->ExportToJson();
@@ -850,10 +889,46 @@ namespace Configs {
         return "UseIP";
     }
 
+    bool xrayStreamSetting::FragmentEffectivelyOn() const {
+        if (fragment) return true;
+        if (fragment_unspecified) return Configs::dataManager->settingsRepo->xray_fragment_default_on;
+        return false;
+    }
+
     BuildResult xrayStreamSetting::Build() {
         // Egress interface binding and outbound domain resolution are wired onto
         // the Xray instance after creation (ThroneWiring), not baked into the
         // config, so no sockopt is emitted here.
-        return {ExportToJson(), ""};
+        auto object = ExportToJson();
+        object.remove("fragment");
+        auto settings = Configs::dataManager->settingsRepo.get();
+        if ((security == "tls" || security == "reality") && FragmentEffectivelyOn()) {
+            QString packets = "tlshello";
+            if (settings->xray_fragment_mode == "tcp" &&
+                !normalizeXrayFragmentRange(settings->xray_fragment_packets, 1, &packets)) {
+                packets = "1-3";
+            }
+            QString maxSplit;
+            if (!normalizeXrayFragmentRange(
+                    settings->xray_fragment_max_split, 0, &maxSplit)) {
+                maxSplit = "3-6";
+            }
+            object["finalmask"] = QJsonObject{
+                {"tcp", QJsonArray{
+                    QJsonObject{
+                        {"type", "fragment"},
+                        {"settings", QJsonObject{
+                            {"packets", packets},
+                            {"lengths", xrayFragmentRangeArray(
+                                settings->xray_fragment_size, "10-20", true)},
+                            {"delays", xrayFragmentRangeArray(
+                                settings->xray_fragment_sleep, "10-20", false)},
+                            {"maxSplit", maxSplit},
+                        }},
+                    },
+                }},
+            };
+        }
+        return {object, ""};
     }
 }

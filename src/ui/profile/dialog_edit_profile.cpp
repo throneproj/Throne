@@ -242,6 +242,9 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
 
     ui->xray_security_box->hide();
     connect(ui->xray_security, &QComboBox::currentTextChanged, this, [=,this](const QString &txt) {
+        const bool supportsFragment = txt == "tls" || txt == "reality";
+        ui->xray_fragment_l->setEnabled(supportsFragment);
+        ui->xray_fragment->setEnabled(supportsFragment);
         if (txt.isEmpty()) {
             ui->xray_security_box->setVisible(false);
             if (ui->xray_network_box->isHidden()) ui->xray_widget->hide();
@@ -259,6 +262,7 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
         }
         queueRefreshDialogLayout();
     });
+    emit ui->xray_security->currentTextChanged(ui->xray_security->currentText());
 
     newEnt = _type != "";
     if (newEnt) {
@@ -539,6 +543,7 @@ void DialogEditProfile::typeSelected(const QString &newType) {
 
         ui->xray_network->setCurrentText(xrayStream->network);
         ui->xray_security->setCurrentText(xrayStream->security);
+        ui->xray_fragment->setCurrentIndex(xrayStream->getFragmentState());
         ui->xray_mux->setCurrentIndex(xrayMux->getMuxState());
 
         ui->xray_sni->setText(xrayStream->security == "tls" ? xrayStream->TLS->serverName : xrayStream->reality->serverName);
@@ -724,6 +729,7 @@ bool DialogEditProfile::onEnd() {
 
         xrayStream->network = ui->xray_network->currentText();
         xrayStream->security = ui->xray_security->currentText();
+        xrayStream->saveFragmentState(ui->xray_fragment->currentIndex());
         xrayMux->saveMuxState(ui->xray_mux->currentIndex());
 
         auto sni = ui->xray_sni->text();
