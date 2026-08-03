@@ -13,6 +13,7 @@ import (
 	"os"
 	"runtime"
 	runtimeDebug "runtime/debug"
+	"runtime/metrics"
 	"runtime/pprof"
 	"syscall"
 	"time"
@@ -22,48 +23,51 @@ import (
 )
 
 const (
-	// Threshold is live heap measured after a forced GC: hitting it below the
-	// soft limit means the GC is thrashing and cannot win
+	// Threshold is live heap after a forced GC, kept under memoryLimit:
+	// that much surviving under the soft limit means the GC is thrashing
 	memoryLimit           = 2 * 1024 * 1024 * 1024 // 2GB
 	memoryPanicThreshold  = 1536 * 1024 * 1024     // 1.5GB
 	memoryCheckInterval   = 2 * time.Second
 	memoryForcedGCBackoff = 30 * time.Second
 )
 
+// liveHeap avoids HeapAlloc, which also counts unswept garbage and sawtooths
+// up to the GC target (live set x GOGC, capped by memoryLimit),
+// so a bare threshold on it fires on a perfectly healthy heap
+func liveHeap() uint64 {
+	sample := []metrics.Sample{{Name: "/gc/heap/live:bytes"}}
+	metrics.Read(sample)
+	return sample[0].Value.Uint64()
+}
+
 // watchMemory takes the core down when the live heap runs away
-//
-// HeapAlloc counts unswept garbage and sawtooths up to the GC target (live
-// set x GOGC, capped by memoryLimit), so a bare threshold on it fires on
-// a healthy heap - only a heap still oversized after a forced GC means a leak
 func watchMemory() {
-	var memStats runtime.MemStats
 	for {
 		time.Sleep(memoryCheckInterval)
 
-		runtime.ReadMemStats(&memStats)
-		if memStats.HeapAlloc < memoryPanicThreshold {
+		if liveHeap() < memoryPanicThreshold {
 			continue
 		}
-		allocated := memStats.HeapAlloc
 
+		// The metric is only as fresh as the last cycle, and one that ran
+		// during a burst can mark short-lived objects as live
 		runtimeDebug.FreeOSMemory()
-		runtime.ReadMemStats(&memStats)
-		if memStats.HeapAlloc < memoryPanicThreshold {
+		live := liveHeap()
+		if live < memoryPanicThreshold {
 			// FreeOSMemory is stop-the-world, do not repeat it every tick
 			// while a busy core legitimately sits near the threshold
 			time.Sleep(memoryForcedGCBackoff)
 			continue
 		}
 
-		log.Printf("memory watchdog: %d MiB live after a forced GC (%d MiB before), %d goroutines",
-			memStats.HeapAlloc>>20, allocated>>20, runtime.NumGoroutine())
+		log.Printf("memory watchdog: %d MiB live after a forced GC, %d goroutines",
+			live>>20, runtime.NumGoroutine())
 		if path, err := writeHeapProfile(); err != nil {
 			log.Printf("memory watchdog: could not write heap profile: %v", err)
 		} else {
 			log.Printf("memory watchdog: heap profile written to %s", path)
 		}
-		panic(fmt.Sprintf("Live heap reached %d MiB after a forced GC, this is not normal",
-			memStats.HeapAlloc>>20))
+		panic(fmt.Sprintf("Live heap reached %d MiB after a forced GC, this is not normal", live>>20))
 	}
 }
 
