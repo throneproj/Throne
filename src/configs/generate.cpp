@@ -1024,6 +1024,18 @@ namespace Configs {
             object["tag"] = tag;
             if (!nextTag.isEmpty() && link) object["detour"] = nextTag;
             if (warpWrap && idx == 0) object["detour"] = "warp-bypass";
+            // sing-box 1.13.x does not reliably route TCP/UDP from a regular
+            // route rule into a WireGuard endpoint. In TUN mode, match the
+            // manual workaround users currently need for route-target chains:
+            // bind the generated route endpoint to Throne's TUN interface,
+            // while preserving any explicit bind_interface advanced setting.
+            if (prefix == "route" && idx == 0 && ctx->tunEnabled
+                && object["type"].toString() == "wireguard"
+                && !object.contains("bind_interface"))
+            {
+                const auto tunName = genTunName();
+                if (!tunName.isEmpty()) object["bind_interface"] = tunName;
+            }
             if (ent->outbound->IsEndpoint())
             {
                 ctx->endpoints.append(object);
