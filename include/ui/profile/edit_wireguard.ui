@@ -399,6 +399,42 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>private_key</tabstop>
+  <tabstop>public_key</tabstop>
+  <tabstop>preshared_key</tabstop>
+  <tabstop>reserved</tabstop>
+  <tabstop>persistent_keepalive</tabstop>
+  <tabstop>local_addr</tabstop>
+  <tabstop>mtu</tabstop>
+  <tabstop>workers</tabstop>
+  <tabstop>sys_ifc</tabstop>
+  <tabstop>warp_autogen</tabstop>
+  <tabstop>enable_amnezia</tabstop>
+  <tabstop>jc</tabstop>
+  <tabstop>jmin</tabstop>
+  <tabstop>jmax</tabstop>
+  <tabstop>s1</tabstop>
+  <tabstop>s2</tabstop>
+  <tabstop>s3</tabstop>
+  <tabstop>s4</tabstop>
+  <tabstop>h1</tabstop>
+  <tabstop>h2</tabstop>
+  <tabstop>h3</tabstop>
+  <tabstop>h4</tabstop>
+  <tabstop>i1</tabstop>
+  <tabstop>i2</tabstop>
+  <tabstop>i3</tabstop>
+  <tabstop>i4</tabstop>
+  <tabstop>i5</tabstop>
+  <tabstop>header_protection_key</tabstop>
+  <tabstop>content_padding_addition</tabstop>
+  <tabstop>rekey_after_time</tabstop>
+  <tabstop>rekey_timeout</tabstop>
+  <tabstop>reject_after_time</tabstop>
+  <tabstop>keepalive_timeout</tabstop>
+  <tabstop>max_handshake_attempts</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

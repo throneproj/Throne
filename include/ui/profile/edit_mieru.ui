@@ -90,6 +90,10 @@
  <tabstops>
   <tabstop>username</tabstop>
   <tabstop>password</tabstop>
+  <tabstop>transport</tabstop>
+  <tabstop>multiplexing</tabstop>
+  <tabstop>traffic_pattern</tabstop>
+  <tabstop>server_ports</tabstop>
  </tabstops>
  <resources/>
  <connections/>

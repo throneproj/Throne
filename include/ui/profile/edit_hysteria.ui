@@ -160,6 +160,20 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>protocol_version</tabstop>
+  <tabstop>server_ports</tabstop>
+  <tabstop>hop_interval</tabstop>
+  <tabstop>up_mbps</tabstop>
+  <tabstop>down_mbps</tabstop>
+  <tabstop>obfs</tabstop>
+  <tabstop>auth_type</tabstop>
+  <tabstop>auth</tabstop>
+  <tabstop>recv_window_conn</tabstop>
+  <tabstop>recv_window</tabstop>
+  <tabstop>disable_mtu_discovery</tabstop>
+  <tabstop>password</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -91,6 +91,13 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>username</tabstop>
+  <tabstop>password</tabstop>
+  <tabstop>health_check</tabstop>
+  <tabstop>quic</tabstop>
+  <tabstop>congestion_control</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

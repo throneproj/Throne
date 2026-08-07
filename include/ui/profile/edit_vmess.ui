@@ -127,6 +127,7 @@
   <tabstop>uuid</tabstop>
   <tabstop>aid</tabstop>
   <tabstop>uuidgen</tabstop>
+  <tabstop>packet_encoding</tabstop>
   <tabstop>security</tabstop>
  </tabstops>
  <resources/>

@@ -107,6 +107,15 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>uuid</tabstop>
+  <tabstop>password</tabstop>
+  <tabstop>congestion_control</tabstop>
+  <tabstop>udp_relay_mode</tabstop>
+  <tabstop>udp_over_stream</tabstop>
+  <tabstop>zero_rtt</tabstop>
+  <tabstop>heartbeat</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

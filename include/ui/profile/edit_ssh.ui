@@ -109,6 +109,17 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>user</tabstop>
+  <tabstop>password</tabstop>
+  <tabstop>private_key</tabstop>
+  <tabstop>private_key_path</tabstop>
+  <tabstop>choose_pk</tabstop>
+  <tabstop>private_key_pass</tabstop>
+  <tabstop>host_key</tabstop>
+  <tabstop>host_key_algs</tabstop>
+  <tabstop>client_version</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

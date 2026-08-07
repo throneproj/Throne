@@ -57,6 +57,11 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>version</tabstop>
+  <tabstop>username</tabstop>
+  <tabstop>password</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

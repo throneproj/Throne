@@ -632,6 +632,32 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>group</tabstop>
+  <tabstop>name_filter</tabstop>
+  <tabstop>balance</tabstop>
+  <tabstop>pinned_clear</tabstop>
+  <tabstop>advanced_toggle</tabstop>
+  <tabstop>country_filter</tabstop>
+  <tabstop>build_limit</tabstop>
+  <tabstop>pool_cap</tabstop>
+  <tabstop>result_validity</tabstop>
+  <tabstop>exclude_unavailable</tabstop>
+  <tabstop>expected</tabstop>
+  <tabstop>active_size</tabstop>
+  <tabstop>interval</tabstop>
+  <tabstop>bench_interval</tabstop>
+  <tabstop>watch_interval</tabstop>
+  <tabstop>sampling</tabstop>
+  <tabstop>tolerance</tabstop>
+  <tabstop>max_rtt</tabstop>
+  <tabstop>dial_retries</tabstop>
+  <tabstop>interrupt_on_switch</tabstop>
+  <tabstop>balance_mode</tabstop>
+  <tabstop>balance_interval</tabstop>
+  <tabstop>test_url</tabstop>
+  <tabstop>connectivity_url</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

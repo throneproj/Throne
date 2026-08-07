@@ -81,6 +81,13 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>username</tabstop>
+  <tabstop>password</tabstop>
+  <tabstop>uot</tabstop>
+  <tabstop>quic</tabstop>
+  <tabstop>congestion_control</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

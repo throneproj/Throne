@@ -117,6 +117,19 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>state_dir</tabstop>
+  <tabstop>auth_key</tabstop>
+  <tabstop>control_plane</tabstop>
+  <tabstop>hostname</tabstop>
+  <tabstop>exit_node</tabstop>
+  <tabstop>advertise_routes</tabstop>
+  <tabstop>global_dns</tabstop>
+  <tabstop>ephemeral</tabstop>
+  <tabstop>accept_route</tabstop>
+  <tabstop>exit_node_lan_access</tabstop>
+  <tabstop>advertise_exit_node</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -227,6 +227,25 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>reuse_addr</tabstop>
+  <tabstop>tcp_fast_open</tabstop>
+  <tabstop>udp_fragment</tabstop>
+  <tabstop>tcp_multipath</tabstop>
+  <tabstop>connect_timeout</tabstop>
+  <tabstop>bind_interface</tabstop>
+  <tabstop>inet4_bind_address</tabstop>
+  <tabstop>inet6_bind_address</tabstop>
+  <tabstop>disable_sni</tabstop>
+  <tabstop>min_version</tabstop>
+  <tabstop>max_version</tabstop>
+  <tabstop>enable_ech</tabstop>
+  <tabstop>ech_server_name</tabstop>
+  <tabstop>ech_config</tabstop>
+  <tabstop>cert_sha256</tabstop>
+  <tabstop>client_cert</tabstop>
+  <tabstop>client_key</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

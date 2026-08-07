@@ -53,6 +53,11 @@
    <header>include/ui/utils/MyLineEdit.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>uuid</tabstop>
+  <tabstop>flow</tabstop>
+  <tabstop>packet_encoding</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
