@@ -2,6 +2,145 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="zh_CN">
 <context>
+    <name>DialogAutoSelector</name>
+    <message>
+        <source>Auto Selector Stats</source>
+        <translation>自动下载统计</translation>
+    </message>
+    <message>
+        <source>Only show profiles with problems</source>
+        <translation>仅显示有问题的配置档</translation>
+    </message>
+    <message>
+        <source>Use this profile</source>
+        <translation>使用这个配置档</translation>
+    </message>
+    <message>
+        <source>Keep the selected profile in use instead of letting the ranking choose. Useful when several profiles measure much the same and you prefer one of them.
+
+It stays a preference, not a lock: if that profile stops working the selector still moves on, and comes back to your choice once it recovers.</source>
+        <translation>保持当前选定的配置档(Profile)而不是让排名选择。在多个配置档测量结果非常接近而你更怕于使用其中某个时就很有用。
+
+它只是偏好选项，而不是锁定：如果配置档停止工作，则选择器仍会继续切换，并在其恢复后回到你的选择。</translation>
+    </message>
+    <message>
+        <source>Back to automatic</source>
+        <translation>回到自动</translation>
+    </message>
+    <message>
+        <source>Stop preferring a particular profile and let the ranking decide again.</source>
+        <translation>停止优选特定配置档，并再次由排名决定。</translation>
+    </message>
+    <message>
+        <source>Check all now</source>
+        <translation>立即检查全部</translation>
+    </message>
+    <message>
+        <source>Re-measure every running profile immediately instead of waiting for the next scheduled check.</source>
+        <translation>立即重测每个正在运行的配置档而不是等待下一次定时检查。</translation>
+    </message>
+    <message>
+        <source>Re-checking every profile...</source>
+        <translation>重新检查每个配置档...</translation>
+    </message>
+    <message>
+        <source>Profile</source>
+        <translation>配置档</translation>
+    </message>
+    <message>
+        <source>Status</source>
+        <translation>状态</translation>
+    </message>
+    <message>
+        <source>Latency</source>
+        <translation>延迟</translation>
+    </message>
+    <message>
+        <source>Jitter</source>
+        <translation>抖动</translation>
+    </message>
+    <message>
+        <source>Checks</source>
+        <translation>检查数</translation>
+    </message>
+    <message>
+        <source>Connects</source>
+        <translation>连接数</translation>
+    </message>
+    <message>
+        <source>Last OK</source>
+        <translation>最后通过</translation>
+    </message>
+    <message>
+        <source>Notes</source>
+        <translation>备注</translation>
+    </message>
+    <message>
+        <source>Could not change the profile: %1</source>
+        <translation>无法更改该配置档: %1</translation>
+    </message>
+    <message>
+        <source>Back to automatic — the selector will choose again.</source>
+        <translation>回到自动 - 选择器将再次选择。</translation>
+    </message>
+    <message>
+        <source>Now using your chosen profile.</source>
+        <translation>现在正在使用你选择的配置档。</translation>
+    </message>
+    <message>
+        <source>No auto selector is running.</source>
+        <translation>没有正在运行的选择器。</translation>
+    </message>
+    <message>
+        <source>Checks are paused because this machine has no network connection. No profile is being blamed for it, and the ranking is frozen until the connection returns.</source>
+        <translation>因状态机器没有网络连接，检查被暂停。对此不归咎于任何配置档，并在连接恢复前冻结排名结果。</translation>
+    </message>
+    <message>
+        <source>Last check round %1.</source>
+        <translation>最后一次检查轮次 %1。</translation>
+    </message>
+    <message>
+        <source>Next in %1s.</source>
+        <translation>下一次在 %1 秒后。</translation>
+    </message>
+    <message>
+        <source>Using %1 because you chose it.</source>
+        <translation>正在使用 %1, 因为你选择它。</translation>
+    </message>
+    <message>
+        <source>You chose %1, but it is not working right now, so the selector picked another. It will go back to yours once it recovers.</source>
+        <translation>你选择了 %1，但它目前不起效，因此选择器选取了另一个。一旦它恢复正常，就会回到你的选择。</translation>
+    </message>
+    <message>
+        <source>Last switch %1 (%2).</source>
+        <translation>最后一次切换 %1 (%2)。</translation>
+    </message>
+    <message>
+        <source>Nothing is working right now — if this holds, the selector will rebuild from the next best profiles.</source>
+        <translation>目前没有任何起效的配置档 - 如果这种情况持续，选择器将从下一个最佳配置档开始重建。</translation>
+    </message>
+    <message>
+        <source>%1 ms</source>
+        <translation>%1 毫秒</translation>
+    </message>
+    <message>
+        <source>Best %1 ms, worst %2 ms</source>
+        <translation>最好 %1 毫秒, 最差 %2 毫秒</translation>
+    </message>
+    <message>
+        <source>How much the latency moves around. The selector prefers steady profiles over fast but erratic ones.</source>
+        <translation>延迟波动幅度有多大。选择器更偏向稳定的配置档而不是快速但波动大的。</translation>
+    </message>
+    <message>
+        <source>%1 / %2 ok</source>
+        <translation>%1 / %2 通过</translation>
+    </message>
+    <message>
+        <source>Real connection attempts made by apps through this profile.</source>
+        <translation>通过这个配置档，由应用发出的真实连接尝试次数。</translation>
+    </message>
+</context>
+<context>
     <name>DialogBasicSettings</name>
     <message>
         <source>Basic Settings</source>
@@ -976,120 +1115,8 @@ Throne will restart to complete the restore.</source>
         <translation>多模式</translation>
     </message>
     <message>
-        <source>xPaddingObfsMode</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>xPaddingMethod</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>xPaddingPlacement</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>xPaddingKey</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>xPaddingHeader</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Upload / Stream Tuning</source>
         <translation>上传/串流调优</translation>
-    </message>
-    <message>
-        <source>scMaxEachPostBytes</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>scMinPostsIntervalMs</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>scMaxBufferedPosts</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>uplinkHTTPMethod</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>uplinkDataPlacement</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>uplinkDataKey</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>uplinkChunkSize</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>noGRPCHeader</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>noSSEHeader</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>scStreamUpServerSecs</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>sessionPlacement</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>sessionKey</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>sessionIDTable</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>sessionIDLength</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>seqPlacement</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>seqKey</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Xmux</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>maxConcurrency</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>maxConnections</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>hMaxRequestTimes</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>hMaxReusableSecs</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>cMaxReuseTimes</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>hKeepAlivePeriod</source>
-        <translation></translation>
     </message>
     <message>
         <source>Max Concurrency</source>
@@ -1204,10 +1231,6 @@ Throne will restart to complete the restore.</source>
         <translation>Mb/秒</translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Method of http request, will be converted to uppercase&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;HTTP 请求的方法，将被转换为大写字母&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
@@ -1291,7 +1314,7 @@ Throne will restart to complete the restore.</source>
     </message>
     <message>
         <source>Padding Key</source>
-        <translation>Padding 钥匙</translation>
+        <translation>Padding 键</translation>
     </message>
     <message>
         <source>Query or cookie key for X-Padding, and query key inside queryInHeader. Default: x_padding.</source>
@@ -1587,10 +1610,6 @@ Throne will restart to complete the restore.</source>
         <translation>生成 Warp 配置</translation>
     </message>
     <message>
-        <source>DNS</source>
-        <translation>DNS</translation>
-    </message>
-    <message>
         <source>Simple DNS Settings</source>
         <translation>简易 DNS 设置</translation>
     </message>
@@ -1779,6 +1798,10 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <translation>DNS 规则无效</translation>
     </message>
     <message>
+        <source>Copied!</source>
+        <translation>已复制!</translation>
+    </message>
+    <message>
         <source>No valid remote routing profiles in the link.</source>
         <translation>链接中无有效的远程路由配置档。</translation>
     </message>
@@ -1817,7 +1840,8 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>Could not import this routing profile:
 </source>
-        <translation>无法导入这个路由配置档:</translation>
+        <translation>无法导入这个路由配置档:
+</translation>
     </message>
     <message>
         <source>Invalid operation</source>
@@ -1998,7 +2022,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <name>DialogRuntimeStats</name>
     <message>
         <source>%1 active   ·   %2 TCP   ·   %3 UDP</source>
-        <translation>%1 活动   ·   %2 TCP   ·   %3 UDP</translation>
+        <translation>活动: %1   ·   TCP: %2   ·   UDP: %3</translation>
     </message>
     <message>
         <source>No active config</source>
@@ -2039,14 +2063,6 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>Process</source>
         <translation>进程</translation>
-    </message>
-    <message>
-        <source>Throne</source>
-        <translation>Throne</translation>
-    </message>
-    <message>
-        <source>—</source>
-        <translation>—</translation>
     </message>
     <message>
         <source>Core</source>
@@ -2249,6 +2265,14 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>禁止私有地址段绕过</translation>
     </message>
     <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Required on newer Linux kernels for the system and mixed stacks to pass traffic. While enabled, this machine cannot be used as a network gateway for other devices.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;在新 Linux 内核上为了系统和混合堆栈可以传递流量所必需。在启用时，这台机器不能用作其它设备的网络网关。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Auto Redirect</source>
+        <translation>自动重定向</translation>
+    </message>
+    <message>
         <source>Tun Address</source>
         <translation>Tun 地址</translation>
     </message>
@@ -2389,6 +2413,333 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Min Idle Session</source>
         <translation>最小空闲会话</translation>
+    </message>
+</context>
+<context>
+    <name>EditAutoSelector</name>
+    <message>
+        <source>Servers from</source>
+        <translation>服务器来自</translation>
+    </message>
+    <message>
+        <source>The group whose profiles this selector picks from. New servers added by a subscription update join automatically — you never have to edit this profile again.</source>
+        <translation>这个选择器从中选取其配置档的分组。订阅更新增加的新服务器自动加入 - 你无需再手动编辑这个配置档了。</translation>
+    </message>
+    <message>
+        <source>Only names matching</source>
+        <translation>仅名称匹配</translation>
+    </message>
+    <message>
+        <source>leave empty to use every profile in the group</source>
+        <translation>留空表示使用该分组的每个配置档</translation>
+    </message>
+    <message>
+        <source>Optional regular expression. Only profiles whose name matches are considered — useful to pick out one country or provider.</source>
+        <translation>可选的正则表达式。仅名称匹配的配置档才会被考虑 - 对于筛选某个国家或提供商很有用。</translation>
+    </message>
+    <message>
+        <source>Share traffic between the best profiles</source>
+        <translation>最佳配置档间分享流量</translation>
+    </message>
+    <message>
+        <source>Off by default: one profile carries everything and the rest stand by. Turn on to spread traffic over the profiles that are confirmed working.</source>
+        <translation>默认关闭: 一个配置档承担一切流量而其余的待机。 开启（该选项）则流量分散到已确认正常工作的配置档上。</translation>
+    </message>
+    <message>
+        <source>Preferred profile</source>
+        <translation>首选配置档</translation>
+    </message>
+    <message>
+        <source>Use automatic</source>
+        <translation>使用自动(模式)</translation>
+    </message>
+    <message>
+        <source>Stop preferring this profile and let the selector choose on measurements again.</source>
+        <translation>停止首选这个配置档，并让选择器再次基于测量进行选择。</translation>
+    </message>
+    <message>
+        <source>Advanced…</source>
+        <translation>高级…</translation>
+    </message>
+    <message>
+        <source>Everything here has a working default. Open it only if you want to tune how the selector measures and switches.</source>
+        <translation>这里的一切设置都有正常工作的默认值。仅当你想调整选择器如何测量和切换时才打开它。</translation>
+    </message>
+    <message>
+        <source>Which profiles to use</source>
+        <translation>要使用的配置档</translation>
+    </message>
+    <message>
+        <source>Only countries</source>
+        <translation>仅(指定)国别</translation>
+    </message>
+    <message>
+        <source>e.g. DE,NL,FR</source>
+        <translation>如 DE,NL,FR</translation>
+    </message>
+    <message>
+        <source>Comma-separated country codes, empty means any. Uses the country found by the IP test, so profiles that were never IP-tested are skipped while this is set.</source>
+        <translation>逗号间隔的国家代码，空白表示任何国家。使用由 IP 测试找到的国家，因此在设定这个期间，从未进行 IP 测试的配置档会被跳过。</translation>
+    </message>
+    <message>
+        <source>Run the best</source>
+        <translation>运行最佳的</translation>
+    </message>
+    <message>
+        <source> profiles</source>
+        <translation> 个配置档</translation>
+    </message>
+    <message>
+        <source>How many profiles are loaded into the running config. The selector switches between these instantly, with no reconnect. Higher costs more memory and startup time.</source>
+        <translation>会加载到正在运行的配置中的配置档数量。选择器会在这些配置档间瞬时切换而无需重连。越高的量耗费越多的内存和启动时间。</translation>
+    </message>
+    <message>
+        <source>Rank at most</source>
+        <translation>排序最多</translation>
+    </message>
+    <message>
+        <source>Hard ceiling on how many profiles are measured and kept in the ranked list. When every running profile dies, replacements are taken from this list.</source>
+        <translation>在要被测量并保留在排名列表中的配置档的数量方面的硬性上限。当每个正在运行的配置档都失效时，将从这个列表中取得替代项。</translation>
+    </message>
+    <message>
+        <source>Trust results for</source>
+        <translation>信任结果维持</translation>
+    </message>
+    <message>
+        <source> min</source>
+        <translation> 分</translation>
+    </message>
+    <message>
+        <source>always re-test</source>
+        <translation>始终重新测试</translation>
+    </message>
+    <message>
+        <source>URL test results this recent are reused instead of being measured again — including tests you ran yourself on the group, so starting the selector right after one does not repeat the work. Older results are treated as if the profile had never been tested. Set to zero to always run a fresh test.</source>
+        <translation>近期的 URL 测试结果会被重复使用而不是再次测量 - 包括你本人对该组上运行过的测试，所以在完成一次测试后立即启动选择器，不用重复同样的工作。较旧的结果会被认为“该配置档从未被测试”。设为 0 表示始终运行一个全新测试。</translation>
+    </message>
+    <message>
+        <source>Skip failed profiles</source>
+        <translation>跳过失败的配置档</translation>
+    </message>
+    <message>
+        <source>Keeps servers whose last test failed out of the pool, as long as that result is still within the trust window. Turn off if your tests are unreliable and you would rather let the selector decide for itself.</source>
+        <translation>只要结果仍在可信（时间）窗口内，就会把上次测试失败的服务器从该（候选）池中剔除。如果你的测试不可靠，宁愿让选择器自行判断，则关闭这个选项。</translation>
+    </message>
+    <message>
+        <source>Health checks</source>
+        <translation>健康度检查</translation>
+    </message>
+    <message>
+        <source>Keep ready</source>
+        <translation>保持待命</translation>
+    </message>
+    <message>
+        <source>How many profiles are kept confirmed working at all times, so a failure can be covered instantly. These are also the ones traffic is shared between when balancing is on.</source>
+        <translation>始终保持被确认有效的配置档数量，以便出现故障时可瞬时替补。开启（负载）均衡时这些（配置档）也会分享流量。</translation>
+    </message>
+    <message>
+        <source>Check closely</source>
+        <translation>仔细检查</translation>
+    </message>
+    <message>
+        <source>The top-ranked profiles are re-checked every interval. The rest are still checked, just spread over the slower full sweep.</source>
+        <translation>排名靠前的配置档会每隔指定时间间隔进行一次重新检查。其余的仍会被检查，不过只会分散到较慢的完整扫描流程中进行。</translation>
+    </message>
+    <message>
+        <source>Check interval</source>
+        <translation>检查间隔</translation>
+    </message>
+    <message>
+        <source> s</source>
+        <translation> 秒</translation>
+    </message>
+    <message>
+        <source>How often the closely-checked profiles are measured again.</source>
+        <translation>仔细检查的配置档重复测量的频繁程度。</translation>
+    </message>
+    <message>
+        <source>Full sweep every</source>
+        <translation>完整扫描每隔</translation>
+    </message>
+    <message>
+        <source>How long one pass over every running profile takes. Checks are spread evenly across it, so a large pool never causes a burst of traffic.</source>
+        <translation>每个运行中的配置档遍历一次所需时间。检查会在其中均匀分布，因此不会一个大型池而导致流量的突发。</translation>
+    </message>
+    <message>
+        <source>Watch profile in use</source>
+        <translation>观察使用中的配置档</translation>
+    </message>
+    <message>
+        <source>How often the profile currently carrying your traffic is checked on its own. Keep this short: a server can stop working while still accepting connections, and nothing else would notice until the next full check.</source>
+        <translation>当前承载你的流量的配置档会多久被单独检查一次。请注意： 服务器可能在其仍能接受连接的情况下停止运作，并且直至下一次完整检查前都不会发现任何情况。</translation>
+    </message>
+    <message>
+        <source>Samples kept</source>
+        <translation>保留样本</translation>
+    </message>
+    <message>
+        <source>Ranking uses the average and the jitter over this many recent checks, so a single bad result cannot demote a good server.</source>
+        <translation>排名基于这几次近期的检查的均值和抖动(Jitter)，因此单次的异常结果不会降级一个良好的服务器。</translation>
+    </message>
+    <message>
+        <source>Switching</source>
+        <translation>切换</translation>
+    </message>
+    <message>
+        <source>Switch tolerance</source>
+        <translation>切换容差</translation>
+    </message>
+    <message>
+        <source> ms</source>
+        <translation> 毫秒</translation>
+    </message>
+    <message>
+        <source>Another profile must be at least this much faster before the selector moves to it. Higher values mean fewer switches.</source>
+        <translation>在选择器移到另一个配置档前，它必须至少比当前的快这个量。越高的值意味着越少的切换次数。</translation>
+    </message>
+    <message>
+        <source>Maximum latency</source>
+        <translation>最大延迟</translation>
+    </message>
+    <message>
+        <source>no limit</source>
+        <translation>无限制</translation>
+    </message>
+    <message>
+        <source>Profiles slower than this are never selected, even if nothing better is available.</source>
+        <translation>比这个慢的配置档永远不会被选择，即使没有更好的项可用。</translation>
+    </message>
+    <message>
+        <source>Failover attempts</source>
+        <translation>故障切换尝试次数</translation>
+    </message>
+    <message>
+        <source>When the chosen profile fails to connect, how many others to try immediately before the app sees an error.</source>
+        <translation>当所选的配置档连接失败时，在应用看到错误前，立即尝试多少个其他配置档。</translation>
+    </message>
+    <message>
+        <source>Drop connections on switch</source>
+        <translation>切换时断开连接</translation>
+    </message>
+    <message>
+        <source>Applies when the selector switches because a profile got worse or failed. On: everything moves to the new profile at once. Off: current downloads finish on the old one. Balance rotations never drop connections either way.</source>
+        <translation>当选择器因配置档变差或失败而切换时应用。开启：一切内容会一次性移到新配置档。关闭：当前下载会在旧的配置档上完成。 无论何种方式，均衡轮换都不会断开连接。</translation>
+    </message>
+    <message>
+        <source>Load balancing</source>
+        <translation>负载均衡</translation>
+    </message>
+    <message>
+        <source>Mode</source>
+        <translation>模式</translation>
+    </message>
+    <message>
+        <source>How traffic is spread over the ready profiles.</source>
+        <translation>流量如何在已准备好的配置档间分配。</translation>
+    </message>
+    <message>
+        <source>Rotate every</source>
+        <translation>轮换每隔</translation>
+    </message>
+    <message>
+        <source>How long the selector stays on one profile before moving to the next ready one.</source>
+        <translation>选择器在移到下一个准备好的配置档之前会停留在当前配置档上的时长。</translation>
+    </message>
+    <message>
+        <source>Test endpoints</source>
+        <translation>测试端点</translation>
+    </message>
+    <message>
+        <source>Test URL</source>
+        <translation>测试 URL</translation>
+    </message>
+    <message>
+        <source>empty = use the global latency test URL</source>
+        <translation>空 = 使用全局延迟测试 URL</translation>
+    </message>
+    <message>
+        <source>Fetched through each profile to measure it.</source>
+        <translation>通过每个配置档进行抓取以进行测量。</translation>
+    </message>
+    <message>
+        <source>Connectivity URL</source>
+        <translation>连通性 URL</translation>
+    </message>
+    <message>
+        <source>optional</source>
+        <translation>可选</translation>
+    </message>
+    <message>
+        <source>Fetched WITHOUT the proxy to tell a dead internet connection apart from dead servers. Leave empty to rely on the operating system&apos;s network state, which is the safer default on a censored network where any fixed address may be blocked.</source>
+        <translation>无代理的情况下抓取，以区分“断开的互联网连接”和“不可用的服务器”。 留空则依赖于操作系统的网络状态，它是在受审查网络（其中可能会屏蔽任何固定地址）下更安全的默认选项。</translation>
+    </message>
+    <message>
+        <source>Rotate on a timer (keeps sessions stable)</source>
+        <translation>按计时器轮换(保持会话稳定)</translation>
+    </message>
+    <message>
+        <source>Per connection (widest spread)</source>
+        <translation>按连接(分布最广)</translation>
+    </message>
+    <message>
+        <source>Advanced ▴</source>
+        <translation>高级 ▴</translation>
+    </message>
+    <message>
+        <source>Name cannot be empty.</source>
+        <translation>名称不能为空。</translation>
+    </message>
+    <message>
+        <source>Select the group this auto selector should track.</source>
+        <translation>选择这个自动选择器应该跟踪的分组。</translation>
+    </message>
+    <message>
+        <source>The name filter is not a valid regular expression: %1</source>
+        <translation>名称筛选器不是一个有效的正则表达式: %1</translation>
+    </message>
+    <message>
+        <source>%1 — chosen by you, so the selector stays on it while it works</source>
+        <translation>%1 — 由你选择，因此选择器在分组工作期间会保持在其上</translation>
+    </message>
+    <message>
+        <source>The best profile carries all traffic; the other ready profiles are kept verified so one can take over instantly.</source>
+        <translation>最好的配置档承载所有流量；其他的已就绪的配置档会保持经过验证状态，以便可以（在需要时）瞬时接管。</translation>
+    </message>
+    <message>
+        <source>New connections move to another good profile on each rotation; open ones are left alone and finish where they started. Traffic is counted exactly.</source>
+        <translation>每次轮换时，新的连接会移到另一个良好的配置档；已打开的会保持不变并在其开始的位置（配置档）上完成工作。流量会精确统计。</translation>
+    </message>
+    <message>
+        <source>Every new connection may take a different profile. Widest spread, but your exit IP changes mid-session and per-profile traffic becomes approximate.</source>
+        <translation>每个新的连接可能采用不同的配置档。最广的分布，但是你的出口 IP 会在会话中途更改，并且按配置档统计的流量会变成近似值。</translation>
+    </message>
+    <message>
+        <source>%1 of %2 profiles in the group can be used; %3 would run.</source>
+        <translation>该分组中 %1 / %2 个配置档可用；将运行 %3。</translation>
+    </message>
+    <message>
+        <source>%1 %2</source>
+        <translation>%1 %2</translation>
+    </message>
+    <message>
+        <source>Skipped: %1.</source>
+        <translation>已跳过: %1。</translation>
+    </message>
+    <message>
+        <source>, </source>
+        <translation>, </translation>
+    </message>
+    <message>
+        <source>More than %1 profiles match, so only the best-ranked ones are kept.</source>
+        <translation>超过 %1 个配置档匹配，因此只保留排名最优的。</translation>
+    </message>
+    <message>
+        <source>%1 have a recent test result that will be reused.</source>
+        <translation>其中有近期测试结果的 %1 将被重复使用。</translation>
+    </message>
+    <message>
+        <source>The rest will be measured before the selector starts.</source>
+        <translation>其余的在选择器开始前将被测量。</translation>
     </message>
 </context>
 <context>
@@ -2855,6 +3206,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>保留</translation>
     </message>
     <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;persistent_keepalive_interval in seconds, or an AmneziaWG range such as 22-30&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;以秒为单位的 persistent_keepalive_interval (持久保活间隔)值，或一个 AmneziaWG 范围，如 22-30&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;comma seperated list of subnets&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;子网的逗号间隔列表&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
@@ -2943,6 +3298,62 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>签名数据包 (I5)</translation>
     </message>
     <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Base64 key. Requires S1-S4 to be at least 12.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Base64 钥匙。要求 S1-S4 至少 12。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Header Protection Key</source>
+        <translation>报头保护钥匙</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Bytes of random trailing padding, as a value or range (e.g. 0-64).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. 随机尾部填充的字节数，可以为一个值或范围 (如 0-64)。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Content Padding Addition</source>
+        <translation>内容填充添加</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Seconds before a rekey is attempted, as a value or range.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. 尝试 rekey（重新密钥协商）前的秒数，可以是一个具体值或范围。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Rekey After Time</source>
+        <translation>指定时间后 Rekey</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Seconds before a handshake is retried, as a value or range.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. 重试握手前的秒数，可以是一个具体值或范围。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Rekey Timeout</source>
+        <translation>Rekey 超时</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Seconds before keys are rejected, as a value or range.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. 拒绝钥匙前的秒数，可以是一个具体值或范围。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Reject After Time</source>
+        <translation>指定时间后拒绝</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Seconds of idle time before a keepalive is sent, as a value or range.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. 发送 keepalive（保活）前的空闲时间（秒数），可以是一个具体值或范围。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Keepalive Timeout</source>
+        <translation>保活超时</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Handshake retries before giving up, as a value or range.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. 放弃前的握手重试次数，可以是一个具体值或范围。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Max Handshake Attempts</source>
+        <translation>最多握手尝试次数</translation>
+    </message>
+    <message>
         <source>Pre Shared Key</source>
         <translation>预共享钥匙</translation>
     </message>
@@ -2963,16 +3374,12 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>工作线程</translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;persistent_keepalive_interval in seconds&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;persistent_keepalive_interval（以秒为单位的持久保活间隔）&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Persistent Keepalive</source>
-        <translation>持久保持活动</translation>
+        <translation>持久保活</translation>
     </message>
     <message>
         <source>Getting keypair...</source>
@@ -3267,10 +3674,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>扫描二维码</translation>
     </message>
     <message>
-        <source>Enable System Proxy</source>
-        <translation>启用系统代理</translation>
-    </message>
-    <message>
         <source>Disable</source>
         <translation>禁用</translation>
     </message>
@@ -3323,10 +3726,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>复制选定项的链接</translation>
     </message>
     <message>
-        <source>Enable Tun</source>
-        <translation>启用 Tun</translation>
-    </message>
-    <message>
         <source>Clone</source>
         <translation>克隆</translation>
     </message>
@@ -3337,6 +3736,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Runtime Stats</source>
         <translation>运行时统计</translation>
+    </message>
+    <message>
+        <source>Auto Selector Stats</source>
+        <translation>自动选择器统计</translation>
     </message>
     <message>
         <source>Traffic Stats</source>
@@ -3457,6 +3860,26 @@ URL: %2</translation>
         <translation>自动更新</translation>
     </message>
     <message>
+        <source>%1: cannot be opened</source>
+        <translation>%1: 无法打开</translation>
+    </message>
+    <message>
+        <source>%1: larger than 50 MB, skipped</source>
+        <translation>%1: 大于 50 MB，已跳过</translation>
+    </message>
+    <message>
+        <source>%1: no QR code found</source>
+        <translation>%1: 找不到二维码</translation>
+    </message>
+    <message>
+        <source>%1: not a readable config file</source>
+        <translation>%1: 非一个可读取的配置文件</translation>
+    </message>
+    <message>
+        <source>Nothing could be imported:</source>
+        <translation>没有可被导入的内容:</translation>
+    </message>
+    <message>
         <source>Settings changed, restart proxy?</source>
         <translation>设置已改变，重启代理吗？</translation>
     </message>
@@ -3546,7 +3969,7 @@ URL: %2</translation>
     </message>
     <message>
         <source>Failed to build batch test config: </source>
-        <translation>构建批处理测试配置失败:</translation>
+        <translation>构建批处理测试配置失败: </translation>
     </message>
     <message>
         <source>[interface-bind] default route changed (%1 -&gt; %2), restarting profile</source>
@@ -3599,6 +4022,10 @@ Please start your profile again.</source>
         <translation>Geo 数据文件被成功下载。
 
 请再次启动你的配置档。</translation>
+    </message>
+    <message>
+        <source>[Auto selector] Running the best %1 of %2 ranked profiles.</source>
+        <translation>[自动选择器] 正在运行排名最佳的 %1 / %2 个配置档。</translation>
     </message>
     <message>
         <source>If there is no response for a long time, it is recommended to restart the software.</source>
@@ -3749,8 +4176,12 @@ Please start your profile again.</source>
         <translation>上传 (↑)</translation>
     </message>
     <message>
+        <source>Select Profile</source>
+        <translation>选择配置档</translation>
+    </message>
+    <message>
         <source> Test result(s) copied to clipboard!</source>
-        <translation>测试结果已被复制到剪贴板!</translation>
+        <translation> 测试结果已被复制到剪贴板!</translation>
     </message>
     <message>
         <source>No insecure configs found.</source>
@@ -3819,6 +4250,10 @@ Please start your profile again.</source>
     <message>
         <source>Click To Sort By Process</source>
         <translation>点击以“按进程排序”</translation>
+    </message>
+    <message>
+        <source>Operation Mode</source>
+        <translation>操作模式</translation>
     </message>
     <message>
         <source>Routing Menu</source>
@@ -3971,16 +4406,28 @@ Please start your profile again.</source>
         <translation>添加文件中的配置档</translation>
     </message>
     <message>
-        <source>Select Server</source>
-        <translation>选择服务器</translation>
-    </message>
-    <message>
         <source>Add subscription</source>
         <translation>添加订阅</translation>
     </message>
     <message>
         <source>Select Routing</source>
         <translation>选择路由</translation>
+    </message>
+    <message>
+        <source>All files (*)</source>
+        <translation>所有文件 (*)</translation>
+    </message>
+    <message>
+        <source>Config files (*.json *.conf *.txt *.yaml *.yml *.ini)</source>
+        <translation>配置文件 (*.json *.conf *.txt *.yaml *.yml *.ini)</translation>
+    </message>
+    <message>
+        <source>QR code images (*.png *.jpg *.jpeg *.bmp *.gif *.webp)</source>
+        <translation>QR 码图像 (*.png *.jpg *.jpeg *.bmp *.gif *.webp)</translation>
+    </message>
+    <message>
+        <source>Select profile files</source>
+        <translation>选择配置档文件</translation>
     </message>
     <message>
         <source>subscriptions</source>
@@ -4027,14 +4474,6 @@ Name: %1</source>
 </source>
         <translation>该链接无法解析:
 </translation>
-    </message>
-    <message>
-        <source>Return</source>
-        <translation>返回</translation>
-    </message>
-    <message>
-        <source>Del</source>
-        <translation>Del</translation>
     </message>
     <message>
         <source>Resolve Out IP</source>
@@ -4135,6 +4574,30 @@ Release note:
         <translation>发现更新: %1
 更新日志:
 %2</translation>
+    </message>
+    <message>
+        <source>[Auto selector] Reusing existing test results; ranked %1 profiles.</source>
+        <translation>[自动选择器] 重用已有的测试结果; 已排名 %1 个配置档。</translation>
+    </message>
+    <message>
+        <source>[Auto selector] Measuring %1 not-yet-tested profiles...</source>
+        <translation>[自动选择器] 正在测量 %1 个尚未测试的配置档...</translation>
+    </message>
+    <message>
+        <source>[Auto selector] Ranked %1 profiles.</source>
+        <translation>[自动选择器] 已排名 %1 个配置档。</translation>
+    </message>
+    <message>
+        <source>[Auto selector] The subscription replaced profiles it was running on — rebuilding.</source>
+        <translation>[自动选择器] 订阅替换了它正在运行的配置档 - 正在重建。</translation>
+    </message>
+    <message>
+        <source>[Auto selector] Every running profile stopped working — rebuilding from the next best candidates.</source>
+        <translation>[自动选择器] 所有正在运行的配置档都停止运作 - 正在从下一个最好候选项重新构建。</translation>
+    </message>
+    <message>
+        <source>Copied!</source>
+        <translation>已复制!</translation>
     </message>
 </context>
 <context>
@@ -4279,7 +4742,7 @@ How to update?</source>
         <source>Process complete, applying...</source>
         <translation>处理完成，正在应用...</translation>
     </message>
-	<message>
+    <message>
         <source>Added %1 profiles:
 %2
 Updated %3 profiles:
@@ -4467,6 +4930,218 @@ Release note:
         <source>Weak Cipher</source>
         <translation>弱加密</translation>
     </message>
+    <message>
+        <source>[Warn] Throne did not shut down cleanly last time. Diagnostics were saved to: %1</source>
+        <translation>[警告] 上次 Throne 没有正常干净的关闭。诊断信息已被保存到: %1</translation>
+    </message>
+    <message>
+        <source>An auto selector cannot be a hop in a chain: it moves to a different server on its own whenever one degrades.</source>
+        <translation>自动选择器不能作为链中的跳板: 只要一台服务器变差，它就会自行移到不同的服务器。</translation>
+    </message>
+    <message>
+        <source>a profile that no longer exists</source>
+        <translation>不再存在的配置档</translation>
+    </message>
+    <message>
+        <source>Auto Selector</source>
+        <translation>自动选择器</translation>
+    </message>
+    <message>
+        <source>no group</source>
+        <translation>无分组</translation>
+    </message>
+    <message>
+        <source>missing group</source>
+        <translation>缺少分组</translation>
+    </message>
+    <message>
+        <source>missing profile</source>
+        <translation>缺少配置档</translation>
+    </message>
+    <message>
+        <source>chain or auto selector</source>
+        <translation>链路或自动选择器</translation>
+    </message>
+    <message>
+        <source>needs too many core switches</source>
+        <translation>需要过多的核心切换</translation>
+    </message>
+    <message>
+        <source>extra-core profile</source>
+        <translation>附加核心配置档</translation>
+    </message>
+    <message>
+        <source>full config profile</source>
+        <translation>完整配置档</translation>
+    </message>
+    <message>
+        <source>config does not parse</source>
+        <translation>配置无法解析</translation>
+    </message>
+    <message>
+        <source>Tailscale profile</source>
+        <translation>Tailscale 配置档</translation>
+    </message>
+    <message>
+        <source>filtered out by name</source>
+        <translation>按名称过滤掉</translation>
+    </message>
+    <message>
+        <source>filtered out by country</source>
+        <translation>按国别过滤掉</translation>
+    </message>
+    <message>
+        <source>last test failed</source>
+        <translation>上次测试失败</translation>
+    </message>
+    <message>
+        <source>never</source>
+        <translation>从不</translation>
+    </message>
+    <message>
+        <source>%1s ago</source>
+        <translation>%1 秒前</translation>
+    </message>
+    <message>
+        <source>%1m ago</source>
+        <translation>%1 分钟前</translation>
+    </message>
+    <message>
+        <source>%1h ago</source>
+        <translation>%1 小时前</translation>
+    </message>
+    <message>
+        <source>Auto selector paused — no network connection (%1 profiles held)</source>
+        <translation>自动选择器已暂停 — 没有网络连接(保留了 %1 个配置档)</translation>
+    </message>
+    <message>
+        <source>Auto selector starting — checking %1 profiles</source>
+        <translation>自动选择器正在启动 — 正在检查 %1 个配置档</translation>
+    </message>
+    <message>
+        <source>Auto selector checking profiles (%1/%2 measured)</source>
+        <translation>自动选择器正在检查配置档 (已测量 %1/%2)</translation>
+    </message>
+    <message>
+        <source>Auto selector — no working profile out of %1</source>
+        <translation>自动选择器 — 在 %1 个配置档中无可用的配置档</translation>
+    </message>
+    <message>
+        <source>Auto selector on %1 (%2 of %3 working)</source>
+        <translation>自动选择器: %1 (可用：%2 / %3)</translation>
+    </message>
+    <message>
+        <source>, switched %1</source>
+        <translation>, 已切换 %1</translation>
+    </message>
+    <message>
+        <source>%1 working</source>
+        <translation>%1 个正在运作</translation>
+    </message>
+    <message>
+        <source>%1 cooling down</source>
+        <translation>%1 个正在冷却</translation>
+    </message>
+    <message>
+        <source>%1 not checked yet</source>
+        <translation>%1 个尚未检查</translation>
+    </message>
+    <message>
+        <source>%1 being checked</source>
+        <translation>%1 正在检查</translation>
+    </message>
+    <message>
+        <source>balancing over %1</source>
+        <translation>在 %1 上负载均衡</translation>
+    </message>
+    <message>
+        <source>%1 profiles: %2</source>
+        <translation>%1 个配置档: %2</translation>
+    </message>
+    <message>
+        <source>, </source>
+        <translation>, </translation>
+    </message>
+    <message>
+        <source>No auto selector is running.</source>
+        <translation>没有自动选择器正在运行。</translation>
+    </message>
+    <message>
+        <source>That profile is not in the running pool.</source>
+        <translation>该配置档不在运行池中。</translation>
+    </message>
+    <message>
+        <source>Could not reach the core.</source>
+        <translation>无法访问核心。</translation>
+    </message>
+    <message>
+        <source>[Auto selector] Every profile is failing, but this machine has no network connection — keeping the current pool.</source>
+        <translation>[自动选择器] 每个配置档都在失败，但是这个机器没有网络连接 — 保留当前的（配置）池。</translation>
+    </message>
+    <message>
+        <source>just now</source>
+        <translation>刚刚</translation>
+    </message>
+    <message>
+        <source>Working</source>
+        <translation>运作中</translation>
+    </message>
+    <message>
+        <source>Unstable</source>
+        <translation>不稳定</translation>
+    </message>
+    <message>
+        <source>Not checked</source>
+        <translation>未检查</translation>
+    </message>
+    <message>
+        <source>Failing</source>
+        <translation>失败中</translation>
+    </message>
+    <message>
+        <source>Paused</source>
+        <translation>已暂停</translation>
+    </message>
+    <message>
+        <source>your choice, carrying traffic now</source>
+        <translation>你的选择，正在承载流量</translation>
+    </message>
+    <message>
+        <source>your choice, but not usable right now</source>
+        <translation>你的选择，但现在不可用</translation>
+    </message>
+    <message>
+        <source>carrying traffic now</source>
+        <translation>正在承载流量</translation>
+    </message>
+    <message>
+        <source>failed to connect, retrying in %1s</source>
+        <translation>连接失败,在 %1 秒后重试</translation>
+    </message>
+    <message>
+        <source>failed to connect</source>
+        <translation>连接失败</translation>
+    </message>
+    <message>
+        <source>every check failed</source>
+        <translation>每个检查失败</translation>
+    </message>
+    <message>
+        <source>ready to take over</source>
+        <translation>准备好接管</translation>
+    </message>
+    <message>
+        <source>check in progress</source>
+        <translation>检查进行中</translation>
+    </message>
+    <message>
+        <source>queued for checking</source>
+        <translation>已排队等待检查</translation>
+    </message>
+    <message>
+        <source>%1 of %2 checks failed</source>
+        <translation>%1 / %2 个检查失败</translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -4599,7 +5274,7 @@ Your local edits are overwritten on each update.</source>
     </message>
     <message>
         <source>Warp-bypass</source>
-        <translation>Warp-bypass (绕过)</translation>
+        <translation>Warp-bypass</translation>
     </message>
     <message>
         <source>Rules</source>
