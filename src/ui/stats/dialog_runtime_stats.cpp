@@ -61,7 +61,7 @@ DialogRuntimeStats::DialogRuntimeStats(QWidget* parent) : QDialog(parent), ui(ne
     ui->cpuChart->setCaption(tr("CPU"));
     ui->ramChart->setCaption(tr("RAM"));
     ui->labelThroneName->setText(QStringLiteral("<span style=\"color:%1\">●</span> %2")
-                                     .arg(kRuntimeThroneColor.name(), tr("Throne")));
+                                     .arg(kRuntimeThroneColor.name(), "Throne"));
     ui->labelCoreName->setText(QStringLiteral("<span style=\"color:%1\">●</span> %2")
                                    .arg(kRuntimeCoreColor.name(), tr("Core")));
 

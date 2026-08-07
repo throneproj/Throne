@@ -343,7 +343,7 @@ void DialogManageRoutes::on_export_route_clicked()
 
     QApplication::clipboard()->setText(chainList[idx]->ToShareLink());
 
-    QToolTip::showText(QCursor::pos(), "Copied!", this);
+    QToolTip::showText(QCursor::pos(), tr("Copied!"), this);
     int r = ++tooltipID;
     QTimer::singleShot(1500, [=,this] {
         if (tooltipID != r) return;

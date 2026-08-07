@@ -163,7 +163,7 @@ DialogAutoSelector::DialogAutoSelector(QWidget *parent) : QDialog(parent)
 
     m_table = new QTableWidget(this);
     m_table->setColumnCount(ColCount);
-    m_table->setHorizontalHeaderLabels({tr("#"), tr("Profile"), tr("Status"), tr("Latency"), tr("Jitter"),
+    m_table->setHorizontalHeaderLabels({"#", tr("Profile"), tr("Status"), tr("Latency"), tr("Jitter"),
                                         tr("Checks"), tr("Connects"), tr("Last OK"), tr("Notes")});
     m_table->verticalHeader()->setVisible(false);
     m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);

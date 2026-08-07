@@ -28,7 +28,7 @@ void MainWindow::setupConnectionList()
         if (selected == nullptr) return;
         QApplication::clipboard()->setText(selected->text());
         QPoint pos = ui->connections->mapToGlobal(ui->connections->visualItemRect(selected).center());
-        QToolTip::showText(pos, "Copied!", this);
+        QToolTip::showText(pos, tr("Copied!"), this);
         auto r = ++toolTipID;
         QTimer::singleShot(1500, [=,this] {
             if (r != toolTipID)
