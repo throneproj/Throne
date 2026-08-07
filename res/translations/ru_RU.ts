@@ -2363,11 +2363,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>IPv4 Bind Address</source>
-        <translation>Привязать интерфейс IPv4</translation>
+        <translation>Привязать адрес IPv4</translation>
     </message>
     <message>
         <source>IPv6 Bind Address</source>
-        <translation>Привязать интерфейс IPv6</translation>
+        <translation>Привязать адрес IPv6</translation>
     </message>
     <message>
         <source>TCP Fast Open</source>
