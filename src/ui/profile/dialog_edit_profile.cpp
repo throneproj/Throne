@@ -20,6 +20,7 @@
 
 #include <QInputDialog>
 #include <QLabel>
+#include <QSet>
 
 #include "include/configs/common/TLS.h"
 #include "include/configs/common/utils.h"
@@ -44,6 +45,50 @@
 
 namespace {
 constexpr int kXrayXHTTPNetworkMinWidth = 760;
+
+QWidget *effectiveFocusWidget(QWidget *widget) {
+    QSet<QWidget *> visited;
+    while (widget && widget->focusProxy() && !visited.contains(widget)) {
+        visited.insert(widget);
+        widget = widget->focusProxy();
+    }
+    return widget;
+}
+
+QList<QWidget *> collectTabOrder(QWidget *window, const QWidget *subtree = nullptr,
+                                 const QWidget *marker = nullptr) {
+    if (!window) return {};
+
+    QList<QWidget *> tabOrder;
+    QSet<QWidget *> visited;
+    auto *current = window;
+    while (true) {
+        auto *next = current->nextInFocusChain();
+        if (!next || next == window || visited.contains(next)) break;
+        visited.insert(next);
+        current = next;
+
+        if (subtree && current != subtree && !subtree->isAncestorOf(current)) continue;
+
+        const bool isMarker = current == marker;
+        if (!isMarker && !(current->focusPolicy() & Qt::TabFocus)) continue;
+
+        auto *focusWidget = isMarker ? current : effectiveFocusWidget(current);
+        if (!focusWidget || tabOrder.contains(focusWidget)) continue;
+        if (subtree && focusWidget != subtree && !subtree->isAncestorOf(focusWidget)) continue;
+        tabOrder.append(focusWidget);
+    }
+
+    return tabOrder;
+}
+
+void rebuildTabOrder(const QList<QWidget *> &tabOrder) {
+    if (tabOrder.size() < 2) return;
+
+    for (qsizetype i = 1; i < tabOrder.size(); ++i) {
+        QWidget::setTabOrder(tabOrder.at(i - 1), tabOrder.at(i));
+    }
+}
 }
 
 void DialogEditProfile::queueRefreshDialogLayout() {
@@ -68,6 +113,12 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
     : QDialog(parent), ui(new Ui::DialogEditProfile) {
     // setup UI
     ui->setupUi(this);
+
+    // Save current tab order and the insertion point for innerWidget
+    outerTabOrder = collectTabOrder(this, nullptr, ui->fake);
+    innerTabOrderIndex = outerTabOrder.indexOf(ui->fake);
+    if (innerTabOrderIndex >= 0) outerTabOrder.removeAt(innerTabOrderIndex);
+
     auto setXrayXHTTPNetworkVisible = [=,this](bool visible) {
         ui->xray_network_scroll->setMinimumWidth(visible ? kXrayXHTTPNetworkMinWidth : 0);
         ui->xray_xhttp_box->setVisible(visible);
@@ -580,6 +631,15 @@ void DialogEditProfile::typeSelected(const QString &newType) {
     ui->bean->layout()->addWidget(innerWidget);
     ui->bean->setTitle(ent->outbound->DisplayType());
     delete old;
+
+    // Update tab order to include innerWidget
+    const auto innerTabOrder = collectTabOrder(this, innerWidget);
+    if (!innerTabOrder.isEmpty() && innerTabOrderIndex >= 0 && innerTabOrderIndex <= outerTabOrder.size()) {
+        auto completeTabOrder = outerTabOrder.mid(0, innerTabOrderIndex);
+        completeTabOrder.append(innerTabOrder);
+        completeTabOrder.append(outerTabOrder.mid(innerTabOrderIndex));
+        rebuildTabOrder(completeTabOrder);
+    }
 
     // 左边 bean inner editor
     innerEditor->get_edit_dialog = [&]() { return static_cast<QWidget*>(this); };

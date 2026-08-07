@@ -1525,6 +1525,7 @@
   <tabstop>address</tabstop>
   <tabstop>port</tabstop>
   <tabstop>advanced_button</tabstop>
+  <tabstop>fake</tabstop>
   <tabstop>xray_network</tabstop>
   <tabstop>xray_security</tabstop>
   <tabstop>xray_mux</tabstop>

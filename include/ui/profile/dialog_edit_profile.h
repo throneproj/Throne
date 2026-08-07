@@ -36,6 +36,8 @@ private:
 
     QWidget *innerWidget{};
     ProfileEditor *innerEditor{};
+    QList<QWidget *> outerTabOrder;
+    qsizetype innerTabOrderIndex{-1};
 
     QString type;
     int groupId;
