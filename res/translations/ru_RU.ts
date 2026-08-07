@@ -2,6 +2,145 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="ru_RU">
 <context>
+    <name>DialogAutoSelector</name>
+    <message>
+        <source>Auto Selector Stats</source>
+        <translation>Статистика автовыбора</translation>
+    </message>
+    <message>
+        <source>Only show profiles with problems</source>
+        <translation>Показывать только профили с проблемами</translation>
+    </message>
+    <message>
+        <source>Use this profile</source>
+        <translation>Использовать этот профиль</translation>
+    </message>
+    <message>
+        <source>Keep the selected profile in use instead of letting the ranking choose. Useful when several profiles measure much the same and you prefer one of them.
+
+It stays a preference, not a lock: if that profile stops working the selector still moves on, and comes back to your choice once it recovers.</source>
+        <translation>Продолжать использовать выбранный профиль, а не полагаться на выбор системы ранжирования. Это полезно, когда несколько профилей показывают практически одинаковые результаты, а вы отдаете предпочтение одному из них.
+
+Это остается настройкой, а не фиксацией: если этот профиль перестанет работать, система выбора переключится на другой, а после восстановления работы вернётся к вашему выбору.</translation>
+    </message>
+    <message>
+        <source>Back to automatic</source>
+        <translation>Вернуть автовыбор</translation>
+    </message>
+    <message>
+        <source>Stop preferring a particular profile and let the ranking decide again.</source>
+        <translation>Перестать отдавать предпочтение какому-то конкретному профилю и позволить снова определить выбор на основе измерений.</translation>
+    </message>
+    <message>
+        <source>Check all now</source>
+        <translation>Проверить все сейчас</translation>
+    </message>
+    <message>
+        <source>Re-measure every running profile immediately instead of waiting for the next scheduled check.</source>
+        <translation>Немедленно повторно измерить каждый профиль, а не ждать следующей плановой проверки.</translation>
+    </message>
+    <message>
+        <source>Re-checking every profile...</source>
+        <translation>Повторная проверка всех профилей...</translation>
+    </message>
+    <message>
+        <source>Profile</source>
+        <translation>Профиль</translation>
+    </message>
+    <message>
+        <source>Status</source>
+        <translation>Статус</translation>
+    </message>
+    <message>
+        <source>Latency</source>
+        <translation>Задержка</translation>
+    </message>
+    <message>
+        <source>Jitter</source>
+        <translation>Джиттер</translation>
+    </message>
+    <message>
+        <source>Checks</source>
+        <translation>Проверки</translation>
+    </message>
+    <message>
+        <source>Connects</source>
+        <translation>Подключения</translation>
+    </message>
+    <message>
+        <source>Last OK</source>
+        <translation>Последний ОК</translation>
+    </message>
+    <message>
+        <source>Notes</source>
+        <translation>Примечания</translation>
+    </message>
+    <message>
+        <source>Could not change the profile: %1</source>
+        <translation>Не удалось изменить профиль: %1</translation>
+    </message>
+    <message>
+        <source>Back to automatic — the selector will choose again.</source>
+        <translation>Возврат к автоматическому режиму — автовыбор снова выбирает.</translation>
+    </message>
+    <message>
+        <source>Now using your chosen profile.</source>
+        <translation>Сейчас используется выбранный вами профиль.</translation>
+    </message>
+    <message>
+        <source>No auto selector is running.</source>
+        <translation>Автовыбор не запущен.</translation>
+    </message>
+    <message>
+        <source>Checks are paused because this machine has no network connection. No profile is being blamed for it, and the ranking is frozen until the connection returns.</source>
+        <translation>Проверки приостановлены, поскольку у этого компьютера отсутствует подключение к сети. Ни один профиль не считается виновным в этом, и рейтинг заморожен до восстановления подключения.</translation>
+    </message>
+    <message>
+        <source>Last check round %1.</source>
+        <translation>Последняя проверка %1.</translation>
+    </message>
+    <message>
+        <source>Next in %1s.</source>
+        <translation>Следующая через %1 сек.</translation>
+    </message>
+    <message>
+        <source>Using %1 because you chose it.</source>
+        <translation>Используется %1, так как вы его выбрали.</translation>
+    </message>
+    <message>
+        <source>You chose %1, but it is not working right now, so the selector picked another. It will go back to yours once it recovers.</source>
+        <translation>Вы выбрали %1, но сейчас он не работает, поэтому система выбрала другой вариант. Как только он возобновит работу, будет восстановлен ваш выбор.</translation>
+    </message>
+    <message>
+        <source>Last switch %1 (%2).</source>
+        <translation>Последнее переключение %1 (%2).</translation>
+    </message>
+    <message>
+        <source>Nothing is working right now — if this holds, the selector will rebuild from the next best profiles.</source>
+        <translation>Сейчас ничего не работает — если ситуация не изменится, автовыбор будет на основе следующих по качеству профилей.</translation>
+    </message>
+    <message>
+        <source>%1 ms</source>
+        <translation>%1 мс</translation>
+    </message>
+    <message>
+        <source>Best %1 ms, worst %2 ms</source>
+        <translation>Лучший %1 мс, худший %2 мс</translation>
+    </message>
+    <message>
+        <source>How much the latency moves around. The selector prefers steady profiles over fast but erratic ones.</source>
+        <translation>Насколько сильно колеблется задержка. Автовыбор отдаёт предпочтение стабильным профилям перед быстрыми, но нестабильными.</translation>
+    </message>
+    <message>
+        <source>%1 / %2 ok</source>
+        <translation>%1 / %2 ок</translation>
+    </message>
+    <message>
+        <source>Real connection attempts made by apps through this profile.</source>
+        <translation>Реальные попытки подключения, предпринятые приложениями через этот профиль.</translation>
+    </message>
+</context>
+<context>
     <name>DialogBasicSettings</name>
     <message>
         <source>Basic Settings</source>
@@ -137,11 +276,11 @@
     </message>
     <message>
         <source>outbound</source>
-        <translation type="unfinished"></translation>
+        <translation>outbound</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Which outbound the NTP query is sent through&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Через какой outbound отправляется NTP-запрос&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Xray Core</source>
@@ -433,7 +572,7 @@
     </message>
     <message>
         <source>TLS Tricks Default On</source>
-        <translation type="unfinished"></translation>
+        <translation>TLS Tricks вкл. по умолчанию</translation>
     </message>
     <message>
         <source>NTP Settings</source>
@@ -1191,7 +1330,7 @@ Throne will restart to complete the restore.</source>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;time format, like 500ms, 10ms etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;формат времени, например 500 мс, 10 мс и т.д.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;формат времени, например 500ms, 10ms и т.д.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Fallback Delay</source>
@@ -1618,7 +1757,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>Reverse Mapping</source>
-        <translation type="unfinished"></translation>
+        <translation>Reverse Mapping</translation>
     </message>
     <message>
         <source>Cache Capacity</source>
@@ -1650,7 +1789,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>Update the selected remote routing profile, or all of them</source>
-        <translation type="unfinished"></translation>
+        <translation>Обновить выбранный профиль удаленной маршрутизации или все профили</translation>
     </message>
     <message>
         <source>Update</source>
@@ -1733,8 +1872,12 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <translation>Правила DNS недействительны</translation>
     </message>
     <message>
+        <source>Copied!</source>
+        <translation>Скопировано!</translation>
+    </message>
+    <message>
         <source>No valid remote routing profiles in the link.</source>
-        <translation type="unfinished"></translation>
+        <translation>Отсутствуют действительные профили удаленной маршрутизации по ссылке.</translation>
     </message>
     <message>
         <source>auto update</source>
@@ -1962,14 +2105,6 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>Process</source>
         <translation>Процесс</translation>
-    </message>
-    <message>
-        <source>Throne</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>—</source>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Core</source>
@@ -2224,15 +2359,15 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Bind Interface</source>
-        <translation type="unfinished"></translation>
+        <translation>Привязать интерфейс</translation>
     </message>
     <message>
         <source>IPv4 Bind Address</source>
-        <translation type="unfinished"></translation>
+        <translation>Привязать интерфейс IPv4</translation>
     </message>
     <message>
         <source>IPv6 Bind Address</source>
-        <translation type="unfinished"></translation>
+        <translation>Привязать интерфейс IPv6</translation>
     </message>
     <message>
         <source>TCP Fast Open</source>
@@ -2292,11 +2427,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;h4 style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;query_server_name&quot;/&gt;&lt;span style=&quot; font-size:medium; font-weight:700;&quot;&gt;q&lt;/span&gt;&lt;span style=&quot; font-size:medium; font-weight:700;&quot;&gt;uery_server_name in sing-box&lt;/span&gt;&lt;/h4&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;h4 style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;query_server_name&quot;/&gt;&lt;span style=&quot; font-size:medium; font-weight:700;&quot;&gt;q&lt;/span&gt;&lt;span style=&quot; font-size:medium; font-weight:700;&quot;&gt;uery_server_name в sing-box&lt;/span&gt;&lt;/h4&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>ECH Server Name</source>
-        <translation type="unfinished"></translation>
+        <translation>ECH имя сервера</translation>
     </message>
     <message>
         <source>Certificate sha256</source>
@@ -2320,6 +2455,333 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Min Idle Session</source>
         <translation>Мин. время неактивности сессии</translation>
+    </message>
+</context>
+<context>
+    <name>EditAutoSelector</name>
+    <message>
+        <source>Servers from</source>
+        <translation>Серверы из</translation>
+    </message>
+    <message>
+        <source>The group whose profiles this selector picks from. New servers added by a subscription update join automatically — you never have to edit this profile again.</source>
+        <translation>Группа, из профилей которой осуществляется автовыбор. Новые серверы, добавленные в результате обновления подписки, присоединяются автоматически — вам больше не придется редактировать этот профиль.</translation>
+    </message>
+    <message>
+        <source>Only names matching</source>
+        <translation>Только соответствующие названия</translation>
+    </message>
+    <message>
+        <source>leave empty to use every profile in the group</source>
+        <translation>оставьте поле пустым, чтобы использовать все профили в группе</translation>
+    </message>
+    <message>
+        <source>Optional regular expression. Only profiles whose name matches are considered — useful to pick out one country or provider.</source>
+        <translation>Необязательное регулярное выражение. Учитываются только те профили, чьи названия соответствуют данному выражению — это удобно для выделения одной страны или одного провайдера.</translation>
+    </message>
+    <message>
+        <source>Share traffic between the best profiles</source>
+        <translation>Распределить трафик между лучшими профилями</translation>
+    </message>
+    <message>
+        <source>Off by default: one profile carries everything and the rest stand by. Turn on to spread traffic over the profiles that are confirmed working.</source>
+        <translation>По умолчанию отключено: один профиль обрабатывает весь трафик, а остальные находятся в режиме ожидания. Включите эту функцию, чтобы распределить трафик между профилями, работоспособность которых подтверждена.</translation>
+    </message>
+    <message>
+        <source>Preferred profile</source>
+        <translation>Предпочтительный профиль</translation>
+    </message>
+    <message>
+        <source>Use automatic</source>
+        <translation>Использовать автовыбор</translation>
+    </message>
+    <message>
+        <source>Stop preferring this profile and let the selector choose on measurements again.</source>
+        <translation>Перестать отдавать предпочтение этому профилю и позвольте автовыбору снова выбирать на основе измерений.</translation>
+    </message>
+    <message>
+        <source>Advanced…</source>
+        <translation>Дополнительно…</translation>
+    </message>
+    <message>
+        <source>Everything here has a working default. Open it only if you want to tune how the selector measures and switches.</source>
+        <translation>У всех параметров здесь установлены рабочие значения по умолчанию. Открывайте их только в том случае, если хотите настроить способ измерения и переключения селектора.</translation>
+    </message>
+    <message>
+        <source>Which profiles to use</source>
+        <translation>Какие профили использовать</translation>
+    </message>
+    <message>
+        <source>Only countries</source>
+        <translation>Только страны</translation>
+    </message>
+    <message>
+        <source>e.g. DE,NL,FR</source>
+        <translation>например DE,NL,FR</translation>
+    </message>
+    <message>
+        <source>Comma-separated country codes, empty means any. Uses the country found by the IP test, so profiles that were never IP-tested are skipped while this is set.</source>
+        <translation>Коды стран, разделенные запятыми; пустое поле означает «любая». Используется страна, определённая по IP-адресу, поэтому профили, для которых никогда не проводилась проверка по IP-адресу, пропускаются.</translation>
+    </message>
+    <message>
+        <source>Run the best</source>
+        <translation>Запустить лучших</translation>
+    </message>
+    <message>
+        <source> profiles</source>
+        <translation> профилей</translation>
+    </message>
+    <message>
+        <source>How many profiles are loaded into the running config. The selector switches between these instantly, with no reconnect. Higher costs more memory and startup time.</source>
+        <translation>Сколько профилей загружено в текущую конфигурацию. Автовыбор мгновенно переключается между ними без повторного подключения. Увеличение этого числа требует большего объема памяти и увеличивает время запуска.</translation>
+    </message>
+    <message>
+        <source>Rank at most</source>
+        <translation>Ранжировать только</translation>
+    </message>
+    <message>
+        <source>Hard ceiling on how many profiles are measured and kept in the ranked list. When every running profile dies, replacements are taken from this list.</source>
+        <translation>Жесткое ограничение на количество профилей, которые измеряются и сохраняются в рейтинговом списке. Когда каждый запущенный профиль завершает работу, его заменяют профилями из этого списка.</translation>
+    </message>
+    <message>
+        <source>Trust results for</source>
+        <translation>Верить тестам на</translation>
+    </message>
+    <message>
+        <source> min</source>
+        <translation> мин</translation>
+    </message>
+    <message>
+        <source>always re-test</source>
+        <translation>всегда проводить повторное тестирование</translation>
+    </message>
+    <message>
+        <source>URL test results this recent are reused instead of being measured again — including tests you ran yourself on the group, so starting the selector right after one does not repeat the work. Older results are treated as if the profile had never been tested. Set to zero to always run a fresh test.</source>
+        <translation>Результаты недавних тестов URL повторно используются вместо повторного тестирования — в том числе результаты тестов, которые вы сами провели для данной группы, поэтому запуск селектора сразу после одного из них не приведет к дублированию работы. Более старые результаты обрабатываются так, как будто профиль никогда не тестировался. Установите значение «0», чтобы всегда запускать новый тест.</translation>
+    </message>
+    <message>
+        <source>Skip failed profiles</source>
+        <translation>Пропускать неудачные профили</translation>
+    </message>
+    <message>
+        <source>Keeps servers whose last test failed out of the pool, as long as that result is still within the trust window. Turn off if your tests are unreliable and you would rather let the selector decide for itself.</source>
+        <translation>Исключает из пула серверы, последнее тестирование которых завершилось неудачно, пока этот результат находится в пределах окна доверия. Отключите эту опцию, если ваши тесты ненадежны и вы предпочитаете, чтобы выбор осуществлялся автовыбором самостоятельно.</translation>
+    </message>
+    <message>
+        <source>Health checks</source>
+        <translation>Проверка доступности</translation>
+    </message>
+    <message>
+        <source>Keep ready</source>
+        <translation>Держать наготове</translation>
+    </message>
+    <message>
+        <source>How many profiles are kept confirmed working at all times, so a failure can be covered instantly. These are also the ones traffic is shared between when balancing is on.</source>
+        <translation>Сколько профилей постоянно поддерживается в рабочем состоянии, чтобы в случае сбоя можно было мгновенно обеспечить его устранение. Именно между этими профилями распределяется трафик при включенной функции балансировки нагрузки.</translation>
+    </message>
+    <message>
+        <source>Check closely</source>
+        <translation>Тщательная проверка</translation>
+    </message>
+    <message>
+        <source>The top-ranked profiles are re-checked every interval. The rest are still checked, just spread over the slower full sweep.</source>
+        <translation>Профили, занимающие верхние строчки рейтинга, перепроверяются через этот интервал. Остальные профили также проверяются, но их проверка распределяется в рамках более медленного полного цикла.</translation>
+    </message>
+    <message>
+        <source>Check interval</source>
+        <translation>Интервал проверки</translation>
+    </message>
+    <message>
+        <source> s</source>
+        <translation> сек</translation>
+    </message>
+    <message>
+        <source>How often the closely-checked profiles are measured again.</source>
+        <translation>Как часто повторно измеряются профили, подвергающиеся тщательной проверке.</translation>
+    </message>
+    <message>
+        <source>Full sweep every</source>
+        <translation>Полный проход каждые</translation>
+    </message>
+    <message>
+        <source>How long one pass over every running profile takes. Checks are spread evenly across it, so a large pool never causes a burst of traffic.</source>
+        <translation>Время, затрачиваемое на один проход по каждому запущенному профилю. Проверки распределяются по нему равномерно, поэтому даже большой пул никогда не вызывает всплеска трафика.</translation>
+    </message>
+    <message>
+        <source>Watch profile in use</source>
+        <translation>Мониторинг текущего профиля</translation>
+    </message>
+    <message>
+        <source>How often the profile currently carrying your traffic is checked on its own. Keep this short: a server can stop working while still accepting connections, and nothing else would notice until the next full check.</source>
+        <translation>Как часто автоматически проверяется профиль, по которому в данный момент проходит ваш трафик. Кратко: сервер может перестать работать, продолжая при этом принимать соединения, и об этом никто не узнает до следующей полной проверки.</translation>
+    </message>
+    <message>
+        <source>Samples kept</source>
+        <translation>Сохраненные тесты</translation>
+    </message>
+    <message>
+        <source>Ranking uses the average and the jitter over this many recent checks, so a single bad result cannot demote a good server.</source>
+        <translation>При ранжировании используются средние значения и джиттер по результатам данного количества последних проверок, поэтому один неудачный результат не может понизить рейтинг хорошего сервера.</translation>
+    </message>
+    <message>
+        <source>Switching</source>
+        <translation>Переключение</translation>
+    </message>
+    <message>
+        <source>Switch tolerance</source>
+        <translation>Толерантность</translation>
+    </message>
+    <message>
+        <source> ms</source>
+        <translation> мс</translation>
+    </message>
+    <message>
+        <source>Another profile must be at least this much faster before the selector moves to it. Higher values mean fewer switches.</source>
+        <translation>Другой профиль должен быть как минимум на столько быстрее, чтобы селектор переключился на него. Более высокие значения означают меньшее количество переключений.</translation>
+    </message>
+    <message>
+        <source>Maximum latency</source>
+        <translation>Максимальная задержка</translation>
+    </message>
+    <message>
+        <source>no limit</source>
+        <translation>без ограничений</translation>
+    </message>
+    <message>
+        <source>Profiles slower than this are never selected, even if nothing better is available.</source>
+        <translation>Профили, работающие медленнее, никогда не выбираются, даже если нет ничего лучше.</translation>
+    </message>
+    <message>
+        <source>Failover attempts</source>
+        <translation>Кол-во попыток при сбое</translation>
+    </message>
+    <message>
+        <source>When the chosen profile fails to connect, how many others to try immediately before the app sees an error.</source>
+        <translation>Если подключение к выбранному профилю не удается, сколько других профилей следует попробовать сразу, прежде чем приложение выдаст ошибку.</translation>
+    </message>
+    <message>
+        <source>Drop connections on switch</source>
+        <translation>Разрыв соединений при переключении</translation>
+    </message>
+    <message>
+        <source>Applies when the selector switches because a profile got worse or failed. On: everything moves to the new profile at once. Off: current downloads finish on the old one. Balance rotations never drop connections either way.</source>
+        <translation>Применяется, когда автовыбор переключается из-за ухудшения качества профиля или его сбоя. Включено: всё сразу переключается на новый профиль. Выключено: текущие загрузки завершаются на старом профиле. При сбалансированном переключении соединения не прерываются ни в том, ни в другом случае.</translation>
+    </message>
+    <message>
+        <source>Load balancing</source>
+        <translation>Балансировка нагрузки</translation>
+    </message>
+    <message>
+        <source>Mode</source>
+        <translation>Режим</translation>
+    </message>
+    <message>
+        <source>How traffic is spread over the ready profiles.</source>
+        <translation>Как трафик распределяется между готовыми профилями.</translation>
+    </message>
+    <message>
+        <source>Rotate every</source>
+        <translation>Переключать каждые</translation>
+    </message>
+    <message>
+        <source>How long the selector stays on one profile before moving to the next ready one.</source>
+        <translation>Как долго селектор остается на одном профиле, прежде чем перейти к следующему готовому профилю.</translation>
+    </message>
+    <message>
+        <source>Test endpoints</source>
+        <translation>Конечные точки тестирования</translation>
+    </message>
+    <message>
+        <source>Test URL</source>
+        <translation>URL проверки</translation>
+    </message>
+    <message>
+        <source>empty = use the global latency test URL</source>
+        <translation>если не указано, будет использоваться глобальный URL для тестирования задержки</translation>
+    </message>
+    <message>
+        <source>Fetched through each profile to measure it.</source>
+        <translation>Будет запрошено через каждый профиль для тестирования его задержки.</translation>
+    </message>
+    <message>
+        <source>Connectivity URL</source>
+        <translation>URL для подключения</translation>
+    </message>
+    <message>
+        <source>optional</source>
+        <translation>необязательно</translation>
+    </message>
+    <message>
+        <source>Fetched WITHOUT the proxy to tell a dead internet connection apart from dead servers. Leave empty to rely on the operating system&apos;s network state, which is the safer default on a censored network where any fixed address may be blocked.</source>
+        <translation>Запрос выполняется БЕЗ использования прокси, чтобы отличить отсутствие интернет-соединения от неработающих серверов. Оставьте поле пустым, чтобы полагаться на данные об состоянии сети, предоставляемые операционной системой — это более безопасный вариант по умолчанию в условиях цензурированной сети, где любой фиксированный адрес может быть заблокирован.</translation>
+    </message>
+    <message>
+        <source>Rotate on a timer (keeps sessions stable)</source>
+        <translation>Переключение по таймеру (обеспечивает стабильность сеансов)</translation>
+    </message>
+    <message>
+        <source>Per connection (widest spread)</source>
+        <translation>На каждое подключение (наибольший диапазон)</translation>
+    </message>
+    <message>
+        <source>Advanced ▴</source>
+        <translation>Дополнительно ▴</translation>
+    </message>
+    <message>
+        <source>Name cannot be empty.</source>
+        <translation>Название не может быть пустым.</translation>
+    </message>
+    <message>
+        <source>Select the group this auto selector should track.</source>
+        <translation>Выберите группу, за которой должен следить этот автовыбор.</translation>
+    </message>
+    <message>
+        <source>The name filter is not a valid regular expression: %1</source>
+        <translation>Фильтр по имени не является допустимым регулярным выражением: %1</translation>
+    </message>
+    <message>
+        <source>%1 — chosen by you, so the selector stays on it while it works</source>
+        <translation>%1 — выбран вами, поэтому выбор останется на нём, пока он работает</translation>
+    </message>
+    <message>
+        <source>The best profile carries all traffic; the other ready profiles are kept verified so one can take over instantly.</source>
+        <translation>Лучший профиль обрабатывает весь трафик; остальные готовые профили находятся в проверенном состоянии, чтобы любой из них можно было мгновенно задействовать.</translation>
+    </message>
+    <message>
+        <source>New connections move to another good profile on each rotation; open ones are left alone and finish where they started. Traffic is counted exactly.</source>
+        <translation>Новые соединения перемещаются на другой хороший профиль при каждой смене; открытые остаются на месте и завершаются там, где начались. Трафик подсчитывается точно.</translation>
+    </message>
+    <message>
+        <source>Every new connection may take a different profile. Widest spread, but your exit IP changes mid-session and per-profile traffic becomes approximate.</source>
+        <translation>Каждое новое подключение может использовать свой профиль. Максимальное покрытие, но ваш выходной IP-адрес меняется в середине сеанса, и данные о трафике по каждому профилю становятся приблизительными.</translation>
+    </message>
+    <message>
+        <source>%1 of %2 profiles in the group can be used; %3 would run.</source>
+        <translation>Можно использовать %1 из %2 профилей в группе; %3 будут запущены.</translation>
+    </message>
+    <message>
+        <source>%1 %2</source>
+        <translation>%1 %2</translation>
+    </message>
+    <message>
+        <source>Skipped: %1.</source>
+        <translation>Пропущено: %1.</translation>
+    </message>
+    <message>
+        <source>, </source>
+        <translation>, </translation>
+    </message>
+    <message>
+        <source>More than %1 profiles match, so only the best-ranked ones are kept.</source>
+        <translation>Соответствует более %1 профилей, поэтому сохраняются только лучшие.</translation>
+    </message>
+    <message>
+        <source>%1 have a recent test result that will be reused.</source>
+        <translation>У %1 есть недавний результат теста, который будет использован повторно.</translation>
+    </message>
+    <message>
+        <source>The rest will be measured before the selector starts.</source>
+        <translation>Остальные параметры будут измерены до запуска автовыбора.</translation>
     </message>
 </context>
 <context>
@@ -2519,15 +2981,15 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Transport</source>
-        <translation type="unfinished"></translation>
+        <translation>Транспорт</translation>
     </message>
     <message>
         <source>Multiplexing</source>
-        <translation type="unfinished"></translation>
+        <translation>Мультиплексирование</translation>
     </message>
     <message>
         <source>Traffic Pattern</source>
-        <translation type="unfinished"></translation>
+        <translation>Паттерн трафика</translation>
     </message>
     <message>
         <source>Server Ports</source>
@@ -2624,18 +3086,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Password</source>
         <translation>Пароль</translation>
-    </message>
-    <message>
-        <source>1</source>
-        <translation>1</translation>
-    </message>
-    <message>
-        <source>2</source>
-        <translation>2</translation>
-    </message>
-    <message>
-        <source>3</source>
-        <translation>3</translation>
     </message>
     <message>
         <source>Version</source>
@@ -2866,6 +3316,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Резервный (Reserved)</translation>
     </message>
     <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;persistent_keepalive_interval in seconds, or an AmneziaWG range such as 22-30&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Интервал отправки Persistent Keepalive (поддержания активности) в секундах или диапазон AmneziaWG, например 22-30&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;comma seperated list of subnets&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Список подсетей, разделенных запятыми&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
@@ -2875,7 +3329,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Generate a Cloudflare WARP account and fill the key, address and endpoint fields above.</source>
-        <translation type="unfinished"></translation>
+        <translation>Сгенерировать учетную запись Cloudflare WARP и заполнить поля «Ключ», «Адрес» и «Конечная точка» выше.</translation>
     </message>
     <message>
         <source>Generate Warp Config</source>
@@ -2883,7 +3337,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Amnezia Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Настройки Amnezia</translation>
     </message>
     <message>
         <source>Cookie Reply Packet Junk Size (S3)</source>
@@ -2954,6 +3408,62 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Base64 key. Requires S1-S4 to be at least 12.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Header Protection Key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Bytes of random trailing padding, as a value or range (e.g. 0-64).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Content Padding Addition</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Seconds before a rekey is attempted, as a value or range.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rekey After Time</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Seconds before a handshake is retried, as a value or range.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Rekey Timeout</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Seconds before keys are rejected, as a value or range.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Reject After Time</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Seconds of idle time before a keepalive is sent, as a value or range.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Keepalive Timeout</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Handshake retries before giving up, as a value or range.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Max Handshake Attempts</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Pre Shared Key</source>
         <translation>Предв. раздел. ключ (Pre-shared Key, PSK)</translation>
     </message>
@@ -2980,10 +3490,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Workers</source>
         <translation>Workers</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;persistent_keepalive_interval in seconds&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Интервал отправки Persistent Keepalive (поддержания активности) в секундах&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -3254,10 +3760,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Сканировать QR-код</translation>
     </message>
     <message>
-        <source>Enable System Proxy</source>
-        <translation>Активировать системный прокси</translation>
-    </message>
-    <message>
         <source>Disable</source>
         <translation>Отключить</translation>
     </message>
@@ -3310,10 +3812,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Скопировать ссылки выбранных</translation>
     </message>
     <message>
-        <source>Enable Tun</source>
-        <translation>Включить режим TUN</translation>
-    </message>
-    <message>
         <source>Clone</source>
         <translation>Клонировать</translation>
     </message>
@@ -3340,6 +3838,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Runtime Stats</source>
         <translation>Статистика выполнения</translation>
+    </message>
+    <message>
+        <source>Auto Selector Stats</source>
+        <translation>Статистика автовыбора</translation>
     </message>
     <message>
         <source>Traffic Stats</source>
@@ -3446,6 +3948,26 @@ URL: %2</translation>
     <message>
         <source>Auto update</source>
         <translation>Авто-обновление</translation>
+    </message>
+    <message>
+        <source>%1: cannot be opened</source>
+        <translation>%1: не удаётся открыть</translation>
+    </message>
+    <message>
+        <source>%1: larger than 50 MB, skipped</source>
+        <translation>%1: размер превышает 50 МБ, пропущено</translation>
+    </message>
+    <message>
+        <source>%1: no QR code found</source>
+        <translation>%1: QR-код не найден</translation>
+    </message>
+    <message>
+        <source>%1: not a readable config file</source>
+        <translation>%1: файл конфигурации не читается</translation>
+    </message>
+    <message>
+        <source>Nothing could be imported:</source>
+        <translation>Ничего не удалось импортировать:</translation>
     </message>
     <message>
         <source>Settings changed, restart proxy?</source>
@@ -3578,6 +4100,10 @@ Download them now?</source>
     <message>
         <source>Geo assets installed</source>
         <translation>Загрузка Гео-файлов</translation>
+    </message>
+    <message>
+        <source>[Auto selector] Running the best %1 of %2 ranked profiles.</source>
+        <translation>[Автовыбор] Запущены лучшие %1 из %2 ранжированных профилей.</translation>
     </message>
     <message>
         <source>If there is no response for a long time, it is recommended to restart the software.</source>
@@ -3728,6 +4254,10 @@ Error: %1</source>
         <translation>Отправлено (↑)</translation>
     </message>
     <message>
+        <source>Select Profile</source>
+        <translation>Выбор профиля</translation>
+    </message>
+    <message>
         <source> Test result(s) copied to clipboard!</source>
         <translation>Результаты теста скопированы в буфер обмена!</translation>
     </message>
@@ -3794,6 +4324,10 @@ Error: %1</source>
     <message>
         <source>Click To Sort By Process</source>
         <translation>Нажмите для сортировки по процессу</translation>
+    </message>
+    <message>
+        <source>Operation Mode</source>
+        <translation>Режим работы</translation>
     </message>
     <message>
         <source>Routing Menu</source>
@@ -3944,16 +4478,28 @@ Please try again.</source>
         <translation>Добавить профиль из файла</translation>
     </message>
     <message>
-        <source>Select Server</source>
-        <translation>Выбрать сервер</translation>
-    </message>
-    <message>
         <source>Add subscription</source>
         <translation>Добавить подписку</translation>
     </message>
     <message>
         <source>Select Routing</source>
         <translation>Выбор маршрутизации</translation>
+    </message>
+    <message>
+        <source>All files (*)</source>
+        <translation>Все файлы (*)</translation>
+    </message>
+    <message>
+        <source>Config files (*.json *.conf *.txt *.yaml *.yml *.ini)</source>
+        <translation>Конфиг-файлы (*.json *.conf *.txt *.yaml *.yml *.ini)</translation>
+    </message>
+    <message>
+        <source>QR code images (*.png *.jpg *.jpeg *.bmp *.gif *.webp)</source>
+        <translation>Изображения QR-кодов (*.png *.jpg *.jpeg *.bmp *.gif *.webp)</translation>
+    </message>
+    <message>
+        <source>Select profile files</source>
+        <translation>Выберете файлы профилей</translation>
     </message>
     <message>
         <source>subscriptions</source>
@@ -3988,6 +4534,30 @@ Name: %1</source>
 </source>
         <translation>Не удалось распознать ссылку:
 </translation>
+    </message>
+    <message>
+        <source>[Auto selector] Reusing existing test results; ranked %1 profiles.</source>
+        <translation>[Автовыбор] Использованы сохранённые результаты замеров; ранжировано %1 профилей.</translation>
+    </message>
+    <message>
+        <source>[Auto selector] Measuring %1 not-yet-tested profiles...</source>
+        <translation>[Автовыбор] Выполняется замер %1 ещё не протестированных профилей...</translation>
+    </message>
+    <message>
+        <source>[Auto selector] Ranked %1 profiles.</source>
+        <translation>[Автовыбор] Ранжировано %1 профилей.</translation>
+    </message>
+    <message>
+        <source>[Auto selector] The subscription replaced profiles it was running on — rebuilding.</source>
+        <translation>[Автовыбор] Подписка заменила профили, на которых выполнялся запуск, — выполняется пересборка.</translation>
+    </message>
+    <message>
+        <source>[Auto selector] Every running profile stopped working — rebuilding from the next best candidates.</source>
+        <translation>Все запущенные профили перестали работать — выполняется пересборка из следующих наилучших кандидатов.</translation>
+    </message>
+    <message>
+        <source>Copied!</source>
+        <translation>Скопировано!</translation>
     </message>
 </context>
 <context>
@@ -4320,6 +4890,218 @@ Release note:
         <source>Weak Cipher</source>
         <translation>Слабый шифр</translation>
     </message>
+    <message>
+        <source>[Warn] Throne did not shut down cleanly last time. Diagnostics were saved to: %1</source>
+        <translation>[Предупреждение] В прошлый раз Throne не завершил работу корректно. Результаты диагностики сохранены в: %1</translation>
+    </message>
+    <message>
+        <source>An auto selector cannot be a hop in a chain: it moves to a different server on its own whenever one degrades.</source>
+        <translation>Автовыбор не может выступать в качестве промежуточного звена в цепочке: он самостоятельно переключается на другой сервер при ухудшении работоспособности одного из них.</translation>
+    </message>
+    <message>
+        <source>a profile that no longer exists</source>
+        <translation>профиль, которого больше нет</translation>
+    </message>
+    <message>
+        <source>Auto Selector</source>
+        <translation>Автовыбор</translation>
+    </message>
+    <message>
+        <source>no group</source>
+        <translation>нет группы</translation>
+    </message>
+    <message>
+        <source>missing group</source>
+        <translation>группа отсутствует</translation>
+    </message>
+    <message>
+        <source>missing profile</source>
+        <translation>профиль отсутствует</translation>
+    </message>
+    <message>
+        <source>chain or auto selector</source>
+        <translation>цепочка или автовыбор</translation>
+    </message>
+    <message>
+        <source>needs too many core switches</source>
+        <translation>требуется слишком много переключений ядра</translation>
+    </message>
+    <message>
+        <source>extra-core profile</source>
+        <translation>профиль Доп. ядра</translation>
+    </message>
+    <message>
+        <source>full config profile</source>
+        <translation>профиль полной конфигурации</translation>
+    </message>
+    <message>
+        <source>config does not parse</source>
+        <translation>неразобранный конфиг</translation>
+    </message>
+    <message>
+        <source>Tailscale profile</source>
+        <translation>Tailscale профиль</translation>
+    </message>
+    <message>
+        <source>filtered out by name</source>
+        <translation>отфильтрованы по названию</translation>
+    </message>
+    <message>
+        <source>filtered out by country</source>
+        <translation>отфильтрованы по стране</translation>
+    </message>
+    <message>
+        <source>last test failed</source>
+        <translation>последний тест завершился с ошибкой</translation>
+    </message>
+    <message>
+        <source>never</source>
+        <translation>никогда</translation>
+    </message>
+    <message>
+        <source>%1s ago</source>
+        <translation>%1 сек. назад</translation>
+    </message>
+    <message>
+        <source>%1m ago</source>
+        <translation>%1 мин. назад</translation>
+    </message>
+    <message>
+        <source>%1h ago</source>
+        <translation>%1 час назад</translation>
+    </message>
+    <message>
+        <source>Auto selector paused — no network connection (%1 profiles held)</source>
+        <translation>Автовыбор приостановлен — нет подключения к сети (сохранено %1 профилей)</translation>
+    </message>
+    <message>
+        <source>Auto selector starting — checking %1 profiles</source>
+        <translation>Запуск автовыбора — проверка %1 профилей</translation>
+    </message>
+    <message>
+        <source>Auto selector checking profiles (%1/%2 measured)</source>
+        <translation>Автовыбор проверяет профили (проверено %1/%2)</translation>
+    </message>
+    <message>
+        <source>Auto selector — no working profile out of %1</source>
+        <translation>Автовыбор — в %1 нет рабочего профиля</translation>
+    </message>
+    <message>
+        <source>Auto selector on %1 (%2 of %3 working)</source>
+        <translation>Автовыбор: %1 (работает %2 из %3)</translation>
+    </message>
+    <message>
+        <source>, switched %1</source>
+        <translation>, переключено %1</translation>
+    </message>
+    <message>
+        <source>%1 working</source>
+        <translation>%1 работает</translation>
+    </message>
+    <message>
+        <source>%1 cooling down</source>
+        <translation>%1 приостановлен</translation>
+    </message>
+    <message>
+        <source>%1 not checked yet</source>
+        <translation>%1 ещё не проверено</translation>
+    </message>
+    <message>
+        <source>%1 being checked</source>
+        <translation>%1 проверяется </translation>
+    </message>
+    <message>
+        <source>balancing over %1</source>
+        <translation>балансировка %1</translation>
+    </message>
+    <message>
+        <source>%1 profiles: %2</source>
+        <translation>%1 профилей: %2</translation>
+    </message>
+    <message>
+        <source>, </source>
+        <translation>, </translation>
+    </message>
+    <message>
+        <source>No auto selector is running.</source>
+        <translation>Автовыбор не запущен.</translation>
+    </message>
+    <message>
+        <source>That profile is not in the running pool.</source>
+        <translation>Этот профиль не находится в активном пуле.</translation>
+    </message>
+    <message>
+        <source>Could not reach the core.</source>
+        <translation>Не удалось установить связь с ядром.</translation>
+    </message>
+    <message>
+        <source>[Auto selector] Every profile is failing, but this machine has no network connection — keeping the current pool.</source>
+        <translation>[Автовыбор] Все профили дают сбой, но у этого компьютера нет подключения к сети — сохраняется текущий пул.</translation>
+    </message>
+    <message>
+        <source>just now</source>
+        <translation>только что</translation>
+    </message>
+    <message>
+        <source>Working</source>
+        <translation>Работает</translation>
+    </message>
+    <message>
+        <source>Unstable</source>
+        <translation>Нестабильный</translation>
+    </message>
+    <message>
+        <source>Not checked</source>
+        <translation>Не проверено</translation>
+    </message>
+    <message>
+        <source>Failing</source>
+        <translation>Неудачный</translation>
+    </message>
+    <message>
+        <source>Paused</source>
+        <translation>Приостановленный</translation>
+    </message>
+    <message>
+        <source>your choice, carrying traffic now</source>
+        <translation>ваш выбор, работает сейчас</translation>
+    </message>
+    <message>
+        <source>your choice, but not usable right now</source>
+        <translation>ваш выбор, но пока что не работает</translation>
+    </message>
+    <message>
+        <source>carrying traffic now</source>
+        <translation>работает сейчас</translation>
+    </message>
+    <message>
+        <source>failed to connect, retrying in %1s</source>
+        <translation>Не удалось установить соединение, повторная попытка через %1 сек</translation>
+    </message>
+    <message>
+        <source>failed to connect</source>
+        <translation>не удалось установить соединение</translation>
+    </message>
+    <message>
+        <source>every check failed</source>
+        <translation>все проверки завершились неудачно</translation>
+    </message>
+    <message>
+        <source>ready to take over</source>
+        <translation>готов приступить к работе</translation>
+    </message>
+    <message>
+        <source>check in progress</source>
+        <translation>проверка выполняется</translation>
+    </message>
+    <message>
+        <source>queued for checking</source>
+        <translation>в очереди на проверку</translation>
+    </message>
+    <message>
+        <source>%1 of %2 checks failed</source>
+        <translation>%1 из %2 проверок завершились неудачно</translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -4431,7 +5213,8 @@ outbounds и другие функции Throne. Только для опытн�
     <message>
         <source>Re-fetch this profile from the URL when subscriptions auto-update.
 Your local edits are overwritten on each update.</source>
-        <translation type="unfinished"></translation>
+        <translation>Повторно загружать этот профиль из URL при автоматическом обновлении подписок.
+Ваши локальные правки перезаписываются при каждом обновлении.</translation>
     </message>
     <message>
         <source>Auto update</source>
@@ -4439,11 +5222,11 @@ Your local edits are overwritten on each update.</source>
     </message>
     <message>
         <source>Fetch the URL and show the routing profile without changing the current rules.</source>
-        <translation type="unfinished"></translation>
+        <translation>Загрузить URL и показать профиль маршрутизации без изменения текущих правил.</translation>
     </message>
     <message>
         <source>Fetch the URL and replace the current rules with the fetched ones.</source>
-        <translation type="unfinished"></translation>
+        <translation>Загрузить URL и заменить текущие правила загруженными.</translation>
     </message>
     <message>
         <source>Fetch</source>
@@ -4451,7 +5234,7 @@ Your local edits are overwritten on each update.</source>
     </message>
     <message>
         <source>Warp-bypass</source>
-        <translation type="unfinished"></translation>
+        <translation>Warp-bypass</translation>
     </message>
     <message>
         <source>Rules</source>
