@@ -605,8 +605,15 @@ static void find_alignment_pattern(struct quirc *q, int index)
 	/* Spiral outwards from the estimate point until we find something
 	 * roughly the right size. Don't look too far from the estimate
 	 * point.
+	 *
+	 * A degenerate perspective transform (near-zero denominator) can make
+	 * size_estimate enormous, which would spin this spiral for hundreds of
+	 * millions of iterations on a tiny image (denial of service on a crafted
+	 * QR). The alignment pattern must lie within the image, so also cap the
+	 * search radius at the image size.
 	 */
-	while (step_size * step_size < size_estimate * 100) {
+	int max_step = (q->w > q->h ? q->w : q->h) + 1;
+	while (step_size * step_size < size_estimate * 100 && step_size <= max_step) {
 		static const int dx_map[] = {1, 0, -1, 0};
 		static const int dy_map[] = {0, -1, 0, 1};
 		int i;
