@@ -675,11 +675,11 @@ It stays a preference, not a lock: if that profile stops working the selector st
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show each config&apos;s security next to its type in the proxy list, e.g. &quot;Trojan (WebSocket+TLS)&quot;. Insecure configs are marked with a warning sign.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;在代理列表中在每个配置的类型旁边显示其安全性，例如 &quot;Trojan (WebSocket+TLS)&quot;。不安全的配置会用一个警告符号标记。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;在代理列表中在每个配置的类型旁边显示其安全机制，例如 &quot;Trojan (WebSocket+TLS)&quot;。不安全的配置会用一个警告符号标记。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Show Config Security</source>
-        <translation>显示配置安全性</translation>
+        <translation>显示配置安全机制</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Timeout for URLtest in ms&lt;br/&gt;Note that muxed connections take a much longer time for their initial request, and setting this value too low will cause the test to falsely report that the config is not working&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -968,7 +968,7 @@ Throne will restart to complete the restore.</source>
     </message>
     <message>
         <source>Transport Layer Security. It must be consistent with the server, otherwise, the connection cannot be established.</source>
-        <translation>传输层安全性。它必须与服务器一致，否则无法建立连接。</translation>
+        <translation>传输层安全性（安全协议）。它必须与服务器一致，否则无法建立连接。</translation>
     </message>
     <message>
         <source>Security</source>
@@ -1004,11 +1004,11 @@ Throne will restart to complete the restore.</source>
     </message>
     <message>
         <source>Brutal Download Speed</source>
-        <translation>强暴下载速度</translation>
+        <translation>激进下载速度</translation>
     </message>
     <message>
         <source>Brutal Upload Speed</source>
-        <translation>强暴上传速度</translation>
+        <translation>激进上传速度</translation>
     </message>
     <message>
         <source>Advanced Settings</source>
@@ -1040,7 +1040,7 @@ Throne will restart to complete the restore.</source>
     </message>
     <message>
         <source>Server name indication, clear text.</source>
-        <translation>服务器名称指示 (SNI)，明文。</translation>
+        <translation>SNI (服务器名称指示)，明文。</translation>
     </message>
     <message>
         <source>Fragment</source>
@@ -1216,15 +1216,15 @@ Throne will restart to complete the restore.</source>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overrides mux to On&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;覆盖多路服用为开启&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;覆盖 Mux (多路复用)为开启&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Enable TCP Brutal</source>
-        <translation>启用 TCP Brutal</translation>
+        <translation>启用 TCP 激进策略</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Server to Client TCP Brutal Speed&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;服务器到客户端的 TCP 极致速度&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;服务器到客户端的 TCP 激进速度&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Mb/s</source>
@@ -1260,7 +1260,7 @@ Throne will restart to complete the restore.</source>
     </message>
     <message>
         <source>Reality short id. Accept only one value.</source>
-        <translation>Reality 短 ID。 仅接受一个值。</translation>
+        <translation>Reality SID（短 ID）。 仅接受一个值。</translation>
     </message>
     <message>
         <source>JSON: %1
@@ -1895,7 +1895,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Local DNS can not be used in some configurations, you will have to set an ip here to be used as local dns in such situations&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;在某些配置中无法使用本地 DNS，在这种情况下您必须在这里设置一个IP 作为本地 DNS 使用&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;在某些配置中无法使用本地 DNS，在这种情况下您必须在这里设置一个 IP 作为本地 DNS 使用&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Local Override</source>
@@ -2567,7 +2567,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Watch profile in use</source>
-        <translation>观察使用中的配置档</translation>
+        <translation>监测使用中的配置档</translation>
     </message>
     <message>
         <source>How often the profile currently carrying your traffic is checked on its own. Keep this short: a server can stop working while still accepting connections, and nothing else would notice until the next full check.</source>
@@ -2758,7 +2758,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Profiles that use an extra core can only be the final hop in the chain. Move it to the top of the list.</source>
-        <translation>使用额外核心的配置档只可以作为(代理)链中的最后一跳。把它移到列表的顶部。</translation>
+        <translation>使用 extra core （额外核心）的配置档只可以作为(代理)链中的最后一跳。把它移到列表的顶部。</translation>
     </message>
     <message>
         <source>Only one extra-core profile is allowed in a chain.</source>
@@ -2810,16 +2810,8 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Socks 地址</translation>
     </message>
     <message>
-        <source>127.0.0.1</source>
-        <translation>127.0.0.1</translation>
-    </message>
-    <message>
         <source>Socks port</source>
         <translation>Socks 端口</translation>
-    </message>
-    <message>
-        <source>1080</source>
-        <translation>1080</translation>
     </message>
     <message>
         <source>Core path</source>
@@ -3695,7 +3687,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Remember last profile</source>
-        <translation>记住最后的配置档</translation>
+        <translation>记住上次的配置档</translation>
     </message>
     <message>
         <source>Allow other devices to connect</source>
@@ -3831,7 +3823,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Security</source>
-        <translation>安全加密</translation>
+        <translation>安全机制</translation>
     </message>
     <message>
         <source>Update all subscriptions?</source>
@@ -4522,18 +4514,6 @@ Name: %1</source>
     <message>
         <source>Export %1 config</source>
         <translation>导出 %1 配置</translation>
-    </message>
-    <message>
-        <source>Ctrl+Shift+S</source>
-        <translation>Ctrl+Shift+S</translation>
-    </message>
-    <message>
-        <source>Ctrl+Shift+G</source>
-        <translation>Ctrl+Shift+G</translation>
-    </message>
-    <message>
-        <source>Ctrl+Alt+I</source>
-        <translation>Ctrl+Alt+I</translation>
     </message>
     <message>
         <source>Profiles</source>
@@ -5244,7 +5224,7 @@ outbounds and other Throne features may break. For advanced users only.</source>
     </message>
     <message>
         <source>URL</source>
-        <translation></translation>
+        <translation>URL</translation>
     </message>
     <message>
         <source>https://... (throne://route link, base64, or JSON)</source>
