@@ -749,6 +749,18 @@ namespace Configs {
 
         if (query.hasQueryItem("type")) network = query.queryItemValue("type").replace("tcp", "raw");
         if (!Configs::XrayNetworks.contains(network)) return false;
+        if (network == "raw" && query.queryItemValue("headerType") == "http") {
+            QJsonObject request;
+            if (const auto path = query.queryItemValue("path", QUrl::FullyDecoded); !path.isEmpty()) {
+                request["path"] = QJsonArray{path};
+            }
+            if (const auto host = query.queryItemValue("host", QUrl::FullyDecoded); !host.isEmpty()) {
+                request["headers"] = QJsonObject{{"Host", QJsonArray::fromStringList(host.split(','))}};
+            }
+            QJsonObject header{{"type", "http"}};
+            if (!request.isEmpty()) header["request"] = request;
+            rawSettings = QJsonObject{{"header", header}};
+        }
         if (query.hasQueryItem("security")) security = query.queryItemValue("security");
         if (security == "tls") TLS->ParseFromLink(link);
         else if (security == "reality") reality->ParseFromLink(link);
@@ -763,8 +775,14 @@ namespace Configs {
     bool xrayStreamSetting::ParseFromJson(const QJsonObject &object) {
         if (object.isEmpty()) return false;
 
-        if (object.contains("network")) network = object.value("network").toString();
+        if (object.contains("method")) network = object.value("method").toString();
+        else if (object.contains("network")) network = object.value("network").toString();
+        if (network == "tcp") network = "raw";
         if (!Configs::XrayNetworks.contains(network)) return false;
+        if (network == "raw") {
+            if (object["rawSettings"].isObject()) rawSettings = object["rawSettings"].toObject();
+            else if (object["tcpSettings"].isObject()) rawSettings = object["tcpSettings"].toObject();
+        }
         if (object.contains("security")) security = object.value("security").toString();
         if (security == "tls" && object["tlsSettings"].isObject()) TLS->ParseFromJson(object["tlsSettings"].toObject());
         else if (security == "reality" && object["realitySettings"].isObject()) reality->ParseFromJson(object["realitySettings"].toObject());
@@ -802,7 +820,15 @@ namespace Configs {
 
     QString xrayStreamSetting::ExportToLink() {
         QUrlQuery query;
-        if (!network.isEmpty()) query.addQueryItem("type", network);
+        if (!network.isEmpty()) query.addQueryItem("type", network == "raw" ? "tcp" : network);
+        if (network == "raw" && rawSettings["header"].toObject()["type"] == "http") {
+            query.addQueryItem("headerType", "http");
+            const auto request = rawSettings["header"].toObject()["request"].toObject();
+            const auto paths = request["path"].toArray();
+            if (!paths.isEmpty()) query.addQueryItem("path", paths.first().toString());
+            const auto hosts = request["headers"].toObject()["Host"].toArray();
+            if (!hosts.isEmpty()) query.addQueryItem("host", QJsonArray2QListString(hosts).join(','));
+        }
         if (!security.isEmpty()) query.addQueryItem("security", security);
         if (security == "tls") mergeUrlQuery(query, TLS->ExportToLink());
         if (security == "reality") mergeUrlQuery(query, reality->ExportToLink());
@@ -817,6 +843,7 @@ namespace Configs {
         QJsonObject object;
         object["network"] = network;
         object["security"] = security;
+        if (network == "raw" && !rawSettings.isEmpty()) object["rawSettings"] = rawSettings;
         if (security == "tls") object["tlsSettings"] = TLS->ExportToJson();
         else if (security == "reality") object["realitySettings"] = reality->ExportToJson();
         if (network == "xhttp") object["xhttpSettings"] = xhttp->ExportToJson();
@@ -830,6 +857,7 @@ namespace Configs {
         QJsonObject object;
         object["network"] = network;
         object["security"] = security;
+        if (network == "raw" && !rawSettings.isEmpty()) object["rawSettings"] = rawSettings;
         if (security == "reality") {
             if (!reality->serverName.isEmpty()) object["sni"] = reality->serverName;
             if (!reality->fingerprint.isEmpty()) object["fingerprint"] = reality->fingerprint;

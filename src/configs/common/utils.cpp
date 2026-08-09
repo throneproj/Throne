@@ -51,8 +51,12 @@ namespace Configs
         auto url = QUrl(link);
         if (!url.isValid()) return false;
         auto query = QUrlQuery(url.query());
+        const auto transport = query.queryItemValue("type");
+        const bool rawHttp = (transport == "tcp" || transport == "raw")
+                             && query.queryItemValue("headerType") == "http";
 
         if (dataManager->settingsRepo->xray_vless_preference == Xray::AllVLESS
+            || rawHttp
             || query.queryItemValue("type") == "xhttp"
             || (query.queryItemValue("security") == "reality" && dataManager->settingsRepo->xray_vless_preference == Xray::XhttpAndReality)
             || (query.queryItemValue("encryption") != "none" && query.queryItemValue("encryption") != "")
