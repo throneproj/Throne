@@ -347,6 +347,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->toolButton_testing->setMenu(ui->menuTesting);
     ui->toolButton_tools->setMenu(ui->menuTools);
     ui->toolButton_program->installEventFilter(this);
+    // Mirrors the menus' Stop Testing swap: a second click during a sweep stops it.
+    connect(ui->toolButton_urltest, &QToolButton::clicked, this, [=, this] {
+        if (testRunner->isRunning()) testRunner->stop();
+        else ui->actionUrl_Test_Group->trigger();
+    });
 
     designMinimumSize = minimumSize();
     applyTopBarMetrics();

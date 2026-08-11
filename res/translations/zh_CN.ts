@@ -4104,6 +4104,10 @@ Please start your profile again.</source>
         <translation>URL 测试本组</translation>
     </message>
     <message>
+        <source>Url test the current group. Click again to stop a running test.</source>
+        <translation>URL 测试当前分组。测试进行中再次点击可停止。</translation>
+    </message>
+    <message>
         <source>Hidden menu</source>
         <translation>隐藏菜单</translation>
     </message>

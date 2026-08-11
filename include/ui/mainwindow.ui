@@ -381,6 +381,35 @@ QToolButton::menu-indicator {
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QToolButton" name="toolButton_urltest">
+        <property name="toolTip">
+         <string>Url test the current group. Click again to stop a running test.</string>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QToolButton {
+    padding-left: 8px;
+    padding-right: 8px;
+}</string>
+        </property>
+        <property name="text">
+         <string>Url Test Group</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../../res/Throne.qrc">
+          <normaloff>:/icon/b-testing-button.png</normaloff>:/icon/b-testing-button.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonStyle::ToolButtonTextUnderIcon</enum>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>
