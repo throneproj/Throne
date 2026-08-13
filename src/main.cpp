@@ -287,7 +287,7 @@ int main(int argc, char* argv[]) {
             elevatedArguments.removeFirst();
             const uint result = WinCommander::runProcessElevated(
                 QApplication::applicationFilePath(), elevatedArguments,
-                QApplication::applicationDirPath(), WinCommander::SW_HIDE, true);
+                QApplication::applicationDirPath(), WinCommander::WindowHidden, true);
             return result == 0 ? 0 : 1;
         }
         WindowsWfpKillSwitchBackend recoveryBackend;
@@ -382,7 +382,7 @@ int main(int argc, char* argv[]) {
             elevatedArguments.removeFirst();
             const uint result = WinCommander::runProcessElevated(
                 QApplication::applicationFilePath(), elevatedArguments,
-                QApplication::applicationDirPath(), WinCommander::SW_HIDE, true);
+                QApplication::applicationDirPath(), WinCommander::WindowHidden, true);
             return result == 0 ? 0 : 1;
         }
 
@@ -440,7 +440,7 @@ int main(int argc, char* argv[]) {
         elevatedArguments.removeFirst();
         const uint result = WinCommander::runProcessElevated(
             QApplication::applicationFilePath(), elevatedArguments,
-            QApplication::applicationDirPath(), WinCommander::SW_NORMAL, false);
+            QApplication::applicationDirPath(), WinCommander::WindowNormal, false);
         if (result == static_cast<uint>(-1)) {
             QMessageBox::critical(nullptr, "Throne kill switch",
                                   "Administrator permission is required to restore fail-closed protection.");

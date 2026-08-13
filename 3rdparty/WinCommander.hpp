@@ -27,12 +27,15 @@
 
 class WinCommander {
 public:
-    static const int SW_HIDE = 0;
-    static const int SW_NORMAL = 1;
-    static const int SW_SHOWMINIMIZED = 2;
+    // Do not reuse the Win32 SW_* names here: windows.h defines them as
+    // preprocessor macros, which also expand in qualified expressions such as
+    // WinCommander::SW_HIDE when CMake unity builds combine translation units.
+    static constexpr int WindowHidden = 0;
+    static constexpr int WindowNormal = 1;
+    static constexpr int WindowMinimized = 2;
 
     static uint runProcessElevated(const QString &path,
                                    const QStringList &parameters = QStringList(),
                                    const QString &workingDir = QString(),
-                                   int nShow = SW_SHOWMINIMIZED, bool aWait = true);
+                                   int nShow = WindowMinimized, bool aWait = true);
 };

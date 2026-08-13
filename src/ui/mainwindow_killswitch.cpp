@@ -164,7 +164,7 @@ bool MainWindow::setKillSwitchEnabled(const bool enable, QString *error)
         helperArguments << operation << "--quiet";
         return WinCommander::runProcessElevated(
             QApplication::applicationFilePath(), helperArguments,
-            QApplication::applicationDirPath(), WinCommander::SW_HIDE, true);
+            QApplication::applicationDirPath(), WinCommander::WindowHidden, true);
     };
 
     if (enable && !Configs::IsAdmin()) {
@@ -192,7 +192,7 @@ bool MainWindow::setKillSwitchEnabled(const bool enable, QString *error)
                          << QString::number(QCoreApplication::applicationPid());
         const uint restartResult = WinCommander::runProcessElevated(
             QApplication::applicationFilePath(), restartArguments,
-            QApplication::applicationDirPath(), WinCommander::SW_NORMAL, false);
+            QApplication::applicationDirPath(), WinCommander::WindowNormal, false);
         if (restartResult == static_cast<uint>(-1)) {
             const uint rollbackResult =
                 runMaintenanceHelper("--disable-kill-switch");
