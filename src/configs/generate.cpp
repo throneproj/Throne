@@ -1,6 +1,7 @@
 #include "include/configs/generate.h"
 #include "include/api/RPC.h"
 #include "include/configs/AutoSelectorPlan.h"
+#include "include/configs/GeneratorUtils.h"
 #include "include/global/Configs.hpp"
 
 #include <QApplication>
@@ -429,6 +430,21 @@ namespace Configs {
                 return domains;
             }
             if (auto addr = ent->outbound->GetAddress(); !addr.isEmpty() && !IsIpAddress(addr)) domains << addr;
+
+            // XHTTP downloadSettings can dial a second, independent endpoint.
+            // It must be resolvable before the Xray chain exists, just like the
+            // primary server, or fail-closed startup deadlocks on remote DNS.
+            if (ent->outbound->IsXray()) {
+                const auto stream = ent->outbound->GetXrayStream();
+                if (stream != nullptr && stream->network == "xhttp" &&
+                    stream->xhttp != nullptr && stream->xhttp->mode != "stream-one") {
+                    const auto downloadDomain =
+                        GeneratorUtils::ExtractXrayXhttpDownloadDomain(
+                            stream->xhttp->downloadSettings);
+                    if (!downloadDomain.isEmpty() && !domains.contains(downloadDomain))
+                        domains << downloadDomain;
+                }
+            }
             return domains;
         }
 
@@ -520,8 +536,9 @@ namespace Configs {
             warpProfile->type = "wireguard";
             auto outbound = std::make_shared<wireguard>();
             outbound->name = "warp";
-            outbound->server = settings.warp_ep.contains(":") ? SubStrBefore(settings.warp_ep, ":") : settings.warp_ep;
-            outbound->server_port = settings.warp_ep.contains(":") ? SubStrAfter(settings.warp_ep, ":").toInt() : 2408;
+            const auto endpoint = GeneratorUtils::ParseHostPort(settings.warp_ep, 2408);
+            outbound->server = endpoint.host;
+            outbound->server_port = endpoint.port;
             outbound->private_key = settings.warp_private_key;
             outbound->address = settings.warp_ifc_addrs;
             auto peer = std::make_shared<Peer>();
@@ -1178,7 +1195,11 @@ namespace Configs {
                     }
                 }
                 QJsonArray routeExcludeSets;
-                if (settings.enable_tun_routing)
+                // Under fail-closed routing, direct/bypass rules are rewritten
+                // to proxy. Excluding their destinations from the TUN here would
+                // prevent those rewritten rules from ever seeing the traffic;
+                // WFP would then block it instead of sending it through proxy.
+                if (settings.enable_tun_routing && !failClosedEnabled())
                 {
                     for (auto item: tun.directIPCIDRs) excludedRanges << item.toString();
                     for (auto item: tun.directIPSets) routeExcludeSets << item;

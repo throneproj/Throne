@@ -361,6 +361,8 @@ set(PROJECT_SOURCES
         src/configs/outbounds/vmess.cpp
         src/configs/outbounds/wireguard.cpp
         src/configs/outbounds/custom.cpp
+        include/configs/GeneratorUtils.h
+        src/configs/GeneratorUtils.cpp
         include/configs/generate.h
         src/configs/generate.cpp
         include/configs/common/utils.h
@@ -528,4 +530,15 @@ if (BUILD_TESTING)
     )
     target_link_libraries(KillSwitchControllerTest PRIVATE Qt6::Core)
     add_test(NAME KillSwitchControllerTest COMMAND KillSwitchControllerTest)
+
+    add_executable(GeneratorUtilsTest
+            tests/GeneratorUtilsTest.cpp
+            include/configs/GeneratorUtils.h
+            src/configs/GeneratorUtils.cpp
+    )
+    target_include_directories(GeneratorUtilsTest PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+    target_link_libraries(GeneratorUtilsTest PRIVATE Qt6::Core Qt6::Network)
+    add_test(NAME GeneratorUtilsTest COMMAND GeneratorUtilsTest)
 endif ()
