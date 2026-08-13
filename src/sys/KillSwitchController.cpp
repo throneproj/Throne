@@ -64,6 +64,18 @@ KillSwitchController::InitializationResult KillSwitchController::initialize(
     const auto reconciled = backend_.reconcile();
     backendState_ = reconciled.state;
     if (!reconciled.result) {
+        if (!shouldEnable && !backendState_.anyActive()) {
+            // The preference is explicitly off and the backend did not observe
+            // any owned policy. A generic platform-query failure (for example,
+            // BFE being unavailable) must preserve legacy/default-off behavior.
+            // A later explicit enable will still have to install and verify the
+            // baseline before any profile can be torn down.
+            enabled_ = false;
+            recoveredStaleProtection_ = false;
+            state_ = State::Disabled;
+            lastError_.clear();
+            return {KillSwitchResult::Success(), false, false, state_};
+        }
         lastError_ = normalizedError(QStringLiteral("reconcile kill switch state"),
                                      reconciled.result);
         state_ = State::Error;

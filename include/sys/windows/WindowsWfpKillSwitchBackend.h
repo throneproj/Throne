@@ -28,12 +28,18 @@ public:
     {
         BaselineState state = BaselineState::Error;
         QString detail;
+        // True only after queryBaseline has positively identified at least one
+        // object carrying Throne's ownership marker. A generic BFE/query error
+        // must not make a default-off installation behave as if protection had
+        // previously been enabled.
+        bool throneObjectsObserved = false;
 
         [[nodiscard]] bool isValid() const { return state == BaselineState::Valid; }
-        // Error means the backend could not prove absence. Callers must treat
-        // it as potentially active and must not authorize an unprotected
-        // profile transition from it.
-        [[nodiscard]] bool mayBeActive() const { return state != BaselineState::Absent; }
+        [[nodiscard]] bool mayBeActive() const {
+            return state == BaselineState::Valid ||
+                   state == BaselineState::StaleOrPartial ||
+                   (state == BaselineState::Error && throneObjectsObserved);
+        }
     };
 
     WindowsWfpKillSwitchBackend();

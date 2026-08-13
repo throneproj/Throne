@@ -69,7 +69,9 @@ protected:
 #endif
 
 void signal_handler(int signum) {
-    if (GetMainWindow()->prepare_exit()) {
+    Q_UNUSED(signum)
+    auto *window = GetMainWindow();
+    if (window == nullptr || window->prepare_exit()) {
         qApp->quit();
     }
 }
@@ -422,10 +424,7 @@ int main(int argc, char* argv[]) {
     // the rights required to retain/reconcile them before ThroneCore starts.
     WindowsWfpKillSwitchBackend startupProbe;
     const auto baselineStatus = startupProbe.queryBaseline();
-    const bool persistentProtectionPresent =
-        baselineStatus.state == WindowsWfpKillSwitchBackend::BaselineState::Valid ||
-        baselineStatus.state == WindowsWfpKillSwitchBackend::BaselineState::StaleOrPartial ||
-        baselineStatus.state == WindowsWfpKillSwitchBackend::BaselineState::Error;
+    const bool persistentProtectionPresent = baselineStatus.mayBeActive();
     const bool protectionRequested =
         Configs::dataManager->settingsRepo->kill_switch_enabled ||
         persistentProtectionPresent;
@@ -579,7 +578,7 @@ int main(int argc, char* argv[]) {
         QObject::connect(s, &QLocalSocket::disconnected, s, &QLocalSocket::deleteLater);
         readPayload(false); // in case the payload already arrived
         // raise main window
-        MW_dialog_message(MwMessage::Raise, {});
+        if (MW_dialog_message) MW_dialog_message(MwMessage::Raise, {});
     });
     QObject::connect(qApp, &QApplication::aboutToQuit, [&]
     {
@@ -609,7 +608,10 @@ int main(int argc, char* argv[]) {
 
     API::defaultClient = new API::Client();
 
-    UI_InitMainWindow();
+    if (!UI_InitMainWindow()) {
+        Logging::Shutdown();
+        return 1;
+    }
 
     Configs::dataManager->RunDeferredMaintenance();
 

@@ -193,23 +193,40 @@ void reconcileFailureRetainsObservedProtection() {
     requireInvariant(controller);
 }
 
-void reconcileFailureWithoutObservedStateStillFailsClosed() {
+void reconcileFailureWithoutObservedStatePreservesDefaultOffBehavior() {
+    FakeBackend backend;
+    backend.failReconcile = true;
+    KillSwitchController controller(backend);
+
+    const auto initialized = controller.initialize(false, trustedCorePlan());
+    REQUIRE(initialized);
+    REQUIRE(!initialized.enabled);
+    REQUIRE(!initialized.recoveredStaleProtection);
+    REQUIRE(initialized.state == KillSwitchController::State::Disabled);
+
+    const auto prepared = controller.prepareForProfileStart(
+        KillSwitchController::StartIntent::Connect);
+    REQUIRE(prepared);
+    REQUIRE(prepared.operationId == 0);
+    REQUIRE(backend.disableCalls == 0);
+    requireInvariant(controller);
+}
+
+void configuredProtectionStillFailsClosedOnUnknownReconcile() {
     FakeBackend backend;
     backend.failReconcile = true;
     backend.failEnsureBaseline = true;
     KillSwitchController controller(backend);
 
-    const auto initialized = controller.initialize(false, trustedCorePlan());
+    const auto initialized = controller.initialize(true, trustedCorePlan());
     REQUIRE(!initialized);
     REQUIRE(initialized.enabled);
-    REQUIRE(!initialized.recoveredStaleProtection);
     REQUIRE(initialized.state == KillSwitchController::State::Error);
 
     const auto prepared = controller.prepareForProfileStart(
         KillSwitchController::StartIntent::Connect);
     REQUIRE(!prepared);
     REQUIRE(!prepared.mayTearDownCurrentProfile);
-    REQUIRE(backend.disableCalls == 0);
     requireInvariant(controller);
 }
 
@@ -540,7 +557,8 @@ int main() {
         {"disabled preserves existing behavior", disabledPreservesExistingBehavior},
         {"stale protection is recovered, not deleted", staleProtectionIsRecoveredNotDeleted},
         {"reconcile failure retains observed protection", reconcileFailureRetainsObservedProtection},
-        {"unknown reconcile failure still fails closed", reconcileFailureWithoutObservedStateStillFailsClosed},
+        {"unknown reconcile failure preserves default-off behavior", reconcileFailureWithoutObservedStatePreservesDefaultOffBehavior},
+        {"configured protection stays closed on unknown reconcile", configuredProtectionStillFailsClosedOnUnknownReconcile},
         {"normal TUN connection is dual stack", normalTunConnectionIsDualStack},
         {"configured launch is not stale recovery", configuredLaunchDoesNotReportStaleRecovery},
         {"System Proxy connection needs no TUN allowance", systemProxyConnectionNeedsNoTunAllowance},

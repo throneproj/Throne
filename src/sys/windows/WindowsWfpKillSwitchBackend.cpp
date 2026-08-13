@@ -309,12 +309,14 @@ enum class Presence
     Failed,
 };
 
-template<typename Object, typename Getter, typename Validator>
+template<typename Object, typename Getter, typename Validator, typename OwnershipValidator>
 Presence getObjectPresence(HANDLE engine,
                            const GUID &key,
                            Getter getter,
                            Validator validator,
+                           OwnershipValidator ownershipValidator,
                            bool *matchesSchema,
+                           bool *matchesOwnershipMarker,
                            DWORD notFound,
                            QString *error,
                            const QString &name)
@@ -325,6 +327,10 @@ Presence getObjectPresence(HANDLE engine,
     if (result == ERROR_SUCCESS) {
         if (matchesSchema != nullptr) {
             *matchesSchema = object != nullptr && validator(*object);
+        }
+        if (matchesOwnershipMarker != nullptr) {
+            *matchesOwnershipMarker = object != nullptr &&
+                                      ownershipValidator(*object);
         }
         return Presence::Present;
     }
@@ -1225,6 +1231,7 @@ WindowsWfpKillSwitchBackend::BaselineStatus WindowsWfpKillSwitchBackend::queryBa
         return {BaselineState::Error, operationError(QStringLiteral("Open Windows Filtering Platform"), result)};
     }
 
+    bool throneObjectsObserved = false;
     bool legacyProviderPresent = false;
     QString error;
     FWPM_PROVIDER0 *legacyProvider = nullptr;
@@ -1239,6 +1246,7 @@ WindowsWfpKillSwitchBackend::BaselineStatus WindowsWfpKillSwitchBackend::queryBa
                 QStringLiteral("A deterministic WFP provider collision is present; Throne will not modify it because it lacks the exact v1-v3 ownership marker"),
             };
         }
+        throneObjectsObserved = true;
     } else if (result != FWP_E_PROVIDER_NOT_FOUND) {
         return {
             BaselineState::Error,
@@ -1252,56 +1260,92 @@ WindowsWfpKillSwitchBackend::BaselineStatus WindowsWfpKillSwitchBackend::queryBa
     bool staleDynamicFilterPresent = false;
     bool dynamicFilterPresent = false;
     bool objectMatches = false;
+    bool ownershipMarkerMatches = false;
 
     objectMatches = false;
+    ownershipMarkerMatches = false;
     const Presence subLayer = getObjectPresence<FWPM_SUBLAYER0>(engine.get(),
                                                                 kSubLayerKey,
                                                                 FwpmSubLayerGetByKey0,
                                                                 subLayerMatchesSchema,
+                                                                [legacyProviderPresent](const FWPM_SUBLAYER0 &object) {
+                                                                    return legacyProviderPresent
+                                                                               ? (object.providerKey != nullptr &&
+                                                                                  equalGuid(*object.providerKey, kLegacyProviderKey) &&
+                                                                                  object.providerData.size == 0)
+                                                                               : (object.providerKey == nullptr &&
+                                                                                  blobMatchesCurrentSchema(object.providerData));
+                                                                },
                                                                 &objectMatches,
+                                                                &ownershipMarkerMatches,
                                                                 FWP_E_SUBLAYER_NOT_FOUND,
                                                                 &error,
                                                                 QStringLiteral("Throne WFP sublayer"));
     if (subLayer == Presence::Failed) {
-        return {BaselineState::Error, error};
+        return {BaselineState::Error, error, throneObjectsObserved};
     }
+    throneObjectsObserved |= subLayer == Presence::Present && ownershipMarkerMatches;
     presentCount += subLayer == Presence::Present ? 1 : 0;
     schemaMatches &= subLayer != Presence::Present || objectMatches;
 
     for (const GUID *key : kPersistentFilterKeys) {
         objectMatches = false;
+        ownershipMarkerMatches = false;
         const Presence filter = getObjectPresence<FWPM_FILTER0>(engine.get(),
                                                                 *key,
                                                                 FwpmFilterGetByKey0,
                                                                 [key](const FWPM_FILTER0 &object) {
                                                                     return persistentFilterMatchesSchema(*key, object);
                                                                 },
+                                                                [legacyProviderPresent](const FWPM_FILTER0 &object) {
+                                                                    return equalGuid(object.subLayerKey, kSubLayerKey) &&
+                                                                           (legacyProviderPresent
+                                                                                ? (object.providerKey != nullptr &&
+                                                                                   equalGuid(*object.providerKey, kLegacyProviderKey) &&
+                                                                                   object.providerData.size == 0)
+                                                                                : (object.providerKey == nullptr &&
+                                                                                   blobMatchesCurrentSchema(object.providerData)));
+                                                                },
                                                                 &objectMatches,
+                                                                &ownershipMarkerMatches,
                                                                 FWP_E_FILTER_NOT_FOUND,
                                                                 &error,
                                                                 QStringLiteral("Throne WFP filter"));
         if (filter == Presence::Failed) {
-            return {BaselineState::Error, error};
+            return {BaselineState::Error, error, throneObjectsObserved};
         }
+        throneObjectsObserved |= filter == Presence::Present && ownershipMarkerMatches;
         presentCount += filter == Presence::Present ? 1 : 0;
         schemaMatches &= filter != Presence::Present || objectMatches;
     }
 
     for (const GUID *key : kDynamicFilterKeys) {
         objectMatches = false;
+        ownershipMarkerMatches = false;
         const Presence filter = getObjectPresence<FWPM_FILTER0>(engine.get(),
                                                                 *key,
                                                                 FwpmFilterGetByKey0,
                                                                 [key](const FWPM_FILTER0 &object) {
                                                                     return dynamicFilterMatchesSchema(*key, object);
                                                                 },
+                                                                [legacyProviderPresent](const FWPM_FILTER0 &object) {
+                                                                    return equalGuid(object.subLayerKey, kSubLayerKey) &&
+                                                                           (legacyProviderPresent
+                                                                                ? (object.providerKey != nullptr &&
+                                                                                   equalGuid(*object.providerKey, kLegacyProviderKey) &&
+                                                                                   object.providerData.size == 0)
+                                                                                : (object.providerKey == nullptr &&
+                                                                                   blobMatchesCurrentSchema(object.providerData)));
+                                                                },
                                                                 &objectMatches,
+                                                                &ownershipMarkerMatches,
                                                                 FWP_E_FILTER_NOT_FOUND,
                                                                 &error,
                                                                 QStringLiteral("Throne dynamic WFP filter"));
         if (filter == Presence::Failed) {
-            return {BaselineState::Error, error};
+            return {BaselineState::Error, error, throneObjectsObserved};
         }
+        throneObjectsObserved |= filter == Presence::Present && ownershipMarkerMatches;
         dynamicFilterPresent |= filter == Presence::Present;
         schemaMatches &= filter != Presence::Present || objectMatches;
     }
@@ -1313,8 +1357,10 @@ WindowsWfpKillSwitchBackend::BaselineStatus WindowsWfpKillSwitchBackend::queryBa
         const MutationOwnershipResult ownership = verifyMutationOwnership(engine.get());
         if (ownership.ownership == MutationOwnership::Foreign ||
             ownership.ownership == MutationOwnership::Error) {
-            return {BaselineState::Error, ownership.detail};
+            return {BaselineState::Error, ownership.detail, throneObjectsObserved};
         }
+        throneObjectsObserved |=
+            ownership.ownership == MutationOwnership::OwnedByThrone;
     }
 
     if (!anyObjectPresent) {
@@ -1325,26 +1371,31 @@ WindowsWfpKillSwitchBackend::BaselineStatus WindowsWfpKillSwitchBackend::queryBa
         return {
             BaselineState::Valid,
             QStringLiteral("The providerless Throne kill-switch v4 baseline is installed"),
+            true,
         };
     }
     if (legacyProviderPresent) {
         return {
             BaselineState::StaleOrPartial,
             QStringLiteral("A marked provider-associated Throne v1-v3 policy requires migration to providerless schema v4"),
+            true,
         };
     }
     if (presentCount == expectedCount && schemaMatches && staleDynamicFilterPresent) {
         return {BaselineState::StaleOrPartial,
-                QStringLiteral("The baseline is valid, but stale Throne runtime allowances are present")};
+                QStringLiteral("The baseline is valid, but stale Throne runtime allowances are present"),
+                true};
     }
     if (presentCount == expectedCount) {
         return {BaselineState::StaleOrPartial,
-                QStringLiteral("All Throne kill-switch objects exist, but at least one uses an obsolete or invalid schema")};
+                QStringLiteral("All Throne kill-switch objects exist, but at least one uses an obsolete or invalid schema"),
+                throneObjectsObserved};
     }
     return {BaselineState::StaleOrPartial,
             QStringLiteral("Only %1 of %2 expected Throne kill-switch objects are present")
                 .arg(presentCount)
-                .arg(expectedCount)};
+                .arg(expectedCount),
+            throneObjectsObserved};
 }
 
 bool WindowsWfpKillSwitchBackend::reconcileBaseline(QString *error)
@@ -1406,9 +1457,10 @@ Configs_sys::KillSwitchReconcileResult WindowsWfpKillSwitchBackend::reconcile()
     }
     if (status.state == BaselineState::Error) {
         // Failure to query BFE cannot prove that Throne's persistent objects
-        // are absent. Conservatively report protection as active so the
-        // controller remains enabled and refuses an unverified transition.
-        return {Configs_sys::KillSwitchResult::Failure(status.detail), {true, false, false}};
+        // are absent. Retain fail-closed state when an owned object was already
+        // observed; otherwise a default-off installation remains disabled.
+        return {Configs_sys::KillSwitchResult::Failure(status.detail),
+                {status.throneObjectsObserved, false, false}};
     }
     if (status.state == BaselineState::Absent) {
         return {Configs_sys::KillSwitchResult::Success(), {}};

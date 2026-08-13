@@ -542,7 +542,7 @@ inline MainWindow *GetMainWindow() {
     return (MainWindow *) mainwindow;
 }
 
-void UI_InitMainWindow();
+[[nodiscard]] bool UI_InitMainWindow();
 
 #ifdef Q_OS_LINUX
 /*

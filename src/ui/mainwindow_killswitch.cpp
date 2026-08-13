@@ -1,6 +1,7 @@
 #include "include/ui/mainwindow.h"
 
 #include "include/global/Configs.hpp"
+#include "include/global/Logger.hpp"
 #include "include/sys/KillSwitchController.hpp"
 #include "include/sys/Process.hpp"
 
@@ -69,6 +70,11 @@ std::optional<Configs_sys::KillSwitchTunInterface> currentTunInterface()
 bool MainWindow::initializeKillSwitch()
 {
 #ifdef Q_OS_WIN
+    const auto startupLog = [this](const QString &message) {
+        append_log(message);
+        Logging::WriteUserLog(message);
+    };
+
     killSwitchBackend = std::make_unique<WindowsWfpKillSwitchBackend>();
     killSwitchController =
         std::make_unique<Configs_sys::KillSwitchController>(*killSwitchBackend);
@@ -85,11 +91,11 @@ bool MainWindow::initializeKillSwitch()
         Configs::dataManager->settingsRepo->Save();
     }
     if (initialized.recoveredStaleProtection) {
-        MW_show_log(tr("Recovered persistent Throne kill-switch state."));
+        startupLog(tr("Recovered persistent Throne kill-switch state."));
     }
     if (!initialized) {
-        MW_show_log(tr("Failed to initialize kill switch: %1")
-                        .arg(initialized.result.error));
+        startupLog(tr("Failed to initialize kill switch: %1")
+                       .arg(initialized.result.error));
         QMessageBox::critical(
             this,
             tr("Kill switch unavailable"),
@@ -101,7 +107,7 @@ bool MainWindow::initializeKillSwitch()
         return false;
     }
     if (initialized.enabled) {
-        MW_show_log(tr("Kill switch enabled (persistent IPv4 and IPv6 blocking active)."));
+        startupLog(tr("Kill switch enabled (persistent IPv4 and IPv6 blocking active)."));
     }
 #endif
     return true;
