@@ -57,6 +57,11 @@ DialogVPNSettings::DialogVPNSettings(QWidget *parent) : QDialog(parent), ui(new 
     ui->vpn_ipv6->setChecked(Configs::dataManager->settingsRepo->vpn_ipv6);
     ui->strict_route->setChecked(Configs::dataManager->settingsRepo->vpn_strict_route);
     ui->tun_routing->setChecked(Configs::dataManager->settingsRepo->enable_tun_routing);
+#ifdef Q_OS_WIN
+    ui->kill_switch->setChecked(Configs::dataManager->settingsRepo->kill_switch_enabled);
+#else
+    ui->kill_switch_widget->hide();
+#endif
     ui->tun_ipv4_cidr->setText(Configs::dataManager->settingsRepo->vpn_tun_ipv4_cidr);
     ui->tun_ipv6_cidr->setText(Configs::dataManager->settingsRepo->vpn_tun_ipv6_cidr);
     ui->disable_priv_range->setChecked(Configs::dataManager->settingsRepo->disable_private_range_bypass);
@@ -95,8 +100,38 @@ void DialogVPNSettings::accept() {
     Configs::dataManager->settingsRepo->vpn_tun_ipv6_cidr = tunIPv6CIDR;
     Configs::dataManager->settingsRepo->disable_private_range_bypass = ui->disable_priv_range->isChecked();
     Configs::dataManager->settingsRepo->vpn_auto_redirect = ui->auto_redirect->isChecked();
-    //
-    MW_dialog_message(MwMessage::UpdateSettings, {MwArg::Vpn});
+    bool protectedRestartWillApplySettings = false;
+#ifdef Q_OS_WIN
+    const bool requestedKillSwitch = ui->kill_switch->isChecked();
+    if (requestedKillSwitch !=
+        Configs::dataManager->settingsRepo->kill_switch_enabled) {
+        // A non-elevated first enable restarts the whole application. Persist
+        // all ordinary fields before launching that replacement, and skip the
+        // normal profile-restart prompt (which would otherwise run before the
+        // WFP baseline is installed).
+        if (requestedKillSwitch && !Configs::IsAdmin()) {
+            Configs::dataManager->settingsRepo->Save();
+            protectedRestartWillApplySettings = true;
+        }
+        QString error;
+        if (!GetMainWindow()->setKillSwitchEnabled(requestedKillSwitch, &error)) {
+            QMessageBox::critical(
+                this,
+                tr("Kill switch change failed"),
+                tr("The requested kill-switch change could not be completed safely. "
+                   "Throne retained the safest state it could verify.\n\n%1")
+                    .arg(error));
+            ui->kill_switch->setChecked(
+                Configs::dataManager->settingsRepo->kill_switch_enabled);
+            return;
+        }
+    }
+#endif
+
+    if (!protectedRestartWillApplySettings) {
+        MW_dialog_message(MwMessage::UpdateSettings, {MwArg::Vpn});
+    }
+
     QDialog::accept();
 }
 

@@ -29,7 +29,10 @@
 #include "include/sys/windows/MiniDump.h"
 #include "include/sys/windows/eventHandler.h"
 #include "include/sys/windows/WinVersion.h"
+#include "include/sys/windows/WindowsWfpKillSwitchBackend.h"
+#include "include/sys/windows/guihelper.h"
 #include <qfontdatabase.h>
+#include <windows.h>
 #endif
 #ifdef Q_OS_LINUX
 #include <include/sys/linux/coreDump.h>
@@ -66,8 +69,9 @@ protected:
 #endif
 
 void signal_handler(int signum) {
-    GetMainWindow()->prepare_exit();
-    qApp->quit();
+    if (GetMainWindow()->prepare_exit()) {
+        qApp->quit();
+    }
 }
 
 QTranslator* trans = nullptr;
@@ -217,6 +221,93 @@ int main(int argc, char* argv[]) {
         QFile::remove("updater.old");
     }
 
+#ifdef Q_OS_WIN
+    // An elevated replacement launched while enabling the kill switch waits
+    // here, before opening the settings database or checking the singleton.
+    // This avoids racing the original process's final settings save and local
+    // server teardown while the persistent WFP baseline is already active.
+    const int waitForProcessIndex = arguments.indexOf("--wait-for-process");
+    if (waitForProcessIndex >= 0) {
+        if (waitForProcessIndex + 1 >= arguments.size()) {
+            QMessageBox::critical(nullptr, "Throne kill switch",
+                                  "Missing process ID for the protected restart.");
+            return 1;
+        }
+        bool processIdOk = false;
+        const DWORD processId =
+            arguments.at(waitForProcessIndex + 1).toULong(&processIdOk);
+        if (!processIdOk || processId == 0) {
+            QMessageBox::critical(nullptr, "Throne kill switch",
+                                  "Invalid process ID for the protected restart.");
+            return 1;
+        }
+        const HANDLE process = OpenProcess(SYNCHRONIZE, FALSE, processId);
+        if (process != nullptr) {
+            const DWORD waitResult = WaitForSingleObject(process, 60000);
+            CloseHandle(process);
+            if (waitResult != WAIT_OBJECT_0) {
+                QMessageBox::critical(
+                    nullptr, "Throne kill switch",
+                    "The previous Throne instance did not exit in time. Fail-closed "
+                    "rules remain active; start Throne as Administrator to recover.");
+                return 1;
+            }
+        } else if (GetLastError() != ERROR_INVALID_PARAMETER) {
+            // ERROR_INVALID_PARAMETER means the original PID has already
+            // disappeared. Any other error leaves singleton/settings ordering
+            // unknown, so keep the persistent block and require recovery.
+            QMessageBox::critical(
+                nullptr, "Throne kill switch",
+                "The previous Throne instance could not be monitored. Fail-closed "
+                "rules remain active; start Throne as Administrator to recover.");
+            return 1;
+        }
+        arguments.removeAt(waitForProcessIndex + 1);
+        arguments.removeAt(waitForProcessIndex);
+    }
+
+    const bool earlyDisableKillSwitch =
+        arguments.contains("--disable-kill-switch");
+    const bool earlyPrepareKillSwitch =
+        arguments.contains("--prepare-kill-switch");
+    if (earlyDisableKillSwitch && earlyPrepareKillSwitch) {
+        QMessageBox::critical(nullptr, "Throne kill switch",
+                              "Conflicting kill-switch maintenance options.");
+        return 2;
+    }
+
+    // Connectivity recovery must not depend on a healthy settings database.
+    // Remove only the marked Throne WFP objects first; a non-quiet invocation
+    // continues below and also persists the disabled preference if the DB can
+    // be opened. Quiet callers are the uninstaller or a parent Throne process,
+    // which either deletes the DB or performs that save itself.
+    if (earlyDisableKillSwitch) {
+        if (!Windows_IsInAdmin()) {
+            auto elevatedArguments = arguments;
+            elevatedArguments.removeFirst();
+            const uint result = WinCommander::runProcessElevated(
+                QApplication::applicationFilePath(), elevatedArguments,
+                QApplication::applicationDirPath(), WinCommander::SW_HIDE, true);
+            return result == 0 ? 0 : 1;
+        }
+        WindowsWfpKillSwitchBackend recoveryBackend;
+        const auto recoveryResult = recoveryBackend.disable();
+        if (!recoveryResult) {
+            qCritical() << "Failed to remove the Throne kill switch:"
+                        << recoveryResult.error;
+            if (!arguments.contains("--quiet")) {
+                QMessageBox::critical(nullptr, "Throne kill-switch recovery",
+                                      "Failed to remove Throne's kill-switch rules.\n\n" +
+                                          recoveryResult.error);
+            }
+            return 1;
+        }
+        if (arguments.contains("--quiet")) {
+            qInfo() << "Throne kill-switch rules were removed.";
+            return 0;
+        }
+    }
+#endif
     // dirs & clean
     auto wd = QDir(QApplication::applicationDirPath());
     bool useAppdata = false;
@@ -273,6 +364,90 @@ int main(int argc, char* argv[]) {
     if(useAppdata && !appdataDir.isEmpty()) Configs::dataManager->settingsRepo->appdataDir = appdataDir;
 #ifdef NKR_CPP_DEBUG
     Configs::dataManager->settingsRepo->flag_debug = true;
+#endif
+
+#ifdef Q_OS_WIN
+    // Recovery runs before the core, instance server, or any network client.
+    // It removes only Throne's deterministic WFP objects and is also suitable
+    // for an unattended uninstaller invocation.
+    const bool disableKillSwitch = arguments.contains("--disable-kill-switch");
+    const bool prepareKillSwitch = arguments.contains("--prepare-kill-switch");
+    if (disableKillSwitch || prepareKillSwitch) {
+        if (disableKillSwitch && prepareKillSwitch) {
+            qCritical() << "Conflicting kill-switch maintenance options.";
+            return 2;
+        }
+        if (!Configs::IsAdmin()) {
+            auto elevatedArguments = arguments;
+            elevatedArguments.removeFirst();
+            const uint result = WinCommander::runProcessElevated(
+                QApplication::applicationFilePath(), elevatedArguments,
+                QApplication::applicationDirPath(), WinCommander::SW_HIDE, true);
+            return result == 0 ? 0 : 1;
+        }
+
+        WindowsWfpKillSwitchBackend recoveryBackend;
+        // A non-quiet disable was already performed before DB initialization,
+        // so only its persisted preference remains to be updated here.
+        const auto maintenanceResult = disableKillSwitch
+                                           ? Configs_sys::KillSwitchResult::Success()
+                                           : recoveryBackend.ensureBaseline();
+        if (!maintenanceResult) {
+            qCritical() << "Failed to update the Throne kill switch:"
+                        << maintenanceResult.error;
+            if (!arguments.contains("--quiet")) {
+                QMessageBox::critical(nullptr, "Throne kill-switch recovery",
+                                      "Failed to update Throne's kill-switch rules.\n\n" +
+                                          maintenanceResult.error);
+            }
+            return 1;
+        }
+        // Persist only after the requested WFP transaction was committed.
+        Configs::dataManager->settingsRepo->kill_switch_enabled = prepareKillSwitch;
+        Configs::dataManager->settingsRepo->Save();
+        qInfo() << (disableKillSwitch
+                        ? "Throne kill-switch rules were removed."
+                        : "Throne kill-switch rules were installed.");
+        if (!arguments.contains("--quiet")) {
+            QMessageBox::information(nullptr, "Throne kill-switch recovery",
+                                     disableKillSwitch
+                                         ? "The Throne kill switch was disabled and its rules were removed."
+                                         : "The Throne kill switch was installed. Start Throne as Administrator to connect.");
+        }
+        return 0;
+    }
+
+    // Persistent rules intentionally outlive both processes. Detect them even
+    // when the settings database was lost or a save was interrupted, and gain
+    // the rights required to retain/reconcile them before ThroneCore starts.
+    WindowsWfpKillSwitchBackend startupProbe;
+    const auto baselineStatus = startupProbe.queryBaseline();
+    const bool persistentProtectionPresent =
+        baselineStatus.state == WindowsWfpKillSwitchBackend::BaselineState::Valid ||
+        baselineStatus.state == WindowsWfpKillSwitchBackend::BaselineState::StaleOrPartial ||
+        baselineStatus.state == WindowsWfpKillSwitchBackend::BaselineState::Error;
+    const bool protectionRequested =
+        Configs::dataManager->settingsRepo->kill_switch_enabled ||
+        persistentProtectionPresent;
+
+    if (protectionRequested && arguments.contains("-many")) {
+        QMessageBox::critical(nullptr, "Throne kill switch",
+                              "Multiple Throne instances are not supported while the kill switch is active.");
+        return 1;
+    }
+    if (protectionRequested && !Configs::IsAdmin()) {
+        auto elevatedArguments = arguments;
+        elevatedArguments.removeFirst();
+        const uint result = WinCommander::runProcessElevated(
+            QApplication::applicationFilePath(), elevatedArguments,
+            QApplication::applicationDirPath(), WinCommander::SW_NORMAL, false);
+        if (result == static_cast<uint>(-1)) {
+            QMessageBox::critical(nullptr, "Throne kill switch",
+                                  "Administrator permission is required to restore fail-closed protection.");
+            return 1;
+        }
+        return 0;
+    }
 #endif
 
 #ifdef Q_OS_LINUX

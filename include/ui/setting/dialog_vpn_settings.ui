@@ -161,6 +161,44 @@
     </widget>
    </item>
    <item>
+    <widget class="QWidget" name="kill_switch_widget" native="true">
+     <layout class="QVBoxLayout" name="kill_switch_layout">
+      <property name="leftMargin">
+       <number>9</number>
+      </property>
+      <property name="topMargin">
+       <number>9</number>
+      </property>
+      <property name="rightMargin">
+       <number>9</number>
+      </property>
+      <property name="bottomMargin">
+       <number>9</number>
+      </property>
+      <item>
+       <widget class="QCheckBox" name="kill_switch">
+        <property name="toolTip">
+         <string>Prevent direct IPv4 and IPv6 Internet access while the proxy is connecting, switching, disconnected, or unavailable. The block remains active until you disable the kill switch. Local network access is also blocked, except for loopback and DHCP.</string>
+        </property>
+        <property name="text">
+         <string>Kill switch</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="kill_switch_description">
+        <property name="text">
+         <string>Block direct Internet traffic whenever the proxy is unavailable, including after Throne exits. Local network access is blocked too.</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="QGroupBox" name="tunAddressGroupBox">
      <property name="title">
       <string>Tun Address</string>
@@ -228,6 +266,7 @@
   <tabstop>vpn_implementation</tabstop>
   <tabstop>vpn_mtu</tabstop>
   <tabstop>vpn_ipv6</tabstop>
+  <tabstop>kill_switch</tabstop>
   <tabstop>tun_ipv4_cidr</tabstop>
   <tabstop>tun_ipv6_cidr</tabstop>
   <tabstop>restore_default_addresses</tabstop>

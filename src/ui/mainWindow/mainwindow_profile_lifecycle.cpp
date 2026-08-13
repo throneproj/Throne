@@ -225,11 +225,72 @@ void MainWindow::profile_start(int _id) {
     }
     auto_selector_ranked = false;
 
+    // Own the complete build-to-ready interval. Kill-switch changes acquire
+    // this same gate, so a config cannot be generated with the old DNS/route
+    // policy and become active after fail-closed protection changes.
+    if (!mu_starting.tryAcquire()) {
+        MessageBoxWarning(software_name, tr("Another profile is starting..."));
+        return;
+    }
+
+#ifdef Q_OS_WIN
+    if (killSwitchActive()) {
+        const auto isOpaqueProfile = [](const std::shared_ptr<Configs::Profile> &profile) {
+            if (profile == nullptr || profile->outbound == nullptr) return false;
+            if (profile->outbound->IsExtraCore() || profile->outbound->IsXrayFullConfig()) {
+                return true;
+            }
+            const auto custom = profile->Custom();
+            return custom != nullptr && custom->type == Configs::Custom::CustomFullConfig;
+        };
+        const auto containsOpaqueProfile = [&](const std::shared_ptr<Configs::Profile> &profile) {
+            if (isOpaqueProfile(profile)) return true;
+            const auto chain = profile != nullptr ? profile->Chain() : nullptr;
+            if (chain == nullptr) return false;
+            for (const int profileId : chain->list) {
+                if (isOpaqueProfile(Configs::dataManager->profilesRepo->GetProfile(profileId))) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        if (containsOpaqueProfile(ent)) {
+            MessageBoxWarning(
+                tr("Kill switch blocked profile"),
+                tr("ExtraCore and custom full-config profiles are not supported while "
+                   "the kill switch is active because their direct-routing and DNS "
+                   "behavior cannot be verified safely."));
+            mu_starting.release();
+            return;
+        }
+    }
+#endif
+
     const auto result = Configs::BuildSingBoxConfig(ent);
     if (!result->error.isEmpty()) {
         MessageBoxWarning(tr("BuildConfig return error"), result->error);
+        mu_starting.release();
         return;
     }
+
+    // ExtraCore is an arbitrary child executable. Granting it unrestricted
+    // physical-network access would defeat the trusted-core boundary, while
+    // its destinations cannot be derived safely from opaque arguments/config.
+    if (killSwitchActive() &&
+        (result->hasUnverifiableNetworkConfig ||
+         !result->extraCoreData->path.isEmpty())) {
+        MessageBoxWarning(
+            tr("Kill switch blocked profile"),
+            tr("Direct, SOCKS4, Tailscale, ExtraCore, and custom profiles are not "
+               "supported while the kill switch is active because their direct-routing "
+               "or destination-DNS behavior cannot be constrained safely."));
+        mu_starting.release();
+        return;
+    }
+
+    const auto killSwitchOperationId = std::make_shared<quint64>(0);
+    const auto profileStartFailure = std::make_shared<QString>();
+    const auto unusableProfileMayBeRunning = std::make_shared<bool>(false);
 
     auto profile_start_stage2 = [=, this] {
         libcore::LoadConfigReq req;
@@ -265,9 +326,11 @@ void MainWindow::profile_start(int _id) {
         bool rpcOK;
         const QString error = defaultClient->Start(&rpcOK, req);
         if (!rpcOK) {
+            *profileStartFailure = tr("ThroneCore did not answer the profile start request.");
             return false;
         }
         if (!error.isEmpty()) {
+            *profileStartFailure = error;
             // Fail now and let handleXrayGeoAssetError prompt asynchronously; blocking to
             // download would trip the "no response" restart prompt. Starting again picks them up.
             if (handleXrayGeoAssetError(error, ent->outbound->DisplayTypeAndName())) {
@@ -307,6 +370,24 @@ void MainWindow::profile_start(int _id) {
                 return false;
             }
             runOnUiThread([=, this] { MessageBoxWarning("LoadConfig return error", error); });
+            return false;
+        }
+
+        QString readyError;
+        if (!finishKillSwitchProfileStart(*killSwitchOperationId, &readyError)) {
+            // RPC Start created a Box, but without the narrowly scoped TUN
+            // allowance the connection must not be published as ready. Stop it
+            // while the persistent block remains installed.
+            bool stopRpcOK = false;
+            const QString stopError = defaultClient->Stop(&stopRpcOK);
+            *unusableProfileMayBeRunning = !stopRpcOK || !stopError.isEmpty();
+            *profileStartFailure = readyError;
+            if (!stopRpcOK || !stopError.isEmpty()) {
+                *profileStartFailure +=
+                    tr("; failed to stop the unusable profile: %1")
+                        .arg(stopRpcOK ? stopError
+                                       : tr("ThroneCore did not answer"));
+            }
             return false;
         }
         Stats::trafficLooper->SetChainGroups(result->chainGroups);
@@ -362,16 +443,12 @@ void MainWindow::profile_start(int _id) {
         return true;
     };
 
-    if (!mu_starting.tryLock()) {
-        MessageBoxWarning(software_name, tr("Another profile is starting..."));
-        return;
-    }
-    if (!mu_stopping.tryLock()) {
+    if (!mu_stopping.tryAcquire()) {
         MessageBoxWarning(software_name, tr("Another profile is stopping..."));
-        mu_starting.unlock();
+        mu_starting.release();
         return;
     }
-    mu_stopping.unlock();
+    mu_stopping.release();
 
     // check core state
     if (!Configs::dataManager->settingsRepo->core_running) {
@@ -382,8 +459,20 @@ void MainWindow::profile_start(int _id) {
                 core_process->Restart();
             },
             DS_cores);
-        mu_starting.unlock();
+        mu_starting.release();
         return; // let CoreProcess call profile_start when core is up
+    }
+
+    QString killSwitchError;
+    const bool switchingProfile = running != nullptr;
+    if (!prepareKillSwitchProfileStart(switchingProfile,
+                                       killSwitchOperationId.get(),
+                                       &killSwitchError)) {
+        runOnUiThread([=, this] {
+            MessageBoxWarning(tr("Kill switch blocked transition"), killSwitchError);
+        });
+        mu_starting.release();
+        return;
     }
 
     // timeout message
@@ -402,15 +491,36 @@ void MainWindow::profile_start(int _id) {
         // stop current running
         if (running != nullptr) {
             profile_stop(false, false, true);
-            mu_stopping.lock();
-            mu_stopping.unlock();
+            mu_stopping.acquire();
+            mu_stopping.release();
+            if (running != nullptr) {
+                MW_show_log("<<<<<<<< " +
+                            tr("Profile switch cancelled because the current profile could not be stopped safely."));
+                failKillSwitchProfileStart(
+                    *killSwitchOperationId,
+                    tr("Current profile could not be stopped safely during the switch."));
+                mu_starting.release();
+                runOnUiThread([=, this] {
+                    restartMsgboxTimer->cancel();
+                    restartMsgboxTimer->deleteLater();
+                    restartMsgbox->deleteLater();
+                    m_profileConnecting = false;
+                    refresh_startstop_button();
+                });
+                return;
+            }
         }
         // do start
         MW_show_log(">>>>>>>> " + tr("Starting profile %1").arg(ent->outbound->DisplayTypeAndName()));
         if (!profile_start_stage2()) {
+            failKillSwitchProfileStart(*killSwitchOperationId,
+                                       profileStartFailure->isEmpty()
+                                           ? tr("Profile failed to start")
+                                           : *profileStartFailure,
+                                       *unusableProfileMayBeRunning);
             MW_show_log("<<<<<<<< " + tr("Failed to start profile %1").arg(ent->outbound->DisplayTypeAndName()));
         }
-        mu_starting.unlock();
+        mu_starting.release();
         // cancel timeout
         runOnUiThread([=, this] {
             restartMsgboxTimer->cancel();
@@ -423,11 +533,12 @@ void MainWindow::profile_start(int _id) {
     });
 }
 
-void MainWindow::profile_stop(bool crash, bool block, bool manual) {
+bool MainWindow::profile_stop(bool crash, bool block, bool manual) {
     if (running == nullptr) {
-        return;
+        return true;
     }
     const auto id = running->id;
+    const auto profileStopFailure = std::make_shared<QString>();
 
     auto profile_stop_stage2 = [=,this] {
         if (testRunner->isTestingCurrent()) {
@@ -439,9 +550,12 @@ void MainWindow::profile_stop(bool crash, bool block, bool manual) {
             bool rpcOK;
             const QString error = defaultClient->Stop(&rpcOK);
             if (rpcOK && !error.isEmpty()) {
+                *profileStopFailure = error;
                 runOnUiThread([=,this] { MessageBoxWarning(tr("Stop return error"), error); });
                 return false;
             } else if (!rpcOK) {
+                *profileStopFailure =
+                    tr("ThroneCore did not answer the profile stop request.");
                 return false;
             }
         }
@@ -449,9 +563,20 @@ void MainWindow::profile_stop(bool crash, bool block, bool manual) {
         return true;
     };
 
-    if (!mu_stopping.tryLock()) {
-        return;
+    if (!mu_stopping.tryAcquire()) {
+        return false;
     }
+
+    QString killSwitchError;
+    if (!prepareKillSwitchProfileStop(&killSwitchError)) {
+        mu_stopping.release();
+        runOnUiThread([=, this] {
+            MessageBoxWarning(tr("Kill switch blocked disconnect"), killSwitchError);
+        });
+        return false;
+    }
+
+    const auto stopSucceeded = std::make_shared<std::atomic_bool>(false);
 
     UpdateConnectionListWithRecreate({});
 
@@ -492,12 +617,21 @@ void MainWindow::profile_stop(bool crash, bool block, bool manual) {
         if (stopping != nullptr) {
             MW_show_log(">>>>>>>> " + tr("Stopping profile %1").arg(stopping->outbound->DisplayTypeAndName()));
         }
-        if (!profile_stop_stage2()) {
+        const bool stopped = profile_stop_stage2();
+        stopSucceeded->store(stopped);
+        if (!stopped) {
+            failKillSwitchProfileStop(
+                profileStopFailure->isEmpty() ? tr("Profile failed to stop")
+                                              : *profileStopFailure);
             MW_show_log("<<<<<<<< " + tr("Failed to stop, please restart the program."));
+        } else {
+            finishKillSwitchProfileStop();
         }
 
-        if (manual) Configs::dataManager->settingsRepo->UpdateStartedId(Configs::NoProfileId);
-        running = nullptr;
+        if (stopped) {
+            if (manual) Configs::dataManager->settingsRepo->UpdateStartedId(Configs::NoProfileId);
+            running = nullptr;
+        }
 
         runOnUiThread([=, this, &restartMsgboxTimer, &restartMsgbox] {
             if (restartMsgboxTimer != nullptr) {
@@ -510,7 +644,12 @@ void MainWindow::profile_stop(bool crash, bool block, bool manual) {
             refresh_status();
             refresh_proxy_list({id});
 
-            mu_stopping.unlock();
+            mu_stopping.release();
         }, true);
     }, block);
+
+    // For asynchronous callers, successful preparation/queueing is the only
+    // result available here. Blocking force-reset callers also receive the
+    // actual stop result and must not kill the core when it is false.
+    return !block || stopSucceeded->load();
 }

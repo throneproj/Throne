@@ -56,6 +56,12 @@ namespace Configs_sys {
             if (state == NotRunning) {
                 Configs::dataManager->settingsRepo->core_running = false;
                 qDebug() << "Core stated changed to not running";
+                const bool reconnectPlanned =
+                    !Configs::dataManager->settingsRepo->prepare_exit &&
+                    !failed_to_start;
+                if (GetMainWindow() != nullptr) {
+                    GetMainWindow()->killSwitchCoreTerminated(reconnectPlanned);
+                }
             }
 
             if (!Configs::dataManager->settingsRepo->prepare_exit && state == NotRunning) {

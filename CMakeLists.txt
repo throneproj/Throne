@@ -136,6 +136,8 @@ set(PROJECT_SOURCES
 
         include/sys/Process.hpp
         src/sys/Process.cpp
+        include/sys/KillSwitchController.hpp
+        src/sys/KillSwitchController.cpp
 
         include/sys/ProcessMetrics.hpp
         src/sys/ProcessMetrics.cpp
@@ -162,6 +164,7 @@ set(PROJECT_SOURCES
         src/ui/mainWindow/TestRunner.cpp
         include/ui/mainWindow/MainWindowInternal.h
         include/ui/mainWindow/TestRunner.h
+        src/ui/mainwindow_killswitch.cpp
         include/ui/mainwindow.h
         include/ui/mainwindow.ui
         include/ui/widget/StartStopButton.hpp
@@ -512,3 +515,17 @@ target_link_libraries(Throne PRIVATE
 )
 
 qt_finalize_executable(Throne)
+
+include(CTest)
+if (BUILD_TESTING)
+    add_executable(KillSwitchControllerTest
+            tests/KillSwitchControllerTest.cpp
+            include/sys/KillSwitchController.hpp
+            src/sys/KillSwitchController.cpp
+    )
+    target_include_directories(KillSwitchControllerTest PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+    target_link_libraries(KillSwitchControllerTest PRIVATE Qt6::Core)
+    add_test(NAME KillSwitchControllerTest COMMAND KillSwitchControllerTest)
+endif ()

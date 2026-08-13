@@ -32,6 +32,9 @@ namespace Configs
         QJsonObject coreConfig;
         QString tunIPv4CIDR;
         bool isXrayNeeded = false;
+        // True when a child process or generated outbound can create network
+        // traffic whose routing and DNS behavior Throne cannot constrain.
+        bool hasUnverifiableNetworkConfig = false;
         QJsonObject xrayConfig;
         // Opaque full configs, one instance each; never merged into xrayConfig.
         QStringList xrayFullConfigs;

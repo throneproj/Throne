@@ -15,6 +15,10 @@
 #include "include/sys/Process.hpp"
 #include "include/sys/AutoRun.hpp"
 #include "include/sys/UrlScheme.hpp"
+#ifdef Q_OS_WIN
+#include "include/sys/KillSwitchController.hpp"
+#include "include/sys/windows/WindowsWfpKillSwitchBackend.h"
+#endif
 
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/setting/Icon.hpp"
@@ -196,6 +200,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         append_log(log);
         Logging::WriteUserLog(log);
     };
+
+    // Reconcile persistent fail-closed policy before ThroneCore or any profile
+    // can create direct sockets. If requested or stale policy cannot be
+    // reconciled, leave any persistent block intact and exit into the explicit
+    // recovery flow instead of launching the trusted core unaudited.
+    if (!initializeKillSwitch()) {
+        QTimer::singleShot(0, [] { QCoreApplication::quit(); });
+        return;
+    }
 
     // Listen port if random
     if (Configs::dataManager->settingsRepo->random_inbound_port)
@@ -753,10 +766,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionHide_window, &QAction::triggered, this, [=, this](){ HideWindow(this); });
     connect(ui->menu_open_config_folder, &QAction::triggered, this, [=,this] { QDesktopServices::openUrl(QUrl::fromLocalFile(QDir::currentPath())); });
     connect(ui->actionRestart_Proxy, &QAction::triggered, this, [=,this] {
-        runOnThread([=, this] {
-            profile_stop(true, true, true);
-            core_process->Kill();
-        }, DS_cores);
+        if (!StopVPNProcess(true)) {
+            MessageBoxWarning(
+                tr("Kill switch blocked core restart"),
+                tr("Throne did not stop the core because the current profile "
+                   "transition or fail-closed preparation could not be completed safely."));
+        }
     });
     connect(ui->actionRestart_Program, &QAction::triggered, this, [=,this] { MW_dialog_message(MwMessage::RestartProgram, {}); });
     connect(ui->actionShow_window, &QAction::triggered, this, [=,this] { ActivateWindow(this); });

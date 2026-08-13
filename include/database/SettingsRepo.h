@@ -215,6 +215,7 @@ namespace Configs {
         int vpn_mtu = 1500;
         bool disable_private_range_bypass = false;
         bool vpn_ipv6 = false;
+        bool kill_switch_enabled = false;
         QString vpn_tun_ipv4_cidr = "172.19.0.1/24";
         QString vpn_tun_ipv6_cidr = "fdfe:dcba:9876::1/96";
         bool disable_privilege_req = false;
