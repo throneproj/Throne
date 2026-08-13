@@ -15,6 +15,10 @@
 #include "include/sys/Process.hpp"
 #include "include/sys/AutoRun.hpp"
 #include "include/sys/UrlScheme.hpp"
+#ifdef Q_OS_WIN
+#include "include/sys/KillSwitchController.hpp"
+#include "include/sys/windows/WindowsWfpKillSwitchBackend.h"
+#endif
 
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/setting/Icon.hpp"
@@ -67,8 +71,20 @@
 #include <include/global/HTTPRequestHelper.hpp>
 #include "include/global/DeviceDetailsHelper.hpp"
 
-void UI_InitMainWindow() {
-    mainwindow = new MainWindow;
+bool UI_InitMainWindow() {
+    auto *candidate = new MainWindow;
+    if (mainwindow != candidate) {
+        delete candidate;
+        // Clear callbacks which may have been installed by startup work before
+        // the constructor discovered a fatal initialization error. Nothing may
+        // retain a callable that captures the deleted partial window.
+        MW_dialog_message = {};
+        MW_handle_deeplink = {};
+        MW_import_files = {};
+        MW_show_log = {};
+        return false;
+    }
+    return true;
 }
 
 // Caller must hold coreProcessMutex (reads core_process lock-free by design).
@@ -118,26 +134,7 @@ static bool themeUsesDarkLog(const QString &theme) {
 }
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
-    mainwindow = this;
     setAcceptDrops(true);
-    MW_dialog_message = [=,this](MwMessage cmd, QStringList args) {
-        runOnUiThread([=,this]
-        {
-            dialog_message_impl(cmd, args);
-        });
-    };
-    MW_handle_deeplink = [=,this](const QString &url) {
-        runOnUiThread([=,this]
-        {
-            handle_deeplink_impl(url);
-        });
-    };
-    MW_import_files = [=,this](const QStringList &paths) {
-        runOnUiThread([=,this]
-        {
-            importFromFiles(paths);
-        });
-    };
 
     // handle AutoRun migration and stale task settings
     AutoRun_FixTaskIfNeeded();
@@ -178,9 +175,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->masterLogBrowser->setDocument(qvLogDocument);
     applyLogBrowserFont();
     updateLogFilterFields();
-    runOnThread([=, this] {
-        log_process_loop();
-    }, LogThread);
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
     connect(qApp->styleHints(), &QStyleHints::colorSchemeChanged, this, [=,this](const Qt::ColorScheme& scheme) {
@@ -192,10 +186,44 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         setLogHighlighter(themeUsesDarkLog(theme));
         scheduleProxyListRefresh();
     });
+
+    // Reconcile persistent fail-closed policy before ThroneCore or any profile
+    // can create direct sockets. If requested or stale policy cannot be
+    // reconciled, leave any persistent block intact and exit into the explicit
+    // recovery flow instead of launching the trusted core unaudited.
+    if (!initializeKillSwitch()) {
+        return;
+    }
+
+    // Publish the window and its callbacks only after fail-closed startup has
+    // succeeded. UI_InitMainWindow uses this publication as its success signal,
+    // so failed construction cannot expose a partially initialized window.
+    mainwindow = this;
+    MW_dialog_message = [=,this](MwMessage cmd, QStringList args) {
+        runOnUiThread([=,this]
+        {
+            dialog_message_impl(cmd, args);
+        });
+    };
+    MW_handle_deeplink = [=,this](const QString &url) {
+        runOnUiThread([=,this]
+        {
+            handle_deeplink_impl(url);
+        });
+    };
+    MW_import_files = [=,this](const QStringList &paths) {
+        runOnUiThread([=,this]
+        {
+            importFromFiles(paths);
+        });
+    };
     MW_show_log = [=,this](const QString &log) {
         append_log(log);
         Logging::WriteUserLog(log);
     };
+    runOnThread([=, this] {
+        log_process_loop();
+    }, LogThread);
 
     // Listen port if random
     if (Configs::dataManager->settingsRepo->random_inbound_port)
@@ -753,10 +781,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionHide_window, &QAction::triggered, this, [=, this](){ HideWindow(this); });
     connect(ui->menu_open_config_folder, &QAction::triggered, this, [=,this] { QDesktopServices::openUrl(QUrl::fromLocalFile(QDir::currentPath())); });
     connect(ui->actionRestart_Proxy, &QAction::triggered, this, [=,this] {
-        runOnThread([=, this] {
-            profile_stop(true, true, true);
-            core_process->Kill();
-        }, DS_cores);
+        if (!StopVPNProcess(true)) {
+            MessageBoxWarning(
+                tr("Kill switch blocked core restart"),
+                tr("Throne did not stop the core because the current profile "
+                   "transition or fail-closed preparation could not be completed safely."));
+        }
     });
     connect(ui->actionRestart_Program, &QAction::triggered, this, [=,this] { MW_dialog_message(MwMessage::RestartProgram, {}); });
     connect(ui->actionShow_window, &QAction::triggered, this, [=,this] { ActivateWindow(this); });

@@ -1167,6 +1167,30 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <translation>فعال کردن IPv6 برای Tun</translation>
     </message>
     <message>
+        <source>Kill switch</source>
+        <translation>کلید قطع اضطراری</translation>
+    </message>
+    <message>
+        <source>Block direct Internet traffic whenever the proxy is unavailable, including after Throne exits. Local network access is blocked too.</source>
+        <translation>هرگاه پروکسی در دسترس نیست، از جمله پس از خروج Throne، ترافیک مستقیم اینترنت را مسدود کن. دسترسی به شبکه محلی نیز مسدود می‌شود.</translation>
+    </message>
+    <message>
+        <source>Prevent direct IPv4 and IPv6 Internet access while the proxy is connecting, switching, disconnected, or unavailable. The block remains active until you disable the kill switch. Local network access is also blocked, except for loopback and DHCP.</source>
+        <translation>هنگام اتصال، تعویض، قطع شدن یا در دسترس نبودن پروکسی، از دسترسی مستقیم IPv4 و IPv6 به اینترنت جلوگیری کن. این مسدودسازی تا زمانی که کلید قطع اضطراری را غیرفعال کنید فعال می‌ماند. دسترسی به شبکه محلی نیز به‌جز loopback و DHCP مسدود می‌شود.</translation>
+    </message>
+    <message>
+        <source>Kill switch change failed</source>
+        <translation>تغییر کلید قطع اضطراری ناموفق بود</translation>
+    </message>
+    <message>
+        <source>The requested kill-switch change could not be completed safely. Throne retained the safest state it could verify.
+
+%1</source>
+        <translation>تغییر درخواستی کلید قطع اضطراری به‌طور امن تکمیل نشد. Throne امن‌ترین وضعیتی را که توانست تأیید کند حفظ کرد.
+
+%1</translation>
+    </message>
+    <message>
         <source>Troubleshooting</source>
         <translation>عیب یابی</translation>
     </message>

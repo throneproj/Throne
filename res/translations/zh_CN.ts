@@ -2223,6 +2223,30 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <translation>Tun 启用 IPv6</translation>
     </message>
     <message>
+        <source>Kill switch</source>
+        <translation>紧急断网</translation>
+    </message>
+    <message>
+        <source>Block direct Internet traffic whenever the proxy is unavailable, including after Throne exits. Local network access is blocked too.</source>
+        <translation>代理不可用时（包括 Throne 退出后）阻止直接互联网流量，同时也会阻止本地网络访问。</translation>
+    </message>
+    <message>
+        <source>Prevent direct IPv4 and IPv6 Internet access while the proxy is connecting, switching, disconnected, or unavailable. The block remains active until you disable the kill switch. Local network access is also blocked, except for loopback and DHCP.</source>
+        <translation>在代理正在连接、切换、已断开或不可用时，防止通过 IPv4 和 IPv6 直接访问互联网。此阻止会一直保持，直到您禁用紧急断网。本地网络访问也会被阻止，回环和 DHCP 除外。</translation>
+    </message>
+    <message>
+        <source>Kill switch change failed</source>
+        <translation>紧急断网更改失败</translation>
+    </message>
+    <message>
+        <source>The requested kill-switch change could not be completed safely. Throne retained the safest state it could verify.
+
+%1</source>
+        <translation>无法安全完成所请求的紧急断网更改。Throne 已保留其能够确认的最安全状态。
+
+%1</translation>
+    </message>
+    <message>
         <source>Troubleshooting</source>
         <translation>排除故障</translation>
     </message>

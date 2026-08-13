@@ -105,7 +105,7 @@ void MainWindow::on_commitDataRequest() {
     qDebug() << "End of data save";
 }
 
-void MainWindow::prepare_exit()
+bool MainWindow::prepare_exit()
 {
     qDebug() << "prepare for exit...";
     mu_exit.lock();
@@ -113,7 +113,20 @@ void MainWindow::prepare_exit()
     {
         qDebug() << "prepare exit had already succeeded, ignoring...";
         mu_exit.unlock();
-        return;
+        return true;
+    }
+
+    QString killSwitchError;
+    if (!prepareKillSwitchExit(&killSwitchError)) {
+        mu_exit.unlock();
+        MW_show_log(tr("Exit cancelled because fail-closed protection could not be prepared: %1")
+                        .arg(killSwitchError));
+        MessageBoxWarning(
+            tr("Kill switch blocked exit"),
+            tr("Throne could not safely remove the active TUN allowance before exit. "
+               "The application will stay open.\n\n%1")
+                .arg(killSwitchError));
+        return false;
     }
     Configs::dataManager->settingsRepo->prepare_exit = true;
     LOG_INFO("prepare_exit started, tearing down proxy/tun/core");
@@ -137,10 +150,11 @@ void MainWindow::prepare_exit()
 
     mu_exit.unlock();
     qDebug() << "prepare exit done!";
+    return true;
 }
 
 void MainWindow::on_menu_exit_triggered() {
-    prepare_exit();
+    if (!prepare_exit()) return;
     //
     if (exit_reason == ExitReason::RunUpdater) {
         QDir::setCurrent(QApplication::applicationDirPath());
@@ -304,12 +318,46 @@ void MainWindow::set_spmode_vpn(bool enable, bool save) {
     if (Configs::dataManager->settingsRepo->started_id >= 0) profile_start(Configs::dataManager->settingsRepo->started_id);
 }
 
-bool MainWindow::StopVPNProcess() {
+bool MainWindow::StopVPNProcess(const bool clearStartedProfile) {
+    // Serialize a force-reset with the complete profile build-to-ready
+    // interval. Otherwise a core could be killed after a config was built but
+    // before its protected operation acquired the TUN allowance.
+    if (!mu_starting.tryAcquire()) {
+        MW_show_log(tr("Core reset refused while a profile is starting."));
+        return false;
+    }
+
+    bool safelyPrepared = true;
+    if (running != nullptr) {
+        // A crash-style stop avoids relying on an unresponsive core RPC, but
+        // still verifies the persistent baseline and removes the TUN allowance
+        // before the process owning the adapter is terminated.
+        safelyPrepared = profile_stop(true, true, clearStartedProfile);
+    } else {
+        QString killSwitchError;
+        safelyPrepared = prepareKillSwitchProfileStop(&killSwitchError);
+        if (safelyPrepared) {
+            finishKillSwitchProfileStop();
+            if (clearStartedProfile) {
+                Configs::dataManager->settingsRepo->UpdateStartedId(Configs::NoProfileId);
+            }
+        } else {
+            MW_show_log(tr("Core reset refused by the kill switch: %1")
+                            .arg(killSwitchError));
+        }
+    }
+
+    if (!safelyPrepared) {
+        mu_starting.release();
+        return false;
+    }
+
     runOnThread([=, this]
     {
         core_process->Kill();
     }, DS_cores, true);
 
+    mu_starting.release();
     return true;
 }
 

@@ -5,6 +5,7 @@
 #include <QMap>
 #include <QMutex>
 #include <QPair>
+#include <QSemaphore>
 #include <QString>
 #include <QStringList>
 
@@ -84,8 +85,9 @@ private:
 
     MainWindow* mw_;
 
-    // Held for a whole sweep, so it must never double as a per-batch latch.
-    QMutex session_;
+    // Held for a whole sweep and released by its worker thread. QSemaphore is
+    // intentional: unlike QMutex it supports cross-thread release.
+    QSemaphore session_{1};
     // A poll thread is not joined, so a late tick must not drain the next sweep.
     std::atomic<quint64> sessionGen_ = 0;
     std::atomic<bool> stopRequested_ = false;

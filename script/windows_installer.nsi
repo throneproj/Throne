@@ -348,6 +348,28 @@ FunctionEnd
 Section "Uninstall"
   !insertmacro AbortOnRunningApp "$INSTDIR\Throne.exe"
 
+  ; Persistent WFP filters deliberately survive a crash or ordinary exit. Ask
+  ; the application's ownership-scoped recovery command to remove them before
+  ; deleting the executable, otherwise uninstalling could strand the machine
+  ; in a fail-closed state with no recovery UI.
+  IfFileExists "$INSTDIR\Throne.exe" 0 KillSwitchCleanupMissing
+  ClearErrors
+  ExecWait '"$INSTDIR\Throne.exe" --disable-kill-switch --quiet' $0
+  IfErrors KillSwitchCleanupFailed
+  ${If} $0 != 0
+    Goto KillSwitchCleanupFailed
+  ${EndIf}
+  Goto KillSwitchCleanupDone
+
+  KillSwitchCleanupMissing:
+    MessageBox MB_OK|MB_ICONSTOP "Throne.exe is missing, so the uninstaller cannot safely verify and remove Throne-owned kill-switch rules. Repair or reinstall Throne, disable the kill switch, and uninstall again."
+    Abort
+
+  KillSwitchCleanupFailed:
+    MessageBox MB_OK|MB_ICONSTOP "Throne could not remove its kill-switch rules. Uninstall was stopped so the recovery command remains available."
+    Abort
+  KillSwitchCleanupDone:
+
   Delete "$SMPROGRAMS\Throne.lnk"
   Delete "$DESKTOP\Throne.lnk"
   RMDir "$SMPROGRAMS\Throne"

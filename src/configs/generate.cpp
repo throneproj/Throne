@@ -1,6 +1,7 @@
 #include "include/configs/generate.h"
 #include "include/api/RPC.h"
 #include "include/configs/AutoSelectorPlan.h"
+#include "include/configs/GeneratorUtils.h"
 #include "include/global/Configs.hpp"
 
 #include <QApplication>
@@ -63,6 +64,14 @@ namespace Configs {
             constexpr auto testChainPrefix = "proxy";
             constexpr auto testXrayFullPrefix = "xrayfull";
             constexpr auto bridgePrefix = "bridge";
+        }
+
+        bool failClosedEnabled() {
+#ifdef Q_OS_WIN
+            return dataManager->settingsRepo->kill_switch_enabled;
+#else
+            return false;
+#endif
         }
 
         QString hopTag(const QString &prefix, int index) { return prefix + "-" + Int2String(index); }
@@ -128,6 +137,10 @@ namespace Configs {
         // ---------------------------------------------------------- build state
 
         struct DNSDeps {
+            bool needBootstrapDnsRules = false;
+            // Only exact proxy/control-plane endpoint hostnames belong here.
+            // User "direct" domains must never inherit bootstrap DNS access.
+            QJsonArray bootstrapDomains;
             bool needDirectDnsRules = false;
             DomainSelectors direct;
             bool needProxyDnsRules = false;
@@ -343,6 +356,30 @@ namespace Configs {
             }
         }
 
+        QJsonObject hardenFailClosedRouteRule(QJsonObject rule) {
+            if (rule.contains("rules")) {
+                QJsonArray nested;
+                for (const auto &entry : rule.value("rules").toArray())
+                    nested.append(hardenFailClosedRouteRule(entry.toObject()));
+                rule["rules"] = nested;
+            }
+
+            const auto action = rule.value("action").toString();
+            if (action == "resolve") {
+                rule["server"] = tags::dnsRemote;
+            } else if (action == "bypass" || rule.value("outbound").toString() == tags::direct) {
+                rule["action"] = "route";
+                rule["outbound"] = tags::proxy;
+            }
+            return rule;
+        }
+
+        QJsonObject hardenFailClosedRuleSet(QJsonObject ruleSet) {
+            if (ruleSet.value("type").toString() == "remote")
+                ruleSet["download_detour"] = tags::proxy;
+            return ruleSet;
+        }
+
         QString genTunName() {
             auto tun_name = "throne-tun";
 #ifdef Q_OS_MACOS
@@ -362,6 +399,20 @@ namespace Configs {
             return profile->outbound != nullptr && profile->outbound->IsXrayFullConfig();
         }
 
+        bool hasUnverifiableNetworkBehavior(const std::shared_ptr<Profile> &profile) {
+            if (profile == nullptr) return true;
+            if (profile->type == "custom" || profile->type == "direct" ||
+                profile->type == "tailscale" || profile->type == "autoselector") {
+                return true;
+            }
+            if (profile->type == "socks") {
+                const auto socks = profile->Socks();
+                if (socks != nullptr && socks->version == 4) return true;
+            }
+            return profile->outbound != nullptr &&
+                   (profile->outbound->IsExtraCore() || profile->outbound->IsXrayFullConfig());
+        }
+
         bool usesXrayCore(const std::shared_ptr<Profile> &profile) {
             return profile->outbound != nullptr &&
                    (profile->outbound->IsXray() || profile->outbound->IsXrayFullConfig());
@@ -379,6 +430,21 @@ namespace Configs {
                 return domains;
             }
             if (auto addr = ent->outbound->GetAddress(); !addr.isEmpty() && !IsIpAddress(addr)) domains << addr;
+
+            // XHTTP downloadSettings can dial a second, independent endpoint.
+            // It must be resolvable before the Xray chain exists, just like the
+            // primary server, or fail-closed startup deadlocks on remote DNS.
+            if (ent->outbound->IsXray()) {
+                const auto stream = ent->outbound->GetXrayStream();
+                if (stream != nullptr && stream->network == "xhttp" &&
+                    stream->xhttp != nullptr && stream->xhttp->mode != "stream-one") {
+                    const auto downloadDomain =
+                        GeneratorUtils::ExtractXrayXhttpDownloadDomain(
+                            stream->xhttp->downloadSettings);
+                    if (!downloadDomain.isEmpty() && !domains.contains(downloadDomain))
+                        domains << downloadDomain;
+                }
+            }
             return domains;
         }
 
@@ -470,8 +536,9 @@ namespace Configs {
             warpProfile->type = "wireguard";
             auto outbound = std::make_shared<wireguard>();
             outbound->name = "warp";
-            outbound->server = settings.warp_ep.contains(":") ? SubStrBefore(settings.warp_ep, ":") : settings.warp_ep;
-            outbound->server_port = settings.warp_ep.contains(":") ? SubStrAfter(settings.warp_ep, ":").toInt() : 2408;
+            const auto endpoint = GeneratorUtils::ParseHostPort(settings.warp_ep, 2408);
+            outbound->server = endpoint.host;
+            outbound->server_port = endpoint.port;
             outbound->private_key = settings.warp_private_key;
             outbound->address = settings.warp_ifc_addrs;
             auto peer = std::make_shared<Peer>();
@@ -528,10 +595,18 @@ namespace Configs {
                 return;
             }
 
-            auto addDirectDomains = [&preReqs](const QStringList &addrs) {
-                for (const auto &addr : addrs) preReqs.dns.direct.domains << addr;
-                preReqs.dns.needDirectDnsRules = true;
+            auto addBootstrapDomains = [&preReqs](const QStringList &addrs) {
+                for (const auto &addr : addrs) {
+                    if (!preReqs.dns.bootstrapDomains.contains(addr))
+                        preReqs.dns.bootstrapDomains << addr;
+                }
+                if (!addrs.isEmpty()) preReqs.dns.needBootstrapDnsRules = true;
             };
+
+            // The optional WARP wrapper is synthesized rather than stored in
+            // ProfilesRepo, so include its endpoint explicitly.
+            if (settings.enable_warp)
+                addBootstrapDomains(outboundServerDomains(getWarpProfile()));
 
             // Routing dependencies
             auto neededOutbounds = routeChain->get_used_outbounds();
@@ -552,6 +627,12 @@ namespace Configs {
                     ctx.error = "Outbounds used in routing profile cannot use an extra core or be a custom full config";
                     return;
                 }
+                // A routing rule may select an outbound whose egress leaves the
+                // tunnel (a direct profile builds a real sing-box direct
+                // outbound). Its tag is route-chain-N, so fail-closed rule
+                // hardening never rewrites it.
+                if (hasUnverifiableNetworkBehavior(neededEnt))
+                    ctx.result->hasUnverifiableNetworkConfig = true;
                 if (neededEnt->type == "chain") {
                     auto chain = neededEnt->Chain();
                     if (chain == nullptr || chain->list.isEmpty()) {
@@ -569,11 +650,13 @@ namespace Configs {
                             ctx.error = "Chain hops in routing profile cannot use an extra core, a custom full config, or be of type chain";
                             return;
                         }
+                        if (hasUnverifiableNetworkBehavior(hopEnt))
+                            ctx.result->hasUnverifiableNetworkConfig = true;
                         if (usesXrayCore(hopEnt)) ctx.proxyUsesXray = true;
-                        // Collect domains for DNS direct rules
+                        // Collect exact endpoint hostnames for bootstrap DNS.
                         if (auto addrs = getEntDomains({hopID}, ctx.error); !addrs.empty()) {
                             if (!ctx.error.isEmpty()) return;
-                            addDirectDomains(addrs);
+                            addBootstrapDomains(addrs);
                         }
                     }
                     // Map chain ID -> tag of the outermost (first-built) hop
@@ -589,7 +672,7 @@ namespace Configs {
                     if (auto entAddrs = getEntDomains({neededEnt->id}, ctx.error); !entAddrs.empty())
                     {
                         if (!ctx.error.isEmpty()) return;
-                        addDirectDomains(entAddrs);
+                        addBootstrapDomains(entAddrs);
                     }
                     preReqs.routing.outboundMap[item] = hopTag(tags::routeChainPrefix, suffix++);
                     preReqs.routing.routeOutboundGroups << RoutingDeps::RouteOutboundGroup{QList<int>{item}, nullptr};
@@ -616,7 +699,7 @@ namespace Configs {
             if (auto entAddrs = getEntDomains({ctx.ent->id}, ctx.error); !entAddrs.isEmpty())
             {
                 if (!ctx.error.isEmpty()) return;
-                addDirectDomains(entAddrs);
+                addBootstrapDomains(entAddrs);
             }
             if (auto group = dataManager->groupsRepo->GetGroup(ctx.ent->gid); group != nullptr)
             {
@@ -629,7 +712,7 @@ namespace Configs {
                 }
                 auto addrs = getEntDomains(groupEnts, ctx.error);
                 if (!ctx.error.isEmpty()) return;
-                if (!addrs.isEmpty()) addDirectDomains(addrs);
+                addBootstrapDomains(addrs);
             }
 
             // Hijack
@@ -678,7 +761,9 @@ namespace Configs {
 
         void buildNTPSection(BuildContext &ctx) {
             const auto &settings = *dataManager->settingsRepo;
-            if (!settings.enable_ntp) return;
+            // The trusted core exception must only carry traffic required to
+            // establish the selected proxy. NTP is optional control traffic.
+            if (!settings.enable_ntp || failClosedEnabled()) return;
             ctx.result->coreConfig["ntp"] = QJsonObject{
                 {"enabled", true},
                 {"server", settings.ntp_server_address},
@@ -750,10 +835,26 @@ namespace Configs {
                     addr = addr.left(slashIndex);
                 }
             }
-            if (addr.contains(":")) {
-                auto spl = addr.split(":");
-                addr = spl[0];
-                port = spl[1].toInt();
+            if (addr.startsWith("[")) {
+                const auto closingBracket = addr.indexOf(']');
+                if (closingBracket > 0) {
+                    const auto portText = addr.mid(closingBracket + 1);
+                    addr = addr.mid(1, closingBracket - 1);
+                    if (portText.startsWith(':')) {
+                        bool portOk = false;
+                        const int parsedPort = portText.mid(1).toInt(&portOk);
+                        if (portOk) port = parsedPort;
+                    }
+                }
+            } else if (QHostAddress(addr).protocol() == QAbstractSocket::UnknownNetworkLayerProtocol &&
+                       addr.count(':') == 1) {
+                const auto separator = addr.lastIndexOf(':');
+                bool portOk = false;
+                const int parsedPort = addr.mid(separator + 1).toInt(&portOk);
+                if (portOk) {
+                    addr = addr.left(separator);
+                    port = parsedPort;
+                }
             }
             QJsonObject res = {
                 {"type", type},
@@ -794,6 +895,13 @@ namespace Configs {
                 return;
             }
 
+            const bool failClosedDns = failClosedEnabled();
+            if (failClosedDns && settings.use_dns_object && useDnsObj) {
+                ctx.error = QObject::tr(
+                    "Custom DNS objects are not supported while the kill switch is active. "
+                    "Configure Remote DNS as an encrypted resolver with a numeric IP address instead.");
+                return;
+            }
             if (settings.use_dns_object && useDnsObj) {
                 ctx.result->coreConfig["dns"] = QString2QJsonObject(settings.dns_object);
                 return;
@@ -805,6 +913,26 @@ namespace Configs {
             bool independentCache = false;
             QJsonArray servers;
             QJsonArray rules;
+            QJsonObject bootstrapDnsObj;
+            if (failClosedDns) {
+                bootstrapDnsObj = buildDnsObj(ctx, settings.remote_dns);
+                const auto bootstrapType = bootstrapDnsObj.value("type").toString();
+                const auto bootstrapAddress = bootstrapDnsObj.value("server").toString();
+                const bool encrypted = bootstrapType == "tls" || bootstrapType == "https" ||
+                                       bootstrapType == "quic" || bootstrapType == "h3";
+                const bool numeric = QHostAddress(bootstrapAddress).protocol() !=
+                                     QAbstractSocket::UnknownNetworkLayerProtocol;
+                if (!encrypted || !numeric) {
+                    ctx.error = QObject::tr(
+                        "Kill switch bootstrap requires Remote DNS to be an encrypted "
+                        "resolver with a numeric IPv4 or IPv6 address (for example, "
+                        "tls://8.8.8.8 or https://1.1.1.1/dns-query). Local, DHCP, plain "
+                        "DNS, and resolver hostnames are blocked to prevent DNS leaks.");
+                    return;
+                }
+                bootstrapDnsObj.remove("detour");
+                bootstrapDnsObj.remove("domain_resolver");
+            }
             // remote
             if (!ctx.forTest) {
                 auto remoteDnsObj = buildDnsObj(ctx, settings.remote_dns);
@@ -857,7 +985,7 @@ namespace Configs {
             }
 
             // direct
-            auto directDnsObj = buildDnsObj(ctx, settings.direct_dns);
+            auto directDnsObj = failClosedDns ? bootstrapDnsObj : buildDnsObj(ctx, settings.direct_dns);
             directDnsObj["tag"] = tags::dnsDirect;
             directDnsObj["domain_resolver"] = tags::dnsLocal;
             servers.append(directDnsObj);
@@ -884,7 +1012,7 @@ namespace Configs {
             // (wired via xray_outbound_dns_address). Those queries bootstrap the
             // chain itself, so they must never be routed over the proxy — that
             // deadlocks the chain before it can come up.
-            if (!ctx.forTest && ctx.proxyUsesXray) {
+            if (!ctx.forTest && ctx.proxyUsesXray && !failClosedDns) {
                 rules += QJsonObject{
                         {"inbound", QJsonArray{tags::dnsIn}},
                         {"action", "route"},
@@ -893,10 +1021,22 @@ namespace Configs {
                     };
             }
 
-            if (!ctx.forTest && !ctx.result->extraCoreData->path.isEmpty())
+            if (!ctx.forTest && !failClosedDns && !ctx.result->extraCoreData->path.isEmpty())
             {
                 rules += QJsonObject{
                     {"process_path", extraCoreProcessPaths(ctx.result->extraCoreData->path)},
+                    {"action", "route"},
+                    {"strategy", settings.direct_dns_strategy},
+                    {"server", tags::dnsDirect},
+                };
+            }
+
+            // Only exact proxy/control-plane endpoints may use the direct
+            // encrypted resolver. Ordinary queries, including user "direct"
+            // routing domains, continue through the established proxy.
+            if (dns.needBootstrapDnsRules) {
+                rules += QJsonObject{
+                    {"domain", dns.bootstrapDomains},
                     {"action", "route"},
                     {"strategy", settings.direct_dns_strategy},
                     {"server", tags::dnsDirect},
@@ -961,10 +1101,14 @@ namespace Configs {
             }
 
             if (dns.needDirectDnsRules) {
-                appendDnsRoutingRules(rules, dns.direct, settings.direct_dns_strategy, tags::dnsDirect);
+                appendDnsRoutingRules(rules, dns.direct,
+                                      failClosedDns ? settings.remote_dns_strategy
+                                                    : settings.direct_dns_strategy,
+                                      failClosedDns ? tags::dnsRemote : tags::dnsDirect);
             }
 
-            const bool useDirectFinalDNS = settings.dns_final_out == tags::direct;
+            const bool useDirectFinalDNS = ctx.forTest ||
+                                           (!failClosedDns && settings.dns_final_out == tags::direct);
 
             if (dns.needProxyDnsRules && useDirectFinalDNS) {
                 appendDnsRoutingRules(rules, dns.proxy, settings.remote_dns_strategy, tags::dnsRemote);
@@ -979,7 +1123,7 @@ namespace Configs {
 
             // Local
             auto dnsLocalAddress = settings.core_box_underlying_dns.isEmpty() ? "local" : settings.core_box_underlying_dns;
-            auto dnsLocalObj = buildDnsObj(ctx, dnsLocalAddress);
+            auto dnsLocalObj = failClosedDns ? bootstrapDnsObj : buildDnsObj(ctx, dnsLocalAddress);
             dnsLocalObj["tag"] = tags::dnsLocal;
             servers += dnsLocalObj;
 
@@ -1030,7 +1174,14 @@ namespace Configs {
                 inboundObj["auto_route"] = true;
                 inboundObj["mtu"] = settings.vpn_mtu;
                 inboundObj["stack"] = settings.vpn_implementation;
+#ifdef Q_OS_WIN
+                // Persistent WFP policy owns fail-closed enforcement. sing-tun's
+                // dynamic strict-route session disappears with this adapter and
+                // would overlap the independently managed policy.
+                inboundObj["strict_route"] = settings.vpn_strict_route && !failClosedEnabled();
+#else
                 inboundObj["strict_route"] = settings.vpn_strict_route;
+#endif
                 if (ctx.os == Linux && settings.vpn_auto_redirect) inboundObj["auto_redirect"] = true;
                 const auto tunIPv4CIDR = settings.vpn_tun_ipv4_cidr;
                 const auto tunIPv6CIDR = settings.vpn_tun_ipv6_cidr;
@@ -1052,7 +1203,11 @@ namespace Configs {
                     }
                 }
                 QJsonArray routeExcludeSets;
-                if (settings.enable_tun_routing)
+                // Under fail-closed routing, direct/bypass rules are rewritten
+                // to proxy. Excluding their destinations from the TUN here would
+                // prevent those rewritten rules from ever seeing the traffic;
+                // WFP would then block it instead of sending it through proxy.
+                if (settings.enable_tun_routing && !failClosedEnabled())
                 {
                     for (auto item: tun.directIPCIDRs) excludedRanges << item.toString();
                     for (auto item: tun.directIPSets) routeExcludeSets << item;
@@ -1161,6 +1316,12 @@ namespace Configs {
                     error = "Null proxy in chain, you may want to check your configs";
                     return;
                 }
+                if (ent->outbound == nullptr) {
+                    error = "Proxy in chain has no outbound configuration";
+                    return;
+                }
+                if (hasUnverifiableNetworkBehavior(ent))
+                    ctx.result->hasUnverifiableNetworkConfig = true;
                 if (!inXray && ent->outbound->IsXray()) {
                     ctx.singToXrayTransitioned = true;
                     scan.coreTransitions++;
@@ -1682,6 +1843,8 @@ namespace Configs {
 
         void buildOutboundsSection(BuildContext &ctx) {
             // First, our own ent
+            if (hasUnverifiableNetworkBehavior(ctx.ent))
+                ctx.result->hasUnverifiableNetworkConfig = true;
             auto group = dataManager->groupsRepo->GetGroup(ctx.ent->gid);
             if (group == nullptr)
             {
@@ -1760,11 +1923,15 @@ namespace Configs {
             }
             ctx.result->coreConfig["inbounds"] = inboundArr;
 
-            // Add the direct outbound
-            ctx.outbounds.append(QJsonObject{
-            {"type", "direct"},
-            {"tag", tags::direct}
-            });
+            // In fail-closed mode no data-plane rule is allowed to select a
+            // direct outbound. Omitting it also prevents a Clash/API mode
+            // change from turning the trusted core exemption into a bypass.
+            if (!failClosedEnabled()) {
+                ctx.outbounds.append(QJsonObject{
+                    {"type", "direct"},
+                    {"tag", tags::direct},
+                });
+            }
 
             ctx.result->coreConfig["endpoints"] = ctx.endpoints;
             ctx.result->coreConfig["outbounds"] = ctx.outbounds;
@@ -1776,32 +1943,38 @@ namespace Configs {
             QJsonArray ruleSetArray;
             for (const auto &item: ctx.prerequisites.routing.neededRuleSets) {
                 if (auto url = QUrl(item); url.isValid() && url.fileName().contains(".srs")) {
-                    ruleSetArray += QJsonObject{
+                    QJsonObject ruleSet{
                                 {"type", "remote"},
                                 {"tag", get_rule_set_name(item)},
                                 {"format", "binary"},
                                 {"url", item},
                             };
+                    if (failClosedEnabled()) ruleSet = hardenFailClosedRuleSet(ruleSet);
+                    ruleSetArray += ruleSet;
                 }
                 else
                     if (auto url = ruleSetUrl(item.toStdString()); !url.empty()) {
-                        ruleSetArray += QJsonObject{
+                        QJsonObject ruleSet{
                                     {"type", "remote"},
                                     {"tag", item},
                                     {"format", "binary"},
                                     {"url", get_jsdelivr_link(QString::fromUtf8(url.data(), url.size()))},
                                 };
+                        if (failClosedEnabled()) ruleSet = hardenFailClosedRuleSet(ruleSet);
+                        ruleSetArray += ruleSet;
                     }
             }
 
             // add block
             if (dataManager->settingsRepo->adblock_enable) {
-                ruleSetArray += QJsonObject{
+                QJsonObject ruleSet{
                             {"type", "remote"},
                             {"tag", tags::adblockRuleSet},
                             {"format", "binary"},
                             {"url", get_jsdelivr_link("https://raw.githubusercontent.com/217heidai/adblockfilters/main/rules/adblocksingbox.srs")},
                         };
+                if (failClosedEnabled()) ruleSet = hardenFailClosedRuleSet(ruleSet);
+                ruleSetArray += ruleSet;
             }
             return ruleSetArray;
         }
@@ -1825,6 +1998,12 @@ namespace Configs {
                 }
                 rawRouteObj = RouteProfile::TranslateRawOutbounds(rawRouteObj, routeDeps.outboundMap);
                 if (routeChain->preventModifications) {
+                    if (failClosedEnabled()) {
+                        ctx.error = QObject::tr(
+                            "Raw routing profiles that prevent modifications are not supported "
+                            "while the kill switch is active because direct fallback cannot be removed safely.");
+                        return;
+                    }
                     ctx.result->coreConfig["route"] = rawRouteObj;
                     return;
                 }
@@ -1846,6 +2025,7 @@ namespace Configs {
                         {"action", "resolve"},
                         {"strategy", settings.resolve_domain_strategy},
                     };
+                    if (failClosedEnabled()) injected.resolve["server"] = tags::dnsRemote;
                 }
                 injected.dnsHijack = QJsonObject{
                     {"protocol", "dns"},
@@ -1868,9 +2048,15 @@ namespace Configs {
 
             auto profileRules = routeChain->isRaw ? rawRouteObj.value("rules").toArray()
                                                   : routeChain->get_route_rules(false, routeDeps.outboundMap);
+            if (failClosedEnabled()) {
+                QJsonArray hardened;
+                for (const auto &entry : profileRules)
+                    hardened.append(hardenFailClosedRouteRule(entry.toObject()));
+                profileRules = hardened;
+            }
 
             QJsonObject extraCoreDirect;
-            if (!ctx.result->extraCoreData->path.isEmpty())
+            if (!failClosedEnabled() && !ctx.result->extraCoreData->path.isEmpty())
             {
                 extraCoreDirect = QJsonObject{
                     {"action", "route"},
@@ -1897,7 +2083,10 @@ namespace Configs {
 
             // raw profiles bring their own rule_set definitions; merge them after ours.
             if (routeChain->isRaw) {
-                for (const auto& rs : rawRouteObj.value("rule_set").toArray()) ruleSetArray.append(rs);
+                for (const auto& rs : rawRouteObj.value("rule_set").toArray()) {
+                    if (failClosedEnabled()) ruleSetArray.append(hardenFailClosedRuleSet(rs.toObject()));
+                    else ruleSetArray.append(rs);
+                }
             }
 
             // apply
@@ -1920,7 +2109,9 @@ namespace Configs {
             QJsonObject route = routeChain->isRaw ? rawRouteObj : QJsonObject{};
             route["rules"] = routeRules;
             route["rule_set"] = ruleSetArray;
-            if (routeChain->isRaw) {
+            if (failClosedEnabled()) {
+                route["final"] = tags::proxy;
+            } else if (routeChain->isRaw) {
                 if (!route.contains("final")) route["final"] = tags::proxy; // user's final, else a safe default
             } else if (defOut == blockID) {
                 route["final"] = tags::direct;
@@ -1930,7 +2121,7 @@ namespace Configs {
                 route["final"] = outboundIDToString(defOut);
             }
             if (settings.enable_stats && !route.contains("find_process"))  route["find_process"] = true;
-            if (!route.contains("default_domain_resolver"))
+            if (failClosedEnabled() || !route.contains("default_domain_resolver"))
                 route["default_domain_resolver"] = QJsonObject{
                                         {"server", tags::dnsDirect},
                                         {"strategy", settings.default_domain_strategy}};
@@ -2063,6 +2254,14 @@ namespace Configs {
             }
             if (custom->type == Custom::CustomFullConfig)
             {
+                res->hasUnverifiableNetworkConfig = true;
+                if (failClosedEnabled()) {
+                    res->error = QObject::tr(
+                        "Custom full configurations are not supported while the kill "
+                        "switch is active because their direct-routing and DNS behavior "
+                        "cannot be verified safely.");
+                    return res;
+                }
                 res->coreConfig = custom->Build().object;
                 return res;
             }
@@ -2092,6 +2291,14 @@ namespace Configs {
 
         buildOutboundsSection(ctx);
         if (failed()) return ctx.result;
+        if (failClosedEnabled() && ctx.result->hasUnverifiableNetworkConfig) {
+            ctx.error = QObject::tr(
+                "Direct, SOCKS4, Tailscale, ExtraCore, auto-selector, and custom "
+                "profiles are not supported while the kill switch is active because "
+                "their direct-routing or destination-DNS behavior cannot be constrained "
+                "safely. This also applies to profiles selected by the routing profile.");
+            if (failed()) return ctx.result;
+        }
 
         buildRouteSection(ctx);
         if (failed()) return ctx.result;
@@ -2221,12 +2428,22 @@ namespace Configs {
     std::shared_ptr<BuildTestConfigResult> BuildTestConfig(const QList<std::shared_ptr<Profile> > &profiles)
     {
         auto res = std::make_shared<BuildTestConfigResult>();
+        if (failClosedEnabled()) {
+            // A shared test box has no single established tunnel through which
+            // every candidate's destination DNS can be constrained safely.
+            res->error = QObject::tr(
+                "Profile connectivity tests are disabled while the kill switch is "
+                "active because their destination DNS cannot yet be constrained to "
+                "the individual tested tunnel safely.");
+            return res;
+        }
         BuildContext ctx;
         ctx.forTest = true;
         QList<int> entIDs;
         for (const auto& proxy : profiles) entIDs << proxy->id;
-        ctx.prerequisites.dns.direct.domains = QListStr2QJsonArray(getEntDomains(entIDs, ctx.error));
-        if (!ctx.prerequisites.dns.direct.domains.isEmpty()) ctx.prerequisites.dns.needDirectDnsRules = true;
+        ctx.prerequisites.dns.bootstrapDomains = QListStr2QJsonArray(getEntDomains(entIDs, ctx.error));
+        if (!ctx.prerequisites.dns.bootstrapDomains.isEmpty())
+            ctx.prerequisites.dns.needBootstrapDnsRules = true;
         buildDNSSection(ctx, false);
         if (!ctx.error.isEmpty())
         {

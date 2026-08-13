@@ -2265,6 +2265,30 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <translation>Вкл. IPv6 в TUN</translation>
     </message>
     <message>
+        <source>Kill switch</source>
+        <translation>Аварийная блокировка</translation>
+    </message>
+    <message>
+        <source>Block direct Internet traffic whenever the proxy is unavailable, including after Throne exits. Local network access is blocked too.</source>
+        <translation>Блокировать прямой интернет-трафик, когда прокси недоступен, в том числе после выхода из Throne. Доступ к локальной сети также блокируется.</translation>
+    </message>
+    <message>
+        <source>Prevent direct IPv4 and IPv6 Internet access while the proxy is connecting, switching, disconnected, or unavailable. The block remains active until you disable the kill switch. Local network access is also blocked, except for loopback and DHCP.</source>
+        <translation>Предотвращать прямой доступ в Интернет по IPv4 и IPv6 во время подключения, переключения, после отключения или при недоступности прокси. Блокировка остаётся активной, пока вы не отключите аварийную блокировку. Доступ к локальной сети также блокируется, кроме loopback и DHCP.</translation>
+    </message>
+    <message>
+        <source>Kill switch change failed</source>
+        <translation>Не удалось изменить аварийную блокировку</translation>
+    </message>
+    <message>
+        <source>The requested kill-switch change could not be completed safely. Throne retained the safest state it could verify.
+
+%1</source>
+        <translation>Не удалось безопасно выполнить запрошенное изменение аварийной блокировки. Throne сохранил самое безопасное состояние, которое удалось подтвердить.
+
+%1</translation>
+    </message>
+    <message>
         <source>Troubleshooting</source>
         <translation>Диагностика</translation>
     </message>

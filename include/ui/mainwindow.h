@@ -34,6 +34,8 @@
 #include <QThreadPool>
 #include <QLocalServer>
 #include <QLocalSocket>
+#include <atomic>
+#include <memory>
 
 #include "group/GroupSort.hpp"
 #include "include/global/GuiUtils.hpp"
@@ -46,12 +48,16 @@
 
 namespace Configs_sys {
     class CoreProcess;
+    class KillSwitchController;
 }
 
 class TrayProfileSelector;
 class TestRunner;
 
 namespace Qv2ray::ui { class SyntaxHighlighter; }
+#ifdef Q_OS_WIN
+class WindowsWfpKillSwitchBackend;
+#endif
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -91,7 +97,7 @@ public:
     qint64 GetCorePid();
     QString GetRunningConfigName();
 
-    void prepare_exit();
+    bool prepare_exit();
 
     void refresh_proxy_list(const QList<int> &ids = {}, bool mayNeedReset = false,
                             RefreshAnchor anchor = RefreshAnchor::KeepPlace);
@@ -106,7 +112,10 @@ public:
 
     void profile_start(int _id = -1);
 
-    void profile_stop(bool crash = false, bool block = false, bool manual = false);
+    // Returns false only when the stop was refused or, for a blocking call,
+    // failed. Asynchronous callers receive true once the protected stop was
+    // accepted.
+    bool profile_stop(bool crash = false, bool block = false, bool manual = false);
 
     int get_profile_to_start();
 
@@ -122,7 +131,17 @@ public:
 
     void RegisterHotkey(bool unregister);
 
-    bool StopVPNProcess();
+    // Force-stops ThroneCore only after fail-closed policy is prepared. When
+    // clearStartedProfile is true the previous profile is not reconnected.
+    bool StopVPNProcess(bool clearStartedProfile = false);
+
+    // Applies the OS policy before changing the persisted preference. On
+    // failure the current protection state is retained and error is populated.
+    bool setKillSwitchEnabled(bool enable, QString *error = nullptr);
+
+    // Called as soon as QProcess observes a core exit; persistent blocking is
+    // retained while obsolete TUN permissions are removed.
+    void killSwitchCoreTerminated(bool reconnectPlanned);
 
     void UpdateConnectionList(const QMap<QString, Stats::ConnectionMetadata>& toUpdate, const QMap<QString, Stats::ConnectionMetadata>& toAdd);
 
@@ -231,12 +250,23 @@ private:
     // Shared by the test sweeps and the batch profile scans (remove-invalid).
     QThreadPool *parallelCoreCallPool = new QThreadPool(this);
     std::unique_ptr<TestRunner> testRunner;
+    // Held across every TestRunner session. Kill-switch policy changes acquire
+    // the same gate so a test config cannot be built under one policy and run
+    // under another. QSemaphore permits acquisition and release on different
+    // worker/UI threads.
+    QSemaphore testActivityGate{1};
     //
     Configs_sys::CoreProcess *core_process = nullptr;
     QMutex coreProcessMutex; // serializes core_process init (DS_cores) vs IPC newConnection (UI)
     QLocalServer *core_server = nullptr;
     bool rpc_started = false;
     qint64 vpn_pid = 0;
+#ifdef Q_OS_WIN
+    std::unique_ptr<WindowsWfpKillSwitchBackend> killSwitchBackend;
+    std::unique_ptr<Configs_sys::KillSwitchController> killSwitchController;
+    bool killSwitchPreviousProfileUsedTun = false;
+    bool killSwitchPreviousTunIpv6 = false;
+#endif
     //
     QTextDocument *qvLogDocument = new QTextDocument(this);
     //
@@ -258,8 +288,8 @@ private:
     //
     int proxy_last_order = -1;
     bool select_mode = false;
-    QMutex mu_starting;
-    QMutex mu_stopping;
+    QSemaphore mu_starting{1};
+    QSemaphore mu_stopping{1};
     QMutex mu_exit;
     ExitReason exit_reason = ExitReason::None;
     //
@@ -472,6 +502,26 @@ private:
 
     bool set_system_dns(bool set, bool save_set = true);
 
+    bool initializeKillSwitch();
+
+    [[nodiscard]] bool killSwitchActive() const;
+
+    bool prepareKillSwitchProfileStart(bool switching, quint64 *operationId,
+                                       QString *error);
+
+    bool finishKillSwitchProfileStart(quint64 operationId, QString *error);
+
+    void failKillSwitchProfileStart(quint64 operationId, const QString &error,
+                                    bool coreInstanceMayBeRunning = false);
+
+    bool prepareKillSwitchProfileStop(QString *error);
+
+    void finishKillSwitchProfileStop();
+
+    void failKillSwitchProfileStop(const QString &error);
+
+    bool prepareKillSwitchExit(QString *error);
+
     void CheckUpdate();
 
     void setupConnectionList();
@@ -492,7 +542,7 @@ inline MainWindow *GetMainWindow() {
     return (MainWindow *) mainwindow;
 }
 
-void UI_InitMainWindow();
+[[nodiscard]] bool UI_InitMainWindow();
 
 #ifdef Q_OS_LINUX
 /*

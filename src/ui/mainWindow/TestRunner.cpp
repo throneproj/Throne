@@ -84,8 +84,8 @@ namespace {
 }
 
 bool TestRunner::isRunning() {
-    if (!session_.tryLock()) return true;
-    session_.unlock();
+    if (!session_.tryAcquire()) return true;
+    session_.release();
     return false;
 }
 
@@ -280,7 +280,18 @@ void TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedID
         finish();
         return;
     }
-    if (!session_.tryLock()) {
+    // A kill-switch setting change owns this same gate while it updates the OS
+    // policy and persisted preference. Hold it from before any test config is
+    // built until the final RPC completes, so tests cannot straddle policies.
+    if (!mw_->testActivityGate.tryAcquire()) {
+        MessageBoxWarning(
+            software_name,
+            MainWindow::tr("Wait for the current kill-switch policy change or connectivity test to finish."));
+        finish();
+        return;
+    }
+    if (!session_.tryAcquire()) {
+        mw_->testActivityGate.release();
         MessageBoxWarning(software_name, isUrl
             ? MainWindow::tr("The last url test did not exit completely, please wait. If it persists, please restart the program.")
             : MainWindow::tr("The last test did not exit completely, please wait. If it persists, please restart the program."));
@@ -353,7 +364,8 @@ void TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedID
 
         mw_->dataViewHtmlGenerator_.clearTestSections();
         mw_->UpdateDataView(true);
-        session_.unlock();
+        session_.release();
+        mw_->testActivityGate.release();
         // Signalled with the session free so a waiter can start work of its own.
         finish();
 
@@ -376,7 +388,14 @@ void TestRunner::runSpeedTests(const QList<int>& requestedIDs, bool testCurrent)
     if (profileIDs.isEmpty() && !testCurrent) {
         return;
     }
-    if (!session_.tryLock()) {
+    if (!mw_->testActivityGate.tryAcquire()) {
+        MessageBoxWarning(
+            software_name,
+            MainWindow::tr("Wait for the current kill-switch policy change or connectivity test to finish."));
+        return;
+    }
+    if (!session_.tryAcquire()) {
+        mw_->testActivityGate.release();
         MessageBoxWarning(software_name, MainWindow::tr("The last test did not finish completely, please wait. If it persists, please restart the program."));
         return;
     }
@@ -435,7 +454,8 @@ void TestRunner::runSpeedTests(const QList<int>& requestedIDs, bool testCurrent)
         }
         mw_->dataViewHtmlGenerator_.clearTestSections();
         mw_->UpdateDataView(true);
-        session_.unlock();
+        session_.release();
+        mw_->testActivityGate.release();
         runOnUiThread([=,this]{
             mw_->refresh_proxy_list(profileIDs);
             MW_show_log(MainWindow::tr("Speedtest finished!"));
