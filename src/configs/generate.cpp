@@ -627,6 +627,12 @@ namespace Configs {
                     ctx.error = "Outbounds used in routing profile cannot use an extra core or be a custom full config";
                     return;
                 }
+                // A routing rule may select an outbound whose egress leaves the
+                // tunnel (a direct profile builds a real sing-box direct
+                // outbound). Its tag is route-chain-N, so fail-closed rule
+                // hardening never rewrites it.
+                if (hasUnverifiableNetworkBehavior(neededEnt))
+                    ctx.result->hasUnverifiableNetworkConfig = true;
                 if (neededEnt->type == "chain") {
                     auto chain = neededEnt->Chain();
                     if (chain == nullptr || chain->list.isEmpty()) {
@@ -644,6 +650,8 @@ namespace Configs {
                             ctx.error = "Chain hops in routing profile cannot use an extra core, a custom full config, or be of type chain";
                             return;
                         }
+                        if (hasUnverifiableNetworkBehavior(hopEnt))
+                            ctx.result->hasUnverifiableNetworkConfig = true;
                         if (usesXrayCore(hopEnt)) ctx.proxyUsesXray = true;
                         // Collect exact endpoint hostnames for bootstrap DNS.
                         if (auto addrs = getEntDomains({hopID}, ctx.error); !addrs.empty()) {
@@ -2287,7 +2295,8 @@ namespace Configs {
             ctx.error = QObject::tr(
                 "Direct, SOCKS4, Tailscale, ExtraCore, auto-selector, and custom "
                 "profiles are not supported while the kill switch is active because "
-                "their direct-routing or destination-DNS behavior cannot be constrained safely.");
+                "their direct-routing or destination-DNS behavior cannot be constrained "
+                "safely. This also applies to profiles selected by the routing profile.");
             if (failed()) return ctx.result;
         }
 
