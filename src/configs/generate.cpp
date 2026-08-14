@@ -579,9 +579,7 @@ namespace Configs {
                     // Map chain ID -> tag of the outermost (first-built) hop
                     preReqs.routing.outboundMap[item] = hopTag(tags::routeChainPrefix, suffix);
                     // Build reversed hop list (matching main-chain build order: outer first)
-                    QList<int> reversedHops;
-                    for (int idx = chain->list.size() - 1; idx >= 0; idx--) reversedHops << chain->list[idx];
-                    preReqs.routing.routeOutboundGroups << RoutingDeps::RouteOutboundGroup{reversedHops, neededEnt};
+                    preReqs.routing.routeOutboundGroups << RoutingDeps::RouteOutboundGroup{{chain->list.rbegin(), chain->list.rend()}, neededEnt};
                     suffix += static_cast<int>(chain->list.size());
                 } else {
                     // Single-hop outbound (existing logic)
@@ -1210,9 +1208,7 @@ namespace Configs {
             if (ent->type == "chain") {
                 auto chain = ent->Chain();
                 if (chain == nullptr) return {};
-                QList<int> reversed;
-                for (int idx = chain->list.size() - 1; idx >= 0; idx--) reversed.append(chain->list[idx]);
-                return reversed;
+                return {chain->list.rbegin(), chain->list.rend()};
             }
             return {entID};
         }
@@ -1711,7 +1707,9 @@ namespace Configs {
                         ctx.error = "Ent is nullptr after cast to chain, data is corrupted";
                         return;
                     }
-                    for (int idx = chain->list.size()-1; idx >=0; idx--) entIDs.append(chain->list[idx]);
+                    entIDs.reserve(entIDs.size() + chain->list.size());
+                    std::copy(chain->list.crbegin(), chain->list.crend(),
+                             std::back_inserter(entIDs));
                 } else
                 {
                     entIDs.append(ctx.ent->id);

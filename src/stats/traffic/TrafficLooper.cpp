@@ -38,7 +38,7 @@ namespace Stats {
         // and credit it to every user-visible profile in the chain. Aggregate
         // rates from all groups into the proxy entry for the status bar.
         for (auto& group : groups) {
-            const auto tagKey = group.watchTag.toStdString();
+            const auto& tagKey = group.watchTagKey;
             if (!resp.ups.contains(tagKey)) continue;
             const auto interval = now - group.last_update;
             group.last_update = now;
@@ -190,6 +190,7 @@ namespace Stats {
             if (configGroup.watchTag.isEmpty() || configGroup.profiles.isEmpty()) continue;
             TrafficLooperGroup g;
             g.watchTag = configGroup.watchTag;
+            g.watchTagKey = configGroup.watchTag.toStdString();
             g.profiles = configGroup.profiles;
             g.last_update = now;
             groups.append(g);

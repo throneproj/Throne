@@ -157,7 +157,6 @@ namespace Configs {
         void ensure_ui_visible_attribute_tabs_seeded();
         static inputType get_input_type(const QString& fieldName);
         static QStringList get_values_for_field(const QString& fieldName);
-        static std::shared_ptr<RouteRule> get_processPath_direct_rule(QString processPath);
         QStringList get_current_value_string(const QString& fieldName);
         [[nodiscard]] QString get_current_value_bool(const QString& fieldName) const;
         void set_field_value(const QString& fieldName, const QStringList& value);

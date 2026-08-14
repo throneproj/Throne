@@ -1,9 +1,9 @@
 #pragma once
 
 #include <QWidget>
-#include <QVector>
 #include <QColor>
 
+#include <deque>
 #include <functional>
 
 // A minimal self-painted sparkline for the runtime panel: up to two overlaid
@@ -42,8 +42,8 @@ protected:
     void paintEvent(QPaintEvent* event) override;
 
 private:
-    QVector<double> a_;
-    QVector<double> b_;
+    std::deque<double> a_;
+    std::deque<double> b_;
     int cap_ = 60;
     double fixedMax_ = -1.0;
     QColor primary_;

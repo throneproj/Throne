@@ -47,7 +47,7 @@ namespace Configs_network {
         request.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, "WARP for Android");
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-        auto _reply = accessManager.post(request, QJsonObject2QString(payload, true).toStdString().c_str());
+        auto _reply = accessManager.post(request, QJsonObject2QString(payload, true).toUtf8());
         QEventLoop loop;
         QObject::connect(_reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
         loop.exec();
@@ -57,7 +57,7 @@ namespace Configs_network {
             return config;
         }
 
-        auto rawResponse = QString::fromStdString(_reply->readAll().toStdString());
+        auto rawResponse = QString::fromUtf8(_reply->readAll());
         auto jsonResp = QString2QJsonObject(rawResponse)["config"].toObject();
         if (!jsonResp.contains("peers") || !jsonResp["peers"].isArray() || jsonResp["peers"].toArray().empty()) {
             *error = "Received invalid response: " + rawResponse;

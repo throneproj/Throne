@@ -2,7 +2,6 @@
 #include "NkrVersion.h"
 #include <QJsonDocument>
 #include <QJsonArray>
-#include <QMutexLocker>
 #include <QDebug>
 
 #include "include/global/Utils.hpp"
@@ -191,38 +190,54 @@ namespace Configs {
             const QString key = QString::fromStdString(query->getColumn(0).getText());
             const QString str = QString::fromStdString(query->getColumn(1).getText());
 
-            if (auto boolVal = boolMap.find(key); boolVal != boolMap.end()) {
-                *boolVal.value() = str == "true" || str == "1";
-            } else if (auto intVal = intMap.find(key); intVal != intMap.end()) {
-                bool ok;
-                *intVal.value() = str.toInt(&ok);
-                if (!ok) *intVal.value() = 0;
-            } else if (auto strListVal = stringListMap.find(key); strListVal != stringListMap.end()) {
-                QJsonDocument doc = QJsonDocument::fromJson(str.toUtf8());
-                if (doc.isArray()) {
-                    QStringList list;
-                    for (const auto& val : doc.array()) list << val.toString();
-                    *strListVal.value() = list;
-                }
-            } else if (auto strVal = stringMap.find(key); strVal != stringMap.end()) {
-                *strVal.value() = str;
-            } else if (key == "shortcuts") {
-                QJsonDocument doc = QJsonDocument::fromJson(str.toUtf8());
-                if (doc.isObject()) {
+            if (key == "shortcuts") {
+                if (const auto doc = QJsonDocument::fromJson(str.toUtf8()); doc.isObject()) {
                     auto obj = doc.object();
-                    for (const auto& key : obj.keys()) {
-                        qDebug() << key << obj[key];
-                        shortcuts[key] = QKeySequence(obj[key].toString());
+                    for (auto it = obj.constBegin(); it != obj.constEnd(); ++it) {
+                        qDebug() << it.key() << it.value();
+                        shortcuts[it.key()] = QKeySequence(it.value().toString());
                     }
+                    continue;
                 }
-            } else if (key == "xray_vless_preference") {
-                bool ok;
+            }
+            if (key == "xray_vless_preference") {
+                bool ok = false;
                 int v = str.toInt(&ok);
                 xray_vless_preference = static_cast<Xray::XrayVlessPreference>(ok ? v : 0);
-            } else if (key == "sub_auto_update_last") {
+                continue;
+            }
+            if (key == "sub_auto_update_last") {
                 sub_auto_update_last = str.toLongLong();
-            } else if (key == "route_auto_update_last") {
+                continue;
+            }
+            if (key == "route_auto_update_last") {
                 route_auto_update_last = str.toLongLong();
+                continue;
+            }
+            if (auto boolVal = boolMap.find(key); boolVal != boolMap.end()) {
+                *boolVal.value() = str == "true" || str == "1";
+                continue;
+            }
+            if (auto intVal = intMap.find(key); intVal != intMap.end()) {
+                bool ok = false;
+                *intVal.value() = str.toInt(&ok);
+                if (!ok) *intVal.value() = 0;
+                continue;
+            }
+
+            if (auto strListVal = stringListMap.find(key); strListVal != stringListMap.end()) {
+                if (const auto doc = QJsonDocument::fromJson(str.toUtf8()); doc.isArray()) {
+                    const auto arr = doc.array();
+                    QStringList list;
+                    list.reserve(arr.size());
+                    for (const auto& val : arr) list << val.toString();
+                    *strListVal.value() = std::move(list);
+                }
+                continue;
+            }
+            if (auto strVal = stringMap.find(key); strVal != stringMap.end()) {
+                *strVal.value() = str;
+                continue;
             }
         }
     }
@@ -233,39 +248,39 @@ namespace Configs {
         std::vector<std::pair<std::string, std::string>> keyValues;
         keyValues.reserve(boolMap.size() + intMap.size() + stringMap.size() + stringListMap.size() + 4);
 
+        const auto addPair = [&keyValues](const QString& key, const auto& value) {
+            keyValues.emplace_back(key.toStdString(), value);
+        };
+
         for (auto it = boolMap.begin(); it != boolMap.end(); ++it)
-            keyValues.emplace_back(it.key().toStdString(), *it.value() ? "true" : "false");
+            addPair(it.key(), *it.value() ? "true" : "false");
 
         for (auto it = intMap.begin(); it != intMap.end(); ++it)
-            keyValues.emplace_back(it.key().toStdString(), QString::number(*it.value()).toStdString());
+            addPair(it.key(), QString::number(*it.value()).toStdString());
 
         for (auto it = stringMap.begin(); it != stringMap.end(); ++it)
-            keyValues.emplace_back(it.key().toStdString(), it.value()->toStdString());
+            addPair(it.key(), it.value()->toStdString());
 
         for (auto it = stringListMap.begin(); it != stringListMap.end(); ++it) {
-            QJsonArray arr;
-            for (const QString& s : *it.value()) arr.append(s);
-            keyValues.emplace_back(it.key().toStdString(),
-                QString::fromUtf8(QJsonDocument(arr).toJson(QJsonDocument::Compact)).toStdString());
+            addPair(it.key(), QJsonDocument(QJsonArray::fromStringList(*it.value())).toJson(QJsonDocument::Compact).toStdString());
         }
 
         {
             QJsonObject obj;
             for (auto it = shortcuts.begin(); it != shortcuts.end(); ++it)
                 obj[it.key()] = it.value().toString();
-            keyValues.emplace_back("shortcuts",
-                QString::fromUtf8(QJsonDocument(obj).toJson(QJsonDocument::Compact)).toStdString());
+            addPair(QStringLiteral("shortcuts"), QJsonDocument(obj).toJson(QJsonDocument::Compact).toStdString());
         }
 
-        keyValues.emplace_back("xray_vless_preference",
-            QString::number(static_cast<int>(xray_vless_preference)).toStdString());
+        addPair(QStringLiteral("xray_vless_preference"),
+            std::to_string(static_cast<int>(xray_vless_preference)));
 
         // qint64 last-run timestamps for the periodic auto-update jobs (out of range for
         // the int map, so persisted here alongside the other special cases).
-        keyValues.emplace_back("sub_auto_update_last",
-            QString::number(sub_auto_update_last).toStdString());
-        keyValues.emplace_back("route_auto_update_last",
-            QString::number(route_auto_update_last).toStdString());
+        addPair(QStringLiteral("sub_auto_update_last"),
+            std::to_string(sub_auto_update_last));
+        addPair(QStringLiteral("route_auto_update_last"),
+            std::to_string(route_auto_update_last));
 
         db.execBatchSettingsReplace(keyValues);
     }
@@ -276,19 +291,18 @@ namespace Configs {
         Save();
     }
 
-    QString SubStrBefore(QString str, const QString &sub) {
-        if (!str.contains(sub)) return str;
-        return str.left(str.indexOf(sub));
+    static QStringView SubStrBefore(QStringView str, QStringView sub) {
+        const qsizetype pos = str.indexOf(sub);
+        return pos == -1 ? str : str.left(pos);
     }
 
     QString SettingsRepo::GetUserAgent(bool isDefault) const {
-        if (user_agent.isEmpty()) {
-            isDefault = true;
-        }
-        if (isDefault) {
-            QString version = SubStrBefore(NKR_VERSION, "-");
-            if (!version.contains(".")) version = "1.0.0";
-            return "Throne/" + version;
+        if (user_agent.isEmpty() || isDefault) {
+            const QStringView version = SubStrBefore(QStringLiteral(NKR_VERSION), u"-");
+            if (version.contains(u'.')) {
+                return QStringLiteral("Throne/") + version;
+            }
+            return QStringLiteral("Throne/1.0.0");
         }
         return user_agent;
     }

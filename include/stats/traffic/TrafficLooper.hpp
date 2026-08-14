@@ -4,6 +4,8 @@
 #include <QList>
 #include <QMutex>
 
+#include <string>
+
 #include "include/database/entities/Profile.h"
 #include "include/configs/generate.h"
 
@@ -24,6 +26,8 @@ namespace Stats {
     // bookkeeping for delta-based rate computation.
     struct TrafficLooperGroup {
         QString watchTag;
+        // watchTag as the core's stats-map key; precomputed once
+        std::string watchTagKey;
         QList<std::shared_ptr<Configs::Profile>> profiles;
         long long last_update = 0;
         double uplink_rate = 0;

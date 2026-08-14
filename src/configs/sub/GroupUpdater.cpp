@@ -967,38 +967,26 @@ namespace Subscription {
                 QList<std::shared_ptr<Configs::Profile>> changed_old;
                 QList<std::shared_ptr<Configs::Profile>> changed_new;
                 Configs::ProfileFilter::ChangedByIdentity(only_in, only_out, changed_old, changed_new);
+                const auto make_notice = [](const auto &profiles, const QString &prefix, const QString &action) {
+                    if (profiles.size() >= 1000) {
+                        return QStringLiteral("%1 %2 %3\n")
+                            .arg(prefix, action)
+                            .arg(profiles.size());
+                    }
 
-                QString notice_added;
-                QString notice_deleted;
-                QString notice_updated;
-                if (only_out.size() < 1000)
-                {
-                    for (const auto &ent: only_out) {
-                        notice_added += "[+] " + ent->outbound->DisplayTypeAndName() + "\n";
+                    QString result;
+                    for (const auto &ent : profiles) {
+                        result += prefix;
+                        result += ' ';
+                        result += ent->outbound->DisplayTypeAndName();
+                        result += '\n';
                     }
-                } else
-                {
-                    notice_added += QString("[+] ") + "added " + Int2String(only_out.size()) + "\n";
-                }
-                if (changed_new.size() < 1000)
-                {
-                    for (const auto &ent: changed_new) {
-                        notice_updated += "[~] " + ent->outbound->DisplayTypeAndName() + "\n";
-                    }
-                } else
-                {
-                    notice_updated += QString("[~] ") + "updated " + Int2String(changed_new.size()) + "\n";
-                }
-                if (only_in.size() < 1000)
-                {
-                    for (const auto &ent: only_in) {
-                        notice_deleted += "[-] " + ent->outbound->DisplayTypeAndName() + "\n";
-                    }
-                } else
-                {
-                    notice_deleted += QString("[-] ") + "deleted " + Int2String(only_in.size()) + "\n";
-                }
+                    return result;
+                };
 
+                const QString notice_added = make_notice(only_out, "[+]", "added");
+                const QString notice_deleted = make_notice(only_in, "[-]", "deleted");
+                const QString notice_updated = make_notice(changed_new, "[~]", "updated");
 
                 QHash<Configs::Profile *, int> supersededBy;
                 for (int i = 0; i < update_del.size() && i < update_keep.size(); ++i) {

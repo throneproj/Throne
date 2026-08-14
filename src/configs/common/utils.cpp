@@ -60,16 +60,18 @@ namespace Configs
         return false;
     }
 
-    QString getHeadersString(QStringList headers) {
+    QString getHeadersString(const QStringList& headers) {
         QString result;
         if (headers.length()%2 != 0) {
             return "";
         }
+        QStringList formatted;
+        formatted.reserve(headers.length()/2);
+
         for (int i=0;i<headers.length();i+=2) {
-            result += headers[i]+"=";
-            result += "\""+headers[i+1]+"\" ";
+            formatted.append(QStringLiteral("%1=\"%2\"").arg(headers.at(i), headers.at(i + 1)));
         }
-        return result;
+        return formatted.join(' ');
     }
 
     QStringList parseHeaderPairs(const QString& rawHeader) {

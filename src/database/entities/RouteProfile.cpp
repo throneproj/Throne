@@ -13,7 +13,7 @@ namespace Configs {
     bool isOutboundIDValid(int id) {
         switch (id) {
             case -1:
-                return true;
+                // return true;
             case -2:
                 return true;
             default:
@@ -24,7 +24,7 @@ namespace Configs {
     int getOutboundID(const QString& name) {
         if (name == "proxy") return -1;
         if (name == "direct") return -2;
-        if (auto profile = Configs::dataManager->profilesRepo->GetProfileByName(name)) return profile->id;
+        if (const auto &profile = Configs::dataManager->profilesRepo->GetProfileByName(name)) return profile->id;
 
         return INVALID_ID;
     }
@@ -208,7 +208,7 @@ namespace Configs {
 
     void RouteProfile::reset_simple_rule(std::shared_ptr<RouteRule>& rule) {
         auto cleanRules = get_simple_rules();
-        for (auto r : cleanRules) {
+        for (auto &r : cleanRules) {
             if (r->type == rule->type) {
                 rule = std::move(r);
                 return;
@@ -787,7 +787,7 @@ namespace Configs {
     }
 
     std::shared_ptr<RouteRule> RouteProfile::get_simple_rule_by_type(ruleType type) {
-        for (auto r : Rules) {
+        for (const auto &r : Rules) {
             if (r->type == type) return r;
         }
         return nullptr;

@@ -2,7 +2,7 @@
 
 #include <QMap>
 
-static const QMap<QString, QString> CountryMap = {
+inline const QMap<QString, QString> CountryMap = {
     { "Afghanistan", "AF" },
     { "Aland Islands", "AX" },
     { "Albania", "AL" },

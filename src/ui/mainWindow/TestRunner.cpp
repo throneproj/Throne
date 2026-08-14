@@ -399,11 +399,11 @@ void TestRunner::runSpeedTests(const QList<int>& requestedIDs, bool testCurrent)
                     return;
                 }
 
-                for (const auto& entID : buildObject->fullConfigs.keys()) {
+                for (auto it = buildObject->fullConfigs.cbegin(); it != buildObject->fullConfigs.cend(); ++it) {
                     Target target;
-                    target.coreConfig = buildObject->fullConfigs[entID];
+                    target.coreConfig = it.value();
                     target.useDefaultOutbound = true;
-                    target.entID = entID;
+                    target.entID = it.key();
                     runSpeedProbe(target);
                 }
 

@@ -198,15 +198,10 @@ const ProfilesTableModel::FilterKey *ProfilesTableModel::filterKeyAt(int row) co
 void ProfilesTableModel::refreshTable(const QList<int> &ids, bool mayNeedReset) {
     if (m_profileIds.isEmpty() && ids.isEmpty()) return;
 
-    bool needFullReset = (ids.length() != m_profileIds.length()) && mayNeedReset;
-    if (!needFullReset && !ids.isEmpty() && mayNeedReset) {
-        for (int i=0; i < ids.length(); i++) {
-            if (ids[i] != m_profileIds[i]) {
-                needFullReset = true;
-                break;
-            }
-        }
-    }
+    const bool needFullReset = mayNeedReset && (
+    ids.size() != m_profileIds.size() ||
+    !std::equal(ids.begin(), ids.end(), m_profileIds.begin())
+    );
 
     if (needFullReset) {
         setProfileIds(ids);

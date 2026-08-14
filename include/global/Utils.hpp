@@ -144,21 +144,19 @@ inline const QString UNICODE_LRO = QString::fromUtf8(QByteArray::fromHex("E280AD
 
 #define Int2String(num) QString::number(num)
 
-inline QString SubStrBefore(QString str, const QString &sub) {
-    if (!str.contains(sub)) return str;
-    return str.left(str.indexOf(sub));
+inline QString SubStrBefore(const QString &str, const QString &sub) {
+    const qsizetype pos = str.indexOf(sub);
+    return pos == -1 ? str : str.left(pos);
 }
 
-inline QString SubStrAfter(QString str, const QString &sub) {
-    if (!str.contains(sub)) return str;
-    return str.right(str.length() - str.indexOf(sub) - sub.length());
+inline QString SubStrAfter(const QString &str, const QString &sub) {
+    const qsizetype pos = str.indexOf(sub);
+    return pos == -1 ? str : str.right(str.length() - pos - sub.length());
 }
 
 QString QStringList2Command(const QStringList &list);
 
 QStringList SplitLines(const QString &_string);
-
-QStringList SplitLinesSkipSharp(const QString &_string, int maxLine = 0);
 
 QStringList SplitAndTrim(const QString& raw, const QString& seperator, bool keepEmpty = true);
 

@@ -32,8 +32,8 @@ MiniChartWidget::MiniChartWidget(QWidget* parent) : QWidget(parent) {
 
 void MiniChartWidget::setCapacity(int n) {
     cap_ = n > 1 ? n : 1;
-    while (a_.size() > cap_) a_.removeFirst();
-    while (b_.size() > cap_) b_.removeFirst();
+    while (a_.size() > static_cast<std::size_t>(cap_)) a_.pop_front();
+    while (b_.size() > static_cast<std::size_t>(cap_)) b_.pop_front();
     update();
 }
 
@@ -59,10 +59,10 @@ void MiniChartWidget::setCaption(const QString& caption) {
 }
 
 void MiniChartWidget::push(double primary, double secondary) {
-    a_.append(primary);
-    b_.append(secondary);
-    while (a_.size() > cap_) a_.removeFirst();
-    while (b_.size() > cap_) b_.removeFirst();
+    a_.push_back(primary);
+    b_.push_back(secondary);
+    while (a_.size() > static_cast<std::size_t>(cap_)) a_.pop_front();
+    while (b_.size() > static_cast<std::size_t>(cap_)) b_.pop_front();
     update();
 }
 
@@ -118,8 +118,8 @@ void MiniChartWidget::paintEvent(QPaintEvent*) {
 
     const double stepX = plot.width() / static_cast<double>(cap_ - 1 > 0 ? cap_ - 1 : 1);
 
-    auto drawSeries = [&](const QVector<double>& s, const QColor& color, bool fill) {
-        if (s.isEmpty()) return;
+    auto drawSeries = [&](const std::deque<double>& s, const QColor& color, bool fill) {
+        if (s.empty()) return;
         const int n = s.size();
         // Newest sample hugs the right edge; older samples extend left.
         const auto pointAt = [&](int i) {

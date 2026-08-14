@@ -107,10 +107,11 @@ namespace Configs_network {
     }
 
     QString NetworkRequestHelper::GetHeader(const QList<QPair<QByteArray, QByteArray>> &header, const QString &name) {
+        const QByteArray needle = name.toLatin1();
         for (const auto &p: header) {
-            if (QString(p.first).toLower() == name.toLower()) return p.second;
+            if (p.first.compare(needle, Qt::CaseInsensitive) == 0) return p.second;
         }
-        return "";
+        return {};
     }
 
     QString NetworkRequestHelper::DownloadAsset(const QString &url, const QString &fileName) {
