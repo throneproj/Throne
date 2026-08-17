@@ -32,7 +32,6 @@ protected:
     [[nodiscard]] int insertionRowAt(const QPoint &pos) const;
 
     void setDropRow(int row);
-
 private:
     QPoint pressPos;
 
