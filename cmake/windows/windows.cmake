@@ -10,6 +10,11 @@ generate_product_version(
         COMPANY_NAME "Throne"
         COMPANY_COPYRIGHT "Throne"
         FILE_DESCRIPTION "Throne"
+        ORIGINAL_FILENAME "Throne.exe"
+        VERSION_MAJOR ${NKR_VERSION_MAJOR}
+        VERSION_MINOR ${NKR_VERSION_MINOR}
+        VERSION_PATCH ${NKR_VERSION_PATCH}
+        VERSION_REVISION ${NKR_VERSION_REVISION}
 )
 add_definitions(-DUNICODE -D_UNICODE -DNOMINMAX)
 set(GUI_TYPE WIN32)

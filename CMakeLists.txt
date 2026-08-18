@@ -36,6 +36,8 @@ endif ()
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Network LinguistTools ${QT_DBUS_COMPONENT})
 
+include("cmake/nkr.cmake")
+
 #### Platform Variables ####
 if (APPLE)
     include("cmake/macos/macos.cmake")
@@ -65,7 +67,6 @@ message("[CMAKE_FIND_ROOT_PATH] ${CMAKE_FIND_ROOT_PATH}")
 set(BUILD_SHARED_LIBS OFF)
 
 include("cmake/print.cmake")
-include("cmake/nkr.cmake")
 include("cmake/QHotkey.cmake")
 
 find_package(Threads)

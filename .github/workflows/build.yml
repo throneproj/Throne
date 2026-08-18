@@ -335,7 +335,25 @@ jobs:
           ####
           sudo apt install nsis
           cp ./script/windows_installer.nsi .
-          makensis windows_installer.nsi
+          TAG="${{ github.event.inputs.tag }}"
+          APP_VERSION="${TAG#v}"
+          APP_VERSION="${APP_VERSION#V}"
+          NUM="${TAG#v}"
+          NUM="${NUM#V}"
+          PREFIX="${NUM%%-*}"
+          IFS='.' read -r -a parts <<< "${PREFIX}"
+          APP_VERSION_MAJOR="${parts[0]:-0}"
+          APP_VERSION_MINOR="${parts[1]:-0}"
+          APP_VERSION_PATCH="${parts[2]:-0}"
+          APP_VERSION_BUILD="${parts[3]:-0}"
+
+          makensis \
+            -DAPP_VERSION="${APP_VERSION}" \
+            -DAPP_VERSION_MAJOR="${APP_VERSION_MAJOR}" \
+            -DAPP_VERSION_MINOR="${APP_VERSION_MINOR}" \
+            -DAPP_VERSION_PATCH="${APP_VERSION_PATCH}" \
+            -DAPP_VERSION_BUILD="${APP_VERSION_BUILD}" \
+            windows_installer.nsi
           cp ThroneSetup.exe deployment/Throne-${{ github.event.inputs.tag }}-windows-universal-installer.exe
           ####
           cd deployment

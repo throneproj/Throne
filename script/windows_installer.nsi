@@ -1,4 +1,20 @@
-Name "Throne"
+!ifndef APP_VERSION
+  !define APP_VERSION "0.0.0"
+!endif
+!ifndef APP_VERSION_MAJOR
+  !define APP_VERSION_MAJOR 0
+!endif
+!ifndef APP_VERSION_MINOR
+  !define APP_VERSION_MINOR 0
+!endif
+!ifndef APP_VERSION_PATCH
+  !define APP_VERSION_PATCH 0
+!endif
+!ifndef APP_VERSION_BUILD
+  !define APP_VERSION_BUILD 0
+!endif
+
+Name "Throne ${APP_VERSION}"
 OutFile "ThroneSetup.exe"
 
 ; 1. NEVER ask for UAC on launch
@@ -62,6 +78,13 @@ UninstPage custom un.DataPageCreate un.DataPageLeave
 !insertmacro MUI_UNPAGE_INSTFILES
 
 !insertmacro MUI_LANGUAGE "English"
+
+VIProductVersion "${APP_VERSION_MAJOR}.${APP_VERSION_MINOR}.${APP_VERSION_PATCH}.${APP_VERSION_BUILD}"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName" "Throne"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "FileDescription" "Throne Setup"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "${APP_VERSION}"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductVersion" "${APP_VERSION}"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "Throne"
 
 UninstallText "This will uninstall Throne. Do you wish to continue?"
 UninstallIcon "res\ThroneDel.ico"
@@ -263,6 +286,11 @@ Section "Install"
 
   WriteRegStr SHCTX "Software\Throne" "InstallPath" "$INSTDIR"
   WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Throne" "DisplayName" "Throne"
+  WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Throne" "DisplayVersion" "${APP_VERSION}"
+  WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Throne" "Publisher" "Throne"
+  WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Throne" "DisplayIcon" "$INSTDIR\Throne.exe"
+  WriteRegDWORD SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Throne" "VersionMajor" ${APP_VERSION_MAJOR}
+  WriteRegDWORD SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Throne" "VersionMinor" ${APP_VERSION_MINOR}
   WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Throne" "UninstallString" "$INSTDIR\uninstall.exe"
   WriteRegStr SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Throne" "InstallLocation" "$INSTDIR"
   WriteRegDWORD SHCTX "Software\Microsoft\Windows\CurrentVersion\Uninstall\Throne" "NoModify" 1
