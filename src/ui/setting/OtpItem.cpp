@@ -6,7 +6,7 @@
 namespace {
     constexpr int READONLY_CODE_WIDTH = 110;
 
-    QIcon RecolorIcon(const QString &path, const QColor &color) {
+    QIcon RecolorOtpItemIcon(const QString &path, const QColor &color) {
         QPixmap pixmap(path);
         if (pixmap.isNull()) return QIcon(path);
         QPainter painter(&pixmap);
@@ -64,9 +64,9 @@ void OtpItem::setActionsVisible(const bool visible) const {
 
 void OtpItem::applyIconColors() const {
     const auto color = palette().color(QPalette::ButtonText);
-    ui->edit->setIcon(RecolorIcon(":/icon/material/pencil-outline.png", color));
-    ui->share->setIcon(RecolorIcon(":/icon/material/qrcode.png", color));
-    ui->remove->setIcon(RecolorIcon(":/icon/material/delete.png", color));
+    ui->edit->setIcon(RecolorOtpItemIcon(":/icon/material/pencil-outline.png", color));
+    ui->share->setIcon(RecolorOtpItemIcon(":/icon/material/qrcode.png", color));
+    ui->remove->setIcon(RecolorOtpItemIcon(":/icon/material/delete.png", color));
 }
 
 void OtpItem::changeEvent(QEvent *event) {
