@@ -102,6 +102,10 @@ function(generate_product_version outfiles)
         ${GenerateProductVersionCurrentDir}/VersionResource.rc
         ${_VersionResourceFile}
         COPYONLY)
+    # VersionResource.rc only includes VersionInfo.h; without this, incremental
+    # builds (and compiler caches) may keep a stale .res when the version changes.
+    set_source_files_properties(${_VersionResourceFile} PROPERTIES
+        OBJECT_DEPENDS "${_VersionInfoFile}")
     list(APPEND ${outfiles} ${_VersionInfoFile} ${_VersionResourceFile})
     set (${outfiles} ${${outfiles}} PARENT_SCOPE)
 endfunction()

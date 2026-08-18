@@ -1,5 +1,12 @@
-# Release
-set(NKR_VERSION "$ENV{INPUT_VERSION}")
+# Release version: prefer an explicit -DINPUT_VERSION=... cache variable, then env.
+if (NOT DEFINED INPUT_VERSION)
+    set(INPUT_VERSION "$ENV{INPUT_VERSION}")
+endif ()
+set(NKR_VERSION "${INPUT_VERSION}")
+
+# Re-run configure when the version input changes between builds.
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS INPUT_VERSION)
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "$ENV{INPUT_VERSION}")
 
 # Derive numeric parts for Windows PE VERSIONINFO (X.Y.Z.W) from NKR_VERSION.
 # Examples:
@@ -15,6 +22,12 @@ set(NKR_VERSION_MAJOR 1)
 set(NKR_VERSION_MINOR 0)
 set(NKR_VERSION_PATCH 0)
 set(NKR_VERSION_REVISION 0)
+
+if (NOT NKR_VERSION_NUMERIC_STR MATCHES "^[0-9]+(\\.[0-9]+){0,3}$")
+    if (NKR_VERSION MATCHES "([0-9]+\\.[0-9]+(\\.[0-9]+){0,2})")
+        set(NKR_VERSION_NUMERIC_STR "${CMAKE_MATCH_1}")
+    endif ()
+endif ()
 
 if (NKR_VERSION_NUMERIC_STR MATCHES "^[0-9]+(\\.[0-9]+){0,3}$")
     string(REPLACE "." ";" _nkr_parts "${NKR_VERSION_NUMERIC_STR}")
@@ -33,6 +46,8 @@ if (NKR_VERSION_NUMERIC_STR MATCHES "^[0-9]+(\\.[0-9]+){0,3}$")
         list(GET _nkr_parts 3 NKR_VERSION_REVISION)
     endif ()
 endif ()
+
+message(STATUS "NKR_VERSION='${NKR_VERSION}' -> ${NKR_VERSION_MAJOR}.${NKR_VERSION_MINOR}.${NKR_VERSION_PATCH}.${NKR_VERSION_REVISION}")
 
 configure_file("${CMAKE_SOURCE_DIR}/cmake/NkrVersion.h.in" "${CMAKE_BINARY_DIR}/NkrVersion.h" @ONLY)
 
