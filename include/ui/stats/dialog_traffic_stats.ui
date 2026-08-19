@@ -118,6 +118,8 @@ QTabBar::tab {
 
 QTabBar::tab:selected {
     border: 1px solid palette(highlight);
+    background: palette(highlight);
+    color: palette(highlighted-text);
 }</string>
      </property>
      <property name="currentIndex">
