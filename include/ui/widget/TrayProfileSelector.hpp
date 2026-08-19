@@ -1,21 +1,20 @@
 #pragma once
 
-#include <QFrame>
 #include <QString>
 #include <QStringList>
 #include <QList>
 #include <functional>
 #include <utility>
 
+#include "include/ui/widget/TrayPopupFrame.hpp"
+
 class QLabel;
-class QLineEdit;
-class QListWidget;
 class QListWidgetItem;
 class QPushButton;
 class QTimer;
 
 // A window, not a tray submenu: Linux SNI/DBusMenu and macOS NSMenu won't reliably expand one populated dynamically.
-class TrayProfileSelector : public QFrame {
+class TrayProfileSelector : public TrayPopupFrame {
     Q_OBJECT
 public:
     enum Mode { Server, Routing };
@@ -32,12 +31,11 @@ public:
 
     TrayProfileSelector(Mode mode, Callbacks cb, QWidget *parent = nullptr);
 
-    void popupAt(const QPoint &globalPos);
-
 protected:
-    bool event(QEvent *e) override;
-    void keyPressEvent(QKeyEvent *e) override;
-    bool eventFilter(QObject *obj, QEvent *e) override;
+    bool event(QEvent *e) override;                     // close when the panel loses activation
+    bool eventFilter(QObject *obj, QEvent *e) override; // list/search key handling
+    void preparePopup() override;
+    void afterShow() override;
 
 private:
     void rebuild();
@@ -61,12 +59,10 @@ private:
     QList<std::pair<int, QString>> m_routeCache;
     QStringList m_routeCacheLower;
 
-    QLineEdit *m_search = nullptr;
     QTimer *m_debounce = nullptr;
     QPushButton *m_backBtn = nullptr;
     QLabel *m_title = nullptr;
     QPushButton *m_stopBtn = nullptr;
-    QListWidget *m_list = nullptr;
     QPushButton *m_prevBtn = nullptr;
     QLabel *m_pageLabel = nullptr;
     QPushButton *m_nextBtn = nullptr;

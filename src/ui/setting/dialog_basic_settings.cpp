@@ -13,6 +13,7 @@
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QPixmap>
 #include <QTimer>
 #include <QBrush>
 #include <QRegularExpression>
@@ -203,7 +204,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
         ui->theme->setCurrentText(Configs::dataManager->settingsRepo->theme);
     }
     connect(ui->theme, &QComboBox::currentIndexChanged, this, [=,this](int index) {
-        themeManager->ApplyTheme(ui->theme->currentText());
+        themeManager()->ApplyTheme(ui->theme->currentText());
         Configs::dataManager->settingsRepo->theme = ui->theme->currentText().trimmed();
         Configs::dataManager->settingsRepo->Save();
         refreshUrlSchemeStatus();
@@ -313,7 +314,7 @@ static void highlightRegexLines(QTextEdit *edit) {
 }
 
 void DialogBasicSettings::refreshUrlSchemeStatus() {
-    const auto &tk = themeManager->tokens;
+    const auto &tk = themeManager()->tokens;
     if (!UrlScheme_IsSupported()) {
         ui->url_scheme_status->setText(tr("Not available for this installation"));
         ui->url_scheme_status->setStyleSheet(QStringLiteral("color: %1;").arg(tk.muted.name()));

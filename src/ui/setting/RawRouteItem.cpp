@@ -165,7 +165,7 @@ RawRouteItem::RawRouteItem(QWidget* parent, const std::shared_ptr<Configs::Route
     layout->addWidget(validateLabel);
     const auto refreshStatus = [this] {
         validateLabel->setText(jsonEdit->statusText());
-        const auto &tk = themeManager->tokens;
+        const auto &tk = themeManager()->tokens;
         validateLabel->setStyleSheet(QStringLiteral("color: %1;")
                                          .arg((jsonEdit->hasErrors() ? tk.danger : tk.success).name()));
     };

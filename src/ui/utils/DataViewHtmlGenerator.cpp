@@ -85,7 +85,7 @@ QString DataViewHtmlGenerator::buildHtml() {
 }
 
 QString DataViewHtmlGenerator::vpnEndpointSectionHtml() {
-    const auto colour = vpnEndpoint_.problem ? themeManager->tokens.danger : themeManager->tokens.info;
+    const auto colour = vpnEndpoint_.problem ? themeManager()->tokens.danger : themeManager()->tokens.info;
     QString res = QString("<p style='text-align:center;margin:0;color:%1;'>%2</p>")
                       .arg(colour.name(), vpnEndpoint_.summary.toHtmlEscaped());
     if (!vpnEndpoint_.detail.isEmpty()) {
@@ -143,7 +143,7 @@ QString DataViewHtmlGenerator::speedtestSectionHtml() {
            "</div>"
            "<p style='text-align:center;margin:0;'>Server: %4%5, %6</p>")
             .arg(firstLine, speedtest_.dlSpeed, speedtest_.ulSpeed, speedtest_.serverCountryFlag, speedtest_.serverCountry,
-                speedtest_.serverName, themeManager->tokens.info.name(), themeManager->tokens.success.name());
+                speedtest_.serverName, themeManager()->tokens.info.name(), themeManager()->tokens.success.name());
     } else {
         QString res;
         auto content = QString("Running Country Test");

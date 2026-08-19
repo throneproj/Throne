@@ -1,30 +1,26 @@
 #pragma once
 
-#include <QFrame>
 #include <QList>
 #include <QString>
 #include <memory>
 
 #include "include/database/entities/OtpProfile.h"
+#include "include/ui/widget/TrayPopupFrame.hpp"
 
-class QLineEdit;
-class QListWidget;
 class QListWidgetItem;
 class QTimer;
 
 // A real window, not a tray submenu, for the reason given on TrayProfileSelector.
-class TrayOtpCodes : public QFrame {
+class TrayOtpCodes : public TrayPopupFrame {
     Q_OBJECT
 
 public:
     explicit TrayOtpCodes(QWidget *parent = nullptr);
 
-    void popupAt(const QPoint &globalPos);
-
 protected:
-    void keyPressEvent(QKeyEvent *event) override;
-
     bool eventFilter(QObject *watched, QEvent *event) override;
+
+    void preparePopup() override;
 
 private:
     void reload();
@@ -35,10 +31,6 @@ private:
     void refreshCodes() const;
 
     void copyCurrent(const QListWidgetItem *item);
-
-    QLineEdit *search = nullptr;
-
-    QListWidget *list = nullptr;
 
     QTimer *ticker = nullptr;
 

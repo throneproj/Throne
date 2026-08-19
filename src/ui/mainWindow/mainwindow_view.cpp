@@ -193,19 +193,19 @@ void MainWindow::refresh_status(const QString &traffic_update) {
         return tt.join(isTray ? "\n" : " ");
     };
 
-    auto icon_status_new = Icon::NONE;
+    auto icon_status_new = Icon::TrayIconStatus::None;
 
     if (running != nullptr) {
         if (settings->spmode_vpn) {
-            icon_status_new = Icon::VPN;
+            icon_status_new = Icon::TrayIconStatus::Vpn;
         } else if (settings->system_dns_set && settings->spmode_system_proxy) {
-            icon_status_new = Icon::SYSTEM_PROXY_DNS;
+            icon_status_new = Icon::TrayIconStatus::SystemProxyDns;
         } else if (settings->system_dns_set) {
-            icon_status_new = Icon::DNS;
+            icon_status_new = Icon::TrayIconStatus::Dns;
         } else if (settings->spmode_system_proxy) {
-            icon_status_new = Icon::SYSTEM_PROXY;
+            icon_status_new = Icon::TrayIconStatus::SystemProxy;
         } else {
-            icon_status_new = Icon::RUNNING;
+            icon_status_new = Icon::TrayIconStatus::Running;
         }
     }
 

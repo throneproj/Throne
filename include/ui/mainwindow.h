@@ -16,6 +16,7 @@
 
 #ifndef MW_INTERFACE
 
+#include <optional>
 #include <QKeyEvent>
 #include <QSystemTrayIcon>
 #include <QPointer>
@@ -30,6 +31,7 @@
 #include <QSet>
 #include <QHash>
 #include <QIcon>
+#include <QPixmap>
 #include <QToolButton>
 #include <QCheckBox>
 #include <QSemaphore>
@@ -40,6 +42,7 @@
 
 #include "group/GroupSort.hpp"
 #include "include/global/GuiUtils.hpp"
+#include "include/ui/setting/Icon.hpp"
 #include "include/ui/utils/DataViewHtmlGenerator.h"
 #include "include/ui/utils/ProfilesFilterProxyModel.h"
 #include "include/ui/utils/ProfilesTableModel.h"
@@ -248,7 +251,7 @@ private:
     qint64 vpn_pid = 0;
     QTextDocument *qvLogDocument = new QTextDocument(this);
     QString title_error;
-    int icon_status = -1;
+    std::optional<Icon::TrayIconStatus> icon_status;
     std::shared_ptr<Configs::Profile> running;
     int last_running_profile_id = -1;
     bool m_profileConnecting = false;
@@ -507,7 +510,7 @@ protected:
 };
 
 inline MainWindow *GetMainWindow() {
-    return (MainWindow *) mainwindow;
+    return qobject_cast<MainWindow *>(mainwindow);
 }
 
 void UI_InitMainWindow();

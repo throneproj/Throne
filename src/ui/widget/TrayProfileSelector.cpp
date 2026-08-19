@@ -1,7 +1,7 @@
 #include "include/ui/widget/TrayProfileSelector.hpp"
 
-#include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QVBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
@@ -9,9 +9,6 @@
 #include <QPushButton>
 #include <QTimer>
 #include <QKeyEvent>
-#include <QScreen>
-#include <QGuiApplication>
-#include <QPalette>
 
 #include "include/global/Configs.hpp"
 #include "include/global/Common.h"
@@ -30,80 +27,41 @@ namespace {
 }
 
 TrayProfileSelector::TrayProfileSelector(Mode mode, Callbacks cb, QWidget *parent)
-    : QFrame(parent), m_mode(mode), m_cb(std::move(cb)) {
-    // Translucent so the card's rounded corners come out anti-aliased; a bitmap mask would be jagged.
-    setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-    setAttribute(Qt::WA_DeleteOnClose);
-    setAttribute(Qt::WA_TranslucentBackground);
-    setFrameShape(QFrame::NoFrame);
+    : TrayPopupFrame(parent), m_mode(mode), m_cb(std::move(cb)) {
     setMinimumWidth(300);
 
-    const QString bg = palette().color(QPalette::Window).name();
-    const QString base = palette().color(QPalette::Base).name();
-    const QString border = palette().color(QPalette::Mid).name();
-
-    auto *outer = new QVBoxLayout(this);
-    outer->setContentsMargins(0, 0, 0, 0);
-
-    auto *card = new QFrame(this);
-    card->setObjectName(QStringLiteral("trayCard"));
-    card->setStyleSheet(QStringLiteral(
-        "QFrame#trayCard { background-color:%1; border:1px solid %2; border-radius:10px; }")
-        .arg(bg, border));
-    outer->addWidget(card);
-
-    auto *root = new QVBoxLayout(card);
-    root->setContentsMargins(10, 10, 10, 10);
-    root->setSpacing(6);
-
-    auto *searchRow = new QHBoxLayout();
-    m_search = new QLineEdit(card);
-    m_search->setObjectName(QStringLiteral("traySearch"));
-    m_search->setPlaceholderText(tr("Search…"));
-    m_search->setClearButtonEnabled(true);
-    m_search->installEventFilter(this);
-    m_search->setStyleSheet(QStringLiteral(
-        "QLineEdit#traySearch { border:1px solid %1; border-radius:8px; padding:5px 9px; background-color:%2; }")
-        .arg(border, base));
-    auto *closeBtn = new QPushButton(QStringLiteral("✕"), card);
-    closeBtn->setFixedWidth(28);
-    closeBtn->setToolTip(tr("Close"));
-    searchRow->addWidget(m_search, 1);
-    searchRow->addWidget(closeBtn);
-    root->addLayout(searchRow);
-
     auto *header = new QHBoxLayout();
-    m_backBtn = new QPushButton(QStringLiteral("◀"), card);
+    m_backBtn = new QPushButton(QStringLiteral("◀"), m_card);
     m_backBtn->setFixedWidth(28);
     m_backBtn->setToolTip(tr("Back to groups"));
-    m_title = new QLabel(card);
+    m_title = new QLabel(m_card);
     m_title->setStyleSheet(QStringLiteral("font-weight:600; border:none;"));
     header->addWidget(m_backBtn);
     header->addWidget(m_title, 1);
-    root->addLayout(header);
+    m_cardLayout->addLayout(header);
 
-    m_stopBtn = new QPushButton(card);
-    root->addWidget(m_stopBtn);
+    m_stopBtn = new QPushButton(m_card);
+    m_cardLayout->addWidget(m_stopBtn);
 
-    m_list = new QListWidget(card);
-    m_list->setUniformItemSizes(true);
-    m_list->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    m_list->setMinimumHeight(300);
-    m_list->installEventFilter(this);
-    root->addWidget(m_list, 1);
+    auto *list = new QListWidget(m_card);
+    list->setUniformItemSizes(true);
+    list->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    list->setMinimumHeight(300);
+    m_cardLayout->addWidget(list, 1);
+    setListWidget(list);
 
     auto *footer = new QHBoxLayout();
-    m_prevBtn = new QPushButton(QStringLiteral("◀"), card);
+    m_prevBtn = new QPushButton(QStringLiteral("◀"), m_card);
     m_prevBtn->setFixedWidth(36);
-    m_pageLabel = new QLabel(card);
+    m_pageLabel = new QLabel(m_card);
     m_pageLabel->setAlignment(Qt::AlignCenter);
     m_pageLabel->setStyleSheet(QStringLiteral("border:none;"));
-    m_nextBtn = new QPushButton(QStringLiteral("▶"), card);
+    m_nextBtn = new QPushButton(QStringLiteral("▶"), m_card);
     m_nextBtn->setFixedWidth(36);
     footer->addWidget(m_prevBtn);
     footer->addWidget(m_pageLabel, 1);
     footer->addWidget(m_nextBtn);
-    root->addLayout(footer);
+    m_cardLayout->addLayout(footer);
 
     m_debounce = new QTimer(this);
     m_debounce->setSingleShot(true);
@@ -120,7 +78,6 @@ TrayProfileSelector::TrayProfileSelector(Mode mode, Callbacks cb, QWidget *paren
         activateItem(it);
     });
 
-    connect(closeBtn, &QPushButton::clicked, this, [this] { close(); });
     connect(m_backBtn, &QPushButton::clicked, this, [this] { goBackToGroups(); });
     connect(m_prevBtn, &QPushButton::clicked, this, [this] { changePage(-1); });
     connect(m_nextBtn, &QPushButton::clicked, this, [this] { changePage(+1); });
@@ -289,33 +246,15 @@ void TrayProfileSelector::changePage(int delta) {
     rebuild();
 }
 
-void TrayProfileSelector::popupAt(const QPoint &globalPos) {
+void TrayProfileSelector::preparePopup() {
     m_groupId = -1;
     m_page = 0;
     m_query.clear();
-    m_search->blockSignals(true); // don't fire the debounce for a programmatic clear
-    m_search->clear();
-    m_search->blockSignals(false);
+    clearSearch(); // don't fire the debounce for a programmatic clear
     rebuild();
-    adjustSize();
+}
 
-    QScreen *scr = QGuiApplication::screenAt(globalPos);
-    if (!scr) scr = QGuiApplication::primaryScreen();
-    const QRect avail = scr ? scr->availableGeometry() : QRect(0, 0, 1024, 768);
-    const QSize sz = size();
-    int x = globalPos.x();
-    int y = globalPos.y();
-    if (x + sz.width() > avail.right()) x = avail.right() - sz.width();
-    if (y + sz.height() > avail.bottom()) y = avail.bottom() - sz.height();
-    if (x < avail.left()) x = avail.left();
-    if (y < avail.top()) y = avail.top();
-    move(x, y);
-
-    show();
-    raise();
-    activateWindow();
-    m_search->setFocus();
-
+void TrayProfileSelector::afterShow() {
     // Don't let the focus churn during show() dismiss us immediately.
     m_armed = false;
     QTimer::singleShot(150, this, [this] { m_armed = true; });
@@ -328,30 +267,13 @@ bool TrayProfileSelector::event(QEvent *e) {
     return QFrame::event(e);
 }
 
-void TrayProfileSelector::keyPressEvent(QKeyEvent *e) {
-    if (e->key() == Qt::Key_Escape) {
-        close();
-        return;
-    }
-    QFrame::keyPressEvent(e);
-}
-
 bool TrayProfileSelector::eventFilter(QObject *obj, QEvent *e) {
     if (e->type() == QEvent::KeyPress) {
         auto *ke = static_cast<QKeyEvent *>(e);
-        if (ke->key() == Qt::Key_Escape) {
-            close();
-            return true;
-        }
         if (obj == m_list && (ke->key() == Qt::Key_Return || ke->key() == Qt::Key_Enter)) {
             activateItem(m_list->currentItem());
             return true;
         }
-        if (obj == m_search && ke->key() == Qt::Key_Down && m_list->count() > 0) {
-            m_list->setFocus();
-            m_list->setCurrentRow(0);
-            return true;
-        }
     }
-    return QFrame::eventFilter(obj, e);
+    return TrayPopupFrame::eventFilter(obj, e);
 }

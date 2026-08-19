@@ -17,6 +17,7 @@
 #include "include/global/PeriodicRunner.hpp"
 #include "include/sys/AutoRun.hpp"
 #include "include/ui/mainWindow/MainWindowInternal.h"
+#include "include/ui/setting/Icon.hpp"
 #include "include/ui/utils/ProfilesTableModel.h"
 
 namespace {
@@ -259,7 +260,8 @@ void MainWindow::dialog_message_impl(MwMessage cmd, const QStringList &args) {
         updateLogFilterFields();
         ui->actionTraffic_Stats->setVisible(!settings->disable_traffic_aggregation);
         if (changed(MwArg::TrayIcon)) {
-            icon_status = -1;
+            Icon::InvalidateTrayIconCache();
+            icon_status.reset();
         }
         if (changed(MwArg::MaxLogLines)) {
             qvLogDocument->setMaximumBlockCount(settings->max_log_line);

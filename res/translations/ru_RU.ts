@@ -5438,7 +5438,7 @@ Your local edits are overwritten on each update.</source>
     </message>
 </context>
 <context>
-    <name>TrayProfileSelector</name>
+    <name>TrayPopupFrame</name>
     <message>
         <source>Search…</source>
         <translation>Поиск…</translation>
@@ -5447,6 +5447,9 @@ Your local edits are overwritten on each update.</source>
         <source>Close</source>
         <translation>Закрыть</translation>
     </message>
+</context>
+<context>
+    <name>TrayProfileSelector</name>
     <message>
         <source>Back to groups</source>
         <translation>Назад к группам</translation>

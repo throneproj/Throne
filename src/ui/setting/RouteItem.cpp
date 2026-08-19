@@ -324,7 +324,7 @@ void RouteItem::fetchRemote(bool applyToChain) {
                 lay->addWidget(header);
                 if (!warnings.isEmpty()) {
                     auto* warn = new QLabel(warnings, dlg);
-                    warn->setStyleSheet(QStringLiteral("color: %1;").arg(themeManager->tokens.danger.name()));
+                    warn->setStyleSheet(QStringLiteral("color: %1;").arg(themeManager()->tokens.danger.name()));
                     warn->setWordWrap(true);
                     lay->addWidget(warn);
                 }
