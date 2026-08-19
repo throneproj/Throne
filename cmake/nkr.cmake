@@ -4,10 +4,6 @@ if (NOT DEFINED INPUT_VERSION)
 endif ()
 set(NKR_VERSION "${INPUT_VERSION}")
 
-# Re-run configure when the version input changes between builds.
-set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS INPUT_VERSION)
-set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "$ENV{INPUT_VERSION}")
-
 # Derive numeric parts for Windows PE VERSIONINFO (X.Y.Z.W) from NKR_VERSION.
 # Examples:
 #   1.2.3       -> 1.2.3.0

@@ -206,7 +206,6 @@ jobs:
       ARCH: ${{ matrix.target }}
       # Unquoted at the cmake call sites so it word-splits into two flags.
       LAUNCHER_ARGS: ${{ matrix.launcher != '' && format('-DCMAKE_C_COMPILER_LAUNCHER={0} -DCMAKE_CXX_COMPILER_LAUNCHER={0}', matrix.launcher) || '' }}
-      CMAKE_VERSION_ARGS: -DINPUT_VERSION=${{ github.event.inputs.tag }}
     steps:
       - name: Checking out sources
         uses: actions/checkout@v4.3.1
@@ -219,7 +218,7 @@ jobs:
         if: matrix.launcher != ''
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: ${{ matrix.dest_suffix }}-${{ matrix.qt_version }}-${{ github.event.inputs.tag }}
+          key: ${{ matrix.dest_suffix }}-${{ matrix.qt_version }}
           variant: ${{ matrix.launcher }}
           max-size: 500M
       - name: Download Artifacts
@@ -263,7 +262,7 @@ jobs:
           mkdir build
           cd build
           curl -fLso srslist.h "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/srslist.h"
-          cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo $CMAKE_VERSION_ARGS $LAUNCHER_ARGS ..
+          cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo $LAUNCHER_ARGS ..
           ninja
           cd ..
           ./script/deploy_windows.sh
@@ -275,7 +274,7 @@ jobs:
           mkdir build
           cd build
           curl -fLso srslist.h "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/srslist.h"
-          cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++" $CMAKE_VERSION_ARGS $LAUNCHER_ARGS ..
+          cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++" $LAUNCHER_ARGS ..
           ninja
           cd ..
           ./script/deploy_linux64.sh
@@ -288,7 +287,7 @@ jobs:
           mkdir build
           cd build
           curl -fLso srslist.h "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/srslist.h"
-          cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc" $CMAKE_VERSION_ARGS $LAUNCHER_ARGS ..
+          cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc" $LAUNCHER_ARGS ..
           ninja
           cd ..
           ./script/deploy_linux64_system_qt.sh
@@ -299,7 +298,7 @@ jobs:
           mkdir build
           cd build
           curl -fLso srslist.h "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/srslist.h"
-          cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DNKR_PACKAGE_MACOS=1 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=${{ matrix.target }} $CMAKE_VERSION_ARGS $LAUNCHER_ARGS ..
+          cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DNKR_PACKAGE_MACOS=1 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=${{ matrix.target }} $LAUNCHER_ARGS ..
           ninja
           cd ..
           ./script/deploy_macos.sh
