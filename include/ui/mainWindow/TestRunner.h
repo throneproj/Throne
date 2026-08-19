@@ -75,9 +75,10 @@ private:
 
     QString contextName(int entID) const;
 
-    void pollSpeedTest(const QMap<QString, int>& tag2entID, bool testCurrent);
+    // `gen` is the sweep the poll belongs to, re-checked once the query returns.
+    void pollSpeedTest(const QMap<QString, int>& tag2entID, bool testCurrent, quint64 gen);
 
-    void pollCountryTest(const QMap<QString, int>& tag2entID, bool testCurrent);
+    void pollCountryTest(const QMap<QString, int>& tag2entID, bool testCurrent, quint64 gen);
 
     void creditTraffic(const std::shared_ptr<Configs::Profile>& profile, const QString& tag,
                        qint64 curUp, qint64 curDown);

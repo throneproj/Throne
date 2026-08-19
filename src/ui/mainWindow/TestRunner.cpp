@@ -155,6 +155,10 @@ void TestRunner::runUrlProbe(const Target& target) {
             if (sessionGen_.load() != gen) return;
             bool ok = false;
             const auto resp = defaultClient->QueryURLTest(&ok);
+            // Re-checked: the tick's opening check is stale by now. A poll can sit in
+            // this RPC while its sweep ends and the next one zeroes the counter and
+            // reuses the positional outbound tags, so a late drain lands on the wrong run.
+            if (sessionGen_.load() != gen) return;
             if (!ok || resp.results.empty()) return;
 
             QList<int> updated;
@@ -217,6 +221,8 @@ void TestRunner::runIpProbe(const Target& target) {
             if (sessionGen_.load() != gen) return;
             bool ok = false;
             const auto resp = defaultClient->QueryIPTest(&ok);
+            // See runUrlProbe: the opening check cannot cover the query itself.
+            if (sessionGen_.load() != gen) return;
             if (!ok || resp.results.empty()) return;
 
             QList<int> updated;
@@ -462,10 +468,12 @@ void TestRunner::creditTraffic(const std::shared_ptr<Configs::Profile>& profile,
     Configs::dataManager->profilesRepo->SaveTraffic(profile);
 }
 
-void TestRunner::pollSpeedTest(const QMap<QString, int>& tag2entID, bool testCurrent)
+void TestRunner::pollSpeedTest(const QMap<QString, int>& tag2entID, bool testCurrent, quint64 gen)
 {
     bool ok = false;
     const auto res = defaultClient->QueryCurrentSpeedTests(&ok);
+    // See runUrlProbe: the opening check cannot cover the query itself.
+    if (sessionGen_.load() != gen) return;
     if (!ok || !res.is_running.value())
     {
         return;
@@ -496,10 +504,12 @@ void TestRunner::pollSpeedTest(const QMap<QString, int>& tag2entID, bool testCur
     });
 }
 
-void TestRunner::pollCountryTest(const QMap<QString, int>& tag2entID, bool testCurrent)
+void TestRunner::pollCountryTest(const QMap<QString, int>& tag2entID, bool testCurrent, quint64 gen)
 {
     bool ok = false;
     const auto res = defaultClient->QueryCountryTestResults(&ok);
+    // See runUrlProbe: the opening check cannot cover the query itself.
+    if (sessionGen_.load() != gen) return;
     if (!ok || res.results.empty())
     {
         return;
@@ -562,8 +572,8 @@ void TestRunner::runSpeedProbe(const Target& target)
     {
         ResultPoller poller([this, gen = sessionGen_.load(), tag2entID = target.tag2entID, testCurrent = target.testCurrent, speedtestConf] {
             if (sessionGen_.load() != gen) return;
-            if (speedtestConf == Configs::TestConfig::COUNTRY) pollCountryTest(tag2entID, testCurrent);
-            else pollSpeedTest(tag2entID, testCurrent);
+            if (speedtestConf == Configs::TestConfig::COUNTRY) pollCountryTest(tag2entID, testCurrent, gen);
+            else pollSpeedTest(tag2entID, testCurrent, gen);
         }, kSpeedPollIntervalMs);
 
         result = defaultClient->SpeedTest(&rpcOK, req, &coreError);
