@@ -115,88 +115,50 @@ namespace Configs {
     }
 
     QList<std::shared_ptr<RouteRule>> RouteProfile::get_simple_rules() {
+        struct RuleConfig {
+            ruleType type;
+            QStringView action;
+            std::optional<std::string_view> outboundType;
+            std::optional<int> outboundID;
+        };
+
+        static constexpr std::array kConfigs = {
+            RuleConfig{simpleAddressProxy, u"route", "proxy", std::nullopt},
+            RuleConfig{simpleAddressBypass, u"route", "direct", std::nullopt},
+            RuleConfig{simpleAddressBlock, u"reject", std::nullopt, std::nullopt},
+
+            RuleConfig{simpleProcessNameProxy, u"route", "proxy", std::nullopt},
+            RuleConfig{simpleProcessNameBypass, u"route", "direct", std::nullopt},
+            RuleConfig{simpleProcessNameBlock, u"reject", std::nullopt, std::nullopt},
+
+            RuleConfig{simpleProcessPathProxy, u"route", "proxy", std::nullopt},
+            RuleConfig{simpleProcessPathBypass, u"route", "direct", std::nullopt},
+            RuleConfig{simpleProcessPathBlock, u"reject", std::nullopt, std::nullopt},
+
+            RuleConfig{simpleAddressWarpBypass, u"route", std::nullopt, warpBypassID},
+            RuleConfig{simpleProcessNameWarpBypass, u"route", std::nullopt, warpBypassID},
+            RuleConfig{simpleProcessPathWarpBypass, u"route", std::nullopt, warpBypassID}
+        };
+
         QList<std::shared_ptr<RouteRule>> rules;
+        rules.reserve(kConfigs.size());
 
-        auto rule = RouteRule();
-        rule.type = simpleAddressProxy;
-        rule.action = "route";
-        rule.outboundID = getOutboundID("proxy");
-        rule.name = ruleTypeToString(static_cast<ruleType>(rule.type));
-        rules << std::make_shared<RouteRule>(rule);
+        for (const auto& config : kConfigs) {
+            auto rule = std::make_shared<RouteRule>();
+            rule->type = config.type;
+            rule->action = config.action.toString();
+            rule->name = ruleTypeToString(static_cast<ruleType>(config.type));
 
-        rule = RouteRule();
-        rule.type = simpleAddressBypass;
-        rule.action = "route";
-        rule.outboundID = getOutboundID("direct");
-        rule.name = ruleTypeToString(static_cast<ruleType>(rule.type));
-        rules << std::make_shared<RouteRule>(rule);
+            if (config.outboundID) {
+                rule->outboundID = *config.outboundID;
+            } else if (config.outboundType) {
+                rule->outboundID = getOutboundID(QString::fromUtf8(
+                    config.outboundType->data(),
+                    static_cast<qsizetype>(config.outboundType->size())));
+            }
 
-        rule = RouteRule();
-        rule.type = simpleAddressBlock;
-        rule.action = "reject";
-        rule.name = ruleTypeToString(static_cast<ruleType>(rule.type));
-        rules << std::make_shared<RouteRule>(rule);
-
-        rule = RouteRule();
-        rule.type = simpleProcessNameProxy;
-        rule.action = "route";
-        rule.outboundID = getOutboundID("proxy");
-        rule.name = ruleTypeToString(static_cast<ruleType>(rule.type));
-        rules << std::make_shared<RouteRule>(rule);
-
-        rule = RouteRule();
-        rule.type = simpleProcessNameBypass;
-        rule.action = "route";
-        rule.outboundID = getOutboundID("direct");
-        rule.name = ruleTypeToString(static_cast<ruleType>(rule.type));
-        rules << std::make_shared<RouteRule>(rule);
-
-        rule = RouteRule();
-        rule.type = simpleProcessNameBlock;
-        rule.action = "reject";
-        rule.name = ruleTypeToString(static_cast<ruleType>(rule.type));
-        rules << std::make_shared<RouteRule>(rule);
-
-        rule = RouteRule();
-        rule.type = simpleProcessPathProxy;
-        rule.action = "route";
-        rule.outboundID = getOutboundID("proxy");
-        rule.name = ruleTypeToString(static_cast<ruleType>(rule.type));
-        rules << std::make_shared<RouteRule>(rule);
-
-        rule = RouteRule();
-        rule.type = simpleProcessPathBypass;
-        rule.action = "route";
-        rule.outboundID = getOutboundID("direct");
-        rule.name = ruleTypeToString(static_cast<ruleType>(rule.type));
-        rules << std::make_shared<RouteRule>(rule);
-
-        rule = RouteRule();
-        rule.type = simpleProcessPathBlock;
-        rule.action = "reject";
-        rule.name = ruleTypeToString(static_cast<ruleType>(rule.type));
-        rules << std::make_shared<RouteRule>(rule);
-
-        rule = RouteRule();
-        rule.type = simpleAddressWarpBypass;
-        rule.action = "route";
-        rule.outboundID = warpBypassID;
-        rule.name = ruleTypeToString(static_cast<ruleType>(rule.type));
-        rules << std::make_shared<RouteRule>(rule);
-
-        rule = RouteRule();
-        rule.type = simpleProcessNameWarpBypass;
-        rule.action = "route";
-        rule.outboundID = warpBypassID;
-        rule.name = ruleTypeToString(static_cast<ruleType>(rule.type));
-        rules << std::make_shared<RouteRule>(rule);
-
-        rule = RouteRule();
-        rule.type = simpleProcessPathWarpBypass;
-        rule.action = "route";
-        rule.outboundID = warpBypassID;
-        rule.name = ruleTypeToString(static_cast<ruleType>(rule.type));
-        rules << std::make_shared<RouteRule>(rule);
+            rules.append(std::move(rule));
+        }
 
         return rules;
     }
