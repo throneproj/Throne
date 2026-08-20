@@ -305,7 +305,7 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
         on_edit_route_clicked();
     });
 
-    connect(ui->route_prof, SIGNAL(currentIndexChanged(int)), this, SLOT(updateCurrentRouteProfile(int)));
+    connect(ui->route_prof, &QComboBox::currentIndexChanged, this, &DialogManageRoutes::updateCurrentRouteProfile);
 
     deleteShortcut = new QShortcut(QKeySequence(Qt::Key_Delete), this);
 
