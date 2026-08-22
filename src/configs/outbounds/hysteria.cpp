@@ -61,11 +61,14 @@ namespace Configs {
             if (query.hasQueryItem("obfs-password")) {
                 obfs = query.queryItemValue("obfs-password", QUrl::FullyDecoded);
             }
-            if (query.hasQueryItem("min_packet_size") || query.hasQueryItem("max_packet_size")) {
+            if (query.hasQueryItem("obfs")) {
+                obfs_type = query.queryItemValue("obfs");
+            }
+            else if (query.hasQueryItem("min_packet_size") || query.hasQueryItem("max_packet_size")) {
                 obfs_type = "gecko";
             }
             else {
-                obfs_type = "obfs";
+                obfs_type = "salamander";
             }
             if (query.hasQueryItem("min_packet_size")) min_packet_size = query.queryItemValue("min_packet_size").toInt();
             if (query.hasQueryItem("max_packet_size")) max_packet_size = query.queryItemValue("max_packet_size").toInt();
@@ -121,6 +124,7 @@ namespace Configs {
                 auto obfsObj = object["obfs"].toObject();
                 if (obfsObj.contains("password")) obfs = obfsObj["password"].toString();
                 if (obfsObj.contains("type")) obfs_type = obfsObj["type"].toString();
+                else obfs_type = "salamander";
                 if (obfsObj.contains("min_packet_size")) min_packet_size = obfsObj["min_packet_size"].toInt();
                 if (obfsObj.contains("max_packet_size")) max_packet_size = obfsObj["max_packet_size"].toInt();
             }
@@ -229,6 +233,7 @@ namespace Configs {
                 url.setUserName(password);
             }
             if (!obfs.isEmpty()) {
+                query.addQueryItem("obfs", QUrl::toPercentEncoding(obfs_type));
                 query.addQueryItem("obfs-password", QUrl::toPercentEncoding(obfs));
                 if (min_packet_size > 0) query.addQueryItem("min_packet_size", QString::number(min_packet_size));
                 if (max_packet_size > 0) query.addQueryItem("max_packet_size", QString::number(max_packet_size));
@@ -333,12 +338,18 @@ namespace Configs {
                         {"password", obfs},
                     };
                 }
-                if (obfs_type == "gecko") {
+                else if (obfs_type == "gecko") {
                     object["obfs"] = QJsonObject{
                         {"type", obfs_type},
                         {"password", obfs},
                         {"min_packet_size", min_packet_size},
                         {"max_packet_size", max_packet_size},
+                    };
+                }
+                else {
+                    object["obfs"] = QJsonObject{
+                        {"type", "salamander"},
+                        {"password", obfs},
                     };
                 }
             }
