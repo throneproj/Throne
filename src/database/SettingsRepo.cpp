@@ -314,7 +314,7 @@ namespace Configs {
         if (user_agent.isEmpty() || isDefault) {
             const QStringView version = SubStrBefore(QStringLiteral(NKR_VERSION), u"-");
             if (version.contains(u'.')) {
-                return QStringLiteral("Throne/") + version;
+                return QStringLiteral("Throne/") + version.toString();
             }
             return QStringLiteral("Throne/1.0.0");
         }
