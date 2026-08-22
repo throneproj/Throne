@@ -41,7 +41,6 @@ Version: ${RPM_VERSION}
 Release: 1
 Summary: Qt based cross-platform GUI proxy configuration manager (backend: sing-box)
 License: Custom
-BuildArch: ${RPM_ARCH}
 ${DEPENDS}
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
