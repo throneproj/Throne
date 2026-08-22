@@ -34,6 +34,7 @@ curl -fsSL https://raw.githubusercontent.com/throneproj/Throne/dev/script/instal
 - Hysteria2
 - AnyTLS
 - Mieru
+- Snell
 - NaïveProxy
 - Juicity
 - TrustTunnel

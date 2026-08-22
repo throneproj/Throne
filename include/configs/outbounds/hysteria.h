@@ -23,6 +23,9 @@ namespace Configs
 
         // Hysteria2
         QString password;
+        int min_packet_size = 0;
+        int max_packet_size = 0;
+        QString obfs_type = "salamander";
 
         std::shared_ptr<TLS> tls = std::make_shared<TLS>();
 

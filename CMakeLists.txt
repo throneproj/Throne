@@ -222,6 +222,9 @@ set(PROJECT_SOURCES
         include/ui/profile/edit_mieru.h
         src/ui/profile/edit_mieru.cpp
         include/ui/profile/edit_mieru.ui
+        include/ui/profile/edit_snell.h
+        src/ui/profile/edit_snell.cpp
+        include/ui/profile/edit_snell.ui
         include/ui/profile/edit_tailscale.h
         src/ui/profile/edit_tailscale.cpp
         include/ui/profile/edit_tailscale.ui
@@ -393,11 +396,13 @@ set(PROJECT_SOURCES
         include/configs/outbounds/shadowtls.h
         include/configs/outbounds/anyTLS.h
         include/configs/outbounds/mieru.h
+        include/configs/outbounds/snell.h
         include/configs/outbounds/ssh.h
         
         # outbounds impl
         src/configs/outbounds/anyTLS.cpp
         src/configs/outbounds/mieru.cpp
+        src/configs/outbounds/snell.cpp
         src/configs/outbounds/http.cpp
         src/configs/outbounds/hysteria.cpp
         src/configs/outbounds/shadowsocks.cpp

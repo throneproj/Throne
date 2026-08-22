@@ -284,6 +284,9 @@ void from_node(const fkyaml::node& node, Proxies& p) {
     load_opt(node, "idle-session-timeout", p.idle_session_timeout);
     load_opt(node, "min-idle-session", p.min_idle_session);
     load_opt(node, "encryption", p.encryption);
+    load_opt(node, "psk", p.psk);
+    load_opt(node, "version", p.version);
+    load_opt(node, "obfs-opts", p.obfs_opts);
 }
 
 void from_node(const fkyaml::node& node, Clash& c) {

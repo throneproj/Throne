@@ -404,6 +404,13 @@ namespace Subscription {
             if (!ok) return;
         }
 
+        // Snell
+        if (str.startsWith("snell://")) {
+            ent = Configs::ProfilesRepo::NewProfile("snell");
+            auto ok = ent->Snell()->ParseFromLink(str);
+            if (!ok) return;
+        }
+
         // Hysteria
         if (str.startsWith("hysteria://") || str.startsWith("hysteria2://") || str.startsWith("hy2://")) {
             ent = Configs::ProfilesRepo::NewProfile("hysteria");
@@ -554,6 +561,13 @@ namespace Subscription {
             if (out["type"] == "mieru") {
                 ent = Configs::ProfilesRepo::NewProfile("mieru");
                 auto ok = ent->Mieru()->ParseFromJson(out);
+                if (!ok) continue;
+            }
+
+            // Snell
+            if (out["type"] == "snell") {
+                ent = Configs::ProfilesRepo::NewProfile("snell");
+                auto ok = ent->Snell()->ParseFromJson(out);
                 if (!ok) continue;
             }
 
@@ -758,6 +772,13 @@ namespace Subscription {
                     if (!ok) continue;
                 }
     
+                // Snell
+                if (out.type == "snell") {
+                    ent = Configs::ProfilesRepo::NewProfile("snell");
+                    auto ok = ent->Snell()->ParseFromClash(out);
+                    if (!ok) continue;
+                }
+
                 // SSH
                 if (out.type == "ssh") {
                     ent = Configs::ProfilesRepo::NewProfile("ssh");

@@ -844,11 +844,11 @@ QTabBar::tab:selected {
      <string>Tools</string>
     </property>
     <addaction name="actionAuto_Selector"/>
+    <addaction name="menu_open_dashboard"/>
     <addaction name="actionSpeedtest_Current"/>
     <addaction name="separator"/>
     <addaction name="menu_otp_manager"/>
     <addaction name="separator"/>
-    <addaction name="menu_open_dashboard"/>
     <addaction name="actionRuntime_Stats"/>
     <addaction name="actionTraffic_Stats"/>
     <addaction name="actionCheck_For_Update"/>

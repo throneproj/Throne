@@ -198,6 +198,10 @@ struct Proxies {
     MyInt idle_session_timeout;
     MyInt min_idle_session;
     std::string encryption;
+    std::string psk;
+    MyInt version;
+    // Qualified: the plain `obfs` member above shadows the struct name here.
+    clash::obfs obfs_opts;
 };
 
 struct Clash {

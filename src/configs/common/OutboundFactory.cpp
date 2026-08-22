@@ -15,6 +15,7 @@
 #include "include/configs/outbounds/trusttunnel.h"
 #include "include/configs/outbounds/anyTLS.h"
 #include "include/configs/outbounds/mieru.h"
+#include "include/configs/outbounds/snell.h"
 #include "include/configs/outbounds/shadowtls.h"
 #include "include/configs/outbounds/wireguard.h"
 #include "include/configs/outbounds/openvpn.h"
@@ -45,6 +46,7 @@ namespace Configs
         if (type == "trusttunnel") return new trusttunnel();
         if (type == "anytls") return new anyTLS();
         if (type == "mieru") return new mieru();
+        if (type == "snell") return new snell();
         if (type == "shadowtls") return new shadowtls();
         if (type == "wireguard") return new wireguard();
         if (type == "openvpn") return new openvpn();

@@ -6,6 +6,7 @@
 #include "include/configs/common/Outbound.h"
 #include "include/configs/outbounds/anyTLS.h"
 #include "include/configs/outbounds/mieru.h"
+#include "include/configs/outbounds/snell.h"
 #include "include/configs/outbounds/direct.h"
 #include "include/configs/outbounds/chain.h"
 #include "include/configs/outbounds/autoselector.h"
@@ -107,6 +108,10 @@ namespace Configs {
 
         [[nodiscard]] Configs::mieru *Mieru() const {
             return dynamic_cast<Configs::mieru *>(outbound.get());
+        };
+
+        [[nodiscard]] Configs::snell *Snell() const {
+            return dynamic_cast<Configs::snell *>(outbound.get());
         };
 
         [[nodiscard]] Configs::hysteria *Hysteria() const {
