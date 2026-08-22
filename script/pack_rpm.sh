@@ -40,7 +40,7 @@ Name: Throne
 Version: ${RPM_VERSION}
 Release: 1
 Summary: Qt based cross-platform GUI proxy configuration manager (backend: sing-box)
-License: Custom
+License: GPL-3.0-or-later
 %define debug_package %{nil}
 %define __os_install_post %{nil}
 %define __strip /bin/true
