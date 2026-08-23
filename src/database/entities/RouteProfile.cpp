@@ -803,7 +803,7 @@ namespace Configs {
             if (item->action != "route" && item->action != "reject") continue;
             // ip_is_private covers every range the Tun bypass carves out, so it
             // hijacks all of them at once.
-            if (item->ip_is_private) res << tunBypassablePrivateRanges();
+            if (item->ip_is_private) res << dataManager->settingsRepo->vpn_private_ranges;
             for (const auto& cidr: item->ip_cidr) res << cidr;
         }
         return res;

@@ -13,6 +13,12 @@
 #endif
 
 namespace Configs {
+    // Loopback and broadcast are deliberately absent: they are bypassed unconditionally, because
+    // routing them into the tun breaks the sing-box <-> Xray bridges and the local DNS server.
+    inline QStringList defaultTunPrivateRanges() {
+        return {"10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "169.254.0.0/16", "224.0.0.0/4"};
+    }
+
     class SettingsRepo {
     private:
         Database& db;
@@ -218,8 +224,11 @@ namespace Configs {
         // Linux only: emit `auto_redirect` on the Tun inbound. Newer kernels need it for the
         // system/mixed stacks to pass traffic, at the cost of this host acting as a gateway.
         bool vpn_auto_redirect = true;
+        // Only UDP and ICMP reach the bridge: pre-match aborts at the sniff rule for TCP.
+        bool vpn_l3_bridge = false;
         int vpn_mtu = 1500;
         bool disable_private_range_bypass = false;
+        QStringList vpn_private_ranges = defaultTunPrivateRanges();
         bool vpn_ipv6 = false;
         QString vpn_tun_ipv4_cidr = "172.19.0.1/24";
         QString vpn_tun_ipv6_cidr = "fdfe:dcba:9876::1/96";

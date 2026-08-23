@@ -33,6 +33,12 @@ namespace {
         if (protocol == QAbstractSocket::IPv6Protocol) return prefix >= 0 && prefix <= 128;
         return false;
     }
+
+    // parseSubnet alone would accept Qt's abbreviated forms, where "10" means 10.0.0.0/8.
+    bool IsValidRange(const QString &range) {
+        if (!range.contains('.') && !range.contains(':')) return false;
+        return QHostAddress::parseSubnet(range).second >= 0;
+    }
 }
 
 DialogVPNSettings::DialogVPNSettings(QWidget *parent) : QDialog(parent), ui(new Ui::DialogVPNSettings) {
@@ -59,10 +65,16 @@ DialogVPNSettings::DialogVPNSettings(QWidget *parent) : QDialog(parent), ui(new 
     ui->tun_routing->setChecked(Configs::dataManager->settingsRepo->enable_tun_routing);
     ui->tun_ipv4_cidr->setText(Configs::dataManager->settingsRepo->vpn_tun_ipv4_cidr);
     ui->tun_ipv6_cidr->setText(Configs::dataManager->settingsRepo->vpn_tun_ipv6_cidr);
-    ui->disable_priv_range->setChecked(Configs::dataManager->settingsRepo->disable_private_range_bypass);
+    ui->privRangeGroupBox->setChecked(!Configs::dataManager->settingsRepo->disable_private_range_bypass);
+    ui->priv_ranges->setPlainText(Configs::dataManager->settingsRepo->vpn_private_ranges.join("\n"));
     ui->auto_redirect->setChecked(Configs::dataManager->settingsRepo->vpn_auto_redirect);
 #ifndef Q_OS_LINUX
     ui->auto_redirect->hide();
+#endif
+    ui->l3_bridge->setChecked(Configs::dataManager->settingsRepo->vpn_l3_bridge);
+    // The core's bridge backend has no implementation for Windows on ARM.
+#if defined(Q_OS_WIN) && defined(Q_PROCESSOR_ARM)
+    ui->l3_bridge->hide();
 #endif
     ADJUST_SIZE
 }
@@ -85,6 +97,23 @@ void DialogVPNSettings::accept() {
         QMessageBox::warning(this, tr("Invalid Tun Address"), tr("IPv6 CIDR is invalid."));
         return;
     }
+    QStringList privateRanges;
+    for (const auto &line : ui->priv_ranges->toPlainText().split("\n")) {
+        const auto range = line.trimmed();
+        if (range.isEmpty()) continue;
+        if (!IsValidRange(range)) {
+            QMessageBox::warning(this, tr("Invalid Private Range"),
+                                 tr("\"%1\" is not a valid address or CIDR.").arg(range));
+            return;
+        }
+        // Excluding a default route leaves the Tun with no routes at all.
+        if (QHostAddress::parseSubnet(range).second == 0) {
+            QMessageBox::warning(this, tr("Invalid Private Range"),
+                                 tr("\"%1\" covers every address, which would stop Tun from routing anything.").arg(range));
+            return;
+        }
+        privateRanges << range;
+    }
 
     Configs::dataManager->settingsRepo->vpn_implementation = ui->vpn_implementation->currentText();
     Configs::dataManager->settingsRepo->vpn_mtu = mtu;
@@ -93,8 +122,10 @@ void DialogVPNSettings::accept() {
     Configs::dataManager->settingsRepo->enable_tun_routing = ui->tun_routing->isChecked();
     Configs::dataManager->settingsRepo->vpn_tun_ipv4_cidr = tunIPv4CIDR;
     Configs::dataManager->settingsRepo->vpn_tun_ipv6_cidr = tunIPv6CIDR;
-    Configs::dataManager->settingsRepo->disable_private_range_bypass = ui->disable_priv_range->isChecked();
+    Configs::dataManager->settingsRepo->disable_private_range_bypass = !ui->privRangeGroupBox->isChecked();
+    Configs::dataManager->settingsRepo->vpn_private_ranges = privateRanges;
     Configs::dataManager->settingsRepo->vpn_auto_redirect = ui->auto_redirect->isChecked();
+    Configs::dataManager->settingsRepo->vpn_l3_bridge = ui->l3_bridge->isChecked();
     //
     MW_dialog_message(MwMessage::UpdateSettings, {MwArg::Vpn});
     QDialog::accept();
@@ -103,6 +134,10 @@ void DialogVPNSettings::accept() {
 void DialogVPNSettings::on_restore_default_addresses_clicked() {
     ui->tun_ipv4_cidr->setText(kDefaultTunIPv4CIDR);
     ui->tun_ipv6_cidr->setText(kDefaultTunIPv6CIDR);
+}
+
+void DialogVPNSettings::on_restore_default_ranges_clicked() {
+    ui->priv_ranges->setPlainText(Configs::defaultTunPrivateRanges().join("\n"));
 }
 
 void DialogVPNSettings::on_troubleshooting_clicked() {

@@ -8,15 +8,6 @@
 namespace Configs {
     const int INVALID_ID = -99999;
 
-    // Address ranges Tun hands straight to the physical NIC instead of routing
-    // them through the core (the "private range bypass"). Loopback and broadcast
-    // are deliberately absent: those are bypassed unconditionally, because routing
-    // them into the tun breaks the internal sing-box <-> Xray bridges and the local
-    // DNS server. A route rule that targets one of these may claim it back.
-    inline QStringList tunBypassablePrivateRanges() {
-        return {"10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "169.254.0.0/16", "224.0.0.0/4"};
-    }
-
     enum simpleAction{bypass, block, proxy, warpBypass};
     inline QString simpleActionToString(simpleAction action)
     {
