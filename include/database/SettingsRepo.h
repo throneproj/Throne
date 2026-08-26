@@ -135,6 +135,10 @@ namespace Configs {
         bool net_use_proxy = false;
         bool net_insecure = false;
         bool reset_proxy_on_disable_sp = false;
+        // Linux only: also write the ftp/socks system-proxy entries. Off by default
+        // because GNOME exports them as ftp_proxy=ftp://... and all_proxy=socks://...,
+        // schemes several CLI tools reject. Opt in if you need those variables.
+        bool set_socks_ftp_proxy = false;
 
         // Subscription
         QString user_agent = ""; // set at main.cpp

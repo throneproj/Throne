@@ -1103,6 +1103,16 @@ QTabBar::tab:hover:!selected {
             </property>
            </widget>
           </item>
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="set_socks_ftp_proxy">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Also write the SOCKS and FTP system proxy entries, which makes the desktop export the &lt;span style=&quot; font-family:'monospace';&quot;&gt;all_proxy&lt;/span&gt; and &lt;span style=&quot; font-family:'monospace';&quot;&gt;ftp_proxy&lt;/span&gt; environment variables. Some terminal tools want them, but the schemes they use are rejected by others such as curl. Leave this off unless you need it.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Set SOCKS/FTP system proxy entries</string>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="0">
            <widget class="QCheckBox" name="net_use_proxy">
             <property name="toolTip">
