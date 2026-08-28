@@ -10,6 +10,7 @@
 #include "include/database/GroupsRepo.h"
 #include "include/ui/group/dialog_edit_group.h"
 #include "include/ui/mainWindow/MainWindowInternal.h"
+#include "include/ui/mainWindow/TestRunner.h"
 
 
 void MainWindow::on_tabWidget_currentChanged(int index) {
@@ -167,6 +168,14 @@ void MainWindow::on_tabWidget_customContextMenuRequested(const QPoint &p) {
             if (mw_sub_updating) return;
             mw_sub_updating = true;
             Subscription::groupUpdater->AsyncUpdate(group->url, group->id, [&] { mw_sub_updating = false; }, true);
+        });
+    }
+    if (clickedGroup != nullptr) {
+        connect(menu.addAction(tr("Url Test selected Group")), &QAction::triggered, this, [=,this]{
+            testRunner->runUrlTests(clickedGroup->Profiles());
+        });
+        connect(menu.addAction(tr("Speed Test selected Group")), &QAction::triggered, this, [=,this]{
+            testRunner->runSpeedTests(clickedGroup->Profiles());
         });
     }
     menu.exec(ui->tabWidget->tabBar()->mapToGlobal(p));
