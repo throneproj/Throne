@@ -110,6 +110,7 @@ QTabBar {
 
 QTabBar::tab {
     border: 1px solid #777777;
+    border-bottom: 3px solid transparent;
     border-radius: 4px;
 
     padding: 2px 4px;
@@ -118,8 +119,7 @@ QTabBar::tab {
 
 QTabBar::tab:selected {
     border: 1px solid palette(highlight);
-    background: palette(highlight);
-    color: palette(highlighted-text);
+    border-bottom: 3px solid palette(highlight);
 }</string>
      </property>
      <property name="currentIndex">
