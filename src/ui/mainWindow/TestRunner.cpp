@@ -301,6 +301,11 @@ void TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedID
         mw_->UpdateDataView(true);
 
         auto runBatch = [this, isUrl](const QList<std::shared_ptr<Configs::Profile>>& profileSlice, const QList<int>& ids) {
+            // Per batch, not per probe: the probes of one batch run concurrently and
+            // drain each other's results from the core's global buffer, so they must
+            // share a generation. Outbound tags restart at every batch, so a poll left
+            // over from the previous one must not.
+            sessionGen_.fetch_add(1);
             auto buildObject = Configs::BuildTestConfig(profileSlice);
             if (!buildObject->error.isEmpty()) {
                 MW_show_log(MainWindow::tr("Failed to build test config for batch: ") + buildObject->error);
@@ -399,6 +404,8 @@ void TestRunner::runSpeedTests(const QList<int>& requestedIDs, bool testCurrent)
             mw_->dataViewHtmlGenerator_.seedSpeedTest(profileIDs.size());
             mw_->UpdateDataView(true);
             auto runBatch = [this](const QList<std::shared_ptr<Configs::Profile>>& profileSlice) {
+                // See runLatencyGroup: one generation per batch.
+                sessionGen_.fetch_add(1);
                 auto buildObject = Configs::BuildTestConfig(profileSlice);
                 if (!buildObject->error.isEmpty()) {
                     MW_show_log(MainWindow::tr("Failed to build batch test config: ") + buildObject->error);
