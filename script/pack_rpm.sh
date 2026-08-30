@@ -7,7 +7,7 @@ VARIANT="$3"
 
 RPM_VERSION="${TAG#v}"
 RPM_VERSION="${RPM_VERSION#V}"
-#RPM release fields reject '-'
+#RPM Version and Release fields both reject '-'
 RPM_VERSION="${RPM_VERSION//-/_}"
 
 # rpm and this project name arches differently from the amd64/arm64 used elsewhere.
@@ -22,7 +22,7 @@ DEPENDS=""
 
 WORK="$PWD/rpmwork"
 rm -rf "$WORK"
-mkdir -p "$WORK/RPMS"
+mkdir -p "$WORK"/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS}
 
 cat >"$WORK/Throne.desktop" <<-EOF
 [Desktop Entry]
@@ -41,9 +41,10 @@ Version: ${RPM_VERSION}
 Release: 1
 Summary: Qt based cross-platform GUI proxy configuration manager (backend: sing-box)
 License: GPL-3.0-or-later
+# deps should be declared by hand when AutoReqProv: no (couldnt be trusted on multi arch)
+AutoReqProv: no
 %define debug_package %{nil}
 %define __os_install_post %{nil}
-%define __strip /bin/true
 ${DEPENDS}
 Requires(post): desktop-file-utils
 Requires(postun): desktop-file-utils
@@ -72,8 +73,7 @@ EOF
 
 rpmbuild -bb \
   --define "_topdir $WORK" \
-  --define "_rpmdir $WORK/RPMS" \
   --target "$RPM_ARCH" \
   "$WORK/Throne.spec"
 
-find "$WORK/RPMS" -name '*.rpm' -exec mv {} ./Throne.rpm \;
+mv "$WORK/RPMS/$RPM_ARCH/Throne-${RPM_VERSION}-1.${RPM_ARCH}.rpm" ./Throne.rpm
