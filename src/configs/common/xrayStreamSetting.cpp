@@ -1,6 +1,7 @@
 #include "include/configs/common/xrayStreamSetting.h"
 #include <QUrlQuery>
 #include <QJsonArray>
+#include <QJsonDocument>
 #include "include/configs/common/utils.h"
 
 namespace Configs {
@@ -755,6 +756,18 @@ namespace Configs {
         if (!url.isValid()) return false;
         auto query = QUrlQuery(url.query());
 
+        if (query.hasQueryItem("fm") || query.hasQueryItem("finalmask")) {
+            auto key = query.hasQueryItem("fm") ? "fm" : "finalmask";
+            auto fmRaw = query.queryItemValue(key, QUrl::FullyDecoded);
+            QJsonParseError err;
+            auto doc = QJsonDocument::fromJson(fmRaw.toUtf8(), &err);
+            if (err.error == QJsonParseError::NoError && doc.isObject()) {
+                finalmask = doc.object();
+            } else if (err.error != QJsonParseError::NoError) {
+                MW_show_log("Failed to parse FinalMask JSON: " + err.errorString());
+            }
+        }
+
         if (query.hasQueryItem("type")) network = query.queryItemValue("type").replace("tcp", "raw");
         if (!Configs::XrayNetworks.contains(network)) return false;
         if (network == "raw" && query.queryItemValue("headerType") == "http") {
@@ -782,6 +795,8 @@ namespace Configs {
 
     bool xrayStreamSetting::ParseFromJson(const QJsonObject &object) {
         if (object.isEmpty()) return false;
+
+        if (object.contains("finalmask") && object["finalmask"].isObject()) finalmask = object["finalmask"].toObject();
 
         if (object.contains("method")) network = object.value("method").toString();
         else if (object.contains("network")) network = object.value("network").toString();
@@ -829,6 +844,7 @@ namespace Configs {
     QString xrayStreamSetting::ExportToLink() {
         QUrlQuery query;
         if (!network.isEmpty()) query.addQueryItem("type", network == "raw" ? "tcp" : network);
+        if (!finalmask.isEmpty()) query.addQueryItem("fm", QJsonObject2QString(finalmask, true));
         // value(), never operator[]: the mutable operator[] inserts a null entry for a missing key.
         if (const auto header = rawSettings.value("header").toObject();
             network == "raw" && header.value("type").toString() == "http") {
@@ -855,6 +871,7 @@ namespace Configs {
         QJsonObject object;
         object["network"] = network;
         object["security"] = security;
+        if (!finalmask.isEmpty()) object["finalmask"] = finalmask;
         if (network == "raw" && !rawSettings.isEmpty()) object["rawSettings"] = rawSettings;
         if (security == "tls") object["tlsSettings"] = TLS->ExportToJson();
         else if (security == "reality") object["realitySettings"] = reality->ExportToJson();

@@ -147,6 +147,7 @@ namespace Configs {
         QString network = "raw";
         QString security = "none";
         QJsonObject rawSettings;
+        QJsonObject finalmask;
         std::shared_ptr<xrayTLS> TLS = std::make_shared<xrayTLS>();
         std::shared_ptr<xrayReality> reality = std::make_shared<xrayReality>();
         std::shared_ptr<xrayXHTTP> xhttp = std::make_shared<xrayXHTTP>();

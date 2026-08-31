@@ -181,6 +181,20 @@
             <item row="1" column="1">
              <widget class="QComboBox" name="xray_security"/>
             </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_xray_finalmask">
+              <property name="text">
+               <string>Finalmask</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QPushButton" name="xray_finalmask_edit">
+              <property name="text">
+               <string>Not set</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>
@@ -1527,8 +1541,9 @@
   <tabstop>advanced_button</tabstop>
   <tabstop>fake</tabstop>
   <tabstop>xray_network</tabstop>
-  <tabstop>xray_security</tabstop>
-  <tabstop>xray_mux</tabstop>
+   <tabstop>xray_security</tabstop>
+   <tabstop>xray_finalmask_edit</tabstop>
+   <tabstop>xray_mux</tabstop>
   <tabstop>network</tabstop>
   <tabstop>security</tabstop>
   <tabstop>multiplex</tabstop>
