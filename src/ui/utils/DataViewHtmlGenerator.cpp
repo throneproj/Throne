@@ -43,6 +43,14 @@ void DataViewHtmlGenerator::setAutoSelectorStatus(const QString &summary, const 
     autoSelector_.visible = !summary.isEmpty();
 }
 
+void DataViewHtmlGenerator::setVpnEndpointStatus(const QString &summary, const QString &detail, bool problem) {
+    QMutexLocker lk(&mu_);
+    vpnEndpoint_.summary = summary;
+    vpnEndpoint_.detail = detail;
+    vpnEndpoint_.problem = problem;
+    vpnEndpoint_.visible = !summary.isEmpty();
+}
+
 void DataViewHtmlGenerator::clearTestSections() {
     QMutexLocker lk(&mu_);
     latencyTest_ = {};
@@ -67,10 +75,24 @@ QString DataViewHtmlGenerator::buildHtml() {
         html += latencyTestSectionHtml();
     }
     // Last and conditional: ambient status yields the view whenever a job wants to report progress.
+    if (html.isEmpty() && vpnEndpoint_.visible) {
+        html += vpnEndpointSectionHtml();
+    }
     if (html.isEmpty() && autoSelector_.visible) {
         html += autoSelectorSectionHtml();
     }
     return html;
+}
+
+QString DataViewHtmlGenerator::vpnEndpointSectionHtml() {
+    const auto colour = vpnEndpoint_.problem ? themeManager->tokens.danger : themeManager->tokens.info;
+    QString res = QString("<p style='text-align:center;margin:0;color:%1;'>%2</p>")
+                      .arg(colour.name(), vpnEndpoint_.summary.toHtmlEscaped());
+    if (!vpnEndpoint_.detail.isEmpty()) {
+        res += QString("<p style='text-align:center;margin:0;opacity:0.75;'>%1</p>")
+                   .arg(vpnEndpoint_.detail.toHtmlEscaped());
+    }
+    return res;
 }
 
 QString DataViewHtmlGenerator::autoSelectorSectionHtml() {

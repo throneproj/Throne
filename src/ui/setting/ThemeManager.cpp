@@ -1,6 +1,7 @@
 #include <QStyle>
 #include <QApplication>
 #include <QFile>
+#include <QFont>
 #include <QPalette>
 #include <QColor>
 #include <QMap>
@@ -282,7 +283,15 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
     // After setStyle(), which reinstalls the style's palette. Setting the sheet last is also
     // what clears the render-rule cache; a bare setPalette() does not.
     tokens = resolveTokens(qApp->palette());
-    qApp->setStyleSheet(themeSheet + overlayStyleSheet(tokens));
+    const auto sheet = themeSheet + overlayStyleSheet(tokens);
+    qApp->setStyleSheet(sheet);
+
+    // Every setStyle() above - setStyleSheet() runs one itself whenever it installs or drops the
+    // proxy - refills Qt's per-class platform font table (QMenu/QAbstractItemView/QMessageBox...),
+    // which outranks the app font. Re-asserting the font drops the table; the second sheet call is
+    // a plain repolish that re-resolves the widgets the table already stamped (#1829).
+    qApp->setFont(qApp->font());
+    qApp->setStyleSheet(sheet);
 
     current_theme = theme;
 

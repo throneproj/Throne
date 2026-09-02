@@ -40,6 +40,13 @@ public:
         QString detail;
     };
 
+    struct VpnEndpointPanelState {
+        bool visible = false;
+        bool problem = false;
+        QString summary;
+        QString detail;
+    };
+
     void setDownloadReport(const DownloadProgressReport &report, bool show);
 
     void seedSpeedTest(int totalProfiles);
@@ -50,6 +57,8 @@ public:
 
     // Empty summary hides the panel.
     void setAutoSelectorStatus(const QString &summary, const QString &detail);
+
+    void setVpnEndpointStatus(const QString &summary, const QString &detail, bool problem);
 
     void clearTestSections();
 
@@ -69,6 +78,8 @@ private:
 
     QString autoSelectorSectionHtml();
 
+    QString vpnEndpointSectionHtml();
+
     // Pool threads seed panels while buildHtml reads them.
     mutable QMutex mu_;
 
@@ -76,6 +87,7 @@ private:
     SpeedtestPanelState speedtest_ = {};
     LatencyTestPanelState latencyTest_ = {};
     AutoSelectorPanelState autoSelector_ = {};
+    VpnEndpointPanelState vpnEndpoint_ = {};
 
     std::atomic<int> testProgress{0};
 };

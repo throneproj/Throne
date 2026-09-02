@@ -569,63 +569,10 @@ QToolButton::menu-indicator {
                 <number>0</number>
                </property>
                <item>
-                <widget class="QTableWidget" name="connections">
+                <widget class="QTableView" name="connections">
                  <property name="autoFillBackground">
                   <bool>false</bool>
                  </property>
-                 <column>
-                  <property name="text">
-                   <string>Destination (Domain)</string>
-                  </property>
-                  <property name="toolTip">
-                   <string>Click To Disable Sorting</string>
-                  </property>
-                 </column>
-                 <column>
-                  <property name="text">
-                   <string>Process</string>
-                  </property>
-                  <property name="toolTip">
-                   <string>Click To Sort By Process</string>
-                  </property>
-                 </column>
-                 <column>
-                  <property name="text">
-                   <string>Protocol</string>
-                  </property>
-                  <property name="toolTip">
-                   <string>Click To Sort By Protocol</string>
-                  </property>
-                 </column>
-                 <column>
-                  <property name="text">
-                   <string>Outbound</string>
-                  </property>
-                  <property name="toolTip">
-                   <string>Click To Sort By Outbound</string>
-                  </property>
-                 </column>
-                 <column>
-                  <property name="text">
-                   <string>Traffic</string>
-                  </property>
-                  <property name="toolTip">
-                   <string>Click to sort by traffic; right-click to choose total/down/up</string>
-                  </property>
-                 </column>
-                 <column>
-                  <property name="text">
-                   <string>Speed</string>
-                  </property>
-                  <property name="toolTip">
-                   <string>Click to sort by speed; right-click to choose total/down/up</string>
-                  </property>
-                 </column>
-                 <column>
-                  <property name="text">
-                   <string notr="true"/>
-                  </property>
-                 </column>
                 </widget>
                </item>
               </layout>

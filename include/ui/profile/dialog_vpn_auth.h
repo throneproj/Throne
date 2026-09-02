@@ -19,6 +19,7 @@ class QWidget;
 // Plain mirror of libcore::VPNChallengeField, so the proto headers stay out of moc's way.
 struct VpnAuthField {
     QString submissionKey;
+    QString name;
     QString label;
     QString kind;
     QString value;

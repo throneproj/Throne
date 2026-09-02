@@ -3336,9 +3336,64 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Сгенерировать конфиг Warp</translation>
     </message>
     <message>
-        <source>Amnezia Settings</source>
-        <translation>Настройки Amnezia</translation>
+        <source>Pre Shared Key</source>
+        <translation>Предв. раздел. ключ (Pre-shared Key, PSK)</translation>
     </message>
+    <message>
+        <source>Use System Interface</source>
+        <translation>Исп. системный интерфейс</translation>
+    </message>
+    <message>
+        <source>Public Key</source>
+        <translation>Публичный ключ</translation>
+    </message>
+    <message>
+        <source>Private Key</source>
+        <translation>Приватный ключ</translation>
+    </message>
+    <message>
+        <source>1420</source>
+        <translation>1420</translation>
+    </message>
+    <message>
+        <source>MTU</source>
+        <translation>MTU</translation>
+    </message>
+    <message>
+        <source>Workers</source>
+        <translation>Workers</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Persistent Keepalive</source>
+        <translation>Поддержание активности (Persistent Keepalive)</translation>
+    </message>
+    <message>
+        <source>Getting keypair...</source>
+        <translation>Получение пары ключей…</translation>
+    </message>
+    <message>
+        <source>Failed to get key pair</source>
+        <translation>Не удалось получить пару ключей</translation>
+    </message>
+    <message>
+        <source>Generating config...</source>
+        <translation>Генерация конфигурации…</translation>
+    </message>
+    <message>
+        <source>Failed to generate warp config</source>
+        <translation>Не удалось сгенерировать конфигурацию Warp</translation>
+    </message>
+    <message>
+        <source>Success!</source>
+        <translation>Успешно!</translation>
+    </message>
+</context>
+<context>
+    <name>EditWireguardAmnezia</name>
     <message>
         <source>Cookie Reply Packet Junk Size (S3)</source>
         <translation type="unfinished"></translation>
@@ -3373,10 +3428,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Signature Packet (I1)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Enable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3462,62 +3513,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Max Handshake Attempts</source>
         <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Pre Shared Key</source>
-        <translation>Предв. раздел. ключ (Pre-shared Key, PSK)</translation>
-    </message>
-    <message>
-        <source>Use System Interface</source>
-        <translation>Исп. системный интерфейс</translation>
-    </message>
-    <message>
-        <source>Public Key</source>
-        <translation>Публичный ключ</translation>
-    </message>
-    <message>
-        <source>Private Key</source>
-        <translation>Приватный ключ</translation>
-    </message>
-    <message>
-        <source>1420</source>
-        <translation>1420</translation>
-    </message>
-    <message>
-        <source>MTU</source>
-        <translation>MTU</translation>
-    </message>
-    <message>
-        <source>Workers</source>
-        <translation>Workers</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Persistent Keepalive</source>
-        <translation>Поддержание активности (Persistent Keepalive)</translation>
-    </message>
-    <message>
-        <source>Getting keypair...</source>
-        <translation>Получение пары ключей…</translation>
-    </message>
-    <message>
-        <source>Failed to get key pair</source>
-        <translation>Не удалось получить пару ключей</translation>
-    </message>
-    <message>
-        <source>Generating config...</source>
-        <translation>Генерация конфигурации…</translation>
-    </message>
-    <message>
-        <source>Failed to generate warp config</source>
-        <translation>Не удалось сгенерировать конфигурацию Warp</translation>
-    </message>
-    <message>
-        <source>Success!</source>
-        <translation>Успешно!</translation>
     </message>
 </context>
 <context>

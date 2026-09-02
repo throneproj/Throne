@@ -387,10 +387,10 @@ github.com/tailscale/web-client-prebuilt v0.0.0-20250124233751-d4cd19a26976 h1:U
 github.com/tailscale/web-client-prebuilt v0.0.0-20250124233751-d4cd19a26976/go.mod h1:agQPE6y6ldqCOui2gkIh7ZMztTkIQKH049tv8siLuNQ=
 github.com/tc-hib/winres v0.2.1 h1:YDE0FiP0VmtRaDn7+aaChp1KiF4owBiJa5l964l5ujA=
 github.com/tc-hib/winres v0.2.1/go.mod h1:C/JaNhH3KBvhNKVbvdlDWkbMDO9H4fKKDaN7/07SSuk=
-github.com/throneproj/sing-box v1.11.16-0.20260830141411-990fb42efe38 h1:w9LBdyUZJRYvZ20jVoyY4zdUYLBHRh9YBtdrauTXXcU=
-github.com/throneproj/sing-box v1.11.16-0.20260830141411-990fb42efe38/go.mod h1:paWdKbxafosoRbSJVtUQ/J5lT9gcYGVCbcT76z30MwU=
-github.com/throneproj/wireguard-go v0.0.0-20260826184406-6afb6c3abbbf h1:pIM0l9nExIqsZ6Mto6jgvzhErb5hkgC+tnVTo8++5MM=
-github.com/throneproj/wireguard-go v0.0.0-20260826184406-6afb6c3abbbf/go.mod h1:er10sELpmzLXq7S7Pbc1Zsbyapcr+/gxNAHKTo6fzVA=
+github.com/throneproj/sing-box v1.11.16-0.20260831224928-b9eb54f4887f h1:SPyP3XQJy1ogjJ34jucwQM4bKUkmJX64x0Ap2kFSSJI=
+github.com/throneproj/sing-box v1.11.16-0.20260831224928-b9eb54f4887f/go.mod h1:SSxJ256XTTEbA+1O/qkKQyEEzqCh8NbdB2kQLGkazs4=
+github.com/throneproj/wireguard-go v0.0.0-20260831224840-cdac29e5a25e h1:EMC5csnQ9PwrKXZ5LhlF8wPp+fgyXcjwG5nysIc6LCs=
+github.com/throneproj/wireguard-go v0.0.0-20260831224840-cdac29e5a25e/go.mod h1:er10sELpmzLXq7S7Pbc1Zsbyapcr+/gxNAHKTo6fzVA=
 github.com/throneproj/xray-core v1.251015.1-0.20260831012233-c659cc0ab233 h1:G7CTjwJW38bznIALNvVgtF59eNEbZLOBWZbLyvunW9o=
 github.com/throneproj/xray-core v1.251015.1-0.20260831012233-c659cc0ab233/go.mod h1:wukQoBGnQ6GaLTGuKwv8rCTgf80QxPj+6iznDZHQEWo=
 github.com/tidwall/gjson v1.14.2/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=

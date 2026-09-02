@@ -3218,9 +3218,92 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>生成 Warp 配置</translation>
     </message>
     <message>
-        <source>Amnezia Settings</source>
-        <translation>Amnezia 设置</translation>
+        <source>Pre Shared Key</source>
+        <translation>预共享钥匙</translation>
     </message>
+    <message>
+        <source>Use System Interface</source>
+        <translation>使用系统接口</translation>
+    </message>
+    <message>
+        <source>Public Key</source>
+        <translation>公钥</translation>
+    </message>
+    <message>
+        <source>Private Key</source>
+        <translation>私钥</translation>
+    </message>
+    <message>
+        <source>Workers</source>
+        <translation>工作线程</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Persistent Keepalive</source>
+        <translation>持久保活</translation>
+    </message>
+    <message>
+        <source>Getting keypair...</source>
+        <translation>正在获取钥匙对…</translation>
+    </message>
+    <message>
+        <source>Failed to get key pair</source>
+        <translation>获取钥匙对失败</translation>
+    </message>
+    <message>
+        <source>Generating config...</source>
+        <translation>正在生成配置…</translation>
+    </message>
+    <message>
+        <source>Failed to generate warp config</source>
+        <translation>生成 warp 配置失败</translation>
+    </message>
+    <message>
+        <source>Success!</source>
+        <translation>成功!</translation>
+    </message>
+    <message>
+        <source>Junk Packet Count</source>
+        <translation>垃圾数据包数量</translation>
+    </message>
+    <message>
+        <source>Junk Packet Min Size</source>
+        <translation>垃圾数据包最小尺寸</translation>
+    </message>
+    <message>
+        <source>Junk Packet Max Size</source>
+        <translation>垃圾数据包最大尺寸</translation>
+    </message>
+    <message>
+        <source>Init Packet Junk Size</source>
+        <translation>初始数据包垃圾大小</translation>
+    </message>
+    <message>
+        <source>Response Packet Junk Size</source>
+        <translation>响应数据包垃圾大小</translation>
+    </message>
+    <message>
+        <source>Init Packet Magic Header</source>
+        <translation>初始数据包魔术报头</translation>
+    </message>
+    <message>
+        <source>Response Packet Magic Header</source>
+        <translation>响应数据包魔术报头</translation>
+    </message>
+    <message>
+        <source>Underload Packet Magic Header</source>
+        <translation>欠载数据包魔法报头</translation>
+    </message>
+    <message>
+        <source>Transport Header Magic Header</source>
+        <translation>传送报头魔法报头</translation>
+    </message>
+</context>
+<context>
+    <name>EditWireguardAmnezia</name>
     <message>
         <source>Cookie Reply Packet Junk Size (S3)</source>
         <translation>Cookie 回复数据包垃圾大小 (S3)</translation>
@@ -3256,10 +3339,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Signature Packet (I1)</source>
         <translation>签名数据包 (I1)</translation>
-    </message>
-    <message>
-        <source>Enable</source>
-        <translation>启用</translation>
     </message>
     <message>
         <source>Response Packet Junk Size (S2)</source>
@@ -3344,90 +3423,6 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Max Handshake Attempts</source>
         <translation>最多握手尝试次数</translation>
-    </message>
-    <message>
-        <source>Pre Shared Key</source>
-        <translation>预共享钥匙</translation>
-    </message>
-    <message>
-        <source>Use System Interface</source>
-        <translation>使用系统接口</translation>
-    </message>
-    <message>
-        <source>Public Key</source>
-        <translation>公钥</translation>
-    </message>
-    <message>
-        <source>Private Key</source>
-        <translation>私钥</translation>
-    </message>
-    <message>
-        <source>Workers</source>
-        <translation>工作线程</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Persistent Keepalive</source>
-        <translation>持久保活</translation>
-    </message>
-    <message>
-        <source>Getting keypair...</source>
-        <translation>正在获取钥匙对…</translation>
-    </message>
-    <message>
-        <source>Failed to get key pair</source>
-        <translation>获取钥匙对失败</translation>
-    </message>
-    <message>
-        <source>Generating config...</source>
-        <translation>正在生成配置…</translation>
-    </message>
-    <message>
-        <source>Failed to generate warp config</source>
-        <translation>生成 warp 配置失败</translation>
-    </message>
-    <message>
-        <source>Success!</source>
-        <translation>成功!</translation>
-    </message>
-    <message>
-        <source>Junk Packet Count</source>
-        <translation>垃圾数据包数量</translation>
-    </message>
-    <message>
-        <source>Junk Packet Min Size</source>
-        <translation>垃圾数据包最小尺寸</translation>
-    </message>
-    <message>
-        <source>Junk Packet Max Size</source>
-        <translation>垃圾数据包最大尺寸</translation>
-    </message>
-    <message>
-        <source>Init Packet Junk Size</source>
-        <translation>初始数据包垃圾大小</translation>
-    </message>
-    <message>
-        <source>Response Packet Junk Size</source>
-        <translation>响应数据包垃圾大小</translation>
-    </message>
-    <message>
-        <source>Init Packet Magic Header</source>
-        <translation>初始数据包魔术报头</translation>
-    </message>
-    <message>
-        <source>Response Packet Magic Header</source>
-        <translation>响应数据包魔术报头</translation>
-    </message>
-    <message>
-        <source>Underload Packet Magic Header</source>
-        <translation>欠载数据包魔法报头</translation>
-    </message>
-    <message>
-        <source>Transport Header Magic Header</source>
-        <translation>传送报头魔法报头</translation>
     </message>
 </context>
 <context>

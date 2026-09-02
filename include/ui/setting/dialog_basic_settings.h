@@ -26,6 +26,8 @@ private:
 
     void applyRegexHighlighting();
 
+    void refreshUrlSchemeStatus();
+
     void downloadXrayGeoAsset(const QString &url, const QString &fileName);
 
     struct {

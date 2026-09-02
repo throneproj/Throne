@@ -134,6 +134,7 @@ namespace Configs {
 
         // Mirror of the throne:// registration we last wrote to the OS; startup re-registers only when it differs.
         QString url_scheme_mirror = "";
+        bool url_scheme_auto_register = true;
 
         // Network
         bool net_use_proxy = false;

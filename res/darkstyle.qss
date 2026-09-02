@@ -1966,7 +1966,6 @@ QHeaderView::section {
   color: #DFE1E2;
   border-radius: 0;
   text-align: left;
-  font-size: 13px;
 }
 
 QHeaderView::section::horizontal {

@@ -34,6 +34,7 @@
 #include <QLabel>
 #include <QPushButton>
 
+#include "include/sys/UrlScheme.hpp"
 #include "include/ui/mainwindow.h"
 
 DialogBasicSettings::DialogBasicSettings(QWidget *parent)
@@ -64,6 +65,28 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     D_LOAD_BOOL(inbound_auth)
     D_LOAD_STRING(inbound_user)
     D_LOAD_STRING(inbound_pass)
+
+    ui->url_scheme_auto_register->setChecked(Configs::dataManager->settingsRepo->url_scheme_auto_register);
+    connect(ui->url_scheme_install, &QPushButton::clicked, this, [=,this] {
+        const bool ok = UrlScheme_Install();
+        refreshUrlSchemeStatus();
+        if (!ok) QMessageBox::warning(this, tr("URL Scheme"), tr("Could not register the handler for throne:// links."));
+    });
+    connect(ui->url_scheme_uninstall, &QPushButton::clicked, this, [=,this] {
+        UrlScheme_Uninstall();
+        // Leaving auto registration on would put everything back on the next start.
+        ui->url_scheme_auto_register->setChecked(false);
+        Configs::dataManager->settingsRepo->url_scheme_auto_register = false;
+        Configs::dataManager->settingsRepo->Save();
+        refreshUrlSchemeStatus();
+    });
+#ifdef Q_OS_MACOS
+    // LaunchServices registers the scheme from the bundle's Info.plist, so there is nothing of ours to add or take back.
+    ui->url_scheme_install->hide();
+    ui->url_scheme_uninstall->hide();
+#endif
+    ui->url_scheme_box->setEnabled(UrlScheme_IsSupported());
+    refreshUrlSchemeStatus();
 
     connect(ui->custom_inbound_edit, &QPushButton::clicked, this, [=,this] {
         C_EDIT_JSON_ALLOW_EMPTY(custom_inbound, JsonEdit::SingBox::Config)
@@ -183,6 +206,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
         themeManager->ApplyTheme(ui->theme->currentText());
         Configs::dataManager->settingsRepo->theme = ui->theme->currentText().trimmed();
         Configs::dataManager->settingsRepo->Save();
+        refreshUrlSchemeStatus();
     });
 
     ui->user_agent->setText(Configs::dataManager->settingsRepo->user_agent);
@@ -288,6 +312,19 @@ static void highlightRegexLines(QTextEdit *edit) {
     edit->blockSignals(false);
 }
 
+void DialogBasicSettings::refreshUrlSchemeStatus() {
+    const auto &tk = themeManager->tokens;
+    if (!UrlScheme_IsSupported()) {
+        ui->url_scheme_status->setText(tr("Not available for this installation"));
+        ui->url_scheme_status->setStyleSheet(QStringLiteral("color: %1;").arg(tk.muted.name()));
+        return;
+    }
+
+    const bool installed = UrlScheme_IsCurrent();
+    ui->url_scheme_status->setText(installed ? tr("Installed") : tr("Not installed"));
+    ui->url_scheme_status->setStyleSheet(QStringLiteral("color: %1;").arg((installed ? tk.success : tk.muted).name()));
+}
+
 void DialogBasicSettings::applyRegexHighlighting() {
     highlightRegexLines(ui->log_include_regex);
     highlightRegexLines(ui->log_exclude_regex);
@@ -318,6 +355,10 @@ void DialogBasicSettings::accept() {
     D_SAVE_BOOL(inbound_auth)
     D_SAVE_STRING(inbound_user)
     D_SAVE_STRING(inbound_pass)
+
+    const bool urlSchemeWasAuto = Configs::dataManager->settingsRepo->url_scheme_auto_register;
+    Configs::dataManager->settingsRepo->url_scheme_auto_register = ui->url_scheme_auto_register->isChecked();
+    if (!urlSchemeWasAuto && Configs::dataManager->settingsRepo->url_scheme_auto_register) UrlScheme_RegisterIfNeeded();
 
     auto oldMaxLogLines = Configs::dataManager->settingsRepo->max_log_line;
     Configs::dataManager->settingsRepo->max_log_line = ui->max_log_line->text().trimmed().toInt();

@@ -337,7 +337,15 @@ namespace Configs {
         }
 
         const auto creds = ResolveVpnCredentials(profile_id, username, password);
-        auto otpCode = ResolveOtpCode(otp_profile_id);
+        // A baked code is replayed on every reconnect, so leave the challenge for the poller. The
+        // core packs any challenge answer as SCRV1, so an {otp} inside the credentials cannot go
+        // that way and still has to be built in.
+        const bool otpInCredentials = creds.username.contains(kOtpPlaceholder) ||
+                                      creds.password.contains(kOtpPlaceholder);
+        const bool liveChallenge = otp_profile_id >= 0 && !static_challenge.isEmpty() &&
+                                   !otpInCredentials && !BuildingTestConfig();
+
+        auto otpCode = liveChallenge ? QString() : ResolveOtpCode(otp_profile_id);
         auto user = SubstituteOtp(creds.username, otpCode);
         auto pass = SubstituteOtp(creds.password, otpCode);
         // Upstream packs a static-challenge answer as SCRV1:<b64 password>:<b64 answer>.
@@ -359,7 +367,9 @@ namespace Configs {
         if (!peer_address.isEmpty()) object["peer_address"] = peer_address;
         if (!peer_address_ipv6.isEmpty()) object["peer_address_ipv6"] = peer_address_ipv6;
         if (!topology.isEmpty()) object["topology"] = topology;
+        // "none" makes a rejected login terminal; anything else re-raises the challenge instead.
         if (!auth_retry.isEmpty()) object["auth_retry"] = auth_retry;
+        else if (liveChallenge) object["auth_retry"] = "interact";
         if (!static_key.isEmpty()) object["static_key"] = QListStr2QJsonArray(static_key);
         if (!static_key_path.isEmpty()) object["static_key_path"] = static_key_path;
         if (!key_direction.isEmpty()) object["key_direction"] = key_direction;

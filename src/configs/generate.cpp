@@ -6,7 +6,10 @@
 #include <QApplication>
 #include <QFileInfo>
 #include <QHostAddress>
+#include <QMutex>
 #include <QRegularExpression>
+#include <QScopeGuard>
+#include <QThreadPool>
 
 
 #include "include/database/GroupsRepo.h"
@@ -15,6 +18,7 @@
 
 
 #include "include/database/entities/Profile.h"
+#include "include/global/VpnCredentialOverride.hpp"
 #ifdef Q_OS_LINUX
 #include "include/sys/linux/systemChecks.h"
 #endif
@@ -1529,6 +1533,27 @@ namespace Configs {
             return needed;
         }
 
+        // Concurrent because the RPC channel multiplexes by request id and the core answers each in its own goroutine.
+        QSet<int> invalidProfileIDs(const QList<int> &ids)
+        {
+            QSet<int> invalid;
+            if (ids.isEmpty()) return invalid;
+            QMutex mu;
+            QThreadPool pool;
+            pool.setMaxThreadCount(10);
+            for (int id : ids)
+            {
+                pool.start([&, id] {
+                    const auto ent = dataManager->profilesRepo->GetProfile(id);
+                    if (ent == nullptr || IsValid(ent)) return;
+                    QMutexLocker lock(&mu);
+                    invalid.insert(id);
+                });
+            }
+            pool.waitForDone();
+            return invalid;
+        }
+
         QString buildAutoSelectorGroup(BuildContext &ctx, const std::shared_ptr<Group> &group, bool warpWrap)
         {
             const auto &settings = *dataManager->settingsRepo;
@@ -1563,8 +1588,11 @@ namespace Configs {
             };
             QList<plannedMember> planned;
             int bridgeCount = 0;
+            // One member the core rejects fails the whole group's start, so drop it instead.
+            const auto invalid = invalidProfileIDs(plan.build);
             for (int id : plan.build)
             {
+                if (invalid.contains(id)) continue;
                 auto member = dataManager->profilesRepo->GetProfile(id);
                 if (member == nullptr) continue;
                 QList<int> hopIDs;
@@ -2328,12 +2356,25 @@ namespace Configs {
             }
             if (custom->type == Custom::CustomXrayFullConfig)
             {
-                // sing-box cannot validate Xray-format configs; only check that it parses as JSON.
-                if (QString2QJsonObject(custom->config).isEmpty()) {
+                auto xrayConf = QString2QJsonObject(custom->config);
+                if (xrayConf.isEmpty()) {
                     MW_show_log("Custom Xray full config is not valid JSON");
                     return false;
                 }
-                return true;
+                // Throne never runs these; it prepends its own bridge inbound instead.
+                xrayConf.remove("inbounds");
+                bool ok;
+                auto resp = API::defaultClient->CheckConfig(&ok, QJsonObject2QString(xrayConf, true), true);
+                if (!ok)
+                {
+                    MW_show_log("Failed to Call the Core: " + resp);
+                    return false;
+                }
+                if (resp.isEmpty()) return true;
+                // Left to fail at test time so handleXrayGeoAssetError() can name the missing category.
+                if (resp.contains("geoip.dat") || resp.contains("geosite.dat")) return true;
+                MW_show_log("Invalid Xray ent " + ent->outbound->name + ": " + resp);
+                return false;
             }
         }
         // Xray outbounds carry only a dummy sing-box Build(); validate the real one via the Xray core.
@@ -2384,6 +2425,9 @@ namespace Configs {
     std::shared_ptr<BuildTestConfigResult> BuildTestConfig(const QList<std::shared_ptr<Profile> > &profiles)
     {
         auto res = std::make_shared<BuildTestConfigResult>();
+        // outbound::Build() cannot see BuildContext::forTest.
+        SetBuildingTestConfig(true);
+        const auto clearTestBuildFlag = qScopeGuard([] { SetBuildingTestConfig(false); });
         BuildContext ctx;
         ctx.forTest = true;
         buildDNSSection(ctx, false);

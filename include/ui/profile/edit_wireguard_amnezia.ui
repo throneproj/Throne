@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>EditWireguardAmnezia</class>
+ <widget class="QDialog" name="EditWireguardAmnezia">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>760</width>
+    <height>520</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Amnezia Options</string>
+  </property>
+  <layout class="QVBoxLayout" name="dialog_layout">
+   <item>
+    <widget class="QScrollArea" name="scroll">
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="scroll_content">
+      <layout class="QGridLayout" name="gridLayout">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item row="0" column="0">
+        <widget class="QLabel" name="jc_l">
+         <property name="text">
+          <string>Junk Packet Count (Jc)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="jc"/>
+       </item>
+       <item row="0" column="2">
+        <widget class="QLabel" name="jmin_l">
+         <property name="text">
+          <string>Junk Packet Min Size (Jmin)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QLineEdit" name="jmin"/>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="jmax_l">
+         <property name="text">
+          <string>Junk Packet Max Size (Jmax)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="jmax"/>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLabel" name="s1_l">
+         <property name="text">
+          <string>Init Packet Junk Size (S1)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QLineEdit" name="s1"/>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="s2_l">
+         <property name="text">
+          <string>Response Packet Junk Size (S2)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="s2"/>
+       </item>
+       <item row="2" column="2">
+        <widget class="QLabel" name="s3_l">
+         <property name="text">
+          <string>Cookie Reply Packet Junk Size (S3)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3">
+        <widget class="QLineEdit" name="s3"/>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="s4_l">
+         <property name="text">
+          <string>Transport Packet Junk Size (S4)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="s4"/>
+       </item>
+       <item row="3" column="2">
+        <widget class="QLabel" name="h1_l">
+         <property name="text">
+          <string>Init Packet Magic Header (H1)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="3">
+        <widget class="QLineEdit" name="h1"/>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="h2_l">
+         <property name="text">
+          <string>Response Packet Magic Header (H2)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLineEdit" name="h2"/>
+       </item>
+       <item row="4" column="2">
+        <widget class="QLabel" name="h3_l">
+         <property name="text">
+          <string>Cookie Reply Packet Magic Header (H3)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="3">
+        <widget class="QLineEdit" name="h3"/>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="h4_l">
+         <property name="text">
+          <string>Transport Packet Magic Header (H4)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QLineEdit" name="h4"/>
+       </item>
+       <item row="5" column="2">
+        <widget class="QLabel" name="i1_l">
+         <property name="text">
+          <string>Signature Packet (I1)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="3">
+        <widget class="QLineEdit" name="i1"/>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="i2_l">
+         <property name="text">
+          <string>Signature Packet (I2)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QLineEdit" name="i2"/>
+       </item>
+       <item row="6" column="2">
+        <widget class="QLabel" name="i3_l">
+         <property name="text">
+          <string>Signature Packet (I3)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="3">
+        <widget class="QLineEdit" name="i3"/>
+       </item>
+       <item row="7" column="0">
+        <widget class="QLabel" name="i4_l">
+         <property name="text">
+          <string>Signature Packet (I4)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="1">
+        <widget class="QLineEdit" name="i4"/>
+       </item>
+       <item row="7" column="2">
+        <widget class="QLabel" name="i5_l">
+         <property name="text">
+          <string>Signature Packet (I5)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="3">
+        <widget class="QLineEdit" name="i5"/>
+       </item>
+       <item row="8" column="0">
+        <widget class="QLabel" name="header_protection_key_l">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Base64 key. Requires S1-S4 to be at least 12.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Header Protection Key</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="1">
+        <widget class="QLineEdit" name="header_protection_key"/>
+       </item>
+       <item row="8" column="2">
+        <widget class="QLabel" name="content_padding_addition_l">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Bytes of random trailing padding, as a value or range (e.g. 0-64).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Content Padding Addition</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="3">
+        <widget class="QLineEdit" name="content_padding_addition"/>
+       </item>
+       <item row="9" column="0">
+        <widget class="QLabel" name="rekey_after_time_l">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Seconds before a rekey is attempted, as a value or range.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Rekey After Time</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="1">
+        <widget class="QLineEdit" name="rekey_after_time"/>
+       </item>
+       <item row="9" column="2">
+        <widget class="QLabel" name="rekey_timeout_l">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Seconds before a handshake is retried, as a value or range.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Rekey Timeout</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="3">
+        <widget class="QLineEdit" name="rekey_timeout"/>
+       </item>
+       <item row="10" column="0">
+        <widget class="QLabel" name="reject_after_time_l">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Seconds before keys are rejected, as a value or range.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Reject After Time</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="1">
+        <widget class="QLineEdit" name="reject_after_time"/>
+       </item>
+       <item row="10" column="2">
+        <widget class="QLabel" name="keepalive_timeout_l">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Seconds of idle time before a keepalive is sent, as a value or range.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Keepalive Timeout</string>
+         </property>
+        </widget>
+       </item>
+       <item row="10" column="3">
+        <widget class="QLineEdit" name="keepalive_timeout"/>
+       </item>
+       <item row="11" column="0">
+        <widget class="QLabel" name="max_handshake_attempts_l">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Handshake retries before giving up, as a value or range.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Max Handshake Attempts</string>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="1">
+        <widget class="QLineEdit" name="max_handshake_attempts"/>
+       </item>
+       <item row="12" column="0" colspan="2">
+        <widget class="QCheckBox" name="random_trailers">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.1. Appends a random trailer to every packet, so message types are no longer identifiable by size.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Random Trailers</string>
+         </property>
+        </widget>
+       </item>
+       <item row="12" column="2" colspan="2">
+        <widget class="QCheckBox" name="disable_cookies">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.1. Never send cookie replies, so an under-load peer stays silent instead of answering with a fixed-size message.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Disable Cookies</string>
+         </property>
+        </widget>
+       </item>
+       <item row="13" column="0">
+        <spacer name="bottom_spacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>jc</tabstop>
+  <tabstop>jmin</tabstop>
+  <tabstop>jmax</tabstop>
+  <tabstop>s1</tabstop>
+  <tabstop>s2</tabstop>
+  <tabstop>s3</tabstop>
+  <tabstop>s4</tabstop>
+  <tabstop>h1</tabstop>
+  <tabstop>h2</tabstop>
+  <tabstop>h3</tabstop>
+  <tabstop>h4</tabstop>
+  <tabstop>i1</tabstop>
+  <tabstop>i2</tabstop>
+  <tabstop>i3</tabstop>
+  <tabstop>i4</tabstop>
+  <tabstop>i5</tabstop>
+  <tabstop>header_protection_key</tabstop>
+  <tabstop>content_padding_addition</tabstop>
+  <tabstop>rekey_after_time</tabstop>
+  <tabstop>rekey_timeout</tabstop>
+  <tabstop>reject_after_time</tabstop>
+  <tabstop>keepalive_timeout</tabstop>
+  <tabstop>max_handshake_attempts</tabstop>
+  <tabstop>random_trailers</tabstop>
+  <tabstop>disable_cookies</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

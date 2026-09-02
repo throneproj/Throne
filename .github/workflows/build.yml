@@ -348,7 +348,7 @@ jobs:
           mv ghr*linux_amd64/ghr .
           find . -name artifacts.tgz | xargs -n1 tar xzf
           ####
-          sudo apt install nsis
+          sudo apt install nsis rpm
           cp ./script/windows_installer.nsi .
           TAG="${{ github.event.inputs.tag }}"
           APP_VERSION="${TAG#v}"
@@ -389,6 +389,22 @@ jobs:
           bash ../script/pack_debian.sh ${{ github.event.inputs.tag }} arm64 systemqt
           mv Throne.deb Throne-${{ github.event.inputs.tag }}-debian-arm64-system-qt.deb
           rm -rf Throne
+          ####
+          bash ../script/pack_rpm.sh ${{ github.event.inputs.tag }} amd64
+          mv Throne.rpm Throne-${{ github.event.inputs.tag }}-fedora-amd64.rpm
+          rm -rf Throne rpmwork
+          ####
+          bash ../script/pack_rpm.sh ${{ github.event.inputs.tag }} amd64 systemqt
+          mv Throne.rpm Throne-${{ github.event.inputs.tag }}-fedora-amd64-system-qt.rpm
+          rm -rf Throne rpmwork
+          ####
+          bash ../script/pack_rpm.sh ${{ github.event.inputs.tag }} arm64
+          mv Throne.rpm Throne-${{ github.event.inputs.tag }}-fedora-arm64.rpm
+          rm -rf Throne rpmwork
+          ####
+          bash ../script/pack_rpm.sh ${{ github.event.inputs.tag }} arm64 systemqt
+          mv Throne.rpm Throne-${{ github.event.inputs.tag }}-fedora-arm64-system-qt.rpm
+          rm -rf Throne rpmwork
           ####
           mv linux-amd64 Throne
           mv Throne/Throne.debug debug/Throne-${{ github.event.inputs.tag }}-linux-amd64.debug

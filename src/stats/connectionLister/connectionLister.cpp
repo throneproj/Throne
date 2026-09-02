@@ -6,6 +6,8 @@
 #include <include/stats/connections/connectionLister.hpp>
 #include "include/stats/traffic/TrafficStatsManager.hpp"
 
+#include <algorithm>
+
 
 
 namespace Stats
@@ -19,16 +21,11 @@ namespace Stats
 
     ConnectionLister* connection_lister = new ConnectionLister();
 
-    ConnectionLister::ConnectionLister()
-    {
-        state = std::make_shared<QSet<QString>>();
-    }
-
     void ConnectionLister::ForceUpdate()
     {
-        mu.lock();
-        update();
-        mu.unlock();
+        QMutexLocker wlk(&waitMu_);
+        forced_ = true;
+        waitCond_.wakeAll();
     }
 
 
@@ -38,17 +35,20 @@ namespace Stats
         {
             if (stop) return;
 
+            bool forced = false;
             {
-                // Woken early by SetInView() and stopLoop().
                 QMutexLocker wlk(&waitMu_);
-                waitCond_.wait(&waitMu_, inView_.load() ? kActivePollMs : kRelaxedPollMs);
+                if (!forced_) waitCond_.wait(&waitMu_, inView_.load() ? kActivePollMs : kRelaxedPollMs);
+                forced = forced_;
+                forced_ = false;
             }
 
             if (stop) return;
-            if (suspend || !Configs::dataManager->settingsRepo->enable_stats) continue;
+            // A forced poll is a user action on the table, so it runs even while stats are off.
+            if (!forced && (suspend || !Configs::dataManager->settingsRepo->enable_stats)) continue;
 
             mu.lock();
-            update();
+            update(forced || inView_.load());
             mu.unlock();
         }
     }
@@ -81,16 +81,45 @@ namespace Stats
         return c;
     }
 
-    void ConnectionLister::update()
+    namespace
+    {
+        // The core iterates a map, so orderings must be total or equal keys reshuffle every poll.
+        template <typename Key>
+        void sortLargestFirst(QList<ConnectionMetadata>& list, bool asc, Key key)
+        {
+            std::sort(list.begin(), list.end(), [&](const ConnectionMetadata& a, const ConnectionMetadata& b)
+            {
+                const auto& ka = key(a);
+                const auto& kb = key(b);
+                if (ka == kb) return asc ? a.id > b.id : a.id < b.id;
+                return asc ? ka < kb : ka > kb;
+            });
+        }
+
+        // Text columns read the other way round: unflipped means A→Z, not Z→A.
+        template <typename Key>
+        void sortSmallestFirst(QList<ConnectionMetadata>& list, bool asc, Key key)
+        {
+            std::sort(list.begin(), list.end(), [&](const ConnectionMetadata& a, const ConnectionMetadata& b)
+            {
+                const auto& ka = key(a);
+                const auto& kb = key(b);
+                if (ka == kb) return asc ? a.id > b.id : a.id < b.id;
+                return asc ? ka > kb : ka < kb;
+            });
+        }
+    }
+
+    void ConnectionLister::update(const bool pushToUi)
     {
         libcore::QueryConnectionsResp resp = API::defaultClient->QueryConnections();
         const qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
 
-        QMap<QString, ConnectionMetadata> toUpdate;
-        QMap<QString, ConnectionMetadata> toAdd;
-        QSet<QString> newState;
-        QList<ConnectionMetadata> sorted;
+        QList<ConnectionMetadata> rows;
+        rows.reserve(static_cast<qsizetype>(resp.active.size()));
         QHash<QString, SpeedSample> newSamples;
+        newSamples.reserve(static_cast<qsizetype>(resp.active.size()));
+
         for (const auto& conn : resp.active)
         {
             auto c = metaFromProto(conn);
@@ -126,25 +155,9 @@ namespace Stats
             c.uploadSpeed = s.upSpeed;
             c.downloadSpeed = s.downSpeed;
 
-            if (sort == Default)
-            {
-                if (state->contains(c.id))
-                {
-                    toUpdate[c.id] = c;
-                } else
-                {
-                    toAdd[c.id] = c;
-                }
-            } else
-            {
-                sorted.append(c);
-            }
-            newState.insert(c.id);
+            rows.append(std::move(c));
         }
         speedSamples_ = newSamples; // drop ids for connections that have closed
-
-        state->clear();
-        for (const auto& id : newState) state->insert(id);
 
         // Credits the live set plus the recently-closed ring (deduped by id), so a connection that opened and closed between polls still counts.
         if (!Configs::dataManager->settingsRepo->disable_traffic_stats)
@@ -189,93 +202,46 @@ namespace Stats
             accountedClosed_ = currentClosed; // everything in the ring is accounted
         }
 
-        if (sort == Default)
+        if (!pushToUi) return;
+
+        switch (sort)
         {
-            runOnUiThread([=,this] {
-                auto m = GetMainWindow();
-                m->UpdateConnectionList(toUpdate, toAdd);
-            });
-        } else
-        {
-            if (sort == ByDownload)
-            {
-                std::sort(sorted.begin(), sorted.end(), [=,this](const ConnectionMetadata& a, const ConnectionMetadata& b)
-                {
-                    if (a.download == b.download) return asc ? a.id > b.id : a.id < b.id;
-                    return asc ? a.download < b.download : a.download > b.download;
-                });
-            }
-            if (sort == ByUpload)
-            {
-                std::sort(sorted.begin(), sorted.end(), [=,this](const ConnectionMetadata& a, const ConnectionMetadata& b)
-                {
-                   if (a.upload == b.upload) return asc ? a.id > b.id : a.id < b.id;
-                   return asc ? a.upload < b.upload : a.upload > b.upload;
-                });
-            }
-            if (sort == ByProcess)
-            {
-                std::sort(sorted.begin(), sorted.end(), [=,this](const ConnectionMetadata& a, const ConnectionMetadata& b)
-                {
-                    if (a.process == b.process) return asc ? a.id > b.id : a.id < b.id;
-                    return asc ? a.process > b.process : a.process < b.process;
-                });
-            }
-            if (sort == ByOutbound)
-            {
-                std::sort(sorted.begin(), sorted.end(), [=,this](const ConnectionMetadata& a, const ConnectionMetadata& b)
-                    {
-                        if (a.outbound == b.outbound) return asc ? a.id > b.id : a.id < b.id;
-                        return asc ? a.outbound > b.outbound : a.outbound < b.outbound;
-                    });
-            }
-            if (sort == ByProtocol)
-            {
-                std::sort(sorted.begin(), sorted.end(), [=,this](const ConnectionMetadata& a, const ConnectionMetadata& b)
-                    {
-                        if (a.protocol == b.protocol) return asc ? a.id > b.id : a.id < b.id;
-                        return asc ? a.protocol > b.protocol : a.protocol < b.protocol;
-                    });
-            }
-            if (sort == ByTraffic)
-            {
-                std::sort(sorted.begin(), sorted.end(), [=,this](const ConnectionMetadata& a, const ConnectionMetadata& b)
-                    {
-                        const long long ta = a.upload + a.download, tb = b.upload + b.download;
-                        if (ta == tb) return asc ? a.id > b.id : a.id < b.id;
-                        return asc ? ta < tb : ta > tb;
-                    });
-            }
-            if (sort == ByDownloadSpeed)
-            {
-                std::sort(sorted.begin(), sorted.end(), [=,this](const ConnectionMetadata& a, const ConnectionMetadata& b)
-                    {
-                        if (a.downloadSpeed == b.downloadSpeed) return asc ? a.id > b.id : a.id < b.id;
-                        return asc ? a.downloadSpeed < b.downloadSpeed : a.downloadSpeed > b.downloadSpeed;
-                    });
-            }
-            if (sort == ByUploadSpeed)
-            {
-                std::sort(sorted.begin(), sorted.end(), [=,this](const ConnectionMetadata& a, const ConnectionMetadata& b)
-                    {
-                        if (a.uploadSpeed == b.uploadSpeed) return asc ? a.id > b.id : a.id < b.id;
-                        return asc ? a.uploadSpeed < b.uploadSpeed : a.uploadSpeed > b.uploadSpeed;
-                    });
-            }
-            if (sort == BySpeed)
-            {
-                std::sort(sorted.begin(), sorted.end(), [=,this](const ConnectionMetadata& a, const ConnectionMetadata& b)
-                    {
-                        const long long sa = a.uploadSpeed + a.downloadSpeed, sb = b.uploadSpeed + b.downloadSpeed;
-                        if (sa == sb) return asc ? a.id > b.id : a.id < b.id;
-                        return asc ? sa < sb : sa > sb;
-                    });
-            }
-            runOnUiThread([=,this] {
-                auto m = GetMainWindow();
-                m->UpdateConnectionListWithRecreate(sorted);
-            });
+        // Oldest first, matching how rows used to accumulate. `asc` is ignored: this means "unsorted".
+        case Default:
+            sortSmallestFirst(rows, false, [](const ConnectionMetadata& c) { return c.createdAtMs; });
+            break;
+        case ByDownload:
+            sortLargestFirst(rows, asc, [](const ConnectionMetadata& c) { return c.download; });
+            break;
+        case ByUpload:
+            sortLargestFirst(rows, asc, [](const ConnectionMetadata& c) { return c.upload; });
+            break;
+        case ByTraffic:
+            sortLargestFirst(rows, asc, [](const ConnectionMetadata& c) { return c.upload + c.download; });
+            break;
+        case ByDownloadSpeed:
+            sortLargestFirst(rows, asc, [](const ConnectionMetadata& c) { return c.downloadSpeed; });
+            break;
+        case ByUploadSpeed:
+            sortLargestFirst(rows, asc, [](const ConnectionMetadata& c) { return c.uploadSpeed; });
+            break;
+        case BySpeed:
+            sortLargestFirst(rows, asc, [](const ConnectionMetadata& c) { return c.uploadSpeed + c.downloadSpeed; });
+            break;
+        case ByProcess:
+            sortSmallestFirst(rows, asc, [](const ConnectionMetadata& c) -> const QString& { return c.process; });
+            break;
+        case ByOutbound:
+            sortSmallestFirst(rows, asc, [](const ConnectionMetadata& c) -> const QString& { return c.outbound; });
+            break;
+        case ByProtocol:
+            sortSmallestFirst(rows, asc, [](const ConnectionMetadata& c) -> const QString& { return c.protocol; });
+            break;
         }
+
+        runOnUiThread([rows = std::move(rows)] {
+            if (auto* m = GetMainWindow()) m->UpdateConnectionList(rows);
+        });
     }
 
     void ConnectionLister::stopLoop()

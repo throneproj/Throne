@@ -6,11 +6,18 @@
 #include <QToolButton>
 #include <QVector>
 
+#include "include/ui/utils/ConnectionsTableModel.h"
+
 // Filter row over the connections table; traffic/speed hold formatted byte counts, so they get no field.
 class ConnectionsFilterHeader : public QHeaderView {
     Q_OBJECT
 public:
-    enum Column { ColDest = 0, ColProcess = 1, ColProtocol = 2, ColOutbound = 3, ColClose = 6, ColumnCount = 7 };
+    struct Filters {
+        QString dest;
+        QString process;
+        QString protocol;
+        QString outbound;
+    };
 
     explicit ConnectionsFilterHeader(QWidget *parent = nullptr)
         : QHeaderView(Qt::Horizontal, parent) {
@@ -29,17 +36,9 @@ public:
 
     bool filtersVisible() const { return m_filtersVisible; }
 
-    bool hasActiveFilter() const {
-        for (QLineEdit *edit : filterEdits()) {
-            if (!edit->text().isEmpty()) return true;
-        }
-        return false;
-    }
-
-    bool accepts(const QString &dest, const QString &process,
-                 const QString &protocol, const QString &outbound) const {
-        return matches(dest_filter, dest) && matches(process_filter, process)
-            && matches(protocol_filter, protocol) && matches(outbound_filter, outbound);
+    Filters filters() const {
+        return {dest_filter->text(), process_filter->text(),
+                protocol_filter->text(), outbound_filter->text()};
     }
 
     QSize sizeHint() const override {
@@ -108,7 +107,7 @@ public slots:
     }
 
     void adjustPositions() {
-        if (!m_filtersVisible || count() < ColumnCount) return;
+        if (!m_filtersVisible || count() < ConnectionsTableModel::ColumnCount) return;
 
         const int editHeight = 24;
         const int topPos = height() - editHeight - 4;
@@ -116,10 +115,10 @@ public slots:
         auto place = [&](QLineEdit *edit, int section) {
             edit->setGeometry(sectionViewportPosition(section) + 2, topPos, sectionSize(section) - 4, editHeight);
         };
-        place(dest_filter, ColDest);
-        place(process_filter, ColProcess);
-        place(protocol_filter, ColProtocol);
-        place(outbound_filter, ColOutbound);
+        place(dest_filter, ConnectionsTableModel::ColDest);
+        place(process_filter, ConnectionsTableModel::ColProcess);
+        place(protocol_filter, ConnectionsTableModel::ColProtocol);
+        place(outbound_filter, ConnectionsTableModel::ColOutbound);
     }
 
 signals:
@@ -139,21 +138,16 @@ private:
 
     QLineEdit *editForColumn(int column) const {
         switch (column) {
-        case ColDest:     return dest_filter;
-        case ColProcess:  return process_filter;
-        case ColProtocol: return protocol_filter;
-        case ColOutbound: return outbound_filter;
-        default:          return nullptr;
+        case ConnectionsTableModel::ColDest:     return dest_filter;
+        case ConnectionsTableModel::ColProcess:  return process_filter;
+        case ConnectionsTableModel::ColProtocol: return protocol_filter;
+        case ConnectionsTableModel::ColOutbound: return outbound_filter;
+        default:                                 return nullptr;
         }
     }
 
     QVector<QLineEdit*> filterEdits() const {
         return {dest_filter, process_filter, protocol_filter, outbound_filter};
-    }
-
-    static bool matches(const QLineEdit *edit, const QString &value) {
-        const QString needle = edit->text();
-        return needle.isEmpty() || value.contains(needle, Qt::CaseInsensitive);
     }
 
     static bool isTextEditingKey(QKeyEvent *key) {

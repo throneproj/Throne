@@ -439,7 +439,11 @@ namespace Configs {
             for (const auto& entry : form_entries) {
                 auto item = entry->Build().object;
                 if (item.isEmpty()) continue;
-                if (item.contains("value")) item["value"] = SubstituteOtp(item["value"].toString(), otpCode);
+                const auto rawValue = item["value"].toString();
+                // A form entry is never re-asked, so a baked code would be replayed forever;
+                // withholding it turns the field into a challenge the poller answers live.
+                if (otp_profile_id >= 0 && !BuildingTestConfig() && rawValue.contains(kOtpPlaceholder)) continue;
+                if (item.contains("value")) item["value"] = SubstituteOtp(rawValue, otpCode);
                 entries.append(item);
             }
             if (!entries.isEmpty()) object["form_entries"] = entries;

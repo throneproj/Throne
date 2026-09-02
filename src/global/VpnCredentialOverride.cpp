@@ -8,6 +8,17 @@ namespace Configs {
     namespace {
         QMutex vpnCredentialOverrideMu;
         QHash<int, VpnCredentials> vpnCredentialOverrides;
+        thread_local bool buildingTestConfig = false;
+    }
+
+    void SetBuildingTestConfig(const bool building)
+    {
+        buildingTestConfig = building;
+    }
+
+    bool BuildingTestConfig()
+    {
+        return buildingTestConfig;
     }
 
     void SetVpnCredentialOverride(int profileID, const VpnCredentials &credentials)
