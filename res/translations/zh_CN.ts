@@ -5,7 +5,7 @@
     <name>DialogAutoSelector</name>
     <message>
         <source>Auto Selector Stats</source>
-        <translation>自动下载统计</translation>
+        <translation>自动选择器统计</translation>
     </message>
     <message>
         <source>Only show profiles with problems</source>
@@ -89,7 +89,7 @@ It stays a preference, not a lock: if that profile stops working the selector st
     </message>
     <message>
         <source>No auto selector is running.</source>
-        <translation>没有正在运行的选择器。</translation>
+        <translation>没有自动选择器正在运行。</translation>
     </message>
     <message>
         <source>Checks are paused because this machine has no network connection. No profile is being blamed for it, and the ranking is frozen until the connection returns.</source>
@@ -117,7 +117,7 @@ It stays a preference, not a lock: if that profile stops working the selector st
     </message>
     <message>
         <source>Nothing is working right now — if this holds, the selector will rebuild from the next best profiles.</source>
-        <translation>目前没有任何起效的配置档 - 如果这种情况持续，选择器将从下一个最佳配置档开始重建。</translation>
+        <translation>目前没有任何起效的配置档 - 如果这种情况持续，选择器将从下一个最优配置档开始重建。</translation>
     </message>
     <message>
         <source>%1 ms</source>
@@ -255,6 +255,14 @@ It stays a preference, not a lock: if that profile stops working the selector st
         <translation>启用自定义图标</translation>
     </message>
     <message>
+        <source>Follow the connection status icon in the dock/taskbar. When off, it always shows the Throne icon</source>
+        <translation>应用坞/任务栏中图标跟随连接状态。当关闭时，它始终显示 Throne 图标</translation>
+    </message>
+    <message>
+        <source>Follow Status Icon in Taskbar</source>
+        <translation>任务栏中跟随状态图标</translation>
+    </message>
+    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Format: hwid=value,os=value,osVersion=value,model=value&lt;/p&gt;&lt;p&gt;Leave empty to use default values. Only specify the parameters you want to override.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;格式： hwid=value,os=value,osVersion=value,model=value&lt;/p&gt;&lt;p&gt;留空表示使用默认置。 仅指定您想要改写的参数。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
@@ -293,6 +301,18 @@ It stays a preference, not a lock: if that profile stops working the selector st
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Which outbound the NTP query is sent through&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;发送 NTP 查询所通过的出站方式或通道&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>sing-box API / Dashboard</source>
+        <translation>sing-box API / 仪表盘</translation>
+    </message>
+    <message>
+        <source>Loopback only. Leave the port empty to keep the web dashboard off.</source>
+        <translation>仅 Loopback (回环)。 端口留空表示关闭网页仪表盘。</translation>
+    </message>
+    <message>
+        <source>Regenerate Secret</source>
+        <translation>重新生成加密</translation>
     </message>
     <message>
         <source>Xray Core</source>
@@ -365,6 +385,10 @@ It stays a preference, not a lock: if that profile stops working the selector st
     <message>
         <source>Settings</source>
         <translation>设置</translation>
+    </message>
+    <message>
+        <source>OTP profiles</source>
+        <translation>OTP 配置档</translation>
     </message>
     <message>
         <source>Create Backup...</source>
@@ -1674,6 +1698,54 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <translation>默认 DNS 服务器</translation>
     </message>
     <message>
+        <source>Answer AAAA queries sent to this server with an empty result.</source>
+        <translation>用空结果回答发送到这个服务器的 AAAA 查询。</translation>
+    </message>
+    <message>
+        <source>Disable IPv6</source>
+        <translation>禁用 IPv6</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Answer A/AAAA queries from the system hosts file before consulting any DNS server. Only domains actually listed in the file are affected.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;在查询任何 DNS 服务器前，先从系统 hosts 文件回答 A/AAAA 查询。只有该文件中实际列出的域名会受到影响。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Respect Hosts File</source>
+        <translation>尊重 Hosts 文件</translation>
+    </message>
+    <message>
+        <source>Predefined Answers</source>
+        <translation>预定义回答</translation>
+    </message>
+    <message>
+        <source>Hand out no fake IPv6 addresses; AAAA queries are answered empty.</source>
+        <translation>不发出伪 IPv6 地址； AAAA 查询会被回答空结果。</translation>
+    </message>
+    <message>
+        <source>FakeIP Disable IPv6</source>
+        <translation>FakeIP 禁用 IPv6</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>高级</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Cache behaviour, optimistic cache and query timeout.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;缓存行为，乐观缓存和查询超时。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Advanced Settings</source>
+        <translation>高级设置</translation>
+    </message>
+    <message>
+        <source>Use Custom DNS Object</source>
+        <translation>使用自定义 DNS 对象</translation>
+    </message>
+    <message>
+        <source>Edit DNS Object</source>
+        <translation>编辑 DNS 对象</translation>
+    </message>
+    <message>
         <source>Disable Cache</source>
         <translation>禁用缓存</translation>
     </message>
@@ -1688,6 +1760,22 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>Cache Capacity</source>
         <translation>缓存容量</translation>
+    </message>
+    <message>
+        <source>Query Timeout</source>
+        <translation>查询超时</translation>
+    </message>
+    <message>
+        <source>Optimistic Cache</source>
+        <translation>乐观缓存</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Keep serving an expired answer while it is refreshed in the background. Cannot be combined with Disable Cache or Disable Expire.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;后台刷新期间持续提供过期的回答。 不能与“禁用缓存”或“禁用有效期”一起使用。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Optimistic Timeout</source>
+        <translation>乐观超时</translation>
     </message>
     <message>
         <source>Route</source>
@@ -2273,6 +2361,14 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>自动重定向</translation>
     </message>
     <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Forwards bypassed traffic straight out of the network interface instead of rebuilding it as a new connection, which is faster and keeps NAT intact for games and P2P. Applies to UDP and ICMP only; TCP still needs to be sniffed and keeps taking the normal direct path.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;转发绕过的流量直接从网络接口发送出去而不是把它重建为一个新连接，这样更快，同时对游戏和 P2P 保持 NAT 不变。仅适用于 UDP 和 ICMP； TCP 仍需要被嗅探并继续采用正常的直连路径。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>L3 Bridge Bypass</source>
+        <translation>L3 桥接绕过</translation>
+    </message>
+    <message>
         <source>Tun Address</source>
         <translation>Tun 地址</translation>
     </message>
@@ -2299,6 +2395,18 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>IPv6 CIDR is invalid.</source>
         <translation>IPv6 CIDR 无效。</translation>
+    </message>
+    <message>
+        <source>Private Range Bypass</source>
+        <translation>私有地址范围绕过</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Address ranges handed straight to the physical NIC instead of being routed through the core, one CIDR per line. Uncheck to let the core hijack private range traffic instead. Loopback and broadcast are always bypassed and cannot be listed here.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;地址范围直接交给物理网卡而不是通过核心进行路由，每行一个 CIDR。 取消勾选表示改为让核心劫持私有地址范围的流量。 Loopback (回环)和广播地址总是被绕过，不能在这里列出。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Restore default ranges</source>
+        <translation>恢复默认范围</translation>
     </message>
 </context>
 <context>
@@ -2423,7 +2531,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>The group whose profiles this selector picks from. New servers added by a subscription update join automatically — you never have to edit this profile again.</source>
-        <translation>这个选择器从中选取其配置档的分组。订阅更新增加的新服务器自动加入 - 你无需再手动编辑这个配置档了。</translation>
+        <translation>这个选择器会从中选取其配置档的分组。 由订阅更新增加的新服务器自动加入 - 你无需再手动编辑这个配置档了。</translation>
     </message>
     <message>
         <source>Only names matching</source>
@@ -2439,11 +2547,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Share traffic between the best profiles</source>
-        <translation>最佳配置档间分享流量</translation>
+        <translation>最优配置档间分享流量</translation>
     </message>
     <message>
         <source>Off by default: one profile carries everything and the rest stand by. Turn on to spread traffic over the profiles that are confirmed working.</source>
-        <translation>默认关闭: 一个配置档承担一切流量而其余的待机。 开启（该选项）则流量分散到已确认正常工作的配置档上。</translation>
+        <translation>默认关闭: 一个配置档承载一切流量而其余的待机。 开启（该选项）则流量分散到已确认正常运作的配置档上。</translation>
     </message>
     <message>
         <source>Preferred profile</source>
@@ -2471,7 +2579,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Only countries</source>
-        <translation>仅(指定)国别</translation>
+        <translation>仅定国家</translation>
     </message>
     <message>
         <source>e.g. DE,NL,FR</source>
@@ -2483,7 +2591,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Run the best</source>
-        <translation>运行最佳的</translation>
+        <translation>运行最优的</translation>
     </message>
     <message>
         <source> profiles</source>
@@ -2495,7 +2603,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Rank at most</source>
-        <translation>排序最多</translation>
+        <translation>排名最多</translation>
     </message>
     <message>
         <source>Hard ceiling on how many profiles are measured and kept in the ranked list. When every running profile dies, replacements are taken from this list.</source>
@@ -2531,11 +2639,11 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Keep ready</source>
-        <translation>保持待命</translation>
+        <translation>保持就绪</translation>
     </message>
     <message>
         <source>How many profiles are kept confirmed working at all times, so a failure can be covered instantly. These are also the ones traffic is shared between when balancing is on.</source>
-        <translation>始终保持被确认有效的配置档数量，以便出现故障时可瞬时替补。开启（负载）均衡时这些（配置档）也会分享流量。</translation>
+        <translation>始终保持被确认正常运作的配置档数量，以便出现故障时可瞬时（替补）恢复。开启（负载）均衡时这些（配置档）也会分享流量。</translation>
     </message>
     <message>
         <source>Check closely</source>
@@ -2543,7 +2651,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>The top-ranked profiles are re-checked every interval. The rest are still checked, just spread over the slower full sweep.</source>
-        <translation>排名靠前的配置档会每隔指定时间间隔进行一次重新检查。其余的仍会被检查，不过只会分散到较慢的完整扫描流程中进行。</translation>
+        <translation>每隔指定时间间隔，排名靠前的配置档会进行一次重新检查。其余的仍会被检查，只是会分散到较慢的完整扫描流程中进行。</translation>
     </message>
     <message>
         <source>Check interval</source>
@@ -2563,15 +2671,15 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>How long one pass over every running profile takes. Checks are spread evenly across it, so a large pool never causes a burst of traffic.</source>
-        <translation>每个运行中的配置档遍历一次所需时间。检查会在其中均匀分布，因此不会一个大型池而导致流量的突发。</translation>
+        <translation>遍历每个运行中的配置档一次所需时间。检查会在其中均匀分布，因此不会因一个大型（配置档）池而导致流量的突发。</translation>
     </message>
     <message>
         <source>Watch profile in use</source>
-        <translation>监测使用中的配置档</translation>
+        <translation>监视使用中的配置档</translation>
     </message>
     <message>
         <source>How often the profile currently carrying your traffic is checked on its own. Keep this short: a server can stop working while still accepting connections, and nothing else would notice until the next full check.</source>
-        <translation>当前承载你的流量的配置档会多久被单独检查一次。请注意： 服务器可能在其仍能接受连接的情况下停止运作，并且直至下一次完整检查前都不会发现任何情况。</translation>
+        <translation>当前承载你的流量的配置档多久会被自行检查一次。 请注意： 服务器可能在其仍能接受连接的情况下停止运作，并且直至下一次完整检查前都不会收到任何其他情况的通知。</translation>
     </message>
     <message>
         <source>Samples kept</source>
@@ -2579,7 +2687,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Ranking uses the average and the jitter over this many recent checks, so a single bad result cannot demote a good server.</source>
-        <translation>排名基于这几次近期的检查的均值和抖动(Jitter)，因此单次的异常结果不会降级一个良好的服务器。</translation>
+        <translation>排名使用这几次近期检查的均值和抖动(Jitter)，因此单次的异常结果不会降级一个良好的服务器。</translation>
     </message>
     <message>
         <source>Switching</source>
@@ -2703,15 +2811,15 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>The best profile carries all traffic; the other ready profiles are kept verified so one can take over instantly.</source>
-        <translation>最好的配置档承载所有流量；其他的已就绪的配置档会保持经过验证状态，以便可以（在需要时）瞬时接管。</translation>
+        <translation>最好的配置档承载所有流量；其他的已就绪配置档会保持经过验证状态，以便可以（在需要时）瞬时接管。</translation>
     </message>
     <message>
         <source>New connections move to another good profile on each rotation; open ones are left alone and finish where they started. Traffic is counted exactly.</source>
-        <translation>每次轮换时，新的连接会移到另一个良好的配置档；已打开的会保持不变并在其开始的位置（配置档）上完成工作。流量会精确统计。</translation>
+        <translation>每次轮换时，新的连接会移到另一个好的配置档；已打开的（连接）会保持不变并在其开始的位置（配置档）上完成工作。流量会精确统计。</translation>
     </message>
     <message>
         <source>Every new connection may take a different profile. Widest spread, but your exit IP changes mid-session and per-profile traffic becomes approximate.</source>
-        <translation>每个新的连接可能采用不同的配置档。最广的分布，但是你的出口 IP 会在会话中途更改，并且按配置档统计的流量会变成近似值。</translation>
+        <translation>每个新的连接可采用不同的配置档。分布最广，但是你的出口 IP 会在会话中途更改，并且按配置档统计的流量会变成近似值。</translation>
     </message>
     <message>
         <source>%1 of %2 profiles in the group can be used; %3 would run.</source>
@@ -3218,92 +3326,9 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>生成 Warp 配置</translation>
     </message>
     <message>
-        <source>Pre Shared Key</source>
-        <translation>预共享钥匙</translation>
+        <source>Amnezia Settings</source>
+        <translation>Amnezia 设置</translation>
     </message>
-    <message>
-        <source>Use System Interface</source>
-        <translation>使用系统接口</translation>
-    </message>
-    <message>
-        <source>Public Key</source>
-        <translation>公钥</translation>
-    </message>
-    <message>
-        <source>Private Key</source>
-        <translation>私钥</translation>
-    </message>
-    <message>
-        <source>Workers</source>
-        <translation>工作线程</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Persistent Keepalive</source>
-        <translation>持久保活</translation>
-    </message>
-    <message>
-        <source>Getting keypair...</source>
-        <translation>正在获取钥匙对…</translation>
-    </message>
-    <message>
-        <source>Failed to get key pair</source>
-        <translation>获取钥匙对失败</translation>
-    </message>
-    <message>
-        <source>Generating config...</source>
-        <translation>正在生成配置…</translation>
-    </message>
-    <message>
-        <source>Failed to generate warp config</source>
-        <translation>生成 warp 配置失败</translation>
-    </message>
-    <message>
-        <source>Success!</source>
-        <translation>成功!</translation>
-    </message>
-    <message>
-        <source>Junk Packet Count</source>
-        <translation>垃圾数据包数量</translation>
-    </message>
-    <message>
-        <source>Junk Packet Min Size</source>
-        <translation>垃圾数据包最小尺寸</translation>
-    </message>
-    <message>
-        <source>Junk Packet Max Size</source>
-        <translation>垃圾数据包最大尺寸</translation>
-    </message>
-    <message>
-        <source>Init Packet Junk Size</source>
-        <translation>初始数据包垃圾大小</translation>
-    </message>
-    <message>
-        <source>Response Packet Junk Size</source>
-        <translation>响应数据包垃圾大小</translation>
-    </message>
-    <message>
-        <source>Init Packet Magic Header</source>
-        <translation>初始数据包魔术报头</translation>
-    </message>
-    <message>
-        <source>Response Packet Magic Header</source>
-        <translation>响应数据包魔术报头</translation>
-    </message>
-    <message>
-        <source>Underload Packet Magic Header</source>
-        <translation>欠载数据包魔法报头</translation>
-    </message>
-    <message>
-        <source>Transport Header Magic Header</source>
-        <translation>传送报头魔法报头</translation>
-    </message>
-</context>
-<context>
-    <name>EditWireguardAmnezia</name>
     <message>
         <source>Cookie Reply Packet Junk Size (S3)</source>
         <translation>Cookie 回复数据包垃圾大小 (S3)</translation>
@@ -3339,6 +3364,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Signature Packet (I1)</source>
         <translation>签名数据包 (I1)</translation>
+    </message>
+    <message>
+        <source>Enable</source>
+        <translation>启用</translation>
     </message>
     <message>
         <source>Response Packet Junk Size (S2)</source>
@@ -3423,6 +3452,90 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>Max Handshake Attempts</source>
         <translation>最多握手尝试次数</translation>
+    </message>
+    <message>
+        <source>Pre Shared Key</source>
+        <translation>预共享钥匙</translation>
+    </message>
+    <message>
+        <source>Use System Interface</source>
+        <translation>使用系统接口</translation>
+    </message>
+    <message>
+        <source>Public Key</source>
+        <translation>公钥</translation>
+    </message>
+    <message>
+        <source>Private Key</source>
+        <translation>私钥</translation>
+    </message>
+    <message>
+        <source>Workers</source>
+        <translation>工作线程</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Persistent Keepalive</source>
+        <translation>持久保活</translation>
+    </message>
+    <message>
+        <source>Getting keypair...</source>
+        <translation>正在获取钥匙对…</translation>
+    </message>
+    <message>
+        <source>Failed to get key pair</source>
+        <translation>获取钥匙对失败</translation>
+    </message>
+    <message>
+        <source>Generating config...</source>
+        <translation>正在生成配置…</translation>
+    </message>
+    <message>
+        <source>Failed to generate warp config</source>
+        <translation>生成 warp 配置失败</translation>
+    </message>
+    <message>
+        <source>Success!</source>
+        <translation>成功!</translation>
+    </message>
+    <message>
+        <source>Junk Packet Count</source>
+        <translation>垃圾数据包数量</translation>
+    </message>
+    <message>
+        <source>Junk Packet Min Size</source>
+        <translation>垃圾数据包最小尺寸</translation>
+    </message>
+    <message>
+        <source>Junk Packet Max Size</source>
+        <translation>垃圾数据包最大尺寸</translation>
+    </message>
+    <message>
+        <source>Init Packet Junk Size</source>
+        <translation>初始数据包垃圾大小</translation>
+    </message>
+    <message>
+        <source>Response Packet Junk Size</source>
+        <translation>响应数据包垃圾大小</translation>
+    </message>
+    <message>
+        <source>Init Packet Magic Header</source>
+        <translation>初始数据包魔术报头</translation>
+    </message>
+    <message>
+        <source>Response Packet Magic Header</source>
+        <translation>响应数据包魔术报头</translation>
+    </message>
+    <message>
+        <source>Underload Packet Magic Header</source>
+        <translation>欠载数据包魔法报头</translation>
+    </message>
+    <message>
+        <source>Transport Header Magic Header</source>
+        <translation>传送报头魔法报头</translation>
     </message>
 </context>
 <context>
@@ -3741,12 +3854,24 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>Tun 设置</translation>
     </message>
     <message>
+        <source>Preset Settings</source>
+        <translation>预设设置</translation>
+    </message>
+    <message>
         <source>Restart Program</source>
         <translation>重启程序</translation>
     </message>
     <message>
         <source>Open Config Folder</source>
         <translation>打开配置文件夹</translation>
+    </message>
+    <message>
+        <source>Open Web dashboard</source>
+        <translation>打开网络仪表盘</translation>
+    </message>
+    <message>
+        <source>OTP Manager</source>
+        <translation>OTP 管理器</translation>
     </message>
     <message>
         <source>Resolve Selected Out IP</source>
@@ -4012,7 +4137,7 @@ Please start your profile again.</source>
     </message>
     <message>
         <source>[Auto selector] Running the best %1 of %2 ranked profiles.</source>
-        <translation>[自动选择器] 正在运行排名最佳的 %1 / %2 个配置档。</translation>
+        <translation>[自动选择器] 正在运行排名最优的 %1 / %2 个配置档。</translation>
     </message>
     <message>
         <source>If there is no response for a long time, it is recommended to restart the software.</source>
@@ -4077,6 +4202,14 @@ Please start your profile again.</source>
     <message>
         <source>Edit selected Group</source>
         <translation>编辑选定分组</translation>
+    </message>
+    <message>
+        <source>Url Test selected Group</source>
+        <translation>URL 测试选定分组</translation>
+    </message>
+    <message>
+        <source>Speed Test selected Group</source>
+        <translation>速度测试选定分组</translation>
     </message>
     <message>
         <source>Remove %1?</source>
@@ -5003,11 +5136,11 @@ Release note:
     </message>
     <message>
         <source>Auto selector on %1 (%2 of %3 working)</source>
-        <translation>自动选择器: %1 (可用：%2 / %3)</translation>
+        <translation>自动选择器位于 %1 上 (可用：%2 / %3)</translation>
     </message>
     <message>
         <source>, switched %1</source>
-        <translation>, 已切换 %1</translation>
+        <translation>, 切换于 %1</translation>
     </message>
     <message>
         <source>%1 working</source>
@@ -5588,6 +5721,160 @@ Deleted %3 Profiles:
     <message>
         <source>Failed to get key pair</source>
         <translation>获取钥匙对失败</translation>
+    </message>
+</context>
+<context>
+    <name>DialogPresetSettings</name>
+    <message>
+        <source>Preset Settings</source>
+        <translation>预设设置</translation>
+    </message>
+    <message>
+        <source>Multiplex</source>
+        <translation>复用</translation>
+    </message>
+    <message>
+        <source>Protocol</source>
+        <translation>协议</translation>
+    </message>
+    <message>
+        <source>Concurrency</source>
+        <translation>并发</translation>
+    </message>
+    <message>
+        <source>Default On</source>
+        <translation>默认开启</translation>
+    </message>
+    <message>
+        <source>Default Mux On</source>
+        <translation>默认多路复用开启</translation>
+    </message>
+    <message>
+        <source>Implementation</source>
+        <translation>实现</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Which TLS fragmentation implementation profiles use: built-in (sing-box tls.fragment) or custom (Hiddify dialer-level ClientHello fragmentation).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;使用哪个 TLS 分片实现配置档: built-in (sing-box tls.fragment) 或 custom (Hiddify 拨号器级 ClientHello 分片)。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Size</source>
+        <translation>大小</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Custom implementation only: bytes per ClientHello fragment, as a range min-max (e.g. 10-100).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;仅自定义实现: 每个 ClientHello 分片字节数，以最小-最大值的范围表示(如 10-100).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Sleep</source>
+        <translation>睡眠</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Custom implementation only: milliseconds to sleep between fragment bursts, as a range min-max (e.g. 2-5).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;仅自定义实现: 每次分片突发间睡眠的毫秒数，以最小-最大值的范围表示(如 2-5).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fragment profiles whose Fragment setting is left on &amp;quot;Keep Default&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;分片设置保持在&amp;quot;Keep Default&amp;quot;（保持默认）的分片配置档。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>TLS Tricks</source>
+        <translation>TLS 技巧</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable mixed-case SNI for profiles whose TLS Tricks setting is left on &amp;quot;Keep Default&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;对其 TLS Tricks 设置保持在 &amp;quot;Keep Default&amp;quot;（保持默认）的配置档启用混合大小写的 SNI。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Default Fingerprint</source>
+        <translation>默认指纹</translation>
+    </message>
+    <message>
+        <source>TLS Spoof</source>
+        <translation>TLS 欺骗</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Inject a forged TLS ClientHello carrying this SNI before the real one, to pass SNI filtering that allows specific hostnames. Profiles that set their own Spoof SNI override this one.&lt;/p&gt;&lt;p&gt;Client only. Requires elevated privileges (root on macOS, CAP_NET_RAW and CAP_NET_ADMIN on Linux, Administrator on Windows for the WinDivert driver). Not supported on Windows ARM64. &amp;quot;wrong-timestamp&amp;quot; is not supported on macOS.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;在真实的 TLS ClientHello 前，注入一个承载这个 SNI 的伪造 TLS ClientHello，以传递允许特定主机名的 SNI 过滤。 设置其自有的欺骗 SNI 的配置档会凌驾于这个。&lt;/p&gt;&lt;p&gt;仅客户端。需要提权 (在 macOS 上的 root，在 Linux 上的 CAP_NET_RAW 和 CAP_NET_ADMIN，在 Windows 上的 Administrator 用于 WinDivert 驱动程序)。在 Windows ARM64 上不被支持。 macOS 上不支持 &amp;quot;wrong-timestamp&amp;quot;。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Spoof SNI</source>
+        <translation>欺骗 SNI</translation>
+    </message>
+    <message>
+        <source>Allowed SNI to forge</source>
+        <translation>允许 SNI 伪装</translation>
+    </message>
+    <message>
+        <source>Method</source>
+        <translation>方法</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;How the forged ClientHello is made invalid for the server, so only the filter acts on it. Empty keeps the core&apos;s default.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;如何使伪造的 ClientHello 对服务器无效，从而仅由过滤器对其进行处理。留空则保持核心的默认设置。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Spoof profiles whose TLS Spoof setting is left on &amp;quot;Keep Default&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TLS Spoof （TLS欺骗）设置保持在 &amp;quot;Keep Default&amp;quot;（保持默认）的欺骗配置档。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>HTTP/2 &amp;&amp; QUIC</source>
+        <translation>HTTP/2 和 QUIC</translation>
+    </message>
+    <message>
+        <source>HTTP/2 parameters also apply to Hysteria, Hysteria2 and TUIC. Empty keeps the core&apos;s default.</source>
+        <translation>HTTP/2 参数同样适用于 Hysteria、Hysteria2 和 TUIC。留空则使用核心的默认值。</translation>
+    </message>
+    <message>
+        <source>HTTP/2 Parameters</source>
+        <translation>HTTP/2 参数</translation>
+    </message>
+    <message>
+        <source>Idle Timeout</source>
+        <translation>空闲超时</translation>
+    </message>
+    <message>
+        <source>Keep Alive Period</source>
+        <translation>保持活动周期</translation>
+    </message>
+    <message>
+        <source>Stream Receive Window</source>
+        <translation>流接收窗口</translation>
+    </message>
+    <message>
+        <source>Connection Receive Window</source>
+        <translation>连接接收窗口</translation>
+    </message>
+    <message>
+        <source>Max Concurrent Streams</source>
+        <translation>最大并发流数</translation>
+    </message>
+    <message>
+        <source>QUIC Parameters</source>
+        <translation>QUIC 参数</translation>
+    </message>
+    <message>
+        <source>Initial Packet Size</source>
+        <translation>初始数据包大小</translation>
+    </message>
+    <message>
+        <source>Disable Path MTU Discovery</source>
+        <translation>禁用路径 MTU 发现</translation>
+    </message>
+</context>
+<context>
+    <name>DialogOtpManager</name>
+    <message>
+        <source>OTP Manager</source>
+        <translation>OTP 管理器</translation>
+    </message>
+    <message>
+        <source>Import</source>
+        <translation>导入</translation>
+    </message>
+    <message>
+        <source>Scan QR Code</source>
+        <translation>扫描 QR 码</translation>
     </message>
 </context>
 </TS>
