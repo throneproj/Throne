@@ -196,9 +196,9 @@ namespace Configs {
             "log", "log-append", "lport", "machine-readable-output", "max-routes", "mode", "mssfix-default", "mtu-disc",
             "mtu-test", "multihome", "mute", "mute-replay-warnings", "ncp-disable", "nice", "nobind", "opt-verify",
             "passtos", "persist-key", "persist-local-ip", "persist-remote-ip", "persist-tun", "ping-timer-rem", "pull",
-            "rcvbuf", "register-dns", "remap-usr1", "remote-random-hostname", "resolv-retry", "route-delay",
-            "route-method", "route-pre-down", "route-up", "script-security", "server-poll-timeout", "service",
-            "setenv", "setenv-safe", "single-session", "sndbuf", "socket-flags", "status", "suppress-timestamps",
+            "push-peer-info", "rcvbuf", "register-dns", "remap-usr1", "remote-random-hostname", "resolv-retry",
+            "route-delay", "route-method", "route-pre-down", "route-up", "script-security", "server-poll-timeout",
+            "service", "setenv-safe", "single-session", "sndbuf", "socket-flags", "status", "suppress-timestamps",
             "syslog", "tls-client", "tls-exit", "tls-verify", "topology-subnet", "tran-window", "tun-mtu-extra",
             "txqueuelen", "up", "up-delay", "up-restart", "user", "verb", "windows-driver", "writepid",
         };
@@ -245,6 +245,17 @@ namespace Configs {
         QString ifconfigLocal;
         QString ifconfigSecond;
         QString fatal;
+        QString clientCertSwitch;
+        QString friendlyName;
+
+        // OpenVPN Connect keeps its display name in a comment, which the tokenizer drops.
+        for (const auto& line : body.split('\n')) {
+            auto trimmed = line.trimmed();
+            if (!trimmed.startsWith('#')) continue;
+            trimmed = trimmed.mid(1).trimmed();
+            const auto prefix = QStringLiteral("OVPN_FRIENDLY_PROFILE_NAME=");
+            if (trimmed.startsWith(prefix)) friendlyName = trimmed.mid(prefix.size()).trimmed();
+        }
 
         for (const auto& item : directives) {
             if (!fatal.isEmpty()) break;
@@ -363,6 +374,17 @@ namespace Configs {
                 if (!value.isEmpty() && value != "[inline]") {
                     notes << QObject::tr("Credentials live in %1; enter them in the profile editor.").arg(value);
                 }
+                continue;
+            }
+            // OpenVPN 3 reads both as a client-side "log in without a client certificate"; 2.x has no such switch.
+            if (key == "client-cert-not-required") {
+                clientCertSwitch = key;
+                continue;
+            }
+            if (key == "setenv") {
+                const auto setting = args.size() > 2 ? args[2] : QString();
+                if (value == "CLIENT_CERT" && setting == "0") clientCertSwitch = "setenv CLIENT_CERT 0";
+                else if (value == "FRIENDLY_NAME" && !setting.isEmpty()) friendlyName = setting;
                 continue;
             }
             if (key == "static-challenge") {
@@ -626,6 +648,30 @@ namespace Configs {
             return false;
         }
 
+        auto& tls = *out.tls;
+        if (!clientCertSwitch.isEmpty()) {
+            const bool dropped = !tls.client_certificate.isEmpty() || !tls.client_certificate_path.isEmpty() ||
+                                 !tls.client_key.isEmpty() || !tls.client_key_path.isEmpty();
+            tls.client_certificate.clear();
+            tls.client_certificate_path.clear();
+            tls.client_key.clear();
+            tls.client_key_path.clear();
+            if (dropped) {
+                notes << QObject::tr("`%1` turns the client certificate off; it was dropped and the server has to accept "
+                                     "password login.").arg(clientCertSwitch);
+            }
+        }
+        // The core, like OpenVPN 2.x, refuses a lone certificate or key; OpenVPN 3 only tolerates it behind the switch.
+        const bool hasClientCert = !tls.client_certificate.isEmpty() || !tls.client_certificate_path.isEmpty();
+        const bool hasClientKey = !tls.client_key.isEmpty() || !tls.client_key_path.isEmpty();
+        if (hasClientCert != hasClientKey) {
+            notes << (hasClientCert ? QObject::tr("`cert` without a `key`: add the private key, or "
+                                                  "`client-cert-not-required` for password-only login.")
+                                    : QObject::tr("`key` without a `cert`: add the client certificate."));
+            flush();
+            return false;
+        }
+
         for (auto& remote : remotes) {
             if (remote.port == 0) remote.port = defaultPort > 0 ? defaultPort : kOvpnDefaultPort;
         }
@@ -650,6 +696,7 @@ namespace Configs {
                 out.servers += entry;
             }
         }
+        if (!friendlyName.isEmpty()) out.name = friendlyName;
         if (out.name.isEmpty()) out.name = remotes[0].host;
 
         if (!ifconfigLocal.isEmpty() && !ifconfigSecond.isEmpty()) {

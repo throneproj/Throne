@@ -313,6 +313,47 @@ namespace Subscription {
             }
         }
 
+        if (str.startsWith("vpn://", Qt::CaseInsensitive)) {
+            auto raw = str.mid(6);
+            if (auto frag = raw.indexOf('#'); frag != -1) raw = raw.left(frag);
+            raw = QUrl::fromPercentEncoding(raw.toUtf8());
+            auto dataBytes = DecodeB64IfValid(raw.toUtf8());
+            if (dataBytes.isEmpty()) dataBytes = DecodeB64IfValid(raw.toUtf8(), QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
+            if (!dataBytes.isEmpty()) {
+                if (dataBytes.size() > 4) {
+                    auto uncompressed = qUncompress(dataBytes);
+                    if (!uncompressed.isEmpty()) dataBytes = uncompressed;
+                }
+                auto doc = QJsonDocument::fromJson(dataBytes);
+                if (doc.isObject() && doc.object().contains("containers")) {
+                    for (const auto &cVal : doc.object()["containers"].toArray()) {
+                        if (!cVal.isObject()) continue;
+                        auto cObj = cVal.toObject();
+                        for (const auto &key : cObj.keys()) {
+                            if (!cObj[key].isObject()) continue;
+                            auto protoObj = cObj[key].toObject();
+                            QString conf;
+                            if (protoObj["last_config"].isString()) {
+                                auto lc = protoObj["last_config"].toString();
+                                auto innerDoc = QJsonDocument::fromJson(lc.toUtf8());
+                                if (innerDoc.isObject() && innerDoc.object().contains("config")) {
+                                    conf = innerDoc.object()["config"].toString();
+                                } else {
+                                    conf = lc;
+                                }
+                            } else if (protoObj["last_config"].isObject()) {
+                                conf = protoObj["last_config"].toObject()["config"].toString();
+                            }
+                            if (!conf.isEmpty()) update(conf.trimmed(), true, true);
+                        }
+                    }
+                    return;
+                }
+                update(QString::fromUtf8(dataBytes).trimmed(), true, true);
+                return;
+            }
+        }
+
         if (str.startsWith("socks5://") || str.startsWith("socks4://") ||
             str.startsWith("socks4a://") || str.startsWith("socks://")) {
             ent = Configs::ProfilesRepo::NewProfile("socks");
@@ -405,7 +446,7 @@ namespace Subscription {
             if (!ok) return;
         }
 
-        if (str.startsWith("wg://")) {
+        if (str.startsWith("wg://") || str.startsWith("wireguard://")) {
             ent = Configs::ProfilesRepo::NewProfile("wireguard");
             auto ok = ent->Wireguard()->ParseFromLink(str);
             if (!ok) return;

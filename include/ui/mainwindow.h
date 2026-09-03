@@ -387,6 +387,7 @@ private:
     void applyLogBrowserFont();
 
     void applyTopBarMetrics();
+    bool usesTightLabels() const;
 
     QSize designMinimumSize;
 

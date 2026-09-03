@@ -19,6 +19,15 @@
 #include "include/ui/utils/ProfilesTableModel.h"
 #include "include/ui/widget/StartStopButton.hpp"
 
+// Language setting -> locale, mirroring the switch in main.cpp; 0 follows the system locale.
+// QLocale() alone is not enough: explicit English leaves the default locale on the system one.
+bool MainWindow::usesTightLabels() const {
+    static const QStringList byLanguageSetting = {"", "en", "zh_CN", "fa_IR", "ru_RU"};
+    const int language = Configs::dataManager->settingsRepo->language;
+    const QString locale = language == 0 ? QLocale().name() : byLanguageSetting.value(language);
+    return locale.startsWith("zh") || locale.startsWith("ru");
+}
+
 void MainWindow::applyTopBarMetrics() {
     const QList<QToolButton*> menuButtons = {
         ui->toolButton_program, ui->toolButton_preferences, ui->toolButton_testing,
@@ -32,6 +41,14 @@ void MainWindow::applyTopBarMetrics() {
     for (auto* b : menuButtons) {
         b->ensurePolished();
         uniformButtonWidth = qMax(uniformButtonWidth, b->sizeHint().width());
+    }
+
+    // QToolButton's only slack is one space advance per side, which is clearance for Latin ink but
+    // not for CJK glyphs that fill their advance box, nor for RU labels long enough to sit at that
+    // bound on every button at once -- both run into the chevron. Buy those locales a second space
+    // advance per side rather than widening all five in every language (#1665, #1829).
+    if (usesTightLabels()) {
+        uniformButtonWidth += 2 * fontMetrics().horizontalAdvance(' ');
     }
     for (auto* b : menuButtons) b->setMinimumWidth(uniformButtonWidth);
 

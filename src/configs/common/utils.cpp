@@ -59,6 +59,8 @@ namespace Configs
         if (dataManager->settingsRepo->xray_vless_preference == Xray::AllVLESS
             || rawHttp
             || transport == "xhttp"
+            || query.hasQueryItem("fm")
+            || query.hasQueryItem("finalmask")
             || (query.queryItemValue("security") == "reality" && dataManager->settingsRepo->xray_vless_preference == Xray::XhttpAndReality)
             || (query.queryItemValue("encryption") != "none" && query.queryItemValue("encryption") != "")
             || query.queryItemValue("extra") != "") return true;

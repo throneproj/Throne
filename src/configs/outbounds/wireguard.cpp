@@ -8,39 +8,46 @@
 #include "include/configs/common/utils.h"
 
 namespace Configs {
-    static bool ParseAmneziaBool(const QString& value)
-    {
-        auto trimmed = value.trimmed();
-        return trimmed.compare("true", Qt::CaseInsensitive) == 0 || trimmed == "1";
+    static bool ParseAmneziaBool(const QString& value) {
+        auto trimmed = value.trimmed().toLower();
+        return trimmed == "true" || trimmed == "1" || trimmed == "on" || trimmed == "yes";
     }
 
-    bool Peer::ParseFromLink(const QString& link)
-    {
+    bool Peer::ParseFromLink(const QString& link) {
         auto url = QUrl(link);
         if (!url.isValid()) return false;
         auto query = QUrlQuery(url.query());
 
         address = url.host();
-        port = url.port();
+        port = url.port(51820);
         if (query.hasQueryItem("public_key")) public_key = query.queryItemValue("public_key");
-        if (query.hasQueryItem("peer_public_key")) public_key = query.queryItemValue("peer_public_key");
+        else if (query.hasQueryItem("publickey")) public_key = query.queryItemValue("publickey");
+        else if (query.hasQueryItem("peer_public_key")) public_key = query.queryItemValue("peer_public_key");
+
         if (query.hasQueryItem("pre_shared_key")) pre_shared_key = query.queryItemValue("pre_shared_key");
+        else if (query.hasQueryItem("preshared_key")) pre_shared_key = query.queryItemValue("preshared_key");
+        else if (query.hasQueryItem("presharedkey")) pre_shared_key = query.queryItemValue("presharedkey");
+        else if (query.hasQueryItem("psk")) pre_shared_key = query.queryItemValue("psk");
+
         if (query.hasQueryItem("reserved")) {
             QString rawReserved = query.queryItemValue("reserved");
             if (!rawReserved.isEmpty()) {
-                for (const auto& item : rawReserved.split("-")) {
-                    int val = item.toInt();
-                    if (val > 0) reserved.append(val);
+                rawReserved.replace(',', '-');
+                for (const auto& item : rawReserved.split("-", Qt::SkipEmptyParts)) {
+                    bool ok = false;
+                    int val = item.toInt(&ok);
+                    if (ok && val >= 0 && val <= 255) reserved.append(val);
                 }
             }
         }
         if (query.hasQueryItem("persistent_keepalive_interval")) persistent_keepalive = query.queryItemValue("persistent_keepalive_interval");
+        else if (query.hasQueryItem("persistent_keepalive")) persistent_keepalive = query.queryItemValue("persistent_keepalive");
+        else if (query.hasQueryItem("keepalive")) persistent_keepalive = query.queryItemValue("keepalive");
 
         return true;
     }
 
-    bool Peer::ParseFromJson(const QJsonObject& object)
-    {
+    bool Peer::ParseFromJson(const QJsonObject& object) {
         if (object.isEmpty()) return false;
         if (object.contains("address")) address = object["address"].toString();
         if (object.contains("port")) port = object["port"].toInt();
@@ -56,8 +63,7 @@ namespace Configs {
         return true;
     }
 
-    QString Peer::ExportToLink()
-    {
+    QString Peer::ExportToLink() {
         QUrlQuery query;
         if (!public_key.isEmpty()) query.addQueryItem("public_key", public_key);
         if (!pre_shared_key.isEmpty()) query.addQueryItem("pre_shared_key", pre_shared_key);
@@ -72,8 +78,7 @@ namespace Configs {
         return query.toString();
     }
 
-    QJsonObject Peer::ExportToJson()
-    {
+    QJsonObject Peer::ExportToJson() {
         QJsonObject object;
         if (!address.isEmpty()) object["address"] = address;
         if (port > 0) object["port"] = port;
@@ -84,8 +89,7 @@ namespace Configs {
         return object;
     }
 
-    BuildResult Peer::Build()
-    {
+    BuildResult Peer::Build() {
         QJsonObject object;
         if (!address.isEmpty()) object["address"] = address;
         if (port > 0) object["port"] = port;
@@ -98,8 +102,7 @@ namespace Configs {
     }
 
     // A range must be a string and a plain interval a number; anything else makes the core refuse to start.
-    void Peer::WriteKeepalive(QJsonObject& object) const
-    {
+    void Peer::WriteKeepalive(QJsonObject& object) const {
         if (persistent_keepalive.isEmpty()) return;
         bool numeric = false;
         int seconds = persistent_keepalive.toInt(&numeric);
@@ -113,62 +116,65 @@ namespace Configs {
         }
     }
 
-    bool wireguard::ParseFromLink(const QString& link)
-    {
+    bool wireguard::ParseFromLink(const QString& link) {
         if (link.contains("[Interface]") && link.contains("[Peer]")) {
             auto lines = link.split("\n");
             for (const auto& line : lines) {
                 QString trimmed = line.trimmed();
-                if (trimmed.isEmpty()) continue;
-                if (trimmed == "[Peer]" || trimmed == "[Interface]") {
-                    continue;
-                }
+                if (trimmed.isEmpty() || trimmed.startsWith('#')) continue;
+                if (trimmed == "[Peer]" || trimmed == "[Interface]") continue;
                 if (!trimmed.contains("=")) continue;
                 auto eqIdx = trimmed.indexOf("=");
-                QString key = trimmed.left(eqIdx).trimmed();
+                QString key = trimmed.left(eqIdx).trimmed().toLower();
                 QString value = trimmed.mid(eqIdx + 1).trimmed();
                 
-                if (key == "PrivateKey") private_key = value;
-                if (key == "Address") address = value.replace(" ", "").split(",");
-                if (key == "MTU") mtu = value.toInt();
-                if (key == "PublicKey") peer->public_key = value;
-                if (key == "PresharedKey") peer->pre_shared_key = value;
-                if (key == "PersistentKeepalive") peer->persistent_keepalive = value;
-                if (key == "Endpoint") {
-                    QStringList parts = value.split(":");
-                    if (parts.size() >= 2) {
-                        peer->address = parts[0].trimmed();
-                        peer->port = parts.last().trimmed().toInt();
+                if (key == "privatekey") private_key = value;
+                else if (key == "address") address = value.replace(" ", "").split(",", Qt::SkipEmptyParts);
+                else if (key == "mtu") mtu = value.toInt();
+                else if (key == "publickey") peer->public_key = value;
+                else if (key == "presharedkey" || key == "preshared_key" || key == "psk") peer->pre_shared_key = value;
+                else if (key == "persistentkeepalive" || key == "persistent_keepalive") peer->persistent_keepalive = value;
+                else if (key == "endpoint") {
+                    int lastColon = value.lastIndexOf(':');
+                    if (lastColon != -1) {
+                        QString host = value.left(lastColon).trimmed();
+                        if (host.startsWith('[') && host.endsWith(']')) {
+                            host = host.mid(1, host.length() - 2);
+                        }
+                        int port = value.mid(lastColon + 1).trimmed().toInt();
+                        peer->address = host;
+                        peer->port = port > 0 ? port : 51820;
                         server = peer->address;
                         server_port = peer->port;
                     }
                 }
-                if (key == "Jc") jc = value.toInt(), enable_amnezia = true;
-                if (key == "Jmin") jmin = value.toInt(), enable_amnezia = true;
-                if (key == "Jmax") jmax = value.toInt(), enable_amnezia = true;
-                if (key == "S1") s1 = value.toInt(), enable_amnezia = true;
-                if (key == "S2") s2 = value.toInt(), enable_amnezia = true;
-                if (key == "S3") s3 = value.toInt(), enable_amnezia = true;
-                if (key == "S4") s4 = value.toInt(), enable_amnezia = true;
-                if (key == "H1") h1 = value, enable_amnezia = true;
-                if (key == "H2") h2 = value, enable_amnezia = true;
-                if (key == "H3") h3 = value, enable_amnezia = true;
-                if (key == "H4") h4 = value, enable_amnezia = true;
-                if (key == "I1") i1 = value, enable_amnezia = true;
-                if (key == "I2") i2 = value, enable_amnezia = true;
-                if (key == "I3") i3 = value, enable_amnezia = true;
-                if (key == "I4") i4 = value, enable_amnezia = true;
-                if (key == "I5") i5 = value, enable_amnezia = true;
-                if (key == "HeaderProtectionKey") header_protection_key = value, enable_amnezia = true;
-                if (key == "ContentPaddingAddition") content_padding_addition = value, enable_amnezia = true;
-                if (key == "RekeyAfterTime") rekey_after_time = value, enable_amnezia = true;
-                if (key == "RekeyTimeout") rekey_timeout = value, enable_amnezia = true;
-                if (key == "RejectAfterTime") reject_after_time = value, enable_amnezia = true;
-                if (key == "KeepaliveTimeout") keepalive_timeout = value, enable_amnezia = true;
-                if (key == "MaxHandshakeAttempts") max_handshake_attempts = value, enable_amnezia = true;
-                if (key == "RandomTrailers") random_trailers = ParseAmneziaBool(value), enable_amnezia = true;
-                if (key == "DisableCookies") disable_cookies = ParseAmneziaBool(value), enable_amnezia = true;
+                else if (key == "jc") jc = value.toInt(), enable_amnezia = true;
+                else if (key == "jmin") jmin = value.toInt(), enable_amnezia = true;
+                else if (key == "jmax") jmax = value.toInt(), enable_amnezia = true;
+                else if (key == "s1") s1 = value.toInt(), enable_amnezia = true;
+                else if (key == "s2") s2 = value.toInt(), enable_amnezia = true;
+                else if (key == "s3") s3 = value.toInt(), enable_amnezia = true;
+                else if (key == "s4") s4 = value.toInt(), enable_amnezia = true;
+                else if (key == "h1") h1 = value, enable_amnezia = true;
+                else if (key == "h2") h2 = value, enable_amnezia = true;
+                else if (key == "h3") h3 = value, enable_amnezia = true;
+                else if (key == "h4") h4 = value, enable_amnezia = true;
+                else if (key == "i1") i1 = value, enable_amnezia = true;
+                else if (key == "i2") i2 = value, enable_amnezia = true;
+                else if (key == "i3") i3 = value, enable_amnezia = true;
+                else if (key == "i4") i4 = value, enable_amnezia = true;
+                else if (key == "i5") i5 = value, enable_amnezia = true;
+                else if (key == "headerprotectionkey" || key == "header_protection_key") header_protection_key = value, enable_amnezia = true;
+                else if (key == "contentpaddingaddition" || key == "content_padding_addition") content_padding_addition = value, enable_amnezia = true;
+                else if (key == "rekeyaftertime" || key == "rekey_after_time") rekey_after_time = value, enable_amnezia = true;
+                else if (key == "rekeytimeout" || key == "rekey_timeout") rekey_timeout = value, enable_amnezia = true;
+                else if (key == "rejectaftertime" || key == "reject_after_time") reject_after_time = value, enable_amnezia = true;
+                else if (key == "keepalivetimeout" || key == "keepalive_timeout") keepalive_timeout = value, enable_amnezia = true;
+                else if (key == "maxhandshakeattempts" || key == "max_handshake_attempts") max_handshake_attempts = value, enable_amnezia = true;
+                else if (key == "randomtrailers" || key == "random_trailers") random_trailers = ParseAmneziaBool(value), enable_amnezia = true;
+                else if (key == "disablecookies" || key == "disable_cookies") disable_cookies = ParseAmneziaBool(value), enable_amnezia = true;
             }
+            FixAddress();
             return !private_key.isEmpty() && !peer->public_key.isEmpty();
         }
         
@@ -179,11 +185,19 @@ namespace Configs {
         outbound::ParseFromLink(link);
 
         if (query.hasQueryItem("private_key")) private_key = query.queryItemValue("private_key");
+        else if (query.hasQueryItem("privatekey")) private_key = query.queryItemValue("privatekey");
+        else if (!url.userName().isEmpty()) private_key = QUrl::fromPercentEncoding(url.userName().toUtf8());
+
         peer->ParseFromLink(link);
+        server = peer->address;
+        server_port = peer->port;
         
-        QString rawLocalAddr = query.queryItemValue("local_address");
-        if (!rawLocalAddr.isEmpty()) {
-            address = rawLocalAddr.split("-");
+        if (query.hasQueryItem("local_address")) {
+            address = query.queryItemValue("local_address").split("-", Qt::SkipEmptyParts);
+        } else if (query.hasQueryItem("address")) {
+            address = query.queryItemValue("address").replace(" ", "").split(",", Qt::SkipEmptyParts);
+        } else if (query.hasQueryItem("ip")) {
+            address = query.queryItemValue("ip").replace(" ", "").split(",", Qt::SkipEmptyParts);
         }
         
         if (query.hasQueryItem("mtu")) mtu = query.queryItemValue("mtu").toInt();
@@ -209,7 +223,9 @@ namespace Configs {
         if (query.hasQueryItem("i4")) i4 = query.queryItemValue("i4"), enable_amnezia = true;
         if (query.hasQueryItem("i5")) i5 = query.queryItemValue("i5"), enable_amnezia = true;
         if (query.hasQueryItem("header_protection_key")) header_protection_key = query.queryItemValue("header_protection_key"), enable_amnezia = true;
+        else if (query.hasQueryItem("headerprotectionkey")) header_protection_key = query.queryItemValue("headerprotectionkey"), enable_amnezia = true;
         if (query.hasQueryItem("content_padding_addition")) content_padding_addition = query.queryItemValue("content_padding_addition"), enable_amnezia = true;
+        else if (query.hasQueryItem("contentpaddingaddition")) content_padding_addition = query.queryItemValue("contentpaddingaddition"), enable_amnezia = true;
         if (query.hasQueryItem("rekey_after_time")) rekey_after_time = query.queryItemValue("rekey_after_time"), enable_amnezia = true;
         if (query.hasQueryItem("rekey_timeout")) rekey_timeout = query.queryItemValue("rekey_timeout"), enable_amnezia = true;
         if (query.hasQueryItem("reject_after_time")) reject_after_time = query.queryItemValue("reject_after_time"), enable_amnezia = true;
@@ -217,13 +233,13 @@ namespace Configs {
         if (query.hasQueryItem("max_handshake_attempts")) max_handshake_attempts = query.queryItemValue("max_handshake_attempts"), enable_amnezia = true;
         if (query.hasQueryItem("random_trailers")) random_trailers = ParseAmneziaBool(query.queryItemValue("random_trailers")), enable_amnezia = true;
         if (query.hasQueryItem("disable_cookies")) disable_cookies = ParseAmneziaBool(query.queryItemValue("disable_cookies")), enable_amnezia = true;
+        
         FixAddress();
 
         return !(private_key.isEmpty() || peer->public_key.isEmpty() || server.isEmpty());
     }
 
-    bool wireguard::ParseFromJson(const QJsonObject& object)
-    {
+    bool wireguard::ParseFromJson(const QJsonObject& object) {
         if (object.isEmpty() || object["type"].toString() != "wireguard") return false;
         outbound::ParseFromJson(object);
         if (object.contains("private_key")) private_key = object["private_key"].toString();
@@ -238,8 +254,7 @@ namespace Configs {
         return true;
     }
 
-    QString wireguard::ExportToLink()
-    {
+    QString wireguard::ExportToLink() {
         QUrl url;
         QUrlQuery query;
         url.setScheme("wg");
@@ -291,8 +306,7 @@ namespace Configs {
         return url.toString(QUrl::FullyEncoded);
     }
 
-    QJsonObject wireguard::ExportToJson()
-    {
+    QJsonObject wireguard::ExportToJson() {
         QJsonObject object;
         object["type"] = "wireguard";
         if (!name.isEmpty()) object["tag"] = name;
@@ -315,8 +329,7 @@ namespace Configs {
         return object;
     }
 
-    BuildResult wireguard::Build()
-    {
+    BuildResult wireguard::Build() {
         QJsonObject object;
         object["type"] = "wireguard";
         if (!name.isEmpty()) object["tag"] = name;
@@ -354,28 +367,23 @@ namespace Configs {
         return QString::number(peer->port);
     }
 
-    QString wireguard::DisplayAddress()
-    {
+    QString wireguard::DisplayAddress() {
         return ::DisplayAddress(peer->address, peer->port);
     }
 
-    QString wireguard::DisplayType()
-    {
+    QString wireguard::DisplayType() {
         return "WireGuard";
     }
 
-    SecurityInfo wireguard::GetSecurity()
-    {
+    SecurityInfo wireguard::GetSecurity() {
         return {QObject::tr("Encrypted"), enable_amnezia ? "AmneziaWG" : QString(), SecurityLevel::Secure};
     }
 
-    bool wireguard::IsEndpoint()
-    {
+    bool wireguard::IsEndpoint() {
         return true;
     }
 
-    QJsonObject wireguard::AmneziaToJson()
-    {
+    QJsonObject wireguard::AmneziaToJson() {
         QJsonObject object;
         if (!enable_amnezia) return object;
         if (jc > 0) object["jc"] = jc;
@@ -406,8 +414,7 @@ namespace Configs {
         return object;
     }
 
-    void wireguard::AmneziaFromJson(const QJsonObject& object)
-    {
+    void wireguard::AmneziaFromJson(const QJsonObject& object) {
         if (object.isEmpty()) return;
         enable_amnezia = true;
         if (object.contains("jc")) jc = object["jc"].toInt();
@@ -438,8 +445,7 @@ namespace Configs {
     }
 
     // Ranges are written as strings, but sing-box also accepts a bare number.
-    QString wireguard::AmneziaRangeFromJson(const QJsonValue& value)
-    {
+    QString wireguard::AmneziaRangeFromJson(const QJsonValue& value) {
         return value.isString() ? value.toString() : Int2String(value.toInt());
     }
 

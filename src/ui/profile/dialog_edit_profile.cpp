@@ -631,6 +631,7 @@ void DialogEditProfile::typeSelected(const QString &newType) {
         ui->xray_max_reuse_times->setText(xrayStream->xhttp->cMaxReuseTimes);
         ui->xray_keep_alive_period->setText(Int2String(xrayStream->xhttp->hKeepAlivePeriod));
         CACHE.XrayDownloadSettings = xrayStream->xhttp->downloadSettings;
+        CACHE.XrayFinalmask = xrayStream->finalmask;
         ui->xray_downloadsettings_edit->setText(xrayStream->xhttp->downloadSettings.isEmpty() ? "Not Set" : "Already Set");
 
         ui->xray_network->setCurrentText(xrayStream->network);
@@ -823,6 +824,7 @@ bool DialogEditProfile::onEnd() {
 
         xrayStream->network = ui->xray_network->currentText().trimmed();
         xrayStream->security = ui->xray_security->currentText().trimmed();
+        xrayStream->finalmask = CACHE.XrayFinalmask;
         xrayMux->saveMuxState(ui->xray_mux->currentIndex());
 
         auto sni = ui->xray_sni->text().trimmed();
@@ -924,6 +926,7 @@ void DialogEditProfile::editor_cache_updated_impl() {
     }
     if (ent->outbound->IsXray()) {
         ui->xray_downloadsettings_edit->setText(CACHE.XrayDownloadSettings.isEmpty() ? "Not Set" : "Already Set");
+        ui->xray_finalmask_edit->setText(CACHE.XrayFinalmask.isEmpty() ? "Not Set" : "Already Set");
     }
     for (auto a: innerEditor->get_editor_cached()) {
         if (a.second.isEmpty()) {
@@ -948,6 +951,15 @@ void DialogEditProfile::on_xray_downloadsettings_edit_clicked() {
     auto result = editor->OpenEditor();
     if (!result.isEmpty()) CACHE.XrayDownloadSettings = QJsonObject2QString(result, true);
     else CACHE.XrayDownloadSettings.clear();
+    editor->deleteLater();
+
+    editor_cache_updated_impl();
+}
+
+void DialogEditProfile::on_xray_finalmask_edit_clicked() {
+    auto editor = new JsonEdit::JsonEditorDialog(CACHE.XrayFinalmask, this);
+    auto result = editor->OpenEditor();
+    CACHE.XrayFinalmask = result;
     editor->deleteLater();
 
     editor_cache_updated_impl();

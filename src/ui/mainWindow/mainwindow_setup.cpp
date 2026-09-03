@@ -1048,7 +1048,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         // QFileDialog defaults to the first filter; config files routinely carry no extension.
         const auto filters = QStringList{
             tr("All files (*)"),
-            tr("Config files (*.json *.conf *.txt *.yaml *.yml *.ini)"),
+            tr("Config files (*.json *.conf *.txt *.yaml *.yml *.ini *.ovpn *.xml)"),
             tr("QR code images (*.png *.jpg *.jpeg *.bmp *.gif *.webp)"),
         };
         const auto paths = QFileDialog::getOpenFileNames(this, tr("Select profile files"), QString(), filters.join(";;"));

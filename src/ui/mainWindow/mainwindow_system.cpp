@@ -414,7 +414,7 @@ bool unpackBundledDashboard(const QDir &dest) {
     while (it.hasNext()) {
         const auto source = it.next();
         const auto target = dest.filePath(bundle.relativeFilePath(source));
-        if (!dest.mkpath(QFileInfo(target).path()) || !copyOut(source, target)) return false;
+        if (!QDir().mkpath(QFileInfo(target).absolutePath()) || !copyOut(source, target)) return false;
     }
     return true;
 }
