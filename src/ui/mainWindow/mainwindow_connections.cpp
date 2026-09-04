@@ -1,10 +1,15 @@
 #include "include/ui/mainwindow.h"
 #include "include/api/RPC.h"
+#include "include/database/entities/RouteProfile.h"
+#include "include/database/RoutesRepo.h"
+#include "include/database/SettingsRepo.h"
 #include "include/global/LocalNetwork.hpp"
 #include "include/ui/utils/ConnectionCloseDelegate.h"
 #include "include/ui/utils/ConnectionsFilterHeader.h"
 #include "include/ui/utils/ConnectionsFilterProxyModel.h"
 #include "include/ui/utils/ConnectionsTableModel.h"
+
+#include <QHostAddress>
 
 #include <QAbstractItemView>
 #include <QApplication>
@@ -75,6 +80,9 @@ void MainWindow::setupConnectionList()
     restoreConnectionSort();
     setupConnectionSortMenu();
     setupConnectionFilter();
+
+    ui->connections->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->connections, &QWidget::customContextMenuRequested, this, &MainWindow::onConnectionContextMenu);
 
     connect(ui->connections, &QAbstractItemView::clicked, this, [this](const QModelIndex& index)
     {
@@ -263,4 +271,134 @@ void MainWindow::UpdateConnectionList(const QList<Stats::ConnectionMetadata>& co
 {
     if (connectionsModel == nullptr) return;
     connectionsModel->setConnections(connections);
+}
+
+bool MainWindow::addRuleToCurrentRoute(const QString& rawRule, int actionInt)
+{
+    const auto action = static_cast<Configs::simpleAction>(actionInt);
+    auto& dm = Configs::dataManager;
+    auto currentRoute = dm->routesRepo->GetRouteProfile(dm->settingsRepo->current_route_id);
+    if (!currentRoute)
+    {
+        MW_show_log(tr("No active routing profile found."));
+        return false;
+    }
+    if (currentRoute->preventModifications)
+    {
+        MW_show_log(tr("Current routing profile is locked against modifications."));
+        return false;
+    }
+
+    if (!currentRoute->AppendSimpleRule(rawRule, action))
+    {
+        MW_show_log(tr("Failed to add routing rule: %1").arg(rawRule));
+        return false;
+    }
+
+    dm->routesRepo->Save(currentRoute);
+
+    if (dm->settingsRepo->started_id >= 0)
+    {
+        profile_start(dm->settingsRepo->started_id);
+    }
+
+    MW_show_log(tr("Rule added: %1 -> %2").arg(rawRule, Configs::simpleActionToString(action)));
+    return true;
+}
+
+void MainWindow::onConnectionContextMenu(const QPoint& pos)
+{
+    const QModelIndex proxyIndex = ui->connections->indexAt(pos);
+    if (!proxyIndex.isValid()) return;
+
+    const QModelIndex sourceIndex = connectionsFilterModel->mapToSource(proxyIndex);
+    if (!sourceIndex.isValid()) return;
+
+    const auto* meta = connectionsModel->metaAt(sourceIndex.row());
+    if (!meta) return;
+
+    const QString dest = meta->dest.trimmed();
+    const QString domain = meta->domain.trimmed();
+    const QString process = meta->process.trimmed();
+    const QString processPath = meta->processPath.trimmed();
+
+    QString host = domain;
+    if (host.isEmpty())
+    {
+        if (dest.startsWith('['))
+        {
+            const int endBracket = dest.indexOf(']');
+            if (endBracket != -1) host = dest.mid(1, endBracket - 1);
+        }
+        else
+        {
+            host = dest.section(':', 0, -2);
+            if (host.isEmpty()) host = dest;
+        }
+    }
+
+    const bool isDomain = !domain.isEmpty() || (!host.isEmpty() && QHostAddress(host).isNull());
+    const QString addressRule = isDomain ? ("suffix:" + host) : ("ip:" + host);
+    const QString processRule = !process.isEmpty() ? ("processName:" + process) : QString();
+
+    QMenu menu(this);
+    const QPoint globalPos = ui->connections->viewport()->mapToGlobal(pos);
+
+    auto showTip = [this, globalPos](const QString& text) {
+        QToolTip::showText(globalPos, text, this);
+        auto r = ++toolTipID;
+        QTimer::singleShot(2000, this, [=, this] {
+            if (r == toolTipID) QToolTip::hideText();
+        });
+    };
+
+    struct RouteAction { Configs::simpleAction action; QString label; };
+    const RouteAction routeActions[] = {
+        { Configs::bypass, tr("Direct") },
+        { Configs::proxy,  tr("Proxy") },
+        { Configs::block,  tr("Block") },
+    };
+
+    auto addRouteSubmenu = [&](const QString& title, const QString& rule) {
+        auto* sub = menu.addMenu(title);
+        for (const auto& ra : routeActions)
+        {
+            auto* act = sub->addAction(ra.label);
+            connect(act, &QAction::triggered, this, [this, rule, ra, showTip] {
+                if (addRuleToCurrentRoute(rule, static_cast<int>(ra.action)))
+                    showTip(tr("Added to %1:\n%2").arg(ra.label, rule));
+            });
+        }
+    };
+
+    if (!host.isEmpty()) addRouteSubmenu(tr("Add \"%1\" to").arg(host), addressRule);
+    if (!process.isEmpty()) addRouteSubmenu(tr("Add process \"%1\" to").arg(process), processRule);
+
+    menu.addSeparator();
+
+    auto* copyMenu = menu.addMenu(tr("Copy"));
+    auto addCopy = [&](const QString& label, const QString& text) {
+        if (text.isEmpty()) return;
+        auto* act = copyMenu->addAction(label);
+        connect(act, &QAction::triggered, this, [text, showTip] {
+            QApplication::clipboard()->setText(text);
+            showTip(tr("Copied!"));
+        });
+    };
+
+    if (!host.isEmpty()) addCopy(tr("Address (%1)").arg(host), host);
+    if (!domain.isEmpty() && domain != host) addCopy(tr("Domain (%1)").arg(domain), domain);
+    if (!process.isEmpty()) addCopy(tr("Process Name (%1)").arg(process), process);
+    if (!processPath.isEmpty()) addCopy(tr("Process Path"), processPath);
+
+    menu.addSeparator();
+
+    const QString connId = meta->id;
+    if (!connId.isEmpty())
+    {
+        auto* actClose = menu.addAction(tr("Close Connection"));
+        connect(actClose, &QAction::triggered, this, [this, connId] { closeConnections({connId}); });
+    }
+
+    menu.exec(globalPos);
 }
