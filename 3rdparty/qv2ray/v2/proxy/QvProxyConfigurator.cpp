@@ -237,7 +237,7 @@ namespace Qv2ray::components::proxy {
     }
 #endif
 
-    void SetSystemProxy(int httpPort, int socksPort, QString scheme) {
+    void SetSystemProxy(int httpPort, int socksPort, QString scheme, bool setSocksFtpProxy) {
         const QString &address = "127.0.0.1";
         bool hasHTTP = (httpPort > 0 && httpPort < 65536);
         bool hasSOCKS = (socksPort > 0 && socksPort < 65536);
@@ -290,10 +290,18 @@ namespace Qv2ray::components::proxy {
         QString kwriteconfigCmd = qEnvironmentVariable("KDE_SESSION_VERSION") == "5" ? "kwriteconfig5" : qEnvironmentVariable("KDE_SESSION_VERSION") == "6" ? "kwriteconfig6" : "kwriteconfig";
 
         //
-        // Configure HTTP Proxies for HTTP, FTP and HTTPS
+        // Configure HTTP Proxies for HTTP and HTTPS, plus FTP when opted in.
+        // The socks and ftp schemas stay unset by default: GNOME exports them into
+        // the session environment with unusable schemes (all_proxy=socks://…,
+        // ftp_proxy=ftp://…) that many CLI tools reject, and the mixed inbound
+        // already serves both protocols over HTTP. Users whose terminal tooling wants
+        // those variables can turn set_socks_ftp_proxy back on.
+        QStringList httpProtocols{"http", "https"};
+        if (setSocksFtpProxy) httpProtocols << "ftp";
+
         if (hasHTTP) {
             // iterate over protocols...
-            for (const auto &protocol: QStringList{"http", "ftp", "https"}) {
+            for (const auto &protocol: httpProtocols) {
                 // for GNOME:
                 {
                     actions << ProcessArgument{"gsettings",
@@ -314,21 +322,28 @@ namespace Qv2ray::components::proxy {
         }
 
         // Configure SOCKS5 Proxies
-        if (hasSOCKS) {
+        if (setSocksFtpProxy && hasSOCKS) {
             // for GNOME:
             {
                 actions << ProcessArgument{"gsettings", {"set", "org.gnome.system.proxy.socks", "host", address}};
                 actions << ProcessArgument{"gsettings",
                                            {"set", "org.gnome.system.proxy.socks", "port", QSTRN(socksPort)}};
+            }
 
-                // for KDE:
-                if (isKDE) {
-                    actions << ProcessArgument{kwriteconfigCmd,
-                                               {"--file", configPath + "/kioslaverc", //
-                                                "--group", "Proxy Settings",          //
-                                                "--key", "socksProxy",                //
-                                                "socks://" + address + " " + QSTRN(socksPort)}};
-                }
+            // for KDE:
+            if (isKDE) {
+                actions << ProcessArgument{kwriteconfigCmd,
+                                           {"--file", configPath + "/kioslaverc", //
+                                            "--group", "Proxy Settings",          //
+                                            "--key", "socksProxy",                //
+                                            "socks://" + address + " " + QSTRN(socksPort)}};
+            }
+        } else {
+            // Clear ftp/socks entries (stale ones written by older versions, or left
+            // over from a previous opt-in) so they stop generating broken env vars.
+            for (const auto &protocol: QStringList{"ftp", "socks"}) {
+                actions << ProcessArgument{"gsettings", {"reset", "org.gnome.system.proxy." + protocol, "host"}};
+                actions << ProcessArgument{"gsettings", {"reset", "org.gnome.system.proxy." + protocol, "port"}};
             }
         }
         // Setting Proxy Mode to Manual
