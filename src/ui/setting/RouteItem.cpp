@@ -647,6 +647,7 @@ QWidget* RouteItem::makeAttributeEditorPage(const QString& attr) {
         case Configs::select: {
             auto* cb = new QComboBox(container);
             if (attr == QStringLiteral("outbound")) {
+                cb->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
                 cb->addItems(outbounds);
                 cb->setCurrentText(get_outbound_name(rule->outboundID));
                 connect(cb, &QComboBox::currentTextChanged, this, [this, cb] {
