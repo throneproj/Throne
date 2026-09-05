@@ -861,6 +861,30 @@ namespace Configs {
         Rules = newRules;
     }
 
+    bool RouteProfile::AppendSimpleRule(const QString& rawRule, simpleAction action) {
+        const QString raw = rawRule.trimmed();
+        if (raw.isEmpty()) return false;
+
+        auto type = get_rule_type(raw, action);
+        if (type == custom) return false;
+
+        auto rule = get_simple_rule_by_type(type);
+        if (!rule) {
+            for (auto &item : get_simple_rules()) {
+                if (item->type == type) {
+                    Rules.append(item);
+                    rule = item;
+                    break;
+                }
+            }
+        }
+        if (!rule) return false;
+
+        bool ok = add_simple_rule(raw, rule, type);
+        FilterEmptyRules();
+        return ok;
+    }
+
     bool RouteProfile::add_simple_rule(const QString& content, const std::shared_ptr<RouteRule>& rule, ruleType type)
     {
         if (type == simpleAddressProxy || type == simpleAddressBypass || type == simpleAddressBlock || type == simpleAddressWarpBypass) return add_simple_address_rule(content, rule);
