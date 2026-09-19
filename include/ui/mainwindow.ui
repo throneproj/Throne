@@ -37,13 +37,6 @@
     padding-right: 8px;
 }
 
-/* The indicator shares the bottom row with the label (ToolButtonTextUnderIcon),
-   so the widest button in any language is the tight one -- its text runs closest
-   to the arrow. It fits because the drawn chevron only occupies the middle of
-   its 16px subcontrol box, leaving ~14px clear at the button edge against the
-   label's ~14.5px of slack. Don't pad the buttons to &quot;fix&quot; this: that widens
-   all five for a gap only one of them ever needs (#1665). If a future
-   translation looks cramped here, check that label first. */
 QToolButton::menu-indicator {
     subcontrol-origin: border;
     subcontrol-position: bottom right;
@@ -86,13 +79,6 @@ QToolButton::menu-indicator {
     padding-right: 8px;
 }
 
-/* The indicator shares the bottom row with the label (ToolButtonTextUnderIcon),
-   so the widest button in any language is the tight one -- its text runs closest
-   to the arrow. It fits because the drawn chevron only occupies the middle of
-   its 16px subcontrol box, leaving ~14px clear at the button edge against the
-   label's ~14.5px of slack. Don't pad the buttons to &quot;fix&quot; this: that widens
-   all five for a gap only one of them ever needs (#1665). If a future
-   translation looks cramped here, check that label first. */
 QToolButton::menu-indicator {
     subcontrol-origin: border;
     subcontrol-position: bottom right;
@@ -135,13 +121,6 @@ QToolButton::menu-indicator {
     padding-right: 8px;
 }
 
-/* The indicator shares the bottom row with the label (ToolButtonTextUnderIcon),
-   so the widest button in any language is the tight one -- its text runs closest
-   to the arrow. It fits because the drawn chevron only occupies the middle of
-   its 16px subcontrol box, leaving ~14px clear at the button edge against the
-   label's ~14.5px of slack. Don't pad the buttons to &quot;fix&quot; this: that widens
-   all five for a gap only one of them ever needs (#1665). If a future
-   translation looks cramped here, check that label first. */
 QToolButton::menu-indicator {
     subcontrol-origin: border;
     subcontrol-position: bottom right;
@@ -184,13 +163,6 @@ QToolButton::menu-indicator {
     padding-right: 8px;
 }
 
-/* The indicator shares the bottom row with the label (ToolButtonTextUnderIcon),
-   so the widest button in any language is the tight one -- its text runs closest
-   to the arrow. It fits because the drawn chevron only occupies the middle of
-   its 16px subcontrol box, leaving ~14px clear at the button edge against the
-   label's ~14.5px of slack. Don't pad the buttons to &quot;fix&quot; this: that widens
-   all five for a gap only one of them ever needs (#1665). If a future
-   translation looks cramped here, check that label first. */
 QToolButton::menu-indicator {
     subcontrol-origin: border;
     subcontrol-position: bottom right;
@@ -233,13 +205,6 @@ QToolButton::menu-indicator {
     padding-right: 8px;
 }
 
-/* The indicator shares the bottom row with the label (ToolButtonTextUnderIcon),
-   so the widest button in any language is the tight one -- its text runs closest
-   to the arrow. It fits because the drawn chevron only occupies the middle of
-   its 16px subcontrol box, leaving ~14px clear at the button edge against the
-   label's ~14.5px of slack. Don't pad the buttons to &quot;fix&quot; this: that widens
-   all five for a gap only one of them ever needs (#1665). If a future
-   translation looks cramped here, check that label first. */
 QToolButton::menu-indicator {
     subcontrol-origin: border;
     subcontrol-position: bottom right;
@@ -402,7 +367,7 @@ QToolButton::menu-indicator {
         <attribute name="title">
          <string/>
         </attribute>
-        <layout class="QGridLayout" name="gridLayout_2">
+        <layout class="QVBoxLayout" name="verticalLayout_tab1">
          <property name="leftMargin">
           <number>0</number>
          </property>
@@ -418,7 +383,7 @@ QToolButton::menu-indicator {
          <property name="spacing">
           <number>0</number>
          </property>
-         <item row="0" column="0">
+         <item>
           <widget class="ProfilesTableView" name="profilesTableView">
            <property name="contextMenuPolicy">
             <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
