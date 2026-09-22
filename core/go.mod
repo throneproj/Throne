@@ -16,7 +16,6 @@ require (
 	github.com/xtls/xray-core v1.260327.1-0.20260908222543-52a412d9e2f5
 	golang.org/x/crypto v0.55.0
 	golang.org/x/sys v0.47.0
-	google.golang.org/grpc v1.83.2
 	google.golang.org/protobuf v1.36.12
 )
 
@@ -24,7 +23,7 @@ replace github.com/xtls/xray-core => github.com/throneproj/xray-core v1.251015.1
 
 replace github.com/sagernet/sing-box => github.com/throneproj/sing-box v1.11.16-0.20260922024412-623a3ce0fb81
 
-replace github.com/sagernet/wireguard-go => github.com/throneproj/wireguard-go v0.0.0-20260922015959-c9380bb0c37c
+replace github.com/sagernet/wireguard-go => github.com/IIayk122/wireguard-go v0.0.0-20260922125837-f5bd82c71cee
 
 replace github.com/sagernet/sing => github.com/throneproj/sing v0.9.4-0.20260922020918-4e0ee1952d35
 
@@ -206,6 +205,7 @@ require (
 	golang.zx2c4.com/wireguard v0.0.0-20250521234502-f333402bd9cb // indirect
 	golang.zx2c4.com/wireguard/windows v1.0.1 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
+	google.golang.org/grpc v1.83.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gvisor.dev/gvisor v0.0.0-20260122175437-89a5d21be8f0 // indirect
 	lukechampine.com/blake3 v1.4.1 // indirect

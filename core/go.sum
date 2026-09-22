@@ -4,6 +4,8 @@ code.pfad.fr/check v1.1.0/go.mod h1:NiUH13DtYsb7xp5wll0U4SXx7KhXQVCtRgdC96IPfoM=
 filippo.io/edwards25519 v1.2.0 h1:crnVqOiS4jqYleHd9vaKZ+HKtHfllngJIiOpNpoJsjo=
 filippo.io/edwards25519 v1.2.0/go.mod h1:xzAOLCNug/yB62zG1bQ8uziwrIqIuxhctzJT18Q77mc=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
+github.com/IIayk122/wireguard-go v0.0.0-20260922125837-f5bd82c71cee h1:/IZYqG2bF4c0d9swpPV7wgafscZOpnpf9JcKAgmWrQA=
+github.com/IIayk122/wireguard-go v0.0.0-20260922125837-f5bd82c71cee/go.mod h1:er10sELpmzLXq7S7Pbc1Zsbyapcr+/gxNAHKTo6fzVA=
 github.com/Mahdi-zarei/speedtest-go v1.7.13-0.20260107171856-79c565dfd83a h1:11VlAp2Xf/V+W4xXYtWwMAkkm2oBcPRB6oZrSxVoFug=
 github.com/Mahdi-zarei/speedtest-go v1.7.13-0.20260107171856-79c565dfd83a/go.mod h1:b1H+UBFUnLKH1YquN2xao8d1hokcnDFFhEKDARTzddM=
 github.com/RyuaNerin/go-krypto v1.3.0 h1:smavTzSMAx8iuVlGb4pEwl9MD2qicqMzuXR2QWp2/Pg=
@@ -384,8 +386,6 @@ github.com/throneproj/sing v0.9.4-0.20260922020918-4e0ee1952d35 h1:X499mXkzP2y7j
 github.com/throneproj/sing v0.9.4-0.20260922020918-4e0ee1952d35/go.mod h1:K3Owt3xPhHugvlnlPPxZJ/exXdaJfEPOTNorGk4AXjo=
 github.com/throneproj/sing-box v1.11.16-0.20260922024412-623a3ce0fb81 h1:ik6IId6rBpj4OaSc1EDgIb0VQSUkNJZ+GWZyMysPGt8=
 github.com/throneproj/sing-box v1.11.16-0.20260922024412-623a3ce0fb81/go.mod h1:QKmMTCY03KKkXiQVWNWrlqOSope0oNEvvc0TZnK6XjA=
-github.com/throneproj/wireguard-go v0.0.0-20260922015959-c9380bb0c37c h1:0KIDbsmnUw9q2PkypYHWjb/e6FzPpVecxZr8oBEQKLM=
-github.com/throneproj/wireguard-go v0.0.0-20260922015959-c9380bb0c37c/go.mod h1:er10sELpmzLXq7S7Pbc1Zsbyapcr+/gxNAHKTo6fzVA=
 github.com/throneproj/xray-core v1.251015.1-0.20260909120523-7b26dbd842dc h1:SkqlcDcYFDdujHZ6tevApd9vgFVow8rjH+myj+GAHNk=
 github.com/throneproj/xray-core v1.251015.1-0.20260909120523-7b26dbd842dc/go.mod h1:ePjMv5GQ/MfQnYmsIjpZn5qP88JQLpQ9wIKBKmIGcnU=
 github.com/tidwall/gjson v1.14.2/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
