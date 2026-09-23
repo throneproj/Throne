@@ -53,6 +53,9 @@
                <property name="text">
                 <string>Cookie</string>
                </property>
+               <property name="buddy">
+                <cstring>cookie</cstring>
+               </property>
               </widget>
              </item>
              <item row="0" column="1">
@@ -65,6 +68,9 @@
                </property>
                <property name="text">
                 <string>Reported OS</string>
+               </property>
+               <property name="buddy">
+                <cstring>reported_os</cstring>
                </property>
               </widget>
              </item>
@@ -79,6 +85,9 @@
                <property name="text">
                 <string>User Agent</string>
                </property>
+               <property name="buddy">
+                <cstring>user_agent</cstring>
+               </property>
               </widget>
              </item>
              <item row="2" column="1">
@@ -91,6 +100,9 @@
                </property>
                <property name="text">
                 <string>Version</string>
+               </property>
+               <property name="buddy">
+                <cstring>version</cstring>
                </property>
               </widget>
              </item>
@@ -108,6 +120,9 @@
                </property>
                <property name="text">
                 <string>Local Hostname</string>
+               </property>
+               <property name="buddy">
+                <cstring>local_hostname</cstring>
                </property>
               </widget>
              </item>
@@ -140,6 +155,9 @@
                <property name="text">
                 <string>Mode</string>
                </property>
+               <property name="buddy">
+                <cstring>token_mode</cstring>
+               </property>
               </widget>
              </item>
              <item row="0" column="1">
@@ -152,6 +170,9 @@
                </property>
                <property name="text">
                 <string>Secret</string>
+               </property>
+               <property name="buddy">
+                <cstring>token_secret</cstring>
                </property>
               </widget>
              </item>
@@ -166,6 +187,9 @@
                <property name="text">
                 <string>Secret Path</string>
                </property>
+               <property name="buddy">
+                <cstring>token_secret_path</cstring>
+               </property>
               </widget>
              </item>
              <item row="2" column="1">
@@ -178,6 +202,9 @@
                </property>
                <property name="text">
                 <string>PIN</string>
+               </property>
+               <property name="buddy">
+                <cstring>token_pin</cstring>
                </property>
               </widget>
              </item>
@@ -192,6 +219,9 @@
                <property name="text">
                 <string>Password</string>
                </property>
+               <property name="buddy">
+                <cstring>token_password</cstring>
+               </property>
               </widget>
              </item>
              <item row="4" column="1">
@@ -205,6 +235,9 @@
                <property name="text">
                 <string>Device ID</string>
                </property>
+               <property name="buddy">
+                <cstring>token_device_id</cstring>
+               </property>
               </widget>
              </item>
              <item row="5" column="1">
@@ -217,6 +250,9 @@
                </property>
                <property name="text">
                 <string>Counter</string>
+               </property>
+               <property name="buddy">
+                <cstring>token_counter</cstring>
                </property>
               </widget>
              </item>
@@ -246,6 +282,9 @@
                <property name="text">
                 <string>Peer Fingerprint</string>
                </property>
+               <property name="buddy">
+                <cstring>tls_peer_fingerprint</cstring>
+               </property>
               </widget>
              </item>
              <item row="0" column="1">
@@ -273,6 +312,9 @@
                <property name="text">
                 <string>CA Certificate Path</string>
                </property>
+               <property name="buddy">
+                <cstring>tls_certificate_authority_path</cstring>
+               </property>
               </widget>
              </item>
              <item row="2" column="1">
@@ -285,6 +327,9 @@
                </property>
                <property name="text">
                 <string>Client Certificate Path</string>
+               </property>
+               <property name="buddy">
+                <cstring>tls_client_certificate_path</cstring>
                </property>
               </widget>
              </item>
@@ -299,6 +344,9 @@
                <property name="text">
                 <string>Client Key Path</string>
                </property>
+               <property name="buddy">
+                <cstring>tls_client_key_path</cstring>
+               </property>
               </widget>
              </item>
              <item row="4" column="1">
@@ -311,6 +359,9 @@
                </property>
                <property name="text">
                 <string>MCA Certificate</string>
+               </property>
+               <property name="buddy">
+                <cstring>tls_mca_certificate</cstring>
                </property>
               </widget>
              </item>
@@ -329,6 +380,9 @@
                <property name="text">
                 <string>MCA Certificate Path</string>
                </property>
+               <property name="buddy">
+                <cstring>tls_mca_certificate_path</cstring>
+               </property>
               </widget>
              </item>
              <item row="6" column="1">
@@ -341,6 +395,9 @@
                </property>
                <property name="text">
                 <string>MCA Key</string>
+               </property>
+               <property name="buddy">
+                <cstring>tls_mca_key</cstring>
                </property>
               </widget>
              </item>
@@ -359,6 +416,9 @@
                <property name="text">
                 <string>MCA Key Path</string>
                </property>
+               <property name="buddy">
+                <cstring>tls_mca_key_path</cstring>
+               </property>
               </widget>
              </item>
              <item row="8" column="1">
@@ -371,6 +431,9 @@
                </property>
                <property name="text">
                 <string>MCA Key Password</string>
+               </property>
+               <property name="buddy">
+                <cstring>tls_mca_key_password</cstring>
                </property>
               </widget>
              </item>
@@ -403,6 +466,9 @@
                <property name="text">
                 <string>Platform Version</string>
                </property>
+               <property name="buddy">
+                <cstring>mobile_platform_version</cstring>
+               </property>
               </widget>
              </item>
              <item row="0" column="1">
@@ -416,6 +482,9 @@
                <property name="text">
                 <string>Device Type</string>
                </property>
+               <property name="buddy">
+                <cstring>mobile_device_type</cstring>
+               </property>
               </widget>
              </item>
              <item row="1" column="1">
@@ -428,6 +497,9 @@
                </property>
                <property name="text">
                 <string>Device Unique ID</string>
+               </property>
+               <property name="buddy">
+                <cstring>mobile_device_unique_id</cstring>
                </property>
               </widget>
              </item>
@@ -457,6 +529,9 @@
                <property name="text">
                 <string>CSD Wrapper Path</string>
                </property>
+               <property name="buddy">
+                <cstring>csd_wrapper_path</cstring>
+               </property>
               </widget>
              </item>
              <item row="0" column="1">
@@ -469,6 +544,9 @@
                </property>
                <property name="text">
                 <string>HIP Wrapper Path</string>
+               </property>
+               <property name="buddy">
+                <cstring>hip_wrapper_path</cstring>
                </property>
               </widget>
              </item>
@@ -483,6 +561,9 @@
                <property name="text">
                 <string>Fortinet Hostcheck</string>
                </property>
+               <property name="buddy">
+                <cstring>fortinet_hostcheck</cstring>
+               </property>
               </widget>
              </item>
              <item row="2" column="1">
@@ -495,6 +576,9 @@
                </property>
                <property name="text">
                 <string>Fortinet Virtual Desktop</string>
+               </property>
+               <property name="buddy">
+                <cstring>fortinet_check_virtual_desktop</cstring>
                </property>
               </widget>
              </item>
@@ -524,6 +608,9 @@
                <property name="text">
                 <string>Wrapper Path</string>
                </property>
+               <property name="buddy">
+                <cstring>tncc_wrapper_path</cstring>
+               </property>
               </widget>
              </item>
              <item row="0" column="1">
@@ -537,6 +624,9 @@
                <property name="text">
                 <string>Device ID</string>
                </property>
+               <property name="buddy">
+                <cstring>tncc_device_id</cstring>
+               </property>
               </widget>
              </item>
              <item row="1" column="1">
@@ -549,6 +639,9 @@
                </property>
                <property name="text">
                 <string>User Agent</string>
+               </property>
+               <property name="buddy">
+                <cstring>tncc_user_agent</cstring>
                </property>
               </widget>
              </item>
@@ -737,6 +830,9 @@
                <property name="text">
                 <string>DTLS Local Port</string>
                </property>
+               <property name="buddy">
+                <cstring>dtls_local_port</cstring>
+               </property>
               </widget>
              </item>
              <item row="1" column="1">
@@ -759,6 +855,9 @@
                </property>
                <property name="text">
                 <string>Compression Mode</string>
+               </property>
+               <property name="buddy">
+                <cstring>compression_mode</cstring>
                </property>
               </widget>
              </item>
@@ -850,6 +949,9 @@
                <property name="text">
                 <string>Base MTU</string>
                </property>
+               <property name="buddy">
+                <cstring>base_mtu</cstring>
+               </property>
               </widget>
              </item>
              <item row="12" column="1">
@@ -867,6 +969,9 @@
                <property name="text">
                 <string>DPD Interval</string>
                </property>
+               <property name="buddy">
+                <cstring>dpd_interval</cstring>
+               </property>
               </widget>
              </item>
              <item row="13" column="1">
@@ -879,6 +984,9 @@
                </property>
                <property name="text">
                 <string>Reconnect Timeout</string>
+               </property>
+               <property name="buddy">
+                <cstring>reconnect_timeout</cstring>
                </property>
               </widget>
              </item>
@@ -897,6 +1005,9 @@
                <property name="text">
                 <string>Trojan Interval</string>
                </property>
+               <property name="buddy">
+                <cstring>trojan_interval</cstring>
+               </property>
               </widget>
              </item>
              <item row="15" column="1">
@@ -909,6 +1020,9 @@
                </property>
                <property name="text">
                 <string>Queue Length</string>
+               </property>
+               <property name="buddy">
+                <cstring>queue_length</cstring>
                </property>
               </widget>
              </item>

@@ -16,6 +16,9 @@
        <property name="text">
         <string>Servers from</string>
        </property>
+       <property name="buddy">
+        <cstring>group</cstring>
+       </property>
       </widget>
      </item>
      <item row="0" column="1">
@@ -29,6 +32,9 @@
       <widget class="QLabel" name="name_filter_l">
        <property name="text">
         <string>Only names matching</string>
+       </property>
+       <property name="buddy">
+        <cstring>name_filter</cstring>
        </property>
       </widget>
      </item>
@@ -144,6 +150,9 @@
            <property name="text">
             <string>Only countries</string>
            </property>
+           <property name="buddy">
+            <cstring>country_filter</cstring>
+           </property>
           </widget>
          </item>
          <item row="0" column="1">
@@ -160,6 +169,9 @@
           <widget class="QLabel" name="build_limit_l">
            <property name="text">
             <string>Run the best</string>
+           </property>
+           <property name="buddy">
+            <cstring>build_limit</cstring>
            </property>
           </widget>
          </item>
@@ -187,6 +199,9 @@
            <property name="text">
             <string>Rank at most</string>
            </property>
+           <property name="buddy">
+            <cstring>pool_cap</cstring>
+           </property>
           </widget>
          </item>
          <item row="2" column="1">
@@ -212,6 +227,9 @@
           <widget class="QLabel" name="result_validity_l">
            <property name="text">
             <string>Trust results for</string>
+           </property>
+           <property name="buddy">
+            <cstring>result_validity</cstring>
            </property>
           </widget>
          </item>
@@ -264,6 +282,9 @@
            <property name="text">
             <string>Keep ready</string>
            </property>
+           <property name="buddy">
+            <cstring>expected</cstring>
+           </property>
           </widget>
          </item>
          <item row="0" column="1">
@@ -289,6 +310,9 @@
           <widget class="QLabel" name="active_size_l">
            <property name="text">
             <string>Check closely</string>
+           </property>
+           <property name="buddy">
+            <cstring>active_size</cstring>
            </property>
           </widget>
          </item>
@@ -316,6 +340,9 @@
            <property name="text">
             <string>Check interval</string>
            </property>
+           <property name="buddy">
+            <cstring>interval</cstring>
+           </property>
           </widget>
          </item>
          <item row="2" column="1">
@@ -341,6 +368,9 @@
           <widget class="QLabel" name="bench_interval_l">
            <property name="text">
             <string>Full sweep every</string>
+           </property>
+           <property name="buddy">
+            <cstring>bench_interval</cstring>
            </property>
           </widget>
          </item>
@@ -368,6 +398,9 @@
            <property name="text">
             <string>Watch profile in use</string>
            </property>
+           <property name="buddy">
+            <cstring>watch_interval</cstring>
+           </property>
           </widget>
          </item>
          <item row="4" column="1">
@@ -393,6 +426,9 @@
           <widget class="QLabel" name="sampling_l">
            <property name="text">
             <string>Samples kept</string>
+           </property>
+           <property name="buddy">
+            <cstring>sampling</cstring>
            </property>
           </widget>
          </item>
@@ -429,6 +465,9 @@
            <property name="text">
             <string>Switch tolerance</string>
            </property>
+           <property name="buddy">
+            <cstring>tolerance</cstring>
+           </property>
           </widget>
          </item>
          <item row="0" column="1">
@@ -452,6 +491,9 @@
            <property name="text">
             <string>Maximum latency</string>
            </property>
+           <property name="buddy">
+            <cstring>max_rtt</cstring>
+           </property>
           </widget>
          </item>
          <item row="1" column="1">
@@ -474,6 +516,9 @@
           <widget class="QLabel" name="dial_retries_l">
            <property name="text">
             <string>Failover attempts</string>
+           </property>
+           <property name="buddy">
+            <cstring>dial_retries</cstring>
            </property>
           </widget>
          </item>
@@ -520,6 +565,9 @@
            <property name="text">
             <string>Mode</string>
            </property>
+           <property name="buddy">
+            <cstring>balance_mode</cstring>
+           </property>
           </widget>
          </item>
          <item row="0" column="1">
@@ -533,6 +581,9 @@
           <widget class="QLabel" name="balance_interval_l">
            <property name="text">
             <string>Rotate every</string>
+           </property>
+           <property name="buddy">
+            <cstring>balance_interval</cstring>
            </property>
           </widget>
          </item>
@@ -582,6 +633,9 @@
            <property name="text">
             <string>Test URL</string>
            </property>
+           <property name="buddy">
+            <cstring>test_url</cstring>
+           </property>
           </widget>
          </item>
          <item row="0" column="1">
@@ -598,6 +652,9 @@
           <widget class="QLabel" name="connectivity_url_l">
            <property name="text">
             <string>Connectivity URL</string>
+           </property>
+           <property name="buddy">
+            <cstring>connectivity_url</cstring>
            </property>
           </widget>
          </item>

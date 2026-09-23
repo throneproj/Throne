@@ -25,6 +25,9 @@
         <property name="text">
          <string>Flavor</string>
         </property>
+        <property name="buddy">
+         <cstring>flavor</cstring>
+        </property>
        </widget>
       </item>
       <item row="0" column="1">
@@ -37,6 +40,9 @@
         </property>
         <property name="text">
          <string>Username</string>
+        </property>
+        <property name="buddy">
+         <cstring>username</cstring>
         </property>
        </widget>
       </item>
@@ -51,6 +57,9 @@
         <property name="text">
          <string>Password</string>
         </property>
+        <property name="buddy">
+         <cstring>password</cstring>
+        </property>
        </widget>
       </item>
       <item row="2" column="1">
@@ -64,6 +73,9 @@
         <property name="text">
          <string>Auth Group</string>
         </property>
+        <property name="buddy">
+         <cstring>auth_group</cstring>
+        </property>
        </widget>
       </item>
       <item row="3" column="1">
@@ -76,6 +88,9 @@
         </property>
         <property name="text">
          <string>Server Path</string>
+        </property>
+        <property name="buddy">
+         <cstring>server_path</cstring>
         </property>
        </widget>
       </item>
@@ -94,6 +109,9 @@
         <property name="text">
          <string>MTU</string>
         </property>
+        <property name="buddy">
+         <cstring>mtu</cstring>
+        </property>
        </widget>
       </item>
       <item row="5" column="1">
@@ -103,6 +121,9 @@
        <widget class="QLabel" name="otp_profile_l">
         <property name="text">
          <string>OTP</string>
+        </property>
+        <property name="buddy">
+         <cstring>otp_profile</cstring>
         </property>
        </widget>
       </item>
@@ -129,6 +150,9 @@
         </property>
         <property name="text">
          <string>Tunnel DNS</string>
+        </property>
+        <property name="buddy">
+         <cstring>tunnel_dns</cstring>
         </property>
        </widget>
       </item>
@@ -172,6 +196,9 @@
            <property name="text">
             <string>Server Name</string>
            </property>
+           <property name="buddy">
+            <cstring>tls_server_name</cstring>
+           </property>
           </widget>
          </item>
          <item row="1" column="1">
@@ -184,6 +211,9 @@
            </property>
            <property name="text">
             <string>CA Certificate</string>
+           </property>
+           <property name="buddy">
+            <cstring>certificate_authority</cstring>
            </property>
           </widget>
          </item>
@@ -199,6 +229,9 @@
            <property name="text">
             <string>Client Certificate</string>
            </property>
+           <property name="buddy">
+            <cstring>client_certificate</cstring>
+           </property>
           </widget>
          </item>
          <item row="3" column="1">
@@ -212,6 +245,9 @@
           <widget class="QLabel" name="client_key_l">
            <property name="text">
             <string>Client Key</string>
+           </property>
+           <property name="buddy">
+            <cstring>client_key</cstring>
            </property>
           </widget>
          </item>
@@ -229,6 +265,9 @@
            </property>
            <property name="text">
             <string>Client Key Password</string>
+           </property>
+           <property name="buddy">
+            <cstring>client_key_password</cstring>
            </property>
           </widget>
          </item>

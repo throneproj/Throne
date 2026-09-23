@@ -19,6 +19,9 @@
      <property name="text">
       <string>State directory</string>
      </property>
+     <property name="buddy">
+      <cstring>state_dir</cstring>
+     </property>
     </widget>
    </item>
    <item row="0" column="1">
@@ -28,6 +31,9 @@
     <widget class="QLabel" name="label_2">
      <property name="text">
       <string>Auth key</string>
+     </property>
+     <property name="buddy">
+      <cstring>auth_key</cstring>
      </property>
     </widget>
    </item>
@@ -39,6 +45,9 @@
      <property name="text">
       <string>Control URL</string>
      </property>
+     <property name="buddy">
+      <cstring>control_plane</cstring>
+     </property>
     </widget>
    </item>
    <item row="4" column="1">
@@ -48,6 +57,9 @@
     <widget class="QLabel" name="label_4">
      <property name="text">
       <string>Hostname</string>
+     </property>
+     <property name="buddy">
+      <cstring>hostname</cstring>
      </property>
     </widget>
    </item>
@@ -87,6 +99,9 @@
      <property name="text">
       <string>Exit node</string>
      </property>
+     <property name="buddy">
+      <cstring>exit_node</cstring>
+     </property>
     </widget>
    </item>
    <item row="9" column="1">
@@ -99,6 +114,9 @@
      </property>
      <property name="text">
       <string>Advertise routes</string>
+     </property>
+     <property name="buddy">
+      <cstring>advertise_routes</cstring>
      </property>
     </widget>
    </item>

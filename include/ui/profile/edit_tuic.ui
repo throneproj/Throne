@@ -19,6 +19,9 @@
      <property name="text">
       <string>Heartbeat</string>
      </property>
+     <property name="buddy">
+      <cstring>heartbeat</cstring>
+     </property>
     </widget>
    </item>
    <item row="3" column="0">
@@ -26,12 +29,18 @@
      <property name="text">
       <string>UDP Relay Mode</string>
      </property>
+     <property name="buddy">
+      <cstring>udp_relay_mode</cstring>
+     </property>
     </widget>
    </item>
    <item row="1" column="0">
     <widget class="QLabel" name="label_2">
      <property name="text">
       <string>Password</string>
+     </property>
+     <property name="buddy">
+      <cstring>password</cstring>
      </property>
     </widget>
    </item>
@@ -55,6 +64,9 @@
     <widget class="QLabel" name="label">
      <property name="text">
       <string>UUID</string>
+     </property>
+     <property name="buddy">
+      <cstring>uuid</cstring>
      </property>
     </widget>
    </item>
@@ -81,6 +93,9 @@
     <widget class="QLabel" name="label_3">
      <property name="text">
       <string>Congestion Control</string>
+     </property>
+     <property name="buddy">
+      <cstring>congestion_control</cstring>
      </property>
     </widget>
    </item>
