@@ -930,16 +930,19 @@ namespace Configs {
         const QString address = content.mid(colonIdx+1).trimmed();
         if (address.isEmpty()) return false;
         const QString subType = content.left(colonIdx).trimmed();
+        // sing-box lowercases the host before matching but takes these values as written, so a capital letter here never matches.
+        const QString lowered = address.toLower();
         if (subType == "domain") {
-            if (!rule->domain.contains(address)) rule->domain.append(address);
+            if (!rule->domain.contains(lowered)) rule->domain.append(lowered);
             return true;
         } else if (subType == "suffix") {
-            if (!rule->domain_suffix.contains(address)) rule->domain_suffix.append(address);
+            if (!rule->domain_suffix.contains(lowered)) rule->domain_suffix.append(lowered);
             return true;
         } else if (subType == "keyword") {
-            if (!rule->domain_keyword.contains(address)) rule->domain_keyword.append(address);
+            if (!rule->domain_keyword.contains(lowered)) rule->domain_keyword.append(lowered);
             return true;
         } else if (subType == "regex") {
+            // Left as written: it is matched against the lowercased host too, but lowercasing a pattern can change it (\D is not \d).
             if (!rule->domain_regex.contains(address)) rule->domain_regex.append(address);
             return true;
         } else if (subType == "ruleset") {
