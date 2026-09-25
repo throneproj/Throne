@@ -320,9 +320,12 @@ void TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedID
     if (waitForSession) {
         session_.lock();
     } else if (!session_.tryLock()) {
-        MessageBoxWarning(software_name, isUrl
+        const auto text = isUrl
             ? MainWindow::tr("The last url test did not exit completely, please wait. If it persists, please restart the program.")
-            : MainWindow::tr("The last test did not exit completely, please wait. If it persists, please restart the program."));
+            : MainWindow::tr("The last test did not exit completely, please wait. If it persists, please restart the program.");
+        // Auto-selector ranking calls in from a worker thread, where no widget may be created.
+        if (QThread::currentThread() == mw_->thread()) MessageBoxWarning(software_name, text);
+        else MW_show_log(text);
         finish();
         return;
     }
