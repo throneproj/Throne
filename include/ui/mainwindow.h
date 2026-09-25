@@ -507,7 +507,10 @@ private:
 
     QString routeRuleAppendBlocker() const;
 
-    bool addRuleToCurrentRoute(const QString &rawRule, Configs::simpleAction action);
+    enum class RuleToggle { Failed, Added, Moved, Removed };
+
+    // Adds rawRule to the action's simple rules of the current profile, or takes it out when it is already there.
+    RuleToggle toggleRuleInCurrentRoute(const QString &rawRule, Configs::simpleAction action);
 
     void setupConnectionFilter();
 

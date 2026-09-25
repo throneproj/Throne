@@ -928,6 +928,58 @@ namespace Configs {
         return true;
     }
 
+    bool RouteProfile::HasSimpleRule(const QString& rawRule, simpleAction action) {
+        const QString raw = rawRule.trimmed();
+        const auto type = get_rule_type(raw, action);
+        if (type == custom) return false;
+
+        for (const auto& rule : Rules) {
+            if (rule->type != type) continue;
+            QString value;
+            const auto* values = simple_rule_values(raw, *rule, &value);
+            if (values && values->contains(value)) return true;
+        }
+        return false;
+    }
+
+    bool RouteProfile::RemoveSimpleRule(const QString& rawRule, simpleAction action) {
+        const QString raw = rawRule.trimmed();
+        const auto type = get_rule_type(raw, action);
+        if (type == custom) return false;
+
+        // Every rule of the type, not just the first: an imported profile may carry duplicates, and a toggle must really switch off.
+        bool removed = false;
+        for (const auto& rule : QList(Rules)) {
+            if (rule->type != type) continue;
+            QString value;
+            auto* values = simple_rule_values(raw, *rule, &value);
+            if (!values || values->removeAll(value) == 0) continue;
+            removed = true;
+            // Only the rule just emptied: a FilterEmptyRules() sweep would take unrelated empty rules with it.
+            if (rule->isEmpty()) Rules.removeOne(rule);
+        }
+        return removed;
+    }
+
+    QList<QString>* RouteProfile::simple_rule_values(const QString& content, RouteRule& rule, QString* value)
+    {
+        const auto colonIdx = content.indexOf(':');
+        if (colonIdx == -1) return nullptr;
+        *value = content.mid(colonIdx + 1).trimmed();
+        if (value->isEmpty()) return nullptr;
+
+        const QString prefix = content.left(colonIdx).trimmed();
+        if (prefix == "domain") return &rule.domain;
+        if (prefix == "suffix") return &rule.domain_suffix;
+        if (prefix == "keyword") return &rule.domain_keyword;
+        if (prefix == "regex") return &rule.domain_regex;
+        if (prefix == "ruleset") return &rule.rule_set;
+        if (prefix == "ip") return &rule.ip_cidr;
+        if (prefix == "processName") return &rule.process_name;
+        if (prefix == "processPath") return &rule.process_path;
+        return nullptr;
+    }
+
     bool RouteProfile::add_simple_rule(const QString& content, const std::shared_ptr<RouteRule>& rule, ruleType type)
     {
         if (type == simpleAddressProxy || type == simpleAddressBypass || type == simpleAddressBlock || type == simpleAddressWarpBypass) return add_simple_address_rule(content, rule);
