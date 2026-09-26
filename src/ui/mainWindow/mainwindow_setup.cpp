@@ -691,6 +691,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(filterHeader, &ProfilesTableFilterHeader::focusTableRequested, this,
             [this](bool selectFirst) { focusProfilesTable(selectFirst); });
 
+    connect(Subscription::updater(), &Subscription::GroupUpdater::asyncUpdateCallback, this, [this](int gid) {
+        if (gid >= 0) updateTabToolTip(gid);
+    });
+
     this->refresh_groups();
 
     tray = new TrayIcon(this);
@@ -1107,7 +1111,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                 Configs::dataManager->settingsRepo->sub_auto_update_last = t;
                 Configs::dataManager->settingsRepo->Save();
             },
-            [] { Subscription::updater()->RefreshAll(true); },
+            [] { Subscription::updater()->CheckAutoUpdate(); },
         });
         runner->Add({
             tr("routing profiles"),

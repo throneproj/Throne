@@ -1,15 +1,22 @@
 #pragma once
 
 #include <array>
+#include <memory>
 
 #include <QHeaderView>
 #include <QKeyEvent>
 #include <QLineEdit>
+#include <QPainter>
 #include <QVector>
 #include <QScrollBar>
 #include <QToolButton>
 
 #include "include/ui/utils/ProfilesTableModel.h"
+#include "include/ui/widget/SubscriptionInfoCard.hpp"
+
+namespace Configs {
+    class Group;
+}
 
 class ProfilesTableFilterHeader : public QHeaderView {
     Q_OBJECT
@@ -19,6 +26,14 @@ public:
         setSectionsClickable(true);
         setSortIndicatorShown(true);
         setDefaultAlignment(Qt::AlignHCenter | Qt::AlignTop);
+
+        m_subCard = new SubscriptionInfoCard(this);
+        m_subCard->hide();
+        m_subCard->setAttribute(Qt::WA_NoMousePropagation, true);
+        connect(m_subCard, &SubscriptionInfoCard::cardVisibilityChanged, this, [this] {
+            emit geometriesChanged();
+            adjustPositions();
+        });
 
         type_filter = new QLineEdit(this->viewport()); 
         type_filter->setPlaceholderText(tr("Filter..."));
@@ -55,6 +70,12 @@ public:
         setFiltersVisible(false);
     }
 
+    void setGroup(const std::shared_ptr<Configs::Group> &group) {
+        if (m_subCard) {
+            m_subCard->setGroup(group);
+        }
+    }
+
     void setLastFilterColumn(int column) {
         m_lastFilterColumn = editForColumn(column) ? column : ProfilesTableModel::ColName;
     }
@@ -74,10 +95,20 @@ public:
         if (m_filtersVisible) {
             s.setHeight(s.height() + 32);
         }
+        if (m_subCard && m_subCard->isVisible()) {
+            s.setHeight(s.height() + m_subCard->height());
+        }
         return s;
     }
 
 protected:
+    void paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const override {
+        const bool hasSub = (m_subCard && m_subCard->isVisible());
+        const int subHeight = hasSub ? m_subCard->height() : 0;
+        const QRect sectionRect = rect.adjusted(0, subHeight, 0, 0);
+        QHeaderView::paintSection(painter, sectionRect, logicalIndex);
+    }
+
     void updateGeometries() override {
         QHeaderView::updateGeometries();
         adjustPositions();
@@ -136,12 +167,30 @@ public slots:
     }
 
     void adjustPositions() {
+        const bool hasSub = (m_subCard && m_subCard->isVisible());
+        const int subHeight = hasSub ? m_subCard->height() : 0;
+        const int editHeight = 24;
+
+        if (hasSub) {
+            if (parentWidget() && m_subCard->parent() != parentWidget()) {
+                m_subCard->setParent(parentWidget());
+                m_subCard->show();
+            }
+            int totalWidth = parentWidget() ? parentWidget()->width() : viewport()->width();
+            if (auto *view = qobject_cast<QAbstractScrollArea*>(parentWidget())) {
+                if (view->verticalScrollBar() && view->verticalScrollBar()->isVisible()) {
+                    totalWidth -= view->verticalScrollBar()->width();
+                }
+            }
+            m_subCard->setGeometry(0, 0, totalWidth, subHeight);
+            m_subCard->raise();
+        }
+
         if (!m_filtersVisible || !address_filter || !name_filter || !type_filter
             || !test_filter || count() < ProfilesTableModel::ColumnCount) {
 	        return;
 	    }
 
-        const int editHeight = 24;
         const int topPos = height() - editHeight - 4;
 
         auto place = [&](QLineEdit *edit, int section) {
@@ -207,6 +256,7 @@ private:
         return -1;
     }
 
+    SubscriptionInfoCard *m_subCard = nullptr;
     QLineEdit* type_filter;
     QLineEdit* address_filter;
     QLineEdit* name_filter;

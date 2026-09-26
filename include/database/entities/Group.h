@@ -1,13 +1,45 @@
 #pragma once
+#include <QDateTime>
 #include <QJsonObject>
 #include <QList>
 #include <QMutex>
 #include <QString>
+#include <algorithm>
 
 #include "include/ui/group/GroupSort.hpp"
 
 namespace Configs
 {
+    struct SubUserInfo {
+        bool valid = false;
+        bool has_quota = false;
+        qint64 upload = 0;
+        qint64 download = 0;
+        qint64 total = 0;
+        qint64 expire = 0;
+        QString title;
+        QString web_url;
+        QString support_url;
+        QString announce;
+        int server_interval = 0;
+
+        [[nodiscard]] qint64 used() const { return upload + download; }
+        [[nodiscard]] qint64 remaining() const { return (total > used()) ? (total - used()) : 0; }
+        [[nodiscard]] double percentUsed() const {
+            if (total <= 0) return 0.0;
+            return std::clamp((static_cast<double>(used()) / static_cast<double>(total)) * 100.0, 0.0, 100.0);
+        }
+        [[nodiscard]] bool isExpired() const {
+            if (expire <= 0) return false;
+            return QDateTime::currentSecsSinceEpoch() > expire;
+        }
+
+        [[nodiscard]] QJsonObject toJson() const;
+        static SubUserInfo fromJson(const QJsonObject &json);
+    };
+
+    SubUserInfo ParseSubUserInfo(const QString &info);
+
     enum class testBy : int {
         latency = 0,
         dlSpeed,
@@ -72,7 +104,9 @@ namespace Configs
         QString name = "";
         QString url = "";
         QString info = "";
+        SubUserInfo sub_info;
         qint64 sub_last_update = 0;
+        int sub_update_interval = 0;
         SubscriptionOptions sub_options;
         int front_proxy_id = -1;
         int landing_proxy_id = -1;
@@ -89,6 +123,8 @@ namespace Configs
         QList<std::pair<int, int>> selectedProfilesIdIdxPairs;
 
         Group() = default;
+
+        [[nodiscard]] SubUserInfo GetSubUserInfo() const { return sub_info.valid ? sub_info : ParseSubUserInfo(info); }
 
         void clearCalculatedColumnWidth();
 

@@ -36,6 +36,16 @@ DialogEditGroup::DialogEditGroup(const std::shared_ptr<Configs::Group> &ent, QWi
         dialog->open();
     });
     ui->url->setText(ent->url);
+
+    ui->sub_update_interval->setRange(0, 720);
+    ui->sub_update_interval->setValue(ent->sub_update_interval);
+    if (ent->sub_info.server_interval > 0) {
+        ui->sub_update_interval->setSpecialValueText(tr("Default (Server: %1h)").arg(ent->sub_info.server_interval));
+    } else {
+        ui->sub_update_interval->setSpecialValueText(tr("Default (Auto / Global)"));
+    }
+    ui->sub_update_interval->setSuffix(tr(" hours"));
+
     ui->type->setCurrentIndex(ent->url.isEmpty() ? 0 : 1);
     ui->type->currentIndexChanged(ui->type->currentIndex());
     ui->cat_share->setVisible(false);
@@ -220,10 +230,17 @@ void DialogEditGroup::accept() {
             return;
         }
     }
+    const QString newUrl = ui->url->text().trimmed();
+    if (ent->url != newUrl) {
+        ent->sub_info = Configs::SubUserInfo{};
+        ent->sub_last_update = 0;
+        ent->info.clear();
+    }
     ent->name = ui->name->text().trimmed();
     ent->auto_clear_unavailable = ui->auto_clear_unavailable->isChecked();
-    ent->url = ui->url->text().trimmed();
+    ent->url = newUrl;
     ent->skip_auto_update = ui->skip_auto_update->isChecked();
+    ent->sub_update_interval = ui->sub_update_interval->value();
     ent->sub_options = subOptions;
     ent->front_proxy_id = resolve_proxy_selection(ui->front_proxy, CACHE.front_proxy);
     ent->landing_proxy_id = resolve_proxy_selection(ui->landing_proxy, LANDING.landing_proxy);

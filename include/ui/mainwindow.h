@@ -120,6 +120,8 @@ public:
 
     void refresh_groups();
 
+    void updateTabToolTip(int gid);
+
     void refresh_status(const QString &traffic_update = "");
 
     void update_traffic_graph(int proxyDl, int proxyUp, int directDl, int directUp);

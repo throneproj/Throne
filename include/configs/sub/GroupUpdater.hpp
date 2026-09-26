@@ -9,6 +9,7 @@
 
 #include <functional>
 
+#include "include/database/entities/Group.h"
 #include "include/global/DeviceDetailsHelper.hpp"
 
 namespace Configs {
@@ -39,6 +40,8 @@ namespace Subscription {
 
         void RefreshAll(bool onlyAllowed = false);
 
+        void CheckAutoUpdate();
+
         void SubscribeUrl(const QString &url, const Finish &finish = nullptr);
 
         void ImportUrl(const QString &url, const Finish &finish = nullptr);
@@ -66,7 +69,7 @@ namespace Subscription {
         void requestUrlTest(int gid, const QList<int> &profileIDs);
         void afterUrlTest(int gid);
         void importDocuments(int gid, QList<QByteArray> documents);
-        bool fetch(const QString &url, const QString &name, const RequestIdentity &identity, QByteArray &body, QString &userInfo);
+        bool fetch(const QString &url, const QString &name, const RequestIdentity &identity, QByteArray &body, Configs::SubUserInfo &subInfo);
 
         QMutex mutex;
         QList<Job> queue;
@@ -76,5 +79,6 @@ namespace Subscription {
         UrlTester urlTester;
     };
 
+    int ParseUpdateInterval(const QString &headerStr);
     GroupUpdater *updater();
 } // namespace Subscription

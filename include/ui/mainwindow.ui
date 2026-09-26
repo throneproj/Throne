@@ -402,7 +402,7 @@ QToolButton::menu-indicator {
         <attribute name="title">
          <string/>
         </attribute>
-        <layout class="QGridLayout" name="gridLayout_2">
+        <layout class="QVBoxLayout" name="verticalLayout_tab1">
          <property name="leftMargin">
           <number>0</number>
          </property>
@@ -418,7 +418,7 @@ QToolButton::menu-indicator {
          <property name="spacing">
           <number>0</number>
          </property>
-         <item row="0" column="0">
+         <item>
           <widget class="ProfilesTableView" name="profilesTableView">
            <property name="contextMenuPolicy">
             <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>

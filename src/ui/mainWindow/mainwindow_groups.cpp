@@ -11,13 +11,62 @@
 #include "include/ui/group/dialog_edit_group.h"
 #include "include/ui/mainWindow/MainWindowInternal.h"
 #include "include/ui/mainWindow/TestRunner.h"
-
+#include "include/ui/utils/ProfilesTableFilterHeader.h"
+#include "include/global/Utils.hpp"
 
 void MainWindow::on_tabWidget_currentChanged(int index) {
     if (Configs::dataManager->settingsRepo->refreshing_group_list) return;
     const auto gid = tabIndex2GroupId(index);
     if (gid == Configs::dataManager->settingsRepo->current_group) return;
     show_group(gid);
+}
+
+void MainWindow::updateTabToolTip(int gid) {
+    int tabIdx = groupId2TabIndex(gid);
+    if (tabIdx < 0) return;
+    auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
+    if (!group) return;
+
+    auto subInfo = group->GetSubUserInfo();
+    QString title = subInfo.title.isEmpty() ? group->name : subInfo.title;
+
+    if (group->url.isEmpty()) {
+        ui->tabWidget->setTabToolTip(tabIdx, title.toHtmlEscaped());
+    } else {
+        QString html = QStringLiteral("<div style='max-width:320px;line-height:1.3;'>");
+        html += QStringLiteral("<b>%1</b><br>").arg(title.toHtmlEscaped());
+        html += QStringLiteral("<span style='opacity:0.8;'>%1</span><br>").arg(tr("Type: Subscription"));
+
+        if (group->sub_last_update > 0) {
+            html += QStringLiteral("%1: %2<br>").arg(tr("Last updated"), DisplayTime(group->sub_last_update, QLocale::ShortFormat));
+        }
+        int interval = group->sub_update_interval > 0 ? group->sub_update_interval : subInfo.server_interval;
+        if (interval > 0) {
+            html += QStringLiteral("%1: every %2h<br>").arg(tr("Auto-update"), QString::number(interval));
+        }
+        if (subInfo.has_quota) {
+            html += QStringLiteral("%1: %2<br>").arg(tr("Used"), ReadableSize(subInfo.used()));
+            if (subInfo.total > 0) {
+                html += QStringLiteral("%1: %2 (%3: %4)<br>").arg(
+                    tr("Total"), ReadableSize(subInfo.total), tr("Remaining"), ReadableSize(subInfo.remaining()));
+            }
+            if (subInfo.expire > 0) {
+                html += QStringLiteral("%1: %2<br>").arg(tr("Expires"), DisplayTime(subInfo.expire, QLocale::ShortFormat));
+            }
+        }
+        if (!subInfo.support_url.isEmpty()) {
+            html += QStringLiteral("%1: %2<br>").arg(tr("Support"), subInfo.support_url.toHtmlEscaped());
+        }
+        if (!subInfo.web_url.isEmpty()) {
+            html += QStringLiteral("%1: %2<br>").arg(tr("Portal"), subInfo.web_url.toHtmlEscaped());
+        }
+        if (!subInfo.announce.isEmpty()) {
+            html += QStringLiteral("<div style='margin-top:4px;padding-top:4px;border-top:1px solid rgba(128,128,128,0.3);'><b>%1:</b><br>%2</div>")
+                .arg(tr("Announcement"), subInfo.announce.toHtmlEscaped());
+        }
+        html += QStringLiteral("</div>");
+        ui->tabWidget->setTabToolTip(tabIdx, html);
+    }
 }
 
 void MainWindow::show_group(int gid) {
@@ -42,6 +91,13 @@ void MainWindow::show_group(int gid) {
     }
 
     ui->tabWidget->widget(groupId2TabIndex(gid))->layout()->addWidget(ui->profilesTableView);
+
+    auto *filterHeader = dynamic_cast<ProfilesTableFilterHeader*>(ui->profilesTableView->horizontalHeader());
+    if (filterHeader != nullptr) {
+        filterHeader->setGroup(group);
+    }
+
+    updateTabToolTip(gid);
 
     refresh_proxy_list({}, true);
 
@@ -76,7 +132,7 @@ void MainWindow::refresh_groups() {
         } else {
             auto widget2 = new QWidget();
             auto layout2 = new QVBoxLayout();
-            layout2->setContentsMargins(QMargins());
+            layout2->setContentsMargins(0, 0, 0, 0);
             layout2->setSpacing(0);
             widget2->setLayout(layout2);
             ui->tabWidget->addTab(widget2, group->name);

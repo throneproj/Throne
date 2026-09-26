@@ -2,9 +2,125 @@
 
 #include "include/database/ProfilesRepo.h"
 #include "include/global/Configs.hpp"
+#include <QRegularExpression> 
 
 namespace Configs
 {
+    QJsonObject SubUserInfo::toJson() const {
+        QJsonObject json;
+        if (!valid) return json;
+        json["valid"] = valid;
+        json["has_quota"] = has_quota;
+        if (upload > 0) json["upload"] = upload;
+        if (download > 0) json["download"] = download;
+        if (total > 0) json["total"] = total;
+        if (expire > 0) json["expire"] = expire;
+        if (!title.isEmpty()) json["title"] = title;
+        if (!web_url.isEmpty()) json["web_url"] = web_url;
+        if (!support_url.isEmpty()) json["support_url"] = support_url;
+        if (!announce.isEmpty()) json["announce"] = announce;
+        if (server_interval > 0) json["server_interval"] = server_interval;
+        return json;
+    }
+
+    SubUserInfo SubUserInfo::fromJson(const QJsonObject &json) {
+        SubUserInfo res;
+        if (json.isEmpty()) return res;
+        res.valid = json["valid"].toBool(false);
+        res.has_quota = json["has_quota"].toBool(false);
+        res.upload = json["upload"].toVariant().toLongLong();
+        res.download = json["download"].toVariant().toLongLong();
+        res.total = json["total"].toVariant().toLongLong();
+        res.expire = json["expire"].toVariant().toLongLong();
+        res.title = json["title"].toString();
+        res.web_url = json["web_url"].toString();
+        res.support_url = json["support_url"].toString();
+        res.announce = json["announce"].toString();
+        res.server_interval = json["server_interval"].toInt(0);
+        return res;
+    }
+
+    SubUserInfo ParseSubUserInfo(const QString &info) {
+        SubUserInfo result;
+        if (info.trimmed().isEmpty()) return result;
+
+        static const QRegularExpression totalRe(R"((?:^|[;,\s])total=(\d+))", QRegularExpression::CaseInsensitiveOption);
+        static const QRegularExpression uploadRe(R"((?:^|[;,\s])upload=(\d+))", QRegularExpression::CaseInsensitiveOption);
+        static const QRegularExpression downloadRe(R"((?:^|[;,\s])download=(\d+))", QRegularExpression::CaseInsensitiveOption);
+        static const QRegularExpression expireRe(R"((?:^|[;,\s])expire=(\d+))", QRegularExpression::CaseInsensitiveOption);
+        static const QRegularExpression titleRe(R"((?:^|[;\s])title=([^;\n]+))", QRegularExpression::CaseInsensitiveOption);
+        static const QRegularExpression webUrlRe(R"((?:^|[;\s])(?:web_url|url)=([^;\n\s]+))", QRegularExpression::CaseInsensitiveOption);
+        static const QRegularExpression supportUrlRe(R"((?:^|[;\s])support_url=([^;\n\s]+))", QRegularExpression::CaseInsensitiveOption);
+        static const QRegularExpression announceRe(R"((?:^|[;\s])announce=(.+)$)", QRegularExpression::CaseInsensitiveOption);
+        static const QRegularExpression intervalRe(R"((?:^|[;\s])interval=(\d+))", QRegularExpression::CaseInsensitiveOption);
+
+        auto mTotal = totalRe.match(info);
+        if (mTotal.hasMatch()) {
+            result.total = mTotal.captured(1).toLongLong();
+            result.has_quota = true;
+            result.valid = true;
+        }
+
+        auto mUpload = uploadRe.match(info);
+        if (mUpload.hasMatch()) {
+            result.upload = mUpload.captured(1).toLongLong();
+            result.has_quota = true;
+            result.valid = true;
+        }
+
+        auto mDownload = downloadRe.match(info);
+        if (mDownload.hasMatch()) {
+            result.download = mDownload.captured(1).toLongLong();
+            result.has_quota = true;
+            result.valid = true;
+        }
+
+        auto mExpire = expireRe.match(info);
+        if (mExpire.hasMatch()) {
+            result.expire = mExpire.captured(1).toLongLong();
+            if (result.expire > 1000000000000LL) {
+                result.expire /= 1000;
+            }
+            result.has_quota = true;
+            result.valid = true;
+        }
+
+        auto mTitle = titleRe.match(info);
+        if (mTitle.hasMatch()) {
+            result.title = mTitle.captured(1).trimmed();
+            result.valid = true;
+        }
+
+        auto mWeb = webUrlRe.match(info);
+        if (mWeb.hasMatch()) {
+            result.web_url = mWeb.captured(1).trimmed();
+            result.valid = true;
+        }
+
+        auto mSup = supportUrlRe.match(info);
+        if (mSup.hasMatch()) {
+            result.support_url = mSup.captured(1).trimmed();
+            result.valid = true;
+        }
+
+        auto mAnnounce = announceRe.match(info);
+        if (mAnnounce.hasMatch()) {
+            QString ann = mAnnounce.captured(1).trimmed();
+            if (!ann.isEmpty() && ann.compare("base64:", Qt::CaseInsensitive) != 0) {
+                result.announce = ann;
+                result.valid = true;
+            }
+        }
+
+        auto mInterval = intervalRe.match(info);
+        if (mInterval.hasMatch()) {
+            result.server_interval = mInterval.captured(1).toInt();
+            result.valid = true;
+        }
+
+        return result;
+    }
+
     QJsonObject SubscriptionOptions::ToJson() const {
         QJsonObject json;
         if (!user_agent.isEmpty()) json["user_agent"] = user_agent;
