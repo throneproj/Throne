@@ -5,11 +5,13 @@ EditVless::EditVless(QWidget *parent)
       ui(new Ui::EditVless) {
     ui->setupUi(this);
 
-    _flow = ui->flow;
     QStringList flows = {""};
     flows << Configs::vlessFlows;
     ui->flow->addItems(flows);
     ui->packet_encoding->addItems(Configs::vPacketEncoding);
+    connect(ui->flow, &QComboBox::currentTextChanged, this, [this] {
+        if (editor_state_changed) editor_state_changed();
+    });
 }
 
 EditVless::~EditVless() {
@@ -32,4 +34,8 @@ bool EditVless::onEnd() {
     outbound->flow = ui->flow->currentText().trimmed();
     outbound->packet_encoding = ui->packet_encoding->currentText().trimmed();
     return true;
+}
+
+bool EditVless::blocksMultiplex() {
+    return ui->flow->currentText() == "xtls-rprx-vision";
 }

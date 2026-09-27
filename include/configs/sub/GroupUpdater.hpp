@@ -12,15 +12,13 @@
 #include "include/database/entities/Group.h"
 #include "include/global/DeviceDetailsHelper.hpp"
 
-namespace Configs {
-    class Group;
-}
-
 namespace Subscription {
     struct RequestIdentity {
         QString userAgent;
         bool sendHwid = false;
         DeviceDetails device;
+        Configs::subTlsVersion tlsVersion = Configs::subTlsVersion::automatic;
+        Configs::subHttpVersion httpVersion = Configs::subHttpVersion::automatic;
     };
 
     // The global subscription settings under the group's overrides; nullptr resolves the globals alone.

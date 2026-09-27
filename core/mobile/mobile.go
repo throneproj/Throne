@@ -51,6 +51,13 @@ func Setup(options *SetupOptions) error {
 			return E.Cause(err, "create ", dir)
 		}
 	}
+	// Like the desktop's XRAY_LOCATION_ASSET: without it Xray looks for geoip.dat/geosite.dat next to
+	// app_process in /system/bin. Set from Go because the runtime copied the environment at load time.
+	if sBasePath != "" {
+		if err := os.Setenv("XRAY_LOCATION_ASSET", sBasePath); err != nil {
+			return E.Cause(err, "set Xray asset location")
+		}
+	}
 	return nil
 }
 

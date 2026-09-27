@@ -2,7 +2,6 @@
 #include <QDialog>
 #include "profile_editor.h"
 
-#include "include/ui/utils/FloatCheckBox.h"
 #include "ui_dialog_edit_profile.h"
 #include "include/database/entities/Profile.h"
 
@@ -18,10 +17,6 @@ public:
 
     ~DialogEditProfile() override;
 
-    void toggleSingboxWidgets(bool show);
-
-    void toggleXrayWidgets(bool show);
-
 public slots:
 
     void accept() override;
@@ -30,10 +25,9 @@ private slots:
     void on_certificate_edit_clicked();
     void on_xray_downloadsettings_edit_clicked();
     void on_xray_finalmask_edit_clicked();
+
 private:
     Ui::DialogEditProfile *ui;
-
-    std::map<QWidget *, FloatCheckBox *> apply_to_group_ui;
 
     QWidget *innerWidget{};
     ProfileEditor *innerEditor{};
@@ -41,7 +35,7 @@ private:
     qsizetype innerTabOrderIndex{-1};
 
     QString type;
-    int groupId;
+    int groupId = -1;
     bool newEnt = false;
     std::shared_ptr<Configs::Profile> ent;
 
@@ -53,27 +47,41 @@ private:
         QJsonObject XrayFinalmask;
     } CACHE;
 
-    void typeSelected(const QString &newType);
+    // dialog_edit_profile.cpp: profile type, protocol editor, common fields, layout
+    void setupTypeList();
+    bool typeSelected(const QString &newType);
+    void mountEditor(QWidget *widget, ProfileEditor *editor);
+    void updateControls();
+    void updateCommonRows();
+    void relayout();
+    void fitToContent();
+    bool onEnd();
+    void editor_cache_updated_impl();
+    void setCacheButtonText(QPushButton *button, bool isSet);
+    static void setRowVisible(QWidget *label, QWidget *field, bool visible);
+    static void selectComboText(QComboBox *combo, const QString &text);
 
-    void updateXrayCommons(QString network);
-
+    // dialog_edit_profile_singbox.cpp: sing-box transport, TLS and multiplex
+    void setupSingboxStream();
+    void loadSingboxStream();
+    bool validateSingboxStream();
+    void saveSingboxStream();
+    void updateSingboxRows();
     void updateTlsControlsEnabled();
 
+    // dialog_edit_profile_xray.cpp: Xray stream settings
+    void setupXrayStream();
+    void loadXrayStream();
+    void loadXrayNetwork(const QString &network);
+    void saveXrayStream();
+    void updateXrayRows();
+
+    // dialog_edit_profile_xhttp.cpp: the XHTTP panel of the Xray stream
     void setupXrayXHTTPControls();
-
-    void updateXrayXHTTPControls();
-
     void setupXrayXHTTPDescriptions();
-
     void setXrayXHTTPHelp(QWidget *caption, QWidget *field, const QString &text, const QString &jsonKey, const QString &description);
-
-    void queueRefreshDialogLayout();
-
-    bool validateHeaders();
-
+    void loadXrayXHTTP(const Configs::xrayXHTTP &xhttp);
+    void saveXrayXHTTP(Configs::xrayXHTTP &xhttp);
+    void updateXrayXHTTPControls();
     bool validateXrayXHTTPSettings();
-
-    bool onEnd();
-
-    void editor_cache_updated_impl();
 };

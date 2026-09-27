@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QSsl>
 #include <functional>
 
 namespace Configs_network {
@@ -24,6 +25,8 @@ namespace Configs_network {
         // Empty sends the global User-Agent.
         QString userAgent;
         QList<QPair<QByteArray, QByteArray>> headers;
+        QSsl::SslProtocol tlsProtocol = QSsl::SecureProtocols;
+        bool http2 = true;
     };
 
     class NetworkRequestHelper : QObject {

@@ -34,6 +34,69 @@
        <widget class="MyLineEdit" name="user_agent"/>
       </item>
       <item row="1" column="0">
+       <widget class="QLabel" name="tls_version_l">
+        <property name="toolTip">
+         <string>TLS versions offered when fetching this subscription. Some servers answer the default handshake with a CAPTCHA or a block page; TLS 1.2 often gets through. Keep Default follows the Subscription settings.</string>
+        </property>
+        <property name="text">
+         <string>TLS Version</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QComboBox" name="tls_version">
+        <item>
+         <property name="text">
+          <string>Keep Default</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Auto</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>TLS 1.2</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>TLS 1.3</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="http_version_l">
+        <property name="toolTip">
+         <string>Auto uses HTTP/2 when the server offers it. Keep Default follows the Subscription settings.</string>
+        </property>
+        <property name="text">
+         <string>HTTP Version</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QComboBox" name="http_version">
+        <item>
+         <property name="text">
+          <string>Keep Default</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Auto</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>HTTP/1.1</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="3" column="0">
        <widget class="QLabel" name="send_hwid_l">
         <property name="toolTip">
          <string>Send the HWID, OS, OS version and device model headers with this subscription's requests. Keep Default follows the Subscription settings.</string>
@@ -43,7 +106,7 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
+      <item row="3" column="1">
        <widget class="QComboBox" name="send_hwid">
         <item>
          <property name="text">
@@ -62,44 +125,44 @@
         </item>
        </widget>
       </item>
-      <item row="2" column="0">
+      <item row="4" column="0">
        <widget class="QLabel" name="hwid_l">
         <property name="text">
          <string>HWID</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
+      <item row="4" column="1">
        <widget class="MyLineEdit" name="hwid"/>
       </item>
-      <item row="3" column="0">
+      <item row="5" column="0">
        <widget class="QLabel" name="hwid_os_l">
         <property name="text">
          <string>OS</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
+      <item row="5" column="1">
        <widget class="MyLineEdit" name="hwid_os"/>
       </item>
-      <item row="4" column="0">
+      <item row="6" column="0">
        <widget class="QLabel" name="hwid_os_version_l">
         <property name="text">
          <string>OS Version</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
+      <item row="6" column="1">
        <widget class="MyLineEdit" name="hwid_os_version"/>
       </item>
-      <item row="5" column="0">
+      <item row="7" column="0">
        <widget class="QLabel" name="hwid_model_l">
         <property name="text">
          <string>Device Model</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
+      <item row="7" column="1">
        <widget class="MyLineEdit" name="hwid_model"/>
       </item>
      </layout>
@@ -214,6 +277,8 @@
  </customwidgets>
  <tabstops>
   <tabstop>user_agent</tabstop>
+  <tabstop>tls_version</tabstop>
+  <tabstop>http_version</tabstop>
   <tabstop>send_hwid</tabstop>
   <tabstop>hwid</tabstop>
   <tabstop>hwid_os</tabstop>

@@ -20,13 +20,12 @@ public:
 
     bool onEnd() override;
 
-    QComboBox *_protocol_version;
-    QComboBox *_obfuscation_type;
-    QCheckBox *_realm_enabled;
+    bool locksServerAddress() override;
 
-    void editHysteriaLayout(const QString& version, const QString& obfs_type);
 private:
     Ui::EditHysteria *ui;
     std::shared_ptr<Configs::Profile> ent;
+
+    void editHysteriaLayout(const QString& version, const QString& obfs_type);
 };
 

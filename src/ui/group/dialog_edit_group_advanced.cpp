@@ -5,7 +5,23 @@
 
 #include <QGuiApplication>
 #include <QScreen>
+#include <QSslSocket>
+#include <QStandardItemModel>
 #include <QStyle>
+
+namespace {
+    // Index 0 of an override combo is Keep Default; the enum values follow.
+    template <typename E>
+    int overrideIndex(const std::optional<E> &value) {
+        return value ? static_cast<int>(*value) + 1 : 0;
+    }
+
+    template <typename E>
+    std::optional<E> overrideAt(int index) {
+        if (index <= 0) return std::nullopt;
+        return static_cast<E>(index - 1);
+    }
+}
 
 DialogEditGroupAdvanced::DialogEditGroupAdvanced(const Configs::SubscriptionOptions &options, QWidget *parent)
     : QDialog(parent), ui(new Ui::DialogEditGroupAdvanced), options(options) {
@@ -15,6 +31,11 @@ DialogEditGroupAdvanced::DialogEditGroupAdvanced(const Configs::SubscriptionOpti
     globalSendHwid = defaults.sendHwid;
     ui->send_hwid->setItemText(static_cast<int>(Configs::sendHwid::keepDefault),
                                tr("Keep Default (%1)").arg(globalSendHwid ? tr("On") : tr("Off")));
+    ui->tls_version->setItemText(0, tr("Keep Default (%1)").arg(ui->tls_version->itemText(overrideIndex(std::optional(defaults.tlsVersion)))));
+    ui->http_version->setItemText(0, tr("Keep Default (%1)").arg(ui->http_version->itemText(overrideIndex(std::optional(defaults.httpVersion)))));
+    if (auto *model = qobject_cast<QStandardItemModel *>(ui->tls_version->model()); model && !QSslSocket::isProtocolSupported(QSsl::TlsV1_3)) {
+        model->item(overrideIndex(std::optional(Configs::subTlsVersion::tls13)))->setEnabled(false);
+    }
     ui->user_agent->setPlaceholderText(defaults.userAgent);
     ui->hwid->setPlaceholderText(defaults.device.hwid);
     ui->hwid_os->setPlaceholderText(defaults.device.os);
@@ -22,6 +43,8 @@ DialogEditGroupAdvanced::DialogEditGroupAdvanced(const Configs::SubscriptionOpti
     ui->hwid_model->setPlaceholderText(defaults.device.model);
 
     ui->user_agent->setText(options.user_agent);
+    ui->tls_version->setCurrentIndex(overrideIndex(options.tls_version));
+    ui->http_version->setCurrentIndex(overrideIndex(options.http_version));
     ui->send_hwid->setCurrentIndex(static_cast<int>(options.send_hwid));
     ui->hwid->setText(options.hwid);
     ui->hwid_os->setText(options.hwid_os);
@@ -72,6 +95,8 @@ void DialogEditGroupAdvanced::syncUrlTestFollowUps() {
 
 void DialogEditGroupAdvanced::accept() {
     options.user_agent = ui->user_agent->text().trimmed();
+    options.tls_version = overrideAt<Configs::subTlsVersion>(ui->tls_version->currentIndex());
+    options.http_version = overrideAt<Configs::subHttpVersion>(ui->http_version->currentIndex());
     options.send_hwid = static_cast<Configs::sendHwid>(ui->send_hwid->currentIndex());
     options.hwid = ui->hwid->text().trimmed();
     options.hwid_os = ui->hwid_os->text().trimmed();

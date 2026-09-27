@@ -124,6 +124,8 @@ namespace Configs
     QJsonObject SubscriptionOptions::ToJson() const {
         QJsonObject json;
         if (!user_agent.isEmpty()) json["user_agent"] = user_agent;
+        if (tls_version) json["tls_version"] = static_cast<int>(*tls_version);
+        if (http_version) json["http_version"] = static_cast<int>(*http_version);
         if (send_hwid != sendHwid::keepDefault) json["send_hwid"] = static_cast<int>(send_hwid);
         if (!hwid.isEmpty()) json["hwid"] = hwid;
         if (!hwid_os.isEmpty()) json["hwid_os"] = hwid_os;
@@ -142,6 +144,12 @@ namespace Configs
     SubscriptionOptions SubscriptionOptions::FromJson(const QJsonObject &json) {
         SubscriptionOptions options;
         options.user_agent = json["user_agent"].toString();
+        if (const int tls = json["tls_version"].toInt(-1); tls >= 0 && tls <= static_cast<int>(subTlsVersion::tls13)) {
+            options.tls_version = static_cast<subTlsVersion>(tls);
+        }
+        if (const int http = json["http_version"].toInt(-1); http >= 0 && http <= static_cast<int>(subHttpVersion::http11)) {
+            options.http_version = static_cast<subHttpVersion>(http);
+        }
         const int mode = json["send_hwid"].toInt();
         if (mode == static_cast<int>(sendHwid::on) || mode == static_cast<int>(sendHwid::off)) {
             options.send_hwid = static_cast<sendHwid>(mode);

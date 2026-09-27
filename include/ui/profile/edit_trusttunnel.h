@@ -19,7 +19,7 @@ public:
 
     bool onEnd() override;
 
-    QCheckBox *_quic{};
+    bool usesQuic() override;
 
 private:
     Ui::EditTrustTunnel *ui;

@@ -149,6 +149,9 @@ namespace Configs {
 
         // Subscription
         QString user_agent = ""; // set at main.cpp
+        // Configs::subTlsVersion / Configs::subHttpVersion values.
+        int sub_tls_version = 0;
+        int sub_http_version = 0;
         // Sign encodes enabled (negative = off), magnitude = interval minutes (ignored if < 30); *_last is epoch seconds.
         int sub_auto_update = -30;
         qint64 sub_auto_update_last = 0;

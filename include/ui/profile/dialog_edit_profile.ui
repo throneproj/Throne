@@ -98,7 +98,7 @@
             </widget>
            </item>
            <item row="1" column="0">
-            <widget class="QLabel" name="label">
+            <widget class="QLabel" name="name_l">
              <property name="text">
               <string>Name</string>
              </property>
@@ -359,11 +359,6 @@
              </property>
              <item>
               <property name="text">
-               <string notr="true"/>
-              </property>
-             </item>
-             <item>
-              <property name="text">
                <string notr="true">tcp</string>
               </property>
              </item>
@@ -417,7 +412,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QWidget" name="widget" native="true">
+             <widget class="QWidget" name="brutal_speed_w" native="true">
               <layout class="QGridLayout" name="gridLayout_3">
                <property name="leftMargin">
                 <number>0</number>
@@ -725,7 +720,7 @@
          <item>
           <layout class="QGridLayout" name="_3">
            <item row="1" column="0">
-            <widget class="QLabel" name="label_8">
+            <widget class="QLabel" name="alpn_l">
              <property name="toolTip">
               <string>Application layer protocol negotiation, clear text. Please separate them with commas.</string>
              </property>
@@ -783,7 +778,7 @@
           <number>7</number>
          </property>
          <item>
-          <widget class="QWidget" name="widget" native="true">
+          <widget class="QWidget" name="tls_camouflage_w" native="true">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
              <horstretch>0</horstretch>
@@ -854,7 +849,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QLabel" name="label_3">
+                <widget class="QLabel" name="tls_frag_fall_delay_l">
                  <property name="toolTip">
                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;time format, like 500ms, 10ms etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
@@ -942,7 +937,7 @@
              <number>7</number>
             </property>
             <item row="0" column="0">
-             <widget class="QLabel" name="label_2">
+             <widget class="QLabel" name="utlsFingerprint_l">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -1282,7 +1277,7 @@
                   </property>
                   <layout class="QGridLayout" name="gridLayout_xray_xhttp_common">
                    <item row="0" column="0">
-                    <widget class="QLabel" name="label_21">
+                    <widget class="QLabel" name="xray_mode_l">
                      <property name="text">
                       <string>Mode</string>
                      </property>
@@ -1295,7 +1290,7 @@
                     <widget class="NoWheelComboBox" name="xray_mode"/>
                    </item>
                    <item row="0" column="2">
-                    <widget class="QLabel" name="label_23">
+                    <widget class="QLabel" name="xray_xpaddingbytes_l">
                      <property name="text">
                       <string>X Padding Bytes</string>
                      </property>
@@ -1410,7 +1405,7 @@
                   </property>
                   <layout class="QGridLayout" name="gridLayout_xray_xhttp_packet">
                    <item row="1" column="0">
-                    <widget class="QLabel" name="label_24">
+                    <widget class="QLabel" name="xray_scMaxEachPostBytes_l">
                      <property name="text">
                       <string>scMaxEachPostBytes</string>
                      </property>
@@ -1423,7 +1418,7 @@
                     <widget class="QLineEdit" name="xray_scMaxEachPostBytes"/>
                    </item>
                    <item row="1" column="2">
-                    <widget class="QLabel" name="label_25">
+                    <widget class="QLabel" name="xray_scMinPostsIntervalMs_l">
                      <property name="text">
                       <string>scMinPostsIntervalMs</string>
                      </property>
@@ -1606,7 +1601,7 @@
                     <widget class="QLineEdit" name="xray_seq_key"/>
                    </item>
                    <item row="9" column="0">
-                    <widget class="QLabel" name="label_32">
+                    <widget class="QLabel" name="xray_downloadsettings_l">
                      <property name="text">
                       <string>Download Settings</string>
                      </property>
@@ -1638,7 +1633,7 @@
                   </property>
                   <layout class="QGridLayout" name="gridLayout_xray_xhttp_xmux">
                    <item row="0" column="0">
-                    <widget class="QLabel" name="label_26">
+                    <widget class="QLabel" name="xray_max_concurrency_l">
                      <property name="text">
                       <string>maxConcurrency</string>
                      </property>
@@ -1651,7 +1646,7 @@
                     <widget class="QLineEdit" name="xray_max_concurrency"/>
                    </item>
                    <item row="0" column="2">
-                    <widget class="QLabel" name="label_31">
+                    <widget class="QLabel" name="xray_max_connections_l">
                      <property name="text">
                       <string>maxConnections</string>
                      </property>
@@ -1664,7 +1659,7 @@
                     <widget class="QLineEdit" name="xray_max_connections"/>
                    </item>
                    <item row="1" column="0">
-                    <widget class="QLabel" name="label_27">
+                    <widget class="QLabel" name="xray_hMaxRequestTimes_l">
                      <property name="text">
                       <string>hMaxRequestTimes</string>
                      </property>
@@ -1677,7 +1672,7 @@
                     <widget class="QLineEdit" name="xray_hMaxRequestTimes"/>
                    </item>
                    <item row="1" column="2">
-                    <widget class="QLabel" name="label_28">
+                    <widget class="QLabel" name="xray_hMaxReusableSecs_l">
                      <property name="text">
                       <string>hMaxReusableSecs</string>
                      </property>
@@ -1690,7 +1685,7 @@
                     <widget class="QLineEdit" name="xray_hMaxReusableSecs"/>
                    </item>
                    <item row="2" column="0">
-                    <widget class="QLabel" name="label_29">
+                    <widget class="QLabel" name="xray_max_reuse_times_l">
                      <property name="text">
                       <string>cMaxReuseTimes</string>
                      </property>
@@ -1703,7 +1698,7 @@
                     <widget class="QLineEdit" name="xray_max_reuse_times"/>
                    </item>
                    <item row="2" column="2">
-                    <widget class="QLabel" name="label_30">
+                    <widget class="QLabel" name="xray_keep_alive_period_l">
                      <property name="text">
                       <string>hKeepAlivePeriod</string>
                      </property>
@@ -1753,9 +1748,9 @@
   <tabstop>advanced_button</tabstop>
   <tabstop>fake</tabstop>
   <tabstop>xray_network</tabstop>
-   <tabstop>xray_security</tabstop>
-   <tabstop>xray_finalmask_edit</tabstop>
-   <tabstop>xray_mux</tabstop>
+  <tabstop>xray_security</tabstop>
+  <tabstop>xray_finalmask_edit</tabstop>
+  <tabstop>xray_mux</tabstop>
   <tabstop>network</tabstop>
   <tabstop>security</tabstop>
   <tabstop>multiplex</tabstop>

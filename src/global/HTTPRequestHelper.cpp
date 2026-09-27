@@ -4,6 +4,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QSslSocket>
 #include <QTimer>
 #include <QFile>
 #include <QApplication>
@@ -23,6 +24,9 @@ namespace Configs_network {
     }
 
     HTTPResponse NetworkRequestHelper::HttpGet(const QString &url, const HttpGetOptions &options) {
+        if (!QSslSocket::isProtocolSupported(options.tlsProtocol)) {
+            return HTTPResponse{QObject::tr("The selected TLS version is not supported on this system.")};
+        }
         const qint64 maxBytes = options.maxBytes;
         QNetworkRequest request;
         QNetworkAccessManager accessManager;
@@ -43,13 +47,13 @@ namespace Configs_network {
             accessManager.setProxy(p);
         }
         request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+        request.setAttribute(QNetworkRequest::Http2AllowedAttribute, options.http2);
         request.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
                           options.userAgent.isEmpty() ? Configs::dataManager->settingsRepo->GetUserAgent() : options.userAgent);
-        if (Configs::dataManager->settingsRepo->net_insecure) {
-            QSslConfiguration c;
-            c.setPeerVerifyMode(QSslSocket::PeerVerifyMode::VerifyNone);
-            request.setSslConfiguration(c);
-        }
+        auto ssl = request.sslConfiguration();
+        ssl.setProtocol(options.tlsProtocol);
+        if (Configs::dataManager->settingsRepo->net_insecure) ssl.setPeerVerifyMode(QSslSocket::PeerVerifyMode::VerifyNone);
+        request.setSslConfiguration(ssl);
         for (const auto &[name, value] : options.headers) request.setRawHeader(name, value);
         auto _reply = accessManager.get(request);
         connect(_reply, &QNetworkReply::sslErrors, _reply, [](const QList<QSslError> &errors) {

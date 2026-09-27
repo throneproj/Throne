@@ -106,6 +106,8 @@ namespace Configs {
             {"connection_sort",        &connection_sort},
             {"traffic_stats_retention_days", &traffic_stats_retention_days},
             {"sub_auto_update",        &sub_auto_update},
+            {"sub_tls_version",        &sub_tls_version},
+            {"sub_http_version",       &sub_http_version},
             {"route_auto_update",      &route_auto_update},
             {"vpn_mtu",                &vpn_mtu},
             {"ntp_server_port",        &ntp_server_port},

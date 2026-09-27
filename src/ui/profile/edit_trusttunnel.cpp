@@ -5,7 +5,9 @@ EditTrustTunnel::EditTrustTunnel(QWidget *parent)
       ui(new Ui::EditTrustTunnel) {
 
     ui->setupUi(this);
-    _quic = ui->quic;
+    connect(ui->quic, &QCheckBox::toggled, this, [this] {
+        if (editor_state_changed) editor_state_changed();
+    });
 }
 
 EditTrustTunnel::~EditTrustTunnel() {
@@ -36,4 +38,8 @@ bool EditTrustTunnel::onEnd() {
     outbound->quic = ui->quic->isChecked();
     outbound->congestion_control = ui->congestion_control->currentText().trimmed();
     return true;
+}
+
+bool EditTrustTunnel::usesQuic() {
+    return ui->quic->isChecked();
 }
