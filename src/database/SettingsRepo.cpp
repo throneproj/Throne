@@ -43,6 +43,7 @@ namespace Configs {
             {"vpn_auto_redirect",             &vpn_auto_redirect},
             {"vpn_l3_bridge",                 &vpn_l3_bridge},
             {"sub_clear",                     &sub_clear},
+            {"sub_respect_server_interval",   &sub_respect_server_interval},
             {"sub_show_change_popup",         &sub_show_change_popup},
             {"net_insecure",                  &net_insecure},
             {"sub_send_hwid",                 &sub_send_hwid},
@@ -263,10 +264,6 @@ namespace Configs {
                 remote_dns_disable_ipv6 = str == "ipv4_only";
                 continue;
             }
-            if (key == "sub_auto_update_last") {
-                sub_auto_update_last = str.toLongLong();
-                continue;
-            }
             if (key == "route_auto_update_last") {
                 route_auto_update_last = str.toLongLong();
                 continue;
@@ -305,7 +302,7 @@ namespace Configs {
         if (noSave) return;
 
         std::vector<std::pair<std::string, std::string>> keyValues;
-        keyValues.reserve(boolMap.size() + intMap.size() + stringMap.size() + stringListMap.size() + 4);
+        keyValues.reserve(boolMap.size() + intMap.size() + stringMap.size() + stringListMap.size() + 3);
 
         const auto addPair = [&keyValues](const QString& key, const auto& value) {
             keyValues.emplace_back(key.toStdString(), value);
@@ -334,9 +331,7 @@ namespace Configs {
         addPair(QStringLiteral("xray_vless_preference"),
             std::to_string(static_cast<int>(xray_vless_preference)));
 
-        // qint64 timestamps: out of range for the int map, so persisted here.
-        addPair(QStringLiteral("sub_auto_update_last"),
-            std::to_string(sub_auto_update_last));
+        // qint64 timestamp: out of range for the int map, so persisted here.
         addPair(QStringLiteral("route_auto_update_last"),
             std::to_string(route_auto_update_last));
 

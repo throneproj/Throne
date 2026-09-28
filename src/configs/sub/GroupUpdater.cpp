@@ -13,7 +13,6 @@
 #include <QDateTime>
 #include <QJsonDocument>
 #include <QMutexLocker>
-#include <QRegularExpression>
 #include <QThreadPool>
 #include <QUrl>
 
@@ -222,6 +221,42 @@ namespace Subscription {
             return str;
         }
 
+        // profile-update-interval is in hours; h/d/s suffixes are tolerated.
+        int parseUpdateInterval(const QString &raw) {
+            QString s = raw.trimmed().remove('"').remove('\'').toLower();
+            qint64 unit = 3600;
+            if (s.endsWith('h')) {
+                s.chop(1);
+            } else if (s.endsWith('d')) {
+                s.chop(1);
+                unit = 86400;
+            } else if (s.endsWith('s')) {
+                s.chop(1);
+                unit = 1;
+            }
+            bool ok = false;
+            const qint64 value = s.trimmed().toLongLong(&ok);
+            if (!ok || value <= 0) return 0;
+            constexpr qint64 kMaxHours = 24 * 366;
+            return static_cast<int>(std::clamp<qint64>(std::min(value, kMaxHours * 3600) * unit / 3600, 1, kMaxHours));
+        }
+
+        // The body's head for the leading `#key: value` scan, decoded first when the body is one base64 blob.
+        QByteArray metadataHead(const QByteArray &body) {
+            constexpr std::size_t kHeadChars = 16384;
+            const auto head = scan::trim(scan::view(body)).substr(0, kHeadChars);
+            QByteArray compact;
+            compact.reserve(static_cast<qsizetype>(head.size()));
+            for (const char c : head) {
+                if (!scan::isSpace(c)) compact.append(c);
+            }
+            if (compact.isEmpty() || !scan::looksLikeBase64(scan::view(compact))) {
+                return QByteArray(head.data(), static_cast<qsizetype>(head.size()));
+            }
+            compact.truncate(compact.size() & ~qsizetype(3));
+            return QByteArray::fromBase64(compact);
+        }
+
         QSet<int> invalidProfiles(const QList<std::shared_ptr<Configs::Profile>> &profiles, bool &coreUnreachable) {
             QSet<int> invalid;
             QMutex invalidMutex;
@@ -338,26 +373,17 @@ namespace Subscription {
         }
     } // namespace
 
-    int ParseUpdateInterval(const QString &headerStr) {
-        if (headerStr.trimmed().isEmpty()) return 0;
-        QString s = headerStr.trimmed().remove('"').remove('\'').toLower();
-        bool ok = false;
-        if (s.endsWith("h")) {
-            int h = s.chopped(1).toInt(&ok);
-            if (ok && h > 0) return h;
-        } else if (s.endsWith("d")) {
-            int d = s.chopped(1).toInt(&ok);
-            if (ok && d > 0) return d * 24;
-        } else if (s.endsWith("s")) {
-            int sec = s.chopped(1).toInt(&ok);
-            if (ok && sec > 0) return std::max(1, sec / 3600);
+    AutoUpdatePlan ResolveAutoUpdate(const Configs::Group &group) {
+        const auto &settings = Configs::dataManager->settingsRepo;
+        if (settings->sub_auto_update < 30 || group.url.isEmpty() || group.archive || group.skip_auto_update) return {};
+        const auto &options = group.sub_options;
+        if (options.respect_server_interval.value_or(settings->sub_respect_server_interval) && group.sub_info.server_interval > 0) {
+            return {static_cast<qint64>(group.sub_info.server_interval) * 3600, AutoUpdatePlan::Source::server};
         }
-        int num = s.toInt(&ok);
-        if (ok && num > 0) {
-            if (num > 1000) return std::max(1, num / 3600);
-            return num;
+        if (options.update_interval > 0) {
+            return {static_cast<qint64>(std::max(options.update_interval, 30)) * 60, AutoUpdatePlan::Source::group};
         }
-        return 0;
+        return {static_cast<qint64>(settings->sub_auto_update) * 60, AutoUpdatePlan::Source::global};
     }
 
     RequestIdentity ResolveIdentity(const Configs::Group *group) {
@@ -434,34 +460,35 @@ namespace Subscription {
         }
     }
 
+    qint64 GroupUpdater::autoUpdateDue(const Configs::Group &group, qint64 interval) const {
+        // A failed attempt waits the interval too, so a dead URL is not re-fetched on every poll.
+        const qint64 last = std::max(group.sub_last_update, autoAttempts.value(group.id, 0));
+        return last <= 0 ? 0 : last + interval;
+    }
+
     void GroupUpdater::CheckAutoUpdate() {
-        const auto globalMinutes = Configs::dataManager->settingsRepo->sub_auto_update;
-        const bool globalEnabled = globalMinutes >= 30;
-        if (!globalEnabled) return;
-
         const qint64 now = QDateTime::currentSecsSinceEpoch();
-        const auto tabOrder = Configs::dataManager->groupsRepo->GetGroupsTabOrder();
-
-        for (const int gid : tabOrder) {
+        for (const int gid : Configs::dataManager->groupsRepo->GetGroupsTabOrder()) {
             const auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
-            if (group == nullptr || group->url.isEmpty() || group->archive || group->skip_auto_update) continue;
-
-            int hours = 0;
-            if (group->sub_update_interval > 0) {
-                hours = group->sub_update_interval;
-            } else if (group->sub_info.server_interval > 0) {
-                hours = group->sub_info.server_interval;
-            }
-
-            qint64 intervalSecs = (hours > 0) ? (static_cast<qint64>(hours) * 3600)
-                                              : (static_cast<qint64>(globalMinutes) * 60);
-
-            if (intervalSecs <= 0) continue;
-
-            if (group->sub_last_update <= 0 || (now - group->sub_last_update) >= intervalSecs) {
-                RefreshGroup(gid, nullptr, false);
-            }
+            if (group == nullptr) continue;
+            const auto plan = ResolveAutoUpdate(*group);
+            if (plan.interval <= 0 || autoUpdateDue(*group, plan.interval) > now) continue;
+            autoAttempts[gid] = now;
+            RefreshGroup(gid, nullptr, false);
         }
+    }
+
+    qint64 GroupUpdater::NextAutoUpdate() const {
+        qint64 next = -1;
+        for (const int gid : Configs::dataManager->groupsRepo->GetGroupsTabOrder()) {
+            const auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
+            if (group == nullptr) continue;
+            const auto plan = ResolveAutoUpdate(*group);
+            if (plan.interval <= 0) continue;
+            const qint64 due = autoUpdateDue(*group, plan.interval);
+            if (next < 0 || due < next) next = due;
+        }
+        return next;
     }
 
     void GroupUpdater::SubscribeUrl(const QString &url, const Finish &finish) {
@@ -560,21 +587,14 @@ namespace Subscription {
         }
         body = std::move(resp.data);
 
-        QString userInfoHeader = NetworkRequestHelper::GetHeader(resp.header, "Subscription-UserInfo");
-        if (userInfoHeader.isEmpty()) {
-            userInfoHeader = NetworkRequestHelper::GetHeader(resp.header, "Subscription-Userinfo");
-        }
-        if (!userInfoHeader.isEmpty()) {
-            subInfo = Configs::ParseSubUserInfo(userInfoHeader);
-        }
+        const QString userInfoHeader = NetworkRequestHelper::GetHeader(resp.header, "Subscription-UserInfo");
+        if (!userInfoHeader.isEmpty()) subInfo = Configs::ParseSubUserInfo(userInfoHeader);
+        bool userInfoSeen = subInfo.valid;
 
         QString intervalHeader = NetworkRequestHelper::GetHeader(resp.header, "profile-update-interval");
-        if (intervalHeader.isEmpty()) {
-            intervalHeader = NetworkRequestHelper::GetHeader(resp.header, "x-profile-update-interval");
-        }
-        int intervalHours = ParseUpdateInterval(intervalHeader);
-        if (intervalHours > 0) {
-            subInfo.server_interval = intervalHours;
+        if (intervalHeader.isEmpty()) intervalHeader = NetworkRequestHelper::GetHeader(resp.header, "x-profile-update-interval");
+        if (const int hours = parseUpdateInterval(intervalHeader); hours > 0) {
+            subInfo.server_interval = hours;
             subInfo.valid = true;
         }
 
@@ -590,8 +610,7 @@ namespace Subscription {
             subInfo.valid = true;
         }
 
-        QString supportUrl = NetworkRequestHelper::GetHeader(resp.header, "Support-Url");
-        if (supportUrl.isEmpty()) supportUrl = NetworkRequestHelper::GetHeader(resp.header, "support-url");
+        const QString supportUrl = NetworkRequestHelper::GetHeader(resp.header, "Support-Url");
         if (!supportUrl.isEmpty()) {
             subInfo.support_url = supportUrl;
             subInfo.valid = true;
@@ -603,7 +622,8 @@ namespace Subscription {
             subInfo.valid = true;
         }
 
-        scan::forEachLine(std::string_view(body.constData(), static_cast<std::size_t>(body.size())), [&](std::string_view rawLine) -> bool {
+        const QByteArray head = metadataHead(body);
+        scan::forEachLine(scan::view(head), [&](std::string_view rawLine) -> bool {
             auto line = scan::trim(rawLine);
             if (line.empty()) return true;
             if (!line.starts_with('#') && !line.starts_with("//")) return false;
@@ -618,18 +638,18 @@ namespace Subscription {
             const auto val = scan::trim(comment.substr(colon + 1));
             const QString valStr = QString::fromUtf8(val.data(), static_cast<qsizetype>(val.size()));
 
-            if (!subInfo.has_quota && scan::startsWithNoCase(key, "subscription-userinfo")) {
-                auto parsed = Configs::ParseSubUserInfo(valStr);
-                if (parsed.has_quota) {
+            if (!userInfoSeen && scan::startsWithNoCase(key, "subscription-userinfo")) {
+                if (const auto parsed = Configs::ParseSubUserInfo(valStr); parsed.valid) {
                     subInfo.upload = parsed.upload;
                     subInfo.download = parsed.download;
                     subInfo.total = parsed.total;
                     subInfo.expire = parsed.expire;
-                    subInfo.has_quota = true;
+                    subInfo.has_quota = parsed.has_quota;
                     subInfo.valid = true;
+                    userInfoSeen = true;
                 }
             } else if (subInfo.server_interval == 0 && scan::startsWithNoCase(key, "profile-update-interval")) {
-                int hours = ParseUpdateInterval(valStr);
+                int hours = parseUpdateInterval(valStr);
                 if (hours > 0) {
                     subInfo.server_interval = hours;
                     subInfo.valid = true;
@@ -682,9 +702,12 @@ namespace Subscription {
         if (group == nullptr || group->archive) return;
         const auto options = group->sub_options;
 
+        const QString url = group->url.trimmed();
         QByteArray body;
         Configs::SubUserInfo subInfo;
-        if (!fetch(group->url.trimmed(), group->name, ResolveIdentity(group.get()), body, subInfo)) {
+        if (!fetch(url, group->name, ResolveIdentity(group.get()), body, subInfo)) return;
+        if (group->url.trimmed() != url) {
+            MW_show_log(QObject::tr("The URL of %1 changed during the update, so the result was discarded.").arg(group->name));
             return;
         }
 
@@ -695,24 +718,20 @@ namespace Subscription {
             if (looksLikeWebPage(body)) {
                 MW_show_log(QObject::tr("The server returned a web page instead of a subscription. If it is a CAPTCHA or a bot check, try another TLS version, HTTP version or User Agent in the group's Advanced settings."));
             }
+            // Panels answer a device or quota limit with an empty list and an announcement saying why.
+            if (subInfo.valid) {
+                if (!subInfo.announce.isEmpty()) MW_show_log(QObject::tr("Announcement from %1: %2").arg(group->name, subInfo.announce));
+                group->sub_info = subInfo;
+                group->info.clear();
+                groupsRepo->Save(group);
+            }
             MW_show_log("<<<<<<<< " + QObject::tr("No profiles found in the subscription: %1 was left unchanged.").arg(group->name));
             return;
         }
 
-        group->sub_last_update = QDateTime::currentSecsSinceEpoch();
         group->sub_info = subInfo;
         group->info.clear();
-
-        const QString oldName = group->name;
-        if (!subInfo.title.isEmpty() && (group->name.isEmpty() || group->name == QUrl(group->url).host())) {
-            group->name = subInfo.title;
-        }
-
         groupsRepo->Save(group);
-
-        if (oldName != group->name) {
-            MW_dialog_message(MwMessage::GroupsChanged, {});
-        }
 
         // Auto selectors are local state, not servers the remote sent: keep them out of the diff.
         const auto selectorIds = profilesRepo->GetProfileIdsByType("autoselector");
@@ -858,6 +877,10 @@ namespace Subscription {
         }
 
         disturbed << removeFlagged(members(), options, change_text);
+
+        // Stamped only once the update went through, so an interrupted one is retried instead of counting as fresh.
+        group->sub_last_update = QDateTime::currentSecsSinceEpoch();
+        groupsRepo->Save(group);
 
         MW_show_log("<<<<<<<< " + QObject::tr("Change of %1:").arg(group->name) + "\n" + change_text);
         if (showDiff && settings->sub_show_change_popup) {

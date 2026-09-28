@@ -42,82 +42,24 @@ namespace Configs
 
     SubUserInfo ParseSubUserInfo(const QString &info) {
         SubUserInfo result;
-        if (info.trimmed().isEmpty()) return result;
-
-        static const QRegularExpression totalRe(R"((?:^|[;,\s])total=(\d+))", QRegularExpression::CaseInsensitiveOption);
-        static const QRegularExpression uploadRe(R"((?:^|[;,\s])upload=(\d+))", QRegularExpression::CaseInsensitiveOption);
-        static const QRegularExpression downloadRe(R"((?:^|[;,\s])download=(\d+))", QRegularExpression::CaseInsensitiveOption);
-        static const QRegularExpression expireRe(R"((?:^|[;,\s])expire=(\d+))", QRegularExpression::CaseInsensitiveOption);
-        static const QRegularExpression titleRe(R"((?:^|[;\s])title=([^;\n]+))", QRegularExpression::CaseInsensitiveOption);
-        static const QRegularExpression webUrlRe(R"((?:^|[;\s])(?:web_url|url)=([^;\n\s]+))", QRegularExpression::CaseInsensitiveOption);
-        static const QRegularExpression supportUrlRe(R"((?:^|[;\s])support_url=([^;\n\s]+))", QRegularExpression::CaseInsensitiveOption);
-        static const QRegularExpression announceRe(R"((?:^|[;\s])announce=(.+)$)", QRegularExpression::CaseInsensitiveOption);
-        static const QRegularExpression intervalRe(R"((?:^|[;\s])interval=(\d+))", QRegularExpression::CaseInsensitiveOption);
-
-        auto mTotal = totalRe.match(info);
-        if (mTotal.hasMatch()) {
-            result.total = mTotal.captured(1).toLongLong();
-            result.has_quota = true;
-            result.valid = true;
-        }
-
-        auto mUpload = uploadRe.match(info);
-        if (mUpload.hasMatch()) {
-            result.upload = mUpload.captured(1).toLongLong();
-            result.has_quota = true;
-            result.valid = true;
-        }
-
-        auto mDownload = downloadRe.match(info);
-        if (mDownload.hasMatch()) {
-            result.download = mDownload.captured(1).toLongLong();
-            result.has_quota = true;
-            result.valid = true;
-        }
-
-        auto mExpire = expireRe.match(info);
-        if (mExpire.hasMatch()) {
-            result.expire = mExpire.captured(1).toLongLong();
-            if (result.expire > 1000000000000LL) {
-                result.expire /= 1000;
+        static const QRegularExpression re(R"(\b(upload|download|total|expire)\s*=\s*(\d+))", QRegularExpression::CaseInsensitiveOption);
+        for (auto it = re.globalMatch(info); it.hasNext();) {
+            const auto match = it.next();
+            const QStringView key = match.capturedView(1);
+            const qint64 value = match.capturedView(2).toLongLong();
+            const auto is = [key](QStringView name) { return key.compare(name, Qt::CaseInsensitive) == 0; };
+            if (is(u"upload")) {
+                result.upload = value;
+            } else if (is(u"download")) {
+                result.download = value;
+            } else if (is(u"total")) {
+                result.total = value;
+                result.has_quota = true;
+            } else {
+                result.expire = value > 1000000000000LL ? value / 1000 : value;
             }
-            result.has_quota = true;
             result.valid = true;
         }
-
-        auto mTitle = titleRe.match(info);
-        if (mTitle.hasMatch()) {
-            result.title = mTitle.captured(1).trimmed();
-            result.valid = true;
-        }
-
-        auto mWeb = webUrlRe.match(info);
-        if (mWeb.hasMatch()) {
-            result.web_url = mWeb.captured(1).trimmed();
-            result.valid = true;
-        }
-
-        auto mSup = supportUrlRe.match(info);
-        if (mSup.hasMatch()) {
-            result.support_url = mSup.captured(1).trimmed();
-            result.valid = true;
-        }
-
-        auto mAnnounce = announceRe.match(info);
-        if (mAnnounce.hasMatch()) {
-            QString ann = mAnnounce.captured(1).trimmed();
-            if (!ann.isEmpty() && ann.compare("base64:", Qt::CaseInsensitive) != 0) {
-                result.announce = ann;
-                result.valid = true;
-            }
-        }
-
-        auto mInterval = intervalRe.match(info);
-        if (mInterval.hasMatch()) {
-            result.server_interval = mInterval.captured(1).toInt();
-            result.valid = true;
-        }
-
         return result;
     }
 
@@ -131,6 +73,8 @@ namespace Configs
         if (!hwid_os.isEmpty()) json["hwid_os"] = hwid_os;
         if (!hwid_os_version.isEmpty()) json["hwid_os_version"] = hwid_os_version;
         if (!hwid_model.isEmpty()) json["hwid_model"] = hwid_model;
+        if (update_interval > 0) json["update_interval"] = update_interval;
+        if (respect_server_interval) json["respect_server_interval"] = *respect_server_interval;
         if (keep_working) json["keep_working"] = true;
         if (remove_duplicates) json["remove_duplicates"] = true;
         if (remove_insecure) json["remove_insecure"] = true;
@@ -158,6 +102,8 @@ namespace Configs
         options.hwid_os = json["hwid_os"].toString();
         options.hwid_os_version = json["hwid_os_version"].toString();
         options.hwid_model = json["hwid_model"].toString();
+        options.update_interval = std::max(json["update_interval"].toInt(), 0);
+        if (json["respect_server_interval"].isBool()) options.respect_server_interval = json["respect_server_interval"].toBool();
         options.keep_working = json["keep_working"].toBool();
         options.remove_duplicates = json["remove_duplicates"].toBool();
         options.remove_insecure = json["remove_insecure"].toBool();

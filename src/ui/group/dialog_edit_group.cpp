@@ -30,22 +30,12 @@ DialogEditGroup::DialogEditGroup(const std::shared_ptr<Configs::Group> &ent, QWi
     ui->skip_auto_update->setChecked(ent->skip_auto_update);
     subOptions = ent->sub_options;
     connect(ui->advanced, &QPushButton::clicked, this, [this] {
-        auto dialog = new DialogEditGroupAdvanced(subOptions, this);
+        auto dialog = new DialogEditGroupAdvanced(subOptions, this->ent->sub_info.server_interval, this);
         connect(dialog, &QDialog::accepted, this, [this, dialog] { subOptions = dialog->Options(); });
         connect(dialog, &QDialog::finished, dialog, &QDialog::deleteLater);
         dialog->open();
     });
     ui->url->setText(ent->url);
-
-    ui->sub_update_interval->setRange(0, 720);
-    ui->sub_update_interval->setValue(ent->sub_update_interval);
-    if (ent->sub_info.server_interval > 0) {
-        ui->sub_update_interval->setSpecialValueText(tr("Default (Server: %1h)").arg(ent->sub_info.server_interval));
-    } else {
-        ui->sub_update_interval->setSpecialValueText(tr("Default (Auto / Global)"));
-    }
-    ui->sub_update_interval->setSuffix(tr(" hours"));
-
     ui->type->setCurrentIndex(ent->url.isEmpty() ? 0 : 1);
     ui->type->currentIndexChanged(ui->type->currentIndex());
     ui->cat_share->setVisible(false);
@@ -240,7 +230,6 @@ void DialogEditGroup::accept() {
     ent->auto_clear_unavailable = ui->auto_clear_unavailable->isChecked();
     ent->url = newUrl;
     ent->skip_auto_update = ui->skip_auto_update->isChecked();
-    ent->sub_update_interval = ui->sub_update_interval->value();
     ent->sub_options = subOptions;
     ent->front_proxy_id = resolve_proxy_selection(ui->front_proxy, CACHE.front_proxy);
     ent->landing_proxy_id = resolve_proxy_selection(ui->landing_proxy, LANDING.landing_proxy);

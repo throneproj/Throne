@@ -1,10 +1,10 @@
 #pragma once
 
 #include <QFrame>
+#include <QUrl>
 #include <memory>
 
-namespace Configs
-{
+namespace Configs {
     class Group;
 }
 
@@ -14,8 +14,7 @@ class QPushButton;
 class QResizeEvent;
 class QEvent;
 
-class SubscriptionInfoCard : public QFrame
-{
+class SubscriptionInfoCard : public QFrame {
     Q_OBJECT
 public:
     explicit SubscriptionInfoCard(QWidget *parent = nullptr);
@@ -25,8 +24,7 @@ public:
     void applyTheme();
     [[nodiscard]] bool hasSubscription() const;
 
-    QSize sizeHint() const override;
-    QSize minimumSizeHint() const override;
+    static QString expiryText(qint64 expire);
 
 signals:
     void cardVisibilityChanged();
@@ -38,11 +36,21 @@ protected:
 
 private:
     void setupUi();
+    void applyMetrics();
     void updateData();
     void updateAnnouncementLayout();
+    void setLinksCompact(bool compact);
+    [[nodiscard]] int requiredWidth() const;
+    void reportGeometry();
 
     std::shared_ptr<Configs::Group> m_group;
     QString m_fullAnnounce;
+    QUrl m_webUrl;
+    QUrl m_supportUrl;
+    bool m_hasInterval = false;
+    int m_chipHeight = 0;
+    int m_iconSize = 0;
+    int m_reportedHeight = 0;
 
     QLabel *m_titleLabel = nullptr;
     QProgressBar *m_progressBar = nullptr;

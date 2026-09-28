@@ -14,7 +14,8 @@ class DialogEditGroupAdvanced : public QDialog {
     Q_OBJECT
 
 public:
-    explicit DialogEditGroupAdvanced(const Configs::SubscriptionOptions &options, QWidget *parent = nullptr);
+    // serverIntervalHours: the interval the group's server last sent, 0 if none.
+    DialogEditGroupAdvanced(const Configs::SubscriptionOptions &options, int serverIntervalHours, QWidget *parent = nullptr);
 
     ~DialogEditGroupAdvanced() override;
 

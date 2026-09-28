@@ -3,6 +3,7 @@
 #include <array>
 #include <memory>
 
+#include <QCoreApplication>
 #include <QHeaderView>
 #include <QKeyEvent>
 #include <QLineEdit>
@@ -21,15 +22,16 @@ namespace Configs {
 class ProfilesTableFilterHeader : public QHeaderView {
     Q_OBJECT
 public:
+    // The band is the header's own child (setOffset() scrolls viewport children), built before setSortIndicatorShown() reaches adjustPositions().
     explicit ProfilesTableFilterHeader(QWidget *parent = nullptr)
-        : QHeaderView(Qt::Horizontal, parent) {
+        : QHeaderView(Qt::Horizontal, parent), m_subCard(new SubscriptionInfoCard(this)) {
         setSectionsClickable(true);
         setSortIndicatorShown(true);
         setDefaultAlignment(Qt::AlignHCenter | Qt::AlignTop);
 
-        m_subCard = new SubscriptionInfoCard(this);
-        m_subCard->hide();
+        // Clicks on the band must not reach QHeaderView, which would sort by the section under them.
         m_subCard->setAttribute(Qt::WA_NoMousePropagation, true);
+        m_subCard->installEventFilter(this);
         connect(m_subCard, &SubscriptionInfoCard::cardVisibilityChanged, this, [this] {
             emit geometriesChanged();
             adjustPositions();
@@ -71,9 +73,7 @@ public:
     }
 
     void setGroup(const std::shared_ptr<Configs::Group> &group) {
-        if (m_subCard) {
-            m_subCard->setGroup(group);
-        }
+        m_subCard->setGroup(group);
     }
 
     void setLastFilterColumn(int column) {
@@ -95,7 +95,7 @@ public:
         if (m_filtersVisible) {
             s.setHeight(s.height() + 32);
         }
-        if (m_subCard && m_subCard->isVisible()) {
+        if (!m_subCard->isHidden()) {
             s.setHeight(s.height() + m_subCard->height());
         }
         return s;
@@ -103,10 +103,8 @@ public:
 
 protected:
     void paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const override {
-        const bool hasSub = (m_subCard && m_subCard->isVisible());
-        const int subHeight = hasSub ? m_subCard->height() : 0;
-        const QRect sectionRect = rect.adjusted(0, subHeight, 0, 0);
-        QHeaderView::paintSection(painter, sectionRect, logicalIndex);
+        const int bandHeight = m_subCard->isHidden() ? 0 : m_subCard->height();
+        QHeaderView::paintSection(painter, rect.adjusted(0, bandHeight, 0, 0), logicalIndex);
     }
 
     void updateGeometries() override {
@@ -115,6 +113,10 @@ protected:
     }
 
     bool eventFilter(QObject *obj, QEvent *event) override {
+        // WA_NoMousePropagation stops the wheel at the band too.
+        if (obj == m_subCard && event->type() == QEvent::Wheel) {
+            if (auto *view = qobject_cast<QAbstractScrollArea*>(parentWidget())) return QCoreApplication::sendEvent(view->viewport(), event);
+        }
         if (!qobject_cast<QLineEdit*>(obj)) return QHeaderView::eventFilter(obj, event);
 
         // Window shortcuts resolve before the key reaches the field, so bare Return/Del would fire menu actions.
@@ -167,22 +169,8 @@ public slots:
     }
 
     void adjustPositions() {
-        const bool hasSub = (m_subCard && m_subCard->isVisible());
-        const int subHeight = hasSub ? m_subCard->height() : 0;
-        const int editHeight = 24;
-
-        if (hasSub) {
-            if (parentWidget() && m_subCard->parent() != parentWidget()) {
-                m_subCard->setParent(parentWidget());
-                m_subCard->show();
-            }
-            int totalWidth = parentWidget() ? parentWidget()->width() : viewport()->width();
-            if (auto *view = qobject_cast<QAbstractScrollArea*>(parentWidget())) {
-                if (view->verticalScrollBar() && view->verticalScrollBar()->isVisible()) {
-                    totalWidth -= view->verticalScrollBar()->width();
-                }
-            }
-            m_subCard->setGeometry(0, 0, totalWidth, subHeight);
+        if (!m_subCard->isHidden()) {
+            m_subCard->setGeometry(0, 0, width(), m_subCard->height());
             m_subCard->raise();
         }
 
@@ -191,6 +179,7 @@ public slots:
 	        return;
 	    }
 
+        const int editHeight = 24;
         const int topPos = height() - editHeight - 4;
 
         auto place = [&](QLineEdit *edit, int section) {
@@ -256,7 +245,7 @@ private:
         return -1;
     }
 
-    SubscriptionInfoCard *m_subCard = nullptr;
+    SubscriptionInfoCard *m_subCard;
     QLineEdit* type_filter;
     QLineEdit* address_filter;
     QLineEdit* name_filter;

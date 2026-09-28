@@ -175,6 +175,59 @@
      </property>
      <layout class="QVBoxLayout" name="update_layout">
       <item>
+       <layout class="QGridLayout" name="update_schedule_layout">
+        <item row="0" column="0">
+         <widget class="QLabel" name="update_interval_l">
+          <property name="toolTip">
+           <string>Minutes between automatic updates of this subscription. Keep Default follows the Subscription settings, where automatic updates must be enabled.</string>
+          </property>
+          <property name="text">
+           <string>Update Interval</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QSpinBox" name="update_interval">
+          <property name="maximum">
+           <number>525600</number>
+          </property>
+          <property name="singleStep">
+           <number>30</number>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="server_interval_l">
+          <property name="toolTip">
+           <string>Use the update interval sent by the subscription server; the interval above applies when it sends none. Keep Default follows the Subscription settings.</string>
+          </property>
+          <property name="text">
+           <string>Server Interval</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QComboBox" name="server_interval">
+          <item>
+           <property name="text">
+            <string>Keep Default</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Use</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Ignore</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
        <widget class="QCheckBox" name="keep_working">
         <property name="toolTip">
          <string>Profiles whose last test succeeded are kept when the subscription no longer lists them.</string>
@@ -284,6 +337,8 @@
   <tabstop>hwid_os</tabstop>
   <tabstop>hwid_os_version</tabstop>
   <tabstop>hwid_model</tabstop>
+  <tabstop>update_interval</tabstop>
+  <tabstop>server_interval</tabstop>
   <tabstop>keep_working</tabstop>
   <tabstop>remove_duplicates</tabstop>
   <tabstop>remove_insecure</tabstop>

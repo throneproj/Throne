@@ -96,6 +96,9 @@ namespace Configs
         QString hwid_os;
         QString hwid_os_version;
         QString hwid_model;
+        // Minutes; 0 follows the global interval.
+        int update_interval = 0;
+        std::optional<bool> respect_server_interval;
         bool keep_working = false;
         bool remove_duplicates = false;
         bool remove_insecure = false;
@@ -122,7 +125,6 @@ namespace Configs
         QString info = "";
         SubUserInfo sub_info;
         qint64 sub_last_update = 0;
-        int sub_update_interval = 0;
         SubscriptionOptions sub_options;
         int front_proxy_id = -1;
         int landing_proxy_id = -1;
@@ -139,8 +141,6 @@ namespace Configs
         QList<std::pair<int, int>> selectedProfilesIdIdxPairs;
 
         Group() = default;
-
-        [[nodiscard]] SubUserInfo GetSubUserInfo() const { return sub_info.valid ? sub_info : ParseSubUserInfo(info); }
 
         void clearCalculatedColumnWidth();
 

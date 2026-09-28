@@ -8,40 +8,26 @@
 
 #include "include/database/GroupsRepo.h"
 #include "include/ui/mainwindow.h"
+#include "include/ui/stats/dialog_endpoint_details.h"
+#include "include/ui/widget/SubscriptionInfoCard.hpp"
 
-QString ParseSubInfo(const Configs::SubUserInfo &sub, int updateIntervalHours = 0) {
-    if (!sub.valid) return "";
-
-    QStringList parts;
-    if (sub.has_quota) {
-        QString usedStr = ReadableSize(sub.used());
-        QString remainStr = (sub.total > 0) ? ReadableSize(sub.remaining()) : QString::fromUtf8("\u221E");
-        QString expireStr = (sub.expire > 0) ? DisplayTime(sub.expire, QLocale::ShortFormat) : QObject::tr("None");
-        parts << QObject::tr("Used: %1 Remain: %2 Expire: %3").arg(usedStr, remainStr, expireStr);
-    }
-
-    if (sub.expire > 0) {
-        qint64 now = QDateTime::currentSecsSinceEpoch();
-        if (sub.isExpired()) {
-            parts << QObject::tr("Expired");
-        } else {
-            qint64 diffSecs = sub.expire - now;
-            if (diffSecs < 86400) {
-                qint64 diffHours = std::max<qint64>(1, diffSecs / 3600);
-                parts << QObject::tr("%1h left").arg(diffHours);
-            } else {
-                qint64 diffDays = diffSecs / 86400;
-                parts << QObject::tr("%1d left").arg(diffDays);
-            }
+namespace {
+    QString ParseSubInfo(const Configs::Group &group) {
+        const auto &sub = group.sub_info;
+        QStringList parts;
+        if (sub.valid && sub.has_quota) {
+            QString remainStr = (sub.total > 0) ? ReadableSize(sub.remaining()) : QString::fromUtf8("\u221E");
+            QString expireStr = (sub.expire > 0) ? DisplayTime(sub.expire, QLocale::ShortFormat) : QObject::tr("None");
+            parts << QObject::tr("Used: %1 Remain: %2 Expire: %3").arg(ReadableSize(sub.used()), remainStr, expireStr);
         }
+        if (sub.valid && sub.expire > 0) {
+            parts << SubscriptionInfoCard::expiryText(sub.expire);
+        }
+        if (const auto plan = Subscription::ResolveAutoUpdate(group); plan.interval > 0) {
+            parts << QObject::tr("Auto-update: every %1").arg(Stats::HumanizeDuration(plan.interval));
+        }
+        return parts.join(" | ");
     }
-
-    int effectiveInterval = updateIntervalHours > 0 ? updateIntervalHours : sub.server_interval;
-    if (effectiveInterval > 0) {
-        parts << QObject::tr("Auto-update: %1h").arg(effectiveInterval);
-    }
-
-    return parts.join(" | ");
 }
 
 GroupItem::GroupItem(QWidget *parent, const std::shared_ptr<Configs::Group> &ent, QListWidgetItem *item) : QWidget(parent), ui(new Ui::GroupItem) {
@@ -83,7 +69,7 @@ void GroupItem::refresh_data() {
         if (ent->sub_last_update != 0) {
             info << tr("Last update: %1").arg(DisplayTime(ent->sub_last_update, QLocale::ShortFormat));
         }
-        auto subinfo = ParseSubInfo(ent->GetSubUserInfo(), ent->sub_update_interval);
+        auto subinfo = ParseSubInfo(*ent);
         if (!subinfo.isEmpty()) {
             info << subinfo;
         }

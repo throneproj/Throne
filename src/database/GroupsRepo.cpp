@@ -26,7 +26,6 @@ namespace Configs {
                 url TEXT,
                 info TEXT,
                 sub_last_update INTEGER NOT NULL DEFAULT 0,
-                sub_update_interval INTEGER NOT NULL DEFAULT 0,
                 front_proxy_id INTEGER NOT NULL DEFAULT -1,
                 landing_proxy_id INTEGER NOT NULL DEFAULT -1,
                 column_width_json TEXT,
@@ -43,11 +42,9 @@ namespace Configs {
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
             )
         )");
-        // Migrate existing databases created before type_sort_by or sub_update_interval was added.
+        // Migrate existing databases created before type_sort_by was added.
         if (!groupsColumnExists("type_sort_by"))
             db.exec("ALTER TABLE groups ADD COLUMN type_sort_by INTEGER NOT NULL DEFAULT 0");
-        if (!groupsColumnExists("sub_update_interval"))
-            db.exec("ALTER TABLE groups ADD COLUMN sub_update_interval INTEGER NOT NULL DEFAULT 0");
         if (!groupsColumnExists("sub_options_json"))
             db.exec("ALTER TABLE groups ADD COLUMN sub_options_json TEXT NOT NULL DEFAULT '{}'");
         if (!groupsColumnExists("sub_metadata_json"))
@@ -82,7 +79,6 @@ namespace Configs {
         json["info"] = group->info;
         json["sub_metadata"] = group->sub_info.toJson();
         json["sub_last_update"] = static_cast<qint64>(group->sub_last_update);
-        json["sub_update_interval"] = group->sub_update_interval;
         json["sub_options"] = group->sub_options.ToJson();
         json["front_proxy_id"] = group->front_proxy_id;
         json["landing_proxy_id"] = group->landing_proxy_id;
@@ -107,13 +103,10 @@ namespace Configs {
         group->name = json["name"].toString();
         group->url = json["url"].toString();
         group->info = json["info"].toString();
-        if (json.contains("sub_metadata") && json["sub_metadata"].isObject()) {
-            group->sub_info = SubUserInfo::fromJson(json["sub_metadata"].toObject());
-        } else if (!group->info.isEmpty()) {
-            group->sub_info = ParseSubUserInfo(group->info);
-        }
+        group->sub_info = SubUserInfo::fromJson(json["sub_metadata"].toObject());
+        // Rows written before sub_metadata_json keep the raw Subscription-UserInfo header in `info`.
+        if (!group->sub_info.valid && !group->info.isEmpty()) group->sub_info = ParseSubUserInfo(group->info);
         group->sub_last_update = json["sub_last_update"].toVariant().toLongLong();
-        group->sub_update_interval = json["sub_update_interval"].toInt(0);
         group->sub_options = SubscriptionOptions::FromJson(json["sub_options"].toObject());
         group->front_proxy_id = json["front_proxy_id"].toInt();
         group->landing_proxy_id = json["landing_proxy_id"].toInt();
@@ -142,16 +135,15 @@ namespace Configs {
 
         db.exec(R"(
             INSERT INTO groups
-            (id, archive, skip_auto_update, auto_clear_unavailable, name, url, info, sub_last_update, sub_update_interval,
+            (id, archive, skip_auto_update, auto_clear_unavailable, name, url, info, sub_last_update,
              front_proxy_id, landing_proxy_id,
              column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by, test_items_to_show,
              type_sort_by, sub_options_json, sub_metadata_json)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 archive = excluded.archive, skip_auto_update = excluded.skip_auto_update,
                 auto_clear_unavailable = excluded.auto_clear_unavailable, name = excluded.name,
                 url = excluded.url, info = excluded.info, sub_last_update = excluded.sub_last_update,
-                sub_update_interval = excluded.sub_update_interval,
                 front_proxy_id = excluded.front_proxy_id, landing_proxy_id = excluded.landing_proxy_id,
                 column_width_json = excluded.column_width_json, profiles_json = excluded.profiles_json,
                 scroll_last_profile = excluded.scroll_last_profile, test_sort_by = excluded.test_sort_by,
@@ -168,7 +160,6 @@ namespace Configs {
             group->url.toStdString(),
             group->info.toStdString(),
             static_cast<long long>(group->sub_last_update),
-            group->sub_update_interval,
             group->front_proxy_id,
             group->landing_proxy_id,
             columnWidthJson.toStdString(),
@@ -185,7 +176,7 @@ namespace Configs {
 
     std::shared_ptr<Group> GroupsRepo::loadFromDatabase(int id) const {
         auto query = db.query(R"(
-            SELECT id, archive, skip_auto_update, auto_clear_unavailable, name, url, info, sub_last_update, sub_update_interval,
+            SELECT id, archive, skip_auto_update, auto_clear_unavailable, name, url, info, sub_last_update,
                    front_proxy_id, landing_proxy_id,
                    column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by, test_items_to_show,
                    type_sort_by, sub_options_json, sub_metadata_json
@@ -204,11 +195,10 @@ namespace Configs {
         json["url"] = QString::fromStdString(query->getColumn(5).getText());
         json["info"] = QString::fromStdString(query->getColumn(6).getText());
         json["sub_last_update"] = static_cast<qint64>(query->getColumn(7).getInt64());
-        json["sub_update_interval"] = query->getColumn(8).getInt();
-        json["front_proxy_id"] = query->getColumn(9).getInt();
-        json["landing_proxy_id"] = query->getColumn(10).getInt();
+        json["front_proxy_id"] = query->getColumn(8).getInt();
+        json["landing_proxy_id"] = query->getColumn(9).getInt();
 
-        QString columnWidthJsonStr = QString::fromStdString(query->getColumn(11).getText());
+        QString columnWidthJsonStr = QString::fromStdString(query->getColumn(10).getText());
         if (!columnWidthJsonStr.isEmpty()) {
             QJsonDocument columnWidthDoc = QJsonDocument::fromJson(columnWidthJsonStr.toUtf8());
             if (!columnWidthDoc.isNull() && columnWidthDoc.isArray()) {
@@ -216,7 +206,7 @@ namespace Configs {
             }
         }
         
-        QString profilesJsonStr = QString::fromStdString(query->getColumn(12).getText());
+        QString profilesJsonStr = QString::fromStdString(query->getColumn(11).getText());
         if (!profilesJsonStr.isEmpty()) {
             QJsonDocument profilesDoc = QJsonDocument::fromJson(profilesJsonStr.toUtf8());
             if (!profilesDoc.isNull() && profilesDoc.isArray()) {
@@ -224,16 +214,16 @@ namespace Configs {
             }
         }
 
-        json["scroll_last_profile"] = query->getColumn(13).getInt();
-        json["test_sort_by"] = query->getColumn(14).getInt();
-        json["traffic_sort_by"] = query->getColumn(15).getInt();
-        json["test_items_to_show"] = query->getColumn(16).getInt();
-        json["type_sort_by"] = query->getColumn(17).getInt();
-        if (const auto subOptionsDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(18).getText()));
+        json["scroll_last_profile"] = query->getColumn(12).getInt();
+        json["test_sort_by"] = query->getColumn(13).getInt();
+        json["traffic_sort_by"] = query->getColumn(14).getInt();
+        json["test_items_to_show"] = query->getColumn(15).getInt();
+        json["type_sort_by"] = query->getColumn(16).getInt();
+        if (const auto subOptionsDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(17).getText()));
             subOptionsDoc.isObject()) {
             json["sub_options"] = subOptionsDoc.object();
         }
-        if (const auto subMetaDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(19).getText()));
+        if (const auto subMetaDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(18).getText()));
             subMetaDoc.isObject()) {
             json["sub_metadata"] = subMetaDoc.object();
         }

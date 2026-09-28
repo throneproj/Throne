@@ -152,9 +152,10 @@ namespace Configs {
         // Configs::subTlsVersion / Configs::subHttpVersion values.
         int sub_tls_version = 0;
         int sub_http_version = 0;
-        // Sign encodes enabled (negative = off), magnitude = interval minutes (ignored if < 30); *_last is epoch seconds.
+        // Sign encodes enabled (negative = off), magnitude = interval minutes (ignored if < 30).
         int sub_auto_update = -30;
-        qint64 sub_auto_update_last = 0;
+        // Follow a server's profile-update-interval instead of sub_auto_update's minutes.
+        bool sub_respect_server_interval = false;
         bool sub_clear = false;
         bool sub_show_change_popup = true;
         bool sub_send_hwid = false;

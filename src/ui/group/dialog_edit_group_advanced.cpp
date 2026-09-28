@@ -1,6 +1,8 @@
 #include "include/ui/group/dialog_edit_group_advanced.h"
 
 #include "include/configs/sub/GroupUpdater.hpp"
+#include "include/database/DatabaseManager.h"
+#include "include/database/SettingsRepo.h"
 #include "include/global/GuiUtils.hpp"
 
 #include <QGuiApplication>
@@ -23,9 +25,22 @@ namespace {
     }
 }
 
-DialogEditGroupAdvanced::DialogEditGroupAdvanced(const Configs::SubscriptionOptions &options, QWidget *parent)
+DialogEditGroupAdvanced::DialogEditGroupAdvanced(const Configs::SubscriptionOptions &options, int serverIntervalHours, QWidget *parent)
     : QDialog(parent), ui(new Ui::DialogEditGroupAdvanced), options(options) {
     ui->setupUi(this);
+
+    const auto &settings = Configs::dataManager->settingsRepo;
+    ui->update_interval->setSuffix(tr(" min"));
+    ui->update_interval->setSpecialValueText(
+        tr("Keep Default (%1)").arg(settings->sub_auto_update >= 30 ? tr("%1 min").arg(settings->sub_auto_update) : tr("Off")));
+    ui->update_interval->setValue(options.update_interval);
+    ui->server_interval->setItemText(0, tr("Keep Default (%1)").arg(ui->server_interval->itemText(settings->sub_respect_server_interval ? 1 : 2)));
+    ui->server_interval->setCurrentIndex(options.respect_server_interval ? (*options.respect_server_interval ? 1 : 2) : 0);
+    if (serverIntervalHours > 0) {
+        const auto tip = ui->server_interval_l->toolTip() + "\n\n" + tr("This server last sent %1 h.").arg(serverIntervalHours);
+        ui->server_interval_l->setToolTip(tip);
+        ui->server_interval->setToolTip(tip);
+    }
 
     const auto defaults = Subscription::ResolveIdentity(nullptr);
     globalSendHwid = defaults.sendHwid;
@@ -102,6 +117,11 @@ void DialogEditGroupAdvanced::accept() {
     options.hwid_os = ui->hwid_os->text().trimmed();
     options.hwid_os_version = ui->hwid_os_version->text().trimmed();
     options.hwid_model = ui->hwid_model->text().trimmed();
+    // The same 30-minute floor the global interval enforces.
+    const int minutes = ui->update_interval->value();
+    options.update_interval = minutes > 0 ? std::max(minutes, 30) : 0;
+    const int serverInterval = ui->server_interval->currentIndex();
+    options.respect_server_interval = serverInterval > 0 ? std::optional<bool>(serverInterval == 1) : std::nullopt;
     options.keep_working = ui->keep_working->isChecked();
     options.remove_duplicates = ui->remove_duplicates->isChecked();
     options.remove_insecure = ui->remove_insecure->isChecked();

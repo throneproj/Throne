@@ -3,6 +3,7 @@
 #include <QAbstractItemView>
 #include <QMenu>
 #include <QMessageBox>
+#include <QTextDocument>
 #include <QTimer>
 #include <QVBoxLayout>
 
@@ -11,6 +12,7 @@
 #include "include/ui/group/dialog_edit_group.h"
 #include "include/ui/mainWindow/MainWindowInternal.h"
 #include "include/ui/mainWindow/TestRunner.h"
+#include "include/ui/stats/dialog_endpoint_details.h"
 #include "include/ui/utils/ProfilesTableFilterHeader.h"
 #include "include/global/Utils.hpp"
 
@@ -22,27 +24,34 @@ void MainWindow::on_tabWidget_currentChanged(int index) {
 }
 
 void MainWindow::updateTabToolTip(int gid) {
-    int tabIdx = groupId2TabIndex(gid);
+    int tabIdx = -1;
+    for (int i = 0; i < ui->tabWidget->count(); i++) {
+        if (ui->tabWidget->tabBar()->tabData(i).toInt() == gid) {
+            tabIdx = i;
+            break;
+        }
+    }
     if (tabIdx < 0) return;
     auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
     if (!group) return;
 
-    auto subInfo = group->GetSubUserInfo();
-    QString title = subInfo.title.isEmpty() ? group->name : subInfo.title;
+    const auto &subInfo = group->sub_info;
 
     if (group->url.isEmpty()) {
-        ui->tabWidget->setTabToolTip(tabIdx, title.toHtmlEscaped());
+        ui->tabWidget->setTabToolTip(tabIdx, Qt::convertFromPlainText(group->name));
     } else {
         QString html = QStringLiteral("<div style='max-width:320px;line-height:1.3;'>");
-        html += QStringLiteral("<b>%1</b><br>").arg(title.toHtmlEscaped());
+        html += QStringLiteral("<b>%1</b><br>").arg(group->name.toHtmlEscaped());
+        if (!subInfo.title.isEmpty() && subInfo.title != group->name) {
+            html += tr("Provider: %1").arg(subInfo.title.toHtmlEscaped()) + QStringLiteral("<br>");
+        }
         html += QStringLiteral("<span style='opacity:0.8;'>%1</span><br>").arg(tr("Type: Subscription"));
 
         if (group->sub_last_update > 0) {
             html += QStringLiteral("%1: %2<br>").arg(tr("Last updated"), DisplayTime(group->sub_last_update, QLocale::ShortFormat));
         }
-        int interval = group->sub_update_interval > 0 ? group->sub_update_interval : subInfo.server_interval;
-        if (interval > 0) {
-            html += QStringLiteral("%1: every %2h<br>").arg(tr("Auto-update"), QString::number(interval));
+        if (const auto plan = Subscription::ResolveAutoUpdate(*group); plan.interval > 0) {
+            html += tr("Auto-update: every %1").arg(Stats::HumanizeDuration(plan.interval)) + QStringLiteral("<br>");
         }
         if (subInfo.has_quota) {
             html += QStringLiteral("%1: %2<br>").arg(tr("Used"), ReadableSize(subInfo.used()));
@@ -50,9 +59,9 @@ void MainWindow::updateTabToolTip(int gid) {
                 html += QStringLiteral("%1: %2 (%3: %4)<br>").arg(
                     tr("Total"), ReadableSize(subInfo.total), tr("Remaining"), ReadableSize(subInfo.remaining()));
             }
-            if (subInfo.expire > 0) {
-                html += QStringLiteral("%1: %2<br>").arg(tr("Expires"), DisplayTime(subInfo.expire, QLocale::ShortFormat));
-            }
+        }
+        if (subInfo.expire > 0) {
+            html += QStringLiteral("%1: %2<br>").arg(tr("Expires"), DisplayTime(subInfo.expire, QLocale::ShortFormat));
         }
         if (!subInfo.support_url.isEmpty()) {
             html += QStringLiteral("%1: %2<br>").arg(tr("Support"), subInfo.support_url.toHtmlEscaped());
@@ -60,9 +69,8 @@ void MainWindow::updateTabToolTip(int gid) {
         if (!subInfo.web_url.isEmpty()) {
             html += QStringLiteral("%1: %2<br>").arg(tr("Portal"), subInfo.web_url.toHtmlEscaped());
         }
-        if (!subInfo.announce.isEmpty()) {
-            html += QStringLiteral("<div style='margin-top:4px;padding-top:4px;border-top:1px solid rgba(128,128,128,0.3);'><b>%1:</b><br>%2</div>")
-                .arg(tr("Announcement"), subInfo.announce.toHtmlEscaped());
+        if (const QString announce = subInfo.announce.trimmed(); !announce.isEmpty()) {
+            html += QStringLiteral("<hr><b>%1:</b>%2").arg(tr("Announcement"), Qt::convertFromPlainText(announce, Qt::WhiteSpaceNormal));
         }
         html += QStringLiteral("</div>");
         ui->tabWidget->setTabToolTip(tabIdx, html);
@@ -132,12 +140,13 @@ void MainWindow::refresh_groups() {
         } else {
             auto widget2 = new QWidget();
             auto layout2 = new QVBoxLayout();
-            layout2->setContentsMargins(0, 0, 0, 0);
+            layout2->setContentsMargins(QMargins());
             layout2->setSpacing(0);
             widget2->setLayout(layout2);
             ui->tabWidget->addTab(widget2, group->name);
         }
         ui->tabWidget->tabBar()->setTabData(index, gid);
+        updateTabToolTip(gid);
         index++;
     }
 
