@@ -74,7 +74,7 @@ namespace Configs {
         if (!flow.isEmpty()) query.addQueryItem("flow", flow);
 
         mergeUrlQuery(query, tls->ExportToLink());
-        mergeUrlQuery(query, transport->ExportToLink());
+        mergeUrlQuery(query, transport->ExportToLink(tls->enabled));
         mergeUrlQuery(query, multiplex->ExportToLink());
         
         query.addQueryItem("packetEncoding", packet_encoding.isEmpty() ? "none" : packet_encoding);

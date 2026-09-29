@@ -141,10 +141,8 @@ void MainWindow::on_menu_reset_traffic_triggered() {
     if (entIDs.count() == 0) return;
     auto ents = Configs::dataManager->profilesRepo->GetProfileBatch(entIDs);
     if (ents.empty()) return;
-    for (const auto& ent: ents) {
-        ent->ResetTraffic();
-        Configs::dataManager->profilesRepo->SaveTraffic(ent);
-    }
+    for (const auto& ent: ents) ent->ResetTraffic();
+    runOnNewThread([ents] { Configs::dataManager->profilesRepo->SaveTrafficBatch(ents); });
     if (auto group = Configs::dataManager->groupsRepo->GetGroup(ents.first()->gid); group &&
         group->calculated_column_width.size() > ProfilesTableModel::ColTraffic)
         group->calculated_column_width[ProfilesTableModel::ColTraffic] = 0;
@@ -607,7 +605,7 @@ void MainWindow::clearUnavailableProfiles(bool confirm, QList<int> profileIDs) {
 
     auto profiles = Configs::dataManager->profilesRepo->GetProfileBatch(profileIDs);
     for (const auto &profile: profiles) {
-        if (profile->latency < 0 && profile->latency != Configs::kLatencyConnectOnly) {
+        if (profile->IsUnavailable()) {
             del_ids += profile->id;
             if (++remove_display_count == removeListPreviewLimit) {
                 remove_display += "...";

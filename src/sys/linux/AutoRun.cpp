@@ -24,18 +24,22 @@ QString getUserAutostartDir_private() {
     return config;
 }
 
-void AutoRun_SetEnabled(bool enable) {
+bool AutoRun_SetEnabled(bool enable, QString *error) {
     // From https://github.com/nextcloud/desktop/blob/master/src/common/utility_unix.cpp
     QString appName = QCoreApplication::applicationName();
     QString userAutoStartPath = getUserAutostartDir_private();
     QString desktopFileLocation = userAutoStartPath + appName + QLatin1String(".desktop");
     QStringList appCmdList;
 
+#ifdef NKR_DESKTOP_EXEC
+    appCmdList << NKR_DESKTOP_EXEC;
+#else
     if (QProcessEnvironment::systemEnvironment().contains("APPIMAGE")) {
         appCmdList << QProcessEnvironment::systemEnvironment().value("APPIMAGE");
     } else {
         appCmdList << QApplication::applicationFilePath();
     }
+#endif
 
     appCmdList << "-tray";
 
@@ -45,13 +49,15 @@ void AutoRun_SetEnabled(bool enable) {
 
     if (enable) {
         if (!QDir().exists(userAutoStartPath) && !QDir().mkpath(userAutoStartPath)) {
-            return;
+            if (error) *error = QString("Could not create %1").arg(userAutoStartPath);
+            return false;
         }
 
         QFile iniFile(desktopFileLocation);
 
         if (!iniFile.open(QIODevice::WriteOnly)) {
-            return;
+            if (error) *error = iniFile.errorString();
+            return false;
         }
 
         QTextStream ts(&iniFile);
@@ -69,8 +75,13 @@ void AutoRun_SetEnabled(bool enable) {
         ts.flush();
         iniFile.close();
     } else {
-        QFile::remove(desktopFileLocation);
+        QFile desktopFile(desktopFileLocation);
+        if (desktopFile.exists() && !desktopFile.remove()) {
+            if (error) *error = desktopFile.errorString();
+            return false;
+        }
     }
+    return true;
 }
 
 bool AutoRun_IsEnabled() {

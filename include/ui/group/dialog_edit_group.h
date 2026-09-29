@@ -34,6 +34,8 @@ private:
         int landing_proxy;
     } LANDING;
 
+    Configs::SubscriptionOptions subOptions;
+
     QHash<QString, int> proxyNameToId;
 
     int resolve_proxy_selection(QComboBox *combo, int fallback) const;

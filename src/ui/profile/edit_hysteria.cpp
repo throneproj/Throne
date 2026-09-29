@@ -8,9 +8,13 @@ EditHysteria::EditHysteria(QWidget *parent)
       ui(new Ui::EditHysteria) {
     ui->setupUi(this);
 
-    _protocol_version = ui->protocol_version;
-    _obfuscation_type = ui->obfuscation_type;
-    _realm_enabled = ui->realm_enabled;
+    const auto updateLayout = [this] {
+        editHysteriaLayout(ui->protocol_version->currentText(), ui->obfuscation_type->currentText());
+        if (editor_state_changed) editor_state_changed();
+    };
+    connect(ui->protocol_version, &QComboBox::currentTextChanged, this, updateLayout);
+    connect(ui->obfuscation_type, &QComboBox::currentTextChanged, this, updateLayout);
+    connect(ui->realm_enabled, &QCheckBox::toggled, this, updateLayout);
 
     connect(ui->realm_options, &QPushButton::clicked, this, [this] {
         if (ent == nullptr) return;
@@ -87,6 +91,10 @@ bool EditHysteria::onEnd() {
         if (set_edit_text_serverPort) set_edit_text_serverPort("");
     }
     return true;
+}
+
+bool EditHysteria::locksServerAddress() {
+    return ui->realm_enabled->isChecked() && ui->protocol_version->currentText() == "2";
 }
 
 void EditHysteria::editHysteriaLayout(const QString& version, const QString& obfs_type) {

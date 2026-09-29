@@ -855,21 +855,21 @@
        <string>Subscription</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_7">
-       <item row="9" column="1">
+       <item row="10" column="1">
         <widget class="QLineEdit" name="sub_custom_hwid_params">
          <property name="placeholderText">
           <string>hwid=custom_value,os=custom_os,osVersion=custom_version,model=custom_model</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="0">
+       <item row="7" column="0">
         <widget class="QCheckBox" name="sub_clear">
          <property name="text">
           <string>Clear servers before updating subscription</string>
          </property>
         </widget>
        </item>
-       <item row="5" column="0" colspan="2">
+       <item row="8" column="0" colspan="2">
         <widget class="QCheckBox" name="sub_show_change_popup">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, a window listing added / updated / deleted profiles is shown after a manual subscription update. The same information is always written to the log.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -879,7 +879,7 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
+       <item row="3" column="1">
         <widget class="MyLineEdit" name="user_agent"/>
        </item>
        <item row="1" column="0">
@@ -929,7 +929,17 @@
          </item>
         </layout>
        </item>
-       <item row="8" column="0" colspan="2">
+       <item row="2" column="1">
+        <widget class="QCheckBox" name="sub_respect_server_interval">
+         <property name="toolTip">
+          <string>Subscriptions whose server sends an update interval (profile-update-interval) follow it; the interval above applies when a server sends none. Groups can override this in their Advanced settings.</string>
+         </property>
+         <property name="text">
+          <string>Use the update interval sent by the server</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0" colspan="2">
         <widget class="QCheckBox" name="sub_send_hwid">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;HWID=%1&lt;/p&gt;&lt;p&gt;OS=%2&lt;/p&gt;&lt;p&gt;OS Version=%3&lt;/p&gt;&lt;p&gt;Model=%4&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -939,7 +949,7 @@
          </property>
         </widget>
        </item>
-       <item row="9" column="0">
+       <item row="10" column="0">
         <widget class="QLabel" name="label_custom_hwid_params">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Format: hwid=value,os=value,osVersion=value,model=value&lt;/p&gt;&lt;p&gt;Leave empty to use default values. Only specify the parameters you want to override.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -949,7 +959,7 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="0">
+       <item row="6" column="0">
         <widget class="QCheckBox" name="allow_stopping_active_profile">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, If the currently active profile needs to be removed, it will be stopped and removed, otherwise it will not be removed at all&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -959,11 +969,64 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="0">
+       <item row="3" column="0">
         <widget class="QLabel" name="label_4">
          <property name="text">
           <string>User Agent</string>
          </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="sub_tls_version_l">
+         <property name="toolTip">
+          <string>TLS versions offered when fetching subscriptions. Some servers answer the default handshake with a CAPTCHA or a block page; TLS 1.2 often gets through.</string>
+         </property>
+         <property name="text">
+          <string>TLS Version</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QComboBox" name="sub_tls_version">
+         <item>
+          <property name="text">
+           <string>Auto</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>TLS 1.2</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>TLS 1.3</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="sub_http_version_l">
+         <property name="toolTip">
+          <string>Auto uses HTTP/2 when the server offers it.</string>
+         </property>
+         <property name="text">
+          <string>HTTP Version</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QComboBox" name="sub_http_version">
+         <item>
+          <property name="text">
+           <string>Auto</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>HTTP/1.1</string>
+          </property>
+         </item>
         </widget>
        </item>
        <item row="0" column="1">

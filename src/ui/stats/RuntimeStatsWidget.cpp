@@ -3,6 +3,7 @@
 #include "include/ui/mainwindow.h"
 #include "include/ui/stats/dialog_endpoint_details.h"
 #include "include/api/RPC.h"
+#include "include/configs/sub/GroupUpdater.hpp"
 #include "include/stats/traffic/TrafficLooper.hpp"
 #include "include/database/DatabaseManager.h"
 #include "include/database/SettingsRepo.h"
@@ -149,7 +150,11 @@ void RuntimeStatsWidget::refreshLive() {
         return RuntimeStatsWidget::tr("in %1").arg(Stats::HumanizeDuration(remaining));
     };
     auto* settings = Configs::dataManager->settingsRepo.get();
-    ui->vSubUpdate->setText(nextUpd(settings->sub_auto_update, settings->sub_auto_update_last));
+    const qint64 nextSub = Subscription::updater()->NextAutoUpdate();
+    const qint64 now = QDateTime::currentSecsSinceEpoch();
+    ui->vSubUpdate->setText(nextSub < 0      ? RuntimeStatsWidget::tr("Disabled")
+                            : nextSub <= now ? RuntimeStatsWidget::tr("Due now")
+                                             : RuntimeStatsWidget::tr("in %1").arg(Stats::HumanizeDuration(nextSub - now)));
     ui->vRouteUpdate->setText(nextUpd(settings->route_auto_update, settings->route_auto_update_last));
 
     qint64 dbBytes = 0;
@@ -365,7 +370,7 @@ void RuntimeStatsWidget::probeEgress() {
         QString ipText = RuntimeStatsWidget::tr("N/A");
         QString countryText = RuntimeStatsWidget::tr("N/A");
         bool egressOk = false;
-        const auto resp = NetworkRequestHelper::HttpGet(QStringLiteral("http://ip-api.com/json/"), false, true);
+        const auto resp = NetworkRequestHelper::HttpGet(QStringLiteral("http://ip-api.com/json/"), true);
         if (resp.error.isEmpty()) {
             const QJsonDocument doc = QJsonDocument::fromJson(resp.data);
             if (doc.isObject()) {

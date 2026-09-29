@@ -16,7 +16,8 @@
 namespace Configs {
     // Loopback/broadcast are deliberately absent: routing them into the tun breaks the sing-box <-> Xray bridges and local DNS.
     inline QStringList defaultTunPrivateRanges() {
-        return {"10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "169.254.0.0/16", "224.0.0.0/4"};
+        return {"10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "169.254.0.0/16", "224.0.0.0/4",
+                "fc00::/7", "fe80::/10", "ff00::/8"};
     }
 
     class SettingsRepo {
@@ -148,9 +149,13 @@ namespace Configs {
 
         // Subscription
         QString user_agent = ""; // set at main.cpp
-        // Sign encodes enabled (negative = off), magnitude = interval minutes (ignored if < 30); *_last is epoch seconds.
+        // Configs::subTlsVersion / Configs::subHttpVersion values.
+        int sub_tls_version = 0;
+        int sub_http_version = 0;
+        // Sign encodes enabled (negative = off), magnitude = interval minutes (ignored if < 30).
         int sub_auto_update = -30;
-        qint64 sub_auto_update_last = 0;
+        // Follow a server's profile-update-interval instead of sub_auto_update's minutes.
+        bool sub_respect_server_interval = false;
         bool sub_clear = false;
         bool sub_show_change_popup = true;
         bool sub_send_hwid = false;

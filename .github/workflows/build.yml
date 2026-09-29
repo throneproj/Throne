@@ -14,7 +14,6 @@ jobs:
       contents: read
     strategy:
       matrix:
-        # windowslegacy runs the darwin host toolchain from go.zip; keep it on macOS.
         include:
           - cross_os: windows
             cross_arch: amd64
@@ -71,7 +70,7 @@ jobs:
         with:
           go-version: ${{ matrix.go_version }}
           cache-dependency-path: |
-            core/server/go.sum
+            core/go.sum
       - name: Install Golang For Legacy OS
         if: steps.cache-common.outputs.cache-hit != 'true' && contains( matrix.cross_os, 'legacy' )
         run: |
@@ -93,8 +92,8 @@ jobs:
         run: |
           set -xeuo pipefail
           git init ~/cronet-go
-          git -C ~/cronet-go remote add origin https://github.com/parhelia512/cronet-go.git
-          git -C ~/cronet-go fetch --depth=1 origin "9ed95366ae2f9b4b994cf54f8f9de0d8bc350057"
+          git -C ~/cronet-go remote add origin https://github.com/throneproj/cronet-go.git
+          git -C ~/cronet-go fetch --depth=1 origin "2ee86b72426042457b8eb879ab32296f5752bf2f"
           git -C ~/cronet-go checkout FETCH_HEAD
           git -C ~/cronet-go submodule update --init --recursive --depth=1
       - name: Download Chromium toolchain
@@ -122,6 +121,46 @@ jobs:
         with:
           name: Throne-${{ github.sha }}-Common-${{ matrix.cross_os }}-${{ matrix.cross_arch }}
           path: artifacts.tgz
+          compression-level: 0
+  build-android:
+    permissions:
+      contents: read
+    runs-on: ubuntu-22.04
+    env:
+      DEST: ${{ github.workspace }}/deployment/android
+      NDK_VERSION: "28.2.13676358"
+    steps:
+      - name: Checking out sources
+        uses: actions/checkout@v7.0.1
+      - name: Install Golang
+        uses: actions/setup-go@v7.0.0
+        with:
+          go-version: "1.27.0"
+          cache-dependency-path: |
+            core/go.sum
+      - name: Install JDK 17
+        uses: actions/setup-java@v6.0.1
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Install Android NDK
+        run: |
+          set -xeuo pipefail
+          echo y | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "ndk;$NDK_VERSION"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
+      - name: Install gomobile
+        run: |
+          go install github.com/sagernet/gomobile/cmd/gomobile@v0.1.13
+          go install github.com/sagernet/gomobile/cmd/gobind@v0.1.13
+      - name: Build Android AAR
+        shell: bash
+        run: ./script/build_android.sh
+      - name: Uploading Artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: ThroneCore-android-${{ github.sha }}
+          path: deployment/android/ThroneCore.aar
+          if-no-files-found: error
           compression-level: 0
   build-cpp:
     permissions:
@@ -204,7 +243,6 @@ jobs:
       DEST: ${{ github.workspace }}/deployment/${{ matrix.dest_suffix }}
       DEST_SUFFIX: ${{ matrix.dest_suffix }}
       ARCH: ${{ matrix.target }}
-      # Unquoted at the cmake call sites so it word-splits into two flags.
       LAUNCHER_ARGS: ${{ matrix.launcher != '' && format('-DCMAKE_C_COMPILER_LAUNCHER={0} -DCMAKE_CXX_COMPILER_LAUNCHER={0}', matrix.launcher) || '' }}
     steps:
       - name: Checking out sources
@@ -390,6 +428,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - pack
+      - build-android
     permissions:
       contents: write
       actions: read
@@ -401,6 +440,11 @@ jobs:
         with:
           pattern: Pack-${{ github.sha }}-*
           merge-multiple: true
+          path: deployment
+      - name: Download Android AAR
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: ThroneCore-android-${{ github.sha }}
           path: deployment
       - name: Uploading Artifact
         uses: actions/upload-artifact@v7.0.1

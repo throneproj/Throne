@@ -106,7 +106,7 @@ namespace Configs {
             object["config"] = QListStr2QJsonArray(config);
         }
         if (!config_path.isEmpty()) object["config_path"] = config_path;
-        if (!serverName.isEmpty()) object["query_server_name"] = serverName;
+        if (!serverName.isEmpty()) object["query_server_name"] = toAceHost(serverName);
         return object;
     }
     QJsonObject ECH::ExportIdentity()
@@ -341,7 +341,7 @@ namespace Configs {
         if (!enabled) return object;
         object["enabled"] = enabled;
         if (disable_sni) object["disable_sni"] = disable_sni;
-        if (!server_name.isEmpty()) object["server_name"] = server_name;
+        if (!server_name.isEmpty()) object["server_name"] = toAceHost(server_name);
         if (insecure) object["insecure"] = insecure;
         if (!alpn.isEmpty()) {
             object["alpn"] = QListStr2QJsonArray(alpn);
@@ -390,7 +390,8 @@ namespace Configs {
         if (!enabled) return object;
         object["enabled"] = true;
         if (disable_sni) object["disable_sni"] = true;
-        if (!server_name.isEmpty()) object["server_name"] = server_name;
+        // normalized, or a link's IDN sni and the stored ACE form would hash differently every refresh
+        if (!server_name.isEmpty()) object["server_name"] = toAceHost(server_name);
         if (auto o = utls->ExportIdentity(); !o.isEmpty()) object["utls"] = o;
         if (auto o = ech->ExportIdentity(); !o.isEmpty()) object["ech"] = o;
         if (auto o = reality->ExportIdentity(); !o.isEmpty()) object["reality"] = o;
@@ -402,7 +403,7 @@ namespace Configs {
         if (!enabled) return {};
         object["enabled"] = enabled;
         if (disable_sni) object["disable_sni"] = disable_sni;
-        if (!server_name.isEmpty()) object["server_name"] = server_name;
+        if (!server_name.isEmpty()) object["server_name"] = toAceHost(server_name);
         if (insecure || Configs::dataManager->settingsRepo->skip_cert) object["insecure"] = true;
         if (!alpn.isEmpty()) {
             object["alpn"] = QListStr2QJsonArray(alpn);

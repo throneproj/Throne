@@ -52,19 +52,44 @@ namespace Configs
         if (!url.isValid()) return false;
         auto query = QUrlQuery(url.query());
         const auto transport = query.queryItemValue("type");
-        // sing-box has no equivalent of the raw HTTP header, so these must go to Xray.
-        const bool rawHttp = (transport.isEmpty() || transport == "tcp" || transport == "raw")
-                             && query.queryItemValue("headerType") == "http";
+        const auto security = query.queryItemValue("security");
+        // sing-box's http transport speaks the raw HTTP header only in plaintext; TLS (which a bare sni also enables) turns it into h2
+        const bool rawHttpOverTls = (transport.isEmpty() || transport == "tcp" || transport == "raw")
+                                    && query.queryItemValue("headerType") == "http"
+                                    && ((!security.isEmpty() && security != "none")
+                                        || !query.queryItemValue("sni").isEmpty()
+                                        || !query.queryItemValue("peer").isEmpty());
 
         if (dataManager->settingsRepo->xray_vless_preference == Xray::AllVLESS
-            || rawHttp
+            || rawHttpOverTls
             || transport == "xhttp"
             || query.hasQueryItem("fm")
             || query.hasQueryItem("finalmask")
-            || (query.queryItemValue("security") == "reality" && dataManager->settingsRepo->xray_vless_preference == Xray::XhttpAndReality)
+            || (security == "reality" && dataManager->settingsRepo->xray_vless_preference == Xray::XhttpAndReality)
             || (query.queryItemValue("encryption") != "none" && query.queryItemValue("encryption") != "")
             || query.queryItemValue("extra") != "") return true;
         return false;
+    }
+
+    QString toAceHost(const QString& host)
+    {
+        // the http transport and Xray's raw header carry a comma list of hosts
+        if (host.contains(',')) {
+            auto parts = host.split(',');
+            for (auto& part : parts) part = toAceHost(part.trimmed());
+            return parts.join(',');
+        }
+        bool ascii = true;
+        for (const auto ch : host) {
+            if (ch.unicode() > 0x7F) {
+                ascii = false;
+                break;
+            }
+        }
+        if (ascii) return host;
+        // toAce is empty for IP literals and for names it rejects
+        const auto ace = QString::fromLatin1(QUrl::toAce(host));
+        return ace.isEmpty() ? host : ace;
     }
 
     QString getHeadersString(const QStringList& headers) {

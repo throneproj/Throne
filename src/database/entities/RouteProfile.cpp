@@ -27,6 +27,8 @@ namespace Configs {
     int getOutboundID(const QString& name) {
         if (name == "proxy") return -1;
         if (name == "direct") return -2;
+        if (name == "block") return blockID;
+        if (name == "warp-bypass") return warpBypassID;
         if (const auto &profile = Configs::dataManager->profilesRepo->GetProfileByName(name)) return profile->id;
 
         return INVALID_ID;
@@ -186,8 +188,38 @@ namespace Configs {
         if (warnings) warnings->append(msg + "\n");
     }
 
+    // toString() is "" for a number, and the writer emits ports, ip_version and override_port as numbers.
+    static QString jsonScalarText(const QJsonValue& val) {
+        if (!val.isDouble()) return val.toString();
+        const qint64 whole = val.toInteger();
+        return static_cast<double>(whole) == val.toDouble() ? QString::number(whole) : QString::number(val.toDouble());
+    }
+
+    // name, type and outbound, plus exactly the keys RouteRule::set_field_value stores.
+    static bool isStorableRuleKey(const QString& key) {
+        static const QSet<QString> keys = {
+            "name", "type", "outbound",
+            "ip_version", "network", "protocol", "inbound", "domain", "domain_suffix", "domain_keyword", "domain_regex",
+            "source_ip_cidr", "source_ip_is_private", "ip_cidr", "ip_is_private", "source_port", "source_port_range",
+            "port", "port_range", "process_name", "process_path", "process_path_regex", "package_name",
+            "wifi_ssid", "wifi_bssid", "rule_set", "invert", "action", "method", "reject_method", "no_drop",
+            "override_address", "override_port", "tls_spoof", "tls_spoof_method", "override_destination", "strategy",
+            "sniffers",
+        };
+        return keys.contains(key);
+    }
+
     // name/type are schema-only keys: skipped here, applied by the caller.
-    static std::shared_ptr<RouteRule> parse_rule_object(const QJsonObject& obj, QString* warnings) {
+    // A key that cannot be stored drops the whole rule (nullptr): without that condition it would match more.
+    // position is the rule's 1-based place in its array, naming a rule that has no name.
+    static std::shared_ptr<RouteRule> parse_rule_object(const QJsonObject& obj, int position, QString* warnings) {
+        for (const auto& key: obj.keys()) {
+            if (isStorableRuleKey(key)) continue;
+            const QString nm = obj.value("name").toString();
+            appendWarning(warnings, QString("rule \"%1\" dropped: unsupported field \"%2\"")
+                                        .arg(nm.isEmpty() ? QString("#%1").arg(position) : nm, key));
+            return nullptr;
+        }
         auto rule = std::make_shared<RouteRule>();
         for (const auto& key: obj.keys()) {
             if (key == "name" || key == "type") continue;
@@ -211,9 +243,11 @@ namespace Configs {
                     }
                 }
             } else if (val.isArray()) {
-                rule->set_field_value(key, QJsonArray2QListString(val.toArray()));
-            } else if (val.isString()) {
-                rule->set_field_value(key, {val.toString()});
+                QStringList items;
+                for (const auto& item: val.toArray()) items << jsonScalarText(item);
+                rule->set_field_value(key, items);
+            } else if (val.isString() || val.isDouble()) {
+                rule->set_field_value(key, {jsonScalarText(val)});
             } else if (val.isBool()) {
                 rule->set_field_value(key, {val.toBool() ? "true":"false"});
             }
@@ -228,18 +262,27 @@ namespace Configs {
         }
 
         auto rules = QList<std::shared_ptr<RouteRule>>();
+        QString ruleWarnings;
         auto ruleID = 1;
+        int position = 0;
         for (const auto& item: arr) {
             if (!item.isObject()) {
                 parseError->append(QString("expected array of json objects but have member of type '%1'").arg(item.type()));
                 return {};
             }
             const QJsonObject ro = item.toObject();
-            auto rule = parse_rule_object(ro, warnings);
+            auto rule = parse_rule_object(ro, ++position, &ruleWarnings);
+            if (!rule) continue;
             const QString nm = ro.value("name").toString();
             rule->name = nm.isEmpty() ? ("imported rule #" + Int2String(ruleID++)) : nm;
             rules << rule;
         }
+        // An array is nothing but its rules, so losing them all fails like an empty one (ruleWarnings then holds only drops).
+        if (rules.isEmpty()) {
+            parseError->append("No rule in the array can be imported:\n" + ruleWarnings.trimmed());
+            return {};
+        }
+        if (warnings) warnings->append(ruleWarnings);
 
         return rules;
     }
@@ -502,12 +545,16 @@ namespace Configs {
             QMap<int, int> endpointIDMap;
             profile->endpointProfileIDs = routeProfileEndpointsFromJson(root.value("endpoints").toArray(), warnings, materializeEndpoints, &endpointIDMap, &profile->innerHopEndpointIDs);
             int fallbackNum = 1;
+            int position = 0;
             for (const auto& v: root.value("rules").toArray()) {
+                ++position;
                 if (!v.isObject()) continue;
                 const QJsonObject ro = v.toObject();
                 const ruleType type = tokenToRuleType(ro.value("type").toString());
-                // an endpoint rule's outbound is the sharer's profile id; it must survive the proxy fallback
-                auto rule = parse_rule_object(ro, type == endpointPreferredBy ? nullptr : warnings);
+                // an endpoint rule's outbound is the sharer's profile id; it must survive the proxy fallback.
+                // Shared as {name, type, outbound} it is never dropped, and SyncEndpointRules re-pairs one that is.
+                auto rule = parse_rule_object(ro, position, type == endpointPreferredBy ? nullptr : warnings);
+                if (!rule) continue;
                 rule->type = type;
                 if (type == endpointPreferredBy) {
                     rule->outboundID = endpointIDMap.value(ro.value("outbound").toInt(INVALID_ID), INVALID_ID);
@@ -982,16 +1029,19 @@ namespace Configs {
         const QString address = content.mid(colonIdx+1).trimmed();
         if (address.isEmpty()) return false;
         const QString subType = content.left(colonIdx).trimmed();
+        // sing-box lowercases the host before matching but takes these values as written, so a capital letter here never matches.
+        const QString lowered = address.toLower();
         if (subType == "domain") {
-            if (!rule->domain.contains(address)) rule->domain.append(address);
+            if (!rule->domain.contains(lowered)) rule->domain.append(lowered);
             return true;
         } else if (subType == "suffix") {
-            if (!rule->domain_suffix.contains(address)) rule->domain_suffix.append(address);
+            if (!rule->domain_suffix.contains(lowered)) rule->domain_suffix.append(lowered);
             return true;
         } else if (subType == "keyword") {
-            if (!rule->domain_keyword.contains(address)) rule->domain_keyword.append(address);
+            if (!rule->domain_keyword.contains(lowered)) rule->domain_keyword.append(lowered);
             return true;
         } else if (subType == "regex") {
+            // Left as written: it is matched against the lowercased host too, but lowercasing a pattern can change it (\D is not \d).
             if (!rule->domain_regex.contains(address)) rule->domain_regex.append(address);
             return true;
         } else if (subType == "ruleset") {

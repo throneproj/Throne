@@ -1,8 +1,8 @@
 #pragma once
 
-#include <qglobal.h>
+#include <QString>
 
-void AutoRun_SetEnabled(bool enable);
+bool AutoRun_SetEnabled(bool enable, QString *error = nullptr);
 
 bool AutoRun_IsEnabled();
 

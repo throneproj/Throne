@@ -25,6 +25,9 @@
         <property name="text">
          <string>Private Key</string>
         </property>
+        <property name="buddy">
+         <cstring>private_key</cstring>
+        </property>
        </widget>
       </item>
       <item row="0" column="1">
@@ -37,6 +40,9 @@
         </property>
         <property name="text">
          <string>Peer Public Key</string>
+        </property>
+        <property name="buddy">
+         <cstring>peer_public_key</cstring>
         </property>
        </widget>
       </item>
@@ -51,6 +57,9 @@
         <property name="text">
          <string>Local Address</string>
         </property>
+        <property name="buddy">
+         <cstring>address</cstring>
+        </property>
        </widget>
       </item>
       <item row="2" column="1">
@@ -60,6 +69,9 @@
        <widget class="QLabel" name="mtu_l">
         <property name="text">
          <string>MTU</string>
+        </property>
+        <property name="buddy">
+         <cstring>mtu</cstring>
         </property>
        </widget>
       </item>
@@ -77,6 +89,9 @@
         </property>
         <property name="text">
          <string>HTTP Version</string>
+        </property>
+        <property name="buddy">
+         <cstring>http_version</cstring>
         </property>
        </widget>
       </item>

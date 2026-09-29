@@ -63,6 +63,7 @@ namespace Configs {
             constexpr auto xrayFullConfigIn = "throne-bridge";
 
             constexpr auto adblockRuleSet = "throne-adblocksingbox";
+            constexpr auto privateRangesRuleSet = "throne-private-ranges";
 
             constexpr auto mainChainPrefix = "config";
             constexpr auto routeChainPrefix = "route";
@@ -144,8 +145,8 @@ namespace Configs {
         struct TunDeps {
             QJsonArray directIPSets;
             QJsonArray directIPCIDRs;
-            // Private ranges the route profile aims somewhere other than direct, so the Tun carries them.
-            QSet<QString> hijackedPrivateRanges;
+            QStringList bypassedPrivateRanges;
+            bool privateRangesAsRuleSet = false;
         };
 
         struct RoutingDeps {
@@ -694,7 +695,7 @@ namespace Configs {
             }
 
             for (const auto &item: *neededRuleSets) {
-                preReqs.routing.neededRuleSets << item;
+                if (!preReqs.routing.neededRuleSets.contains(item)) preReqs.routing.neededRuleSets << item;
             }
 
             if (settings.enable_dns_routing) {
@@ -730,10 +731,17 @@ namespace Configs {
                 .ipCIDRs = &preReqs.tun.directIPCIDRs,
             });
 
-            for (const auto &cidr : routeChain->get_hijacked_ips()) {
+            if (!settings.disable_private_range_bypass) {
+                const auto hijackedIPs = routeChain->get_hijacked_ips();
+                // sing-tun keeps an excluded range out of the Tun entirely, so a rule aimed at one never fires (#1741).
                 for (const auto &range : settings.vpn_private_ranges) {
-                    if (prefixesOverlap(range, cidr)) preReqs.tun.hijackedPrivateRanges << range;
+                    const bool hijacked = std::any_of(hijackedIPs.cbegin(), hijackedIPs.cend(),
+                        [&range](const QString &cidr) { return prefixesOverlap(range, cidr); });
+                    if (!hijacked) preReqs.tun.bypassedPrivateRanges << range;
                 }
+                // auto_redirect hijacks DNS after static excludes but before address-set ones (#1895); a verbatim raw route cannot host the set.
+                preReqs.tun.privateRangesAsRuleSet = ctx.tunEnabled && ctx.os == Linux && settings.vpn_auto_redirect &&
+                    !preReqs.tun.bypassedPrivateRanges.isEmpty() && !(routeChain->isRaw && routeChain->preventModifications);
             }
 
             auto extraCoreEnt = resolveExtraCoreProfile(ctx.ent);
@@ -777,16 +785,14 @@ namespace Configs {
 
         // ---------------------------------------------------------------- dns
 
+        QJsonObject directDomainResolver() {
+            return {{"server", tags::dnsDirect}, {"strategy", getDirectDomainStrategy()}};
+        }
+
         QJsonObject buildDnsObj(BuildContext &ctx, QString address) {
             if (address.startsWith("local")) {
                 if (ctx.tunEnabled && ctx.isResolvedUsed) {
                     return {{"type", "underlying"}};
-                }
-                if (ctx.tunEnabled && ctx.os == Darwin) {
-                    return {
-                        {"type", "udp"},
-                        {"server", dataManager->settingsRepo->core_box_underlying_dns}
-                    };
                 }
                 return {{"type", "local"}};
             }
@@ -870,12 +876,6 @@ namespace Configs {
 
         void buildDNSSection(BuildContext &ctx, bool useDnsObj = true) {
             const auto &settings = *dataManager->settingsRepo;
-            if (getOS() == Darwin && settings.core_box_underlying_dns.isEmpty() && settings.spmode_vpn)
-            {
-                ctx.error = QObject::tr("Local DNS and Tun mode do not work together, please set an IP to be used as the Local DNS server in the Routing Settings -> Local override");
-                return;
-            }
-
             if (settings.use_dns_object && useDnsObj) {
                 ctx.result->coreConfig["dns"] = QString2QJsonObject(settings.dns_object);
                 return;
@@ -1159,24 +1159,25 @@ namespace Configs {
                 if (settings.vpn_ipv6) tunAddress += tunIPv6CIDR;
                 inboundObj["address"] = tunAddress;
 
-                // sing-tun subtracts route_exclude_address from the routes it installs, so a rule aimed at an excluded range never fires (#1741).
                 QJsonArray routeExcludeAddrs;
                 QStringList excludedRanges;
                 if (!settings.disable_private_range_bypass) {
                     routeExcludeAddrs = {"127.0.0.0/8", "255.255.255.255/32"};
-                    for (const auto &range : settings.vpn_private_ranges) {
-                        if (!tun.hijackedPrivateRanges.contains(range)) excludedRanges << range;
-                    }
+                    if (!tun.privateRangesAsRuleSet) excludedRanges = tun.bypassedPrivateRanges;
                 }
                 QJsonArray routeExcludeSets;
+                if (tun.privateRangesAsRuleSet) routeExcludeSets << tags::privateRangesRuleSet;
                 if (settings.enable_tun_routing)
                 {
                     for (auto item: tun.directIPCIDRs) excludedRanges << item.toString();
                     for (auto item: tun.directIPSets) routeExcludeSets << item;
                 }
 
-                // macOS puts the system DNS inside the Tun subnet, so bypassing that range black-holes every query (#1738).
-                if (ctx.os == Darwin) excludedRanges = subtractPrefix(excludedRanges, tunIPv4CIDR);
+                // On macOS a bypass covering the Tun subnet black-holes the system DNS and the system stack's replies (#1738).
+                if (ctx.os == Darwin) {
+                    excludedRanges = subtractPrefix(excludedRanges, tunIPv4CIDR);
+                    if (settings.vpn_ipv6) excludedRanges = subtractPrefix(excludedRanges, tunIPv6CIDR);
+                }
                 for (const auto &range : excludedRanges) routeExcludeAddrs << range;
                 inboundObj["route_exclude_address"] = routeExcludeAddrs;
                 if (!routeExcludeSets.isEmpty()) inboundObj["route_exclude_address_set"] = routeExcludeSets;
@@ -1330,6 +1331,12 @@ namespace Configs {
             QSet<QString> addressableTags;
         };
 
+        bool resolvesHostnamesViaDnsRules(const Profile &hop) {
+            if (hop.outbound->IsEndpoint()) return true;
+            const auto *socksOutbound = hop.Socks();
+            return socksOutbound != nullptr && socksOutbound->version == 4;
+        }
+
         void buildSingboxChain(BuildContext &ctx, const QList<std::shared_ptr<Profile>> &ents, const hopChainOptions &opts) {
             for (int idx = 0; idx < ents.size(); idx++)
             {
@@ -1370,6 +1377,10 @@ namespace Configs {
                     object["domain_resolver"] = QJsonObject{{"server", tags::dnsDirect}};
                 if (!nextTag.isEmpty() && opts.link) object["detour"] = nextTag;
                 if (opts.warpWrap && idx == 0) object["detour"] = tags::warpBypass;
+                // A detour gets the server hostname unresolved; endpoints look it up via DNS rules, which end at dns-remote over the proxy.
+                if (!nextTag.isEmpty() && opts.link && !ent->outbound->IsEndpoint() && !object.contains("domain_resolver") &&
+                    resolvesHostnamesViaDnsRules(*ents[idx + 1]))
+                    object["domain_resolver"] = directDomainResolver();
                 if (ent->outbound->IsEndpoint())
                 {
                     ctx.endpoints.append(object);
@@ -1946,6 +1957,14 @@ namespace Configs {
                             {"url", get_jsdelivr_link("https://raw.githubusercontent.com/217heidai/adblockfilters/main/rules/adblocksingbox.srs")},
                         };
             }
+
+            if (const auto &tun = ctx.prerequisites.tun; tun.privateRangesAsRuleSet) {
+                ruleSetArray += QJsonObject{
+                            {"type", "inline"},
+                            {"tag", tags::privateRangesRuleSet},
+                            {"rules", QJsonArray{QJsonObject{{"ip_cidr", QJsonArray::fromStringList(tun.bypassedPrivateRanges)}}}},
+                        };
+            }
             return ruleSetArray;
         }
 
@@ -2132,9 +2151,7 @@ namespace Configs {
             }
             if (settings.enable_stats && !route.contains("find_process"))  route["find_process"] = true;
             if (!route.contains("default_domain_resolver"))
-                route["default_domain_resolver"] = QJsonObject{
-                                        {"server", tags::dnsDirect},
-                                        {"strategy", getDirectDomainStrategy()}};
+                route["default_domain_resolver"] = directDomainResolver();
             if (settings.spmode_vpn && !route.contains("auto_detect_interface")) route["auto_detect_interface"] = true;
 
             ctx.result->coreConfig["route"] = route;
@@ -2325,6 +2342,22 @@ namespace Configs {
             if (custom->type == Custom::CustomFullConfig)
             {
                 res->coreConfig = custom->Build().object;
+                // macOS points the system DNS at the TUN address once the core starts; a custom config
+                // brings its own tun inbound, so read the address from there like the generated one.
+                for (const auto item : res->coreConfig["inbounds"].toArray()) {
+                    const auto inbound = item.toObject();
+                    if (inbound["type"].toString() != "tun") continue;
+                    const auto address = inbound["address"];
+                    QStringList addresses;
+                    if (address.isString()) addresses << address.toString();
+                    else for (const auto entry : address.toArray()) addresses << entry.toString();
+                    for (const auto &cidr : addresses) {
+                        if (cidr.contains(':')) continue;
+                        res->tunIPv4CIDR = cidr;
+                        break;
+                    }
+                    if (!res->tunIPv4CIDR.isEmpty()) break;
+                }
                 return res;
             }
         }
@@ -2401,8 +2434,13 @@ namespace Configs {
         return inner;
     }
 
-    bool IsValid(const std::shared_ptr<Profile>& ent)
+    bool IsValid(const std::shared_ptr<Profile>& ent, bool *coreUnreachable)
     {
+        const auto coreCallFailed = [coreUnreachable](const QString &resp) {
+            MW_show_log("Failed to Call the Core: " + resp);
+            if (coreUnreachable != nullptr) *coreUnreachable = true;
+            return false;
+        };
         if (ent->type == "autoselector")
         {
             const auto plan = PlanAutoSelector(ent);
@@ -2429,7 +2467,7 @@ namespace Configs {
                     MW_show_log("Null ent in validator");
                     return false;
                 }
-                if (!IsValid(e))
+                if (!IsValid(e, coreUnreachable))
                 {
                     MW_show_log("Invalid ent in chain: ID=" + QString::number(eId));
                     return false;
@@ -2463,11 +2501,7 @@ namespace Configs {
                 xrayConf.remove("inbounds");
                 bool ok;
                 auto resp = API::defaultClient->CheckConfig(&ok, QJsonObject2QString(xrayConf, true), true);
-                if (!ok)
-                {
-                    MW_show_log("Failed to Call the Core: " + resp);
-                    return false;
-                }
+                if (!ok) return coreCallFailed(resp);
                 if (resp.isEmpty()) return true;
                 // Left to fail at test time so handleXrayGeoAssetError() can name the missing category.
                 if (resp.contains("geoip.dat") || resp.contains("geosite.dat")) return true;
@@ -2489,11 +2523,7 @@ namespace Configs {
             };
             bool ok;
             auto resp = API::defaultClient->CheckConfig(&ok, QJsonObject2QString(xrayConf, true), true);
-            if (!ok)
-            {
-                MW_show_log("Failed to Call the Core: " + resp);
-                return false;
-            }
+            if (!ok) return coreCallFailed(resp);
             if (resp.isEmpty()) return true;
             MW_show_log("Invalid Xray ent " + ent->outbound->name + ": " + resp);
             return false;
@@ -2510,11 +2540,7 @@ namespace Configs {
         bool ok;
         conf.insert("log", QJsonObject{{"level", dataManager->settingsRepo->log_level}});
         auto resp = API::defaultClient->CheckConfig(&ok, QJsonObject2QString(conf, true));
-        if (!ok)
-        {
-            MW_show_log("Failed to Call the Core: " + resp);
-            return false;
-        }
+        if (!ok) return coreCallFailed(resp);
         if (resp.isEmpty()) return true;
         MW_show_log("Invalid ent " + ent->outbound->name + ": " + resp);
         return false;
@@ -2656,10 +2682,7 @@ namespace Configs {
         }
         QJsonObject routeObj{
                 {"auto_detect_interface", true},
-                {"default_domain_resolver", QJsonObject{
-                        {"server", tags::dnsDirect},
-                        {"strategy", getDirectDomainStrategy()},
-                   }}
+                {"default_domain_resolver", directDomainResolver()},
         };
         if (!routeRules.isEmpty()) routeObj["rules"] = routeRules;
         ctx.result->coreConfig["route"] = routeObj;

@@ -12,16 +12,18 @@ namespace Configs {
         if (!url.isValid()) return false;
         auto query = QUrlQuery(url.query());
 
-        if (query.hasQueryItem("type"))
-        {
-            type = query.queryItemValue("type");
-            if ((type == "tcp" && query.queryItemValue("headerType") == "http") || type == "h2") {
-                type = "http";
-                method = "GET";
-            }
+        const auto linkType = query.queryItemValue("type");
+        const bool rawHttp = (linkType.isEmpty() || linkType == "tcp" || linkType == "raw")
+                             && query.queryItemValue("headerType") == "http";
+        if (query.hasQueryItem("type")) type = linkType == "raw" ? QStringLiteral("tcp") : linkType;
+        if (rawHttp || type == "h2") {
+            type = "http";
+            method = "GET";
         }
-        if (query.hasQueryItem("host")) host = query.queryItemValue("host");
+        if (query.hasQueryItem("host")) host = query.queryItemValue("host", QUrl::FullyDecoded);
         if (query.hasQueryItem("path")) path = query.queryItemValue("path", QUrl::FullyDecoded);
+        // the raw header's server accepts any of its comma-listed paths, while sing-box sends exactly one
+        if (rawHttp) path = path.section(',', 0, 0, QString::SectionSkipEmpty).trimmed();
         if (query.hasQueryItem("method")) method = query.queryItemValue("method");
         if (query.hasQueryItem("headers")) {
             auto raw = query.queryItemValue("headers", QUrl::FullyDecoded);
@@ -42,7 +44,9 @@ namespace Configs {
     {
         if (object.isEmpty()) return false;
         if (object.contains("type")) type = object["type"].toString();
-        if (object.contains("host")) host = object["host"].toString();
+        if (object.contains("host")) {
+            host = object["host"].isArray() ? QJsonArray2QListString(object["host"].toArray()).join(',') : object["host"].toString();
+        }
         if (object.contains("path")) path = object["path"].toString();
         if (object.contains("method")) method = object["method"].toString();
         if (object.contains("headers") && object["headers"].isObject()) {
@@ -122,9 +126,19 @@ namespace Configs {
     }
     QString Transport::ExportToLink()
     {
+        return ExportToLink(true);
+    }
+    QString Transport::ExportToLink(bool tlsEnabled)
+    {
         QUrlQuery query;
         if (type.isEmpty() || type == "tcp") return "";
-        if (!type.isEmpty()) query.addQueryItem("type", type);
+        // plaintext, the http transport is the raw HTTP header on the wire; other clients read type=http as h2
+        if (type == "http" && !tlsEnabled) {
+            query.addQueryItem("type", "tcp");
+            query.addQueryItem("headerType", "http");
+        } else {
+            query.addQueryItem("type", type);
+        }
         if (!host.isEmpty()) query.addQueryItem("host", host);
         if (!path.isEmpty()) query.addQueryItem("path", path);
         if (!method.isEmpty()) query.addQueryItem("method", method);
@@ -156,10 +170,10 @@ namespace Configs {
             object["headers"] = qStringListToJsonObject(headers);
         }
         if (!host.isEmpty()) {
-            if (type == "http" || type == "httpupgrade") object["host"] = host;
+            if (type == "http" || type == "httpupgrade") object["host"] = toAceHost(host);
             if (type == "ws") {
                 auto headersObj = object["headers"].isObject() ? object["headers"].toObject() : QJsonObject();
-                headersObj["Host"] = host;
+                headersObj["Host"] = toAceHost(host);
                 object["headers"] = headersObj;
             }
         }
@@ -177,7 +191,14 @@ namespace Configs {
     }
     BuildResult Transport::Build()
     {
-        return {ExportToJson(), ""};
+        auto object = ExportToJson();
+        // value(), never operator[]: the mutable operator[] inserts a null entry for a missing key
+        if (const auto exported = object.value("host").toString(); type == "http" && exported.contains(',')) {
+            auto hosts = exported.split(',', Qt::SkipEmptyParts);
+            for (auto& item : hosts) item = item.trimmed();
+            object["host"] = QListStr2QJsonArray(hosts);
+        }
+        return {object, ""};
     }
 }
 

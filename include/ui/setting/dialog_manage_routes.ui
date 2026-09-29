@@ -38,6 +38,9 @@
             <property name="text">
              <string>Default Domain Strategy</string>
             </property>
+            <property name="buddy">
+             <cstring>default_domain_strategy</cstring>
+            </property>
            </widget>
           </item>
           <item row="1" column="1">
@@ -59,6 +62,9 @@
             <property name="text">
              <string>Remote Rule-set Mirror</string>
             </property>
+            <property name="buddy">
+             <cstring>ruleset_mirror</cstring>
+            </property>
            </widget>
           </item>
           <item row="1" column="0">
@@ -69,12 +75,18 @@
             <property name="text">
              <string>Resolve Domain Strategy</string>
             </property>
+            <property name="buddy">
+             <cstring>domainStrategyCombo</cstring>
+            </property>
            </widget>
           </item>
           <item row="3" column="0">
            <widget class="QLabel" name="route_prof_l">
             <property name="text">
              <string>Routing Profile</string>
+            </property>
+            <property name="buddy">
+             <cstring>route_prof</cstring>
             </property>
            </widget>
           </item>
@@ -123,6 +135,19 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_7">
        <item>
+        <widget class="QLabel" name="hijack_deprecated">
+         <property name="colorRole" stdset="0">
+          <string notr="true">danger</string>
+         </property>
+         <property name="text">
+          <string>Hijack is deprecated and will be removed in the next release. Tun mode covers the same use case.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QGroupBox" name="hijack_box">
          <property name="title">
           <string>DNS Server</string>
@@ -147,6 +172,9 @@
             <property name="text">
              <string>Listen Port</string>
             </property>
+            <property name="buddy">
+             <cstring>dnshijack_listenport</cstring>
+            </property>
            </widget>
           </item>
           <item row="3" column="1">
@@ -157,6 +185,9 @@
             <property name="text">
              <string>IPv4 Response</string>
             </property>
+            <property name="buddy">
+             <cstring>dnshijack_v4resp</cstring>
+            </property>
            </widget>
           </item>
           <item row="4" column="1">
@@ -166,6 +197,9 @@
            <widget class="QLabel" name="dnshijack_v6resp_l">
             <property name="text">
              <string>IPv6 Response</string>
+            </property>
+            <property name="buddy">
+             <cstring>dnshijack_v6resp</cstring>
             </property>
            </widget>
           </item>
@@ -212,6 +246,9 @@
             <property name="text">
              <string>Listen Port</string>
             </property>
+            <property name="buddy">
+             <cstring>redirect_listenport</cstring>
+            </property>
            </widget>
           </item>
           <item row="0" column="0">
@@ -228,6 +265,9 @@
            <widget class="QLabel" name="redirect_listenaddr_l">
             <property name="text">
              <string>Listen Address</string>
+            </property>
+            <property name="buddy">
+             <cstring>redirect_listenaddr</cstring>
             </property>
            </widget>
           </item>
@@ -262,6 +302,9 @@
             <property name="text">
              <string>Mode</string>
             </property>
+            <property name="buddy">
+             <cstring>warp_mode</cstring>
+            </property>
            </widget>
           </item>
           <item row="1" column="1">
@@ -295,6 +338,9 @@
             <property name="text">
              <string>Endpoint</string>
             </property>
+            <property name="buddy">
+             <cstring>warp_ep</cstring>
+            </property>
            </widget>
           </item>
           <item row="0" column="1">
@@ -304,6 +350,9 @@
            <widget class="QLabel" name="label_4">
             <property name="text">
              <string>Private Key</string>
+            </property>
+            <property name="buddy">
+             <cstring>warp_private_key</cstring>
             </property>
            </widget>
           </item>
@@ -315,6 +364,9 @@
             <property name="text">
              <string>Public Key</string>
             </property>
+            <property name="buddy">
+             <cstring>warp_public_key</cstring>
+            </property>
            </widget>
           </item>
           <item row="2" column="1">
@@ -325,6 +377,9 @@
             <property name="text">
              <string>Interface Addresses</string>
             </property>
+            <property name="buddy">
+             <cstring>warp_ifc_addrs</cstring>
+            </property>
            </widget>
           </item>
           <item row="3" column="1">
@@ -334,6 +389,9 @@
            <widget class="QLabel" name="label">
             <property name="text">
              <string>Reserved</string>
+            </property>
+            <property name="buddy">
+             <cstring>warp_reserved</cstring>
             </property>
            </widget>
           </item>
@@ -354,6 +412,9 @@
             <property name="text">
              <string>Endpoint</string>
             </property>
+            <property name="buddy">
+             <cstring>warp_masque_ep</cstring>
+            </property>
            </widget>
           </item>
           <item row="0" column="1">
@@ -363,6 +424,9 @@
            <widget class="QLabel" name="warp_masque_private_key_l">
             <property name="text">
              <string>Private Key</string>
+            </property>
+            <property name="buddy">
+             <cstring>warp_masque_private_key</cstring>
             </property>
            </widget>
           </item>
@@ -377,6 +441,9 @@
             <property name="text">
              <string>Peer Public Key</string>
             </property>
+            <property name="buddy">
+             <cstring>warp_masque_peer_public_key</cstring>
+            </property>
            </widget>
           </item>
           <item row="2" column="1">
@@ -387,6 +454,9 @@
             <property name="text">
              <string>Interface Addresses</string>
             </property>
+            <property name="buddy">
+             <cstring>warp_masque_ifc_addrs</cstring>
+            </property>
            </widget>
           </item>
           <item row="3" column="1">
@@ -396,6 +466,9 @@
            <widget class="QLabel" name="warp_masque_sni_l">
             <property name="text">
              <string notr="true">SNI</string>
+            </property>
+            <property name="buddy">
+             <cstring>warp_masque_sni</cstring>
             </property>
            </widget>
           </item>
@@ -409,6 +482,9 @@
             </property>
             <property name="text">
              <string>HTTP Version</string>
+            </property>
+            <property name="buddy">
+             <cstring>warp_masque_http_mode</cstring>
             </property>
            </widget>
           </item>
@@ -508,6 +584,9 @@
             <property name="text">
              <string>Local Override</string>
             </property>
+            <property name="buddy">
+             <cstring>local_override</cstring>
+            </property>
            </widget>
           </item>
           <item row="7" column="3">
@@ -570,7 +649,7 @@
              <string>Remote DNS</string>
             </property>
             <property name="buddy">
-             <cstring>widget</cstring>
+             <cstring>remote_dns</cstring>
             </property>
            </widget>
           </item>
@@ -643,6 +722,9 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
             <property name="text">
              <string>Direct DNS</string>
             </property>
+            <property name="buddy">
+             <cstring>direct_dns</cstring>
+            </property>
            </widget>
           </item>
           <item row="1" column="3">
@@ -696,6 +778,9 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
            <widget class="QLabel" name="dns_final_out_l">
             <property name="text">
              <string>Default DNS server</string>
+            </property>
+            <property name="buddy">
+             <cstring>dns_final_out</cstring>
             </property>
            </widget>
           </item>

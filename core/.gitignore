@@ -4,5 +4,5 @@
 *.exe
 *.dat
 *.db
-server/gen/*.pb.go
-server/gen/*.pb.*.go
+gen/*.pb.go
+gen/*.pb.*.go

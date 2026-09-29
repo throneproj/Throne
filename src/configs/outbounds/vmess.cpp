@@ -21,12 +21,17 @@ namespace Configs {
                 alter_id = objN["aid"].toVariant().toInt();
                 
                 QString net = objN["net"].toString();
-                if (net == "h2") net = "http";
-                if (QString type = objN["type"].toString(); type == "http") net = "http";
+                if (net == "raw") net = "tcp";
+                const bool rawHttp = (net.isEmpty() || net == "tcp") && objN["type"].toString() == "http";
+                if (net == "h2" || rawHttp) net = "http";
                 transport->type = net;
                 transport->host = objN["host"].toString();
                 if (net == "grpc") transport->service_name = objN["path"].toString();
                 else transport->path = objN["path"].toString();
+                if (rawHttp) {
+                    transport->method = "GET";
+                    transport->path = transport->path.section(',', 0, 0, QString::SectionSkipEmpty).trimmed();
+                }
                 
                 QString scy = objN["scy"].toString();
                 if (!scy.isEmpty()) security = scy;
@@ -126,14 +131,15 @@ namespace Configs {
 
     QString vmess::ExportToLink()
     {
-        const auto network = transport->type.isEmpty() || transport->type == "tcp"
+        const bool rawHttp = transport->type == "http" && !tls->enabled;
+        const auto network = transport->type.isEmpty() || transport->type == "tcp" || rawHttp
                                  ? QStringLiteral("tcp")
                                  : transport->type == "http" ? QStringLiteral("h2") : transport->type;
         const auto path = network == "grpc" ? transport->service_name : transport->path;
 
         // What the V2RayN schema has no room for; other clients ignore the unknown key.
         QUrlQuery extra;
-        mergeUrlQuery(extra, transport->ExportToLink());
+        mergeUrlQuery(extra, transport->ExportToLink(tls->enabled));
         mergeUrlQuery(extra, multiplex->ExportToLink());
         if (global_padding) extra.addQueryItem("globalPadding", "true");
         if (authenticated_length) extra.addQueryItem("authenticatedLength", "true");
@@ -150,7 +156,7 @@ namespace Configs {
             {"aid", QString::number(alter_id)},
             {"scy", security.isEmpty() ? QStringLiteral("auto") : security},
             {"net", network},
-            {"type", "none"},
+            {"type", rawHttp ? QStringLiteral("http") : QStringLiteral("none")},
             {"host", transport->host},
             {"path", path},
             {"tls", tls->enabled ? QStringLiteral("tls") : QString()},

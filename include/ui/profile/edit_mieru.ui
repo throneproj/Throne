@@ -19,6 +19,9 @@
      <property name="text">
       <string>Username</string>
      </property>
+     <property name="buddy">
+      <cstring>username</cstring>
+     </property>
     </widget>
    </item>
    <item row="0" column="1">
@@ -28,6 +31,9 @@
     <widget class="QLabel" name="label_2">
      <property name="text">
       <string>Password</string>
+     </property>
+     <property name="buddy">
+      <cstring>password</cstring>
      </property>
     </widget>
    </item>
@@ -39,6 +45,9 @@
      <property name="text">
       <string>Transport</string>
      </property>
+     <property name="buddy">
+      <cstring>transport</cstring>
+     </property>
     </widget>
    </item>
    <item row="2" column="1">
@@ -48,6 +57,9 @@
     <widget class="QLabel" name="label_4">
      <property name="text">
       <string>Multiplexing</string>
+     </property>
+     <property name="buddy">
+      <cstring>multiplexing</cstring>
      </property>
     </widget>
    </item>
@@ -59,6 +71,9 @@
      <property name="text">
       <string>Traffic Pattern</string>
      </property>
+     <property name="buddy">
+      <cstring>traffic_pattern</cstring>
+     </property>
     </widget>
    </item>
    <item row="4" column="1">
@@ -68,6 +83,9 @@
     <widget class="QLabel" name="label_6">
      <property name="text">
       <string>Server Ports</string>
+     </property>
+     <property name="buddy">
+      <cstring>server_ports</cstring>
      </property>
     </widget>
    </item>

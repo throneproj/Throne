@@ -11,6 +11,7 @@ namespace Configs {
     class ProfilesRepo;
     class OtpProfilesRepo;
     class TrafficStatsRepo;
+    class MarkersRepo;
 
     void initDB(const std::string& dbPath);
 
@@ -27,6 +28,7 @@ namespace Configs {
         static QString statsDbUnusableReason(const std::string& path);
         static void quarantineDbFile(const std::string& path);
         void initializeRepos();
+        void applyMigrations();
     public:
         std::unique_ptr<ProfilesRepo> profilesRepo;
         std::unique_ptr<GroupsRepo> groupsRepo;
@@ -34,6 +36,7 @@ namespace Configs {
         std::unique_ptr<OtpProfilesRepo> otpProfilesRepo;
         std::unique_ptr<SettingsRepo> settingsRepo;
         std::unique_ptr<TrafficStatsRepo> trafficStatsRepo;
+        std::unique_ptr<MarkersRepo> markersRepo;
 
         explicit DatabaseManager(const std::string& dbPath);
         ~DatabaseManager() = default;

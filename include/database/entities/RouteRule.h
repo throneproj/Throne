@@ -123,6 +123,7 @@ namespace Configs {
         QList<QString> process_name;
         QList<QString> process_path;
         QList<QString> process_path_regex;
+        QList<QString> package_name;
         QList<QString> wifi_ssid;
         QList<QString> wifi_bssid;
         QList<QString> rule_set;

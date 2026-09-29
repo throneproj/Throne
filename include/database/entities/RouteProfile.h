@@ -47,6 +47,7 @@ namespace Configs {
 
         RouteProfile(const RouteProfile& other);
 
+        // A rule with a key the desktop cannot store is dropped into *warnings; an array left with no rule fails.
         static QList<std::shared_ptr<RouteRule>> parseJsonArray(const QJsonArray& arr, QString* parseError, QString* warnings = nullptr);
 
         QJsonArray get_route_rules(bool forView = false, std::map<int, QString> outboundMap = {});

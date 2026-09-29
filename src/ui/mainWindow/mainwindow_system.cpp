@@ -13,6 +13,7 @@
 #include "3rdparty/qv2ray/v2/proxy/QvProxyConfigurator.hpp"
 #include "include/api/RPC.h"
 #include "include/configs/generate.h"
+#include "include/database/MarkersRepo.h"
 #include "include/global/Configs.hpp"
 #include "include/global/HTTPRequestHelper.hpp"
 #include "include/global/Logger.hpp"
@@ -66,6 +67,29 @@ void MainWindow::on_menu_routing_settings_triggered() {
         dialog_is_using = false;
     });
     dialog->show();
+}
+
+void MainWindow::showHijackDeprecationNotice() {
+    const auto &settings = Configs::dataManager->settingsRepo;
+    if (!settings->enable_dns_server && !settings->enable_redirect) return;
+    if (Configs::dataManager->markersRepo->IsMarked(Configs::Markers::HijackDeprecated)) return;
+
+    auto text = tr("Hijack (Preferences > Routing Settings > Hijack) is deprecated and will be removed in the next release.");
+#ifdef Q_OS_WIN
+    text += " " + tr("The System DNS option depends on it and will be removed along with it.");
+#endif
+    text += "\n\n" + tr("Tun mode covers the same use case.");
+
+    auto *box = new QMessageBox(QMessageBox::Warning, tr("Hijack is deprecated"), text, QMessageBox::Ok, GetMessageBoxParent());
+    const auto *dontShowAgain = box->addButton(tr("Don't show again"), QMessageBox::ActionRole);
+    // An ActionRole button leaves no auto-detected escape button, which disables Esc and the title-bar close.
+    box->setEscapeButton(QMessageBox::Ok);
+    box->setAttribute(Qt::WA_DeleteOnClose);
+    box->setWindowModality(Qt::NonModal);
+    connect(box, &QMessageBox::buttonClicked, this, [dontShowAgain](const QAbstractButton *button) {
+        if (button == dontShowAgain) Configs::dataManager->markersRepo->Mark(Configs::Markers::HijackDeprecated);
+    });
+    box->show();
 }
 
 void MainWindow::on_menu_vpn_settings_triggered() {
@@ -197,6 +221,10 @@ bool MainWindow::get_elevated_permissions(ExitReason reason) {
         return true;
     }
     if (Configs::IsAdmin()) return true;
+#ifdef NKR_ELEVATION_HINT
+    MessageBoxWarning(software_name, tr("This installation cannot grant the core privileges by itself.") + "\n\n" + NKR_ELEVATION_HINT);
+    return false;
+#endif
 #ifdef Q_OS_LINUX
     if (!Linux_HavePkexec()) {
         MessageBoxWarning(software_name, "Please install \"pkexec\" first.");
@@ -536,7 +564,10 @@ void MainWindow::CheckUpdate() {
         return;
     }
 
-    auto resp = NetworkRequestHelper::HttpGet("https://api.github.com/repos/throneproj/Throne/releases");
+    // Releases carry no checksum or signature, so TLS is all that vouches for the download URL and the archive.
+    HttpGetOptions options;
+    options.strictTls = true;
+    auto resp = NetworkRequestHelper::HttpGet("https://api.github.com/repos/throneproj/Throne/releases", options);
     if (!resp.error.isEmpty()) {
         runOnUiThread([=,this] {
             MessageBoxWarning(QObject::tr("Update"), QObject::tr("Requesting update error: %1").arg(resp.error + "\n" + resp.data));
@@ -592,7 +623,7 @@ void MainWindow::CheckUpdate() {
                 }
                 QString errors;
                 if (!release_download_url.isEmpty()) {
-                    auto res = NetworkRequestHelper::DownloadAsset(release_download_url, "Throne.zip");
+                    auto res = NetworkRequestHelper::DownloadAsset(release_download_url, "Throne.zip", false, true);
                     if (!res.isEmpty()) {
                         errors += res;
                     }

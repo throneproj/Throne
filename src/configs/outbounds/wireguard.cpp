@@ -23,7 +23,7 @@ namespace Configs {
         if (!url.isValid()) return false;
         auto query = QUrlQuery(url.query());
 
-        address = url.host();
+        address = url.host(QUrl::FullyEncoded);
         port = url.port(51820);
         if (query.hasQueryItem("public_key")) public_key = QueryValue(query, "public_key");
         else if (query.hasQueryItem("publickey")) public_key = QueryValue(query, "publickey");

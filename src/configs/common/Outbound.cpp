@@ -87,7 +87,8 @@ namespace Configs {
         }
 
         if (url.hasFragment()) name = url.fragment(QUrl::FullyDecoded);
-        server = url.host();
+        // FullyEncoded keeps an IDN host in its xn-- form, which is what DNS carries
+        server = url.host(QUrl::FullyEncoded);
         dialFields->ParseFromLink(link);
         return true;
     }
@@ -95,7 +96,7 @@ namespace Configs {
     {
         if (object.isEmpty()) return false;
         if (object.contains("tag")) name = object["tag"].toString();
-        if (object.contains("server")) server = object["server"].toString();
+        if (object.contains("server")) server = toAceHost(object["server"].toString());
         if (object.contains("server_port")) server_port = object["server_port"].toInt();
         dialFields->ParseFromJson(object);
         return true;
@@ -103,7 +104,7 @@ namespace Configs {
     bool outbound::ParseFromClash(const clash::Proxies& object)
     {
         name = QString::fromStdString(object.name);
-        server = QString::fromStdString(object.server);
+        server = toAceHost(QString::fromStdString(object.server));
         server_port = object.port;
         return true;
     }

@@ -1,0 +1,461 @@
+syntax = "proto2";
+
+package libcore;
+option go_package = "./;gen";
+
+service LibcoreService {
+  rpc Start(LoadConfigReq) returns (ErrorResp);
+  rpc Stop(EmptyReq) returns (ErrorResp);
+  rpc CheckConfig(LoadConfigReq) returns (ErrorResp);
+  rpc Test(TestReq) returns (TestResp);
+  rpc StopTest(EmptyReq) returns (EmptyResp);
+  rpc QueryURLTest(EmptyReq) returns (QueryURLTestResponse);
+  rpc QueryStats(EmptyReq) returns (QueryStatsResp);
+  rpc QueryConnections(EmptyReq) returns (QueryConnectionsResp);
+  rpc CloseConnections(CloseConnectionsRequest) returns (CloseConnectionsResponse);
+  //
+  rpc SetSystemDNS(SetSystemDNSRequest) returns (EmptyResp);
+  //
+  rpc IsPrivileged(EmptyReq) returns (IsPrivilegedResponse);
+  //
+  rpc GetDefaultInterface(EmptyReq) returns (GetDefaultInterfaceResponse);
+  //
+  rpc SpeedTest(SpeedTestRequest) returns(SpeedTestResponse);
+  rpc QuerySpeedTest(EmptyReq) returns(QuerySpeedTestResponse);
+  rpc QueryCountryTest(EmptyReq) returns(QueryCountryTestResponse);
+  rpc IPTest(IPTestRequest) returns (IPTestResp);
+  rpc QueryIPTest(EmptyReq) returns (QueryIPTestResponse);
+  //
+  rpc GenWgKeyPair(EmptyReq) returns (GenWgKeyPairResponse);
+  rpc WarpRegister(WarpRegisterRequest) returns (WarpRegisterResponse);
+
+  rpc InstallDashboard(InstallDashboardRequest) returns (ErrorResp);
+  //
+  rpc QueryAutoSelectors(EmptyReq) returns (QueryAutoSelectorsResponse);
+  rpc AutoSelectorAction(AutoSelectorActionRequest) returns (ErrorResp);
+  //
+  rpc QueryVPNStatus(VPNStatusRequest) returns (VPNStatusResponse);
+  rpc SubmitVPNChallenge(SubmitVPNChallengeRequest) returns (ErrorResp);
+  rpc CancelVPNChallenge(SubmitVPNChallengeRequest) returns (ErrorResp);
+  //
+  rpc CaptureDiagnostics(DiagnosticsRequest) returns (DiagnosticsResponse);
+  rpc StopDiagnostics(EmptyReq) returns (EmptyResp);
+
+  rpc UpdateRuleSets(EmptyReq) returns (UpdateRuleSetsResponse);
+}
+
+message EmptyReq {}
+
+message EmptyResp {}
+
+message ErrorResp {
+  optional string error = 1 [default = ""];
+}
+
+message LoadConfigReq {
+  optional string core_config = 1 [default = ""];
+  optional bool disable_stats = 2 [default = false];
+  optional bool need_extra_process = 3 [default = false];
+  optional string extra_process_path = 4 [default = ""];
+  optional string extra_process_args = 5 [default = ""];
+  optional string extra_process_conf = 6 [default = ""];
+  optional bool extra_no_out = 8 [default = false];
+  optional bool need_xray = 9 [default = false];
+  optional string xray_config = 10 [default = ""];
+  optional string tun_ipv4_cidr = 11 [default = ""];
+  reserved 12;
+  reserved "xray_outbound_dns_address";
+  // Xray-style strategy (e.g. "UseIP") for resolution through the box's dns-direct transport; empty => unwired.
+  optional string xray_outbound_dns_strategy = 13 [default = ""];
+  // Keep the Xray instance cold until something dials it. Set for auto-selector
+  // profiles, whose pools can hold Xray members that only get probed once a
+  // bench cycle: the core takes over the loopback ports sing-box was told to
+  // dial and builds the instance on the first connection instead.
+  optional bool xray_lazy_start = 14 [default = false];
+  // Seconds without gated traffic before a lazily started instance is shut down
+  // again. 0 keeps it resident once it has started.
+  optional int32 xray_idle_seconds = 15 [default = 0];
+  // Opaque full configs, each its own gated instance backing a socks outbound
+  // already in `core_config`. Never merged into `xray_config`.
+  repeated string xray_full_configs = 16;
+  // Separate from xray_idle_seconds; 0 keeps them resident once started.
+  optional int32 xray_full_idle_seconds = 17 [default = 0];
+}
+
+message URLTestResp {
+  optional string outbound_tag = 1 [default = ""];
+  optional int32 latency_ms = 2 [default = 0 ];
+  optional string error = 3 [default = ""];
+}
+
+message TestReq {
+  optional string config = 1 [default = ""];
+  repeated string outbound_tags = 2;
+  optional bool use_default_outbound = 3 [default = false];
+  optional string url = 4 [default = ""];
+  optional bool test_current = 5 [default = false];
+  optional int32 max_concurrency = 6 [default = 0];
+  optional int32 test_timeout_ms = 7 [default = 0];
+  optional bool need_xray = 8 [default = false];
+  optional string xray_config = 9 [default = ""];
+  // Opaque full configs, each its own instance backing a socks outbound already
+  // in `config`. Never merged into `xray_config`.
+  repeated string xray_full_configs = 10;
+  // Inspected inside the same test box: it dies with the RPC, so no later query can.
+  repeated string vpn_endpoint_tags = 11;
+  reserved 12;
+  reserved "vpn_status_timeout_ms";
+  reserved 13;
+  reserved "xray_outbound_dns_address";
+  // See LoadConfigReq; empty leaves the Xray on the OS resolver, which a running TUN owns.
+  optional string xray_outbound_dns_strategy = 14 [default = ""];
+}
+
+message TestResp {
+  repeated URLTestResp results = 1;
+  // Only for vpn_endpoint_tags whose URL probe genuinely failed.
+  repeated VPNEndpointStatus vpn_status = 2;
+}
+
+message VPNChallengeChoice {
+  optional string value = 1 [default = ""];
+  optional string label = 2 [default = ""];
+}
+
+message VPNChallengeField {
+  optional string submission_key = 1 [default = ""];
+  optional string name = 2 [default = ""];
+  optional string label = 3 [default = ""];
+  // text | password | select
+  optional string kind = 4 [default = ""];
+  optional string value = 5 [default = ""];
+  repeated VPNChallengeChoice options = 6;
+}
+
+// The endpoint is parked waiting for a human; nothing moves until Submit/Cancel.
+message VPNChallenge {
+  optional string endpoint_tag = 1 [default = ""];
+  optional string id = 2 [default = ""];
+  // openvpn: credentials|secret|message|open-url   openconnect: form|browser
+  optional string kind = 3 [default = ""];
+  optional string username = 4 [default = ""];
+  optional string message = 5 [default = ""];
+  optional string banner = 6 [default = ""];
+  optional string error = 7 [default = ""];
+  optional string url = 8 [default = ""];
+  // false => the answer is a secret and must be masked.
+  optional bool echo = 9 [default = false];
+  optional int64 deadline = 10 [default = 0];
+  repeated VPNChallengeField fields = 11;
+}
+
+// One openvpn/openconnect endpoint's tunnel state.
+message VPNEndpointStatus {
+  optional string tag = 1 [default = ""];
+  // connecting | auth-pending | connected | error
+  optional string state = 2 [default = ""];
+  optional string error = 3 [default = ""];
+  optional bool connected = 4 [default = false];
+  // Present only while connected.
+  repeated string ipv4 = 5;
+  repeated string ipv6 = 6;
+  repeated string dns = 7;
+  optional int32 mtu = 8 [default = 0];
+  optional int64 connected_since = 9 [default = 0];
+  optional string server = 10 [default = ""];
+  // openvpn: tunnel network; openconnect: transport.
+  optional string network = 11 [default = ""];
+  // Server-advertised routes, i.e. what a `preferred_by` route rule matches.
+  repeated string routes = 12;
+  repeated string excluded_routes = 13;
+  // Every suffix `preferred_by` matches: search domains plus pushed split-DNS suffixes.
+  repeated string search_domains = 14;
+  // openvpn only; openconnect reports its transport in `network` instead.
+  optional string cipher = 15 [default = ""];
+  optional VPNChallenge challenge = 16;
+  // `error` is a rejected login; neither core prompts for config-supplied credentials.
+  optional bool auth_failed = 17 [default = false];
+}
+
+message VPNStatusRequest {
+  repeated string endpoint_tags = 1;
+  // Wait this long for a tag still handshaking; 0 answers with the current state.
+  optional int32 timeout_ms = 2 [default = 0];
+}
+
+message VPNStatusResponse {
+  repeated VPNEndpointStatus results = 1;
+}
+
+// Answers the challenge `challenge_id` on `endpoint_tag`: openvpn reads
+// username/password/secret, openconnect reads form_values keyed by submission_key.
+message SubmitVPNChallengeRequest {
+  optional string endpoint_tag = 1 [default = ""];
+  optional string challenge_id = 2 [default = ""];
+  optional string username = 3 [default = ""];
+  optional string password = 4 [default = ""];
+  optional string secret = 5 [default = ""];
+  map<string, string> form_values = 6;
+}
+
+message QueryStatsResp{
+  map<string, int64> ups = 1;
+  map<string, int64> downs = 2;
+}
+
+// active = currently live connections (drives the connection table).
+// closed = the core's recently-closed ring (non-draining); consumers dedup by
+// id. Together they let the client diff per-connection byte counters without
+// losing the tail of a connection that closed between polls.
+message QueryConnectionsResp {
+  repeated ConnectionMetaData active = 1;
+  repeated ConnectionMetaData closed = 2;
+}
+
+message ConnectionMetaData {
+  optional string id = 1 [default = ""];
+  optional int64 created_at = 2 [default = 0];
+  optional int64 upload = 3 [default = 0];
+  optional int64 download = 4 [default = 0];
+  optional string outbound = 5 [default = ""];
+  optional string network = 6 [default = ""];
+  optional string dest = 7 [default = ""];
+  optional string protocol = 8 [default = ""];
+  optional string domain = 9 [default = ""];
+  optional string process = 10 [default = ""];      // basename, e.g. chrome.exe
+  optional string process_path = 11 [default = ""]; // full path (icon lookup etc.)
+  repeated string chain = 12;                        // outbound chain, for later use
+  optional int64 closed_at = 13 [default = 0];       // 0 while live
+  optional string source = 14 [default = ""];        // client address "ip:port", empty when unknown
+}
+
+// Ids come from a previous QueryConnections; ones that already closed are a
+// no-op, so a stale table never turns into an error.
+message CloseConnectionsRequest {
+  repeated string ids = 1;
+}
+
+message CloseConnectionsResponse {
+  optional int32 closed = 1 [default = 0];
+  optional string error = 2 [default = ""];
+}
+
+message SetSystemDNSRequest {
+  optional bool clear = 1 [default = false];
+}
+
+message IsPrivilegedResponse {
+  optional bool has_privilege = 1 [default = false];
+}
+
+message GetDefaultInterfaceResponse {
+  optional string name = 1 [default = ""];
+  optional int32 index = 2 [default = 0];
+}
+
+message SpeedTestRequest {
+  optional string config = 1 [default = ""];
+  repeated string outbound_tags = 2;
+  optional bool test_current = 3 [default = false];
+  optional bool use_default_outbound = 4 [default = false];
+  optional bool test_download = 5 [default = false];
+  optional bool test_upload = 6 [default = false];
+  optional bool simple_download = 7 [default = false];
+  optional string simple_download_addr = 8 [default = ""];
+  optional int32 timeout_ms = 9 [default = 0];
+  optional bool only_country = 10 [default = false];
+  optional int32 country_concurrency = 11 [default = 0];
+  optional bool need_xray = 12 [default = false];
+  optional string xray_config = 13 [default = ""];
+  // See TestReq.xray_full_configs.
+  repeated string xray_full_configs = 14;
+  reserved 15;
+  reserved "xray_outbound_dns_address";
+  // See TestReq.xray_outbound_dns_strategy.
+  optional string xray_outbound_dns_strategy = 16 [default = ""];
+}
+
+message SpeedTestResult {
+  optional string dl_speed = 1 [default = ""];
+  optional string ul_speed = 2 [default = ""];
+  optional int32 latency = 3 [default = 0];
+  optional string outbound_tag = 4 [default = ""];
+  optional string error = 5 [default = ""];
+  optional string server_name = 6 [default = ""];
+  optional string server_country = 7 [default = ""];
+  optional bool cancelled = 8 [default = false];
+  optional int64 dl_bytes = 9 [default = 0];  // bytes moved by the test, for traffic stats
+  optional int64 ul_bytes = 10 [default = 0];
+}
+
+message SpeedTestResponse {
+  repeated SpeedTestResult results = 1;
+}
+
+message QuerySpeedTestResponse {
+  optional SpeedTestResult result = 1;
+  optional bool is_running = 2 [default = false];
+}
+
+message QueryCountryTestResponse {
+  repeated SpeedTestResult results = 1;
+}
+
+message QueryURLTestResponse {
+  repeated URLTestResp results = 1;
+}
+
+message IPTestRes {
+  optional string outbound_tag = 1 [default = ""];
+  optional string ip = 2 [default = "" ];
+  optional string country_code = 3 [default = ""];
+  optional string error = 4 [default = ""];
+}
+
+message IPTestRequest {
+  optional string config = 1 [default = ""];
+  repeated string outbound_tags = 2;
+  optional bool use_default_outbound = 3 [default = false];
+  optional int32 max_concurrency = 4 [default = 0];
+  optional int32 test_timeout_ms = 5 [default = 0];
+  optional bool need_xray = 6 [default = false];
+  optional string xray_config = 7 [default = ""];
+  // See TestReq.xray_full_configs.
+  repeated string xray_full_configs = 8;
+  reserved 9;
+  reserved "xray_outbound_dns_address";
+  // See TestReq.xray_outbound_dns_strategy.
+  optional string xray_outbound_dns_strategy = 10 [default = ""];
+}
+
+message IPTestResp {
+  repeated IPTestRes results = 1;
+}
+
+message QueryIPTestResponse {
+  repeated IPTestRes results = 1;
+}
+
+message GenWgKeyPairResponse {
+  optional string private_key = 1 [default = ""];
+  optional string public_key = 2 [default = ""];
+  optional string error = 3 [default = ""];
+}
+
+message WarpRegisterRequest {
+  optional string tunnel_type = 1 [default = ""]; // "wireguard" | "masque"
+  optional string proxy = 2 [default = ""];       // "http://[user:pass@]host:port"; empty = direct
+  repeated string api_hosts = 3;                  // tried in order; empty = api.cloudflareclient.com
+}
+
+message WarpRegisterResponse {
+  optional string error = 1 [default = ""];
+  optional string device_id = 2 [default = ""];
+  optional string token = 3 [default = ""];
+  optional string license = 4 [default = ""];
+  optional string ipv4 = 5 [default = ""];            // bare address
+  optional string ipv6 = 6 [default = ""];            // bare address
+  optional string private_key = 7 [default = ""];     // wireguard: base64 x25519; masque: base64 SEC1 DER P-256
+  optional string peer_public_key = 8 [default = ""]; // wireguard: base64 x25519; masque: base64 SPKI DER (PEM armor stripped)
+  optional string endpoint = 9 [default = ""];        // host:port (IPv6 bracketed)
+  repeated int32 reserved = 10;                       // wireguard client_id bytes
+}
+
+// One member of a running auto-selector group. Everything the UI needs to
+// explain why a server was picked, skipped or demoted is carried here — the
+// selector must never look like a silent black box.
+message AutoSelectorMember {
+  optional string tag = 1 [default = ""];
+  optional int32 rank = 2 [default = 0];
+  // ok | degraded | untested | dead | cooldown
+  optional string state = 3 [default = ""];
+  optional bool selected = 4 [default = false];
+  optional bool selected_udp = 5 [default = false];
+  optional bool qualified = 6 [default = false];
+  // true while the member sits in the fast-probe tier
+  optional bool active = 7 [default = false];
+  optional int32 average_ms = 8 [default = 0];
+  optional int32 deviation_ms = 9 [default = 0];
+  optional int32 min_ms = 10 [default = 0];
+  optional int32 max_ms = 11 [default = 0];
+  optional int32 samples = 12 [default = 0];
+  optional int32 failures = 13 [default = 0];
+  optional int32 probes = 14 [default = 0];
+  optional int32 dial_total = 15 [default = 0];
+  optional int32 dial_fail = 16 [default = 0];
+  optional int64 last_ok_ms = 17 [default = 0];
+  optional int64 last_probe_ms = 18 [default = 0];
+  optional int64 cooldown_until_ms = 19 [default = 0];
+  optional string last_error = 20 [default = ""];
+}
+
+message AutoSelectorStatus {
+  optional string tag = 1 [default = ""];
+  // starting | probing | ready | suspended
+  optional string phase = 2 [default = ""];
+  optional string selected = 3 [default = ""];
+  optional string selected_udp = 4 [default = ""];
+  // The member a user pinned by hand, empty when fully automatic. Differs from
+  // `selected` whenever the pinned member is not currently healthy.
+  optional string pinned = 21 [default = ""];
+  optional bool balance = 5 [default = false];
+  optional string balance_mode = 6 [default = ""];
+  // suspended => the core believes the LOCAL network is down and has frozen the
+  // ranking. Consumers must not treat members as broken while this is set.
+  optional bool suspended = 7 [default = false];
+  optional int64 suspended_since_ms = 8 [default = 0];
+  optional int32 members_total = 9 [default = 0];
+  optional int32 members_probed = 10 [default = 0];
+  optional int32 members_alive = 11 [default = 0];
+  optional int32 members_qualified = 12 [default = 0];
+  optional int32 members_cooldown = 13 [default = 0];
+  optional int32 probes_in_flight = 14 [default = 0];
+  optional int32 rounds_completed = 15 [default = 0];
+  optional int64 last_round_ms = 16 [default = 0];
+  optional int64 next_round_ms = 17 [default = 0];
+  optional int64 last_switch_ms = 18 [default = 0];
+  optional string last_switch_reason = 19 [default = ""];
+  repeated AutoSelectorMember members = 20;
+}
+
+// Idempotent snapshot: unlike QueryStats this never clears core-side counters,
+// so it is safe to poll from more than one consumer.
+message QueryAutoSelectorsResponse {
+  repeated AutoSelectorStatus groups = 1;
+}
+
+message AutoSelectorActionRequest {
+  optional string tag = 1 [default = ""];
+  // recheck = force a full sweep now; select = pin the group to `member`
+  optional string action = 2 [default = ""];
+  optional string member = 3 [default = ""];
+}
+
+// Throne downloads the archive (proxy settings apply there); the core has the zip reader.
+message InstallDashboardRequest {
+  optional string archive_path = 1 [default = ""];
+  optional string target_dir = 2 [default = ""];
+}
+
+message DiagnosticsAttachment {
+  optional string name = 1 [default = ""];
+  optional bytes data = 2;
+}
+
+message DiagnosticsRequest {
+  optional int32 duration_ms = 1 [default = 0];
+  optional bool contention = 2 [default = false];
+  optional bool trace = 3 [default = false];
+  // Zipped under app/; the core never reads a GUI-supplied path.
+  repeated DiagnosticsAttachment attachments = 4;
+}
+
+message DiagnosticsResponse {
+  optional string error = 1 [default = ""];
+  optional bytes archive = 2;
+}
+
+message UpdateRuleSetsResponse {
+  optional int32 updated = 1 [default = 0];
+  optional string error = 2 [default = ""];
+}

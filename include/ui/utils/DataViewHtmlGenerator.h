@@ -5,7 +5,7 @@
 #include <QMutex>
 #include "include/global/HTTPRequestHelper.hpp"
 #ifndef Q_MOC_RUN
-#include <core/server/gen/libcore.pb.h>
+#include <core/gen/libcore.pb.h>
 #endif
 
 // Declaration order is descending urgency; only the highest occupied level is ever rendered.

@@ -41,6 +41,9 @@
          <property name="text">
           <string>Junk Packet Count (Jc)</string>
          </property>
+         <property name="buddy">
+          <cstring>jc</cstring>
+         </property>
         </widget>
        </item>
        <item row="0" column="1">
@@ -50,6 +53,9 @@
         <widget class="QLabel" name="jmin_l">
          <property name="text">
           <string>Junk Packet Min Size (Jmin)</string>
+         </property>
+         <property name="buddy">
+          <cstring>jmin</cstring>
          </property>
         </widget>
        </item>
@@ -61,6 +67,9 @@
          <property name="text">
           <string>Junk Packet Max Size (Jmax)</string>
          </property>
+         <property name="buddy">
+          <cstring>jmax</cstring>
+         </property>
         </widget>
        </item>
        <item row="1" column="1">
@@ -70,6 +79,9 @@
         <widget class="QLabel" name="s1_l">
          <property name="text">
           <string>Init Packet Junk Size (S1)</string>
+         </property>
+         <property name="buddy">
+          <cstring>s1</cstring>
          </property>
         </widget>
        </item>
@@ -81,6 +93,9 @@
          <property name="text">
           <string>Response Packet Junk Size (S2)</string>
          </property>
+         <property name="buddy">
+          <cstring>s2</cstring>
+         </property>
         </widget>
        </item>
        <item row="2" column="1">
@@ -90,6 +105,9 @@
         <widget class="QLabel" name="s3_l">
          <property name="text">
           <string>Cookie Reply Packet Junk Size (S3)</string>
+         </property>
+         <property name="buddy">
+          <cstring>s3</cstring>
          </property>
         </widget>
        </item>
@@ -101,6 +119,9 @@
          <property name="text">
           <string>Transport Packet Junk Size (S4)</string>
          </property>
+         <property name="buddy">
+          <cstring>s4</cstring>
+         </property>
         </widget>
        </item>
        <item row="3" column="1">
@@ -110,6 +131,9 @@
         <widget class="QLabel" name="h1_l">
          <property name="text">
           <string>Init Packet Magic Header (H1)</string>
+         </property>
+         <property name="buddy">
+          <cstring>h1</cstring>
          </property>
         </widget>
        </item>
@@ -121,6 +145,9 @@
          <property name="text">
           <string>Response Packet Magic Header (H2)</string>
          </property>
+         <property name="buddy">
+          <cstring>h2</cstring>
+         </property>
         </widget>
        </item>
        <item row="4" column="1">
@@ -130,6 +157,9 @@
         <widget class="QLabel" name="h3_l">
          <property name="text">
           <string>Cookie Reply Packet Magic Header (H3)</string>
+         </property>
+         <property name="buddy">
+          <cstring>h3</cstring>
          </property>
         </widget>
        </item>
@@ -141,6 +171,9 @@
          <property name="text">
           <string>Transport Packet Magic Header (H4)</string>
          </property>
+         <property name="buddy">
+          <cstring>h4</cstring>
+         </property>
         </widget>
        </item>
        <item row="5" column="1">
@@ -150,6 +183,9 @@
         <widget class="QLabel" name="i1_l">
          <property name="text">
           <string>Signature Packet (I1)</string>
+         </property>
+         <property name="buddy">
+          <cstring>i1</cstring>
          </property>
         </widget>
        </item>
@@ -161,6 +197,9 @@
          <property name="text">
           <string>Signature Packet (I2)</string>
          </property>
+         <property name="buddy">
+          <cstring>i2</cstring>
+         </property>
         </widget>
        </item>
        <item row="6" column="1">
@@ -170,6 +209,9 @@
         <widget class="QLabel" name="i3_l">
          <property name="text">
           <string>Signature Packet (I3)</string>
+         </property>
+         <property name="buddy">
+          <cstring>i3</cstring>
          </property>
         </widget>
        </item>
@@ -181,6 +223,9 @@
          <property name="text">
           <string>Signature Packet (I4)</string>
          </property>
+         <property name="buddy">
+          <cstring>i4</cstring>
+         </property>
         </widget>
        </item>
        <item row="7" column="1">
@@ -190,6 +235,9 @@
         <widget class="QLabel" name="i5_l">
          <property name="text">
           <string>Signature Packet (I5)</string>
+         </property>
+         <property name="buddy">
+          <cstring>i5</cstring>
          </property>
         </widget>
        </item>
@@ -204,6 +252,9 @@
          <property name="text">
           <string>Header Protection Key</string>
          </property>
+         <property name="buddy">
+          <cstring>header_protection_key</cstring>
+         </property>
         </widget>
        </item>
        <item row="8" column="1">
@@ -216,6 +267,9 @@
          </property>
          <property name="text">
           <string>Content Padding Addition</string>
+         </property>
+         <property name="buddy">
+          <cstring>content_padding_addition</cstring>
          </property>
         </widget>
        </item>
@@ -230,6 +284,9 @@
          <property name="text">
           <string>Rekey After Time</string>
          </property>
+         <property name="buddy">
+          <cstring>rekey_after_time</cstring>
+         </property>
         </widget>
        </item>
        <item row="9" column="1">
@@ -242,6 +299,9 @@
          </property>
          <property name="text">
           <string>Rekey Timeout</string>
+         </property>
+         <property name="buddy">
+          <cstring>rekey_timeout</cstring>
          </property>
         </widget>
        </item>
@@ -256,6 +316,9 @@
          <property name="text">
           <string>Reject After Time</string>
          </property>
+         <property name="buddy">
+          <cstring>reject_after_time</cstring>
+         </property>
         </widget>
        </item>
        <item row="10" column="1">
@@ -269,6 +332,9 @@
          <property name="text">
           <string>Keepalive Timeout</string>
          </property>
+         <property name="buddy">
+          <cstring>keepalive_timeout</cstring>
+         </property>
         </widget>
        </item>
        <item row="10" column="3">
@@ -281,6 +347,9 @@
          </property>
          <property name="text">
           <string>Max Handshake Attempts</string>
+         </property>
+         <property name="buddy">
+          <cstring>max_handshake_attempts</cstring>
          </property>
         </widget>
        </item>

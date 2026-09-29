@@ -66,6 +66,11 @@ namespace Configs {
         // Always set latency through here: it also stamps latency_at.
         void SetLatency(int ms);
 
+        // Untested profiles are neither; a kLatencyConnectOnly tunnel counts as working.
+        [[nodiscard]] bool IsWorking() const { return latency > 0 || latency == kLatencyConnectOnly; }
+
+        [[nodiscard]] bool IsUnavailable() const { return latency < 0 && latency != kLatencyConnectOnly; }
+
         [[nodiscard]] QString DisplayTestResult() const;
 
         [[nodiscard]] QColor DisplayLatencyColor() const;

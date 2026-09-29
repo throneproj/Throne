@@ -21,9 +21,13 @@ static const QStringList &typesOf(Association a) {
 
 // AppImage: point at the outer image ($APPIMAGE), not the extracted binary, which disappears after exit.
 static QString execTarget() {
+#ifdef NKR_DESKTOP_EXEC
+    return QStringLiteral(NKR_DESKTOP_EXEC);
+#else
     auto env = QProcessEnvironment::systemEnvironment();
     if (env.contains("APPIMAGE")) return env.value("APPIMAGE");
     return QApplication::applicationFilePath();
+#endif
 }
 
 static QString execLine() {

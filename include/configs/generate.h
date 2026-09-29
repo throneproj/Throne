@@ -111,7 +111,8 @@ namespace Configs
 
     std::shared_ptr<BuildConfigResult> BuildSingBoxConfig(const std::shared_ptr<Profile> &ent);
 
-    bool IsValid(const std::shared_ptr<Profile> &ent);
+    // coreUnreachable is set when a false came from a failed core call rather than from the config.
+    bool IsValid(const std::shared_ptr<Profile> &ent, bool *coreUnreachable = nullptr);
 
     // Eligible: an openvpn/openconnect profile, or a chain whose exit hop is one, never the reverse.
     bool CanBeAuxEndpoint(const std::shared_ptr<Profile> &ent);

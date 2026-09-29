@@ -285,7 +285,8 @@ namespace Configs {
         // entity_ids is always retained so restored IDs stay consistent; caller must delete destPath first. Throws on failure.
         void backupSelective(const std::string& destPath, const BackupParts& parts);
 
-        // Only columns present in both schemas are copied, so cross-version backups still restore. Throws on failure.
-        void restoreSelective(const std::string& srcPath, const BackupParts& parts);
+        // Only columns present in both schemas are copied, so cross-version backups still restore; a route rule with data
+        // in a column this schema lacks is skipped instead. Returns the number of skipped route rules. Throws on failure.
+        int restoreSelective(const std::string& srcPath, const BackupParts& parts);
     };
 }

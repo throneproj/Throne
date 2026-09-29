@@ -233,7 +233,7 @@ namespace Configs {
     {
         QJsonObject object;
         if (insecure) object["insecure"] = true;
-        if (!server_name.isEmpty()) object["server_name"] = server_name;
+        if (!server_name.isEmpty()) object["server_name"] = toAceHost(server_name);
         if (!peer_fingerprint.isEmpty()) object["peer_fingerprint"] = QListStr2QJsonArray(peer_fingerprint);
         if (system_trust_disabled) object["system_trust_disabled"] = true;
         if (!certificate_authority.isEmpty()) object["certificate_authority"] = QListStr2QJsonArray(certificate_authority);
@@ -482,7 +482,7 @@ namespace Configs {
         }
         auto parsed = QUrl(text);
         if (!parsed.isValid() || parsed.host().isEmpty()) return;
-        server = parsed.host();
+        server = parsed.host(QUrl::FullyEncoded);
         if (parsed.port() > 0) server_port = parsed.port();
         server_path = parsed.path();
         if (server_path == "/") server_path.clear();

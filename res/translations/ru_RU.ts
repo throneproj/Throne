@@ -19,20 +19,52 @@
 <context>
     <name>ConnectionsTreeModel</name>
     <message>
-        <source>Close this connection</source>
-        <translation>Закрыть это соединение</translation>
-    </message>
-    <message>
         <source>Source</source>
         <translation>Источник</translation>
     </message>
     <message>
-        <source>Destination (Domain)</source>
-        <translation>Пункт назначения (Домен)</translation>
+        <source>System</source>
+        <translation>Система</translation>
     </message>
     <message>
-        <source>Process</source>
-        <translation>Процесс</translation>
+        <source>Process: %1
+Active connections: %2
+Total traffic: %3↑ %4↓
+Total speed: %5/s↑ %6/s↓</source>
+        <translation>Процесс: %1
+Активные соединения: %2
+Общий трафик: %3↑ %4↓
+Общая скорость: %5/s↑ %6/s↓</translation>
+    </message>
+    <message>
+        <source>Destination: %1
+Connections: %2
+Process: %3
+Protocol: %4
+Outbound: %5
+Total traffic: %6↑ %7↓
+Total speed: %8/s↑ %9/s↓</source>
+        <translation>Пункт назначения: %1
+Соединения: %2
+Процесс: %3
+Протокол: %4
+Outbound: %5
+Общий трафик: %6↑ %7↓
+Общая скорость: %8/s↑ %9/s↓</translation>
+    </message>
+    <message>
+        <source>Destination: %1
+Process: %2
+Protocol: %3
+Outbound: %4</source>
+        <translation>Пункт назначения: %1
+Процесс: %2
+Протокол: %3
+Outbound: %4</translation>
+    </message>
+    <message>
+        <source>Process / Destination</source>
+        <translation>Процесс / Пункт назначения</translation>
     </message>
     <message>
         <source>Protocol</source>
@@ -55,10 +87,6 @@
         <translation>Нажмите для сортировки по источнику</translation>
     </message>
     <message>
-        <source>Click To Disable Sorting</source>
-        <translation>Нажмите для отключения сортировки</translation>
-    </message>
-    <message>
         <source>Click To Sort By Process</source>
         <translation>Нажмите для сортировки по процессу</translation>
     </message>
@@ -77,6 +105,112 @@
     <message>
         <source>Click to sort by speed; right-click to choose total/down/up</source>
         <translation>Нажмите, чтобы отсортировать по скорости; щелкните правой кнопкой мыши, чтобы настроить сортировку</translation>
+    </message>
+</context>
+<context>
+    <name>Sys::CoreDiagnostics</name>
+    <message>
+        <source>The core is not running.</source>
+        <translation>Ядро не запущено.</translation>
+    </message>
+    <message>
+        <source>Could not reach the core. See the log for details.</source>
+        <translation>Не удалось установить связь с ядром. Подробности смотрите в логах.</translation>
+    </message>
+    <message>
+        <source>The core could not capture the profile: %1</source>
+        <translation type="unfinished">Ядро не смогло снять профиль: %1</translation>
+    </message>
+    <message>
+        <source>The core returned an empty profile.</source>
+        <translation type="unfinished">Ядро вернуло пустой профиль.</translation>
+    </message>
+    <message>
+        <source>Could not save %1: %2</source>
+        <translation>Не удалось сохранить %1: %2</translation>
+    </message>
+    <message>
+        <source>Performance profile saved to %1</source>
+        <translation>Результат профилирования сохранен в %1</translation>
+    </message>
+    <message>
+        <source>The performance profile was saved (%1).</source>
+        <translation>Результат профилирования сохранен (%1).</translation>
+    </message>
+    <message>
+        <source>Performance profile failed: %1</source>
+        <translation>Ошибка профилирования: %1</translation>
+    </message>
+    <message>
+        <source>Performance profile</source>
+        <translation>Профилирование</translation>
+    </message>
+    <message>
+        <source>Show in folder</source>
+        <translation>Показать в папке</translation>
+    </message>
+</context>
+<context>
+    <name>DiagnosticsTab</name>
+    <message>
+        <source>Performance profile</source>
+        <translation>Профилирование</translation>
+    </message>
+    <message>
+        <source>Profiles the Core using pprof. The profile itself does not contain any information about your configs, but if you include the logs too, there will be information about your configs in them.</source>
+        <translation>Профилирование ядра с помощью pprof. Сам результат профилирования не содержит никакой информации о ваших конфигурациях, но если вы включите в него также логи, то в них будет содержаться информация о ваших конфигурациях.</translation>
+    </message>
+    <message>
+        <source>Records where goroutines wait on locks and channels.</source>
+        <translation>Записывает случаи, когда горутины ожидают блокировки и каналы.</translation>
+    </message>
+    <message>
+        <source>Lock contention</source>
+        <translation>Конфликт блокировок (Lock contention)</translation>
+    </message>
+    <message>
+        <source>Execution trace (larger file)</source>
+        <translation>Трассировка выполнения (файл большего размера)</translation>
+    </message>
+    <message>
+        <source>Logs contain visited domains and server addresses.</source>
+        <translation>Логи содержат данные о посещённых доменах и адресах серверов.</translation>
+    </message>
+    <message>
+        <source>Include Throne logs</source>
+        <translation>Включить логи Throne</translation>
+    </message>
+    <message>
+        <source>Start</source>
+        <translation>Запустить</translation>
+    </message>
+    <message>
+        <source>Stop</source>
+        <translation>Остановить</translation>
+    </message>
+    <message>
+        <source>Show in folder</source>
+        <translation>Показать в папке</translation>
+    </message>
+    <message>
+        <source>Open folder</source>
+        <translation>Открыть папку</translation>
+    </message>
+    <message>
+        <source>Saved %1 (%2)</source>
+        <translation>Сохранено %1 (%2)</translation>
+    </message>
+    <message>
+        <source>The core is not running.</source>
+        <translation>Ядро не запущено.</translation>
+    </message>
+    <message>
+        <source>Finishing…</source>
+        <translation>Завершение…</translation>
+    </message>
+    <message>
+        <source>Recording… %1 left</source>
+        <translation>Запись… Осталось %1</translation>
     </message>
 </context>
 <context>
@@ -353,6 +487,18 @@ It stays a preference, not a lock: if that profile stops working the selector st
         <translation>Ядро Xray</translation>
     </message>
     <message>
+        <source>Links and Files</source>
+        <translation>Ссылки «throne://» и файлы</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Registers Throne as the handler for throne:// links, re-applying the registration whenever the install is moved.&lt;/p&gt;&lt;p&gt;Turning this off does not undo an existing registration: use Uninstall for that.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Регистрирует Throne в качестве обработчика ссылок «throne://», повторно применяя регистрацию при каждом перемещении исполняемых файлов.&lt;/p&gt;&lt;p&gt;Отключение этой функции не отменяет существующую регистрацию: для этого воспользуйтесь командой «Удалить».&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Removes the throne:// handler Throne wrote. Entries owned by other applications are left alone.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Удаляет обработчик «throne://», записанный Throne. Записи, принадлежащие другим приложениям, остаются без изменений.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When to choose Xray when importing vless profiles&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Когда выбирать ядро Xray при импорте профилей с протоколом VLESS&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
@@ -477,16 +623,20 @@ It stays a preference, not a lock: if that profile stops working the selector st
         <translation>Проверка</translation>
     </message>
     <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fetched &lt;span style=&quot; font-weight:600;&quot;&gt;without&lt;/span&gt; any proxy, so features that must tell a dead internet connection apart from dead servers — such as the auto selector — can check the connection itself, and notice the moment it comes back.&lt;/p&gt;&lt;p&gt;Only put a URL here that is reachable &lt;span style=&quot; font-weight:600;&quot;&gt;directly&lt;/span&gt; on your network. Leave it empty to rely on the operating system&apos;s network state instead.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Будет запрошено &lt;span style=&quot; font-weight:600;&quot;&gt;БЕЗ&lt;/span&gt; использования прокси, поэтому функции, которым необходимо отличать отсутствие интернет-соединения от неработающих серверов — например, автовыбор — могут самостоятельно проверять соединение и определять момент его восстановления. &lt;/p&gt;&lt;p&gt;Укажите здесь только тот URL, который доступен &lt;span style=&quot; font-weight:600;&quot;&gt;НЕПОСРЕДСТВЕННО&lt;/span&gt; в вашей сети. Оставьте поле пустым, чтобы вместо этого полагаться на состояние сети, определяемое операционной системой.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Direct Test URL</source>
+        <translation>URL теста Direct</translation>
+    </message>
+    <message>
+        <source>optional — use the OS network state</source>
+        <translation>необязательно — используется состояние сети, определяемое ОС</translation>
+    </message>
+    <message>
         <source>Concurrency</source>
         <translation>Кол-во потоков</translation>
-    </message>
-    <message>
-        <source>URL Scheme</source>
-        <translation>Схема URL</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Registers Throne as the handler for throne:// links and adds it to the &quot;Open with&quot; list for config files, re-applying the registration whenever the install is moved.&lt;/p&gt;&lt;p&gt;Turning this off does not undo an existing registration: use Uninstall for that.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Регистрирует Throne в качестве обработчика ссылок throne:// и добавляет его в список &quot;Открыть с помощью&quot; для конфигурационных файлов, повторно применяя регистрацию при каждом перемещении установки.&lt;/p&gt;&lt;p&gt;Отключение этой опции не отменяет существующую регистрацию: для этого воспользуйтесь функцией &quot;Удалить&quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Register throne:// links at startup</source>
@@ -501,12 +651,24 @@ It stays a preference, not a lock: if that profile stops working the selector st
         <translation>Установить</translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Removes every entry Throne wrote for the handler and the config file associations. Entries owned by other applications are left alone.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Удаляет все записи, созданные Throne для обработчика, и связи с конфигурационными файлами. Записи, принадлежащие другим приложениям, остаются без изменений.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
         <source>Uninstall</source>
         <translation>Удалить</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adds Throne to the &quot;Open with&quot; list for config files such as JSON and YAML, re-applying the registration whenever the install is moved.&lt;/p&gt;&lt;p&gt;Turning this off does not undo an existing registration: use Uninstall for that.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Добавляет Throne в список «Открыть с помощью» для файлов конфигурации, таких как JSON и YAML, и повторно применяет регистрацию при каждом перемещении исполняемых файлов.&lt;/p&gt;&lt;p&gt;Отключение этой функции не отменяет существующую регистрацию: для этого воспользуйтесь функцией «Удалить».&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Register config files at startup</source>
+        <translation>Зарегистрировать ассоциации с файлами конфигурации при запуске</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Registers the associations now, without waiting for the next start.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Зарегистрировать ассоциации сейчас, не дожидаясь следующего запуска.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Removes every config file association Throne wrote, including those added by older versions. Associations owned by other applications are left alone.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Удаляет все ассоциации конфигурационных файлов, созданные Throne, включая те, что были добавлены более старыми версиями. Ассоциации, принадлежащие другим приложениям, остаются без изменений.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Logging</source>
@@ -593,12 +755,52 @@ It stays a preference, not a lock: if that profile stops working the selector st
         <translation>Интервал (в минутах; неверно, если значение меньше 30)</translation>
     </message>
     <message>
+        <source>Subscriptions whose server sends an update interval (profile-update-interval) follow it; the interval above applies when a server sends none. Groups can override this in their Advanced settings.</source>
+        <translation>Подписки, сервер которых отправляет определенный интервал обновления (profile-update-interval), следуют этому интервалу. Если сервер не отправляет этот параметр, применяется указанный выше интервал.  Группы могут изменить этот параметр в дополнительных настройках.</translation>
+    </message>
+    <message>
+        <source>Use the update interval sent by the server</source>
+        <translation>Использовать интервал обновления, установленный сервером подписки</translation>
+    </message>
+    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, If the currently active profile needs to be removed, it will be stopped and removed, otherwise it will not be removed at all&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Если включено, активный профиль будет остановлен и удален только в том случае, если это необходимо; в противном случае он не будет удален&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Allow stopping the active profile</source>
         <translation>Разрешить остановку активного профиля</translation>
+    </message>
+    <message>
+        <source>TLS versions offered when fetching subscriptions. Some servers answer the default handshake with a CAPTCHA or a block page; TLS 1.2 often gets through.</source>
+        <translation>Версии TLS, доступные для получения подписок. Некоторые серверы отвечают на стандартный запрос на установление соединения CAPTCHA или страницей блокировки; TLS 1.2 часто проходит без проблем.</translation>
+    </message>
+    <message>
+        <source>TLS Version</source>
+        <translation>Версия TLS</translation>
+    </message>
+    <message>
+        <source>Auto</source>
+        <translation>Авто</translation>
+    </message>
+    <message>
+        <source>TLS 1.2</source>
+        <translation>TLS 1.2</translation>
+    </message>
+    <message>
+        <source>TLS 1.3</source>
+        <translation>TLS 1.3</translation>
+    </message>
+    <message>
+        <source>Auto uses HTTP/2 when the server offers it.</source>
+        <translation>Авто использует HTTP/2, если сервер его поддерживает.</translation>
+    </message>
+    <message>
+        <source>HTTP Version</source>
+        <translation>Версия HTTP</translation>
+    </message>
+    <message>
+        <source>HTTP/1.1</source>
+        <translation>HTTP/1.1</translation>
     </message>
     <message>
         <source>Routing profiles auto update</source>
@@ -780,6 +982,14 @@ It stays a preference, not a lock: if that profile stops working the selector st
         <source>Failed to restore database: %1</source>
         <translation>Не удалось восстановить базу данных: %1</translation>
     </message>
+    <message numerus="yes">
+        <source>Skipped %n routing rule(s) that use conditions this version of Throne does not support.</source>
+        <translation>
+            <numerusform>Пропущено %n правило маршрутизации, которое использует условия, не поддерживаемые данной версией Throne.</numerusform>
+            <numerusform>Пропущено %n правила маршрутизации, которые используют условия, не поддерживаемые данной версией Throne.</numerusform>
+            <numerusform>Пропущено %n правил маршрутизации, которые используют условия, не поддерживаемые данной версией Throne.</numerusform>
+        </translation>
+    </message>
     <message>
         <source>Restore Complete</source>
         <translation>Восстановление завершено</translation>
@@ -829,6 +1039,14 @@ Select which parts to restore:</source>
     <message>
         <source>Could not register the handler for throne:// links.</source>
         <translation>Не удалось зарегистрировать обработчик ссылок throne://.</translation>
+    </message>
+    <message>
+        <source>Could not register the config file associations.</source>
+        <translation>Не удалось зарегистрировать ассоциации файлов конфигурации.</translation>
+    </message>
+    <message>
+        <source>Diagnostics</source>
+        <translation>Диагностика</translation>
     </message>
     <message>
         <source>Not available for this installation</source>
@@ -944,6 +1162,10 @@ Throne will restart to complete the restore.</source>
         <translation>URL</translation>
     </message>
     <message>
+        <source>Advanced</source>
+        <translation>Доп. настройки</translation>
+    </message>
+    <message>
         <source>Copy profile share links</source>
         <translation>Копировать ссылки профилей</translation>
     </message>
@@ -978,6 +1200,181 @@ Throne will restart to complete the restore.</source>
     <message>
         <source>Copy profile share links (Deep Links)</source>
         <translation>Копировать ссылки профилей (Диплинк)</translation>
+    </message>
+</context>
+<context>
+    <name>DialogEditGroupAdvanced</name>
+    <message>
+        <source>Advanced Subscription Settings</source>
+        <translation>Доп. настройки подписки</translation>
+    </message>
+    <message>
+        <source>Request</source>
+        <translation>Запрос</translation>
+    </message>
+    <message>
+        <source>Empty uses the User Agent from the Subscription settings.</source>
+        <translation>Если пусто, используется User Agent из настроек &quot;Подписка&quot;.</translation>
+    </message>
+    <message>
+        <source>User Agent</source>
+        <translation>User Agent</translation>
+    </message>
+    <message>
+        <source>TLS versions offered when fetching this subscription. Some servers answer the default handshake with a CAPTCHA or a block page; TLS 1.2 often gets through. Keep Default follows the Subscription settings.</source>
+        <translation>Версии TLS, доступные для получения этой подписки. Некоторые серверы отвечают на стандартный запрос на установление соединения CAPTCHA или страницей блокировки; TLS 1.2 часто проходит без проблем. Параметр «По умолчанию» соответствует настройкам &quot;Подписка&quot;.</translation>
+    </message>
+    <message>
+        <source>TLS Version</source>
+        <translation>Версия TLS</translation>
+    </message>
+    <message>
+        <source>Keep Default</source>
+        <translation>По умолчанию</translation>
+    </message>
+    <message>
+        <source>Auto</source>
+        <translation>Авто</translation>
+    </message>
+    <message>
+        <source>TLS 1.2</source>
+        <translation>TLS 1.2</translation>
+    </message>
+    <message>
+        <source>TLS 1.3</source>
+        <translation>TLS 1.3</translation>
+    </message>
+    <message>
+        <source>Auto uses HTTP/2 when the server offers it. Keep Default follows the Subscription settings.</source>
+        <translation>Авто использует HTTP/2, если сервер поддерживает этот протокол. Параметр «По умолчанию» соответствует настройкам &quot;Подписка&quot;.</translation>
+    </message>
+    <message>
+        <source>HTTP Version</source>
+        <translation>Версия HTTP</translation>
+    </message>
+    <message>
+        <source>HTTP/1.1</source>
+        <translation>HTTP/1.1</translation>
+    </message>
+    <message>
+        <source>Send the HWID, OS, OS version and device model headers with this subscription&apos;s requests. Keep Default follows the Subscription settings.</source>
+        <translation>При запросе подписки отправлять в заголовках HWID, ОС, версию ОС, модель устройства. Параметр «По умолчанию» соответствует настройкам &quot;Подписка&quot;.</translation>
+    </message>
+    <message>
+        <source>Send HWID</source>
+        <translation>Отправлять HWID</translation>
+    </message>
+    <message>
+        <source>On</source>
+        <translation>Вкл.</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation>Выкл.</translation>
+    </message>
+    <message>
+        <source>HWID</source>
+        <translation>HWID</translation>
+    </message>
+    <message>
+        <source>OS</source>
+        <translation>ОС</translation>
+    </message>
+    <message>
+        <source>OS Version</source>
+        <translation>Версия ОС</translation>
+    </message>
+    <message>
+        <source>Device Model</source>
+        <translation>Модель устройства</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>Обновление</translation>
+    </message>
+    <message>
+        <source>Minutes between automatic updates of this subscription. Keep Default follows the Subscription settings, where automatic updates must be enabled.</source>
+        <translation>Количество минут между автоматическими обновлениями этой подписки. Параметр «По умолчанию» соответствует настройкам &quot;Подписка&quot;, где автоматическое обновление должно быть включено.</translation>
+    </message>
+    <message>
+        <source>Update Interval</source>
+        <translation>Интервал обновления</translation>
+    </message>
+    <message>
+        <source>Use the update interval sent by the subscription server; the interval above applies when it sends none. Keep Default follows the Subscription settings.</source>
+        <translation>Использовать интервал обновления, установленный на сервере подписки. Если сервер не устанавливает интервал, используется указанный выше. Параметр «По умолчанию» соответствует настройкам &quot;Подписка&quot;.</translation>
+    </message>
+    <message>
+        <source>Server Interval</source>
+        <translation>Интервал сервера</translation>
+    </message>
+    <message>
+        <source>Use</source>
+        <translation>Использовать</translation>
+    </message>
+    <message>
+        <source>Ignore</source>
+        <translation>Игнорировать</translation>
+    </message>
+    <message>
+        <source>Profiles whose last test succeeded are kept when the subscription no longer lists them.</source>
+        <translation>Профили, для которых последнее тестирование прошло успешно, сохраняются даже после того, как они исчезают из списка подписки.</translation>
+    </message>
+    <message>
+        <source>Keep working profiles</source>
+        <translation>Сохранять рабочие профили</translation>
+    </message>
+    <message>
+        <source>After each update:</source>
+        <translation>После каждого обновления:</translation>
+    </message>
+    <message>
+        <source>Remove duplicate profiles</source>
+        <translation>Удалять дубликаты профилей</translation>
+    </message>
+    <message>
+        <source>Remove insecure profiles</source>
+        <translation>Удалять небезопасные профили</translation>
+    </message>
+    <message>
+        <source>Profiles the core rejects. Skipped while the core is unreachable.</source>
+        <translation>Профили, отклоненные ядром. Пропускается, если ядро недоступно.</translation>
+    </message>
+    <message>
+        <source>Remove invalid profiles</source>
+        <translation>Удалять недействительные профили</translation>
+    </message>
+    <message>
+        <source>Tests the group&apos;s profiles once the update finishes, after any test already running.</source>
+        <translation>Проводит проверку профилей группы по завершении обновления, после завершения всех уже запущенных тестов.</translation>
+    </message>
+    <message>
+        <source>Run URL test</source>
+        <translation>Запускать тест задержки</translation>
+    </message>
+    <message>
+        <source>Remove unavailable profiles</source>
+        <translation>Удалять недоступные профили</translation>
+    </message>
+    <message>
+        <source>Sort by latency</source>
+        <translation>Сортировать по задержке</translation>
+    </message>
+    <message>
+        <source> min</source>
+        <translation> мин.</translation>
+    </message>
+    <message>
+        <source>Keep Default (%1)</source>
+        <translation>По умолчанию (%1)</translation>
+    </message>
+    <message>
+        <source>%1 min</source>
+        <translation>%1 мин.</translation>
+    </message>
+    <message>
+        <source>This server last sent %1 h.</source>
+        <translation>В последний раз этот сервер отправил %1 ч.</translation>
     </message>
 </context>
 <context>
@@ -1751,6 +2148,10 @@ Throne will restart to complete the restore.</source>
         <source>XHTTP maxConnections cannot be specified together with maxConcurrency.</source>
         <translation>В XHTTP нельзя одновременно указывать maxConnections и maxConcurrency.</translation>
     </message>
+    <message>
+        <source>Headers cannot contain &quot;|&quot;.</source>
+        <translation>Заголовки не могут содержать символ &quot;|&quot;.</translation>
+    </message>
 </context>
 <context>
     <name>DialogEndpointDetails</name>
@@ -2088,12 +2489,56 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <translation>Ответ IPv4</translation>
     </message>
     <message>
+        <source>Hijack is deprecated and will be removed in the next release. Tun mode covers the same use case.</source>
+        <translation>Функция «Hijack»(&quot;Перехват&quot;) признана устаревшей и будет удалена в следующей версии. Режим «Tun» обеспечивает те же возможности.</translation>
+    </message>
+    <message>
         <source>IPv6 Response</source>
         <translation>Ответ IPv6</translation>
     </message>
     <message>
         <source>Redirect Settings</source>
         <translation>Настройки перенаправления</translation>
+    </message>
+    <message>
+        <source>WireGuard runs over UDP. MASQUE tunnels over HTTP/3 or HTTP/2 and passes networks that block WireGuard.</source>
+        <translation>WireGuard работает по протоколу UDP. MASQUE использует туннелирование по HTTP/3 или HTTP/2 и обходит сети, блокирующие WireGuard.</translation>
+    </message>
+    <message>
+        <source>Mode</source>
+        <translation>Режим</translation>
+    </message>
+    <message>
+        <source>Base64 DER of the server&apos;s public key. When set, it pins the server certificate.</source>
+        <translation>Публичный ключ узла(Peer Public Key) в формате Base64 DER. Если он задан, выполняется привязка сертификата сервера.</translation>
+    </message>
+    <message>
+        <source>Peer Public Key</source>
+        <translation>Публичный ключ узла</translation>
+    </message>
+    <message>
+        <source>HTTP/3 runs over UDP; HTTP/2 runs over TLS on TCP and works where UDP is blocked.</source>
+        <translation>HTTP/3 работает по протоколу UDP; HTTP/2 работает по протоколу TLS над TCP и поддерживается там, где UDP заблокирован.</translation>
+    </message>
+    <message>
+        <source>HTTP Version</source>
+        <translation>Версия HTTP</translation>
+    </message>
+    <message>
+        <source>HTTP/3 (fallback to HTTP/2)</source>
+        <translation>HTTP/3 (в случае сбоя HTTP/2)</translation>
+    </message>
+    <message>
+        <source>HTTP/3 only</source>
+        <translation>Только HTTP/3</translation>
+    </message>
+    <message>
+        <source>Cloudflare API domains to try, in order, when generating a WARP config</source>
+        <translation>Домены API Cloudflare, которые следует проверять по порядку при генерации конфигурации WARP</translation>
+    </message>
+    <message>
+        <source>Registration Domains…</source>
+        <translation>Домены регистрации...</translation>
     </message>
     <message>
         <source>Answer AAAA queries sent to this server with an empty result.</source>
@@ -2205,6 +2650,14 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>Оптимистичный таймаут</translation>
     </message>
     <message>
+        <source>Save Cache To File</source>
+        <translation>Сохранять кэш в файл</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Write cached DNS answers and FakeIP mappings to the core&apos;s cache file so they survive a restart. Off by default: each entry costs a disk write.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Записывать кэшированные ответы DNS и сопоставления FakeIP в файл кэша ядра, чтобы они сохранялись после перезапуска. По умолчанию отключено: каждая запись требует записи на диск.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
         <source>Invalid settings</source>
         <translation>Неверные настройки</translation>
     </message>
@@ -2225,6 +2678,18 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
     <message>
         <source>The DNS object is not a valid JSON object</source>
         <translation>DNS объект не является допустимым объектом JSON</translation>
+    </message>
+    <message>
+        <source>Generating config...</source>
+        <translation>Генерация конфигурации…</translation>
+    </message>
+    <message>
+        <source>Failed to generate warp config</source>
+        <translation>Не удалось сгенерировать конфигурацию Warp</translation>
+    </message>
+    <message>
+        <source>Success!</source>
+        <translation>Успешно!</translation>
     </message>
     <message>
         <source>Routing profile cannot be empty</source>
@@ -2377,6 +2842,14 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
     <message>
         <source>Add remote routing profiles</source>
         <translation>Добавить удалённые профили маршрутизации</translation>
+    </message>
+    <message>
+        <source>WARP Registration Domains</source>
+        <translation>Домены регистрации WARP</translation>
+    </message>
+    <message>
+        <source>One domain per line. They are tried in order and the first one that accepts the registration is used. Leave empty to use %1.</source>
+        <translation>По одному домену в строке. Домены проверяются по порядку, и используется первый, который принимает регистрацию. Оставьте поле пустым, чтобы использовать %1.</translation>
     </message>
     <message>
         <source>Cancel</source>
@@ -2731,133 +3204,6 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
     </message>
 </context>
 <context>
-    <name>RuntimeStatsWidget</name>
-    <message>
-        <source>%1 active   ·   %2 TCP   ·   %3 UDP</source>
-        <translation>%1 активных   ·   %2 TCP   ·   %3 UDP</translation>
-    </message>
-    <message>
-        <source>No active config</source>
-        <translation>Нет активного подключения</translation>
-    </message>
-    <message>
-        <source>CPU</source>
-        <translation>ЦП</translation>
-    </message>
-    <message>
-        <source>RAM</source>
-        <translation>ОЗУ</translation>
-    </message>
-    <message>
-        <source>Disabled</source>
-        <translation>Выключено</translation>
-    </message>
-    <message>
-        <source>Due now</source>
-        <translation>Прямо сейчас</translation>
-    </message>
-    <message>
-        <source>in %1</source>
-        <translation>через %1</translation>
-    </message>
-    <message>
-        <source>Details</source>
-        <translation>Подробности</translation>
-    </message>
-    <message>
-        <source>Unavailable</source>
-        <translation>Недоступен</translation>
-    </message>
-    <message>
-        <source>N/A</source>
-        <translation>Недоступно</translation>
-    </message>
-    <message>
-        <source>Runtime Statistics</source>
-        <translation>Статистика выполнения</translation>
-    </message>
-    <message>
-        <source>Process</source>
-        <translation>Процесс</translation>
-    </message>
-    <message>
-        <source>Core</source>
-        <translation>Ядро</translation>
-    </message>
-    <message>
-        <source>Network</source>
-        <translation>Сеть</translation>
-    </message>
-    <message>
-        <source>Connections</source>
-        <translation>Подключения</translation>
-    </message>
-    <message>
-        <source>Proxy</source>
-        <translation>Прокси</translation>
-    </message>
-    <message>
-        <source>Direct</source>
-        <translation>Напрямую</translation>
-    </message>
-    <message>
-        <source>Schedule</source>
-        <translation>Расписание </translation>
-    </message>
-    <message>
-        <source>Next sub update</source>
-        <translation>След. обновл. подписки</translation>
-    </message>
-    <message>
-        <source>Next remote route update</source>
-        <translation>След. обновл. удаленной маршрутизации</translation>
-    </message>
-    <message>
-        <source>System</source>
-        <translation>Система</translation>
-    </message>
-    <message>
-        <source>Databases</source>
-        <translation>Базы данных</translation>
-    </message>
-    <message>
-        <source>Uptime</source>
-        <translation>Время работы</translation>
-    </message>
-    <message>
-        <source>Running Config</source>
-        <translation>Текущая конфигурация</translation>
-    </message>
-    <message>
-        <source>Country</source>
-        <translation>Страна</translation>
-    </message>
-    <message>
-        <source>Config</source>
-        <translation>Конфигурация</translation>
-    </message>
-    <message>
-        <source>Out IP</source>
-        <translation>Выходной IP</translation>
-    </message>
-    <message>
-        <source>Ping</source>
-        <translation>Задержка</translation>
-    </message>
-    <message>
-        <source>VPN Endpoints</source>
-        <translation>Конечные точки VPN</translation>
-    </message>
-    <message>
-        <source>Endpoint</source>
-        <translation>Конечная точка</translation>
-    </message>
-    <message>
-        <source>State</source>
-        <translation>Cостояние</translation>
-    </message>
-</context>
-<context>
     <name>DialogTrafficStats</name>
     <message>
         <source>Download: %1     Upload: %2     Total: %3</source>
@@ -2952,7 +3298,7 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Address ranges handed straight to the physical NIC instead of being routed through the core, one CIDR per line. Uncheck to let the core hijack private range traffic instead. Loopback and broadcast are always bypassed and cannot be listed here.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Диапазоны адресов, передаваемые напрямую на физический сетевой адаптер вместо маршрутизации через ядро; по одному CIDR в строке. Снимите флажок, чтобы ядро перехватило трафик частного диапазона. Loopback и broadcast всегда обходятся и не могут быть указаны здесь.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Диапазоны адресов, передаваемые напрямую на физический сетевой адаптер вместо маршрутизации через ядро; по одному CIDR в строке. Снимите флажок, чтобы ядро перехватило(hijack) трафик частного диапазона. Loopback и broadcast всегда обходятся и не могут быть указаны здесь.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <source>Private Range Bypass</source>
@@ -3081,7 +3427,7 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     </message>
     <message>
         <source>Open in Browser</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Открыть в браузере</translation>
     </message>
     <message>
         <source>This server requires single sign-on in a browser, which Throne does not support yet. Cancel here and use a profile with direct credentials, or supply an authentication cookie in the profile&apos;s advanced settings.</source>
@@ -3609,12 +3955,12 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>URL для подключения</translation>
     </message>
     <message>
-        <source>optional</source>
-        <translation>необязательно</translation>
+        <source>optional — inherits the Direct Test URL</source>
+        <translation>необязательно — наследует URL теста Direct</translation>
     </message>
     <message>
-        <source>Fetched WITHOUT the proxy to tell a dead internet connection apart from dead servers. Leave empty to rely on the operating system&apos;s network state, which is the safer default on a censored network where any fixed address may be blocked.</source>
-        <translation>Запрос выполняется БЕЗ использования прокси, чтобы отличить отсутствие интернет-соединения от неработающих серверов. Оставьте поле пустым, чтобы полагаться на данные об состоянии сети, предоставляемые операционной системой — это более безопасный вариант по умолчанию в условиях цензурированной сети, где любой фиксированный адрес может быть заблокирован.</translation>
+        <source>Fetched WITHOUT the proxy to tell a dead internet connection apart from dead servers, and to notice the moment it comes back. Leave empty to inherit the Direct Test URL from Basic Settings, and empty there too to rely on the operating system&apos;s network state. A URL that turns out to be blocked can only delay a resume by a few minutes; it can never keep the selector paused.</source>
+        <translation>Запрашивается БЕЗ прокси, чтобы отличить отсутствие интернета от падения серверов, а также вовремя заметить момент восстановления связи. Оставьте поле пустым, чтобы использовать «URL теста Direct» из основных настроек. Если и там ничего не указано, система будет полагаться на сетевой статус операционной системы. Если выбранный URL окажется заблокирован, это лишь задержит возобновление работы на несколько минут, но никогда не остановит работу автовыбора полностью.</translation>
     </message>
     <message>
         <source>Rotate on a timer (keeps sessions stable)</source>
@@ -3671,6 +4017,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>, </source>
         <translation>, </translation>
+    </message>
+    <message>
+        <source>Every profile&apos;s last test failed, which usually means the network was down rather than the servers, so all %1 are kept and will be re-checked.</source>
+        <translation>При последней проверке произошел сбой всех профилей. Обычно это означает, что лежала сеть, а не серверы, так что все %1 остаются и будут проверены повторно</translation>
     </message>
     <message>
         <source>More than %1 profiles match, so only the best-ranked ones are kept.</source>
@@ -3990,6 +4340,73 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
 </context>
 <context>
+    <name>EditMasque</name>
+    <message>
+        <source>Base64 DER of the enrolled ECDSA P-256 key; it signs the TLS client certificate.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Private Key</source>
+        <translation>Приватный ключ</translation>
+    </message>
+    <message>
+        <source>Base64 DER of the server&apos;s public key. When set, it pins the server certificate, even with Allow insecure.</source>
+        <translation type="unfinished">Публичный ключ узла(Peer Public Key) в формате Base64 DER. Если он задан, выполняется привязка сертификата сервера, даже при использовании параметра «Разрешить небезопасные».</translation>
+    </message>
+    <message>
+        <source>Peer Public Key</source>
+        <translation type="unfinished">Публичный ключ узла</translation>
+    </message>
+    <message>
+        <source>Comma separated list of the tunnel&apos;s own addresses, e.g. 172.16.0.2/32,2606:4700::1/128</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Local Address</source>
+        <translation>Локальный адрес</translation>
+    </message>
+    <message>
+        <source>MTU</source>
+        <translation>MTU</translation>
+    </message>
+    <message>
+        <source>HTTP/3 runs over UDP; HTTP/2 runs over TLS on TCP and works where UDP is blocked.</source>
+        <translation>HTTP/3 работает по протоколу UDP; HTTP/2 работает по протоколу TLS над TCP и поддерживается там, где UDP заблокирован.</translation>
+    </message>
+    <message>
+        <source>HTTP Version</source>
+        <translation>Версия HTTP</translation>
+    </message>
+    <message>
+        <source>HTTP/3 (fallback to HTTP/2)</source>
+        <translation>HTTP/3 (в случае сбоя HTTP/2)</translation>
+    </message>
+    <message>
+        <source>HTTP/3 only</source>
+        <translation>Только HTTP/3</translation>
+    </message>
+    <message>
+        <source>Register a new Cloudflare WARP device for MASQUE and fill the key, address and server fields.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Generate WARP identity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Generating identity...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to generate WARP identity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Success!</source>
+        <translation>Успешно!</translation>
+    </message>
+</context>
+<context>
     <name>EditMieru</name>
     <message>
         <source>Username</source>
@@ -4037,6 +4454,22 @@ Improves hole-punching reliability. Requires IPv4.</source>
     <message>
         <source>QUIC</source>
         <translation>QUIC</translation>
+    </message>
+    <message>
+        <source>Extra Headers</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Headers sent to the proxy server, e.g. X-Username=&quot;user&quot; X-Password=&quot;pass&quot;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Insecure Concurrency</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Parallel tunnel connections to the server, 0 to disable. More connections are easier to detect.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -4102,19 +4535,11 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Resolve the names the VPN server claims - its split-DNS suffixes and search domains - through the resolvers it pushes. Turn this off if the server claims every domain and breaks public DNS. Kept on regardless while this profile carries all traffic with &quot;Only route advertised network&quot; enabled, since the pushed resolvers are then the only reachable ones.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;How DNS uses the resolvers the VPN server pushes when this profile is started.&lt;/p&gt;&lt;p&gt;None: ignore them. Use this if the server claims every domain and breaks public DNS.&lt;br/&gt;Prefer: resolve the names the server claims - its split-DNS suffixes and search domains - through them, and everything else as usual.&lt;br/&gt;Strict: also send every remote DNS query to them instead of the remote DNS server, and fail the lookups they cannot answer. Direct lookups are unchanged.&lt;/p&gt;&lt;p&gt;As an endpoint in a routing profile, Prefer and Strict both resolve only the names the server claims.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Resolve through this tunnel</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fail a lookup the tunnel cannot answer instead of retrying it directly. Leave this off for a management VPN: names it does not claim then still resolve through the direct resolver.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Block outside DNS</source>
+        <source>Tunnel DNS</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4167,6 +4592,14 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
     <message>
         <source>Client Key Password</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Prefer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Strict</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4752,19 +5185,11 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Resolve the names the VPN server claims - its split-DNS suffixes and search domains - through the resolvers it pushes. Turn this off if the server claims every domain and breaks public DNS. Kept on regardless while this profile carries all traffic with &quot;Only route advertised network&quot; enabled, since the pushed resolvers are then the only reachable ones.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;How DNS uses the resolvers the VPN server pushes when this profile is started.&lt;/p&gt;&lt;p&gt;None: ignore them. Use this if the server claims every domain and breaks public DNS.&lt;br/&gt;Prefer: resolve the names the server claims - its split-DNS suffixes and search domains - through them, and everything else as usual.&lt;br/&gt;Strict: also send every remote DNS query to them instead of the remote DNS server, and fail the lookups they cannot answer. Direct lookups are unchanged.&lt;/p&gt;&lt;p&gt;As an endpoint in a routing profile, Prefer and Strict both resolve only the names the server claims.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Resolve through this tunnel</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fail a lookup the tunnel cannot answer instead of retrying it directly. Leave this off for a management VPN: names it does not claim then still resolve through the direct resolver.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Block outside DNS</source>
+        <source>Tunnel DNS</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4817,6 +5242,14 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
     <message>
         <source>Direction</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Prefer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Strict</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5615,6 +6048,30 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>Пароль</translation>
     </message>
     <message>
+        <source>Custom SNI</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Server name sent in the TLS ClientHello instead of the TLS server name, which is still used to verify the certificate; not compatible with ECH or REALITY</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>optional, e.g. cdn.example.net</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Client Random</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>TLS ClientHello random prefix required by the server&apos;s client_random_prefix rule; not compatible with ECH or REALITY</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>prefix[/mask] (hex), e.g. a0b0/f0f0</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Health Check</source>
         <translation>Проверка доступности (Health Check)</translation>
     </message>
@@ -5804,7 +6261,7 @@ Improves hole-punching reliability. Requires IPv4.</source>
     </message>
     <message>
         <source>Workers</source>
-        <translation type="unfinished"></translation>
+        <translation>Workers</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -5813,14 +6270,6 @@ Improves hole-punching reliability. Requires IPv4.</source>
     <message>
         <source>Persistent Keepalive</source>
         <translation>Поддержание активности (Persistent Keepalive)</translation>
-    </message>
-    <message>
-        <source>Getting keypair...</source>
-        <translation>Получение пары ключей…</translation>
-    </message>
-    <message>
-        <source>Failed to get key pair</source>
-        <translation>Не удалось получить пару ключей</translation>
     </message>
     <message>
         <source>Generating config...</source>
@@ -6247,6 +6696,10 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>Обновить все подписки</translation>
     </message>
     <message>
+        <source>Update Rule-Sets</source>
+        <translation>Обновление наборов правил</translation>
+    </message>
+    <message>
         <source>Runtime Stats</source>
         <translation>Статистика выполнения</translation>
     </message>
@@ -6289,6 +6742,46 @@ Improves hole-punching reliability. Requires IPv4.</source>
     <message>
         <source>Copy Test Result</source>
         <translation>Копировать результат теста</translation>
+    </message>
+    <message>
+        <source>Provider: %1</source>
+        <translation>Провайдер: %1</translation>
+    </message>
+    <message>
+        <source>Type: Subscription</source>
+        <translation>Тип: Подписка</translation>
+    </message>
+    <message>
+        <source>Last updated</source>
+        <translation>Последнее обновление</translation>
+    </message>
+    <message>
+        <source>Auto-update: every %1</source>
+        <translation>Авто-обновление: каждый(ые) %1</translation>
+    </message>
+    <message>
+        <source>Used</source>
+        <translation>Использовано</translation>
+    </message>
+    <message>
+        <source>Remaining</source>
+        <translation>Осталось</translation>
+    </message>
+    <message>
+        <source>Expires</source>
+        <translation>Истекает</translation>
+    </message>
+    <message>
+        <source>Support</source>
+        <translation>Поддержка</translation>
+    </message>
+    <message>
+        <source>Portal</source>
+        <translation>Портал</translation>
+    </message>
+    <message>
+        <source>Announcement</source>
+        <translation>Объявление</translation>
     </message>
     <message>
         <source>Error</source>
@@ -6389,16 +6882,16 @@ URL: %2</translation>
         <translation>Ничего не удалось импортировать:</translation>
     </message>
     <message>
-        <source>Settings changed, restart proxy?</source>
-        <translation>Настройки изменены, перезапустить прокси?</translation>
-    </message>
-    <message>
         <source>Settings changed</source>
         <translation>Настройки изменены</translation>
     </message>
     <message>
         <source>Restart the program to take effect.</source>
         <translation>Перезапустите программу, чтобы изменения вступили в силу.</translation>
+    </message>
+    <message>
+        <source>Profile</source>
+        <translation>Профиль</translation>
     </message>
     <message>
         <source>Imported %1 profile(s)</source>
@@ -6570,11 +7063,11 @@ Download them now?</source>
     </message>
     <message>
         <source>VPN endpoint problem</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Проблема конечной точки VPN</translation>
     </message>
     <message>
         <source>VPN endpoint</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Конечная точка VPN</translation>
     </message>
     <message>
         <source>[VPN] %1: the core did not answer the sign-in prompt.</source>
@@ -6700,6 +7193,14 @@ Error: %1</source>
         <source>Sort By:</source>
         <translation>Сортировать по:</translation>
     </message>
+    <message numerus="yes">
+        <source>%n remote rule-set(s) refreshed</source>
+        <translation>
+            <numerusform>%n удаленный набор правил был обновлён</numerusform>
+            <numerusform>%n удаленных набора правил были обновлены</numerusform>
+            <numerusform>%n удаленных наборов правил было обновлено</numerusform>
+        </translation>
+    </message>
     <message>
         <source>Latency</source>
         <translation>Пингу (задержке)</translation>
@@ -6733,6 +7234,10 @@ Error: %1</source>
         <translation>Выбор профиля</translation>
     </message>
     <message>
+        <source>Could not update the autostart entry:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source> Test result(s) copied to clipboard!</source>
         <translation>Результаты теста скопированы в буфер обмена!</translation>
     </message>
@@ -6763,6 +7268,30 @@ Error: %1</source>
     <message>
         <source>Logs</source>
         <translation>Логи</translation>
+    </message>
+    <message>
+        <source>Hijack (Preferences &gt; Routing Settings &gt; Hijack) is deprecated and will be removed in the next release.</source>
+        <translation>Функция «Hijack»(«Перехват») (Настройки &gt; Настройки маршрутизации &gt; Перехват) больше не поддерживается и будет удалена в следующей версии.</translation>
+    </message>
+    <message>
+        <source>The System DNS option depends on it and will be removed along with it.</source>
+        <translation>От этого зависит параметр «Системный DNS», который будет удален вместе с ним.</translation>
+    </message>
+    <message>
+        <source>Tun mode covers the same use case.</source>
+        <translation>Режим Tun предназначен для тех же задач.</translation>
+    </message>
+    <message>
+        <source>Hijack is deprecated</source>
+        <translation>Функция «Hijack»(&quot;Перехват&quot;) больше не поддерживается</translation>
+    </message>
+    <message>
+        <source>Don&apos;t show again</source>
+        <translation>Больше не показывать</translation>
+    </message>
+    <message>
+        <source>This installation cannot grant the core privileges by itself.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Please give the core root privileges</source>
@@ -6838,7 +7367,7 @@ Error: %1</source>
     </message>
     <message>
         <source>You need to enable hijack DNS server first</source>
-        <translation>Сначала необходимо включить перехват DNS-сервера</translation>
+        <translation>Сначала необходимо включить перехват(hijack) DNS-сервера</translation>
     </message>
     <message>
         <source>Failed to set system dns: </source>
@@ -6977,10 +7506,6 @@ Please try again.</source>
         <translation>Выберете файлы профилей</translation>
     </message>
     <message>
-        <source>subscriptions</source>
-        <translation>подписок</translation>
-    </message>
-    <message>
         <source>routing profiles</source>
         <translation>профилей маршрутизации</translation>
     </message>
@@ -7031,10 +7556,6 @@ Name: %1</source>
         <translation>Все запущенные профили перестали работать — выполняется пересборка из следующих наилучших кандидатов.</translation>
     </message>
     <message>
-        <source>Copied!</source>
-        <translation>Скопировано!</translation>
-    </message>
-    <message>
         <source>Close every connection listed below</source>
         <translation>Закрыть все соединения, перечисленные ниже</translation>
     </message>
@@ -7045,6 +7566,96 @@ Name: %1</source>
     <message>
         <source>IPC error</source>
         <translation>IPC ошибка</translation>
+    </message>
+    <message>
+        <source>Collapse All</source>
+        <translation>Свернуть всё</translation>
+    </message>
+    <message>
+        <source>Expand All</source>
+        <translation>Развернуть всё</translation>
+    </message>
+    <message>
+        <source>No active routing profile found.</source>
+        <translation>Активный профиль маршрутизации не найден.</translation>
+    </message>
+    <message>
+        <source>The current routing profile is locked against modifications.</source>
+        <translation>Текущий профиль маршрутизации заблокирован и не подлежит изменению.</translation>
+    </message>
+    <message>
+        <source>The current routing profile is raw JSON.</source>
+        <translation>Текущий профиль маршрутизации представляет собой необработанный(raw) JSON.</translation>
+    </message>
+    <message>
+        <source>The current routing profile auto-updates from a URL.</source>
+        <translation>Текущий профиль маршрутизации автоматически обновляется с URL-адреса.</translation>
+    </message>
+    <message>
+        <source>Failed to add routing rule: %1</source>
+        <translation>Не удалось добавить правило маршрутизации: %1</translation>
+    </message>
+    <message>
+        <source>Failed to save routing rule: %1</source>
+        <translation>Не удалось сохранить правило маршрутизации: %1</translation>
+    </message>
+    <message>
+        <source>Appended %1 to the %2 rules of &quot;%3&quot;</source>
+        <translation>Добавлено %1 к правилам %2 в &quot;%3&quot;</translation>
+    </message>
+    <message>
+        <source>Direct</source>
+        <translation>Напрямую</translation>
+    </message>
+    <message>
+        <source>Proxy</source>
+        <translation>Прокси</translation>
+    </message>
+    <message>
+        <source>Block</source>
+        <translation>Блокировать</translation>
+    </message>
+    <message>
+        <source>Appended to the %1 rules:
+%2</source>
+        <translation>Добавлено к правилам %1:
+%2</translation>
+    </message>
+    <message>
+        <source>Copied: %1</source>
+        <translation>Скопировано: %1</translation>
+    </message>
+    <message>
+        <source>Append &quot;%1&quot; to</source>
+        <translation>Добавить &quot;%1&quot; в</translation>
+    </message>
+    <message>
+        <source>Append process &quot;%1&quot; to</source>
+        <translation>Добавить процесс &quot;%1&quot; в</translation>
+    </message>
+    <message>
+        <source>Copy Destination (%1)</source>
+        <translation>Копировать пункт назначения (%1)</translation>
+    </message>
+    <message>
+        <source>Copy Process Name (%1)</source>
+        <translation>Копировать имя процесса (%1)</translation>
+    </message>
+    <message>
+        <source>Close all connections (%1)</source>
+        <translation>Закрыть все соединения (%1)</translation>
+    </message>
+    <message>
+        <source>Close connection</source>
+        <translation>Закрыть соединение</translation>
+    </message>
+    <message>
+        <source>Copy Process Name</source>
+        <translation>Копировать имя процесса</translation>
+    </message>
+    <message>
+        <source>Close all connections for &quot;%1&quot; (%2)</source>
+        <translation>Закрыть все соединения &quot;%1&quot; (%2)</translation>
     </message>
 </context>
 <context>
@@ -7136,6 +7747,10 @@ Name: %1</source>
 </context>
 <context>
     <name>QObject</name>
+    <message>
+        <source>The selected TLS version is not supported on this system.</source>
+        <translation type="unfinished">Выбранная версия TLS не поддерживается в этой системе</translation>
+    </message>
     <message>
         <source>Request with proxy but no profile started.</source>
         <translation>Запрос через прокси, но профиль не запущен.</translation>
@@ -7233,12 +7848,60 @@ How to update?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <source>Removed %1 duplicate profiles:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed %1 insecure profiles:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skipped removing invalid profiles: the core is unreachable.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed %1 invalid profiles:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The running profile was kept.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Removed %1 unavailable profiles:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Skipped sorting %1: another sort is in progress.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Subscription update already queued: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Subscription server update interval: %1 hour(s)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Process complete, applying...</source>
         <translation>Процесс завершён, применение...</translation>
+    </message>
+    <message>
+        <source>The URL of %1 changed during the update, so the result was discarded.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The server returned a web page instead of a subscription. If it is a CAPTCHA or a bot check, try another TLS version, HTTP version or User Agent in the group&apos;s Advanced settings.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Announcement from %1: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No profiles found in the subscription: %1 was left unchanged.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Added %1 profiles:
@@ -7260,6 +7923,11 @@ Deleted %5 Profiles:
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <source>Working, so kept instead of deleted:
+%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Nothing</source>
         <translation>Ничего</translation>
     </message>
@@ -7270,6 +7938,22 @@ Deleted %5 Profiles:
     <message>
         <source>Change of %1</source>
         <translation>Изменение %1</translation>
+    </message>
+    <message>
+        <source>After the URL test of %1:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IPv4 forwarding breaks Tun mode</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IPv4 forwarding is on for the network adapter &quot;%1&quot;, usually because Mobile Hotspot or Internet Connection Sharing is sharing it.
+
+Windows then ignores the adapter binding that keeps Throne&apos;s own connections out of the Tun, so they loop back into it and fail.
+
+To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&quot; (Settings &gt; Mobile hotspot &gt; Share my internet connection from), or turn the hotspot off while using Tun mode.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Core exited, cleaning up...</source>
@@ -7340,8 +8024,16 @@ Release note:
         <translation>Цепочка прокси</translation>
     </message>
     <message>
+        <source>None</source>
+        <translation type="unfinished">Нет</translation>
+    </message>
+    <message>
         <source>Used: %1 Remain: %2 Expire: %3</source>
         <translation>Использовано: %1, осталось: %2, истекает: %3</translation>
+    </message>
+    <message>
+        <source>Auto-update: every %1</source>
+        <translation type="unfinished">Авто-обновление: каждый(ые) %1</translation>
     </message>
     <message>
         <source>Default</source>
@@ -7378,10 +8070,6 @@ Release note:
     <message>
         <source>%1 is listed twice in the endpoints of the routing profile</source>
         <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Local DNS and Tun mode do not work together, please set an IP to be used as the Local DNS server in the Routing Settings -&gt; Local override</source>
-        <translation>Локальный DNS и режим TUN не могут работать вместе. Пожалуйста, введите IP для использования в качестве локального DNS в меню «Настройки маршрутизации» → «Назначить локал. DNS»</translation>
     </message>
     <message>
         <source>Auto-update: running %1</source>
@@ -7574,8 +8262,8 @@ Release note:
         <translation>Автовыбор проверяет профили (проверено %1/%2)</translation>
     </message>
     <message>
-        <source>Auto selector — no working profile out of %1</source>
-        <translation>Автовыбор — в %1 нет рабочего профиля</translation>
+        <source>Auto selector — no working profile out of %1, still checking</source>
+        <translation>Автовыбор — в %1 нет рабочего профиля, проверка продолжается</translation>
     </message>
     <message>
         <source>Auto selector on %1 (%2 of %3 working)</source>
@@ -8157,6 +8845,42 @@ Release note:
         <source>The document must be a JSON object.</source>
         <translation>Документ должен представлять собой объект JSON.</translation>
     </message>
+    <message>
+        <source>Settings</source>
+        <translation>Настройки</translation>
+    </message>
+    <message>
+        <source>Settings changed, restart to apply</source>
+        <translation type="unfinished">Настройки изменены, перезапустите для применения</translation>
+    </message>
+    <message>
+        <source>Restart</source>
+        <translation type="unfinished">Перезапустить</translation>
+    </message>
+    <message>
+        <source>Ignore</source>
+        <translation type="unfinished">Игнорировать</translation>
+    </message>
+    <message>
+        <source>%1: the private key is empty</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1: no address is set</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Failed to reach the core.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cloudflare WARP</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Generating a WARP identity registers a new device with Cloudflare.&lt;br&gt;&lt;br&gt;Do you accept the &lt;a href=&quot;%1&quot;&gt;Cloudflare WARP terms of service&lt;/a&gt;?</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -8288,10 +9012,6 @@ Your local edits are overwritten on each update.</source>
         <translation>Конечные точки</translation>
     </message>
     <message>
-        <source>OpenVPN / OpenConnect profiles started alongside this routing profile. Traffic for the networks they advertise goes through them; everything else follows this profile&apos;s rules. Each endpoint gets a rule in the Advanced tab that you can move among your own rules.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Add</source>
         <translation>Добавить</translation>
     </message>
@@ -8356,6 +9076,10 @@ Your local edits are overwritten on each update.</source>
         <translation>Блокировать</translation>
     </message>
     <message>
+        <source>OpenVPN / OpenConnect profiles started alongside this routing profile. Traffic for the networks they advertise goes through them; everything else follows this profile&apos;s rules. Each endpoint gets a rule in the Advanced tab that you can move among your own rules. A chain endpoint can hand out one rule per inner OpenVPN / OpenConnect hop too, so traffic can be routed to a hop before the exit.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Advanced</source>
         <translation>Дополнительно</translation>
     </message>
@@ -8376,6 +9100,14 @@ Your local edits are overwritten on each update.</source>
     <message>
         <source>Profile #%1 — deleted, dropped when you save</source>
         <translation type="unfinished">Профиль #%1 — удалён, будет отброшено при сохранении</translation>
+    </message>
+    <message>
+        <source>Allow routing to inner hops</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Give each OpenVPN/OpenConnect hop behind the exit its own rule, so traffic can be routed to it as well.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>%1 route prefer</source>
@@ -8416,6 +9148,12 @@ Your local edits are overwritten on each update.</source>
     <message>
         <source>Endpoint rule</source>
         <translation>Правило для конечной точки</translation>
+    </message>
+    <message>
+        <source>This rule belongs to &quot;%1&quot;, an inner hop of the endpoint &quot;%2&quot;.
+
+Stop routing to that endpoint&apos;s inner hops?</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>This rule belongs to the endpoint &quot;%1&quot; and cannot be deleted on its own.
@@ -8493,6 +9231,121 @@ Remove that endpoint from this routing profile as well?</source>
     </message>
 </context>
 <context>
+    <name>RuntimeStatsWidget</name>
+    <message>
+        <source>%1 active   ·   %2 TCP   ·   %3 UDP</source>
+        <translation>%1 активных   ·   %2 TCP   ·   %3 UDP</translation>
+    </message>
+    <message>
+        <source>No active config</source>
+        <translation>Нет активного подключения</translation>
+    </message>
+    <message>
+        <source>CPU</source>
+        <translation>ЦП</translation>
+    </message>
+    <message>
+        <source>RAM</source>
+        <translation>ОЗУ</translation>
+    </message>
+    <message>
+        <source>Disabled</source>
+        <translation>Выключено</translation>
+    </message>
+    <message>
+        <source>Due now</source>
+        <translation>Прямо сейчас</translation>
+    </message>
+    <message>
+        <source>in %1</source>
+        <translation>через %1</translation>
+    </message>
+    <message>
+        <source>Details</source>
+        <translation>Подробности</translation>
+    </message>
+    <message>
+        <source>Unavailable</source>
+        <translation>Недоступен</translation>
+    </message>
+    <message>
+        <source>N/A</source>
+        <translation>Недоступно</translation>
+    </message>
+    <message>
+        <source>Process</source>
+        <translation>Процесс</translation>
+    </message>
+    <message>
+        <source>Core</source>
+        <translation>Ядро</translation>
+    </message>
+    <message>
+        <source>Network</source>
+        <translation>Сеть</translation>
+    </message>
+    <message>
+        <source>Connections</source>
+        <translation>Подключения</translation>
+    </message>
+    <message>
+        <source>Proxy</source>
+        <translation>Прокси</translation>
+    </message>
+    <message>
+        <source>Direct</source>
+        <translation>Напрямую</translation>
+    </message>
+    <message>
+        <source>Next sub update</source>
+        <translation>След. обновл. подписки</translation>
+    </message>
+    <message>
+        <source>Next remote route update</source>
+        <translation>След. обновл. удаленной маршрутизации</translation>
+    </message>
+    <message>
+        <source>System</source>
+        <translation>Система</translation>
+    </message>
+    <message>
+        <source>Databases</source>
+        <translation>Базы данных</translation>
+    </message>
+    <message>
+        <source>Uptime</source>
+        <translation>Время работы</translation>
+    </message>
+    <message>
+        <source>Running Config</source>
+        <translation>Текущая конфигурация</translation>
+    </message>
+    <message>
+        <source>Country</source>
+        <translation>Страна</translation>
+    </message>
+    <message>
+        <source>Config</source>
+        <translation>Конфигурация</translation>
+    </message>
+    <message>
+        <source>Out IP</source>
+        <translation>Выходной IP</translation>
+    </message>
+    <message>
+        <source>Ping</source>
+        <translation>Задержка</translation>
+    </message>
+    <message>
+        <source>Endpoint</source>
+        <translation>Конечная точка</translation>
+    </message>
+    <message>
+        <source>State</source>
+        <translation>Cостояние</translation>
+    </message>
+</context>
+<context>
     <name>SpeedWidget</name>
     <message>
         <source>Proxy</source>
@@ -8524,6 +9377,85 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Stopping…</source>
         <translation>Отключение…</translation>
+    </message>
+</context>
+<context>
+    <name>SubscriptionInfoCard</name>
+    <message>
+        <source>Portal</source>
+        <translation>Портал</translation>
+    </message>
+    <message>
+        <source>Support</source>
+        <translation>Поддержка</translation>
+    </message>
+    <message>
+        <source>Expired</source>
+        <translation>Истекла</translation>
+    </message>
+    <message>
+        <source>%1m left</source>
+        <translation>%1 мин.</translation>
+    </message>
+    <message>
+        <source>%1h left</source>
+        <translation>%1 ч.</translation>
+    </message>
+    <message>
+        <source>%1d left</source>
+        <translation>%1 д.</translation>
+    </message>
+    <message>
+        <source>Announcement - %1</source>
+        <translation>Объявление - %1</translation>
+    </message>
+    <message>
+        <source>Auto-update: every %1</source>
+        <translation>Авто-обновление: каждый(ые) %1</translation>
+    </message>
+    <message>
+        <source>Provider: %1</source>
+        <translation>Провайдер: %1</translation>
+    </message>
+    <message>
+        <source>Last updated: %1</source>
+        <translation>Последнее обновление: %1</translation>
+    </message>
+    <message>
+        <source>Expires: %1</source>
+        <translation>Истекает: %1</translation>
+    </message>
+    <message>
+        <source>Interval provided by the server</source>
+        <translation>Интервал, установленный сервером</translation>
+    </message>
+    <message>
+        <source>Interval set for this group</source>
+        <translation>Установленный интервал для этой группы</translation>
+    </message>
+    <message>
+        <source>Global interval from Settings</source>
+        <translation>Глобальный интервал из настроек</translation>
+    </message>
+    <message numerus="yes">
+        <source>Server suggests every %n hour(s)</source>
+        <translation>
+            <numerusform>Сервер предлагает каждый %n час</numerusform>
+            <numerusform>Сервер предлагает каждые %n часа</numerusform>
+            <numerusform>Сервер предлагает каждые %n часов</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Every %1</source>
+        <translation>Каждый(ые) %1</translation>
+    </message>
+    <message>
+        <source>Website / Portal: %1</source>
+        <translation>Веб-сайт / Портал: %1</translation>
+    </message>
+    <message>
+        <source>Technical Support: %1</source>
+        <translation>Техническая поддержка: %1</translation>
     </message>
 </context>
 <context>

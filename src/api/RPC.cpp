@@ -525,6 +525,26 @@ namespace API {
         }
     }
 
+    QString Client::UpdateRuleSets(bool *rpcOK, int *updatedCount) const
+    {
+        if (updatedCount != nullptr) *updatedCount = 0;
+        libcore::EmptyReq request;
+        libcore::UpdateRuleSetsResponse reply;
+        std::vector<uint8_t> resp;
+        // Must outlast the core's 60 s deadline in rulesets.go.
+        const int timeoutMs = 75000;
+        auto status = channel->Call("UpdateRuleSets", spb::pb::serialize<std::string>(request), resp, timeoutMs);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            if (updatedCount != nullptr) *updatedCount = reply.updated.value();
+            return QString::fromStdString(reply.error.value());
+        } else {
+            NOT_OK
+            return "IPC error";
+        }
+    }
+
     QString Client::CheckConfig(bool* rpcOK, const QString& config, bool isXray) const
     {
         libcore::LoadConfigReq request;

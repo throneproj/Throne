@@ -75,6 +75,17 @@ if (NKR_PACKAGE OR NKR_PACKAGE_MACOS)
     nkr_add_compile_definitions(NKR_CPP_USE_APPDATA)
 endif ()
 
+# Distro packaging hooks: a core reached through a PATH wrapper, and prefixes the app cannot chmod itself.
+if (NKR_CORE_IN_PATH)
+    nkr_add_compile_definitions(NKR_CORE_IN_PATH)
+endif ()
+if (NKR_ELEVATION_HINT)
+    nkr_add_compile_definitions(NKR_ELEVATION_HINT="${NKR_ELEVATION_HINT}")
+endif ()
+if (NKR_DESKTOP_EXEC)
+    nkr_add_compile_definitions(NKR_DESKTOP_EXEC="${NKR_DESKTOP_EXEC}")
+endif ()
+
 include("cmake/myproto.cmake")
 list(APPEND NKR_EXTERNAL_TARGETS myproto)
 
@@ -183,12 +194,16 @@ set(PROJECT_SOURCES
         include/ui/mainwindow.ui
         include/ui/widget/StartStopButton.hpp
         src/ui/widget/StartStopButton.cpp
+        include/ui/widget/TrayIcon.hpp
+        src/ui/widget/TrayIcon.cpp
         include/ui/widget/TrayPopupFrame.hpp
         src/ui/widget/TrayPopupFrame.cpp
         include/ui/widget/TrayProfileSelector.hpp
         src/ui/widget/TrayProfileSelector.cpp
         include/ui/widget/TrayOtpCodes.hpp
         src/ui/widget/TrayOtpCodes.cpp
+        include/ui/widget/SubscriptionInfoCard.hpp
+        src/ui/widget/SubscriptionInfoCard.cpp
         include/ui/widget/json/JsonTree.h
         src/ui/widget/json/JsonTree.cpp
         include/ui/widget/json/JsonValidator.h
@@ -224,11 +239,16 @@ set(PROJECT_SOURCES
 
         include/ui/profile/dialog_edit_profile.h
         src/ui/profile/dialog_edit_profile.cpp
+        src/ui/profile/dialog_edit_profile_singbox.cpp
+        src/ui/profile/dialog_edit_profile_xray.cpp
         src/ui/profile/dialog_edit_profile_xhttp.cpp
         include/ui/profile/dialog_edit_profile.ui
         include/ui/group/dialog_edit_group.h
         src/ui/group/dialog_edit_group.cpp
         include/ui/group/dialog_edit_group.ui
+        include/ui/group/dialog_edit_group_advanced.h
+        src/ui/group/dialog_edit_group_advanced.cpp
+        include/ui/group/dialog_edit_group_advanced.ui
 
         include/ui/profile/edit_chain.h
         src/ui/profile/edit_chain.cpp
@@ -510,6 +530,7 @@ set(PROJECT_SOURCES
         include/database/OtpProfilesRepo.h
         include/database/SettingsRepo.h
         include/database/TrafficStatsRepo.h
+        include/database/MarkersRepo.h
 
         include/database/entities/Profile.h
         include/database/entities/Group.h
@@ -528,6 +549,7 @@ set(PROJECT_SOURCES
         src/database/RoutesRepo.cpp
         src/database/OtpProfilesRepo.cpp
         src/database/TrafficStatsRepo.cpp
+        src/database/MarkersRepo.cpp
 
         include/database/DatabaseManager.h
         src/database/DatabaseManager.cpp

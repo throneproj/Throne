@@ -122,11 +122,35 @@
        <widget class="MyLineEdit" name="url"/>
       </item>
       <item row="1" column="1">
-       <widget class="QCheckBox" name="skip_auto_update">
-        <property name="text">
-         <string>Skip automatic update</string>
-        </property>
-       </widget>
+       <layout class="QHBoxLayout" name="sub_options_layout">
+        <item>
+         <widget class="QCheckBox" name="skip_auto_update">
+          <property name="text">
+           <string>Skip automatic update</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="sub_options_spacer">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="advanced">
+          <property name="text">
+           <string>Advanced</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
@@ -175,6 +199,7 @@
   <tabstop>type</tabstop>
   <tabstop>url</tabstop>
   <tabstop>skip_auto_update</tabstop>
+  <tabstop>advanced</tabstop>
   <tabstop>copy_links</tabstop>
   <tabstop>copy_links_nkr</tabstop>
  </tabstops>

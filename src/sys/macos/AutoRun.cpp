@@ -5,17 +5,19 @@
 #include <QDir>
 #include "include/global/Configs.hpp"
 
-void AutoRun_SetEnabled(bool enable) {
+bool AutoRun_SetEnabled(bool enable, QString *error) {
     // From https://github.com/nextcloud/desktop/blob/master/src/common/utility_mac.cpp
     QString filePath = QDir(QCoreApplication::applicationDirPath() + QLatin1String("/../..")).absolutePath();
     CFStringRef folderCFStr = CFStringCreateWithCString(0, filePath.toUtf8().data(), kCFStringEncodingUTF8);
     CFURLRef urlRef = CFURLCreateWithFileSystemPath(0, folderCFStr, kCFURLPOSIXPathStyle, true);
     LSSharedFileListRef loginItems = LSSharedFileListCreate(0, kLSSharedFileListSessionLoginItems, 0);
+    bool ok = loginItems != nullptr;
 
     if (loginItems && enable) {
         LSSharedFileListItemRef item =
             LSSharedFileListInsertItemURL(loginItems, kLSSharedFileListItemLast, 0, 0, urlRef, 0, 0);
 
+        ok = item != nullptr;
         if (item) CFRelease(item);
 
         CFRelease(loginItems);
@@ -45,6 +47,8 @@ void AutoRun_SetEnabled(bool enable) {
 
     CFRelease(folderCFStr);
     CFRelease(urlRef);
+    if (!ok && error) *error = "Could not update the login items";
+    return ok;
 }
 
 bool AutoRun_IsEnabled() {

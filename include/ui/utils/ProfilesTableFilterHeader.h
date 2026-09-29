@@ -1,24 +1,41 @@
 #pragma once
 
 #include <array>
+#include <memory>
 
+#include <QCoreApplication>
 #include <QHeaderView>
 #include <QKeyEvent>
 #include <QLineEdit>
+#include <QPainter>
 #include <QVector>
 #include <QScrollBar>
 #include <QToolButton>
 
 #include "include/ui/utils/ProfilesTableModel.h"
+#include "include/ui/widget/SubscriptionInfoCard.hpp"
+
+namespace Configs {
+    class Group;
+}
 
 class ProfilesTableFilterHeader : public QHeaderView {
     Q_OBJECT
 public:
+    // The band is the header's own child (setOffset() scrolls viewport children), built before setSortIndicatorShown() reaches adjustPositions().
     explicit ProfilesTableFilterHeader(QWidget *parent = nullptr)
-        : QHeaderView(Qt::Horizontal, parent) {
+        : QHeaderView(Qt::Horizontal, parent), m_subCard(new SubscriptionInfoCard(this)) {
         setSectionsClickable(true);
         setSortIndicatorShown(true);
         setDefaultAlignment(Qt::AlignHCenter | Qt::AlignTop);
+
+        // Clicks on the band must not reach QHeaderView, which would sort by the section under them.
+        m_subCard->setAttribute(Qt::WA_NoMousePropagation, true);
+        m_subCard->installEventFilter(this);
+        connect(m_subCard, &SubscriptionInfoCard::cardVisibilityChanged, this, [this] {
+            emit geometriesChanged();
+            adjustPositions();
+        });
 
         type_filter = new QLineEdit(this->viewport()); 
         type_filter->setPlaceholderText(tr("Filter..."));
@@ -55,6 +72,10 @@ public:
         setFiltersVisible(false);
     }
 
+    void setGroup(const std::shared_ptr<Configs::Group> &group) {
+        m_subCard->setGroup(group);
+    }
+
     void setLastFilterColumn(int column) {
         m_lastFilterColumn = editForColumn(column) ? column : ProfilesTableModel::ColName;
     }
@@ -74,16 +95,28 @@ public:
         if (m_filtersVisible) {
             s.setHeight(s.height() + 32);
         }
+        if (!m_subCard->isHidden()) {
+            s.setHeight(s.height() + m_subCard->height());
+        }
         return s;
     }
 
 protected:
+    void paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const override {
+        const int bandHeight = m_subCard->isHidden() ? 0 : m_subCard->height();
+        QHeaderView::paintSection(painter, rect.adjusted(0, bandHeight, 0, 0), logicalIndex);
+    }
+
     void updateGeometries() override {
         QHeaderView::updateGeometries();
         adjustPositions();
     }
 
     bool eventFilter(QObject *obj, QEvent *event) override {
+        // WA_NoMousePropagation stops the wheel at the band too.
+        if (obj == m_subCard && event->type() == QEvent::Wheel) {
+            if (auto *view = qobject_cast<QAbstractScrollArea*>(parentWidget())) return QCoreApplication::sendEvent(view->viewport(), event);
+        }
         if (!qobject_cast<QLineEdit*>(obj)) return QHeaderView::eventFilter(obj, event);
 
         // Window shortcuts resolve before the key reaches the field, so bare Return/Del would fire menu actions.
@@ -136,6 +169,11 @@ public slots:
     }
 
     void adjustPositions() {
+        if (!m_subCard->isHidden()) {
+            m_subCard->setGeometry(0, 0, width(), m_subCard->height());
+            m_subCard->raise();
+        }
+
         if (!m_filtersVisible || !address_filter || !name_filter || !type_filter
             || !test_filter || count() < ProfilesTableModel::ColumnCount) {
 	        return;
@@ -207,6 +245,7 @@ private:
         return -1;
     }
 
+    SubscriptionInfoCard *m_subCard;
     QLineEdit* type_filter;
     QLineEdit* address_filter;
     QLineEdit* name_filter;

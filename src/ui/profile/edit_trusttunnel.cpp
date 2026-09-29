@@ -5,7 +5,9 @@ EditTrustTunnel::EditTrustTunnel(QWidget *parent)
       ui(new Ui::EditTrustTunnel) {
 
     ui->setupUi(this);
-    _quic = ui->quic;
+    connect(ui->quic, &QCheckBox::toggled, this, [this] {
+        if (editor_state_changed) editor_state_changed();
+    });
 }
 
 EditTrustTunnel::~EditTrustTunnel() {
@@ -18,6 +20,7 @@ void EditTrustTunnel::onStart(std::shared_ptr<Configs::Profile> _ent) {
 
     ui->username->setText(outbound->username);
     ui->password->setText(outbound->password);
+    ui->custom_sni->setText(outbound->custom_sni);
     ui->client_random->setText(outbound->client_random);
     ui->health_check->setChecked(outbound->health_check);
     ui->quic->setChecked(outbound->quic);
@@ -29,9 +32,14 @@ bool EditTrustTunnel::onEnd() {
 
     outbound->username = ui->username->text().trimmed();
     outbound->password = ui->password->text();
+    outbound->custom_sni = ui->custom_sni->text().trimmed();
     outbound->client_random = ui->client_random->text().trimmed();
     outbound->health_check = ui->health_check->isChecked();
     outbound->quic = ui->quic->isChecked();
     outbound->congestion_control = ui->congestion_control->currentText().trimmed();
     return true;
+}
+
+bool EditTrustTunnel::usesQuic() {
+    return ui->quic->isChecked();
 }

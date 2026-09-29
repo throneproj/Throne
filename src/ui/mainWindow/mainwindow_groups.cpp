@@ -3,6 +3,7 @@
 #include <QAbstractItemView>
 #include <QMenu>
 #include <QMessageBox>
+#include <QTextDocument>
 #include <QTimer>
 #include <QVBoxLayout>
 
@@ -11,13 +12,69 @@
 #include "include/ui/group/dialog_edit_group.h"
 #include "include/ui/mainWindow/MainWindowInternal.h"
 #include "include/ui/mainWindow/TestRunner.h"
-
+#include "include/ui/stats/dialog_endpoint_details.h"
+#include "include/ui/utils/ProfilesTableFilterHeader.h"
+#include "include/global/Utils.hpp"
 
 void MainWindow::on_tabWidget_currentChanged(int index) {
     if (Configs::dataManager->settingsRepo->refreshing_group_list) return;
     const auto gid = tabIndex2GroupId(index);
     if (gid == Configs::dataManager->settingsRepo->current_group) return;
     show_group(gid);
+}
+
+void MainWindow::updateTabToolTip(int gid) {
+    int tabIdx = -1;
+    for (int i = 0; i < ui->tabWidget->count(); i++) {
+        if (ui->tabWidget->tabBar()->tabData(i).toInt() == gid) {
+            tabIdx = i;
+            break;
+        }
+    }
+    if (tabIdx < 0) return;
+    auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
+    if (!group) return;
+
+    const auto &subInfo = group->sub_info;
+
+    if (group->url.isEmpty()) {
+        ui->tabWidget->setTabToolTip(tabIdx, Qt::convertFromPlainText(group->name));
+    } else {
+        QString html = QStringLiteral("<div style='max-width:320px;line-height:1.3;'>");
+        html += QStringLiteral("<b>%1</b><br>").arg(group->name.toHtmlEscaped());
+        if (!subInfo.title.isEmpty() && subInfo.title != group->name) {
+            html += tr("Provider: %1").arg(subInfo.title.toHtmlEscaped()) + QStringLiteral("<br>");
+        }
+        html += QStringLiteral("<span style='opacity:0.8;'>%1</span><br>").arg(tr("Type: Subscription"));
+
+        if (group->sub_last_update > 0) {
+            html += QStringLiteral("%1: %2<br>").arg(tr("Last updated"), DisplayTime(group->sub_last_update, QLocale::ShortFormat));
+        }
+        if (const auto plan = Subscription::ResolveAutoUpdate(*group); plan.interval > 0) {
+            html += tr("Auto-update: every %1").arg(Stats::HumanizeDuration(plan.interval)) + QStringLiteral("<br>");
+        }
+        if (subInfo.has_quota) {
+            html += QStringLiteral("%1: %2<br>").arg(tr("Used"), ReadableSize(subInfo.used()));
+            if (subInfo.total > 0) {
+                html += QStringLiteral("%1: %2 (%3: %4)<br>").arg(
+                    tr("Total"), ReadableSize(subInfo.total), tr("Remaining"), ReadableSize(subInfo.remaining()));
+            }
+        }
+        if (subInfo.expire > 0) {
+            html += QStringLiteral("%1: %2<br>").arg(tr("Expires"), DisplayTime(subInfo.expire, QLocale::ShortFormat));
+        }
+        if (!subInfo.support_url.isEmpty()) {
+            html += QStringLiteral("%1: %2<br>").arg(tr("Support"), subInfo.support_url.toHtmlEscaped());
+        }
+        if (!subInfo.web_url.isEmpty()) {
+            html += QStringLiteral("%1: %2<br>").arg(tr("Portal"), subInfo.web_url.toHtmlEscaped());
+        }
+        if (const QString announce = subInfo.announce.trimmed(); !announce.isEmpty()) {
+            html += QStringLiteral("<hr><b>%1:</b>%2").arg(tr("Announcement"), Qt::convertFromPlainText(announce, Qt::WhiteSpaceNormal));
+        }
+        html += QStringLiteral("</div>");
+        ui->tabWidget->setTabToolTip(tabIdx, html);
+    }
 }
 
 void MainWindow::show_group(int gid) {
@@ -42,6 +99,13 @@ void MainWindow::show_group(int gid) {
     }
 
     ui->tabWidget->widget(groupId2TabIndex(gid))->layout()->addWidget(ui->profilesTableView);
+
+    auto *filterHeader = dynamic_cast<ProfilesTableFilterHeader*>(ui->profilesTableView->horizontalHeader());
+    if (filterHeader != nullptr) {
+        filterHeader->setGroup(group);
+    }
+
+    updateTabToolTip(gid);
 
     refresh_proxy_list({}, true);
 
@@ -82,6 +146,7 @@ void MainWindow::refresh_groups() {
             ui->tabWidget->addTab(widget2, group->name);
         }
         ui->tabWidget->tabBar()->setTabData(index, gid);
+        updateTabToolTip(gid);
         index++;
     }
 

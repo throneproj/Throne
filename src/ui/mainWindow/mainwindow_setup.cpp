@@ -1,6 +1,7 @@
 #include "include/ui/mainwindow.h"
 
 #include "include/ui/mainWindow/MainWindowInternal.h"
+#include "include/api/RPC.h"
 // Full definition: MainWindow's destructor lives here and destroys the unique_ptr.
 #include "include/ui/mainWindow/TestRunner.h"
 
@@ -196,8 +197,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     runOnNewThread([=, this] {GetDeviceDetails(); });
 
-    auto core_path = QApplication::applicationDirPath() + "/";
-    core_path += "ThroneCore";
+    auto core_path = Configs::FindCoreRealPath();
 
     bool coreDebugMode = (Configs::dataManager->settingsRepo->log_level == "debug");
 
@@ -260,6 +260,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     parallelCoreCallPool->setMaxThreadCount(10);
     testRunner = std::make_unique<TestRunner>(this);
+    Subscription::updater()->SetUrlTester([this](const QList<int> &profileIDs, const Subscription::GroupUpdater::Finish &done) {
+        testRunner->queueUrlTests(profileIDs, done);
+    });
     ui->menu_start->setShortcuts({QKeySequence(Qt::Key_Return), QKeySequence(Qt::Key_Enter)});
     connect(ui->menu_start, &QAction::triggered, this, [=,this]() { profile_start(); });
     connect(ui->menu_stop, &QAction::triggered, this, [=,this]() { profile_stop(false, false, true); });
@@ -361,6 +364,28 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         m_autoSelectorDialog->activateWindow();
     });
     connect(ui->actionCheck_For_Update, &QAction::triggered, this, [=,this] { runOnNewThread([=,this] { CheckUpdate(); }); });
+    connect(ui->actionUpdate_Rule_Sets, &QAction::triggered, this, [=,this] {
+        if (m_ruleSetUpdateBusy) return;
+        m_ruleSetUpdateBusy = true;
+        runOnNewThread([=,this] {
+            bool rpcOK = false;
+            int updated = 0;
+            const auto error = API::defaultClient->UpdateRuleSets(&rpcOK, &updated);
+            runOnUiThread([=,this] {
+                m_ruleSetUpdateBusy = false;
+                if (!rpcOK) {
+                    MessageBoxWarning(tr("Update Rule-Sets"), error);
+                    return;
+                }
+                const auto summary = tr("%n remote rule-set(s) refreshed", nullptr, updated);
+                if (!error.isEmpty()) {
+                    MessageBoxWarning(tr("Update Rule-Sets"), summary + "\n\n" + error);
+                } else {
+                    MessageBoxInfo(tr("Update Rule-Sets"), summary);
+                }
+            });
+        });
+    });
     if (!QFile::exists(QApplication::applicationDirPath() + "/updater") && !QFile::exists(QApplication::applicationDirPath() + "/updater.exe"))
     {
         ui->actionCheck_For_Update->setDisabled(true);
@@ -666,9 +691,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(filterHeader, &ProfilesTableFilterHeader::focusTableRequested, this,
             [this](bool selectFirst) { focusProfilesTable(selectFirst); });
 
+    connect(Subscription::updater(), &Subscription::GroupUpdater::asyncUpdateCallback, this, [this](int gid) {
+        if (gid >= 0) updateTabToolTip(gid);
+    });
+
     this->refresh_groups();
 
-    tray = new QSystemTrayIcon(nullptr);
+    tray = new TrayIcon(this);
     tray->setIcon(Icon::GetTrayIcon(Icon::TrayIconStatus::None));
     QApplication::setWindowIcon(Icon::GetTaskbarIcon(Icon::TrayIconStatus::None));
     trayMenu = new QMenu();
@@ -709,7 +738,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     trayMenu->addAction(ui->menu_exit);
     tray->setVisible(!Configs::dataManager->settingsRepo->disable_tray);
     tray->setContextMenu(trayMenu);
-    connect(tray, &QSystemTrayIcon::activated, qApp, [=, this](QSystemTrayIcon::ActivationReason reason) {
+    connect(tray, &TrayIcon::activated, qApp, [=, this](QSystemTrayIcon::ActivationReason reason) {
         if (reason == QSystemTrayIcon::Trigger && getOS() != Darwin) {
             trayClickEvent();
         }
@@ -731,8 +760,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         Configs::dataManager->settingsRepo->Save();
     });
     connect(ui->actionStart_with_system, &QAction::triggered, this, [=,this](bool checked) {
-        AutoRun_SetEnabled(checked);
-        ui->actionStart_with_system->setChecked(checked);
+        if (QString error; !AutoRun_SetEnabled(checked, &error)) {
+            MessageBoxWarning(tr("Start with system"), tr("Could not update the autostart entry:") + "\n" + error);
+        }
+        ui->actionStart_with_system->setChecked(AutoRun_IsEnabled());
     });
     connect(ui->actionAllow_LAN, &QAction::triggered, this, [=,this](bool checked) {
         Configs::dataManager->settingsRepo->inbound_address = checked ? "::" : "127.0.0.1";
@@ -895,6 +926,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             });
             profilesMenu->addAction(action);
         }
+
+        ui->actionUpdate_Rule_Sets->setEnabled(running != nullptr && !m_ruleSetUpdateBusy);
+        ui->menuRouting_Menu->addAction(ui->actionUpdate_Rule_Sets);
 
         ui->menuRouting_Menu->addSeparator();
         for (const auto& route : Configs::dataManager->routesRepo->GetAllRouteProfiles())
@@ -1069,15 +1103,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         auto* runner = Throne::PeriodicRunner::instance();
         // Interval is sign-encoded in settings (negative = disabled); < 30 min counts as off.
         const auto minutesOf = [](int v) { return v >= 30 ? v : 0; };
+        // Every poll while enabled: each group keeps its own schedule, persisted as its sub_last_update.
         runner->Add({
-            tr("subscriptions"),
-            [minutesOf] { return minutesOf(Configs::dataManager->settingsRepo->sub_auto_update); },
-            [] { return Configs::dataManager->settingsRepo->sub_auto_update_last; },
-            [](qint64 t) {
-                Configs::dataManager->settingsRepo->sub_auto_update_last = t;
-                Configs::dataManager->settingsRepo->Save();
-            },
-            [] { Subscription::updater()->RefreshAll(true); },
+            {},
+            [minutesOf] { return minutesOf(Configs::dataManager->settingsRepo->sub_auto_update) > 0 ? 1 : 0; },
+            nullptr,
+            nullptr,
+            [] { Subscription::updater()->CheckAutoUpdate(); },
         });
         runner->Add({
             tr("routing profiles"),
@@ -1092,6 +1124,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     }
 
     if (!Configs::dataManager->settingsRepo->flag_tray) show();
+    else if (tray->isVisible()) HideWindow(this);
+    // Deferred: GetMessageBoxParent() falls back to the mainwindow global, which is only set once this constructor returns.
+    QTimer::singleShot(0, this, &MainWindow::showHijackDeprecationNotice);
 
     ui->data_view->setStyleSheet("background: transparent; border: none;");
 
@@ -1110,6 +1145,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 }
 
 MainWindow::~MainWindow() {
+    Subscription::updater()->SetUrlTester(nullptr);
     delete ui;
 }
 

@@ -343,7 +343,7 @@ void MainWindow::profile_start(int _id) {
             // "Only route advertised network" rejects this probe.
             if (exitIsEndpoint) return;
 
-            auto resp = NetworkRequestHelper::HttpGet("http://ip-api.com/json/", false, true);
+            auto resp = NetworkRequestHelper::HttpGet("http://ip-api.com/json/", true);
             if (resp.error.isEmpty()) {
                 QJsonDocument doc = QJsonDocument::fromJson(resp.data);
                 if (doc.isObject()) {

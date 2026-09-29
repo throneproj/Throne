@@ -5,6 +5,17 @@
 #include "include/configs/common/utils.h"
 
 namespace Configs {
+    namespace {
+        // Xray has no dial fields: bind_interface travels as streamSettings.sockopt.interface.
+        QJsonObject withBindInterface(QJsonObject stream, const QString &iface) {
+            if (iface.isEmpty()) return stream;
+            auto sockopt = stream.value("sockopt").toObject();
+            sockopt["interface"] = iface;
+            stream["sockopt"] = sockopt;
+            return stream;
+        }
+    }
+
     bool xrayVless::ParseFromLink(const QString &link) {
         auto url = QUrl(link);
         if (!url.isValid()) return false;
@@ -31,6 +42,10 @@ namespace Configs {
         }
         if (auto streamSettings = object["streamSettings"].toObject(); !streamSettings.isEmpty()) {
             streamSetting->ParseFromJson(streamSettings);
+        }
+        // Moved, not copied: an interface cleared in the Advanced dialog must not come back from sockopt.
+        if (auto iface = streamSetting->sockopt.take("interface").toString(); !iface.isEmpty()) {
+            dialFields->bind_interface = iface;
         }
         if (auto muxObj = object["mux"].toObject(); !muxObj.isEmpty()) {
             multiplex->ParseFromJson(muxObj);
@@ -79,7 +94,8 @@ namespace Configs {
         settings["encryption"] = encryption;
         if (!flow.isEmpty() && flow != "none") settings["flow"] = flow;
         object["settings"] = settings;
-        if (auto streamObj = streamSetting->ExportToJson(); !streamObj.isEmpty()) object["streamSettings"] = streamObj;
+        auto streamObj = withBindInterface(streamSetting->ExportToJson(), dialFields->bind_interface);
+        if (!streamObj.isEmpty()) object["streamSettings"] = streamObj;
         if (auto muxObj = multiplex->ExportToJson(); !muxObj.isEmpty()) object["mux"] = muxObj;
         return object;
     }
@@ -101,7 +117,8 @@ namespace Configs {
         settings["encryption"] = encryption;
         if (!flow.isEmpty() && flow != "none") settings["flow"] = flow;
         object["settings"] = settings;
-        if (auto streamObj = streamSetting->Build().object; !streamObj.isEmpty()) object["streamSettings"] = streamObj;
+        auto streamObj = withBindInterface(streamSetting->Build().object, dialFields->bind_interface);
+        if (!streamObj.isEmpty()) object["streamSettings"] = streamObj;
         if (auto muxObj = multiplex->Build().object; !muxObj.isEmpty()) object["mux"] = muxObj;
         return {object, ""};
     }

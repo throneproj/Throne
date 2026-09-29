@@ -52,6 +52,9 @@
         <property name="text">
          <string>Connect Timeout</string>
         </property>
+        <property name="buddy">
+         <cstring>connect_timeout</cstring>
+        </property>
        </widget>
       </item>
       <item row="1" column="1">
@@ -61,6 +64,9 @@
        <widget class="QLabel" name="label_bind_ifc">
         <property name="text">
          <string>Bind Interface</string>
+        </property>
+        <property name="buddy">
+         <cstring>bind_interface</cstring>
         </property>
        </widget>
       </item>
@@ -76,6 +82,9 @@
         <property name="text">
          <string>IPv4 Bind Address</string>
         </property>
+        <property name="buddy">
+         <cstring>inet4_bind_address</cstring>
+        </property>
        </widget>
       </item>
       <item row="2" column="1">
@@ -89,6 +98,9 @@
        <widget class="QLabel" name="label_inet6_bind">
         <property name="text">
          <string>IPv6 Bind Address</string>
+        </property>
+        <property name="buddy">
+         <cstring>inet6_bind_address</cstring>
         </property>
        </widget>
       </item>
@@ -125,6 +137,9 @@
         <property name="text">
          <string>Interface Name</string>
         </property>
+        <property name="buddy">
+         <cstring>interface_name</cstring>
+        </property>
        </widget>
       </item>
       <item row="1" column="1">
@@ -137,6 +152,9 @@
         </property>
         <property name="text">
          <string>UDP Timeout</string>
+        </property>
+        <property name="buddy">
+         <cstring>udp_timeout</cstring>
         </property>
        </widget>
       </item>
@@ -155,6 +173,9 @@
         <property name="text">
          <string>UDP Mapping</string>
         </property>
+        <property name="buddy">
+         <cstring>udp_mapping</cstring>
+        </property>
        </widget>
       </item>
       <item row="2" column="1">
@@ -168,6 +189,9 @@
         <property name="text">
          <string>UDP Filtering</string>
         </property>
+        <property name="buddy">
+         <cstring>udp_filtering</cstring>
+        </property>
        </widget>
       </item>
       <item row="2" column="3">
@@ -180,6 +204,9 @@
         </property>
         <property name="text">
          <string>UDP NAT Max</string>
+        </property>
+        <property name="buddy">
+         <cstring>udp_nat_max</cstring>
         </property>
        </widget>
       </item>
@@ -223,6 +250,9 @@
         <property name="text">
          <string>TLS Min Version</string>
         </property>
+        <property name="buddy">
+         <cstring>min_version</cstring>
+        </property>
        </widget>
       </item>
       <item row="1" column="1">
@@ -232,6 +262,9 @@
        <widget class="QLabel" name="label_7">
         <property name="text">
          <string>TLS Max Version</string>
+        </property>
+        <property name="buddy">
+         <cstring>max_version</cstring>
         </property>
        </widget>
       </item>
@@ -245,6 +278,9 @@
         </property>
         <property name="text">
          <string>TLS Spoof</string>
+        </property>
+        <property name="buddy">
+         <cstring>tls_spoof_state</cstring>
         </property>
        </widget>
       </item>
@@ -275,6 +311,9 @@
         <property name="text">
          <string>Spoof SNI</string>
         </property>
+        <property name="buddy">
+         <cstring>tls_spoof</cstring>
+        </property>
        </widget>
       </item>
       <item row="2" column="3">
@@ -295,6 +334,9 @@
         <property name="text">
          <string>Method</string>
         </property>
+        <property name="buddy">
+         <cstring>tls_spoof_method</cstring>
+        </property>
        </widget>
       </item>
       <item row="3" column="1">
@@ -308,6 +350,9 @@
         <property name="text">
          <string>ECH Server Name</string>
         </property>
+        <property name="buddy">
+         <cstring>ech_server_name</cstring>
+        </property>
        </widget>
       </item>
       <item row="3" column="3">
@@ -317,6 +362,9 @@
        <widget class="QLabel" name="label_2">
         <property name="text">
          <string>ECH Config</string>
+        </property>
+        <property name="buddy">
+         <cstring>ech_config</cstring>
         </property>
        </widget>
       </item>
@@ -332,6 +380,9 @@
         <property name="text">
          <string>Certificate SHA256</string>
         </property>
+        <property name="buddy">
+         <cstring>cert_sha256</cstring>
+        </property>
        </widget>
       </item>
       <item row="4" column="3">
@@ -346,6 +397,9 @@
         <property name="text">
          <string>Client Certificate</string>
         </property>
+        <property name="buddy">
+         <cstring>client_cert</cstring>
+        </property>
        </widget>
       </item>
       <item row="5" column="1">
@@ -359,6 +413,9 @@
        <widget class="QLabel" name="label_5">
         <property name="text">
          <string>Client Key</string>
+        </property>
+        <property name="buddy">
+         <cstring>client_key</cstring>
         </property>
        </widget>
       </item>
@@ -393,6 +450,9 @@
         <property name="text">
          <string>Idle Timeout</string>
         </property>
+        <property name="buddy">
+         <cstring>quic_idle_timeout</cstring>
+        </property>
        </widget>
       </item>
       <item row="1" column="1">
@@ -412,6 +472,9 @@
        <widget class="QLabel" name="quic_keep_alive_period_l">
         <property name="text">
          <string>Keep Alive Period</string>
+        </property>
+        <property name="buddy">
+         <cstring>quic_keep_alive_period</cstring>
         </property>
        </widget>
       </item>
@@ -433,6 +496,9 @@
         <property name="text">
          <string>Stream Receive Window</string>
         </property>
+        <property name="buddy">
+         <cstring>quic_stream_receive_window</cstring>
+        </property>
        </widget>
       </item>
       <item row="2" column="1">
@@ -452,6 +518,9 @@
        <widget class="QLabel" name="quic_connection_receive_window_l">
         <property name="text">
          <string>Connection Receive Window</string>
+        </property>
+        <property name="buddy">
+         <cstring>quic_connection_receive_window</cstring>
         </property>
        </widget>
       </item>
@@ -473,6 +542,9 @@
         <property name="text">
          <string>Max Concurrent Streams</string>
         </property>
+        <property name="buddy">
+         <cstring>quic_max_concurrent_streams</cstring>
+        </property>
        </widget>
       </item>
       <item row="3" column="1">
@@ -490,6 +562,9 @@
         <property name="text">
          <string>Initial Packet Size</string>
         </property>
+        <property name="buddy">
+         <cstring>quic_initial_packet_size</cstring>
+        </property>
        </widget>
       </item>
       <item row="3" column="3">
@@ -506,6 +581,9 @@
        <widget class="QLabel" name="quic_disable_path_mtu_discovery_l">
         <property name="text">
          <string>Disable Path MTU Discovery</string>
+        </property>
+        <property name="buddy">
+         <cstring>quic_disable_path_mtu_discovery</cstring>
         </property>
        </widget>
       </item>

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Regenerates res/schema/sing-box.json from the sing-box version pinned in core/server/go.mod.
+# Regenerates res/schema/sing-box.json from the sing-box version pinned in core/go.mod.
 # Run it after bumping that pin, otherwise the JSON editors validate against a stale schema.
 set -e
 
@@ -8,7 +8,7 @@ TAGS="with_clash_api,with_gvisor,with_quic,with_wireguard,with_utls,with_dhcp,wi
 cd "$(dirname "$0")/.."
 OUT="$PWD/res/schema/sing-box.json"
 
-pushd core/server
+pushd core
 go run -tags "$TAGS" ./cmd/schemagen -o "$OUT"
 popd
 

@@ -3,7 +3,7 @@
 #include <QMainWindow>
 #include <include/global/HTTPRequestHelper.hpp>
 #ifndef Q_MOC_RUN
-#include <core/server/gen/libcore.pb.h>
+#include <core/gen/libcore.pb.h>
 #endif
 
 #include "include/global/Configs.hpp"
@@ -18,7 +18,7 @@
 
 #include <optional>
 #include <QKeyEvent>
-#include <QSystemTrayIcon>
+#include "include/ui/widget/TrayIcon.hpp"
 #include <QPointer>
 #include <QTimer>
 #include <QElapsedTimer>
@@ -119,6 +119,8 @@ public:
     void show_group_tab_menu(const QPoint &tabBarPos);
 
     void refresh_groups();
+
+    void updateTabToolTip(int gid);
 
     void refresh_status(const QString &traffic_update = "");
 
@@ -243,7 +245,7 @@ private:
     ProfilesTableModel *profilesTableModel = nullptr;
 
     ProfilesFilterProxyModel *profilesFilterModel = nullptr;
-    QSystemTrayIcon *tray;
+    TrayIcon *tray;
     QMenu *trayMenu = nullptr;
     QPointer<TrayProfileSelector> traySelector;
     void openTraySelector(bool routing);
@@ -265,6 +267,7 @@ private:
     bool m_profileConnecting = false;
     bool m_profileDisconnecting = false;
     bool m_xrayGeoAssetBusy = false;
+    bool m_ruleSetUpdateBusy = false;
     QString traffic_update_cache;
     qint64 last_test_time = 0;
     int proxy_last_order = -1;
@@ -279,7 +282,7 @@ private:
     class ConnectionsTreeFilterProxyModel *connectionsFilterModel = nullptr;
     class ConnectionsFilterHeader *connectionFilterHeader = nullptr;
     QHash<QString, bool> m_processExpanded; // per-process choices; the rest follow m_processesExpandedByDefault
-    bool m_processesExpandedByDefault = true;
+    bool m_processesExpandedByDefault = false;
     QTimer *connectionFilterDebounce = nullptr;
     QToolButton *connectionExpandButton = nullptr;
     QToolButton *connectionCloseAllButton = nullptr;
@@ -489,6 +492,8 @@ private:
     int m_vpnAuthRestartID = -1;
 
     bool set_system_dns(bool set, bool save_set = true);
+
+    void showHijackDeprecationNotice();
 
     void CheckUpdate();
 

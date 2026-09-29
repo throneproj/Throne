@@ -1,6 +1,6 @@
 #include <QThread>
 #include <QDateTime>
-#include <core/server/gen/libcore.pb.h>
+#include <core/gen/libcore.pb.h>
 #include <include/api/RPC.h>
 #include "include/ui/mainwindow_interface.h"
 #include <include/stats/connections/connectionLister.hpp>
