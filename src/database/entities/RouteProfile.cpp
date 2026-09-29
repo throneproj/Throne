@@ -997,6 +997,51 @@ namespace Configs {
         return removed;
     }
 
+    QString RouteProfile::CoveringSimpleRule(const QString& rawRule, simpleAction action, simpleAction* coveringAction) {
+        const QString raw = rawRule.trimmed();
+        const auto colonIdx = raw.indexOf(':');
+        if (colonIdx == -1) return {};
+        const QString prefix = raw.left(colonIdx).trimmed();
+        const QString value = raw.mid(colonIdx + 1).trimmed().toLower();
+        if (value.isEmpty() || (prefix != "suffix" && prefix != "keyword")) return {};
+
+        const auto addressAction = [](int type) -> std::optional<simpleAction> {
+            switch (type) {
+                case simpleAddressProxy: return proxy;
+                case simpleAddressBypass: return bypass;
+                case simpleAddressBlock: return block;
+                case simpleAddressWarpBypass: return warpBypass;
+                default: return std::nullopt;
+            }
+        };
+
+        // Rules match in list order, and a rule the action does not have yet gets appended at the end.
+        const auto ownType = get_rule_type(raw, action);
+        for (const auto& rule : Rules) {
+            if (rule->type == ownType) break;
+            const auto other = addressAction(rule->type);
+            if (!other || *other == action) continue;
+
+            // Every host a suffix or keyword matches contains the value, so an earlier keyword inside it catches them all.
+            for (const auto& keyword : rule->domain_keyword) {
+                if (!keyword.isEmpty() && value.contains(keyword.toLower())) {
+                    *coveringAction = *other;
+                    return "keyword:" + keyword;
+                }
+            }
+            // A suffix covers the same or a longer suffix, and only whole labels count: github.com covers api.github.com, not mygithub.com.
+            if (prefix != "suffix") continue;
+            for (const auto& suffix : rule->domain_suffix) {
+                const QString s = suffix.toLower();
+                if (!s.isEmpty() && (value == s || value.endsWith("." + s))) {
+                    *coveringAction = *other;
+                    return "suffix:" + suffix;
+                }
+            }
+        }
+        return {};
+    }
+
     QList<QString>* RouteProfile::simple_rule_values(const QString& content, RouteRule& rule, QString* value)
     {
         const auto colonIdx = content.indexOf(':');
@@ -1005,6 +1050,8 @@ namespace Configs {
         if (value->isEmpty()) return nullptr;
 
         const QString prefix = content.left(colonIdx).trimmed();
+        // Stored lowercased by add_simple_address_rule, so looked up the same way.
+        if (prefix == "domain" || prefix == "suffix" || prefix == "keyword") *value = value->toLower();
         if (prefix == "domain") return &rule.domain;
         if (prefix == "suffix") return &rule.domain_suffix;
         if (prefix == "keyword") return &rule.domain_keyword;

@@ -108,6 +108,10 @@ namespace Configs {
         // Drops that "prefix:value" line from the action's simple rules, and a rule it leaves empty along with it.
         bool RemoveSimpleRule(const QString& rawRule, simpleAction action);
 
+        // A line from another action's simple rules that already catches every host a suffix: or keyword: rawRule would,
+        // and sits in a rule matched before the action's own, so rawRule there would never apply. Empty when there is none.
+        QString CoveringSimpleRule(const QString& rawRule, simpleAction action, simpleAction* coveringAction);
+
         void FilterEmptyRules();
     private:
         static bool add_simple_rule(const QString& content, const std::shared_ptr<RouteRule>& rule, ruleType type);
