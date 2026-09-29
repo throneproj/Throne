@@ -13,9 +13,14 @@
 #include <QAbstractItemView>
 #include <QApplication>
 #include <QBoxLayout>
+#include <QCheckBox>
 #include <QClipboard>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QFrame>
 #include <QHeaderView>
 #include <QIcon>
+#include <QLabel>
 #include <QMenu>
 #include <QPainter>
 #include <QPixmap>
@@ -491,9 +496,10 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos)
         { Configs::warpBypass, tr("Warp-bypass"), false },
     };
 
-    // The action is picked first and the target second, so every target stays two clicks away however many there are.
+    // The menu only picks the action; the targets are chosen in a dialog that opens once the menu has closed.
     struct RouteTarget { QString label; QString rule; bool separatorBefore = false; };
     QList<RouteTarget> targets;
+    const RouteAction* pickedAction = nullptr;
 
     auto addRouteSection = [&] {
         if (targets.isEmpty()) return;
@@ -509,46 +515,85 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos)
         for (const auto& ra : routeActions)
         {
             if (!ra.offered) continue;
-            auto* sub = menu.addMenu(ra.label);
+            auto* act = menu.addAction(ra.label);
             if (!currentRoute)
             {
-                sub->setEnabled(false);
-                sub->menuAction()->setToolTip(blocker);
+                act->setEnabled(false);
+                act->setToolTip(blocker);
                 continue;
             }
-            sub->setToolTipsVisible(true);
-
-            for (const auto& target : targets)
-            {
-                if (target.separatorBefore) sub->addSeparator();
-                auto* act = sub->addAction(target.label);
-
-                const bool here = currentRoute->HasSimpleRule(target.rule, ra.action);
-                QStringList elsewhere;
-                for (const auto& other : routeActions)
-                    if (other.action != ra.action && currentRoute->HasSimpleRule(target.rule, other.action))
-                        elsewhere << other.label;
-
-                if (!elsewhere.isEmpty()) act->setText(tr("%1  (in %2)").arg(target.label, elsewhere.join(", ")));
-                act->setCheckable(here);
-                act->setChecked(here);
-                if (here)
-                    act->setToolTip(tr("Already in the %1 rules, click to remove it").arg(ra.label));
-                else if (!elsewhere.isEmpty())
-                    act->setToolTip(tr("Moves the rule from %1 to %2").arg(elsewhere.join(", "), ra.label));
-
-                connect(act, &QAction::triggered, this, [this, target, ra, showTip] {
-                    switch (toggleRuleInCurrentRoute(target.rule, ra.action))
-                    {
-                        case RuleToggle::Added: showTip(tr("Appended to the %1 rules:\n%2").arg(ra.label, target.rule)); break;
-                        case RuleToggle::Moved: showTip(tr("Moved to the %1 rules:\n%2").arg(ra.label, target.rule)); break;
-                        case RuleToggle::Removed: showTip(tr("Removed from the %1 rules:\n%2").arg(ra.label, target.rule)); break;
-                        case RuleToggle::Failed: break;
-                    }
-                });
-            }
+            connect(act, &QAction::triggered, this, [&pickedAction, &ra] { pickedAction = &ra; });
         }
         menu.addSeparator();
+    };
+
+    // One checkbox per target, checked where the target already sits in the action's rules.
+    // Only the boxes the user flipped are applied: checking adds (or moves from another list), unchecking removes.
+    auto showTargetsDialog = [&](const RouteAction& ra) {
+        const QString blocker = routeRuleAppendBlocker();
+        if (!blocker.isEmpty())
+        {
+            MW_show_log(blocker);
+            return;
+        }
+        const auto& dm = Configs::dataManager;
+        const auto currentRoute = dm->routesRepo->GetRouteProfile(dm->settingsRepo->current_route_id);
+        if (!currentRoute) return;
+
+        QDialog dialog(this);
+        dialog.setWindowTitle(tr("%1 rules").arg(ra.label));
+        auto* layout = new QVBoxLayout(&dialog);
+        auto* hint = new QLabel(tr("Routing profile \"%1\". Checked targets go %2; unchecking one removes its rule.")
+                                    .arg(currentRoute->name, ra.label), &dialog);
+        hint->setWordWrap(true);
+        layout->addWidget(hint);
+
+        QList<QPair<QCheckBox*, bool>> boxes;
+        for (const auto& target : targets)
+        {
+            if (target.separatorBefore)
+            {
+                auto* line = new QFrame(&dialog);
+                line->setFrameShape(QFrame::HLine);
+                line->setFrameShadow(QFrame::Sunken);
+                layout->addWidget(line);
+            }
+
+            const bool here = currentRoute->HasSimpleRule(target.rule, ra.action);
+            QStringList elsewhere;
+            for (const auto& other : routeActions)
+                if (other.action != ra.action && currentRoute->HasSimpleRule(target.rule, other.action))
+                    elsewhere << other.label;
+
+            auto* box = new QCheckBox(elsewhere.isEmpty() ? target.label : tr("%1  (in %2)").arg(target.label, elsewhere.join(", ")), &dialog);
+            box->setChecked(here);
+            box->setToolTip(elsewhere.isEmpty() ? target.rule
+                                                : tr("%1\nChecking it moves the rule from %2 to %3").arg(target.rule, elsewhere.join(", "), ra.label));
+            layout->addWidget(box);
+            boxes << qMakePair(box, here);
+        }
+
+        auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+        connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+        connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+        layout->addWidget(buttons);
+        layout->setSizeConstraint(QLayout::SetFixedSize);
+        if (dialog.exec() != QDialog::Accepted) return;
+
+        QStringList changes;
+        for (qsizetype i = 0; i < boxes.size(); ++i)
+        {
+            if (boxes[i].first->isChecked() == boxes[i].second) continue;
+            const QString& rule = targets[i].rule;
+            switch (toggleRuleInCurrentRoute(rule, ra.action))
+            {
+                case RuleToggle::Added: changes << tr("Added %1").arg(rule); break;
+                case RuleToggle::Moved: changes << tr("Moved %1").arg(rule); break;
+                case RuleToggle::Removed: changes << tr("Removed %1").arg(rule); break;
+                case RuleToggle::Failed: break;
+            }
+        }
+        if (!changes.isEmpty()) showTip(tr("%1 rules:\n%2").arg(ra.label, changes.join('\n')));
     };
 
     auto addCopyAction = [&](const QString& label, const QString& text) {
@@ -622,4 +667,5 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos)
     menu.addSeparator();
     addExpandActions();
     menu.exec(globalPos);
+    if (pickedAction) showTargetsDialog(*pickedAction);
 }
