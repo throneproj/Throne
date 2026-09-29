@@ -508,7 +508,7 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos)
         const auto& dm = Configs::dataManager;
         const auto currentRoute = blocker.isEmpty() ? dm->routesRepo->GetRouteProfile(dm->settingsRepo->current_route_id) : nullptr;
 
-        auto* header = menu.addAction(currentRoute ? tr("Add rule to \"%1\"").arg(currentRoute->name) : tr("Add rule"));
+        auto* header = menu.addAction(currentRoute ? tr("Modify rules in \"%1\"").arg(currentRoute->name) : tr("Modify rules"));
         header->setEnabled(false);
         header->setToolTip(blocker);
 
@@ -565,10 +565,30 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos)
                 if (other.action != ra.action && currentRoute->HasSimpleRule(target.rule, other.action))
                     elsewhere << other.label;
 
-            auto* box = new QCheckBox(elsewhere.isEmpty() ? target.label : tr("%1  (in %2)").arg(target.label, elsewhere.join(", ")), &dialog);
+            QStringList notes;
+            QStringList tips{target.rule};
+            if (!elsewhere.isEmpty())
+            {
+                notes << tr("in %1").arg(elsewhere.join(", "));
+                tips << tr("Checking it moves the rule from %1 to %2").arg(elsewhere.join(", "), ra.label);
+            }
+
+            // A broader rule of another action matched first would leave this one dead, so say which.
+            Configs::simpleAction coveringAction;
+            if (const QString covering = currentRoute->CoveringSimpleRule(target.rule, ra.action, &coveringAction); !covering.isEmpty())
+            {
+                const QString value = covering.section(':', 1);
+                const QString coveringLabel = covering.startsWith("keyword:") ? "*" + value + "*" : "*." + value;
+                QString coveringList;
+                for (const auto& other : routeActions)
+                    if (other.action == coveringAction) coveringList = other.label;
+                notes << tr("covered by %1 in %2").arg(coveringLabel, coveringList);
+                tips << tr("%1 in %2 is matched first, so this rule would never apply").arg(covering, coveringList);
+            }
+
+            auto* box = new QCheckBox(notes.isEmpty() ? target.label : tr("%1  (%2)").arg(target.label, notes.join("; ")), &dialog);
             box->setChecked(here);
-            box->setToolTip(elsewhere.isEmpty() ? target.rule
-                                                : tr("%1\nChecking it moves the rule from %2 to %3").arg(target.rule, elsewhere.join(", "), ra.label));
+            box->setToolTip(tips.join('\n'));
             layout->addWidget(box);
             boxes << qMakePair(box, here);
         }
