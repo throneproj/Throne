@@ -6612,6 +6612,10 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>Отключить</translation>
     </message>
     <message>
+        <source>Clean up</source>
+        <translation>Очистка</translation>
+    </message>
+    <message>
         <source>Remove Duplicates</source>
         <translation>Удалить дубликаты</translation>
     </message>

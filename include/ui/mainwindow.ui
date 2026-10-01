@@ -812,6 +812,7 @@ QToolButton::menu-indicator {
     <addaction name="menu_update_subscription"/>
     <addaction name="actionUpdate_All_Subscriptions"/>
     <addaction name="menu_clean_up"/>
+    <addaction name="separator"/>
    </widget>
    <addaction name="menu_program"/>
    <addaction name="menu_preferences"/>

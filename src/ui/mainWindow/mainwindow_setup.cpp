@@ -481,6 +481,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         int columnIndex = header->logicalIndexAt(pos);
         auto group = Configs::dataManager->groupsRepo->CurrentGroup();
         if (group == nullptr) return;
+        // The column-widths action carries its shortcut id as data, so it must never be read as a sort key.
+        auto execWithResetWidths = [&](QMenu& menu) -> QAction* {
+            if (!menu.isEmpty()) menu.addSeparator();
+            menu.addAction(ui->actionRefresh_Column_Widths);
+            auto* chosen = menu.exec(header->mapToGlobal(pos));
+            return chosen == ui->actionRefresh_Column_Widths ? nullptr : chosen;
+        };
         if (columnIndex == ProfilesTableModel::ColType && Configs::dataManager->settingsRepo->show_config_security) {
             QMenu menu(this);
             auto* sortByLabel = menu.addAction(tr("Sort By:"));
@@ -498,11 +505,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                 act->setChecked(group->type_sort_by == opt.value);
             }
 
-            menu.addSeparator();
-            menu.addAction(ui->actionRefresh_Column_Widths);
-            auto* chosen = menu.exec(header->mapToGlobal(pos));
-            // The column-widths action carries its shortcut id as data, so rule it out before reading data as a sort key.
-            if (chosen == nullptr || chosen == ui->actionRefresh_Column_Widths || !chosen->data().isValid()) return;
+            auto* chosen = execWithResetWidths(menu);
+            if (chosen == nullptr || !chosen->data().isValid()) return;
 
             group->type_sort_by = static_cast<Configs::typeBy>(chosen->data().toInt());
             Configs::dataManager->groupsRepo->Save(group);
@@ -576,10 +580,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                 act->setChecked(static_cast<int>(group->test_sort_by) == opt.value);
             }
 
-            menu.addSeparator();
-            menu.addAction(ui->actionRefresh_Column_Widths);
-            auto* chosen = menu.exec(header->mapToGlobal(pos));
-            if (chosen == nullptr || chosen == ui->actionRefresh_Column_Widths || !chosen->data().isValid()) return;
+            auto* chosen = execWithResetWidths(menu);
+            if (chosen == nullptr || !chosen->data().isValid()) return;
 
             int testSortBy = chosen->data().toInt();
             group->test_sort_by = static_cast<Configs::testBy>(testSortBy);
@@ -622,10 +624,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                 act->setChecked(static_cast<int>(group->traffic_sort_by) == opt.value);
             }
 
-            menu.addSeparator();
-            menu.addAction(ui->actionRefresh_Column_Widths);
-            auto* chosen = menu.exec(header->mapToGlobal(pos));
-            if (chosen == nullptr || chosen == ui->actionRefresh_Column_Widths || !chosen->data().isValid()) return;
+            auto* chosen = execWithResetWidths(menu);
+            if (chosen == nullptr || !chosen->data().isValid()) return;
 
             int trafficSortBy = chosen->data().toInt();
             group->traffic_sort_by = static_cast<Configs::trafficBy>(trafficSortBy);
@@ -650,8 +650,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             return;
         }
         QMenu menu(this);
-        menu.addAction(ui->actionRefresh_Column_Widths);
-        menu.exec(header->mapToGlobal(pos));
+        execWithResetWidths(menu);
     });
     ui->profilesTableView->verticalHeader()->setStretchLastSection(false);
     ui->profilesTableView->verticalHeader()->setDefaultSectionSize(24);
@@ -883,6 +882,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     connect(ui->actionRefresh_Column_Widths, &QAction::triggered, this, [=, this] {
         auto ent = Configs::dataManager->groupsRepo->CurrentGroup();
+        if (ent == nullptr) return;
         ent->column_width.clear();
         Configs::dataManager->groupsRepo->Save(ent);
         show_group(ent->id);
