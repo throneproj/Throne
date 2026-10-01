@@ -481,8 +481,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         int columnIndex = header->logicalIndexAt(pos);
         auto group = Configs::dataManager->groupsRepo->CurrentGroup();
         if (group == nullptr) return;
-        if (columnIndex == ProfilesTableModel::ColType) {
-            if (!Configs::dataManager->settingsRepo->show_config_security) return;
+        if (columnIndex == ProfilesTableModel::ColType && Configs::dataManager->settingsRepo->show_config_security) {
             QMenu menu(this);
             auto* sortByLabel = menu.addAction(tr("Sort By:"));
             sortByLabel->setEnabled(false);
@@ -499,8 +498,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                 act->setChecked(group->type_sort_by == opt.value);
             }
 
+            menu.addSeparator();
+            menu.addAction(ui->actionRefresh_Column_Widths);
             auto* chosen = menu.exec(header->mapToGlobal(pos));
-            if (chosen == nullptr || !chosen->data().isValid()) return;
+            // The column-widths action carries its shortcut id as data, so rule it out before reading data as a sort key.
+            if (chosen == nullptr || chosen == ui->actionRefresh_Column_Widths || !chosen->data().isValid()) return;
 
             group->type_sort_by = static_cast<Configs::typeBy>(chosen->data().toInt());
             Configs::dataManager->groupsRepo->Save(group);
@@ -574,8 +576,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                 act->setChecked(static_cast<int>(group->test_sort_by) == opt.value);
             }
 
+            menu.addSeparator();
+            menu.addAction(ui->actionRefresh_Column_Widths);
             auto* chosen = menu.exec(header->mapToGlobal(pos));
-            if (chosen == nullptr || !chosen->data().isValid()) return;
+            if (chosen == nullptr || chosen == ui->actionRefresh_Column_Widths || !chosen->data().isValid()) return;
 
             int testSortBy = chosen->data().toInt();
             group->test_sort_by = static_cast<Configs::testBy>(testSortBy);
@@ -618,8 +622,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                 act->setChecked(static_cast<int>(group->traffic_sort_by) == opt.value);
             }
 
+            menu.addSeparator();
+            menu.addAction(ui->actionRefresh_Column_Widths);
             auto* chosen = menu.exec(header->mapToGlobal(pos));
-            if (chosen == nullptr || !chosen->data().isValid()) return;
+            if (chosen == nullptr || chosen == ui->actionRefresh_Column_Widths || !chosen->data().isValid()) return;
 
             int trafficSortBy = chosen->data().toInt();
             group->traffic_sort_by = static_cast<Configs::trafficBy>(trafficSortBy);
@@ -643,6 +649,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                 });
             return;
         }
+        QMenu menu(this);
+        menu.addAction(ui->actionRefresh_Column_Widths);
+        menu.exec(header->mapToGlobal(pos));
     });
     ui->profilesTableView->verticalHeader()->setStretchLastSection(false);
     ui->profilesTableView->verticalHeader()->setDefaultSectionSize(24);

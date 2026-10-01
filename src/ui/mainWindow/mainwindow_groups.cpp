@@ -247,6 +247,9 @@ void MainWindow::show_group_tab_menu(const QPoint &p) {
         connect(menu.addAction(tr("Speed Test selected Group")), &QAction::triggered, this, [=,this]{
             testRunner->runSpeedTests(clickedGroup->Profiles());
         });
+        // The clicked tab is already current, and these actions work on the current group.
+        menu.addSeparator();
+        menu.addMenu(ui->menu_clean_up);
     }
     menu.exec(ui->tabWidget->tabBar()->mapToGlobal(p));
 }

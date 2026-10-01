@@ -789,6 +789,15 @@ QToolButton::menu-indicator {
     <property name="title">
      <string>Groups</string>
     </property>
+    <widget class="QMenu" name="menu_clean_up">
+     <property name="title">
+      <string>Clean up</string>
+     </property>
+     <addaction name="menu_delete_repeat"/>
+     <addaction name="menu_remove_unavailable"/>
+     <addaction name="menu_remove_invalid"/>
+     <addaction name="menu_remove_insecure"/>
+    </widget>
     <addaction name="menu_manage_groups"/>
     <addaction name="actionAdd_New_Group"/>
     <addaction name="actionEdit_Group"/>
@@ -802,12 +811,7 @@ QToolButton::menu-indicator {
     <addaction name="separator"/>
     <addaction name="menu_update_subscription"/>
     <addaction name="actionUpdate_All_Subscriptions"/>
-    <addaction name="menu_delete_repeat"/>
-    <addaction name="menu_remove_unavailable"/>
-    <addaction name="menu_remove_invalid"/>
-    <addaction name="menu_remove_insecure"/>
-    <addaction name="separator"/>
-    <addaction name="actionRefresh_Column_Widths"/>
+    <addaction name="menu_clean_up"/>
    </widget>
    <addaction name="menu_program"/>
    <addaction name="menu_preferences"/>
