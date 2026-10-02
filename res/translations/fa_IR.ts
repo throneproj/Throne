@@ -2128,6 +2128,10 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
         <translation>غیرفعال کردن</translation>
     </message>
     <message>
+        <source>Clean up</source>
+        <translation>پاکسازی</translation>
+    </message>
+    <message>
         <source>Remove Duplicates</source>
         <translation>موارد تکراری را حذف کردن</translation>
     </message>

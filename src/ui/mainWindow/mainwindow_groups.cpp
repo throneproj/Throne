@@ -247,9 +247,7 @@ void MainWindow::show_group_tab_menu(const QPoint &p) {
         connect(menu.addAction(tr("Speed Test selected Group")), &QAction::triggered, this, [=,this]{
             testRunner->runSpeedTests(clickedGroup->Profiles());
         });
-    }
-    // These actions work on the current group, so offer them only once the clicked tab really became current.
-    if (clickedGroup != nullptr && clickedGroup->id == Configs::dataManager->settingsRepo->current_group) {
+        // Clean up acts on the current group; setCurrentIndex above already switched to the clicked one.
         menu.addSeparator();
         menu.addMenu(ui->menu_clean_up);
     }

@@ -8208,6 +8208,10 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>禁用</translation>
     </message>
     <message>
+        <source>Clean up</source>
+        <translation>清理</translation>
+    </message>
+    <message>
         <location filename="Throne-1.3.1/include/ui/mainwindow.ui" line="966"/>
         <source>Remove Duplicates</source>
         <translation>移除重复项</translation>
