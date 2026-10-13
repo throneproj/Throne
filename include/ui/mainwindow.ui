@@ -746,6 +746,9 @@ QToolButton::menu-indicator {
     <addaction name="actionRemember_last_proxy"/>
     <addaction name="actionAllow_LAN"/>
     <addaction name="separator"/>
+    <addaction name="actionCheck_For_Update"/>
+    <addaction name="actionAbout"/>
+    <addaction name="separator"/>
     <addaction name="actionRestart_Proxy"/>
     <addaction name="actionRestart_Program"/>
     <addaction name="menu_exit"/>
@@ -837,7 +840,6 @@ QToolButton::menu-indicator {
     <addaction name="menu_scanner"/>
     <addaction name="separator"/>
     <addaction name="actionTraffic_Stats"/>
-    <addaction name="actionCheck_For_Update"/>
    </widget>
    <widget class="QMenu" name="menuTesting">
     <property name="title">
@@ -1396,6 +1398,11 @@ QToolButton::menu-indicator {
   <action name="actionCheck_For_Update">
    <property name="text">
     <string>Check For Update</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
   <action name="actionUpdate_Rule_Sets">

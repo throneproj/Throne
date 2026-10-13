@@ -64,6 +64,7 @@
 #include <QDesktopServices>
 #include <QTimer>
 #include <QMessageBox>
+#include <QSysInfo>
 #include <QDir>
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
 #include <QStyleHints>
@@ -370,6 +371,25 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         m_autoSelectorDialog->activateWindow();
     });
     connect(ui->actionCheck_For_Update, &QAction::triggered, this, [=,this] { runOnNewThread([=,this] { CheckUpdate(); }); });
+    connect(ui->actionAbout, &QAction::triggered, this, [=,this] {
+        const auto text = QStringLiteral("<h3>Throne</h3>"
+                                         "<p>%1: %2<br>%3: %4 (%5)<br>Qt: %6</p>"
+                                         "<p>%7</p>"
+                                         "<p><a href=\"https://github.com/throneproj/Throne\">https://github.com/throneproj/Throne</a></p>")
+                              .arg(tr("Version"), QStringLiteral(NKR_VERSION),
+                                   tr("Build"), QStringLiteral(__DATE__), QSysInfo::buildCpuArchitecture(),
+                                   QString(qVersion()),
+                                   tr("Licensed under the <a href=\"https://www.gnu.org/licenses/gpl-3.0.html\">GNU General Public License v3.0</a>."));
+        // The bundled icon, not windowIcon(): that one follows the proxy status colour.
+        const QIcon icon(QStringLiteral(":/Throne/Throne.png"));
+        QMessageBox box(this);
+        box.setWindowTitle(tr("About Throne"));
+        box.setWindowIcon(icon);
+        box.setIconPixmap(icon.pixmap(QSize(64, 64), devicePixelRatioF()));
+        box.setTextFormat(Qt::RichText);
+        box.setText(text);
+        box.exec();
+    });
     connect(ui->actionUpdate_Rule_Sets, &QAction::triggered, this, [=,this] {
         if (m_ruleSetUpdateBusy) return;
         m_ruleSetUpdateBusy = true;

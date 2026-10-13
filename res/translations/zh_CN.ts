@@ -8515,6 +8515,26 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>检查更新</translation>
     </message>
     <message>
+        <source>About</source>
+        <translation>关于</translation>
+    </message>
+    <message>
+        <source>About Throne</source>
+        <translation>关于 Throne</translation>
+    </message>
+    <message>
+        <source>Version</source>
+        <translation>版本</translation>
+    </message>
+    <message>
+        <source>Build</source>
+        <translation>构建</translation>
+    </message>
+    <message>
+        <source>Licensed under the &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GNU General Public License v3.0&lt;/a&gt;.</source>
+        <translation>基于 &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GNU 通用公共许可证 v3.0&lt;/a&gt; 授权。</translation>
+    </message>
+    <message>
         <location filename="Throne-1.3.1/src/ui/mainWindow/mainwindow_autoselector.cpp" line="19"/>
         <source>[Auto selector] Reusing existing test results; ranked %1 profiles.</source>
         <translation>[自动选择器] 正在重用现有测试结果； 已排名 %1 个配置档。</translation>
