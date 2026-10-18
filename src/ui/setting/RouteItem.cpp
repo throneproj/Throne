@@ -19,6 +19,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListView>
 #include <QListWidget>
 #include <QMessageBox>
 #include <QPlainTextEdit>
@@ -27,6 +28,7 @@
 #include <QSet>
 #include <QSizePolicy>
 #include <QStackedWidget>
+#include <QStandardItemModel>
 #include <QStyle>
 #include <QGridLayout>
 #include <QMouseEvent>
@@ -61,14 +63,16 @@ static QString routeItemFirstWarningLine(const QString& text, const std::functio
 
 void adjustComboBoxWidth(const QComboBox *comboBox) {
     int maxWidth = 0;
+    const QFontMetrics fontMetrics(comboBox->font());
 
     for (int i = 0; i < comboBox->count(); ++i) {
-        QFontMetrics fontMetrics(comboBox->font());
         int itemWidth = fontMetrics.horizontalAdvance(comboBox->itemText(i));
         maxWidth = qMax(maxWidth, itemWidth);
     }
 
     maxWidth += 30;
+    if (const auto *scr = comboBox->screen() != nullptr ? comboBox->screen() : QGuiApplication::primaryScreen())
+        maxWidth = qMin(maxWidth, scr->availableGeometry().width() * 2 / 3);
     comboBox->view()->setMinimumWidth(maxWidth);
 }
 
@@ -113,23 +117,31 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
         ui->route_items->addItem(item->name);
     }
 
-    outbounds = {"proxy", "direct", "warp-bypass"};
-    outboundMap[0] = -1;
-    outboundMap[1] = -2;
-    outboundMap[2] = Configs::warpBypassID;
+    QList<QStandardItem*> outboundItems;
+    const auto addOutbound = [&outboundItems](const QString& name, const int id) {
+        auto* item = new QStandardItem(name);
+        item->setData(id, Qt::UserRole);
+        outboundItems << item;
+    };
+    addOutbound(QStringLiteral("proxy"), -1);
+    addOutbound(QStringLiteral("direct"), -2);
+    addOutbound(QStringLiteral("warp-bypass"), Configs::warpBypassID);
     auto proxyListRaw = Configs::dataManager->profilesRepo->GetAllProfileIDNameMapped();
-    QMap<int, QString> idToName;
+    QHash<int, QString> idToName;
+    idToName.reserve(static_cast<qsizetype>(proxyListRaw.size()));
     for (const auto& [id, name] : proxyListRaw) idToName.insert(id, name);
     auto groupIDs = Configs::dataManager->groupsRepo->GetGroupsTabOrder();
     for (auto groupID : groupIDs) {
         auto group = Configs::dataManager->groupsRepo->GetGroup(groupID);
         if (!group) continue;
         for (int profileID : group->profiles) {
-            if (!idToName.contains(profileID)) continue;
-            outboundMap[outboundMap.size()] = profileID;
-            outbounds << QString("[" + group->name + "] ") + idToName[profileID];
+            const auto it = idToName.constFind(profileID);
+            if (it == idToName.cend()) continue;
+            addOutbound(QString("[" + group->name + "] ") + it.value(), profileID);
         }
     }
+    outboundsModel = new QStandardItemModel(this);
+    outboundsModel->invisibleRootItem()->appendRows(outboundItems);
 
     for (const auto& item : ruleSetList) {
         geo_items.append(QString::fromUtf8(item.first.data(), item.first.size()));
@@ -138,6 +150,9 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     ui->route_name->setText(chain->name);
     ui->rule_preview->setReadOnly(true);
     ui->rule_attr_tabs->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    // macOS styles prefer no scroll arrows, so many attribute tabs would otherwise widen the dialog.
+    ui->rule_attr_tabs->setUsesScrollButtons(true);
+    ui->rule_attr_tabs->tabBar()->setExpanding(false);
     ui->rule_attr_tabs->setTabsClosable(true);
     connect(ui->rule_attr_tabs, &QTabWidget::tabCloseRequested, this, [this](int index) {
         if (currentIndex < 0) return;
@@ -149,11 +164,6 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     connect(ui->rule_attr_tabs, &QTabWidget::currentChanged, this, [this](int index) {
         if (currentIndex >= 0 && !currentRuleIsEndpoint() && index >= 0 && index < ui->rule_attr_tabs->count())
             chain->Rules[currentIndex]->uiActiveAttributeTabLabel = ui->rule_attr_tabs->tabText(index);
-        if (QWidget* w = ui->rule_attr_tabs->currentWidget()) {
-            w->updateGeometry();
-            w->adjustSize();
-        }
-        ui->rule_attr_tabs->updateGeometry();
     });
 
     ensurePlusTabBuiltOnce();
@@ -785,16 +795,23 @@ QWidget* RouteItem::makeAttributeEditorPage(const QString& attr) {
             auto* cb = new QComboBox(container);
             if (attr == QStringLiteral("outbound")) {
                 cb->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
-                for (int i = 0; i < outbounds.size(); ++i) cb->addItem(outbounds[i], outboundMap[i]);
-                int selected = cb->findData(rule->outboundID);
-                // A deleted profile stays visible instead of reading as the first item.
-                if (selected < 0) {
-                    cb->addItem(rule->outboundID < 0 ? Configs::outboundIDToString(rule->outboundID)
-                                                     : tr("Missing profile (id %1)").arg(rule->outboundID),
-                                rule->outboundID);
-                    selected = cb->count() - 1;
+                if (auto* lv = qobject_cast<QListView*>(cb->view())) lv->setUniformItemSizes(true);
+                cb->setModel(outboundsModel);
+                const int selected = cb->findData(rule->outboundID);
+                if (selected >= 0) {
+                    cb->setCurrentIndex(selected);
+                } else {
+                    // A deleted profile stays visible instead of reading as the first item, and the shared model stays untouched.
+                    cb->setPlaceholderText(rule->outboundID < 0 ? Configs::outboundIDToString(rule->outboundID)
+                                                                : tr("Missing profile (id %1)").arg(rule->outboundID));
+                    cb->setCurrentIndex(-1);
                 }
-                cb->setCurrentIndex(selected);
+                if (outboundsPopupWidth < 0) {
+                    adjustComboBoxWidth(cb);
+                    outboundsPopupWidth = cb->view()->minimumWidth();
+                } else {
+                    cb->view()->setMinimumWidth(outboundsPopupWidth);
+                }
                 connect(cb, &QComboBox::currentIndexChanged, this, [this, cb](const int index) {
                     if (currentIndex < 0 || index < 0) return;
                     chain->Rules[currentIndex]->set_field_value(QStringLiteral("outbound"), {QString::number(cb->itemData(index).toInt())});
@@ -806,6 +823,7 @@ QWidget* RouteItem::makeAttributeEditorPage(const QString& attr) {
                 const QString cur = rule->get_current_value_string(attr).value(0);
                 if (!cur.isEmpty() && cb->findText(cur) < 0) cb->addItem(cur);
                 cb->setCurrentText(cur);
+                adjustComboBoxWidth(cb);
                 connect(cb, &QComboBox::currentIndexChanged, this, [this, attr, cb](const int index) {
                     if (currentIndex < 0 || index < 0) return;
                     chain->Rules[currentIndex]->set_field_value(attr, {cb->itemText(index)});
@@ -813,7 +831,6 @@ QWidget* RouteItem::makeAttributeEditorPage(const QString& attr) {
                     scheduleRuleCheck();
                 });
             }
-            adjustComboBoxWidth(cb);
             lay->addWidget(cb);
             editor = cb;
             break;
@@ -1033,7 +1050,8 @@ void RouteItem::ensurePlusTabBuiltOnce() {
     lay->setContentsMargins(8, 8, 8, 8);
 
     auto* hint = new QLabel(tr("Check attributes to show as tabs; unchecking clears their values."), container);
-    hint->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    hint->setWordWrap(true);
+    hint->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     ruleAttrPlusList = new QListWidget(container);
     ruleAttrPlusList->setMinimumHeight(100);
     ruleAttrPlusList->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -1155,6 +1173,7 @@ bool RouteItem::eventFilter(QObject* watched, QEvent* event) {
 void RouteItem::rebuildRuleAttributeTabs() {
     ensurePlusTabBuiltOnce();
 
+    ui->rule_attr_tabs->setUpdatesEnabled(false);
     ui->rule_attr_tabs->blockSignals(true);
     removeAllAttributeTabsExceptPlus();
     delete ruleScope;
@@ -1164,6 +1183,7 @@ void RouteItem::rebuildRuleAttributeTabs() {
         syncPlusListCheckStatesFromRule();
         applyStoredRuleAttrTabSelection();
         ui->rule_attr_tabs->blockSignals(false);
+        ui->rule_attr_tabs->setUpdatesEnabled(true);
         refreshIssueIcons();
         return;
     }
@@ -1181,6 +1201,7 @@ void RouteItem::rebuildRuleAttributeTabs() {
     applyStoredRuleAttrTabSelection();
 
     ui->rule_attr_tabs->blockSignals(false);
+    ui->rule_attr_tabs->setUpdatesEnabled(true);
     bindCurrentRule();
     refreshIssueIcons();
 }

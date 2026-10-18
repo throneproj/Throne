@@ -14,6 +14,7 @@
 #include "include/ui/utils/ValidationForm.h"
 
 class QListWidget;
+class QStandardItemModel;
 
 class RouteItem : public QDialog {
     Q_OBJECT
@@ -36,9 +37,10 @@ private:
 
     QShortcut* deleteShortcut;
 
-    QStringList outbounds;
+    // Shared by every rule's outbound combo: refilling and re-measuring thousands of profiles froze each rule switch.
+    QStandardItemModel* outboundsModel = nullptr;
 
-    std::map<int,int> outboundMap;
+    int outboundsPopupWidth = -1;
 
     AutoCompleteTextEdit* simpleDirect;
 
