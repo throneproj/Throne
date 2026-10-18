@@ -33,13 +33,24 @@ namespace {
     QString outboundToolTip(const QString &name, const QString &tag) {
         return name == tag ? name : QStringLiteral("%1 (%2)").arg(name, tag);
     }
+
+    // Where the rule sent the connection: a well-known tag says it better than the profile behind it,
+    // which the Outbound column already shows, while a rule's own server (route-N) has nothing but its name.
+    QString routeTarget(const Stats::ConnectionMetadata &meta) {
+        static const QStringList plainTags{QStringLiteral("proxy"), QStringLiteral("direct"), QStringLiteral("warp-bypass")};
+        return plainTags.contains(meta.outbound) || meta.outboundName.isEmpty() ? meta.outbound : meta.outboundName;
+    }
 }
 
 QString ConnectionsTreeModel::matchedRuleText(const Stats::ConnectionMetadata &meta, int maxGraphemes) {
     QString matched = meta.ruleItem;
     if (matched.isEmpty()) matched = meta.rule.isEmpty() ? QStringLiteral("final") : meta.rule;
-    if (maxGraphemes > 0) matched = ShortDisplayName(matched, maxGraphemes);
-    return tr("Matched: %1 → %2").arg(matched, outboundToolTip(meta.outboundName, meta.outbound));
+    QString target = routeTarget(meta);
+    if (maxGraphemes > 0) {
+        matched = ShortDisplayName(matched, maxGraphemes);
+        target = ShortDisplayName(target);
+    }
+    return tr("Matched: %1 → %2").arg(matched, target);
 }
 
 QString ConnectionsTreeModel::matchedRuleToolTip(const Stats::ConnectionMetadata &meta) {
