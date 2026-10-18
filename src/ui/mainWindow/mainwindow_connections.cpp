@@ -1,5 +1,6 @@
 #include "include/ui/mainwindow.h"
 #include "include/api/RPC.h"
+#include "include/configs/outbounds/chain.h"
 #include "include/configs/outbounds/custom.h"
 #include "include/database/entities/RouteProfile.h"
 #include "include/database/GroupsRepo.h"
@@ -55,8 +56,16 @@ namespace
 
     struct RoutableServer { int id; QString label; QString fullLabel; };
 
+    // What generate.cpp refuses as a rule's outbound or as a hop of one: extra cores and full configs.
+    bool UnroutableProfile(const std::shared_ptr<Configs::Profile>& profile)
+    {
+        if (!profile || !profile->outbound || profile->outbound->IsExtraCore() || profile->outbound->IsXrayFullConfig()) return true;
+        const auto* custom = profile->Custom();
+        return custom && custom->type == Configs::Custom::CustomFullConfig;
+    }
+
     // Every profile a routing rule can point at, as "[group] name" with groups in tab order, like the routing editor lists them.
-    // Extra cores and full configs are left out, since the core refuses them as a rule's outbound.
+    // Ones the core would refuse are left out, chains included when a hop of theirs is.
     // A long group name is cut short so the server name still fits; fullLabel keeps it whole.
     QList<RoutableServer> RoutableServers()
     {
@@ -67,10 +76,23 @@ namespace
         for (const auto& [id, name] : FixProfileDisplayName(mapped)) names.insert(id, name);
         for (const int id : repo->GetProfileIdsByType("extracore")) names.remove(id);
         for (const auto& profile : repo->GetProfileBatch(repo->GetProfileIdsByType("custom")))
+            if (UnroutableProfile(profile)) names.remove(profile->id);
+
+        const auto chains = repo->GetProfileBatch(repo->GetProfileIdsByType("chain"));
+        QList<int> hopIDs;
+        for (const auto& profile : chains)
+            if (const auto* chain = profile->Chain()) hopIDs << chain->list;
+        QHash<int, std::shared_ptr<Configs::Profile>> hops;
+        for (const auto& hop : repo->GetProfileBatch(hopIDs)) hops.insert(hop->id, hop);
+        for (const auto& profile : chains)
         {
-            const auto* custom = profile->Custom();
-            if (!custom || custom->type == Configs::Custom::CustomFullConfig || custom->type == Configs::Custom::CustomXrayFullConfig)
-                names.remove(profile->id);
+            const auto* chain = profile->Chain();
+            const bool usable = chain && !chain->list.isEmpty()
+                && std::all_of(chain->list.cbegin(), chain->list.cend(), [&hops](int hopID) {
+                       const auto hop = hops.value(hopID);
+                       return !UnroutableProfile(hop) && hop->type != "chain";
+                   });
+            if (!usable) names.remove(profile->id);
         }
 
         QList<RoutableServer> servers;
@@ -86,11 +108,12 @@ namespace
         return servers;
     }
 
+    // Named as in the server list: an unnamed profile by its type and address.
     QString ServerName(int id)
     {
         const auto profile = Configs::dataManager->profilesRepo->GetProfile(id);
         if (!profile) return QString("#%1").arg(id);
-        return profile->outbound ? profile->outbound->DisplayName() : profile->name;
+        return profile->name.trimmed().isEmpty() && profile->outbound ? profile->outbound->DisplayTypeAndName() : profile->name;
     }
 
     QIcon RecolorIcon(const QString& path, const QColor& color)
@@ -557,8 +580,15 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos)
         { Configs::warpBypass, tr("Warp-bypass"), false },
     };
 
-    const auto targetLabel = [&routeActions](const Configs::SimpleTarget& t) {
-        if (t.isServer()) return ServerName(t.serverID);
+    // Looked up once per menu: the dialog asks for a server's name on every refresh.
+    QHash<int, QString> serverNames;
+    const auto targetLabel = [&routeActions, &serverNames](const Configs::SimpleTarget& t) {
+        if (t.isServer())
+        {
+            auto it = serverNames.find(t.serverID);
+            if (it == serverNames.end()) it = serverNames.insert(t.serverID, ServerName(t.serverID));
+            return it.value();
+        }
         for (const auto& ra : routeActions)
             if (ra.action == t.action) return ra.label;
         return QString();
@@ -627,7 +657,7 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos)
         const auto servers = ra ? QList<RoutableServer>{} : RoutableServers();
         if (!ra && servers.isEmpty())
         {
-            MW_show_log(tr("There are no servers to route to."));
+            showTip(tr("There are no servers to route to."));
             return;
         }
 
@@ -661,16 +691,12 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos)
                 serverBox->addItem(server.label, server.id);
                 if (server.fullLabel != server.label) serverBox->setItemData(serverBox->count() - 1, server.fullLabel, Qt::ToolTipRole);
             }
-            // Opens on a server that already holds one of the targets.
-            for (const auto& target : targets)
-            {
-                const auto holding = currentRoute->ServersHoldingSimpleRule(target.rule);
-                if (const int index = holding.isEmpty() ? -1 : serverBox->findData(holding.first()); index >= 0)
-                {
-                    serverBox->setCurrentIndex(index);
-                    break;
-                }
-            }
+            // Opens on a listed server that already holds one of the targets.
+            int holderIndex = -1;
+            for (qsizetype i = 0; i < targets.size() && holderIndex < 0; ++i)
+                for (const int server : currentRoute->ServersHoldingSimpleRule(targets[i].rule))
+                    if ((holderIndex = serverBox->findData(server)) >= 0) break;
+            if (holderIndex >= 0) serverBox->setCurrentIndex(holderIndex);
             layout->addWidget(serverBox);
         }
         const auto chosen = [&]() -> Configs::SimpleTarget {
@@ -705,7 +731,7 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos)
                     if (Configs::SimpleTarget{other.action} != t && currentRoute->HasSimpleRule(target.rule, {other.action}))
                         elsewhere << other.label;
                 for (const int server : currentRoute->ServersHoldingSimpleRule(target.rule))
-                    if (Configs::SimpleTarget{Configs::proxy, server} != t) elsewhere << ServerName(server);
+                    if (const Configs::SimpleTarget other{Configs::proxy, server}; other != t) elsewhere << targetLabel(other);
 
                 QStringList notes;
                 QStringList tips{target.rule};

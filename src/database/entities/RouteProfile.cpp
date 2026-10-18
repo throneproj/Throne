@@ -1128,12 +1128,14 @@ namespace Configs {
             if (!server) return false;
             rule = std::make_shared<RouteRule>();
             rule->outboundID = target.serverID;
+            // Named as the server list names it, so an unnamed profile still gives its type and address.
+            const QString serverName = server->name.trimmed().isEmpty() && server->outbound ? server->outbound->DisplayTypeAndName() : server->name;
             // Names stay unique, or the editor renames the rule to rule_<random>.
-            const QString base = get_rule_type(raw, proxy) == simpleAddressProxy ? QString("%1 (address)").arg(server->name)
-                                                                                 : QString("%1 (process)").arg(server->name);
+            const QString base = get_rule_type(raw, proxy) == simpleAddressProxy ? QString("%1 (address)").arg(serverName)
+                                                                                 : QString("%1 (process)").arg(serverName);
             rule->name = base;
             for (int n = 2; std::any_of(Rules.cbegin(), Rules.cend(), [&rule](const auto& r) { return r->name == rule->name; }); ++n)
-                rule->name = QString("%1 %2").arg(base).arg(n);
+                rule->name = QString("%1 %2").arg(base, QString::number(n));
         } else if (isNewRule) {
             for (auto &item : get_simple_rules()) {
                 if (item->type == type) {
@@ -1249,7 +1251,8 @@ namespace Configs {
         static const QStringList addressAttrs = {"domain", "domain_suffix", "domain_keyword", "domain_regex", "rule_set", "ip_cidr"};
         static const QStringList processAttrs = {"process_name", "process_path"};
         const auto& own = type == simpleAddressProxy ? addressAttrs : processAttrs;
-        const auto attrs = RouteRule::get_attributes();
+        // Checked for every rule on each dialog refresh, so built once.
+        static const auto attrs = RouteRule::get_attributes();
         return std::all_of(attrs.cbegin(), attrs.cend(), [&](const QString& attr) {
             return attr == "outbound" || own.contains(attr) || RouteRule::is_attribute_at_default(rule, attr);
         });
