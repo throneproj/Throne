@@ -48,6 +48,7 @@ namespace Stats
         QString processPath;
         QString source;        // raw "ip:port" reported by the core, empty when unknown
         QString sourceDisplay; // tr("Local") for this machine, else the client's bare IP
+        QString rule;          // the matched route rule as sing-box prints it, empty when routed by final
         long long closedAtMs = 0; // 0 while live
         long long uploadSpeed = 0;   // bytes/sec
         long long downloadSpeed = 0;

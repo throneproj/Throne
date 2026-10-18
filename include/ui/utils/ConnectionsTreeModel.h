@@ -91,6 +91,8 @@ public:
     void setConnections(const QList<Stats::ConnectionMetadata> &connections, Stats::ConnectionSort sort, bool ascending);
 
     static QString displayProcessName(const QString &processName);
+    // "Matched: <rule> → <outbound>", with "final" for a connection no rule caught; maxRuleGraphemes > 0 shortens the rule.
+    static QString matchedRuleText(const Stats::ConnectionMetadata &meta, int maxRuleGraphemes = 0);
 
     bool isProcessIndex(const QModelIndex &index) const;
     QString processNameAt(const QModelIndex &index) const;

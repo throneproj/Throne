@@ -2,6 +2,7 @@
 #include "include/global/Utils.hpp"
 
 #include <QHash>
+#include <QTextDocument>
 
 #include <algorithm>
 
@@ -32,6 +33,12 @@ namespace {
     QString outboundToolTip(const QString &name, const QString &tag) {
         return name == tag ? name : QStringLiteral("%1 (%2)").arg(name, tag);
     }
+}
+
+QString ConnectionsTreeModel::matchedRuleText(const Stats::ConnectionMetadata &meta, int maxRuleGraphemes) {
+    const QString rule = meta.rule.isEmpty() ? QStringLiteral("final") : meta.rule;
+    return tr("Matched: %1 → %2").arg(maxRuleGraphemes > 0 ? ShortDisplayName(rule, maxRuleGraphemes) : rule,
+                                      outboundToolTip(meta.outboundName, meta.outbound));
 }
 
 ConnectionsTreeModel::ConnectionsTreeModel(QObject *parent)
@@ -150,8 +157,9 @@ QVariant ConnectionsTreeModel::data(const QModelIndex &index, int role) const {
             return {};
         }
     case Qt::ToolTipRole: {
+        // Rich text, so a long rule wraps at its spaces instead of running off the screen.
+        if (index.column() == ColOutbound) return Qt::convertFromPlainText(matchedRuleText(leaf->meta));
         const QString outbound = outboundToolTip(leaf->meta.outboundName, leaf->meta.outbound);
-        if (index.column() == ColOutbound) return outbound;
         if (index.column() != ColTarget) return {};
         const QString process = displayProcessName(leaf->parent->processName);
         if (leaf->count > 1) {
@@ -230,7 +238,7 @@ void ConnectionsTreeModel::setConnections(const QList<Stats::ConnectionMetadata>
 
         const QString dest = DisplayDest(c.dest, c.domain);
         const QString protocol = c.protocol.isEmpty() ? c.network : c.network + " (" + c.protocol + ")";
-        const QString key = dest + "\t" + protocol + "\t" + c.outbound + "\t" + c.sourceDisplay;
+        const QString key = dest + "\t" + protocol + "\t" + c.outbound + "\t" + c.sourceDisplay + "\t" + c.rule;
         ConnectionLeafItem *&leaf = leafByKey[process + "\n" + key];
         if (leaf == nullptr) {
             leaf = group->children.emplace_back(std::make_unique<ConnectionLeafItem>()).get();

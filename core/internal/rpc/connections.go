@@ -31,6 +31,10 @@ func connMetaToProto(c *trafficcontrol.TrackerMetadata) *gen.ConnectionMetaData 
 	if c.Metadata.Source.IsValid() {
 		source = c.Metadata.Source.String()
 	}
+	rule := ""
+	if c.Rule != nil {
+		rule = c.Rule.String()
+	}
 	return &gen.ConnectionMetaData{
 		Id:          To(c.ID.String()),
 		CreatedAt:   To(c.CreatedAt.UnixMilli()),
@@ -46,6 +50,7 @@ func connMetaToProto(c *trafficcontrol.TrackerMetadata) *gen.ConnectionMetaData 
 		Chain:       c.Chain,
 		ClosedAt:    To(closedAt),
 		Source:      To(source),
+		Rule:        To(rule),
 	}
 }
 

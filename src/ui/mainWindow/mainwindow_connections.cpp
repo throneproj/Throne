@@ -27,6 +27,7 @@
 #include <QPainter>
 #include <QPixmap>
 #include <QTabWidget>
+#include <QTextDocument>
 #include <QTimer>
 #include <QToolButton>
 #include <QToolTip>
@@ -637,6 +638,12 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos)
     const QStringList ids = connectionsModel->connectionIdsAt(sourceIndex);
     if (const auto* meta = connectionsModel->metaAt(sourceIndex))
     {
+        // "&" doubled, or a logical rule's "&&" would read as a mnemonic.
+        auto* matched = menu.addAction(ConnectionsTreeModel::matchedRuleText(*meta, 48).replace('&', QStringLiteral("&&")));
+        matched->setEnabled(false);
+        matched->setToolTip(Qt::convertFromPlainText(ConnectionsTreeModel::matchedRuleText(*meta)));
+        menu.addSeparator();
+
         const QString domain = meta->domain.trimmed();
         const QString host = domain.isEmpty() ? Stats::EndpointHost(meta->dest.trimmed()) : domain;
 
