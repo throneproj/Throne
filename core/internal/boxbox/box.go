@@ -3,6 +3,7 @@ package boxbox
 import (
 	"context"
 	"io"
+	"slices"
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
@@ -658,9 +659,12 @@ func (s *Box) Router() adapter.Router {
 	return s.router
 }
 
-// RouteRules are the config's route rules, index-aligned with Router().Rules().
-func (s *Box) RouteRules() []option.Rule {
-	return s.routeRules
+// RouteRuleOptions finds the config entry a router rule was built from: the router builds one rule per entry, in order.
+func (s *Box) RouteRuleOptions(rule adapter.Rule) (option.Rule, bool) {
+	if i := slices.Index(s.router.Rules(), rule); i >= 0 && i < len(s.routeRules) {
+		return s.routeRules[i], true
+	}
+	return option.Rule{}, false
 }
 
 func (s *Box) Inbound() adapter.InboundManager {

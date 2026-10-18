@@ -18,7 +18,7 @@ type fakeRuleSet struct {
 
 func (s fakeRuleSet) Match(metadata *adapter.InboundContext) bool { return s.match(metadata) }
 
-func TestMatchedRuleItem(t *testing.T) {
+func TestMatchedEntries(t *testing.T) {
 	telegram := netip.MustParsePrefix("149.154.160.0/20")
 	ruleSets := map[string]adapter.RuleSet{
 		"geosite-empty": fakeRuleSet{match: func(*adapter.InboundContext) bool { return false }},
@@ -39,7 +39,7 @@ func TestMatchedRuleItem(t *testing.T) {
 	cidr := badoption.Prefixable(netip.MustParsePrefix("10.0.0.0/8"))
 	proxyList := option.RawDefaultRule{
 		Domain:        badoption.Listable[string]{"example.org"},
-		DomainSuffix:  badoption.Listable[string]{"a.com", "b.com", "c.com", "GitHubUserContent.com"},
+		DomainSuffix:  badoption.Listable[string]{"a.com", "b.com", "c.com", "githubusercontent.com"},
 		DomainKeyword: badoption.Listable[string]{"twitch"},
 		IPCIDR:        badoption.Listable[*badoption.Prefixable]{&cidr},
 		RuleSet:       badoption.Listable[string]{"geosite-empty", "geoip-telegram"},
@@ -51,17 +51,19 @@ func TestMatchedRuleItem(t *testing.T) {
 		metadata adapter.InboundContext
 		want     string
 	}{
-		{"suffix past the three String() keeps", rule(proxyList), domain("private-user-images.githubusercontent.com"), "domain_suffix=GitHubUserContent.com"},
-		{"suffix matches the bare domain", rule(proxyList), domain("githubusercontent.com"), "domain_suffix=GitHubUserContent.com"},
+		{"suffix past the three String() keeps", rule(proxyList), domain("private-user-images.githubusercontent.com"), "domain_suffix=githubusercontent.com"},
+		{"suffix matches the bare domain", rule(proxyList), domain("githubusercontent.com"), "domain_suffix=githubusercontent.com"},
 		{"suffix does not match a longer label", rule(proxyList), domain("notgithubusercontent.com"), ""},
 		{"exact domain", rule(proxyList), domain("example.org"), "domain=example.org"},
 		{"keyword", rule(proxyList), domain("gql.twitch.tv"), "domain_keyword=twitch"},
 		{"ip_cidr", rule(proxyList), adapter.InboundContext{Destination: M.ParseSocksaddrHostPort("10.1.2.3", 80)}, "ip_cidr=10.0.0.0/8"},
 		{"rule_set picks the set that matched", rule(proxyList), adapter.InboundContext{Destination: M.ParseSocksaddrHostPort("149.154.167.51", 443)}, "rule_set=geoip-telegram"},
 		{"dot suffix skips the bare domain", rule(option.RawDefaultRule{DomainSuffix: badoption.Listable[string]{".github.com"}}), domain("github.com"), ""},
+		// sing-box lowercases the host but takes values as written, so such a value never matches.
+		{"uppercase value never matches", rule(option.RawDefaultRule{DomainSuffix: badoption.Listable[string]{"GitHub.com", "github.com"}}), domain("API.github.com"), "domain_suffix=github.com"},
 		{
-			"every matched field is listed",
-			rule(option.RawDefaultRule{DomainSuffix: badoption.Listable[string]{"github.com"}, ProcessName: badoption.Listable[string]{"chrome.exe"}}),
+			"every matched field is listed, each once",
+			rule(option.RawDefaultRule{DomainSuffix: badoption.Listable[string]{"github.com", "api.github.com"}, ProcessName: badoption.Listable[string]{"chrome.exe"}}),
 			adapter.InboundContext{Domain: "api.github.com", ProcessInfo: &adapter.ConnectionOwner{ProcessPaths: []string{"/opt/google/chrome/chrome.exe"}}},
 			"domain_suffix=github.com process_name=chrome.exe",
 		},
@@ -69,8 +71,8 @@ func TestMatchedRuleItem(t *testing.T) {
 		{"logical rule is left to String()", option.Rule{Type: C.RuleTypeLogical}, domain("api.github.com"), ""},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			if got := matchedRuleItem(tc.rule, tc.metadata, lookup); got != tc.want {
-				t.Errorf("matchedRuleItem() = %q, want %q", got, tc.want)
+			if got := matchedEntries(ruleEntries(tc.rule, lookup), tc.metadata); got != tc.want {
+				t.Errorf("matchedEntries() = %q, want %q", got, tc.want)
 			}
 		})
 	}

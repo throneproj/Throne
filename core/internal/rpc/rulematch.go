@@ -1,110 +1,166 @@
 package rpc
 
 import (
-	"net/netip"
-	"path/filepath"
-	"regexp"
-	"slices"
 	"strings"
+	"sync"
 
+	"ThroneCore/internal/boxbox"
+
+	"github.com/gofrs/uuid/v5"
 	"github.com/sagernet/sing-box/adapter"
+	"github.com/sagernet/sing-box/common/trafficcontrol"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/option"
-	N "github.com/sagernet/sing/common/network"
+	R "github.com/sagernet/sing-box/route/rule"
+	"github.com/sagernet/sing/common/json/badoption"
 )
 
-// matchedRuleIndex finds the matched rule among the router's, which are built one per config rule and in the same order.
-func matchedRuleIndex(router adapter.Router, rule adapter.Rule) int {
-	if router == nil || rule == nil {
-		return -1
-	}
-	return slices.IndexFunc(router.Rules(), func(it adapter.Rule) bool { return it == rule })
+// ruleEntry is one value of a route rule, matched by the very item sing-box builds for it.
+type ruleEntry struct {
+	key  string
+	item R.RuleItem
 }
 
-// matchedRuleItem names the entries of a route rule that caught the connection: the rule's own String()
-// keeps only the first three entries of every list, which rarely include the one that matched.
-// Empty when the rule is logical or inverted, or no entry could be told apart.
-func matchedRuleItem(rule option.Rule, metadata adapter.InboundContext, ruleSet func(tag string) (adapter.RuleSet, bool)) string {
+// ruleSetEntry probes one set of a rule_set list, the way sing-box's own item probes each of its sets.
+type ruleSetEntry struct {
+	tag         string
+	set         adapter.RuleSet
+	matchSource bool
+}
+
+func (e ruleSetEntry) Match(metadata *adapter.InboundContext) bool {
+	probe := *metadata
+	probe.ResetRuleCache()
+	probe.IPCIDRMatchSource = e.matchSource
+	return e.set.Match(&probe)
+}
+
+func (e ruleSetEntry) String() string {
+	return "rule_set=" + e.tag
+}
+
+// ruleEntries splits a default route rule into one entry per value, so the one that matched can be named:
+// the rule's own String() keeps only the first three values of every list.
+// Nil for a logical or inverted rule, which has no single entry to blame.
+func ruleEntries(rule option.Rule, ruleSet func(tag string) (adapter.RuleSet, bool)) []ruleEntry {
 	if rule.Type != "" && rule.Type != C.RuleTypeDefault {
-		return ""
+		return nil
 	}
 	r := rule.DefaultOptions.RawDefaultRule
 	if r.Invert {
+		return nil
+	}
+
+	var entries []ruleEntry
+	add := func(key string, item R.RuleItem, err error) {
+		if err == nil {
+			entries = append(entries, ruleEntry{key, item})
+		}
+	}
+	for _, v := range r.Domain {
+		item, err := R.NewDomainItem([]string{v}, nil)
+		add("domain", item, err)
+	}
+	for _, v := range r.DomainSuffix {
+		item, err := R.NewDomainItem(nil, []string{v})
+		add("domain_suffix", item, err)
+	}
+	for _, v := range r.DomainKeyword {
+		add("domain_keyword", R.NewDomainKeywordItem([]string{v}), nil)
+	}
+	for _, v := range r.DomainRegex {
+		item, err := R.NewDomainRegexItem([]string{v})
+		add("domain_regex", item, err)
+	}
+	for _, v := range r.IPCIDR {
+		item, err := R.NewIPCIDRItem(false, []*badoption.Prefixable{v})
+		add("ip_cidr", item, err)
+	}
+	if r.IPIsPrivate {
+		add("ip_is_private", R.NewIPIsPrivateItem(false), nil)
+	}
+	for _, tag := range r.RuleSet {
+		if set, found := ruleSet(tag); found {
+			add("rule_set", ruleSetEntry{tag, set, r.RuleSetIPCIDRMatchSource}, nil)
+		}
+	}
+	for _, v := range r.ProcessName {
+		add("process_name", R.NewProcessItem([]string{v}), nil)
+	}
+	for _, v := range r.ProcessPath {
+		add("process_path", R.NewProcessPathItem([]string{v}), nil)
+	}
+	for _, v := range r.ProcessPathRegex {
+		item, err := R.NewProcessPathRegexItem([]string{v})
+		add("process_path_regex", item, err)
+	}
+	return entries
+}
+
+// matchedEntries names the first matching value of every field, e.g. "domain_suffix=github.com process_name=chrome.exe".
+func matchedEntries(entries []ruleEntry, metadata adapter.InboundContext) string {
+	metadata.ResetRuleCache()
+	var matched []string
+	matchedKey := ""
+	for _, entry := range entries {
+		if entry.key == matchedKey || !entry.item.Match(&metadata) {
+			continue
+		}
+		matched = append(matched, entry.item.String())
+		matchedKey = entry.key
+	}
+	return strings.Join(matched, " ")
+}
+
+// connRules caches what QueryConnections reports as each connection's matched entries:
+// a connection's rule and metadata never change, and a rule is split into entries once per box.
+var connRules ruleMatchCache
+
+type ruleMatchCache struct {
+	mu      sync.Mutex
+	box     *boxbox.Box
+	entries map[adapter.Rule][]ruleEntry
+	conns   map[uuid.UUID]string
+	seen    map[uuid.UUID]string
+}
+
+// reset drops everything split for a box, so a stopped box is not kept alive by the cache.
+func (m *ruleMatchCache) reset() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.box, m.entries, m.conns = nil, nil, nil
+}
+
+// begin opens one poll; matched must only be called between begin and end.
+func (m *ruleMatchCache) begin(box *boxbox.Box) {
+	m.mu.Lock()
+	if m.box != box {
+		m.box, m.entries, m.conns = box, make(map[adapter.Rule][]ruleEntry), make(map[uuid.UUID]string)
+	}
+	m.seen = make(map[uuid.UUID]string, len(m.conns))
+}
+
+func (m *ruleMatchCache) matched(c *trafficcontrol.TrackerMetadata) string {
+	if c.Rule == nil {
 		return ""
 	}
-
-	var items []string
-	add := func(key string, values []string, match func(string) bool) {
-		if i := slices.IndexFunc(values, match); i >= 0 {
-			items = append(items, key+"="+values[i])
-		}
-	}
-
-	host := metadata.Domain
-	if host == "" {
-		host = metadata.Destination.Fqdn
-	}
-	host = strings.ToLower(host)
-	if host != "" {
-		add("domain", r.Domain, func(v string) bool { return host == strings.ToLower(v) })
-		add("domain_suffix", r.DomainSuffix, func(v string) bool {
-			v = strings.ToLower(v)
-			if strings.HasPrefix(v, ".") {
-				return strings.HasSuffix(host, v)
+	item, cached := m.conns[c.ID]
+	if !cached {
+		entries, split := m.entries[c.Rule]
+		if !split {
+			if options, found := m.box.RouteRuleOptions(c.Rule); found {
+				entries = ruleEntries(options, m.box.Router().RuleSet)
 			}
-			return host == v || strings.HasSuffix(host, "."+v)
-		})
-		add("domain_keyword", r.DomainKeyword, func(v string) bool { return strings.Contains(host, strings.ToLower(v)) })
-		add("domain_regex", r.DomainRegex, func(v string) bool {
-			re, err := regexp.Compile(v)
-			return err == nil && re.MatchString(host)
-		})
-	}
-
-	var addrs []netip.Addr
-	if metadata.Destination.IsIP() {
-		addrs = []netip.Addr{metadata.Destination.Addr}
-	} else {
-		addrs = metadata.DestinationAddresses
-	}
-	if len(addrs) > 0 {
-		for _, it := range r.IPCIDR {
-			if prefix := (*netip.Prefix)(it); prefix != nil && slices.ContainsFunc(addrs, prefix.Contains) {
-				items = append(items, "ip_cidr="+prefix.String())
-				break
-			}
+			m.entries[c.Rule] = entries
 		}
-		if r.IPIsPrivate && slices.ContainsFunc(addrs, func(a netip.Addr) bool { return !N.IsPublicAddr(a) }) {
-			items = append(items, "ip_is_private")
-		}
+		item = matchedEntries(entries, c.Metadata)
 	}
+	m.seen[c.ID] = item
+	return item
+}
 
-	if ruleSet != nil {
-		add("rule_set", r.RuleSet, func(tag string) bool {
-			set, found := ruleSet(tag)
-			if !found {
-				return false
-			}
-			// A copy, so the set's match bookkeeping never reaches the tracker's metadata.
-			probe := metadata
-			probe.ResetRuleMatchCache()
-			probe.IPCIDRMatchSource = r.RuleSetIPCIDRMatchSource
-			probe.IPCIDRAcceptEmpty = false
-			return set.Match(&probe)
-		})
-	}
-
-	if metadata.ProcessInfo != nil {
-		paths := metadata.ProcessInfo.ProcessPaths
-		add("process_name", r.ProcessName, func(v string) bool {
-			return slices.ContainsFunc(paths, func(p string) bool { return filepath.Base(p) == v })
-		})
-		add("process_path", r.ProcessPath, func(v string) bool { return slices.Contains(paths, v) })
-		add("process_path_regex", r.ProcessPathRegex, func(v string) bool {
-			re, err := regexp.Compile(v)
-			return err == nil && slices.ContainsFunc(paths, re.MatchString)
-		})
-	}
-
-	return strings.Join(items, " ")
+// end keeps only the connections this poll reported, so the ones gone from the closed ring do not pile up.
+func (m *ruleMatchCache) end() {
+	m.conns, m.seen = m.seen, nil
+	m.mu.Unlock()
 }

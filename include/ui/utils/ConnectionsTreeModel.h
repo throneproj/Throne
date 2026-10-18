@@ -91,10 +91,10 @@ public:
     void setConnections(const QList<Stats::ConnectionMetadata> &connections, Stats::ConnectionSort sort, bool ascending);
 
     static QString displayProcessName(const QString &processName);
-    // "Matched: <entries> → <proxy|direct|server>": the rule's entries that matched, else the whole rule, else "final";
-    // maxGraphemes > 0 shortens what stands for the rule.
-    static QString matchedRuleText(const Stats::ConnectionMetadata &meta, int maxGraphemes = 0);
-    // matchedRuleText() in full, plus the whole rule when only its entries were named.
+    // The menu's "Matched: <entries> → <proxy|direct|server>": the rule's entries that matched, else the whole rule,
+    // else "final", shortened to maxGraphemes.
+    static QString matchedRuleText(const Stats::ConnectionMetadata &meta, int maxGraphemes);
+    // The same in full, naming the server and its tag, plus the whole rule when only its entries were named.
     static QString matchedRuleToolTip(const Stats::ConnectionMetadata &meta);
 
     bool isProcessIndex(const QModelIndex &index) const;

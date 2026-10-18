@@ -40,21 +40,21 @@ namespace {
         static const QStringList plainTags{QStringLiteral("proxy"), QStringLiteral("direct"), QStringLiteral("warp-bypass")};
         return plainTags.contains(meta.outbound) || meta.outboundName.isEmpty() ? meta.outbound : meta.outboundName;
     }
+
+    // The rule's entries that matched, else the whole rule, else sing-box's fallback.
+    QString matchedPart(const Stats::ConnectionMetadata &meta) {
+        if (!meta.ruleItem.isEmpty()) return meta.ruleItem;
+        return meta.rule.isEmpty() ? QStringLiteral("final") : meta.rule;
+    }
 }
 
 QString ConnectionsTreeModel::matchedRuleText(const Stats::ConnectionMetadata &meta, int maxGraphemes) {
-    QString matched = meta.ruleItem;
-    if (matched.isEmpty()) matched = meta.rule.isEmpty() ? QStringLiteral("final") : meta.rule;
-    QString target = routeTarget(meta);
-    if (maxGraphemes > 0) {
-        matched = ShortDisplayName(matched, maxGraphemes);
-        target = ShortDisplayName(target);
-    }
-    return tr("Matched: %1 → %2").arg(matched, target);
+    return tr("Matched: %1 → %2").arg(ShortDisplayName(matchedPart(meta), maxGraphemes), ShortDisplayName(routeTarget(meta)));
 }
 
 QString ConnectionsTreeModel::matchedRuleToolTip(const Stats::ConnectionMetadata &meta) {
-    const QString line = matchedRuleText(meta);
+    // The full server name too: the Outbound column cuts it, and this tooltip is the only place left to read it.
+    const QString line = tr("Matched: %1 → %2").arg(matchedPart(meta), outboundToolTip(meta.outboundName, meta.outbound));
     if (meta.ruleItem.isEmpty() || meta.ruleItem == meta.rule) return line;
     return tr("%1\nRule: %2").arg(line, meta.rule);
 }

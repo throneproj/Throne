@@ -55,6 +55,7 @@ func setBoxInstance(box *boxbox.Box, cancel context.CancelFunc) {
 	stateMu.Lock()
 	defer stateMu.Unlock()
 	boxInstance, instanceCancel = box, cancel
+	connRules.reset()
 }
 
 func setXray(instance *core.Instance, gate *xray.Gate) {
