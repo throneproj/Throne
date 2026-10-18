@@ -604,7 +604,7 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos)
         }
         else
         {
-            serverAct->setToolTip(tr("Route through a server of your choice instead of the active one"));
+            serverAct->setToolTip(tr("Route through another server"));
             connect(serverAct, &QAction::triggered, this, [&pickedServer] { pickedServer = true; });
         }
         menu.addSeparator();

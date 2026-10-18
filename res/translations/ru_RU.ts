@@ -9401,7 +9401,7 @@ Name: %1</source>
         <translation>Другой сервер</translation>
     </message>
     <message>
-        <source>Route through a server of your choice instead of the active one</source>
+        <source>Route through another server</source>
         <translation>Направить через другой сервер</translation>
     </message>
     <message>
