@@ -2,7 +2,6 @@
 #include "include/global/Utils.hpp"
 
 #include <QHash>
-#include <QTextDocument>
 
 #include <algorithm>
 
@@ -173,8 +172,7 @@ QVariant ConnectionsTreeModel::data(const QModelIndex &index, int role) const {
             return {};
         }
     case Qt::ToolTipRole: {
-        // Rich text, so a long rule wraps at its spaces instead of running off the screen.
-        if (index.column() == ColOutbound) return Qt::convertFromPlainText(matchedRuleToolTip(leaf->meta));
+        if (index.column() == ColOutbound) return matchedRuleToolTip(leaf->meta);
         const QString outbound = outboundToolTip(leaf->meta.outboundName, leaf->meta.outbound);
         if (index.column() != ColTarget) return {};
         const QString process = displayProcessName(leaf->parent->processName);

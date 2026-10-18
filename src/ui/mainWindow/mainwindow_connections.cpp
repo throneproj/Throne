@@ -27,7 +27,6 @@
 #include <QPainter>
 #include <QPixmap>
 #include <QTabWidget>
-#include <QTextDocument>
 #include <QTimer>
 #include <QToolButton>
 #include <QToolTip>
@@ -641,7 +640,7 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos)
         // "&" doubled, or a logical rule's "&&" would read as a mnemonic.
         auto* matched = menu.addAction(ConnectionsTreeModel::matchedRuleText(*meta, 48).replace('&', QStringLiteral("&&")));
         matched->setEnabled(false);
-        matched->setToolTip(Qt::convertFromPlainText(ConnectionsTreeModel::matchedRuleToolTip(*meta)));
+        matched->setToolTip(ConnectionsTreeModel::matchedRuleToolTip(*meta));
         menu.addSeparator();
 
         const QString domain = meta->domain.trimmed();
