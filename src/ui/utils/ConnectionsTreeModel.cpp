@@ -54,9 +54,7 @@ QString ConnectionsTreeModel::matchedRuleText(const Stats::ConnectionMetadata &m
 
 QString ConnectionsTreeModel::matchedRuleToolTip(const Stats::ConnectionMetadata &meta) {
     // The full server name too: the Outbound column cuts it, and this tooltip is the only place left to read it.
-    const QString line = tr("Matched: %1 → %2").arg(matchedPart(meta), outboundToolTip(meta.outboundName, meta.outbound));
-    if (meta.ruleItem.isEmpty() || meta.ruleItem == meta.rule) return line;
-    return tr("%1\nRule: %2").arg(line, meta.rule);
+    return tr("Matched: %1 → %2").arg(matchedPart(meta), outboundToolTip(meta.outboundName, meta.outbound));
 }
 
 ConnectionsTreeModel::ConnectionsTreeModel(QObject *parent)
