@@ -234,6 +234,7 @@ message ConnectionMetaData {
   optional int64 closed_at = 13 [default = 0];       // 0 while live
   optional string source = 14 [default = ""];        // client address "ip:port", empty when unknown
   optional string rule = 15 [default = ""];          // matched route rule as sing-box prints it, empty when routed by final
+  optional string rule_item = 16 [default = ""];     // the rule's entries that matched, e.g. "domain_suffix=github.com"; empty when unknown
 }
 
 // Ids come from a previous QueryConnections; ones that already closed are a

@@ -91,8 +91,11 @@ public:
     void setConnections(const QList<Stats::ConnectionMetadata> &connections, Stats::ConnectionSort sort, bool ascending);
 
     static QString displayProcessName(const QString &processName);
-    // "Matched: <rule> → <outbound>", with "final" for a connection no rule caught; maxRuleGraphemes > 0 shortens the rule.
-    static QString matchedRuleText(const Stats::ConnectionMetadata &meta, int maxRuleGraphemes = 0);
+    // "Matched: <entries> → <outbound>": the rule's entries that matched, else the whole rule, else "final";
+    // maxGraphemes > 0 shortens what stands for the rule.
+    static QString matchedRuleText(const Stats::ConnectionMetadata &meta, int maxGraphemes = 0);
+    // matchedRuleText() in full, plus the whole rule when only its entries were named.
+    static QString matchedRuleToolTip(const Stats::ConnectionMetadata &meta);
 
     bool isProcessIndex(const QModelIndex &index) const;
     QString processNameAt(const QModelIndex &index) const;

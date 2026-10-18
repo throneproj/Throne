@@ -35,10 +35,17 @@ namespace {
     }
 }
 
-QString ConnectionsTreeModel::matchedRuleText(const Stats::ConnectionMetadata &meta, int maxRuleGraphemes) {
-    const QString rule = meta.rule.isEmpty() ? QStringLiteral("final") : meta.rule;
-    return tr("Matched: %1 → %2").arg(maxRuleGraphemes > 0 ? ShortDisplayName(rule, maxRuleGraphemes) : rule,
-                                      outboundToolTip(meta.outboundName, meta.outbound));
+QString ConnectionsTreeModel::matchedRuleText(const Stats::ConnectionMetadata &meta, int maxGraphemes) {
+    QString matched = meta.ruleItem;
+    if (matched.isEmpty()) matched = meta.rule.isEmpty() ? QStringLiteral("final") : meta.rule;
+    if (maxGraphemes > 0) matched = ShortDisplayName(matched, maxGraphemes);
+    return tr("Matched: %1 → %2").arg(matched, outboundToolTip(meta.outboundName, meta.outbound));
+}
+
+QString ConnectionsTreeModel::matchedRuleToolTip(const Stats::ConnectionMetadata &meta) {
+    const QString line = matchedRuleText(meta);
+    if (meta.ruleItem.isEmpty() || meta.ruleItem == meta.rule) return line;
+    return tr("%1\nRule: %2").arg(line, meta.rule);
 }
 
 ConnectionsTreeModel::ConnectionsTreeModel(QObject *parent)
@@ -158,7 +165,7 @@ QVariant ConnectionsTreeModel::data(const QModelIndex &index, int role) const {
         }
     case Qt::ToolTipRole: {
         // Rich text, so a long rule wraps at its spaces instead of running off the screen.
-        if (index.column() == ColOutbound) return Qt::convertFromPlainText(matchedRuleText(leaf->meta));
+        if (index.column() == ColOutbound) return Qt::convertFromPlainText(matchedRuleToolTip(leaf->meta));
         const QString outbound = outboundToolTip(leaf->meta.outboundName, leaf->meta.outbound);
         if (index.column() != ColTarget) return {};
         const QString process = displayProcessName(leaf->parent->processName);
@@ -238,7 +245,7 @@ void ConnectionsTreeModel::setConnections(const QList<Stats::ConnectionMetadata>
 
         const QString dest = DisplayDest(c.dest, c.domain);
         const QString protocol = c.protocol.isEmpty() ? c.network : c.network + " (" + c.protocol + ")";
-        const QString key = dest + "\t" + protocol + "\t" + c.outbound + "\t" + c.sourceDisplay + "\t" + c.rule;
+        const QString key = dest + "\t" + protocol + "\t" + c.outbound + "\t" + c.sourceDisplay + "\t" + c.rule + "\t" + c.ruleItem;
         ConnectionLeafItem *&leaf = leafByKey[process + "\n" + key];
         if (leaf == nullptr) {
             leaf = group->children.emplace_back(std::make_unique<ConnectionLeafItem>()).get();

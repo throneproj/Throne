@@ -49,6 +49,7 @@ namespace Stats
         QString source;        // raw "ip:port" reported by the core, empty when unknown
         QString sourceDisplay; // tr("Local") for this machine, else the client's bare IP
         QString rule;          // the matched route rule as sing-box prints it, empty when routed by final
+        QString ruleItem;      // the rule's entries that matched, e.g. "domain_suffix=github.com"; empty when the core could not tell
         long long closedAtMs = 0; // 0 while live
         long long uploadSpeed = 0;   // bytes/sec
         long long downloadSpeed = 0;

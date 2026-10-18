@@ -7,13 +7,14 @@ import (
 	"strings"
 
 	"ThroneCore/gen"
+	"ThroneCore/internal/boxbox"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/sagernet/sing-box/common/trafficcontrol"
 	"github.com/sagernet/sing/service"
 )
 
-func connMetaToProto(c *trafficcontrol.TrackerMetadata) *gen.ConnectionMetaData {
+func connMetaToProto(box *boxbox.Box, c *trafficcontrol.TrackerMetadata) *gen.ConnectionMetaData {
 	process := ""
 	processPath := ""
 	if c.Metadata.ProcessInfo != nil {
@@ -31,9 +32,13 @@ func connMetaToProto(c *trafficcontrol.TrackerMetadata) *gen.ConnectionMetaData 
 	if c.Metadata.Source.IsValid() {
 		source = c.Metadata.Source.String()
 	}
-	rule := ""
+	rule, ruleItem := "", ""
 	if c.Rule != nil {
 		rule = c.Rule.String()
+		router := box.Router()
+		if i := matchedRuleIndex(router, c.Rule); i >= 0 && i < len(box.RouteRules()) {
+			ruleItem = matchedRuleItem(box.RouteRules()[i], c.Metadata, router.RuleSet)
+		}
 	}
 	return &gen.ConnectionMetaData{
 		Id:          To(c.ID.String()),
@@ -51,6 +56,7 @@ func connMetaToProto(c *trafficcontrol.TrackerMetadata) *gen.ConnectionMetaData 
 		ClosedAt:    To(closedAt),
 		Source:      To(source),
 		Rule:        To(rule),
+		RuleItem:    To(ruleItem),
 	}
 }
 
@@ -67,11 +73,11 @@ func (s *server) QueryConnections(ctx context.Context, in *gen.EmptyReq) (*gen.Q
 
 	active := make([]*gen.ConnectionMetaData, 0)
 	for _, c := range tm.Connections() {
-		active = append(active, connMetaToProto(c))
+		active = append(active, connMetaToProto(box, c))
 	}
 	closed := make([]*gen.ConnectionMetaData, 0)
 	for _, c := range tm.ClosedConnections() {
-		closed = append(closed, connMetaToProto(c))
+		closed = append(closed, connMetaToProto(box, c))
 	}
 	return &gen.QueryConnectionsResp{Active: active, Closed: closed}, nil
 }

@@ -103,6 +103,7 @@ namespace Stats
         c.protocol = QString::fromStdString(conn.protocol.value());
         c.closedAtMs = conn.closed_at.value();
         c.rule = QString::fromStdString(conn.rule.value());
+        c.ruleItem = QString::fromStdString(conn.rule_item.value());
         c.source = QString::fromStdString(conn.source.value());
         // In tun mode our own traffic enters with the tun's (or this machine's LAN) address, so a loopback-only test would label it a LAN client.
         const QString host = EndpointHost(c.source);

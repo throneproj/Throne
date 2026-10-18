@@ -60,6 +60,7 @@ type Box struct {
 	internalService     []adapter.LifecycleService
 	ntpService          *ntp.Service
 	scope               *adapter.Scope
+	routeRules          []option.Rule
 }
 
 type Options struct {
@@ -480,6 +481,7 @@ func New(options Options) (*Box, error) {
 		internalService:     internalServices,
 		ntpService:          ntpService,
 		scope:               adapter.NewScope(ctx, logFactory.Logger()),
+		routeRules:          routeOptions.Rules,
 	}, nil
 }
 
@@ -654,6 +656,11 @@ func (s *Box) Network() adapter.NetworkManager {
 
 func (s *Box) Router() adapter.Router {
 	return s.router
+}
+
+// RouteRules are the config's route rules, index-aligned with Router().Rules().
+func (s *Box) RouteRules() []option.Rule {
+	return s.routeRules
 }
 
 func (s *Box) Inbound() adapter.InboundManager {
