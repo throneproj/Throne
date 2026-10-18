@@ -50,6 +50,7 @@
 
 namespace Configs {
     enum simpleAction : int;
+    struct SimpleTarget;
 }
 
 namespace Engine {
@@ -509,8 +510,8 @@ private:
 
     enum class RuleToggle { Failed, Added, Moved, Removed };
 
-    // Adds rawRule to the action's simple rules of the current profile, or takes it out when it is already there.
-    RuleToggle toggleRuleInCurrentRoute(const QString &rawRule, Configs::simpleAction action);
+    // Adds rawRule to the target's rules in the current profile, or takes it out when it is already there.
+    RuleToggle toggleRuleInCurrentRoute(const QString &rawRule, const Configs::SimpleTarget &target);
 
     void setupConnectionFilter();
 

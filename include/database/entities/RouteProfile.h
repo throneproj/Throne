@@ -19,6 +19,14 @@ namespace Configs {
         return {"invalid"};
     }
 
+    // Where a simple "prefix:value" line goes: one of the simple lists, or, with serverID set, that server's own rules.
+    struct SimpleTarget {
+        simpleAction action = proxy;
+        int serverID = INVALID_ID;
+        [[nodiscard]] bool isServer() const { return serverID >= 0; }
+        bool operator==(const SimpleTarget&) const = default;
+    };
+
     class RouteProfile {
     public:
         int id = -1;
@@ -102,18 +110,24 @@ namespace Configs {
 
         static RuleIssue CheckSimpleRule(const QString& line);
 
-        // Adds one "prefix:value" line to the matching simple rule, creating it if the profile has none yet.
-        bool AppendSimpleRule(const QString& rawRule, simpleAction action, QString* why = nullptr);
+        // A server's own rules are custom route rules to it with nothing but address lists, or nothing but process lists,
+        // so the editor shows them as ordinary rules. One the user built that way counts too.
 
-        // Whether that "prefix:value" line already sits in the action's simple rules.
-        bool HasSimpleRule(const QString& rawRule, simpleAction action);
+        // Adds one "prefix:value" line to the matching simple rule (or server rule), creating it if the profile has none yet.
+        bool AppendSimpleRule(const QString& rawRule, const SimpleTarget& target, QString* why = nullptr);
 
-        // Drops that "prefix:value" line from the action's simple rules, and a rule it leaves empty along with it.
-        bool RemoveSimpleRule(const QString& rawRule, simpleAction action);
+        // Whether that "prefix:value" line already sits in the target's rules.
+        bool HasSimpleRule(const QString& rawRule, const SimpleTarget& target);
 
-        // A line from another action's simple rules that already catches every host a suffix: or keyword: rawRule would,
-        // and sits in a rule matched before the action's own, so rawRule there would never apply. Empty when there is none.
-        QString CoveringSimpleRule(const QString& rawRule, simpleAction action, simpleAction* coveringAction);
+        // Drops that "prefix:value" line from the target's rules, and a rule it leaves empty along with it.
+        bool RemoveSimpleRule(const QString& rawRule, const SimpleTarget& target);
+
+        // The servers whose own rules hold that "prefix:value" line.
+        QList<int> ServersHoldingSimpleRule(const QString& rawRule);
+
+        // A line from another target's rules that already catches every host a suffix: or keyword: rawRule would,
+        // and sits in a rule matched before the target's own, so rawRule there would never apply. Empty when there is none.
+        QString CoveringSimpleRule(const QString& rawRule, const SimpleTarget& target, SimpleTarget* coveringTarget);
 
         void FilterEmptyRules();
     private:
@@ -127,6 +141,12 @@ namespace Configs {
         static QList<QString>* simple_rule_values(const QString& content, RouteRule& rule, QString* value);
 
         std::shared_ptr<RouteRule> get_simple_rule_by_type(ruleType type);
+
+        // Whether rule is a server rule of the kind (address or process) that line content goes in.
+        static bool is_server_rule_for(const RouteRule& rule, const QString& content);
+
+        // The rules of target a line like content goes in, in list order.
+        QList<std::shared_ptr<RouteRule>> rules_for(const QString& content, const SimpleTarget& target);
 
         static ruleType get_rule_type(const QString& content, simpleAction action);
 
