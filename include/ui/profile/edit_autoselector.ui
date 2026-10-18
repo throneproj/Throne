@@ -12,19 +12,25 @@
       <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
      </property>
      <item row="0" column="0">
-      <widget class="QLabel" name="group_l">
+      <widget class="QLabel" name="groups_l">
        <property name="text">
         <string>Servers from</string>
        </property>
        <property name="buddy">
-        <cstring>group</cstring>
+        <cstring>groups</cstring>
        </property>
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QComboBox" name="group">
+      <widget class="QListWidget" name="groups">
        <property name="toolTip">
-        <string>The group whose profiles this selector picks from. New servers added by a subscription update join automatically — you never have to edit this profile again.</string>
+        <string>The groups whose profiles this selector picks from. Profiles from every checked group are pooled together, and each one is still wrapped in its own group's front and landing proxy, so it behaves as if started on its own. New servers added by a subscription update join automatically — you never have to edit this profile again.</string>
+       </property>
+       <property name="horizontalScrollBarPolicy">
+        <enum>Qt::ScrollBarAlwaysOff</enum>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::NoSelection</enum>
        </property>
       </widget>
      </item>
@@ -41,7 +47,7 @@
      <item row="1" column="1">
       <widget class="QLineEdit" name="name_filter">
        <property name="placeholderText">
-        <string>leave empty to use every profile in the group</string>
+        <string>leave empty to use every profile in the checked groups</string>
        </property>
        <property name="toolTip">
         <string>Optional regular expression. Only profiles whose name matches are considered — useful to pick out one country or provider.</string>
@@ -690,7 +696,7 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>group</tabstop>
+  <tabstop>groups</tabstop>
   <tabstop>name_filter</tabstop>
   <tabstop>balance</tabstop>
   <tabstop>pinned_clear</tabstop>

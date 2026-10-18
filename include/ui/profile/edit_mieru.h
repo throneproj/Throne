@@ -22,6 +22,10 @@ public:
 
     bool onEnd() override;
 
+    void bindValidation(Validation::Form &form) override;
+
+    bool serverPortOptional() override;
+
 private:
     Ui::EditMieru *ui;
     std::shared_ptr<Configs::Profile> ent;

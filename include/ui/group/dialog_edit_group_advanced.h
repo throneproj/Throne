@@ -10,6 +10,10 @@ namespace Ui {
 }
 QT_END_NAMESPACE
 
+namespace Validation {
+    class Form;
+}
+
 class DialogEditGroupAdvanced : public QDialog {
     Q_OBJECT
 
@@ -32,6 +36,7 @@ private:
     Configs::SubscriptionOptions options;
     Configs::EndpointSource endpoint;
     bool globalSendHwid = false;
+    Validation::Form *form = nullptr;
 
     void loadEndpoint();
 

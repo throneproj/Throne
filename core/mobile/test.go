@@ -151,6 +151,7 @@ func prepareTestEnv(current *Instance, testCurrent bool, platform PlatformInterf
 		unwind()
 		return nil, err
 	}
+	probe.LimitWireGuardWorkers(&options)
 	ctx, cancel := context.WithCancel(ctx)
 	boxInstance, err := box.New(box.Options{
 		Context: ctx,

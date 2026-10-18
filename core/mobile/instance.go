@@ -6,6 +6,7 @@ import (
 	"io"
 	stdlog "log"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"ThroneCore/internal/probe"
@@ -22,6 +23,9 @@ import (
 )
 
 const boxCloseTimeout = 2 * time.Second
+
+// Main boxes past Start and not yet closed; probe boxes are not Instances.
+var runningInstances atomic.Int32
 
 type StartOptions struct {
 	CoreConfig              string
@@ -70,6 +74,7 @@ type Instance struct {
 	stateAccess     sync.Mutex
 	started         bool
 	closed          bool
+	counted         bool
 	localDNSFailure *LocalDNSFailure
 
 	statusAccess      sync.Mutex
@@ -165,6 +170,12 @@ func (i *Instance) Start() error {
 		_ = i.Close()
 		return E.Cause(err, "start service")
 	}
+	i.stateAccess.Lock()
+	if !i.closed {
+		i.counted = true
+		runningInstances.Add(1)
+	}
+	i.stateAccess.Unlock()
 	return nil
 }
 
@@ -188,6 +199,10 @@ func (i *Instance) Close() error {
 		return nil
 	}
 	i.closed = true
+	if i.counted {
+		i.counted = false
+		runningInstances.Add(-1)
+	}
 	i.stateAccess.Unlock()
 	err := closeBoxWithTimeout(i.cancel, i.handle.Box, boxCloseTimeout, true)
 	i.urlTestHistory.Close()

@@ -1,5 +1,6 @@
 #include "include/ui/profile/edit_custom.h"
 
+#include "include/ui/utils/ValidationForm.h"
 #include "include/ui/widget/json/JsonEditorDialog.h"
 #include "include/ui/widget/json/SchemaStore.h"
 
@@ -85,6 +86,14 @@ bool EditCustom::onEnd() {
     return true;
 }
 
+void EditCustom::bindValidation(Validation::Form &form) {
+    this->form = &form;
+    // Untrimmed, so the reported line numbers match the editor.
+    form.bind(ui->config_simple, [this](const QString &text) { return Configs::Checks::CustomConfig(preset_core, text); }, this)
+        .raw()
+        .label(tr("Config"));
+}
+
 void EditCustom::on_as_json_clicked() {
     auto editor = new JsonEdit::JsonEditorDialog(QString2QJsonObject(ui->config_simple->toPlainText()), this);
     if (preset_core == Configs::Custom::CustomOutbound) {
@@ -95,6 +104,7 @@ void EditCustom::on_as_json_clicked() {
     auto result = editor->OpenEditor();
     if (!result.isEmpty()) {
         ui->config_simple->setPlainText(QJsonObject2QString(result, false));
+        if (form) form->revalidate(ui->config_simple);
     }
     editor->deleteLater();
 }

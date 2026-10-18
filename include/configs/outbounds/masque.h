@@ -4,6 +4,11 @@
 
 namespace Configs
 {
+    namespace Checks {
+        // Base64 of DER; the core decodes it with Go's strict StdEncoding, padding included.
+        QString MasqueKey(const QString &text, Validation::Empty empty);
+    }
+
     class masque : public outbound
     {
         public:
@@ -44,6 +49,16 @@ namespace Configs
         std::shared_ptr<QUICFields> GetQUIC() override {
             return quic;
         }
+
+        // The core dials 443 when the port is 0.
+        bool ServerPortOptional() override {
+            return true;
+        }
+
+        void Validate(Validation::Issues &issues) override;
+
+        // Bare addresses get /32 or /128; the core needs a prefix.
+        static QStringList HostPrefixed(const QStringList &addresses);
 
         bool ParseFromJson(const QJsonObject& object) override;
         bool ParseFromClash(const clash::Proxies& object) override;

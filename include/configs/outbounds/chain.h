@@ -1,4 +1,5 @@
 #pragma once
+#include <QCoreApplication>
 #include "include/configs/common/Outbound.h"
 #include "QJsonArray"
 
@@ -13,11 +14,23 @@ namespace Configs
 
         QString DisplayAddress() override { return ""; };
 
+        bool HasServerEndpoint() override { return false; }
+
         // No security of its own; it inherits whatever its hops use.
         SecurityInfo GetSecurity() override { return {}; }
 
         // Holds no secret itself; every hop is checked separately.
         bool SupportsCredentialStrip() const override { return true; }
+
+        // The hop rules need the local profiles; EditChain checks them at save.
+        void Validate(Validation::Issues &issues) override
+        {
+            outbound::Validate(issues);
+            if (list.isEmpty()) {
+                issues << Validation::Issue{Validation::Severity::Error, "list",
+                                            QCoreApplication::translate("Validation", "Add at least one profile to the chain."), {}};
+            }
+        }
 
         bool ParseFromJson(const QJsonObject &object) override {
             if (object.isEmpty()) return false;

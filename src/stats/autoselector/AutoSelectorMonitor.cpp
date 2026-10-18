@@ -6,7 +6,6 @@
 #include "include/database/ProfilesRepo.h"
 #include "include/configs/outbounds/autoselector.h"
 #include "include/database/entities/Profile.h"
-#include "include/ui/mainwindow_interface.h"
 
 #include <QDateTime>
 #include <QThread>

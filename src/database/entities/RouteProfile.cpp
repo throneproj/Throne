@@ -1,3 +1,4 @@
+#include <QCoreApplication>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -9,9 +10,12 @@
 
 #include "include/database/ProfilesRepo.h"
 
+#include "include/configs/ParseDiagnostics.h"
 #include "include/configs/common/OutboundFactory.h"
 #include "include/configs/generate.h"
 #include "include/global/Configs.hpp"
+
+#include <algorithm>
 
 namespace Configs {
     bool isOutboundIDValid(int id) {
@@ -203,24 +207,85 @@ namespace Configs {
             "source_ip_cidr", "source_ip_is_private", "ip_cidr", "ip_is_private", "source_port", "source_port_range",
             "port", "port_range", "process_name", "process_path", "process_path_regex", "package_name",
             "wifi_ssid", "wifi_bssid", "rule_set", "invert", "action", "method", "reject_method", "no_drop",
-            "override_address", "override_port", "tls_spoof", "tls_spoof_method", "override_destination", "strategy",
+            "override_address", "override_port", "tls_fragment", "tls_fragment_fallback_delay", "tls_record_fragment",
+            "tls_spoof", "tls_spoof_method", "override_destination", "strategy",
             "sniffers",
         };
         return keys.contains(key);
+    }
+
+    // Objects and null carry no value a rule field can hold.
+    static std::optional<QString> routeProfileScalarText(const QJsonValue& val) {
+        if (val.isBool()) return val.toBool() ? QStringLiteral("true") : QStringLiteral("false");
+        if (val.isString() || val.isDouble()) return jsonScalarText(val);
+        return std::nullopt;
+    }
+
+    static QString routeProfileIssueText(const RuleIssue& issue) {
+        if (issue.value.isEmpty()) return QCoreApplication::translate("Validation", "%1: %2").arg(issue.attr, issue.message);
+        const QString value = issue.value.size() > 60 ? issue.value.left(59) + QChar(0x2026) : issue.value;
+        return QCoreApplication::translate("Validation", "%1 (\"%2\"): %3").arg(issue.attr, value, issue.message);
+    }
+
+    // A bad condition drops the rule, which would otherwise match more; a bad option is cleared to the core's default.
+    static bool routeProfileCheckImportedRule(RouteRule& rule, const QString& label, QString* warnings) {
+        // Each pass repairs one error, and every repair removes it.
+        for (int pass = 0; pass < 64; ++pass) {
+            const auto issues = rule.validate();
+            const auto error = std::find_if(issues.cbegin(), issues.cend(),
+                                            [](const RuleIssue& issue) { return issue.severity == Validation::Severity::Error; });
+            if (error == issues.cend()) {
+                for (const auto& issue: issues)
+                    appendWarning(warnings, QCoreApplication::translate("Validation", "Rule \"%1\": %2").arg(label, routeProfileIssueText(issue)));
+                return true;
+            }
+            // Without invert one item less only narrows the rule; a custom rule whose condition loses every item would match more.
+            if (!rule.invert && RouteRule::is_list_attribute(error->attr) && !error->value.isEmpty()) {
+                QStringList kept;
+                QList<RuleIssue> removed;
+                for (const auto& item: rule.get_current_value_string(error->attr)) {
+                    const auto issue = RouteRule::check_value(error->attr, item);
+                    if (issue.message.isEmpty() || issue.severity != Validation::Severity::Error) kept << item;
+                    else removed << issue;
+                }
+                if (kept.isEmpty() && rule.type == custom && RouteRule::is_match_attribute(error->attr)) {
+                    appendWarning(warnings, QCoreApplication::translate("Validation", "Rule \"%1\" was dropped: %2").arg(label, routeProfileIssueText(*error)));
+                    return false;
+                }
+                for (const auto& issue: removed)
+                    appendWarning(warnings, QCoreApplication::translate("Validation", "Rule \"%1\": removed the item %2").arg(label, routeProfileIssueText(issue)));
+                rule.set_field_value(error->attr, kept);
+                continue;
+            }
+            if (error->attr == "action" || RouteRule::is_match_attribute(error->attr)) {
+                appendWarning(warnings, QCoreApplication::translate("Validation", "Rule \"%1\" was dropped: %2").arg(label, routeProfileIssueText(*error)));
+                return false;
+            }
+            if (error->attr == "outbound") {
+                rule.outboundID = proxyID;
+                appendWarning(warnings, QCoreApplication::translate("Validation", "Rule \"%1\" now uses the proxy outbound: %2").arg(label, error->message));
+            } else {
+                rule.clear_attribute_value(error->attr);
+                appendWarning(warnings, QCoreApplication::translate("Validation", "Rule \"%1\": %2 was cleared: %3").arg(label, error->attr, error->message));
+            }
+        }
+        return false;
     }
 
     // name/type are schema-only keys: skipped here, applied by the caller.
     // A key that cannot be stored drops the whole rule (nullptr): without that condition it would match more.
     // position is the rule's 1-based place in its array, naming a rule that has no name.
     static std::shared_ptr<RouteRule> parse_rule_object(const QJsonObject& obj, int position, QString* warnings) {
+        const QString nm = obj.value("name").toString();
+        const QString label = nm.isEmpty() ? QString("#%1").arg(position) : nm;
         for (const auto& key: obj.keys()) {
             if (isStorableRuleKey(key)) continue;
-            const QString nm = obj.value("name").toString();
-            appendWarning(warnings, QString("rule \"%1\" dropped: unsupported field \"%2\"")
-                                        .arg(nm.isEmpty() ? QString("#%1").arg(position) : nm, key));
+            appendWarning(warnings, QString("rule \"%1\" dropped: unsupported field \"%2\"").arg(label, key));
             return nullptr;
         }
         auto rule = std::make_shared<RouteRule>();
+        // The caller sets it too; validation needs it now, since simple rules have fixed actions.
+        rule->type = tokenToRuleType(obj.value("type").toString());
         for (const auto& key: obj.keys()) {
             if (key == "name" || key == "type") continue;
             auto val = obj.value(key);
@@ -241,17 +306,43 @@ namespace Configs {
                         appendWarning(warnings, QString("outbound \"%1\" not found, using proxy").arg(val.toString()));
                         rule->outboundID = proxyID;
                     }
+                } else {
+                    appendWarning(warnings, QCoreApplication::translate("Validation", "Rule \"%1\": the outbound is neither a profile name nor an id, so it uses proxy.").arg(label));
+                    rule->outboundID = proxyID;
                 }
-            } else if (val.isArray()) {
-                QStringList items;
-                for (const auto& item: val.toArray()) items << jsonScalarText(item);
-                rule->set_field_value(key, items);
-            } else if (val.isString() || val.isDouble()) {
-                rule->set_field_value(key, {jsonScalarText(val)});
-            } else if (val.isBool()) {
-                rule->set_field_value(key, {val.toBool() ? "true":"false"});
+                continue;
             }
+            QStringList items;
+            bool unusable = false;
+            if (val.isArray()) {
+                for (const auto& item: val.toArray()) {
+                    const auto text = routeProfileScalarText(item);
+                    if (!text) {
+                        unusable = true;
+                        break;
+                    }
+                    items << *text;
+                }
+            } else if (const auto text = routeProfileScalarText(val)) {
+                items << *text;
+            } else {
+                unusable = true;
+            }
+            if (unusable) {
+                if (RouteRule::is_match_attribute(key)) {
+                    appendWarning(warnings, QCoreApplication::translate("Validation", "Rule \"%1\" was dropped: %2 holds something other than text, numbers or booleans.").arg(label, key));
+                    return nullptr;
+                }
+                appendWarning(warnings, QCoreApplication::translate("Validation", "Rule \"%1\": %2 holds something other than text, numbers or booleans, so it was ignored.").arg(label, key));
+                continue;
+            }
+            if (items.size() > 1 && !RouteRule::is_list_attribute(key)) {
+                appendWarning(warnings, QCoreApplication::translate("Validation", "Rule \"%1\": %2 takes one value, so only \"%3\" was kept.").arg(label, key, items.first()));
+            }
+            rule->set_field_value(key, items);
         }
+        if (rule->type == endpointPreferredBy) return rule;
+        if (!routeProfileCheckImportedRule(*rule, label, warnings)) return nullptr;
         return rule;
     }
 
@@ -359,14 +450,60 @@ namespace Configs {
         return -1;
     }
 
+    // Errors that StripCredentials causes on the sharer's side: the material it cleared is missing, so these ask to re-enter it.
+    static bool routeProfileStrippedSecret(const QString& type, const Validation::Issue& issue) {
+        if (type == "openvpn") {
+            // The wrap type's own enum check reports on this field too, and that one is a real error.
+            if (issue.field == "tls.control_wrap.type") return Validation::OneOf(issue.value, {"tls_auth", "tls_crypt", "tls_crypt_v2"}).isEmpty();
+            return issue.field == "static_key" || issue.field == "tls.certificate" || issue.field == "tls.client_certificate";
+        }
+        if (type == "openconnect") return issue.field == "tls.client_certificate" || issue.field == "tls.mca_certificate";
+        return false;
+    }
+
     // hopMap rewrites a chain's machine-local hop ids onto the ones created here.
     static int routeProfileAdoptConfig(const QJsonObject& config, QString* warnings, const QMap<int, int>* hopMap) {
-        auto ent = ProfilesRepo::NewProfile(config.value("type").toString());
-        if (ent == nullptr || ent->outbound == nullptr || ent->outbound->invalid) {
-            appendWarning(warnings, QString("shared endpoint uses unknown protocol \"%1\", dropped").arg(config.value("type").toString()));
+        const auto type = config.value("type").toString();
+        // Only a top-level chain gets its hop ids remapped onto profiles created here.
+        if (const auto refusal = RefusedForeignType(type); !refusal.isEmpty() && (type != "chain" || hopMap == nullptr)) {
+            appendWarning(warnings, refusal);
             return -1;
         }
-        ent->outbound->ParseFromJson(config);
+        auto ent = ProfilesRepo::NewProfile(type);
+        if (ent == nullptr || ent->outbound == nullptr || ent->outbound->invalid) {
+            appendWarning(warnings, QString("shared endpoint uses unknown protocol \"%1\", dropped").arg(type));
+            return -1;
+        }
+        Validation::Issues issues;
+        bool parsed = false;
+        {
+            Configs::ParseDiag::Scope scope;
+            parsed = ent->outbound->ParseFromJson(config);
+            issues << scope.take();
+        }
+        if (!parsed) {
+            if (!Validation::HasError(issues))
+                issues << Validation::Issue{Validation::Severity::Error, {}, QCoreApplication::translate("Validation", "Could not be parsed."), {}};
+        } else {
+            ent->outbound->StripForeignState(issues);
+            Validation::Issues model;
+            ent->outbound->Validate(model);
+            for (auto& issue: model) {
+                if (issue.severity == Validation::Severity::Error && routeProfileStrippedSecret(type, issue)) {
+                    issue.severity = Validation::Severity::Warning;
+                    issue.message = QCoreApplication::translate("Validation", "%1 Shared endpoints arrive without their keys and passwords.").arg(issue.message);
+                }
+                issues << issue;
+            }
+        }
+        for (const auto& issue: issues) {
+            const auto message = issue.severity == Validation::Severity::Error
+                ? QCoreApplication::translate("Validation", "The shared endpoint %1 was not imported: %2")
+                : QCoreApplication::translate("Validation", "The shared endpoint %1 was imported with a warning: %2");
+            const auto text = issue.field.isEmpty() ? issue.message : QCoreApplication::translate("Validation", "%1: %2").arg(issue.field, issue.message);
+            appendWarning(warnings, message.arg(ent->outbound->DisplayTypeAndName(), text));
+        }
+        if (Validation::HasError(issues)) return -1;
         if (const auto ch = ent->Chain(); ch != nullptr) {
             QList<int> mapped;
             for (const int hopID: ch->list) {
@@ -541,14 +678,21 @@ namespace Configs {
             auto profile = std::make_shared<RouteProfile>();
             profile->id = -1;
             profile->name = root.value("name").toString();
-            profile->defaultOutboundID = stringToOutboundID(root.value("default_outbound").toString());
+            const QString defaultOutbound = root.value("default_outbound").toString();
+            profile->defaultOutboundID = stringToOutboundID(defaultOutbound);
+            if (!defaultOutbound.isEmpty() && outboundIDToString(profile->defaultOutboundID) != defaultOutbound) {
+                appendWarning(warnings, QCoreApplication::translate("Validation", "The default outbound \"%1\" is unknown, so proxy is used.").arg(defaultOutbound));
+            }
             QMap<int, int> endpointIDMap;
             profile->endpointProfileIDs = routeProfileEndpointsFromJson(root.value("endpoints").toArray(), warnings, materializeEndpoints, &endpointIDMap, &profile->innerHopEndpointIDs);
             int fallbackNum = 1;
             int position = 0;
             for (const auto& v: root.value("rules").toArray()) {
                 ++position;
-                if (!v.isObject()) continue;
+                if (!v.isObject()) {
+                    appendWarning(warnings, QCoreApplication::translate("Validation", "Rule #%1 is not a JSON object and was skipped.").arg(position));
+                    continue;
+                }
                 const QJsonObject ro = v.toObject();
                 const ruleType type = tokenToRuleType(ro.value("type").toString());
                 // an endpoint rule's outbound is the sharer's profile id; it must survive the proxy fallback.
@@ -726,6 +870,8 @@ namespace Configs {
         for (const auto& item: Rules) {
             // its id names an endpoint built from endpointProfileIDs, not a routing outbound
             if (item->type == endpointPreferredBy) continue;
+            // Only these emit their outbound; a stale id left on another action must not fail the build.
+            if (const auto action = item->effective_action(); action != "route" && action != "bypass") continue;
             res->push_back(item->outboundID);
         }
         return res;
@@ -885,7 +1031,7 @@ namespace Configs {
     }
 
 
-    QString RouteProfile::UpdateSimpleRules(const QString& content, simpleAction action)
+    QString RouteProfile::UpdateSimpleRules(const QString& content, simpleAction action, const QString& label)
     {
         QString res;
         auto items = content.split("\n");
@@ -910,12 +1056,16 @@ namespace Configs {
         for (auto t : types) {
             ResetSimpleRule(t);
         }
-        for (const auto& rawLine : items) {
-            const QString raw = rawLine.trimmed();
+        for (qsizetype i = 0; i < items.size(); ++i) {
+            const QString raw = items[i].trimmed();
             if (raw.isEmpty()) continue;
+            const auto reject = [&](const QString& reason) {
+                res += QCoreApplication::translate("Validation", "Line %1 of the %2 rules (\"%3\"): %4")
+                           .arg(QString::number(i + 1), label.isEmpty() ? simpleActionToString(action) : label, raw, reason) + "\n";
+            };
             auto type = get_rule_type(raw, action);
             if (type == custom) {
-                res += "invalid rule:" + raw + "\n";
+                reject(CheckSimpleRule(raw).message);
                 continue;
             }
             auto rule = get_simple_rule_by_type(type);
@@ -923,12 +1073,33 @@ namespace Configs {
                 res += "internal error, failed to get rule for: " + ruleTypeToString(type) + "\n";
                 continue;
             }
-            if (!add_simple_rule(raw, rule, type)) {
-                res += "invalid rule:" + raw + "\n";
-            }
+            if (const auto reason = add_simple_rule(raw, rule, type); !reason.isEmpty()) reject(reason);
         }
         FilterEmptyRules();
         return res;
+    }
+
+    RuleIssue RouteProfile::CheckSimpleRule(const QString& rawLine) {
+        const QString line = rawLine.trimmed();
+        if (line.isEmpty()) return {};
+        static const QHash<QString, QString> attrs = {
+            {"domain", "domain"}, {"suffix", "domain_suffix"}, {"keyword", "domain_keyword"}, {"regex", "domain_regex"},
+            {"ruleset", "rule_set"}, {"ip", "ip_cidr"}, {"processName", "process_name"}, {"processPath", "process_path"},
+        };
+        const auto colon = line.indexOf(':');
+        const QString prefix = colon < 0 ? QString() : line.left(colon).trimmed();
+        const auto attr = attrs.constFind(prefix);
+        if (attr == attrs.constEnd()) {
+            return {Validation::Severity::Error, {},
+                    QCoreApplication::translate("Validation", "Start the line with domain:, suffix:, keyword:, regex:, ruleset:, ip:, processName: or processPath:."),
+                    {}, {}};
+        }
+        QString value = line.mid(colon + 1).trimmed();
+        if (value.isEmpty())
+            return {Validation::Severity::Error, *attr, QCoreApplication::translate("Validation", "Add a value after \"%1:\".").arg(prefix), {}, {}};
+        // Stored lowercased by add_simple_address_rule.
+        if (prefix == "domain" || prefix == "suffix" || prefix == "keyword") value = value.toLower();
+        return RouteRule::check_value(*attr, value);
     }
 
     void RouteProfile::FilterEmptyRules() {
@@ -939,12 +1110,15 @@ namespace Configs {
         Rules = newRules;
     }
 
-    bool RouteProfile::AppendSimpleRule(const QString& rawRule, simpleAction action) {
+    bool RouteProfile::AppendSimpleRule(const QString& rawRule, simpleAction action, QString* why) {
         const QString raw = rawRule.trimmed();
         if (raw.isEmpty()) return false;
 
         auto type = get_rule_type(raw, action);
-        if (type == custom) return false;
+        if (type == custom) {
+            if (why != nullptr) *why = CheckSimpleRule(raw).message;
+            return false;
+        }
 
         auto rule = get_simple_rule_by_type(type);
         const bool isNewRule = rule == nullptr;
@@ -958,7 +1132,10 @@ namespace Configs {
         }
         if (!rule) return false;
 
-        if (!add_simple_rule(raw, rule, type)) return false;
+        if (const auto reason = add_simple_rule(raw, rule, type); !reason.isEmpty()) {
+            if (why != nullptr) *why = reason;
+            return false;
+        }
         // Published only once the value stuck, so a rejected line needs no FilterEmptyRules() sweep to undo it.
         if (isNewRule) Rules.append(rule);
         return true;
@@ -1065,63 +1242,65 @@ namespace Configs {
         return nullptr;
     }
 
-    bool RouteProfile::add_simple_rule(const QString& content, const std::shared_ptr<RouteRule>& rule, ruleType type)
+    QString RouteProfile::add_simple_rule(const QString& content, const std::shared_ptr<RouteRule>& rule, ruleType type)
     {
+        if (const auto issue = CheckSimpleRule(content); issue.severity == Validation::Severity::Error && !issue.message.isEmpty())
+            return issue.message;
         if (type == simpleAddressProxy || type == simpleAddressBypass || type == simpleAddressBlock || type == simpleAddressWarpBypass) return add_simple_address_rule(content, rule);
         else return add_simple_process_rule(content, rule);
     }
 
-    bool RouteProfile::add_simple_address_rule(const QString& content, const std::shared_ptr<RouteRule>& rule)
+    QString RouteProfile::add_simple_address_rule(const QString& content, const std::shared_ptr<RouteRule>& rule)
     {
+        const auto notAddress = [] {
+            return QCoreApplication::translate("Validation", "Start the line with domain:, suffix:, keyword:, regex:, ruleset: or ip:.");
+        };
         auto colonIdx = content.indexOf(':');
-        if (colonIdx == -1) return false;
+        if (colonIdx == -1) return notAddress();
         const QString address = content.mid(colonIdx+1).trimmed();
-        if (address.isEmpty()) return false;
+        if (address.isEmpty()) return notAddress();
         const QString subType = content.left(colonIdx).trimmed();
         // sing-box lowercases the host before matching but takes these values as written, so a capital letter here never matches.
         const QString lowered = address.toLower();
         if (subType == "domain") {
             if (!rule->domain.contains(lowered)) rule->domain.append(lowered);
-            return true;
         } else if (subType == "suffix") {
             if (!rule->domain_suffix.contains(lowered)) rule->domain_suffix.append(lowered);
-            return true;
         } else if (subType == "keyword") {
             if (!rule->domain_keyword.contains(lowered)) rule->domain_keyword.append(lowered);
-            return true;
         } else if (subType == "regex") {
             // Left as written: it is matched against the lowercased host too, but lowercasing a pattern can change it (\D is not \d).
             if (!rule->domain_regex.contains(address)) rule->domain_regex.append(address);
-            return true;
         } else if (subType == "ruleset") {
             if (!rule->rule_set.contains(address)) rule->rule_set.append(address);
-            return true;
         } else if (subType == "ip") {
             if (!rule->ip_cidr.contains(address)) rule->ip_cidr.append(address);
-            return true;
         } else {
-            return false;
+            return notAddress();
         }
+        return {};
     }
 
-    bool RouteProfile::add_simple_process_rule(const QString& content, const std::shared_ptr<RouteRule>& rule)
+    QString RouteProfile::add_simple_process_rule(const QString& content, const std::shared_ptr<RouteRule>& rule)
     {
-        if (!content.contains(":")) return false;
+        const auto notProcess = [] {
+            return QCoreApplication::translate("Validation", "Start the line with processName: or processPath:.");
+        };
+        if (!content.contains(":")) return notProcess();
         const QString prefix = content.first(content.indexOf(':')).trimmed();
         const QString address = content.section(':', 1).trimmed();
-        if (address.isEmpty()) return false;
+        if (address.isEmpty()) return notProcess();
         if (prefix == "processPath")
         {
             if (!rule->process_path.contains(address)) rule->process_path.append(address);
-            return true;
         } else if (prefix == "processName")
         {
             if (!rule->process_name.contains(address)) rule->process_name.append(address);
-            return true;
         } else
         {
-            return false;
+            return notProcess();
         }
+        return {};
     }
 
     std::shared_ptr<RouteRule> RouteProfile::get_simple_rule_by_type(ruleType type) {

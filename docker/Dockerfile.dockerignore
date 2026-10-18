@@ -1,0 +1,5 @@
+# The context is deployment/ (or CI's copy of it): send only the bundled Linux builds, without their debug symbols.
+*
+!linux-amd64
+!linux-arm64
+**/Throne.debug

@@ -1,9 +1,11 @@
 #include "include/configs/outbounds/mieru.h"
 
+#include <QCoreApplication>
 #include <QJsonArray>
 #include <QUrlQuery>
 #include <include/global/Utils.hpp>
 
+#include "include/configs/ParseDiagnostics.h"
 #include "include/configs/common/utils.h"
 
 namespace Configs {
@@ -15,6 +17,47 @@ namespace Configs {
                 if (!part.isEmpty()) arr.append(part);
             }
             return arr;
+        }
+
+        // The core also accepts the protobuf's MULTIPLEXING_DEFAULT.
+        const QStringList &mieruMultiplexingLevels() {
+            static const QStringList levels = mieruMultiplexing + QStringList{"MULTIPLEXING_DEFAULT"};
+            return levels;
+        }
+
+        void mieruImportTuning(QString& multiplexing, QString& trafficPattern) {
+            multiplexing = multiplexing.trimmed();
+            trafficPattern = trafficPattern.trimmed();
+            if (!AcceptOptional("multiplexing", Validation::OneOf(multiplexing, mieruMultiplexingLevels()), multiplexing)) multiplexing.clear();
+            if (Validation::Base64(trafficPattern).isEmpty()) {
+                while (trafficPattern.size() % 4) trafficPattern += u'=';
+            }
+            if (!AcceptOptional("traffic_pattern", Checks::MieruTrafficPattern(trafficPattern))) trafficPattern.clear();
+        }
+
+        // validateMieruOptions: both ends within 1-65535, begin <= end.
+        QString mieruPortRange(const QString &item) {
+            Validation::PortRangeStyle style{Validation::RangeSep::Dash};
+            style.checkOrder = false;
+            if (auto message = Validation::PortRange(item, style); !message.isEmpty()) return message;
+            const QStringList sides = item.trimmed().split(u'-');
+            const int begin = sides[0].toInt(), end = sides[1].toInt();
+            if (begin == 0 || end == 0) return QCoreApplication::translate("Validation", "Ports must be from 1 to 65535.");
+            if (begin > end)
+                return QCoreApplication::translate("Validation", "The range starts after it ends; write it as %1-%2.").arg(QString::number(end), QString::number(begin));
+            return {};
+        }
+    }
+
+    namespace Checks {
+        QString MieruServerPorts(const QString &ports) {
+            return Validation::EachItem(ports, Validation::Split::Comma, mieruPortRange);
+        }
+
+        QString MieruTrafficPattern(const QString &pattern) {
+            if (auto message = Validation::Base64(pattern); !message.isEmpty()) return message;
+            if (pattern.trimmed().size() % 4 == 0) return {};
+            return QCoreApplication::translate("Validation", "The = padding at the end is missing; copy the whole pattern.");
         }
     }
 
@@ -42,6 +85,8 @@ namespace Configs {
             if (port.isEmpty()) continue;
             if (port.contains('-')) {
                 ranges << port;
+            } else if (!ParseDiag::Accept("port", Validation::Port(port), port, Validation::Severity::Error)) {
+                continue;
             } else if (!haveSinglePort) {
                 server_port = port.toInt();
                 haveSinglePort = true;
@@ -52,7 +97,9 @@ namespace Configs {
         server_ports = ranges.join(",");
 
         if (query.hasQueryItem("multiplexing")) multiplexing = query.queryItemValue("multiplexing");
-        if (query.hasQueryItem("traffic-pattern")) traffic_pattern = query.queryItemValue("traffic-pattern");
+        // mieru percent-encodes the base64 '+' and '/', which only FullyDecoded turns back.
+        if (query.hasQueryItem("traffic-pattern")) traffic_pattern = query.queryItemValue("traffic-pattern", QUrl::FullyDecoded);
+        mieruImportTuning(multiplexing, traffic_pattern);
 
         return true;
     }
@@ -67,9 +114,18 @@ namespace Configs {
         if (object.contains("multiplexing")) multiplexing = object["multiplexing"].toString();
         if (object.contains("traffic_pattern")) traffic_pattern = object["traffic_pattern"].toString();
         if (object.contains("server_ports")) {
-            QStringList ports;
-            for (const auto& v : object["server_ports"].toArray()) ports << v.toString();
-            server_ports = ports.join(",");
+            // sing-box also takes a single range as a plain string.
+            if (const auto value = object["server_ports"]; value.isString()) {
+                server_ports = value.toString().trimmed();
+            } else {
+                QStringList ports;
+                for (const auto& v : value.toArray()) ports << v.toString().trimmed();
+                server_ports = ports.join(",");
+            }
+        }
+        if (ParseDiag::Active()) {
+            transport = transport.trimmed().toUpper();
+            mieruImportTuning(multiplexing, traffic_pattern);
         }
         return true;
     }
@@ -133,7 +189,9 @@ namespace Configs {
     {
         QJsonObject object;
         object["type"] = "mieru";
-        mergeJsonObjects(object, outbound::Build().object);
+        const auto base = outbound::Build();
+        if (!base.error.isEmpty()) return {{}, base.error};
+        mergeJsonObjects(object, base.object);
         object["transport"] = transport.isEmpty() ? QString("TCP") : transport;
         if (!username.isEmpty()) object["username"] = username;
         if (!password.isEmpty()) object["password"] = password;
@@ -147,6 +205,24 @@ namespace Configs {
     QString mieru::DisplayType()
     {
         return "Mieru";
+    }
+
+    bool mieru::ServerPortOptional()
+    {
+        return !splitServerPorts(server_ports).isEmpty();
+    }
+
+    void mieru::Validate(Validation::Issues &issues)
+    {
+        outbound::Validate(issues);
+        using Validation::Severity;
+        if (auto message = Validation::Required(username); !message.isEmpty()) issues.append({Severity::Error, "username", message});
+        if (auto message = Validation::Required(password); !message.isEmpty()) issues.append({Severity::Error, "password", message});
+        if (auto message = Validation::OneOf(transport, mieruTransports); !message.isEmpty()) issues.append({Severity::Error, "transport", message, transport});
+        if (auto message = Validation::OneOf(multiplexing, mieruMultiplexingLevels()); !message.isEmpty())
+            issues.append({Severity::Error, "multiplexing", message, multiplexing});
+        if (auto message = Checks::MieruServerPorts(server_ports); !message.isEmpty()) issues.append({Severity::Error, "server_ports", message, server_ports});
+        if (auto message = Checks::MieruTrafficPattern(traffic_pattern); !message.isEmpty()) issues.append({Severity::Error, "traffic_pattern", message});
     }
 
     SecurityInfo mieru::GetSecurity()

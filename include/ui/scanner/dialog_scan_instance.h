@@ -36,6 +36,10 @@ namespace Configs_network {
     struct WarpIdentity;
 }
 
+namespace Validation {
+    class Form;
+}
+
 class DialogScanInstance : public QDialog {
     Q_OBJECT
 
@@ -88,6 +92,8 @@ private:
     int resultCount = 0;
     QHash<int, QString> baseListNames;
     QStringList logLines;
+
+    Validation::Form *form = nullptr;
 
     IpEntriesModel *resultsModel = nullptr;
     QSortFilterProxyModel *resultsProxy = nullptr;
@@ -163,6 +169,8 @@ private:
     void buildConfigPhase(QVBoxLayout *layout);
 
     void buildWarpPhase(QVBoxLayout *layout);
+
+    void bindValidation();
 
     void setupResults();
 

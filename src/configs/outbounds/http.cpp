@@ -1,11 +1,21 @@
 #include "include/configs/outbounds/http.h"
 
+#include <QCoreApplication>
 #include <QUrlQuery>
 #include <include/global/Utils.hpp>
 
+#include "include/configs/ParseDiagnostics.h"
 #include "include/configs/common/utils.h"
 
 namespace Configs {
+    namespace Checks {
+        QString HttpAuth(const QString &username, const QString &password)
+        {
+            if (password.isEmpty() || !username.isEmpty()) return {};
+            return QCoreApplication::translate("Validation", "Enter a user name too; without one the password is not sent.");
+        }
+    }
+
     bool http::ParseFromLink(const QString& link)
     {
         auto url = QUrl(link);
@@ -31,7 +41,13 @@ namespace Configs {
         }
 
         if (query.hasQueryItem("path")) path = query.queryItemValue("path");
-        if (query.hasQueryItem("headers")) headers = query.queryItemValue("headers").split(",");
+        if (const auto raw = query.queryItemValue("headers"); !raw.isEmpty()) {
+            headers = raw.split(",");
+            if (headers.size() % 2 != 0) {
+                ParseDiag::Warn("headers", QCoreApplication::translate("Validation", "The headers must alternate names and values separated by commas, for example User-Agent,curl, so they were ignored."));
+                headers.clear();
+            }
+        }
         if (url.scheme() == "https" || query.queryItemValue("security") == "tls")
         {
             tls->ParseFromLink(link);
@@ -58,7 +74,7 @@ namespace Configs {
         username = QString::fromStdString(object.username);
         password = QString::fromStdString(object.password);
 
-        tls->ParseFromClash(object);
+        tls->ParseFromClash(object, object.tls);
         return true;
     }
     QString http::ExportToLink()
@@ -94,18 +110,29 @@ namespace Configs {
     {
         QJsonObject object;
         object["type"] = "http";
-        mergeJsonObjects(object, outbound::Build().object);
+        const auto base = outbound::Build();
+        if (!base.error.isEmpty()) return {{}, base.error};
+        mergeJsonObjects(object, base.object);
         if (!username.isEmpty()) object["username"] = username;
         if (!password.isEmpty()) object["password"] = password;
         if (!path.isEmpty()) object["path"] = path;
         if (auto headerObj = qStringListToJsonObject(headers); !headerObj.isEmpty()) object["headers"] = headerObj;
-        if (auto tlsObj = tls->Build().object; !tlsObj.isEmpty()) object["tls"] = tlsObj;
+        const auto tlsResult = tls->Build();
+        if (!tlsResult.error.isEmpty()) return {{}, tlsResult.error};
+        if (!tlsResult.object.isEmpty()) object["tls"] = tlsResult.object;
         return {object, ""};
     }
 
     QString http::DisplayType()
     {
         return "HTTP";
+    }
+
+    void http::Validate(Validation::Issues &issues)
+    {
+        outbound::Validate(issues);
+        if (auto message = Checks::HttpAuth(username, password); !message.isEmpty())
+            issues.append({Validation::Severity::Warning, "password", message});
     }
 }
 

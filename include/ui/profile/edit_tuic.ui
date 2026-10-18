@@ -74,17 +74,17 @@
     <widget class="QComboBox" name="congestion_control">
      <item>
       <property name="text">
-       <string>bbr</string>
+       <string notr="true">bbr</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>cubic</string>
+       <string notr="true">cubic</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>new_reno</string>
+       <string notr="true">new_reno</string>
       </property>
      </item>
     </widget>
@@ -103,12 +103,12 @@
     <widget class="QComboBox" name="udp_relay_mode">
      <item>
       <property name="text">
-       <string>native</string>
+       <string notr="true">native</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>quic</string>
+       <string notr="true">quic</string>
       </property>
      </item>
     </widget>

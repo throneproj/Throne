@@ -1,13 +1,41 @@
 #include "include/configs/outbounds/naive.h"
 
+#include <QCoreApplication>
 #include <QJsonArray>
 #include <QUrlQuery>
 #include <include/global/Utils.hpp>
 
+#include "include/configs/ParseDiagnostics.h"
 #include "include/configs/common/utils.h"
 
+#include <limits>
+
 namespace Configs {
+    namespace Checks {
+        QString NaiveExtraHeaders(const QString &text)
+        {
+            if (text.trimmed().isEmpty() || !parseHeaderPairs(text).isEmpty()) return {};
+            return QCoreApplication::translate("Validation", "Write each header as Name=\"value\", for example X-Username=\"user\" X-Password=\"pass\".");
+        }
+
+        QString NaiveExtraHeaderNames(const QStringList &pairs)
+        {
+            for (qsizetype i = 0; i + 1 < pairs.size(); i += 2) {
+                if (const auto message = Validation::HttpToken(pairs[i], Validation::Empty::Required); !message.isEmpty()) {
+                    return QCoreApplication::translate("Validation", "Header name \"%1\": %2").arg(pairs[i], message);
+                }
+            }
+            return {};
+        }
+    }
+
     namespace {
+        // Without a diagnostics scope (DB loads, clones) a parse keeps every value as it always did.
+        bool naiveKeep(const QString& field, const QString& value, const Validation::Rule& rule)
+        {
+            return !ParseDiag::Active() || AcceptOptional(field, rule(value), value);
+        }
+
         // Go's net/url (Husi, naive's own tooling) splits the userinfo at the last '@', QUrl at the first.
         QString escapeUserInfoAts(const QString& link)
         {
@@ -38,9 +66,14 @@ namespace Configs {
             for (auto line : text.split(u'\n', Qt::SkipEmptyParts)) {
                 if (line.endsWith(u'\r')) line.chop(1);
                 const auto colon = line.indexOf(u':');
-                if (colon <= 0) continue;
-                const auto name = line.left(colon).trimmed();
-                if (name.isEmpty()) continue;
+                const auto name = colon > 0 ? line.left(colon).trimmed() : QString();
+                if (name.isEmpty()) {
+                    // The line may carry a credential, so it is not echoed.
+                    if (!line.trimmed().isEmpty()) {
+                        ParseDiag::Warn("extra-headers", QCoreApplication::translate("Validation", "A header line without a name and a colon was ignored; write each line as Name: value."));
+                    }
+                    continue;
+                }
                 pairs << name << line.mid(colon + 1).trimmed();
             }
             return pairs;
@@ -80,12 +113,20 @@ namespace Configs {
         if (server_port == 0) server_port = 443;
 
         if (query.hasQueryItem("uot")) uot = query.queryItemValue("uot") == "true" || query.queryItemValue("uot").toInt() > 0;
-        if (query.hasQueryItem("insecure-concurrency")) insecure_concurrency = qMax(0, query.queryItemValue("insecure-concurrency").toInt());
+        if (query.hasQueryItem("insecure-concurrency")) {
+            const auto value = query.queryItemValue("insecure-concurrency").trimmed();
+            if (naiveKeep("insecure-concurrency", value, Validation::Rules::Int(0, std::numeric_limits<int>::max()))) {
+                insecure_concurrency = qMax(0, value.toInt());
+            }
+        }
         if (query.hasQueryItem("extra-headers")) extra_headers = parseExtraHeaders(query);
 
         if (url.scheme() == "naive+quic") {
             quic = true;
-            if (query.hasQueryItem("congestion_control")) congestion_control = query.queryItemValue("congestion_control");
+            if (query.hasQueryItem("congestion_control")) {
+                const auto value = query.queryItemValue("congestion_control").trimmed();
+                if (naiveKeep("congestion_control", value, Validation::Rules::OneOf(naiveCongestionControls))) congestion_control = value;
+            }
         }
 
         tls->enabled = true;
@@ -123,9 +164,25 @@ namespace Configs {
             if (object["udp_over_tcp"].isObject()) uot = object["udp_over_tcp"].toObject()["enabled"].toBool();
         }
         if (object.contains("quic")) quic = object["quic"].toBool();
-        if (object.contains("quic_congestion_control")) congestion_control = object["quic_congestion_control"].toString();
+        if (object.contains("quic_congestion_control")) {
+            const auto value = object["quic_congestion_control"].toString();
+            if (naiveKeep("quic_congestion_control", value, Validation::Rules::OneOf(naiveCongestionControls))) congestion_control = value;
+        }
         if (object.contains("tls")) tls->ParseFromJson(naiveTLS(object["tls"].toObject(), true));
         return true;
+    }
+
+    void naive::Validate(Validation::Issues& issues)
+    {
+        outbound::Validate(issues);
+        if (quic) {
+            if (const auto message = Validation::OneOf(congestion_control, naiveCongestionControls); !message.isEmpty()) {
+                issues << Validation::Issue{Validation::Severity::Error, "quic_congestion_control", message, congestion_control};
+            }
+        }
+        if (const auto message = Checks::NaiveExtraHeaderNames(extra_headers); !message.isEmpty()) {
+            issues << Validation::Issue{Validation::Severity::Warning, "extra_headers", message, {}};
+        }
     }
 
     QString naive::ExportToLink()
@@ -181,7 +238,9 @@ namespace Configs {
     {
         QJsonObject object;
         object["type"] = "naive";
-        mergeJsonObjects(object, outbound::Build().object);
+        const auto base = outbound::Build();
+        if (!base.error.isEmpty()) return {{}, base.error};
+        mergeJsonObjects(object, base.object);
         if (!username.isEmpty()) object["username"] = username;
         if (!password.isEmpty()) object["password"] = password;
         if (insecure_concurrency > 0) object["insecure_concurrency"] = insecure_concurrency;
@@ -194,7 +253,11 @@ namespace Configs {
         // Not tls->Build(): it injects the global skip_cert / fragment defaults, which the core rejects for naive.
         auto tlsObj = tls->ExportToJson();
         // ExportToJson keeps Throne-only fields (ech.resolver); the core rejects unknown keys, so use ECH's own Build().
-        if (tls->ech->enabled) tlsObj["ech"] = tls->ech->Build().object;
+        if (tls->ech->enabled) {
+            const auto echResult = tls->ech->Build();
+            if (!echResult.error.isEmpty()) return {{}, echResult.error};
+            tlsObj["ech"] = echResult.object;
+        }
         object["tls"] = naiveTLS(tlsObj, false);
         return {object, ""};
     }

@@ -960,6 +960,23 @@
              </widget>
             </item>
             <item row="1" column="0">
+             <widget class="QLabel" name="cipher_suites_l">
+              <property name="text">
+               <string>Cipher Suites</string>
+              </property>
+              <property name="buddy">
+               <cstring>cipher_suites</cstring>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="MyLineEdit" name="cipher_suites">
+              <property name="toolTip">
+               <string>Colon-separated TLS 1.2 cipher suite names. A uTLS fingerprint ignores them; use the "unsafe" fingerprint (Go's own TLS stack) to apply them.</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
              <widget class="QLabel" name="reality_pbk_l">
               <property name="toolTip">
                <string>Reality public key. If not empty, turn TLS into REALITY.</string>
@@ -972,10 +989,10 @@
               </property>
              </widget>
             </item>
-            <item row="1" column="1">
+            <item row="2" column="1">
              <widget class="MyLineEdit" name="reality_pbk"/>
             </item>
-            <item row="2" column="0">
+            <item row="3" column="0">
              <widget class="QLabel" name="reality_sid_l">
               <property name="toolTip">
                <string>Reality short id. Accept only one value.</string>
@@ -988,7 +1005,7 @@
               </property>
              </widget>
             </item>
-            <item row="2" column="1">
+            <item row="3" column="1">
              <widget class="QLineEdit" name="reality_sid"/>
             </item>
            </layout>
@@ -1105,6 +1122,23 @@
              <widget class="QLineEdit" name="xray_ech_config_list">
               <property name="toolTip">
                <string>echConfigList: a base64 ECHConfigList, or "domain+https://dns/dns-query" to let Xray fetch it over DoH (e.g. cloudflare-ech.com+https://8.8.8.8/dns-query).</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0">
+             <widget class="QLabel" name="label_xray_cs">
+              <property name="text">
+               <string>Cipher Suites</string>
+              </property>
+              <property name="buddy">
+               <cstring>xray_cipher_suites</cstring>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="1">
+             <widget class="QLineEdit" name="xray_cipher_suites">
+              <property name="toolTip">
+               <string>cipherSuites: colon-separated TLS 1.2 cipher suite names, including Go's insecure ones. Only applied with the "unsafe" fingerprint.</string>
               </property>
              </widget>
             </item>
@@ -1803,6 +1837,7 @@
   <tabstop>tls_rec_frag</tabstop>
   <tabstop>tls_tricks</tabstop>
   <tabstop>utlsFingerprint</tabstop>
+  <tabstop>cipher_suites</tabstop>
   <tabstop>reality_pbk</tabstop>
   <tabstop>reality_sid</tabstop>
   <tabstop>xray_sni</tabstop>
@@ -1811,6 +1846,7 @@
   <tabstop>xray_pinned_peer_cert_sha256</tabstop>
   <tabstop>xray_verify_peer_cert_by_name</tabstop>
   <tabstop>xray_ech_config_list</tabstop>
+  <tabstop>xray_cipher_suites</tabstop>
   <tabstop>xray_reality_pbk</tabstop>
   <tabstop>xray_reality_sid</tabstop>
   <tabstop>xray_reality_spiderx</tabstop>

@@ -7,11 +7,12 @@
 #include "include/database/OtpProfilesRepo.h"
 #include "include/global/OtpPlaceholder.hpp"
 #include "include/global/Utils.hpp"
+#include "include/ui/utils/ValidationForm.h"
 
 EditOpenVPN::EditOpenVPN(QWidget *parent) : QWidget(parent), ui(new Ui::EditOpenVPN) {
     ui->setupUi(this);
 
-    ui->network->addItems({"", "udp", "udp4", "udp6", "tcp", "tcp4", "tcp6"});
+    ui->network->addItems(Configs::openvpnNetworks);
     ui->control_wrap_type->addItems({"", "tls_auth", "tls_crypt", "tls_crypt_v2"});
     ui->control_wrap_direction->addItems({"", "server", "client"});
     ui->tunnel_dns->addItem(tr("None"), QString(Configs::kTunnelDnsNone));
@@ -35,7 +36,13 @@ EditOpenVPN::EditOpenVPN(QWidget *parent) : QWidget(parent), ui(new Ui::EditOpen
 
     connect(ui->advanced_button, &QPushButton::clicked, this, [=, this] {
         if (ent == nullptr) return;
-        auto advanced = new EditOpenVPNAdvanced(this, ent);
+        auto advanced = new EditOpenVPNAdvanced(this, ent, [this](Configs::openvpn &outbound) { saveInto(outbound); });
+        advanced->setAttribute(Qt::WA_DeleteOnClose);
+        // The server list it writes decides whether the outer address and port are needed.
+        connect(advanced, &QDialog::accepted, this, [this] {
+            revalidateInput();
+            if (editor_state_changed) editor_state_changed();
+        });
         advanced->show();
     });
 }
@@ -51,6 +58,7 @@ void EditOpenVPN::editPem(QPushButton *button, const QString &title, QStringList
     target = txt.split("\n", Qt::SkipEmptyParts);
     if (editor_cache_updated) editor_cache_updated();
     else button->setText(target.isEmpty() ? tr("Not set") : tr("Already set"));
+    revalidateInput();
 }
 
 QList<QPair<QPushButton *, QString>> EditOpenVPN::get_editor_cached() {
@@ -94,24 +102,91 @@ void EditOpenVPN::onStart(std::shared_ptr<Configs::Profile> _ent) {
 }
 
 bool EditOpenVPN::onEnd() {
-    auto outbound = this->ent->OpenVPN();
-
-    outbound->network = ui->network->currentText().trimmed();
-    outbound->username = ui->username->text().trimmed();
-    outbound->password = ui->password->text();
-    outbound->static_challenge = ui->static_challenge->text();
-    outbound->static_challenge_echo = ui->static_challenge_echo->isChecked();
-    outbound->mtu = ui->mtu->text().trimmed().toInt();
-    outbound->otp_profile_id = ui->otp_profile->currentData().toInt();
-    outbound->only_advertised_routes = ui->only_advertised_routes->isChecked();
-    outbound->tunnel_dns = ui->tunnel_dns->currentData().toString();
-
-    outbound->tls->certificate = CACHE.certificate;
-    outbound->tls->client_certificate = CACHE.clientCertificate;
-    outbound->tls->client_key = CACHE.clientKey;
-    outbound->tls->control_wrap->type = ui->control_wrap_type->currentText().trimmed();
-    outbound->tls->control_wrap->key = CACHE.controlWrapKey;
-    outbound->tls->control_wrap->direction = ui->control_wrap_direction->currentText().trimmed();
-
+    saveInto(*ent->OpenVPN());
     return true;
+}
+
+void EditOpenVPN::saveInto(Configs::openvpn &outbound) const {
+    outbound.network = ui->network->currentText().trimmed();
+    outbound.username = ui->username->text().trimmed();
+    outbound.password = ui->password->text();
+    outbound.static_challenge = ui->static_challenge->text();
+    outbound.static_challenge_echo = ui->static_challenge_echo->isChecked();
+    outbound.mtu = ui->mtu->text().trimmed().toInt();
+    outbound.otp_profile_id = ui->otp_profile->currentData().toInt();
+    outbound.only_advertised_routes = ui->only_advertised_routes->isChecked();
+    outbound.tunnel_dns = ui->tunnel_dns->currentData().toString();
+
+    outbound.tls->certificate = CACHE.certificate;
+    outbound.tls->client_certificate = CACHE.clientCertificate;
+    outbound.tls->client_key = CACHE.clientKey;
+    outbound.tls->control_wrap->type = ui->control_wrap_type->currentText().trimmed();
+    outbound.tls->control_wrap->key = CACHE.controlWrapKey;
+    outbound.tls->control_wrap->direction = ui->control_wrap_direction->currentText().trimmed();
+}
+
+std::shared_ptr<Configs::openvpn> EditOpenVPN::withInput() const {
+    auto outbound = ent->OpenVPN()->DetachedCopy();
+    saveInto(*outbound);
+    return outbound;
+}
+
+void EditOpenVPN::revalidateInput() {
+    if (!form) return;
+    for (auto *widget: std::as_const(checkedWidgets)) form->revalidate(widget);
+}
+
+void EditOpenVPN::bindValidation(Validation::Form &form) {
+    using namespace Validation;
+    using namespace Configs::Checks;
+    using Check = std::function<QString(const Configs::openvpn &)>;
+    this->form = &form;
+    form.bind(ui->mtu, Rules::Int(0, 65535), this);
+
+    // The Advanced dialog holds the mode, the file paths and the fingerprints, already applied to the profile.
+    const auto rule = [this, &form](const QList<QWidget *> &participants, const Check &check, const QString &label = {}) {
+        form.addRule(participants, [this, check] { return check(*withInput()); }, this, Severity::Error, label);
+        for (auto *widget: participants) {
+            if (!checkedWidgets.contains(widget)) checkedWidgets << widget;
+        }
+    };
+    // The wrap rows are labelled just Type, Key and Direction inside their group.
+    const auto wrapType = tr("Control Channel Wrap Type"), wrapKey = tr("Control Channel Wrap Key");
+    rule({ui->certificate}, OpenVPNTlsVerification);
+    rule({ui->client_certificate, ui->client_key}, OpenVPNClientPair);
+    rule({ui->certificate}, [](const Configs::openvpn &o) { return VpnMaterialConflict(o.tls->certificate, o.tls->certificate_path); });
+    rule({ui->client_certificate}, [](const Configs::openvpn &o) {
+        return VpnMaterialConflict(o.tls->client_certificate, o.tls->client_certificate_path);
+    });
+    rule({ui->client_key}, [](const Configs::openvpn &o) { return VpnMaterialConflict(o.tls->client_key, o.tls->client_key_path); });
+    rule({ui->control_wrap_key}, [](const Configs::openvpn &o) {
+        return VpnMaterialConflict(o.tls->control_wrap->key, o.tls->control_wrap->key_path);
+    }, wrapKey);
+    rule({ui->control_wrap_type, ui->control_wrap_key}, OpenVPNControlWrapKey, wrapType);
+    rule({ui->control_wrap_direction, ui->control_wrap_type}, OpenVPNControlWrapDirection, tr("Control Channel Wrap Direction"));
+
+    const QList<QPair<QWidget *, QString>> modeBound = {
+        {ui->username, "username"},
+        {ui->password, "password"},
+        {ui->static_challenge, "static_challenge"},
+        {ui->static_challenge_echo, "static_challenge_echo"},
+        {ui->certificate, "tls.certificate"},
+        {ui->client_certificate, "tls.client_certificate"},
+        {ui->client_key, "tls.client_key"},
+    };
+    for (const auto &bound: modeBound) {
+        rule({bound.first}, [key = bound.second](const Configs::openvpn &o) { return OpenVPNModeConflict(o, key); });
+    }
+    rule({ui->control_wrap_type}, [](const Configs::openvpn &o) { return OpenVPNModeConflict(o, "tls.control_wrap"); }, wrapType);
+
+    rule({ui->username, ui->otp_profile}, [](const Configs::openvpn &o) { return OtpPlaceholderUnbound(o.username, o.otp_profile_id); });
+    rule({ui->password, ui->otp_profile}, [](const Configs::openvpn &o) { return OtpPlaceholderUnbound(o.password, o.otp_profile_id); });
+}
+
+bool EditOpenVPN::serverPortOptional() {
+    return ent != nullptr && !ent->OpenVPN()->servers.isEmpty();
+}
+
+bool EditOpenVPN::serverAddressOptional() {
+    return serverPortOptional();
 }

@@ -30,7 +30,8 @@ bool ConnectionsTreeFilterProxyModel::leafMatches(const ConnectionsTree::Process
                                                   const ConnectionsTree::ConnectionLeafItem *leaf) const {
     if (!m_source.isEmpty() && !leaf->meta.sourceDisplay.contains(m_source, Qt::CaseInsensitive)) return false;
     if (!m_protocol.isEmpty() && !leaf->protocolText.contains(m_protocol, Qt::CaseInsensitive)) return false;
-    if (!m_outbound.isEmpty() && !leaf->meta.outbound.contains(m_outbound, Qt::CaseInsensitive)) return false;
+    if (!m_outbound.isEmpty() && !leaf->meta.outboundName.contains(m_outbound, Qt::CaseInsensitive)
+        && !leaf->meta.outbound.contains(m_outbound, Qt::CaseInsensitive)) return false;
     return m_target.isEmpty() || leaf->destText.contains(m_target, Qt::CaseInsensitive)
            || ConnectionsTreeModel::displayProcessName(group->processName).contains(m_target, Qt::CaseInsensitive);
 }

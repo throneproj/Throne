@@ -4,6 +4,7 @@
 
 #include "include/configs/sub/warp.h"
 #include "include/global/Utils.hpp"
+#include "include/ui/utils/ValidationForm.h"
 
 namespace {
     constexpr int kHttp3Fallback = 0;
@@ -40,7 +41,7 @@ bool EditMasque::onEnd() {
 
     outbound->private_key = ui->private_key->text().trimmed();
     outbound->peer_public_key = ui->peer_public_key->text().trimmed();
-    outbound->address = ui->address->text().remove(' ').split(",", Qt::SkipEmptyParts);
+    outbound->address = Configs::masque::HostPrefixed(ui->address->text().remove(' ').split(",", Qt::SkipEmptyParts));
     outbound->mtu = ui->mtu->text().trimmed().toInt();
     switch (ui->http_version->currentIndex()) {
         case kHttp3Only:
@@ -58,6 +59,16 @@ bool EditMasque::onEnd() {
     }
 
     return true;
+}
+
+void EditMasque::bindValidation(Validation::Form &form) {
+    using namespace Validation;
+    form.bind(ui->private_key, [](const QString &text) { return Configs::Checks::MasqueKey(text, Empty::Required); }, this);
+    form.bind(ui->peer_public_key, [](const QString &text) { return Configs::Checks::MasqueKey(text, Empty::Allowed); }, this);
+    // Same normalisation as the save path; bare addresses are saved with /32 or /128.
+    form.bind(ui->address, [](const QString &text) {
+        return EachItem(QString(text).remove(' '), Split::Comma, Rules::Cidr(Family::Any, true), Empty::Required);
+    }, this);
 }
 
 void EditMasque::generateWarpIdentity() {

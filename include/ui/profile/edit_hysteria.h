@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QPointer>
 #include <QWidget>
 #include "profile_editor.h"
 #include "ui_edit_hysteria.h"
@@ -20,12 +21,25 @@ public:
 
     bool onEnd() override;
 
+    void bindValidation(Validation::Form &form) override;
+
     bool locksServerAddress() override;
+
+    bool serverPortOptional() override;
+
+    bool serverAddressOptional() override;
 
 private:
     Ui::EditHysteria *ui;
     std::shared_ptr<Configs::Profile> ent;
+    QPointer<Validation::Form> form;
 
     void editHysteriaLayout(const QString& version, const QString& obfs_type);
+
+    bool isV2() const;
+
+    bool realmOn() const;
+
+    bool hopping() const;
 };
 

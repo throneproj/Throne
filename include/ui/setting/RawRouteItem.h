@@ -54,6 +54,8 @@ private slots:
 private:
     QLineEdit* nameEdit = nullptr;
     RawRouteEdit* jsonEdit = nullptr;
+    // Kept to re-run on save: the editor's own check is debounced, so its issues can lag the last keystroke.
+    std::shared_ptr<JsonEdit::Validator> routeValidator;
     QCheckBox* preventCheck = nullptr;
     JsonEdit::JsonIssueList* issueList = nullptr;
     QLabel* validateLabel = nullptr;

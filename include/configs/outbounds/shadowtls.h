@@ -4,6 +4,11 @@
 
 namespace Configs
 {
+    namespace Checks {
+        // The core reads version 0 as 1; v2 and v3 authenticate with the server's password.
+        QString ShadowTlsPassword(int version, const QString &password);
+    }
+
     class shadowtls : public outbound
     {
         public:
@@ -31,5 +36,7 @@ namespace Configs
         BuildResult Build() override;
 
         QString DisplayType() override;
+
+        void Validate(Validation::Issues &issues) override;
     };
 }

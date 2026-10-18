@@ -19,9 +19,14 @@ public:
 
     bool onEnd() override;
 
+    void bindValidation(Validation::Form &form) override;
+
     bool usesQuic() override;
 
 private:
+    // ECH and Disable SNI come from the profile (the outer Advanced dialog writes them); REALITY and uTLS from the outer form.
+    QString tlsConflict(bool clientRandom, bool customSni) const;
+
     Ui::EditTrustTunnel *ui;
     std::shared_ptr<Configs::Profile> ent;
 };

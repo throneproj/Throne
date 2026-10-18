@@ -31,6 +31,9 @@ const GID = 0x7448524F
 // EnvIdentity makes a root core adopt GID before it opens any socket.
 const EnvIdentity = "THRONE_GUARD"
 
+// IdentityExitCode is the core's exit code when ApplyIdentity fails; it must match Sys::KillSwitch::kCoreIdentityExitCode.
+const IdentityExitCode = 86
+
 const (
 	CodePrivilege   = "privilege"
 	CodeUnsupported = "unsupported"
@@ -46,6 +49,10 @@ type Config struct {
 	TunCIDRs   []string `json:"tun_cidrs"`
 	ExtraPaths []string `json:"extra_paths"`
 	BridgeName string   `json:"bridge_name"`
+	// APIPort is the Throne API's TCP port, 0 when it does not listen; replies on connections peers open to it pass.
+	APIPort uint16 `json:"api_port"`
+	// KeepStates skips macOS's global pf state flush; set only when replacing a READY guard whose anchor stays loaded meanwhile.
+	KeepStates bool `json:"keep_states"`
 }
 
 type config struct {
@@ -54,6 +61,8 @@ type config struct {
 	TunPrefixes []netip.Prefix
 	ExtraPaths  []string
 	BridgeName  string
+	APIPort     uint16
+	KeepStates  bool
 }
 
 // Event is a runtime report from a backend; a Fatal one makes the guard disarm and exit.
@@ -121,7 +130,7 @@ func parseConfig(line string) (*config, error) {
 	if len(raw.BridgeName) > 12 || !interfaceNamePattern.MatchString(raw.BridgeName) {
 		return nil, newError(CodeConfig, "invalid bridge name %q", raw.BridgeName)
 	}
-	cfg := &config{AllowLAN: raw.AllowLAN, TunName: raw.TunName, BridgeName: raw.BridgeName}
+	cfg := &config{AllowLAN: raw.AllowLAN, TunName: raw.TunName, BridgeName: raw.BridgeName, APIPort: raw.APIPort, KeepStates: raw.KeepStates}
 	for _, cidr := range raw.TunCIDRs {
 		if strings.TrimSpace(cidr) == "" {
 			continue

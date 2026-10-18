@@ -24,5 +24,21 @@ namespace Configs
 
         QString DisplayType() override;
         SecurityInfo GetSecurity() override;
+        void Validate(Validation::Issues& issues) override;
+
+        // The core dials port 22 when none is set.
+        bool ServerPortOptional() override { return true; }
     };
+
+    namespace Checks {
+        QString SshPrivateKey(const QString& text);
+        // One authorized_keys line: [options] type base64 [comment], the type matching the one inside the key.
+        QString SshHostKey(const QString& item);
+        // Warning: servers refuse a version line without the SSH-2.0- prefix.
+        QString SshClientVersion(const QString& text);
+        // Warning: the core still connects, trying the "none" method.
+        QString SshAuthentication(const QString& password, const QString& privateKey, const QString& privateKeyPath);
+        // Warning: the core reads the inline key and ignores the file.
+        QString SshKeySources(const QString& privateKey, const QString& privateKeyPath);
+    }
 }

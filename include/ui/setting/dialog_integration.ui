@@ -220,7 +220,17 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="0">
+       <item row="4" column="0" colspan="2">
+        <widget class="QCheckBox" name="api_admin_lan">
+         <property name="toolTip">
+          <string>Lets devices on the local network import, delete, change settings, back up and restore through the Throne API. This device can always do so.</string>
+         </property>
+         <property name="text">
+          <string>Allow management from the local network</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
         <widget class="QLabel" name="api_key_l">
          <property name="text">
           <string>Key</string>
@@ -230,7 +240,7 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="1">
+       <item row="5" column="1">
         <widget class="QLineEdit" name="api_key">
          <property name="echoMode">
           <enum>QLineEdit::EchoMode::Password</enum>
@@ -240,7 +250,7 @@
          </property>
         </widget>
        </item>
-       <item row="5" column="1">
+       <item row="6" column="1">
         <layout class="QHBoxLayout" name="apiKeyButtons">
          <item>
           <widget class="QPushButton" name="api_key_show">
@@ -281,7 +291,7 @@
          </item>
         </layout>
        </item>
-       <item row="6" column="1">
+       <item row="7" column="1">
         <layout class="QHBoxLayout" name="apiCopyLayout">
          <item>
           <widget class="QPushButton" name="api_copy_env">
@@ -305,14 +315,14 @@
          </item>
         </layout>
        </item>
-       <item row="7" column="0">
+       <item row="8" column="0">
         <widget class="QLabel" name="api_status_l">
          <property name="text">
           <string>Status</string>
          </property>
         </widget>
        </item>
-       <item row="7" column="1">
+       <item row="8" column="1">
         <widget class="QLabel" name="api_status">
          <property name="textFormat">
           <enum>Qt::TextFormat::PlainText</enum>
@@ -325,7 +335,7 @@
          </property>
         </widget>
        </item>
-       <item row="8" column="0" colspan="2">
+       <item row="9" column="0" colspan="2">
         <widget class="QLabel" name="api_lan_warning">
          <property name="text">
           <string>Devices on your network can control Throne with this key. Your firewall may ask to allow Throne.</string>
@@ -338,7 +348,7 @@
          </property>
         </widget>
        </item>
-       <item row="9" column="0" colspan="2">
+       <item row="10" column="0" colspan="2">
         <widget class="QLabel" name="api_help">
          <property name="textFormat">
           <enum>Qt::TextFormat::RichText</enum>

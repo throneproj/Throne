@@ -771,7 +771,6 @@ QToolButton::menu-indicator {
      </property>
      <addaction name="menu_qr"/>
      <addaction name="menu_export_config"/>
-     <addaction name="actionExport_Xray_config"/>
      <addaction name="separator"/>
      <addaction name="menu_copy_links"/>
      <addaction name="menu_copy_links_nkr"/>
@@ -982,7 +981,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="menu_export_config">
    <property name="text">
-    <string>Export Sing-box config</string>
+    <string>Export config</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+E</string>
@@ -1358,11 +1357,6 @@ QToolButton::menu-indicator {
   <action name="actionRefresh_Column_Widths">
    <property name="text">
     <string>Refresh Column Widths</string>
-   </property>
-  </action>
-  <action name="actionExport_Xray_config">
-   <property name="text">
-    <string>Export Xray config</string>
    </property>
   </action>
   <action name="actionCopy_Test_Result">

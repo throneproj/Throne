@@ -5,7 +5,6 @@
 #include "include/database/ProfilesRepo.h"
 #include "include/global/Configs.hpp"
 #include "include/global/Logger.hpp"
-#include "include/ui/mainwindow.h"
 
 #include <QCoreApplication>
 #include <QDateTime>
@@ -116,6 +115,10 @@ namespace Sys {
     }
 
     void CoreDiagnostics::showInFolder(const QString &path) {
+        if (!IsGuiApp()) {
+            LOG_DEBUG(QString("diagnostics: show in folder skipped without a GUI: %1").arg(path));
+            return;
+        }
         const QFileInfo file(path);
         if (path.isEmpty() || !file.isFile()) {
             openDirectory();
@@ -132,6 +135,10 @@ namespace Sys {
     }
 
     void CoreDiagnostics::openDirectory() {
+        if (!IsGuiApp()) {
+            LOG_DEBUG("diagnostics: open directory skipped without a GUI");
+            return;
+        }
         const QString dir = directory();
         QDir().mkpath(dir);
         QDesktopServices::openUrl(QUrl::fromLocalFile(dir));
@@ -256,9 +263,13 @@ namespace Sys {
     }
 
     void CoreDiagnostics::notify(bool saved, const QString &text, const QString &path) {
+        if (!IsGuiApp()) {
+            LOG_DEBUG(QString("diagnostics: notice skipped without a GUI: %1").arg(text));
+            return;
+        }
         if (notice_) notice_->close();
         auto *box = new QMessageBox(saved ? QMessageBox::Information : QMessageBox::Warning,
-                                    tr("Performance profile"), text, QMessageBox::NoButton, GetMainWindow());
+                                    tr("Performance profile"), text, QMessageBox::NoButton, mainwindow);
         box->setAttribute(Qt::WA_DeleteOnClose);
         box->setWindowModality(Qt::NonModal);
         if (saved) {

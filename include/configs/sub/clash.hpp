@@ -68,17 +68,20 @@ struct xhttpReuseSettings {
     std::string h_keep_alive_period;
 };
 
+// The optional values, when unset, take the proxy's own, as mihomo does.
 struct xhttpDownloadSettings {
-    std::string host;
-    std::string path;
+    std::optional<std::string> host;
+    std::optional<std::string> path;
     std::string mode;
-    std::string server;
-    MyInt port;
-    MyBool tls;
-    std::vector<std::string> alpn;
-    std::string servername;
-    std::string client_fingerprint;
-    realityOpts reality_opts;
+    std::optional<std::string> server;
+    std::optional<MyInt> port;
+    std::optional<MyBool> tls;
+    std::optional<std::vector<std::string>> alpn;
+    std::optional<std::string> servername;
+    std::optional<std::string> client_fingerprint;
+    // The certificate pin.
+    std::optional<std::string> fingerprint;
+    std::optional<realityOpts> reality_opts;
     MyBool x_padding_obfs_mode;
     std::string x_padding_key;
     std::string x_padding_header;

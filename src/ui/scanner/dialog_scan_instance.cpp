@@ -44,6 +44,7 @@
 #include "include/database/IpScansRepo.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/global/Utils.hpp"
+#include "include/global/Validation.hpp"
 #include "include/scanner/DefaultIpLists.h"
 #include "include/scanner/IpListParse.h"
 #include "include/scanner/IpListUpdater.h"
@@ -55,6 +56,7 @@
 #include "include/ui/scanner/ScanItem.h"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/utils/NoWheelComboBox.h"
+#include "include/ui/utils/ValidationForm.h"
 
 namespace {
     constexpr int kScanInstanceResultsPreview = 50000;
@@ -96,6 +98,61 @@ namespace {
         const int parsed = edit->validator()->locale().toInt(edit->text(), &ok);
         if (ok) value = parsed;
         return ok;
+    }
+
+    QString scanInstanceNumberError(const QLineEdit *edit) {
+        int value = 0;
+        if (scanInstanceReadNumber(edit, value)) return {};
+        const auto *validator = qobject_cast<const QIntValidator *>(edit->validator());
+        return DialogScanInstance::tr("Must be from %1 to %2.").arg(validator->bottom()).arg(validator->top());
+    }
+
+    // The probe prefixes a '/' and reads it with Go's url.ParseRequestURI, then url.Parse; neither checks the raw query.
+    QString scanInstancePathError(const QString &path) {
+        const auto hex = [&path](qsizetype at) {
+            if (at >= path.size()) return false;
+            const char16_t c = path[at].unicode();
+            return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+        };
+        const qsizetype query = path.indexOf(QLatin1Char('?'));
+        const qsizetype fragment = path.indexOf(QLatin1Char('#'));
+        const qsizetype queryEnd = query < 0 ? -1 : (fragment > query ? fragment : path.size());
+        for (qsizetype i = 0; i < path.size(); ++i) {
+            const char16_t c = path[i].unicode();
+            if (c < 0x20 || c == 0x7f) return DialogScanInstance::tr("Must not contain control characters.");
+            if (c != '%' || (i > query && i < queryEnd)) continue;
+            if (!hex(i + 1) || !hex(i + 2))
+                return DialogScanInstance::tr("Use % only in an escape such as %20 (write a literal % as %25), for example /generate_204.");
+            i += 2;
+        }
+        return {};
+    }
+
+    QStringList scanInstanceAlpn(const QString &text) {
+        QStringList alpn;
+        for (const auto &token : text.split(QLatin1Char(','), Qt::SkipEmptyParts)) {
+            if (const auto value = token.trimmed(); !value.isEmpty()) alpn << value;
+        }
+        return alpn;
+    }
+
+    QString scanInstanceTlsRangeError(const QString &minVersion, const QString &maxVersion) {
+        if (minVersion.isEmpty() || maxVersion.isEmpty() || minVersion <= maxVersion) return {};
+        return DialogScanInstance::tr("The minimum TLS version is higher than the maximum, so every handshake would fail.");
+    }
+
+    // Without "h2" the server never agrees to HTTP/2 and every target fails.
+    QString scanInstanceAlpnError(const QString &httpVersion, const QStringList &alpn) {
+        if (httpVersion != QStringLiteral("2") || alpn.isEmpty() || alpn.contains(QStringLiteral("h2"))) return {};
+        return DialogScanInstance::tr("HTTP/2 needs \"h2\" in the ALPN list; add it or leave ALPN empty.");
+    }
+
+    QString scanInstanceNeedsTlsError(bool tls, const QString &method, const QString &httpVersion) {
+        if (tls) return {};
+        if (method == QStringLiteral("NONE"))
+            return DialogScanInstance::tr("The method \"None\" only checks the TLS handshake, so it needs TLS.");
+        if (httpVersion == QStringLiteral("3")) return DialogScanInstance::tr("HTTP/3 needs TLS.");
+        return {};
     }
 
     QLabel *scanInstanceHint(const QString &text, QWidget *parent) {
@@ -269,7 +326,9 @@ void DialogScanInstance::Discard(int scanId) {
 
 bool DialogScanInstance::SaveIfDirty(int scanId) {
     DialogScanInstance *window = openWindows().value(scanId);
-    return window == nullptr || window->saveIfDirty();
+    if (window == nullptr || window->saveIfDirty()) return true;
+    ActivateWindow(window);
+    return false;
 }
 
 DialogScanInstance::DialogScanInstance(QWidget *parent, std::shared_ptr<Configs::IpScan> scan_)
@@ -277,11 +336,13 @@ DialogScanInstance::DialogScanInstance(QWidget *parent, std::shared_ptr<Configs:
       defaults(Configs::IpScan::DefaultConfig(scan->kind)) {
     ui->setupUi(this);
     setAttribute(Qt::WA_DeleteOnClose);
+    form = new Validation::Form(this);
 
     {
         const QScopedValueRollback guard(loading, true);
         setupTargets();
         buildPhases();
+        bindValidation();
         setupResults();
         setupRunPanel();
         loadForm();
@@ -321,6 +382,7 @@ DialogScanInstance::DialogScanInstance(QWidget *parent, std::shared_ptr<Configs:
 
     resultCount = ScannerUi::ResultCount(*scan);
     refreshRun();
+    form->markAll();
 
     const auto *scr = screen() ? screen() : QGuiApplication::primaryScreen();
     const QSize wanted = sizeHint().expandedTo(QSize(640, 600));
@@ -441,8 +503,11 @@ void DialogScanInstance::buildHttpPhase(QVBoxLayout *layout) {
     httpForm->addRow(tr("Minimum TLS version"), httpMinTls);
     httpForm->addRow(tr("Maximum TLS version"), httpMaxTls);
     httpFingerprint = new NoWheelComboBox(httpBox);
-    for (const auto &fingerprint : Configs::tlsFingerprints)
+    for (const auto &fingerprint : Configs::tlsFingerprints) {
+        // the probe's Default already is Go's own TLS stack
+        if (fingerprint == Configs::tlsUnsafeFingerprint) continue;
         httpFingerprint->addItem(fingerprint.isEmpty() ? tr("Default") : fingerprint, fingerprint);
+    }
     httpForm->addRow(tr("uTLS fingerprint"), httpFingerprint);
     httpInsecure = new QCheckBox(tr("Allow insecure certificates"), httpBox);
     httpForm->addRow(httpInsecure);
@@ -570,6 +635,47 @@ void DialogScanInstance::buildWarpPhase(QVBoxLayout *layout) {
     });
     connect(warpIdentity, &QComboBox::currentIndexChanged, this, [this] { updateWarpControls(); });
     connect(warpRegister, &QPushButton::clicked, this, [this] { registerWarpIdentity(); });
+}
+
+void DialogScanInstance::bindValidation() {
+    using namespace Validation;
+    form->bind(ui->name, Rules::Required());
+    form->bind(ui->ports, [](const QString &text) {
+        QString bad;
+        scanInstanceParsePorts(text, &bad);
+        return bad.isEmpty() ? QString() : tr("\"%1\" is not a valid port (1-65535).").arg(bad);
+    });
+    form->bind(ui->stop_after, [this](const QString &text) { return text.isEmpty() ? QString() : scanInstanceNumberError(ui->stop_after); });
+    for (QLineEdit *edit : {ui->concurrency, ui->spawn_interval, icmpTimeout, icmpCount, tcpTimeout, tcpAttempts, httpFragmentDelay,
+                            httpTimeout, configTimeout, warpMtu, warpJc, warpJmin, warpJmax, warpTimeout}) {
+        if (edit != nullptr) form->bind(edit, [edit](const QString &) { return scanInstanceNumberError(edit); });
+    }
+
+    if (httpBox != nullptr) {
+        form->bind(httpSni, Rules::Host(Empty::Allowed));
+        form->bind(httpHost, Rules::HostPort(false, Empty::Allowed));
+        form->bind(httpPath, [](const QString &text) { return scanInstancePathError(text); });
+        form->addRule({httpMinTls, httpMaxTls}, [this] {
+            return scanInstanceTlsRangeError(httpMinTls->currentData().toString(), httpMaxTls->currentData().toString());
+        }, this, Severity::Error, httpBox->title());
+        form->addRule({httpAlpn, httpVersion}, [this] {
+            if (!httpTls->isChecked() || httpMethod->currentData().toString() == QStringLiteral("NONE")) return QString();
+            return scanInstanceAlpnError(httpVersion->currentData().toString(), scanInstanceAlpn(httpAlpn->text()));
+        }, this, Severity::Error, httpBox->title());
+        form->addRule({httpMethod, httpVersion, httpTls}, [this] {
+            return scanInstanceNeedsTlsError(httpTls->isChecked(), httpMethod->currentData().toString(), httpVersion->currentData().toString());
+        }, this, Severity::Error, httpBox->title());
+    }
+    if (configBox != nullptr) form->bind(configUrl, Rules::Url({QStringLiteral("http"), QStringLiteral("https")}));
+    if (warpBox != nullptr) {
+        form->bind(warpSni, Rules::Host(Empty::Allowed));
+        form->bind(warpUrl, Rules::Url({QStringLiteral("http"), QStringLiteral("https")}));
+        form->addRule({warpJmin, warpJmax}, [this] {
+            int jmin = 0, jmax = 0;
+            if (!scanInstanceReadNumber(warpJmin, jmin) || !scanInstanceReadNumber(warpJmax, jmax) || jmin <= jmax) return QString();
+            return tr("Jmin must not be larger than Jmax.");
+        }, this, Severity::Error, warpBox->title());
+    }
 }
 
 void DialogScanInstance::setupResults() {
@@ -769,11 +875,7 @@ bool DialogScanInstance::collect(Configs::ScanConfig &out, int &baseListId, QStr
         if (http.path.isEmpty()) http.path = QStringLiteral("/");
         http.method = httpMethod->currentData().toString();
         http.httpVersion = httpVersion->currentData().toString();
-        http.alpn.clear();
-        for (const auto &token : httpAlpn->text().split(QLatin1Char(','), Qt::SkipEmptyParts)) {
-            const auto value = token.trimmed();
-            if (!value.isEmpty()) http.alpn << value;
-        }
+        http.alpn = scanInstanceAlpn(httpAlpn->text());
         http.minVersion = httpMinTls->currentData().toString();
         http.maxVersion = httpMaxTls->currentData().toString();
         http.fingerprint = httpFingerprint->currentData().toString();
@@ -788,10 +890,10 @@ bool DialogScanInstance::collect(Configs::ScanConfig &out, int &baseListId, QStr
         if (!number(httpTimeout, http.timeoutMs, http.enabled,
                     tr("TLS / HTTP: the timeout must be between %1 and %2 ms.")))
             return false;
-        if (http.enabled && !http.tls && http.method == QStringLiteral("NONE"))
-            return fail(tr("TLS / HTTP: the method \"None\" only checks the TLS handshake, so it needs TLS."));
-        if (http.enabled && !http.tls && http.httpVersion == QStringLiteral("3"))
-            return fail(tr("TLS / HTTP: HTTP/3 needs TLS."));
+        if (http.enabled) {
+            if (const auto problem = scanInstanceNeedsTlsError(http.tls, http.method, http.httpVersion); !problem.isEmpty())
+                return fail(QStringLiteral("%1: %2").arg(httpBox->title(), problem));
+        }
     }
 
     if (configBox != nullptr) {
@@ -838,7 +940,16 @@ bool DialogScanInstance::save(QString *error) {
     Configs::ScanConfig collected;
     int baseListId = -1;
     QString name;
-    if (!collect(collected, baseListId, name, error)) return false;
+    if (!collect(collected, baseListId, name, error)) {
+        form->markAll();
+        return false;
+    }
+    for (const auto &issue : form->issues()) {
+        if (issue.severity != Validation::Severity::Error) continue;
+        form->markAll();
+        if (error != nullptr) *error = issue.label.isEmpty() ? issue.message : QStringLiteral("%1: %2").arg(issue.label, issue.message);
+        return false;
+    }
     if (Scanner::ScanManager::instance()->IsRunning(scanId)) {
         if (error != nullptr) *error = tr("Pause the scan before changing its settings.");
         return false;
@@ -870,9 +981,10 @@ bool DialogScanInstance::save(QString *error) {
 
 bool DialogScanInstance::saveIfDirty() {
     if (!dirty) return true;
+    if (!form->validateAll()) return false;
     QString error;
     if (save(&error)) return true;
-    MessageBoxWarning(tr("IP Scanner"), error);
+    scanInstanceNotice(this, QMessageBox::Warning, tr("IP Scanner"), error);
     return false;
 }
 
@@ -1155,7 +1267,7 @@ void DialogScanInstance::applyWarpRegistration(const QString &transport,
     updateWarpIdentityStatus();
     if (!Scanner::ScanManager::instance()->IsRunning(scanId)) {
         QString saveError;
-        if (!save(&saveError)) MessageBoxWarning(tr("IP Scanner"), saveError);
+        if (!save(&saveError)) scanInstanceNotice(this, QMessageBox::Warning, tr("IP Scanner"), saveError);
     }
     refreshRun();
 }

@@ -1,6 +1,8 @@
 #include "include/ui/mainwindow.h"
 #include "NkrVersion.h"
 
+#include <algorithm>
+
 #include <QApplication>
 #include <QHeaderView>
 #include <QScrollBar>
@@ -12,6 +14,9 @@
 #include "include/database/ProfilesRepo.h"
 #include "include/database/RoutesRepo.h"
 #include "include/database/SettingsRepo.h"
+#include "include/engine/connection/ConnectionManager.h"
+#include "include/engine/vpn/VpnAuthController.h"
+#include "include/engine/vpn/VpnEndpoints.h"
 #include "include/global/LocalNetwork.hpp"
 #include "include/stats/autoselector/AutoSelectorMonitor.hpp"
 #include "include/sys/KillSwitch.hpp"
@@ -19,6 +24,7 @@
 #include "include/ui/stats/dialog_auto_selector.h"
 #include "include/ui/utils/ProfilesTableFilterHeader.h"
 #include "include/ui/utils/ProfilesTableModel.h"
+#include "include/ui/widget/LiveChart.h"
 #include "include/ui/widget/StartStopButton.hpp"
 
 // Mirrors the language switch in main.cpp; QLocale() alone follows the system, not an explicit setting.
@@ -68,17 +74,68 @@ void MainWindow::UpdateDataView(bool force)
     lastUpdatedMs.store(QDateTime::currentMSecsSinceEpoch());
 }
 
-void MainWindow::noteRestartNeeded(const QString& reason)
+void MainWindow::testPanelSeeded(Engine::TestKind kind, int totalProfiles)
 {
-    if (Configs::dataManager->settingsRepo->started_id < 0) return;
-    dataViewHtmlGenerator_.addPendingRestartReason(reason);
+    switch (kind) {
+        case Engine::TestKind::Latency:
+            dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::Url, totalProfiles);
+            break;
+        case Engine::TestKind::Ip:
+            dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::Ip, totalProfiles);
+            break;
+        case Engine::TestKind::Speed:
+            dataViewHtmlGenerator_.seedSpeedTest(totalProfiles);
+            break;
+    }
+}
+
+void MainWindow::testProgressed()
+{
+    dataViewHtmlGenerator_.addTestProgress();
+}
+
+void MainWindow::testPanelsCleared()
+{
+    dataViewHtmlGenerator_.clearTestSections();
+}
+
+void MainWindow::testViewChanged(bool force)
+{
+    UpdateDataView(force);
+}
+
+void MainWindow::speedTestProgress(const QString &profileName, const libcore::SpeedTestResult &result)
+{
+    dataViewHtmlGenerator_.setSpeedtestProgress(profileName, result);
+}
+
+void MainWindow::testedProfilesChanged(const QList<int> &profileIds)
+{
+    refresh_proxy_list(profileIds);
+}
+
+QString MainWindow::restartReasonText(Engine::RestartReason reason)
+{
+    switch (reason) {
+        case Engine::RestartReason::Settings: return tr("Settings");
+        case Engine::RestartReason::Routing: return tr("Routing");
+        case Engine::RestartReason::Profile: return tr("Profile");
+        case Engine::RestartReason::Group: return tr("Group");
+    }
+    return QObject::tr("Settings");
+}
+
+void MainWindow::showRestartReasons()
+{
+    QStringList reasons;
+    for (const auto reason : connection()->restartReasons()) reasons << restartReasonText(reason);
+    dataViewHtmlGenerator_.setPendingRestartReasons(reasons);
     UpdateDataView(true);
 }
 
-void MainWindow::clearRestartNeeded()
+void MainWindow::showVpnEndpointStatus(const QString &summary, const QString &detail, bool problem)
 {
-    if (!dataViewHtmlGenerator_.hasPendingRestart()) return;
-    dataViewHtmlGenerator_.clearPendingRestart();
+    dataViewHtmlGenerator_.setVpnEndpointStatus(summary, detail, problem);
     UpdateDataView(true);
 }
 
@@ -142,15 +199,17 @@ void MainWindow::refresh_status(const QString &traffic_update) {
 
     refresh_speed_label();
 
+    const auto running = runningSnapshot();
     QString group_name;
     if (running != nullptr) {
         auto group = Configs::dataManager->groupsRepo->GetGroup(running->gid);
         if (group != nullptr) group_name = group->name;
     }
 
-    const QString runningDetail = m_vpnEndpointState.isEmpty()
+    const QString vpnExitState = vpnAuth()->exitStateText();
+    const QString runningDetail = vpnExitState.isEmpty()
                                       ? (running ? running->runningCountryInfo : QString())
-                                      : m_vpnEndpointState;
+                                      : vpnExitState;
 
     if (QDateTime::currentSecsSinceEpoch() - last_test_time > 2) {
         QString runningLabelText;
@@ -188,17 +247,20 @@ void MainWindow::refresh_status(const QString &traffic_update) {
     const auto route = Configs::dataManager->routesRepo->GetRouteProfile(settings->current_route_id);
     const QString activeRouteName = (route && route->name != "Default") ? route->name : "";
     const auto killSwitchState = Sys::KillSwitch::instance()->state();
+    const bool killSwitchBlocking = killSwitchState == Sys::KillSwitch::State::Failed && Sys::KillSwitch::instance()->failedForIdentity();
 
     auto make_title = [=,this](bool isTray) {
         QStringList tt;
-        if (!isTray && Configs::IsAdmin()) tt << "[Admin]";
+        if (!isTray && Configs::KnownAdmin().value_or(false)) tt << "[Admin]";
         if (select_mode) tt << "[" + tr("Select") + "]";
         if (!title_error.isEmpty()) tt << "[" + title_error + "]";
         if (settings->spmode_vpn && !settings->spmode_system_proxy) tt << "[Tun]";
         if (!settings->spmode_vpn && settings->spmode_system_proxy) tt << "[" + tr("System Proxy") + "]";
         if (settings->spmode_vpn && settings->spmode_system_proxy) tt << "[Tun+" + tr("System Proxy") + "]";
         if (settings->kill_switch && killSwitchState == Sys::KillSwitch::State::Armed) tt << "[" + tr("Kill switch") + "]";
-        if (settings->kill_switch && killSwitchState == Sys::KillSwitch::State::Failed) tt << "[" + tr("Kill switch: not active") + "]";
+        if (settings->kill_switch && killSwitchState == Sys::KillSwitch::State::Failed) {
+            tt << "[" + (killSwitchBlocking ? tr("Kill switch is blocking traffic") : tr("Kill switch: not active")) + "]";
+        }
         tt << software_name;
         if (!isTray) tt << QString(NKR_VERSION);
         if (!activeRouteName.isEmpty()) {
@@ -220,16 +282,14 @@ void MainWindow::refresh_status(const QString &traffic_update) {
 }
 
 void MainWindow::refresh_startstop_button() {
-    // Every change to the start/stop flags or `running` is followed by a call here, on the UI thread.
-    if (const auto connState = connection_state(); connState != m_lastConnectionState) {
-        m_lastConnectionState = connState;
-        emit connection_state_changed(connState);
-    }
-
     auto *btn = ui->toolButton_startstop;
     if (btn == nullptr) return;
 
     const auto &settings = Configs::dataManager->settingsRepo;
+    const auto running = runningSnapshot();
+    const auto connState = connection()->connectionState();
+    const bool connecting = connState == ConnectionState::Connecting;
+    const bool disconnecting = connState == ConnectionState::Stopping;
 
     auto mode = StartStopButton::Mode::Off;
     if (running != nullptr) {
@@ -240,8 +300,8 @@ void MainWindow::refresh_startstop_button() {
     btn->setMode(mode);
 
     StartStopButton::State state;
-    if (m_profileConnecting) state = StartStopButton::State::Connecting;
-    else if (m_profileDisconnecting) state = StartStopButton::State::Disconnecting;
+    if (connecting) state = StartStopButton::State::Connecting;
+    else if (disconnecting) state = StartStopButton::State::Disconnecting;
     else if (running != nullptr) state = StartStopButton::State::Running;
     else if (get_profile_to_start() >= 0) state = StartStopButton::State::Idle;
     else state = StartStopButton::State::Disabled;
@@ -261,20 +321,20 @@ void MainWindow::refresh_startstop_button() {
     btn->setLock(lock);
 
     if (trayConnectAction != nullptr) {
-        if (m_profileConnecting) {
+        if (connecting) {
             trayConnectAction->setText(tr("Connecting"));
-        } else if (m_profileDisconnecting) {
+        } else if (disconnecting) {
             trayConnectAction->setText(tr("Disconnecting"));
         } else {
             trayConnectAction->setText(running != nullptr ? tr("Disconnect") : tr("Connect"));
         }
-        trayConnectAction->setEnabled(!m_profileConnecting && !m_profileDisconnecting &&
+        trayConnectAction->setEnabled(!connecting && !disconnecting &&
                                       (running != nullptr || get_profile_to_start() >= 0));
     }
 
     // Here rather than in refresh_status(): the connecting/disconnecting flags only ever refresh this button.
     auto iconStatus = Icon::TrayIconStatus::None;
-    if (m_profileConnecting || m_profileDisconnecting) iconStatus = Icon::TrayIconStatus::Connecting;
+    if (connecting || disconnecting) iconStatus = Icon::TrayIconStatus::Connecting;
     else if (mode == StartStopButton::Mode::Tun) iconStatus = Icon::TrayIconStatus::Vpn;
     else if (mode == StartStopButton::Mode::SystemProxy) iconStatus = Icon::TrayIconStatus::SystemProxy;
     else if (mode == StartStopButton::Mode::Core) iconStatus = Icon::TrayIconStatus::Running;
@@ -285,18 +345,67 @@ void MainWindow::refresh_startstop_button() {
     }
 }
 
-void MainWindow::update_traffic_graph(int proxyDl, int proxyUp, int directDl, int directUp)
-{
-    m_liveRates = LiveRates{.proxyUp = proxyUp, .proxyDown = proxyDl, .directUp = directUp, .directDown = directDl};
-    m_liveRatesAt.start();
-    if (speedChartWidget) {
-        QMap<SpeedWidget::GraphType, long> pointData;
-        pointData[SpeedWidget::OUTBOUND_PROXY_UP] = proxyUp;
-        pointData[SpeedWidget::OUTBOUND_PROXY_DOWN] = proxyDl;
-        pointData[SpeedWidget::OUTBOUND_DIRECT_UP] = directUp;
-        pointData[SpeedWidget::OUTBOUND_DIRECT_DOWN] = directDl;
+void MainWindow::set_traffic_lines(const QList<Stats::TrafficLine> &lines) {
+    m_trafficLines = lines;
+    if (trafficChart == nullptr) return;
+    QList<LiveChartRow> rows;
+    int nextSlot = 1;
+    for (const auto &line : lines) {
+        LiveChartRow row;
+        row.key = line.key;
+        switch (line.kind) {
+            case Stats::TrafficLineKind::Proxy:
+                row.label = tr("Proxy");
+                row.paletteSlot = 0;
+                row.wash = true;
+                break;
+            case Stats::TrafficLineKind::Route:
+            case Stats::TrafficLineKind::Aux:
+                row.label = line.name;
+                row.kind = line.kind == Stats::TrafficLineKind::Route ? tr("route") : tr("aux");
+                row.paletteSlot = std::min(nextSlot++, 4);
+                break;
+            case Stats::TrafficLineKind::Other:
+                row.label = line.name;
+                row.paletteSlot = std::min(nextSlot++, 4);
+                break;
+            case Stats::TrafficLineKind::Direct:
+                row.label = tr("Direct");
+                row.paletteSlot = -1;
+                break;
+        }
+        rows << row;
+    }
+    trafficChart->setRows(rows);
+}
 
-        speedChartWidget->AddPointData(pointData);
+void MainWindow::add_traffic_point(qint64 monoMs, bool coreRunning, const QVector<double> &values,
+                                   double proxyDown, double proxyUp, double directDown, double directUp) {
+    if (trafficChart == nullptr) return;
+    if (coreRunning && values.size() != m_trafficLines.size() * 2) return;
+    trafficChart->addPoint(monoMs, coreRunning, values);
+}
+
+void MainWindow::addRunMarker(qint64 monoMs, Engine::RunMarker kind, const QString &name) {
+    if (trafficChart == nullptr) return;
+    auto marker = LiveChart::Marker::Started;
+    switch (kind) {
+        case Engine::RunMarker::Started: marker = LiveChart::Marker::Started; break;
+        case Engine::RunMarker::Switched: marker = LiveChart::Marker::Switched; break;
+        case Engine::RunMarker::Stopped: marker = LiveChart::Marker::Stopped; break;
+    }
+    trafficChart->addMarker(monoMs, marker, name);
+}
+
+void MainWindow::refresh_traffic_graph_settings() {
+    const auto &settings = Configs::dataManager->settingsRepo;
+    if (m_trafficStatsChartAction != nullptr) m_trafficStatsChartAction->setVisible(!settings->disable_traffic_aggregation);
+    if (trafficChart == nullptr) return;
+    if (settings->disable_traffic_stats) {
+        trafficChart->setBlocked(tr("Traffic statistics are disabled"),
+                                 tr("Untick “Disable Traffic Stats” in Basic Settings → Miscellaneous to record speeds again."));
+    } else {
+        trafficChart->setBlocked({});
     }
 }
 
@@ -406,51 +515,6 @@ void MainWindow::refresh_proxy_list_impl_refresh_data(const QList<int>& ids, boo
     }
 }
 
-std::shared_ptr<Configs::Profile> MainWindow::vpn_exit_endpoint(const std::shared_ptr<Configs::Profile> &ent) {
-    auto hop = ent;
-    // The "proxy" tag lands on the exit hop, and the stored list runs in to out.
-    if (hop != nullptr && hop->type == "chain") {
-        const auto *chain = hop->Chain();
-        if (chain == nullptr || chain->list.isEmpty()) return nullptr;
-        hop = Configs::dataManager->profilesRepo->GetProfile(chain->list.back());
-    }
-    if (hop == nullptr) return nullptr;
-    if (hop->type != "openvpn" && hop->type != "openconnect") return nullptr;
-    return hop;
-}
-
-QString MainWindow::vpn_state_text(const QString &state, const QString &error) {
-    if (state == "connected") return MainWindow::tr("Connect OK");
-    if (state == "connecting") return MainWindow::tr("Connecting");
-    if (state == "auth-pending") return MainWindow::tr("Waiting for authentication");
-    if (state == "error") {
-        return error.isEmpty() ? MainWindow::tr("Tunnel error")
-                               : MainWindow::tr("Tunnel error") + ": " + error;
-    }
-    return state;
-}
-
-QString MainWindow::liveVpnStateText(bool *connected) {
-    if (connected != nullptr) *connected = false;
-    const int startedID = Configs::dataManager->settingsRepo->started_id;
-    if (startedID < 0) return {};
-    if (vpn_exit_endpoint(Configs::dataManager->profilesRepo->GetProfile(startedID)) == nullptr) return {};
-
-    bool ok = false;
-    const auto status = API::defaultClient->QueryVPNStatus(&ok, {"proxy"});
-    if (!ok || status.results.empty()) return {};
-    const auto &res = status.results.front();
-    if (connected != nullptr) *connected = res.connected.value();
-    return vpn_state_text(QString::fromStdString(res.state.value()),
-                          QString::fromStdString(res.error.value()));
-}
-
-QString MainWindow::liveVpnConnectOkText() {
-    bool connected = false;
-    const auto text = liveVpnStateText(&connected);
-    return connected ? text : QString();
-}
-
 void MainWindow::url_test_current() {
     last_test_time = QDateTime::currentSecsSinceEpoch();
     ui->label_running->setText(tr("Testing"));
@@ -467,7 +531,7 @@ void MainWindow::url_test_current() {
         auto latency = result.results[0].latency_ms.value();
         last_test_time = QDateTime::currentSecsSinceEpoch();
         // Blocking RPC, so it has to resolve here rather than on the UI thread.
-        const auto vpnText = latency <= 0 ? liveVpnStateText() : QString();
+        const auto vpnText = latency <= 0 ? Stats::LiveVpnStateText() : QString();
 
         runOnUiThread([=,this] {
             if (!result.results[0].error.value().empty()) {

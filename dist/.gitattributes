@@ -1,0 +1,4 @@
+# Service files are read on Linux and macOS: LF everywhere, whatever core.autocrlf says.
+* text=auto eol=lf
+# Stored and checked out byte for byte (CRLF), so a raw download still runs cleanly in cmd.exe.
+*.bat -text

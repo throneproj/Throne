@@ -5,6 +5,11 @@
 
 namespace Configs
 {
+    namespace Checks {
+        // The core sends Proxy-Authorization only when a user name is set.
+        QString HttpAuth(const QString &username, const QString &password);
+    }
+
     class http : public outbound
     {
         public:
@@ -30,5 +35,7 @@ namespace Configs
         BuildResult Build() override;
 
         QString DisplayType() override;
+
+        void Validate(Validation::Issues &issues) override;
     };
 }

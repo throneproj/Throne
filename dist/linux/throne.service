@@ -1,0 +1,29 @@
+[Unit]
+Description=Throne proxy manager (headless)
+Documentation=https://throneproj.github.io/headless/
+Wants=network-online.target
+After=network-online.target time-sync.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=notify
+NotifyAccess=main
+ExecStart=/opt/Throne/Throne --headless --data-dir=%S/throne
+EnvironmentFile=-/etc/throne/throne.env
+Environment=HOME=%S/throne
+StateDirectory=throne
+StateDirectoryMode=0700
+UMask=0077
+Restart=on-failure
+RestartSec=3
+RestartForceExitStatus=75
+RestartPreventExitStatus=3 64 78
+KillMode=mixed
+TimeoutStartSec=90
+TimeoutStopSec=45
+WatchdogSec=60
+# No PrivateTmp/NoNewPrivileges/PrivateDevices/ProtectKernel*/RestrictAddressFamilies/SystemCallFilter:
+# the core needs netlink/nftables, /dev/net/tun and /proc/sys writes, and a setuid core must keep working.
+
+[Install]
+WantedBy=multi-user.target

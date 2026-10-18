@@ -2,6 +2,8 @@
 
 #include <QUrlQuery>
 
+#include "include/configs/common/utils.h"
+
 namespace Configs {
     bool xrayMultiplex::ParseFromLink(const QString &link) {
         auto url = QUrl(link);
@@ -9,8 +11,8 @@ namespace Configs {
         auto query = QUrlQuery(url.query());
 
         if (query.hasQueryItem("mux")) enabled = query.queryItemValue("mux").replace("1", "true") == "true", useDefault = false;
-        if (query.hasQueryItem("mux_concurrency")) concurrency = query.queryItemValue("mux_concurrency").toInt();
-        if (query.hasQueryItem("mux_xudp_concurrency")) xudpConcurrency = query.queryItemValue("mux_xudp_concurrency").toInt();
+        ReadQueryInt(query, "mux_concurrency", concurrency, INT_MIN);
+        ReadQueryInt(query, "mux_xudp_concurrency", xudpConcurrency, INT_MIN);
         return true;
     }
 

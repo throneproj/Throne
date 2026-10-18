@@ -3,9 +3,11 @@
 #include "Database.h"
 #include "include/database/entities/Profile.h"
 #include <3rdparty/SQLiteCpp/include/SQLiteCpp.h>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <map>
+#include <QSet>
 #include <QString>
 #include <QJsonObject>
 
@@ -15,6 +17,8 @@ namespace Configs {
         Database& db;
         mutable std::mutex mutex;
         mutable std::map<int, std::weak_ptr<Profile>> identityMap;
+        // Deleted ids: never reused, so Save/SaveBatch refuse them for the rest of the process.
+        QSet<int> tombstones;
 
         std::shared_ptr<Profile> profileFromJson(const QJsonObject& json) const;
         
@@ -61,13 +65,19 @@ namespace Configs {
 
         QStringList GetAllProfileNames();
         
-        bool BatchDeleteProfiles(QList<int>& ids, bool stopRunningProfile = false);
+        // A running profile in ids is stopped (interactive per the flag) when stopRunningProfile, else dropped from ids.
+        // A missing group is skipped. False when the rows could not be deleted.
+        bool BatchDeleteProfiles(QList<int>& ids, bool stopRunningProfile = false, bool interactive = true);
+
+        // Runs deleteRows under this repo's lock; when it returns true, the ids it filled leave the identity map and are
+        // tombstoned. Lock order: this repo, then GroupsRepo.
+        bool DeleteAndForget(const std::function<bool(QList<int>& deletedIds)>& deleteRows);
         
         QList<int> GetAllProfileIds() const;
 
         QList<int> GetProfileIdsByType(const QString& type) const;
         
-        // No-op unless id >= 0.
+        // No-op unless id >= 0; false for a deleted id, which is not written back.
         bool Save(const std::shared_ptr<Profile>& profile);
 
         // Blind UPDATE of the traffic columns: no existence check.
@@ -75,7 +85,7 @@ namespace Configs {
 
         void SaveTrafficBatch(const QList<std::shared_ptr<Profile>>& profiles);
 
-        // Runs on a new thread; skips null profiles and id < 0.
+        // Runs on a new thread; skips null profiles, id < 0 and deleted ids.
         void SaveBatch(const QList<std::shared_ptr<Profile>>& profiles);
     };
 }

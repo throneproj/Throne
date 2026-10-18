@@ -1,8 +1,14 @@
 #pragma once
 #include "include/configs/baseConfig.h"
+#include "include/global/Validation.hpp"
 
 namespace Configs
 {
+    namespace Checks {
+        // An IPv6 literal; a zone (fe80::1%eth0) is allowed, as netip.ParseAddr takes it.
+        QString BindAddress6(const QString& text);
+    }
+
     class DialFields : public baseConfig
     {
         public:
@@ -20,5 +26,7 @@ namespace Configs
         QString ExportToLink() override;
         QJsonObject ExportToJson() override;
         BuildResult Build() override;
+
+        void Validate(Validation::Issues& issues);
     };
 }

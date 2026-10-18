@@ -4,6 +4,7 @@
 #include <QCheckBox>
 #include <QClipboard>
 #include <QDialog>
+#include <QDialogButtonBox>
 #include <QFile>
 #include <QGuiApplication>
 #include <QItemSelectionModel>
@@ -14,9 +15,12 @@
 #include <QMutex>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QScreen>
 #include <QScrollBar>
+#include <QTabWidget>
 #include <QThread>
 #include <QThreadPool>
+#include <QTimer>
 #include <QVBoxLayout>
 
 #include <algorithm>
@@ -32,9 +36,12 @@
 #include "include/configs/sub/GroupUpdater.hpp"
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
+#include "include/engine/EngineHost.h"
+#include "include/engine/services/ProfileService.h"
 #include "include/ui/mainWindow/MainWindowInternal.h"
 #include "include/ui/profile/dialog_edit_profile.h"
 #include "include/ui/utils/ProfilesTableModel.h"
+#include "include/ui/widget/json/JsonCodeEdit.h"
 
 namespace {
     constexpr int removeListPreviewLimit = 20;
@@ -44,9 +51,7 @@ void MainWindow::on_profilesTableView_doubleClicked(const QModelIndex &index) {
     if (!index.isValid() || !profilesTableModel) return;
     int id = index.data(ProfilesTableModel::ProfileIdRole).toInt();
     if (select_mode) {
-        emit profile_selected(id);
-        select_mode = false;
-        refresh_status();
+        finish_select_mode(id);
         return;
     }
     auto dialog = new DialogEditProfile("", id, this);
@@ -178,36 +183,49 @@ void MainWindow::on_menu_export_config_triggered() {
     auto ents = get_now_selected_list();
     if (ents.count() != 1) return;
     auto ent = Configs::dataManager->profilesRepo->GetProfile(ents.first());
+    if (ent == nullptr) return;
 
-    auto result = Configs::BuildSingBoxConfig(ent);
-    QString config_core = QJsonObject2QString(result->coreConfig, true);
-    QApplication::clipboard()->setText(config_core);
-
-    QMessageBox msg(QMessageBox::Information, tr("Config copied"), config_core);
-    QPushButton *button_1 = msg.addButton(tr("Copy core config"), QMessageBox::YesRole);
-    QPushButton *button_2 = msg.addButton(tr("Copy test config"), QMessageBox::YesRole);
-    msg.addButton(QMessageBox::Ok);
-    msg.setEscapeButton(QMessageBox::Ok);
-    msg.setDefaultButton(QMessageBox::Ok);
-    msg.exec();
-    if (msg.clickedButton() == button_1) {
-        result = BuildSingBoxConfig(ent);
-        if (!result->error.isEmpty()) {
-            MessageBoxWarning("Build config error", result->error);
-            return;
-        }
-        config_core = QJsonObject2QString(result->coreConfig, true);
-        QApplication::clipboard()->setText(config_core);
-    } else if (msg.clickedButton() == button_2) {
-        auto res = Configs::BuildTestConfig({ent});
-        if (!res->error.isEmpty()) {
-            MessageBoxWarning("Build Test config error", res->error);
-            return;
-        }
-        if (!res->xrayFullConfigs.isEmpty()) config_core = res->xrayFullConfigs.first();
-        else config_core = QJsonObject2QString(res->coreConfig, true);
-        QApplication::clipboard()->setText(config_core);
+    const auto result = Configs::BuildSingBoxConfig(ent);
+    if (!result->error.isEmpty()) {
+        MessageBoxWarning("Build config error", result->error);
+        return;
     }
+    // Taken from one build: the sing-box <-> Xray bridge ports and credentials are generated per build.
+    QStringList xrayConfigs = result->xrayFullConfigs;
+    if (!result->xrayConfig.isEmpty()) xrayConfigs.prepend(QJsonObject2QString(result->xrayConfig, false));
+
+    QDialog dialog(this);
+    dialog.setWindowTitle(tr("Export config"));
+    auto *layout = new QVBoxLayout(&dialog);
+    auto *tabs = new QTabWidget(&dialog);
+    const auto addConfigTab = [tabs](const QString &name, const QString &config) {
+        auto *view = new JsonEdit::JsonCodeEdit(tabs);
+        view->setReadOnly(true);
+        view->setPlainText(config);
+        tabs->addTab(view, name);
+    };
+    addConfigTab("sing-box", QJsonObject2QString(result->coreConfig, false));
+    for (int i = 0; i < xrayConfigs.size(); i++) {
+        addConfigTab(xrayConfigs.size() == 1 ? QString("Xray") : QString("Xray %1").arg(i + 1), xrayConfigs[i]);
+    }
+    layout->addWidget(tabs, 1);
+
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+    const QString copyText = tr("Copy");
+    const QString copiedText = tr("Copied");
+    auto *copy = buttons->addButton(copyText, QDialogButtonBox::ActionRole);
+    buttons->button(QDialogButtonBox::Close)->setDefault(true);
+    layout->addWidget(buttons);
+
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    connect(copy, &QPushButton::clicked, &dialog, [=] {
+        QApplication::clipboard()->setText(static_cast<QPlainTextEdit *>(tabs->currentWidget())->toPlainText());
+        copy->setText(copiedText);
+        QTimer::singleShot(1500, copy, [=] { copy->setText(copyText); });
+    });
+
+    dialog.resize(QSize(900, 600).boundedTo(dialog.screen()->availableGeometry().size()));
+    dialog.exec();
 }
 
 void MainWindow::display_qr_link(bool nkrFormat) {
@@ -327,21 +345,7 @@ void MainWindow::on_menu_clear_test_result_triggered() {
 }
 
 int MainWindow::clear_test_results(const QList<int> &profileIds) {
-    const auto ents = Configs::dataManager->profilesRepo->GetProfileBatch(profileIds);
-    if (ents.empty()) return 0;
-    QSet<int> gids;
-    for (const auto &ent: ents) {
-        ent->ClearTestResults();
-        gids.insert(ent->gid);
-    }
-    Configs::dataManager->profilesRepo->SaveBatch(ents);
-    for (const int gid : gids) {
-        if (auto group = Configs::dataManager->groupsRepo->GetGroup(gid); group &&
-            group->calculated_column_width.size() > ProfilesTableModel::ColTestResult)
-            group->calculated_column_width[ProfilesTableModel::ColTestResult] = 0;
-    }
-    refresh_proxy_list();
-    return static_cast<int>(ents.size());
+    return Engine::host()->clearTestResults(profileIds);
 }
 
 void MainWindow::on_menu_select_all_triggered() {
@@ -599,6 +603,10 @@ void MainWindow::focusProfilesTable(bool selectFirst) {
 }
 
 void MainWindow::clearUnavailableProfiles(bool confirm, QList<int> profileIDs) {
+    if (!confirm) {
+        Engine::ProfileService::RemoveUnavailable(std::move(profileIDs));
+        return;
+    }
     QList<int> del_ids;
     int remove_display_count = 0;
     QString remove_display;

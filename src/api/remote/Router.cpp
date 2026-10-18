@@ -1,8 +1,6 @@
 #include "include/api/remote/Router.hpp"
 
 #include "NkrVersion.h"
-#include "include/ui/mainwindow.h"
-#include "include/ui/mainWindow/TestRunner.h"
 
 #include <QDateTime>
 #include <QJsonArray>
@@ -15,11 +13,17 @@
 #include <limits>
 #include <utility>
 
+#include "include/api/RPC.h"
+#include "include/api/remote/Overlay.hpp"
 #include "include/configs/generate.h"
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/database/RoutesRepo.h"
 #include "include/database/TrafficStatsRepo.h"
+#include "include/engine/EditLocks.h"
+#include "include/engine/EngineControl.h"
+#include "include/engine/services/ServiceTypes.h"
+#include "include/global/Configs.hpp"
 #include "include/stats/traffic/TrafficStatsManager.hpp"
 #include "include/sys/KillSwitch.hpp"
 
@@ -29,6 +33,7 @@ namespace RemoteApi::RouterImpl {
     constexpr qint64 kDefaultMaxAgeSec = 3600;
     constexpr qint64 kTrafficWindowSec = 24 * 3600;
     constexpr qint64 kLiveRatesFreshMs = 3000;
+    constexpr int kTunCapsRefreshMs = 1000;
 
     bool matchPath(const QString &pattern, const QString &path, int *id) {
         const auto want = pattern.split(QLatin1Char('/'));
@@ -70,12 +75,12 @@ namespace RemoteApi::RouterImpl {
         return profile.latency_at >= requestedAt || requestedAt - profile.latency_at < maxAge;
     }
 
-    QString connectionStateName(MainWindow::ConnectionState state) {
+    QString connectionStateName(Engine::ConnectionState state) {
         switch (state) {
-            case MainWindow::ConnectionState::Connecting: return QStringLiteral("connecting");
-            case MainWindow::ConnectionState::Running: return QStringLiteral("running");
-            case MainWindow::ConnectionState::Stopping: return QStringLiteral("stopping");
-            case MainWindow::ConnectionState::Idle: break;
+            case Engine::ConnectionState::Connecting: return QStringLiteral("connecting");
+            case Engine::ConnectionState::Running: return QStringLiteral("running");
+            case Engine::ConnectionState::Stopping: return QStringLiteral("stopping");
+            case Engine::ConnectionState::Idle: break;
         }
         return QStringLiteral("idle");
     }
@@ -91,33 +96,74 @@ namespace RemoteApi::RouterImpl {
         return QStringLiteral("off");
     }
 
+    // Optimistic until the guard has run once: only a failed arm tells that this system cannot support it.
+    bool killSwitchSupported() {
+#if defined(Q_OS_WIN) || defined(Q_OS_LINUX) || defined(Q_OS_MACOS)
+        return Sys::KillSwitch::instance()->failureCode() != QStringLiteral("unsupported");
+#else
+        return false;
+#endif
+    }
+
+    // null until the core answers the privilege probe, rather than a false that is not known yet.
+    QJsonValue tunCapability() {
+        if (Configs::dataManager->settingsRepo->disable_privilege_req) return true;
+#ifdef Q_OS_WIN
+        const auto admin = Configs::KnownAdmin();
+        return admin ? QJsonValue(*admin) : QJsonValue();
+#else
+        const auto caps = Configs::KnownCapabilities();
+        if (!caps) return {};
+        return caps->privileged && caps->tunDevice.value_or(true) && caps->netAdmin.value_or(true);
+#endif
+    }
+
+    bool killSwitchCapability() {
+        if (!killSwitchSupported()) return false;
+#ifdef Q_OS_WIN
+        return Configs::KnownAdmin().value_or(true);
+#else
+        const auto caps = Configs::KnownCapabilities();
+        return !caps || caps->killSwitch.value_or(caps->privileged);
+#endif
+    }
+
+    QString tunPrivilegeMessage() {
+        const auto caps = Configs::KnownCapabilities();
+        if (!caps || (caps->tunDevice != false && caps->netAdmin != false) || caps->detail.isEmpty())
+            return QStringLiteral("Tun needs privileges that Throne does not have; grant them in Throne once");
+        // A privileged core that still lacks the device or CAP_NET_ADMIN gains nothing from more privileges.
+        if (caps->privileged) return QStringLiteral("Tun cannot work with Throne's core: %1").arg(caps->detail);
+        return QStringLiteral("Tun needs privileges that Throne does not have (%1); grant them in Throne once").arg(caps->detail);
+    }
+
     Response busyConnection() {
         return Response::Error(409, QStringLiteral("busy"), QStringLiteral("A profile is starting or stopping"));
     }
 
-    Response startFailure(MainWindow::StartOutcome outcome, const QString &error) {
+    Response startFailure(Engine::StartOutcome outcome, const QString &error) {
         const auto make = [&error](int status, const char *code, const char *fallback) {
             return Response::Error(status, QString::fromLatin1(code), error.isEmpty() ? QString::fromLatin1(fallback) : error);
         };
         switch (outcome) {
-            case MainWindow::StartOutcome::Exiting: return make(503, "exiting", "Throne is shutting down");
-            case MainWindow::StartOutcome::NotFound: return make(404, "not_found", "The profile does not exist");
-            case MainWindow::StartOutcome::GroupUnavailable: return make(409, "group_archived", "The profile's group is archived");
-            case MainWindow::StartOutcome::KillSwitchInactive:
+            case Engine::StartOutcome::Exiting: return make(503, "exiting", "Throne is shutting down");
+            case Engine::StartOutcome::NotFound: return make(404, "not_found", "The profile does not exist");
+            case Engine::StartOutcome::GroupUnavailable: return make(409, "group_archived", "The profile's group is archived");
+            case Engine::StartOutcome::KillSwitchInactive:
                 return make(409, "kill_switch_inactive", "The kill switch is on but not working, so Throne does not start profiles");
-            case MainWindow::StartOutcome::Superseded: return make(409, "superseded", "A newer start replaced this one before it ran");
-            case MainWindow::StartOutcome::CoreUnavailable: return make(503, "core_unavailable", "Throne's core process is not reachable");
-            case MainWindow::StartOutcome::BuildFailed: return make(422, "build_failed", "Throne could not build the profile's configuration");
-            case MainWindow::StartOutcome::Busy: return make(409, "busy", "Another profile is starting or stopping");
-            case MainWindow::StartOutcome::ExtraCoreBlocked:
+            case Engine::StartOutcome::Superseded: return make(409, "superseded", "A newer start replaced this one before it ran");
+            case Engine::StartOutcome::CoreUnavailable: return make(503, "core_unavailable", "Throne's core process is not reachable");
+            case Engine::StartOutcome::BuildFailed: return make(422, "build_failed", "Throne could not build the profile's configuration");
+            case Engine::StartOutcome::Busy: return make(409, "busy", "Another profile is starting or stopping");
+            case Engine::StartOutcome::ExtraCoreBlocked:
                 return make(409, "kill_switch_blocked", "The kill switch could not allow the profile's extra core");
-            case MainWindow::StartOutcome::GeoAssetsMissing:
+            case Engine::StartOutcome::GeoAssetsMissing:
                 return make(422, "geo_assets_missing", "The profile needs geoip or geosite files that are missing");
-            case MainWindow::StartOutcome::StrictRouteUnavailable:
+            case Engine::StartOutcome::StrictRouteUnavailable:
                 return make(422, "strict_route_unavailable", "Windows could not enable strict routing");
-            case MainWindow::StartOutcome::TunFailed: return make(422, "tun_failed", "The Tun interface could not be configured");
-            case MainWindow::StartOutcome::StartFailed:
-            case MainWindow::StartOutcome::Started: break;
+            case Engine::StartOutcome::TunFailed: return make(422, "tun_failed", "The Tun interface could not be configured");
+            case Engine::StartOutcome::StartFailed:
+            case Engine::StartOutcome::Started: break;
         }
         return make(422, "start_failed", "The core rejected the configuration");
     }
@@ -132,19 +178,19 @@ namespace RemoteApi::RouterImpl {
 }
 
 namespace RemoteApi {
-    Router::Router(MainWindow *mw) : QObject(mw), mw_(mw) {
-        connect(mw, &MainWindow::start_finished, this,
-                [this](quint64 serial, int, MainWindow::StartOutcome outcome, const QString &error) {
+    Router::Router(Engine::EngineControl *engine, QObject *parent) : QObject(parent), engine_(engine) {
+        connect(engine, &Engine::EngineControl::startFinished, this,
+                [this](quint64 serial, int, Engine::StartOutcome outcome, const QString &error) {
                     const auto callback = starts_.take(serial);
                     if (!callback) return;
-                    if (outcome == MainWindow::StartOutcome::Started) callback(std::nullopt);
+                    if (outcome == Engine::StartOutcome::Started) callback(std::nullopt);
                     else callback(RouterImpl::startFailure(outcome, error));
                 });
-        connect(mw, &MainWindow::stop_finished, this, [this](int) {
+        connect(engine, &Engine::EngineControl::stopFinished, this, [this](int) {
             for (const auto &callback : std::exchange(stops_, {})) callback();
         });
-        connect(mw, &MainWindow::connection_state_changed, this, [this](MainWindow::ConnectionState state) {
-            if (state == MainWindow::ConnectionState::Connecting) return;
+        connect(engine, &Engine::EngineControl::connectionStateChanged, this, [this](Engine::ConnectionState state) {
+            if (state == Engine::ConnectionState::Connecting) return;
             for (const auto &waiter : std::exchange(settling_, {})) answer(waiter, Response::Ok(statusJson()));
         });
     }
@@ -154,6 +200,8 @@ namespace RemoteApi {
             const char *method;
             const char *path;
             Handler handler;
+            // Management: refused unless Request::admin.
+            bool admin = false;
         };
         static const Endpoint endpoints[] = {
             {"GET", "/v1/status", &Router::getStatus},
@@ -172,17 +220,48 @@ namespace RemoteApi {
             {"DELETE", "/v1/results", &Router::deleteResults},
             {"GET", "/v1/stats/live", &Router::getLiveStats},
             {"GET", "/v1/stats/traffic", &Router::getTrafficStats},
+            {"POST", "/v1/import", &Router::postImport, true},
+            {"POST", "/v1/groups", &Router::postGroup, true},
+            {"POST", "/v1/groups/update", &Router::postGroupsUpdate},
+            {"POST", "/v1/groups/{id}/update", &Router::postGroupUpdate},
+            {"DELETE", "/v1/groups/{id}", &Router::deleteGroup, true},
+            {"DELETE", "/v1/profiles", &Router::deleteProfiles, true},
+            {"GET", "/v1/settings", &Router::getSettings},
+            {"PUT", "/v1/settings", &Router::putSettings, true},
+            {"POST", "/v1/backups", &Router::postBackup, true},
+            {"GET", "/v1/backups/{id}", &Router::getBackup, true},
+            {"DELETE", "/v1/backups/{id}", &Router::deleteBackup, true},
+            {"POST", "/v1/restores", &Router::postRestore, true},
+            {"PUT", "/v1/restores/{id}", &Router::putRestore, true},
+            {"GET", "/v1/restores/{id}", &Router::getRestore, true},
+            {"DELETE", "/v1/restores/{id}", &Router::deleteRestore, true},
+            {"POST", "/v1/restores/{id}/apply", &Router::postRestoreApply, true},
+            {"POST", "/v1/rule-sets/update", &Router::postRuleSetsUpdate},
+            {"GET", "/v1/geo-assets", &Router::getGeoAssets},
+            {"POST", "/v1/geo-assets/update", &Router::postGeoAssetsUpdate},
+            {"POST", "/v1/restart", &Router::postRestart, true},
+            {"POST", "/v1/shutdown", &Router::postShutdown, true},
         };
 
+        const auto &settings = Configs::dataManager->settingsRepo;
+        // A restore from the window sets noSave and restarts afterwards; until then the repos still cache what it replaced.
+        if (restarting_ || (settings->noSave && !settings->prepare_exit)) {
+            respond(Response::Error(503, QStringLiteral("restarting"), QStringLiteral("Throne is restarting")));
+            return;
+        }
         bool knownPath = false;
         for (const auto &endpoint : endpoints) {
             int id = -1;
             if (!RouterImpl::matchPath(QString::fromLatin1(endpoint.path), request.path, &id)) continue;
             knownPath = true;
             if (request.method != QLatin1String(endpoint.method)) continue;
+            if (endpoint.admin && !request.admin) {
+                respond(forbidden());
+                return;
+            }
             if (request.method != QLatin1String("GET")) {
                 MW_show_log(tr("[API] %1 %2 from %3").arg(request.method, request.path, request.peer));
-                if (Configs::dataManager->settingsRepo->prepare_exit) {
+                if (settings->prepare_exit) {
                     respond(Response::Error(503, QStringLiteral("exiting"), QStringLiteral("Throne is shutting down")));
                     return;
                 }
@@ -208,6 +287,29 @@ namespace RemoteApi {
 
     Response Router::noProfiles() {
         return Response::Error(400, QStringLiteral("no_profiles"), QStringLiteral("The selection matched no profile"));
+    }
+
+    Response Router::forbidden() {
+        if (CurrentOverlay().headless) {
+            return Response::Error(403, QStringLiteral("forbidden"),
+                                   QStringLiteral("Management requests are accepted only from this device. Start Throne with "
+                                                  "--api-admin-lan (or THRONE_API_ADMIN_LAN=1) to accept them from the local network."));
+        }
+        return Response::Error(403, QStringLiteral("forbidden"),
+                               QStringLiteral("Management requests are accepted only from this device. Allow management from the local "
+                                              "network in Throne's Throne API settings to accept them from the LAN."));
+    }
+
+    Response Router::editing(const QString &what) {
+        auto subject = what;
+        if (!subject.isEmpty()) subject[0] = subject[0].toUpper();
+        return Response::Error(409, QStringLiteral("editing"),
+                               QStringLiteral("%1 is open in an editor in Throne's window; close it and try again").arg(subject));
+    }
+
+    Response Router::serviceError(const Engine::ServiceError &error) {
+        if (error.code.isEmpty()) return Response::Error(500, QStringLiteral("internal"), error.message);
+        return Response::Error(error.status, error.code, error.message);
     }
 
     bool Router::bodyObject(const Request &request, bool required, QJsonObject *body, Response *error) {
@@ -372,34 +474,48 @@ namespace RemoteApi {
     }
 
     bool Router::connectionBusy() const {
-        const auto state = mw_->connection_state();
-        return state == MainWindow::ConnectionState::Connecting || state == MainWindow::ConnectionState::Stopping;
+        const auto state = engine_->connectionState();
+        return state == Engine::ConnectionState::Connecting || state == Engine::ConnectionState::Stopping;
     }
 
     QJsonObject Router::statusJson() const {
         const auto &settings = Configs::dataManager->settingsRepo;
-        const auto running = mw_->running;
+        const auto running = engine_->runningSnapshot();
         const auto route = Configs::dataManager->routesRepo->GetRouteProfile(settings->current_route_id);
+        const auto degraded = engine_->degradedReason();
+        // Empty while this instance's Tun is on.
+        const auto tunConflict = engine_->tunBlockedReason();
         return {
-            {"state", RouterImpl::connectionStateName(mw_->connection_state())},
+            {"state", RouterImpl::connectionStateName(engine_->connectionState())},
             {"profile", running != nullptr ? QJsonValue(profileJson(running)) : QJsonValue()},
-            {"last_profile_id", mw_->resolve_last_profile()},
+            {"last_profile_id", engine_->resolveLastProfile()},
             {"tun", settings->spmode_vpn},
+            {"tun_conflict", tunConflict.isEmpty() ? QJsonValue() : QJsonValue(tunConflict)},
             {"system_proxy", settings->spmode_system_proxy},
             {"route", route != nullptr ? QJsonValue(routeJson(*route)) : QJsonValue()},
             {"kill_switch", RouterImpl::killSwitchName()},
+            {"kill_switch_error", RouterImpl::killSwitchName() == QLatin1String("failed") && !Sys::KillSwitch::instance()->failureCode().isEmpty()
+                                       ? QJsonValue(Sys::KillSwitch::instance()->failureCode())
+                                       : QJsonValue()},
             {"core", settings->core_running},
             {"inbound", QJsonObject{
                 {"enabled", !settings->disable_mixed_inbound},
                 {"address", settings->inbound_address},
                 {"port", settings->inbound_socks_port},
             }},
+            {"capabilities", QJsonObject{
+                {"tun", RouterImpl::tunCapability()},
+                {"kill_switch", RouterImpl::killSwitchCapability()},
+                {"headless", !IsGuiApp()},
+            }},
+            {"restart_needed", engine_->restartPending()},
+            {"degraded", degraded.isEmpty() ? QJsonValue() : QJsonValue(degraded)},
             {"version", QStringLiteral(NKR_VERSION)},
         };
     }
 
     QJsonObject Router::profileJson(const std::shared_ptr<Configs::Profile> &profile) const {
-        const auto running = mw_->running;
+        const auto running = engine_->runningSnapshot();
         int latency = profile->latency;
         if (latency < 0 && latency != Configs::kLatencyConnectOnly) latency = -1;
         return {
@@ -481,7 +597,7 @@ namespace RemoteApi {
         if (waiter->done) return;
         if (failure) {
             answer(waiter, *failure);
-        } else if (mw_->connection_state() == MainWindow::ConnectionState::Connecting) {
+        } else if (engine_->connectionState() == Engine::ConnectionState::Connecting) {
             settling_.append(waiter);
         } else {
             answer(waiter, Response::Ok(statusJson()));
@@ -489,7 +605,7 @@ namespace RemoteApi {
     }
 
     void Router::applyWithRestart(const WaitOptions &options, const Responder &respond, const std::function<bool(quint64)> &apply) {
-        const quint64 serial = mw_->next_start_serial();
+        const quint64 serial = engine_->nextStartSerial();
         WaiterPtr waiter;
         if (options.wait) {
             waiter = makeWaiter(respond, options.timeoutMs, [this] { return accepted(); });
@@ -507,13 +623,13 @@ namespace RemoteApi {
 
     std::optional<Response> Router::launch(int profileId, bool restart, const WaiterPtr &waiter) {
         if (connectionBusy()) return RouterImpl::busyConnection();
-        const auto running = mw_->running;
+        const auto running = engine_->runningSnapshot();
         if (!restart && running != nullptr && running->id == profileId) return Response::Ok(statusJson());
-        const quint64 serial = mw_->next_start_serial();
+        const quint64 serial = engine_->nextStartSerial();
         if (waiter != nullptr) {
             starts_.insert(serial, [this, waiter](const std::optional<Response> &failure) { completeStart(waiter, failure); });
         }
-        mw_->profile_start(MainWindow::StartRequest{profileId, false, serial});
+        engine_->start(Engine::StartRequest{profileId, false, serial});
         return std::nullopt;
     }
 
@@ -629,7 +745,7 @@ namespace RemoteApi {
             }
             id = *profileId;
         } else if (select == QStringLiteral("last")) {
-            id = mw_->resolve_last_profile();
+            id = engine_->resolveLastProfile();
             if (id < 0) {
                 respond(notFound(QStringLiteral("Throne has no profile to resume")));
                 return;
@@ -702,7 +818,7 @@ namespace RemoteApi {
         } else {
             MW_show_log(tr("[API] Testing %n profile(s) to find the lowest latency", nullptr, static_cast<int>(untested.size())));
             // The callback comes on the runner's worker thread.
-            mw_->testRunner->queueUrlTests(untested, [this, pick] { QMetaObject::invokeMethod(this, pick, Qt::QueuedConnection); });
+            engine_->queueUrlTests(untested, [this, pick] { QMetaObject::invokeMethod(this, pick, Qt::QueuedConnection); });
         }
         if (waiter == nullptr) respond(accepted());
     }
@@ -732,22 +848,24 @@ namespace RemoteApi {
             respond(error);
             return;
         }
-        switch (mw_->connection_state()) {
-            case MainWindow::ConnectionState::Idle:
+        switch (engine_->connectionState()) {
+            case Engine::ConnectionState::Idle:
+                // Still a stop: it cancels the resume of a crashed profile that waits for the core.
+                engine_->stop(Engine::StopOptions{.manual = true, .interactive = false});
                 respond(Response::Ok(statusJson()));
                 return;
-            case MainWindow::ConnectionState::Connecting:
-            case MainWindow::ConnectionState::Stopping:
+            case Engine::ConnectionState::Connecting:
+            case Engine::ConnectionState::Stopping:
                 respond(RouterImpl::busyConnection());
                 return;
-            case MainWindow::ConnectionState::Running:
+            case Engine::ConnectionState::Running:
                 break;
         }
         if (options.wait) {
             const auto waiter = makeWaiter(respond, options.timeoutMs, [this] { return accepted(); });
             stops_.append([this, waiter] { answer(waiter, Response::Ok(statusJson())); });
         }
-        mw_->profile_stop(false, false, true, false);
+        engine_->stop(Engine::StopOptions{.manual = true, .interactive = false});
         if (!options.wait) respond(accepted());
     }
 
@@ -763,10 +881,19 @@ namespace RemoteApi {
             respond(error);
             return;
         }
+        if (systemProxy.has_value() && *systemProxy && !engine_->systemProxySupported()) {
+            respond(Response::Error(409, QStringLiteral("system_proxy_unsupported"),
+                                    QStringLiteral("Headless Throne does not set the system proxy; point applications at its inbound")));
+            return;
+        }
         const auto &settings = Configs::dataManager->settingsRepo;
         const bool proxyChanges = systemProxy.has_value() && *systemProxy != settings->spmode_system_proxy;
         const bool tunChanges = tun.has_value() && *tun != settings->spmode_vpn;
+        // A Tun restore the boot held leaves spmode_vpn false, so tun:false would otherwise be a no-op that keeps the hold.
+        const bool clearHeldTun = tun.has_value() && !*tun && !tunChanges && engine_->tunRestoreHeld();
+        const auto releaseHeldTun = [this] { engine_->setTun(false, Engine::ModeChange{.interactive = false, .restart = false}); };
         if (!proxyChanges && !tunChanges) {
+            if (clearHeldTun) releaseHeldTun();
             respond(Response::Ok(statusJson()));
             return;
         }
@@ -775,10 +902,17 @@ namespace RemoteApi {
                                     QStringLiteral("The system proxy needs Throne's mixed inbound, which is turned off")));
             return;
         }
-        if (tunChanges && *tun && !Configs::IsAdmin() && !settings->disable_privilege_req) {
-            respond(Response::Error(412, QStringLiteral("needs_privileges"),
-                                    QStringLiteral("Tun needs privileges that Throne does not have; grant them in Throne once")));
+        if (tunChanges && *tun) Configs::RefreshStaleTunDevice(RouterImpl::kTunCapsRefreshMs);
+        if (tunChanges && *tun && !settings->disable_privilege_req &&
+            (!engine_->tunPrivileged() || RouterImpl::tunCapability() == QJsonValue(false))) {
+            respond(Response::Error(412, QStringLiteral("needs_privileges"), RouterImpl::tunPrivilegeMessage()));
             return;
+        }
+        if (tunChanges && *tun) {
+            if (const auto conflict = engine_->tunBlockedReason(); !conflict.isEmpty()) {
+                respond(Response::Error(409, QStringLiteral("tun_conflict"), conflict));
+                return;
+            }
         }
         if (connectionBusy()) {
             respond(RouterImpl::busyConnection());
@@ -787,12 +921,13 @@ namespace RemoteApi {
         // System proxy first so that a Tun restart picks it up; at most one of the two restarts.
         applyWithRestart(options, respond, [&](quint64 serial) {
             bool restarted = false;
+            if (clearHeldTun) releaseHeldTun();
             if (proxyChanges) {
-                restarted = mw_->set_spmode_system_proxy(
-                    *systemProxy, MainWindow::ModeChange{.interactive = false, .restart = !tunChanges, .restartSerial = serial});
+                restarted = engine_->setSystemProxy(
+                    *systemProxy, Engine::ModeChange{.interactive = false, .restart = !tunChanges, .restartSerial = serial});
             }
             if (tunChanges) {
-                restarted = mw_->set_spmode_vpn(*tun, MainWindow::ModeChange{.interactive = false, .restartSerial = serial}) || restarted;
+                restarted = engine_->setTun(*tun, Engine::ModeChange{.interactive = false, .restartSerial = serial}) || restarted;
             }
             return restarted;
         });
@@ -828,19 +963,20 @@ namespace RemoteApi {
             respond(Response::Ok(statusJson()));
             return;
         }
+        // The editor writes current_route_id back on OK.
+        if (Engine::IsBeingEdited(Engine::EditTarget::Routes)) {
+            respond(editing(QStringLiteral("the routing profile list")));
+            return;
+        }
         if (connectionBusy()) {
             respond(RouterImpl::busyConnection());
             return;
         }
-        applyWithRestart(options, respond, [&](quint64 serial) { return mw_->choose_route(*routeId, false, serial); });
+        applyWithRestart(options, respond, [&](quint64 serial) { return engine_->chooseRoute(*routeId, false, serial); });
     }
 
     void Router::getLiveStats(const Request &, const Responder &respond, int) {
-        MainWindow::LiveRates rates;
-        if (mw_->running != nullptr && !Configs::dataManager->settingsRepo->disable_traffic_stats && mw_->m_liveRatesAt.isValid() &&
-            !mw_->m_liveRatesAt.hasExpired(RouterImpl::kLiveRatesFreshMs)) {
-            rates = mw_->m_liveRates;
-        }
+        const auto rates = engine_->freshLiveRates(RouterImpl::kLiveRatesFreshMs).value_or(Engine::LiveRates{});
         respond(Response::Ok(QJsonObject{
             {"proxy", QJsonObject{{"up", rates.proxyUp}, {"down", rates.proxyDown}}},
             {"direct", QJsonObject{{"up", rates.directUp}, {"down", rates.directDown}}},

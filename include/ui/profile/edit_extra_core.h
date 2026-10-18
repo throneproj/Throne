@@ -22,6 +22,8 @@ public:
 
     bool onEnd() override;
 
+    void bindValidation(Validation::Form &form) override;
+
 private:
     Ui::EditExtraCore *ui;
     std::shared_ptr<Configs::Profile> ent;

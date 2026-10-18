@@ -16,6 +16,7 @@
 #include <memory>
 
 #include "include/global/Utils.hpp"
+#include "include/sys/KillSwitch.hpp"
 
 namespace RemoteApi {
     class Server::Worker : public QObject {
@@ -24,7 +25,10 @@ namespace RemoteApi {
 
         ~Worker() override;
 
-        void apply(const Config &config);
+        ApplyResult apply(const Config &config);
+
+        // Stops listening and gives replies still in the write buffers up to kDrainMs in total to leave.
+        void drain();
 
     private:
         struct Mailbox {
@@ -78,9 +82,12 @@ namespace RemoteApi {
         static constexpr int kFailureLimit = 5;
         static constexpr qint64 kFailureWindowMs = 60 * 1000;
         static constexpr qint64 kRefusalMs = 60 * 1000;
+        // A peer that proved the key this recently is not refused: its failures come from a stale client sharing the address.
+        static constexpr qint64 kAuthExemptMs = 10 * 60 * 1000;
         static constexpr qint64 kPeerLogIntervalMs = 60 * 1000;
         static constexpr int kMaxTrackedPeers = 1024;
         static constexpr qint64 kReadBufferSize = 64 * 1024;
+        static constexpr qint64 kDrainMs = 1000;
 
         static void Log(const QString &line);
 
@@ -90,9 +97,13 @@ namespace RemoteApi {
 
         void admit(QTcpSocket *socket);
 
+        bool isLocal(const QHostAddress &address) const;
+
         bool isAllowed(const QHostAddress &address) const;
 
         bool isRefused(const QString &peer) const;
+
+        void noteAuthenticated(const QString &peer);
 
         void processInput(Connection *conn);
 
@@ -112,14 +123,20 @@ namespace RemoteApi {
 
         void logPeer(const QString &peer, const QString &line);
 
+        ApplyResult finish(const ApplyResult &result);
+
         Server *server_;
         QTcpServer *listener_;
         std::shared_ptr<Mailbox> mailbox_;
         Config config_;
+        ApplyResult result_;
+        // The specific address the listener is bound to; null for loopback, every address or the settings' listener.
+        QHostAddress localAddress_;
         bool listening_ = false;
         QHash<quint64, Connection *> connections_;
         QHash<QString, int> perPeer_;
         QHash<QString, FailureRecord> failures_;
+        QHash<QString, qint64> authenticated_;
         QHash<QString, qint64> peerLogged_;
         QElapsedTimer clock_;
         quint64 nextId_ = 1;
@@ -151,7 +168,7 @@ namespace RemoteApi {
     }
 
     void Server::Worker::Log(const QString &line) {
-        if (MW_show_log) MW_show_log(QStringLiteral("[API] ") + line);
+        MW_show_log(QStringLiteral("[API] ") + line);
     }
 
     // A dual-stack listener reports IPv4 peers as IPv4-mapped IPv6 addresses.
@@ -161,10 +178,10 @@ namespace RemoteApi {
         return isIPv4 ? QHostAddress(ipv4) : address;
     }
 
-    void Server::Worker::apply(const Config &config) {
+    ApplyResult Server::Worker::apply(const Config &config) {
         const bool keyValid = config.key.size() == kKeySize;
         const bool sameListener = listening_ && config.enabled && keyValid && config.port == config_.port
-                                  && config.lan == config_.lan && config.key == config_.key;
+                                  && config.lan == config_.lan && config.address == config_.address && config.key == config_.key;
         const bool allowChanged = config.allow != config_.allow;
         config_ = config;
 
@@ -175,40 +192,81 @@ namespace RemoteApi {
                     if (!isAllowed(conn->address)) closeConnection(conn);
                 }
             }
-            return;
+            return result_;
         }
 
         closeAll();
         stopListening();
+        ApplyResult result;
+        result.port = config.port;
         if (!config.enabled) {
-            server_->publishStatus(Server::tr("Off"));
-            return;
+            result.text = Server::tr("Off");
+            return finish(result);
         }
         if (!keyValid) {
-            server_->publishStatus(Server::tr("Not listening: the key is missing or invalid"));
-            return;
+            result.state = ApplyResult::State::KeyInvalid;
+            result.text = Server::tr("Not listening: the key is missing or invalid");
+            return finish(result);
         }
 
-        const auto address = config.lan ? QHostAddress(QHostAddress::Any) : QHostAddress(QHostAddress::LocalHost);
-        if (!listener_->listen(address, config.port)) {
-            const auto text = listener_->serverError() == QAbstractSocket::AddressInUseError
-                                  ? Server::tr("Port %1 is in use").arg(config.port)
-                                  : Server::tr("Cannot listen on port %1: %2").arg(config.port).arg(listener_->errorString());
-            Log(text);
-            server_->publishStatus(text);
-            return;
+        const bool explicitAddress = !config.address.isNull();
+        if (explicitAddress) result.address = config.address;
+        else result.address = config.lan ? QHostAddress(QHostAddress::Any) : QHostAddress(QHostAddress::LocalHost);
+        if (!listener_->listen(result.address, config.port)) {
+            result.state = ApplyResult::State::BindFailed;
+            result.error = listener_->serverError();
+            result.text = result.error == QAbstractSocket::AddressInUseError
+                              ? Server::tr("Port %1 is in use").arg(config.port)
+                              : Server::tr("Cannot listen on port %1: %2").arg(config.port).arg(listener_->errorString());
+            Log(result.text);
+            Sys::KillSwitch::SetApiPort(0);
+            return finish(result);
         }
         listening_ = true;
-        const auto text = config.lan ? Server::tr("Listening on port %1 (local network)").arg(config.port)
-                                     : Server::tr("Listening on %1:%2").arg(QStringLiteral("127.0.0.1")).arg(config.port);
-        Log(text);
-        server_->publishStatus(text);
+        // Loopback replies already pass the guard, and its port-only exemption would also cover other programs on this port.
+        Sys::KillSwitch::SetApiPort(result.address.isLoopback() ? quint16(0) : listener_->serverPort());
+        result.state = ApplyResult::State::Listening;
+        const bool everyAddress = result.address == QHostAddress::Any || result.address == QHostAddress::AnyIPv4
+                                  || result.address == QHostAddress::AnyIPv6;
+        if (explicitAddress && !everyAddress) localAddress_ = NormalizedPeer(result.address);
+        if (explicitAddress ? everyAddress : config.lan) {
+            result.text = Server::tr("Listening on port %1 (local network)").arg(config.port);
+        } else {
+            const auto host = !explicitAddress ? QStringLiteral("127.0.0.1")
+                              : result.address.protocol() == QAbstractSocket::IPv6Protocol
+                                  ? QStringLiteral("[%1]").arg(result.address.toString())
+                                  : result.address.toString();
+            result.text = Server::tr("Listening on %1:%2").arg(host).arg(config.port);
+        }
+        Log(result.text);
+        return finish(result);
+    }
+
+    ApplyResult Server::Worker::finish(const ApplyResult &result) {
+        result_ = result;
+        server_->publishResult(result);
+        return result;
+    }
+
+    void Server::Worker::drain() {
+        stopListening();
+        QElapsedTimer elapsed;
+        elapsed.start();
+        const auto open = connections_.values();
+        for (auto *conn : open) {
+            while (!conn->closed && conn->socket->bytesToWrite() > 0 && elapsed.elapsed() < kDrainMs) {
+                if (!conn->socket->waitForBytesWritten(static_cast<int>(kDrainMs - elapsed.elapsed()))) break;
+            }
+        }
+        closeAll();
     }
 
     void Server::Worker::stopListening() {
         if (!listening_) return;
         listener_->close();
         listening_ = false;
+        localAddress_.clear();
+        Sys::KillSwitch::SetApiPort(0);
         Log(Server::tr("Stopped listening"));
     }
 
@@ -220,12 +278,13 @@ namespace RemoteApi {
         const auto address = NormalizedPeer(socket->peerAddress());
         const auto peer = address.toString();
         QString refusal;
-        if (!address.isLoopback() && isRefused(peer)) {
+        const bool local = isLocal(address);
+        if (!local && isRefused(peer)) {
             refusal = Server::tr("Refused %1: too many failed attempts");
         } else if (!isAllowed(address)) {
             refusal = Server::tr("Refused %1: not in the allowed addresses");
         } else if (connections_.size() >= kMaxConnections
-                   || (!address.isLoopback() && perPeer_.value(peer) >= kMaxConnectionsPerPeer)) {
+                   || (!local && perPeer_.value(peer) >= kMaxConnectionsPerPeer)) {
             refusal = Server::tr("Refused %1: too many connections");
         }
         if (!refusal.isEmpty()) {
@@ -263,8 +322,13 @@ namespace RemoteApi {
         processInput(conn);
     }
 
+    // Outside packets with a local source address are dropped, and a blind spoofer cannot finish the handshake.
+    bool Server::Worker::isLocal(const QHostAddress &address) const {
+        return address.isLoopback() || (!localAddress_.isNull() && address == localAddress_);
+    }
+
     bool Server::Worker::isAllowed(const QHostAddress &address) const {
-        if (address.isLoopback()) return true;
+        if (isLocal(address)) return true;
         if (!config_.lan) return false;
         if (config_.allow.isEmpty()) return true;
         return std::any_of(config_.allow.cbegin(), config_.allow.cend(), [&address](const QPair<QHostAddress, int> &subnet) {
@@ -320,6 +384,7 @@ namespace RemoteApi {
                 return;
             }
             ++conn->received;
+            if (!isLocal(conn->address)) noteAuthenticated(conn->peer);
             handleRequest(conn, plaintext);
         }
     }
@@ -332,6 +397,7 @@ namespace RemoteApi {
             return;
         }
         request.peer = conn->peer;
+        request.admin = isLocal(conn->address) || config_.adminLan;
         conn->phase = Phase::Pending;
         conn->timer->stop();
         auto exchange = std::make_shared<Exchange>();
@@ -366,7 +432,7 @@ namespace RemoteApi {
 
     void Server::Worker::fail(Connection *conn, const QString &reason) {
         logPeer(conn->peer, Server::tr("Closed the connection from %1: %2").arg(conn->peer, reason));
-        if (!conn->address.isLoopback()) {
+        if (!isLocal(conn->address)) {
             const auto now = clock_.elapsed();
             if (failures_.size() >= kMaxTrackedPeers) {
                 failures_.removeIf([now](QHash<QString, FailureRecord>::iterator it) {
@@ -378,10 +444,24 @@ namespace RemoteApi {
             record.recent.append(now);
             if (record.recent.size() >= kFailureLimit) {
                 record.recent.clear();
-                record.refusedUntil = now + kRefusalMs;
+                const auto proven = authenticated_.constFind(conn->peer);
+                if (proven == authenticated_.cend() || now - proven.value() >= kAuthExemptMs) {
+                    record.refusedUntil = now + kRefusalMs;
+                    Log(QStringLiteral("Refusing every connection from %1 for %2 s after %3 failed attempts; a client there probably "
+                                       "still uses an old key")
+                            .arg(conn->peer, QString::number(kRefusalMs / 1000), QString::number(kFailureLimit)));
+                }
             }
         }
         closeConnection(conn);
+    }
+
+    void Server::Worker::noteAuthenticated(const QString &peer) {
+        const auto now = clock_.elapsed();
+        if (authenticated_.size() >= kMaxTrackedPeers) {
+            authenticated_.removeIf([now](QHash<QString, qint64>::iterator it) { return now - it.value() >= kAuthExemptMs; });
+        }
+        authenticated_.insert(peer, now);
     }
 
     void Server::Worker::closeConnection(Connection *conn) {
@@ -416,6 +496,7 @@ namespace RemoteApi {
     }
 
     Server::Server() : QObject(QCoreApplication::instance()), status_(tr("Off")) {
+        lastResult_.text = status_;
         if (auto *app = QCoreApplication::instance(); app != nullptr) connect(app, &QCoreApplication::aboutToQuit, this, &Server::shutdown);
     }
 
@@ -427,38 +508,71 @@ namespace RemoteApi {
         dispatcher_ = std::move(dispatcher);
     }
 
-    void Server::apply(const Config &config) {
-        if (stopped_) return;
-        if (worker_ == nullptr) {
-            if (!config.enabled) {
-                publishStatus(tr("Off"));
-                return;
-            }
-            thread_ = new QThread(this);
-            thread_->setObjectName(QStringLiteral("RemoteApi"));
-            worker_ = new Worker(this);
-            worker_->moveToThread(thread_);
-            // QThread runs deferred deletes as it finishes, so the worker and its sockets die on their own thread.
-            connect(thread_, &QThread::finished, worker_, &QObject::deleteLater);
-            thread_->start();
+    bool Server::prepareWorker(const Config &config) {
+        if (stopped_) return false;
+        if (worker_ != nullptr) return true;
+        if (!config.enabled) {
+            ApplyResult off;
+            off.port = config.port;
+            off.text = tr("Off");
+            publishResult(off);
+            return false;
         }
+        thread_ = new QThread(this);
+        thread_->setObjectName(QStringLiteral("RemoteApi"));
+        worker_ = new Worker(this);
+        worker_->moveToThread(thread_);
+        // QThread runs deferred deletes as it finishes, so the worker and its sockets die on their own thread.
+        connect(thread_, &QThread::finished, worker_, &QObject::deleteLater);
+        thread_->start();
+        return true;
+    }
+
+    void Server::apply(const Config &config) {
+        if (!prepareWorker(config)) return;
         QMetaObject::invokeMethod(worker_, [worker = worker_, config] { worker->apply(config); }, Qt::QueuedConnection);
+    }
+
+    ApplyResult Server::applyAndWait(const Config &config) {
+        if (!prepareWorker(config)) return lastResult();
+        ApplyResult result;
+        // Applies queued before this one run first; the worker never waits on this thread.
+        QMetaObject::invokeMethod(worker_, [worker = worker_, config, &result] { result = worker->apply(config); },
+                                  Qt::BlockingQueuedConnection);
+        return result;
+    }
+
+    ApplyResult Server::lastResult() const {
+        QMutexLocker lock(&statusMutex_);
+        return lastResult_;
     }
 
     void Server::shutdown() {
         if (stopped_) return;
         stopped_ = true;
         if (thread_ != nullptr) {
+            // A reply posted before this call is written first, since the worker handles its queue in order.
+            if (thread_->isRunning()) QMetaObject::invokeMethod(worker_, [worker = worker_] { worker->drain(); }, Qt::BlockingQueuedConnection);
             thread_->quit();
             thread_->wait();
             worker_ = nullptr;
         }
-        publishStatus(tr("Off"));
+        ApplyResult off;
+        off.text = tr("Off");
+        publishResult(off);
     }
 
     QString Server::statusText() const {
         QMutexLocker lock(&statusMutex_);
         return status_;
+    }
+
+    void Server::publishResult(const ApplyResult &result) {
+        {
+            QMutexLocker lock(&statusMutex_);
+            lastResult_ = result;
+        }
+        publishStatus(result.text);
     }
 
     void Server::publishStatus(const QString &text) {

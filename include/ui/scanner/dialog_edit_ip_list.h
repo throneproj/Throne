@@ -19,6 +19,10 @@ namespace Scanner {
     struct ImportOutcome;
 }
 
+namespace Validation {
+    class Form;
+}
+
 class DialogEditIpList : public QDialog {
     Q_OBJECT
 
@@ -76,6 +80,8 @@ private:
     bool summaryIsError = false;
 
     QTimer *summaryTimer = nullptr;
+
+    Validation::Form *form = nullptr;
 
     [[nodiscard]] Configs::IpList::SourceKind currentKind() const;
 

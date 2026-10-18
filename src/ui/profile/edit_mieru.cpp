@@ -1,11 +1,16 @@
 #include "include/ui/profile/edit_mieru.h"
 
-#include "include/global/GuiUtils.hpp"
+#include "include/ui/utils/GuiUtils.hpp"
+#include "include/ui/utils/ValidationForm.h"
 
 EditMieru::EditMieru(QWidget *parent) : QWidget(parent), ui(new Ui::EditMieru) {
     ui->setupUi(this);
     ui->transport->addItems(Configs::mieruTransports);
     ui->multiplexing->addItems(Configs::mieruMultiplexing);
+    // Server Ports decide whether the outer Port is required.
+    connect(ui->server_ports, &QLineEdit::editingFinished, this, [this] {
+        if (editor_state_changed) editor_state_changed();
+    });
 }
 
 EditMieru::~EditMieru() {
@@ -35,4 +40,15 @@ bool EditMieru::onEnd() {
     outbound->server_ports = ui->server_ports->text().trimmed();
 
     return true;
+}
+
+void EditMieru::bindValidation(Validation::Form &form) {
+    form.bind(ui->username, Validation::Rules::Required(), this);
+    form.bind(ui->password, Validation::Rules::Required(), this).raw();
+    form.bind(ui->server_ports, [](const QString &text) { return Configs::Checks::MieruServerPorts(text); }, this);
+    form.bind(ui->traffic_pattern, [](const QString &text) { return Configs::Checks::MieruTrafficPattern(text); }, this);
+}
+
+bool EditMieru::serverPortOptional() {
+    return !Validation::Items(ui->server_ports->text(), Validation::Split::Comma).isEmpty();
 }

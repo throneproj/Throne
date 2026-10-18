@@ -6,7 +6,9 @@
 #include "include/database/DatabaseManager.h"
 #include "include/database/IpListsRepo.h"
 #include "include/database/SettingsRepo.h"
-#include "include/global/GuiUtils.hpp"
+#include "include/ui/utils/GuiUtils.hpp"
+#include "include/global/Validation.hpp"
+#include "include/ui/utils/ValidationForm.h"
 
 #include <QGuiApplication>
 #include <QHostAddress>
@@ -41,12 +43,20 @@ namespace {
         const auto ace = Configs::toAceHost(text);
         return ace.size() <= 253 && hostname.match(ace).hasMatch() ? ace : QString();
     }
+
+    // GroupUpdater sends only values below 1000 characters without line breaks, and silently falls back otherwise.
+    QString groupAdvancedHeaderValueError(const QString &text) {
+        if (text.size() < 1000 && !text.contains(QLatin1Char('\n')) && !text.contains(QLatin1Char('\r'))) return {};
+        return DialogEditGroupAdvanced::tr("Must be shorter than 1000 characters, on a single line.");
+    }
 }
 
 DialogEditGroupAdvanced::DialogEditGroupAdvanced(const Configs::SubscriptionOptions &options, int serverIntervalHours,
                                                  const Configs::EndpointSource &endpoint, bool subscription, QWidget *parent)
     : QDialog(parent), ui(new Ui::DialogEditGroupAdvanced), options(options), endpoint(endpoint) {
     ui->setupUi(this);
+    form = new Validation::Form(this);
+    form->attachStatus(ui->buttonBox);
     loadEndpoint();
     if (!subscription) {
         ui->request_box->hide();
@@ -107,7 +117,21 @@ DialogEditGroupAdvanced::DialogEditGroupAdvanced(const Configs::SubscriptionOpti
     connect(ui->url_test, &QCheckBox::toggled, this, [this] { syncUrlTestFollowUps(); });
     syncUrlTestFollowUps();
 
+    form->bind(ui->endpoint_address, [](const QString &text) {
+        if (auto problem = Validation::Host(text); !problem.isEmpty()) return problem;
+        return groupEndpointHost(text).isEmpty() ? tr("Enter a host name or an IP address, without a port.") : QString();
+    }).label(tr("Fixed address"));
+    for (QLineEdit *edit : {static_cast<QLineEdit *>(ui->user_agent), static_cast<QLineEdit *>(ui->hwid), static_cast<QLineEdit *>(ui->hwid_os),
+                            static_cast<QLineEdit *>(ui->hwid_os_version), static_cast<QLineEdit *>(ui->hwid_model)})
+        form->bind(edit, [](const QString &text) { return groupAdvancedHeaderValueError(text); });
+    form->addRule({ui->update_interval}, [this] {
+        const int minutes = ui->update_interval->value();
+        if (minutes == 0 || minutes >= 30) return QString();
+        return tr("Must be at least 30 minutes, or 0 to keep the default.");
+    });
+
     ADD_ASTERISK(this)
+    form->markAll();
 
     // adjustSize() clamps to 2/3 of the screen.
     const auto *scr = screen() != nullptr ? screen() : QGuiApplication::primaryScreen();
@@ -183,16 +207,12 @@ void DialogEditGroupAdvanced::syncUrlTestFollowUps() {
 }
 
 void DialogEditGroupAdvanced::accept() {
+    if (!form->validateAll()) return;
     using Mode = Configs::EndpointSource::Mode;
     Configs::EndpointSource source;
     source.mode = endpointMode();
     if (source.mode == Mode::Address) {
         source.address = groupEndpointHost(ui->endpoint_address->text());
-        if (source.address.isEmpty()) {
-            MessageBoxWarning(tr("Fixed address"), tr("Enter a host name or an IP address, without a port."));
-            ui->endpoint_address->setFocus();
-            return;
-        }
     } else if (source.mode == Mode::IpList) {
         source.ipListId = ui->endpoint_list->currentData().toInt();
     }
@@ -206,9 +226,7 @@ void DialogEditGroupAdvanced::accept() {
     options.hwid_os = ui->hwid_os->text().trimmed();
     options.hwid_os_version = ui->hwid_os_version->text().trimmed();
     options.hwid_model = ui->hwid_model->text().trimmed();
-    // The same 30-minute floor the global interval enforces.
-    const int minutes = ui->update_interval->value();
-    options.update_interval = minutes > 0 ? std::max(minutes, 30) : 0;
+    options.update_interval = ui->update_interval->value();
     const int serverInterval = ui->server_interval->currentIndex();
     options.respect_server_interval = serverInterval > 0 ? std::optional<bool>(serverInterval == 1) : std::nullopt;
     options.keep_working = ui->keep_working->isChecked();

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QPointer>
 #include <QWidget>
 #include "profile_editor.h"
 #include "ui_edit_autoselector.h"
@@ -22,10 +23,19 @@ public:
 
     bool onEnd() override;
 
+    void bindValidation(Validation::Form &form) override;
+
 private:
     Ui::EditAutoSelector *ui;
     std::shared_ptr<Configs::Profile> ent;
+    QPointer<Validation::Form> form;
     bool m_loading = false;
+    // Stored groups that no longer exist: only previewed, saving drops them.
+    QList<int> m_missingGids;
+
+    [[nodiscard]] QList<int> checkedGroupIDs() const;
+
+    void fillGroups(const QList<int> &tracked);
 
     void refreshPlanSummary();
 

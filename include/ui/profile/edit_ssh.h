@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QPointer>
 #include <QWidget>
 #include "profile_editor.h"
 #include "ui_edit_ssh.h"
@@ -21,7 +22,12 @@ public:
 
     bool onEnd() override;
 
+    void bindValidation(Validation::Form &form) override;
+
+    bool serverPortOptional() override;
+
 private:
     Ui::EditSSH *ui;
     std::shared_ptr<Configs::Profile> ent;
+    QPointer<Validation::Form> form;
 };

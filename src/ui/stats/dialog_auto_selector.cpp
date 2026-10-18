@@ -1,6 +1,6 @@
 #include "include/ui/stats/dialog_auto_selector.h"
 
-#include "include/global/GuiUtils.hpp"
+#include "include/ui/utils/GuiUtils.hpp"
 
 #include <QCheckBox>
 #include <QDateTime>

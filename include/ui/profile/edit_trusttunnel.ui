@@ -91,32 +91,32 @@
     <widget class="QComboBox" name="congestion_control">
      <item>
       <property name="text">
-       <string>bbr</string>
+       <string notr="true">bbr</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>cubic</string>
+       <string notr="true">cubic</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>reno</string>
+       <string notr="true">reno</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>bbr_standard</string>
+       <string notr="true">bbr_standard</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>bbr2</string>
+       <string notr="true">bbr2</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>bbr_variant</string>
+       <string notr="true">bbr_variant</string>
       </property>
      </item>
     </widget>

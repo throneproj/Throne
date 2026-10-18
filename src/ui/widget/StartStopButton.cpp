@@ -12,6 +12,8 @@
 #include <QStyle>
 #include <QStyleOptionToolButton>
 
+#include "include/sys/KillSwitch.hpp"
+
 StartStopButton::StartStopButton(QWidget *parent) : QToolButton(parent) {
     setFocusPolicy(Qt::NoFocus);
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -73,7 +75,9 @@ void StartStopButton::updateToolTip() {
         case Lock::Pending: tip += "\n" + tr("Kill switch: starting…"); break;
         case Lock::Blocking: tip += "\n" + tr("Kill switch: Tun is not running, so most traffic is blocked"); break;
         case Lock::Passing: tip += "\n" + tr("Kill switch: on — traffic only flows through Throne's Tun"); break;
-        case Lock::Fault: tip += "\n" + tr("Kill switch is not active"); break;
+        case Lock::Fault:
+            tip += "\n" + (Sys::KillSwitch::instance()->failedForIdentity() ? tr("Kill switch is blocking traffic") : tr("Kill switch is not active"));
+            break;
     }
     setToolTip(tip);
 }
@@ -149,6 +153,8 @@ bool StartStopButton::event(QEvent *e) {
         emit customContextMenuRequested(static_cast<QContextMenuEvent *>(e)->pos());
         return true;
     }
+    // The failure kind behind a Fault can change while the lock stays Fault.
+    if (e->type() == QEvent::ToolTip && m_lock == Lock::Fault) updateToolTip();
     return QToolButton::event(e);
 }
 

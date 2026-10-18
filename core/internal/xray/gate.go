@@ -1,11 +1,13 @@
 package xray
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log"
+	"maps"
 	"net"
 	"strconv"
 	"sync"
@@ -18,7 +20,13 @@ import (
 const (
 	gateSweepInterval    = 15 * time.Second
 	minGateSweepInterval = 2 * time.Second
+	gateStartAttempts    = 3
+	// Connections queued behind a failed start share its error instead of each rebuilding the instance.
+	gateStartCooldown = time.Second
 )
+
+// FailureLog reports a gate dropping its connections; a host whose log sink grades lines points it at the error level.
+var FailureLog = func(message string) { log.Println(message) }
 
 func sweepIntervalFor(idle time.Duration) time.Duration {
 	if idle <= 0 || idle/2 >= gateSweepInterval {
@@ -33,16 +41,19 @@ func sweepIntervalFor(idle time.Duration) time.Duration {
 // The gate owns the inbound ports for the whole life of the config: a dial landing while the instance is down must not hit a closed port.
 // No UDP gate: Xray serves SOCKS5 UDP ASSOCIATE from a per-session ephemeral hub, and the association's TCP control connection keeps the instance from being swept.
 type Gate struct {
-	config  string
+	layout  *gateLayout
 	idle    time.Duration
 	prepare func(*core.Instance) error
 
-	bridges []gateBridge
+	bridges []net.Listener
 	stopped chan struct{}
 
 	mu       sync.Mutex
 	instance *core.Instance
+	targets  []string // per bridge, set together with instance
 	closed   bool
+	failure  error
+	failedAt time.Time
 
 	// conns is nil once the gate is closed, which is how a connection accepted during teardown learns to give up.
 	connsMu sync.Mutex
@@ -52,25 +63,30 @@ type Gate struct {
 	lastUse atomic.Int64 // unix nanos
 }
 
-type gateBridge struct {
-	listener net.Listener
-	target   string
+// The gated inbounds; every instance start writes freshly drawn ports into a copy of them.
+type gateLayout struct {
+	root     map[string]json.RawMessage
+	inbounds []map[string]any
+	hosts    []string
+	ports    []int
 }
-
-type gateAddrPair struct{ gate, target string }
 
 // prepare must apply to each instance everything an eagerly created one would get (egress interface, outbound DNS); idle 0 keeps it resident.
 func StartGate(config string, idle time.Duration, prepare func(*core.Instance) error) (*Gate, error) {
-	rewritten, pairs, err := remapInbounds(config)
+	layout, err := parseGateLayout(config)
 	if err != nil {
 		return nil, err
 	}
-	if err = CheckXrayConfig(rewritten); err != nil {
+	checked, err := layout.render(layout.ports)
+	if err != nil {
+		return nil, err
+	}
+	if err = CheckXrayConfig(checked); err != nil {
 		return nil, err
 	}
 
 	gate := &Gate{
-		config:  rewritten,
+		layout:  layout,
 		idle:    idle,
 		prepare: prepare,
 		stopped: make(chan struct{}),
@@ -78,49 +94,40 @@ func StartGate(config string, idle time.Duration, prepare func(*core.Instance) e
 	}
 	gate.touch()
 
-	for _, pair := range pairs {
-		listener, listenErr := net.Listen("tcp", pair.gate)
+	// Bound before any internal port is drawn, so a draw can never hand out a port the gate is about to take.
+	for i, host := range layout.hosts {
+		address := net.JoinHostPort(host, strconv.Itoa(layout.ports[i]))
+		listener, listenErr := net.Listen("tcp", address)
 		if listenErr != nil {
-			for _, bridge := range gate.bridges {
-				_ = bridge.listener.Close()
-			}
-			return nil, fmt.Errorf("xray gate: cannot take over %s: %w", pair.gate, listenErr)
+			closeListeners(gate.bridges)
+			return nil, fmt.Errorf("xray gate: cannot take over %s: %w", address, listenErr)
 		}
-		gate.bridges = append(gate.bridges, gateBridge{listener: listener, target: pair.target})
+		gate.bridges = append(gate.bridges, listener)
 	}
 
-	for i := range gate.bridges {
-		go gate.serve(&gate.bridges[i])
+	for i, bridge := range gate.bridges {
+		go gate.serve(bridge, i)
 	}
 	go gate.sweep()
 	return gate, nil
 }
 
-// Only the inbounds array is decoded and re-encoded, so hand-written outbound JSON reaches Xray byte for byte.
-func remapInbounds(config string) (string, []gateAddrPair, error) {
+func parseGateLayout(config string) (*gateLayout, error) {
 	var root map[string]json.RawMessage
 	if err := json.Unmarshal([]byte(config), &root); err != nil {
-		return "", nil, fmt.Errorf("xray gate: parse config: %w", err)
+		return nil, fmt.Errorf("xray gate: parse config: %w", err)
 	}
 	var inbounds []map[string]any
 	if raw, ok := root["inbounds"]; ok {
 		if err := json.Unmarshal(raw, &inbounds); err != nil {
-			return "", nil, fmt.Errorf("xray gate: parse inbounds: %w", err)
+			return nil, fmt.Errorf("xray gate: parse inbounds: %w", err)
 		}
 	}
 	if len(inbounds) == 0 {
-		return "", nil, errors.New("xray gate: config has no inbounds to gate")
+		return nil, errors.New("xray gate: config has no inbounds to gate")
 	}
 
-	// Hold every probe open until the whole set is chosen: a released ephemeral port gets dealt straight back out.
-	var probes []net.Listener
-	defer func() {
-		for _, probe := range probes {
-			_ = probe.Close()
-		}
-	}()
-
-	pairs := make([]gateAddrPair, 0, len(inbounds))
+	layout := &gateLayout{root: root, inbounds: inbounds}
 	for _, inbound := range inbounds {
 		host, _ := inbound["listen"].(string)
 		if host == "" {
@@ -128,31 +135,54 @@ func remapInbounds(config string) (string, []gateAddrPair, error) {
 		}
 		port, ok := inbound["port"].(float64)
 		if !ok || port <= 0 {
-			return "", nil, errors.New("xray gate: inbound without a fixed port cannot be gated")
+			return nil, errors.New("xray gate: inbound without a fixed port cannot be gated")
 		}
-		probe, err := net.Listen("tcp", net.JoinHostPort(host, "0"))
-		if err != nil {
-			return "", nil, fmt.Errorf("xray gate: no free port on %s: %w", host, err)
-		}
-		probes = append(probes, probe)
-		moved := probe.Addr().(*net.TCPAddr).Port
-		inbound["port"] = moved
-		pairs = append(pairs, gateAddrPair{
-			gate:   net.JoinHostPort(host, strconv.Itoa(int(port))),
-			target: net.JoinHostPort(host, strconv.Itoa(moved)),
-		})
+		layout.hosts = append(layout.hosts, host)
+		layout.ports = append(layout.ports, int(port))
 	}
+	return layout, nil
+}
 
+// Only the inbounds array is re-encoded, so hand-written outbound JSON reaches Xray byte for byte.
+func (l *gateLayout) render(ports []int) (string, error) {
+	inbounds := make([]map[string]any, len(l.inbounds))
+	for i, inbound := range l.inbounds {
+		inbounds[i] = maps.Clone(inbound)
+		inbounds[i]["port"] = ports[i]
+	}
 	patched, err := json.Marshal(inbounds)
 	if err != nil {
-		return "", nil, err
+		return "", err
 	}
+	root := maps.Clone(l.root)
 	root["inbounds"] = patched
 	out, err := json.Marshal(root)
 	if err != nil {
-		return "", nil, err
+		return "", err
 	}
-	return string(out), pairs, nil
+	return string(out), nil
+}
+
+// Every probe stays open until the whole set is drawn: a released ephemeral port gets dealt straight back out.
+func reservePorts(hosts []string) ([]net.Listener, []int, error) {
+	probes := make([]net.Listener, 0, len(hosts))
+	ports := make([]int, 0, len(hosts))
+	for _, host := range hosts {
+		probe, err := probeListenConfig.Listen(context.Background(), "tcp", net.JoinHostPort(host, "0"))
+		if err != nil {
+			closeListeners(probes)
+			return nil, nil, fmt.Errorf("xray gate: no free port on %s: %w", host, err)
+		}
+		probes = append(probes, probe)
+		ports = append(ports, probe.Addr().(*net.TCPAddr).Port)
+	}
+	return probes, ports, nil
+}
+
+func closeListeners(listeners []net.Listener) {
+	for _, listener := range listeners {
+		_ = listener.Close()
+	}
 }
 
 // nil while the gate is cold.
@@ -170,13 +200,11 @@ func (g *Gate) Close() {
 	}
 	g.closed = true
 	instance := g.instance
-	g.instance = nil
+	g.instance, g.targets = nil, nil
 	g.mu.Unlock()
 
 	close(g.stopped)
-	for _, bridge := range g.bridges {
-		_ = bridge.listener.Close()
-	}
+	closeListeners(g.bridges)
 
 	g.connsMu.Lock()
 	conns := g.conns
@@ -191,17 +219,17 @@ func (g *Gate) Close() {
 	}
 }
 
-func (g *Gate) serve(bridge *gateBridge) {
+func (g *Gate) serve(bridge net.Listener, index int) {
 	for {
-		conn, err := bridge.listener.Accept()
+		conn, err := bridge.Accept()
 		if err != nil {
 			return
 		}
-		go g.handle(conn, bridge.target)
+		go g.handle(conn, index)
 	}
 }
 
-func (g *Gate) handle(conn net.Conn, target string) {
+func (g *Gate) handle(conn net.Conn, index int) {
 	if !g.track(conn) {
 		_ = conn.Close()
 		return
@@ -219,11 +247,11 @@ func (g *Gate) handle(conn net.Conn, target string) {
 		g.touch()
 	}()
 
-	if _, err := g.ensure(); err != nil {
-		log.Println("Xray gate: failed to bring up the instance:", err)
+	targets, err := g.ensure()
+	if err != nil {
 		return
 	}
-	upstream, err := net.Dial("tcp", target)
+	upstream, err := net.Dial("tcp", targets[index])
 	if err != nil {
 		log.Println("Xray gate: failed to reach the instance:", err)
 		return
@@ -253,32 +281,89 @@ func relay(dst, src net.Conn, done chan<- struct{}) {
 	}
 }
 
-func (g *Gate) ensure() (*core.Instance, error) {
+// Logs a failure once per start, not once per connection it drops.
+func (g *Gate) ensure() ([]string, error) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	if g.closed {
 		return nil, errors.New("xray gate: closed")
 	}
 	if g.instance != nil {
-		return g.instance, nil
+		return g.targets, nil
 	}
-	instance, err := CreateXrayInstance(g.config)
+	if g.failure != nil && time.Since(g.failedAt) < gateStartCooldown {
+		return nil, g.failure
+	}
+
+	var err error
+	for attempt := 1; attempt <= gateStartAttempts; attempt++ {
+		var instance *core.Instance
+		var targets []string
+		// Retries release the probes first, in case this kernel refuses Xray a port the probe still holds.
+		hold := probesHoldThroughStart && attempt == 1
+		if instance, targets, err = g.startInstance(hold); err == nil {
+			log.Println("Xray gate: started the instance on demand")
+			g.instance, g.targets, g.failure = instance, targets, nil
+			return targets, nil
+		}
+		if !isAddrInUse(err) {
+			break
+		}
+		log.Printf("Xray gate: an internal port was taken during start (attempt %d of %d): %v", attempt, gateStartAttempts, err)
+	}
+	g.failure, g.failedAt = err, time.Now()
+	FailureLog(fmt.Sprintf("Xray gate: cannot start the instance behind %s, dropping its connections: %v", g.describe(), err))
+	return nil, err
+}
+
+// Draws new internal ports on every start: the ones a swept instance used were free for anyone to take while it was down.
+func (g *Gate) startInstance(holdProbes bool) (*core.Instance, []string, error) {
+	probes, ports, err := reservePorts(g.layout.hosts)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
+	}
+	defer func() { closeListeners(probes) }()
+
+	config, err := g.layout.render(ports)
+	if err != nil {
+		return nil, nil, err
+	}
+	instance, err := CreateXrayInstance(config)
+	if err != nil {
+		return nil, nil, err
 	}
 	if g.prepare != nil {
 		if err = g.prepare(instance); err != nil {
 			_ = instance.Close()
-			return nil, err
+			return nil, nil, err
 		}
+	}
+	if !holdProbes {
+		closeListeners(probes)
+		probes = nil
 	}
 	if err = instance.Start(); err != nil {
 		_ = instance.Close()
-		return nil, err
+		return nil, nil, err
 	}
-	log.Println("Xray gate: started the instance on demand")
-	g.instance = instance
-	return instance, nil
+
+	targets := make([]string, len(ports))
+	for i, port := range ports {
+		targets[i] = net.JoinHostPort(g.layout.hosts[i], strconv.Itoa(port))
+	}
+	return instance, targets, nil
+}
+
+func (g *Gate) describe() string {
+	first := g.bridges[0].Addr().String()
+	if more := len(g.bridges) - 1; more > 0 {
+		return fmt.Sprintf("%s and %d more ports", first, more)
+	}
+	return first
+}
+
+func (g *Gate) idleNow() bool {
+	return g.idle > 0 && g.active.Load() == 0 && time.Since(time.Unix(0, g.lastUse.Load())) >= g.idle
 }
 
 func (g *Gate) sweep() {
@@ -289,15 +374,16 @@ func (g *Gate) sweep() {
 		case <-g.stopped:
 			return
 		case <-ticker.C:
-			if g.idle <= 0 || g.active.Load() > 0 {
+			if !g.idleNow() {
 				continue
 			}
-			if time.Since(time.Unix(0, g.lastUse.Load())) < g.idle {
-				continue
-			}
+			// Rechecked under mu: a connection counted after the first check must not be handed an instance about to close.
+			var instance *core.Instance
 			g.mu.Lock()
-			instance := g.instance
-			g.instance = nil
+			if g.idleNow() {
+				instance = g.instance
+				g.instance, g.targets = nil, nil
+			}
 			g.mu.Unlock()
 			if instance != nil {
 				log.Println("Xray gate: the instance went idle, shutting it down")

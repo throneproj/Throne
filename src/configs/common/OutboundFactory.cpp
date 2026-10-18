@@ -1,5 +1,7 @@
 #include "include/configs/common/OutboundFactory.h"
 
+#include <QCoreApplication>
+
 #include "include/configs/outbounds/socks.h"
 #include "include/configs/outbounds/http.h"
 #include "include/configs/outbounds/shadowsocks.h"
@@ -62,5 +64,16 @@ namespace Configs
         auto* ob = new outbound();
         ob->invalid = true;
         return ob;
+    }
+
+    QString RefusedForeignType(const QString& type)
+    {
+        if (type == "extracore")
+            return QCoreApplication::translate("Validation", "Refused to import an Extra Core profile: it would run a program on this computer.");
+        if (type == "chain")
+            return QCoreApplication::translate("Validation", "Refused to import a Chain Proxy profile: its hops are profiles of another installation.");
+        if (type == "autoselector")
+            return QCoreApplication::translate("Validation", "Refused to import an Auto Selector profile: the group it tracks belongs to another installation.");
+        return {};
     }
 }

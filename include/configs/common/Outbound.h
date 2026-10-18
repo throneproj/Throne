@@ -9,6 +9,7 @@
 #include "xrayMultiplex.h"
 #include "xrayStreamSetting.h"
 #include "include/configs/baseConfig.h"
+#include "include/global/Validation.hpp"
 
 namespace Configs
 {
@@ -35,6 +36,8 @@ namespace Configs
         bool caVerified = false;
         // Weakened by that global setting rather than by the profile itself.
         bool compromised = false;
+        // Set by a weaker leg to a public server, which a private profile address does not make moot.
+        bool publicLeg = false;
 
         bool isDangerous() const {
             return level == SecurityLevel::None || level == SecurityLevel::Weak;
@@ -49,6 +52,20 @@ namespace Configs
 
     // Traffic to a private address never crosses the internet, so its protection is moot.
     SecurityInfo WithPrivateServer(SecurityInfo info, const QString& host);
+
+    // The XHTTP download leg (XrayDownloadLeg) carries what the server sends back, so a weaker one to a public server sets the label.
+    SecurityInfo WithXrayDownloadLeg(SecurityInfo info, const QString& host, const QList<QJsonObject>& leg);
+
+    namespace Checks {
+        // The global custom TLS fragment size, "n" or "min-max" bytes: a max of 0 never advances, one above 1019 panics the core.
+        QString TlsFragmentSize(const QString& spec);
+        // A warning for a max above 400: five chunks can then overflow the core's 2048-byte queue on a very large ClientHello.
+        QString TlsFragmentSizeLarge(const QString& spec);
+        QString TlsFragmentSleep(const QString& spec);
+    }
+
+    // Why the global custom TLS-fragment settings fail every fragmenting TCP build; empty when they are usable.
+    QString FragmentSettingsError();
 
     class outbound : public baseConfig
     {
@@ -167,6 +184,19 @@ namespace Configs
 
         virtual BuildResult BuildXray() { return {}; }
 
+        // Runs after every import parse; Error issues refuse the profile. Overrides call the base first and never mutate.
+        virtual void Validate(Validation::Issues &issues);
+
+        // Called on every import, before Validate: drops state that only means something on this installation or would run a program.
+        virtual void StripForeignState(Validation::Issues &issues) {}
+
+        // Base Validate's server checks: types without a server of their own, and inputs (port ranges, realm, server lists) that supply it.
+        virtual bool HasServerEndpoint() { return true; }
+
+        virtual bool ServerPortOptional() { return false; }
+
+        virtual bool ServerAddressOptional() { return false; }
+
         QString ExportJsonLink(bool stripMetadata = false) {
             auto json = ExportToJson();
             if (stripMetadata) {
@@ -186,4 +216,7 @@ namespace Configs
         QJsonObject ExportIdentity() override;
         BuildResult Build() override;
     };
+
+    // Whether outbound::Build emits the dialer-level ("custom") TLS fragment, which also drops tcp_fast_open.
+    bool CustomFragmentApplies(outbound& out);
 }

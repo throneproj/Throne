@@ -20,9 +20,14 @@ namespace Configs
         bool noLog = false;
     };
 
+    enum class TrafficChainKind { Main, Route, Aux };
+
     struct TrafficChainGroup {
         QString watchTag;
         QList<std::shared_ptr<Profile>> profiles;
+        TrafficChainKind kind = TrafficChainKind::Main;
+        int profileId = -1;
+        QString name;
     };
 
     struct AutoSelectorBuildInfo {
@@ -46,6 +51,8 @@ namespace Configs
         QList<AutoSelectorBuildInfo> autoSelectors;
         // Endpoint hop tag -> profile id, so a live status can be named after its profile.
         QMap<QString, int> vpnEndpointProfiles;
+        // Rule-addressable outbound tag -> the profile it stands for, so connections are named after it.
+        QHash<QString, QString> outboundNames;
         // Every profile the config was built from, chain hops and route members included.
         QSet<int> involvedProfiles;
     };
@@ -110,10 +117,31 @@ namespace Configs
     // sing-box duration grammar: one or more "<number><unit>" with unit ns/us/ms/s/m/h/d.
     bool IsValidDuration(const QString &text);
 
+    // port 0 means the type's default; iface is empty for dhcp://auto.
+    struct DnsAddress {
+        QString type;
+        QString server;
+        int port = 0;
+        QString path;
+        QString iface;
+    };
+
+    // "local...", "dhcp://auto|<iface>", "udp|tcp|tls|quic://host[:port]", "https|h3://host[:port][/path]" or a bare "host[:port]" (udp).
+    bool ParseDnsAddress(const QString &text, DnsAddress *out, QString *why = nullptr);
+
     std::shared_ptr<BuildConfigResult> BuildSingBoxConfig(const std::shared_ptr<Profile> &ent);
 
     // coreUnreachable is set when a false came from a failed core call rather than from the config.
     bool IsValid(const std::shared_ptr<Profile> &ent, bool *coreUnreachable = nullptr);
+
+    // While alive, IsValid() on this thread runs only its local checks and counts the core's CheckConfig as passed.
+    class ScopedOfflineValidation {
+    public:
+        ScopedOfflineValidation();
+        ~ScopedOfflineValidation();
+        ScopedOfflineValidation(const ScopedOfflineValidation &) = delete;
+        ScopedOfflineValidation &operator=(const ScopedOfflineValidation &) = delete;
+    };
 
     // Eligible: an openvpn/openconnect profile, or a chain whose exit hop is one, never the reverse.
     bool CanBeAuxEndpoint(const std::shared_ptr<Profile> &ent);

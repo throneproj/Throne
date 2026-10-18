@@ -1,8 +1,12 @@
 #include "include/global/Utils.hpp"
+#include "include/global/Logger.hpp"
 
 #include "3rdparty/QThreadCreateThread.hpp"
 
+#include <atomic>
+#include <mutex>
 #include <random>
+#include <utility>
 
 #include <QApplication>
 #include <QUrlQuery>
@@ -26,6 +30,7 @@
 #include <QDialog>
 #include <QFontDatabase>
 #include <QFontInfo>
+#include <QTextBoundaryFinder>
 
 #ifdef Q_OS_WIN
 #include "include/sys/windows/guihelper.h"
@@ -33,6 +38,76 @@
 #ifdef Q_OS_MAC
 #include <ApplicationServices/ApplicationServices.h>
 #endif
+
+namespace {
+    using UserLogSink = std::function<void(const QString &)>;
+    using DialogMessageSink = std::function<void(MwMessage, const QStringList &)>;
+
+    std::mutex g_sinkMu;
+    std::shared_ptr<const UserLogSink> g_userLogSink;
+    std::shared_ptr<const DialogMessageSink> g_dialogMessageSink;
+
+    std::atomic<int> g_headlessDialogs{0};
+
+    template<typename Sink>
+    std::shared_ptr<const Sink> loadSink(const std::shared_ptr<const Sink> &slot) {
+        std::lock_guard lock(g_sinkMu);
+        return slot;
+    }
+
+    template<typename Sink>
+    void storeSink(std::shared_ptr<const Sink> &slot, Sink sink) {
+        auto next = sink ? std::make_shared<const Sink>(std::move(sink)) : nullptr;
+        std::shared_ptr<const Sink> previous; // outlives the lock, so the old sink is never destroyed under it
+        std::lock_guard lock(g_sinkMu);
+        previous = std::exchange(slot, std::move(next));
+    }
+}
+
+void MW_show_log(const QString &line) {
+    try {
+        if (const auto sink = loadSink(g_userLogSink)) {
+            (*sink)(line);
+        } else {
+            Logging::WriteUserLog(line);
+        }
+    } catch (...) {
+    }
+}
+
+void SetUserLogSink(std::function<void(const QString &)> sink) {
+    storeSink(g_userLogSink, std::move(sink));
+}
+
+void MW_dialog_message(MwMessage cmd, const QStringList &args) {
+    const auto sink = loadSink(g_dialogMessageSink);
+    if (!sink) {
+        LOG_DEBUG(QString("dialog message %1 dropped: no sink installed").arg(static_cast<int>(cmd)));
+        return;
+    }
+    (*sink)(cmd, args);
+}
+
+void SetDialogMessageSink(std::function<void(MwMessage, const QStringList &)> sink) {
+    storeSink(g_dialogMessageSink, std::move(sink));
+}
+
+bool IsGuiApp() {
+    const auto *app = QCoreApplication::instance();
+    return app != nullptr && app->inherits("QApplication");
+}
+
+int HeadlessDialogCount() {
+    return g_headlessDialogs.load(std::memory_order_relaxed);
+}
+
+void LogHeadlessDialog(const QString &kind, const QString &title, const QString &text, const QString &defaultValue) {
+    g_headlessDialogs.fetch_add(1, std::memory_order_relaxed);
+    QString flat = text;
+    flat.replace(QStringLiteral("\r\n"), QStringLiteral(" | ")).replace('\n', QStringLiteral(" | ")).replace('\r', QStringLiteral(" | "));
+    if (flat.size() > 2000) flat.truncate(2000);
+    LOG_WARN(QString("HEADLESS-DIALOG kind=%1 title=\"%2\" text=\"%3\" default=%4").arg(kind, title, flat, defaultValue));
+}
 
 QStringList SplitLines(const QString &_string) {
     static const QRegularExpression lineSplitRegex("[\r\n]");
@@ -242,6 +317,19 @@ QString ReadableSize(const qint64 &size) {
     return QString::fromLatin1("%1 %2").arg(sizeAsDouble, 0, 'f', 2).arg(measure);
 }
 
+QString ShortDisplayName(const QString &name, int maxGraphemes) {
+    if (name.size() <= maxGraphemes) return name;
+    QTextBoundaryFinder finder(QTextBoundaryFinder::Grapheme, name);
+    qsizetype cut = 0;
+    for (int i = 0; i < maxGraphemes - 1; ++i) {
+        cut = finder.toNextBoundary();
+        if (cut < 0) return name;
+    }
+    const qsizetype end = finder.toNextBoundary();
+    if (end < 0 || end == name.size()) return name;
+    return name.left(cut).trimmed() + QStringLiteral("…");
+}
+
 bool IsIpAddress(const QString &str) {
     auto address = QHostAddress(str);
     if (address.protocol() == QAbstractSocket::IPv4Protocol || address.protocol() == QAbstractSocket::IPv6Protocol)
@@ -264,6 +352,10 @@ QString DisplayTime(long long time, int formatType) {
 }
 
 QWidget *GetMessageBoxParent() {
+    if (!IsGuiApp()) {
+        LogHeadlessDialog(QStringLiteral("GetMessageBoxParent"), {}, {}, QStringLiteral("nullptr"));
+        return nullptr;
+    }
     auto parent = QApplication::activeWindow();
     // A child box dies with its parent box, even while it is still running on the caller's stack.
     while (qobject_cast<QMessageBox *>(parent) != nullptr) {
@@ -274,10 +366,18 @@ QWidget *GetMessageBoxParent() {
 }
 
 int MessageBoxWarning(const QString &title, const QString &text) {
+    if (!IsGuiApp()) {
+        LogHeadlessDialog(QStringLiteral("MessageBoxWarning"), title, text, QStringLiteral("Ok"));
+        return QMessageBox::Ok;
+    }
     return QMessageBox::warning(GetMessageBoxParent(), title, text);
 }
 
 void ShowPassiveWarning(const QString &title, const QString &text) {
+    if (!IsGuiApp()) {
+        LogHeadlessDialog(QStringLiteral("ShowPassiveWarning"), title, text, QStringLiteral("none"));
+        return;
+    }
     static QPointer<QMessageBox> box;
     if (box) {
         box->setWindowTitle(title);
@@ -294,16 +394,28 @@ void ShowPassiveWarning(const QString &title, const QString &text) {
 }
 
 void PostPassiveWarning(const QString &title, const QString &text) {
+    if (!IsGuiApp()) {
+        LogHeadlessDialog(QStringLiteral("PostPassiveWarning"), title, text, QStringLiteral("none"));
+        return;
+    }
     auto *app = QCoreApplication::instance();
     if (app == nullptr) return;
     QMetaObject::invokeMethod(app, [title, text] { ShowPassiveWarning(title, text); }, Qt::QueuedConnection);
 }
 
 int MessageBoxInfo(const QString &title, const QString &text) {
+    if (!IsGuiApp()) {
+        LogHeadlessDialog(QStringLiteral("MessageBoxInfo"), title, text, QStringLiteral("Ok"));
+        return QMessageBox::Ok;
+    }
     return QMessageBox::information(GetMessageBoxParent(), title, text);
 }
 
 void MessageBoxScrollable(const QString &title, const QString &text) {
+    if (!IsGuiApp()) {
+        LogHeadlessDialog(QStringLiteral("MessageBoxScrollable"), title, text, QStringLiteral("none"));
+        return;
+    }
     QDialog dialog(GetMessageBoxParent());
     dialog.setWindowTitle(title);
     auto *layout = new QVBoxLayout(&dialog);
@@ -319,8 +431,13 @@ void MessageBoxScrollable(const QString &title, const QString &text) {
 }
 
 int MessageBoxCheck(const QString &title, const QString &text, const QString &checkBoxText, bool &isChecked) {
+    if (!IsGuiApp()) {
+        LogHeadlessDialog(QStringLiteral("MessageBoxCheck"), title, text, QStringLiteral("Cancel"));
+        return QMessageBox::Cancel;
+    }
     QMessageBox msgBox(GetMessageBoxParent());
     msgBox.setWindowTitle(title);
+    msgBox.setTextFormat(Qt::PlainText);
     msgBox.setText(text);
     msgBox.setIcon(QMessageBox::Question);
     msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
@@ -339,6 +456,7 @@ int MessageBoxCheck(const QString &title, const QString &text, const QString &ch
 }
 
 void ActivateWindow(QWidget *w) {
+    if (!IsGuiApp()) return;
     w->setWindowState(w->windowState() & ~Qt::WindowMinimized);
     w->setVisible(true);
 #ifdef Q_OS_WIN
@@ -352,6 +470,7 @@ void ActivateWindow(QWidget *w) {
 }
 
 void HideWindow(QWidget *w) {
+    if (!IsGuiApp()) return;
     w->hide();
 #ifdef Q_OS_MAC
     ProcessSerialNumber psn = { 0, kCurrentProcess };
@@ -368,6 +487,11 @@ QStringList LogFontFamilies(const QString &preferred) {
 }
 
 QString ResolveLogFontFamily(const QString &preferred) {
+    if (!IsGuiApp()) {
+        const QString family = LogFontFamilies(preferred).first();
+        LogHeadlessDialog(QStringLiteral("ResolveLogFontFamily"), {}, {}, family);
+        return family;
+    }
     for (const auto &family : LogFontFamilies(preferred)) {
         if (family != QStringLiteral("monospace") && QFontDatabase::hasFamily(family)) return family;
     }
@@ -409,11 +533,26 @@ void runOnUiThread(const std::function<void()> &callback, bool wait) {
     }
 }
 
+// The next argument after one of these (one or two dashes) is its value, never a link or a config to import; "--flag=value"
+// carries its own.
+static bool launchArgTakesValue(const QString &arg) {
+    static const QStringList names = {
+        QStringLiteral("appdata"), QStringLiteral("dump-configs"), QStringLiteral("data-dir"), QStringLiteral("api-listen"),
+        QStringLiteral("api-key-file"), QStringLiteral("api-allow"), QStringLiteral("restart-mode"), QStringLiteral("log-format"),
+    };
+    const int dashes = arg.startsWith(QLatin1String("--")) ? 2 : (arg.startsWith('-') ? 1 : 0);
+    return dashes > 0 && names.contains(arg.mid(dashes));
+}
+
 static QString g_pendingDeeplink;
 
 QString Deeplink_ExtractFromArgs(const QStringList &args) {
-    for (const auto &arg : args) {
-        if (arg.startsWith("throne://")) return arg;
+    for (int i = 0; i < args.size(); i++) {
+        if (launchArgTakesValue(args[i])) {
+            i++;
+            continue;
+        }
+        if (args[i].startsWith("throne://")) return args[i];
     }
     return {};
 }
@@ -434,15 +573,18 @@ void Deeplink_FlushPending() {
     MW_handle_deeplink(url);
 }
 
+QString Deeplink_TakePending() {
+    return std::exchange(g_pendingDeeplink, {});
+}
+
 static QStringList g_pendingFiles;
 
 QStringList LaunchFiles_ExtractFromArgs(const QStringList &args, const QDir &launchDir) {
     QStringList files;
-    // "-appdata" is the only flag taking a value, and that directory must not be imported as a config.
     for (int i = 1; i < args.size(); i++) {
         const auto &arg = args[i];
         if (arg.startsWith('-')) {
-            if (arg == "-appdata") i++;
+            if (launchArgTakesValue(arg)) i++;
             continue;
         }
         if (arg.startsWith("throne://")) continue;
@@ -470,6 +612,10 @@ void LaunchFiles_FlushPending() {
     const QStringList paths = g_pendingFiles;
     g_pendingFiles.clear();
     MW_import_files(paths);
+}
+
+QStringList LaunchFiles_TakePending() {
+    return std::exchange(g_pendingFiles, {});
 }
 
 void runOnNewThread(const std::function<void()> &callback, bool wait) {

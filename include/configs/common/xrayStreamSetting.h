@@ -1,5 +1,6 @@
 #pragma once
 #include "include/configs/baseConfig.h"
+#include "include/global/Validation.hpp"
 
 namespace Configs {
     inline QStringList XrayNetworks = {"raw", "xhttp", "ws", "httpupgrade", "grpc"};
@@ -7,6 +8,59 @@ namespace Configs {
     inline QStringList XrayXHTTPMetaPlacements = {"", "path", "cookie", "header", "query"};
     inline QStringList XrayXHTTPUplinkDataPlacements = {"", "auto", "body", "cookie", "header"};
     inline QStringList XrayXHTTPUplinkMethods = {"", "POST", "PUT", "PATCH", "GET"};
+
+    // Folds the aliases Xray itself accepts (tcp, splithttp, websocket), case-insensitively, onto the XrayNetworks names.
+    QString NormalizeXrayNetwork(const QString& network);
+
+    // Go's strings.ToLower, for comparing against ASCII names: Qt lowercases U+0130 to two characters, Go to 'i'.
+    QString XrayLower(const QString& text);
+
+    // The spellings Go merges into the one XHTTP download leg Xray dials for an outbound (the object holding streamSettings), in decode order.
+    QList<QJsonObject> XrayDownloadLeg(const QJsonObject& outbound);
+
+    enum class XrayLegProtection { Verified, Unverified, Plain };
+    // How Xray protects a download leg made of these spellings, and the server it dials.
+    XrayLegProtection XrayDownloadLegProtection(const QList<QJsonObject>& leg, QString& server);
+
+    // Routes every leg of an Xray outbound through the outbound tagged tag, the XHTTP download leg included.
+    void SetXrayDialerProxy(QJsonObject& outbound, const QString& tag);
+
+    // Binds the XHTTP download leg of an Xray outbound to iface unless it names an interface of its own.
+    void BindXrayDownloadLeg(QJsonObject& outbound, const QString& iface);
+
+    // Removes dialerProxy and domainStrategy from every sockopt spelling of a stream object; true when any went.
+    bool StripXrayDialerState(QJsonObject& stream);
+
+    // Rules the Xray stream editor and the import check share; each returns an empty string when acceptable.
+    namespace Checks {
+        QString XrayNetwork(const QString& network);
+        QString XraySecurity(const QString& security);
+        QString XrayRealityNetwork(const QString& security, const QString& network);
+        QString XrayFingerprint(const QString& fingerprint, bool reality);
+        // Warnings: Xray skips unknown names, and a uTLS hello ignores the list.
+        QString XrayCipherSuites(const QString& text);
+        QString XrayCipherSuitesNeedUnsafe(const QString& cipherSuites, const QString& fingerprint);
+        QString XrayPinnedSha256(const QString& text);
+        // A warning: a bad list makes every connection fail. serverName is the effective SNI.
+        QString XrayEchConfigList(const QString& text, const QString& serverName);
+        QString XraySpiderX(const QString& spiderX);
+        QString XrayMldsa65Verify(const QString& key);
+        QString XrayHeadersHost(const QStringList& pairs);
+
+        // Xray Int32Range: "n" or "a-b" (negatives allowed, reversed bounds swapped).
+        QString XrayInt32Range(const QString& text);
+        QString XrayXPaddingBytes(const QString& text);
+        QString XrayXHTTPMode(const QString& mode);
+        QString XrayPaddingMethod(const QString& method);
+        QString XrayPaddingPlacement(const QString& placement);
+        QString XrayMetaPlacement(const QString& placement);
+        QString XrayUplinkDataPlacement(const QString& placement, const QString& mode);
+        QString XrayUplinkMethod(const QString& method, const QString& mode);
+        QString XraySessionId(const QString& table, const QString& length);
+        QString XrayXmuxExclusive(const QString& maxConnections, const QString& maxConcurrency);
+        // Errors for an outbound's XHTTP download leg that would crash the core: no address, no port 1-65535, or another network.
+        void XrayXHTTPDownloadLeg(Validation::Issues& issues, const QString& at, const QJsonObject& outbound);
+    }
 
     // dns-direct answers every outbound server domain, so its "disable IPv6" caps this.
     QString getDirectDomainStrategy();
@@ -21,6 +75,8 @@ namespace Configs {
         QString verifyPeerCertByName;
         QStringList alpn;
         QString fingerprint;
+        // Colon separated, as Xray takes it.
+        QString cipherSuites;
         // Base64 ECHConfigList, or "<query domain>+<DoH url>" for Xray to fetch it itself.
         QString echConfigList;
 
@@ -39,6 +95,8 @@ namespace Configs {
         QString password;
         QString shortId;
         QString spiderX;
+        // The server's ML-DSA-65 public key ("pqv" in links), which signs the REALITY certificate.
+        QString mldsa65Verify;
 
         bool ParseFromLink(const QString& link) override;
         bool ParseFromJson(const QJsonObject& object) override;
@@ -76,9 +134,9 @@ namespace Configs {
         bool noSSEHeader = false;
         QString scMaxEachPostBytes;
         QString scMinPostsIntervalMs;
-        long long scMaxBufferedPosts;
+        long long scMaxBufferedPosts = 0;
         QString scStreamUpServerSecs;
-        int serverMaxHeaderBytes;
+        int serverMaxHeaderBytes = 0;
         // extra/xmux
         QJsonObject rawXmux;
         QString maxConcurrency;
@@ -165,5 +223,7 @@ namespace Configs {
         QJsonObject ExportToJson() override;
         QJsonObject ExportIdentity() override;
         BuildResult Build() override;
+
+        void Validate(Validation::Issues& issues, const QString& serverAddress);
     };
 }

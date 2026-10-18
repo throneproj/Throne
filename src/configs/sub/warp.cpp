@@ -57,6 +57,11 @@ namespace Configs_network {
     bool ConfirmWarpTerms(QWidget *parent) {
         const auto &settings = Configs::dataManager->settingsRepo;
         if (settings->warp_tos_accepted) return true;
+        if (!IsGuiApp()) {
+            LogHeadlessDialog(QStringLiteral("ConfirmWarpTerms"), QStringLiteral("Cloudflare WARP"),
+                              QStringLiteral("Accept the Cloudflare WARP terms of service?"), QStringLiteral("false"));
+            return settings->warp_tos_accepted;
+        }
 
         QMessageBox box(QMessageBox::Question, QObject::tr("Cloudflare WARP"),
                         QObject::tr("Generating a WARP identity registers a new device with Cloudflare.<br><br>"

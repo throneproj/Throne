@@ -104,6 +104,27 @@ namespace {
         if (dialog.exec() != QDialog::Accepted) return {};
         return edit->toPlainText();
     }
+
+    QString otpManagerEntryLabel(const OTP::Entry &entry) {
+        if (!entry.name.isEmpty()) return entry.name;
+        if (!entry.issuer.isEmpty()) return entry.issuer;
+        return DialogOtpManager::tr("Unnamed secret");
+    }
+
+    // Imported names are foreign text, so plain text only; the full list goes to the details.
+    void otpManagerImportNotice(QWidget *parent, QMessageBox::Icon icon, const QString &summary, const QStringList &reasons) {
+        constexpr int shown = 10;
+        QString text = summary;
+        if (!reasons.isEmpty()) {
+            text += QStringLiteral("\n\n") + DialogOtpManager::tr("Not imported:") + QLatin1Char('\n') + reasons.mid(0, shown).join(QLatin1Char('\n'));
+            if (reasons.size() > shown) text += QLatin1Char('\n') + DialogOtpManager::tr("…and %n more", nullptr, int(reasons.size() - shown));
+        }
+        auto *box = new QMessageBox(icon, DialogOtpManager::tr("Import OTP"), text, QMessageBox::Ok, parent);
+        box->setTextFormat(Qt::PlainText);
+        if (reasons.size() > shown) box->setDetailedText(reasons.join(QLatin1Char('\n')));
+        box->setAttribute(Qt::WA_DeleteOnClose);
+        box->open();
+    }
 }
 
 DialogOtpManager::DialogOtpManager(QWidget *parent) : QDialog(parent), ui(new Ui::DialogOtpManager) {
@@ -330,7 +351,7 @@ void DialogOtpManager::importOtpFromFiles() {
 
 void DialogOtpManager::importOtpEntries(const QList<OTP::Entry> &entries, const QStringList &problems) {
     if (entries.isEmpty()) {
-        MessageBoxWarning(tr("Import OTP"), problems.isEmpty() ? tr("Nothing to import.") : problems.join("\n"));
+        otpManagerImportNotice(this, QMessageBox::Warning, problems.isEmpty() ? tr("Nothing to import.") : tr("Nothing could be imported."), problems);
         return;
     }
 
@@ -339,10 +360,10 @@ void DialogOtpManager::importOtpEntries(const QList<OTP::Entry> &entries, const 
     for (const auto &other : existing) takenNames << other->name;
 
     int added = 0;
-    int skipped = 0;
+    QStringList reasons = problems;
     for (const auto &entry : entries) {
-        if (!OTP::Validate(entry).isEmpty()) {
-            ++skipped;
+        if (const auto problem = OTP::Validate(entry); !problem.isEmpty()) {
+            reasons << QStringLiteral("%1: %2").arg(otpManagerEntryLabel(entry), problem);
             continue;
         }
         // Same secret and name is the same account; a bare secret arrives unnamed, so secret alone decides.
@@ -350,7 +371,7 @@ void DialogOtpManager::importOtpEntries(const QList<OTP::Entry> &entries, const 
             return other->secret == entry.secret && (entry.name.isEmpty() || other->name == entry.name);
         });
         if (duplicate) {
-            ++skipped;
+            reasons << tr("%1: already in the list.").arg(otpManagerEntryLabel(entry));
             continue;
         }
 
@@ -361,14 +382,12 @@ void DialogOtpManager::importOtpEntries(const QList<OTP::Entry> &entries, const 
         }
         takenNames << profile->name;
         if (Configs::dataManager->otpProfilesRepo->AddOtpProfile(profile)) ++added;
+        else reasons << tr("%1: could not be stored.").arg(otpManagerEntryLabel(entry));
     }
 
     reloadOtpProfiles();
-
-    QString summary = tr("Imported %1 OTP profile(s).").arg(added);
-    if (skipped > 0) summary += "\n" + tr("Skipped %1 duplicate or unusable entries.").arg(skipped);
-    if (!problems.isEmpty()) summary += "\n" + problems.join("\n");
-    MessageBoxInfo(tr("Import OTP"), summary);
+    otpManagerImportNotice(this, added > 0 ? QMessageBox::Information : QMessageBox::Warning,
+                           tr("Imported %1 OTP profile(s).").arg(added), reasons);
 }
 
 void DialogOtpManager::exportOtpAsLink(const std::shared_ptr<Configs::OtpProfile> &profile) {

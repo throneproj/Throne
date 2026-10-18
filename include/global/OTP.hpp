@@ -56,15 +56,17 @@ namespace OTP {
     int SecondsRemaining(const Entry &entry, qint64 unixTime = -1);
 
     QString ExportToLink(const Entry &entry);
-    bool ParseFromLink(const QString &link, Entry &out);
+    // An otpauth link with a value that would give wrong codes is refused, and `problem` says why.
+    bool ParseFromLink(const QString &link, Entry &out, QString *problem = nullptr);
 
     // Google Authenticator's format: it pins the step to 30 s, so other periods do not survive.
     QString ExportToMigrationLink(const QList<Entry> &entries);
-    bool ParseFromMigrationLink(const QString &link, QList<Entry> &out);
+    // Unusable entries are skipped with a line in `problems`; false when the payload is unreadable or nothing is left.
+    bool ParseFromMigrationLink(const QString &link, QList<Entry> &out, QStringList *problems = nullptr);
 
     // A bare base32 secret yields an unnamed entry.
     QList<Entry> ParseAny(const QString &text, QStringList *problems = nullptr);
 
     QByteArray ExportToJson(const QList<Entry> &entries);
-    bool ParseFromJson(const QByteArray &json, QList<Entry> &out);
+    bool ParseFromJson(const QByteArray &json, QList<Entry> &out, QStringList *problems = nullptr);
 } // namespace OTP

@@ -252,4 +252,7 @@ inline const QMap<QString, QString> CountryMap = {
 
 QString CountryNameToCode(const QString& countryName);
 
+// Reverse of CountryMap; empty for a code it does not list.
+QString CountryCodeToName(const QString& countryCode);
+
 QString CountryCodeToFlag(const QString& countryCode);

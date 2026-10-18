@@ -8,6 +8,7 @@
 #include <QHash>
 #include <QJsonObject>
 #include <QList>
+#include <QSet>
 
 namespace Configs {
     class GroupsRepo {
@@ -15,6 +16,8 @@ namespace Configs {
         Database& db;
         mutable std::mutex mutex;
         mutable std::map<int, std::shared_ptr<Group>> memMap;
+        // Deleted ids: never reused, so Save refuses them for the rest of the process.
+        QSet<int> tombstones;
 
         QJsonObject groupToJson(const Group* group) const;
         
@@ -42,15 +45,18 @@ namespace Configs {
         // Resolves SettingsRepo::current_group.
         std::shared_ptr<Group> CurrentGroup() const;
         
-        void DeleteGroup(int id);
+        // Deletes the tab-order row, the group and its profiles (listed or not) in one transaction, and forgets them all.
+        // False when the deletion failed and nothing changed.
+        bool DeleteGroup(int id);
         
         QList<int> GetAllGroupIds() const;
         
         QList<int> GetGroupsTabOrder() const;
         
+        // Deleted groups are left out.
         void SetGroupsTabOrder(const QList<int>& order);
         
-        // No-op unless id >= 0.
+        // No-op unless id >= 0; false for a deleted id, which is not written back.
         bool Save(const std::shared_ptr<Group>& group);
     };
 

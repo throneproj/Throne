@@ -47,6 +47,11 @@ namespace Configs_network {
         static QString GetHeader(const QList<QPair<QByteArray, QByteArray>> &header, const QString &name);
 
         static QString DownloadAsset(const QString &url, const QString &fileName, bool useProxy = false, bool strictTls = false);
+
+        // Receives DownloadAsset progress on the main thread: show false ends the report. Without a sink nothing is reported.
+        using DownloadProgressSink = std::function<void(const DownloadProgressReport &report, bool show)>;
+
+        static void SetDownloadProgressSink(DownloadProgressSink sink);
     };
 } // namespace Configs_network
 

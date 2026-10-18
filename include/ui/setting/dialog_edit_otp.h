@@ -13,6 +13,10 @@ namespace Ui {
 }
 QT_END_NAMESPACE
 
+namespace Validation {
+    class Form;
+}
+
 // The caller's profile is only written when exec() returns Accepted.
 class DialogEditOtp : public QDialog {
     Q_OBJECT
@@ -34,6 +38,8 @@ private:
     std::shared_ptr<Configs::OtpProfile> profile;
 
     QTimer *previewTimer;
+
+    Validation::Form *form = nullptr;
 
     // Empty return means the form is usable.
     QString collect(Configs::OtpProfile &out) const;

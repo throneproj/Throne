@@ -4,11 +4,14 @@
 #include <QListWidgetItem>
 #include <QDialog>
 #include <QEvent>
+#include <QHash>
+#include <QPointer>
 #include <QShortcut>
 
 #include "3rdparty/qv2ray/v2/ui/QvAutoCompleteTextEdit.hpp"
 #include "ui_RouteItem.h"
 #include "include/database/entities/RouteProfile.h"
+#include "include/ui/utils/ValidationForm.h"
 
 class QListWidget;
 
@@ -48,6 +51,54 @@ private:
     QListWidget* ruleAttrPlusList = nullptr;
 
     QWidget* lastTabPage = nullptr;
+
+    Validation::Form* form = nullptr;
+
+    // Owns the selected rule's Form registrations that live outside its attribute pages; replaced with the pages.
+    QObject* ruleScope = nullptr;
+
+    QHash<QString, QPointer<QWidget>> attrEditors;
+
+    // The rule the attribute pages were last built for.
+    std::shared_ptr<Configs::RouteRule> shownRule;
+
+    // Worst issue severity per rule, kept so rebuilding the list does not re-validate every rule.
+    QHash<const Configs::RouteRule*, int> ruleMarks;
+
+    bool ruleCheckQueued = false;
+
+    // Basic-tab lines that could not be added, put back when the editors are refilled from the rules.
+    QHash<int, QStringList> rejectedSimpleLines;
+
+    // The simple rules as the Basic tab last left them; unchanged means the editors still match.
+    QStringList simpleTextsAtLeave;
+
+    [[nodiscard]] std::shared_ptr<Configs::RouteRule> currentRule() const;
+
+    [[nodiscard]] QList<QPair<AutoCompleteTextEdit*, Configs::simpleAction>> simpleEditors() const;
+
+    [[nodiscard]] QStringList simpleRuleTexts() const;
+
+    void loadSimpleEditors();
+
+    QString applySimpleEditors();
+
+    [[nodiscard]] QWidget* attributeEditor(const QString& attr) const;
+
+    void bindAttributeEditor(const QString& attr, QWidget* editor, QWidget* page);
+
+    void bindCurrentRule();
+
+    QList<Validation::FormIssue> otherRuleIssues();
+
+    QWidget* revealRuleIssue(const std::shared_ptr<Configs::RouteRule>& rule, const QString& attr);
+
+    void refreshIssueIcons();
+
+    void applyRuleMarks();
+
+    // Deferred so it runs after the Form handled the same focus-out or change.
+    void scheduleRuleCheck();
 
     void setupRemoteSection();
 

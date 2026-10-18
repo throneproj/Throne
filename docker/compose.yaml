@@ -1,0 +1,32 @@
+# Headless Throne; https://throneproj.github.io/headless/ has the full guide. Manage it with thronectl inside the container, where the
+# management API listens (loopback only by default):
+#   docker compose exec throne sh -c 'eval "$(/opt/Throne/Throne --print-connection)" && thronectl status'
+#   docker compose exec -T throne sh -c 'eval "$(/opt/Throne/Throne --print-connection)" && thronectl import -' < links.txt
+services:
+  throne:
+    image: ghcr.io/throneproj/throne:latest   # or a release tag
+    restart: unless-stopped
+    # Throne stops the core and then the kill switch; Docker's default 10 s would cut that short.
+    stop_grace_period: 45s
+    # Tun mode and the kill switch; a proxy-only setup needs neither.
+    cap_add: [NET_ADMIN]
+    devices: ["/dev/net/tun:/dev/net/tun"]
+    volumes: ["throne-data:/var/lib/throne"]
+    # Mixed (HTTP + SOCKS) inbound. It listens on 127.0.0.1 by default, which a port mapping cannot reach:
+    #   thronectl settings set inbound_address=0.0.0.0
+    # This mapping opens it on every host interface; on a host the internet reaches, map only the LAN address
+    # ("192.168.1.2:2080:2080"): Docker's published ports bypass host firewalls such as ufw.
+    ports: ["2080:2080"]
+    # Gateway use: share the host's network instead (drop ports:). Tun and the kill switch then act on the whole host,
+    # and only one Tun-owning Throne may run on it.
+    # network_mode: host
+    # Throne API from the local network, such as thronectl on a desktop (the key is /var/lib/throne/config/api.key).
+    # Over a port mapping every request comes from outside the container, so management (import, settings, backup)
+    # also needs THRONE_API_ADMIN_LAN; leave it off to only monitor and switch profiles from the LAN.
+    # environment:
+    #   THRONE_API_LISTEN: "*:9095"
+    #   THRONE_API_ALLOW: "192.168.1.0/24"
+    #   THRONE_API_ADMIN_LAN: "1"
+    # ports: ["2080:2080", "9095:9095"]
+volumes:
+  throne-data:

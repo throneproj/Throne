@@ -12,6 +12,8 @@ import (
 
 const ctLabelBit = 127
 
+const ctDirectionReply = 1 // IP_CT_DIR_REPLY
+
 type nftRuleset struct {
 	table  *nftables.Table
 	sets   []*nftables.Set
@@ -69,6 +71,10 @@ func newRuleset(table *nftables.Table, cfg *config) (*nftRuleset, error) {
 	r.accept(post, v6, icmpv6, []expr.Any{loadPayload(expr.PayloadBaseTransportHeader, 0, 1), &expr.Range{Op: expr.CmpOpEq, Register: 1, FromData: []byte{130}, ToData: []byte{137}}})
 	r.accept(post, v6, icmpv6, []expr.Any{loadPayload(expr.PayloadBaseTransportHeader, 0, 1), cmpEq([]byte{143})})
 	r.accept(post, v4, matchMeta(expr.MetaKeyL4PROTO, []byte{unix.IPPROTO_IGMP}))
+	if cfg.APIPort != 0 {
+		// ct direction reply means a peer opened the flow: no local program can originate traffic from the API port this way.
+		r.accept(post, matchMeta(expr.MetaKeyL4PROTO, []byte{unix.IPPROTO_TCP}), matchPort(0, cfg.APIPort), matchReply())
+	}
 	// The tun permits must precede this: the tun subnet lies inside 172.16.0.0/12.
 	r.lan(post, lan, dnsPorts, false)
 
@@ -200,6 +206,10 @@ func matchPort(offset uint32, port uint16) []expr.Any {
 
 func matchSet(base expr.PayloadBase, offset, length uint32, set *nftables.Set) []expr.Any {
 	return []expr.Any{loadPayload(base, offset, length), &expr.Lookup{SourceRegister: 1, SetName: set.Name, SetID: set.ID}}
+}
+
+func matchReply() []expr.Any {
+	return []expr.Any{&expr.Ct{Key: expr.CtKeyDIRECTION, Register: 1}, cmpEq([]byte{ctDirectionReply})}
 }
 
 func matchLabel() []expr.Any {

@@ -1,0 +1,26 @@
+# systemd user unit: Throne headless in your own session, sharing the desktop app's data.
+# Install:
+#   install -Dm644 throne-user.service ~/.config/systemd/user/throne.service
+#   systemctl --user daemon-reload && systemctl --user enable --now throne
+#   loginctl enable-linger "$USER"    # start at boot, without a login
+# Quit the desktop app first; while the unit runs, the app reports that Throne is running in the background.
+# Tun needs a setuid-root core: the desktop app sets it up when it first asks for privileges, and
+# Throne --check prints the commands.
+[Unit]
+Description=Throne (headless, user)
+Documentation=https://throneproj.github.io/headless/
+After=network-online.target
+
+[Service]
+Type=notify
+ExecStart=/opt/Throne/Throne --headless --data-dir=%h/.config/Throne
+Restart=on-failure
+RestartSec=3
+RestartForceExitStatus=75
+RestartPreventExitStatus=3 64 78
+KillMode=mixed
+TimeoutStopSec=45
+WatchdogSec=60
+
+[Install]
+WantedBy=default.target

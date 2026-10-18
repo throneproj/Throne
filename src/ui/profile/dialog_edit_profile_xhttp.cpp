@@ -1,12 +1,15 @@
 #include "include/ui/profile/dialog_edit_profile.h"
 
 #include "include/configs/common/xrayStreamSetting.h"
-#include "include/global/GuiUtils.hpp"
+#include "include/ui/utils/GuiUtils.hpp"
 #include "include/global/Utils.hpp"
+#include "include/ui/utils/ValidationForm.h"
 
 #include <QAbstractButton>
 #include <QGridLayout>
 #include <QLabel>
+
+#include <climits>
 
 namespace {
 void setXHTTPGridStretch(QGridLayout *layout) {
@@ -238,15 +241,44 @@ void DialogEditProfile::updateXrayXHTTPControls() {
     setRowVisible(ui->label_xpadding_header, ui->xray_xpadding_header, obfs);
 }
 
-bool DialogEditProfile::validateXrayXHTTPSettings() {
-    if (!ent->outbound->HasXrayStream() || ui->xray_network->currentText() != "xhttp") return true;
+void DialogEditProfile::bindXrayXHTTP() {
+    namespace Checks = Configs::Checks;
+    const auto mode = [this] { return ui->xray_mode->currentText(); };
 
-    if (!ui->xray_max_connections->text().trimmed().isEmpty() &&
-        !ui->xray_max_concurrency->text().trimmed().isEmpty()) {
-        MessageBoxWarning(software_name,
-                          tr("XHTTP maxConnections cannot be specified together with maxConcurrency."));
-        return false;
+    form->bind(ui->xray_xpaddingbytes, Checks::XrayXPaddingBytes);
+    form->bind(ui->xray_serverMaxHeaderBytes, Validation::Rules::Int(0, INT_MAX));
+    form->bind(ui->xray_xpadding_method, Checks::XrayPaddingMethod);
+    form->bind(ui->xray_xpadding_placement, Checks::XrayPaddingPlacement);
+    // Xray checks both even with obfuscation off, while their rows are hidden.
+    form->addRule({ui->xray_xpadding_obfs_mode}, [this] {
+        if (ui->xray_xpadding_obfs_mode->isChecked()) return QString();
+        if (Checks::XrayPaddingMethod(ui->xray_xpadding_method->currentText().trimmed()).isEmpty() &&
+            Checks::XrayPaddingPlacement(ui->xray_xpadding_placement->currentText().trimmed()).isEmpty()) {
+            return QString();
+        }
+        return tr("The padding method or placement is not supported, and Xray refuses it even with obfuscation off. "
+                  "Turn this on and fix the value, or clear it.");
+    });
+    for (auto *edit: {ui->xray_scMaxEachPostBytes, ui->xray_scMinPostsIntervalMs, ui->xray_uplink_chunk_size,
+                      ui->xray_scStreamUpServerSecs, ui->xray_session_id_length, ui->xray_max_concurrency,
+                      ui->xray_max_connections, ui->xray_hMaxRequestTimes, ui->xray_hMaxReusableSecs, ui->xray_max_reuse_times}) {
+        form->bind(edit, Checks::XrayInt32Range);
     }
-
-    return true;
+    form->bind(ui->xray_scMaxBufferedPosts, Validation::Rules::Int(0, LLONG_MAX));
+    form->bind(ui->xray_keep_alive_period, Validation::Rules::Int(LLONG_MIN, LLONG_MAX));
+    form->bind(ui->xray_uplink_http_method, Validation::Rules::HttpToken()).warning();
+    form->addRule({ui->xray_uplink_http_method, ui->xray_mode}, [this, mode] {
+        return Checks::XrayUplinkMethod(ui->xray_uplink_http_method->currentText(), mode());
+    });
+    form->addRule({ui->xray_uplink_data_placement, ui->xray_mode}, [this, mode] {
+        return Checks::XrayUplinkDataPlacement(ui->xray_uplink_data_placement->currentText(), mode());
+    });
+    form->bind(ui->xray_session_placement, Checks::XrayMetaPlacement);
+    form->bind(ui->xray_seq_placement, Checks::XrayMetaPlacement);
+    form->addRule({ui->xray_session_id_table, ui->xray_session_id_length}, [this] {
+        return Checks::XraySessionId(ui->xray_session_id_table->text().trimmed(), ui->xray_session_id_length->text());
+    });
+    form->addRule({ui->xray_max_connections, ui->xray_max_concurrency}, [this] {
+        return Checks::XrayXmuxExclusive(ui->xray_max_connections->text(), ui->xray_max_concurrency->text());
+    });
 }

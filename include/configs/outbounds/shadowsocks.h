@@ -6,6 +6,15 @@
 namespace Configs
 {
     inline QStringList shadowsocksMethods = {"2022-blake3-aes-128-gcm", "2022-blake3-aes-256-gcm", "2022-blake3-chacha20-poly1305", "none", "aes-128-gcm", "aes-192-gcm", "aes-256-gcm", "chacha20-ietf-poly1305", "xchacha20-ietf-poly1305", "aes-128-ctr", "aes-192-ctr", "aes-256-ctr", "aes-128-cfb", "aes-192-cfb", "aes-256-cfb", "rc4-md5", "chacha20-ietf", "xchacha20"};
+    inline QStringList shadowsocksPlugins = {"", "obfs-local", "v2ray-plugin"};
+
+    namespace Checks {
+        // 2022 methods take ':'-separated base64 keys of the cipher's size; every other method but none needs a password.
+        QString ShadowsocksPassword(const QString &method, const QString &password);
+
+        // plugin_opts as the core's SIP003 parser reads them, plus the modes obfs-local and v2ray-plugin accept.
+        QString ShadowsocksPluginOpts(const QString &plugin, const QString &opts);
+    }
 
     class shadowsocks : public outbound
     {
@@ -35,5 +44,7 @@ namespace Configs
 
         QString DisplayType() override;
         SecurityInfo GetSecurity() override;
+
+        void Validate(Validation::Issues &issues) override;
     };
 }

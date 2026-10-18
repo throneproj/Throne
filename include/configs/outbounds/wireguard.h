@@ -3,6 +3,22 @@
 
 namespace Configs
 {
+    // Shared by the WireGuard editors (widget text) and wireguard::Validate (bean fields).
+    namespace Checks {
+        // Three bytes separated by ',' or '-', as the editor and links write them.
+        QString WireguardReserved(const QString &text, QList<int> *bytes = nullptr);
+        // Seconds, or an AmneziaWG range such as 22-30.
+        QString WireguardKeepalive(const QString &text);
+        // wireguard-go UintRange: n or lo-hi, both uint32.
+        QString AmneziaRange(const QString &text);
+        // H1-H4 in order; unset ones are 1, 2, 3 and 4 in wireguard-go.
+        QString AmneziaHeaders(const QStringList &headers);
+        QString AmneziaHeaderProtection(const QString &key, const QList<qint64> &paddings);
+        QString AmneziaJunkSizes(qint64 jmin, qint64 jmax);
+        // wireguard-go newObfChain: <b 0xHEX>, <r N>, <rc N>, <rd N>, <dz N>, <t>, <d>, <ds>; text outside tags is ignored.
+        QString AmneziaSignature(const QString &spec);
+    }
+
     class Peer : public baseConfig
     {
         public:
@@ -82,11 +98,18 @@ namespace Configs
         SecurityInfo GetSecurity() override;
         bool IsEndpoint() override;
 
+        void Validate(Validation::Issues& issues) override;
+
+        // The AmneziaWG part of Validate, keyed by amnezia_wg field; it applies only with enable_amnezia.
+        Validation::Issues AmneziaIssues() const;
+
+        // Bare IPs get /32 or /128; the core needs a prefix.
+        void FixAddress();
+
         private:
         QJsonObject AmneziaToJson();
         void AmneziaFromJson(const QJsonObject& object);
         static QString AmneziaRangeFromJson(const QJsonValue& value);
-        void FixAddress();
     };
 }
 

@@ -1,32 +1,88 @@
 #include "include/configs/sub/clash.hpp"
 
+#include "include/configs/ParseDiagnostics.h"
+
+#include <QByteArray>
+#include <QCoreApplication>
+#include <QString>
+
+#include <cmath>
+#include <limits>
+
 namespace clash {
 
-void from_node(const fkyaml::node& node, MyBool& b) {
-    if (node.is_boolean()) {
-        b.value = node.get_value<bool>();
-    } else if (node.is_integer()) {
-        b.value = node.get_value<long long>() == 1;
-    } else if (node.is_string()) {
-        std::string s = node.get_value<std::string>();
-        b.value = (s == "true" || s == "1");
-    } else {
-        b.value = false;
+namespace {
+// A whole decimal number in int range.
+bool clashReadInt(const fkyaml::node& node, int& out) {
+    constexpr long long low = std::numeric_limits<int>::min();
+    constexpr long long high = std::numeric_limits<int>::max();
+    if (node.is_integer()) {
+        const auto v = node.get_value<long long>();
+        if (v < low || v > high) return false;
+        out = static_cast<int>(v);
+        return true;
     }
+    if (node.is_float_number()) {
+        const auto v = node.get_value<double>();
+        if (!std::isfinite(v) || v != std::trunc(v) || v < static_cast<double>(low) || v > static_cast<double>(high)) return false;
+        out = static_cast<int>(v);
+        return true;
+    }
+    if (node.is_string()) {
+        bool ok = false;
+        const auto v = QString::fromStdString(node.get_value<std::string>()).trimmed().toInt(&ok, 10);
+        if (!ok) return false;
+        out = v;
+        return true;
+    }
+    return false;
+}
+
+// Only true/false/1/0: mihomo refuses the YAML 1.1 yes/no/on/off spellings, which arrive as strings.
+bool clashReadBool(const fkyaml::node& node, bool& out) {
+    if (node.is_boolean()) {
+        out = node.get_value<bool>();
+        return true;
+    }
+    if (node.is_integer()) {
+        const auto v = node.get_value<long long>();
+        if (v != 0 && v != 1) return false;
+        out = v == 1;
+        return true;
+    }
+    if (node.is_string()) {
+        const auto s = QString::fromStdString(node.get_value<std::string>()).trimmed().toLower();
+        if (s == "true" || s == "1") {
+            out = true;
+            return true;
+        }
+        if (s == "false" || s == "0") {
+            out = false;
+            return true;
+        }
+    }
+    return false;
+}
+
+QString clashNodeText(const fkyaml::node& node) {
+    if (node.is_string()) return QString::fromStdString(node.get_value<std::string>());
+    if (node.is_integer()) return QString::number(node.get_value<long long>());
+    if (node.is_float_number()) return QString::number(node.get_value<double>(), 'g', 15);
+    if (node.is_boolean()) return node.get_value<bool>() ? QStringLiteral("true") : QStringLiteral("false");
+    if (node.is_sequence()) return QStringLiteral("[…]");
+    if (node.is_mapping()) return QStringLiteral("{…}");
+    return {};
+}
+}
+
+void from_node(const fkyaml::node& node, MyBool& b) {
+    bool value = false;
+    b.value = clashReadBool(node, value) && value;
 }
 
 void from_node(const fkyaml::node& node, MyInt& i) {
-    if (node.is_integer()) {
-        i.value = static_cast<int>(node.get_value<long long>());
-    } else if (node.is_string()) {
-        try {
-            i.value = std::stoi(node.get_value<std::string>());
-        } catch (...) {
-            i.value = 0;
-        }
-    } else {
-        i.value = 0;
-    }
+    int value = 0;
+    i.value = clashReadInt(node, value) ? value : 0;
 }
 
 void from_node(const fkyaml::node& node, WgReserved& w) {
@@ -51,8 +107,36 @@ inline void load_opt<std::string>(const fkyaml::node& node, const char* key, std
     if (node.is_mapping() && node.contains(key)) {
         if (node[key].is_string()) target = node[key].get_value<std::string>();
         else if (node[key].is_integer()) target = std::to_string(node[key].get_value<long long>());
+        else if (node[key].is_float_number()) target = QByteArray::number(node[key].get_value<double>(), 'g', 15).toStdString();
         else if (node[key].is_boolean()) target = node[key].get_value<bool>() ? "true" : "false";
     }
+}
+
+// The key is known here, unlike in from_node, so a value of the wrong type is reported instead of silently zeroed.
+template <>
+inline void load_opt<MyInt>(const fkyaml::node& node, const char* key, MyInt& target) {
+    if (!node.is_mapping() || !node.contains(key)) return;
+    const auto& value = node[key];
+    if (value.is_null()) return;
+    int parsed = 0;
+    const bool ok = clashReadInt(value, parsed);
+    target.value = ok ? parsed : 0;
+    if (ok || !Configs::ParseDiag::Active()) return;
+    Configs::ParseDiag::Warn(QString::fromUtf8(key), QCoreApplication::translate("Validation", "Expected a whole number; ignored."),
+                             clashNodeText(value));
+}
+
+template <>
+inline void load_opt<MyBool>(const fkyaml::node& node, const char* key, MyBool& target) {
+    if (!node.is_mapping() || !node.contains(key)) return;
+    const auto& value = node[key];
+    if (value.is_null()) return;
+    bool parsed = false;
+    const bool ok = clashReadBool(value, parsed);
+    target.value = ok && parsed;
+    if (ok || !Configs::ParseDiag::Active()) return;
+    Configs::ParseDiag::Warn(QString::fromUtf8(key), QCoreApplication::translate("Validation", "Expected true or false; ignored."),
+                             clashNodeText(value));
 }
 
 template <>
@@ -89,23 +173,30 @@ void from_node(const fkyaml::node& node, xhttpReuseSettings& opts) {
     load_opt(node, "h-keep-alive-period", opts.h_keep_alive_period);
 }
 
+// A missing or null key leaves the target unset.
+template <typename Target>
+void load_present(const fkyaml::node& node, const char* key, std::optional<Target>& target) {
+    if (node.is_mapping() && node.contains(key) && !node[key].is_null()) load_opt(node, key, target.emplace());
+}
+
 void from_node(const fkyaml::node& node, xhttpDownloadSettings& opts) {
-    load_opt(node, "host", opts.host);
-    load_opt(node, "path", opts.path);
+    load_present(node, "host", opts.host);
+    load_present(node, "path", opts.path);
     load_opt(node, "mode", opts.mode);
-    load_opt(node, "server", opts.server);
-    load_opt(node, "port", opts.port);
-    load_opt(node, "tls", opts.tls);
+    load_present(node, "server", opts.server);
+    load_present(node, "port", opts.port);
+    load_present(node, "tls", opts.tls);
     if (node.is_mapping() && node.contains("alpn")) {
         if (node["alpn"].is_string()) {
-            opts.alpn.push_back(node["alpn"].get_value<std::string>());
+            opts.alpn = std::vector{node["alpn"].get_value<std::string>()};
         } else if (node["alpn"].is_sequence()) {
             opts.alpn = node["alpn"].get_value<std::vector<std::string>>();
         }
     }
-    load_opt(node, "servername", opts.servername);
-    load_opt(node, "client-fingerprint", opts.client_fingerprint);
-    load_opt(node, "reality-opts", opts.reality_opts);
+    load_present(node, "servername", opts.servername);
+    load_present(node, "client-fingerprint", opts.client_fingerprint);
+    load_present(node, "fingerprint", opts.fingerprint);
+    load_present(node, "reality-opts", opts.reality_opts);
     load_opt(node, "x-padding-obfs-mode", opts.x_padding_obfs_mode);
     load_opt(node, "x-padding-key", opts.x_padding_key);
     load_opt(node, "x-padding-header", opts.x_padding_header);
@@ -125,7 +216,8 @@ void from_node(const fkyaml::node& node, xhttpOpts& opts) {
     load_opt(node, "x-padding-method", opts.x_padding_method);
     load_opt(node, "sc-min-posts-interval-ms", opts.sc_min_posts_interval_ms);
     load_opt(node, "reuse-settings", opts.reuse_settings);
-    if (node.is_mapping() && node.contains("download-settings")) {
+    // mihomo reads a null download-settings as none, not as a copy of the proxy.
+    if (node.is_mapping() && node.contains("download-settings") && !node["download-settings"].is_null()) {
         opts.has_download_settings = true;
         opts.download_settings = node["download-settings"].get_value<xhttpDownloadSettings>();
     }

@@ -1,7 +1,9 @@
 #include "include/configs/common/multiplex.h"
 #include "include/configs/common/utils.h"
 
+#include <QCoreApplication>
 
+#include "include/configs/ParseDiagnostics.h"
 
 namespace Configs {
     bool TcpBrutal::ParseFromLink(const QString& link)
@@ -11,8 +13,8 @@ namespace Configs {
         auto query = QUrlQuery(url.query());
 
         if (query.hasQueryItem("brutal_enabled")) enabled = query.queryItemValue("brutal_enabled") == "true";
-        if (query.hasQueryItem("brutal_up_mbps")) up_mbps = query.queryItemValue("brutal_up_mbps").toInt();
-        if (query.hasQueryItem("brutal_down_mbps")) down_mbps = query.queryItemValue("brutal_down_mbps").toInt();
+        ReadQueryInt(query, "brutal_up_mbps", up_mbps);
+        ReadQueryInt(query, "brutal_down_mbps", down_mbps);
         return true;
     }
     bool TcpBrutal::ParseFromJson(const QJsonObject& object)
@@ -55,10 +57,13 @@ namespace Configs {
 
         if (query.hasQueryItem("mux")) { enabled = query.queryItemValue("mux") == "true"; unspecified = false; }
         else unspecified = true;
-        if (query.hasQueryItem("mux_protocol")) protocol = query.queryItemValue("mux_protocol");
-        if (query.hasQueryItem("mux_max_connections")) max_connections = query.queryItemValue("mux_max_connections").toInt();
-        if (query.hasQueryItem("mux_min_streams")) min_streams = query.queryItemValue("mux_min_streams").toInt();
-        if (query.hasQueryItem("mux_max_streams")) max_streams = query.queryItemValue("mux_max_streams").toInt();
+        if (query.hasQueryItem("mux_protocol")) {
+            const auto value = query.queryItemValue("mux_protocol").trimmed();
+            if (AcceptOptional("mux_protocol", Checks::MuxProtocol(value), value)) protocol = value;
+        }
+        ReadQueryInt(query, "mux_max_connections", max_connections);
+        ReadQueryInt(query, "mux_min_streams", min_streams);
+        ReadQueryInt(query, "mux_max_streams", max_streams);
         if (query.hasQueryItem("mux_padding")) padding = query.queryItemValue("mux_padding") == "true";
         brutal->ParseFromLink(link);
         return true;
@@ -72,7 +77,11 @@ namespace Configs {
         }
         if (object.contains("enabled")) { enabled = object["enabled"].toBool(); unspecified = false; }
         else unspecified = true;
-        if (object.contains("protocol")) protocol = object["protocol"].toString();
+        if (object.contains("protocol")) {
+            const auto value = object["protocol"].toString();
+            // ParseFromJson is also the DB loader: only an import drops values.
+            if (!ParseDiag::Active() || AcceptOptional("multiplex.protocol", Checks::MuxProtocol(value), value)) protocol = value;
+        }
         if (object.contains("max_connections")) max_connections = object["max_connections"].toInt();
         if (object.contains("min_streams")) min_streams = object["min_streams"].toInt();
         if (object.contains("max_streams")) max_streams = object["max_streams"].toInt();
@@ -84,7 +93,10 @@ namespace Configs {
     {
         enabled = object.smux.enabled;
         unspecified = false;
-        if (!object.smux.protocol.empty()) protocol = QString::fromStdString(object.smux.protocol);
+        if (const auto value = QString::fromStdString(object.smux.protocol).trimmed();
+            !value.isEmpty() && AcceptOptional("smux.protocol", Checks::MuxProtocol(value), value)) {
+            protocol = value;
+        }
         if (object.smux.max_streams > 0) {
             max_streams = object.smux.max_streams;
         } else {
@@ -134,6 +146,46 @@ namespace Configs {
         if (max_streams == 0 && max_connections == 0 && min_streams == 0) obj["max_streams"] = Configs::dataManager->settingsRepo->mux_concurrency;
         if (Configs::dataManager->settingsRepo->mux_padding) obj["padding"] = true;
         return {obj, ""};
+    }
+
+    bool Multiplex::EffectivelyOn() const
+    {
+        return enabled || (unspecified && Configs::dataManager->settingsRepo->mux_default_on);
+    }
+
+    namespace Checks {
+        QString MuxProtocol(const QString& protocol)
+        {
+            return Validation::OneOf(protocol, muxProtocols);
+        }
+
+        QString BrutalSpeed(const QString& text)
+        {
+            const auto value = Validation::ToInt(text);
+            if (!text.trimmed().isEmpty() && (!value || *value > 0)) return {};
+            return QCoreApplication::translate("Validation", "A missing, 0 or negative speed is sent as 1 Mbps. Enter your speed in Mbps, for example 100.");
+        }
+
+        QString BrutalNeedsMux(bool brutal, bool muxOn)
+        {
+            if (!brutal || muxOn) return {};
+            return QCoreApplication::translate("Validation", "TCP Brutal only works with multiplex on. Set Multiplex to On.");
+        }
+    }
+
+    void Multiplex::Validate(Validation::Issues& issues)
+    {
+        using Validation::Severity;
+        const bool explicitOn = !unspecified && enabled;
+        if (const auto message = Checks::BrutalNeedsMux(brutal->enabled, explicitOn); !message.isEmpty()) {
+            issues.append({Severity::Warning, "multiplex.brutal", message});
+        }
+        if (!EffectivelyOn()) return;
+        if (const auto message = Checks::MuxProtocol(protocol); !message.isEmpty()) issues.append({Severity::Error, "multiplex.protocol", message, protocol});
+        if (explicitOn && brutal->enabled && (brutal->up_mbps <= 0 || brutal->down_mbps <= 0)) {
+            issues.append({Severity::Warning, "multiplex.brutal",
+                           QCoreApplication::translate("Validation", "TCP Brutal needs both speeds; a missing one is sent as 1 Mbps.")});
+        }
     }
 }
 

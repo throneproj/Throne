@@ -1126,6 +1126,26 @@ Throne will restart to complete the restore.</source>
         <source>Select at least one part to restore.</source>
         <translation>Выберите хотя бы один раздел для восстановления.</translation>
     </message>
+    <message>
+        <source>A geo asset download is already running.</source>
+        <translation>Загрузка геоданных уже выполняется.</translation>
+    </message>
+    <message>
+        <source>The backup file is damaged or incomplete.</source>
+        <translation>Файл резервной копии повреждён или неполон.</translation>
+    </message>
+    <message>
+        <source>There is nothing to back up</source>
+        <translation>Нечего сохранять в резервную копию</translation>
+    </message>
+    <message>
+        <source>A subscription update is running; try again when it finishes.</source>
+        <translation>Выполняется обновление подписки; повторите попытку после его завершения.</translation>
+    </message>
+    <message>
+        <source>The backup&apos;s database is damaged: %1</source>
+        <translation>База данных резервной копии повреждена: %1</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>
@@ -2152,6 +2172,10 @@ Throne will restart to complete the restore.</source>
         <source>Headers cannot contain &quot;|&quot;.</source>
         <translation>Заголовки не могут содержать символ &quot;|&quot;.</translation>
     </message>
+    <message>
+        <source>This profile was deleted while you were editing it.</source>
+        <translation>Этот профиль был удалён, пока вы его редактировали.</translation>
+    </message>
 </context>
 <context>
     <name>DialogEndpointDetails</name>
@@ -2257,6 +2281,14 @@ Throne will restart to complete the restore.</source>
     <message>
         <source>Shortcuts</source>
         <translation>Горячие клавиши</translation>
+    </message>
+    <message>
+        <source>Allow management from the local network</source>
+        <translation>Разрешить управление из локальной сети</translation>
+    </message>
+    <message>
+        <source>Lets devices on the local network import, delete, change settings, back up and restore through the Throne API. This device can always do so.</source>
+        <translation>Позволяет устройствам в локальной сети импортировать, удалять, менять настройки, создавать резервные копии и восстанавливать их через Throne API. Это устройство может делать это всегда.</translation>
     </message>
 </context>
 <context>
@@ -6484,6 +6516,77 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <source>Remove %1?</source>
         <translation>Удалить %1?</translation>
     </message>
+    <message>
+        <source>This group was deleted while you were editing it.</source>
+        <translation>Эта группа была удалена, пока вы её редактировали.</translation>
+    </message>
+</context>
+<context>
+    <name>LiveChart</name>
+    <message>
+        <source>Down</source>
+        <translation>Входящий</translation>
+    </message>
+    <message>
+        <source>Up</source>
+        <translation>Исходящий</translation>
+    </message>
+    <message>
+        <source>Waiting for traffic</source>
+        <translation>Ожидание трафика</translation>
+    </message>
+    <message>
+        <source>The graph fills in once a second while a profile is running.</source>
+        <translation>График обновляется раз в секунду, пока запущен профиль.</translation>
+    </message>
+    <message>
+        <source>All lines are hidden</source>
+        <translation>Все линии скрыты</translation>
+    </message>
+    <message>
+        <source>Click an outbound or a direction in the legend to show it.</source>
+        <translation>Нажмите на outbound или направление в легенде, чтобы показать его.</translation>
+    </message>
+    <message>
+        <source>Total</source>
+        <translation>Всего</translation>
+    </message>
+    <message>
+        <source>peak of %1 s</source>
+        <translation>пик за %1 с</translation>
+    </message>
+    <message>
+        <source>Stopped</source>
+        <translation>Остановлено</translation>
+    </message>
+    <message>
+        <source>Not running</source>
+        <translation>Не запущен</translation>
+    </message>
+    <message>
+        <source>Started %1</source>
+        <translation>Запущен %1</translation>
+    </message>
+    <message>
+        <source>Switched to %1</source>
+        <translation>Переключено на %1</translation>
+    </message>
+    <message>
+        <source>Smooth lines</source>
+        <translation>Сглаживать линии</translation>
+    </message>
+    <message>
+        <source>Profile events</source>
+        <translation>События профилей</translation>
+    </message>
+    <message>
+        <source>Show all lines</source>
+        <translation>Показать все линии</translation>
+    </message>
+    <message>
+        <source>Clear history</source>
+        <translation>Очистить историю</translation>
+    </message>
 </context>
 <context>
     <name>MainWindow</name>
@@ -6752,10 +6855,6 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>Обновить ширину колонок</translation>
     </message>
     <message>
-        <source>Export Xray config</source>
-        <translation>Экспортировать конфиг Xray</translation>
-    </message>
-    <message>
         <source>Copy Test Result</source>
         <translation>Копировать результат теста</translation>
     </message>
@@ -6956,10 +7055,6 @@ URL: %2</translation>
     <message>
         <source>Copied %1 item(s)</source>
         <translation>Скопировано %1 записей</translation>
-    </message>
-    <message>
-        <source>Config copied</source>
-        <translation>Конфигурация скопирована</translation>
     </message>
     <message>
         <source>QR Code not found</source>
@@ -7354,8 +7449,8 @@ Error: %1</source>
         <translation>Меню маршрутизации</translation>
     </message>
     <message>
-        <source>Export Sing-box config</source>
-        <translation>Экспортировать конфиг Sing-box</translation>
+        <source>Export config</source>
+        <translation>Экспортировать конфиг</translation>
     </message>
     <message>
         <source>Open Manager</source>
@@ -7418,12 +7513,12 @@ Please try again.</source>
         <translation>Ошибка остановки</translation>
     </message>
     <message>
-        <source>Copy core config</source>
-        <translation>Копировать конфигурацию ядра</translation>
+        <source>Copy</source>
+        <translation>Копировать</translation>
     </message>
     <message>
-        <source>Copy test config</source>
-        <translation>Копировать тестовую конфигурацию</translation>
+        <source>Copied</source>
+        <translation>Скопировано</translation>
     </message>
     <message>
         <source>Cannot start</source>
@@ -7672,6 +7767,50 @@ Name: %1</source>
     <message>
         <source>Close all connections for &quot;%1&quot; (%2)</source>
         <translation>Закрыть все соединения &quot;%1&quot; (%2)</translation>
+    </message>
+    <message>
+        <source>route</source>
+        <translation>маршрут</translation>
+    </message>
+    <message>
+        <source>aux</source>
+        <translation>доп.</translation>
+    </message>
+    <message>
+        <source>Traffic statistics are disabled</source>
+        <translation>Статистика трафика отключена</translation>
+    </message>
+    <message>
+        <source>Untick “Disable Traffic Stats” in Basic Settings → Miscellaneous to record speeds again.</source>
+        <translation>Снимите флажок «Отключить статистику трафика» в разделе «Основные настройки → Прочее», чтобы снова записывать скорость.</translation>
+    </message>
+    <message>
+        <source>Open Traffic Statistics…</source>
+        <translation>Открыть статистику трафика…</translation>
+    </message>
+    <message>
+        <source>This group was deleted while you were editing it.</source>
+        <translation>Эта группа была удалена, пока вы её редактировали.</translation>
+    </message>
+    <message>
+        <source>The Xray config &quot;%1&quot; needs &quot;%2&quot;, but the installed %3 does not contain it.</source>
+        <translation>Конфигурации Xray «%1» нужен «%2», но в установленном %3 его нет.</translation>
+    </message>
+    <message>
+        <source>The Xray config &quot;%1&quot; needs geo data files that are not installed: %2. Download them under Basic Settings &gt; Miscellaneous &gt; Xray Geo Assets.</source>
+        <translation>Конфигурации Xray «%1» нужны неустановленные файлы геоданных: %2. Загрузите их в «Основные настройки &gt; Разное &gt; Геоданные Xray».</translation>
+    </message>
+    <message>
+        <source>Geo asset files are already being downloaded.</source>
+        <translation>Файлы геоданных уже загружаются.</translation>
+    </message>
+    <message>
+        <source>Update is unavailable while a background Throne (PID %1) runs from this installation; stop it first.</source>
+        <translation>Обновление недоступно, пока из этой установки работает фоновый Throne (PID %1); сначала остановите его.</translation>
+    </message>
+    <message>
+        <source>Kill switch is blocking traffic</source>
+        <translation>Kill switch блокирует трафик</translation>
     </message>
 </context>
 <context>
@@ -8897,6 +9036,38 @@ Release note:
         <source>Generating a WARP identity registers a new device with Cloudflare.&lt;br&gt;&lt;br&gt;Do you accept the &lt;a href=&quot;%1&quot;&gt;Cloudflare WARP terms of service&lt;/a&gt;?</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Proxy</source>
+        <translation>Прокси</translation>
+    </message>
+    <message>
+        <source>Direct</source>
+        <translation>Напрямую</translation>
+    </message>
+    <message>
+        <source>Other outbounds</source>
+        <translation>Прочие outbound</translation>
+    </message>
+    <message>
+        <source>Download stalled: no data arrived for %1 seconds.</source>
+        <translation>Загрузка остановилась: данные не поступали %1 с.</translation>
+    </message>
+    <message>
+        <source>Throne needs at least one group.</source>
+        <translation>Throne нужна хотя бы одна группа.</translation>
+    </message>
+    <message>
+        <source>This group&apos;s subscription is being updated. Try again when it finishes.</source>
+        <translation>Подписка этой группы обновляется. Повторите попытку после завершения.</translation>
+    </message>
+    <message>
+        <source>Close the editor of this group or of one of its profiles first.</source>
+        <translation>Сначала закройте редактор этой группы или одного из её профилей.</translation>
+    </message>
+    <message>
+        <source>This group no longer exists.</source>
+        <translation>Этой группы больше не существует.</translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -9362,17 +9533,6 @@ Remove that endpoint from this routing profile as well?</source>
     </message>
 </context>
 <context>
-    <name>SpeedWidget</name>
-    <message>
-        <source>Proxy</source>
-        <translation>Прокси</translation>
-    </message>
-    <message>
-        <source>Direct</source>
-        <translation>Напрямую</translation>
-    </message>
-</context>
-<context>
     <name>StartStopButton</name>
     <message>
         <source>Select a profile to start</source>
@@ -9393,6 +9553,10 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Stopping…</source>
         <translation>Отключение…</translation>
+    </message>
+    <message>
+        <source>Kill switch is blocking traffic</source>
+        <translation>Kill switch блокирует трафик</translation>
     </message>
 </context>
 <context>
@@ -9552,6 +9716,43 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Page %1/%2</source>
         <translation>Страница %1/%2</translation>
+    </message>
+</context>
+<context>
+    <name>Engine::CoreSupervisor</name>
+    <message>
+        <source>Throne could not open the local channel the core connects to (%1), so no profile can start.</source>
+        <translation>Throne не удалось открыть локальный канал, через который подключается ядро (%1), поэтому ни один профиль не может быть запущен.</translation>
+    </message>
+    <message>
+        <source>Core unavailable</source>
+        <translation>Ядро недоступно</translation>
+    </message>
+    <message>
+        <source>The core did not connect within %1 s, restarting it.</source>
+        <translation>Ядро не подключилось за %1 с, перезапуск.</translation>
+    </message>
+    <message>
+        <source>The core keeps exiting, so it is no longer restarted. Use Restart Core to try again.</source>
+        <translation>Ядро постоянно завершает работу, поэтому больше не перезапускается. Попробуйте снова через «Перезапуск ядра».</translation>
+    </message>
+</context>
+<context>
+    <name>GuiStartup</name>
+    <message>
+        <source>Throne is running in the background</source>
+        <translation>Throne работает в фоновом режиме</translation>
+    </message>
+    <message>
+        <source>A background Throne (PID %1) is running on this computer (data directory: %2). Tun mode is unavailable here while it runs; stop it or use thronectl.</source>
+        <translation>На этом компьютере работает фоновый Throne (PID %1, каталог данных: %2). Пока он работает, режим Tun здесь недоступен; остановите его или используйте thronectl.</translation>
+    </message>
+</context>
+<context>
+    <name>Engine::ConnectionManager</name>
+    <message>
+        <source>A background Throne (PID %1) owns Tun on this computer; stop it or use thronectl.</source>
+        <translation>Tun на этом компьютере занят фоновым Throne (PID %1); остановите его или используйте thronectl.</translation>
     </message>
 </context>
 </TS>

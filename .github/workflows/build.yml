@@ -8,7 +8,20 @@ on:
       publish:
         description: "r for normal release, p for prerelease, leave empty to not publish anything"
         required: false
+env:
+  # thronectl's source for the headless smoke test and the Docker image; the commit must be pushed to throneproj/Throne-api.
+  # A THRONE_API_REF repository variable overrides it.
+  THRONE_API_REF: ${{ vars.THRONE_API_REF || 'cd3e77bd2e60e025924fd7ba287f04aa71c4526c' }}
 jobs:
+  lint:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checking out sources
+        uses: actions/checkout@v7.0.1
+      - name: Checking the engine/UI boundary
+        run: cmake -DROOT=${{ github.workspace }} -P cmake/EngineBoundary.cmake
   build-go:
     permissions:
       contents: read
@@ -167,6 +180,7 @@ jobs:
     permissions:
       contents: read
     needs:
+      - lint
       - build-go
     strategy:
       matrix:
@@ -366,6 +380,58 @@ jobs:
           name: Throne-${{ github.sha }}-${{ matrix.dest_suffix }}
           path: artifacts.tgz
           compression-level: 0
+  # Runs the linux-amd64 build headless: as the runner user, then as a root systemd notify unit with a watchdog.
+  headless-smoke:
+    name: Headless smoke test
+    runs-on: ubuntu-22.04
+    needs:
+      - build-cpp
+    permissions:
+      contents: read
+    timeout-minutes: 20
+    env:
+      THRONE_DIR: ${{ github.workspace }}/deployment/linux-amd64
+      THRONECTL: ${{ github.workspace }}/throne-api/thronectl
+    steps:
+      # actions/checkout only says "not our ref" when the pinned commit was never pushed.
+      - name: Checking the Throne-api ref is pushed
+        run: |
+          git init -q "$RUNNER_TEMP/throne-api-ref"
+          git -C "$RUNNER_TEMP/throne-api-ref" fetch -q --depth=1 https://github.com/throneproj/Throne-api "$THRONE_API_REF" || { echo "::error::Throne-api $THRONE_API_REF is not on GitHub; push it first"; exit 1; }
+      - name: Checking out sources
+        uses: actions/checkout@v7.0.1
+      - name: Checking out Throne-api
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: throneproj/Throne-api
+          ref: ${{ env.THRONE_API_REF }}
+          path: throne-api
+          persist-credentials: false
+      - name: Install Golang
+        uses: actions/setup-go@v7.0.0
+        with:
+          go-version: "1.27.0"
+          cache-dependency-path: |
+            throne-api/go.sum
+      - name: Building thronectl
+        working-directory: throne-api
+        run: CGO_ENABLED=0 go build -trimpath -o "$THRONECTL" ./cmd/thronectl
+      - name: Download Artifacts
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: Throne-${{ github.sha }}-linux-amd64
+          path: download-artifact
+      - name: Unpacking the build
+        run: tar xzf download-artifact/artifacts.tgz
+      # Qt6Gui links these at load time even headless; build-cpp only had them via install-qt-action.
+      - name: Installing the Qt runtime libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libegl1 libgl1 libopengl0 libglx0 libxkbcommon0 libfontconfig1 libdbus-1-3
+      - name: Smoke test as the runner user
+        run: bash ./script/ci/headless_smoke.sh a
+      - name: Smoke test as a systemd notify service
+        run: bash ./script/ci/headless_smoke.sh b
   pack:
     name: Pack ${{ matrix.target }}
     runs-on: ${{ matrix.runner }}
@@ -379,14 +445,17 @@ jobs:
           - target: windows
             runner: windows-latest
             artifacts: "windows*"
+          # glibc: <deployment dir>=<glibc of the build-cpp image it was built on>, the highest GLIBC_ version it may need.
           - target: linux-amd64
             runner: ubuntu-latest
             artifacts: "linux-amd64*"
             tools: rpm
+            glibc: "linux-amd64=2.35 linux-amd64-system-qt=2.35"
           - target: linux-arm64
             runner: ubuntu-latest
             artifacts: "linux-arm64*"
             tools: rpm
+            glibc: "linux-arm64=2.39 linux-arm64-system-qt=2.35"
           - target: macos
             runner: ubuntu-latest
             artifacts: "darwin*"
@@ -408,6 +477,34 @@ jobs:
       - name: Pack
         shell: bash
         run: bash ./script/pack_release.sh ${{ matrix.target }} "${{ github.event.inputs.tag }}"
+      # Pins each build's glibc floor: a build image bump that raises it fails here, not in an older system's loader.
+      - name: Checking glibc symbol versions
+        if: matrix.glibc
+        shell: bash
+        env:
+          GLIBC_LIMITS: ${{ matrix.glibc }}
+        run: |
+          rc=0
+          for entry in $GLIBC_LIMITS; do
+            dir=${entry%%=*}
+            limit=${entry#*=}
+            for bin in Throne ThroneCore; do
+              file="deployment/$dir/$bin"
+              if [ ! -f "$file" ]; then
+                echo "::error::$file is missing"
+                rc=1
+                continue
+              fi
+              # readelf, unlike this runner's objdump, reads arm64 binaries too.
+              need=$(readelf -V -W "$file" | { grep -o 'GLIBC_[0-9][0-9.]*' || true; } | sed 's/^GLIBC_//' | sort -Vu | tail -n1)
+              printf '%-24s %-11s GLIBC_%-7s limit %s\n' "$dir" "$bin" "${need:-none}" "$limit"
+              if [ -n "$need" ] && [ "$(printf '%s\n' "$need" "$limit" | sort -V | tail -n1)" != "$limit" ]; then
+                echo "::error::$dir/$bin needs GLIBC_$need, newer than the $limit of the image it was built on"
+                rc=1
+              fi
+            done
+          done
+          exit $rc
       - name: Uploading Artifact
         if: matrix.target != 'debug'
         uses: actions/upload-artifact@v7.0.1
@@ -424,6 +521,572 @@ jobs:
           path: deployment/debug-symbols.zip
           if-no-files-found: error
           compression-level: 0
+  # Installs a .deb into a bare Debian container and loads both binaries there, so a dependency the package does not
+  # declare fails here instead of in a user's dynamic loader.
+  package-smoke:
+    name: Package smoke ${{ matrix.deb }} in ${{ matrix.image }}
+    runs-on: ${{ matrix.runner }}
+    needs:
+      - pack
+    permissions:
+      contents: read
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        include:
+          - deb: debian-amd64
+            pack: linux-amd64
+            image: debian:12
+            runner: ubuntu-latest
+          # Raspberry Pi OS bookworm (glibc 2.36) takes the system-qt build; this is the arm runner that builds it.
+          - deb: debian-arm64-system-qt
+            pack: linux-arm64
+            image: debian:bookworm-slim
+            runner: ubuntu-22.04-arm
+      fail-fast: false
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: Pack-${{ github.sha }}-${{ matrix.pack }}
+          path: download-artifact
+      - name: Installing and running the package
+        shell: bash
+        env:
+          TAG: ${{ github.event.inputs.tag }}
+          DEB: Throne-${{ github.event.inputs.tag }}-${{ matrix.deb }}.deb
+          IMAGE: ${{ matrix.image }}
+        run: |
+          if [ ! -f "download-artifact/$DEB" ]; then
+            echo "::error::$DEB is not in Pack-${{ github.sha }}-${{ matrix.pack }}"
+            exit 1
+          fi
+          docker run --rm -e TAG -e DEB -e IMAGE -e DEBIAN_FRONTEND=noninteractive \
+            -v "$PWD/download-artifact:/pkg:ro" "$IMAGE" bash -c '
+            set -euo pipefail
+            apt-get update -qq
+            apt-get install -y --no-install-recommends "/pkg/$DEB"
+            rc=0
+            for bin in /opt/Throne/Throne /opt/Throne/ThroneCore; do
+              echo "::group::ldd $bin"
+              out=$(ldd "$bin" 2>&1) || true
+              echo "$out"
+              echo "::endgroup::"
+              if grep -F "not found" <<<"$out"; then
+                echo "::error::$bin does not load in $IMAGE: the package misses a dependency"
+                rc=1
+              fi
+            done
+            [ "$rc" = 0 ] || exit 1
+            version=$(/opt/Throne/Throne --headless --version)
+            echo "$version"
+            if [ "$version" != "Throne $TAG" ]; then
+              echo "::error::Throne --headless --version printed \"$version\", not \"Throne $TAG\""
+              exit 1
+            fi
+          '
+  # Builds the headless image for linux/amd64 and linux/arm64 from the packed linux zips and runs both; pushes it to
+  # ghcr.io only when publishing: the tag for p and r, plus latest for r.
+  docker-image:
+    name: Docker image
+    runs-on: ubuntu-latest
+    needs:
+      - pack
+    permissions:
+      contents: read
+      packages: write
+    timeout-minutes: 45
+    env:
+      TAG: ${{ github.event.inputs.tag }}
+      PUBLISH: ${{ github.event.inputs.publish }}
+      CONTEXT: ${{ github.workspace }}/docker-context
+    steps:
+      - name: Checking out sources
+        uses: actions/checkout@v7.0.1
+      - name: Download Artifacts
+        uses: actions/download-artifact@v8.0.1
+        with:
+          pattern: Pack-${{ github.sha }}-linux-*
+          merge-multiple: true
+          path: download-artifact
+      # The context mirrors deployment/: linux-<arch>/ holds what the release zip's Throne/ holds.
+      - name: Preparing the build context
+        id: context
+        shell: bash
+        run: |
+          rm -rf "$CONTEXT"
+          mkdir -p "$CONTEXT"
+          for arch in amd64 arm64; do
+            zip="download-artifact/Throne-$TAG-linux-$arch.zip"
+            if [ ! -f "$zip" ]; then
+              echo "::error::$zip is missing"
+              exit 1
+            fi
+            unzip -q "$zip" -d "$RUNNER_TEMP/zip-$arch"
+            mv "$RUNNER_TEMP/zip-$arch/Throne" "$CONTEXT/linux-$arch"
+            # The amd64 runner would run a misplaced amd64 binary natively in the arm64 image, so --version cannot tell.
+            machine=$([ "$arch" = amd64 ] && echo x86-64 || echo aarch64)
+            for bin in Throne ThroneCore; do
+              case "$(file -b "$CONTEXT/linux-$arch/$bin")" in
+              *"$machine"*) ;;
+              *)
+                echo "::error::linux-$arch/$bin is not an $machine binary"
+                exit 1
+                ;;
+              esac
+            done
+          done
+          image="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/throne"
+          push=false
+          tags=
+          if [ "$PUBLISH" = p ] || [ "$PUBLISH" = r ]; then
+            if [[ ! "$TAG" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
+              echo "::error::'$TAG' cannot be a Docker image tag"
+              exit 1
+            fi
+            push=true
+            tags="$image:$TAG"
+            if [ "$PUBLISH" = r ]; then
+              tags="$tags,$image:latest"
+            fi
+          fi
+          echo "push=$push" >>"$GITHUB_OUTPUT"
+          echo "tags=$tags" >>"$GITHUB_OUTPUT"
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4.4.0
+        with:
+          platforms: arm64
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4.4.1
+      # One platform per build so each can be loaded and run; the multi-platform push below reuses their cache.
+      - name: Building the amd64 image
+        uses: docker/build-push-action@v7.4.0
+        with:
+          context: ${{ env.CONTEXT }}
+          file: docker/Dockerfile
+          build-args: THRONE_API_REF=${{ env.THRONE_API_REF }}
+          platforms: linux/amd64
+          load: true
+          tags: throne-ci:amd64
+      - name: Building the arm64 image
+        uses: docker/build-push-action@v7.4.0
+        with:
+          context: ${{ env.CONTEXT }}
+          file: docker/Dockerfile
+          build-args: THRONE_API_REF=${{ env.THRONE_API_REF }}
+          platforms: linux/arm64
+          load: true
+          tags: throne-ci:arm64
+      # The entrypoint already passes --headless.
+      - name: Running both images
+        shell: bash
+        run: |
+          for arch in amd64 arm64; do
+            version=$(docker run --rm --platform "linux/$arch" "throne-ci:$arch" --version)
+            echo "linux/$arch: $version"
+            if [ "$version" != "Throne $TAG" ]; then
+              echo "::error::linux/$arch: --version printed \"$version\", not \"Throne $TAG\""
+              exit 1
+            fi
+            docker run --rm --platform "linux/$arch" --entrypoint thronectl "throne-ci:$arch" version
+          done
+      # amd64 only: under QEMU the arm64 start is too slow for a stable deadline.
+      - name: Starting the amd64 image, connecting thronectl, stopping it
+        shell: bash
+        run: |
+          docker run -d --name throne-ci --platform linux/amd64 throne-ci:amd64
+          trap 'echo "::group::Container log"; docker logs throne-ci 2>&1; echo "::endgroup::"' EXIT
+          deadline=$((SECONDS + 90))
+          until docker exec throne-ci /opt/Throne/Throne --health >/dev/null 2>&1; do
+            if [ "$(docker inspect -f '{{.State.Running}}' throne-ci)" != true ] || ((SECONDS >= deadline)); then
+              docker exec throne-ci /opt/Throne/Throne --health || true
+              echo "::error::the container did not report healthy within 90 s"
+              exit 1
+            fi
+            sleep 1
+          done
+          docker exec throne-ci /opt/Throne/Throne --health
+          docker exec throne-ci sh -c 'eval "$(/opt/Throne/Throne --print-connection)" && thronectl status'
+          docker stop --time 45 throne-ci
+          code=$(docker inspect -f '{{.State.ExitCode}}' throne-ci)
+          if [ "$code" != 0 ]; then
+            echo "::error::the container exited with $code after docker stop, not 0"
+            exit 1
+          fi
+          if docker logs throne-ci 2>&1 | grep -nE 'HEADLESS-(DIALOG|WIDGET)|POLICY-UNBOUND'; then
+            echo "::error::headless Throne reached a GUI-only path"
+            exit 1
+          fi
+      - name: Logging in to ghcr.io
+        if: steps.context.outputs.push == 'true'
+        uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pushing the image
+        if: steps.context.outputs.push == 'true'
+        uses: docker/build-push-action@v7.4.0
+        with:
+          context: ${{ env.CONTEXT }}
+          file: docker/Dockerfile
+          build-args: THRONE_API_REF=${{ env.THRONE_API_REF }}
+          platforms: linux/amd64,linux/arm64
+          labels: |
+            org.opencontainers.image.version=${{ env.TAG }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          tags: ${{ steps.context.outputs.tags }}
+          push: true
+  # ===================================================================================================== Headless end to end
+  # script/ci/e2e runs headless Throne the way users do, so no scratch VMs are needed. These jobs only report: publish
+  # does not wait for them. Tun and the kill switch run only in containers with their own network namespace, never on a
+  # runner host, which they would cut off. A failed job uploads its logs as the artifact <job id>-logs.
+  # A needs on a matrix job waits for every leg and skips the job when any leg failed; Actions cannot depend on one leg.
+  # So each job runs unless the run was cancelled or its matrix never ran, and downloads the one artifact it tests right
+  # after the checkout: when that leg failed, the job ends there with "Artifact not found". The jobs that test packages
+  # still need every build-cpp leg, because pack does.
+  e2e-linux-packages:
+    name: E2E deb under systemd
+    runs-on: ubuntu-24.04
+    needs:
+      - pack
+    if: ${{ !cancelled() && needs.pack.result != 'skipped' }}
+    permissions:
+      contents: read
+    timeout-minutes: 40
+    env:
+      THRONECTL: ${{ github.workspace }}/throne-api/thronectl
+      FIXTURES: ${{ github.workspace }}/script/ci/smoke_fixtures.py
+      E2E_TMP: ${{ github.workspace }}/e2e-tmp
+      DEB: ${{ github.workspace }}/download-artifact/Throne-${{ github.event.inputs.tag }}-debian-amd64.deb
+    steps:
+      - name: Checking the Throne-api ref is pushed
+        run: |
+          git init -q "$RUNNER_TEMP/throne-api-ref"
+          git -C "$RUNNER_TEMP/throne-api-ref" fetch -q --depth=1 https://github.com/throneproj/Throne-api "$THRONE_API_REF" || { echo "::error::Throne-api $THRONE_API_REF is not on GitHub; push it first"; exit 1; }
+      - name: Checking out sources
+        uses: actions/checkout@v7.0.1
+      - name: Download Artifacts
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: Pack-${{ github.sha }}-linux-amd64
+          path: download-artifact
+      - name: Checking out Throne-api
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: throneproj/Throne-api
+          ref: ${{ env.THRONE_API_REF }}
+          path: throne-api
+          persist-credentials: false
+      - name: Install Golang
+        uses: actions/setup-go@v7.0.0
+        with:
+          go-version: "1.27.0"
+          cache-dependency-path: |
+            throne-api/go.sum
+      - name: Building thronectl
+        working-directory: throne-api
+        run: CGO_ENABLED=0 go build -trimpath -o "$THRONECTL" ./cmd/thronectl
+      - name: Installing the deb and running it under systemd
+        timeout-minutes: 30
+        run: bash ./script/ci/e2e/linux_packages.sh
+      - name: Collecting the logs
+        if: failure()
+        run: |
+          mkdir -p e2e-logs
+          sudo journalctl -u throne --no-pager -o short-monotonic >e2e-logs/journal-throne.txt 2>&1 || true
+          sudo sh -c 'tail -n +1 /var/lib/throne/config/logs/*.log' >e2e-logs/var-lib-throne-logs.txt 2>&1 || true
+          # Root-owned files and live sockets would fail the upload: copy the regular files, without keys and binaries.
+          if [ -d "$E2E_TMP" ]; then
+            (cd "$E2E_TMP" && sudo find . -type f -size -16M ! -name '*.key' -print0 | sudo tar -cf - --null -T -) | tar -xf - -C e2e-logs || true
+          fi
+      - name: Uploading the logs
+        if: failure()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: e2e-linux-packages-logs
+          path: e2e-logs
+          if-no-files-found: ignore
+          overwrite: true
+  e2e-linux-scenarios:
+    name: E2E Linux scenarios in containers
+    runs-on: ubuntu-24.04
+    needs:
+      - build-cpp
+    if: ${{ !cancelled() && needs.build-cpp.result != 'skipped' }}
+    permissions:
+      contents: read
+    timeout-minutes: 75
+    env:
+      THRONE_DIR: ${{ github.workspace }}/deployment/linux-amd64
+      THRONECTL: ${{ github.workspace }}/throne-api/thronectl
+      FIXTURES: ${{ github.workspace }}/script/ci/smoke_fixtures.py
+      E2E_TMP: ${{ github.workspace }}/e2e-tmp
+      E2E_IMAGE: throne-e2e:amd64
+    steps:
+      - name: Checking the Throne-api ref is pushed
+        run: |
+          git init -q "$RUNNER_TEMP/throne-api-ref"
+          git -C "$RUNNER_TEMP/throne-api-ref" fetch -q --depth=1 https://github.com/throneproj/Throne-api "$THRONE_API_REF" || { echo "::error::Throne-api $THRONE_API_REF is not on GitHub; push it first"; exit 1; }
+      - name: Checking out sources
+        uses: actions/checkout@v7.0.1
+      - name: Download Artifacts
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: Throne-${{ github.sha }}-linux-amd64
+          path: download-artifact
+      - name: Checking out Throne-api
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: throneproj/Throne-api
+          ref: ${{ env.THRONE_API_REF }}
+          path: throne-api
+          persist-credentials: false
+      - name: Install Golang
+        uses: actions/setup-go@v7.0.0
+        with:
+          go-version: "1.27.0"
+          cache-dependency-path: |
+            throne-api/go.sum
+      - name: Building thronectl
+        working-directory: throne-api
+        run: CGO_ENABLED=0 go build -trimpath -o "$THRONECTL" ./cmd/thronectl
+      - name: Unpacking the build
+        run: tar xzf download-artifact/artifacts.tgz
+      # The release image, built from this deployment as docker-image builds it from the packed zip (the dockerignore
+      # next to the Dockerfile leaves Throne.debug out), so the scenarios do not wait for pack. A failed build fails only
+      # scenario 11, which then finds no $E2E_IMAGE; the other ten still run, and the job still fails.
+      - name: Building the Docker image
+        continue-on-error: true
+        run: docker build -f docker/Dockerfile --build-arg THRONE_API_REF="$THRONE_API_REF" -t "$E2E_IMAGE" deployment
+      - name: Running the scenarios
+        timeout-minutes: 60
+        run: bash ./script/ci/e2e/linux_scenarios.sh
+      - name: Collecting the logs
+        if: failure()
+        run: |
+          mkdir -p e2e-logs
+          docker ps -a >e2e-logs/docker-ps.txt 2>&1 || true
+          # Root-owned files and live sockets would fail the upload: copy the regular files, without keys and binaries.
+          if [ -d "$E2E_TMP" ]; then
+            (cd "$E2E_TMP" && sudo find . -type f -size -16M ! -name '*.key' -print0 | sudo tar -cf - --null -T -) | tar -xf - -C e2e-logs || true
+          fi
+      - name: Uploading the logs
+        if: failure()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: e2e-linux-scenarios-logs
+          path: e2e-logs
+          if-no-files-found: ignore
+          overwrite: true
+  e2e-linux-arm64:
+    name: E2E arm64 deb on Debian bookworm
+    runs-on: ubuntu-24.04-arm
+    needs:
+      - pack
+    if: ${{ !cancelled() && needs.pack.result != 'skipped' }}
+    permissions:
+      contents: read
+    timeout-minutes: 30
+    env:
+      THRONECTL: ${{ github.workspace }}/throne-api/thronectl
+      FIXTURES: ${{ github.workspace }}/script/ci/smoke_fixtures.py
+      E2E_TMP: ${{ github.workspace }}/e2e-tmp
+      SYSTEMQT_DEB: ${{ github.workspace }}/download-artifact/Throne-${{ github.event.inputs.tag }}-debian-arm64-system-qt.deb
+      BUNDLED_DEB: ${{ github.workspace }}/download-artifact/Throne-${{ github.event.inputs.tag }}-debian-arm64.deb
+    steps:
+      - name: Checking the Throne-api ref is pushed
+        run: |
+          git init -q "$RUNNER_TEMP/throne-api-ref"
+          git -C "$RUNNER_TEMP/throne-api-ref" fetch -q --depth=1 https://github.com/throneproj/Throne-api "$THRONE_API_REF" || { echo "::error::Throne-api $THRONE_API_REF is not on GitHub; push it first"; exit 1; }
+      - name: Checking out sources
+        uses: actions/checkout@v7.0.1
+      - name: Download Artifacts
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: Pack-${{ github.sha }}-linux-arm64
+          path: download-artifact
+      - name: Checking out Throne-api
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: throneproj/Throne-api
+          ref: ${{ env.THRONE_API_REF }}
+          path: throne-api
+          persist-credentials: false
+      - name: Install Golang
+        uses: actions/setup-go@v7.0.0
+        with:
+          go-version: "1.27.0"
+          cache-dependency-path: |
+            throne-api/go.sum
+      - name: Building thronectl
+        working-directory: throne-api
+        run: CGO_ENABLED=0 go build -trimpath -o "$THRONECTL" ./cmd/thronectl
+      - name: Running the arm64 packages in Debian bookworm
+        timeout-minutes: 20
+        run: bash ./script/ci/e2e/linux_arm64.sh
+      - name: Collecting the logs
+        if: failure()
+        run: |
+          mkdir -p e2e-logs
+          # Root-owned files and live sockets would fail the upload: copy the regular files, without keys and binaries.
+          if [ -d "$E2E_TMP" ]; then
+            (cd "$E2E_TMP" && sudo find . -type f -size -16M ! -name '*.key' -print0 | sudo tar -cf - --null -T -) | tar -xf - -C e2e-logs || true
+          fi
+      - name: Uploading the logs
+        if: failure()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: e2e-linux-arm64-logs
+          path: e2e-logs
+          if-no-files-found: ignore
+          overwrite: true
+  e2e-macos:
+    name: E2E macOS LaunchDaemon
+    # build-cpp's darwin-arm64 leg, so the test runs on the macOS generation the app was built on.
+    runs-on: macos-latest
+    needs:
+      - build-cpp
+    if: ${{ !cancelled() && needs.build-cpp.result != 'skipped' }}
+    permissions:
+      contents: read
+    timeout-minutes: 30
+    env:
+      THRONE_APP: ${{ github.workspace }}/deployment/darwin-arm64/Throne.app
+      THRONECTL: ${{ github.workspace }}/throne-api/thronectl
+      FIXTURES: ${{ github.workspace }}/script/ci/smoke_fixtures.py
+      E2E_TMP: ${{ github.workspace }}/e2e-tmp
+    steps:
+      - name: Checking the Throne-api ref is pushed
+        run: |
+          git init -q "$RUNNER_TEMP/throne-api-ref"
+          git -C "$RUNNER_TEMP/throne-api-ref" fetch -q --depth=1 https://github.com/throneproj/Throne-api "$THRONE_API_REF" || { echo "::error::Throne-api $THRONE_API_REF is not on GitHub; push it first"; exit 1; }
+      - name: Checking out sources
+        uses: actions/checkout@v7.0.1
+      - name: Download Artifacts
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: Throne-${{ github.sha }}-darwin-arm64
+          path: download-artifact
+      - name: Checking out Throne-api
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: throneproj/Throne-api
+          ref: ${{ env.THRONE_API_REF }}
+          path: throne-api
+          persist-credentials: false
+      - name: Install Golang
+        uses: actions/setup-go@v7.0.0
+        with:
+          go-version: "1.27.0"
+          cache-dependency-path: |
+            throne-api/go.sum
+      - name: Building thronectl
+        working-directory: throne-api
+        run: CGO_ENABLED=0 go build -trimpath -o "$THRONECTL" ./cmd/thronectl
+      - name: Unpacking the build
+        run: tar xzf download-artifact/artifacts.tgz
+      - name: Running Throne as a LaunchDaemon
+        timeout-minutes: 20
+        run: bash ./script/ci/e2e/macos_launchd.sh
+      - name: Collecting the logs
+        if: failure()
+        run: |
+          mkdir -p e2e-logs
+          sudo launchctl print system/moe.Throne.headless >e2e-logs/launchctl-print.txt 2>&1 || true
+          # Root-owned files and live sockets would fail the upload: copy the regular files, without keys and binaries.
+          if [ -d "$E2E_TMP" ]; then
+            (cd "$E2E_TMP" && sudo find . -type f -size -16M ! -name '*.key' -print0 | sudo tar -cf - --null -T -) | tar -xf - -C e2e-logs || true
+          fi
+      - name: Uploading the logs
+        if: failure()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: e2e-macos-logs
+          path: e2e-logs
+          if-no-files-found: ignore
+          overwrite: true
+  e2e-windows:
+    name: E2E Windows service
+    runs-on: windows-latest
+    needs:
+      - build-cpp
+    if: ${{ !cancelled() && needs.build-cpp.result != 'skipped' }}
+    permissions:
+      contents: read
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    env:
+      THRONE_DIR: ${{ github.workspace }}\deployment\windows-amd64
+      THRONECTL: ${{ github.workspace }}\throne-api\thronectl.exe
+      FIXTURES: ${{ github.workspace }}\script\ci\smoke_fixtures.py
+      E2E_TMP: ${{ github.workspace }}\e2e-tmp
+    steps:
+      - name: Checking the Throne-api ref is pushed
+        run: |
+          git init -q "$RUNNER_TEMP/throne-api-ref"
+          git -C "$RUNNER_TEMP/throne-api-ref" fetch -q --depth=1 https://github.com/throneproj/Throne-api "$THRONE_API_REF" || { echo "::error::Throne-api $THRONE_API_REF is not on GitHub; push it first"; exit 1; }
+      - name: Checking out sources
+        uses: actions/checkout@v7.0.1
+      - name: Download Artifacts
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: Throne-${{ github.sha }}-windows-amd64
+          path: download-artifact
+      - name: Checking out Throne-api
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: throneproj/Throne-api
+          ref: ${{ env.THRONE_API_REF }}
+          path: throne-api
+          persist-credentials: false
+      - name: Install Golang
+        uses: actions/setup-go@v7.0.0
+        with:
+          go-version: "1.27.0"
+          cache-dependency-path: |
+            throne-api/go.sum
+      - name: Building thronectl
+        working-directory: throne-api
+        run: CGO_ENABLED=0 go build -trimpath -o "$THRONECTL" ./cmd/thronectl
+      - name: Unpacking the build
+        run: tar xzf download-artifact/artifacts.tgz
+      - name: Running Throne as a Windows service
+        timeout-minutes: 20
+        shell: pwsh
+        run: >-
+          pwsh -NoProfile -File ./script/ci/e2e/windows_service.ps1 -ThroneDir $env:THRONE_DIR -Thronectl $env:THRONECTL
+          -Fixtures $env:FIXTURES -RepoRoot $env:GITHUB_WORKSPACE -WorkDir $env:E2E_TMP
+      - name: Collecting the logs
+        if: failure()
+        shell: pwsh
+        run: |
+          $logs = (New-Item -ItemType Directory -Force e2e-logs).FullName
+          sc.exe qc Throne 2>&1 | Out-File (Join-Path $logs sc-qc.txt)
+          sc.exe query Throne 2>&1 | Out-File (Join-Path $logs sc-query.txt)
+          Get-WinEvent -FilterHashtable @{ LogName = 'System'; ProviderName = 'Service Control Manager' } -MaxEvents 300 -ErrorAction SilentlyContinue |
+            Where-Object Message -match 'Throne' | Format-List TimeCreated, Id, Message | Out-File (Join-Path $logs scm-events.txt)
+          $sources = @(@{ Dir = 'C:\ProgramData\Throne\config\logs'; To = 'programdata-logs' }, @{ Dir = $env:E2E_TMP; To = 'e2e-tmp' })
+          foreach ($s in $sources) {
+            if (-not (Test-Path -LiteralPath $s.Dir)) { continue }
+            Get-ChildItem -LiteralPath $s.Dir -Recurse -File -ErrorAction SilentlyContinue |
+              Where-Object { $_.Length -lt 16MB -and $_.Extension -ne '.key' } | ForEach-Object {
+                $dest = Join-Path $logs (Join-Path $s.To ([IO.Path]::GetRelativePath($s.Dir, $_.FullName)))
+                New-Item -ItemType Directory -Force (Split-Path $dest) | Out-Null
+                Copy-Item -LiteralPath $_.FullName -Destination $dest -ErrorAction SilentlyContinue
+              }
+          }
+          exit 0
+      - name: Uploading the logs
+        if: failure()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: e2e-windows-logs
+          path: e2e-logs
+          if-no-files-found: ignore
+          overwrite: true
   publish:
     name: Publish Release
     runs-on: ubuntu-latest
@@ -451,14 +1114,21 @@ jobs:
         run: |
           curl -Lo - https://github.com/tcnksm/ghr/releases/download/v0.17.0/ghr_v0.17.0_linux_amd64.tar.gz | tar xzv
           mv ghr*linux_amd64/ghr .
+      # The changelog is written above the generated download table after publishing.
+      - name: Generating release notes
+        env:
+          TAG: ${{ github.event.inputs.tag }}
+          REPO: ${{ github.repository }}
+        run: |
+          sed "s|{{TAG}}|$TAG|g; s|{{REPO}}|$REPO|g" .github/release_template.md > "$RUNNER_TEMP/release.md"
       - name: PreRelease
         if: github.event.inputs.publish == 'p'
         run: |
-          ./ghr -prerelease -delete -c ${{ github.sha }} -t "${{ github.token }}" -n "${{ github.event.inputs.tag }}" "${{ github.event.inputs.tag }}" deployment
+          ./ghr -prerelease -delete -c ${{ github.sha }} -t "${{ github.token }}" -n "${{ github.event.inputs.tag }}" -b "$(cat "$RUNNER_TEMP/release.md")" "${{ github.event.inputs.tag }}" deployment
       - name: Release
         if: github.event.inputs.publish == 'r'
         run: |
-          ./ghr -delete -c ${{ github.sha }} -t "${{ github.token }}" -n "${{ github.event.inputs.tag }}" "${{ github.event.inputs.tag }}" deployment
+          ./ghr -delete -c ${{ github.sha }} -t "${{ github.token }}" -n "${{ github.event.inputs.tag }}" -b "$(cat "$RUNNER_TEMP/release.md")" "${{ github.event.inputs.tag }}" deployment
   # Updates the AUR package after a stable release.
   publish-aur:
     name: Publish AUR Package

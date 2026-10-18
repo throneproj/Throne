@@ -26,6 +26,11 @@ public:
 
     bool onEnd() override;
 
+    void bindValidation(Validation::Form &form) override;
+
+    // The core dials 443 when the port is 0.
+    bool serverPortOptional() override { return true; }
+
 private:
     Ui::EditMasque *ui;
     std::shared_ptr<Configs::Profile> ent;

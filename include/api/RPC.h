@@ -3,6 +3,8 @@
 #ifndef Q_MOC_RUN
 #include <core/gen/libcore.pb.h>
 #endif
+#include <optional>
+
 #include <QByteArray>
 #include <QMap>
 #include <QString>
@@ -11,6 +13,20 @@
 class QLocalSocket;
 
 namespace API {
+    // The core's privilege report. The optionals are unset where the core cannot tell (another OS, an older core).
+    struct PrivilegeInfo {
+        // euid 0 or the Tun capabilities (Linux), as IsPrivileged always meant.
+        bool privileged = false;
+        // Linux: /dev/net/tun opened read-write.
+        std::optional<bool> tunDevice;
+        // Linux: CAP_NET_ADMIN in the effective set.
+        std::optional<bool> netAdmin;
+        // Linux: euid 0 and CAP_NET_ADMIN; macOS: euid 0.
+        std::optional<bool> killSwitch;
+        // The first failing reason, plain English; empty when nothing failed.
+        QString detail;
+    };
+
     class Client {
     public:
         Client();
@@ -26,7 +42,8 @@ namespace API {
 
         QString Start(bool *rpcOK, const libcore::LoadConfigReq &request);
 
-        QString Stop(bool *rpcOK);
+        // timeoutMs 0 = the channel default.
+        QString Stop(bool *rpcOK, int timeoutMs = 0);
 
         libcore::QueryStatsResp QueryStats();
 
@@ -50,7 +67,11 @@ namespace API {
 
         QString CheckConfig(bool *rpcOK, const QString& config, bool isXray = false) const;
 
-        bool IsPrivileged(bool *rpcOK) const;
+        // timeoutMs 0 = the channel default.
+        bool IsPrivileged(bool *rpcOK, int timeoutMs = 0) const;
+
+        // IsPrivileged with the core's capability fields (IsPrivilegedResponse 2-5).
+        PrivilegeInfo Privileges(bool *rpcOK, int timeoutMs = 0) const;
 
         libcore::SpeedTestResponse SpeedTest(bool *rpcOK, const libcore::SpeedTestRequest &request, QString *coreError = nullptr);
 

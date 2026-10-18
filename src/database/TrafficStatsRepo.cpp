@@ -1,5 +1,6 @@
 #include "include/database/TrafficStatsRepo.h"
 #include "include/global/Logger.hpp"
+#include "include/global/Notice.hpp"
 
 #include <QFile>
 #include <QObject>
@@ -309,9 +310,9 @@ namespace Configs {
         LOG_ERROR(QString("traffic statistics paused for this session after %1 failed: %2%3")
                       .arg(QString::fromUtf8(op), what,
                            rebuild ? QString("; the database will be rebuilt at the next start") : QString()));
-        PostPassiveWarning(QObject::tr("Traffic statistics paused"),
-                           rebuild
-                               ? QObject::tr("The statistics database is unusable (%1). Statistics are paused for this session and the file will be rebuilt when Throne restarts.").arg(what)
-                               : QObject::tr("Writing statistics keeps failing (%1). Statistics are paused until Throne restarts.").arg(what));
+        PostNotice({NoticeLevel::Warning, QObject::tr("Traffic statistics paused"),
+                    rebuild
+                        ? QObject::tr("The statistics database is unusable (%1). Statistics are paused for this session and the file will be rebuilt when Throne restarts.").arg(what)
+                        : QObject::tr("Writing statistics keeps failing (%1). Statistics are paused until Throne restarts.").arg(what)});
     }
 }

@@ -20,6 +20,10 @@ namespace Sys {
     public:
         enum class State { Disabled, Arming, Armed, Failed };
 
+        // ThroneCore's exit code when THRONE_GUARD is set but it cannot adopt the guard group (no CAP_SETGID, or the GID is not
+        // mapped in this user namespace). Must match guard.IdentityExitCode in core/internal/guard/guard.go.
+        static constexpr int kCoreIdentityExitCode = 86;
+
         static KillSwitch *instance();
 
         [[nodiscard]] State state() const { return state_.load(); }
@@ -27,7 +31,28 @@ namespace Sys {
         [[nodiscard]] QString failureCode() const { return failureCode_; }
         [[nodiscard]] QString failureMessage() const { return failureMessage_; }
         [[nodiscard]] bool failedForPrivileges() const;
+        // Failed with a code a respawn cannot fix while nothing changes: privilege, unsupported, config, overridden.
+        [[nodiscard]] bool failedPersistently() const;
+        // UI thread. Failed (unsupported) only because the core cannot adopt the guard group while a guard still runs and blocks:
+        // profiles are refused, but the kill switch is not "not active".
+        [[nodiscard]] bool failedForIdentity() const;
         [[nodiscard]] QString failureText() const;
+
+        // Any thread. Set by noteIdentityUnsupported(); CoreProcess::Start then omits THRONE_GUARD.
+        [[nodiscard]] bool identityUnsupported() const { return identityUnsupported_.load(); }
+
+        // Main thread, when a core exited with kCoreIdentityExitCode. Sticky until kill_switch is turned off (never saved): the
+        // guard keeps being armed and blocking, but the state reports Failed with code "unsupported" (detail as the message), so
+        // starts stay refused and the process lives.
+        void noteIdentityUnsupported(const QString &detail);
+
+        // Main thread, before the first apply(); headless --no-kill-switch. A saved kill_switch=true then fails closed with code
+        // "overridden" instead of arming, so profiles stay refused while the API can turn the setting off. Never saved.
+        void setOverride(bool overridden);
+
+        // Any thread: the Throne API's TCP listen port, 0 when it does not listen. The guard lets the replies of inbound connections
+        // to it out, so a kill switch never cuts the API off. A change re-applies an armed or arming guard on the UI thread.
+        static void SetApiPort(quint16 port);
 
         void apply();
 
@@ -64,11 +89,16 @@ namespace Sys {
         void armFailed(const QString &code, const QString &message);
         void protectionLost(const QString &code, const QString &message);
         void fail(const QString &code, const QString &message);
+        // Identity unsupported: report Failed (unsupported) while any guard keeps running and blocking.
+        void failIdentity();
         void setState(State state);
         void settle();
         void whenIdle(std::function<void()> callback);
 
         std::atomic<State> state_ = State::Disabled;
+        std::atomic<bool> identityUnsupported_ = false;
+        QString identityDetail_;
+        bool overridden_ = false;
         GuardProcess *active_ = nullptr;
         GuardProcess *pending_ = nullptr;
         QString failureCode_;

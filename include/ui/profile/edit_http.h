@@ -20,6 +20,8 @@ public:
 
     bool onEnd() override;
 
+    void bindValidation(Validation::Form &form) override;
+
 private:
     Ui::EditHttp *ui;
     std::shared_ptr<Configs::Profile> ent;

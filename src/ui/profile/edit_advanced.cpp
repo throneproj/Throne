@@ -1,6 +1,6 @@
 #include "include/ui/profile/edit_advanced.h"
 
-#include "include/global/GuiUtils.hpp"
+#include "include/ui/utils/GuiUtils.hpp"
 
 #include <QGuiApplication>
 #include <QInputDialog>
@@ -13,6 +13,9 @@
 #include "include/database/GroupsRepo.h"
 #include "include/database/IpListsRepo.h"
 #include "include/ui/profile/editor_table_utils.h"
+#include "include/ui/utils/ValidationForm.h"
+
+#include <climits>
 
 EditAdvanced::InterfaceFields EditAdvanced::GetInterfaceFields() const {
     if (auto *openvpn = ent->OpenVPN(); openvpn != nullptr) {
@@ -31,7 +34,10 @@ EditAdvanced::EditAdvanced(QWidget *parent, const std::shared_ptr<Configs::Profi
     , ui(new Ui::EditAdvanced)
 {
     ui->setupUi(this);
+    form = new Validation::Form(this);
+    form->attachStatus(ui->buttonBox);
     ent = _ent;
+    bindValidation();
     auto dialFieldsObj = ent->outbound->dialFields;
     ui->reuse_addr->setChecked(dialFieldsObj->reuse_addr);
     ui->tcp_fast_open->setChecked(dialFieldsObj->tcp_fast_open);
@@ -134,6 +140,7 @@ EditAdvanced::EditAdvanced(QWidget *parent, const std::shared_ptr<Configs::Profi
     }
 
     ADD_ASTERISK(this)
+    form->markAll();
 
     // adjustSize() clamps to 2/3 of the screen.
     const auto *scr = screen() != nullptr ? screen() : QGuiApplication::primaryScreen();
@@ -142,7 +149,67 @@ EditAdvanced::EditAdvanced(QWidget *parent, const std::shared_ptr<Configs::Profi
 
 EditAdvanced::~EditAdvanced()
 {
+    delete form;
+    form = nullptr;
     delete ui;
+}
+
+void EditAdvanced::bindValidation() {
+    using Validation::Severity;
+    namespace Rules = Validation::Rules;
+    namespace Checks = Configs::Checks;
+
+    form->bind(ui->connect_timeout, Rules::Duration());
+    form->bind(ui->inet4_bind_address, Rules::Ip(Validation::Family::V4, Validation::Empty::Allowed));
+    form->bind(ui->inet6_bind_address, Checks::BindAddress6);
+    form->addRule({ui->tcp_fast_open}, [this] {
+        if (!ui->tcp_fast_open->isChecked() || ent->type != "anytls") return QString();
+        return tr("AnyTLS does not support TCP Fast Open, so it is turned off when the profile starts.");
+    }, nullptr, Severity::Warning);
+    form->addRule({ui->tcp_fast_open}, [this] {
+        // outbound::Build drops TFO for the dialer-level fragment, which the core cannot combine with it.
+        if (!ui->tcp_fast_open->isChecked() || !Configs::CustomFragmentApplies(*ent->outbound)) return QString();
+        return tr("TCP Fast Open is ignored while the custom TLS fragment is on.");
+    }, nullptr, Severity::Warning);
+
+    form->bind(ui->min_version, Checks::TlsVersion);
+    form->bind(ui->max_version, Checks::TlsVersion);
+    form->addRule({ui->min_version, ui->max_version}, [this] {
+        return Checks::TlsVersionOrder(ui->min_version->text(), ui->max_version->text());
+    });
+    form->bind(ui->tls_spoof, Rules::Host(Validation::Empty::Allowed)).warning();
+    form->bind(ui->ech_server_name, [this](const QString &text) -> QString {
+        Configs::ECH target;
+        target.SetQueryTarget(text);
+        if (!target.serverName.isEmpty()) {
+            if (auto message = Validation::Host(target.serverName); !message.isEmpty()) return message;
+        }
+        if (target.resolver.isEmpty()) return {};
+        // generate.cpp falls back to the default resolver for anything it cannot use.
+        Configs::DnsAddress resolver;
+        QString why;
+        if (!Configs::ParseDnsAddress(target.resolver, &resolver, &why)) return why;
+        if (resolver.type == "dhcp") return tr("A dhcp:// resolver cannot fetch the ECH config. Use a udp://, tls:// or https:// address.");
+        return {};
+    }).warning();
+    form->addRule({ui->ech_config, ui->enable_ech}, [this] {
+        return ui->enable_ech->isChecked() ? Checks::EchConfig(CACHE.echConfig) : QString();
+    });
+    form->addRule({ui->cert_sha256}, [this] { return Checks::CertificatePins(CACHE.certSha256); });
+    form->addRule({ui->cert_public_key_sha256}, [this] { return Checks::CertificatePins(CACHE.certPublicKeySha256); });
+    form->addRule({ui->client_cert}, [this] { return Checks::PemCertificates(CACHE.clientCert); });
+    form->addRule({ui->client_key}, [this] { return Checks::PemPrivateKey(CACHE.clientKey); });
+    form->addRule({ui->client_cert, ui->client_key}, [this] {
+        const auto tls = ent->outbound->GetTLS();
+        return Checks::ClientCertificatePair(!CACHE.clientCert.isEmpty() || !tls->client_certificate_path.isEmpty(),
+                                             !CACHE.clientKey.isEmpty() || !tls->client_key_path.isEmpty());
+    });
+
+    for (auto *edit: {ui->quic_idle_timeout, ui->quic_keep_alive_period, ui->udp_timeout}) form->bind(edit, Rules::Duration());
+    for (auto *edit: {ui->quic_stream_receive_window, ui->quic_connection_receive_window}) form->bind(edit, Rules::MemoryBytes(true));
+    form->bind(ui->quic_max_concurrent_streams, Rules::Int(0, INT_MAX));
+    form->bind(ui->quic_initial_packet_size, Checks::QuicInitialPacketSize);
+    form->bind(ui->udp_nat_max, Rules::Int(0, INT_MAX));
 }
 
 void EditAdvanced::loadEndpoint() {
@@ -199,6 +266,7 @@ void EditAdvanced::syncEndpoint() {
 }
 
 void EditAdvanced::accept() {
+    if (!form->validateAll()) return;
     auto dialFieldsObj = ent->outbound->dialFields;
     dialFieldsObj->reuse_addr = ui->reuse_addr->isChecked();
     dialFieldsObj->tcp_fast_open = ui->tcp_fast_open->isChecked();
@@ -273,12 +341,14 @@ void EditAdvanced::editCachedList(QPushButton *button, const QString &title, QSt
     if (!ok) return;
     target = txt.split("\n", Qt::SkipEmptyParts);
     setCacheButtonText(button, target);
+    form->revalidate(button);
 }
 
 void EditAdvanced::on_ech_config_clicked() {
     editCachedList(ui->ech_config, tr("ECH Config"), CACHE.echConfig);
     CACHE.echConfig = Configs::ECH::NormalizeConfig(CACHE.echConfig);
     setCacheButtonText(ui->ech_config, CACHE.echConfig);
+    form->revalidate(ui->ech_config);
 }
 
 void EditAdvanced::on_client_cert_clicked() {
@@ -291,8 +361,14 @@ void EditAdvanced::on_client_key_clicked() {
 
 void EditAdvanced::on_cert_sha256_clicked() {
     editCachedList(ui->cert_sha256, tr("Certificate SHA256"), CACHE.certSha256);
+    CACHE.certSha256 = Configs::CertificatePinsFromHex(CACHE.certSha256);
+    setCacheButtonText(ui->cert_sha256, CACHE.certSha256);
+    form->revalidate(ui->cert_sha256);
 }
 
 void EditAdvanced::on_cert_public_key_sha256_clicked() {
     editCachedList(ui->cert_public_key_sha256, tr("Public Key SHA256"), CACHE.certPublicKeySha256);
+    CACHE.certPublicKeySha256 = Configs::CertificatePinsFromHex(CACHE.certPublicKeySha256);
+    setCacheButtonText(ui->cert_public_key_sha256, CACHE.certPublicKeySha256);
+    form->revalidate(ui->cert_public_key_sha256);
 }

@@ -4,6 +4,11 @@
 #include <QPainter>
 
 #include "include/global/Utils.hpp"
+#include "include/global/Validation.hpp"
+#include "include/ui/utils/ValidationForm.h"
+
+#include <algorithm>
+#include <climits>
 
 namespace {
     QIcon RecolorIcon(const QString &path, const QColor &color) {
@@ -20,6 +25,8 @@ namespace {
 DialogEditOtp::DialogEditOtp(QWidget *parent, std::shared_ptr<Configs::OtpProfile> profile_)
     : QDialog(parent), ui(new Ui::DialogEditOtp), profile(std::move(profile_)) {
     ui->setupUi(this);
+    form = new Validation::Form(this);
+    form->attachStatus(ui->buttonBox);
 
     ui->name->setText(profile->name);
     ui->secret->setText(profile->secret);
@@ -28,7 +35,7 @@ DialogEditOtp::DialogEditOtp(QWidget *parent, std::shared_ptr<Configs::OtpProfil
     ui->algorithm->setCurrentIndex(static_cast<int>(profile->algorithm));
     ui->digits->setValue(profile->digits);
     ui->period->setValue(profile->period);
-    ui->counter->setValue(static_cast<int>(profile->counter));
+    ui->counter->setValue(static_cast<int>(std::clamp<qint64>(profile->counter, 0, INT_MAX)));
 
     connect(ui->show_secret, &QToolButton::toggled, this, [this](const bool on) {
         ui->secret->setEchoMode(on ? QLineEdit::Normal : QLineEdit::Password);
@@ -50,8 +57,18 @@ DialogEditOtp::DialogEditOtp(QWidget *parent, std::shared_ptr<Configs::OtpProfil
     connect(previewTimer, &QTimer::timeout, this, [this] { updatePreview(); });
     previewTimer->start();
 
+    form->bind(ui->name, Validation::Rules::Required());
+    form->bind(ui->secret, [](const QString &text) {
+        if (text.trimmed().isEmpty()) return Validation::Required(text);
+        bool ok = false;
+        const auto key = OTP::Base32Decode(text, &ok);
+        if (!ok) return tr("Not valid base32: use the letters A-Z and the digits 2-7.");
+        return key.isEmpty() ? tr("Too short to be a secret.") : QString();
+    }).raw();
+
     updateTypeFields();
     updatePreview();
+    form->markAll();
 }
 
 DialogEditOtp::~DialogEditOtp() {
@@ -87,7 +104,9 @@ QString DialogEditOtp::collect(Configs::OtpProfile &out) const {
     out.algorithm = static_cast<OTP::Algorithm>(ui->algorithm->currentIndex());
     out.digits = ui->digits->value();
     out.period = ui->period->value();
-    out.counter = ui->counter->value();
+    // The spin box tops out at INT_MAX; a larger stored counter is kept while the field still shows that cap.
+    const bool counterCapped = profile->counter > ui->counter->maximum() && ui->counter->value() == ui->counter->maximum();
+    out.counter = counterCapped ? profile->counter : ui->counter->value();
 
     if (out.name.isEmpty()) return tr("Name cannot be empty");
     if (ui->secret->text().trimmed().isEmpty()) return tr("Secret is empty");
@@ -116,6 +135,7 @@ void DialogEditOtp::updatePreview() const {
 }
 
 void DialogEditOtp::accept() {
+    if (!form->validateAll()) return;
     Configs::OtpProfile candidate;
     if (const auto error = collect(candidate); !error.isEmpty()) {
         MessageBoxWarning(tr("OTP Profile"), error);

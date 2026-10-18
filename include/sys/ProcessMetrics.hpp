@@ -11,6 +11,7 @@ namespace Sys {
             bool ok = false;         // false when the pid could not be queried
             qint64 rssBytes = 0;     // bytes: Windows private working set, macOS phys_footprint, Linux RSS
             double cpuPercent = 0.0; // 0..100 of total machine CPU; 0 on first sample
+            bool cpuValid = false;   // false on the first sample after a reset, which has no prior to diff against
         };
 
         // 0/negative pid -> not ok; a reused pid reads 0 for that tick via the non-negative-delta guard.

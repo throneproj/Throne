@@ -24,6 +24,7 @@
 #include "include/scanner/IpListParse.h"
 #include "include/scanner/IpListUpdater.h"
 #include "include/ui/setting/ThemeManager.hpp"
+#include "include/ui/utils/ValidationForm.h"
 
 namespace {
     constexpr int kEditIpListEditableEntries = 50000;
@@ -58,8 +59,8 @@ namespace {
         return text;
     }
 
-    std::optional<int> editIpListInterval(const QLineEdit *edit) {
-        const auto text = edit->text().trimmed();
+    std::optional<int> editIpListInterval(const QString &input) {
+        const auto text = input.trimmed();
         if (text.isEmpty()) return Configs::IpList().update_interval;
         bool ok = false;
         // QLocale, not QString::toInt: the validator lets locale digits and group separators through.
@@ -73,6 +74,8 @@ DialogEditIpList::DialogEditIpList(QWidget *parent, const int listId, const Conf
                                    const QString &prefillText)
     : QDialog(parent), ui(new Ui::DialogEditIpList) {
     ui->setupUi(this);
+    form = new Validation::Form(this);
+    form->attachStatus(ui->buttonBox);
 
     ui->entries->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
     ui->managed_note->setTextFormat(Qt::PlainText);
@@ -81,6 +84,12 @@ DialogEditIpList::DialogEditIpList(QWidget *parent, const int listId, const Conf
     ui->update_interval->setValidator(new QIntValidator(kEditIpListMinInterval, kEditIpListMaxInterval, ui->update_interval));
     ui->update_interval->setPlaceholderText(QString::number(Configs::IpList().update_interval));
     setupRuleSetPicker();
+    form->bind(ui->url, [this](const QString &text) { return sourceError(Configs::IpList::SourceKind::Url, text); });
+    form->bind(ui->rule_set, [this](const QString &text) { return sourceError(Configs::IpList::SourceKind::RuleSet, text); });
+    form->bind(ui->update_interval, [](const QString &text) {
+        if (editIpListInterval(text)) return QString();
+        return tr("Must be from %1 to %2 minutes.").arg(kEditIpListMinInterval).arg(kEditIpListMaxInterval);
+    }).label(ui->label_auto_update->text());
 
     summaryTimer = new QTimer(this);
     summaryTimer->setSingleShot(true);
@@ -122,6 +131,7 @@ DialogEditIpList::DialogEditIpList(QWidget *parent, const int listId, const Conf
     applyColors();
     updateControls();
     if (!missing) updateSummary();
+    if (!scanOwned && !missing) form->markAll();
 
     if (isNew && kind == Configs::IpList::SourceKind::Url) ui->url->setFocus();
     else if (isNew && kind == Configs::IpList::SourceKind::RuleSet) ui->rule_set->setFocus();
@@ -414,26 +424,13 @@ void DialogEditIpList::accept() {
         return;
     }
     if (fetching || saving) return;
+    if (!form->validateAll()) return;
 
     const auto kind = currentKind();
     const bool remote = kind != Configs::IpList::SourceKind::Manual;
     const auto source = remote ? currentSource() : QString();
-    if (remote) {
-        if (const auto error = sourceError(kind, source); !error.isEmpty()) {
-            editIpListWarning(this, windowTitle(), error);
-            return;
-        }
-    }
     const bool autoUpdate = remote && ui->auto_update->isChecked();
-    const auto interval = editIpListInterval(ui->update_interval);
-    if (autoUpdate && !interval) {
-        ui->update_interval->setFocus();
-        editIpListWarning(this, windowTitle(),
-                          tr("Auto update interval must be between %1 and %2 minutes.")
-                              .arg(kEditIpListMinInterval)
-                              .arg(kEditIpListMaxInterval));
-        return;
-    }
+    const auto interval = editIpListInterval(ui->update_interval->text());
     auto *updater = Scanner::IpListUpdater::instance();
     if (!isNew && updater->IsRefreshing(list->id)) {
         editIpListWarning(this, windowTitle(),

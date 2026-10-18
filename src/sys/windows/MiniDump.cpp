@@ -8,6 +8,9 @@
 #include <windows.h>
 #include <tchar.h>
 #include <dbghelp.h>
+#if defined(_MSC_VER) && defined(_DEBUG)
+#include <crtdbg.h>
+#endif
 
 #include <csignal>
 #include <cstdlib>
@@ -23,6 +26,10 @@ typedef BOOL(WINAPI *MINIDUMPWRITEDUMP)(
     CONST PMINIDUMP_EXCEPTION_INFORMATION ExceptionParam,
     CONST PMINIDUMP_USER_STREAM_INFORMATION UserStreamParam,
     CONST PMINIDUMP_CALLBACK_INFORMATION CallbackParam);
+
+// Resolved from kernel32 at run time: MinGW's werapi.h lacks the flag, and wer.lib is not linked.
+typedef HRESULT(WINAPI *WERSETFLAGS)(DWORD dwFlags);
+static const DWORD THRONE_WER_FAULT_REPORTING_NO_UI = 0x20;
 
 #if defined(_M_ARM64) || defined(__aarch64__)
 #define THRONE_ARCH L"arm64"
@@ -59,6 +66,7 @@ static const ULONG32 THRONE_LOG_STREAM = 0x10000;
 
 static wchar_t g_dumpPathTemplate[MAX_PATH] = L"";
 static bool g_crashDirReady = false;
+static bool g_interactive = true;
 static LONG g_reporting = 0;
 static char g_logStream[128 * 1024];
 
@@ -247,6 +255,19 @@ static void WriteCrashArtifacts(EXCEPTION_POINTERS *pException) {
 
     WriteSidecar(sidecarPath, pException, dumpWritten);
 
+    if (!g_interactive) {
+        // Nobody may be there to dismiss a box (a service, a headless run), and it would hold the process forever.
+        const HANDLE err = GetStdHandle(STD_ERROR_HANDLE);
+        if (err != nullptr && err != INVALID_HANDLE_VALUE) {
+            char narrow[MAX_PATH * 3] = "";
+            WideCharToMultiByte(CP_UTF8, 0, g_dumpPathTemplate, -1, narrow, sizeof(narrow) - 1, nullptr, nullptr);
+            AppendA(err, "Throne crashed; a crash report was saved to ");
+            AppendA(err, narrow);
+            AppendA(err, "\r\n");
+        }
+        return;
+    }
+
     // Win32 MessageBox, not QMessageBox: a QWidget built off the GUI thread faults again and re-enters the filter.
     wchar_t msg[MAX_PATH + 512];
     const EXCEPTION_RECORD *record = pException != nullptr ? pException->ExceptionRecord : nullptr;
@@ -305,8 +326,24 @@ static void OnAbort(int) { ReportSynthetic(THRONE_EXC_ABORT); }
 
 static void OnNewFailed() { ReportSynthetic(THRONE_EXC_NEWFAIL); }
 
-void Windows_SetCrashHandler() {
-    SetErrorMode(SEM_FAILCRITICALERRORS);
+void Windows_SetCrashHandler(bool interactive) {
+    g_interactive = interactive;
+    SetErrorMode(interactive ? SEM_FAILCRITICALERRORS
+                             : SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX);
+    if (!interactive) {
+        // A __fastfail or heap corruption never reaches the filter, and WER's own dialog would hold a session-0 process forever.
+        const HMODULE kernel = GetModuleHandleW(L"kernel32.dll");
+        const WERSETFLAGS werSetFlags = kernel != nullptr
+            ? reinterpret_cast<WERSETFLAGS>(reinterpret_cast<void (*)()>(GetProcAddress(kernel, "WerSetFlags")))
+            : nullptr;
+        if (werSetFlags != nullptr) werSetFlags(THRONE_WER_FAULT_REPORTING_NO_UI);
+#if defined(_MSC_VER) && defined(_DEBUG)
+        _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
+        _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);
+        _CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE);
+        _CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDERR);
+#endif
+    }
     SetUnhandledExceptionFilter(CreateCrashHandler);
 
     // STATUS_STACK_OVERFLOW reaches the filter with one guard page left, not enough to write a dump (per-thread setting).
@@ -320,6 +357,17 @@ void Windows_SetCrashHandler() {
     signal(SIGABRT, OnAbort);
 }
 
+bool Windows_WindowStationVisible() {
+    const HWINSTA station = GetProcessWindowStation();
+    if (station == nullptr) return false;
+    USEROBJECTFLAGS flags;
+    ZeroMemory(&flags, sizeof(flags));
+    DWORD needed = 0;
+    // Unknown keeps the interactive default: only a station known to be invisible (session 0) drops the box.
+    if (!GetUserObjectInformationW(station, UOI_FLAGS, &flags, sizeof(flags), &needed)) return true;
+    return (flags.dwFlags & WSF_VISIBLE) != 0;
+}
+
 void Windows_SetCrashDumpPath() {
     const wchar_t *dir = Logging::CrashDirNative();
     if (dir == nullptr || *dir == L'\0') return;
@@ -327,15 +375,27 @@ void Windows_SetCrashDumpPath() {
     g_crashDirReady = true;
 }
 
+enum class WerRegistration { Written, Kept, Failed };
+
 // WER reads LocalDumps from HKLM only; an HKCU copy is silently ignored, so this needs admin.
-static bool RegisterWerApp(const wchar_t *exeName, const wchar_t *folder) {
+static WerRegistration RegisterWerApp(const wchar_t *exeName, const wchar_t *folder, bool onlyIfAbsent) {
     wchar_t subKey[512];
     wsprintfW(subKey, L"SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps\\%s", exeName);
 
     HKEY key = nullptr;
+    // Readable without admin, so an unelevated headless still reports a present key as kept, not as a failure.
+    if (onlyIfAbsent && RegOpenKeyExW(HKEY_LOCAL_MACHINE, subKey, 0, KEY_QUERY_VALUE, &key) == ERROR_SUCCESS) {
+        RegCloseKey(key);
+        return WerRegistration::Kept;
+    }
+    DWORD disposition = 0;
     if (RegCreateKeyExW(HKEY_LOCAL_MACHINE, subKey, 0, nullptr, REG_OPTION_NON_VOLATILE,
-                        KEY_SET_VALUE, nullptr, &key, nullptr) != ERROR_SUCCESS) {
-        return false;
+                        KEY_SET_VALUE, nullptr, &key, &disposition) != ERROR_SUCCESS) {
+        return WerRegistration::Failed;
+    }
+    if (onlyIfAbsent && disposition == REG_OPENED_EXISTING_KEY) {
+        RegCloseKey(key);
+        return WerRegistration::Kept;
     }
     RegSetValueExW(key, L"DumpFolder", 0, REG_EXPAND_SZ,
                    reinterpret_cast<const BYTE *>(folder),
@@ -351,11 +411,13 @@ static bool RegisterWerApp(const wchar_t *exeName, const wchar_t *folder) {
     RegSetValueExW(key, L"CustomDumpFlags", 0, REG_DWORD,
                    reinterpret_cast<const BYTE *>(&customFlags), sizeof(customFlags));
     RegCloseKey(key);
-    return true;
+    return WerRegistration::Written;
 }
 
-void Windows_ConfigureWER() {
+void Windows_ConfigureWER(bool onlyIfAbsent) {
     if (!g_crashDirReady) return;
+    // A non-interactive run is headless whatever the caller passed: the GUI and the service share Throne.exe's key.
+    const bool keepExisting = onlyIfAbsent || !g_interactive;
 
     wchar_t exePath[MAX_PATH] = L"";
     if (GetModuleFileNameW(nullptr, exePath, MAX_PATH) == 0) return;
@@ -365,13 +427,20 @@ void Windows_ConfigureWER() {
     }
 
     // The core is a separate process: its fatal Go runtime aborts are invisible to anything installed in this one.
-    const bool ok = RegisterWerApp(exeName, g_dumpPathTemplate) &&
-                    RegisterWerApp(L"ThroneCore.exe", g_dumpPathTemplate);
-    if (ok) {
-        LOG_INFO("WER LocalDumps registered for Throne.exe and ThroneCore.exe");
-    } else {
+    const WerRegistration self = RegisterWerApp(exeName, g_dumpPathTemplate, keepExisting);
+    const WerRegistration core = RegisterWerApp(L"ThroneCore.exe", g_dumpPathTemplate, keepExisting);
+    const QString selfName = QString::fromWCharArray(exeName);
+    if (self == WerRegistration::Failed || core == WerRegistration::Failed) {
         LOG_INFO("WER LocalDumps not registered (needs admin); crashes that bypass "
                  "the exception filter will go to %LOCALAPPDATA%\\CrashDumps if "
                  "LocalDumps is enabled machine-wide");
+    } else if (self == WerRegistration::Kept && core == WerRegistration::Kept) {
+        LOG_INFO(QStringLiteral("WER LocalDumps already registered for %1 and ThroneCore.exe; left as is").arg(selfName));
+    } else if (self == WerRegistration::Kept || core == WerRegistration::Kept) {
+        LOG_INFO(QStringLiteral("WER LocalDumps registered for %1; the existing key for %2 was left as is")
+                     .arg(self == WerRegistration::Written ? selfName : QStringLiteral("ThroneCore.exe"),
+                          self == WerRegistration::Kept ? selfName : QStringLiteral("ThroneCore.exe")));
+    } else {
+        LOG_INFO(QStringLiteral("WER LocalDumps registered for %1 and ThroneCore.exe").arg(selfName));
     }
 }

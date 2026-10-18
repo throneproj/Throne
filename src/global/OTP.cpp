@@ -1,5 +1,6 @@
 #include "include/global/OTP.hpp"
 
+#include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDateTime>
 #include <QJsonArray>
@@ -10,6 +11,7 @@
 #include <QRegularExpression>
 #include <QStringList>
 #include <algorithm>
+#include <optional>
 #include <QUrl>
 #include <QUrlQuery>
 
@@ -95,12 +97,71 @@ namespace OTP {
             }
         }
 
-        Algorithm migrationAlgorithm(quint64 value) {
+        // Google's enum: 0 unspecified, 1 SHA1, 2 SHA256, 3 SHA512, 4 MD5.
+        std::optional<Algorithm> migrationAlgorithm(quint64 value) {
             switch (value) {
+                case 0:
+                case 1: return Algorithm::SHA1;
                 case 2: return Algorithm::SHA256;
                 case 3: return Algorithm::SHA512;
-                default: return Algorithm::SHA1;
+                default: return std::nullopt;
             }
+        }
+
+        QString otpEntryLabel(const Entry &entry) {
+            if (!entry.name.isEmpty()) return entry.name;
+            if (!entry.issuer.isEmpty()) return entry.issuer;
+            return QCoreApplication::translate("Validation", "Unnamed entry");
+        }
+
+        QString otpBadAlgorithm(const Entry &entry, const QString &value) {
+            return QCoreApplication::translate("Validation", "%1: algorithm \"%2\" is not supported (only SHA1, SHA256 and SHA512), so its codes would be wrong.")
+                .arg(otpEntryLabel(entry), value);
+        }
+
+        QString otpBadDigits(const Entry &entry, const QString &value) {
+            return QCoreApplication::translate("Validation", "%1: %2 digits are not supported (use %3 to %4).")
+                .arg(otpEntryLabel(entry), value, QString::number(MIN_DIGITS), QString::number(MAX_DIGITS));
+        }
+
+        QString otpBadPeriod(const Entry &entry, const QString &value) {
+            return QCoreApplication::translate("Validation", "%1: a period of \"%2\" seconds is not supported (use %3 to %4).")
+                .arg(otpEntryLabel(entry), value, QString::number(MIN_PERIOD), QString::number(MAX_PERIOD));
+        }
+
+        QString otpBadCounter(const Entry &entry, const QString &value) {
+            return QCoreApplication::translate("Validation", "%1: the counter \"%2\" is not a whole number of 0 or more.").arg(otpEntryLabel(entry), value);
+        }
+
+        QString otpBadType(const Entry &entry, const QString &value) {
+            return QCoreApplication::translate("Validation", "%1: type \"%2\" is not supported (only totp and hotp).").arg(otpEntryLabel(entry), value);
+        }
+
+        QString otpNoSecret(const Entry &entry) {
+            return QCoreApplication::translate("Validation", "%1: there is no secret.").arg(otpEntryLabel(entry));
+        }
+
+        QString otpBadSecret(const Entry &entry) {
+            return QCoreApplication::translate("Validation", "%1: the secret is not valid base32 (letters A-Z and digits 2-7).").arg(otpEntryLabel(entry));
+        }
+
+        // A number or a numeric string, as exports from other apps write either.
+        std::optional<qint64> otpJsonInteger(const QJsonValue &value) {
+            if (value.isString()) {
+                bool ok = false;
+                const auto parsed = value.toString().trimmed().toLongLong(&ok);
+                return ok ? std::optional<qint64>(parsed) : std::nullopt;
+            }
+            if (!value.isDouble()) return std::nullopt;
+            const double number = value.toDouble();
+            if (number != static_cast<double>(static_cast<qint64>(number))) return std::nullopt;
+            return static_cast<qint64>(number);
+        }
+
+        QString otpJsonText(const QJsonValue &value) {
+            if (value.isString()) return value.toString();
+            if (value.isDouble()) return QString::number(value.toDouble());
+            return QString::fromUtf8(QJsonDocument(QJsonArray{value}).toJson(QJsonDocument::Compact)).mid(1).chopped(1).left(40);
         }
 
         quint64 migrationAlgorithmValue(Algorithm algorithm) {
@@ -122,16 +183,58 @@ namespace OTP {
                                [width](const QString &group) { return group.size() == width; });
         }
 
-        Entry entryFromJsonObject(const QJsonObject &object) {
+        // Empty `problem` means the entry is usable.
+        Entry entryFromJsonObject(const QJsonObject &object, QString &problem) {
             Entry entry;
             entry.name = object["name"].toString();
             entry.issuer = object["issuer"].toString();
-            entry.secret = NormalizeSecret(object["secret"].toString());
-            entry.algorithm = AlgorithmFromString(object["algorithm"].toString());
-            entry.type = TypeFromString(object["type"].toString());
-            entry.digits = object.contains("digits") ? object["digits"].toInt(DEFAULT_DIGITS) : DEFAULT_DIGITS;
-            entry.period = object.contains("period") ? object["period"].toInt(DEFAULT_PERIOD) : DEFAULT_PERIOD;
-            entry.counter = object["counter"].toVariant().toLongLong();
+            const auto secret = object["secret"].toString();
+            if (secret.trimmed().isEmpty()) {
+                problem = otpNoSecret(entry);
+                return entry;
+            }
+            entry.secret = NormalizeSecret(secret);
+            if (entry.secret.isEmpty()) {
+                problem = otpBadSecret(entry);
+                return entry;
+            }
+            bool ok = false;
+            const auto algorithm = object["algorithm"].toString();
+            entry.algorithm = AlgorithmFromString(algorithm, &ok);
+            if (!ok) {
+                problem = otpBadAlgorithm(entry, algorithm);
+                return entry;
+            }
+            const auto type = object["type"].toString();
+            entry.type = TypeFromString(type, &ok);
+            if (!ok) {
+                problem = otpBadType(entry, type);
+                return entry;
+            }
+            if (object.contains("digits")) {
+                const auto digits = otpJsonInteger(object["digits"]);
+                if (!digits || *digits < MIN_DIGITS || *digits > MAX_DIGITS) {
+                    problem = otpBadDigits(entry, otpJsonText(object["digits"]));
+                    return entry;
+                }
+                entry.digits = static_cast<int>(*digits);
+            }
+            if (entry.type == Type::TOTP && object.contains("period")) {
+                const auto period = otpJsonInteger(object["period"]);
+                if (!period || *period < MIN_PERIOD || *period > MAX_PERIOD) {
+                    problem = otpBadPeriod(entry, otpJsonText(object["period"]));
+                    return entry;
+                }
+                entry.period = static_cast<int>(*period);
+            }
+            if (entry.type == Type::HOTP && object.contains("counter")) {
+                const auto counter = otpJsonInteger(object["counter"]);
+                if (!counter || *counter < 0) {
+                    problem = otpBadCounter(entry, otpJsonText(object["counter"]));
+                    return entry;
+                }
+                entry.counter = *counter;
+            }
             return entry;
         }
 
@@ -159,7 +262,7 @@ namespace OTP {
 
     Algorithm AlgorithmFromString(const QString &name, bool *ok) {
         if (ok) *ok = true;
-        const auto normalized = name.trimmed().toUpper();
+        const auto normalized = name.trimmed().toUpper().remove(QLatin1Char('-'));
         if (normalized == "SHA256") return Algorithm::SHA256;
         if (normalized == "SHA512") return Algorithm::SHA512;
         if (normalized == "SHA1" || normalized.isEmpty()) return Algorithm::SHA1;
@@ -298,13 +401,15 @@ namespace OTP {
         return url.toString(QUrl::FullyEncoded);
     }
 
-    bool ParseFromLink(const QString &link, Entry &out) {
+    bool ParseFromLink(const QString &link, Entry &out, QString *problem) {
         const QUrl url(link.trimmed());
         if (!url.isValid() || url.scheme().compare("otpauth", Qt::CaseInsensitive) != 0) return false;
+        const auto fail = [problem](const QString &reason) {
+            if (problem != nullptr) *problem = reason;
+            return false;
+        };
 
         Entry entry;
-        entry.type = TypeFromString(url.host());
-
         auto label = url.path();
         if (label.startsWith('/')) label.remove(0, 1);
         if (const int sep = label.indexOf(':'); sep >= 0) {
@@ -315,23 +420,39 @@ namespace OTP {
         }
 
         const QUrlQuery query(url);
-        entry.secret = NormalizeSecret(query.queryItemValue("secret", QUrl::FullyDecoded));
-        if (entry.secret.isEmpty()) return false;
-
         if (const auto issuer = query.queryItemValue("issuer", QUrl::FullyDecoded).trimmed(); !issuer.isEmpty())
             entry.issuer = issuer;
-        if (query.hasQueryItem("algorithm"))
-            entry.algorithm = AlgorithmFromString(query.queryItemValue("algorithm", QUrl::FullyDecoded));
-        if (query.hasQueryItem("digits"))
-            entry.digits = query.queryItemValue("digits").toInt();
-        if (query.hasQueryItem("period"))
-            entry.period = query.queryItemValue("period").toInt();
-        if (query.hasQueryItem("counter"))
-            entry.counter = query.queryItemValue("counter").toLongLong();
-
-        if (entry.digits < MIN_DIGITS || entry.digits > MAX_DIGITS) entry.digits = DEFAULT_DIGITS;
-        if (entry.period < MIN_PERIOD || entry.period > MAX_PERIOD) entry.period = DEFAULT_PERIOD;
         if (entry.name.isEmpty()) entry.name = entry.issuer;
+
+        bool ok = false;
+        entry.type = TypeFromString(url.host(), &ok);
+        if (!ok) return fail(otpBadType(entry, url.host()));
+        const auto secret = query.queryItemValue("secret", QUrl::FullyDecoded);
+        if (secret.trimmed().isEmpty()) return fail(otpNoSecret(entry));
+        entry.secret = NormalizeSecret(secret);
+        if (entry.secret.isEmpty()) return fail(otpBadSecret(entry));
+
+        if (query.hasQueryItem("algorithm")) {
+            const auto algorithm = query.queryItemValue("algorithm", QUrl::FullyDecoded);
+            entry.algorithm = AlgorithmFromString(algorithm, &ok);
+            if (!ok) return fail(otpBadAlgorithm(entry, algorithm));
+        }
+        if (query.hasQueryItem("digits")) {
+            const auto digits = query.queryItemValue("digits", QUrl::FullyDecoded).trimmed();
+            entry.digits = digits.toInt(&ok);
+            if (!ok || entry.digits < MIN_DIGITS || entry.digits > MAX_DIGITS) return fail(otpBadDigits(entry, digits));
+        }
+        // period applies only to TOTP and counter only to HOTP; the other type's parameter is ignored.
+        if (entry.type == Type::TOTP && query.hasQueryItem("period")) {
+            const auto period = query.queryItemValue("period", QUrl::FullyDecoded).trimmed();
+            entry.period = period.toInt(&ok);
+            if (!ok || entry.period < MIN_PERIOD || entry.period > MAX_PERIOD) return fail(otpBadPeriod(entry, period));
+        }
+        if (entry.type == Type::HOTP && query.hasQueryItem("counter")) {
+            const auto counter = query.queryItemValue("counter", QUrl::FullyDecoded).trimmed();
+            entry.counter = counter.toLongLong(&ok);
+            if (!ok || entry.counter < 0) return fail(otpBadCounter(entry, counter));
+        }
 
         out = entry;
         return true;
@@ -370,7 +491,7 @@ namespace OTP {
         return url.toString(QUrl::FullyEncoded);
     }
 
-    bool ParseFromMigrationLink(const QString &link, QList<Entry> &out) {
+    bool ParseFromMigrationLink(const QString &link, QList<Entry> &out, QStringList *problems) {
         const QUrl url(link.trimmed());
         if (!url.isValid() || url.scheme().compare("otpauth-migration", Qt::CaseInsensitive) != 0) return false;
 
@@ -380,6 +501,7 @@ namespace OTP {
         if (payload.isEmpty()) return false;
 
         QList<Entry> entries;
+        QStringList skipped;
         int pos = 0;
         while (pos < payload.size()) {
             int field = 0, wireType = 0;
@@ -390,6 +512,7 @@ namespace OTP {
 
             Entry entry;
             bool haveSecret = false;
+            std::optional<quint64> badAlgorithm, badDigits, badType;
             int inner = 0;
             while (inner < bytes.size()) {
                 int f = 0, w = 0;
@@ -400,18 +523,33 @@ namespace OTP {
                     case 1: entry.secret = Base32Encode(b); haveSecret = !b.isEmpty(); break;
                     case 2: entry.name = QString::fromUtf8(b); break;
                     case 3: entry.issuer = QString::fromUtf8(b); break;
-                    case 4: entry.algorithm = migrationAlgorithm(v); break;
-                    case 5: entry.digits = v == 2 ? 8 : DEFAULT_DIGITS; break;
-                    case 6: entry.type = v == 1 ? Type::HOTP : Type::TOTP; break;
+                    case 4:
+                        if (const auto algorithm = migrationAlgorithm(v)) entry.algorithm = *algorithm;
+                        else badAlgorithm = v;
+                        break;
+                    // 0 unspecified, 1 six, 2 eight.
+                    case 5:
+                        if (v <= 2) entry.digits = v == 2 ? 8 : DEFAULT_DIGITS;
+                        else badDigits = v;
+                        break;
+                    // 0 unspecified, 1 HOTP, 2 TOTP.
+                    case 6:
+                        if (v <= 2) entry.type = v == 1 ? Type::HOTP : Type::TOTP;
+                        else badType = v;
+                        break;
                     case 7: entry.counter = static_cast<qint64>(v); break;
                     default: break;
                 }
             }
-            if (!haveSecret) continue;
             if (entry.name.isEmpty()) entry.name = entry.issuer;
-            entries.append(entry);
+            if (!haveSecret) skipped << otpNoSecret(entry);
+            else if (badAlgorithm) skipped << otpBadAlgorithm(entry, *badAlgorithm == 4 ? QStringLiteral("MD5") : QString::number(*badAlgorithm));
+            else if (badDigits) skipped << QCoreApplication::translate("Validation", "%1: the digit count code %2 is not supported.").arg(otpEntryLabel(entry), QString::number(*badDigits));
+            else if (badType) skipped << otpBadType(entry, QString::number(*badType));
+            else entries.append(entry);
         }
 
+        if (problems != nullptr) *problems += skipped;
         if (entries.isEmpty()) return false;
         out = entries;
         return true;
@@ -426,7 +564,7 @@ namespace OTP {
         return QJsonDocument(root).toJson(QJsonDocument::Indented);
     }
 
-    bool ParseFromJson(const QByteArray &json, QList<Entry> &out) {
+    bool ParseFromJson(const QByteArray &json, QList<Entry> &out, QStringList *problems) {
         QJsonParseError error{};
         const auto document = QJsonDocument::fromJson(json, &error);
         if (error.error != QJsonParseError::NoError) return false;
@@ -438,10 +576,14 @@ namespace OTP {
 
         QList<Entry> entries;
         for (const auto &value : array) {
-            if (!value.isObject()) continue;
-            auto entry = entryFromJsonObject(value.toObject());
-            if (entry.secret.isEmpty()) continue;
-            entries.append(entry);
+            QString problem;
+            if (!value.isObject()) {
+                problem = QCoreApplication::translate("Validation", "Skipped an item that is not an OTP entry.");
+            } else if (auto entry = entryFromJsonObject(value.toObject(), problem); problem.isEmpty()) {
+                entries.append(entry);
+                continue;
+            }
+            if (problems != nullptr) *problems << problem;
         }
 
         if (entries.isEmpty()) return false;
@@ -455,8 +597,12 @@ namespace OTP {
         if (trimmed.isEmpty()) return result;
 
         if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
-            if (ParseFromJson(trimmed.toUtf8(), result)) return result;
-            if (problems) *problems << QObject::tr("Not a readable OTP export");
+            QStringList skipped;
+            const bool parsed = ParseFromJson(trimmed.toUtf8(), result, &skipped);
+            if (problems) {
+                if (!parsed && skipped.isEmpty()) *problems << QObject::tr("Not a readable OTP export");
+                *problems += skipped;
+            }
             return result;
         }
 
@@ -467,26 +613,42 @@ namespace OTP {
 
             if (line.startsWith("otpauth-migration://", Qt::CaseInsensitive)) {
                 QList<Entry> batch;
-                if (ParseFromMigrationLink(line, batch)) result += batch;
-                else if (problems) *problems << QObject::tr("Unreadable migration link");
+                QStringList skipped;
+                if (ParseFromMigrationLink(line, batch, &skipped)) result += batch;
+                else if (problems && skipped.isEmpty()) *problems << QObject::tr("Unreadable migration link");
+                if (problems) *problems += skipped;
                 continue;
             }
 
             Entry entry;
-            if (ParseFromLink(line, entry)) {
+            QString problem;
+            if (ParseFromLink(line, entry, &problem)) {
                 result.append(entry);
                 continue;
             }
-
-            if (const auto secret = LooksLikeBareSecret(line) ? NormalizeSecret(line) : QString();
-                !secret.isEmpty() && Base32Decode(secret).size() >= MIN_BARE_SECRET_BYTES) {
-                Entry bare;
-                bare.secret = secret;
-                result.append(bare);
+            // Never echo an otpauth line: it holds the secret.
+            if (!problem.isEmpty() || line.startsWith("otpauth://", Qt::CaseInsensitive)) {
+                if (problems) *problems << (problem.isEmpty() ? QCoreApplication::translate("Validation", "An otpauth link could not be read.") : problem);
                 continue;
             }
 
-            if (problems) *problems << QObject::tr("Not an otpauth link or secret: %1").arg(line.left(40));
+            if (const auto secret = LooksLikeBareSecret(line) ? NormalizeSecret(line) : QString(); !secret.isEmpty()) {
+                if (Base32Decode(secret).size() >= MIN_BARE_SECRET_BYTES) {
+                    Entry bare;
+                    bare.secret = secret;
+                    result.append(bare);
+                } else if (problems) {
+                    *problems << QCoreApplication::translate("Validation", "Skipped a base32 secret shorter than %1 characters.")
+                                     .arg((MIN_BARE_SECRET_BYTES * 8 + 4) / 5);
+                }
+                continue;
+            }
+
+            // A lone token may be a mistyped secret, so only prose is echoed.
+            if (problems) {
+                *problems << (LooksLikeBareSecret(line) ? QCoreApplication::translate("Validation", "Skipped a secret that is not valid base32 (letters A-Z and digits 2-7).")
+                                                        : QObject::tr("Not an otpauth link or secret: %1").arg(line.left(40)));
+            }
         }
         return result;
     }

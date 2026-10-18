@@ -1,6 +1,7 @@
 #include "include/ui/profile/edit_snell.h"
 
-#include "include/global/GuiUtils.hpp"
+#include "include/ui/utils/GuiUtils.hpp"
+#include "include/ui/utils/ValidationForm.h"
 
 EditSnell::EditSnell(QWidget *parent) : QWidget(parent), ui(new Ui::EditSnell) {
     ui->setupUi(this);
@@ -55,4 +56,14 @@ bool EditSnell::onEnd() {
     outbound->reuse = ui->reuse->isChecked();
 
     return true;
+}
+
+void EditSnell::bindValidation(Validation::Form &form) {
+    form.bind(ui->psk, Validation::Rules::Required(), this).raw();
+    form.bind(ui->userkey, [](const QString &text) { return Configs::Checks::SnellUserKey(text); }, this).raw();
+    form.addRule({ui->obfs_host, ui->obfs_mode}, [this] {
+        const QString mode = ui->obfs_mode->currentText();
+        if (ui->obfs_host->text().trimmed().isEmpty() || mode == "http" || mode == "tls") return QString();
+        return tr("Obfuscation Host is used only with http or tls obfuscation.");
+    }, this, Validation::Severity::Warning);
 }

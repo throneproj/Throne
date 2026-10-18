@@ -33,9 +33,10 @@
 
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
-#include "include/global/GuiUtils.hpp"
+#include "include/ui/utils/GuiUtils.hpp"
 #include "include/global/RunningProfiles.hpp"
 #include "include/global/Utils.hpp"
+#include "include/ui/utils/ValidationForm.h"
 
 #include <QLabel>
 #include <QLineEdit>
@@ -94,6 +95,16 @@ bool hasServerAddress(const QString &type) {
     return !serverless.contains(type);
 }
 
+bool serverFieldsEditable(const QString &type, ProfileEditor *editor) {
+    return hasServerAddress(type) && editor != nullptr && !editor->locksServerAddress();
+}
+
+// What an endpoint source makes the profile dial instead of its own address.
+Configs::EndpointResolution endpointOverride(const std::shared_ptr<Configs::Profile> &ent, bool editable) {
+    if (!editable || !Configs::EndpointOverrideBlocker(ent).isEmpty()) return {};
+    return Configs::ResolveEndpointSource(Configs::EffectiveEndpointSource(*ent));
+}
+
 QWidget *effectiveFocusWidget(QWidget *widget) {
     QSet<QWidget *> visited;
     while (widget && widget->focusProxy() && !visited.contains(widget)) {
@@ -140,6 +151,8 @@ void rebuildTabOrder(const QList<QWidget *> &tabOrder) {
 DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId, QWidget *parent)
     : QDialog(parent), ui(new Ui::DialogEditProfile) {
     ui->setupUi(this);
+    form = new Validation::Form(this);
+    form->attachStatus(ui->buttonBox);
 
     outerTabOrder = collectTabOrder(this, nullptr, ui->fake);
     innerTabOrderIndex = outerTabOrder.indexOf(ui->fake);
@@ -155,6 +168,16 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
     ui->verticalLayout_5->setAlignment(Qt::AlignTop);
     ui->verticalLayout_8->setAlignment(Qt::AlignTop);
     ui->port->setValidator(QRegExpValidator_Number);
+    form->bind(ui->address, [this](const QString &text) {
+        const auto empty = innerEditor->serverAddressOptional() ? Validation::Empty::Allowed : Validation::Empty::Required;
+        const auto address = QString(text).remove(' ');
+        if (type == "openvpn" && (address.startsWith('[') || address.endsWith(']'))) return Configs::Checks::OpenVPNRemoteHost(address);
+        return Validation::Host(address, empty);
+    }).when([this] { return serverFieldsEditable(type, innerEditor); });
+    form->bind(ui->port, [this](const QString &text) {
+        if (innerEditor->serverPortOptional() && (text.isEmpty() || Validation::ToInt(text) == 0)) return QString();
+        return Validation::Port(text);
+    }).when([this] { return serverFieldsEditable(type, innerEditor); });
 
     setupSingboxStream();
     setupXrayStream();
@@ -167,7 +190,13 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
     connect(ui->advanced_button, &QPushButton::clicked, this, [this] {
         auto *advanced = new EditAdvanced(this, ent);
         advanced->setAttribute(Qt::WA_DeleteOnClose);
-        connect(advanced, &QDialog::accepted, this, [this] { updateControls(); });
+        connect(advanced, &QDialog::accepted, this, [this] {
+            updateControls();
+            // Rules anchored here also read what Advanced just wrote into the profile.
+            for (QWidget *anchor: std::initializer_list<QWidget *>{ui->reality_pbk, ui->certificate_edit, ui->sni, ui->utlsFingerprint}) {
+                form->revalidate(anchor);
+            }
+        });
         advanced->show();
     });
 
@@ -182,6 +211,7 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
             deleteLater();
             return;
         }
+        editLock.emplace(Engine::EditTarget::Profile, ent->id);
         type = ent->type;
         setRowVisible(ui->type_l, ui->type, false);
     }
@@ -198,6 +228,8 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
 }
 
 DialogEditProfile::~DialogEditProfile() {
+    delete form;
+    form = nullptr;
     delete ui;
 }
 
@@ -236,27 +268,33 @@ bool DialogEditProfile::typeSelected(const QString &newType) {
         return false;
     }
 
-    type = editorType;
-    if (newEnt) {
-        ent = Configs::dataManager->profilesRepo->NewProfile(type);
-        ent->gid = groupId;
+    {
+        // Ends with form->refresh(), which re-checks fields the user marked before a type switch.
+        Validation::Form::Pause pause(*form);
+        type = editorType;
+        if (newEnt) {
+            ent = Configs::dataManager->profilesRepo->NewProfile(type);
+            ent->gid = groupId;
+        }
+
+        const auto [widget, editor] = factory(this);
+        if (auto *custom = qobject_cast<EditCustom *>(widget)) custom->preset_core = customType;
+        mountEditor(widget, editor);
+        ui->bean->setTitle(ent->outbound->DisplayType());
+
+        loadSingboxStream();
+        loadXrayStream();
+        innerEditor->onStart(ent);
+        innerEditor->bindValidation(*form);
+        ui->name->setText(ent->outbound->name);
+        ui->address->setText(ent->outbound->GetAddress());
+        ui->port->setText(ent->outbound->GetPort());
+
+        ADD_ASTERISK(this)
+        editor_cache_updated_impl();
+        relayout();
     }
-
-    const auto [widget, editor] = factory(this);
-    if (auto *custom = qobject_cast<EditCustom *>(widget)) custom->preset_core = customType;
-    mountEditor(widget, editor);
-    ui->bean->setTitle(ent->outbound->DisplayType());
-
-    loadSingboxStream();
-    loadXrayStream();
-    innerEditor->onStart(ent);
-    ui->name->setText(ent->outbound->name);
-    ui->address->setText(ent->outbound->GetAddress());
-    ui->port->setText(ent->outbound->GetPort());
-
-    ADD_ASTERISK(this)
-    editor_cache_updated_impl();
-    relayout();
+    if (!newEnt) form->markAll();
     return true;
 }
 
@@ -305,9 +343,7 @@ void DialogEditProfile::updateCommonRows() {
         w->setVisible(server);
         w->setEnabled(!locked);
     }
-    const auto endpoint = server && !locked && Configs::EndpointOverrideBlocker(ent).isEmpty()
-                              ? Configs::ResolveEndpointSource(Configs::EffectiveEndpointSource(*ent))
-                              : Configs::EndpointResolution{};
+    const auto endpoint = endpointOverride(ent, server && !locked);
     const bool overridden = !endpoint.address.isEmpty();
     ui->address->setVisible(server && !overridden);
     addressEffective->setVisible(overridden);
@@ -321,6 +357,7 @@ void DialogEditProfile::updateCommonRows() {
 
 void DialogEditProfile::relayout() {
     updateControls();
+    if (form != nullptr) form->refresh();
     runOnThread([self = QPointer<DialogEditProfile>(this)] {
         if (self != nullptr) self->fitToContent();
     }, this);
@@ -332,7 +369,7 @@ void DialogEditProfile::fitToContent() {
 }
 
 bool DialogEditProfile::onEnd() {
-    if (!validateSingboxStream() || !validateXrayXHTTPSettings()) return false;
+    if (!form->validateAll()) return false;
     if (!innerEditor->onEnd()) return false;
 
     ent->outbound->name = ui->name->text().trimmed();
@@ -349,8 +386,11 @@ void DialogEditProfile::accept() {
     QStringList args;
     if (newEnt) {
         if (!Configs::dataManager->profilesRepo->AddProfile(ent, groupId)) MessageBoxWarning("???", "id exists");
-    } else if (Configs::dataManager->profilesRepo->Save(ent) &&
-               (Configs::dataManager->settingsRepo->started_id == ent->id || Configs::RunningUsesProfile(ent->id))) {
+    } else if (!Configs::dataManager->profilesRepo->Save(ent)) {
+        MessageBoxWarning(software_name, tr("This profile was deleted while you were editing it."));
+        QDialog::reject();
+        return;
+    } else if (Configs::dataManager->settingsRepo->started_id == ent->id || Configs::RunningUsesProfile(ent->id)) {
         args << MwArg::RestartProxy;
     }
     if (!newEnt) Configs::RepositionLater(QList<std::shared_ptr<Configs::Profile>>{ent}, Configs::SortInput::Config);

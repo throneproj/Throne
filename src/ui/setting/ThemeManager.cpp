@@ -215,6 +215,10 @@ static ThemeTokens resolveTokens(const QPalette &pal) {
     t.danger  = separate(QColor(0xC6, 0x28, 0x28), t.surface, 4.5);
     t.success = separate(QColor(0x2E, 0x7D, 0x32), t.surface, 4.5);
     t.info    = separate(QColor(0x32, 0x99, 0xFF), t.surface, 4.0);
+    const std::array<QColor, 5> series{QColor(0x2A, 0x78, 0xD6), QColor(0xEB, 0x68, 0x34), QColor(0x1B, 0xAF, 0x7A),
+                                       QColor(0xE0, 0x69, 0x9A), QColor(0x5B, 0x4B, 0xC4)};
+    for (size_t i = 0; i < series.size(); ++i) t.chartSeries[i] = separate(series[i], t.surface, 3.0);
+    t.chartContext = separate(QColor(0x7D, 0x87, 0x96), t.surface, 3.0);
     return t;
 }
 
@@ -227,6 +231,15 @@ static QString overlayStyleSheet(const ThemeTokens &t) {
         "*[colorRole=\"tag\"] { color: %2; }\n"
         "*[colorRole=\"danger\"] { color: %3; }\n"
         "*[colorRole=\"success\"] { color: %4; }\n"
+        // Colour only: any border rule makes QStyleSheetStyle replace the native frame.
+        "QLineEdit[invalid=\"true\"], QLineEdit[invalid=\"true\"]:focus, QLineEdit[invalid=\"true\"]:hover,\n"
+        "QPlainTextEdit[invalid=\"true\"], QTextEdit[invalid=\"true\"],\n"
+        "QAbstractSpinBox[invalid=\"true\"], QAbstractSpinBox[invalid=\"true\"]:focus, QAbstractSpinBox[invalid=\"true\"]:hover { color: %3; }\n"
+        // A menu-style popup paints its items under the combo's rule, as :active and never :editable or :read-only.
+        "QComboBox[invalid=\"true\"]:editable, QComboBox[invalid=\"true\"]:editable:focus, QComboBox[invalid=\"true\"]:editable:hover,\n"
+        "QComboBox[invalid=\"true\"]:read-only, QComboBox[invalid=\"true\"]:read-only:focus, QComboBox[invalid=\"true\"]:read-only:hover,\n"
+        // Qt polishes a non-editable combo's inactive palette without :read-only.
+        "QComboBox[invalid=\"true\"]:!editable:!active { color: %3; }\n"
     ).arg(hex(t.muted), hex(t.tag), hex(t.danger), hex(t.success));
 #ifdef Q_OS_MACOS
     // QMacStyle centres non-document tabs and elides them instead of scrolling.
@@ -365,6 +378,15 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
     qApp->setStyleSheet(sheet);
 
     current_theme = theme;
+    standardIcons.clear();
+    // Loaded with the restyle, so the next dialog's validation marks don't pay for them.
+    for (const auto pixmap : {QStyle::SP_MessageBoxCritical, QStyle::SP_MessageBoxWarning}) standardIcon(pixmap);
 
     emit themeChanged(theme);
+}
+
+QIcon ThemeManager::standardIcon(QStyle::StandardPixmap pixmap) {
+    auto it = standardIcons.constFind(pixmap);
+    if (it == standardIcons.constEnd()) it = standardIcons.insert(pixmap, QApplication::style()->standardIcon(pixmap));
+    return *it;
 }

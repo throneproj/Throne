@@ -51,22 +51,22 @@ namespace Qv2ray::ui {
         highlightingRules.append(rule);
         //
         debugFormat.setForeground(Qt::darkGray);
-        rule.pattern = QRegularExpression("D[Ee][Bb][Uu][Gg].*?");
+        rule.pattern = QRegularExpression(R"(\bD[Ee][Bb][Uu][Gg]\b)");
         rule.format = debugFormat;
         highlightingRules.append(rule);
         //
         infoFormat.setForeground(darkMode ? Qt::lightGray : Qt::darkCyan);
-        rule.pattern = QRegularExpression("I[Nn][Ff][Oo].*?");
+        rule.pattern = QRegularExpression(R"(\bI[Nn][Ff][Oo]\b)");
         rule.format = infoFormat;
         highlightingRules.append(rule);
         //
         warningFormat.setFontWeight(QFont::Bold);
         warningFormat2.setFontWeight(QFont::Bold);
-        rule.pattern = QRegularExpression("W[Aa][Rr][Nn].*?");
+        rule.pattern = QRegularExpression(R"(\bW[Aa][Rr][Nn]([Ii][Nn][Gg])?\b)");
         rule.format = warningFormat2;
         highlightingRules.append(rule);
         //
-        rule.pattern = QRegularExpression("E[Rr][Rr][Oo][Rr].*?");
+        rule.pattern = QRegularExpression(R"(\b[Ee][Rr][Rr][Oo][Rr]\b)");
         rule.format = rejectedFormat;
         highlightingRules.append(rule);
 
@@ -82,10 +82,6 @@ namespace Qv2ray::ui {
         //
         rule.pattern = QRegularExpression("<<<<+");
         rule.format = warningFormat;
-        highlightingRules.append(rule);
-        //
-        rule.pattern = QRegularExpression("error");
-        rule.format = rejectedFormat;
         highlightingRules.append(rule);
 
         {

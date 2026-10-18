@@ -19,6 +19,8 @@ public:
 
     bool onEnd() override;
 
+    void bindValidation(Validation::Form &form) override;
+
 private:
     Ui::EditTrojan *ui;
     std::shared_ptr<Configs::Profile> ent;

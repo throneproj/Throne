@@ -21,6 +21,9 @@ public:
     void onStart(std::shared_ptr<Configs::Profile> _ent) override;
 
     bool onEnd() override;
+
+    void bindValidation(Validation::Form &form) override;
+
 private:
     Ui::EditXrayVless *ui;
     std::shared_ptr<Configs::Profile> ent;

@@ -4,7 +4,19 @@
 #include <QObject>
 #include <QSet>
 
+#include "include/global/Validation.hpp"
+
 namespace Configs {
+    struct RuleIssue {
+        Validation::Severity severity = Validation::Severity::Error;
+        QString attr;
+        QString message;
+        // The offending list item; empty when the message is about the attribute as a whole.
+        QString value;
+        // The other attribute of a cross-field problem.
+        QString related;
+    };
+
     enum inputType {trufalse, select, text};
 
     // -4 is reserved internally for dns hijack (see get_rule_json), so warp-bypass is -5.
@@ -137,6 +149,10 @@ namespace Configs {
 
         QString override_address;
         QString override_port;
+        // since sing-box 1.12.0
+        bool tls_fragment = false;
+        QString tls_fragment_fallback_delay;
+        bool tls_record_fragment = false;
         // since sing-box 1.14.0
         QString tls_spoof;
         QString tls_spoof_method;
@@ -155,15 +171,27 @@ namespace Configs {
         [[nodiscard]] QJsonObject to_share_json();
         static QStringList get_attributes();
         static QStringList tab_attributes();
-        [[nodiscard]] static bool is_attribute_at_default(RouteRule& rule, const QString& attr);
+        [[nodiscard]] static bool is_attribute_at_default(const RouteRule& rule, const QString& attr);
         void clear_attribute_value(const QString& attr);
         void ensure_ui_visible_attribute_tabs_seeded();
         static inputType get_input_type(const QString& fieldName);
         static QStringList get_values_for_field(const QString& fieldName);
-        QStringList get_current_value_string(const QString& fieldName);
+        [[nodiscard]] QStringList get_current_value_string(const QString& fieldName) const;
         [[nodiscard]] QString get_current_value_bool(const QString& fieldName) const;
         void set_field_value(const QString& fieldName, const QStringList& value);
         [[nodiscard]] bool isEmpty();
         bool canEditAttr(const QString &attr);
+
+        [[nodiscard]] static bool is_list_attribute(const QString& attr);
+        [[nodiscard]] static bool is_match_attribute(const QString& attr);
+        // The action get_rule_json emits: a route rule to block or dns_out is a reject or hijack-dns rule.
+        [[nodiscard]] QString effective_action() const;
+        [[nodiscard]] bool has_match_conditions() const;
+        // One list item or scalar value of attr, on its own; the outbound and cross-field rules are validate()'s.
+        [[nodiscard]] static RuleIssue check_value(const QString& attr, const QString& value);
+        // Every problem the core would refuse at start, or that leaves the rule not doing what it says.
+        [[nodiscard]] QList<RuleIssue> validate() const;
+        // The (attr, related, severity) shapes validate() reports cross-field problems in.
+        [[nodiscard]] static QList<RuleIssue> cross_checks();
     };
 } // namespace Configs

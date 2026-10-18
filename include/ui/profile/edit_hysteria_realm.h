@@ -8,6 +8,8 @@ namespace Ui {
 class EditHysteriaRealm;
 }
 
+namespace Validation { class Form; }
+
 class EditHysteriaRealm : public QDialog
 {
     Q_OBJECT
@@ -25,4 +27,5 @@ private:
 
     Ui::EditHysteriaRealm *ui;
     std::shared_ptr<Configs::Profile> ent;
+    Validation::Form *form = nullptr;
 };

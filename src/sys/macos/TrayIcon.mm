@@ -1,5 +1,6 @@
 #include "include/ui/widget/TrayIcon.hpp"
 
+#include <QDebug>
 #include <QGuiApplication>
 
 #import <AppKit/AppKit.h>
@@ -10,15 +11,43 @@ namespace {
     NSStatusItem *item(void *statusItem) { return static_cast<NSStatusItem *>(statusItem); }
 }
 
+@interface TrayDockDelegate : NSObject <NSApplicationDelegate> {
+@public
+    TrayIcon *owner;
+}
+@end
+
+@implementation TrayDockDelegate
+- (BOOL)applicationShouldHandleReopen:(NSApplication *)sender hasVisibleWindows:(BOOL)flag {
+    Q_UNUSED(sender)
+    Q_UNUSED(flag)
+    if (!owner) return YES;
+    emit owner->dockIconClicked();
+    return NO;
+}
+@end
+
 TrayIcon::TrayIcon(QObject *parent) : QObject(parent) {
     NSStatusItem *statusItem = [[NSStatusBar.systemStatusBar statusItemWithLength:NSSquareStatusItemLength] retain];
     statusItem.visible = NO;
     m_statusItem = statusItem;
+
+    TrayDockDelegate *dockDelegate = [[TrayDockDelegate alloc] init];
+    dockDelegate->owner = this;
+    m_dockDelegate = dockDelegate;
+    SEL setReflectionDelegate = NSSelectorFromString(@"setReflectionDelegate:");
+    if ([NSApp.delegate respondsToSelector:setReflectionDelegate])
+        [NSApp.delegate performSelector:setReflectionDelegate withObject:dockDelegate];
+    else
+        qWarning() << "TrayIcon: the Qt application delegate has no reflection delegate, Dock clicks will not show the window";
 }
 
 TrayIcon::~TrayIcon() {
     [NSStatusBar.systemStatusBar removeStatusItem:item(m_statusItem)];
     [item(m_statusItem) release];
+    TrayDockDelegate *dockDelegate = static_cast<TrayDockDelegate *>(m_dockDelegate);
+    dockDelegate->owner = nullptr;
+    [dockDelegate release];
 }
 
 void TrayIcon::setIcon(const QIcon &icon) {

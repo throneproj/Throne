@@ -18,11 +18,14 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QMap>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QScrollBar>
 #include <QStringListModel>
 #include <QTextBlock>
+
+#include <algorithm>
 
 RawRouteEdit::RawRouteEdit(QWidget* parent) : JsonCodeEdit(parent) {
     completer = new QCompleter(this);
@@ -125,6 +128,7 @@ RawRouteItem::RawRouteItem(QWidget* parent, const std::shared_ptr<Configs::Route
         // Throne writes profile ids where sing-box writes outbound tags; TranslateRawOutbounds swaps them at build time.
         validator->AllowExtraType(QStringLiteral("outbound"), JsonEdit::ValueType::Number);
         validator->AllowExtraType(QStringLiteral("final"), JsonEdit::ValueType::Number);
+        routeValidator = validator;
         jsonEdit->setValidator(validator);
     }
     jsonEdit->setPlainText(chain->rawRoute.isEmpty()
@@ -200,6 +204,17 @@ void RawRouteItem::accept() {
     if (!doc.isObject()) {
         MessageBoxWarning(tr("Invalid route"), tr("The route must be a valid JSON object"));
         return;
+    }
+    // setValidator re-checks right away.
+    if (routeValidator != nullptr) jsonEdit->setValidator(routeValidator);
+    const auto problems = std::count_if(jsonEdit->issues().cbegin(), jsonEdit->issues().cend(),
+                                        [](const JsonEdit::Issue& issue) { return issue.severity == JsonEdit::Severity::Error; });
+    if (problems > 0) {
+        QMessageBox box(QMessageBox::Warning, tr("Raw routing profile"),
+                        tr("The route has %n schema problem(s), and the core will likely refuse to start with it. Save anyway?", "", static_cast<int>(problems)),
+                        QMessageBox::Save | QMessageBox::Cancel, this);
+        box.setDefaultButton(QMessageBox::Cancel);
+        if (box.exec() != QMessageBox::Save) return;
     }
     chain->isRaw = true;
     chain->preventModifications = preventCheck->isChecked();

@@ -2,9 +2,8 @@
 
 #include <QFileDialog>
 
-
-
 #include "include/ui/profile/dialog_edit_profile.h"
+#include "include/ui/utils/ValidationForm.h"
 
 EditExtraCore::EditExtraCore(QWidget *parent) : QWidget(parent),
                                                 ui(new Ui::EditExtraCore) {
@@ -20,10 +19,11 @@ void EditExtraCore::onStart(std::shared_ptr<Configs::Profile> _ent) {
 
     auto outbound = ent->ExtraCore();
     ui->socks_address->setText(outbound->socksAddress);
-    ui->socks_port->setValidator(new QIntValidator(1, 65534));
+    ui->socks_port->setValidator(QRegExpValidator_Number);
     ui->socks_port->setText(Int2String(outbound->socksPort));
     ui->config->setPlainText(outbound->extraCoreConf);
     ui->args->setText(outbound->extraCoreArgs);
+    ui->no_logs->setChecked(outbound->noLogs);
     ui->path_combo->addItems(Configs::dataManager->settingsRepo->GetExtraCorePaths());
     ui->path_combo->setCurrentText(outbound->extraCorePath);
 
@@ -52,6 +52,18 @@ bool EditExtraCore::onEnd() {
     outbound->extraCoreConf = ui->config->toPlainText();
     outbound->extraCorePath = ui->path_combo->currentText().trimmed();
     outbound->extraCoreArgs = ui->args->text().trimmed();
+    outbound->noLogs = ui->no_logs->isChecked();
 
     return true;
+}
+
+void EditExtraCore::bindValidation(Validation::Form &form) {
+    using namespace Validation;
+    form.bind(ui->socks_address, Rules::Host(), this);
+    form.bind(ui->socks_port, Rules::Port(), this);
+    form.bind(ui->path_combo, Rules::Required(), this);
+    form.bind(ui->args, Configs::Checks::ExtraCoreArgs, this);
+    form.addRule({ui->config, ui->args}, [this] {
+        return Configs::Checks::ExtraCoreConfigArg(ui->args->text(), ui->config->toPlainText());
+    }, this);
 }

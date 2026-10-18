@@ -6,6 +6,8 @@ import (
 	"strings"
 	"sync"
 
+	"ThroneCore/internal/xray"
+
 	"github.com/sagernet/sing-box/log"
 )
 
@@ -20,7 +22,8 @@ const (
 )
 
 // LogSink receives sing-box lines (already formatted by the box's platform formatter) with their
-// log.Level, and Go std log lines (Xray gates, probes, close timing) as LogLevelInfo.
+// log.Level, Go std log lines (Xray gates, probes, close timing) as LogLevelInfo, and an Xray gate that
+// cannot start as LogLevelError.
 type LogSink interface {
 	Write(level int32, message string)
 }
@@ -61,11 +64,12 @@ func (p *logPump) setSink(sink LogSink) {
 	}
 }
 
-func (p *logPump) push(level int32, message string) {
+// Reports whether a sink took the line.
+func (p *logPump) push(level int32, message string) bool {
 	p.access.Lock()
 	if p.sink == nil {
 		p.access.Unlock()
-		return
+		return false
 	}
 	limit := p.limit
 	if limit <= 0 {
@@ -77,6 +81,7 @@ func (p *logPump) push(level int32, message string) {
 	p.pending = append(p.pending, logEntry{level: level, message: message})
 	p.access.Unlock()
 	p.wake()
+	return true
 }
 
 func (p *logPump) wake() {
@@ -100,6 +105,15 @@ func (p *logPump) run() {
 			for _, entry := range batch {
 				sink.Write(entry.level, entry.message)
 			}
+		}
+	}
+}
+
+// Std log lines arrive as info, below the app's default warn level; a gate dropping its members must still show.
+func init() {
+	xray.FailureLog = func(message string) {
+		if !pump.push(LogLevelError, message) {
+			stdlog.Println(message)
 		}
 	}
 }

@@ -22,6 +22,8 @@ public:
 
     bool onEnd() override;
 
+    void bindValidation(Validation::Form &form) override;
+
 private:
     void applyVersion();
 

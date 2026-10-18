@@ -26,6 +26,7 @@ struct ConnectionLeafItem : public TreeItem {
     QString key;
     QString destText;
     QString protocolText;
+    QString outboundText;
     int count = 0;
     QStringList connectionIds;
     long long upload = 0;
@@ -44,6 +45,7 @@ struct ProcessGroupItem : public TreeItem {
     long long totalDownloadSpeed = 0;
     int totalConnections = 0;
     QString commonOutbound;
+    QString commonOutboundText;
     bool sameOutbound = true;
     QString commonSource;
     bool sameSource = true;

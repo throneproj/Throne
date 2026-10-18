@@ -1,5 +1,7 @@
 #include "include/ui/profile/edit_shadowtls.h"
 
+#include "include/ui/utils/ValidationForm.h"
+
 EditShadowTLS::EditShadowTLS(QWidget *parent)
     : QWidget(parent),
       ui(new Ui::EditShadowTLS) {
@@ -25,4 +27,10 @@ bool EditShadowTLS::onEnd() {
     outbound->version = ui->version->currentText().trimmed().toInt();
     outbound->password = ui->password->text();
     return true;
+}
+
+void EditShadowTLS::bindValidation(Validation::Form &form) {
+    form.addRule({ui->password, ui->version}, [this] {
+        return Configs::Checks::ShadowTlsPassword(ui->version->currentIndex() + 1, ui->password->text());
+    }, this);
 }

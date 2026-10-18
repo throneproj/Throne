@@ -2,6 +2,7 @@
 #include "NkrVersion.h"
 
 #include <atomic>
+#include <cstdio>
 
 #include <QCoreApplication>
 #include <QDateTime>
@@ -16,6 +17,11 @@
 
 #ifdef Q_OS_WIN
 #include <string>
+#endif
+#ifdef Q_OS_UNIX
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #endif
 
 namespace Logging {
@@ -35,6 +41,11 @@ namespace Logging {
         bool g_initialized = false;
 
         std::atomic<int> g_level{static_cast<int>(Level::Debug)};
+
+        // Off: only Fatal reaches stderr.
+        std::atomic<int> g_stdLevel{static_cast<int>(Level::Off)};
+        std::atomic<int> g_stdFormat{static_cast<int>(StdFormat::Auto)};
+        QMutex g_stdMutex;
 
         // Buffering applies only before Init(); after it, a closed file means disk logging failed for good.
         QStringList g_preInit;
@@ -77,9 +88,12 @@ namespace Logging {
             return last;
         }
 
-        QString formatLine(Level level, const QString &message, const char *file, int line) {
-            QString out = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
-            out += " [";
+        QString formatTimestamp() {
+            return QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
+        }
+
+        QString formatBody(Level level, const QString &message, const char *file, int line) {
+            QString out = "[";
             out += QLatin1String(levelTag(level));
             out += "] [";
             out += QString::number(reinterpret_cast<quintptr>(QThread::currentThreadId()), 16);
@@ -94,6 +108,96 @@ namespace Logging {
             out += message;
             return out;
         }
+
+        QString formatLine(Level level, const QString &message, const char *file, int line) {
+            return formatTimestamp() + ' ' + formatBody(level, message, file, line);
+        }
+
+        bool stdSinkTakes(Level level) {
+            return level == Level::Fatal || static_cast<int>(level) >= g_stdLevel.load(std::memory_order_relaxed);
+        }
+
+        // JOURNAL_STREAM is inherited past redirections, so it only counts when its "dev:ino" is our stderr's (systemd.exec(5)).
+        bool journalStream() {
+#ifdef Q_OS_UNIX
+            static const bool journal = [] {
+                const QByteArray value = qgetenv("JOURNAL_STREAM");
+                const auto colon = value.indexOf(':');
+                if (colon <= 0) return false;
+                bool devOk = false;
+                bool inoOk = false;
+                const qulonglong dev = value.left(colon).toULongLong(&devOk);
+                const qulonglong ino = value.mid(colon + 1).toULongLong(&inoOk);
+                struct stat st{};
+                if (!devOk || !inoOk || ::fstat(::fileno(stderr), &st) != 0) return false;
+                return static_cast<qulonglong>(st.st_dev) == dev && static_cast<qulonglong>(st.st_ino) == ino;
+            }();
+            return journal;
+#else
+            return false;
+#endif
+        }
+
+        int journalPriority(Level level) {
+            switch (level) {
+                case Level::Fatal:
+                case Level::Error: return 3;
+                case Level::Warn: return 4;
+                case Level::Info: return 6;
+                default: return 7;
+            }
+        }
+
+        // journald takes the "<N>" priority prefix per line and stamps its own time.
+        void writeStd(Level level, const QString &timestamp, const QString &body) {
+#ifdef Q_OS_WIN
+            if (_fileno(stderr) < 0) return; // GUI-subsystem process without an inherited stderr
+#endif
+            const auto format = static_cast<StdFormat>(g_stdFormat.load(std::memory_order_relaxed));
+            QByteArray out;
+            if (format == StdFormat::Journal || (format == StdFormat::Auto && journalStream())) {
+                const QByteArray prefix = "<" + QByteArray::number(journalPriority(level)) + ">";
+                out = prefix;
+                out += body.toUtf8().replace("\n", "\n" + prefix);
+            } else {
+                out = timestamp.toUtf8();
+                out += ' ';
+                out += body.toUtf8();
+            }
+            out += '\n';
+            QMutexLocker lock(&g_stdMutex);
+            std::fwrite(out.constData(), 1, static_cast<size_t>(out.size()), stderr);
+            std::fflush(stderr);
+        }
+
+        // Unix: never through a link or onto a hard-linked file, which the data dir's owner could aim at root's files; fails as unopenable.
+        bool openTruncated(QFile &file, const QString &path) {
+            file.setFileName(path);
+#ifdef Q_OS_UNIX
+            const int fd = ::open(QFile::encodeName(path).constData(), O_WRONLY | O_CREAT | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC, 0666);
+            if (fd < 0) return false;
+            struct stat st{};
+            if (::fstat(fd, &st) != 0 || !S_ISREG(st.st_mode) || st.st_nlink != 1 || ::ftruncate(fd, 0) != 0) {
+                ::close(fd);
+                return false;
+            }
+            if (file.open(fd, QIODevice::WriteOnly, QFileDevice::AutoCloseHandle)) return true;
+            if (file.isOpen()) file.close();
+            else ::close(fd);
+            return false;
+#else
+            return file.open(QIODevice::WriteOnly | QIODevice::Truncate);
+#endif
+        }
+
+#ifdef Q_OS_UNIX
+        // A dir link the data dir's owner planted would aim root's log files and crash-file pruning at another dir.
+        bool foreignLink(const QString &path) {
+            struct stat st{};
+            if (::lstat(QFile::encodeName(path).constData(), &st) != 0 || !S_ISLNK(st.st_mode)) return false;
+            return st.st_uid != ::geteuid() && st.st_uid != 0;
+        }
+#endif
 
         // Caller holds g_mutex.
         void pushRing(const QByteArray &utf8) {
@@ -113,8 +217,7 @@ namespace Logging {
                 if (QFile::exists(from)) QFile::rename(from, to);
             }
             QFile::rename(g_logPath, g_logPath + ".1");
-            g_file.setFileName(g_logPath);
-            if (!g_file.open(QIODevice::WriteOnly | QIODevice::Truncate)) return;
+            if (!openTruncated(g_file, g_logPath)) return;
             g_fileBytes = 0;
         }
 
@@ -201,21 +304,39 @@ namespace Logging {
         return static_cast<int>(level) >= g_level.load(std::memory_order_relaxed);
     }
 
+    void EnableStdSink(Level minLevel) { g_stdLevel.store(static_cast<int>(minLevel), std::memory_order_relaxed); }
+
+    void SetStdFormat(StdFormat format) { g_stdFormat.store(static_cast<int>(format), std::memory_order_relaxed); }
+
     void Write(Level level, const QString &message, const char *file, int line) {
-        if (!IsEnabled(level)) return;
-        const QString formatted = formatLine(level, message, file, line);
-        QMutexLocker lock(&g_mutex);
-        writeLocked(formatted, level >= Level::Warn);
+        const bool toFile = IsEnabled(level);
+        const bool toStd = stdSinkTakes(level);
+        if (!toFile && !toStd) return;
+        const QString timestamp = formatTimestamp();
+        const QString body = formatBody(level, message, file, line);
+        if (toFile) {
+            const QString formatted = timestamp + ' ' + body;
+            QMutexLocker lock(&g_mutex);
+            writeLocked(formatted, level >= Level::Warn);
+        }
+        if (toStd) writeStd(level, timestamp, body);
     }
 
     void WriteUserLog(const QString &message) {
-        if (!IsEnabled(Level::Info)) return;
+        const bool toFile = IsEnabled(Level::Info);
+        const bool toStd = stdSinkTakes(Level::Info);
+        if (!toFile && !toStd) return;
         for (const auto &line : message.split('\n')) {
             const QString trimmed = line.trimmed();
             if (trimmed.isEmpty()) continue;
-            const QString formatted = formatLine(Level::Info, "[ui] " + trimmed, nullptr, 0);
-            QMutexLocker lock(&g_mutex);
-            writeLocked(formatted, false);
+            const QString timestamp = formatTimestamp();
+            const QString body = formatBody(Level::Info, "[ui] " + trimmed, nullptr, 0);
+            if (toFile) {
+                const QString formatted = timestamp + ' ' + body;
+                QMutexLocker lock(&g_mutex);
+                writeLocked(formatted, false);
+            }
+            if (toStd) writeStd(Level::Info, timestamp, body);
         }
     }
 
@@ -237,6 +358,21 @@ namespace Logging {
         g_crashDirNative = QDir::toNativeSeparators(g_crashDir).toStdWString();
 #endif
 
+#ifdef Q_OS_UNIX
+        const bool pruneCrashDir = !foreignLink(g_crashDir);
+        if (foreignLink(g_logDir)) {
+            if (stdSinkTakes(Level::Warn)) {
+                writeStd(Level::Warn, formatTimestamp(),
+                         formatBody(Level::Warn, g_logDir + " is a symbolic link of another user; no log files are written", nullptr, 0));
+            }
+            g_markerPath.clear();
+            g_preInit.clear();
+            return;
+        }
+#else
+        const bool pruneCrashDir = true;
+#endif
+
         // Set the crashed session's log aside before this one truncates it or rotation pushes it out.
         g_previousCrashed = QFile::exists(g_markerPath);
         if (g_previousCrashed && QFile::exists(g_logPath)) {
@@ -247,16 +383,15 @@ namespace Logging {
             pruneOldest(g_logDir, {"crashed-*.log"}, MAX_CRASH_LOGS);
         }
 
-        g_file.setFileName(g_logPath);
-        if (!g_file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        if (!openTruncated(g_file, g_logPath)) {
             g_preInit.clear();
             return;
         }
         g_fileBytes = 0;
         g_sinceFlush.start();
 
-        QFile marker(g_markerPath);
-        if (marker.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        QFile marker;
+        if (openTruncated(marker, g_markerPath)) {
             marker.write(QString("pid=%1 version=%2 started=%3\n")
                              .arg(QCoreApplication::applicationPid())
                              .arg(NKR_VERSION)
@@ -290,8 +425,10 @@ namespace Logging {
         g_preInit.clear();
         g_file.flush();
 
-        pruneOldest(g_crashDir, {"*.dmp"}, MAX_CRASH_DUMPS);
-        pruneOldest(g_crashDir, {"*.txt"}, MAX_CRASH_DUMPS);
+        if (pruneCrashDir) {
+            pruneOldest(g_crashDir, {"*.dmp"}, MAX_CRASH_DUMPS);
+            pruneOldest(g_crashDir, {"*.txt"}, MAX_CRASH_DUMPS);
+        }
     }
 
     void Shutdown() {
@@ -365,6 +502,11 @@ namespace Logging {
             QString text = message;
             if (context.category != nullptr && qstrcmp(context.category, "default") != 0) {
                 text = QString("[%1] %2").arg(context.category, message);
+            }
+            if (type == QtFatalMsg) {
+                // A widget or GUI-only call reached a QCoreApplication (headless) process.
+                const auto *app = QCoreApplication::instance();
+                if (app != nullptr && !app->inherits("QApplication")) text.prepend(QStringLiteral("HEADLESS-WIDGET "));
             }
             Write(level, text, context.file, context.line);
             // Qt aborts the process the moment this returns for a fatal message.

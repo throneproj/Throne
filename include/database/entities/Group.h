@@ -9,7 +9,7 @@
 #include <optional>
 
 #include "include/database/entities/EndpointSource.h"
-#include "include/ui/group/GroupSort.hpp"
+#include "include/database/entities/GroupSort.h"
 
 namespace Configs
 {

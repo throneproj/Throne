@@ -141,45 +141,61 @@ namespace Configs
                                    AutoSelectorPlan *plan)
         {
             QList<int> members;
-            auto group = dataManager->groupsRepo->GetGroup(selector->gid);
-            if (group == nullptr) {
+            if (selector->gids.isEmpty()) {
+                if (plan != nullptr) plan->error = "Auto selector tracks no group";
+                return members;
+            }
+            QList<std::shared_ptr<Group>> groups;
+            for (int gid : selector->gids) {
+                if (auto group = dataManager->groupsRepo->GetGroup(gid); group != nullptr) {
+                    groups << group;
+                } else if (plan != nullptr) {
+                    plan->missingGroups++;
+                }
+            }
+            if (groups.isEmpty()) {
                 if (plan != nullptr) plan->error = "Auto selector points at a group that no longer exists";
                 return members;
             }
             const auto filters = buildFilters(selector);
             const auto now = QDateTime::currentSecsSinceEpoch();
-            const auto landing = group->landing_proxy_id >= 0
-                                     ? dataManager->profilesRepo->GetProfile(group->landing_proxy_id)
-                                     : nullptr;
-            const auto front = group->front_proxy_id >= 0
-                                   ? dataManager->profilesRepo->GetProfile(group->front_proxy_id)
-                                   : nullptr;
             QMap<AutoSelectorSkip, int> skips;
             QList<int> unavailable;
-            for (int id : group->Profiles()) {
-                if (id == ent->id) continue;
-                auto member = dataManager->profilesRepo->GetProfile(id);
-                if (plan != nullptr) plan->membersInGroup++;
-                const auto skip = eligibilityOf(member, selector, filters, now);
-                if (skip != AutoSelectorSkip::None && skip != AutoSelectorSkip::Unavailable) {
-                    skips[skip]++;
-                    continue;
-                }
-                if (member->outbound->IsXrayFullConfig()) {
-                    if (!xrayFullConfigFitsChain(landing, front)) {
-                        skips[AutoSelectorSkip::XrayFullChained]++;
+            QSet<int> seen;
+            for (const auto &group : groups) {
+                // Each member is wrapped in its own group's proxies, so the chain checks run per group.
+                const auto landing = group->landing_proxy_id >= 0
+                                         ? dataManager->profilesRepo->GetProfile(group->landing_proxy_id)
+                                         : nullptr;
+                const auto front = group->front_proxy_id >= 0
+                                       ? dataManager->profilesRepo->GetProfile(group->front_proxy_id)
+                                       : nullptr;
+                for (int id : group->Profiles()) {
+                    if (id == ent->id || seen.contains(id)) continue;
+                    seen.insert(id);
+                    auto member = dataManager->profilesRepo->GetProfile(id);
+                    if (plan != nullptr) plan->membersInGroups++;
+                    const auto skip = eligibilityOf(member, selector, filters, now);
+                    if (skip != AutoSelectorSkip::None && skip != AutoSelectorSkip::Unavailable) {
+                        skips[skip]++;
                         continue;
                     }
-                } else if (coreTransitions(landing, member, front) > 2) {
-                    skips[AutoSelectorSkip::CoreTransitions]++;
-                    continue;
+                    if (member->outbound->IsXrayFullConfig()) {
+                        if (!xrayFullConfigFitsChain(landing, front)) {
+                            skips[AutoSelectorSkip::XrayFullChained]++;
+                            continue;
+                        }
+                    } else if (coreTransitions(landing, member, front) > 2) {
+                        skips[AutoSelectorSkip::CoreTransitions]++;
+                        continue;
+                    }
+                    if (skip == AutoSelectorSkip::Unavailable) {
+                        unavailable << id;
+                        continue;
+                    }
+                    members << id;
+                    if (plan != nullptr && effectiveLatency(member, selector, now) > 0) plan->rankedByTest++;
                 }
-                if (skip == AutoSelectorSkip::Unavailable) {
-                    unavailable << id;
-                    continue;
-                }
-                members << id;
-                if (plan != nullptr && effectiveLatency(member, selector, now) > 0) plan->rankedByTest++;
             }
             // Every member's last test failing is an outage, not a dead subscription: excluding
             // them all would leave nothing that could discover the servers came back.

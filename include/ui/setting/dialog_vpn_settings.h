@@ -2,12 +2,17 @@
 
 #include <QDialog>
 #include "ui_dialog_vpn_settings.h"
+#include "include/engine/EditLocks.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
     class DialogVPNSettings;
 }
 QT_END_NAMESPACE
+
+namespace Validation {
+    class Form;
+}
 
 class DialogVPNSettings : public QDialog {
     Q_OBJECT
@@ -19,6 +24,10 @@ public:
 
 private:
     Ui::DialogVPNSettings *ui;
+
+    Validation::Form *form = nullptr;
+
+    Engine::EditLock settingsLock{Engine::EditTarget::Settings};
 
 public slots:
 

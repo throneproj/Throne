@@ -2,7 +2,9 @@
 
 #include <QUuid>
 #include <QRegularExpressionValidator>
-#include "include/global/GuiUtils.hpp"
+#include <limits>
+#include "include/ui/utils/GuiUtils.hpp"
+#include "include/ui/utils/ValidationForm.h"
 
 EditAnyTLS::EditAnyTLS(QWidget *parent) : QWidget(parent), ui(new Ui::EditAnyTLS) {
     ui->setupUi(this);
@@ -32,4 +34,11 @@ bool EditAnyTLS::onEnd() {
     outbound->min_idle_session = ui->min->text().trimmed().toInt();
 
     return true;
+}
+
+void EditAnyTLS::bindValidation(Validation::Form &form) {
+    form.bind(ui->password, Validation::Rules::Required(), this).raw();
+    form.bind(ui->interval, Validation::Rules::Duration(), this);
+    form.bind(ui->timeout, Validation::Rules::Duration(), this);
+    form.bind(ui->min, Validation::Rules::Int(0, std::numeric_limits<int>::max()), this);
 }

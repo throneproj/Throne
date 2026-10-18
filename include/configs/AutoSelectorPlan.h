@@ -35,7 +35,10 @@ namespace Configs
         // The prefix of pool that actually enters the config.
         QList<int> build;
 
-        int membersInGroup = 0;
+        // Profiles across every tracked group that still exists, the selector itself excluded.
+        int membersInGroups = 0;
+        // Tracked groups that no longer exist; they are skipped.
+        int missingGroups = 0;
         int eligible = 0;
         int rankedByTest = 0;
         // Failed-last-test members kept anyway, because excluding them would have emptied the pool.

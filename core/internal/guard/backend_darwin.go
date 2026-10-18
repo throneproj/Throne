@@ -108,9 +108,11 @@ func (b *pfBackend) arm() error {
 	if err = checkMainRuleset(); err != nil {
 		return err
 	}
-	// pf states bypass rule evaluation: flows opened before arming would keep flowing.
-	if _, err = pfctl(nil, "-F", "states"); err != nil {
-		return newError(CodeInternal, "flush the pf states: %w", err)
+	// pf states bypass rule evaluation; a replacing guard keeps them (the API pass's) only if its predecessor never stopped blocking.
+	if !b.cfg.KeepStates || !liveGuardAnchor(b.id) {
+		if _, err = pfctl(nil, "-F", "states"); err != nil {
+			return newError(CodeInternal, "flush the pf states: %w", err)
+		}
 	}
 	cleanupStale(b.id)
 	log.Printf("guard: pf anchor %s armed, tun %v", b.anchor, b.tuns)
@@ -258,6 +260,10 @@ func pfRuleset(cfg *config, tuns []string) string {
 	add("pass out quick inet6 proto udp from any port 546 to any port 547 no state")
 	add("pass out quick inet6 proto 58 all icmp6-type { 130 131 132 133 134 135 136 137 143 } no state")
 	add("pass out quick inet proto 2 from any to 224.0.0.0/4 no state")
+	if cfg.APIPort != 0 {
+		// The state an inbound connection creates carries the API's replies past the final block.
+		add("pass in quick proto tcp from any to any port %d keep state", cfg.APIPort)
+	}
 	if cfg.AllowLAN {
 		var ports []string
 		for _, port := range lanDNSPorts {

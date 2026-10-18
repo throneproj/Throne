@@ -200,12 +200,12 @@
     <widget class="QComboBox" name="obfuscation_type">
      <item>
       <property name="text">
-       <string>salamander</string>
+       <string notr="true">salamander</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>gecko</string>
+       <string notr="true">gecko</string>
       </property>
      </item>
     </widget>

@@ -27,6 +27,7 @@ const (
 	weightLANDNS   = 12
 	weightLAN      = 11
 	weightLink     = 10
+	weightAPI      = 9
 	weightBlock    = 0
 )
 
@@ -102,7 +103,7 @@ func (b *wfpBackend) Arm(cfg *config, events chan<- Event) error {
 			return err
 		}
 	}
-	if err = b.arm(cfg.AllowLAN, tuns, appIDs); err != nil {
+	if err = b.arm(cfg, tuns, appIDs); err != nil {
 		return err
 	}
 	if len(skipped) > 0 {
@@ -126,7 +127,7 @@ func (b *wfpBackend) Arm(cfg *config, events chan<- Event) error {
 	return nil
 }
 
-func (b *wfpBackend) arm(allowLAN bool, tuns []tunAdapter, appIDs []*fwpByteBlob) error {
+func (b *wfpBackend) arm(cfg *config, tuns []tunAdapter, appIDs []*fwpByteBlob) error {
 	b.access.Lock()
 	defer b.access.Unlock()
 	session := fwpmSession0{
@@ -151,7 +152,7 @@ func (b *wfpBackend) arm(allowLAN bool, tuns []tunAdapter, appIDs []*fwpByteBlob
 		if err = b.addSublayer(); err != nil {
 			return err
 		}
-		if _, err = b.install(baseRules(allowLAN, appIDs, &pin)); err != nil {
+		if _, err = b.install(baseRules(cfg, appIDs, &pin)); err != nil {
 			return err
 		}
 		if b.blockAll, err = b.install(blockRules()); err != nil {
@@ -397,7 +398,7 @@ func isTunAlias(alias, name string) bool {
 	return ok && err == nil
 }
 
-func baseRules(allowLAN bool, appIDs []*fwpByteBlob, pin *runtime.Pinner) []wfpRule {
+func baseRules(cfg *config, appIDs []*fwpByteBlob, pin *runtime.Pinner) []wfpRule {
 	apps := make([]fwpmFilterCondition0, len(appIDs))
 	for i, appID := range appIDs {
 		apps[i] = condition(conditionALEAppID, fwpMatchEqual, fwpByteBlobType, uintptr(unsafe.Pointer(appID)))
@@ -408,7 +409,13 @@ func baseRules(allowLAN bool, appIDs []*fwpByteBlob, pin *runtime.Pinner) []wfpR
 			condition(conditionFlags, fwpMatchFlagsAllSet, fwpUint32, fwpConditionFlagIsLoopback),
 		}},
 	}
-	if allowLAN {
+	if cfg.APIPort != 0 {
+		// ALE authorizes the whole flow: an accepted connection's replies never reach the connect layer's block.
+		rules = append(rules, wfpRule{"permit the Throne API", []windows.GUID{layerALEAuthRecvAcceptV4, layerALEAuthRecvAcceptV6}, weightAPI, fwpActionPermit, []fwpmFilterCondition0{
+			equal8(conditionIPProtocol, ipProtoTCP), equal16(conditionIPLocalPort, cfg.APIPort),
+		}})
+	}
+	if cfg.AllowLAN {
 		rules = append(rules, lanRules(pin)...)
 	}
 	return append(rules, linkRules(pin)...)

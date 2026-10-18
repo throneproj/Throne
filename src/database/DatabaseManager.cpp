@@ -35,7 +35,11 @@ namespace Configs {
             // SQLite downgrades to read-only without complaint when the file is not writable.
             if (sqlite3_db_readonly(probe.getHandle(), "main") == 1) return "the file is not writable";
         } catch (const std::exception& e) {
-            if (IsFatalDbError(DescribeDbError(e))) return QString::fromUtf8(e.what());
+            const auto err = DescribeDbError(e);
+            if (IsFatalDbError(err)) return QString::fromUtf8(e.what());
+            const int primary = (err.extended > 0 ? err.extended : err.code) & 0xff;
+            // Stats are disposable, so a file left by another user (a root run) is recreated rather than failing the start.
+            if (primary == SQLITE_CANTOPEN && DbFilesDenied(QString::fromStdString(path))) return "this user cannot read or write it";
         }
         return {};
     }

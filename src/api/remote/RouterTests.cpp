@@ -1,8 +1,5 @@
 #include "include/api/remote/Router.hpp"
 
-#include "include/ui/mainwindow.h"
-#include "include/ui/mainWindow/TestRunner.h"
-
 #include <QDateTime>
 #include <QJsonArray>
 #include <QSet>
@@ -10,6 +7,8 @@
 #include <utility>
 
 #include "include/database/ProfilesRepo.h"
+#include "include/engine/EngineControl.h"
+#include "include/global/Configs.hpp"
 
 namespace RemoteApi::RouterJobs {
     constexpr int kDefaultWaitSec = 300;
@@ -44,9 +43,8 @@ namespace RemoteApi {
             return;
         }
 
-        auto *runner = mw_->testRunner.get();
         const auto busy = Response::Error(409, QStringLiteral("busy"), QStringLiteral("A test is already running"));
-        if (runner->isRunning()) {
+        if (engine_->testsRunning()) {
             respond(busy);
             return;
         }
@@ -57,15 +55,14 @@ namespace RemoteApi {
         job->profileIds = ids;
         job->startedAt = QDateTime::currentSecsSinceEpoch();
         // Runs on the runner's worker thread, or right away when the runner refuses.
-        const auto onFinished = [this, runner, jobId = job->id] {
-            const bool stopped = runner->stopRequested();
+        const auto onFinished = [this, engine = engine_, jobId = job->id] {
+            const bool stopped = engine->testsStopRequested();
             QMetaObject::invokeMethod(this, [this, jobId, stopped] { finishJob(jobId, stopped); }, Qt::QueuedConnection);
         };
-        bool started = false;
-        if (kind == QStringLiteral("latency")) started = runner->runUrlTests(ids, onFinished, false);
-        else if (kind == QStringLiteral("ip")) started = runner->runIpTests(ids, onFinished, false);
-        else started = runner->runSpeedTests(ids, false, onFinished, false);
-        if (!started) {
+        Engine::TestKind testKind = Engine::TestKind::Speed;
+        if (kind == QStringLiteral("latency")) testKind = Engine::TestKind::Latency;
+        else if (kind == QStringLiteral("ip")) testKind = Engine::TestKind::Ip;
+        if (!engine_->runTests(testKind, ids, onFinished)) {
             respond(busy);
             return;
         }
@@ -107,7 +104,7 @@ namespace RemoteApi {
         job->cancelRequested = true;
         job->waiters.append(makeWaiter(respond, RouterJobs::kCancelWaitMs, [this, job] { return jobResponse(*job); }));
         // stop() asks the core over a blocking RPC.
-        runOnNewThread([runner = mw_->testRunner.get()] { runner->stop(); });
+        runOnNewThread([engine = engine_] { engine->stopTests(); });
     }
 
     void Router::deleteResults(const Request &request, const Responder &respond, int) {
@@ -122,7 +119,7 @@ namespace RemoteApi {
             respond(noProfiles());
             return;
         }
-        respond(Response::Ok(QJsonObject{{"cleared", mw_->clear_test_results(ids)}}));
+        respond(Response::Ok(QJsonObject{{"cleared", engine_->clearTestResults(ids)}}));
     }
 
     void Router::finishJob(int jobId, bool stopped) {

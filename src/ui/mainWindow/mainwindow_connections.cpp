@@ -3,6 +3,8 @@
 #include "include/database/entities/RouteProfile.h"
 #include "include/database/RoutesRepo.h"
 #include "include/database/SettingsRepo.h"
+#include "include/engine/connection/ConnectionManager.h"
+#include "include/engine/services/StatsService.h"
 #include "include/global/LocalNetwork.hpp"
 #include "include/ui/utils/ConnectionsFilterHeader.h"
 #include "include/ui/utils/ConnectionsTreeFilterProxyModel.h"
@@ -183,7 +185,7 @@ void MainWindow::restoreConnectionSort()
     if (stored < Stats::Default || stored > Stats::BySource) return;
     // The Source header is unreachable while its column is hidden, so that sort would be stuck for good.
     if (stored == Stats::BySource && !LocalNetwork::LanInboundEnabled()) stored = Stats::Default;
-    // Runs before setup_rpc() spawns the lister thread, so writing the pair unguarded is safe.
+    // Runs before the first core connection spawns the lister thread, so writing the pair unguarded is safe.
     Stats::connection_lister->restoreSort(static_cast<Stats::ConnectionSort>(stored), settings->connection_sort_asc);
     const auto restored = Stats::connection_lister->getSort();
     connectionFilterHeader->setSortSection(ColumnForSort(restored), Stats::SortIsDescending(restored, Stats::connection_lister->isSortAscending()));
@@ -342,17 +344,7 @@ QStringList MainWindow::listedConnectionIds() const
 
 void MainWindow::closeConnections(const QStringList& ids)
 {
-    if (ids.isEmpty()) return;
-    runOnNewThread([ids] {
-        bool rpcOK = false;
-        const auto err = API::defaultClient->CloseConnections(&rpcOK, ids);
-        if (!rpcOK || !err.isEmpty())
-        {
-            MW_show_log(tr("Failed to close connections: %1").arg(err.isEmpty() ? tr("IPC error") : err));
-            return;
-        }
-        Stats::connection_lister->ForceUpdate();
-    });
+    Engine::StatsService::closeConnections(ids);
 }
 
 void MainWindow::UpdateConnectionList(const QList<Stats::ConnectionMetadata>& connections)
@@ -467,7 +459,7 @@ MainWindow::RuleToggle MainWindow::toggleRuleInCurrentRoute(const QString& rawRu
         return fail(tr("Failed to save routing rule: %1").arg(rawRule));
 
     MW_show_log(log);
-    noteRestartNeeded(tr("Routing"));
+    connection()->noteRestartNeeded(Engine::RestartReason::Routing);
     return result;
 }
 

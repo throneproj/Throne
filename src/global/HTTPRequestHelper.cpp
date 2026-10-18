@@ -7,16 +7,41 @@
 #include <QSslSocket>
 #include <QTimer>
 #include <QFile>
-#include <QApplication>
+#include <QEventLoop>
+#include <QMutex>
+#include <QMutexLocker>
 #include <QStringList>
 
 
 
 #include "include/global/Configs.hpp"
 #include "include/global/LocalNetwork.hpp"
-#include "include/ui/mainwindow.h"
 
 namespace Configs_network {
+    namespace {
+        constexpr int kDownloadAssetIdleTimeoutMs = 30000;
+
+        QMutex downloadProgressSinkMutex;
+        NetworkRequestHelper::DownloadProgressSink downloadProgressSink;
+
+        NetworkRequestHelper::DownloadProgressSink loadDownloadProgressSink() {
+            QMutexLocker locker(&downloadProgressSinkMutex);
+            return downloadProgressSink;
+        }
+
+        // The sink is looked up again on the main thread, so one cleared meanwhile is never called.
+        void reportDownloadProgress(const DownloadProgressReport &report, bool show) {
+            if (!loadDownloadProgressSink()) return;
+            runOnUiThread([report, show] {
+                if (const auto sink = loadDownloadProgressSink()) sink(report, show);
+            });
+        }
+    } // namespace
+
+    void NetworkRequestHelper::SetDownloadProgressSink(DownloadProgressSink sink) {
+        QMutexLocker locker(&downloadProgressSinkMutex);
+        downloadProgressSink = std::move(sink);
+    }
 
     HTTPResponse NetworkRequestHelper::HttpGet(const QString &url, bool useProxy) {
         HttpGetOptions options;
@@ -107,6 +132,7 @@ namespace Configs_network {
     QString NetworkRequestHelper::DownloadAsset(const QString &url, const QString &fileName, bool useProxy, bool strictTls) {
         QNetworkRequest request;
         QNetworkAccessManager accessManager;
+        accessManager.setTransferTimeout(kDownloadAssetIdleTimeoutMs);
         request.setUrl(url);
         if (Configs::dataManager->settingsRepo->net_use_proxy || Configs::dataManager->settingsRepo->spmode_system_proxy || useProxy) {
             if (Configs::dataManager->settingsRepo->started_id < 0) {
@@ -140,25 +166,22 @@ namespace Configs_network {
         });
         connect(_reply, &QNetworkReply::downloadProgress, _reply, [&](qint64 bytesReceived, qint64 bytesTotal)
         {
-            runOnUiThread([=]{
-                GetMainWindow()->setDownloadReport(DownloadProgressReport{fileName, bytesReceived, bytesTotal}, true);
-                GetMainWindow()->UpdateDataView();
-            });
+            reportDownloadProgress(DownloadProgressReport{fileName, bytesReceived, bytesTotal}, true);
         });
         QEventLoop loop;
         connect(_reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
         loop.exec();
-        runOnUiThread([=]
-        {
-            GetMainWindow()->setDownloadReport({}, false);
-            GetMainWindow()->UpdateDataView(true);
-        });
+        reportDownloadProgress({}, false);
         auto netErr = _reply->error();
         const QString netErrStr = _reply->errorString();
         const int httpStatus = _reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         const QByteArray body = _reply->readAll();
         _reply->deleteLater();
 
+        // Nothing else aborts this reply, so a cancel is the idle transfer timeout firing.
+        if (netErr == QNetworkReply::NetworkError::OperationCanceledError) {
+            return QObject::tr("Download stalled: no data arrived for %1 seconds.").arg(kDownloadAssetIdleTimeoutMs / 1000);
+        }
         if (netErr != QNetworkReply::NetworkError::NoError) {
             return netErrStr;
         }

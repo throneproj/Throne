@@ -18,6 +18,7 @@
 #include "include/scanner/DefaultIpLists.h"
 #include "include/scanner/IpListUpdater.h"
 #include "include/scanner/ScanManager.h"
+#include "include/ui/utils/ValidationForm.h"
 
 namespace {
     QString newScanDefaultName() {
@@ -40,14 +41,16 @@ namespace {
 
 DialogNewScan::DialogNewScan(QWidget *parent) : QDialog(parent) {
     setWindowTitle(tr("New scan"));
+    form = new Validation::Form(this);
 
     auto *layout = new QVBoxLayout(this);
 
-    auto *form = new QFormLayout();
+    auto *fields = new QFormLayout();
     nameEdit = new QLineEdit(newScanDefaultName(), this);
     nameEdit->selectAll();
-    form->addRow(tr("Name"), nameEdit);
-    layout->addLayout(form);
+    fields->addRow(tr("Name"), nameEdit);
+    layout->addLayout(fields);
+    form->bind(nameEdit, Validation::Rules::Required());
 
     auto *kinds = new QButtonGroup(this);
     genericRadio = new QRadioButton(tr("Generic scan"), this);
@@ -72,6 +75,7 @@ DialogNewScan::DialogNewScan(QWidget *parent) : QDialog(parent) {
     connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
     layout->addWidget(buttons);
+    form->attachStatus(buttons);
 
     nameEdit->setFocus();
     const auto *scr = screen() ? screen() : QGuiApplication::primaryScreen();
@@ -80,11 +84,8 @@ DialogNewScan::DialogNewScan(QWidget *parent) : QDialog(parent) {
 }
 
 void DialogNewScan::accept() {
+    if (!form->validateAll()) return;
     const auto name = nameEdit->text().trimmed();
-    if (name.isEmpty()) {
-        MessageBoxWarning(tr("New scan"), tr("Enter a name for the scan."));
-        return;
-    }
 
     const auto kind = warpRadio->isChecked() ? Configs::IpScan::Kind::Warp : Configs::IpScan::Kind::Generic;
     auto scan = Configs::IpScansRepo::NewIpScan(kind);

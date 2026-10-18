@@ -21,10 +21,13 @@ public:
 
 signals:
     void activated(QSystemTrayIcon::ActivationReason reason);
+    // macOS only: a click on the app's Dock icon, or opening the app again from Finder while it runs.
+    void dockIconClicked();
 
 private:
 #ifdef Q_OS_MAC
     void *m_statusItem = nullptr; // NSStatusItem, kept opaque so this header stays C++
+    void *m_dockDelegate = nullptr; // TrayDockDelegate
     bool m_visible = false;
 #else
     QSystemTrayIcon *m_tray;

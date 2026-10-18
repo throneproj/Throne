@@ -12,7 +12,6 @@ import (
 const (
 	warpRegisterTimeout     = 10 * time.Second
 	warpRegisterHostTimeout = 10 * time.Second
-	quicSignatureTimeout    = 5 * time.Second
 )
 
 func (s *server) WarpRegister(ctx context.Context, in *gen.WarpRegisterRequest) (*gen.WarpRegisterResponse, error) {
@@ -44,7 +43,7 @@ func (s *server) WarpRegister(ctx context.Context, in *gen.WarpRegisterRequest) 
 }
 
 func (s *server) GenQuicSignature(ctx context.Context, in *gen.GenQuicSignatureRequest) (*gen.GenQuicSignatureResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, quicSignatureTimeout)
+	ctx, cancel := context.WithTimeout(ctx, amnezia.QUICSignatureTimeout)
 	defer cancel()
 	packets, err := amnezia.QUICSignature(ctx, in.GetDomain())
 	if err != nil {

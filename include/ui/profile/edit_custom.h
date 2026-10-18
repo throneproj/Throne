@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QPointer>
 #include <QWidget>
 #include "profile_editor.h"
 #include "ui_edit_custom.h"
@@ -26,9 +27,12 @@ public:
 
     bool onEnd() override;
 
+    void bindValidation(Validation::Form &form) override;
+
 private:
     Ui::EditCustom *ui;
     std::shared_ptr<Configs::Profile> ent;
+    QPointer<Validation::Form> form;
 
 private slots:
 

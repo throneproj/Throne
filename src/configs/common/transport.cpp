@@ -1,9 +1,12 @@
 #include "include/configs/common/transport.h"
 
+#include <QCoreApplication>
+#include <QHash>
 #include <QJsonArray>
 #include <include/global/Utils.hpp>
 
 #include "include/configs/common/utils.h"
+#include "include/configs/ParseDiagnostics.h"
 
 namespace Configs {
     bool Transport::ParseFromLink(const QString& link)
@@ -12,7 +15,7 @@ namespace Configs {
         if (!url.isValid()) return false;
         auto query = QUrlQuery(url.query());
 
-        const auto linkType = query.queryItemValue("type");
+        const auto linkType = SingBoxTransportType(query.queryItemValue("type"));
         const bool rawHttp = (linkType.isEmpty() || linkType == "tcp" || linkType == "raw")
                              && query.queryItemValue("headerType") == "http";
         if (query.hasQueryItem("type")) type = linkType == "raw" ? QStringLiteral("tcp") : linkType;
@@ -24,18 +27,21 @@ namespace Configs {
         if (query.hasQueryItem("path")) path = query.queryItemValue("path", QUrl::FullyDecoded);
         // the raw header's server accepts any of its comma-listed paths, while sing-box sends exactly one
         if (rawHttp) path = path.section(',', 0, 0, QString::SectionSkipEmpty).trimmed();
-        if (query.hasQueryItem("method")) method = query.queryItemValue("method");
-        if (query.hasQueryItem("headers")) {
-            auto raw = query.queryItemValue("headers", QUrl::FullyDecoded);
-            headers = raw.split("|");
-            if (headers.length()%2 != 0) {
-                MW_show_log("Failed to import invalid headers: " + raw);
+        if (query.hasQueryItem("method")) {
+            if (const auto value = query.queryItemValue("method").trimmed(); AcceptOptional("method", Validation::HttpToken(value), value)) method = value;
+        }
+        if (const auto raw = query.queryItemValue("headers", QUrl::FullyDecoded); !raw.isEmpty()) {
+            headers = raw.split('|');
+            if (headers.size() % 2 != 0) {
+                ParseDiag::Warn("headers", QCoreApplication::translate("Validation", "The headers must alternate names and values separated by |, for example User-Agent|curl, so they were ignored."));
                 headers.clear();
             }
         }
-        if (query.hasQueryItem("idle_timeout")) idle_timeout = query.queryItemValue("idle_timeout");
-        if (query.hasQueryItem("ping_timeout")) ping_timeout = query.queryItemValue("ping_timeout");
-        if (query.hasQueryItem("max_early_data")) max_early_data = query.queryItemValue("max_early_data").toInt();
+        for (const auto& [key, target] : {std::pair{QStringLiteral("idle_timeout"), &idle_timeout}, std::pair{QStringLiteral("ping_timeout"), &ping_timeout}}) {
+            if (!query.hasQueryItem(key)) continue;
+            if (const auto value = query.queryItemValue(key).trimmed(); AcceptOptional(key, Validation::Duration(value), value)) *target = value;
+        }
+        ReadQueryInt(query, "max_early_data", max_early_data);
         if (query.hasQueryItem("early_data_header_name")) early_data_header_name = query.queryItemValue("early_data_header_name");
         if (query.hasQueryItem("serviceName")) service_name = query.queryItemValue("serviceName", QUrl::FullyDecoded);
         return true;
@@ -43,12 +49,17 @@ namespace Configs {
     bool Transport::ParseFromJson(const QJsonObject& object)
     {
         if (object.isEmpty()) return false;
-        if (object.contains("type")) type = object["type"].toString();
+        if (object.contains("type")) type = SingBoxTransportType(object["type"].toString());
         if (object.contains("host")) {
             host = object["host"].isArray() ? QJsonArray2QListString(object["host"].toArray()).join(',') : object["host"].toString();
         }
         if (object.contains("path")) path = object["path"].toString();
-        if (object.contains("method")) method = object["method"].toString();
+        // ParseFromJson is also the DB loader: only an import drops values.
+        const bool importing = ParseDiag::Active();
+        if (object.contains("method")) {
+            const auto value = object["method"].toString().trimmed();
+            if (!importing || AcceptOptional("transport.method", Validation::HttpToken(value), value)) method = value;
+        }
         if (object.contains("headers") && object["headers"].isObject()) {
             auto headerObj = object["headers"].toObject();
             if (type == "ws") {
@@ -68,8 +79,11 @@ namespace Configs {
             }
             headers = jsonObjectToQStringList(headerObj);
         }
-        if (object.contains("idle_timeout")) idle_timeout = object["idle_timeout"].toString();
-        if (object.contains("ping_timeout")) ping_timeout = object["ping_timeout"].toString();
+        for (const auto& [key, target] : {std::pair{QStringLiteral("idle_timeout"), &idle_timeout}, std::pair{QStringLiteral("ping_timeout"), &ping_timeout}}) {
+            if (!object.contains(key)) continue;
+            const auto value = object[key].toString().trimmed();
+            if (!importing || AcceptOptional("transport." + key, Validation::Duration(value), value)) *target = value;
+        }
         if (object.contains("max_early_data")) max_early_data = object["max_early_data"].toInt();
         if (object.contains("early_data_header_name")) early_data_header_name = object["early_data_header_name"].toString();
         if (object.contains("service_name")) service_name = object["service_name"].toString();
@@ -85,15 +99,21 @@ namespace Configs {
                 early_data_header_name = QString::fromStdString(object.ws_opts.early_data_header_name);
                 max_early_data = object.ws_opts.max_early_data;
             }
-            if (!object.servername.empty()) {
-                host = QString::fromStdString(object.servername);
-            } else if (object.ws_opts.headers.contains("Host")) {
-                host = QString::fromStdString(object.ws_opts.headers.at("Host"));
-            }
-            if (!object.ws_opts.headers.empty()) {
-                for (const auto& [key, value] : object.ws_opts.headers) {
-                    headers.append(QString::fromStdString(key) + "=" + QString::fromStdString(value));
+            QString headerHost;
+            for (const auto& [key, value] : object.ws_opts.headers) {
+                const auto name = QString::fromStdString(key);
+                // Host belongs in the host field, which ExportToJson writes back as the ws Host header.
+                if (name.compare(QLatin1String("host"), Qt::CaseInsensitive) == 0) {
+                    if (headerHost.isEmpty()) headerHost = QString::fromStdString(value);
+                    continue;
                 }
+                headers << name << QString::fromStdString(value);
+            }
+            // mihomo sends the ws-opts Host header as the HTTP Host and uses servername only for the SNI.
+            if (!headerHost.isEmpty()) {
+                host = headerHost;
+            } else if (!object.servername.empty()) {
+                host = QString::fromStdString(object.servername);
             }
             path = QString::fromStdString(object.ws_opts.path);
             return true;
@@ -198,7 +218,72 @@ namespace Configs {
             for (auto& item : hosts) item = item.trimmed();
             object["host"] = QListStr2QJsonArray(hosts);
         }
+        // The core decodes each type strictly, so a key kept from another type in the editor would refuse to start.
+        static const QHash<QString, QStringList> transportKeys = {
+            {"http", {"host", "path", "method", "headers", "idle_timeout", "ping_timeout"}},
+            {"ws", {"path", "headers", "max_early_data", "early_data_header_name"}},
+            {"quic", {}},
+            {"grpc", {"service_name", "idle_timeout", "ping_timeout", "permit_without_stream"}},
+            {"httpupgrade", {"host", "path", "headers"}},
+        };
+        if (const auto keys = transportKeys.constFind(type); keys != transportKeys.constEnd()) {
+            for (const auto& key : object.keys()) {
+                if (key != "type" && !keys->contains(key)) object.remove(key);
+            }
+        }
         return {object, ""};
+    }
+
+    namespace Checks {
+        QString TransportType(const QString& type)
+        {
+            const auto t = type.trimmed();
+            if (t.isEmpty() || singBoxTransports.contains(t)) return {};
+            return QCoreApplication::translate("Validation", "sing-box does not support the transport \"%1\". Use ws, httpupgrade, http, grpc or quic.").arg(t);
+        }
+
+        QString TransportHost(const QString& host, const QString& type)
+        {
+            return HostHeader(host, type == "http");
+        }
+
+        QString QuicTransport(bool tls, bool /*utls*/, bool reality)
+        {
+            if (!tls) return QCoreApplication::translate("Validation", "The QUIC transport needs TLS. Set Security to tls.");
+            if (reality) return QCoreApplication::translate("Validation", "Reality does not work with the QUIC transport. Clear the Reality key, or choose another transport.");
+            return {};
+        }
+
+        QString QuicTransportUtls(bool utls)
+        {
+            if (!utls) return {};
+            return QCoreApplication::translate("Validation", "uTLS is not used with the QUIC transport.");
+        }
+    }
+
+    QJsonObject TlsForTransport(QJsonObject tls, const QString& transportType)
+    {
+        if (transportType == "quic" && !tls.contains("reality")) tls.remove("utls");
+        return tls;
+    }
+
+    void Transport::Validate(Validation::Issues& issues, bool tls, bool utls, bool reality)
+    {
+        using Validation::Severity;
+        const auto add = [&issues](Severity severity, const QString& field, const QString& message, const QString& value = {}) {
+            if (!message.isEmpty()) issues.append({severity, field, message, value});
+        };
+        add(Severity::Error, "transport.type", Checks::TransportType(type), type);
+        if (type == "http" || type == "ws" || type == "httpupgrade") add(Severity::Warning, "transport.host", Checks::TransportHost(host, type), host);
+        if (type == "http") add(Severity::Warning, "transport.method", Validation::HttpToken(method), method);
+        if (type == "http" || type == "grpc") {
+            add(Severity::Error, "transport.idle_timeout", Validation::Duration(idle_timeout), idle_timeout);
+            add(Severity::Error, "transport.ping_timeout", Validation::Duration(ping_timeout), ping_timeout);
+        }
+        if (type == "quic") {
+            add(Severity::Error, "transport.type", Checks::QuicTransport(tls, utls, reality));
+            if (tls && !reality) add(Severity::Warning, "tls.utls.fingerprint", Checks::QuicTransportUtls(utls));
+        }
     }
 }
 

@@ -1,5 +1,7 @@
 #include "include/ui/profile/edit_trojan.h"
 
+#include "include/ui/utils/ValidationForm.h"
+
 EditTrojan::EditTrojan(QWidget *parent)
     : QWidget(parent),
       ui(new Ui::EditTrojan) {
@@ -22,4 +24,8 @@ bool EditTrojan::onEnd() {
 
     outbound->password = ui->password->text();
     return true;
+}
+
+void EditTrojan::bindValidation(Validation::Form &form) {
+    form.bind(ui->password, Validation::Rules::Required(), this).raw();
 }

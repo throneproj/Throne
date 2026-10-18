@@ -3,11 +3,18 @@
 #include <QDialog>
 #include <QList>
 #include <QPair>
+#include <QPointer>
 #include <QString>
+
+#include "include/engine/vpn/VpnAuth.h"
 #include "ui_dialog_vpn_auth.h"
 
 namespace Ui {
 class DialogVpnAuth;
+}
+
+namespace Engine {
+    class VpnAuthController;
 }
 
 class QAbstractButton;
@@ -16,36 +23,12 @@ class QPushButton;
 class QTimer;
 class QWidget;
 
-// Plain mirror of libcore::VPNChallengeField, so the proto headers stay out of moc's way.
-struct VpnAuthField {
-    QString submissionKey;
-    QString name;
-    QString label;
-    QString kind;
-    QString value;
-    QList<QPair<QString, QString>> options;
-};
-
-struct VpnAuthChallenge {
-    QString endpointTag;
-    QString id;
-    QString kind;
-    QString username;
-    QString message;
-    QString banner;
-    QString error;
-    QString url;
-    bool echo = false;
-    qint64 deadline = 0;
-    QList<VpnAuthField> fields;
-};
-
 class DialogVpnAuth : public QDialog {
     Q_OBJECT
 
 public:
     // `localOnly`: no challenge exists core-side, so nothing is submitted or cancelled.
-    DialogVpnAuth(QWidget *parent, const VpnAuthChallenge &challenge, bool localOnly = false);
+    DialogVpnAuth(QWidget *parent, Engine::VpnAuthController *auth, const VpnAuthChallenge &challenge, bool localOnly = false);
 
     ~DialogVpnAuth() override;
 
@@ -80,6 +63,7 @@ private:
     void fitToContent();
 
     Ui::DialogVpnAuth *ui;
+    QPointer<Engine::VpnAuthController> auth;
     VpnAuthChallenge challenge;
     bool localOnly = false;
     CloseAction closeAction = CloseAction::Cancel;

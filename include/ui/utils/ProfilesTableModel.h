@@ -6,7 +6,7 @@
 #include <QColor>
 #include <memory>
 
-#include "include/ui/group/GroupSort.hpp"
+#include "include/database/entities/GroupSort.h"
 
 namespace Configs {
     class Profile;

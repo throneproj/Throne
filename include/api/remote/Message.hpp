@@ -16,6 +16,8 @@ namespace RemoteApi {
         QJsonValue body;
         // The client's address, for the log.
         QString peer;
+        // May use the management endpoints: the peer is loopback, or management from the LAN is allowed.
+        bool admin = false;
     };
 
     struct Response {

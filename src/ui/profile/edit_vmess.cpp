@@ -2,6 +2,10 @@
 
 #include <QUuid>
 
+#include <limits>
+
+#include "include/ui/utils/ValidationForm.h"
+
 EditVMess::EditVMess(QWidget *parent) : QWidget(parent), ui(new Ui::EditVMess) {
     ui->setupUi(this);
     connect(ui->uuidgen, &QPushButton::clicked, this, [=,this] { ui->uuid->setText(QUuid::createUuid().toString().remove("{").remove("}")); });
@@ -31,4 +35,11 @@ bool EditVMess::onEnd() {
     outbound->security = ui->security->currentText().trimmed();
 
     return true;
+}
+
+void EditVMess::bindValidation(Validation::Form &form) {
+    form.bind(ui->uuid, Validation::Rules::Required(), this);
+    // The core treats a negative alter id as 0.
+    form.bind(ui->aid, Validation::Rules::Int(std::numeric_limits<int>::min(), std::numeric_limits<int>::max()), this);
+    form.bind(ui->security, Validation::Rules::OneOf(Configs::vmessSecurity), this);
 }

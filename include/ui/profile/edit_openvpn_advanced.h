@@ -2,6 +2,7 @@
 
 #include <QDialog>
 #include <QStringList>
+#include <functional>
 #include "ui_edit_openvpn_advanced.h"
 #include "include/database/entities/Profile.h"
 
@@ -9,12 +10,16 @@ namespace Ui {
 class EditOpenVPNAdvanced;
 }
 
+namespace Validation { class Form; }
+
 class EditOpenVPNAdvanced : public QDialog
 {
     Q_OBJECT
 
 public:
-    EditOpenVPNAdvanced(QWidget *parent, const std::shared_ptr<Configs::Profile> &_ent);
+    // pageInput writes the profile page's unsaved input into a copy, so the checks see the whole profile.
+    EditOpenVPNAdvanced(QWidget *parent, const std::shared_ptr<Configs::Profile> &_ent,
+                        std::function<void(Configs::openvpn &)> pageInput = {});
 
     ~EditOpenVPNAdvanced() override;
 
@@ -28,8 +33,16 @@ private:
 
     void addPullFilterRow(const QString &action, const QString &text);
 
+    void bindValidation();
+
+    void saveInto(Configs::openvpn &outbound) const;
+
+    std::shared_ptr<Configs::openvpn> withInput() const;
+
     Ui::EditOpenVPNAdvanced *ui;
     std::shared_ptr<Configs::Profile> ent;
+    std::function<void(Configs::openvpn &)> pageInput;
+    Validation::Form *form = nullptr;
 
     struct {
         QStringList staticKey;

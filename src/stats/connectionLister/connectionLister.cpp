@@ -1,8 +1,11 @@
 #include <QThread>
 #include <QDateTime>
+#include <QObject>
 #include <core/gen/libcore.pb.h>
 #include <include/api/RPC.h>
-#include "include/ui/mainwindow_interface.h"
+#include "include/database/DatabaseManager.h"
+#include "include/global/Utils.hpp"
+#include "include/stats/StatsSink.hpp"
 #include <include/stats/connections/connectionLister.hpp>
 #include "include/stats/traffic/TrafficStatsManager.hpp"
 #include "include/global/LocalNetwork.hpp"
@@ -75,7 +78,14 @@ namespace Stats
         return colon < 0 ? endpoint : endpoint.left(colon);
     }
 
-    static ConnectionMetadata metaFromProto(const libcore::ConnectionMetaData& conn, const QString& localLabel)
+    void ConnectionLister::SetOutboundNames(const QHash<QString, QString>& names)
+    {
+        QMutexLocker lk(&namesMu_);
+        outboundNames_ = names;
+    }
+
+    static ConnectionMetadata metaFromProto(const libcore::ConnectionMetaData& conn, const QString& localLabel,
+                                            const QHash<QString, QString>& outboundNames)
     {
         ConnectionMetadata c;
         c.id = QString::fromStdString(conn.id.value());
@@ -86,6 +96,8 @@ namespace Stats
         c.domain = QString::fromStdString(conn.domain.value());
         c.network = QString::fromStdString(conn.network.value());
         c.outbound = QString::fromStdString(conn.outbound.value());
+        c.outboundName = outboundNames.value(c.outbound);
+        if (c.outboundName.isEmpty()) c.outboundName = c.outbound;
         c.process = QString::fromStdString(conn.process.value());
         c.processPath = QString::fromStdString(conn.process_path.value());
         c.protocol = QString::fromStdString(conn.protocol.value());
@@ -147,6 +159,11 @@ namespace Stats
         libcore::QueryConnectionsResp resp = API::defaultClient->QueryConnections();
         const qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
         const QString localLabel = QObject::tr("Local");
+        QHash<QString, QString> outboundNames;
+        {
+            QMutexLocker lk(&namesMu_);
+            outboundNames = outboundNames_;
+        }
 
         QList<ConnectionMetadata> rows;
         rows.reserve(static_cast<qsizetype>(resp.active.size()));
@@ -155,7 +172,7 @@ namespace Stats
 
         for (const auto& conn : resp.active)
         {
-            auto c = metaFromProto(conn, localLabel);
+            auto c = metaFromProto(conn, localLabel, outboundNames);
 
             SpeedSample s;
             if (const auto it = speedSamples_.constFind(c.id); it != speedSamples_.constEnd())
@@ -265,7 +282,7 @@ namespace Stats
             sortSmallestFirst(rows, asc, [](const ConnectionMetadata& c) -> const QString& { return c.process; });
             break;
         case ByOutbound:
-            sortSmallestFirst(rows, asc, [](const ConnectionMetadata& c) -> const QString& { return c.outbound; });
+            sortSmallestFirst(rows, asc, [](const ConnectionMetadata& c) -> const QString& { return c.outboundName; });
             break;
         case ByProtocol:
             sortSmallestFirst(rows, asc, [](const ConnectionMetadata& c) -> const QString& { return c.protocol; });
@@ -276,7 +293,7 @@ namespace Stats
         }
 
         runOnUiThread([rows = std::move(rows)] {
-            if (auto* m = GetMainWindow()) m->UpdateConnectionList(rows);
+            if (auto* sink = CurrentStatsSink()) sink->onConnections(rows);
         });
     }
 

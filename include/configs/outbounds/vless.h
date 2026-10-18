@@ -8,6 +8,11 @@ namespace Configs
 {
     inline QStringList vlessFlows = {"xtls-rprx-vision"};
 
+    namespace Checks {
+        // sing-box takes only xtls-rprx-vision, and Vision works only on TLS (or REALITY) directly over TCP.
+        QString VlessFlow(const QString &flow, bool tlsEnabled, const QString &transportType);
+    }
+
     class vless : public outbound
     {
         public:
@@ -50,5 +55,7 @@ namespace Configs
         BuildResult Build() override;
 
         QString DisplayType() override;
+
+        void Validate(Validation::Issues &issues) override;
     };
 }

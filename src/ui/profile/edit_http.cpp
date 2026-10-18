@@ -1,5 +1,7 @@
 #include "include/ui/profile/edit_http.h"
 
+#include "include/ui/utils/ValidationForm.h"
+
 EditHttp::EditHttp(QWidget *parent) : QWidget(parent),
       ui(new Ui::EditHttp) {
     ui->setupUi(this);
@@ -22,4 +24,10 @@ bool EditHttp::onEnd() {
     outbound->username = ui->username->text().trimmed();
     outbound->password = ui->password->text();
     return true;
+}
+
+void EditHttp::bindValidation(Validation::Form &form) {
+    form.addRule({ui->password, ui->username}, [this] {
+        return Configs::Checks::HttpAuth(ui->username->text().trimmed(), ui->password->text());
+    }, this, Validation::Severity::Warning);
 }

@@ -28,6 +28,10 @@ namespace {
         sortItems(groups, descending, groupKey);
         for (auto &group : groups) sortItems(group->children, descending, leafKey);
     }
+
+    QString outboundToolTip(const QString &name, const QString &tag) {
+        return name == tag ? name : QStringLiteral("%1 (%2)").arg(name, tag);
+    }
 }
 
 ConnectionsTreeModel::ConnectionsTreeModel(QObject *parent)
@@ -100,7 +104,7 @@ QVariant ConnectionsTreeModel::data(const QModelIndex &index, int role) const {
             case ColProtocol:
                 return QStringLiteral("-");
             case ColOutbound:
-                return group->sameOutbound ? group->commonOutbound : QStringLiteral("-");
+                return group->sameOutbound ? group->commonOutboundText : QStringLiteral("-");
             case ColTraffic:
                 return ReadableSize(group->totalUpload) + "↑ " + ReadableSize(group->totalDownload) + "↓";
             case ColSpeed:
@@ -109,6 +113,7 @@ QVariant ConnectionsTreeModel::data(const QModelIndex &index, int role) const {
                 return {};
             }
         case Qt::ToolTipRole:
+            if (index.column() == ColOutbound && group->sameOutbound) return group->commonOutbound;
             if (index.column() != ColTarget) return {};
             return tr("Process: %1\nActive connections: %2\nTotal traffic: %3↑ %4↓\nTotal speed: %5/s↑ %6/s↓")
                 .arg(displayProcessName(group->processName), QString::number(group->totalConnections),
@@ -136,7 +141,7 @@ QVariant ConnectionsTreeModel::data(const QModelIndex &index, int role) const {
         case ColProtocol:
             return leaf->protocolText;
         case ColOutbound:
-            return leaf->meta.outbound;
+            return leaf->outboundText;
         case ColTraffic:
             return ReadableSize(leaf->upload) + "↑ " + ReadableSize(leaf->download) + "↓";
         case ColSpeed:
@@ -145,16 +150,18 @@ QVariant ConnectionsTreeModel::data(const QModelIndex &index, int role) const {
             return {};
         }
     case Qt::ToolTipRole: {
+        const QString outbound = outboundToolTip(leaf->meta.outboundName, leaf->meta.outbound);
+        if (index.column() == ColOutbound) return outbound;
         if (index.column() != ColTarget) return {};
         const QString process = displayProcessName(leaf->parent->processName);
         if (leaf->count > 1) {
             return tr("Destination: %1\nConnections: %2\nProcess: %3\nProtocol: %4\nOutbound: %5\nTotal traffic: %6↑ %7↓\nTotal speed: %8/s↑ %9/s↓")
-                .arg(leaf->destText, QString::number(leaf->count), process, leaf->protocolText, leaf->meta.outbound,
+                .arg(leaf->destText, QString::number(leaf->count), process, leaf->protocolText, outbound,
                      ReadableSize(leaf->upload), ReadableSize(leaf->download),
                      ReadableSize(leaf->uploadSpeed), ReadableSize(leaf->downloadSpeed));
         }
         return tr("Destination: %1\nProcess: %2\nProtocol: %3\nOutbound: %4")
-            .arg(leaf->destText, process, leaf->protocolText, leaf->meta.outbound);
+            .arg(leaf->destText, process, leaf->protocolText, outbound);
     }
     default:
         return {};
@@ -196,6 +203,12 @@ void ConnectionsTreeModel::setConnections(const QList<Stats::ConnectionMetadata>
     Groups groups;
     QHash<QString, ProcessGroupItem *> groupByName;
     QHash<QString, ConnectionLeafItem *> leafByKey;
+    QHash<QString, QString> shortOutbounds;
+    const auto outboundText = [&shortOutbounds](const QString &name) -> const QString & {
+        auto it = shortOutbounds.find(name);
+        if (it == shortOutbounds.end()) it = shortOutbounds.insert(name, ShortDisplayName(name));
+        return it.value();
+    };
 
     for (const auto &c : connections) {
         const QString process = c.process.trimmed();
@@ -203,10 +216,11 @@ void ConnectionsTreeModel::setConnections(const QList<Stats::ConnectionMetadata>
         if (group == nullptr) {
             group = groups.emplace_back(std::make_unique<ProcessGroupItem>()).get();
             group->processName = process;
-            group->commonOutbound = c.outbound;
+            group->commonOutbound = c.outboundName;
+            group->commonOutboundText = outboundText(c.outboundName);
             group->commonSource = c.sourceDisplay;
         }
-        group->sameOutbound = group->sameOutbound && group->commonOutbound == c.outbound;
+        group->sameOutbound = group->sameOutbound && group->commonOutbound == c.outboundName;
         group->sameSource = group->sameSource && group->commonSource == c.sourceDisplay;
         group->totalConnections++;
         group->totalUpload += c.upload;
@@ -225,6 +239,7 @@ void ConnectionsTreeModel::setConnections(const QList<Stats::ConnectionMetadata>
             leaf->key = key;
             leaf->destText = dest;
             leaf->protocolText = protocol;
+            leaf->outboundText = outboundText(c.outboundName);
         }
         leaf->count++;
         if (!c.id.isEmpty()) leaf->connectionIds.append(c.id);

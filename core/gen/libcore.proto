@@ -248,6 +248,14 @@ message CloseConnectionsResponse {
 
 message IsPrivilegedResponse {
   optional bool has_privilege = 1 [default = false];
+  // Linux: /dev/net/tun opened read-write. Unset elsewhere.
+  optional bool tun_device = 2;
+  // Linux: CAP_NET_ADMIN in the effective set. Unset elsewhere.
+  optional bool net_admin = 3;
+  // Linux: euid 0 and CAP_NET_ADMIN; macOS: euid 0. Unset on Windows.
+  optional bool kill_switch_privilege = 4;
+  // The first failing reason, plain English; empty when nothing failed.
+  optional string detail = 5;
 }
 
 message GetDefaultInterfaceResponse {

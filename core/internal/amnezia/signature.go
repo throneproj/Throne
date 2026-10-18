@@ -22,6 +22,9 @@ const maxSignaturePackets = 5
 // The whole first flight leaves in one burst; the first retransmission waits a PTO of about 300 ms.
 const flightSettleTime = 100 * time.Millisecond
 
+// What the RPC and mobile callers allow a capture; it finishes offline in well under a second.
+const QUICSignatureTimeout = 5 * time.Second
+
 // QUICSignature captures, without sending anything, Chrome's first HTTP/3 flight to serverName as AmneziaWG <b> packets.
 func QUICSignature(ctx context.Context, serverName string) ([]string, error) {
 	serverName, err := normalizeServerName(serverName)

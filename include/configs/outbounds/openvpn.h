@@ -3,6 +3,8 @@
 
 namespace Configs
 {
+    inline const QStringList openvpnNetworks = {"", "udp", "udp4", "udp6", "tcp", "tcp4", "tcp6"};
+
     class OpenVPNRemote : public baseConfig
     {
         public:
@@ -149,5 +151,58 @@ namespace Configs
         bool IsEndpoint() override;
         bool SupportsCredentialStrip() const override;
         void StripCredentials() override;
+        void StripForeignState(Validation::Issues& issues) override;
+        void Validate(Validation::Issues& issues) override;
+
+        // A non-empty Advanced server list replaces the profile's own server and port.
+        bool ServerPortOptional() override { return !servers.isEmpty(); }
+        bool ServerAddressOptional() override { return !servers.isEmpty(); }
+
+        // A copy the editors can fill with unsaved input: the option objects they write are not shared with this one.
+        std::shared_ptr<openvpn> DetachedCopy() const;
     };
+
+    namespace Checks {
+        // Names are checked upper-cased, as the editors save them and Build() emits them.
+        QString OpenVPNCipherName(const QString& name);
+        QString OpenVPNDigest(const QString& name);
+        // Colons and spaces removed, lower-cased.
+        QString OpenVPNNormalizeFingerprint(const QString& line);
+        QString OpenVPNFingerprint(const QString& line);
+        QString OpenVPNKeyUsage(const QString& item);
+        QString OpenVPNExtendedKeyUsage(const QString& text);
+        // OpenVPN's TLS-ECDHE-RSA-WITH-... spelling becomes the TLS_ECDHE_RSA_WITH_... name the core knows.
+        QString OpenVPNNormalizeTlsCipher(const QString& text);
+        QString OpenVPNTlsCipher(const QString& text);
+        QString OpenVPNTlsGroups(const QString& text);
+        // Renegotiation, TLS timeout and handshake window: 0 or at least 1s.
+        QString OpenVPNInterval(const QString& text);
+        // Ping interval and restart: the same, in whole seconds.
+        QString OpenVPNPingInterval(const QString& text);
+        QString OpenVPNReplayWindowTime(const QString& text);
+        QString OpenVPNFragment(const QString& text);
+        QString OpenVPNReplayWindow(const QString& text);
+        QString OpenVPNRemoteHost(const QString& text);
+        QString OpenVPNRemotePort(const QString& text);
+
+        // JSON keys of the options the profile's mode refuses (static_key: TLS and authentication; tls: the static key).
+        QStringList OpenVPNModeConflicts(const openvpn& profile);
+        // The message for one key of OpenVPNModeConflicts(), or "" when that key is fine.
+        QString OpenVPNModeConflict(const openvpn& profile, const QString& key);
+        QString OpenVPNStaticKeyMissing(const openvpn& profile);
+        QString OpenVPNStaticCipher(const openvpn& profile);
+        QString OpenVPNStaticAddress(const openvpn& profile);
+        QString OpenVPNTlsVerification(const openvpn& profile);
+        QString OpenVPNClientPair(const openvpn& profile);
+        QString VpnMaterialConflict(const QStringList& inlineValue, const QString& path);
+        QString OpenVPNControlWrapKey(const openvpn& profile);
+        QString OpenVPNControlWrapDirection(const openvpn& profile);
+        QString OpenVPNRemoteCertificate(const openvpn& profile);
+        QString OpenVPNTlsVersions(const openvpn& profile);
+        QString OpenVPNMssFix(const openvpn& profile);
+        QString OpenVPNPingRestart(const openvpn& profile);
+        QString OpenVPNRenegotiate(const openvpn& profile);
+        // The {otp} placeholder is substituted only while an authenticator entry is bound.
+        QString OtpPlaceholderUnbound(const QString& value, int otpProfileId);
+    }
 }

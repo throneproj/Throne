@@ -13,6 +13,6 @@ namespace Configs_network {
 
     // Blocking (RPC); never call on the UI thread. tunnelType: "wireguard" | "masque".
     std::shared_ptr<WarpIdentity> RegisterWarp(const QString &tunnelType, QString *error);
-    // Asks once (persisted in settings warp_tos_accepted) whether the user accepts Cloudflare's WARP terms; UI thread only.
+    // Asks once (persisted in settings warp_tos_accepted) whether the user accepts Cloudflare's WARP terms; UI thread only. Without a QApplication it returns the stored answer.
     bool ConfirmWarpTerms(QWidget *parent);
 }

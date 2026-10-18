@@ -2,6 +2,7 @@
 
 #include <QStyle>
 
+#include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/widget/json/JsonCodeEdit.h"
 #include "include/ui/widget/json/JsonTree.h"
 
@@ -36,8 +37,8 @@ namespace JsonEdit {
             OffsetToLineColumn(text, issue.span.offset, &line, &column);
             auto* item = new QListWidgetItem(QObject::tr("Line %1: %2").arg(line).arg(issue.message), this);
             item->setData(Qt::UserRole, issue.span.offset);
-            item->setIcon(style()->standardIcon(issue.severity == Severity::Error ? QStyle::SP_MessageBoxCritical
-                                                                                  : QStyle::SP_MessageBoxWarning));
+            item->setIcon(themeManager()->standardIcon(issue.severity == Severity::Error ? QStyle::SP_MessageBoxCritical
+                                                                                         : QStyle::SP_MessageBoxWarning));
         }
         setVisible(count() > 0);
     }

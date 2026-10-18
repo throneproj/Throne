@@ -24,6 +24,8 @@ public:
 
     bool blocksMultiplex() override;
 
+    void bindValidation(Validation::Form &form) override;
+
 private:
     Ui::EditVless *ui;
     std::shared_ptr<Configs::Profile> ent;

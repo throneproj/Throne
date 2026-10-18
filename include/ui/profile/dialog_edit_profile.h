@@ -1,9 +1,11 @@
 #pragma once
 #include <QDialog>
+#include <optional>
 #include "profile_editor.h"
 
 #include "ui_dialog_edit_profile.h"
 #include "include/database/entities/Profile.h"
+#include "include/engine/EditLocks.h"
 
 namespace Ui {
     class DialogEditProfile;
@@ -28,6 +30,7 @@ private slots:
 
 private:
     Ui::DialogEditProfile *ui;
+    Validation::Form *form{};
 
     QWidget *innerWidget{};
     ProfileEditor *innerEditor{};
@@ -40,6 +43,7 @@ private:
     int groupId = -1;
     bool newEnt = false;
     std::shared_ptr<Configs::Profile> ent;
+    std::optional<Engine::EditLock> editLock;
 
     QString network_title_base;
 
@@ -65,14 +69,19 @@ private:
 
     // dialog_edit_profile_singbox.cpp: sing-box transport, TLS and multiplex
     void setupSingboxStream();
+    void bindSingboxStream();
     void loadSingboxStream();
-    bool validateSingboxStream();
     void saveSingboxStream();
     void updateSingboxRows();
     void updateTlsControlsEnabled();
+    // The profile's own spoof SNI (set in Advanced) while its spoof state is on, else empty.
+    QString ownTlsSpoof();
+    bool singboxTlsFragmentOn();
+    bool singboxUtlsActive();
 
     // dialog_edit_profile_xray.cpp: Xray stream settings
     void setupXrayStream();
+    void bindXrayStream();
     void loadXrayStream();
     void loadXrayNetwork(const QString &network);
     void saveXrayStream();
@@ -81,9 +90,9 @@ private:
     // dialog_edit_profile_xhttp.cpp: the XHTTP panel of the Xray stream
     void setupXrayXHTTPControls();
     void setupXrayXHTTPDescriptions();
+    void bindXrayXHTTP();
     void setXrayXHTTPHelp(QWidget *caption, QWidget *field, const QString &text, const QString &jsonKey, const QString &description);
     void loadXrayXHTTP(const Configs::xrayXHTTP &xhttp);
     void saveXrayXHTTP(Configs::xrayXHTTP &xhttp);
     void updateXrayXHTTPControls();
-    bool validateXrayXHTTPSettings();
 };

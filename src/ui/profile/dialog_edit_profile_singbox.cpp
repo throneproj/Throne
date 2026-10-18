@@ -3,13 +3,11 @@
 #include "include/configs/common/utils.h"
 #include "include/database/DatabaseManager.h"
 #include "include/global/Utils.hpp"
+#include "include/ui/utils/ValidationForm.h"
 
 #include <QInputDialog>
 
-namespace {
-// Index of "Off" in the Keep Default / On / Off combos.
-constexpr int kTriStateOff = 2;
-}
+#include <climits>
 
 void DialogEditProfile::setupSingboxStream() {
     network_title_base = ui->network_box->title();
@@ -17,17 +15,117 @@ void DialogEditProfile::setupSingboxStream() {
 
     connect(ui->network, &QComboBox::currentTextChanged, this, [this] { relayout(); });
     connect(ui->security, &QComboBox::currentTextChanged, this, [this] { relayout(); });
-    connect(ui->fragment, &QComboBox::currentIndexChanged, this, [this] { updateControls(); });
+    connect(ui->fragment, &QComboBox::currentIndexChanged, this, [this] { relayout(); });
     connect(ui->multiplex, &QComboBox::currentIndexChanged, this, [this](int index) {
-        if (index == kTriStateOff) ui->brutal_enable->setChecked(false);
-        updateControls();
+        if (index == Configs::kTriStateOff) ui->brutal_enable->setChecked(false);
+        relayout();
     });
+    connect(ui->brutal_enable, &QCheckBox::toggled, this, [this] { form->refresh(); });
+    bindSingboxStream();
+}
+
+QString DialogEditProfile::ownTlsSpoof() {
+    if (ent == nullptr || !ent->outbound->HasTLS() || ent->outbound->LimitedTLS()) return {};
+    const auto tls = ent->outbound->GetTLS();
+    return Configs::Checks::OwnSpoofOn(tls->spoof, tls->getSpoofState()) ? tls->spoof.trimmed() : QString();
+}
+
+bool DialogEditProfile::singboxTlsFragmentOn() {
+    if (ent == nullptr || ent->outbound->LimitedTLS()) return false;
+    const auto &settings = *Configs::dataManager->settingsRepo;
+    const int state = ui->fragment->currentIndex();
+    // Build emits the TLS-level fragment (and its delay) only for the non-custom implementation.
+    return (state == 1 || (state == 0 && settings.fragment_default_on)) && settings.fragment_implementation != "custom";
+}
+
+bool DialogEditProfile::singboxUtlsActive() {
+    if (ent == nullptr || ent->outbound->LimitedTLS()) return false;
+    if (!ui->reality_pbk->text().trimmed().isEmpty()) return true;
+    if (!ent->outbound->GetTLS()->utls->supported) return false;
+    auto fingerprint = ui->utlsFingerprint->currentText().trimmed();
+    if (fingerprint.isEmpty()) fingerprint = Configs::dataManager->settingsRepo->utlsFingerprint.trimmed();
+    return !fingerprint.isEmpty() && fingerprint != Configs::tlsUnsafeFingerprint;
+}
+
+void DialogEditProfile::bindSingboxStream() {
+    using Validation::Severity;
+    namespace Checks = Configs::Checks;
+
+    form->addRule({ui->network}, [this] { return Checks::TransportType(ui->network->currentText()); });
+    form->bind(ui->headers, Checks::HeaderPairs);
+    form->bind(ui->method, Validation::Rules::HttpToken()).warning();
+    form->bind(ui->host, [this](const QString &text) { return Checks::TransportHost(text, ui->network->currentText()); }).warning();
+    form->bind(ui->ws_early_data_length, Validation::Rules::Int(0, INT_MAX));
+    form->addRule({ui->network, ui->security}, [this] {
+        if (ui->network->currentText() != "quic" || !ent->outbound->HasTLS()) return QString();
+        return Checks::QuicTransport(ui->security->currentText() == "tls", false, false);
+    });
+    const auto quicOwnUtls = [this] {
+        const auto fingerprint = ui->utlsFingerprint->currentText().trimmed();
+        return ui->utlsFingerprint->isEnabled() && !fingerprint.isEmpty() && fingerprint != Configs::tlsUnsafeFingerprint;
+    };
+    const auto quicReality = [this] { return ui->reality_pbk->isEnabled() && !ui->reality_pbk->text().trimmed().isEmpty(); };
+    form->addRule({ui->network, ui->utlsFingerprint, ui->reality_pbk}, [this, quicOwnUtls, quicReality] {
+        if (ui->network->currentText() != "quic" || ui->security->currentText() != "tls") return QString();
+        return Checks::QuicTransport(true, quicOwnUtls(), quicReality());
+    });
+    form->addRule({ui->network, ui->utlsFingerprint, ui->reality_pbk}, [this, quicOwnUtls, quicReality] {
+        if (ui->network->currentText() != "quic" || ui->security->currentText() != "tls" || quicReality()) return QString();
+        return Checks::QuicTransportUtls(quicOwnUtls());
+    }, nullptr, Severity::Warning);
+
+    form->bind(ui->sni, Checks::ServerName).warning();
+    form->bind(ui->utlsFingerprint, Checks::SingBoxFingerprint);
+    form->bind(ui->cipher_suites, Checks::SingBoxCipherSuites);
+    form->bind(ui->reality_pbk, [](const QString &text) { return Checks::RealityPublicKey(text); });
+    form->bind(ui->reality_sid, [this](const QString &text) {
+        return ui->reality_pbk->text().trimmed().isEmpty() ? QString() : Checks::RealityShortId(text);
+    });
+    form->addRule({ui->reality_sid}, [this] {
+        if (ui->reality_sid->text().trimmed().isEmpty() || !ui->reality_pbk->text().trimmed().isEmpty()) return QString();
+        return tr("The short ID has no effect without a Reality public key, so Reality stays off.");
+    }, nullptr, Severity::Warning);
+    form->bind(ui->tls_frag_fall_delay, Validation::Rules::Duration()).when([this] { return singboxTlsFragmentOn(); });
+    form->addRule({ui->certificate_edit}, [this] { return Checks::PemCertificates(CACHE.certificate); });
+
+    // Rules over values the Advanced dialog keeps in the profile.
+    form->addRule({ui->reality_pbk}, [this] {
+        if (ui->reality_pbk->text().trimmed().isEmpty()) return QString();
+        const auto tls = ent->outbound->GetTLS();
+        return Checks::RealityConflict(tls->ech->enabled, tls->disable_sni, ui->insecure->isChecked(), !ownTlsSpoof().isEmpty());
+    });
+    form->addRule({ui->certificate_edit}, [this] {
+        const auto tls = ent->outbound->GetTLS();
+        return Checks::PinsWithCertificate(!tls->certificate_sha256.isEmpty() || !tls->certificate_public_key_sha256.isEmpty(),
+                                           !CACHE.certificate.isEmpty() || !tls->certificate_path.isEmpty());
+    });
+    form->addRule({ui->sni}, [this] {
+        // With Reality the Reality rule names the spoof conflict.
+        if (ui->reality_pbk->isEnabled() && !ui->reality_pbk->text().trimmed().isEmpty()) return QString();
+        const auto sni = ui->sni->text().trimmed();
+        return Checks::SpoofServerName(ownTlsSpoof(), sni.isEmpty() ? ui->address->text().remove(' ') : sni,
+                                       ent->outbound->GetTLS()->disable_sni);
+    });
+    form->addRule({ui->utlsFingerprint, ui->fragment, ui->tls_rec_frag}, [this] {
+        return Checks::SpoofIgnored(!ownTlsSpoof().isEmpty(), singboxUtlsActive(), singboxTlsFragmentOn(), ui->tls_rec_frag->isChecked());
+    }, nullptr, Severity::Warning);
+
+    const auto brutalOn = [this] { return ui->brutal_enable->isChecked(); };
+    for (auto *speed: {ui->brutal_d_speed, ui->brutal_u_speed}) {
+        form->bind(speed, Validation::Rules::Int(INT_MIN, INT_MAX)).when(brutalOn);
+        form->bind(speed, Checks::BrutalSpeed).when(brutalOn).warning();
+    }
+    form->addRule({ui->brutal_enable, ui->multiplex}, [this] {
+        return Checks::BrutalNeedsMux(ui->brutal_enable->isChecked(), ui->multiplex->currentIndex() == 1);
+    }, nullptr, Severity::Warning);
 }
 
 void DialogEditProfile::loadSingboxStream() {
     const auto outbound = ent->outbound;
     if (outbound->HasTLS() || outbound->HasTransport()) {
         const auto transport = outbound->GetTransport();
+        // Shown (and flagged) as stored, rather than as tcp and silently rewritten on save.
+        if (!transport->type.isEmpty() && ui->network->findText(transport->type) < 0) ui->network->addItem(transport->type);
         selectComboText(ui->network, transport->type);
         ui->headers->setText(Configs::getHeadersString(transport->headers));
         ui->method->setText(transport->method);
@@ -54,6 +152,7 @@ void DialogEditProfile::loadSingboxStream() {
         } else {
             ui->utlsFingerprint->setCurrentText(tls->utls->fingerPrint);
         }
+        ui->cipher_suites->setText(tls->cipher_suites.join(':'));
         ui->reality_pbk->setText(tls->reality->public_key);
         ui->reality_sid->setText(tls->reality->short_id);
     }
@@ -65,13 +164,6 @@ void DialogEditProfile::loadSingboxStream() {
         ui->brutal_d_speed->setText(Int2String(mux->brutal->down_mbps));
         ui->brutal_u_speed->setText(Int2String(mux->brutal->up_mbps));
     }
-}
-
-bool DialogEditProfile::validateSingboxStream() {
-    // "|" separates headers in exported links.
-    if (!ent->outbound->HasTransport() || !ui->headers->text().contains('|')) return true;
-    MessageBoxWarning(software_name, tr("Headers cannot contain \"|\"."));
-    return false;
 }
 
 void DialogEditProfile::saveSingboxStream() {
@@ -99,6 +191,7 @@ void DialogEditProfile::saveSingboxStream() {
         tls->saveTlsTricksState(ui->tls_tricks->currentIndex());
         tls->utls->fingerPrint = ui->utlsFingerprint->currentText().trimmed();
         tls->utls->enabled = !tls->utls->fingerPrint.isEmpty();
+        tls->cipher_suites = Configs::splitCipherSuites(ui->cipher_suites->text());
         tls->reality->public_key = ui->reality_pbk->text().trimmed();
         tls->reality->short_id = ui->reality_sid->text().trimmed();
         tls->reality->enabled = !tls->reality->public_key.isEmpty();
@@ -124,7 +217,7 @@ void DialogEditProfile::updateSingboxRows() {
     ui->security->setEnabled(!outbound->MustTLS());
     ui->multiplex->setEnabled(!innerEditor->blocksMultiplex());
     ui->brutal_box->setVisible(hasMux);
-    ui->brutal_box->setEnabled(ui->multiplex->currentIndex() != kTriStateOff);
+    ui->brutal_box->setEnabled(ui->multiplex->currentIndex() != Configs::kTriStateOff);
     ui->stream_box->setVisible(hasTransport || hasTLS || hasMux);
 
     const auto network = ui->network->currentText();
@@ -168,9 +261,12 @@ void DialogEditProfile::updateTlsControlsEnabled() {
     }
     ui->utlsFingerprint_l->setEnabled(utls);
     ui->utlsFingerprint->setEnabled(utls);
+    // QUIC is TLS 1.3 only, where Go does not let the suites be chosen.
+    ui->cipher_suites_l->setEnabled(!limited && !quic);
+    ui->cipher_suites->setEnabled(!limited && !quic);
     ui->fragment_l->setEnabled(fragment);
     ui->fragment->setEnabled(fragment);
-    ui->tls_frag_fall_delay->setEnabled(!limited && ui->fragment->currentIndex() != kTriStateOff);
+    ui->tls_frag_fall_delay->setEnabled(!limited && ui->fragment->currentIndex() != Configs::kTriStateOff);
 }
 
 void DialogEditProfile::on_certificate_edit_clicked() {
@@ -179,4 +275,5 @@ void DialogEditProfile::on_certificate_edit_clicked() {
     if (!ok) return;
     CACHE.certificate = txt.split("\n", Qt::SkipEmptyParts);
     editor_cache_updated_impl();
+    form->revalidate(ui->certificate_edit);
 }

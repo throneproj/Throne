@@ -4,9 +4,14 @@
 #include <QJsonObject>
 #include <QTimer>
 #include "ui_dialog_basic_settings.h"
+#include "include/engine/EditLocks.h"
 
 namespace Ui {
     class DialogBasicSettings;
+}
+
+namespace Validation {
+    class Form;
 }
 
 class DialogBasicSettings : public QDialog {
@@ -23,6 +28,12 @@ public slots:
 
 private:
     Ui::DialogBasicSettings *ui;
+
+    Validation::Form *form = nullptr;
+
+    Engine::EditLock settingsLock{Engine::EditTarget::Settings};
+
+    void bindValidation();
 
     void applyRegexHighlighting();
 

@@ -1,8 +1,11 @@
 #include "include/ui/setting/dialog_vpn_settings.h"
 
-#include "include/global/GuiUtils.hpp"
+#include "include/ui/utils/GuiUtils.hpp"
 #include "include/global/Configs.hpp"
-#include "include/ui/mainwindow_interface.h"
+#include "include/global/Validation.hpp"
+#include "include/engine/EngineHost.h"
+#include "include/engine/supervisor/CoreSupervisor.h"
+#include "include/ui/utils/ValidationForm.h"
 
 #include <QMessageBox>
 #include <QHostAddress>
@@ -13,34 +16,25 @@
 namespace {
     const QString kDefaultTunIPv4CIDR = "172.19.0.1/24";
     const QString kDefaultTunIPv6CIDR = "fdfe:dcba:9876::1/96";
+    constexpr int kVpnMinMtu = 1000;
+    constexpr int kVpnMaxMtu = 10000;
+    constexpr int kVpnMinIPv6Mtu = 1280;
 
-    bool IsValidCIDR(const QString &cidr, const QAbstractSocket::NetworkLayerProtocol protocol) {
-        const auto parts = cidr.trimmed().split("/");
-        if (parts.size() != 2) return false;
-
-        bool ok = false;
-        const int prefix = parts[1].toInt(&ok);
-        if (!ok) return false;
-
-        QHostAddress host;
-        if (!host.setAddress(parts[0].trimmed())) return false;
-        if (host.protocol() != protocol) return false;
-
-        if (protocol == QAbstractSocket::IPv4Protocol) return prefix >= 0 && prefix <= 32;
-        if (protocol == QAbstractSocket::IPv6Protocol) return prefix >= 0 && prefix <= 128;
-        return false;
-    }
-
-    // parseSubnet alone would accept Qt's abbreviated forms, where "10" means 10.0.0.0/8.
-    bool IsValidRange(const QString &range) {
-        if (!range.contains('.') && !range.contains(':')) return false;
-        return QHostAddress::parseSubnet(range).second >= 0;
+    // Older builds saved bare addresses, which the core cannot read as a prefix (routeExcludePrefix widens them the same way).
+    QString WithPrefixLength(const QString &saved) {
+        const auto range = saved.trimmed();
+        if (range.contains(u'/')) return range;
+        if (Validation::Ip(range, Validation::Family::V4).isEmpty()) return range + "/32";
+        if (Validation::Ip(range, Validation::Family::V6).isEmpty()) return range + "/128";
+        return range;
     }
 }
 
 DialogVPNSettings::DialogVPNSettings(QWidget *parent) : QDialog(parent), ui(new Ui::DialogVPNSettings) {
     ui->setupUi(this);
     ADD_ASTERISK(this);
+    form = new Validation::Form(this);
+    form->attachStatus(ui->buttonBox);
 
     ui->vpn_mtu->setCurrentText(Int2String(Configs::dataManager->settingsRepo->vpn_mtu));
     ui->vpn_ipv6->setChecked(Configs::dataManager->settingsRepo->vpn_ipv6);
@@ -49,7 +43,9 @@ DialogVPNSettings::DialogVPNSettings(QWidget *parent) : QDialog(parent), ui(new 
     ui->tun_ipv4_cidr->setText(Configs::dataManager->settingsRepo->vpn_tun_ipv4_cidr);
     ui->tun_ipv6_cidr->setText(Configs::dataManager->settingsRepo->vpn_tun_ipv6_cidr);
     ui->privRangeGroupBox->setChecked(!Configs::dataManager->settingsRepo->disable_private_range_bypass);
-    ui->priv_ranges->setPlainText(Configs::dataManager->settingsRepo->vpn_private_ranges.join("\n"));
+    QStringList privateRanges;
+    for (const auto &range : Configs::dataManager->settingsRepo->vpn_private_ranges) privateRanges << WithPrefixLength(range);
+    ui->priv_ranges->setPlainText(privateRanges.join("\n"));
     ui->auto_redirect->setChecked(Configs::dataManager->settingsRepo->vpn_auto_redirect);
 #ifndef Q_OS_LINUX
     ui->auto_redirect->hide();
@@ -59,6 +55,24 @@ DialogVPNSettings::DialogVPNSettings(QWidget *parent) : QDialog(parent), ui(new 
 #if defined(Q_OS_WIN) && defined(Q_PROCESSOR_ARM)
     ui->l3_bridge->hide();
 #endif
+
+    using namespace Validation;
+    form->bind(ui->vpn_mtu, Rules::Int(kVpnMinMtu, kVpnMaxMtu, Empty::Required)).label(ui->label_10->text());
+    form->addRule({ui->vpn_mtu, ui->vpn_ipv6}, [this] {
+        const auto mtu = ToInt(ui->vpn_mtu->currentText());
+        if (!ui->vpn_ipv6->isChecked() || !mtu || *mtu >= kVpnMinIPv6Mtu || *mtu < kVpnMinMtu) return QString();
+        return tr("IPv6 needs an MTU of at least %1; below that the system may drop IPv6 from the Tun.").arg(kVpnMinIPv6Mtu);
+    }, this, Severity::Warning, ui->label_10->text());
+    form->bind(ui->tun_ipv4_cidr, Rules::Cidr(Family::V4));
+    form->bind(ui->tun_ipv6_cidr, Rules::Cidr(Family::V6));
+    form->bindLines(ui->priv_ranges, [](const QString &range) {
+        if (auto problem = Cidr(range); !problem.isEmpty()) return problem;
+        // Excluding a default route leaves the Tun with no routes at all.
+        if (QHostAddress::parseSubnet(range).second == 0) return tr("This covers every address, which would stop Tun from routing anything.");
+        return QString();
+    }).label(ui->privRangeGroupBox->title());
+    form->markAll();
+
     ADJUST_SIZE
 }
 
@@ -67,35 +81,13 @@ DialogVPNSettings::~DialogVPNSettings() {
 }
 
 void DialogVPNSettings::accept() {
-    auto mtu = ui->vpn_mtu->currentText().trimmed().toInt();
-    if (mtu > 10000 || mtu < 1000) mtu = 9000;
+    if (!form->validateAll()) return;
+    const int mtu = int(*Validation::ToInt(ui->vpn_mtu->currentText()));
     const auto tunIPv4CIDR = ui->tun_ipv4_cidr->text().trimmed();
     const auto tunIPv6CIDR = ui->tun_ipv6_cidr->text().trimmed();
-    if (!IsValidCIDR(tunIPv4CIDR, QAbstractSocket::IPv4Protocol)) {
-        QMessageBox::warning(this, tr("Invalid Tun Address"), tr("IPv4 CIDR is invalid."));
-        return;
-    }
-    if (!IsValidCIDR(tunIPv6CIDR, QAbstractSocket::IPv6Protocol)) {
-        QMessageBox::warning(this, tr("Invalid Tun Address"), tr("IPv6 CIDR is invalid."));
-        return;
-    }
-    QStringList privateRanges;
-    for (const auto &line : ui->priv_ranges->toPlainText().split("\n")) {
-        const auto range = line.trimmed();
-        if (range.isEmpty()) continue;
-        if (!IsValidRange(range)) {
-            QMessageBox::warning(this, tr("Invalid Private Range"),
-                                 tr("\"%1\" is not a valid address or CIDR.").arg(range));
-            return;
-        }
-        // Excluding a default route leaves the Tun with no routes at all.
-        if (QHostAddress::parseSubnet(range).second == 0) {
-            QMessageBox::warning(this, tr("Invalid Private Range"),
-                                 tr("\"%1\" covers every address, which would stop Tun from routing anything.").arg(range));
-            return;
-        }
-        privateRanges << range;
-    }
+    // The list is disabled while the bypass is off, so it is neither checked nor saved.
+    auto privateRanges = Configs::dataManager->settingsRepo->vpn_private_ranges;
+    if (ui->privRangeGroupBox->isChecked()) privateRanges = Validation::Items(ui->priv_ranges->toPlainText(), Validation::Split::Newline);
 
     Configs::dataManager->settingsRepo->vpn_mtu = mtu;
     Configs::dataManager->settingsRepo->vpn_ipv6 = ui->vpn_ipv6->isChecked();
@@ -114,10 +106,13 @@ void DialogVPNSettings::accept() {
 void DialogVPNSettings::on_restore_default_addresses_clicked() {
     ui->tun_ipv4_cidr->setText(kDefaultTunIPv4CIDR);
     ui->tun_ipv6_cidr->setText(kDefaultTunIPv6CIDR);
+    form->revalidate(ui->tun_ipv4_cidr);
+    form->revalidate(ui->tun_ipv6_cidr);
 }
 
 void DialogVPNSettings::on_restore_default_ranges_clicked() {
     ui->priv_ranges->setPlainText(Configs::defaultTunPrivateRanges().join("\n"));
+    form->revalidate(ui->priv_ranges);
 }
 
 void DialogVPNSettings::on_troubleshooting_clicked() {
@@ -140,6 +135,6 @@ void DialogVPNSettings::on_troubleshooting_clicked() {
 
     msg.exec();
     if (msg.clickedButton() == reset) {
-        GetMainWindow()->RestartCore();
+        Engine::host()->supervisor()->resetCore();
     }
 }

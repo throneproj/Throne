@@ -5,6 +5,24 @@
 namespace Configs
 {
     inline QStringList hysteriaBBRProfiles = {"standard", "conservative", "aggressive"};
+    inline QStringList hysteriaObfsTypes = {"salamander", "gecko"};
+
+    // Shared by EditHysteria (widget text) and hysteria::Validate (bean fields).
+    namespace Checks {
+        // One server_ports item as Throne stores it: n, a-b or a:b, open ends allowed.
+        QString HysteriaPortItem(const QString &item);
+        QString HysteriaPortItemOrder(const QString &item);
+        QString HysteriaHopMinimum(bool hopping, const QString &interval);
+        QString HysteriaHopMaximum(bool hopping, const QString &interval, const QString &intervalMax);
+        QString HysteriaHopMaximumIgnored(bool hopping, const QString &interval, const QString &intervalMax);
+        QString HysteriaV1Speed(qint64 upMbps, qint64 downMbps);
+        // 0 means the core default (512 / 1200).
+        QString HysteriaGeckoSizes(qint64 minSize, qint64 maxSize);
+        QString HysteriaAuth(const QString &type, const QString &auth);
+        QString HysteriaAuthType(const QString &type, const QString &auth);
+        QString HysteriaRealm(const QString &url, const QString &id, const QStringList &stunServers, bool portMapping,
+                              int ipVersion, const QString &timeout, const QString &lifetime);
+    }
 
     class hysteria : public outbound
     {
@@ -77,6 +95,16 @@ namespace Configs
         std::shared_ptr<QUICFields> GetQUIC() override {
             return quic;
         }
+
+        bool ServerPortOptional() override {
+            return !server_ports.isEmpty() || RealmActive();
+        }
+
+        bool ServerAddressOptional() override {
+            return RealmActive();
+        }
+
+        void Validate(Validation::Issues &issues) override;
 
         bool ParseFromLink(const QString& link) override;
         bool ParseFromJson(const QJsonObject& object) override;

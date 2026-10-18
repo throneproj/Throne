@@ -2,13 +2,15 @@
 
 #include <QHostAddress>
 #include <QObject>
-#include <QRegularExpression>
 #include <QSet>
 #include <QXmlStreamReader>
 
 #include "include/configs/generate.h"
 #include "include/configs/outbounds/openconnect.h"
 #include "include/configs/outbounds/openvpn.h"
+#include "include/global/Validation.hpp"
+
+#include <climits>
 
 namespace Configs {
     // Unity build: an anonymous namespace shares one TU with its neighbours, hence the prefix.
@@ -121,13 +123,36 @@ namespace Configs {
             return result;
         }
 
+        // Keeps a directive's value only when the endpoint accepts it; otherwise the note says why it was dropped.
+        bool vpnfiAccept(const QString& key, const QString& value, const QString& message, QStringList& notes)
+        {
+            if (message.isEmpty()) return true;
+            notes << QObject::tr("Ignored %1 %2: %3").arg(key, value, message);
+            return false;
+        }
+
         // sing-box wants a duration string where `.ovpn` writes bare seconds.
-        QString vpnfiDuration(const QString& value)
+        QString vpnfiDuration(const QString& key, const QString& value, QStringList& notes)
         {
             bool ok = false;
             const auto seconds = value.toLongLong(&ok);
-            if (ok) return seconds > 0 ? QString::number(seconds) + "s" : QString();
-            return IsValidDuration(value) ? value : QString();
+            if (ok && seconds >= 0) return seconds > 0 ? QString::number(seconds) + "s" : QString();
+            if (!ok && IsValidDuration(value)) return value;
+            notes << QObject::tr("Ignored an unreadable value: %1 %2").arg(key, value);
+            return {};
+        }
+
+        // The core knows the canonical upper-case names; unsupported offers are dropped from the negotiation list.
+        QStringList vpnfiDataCiphers(const QString& key, const QString& value, QStringList& notes)
+        {
+            QStringList ciphers;
+            for (const auto& name : value.split(':', Qt::SkipEmptyParts)) {
+                // OpenVPN 2.6 marks an optional cipher with '?'; the core takes only the bare name.
+                auto upper = name.trimmed().toUpper();
+                if (upper.startsWith('?')) upper.remove(0, 1);
+                if (vpnfiAccept(key, name, Checks::OpenVPNCipherName(upper), notes)) ciphers << upper;
+            }
+            return ciphers;
         }
 
         // parseSubnet takes both the /24 and the /255.255.255.0 spelling.
@@ -148,12 +173,8 @@ namespace Configs {
         // The endpoint wants 64 bare lowercase hex characters, not colon-separated.
         QString vpnfiFingerprint(const QString& raw)
         {
-            auto hex = raw;
-            hex.remove(':');
-            hex.remove(' ');
-            hex = hex.toLower();
-            static const QRegularExpression re("^[0-9a-f]{64}$");
-            return re.match(hex).hasMatch() ? hex : QString();
+            const auto hex = Checks::OpenVPNNormalizeFingerprint(raw);
+            return !hex.isEmpty() && Checks::OpenVPNFingerprint(hex).isEmpty() ? hex : QString();
         }
 
         QString vpnfiNetwork(const QString& proto)
@@ -343,7 +364,7 @@ namespace Configs {
                 continue;
             }
             if (key == "port" || key == "rport") {
-                defaultPort = value.toInt();
+                if (vpnfiAccept(key, value, Validation::Port(value), notes)) defaultPort = value.toInt();
                 continue;
             }
             if (key == "remote-random") {
@@ -454,12 +475,15 @@ namespace Configs {
                 (key == "tls-version-min" ? out.tls->version_min : out.tls->version_max) = value;
                 continue;
             }
+            // Without them the endpoint's default suites and groups apply.
             if (key == "tls-cipher") {
-                out.tls->cipher = value;
+                const auto suites = Checks::OpenVPNNormalizeTlsCipher(value);
+                if (vpnfiAccept(key, value, Checks::OpenVPNTlsCipher(suites), notes)) out.tls->cipher = suites;
                 continue;
             }
             if (key == "tls-groups") {
-                out.tls->groups = value;
+                const auto groups = value.trimmed().toUpper();
+                if (vpnfiAccept(key, value, Checks::OpenVPNTlsGroups(groups), notes)) out.tls->groups = groups;
                 continue;
             }
             if (key == "tls-cert-profile") {
@@ -468,37 +492,41 @@ namespace Configs {
             }
 
             if (key == "cipher") {
-                legacyCipher = value;
+                legacyCipher = value.trimmed().toUpper();
                 continue;
             }
             if (key == "data-ciphers" || key == "ncp-ciphers") {
-                out.data_ciphers = value.split(':', Qt::SkipEmptyParts);
+                out.data_ciphers = vpnfiDataCiphers(key, value, notes);
                 continue;
             }
             if (key == "data-ciphers-fallback") {
-                out.data_ciphers_fallback = value;
+                const auto cipher = value.trimmed().toUpper();
+                if (vpnfiAccept(key, value, Checks::OpenVPNCipherName(cipher), notes)) out.data_ciphers_fallback = cipher;
                 continue;
             }
             if (key == "auth") {
-                out.auth = value;
+                out.auth = value.trimmed().toUpper();
                 continue;
             }
             if (key == "mssfix") {
                 if (value.isEmpty()) continue;
                 if (value == "0") out.mss_fix_disabled = true;
-                else {
+                else if (vpnfiAccept(key, value, Validation::Int(value, 0, 65535), notes)) {
                     out.mss_fix = value.toInt();
                     if (args.size() > 2 && (args[2] == "mtu" || args[2] == "fixed")) out.mss_fix_mode = args[2];
                 }
                 continue;
             }
             if (key == "fragment") {
-                out.fragment = value.toInt();
+                if (vpnfiAccept(key, value, Checks::OpenVPNFragment(value), notes)) out.fragment = value.toInt();
                 continue;
             }
             if (key == "replay-window") {
-                out.replay_window = value.toInt();
-                if (args.size() > 2) out.replay_window_time = vpnfiDuration(args[2]);
+                if (vpnfiAccept(key, value, Checks::OpenVPNReplayWindow(value), notes)) out.replay_window = value.toInt();
+                if (args.size() > 2) {
+                    const auto window = vpnfiDuration(key, args[2], notes);
+                    if (vpnfiAccept(key, args[2], Checks::OpenVPNReplayWindowTime(window), notes)) out.replay_window_time = window;
+                }
                 continue;
             }
             if (key == "compress") {
@@ -550,10 +578,15 @@ namespace Configs {
                     continue;
                 }
                 if (!out.routes.contains(prefix)) out.routes += prefix;
-                if (args.size() > next && !vpnfiRouteKeyword(args[next]) && out.route_gateway.isEmpty()) {
+                // OpenVPN also takes a host name here; the endpoint needs an address.
+                if (args.size() > next && !vpnfiRouteKeyword(args[next]) && out.route_gateway.isEmpty() &&
+                    vpnfiAccept(key, args[next], Validation::Ip(args[next]), notes)) {
                     out.route_gateway = args[next];
                 }
-                if (args.size() > next + 1 && out.route_metric == 0) out.route_metric = args[next + 1].toInt();
+                if (args.size() > next + 1 && out.route_metric == 0 &&
+                    vpnfiAccept(key, args[next + 1], Validation::Int(args[next + 1], 0, INT_MAX), notes)) {
+                    out.route_metric = args[next + 1].toInt();
+                }
                 continue;
             }
             if (key == "route-ipv6" && args.size() > 1) {
@@ -565,11 +598,14 @@ namespace Configs {
                 continue;
             }
             if (key == "route-gateway") {
-                if (!vpnfiRouteKeyword(value)) out.route_gateway = value;
+                if (!vpnfiRouteKeyword(value) &&
+                    vpnfiAccept(key, value, Validation::Ip(value, Validation::Family::Any, Validation::Empty::Allowed), notes)) {
+                    out.route_gateway = value;
+                }
                 continue;
             }
             if (key == "route-metric") {
-                out.route_metric = value.toInt();
+                if (vpnfiAccept(key, value, Validation::Int(value, 0, INT_MAX), notes)) out.route_metric = value.toInt();
                 continue;
             }
             if (key == "redirect-gateway" || key == "redirect-private") {
@@ -591,46 +627,47 @@ namespace Configs {
             }
 
             if (key == "keepalive" && args.size() > 2) {
-                out.ping_interval = vpnfiDuration(args[1]);
-                out.ping_restart = vpnfiDuration(args[2]);
+                out.ping_interval = vpnfiDuration(key, args[1], notes);
+                out.ping_restart = vpnfiDuration(key, args[2], notes);
                 continue;
             }
             if (key == "ping") {
-                out.ping_interval = vpnfiDuration(value);
+                out.ping_interval = vpnfiDuration(key, value, notes);
                 continue;
             }
             if (key == "ping-restart") {
                 if (value == "0") out.ping_restart_disabled = true;
-                else out.ping_restart = vpnfiDuration(value);
+                else out.ping_restart = vpnfiDuration(key, value, notes);
                 continue;
             }
             if (key == "reneg-sec") {
                 if (value == "0") out.renegotiate_disabled = true;
-                else out.renegotiate_interval = vpnfiDuration(value);
+                else out.renegotiate_interval = vpnfiDuration(key, value, notes);
                 continue;
             }
             if (key == "reneg-bytes") {
-                out.renegotiate_bytes = value.toLongLong();
+                if (vpnfiAccept(key, value, Validation::Int(value, 0, LLONG_MAX), notes)) out.renegotiate_bytes = value.toLongLong();
                 continue;
             }
             if (key == "reneg-pkts") {
-                out.renegotiate_packets = value.toLongLong();
+                if (vpnfiAccept(key, value, Validation::Int(value, 0, LLONG_MAX), notes)) out.renegotiate_packets = value.toLongLong();
                 continue;
             }
             if (key == "tls-timeout") {
-                out.tls_timeout = vpnfiDuration(value);
+                out.tls_timeout = vpnfiDuration(key, value, notes);
                 continue;
             }
             if (key == "hand-window") {
-                out.handshake_window = vpnfiDuration(value);
+                out.handshake_window = vpnfiDuration(key, value, notes);
                 continue;
             }
             if (key == "explicit-exit-notify") {
-                out.explicit_exit_notify = value.isEmpty() ? 1 : value.toInt();
+                if (value.isEmpty()) out.explicit_exit_notify = 1;
+                else if (vpnfiAccept(key, value, Validation::Int(value, 0, INT_MAX), notes)) out.explicit_exit_notify = value.toInt();
                 continue;
             }
             if (key == "tun-mtu") {
-                out.mtu = value.toInt();
+                if (vpnfiAccept(key, value, Validation::Int(value, 0, 65535), notes)) out.mtu = value.toInt();
                 continue;
             }
 
@@ -716,7 +753,10 @@ namespace Configs {
         // Outside static-key mode `cipher` is the pre-negotiation data cipher.
         if (!legacyCipher.isEmpty()) {
             if (out.mode == "static_key") out.cipher = legacyCipher;
-            else if (out.data_ciphers_fallback.isEmpty()) out.data_ciphers_fallback = legacyCipher;
+            else if (out.data_ciphers_fallback.isEmpty() &&
+                     vpnfiAccept("cipher", legacyCipher, Checks::OpenVPNCipherName(legacyCipher), notes)) {
+                out.data_ciphers_fallback = legacyCipher;
+            }
         }
         if (!out.tls->remote_certificate_eku.isEmpty() && !out.tls->remote_certificate_tls.isEmpty()) {
             notes << QObject::tr("`remote-cert-eku` replaces `remote-cert-tls`; the latter was dropped.");
@@ -877,7 +917,7 @@ namespace Configs {
                 return;
             }
             if (name == "dtls-local-port") {
-                out.dtls_local_port = value.toInt();
+                if (vpnfiAccept(name, value, Validation::Port(value), notes)) out.dtls_local_port = value.toInt();
                 return;
             }
             if (name == "compression") {
@@ -919,27 +959,34 @@ namespace Configs {
                 return;
             }
             if (name == "mtu") {
-                out.mtu = value.toInt();
+                if (vpnfiAccept(name, value, Validation::Int(value, 0, 65535), notes)) out.mtu = value.toInt();
                 return;
             }
             if (name == "base-mtu") {
-                out.base_mtu = value.toInt();
+                if (vpnfiAccept(name, value, Validation::Int(value, 0, 65535), notes)) out.base_mtu = value.toInt();
                 return;
             }
             if (name == "dpd" || name == "force-dpd") {
-                out.dpd_interval = vpnfiDuration(value);
+                const auto interval = vpnfiDuration(name, value, notes);
+                // The core raises a shorter interval to 2s itself.
+                if (const auto ns = Validation::ParseDurationNs(interval).value_or(0); ns > 0 && ns < 2000000000LL) {
+                    notes << QObject::tr("Raised %1 %2 to 2s, the shortest interval the endpoint uses.").arg(name, value);
+                    out.dpd_interval = "2s";
+                } else {
+                    out.dpd_interval = interval;
+                }
                 return;
             }
             if (name == "reconnect-timeout") {
-                out.reconnect_timeout = vpnfiDuration(value);
+                out.reconnect_timeout = vpnfiDuration(name, value, notes);
                 return;
             }
             if (name == "force-trojan") {
-                out.trojan_interval = vpnfiDuration(value);
+                out.trojan_interval = vpnfiDuration(name, value, notes);
                 return;
             }
             if (name == "queue-len") {
-                out.queue_length = value.toInt();
+                if (vpnfiAccept(name, value, Validation::Int(value, 0, INT_MAX), notes)) out.queue_length = value.toInt();
                 return;
             }
             if (name == "useragent" || name == "user-agent") {

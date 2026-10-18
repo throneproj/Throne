@@ -3,14 +3,22 @@
 #include <QGuiApplication>
 #include <QScreen>
 
-#include "include/global/GuiUtils.hpp"
+#include "include/ui/utils/GuiUtils.hpp"
 #include "include/global/Utils.hpp"
+#include "include/ui/utils/ValidationForm.h"
 
 EditHysteriaRealm::EditHysteriaRealm(QWidget *parent, const std::shared_ptr<Configs::Profile> &_ent)
     : QDialog(parent)
     , ui(new Ui::EditHysteriaRealm)
 {
     ui->setupUi(this);
+    form = new Validation::Form(this);
+    form->attachStatus(ui->buttonBox);
+    // Presence is checked by the editor, and only while realm is switched on.
+    form->bind(ui->realm_server_url, Validation::Rules::Url({"http", "https"}));
+    form->bind(ui->realm_stun_servers, Validation::Rules::List(Validation::Split::Comma, Validation::Rules::HostPort(false)));
+    form->bind(ui->realm_port_mapping_timeout, Validation::Rules::Duration());
+    form->bind(ui->realm_port_mapping_lifetime, Validation::Rules::Duration());
     ent = _ent;
     auto outbound = ent->Hysteria();
 
@@ -31,6 +39,7 @@ EditHysteriaRealm::EditHysteriaRealm(QWidget *parent, const std::shared_ptr<Conf
     connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
     ADD_ASTERISK(this)
+    form->markAll();
 
     const auto *scr = screen() != nullptr ? screen() : QGuiApplication::primaryScreen();
     if (scr != nullptr) resize(sizeHint().boundedTo(scr->availableGeometry().size()));
@@ -53,6 +62,7 @@ void EditHysteriaRealm::syncPortMappingFields() {
 }
 
 void EditHysteriaRealm::accept() {
+    if (!form->validateAll()) return;
     auto outbound = ent->Hysteria();
     outbound->realm_server_url = ui->realm_server_url->text().trimmed();
     outbound->realm_id = ui->realm_id->text().trimmed();

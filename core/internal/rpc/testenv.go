@@ -6,6 +6,7 @@ import (
 
 	"ThroneCore/internal/boxbox"
 	"ThroneCore/internal/boxmain"
+	"ThroneCore/internal/probe"
 	"ThroneCore/internal/xray"
 
 	C "github.com/sagernet/sing-box/constant"
@@ -79,6 +80,7 @@ func prepareTestEnv(current bool, needXray bool, xrayConfig string, xrayFullConf
 
 	box, cancel, err := boxmain.Create([]byte(coreConfig), boxCtx.publish, func(options *option.Options) {
 		applyAutoRedirectMark(options, autoRedirectMark.Load())
+		probe.LimitWireGuardWorkers(options)
 	})
 	if err != nil {
 		unwind()
