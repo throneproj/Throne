@@ -22,6 +22,9 @@ public:
 
     ~DialogVPNSettings() override;
 
+    // Widgets this platform does not offer: the dialog hides them and the settings search skips them.
+    static QList<QWidget *> UnavailableWidgets(const Ui::DialogVPNSettings *ui);
+
 private:
     Ui::DialogVPNSettings *ui;
 

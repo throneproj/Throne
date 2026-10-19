@@ -2,6 +2,44 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="ru_RU">
 <context>
+    <name>CommandPalette</name>
+    <message>
+        <source>Search commands and settings</source>
+        <translation>Поиск команд и настроек</translation>
+    </message>
+    <message>
+        <source>↑↓ move · Enter run · Esc close · &gt; commands only · @ settings only</source>
+        <translation>↑↓ выбор · Enter выполнить · Esc закрыть · &gt; только команды · @ только настройки</translation>
+    </message>
+    <message>
+        <source>Commands</source>
+        <translation>Команды</translation>
+    </message>
+    <message>
+        <source>Settings</source>
+        <translation>Настройки</translation>
+    </message>
+    <message>
+        <source>Nothing found</source>
+        <translation>Ничего не найдено</translation>
+    </message>
+    <message>
+        <source> (on)</source>
+        <translation> (вкл.)</translation>
+    </message>
+    <message>
+        <source> (off)</source>
+        <translation> (выкл.)</translation>
+    </message>
+</context>
+<context>
+    <name>CommandPaletteLauncher</name>
+    <message>
+        <source>Search commands and settings</source>
+        <translation>Поиск команд и настроек</translation>
+    </message>
+</context>
+<context>
     <name>ConnectionsFilterHeader</name>
     <message>
         <source>Disable Filter</source>
@@ -9565,6 +9603,22 @@ Name: %1</source>
     <message>
         <source>Kill switch is blocking traffic</source>
         <translation>Kill switch блокирует трафик</translation>
+    </message>
+    <message>
+        <source>Search Commands and Settings</source>
+        <translation>Поиск команд и настроек</translation>
+    </message>
+    <message>
+        <source>Search commands</source>
+        <translation>Поиск команд</translation>
+    </message>
+    <message>
+        <source>Search commands (%1)</source>
+        <translation>Поиск команд (%1)</translation>
+    </message>
+    <message>
+        <source>close &quot;%1&quot; first</source>
+        <translation>сначала закройте «%1»</translation>
     </message>
 </context>
 <context>

@@ -24,6 +24,9 @@ public:
 
     ~DialogBasicSettings();
 
+    // Widgets this platform or installation does not offer: the dialog hides them and the settings search skips them.
+    static QList<QWidget *> UnavailableWidgets(const Ui::DialogBasicSettings *ui);
+
 public slots:
 
     void accept();

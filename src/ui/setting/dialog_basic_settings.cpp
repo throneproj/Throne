@@ -284,17 +284,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
                        tr("Could not register the handler for throne:// links."));
     connectAssociation(Association::ConfigFiles, ui->file_assoc_auto_register, ui->file_assoc_install, ui->file_assoc_uninstall,
                        tr("Could not register the config file associations."));
-#ifdef Q_OS_MACOS
-    // LaunchServices registers the scheme from the bundle's Info.plist, so there is nothing of ours to add or take back.
-    ui->url_scheme_install->hide();
-    ui->url_scheme_uninstall->hide();
-#endif
-    if (!UrlScheme_IsSupported(Association::ConfigFiles)) {
-        ui->file_assoc_auto_register->hide();
-        ui->file_assoc_status->hide();
-        ui->file_assoc_install->hide();
-        ui->file_assoc_uninstall->hide();
-    }
+    for (auto *widget : UnavailableWidgets(ui)) widget->hide();
     ui->url_scheme_box->setEnabled(UrlScheme_IsSupported(Association::Links));
     refreshUrlSchemeStatus();
 
@@ -314,12 +304,6 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
             ui->inbound_socks_port->setDisabled(false);
         }
     });
-
-#ifndef Q_OS_WIN
-    ui->proxy_scheme_l->hide();
-    ui->proxy_scheme->hide();
-    ui->windows_no_admin->hide();
-#endif
 
     ui->max_log_line->setText(QString::number(Configs::dataManager->settingsRepo->max_log_line));
     ui->log_level->setCurrentText(Configs::dataManager->settingsRepo->log_level);
@@ -593,6 +577,21 @@ void DialogBasicSettings::bindValidation() {
     form->bind(ui->xray_geosite_url, Rules::Url(http)).label(ui->label_xray_geosite_url->text());
 
     form->markAll();
+}
+
+QList<QWidget *> DialogBasicSettings::UnavailableWidgets(const Ui::DialogBasicSettings *ui) {
+    QList<QWidget *> widgets;
+#ifdef Q_OS_MACOS
+    // LaunchServices registers the scheme from the bundle's Info.plist, so there is nothing of ours to add or take back.
+    widgets << ui->url_scheme_install << ui->url_scheme_uninstall;
+#endif
+    if (!UrlScheme_IsSupported(Association::ConfigFiles)) {
+        widgets << ui->file_assoc_auto_register << ui->file_assoc_status << ui->file_assoc_install << ui->file_assoc_uninstall;
+    }
+#ifndef Q_OS_WIN
+    widgets << ui->proxy_scheme_l << ui->proxy_scheme << ui->windows_no_admin;
+#endif
+    return widgets;
 }
 
 void DialogBasicSettings::refreshUrlSchemeStatus() {

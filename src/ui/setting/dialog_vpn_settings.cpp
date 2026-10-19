@@ -47,14 +47,8 @@ DialogVPNSettings::DialogVPNSettings(QWidget *parent) : QDialog(parent), ui(new 
     for (const auto &range : Configs::dataManager->settingsRepo->vpn_private_ranges) privateRanges << WithPrefixLength(range);
     ui->priv_ranges->setPlainText(privateRanges.join("\n"));
     ui->auto_redirect->setChecked(Configs::dataManager->settingsRepo->vpn_auto_redirect);
-#ifndef Q_OS_LINUX
-    ui->auto_redirect->hide();
-#endif
     ui->l3_bridge->setChecked(Configs::dataManager->settingsRepo->vpn_l3_bridge);
-    // The core's bridge backend has no implementation for Windows on ARM.
-#if defined(Q_OS_WIN) && defined(Q_PROCESSOR_ARM)
-    ui->l3_bridge->hide();
-#endif
+    for (auto *widget : UnavailableWidgets(ui)) widget->hide();
 
     using namespace Validation;
     form->bind(ui->vpn_mtu, Rules::Int(kVpnMinMtu, kVpnMaxMtu, Empty::Required)).label(ui->label_10->text());
@@ -78,6 +72,19 @@ DialogVPNSettings::DialogVPNSettings(QWidget *parent) : QDialog(parent), ui(new 
 
 DialogVPNSettings::~DialogVPNSettings() {
     delete ui;
+}
+
+QList<QWidget *> DialogVPNSettings::UnavailableWidgets(const Ui::DialogVPNSettings *ui) {
+    Q_UNUSED(ui) // On Linux x86 nothing is unavailable.
+    QList<QWidget *> widgets;
+#ifndef Q_OS_LINUX
+    widgets << ui->auto_redirect;
+#endif
+    // The core's bridge backend has no implementation for Windows on ARM.
+#if defined(Q_OS_WIN) && defined(Q_PROCESSOR_ARM)
+    widgets << ui->l3_bridge;
+#endif
+    return widgets;
 }
 
 void DialogVPNSettings::accept() {

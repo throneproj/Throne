@@ -10,6 +10,7 @@
 #include "include/engine/tests/TestRunner.h"
 
 #include <QMenu>
+#include <QHBoxLayout>
 
 #include "include/configs/sub/GroupUpdater.hpp"
 #include "include/configs/sub/RouteUpdater.hpp"
@@ -32,6 +33,7 @@
 
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/setting/Icon.hpp"
+#include "include/ui/utils/CommandPalette.h"
 #include "include/ui/stats/dialog_traffic_stats.h"
 #include "include/ui/stats/RuntimeStatsWidget.h"
 #include "include/ui/widget/LiveChart.h"
@@ -186,6 +188,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     themeManager()->ApplyTheme(Configs::dataManager->settingsRepo->theme);
     ui->setupUi(this);
 
+    setupCommandPalette();
     setActionsData();
     loadShortcuts();
 
@@ -272,7 +275,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(btnFilter, &QToolButton::toggled, static_cast<ProfilesTableFilterHeader*>(ui->profilesTableView->horizontalHeader()), &ProfilesTableFilterHeader::setFiltersVisible);
     connect(static_cast<ProfilesTableFilterHeader*>(ui->profilesTableView->horizontalHeader()), &ProfilesTableFilterHeader::closeRequested,
             btnFilter, [btnFilter] { btnFilter->setChecked(false); });
-    ui->tabWidget->setCornerWidget(btnFilter, Qt::TopRightCorner);
+    auto tabCorner = new QWidget(this);
+    tabCorner->setContextMenuPolicy(Qt::PreventContextMenu);
+    commandPaletteLauncher->setContextMenuPolicy(Qt::PreventContextMenu);
+    auto tabCornerLayout = new QHBoxLayout(tabCorner);
+    tabCornerLayout->setContentsMargins(0, 0, 0, 0);
+    tabCornerLayout->setSpacing(4);
+    tabCornerLayout->addWidget(commandPaletteLauncher);
+    tabCornerLayout->addWidget(btnFilter);
+    ui->tabWidget->setCornerWidget(tabCorner, Qt::TopRightCorner);
     RegisterHotkey(false);
     auto last_size = Configs::dataManager->settingsRepo->mw_size.split("x");
     if (last_size.length() == 2) {
@@ -782,6 +793,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     connect(ui->menuRouting_Menu, &QMenu::aboutToShow, this, [=,this]()
     {
+        // clear() drops only actions; the previous "Download Profiles" submenu would outlive them.
+        for (auto *submenu : ui->menuRouting_Menu->findChildren<QMenu *>(QString(), Qt::FindDirectChildrenOnly)) submenu->deleteLater();
         ui->menuRouting_Menu->clear();
         ui->menuRouting_Menu->addAction(ui->menu_routing_settings);
 

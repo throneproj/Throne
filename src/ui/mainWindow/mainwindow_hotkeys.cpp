@@ -121,6 +121,7 @@ void MainWindow::setActionsData()
     ui->menu_remove_insecure->setData(QString("m30"));
     ui->actionUpdate_All_Subscriptions->setData(QString("m31"));
     ui->menu_scanner->setData(QString("m32"));
+    commandPaletteAction->setData(QString("m33"));
 }
 
 QList<QAction*> MainWindow::getActionsForShortcut()
@@ -157,6 +158,7 @@ void MainWindow::loadShortcuts()
 #endif
 
     RegisterHiddenMenuShortcuts();
+    updateCommandPaletteHint();
 }
 
 void MainWindow::HotkeyEvent(const QString &id) {
