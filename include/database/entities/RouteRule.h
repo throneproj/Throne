@@ -116,6 +116,8 @@ namespace Configs {
 
         QString name = "";
         int type = custom;
+        // Kept in the profile but left out of the generated config.
+        bool disabled = false;
         QString ip_version;
         QString network;
         QString protocol;

@@ -12,6 +12,8 @@ using ConnectionsTree::TreeItem;
 namespace {
     using Groups = std::vector<std::unique_ptr<ProcessGroupItem>>;
 
+    constexpr int kOutboundNameGraphemes = 40;
+
     TreeItem *itemOf(const QModelIndex &index) {
         return static_cast<TreeItem *>(index.internalPointer());
     }
@@ -206,7 +208,7 @@ void ConnectionsTreeModel::setConnections(const QList<Stats::ConnectionMetadata>
     QHash<QString, QString> shortOutbounds;
     const auto outboundText = [&shortOutbounds](const QString &name) -> const QString & {
         auto it = shortOutbounds.find(name);
-        if (it == shortOutbounds.end()) it = shortOutbounds.insert(name, ShortDisplayName(name));
+        if (it == shortOutbounds.end()) it = shortOutbounds.insert(name, ShortDisplayName(name, kOutboundNameGraphemes));
         return it.value();
     };
 

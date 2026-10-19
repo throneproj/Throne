@@ -189,6 +189,9 @@ namespace Configs {
             bool xrayToSingTransitioned = false;
             bool proxyUsesXray = false;
             std::shared_ptr<Profile> ent = std::make_shared<Profile>(nullptr, nullptr);
+            // The current routing profile's DNS; routeOwnsDns also overrides the global DNS object.
+            RouteDns dns;
+            bool routeOwnsDns = false;
             BuildPrerequisites prerequisites;
             osType os = getOS();
 
@@ -701,6 +704,7 @@ namespace Configs {
 #ifdef Q_OS_LINUX
             ctx.isResolvedUsed = isSystemdResolvedDefaultResolver();
 #endif
+            ctx.dns = RouteDns::Current(&ctx.routeOwnsDns);
             auto &preReqs = ctx.prerequisites;
 
             auto routeChain = dataManager->routesRepo->GetRouteProfile(settings.current_route_id);
@@ -853,7 +857,7 @@ namespace Configs {
                 if (!preReqs.routing.neededRuleSets.contains(item)) preReqs.routing.neededRuleSets << item;
             }
 
-            if (settings.enable_dns_routing) {
+            if (ctx.dns.enable_dns_routing) {
                 auto sets = routeChain->get_direct_sites();
                 parseSelectorList(sets, sinkFor(preReqs.dns.direct));
                 if (!sets.isEmpty()) preReqs.dns.needDirectDnsRules = true;
@@ -1054,7 +1058,7 @@ namespace Configs {
 
         void buildDNSSection(BuildContext &ctx, bool useDnsObj = true) {
             const auto &settings = *dataManager->settingsRepo;
-            if (settings.use_dns_object && useDnsObj) {
+            if (!ctx.routeOwnsDns && settings.use_dns_object && useDnsObj) {
                 ctx.result->coreConfig["dns"] = QString2QJsonObject(settings.dns_object);
                 return;
             }
@@ -1067,7 +1071,7 @@ namespace Configs {
             // Merged in front of `rules` at the end; the tailscale block below prepends.
             QJsonArray headRules;
             if (!ctx.forTest) {
-                auto remoteDnsObj = buildDnsObj(ctx, settings.remote_dns);
+                auto remoteDnsObj = buildDnsObj(ctx, ctx.dns.remote_dns);
                 // overwrite remote dns to TCP based since Xray is shit
                 if (ctx.proxyUsesXray && ( remoteDnsObj.value("type").toString() == "udp" || remoteDnsObj.value("type").toString() == "quic" )) {
                     remoteDnsObj = buildDnsObj(ctx, upgradeUdpDnsToDoH(remoteDnsObj.value("server").toString()));
@@ -1113,7 +1117,7 @@ namespace Configs {
                 }
             }
 
-            auto directDnsObj = buildDnsObj(ctx, settings.direct_dns);
+            auto directDnsObj = buildDnsObj(ctx, ctx.dns.direct_dns);
             directDnsObj["tag"] = tags::dnsDirect;
             directDnsObj["domain_resolver"] = tags::dnsLocal;
             servers.append(directDnsObj);
@@ -1201,10 +1205,10 @@ namespace Configs {
             if (!ctx.forTest && !ctx.result->extraCoreData->path.isEmpty())
             {
                 appendDnsRoute(rules, QJsonObject{{"process_path", extraCoreProcessPaths(ctx.result->extraCoreData->path)}},
-                               tags::dnsDirect, settings.direct_dns_disable_ipv6);
+                               tags::dnsDirect, ctx.dns.direct_dns_disable_ipv6);
             }
 
-            if (settings.fake_dns) {
+            if (ctx.dns.fake_dns) {
                 QJsonObject fakeServer{
                         {"tag", tags::dnsFake},
                         {"type", "fakeip"},
@@ -1212,7 +1216,7 @@ namespace Configs {
                     };
                 // No inet6_range makes the transport answer AAAA empty itself; the rule stays on both types.
                 // Not fc00::/18: the Tun's fc00::/7 private-range bypass would route fake addresses outside it.
-                if (!settings.fakeip_disable_ipv6) fakeServer["inet6_range"] = "2001:db8::/32";
+                if (!ctx.dns.fakeip_disable_ipv6) fakeServer["inet6_range"] = "2001:db8::/32";
                 servers += fakeServer;
                 rules += QJsonObject{
                         {"query_type", QJsonArray{
@@ -1226,18 +1230,18 @@ namespace Configs {
             }
 
             if (dns.needDirectDnsRules) {
-                appendDnsRoutingRules(rules, dns.direct, tags::dnsDirect, settings.direct_dns_disable_ipv6);
+                appendDnsRoutingRules(rules, dns.direct, tags::dnsDirect, ctx.dns.direct_dns_disable_ipv6);
             }
 
             // A test box builds no dns-remote server at all, so its fall-through goes out direct.
-            const bool useDirectFinalDNS = ctx.forTest || settings.dns_final_out == tags::direct;
+            const bool useDirectFinalDNS = ctx.forTest || ctx.dns.dns_final_out == tags::direct;
 
             if (!ctx.forTest && dns.needProxyDnsRules && useDirectFinalDNS) {
-                appendDnsRoutingRules(rules, dns.proxy, remoteDnsTag, settings.remote_dns_disable_ipv6);
+                appendDnsRoutingRules(rules, dns.proxy, remoteDnsTag, ctx.dns.remote_dns_disable_ipv6);
             }
 
             appendDnsRoute(rules, QJsonObject{}, useDirectFinalDNS ? QString(tags::dnsDirect) : remoteDnsTag,
-                           useDirectFinalDNS ? settings.direct_dns_disable_ipv6 : settings.remote_dns_disable_ipv6);
+                           useDirectFinalDNS ? ctx.dns.direct_dns_disable_ipv6 : ctx.dns.remote_dns_disable_ipv6);
 
             auto dnsLocalAddress = settings.core_box_underlying_dns.isEmpty() ? "local" : settings.core_box_underlying_dns;
             auto dnsLocalObj = buildDnsObj(ctx, dnsLocalAddress);
@@ -2988,6 +2992,7 @@ namespace Configs {
 #ifdef Q_OS_LINUX
         ctx.isResolvedUsed = isSystemdResolvedDefaultResolver();
 #endif
+        ctx.dns = RouteDns::Current(&ctx.routeOwnsDns);
 
         for (const auto &item : profiles) {
             if (item == nullptr) continue;

@@ -85,6 +85,7 @@ namespace Configs {
         sniffOverrideDest = other.sniffOverrideDest;
         strategy = other.strategy;
         type = other.type;
+        disabled = other.disabled;
         uiVisibleAttributes = other.uiVisibleAttributes;
         uiAttributeTabsSeeded = other.uiAttributeTabsSeeded;
     }
@@ -222,6 +223,7 @@ namespace Configs {
         if (obj.isEmpty()) return obj; // outbound profile missing; caller skips it
         obj["name"] = name;
         obj["type"] = ruleTypeToToken(type);
+        if (disabled) obj["disabled"] = true;
         return obj;
     }
 

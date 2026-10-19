@@ -15,6 +15,7 @@
 
 class QListWidget;
 class QStandardItemModel;
+class RouteDnsEditor;
 
 class RouteItem : public QDialog {
     Q_OBJECT
@@ -53,6 +54,8 @@ private:
     QListWidget* ruleAttrPlusList = nullptr;
 
     QWidget* lastTabPage = nullptr;
+
+    RouteDnsEditor* dnsEditor = nullptr;
 
     Validation::Form* form = nullptr;
 

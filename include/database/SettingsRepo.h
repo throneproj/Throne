@@ -205,6 +205,9 @@ namespace Configs {
         bool remote_dns_disable_ipv6 = false;
         QString direct_dns = "localhost";
         bool direct_dns_disable_ipv6 = false;
+        // Servers typed into the remote / direct DNS fields, newest first.
+        QStringList remote_dns_history = {};
+        QStringList direct_dns_history = {};
         int dns_cache_capacity = 65536;
         bool dns_disable_cache = false;
         bool dns_disable_expire = false;

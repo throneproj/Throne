@@ -54,7 +54,10 @@ public:
         const int previous = m_sortSection;
         m_sortSection = section;
         m_sortDescending = descending;
-        if (previous != section) resizeSections();
+        if (previous != section) {
+            resizeSections();
+            fitOutboundSection();
+        }
         if (previous >= 0) updateSection(previous);
         if (section >= 0) updateSection(section);
     }
@@ -77,7 +80,7 @@ public:
     }
 
 protected:
-    // Protocol/Outbound are ResizeToContents, so without a floor their fields shrink to the header label's width.
+    // Protocol and Outbound size from their contents, so without a floor their fields shrink to the header label's width.
     QSize sectionSizeFromContents(int logicalIndex) const override {
         QSize s = QHeaderView::sectionSizeFromContents(logicalIndex);
         if (logicalIndex == m_sortSection) {
@@ -108,8 +111,10 @@ protected:
         painter->restore();
     }
 
+    // Runs after every relayout, expand, viewport resize and (via the view's column timer) section resize.
     void updateGeometries() override {
         QHeaderView::updateGeometries();
+        fitOutboundSection();
         adjustPositions();
     }
 
@@ -184,6 +189,23 @@ signals:
 
 private:
     static constexpr int kSortArrowRoom = 14;
+
+    // Outbound fits its content into what the stretched Target leaves past the Target's own content, so a long address wins.
+    void fitOutboundSection() {
+        using Model = ConnectionsTreeModel;
+        const auto *view = qobject_cast<QAbstractItemView *>(parent());
+        if (view == nullptr || count() < Model::ColumnCount) return;
+
+        const int floor = sectionSizeHint(Model::ColOutbound);
+        const int wanted = qMax(floor, view->sizeHintForColumn(Model::ColOutbound));
+        int room = viewport()->width() - qMax(sectionSizeHint(Model::ColTarget), view->sizeHintForColumn(Model::ColTarget));
+        for (int section = 0; section < count(); ++section) {
+            if (section != Model::ColTarget && section != Model::ColOutbound && !isSectionHidden(section))
+                room -= sectionSize(section);
+        }
+        const int width = qBound(floor, room, wanted);
+        if (width != sectionSize(Model::ColOutbound)) resizeSection(Model::ColOutbound, width);
+    }
 
     QLineEdit *makeEdit() {
         auto *edit = new QLineEdit(this->viewport());

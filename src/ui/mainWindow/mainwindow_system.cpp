@@ -39,6 +39,9 @@
 #include "include/ui/setting/dialog_otp_manager.h"
 #include "include/ui/setting/dialog_preset_settings.h"
 #include "include/ui/setting/dialog_vpn_settings.h"
+#include "include/ui/setting/RawRouteItem.h"
+#include "include/ui/setting/RouteItem.h"
+#include "include/database/RoutesRepo.h"
 
 #ifdef Q_OS_WIN
 #include "3rdparty/WinCommander.hpp"
@@ -62,6 +65,36 @@ void MainWindow::on_menu_routing_settings_triggered() {
         dialog_is_using = false;
     });
     dialog->show();
+}
+
+void MainWindow::openRouteProfileEditor(int routeId) {
+    // Also keeps the routing dialog from saving its stale copy over this edit.
+    if (dialog_is_using) return;
+    const auto profile = Configs::dataManager->routesRepo->GetRouteProfile(routeId);
+    if (profile == nullptr) return;
+    dialog_is_using = true;
+
+    const auto onSaved = [this](const std::shared_ptr<Configs::RouteProfile>& chain) {
+        if (!Configs::dataManager->routesRepo->Save(chain)) return;
+        if (chain->id == Configs::dataManager->settingsRepo->current_route_id)
+            connection()->noteRestartNeeded(Engine::RestartReason::Routing);
+    };
+    QDialog* editor;
+    if (profile->isRaw) {
+        auto* raw = new RawRouteItem(this, profile);
+        connect(raw, &RawRouteItem::settingsChanged, this, onSaved);
+        editor = raw;
+    } else {
+        auto* item = new RouteItem(this, profile);
+        connect(item, &RouteItem::settingsChanged, this, onSaved);
+        editor = item;
+    }
+    connect(editor, &QDialog::finished, this, [=, this] {
+        editor->deleteLater();
+        dialog_is_using = false;
+    });
+    editor->setWindowModality(Qt::ApplicationModal);
+    editor->show();
 }
 
 void MainWindow::on_menu_vpn_settings_triggered() {

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <QCoreApplication>
+#include <QHash>
 #include <QHostAddress>
 #include <QJsonArray>
 #include <QRegularExpression>
@@ -26,6 +27,23 @@ namespace Configs
         const auto text = query.queryItemValue(key).trimmed();
         if (!AcceptOptional(key, Validation::Int(text, min, max), text)) return;
         if (const auto value = Validation::ToInt(text)) target = static_cast<int>(*value);
+    }
+
+    QString LegacyComboValue(const QString& value, const QStringList& identifiers)
+    {
+        // Labels that case and space folding alone cannot map back.
+        static const QHash<QString, QString> translated = {
+            {QStringLiteral("нативный"), QStringLiteral("native")},
+            {QStringLiteral("bbr v2"), QStringLiteral("bbr2")},
+            {QStringLiteral("вариант bbr"), QStringLiteral("bbr_variant")},
+            {QStringLiteral("bbr变体"), QStringLiteral("bbr_variant")},
+            {QStringLiteral("标准bbr"), QStringLiteral("bbr_standard")},
+        };
+        const auto folded = value.trimmed().toLower();
+        for (const auto& candidate : {translated.value(folded, folded), QString(folded).replace(' ', '_'), QString(folded).remove(' ')}) {
+            if (identifiers.contains(candidate)) return candidate;
+        }
+        return value.trimmed();
     }
 
     QStringList JsonStringList(const QJsonValue& value, const QString& field)

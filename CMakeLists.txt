@@ -493,6 +493,8 @@ set(PROJECT_SOURCES
 
         src/ui/setting/RawRouteItem.cpp
         include/ui/setting/RawRouteItem.h
+        src/ui/setting/RouteDnsEditor.cpp
+        include/ui/setting/RouteDnsEditor.h
 
         res/Throne.qrc
         ${QV2RAY_RC}

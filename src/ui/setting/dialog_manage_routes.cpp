@@ -32,6 +32,7 @@
 
 #include "include/database/RoutesRepo.h"
 #include "include/ui/setting/RawRouteItem.h"
+#include "include/ui/setting/RouteDnsEditor.h"
 
 namespace {
     constexpr auto defaultWarpApiHost = "api.cloudflareclient.com";
@@ -63,6 +64,11 @@ namespace {
         box.setTextFormat(Qt::PlainText);
         if (!details.isEmpty()) box.setDetailedText(details);
         box.exec();
+    }
+
+    // Shown before import: those servers would see every query made while the profile is in use.
+    QString manageRoutesDnsNote(const Configs::RouteDns &dns) {
+        return DialogManageRoutes::tr("It uses its own DNS servers: remote %1, direct %2.").arg(dns.remote_dns, dns.direct_dns);
     }
 
     QString manageRoutesDnsProblem(const QString &text) {
@@ -455,9 +461,11 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     ui->default_domain_strategy->setCurrentText(Configs::dataManager->settingsRepo->default_domain_strategy);
     ui->domainStrategyCombo->setCurrentText(Configs::dataManager->settingsRepo->resolve_domain_strategy);
     ui->use_dns_object->setChecked(Configs::dataManager->settingsRepo->use_dns_object);
-    ui->remote_dns->setCurrentText(Configs::dataManager->settingsRepo->remote_dns);
+    DnsServerHistory::Fill(ui->remote_dns, Configs::dataManager->settingsRepo->remote_dns_history,
+                           DnsServerHistory::RemotePresets(), Configs::dataManager->settingsRepo->remote_dns);
     ui->remote_dns_disable_ipv6->setChecked(Configs::dataManager->settingsRepo->remote_dns_disable_ipv6);
-    ui->direct_dns->setCurrentText(Configs::dataManager->settingsRepo->direct_dns);
+    DnsServerHistory::Fill(ui->direct_dns, Configs::dataManager->settingsRepo->direct_dns_history,
+                           DnsServerHistory::DirectPresets(), Configs::dataManager->settingsRepo->direct_dns);
     ui->direct_dns_disable_ipv6->setChecked(Configs::dataManager->settingsRepo->direct_dns_disable_ipv6);
     ui->dns_final_out->setCurrentText(Configs::dataManager->settingsRepo->dns_final_out);
     ui->enable_dns_routing->setChecked(Configs::dataManager->settingsRepo->enable_dns_routing);
@@ -624,7 +632,13 @@ void DialogManageRoutes::accept() {
     Configs::dataManager->settingsRepo->default_domain_strategy = ui->default_domain_strategy->currentText();
     Configs::dataManager->settingsRepo->use_dns_object = ui->use_dns_object->isChecked();
     Configs::dataManager->settingsRepo->dns_object = dns_object_text;
-    Configs::dataManager->settingsRepo->remote_dns = ui->remote_dns->currentText().trimmed();
+    const auto remoteDns = ui->remote_dns->currentText().trimmed();
+    const auto directDns = ui->direct_dns->currentText().trimmed();
+    if (remoteDns != Configs::dataManager->settingsRepo->remote_dns)
+        DnsServerHistory::Remember(Configs::dataManager->settingsRepo->remote_dns_history, DnsServerHistory::RemotePresets(), remoteDns);
+    if (directDns != Configs::dataManager->settingsRepo->direct_dns)
+        DnsServerHistory::Remember(Configs::dataManager->settingsRepo->direct_dns_history, DnsServerHistory::DirectPresets(), directDns);
+    Configs::dataManager->settingsRepo->remote_dns = remoteDns;
     Configs::dataManager->settingsRepo->remote_dns_disable_ipv6 = ui->remote_dns_disable_ipv6->isChecked();
     Configs::dataManager->settingsRepo->dns_cache_capacity = dns_advanced.cache_capacity;
     Configs::dataManager->settingsRepo->dns_disable_cache = dns_advanced.disable_cache;
@@ -634,7 +648,7 @@ void DialogManageRoutes::accept() {
     Configs::dataManager->settingsRepo->dns_optimistic = dns_advanced.optimistic;
     Configs::dataManager->settingsRepo->dns_optimistic_timeout = dns_advanced.optimistic_timeout;
     Configs::dataManager->settingsRepo->dns_query_timeout = dns_advanced.query_timeout;
-    Configs::dataManager->settingsRepo->direct_dns = ui->direct_dns->currentText().trimmed();
+    Configs::dataManager->settingsRepo->direct_dns = directDns;
     Configs::dataManager->settingsRepo->direct_dns_disable_ipv6 = ui->direct_dns_disable_ipv6->isChecked();
     Configs::dataManager->settingsRepo->core_box_underlying_dns = ui->local_override->text().trimmed();
     Configs::dataManager->settingsRepo->dns_final_out = ui->dns_final_out->currentText();
@@ -779,6 +793,7 @@ void DialogManageRoutes::on_import_route_clicked()
             const QString what = wasOldArray ? tr("a routing rule list")
                                              : tr("routing profile \"%1\"").arg(profile->name);
             QString prompt = tr("Import %1 from the clipboard?").arg(what);
+            if (const auto dns = profile->ActiveDns()) prompt += "\n\n" + manageRoutesDnsNote(*dns);
             // endpoints are already created by the parse above, before this prompt
             if (!warnings.isEmpty()) prompt += "\n\n" + tr("Note:") + "\n" + warnings.trimmed();
             QMessageBox box(QMessageBox::Question, tr("Import from clipboard"), prompt,
@@ -812,6 +827,7 @@ void DialogManageRoutes::on_import_route_clicked()
             MessageBoxWarning(tr("Invalid input"), tr("Could not import this routing profile:\n") + fatal);
             return;
         }
+        if (const auto dns = profile->ActiveDns()) warnings.prepend(manageRoutesDnsNote(*dns) + "\n");
         if (!warnings.isEmpty()) manageRoutesPlainBox(w, QMessageBox::Information, tr("Imported with warnings"), warnings.trimmed());
         applyImportedProfile(profile, wasOldArray);
         w->accept();

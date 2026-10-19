@@ -7,6 +7,7 @@
 #include <QJsonDocument>
 #include "include/configs/common/utils.h"
 #include "include/configs/ParseDiagnostics.h"
+#include "include/database/entities/RouteProfile.h"
 #include "include/global/Utils.hpp"
 
 #include <algorithm>
@@ -1340,8 +1341,10 @@ namespace Configs {
 
     QString getDirectDomainStrategy() {
         const auto &settings = *Configs::dataManager->settingsRepo;
+        bool routeOwnsDns = false;
+        const auto dns = Configs::RouteDns::Current(&routeOwnsDns);
         // No DNS rule blanks AAAA for these lookups any more, so the switch caps the strategy instead.
-        if (settings.direct_dns_disable_ipv6 && !settings.use_dns_object) return "ipv4_only";
+        if (dns.direct_dns_disable_ipv6 && (routeOwnsDns || !settings.use_dns_object)) return "ipv4_only";
         return settings.default_domain_strategy;
     }
 

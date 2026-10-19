@@ -36,7 +36,32 @@ namespace Configs_network {
                 if (const auto sink = loadDownloadProgressSink()) sink(report, show);
             });
         }
+
+        QNetworkProxy mixedInboundProxy() {
+            const auto &settings = Configs::dataManager->settingsRepo;
+            QNetworkProxy p;
+            p.setType(QNetworkProxy::HttpProxy);
+            p.setHostName(LocalNetwork::InboundConnectHost());
+            p.setPort(settings->inbound_socks_port);
+            if (settings->inbound_auth) {
+                p.setUser(settings->inbound_user);
+                p.setPassword(settings->inbound_pass);
+            }
+            return p;
+        }
     } // namespace
+
+    bool RequestUsesMixedInbound(bool useProxy, QString *error) {
+        const auto &settings = Configs::dataManager->settingsRepo;
+        if (!settings->net_use_proxy && !settings->spmode_system_proxy && !useProxy) return false;
+        if (settings->started_id < 0) {
+            *error = QObject::tr("Request with proxy but no profile started.");
+            return false;
+        }
+        if (!settings->disable_mixed_inbound) return true;
+        if (!settings->spmode_vpn) *error = QObject::tr("Request with proxy but the mixed inbound is disabled and Tun Mode is off.");
+        return false;
+    }
 
     void NetworkRequestHelper::SetDownloadProgressSink(DownloadProgressSink sink) {
         QMutexLocker locker(&downloadProgressSinkMutex);
@@ -58,20 +83,9 @@ namespace Configs_network {
         QNetworkAccessManager accessManager;
         accessManager.setTransferTimeout(10000);
         request.setUrl(url);
-        if (Configs::dataManager->settingsRepo->net_use_proxy || Configs::dataManager->settingsRepo->spmode_system_proxy || options.useProxy) {
-            if (Configs::dataManager->settingsRepo->started_id < 0) {
-                return HTTPResponse{QObject::tr("Request with proxy but no profile started.")};
-            }
-            QNetworkProxy p;
-            p.setType(QNetworkProxy::HttpProxy);
-            p.setHostName(LocalNetwork::InboundConnectHost());
-            p.setPort(Configs::dataManager->settingsRepo->inbound_socks_port);
-            if (Configs::dataManager->settingsRepo->inbound_auth) {
-                p.setUser(Configs::dataManager->settingsRepo->inbound_user);
-                p.setPassword(Configs::dataManager->settingsRepo->inbound_pass);
-            }
-            accessManager.setProxy(p);
-        }
+        QString proxyError;
+        if (RequestUsesMixedInbound(options.useProxy, &proxyError)) accessManager.setProxy(mixedInboundProxy());
+        else if (!proxyError.isEmpty()) return HTTPResponse{proxyError};
         request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
         request.setAttribute(QNetworkRequest::Http2AllowedAttribute, options.http2);
         request.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader,
@@ -134,20 +148,9 @@ namespace Configs_network {
         QNetworkAccessManager accessManager;
         accessManager.setTransferTimeout(kDownloadAssetIdleTimeoutMs);
         request.setUrl(url);
-        if (Configs::dataManager->settingsRepo->net_use_proxy || Configs::dataManager->settingsRepo->spmode_system_proxy || useProxy) {
-            if (Configs::dataManager->settingsRepo->started_id < 0) {
-                return QObject::tr("Request with proxy but no profile started.");
-            }
-            QNetworkProxy p;
-            p.setType(QNetworkProxy::HttpProxy);
-            p.setHostName(LocalNetwork::InboundConnectHost());
-            p.setPort(Configs::dataManager->settingsRepo->inbound_socks_port);
-            if (Configs::dataManager->settingsRepo->inbound_auth) {
-                p.setUser(Configs::dataManager->settingsRepo->inbound_user);
-                p.setPassword(Configs::dataManager->settingsRepo->inbound_pass);
-            }
-            accessManager.setProxy(p);
-        }
+        QString proxyError;
+        if (RequestUsesMixedInbound(useProxy, &proxyError)) accessManager.setProxy(mixedInboundProxy());
+        else if (!proxyError.isEmpty()) return proxyError;
         request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
         const bool insecure = Configs::dataManager->settingsRepo->net_insecure && !strictTls;
         if (insecure) {

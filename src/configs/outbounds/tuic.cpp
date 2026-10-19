@@ -12,12 +12,12 @@ namespace Configs {
         // Older builds saved translated combo text ("BBR", "New Reno", "нативный"); the core matches exact identifiers.
         QString canonicalTuicCongestion(const QString& value)
         {
-            return value.trimmed().toLower().replace(' ', '_');
+            return LegacyComboValue(value, ccAlgorithms);
         }
 
         QString canonicalTuicRelayMode(const QString& value)
         {
-            const auto mode = value.trimmed().toLower();
+            const auto mode = LegacyComboValue(value, {"native", "quic"});
             return mode == "native" || mode == "quic" ? mode : QString();
         }
 

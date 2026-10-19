@@ -6,6 +6,7 @@
 #include <QUuid>
 
 #include "include/global/Utils.hpp"
+#include "include/global/Validation.hpp"
 
 namespace Configs {
     SettingsRepo::SettingsRepo(Database& database) : db(database) {
@@ -208,6 +209,8 @@ namespace Configs {
 
         stringListMap = {
             {"dns_predefined_rules",     &dns_predefined_rules},
+            {"remote_dns_history",       &remote_dns_history},
+            {"direct_dns_history",       &direct_dns_history},
             {"extra_core_paths",         &extraCorePaths},
             {"log_include_keyword",      &log_include_keyword},
             {"log_include_regex",        &log_include_regex},
@@ -298,6 +301,14 @@ namespace Configs {
                 *strVal.value() = str;
                 continue;
             }
+        }
+        // Builds before 1.2.1 saved the translated interval label ("5 мин.", "۱۰ دقیقه"), which the core rejects.
+        if (!Validation::Duration(ntp_interval).isEmpty()) {
+            QString minutes;
+            for (const QChar c : ntp_interval) {
+                if (c.digitValue() >= 0) minutes += QChar(u'0' + c.digitValue());
+            }
+            ntp_interval = minutes.isEmpty() ? QStringLiteral("30m") : minutes + u'm';
         }
         // Retired keys nothing writes back; the DNS ones would otherwise keep overriding the migrated flags on every load.
         db.exec("DELETE FROM settings WHERE key IN ('direct_dns_strategy', 'remote_dns_strategy', 'log_auto_scroll')");
