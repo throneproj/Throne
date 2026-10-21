@@ -79,30 +79,30 @@ static void perspective_setup(quirc_float_t *c,
 	quirc_float_t x3 = rect[3].x;
 	quirc_float_t y3 = rect[3].y;
 
-	quirc_float_t wden = w * (x2*y3 - x3*y2 + (x3-x2)*y1 + x1*(y2-y3));
-	quirc_float_t hden = h * (x2*y3 + x1*(y2-y3) - x3*y2 + (x3-x2)*y1);
+	quirc_float_t wden = (quirc_float_t)1 / (w * (x2*y3 - x3*y2 + (x3-x2)*y1 + x1*(y2-y3)));
+	quirc_float_t hden = (quirc_float_t)1 / (h * (x2*y3 + x1*(y2-y3) - x3*y2 + (x3-x2)*y1));
 
 	c[0] = (x1*(x2*y3-x3*y2) + x0*(-x2*y3+x3*y2+(x2-x3)*y1) +
-		x1*(x3-x2)*y0) / wden;
+		x1*(x3-x2)*y0) * wden;
 	c[1] = -(x0*(x2*y3+x1*(y2-y3)-x2*y1) - x1*x3*y2 + x2*x3*y1
-		 + (x1*x3-x2*x3)*y0) / hden;
+		 + (x1*x3-x2*x3)*y0) * hden;
 	c[2] = x0;
 	c[3] = (y0*(x1*(y3-y2)-x2*y3+x3*y2) + y1*(x2*y3-x3*y2) +
-		x0*y1*(y2-y3)) / wden;
+		x0*y1*(y2-y3)) * wden;
 	c[4] = (x0*(y1*y3-y2*y3) + x1*y2*y3 - x2*y1*y3 +
-		y0*(x3*y2-x1*y2+(x2-x3)*y1)) / hden;
+		y0*(x3*y2-x1*y2+(x2-x3)*y1)) * hden;
 	c[5] = y0;
-	c[6] = (x1*(y3-y2) + x0*(y2-y3) + (x2-x3)*y1 + (x3-x2)*y0) / wden;
-	c[7] = (-x2*y3 + x1*y3 + x3*y2 + x0*(y1-y2) - x3*y1 + (x2-x1)*y0) /
+	c[6] = (x1*(y3-y2) + x0*(y2-y3) + (x2-x3)*y1 + (x3-x2)*y0) * wden;
+	c[7] = (-x2*y3 + x1*y3 + x3*y2 + x0*(y1-y2) - x3*y1 + (x2-x1)*y0) *
 		hden;
 }
 
 static void perspective_map(const quirc_float_t *c,
 			    quirc_float_t u, quirc_float_t v, struct quirc_point *ret)
 {
-	quirc_float_t den = c[6]*u + c[7]*v + 1.0;
-	quirc_float_t x = (c[0]*u + c[1]*v + c[2]) / den;
-	quirc_float_t y = (c[3]*u + c[4]*v + c[5]) / den;
+	quirc_float_t den = (quirc_float_t)1 / (c[6]*u + c[7]*v + (quirc_float_t)1.0);
+	quirc_float_t x = (c[0]*u + c[1]*v + c[2]) * den;
+	quirc_float_t y = (c[3]*u + c[4]*v + c[5]) * den;
 
 	ret->x = (int) rint(x);
 	ret->y = (int) rint(y);
@@ -114,12 +114,12 @@ static void perspective_unmap(const quirc_float_t *c,
 {
 	quirc_float_t x = in->x;
 	quirc_float_t y = in->y;
-	quirc_float_t den = -c[0]*c[7]*y + c[1]*c[6]*y + (c[3]*c[7]-c[4]*c[6])*x +
-		c[0]*c[4] - c[1]*c[3];
+	quirc_float_t den = (quirc_float_t)1 / (-c[0]*c[7]*y + c[1]*c[6]*y + (c[3]*c[7]-c[4]*c[6])*x +
+	 c[0]*c[4] - c[1]*c[3]);
 
-	*u = -(c[1]*(y-c[5]) - c[2]*c[7]*y + (c[5]*c[7]-c[4])*x + c[2]*c[4]) /
+	*u = -(c[1]*(y-c[5]) - c[2]*c[7]*y + (c[5]*c[7]-c[4])*x + c[2]*c[4]) *
 		den;
-	*v = (c[0]*(y-c[5]) - c[2]*c[6]*y + (c[5]*c[6]-c[3])*x + c[2]*c[3]) /
+	*v = (c[0]*(y-c[5]) - c[2]*c[6]*y + (c[5]*c[6]-c[3])*x + c[2]*c[3]) *
 		den;
 }
 
@@ -290,29 +290,29 @@ static void flood_fill_seed(struct quirc *q,
 
 static uint8_t otsu(const struct quirc *q)
 {
-	unsigned int numPixels = q->w * q->h;
+	size_t num_pixels = quirc_pixel_count(q);
 
 	// Calculate histogram
-	unsigned int histogram[UINT8_MAX + 1];
+	size_t histogram[UINT8_MAX + 1];
 	(void)memset(histogram, 0, sizeof(histogram));
 	uint8_t* ptr = q->image;
-	unsigned int length = numPixels;
+	size_t length = num_pixels;
 	while (length--) {
 		uint8_t value = *ptr++;
 		histogram[value]++;
 	}
 
 	// Calculate weighted sum of histogram values
-	quirc_float_t sum = 0;
+	quirc_float_t sum = (quirc_float_t)0;
 	unsigned int i = 0;
 	for (i = 0; i <= UINT8_MAX; ++i) {
-		sum += i * histogram[i];
+		sum += (quirc_float_t)i * histogram[i];
 	}
 
 	// Compute threshold
-	quirc_float_t sumB = 0;
-	unsigned int q1 = 0;
-	quirc_float_t max = 0;
+	quirc_float_t sumB = (quirc_float_t)0;
+	size_t q1 = 0;
+	quirc_float_t max = (quirc_float_t)0;
 	uint8_t threshold = 0;
 	for (i = 0; i <= UINT8_MAX; ++i) {
 		// Weighted background
@@ -321,11 +321,11 @@ static uint8_t otsu(const struct quirc *q)
 			continue;
 
 		// Weighted foreground
-		const unsigned int q2 = numPixels - q1;
+		const size_t q2 = num_pixels - q1;
 		if (q2 == 0)
 			break;
 
-		sumB += i * histogram[i];
+		sumB += (quirc_float_t)i * histogram[i];
 		const quirc_float_t m1 = sumB / q1;
 		const quirc_float_t m2 = (sum - sumB) / q2;
 		const quirc_float_t m1m2 = m1 - m2;
@@ -595,25 +595,34 @@ static void find_alignment_pattern(struct quirc *q, int index)
 	 * can estimate its size.
 	 */
 	perspective_unmap(c0->c, &b, &u, &v);
-	perspective_map(c0->c, u, v + 1.0, &a);
+	perspective_map(c0->c, u, v + (quirc_float_t)1.0, &a);
 	perspective_unmap(c2->c, &b, &u, &v);
-	perspective_map(c2->c, u + 1.0, v, &c);
+	perspective_map(c2->c, u + (quirc_float_t)1.0, v, &c);
 
 	size_estimate = abs((a.x - b.x) * -(c.y - b.y) +
 			    (a.y - b.y) * (c.x - b.x));
+
+	/* A degenerate perspective can give an absurd (or overflowed)
+	 * estimate, which would make the spiral below run for minutes or
+	 * never end. A module of a version 2+ code cannot be larger than
+	 * the image allows.
+	 *
+	 * The image area is computed in size_t: "q->w * q->h" on its own
+	 * would be evaluated in int and could overflow for large images.
+	 */
+	if (size_estimate <= 0 ||
+	    (size_t)size_estimate > (size_t)q->w * q->h / (25 * 25))
+		return;
 
 	/* Spiral outwards from the estimate point until we find something
 	 * roughly the right size. Don't look too far from the estimate
 	 * point.
 	 *
-	 * A degenerate perspective transform (near-zero denominator) can make
-	 * size_estimate enormous, which would spin this spiral for hundreds of
-	 * millions of iterations on a tiny image (denial of service on a crafted
-	 * QR). The alignment pattern must lie within the image, so also cap the
-	 * search radius at the image size.
+	 * Compare in size_t as well; "size_estimate * 100" in int could
+	 * otherwise overflow for a large image.
 	 */
-	int max_step = (q->w > q->h ? q->w : q->h) + 1;
-	while (step_size * step_size < size_estimate * 100 && step_size <= max_step) {
+	while ((size_t)step_size * step_size <
+	       (size_t)size_estimate * 100) {
 		static const int dx_map[] = {1, 0, -1, 0};
 		static const int dy_map[] = {0, -1, 0, 1};
 		int i;
@@ -677,16 +686,16 @@ static void measure_grid_size(struct quirc *q, int index)
 
 	quirc_float_t ab = length(b->corners[0], a->corners[3]);
 	quirc_float_t capstone_ab_size = (length(b->corners[0], b->corners[3]) + length(a->corners[0], a->corners[3]))/2.0;
-	quirc_float_t ver_grid = 7.0 * ab / capstone_ab_size;
+	quirc_float_t ver_grid = (quirc_float_t)7.0 * ab / capstone_ab_size;
 
 	quirc_float_t bc = length(b->corners[0], c->corners[1]);
 	quirc_float_t capstone_bc_size = (length(b->corners[0], b->corners[1]) + length(c->corners[0], c->corners[1]))/2.0;
-	quirc_float_t hor_grid = 7.0 * bc / capstone_bc_size;
-	
-	quirc_float_t grid_size_estimate = (ver_grid + hor_grid) / 2;
+	quirc_float_t hor_grid = (quirc_float_t)7.0 * bc / capstone_bc_size;
 
-	int ver = (int)((grid_size_estimate - 17.0 + 2.0) / 4.0);
-	
+	quirc_float_t grid_size_estimate = (ver_grid + hor_grid) * (quirc_float_t)(0.5);
+
+	int ver = (int)((grid_size_estimate - (quirc_float_t)(17.0 - 2.0)) * (quirc_float_t)(1./4));
+
 	qr->grid_size =  4*ver + 17;
 }
 
@@ -699,7 +708,7 @@ static int read_cell(const struct quirc *q, int index, int x, int y)
 	const struct quirc_grid *qr = &q->grids[index];
 	struct quirc_point p;
 
-	perspective_map(qr->c, x + 0.5, y + 0.5, &p);
+	perspective_map(qr->c, x + (quirc_float_t)0.5, y + (quirc_float_t)0.5, &p);
 	if (p.y < 0 || p.y >= q->h || p.x < 0 || p.x >= q->w)
 		return 0;
 
@@ -821,7 +830,7 @@ static void jiggle_perspective(struct quirc *q, int index)
 	int i;
 
 	for (i = 0; i < 8; i++)
-		adjustments[i] = qr->c[i] * 0.02;
+		adjustments[i] = qr->c[i] * (quirc_float_t)0.02;
 
 	for (pass = 0; pass < 5; pass++) {
 		for (i = 0; i < 16; i++) {
@@ -955,6 +964,13 @@ static void record_qr_grid(struct quirc *q, int a, int b, int c)
 	 * transform.
 	 */
 	measure_grid_size(q, qr_index);
+
+	/* Nothing below checks the estimate, and an absurd one makes the
+	 * alignment search and the fitness loops very slow.
+	 */
+	if (qr->grid_size < 21 || qr->grid_size > QUIRC_MAX_GRID_SIZE)
+		goto fail;
+
 	/* Make an estimate based for the alignment pattern based on extending
 	 * lines from capstones A and C.
 	 */
@@ -1026,8 +1042,8 @@ static void test_neighbours(struct quirc *q, int i,
 		const struct neighbour *hn = &hlist->n[j];
 		for (int k = 0; k < vlist->count; k++) {
 			const struct neighbour *vn = &vlist->n[k];
-			quirc_float_t squareness = fabs(1.0 - hn->distance / vn->distance);
-			if (squareness < 0.2)
+			quirc_float_t squareness = fabs((quirc_float_t)1.0 - hn->distance / vn->distance);
+			if (squareness < (quirc_float_t)0.2)
 				record_qr_grid(q, hn->index, i, vn->index);
 		}
 	}
@@ -1055,17 +1071,17 @@ static void test_grouping(struct quirc *q, unsigned int i)
 
 		perspective_unmap(c1->c, &c2->center, &u, &v);
 
-		u = fabs(u - 3.5);
-		v = fabs(v - 3.5);
+		u = fabs(u - (quirc_float_t)3.5);
+		v = fabs(v - (quirc_float_t)3.5);
 
-		if (u < 0.2 * v) {
+		if (u < (quirc_float_t)0.2 * v) {
 			struct neighbour *n = &hlist.n[hlist.count++];
 
 			n->index = j;
 			n->distance = v;
 		}
 
-		if (v < 0.2 * u) {
+		if (v < (quirc_float_t)0.2 * u) {
 			struct neighbour *n = &vlist.n[vlist.count++];
 
 			n->index = j;
@@ -1087,7 +1103,7 @@ static void pixels_setup(struct quirc *q, uint8_t threshold)
 
 	uint8_t* source = q->image;
 	quirc_pixel_t* dest = q->pixels;
-	int length = q->w * q->h;
+	size_t length = quirc_pixel_count(q);
 	while (length--) {
 		uint8_t value = *source++;
 		*dest++ = (value < threshold) ? QUIRC_PIXEL_BLACK : QUIRC_PIXEL_WHITE;

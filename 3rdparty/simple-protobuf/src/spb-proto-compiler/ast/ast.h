@@ -20,7 +20,7 @@
  * @param type_name
  * @return scalar type or no type
  */
-[[nodiscard]] auto get_encoder( const proto_field & field ) -> proto_field::Type;
+[[nodiscard]] auto get_encoder(const proto_field &field) -> proto_field::Type;
 
 /**
  * @brief resolve types and sort all messages in a proto file
@@ -28,4 +28,4 @@
  *        then message B must be defined before message A
  *
  */
-void resolve_messages( proto_file & file );
+void resolve_messages(proto_file &file);

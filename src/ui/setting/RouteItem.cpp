@@ -5,6 +5,7 @@
 #include "include/database/GroupsRepo.h"
 #include "include/global/Configs.hpp"
 #include "include/configs/sub/RouteUpdater.hpp"
+#include "include/ui/setting/RouteDnsEditor.h"
 #include "include/ui/setting/ThemeManager.hpp"
 
 #include <srslist.h>
@@ -59,6 +60,12 @@ static QString routeItemFirstWarningLine(const QString& text, const std::functio
         return QCoreApplication::translate("Validation", "Line %1 (\"%2\"): %3").arg(QString::number(i + 1), routeItemElide(line), issue.message);
     }
     return {};
+}
+
+static void routeItemShowDisabled(QListWidgetItem* row, bool disabled) {
+    // Cleared rather than set to an empty brush, which the delegate would paint the text with.
+    row->setData(Qt::ForegroundRole, disabled ? QVariant(QBrush(themeManager()->tokens.muted)) : QVariant());
+    row->setToolTip(disabled ? RouteItem::tr("Disabled: kept in the profile but left out of the generated config.") : QString());
 }
 
 void adjustComboBoxWidth(const QComboBox *comboBox) {
@@ -264,6 +271,17 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
         updateRuleSection();
     });
 
+    // Restyled in place: rebuilding the list here would delete the item the view is still handling the click for.
+    connect(ui->route_items, &QListWidget::itemChanged, this, [this](QListWidgetItem* item) {
+        const int row = ui->route_items->row(item);
+        if (row < 0 || row >= chain->Rules.size() || !(item->flags() & Qt::ItemIsUserCheckable)) return;
+        const bool disabled = item->checkState() != Qt::Checked;
+        if (chain->Rules[row]->disabled == disabled) return;
+        chain->Rules[row]->disabled = disabled;
+        const QSignalBlocker blocker(ui->route_items);
+        routeItemShowDisabled(item, disabled);
+    });
+
     // currentIndexChanged, not currentTextChanged: connected before the Form's hook, so its check sees the new value.
     connect(ui->rule_action_combo, &QComboBox::currentIndexChanged, this, [=, this](const int index) {
         if (currentIndex < 0 || currentRuleIsEndpoint() || index < 0) return;
@@ -287,6 +305,7 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
 
     connect(deleteShortcut, &QShortcut::activated, this, [=, this] {
         // The shortcut is dialog-wide, so on the Endpoints page it must not reach the rule list.
+        if (ui->tabWidget->currentWidget() == dnsEditor) return;
         if (ui->tabWidget->currentWidget() == ui->endpointsTab) {
             const int row = ui->endpointList->currentRow();
             if (row >= 0) removeEndpointRow(ui->endpointList->item(row)->data(Qt::UserRole).toInt());
@@ -297,6 +316,10 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
 
     setupRemoteSection();
     setupEndpointsSection();
+
+    dnsEditor = new RouteDnsEditor(*chain, ui->tabWidget);
+    ui->tabWidget->addTab(dnsEditor, tr("DNS"));
+    dnsEditor->bindTo(form);
 
     updateRuleSection();
     form->markAll();
@@ -725,6 +748,8 @@ void RouteItem::accept() {
                            .arg(missingEndpoints));
     }
 
+    dnsEditor->applyTo(*chain);
+
     emit settingsChanged(chain);
 
     QDialog::accept();
@@ -737,8 +762,13 @@ void RouteItem::updateRouteItemsView() {
 
     for (const auto& item: chain->Rules) {
         ui->route_items->addItem(item->name);
-        if (!routeItemIsEndpointRule(item)) continue;
         auto* row = ui->route_items->item(ui->route_items->count() - 1);
+        if (!routeItemIsEndpointRule(item)) {
+            row->setFlags(row->flags() | Qt::ItemIsUserCheckable);
+            row->setCheckState(item->disabled ? Qt::Unchecked : Qt::Checked);
+            routeItemShowDisabled(row, item->disabled);
+            continue;
+        }
         QFont font = row->font();
         font.setItalic(true);
         row->setFont(font);

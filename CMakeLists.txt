@@ -493,6 +493,8 @@ set(PROJECT_SOURCES
 
         src/ui/setting/RawRouteItem.cpp
         include/ui/setting/RawRouteItem.h
+        src/ui/setting/RouteDnsEditor.cpp
+        include/ui/setting/RouteDnsEditor.h
 
         res/Throne.qrc
         ${QV2RAY_RC}
@@ -719,6 +721,8 @@ set(ENGINE_SOURCES
         src/engine/services/SettingsRegistry.cpp
         include/engine/services/BackupArchive.h
         src/engine/services/BackupArchive.cpp
+        include/engine/services/WebDavBackup.h
+        src/engine/services/WebDavBackup.cpp
         include/engine/services/AssetUpdates.h
         src/engine/services/AssetUpdates.cpp
         include/engine/services/StatsService.h

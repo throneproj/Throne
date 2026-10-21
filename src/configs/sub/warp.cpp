@@ -1,6 +1,7 @@
 #include <include/configs/sub/warp.h>
 #include <include/api/RPC.h>
 #include <include/global/Configs.hpp>
+#include <include/global/HTTPRequestHelper.hpp>
 #include <include/global/LocalNetwork.hpp>
 #include <QMessageBox>
 #include <QObject>
@@ -9,12 +10,8 @@
 namespace Configs_network {
     namespace {
         QString warpProxy(QString *error) {
+            if (!RequestUsesMixedInbound(false, error)) return {};
             const auto &settings = Configs::dataManager->settingsRepo;
-            if (!settings->net_use_proxy && !settings->spmode_system_proxy) return {};
-            if (settings->started_id < 0) {
-                *error = QObject::tr("Request with proxy but no profile started.");
-                return {};
-            }
             QString host = LocalNetwork::InboundConnectHost();
             if (host.contains(':')) host = "[" + host + "]";
             QString credentials;

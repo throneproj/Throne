@@ -1,0 +1,8 @@
+# addressbook.options
+
+Person.name     max_size:64
+Person.email    max_size:128
+Person.PhoneNumber.number  max_size:32
+
+Person.phones          max_count:8
+AddressBook.people     max_count:32

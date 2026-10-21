@@ -51,7 +51,7 @@ namespace Configs {
         // Older builds saved translated combo text ("CUBIC", "Reno"), which sing-trusttunnel silently ran as bbr.
         QString canonicalTrustTunnelCongestion(const QString& value)
         {
-            return value.trimmed().toLower().replace(' ', '_');
+            return LegacyComboValue(value, trustTunnelCongestionControls);
         }
 
         // Import only: an unknown name runs as BBR in the core, so it is dropped with a warning.

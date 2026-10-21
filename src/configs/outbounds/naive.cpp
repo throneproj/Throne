@@ -124,7 +124,7 @@ namespace Configs {
         if (url.scheme() == "naive+quic") {
             quic = true;
             if (query.hasQueryItem("congestion_control")) {
-                const auto value = query.queryItemValue("congestion_control").trimmed();
+                const auto value = LegacyComboValue(query.queryItemValue("congestion_control"), naiveCongestionControls);
                 if (naiveKeep("congestion_control", value, Validation::Rules::OneOf(naiveCongestionControls))) congestion_control = value;
             }
         }
@@ -165,7 +165,7 @@ namespace Configs {
         }
         if (object.contains("quic")) quic = object["quic"].toBool();
         if (object.contains("quic_congestion_control")) {
-            const auto value = object["quic_congestion_control"].toString();
+            const auto value = LegacyComboValue(object["quic_congestion_control"].toString(), naiveCongestionControls);
             if (naiveKeep("quic_congestion_control", value, Validation::Rules::OneOf(naiveCongestionControls))) congestion_control = value;
         }
         if (object.contains("tls")) tls->ParseFromJson(naiveTLS(object["tls"].toObject(), true));

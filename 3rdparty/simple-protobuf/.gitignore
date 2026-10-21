@@ -37,3 +37,9 @@ build/
 coverage/
 
 test/custom-output-dir/proto/*.pb.*
+_deps/
+
+Testing/
+__cmake_systeminformation/
+.zed/
+CMakePresets.json

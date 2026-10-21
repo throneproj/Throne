@@ -16,6 +16,9 @@ namespace Configs
     // sing-box Listable values: one string or an array of strings; other JSON types are reported and skipped.
     QStringList JsonStringList(const QJsonValue& value, const QString& field);
 
+    // Builds up to 1.3.2 saved translated combo labels ("BBR v2", "нативный", #1943); maps one back to its identifier, else returns it trimmed.
+    QString LegacyComboValue(const QString& value, const QStringList& identifiers);
+
     namespace Checks {
         // The editors' header text: Name=value pairs separated by spaces, values optionally quoted.
         QString HeaderPairs(const QString& text);

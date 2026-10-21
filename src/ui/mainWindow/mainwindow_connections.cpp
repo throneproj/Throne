@@ -116,7 +116,8 @@ void MainWindow::setupConnectionList()
     header->setSectionResizeMode(ConnectionsTreeModel::ColTarget, QHeaderView::Stretch);
     header->setSectionResizeMode(ConnectionsTreeModel::ColSource, QHeaderView::ResizeToContents);
     header->setSectionResizeMode(ConnectionsTreeModel::ColProtocol, QHeaderView::ResizeToContents);
-    header->setSectionResizeMode(ConnectionsTreeModel::ColOutbound, QHeaderView::ResizeToContents);
+    // Sized by the header itself, since it has to give way to a long Target.
+    header->setSectionResizeMode(ConnectionsTreeModel::ColOutbound, QHeaderView::Fixed);
     header->setSectionResizeMode(ConnectionsTreeModel::ColTraffic, QHeaderView::ResizeToContents);
     header->setSectionResizeMode(ConnectionsTreeModel::ColSpeed, QHeaderView::ResizeToContents);
 

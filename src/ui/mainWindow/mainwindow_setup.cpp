@@ -154,7 +154,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     // AutoConnection, like the old runOnUiThread hop: direct for emits on the main thread, queued from workers.
     auto *engineEvents = Engine::EngineEvents::instance();
-    connect(engineEvents, &Engine::EngineEvents::subscriptionNewGroup, this, [this] { refresh_groups(); });
+    connect(engineEvents, &Engine::EngineEvents::subscriptionNewGroup, this, [this](int gid) {
+        refresh_groups();
+        // Focused on creation, not when the download ends: by then the user may have moved to another tab.
+        if (Configs::dataManager->groupsRepo->GetGroupsTabOrder().contains(gid)) ui->tabWidget->setCurrentIndex(groupId2TabIndex(gid));
+    });
     connect(engineEvents, &Engine::EngineEvents::subscriptionFinished, this, [this](int, bool) { refresh_proxy_list({}, true); });
     connect(engineEvents, &Engine::EngineEvents::subscriptionDiff, this, [](const QString &title, const QString &body) {
         MessageBoxScrollable(title, body);
@@ -290,6 +294,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->toolButton_program->setMenu(ui->menu_program);
     ui->toolButton_preferences->setMenu(ui->menu_preferences);
     ui->toolButton_routing->setMenu(ui->menuRouting_Menu);
+    ui->menuRouting_Menu->installEventFilter(this);
     ui->toolButton_testing->setMenu(ui->menuTesting);
     ui->toolButton_tools->setMenu(ui->menuTools);
     ui->toolButton_program->installEventFilter(this);
@@ -836,6 +841,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             auto* action = new QAction(ui->menuRouting_Menu);
             action->setText(route->name);
             action->setData(route->id);
+            action->setProperty("routeProfileId", route->id);
             action->setCheckable(true);
             action->setChecked(Configs::dataManager->settingsRepo->current_route_id == route->id);
             connect(action, &QAction::triggered, this, [=,this]() { connection()->chooseRoute(action->data().toInt()); });

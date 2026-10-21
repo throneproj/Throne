@@ -6,6 +6,7 @@
 #include <memory>
 #include <mutex>
 #include <map>
+#include <optional>
 #include <QString>
 #include <QJsonObject>
 #include <QJsonDocument>
@@ -60,7 +61,10 @@ namespace Configs {
         bool AddRouteProfile(std::shared_ptr<RouteProfile>& routeProfile);
         
         std::shared_ptr<RouteProfile> GetRouteProfile(int id) const;
-        
+
+        // Without loading the rules; nullopt when the profile follows the global DNS settings or does not exist.
+        std::optional<RouteDns> GetCustomDns(int id) const;
+
         void DeleteRouteProfile(int id);
         
         // Replaces the whole set.

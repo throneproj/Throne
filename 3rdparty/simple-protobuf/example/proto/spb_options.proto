@@ -1,0 +1,167 @@
+syntax = "proto2";
+
+package SPB.Options;
+
+import "spb.proto"; // this file can be missing, if options are specified in the comments
+
+// additional include
+option (spb_fileopt).include = "<array>";
+// another additional include
+option (spb_fileopt).include = "<memory>";
+// another additional include
+option (spb_fileopt).include = "<unordered_map>";
+
+// int can also be: int8, uint8, int16, uint16
+message Integers {
+  required uint32 u8 = 1 [(spb_opt).type = "uint8"];
+  required uint32 u16 = 2 [(spb_opt).type = "uint16"];
+  required uint32 u32 = 3;
+  required uint64 u64 = 4;
+
+  // alternative syntax, to avoid import "spb.proto";
+  //[[ (spb_opt).type = "int8" ]]
+  optional int32 i8 = 5;
+  optional int32 i16 = 6 [(spb_opt).type = "int16"];
+  optional int32 i32 = 7;
+  optional int64 i64 = 8;
+
+  repeated int32 r8 = 9 [(spb_opt).type = "int8"];
+  repeated int32 r16 = 10 [(spb_opt).type = "int16"];
+  repeated int32 r32 = 11;
+  repeated int64 r64 = 12;
+}
+
+//- enum type: int8, uint8, int16, uint16, int32
+enum Enum8 {
+  option (spb_enumopt).type = "uint8";
+  MOBILE = 0;
+  HOME = 1;
+  WORK = 2;
+}
+
+//[[ (spb_enumopt).type = "int16" ]]
+enum Enum16 {
+  MOBILE = 0;
+  HOME = 1;
+  WORK = 2;
+}
+
+// int bit-fields: `int8:1`, `uint8:2`, ...
+message BitFields {
+  required uint32 id_major = 1 [(spb_opt).type = "uint8:4"];
+  required uint32 id_minor = 2 [(spb_opt).type = "uint8:4"];
+}
+
+// container types for (`optional`, `repeated`, `string`, `bytes`, `map`)
+// if you prefer for example boost, you can make all `optional`s in the whole
+// file boost like, just uncomment the following line
+// option (spb_fileopt).optional = "boost::optional<$>";
+message Containers {
+  message Optional {
+    // default optional is an std::optional<$>
+    optional int32 default_i = 1;
+
+    // if messages depends on each other, one of them
+    // will became std::unique_ptr<$> to break the dependency chain
+    message CyclicDependency {
+      message MessageA {
+        optional int32 i = 1;
+        optional MessageB b = 2;
+      }
+
+      message MessageB {
+        optional int32 i = 1;
+        optional MessageC c = 2;
+      }
+      message MessageC {
+        optional int32 i = 1;
+        optional MessageA a = 2;
+      }
+    }
+  }
+
+  message Repeated {
+    // default repeated is an std::vector<$>
+    repeated int32 default_i = 1;
+    // packed repeated fields can have fixed size
+    repeated int32 fixed_size = 2 [
+      (spb_opt).repeated = "std::array<$, 10>",
+      packed = true
+    ];
+  }
+
+  message String {
+    // default string is an std::string
+    required string default_string = 1;
+
+    message SubStrings {
+      // string type for the whole message
+      option (spb_msgopt).string = "std::vector<$>";
+      required string vec_of_chars1 = 1;
+      optional string vec_of_chars2 = 2;
+      //- an array of fixed size strings
+      repeated string fixed_string = 3 [(spb_opt).string = "std::array<$, 8>"];
+    }
+  }
+
+  message Bytes {
+    // default bytes is an std::vector<std::byte>
+    required bytes default_bytes = 1;
+    message SubBytes {
+      // an array of fixed size bytes
+      repeated bytes fixed_bytes = 3 [(spb_opt).bytes = "std::array<$, 8>"];
+    }
+  }
+
+  message Maps {
+    // default map is an std::map<>
+    map<int32, int32> default_map = 1;
+    // an unordered_map map
+    map<int32, int32> my_map = 2 [(spb_opt).map = "std::unordered_map<$, @>"];
+  }
+}
+
+// repeated fields can have maximal number of elements
+// this is not directly visible in the generated pb.h
+message MaximumCount {
+  message Person {
+    required uint32 age = 1;
+  }
+
+  // can be set for a single field
+  repeated int32 up_to_4_int = 1 [(spb_opt).max_count = 4];
+
+  // for the whole message or the whole file
+  option (spb_msgopt).max_count = 5;
+  repeated Person up_to_5_persons = 2;
+}
+
+// bytes and string can have maximum size
+// this is not directly visible in the generated pb.h
+message MaximumSize {
+  // can be set for a single field
+  optional string up_to_4_chars = 1 [(spb_opt).max_size = 4];
+  optional bytes up_to_5_bytes = 2 [(spb_opt).max_size = 5];
+
+  // for the whole message or the whole file
+  option (spb_msgopt).max_size = 6;
+  required string up_to_6_chars = 3;
+  required bytes up_to_6_bytes = 4;
+
+  // can be also combined with the `.max_count`
+  repeated string up_to_7_short_strings = 5 [
+    (spb_opt).max_count = 7,
+    (spb_opt).max_size = 5
+  ];
+  repeated bytes up_to_7_short_bytes = 6 [
+    (spb_opt).max_count = 7,
+    (spb_opt).max_size = 5
+  ];
+}
+
+// its a good idea to set some global upper limit
+// especially in the embedded environment
+// option (spb_fileopt).max_size = 256;
+// option (spb_fileopt).max_count = 100;
+// de/serialization will throw an std::length_error
+// if the size is bigger

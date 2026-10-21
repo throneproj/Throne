@@ -12,9 +12,14 @@ class QLineEdit;
 class QCheckBox;
 class QCompleter;
 class QLabel;
+class RouteDnsEditor;
 
 namespace JsonEdit {
     class JsonIssueList;
+}
+
+namespace Validation {
+    class Form;
 }
 
 class RawRouteEdit : public JsonEdit::JsonCodeEdit {
@@ -59,4 +64,6 @@ private:
     QCheckBox* preventCheck = nullptr;
     JsonEdit::JsonIssueList* issueList = nullptr;
     QLabel* validateLabel = nullptr;
+    RouteDnsEditor* dnsEditor = nullptr;
+    Validation::Form* dnsForm = nullptr;
 };

@@ -20,7 +20,7 @@
  * @param file_path files path
  * @return file's content
  */
-auto load_file( const std::filesystem::path & file_path ) -> std::string;
+auto load_file(const std::filesystem::path &file_path) -> std::string;
 
 /**
  * @brief save file_content to a file_path
@@ -28,4 +28,4 @@ auto load_file( const std::filesystem::path & file_path ) -> std::string;
  * @param file_path files path
  * @param file_content files content
  */
-void save_file( const std::filesystem::path & file_path, std::string_view file_content );
+void save_file(const std::filesystem::path &file_path, std::string_view file_content);

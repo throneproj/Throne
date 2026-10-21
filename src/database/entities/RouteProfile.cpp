@@ -9,6 +9,7 @@
 #include <optional>
 
 #include "include/database/ProfilesRepo.h"
+#include "include/database/RoutesRepo.h"
 
 #include "include/configs/ParseDiagnostics.h"
 #include "include/configs/common/OutboundFactory.h"
@@ -164,6 +165,7 @@ namespace Configs {
         auto cleanRules = get_simple_rules();
         for (auto &r : cleanRules) {
             if (r->type == rule->type) {
+                r->disabled = rule->disabled;
                 rule = std::move(r);
                 return;
             }
@@ -186,10 +188,81 @@ namespace Configs {
         remoteLastUpdate = other.remoteLastUpdate;
         endpointProfileIDs = other.endpointProfileIDs;
         innerHopEndpointIDs = other.innerHopEndpointIDs;
+        customDns = other.customDns;
+        dns = other.dns;
+    }
+
+    RouteDns RouteDns::Global() {
+        const auto& settings = *Configs::dataManager->settingsRepo;
+        RouteDns res;
+        res.remote_dns = settings.remote_dns;
+        res.remote_dns_disable_ipv6 = settings.remote_dns_disable_ipv6;
+        res.direct_dns = settings.direct_dns;
+        res.direct_dns_disable_ipv6 = settings.direct_dns_disable_ipv6;
+        res.dns_final_out = settings.dns_final_out;
+        res.enable_dns_routing = settings.enable_dns_routing;
+        res.fake_dns = settings.fake_dns;
+        res.fakeip_disable_ipv6 = settings.fakeip_disable_ipv6;
+        return res;
+    }
+
+    RouteDns RouteDns::Current(bool* own) {
+        const auto custom = Configs::dataManager->routesRepo->GetCustomDns(Configs::dataManager->settingsRepo->current_route_id);
+        if (own) *own = custom.has_value();
+        return custom ? *custom : Global();
+    }
+
+    QJsonObject RouteDns::ToJson() const {
+        return {
+            {"remote_dns", remote_dns},
+            {"remote_dns_disable_ipv6", remote_dns_disable_ipv6},
+            {"direct_dns", direct_dns},
+            {"direct_dns_disable_ipv6", direct_dns_disable_ipv6},
+            {"dns_final_out", dns_final_out},
+            {"enable_dns_routing", enable_dns_routing},
+            {"fake_dns", fake_dns},
+            {"fakeip_disable_ipv6", fakeip_disable_ipv6},
+        };
+    }
+
+    RouteDns RouteDns::FromJson(const QJsonObject& obj) {
+        RouteDns res;
+        res.remote_dns = obj.value("remote_dns").toString(res.remote_dns).trimmed();
+        res.remote_dns_disable_ipv6 = obj.value("remote_dns_disable_ipv6").toBool(res.remote_dns_disable_ipv6);
+        res.direct_dns = obj.value("direct_dns").toString(res.direct_dns).trimmed();
+        res.direct_dns_disable_ipv6 = obj.value("direct_dns_disable_ipv6").toBool(res.direct_dns_disable_ipv6);
+        res.dns_final_out = obj.value("dns_final_out").toString(res.dns_final_out);
+        res.enable_dns_routing = obj.value("enable_dns_routing").toBool(res.enable_dns_routing);
+        res.fake_dns = obj.value("fake_dns").toBool(res.fake_dns);
+        res.fakeip_disable_ipv6 = obj.value("fakeip_disable_ipv6").toBool(res.fakeip_disable_ipv6);
+        return res;
+    }
+
+    QString RouteDns::Problem() const {
+        DnsAddress parsed;
+        QString why;
+        if (!ParseDnsAddress(remote_dns, &parsed, &why))
+            return QCoreApplication::translate("Validation", "Remote DNS \"%1\": %2").arg(remote_dns, why);
+        if (!ParseDnsAddress(direct_dns, &parsed, &why))
+            return QCoreApplication::translate("Validation", "Direct DNS \"%1\": %2").arg(direct_dns, why);
+        if (dns_final_out != "remote" && dns_final_out != "direct")
+            return QCoreApplication::translate("Validation", "The default DNS server must be remote or direct, not \"%1\".").arg(dns_final_out);
+        return {};
     }
 
     static void appendWarning(QString* warnings, const QString& msg) {
         if (warnings) warnings->append(msg + "\n");
+    }
+
+    static void routeProfileAdoptDns(RouteProfile& profile, const QJsonObject& root, QString* warnings) {
+        if (!root.value("dns").isObject()) return;
+        const auto dns = RouteDns::FromJson(root.value("dns").toObject());
+        if (const auto problem = dns.Problem(); !problem.isEmpty()) {
+            appendWarning(warnings, QCoreApplication::translate("Validation", "The profile's own DNS settings were dropped, so it uses the global ones: %1").arg(problem));
+            return;
+        }
+        profile.customDns = true;
+        profile.dns = dns;
     }
 
     // toString() is "" for a number, and the writer emits ports, ip_version and override_port as numbers.
@@ -199,10 +272,10 @@ namespace Configs {
         return static_cast<double>(whole) == val.toDouble() ? QString::number(whole) : QString::number(val.toDouble());
     }
 
-    // name, type and outbound, plus exactly the keys RouteRule::set_field_value stores.
+    // name, type, outbound and disabled, plus exactly the keys RouteRule::set_field_value stores.
     static bool isStorableRuleKey(const QString& key) {
         static const QSet<QString> keys = {
-            "name", "type", "outbound",
+            "name", "type", "outbound", "disabled",
             "ip_version", "network", "protocol", "inbound", "domain", "domain_suffix", "domain_keyword", "domain_regex",
             "source_ip_cidr", "source_ip_is_private", "ip_cidr", "ip_is_private", "source_port", "source_port_range",
             "port", "port_range", "process_name", "process_path", "process_path_regex", "package_name",
@@ -289,6 +362,10 @@ namespace Configs {
         for (const auto& key: obj.keys()) {
             if (key == "name" || key == "type") continue;
             auto val = obj.value(key);
+            if (key == "disabled") {
+                rule->disabled = val.toBool();
+                continue;
+            }
             if (key == "outbound") {
                 if (val.isDouble()) {
                     const int id = val.toInt();
@@ -577,6 +654,7 @@ namespace Configs {
         root["kind"] = "throne-route-profile";
         root["v"] = 1;
         root["name"] = name;
+        if (const auto active = ActiveDns()) root["dns"] = active->ToJson();
         QJsonArray endpointsArr;
         if (!endpointProfileIDs.isEmpty()) {
             endpointsArr = routeProfileEndpointsToJson(endpointProfileIDs, innerHopEndpointIDs, warnings);
@@ -673,6 +751,7 @@ namespace Configs {
                 QJsonObject routeObj = root.value("route").toObject();
                 routeObj = remapRawOutboundsByName(routeObj, root.value("outbound_names").toObject(), warnings);
                 profile->rawRoute = QJsonObject2QString(routeObj, false);
+                routeProfileAdoptDns(*profile, root, warnings);
                 return profile;
             }
             auto profile = std::make_shared<RouteProfile>();
@@ -708,6 +787,7 @@ namespace Configs {
                 profile->Rules << rule;
             }
             profile->SyncEndpointRules();
+            routeProfileAdoptDns(*profile, root, warnings);
             return profile;
         }
 
@@ -782,7 +862,7 @@ namespace Configs {
             return obj;
         };
         for (const auto &item: Rules) {
-            if (item->type != custom && item->isEmpty()) continue;
+            if (item->disabled || (item->type != custom && item->isEmpty())) continue;
             auto outboundTag = QString();
             if (outboundMap.contains(item->outboundID)) outboundTag = outboundMap[item->outboundID];
             // an endpoint that left the list has no tag to gate on; skip instead of aborting the build
@@ -869,7 +949,7 @@ namespace Configs {
         }
         for (const auto& item: Rules) {
             // its id names an endpoint built from endpointProfileIDs, not a routing outbound
-            if (item->type == endpointPreferredBy) continue;
+            if (item->disabled || item->type == endpointPreferredBy) continue;
             // Only these emit their outbound; a stale id left on another action must not fail the build.
             if (const auto action = item->effective_action(); action != "route" && action != "bypass") continue;
             res->push_back(item->outboundID);
@@ -880,6 +960,7 @@ namespace Configs {
     std::shared_ptr<QStringList> RouteProfile::get_used_rule_sets() {
         auto res = std::make_shared<QStringList>();
         for (const auto& item: Rules) {
+            if (item->disabled) continue;
             for (const auto& ruleItem: item->rule_set) {
                 res->push_back(ruleItem);
             }
@@ -890,7 +971,7 @@ namespace Configs {
     QStringList RouteProfile::get_direct_sites() {
         auto res = QStringList();
         for (const auto& item: Rules) {
-            if (item->outboundID == directID && item->action == "route") {
+            if (!item->disabled && item->outboundID == directID && item->action == "route") {
                 for (const auto& rset: item->rule_set) {
                     if (rset.startsWith("geosite-")) res << QString("ruleset:" + rset);
                 }
@@ -914,7 +995,7 @@ namespace Configs {
     QStringList RouteProfile::get_proxy_sites() {
         auto res = QStringList();
         for (const auto& item: Rules) {
-            if (item->outboundID == proxyID && item->action == "route") {
+            if (!item->disabled && item->outboundID == proxyID && item->action == "route") {
                 for (const auto& rset: item->rule_set) {
                     if (rset.startsWith("geosite-")) res << QString("ruleset:" + rset);
                 }
@@ -939,7 +1020,7 @@ namespace Configs {
     {
         auto res = QStringList();
         for (const auto& item: Rules) {
-            if (item->outboundID == directID && item->action == "route") {
+            if (!item->disabled && item->outboundID == directID && item->action == "route") {
                 for (const auto& rset: item->rule_set) {
                     if (rset.startsWith("geoip-")) res << QString("ruleset:" + rset);
                 }
@@ -955,7 +1036,7 @@ namespace Configs {
     {
         auto res = QStringList();
         for (const auto& item: Rules) {
-            if (item->action == "route" && item->outboundID == directID) continue;
+            if (item->disabled || (item->action == "route" && item->outboundID == directID)) continue;
             if (item->action != "route" && item->action != "reject") continue;
             // ip_is_private covers every range the Tun bypass carves out, so it hijacks all of them at once.
             if (item->ip_is_private) res << dataManager->settingsRepo->vpn_private_ranges;
@@ -1197,7 +1278,7 @@ namespace Configs {
         for (const auto& rule : Rules) {
             if (rule->type == ownType) break;
             const auto other = addressAction(rule->type);
-            if (!other || *other == action) continue;
+            if (!other || *other == action || rule->disabled) continue;
 
             // Every host a suffix or keyword matches contains the value, so an earlier keyword inside it catches them all.
             // The same line elsewhere does not count: adding rawRule moves it out of that list.

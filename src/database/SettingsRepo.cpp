@@ -6,6 +6,7 @@
 #include <QUuid>
 
 #include "include/global/Utils.hpp"
+#include "include/global/Validation.hpp"
 
 namespace Configs {
     SettingsRepo::SettingsRepo(Database& database) : db(database) {
@@ -92,6 +93,7 @@ namespace Configs {
             {"traffic_graph_smooth", &traffic_graph_smooth},
             {"traffic_graph_markers", &traffic_graph_markers},
             {"exit_country_lookup", &exit_country_lookup},
+            {"webdav_use_proxy", &webdav_use_proxy},
         };
 
         intMap = {
@@ -164,6 +166,12 @@ namespace Configs {
             {"hk_tun",                     &hotkey_toggle_tun},
             {"remote_api_key",             &remote_api_key},
             {"remote_api_allow",           &remote_api_allow},
+            {"webdav_server",              &webdav_server},
+            {"webdav_user",                &webdav_user},
+            {"webdav_pass",                &webdav_pass},
+            {"webdav_path",                &webdav_path},
+            {"device_id",                  &device_id},
+            {"device_name",                &device_name},
             {"active_routing",             &active_routing},
             {"mw_size",                    &mw_size},
             {"vpn_tun_ipv4_cidr",          &vpn_tun_ipv4_cidr},
@@ -208,6 +216,8 @@ namespace Configs {
 
         stringListMap = {
             {"dns_predefined_rules",     &dns_predefined_rules},
+            {"remote_dns_history",       &remote_dns_history},
+            {"direct_dns_history",       &direct_dns_history},
             {"extra_core_paths",         &extraCorePaths},
             {"log_include_keyword",      &log_include_keyword},
             {"log_include_regex",        &log_include_regex},
@@ -298,6 +308,14 @@ namespace Configs {
                 *strVal.value() = str;
                 continue;
             }
+        }
+        // Builds before 1.2.1 saved the translated interval label ("5 мин.", "۱۰ دقیقه"), which the core rejects.
+        if (!Validation::Duration(ntp_interval).isEmpty()) {
+            QString minutes;
+            for (const QChar c : ntp_interval) {
+                if (c.digitValue() >= 0) minutes += QChar(u'0' + c.digitValue());
+            }
+            ntp_interval = minutes.isEmpty() ? QStringLiteral("30m") : minutes + u'm';
         }
         // Retired keys nothing writes back; the DNS ones would otherwise keep overriding the migrated flags on every load.
         db.exec("DELETE FROM settings WHERE key IN ('direct_dns_strategy', 'remote_dns_strategy', 'log_auto_scroll')");

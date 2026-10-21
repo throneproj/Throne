@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QCursor>
 #include <QLineEdit>
+#include <QMenu>
 #include <QMimeData>
 #include <QResizeEvent>
 #include <QTimer>
@@ -207,6 +208,18 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event) {
     if (type == QEvent::Resize && obj == ui->profilesTableView->viewport()) {
         const auto *resize = static_cast<QResizeEvent *>(event);
         if (resize->size().width() != resize->oldSize().width()) refresh_proxy_list_column_size();
+    }
+    // QMenu triggers an action on a right-button release too, which would switch to the profile instead of editing it.
+    if ((type == QEvent::MouseButtonPress || type == QEvent::MouseButtonRelease) && obj == ui->menuRouting_Menu
+        && static_cast<QMouseEvent *>(event)->button() == Qt::RightButton) {
+        const QAction *action = ui->menuRouting_Menu->actionAt(static_cast<QMouseEvent *>(event)->position().toPoint());
+        if (const QVariant routeId = action != nullptr ? action->property("routeProfileId") : QVariant(); routeId.isValid()) {
+            if (type == QEvent::MouseButtonRelease) {
+                ui->menuRouting_Menu->close();
+                QTimer::singleShot(0, this, [this, id = routeId.toInt()] { openRouteProfileEditor(id); });
+            }
+            return true;
+        }
     }
     if (type == QEvent::MouseButtonPress) {
         auto mouseEvent = dynamic_cast<QMouseEvent *>(event);

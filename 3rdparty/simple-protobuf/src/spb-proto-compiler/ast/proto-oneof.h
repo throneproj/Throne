@@ -20,4 +20,4 @@ struct proto_oneof : public proto_base
     proto_fields fields;
 };
 
-using proto_oneofs = std::vector< proto_oneof >;
+using proto_oneofs = std::vector<proto_oneof>;

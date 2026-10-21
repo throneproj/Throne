@@ -3,3 +3,6 @@ InlayHints:
   Enabled: Yes
   ParameterNames: No
   DeducedTypes: No
+
+CompileFlags:
+  Add: [-std=c++20]

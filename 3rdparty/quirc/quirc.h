@@ -14,7 +14,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#pragma once
+#ifndef QUIRC_H_
+#define QUIRC_H_
 
 #include <stdint.h>
 
@@ -172,4 +173,6 @@ void quirc_flip(struct quirc_code *code);
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

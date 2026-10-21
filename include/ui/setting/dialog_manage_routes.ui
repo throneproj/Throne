@@ -526,31 +526,6 @@
               <property name="editable">
                <bool>true</bool>
               </property>
-              <item>
-               <property name="text">
-                <string notr="true">localhost</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string notr="true">223.5.5.5</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string notr="true">119.29.29.29</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string notr="true">178.22.122.100</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string notr="true">77.88.8.8</string>
-               </property>
-              </item>
              </widget>
             </item>
             <item>
@@ -593,26 +568,6 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
               <property name="editable">
                <bool>true</bool>
               </property>
-              <item>
-               <property name="text">
-                <string notr="true">tls://8.8.8.8</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string notr="true">tls://1.1.1.1</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string notr="true">8.8.8.8</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string notr="true">1.1.1.1</string>
-               </property>
-              </item>
              </widget>
             </item>
             <item>

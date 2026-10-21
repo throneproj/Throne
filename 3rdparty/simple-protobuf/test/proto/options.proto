@@ -1,0 +1,204 @@
+syntax = "proto2";
+
+import "spb.proto";
+
+package Test;
+
+message TestPerson
+{
+    optional string value = 1;
+}
+
+message MaxCountInt {
+    repeated int32 value = 1;
+}
+message MaxCountIntPacked {
+    repeated int32 value = 1 [packed = true];
+}
+
+message MaxCountFieldInt {
+    repeated int32 value = 1 [(spb_opt).max_count = 4];
+}
+
+message MaxCountFieldIntPacked {
+    repeated int32 value = 1 [(spb_opt).max_count = 4, packed = true];
+}
+
+message MaxCountString {
+    repeated string value = 1;
+}
+
+message MaxCountFieldString {
+    repeated string value = 1 [(spb_opt).max_count = 4];
+}
+
+message MaxCountBytes {
+    repeated bytes value = 1;
+}
+
+message MaxCountFieldBytes {
+    repeated bytes value = 1 [(spb_opt).max_count = 4];
+}
+
+message MaxCountPerson {
+    repeated TestPerson value = 1;
+}
+
+message MaxCountFieldPerson {
+    repeated TestPerson value = 1 [(spb_opt).max_count = 4];
+}
+
+message MaxCountFieldCommentInt {
+    // [[(spb_opt).max_count = 4]]
+    repeated int32 value = 1;
+}
+
+message MaxCountFieldCommentIntPacked {
+    // [[(spb_opt).max_count = 4]]
+    repeated int32 value = 1 [packed = true];
+}
+
+message MaxCountFieldCommentString {
+    // [[(spb_opt).max_count = 4]]
+    repeated string value = 1;
+}
+
+message MaxCountFieldCommentBytes {
+    // [[(spb_opt).max_count = 4]]
+    repeated bytes value = 1;
+}
+
+message MaxCountFieldCommentPerson {
+    // [[(spb_opt).max_count = 4]]
+    repeated TestPerson value = 1;
+}
+
+message MaxCountMsgInt {
+    option (spb_msgopt).max_count = 4;
+    repeated int32 value = 1;
+}
+
+message MaxCountMsgIntPacked {
+    option (spb_msgopt).max_count = 4;
+    repeated int32 value = 1 [packed = true];
+}
+
+message MaxCountMsgString {
+    option (spb_msgopt).max_count = 4;
+    repeated string value = 1;
+}
+
+message MaxCountMsgbytes {
+    option (spb_msgopt).max_count = 4;
+    repeated bytes value = 1;
+}
+
+message MaxCountMsgPerson {
+    option (spb_msgopt).max_count = 4;    
+    repeated TestPerson value = 1;
+}
+
+// [[(spb_msgopt).max_count = 4]]
+message MaxCountMsgCommentInt {
+    repeated int32 value = 1;
+}
+
+// [[(spb_msgopt).max_count = 4]]
+message MaxCountMsgCommentString {
+    repeated string value = 1;
+}
+
+// [[(spb_msgopt).max_count = 4]]
+message MaxCountMsgCommentBytes {
+    repeated bytes value = 1;
+}
+
+// [[(spb_msgopt).max_count = 4]]
+message MaxCountMsgCommentPerson {
+    repeated TestPerson value = 1;
+}
+
+
+message MaxSizeOptString {
+    optional string value = 1;
+}
+
+message MaxSizeOptStringField {
+    optional string value = 1 [(spb_opt).max_size = 4];
+}
+
+message MaxSizeReqStringField {
+    required string value = 1 [(spb_opt).max_size = 4];
+}
+
+message MaxSizeOptBytes {
+    optional bytes value = 1;
+}
+
+message MaxSizeOptBytesField {
+    optional bytes value = 1 [(spb_opt).max_size = 4];
+}
+
+message MaxSizeReqBytesField {
+    required bytes value = 1 [(spb_opt).max_size = 4];
+}
+
+message MaxSizeOptStringComment {
+    // [[(spb_opt).max_size = 4]]
+    optional string value = 1;
+}
+
+message MaxSizeReqStringComment {
+    // [[(spb_opt).max_size = 4]]
+    required string value = 1;
+}
+
+message MaxSizeOptBytesComment {
+    // [[(spb_opt).max_size = 4]]
+    optional bytes value = 1;
+}
+
+message MaxSizeReqBytesComment {
+    // [[(spb_opt).max_size = 4]]
+    required bytes value = 1;
+}
+
+message MaxSizeOptStringMsg {
+    option (spb_msgopt).max_size = 4;
+    optional string value = 1;
+}
+
+message MaxSizeReqStringMsg {
+    option (spb_msgopt).max_size = 4;
+    required string value = 1;
+}
+
+message MaxSizeOptBytesMsg {
+    option (spb_msgopt).max_size = 4;
+    optional bytes value = 1;
+}
+
+message MaxSizeReqBytesMsg {
+    option (spb_msgopt).max_size = 4;
+    required bytes value = 1;
+}
+
+// [[(spb_msgopt).max_size = 4;]]
+message MaxSizeOptStringMsgComment {
+    optional string value = 1;
+}
+
+// [[(spb_msgopt).max_size = 4;]]
+message MaxSizeReqStringMsgComment {
+    required string value = 1;
+}
+
+// [[(spb_msgopt).max_size = 4;]]
+message MaxSizeOptBytesMsgComment {
+    optional bytes value = 1;
+}
+
+// [[(spb_msgopt).max_size = 4;]]
+message MaxSizeReqBytesMsgComment {
+    required bytes value = 1;
+}

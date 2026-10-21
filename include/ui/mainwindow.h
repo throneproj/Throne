@@ -410,6 +410,8 @@ private:
 
     void handle_add_remote_routes(const QString &url);
 
+    void openRouteProfileEditor(int routeId);
+
     void import_or_handle_deeplink(const QString &text);
 
     void import_text(const QString &text);
