@@ -21,60 +21,57 @@ namespace spb
 
 struct char_stream
 {
-private:
+  private:
     //- start of the stream
-    const char * p_start = nullptr;
+    const char *p_start = nullptr;
     //- current position in the stream
-    const char * p_begin = nullptr;
+    const char *p_begin = nullptr;
     //- end of the stream
-    const char * p_end = nullptr;
+    const char *p_end = nullptr;
     //- current char
-    char m_current = { };
+    char m_current = {};
 
     /**
      * @brief gets the next char from the stream
      *
      * @param skip_white_space if true, skip white spaces
      */
-    void update_current( bool skip_white_space ) noexcept
+    void update_current(bool skip_white_space) noexcept
     {
-        while( p_begin < p_end )
+        while (p_begin < p_end)
         {
             m_current = *p_begin;
-            if( !skip_white_space || isspace( m_current ) == 0 )
-            {
+            if (!skip_white_space || isspace(m_current) == 0)
                 return;
-            }
+
             p_begin += 1;
         }
-        m_current = { };
+        m_current = {};
     }
 
-public:
-    explicit char_stream( std::string_view content ) noexcept
-        : p_start( content.data( ) )
-        , p_begin( p_start )
-        , p_end( p_begin + content.size( ) )
+  public:
+    explicit char_stream(std::string_view content) noexcept
+        : p_start(content.data()), p_begin(p_start), p_end(p_begin + content.size())
     {
-        update_current( true );
+        update_current(true);
     }
 
-    [[nodiscard]] auto begin( ) const noexcept -> const char *
+    [[nodiscard]] auto begin() const noexcept -> const char *
     {
         return p_begin;
     }
 
-    [[nodiscard]] auto end( ) const noexcept -> const char *
+    [[nodiscard]] auto end() const noexcept -> const char *
     {
         return p_end;
     }
 
-    [[nodiscard]] auto empty( ) const noexcept -> bool
+    [[nodiscard]] auto empty() const noexcept -> bool
     {
         return p_end <= p_begin;
     }
 
-    [[nodiscard]] auto current_char( ) const noexcept -> char
+    [[nodiscard]] auto current_char() const noexcept -> char
     {
         return m_current;
     }
@@ -85,11 +82,11 @@ public:
      * @param c consumed char
      * @return true if char was consumed
      */
-    [[nodiscard]] auto consume( char c ) noexcept -> bool
+    [[nodiscard]] auto consume(char c) noexcept -> bool
     {
-        if( auto current = current_char( ); current == c )
+        if (auto current = current_char(); current == c)
         {
-            consume_current_char( true );
+            consume_current_char(true);
             return true;
         }
         return false;
@@ -101,18 +98,18 @@ public:
      * @param token consumed `token` (whole word)
      * @return true if `token` was consumed
      */
-    auto consume( std::string_view token ) noexcept -> bool
+    auto consume(std::string_view token) noexcept -> bool
     {
         const auto state = *this;
 
-        if( content( ).starts_with( token ) )
+        if (content().starts_with(token))
         {
-            p_begin += token.size( );
-            update_current( false );
-            auto next = current_char( );
-            if( isspace( next ) || !isalnum( next ) )
+            p_begin += token.size();
+            update_current(false);
+            auto next = current_char();
+            if (isspace(next) || !isalnum(next))
             {
-                update_current( true );
+                update_current(true);
                 return true;
             }
             *this = state;
@@ -120,12 +117,12 @@ public:
         return false;
     }
 
-    void consume_current_char( bool skip_white_space ) noexcept
+    void consume_current_char(bool skip_white_space) noexcept
     {
-        if( begin( ) < end( ) )
+        if (begin() < end())
         {
             p_begin += 1;
-            update_current( skip_white_space );
+            update_current(skip_white_space);
         }
     }
 
@@ -133,42 +130,40 @@ public:
      * @brief trim current spaces
      *
      */
-    void consume_space( ) noexcept
+    void consume_space() noexcept
     {
-        update_current( true );
+        update_current(true);
     }
 
-    void skip_to( const char * ptr ) noexcept
+    void skip_to(const char *ptr) noexcept
     {
-        assert( ptr >= p_start && ptr <= end( ) );
+        assert(ptr >= p_start && ptr <= end());
         p_begin = ptr;
-        update_current( true );
+        update_current(true);
     }
 
-    [[nodiscard]] auto content( ) const noexcept -> std::string_view
+    [[nodiscard]] auto content() const noexcept -> std::string_view
     {
-        return { begin( ), size_t( end( ) - begin( ) ) };
+        return {begin(), size_t(end() - begin())};
     }
 
-    [[nodiscard]] auto current_line( ) const noexcept -> size_t
+    [[nodiscard]] auto current_line() const noexcept -> size_t
     {
-        return std::count( p_start, p_begin, '\n' ) + 1;
+        return std::count(p_start, p_begin, '\n') + 1;
     }
-    [[nodiscard]] auto current_column( ) const noexcept -> size_t
+    [[nodiscard]] auto current_column() const noexcept -> size_t
     {
-        auto parsed = std::string_view( p_start, p_begin - p_start );
+        auto parsed = std::string_view(p_start, p_begin - p_start);
 
-        if( auto p = parsed.rfind( '\n' ); p != std::string_view::npos )
-        {
-            parsed.remove_prefix( p );
-        }
-        return std::max< size_t >( parsed.size( ), 1 );
+        if (auto p = parsed.rfind('\n'); p != std::string_view::npos)
+            parsed.remove_prefix(p);
+
+        return std::max<size_t>(parsed.size(), 1);
     }
-    [[noreturn]] void throw_parse_error( std::string_view message )
+    [[noreturn]] void throw_parse_error(std::string_view message)
     {
-        throw std::runtime_error( std::to_string( current_line( ) ) + ":" +
-                                  std::to_string( current_column( ) ) + ": " +
-                                  std::string( message ) );
+        throw std::runtime_error(std::to_string(current_line()) + ":" + std::to_string(current_column()) +
+                                 ": " + std::string(message));
     }
 };
-}// namespace spb
+} // namespace spb

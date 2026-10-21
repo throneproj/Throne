@@ -1,4 +1,3 @@
-#include "ast/ast.h"
 #include "io/file.h"
 #include <cstdlib>
 #include <dumper/dumper.h>
@@ -21,172 +20,168 @@ struct proto_file_test
     size_t error_line = 0;
 };
 
-void test_proto_file( const proto_file_test & test,
-                      const std::string & test_file                         = "tmp_test.proto",
-                      std::span< const std::filesystem::path > import_paths = { } )
+void test_proto_file(const proto_file_test &test, const std::string &test_file = "tmp_test.proto",
+                     std::span<const std::filesystem::path> import_paths = {})
 {
-    REQUIRE_NOTHROW( save_file( test_file, test.file_content ) );
+    REQUIRE_NOTHROW(save_file(test_file, test.file_content));
     try
     {
-        auto file   = parse_proto_file( test_file, import_paths );
-        auto stream = std::stringstream( );
-        dump_cpp_header( file, stream );
-        dump_cpp( file, "header.pb.h", stream );
-        REQUIRE( test.error_line == 0 );
+        auto file   = parse_proto_file(test_file, import_paths);
+        auto stream = std::stringstream();
+        dump_cpp_header(file, stream);
+        dump_cpp(file, "header.pb.h", stream);
+        REQUIRE(test.error_line == 0);
     }
-    catch( const std::exception & ex )
+    catch (const std::exception &ex)
     {
-        auto message = std::string_view( ex.what( ) );
-        REQUIRE( message.find( test_file + ":" ) != message.npos );
-        message.remove_prefix( message.find( test_file + ":" ) + 1 + test_file.size( ) );
-        auto line = std::strtoul( message.data( ), nullptr, 10 );
-        REQUIRE( test.error_line == line );
+        auto message = std::string_view(ex.what());
+        REQUIRE(message.find(test_file + ":") != message.npos);
+        message.remove_prefix(message.find(test_file + ":") + 1 + test_file.size());
+        auto line = std::strtoul(message.data(), nullptr, 10);
+        REQUIRE(test.error_line == line);
     }
-    REQUIRE_NOTHROW( std::filesystem::remove( test_file ) );
+    REQUIRE_NOTHROW(std::filesystem::remove(test_file));
 }
 
-void test_files( std::span< const proto_file_test > files,
-                 const std::string & test_file                         = "tmp_test.proto",
-                 std::span< const std::filesystem::path > import_paths = { } )
+void test_files(std::span<const proto_file_test> files, const std::string &test_file = "tmp_test.proto",
+                std::span<const std::filesystem::path> import_paths = {})
 {
-    for( const auto & file : files )
+    for (const auto &file : files)
     {
-        test_proto_file( file, test_file, import_paths );
+        test_proto_file(file, test_file, import_paths);
     }
 }
-}// namespace
+} // namespace
 
-TEST_CASE( "protoc-parser" )
+TEST_CASE("protoc-parser")
 {
-    SUBCASE( "api" )
+    SUBCASE("api")
     {
-        REQUIRE_THROWS( parse_proto_file( "not_found.proto", { { "../", ".", "/home/" } } ) );
-        REQUIRE( cpp_file_name_from_proto( "messages.proto", ".cpp" ) == "messages.cpp" );
+        REQUIRE_THROWS(parse_proto_file("not_found.proto", {{"../", ".", "/home/"}}));
+        REQUIRE(cpp_file_name_from_proto("messages.proto", ".cpp") == "messages.cpp");
     }
-    SUBCASE( "import" )
+    SUBCASE("import")
     {
-        REQUIRE_NOTHROW( std::filesystem::create_directories( "level1/level2/level3" ) );
+        REQUIRE_NOTHROW(std::filesystem::create_directories("level1/level2/level3"));
 
-        REQUIRE_NOTHROW( save_file( "empty.proto", "" ) );
-        REQUIRE_NOTHROW( save_file( "level1/empty1.proto", "import \"level2/empty2.proto\";" ) );
-        REQUIRE_NOTHROW(
-            save_file( "level1/level2/empty2.proto", "import \"level3/empty3.proto\";" ) );
-        REQUIRE_NOTHROW( save_file( "level1/level2/level3/empty3.proto", "" ) );
-        REQUIRE_NOTHROW( save_file( "level1.proto", "import \"level1/empty1.proto\";" ) );
-        REQUIRE_NOTHROW( save_file( "level2.proto", "import \"level1/level2/empty2.proto\";" ) );
-        REQUIRE_NOTHROW(
-            save_file( "level3.proto", "import \"level1/level2/level3/empty3.proto\";" ) );
-        REQUIRE_NOTHROW( save_file( "level2-from-1.proto", "import \"level2/empty2.proto\";" ) );
+        REQUIRE_NOTHROW(save_file("empty.proto", ""));
+        REQUIRE_NOTHROW(save_file("level1/empty1.proto", "import \"level2/empty2.proto\";"));
+        REQUIRE_NOTHROW(save_file("level1/level2/empty2.proto", "import \"level3/empty3.proto\";"));
+        REQUIRE_NOTHROW(save_file("level1/level2/level3/empty3.proto", ""));
+        REQUIRE_NOTHROW(save_file("level1.proto", "import \"level1/empty1.proto\";"));
+        REQUIRE_NOTHROW(save_file("level2.proto", "import \"level1/level2/empty2.proto\";"));
+        REQUIRE_NOTHROW(save_file("level3.proto", "import \"level1/level2/level3/empty3.proto\";"));
+        REQUIRE_NOTHROW(save_file("level2-from-1.proto", "import \"level2/empty2.proto\";"));
 
         constexpr proto_file_test tests[] = {
-            { R"(package UnitTest;
+            {R"(package UnitTest;
             import "empty.proto";
             )",
-              0 },
-            { R"(package UnitTest;
+             0},
+            {R"(package UnitTest;
             import "level1.proto";
             import "level2.proto";
             import "level3.proto";
             )",
-              0 },
-            { R"(package UnitTest;
+             0},
+            {R"(package UnitTest;
             import "empty_not_found.proto";
             )",
-              2 },
-            { R"(package UnitTest;
+             2},
+            {R"(package UnitTest;
             import "level2-from-1.proto";
             )",
-              2 },
-            { R"(package UnitTest;
+             2},
+            {R"(package UnitTest;
             importX "message.proto";
             )",
-              2 },
+             2},
         };
-        test_files( tests );
+        test_files(tests);
         constexpr proto_file_test tests2[] = {
-            { R"(package UnitTest;
+            {R"(package UnitTest;
                 import "level2-from-1.proto";
             )",
-              0 },
+             0},
         };
 
-        test_files( tests2, "tmp_test.proto", { { "level2", "level1" } } );
-        test_files( tests2, "tmp_test.proto", { { std::filesystem::current_path( ) / "level1" } } );
-        test_files( tests2, ( std::filesystem::current_path( ) / "tmp_test.proto" ).string( ),
-                    { { "level2", "level1" } } );
+        test_files(tests2, "tmp_test.proto", {{"level2", "level1"}});
+        test_files(tests2, "tmp_test.proto", {{std::filesystem::current_path() / "level1"}});
+        test_files(tests2, (std::filesystem::current_path() / "tmp_test.proto").string(),
+                   {{"level2", "level1"}});
 
-        REQUIRE_NOTHROW( std::filesystem::remove( "empty.proto" ) );
-        REQUIRE_NOTHROW( std::filesystem::remove( "level1.proto" ) );
-        REQUIRE_NOTHROW( std::filesystem::remove( "level2.proto" ) );
-        REQUIRE_NOTHROW( std::filesystem::remove( "level3.proto" ) );
-        REQUIRE_NOTHROW( std::filesystem::remove_all( "level1" ) );
+        REQUIRE_NOTHROW(std::filesystem::remove("empty.proto"));
+        REQUIRE_NOTHROW(std::filesystem::remove("level1.proto"));
+        REQUIRE_NOTHROW(std::filesystem::remove("level2.proto"));
+        REQUIRE_NOTHROW(std::filesystem::remove("level3.proto"));
+        REQUIRE_NOTHROW(std::filesystem::remove_all("level1"));
     }
-    SUBCASE( "comment" )
+    SUBCASE("comment")
     {
-        constexpr proto_file_test tests[] = { { "//"sv, 1 },
-                                              { "/*"sv, 1 },
-                                              { "/-"sv, 1 },
-                                              { R"(package UnitTest;
+        constexpr proto_file_test tests[] = {{"//"sv, 1},
+                                             {"/*"sv, 1},
+                                             {"/-"sv, 1},
+                                             {R"(package UnitTest;
             // comment
             )",
-                                                0 },
-                                              { "/**/"sv, 0 },
-                                              { R"(package UnitTest;
+                                              0},
+                                             {"/**/"sv, 0},
+                                             {R"(package UnitTest;
             /* comment
             */;
             )",
-                                                0 },
-                                              { R"(syntax = "proto3";
+                                              0},
+                                             {R"(syntax = "proto3";
                 message Message
                 {
                     required uint32 value = 1; // comment
                 })"sv,
-                                                0 },
-                                              { R"(syntax = "proto3";
+                                              0},
+                                             {R"(syntax = "proto3";
                 message Message
                 {
                     // comment
-                    required uint32 value = 1; 
+                    required uint32 value = 1;
                 })"sv,
-                                                0 },
-                                              { R"(syntax = "proto3";
+                                              0},
+                                             {R"(syntax = "proto3";
                 message Message
                 {
                     // comment
-                    required uint32 value = 1; // comment 
+                    required uint32 value = 1; // comment
                 })"sv,
-                                                0 } };
-        test_files( tests );
+                                              0}};
+        test_files(tests);
     }
-    SUBCASE( "syntax" )
+    SUBCASE("syntax")
     {
-        constexpr proto_file_test tests[] = { { ""sv, 0 },
-                                              { "X"sv, 1 },
-                                              { R"(synta = "proto2";)"sv, 1 },
-                                              { R"(syntax = "proto1;")"sv, 1 },
-                                              { R"(syntax = "proto2")"sv, 1 },
-                                              { R"(syntax = "proto2";)"sv, 0 },
-                                              { R"(syntax = "proto3";;)"sv, 0 },
-                                              { R"(syntax = "proto3")"sv, 1 },
-                                              { R"(syntax = "proto4;")"sv, 1 },
-                                              { R"(syntax = "proto2";
+        constexpr proto_file_test tests[] = {{""sv, 0},
+                                             {"X"sv, 1},
+                                             {R"(synta = "proto2";)"sv, 1},
+                                             {R"(syntax = "proto1;")"sv, 1},
+                                             {R"(syntax = "proto2")"sv, 1},
+                                             {R"(syntax = "proto2";)"sv, 0},
+                                             {R"(syntax = "proto3";;)"sv, 0},
+                                             {R"(syntax = "proto3")"sv, 1},
+                                             {R"(syntax = "proto4;")"sv, 1},
+                                             {R"(syntax = "proto2";
                 message Message
                 {
                     required uint32 value = 1;
                 })"sv,
-                                                0 },
-                                              { R"(syntax = "proto3";
+                                              0},
+                                             {R"(syntax = "proto3";
                 message Message
                 {
                     required uint32 value = 1;
                 })"sv,
-                                                0 } };
-        test_files( tests );
+                                              0}};
+        test_files(tests);
     }
-    SUBCASE( "scalar" )
+    SUBCASE("scalar")
     {
         constexpr proto_file_test tests[] = {
-            { R"(message Message{
+            {R"(message Message{
                 bool b = 1;
                 float f = 2;
                 double d = 3;
@@ -203,8 +198,8 @@ TEST_CASE( "protoc-parser" )
                 string s = 14;
                 bytes by = 15;
                 })"sv,
-              0 },
-            { R"(message Message{
+             0},
+            {R"(message Message{
                 repeated bool b = 1;
                 repeated float f = 2;
                 repeated double d = 3;
@@ -221,8 +216,8 @@ TEST_CASE( "protoc-parser" )
                 repeated string s = 14;
                 repeated bytes by = 15;
                 })"sv,
-              0 },
-            { R"(message Message{
+             0},
+            {R"(message Message{
                 repeated bool b = 1 [packed = true];
                 repeated float f = 2 [packed = true];
                 repeated double d = 3 [packed = true];
@@ -239,8 +234,8 @@ TEST_CASE( "protoc-parser" )
                 repeated string s = 14 [packed = true];
                 repeated bytes by = 15 [packed = true];
                 })"sv,
-              0 },
-            { R"(message Message{
+             0},
+            {R"(message Message{
                 bool b = 1 [default = true];
                 float f = 2 [default = 0.4];
                 double d = 3 [default = 0.];
@@ -257,50 +252,50 @@ TEST_CASE( "protoc-parser" )
                 string s = 14 [default = "true"];
                 bytes by = 15;
                 })"sv,
-              0 },
-            { R"(message Message{
+             0},
+            {R"(message Message{
                     bool b = X;
                 })"sv,
-              2 },
+             2},
         };
-        test_files( tests );
+        test_files(tests);
     }
-    SUBCASE( "option" )
+    SUBCASE("option")
     {
-        constexpr proto_file_test tests[] = { { R"(package UnitTest;
+        constexpr proto_file_test tests[] = {{R"(package UnitTest;
             option cc_enable_arenas true;
             )",
-                                                2 },
-                                              { R"(package UnitTest;
+                                              2},
+                                             {R"(package UnitTest;
             option cc_enable_arenas = true;
             )",
-                                                0 },
-                                              { R"(syntax = "proto3";
+                                              0},
+                                             {R"(syntax = "proto3";
                 message Message
                 {
                     required uint32 value = 1 [default = 2, deprecated = true];
                 })"sv,
-                                                0 } };
-        test_files( tests );
+                                              0}};
+        test_files(tests);
     }
-    SUBCASE( "extensions" )
+    SUBCASE("extensions")
     {
-        SUBCASE( "enum type" )
+        SUBCASE("enum type")
         {
-            constexpr proto_file_test tests[] = { { R"(syntax = "proto2";
+            constexpr proto_file_test tests[] = {{R"(syntax = "proto2";
                 //[[enum.type = "float"]]
                 enum Enum {
                     value = 1;
                 })"sv,
-                                                    2 }
+                                                  2}
 
             };
-            test_files( tests );
+            test_files(tests);
         }
-        SUBCASE( "bitfield" )
+        SUBCASE("bitfield")
         {
             constexpr proto_file_test tests[] = {
-                { R"(syntax = "proto2";
+                {R"(syntax = "proto2";
                 message ReqUint8_1{
                     //[[ field.type = "uint8:1" ]]
                     required uint32 value = 1;
@@ -317,107 +312,107 @@ TEST_CASE( "protoc-parser" )
                     //[[ field.type = "uint8:1" ]]
                     required fixed64 value7 = 7;
                 })"sv,
-                  0 },
-                { R"(syntax = "proto2";
+                 0},
+                {R"(syntax = "proto2";
                 message OptUint8_1{
                     //[[ field.type = "uint8:1" ]]
                     optional uint32 value = 1;
                 })",
-                  3 },
-                { R"(syntax = "proto2";
+                 3},
+                {R"(syntax = "proto2";
                 message OptUint8_1{
                     //[[ field.type = "uint8:1" ]]
                     required bool value = 1;
                 })",
-                  3 },
-                { R"(syntax = "proto2";
+                 3},
+                {R"(syntax = "proto2";
                 message OptUint8_1{
                     //[[ field.type = "uint8:1" ]]
                     required float value = 1;
                 })",
-                  3 },
-                { R"(syntax = "proto2";
+                 3},
+                {R"(syntax = "proto2";
                 message OptUint8_1{
                     //[[ field.type = "uint8:1" ]]
                     required double value = 1;
                 })",
-                  3 },
+                 3},
 
             };
-            test_files( tests );
+            test_files(tests);
         }
-        SUBCASE( "small int" )
+        SUBCASE("small int")
         {
             constexpr proto_file_test tests[] = {
-                { R"(package UnitTest;
+                {R"(package UnitTest;
                 message A {
                     // [[ field.type = "uint8" ]]
                     optional uint32 u32 = 1;
                 })",
-                  0 },
-                { R"(package UnitTest;
+                 0},
+                {R"(package UnitTest;
                 message A {
                     // [[ field.type = "uint16" ]]
                     optional uint32 u32 = 1;
                 })",
-                  0 },
-                { R"(package UnitTest;
+                 0},
+                {R"(package UnitTest;
                 message A {
                     // [[ field.type = "uint32" ]]
                     optional uint32 u32 = 1;
                 })",
-                  0 },
-                { R"(package UnitTest;
+                 0},
+                {R"(package UnitTest;
                 message A {
                     // [[ field.type = "uint64" ]]
                     optional uint32 u32 = 1;
                 })",
-                  3 },
-                { R"(syntax = "proto2";
+                 3},
+                {R"(syntax = "proto2";
                 message ReqUint8_1{
                     //[[ field.type = "int8" ]]
                     required uint32 value = 1;
                 })"sv,
-                  3 },
+                 3},
             };
-            test_files( tests );
+            test_files(tests);
         }
     }
-    SUBCASE( "dependency" )
+    SUBCASE("dependency")
     {
         constexpr proto_file_test tests[] = {
-            { R"(package UnitTest;
+            {R"(package UnitTest;
             message A {
                 optional A a = 1;
             })",
-              0 },
-            { R"(package UnitTest;
+             0},
+            {R"(package UnitTest;
             message A {
                 repeated A a = 1;
             })",
-              0 },
-            { R"(package UnitTest;
+             0},
+            {R"(package UnitTest;
             message A {
                 required A a = 1;
             })",
-              3 },
-            { R"(package UnitTest;
+             3},
+            {R"(package UnitTest;
             message A {
                 required B b = 1;
             }
             message B {
                 required A a = 1;
             })",
-              2 },
-            { R"(package UnitTest;
+             2},
+            {R"(package UnitTest;
             message A {
                 message B {
                     required A a = 1;
                 }
                 required B b = 1;
             })",
-              4 },
-            { R"(package UnitTest;
+             4},
+            {R"(package UnitTest;
             option cc_enable_arenas = true;
             message A {
                 message B {
@@ -427,8 +422,8 @@ TEST_CASE( "protoc-parser" )
                 }
                 required B b = 1;
             })",
-              0 },
-            { R"(package UnitTest.dependency;
+             0},
+            {R"(package UnitTest.dependency;
             message A {
                 message B { optional C c = 1; }
                 message C { optional int32 b = 1; }
@@ -451,8 +446,8 @@ TEST_CASE( "protoc-parser" )
                 }
                 optional int32 a = 1;
             })",
-              0 },
-            { R"(package UnitTest;
+             0},
+            {R"(package UnitTest;
             message A {
                 oneof oneof_field {
                     uint32 oneof_uint32 = 1;
@@ -461,14 +456,14 @@ TEST_CASE( "protoc-parser" )
                     A a = 4;
                 }
             })",
-              2 },
+             2},
         };
-        test_files( tests );
+        test_files(tests);
     }
-    SUBCASE( "oneof" )
+    SUBCASE("oneof")
     {
         constexpr proto_file_test tests[] = {
-            { R"(package UnitTest;
+            {R"(package UnitTest;
             message A {
                 oneof oneof_field {
                     uint32 oneof_uint32 = 1;
@@ -476,15 +471,15 @@ TEST_CASE( "protoc-parser" )
                     bytes oneof_bytes = 3;
                 }
             })",
-              0 },
+             0},
 
         };
-        test_files( tests );
+        test_files(tests);
     }
-    SUBCASE( "reserved" )
+    SUBCASE("reserved")
     {
         constexpr proto_file_test tests[] = {
-            { R"(package UnitTest;
+            {R"(package UnitTest;
             message A {
                 reserved 4;
                 reserved 5,6,7;
@@ -492,14 +487,14 @@ TEST_CASE( "protoc-parser" )
                 reserved 10 to max;
                 reserved "BB";
             })",
-              0 },
+             0},
         };
-        test_files( tests );
+        test_files(tests);
     }
-    SUBCASE( "enum" )
+    SUBCASE("enum")
     {
         constexpr proto_file_test tests[] = {
-            { R"(package UnitTest;
+            {R"(package UnitTest;
             message A {
                 enum PhoneType {
                     MOBILE = 0;
@@ -507,27 +502,27 @@ TEST_CASE( "protoc-parser" )
                     WORK = 2;
                 }
             })",
-              0 },
+             0},
 
         };
-        test_files( tests );
+        test_files(tests);
     }
-    SUBCASE( "cpp_keywords" )
+    SUBCASE("cpp_keywords")
     {
         constexpr proto_file_test tests[] = {
-            { R"(package UnitTest;
+            {R"(package UnitTest;
             message private {
                 int32 public = 1;
                 int32 while = 2;
             })",
-              0 },
+             0},
         };
-        test_files( tests );
+        test_files(tests);
     }
-    SUBCASE( "map" )
+    SUBCASE("map")
     {
         constexpr proto_file_test tests[] = {
-            { R"(package UnitTest;
+            {R"(package UnitTest;
             message A {
                 map<int32, int32> m_int32 = 1;
                 map<int64, int64> m_int64 = 2;
@@ -542,29 +537,29 @@ TEST_CASE( "protoc-parser" )
                 map<bool, bool> m_bool = 11;
                 map<string, bool> m_string = 12;
             })",
-              0 },
-            { R"(package UnitTest;
+             0},
+            {R"(package UnitTest;
             message A {
                 map<float, int32> m_int32 = 1;
             })",
-              3 },
-            { R"(package UnitTest;
+             3},
+            {R"(package UnitTest;
             message A {
                 map<double, int32> m_int32 = 1;
             })",
-              3 },
-            { R"(package UnitTest;
+             3},
+            {R"(package UnitTest;
             message A {
                 map<bytes, int32> m_int32 = 1;
             })",
-              3 },
-            { R"(package UnitTest;
+             3},
+            {R"(package UnitTest;
             message A {
                 map<X, int32> m_int32 = 1;
             })",
-              3 },
+             3},
 
         };
-        test_files( tests );
+        test_files(tests);
     }
 }

@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+import "google/protobuf/descriptor.proto";
+
+// This file exists only for compatibility with GPB
+// spb is not using it, all options are hardcoded in the compiler
+
+message SpbEnumOptions {
+  // enum's type: one of `int8`, `uint8`, `int16`, `uint16`, `int32`
+  // default: int32
+  string type = 3;
+}
+
+message SpbOptions {
+  // maximum size in bytes for `bytes` or `string` (not including the `\0` terminator)
+  // de/serialize will throw an exception if `real_size > max_size`
+  uint32 max_size = 1;
+
+  // maximum number of elements in an repeated field
+  // de/serialize will throw an exception if `real_count > max_count`
+  uint32 max_count = 2;
+
+  // field's type: one of `int8`, `uint8`, `int16`, `uint16`, `int32`, `uint32`, `int64`, `uint64`
+  // can be combined with an bit field: `int8:1`, `uint8:2`, ...
+  // warning: due to compatibility with GPB, always use int types with the same sign, like `int32` and `int8`,
+  // combinations like `int32` and `uint8` or `float and `int32` are invalid.
+  string type = 3;
+
+  // enum type, one of `int8`, `uint8`, `int16`, `uint16`, `int32`
+  // default: "int32"
+  string enum = 4;
+
+  // extra files to include in generated `.pb.h`
+  repeated string include = 5;
+
+  // files to exclude from includes in generated `.pb.h`
+  // default: ["spb.proto", "nanopb.proto", "google/protobuf/descriptor.proto"]
+  repeated string exclude = 6;
+
+  // container type for `optional` label
+  // default: "std::optional<$>", `$` will be replaced by a field's type
+  string optional = 10;
+
+  // container type for `optional` label if there is cyclic dependency between messages (A -> B, B -> A)
+  // default: "std::unique_ptr<$>", `$` will be replaced by a field's type
+  string pointer = 11;
+
+  // container type for `repeated` label
+  // default: "std::vector<$>", `$` will be replaced by a field's type
+  string repeated = 12;
+
+  // container type for bytes type
+  // default: "std::vector<$>", `$` will be replaced with `std::byte`
+  string bytes = 13;
+
+  // container type for string type
+  // default: "std::string", `$` will be replaced with `char`
+  string string = 14;
+
+  // container type for map type
+  // default: "std::map<$, @>", `$` will be replaced by a map's key and `@` by a map's value
+  string map = 15;
+}
+
+extend google.protobuf.FieldOptions {
+  SpbOptions spb_opt = 1200;
+}
+
+extend google.protobuf.FileOptions {
+  SpbOptions spb_fileopt = 1200;
+}
+
+extend google.protobuf.MessageOptions {
+  SpbOptions spb_msgopt = 1200;
+}
+
+extend google.protobuf.EnumOptions {
+  SpbEnumOptions spb_enumopt = 1200;
+}

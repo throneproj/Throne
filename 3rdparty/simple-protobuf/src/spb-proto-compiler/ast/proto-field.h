@@ -74,4 +74,4 @@ struct proto_field : public proto_base
     std::string_view bit_field;
 };
 
-using proto_fields = std::vector< proto_field >;
+using proto_fields = std::vector<proto_field>;

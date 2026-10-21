@@ -16,5 +16,5 @@
 struct proto_comment
 {
     //- points to .proto file
-    std::vector< std::string_view > comments;
+    std::vector<std::string_view> comments;
 };

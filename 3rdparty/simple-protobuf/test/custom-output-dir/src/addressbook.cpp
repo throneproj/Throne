@@ -9,84 +9,84 @@
 namespace
 {
 
-auto load_file( const std::filesystem::path & file_path ) -> std::string
+auto load_file(const std::filesystem::path &file_path) -> std::string
 {
-    if( !std::filesystem::exists( file_path ) )
+    if (!std::filesystem::exists(file_path))
     {
         return "{}";
     }
-    const auto file_size = std::filesystem::file_size( file_path );
-    auto file_content    = std::string( file_size, '\0' );
+    const auto file_size = std::filesystem::file_size(file_path);
+    auto file_content = std::string(file_size, '\0');
 
-    if( auto * p_file = fopen( file_path.string( ).c_str( ), "rb" ); p_file )
+    if (auto *p_file = fopen(file_path.string().c_str(), "rb"); p_file)
     {
-        const auto read = fread( file_content.data( ), 1, file_content.size( ), p_file );
-        fclose( p_file );
-        file_content.resize( read );
+        const auto read = fread(file_content.data(), 1, file_content.size(), p_file);
+        fclose(p_file);
+        file_content.resize(read);
         return file_content;
     }
 
-    perror( file_path.string( ).c_str( ) );
-    throw std::system_error( std::make_error_code( std::errc( errno ) ) );
+    perror(file_path.string().c_str());
+    throw std::system_error(std::make_error_code(std::errc(errno)));
 }
 
-void save_file( const std::filesystem::path & file_path, std::string_view file_content )
+void save_file(const std::filesystem::path &file_path, std::string_view file_content)
 {
-    if( auto * p_file = fopen( file_path.string( ).c_str( ), "wb" ); p_file )
+    if (auto *p_file = fopen(file_path.string().c_str(), "wb"); p_file)
     {
-        const auto written = fwrite( file_content.data( ), 1, file_content.size( ), p_file );
-        fclose( p_file );
-        if( written == file_content.size( ) )
+        const auto written = fwrite(file_content.data(), 1, file_content.size(), p_file);
+        fclose(p_file);
+        if (written == file_content.size())
         {
             return;
         }
     }
-    perror( file_path.string( ).c_str( ) );
-    throw std::system_error( std::make_error_code( std::errc( errno ) ) );
+    perror(file_path.string().c_str());
+    throw std::system_error(std::make_error_code(std::errc(errno)));
 }
 // This function fills in a Person message based on user input.
-void PromptForAddress( tutorial::Person & person )
+void PromptForAddress(tutorial::Person &person)
 {
     std::cout << "Enter person ID number: ";
-    std::cin >> person.id.emplace( );
-    std::cin.ignore( 256, '\n' );
+    std::cin >> person.id.emplace();
+    std::cin.ignore(256, '\n');
 
     std::cout << "Enter name: ";
-    getline( std::cin, person.name.emplace( ) );
+    getline(std::cin, person.name.emplace());
 
     std::cout << "Enter email address (blank for none): ";
     std::string email;
-    getline( std::cin, email );
-    if( !email.empty( ) )
+    getline(std::cin, email);
+    if (!email.empty())
     {
-        person.email = std::move( email );
+        person.email = std::move(email);
     }
 
-    while( true )
+    while (true)
     {
         std::cout << "Enter a phone number (or leave blank to finish): ";
         std::string number;
-        getline( std::cin, number );
-        if( number.empty( ) )
+        getline(std::cin, number);
+        if (number.empty())
         {
             break;
         }
 
-        auto & phone_number = person.phones.emplace_back( );
+        auto &phone_number = person.phones.emplace_back();
         phone_number.number = number;
 
         std::cout << "Is this a mobile, home, or work phone? ";
         std::string type;
-        getline( std::cin, type );
-        if( type == "mobile" )
+        getline(std::cin, type);
+        if (type == "mobile")
         {
             phone_number.type = tutorial::Person::PhoneType::PHONE_TYPE_MOBILE;
         }
-        else if( type == "home" )
+        else if (type == "home")
         {
             phone_number.type = tutorial::Person::PhoneType::PHONE_TYPE_HOME;
         }
-        else if( type == "work" )
+        else if (type == "work")
         {
             phone_number.type = tutorial::Person::PhoneType::PHONE_TYPE_WORK;
         }
@@ -96,33 +96,32 @@ void PromptForAddress( tutorial::Person & person )
         }
     }
 }
-}// namespace
+} // namespace
 
 // Main function:  Reads the entire address book from a file,
 //   adds one person based on user input, then writes it back out to the same
 //   file.
-auto main( int argc, char * argv[] ) -> int
+auto main(int argc, char *argv[]) -> int
 {
-    if( argc != 2 )
+    if (argc != 2)
     {
-        std::cerr << "Usage:  " << argv[ 0 ] << " ADDRESS_BOOK_FILE" << std::endl;
+        std::cerr << "Usage:  " << argv[0] << " ADDRESS_BOOK_FILE" << std::endl;
         return -1;
     }
 
     try
     {
-        auto address_book =
-            spb::json::deserialize< tutorial::AddressBook >( load_file( argv[ 1 ] ) );
+        auto address_book = spb::json::deserialize<tutorial::AddressBook>(load_file(argv[1]));
 
         // Add an address.
-        PromptForAddress( address_book.people.emplace_back( ) );
+        PromptForAddress(address_book.people.emplace_back());
 
         // Write the new address book back to disk.
-        save_file( argv[ 1 ], spb::json::serialize( address_book ) );
+        save_file(argv[1], spb::json::serialize(address_book));
     }
-    catch( const std::exception & e )
+    catch (const std::exception &e)
     {
-        std::cerr << "Exception: " << e.what( ) << std::endl;
+        std::cerr << "Exception: " << e.what() << std::endl;
         return 1;
     }
 

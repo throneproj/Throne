@@ -22,7 +22,7 @@ namespace spb::io
  * @throws any exception thrown will stop the `serialize` process and will be propagated to the
  *         caller of `spb::pb::serialize` or `spb::json::serialize`
  */
-using writer = spb::detail::function_ref< void( const void * p_data, size_t size ) >;
+using writer = spb::detail::function_ref<void(const void *p_data, size_t size)>;
 
 //-
 /**
@@ -34,6 +34,6 @@ using writer = spb::detail::function_ref< void( const void * p_data, size_t size
  * @throws any exception thrown will stop the `deserialize` process and will be propagated to the
  *         caller of `spb::pb::deserialize` or `spb::json::deserialize`
  */
-using reader = spb::detail::function_ref< size_t( void * p_data, size_t size ) >;
+using reader = spb::detail::function_ref<size_t(void *p_data, size_t size)>;
 
-}// namespace spb::io
+} // namespace spb::io

@@ -1,28 +1,27 @@
 #include <cstdint>
 #include <cstdlib>
-#include <map.pb.h>
-#include <person.pb.h>
-#include <proto3.pb.h>
+#include <proto/message.pb.h>
+#include <proto/proto3.pb.h>
 #include <scalar.pb.h>
 #include <string_view>
 
-template < typename T >
-static void pb_decode( const uint8_t * Data, size_t Size )
+template <typename T> static void pb_decode(const uint8_t *Data, size_t Size)
 {
     try
     {
-        auto result = spb::pb::deserialize< T >( { reinterpret_cast< const char * >( Data ), Size } );
+        T obj{};
+        spb::pb::deserialize(obj, Data, Size);
     }
-    catch( ... )
+    catch (...)
     {
     }
 }
 
-extern "C" int LLVMFuzzerTestOneInput( const uint8_t * Data, size_t Size )
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
 {
-    pb_decode< PhoneBook::Person >( Data, Size );
-    pb_decode< proto3_unittest::TestAllTypes >( Data, Size );
-    pb_decode< proto3_unittest::TestEmptyMessage >( Data, Size );
+    pb_decode<tutorial::Person>(Data, Size);
+    pb_decode<proto3_unittest::TestAllTypes>(Data, Size);
+    pb_decode<proto3_unittest::TestEmptyMessage>(Data, Size);
 
     return 0;
 }

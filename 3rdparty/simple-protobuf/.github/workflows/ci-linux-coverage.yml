@@ -6,13 +6,13 @@ on:
     workflow_dispatch:
 
 permissions: write-all
-    
+
 # Allow one concurrent deployment
 concurrency:
     group: 'pages'
     cancel-in-progress: true
 
-jobs:    
+jobs:
     coverage:
         environment:
             name: github-pages
@@ -32,7 +32,7 @@ jobs:
             - name: Install Linux dependencies
               run: |
                   sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-                  sudo apt-get install ninja-build protobuf-compiler lcov g++-14 gcc-14 bc
+                  sudo apt-get install ninja-build lcov g++-14 gcc-14 bc
                   echo "CXX=g++-14" >> ${GITHUB_ENV}
                   echo "CC=gcc-14" >> ${GITHUB_ENV}
 
@@ -91,13 +91,13 @@ jobs:
                 onlyRemoveDeployments: true
 
             - name: Setup Pages
-              uses: actions/configure-pages@v6
+              uses: actions/configure-pages@v4
 
             - name: Upload artifact
-              uses: actions/upload-pages-artifact@v5
+              uses: actions/upload-pages-artifact@v3
               with:
                   path: ${{ steps.strings.outputs.build-output-dir }}/report
 
             - name: Deploy to GitHub Pages
               id: deployment
-              uses: actions/deploy-pages@v5
+              uses: actions/deploy-pages@v4

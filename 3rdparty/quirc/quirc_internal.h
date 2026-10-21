@@ -14,7 +14,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#pragma once
+#ifndef QUIRC_INTERNAL_H_
+#define QUIRC_INTERNAL_H_
 
 #include <assert.h>
 #include <stdlib.h>
@@ -118,6 +119,16 @@ struct quirc {
 	struct quirc_flood_fill_vars *flood_fill_vars;
 };
 
+static inline size_t quirc_image_size(int w, int h)
+{
+	return (size_t)w * (size_t)h;
+}
+
+static inline size_t quirc_pixel_count(const struct quirc *q)
+{
+	return quirc_image_size(q->w, q->h);
+}
+
 /************************************************************************
  * QR-code version information database
  */
@@ -138,3 +149,5 @@ struct quirc_version_info {
 };
 
 extern const struct quirc_version_info quirc_version_db[QUIRC_MAX_VERSION + 1];
+
+#endif

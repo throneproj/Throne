@@ -13,8 +13,9 @@
 
 #include "proto-comment.h"
 #include "proto-common.h"
-#include "proto-import.h"
+#include "proto-extend.h"
 #include "proto-message.h"
+#include "proto-option.h"
 #include "proto-service.h"
 #include "proto-syntax.h"
 #include <filesystem>
@@ -23,7 +24,7 @@
 
 struct proto_file;
 
-using proto_files = std::vector< proto_file >;
+using proto_files = std::vector<proto_file>;
 
 struct proto_file
 {
@@ -31,10 +32,11 @@ struct proto_file
     std::string content;
     proto_syntax syntax;
     proto_comment comment;
-    proto_imports imports;
+    proto_files imports;
     proto_message package;
+    proto_extends extends;
     proto_options options;
+    proto_attributes attributes;
 
     proto_services services;
-    proto_files file_imports;
 };

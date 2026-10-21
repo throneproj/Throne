@@ -3,7 +3,7 @@ syntax = "proto3";
 package Test@PB_PACKAGE@;
 
 //- message with collision values for djb2("name") == djb2("bkfvdzz")
-message Name { 
+message Name {
     string name    = 1;
     string bkfvdzz = 2;
 }
@@ -19,4 +19,8 @@ message Variant {
         bytes var_bytes = 3;
         Name name = 4;
     }
+}
+
+message MapStringString {
+  map<string, string> value = 1;
 }
