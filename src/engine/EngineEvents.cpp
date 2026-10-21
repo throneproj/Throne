@@ -16,8 +16,8 @@ namespace Engine {
         return self;
     }
 
-    void EngineEvents::SubscriptionNewGroup() {
-        emit instance()->subscriptionNewGroup();
+    void EngineEvents::SubscriptionNewGroup(int groupId) {
+        emit instance()->subscriptionNewGroup(groupId);
     }
 
     void EngineEvents::SubscriptionFinished(int importedCount, bool quiet) {

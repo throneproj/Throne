@@ -20,7 +20,7 @@
  * @param stream output stream
  * @return C++ header file for a ast
  */
-void dump_json_header( const proto_file & file, std::ostream & stream );
+void dump_json_header(const proto_file &file, std::ostream &stream);
 
 /**
  * @brief dump C++ file for parsed proto
@@ -29,5 +29,4 @@ void dump_json_header( const proto_file & file, std::ostream & stream );
  * @param header_file generated C++ header file (ex: my.pb.h)
  * @param stream output stream
  */
-void dump_json_cpp( const proto_file & file, const std::filesystem::path & header_file,
-                    std::ostream & stream );
+void dump_json_cpp(const proto_file &file, const std::filesystem::path &header_file, std::ostream &stream);

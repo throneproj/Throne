@@ -317,7 +317,8 @@ namespace Configs {
         void restoreFrom(const std::string& srcPath);
 
         // entity_ids is always retained so restored IDs stay consistent; caller must delete destPath first. Throws on failure.
-        void backupSelective(const std::string& destPath, const BackupParts& parts);
+        // excludedSettingKeys (DB key names) are left out of a settings backup.
+        void backupSelective(const std::string& destPath, const BackupParts& parts, const QStringList& excludedSettingKeys = {});
 
         // Only columns present in both schemas are copied, so cross-version backups still restore; a route rule with data
         // in a column this schema lacks is skipped instead. Returns the number of skipped route rules. Throws on failure.

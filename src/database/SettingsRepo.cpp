@@ -93,6 +93,7 @@ namespace Configs {
             {"traffic_graph_smooth", &traffic_graph_smooth},
             {"traffic_graph_markers", &traffic_graph_markers},
             {"exit_country_lookup", &exit_country_lookup},
+            {"webdav_use_proxy", &webdav_use_proxy},
         };
 
         intMap = {
@@ -165,6 +166,12 @@ namespace Configs {
             {"hk_tun",                     &hotkey_toggle_tun},
             {"remote_api_key",             &remote_api_key},
             {"remote_api_allow",           &remote_api_allow},
+            {"webdav_server",              &webdav_server},
+            {"webdav_user",                &webdav_user},
+            {"webdav_pass",                &webdav_pass},
+            {"webdav_path",                &webdav_path},
+            {"device_id",                  &device_id},
+            {"device_name",                &device_name},
             {"active_routing",             &active_routing},
             {"mw_size",                    &mw_size},
             {"vpn_tun_ipv4_cidr",          &vpn_tun_ipv4_cidr},

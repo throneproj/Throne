@@ -721,6 +721,8 @@ set(ENGINE_SOURCES
         src/engine/services/SettingsRegistry.cpp
         include/engine/services/BackupArchive.h
         src/engine/services/BackupArchive.cpp
+        include/engine/services/WebDavBackup.h
+        src/engine/services/WebDavBackup.cpp
         include/engine/services/AssetUpdates.h
         src/engine/services/AssetUpdates.cpp
         include/engine/services/StatsService.h

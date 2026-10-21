@@ -4,6 +4,8 @@
 #include <QSsl>
 #include <functional>
 
+class QNetworkProxy;
+
 namespace Configs_network {
     struct HTTPResponse {
         QString error;
@@ -35,6 +37,9 @@ namespace Configs_network {
     // needs a running profile, and without the mixed inbound a running Tun Mode captures the request instead.
     // False with *error set when nothing can proxy it.
     bool RequestUsesMixedInbound(bool useProxy, QString *error);
+
+    // The proxy to set when RequestUsesMixedInbound says yes.
+    QNetworkProxy MixedInboundProxy();
 
     class NetworkRequestHelper : QObject {
         Q_OBJECT

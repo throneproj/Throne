@@ -13,9 +13,23 @@ namespace Engine::BackupArchive {
         QString createdAt;
         QString platform;
         Configs::BackupParts available;
+        // Empty for archives made before Throne recorded them.
+        QString deviceName;
+        QString appVersion;
     };
 
-    // Main thread, before Build: flushes the settings when they are part of the backup.
+    struct Device {
+        QString id;
+        QString name;
+    };
+
+    // Main thread. This device's identity in backups; the id is generated and saved on first use.
+    Device ThisDevice();
+
+    // Settings (DB key names) that belong to this device: Build never ships them and Apply always keeps them.
+    const QStringList &DeviceLocalSettingKeys();
+
+    // Main thread, before Build: makes sure the device has an id and flushes the settings when they are part of the backup.
     void Prepare(const Configs::BackupParts &parts);
 
     // Any thread. Writes a .thrbackup archive of the parts to path; *written gets the parts it really holds (icons only
@@ -33,8 +47,8 @@ namespace Engine::BackupArchive {
     };
 
     // Main thread, with no profile running. Replaces the chosen parts with the archive's; a settings restore keeps
-    // preservedSettingKeys (DB key names). Ids that no longer resolve are reset. The program must restart afterwards:
-    // settings are no longer saved. Returns an error text, empty on success.
+    // preservedSettingKeys (DB key names) and DeviceLocalSettingKeys(). Ids that no longer resolve are reset. The program
+    // must restart afterwards: settings are no longer saved. Returns an error text, empty on success.
     // untrusted: the archive came from a remote client, so it must not bring anything an import refuses (profiles that
     // run programs or read local files, non-http subscription URLs); such an archive is refused before any change.
     QString Apply(const QString &path, const Configs::BackupParts &parts, const QStringList &preservedSettingKeys, ApplyResult *result,

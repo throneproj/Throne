@@ -20,4 +20,4 @@ struct proto_map : public proto_base
     proto_field value;
 };
 
-using proto_maps = std::vector< proto_map >;
+using proto_maps = std::vector<proto_map>;

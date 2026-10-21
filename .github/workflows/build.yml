@@ -30,39 +30,39 @@ jobs:
         include:
           - cross_os: windows
             cross_arch: amd64
-            go_version: "1.27.0"
+            go_version: "1.27.2"
             runner: ubuntu-22.04
           - cross_os: windows
             cross_arch: arm64
-            go_version: "1.27.0"
+            go_version: "1.27.2"
             runner: ubuntu-22.04
           - cross_os: linux
             cross_arch: amd64
-            go_version: "1.27.0"
+            go_version: "1.27.2"
             runner: ubuntu-22.04
           - cross_os: linux
             cross_arch: arm64
-            go_version: "1.27.0"
+            go_version: "1.27.2"
             runner: ubuntu-22.04
           - cross_os: darwin
             cross_arch: amd64
-            go_version: "1.27.0"
+            go_version: "1.27.2"
             runner: macos-latest
           - cross_os: darwin
             cross_arch: arm64
-            go_version: "1.27.0"
+            go_version: "1.27.2"
             runner: macos-latest
           - cross_os: darwinlegacy
             cross_arch: amd64
-            go_version: "1.27.0"
+            go_version: "1.27.2"
             runner: macos-latest
           - cross_os: windowslegacy
             cross_arch: amd64
-            go_version: "1.27.0"
+            go_version: "1.27.2"
             runner: macos-latest
           - cross_os: windowslegacy
             cross_arch: 386
-            go_version: "1.27.0"
+            go_version: "1.27.2"
             runner: macos-latest
       fail-fast: false
     runs-on: ${{ matrix.runner }}
@@ -149,7 +149,7 @@ jobs:
       - name: Install Golang
         uses: actions/setup-go@v7.0.0
         with:
-          go-version: "1.27.0"
+          go-version: "1.27.2"
           cache-dependency-path: |
             core/go.sum
       - name: Install JDK 17
@@ -186,19 +186,19 @@ jobs:
       matrix:
         include:
           - platform: windows-latest
-            qt_version: "6.11.2"
+            qt_version: "6.12.0"
             target: x64
             dest_suffix: windows-amd64
             common: windows-amd64
             launcher: sccache
           - platform: windows-11-arm
-            qt_version: "6.11.2"
+            qt_version: "6.12.0"
             target: arm64
             dest_suffix: windows-arm64
             common: windows-arm64
             launcher: ""
           - platform: ubuntu-22.04
-            qt_version: "6.11.2"
+            qt_version: "6.12.0"
             target: x86_64
             dest_suffix: linux-amd64
             common: linux-amd64
@@ -210,7 +210,7 @@ jobs:
             common: linux-amd64
             launcher: ccache
           - platform: ubuntu-24.04-arm
-            qt_version: "6.11.1"
+            qt_version: "6.12.0"
             target: aarch64
             dest_suffix: linux-arm64
             common: linux-arm64
@@ -222,13 +222,13 @@ jobs:
             common: linux-arm64
             launcher: ccache
           - platform: macos-latest
-            qt_version: "6.11.2"
+            qt_version: "6.12.0"
             target: x86_64
             dest_suffix: darwin-amd64
             common: darwin-amd64
             launcher: ccache
           - platform: macos-latest
-            qt_version: "6.11.2"
+            qt_version: "6.12.0"
             target: arm64
             dest_suffix: darwin-arm64
             common: darwin-arm64
@@ -410,7 +410,7 @@ jobs:
       - name: Install Golang
         uses: actions/setup-go@v7.0.0
         with:
-          go-version: "1.27.0"
+          go-version: "1.27.2"
           cache-dependency-path: |
             throne-api/go.sum
       - name: Building thronectl
@@ -781,7 +781,7 @@ jobs:
       - name: Install Golang
         uses: actions/setup-go@v7.0.0
         with:
-          go-version: "1.27.0"
+          go-version: "1.27.2"
           cache-dependency-path: |
             throne-api/go.sum
       - name: Building thronectl
@@ -845,7 +845,7 @@ jobs:
       - name: Install Golang
         uses: actions/setup-go@v7.0.0
         with:
-          go-version: "1.27.0"
+          go-version: "1.27.2"
           cache-dependency-path: |
             throne-api/go.sum
       - name: Building thronectl
@@ -916,7 +916,7 @@ jobs:
       - name: Install Golang
         uses: actions/setup-go@v7.0.0
         with:
-          go-version: "1.27.0"
+          go-version: "1.27.2"
           cache-dependency-path: |
             throne-api/go.sum
       - name: Building thronectl
@@ -978,7 +978,7 @@ jobs:
       - name: Install Golang
         uses: actions/setup-go@v7.0.0
         with:
-          go-version: "1.27.0"
+          go-version: "1.27.2"
           cache-dependency-path: |
             throne-api/go.sum
       - name: Building thronectl
@@ -1045,7 +1045,7 @@ jobs:
       - name: Install Golang
         uses: actions/setup-go@v7.0.0
         with:
-          go-version: "1.27.0"
+          go-version: "1.27.2"
           cache-dependency-path: |
             throne-api/go.sum
       - name: Building thronectl
@@ -1148,17 +1148,72 @@ jobs:
             echo "::error::Cannot publish '$VERSION' to AUR: not a valid pkgver. AUR is only updated for stable releases (publish=r)."
             exit 1
           fi
-          sed -i "s/^pkgver=.*/pkgver=${VERSION}/;s/^pkgrel=.*/pkgrel=1/" aur/PKGBUILD
+          sed -i "s/^pkgver=.*/pkgver=${VERSION}/;s/^pkgrel=.*/pkgrel=1/" dist/aur/PKGBUILD
       - name: Publish to AUR
         uses: KSXGitHub/github-actions-deploy-aur@084b0d9b15415bf9cdb65d44dad1efe37a354050 # v4.2.0
         with:
           pkgname: throne
-          asset_dir: aur
+          asset_dir: dist/aur
           updpkgsums: true
           commit_username: throneproj-bot
           commit_email: throneproj-bot@users.noreply.github.com
           commit_message: Update to ${{ github.event.inputs.tag }}
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+  # Updates the cask in throneproj/homebrew-tap after a stable release.
+  publish-homebrew:
+    name: Publish Homebrew Cask
+    runs-on: ubuntu-latest
+    needs:
+      - publish
+    if: github.event.inputs.publish == 'r'
+    permissions:
+      contents: read
+    steps:
+      - name: Checking out sources
+        uses: actions/checkout@v7.0.1
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: Pack-${{ github.sha }}-macos
+          path: deployment
+      - name: Checking out tap
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: throneproj/homebrew-tap
+          ssh-key: ${{ secrets.HOMEBREW_TAP_SSH_KEY }}
+          path: tap
+      - name: Update cask
+        env:
+          VERSION: ${{ github.event.inputs.tag }}
+        run: |
+          set -euo pipefail
+          if ! [[ "$VERSION" =~ ^[0-9A-Za-z._+]+$ ]]; then
+            echo "::error::Cannot publish '$VERSION' to Homebrew: not a valid cask version."
+            exit 1
+          fi
+          ARM64="deployment/Throne-${VERSION}-macos-arm64.zip"
+          AMD64="deployment/Throne-${VERSION}-macos-amd64.zip"
+          test -f "$ARM64" && test -f "$AMD64"
+          mkdir -p tap/Casks
+          sed -e "s/@VERSION@/${VERSION}/" \
+            -e "s/@SHA256_ARM64@/$(sha256sum "$ARM64" | cut -d' ' -f1)/" \
+            -e "s/@SHA256_AMD64@/$(sha256sum "$AMD64" | cut -d' ' -f1)/" \
+            dist/homebrew/throne.rb > tap/Casks/throne.rb
+      - name: Push cask
+        working-directory: tap
+        env:
+          VERSION: ${{ github.event.inputs.tag }}
+        run: |
+          set -euo pipefail
+          git config user.name throneproj-bot
+          git config user.email throneproj-bot@users.noreply.github.com
+          git add Casks/throne.rb
+          if git diff --cached --quiet; then
+            echo "Cask already at $VERSION"
+            exit 0
+          fi
+          git commit -m "throne $VERSION"
+          git push
   # Publishes the RPM and APT repositories to this repository's GitHub Pages,
   # served at https://throneproj.github.io/Throne/rpm/ and
   # https://throneproj.github.io/Throne/apt/.

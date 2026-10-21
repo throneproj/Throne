@@ -9,11 +9,13 @@
 \***************************************************************************/
 
 #include "ast.h"
-#include "ast-types.h"
 #include "ast-messages-order.h"
+#include "ast-options.h"
+#include "ast-types.h"
 
-void resolve_messages( proto_file & file )
+void resolve_messages(proto_file &file)
 {
-    resolve_types( file );
-    resolve_messages_order( file );
+    resolve_options(file);
+    resolve_types(file);
+    resolve_messages_order(file);
 }

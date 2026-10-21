@@ -18,6 +18,7 @@
 #include <QUrl>
 #include <QUuid>
 
+#include "NkrVersion.h"
 #include "include/configs/sub/GroupUpdater.hpp"
 #include "include/database/ProfilesRepo.h"
 #include "include/engine/ThreadCheck.h"
@@ -129,6 +130,11 @@ namespace Engine::BackupArchive {
             return shown.isEmpty() ? fallback : QStringLiteral("\"%1\"").arg(shown);
         }
 
+        QString BackupDeviceName(const QString &configured) {
+            const QString name = configured.trimmed();
+            return name.isEmpty() ? QSysInfo::machineHostName() : name;
+        }
+
         bool BackupHttpUrl(const QString &url) {
             const QString scheme = QUrl(url.trimmed(), QUrl::TolerantMode).scheme();
             return scheme.compare(QLatin1String("http"), Qt::CaseInsensitive) == 0 ||
@@ -209,8 +215,27 @@ namespace Engine::BackupArchive {
         }
     } // namespace
 
+    Device ThisDevice() {
+        ENGINE_CHECK_MAIN_THREAD();
+        auto &settings = *Configs::dataManager->settingsRepo;
+        if (settings.device_id.isEmpty()) {
+            settings.device_id = QUuid::createUuid().toString(QUuid::WithoutBraces);
+            settings.Save();
+        }
+        return {settings.device_id, BackupDeviceName(settings.device_name)};
+    }
+
+    const QStringList &DeviceLocalSettingKeys() {
+        static const QStringList keys = {
+            QStringLiteral("webdav_server"), QStringLiteral("webdav_user"), QStringLiteral("webdav_pass"), QStringLiteral("webdav_path"),
+            QStringLiteral("webdav_use_proxy"), QStringLiteral("device_id"), QStringLiteral("device_name"),
+        };
+        return keys;
+    }
+
     void Prepare(const Configs::BackupParts &parts) {
         ENGINE_CHECK_MAIN_THREAD();
+        ThisDevice();
         if (parts.settings) Configs::dataManager->settingsRepo->Save();
     }
 
@@ -227,7 +252,7 @@ namespace Engine::BackupArchive {
             const auto removeTemp = qScopeGuard([&tempDbPath] { RemoveTempDatabase(tempDbPath); });
 
             try {
-                Configs::dataManager->getDatabase().backupSelective(tempDbPath.toStdString(), parts);
+                Configs::dataManager->getDatabase().backupSelective(tempDbPath.toStdString(), parts, DeviceLocalSettingKeys());
             } catch (std::exception &e) {
                 return QStringLiteral("Failed to create database snapshot: %1").arg(e.what());
             }
@@ -276,6 +301,14 @@ namespace Engine::BackupArchive {
         meta["created_at"] = QDateTime::currentDateTime().toString(Qt::TextDate);
         meta["platform"] = QSysInfo::kernelType();
         meta["parts"] = partsObj;
+        meta["app_version"] = QStringLiteral(NKR_VERSION);
+        {
+            const auto &settings = *Configs::dataManager->settingsRepo;
+            QJsonObject device;
+            device["id"] = settings.device_id;
+            device["name"] = BackupDeviceName(settings.device_name);
+            meta["device"] = device;
+        }
         stream << QString::fromUtf8(QJsonDocument(meta).toJson(QJsonDocument::Compact));
 
         stream << files;
@@ -298,6 +331,8 @@ namespace Engine::BackupArchive {
             info->createdAt = meta["created_at"].toString();
             info->platform = meta["platform"].toString();
             info->available = available;
+            info->deviceName = meta["device"].toObject()["name"].toString();
+            info->appVersion = meta["app_version"].toString();
         }
         return {};
     }
@@ -375,8 +410,12 @@ namespace Engine::BackupArchive {
             // A running scan would otherwise keep writing its progress and results over the restored rows.
             Scanner::ScanManager::instance()->StopAll(false);
             auto &db = Configs::dataManager->getDatabase();
+            QStringList keptKeys = preservedSettingKeys;
+            for (const auto &key : DeviceLocalSettingKeys()) {
+                if (!keptKeys.contains(key)) keptKeys << key;
+            }
             try {
-                skippedRules = db.restoreSelective(tempDbPath.toStdString(), parts, preservedSettingKeys);
+                skippedRules = db.restoreSelective(tempDbPath.toStdString(), parts, keptKeys);
             } catch (std::exception &e) {
                 return QStringLiteral("Failed to restore database: %1").arg(e.what());
             }

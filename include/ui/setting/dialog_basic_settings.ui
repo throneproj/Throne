@@ -1758,6 +1758,69 @@
         </widget>
        </item>
        <item>
+        <widget class="QGroupBox" name="groupBox_backup_webdav">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string>WebDAV</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_backup_webdav">
+          <item>
+           <widget class="QLabel" name="label_webdav_desc">
+            <property name="text">
+             <string>Keep backups on a WebDAV server such as Nextcloud, a NAS or Yandex Disk. Uploads include the parts checked under Create Backup.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_webdav_btn">
+            <item>
+             <widget class="QPushButton" name="webdav_settings">
+              <property name="text">
+               <string>WebDAV Settings...</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="webdav_upload">
+              <property name="text">
+               <string>Upload to WebDAV</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="webdav_restore">
+              <property name="text">
+               <string>Restore from WebDAV...</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_webdav">
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_backup">
          <property name="orientation">
           <enum>Qt::Orientation::Vertical</enum>

@@ -188,6 +188,16 @@ namespace Configs {
         // CIDRs separated by commas or whitespace; empty allows every LAN address.
         QString remote_api_allow = "";
 
+        // WebDAV backup and this device's identity: device-local, see BackupArchive::DeviceLocalSettingKeys().
+        QString webdav_server = "";
+        QString webdav_user = "";
+        QString webdav_pass = "";
+        QString webdav_path = "Throne";
+        bool webdav_use_proxy = false;
+        // Generated on first use; an empty name means the host name.
+        QString device_id = "";
+        QString device_name = "";
+
         // Remember
         bool remember_system_proxy = false;
         bool remember_tun = false;

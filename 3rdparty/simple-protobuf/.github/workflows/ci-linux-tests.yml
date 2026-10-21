@@ -34,24 +34,19 @@ jobs:
             sanitizer: 'OFF'
           - os: ubuntu-24.04
             compiler: gcc
-            build_type: Debug
-            version: '14'
-            sanitizer: 'ON'
-          - os: ubuntu-24.04
-            compiler: clang
-            build_type: Release
-            version: '14'
-            sanitizer: 'OFF'
-          - os: ubuntu-24.04
-            compiler: clang
             build_type: Release
             version: '15'
             sanitizer: 'OFF'
           - os: ubuntu-24.04
-            compiler: clang
+            compiler: gcc
             build_type: Release
             version: '16'
             sanitizer: 'OFF'
+          - os: ubuntu-24.04
+            compiler: gcc
+            build_type: Debug
+            version: '14'
+            sanitizer: 'ON'
           - os: ubuntu-24.04
             compiler: clang
             build_type: Release
@@ -61,6 +56,16 @@ jobs:
             compiler: clang
             build_type: Release
             version: '18'
+            sanitizer: 'OFF'
+          - os: ubuntu-24.04
+            compiler: clang
+            build_type: Release
+            version: '19'
+            sanitizer: 'OFF'
+          - os: ubuntu-24.04
+            compiler: clang
+            build_type: Release
+            version: '20'
             sanitizer: 'OFF'
           - os: ubuntu-24.04
             compiler: clang
@@ -85,7 +90,7 @@ jobs:
     - name: Install Linux dependencies
       run: |
           sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-          sudo apt-get install protobuf-compiler ninja-build
+          sudo apt-get install ninja-build
     - name: Install gcc
       if: matrix.compiler == 'gcc'
       run: |
@@ -118,4 +123,4 @@ jobs:
 
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      run: ctest
+      run: ctest --rerun-failed --output-on-failure

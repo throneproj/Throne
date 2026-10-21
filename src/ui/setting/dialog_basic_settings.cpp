@@ -35,6 +35,16 @@
 #include <QPushButton>
 #include <QSslSocket>
 #include <QStandardItemModel>
+#include <QFile>
+#include <QFormLayout>
+#include <QLineEdit>
+#include <QLocale>
+#include <QPointer>
+#include <QProgressDialog>
+#include <QScrollBar>
+#include <QSysInfo>
+#include <QTreeWidget>
+#include <QUrl>
 
 #include <algorithm>
 #include <limits>
@@ -142,7 +152,76 @@ namespace {
         }
         return error;
     }
+
+    Configs::BackupParts basicSettingsCheckedParts(const Ui::DialogBasicSettings *ui) {
+        Configs::BackupParts parts;
+        parts.profiles = ui->backup_inc_profiles->isChecked();
+        parts.routes = ui->backup_inc_routes->isChecked();
+        parts.settings = ui->backup_inc_settings->isChecked();
+        parts.otp = ui->backup_inc_otp->isChecked();
+        parts.ipLists = ui->backup_inc_ip_lists->isChecked();
+        parts.icons = ui->backup_inc_icons->isChecked();
+        return parts;
+    }
+
+    // Text a WebDAV server or another device wrote, for plain-text display only.
+    QString basicSettingsRemoteText(const QString &text) {
+        return text.simplified().left(200);
+    }
+
+    QString basicSettingsPlatformName(const QString &platform) {
+        if (platform == QLatin1String("winnt")) return QStringLiteral("Windows");
+        if (platform == QLatin1String("linux")) return QStringLiteral("Linux");
+        if (platform == QLatin1String("darwin")) return QStringLiteral("macOS");
+        if (platform == QLatin1String("android")) return QStringLiteral("Android");
+        return basicSettingsRemoteText(platform);
+    }
+
+    QString basicSettingsPartsText(const QStringList &parts) {
+        QStringList shown;
+        for (const auto &part : parts) {
+            QString label;
+            if (part == QLatin1String("profiles")) label = DialogBasicSettings::tr("Profiles");
+            else if (part == QLatin1String("routes")) label = DialogBasicSettings::tr("Routing profiles");
+            else if (part == QLatin1String("settings")) label = DialogBasicSettings::tr("Settings");
+            else if (part == QLatin1String("otp")) label = DialogBasicSettings::tr("OTP profiles");
+            else if (part == QLatin1String("ip_lists")) label = DialogBasicSettings::tr("IP lists and scans");
+            else if (part == QLatin1String("icons")) label = DialogBasicSettings::tr("Custom icons");
+            if (!label.isEmpty() && !shown.contains(label)) shown << label;
+        }
+        return shown.join(QStringLiteral(", "));
+    }
+
+    // Window-modal busy indicator without a cancel button; the caller closes it when the worker reports back.
+    QPointer<QProgressDialog> basicSettingsWebDavProgress(QWidget *parent, const QString &text) {
+        auto *progress = new QProgressDialog(text, QString(), 0, 0, parent);
+        progress->setWindowTitle(QStringLiteral("WebDAV"));
+        progress->setWindowModality(Qt::WindowModal);
+        progress->setMinimumDuration(0);
+        progress->setAutoClose(false);
+        progress->setAutoReset(false);
+        progress->setAttribute(Qt::WA_DeleteOnClose);
+        progress->show();
+        return progress;
+    }
+
+    // Non-blocking, and plain text because it may carry what a server sent.
+    void basicSettingsWebDavMessage(QWidget *parent, QMessageBox::Icon icon, const QString &title, const QString &text) {
+        auto *box = new QMessageBox(icon, title, text, QMessageBox::Ok, parent);
+        box->setTextFormat(Qt::PlainText);
+        box->setAttribute(Qt::WA_DeleteOnClose);
+        box->open();
+    }
 }
+
+struct DialogBasicSettings::WebDavChooser {
+    QPointer<QDialog> dialog;
+    QTreeWidget *tree = nullptr;
+    QLabel *note = nullptr;
+    QPushButton *restore = nullptr;
+    QPushButton *remove = nullptr;
+    QList<Engine::WebDavBackup::Entry> entries;
+};
 
 DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     : QDialog(parent), ui(new Ui::DialogBasicSettings) {
@@ -746,13 +825,8 @@ void DialogBasicSettings::on_xray_geosite_download_clicked() {
 }
 
 void DialogBasicSettings::on_backup_create_clicked() {
-    Configs::BackupParts parts;
-    parts.profiles = ui->backup_inc_profiles->isChecked();
-    parts.routes = ui->backup_inc_routes->isChecked();
-    parts.settings = ui->backup_inc_settings->isChecked();
-    parts.otp = ui->backup_inc_otp->isChecked();
-    parts.ipLists = ui->backup_inc_ip_lists->isChecked();
-    parts.icons = ui->backup_inc_icons->isChecked();
+    if (webDavBusy) return;
+    const Configs::BackupParts parts = basicSettingsCheckedParts(ui);
 
     if (!parts.any()) {
         QMessageBox::warning(this, tr("Create Backup"),
@@ -789,6 +863,7 @@ void DialogBasicSettings::on_backup_create_clicked() {
 }
 
 void DialogBasicSettings::on_backup_restore_clicked() {
+    if (webDavBusy) return;
     QString filePath = QFileDialog::getOpenFileName(
         this,
         tr("Restore Backup"),
@@ -796,7 +871,10 @@ void DialogBasicSettings::on_backup_restore_clicked() {
         tr("Throne Backup (*.thrbackup)")
     );
     if (filePath.isEmpty()) return;
+    restoreBackupFile(filePath, {});
+}
 
+void DialogBasicSettings::restoreBackupFile(const QString &filePath, const QString &fallbackDeviceName) {
     Engine::BackupArchive::Info info;
     if (const auto error = Engine::BackupArchive::Inspect(filePath, &info); !error.isEmpty()) {
         QMessageBox::critical(this, tr("Restore Failed"), basicSettingsBackupError(error));
@@ -804,13 +882,21 @@ void DialogBasicSettings::on_backup_restore_clicked() {
     }
     const Configs::BackupParts avail = info.available;
     const QString createdAt = info.createdAt;
+    const QString createdBy = basicSettingsRemoteText(info.deviceName.isEmpty() ? fallbackDeviceName : info.deviceName);
 
     QDialog dlg(this);
     dlg.setWindowTitle(tr("Restore Backup"));
     auto* layout = new QVBoxLayout(&dlg);
+    if (!createdBy.isEmpty()) {
+        auto *creator = new QLabel(tr("Created by: %1").arg(createdBy), &dlg);
+        creator->setTextFormat(Qt::PlainText);
+        creator->setWordWrap(true);
+        layout->addWidget(creator);
+    }
     auto* header = new QLabel(
         tr("Backup created on %1.\nSelect which parts to restore:")
             .arg(createdAt.isEmpty() ? tr("unknown date") : createdAt), &dlg);
+    header->setTextFormat(Qt::PlainText);
     header->setWordWrap(true);
     layout->addWidget(header);
 
@@ -868,7 +954,7 @@ void DialogBasicSettings::on_backup_restore_clicked() {
         return;
     }
 
-    // The window keeps today's full settings restore; only the API keeps this host's keys.
+    // Apply keeps the device-local settings; the window restores every other one, only the API also keeps this host's keys.
     Engine::BackupArchive::ApplyResult result;
     if (const auto error = Engine::BackupArchive::Apply(filePath, chosen, {}, &result); !error.isEmpty()) {
         QMessageBox::critical(this, tr("Restore Failed"), basicSettingsBackupError(error));
@@ -882,5 +968,338 @@ void DialogBasicSettings::on_backup_restore_clicked() {
     QMessageBox::information(this, tr("Restore Complete"), done);
     MW_dialog_message(MwMessage::RestartProgram, {});
     QDialog::reject();
+}
+
+bool DialogBasicSettings::webDavReady(const QString &title) {
+    if (webDavBusy) return false;
+    if (!Configs::dataManager->settingsRepo->webdav_server.trimmed().isEmpty()) return true;
+    QMessageBox::information(this, title, tr("Enter your WebDAV server in WebDAV Settings first."));
+    showWebDavSettings();
+    return false;
+}
+
+void DialogBasicSettings::on_webdav_settings_clicked() {
+    if (webDavBusy) return;
+    showWebDavSettings();
+}
+
+void DialogBasicSettings::showWebDavSettings() {
+    const auto &settings = *Configs::dataManager->settingsRepo;
+    auto *dlg = new QDialog(this);
+    dlg->setAttribute(Qt::WA_DeleteOnClose);
+    dlg->setWindowTitle(tr("WebDAV Settings"));
+    auto *layout = new QVBoxLayout(dlg);
+    auto *form = new QFormLayout();
+    auto *server = new QLineEdit(settings.webdav_server, dlg);
+    server->setPlaceholderText(QStringLiteral("https://cloud.example.com/remote.php/dav/files/me/"));
+    server->setMinimumWidth(server->fontMetrics().horizontalAdvance(server->placeholderText()) + 24);
+    auto *user = new QLineEdit(settings.webdav_user, dlg);
+    auto *pass = new QLineEdit(settings.webdav_pass, dlg);
+    pass->setEchoMode(QLineEdit::Password);
+    auto *folder = new QLineEdit(settings.webdav_path, dlg);
+    folder->setPlaceholderText(QStringLiteral("Throne"));
+    auto *device = new QLineEdit(settings.device_name, dlg);
+    device->setPlaceholderText(QSysInfo::machineHostName());
+    form->addRow(tr("Server URL"), server);
+    form->addRow(tr("Username"), user);
+    form->addRow(tr("Password"), pass);
+    form->addRow(tr("Folder"), folder);
+    form->addRow(tr("Device name"), device);
+    layout->addLayout(form);
+    auto *useProxy = new QCheckBox(tr("Connect through the proxy"), dlg);
+    useProxy->setChecked(settings.webdav_use_proxy);
+    layout->addWidget(useProxy);
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel, dlg);
+    auto *test = buttons->addButton(tr("Test"), QDialogButtonBox::ActionRole);
+    layout->addWidget(buttons);
+
+    const auto fields = [server, user, pass, folder, useProxy] {
+        Engine::WebDavBackup::Config config;
+        config.server = server->text().trimmed();
+        config.user = user->text().trimmed();
+        config.pass = pass->text();
+        config.path = folder->text().trimmed();
+        config.useProxy = useProxy->isChecked();
+        return config;
+    };
+    connect(test, &QPushButton::clicked, dlg, [this, dlg, test, fields] {
+        if (webDavBusy) return;
+        webDavBusy = true;
+        test->setEnabled(false);
+        const QPointer<DialogBasicSettings> self(this);
+        const QPointer<QDialog> target(dlg);
+        const QPointer<QPushButton> button(test);
+        const auto progress = basicSettingsWebDavProgress(dlg, tr("Testing the connection..."));
+        runOnNewThread([self, target, button, progress, config = fields()] {
+            const QString error = Engine::WebDavBackup::Test(config);
+            runOnUiThread([self, target, button, progress, error] {
+                if (progress) progress->close();
+                if (self) self->webDavBusy = false;
+                if (button) button->setEnabled(true);
+                if (!target) return;
+                if (error.isEmpty()) {
+                    basicSettingsWebDavMessage(target, QMessageBox::Information, tr("WebDAV Settings"), tr("Connected. The backup folder is ready."));
+                } else {
+                    basicSettingsWebDavMessage(target, QMessageBox::Warning, tr("WebDAV Settings"), tr("Connection failed:\n%1").arg(error));
+                }
+            });
+        });
+    });
+    connect(buttons, &QDialogButtonBox::accepted, dlg, [dlg, fields, device] {
+        const auto config = fields();
+        const QString scheme = QUrl(config.server).scheme().toLower();
+        if (!config.server.isEmpty() && scheme != QLatin1String("http") && scheme != QLatin1String("https")) {
+            basicSettingsWebDavMessage(dlg, QMessageBox::Warning, tr("WebDAV Settings"), tr("The server URL must start with http:// or https://."));
+            return;
+        }
+        auto &saved = *Configs::dataManager->settingsRepo;
+        saved.webdav_server = config.server;
+        saved.webdav_user = config.user;
+        saved.webdav_pass = config.pass;
+        saved.webdav_path = config.path;
+        saved.webdav_use_proxy = config.useProxy;
+        saved.device_name = device->text().trimmed();
+        saved.Save();
+        dlg->accept();
+    });
+    connect(buttons, &QDialogButtonBox::rejected, dlg, &QDialog::reject);
+    dlg->open();
+}
+
+void DialogBasicSettings::on_webdav_upload_clicked() {
+    const QString title = tr("Upload to WebDAV");
+    if (!webDavReady(title)) return;
+    const Configs::BackupParts parts = basicSettingsCheckedParts(ui);
+    if (!parts.any()) {
+        QMessageBox::warning(this, title, tr("Select at least one part to include in the backup."));
+        return;
+    }
+
+    Engine::BackupArchive::Prepare(parts);
+    const auto config = Engine::WebDavBackup::FromSettings();
+    const QString tempPath = Engine::BackupArchive::TempPath(QStringLiteral("webdav-"));
+    webDavBusy = true;
+    const QPointer<DialogBasicSettings> self(this);
+    const auto progress = basicSettingsWebDavProgress(this, tr("Uploading the backup..."));
+    runOnNewThread([self, progress, parts, config, tempPath, title] {
+        Configs::BackupParts written;
+        QString fileName;
+        QString indexWarning;
+        QString error = Engine::BackupArchive::Build(parts, tempPath, &written);
+        const bool built = error.isEmpty();
+        if (built) {
+            error = Engine::WebDavBackup::Upload(config, tempPath, Engine::BackupArchive::PartNames(written), &fileName, &indexWarning);
+        }
+        QFile::remove(tempPath);
+        runOnUiThread([self, progress, title, built, error, fileName, indexWarning] {
+            if (progress) progress->close();
+            if (!self) return;
+            self->webDavBusy = false;
+            if (!error.isEmpty()) {
+                basicSettingsWebDavMessage(self, QMessageBox::Critical, title,
+                                           built ? tr("Upload failed:\n%1").arg(error) : basicSettingsBackupError(error));
+                return;
+            }
+            if (indexWarning.isEmpty()) {
+                basicSettingsWebDavMessage(self, QMessageBox::Information, title, tr("Backup uploaded:\n%1").arg(fileName));
+            } else {
+                basicSettingsWebDavMessage(self, QMessageBox::Warning, title,
+                                           tr("Backup uploaded, but the backup list could not be updated: %1").arg(indexWarning));
+            }
+        });
+    });
+}
+
+void DialogBasicSettings::on_webdav_restore_clicked() {
+    if (!webDavReady(tr("Restore from WebDAV"))) return;
+    loadWebDavBackups(nullptr);
+}
+
+void DialogBasicSettings::loadWebDavBackups(const std::shared_ptr<WebDavChooser> &chooser, const QString &notice) {
+    const auto config = Engine::WebDavBackup::FromSettings();
+    webDavBusy = true;
+    const QPointer<DialogBasicSettings> self(this);
+    QWidget *parent = this;
+    if (chooser && chooser->dialog) parent = chooser->dialog;
+    const auto progress = basicSettingsWebDavProgress(parent, tr("Loading the backup list..."));
+    runOnNewThread([self, chooser, progress, config, notice] {
+        QList<Engine::WebDavBackup::Entry> entries;
+        QString indexWarning;
+        const QString error = Engine::WebDavBackup::List(config, &entries, &indexWarning);
+        runOnUiThread([self, chooser, progress, notice, entries, indexWarning, error] {
+            if (progress) progress->close();
+            if (!self) return;
+            self->webDavBusy = false;
+            if (chooser && !chooser->dialog) return;
+            if (!error.isEmpty()) {
+                QString text = tr("Could not list the backups:\n%1").arg(error);
+                if (!notice.isEmpty()) text += QStringLiteral("\n\n") + notice;
+                basicSettingsWebDavMessage(chooser ? static_cast<QWidget *>(chooser->dialog) : self.data(), QMessageBox::Critical,
+                                           tr("Restore from WebDAV"), text);
+                return;
+            }
+            if (!chooser) {
+                self->showWebDavBackups(entries, indexWarning);
+                return;
+            }
+            QStringList note;
+            if (!notice.isEmpty()) note << notice;
+            if (!indexWarning.isEmpty()) note << tr("The backup list could not be read: %1").arg(indexWarning);
+            self->fillWebDavChooser(*chooser, entries, note.join(QLatin1Char('\n')));
+        });
+    });
+}
+
+void DialogBasicSettings::showWebDavBackups(const QList<Engine::WebDavBackup::Entry> &entries, const QString &indexWarning) {
+    const QString title = tr("Restore from WebDAV");
+    if (entries.isEmpty()) {
+        basicSettingsWebDavMessage(this, QMessageBox::Information, title, tr("There are no backups in the WebDAV folder yet."));
+        return;
+    }
+
+    auto chooser = std::make_shared<WebDavChooser>();
+    auto *dlg = new QDialog(this);
+    dlg->setAttribute(Qt::WA_DeleteOnClose);
+    dlg->setWindowTitle(title);
+    chooser->dialog = dlg;
+    auto *layout = new QVBoxLayout(dlg);
+    chooser->tree = new QTreeWidget(dlg);
+    chooser->tree->setRootIsDecorated(false);
+    chooser->tree->setUniformRowHeights(true);
+    chooser->tree->setSelectionMode(QAbstractItemView::SingleSelection);
+    chooser->tree->setHeaderLabels({tr("Created"), tr("Device"), tr("Platform"), tr("Version"), tr("Parts"), tr("Size")});
+    layout->addWidget(chooser->tree);
+    chooser->note = new QLabel(dlg);
+    chooser->note->setTextFormat(Qt::PlainText);
+    chooser->note->setWordWrap(true);
+    layout->addWidget(chooser->note);
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Close, dlg);
+    chooser->restore = buttons->addButton(tr("Restore"), QDialogButtonBox::ActionRole);
+    chooser->remove = buttons->addButton(tr("Delete"), QDialogButtonBox::ActionRole);
+    chooser->restore->setDefault(true);
+    layout->addWidget(buttons);
+
+    connect(chooser->tree, &QTreeWidget::currentItemChanged, dlg, [chooser](QTreeWidgetItem *current) {
+        chooser->restore->setEnabled(current != nullptr);
+        chooser->remove->setEnabled(current != nullptr);
+    });
+    connect(chooser->tree, &QTreeWidget::itemDoubleClicked, dlg, [this, chooser] { restoreWebDavBackup(chooser); });
+    connect(chooser->restore, &QPushButton::clicked, dlg, [this, chooser] { restoreWebDavBackup(chooser); });
+    connect(chooser->remove, &QPushButton::clicked, dlg, [this, chooser] { deleteWebDavBackup(chooser); });
+    connect(buttons, &QDialogButtonBox::rejected, dlg, &QDialog::reject);
+
+    fillWebDavChooser(*chooser, entries, indexWarning.isEmpty() ? QString() : tr("The backup list could not be read: %1").arg(indexWarning));
+    int width = 2 * chooser->tree->frameWidth() + chooser->tree->verticalScrollBar()->sizeHint().width() +
+                layout->contentsMargins().left() + layout->contentsMargins().right();
+    for (int column = 0; column < chooser->tree->columnCount(); ++column) {
+        chooser->tree->resizeColumnToContents(column);
+        width += chooser->tree->columnWidth(column);
+    }
+    QSize size = dlg->sizeHint().expandedTo(QSize(width, 0));
+    if (const QScreen *scr = screen()) size = size.boundedTo(scr->availableGeometry().size() - QSize(48, 72));
+    dlg->resize(size);
+    dlg->open();
+}
+
+void DialogBasicSettings::fillWebDavChooser(WebDavChooser &chooser, const QList<Engine::WebDavBackup::Entry> &entries, const QString &note) {
+    const QString thisDevice = Engine::BackupArchive::ThisDevice().id;
+    const QLocale locale;
+    chooser.entries = entries;
+    chooser.tree->clear();
+    for (qsizetype i = 0; i < entries.size(); ++i) {
+        const auto &entry = entries.at(i);
+        QString device = basicSettingsRemoteText(entry.deviceName);
+        if (device.isEmpty()) device = tr("Unknown device");
+        if (!entry.deviceId.isEmpty() && entry.deviceId == thisDevice) device = tr("%1 (this device)").arg(device);
+        auto *item = new QTreeWidgetItem(chooser.tree);
+        item->setText(0, entry.createdAt.isValid() ? locale.toString(entry.createdAt.toLocalTime(), QLocale::ShortFormat) : tr("Unknown"));
+        item->setText(1, device);
+        item->setText(2, basicSettingsPlatformName(entry.platform));
+        item->setText(3, basicSettingsRemoteText(entry.appVersion));
+        item->setText(4, basicSettingsPartsText(entry.parts));
+        item->setText(5, entry.size >= 0 ? locale.formattedDataSize(entry.size) : QString());
+        item->setTextAlignment(5, Qt::AlignRight | Qt::AlignVCenter);
+        item->setData(0, Qt::UserRole, static_cast<int>(i));
+    }
+    chooser.note->setText(note);
+    chooser.note->setVisible(!note.isEmpty());
+    const bool any = chooser.tree->topLevelItemCount() > 0;
+    if (any) chooser.tree->setCurrentItem(chooser.tree->topLevelItem(0));
+    chooser.restore->setEnabled(any);
+    chooser.remove->setEnabled(any);
+}
+
+void DialogBasicSettings::restoreWebDavBackup(const std::shared_ptr<WebDavChooser> &chooser) {
+    if (webDavBusy || !chooser->dialog) return;
+    const auto *item = chooser->tree->currentItem();
+    const int row = item != nullptr ? item->data(0, Qt::UserRole).toInt() : -1;
+    if (row < 0 || row >= chooser->entries.size()) return;
+    const auto entry = chooser->entries.at(row);
+
+    const auto config = Engine::WebDavBackup::FromSettings();
+    const QString tempPath = Engine::BackupArchive::TempPath(QStringLiteral("webdav-"));
+    webDavBusy = true;
+    const QPointer<DialogBasicSettings> self(this);
+    const QPointer<QDialog> dialog(chooser->dialog);
+    const auto progress = basicSettingsWebDavProgress(chooser->dialog, tr("Downloading the backup..."));
+    runOnNewThread([self, dialog, progress, config, entry, tempPath] {
+        const QString error = Engine::WebDavBackup::Download(config, entry, tempPath);
+        runOnUiThread([self, dialog, progress, entry, tempPath, error] {
+            if (progress) progress->close();
+            if (!self) {
+                QFile::remove(tempPath);
+                return;
+            }
+            self->webDavBusy = false;
+            if (!error.isEmpty()) {
+                basicSettingsWebDavMessage(dialog ? static_cast<QWidget *>(dialog) : self.data(), QMessageBox::Critical,
+                                           tr("Restore from WebDAV"), tr("Could not download the backup:\n%1").arg(error));
+                return;
+            }
+            if (dialog) dialog->close();
+            self->restoreBackupFile(tempPath, entry.indexed ? entry.deviceName : QString());
+            QFile::remove(tempPath);
+        });
+    });
+}
+
+void DialogBasicSettings::deleteWebDavBackup(const std::shared_ptr<WebDavChooser> &chooser) {
+    if (webDavBusy || !chooser->dialog) return;
+    const auto *item = chooser->tree->currentItem();
+    const int row = item != nullptr ? item->data(0, Qt::UserRole).toInt() : -1;
+    if (row < 0 || row >= chooser->entries.size()) return;
+    const auto entry = chooser->entries.at(row);
+
+    auto *confirm = new QMessageBox(QMessageBox::Question, tr("Delete Backup"),
+                                    tr("Delete this backup from the WebDAV server? This cannot be undone.\n\n%1").arg(basicSettingsRemoteText(entry.file)),
+                                    QMessageBox::Yes | QMessageBox::No, chooser->dialog.data());
+    confirm->setTextFormat(Qt::PlainText);
+    confirm->setDefaultButton(QMessageBox::No);
+    confirm->setAttribute(Qt::WA_DeleteOnClose);
+    connect(confirm->button(QMessageBox::Yes), &QAbstractButton::clicked, chooser->dialog.data(), [this, chooser, entry] {
+        if (webDavBusy || !chooser->dialog) return;
+        const auto config = Engine::WebDavBackup::FromSettings();
+        webDavBusy = true;
+        const QPointer<DialogBasicSettings> self(this);
+        const auto progress = basicSettingsWebDavProgress(chooser->dialog, tr("Deleting the backup..."));
+        runOnNewThread([self, chooser, progress, config, entry] {
+            QString indexWarning;
+            const QString error = Engine::WebDavBackup::Delete(config, entry, &indexWarning);
+            runOnUiThread([self, chooser, progress, error, indexWarning] {
+                if (progress) progress->close();
+                if (!self) return;
+                self->webDavBusy = false;
+                if (!chooser->dialog) return;
+                if (!error.isEmpty()) {
+                    basicSettingsWebDavMessage(chooser->dialog, QMessageBox::Critical, tr("Delete Backup"),
+                                               tr("Could not delete the backup:\n%1").arg(error));
+                    return;
+                }
+                self->loadWebDavBackups(chooser, indexWarning.isEmpty() ? QString()
+                                                                        : tr("Backup deleted, but the backup list could not be updated: %1").arg(indexWarning));
+            });
+        });
+    });
+    confirm->open();
 }
 

@@ -1,6 +1,9 @@
 add_executable(addressbook addressbook.cpp proto/addressbook.proto)
 spb_protobuf_generate(TARGET addressbook)
 
+add_executable(options options.cpp proto/spb_options.proto ../include/spb/proto/spb.proto)
+spb_protobuf_generate(TARGET options)
+
 Include(FetchContent)
 
 FetchContent_Declare(

@@ -26,10 +26,10 @@ namespace Configs {
         username = url.userName();
         password = url.password();
 
-        // v2rayN base64s "user:pass" into the username; with no ':' SubStrBefore/After both return it whole.
+        // v2rayN base64s "user:pass" into the username; a plain name like "user" is valid base64 too.
         if (password.isEmpty() && !username.isEmpty()) {
             QString decoded = DecodeB64IfValid(username);
-            if (!decoded.isEmpty()) {
+            if (decoded.contains(':')) {
                 username = SubStrBefore(decoded, ":");
                 password = SubStrAfter(decoded, ":");
             }

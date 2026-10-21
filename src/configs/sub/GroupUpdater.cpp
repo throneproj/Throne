@@ -615,7 +615,7 @@ namespace Subscription {
             group->url = content;
             // Stored before the download: a failed one is fixed through the group's own TLS, HTTP and User Agent settings.
             Configs::dataManager->groupsRepo->AddGroup(group);
-            Engine::EngineEvents::SubscriptionNewGroup();
+            Engine::EngineEvents::SubscriptionNewGroup(group->id);
             refresh(group->id, Surface::Report);
             emit asyncUpdateCallback(group->id);
         }, finish});
@@ -1085,6 +1085,8 @@ namespace Subscription {
                 const auto newEnt = profilesRepo->GetProfile(newId);
                 if (oldEnt != nullptr && newEnt != nullptr) {
                     oldEnt->outbound = newEnt->outbound;
+                    // Still stamped with the temporary row's id; VPN credential overrides are keyed by it.
+                    oldEnt->outbound->profile_id = oldId;
                     oldEnt->name = oldEnt->outbound->name;
                     profilesRepo->Save(oldEnt);
                 }

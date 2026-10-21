@@ -1410,6 +1410,30 @@ namespace Configs {
             return {};
         }
 
+        // Names the setting that still points at a deleted profile, so the user knows what to amend.
+        QString missingHopError(const BuildContext &ctx, int id)
+        {
+            const auto idText = QString::number(id);
+            if (ctx.ent != nullptr && ctx.ent->type == "chain")
+            {
+                const auto chain = ctx.ent->Chain();
+                if (chain != nullptr && chain->list.contains(id))
+                    return QObject::tr("Chain \"%1\" has a hop (profile id %2) that no longer exists, edit the chain to remove it").arg(ctx.ent->name, idText);
+            }
+            auto groupIDs = dataManager->groupsRepo->GetAllGroupIds();
+            if (ctx.ent != nullptr) groupIDs.prepend(ctx.ent->gid);
+            for (const int gid : groupIDs)
+            {
+                const auto group = dataManager->groupsRepo->GetGroup(gid);
+                if (group == nullptr) continue;
+                if (group->front_proxy_id == id)
+                    return QObject::tr("Group \"%1\" has a front proxy that has been deleted.").arg(group->name, idText);
+                if (group->landing_proxy_id == id)
+                    return QObject::tr("Group \"%1\" has a landing proxy that has been deleted.").arg(group->name, idText);
+            }
+            return QObject::tr("A proxy in the chain can no longer be found.").arg(idText);
+        }
+
         void entIDListtoEntList(BuildContext &ctx, const QList<int> &entIDs, QList<std::shared_ptr<Profile>> &ents, QString &error)
         {
             chainScan scan;
@@ -1428,7 +1452,7 @@ namespace Configs {
                 auto ent = getProfile(id);
                 if (ent == nullptr)
                 {
-                    error = "Null proxy in chain, you may want to check your configs";
+                    error = missingHopError(ctx, id);
                     return;
                 }
                 if (!inXray && ent->outbound->IsXray()) {

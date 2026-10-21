@@ -9,7 +9,7 @@ Now supporting headless mode, running as a service or in a container, controlled
 <img width="1002" height="789" alt="image" src="https://github.com/user-attachments/assets/af4a8e32-7e55-430c-9402-ec2d665cf71a" />
 
 ### Note on MacOS releases
-Apple platforms have a very strict security policy and since Throne does not have a signed certificate, you will have to remove the quarantine using `xattr -d com.apple.quarantine /path/to/throne.app`. Move `Throne.app` to `/Applications` before the first launch — the built-in privilege escalation opens `Terminal` to make the core setuid-root, and that step can fail while the app is still inside `~/Downloads`.
+Apple platforms have a very strict security policy and since Throne does not have a signed certificate, you will have to remove the quarantine using `xattr -d com.apple.quarantine /path/to/throne.app`. Move `Throne.app` to `/Applications` before the first launch — the built-in privilege escalation opens `Terminal` to make the core setuid-root, and that step can fail while the app is still inside `~/Downloads`. The [Homebrew cask](#macos-homebrew) does both for you.
 
 ### GitHub Releases (Portable ZIP)
 
@@ -44,6 +44,12 @@ sudo zypper install throne
 ```
 
 Arch Linux (AUR): `yay -S throne` or `paru -S throne`
+
+### macOS (Homebrew)
+Every stable release is also published to Throne's own Homebrew tap (macOS 13 or newer, Apple Silicon and Intel). The cask installs `Throne.app` to `/Applications` and removes the quarantine flag; update with `brew upgrade --cask throne`. See the [installation guide](https://throneproj.github.io/get_started/installation/#homebrew) for details.
+```bash
+brew install --cask throneproj/tap/throne
+```
 
 ## Supported protocols
 

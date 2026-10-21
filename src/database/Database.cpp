@@ -482,7 +482,7 @@ namespace Configs {
         }
     }
 
-    void Database::backupSelective(const std::string& destPath, const BackupParts& parts) {
+    void Database::backupSelective(const std::string& destPath, const BackupParts& parts, const QStringList& excludedSettingKeys) {
         // Full snapshot first (WAL-safe, unlike a file copy), then strip the unselected categories.
         {
             SQLite::Database destDb(destPath, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
@@ -504,6 +504,13 @@ namespace Configs {
         if (!parts.settings) wipe(kSettingsTables);
         if (!parts.otp) wipe(kOtpTables);
         if (!parts.ipLists) wipe(kIpListTables);
+        if (parts.settings && !excludedSettingKeys.isEmpty() && tableExists(dest, "main", "settings")) {
+            std::string placeholders;
+            for (qsizetype i = 0; i < excludedSettingKeys.size(); ++i) placeholders += i == 0 ? "?" : ",?";
+            SQLite::Statement strip(dest, "DELETE FROM settings WHERE \"key\" IN (" + placeholders + ")");
+            for (qsizetype i = 0; i < excludedSettingKeys.size(); ++i) strip.bind(static_cast<int>(i + 1), excludedSettingKeys[i].toStdString());
+            strip.exec();
+        }
         try { dest.exec("VACUUM"); } catch (...) {}
     }
 

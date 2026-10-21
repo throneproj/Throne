@@ -1,7 +1,6 @@
 /***************************************************************************\
 * Name        : proto ast                                                   *
-* Description : data structure for imports                                  *
-* Link        : https://protobuf.dev/reference/protobuf/proto3-spec/#import_statement *
+* Description : data structure for an extend                                *
 * Author      : antonin.kriz@gmail.com                                      *
 * ------------------------------------------------------------------------- *
 * This is free software; you can redistribute it and/or modify it under the *
@@ -11,15 +10,7 @@
 
 #pragma once
 
-#include "proto-comment.h"
-#include <string_view>
+#include "proto-field.h"
+#include <unordered_map>
 
-struct proto_import
-{
-    //- points to .proto file
-    std::string_view file_name;
-
-    proto_comment comments;
-};
-
-using proto_imports = std::vector< proto_import >;
+using proto_extends = std::unordered_map<std::string_view, proto_fields>;

@@ -36,20 +36,20 @@ namespace Configs_network {
                 if (const auto sink = loadDownloadProgressSink()) sink(report, show);
             });
         }
-
-        QNetworkProxy mixedInboundProxy() {
-            const auto &settings = Configs::dataManager->settingsRepo;
-            QNetworkProxy p;
-            p.setType(QNetworkProxy::HttpProxy);
-            p.setHostName(LocalNetwork::InboundConnectHost());
-            p.setPort(settings->inbound_socks_port);
-            if (settings->inbound_auth) {
-                p.setUser(settings->inbound_user);
-                p.setPassword(settings->inbound_pass);
-            }
-            return p;
-        }
     } // namespace
+
+    QNetworkProxy MixedInboundProxy() {
+        const auto &settings = Configs::dataManager->settingsRepo;
+        QNetworkProxy p;
+        p.setType(QNetworkProxy::HttpProxy);
+        p.setHostName(LocalNetwork::InboundConnectHost());
+        p.setPort(settings->inbound_socks_port);
+        if (settings->inbound_auth) {
+            p.setUser(settings->inbound_user);
+            p.setPassword(settings->inbound_pass);
+        }
+        return p;
+    }
 
     bool RequestUsesMixedInbound(bool useProxy, QString *error) {
         const auto &settings = Configs::dataManager->settingsRepo;
@@ -84,7 +84,7 @@ namespace Configs_network {
         accessManager.setTransferTimeout(10000);
         request.setUrl(url);
         QString proxyError;
-        if (RequestUsesMixedInbound(options.useProxy, &proxyError)) accessManager.setProxy(mixedInboundProxy());
+        if (RequestUsesMixedInbound(options.useProxy, &proxyError)) accessManager.setProxy(MixedInboundProxy());
         else if (!proxyError.isEmpty()) return HTTPResponse{proxyError};
         request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
         request.setAttribute(QNetworkRequest::Http2AllowedAttribute, options.http2);
@@ -149,7 +149,7 @@ namespace Configs_network {
         accessManager.setTransferTimeout(kDownloadAssetIdleTimeoutMs);
         request.setUrl(url);
         QString proxyError;
-        if (RequestUsesMixedInbound(useProxy, &proxyError)) accessManager.setProxy(mixedInboundProxy());
+        if (RequestUsesMixedInbound(useProxy, &proxyError)) accessManager.setProxy(MixedInboundProxy());
         else if (!proxyError.isEmpty()) return proxyError;
         request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
         const bool insecure = Configs::dataManager->settingsRepo->net_insecure && !strictTls;

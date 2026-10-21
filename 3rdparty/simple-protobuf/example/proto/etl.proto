@@ -1,43 +1,37 @@
-
 syntax = "proto2";
 
 package ETL.Example;
 
+import "spb.proto";
+
+option (spb_fileopt).include = "<array>";
+option (spb_fileopt).include = "<etl/string.h>";
+option (spb_fileopt).include = "<etl/vector.h>";
+
 message DeviceStatus {
-    //[[ field.type = "uint32:31"]]
-    required uint32 device_id = 1;
-    //[[ field.type = "uint32:1"]]
-    required uint32 is_online = 2;
-    required uint64 last_heartbeat = 3;
-    //[[ string.type = "std::array<$,8>" ]]
-    //[[ string.include = "<array>" ]]
-    required string firmware_version = 4;
-    //[[ string.type = "etl::string<16>" ]]
-    //[[ string.include = "<etl/string.h>" ]]
-    required string name = 5;
+  required uint32 device_id = 1 [(spb_opt).type = "uint32:31"];
+  required uint32 is_online = 2 [(spb_opt).type = "uint32:1"];
+  required uint32 last_heartbeat = 3;
+  required string firmware_version = 4 [(spb_opt).string = "std::array<$,8>"];
+  required string name = 5 [(spb_opt).string = "etl::string<16>"];
 }
 
 message Command {
-    //[[ enum.type = "uint8"]]
-    enum CMD {
-        CMD_RST = 1;
-        CMD_READ = 2;
-        CMD_WRITE = 3;
-        CMD_TST = 4;
-    }
-    //[[ field.type = "uint8:4"]]
-    required uint32 command_id = 1; // CMD
-    //[[ field.type = "uint8:2"]]
-    required uint32 arg = 2; // argument for the command
-    //[[ field.type = "uint8:1"]]
-    required uint32 in_flag = 3; // input flag
-    //[[ field.type = "uint8:1"]]
-    required uint32 out_flag = 4; // output flag
+  enum CMD {
+    option (spb_enumopt).type = "uint8";
+    CMD_RST = 1;
+    CMD_READ = 2;
+    CMD_WRITE = 3;
+    CMD_TST = 4;
+  }
+  required uint32 command_id = 1 [(spb_opt).type = "uint8:4"]; // CMD
+  required uint32 arg = 2 [(spb_opt).type = "uint8:2"]; // argument for the command
+  required uint32 in_flag = 3 [(spb_opt).type = "uint8:1"]; // input flag
+  required uint32 out_flag = 4 [(spb_opt).type = "uint8:1"]; // output flag
 }
 
-//[[ repeated.type = "etl::vector<$,16>" ]]
-//[[ repeated.include = "<etl/vector.h>" ]]
 message CommandQueue {
-    repeated Command commands = 1;
-    repeated DeviceStatus statuses = 2;
+  option (spb_msgopt).repeated = "etl::vector<$,16>";
+  repeated Command commands = 1;
+  repeated DeviceStatus statuses = 2;
 }

@@ -1,9 +1,35 @@
 syntax = "proto2";
-
+import "spb.proto";
 package Test.Scalar@PB_PACKAGE@;
 
 message Empty
 {
+}
+
+message OptEmpty
+{
+    optional Empty value = 1;
+}
+message ReqEmpty
+{
+    required Empty value = 1;
+}
+message RepEmpty
+{
+    repeated Empty value = 1;
+}
+
+message OneOfEmpty {
+    optional string id = 1;
+    oneof body {
+        Empty empty = 2;
+        Simple simple = 3;
+    }
+}
+
+message EmbedEmpty {
+    optional string id = 1;
+    optional Empty empty = 2;
 }
 
 message Simple
@@ -13,44 +39,36 @@ message Simple
 
 message OptInt8
 {
-    //[[ field.type = "int8" ]]
-    optional int32 value = 1;
+    optional int32 value = 1 [ (spb_opt).type = "int8" ];
 }
 message ReqInt8
 {
-    //[[ field.type = "int8" ]]
-    required int32 value = 1;
+    required int32 value = 1 [ (spb_opt).type = "int8" ];
 }
 message RepInt8
 {
-    //[[ field.type = "int8" ]]
-    repeated int32 value = 1;
+    repeated int32 value = 1 [ (spb_opt).type = "int8" ];
 }
 message RepPackInt8
 {
-    //[[ field.type = "int8" ]]
-    repeated int32 value = 1 [ packed = true ];
+    repeated int32 value = 1 [ packed = true, (spb_opt).type = "int8" ];
 }
 
 message OptInt16
 {
-    //[[ field.type = "int16" ]]
-    optional int32 value = 1;
+    optional int32 value = 1 [ (spb_opt).type = "int16" ];
 }
 message ReqInt16
 {
-    //[[ field.type = "int16" ]]
-    required int32 value = 1;
+    required int32 value = 1 [ (spb_opt).type = "int16" ];
 }
 message RepInt16
 {
-    //[[ field.type = "int16" ]]
-    repeated int32 value = 1;
+    repeated int32 value = 1 [ (spb_opt).type = "int16" ];
 }
 message RepPackInt16
 {
-    //[[ field.type = "int16" ]]
-    repeated int32 value = 1 [ packed = true ];
+    repeated int32 value = 1 [ packed = true, (spb_opt).type = "int16" ];
 }
 
 message OptInt32
@@ -89,44 +107,36 @@ message RepPackInt64
 
 message OptUint8
 {
-    //[[ field.type = "uint8" ]]
-    optional uint32 value = 1;
+    optional uint32 value = 1 [ (spb_opt).type = "uint8" ];
 }
 message ReqUint8
 {
-    //[[ field.type = "uint8" ]]
-    required uint32 value = 1;
+    required uint32 value = 1 [ (spb_opt).type = "uint8" ];
 }
 message RepUint8
 {
-    //[[ field.type = "uint8" ]]
-    repeated uint32 value = 1;
+    repeated uint32 value = 1 [ (spb_opt).type = "uint8" ];
 }
 message RepPackUint8
 {
-    //[[ field.type = "uint8" ]]
-    repeated uint32 value = 1 [ packed = true ];
+    repeated uint32 value = 1 [ packed = true, (spb_opt).type = "uint8" ];
 }
 
 message OptUint16
 {
-    //[[ field.type = "uint16" ]]
-    optional uint32 value = 1;
+    optional uint32 value = 1 [ (spb_opt).type = "uint16" ];
 }
 message ReqUint16
 {
-    //[[ field.type = "uint16" ]]
-    required uint32 value = 1;
+    required uint32 value = 1 [ (spb_opt).type = "uint16" ];
 }
 message RepUint16
 {
-    //[[ field.type = "uint16" ]]
-    repeated uint32 value = 1;
+    repeated uint32 value = 1 [ (spb_opt).type = "uint16" ];
 }
 message RepPackUint16
 {
-    //[[ field.type = "uint16" ]]
-    repeated uint32 value = 1 [ packed = true ];
+    repeated uint32 value = 1 [ packed = true, (spb_opt).type = "uint16" ];
 }
 
 message OptUint32
@@ -165,44 +175,36 @@ message RepPackUint64
 
 message OptSint8
 {
-    //[[ field.type = "int8" ]]
-    optional sint32 value = 1;
+    optional sint32 value = 1 [ (spb_opt).type = "int8" ];
 }
 message ReqSint8
 {
-    //[[ field.type = "int8" ]]
-    required sint32 value = 1;
+    required sint32 value = 1 [ (spb_opt).type = "int8" ];
 }
 message RepSint8
 {
-    //[[ field.type = "int8" ]]
-    repeated sint32 value = 1;
+    repeated sint32 value = 1 [ (spb_opt).type = "int8" ];
 }
 message RepPackSint8
 {
-    //[[ field.type = "int8" ]]
-    repeated sint32 value = 1 [ packed = true ];
+    repeated sint32 value = 1 [ packed = true, (spb_opt).type = "int8" ];
 }
 
 message OptSint16
 {
-    //[[ field.type = "int16" ]]
-    optional sint32 value = 1;
+    optional sint32 value = 1 [ (spb_opt).type = "int16" ];
 }
 message ReqSint16
 {
-    //[[ field.type = "int16" ]]
-    required sint32 value = 1;
+    required sint32 value = 1 [ (spb_opt).type = "int16" ];
 }
 message RepSint16
 {
-    //[[ field.type = "int16" ]]
-    repeated sint32 value = 1;
+    repeated sint32 value = 1 [ (spb_opt).type = "int16" ];
 }
 message RepPackSint16
 {
-    //[[ field.type = "int16" ]]
-    repeated sint32 value = 1 [ packed = true ];
+    repeated sint32 value = 1 [ packed = true, (spb_opt).type = "int16" ];
 }
 
 message OptSint32
@@ -241,44 +243,36 @@ message RepPackSint64
 
 message OptFixed32_8
 {
-    //[[ field.type = "uint8" ]]
-    optional fixed32 value = 1;
+    optional fixed32 value = 1 [ (spb_opt).type = "uint8" ];
 }
 message ReqFixed32_8
 {
-    //[[ field.type = "uint8" ]]
-    required fixed32 value = 1;
+    required fixed32 value = 1 [ (spb_opt).type = "uint8" ];
 }
 message RepFixed32_8
 {
-    //[[ field.type = "uint8" ]]
-    repeated fixed32 value = 1;
+    repeated fixed32 value = 1 [ (spb_opt).type = "uint8" ];
 }
 message RepPackFixed32_8
 {
-    //[[ field.type = "uint8" ]]
-    repeated fixed32 value = 1 [ packed = true ];
+    repeated fixed32 value = 1 [ packed = true, (spb_opt).type = "uint8" ];
 }
 
 message OptFixed32_16
 {
-    //[[ field.type = "uint16" ]]
-    optional fixed32 value = 1;
+    optional fixed32 value = 1 [ (spb_opt).type = "uint16" ];
 }
 message ReqFixed32_16
 {
-    //[[ field.type = "uint16" ]]
-    required fixed32 value = 1;
+    required fixed32 value = 1 [ (spb_opt).type = "uint16" ];
 }
 message RepFixed32_16
 {
-    //[[ field.type = "uint16" ]]
-    repeated fixed32 value = 1;
+    repeated fixed32 value = 1 [ (spb_opt).type = "uint16" ];
 }
 message RepPackFixed32_16
 {
-    //[[ field.type = "uint16" ]]
-    repeated fixed32 value = 1 [ packed = true ];
+    repeated fixed32 value = 1 [ packed = true, (spb_opt).type = "uint16" ];
 }
 
 message OptFixed32
@@ -317,108 +311,88 @@ message RepPackFixed64
 
 message OptFixed64_8
 {
-    //[[ field.type = "uint8" ]]
-    optional fixed64 value = 1;
+    optional fixed64 value = 1 [ (spb_opt).type = "uint8" ];
 }
 message ReqFixed64_8
 {
-    //[[ field.type = "uint8" ]]
-    required fixed64 value = 1;
+    required fixed64 value = 1 [ (spb_opt).type = "uint8" ];
 }
 message RepFixed64_8
 {
-    //[[ field.type = "uint8" ]]
-    repeated fixed64 value = 1;
+    repeated fixed64 value = 1 [ (spb_opt).type = "uint8" ];
 }
 
 message RepPackFixed64_8
 {
-    //[[ field.type = "uint8" ]]
-    repeated fixed64 value = 1 [ packed = true ];
+    repeated fixed64 value = 1 [ packed = true, (spb_opt).type = "uint8" ];
 }
 
 message OptFixed64_16
 {
-    //[[ field.type = "uint16" ]]
-    optional fixed64 value = 1;
+    optional fixed64 value = 1 [ (spb_opt).type = "uint16" ];
 }
 message ReqFixed64_16
 {
-    //[[ field.type = "uint16" ]]
-    required fixed64 value = 1;
+    required fixed64 value = 1 [ (spb_opt).type = "uint16" ];
 }
 message RepFixed64_16
 {
-    //[[ field.type = "uint16" ]]
-    repeated fixed64 value = 1;
+    repeated fixed64 value = 1 [ (spb_opt).type = "uint16" ];
 }
 message RepPackFixed64_16
 {
-    //[[ field.type = "uint16" ]]
-    repeated fixed64 value = 1 [ packed = true ];
+    repeated fixed64 value = 1 [ packed = true, (spb_opt).type = "uint16" ];
 }
 
 message OptFixed64_32
 {
-    //[[ field.type = "uint32" ]]
-    optional fixed64 value = 1;
+    optional fixed64 value = 1 [ (spb_opt).type = "uint32" ];
 }
 message ReqFixed64_32
 {
-    //[[ field.type = "uint32" ]]
-    required fixed64 value = 1;
+    required fixed64 value = 1 [ (spb_opt).type = "uint32" ];
 }
 message RepFixed64_32
 {
-    //[[ field.type = "uint32" ]]
-    repeated fixed64 value = 1;
+    repeated fixed64 value = 1 [ (spb_opt).type = "uint32" ];
 }
 message RepPackFixed64_32
 {
-    //[[ field.type = "uint32" ]]
-    repeated fixed64 value = 1 [ packed = true ];
+    repeated fixed64 value = 1 [ packed = true, (spb_opt).type = "uint32" ];
 }
 
 message OptSfixed32_8
 {
-    //[[ field.type = "int8" ]]
-    optional sfixed32 value = 1;
+    optional sfixed32 value = 1 [ (spb_opt).type = "int8" ];
 }
 message ReqSfixed32_8
 {
-    //[[ field.type = "int8" ]]
-    required sfixed32 value = 1;
+    required sfixed32 value = 1 [ (spb_opt).type = "int8" ];
 }
 message RepSfixed32_8
 {
-    //[[ field.type = "int8" ]]
-    repeated sfixed32 value = 1;
+    repeated sfixed32 value = 1 [ (spb_opt).type = "int8" ];
 }
 message RepPackSfixed32_8
 {
-    //[[ field.type = "int8" ]]
-    repeated sfixed32 value = 1 [ packed = true ];
+    repeated sfixed32 value = 1 [ packed = true, (spb_opt).type = "int8" ];
 }
 
 message OptSfixed32_16
 {
-    //[[ field.type = "int16" ]]
-    optional sfixed32 value = 1;
+    optional sfixed32 value = 1 [ (spb_opt).type = "int16" ];
 }
 message ReqSfixed32_16
 {
-    //[[ field.type = "int16" ]]
-    required sfixed32 value = 1;
+    required sfixed32 value = 1 [ (spb_opt).type = "int16" ];
 }
 message RepSfixed32_16
 {
-    //[[ field.type = "int16" ]]
-    repeated sfixed32 value = 1;
+    repeated sfixed32 value = 1 [ (spb_opt).type = "int16" ];
 }
 message RepPackSfixed32_16
 {
-    //[[ field.type = "int16" ]]
-    repeated sfixed32 value = 1 [ packed = true ];
+    repeated sfixed32 value = 1 [ packed = true, (spb_opt).type = "int16" ];
 }
 
 message OptSfixed32
@@ -440,65 +414,53 @@ message RepPackSfixed32
 
 message OptSfixed64_8
 {
-    //[[ field.type = "int8" ]]
-    optional sfixed64 value = 1;
+    optional sfixed64 value = 1 [ (spb_opt).type = "int8" ];
 }
 message ReqSfixed64_8
 {
-    //[[ field.type = "int8" ]]
-    required sfixed64 value = 1;
+    required sfixed64 value = 1 [ (spb_opt).type = "int8" ];
 }
 message RepSfixed64_8
 {
-    //[[ field.type = "int8" ]]
-    repeated sfixed64 value = 1;
+    repeated sfixed64 value = 1 [ (spb_opt).type = "int8" ];
 }
 message RepPackSfixed64_8
 {
-    //[[ field.type = "int8" ]]
-    repeated sfixed64 value = 1 [ packed = true ];
+    repeated sfixed64 value = 1 [ packed = true, (spb_opt).type = "int8" ];
 }
 
 message OptSfixed64_16
 {
-    //[[ field.type = "int16" ]]
-    optional sfixed64 value = 1;
+    optional sfixed64 value = 1 [ (spb_opt).type = "int16" ];
 }
 message ReqSfixed64_16
 {
-    //[[ field.type = "int16" ]]
-    required sfixed64 value = 1;
+    required sfixed64 value = 1 [ (spb_opt).type = "int16" ];
 }
 message RepSfixed64_16
 {
-    //[[ field.type = "int16" ]]
-    repeated sfixed64 value = 1;
+    repeated sfixed64 value = 1 [ (spb_opt).type = "int16" ];
 }
 message RepPackSfixed64_16
 {
-    //[[ field.type = "int16" ]]
-    repeated sfixed64 value = 1 [ packed = true ];
+    repeated sfixed64 value = 1 [ packed = true, (spb_opt).type = "int16" ];
 }
 
 message OptSfixed64_32
 {
-    //[[ field.type = "int32" ]]
-    optional sfixed64 value = 1;
+    optional sfixed64 value = 1 [ (spb_opt).type = "int32" ];
 }
 message ReqSfixed64_32
 {
-    //[[ field.type = "int32" ]]
-    required sfixed64 value = 1;
+    required sfixed64 value = 1 [ (spb_opt).type = "int32" ];
 }
 message RepSfixed64_32
 {
-    //[[ field.type = "int32" ]]
-    repeated sfixed64 value = 1;
+    repeated sfixed64 value = 1 [ (spb_opt).type = "int32" ];
 }
 message RepPackSfixed64_32
 {
-    //[[ field.type = "int32" ]]
-    repeated sfixed64 value = 1 [ packed = true ];
+    repeated sfixed64 value = 1 [ packed = true, (spb_opt).type = "int32" ];
 }
 
 message OptSfixed64
@@ -589,35 +551,27 @@ message RepStringView
 }
 
 message OptStringFixed {
-    //[[ string.type = "std::array<$, 6>"]]
-    //[[ string.include = "<array>"]]
-    optional string value = 1;
+    optional string value = 1 [ (spb_opt).string = "std::array<$, 6>"];
 }
 
 message ReqStringFixed {
-    //[[ string.type = "std::array<$, 6>"]]
-    required string value = 1;
+    required string value = 1 [ (spb_opt).string = "std::array<$, 6>"];
 }
 
 message RepStringFixed {
-    //[[ string.type = "std::array<$, 6>"]]
-    repeated string value = 1;
+    repeated string value = 1 [ (spb_opt).string = "std::array<$, 6>"];
 }
 
 message OptBytesFixed {
-    //[[ bytes.type = "std::array<$, 8>"]]
-    //[[ bytes.include = "<array>"]]
-    optional bytes value = 1;
+    optional bytes value = 1 [ (spb_opt).bytes = "std::array<$, 8>"];
 }
 
 message ReqBytesFixed {
-    //[[ bytes.type = "std::array<$, 8>"]]
-    required bytes value = 1;
+    required bytes value = 1 [ (spb_opt).bytes = "std::array<$, 8>"];
 }
 
 message RepBytesFixed {
-    //[[ bytes.type = "std::array<$, 8>"]]
-    repeated bytes value = 1;
+    repeated bytes value = 1 [ (spb_opt).bytes = "std::array<$, 8>"];
 }
 
 message OptBytes
@@ -655,7 +609,7 @@ message OptEnum
         Enum_value2 = 2;
         Enum_value3 = 3;
     }
-    
+
     optional Enum value = 1;
 }
 
@@ -668,7 +622,7 @@ message ReqEnum
         Enum_value2 = 2;
         Enum_value3 = 3;
     }
-    
+
     required Enum value = 1;
 }
 
@@ -681,7 +635,7 @@ message RepEnum
         Enum_value2 = 2;
         Enum_value3 = 3;
     }
-    
+
     repeated Enum value = 1;
 }
 
@@ -694,187 +648,187 @@ message RepPackEnum
         Enum_value2 = 2;
         Enum_value3 = 3;
     }
-    
+
     repeated Enum value = 1 [packed = true];
 }
 
 message OptEnumInt8
 {
-    //[[ enum.type = "int8" ]]
     enum Enum {
+        option (spb_enumopt).type = "int8";
         Enum_min = -128;
         Enum_max = 127;
         Enum_value = 1;
     }
-    
+
     optional Enum value = 1;
 }
 
 message ReqEnumInt8
 {
-    //[[ enum.type = "int8" ]]
     enum Enum {
+        option (spb_enumopt).type = "int8";
         Enum_min = -128;
         Enum_max = 127;
         Enum_value = 1;
     }
-    
+
     required Enum value = 1;
 }
 
 message RepEnumInt8
 {
-    //[[ enum.type = "int8" ]]
     enum Enum {
+        option (spb_enumopt).type = "int8";
         Enum_min = -128;
         Enum_max = 127;
         Enum_value = 1;
     }
-    
+
     repeated Enum value = 1;
 }
 
 message OptEnumUint8
 {
-    //[[ enum.type = "uint8" ]]
     enum Enum {
+        option (spb_enumopt).type = "uint8";
         Enum_min = 0;
         Enum_max = 255;
         Enum_value = 1;
     }
-    
+
     optional Enum value = 1;
 }
 
 message ReqEnumUint8
 {
-    //[[ enum.type = "uint8" ]]
     enum Enum {
+        option (spb_enumopt).type = "uint8";
         Enum_min = 0;
         Enum_max = 255;
         Enum_value = 1;
     }
-    
+
     required Enum value = 1;
 }
 
 message RepEnumUint8
 {
-    //[[ enum.type = "uint8" ]]
     enum Enum {
+        option (spb_enumopt).type = "uint8";
         Enum_min = 0;
         Enum_max = 255;
         Enum_value = 1;
     }
-    
+
     repeated Enum value = 1;
 }
 
 message OptEnumInt16
 {
-    //[[ enum.type = "int16" ]]
     enum Enum {
+        option (spb_enumopt).type = "int16";
         Enum_min = -32768;
         Enum_max = 32767;
         Enum_value = 1;
     }
-    
+
     optional Enum value = 1;
 }
 
 message ReqEnumInt16
 {
-    //[[ enum.type = "int16" ]]
     enum Enum {
+        option (spb_enumopt).type = "int16";
         Enum_min = -32768;
         Enum_max = 32767;
         Enum_value = 1;
     }
-    
+
     required Enum value = 1;
 }
 
 message RepEnumInt16
 {
-    //[[ enum.type = "int16" ]]
     enum Enum {
+        option (spb_enumopt).type = "int16";
         Enum_min = -32768;
         Enum_max = 32767;
         Enum_value = 1;
     }
-    
+
     repeated Enum value = 1;
 }
 
 message OptEnumUint16
 {
-    //[[ enum.type = "uint16" ]]
     enum Enum {
+        option (spb_enumopt).type = "uint16";
         Enum_min = 0;
         Enum_max = 65535;
         Enum_value = 1;
     }
-    
+
     optional Enum value = 1;
 }
 
 message ReqEnumUint16
 {
-    //[[ enum.type = "uint16" ]]
     enum Enum {
+        option (spb_enumopt).type = "uint16";
         Enum_min = 0;
         Enum_max = 65535;
         Enum_value = 1;
     }
-    
+
     required Enum value = 1;
 }
 
 message RepEnumUint16
 {
-    //[[ enum.type = "uint16" ]]
     enum Enum {
+        option (spb_enumopt).type = "uint16";
         Enum_min = 0;
         Enum_max = 65535;
         Enum_value = 1;
     }
-    
+
     repeated Enum value = 1;
 }
 
 message OptEnumInt32
 {
-    //[[ enum.type = "int32" ]]
     enum Enum {
+        option (spb_enumopt).type = "int32";
         Enum_min = -2147483648;
         Enum_max = 2147483647;
         Enum_value = 1;
     }
-    
+
     optional Enum value = 1;
 }
 
 message ReqEnumInt32
 {
-    //[[ enum.type = "int32" ]]
     enum Enum {
+        option (spb_enumopt).type = "int32";
         Enum_min = -2147483648;
         Enum_max = 2147483647;
         Enum_value = 1;
     }
-    
+
     required Enum value = 1;
 }
 
 message RepEnumInt32
 {
-    //[[ enum.type = "int32" ]]
     enum Enum {
+        option (spb_enumopt).type = "int32";
         Enum_min = -2147483648;
         Enum_max = 2147483647;
         Enum_value = 1;
     }
-    
+
     repeated Enum value = 1;
 }
 
@@ -890,302 +844,252 @@ message VeryLargeFieldNumber
 
 message ReqUint8_1
 {
-    //[[ field.type = "uint8:1" ]]
-    required uint32 value = 1;
+    required uint32 value = 1 [ (spb_opt).type = "uint8:1" ];
 }
 
 message ReqUint8_2
 {
-    //[[ field.type = "uint8:2" ]]
-    required uint32 value = 1;
+    required uint32 value = 1 [ (spb_opt).type = "uint8:2" ];
 }
 
 message ReqUint16_1
 {
-    //[[ field.type = "uint16:1" ]]
-    required uint32 value = 1;
+    required uint32 value = 1 [ (spb_opt).type = "uint16:1" ];
 }
 
 message ReqUint16_2
 {
-    //[[ field.type = "uint16:2" ]]
-    required uint32 value = 1;
+    required uint32 value = 1 [ (spb_opt).type = "uint16:2" ];
 }
 
 message ReqUint32_1
 {
-    //[[ field.type = "uint32:1" ]]
-    required uint32 value = 1;
+    required uint32 value = 1 [ (spb_opt).type = "uint32:1" ];
 }
 
 message ReqUint32_2
 {
-    //[[ field.type = "uint32:2" ]]
-    required uint32 value = 1;
+    required uint32 value = 1 [ (spb_opt).type = "uint32:2" ];
 }
 
 message ReqInt8_1
 {
-    //[[ field.type = "int8:1" ]]
-    required int32 value = 1;
+    required int32 value = 1 [ (spb_opt).type = "int8:1" ];
 }
 
 message ReqInt8_2
 {
-    //[[ field.type = "int8:2" ]]
-    required int32 value = 1;
+    required int32 value = 1 [ (spb_opt).type = "int8:2" ];
 }
 
 message ReqInt16_1
 {
-    //[[ field.type = "int16:1" ]]
-    required int32 value = 1;
+    required int32 value = 1 [ (spb_opt).type = "int16:1" ];
 }
 
 message ReqInt16_2
 {
-    //[[ field.type = "int16:2" ]]
-    required int32 value = 1;
+    required int32 value = 1 [ (spb_opt).type = "int16:2" ];
 }
 
 message ReqInt32_1
 {
-    //[[ field.type = "int32:1" ]]
-    required int32 value = 1;
+    required int32 value = 1 [ (spb_opt).type = "int32:1" ];
 }
 
 message ReqInt32_2
 {
-    //[[ field.type = "int32:2" ]]
-    required int32 value = 1;
+    required int32 value = 1 [ (spb_opt).type = "int32:2" ];
 }
 
 message ReqInt64_1
 {
-    //[[ field.type = "int64:1" ]]
-    required int64 value = 1;
+    required int64 value = 1 [ (spb_opt).type = "int64:1" ];
 }
 
 message ReqInt64_2
 {
-    //[[ field.type = "int64:2" ]]
-    required int64 value = 1;
+    required int64 value = 1 [ (spb_opt).type = "int64:2" ];
 }
 
 message ReqSint8_1
 {
-    //[[ field.type = "int8:1" ]]
-    required sint32 value = 1;
+    required sint32 value = 1 [ (spb_opt).type = "int8:1" ];
 }
 
 message ReqSint8_2
 {
-    //[[ field.type = "int8:2" ]]
-    required sint32 value = 1;
+    required sint32 value = 1 [ (spb_opt).type = "int8:2" ];
 }
 
 message ReqSint16_1
 {
-    //[[ field.type = "int16:1" ]]
-    required sint32 value = 1;
+    required sint32 value = 1 [ (spb_opt).type = "int16:1" ];
 }
 
 message ReqSint16_2
 {
-    //[[ field.type = "int16:2" ]]
-    required sint32 value = 1;
+    required sint32 value = 1 [ (spb_opt).type = "int16:2" ];
 }
 
 message ReqSint32_1
 {
-    //[[ field.type = "int32:1" ]]
-    required sint32 value = 1;
+    required sint32 value = 1 [ (spb_opt).type = "int32:1" ];
 }
 
 message ReqSint32_2
 {
-    //[[ field.type = "int32:2" ]]
-    required sint32 value = 1;
+    required sint32 value = 1 [ (spb_opt).type = "int32:2" ];
 }
 
 message ReqSint64_1
 {
-    //[[ field.type = "int64:1" ]]
-    required sint64 value = 1;
+    required sint64 value = 1 [ (spb_opt).type = "int64:1" ];
 }
 
 message ReqSint64_2
 {
-    //[[ field.type = "int64:2" ]]
-    required sint64 value = 1;
+    required sint64 value = 1 [ (spb_opt).type = "int64:2" ];
 }
 
 message ReqFixed32_8_1
 {
-    //[[ field.type = "uint8:1" ]]
-    required fixed32 value = 1;
+    required fixed32 value = 1 [ (spb_opt).type = "uint8:1" ];
 }
 
 message ReqFixed32_8_2
 {
-    //[[ field.type = "uint8:2" ]]
-    required fixed32 value = 1;
+    required fixed32 value = 1 [ (spb_opt).type = "uint8:2" ];
 }
 
 message ReqFixed32_16_1
 {
-    //[[ field.type = "uint16:1" ]]
-    required fixed32 value = 1;
+    required fixed32 value = 1 [ (spb_opt).type = "uint16:1" ];
 }
 
 message ReqFixed32_16_2
 {
-    //[[ field.type = "uint16:2" ]]
-    required fixed32 value = 1;
+    required fixed32 value = 1 [ (spb_opt).type = "uint16:2" ];
 }
 
 message ReqFixed32_32_1
 {
-    //[[ field.type = "uint32:1" ]]
-    required fixed32 value = 1;
+    required fixed32 value = 1 [ (spb_opt).type = "uint32:1" ];
 }
 
 message ReqFixed32_32_2
 {
-    //[[ field.type = "uint32:2" ]]
-    required fixed32 value = 1;
+    required fixed32 value = 1 [ (spb_opt).type = "uint32:2" ];
 }
 
 message ReqSfixed32_8_1
 {
-    //[[ field.type = "int8:1" ]]
-    required sfixed32 value = 1;
+    required sfixed32 value = 1 [ (spb_opt).type = "int8:1" ];
 }
 
 message ReqSfixed32_8_2
 {
-    //[[ field.type = "int8:2" ]]
-    required sfixed32 value = 1;
+    required sfixed32 value = 1 [ (spb_opt).type = "int8:2" ];
 }
 
 message ReqSfixed32_16_1
 {
-    //[[ field.type = "int16:1" ]]
-    required sfixed32 value = 1;
+    required sfixed32 value = 1 [ (spb_opt).type = "int16:1" ];
 }
 
 message ReqSfixed32_16_2
 {
-    //[[ field.type = "int16:2" ]]
-    required sfixed32 value = 1;
+    required sfixed32 value = 1 [ (spb_opt).type = "int16:2" ];
 }
 
 message ReqSfixed32_32_1
 {
-    //[[ field.type = "int32:1" ]]
-    required sfixed32 value = 1;
+    required sfixed32 value = 1 [ (spb_opt).type = "int32:1" ];
 }
 
 message ReqSfixed32_32_2
 {
-    //[[ field.type = "int32:2" ]]
-    required sfixed32 value = 1;
+    required sfixed32 value = 1 [ (spb_opt).type = "int32:2" ];
 }
 
 message ReqFixed64_8_1
 {
-    //[[ field.type = "uint8:1" ]]
-    required fixed64 value = 1;
+    required fixed64 value = 1 [ (spb_opt).type = "uint8:1" ];
 }
 
 message ReqFixed64_8_2
 {
-    //[[ field.type = "uint8:2" ]]
-    required fixed64 value = 1;
+    required fixed64 value = 1 [ (spb_opt).type = "uint8:2" ];
 }
 
 message ReqFixed64_16_1
 {
-    //[[ field.type = "uint16:1" ]]
-    required fixed64 value = 1;
+    required fixed64 value = 1 [ (spb_opt).type = "uint16:1" ];
 }
 
 message ReqFixed64_16_2
 {
-    //[[ field.type = "uint16:2" ]]
-    required fixed64 value = 1;
+    required fixed64 value = 1 [ (spb_opt).type = "uint16:2" ];
 }
 
 message ReqFixed64_32_1
 {
-    //[[ field.type = "uint32:1" ]]
-    required fixed64 value = 1;
+    required fixed64 value = 1 [ (spb_opt).type = "uint32:1" ];
 }
 
 message ReqFixed64_32_2
 {
-    //[[ field.type = "uint32:2" ]]
-    required fixed64 value = 1;
+    required fixed64 value = 1 [ (spb_opt).type = "uint32:2" ];
 }
 
 message ReqFixed64_64_1
 {
-    //[[ field.type = "uint64:1" ]]
-    required fixed64 value = 1;
+    required fixed64 value = 1 [ (spb_opt).type = "uint64:1" ];
 }
 
 message ReqFixed64_64_2
 {
-    //[[ field.type = "uint64:2" ]]
-    required fixed64 value = 1;
+    required fixed64 value = 1 [ (spb_opt).type = "uint64:2" ];
 }
 
 message ReqSfixed64_8_1
 {
-    //[[ field.type = "int8:1" ]]
-    required sfixed64 value = 1;
+    required sfixed64 value = 1 [ (spb_opt).type = "int8:1" ];
 }
 
 message ReqSfixed64_8_2
 {
-    //[[ field.type = "int8:2" ]]
-    required sfixed64 value = 1;
+    required sfixed64 value = 1 [ (spb_opt).type = "int8:2" ];
 }
 
 message ReqSfixed64_16_1
 {
-    //[[ field.type = "int16:1" ]]
-    required sfixed64 value = 1;
+    required sfixed64 value = 1 [ (spb_opt).type = "int16:1" ];
 }
 
 message ReqSfixed64_16_2
 {
-    //[[ field.type = "int16:2" ]]
-    required sfixed64 value = 1;
+    required sfixed64 value = 1 [ (spb_opt).type = "int16:2" ];
 }
 
 message ReqSfixed64_32_1
 {
-    //[[ field.type = "int32:1" ]]
-    required sfixed64 value = 1;
+    required sfixed64 value = 1 [ (spb_opt).type = "int32:1" ];
 }
 
 message ReqSfixed64_32_2
 {
-    //[[ field.type = "int32:2" ]]
-    required sfixed64 value = 1;
+    required sfixed64 value = 1 [ (spb_opt).type = "int32:2" ];
 }
 
 message ReqSfixed64_64_1
 {
-    //[[ field.type = "int64:1" ]]
-    required sfixed64 value = 1;
+    required sfixed64 value = 1 [ (spb_opt).type = "int64:1" ];
 }
 
 message ReqSfixed64_64_2
 {
-    //[[ field.type = "int64:2" ]]
-    required sfixed64 value = 1;
+    required sfixed64 value = 1 [ (spb_opt).type = "int64:2" ];
 }
 
 message OptEnumAlias

@@ -3,8 +3,10 @@
 #include <QDialog>
 #include <QJsonObject>
 #include <QTimer>
+#include <memory>
 #include "ui_dialog_basic_settings.h"
 #include "include/engine/EditLocks.h"
+#include "include/engine/services/WebDavBackup.h"
 
 namespace Ui {
     class DialogBasicSettings;
@@ -43,6 +45,29 @@ private:
 
     void rememberGeoAssetUrl(QComboBox *combo, const QString &url, QStringList &history);
 
+    // Inspect, choose the parts, apply and restart; fallbackDeviceName names the creator when the archive does not.
+    void restoreBackupFile(const QString &filePath, const QString &fallbackDeviceName);
+
+    struct WebDavChooser;
+
+    // A WebDAV worker is running; the backup buttons refuse to start anything else meanwhile.
+    bool webDavBusy = false;
+
+    bool webDavReady(const QString &title);
+
+    void showWebDavSettings();
+
+    // A null chooser opens one with the list; otherwise the open one is refilled and notice joins its note.
+    void loadWebDavBackups(const std::shared_ptr<WebDavChooser> &chooser, const QString &notice = {});
+
+    void showWebDavBackups(const QList<Engine::WebDavBackup::Entry> &entries, const QString &indexWarning);
+
+    void fillWebDavChooser(WebDavChooser &chooser, const QList<Engine::WebDavBackup::Entry> &entries, const QString &note);
+
+    void restoreWebDavBackup(const std::shared_ptr<WebDavChooser> &chooser);
+
+    void deleteWebDavBackup(const std::shared_ptr<WebDavChooser> &chooser);
+
     struct {
         QString custom_inbound;
         bool needRestart = false;
@@ -58,6 +83,9 @@ private:
 private slots:
     void on_backup_create_clicked();
     void on_backup_restore_clicked();
+    void on_webdav_settings_clicked();
+    void on_webdav_upload_clicked();
+    void on_webdav_restore_clicked();
     void on_xray_geoip_download_clicked();
     void on_xray_geosite_download_clicked();
 };

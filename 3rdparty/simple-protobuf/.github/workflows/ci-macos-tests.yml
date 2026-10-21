@@ -2,9 +2,9 @@ name: MacOS build
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
 jobs:
   build:
@@ -18,18 +18,20 @@ jobs:
       matrix:
         os: [macos-14, macos-15]
         compiler:
-          - appleclang  # Default AppleClang per OS
+          - appleclang # Default AppleClang per OS
           - { name: clang, version: 14 }
           - { name: clang, version: 15 }
           - { name: clang, version: 16 }
           - { name: clang, version: 17 }
           - { name: clang, version: 18 }
           - { name: clang, version: 19 }
-          - { name: gcc, version: 11 }
+          - { name: clang, version: 20 }
+          - { name: clang, version: 21 }
           - { name: gcc, version: 12 }
-          #- { name: gcc, version: 13 }
+          - { name: gcc, version: 13 }
           - { name: gcc, version: 14 }
-        
+          - { name: gcc, version: 15 }
+
     steps:
       - uses: actions/checkout@v4
 
@@ -46,7 +48,7 @@ jobs:
           CLANG_PATH=$(brew --prefix llvm@${{ matrix.compiler.version }})
           echo "CLANG_PATH=$CLANG_PATH/bin" >> $GITHUB_ENV
           echo "$CLANG_PATH/bin" >> $GITHUB_PATH
-  
+
       - name: Install GCC (if selected)
         if: matrix.compiler.name == 'gcc'
         run: |
