@@ -158,7 +158,6 @@ void MainWindow::loadShortcuts()
 #endif
 
     RegisterHiddenMenuShortcuts();
-    updateCommandPaletteHint();
 }
 
 void MainWindow::HotkeyEvent(const QString &id) {

@@ -2,16 +2,19 @@
 
 #include <functional>
 
-#include <QFrame>
-#include <QLineEdit>
+#include <QDialog>
+#include <QPointer>
+#include <QSet>
 #include <QStandardItemModel>
 
 class QAction;
 class QLabel;
+class QLineEdit;
 class QListView;
+class QMenu;
 
-// Ctrl+K search over menu commands and settings; the caller supplies the entries and what each one runs.
-class CommandPalette : public QFrame {
+// Ctrl+K search over menu commands and settings: commands are read from the menus, the caller supplies the settings.
+class CommandPalette : public QDialog {
     Q_OBJECT
 
 public:
@@ -25,18 +28,25 @@ public:
         QString section;
         // Matched but never shown; object names give an English fallback in a translated UI.
         QString keywords;
-        QString shortcut;
-        bool enabled = true;
-        bool checkable = false;
-        bool checked = false;
+        // A command's own action, or the action that opens a setting's dialog; its state is read each time the list is filled.
+        QPointer<QAction> action;
+        // Menu actions of the submenus a command sits in: hiding or disabling one hides or disables the command.
+        QList<QPointer<QAction>> submenus;
         std::function<void()> run;
+        // The Blocker's answer for action, refreshed on each open.
+        QString blocked;
     };
 
-    explicit CommandPalette(QWidget *parent);
+    // Why an entry's action cannot run right now, or empty when it can.
+    using Blocker = std::function<QString(const QAction *)>;
 
-    void setEntries(QList<Entry> list);
+    // Commands come from menus, each listed under its heading; skip is left out.
+    CommandPalette(QWidget *parent, QList<QPair<QString, QMenu *>> menus, const QAction *skip);
 
-    void popup(const QPoint &topCenter, int width, const QString &text = {});
+    void setSettings(QList<Entry> settings);
+
+    // Refreshes the menus' state, collects the commands again if a menu changed, then shows an empty query.
+    void present(const Blocker &blocker);
 
     // Drops "&" mnemonics, keeping "&&" as a literal ampersand, and a trailing colon or ellipsis.
     static QString plainText(QString text);
@@ -51,31 +61,29 @@ protected:
     bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
+    void refreshCommands();
+    void collect(QMenu *menu, const QString &section, const QString &path, const QList<QPointer<QAction>> &submenus,
+                 const QSet<QMenu *> &refreshed, QSet<const QAction *> &seen, QList<Entry> &out);
+    void markCommandsDirty();
     void refilter();
     void addHeader(const QString &title);
     void addEntry(int entryIndex, int matchStart, int matchLength);
     void selectFirst();
     void moveSelection(int delta);
     void activate(const QModelIndex &index);
-    void fitHeight();
 
     QLineEdit *edit;
     QListView *list;
     QLabel *hint;
     QStandardItemModel model;
+
+    QList<QPair<QString, QMenu *>> roots;
+    const QAction *skipAction;
+    QList<QPointer<QMenu>> collectedMenus;
+    bool commandsDirty = true;
+    bool collecting = false;
+
+    // The commands first, then the settings.
     QList<Entry> entries;
-};
-
-// Toolbar field that only opens the palette: the typing happens in the palette itself.
-class CommandPaletteLauncher : public QLineEdit {
-    Q_OBJECT
-
-public:
-    explicit CommandPaletteLauncher(QWidget *parent);
-
-signals:
-    void launchRequested();
-
-protected:
-    void mousePressEvent(QMouseEvent *event) override;
+    qsizetype commandCount = 0;
 };

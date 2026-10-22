@@ -46,7 +46,6 @@
 #include "include/ui/utils/GuiUtils.hpp"
 #include "include/ui/utils/ProfilesFilterProxyModel.h"
 #include "include/ui/utils/ProfilesTableModel.h"
-#include "include/ui/utils/SettingsIndex.h"
 #include "ui_mainwindow.h"
 
 namespace Configs {
@@ -69,9 +68,9 @@ class DialogVpnAuth;
 class DialogScanner;
 class DialogIpLists;
 class CommandPalette;
-class CommandPaletteLauncher;
 
 namespace Qv2ray::ui { class SyntaxHighlighter; }
+namespace SettingsIndex { struct Item; }
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -484,15 +483,13 @@ private:
 
     QPointer<CommandPalette> commandPalette;
     QAction *commandPaletteAction = nullptr;
-    CommandPaletteLauncher *commandPaletteLauncher = nullptr;
-    // Built on first use; reading the settings forms costs a few milliseconds.
-    QList<SettingsIndex::Item> settingsIndex;
+    QHash<QString, QAction *> settingsDialogOpeners;
 
     void setupCommandPalette();
 
-    void showCommandPalette();
+    void createCommandPalette();
 
-    void updateCommandPaletteHint();
+    void showCommandPalette();
 
     void revealSetting(const SettingsIndex::Item &item);
 

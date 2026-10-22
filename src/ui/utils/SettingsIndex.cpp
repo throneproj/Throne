@@ -166,7 +166,8 @@ namespace SettingsIndex {
             };
 
             void add(QWidget *widget, const QString &text, const QStringList &path, const QString &caption = {}) {
-                if (text.isEmpty() || text.size() > kMaxLabelLength) return;
+                // Reveal finds the widget by name again, and findChild with an empty name matches any child.
+                if (text.isEmpty() || text.size() > kMaxLabelLength || widget->objectName().isEmpty()) return;
                 found.append({{dialogClass, widget->objectName(), text, path.join(QStringLiteral(" › ")),
                                CommandPalette::keywordsFor(widget->objectName())},
                               caption});
@@ -272,6 +273,7 @@ namespace SettingsIndex {
     }
 
     void Reveal(QDialog *dialog, const QString &objectName) {
+        if (objectName.isEmpty()) return;
         auto *target = dialog->findChild<QWidget *>(objectName);
         if (!target) return;
 

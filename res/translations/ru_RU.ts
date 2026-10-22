@@ -4,6 +4,10 @@
 <context>
     <name>CommandPalette</name>
     <message>
+        <source>Search Commands and Settings</source>
+        <translation>Поиск команд и настроек</translation>
+    </message>
+    <message>
         <source>Search commands and settings</source>
         <translation>Поиск команд и настроек</translation>
     </message>
@@ -30,13 +34,6 @@
     <message>
         <source> (off)</source>
         <translation> (выкл.)</translation>
-    </message>
-</context>
-<context>
-    <name>CommandPaletteLauncher</name>
-    <message>
-        <source>Search commands and settings</source>
-        <translation>Поиск команд и настроек</translation>
     </message>
 </context>
 <context>
@@ -9609,12 +9606,8 @@ Name: %1</source>
         <translation>Поиск команд и настроек</translation>
     </message>
     <message>
-        <source>Search commands</source>
-        <translation>Поиск команд</translation>
-    </message>
-    <message>
-        <source>Search commands (%1)</source>
-        <translation>Поиск команд (%1)</translation>
+        <source>close the open settings window first</source>
+        <translation>сначала закройте открытое окно настроек</translation>
     </message>
     <message>
         <source>close &quot;%1&quot; first</source>

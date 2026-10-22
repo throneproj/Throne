@@ -6,12 +6,12 @@
 #include <QApplication>
 #include <QKeyEvent>
 #include <QLabel>
+#include <QLineEdit>
 #include <QListView>
-#include <QMouseEvent>
+#include <QMenu>
 #include <QPainter>
 #include <QPointer>
 #include <QRegularExpression>
-#include <QScreen>
 #include <QStyledItemDelegate>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -27,7 +27,7 @@ namespace {
         MatchLengthRole,
     };
 
-    constexpr int kMaxVisibleRows = 12;
+    constexpr int kPageStep = 10;
     constexpr int kSidePadding = 12;
 
     QFont scaledFont(QFont font, qreal factor) {
@@ -40,6 +40,13 @@ namespace {
         QColor color = palette.color(QPalette::Active, selected ? QPalette::HighlightedText : QPalette::Text);
         color.setAlphaF(selected ? 0.75 : 0.6);
         return color;
+    }
+
+    // True when the entry's action and every submenu it sits in have the state.
+    bool effective(const CommandPalette::Entry &entry, bool (QAction::*state)() const) {
+        if (!entry.action || !(entry.action.data()->*state)()) return false;
+        return std::all_of(entry.submenus.cbegin(), entry.submenus.cend(),
+                           [state](const QPointer<QAction> &menu) { return menu && (menu.data()->*state)(); });
     }
 
     // Leaves the window's ShortcutOverride for the action unaccepted, so no focused widget can claim the key.
@@ -189,10 +196,11 @@ namespace {
     };
 }
 
-CommandPalette::CommandPalette(QWidget *parent) : QFrame(parent, Qt::Popup) {
-    setFrameShape(QFrame::StyledPanel);
+CommandPalette::CommandPalette(QWidget *parent, QList<QPair<QString, QMenu *>> menus, const QAction *skip)
+    : QDialog(parent), roots(std::move(menus)), skipAction(skip) {
+    setWindowTitle(tr("Search Commands and Settings"));
     auto *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(1, 1, 1, 1);
+    layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
     edit = new QLineEdit(this);
@@ -213,12 +221,11 @@ CommandPalette::CommandPalette(QWidget *parent) : QFrame(parent, Qt::Popup) {
     list->setFrameShape(QFrame::NoFrame);
     list->setModel(&model);
     list->setItemDelegate(new PaletteDelegate(list));
-    list->setMouseTracking(true);
     list->setFocusPolicy(Qt::NoFocus);
     list->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     list->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     list->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    layout->addWidget(list);
+    layout->addWidget(list, 1);
 
     hint = new QLabel(tr("↑↓ move · Enter run · Esc close · > commands only · @ settings only"), this);
     hint->setContentsMargins(10, 5, 10, 6);
@@ -231,10 +238,10 @@ CommandPalette::CommandPalette(QWidget *parent) : QFrame(parent, Qt::Popup) {
     layout->addWidget(hint);
 
     connect(edit, &QLineEdit::textChanged, this, &CommandPalette::refilter);
-    connect(list, &QListView::entered, this, [this](const QModelIndex &index) {
-        if (index.flags() & Qt::ItemIsSelectable) list->setCurrentIndex(index);
-    });
-    connect(list, &QListView::clicked, this, &CommandPalette::activate);
+    connect(list, &QListView::doubleClicked, this, &CommandPalette::activate);
+
+    const int lineHeight = fontMetrics().height();
+    resize(lineHeight * 36, lineHeight * 28);
 }
 
 QString CommandPalette::plainText(QString text) {
@@ -271,30 +278,92 @@ void CommandPalette::keepShortcutFromTextFields(QAction *action, QWidget *window
     qApp->installEventFilter(new ShortcutGuard(action, window));
 }
 
-void CommandPalette::setEntries(QList<Entry> list) {
-    entries = std::move(list);
+void CommandPalette::setSettings(QList<Entry> settings) {
+    entries.resize(commandCount);
+    entries.append(std::move(settings));
 }
 
-void CommandPalette::popup(const QPoint &topCenter, int width, const QString &text) {
-    setFixedWidth(width);
+void CommandPalette::present(const Blocker &blocker) {
+    refreshCommands();
+    for (auto &entry : entries) entry.blocked = blocker ? blocker(entry.action) : QString();
     {
-        const QSignalBlocker blocker(edit);
-        edit->setText(text);
+        const QSignalBlocker block(edit);
+        edit->clear();
     }
     refilter();
-
-    QPoint pos(topCenter.x() - width / 2, topCenter.y());
-    if (const QScreen *screen = QGuiApplication::screenAt(topCenter)) {
-        const QRect bounds = screen->availableGeometry();
-        pos.setX(qBound(bounds.left(), pos.x(), qMax(bounds.left(), bounds.right() - width)));
-        pos.setY(qBound(bounds.top(), pos.y(), qMax(bounds.top(), bounds.bottom() - height())));
-    }
-    move(pos);
     show();
     raise();
     activateWindow();
-    edit->setFocus(Qt::PopupFocusReason);
-    edit->end(false);
+    edit->setFocus(Qt::OtherFocusReason);
+}
+
+void CommandPalette::refreshCommands() {
+    // Each menu's own aboutToShow handler brings its actions' enabled and checked state up to date.
+    QSet<QMenu *> refreshed;
+    if (!commandsDirty) {
+        for (const auto &menu : std::as_const(collectedMenus)) {
+            if (!menu) continue;
+            emit menu->aboutToShow();
+            refreshed.insert(menu);
+        }
+    }
+    if (!commandsDirty) return;
+
+    collecting = true;
+    for (const auto &menu : std::as_const(collectedMenus)) {
+        if (menu) menu->removeEventFilter(this);
+    }
+    collectedMenus.clear();
+    QList<Entry> commands;
+    QSet<const QAction *> seen;
+    for (const auto &[title, menu] : std::as_const(roots)) {
+        const QString section = plainText(title);
+        collect(menu, section, section, {}, refreshed, seen, commands);
+    }
+    collecting = false;
+    commandsDirty = false;
+
+    const qsizetype count = commands.size();
+    commands.append(entries.mid(commandCount));
+    entries = std::move(commands);
+    commandCount = count;
+}
+
+void CommandPalette::collect(QMenu *menu, const QString &section, const QString &path, const QList<QPointer<QAction>> &submenus,
+                             const QSet<QMenu *> &refreshed, QSet<const QAction *> &seen, QList<Entry> &out) {
+    if (collectedMenus.contains(menu)) return;
+    collectedMenus.append(menu);
+    menu->installEventFilter(this);
+    // Menus that fill their actions on demand.
+    if (!refreshed.contains(menu)) emit menu->aboutToShow();
+    for (QAction *action : menu->actions()) {
+        if (action->isSeparator() || action == skipAction) continue;
+        if (auto *sub = action->menu()) {
+            collect(sub, section, path + " › " + plainText(sub->title()), submenus + QList<QPointer<QAction>>{action}, refreshed, seen, out);
+            continue;
+        }
+        const QString label = plainText(action->text());
+        if (label.isEmpty() || seen.contains(action)) continue;
+        seen.insert(action);
+        connect(action, &QObject::destroyed, this, &CommandPalette::markCommandsDirty, Qt::UniqueConnection);
+
+        Entry entry;
+        entry.kind = Entry::Command;
+        entry.label = label;
+        entry.path = path;
+        entry.section = section;
+        entry.keywords = keywordsFor(action->objectName());
+        entry.action = action;
+        entry.submenus = submenus;
+        entry.run = [guard = entry.action] {
+            if (guard && guard->isEnabled()) guard->trigger();
+        };
+        out.append(entry);
+    }
+}
+
+void CommandPalette::markCommandsDirty() {
+    commandsDirty = true;
 }
 
 void CommandPalette::refilter() {
@@ -312,6 +381,7 @@ void CommandPalette::refilter() {
     }
     const QStringList terms = text.toLower().split(' ', Qt::SkipEmptyParts);
     const auto wanted = [&](const Entry &entry) {
+        if (!effective(entry, &QAction::isVisible)) return false;
         if (commandsOnly) return entry.kind == Entry::Command;
         if (settingsOnly) return entry.kind == Entry::Setting;
         return true;
@@ -365,7 +435,6 @@ void CommandPalette::refilter() {
     }
 
     selectFirst();
-    fitHeight();
 }
 
 void CommandPalette::addHeader(const QString &title) {
@@ -377,16 +446,21 @@ void CommandPalette::addHeader(const QString &title) {
 
 void CommandPalette::addEntry(int entryIndex, int matchStart, int matchLength) {
     const auto &entry = entries[entryIndex];
+    const QAction *action = entry.action;
     auto *item = new QStandardItem(entry.label);
-    item->setFlags(entry.enabled ? Qt::ItemIsEnabled | Qt::ItemIsSelectable : Qt::NoItemFlags);
-    item->setData(entry.path, PathRole);
-    item->setData(entry.shortcut, ShortcutRole);
+    const bool enabled = entry.blocked.isEmpty() && effective(entry, &QAction::isEnabled);
+    item->setFlags(enabled ? Qt::ItemIsEnabled | Qt::ItemIsSelectable : Qt::NoItemFlags);
+    const QString path = entry.blocked.isEmpty() ? entry.path : entry.path + " · " + entry.blocked;
+    item->setData(path, PathRole);
     QString tip = entry.label;
-    if (entry.checkable) {
-        item->setData(entry.checked, StateRole);
-        tip += entry.checked ? tr(" (on)") : tr(" (off)");
+    if (entry.kind == Entry::Command) {
+        item->setData(action->shortcut().toString(QKeySequence::NativeText), ShortcutRole);
+        if (action->isCheckable()) {
+            item->setData(action->isChecked(), StateRole);
+            tip += action->isChecked() ? tr(" (on)") : tr(" (off)");
+        }
     }
-    if (!entry.path.isEmpty()) tip += "\n" + entry.path;
+    if (!path.isEmpty()) tip += "\n" + path;
     item->setData(entryIndex, EntryRole);
     item->setData(qMax(matchStart, 0), MatchStartRole);
     item->setData(matchStart >= 0 ? matchLength : 0, MatchLengthRole);
@@ -428,21 +502,15 @@ void CommandPalette::activate(const QModelIndex &index) {
     if (entryIndex < 0 || entryIndex >= entries.size()) return;
     const auto run = entries[entryIndex].run;
     hide();
-    // After the popup is gone, so whatever the entry opens gets the focus.
+    // After the palette is gone, so whatever the entry opens gets the focus.
     if (run) QTimer::singleShot(0, parentWidget(), run);
 }
 
-void CommandPalette::fitHeight() {
-    int height = 0;
-    int rows = 0;
-    for (int row = 0; row < model.rowCount() && rows < kMaxVisibleRows; ++row, ++rows) {
-        height += list->sizeHintForRow(row);
-    }
-    list->setFixedHeight(height + 4);
-    adjustSize();
-}
-
 bool CommandPalette::eventFilter(QObject *obj, QEvent *event) {
+    if ((event->type() == QEvent::ActionAdded || event->type() == QEvent::ActionRemoved) && qobject_cast<QMenu *>(obj)) {
+        if (!collecting) commandsDirty = true;
+        return false;
+    }
     if (obj == edit && event->type() == QEvent::KeyPress) {
         const auto *key = static_cast<QKeyEvent *>(event);
         switch (key->key()) {
@@ -455,37 +523,21 @@ bool CommandPalette::eventFilter(QObject *obj, QEvent *event) {
             moveSelection(-1);
             return true;
         case Qt::Key_PageDown:
-            moveSelection(kMaxVisibleRows - 2);
+            moveSelection(kPageStep);
             return true;
         case Qt::Key_PageUp:
-            moveSelection(-(kMaxVisibleRows - 2));
+            moveSelection(-kPageStep);
             return true;
         case Qt::Key_Return:
         case Qt::Key_Enter:
             activate(list->currentIndex());
             return true;
         case Qt::Key_Escape:
-            hide();
+            reject();
             return true;
         default:
             break;
         }
     }
-    return QFrame::eventFilter(obj, event);
-}
-
-CommandPaletteLauncher::CommandPaletteLauncher(QWidget *parent) : QLineEdit(parent) {
-    setFocusPolicy(Qt::NoFocus);
-    setReadOnly(true);
-    setCursor(Qt::PointingHandCursor);
-    setAccessibleName(tr("Search commands and settings"));
-}
-
-void CommandPaletteLauncher::mousePressEvent(QMouseEvent *event) {
-    if (event->button() == Qt::LeftButton) {
-        emit launchRequested();
-        event->accept();
-        return;
-    }
-    QLineEdit::mousePressEvent(event);
+    return QDialog::eventFilter(obj, event);
 }
