@@ -146,7 +146,7 @@ namespace Configs {
 
         static RuleIssue CheckSimpleRule(const QString& line);
 
-        // A server's own rules are custom route rules to it with nothing but address lists, or nothing but process lists,
+        // A server's own rules are custom route rules to it with nothing but address lists, process names or process paths,
         // so the editor shows them as ordinary rules. One the user built that way counts too.
 
         // Adds one "prefix:value" line to the matching simple rule (or server rule), creating it if the profile has none yet.

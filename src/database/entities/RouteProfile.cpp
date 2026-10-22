@@ -1212,8 +1212,9 @@ namespace Configs {
             // Named as the server list names it, so an unnamed profile still gives its type and address.
             const QString serverName = server->name.trimmed().isEmpty() && server->outbound ? server->outbound->DisplayTypeAndName() : server->name;
             // Names stay unique, or the editor renames the rule to rule_<random>.
-            const QString base = get_rule_type(raw, proxy) == simpleAddressProxy ? QString("%1 (address)").arg(serverName)
-                                                                                 : QString("%1 (process)").arg(serverName);
+            const auto kind = get_rule_type(raw, proxy);
+            const QString base = QString(kind == simpleAddressProxy ? "%1 (address)" : kind == simpleProcessNameProxy ? "%1 (process)" : "%1 (process path)")
+                                     .arg(serverName);
             rule->name = base;
             for (int n = 2; std::any_of(Rules.cbegin(), Rules.cend(), [&rule](const auto& r) { return r->name == rule->name; }); ++n)
                 rule->name = QString("%1 %2").arg(base, QString::number(n));
@@ -1329,10 +1330,11 @@ namespace Configs {
         if (rule.type != custom || rule.disabled || rule.action != "route" || rule.outboundID < 0 || !rule.has_match_conditions()) return false;
         const auto type = get_rule_type(content, proxy);
         if (type == custom) return false;
-        // Address and process conditions in one rule must both match, so each kind keeps a rule of its own.
+        // Address, process name and process path conditions in one rule must all match, so each kind keeps a rule of its own.
         static const QStringList addressAttrs = {"domain", "domain_suffix", "domain_keyword", "domain_regex", "rule_set", "ip_cidr"};
-        static const QStringList processAttrs = {"process_name", "process_path"};
-        const auto& own = type == simpleAddressProxy ? addressAttrs : processAttrs;
+        static const QStringList processNameAttrs = {"process_name"};
+        static const QStringList processPathAttrs = {"process_path"};
+        const auto& own = type == simpleAddressProxy ? addressAttrs : type == simpleProcessNameProxy ? processNameAttrs : processPathAttrs;
         // Checked for every rule on each dialog refresh, so built once.
         static const auto attrs = RouteRule::get_attributes();
         return std::all_of(attrs.cbegin(), attrs.cend(), [&](const QString& attr) {
