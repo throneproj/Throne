@@ -1,6 +1,7 @@
 package rpc
 
 import (
+	"slices"
 	"strings"
 	"sync"
 
@@ -119,37 +120,41 @@ var connRules ruleMatchCache
 type ruleMatchCache struct {
 	mu      sync.Mutex
 	box     *boxbox.Box
+	rules   []option.Rule
 	entries map[adapter.Rule][]ruleEntry
 	conns   map[uuid.UUID]string
 	seen    map[uuid.UUID]string
 }
 
-// reset drops everything split for a box, so a stopped box is not kept alive by the cache.
-func (m *ruleMatchCache) reset() {
+// reset ties the cache to box and the route rules its router was built from; a nil box lets a stopped one go.
+func (m *ruleMatchCache) reset(box *boxbox.Box, rules []option.Rule) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.box, m.entries, m.conns = nil, nil, nil
+	m.box, m.rules = box, rules
+	m.entries, m.conns = make(map[adapter.Rule][]ruleEntry), make(map[uuid.UUID]string)
 }
 
 // begin opens one poll; matched must only be called between begin and end.
 func (m *ruleMatchCache) begin(box *boxbox.Box) {
 	m.mu.Lock()
-	if m.box != box {
-		m.box, m.entries, m.conns = box, make(map[adapter.Rule][]ruleEntry), make(map[uuid.UUID]string)
+	// A poll that read the box just before a restart replaced it has no rules to match against.
+	if box != m.box {
+		return
 	}
 	m.seen = make(map[uuid.UUID]string, len(m.conns))
 }
 
 func (m *ruleMatchCache) matched(c *trafficcontrol.TrackerMetadata) string {
-	if c.Rule == nil {
+	if c.Rule == nil || m.seen == nil {
 		return ""
 	}
 	item, cached := m.conns[c.ID]
 	if !cached {
 		entries, split := m.entries[c.Rule]
 		if !split {
-			if options, found := m.box.RouteRuleOptions(c.Rule); found {
-				entries = ruleEntries(options, m.box.Router().RuleSet)
+			// The router builds one rule per config entry, in order.
+			if i := slices.Index(m.box.Router().Rules(), c.Rule); i >= 0 && i < len(m.rules) {
+				entries = ruleEntries(m.rules[i], m.box.Router().RuleSet)
 			}
 			m.entries[c.Rule] = entries
 		}
@@ -161,6 +166,8 @@ func (m *ruleMatchCache) matched(c *trafficcontrol.TrackerMetadata) string {
 
 // end keeps only the connections this poll reported, so the ones gone from the closed ring do not pile up.
 func (m *ruleMatchCache) end() {
-	m.conns, m.seen = m.seen, nil
+	if m.seen != nil {
+		m.conns, m.seen = m.seen, nil
+	}
 	m.mu.Unlock()
 }

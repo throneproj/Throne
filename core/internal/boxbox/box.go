@@ -3,7 +3,6 @@ package boxbox
 import (
 	"context"
 	"io"
-	"slices"
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
@@ -61,7 +60,6 @@ type Box struct {
 	internalService     []adapter.LifecycleService
 	ntpService          *ntp.Service
 	scope               *adapter.Scope
-	routeRules          []option.Rule
 }
 
 type Options struct {
@@ -482,7 +480,6 @@ func New(options Options) (*Box, error) {
 		internalService:     internalServices,
 		ntpService:          ntpService,
 		scope:               adapter.NewScope(ctx, logFactory.Logger()),
-		routeRules:          routeOptions.Rules,
 	}, nil
 }
 
@@ -657,14 +654,6 @@ func (s *Box) Network() adapter.NetworkManager {
 
 func (s *Box) Router() adapter.Router {
 	return s.router
-}
-
-// RouteRuleOptions finds the config entry a router rule was built from: the router builds one rule per entry, in order.
-func (s *Box) RouteRuleOptions(rule adapter.Rule) (option.Rule, bool) {
-	if i := slices.Index(s.router.Rules(), rule); i >= 0 && i < len(s.routeRules) {
-		return s.routeRules[i], true
-	}
-	return option.Rule{}, false
 }
 
 func (s *Box) Inbound() adapter.InboundManager {

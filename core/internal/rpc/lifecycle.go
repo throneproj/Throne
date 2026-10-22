@@ -17,6 +17,7 @@ import (
 	"ThroneCore/internal/xray"
 
 	"github.com/google/shlex"
+	"github.com/sagernet/sing-box/option"
 	E "github.com/sagernet/sing/common/exceptions"
 )
 
@@ -30,7 +31,7 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 		out = &gen.ErrorResp{}
 		if err != nil {
 			out.Error = To(err.Error())
-			setBoxInstance(nil, nil)
+			setBoxInstance(nil, nil, nil)
 			autoRedirectMark.Store(0)
 		}
 	}()
@@ -122,7 +123,12 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 		setXrayFullGates(gates)
 	}
 
-	box, cancel, err := boxmain.Create([]byte(*in.CoreConfig), boxCtx.publish)
+	var routeRules []option.Rule
+	box, cancel, err := boxmain.Create([]byte(*in.CoreConfig), boxCtx.publish, func(options *option.Options) {
+		if options.Route != nil {
+			routeRules = options.Route.Rules
+		}
+	})
 	if err != nil {
 		if extraProcess != nil {
 			extraProcess.Stop()
@@ -131,12 +137,12 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 		closeXray()
 		return
 	}
-	setBoxInstance(box, cancel)
+	setBoxInstance(box, cancel, routeRules)
 
 	if runtime.GOOS == "darwin" && in.GetTunIpv4Cidr() != "" {
 		stopAllCores := func() {
 			box.CloseWithTimeout(cancel, time.Second*2, log.Println, true)
-			setBoxInstance(nil, nil)
+			setBoxInstance(nil, nil, nil)
 			if extraProcess != nil {
 				extraProcess.Stop()
 				extraProcess = nil
@@ -204,7 +210,7 @@ func (s *server) Stop(ctx context.Context, in *gen.EmptyReq) (out *gen.ErrorResp
 		}
 	}
 	// Unpublished first, so a poll mid-teardown sees no instance rather than a dying one.
-	setBoxInstance(nil, nil)
+	setBoxInstance(nil, nil, nil)
 	box.CloseWithTimeout(cancel, time.Second*2, log.Println, true)
 
 	if extraProcess != nil {
