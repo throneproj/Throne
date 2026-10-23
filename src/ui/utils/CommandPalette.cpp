@@ -241,8 +241,14 @@ CommandPalette::CommandPalette(QWidget *parent, QList<QPair<QString, QMenu *>> m
     connect(edit, &QLineEdit::textChanged, this, [this] { refilter(); });
     connect(list, &QListView::doubleClicked, this, &CommandPalette::activate);
 
-    // The parent's dialogs are what entries get blocked by; they come and go as its children.
-    if (parent) parent->installEventFilter(this);
+    // The parent's dialogs are what entries get blocked by: watch the ones already there and every one added later.
+    if (parent) {
+        parent->installEventFilter(this);
+        for (auto *dialog : parent->findChildren<QDialog *>(QString(), Qt::FindDirectChildrenOnly)) dialog->installEventFilter(this);
+    }
+    connect(list->selectionModel(), &QItemSelectionModel::currentChanged, this, [this] {
+        if (!restoring) preferred = currentSelection();
+    });
 
     const int lineHeight = fontMetrics().height();
     resize(lineHeight * 36, lineHeight * 28);
@@ -314,15 +320,16 @@ void CommandPalette::refreshBlocked() {
 
 void CommandPalette::refreshState() {
     // A window may have opened or closed beside the palette: re-read what can run, keeping the query and the selection.
-    stale = false;
-    const Selection keep = currentSelection();
+    // The entry picked last comes back once it is runnable again; until then a neighbour of the current row stands in.
+    Selection keep = preferred;
+    keep.row = list->currentIndex().row();
     refreshCommands();
     refreshBlocked();
     refilter(keep);
 }
 
 void CommandPalette::scheduleRefresh() {
-    // A dialog is still being set up when it joins the parent; read the state once its opener has returned.
+    // A closing dialog frees its slot only after it is hidden; read the state once its opener or closer has returned.
     if (refreshQueued) return;
     refreshQueued = true;
     QTimer::singleShot(0, this, [this] {
@@ -402,6 +409,7 @@ void CommandPalette::markCommandsDirty() {
 
 void CommandPalette::refilter(const Selection &keep) {
     const int scroll = list->verticalScrollBar()->value();
+    restoring = true;
     model.clear();
 
     QString text = edit->text().trimmed();
@@ -477,6 +485,9 @@ void CommandPalette::refilter(const Selection &keep) {
         list->verticalScrollBar()->setValue(scroll);
     }
     select(keep);
+    restoring = false;
+    // A new query starts over from its first match.
+    if (keep.label.isEmpty()) preferred = currentSelection();
 }
 
 void CommandPalette::addHeader(const QString &title) {
@@ -514,17 +525,21 @@ CommandPalette::Selection CommandPalette::currentSelection() const {
     const QModelIndex current = list->currentIndex();
     if (!current.isValid()) return {};
     const auto &entry = entries[current.data(EntryRole).toInt()];
-    return {entry.kind, entry.action, entry.label, entry.path};
+    return {entry.kind, entry.action, entry.label, entry.path, current.row()};
 }
 
 void CommandPalette::select(const Selection &keep) {
     int first = -1;
     int match = -1;
+    int before = -1;
+    int after = -1;
     for (int row = 0; row < model.rowCount(); ++row) {
         const auto *item = model.item(row);
         if (!item->isSelectable()) continue;
         if (first < 0) first = row;
         if (keep.label.isEmpty()) break;
+        if (row < keep.row) before = row;
+        else if (after < 0) after = row;
         // Several settings share their dialog's action, so the text tells them apart; a menu that recreated
         // its actions leaves only the text to go by.
         const auto &entry = entries[item->data(EntryRole).toInt()];
@@ -532,7 +547,9 @@ void CommandPalette::select(const Selection &keep) {
         if (match < 0 || entry.action == keep.action) match = row;
         if (entry.action == keep.action) break;
     }
-    const int row = match >= 0 ? match : first;
+    // Without it, the nearest runnable row keeps the view where it was.
+    int row = match >= 0 ? match : (after >= 0 ? after : before);
+    if (row < 0) row = first;
     if (row < 0) return;
     list->setCurrentIndex(model.index(row, 0));
     if (!keep.label.isEmpty()) list->scrollTo(model.index(row, 0));
@@ -577,9 +594,13 @@ bool CommandPalette::eventFilter(QObject *obj, QEvent *event) {
         if (!collecting) commandsDirty = true;
         return false;
     }
-    if (obj == parentWidget() && (event->type() == QEvent::ChildAdded || event->type() == QEvent::ChildRemoved)) {
-        // Catches a dialog opened while the palette keeps the focus too, say from the tray.
-        if (isVisible() && static_cast<QChildEvent *>(event)->child()->isWidgetType()) scheduleRefresh();
+    if (obj == parentWidget() && event->type() == QEvent::ChildAdded) {
+        // Still under construction here, so whether it is a dialog shows only once it is shown.
+        if (auto *child = static_cast<QChildEvent *>(event)->child(); child->isWidgetType()) child->installEventFilter(this);
+        return false;
+    }
+    if ((event->type() == QEvent::Show || event->type() == QEvent::Hide) && obj != this && qobject_cast<QDialog *>(obj)) {
+        if (isVisible()) scheduleRefresh();
         return false;
     }
     if (obj == edit && event->type() == QEvent::KeyPress) {
@@ -617,6 +638,10 @@ void CommandPalette::changeEvent(QEvent *event) {
     QDialog::changeEvent(event);
     if (event->type() != QEvent::ActivationChange || !isVisible()) return;
     // Opening activates the palette right after present() filled it, so only a return from another window refreshes.
-    if (!isActiveWindow()) stale = true;
-    else if (stale) refreshState();
+    if (!isActiveWindow()) {
+        stale = true;
+    } else if (stale) {
+        stale = false;
+        refreshState();
+    }
 }

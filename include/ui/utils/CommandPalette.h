@@ -70,6 +70,8 @@ private:
         QPointer<QAction> action;
         QString label;
         QString path;
+        // Where the selection stood, to fall back to a neighbour when the entry is not runnable.
+        int row = -1;
     };
 
     Blocker currentBlocker() const;
@@ -103,6 +105,10 @@ private:
     // Set when the palette loses the focus: whatever happened elsewhere is read again once it is back.
     bool stale = false;
     bool refreshQueued = false;
+    // The entry the user picked last; kept while it is blocked, so it is selected again once it is free.
+    Selection preferred;
+    // Set while the list is rebuilt, so the selection moves made there are not taken for the user's.
+    bool restoring = false;
 
     // The commands first, then the settings.
     QList<Entry> entries;
