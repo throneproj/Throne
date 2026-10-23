@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QMenu>
 
+#include "include/ui/app/dialog_about.h"
 #include "include/ui/group/dialog_manage_groups.h"
 #include "include/ui/mainWindow/MainWindowInternal.h"
 #include "include/ui/setting/dialog_basic_settings.h"
@@ -37,6 +38,7 @@ void MainWindow::createCommandPalette() {
         {DialogManageGroups::staticMetaObject.className(), ui->menu_manage_groups},
         {DialogOtpManager::staticMetaObject.className(), ui->menu_otp_manager},
         {DialogTrafficStats::staticMetaObject.className(), ui->actionTraffic_Stats},
+        {DialogAbout::staticMetaObject.className(), ui->actionAbout},
     };
 
     commandPalette = new CommandPalette(this,

@@ -98,7 +98,7 @@ private:
     QList<Row> matchRows() const;
     // With keep set, the list stays where it was scrolled and keep stays selected if it is still listed; unchanged rows
     // are updated in place unless rebuild is set.
-    void refilter(const Selection &keep = {}, bool rebuild = false);
+    void refilter(const Selection &keep, bool rebuild = false);
     void fillEntry(QStandardItem *item, const Row &row);
     Selection currentSelection() const;
     Selection keptSelection() const;

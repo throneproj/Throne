@@ -241,7 +241,7 @@ CommandPalette::CommandPalette(QWidget *parent, QList<QPair<QString, QMenu *>> m
     hint->setPalette(hintPalette);
     layout->addWidget(hint);
 
-    connect(edit, &QLineEdit::textChanged, this, [this] { refilter(); });
+    connect(edit, &QLineEdit::textChanged, this, [this] { refilter({}); });
     connect(list, &QListView::doubleClicked, this, &CommandPalette::activate);
 
     connect(list->selectionModel(), &QItemSelectionModel::currentChanged, this, [this] {
@@ -302,7 +302,7 @@ void CommandPalette::present(BlockerSource source) {
         const QSignalBlocker block(edit);
         edit->clear();
     }
-    refilter();
+    refilter({});
     stale = false;
     show();
     raise();
@@ -453,7 +453,7 @@ QList<CommandPalette::Row> CommandPalette::matchRows() const {
                 section = entry.section;
                 header(section);
             }
-            out.append({i});
+            out.append(Row{i});
         }
         return out;
     }
