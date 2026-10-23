@@ -91,6 +91,7 @@ private:
     bool refreshCommands();
     void refreshBlocked();
     void refreshState();
+    void queueRefilter();
     void collect(QMenu *menu, const QString &section, const QString &path, const QList<QPointer<QAction>> &submenus,
                  const QSet<QMenu *> &refreshed, QSet<const QAction *> &seen, QList<Entry> &out);
     void markCommandsDirty();

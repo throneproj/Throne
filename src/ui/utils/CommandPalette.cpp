@@ -226,6 +226,9 @@ CommandPalette::CommandPalette(QWidget *parent, QList<QPair<QString, QMenu *>> m
     list->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     list->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     list->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    // Scrolling follows only the keyboard (moveSelection); a refresh that moves the selection must not move the view
+    // under a pointer that is about to click.
+    list->setAutoScroll(false);
     layout->addWidget(list, 1);
 
     hint = new QLabel(tr("↑↓ move · Enter run · Esc close · > commands only · @ settings only"), this);
@@ -285,6 +288,9 @@ void CommandPalette::keepShortcutFromTextFields(QAction *action, QWidget *window
 
 void CommandPalette::setSettings(QList<Entry> settings) {
     entries.resize(commandCount);
+    for (const auto &entry : settings) {
+        if (entry.action) connect(entry.action, &QAction::changed, this, &CommandPalette::queueRefilter, Qt::UniqueConnection);
+    }
     entries.append(std::move(settings));
 }
 
@@ -328,7 +334,12 @@ void CommandPalette::refreshState() {
 }
 
 void CommandPalette::blockersChanged() {
-    // The caller flips its state before the dialog it opens exists; read the answers once it has returned.
+    queueRefilter();
+}
+
+void CommandPalette::queueRefilter() {
+    // A caller flips its state before the dialog it opens exists, and actions change in bursts; read it all once they
+    // have returned. Menus' aboutToShow is left alone, so their own state updates cannot loop back here.
     if (refreshQueued || !isVisible()) return;
     refreshQueued = true;
     QTimer::singleShot(0, this, [this] {
@@ -381,6 +392,8 @@ void CommandPalette::collect(QMenu *menu, const QString &section, const QString 
     if (!refreshed.contains(menu)) emit menu->aboutToShow();
     for (QAction *action : menu->actions()) {
         if (action->isSeparator() || action == skipAction) continue;
+        // Toggled or disabled from a menu or the tray: an open palette shows it at once.
+        connect(action, &QAction::changed, this, &CommandPalette::queueRefilter, Qt::UniqueConnection);
         if (auto *sub = action->menu()) {
             collect(sub, section, path + " › " + plainText(sub->title()), submenus + QList<QPointer<QAction>>{action}, refreshed, seen, out);
             continue;
@@ -573,8 +586,8 @@ void CommandPalette::select(const Selection &keep) {
     int row = match >= 0 ? match : (after >= 0 ? after : before);
     if (row < 0) row = first;
     if (row < 0) return;
+    // The view stays where it is, even if the user scrolled away from the selection.
     list->setCurrentIndex(model.index(row, 0));
-    if (!keep.label.isEmpty()) list->scrollTo(model.index(row, 0));
 }
 
 void CommandPalette::moveSelection(int delta) {
