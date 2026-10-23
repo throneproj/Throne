@@ -497,6 +497,9 @@ private:
 
     void revealSetting(const SettingsIndex::Item &item);
 
+    // Takes or frees the one-settings-dialog slot (dialog_is_using) and lets an open command palette catch up.
+    void setDialogInUse(bool inUse);
+
     void url_test_current();
 
     void show_startstop_menu();

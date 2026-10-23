@@ -82,7 +82,7 @@ void MainWindow::showCommandPalette() {
     if (!commandPalette) createCommandPalette();
 
     // Only one of these dialogs opens at a time: while one is open, the others' entries say which one to close.
-    // The palette stays open beside the main window, so it asks again whenever it comes back to the front.
+    // The palette stays open beside the main window and asks again each time setDialogInUse() flips the slot.
     commandPalette->present([this]() -> CommandPalette::Blocker {
         if (!dialog_is_using) return {};
         QString openClass;
@@ -98,6 +98,11 @@ void MainWindow::showCommandPalette() {
             return dialogClass.isEmpty() || dialogClass == openClass ? QString() : closeFirst;
         };
     });
+}
+
+void MainWindow::setDialogInUse(bool inUse) {
+    dialog_is_using = inUse;
+    if (commandPalette) commandPalette->blockersChanged();
 }
 
 void MainWindow::revealSetting(const SettingsIndex::Item &item) {
