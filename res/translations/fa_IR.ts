@@ -175,22 +175,6 @@ Deleted %3 Profiles:
         <translation type="unfinished">بدون بروزرسانی جدید</translation>
     </message>
     <message>
-        <source>Update found: %1
-Release note:
-%2</source>
-        <translation type="unfinished">به‌روزرسانی یافت شد: %1
-یادداشت انتشار:
-%2</translation>
-    </message>
-    <message>
-        <source>Open in browser</source>
-        <translation type="unfinished">در مرور گر باز شود</translation>
-    </message>
-    <message>
-        <source>Close</source>
-        <translation type="unfinished">بستن</translation>
-    </message>
-    <message>
         <source>Update is ready, restart to install?</source>
         <translation type="unfinished">به روز رسانی آماده است، برای نصب مجدد راه اندازی شود؟</translation>
     </message>
@@ -229,6 +213,61 @@ Release note:
     <message>
         <source>This group no longer exists.</source>
         <translation>این گروه دیگر وجود ندارد.</translation>
+    </message>
+</context>
+<context>
+    <name>DialogAbout</name>
+    <message>
+        <source>About Throne</source>
+        <translation>درباره Throne</translation>
+    </message>
+    <message>
+        <source>Version:</source>
+        <translation>نسخه:</translation>
+    </message>
+    <message>
+        <source>Open-source and cross platform Desktop Proxy management utility developed as a successor to Nekoray.</source>
+        <translation>ابزار متن‌باز و چندسکویی مدیریت پروکسی برای دسکتاپ که به‌عنوان جانشین Nekoray توسعه یافته است.</translation>
+    </message>
+    <message>
+        <source>Support Throne</source>
+        <translation>حمایت از Throne</translation>
+    </message>
+    <message>
+        <source>Unknown</source>
+        <translation>نامشخص</translation>
+    </message>
+</context>
+<context>
+    <name>DialogUpdate</name>
+    <message>
+        <source>Update (Pre-release)</source>
+        <translation>به‌روزرسانی (پیش‌انتشار)</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>به‌روزرسانی</translation>
+    </message>
+    <message>
+        <source>Throne %1 is available, you are using %2.</source>
+        <translation>نسخه %1 از Throne در دسترس است، نسخه فعلی شما %2 است.</translation>
+    </message>
+    <message>
+        <source>Release notes are unavailable.</source>
+        <translation>یادداشت‌های انتشار در دسترس نیست.</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <comment>button</comment>
+        <translation>به‌روزرسانی</translation>
+    </message>
+    <message>
+        <source>Open in browser</source>
+        <translation>باز کردن در مرورگر</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>بستن</translation>
     </message>
 </context>
 <context>
@@ -2952,6 +2991,14 @@ Error: %1</source>
     <message>
         <source>Kill switch is blocking traffic</source>
         <translation>Kill switch در حال مسدود کردن ترافیک است</translation>
+    </message>
+    <message>
+        <source>Check For Update</source>
+        <translation>بررسی به‌روزرسانی</translation>
+    </message>
+    <message>
+        <source>About</source>
+        <translation>درباره</translation>
     </message>
 </context>
 <context>

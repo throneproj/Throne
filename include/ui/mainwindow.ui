@@ -396,6 +396,9 @@ QToolButton::menu-indicator {
          <string/>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_tab1">
+         <property name="spacing">
+          <number>0</number>
+         </property>
          <property name="leftMargin">
           <number>0</number>
          </property>
@@ -406,9 +409,6 @@ QToolButton::menu-indicator {
           <number>0</number>
          </property>
          <property name="bottomMargin">
-          <number>0</number>
-         </property>
-         <property name="spacing">
           <number>0</number>
          </property>
          <item>
@@ -748,6 +748,9 @@ QToolButton::menu-indicator {
     <addaction name="separator"/>
     <addaction name="actionRestart_Proxy"/>
     <addaction name="actionRestart_Program"/>
+    <addaction name="separator"/>
+    <addaction name="actionCheck_For_Update"/>
+    <addaction name="actionAbout"/>
     <addaction name="menu_exit"/>
    </widget>
    <widget class="QMenu" name="menu_preferences">
@@ -836,7 +839,6 @@ QToolButton::menu-indicator {
     <addaction name="menu_scanner"/>
     <addaction name="separator"/>
     <addaction name="actionTraffic_Stats"/>
-    <addaction name="actionCheck_For_Update"/>
    </widget>
    <widget class="QMenu" name="menuTesting">
     <property name="title">
@@ -1390,6 +1392,14 @@ QToolButton::menu-indicator {
   <action name="actionCheck_For_Update">
    <property name="text">
     <string>Check For Update</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
   <action name="actionUpdate_Rule_Sets">

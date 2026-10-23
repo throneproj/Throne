@@ -210,6 +210,61 @@ Outbound: %4</translation>
     </message>
 </context>
 <context>
+    <name>DialogAbout</name>
+    <message>
+        <source>About Throne</source>
+        <translation>О Throne</translation>
+    </message>
+    <message>
+        <source>Version:</source>
+        <translation>Версия:</translation>
+    </message>
+    <message>
+        <source>Open-source and cross platform Desktop Proxy management utility developed as a successor to Nekoray.</source>
+        <translation>Кроссплатформенная утилита с открытым исходным кодом для управления прокси на компьютере, созданная как преемник Nekoray.</translation>
+    </message>
+    <message>
+        <source>Support Throne</source>
+        <translation>Поддержать Throne</translation>
+    </message>
+    <message>
+        <source>Unknown</source>
+        <translation>Неизвестно</translation>
+    </message>
+</context>
+<context>
+    <name>DialogUpdate</name>
+    <message>
+        <source>Update (Pre-release)</source>
+        <translation>Обновление (предварительная версия)</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>Обновление</translation>
+    </message>
+    <message>
+        <source>Throne %1 is available, you are using %2.</source>
+        <translation>Доступна версия Throne %1, у вас установлена %2.</translation>
+    </message>
+    <message>
+        <source>Release notes are unavailable.</source>
+        <translation>Список изменений недоступен.</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <comment>button</comment>
+        <translation>Обновить</translation>
+    </message>
+    <message>
+        <source>Open in browser</source>
+        <translation>Открыть в браузере</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Закрыть</translation>
+    </message>
+</context>
+<context>
     <name>DialogAutoSelector</name>
     <message>
         <source>Auto Selector Stats</source>
@@ -9821,6 +9876,10 @@ Name: %1</source>
         <source>close &quot;%1&quot; first</source>
         <translation>сначала закройте «%1»</translation>
     </message>
+    <message>
+        <source>About</source>
+        <translation>О программе</translation>
+    </message>
 </context>
 <context>
     <name>OtpItem</name>
@@ -10151,22 +10210,6 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
     <message>
         <source>No update</source>
         <translation>Обновлений нет</translation>
-    </message>
-    <message>
-        <source>Update found: %1
-Release note:
-%2</source>
-        <translation>Найдено обновление: %1
-Список изменений:
-%2</translation>
-    </message>
-    <message>
-        <source>Open in browser</source>
-        <translation>Открыть в браузере</translation>
-    </message>
-    <message>
-        <source>Close</source>
-        <translation>Закрыть</translation>
     </message>
     <message>
         <source>Update is ready, restart to install?</source>

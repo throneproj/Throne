@@ -655,6 +655,10 @@ set(PROJECT_SOURCES
         src/global/Common.cpp
         include/ui/app/GuiStartup.h
         src/ui/app/GuiStartup.cpp
+        include/ui/app/dialog_about.h
+        src/ui/app/dialog_about.cpp
+        include/ui/app/dialog_update.h
+        src/ui/app/dialog_update.cpp
 )
 
 if (NOT APPLE AND Qt6_VERSION VERSION_GREATER_EQUAL 6.9.0)

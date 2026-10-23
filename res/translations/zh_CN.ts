@@ -205,6 +205,61 @@ Outbound: %4</source>
     </message>
 </context>
 <context>
+    <name>DialogAbout</name>
+    <message>
+        <source>About Throne</source>
+        <translation>关于 Throne</translation>
+    </message>
+    <message>
+        <source>Version:</source>
+        <translation>版本：</translation>
+    </message>
+    <message>
+        <source>Open-source and cross platform Desktop Proxy management utility developed as a successor to Nekoray.</source>
+        <translation>开源、跨平台的桌面代理管理工具，作为 Nekoray 的继任者开发。</translation>
+    </message>
+    <message>
+        <source>Support Throne</source>
+        <translation>支持 Throne</translation>
+    </message>
+    <message>
+        <source>Unknown</source>
+        <translation>未知</translation>
+    </message>
+</context>
+<context>
+    <name>DialogUpdate</name>
+    <message>
+        <source>Update (Pre-release)</source>
+        <translation>更新（预发布）</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>更新</translation>
+    </message>
+    <message>
+        <source>Throne %1 is available, you are using %2.</source>
+        <translation>Throne %1 已发布，当前版本为 %2。</translation>
+    </message>
+    <message>
+        <source>Release notes are unavailable.</source>
+        <translation>无法获取更新日志。</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <comment>button</comment>
+        <translation>更新</translation>
+    </message>
+    <message>
+        <source>Open in browser</source>
+        <translation>在浏览器中打开</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>关闭</translation>
+    </message>
+</context>
+<context>
     <name>DialogAutoSelector</name>
     <message>
         <location filename="Throne-1.3.1/src/ui/stats/dialog_auto_selector.cpp" line="111"/>
@@ -9846,6 +9901,10 @@ Error: %1</source>
         <source>Kill switch is blocking traffic</source>
         <translation>Kill Switch 正在阻断流量</translation>
     </message>
+    <message>
+        <source>About</source>
+        <translation>关于</translation>
+    </message>
 </context>
 <context>
     <name>OtpItem</name>
@@ -10918,25 +10977,6 @@ How to update?</source>
         <location filename="Throne-1.3.1/src/ui/mainWindow/mainwindow_system.cpp" line="597"/>
         <source>No update</source>
         <translation>无更新</translation>
-    </message>
-    <message>
-        <location filename="Throne-1.3.1/src/ui/mainWindow/mainwindow_system.cpp" line="605"/>
-        <source>Update found: %1
-Release note:
-%2</source>
-        <translation>发现更新: %1
-更新日志:
-%2</translation>
-    </message>
-    <message>
-        <location filename="Throne-1.3.1/src/ui/mainWindow/mainwindow_system.cpp" line="610"/>
-        <source>Open in browser</source>
-        <translation>浏览器中打开</translation>
-    </message>
-    <message>
-        <location filename="Throne-1.3.1/src/ui/mainWindow/mainwindow_system.cpp" line="611"/>
-        <source>Close</source>
-        <translation>关闭</translation>
     </message>
     <message>
         <location filename="Throne-1.3.1/src/ui/mainWindow/mainwindow_system.cpp" line="632"/>

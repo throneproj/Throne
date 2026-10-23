@@ -140,6 +140,12 @@ func RunCore() {
 	log.Fatal("IPC connection dropped, exiting")
 }
 
+func printVersions() {
+	fmt.Println("sing-box:", C.Version)
+	fmt.Println("Xray-core:", core.Version())
+	fmt.Println("Go:", runtime.Version())
+}
+
 func main() {
 	// Before anything prints: stdout is the guard's protocol channel and the --check line.
 	if len(os.Args) > 1 {
@@ -158,6 +164,9 @@ func main() {
 			parentcheck.CheckParentProcess()
 			sysdns.RestoreStale()
 			os.Exit(0)
+		case "--version":
+			printVersions()
+			os.Exit(0)
 		}
 	}
 
@@ -168,8 +177,7 @@ func main() {
 			os.Exit(2)
 		}
 	}()
-	fmt.Println("sing-box:", C.Version)
-	fmt.Println("Xray-core:", core.Version())
+	printVersions()
 	fmt.Println()
 	runtimeDebug.SetMemoryLimit(memoryLimit)
 	go watchMemory()

@@ -22,6 +22,11 @@ jobs:
         uses: actions/checkout@v7.0.1
       - name: Checking the engine/UI boundary
         run: cmake -DROOT=${{ github.workspace }} -P cmake/EngineBoundary.cmake
+      - name: Checking the changelog
+        if: github.event.inputs.publish == 'r' || github.event.inputs.publish == 'p'
+        env:
+          TAG: ${{ github.event.inputs.tag }}
+        run: bash ./script/release_notes.sh "$TAG" > /dev/null
   build-go:
     permissions:
       contents: read
@@ -1117,13 +1122,17 @@ jobs:
         run: |
           curl -Lo - https://github.com/tcnksm/ghr/releases/download/v0.17.0/ghr_v0.17.0_linux_amd64.tar.gz | tar xzv
           mv ghr*linux_amd64/ghr .
-      # The changelog is written above the generated download table after publishing.
       - name: Generating release notes
+        if: github.event.inputs.publish == 'r' || github.event.inputs.publish == 'p'
         env:
           TAG: ${{ github.event.inputs.tag }}
           REPO: ${{ github.repository }}
         run: |
-          sed "s|{{TAG}}|$TAG|g; s|{{REPO}}|$REPO|g" .github/release_template.md > "$RUNNER_TEMP/release.md"
+          {
+            bash ./script/release_notes.sh "$TAG"
+            echo
+            sed "s|{{TAG}}|$TAG|g; s|{{REPO}}|$REPO|g" .github/release_template.md
+          } > "$RUNNER_TEMP/release.md"
       - name: PreRelease
         if: github.event.inputs.publish == 'p'
         run: |

@@ -30,6 +30,7 @@
 #include "include/sys/AutoRun.hpp"
 #include "include/sys/UrlScheme.hpp"
 
+#include "include/ui/app/dialog_about.h"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/setting/Icon.hpp"
 #include "include/ui/stats/dialog_traffic_stats.h"
@@ -331,6 +332,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         m_autoSelectorDialog->activateWindow();
     });
     connect(ui->actionCheck_For_Update, &QAction::triggered, this, [=,this] { runOnNewThread([=,this] { CheckUpdate(); }); });
+    connect(ui->actionAbout, &QAction::triggered, this, [=, this] {
+        USE_DIALOG(DialogAbout)
+    });
     connect(ui->actionUpdate_Rule_Sets, &QAction::triggered, this, [] {
         Engine::AssetUpdates::UpdateRuleSets([](const Engine::AssetUpdates::RuleSetResult &result) {
             if (!result.coreReachable) {
