@@ -155,6 +155,28 @@ namespace {
 
     // Panels stamping expire as fetch time + N days land on a unit boundary; a count this close to stepping down shows stepped.
     constexpr qint64 kCountdownGrace = 5 * 60;
+
+    enum class CountdownUnit {
+        Expired,
+        Days,
+        Hours,
+        Minutes,
+    };
+
+    struct CountdownParts {
+        CountdownUnit unit = CountdownUnit::Expired;
+        qint64 value = 0;
+    };
+
+    constexpr CountdownParts countdownParts(qint64 left, qint64 grace = kCountdownGrace) noexcept {
+        if (left < 0)
+            return {CountdownUnit::Expired, 0};
+        if (left >= 86400)
+            return {CountdownUnit::Days, std::max<qint64>(1, (left - grace) / 86400)};
+        if (left >= 3600)
+            return {CountdownUnit::Hours, std::max<qint64>(1, (left - grace) / 3600)};
+        return {CountdownUnit::Minutes, std::max<qint64>(1, left / 60)};
+    }
 } // namespace
 
 SubscriptionInfoCard::SubscriptionInfoCard(QWidget *parent)
@@ -323,14 +345,19 @@ QString SubscriptionInfoCard::expiryText(qint64 expire) {
     if (expire <= 0)
         return {};
     const qint64 left = expire - QDateTime::currentSecsSinceEpoch();
-    if (left < 0)
+    const auto parts = countdownParts(left);
+    switch (parts.unit) {
+    case CountdownUnit::Expired:
         return tr("Expired");
-    const qint64 settled = left - kCountdownGrace;
-    if (settled >= 86400)
-        return tr("%1d left").arg(settled / 86400);
-    if (settled >= 3600)
-        return tr("%1h left").arg(settled / 3600);
-    return tr("%1m left").arg(std::max<qint64>(1, left / 60));
+
+    case CountdownUnit::Days:
+        return tr("%1d left").arg(parts.value);
+    case CountdownUnit::Hours:
+        return tr("%1h left").arg(parts.value);
+    case CountdownUnit::Minutes:
+        return tr("%1m left").arg(parts.value);
+    }
+    return {};
 }
 
 void SubscriptionInfoCard::setGroup(const std::shared_ptr<Configs::Group> &group) {
@@ -497,7 +524,8 @@ void SubscriptionInfoCard::updateData() {
     }
 
     if (sub.expire > 0) {
-        const bool urgent = (sub.expire - QDateTime::currentSecsSinceEpoch() - kCountdownGrace) / 86400 <= 3;
+        const auto parts = countdownParts(sub.expire - QDateTime::currentSecsSinceEpoch());
+        const bool urgent = parts.unit != CountdownUnit::Days || parts.value <= 3;
         m_expiryIcon->setPixmap(renderGlyph(urgent ? Glyph::Warn : Glyph::Hourglass, urgent ? tk.danger : tk.muted, m_iconSize));
         m_expiryLabel->setText(expiryText(sub.expire));
         setStyleProperty(m_expiryLabel, "colorRole", urgent ? QStringLiteral("danger") : QStringLiteral("muted"));
