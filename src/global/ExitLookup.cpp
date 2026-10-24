@@ -139,7 +139,8 @@ namespace Configs_network {
         if (const auto *chosen = exitLookupFind(providerId)) {
             chain << chosen;
         } else {
-            for (const char *id : {"ip-api", "ipwho", "ipinfo", "cloudflare"}) {
+            // ip2location first: the IP & country test asks it too, so both name the same country.
+            for (const char *id : {"ip2location", "ip-api", "ipwho", "ipinfo", "cloudflare"}) {
                 if (const auto *entry = exitLookupFind(QString::fromLatin1(id))) chain << entry;
             }
         }
