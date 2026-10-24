@@ -12,6 +12,7 @@
 #include <srslist.h>
 
 #include <algorithm>
+#include <numeric>
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -87,13 +88,29 @@ static bool routeItemNeedsRulesTab(const Configs::RouteProfile& profile) {
 }
 
 void adjustComboBoxWidth(const QComboBox *comboBox) {
+    // Shaping every item's text to find the widest entry froze the GUI thread for seconds with
+    // thousands of profiles, so only the likeliest widest candidates are measured: pixel width
+    // tracks character count closely enough for profile names, and the popup is capped below.
+    constexpr int maxMeasuredItems = 64;
+
+    const int count = comboBox->count();
+    QList<int> lengths;
+    lengths.reserve(count);
+    for (int i = 0; i < count; ++i) lengths.append(comboBox->itemText(i).size());
+
+    QList<int> order;
+    order.resize(count);
+    std::iota(order.begin(), order.end(), 0);
+    const int measured = qMin(count, maxMeasuredItems);
+    std::partial_sort(order.begin(), order.begin() + measured, order.end(),
+                      [&lengths](const int a, const int b) { return lengths[a] > lengths[b]; });
+
     int maxWidth = 0;
     const QFontMetrics fontMetrics(comboBox->font());
-
-    for (int i = 0; i < comboBox->count(); ++i) {
-        int itemWidth = fontMetrics.horizontalAdvance(comboBox->itemText(i));
-        maxWidth = qMax(maxWidth, itemWidth);
-    }
+    for (int i = 0; i < measured; ++i)
+        maxWidth = qMax(maxWidth, fontMetrics.horizontalAdvance(comboBox->itemText(order[i])));
+    // The current value may sit outside the measured candidates but still must fit.
+    maxWidth = qMax(maxWidth, fontMetrics.horizontalAdvance(comboBox->currentText()));
 
     maxWidth += 30;
     if (const auto *scr = comboBox->screen() != nullptr ? comboBox->screen() : QGuiApplication::primaryScreen())
