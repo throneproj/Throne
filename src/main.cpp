@@ -29,6 +29,7 @@
 #include "include/engine/app/InstanceServer.h"
 #include "include/engine/headless/HeadlessMain.h"
 #include "include/sys/Process.hpp"
+#include "include/sys/SystemProxy.hpp"
 #include "include/sys/ServiceManager.hpp"
 #include "include/ui/app/GuiStartup.h"
 #include "include/ui/mainwindow.h"
@@ -188,6 +189,11 @@ int main(int argc, char* argv[]) {
 
     // Must follow the single-instance check: opening the log earlier truncates the running instance's file and fakes a crash marker.
     Engine::Bootstrap::StartLogging(dataDir);
+#ifdef Q_OS_MACOS
+    // Before EngineHost::init can auto-start a profile or apply a new System Proxy endpoint.
+    if (const auto error = SystemProxy_Recover(); !error.isEmpty()) LOG_WARN(QString("System proxy recovery: %1").arg(error));
+#endif
+
     GuiStartup::InstallSessionEndHooks(a, signal_handler);
 
     API::defaultClient = new API::Client();

@@ -1,0 +1,33 @@
+name: macOS system proxy regressions
+on:
+  pull_request:
+    paths:
+      - 'src/sys/macos/**'
+      - 'include/sys/macos/**'
+      - 'include/sys/SystemProxy.hpp'
+      - 'tests/macos-system-proxy/**'
+      - '.github/workflows/macos-system-proxy-tests.yml'
+  push:
+    branches: [dev]
+    paths:
+      - 'src/sys/macos/**'
+      - 'include/sys/macos/**'
+      - 'tests/macos-system-proxy/**'
+      - '.github/workflows/macos-system-proxy-tests.yml'
+permissions:
+  contents: read
+jobs:
+  regressions:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        qt: ['6.4.3', '6.12.0']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ matrix.qt }}
+          cache: true
+      - run: cmake -S tests/macos-system-proxy -B build/proxy-tests
+      - run: cmake --build build/proxy-tests --parallel 2
+      - run: ctest --test-dir build/proxy-tests --output-on-failure
