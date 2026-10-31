@@ -12,7 +12,7 @@ env:
   # thronectl's source for the Linux zips and packages, the Docker image and the tests; the commit must be pushed to
   # throneproj/Throne-api.
   # A THRONE_API_REF repository variable overrides it.
-  THRONE_API_REF: ${{ vars.THRONE_API_REF || '48b1d5354d121d41897cebc5fd48de01886d5287' }}
+  THRONE_API_REF: ${{ vars.THRONE_API_REF || 'ea52016cd58cfeb1cca016120b8a2513020af08e' }}
 jobs:
   lint:
     permissions:
