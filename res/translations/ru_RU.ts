@@ -3809,6 +3809,14 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <source>WARP has no config yet: click Generate Warp Config.</source>
         <translation>У WARP ещё нет конфигурации: нажмите «Сгенерировать конфигурацию Warp».</translation>
     </message>
+    <message>
+        <source>Generating the AmneziaWG QUIC signature...</source>
+        <translation>Генерация QUIC-сигнатуры AmneziaWG...</translation>
+    </message>
+    <message>
+        <source>AmneziaWG has no QUIC signature yet: click Generate Warp Config.</source>
+        <translation>У AmneziaWG ещё нет QUIC-сигнатуры: нажмите «Сгенерировать конфигурацию Warp».</translation>
+    </message>
 </context>
 <context>
     <name>DialogNewScan</name>

@@ -245,6 +245,7 @@ namespace Configs {
             {"warp_reserved", &warp_reserved},
             {"warp_masque_ifc_addrs", &warp_masque_ifc_addrs},
             {"warp_api_hosts", &warp_api_hosts},
+            {"warp_amnezia_packets", &warp_amnezia_packets},
         };
     }
 

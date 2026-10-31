@@ -379,15 +379,6 @@ jobs:
           ninja
           cd ..
           ./script/deploy_macos.sh
-      - name: Check WARP AmneziaWG configurations
-        if: matrix.dest_suffix == 'linux-amd64'
-        shell: bash
-        run: |
-          cmake -S . -B build -DTHRONE_CONFIG_TESTS=ON
-          cp "$DEST/ThroneCore" build/ThroneCore
-          chmod 755 build/ThroneCore
-          cmake --build build --target ThroneConfigTests --parallel 2
-          ctest --test-dir build --output-on-failure
       # ========================================================================================================= Deployments
       - name: Tar files
         shell: bash

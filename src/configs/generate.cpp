@@ -1,5 +1,4 @@
 #include "include/configs/generate.h"
-#include "include/configs/sub/warp.h"
 #include "include/api/RPC.h"
 #include "include/configs/AutoSelectorPlan.h"
 #include "include/configs/common/utils.h"
@@ -198,7 +197,6 @@ namespace Configs {
             osType os = getOS();
 
             QString error;
-            std::shared_ptr<Profile> warpProfile;
             QJsonArray outbounds;
             QJsonArray endpoints;
             QJsonArray xrayOutbounds;
@@ -639,7 +637,7 @@ namespace Configs {
             if (const auto parsed = portText.toInt(); parsed > 0 && parsed <= 65535) port = parsed;
         }
 
-        std::shared_ptr<Profile> getWarpIdentityProfile() {
+        std::shared_ptr<Profile> getWarpProfile() {
             const auto &settings = *dataManager->settingsRepo;
             auto warpProfile = std::make_shared<Profile>();
             warpProfile->name = "warp";
@@ -695,25 +693,14 @@ namespace Configs {
                 outbound->h2 = "2";
                 outbound->h3 = "3";
                 outbound->h4 = "4";
+                const auto &packets = settings.warp_amnezia_packets;
+                const QList<QString *> fields = {&outbound->i1, &outbound->i2, &outbound->i3, &outbound->i4, &outbound->i5};
+                for (qsizetype i = 0; i < fields.size(); ++i)
+                    *fields[i] = packets.value(i);
             }
 
             warpProfile->outbound = outbound;
             return warpProfile;
-        }
-
-        std::shared_ptr<Profile> getWarpProfile(BuildContext &ctx) {
-            if (ctx.warpProfile) return ctx.warpProfile;
-            auto profile = getWarpIdentityProfile();
-            if (dataManager->settingsRepo->warp_mode == "amnezia") {
-                const auto packets = Configs_network::GenerateWarpCamouflage(ctx.error);
-                if (!ctx.error.isEmpty()) return nullptr;
-                auto *outbound = profile->Wireguard();
-                const QList<QString *> fields = {&outbound->i1, &outbound->i2, &outbound->i3, &outbound->i4, &outbound->i5};
-                for (qsizetype i = 0; i < fields.size(); ++i)
-                    *fields[i] = i < packets.size() ? packets[i] : QString();
-            }
-            ctx.warpProfile = profile;
-            return profile;
         }
 
         // ------------------------------------------------------- prerequisites
@@ -758,7 +745,8 @@ namespace Configs {
                 : settings.warp_private_key.isEmpty() ||
                   settings.warp_public_key.isEmpty() ||
                   settings.warp_ep.isEmpty() ||
-                  settings.warp_ifc_addrs.isEmpty();
+                  settings.warp_ifc_addrs.isEmpty() ||
+                  (settings.warp_mode == "amnezia" && settings.warp_amnezia_packets.isEmpty());
             if (settings.enable_warp && warpMissing) {
                 ctx.error = "Warp is enabled but its config has not been generated. Please generate the Warp config first in Routing Settings.";
                 return;
@@ -1494,12 +1482,7 @@ namespace Configs {
                         scan.coreTransitions++;
                     }
                     inXray = false;
-                    const auto warp = getWarpProfile(ctx);
-                    if (!warp) {
-                        error = ctx.error;
-                        return;
-                    }
-                    ents.append(warp);
+                    ents.append(getWarpProfile());
                     continue;
                 }
                 auto ent = getProfile(id);
@@ -2074,8 +2057,7 @@ namespace Configs {
         // The group already holds warp-bypass, so warp itself is emitted here as "proxy" and points at it.
         void buildWarpInFrontOfSelector(BuildContext &ctx)
         {
-            auto warpEnt = getWarpProfile(ctx);
-            if (!warpEnt) return;
+            auto warpEnt = getWarpProfile();
             auto [warpObject, warpError] = warpEnt->outbound->Build();
             if (!warpError.isEmpty())
             {
@@ -2608,7 +2590,7 @@ namespace Configs {
         }
 
         std::shared_ptr<Profile> scanChainHop(int id) {
-            return id == warpProfileID ? getWarpIdentityProfile() : getProfile(id);
+            return id == warpProfileID ? getWarpProfile() : getProfile(id);
         }
 
         QString scanCloneBlocker(const std::shared_ptr<Profile> &profile) {

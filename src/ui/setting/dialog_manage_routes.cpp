@@ -514,9 +514,11 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     ui->warp_masque_ifc_addrs->setText(Configs::dataManager->settingsRepo->warp_masque_ifc_addrs.join(","));
     ui->warp_masque_sni->setText(Configs::dataManager->settingsRepo->warp_masque_sni);
     ui->warp_masque_http_mode->setCurrentIndex(std::clamp(Configs::dataManager->settingsRepo->warp_masque_http_mode, 0, 2));
+    warpAmneziaPackets = Configs::dataManager->settingsRepo->warp_amnezia_packets;
     auto showWarpMode = [this](int index) {
         UiMode::SetVisible(ui->warp_wg_box, index != 1);
         UiMode::SetVisible(ui->warp_masque_box, index == 1);
+        if (index == 2 && warpAmneziaPackets.isEmpty()) generate_amnezia_packets();
     };
     showWarpMode(ui->warp_mode->currentIndex());
     connect(ui->warp_mode, &QComboBox::currentIndexChanged, this, showWarpMode);
@@ -578,6 +580,11 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
         const bool missing = std::any_of(fields.cbegin(), fields.cend(), [](const QLineEdit *edit) { return edit->text().trimmed().isEmpty(); });
         return missing ? tr("WARP has no config yet: click Generate Warp Config.") : QString();
     }, nullptr, Validation::Severity::Error, ui->enable_warp->text());
+    form->addRule({ui->enable_warp, ui->warp_mode}, [this] {
+        if (!ui->enable_warp->isChecked() || ui->warp_mode->currentIndex() != 2 || !warpAmneziaPackets.isEmpty()) return QString();
+        if (warpAmneziaPending) return tr("Generating the AmneziaWG QUIC signature...");
+        return warpAmneziaError.isEmpty() ? tr("AmneziaWG has no QUIC signature yet: click Generate Warp Config.") : warpAmneziaError;
+    }, nullptr, Validation::Severity::Error, ui->warp_mode_l->text());
     form->markAll();
 
     ADD_ASTERISK(this)
@@ -589,15 +596,18 @@ void DialogManageRoutes::generate_warp_config() {
     if (!Configs_network::ConfirmWarpTerms(this)) return;
 
     const bool masque = ui->warp_mode->currentIndex() == 1;
+    const bool amnezia = ui->warp_mode->currentIndex() == 2;
     const auto originalText = ui->warp_autogen->text();
     ui->warp_autogen->setEnabled(false);
     ui->warp_autogen->setText(tr("Generating config..."));
 
     QPointer<DialogManageRoutes> self(this);
-    runOnNewThread([self, masque, originalText] {
+    runOnNewThread([self, masque, amnezia, originalText] {
         QString error;
+        QString packetError;
         const auto conf = Configs_network::RegisterWarp(masque ? "masque" : "wireguard", &error);
-        runOnUiThread([self, masque, originalText, conf, error] {
+        const auto packets = conf && amnezia ? Configs_network::GenerateWarpCamouflage(packetError) : QStringList();
+        runOnUiThread([self, masque, amnezia, originalText, conf, error, packets, packetError] {
             if (self == nullptr) return;
             auto *dialog = self.data();
             if (!conf) {
@@ -605,6 +615,10 @@ void DialogManageRoutes::generate_warp_config() {
                 dialog->ui->warp_autogen->setEnabled(true);
                 MessageBoxWarning(tr("Failed to generate warp config"), error);
                 return;
+            }
+            if (amnezia) {
+                if (packetError.isEmpty()) dialog->warpAmneziaPackets = packets;
+                dialog->warpAmneziaError = packetError;
             }
             QStringList addrs;
             if (!conf->ipv4.isEmpty()) addrs << conf->ipv4 + "/32";
@@ -622,11 +636,35 @@ void DialogManageRoutes::generate_warp_config() {
                 dialog->ui->warp_reserved->setText(QListInt2QListString(conf->reserved).join(","));
             }
             dialog->form->refresh();
+            if (!packetError.isEmpty()) {
+                dialog->ui->warp_autogen->setText(originalText);
+                dialog->ui->warp_autogen->setEnabled(true);
+                MessageBoxWarning(tr("Failed to generate warp config"), packetError);
+                return;
+            }
             dialog->ui->warp_autogen->setText(tr("Success!"));
             setTimeout([dialog, originalText] {
                 dialog->ui->warp_autogen->setText(originalText);
                 dialog->ui->warp_autogen->setEnabled(true);
             }, dialog, 2000);
+        });
+    });
+}
+
+void DialogManageRoutes::generate_amnezia_packets() {
+    if (warpAmneziaPending) return;
+    warpAmneziaPending = true;
+    QPointer<DialogManageRoutes> self(this);
+    runOnNewThread([self] {
+        QString error;
+        const auto packets = Configs_network::GenerateWarpCamouflage(error);
+        runOnUiThread([self, packets, error] {
+            if (self == nullptr) return;
+            auto *dialog = self.data();
+            dialog->warpAmneziaPending = false;
+            if (error.isEmpty()) dialog->warpAmneziaPackets = packets;
+            dialog->warpAmneziaError = error;
+            dialog->form->refresh();
         });
     });
 }
@@ -693,6 +731,7 @@ void DialogManageRoutes::accept() {
     Configs::dataManager->settingsRepo->warp_reserved = SplitAndTrim(ui->warp_reserved->text(), ",", false);
     Configs::dataManager->settingsRepo->warp_mode = ui->warp_mode->currentIndex() == 1 ? "masque"
         : ui->warp_mode->currentIndex() == 2 ? "amnezia" : "wireguard";
+    Configs::dataManager->settingsRepo->warp_amnezia_packets = warpAmneziaPackets;
     Configs::dataManager->settingsRepo->warp_masque_ep = ui->warp_masque_ep->text().trimmed();
     Configs::dataManager->settingsRepo->warp_masque_private_key = ui->warp_masque_private_key->text().trimmed();
     Configs::dataManager->settingsRepo->warp_masque_peer_public_key = ui->warp_masque_peer_public_key->text().trimmed();

@@ -302,6 +302,7 @@ namespace Configs {
         QStringList warp_reserved = {};
         bool warp_tos_accepted = false;
         QString warp_mode = "wireguard"; // "wireguard", "amnezia", or "masque"
+        QStringList warp_amnezia_packets = {}; // AmneziaWG I1-I5, generated with the identity so config builds need no RPC
         QString warp_masque_private_key = "";
         QString warp_masque_peer_public_key = "";
         QString warp_masque_ep = "";
