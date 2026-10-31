@@ -1394,7 +1394,7 @@ namespace Configs {
             inbounds.prepend(QJsonObject{
                 {"tag", tags::dnsIn},
                 {"type", "direct"},
-                {"listen", "127.0.0.1"},
+                {"listen", settings.core_dns_in_lan ? "::" : "127.0.0.1"},
                 {"listen_port", settings.core_dns_in_port}
             });
             if (systemDnsInbound(ctx)) {

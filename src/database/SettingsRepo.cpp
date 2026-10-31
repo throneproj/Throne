@@ -44,6 +44,7 @@ namespace Configs {
             {"vpn_strict_route",              &vpn_strict_route},
             {"vpn_auto_redirect",             &vpn_auto_redirect},
             {"vpn_l3_bridge",                 &vpn_l3_bridge},
+            {"core_dns_in_lan",               &core_dns_in_lan},
             {"sub_clear",                     &sub_clear},
             {"sub_respect_server_interval",   &sub_respect_server_interval},
             {"sub_show_change_popup",         &sub_show_change_popup},

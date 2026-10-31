@@ -1427,6 +1427,14 @@ Throne will restart to complete the restore.</source>
         <source>Advanced</source>
         <translation>高级</translation>
     </message>
+    <message>
+        <source>Allow other devices to connect</source>
+        <translation>允许其他设备连接</translation>
+    </message>
+    <message>
+        <source>Lets other devices on your network use this DNS server, for example a router that sends its DNS through this computer. Anyone who can reach this port can then resolve names through your DNS settings.</source>
+        <translation>允许网络中的其他设备使用此 DNS 服务器，例如通过本机转发 DNS 的路由器。任何能访问此端口的人都可以通过你的 DNS 设置解析域名。</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>

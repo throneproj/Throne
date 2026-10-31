@@ -1311,6 +1311,14 @@ Throne will restart to complete the restore.</source>
         <source>Advanced</source>
         <translation>Расширенный</translation>
     </message>
+    <message>
+        <source>Allow other devices to connect</source>
+        <translation>Разрешить подключаться другим устройствам</translation>
+    </message>
+    <message>
+        <source>Lets other devices on your network use this DNS server, for example a router that sends its DNS through this computer. Anyone who can reach this port can then resolve names through your DNS settings.</source>
+        <translation>Позволяет другим устройствам в сети использовать этот DNS-сервер, например роутеру, который направляет DNS через этот компьютер. Любой, кто может достучаться до этого порта, сможет разрешать имена через ваши настройки DNS.</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>

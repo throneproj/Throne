@@ -329,6 +329,7 @@ namespace Configs {
         QString core_box_api_secret = "";
         QString core_box_underlying_dns = "";
         int core_dns_in_port = 5533;
+        bool core_dns_in_lan = false;
 
         // Xray
         QString xray_log_level = "warning";

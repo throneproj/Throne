@@ -429,6 +429,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
 
     ui->dns_in_port->setValidator(new QIntValidator(1, 65535, ui->dns_in_port));
     ui->dns_in_port->setText(Int2String(Configs::dataManager->settingsRepo->core_dns_in_port));
+    ui->dns_in_lan->setChecked(Configs::dataManager->settingsRepo->core_dns_in_lan);
 
     ui->core_box_clash_listen_addr->setText(Configs::dataManager->settingsRepo->core_box_clash_listen_addr);
     ui->core_box_clash_listen_addr->setPlaceholderText(tr("127.0.0.1 (default)"));
@@ -724,6 +725,7 @@ void DialogBasicSettings::accept() {
 
     Configs::dataManager->settingsRepo->disable_traffic_stats = ui->disable_stats->isChecked();
     Configs::dataManager->settingsRepo->core_dns_in_port = ui->dns_in_port->text().trimmed().toInt();
+    Configs::dataManager->settingsRepo->core_dns_in_lan = ui->dns_in_lan->isChecked();
     Configs::dataManager->settingsRepo->core_box_clash_listen_addr = ui->core_box_clash_listen_addr->text().trimmed();
     Configs::dataManager->settingsRepo->core_box_clash_api = ui->core_box_clash_api->text().trimmed().toInt();
     Configs::dataManager->settingsRepo->core_box_clash_api_secret = ui->core_box_clash_api_secret->text().trimmed();
