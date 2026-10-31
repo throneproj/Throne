@@ -221,6 +221,14 @@ Deleted %3 Profiles:
         <source>This group no longer exists.</source>
         <translation>این گروه دیگر وجود ندارد.</translation>
     </message>
+    <message>
+        <source>%1 was removed by the update and stays stopped: no single profile with the same name replaces it.</source>
+        <translation>%1 با به‌روزرسانی حذف شد و متوقف می‌ماند: هیچ نمایهٔ یکتایی با همین نام جایگزین آن نیست.</translation>
+    </message>
+    <message>
+        <source>%1 was replaced by the update; connecting to the profile with the same name.</source>
+        <translation>%1 با به‌روزرسانی جایگزین شد؛ در حال اتصال به نمایهٔ هم‌نام.</translation>
+    </message>
 </context>
 <context>
     <name>DialogAbout</name>

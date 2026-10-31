@@ -11506,6 +11506,14 @@ How to update?</source>
         <source>This group no longer exists.</source>
         <translation>此分组已不存在。</translation>
     </message>
+    <message>
+        <source>%1 was removed by the update and stays stopped: no single profile with the same name replaces it.</source>
+        <translation>%1 已在更新中被移除并保持停止：没有唯一的同名配置档可以替代它。</translation>
+    </message>
+    <message>
+        <source>%1 was replaced by the update; connecting to the profile with the same name.</source>
+        <translation>%1 已在更新中被替换；正在连接到同名配置档。</translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>

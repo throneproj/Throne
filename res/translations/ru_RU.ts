@@ -11353,6 +11353,14 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
         <source>This group no longer exists.</source>
         <translation>Этой группы больше не существует.</translation>
     </message>
+    <message>
+        <source>%1 was removed by the update and stays stopped: no single profile with the same name replaces it.</source>
+        <translation>%1 удалён при обновлении и остаётся остановленным: нет единственного профиля с тем же названием, который бы его заменил.</translation>
+    </message>
+    <message>
+        <source>%1 was replaced by the update; connecting to the profile with the same name.</source>
+        <translation>%1 заменён при обновлении; подключение к профилю с тем же названием.</translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>

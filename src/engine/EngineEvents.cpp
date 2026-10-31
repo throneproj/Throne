@@ -32,6 +32,10 @@ namespace Engine {
         emit instance()->subscriptionDiff(title, body);
     }
 
+    void EngineEvents::SubscriptionReplacedRunning(int profileId) {
+        emit instance()->subscriptionReplacedRunning(profileId);
+    }
+
     void EngineEvents::GroupOrderChanged(const QList<int> &groupIds) {
         emit instance()->groupOrderChanged(groupIds);
     }

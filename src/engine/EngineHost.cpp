@@ -239,6 +239,11 @@ namespace Engine {
             // The job's own count: the global may already belong to the next job.
             MW_show_log(MainWindowTr::tr("Imported %1 profile(s)").arg(importedCount >= 0 ? importedCount : Configs::dataManager->settingsRepo->imported_count));
         });
+        connect(EngineEvents::instance(), &EngineEvents::subscriptionReplacedRunning, this, [this](int profileId) {
+            // Whatever the user started since the refresh stopped the old profile wins.
+            if (connectionState() != ConnectionState::Idle) return;
+            start(StartRequest{profileId, false});
+        });
         // Queued and connected before the window's model refresh, so posted-event order clears the cache first.
         auto *ipLists = Scanner::IpListUpdater::instance();
         connect(ipLists, &Scanner::IpListUpdater::listsChanged, this, [] { Configs::InvalidateEndpointDisplayCache(); }, Qt::QueuedConnection);
