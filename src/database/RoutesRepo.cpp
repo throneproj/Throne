@@ -1,4 +1,5 @@
 #include "include/database/RoutesRepo.h"
+#include "include/database/GroupsRepo.h"
 #include "include/global/Configs.hpp"
 #include <QJsonDocument>
 #include <QJsonArray>
@@ -27,6 +28,7 @@ namespace Configs {
                 inner_hop_endpoint_ids TEXT NOT NULL DEFAULT '[]',
                 dns_json TEXT NOT NULL DEFAULT '',
                 custom_dns INTEGER NOT NULL DEFAULT 0,
+                source_gid INTEGER NOT NULL DEFAULT -1,
                 created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
             )
@@ -53,6 +55,8 @@ namespace Configs {
             db.exec("ALTER TABLE route_profiles ADD COLUMN dns_json TEXT NOT NULL DEFAULT ''");
         if (!routeProfilesColumnExists("custom_dns"))
             db.exec("ALTER TABLE route_profiles ADD COLUMN custom_dns INTEGER NOT NULL DEFAULT 0");
+        if (!routeProfilesColumnExists("source_gid"))
+            db.exec("ALTER TABLE route_profiles ADD COLUMN source_gid INTEGER NOT NULL DEFAULT -1");
 
         db.exec(R"(
             CREATE TABLE IF NOT EXISTS route_rules (
@@ -250,6 +254,7 @@ namespace Configs {
         json["remoteURL"] = routeProfile->remoteURL;
         json["autoUpdate"] = routeProfile->autoUpdate;
         json["remoteLastUpdate"] = routeProfile->remoteLastUpdate;
+        json["sourceGid"] = routeProfile->source_gid;
 
         QJsonArray endpointsArray;
         for (const int endpointID : routeProfile->endpointProfileIDs) endpointsArray.append(endpointID);
@@ -283,6 +288,7 @@ namespace Configs {
         routeProfile->remoteURL = json["remoteURL"].toString();
         routeProfile->autoUpdate = json["autoUpdate"].toBool();
         routeProfile->remoteLastUpdate = static_cast<qint64>(json["remoteLastUpdate"].toDouble());
+        routeProfile->source_gid = json["sourceGid"].toInt(-1);
         for (const auto& endpointValue : json["endpointProfileIDs"].toArray()) {
             if (endpointValue.isDouble()) routeProfile->endpointProfileIDs.append(endpointValue.toInt());
         }
@@ -327,8 +333,8 @@ namespace Configs {
         db.execThrow(R"(
             INSERT INTO route_profiles (id, name, default_outbound_id, is_raw, raw_route, prevent_modifications,
                 is_remote, remote_url, auto_update, remote_last_update, endpoint_profile_ids,
-                inner_hop_endpoint_ids, dns_json, custom_dns)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                inner_hop_endpoint_ids, dns_json, custom_dns, source_gid)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 name = excluded.name, default_outbound_id = excluded.default_outbound_id,
                 is_raw = excluded.is_raw, raw_route = excluded.raw_route,
@@ -338,6 +344,7 @@ namespace Configs {
                 endpoint_profile_ids = excluded.endpoint_profile_ids,
                 inner_hop_endpoint_ids = excluded.inner_hop_endpoint_ids,
                 dns_json = excluded.dns_json, custom_dns = excluded.custom_dns,
+                source_gid = excluded.source_gid,
                 updated_at = strftime('%s', 'now')
         )",
             id,
@@ -353,7 +360,8 @@ namespace Configs {
             endpointsJson.toStdString(),
             innerHopsJson.toStdString(),
             dnsJson.toStdString(),
-            routeProfile->customDns ? 1 : 0
+            routeProfile->customDns ? 1 : 0,
+            routeProfile->source_gid
         );
 
         db.execThrow("DELETE FROM route_rules WHERE route_profile_id = ?", id);
@@ -530,6 +538,7 @@ namespace Configs {
         if (const auto dnsDoc = QJsonDocument::fromJson(QString::fromStdString(stmt.getColumn(12).getText()).toUtf8()); dnsDoc.isObject())
             json["dns"] = dnsDoc.object();
         json["customDns"] = stmt.getColumn(13).getInt() != 0;
+        json["sourceGid"] = stmt.getColumn(14).getInt();
         json["rules"] = QJsonArray();
         return routeProfileFromJson(json);
     }
@@ -567,7 +576,7 @@ namespace Configs {
         auto profileQuery = db.query(R"(
             SELECT id, name, default_outbound_id, is_raw, raw_route, prevent_modifications,
                    is_remote, remote_url, auto_update, remote_last_update, endpoint_profile_ids,
-                   inner_hop_endpoint_ids, dns_json, custom_dns
+                   inner_hop_endpoint_ids, dns_json, custom_dns, source_gid
             FROM route_profiles WHERE id = ?
         )", id);
         if (!profileQuery || !profileQuery->executeStep()) {
@@ -636,45 +645,100 @@ namespace Configs {
         return RouteDns::FromJson(doc.object());
     }
 
-    void RoutesRepo::DeleteRouteProfile(int id) {
+    bool RoutesRepo::HasRouteProfile(int id) const {
+        if (id < 0) return false;
         QMutexLocker locker(&mutex);
-        identityMap.erase(id);
-        db.exec("DELETE FROM route_profiles WHERE id = ?", id);
-        ++revision;
+        if (auto it = identityMap.find(id); it != identityMap.end() && !it->second.expired()) return true;
+        auto query = db.query("SELECT 1 FROM route_profiles WHERE id = ?", id);
+        return query && query->executeStep();
     }
 
-    void RoutesRepo::UpdateRouteProfiles(const QList<std::shared_ptr<RouteProfile>>& routeProfiles) {
-        QSet<int> existingIds;
-        auto query = db.query("SELECT id FROM route_profiles");
+    QList<int> RoutesRepo::OwnedBy(int gid) const {
+        QList<int> ids;
+        if (gid < 0) return ids;
+        auto query = db.query("SELECT id FROM route_profiles WHERE source_gid = ? ORDER BY id", gid);
         if (query) {
-            while (query->executeStep()) {
-                existingIds.insert(query->getColumn(0).getInt());
+            while (query->executeStep()) ids.append(query->getColumn(0).getInt());
+        }
+        return ids;
+    }
+
+    void RoutesRepo::DeleteRouteProfile(int id) {
+        DeleteRouteProfiles({id});
+    }
+
+    void RoutesRepo::DeleteRouteProfiles(const QList<int>& ids) {
+        if (ids.isEmpty()) return;
+        std::vector<int> doomed(ids.cbegin(), ids.cend());
+        QSet<int> owners;
+        {
+            QMutexLocker locker(&mutex);
+            QString idList;
+            for (const int id : ids) idList += (idList.isEmpty() ? "" : ",") + QString::number(id);
+            if (auto query = db.query("SELECT source_gid FROM route_profiles WHERE id IN (" + idList.toStdString() + ")")) {
+                while (query->executeStep()) {
+                    if (const int gid = query->getColumn(0).getInt(); gid >= 0) owners.insert(gid);
+                }
             }
+            for (const int id : ids) identityMap.erase(id);
+            db.execDeleteByIdIn("route_profiles", "id", doomed);
+            ++revision;
         }
+        // Outside the lock: the groups repo takes its own.
+        forgetDeleted(QSet<int>(ids.cbegin(), ids.cend()), owners);
+    }
 
-        QMutexLocker locker(&mutex);
-        QSet<int> newIds;
-        for (const auto& routeProfile : routeProfiles) {
-            newIds.insert(routeProfile->id);
-            if (routeProfile->id < 0) {
-                routeProfile->id = NewRouteProfileID();
+    void RoutesRepo::forgetDeleted(const QSet<int>& deleted, const QSet<int>& owners) {
+        auto& groupsRepo = dataManager->groupsRepo;
+        for (const int gid : groupsRepo->GetAllGroupIds()) {
+            const auto group = groupsRepo->GetGroup(gid);
+            if (group == nullptr) continue;
+            bool changed = false;
+            if (deleted.contains(group->route_id)) {
+                group->route_id = -1;
+                changed = true;
+                MW_show_log(QStringLiteral("[Groups] %1: routing profile reset to Default (its profile was deleted)").arg(group->name));
             }
-            saveToDatabase(routeProfile.get(), routeProfile->id);
+            if (owners.contains(gid) && group->import_sub_route) {
+                group->import_sub_route = false;
+                changed = true;
+                MW_show_log(QStringLiteral("[Groups] %1: stopped importing the subscription's routing profile (it was deleted)").arg(group->name));
+            }
+            if (changed) groupsRepo->Save(group);
         }
 
-        std::vector<int> toDelete;
-        for (int id : existingIds) {
-            if (!newIds.contains(id)) toDelete.push_back(id);
+        auto& settings = dataManager->settingsRepo;
+        if (!deleted.contains(settings->current_route_id)) return;
+        const auto remaining = GetAllRouteProfileIds();
+        if (!remaining.isEmpty()) {
+            settings->current_route_id = remaining.first();
+        } else {
+            auto fallback = RouteProfile::GetDefaultChain();
+            AddRouteProfile(fallback);
+            settings->current_route_id = fallback->id;
         }
+        settings->Save();
+    }
 
-        for (const auto& routeProfile : routeProfiles) {
-            identityMap[routeProfile->id] = std::weak_ptr<RouteProfile>(routeProfile);
+    void RoutesRepo::UpdateRouteProfiles(const QList<std::shared_ptr<RouteProfile>>& routeProfiles, const QList<int>& removedIds) {
+        QSet<int> kept;
+        {
+            QMutexLocker locker(&mutex);
+            for (const auto& routeProfile : routeProfiles) {
+                if (routeProfile->id < 0) {
+                    routeProfile->id = NewRouteProfileID();
+                }
+                kept.insert(routeProfile->id);
+                saveToDatabase(routeProfile.get(), routeProfile->id);
+                identityMap[routeProfile->id] = std::weak_ptr<RouteProfile>(routeProfile);
+            }
+            ++revision;
         }
-        for (int id : toDelete) identityMap.erase(id);
-        if (!toDelete.empty()) {
-            db.execDeleteByIdIn("route_profiles", "id", toDelete);
+        QList<int> doomed;
+        for (const int id : removedIds) {
+            if (id >= 0 && !kept.contains(id) && !doomed.contains(id)) doomed << id;
         }
-        ++revision;
+        DeleteRouteProfiles(doomed);
     }
 
     QList<int> RoutesRepo::GetAllRouteProfileIds() const {
@@ -694,7 +758,7 @@ namespace Configs {
         QList<int> idsInOrder;
         QSet<int> cachedProfiles;
 
-        auto profileQuery = db.query("SELECT id, name, default_outbound_id, is_raw, raw_route, prevent_modifications, is_remote, remote_url, auto_update, remote_last_update, endpoint_profile_ids, inner_hop_endpoint_ids, dns_json, custom_dns FROM route_profiles ORDER BY id");
+        auto profileQuery = db.query("SELECT id, name, default_outbound_id, is_raw, raw_route, prevent_modifications, is_remote, remote_url, auto_update, remote_last_update, endpoint_profile_ids, inner_hop_endpoint_ids, dns_json, custom_dns, source_gid FROM route_profiles ORDER BY id");
         if (!profileQuery) return routeProfiles;
 
         QMutexLocker locker(&mutex);

@@ -1530,6 +1530,34 @@ Throne will restart to complete the restore.</source>
         <source>Please input URL</source>
         <translation>请输入 URL</translation>
     </message>
+    <message>
+        <source>Default (%1)</source>
+        <translation>默认（%1）</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>默认</translation>
+    </message>
+    <message>
+        <source>%1 (from this subscription)</source>
+        <translation>%1（来自此订阅）</translation>
+    </message>
+    <message>
+        <source>Routing Profile</source>
+        <translation>路由配置档</translation>
+    </message>
+    <message>
+        <source>Use the subscription&apos;s routing profile</source>
+        <translation>使用订阅提供的路由配置档</translation>
+    </message>
+    <message>
+        <source>The routing profile this group&apos;s profiles connect with. Default follows the routing profile chosen in the Routing menu.</source>
+        <translation>此组的配置档连接时使用的路由配置档。“默认”跟随路由菜单中选择的路由配置档。</translation>
+    </message>
+    <message>
+        <source>Each update saves the routing profile the subscription provides (Happ format) as this group&apos;s own routing profile. DNS settings from the subscription are never used.</source>
+        <translation>每次更新时，将订阅提供的路由配置档（Happ 格式）保存为此组自己的路由配置档。从不使用订阅中的 DNS 设置。</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroupAdvanced</name>
@@ -3783,6 +3811,14 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
     <message>
         <source>WARP has no config yet: click Generate Warp Config.</source>
         <translation>WARP 尚无配置：请点击“生成 Warp 配置”。</translation>
+    </message>
+    <message>
+        <source>%1 (updated by subscription &quot;%2&quot;)</source>
+        <translation>%1（由订阅“%2”更新）</translation>
+    </message>
+    <message>
+        <source>Every update of the subscription &quot;%1&quot; overwrites its rules. Deleting it stops the import.</source>
+        <translation>订阅“%1”的每次更新都会覆盖其规则。删除它将停止导入。</translation>
     </message>
 </context>
 <context>
@@ -9942,6 +9978,14 @@ Error: %1</source>
         <source>[Auto selector] Every profile is measured and the best ones changed — rebuilding with the full ranking.</source>
         <translation>[自动选择器] 所有配置档均已测量，且最佳配置档有变化——按完整排名重新构建。</translation>
     </message>
+    <message>
+        <source>The current routing profile is updated by the subscription &quot;%1&quot;.</source>
+        <translation>当前路由配置档由订阅“%1”更新。</translation>
+    </message>
+    <message>
+        <source>The group &quot;%1&quot; uses its own routing profile, so the running profile keeps it.</source>
+        <translation>组“%1”使用自己的路由配置档，因此正在运行的配置档保持不变。</translation>
+    </message>
 </context>
 <context>
     <name>OtpItem</name>
@@ -11517,6 +11561,54 @@ How to update?</source>
     <message>
         <source>%1 was replaced by the update; connecting to the profile with the same name.</source>
         <translation>%1 已在更新中被替换；正在连接到同名配置档。</translation>
+    </message>
+    <message>
+        <source>the routing profile is not in the Happ format</source>
+        <translation>路由配置档不是 Happ 格式</translation>
+    </message>
+    <message>
+        <source>a raw routing profile is not accepted from a subscription</source>
+        <translation>不接受来自订阅的原始路由配置档</translation>
+    </message>
+    <message>
+        <source>unknown routing link action &quot;%1&quot;</source>
+        <translation>未知的路由链接操作“%1”</translation>
+    </message>
+    <message>
+        <source>the routing profile is not valid base64</source>
+        <translation>路由配置档不是有效的 base64</translation>
+    </message>
+    <message>
+        <source>the routing profile is not a JSON object</source>
+        <translation>路由配置档不是 JSON 对象</translation>
+    </message>
+    <message>
+        <source>[Routing] %1: the routing profile the subscription provides was ignored: %2</source>
+        <translation>[路由] %1：已忽略订阅提供的路由配置档：%2</translation>
+    </message>
+    <message>
+        <source>[Routing] %1: the routing profile the subscription provides was not applied, the routing profiles are open for editing.</source>
+        <translation>[路由] %1：未应用订阅提供的路由配置档，因为路由配置档正在编辑中。</translation>
+    </message>
+    <message>
+        <source>%1 entries, %2 skipped</source>
+        <translation>%1 条，跳过 %2 条</translation>
+    </message>
+    <message>
+        <source>%1 entries</source>
+        <translation>%1 条</translation>
+    </message>
+    <message>
+        <source>%1 routing</source>
+        <translation>%1 路由</translation>
+    </message>
+    <message>
+        <source>[Routing] %1: created the routing profile &quot;%2&quot; from the subscription (%3)</source>
+        <translation>[路由] %1：已从订阅创建路由配置档“%2”（%3）</translation>
+    </message>
+    <message>
+        <source>[Routing] %1: updated the routing profile &quot;%2&quot; from the subscription (%3)</source>
+        <translation>[路由] %1：已从订阅更新路由配置档“%2”（%3）</translation>
     </message>
 </context>
 <context>

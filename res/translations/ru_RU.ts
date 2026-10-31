@@ -1390,6 +1390,34 @@ Throne will restart to complete the restore.</source>
         <source>Copy profile share links (Deep Links)</source>
         <translation>Копировать ссылки профилей (deep links)</translation>
     </message>
+    <message>
+        <source>Default (%1)</source>
+        <translation>По умолчанию (%1)</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>По умолчанию</translation>
+    </message>
+    <message>
+        <source>%1 (from this subscription)</source>
+        <translation>%1 (из этой подписки)</translation>
+    </message>
+    <message>
+        <source>Routing Profile</source>
+        <translation>Профиль маршрутизации</translation>
+    </message>
+    <message>
+        <source>Use the subscription&apos;s routing profile</source>
+        <translation>Использовать профиль маршрутизации из подписки</translation>
+    </message>
+    <message>
+        <source>The routing profile this group&apos;s profiles connect with. Default follows the routing profile chosen in the Routing menu.</source>
+        <translation>Профиль маршрутизации, с которым подключаются профили этой группы. «По умолчанию» — профиль, выбранный в меню «Маршрутизация».</translation>
+    </message>
+    <message>
+        <source>Each update saves the routing profile the subscription provides (Happ format) as this group&apos;s own routing profile. DNS settings from the subscription are never used.</source>
+        <translation>При каждом обновлении профиль маршрутизации из подписки (формат Happ) сохраняется как собственный профиль этой группы. Настройки DNS из подписки никогда не используются.</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroupAdvanced</name>
@@ -3824,6 +3852,14 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
     <message>
         <source>AmneziaWG has no QUIC signature yet: click Generate Warp Config.</source>
         <translation>У AmneziaWG ещё нет QUIC-сигнатуры: нажмите «Сгенерировать конфигурацию Warp».</translation>
+    </message>
+    <message>
+        <source>%1 (updated by subscription &quot;%2&quot;)</source>
+        <translation>%1 (обновляется подпиской «%2»)</translation>
+    </message>
+    <message>
+        <source>Every update of the subscription &quot;%1&quot; overwrites its rules. Deleting it stops the import.</source>
+        <translation>Каждое обновление подписки «%1» перезаписывает его правила. Удаление прекращает импорт.</translation>
     </message>
 </context>
 <context>
@@ -9930,6 +9966,14 @@ Name: %1</source>
         <source>[Auto selector] Every profile is measured and the best ones changed — rebuilding with the full ranking.</source>
         <translation>[Автовыбор] Все профили измерены, и лучшие изменились — пересборка по полному рейтингу.</translation>
     </message>
+    <message>
+        <source>The current routing profile is updated by the subscription &quot;%1&quot;.</source>
+        <translation>Текущий профиль маршрутизации обновляется подпиской «%1».</translation>
+    </message>
+    <message>
+        <source>The group &quot;%1&quot; uses its own routing profile, so the running profile keeps it.</source>
+        <translation>Группа «%1» использует собственный профиль маршрутизации, поэтому запущенный профиль сохраняет его.</translation>
+    </message>
 </context>
 <context>
     <name>OtpItem</name>
@@ -11364,6 +11408,54 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
     <message>
         <source>%1 was replaced by the update; connecting to the profile with the same name.</source>
         <translation>%1 заменён при обновлении; подключение к профилю с тем же названием.</translation>
+    </message>
+    <message>
+        <source>the routing profile is not in the Happ format</source>
+        <translation>профиль маршрутизации не в формате Happ</translation>
+    </message>
+    <message>
+        <source>a raw routing profile is not accepted from a subscription</source>
+        <translation>необработанный (raw) профиль маршрутизации из подписки не принимается</translation>
+    </message>
+    <message>
+        <source>unknown routing link action &quot;%1&quot;</source>
+        <translation>неизвестное действие ссылки маршрутизации «%1»</translation>
+    </message>
+    <message>
+        <source>the routing profile is not valid base64</source>
+        <translation>профиль маршрутизации не является корректным base64</translation>
+    </message>
+    <message>
+        <source>the routing profile is not a JSON object</source>
+        <translation>профиль маршрутизации не является JSON-объектом</translation>
+    </message>
+    <message>
+        <source>[Routing] %1: the routing profile the subscription provides was ignored: %2</source>
+        <translation>[Маршрутизация] %1: профиль маршрутизации из подписки пропущен: %2</translation>
+    </message>
+    <message>
+        <source>[Routing] %1: the routing profile the subscription provides was not applied, the routing profiles are open for editing.</source>
+        <translation>[Маршрутизация] %1: профиль маршрутизации из подписки не применён — профили маршрутизации открыты для редактирования.</translation>
+    </message>
+    <message>
+        <source>%1 entries, %2 skipped</source>
+        <translation>записей: %1, пропущено: %2</translation>
+    </message>
+    <message>
+        <source>%1 entries</source>
+        <translation>записей: %1</translation>
+    </message>
+    <message>
+        <source>%1 routing</source>
+        <translation>%1 — маршрутизация</translation>
+    </message>
+    <message>
+        <source>[Routing] %1: created the routing profile &quot;%2&quot; from the subscription (%3)</source>
+        <translation>[Маршрутизация] %1: из подписки создан профиль маршрутизации «%2» (%3)</translation>
+    </message>
+    <message>
+        <source>[Routing] %1: updated the routing profile &quot;%2&quot; from the subscription (%3)</source>
+        <translation>[Маршрутизация] %1: профиль маршрутизации «%2» обновлён из подписки (%3)</translation>
     </message>
 </context>
 <context>

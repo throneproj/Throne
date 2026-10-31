@@ -30,6 +30,7 @@
 #include "include/configs/sub/warp.h"
 #include "include/configs/sub/RouteUpdater.hpp"
 
+#include "include/database/GroupsRepo.h"
 #include "include/database/RoutesRepo.h"
 #include "include/ui/setting/RawRouteItem.h"
 #include "include/ui/setting/RouteDnsEditor.h"
@@ -204,7 +205,12 @@ void DialogManageRoutes::reloadProfileItems() {
     int i=0;
     for (const auto &item: chainList) {
         ui->route_prof->addItem(item->name);
-        ui->route_profiles->addItem(item->name);
+        if (const auto owner = Configs::dataManager->groupsRepo->GetGroup(item->source_gid); owner != nullptr && owner->import_sub_route) {
+            auto *row = new QListWidgetItem(tr("%1 (updated by subscription \"%2\")").arg(item->name, owner->name), ui->route_profiles);
+            row->setToolTip(tr("Every update of the subscription \"%1\" overwrites its rules. Deleting it stops the import.").arg(owner->name));
+        } else {
+            ui->route_profiles->addItem(item->name);
+        }
         if (item == currentRoute) {
             ui->route_prof->setCurrentIndex(i);
             selectedChainGone=false;
@@ -720,7 +726,7 @@ void DialogManageRoutes::accept() {
     }
     Configs::dataManager->settingsRepo->dns_predefined_rules = predefinedRules;
 
-    Configs::dataManager->routesRepo->UpdateRouteProfiles(chainList);
+    Configs::dataManager->routesRepo->UpdateRouteProfiles(chainList, removedIds);
     Configs::dataManager->settingsRepo->current_route_id = currentRoute->id;
 
     Configs::dataManager->settingsRepo->enable_warp = ui->enable_warp->isChecked();
@@ -904,6 +910,8 @@ void DialogManageRoutes::on_clone_route_clicked() {
     auto chainCopy = std::make_shared<Configs::RouteProfile>(*chainList[idx]);
     chainCopy->name = chainCopy->name + " clone";
     chainCopy->id = -1;
+    // The clone is the user's own: the subscription keeps updating only the original.
+    chainCopy->source_gid = -1;
     chainList.append(chainCopy);
     reloadProfileItems();
 }
@@ -941,6 +949,7 @@ void DialogManageRoutes::on_delete_route_clicked() {
 
     auto profileToDel = chainList[idx];
     chainList.removeAt(idx);
+    if (profileToDel->id >= 0) removedIds << profileToDel->id;
     if (profileToDel == currentRoute) {
         currentRoute = chainList[0];
     }

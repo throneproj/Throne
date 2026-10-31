@@ -144,7 +144,7 @@ namespace Engine {
             for (const auto &text : result.xrayFullConfigs) fullConfigs << ParseEmbeddedConfig(text);
             if (!fullConfigs.isEmpty()) doc["xray_full_configs"] = fullConfigs;
             if (!result.xrayConfig.isEmpty() || !fullConfigs.isEmpty()) {
-                doc["xray_outbound_dns_strategy"] = Configs::getXrayOutboundDomainStrategy();
+                doc["xray_outbound_dns_strategy"] = result.xrayDnsStrategy;
             }
             if (const auto &extra = result.extraCoreData; extra != nullptr && !extra->path.isEmpty()) {
                 doc["extra_core"] = QJsonObject{
@@ -207,9 +207,10 @@ namespace Engine {
             }
 
             // The builders dereference the outbound unchecked.
-            QJsonObject full(const std::shared_ptr<Configs::Profile> &ent, const QString &name) {
+            // routeId pins the routing profile; without it the profile's group picks one.
+            QJsonObject full(const std::shared_ptr<Configs::Profile> &ent, const QString &name, std::optional<int> routeId = std::nullopt) {
                 if (ent->outbound == nullptr) return write(name, {{"error", "the profile has no outbound"}});
-                return write(name, FullConfigDocument(*Configs::BuildSingBoxConfig(ent)));
+                return write(name, FullConfigDocument(*Configs::BuildSingBoxConfig(ent, routeId)));
             }
 
             QJsonObject test(const std::shared_ptr<Configs::Profile> &ent, const QString &name) {
@@ -418,9 +419,8 @@ namespace Engine {
                 routeEntries << entry;
                 continue;
             }
-            settings.current_route_id = routeId;
-            const auto restoreRoute = qScopeGuard([&settings, currentRouteId] { settings.current_route_id = currentRouteId; });
-            const auto written = dumper.full(ent, QString("route-%1.json").arg(routeId));
+            // Explicit, so the profile's group override cannot replace the route being dumped.
+            const auto written = dumper.full(ent, QString("route-%1.json").arg(routeId), routeId);
             for (auto it = written.begin(); it != written.end(); ++it) entry[it.key()] = it.value();
             routeEntries << entry;
         }

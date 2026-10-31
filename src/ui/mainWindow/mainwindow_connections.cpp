@@ -11,6 +11,7 @@
 #include "include/engine/services/StatsService.h"
 #include "include/global/Common.h"
 #include "include/global/LocalNetwork.hpp"
+#include "include/global/RunningProfiles.hpp"
 #include "include/global/Utils.hpp"
 #include "include/ui/utils/ConnectionsFilterHeader.h"
 #include "include/ui/utils/ConnectionsTreeFilterProxyModel.h"
@@ -480,11 +481,13 @@ void MainWindow::syncConnectionExpandButton()
 QString MainWindow::routeRuleAppendBlocker() const
 {
     const auto& dm = Configs::dataManager;
-    const auto currentRoute = dm->routesRepo->GetRouteProfile(dm->settingsRepo->current_route_id);
+    const auto currentRoute = dm->routesRepo->GetRouteProfile(Configs::ActiveRouteId());
     if (!currentRoute) return tr("No active routing profile found.");
     if (currentRoute->preventModifications) return tr("The current routing profile is locked against modifications.");
     if (currentRoute->isRaw) return tr("The current routing profile is raw JSON.");
     if (currentRoute->isRemote && currentRoute->autoUpdate) return tr("The current routing profile auto-updates from a URL.");
+    if (const auto owner = dm->groupsRepo->GetGroup(currentRoute->source_gid); owner != nullptr && owner->import_sub_route)
+        return tr("The current routing profile is updated by the subscription \"%1\".").arg(owner->name);
     return {};
 }
 
@@ -501,7 +504,7 @@ MainWindow::RuleToggle MainWindow::toggleRuleInCurrentRoute(const QString& rawRu
     if (const auto blocker = routeRuleAppendBlocker(); !blocker.isEmpty()) return fail(blocker);
 
     const auto& dm = Configs::dataManager;
-    const auto currentRoute = dm->routesRepo->GetRouteProfile(dm->settingsRepo->current_route_id);
+    const auto currentRoute = dm->routesRepo->GetRouteProfile(Configs::ActiveRouteId());
     if (!currentRoute) return fail(tr("No active routing profile found."));
 
     const QString name = nameOf(target);
@@ -606,7 +609,7 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos)
 
         const QString blocker = routeRuleAppendBlocker();
         const auto& dm = Configs::dataManager;
-        const auto currentRoute = blocker.isEmpty() ? dm->routesRepo->GetRouteProfile(dm->settingsRepo->current_route_id) : nullptr;
+        const auto currentRoute = blocker.isEmpty() ? dm->routesRepo->GetRouteProfile(Configs::ActiveRouteId()) : nullptr;
 
         auto* header = menu.addAction(currentRoute ? tr("Modify rules in \"%1\"").arg(currentRoute->name) : tr("Modify rules"));
         header->setEnabled(false);
@@ -652,7 +655,7 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos)
             return;
         }
         const auto& dm = Configs::dataManager;
-        const auto currentRoute = dm->routesRepo->GetRouteProfile(dm->settingsRepo->current_route_id);
+        const auto currentRoute = dm->routesRepo->GetRouteProfile(Configs::ActiveRouteId());
         if (!currentRoute) return;
 
         const auto servers = ra ? QList<RoutableServer>{} : RoutableServers();

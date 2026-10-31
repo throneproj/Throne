@@ -2,6 +2,7 @@
 
 #include "include/api/RPC.h"
 #include "include/database/DatabaseManager.h"
+#include "include/database/GroupsRepo.h"
 #include "include/database/entities/Profile.h"
 #include "include/engine/EnginePolicy.h"
 #include "include/engine/EngineTr.h"
@@ -10,6 +11,7 @@
 #include "include/global/Configs.hpp"
 #include "include/global/LocalNetwork.hpp"
 #include "include/global/Notice.hpp"
+#include "include/global/RunningProfiles.hpp"
 #include "include/global/Utils.hpp"
 #include "include/sys/HostPresence.hpp"
 #include "include/sys/HostTun.hpp"
@@ -215,6 +217,13 @@ namespace Engine {
         settings->current_route_id = routeId;
         settings->Save();
         if (settings->started_id < 0) return false;
+        if (const auto running = runningSnapshot(); running != nullptr && Configs::RunningRouteId() >= 0 &&
+                                                    Configs::RouteIdFor(running->gid) == Configs::RunningRouteId()) {
+            const auto group = Configs::dataManager->groupsRepo->GetGroup(running->gid);
+            MW_show_log(MainWindowTr::tr("The group \"%1\" uses its own routing profile, so the running profile keeps it.")
+                            .arg(group != nullptr ? group->name : QString::number(running->gid)));
+            return false;
+        }
         start(StartRequest{settings->started_id, interactive, restartSerial});
         return true;
     }

@@ -28,4 +28,7 @@ namespace Subscription {
     void ParseDocument(QByteArray body, const ParseSink &sink);
 
     void ParseText(const QString &text, const ParseSink &sink);
+
+    // The first "<scheme>://routing/..." line of a subscription body (base64 or plain), or empty.
+    QString ShippedRoutingLink(QByteArray body);
 }

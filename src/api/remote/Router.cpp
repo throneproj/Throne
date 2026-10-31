@@ -24,6 +24,7 @@
 #include "include/engine/EngineControl.h"
 #include "include/engine/services/ServiceTypes.h"
 #include "include/global/Configs.hpp"
+#include "include/global/RunningProfiles.hpp"
 #include "include/stats/traffic/TrafficStatsManager.hpp"
 #include "include/sys/KillSwitch.hpp"
 
@@ -484,7 +485,7 @@ namespace RemoteApi {
     QJsonObject Router::statusJson() const {
         const auto &settings = Configs::dataManager->settingsRepo;
         const auto running = engine_->runningSnapshot();
-        const auto route = Configs::dataManager->routesRepo->GetRouteProfile(settings->current_route_id);
+        const auto route = Configs::dataManager->routesRepo->GetRouteProfile(Configs::ActiveRouteId());
         const auto degraded = engine_->degradedReason();
         // Empty while this instance's Tun is on.
         const auto tunConflict = engine_->tunBlockedReason();
@@ -549,6 +550,9 @@ namespace RemoteApi {
             {"archived", group.archive},
             {"profile_count", static_cast<qint64>(QSet<int>(ids.begin(), ids.end()).size())},
             {"updated_at", subscription ? group.sub_last_update : 0},
+            // A dangling override builds with the active routing profile, so it reads as none.
+            {"route_id", group.route_id >= 0 && Configs::dataManager->routesRepo->HasRouteProfile(group.route_id) ? group.route_id : -1},
+            {"import_route", subscription && group.import_sub_route},
         };
     }
 
@@ -556,7 +560,10 @@ namespace RemoteApi {
         return {
             {"id", route.id},
             {"name", route.name},
+            // The global choice PUT /v1/routes/active sets; a group can override it, which in_use reflects.
             {"active", route.id == Configs::dataManager->settingsRepo->current_route_id},
+            {"in_use", route.id == Configs::ActiveRouteId()},
+            {"source_group_id", route.source_gid},
         };
     }
 

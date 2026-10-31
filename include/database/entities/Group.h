@@ -140,6 +140,10 @@ namespace Configs
         SubscriptionOptions sub_options;
         int front_proxy_id = -1;
         int landing_proxy_id = -1;
+        // The routing profile this group's profiles are built with; -1 follows the global one.
+        int route_id = -1;
+        // Keep a routing profile from what the subscription ships (RouteProfile::source_gid names the group).
+        bool import_sub_route = false;
         // Inherit (profiles keep their own addresses), Address or IpList.
         EndpointSource endpoint;
 

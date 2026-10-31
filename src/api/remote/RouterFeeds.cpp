@@ -202,7 +202,8 @@ namespace RemoteApi {
         for (const int gid : repo->GetAllGroupIds()) {
             const auto group = repo->GetGroup(gid);
             if (group == nullptr) continue;
-            seed = qHashMulti(seed, gid, group->name, group->url, group->archive, group->sub_last_update);
+            seed = qHashMulti(seed, gid, group->name, group->url, group->archive, group->sub_last_update, group->route_id,
+                              group->import_sub_route);
             const auto ids = group->Profiles();
             seed = qHashRange(ids.cbegin(), ids.cend(), seed);
         }

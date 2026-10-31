@@ -50,6 +50,9 @@ private:
 
     QList<std::shared_ptr<Configs::RouteProfile>> chainList;
 
+    // Saved profiles removed from the list, deleted on OK.
+    QList<int> removedIds;
+
     std::shared_ptr<Configs::RouteProfile> currentRoute;
 
     int tooltipID = 0;

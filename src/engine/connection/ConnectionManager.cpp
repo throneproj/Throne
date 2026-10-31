@@ -164,7 +164,7 @@ namespace Engine {
             req.need_xray = !result->xrayConfig.isEmpty();
             for (const auto &full : result->xrayFullConfigs) req.xray_full_configs.push_back(full.toStdString());
             if (req.need_xray || !req.xray_full_configs.empty()) {
-                req.xray_outbound_dns_strategy = Configs::getXrayOutboundDomainStrategy().toStdString();
+                req.xray_outbound_dns_strategy = result->xrayDnsStrategy.toStdString();
                 if (auto selector = ent->AutoSelector(); selector != nullptr) {
                     // The idle window must outlast the probe interval or the sidecar restarts every round.
                     req.xray_lazy_start = true;
@@ -249,6 +249,7 @@ namespace Engine {
             Stats::SetVpnEndpointProfiles(result->vpnEndpointProfiles);
             m_stats->setOutboundNames(result->outboundNames);
             Configs::SetRunningProfiles(result->involvedProfiles);
+            Configs::SetRunningRoute(result->routeId);
             setRunning(ent, !result->tunIPv4CIDR.isEmpty());
             if (Configs::dataManager->settingsRepo->spmode_system_proxy) applySystemProxy(true);
 

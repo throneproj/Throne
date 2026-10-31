@@ -18,6 +18,7 @@
 #include "include/engine/vpn/VpnAuthController.h"
 #include "include/engine/vpn/VpnEndpoints.h"
 #include "include/global/LocalNetwork.hpp"
+#include "include/global/RunningProfiles.hpp"
 #include "include/stats/autoselector/AutoSelectorMonitor.hpp"
 #include "include/sys/KillSwitch.hpp"
 #include "include/ui/setting/Icon.hpp"
@@ -245,7 +246,7 @@ void MainWindow::refresh_status(const QString &traffic_update) {
         ui->label_running->setToolTip({});
     }
 
-    const auto route = Configs::dataManager->routesRepo->GetRouteProfile(settings->current_route_id);
+    const auto route = Configs::dataManager->routesRepo->GetRouteProfile(Configs::ActiveRouteId());
     const QString activeRouteName = (route && route->name != "Default") ? route->name : "";
     const auto killSwitchState = Sys::KillSwitch::instance()->state();
     const bool killSwitchBlocking = killSwitchState == Sys::KillSwitch::State::Failed && Sys::KillSwitch::instance()->failedForIdentity();

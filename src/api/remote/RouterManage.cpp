@@ -206,10 +206,13 @@ namespace RemoteApi {
         std::optional<QString> url;
         std::optional<bool> autoUpdate;
         std::optional<bool> update;
+        std::optional<int> routeId;
+        std::optional<bool> importRoute;
         WaitOptions options;
         if (!bodyObject(request, true, &body, &error) || !readString(body, QStringLiteral("name"), &name, &error) ||
             !readString(body, QStringLiteral("url"), &url, &error) || !readBool(body, QStringLiteral("auto_update"), &autoUpdate, &error) ||
-            !readBool(body, QStringLiteral("update"), &update, &error) ||
+            !readBool(body, QStringLiteral("update"), &update, &error) || !readId(body, QStringLiteral("route_id"), &routeId, &error) ||
+            !readBool(body, QStringLiteral("import_route"), &importRoute, &error) ||
             !readWait(body, true, RouterManageImpl::kGroupUpdateWaitSec, &options, &error)) {
             respond(error);
             return;
@@ -228,6 +231,12 @@ namespace RemoteApi {
             }
         }
         spec.autoUpdate = autoUpdate.value_or(true);
+        spec.routeId = routeId.value_or(-1);
+        if (spec.routeId < -1) {
+            respond(badRequest(QStringLiteral("\"route_id\" must be -1 or a routing profile id")));
+            return;
+        }
+        spec.importRoute = importRoute.value_or(false);
         int gid = -1;
         if (const auto refused = Engine::GroupService::Add(spec, &gid)) {
             respond(serviceError(*refused));

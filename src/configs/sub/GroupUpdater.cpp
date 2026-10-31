@@ -2,6 +2,7 @@
 
 #include "include/configs/generate.h"
 #include "include/configs/sub/ImportReport.hpp"
+#include "include/configs/sub/RouteUpdater.hpp"
 #include "include/configs/sub/SubscriptionParser.hpp"
 #include "include/configs/sub/SubscriptionReconcile.hpp"
 #include "include/configs/sub/SubscriptionScan.hpp"
@@ -809,7 +810,7 @@ namespace Subscription {
     }
 
     bool GroupUpdater::fetch(const QString &url, const QString &name, const RequestIdentity &identity, QByteArray &body,
-                             Configs::SubUserInfo &subInfo, QString *error) {
+                             Configs::SubUserInfo &subInfo, QString *error, QString *routing) {
         MW_show_log(">>>>>>>> " + QObject::tr("Requesting subscription: %1").arg(name));
         HttpGetOptions options;
         options.maxBytes = kMaxSubscriptionBytes;
@@ -825,6 +826,7 @@ namespace Subscription {
             return false;
         }
         body = std::move(resp.data);
+        if (routing != nullptr) *routing = NetworkRequestHelper::GetHeader(resp.header, "routing").trimmed();
 
         const QString userInfoHeader = NetworkRequestHelper::GetHeader(resp.header, "Subscription-UserInfo");
         if (!userInfoHeader.isEmpty()) subInfo = Configs::ParseSubUserInfo(userInfoHeader);
@@ -973,7 +975,8 @@ namespace Subscription {
         QByteArray body;
         Configs::SubUserInfo subInfo;
         QString error;
-        if (!fetch(url, group->name, ResolveIdentity(group.get()), body, subInfo, &error)) {
+        QString routing;
+        if (!fetch(url, group->name, ResolveIdentity(group.get()), body, subInfo, &error, &routing)) {
             auto outcome = groupUpdaterFailure(gid, UpdateOutcome::Failure::Fetch, groupUpdaterFetchError(error));
             outcome.report.addFatal(fetchFailure(error));
             if (surface == Surface::Report) {
@@ -982,9 +985,15 @@ namespace Subscription {
             if (surface != Surface::Log) ShowImportReport(reportTitle(surface, group->name), outcome.report);
             return outcome;
         }
+        const bool importRoute = group->import_sub_route;
+        // "off" means the header carries nothing; the link may then sit in the body instead.
+        if (importRoute && (routing.isEmpty() || routing.compare(QLatin1String("off"), Qt::CaseInsensitive) == 0)) {
+            if (const auto shipped = ShippedRoutingLink(body); !shipped.isEmpty()) routing = shipped;
+        }
         UpdateOutcome outcome;
         outcome.gid = gid;
         applyRefresh(group, url, std::move(body), subInfo, surface, outcome);
+        if (importRoute && outcome.ok()) RouteUpdate::ImportSubscriptionRoute(gid, routing);
         return outcome;
     }
 

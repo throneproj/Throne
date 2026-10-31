@@ -15,6 +15,7 @@
 #include "include/configs/common/OutboundFactory.h"
 #include "include/configs/generate.h"
 #include "include/global/Configs.hpp"
+#include "include/global/RunningProfiles.hpp"
 
 #include <algorithm>
 
@@ -186,6 +187,7 @@ namespace Configs {
         remoteURL = other.remoteURL;
         autoUpdate = other.autoUpdate;
         remoteLastUpdate = other.remoteLastUpdate;
+        source_gid = other.source_gid;
         endpointProfileIDs = other.endpointProfileIDs;
         innerHopEndpointIDs = other.innerHopEndpointIDs;
         customDns = other.customDns;
@@ -207,7 +209,11 @@ namespace Configs {
     }
 
     RouteDns RouteDns::Current(bool* own) {
-        const auto custom = Configs::dataManager->routesRepo->GetCustomDns(Configs::dataManager->settingsRepo->current_route_id);
+        return OfRoute(ActiveRouteId(), own);
+    }
+
+    RouteDns RouteDns::OfRoute(int routeId, bool* own) {
+        const auto custom = Configs::dataManager->routesRepo->GetCustomDns(routeId);
         if (own) *own = custom.has_value();
         return custom ? *custom : Global();
     }

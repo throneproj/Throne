@@ -101,7 +101,21 @@
       <item row="0" column="1">
        <widget class="QLineEdit" name="name"/>
       </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="route_l">
+        <property name="text">
+         <string>Routing Profile</string>
+        </property>
+       </widget>
+      </item>
       <item row="4" column="1">
+       <widget class="QComboBox" name="route">
+        <property name="toolTip">
+         <string>The routing profile this group's profiles connect with. Default follows the routing profile chosen in the Routing menu.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
        <layout class="QHBoxLayout" name="common_options_layout">
         <item>
          <widget class="QCheckBox" name="auto_clear_unavailable">
@@ -169,6 +183,16 @@
         </property>
        </widget>
       </item>
+      <item row="2" column="1">
+       <widget class="QCheckBox" name="import_sub_route">
+        <property name="toolTip">
+         <string>Each update saves the routing profile the subscription provides (Happ format) as this group's own routing profile. DNS settings from the subscription are never used.</string>
+        </property>
+        <property name="text">
+         <string>Use the subscription's routing profile</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -214,10 +238,12 @@
  <tabstops>
   <tabstop>name</tabstop>
   <tabstop>type</tabstop>
+  <tabstop>route</tabstop>
   <tabstop>auto_clear_unavailable</tabstop>
   <tabstop>advanced</tabstop>
   <tabstop>url</tabstop>
   <tabstop>skip_auto_update</tabstop>
+  <tabstop>import_sub_route</tabstop>
   <tabstop>copy_links</tabstop>
   <tabstop>copy_links_nkr</tabstop>
  </tabstops>

@@ -23,8 +23,11 @@ namespace Configs {
 
         static RouteDns Global();
 
-        // The current routing profile's own DNS, else the global one; *own tells which.
+        // OfRoute(ActiveRouteId()): the routing profile in effect, the one being built on this thread included.
         static RouteDns Current(bool* own = nullptr);
+
+        // That routing profile's own DNS, else the global one; *own tells which.
+        static RouteDns OfRoute(int routeId, bool* own = nullptr);
 
         [[nodiscard]] QJsonObject ToJson() const;
 
@@ -73,6 +76,9 @@ namespace Configs {
         QString remoteURL = "";
         bool autoUpdate = false;
         qint64 remoteLastUpdate = 0; // epoch seconds
+
+        // The subscription group whose updates overwrite Rules (Group::import_sub_route); -1 for none. Local only.
+        int source_gid = -1;
 
         // Profile ids of openvpn/openconnect profiles run alongside this routing profile.
         QList<int> endpointProfileIDs;

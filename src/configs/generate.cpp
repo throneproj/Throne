@@ -20,6 +20,7 @@
 
 
 #include "include/database/entities/Profile.h"
+#include "include/global/RunningProfiles.hpp"
 #include "include/global/VpnCredentialOverride.hpp"
 #ifdef Q_OS_LINUX
 #include "include/sys/linux/systemChecks.h"
@@ -190,7 +191,9 @@ namespace Configs {
             bool xrayToSingTransitioned = false;
             bool proxyUsesXray = false;
             std::shared_ptr<Profile> ent = std::make_shared<Profile>(nullptr, nullptr);
-            // The current routing profile's DNS; routeOwnsDns also overrides the global DNS object.
+            // The routing profile this build uses (BuildSingBoxConfig only).
+            int routeId = -1;
+            // That routing profile's DNS; routeOwnsDns also overrides the global DNS object.
             RouteDns dns;
             bool routeOwnsDns = false;
             BuildPrerequisites prerequisites;
@@ -726,10 +729,10 @@ namespace Configs {
 #ifdef Q_OS_LINUX
             ctx.isResolvedUsed = isSystemdResolvedDefaultResolver();
 #endif
-            ctx.dns = RouteDns::Current(&ctx.routeOwnsDns);
+            ctx.dns = RouteDns::OfRoute(ctx.routeId, &ctx.routeOwnsDns);
             auto &preReqs = ctx.prerequisites;
 
-            auto routeChain = dataManager->routesRepo->GetRouteProfile(settings.current_route_id);
+            auto routeChain = dataManager->routesRepo->GetRouteProfile(ctx.routeId);
             if (routeChain == nullptr) {
                 ctx.error = "Routing profile does not exist, try resetting the route profile in Routing Settings";
                 return;
@@ -2259,7 +2262,7 @@ namespace Configs {
 
         void buildRouteSection(BuildContext &ctx) {
             const auto &settings = *dataManager->settingsRepo;
-            auto routeChain = dataManager->routesRepo->GetRouteProfile(settings.current_route_id);
+            auto routeChain = dataManager->routesRepo->GetRouteProfile(ctx.routeId);
             if (routeChain == nullptr) {
                 ctx.error = "Routing profile does not exist, try resetting the route profile in Routing Settings";
                 return;
@@ -2791,7 +2794,7 @@ namespace Configs {
         return true;
     }
 
-    std::shared_ptr<BuildConfigResult> BuildSingBoxConfig(const std::shared_ptr<Profile>& ent) {
+    std::shared_ptr<BuildConfigResult> BuildSingBoxConfig(const std::shared_ptr<Profile>& ent, std::optional<int> routeId) {
         if (ent->type == "custom")
         {
             auto res = std::make_shared<BuildConfigResult>();
@@ -2828,6 +2831,9 @@ namespace Configs {
         const GenerateEndpointScope endpointScope;
         BuildContext ctx;
         ctx.ent = ent;
+        ctx.routeId = routeId ? *routeId : RouteIdFor(ent->gid);
+        ctx.result->routeId = ctx.routeId;
+        const ScopedBuildRoute routeScope(ctx.routeId);
         ctx.result->involvedProfiles = {ent->id};
         buildProfileSink = &ctx.result->involvedProfiles;
         const auto clearProfileSink = qScopeGuard([] { buildProfileSink = nullptr; });
@@ -2866,6 +2872,9 @@ namespace Configs {
 
         buildXrayConfig(ctx);
         if (failed()) return ctx.result;
+
+        if (!ctx.result->xrayConfig.isEmpty() || !ctx.result->xrayFullConfigs.isEmpty())
+            ctx.result->xrayDnsStrategy = getXrayOutboundDomainStrategy();
 
         return ctx.result;
     }
@@ -3072,6 +3081,8 @@ namespace Configs {
 #ifdef Q_OS_LINUX
         ctx.isResolvedUsed = isSystemdResolvedDefaultResolver();
 #endif
+        // Tests mix groups, so they keep the global routing profile's DNS.
+        const ScopedBuildRoute routeScope(dataManager->settingsRepo->current_route_id);
         ctx.dns = RouteDns::Current(&ctx.routeOwnsDns);
 
         for (const auto &item : profiles) {

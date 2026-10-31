@@ -587,6 +587,12 @@ namespace Configs {
                 }
             }
 
+            // Group route overrides and route source groups point across the two parts: restored apart, they would name unrelated rows.
+            if (groupsReplaced != routesReplaced) {
+                if (columnExists(db, "main", "groups", "route_id")) db.exec("UPDATE main.groups SET route_id = -1");
+                if (columnExists(db, "main", "route_profiles", "source_gid")) db.exec("UPDATE main.route_profiles SET source_gid = -1");
+            }
+
             // Keep the ID counters ahead of restored data so newly created IDs never collide.
             if (parts.profiles || parts.routes) {
                 const bool bakIds = tableExists(db, "bak", "entity_ids");
