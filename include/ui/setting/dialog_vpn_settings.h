@@ -40,5 +40,5 @@ public slots:
 
     void on_restore_default_ranges_clicked();
 
-    void on_troubleshooting_clicked();
+    void on_restart_core_clicked();
 };

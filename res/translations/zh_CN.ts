@@ -4343,12 +4343,6 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
         <translation>恢复默认范围</translation>
     </message>
     <message>
-        <location filename="Throne-1.3.1/include/ui/setting/dialog_vpn_settings.ui" line="264"/>
-        <location filename="Throne-1.3.1/src/ui/setting/dialog_vpn_settings.cpp" line="146"/>
-        <source>Troubleshooting</source>
-        <translation>排除故障</translation>
-    </message>
-    <message>
         <location filename="Throne-1.3.1/src/ui/setting/dialog_vpn_settings.cpp" line="92"/>
         <location filename="Throne-1.3.1/src/ui/setting/dialog_vpn_settings.cpp" line="96"/>
         <source>Invalid Tun Address</source>
@@ -4381,25 +4375,17 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
         <translation>&quot;%1&quot; 涵盖一切地址，这将导致 Tun 无法路由任何流量。</translation>
     </message>
     <message>
-        <location filename="Throne-1.3.1/src/ui/setting/dialog_vpn_settings.cpp" line="147"/>
-        <source>If you have trouble starting VPN, you can force reset Core process here.
-
-If still not working, see documentation for more information.
-https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
-        <translation>如果您在启动 Tun 时有问题，可以在这里强制重置 Core 进程。
-
-如果仍无法工作，请查阅文档以获取更多信息。
-https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
-    </message>
-    <message>
-        <location filename="Throne-1.3.1/src/ui/setting/dialog_vpn_settings.cpp" line="153"/>
-        <source>Reset</source>
-        <translation>重置</translation>
-    </message>
-    <message>
         <location filename="Throne-1.3.1/src/ui/setting/dialog_vpn_settings.cpp" line="154"/>
         <source>Cancel</source>
         <translation>取消</translation>
+    </message>
+    <message>
+        <source>Restart Core</source>
+        <translation>重启核心</translation>
+    </message>
+    <message>
+        <source>Stops the running profile and restarts the core. Try this when Tun fails to start, then start the profile again.</source>
+        <translation>停止正在运行的配置并重启核心。Tun 无法启动时可尝试此操作，然后重新启动配置。</translation>
     </message>
 </context>
 <context>

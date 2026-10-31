@@ -1520,24 +1520,6 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <translation>فعال کردن IPv6 برای Tun</translation>
     </message>
     <message>
-        <source>Troubleshooting</source>
-        <translation>عیب یابی</translation>
-    </message>
-    <message>
-        <source>If you have trouble starting VPN, you can force reset Core process here.
-
-If still not working, see documentation for more information.
-https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
-        <translation>اگر در راه‌اندازی VPN مشکل دارید، می‌توانید فرآیند هسته را اینجا بازنشانی کنید.
-
-اگر همچنان کار نکرد، برای اطلاعات بیشتر به مستندات مراجعه کنید:
-https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
-    </message>
-    <message>
-        <source>Reset</source>
-        <translation>بازنشانی</translation>
-    </message>
-    <message>
         <source>Cancel</source>
         <translation>لغو کردن</translation>
     </message>
@@ -1580,6 +1562,14 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>IPv6 CIDR is invalid.</source>
         <translation>CIDR IPv6 نامعتبر است.</translation>
+    </message>
+    <message>
+        <source>Restart Core</source>
+        <translation>راه‌اندازی مجدد هسته</translation>
+    </message>
+    <message>
+        <source>Stops the running profile and restarts the core. Try this when Tun fails to start, then start the profile again.</source>
+        <translation>پروفایل در حال اجرا را متوقف و هسته را دوباره راه‌اندازی می‌کند. وقتی Tun راه‌اندازی نمی‌شود این را امتحان کنید و سپس پروفایل را دوباره اجرا کنید.</translation>
     </message>
 </context>
 <context>

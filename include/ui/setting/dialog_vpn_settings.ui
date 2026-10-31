@@ -254,9 +254,12 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
-      <widget class="QPushButton" name="troubleshooting">
+      <widget class="QPushButton" name="restart_core">
+       <property name="toolTip">
+        <string>Stops the running profile and restarts the core. Try this when Tun fails to start, then start the profile again.</string>
+       </property>
        <property name="text">
-        <string>Troubleshooting</string>
+        <string>Restart Core</string>
        </property>
       </widget>
      </item>
@@ -278,7 +281,7 @@
   <tabstop>tun_ipv6_cidr</tabstop>
   <tabstop>restore_default_addresses</tabstop>
   <tabstop>strict_route</tabstop>
-  <tabstop>troubleshooting</tabstop>
+  <tabstop>restart_core</tabstop>
  </tabstops>
  <resources/>
  <connections>

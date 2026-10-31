@@ -4927,30 +4927,12 @@ Close without saving?</source>
         <translation>Восстановить диапазоны по умолчанию</translation>
     </message>
     <message>
-        <source>Troubleshooting</source>
-        <translation>Устранение неполадок</translation>
-    </message>
-    <message>
         <source>IPv6 needs an MTU of at least %1; below that the system may drop IPv6 from the Tun.</source>
         <translation>Для IPv6 нужен MTU не меньше %1; при меньшем значении система может отключить IPv6 на интерфейсе TUN.</translation>
     </message>
     <message>
         <source>This covers every address, which would stop Tun from routing anything.</source>
         <translation>Это охватывает все адреса — в этом случае TUN вообще перестанет маршрутизировать трафик.</translation>
-    </message>
-    <message>
-        <source>If you have trouble starting VPN, you can force reset Core process here.
-
-If still not working, see documentation for more information.
-https://matsuridayo.github.io/n-configuration/#vpn-tun</source>
-        <translation>Если возникают проблемы с запуском режима TUN, здесь можно принудительно сбросить процесс ядра.
-
-Если это не помогло, подробности см. в документации:
-https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
-    </message>
-    <message>
-        <source>Reset</source>
-        <translation>Сбросить</translation>
     </message>
     <message>
         <source>Cancel</source>
@@ -4995,6 +4977,14 @@ https://matsuridayo.github.io/n-configuration/#vpn-tun</translation>
     <message>
         <source>IPv6 CIDR</source>
         <translation>IPv6 CIDR</translation>
+    </message>
+    <message>
+        <source>Restart Core</source>
+        <translation>Перезапустить ядро</translation>
+    </message>
+    <message>
+        <source>Stops the running profile and restarts the core. Try this when Tun fails to start, then start the profile again.</source>
+        <translation>Останавливает запущенный профиль и перезапускает ядро. Попробуйте, если Tun не запускается, затем снова запустите профиль.</translation>
     </message>
 </context>
 <context>
