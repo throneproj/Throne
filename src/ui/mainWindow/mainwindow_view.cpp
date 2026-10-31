@@ -67,9 +67,10 @@ void MainWindow::UpdateDataView(bool force)
     {
         return;
     }
-    auto html = dataViewHtmlGenerator_.buildHtml();
+    auto content = dataViewHtmlGenerator_.build();
     runOnUiThread([=, this] {
-        ui->data_view->setHtml(html);
+        ui->data_view->setHtml(content.html);
+        ui->data_view->setToolTip(content.toolTip);
     }, true);
     lastUpdatedMs.store(QDateTime::currentMSecsSinceEpoch());
 }

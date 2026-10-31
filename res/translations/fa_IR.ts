@@ -222,6 +222,10 @@ Deleted %3 Profiles:
         <translation>این گروه دیگر وجود ندارد.</translation>
     </message>
     <message>
+        <source>Changed: %1</source>
+        <translation>تغییر کرده: %1</translation>
+    </message>
+    <message>
         <source>%1 was removed by the update and stays stopped: no single profile with the same name replaces it.</source>
         <translation>%1 با به‌روزرسانی حذف شد و متوقف می‌ماند: هیچ نمایهٔ یکتایی با همین نام جایگزین آن نیست.</translation>
     </message>

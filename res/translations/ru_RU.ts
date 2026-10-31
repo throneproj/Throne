@@ -11354,6 +11354,10 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
         <translation>Этой группы больше не существует.</translation>
     </message>
     <message>
+        <source>Changed: %1</source>
+        <translation>Изменено: %1</translation>
+    </message>
+    <message>
         <source>%1 was removed by the update and stays stopped: no single profile with the same name replaces it.</source>
         <translation>%1 удалён при обновлении и остаётся остановленным: нет единственного профиля с тем же названием, который бы его заменил.</translation>
     </message>
