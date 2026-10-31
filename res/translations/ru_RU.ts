@@ -5403,14 +5403,6 @@ Close without saving?</source>
         <translation>Только страны</translation>
     </message>
     <message>
-        <source>e.g. DE,NL,FR</source>
-        <translation>например, DE,NL,FR</translation>
-    </message>
-    <message>
-        <source>Comma-separated country codes, empty means any. Uses the country found by the IP test, so profiles that were never IP-tested are skipped while this is set.</source>
-        <translation>Коды стран через запятую; пустое поле — любая страна. Используется страна, определённая IP-тестом, поэтому, пока фильтр задан, профили без IP-теста пропускаются.</translation>
-    </message>
-    <message>
         <source>Run the best</source>
         <translation>Запускать лучших</translation>
     </message>
@@ -5685,6 +5677,14 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
         <translation>Необязательное регулярное выражение; ищется в любом месте названия профиля без учёта регистра. Используются только профили с подходящим названием.
 Выбрать несколько: germany|nl
 Исключить некоторые: ^(?!.*(germany|🇩🇪)).*$ берёт все названия, где нет ни того, ни другого.</translation>
+    </message>
+    <message>
+        <source>e.g. DE,NL,FR or !RU</source>
+        <translation>например, DE,NL,FR или !RU</translation>
+    </message>
+    <message>
+        <source>Comma-separated country codes, empty means any. Put ! before a code to exclude that country instead, e.g. !RU uses every country but Russia. Uses the country found by the IP test, so profiles that were never IP-tested are skipped while this is set.</source>
+        <translation>Коды стран через запятую; пустое поле — любая страна. Поставьте ! перед кодом, чтобы исключить страну, например !RU — все страны, кроме России. Используется страна, определённая IP-тестом, поэтому, пока фильтр задан, профили без IP-теста пропускаются.</translation>
     </message>
 </context>
 <context>
@@ -13088,10 +13088,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>AnyTLS не поддерживает TCP Fast Open, поэтому он был отключен.</translation>
     </message>
     <message>
-        <source>Use two-letter country codes separated by commas, for example DE,NL,FR.</source>
-        <translation>Используйте двухбуквенные коды стран через запятую, например DE,NL,FR.</translation>
-    </message>
-    <message>
         <source>Cannot run more profiles than are ranked (%1).</source>
         <translation>Нельзя запускать больше профилей, чем ранжируется (%1).</translation>
     </message>
@@ -14662,6 +14658,10 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Hysteria v1 needs both Up Mbps and Down Mbps; %1 up and %2 down is used for a missing one. Set your real line speed for the best results.</source>
         <translation>Для Hysteria v1 нужны и «Up Mbps», и «Down Mbps»; вместо отсутствующего значения используется %1 на отдачу и %2 на загрузку. Для лучшего результата укажите реальную скорость канала.</translation>
+    </message>
+    <message>
+        <source>Use two-letter country codes separated by commas, for example DE,NL,FR; put ! before a code to exclude that country, for example !RU.</source>
+        <translation>Используйте двухбуквенные коды стран через запятую, например DE,NL,FR; поставьте ! перед кодом, чтобы исключить страну, например !RU.</translation>
     </message>
 </context>
 </TS>

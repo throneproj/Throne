@@ -23,7 +23,7 @@ namespace Configs
 
         QList<int> gids; // tracked groups, in the user's order
         QString nameFilter;             // regex over the profile name, empty = all
-        QString countryFilter;          // comma-separated ISO codes, empty = all
+        QString countryFilter;          // comma-separated ISO codes, "!XX" excludes one, empty = all
         bool excludeUnavailable = true;
 
         int poolCap = 1000;

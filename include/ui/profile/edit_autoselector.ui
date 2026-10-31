@@ -166,10 +166,10 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
          <item row="0" column="1">
           <widget class="QLineEdit" name="country_filter">
            <property name="placeholderText">
-            <string>e.g. DE,NL,FR</string>
+            <string>e.g. DE,NL,FR or !RU</string>
            </property>
            <property name="toolTip">
-            <string>Comma-separated country codes, empty means any. Uses the country found by the IP test, so profiles that were never IP-tested are skipped while this is set.</string>
+            <string>Comma-separated country codes, empty means any. Put ! before a code to exclude that country instead, e.g. !RU uses every country but Russia. Uses the country found by the IP test, so profiles that were never IP-tested are skipped while this is set.</string>
            </property>
           </widget>
          </item>

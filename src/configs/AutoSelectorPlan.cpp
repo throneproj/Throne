@@ -22,6 +22,8 @@ namespace Configs
             QRegularExpression name;
             bool hasName = false;
             QSet<QString> countries;
+            // "!RU": removed whether or not includes are given.
+            QSet<QString> excludedCountries;
         };
 
         MemberFilters buildFilters(const autoSelector *selector)
@@ -32,8 +34,12 @@ namespace Configs
                                                   QRegularExpression::CaseInsensitiveOption);
                 filters.hasName = filters.name.isValid();
             }
-            for (const auto &code : selector->countryFilter.split(',', Qt::SkipEmptyParts)) {
-                filters.countries.insert(code.trimmed().toUpper());
+            for (const auto &item : selector->countryFilter.split(',', Qt::SkipEmptyParts)) {
+                auto code = item.trimmed();
+                const bool exclude = code.startsWith('!');
+                if (exclude) code = code.mid(1).trimmed();
+                if (code.isEmpty()) continue;
+                (exclude ? filters.excludedCountries : filters.countries).insert(code.toUpper());
             }
             return filters;
         }
@@ -72,8 +78,13 @@ namespace Configs
             if (filters.hasName && !filters.name.match(member->outbound->DisplayName()).hasMatch()) {
                 return AutoSelectorSkip::NameFilter;
             }
-            if (!filters.countries.isEmpty() && !filters.countries.contains(member->test_country.toUpper())) {
-                return AutoSelectorSkip::CountryFilter;
+            if (!filters.countries.isEmpty() || !filters.excludedCountries.isEmpty()) {
+                // Unknown country is skipped either way: an exclusion cannot vouch for a profile never IP-tested.
+                const auto country = member->test_country.trimmed().toUpper();
+                if (country.isEmpty() || filters.excludedCountries.contains(country)
+                    || (!filters.countries.isEmpty() && !filters.countries.contains(country))) {
+                    return AutoSelectorSkip::CountryFilter;
+                }
             }
             // Only a fresh failure excludes a member; an old one would exile it permanently.
             if (selector->excludeUnavailable && member->latency < 0 && hasFreshResult(member, selector, now))

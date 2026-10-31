@@ -4847,16 +4847,6 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
         <translation>仅指定国家</translation>
     </message>
     <message>
-        <location filename="Throne-1.3.1/include/ui/profile/edit_autoselector.ui" line="161"/>
-        <source>e.g. DE,NL,FR</source>
-        <translation>如 DE,NL,FR</translation>
-    </message>
-    <message>
-        <location filename="Throne-1.3.1/include/ui/profile/edit_autoselector.ui" line="164"/>
-        <source>Comma-separated country codes, empty means any. Uses the country found by the IP test, so profiles that were never IP-tested are skipped while this is set.</source>
-        <translation>逗号间隔的国家代码，空白表示任何国家。使用由 IP 测试找到的国家，因此在设定这个期间，从未进行 IP 测试的配置档会被跳过。</translation>
-    </message>
-    <message>
         <location filename="Throne-1.3.1/include/ui/profile/edit_autoselector.ui" line="171"/>
         <source>Run the best</source>
         <translation>运行最优的</translation>
@@ -5200,6 +5190,14 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
         <translation>可选的正则表达式，在配置名称的任意位置匹配，不区分大小写。仅使用名称匹配的配置。
 选择多个：germany|nl
 排除部分：^(?!.*(germany|🇩🇪)).*$ 会使用所有两者都不包含的名称。</translation>
+    </message>
+    <message>
+        <source>e.g. DE,NL,FR or !RU</source>
+        <translation>如 DE,NL,FR 或 !RU</translation>
+    </message>
+    <message>
+        <source>Comma-separated country codes, empty means any. Put ! before a code to exclude that country instead, e.g. !RU uses every country but Russia. Uses the country found by the IP test, so profiles that were never IP-tested are skipped while this is set.</source>
+        <translation>逗号间隔的国家代码，空白表示任何国家。在代码前加 ! 则排除该国家，例如 !RU 使用除俄罗斯以外的所有国家。使用由 IP 测试找到的国家，因此在设定这个期间，从未进行 IP 测试的配置档会被跳过。</translation>
     </message>
 </context>
 <context>
