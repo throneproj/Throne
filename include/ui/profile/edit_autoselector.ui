@@ -50,7 +50,9 @@
         <string>leave empty to use every profile in the checked groups</string>
        </property>
        <property name="toolTip">
-        <string>Optional regular expression. Only profiles whose name matches are considered — useful to pick out one country or provider.</string>
+        <string>Optional regular expression, matched anywhere in the profile name and ignoring case. Only profiles whose name matches are used.
+Pick several: germany|nl
+Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neither.</string>
        </property>
       </widget>
      </item>

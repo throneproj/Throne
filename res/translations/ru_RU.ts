@@ -5367,10 +5367,6 @@ Close without saving?</source>
         <translation>оставьте поле пустым, чтобы использовать все профили в отмеченных группах</translation>
     </message>
     <message>
-        <source>Optional regular expression. Only profiles whose name matches are considered — useful to pick out one country or provider.</source>
-        <translation>Необязательное регулярное выражение. Учитываются только профили с подходящим названием — удобно, чтобы выбрать одну страну или провайдера.</translation>
-    </message>
-    <message>
         <source>Share traffic between the best profiles</source>
         <translation>Распределить трафик между лучшими профилями</translation>
     </message>
@@ -5681,6 +5677,14 @@ Close without saving?</source>
     <message>
         <source>The rest will be measured before the selector starts.</source>
         <translation>Остальные профили будут измерены до запуска автовыбора.</translation>
+    </message>
+    <message>
+        <source>Optional regular expression, matched anywhere in the profile name and ignoring case. Only profiles whose name matches are used.
+Pick several: germany|nl
+Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neither.</source>
+        <translation>Необязательное регулярное выражение; ищется в любом месте названия профиля без учёта регистра. Используются только профили с подходящим названием.
+Выбрать несколько: germany|nl
+Исключить некоторые: ^(?!.*(germany|🇩🇪)).*$ берёт все названия, где нет ни того, ни другого.</translation>
     </message>
 </context>
 <context>
