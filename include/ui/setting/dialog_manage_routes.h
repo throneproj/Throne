@@ -62,6 +62,12 @@ private:
 
     void generate_warp_config();
 
+    void generate_amnezia_packets();
+
+    QStringList warpAmneziaPackets;
+    QString warpAmneziaError;
+    bool warpAmneziaPending = false;
+
     struct DnsAdvancedDraft {
         int cache_capacity;
         bool disable_cache;

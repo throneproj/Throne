@@ -51,6 +51,24 @@ namespace Configs_network {
         return identity;
     }
 
+    QStringList GenerateWarpCamouflage(QString &error) {
+        error.clear();
+        bool rpcOK = false;
+        const auto reply = API::defaultClient
+            ? API::defaultClient->GenQuicSignature(&rpcOK, QStringLiteral("www.cloudflare.com"))
+            : libcore::GenQuicSignatureResponse{};
+        error = rpcOK ? QString::fromStdString(reply.error.value_or("")) : QObject::tr("Failed to reach the core.");
+        QStringList packets;
+        for (const auto &packet : reply.packets) packets << QString::fromStdString(packet);
+        if (error.isEmpty() && (packets.isEmpty() || packets.size() > 5 || packets.contains(QString())))
+            error = QObject::tr("The core returned an invalid QUIC signature.");
+        if (!error.isEmpty()) {
+            error = QObject::tr("Failed to generate WARP QUIC signature: %1").arg(error);
+            return {};
+        }
+        return packets;
+    }
+
     bool ConfirmWarpTerms(QWidget *parent) {
         const auto &settings = Configs::dataManager->settingsRepo;
         if (settings->warp_tos_accepted) return true;

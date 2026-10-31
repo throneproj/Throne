@@ -184,7 +184,7 @@
           <item row="1" column="0">
            <widget class="QLabel" name="warp_mode_l">
             <property name="toolTip">
-             <string>WireGuard runs over UDP. MASQUE tunnels over HTTP/3 or HTTP/2 and passes networks that block WireGuard.</string>
+             <string>WireGuard runs over UDP. AmneziaWG adds WARP-compatible junk and camouflage packets. MASQUE tunnels over HTTP/3 or HTTP/2.</string>
             </property>
             <property name="text">
              <string>Mode</string>
@@ -197,7 +197,7 @@
           <item row="1" column="1">
            <widget class="QComboBox" name="warp_mode">
             <property name="toolTip">
-             <string>WireGuard runs over UDP. MASQUE tunnels over HTTP/3 or HTTP/2 and passes networks that block WireGuard.</string>
+             <string>WireGuard runs over UDP. AmneziaWG adds WARP-compatible junk and camouflage packets. MASQUE tunnels over HTTP/3 or HTTP/2.</string>
             </property>
             <item>
              <property name="text">
@@ -207,6 +207,11 @@
             <item>
              <property name="text">
               <string notr="true">MASQUE</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string notr="true">AmneziaWG</string>
              </property>
             </item>
            </widget>

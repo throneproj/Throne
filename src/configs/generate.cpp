@@ -683,6 +683,22 @@ namespace Configs {
             outbound->peer = peer;
             outbound->mtu = 1280;
 
+            if (settings.warp_mode == "amnezia") {
+                outbound->enable_amnezia = true;
+                outbound->jc = 4;
+                outbound->jmin = 40;
+                outbound->jmax = 70;
+                // Cloudflare expects the standard WireGuard headers.
+                outbound->h1 = "1";
+                outbound->h2 = "2";
+                outbound->h3 = "3";
+                outbound->h4 = "4";
+                const auto &packets = settings.warp_amnezia_packets;
+                const QList<QString *> fields = {&outbound->i1, &outbound->i2, &outbound->i3, &outbound->i4, &outbound->i5};
+                for (qsizetype i = 0; i < fields.size(); ++i)
+                    *fields[i] = packets.value(i);
+            }
+
             warpProfile->outbound = outbound;
             return warpProfile;
         }
@@ -729,7 +745,8 @@ namespace Configs {
                 : settings.warp_private_key.isEmpty() ||
                   settings.warp_public_key.isEmpty() ||
                   settings.warp_ep.isEmpty() ||
-                  settings.warp_ifc_addrs.isEmpty();
+                  settings.warp_ifc_addrs.isEmpty() ||
+                  (settings.warp_mode == "amnezia" && settings.warp_amnezia_packets.isEmpty());
             if (settings.enable_warp && warpMissing) {
                 ctx.error = "Warp is enabled but its config has not been generated. Please generate the Warp config first in Routing Settings.";
                 return;
