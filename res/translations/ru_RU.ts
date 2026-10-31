@@ -13224,10 +13224,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Игнорируется без «Hop Interval»; задайте и его, например 30s при максимуме 60s.</translation>
     </message>
     <message>
-        <source>Hysteria v1 needs both Up Mbps and Down Mbps, for example 100.</source>
-        <translation>Для Hysteria v1 нужны и «Up Mbps», и «Down Mbps», например 100.</translation>
-    </message>
-    <message>
         <source>Packet sizes must be from 0 to 2048; 0 uses the default.</source>
         <translation>Размеры пакетов должны быть от 0 до 2048; 0 — значение по умолчанию.</translation>
     </message>
@@ -14658,6 +14654,10 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>XDRIVE needs Mux: set it to On or Keep Default.</source>
         <translation>Для XDRIVE нужен Mux: выберите «Вкл.» или «По умолчанию».</translation>
+    </message>
+    <message>
+        <source>Hysteria v1 needs both Up Mbps and Down Mbps; %1 up and %2 down is used for a missing one. Set your real line speed for the best results.</source>
+        <translation>Для Hysteria v1 нужны и «Up Mbps», и «Down Mbps»; вместо отсутствующего значения используется %1 на отдачу и %2 на загрузку. Для лучшего результата укажите реальную скорость канала.</translation>
     </message>
 </context>
 </TS>

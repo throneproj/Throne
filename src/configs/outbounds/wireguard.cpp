@@ -392,7 +392,7 @@ namespace Configs {
         server_port = peer->port;
         
         if (query.hasQueryItem("local_address")) {
-            address = QueryValue(query, "local_address").split("-", Qt::SkipEmptyParts);
+            address = QueryValue(query, "local_address").replace(" ", "").replace('-', ',').split(",", Qt::SkipEmptyParts);
         } else if (query.hasQueryItem("address")) {
             address = QueryValue(query, "address").replace(" ", "").split(",", Qt::SkipEmptyParts);
         } else if (query.hasQueryItem("ip")) {

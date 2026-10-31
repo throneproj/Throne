@@ -572,6 +572,32 @@ namespace Configs {
                 parseXHTTPXmuxObject(config, xmuxObj);
             }
         }
+
+        // Xray refuses these at start but picks its own default for an empty one.
+        void dropUnusableXHTTPValues(xrayXHTTP& x) {
+            const auto drop = [](const QString& field, const QString& message, QString& value) {
+                if (!AcceptOptional(field, message, value)) value.clear();
+            };
+            if (!AcceptOptional("mode", Checks::XrayXHTTPMode(x.mode), x.mode)) x.mode = "auto";
+            drop("xPaddingBytes", Checks::XrayXPaddingBytes(x.xPaddingBytes), x.xPaddingBytes);
+            drop("xPaddingMethod", Checks::XrayPaddingMethod(x.xPaddingMethod), x.xPaddingMethod);
+            drop("xPaddingPlacement", Checks::XrayPaddingPlacement(x.xPaddingPlacement), x.xPaddingPlacement);
+            drop("uplinkDataPlacement", Validation::OneOf(x.uplinkDataPlacement, XrayXHTTPUplinkDataPlacements), x.uplinkDataPlacement);
+            drop("sessionIDPlacement", Checks::XrayMetaPlacement(x.sessionIDPlacement), x.sessionIDPlacement);
+            drop("seqPlacement", Checks::XrayMetaPlacement(x.seqPlacement), x.seqPlacement);
+            for (const auto& [name, field] : {std::pair{"sessionIDLength", &xrayXHTTP::sessionIDLength},
+                                              std::pair{"uplinkChunkSize", &xrayXHTTP::uplinkChunkSize},
+                                              std::pair{"scMaxEachPostBytes", &xrayXHTTP::scMaxEachPostBytes},
+                                              std::pair{"scMinPostsIntervalMs", &xrayXHTTP::scMinPostsIntervalMs},
+                                              std::pair{"scStreamUpServerSecs", &xrayXHTTP::scStreamUpServerSecs},
+                                              std::pair{"xmux.maxConcurrency", &xrayXHTTP::maxConcurrency},
+                                              std::pair{"xmux.maxConnections", &xrayXHTTP::maxConnections},
+                                              std::pair{"xmux.cMaxReuseTimes", &xrayXHTTP::cMaxReuseTimes},
+                                              std::pair{"xmux.hMaxRequestTimes", &xrayXHTTP::hMaxRequestTimes},
+                                              std::pair{"xmux.hMaxReusableSecs", &xrayXHTTP::hMaxReusableSecs}}) {
+                drop(name, Checks::XrayInt32Range(x.*field), x.*field);
+            }
+        }
     }
 
     QString NormalizeXrayNetwork(const QString& network) {
@@ -779,7 +805,10 @@ namespace Configs {
         if (query.hasQueryItem("pbk")) password = ImportRealityPublicKey(query.queryItemValue("pbk"), "pbk");
         if (query.hasQueryItem("fp")) fingerprint = xrayStreamKnownFingerprint(query.queryItemValue("fp"), true, "fp");
         if (query.hasQueryItem("sid")) shortId = query.queryItemValue("sid").trimmed();
-        if (query.hasQueryItem("spx")) spiderX = query.queryItemValue("spx", QUrl::FullyDecoded);
+        if (query.hasQueryItem("spx")) {
+            const auto value = query.queryItemValue("spx", QUrl::FullyDecoded);
+            if (AcceptOptional("spx", Checks::XraySpiderX(value), value)) spiderX = value;
+        }
         if (query.hasQueryItem("pqv")) mldsa65Verify = query.queryItemValue("pqv", QUrl::FullyDecoded).trimmed();
         return true;
 
@@ -799,7 +828,10 @@ namespace Configs {
             password = ParseDiag::Active() ? ImportRealityPublicKey(key, "realitySettings." + field) : key.trimmed();
         }
         if (object.contains("shortId")) shortId = object["shortId"].toString().trimmed();
-        if (object.contains("spiderX")) spiderX = object["spiderX"].toString();
+        if (object.contains("spiderX")) {
+            const auto value = object["spiderX"].toString();
+            if (!ParseDiag::Active() || AcceptOptional("realitySettings.spiderX", Checks::XraySpiderX(value), value)) spiderX = value;
+        }
         if (object.contains("mldsa65Verify")) mldsa65Verify = object["mldsa65Verify"].toString().trimmed();
         return true;
     }
@@ -893,6 +925,7 @@ namespace Configs {
             const auto value = query.queryItemValue("keep_alive_period").trimmed();
             if (AcceptOptional("keep_alive_period", Validation::Int(value, LLONG_MIN, LLONG_MAX), value)) hKeepAlivePeriod = value.toLongLong();
         }
+        dropUnusableXHTTPValues(*this);
         return true;
     }
 
@@ -914,6 +947,7 @@ namespace Configs {
         } else if (object["extra"].isString() && !ParseExtraJson(object["extra"].toString())) {
             warnUnparsableExtra(object["extra"].toString());
         }
+        if (ParseDiag::Active()) dropUnusableXHTTPValues(*this);
         return true;
     }
 
@@ -942,6 +976,7 @@ namespace Configs {
         if (opts.has_download_settings) {
             downloadSettings = QJsonObject2QString(buildDownloadSettingsObject(object), true);
         }
+        dropUnusableXHTTPValues(*this);
 
         return true;
     }

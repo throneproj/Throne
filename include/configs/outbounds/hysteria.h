@@ -6,6 +6,9 @@ namespace Configs
 {
     inline QStringList hysteriaBBRProfiles = {"standard", "conservative", "aggressive"};
     inline QStringList hysteriaObfsTypes = {"salamander", "gecko"};
+    // The core refuses Hysteria v1 without both rates; Build() falls back to these.
+    constexpr int kHysteriaV1DefaultUpMbps = 10;
+    constexpr int kHysteriaV1DefaultDownMbps = 50;
 
     // Shared by EditHysteria (widget text) and hysteria::Validate (bean fields).
     namespace Checks {
