@@ -213,6 +213,76 @@ func TestGateRestartsOnFreshPortsAfterShutdown(t *testing.T) {
 	}
 }
 
+// A connection still riding the retired instance is cut, and the next one brings up a fresh instance.
+func TestGateRecycleRetiresTheInstance(t *testing.T) {
+	port := freePort(t)
+	gated := net.JoinHostPort("127.0.0.1", strconv.Itoa(port))
+	gate, err := StartGate(socksConfig(port), 0, nil)
+	if err != nil {
+		t.Fatalf("StartGate: %v", err)
+	}
+	defer gate.Close()
+
+	gate.Recycle()
+
+	held, err := net.Dial("tcp", gated)
+	if err != nil {
+		t.Fatalf("dial %s: %v", gated, err)
+	}
+	defer held.Close()
+	_ = held.SetDeadline(time.Now().Add(10 * time.Second))
+	if _, err = held.Write([]byte{5, 1, 0}); err != nil {
+		t.Fatalf("write greeting: %v", err)
+	}
+	if _, err = io.ReadFull(held, make([]byte, 2)); err != nil {
+		t.Fatalf("read greeting reply: %v", err)
+	}
+	first := gate.Instance()
+	if first == nil {
+		t.Fatal("no instance came up for the first connection")
+	}
+
+	gate.Recycle()
+	if gate.Instance() != nil {
+		t.Fatal("the retired instance is still handed out")
+	}
+	if _, err = held.Read(make([]byte, 1)); err == nil {
+		t.Fatal("a connection on the retired instance stayed open")
+	} else if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+		t.Fatal("a connection on the retired instance was left hanging")
+	}
+
+	socksGreeting(t, gated)
+	if second := gate.Instance(); second == nil || second == first {
+		t.Fatal("the next connection did not start a fresh instance")
+	}
+}
+
+// The replacement serves the fixed inbound port, whichever way the platform lets it bind there.
+func TestRestartInstanceKeepsThePort(t *testing.T) {
+	port := freePort(t)
+	config := socksConfig(port)
+	running, err := CreateXrayInstance(config)
+	if err != nil {
+		t.Fatalf("CreateXrayInstance: %v", err)
+	}
+	if err = running.Start(); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+
+	next, err := RestartInstance(running, config, nil)
+	if next != nil {
+		defer next.Close()
+	}
+	if err != nil {
+		t.Fatalf("RestartInstance: %v", err)
+	}
+	if next == running || running.IsRunning() {
+		t.Fatal("the old instance was not replaced")
+	}
+	socksGreeting(t, net.JoinHostPort("127.0.0.1", strconv.Itoa(port)))
+}
+
 func TestSweepIntervalFor(t *testing.T) {
 	cases := []struct {
 		name string

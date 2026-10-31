@@ -2,6 +2,8 @@ package mobile
 
 import (
 	"context"
+	"fmt"
+	stdlog "log"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -86,17 +88,61 @@ func protectDial(_, _ string, conn syscall.RawConn) error {
 	return protectErr
 }
 
+// One network switch reaches recycle twice: through the box's interface monitor, and through the app's
+// reset-on-network-change calling ResetNetwork right after it reports the new interface.
+const xrayRecycleCooldown = time.Second
+
 type xrayStack struct {
+	access     sync.Mutex
+	closed     bool
+	recycledAt time.Time
+
+	// What the resident instance was started from, to replace it in place.
+	config  string
+	prepare func(*xcore.Instance) error
+
 	instance      *xcore.Instance
 	gate          *xray.Gate
 	fullGates     []*xray.Gate
 	fullInstances []*xcore.Instance
 }
 
+// Retires every running Xray instance so none keeps transports dialed over the previous network. Gates start a fresh
+// one on their next connection; the resident instance is replaced in place, as nothing holds its ports while it is down.
+func (s *xrayStack) recycle() {
+	if s == nil {
+		return
+	}
+	s.access.Lock()
+	defer s.access.Unlock()
+	if s.closed || time.Since(s.recycledAt) < xrayRecycleCooldown {
+		return
+	}
+	if s.gate != nil {
+		s.gate.Recycle()
+	}
+	for _, gate := range s.fullGates {
+		gate.Recycle()
+	}
+	if s.instance != nil {
+		instance, err := xray.RestartInstance(s.instance, s.config, s.prepare)
+		s.instance = instance
+		if err != nil {
+			xray.FailureLog(fmt.Sprintf("Xray: cannot restart the instance for a network reset: %v", err))
+		} else {
+			stdlog.Println("Xray: restarted the instance for a network reset")
+		}
+	}
+	s.recycledAt = time.Now()
+}
+
 func (s *xrayStack) close() {
 	if s == nil {
 		return
 	}
+	s.access.Lock()
+	defer s.access.Unlock()
+	s.closed = true
 	if s.gate != nil {
 		s.gate.Close()
 	}
@@ -139,7 +185,7 @@ func startMainXray(options *StartOptions, prepare func(*xcore.Instance) error) (
 			if err != nil {
 				return nil, err
 			}
-			stack.instance = instance
+			stack.instance, stack.config, stack.prepare = instance, options.XrayConfig, prepare
 		}
 	}
 	if len(options.xrayFullConfigs) > 0 {

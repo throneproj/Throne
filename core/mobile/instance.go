@@ -17,7 +17,10 @@ import (
 	"github.com/sagernet/sing-box/common/urltest"
 	"github.com/sagernet/sing-box/experimental/clashmode"
 	"github.com/sagernet/sing-box/log"
+	tun "github.com/sagernet/sing-tun"
+	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
+	"github.com/sagernet/sing/common/x/list"
 	"github.com/sagernet/sing/service"
 	"github.com/sagernet/sing/service/pause"
 )
@@ -70,6 +73,12 @@ type Instance struct {
 	cacheFile      adapter.CacheFile
 	urlTestHistory *urltest.HistoryStorage
 	logFactory     log.Factory
+
+	interfaceMonitor  tun.DefaultInterfaceMonitor
+	interfaceCallback *list.Element[tun.DefaultInterfaceUpdateCallback]
+	interfaceAccess   sync.Mutex
+	interfaceName     string
+	interfaceIndex    int
 
 	stateAccess     sync.Mutex
 	started         bool
@@ -132,7 +141,7 @@ func NewInstance(platform PlatformInterface, options *StartOptions) (*Instance, 
 	// Published before Start, not after: a remote rule-set fetched during Start may already dial
 	// through an Xray outbound, whose resolver needs this box's DNS router (see xraydns).
 	holder.publish(ctx)
-	return &Instance{
+	instance := &Instance{
 		platform:       platform,
 		handle:         &boxHandle{ctx: ctx, Box: boxInstance},
 		cancel:         cancel,
@@ -145,7 +154,36 @@ func NewInstance(platform PlatformInterface, options *StartOptions) (*Instance, 
 		cacheFile:      service.FromContext[adapter.CacheFile](ctx),
 		urlTestHistory: urlTestHistory,
 		logFactory:     boxInstance.LogFactory(),
-	}, nil
+	}
+	instance.watchDefaultInterface(boxInstance.Network().InterfaceMonitor())
+	return instance, nil
+}
+
+// Registered before Start, so the interface the box starts on is recorded rather than taken for a switch.
+func (i *Instance) watchDefaultInterface(monitor tun.DefaultInterfaceMonitor) {
+	if monitor == nil {
+		return
+	}
+	if current := monitor.DefaultInterface(); current != nil {
+		i.interfaceName, i.interfaceIndex = current.Name, current.Index
+	}
+	i.interfaceMonitor = monitor
+	i.interfaceCallback = monitor.RegisterCallback(i.defaultInterfaceUpdated)
+}
+
+// sing-box resets its own connections on every update, but Xray's pooled transports only go stale when the default
+// interface moves to another one; a loss alone, or the same interface coming back, leaves Xray alone.
+func (i *Instance) defaultInterfaceUpdated(defaultInterface *control.Interface, _ int) {
+	if defaultInterface == nil {
+		return
+	}
+	i.interfaceAccess.Lock()
+	switched := i.interfaceName != "" && (i.interfaceName != defaultInterface.Name || i.interfaceIndex != defaultInterface.Index)
+	i.interfaceName, i.interfaceIndex = defaultInterface.Name, defaultInterface.Index
+	i.interfaceAccess.Unlock()
+	if switched {
+		go i.xray.recycle()
+	}
 }
 
 func (i *Instance) Start() error {
@@ -204,6 +242,9 @@ func (i *Instance) Close() error {
 		runningInstances.Add(-1)
 	}
 	i.stateAccess.Unlock()
+	if i.interfaceCallback != nil {
+		i.interfaceMonitor.UnregisterCallback(i.interfaceCallback)
+	}
 	err := closeBoxWithTimeout(i.cancel, i.handle.Box, boxCloseTimeout, true)
 	i.urlTestHistory.Close()
 	i.xray.close()
@@ -245,6 +286,7 @@ func (i *Instance) UpdateWIFIState() {
 func (i *Instance) ResetNetwork() {
 	if i.running() {
 		i.handle.Network().ResetNetwork(i.handle.ctx)
+		i.xray.recycle()
 	}
 }
 
