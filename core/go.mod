@@ -18,7 +18,7 @@ require (
 	github.com/xtls/xray-core v1.260327.1-0.20260908222543-52a412d9e2f5
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba
 	golang.org/x/crypto v0.58.0
-	golang.org/x/net v0.61.0
+	golang.org/x/net v0.61.1-0.20261013155913-7e562009b388
 	golang.org/x/sys v0.49.0
 	google.golang.org/grpc v1.84.0
 	google.golang.org/protobuf v1.36.12
@@ -26,9 +26,9 @@ require (
 
 replace github.com/xtls/xray-core => github.com/throneproj/xray-core v1.251015.1-0.20261031105708-d672759ff89f
 
-replace github.com/sagernet/sing-box => github.com/throneproj/sing-box v1.11.16-0.20261031111922-7d5ae65a3c30
+replace github.com/sagernet/sing-box => github.com/throneproj/sing-box v1.11.16-0.20261031212642-af51a7460ccd
 
-replace github.com/sagernet/wireguard-go => github.com/throneproj/wireguard-go v0.0.0-20261024083039-e200848fa663
+replace github.com/sagernet/wireguard-go => github.com/throneproj/wireguard-go v0.0.0-20261031210827-e11787583013
 
 replace github.com/sagernet/sing => github.com/throneproj/sing v0.9.4-0.20261024082846-e3e392877db8
 
