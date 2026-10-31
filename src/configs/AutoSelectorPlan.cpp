@@ -9,6 +9,7 @@
 #include "include/database/entities/Profile.h"
 
 #include <QDateTime>
+#include <QHash>
 #include <QRegularExpression>
 #include <QSet>
 #include <algorithm>
@@ -136,15 +137,25 @@ namespace Configs
             return effectiveLatency(dataManager->profilesRepo->GetProfile(id), selector, now);
         }
 
-        bool byLatency(int left, int right, const autoSelector *selector, qint64 now)
+        bool byLatency(int leftLatency, int rightLatency)
         {
-            const int leftLatency = effectiveLatencyOf(left, selector, now);
-            const int rightLatency = effectiveLatencyOf(right, selector, now);
             const int leftRank = latencyRank(leftLatency);
             const int rightRank = latencyRank(rightLatency);
             if (leftRank != rightRank) return leftRank < rightRank;
             if (leftRank == 0) return leftLatency < rightLatency;
             return false;
+        }
+
+        // Read once up front: a sweep still running rewrites latencies, and a comparator that changes its answer mid-sort is UB.
+        void sortByLatency(QList<int> &ids, const autoSelector *selector, qint64 now, const QSet<int> &untrusted = {})
+        {
+            QHash<int, int> latency;
+            latency.reserve(ids.size());
+            for (int id : std::as_const(ids)) {
+                latency.insert(id, untrusted.contains(id) ? 0 : effectiveLatencyOf(id, selector, now));
+            }
+            std::stable_sort(ids.begin(), ids.end(),
+                             [&latency](int left, int right) { return byLatency(latency.value(left), latency.value(right)); });
         }
 
         QList<int> eligibleMembers(const std::shared_ptr<Profile> &ent,
@@ -242,8 +253,7 @@ namespace Configs
             for (int id : members) {
                 if (!placed.contains(id)) newcomers << id;
             }
-            std::stable_sort(newcomers.begin(), newcomers.end(),
-                             [selector, now](int left, int right) { return byLatency(left, right, selector, now); });
+            sortByLatency(newcomers, selector, now);
             ordered << newcomers;
             return ordered;
         }
@@ -319,8 +329,9 @@ namespace Configs
         return eligibleMembers(ent, selector, nullptr);
     }
 
-    QList<int> AutoSelectorUnmeasuredCandidates(const std::shared_ptr<Profile> &ent, const QList<int> &stale)
+    QList<int> AutoSelectorUnmeasuredCandidates(const std::shared_ptr<Profile> &ent, const QList<int> &stale, int *working)
     {
+        if (working != nullptr) *working = 0;
         if (ent == nullptr) return {};
         auto selector = ent->AutoSelector();
         if (selector == nullptr) return {};
@@ -334,21 +345,58 @@ namespace Configs
                 needed << id;
                 continue;
             }
-            if (effectiveLatencyOf(id, selector, now) == 0) needed << id;
+            const int latency = effectiveLatencyOf(id, selector, now);
+            if (latency == 0) needed << id;
+            else if (latency > 0 && working != nullptr) ++*working;
         }
         return needed;
     }
 
-    QList<int> RerankAutoSelectorPool(const std::shared_ptr<Profile> &ent)
+    bool AutoSelectorMemberWorks(const std::shared_ptr<Profile> &ent, const std::shared_ptr<Profile> &member)
+    {
+        if (ent == nullptr) return false;
+        const auto selector = ent->AutoSelector();
+        return selector != nullptr && effectiveLatency(member, selector, QDateTime::currentSecsSinceEpoch()) > 0;
+    }
+
+    int AutoSelectorStartQuorum(const std::shared_ptr<Profile> &ent)
+    {
+        if (ent == nullptr) return 0;
+        auto selector = ent->AutoSelector();
+        if (selector == nullptr) return 0;
+        selector->Normalize();
+        return std::min(std::max(selector->expected, selector->activeSize), selector->buildLimit);
+    }
+
+    bool AutoSelectorBuildChanged(const std::shared_ptr<Profile> &ent)
+    {
+        if (ent == nullptr) return false;
+        const auto selector = ent->AutoSelector();
+        if (selector == nullptr) return false;
+        const auto plan = PlanAutoSelector(ent);
+        if (!plan.error.isEmpty()) return false;
+
+        const QSet<int> next(plan.build.begin(), plan.build.end());
+        const QSet<int> built(selector->lastBuilt.begin(), selector->lastBuilt.end());
+        for (int id : built) {
+            if (!next.contains(id)) return true;
+        }
+        // The build drops members that fail validation, so an unbuilt one counts only when it is known to work.
+        const auto now = QDateTime::currentSecsSinceEpoch();
+        for (int id : next) {
+            if (!built.contains(id) && effectiveLatencyOf(id, selector, now) > 0) return true;
+        }
+        return false;
+    }
+
+    QList<int> RerankAutoSelectorPool(const std::shared_ptr<Profile> &ent, const QList<int> &untrusted)
     {
         if (ent == nullptr) return {};
         auto selector = ent->AutoSelector();
         if (selector == nullptr) return {};
 
         auto members = eligibleMembers(ent, selector, nullptr);
-        const auto now = QDateTime::currentSecsSinceEpoch();
-        std::stable_sort(members.begin(), members.end(),
-                         [selector, now](int left, int right) { return byLatency(left, right, selector, now); });
+        sortByLatency(members, selector, QDateTime::currentSecsSinceEpoch(), QSet<int>(untrusted.begin(), untrusted.end()));
         if (members.size() > selector->poolCap) members = members.mid(0, selector->poolCap);
 
         selector->pool = members;

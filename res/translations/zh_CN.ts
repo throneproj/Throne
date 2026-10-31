@@ -5179,11 +5179,6 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
         <translation>%1 有一项将被重复使用的近期测试结果。</translation>
     </message>
     <message>
-        <location filename="Throne-1.3.1/src/ui/profile/edit_autoselector.cpp" line="292"/>
-        <source>The rest will be measured before the selector starts.</source>
-        <translation>其余的在选择器开始前将被测量。</translation>
-    </message>
-    <message>
         <source>Optional regular expression, matched anywhere in the profile name and ignoring case. Only profiles whose name matches are used.
 Pick several: germany|nl
 Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neither.</source>
@@ -5198,6 +5193,10 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
     <message>
         <source>Comma-separated country codes, empty means any. Put ! before a code to exclude that country instead, e.g. !RU uses every country but Russia. Uses the country found by the IP test, so profiles that were never IP-tested are skipped while this is set.</source>
         <translation>逗号间隔的国家代码，空白表示任何国家。在代码前加 ! 则排除该国家，例如 !RU 使用除俄罗斯以外的所有国家。使用由 IP 测试找到的国家，因此在设定这个期间，从未进行 IP 测试的配置档会被跳过。</translation>
+    </message>
+    <message>
+        <source>The rest will be measured as the selector starts: it runs as soon as enough profiles work, and switches to the full ranking once all are measured.</source>
+        <translation>其余的将在选择器启动时测量：一旦有足够的配置档可用，选择器就会运行，并在全部测量完成后切换到完整排名。</translation>
     </message>
 </context>
 <context>
@@ -9926,6 +9925,14 @@ Error: %1</source>
     <message>
         <source>Show every option. Simple mode hides the advanced ones; they keep their values and still apply.</source>
         <translation>显示所有选项。简洁模式会隐藏高级选项，但它们保留原值并继续生效。</translation>
+    </message>
+    <message>
+        <source>[Auto selector] %1 working profiles found; starting now while the remaining %2 are still being measured.</source>
+        <translation>[自动选择器] 已找到 %1 个可用配置档；现在启动，其余 %2 个仍在测量中。</translation>
+    </message>
+    <message>
+        <source>[Auto selector] Every profile is measured and the best ones changed — rebuilding with the full ranking.</source>
+        <translation>[自动选择器] 所有配置档均已测量，且最佳配置档有变化——按完整排名重新构建。</translation>
     </message>
 </context>
 <context>

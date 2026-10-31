@@ -384,7 +384,8 @@ void EditAutoSelector::refreshPlanSummary() {
         lines << tr("%1 have a recent test result that will be reused.").arg(plan.rankedByTest);
     }
     if (plan.needsRanking) {
-        lines << tr("The rest will be measured before the selector starts.");
+        lines << tr("The rest will be measured as the selector starts: it runs as soon as enough profiles work, and "
+                    "switches to the full ranking once all are measured.");
     }
     ui->plan_summary->setText(lines.join(" "));
 }

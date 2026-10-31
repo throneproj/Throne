@@ -5667,10 +5667,6 @@ Close without saving?</source>
         <translation>Профилей с недавним результатом теста (он будет использован повторно): %1.</translation>
     </message>
     <message>
-        <source>The rest will be measured before the selector starts.</source>
-        <translation>Остальные профили будут измерены до запуска автовыбора.</translation>
-    </message>
-    <message>
         <source>Optional regular expression, matched anywhere in the profile name and ignoring case. Only profiles whose name matches are used.
 Pick several: germany|nl
 Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neither.</source>
@@ -5685,6 +5681,10 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
     <message>
         <source>Comma-separated country codes, empty means any. Put ! before a code to exclude that country instead, e.g. !RU uses every country but Russia. Uses the country found by the IP test, so profiles that were never IP-tested are skipped while this is set.</source>
         <translation>Коды стран через запятую; пустое поле — любая страна. Поставьте ! перед кодом, чтобы исключить страну, например !RU — все страны, кроме России. Используется страна, определённая IP-тестом, поэтому, пока фильтр задан, профили без IP-теста пропускаются.</translation>
+    </message>
+    <message>
+        <source>The rest will be measured as the selector starts: it runs as soon as enough profiles work, and switches to the full ranking once all are measured.</source>
+        <translation>Остальные профили будут измерены при запуске: автовыбор заработает, как только наберётся достаточно рабочих профилей, и перейдёт на полный рейтинг, когда измерены все.</translation>
     </message>
 </context>
 <context>
@@ -9913,6 +9913,14 @@ Name: %1</source>
     <message>
         <source>Show every option. Simple mode hides the advanced ones; they keep their values and still apply.</source>
         <translation>Показывать все параметры. Простой режим скрывает дополнительные, но их значения сохраняются и продолжают действовать.</translation>
+    </message>
+    <message>
+        <source>[Auto selector] %1 working profiles found; starting now while the remaining %2 are still being measured.</source>
+        <translation>[Автовыбор] Найдено рабочих профилей: %1; запуск сейчас, остальные (%2) ещё измеряются.</translation>
+    </message>
+    <message>
+        <source>[Auto selector] Every profile is measured and the best ones changed — rebuilding with the full ranking.</source>
+        <translation>[Автовыбор] Все профили измерены, и лучшие изменились — пересборка по полному рейтингу.</translation>
     </message>
 </context>
 <context>

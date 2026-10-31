@@ -213,7 +213,7 @@ namespace Engine {
         QString coreError;
         libcore::TestResp result;
         {
-            TestRunnerResultPoller poller([this, gen = sessionGen_.load(), tag2entID = target.tag2entID] {
+            TestRunnerResultPoller poller([this, gen = sessionGen_.load(), tag2entID = target.tag2entID, onResult = target.onResult] {
                 if (staleGen(gen)) return;
                 bool ok = false;
                 const auto resp = API::defaultClient->QueryURLTest(&ok);
@@ -230,6 +230,7 @@ namespace Engine {
                     auto ent = Configs::dataManager->profilesRepo->GetProfile(entid);
                     if (ent == nullptr) continue;
                     applyUrlResult(ent, res);
+                    if (onResult) onResult(ent);
                     updated << entid;
                 }
                 if (updated.isEmpty()) return;
@@ -262,6 +263,7 @@ namespace Engine {
                 continue;
             }
             applyUrlResult(ent, res, &vpnConnected);
+            if (target.onResult) target.onResult(ent);
         }
     }
 
@@ -326,8 +328,9 @@ namespace Engine {
         }
     }
 
-    bool TestRunner::runUrlTests(const QList<int>& profileIDs, const std::function<void()>& onFinished, bool interactive) {
-        return runLatencyGroup(LatencyKind::Url, profileIDs, onFinished, false, interactive);
+    bool TestRunner::runUrlTests(const QList<int>& profileIDs, const std::function<void()>& onFinished, bool interactive,
+                                 const ResultHook& onResult) {
+        return runLatencyGroup(LatencyKind::Url, profileIDs, onFinished, false, interactive, onResult);
     }
 
     void TestRunner::queueUrlTests(const QList<int>& profileIDs, const std::function<void()>& onFinished, bool interactive) {
@@ -339,7 +342,8 @@ namespace Engine {
     }
 
     bool TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedIDs,
-                                     const std::function<void()>& onFinished, bool waitForSession, bool interactive) {
+                                     const std::function<void()>& onFinished, bool waitForSession, bool interactive,
+                                     const ResultHook& onResult) {
         const bool isUrl = kind == LatencyKind::Url;
         const auto panelKind = isUrl ? TestKind::Latency : TestKind::Ip;
         // Must fire on every exit path — a caller may be blocked on it.
@@ -367,11 +371,11 @@ namespace Engine {
         stopRequested_.store(false);
         interactive_.store(interactive);
 
-        runOnNewThread([this, profileIDs, panelKind, isUrl, finish]() {
+        runOnNewThread([this, profileIDs, panelKind, isUrl, finish, onResult]() {
             observer_->testPanelSeeded(panelKind, profileIDs.size());
             observer_->testViewChanged(true);
 
-            auto runBatch = [this, isUrl](const QList<std::shared_ptr<Configs::Profile>>& profileSlice, const QList<int>& ids) {
+            auto runBatch = [this, isUrl, &onResult](const QList<std::shared_ptr<Configs::Profile>>& profileSlice, const QList<int>& ids) {
                 // Per batch, not per probe: a batch's probes drain each other's results, and tags restart each batch.
                 sessionGen_.fetch_add(1);
                 auto buildObject = Configs::BuildTestConfig(profileSlice);
@@ -397,6 +401,7 @@ namespace Engine {
                     target.coreConfig = buildObject->fullConfigs[entID];
                     target.useDefaultOutbound = true;
                     target.entID = entID;
+                    target.onResult = onResult;
                     probe(target);
                 }
                 if (!buildObject->outboundTags.empty()) {
@@ -407,6 +412,7 @@ namespace Engine {
                     target.outboundTags = buildObject->outboundTags;
                     target.tag2entID = buildObject->tag2entID;
                     target.xrayDnsStrategy = buildObject->xrayDnsStrategy;
+                    target.onResult = onResult;
                     probe(target);
                 }
                 batchDone.acquire(testCount);
