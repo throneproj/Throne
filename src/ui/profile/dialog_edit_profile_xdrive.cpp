@@ -33,6 +33,11 @@ std::array<XDriveTuningEdit, 8> xdriveTuningEdits(const Ui::DialogEditProfile *u
 QStringList xdriveSecretsFromUi(const Ui::DialogEditProfile *ui, const Configs::xrayXDrive &stored) {
     const auto service = ui->xray_xdrive_service->currentText();
     if (service == "template") return SplitAndTrim(ui->xray_xdrive_secrets->text(), ",", false);
+    if (service == "s3") {
+        QStringList keys = {ui->xray_xdrive_s3_access_key->text().trimmed(), ui->xray_xdrive_s3_secret_key->text().trimmed()};
+        if (const auto token = ui->xray_xdrive_s3_session_token->text().trimmed(); !token.isEmpty()) keys << token;
+        return keys;
+    }
     if (service != "google-drive") return stored.secrets;
     // Xray takes exactly these three, so entries a list carried past them are dropped.
     return {ui->xray_xdrive_client_id->text().trimmed(), ui->xray_xdrive_client_secret->text().trimmed(),
@@ -55,6 +60,8 @@ void DialogEditProfile::setupXrayXDriveControls() {
     }
     ui->xray_xdrive_front_port->setValidator(digits);
     ui->xray_xdrive_front_port->setPlaceholderText("443");
+    ui->xray_xdrive_s3_endpoint->setPlaceholderText("https://s3.example.com");
+    ui->xray_xdrive_s3_region->setPlaceholderText("us-east-1");
 
     connect(ui->xray_xdrive_service, &QComboBox::currentTextChanged, this, [this] { relayout(); });
     setupXrayXDriveDescriptions();
@@ -65,16 +72,32 @@ void DialogEditProfile::setupXrayXDriveDescriptions() {
     ui->xray_xdrive_tuning_box->setTitle(tr("Tuning"));
 
     setXrayXHTTPHelp(ui->xray_xdrive_service_l, ui->xray_xdrive_service, tr("Service"), "service",
-                     tr("Where both ends exchange the stream: google-drive uses a Google Drive folder, template any HTTP "
-                        "storage API described by Template, local a folder on this machine."));
+                     tr("Where both ends exchange the stream: google-drive uses a Google Drive folder, s3 a bucket of any "
+                        "S3-compatible storage, template any HTTP storage API described by Template, local a folder on this machine."));
     setXrayXHTTPHelp(ui->xray_xdrive_folder_l, ui->xray_xdrive_folder, tr("Folder"), "remoteFolder",
-                     tr("google-drive: the folder ID. local: a directory path. template: read as {folder}."));
+                     tr("google-drive: the folder ID. s3: the key prefix inside the bucket. local: a directory path. "
+                        "template: read as {folder}."));
     setXrayXHTTPHelp(ui->xray_xdrive_client_id_l, ui->xray_xdrive_client_id, tr("Client ID"), "secrets[0]",
                      tr("The Google Drive OAuth client ID."));
     setXrayXHTTPHelp(ui->xray_xdrive_client_secret_l, ui->xray_xdrive_client_secret, tr("Client Secret"), "secrets[1]",
                      tr("The Google Drive OAuth client secret."));
     setXrayXHTTPHelp(ui->xray_xdrive_refresh_token_l, ui->xray_xdrive_refresh_token, tr("Refresh Token"), "secrets[2]",
                      tr("The OAuth refresh token for the Google account that owns the folder."));
+    setXrayXHTTPHelp(ui->xray_xdrive_s3_endpoint_l, ui->xray_xdrive_s3_endpoint, tr("Endpoint"), "s3.endpoint",
+                     tr("The S3 API URL, such as https://s3.us-east-1.amazonaws.com or a MinIO or R2 endpoint."));
+    setXrayXHTTPHelp(ui->xray_xdrive_s3_region_l, ui->xray_xdrive_s3_region, tr("Region"), "s3.region",
+                     tr("The region requests are signed for. Default: us-east-1."));
+    setXrayXHTTPHelp(ui->xray_xdrive_s3_bucket_l, ui->xray_xdrive_s3_bucket, tr("Bucket"), "s3.bucket",
+                     tr("The bucket both ends share."));
+    setXrayXHTTPHelp(ui->xray_xdrive_s3_path_style, nullptr, tr("Path-Style Addressing"), "s3.pathStyle",
+                     tr("Puts the bucket in the URL path. When off, the bucket becomes part of the endpoint's host name, "
+                        "which needs a DNS endpoint and a DNS-compatible bucket name. Default: on."));
+    setXrayXHTTPHelp(ui->xray_xdrive_s3_access_key_l, ui->xray_xdrive_s3_access_key, tr("Access Key ID"), "secrets[0]",
+                     tr("The S3 access key ID."));
+    setXrayXHTTPHelp(ui->xray_xdrive_s3_secret_key_l, ui->xray_xdrive_s3_secret_key, tr("Secret Access Key"), "secrets[1]",
+                     tr("The S3 secret access key."));
+    setXrayXHTTPHelp(ui->xray_xdrive_s3_session_token_l, ui->xray_xdrive_s3_session_token, tr("Session Token"), "secrets[2]",
+                     tr("Optional: the session token of temporary credentials."));
     setXrayXHTTPHelp(ui->xray_xdrive_secrets_l, ui->xray_xdrive_secrets, tr("Secrets"), "secrets",
                      tr("Values the template reads as {secret0}, {secret1}, …, separated by commas."));
     setXrayXHTTPHelp(ui->xray_xdrive_template_l, ui->xray_xdrive_template_edit, tr("Template"), "template",
@@ -113,6 +136,13 @@ void DialogEditProfile::loadXrayXDrive(const Configs::xrayXDrive &xdrive) {
     ui->xray_xdrive_client_id->setText(xdrive.secrets.value(0));
     ui->xray_xdrive_client_secret->setText(xdrive.secrets.value(1));
     ui->xray_xdrive_refresh_token->setText(xdrive.secrets.value(2));
+    ui->xray_xdrive_s3_endpoint->setText(xdrive.s3Endpoint);
+    ui->xray_xdrive_s3_region->setText(xdrive.s3Region);
+    ui->xray_xdrive_s3_bucket->setText(xdrive.s3Bucket);
+    ui->xray_xdrive_s3_path_style->setChecked(xdrive.s3PathStyle);
+    ui->xray_xdrive_s3_access_key->setText(xdrive.secrets.value(0));
+    ui->xray_xdrive_s3_secret_key->setText(xdrive.secrets.value(1));
+    ui->xray_xdrive_s3_session_token->setText(xdrive.secrets.value(2));
     ui->xray_xdrive_secrets->setText(xdrive.secrets.join(", "));
     ui->xray_xdrive_front->setText(xdrive.frontAddress);
     ui->xray_xdrive_front_port->setText(xdrive.frontPort == 0 ? QString() : QString::number(xdrive.frontPort));
@@ -127,6 +157,10 @@ void DialogEditProfile::saveXrayXDrive(Configs::xrayXDrive &xdrive) {
     xdrive.service = ui->xray_xdrive_service->currentText().trimmed();
     xdrive.remoteFolder = ui->xray_xdrive_folder->text().trimmed();
     xdrive.templateSpec = CACHE.XrayXDriveTemplate;
+    xdrive.s3Endpoint = ui->xray_xdrive_s3_endpoint->text().trimmed();
+    xdrive.s3Region = ui->xray_xdrive_s3_region->text().trimmed();
+    xdrive.s3Bucket = ui->xray_xdrive_s3_bucket->text().trimmed();
+    xdrive.s3PathStyle = ui->xray_xdrive_s3_path_style->isChecked();
     xdrive.frontAddress = ui->xray_xdrive_front->text().trimmed();
     xdrive.frontPort = ui->xray_xdrive_front_port->text().trimmed().toInt();
     for (const auto &tuning: xdriveTuningEdits(ui)) {
@@ -137,16 +171,25 @@ void DialogEditProfile::saveXrayXDrive(Configs::xrayXDrive &xdrive) {
 void DialogEditProfile::updateXrayXDriveControls() {
     const auto service = ui->xray_xdrive_service->currentText();
     const bool googleDrive = service == "google-drive";
+    const bool s3 = service == "s3";
     const bool storageTemplate = service == "template";
     const bool local = service == "local";
     setRowVisible(ui->xray_xdrive_client_id_l, ui->xray_xdrive_client_id, googleDrive);
     setRowVisible(ui->xray_xdrive_client_secret_l, ui->xray_xdrive_client_secret, googleDrive);
     setRowVisible(ui->xray_xdrive_refresh_token_l, ui->xray_xdrive_refresh_token, googleDrive);
+    setRowVisible(ui->xray_xdrive_s3_endpoint_l, ui->xray_xdrive_s3_endpoint, s3);
+    setRowVisible(ui->xray_xdrive_s3_region_l, ui->xray_xdrive_s3_region, s3);
+    setRowVisible(ui->xray_xdrive_s3_bucket_l, ui->xray_xdrive_s3_bucket, s3);
+    ui->xray_xdrive_s3_path_style->setVisible(s3);
+    setRowVisible(ui->xray_xdrive_s3_access_key_l, ui->xray_xdrive_s3_access_key, s3);
+    setRowVisible(ui->xray_xdrive_s3_secret_key_l, ui->xray_xdrive_s3_secret_key, s3);
+    setRowVisible(ui->xray_xdrive_s3_session_token_l, ui->xray_xdrive_s3_session_token, s3);
     setRowVisible(ui->xray_xdrive_secrets_l, ui->xray_xdrive_secrets, storageTemplate);
     setRowVisible(ui->xray_xdrive_template_l, ui->xray_xdrive_template_edit, storageTemplate);
     setRowVisible(ui->xray_xdrive_front_l, ui->xray_xdrive_front, !local);
     setRowVisible(ui->xray_xdrive_front_port_l, ui->xray_xdrive_front_port, !local);
     ui->xray_xdrive_folder->setPlaceholderText(googleDrive ? tr("Google Drive folder ID")
+                                               : s3        ? tr("Key prefix in the bucket")
                                                : local     ? tr("A directory path")
                                                            : QString());
 }
@@ -161,12 +204,24 @@ void DialogEditProfile::bindXrayXDrive() {
         return Checks::XrayXDriveFolder(service(), ui->xray_xdrive_folder->text());
     });
     form->addRule({ui->xray_xdrive_client_id, ui->xray_xdrive_client_secret, ui->xray_xdrive_refresh_token,
+                   ui->xray_xdrive_s3_access_key, ui->xray_xdrive_s3_secret_key, ui->xray_xdrive_s3_session_token,
                    ui->xray_xdrive_secrets, ui->xray_xdrive_service}, [this, service] {
         if (!ent->outbound->HasXrayStream()) return QString();
         return Checks::XrayXDriveSecrets(service(), xdriveSecretsFromUi(ui, *ent->outbound->GetXrayStream()->xdrive));
     });
     form->addRule({ui->xray_xdrive_template_edit, ui->xray_xdrive_service}, [this, service] {
         return Checks::XrayXDriveTemplate(service(), CACHE.XrayXDriveTemplate);
+    });
+    form->addRule({ui->xray_xdrive_s3_endpoint, ui->xray_xdrive_service}, [this, service] {
+        return Checks::XrayXDriveS3Endpoint(service(), ui->xray_xdrive_s3_endpoint->text());
+    });
+    form->addRule({ui->xray_xdrive_s3_region, ui->xray_xdrive_service}, [this, service] {
+        return Checks::XrayXDriveS3Region(service(), ui->xray_xdrive_s3_region->text().trimmed());
+    });
+    form->addRule({ui->xray_xdrive_s3_bucket, ui->xray_xdrive_s3_path_style, ui->xray_xdrive_s3_endpoint, ui->xray_xdrive_service},
+                  [this, service] {
+        return Checks::XrayXDriveS3Bucket(service(), ui->xray_xdrive_s3_bucket->text().trimmed(),
+                                          ui->xray_xdrive_s3_endpoint->text(), ui->xray_xdrive_s3_path_style->isChecked());
     });
     for (const auto &tuning: xdriveTuningEdits(ui)) form->bind(tuning.edit, Checks::XrayXDriveTuning);
     form->bind(ui->xray_xdrive_front_port, Checks::XrayXDriveFrontPort);

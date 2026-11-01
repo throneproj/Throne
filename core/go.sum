@@ -383,8 +383,8 @@ github.com/throneproj/sing-box v1.11.16-0.20261031212642-af51a7460ccd h1:g/wsw1u
 github.com/throneproj/sing-box v1.11.16-0.20261031212642-af51a7460ccd/go.mod h1:bXUo2An3YqJZK/34jB9vyRS8INJ03yGcZ8x4Eo9mhX4=
 github.com/throneproj/wireguard-go v0.0.0-20261031210827-e11787583013 h1:MOqnvmWxl7xQhENqWF5TuapPNVnajsWXMbdkxjMK2Bs=
 github.com/throneproj/wireguard-go v0.0.0-20261031210827-e11787583013/go.mod h1:er10sELpmzLXq7S7Pbc1Zsbyapcr+/gxNAHKTo6fzVA=
-github.com/throneproj/xray-core v1.251015.1-0.20261031105708-d672759ff89f h1:3JcqewvDEdAPQHVo5hawybIzPRPL6oEEyPWQutA5QlQ=
-github.com/throneproj/xray-core v1.251015.1-0.20261031105708-d672759ff89f/go.mod h1:V3ZV2lo9eo7BRqns6hBjiOjNty3rH9jCYXQci3vYkp8=
+github.com/throneproj/xray-core v1.251015.1-0.20261101081745-1c6eb7771c4d h1:PVedMsGJ0xZkJANhPi8w57dcTqyJUHhdcr5abdEiDcY=
+github.com/throneproj/xray-core v1.251015.1-0.20261101081745-1c6eb7771c4d/go.mod h1:SQ8RYpPoRB/nHiqNfvvmJVQc9wK94NlsTYpPANjhH0s=
 github.com/tidwall/gjson v1.14.2/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
 github.com/tidwall/gjson v1.18.0 h1:FIDeeyB800efLX89e5a8Y0BNH+LOngJyGrIWxG2FKQY=
 github.com/tidwall/gjson v1.18.0/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=

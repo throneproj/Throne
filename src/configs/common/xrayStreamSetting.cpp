@@ -2,6 +2,7 @@
 #include "include/configs/common/TLS.h"
 #include <QCoreApplication>
 #include <QHash>
+#include <QRegularExpression>
 #include <QUrlQuery>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -48,6 +49,20 @@ namespace Configs {
                 {QStringLiteral("holeTimeoutMs"), &xrayXDrive::holeTimeoutMs},
             }};
             return keys;
+        }
+
+        // Go httpguts.ValidHeaderFieldValue: no control characters but space and tab.
+        bool xdriveHeaderValue(const QString& text)
+        {
+            return std::none_of(text.cbegin(), text.cend(), [](QChar c) { return (c.unicode() < 0x20 && c != '\t') || c.unicode() == 0x7f; });
+        }
+
+        // Xray validS3Name: no control characters or backslashes, and no empty, "." or ".." component.
+        bool xdriveS3Name(const QString& name)
+        {
+            if (std::any_of(name.cbegin(), name.cend(), [](QChar c) { return c.unicode() < 0x20 || c.unicode() == 0x7f || c == '\\'; })) return false;
+            const auto parts = name.split('/');
+            return std::none_of(parts.cbegin(), parts.cend(), [](const QString& p) { return p.isEmpty() || p == "." || p == ".."; });
         }
 
         // Xray transport/internet/tls/tls.go: PresetFingerprints, ModernFingerprints and OtherFingerprints, matched lower-cased.
@@ -1256,6 +1271,13 @@ namespace Configs {
         if (object.contains("remoteFolder")) remoteFolder = object["remoteFolder"].toString();
         if (object.contains("secrets")) secrets = JsonStringList(object["secrets"], "xdriveSettings.secrets");
         if (object["template"].isObject()) templateSpec = object["template"].toObject();
+        if (object["s3"].isObject()) {
+            const auto s3 = object["s3"].toObject();
+            s3Endpoint = s3["endpoint"].toString();
+            s3Region = s3["region"].toString();
+            s3Bucket = s3["bucket"].toString();
+            s3PathStyle = s3["pathStyle"].toBool(true);
+        }
         for (const auto& [key, field] : xdriveTuning()) {
             if (object.contains(key)) this->*field = object[key].toInteger();
         }
@@ -1277,6 +1299,15 @@ namespace Configs {
         if (!remoteFolder.isEmpty()) obj["remoteFolder"] = remoteFolder;
         if (!secrets.isEmpty()) obj["secrets"] = QListStr2QJsonArray(secrets);
         if (!templateSpec.isEmpty()) obj["template"] = templateSpec;
+        // Xray reads the s3 object only for the s3 service, so another service drops it.
+        if (service == "s3") {
+            QJsonObject s3;
+            s3["endpoint"] = s3Endpoint;
+            if (!s3Region.isEmpty()) s3["region"] = s3Region;
+            s3["bucket"] = s3Bucket;
+            if (!s3PathStyle) s3["pathStyle"] = false;
+            obj["s3"] = s3;
+        }
         for (const auto& [key, field] : xdriveTuning()) {
             if (this->*field != 0) obj[key] = this->*field;
         }
@@ -1470,6 +1501,10 @@ namespace Configs {
         if (network == "xdrive") {
             object["service"] = xdrive->service;
             if (!xdrive->remoteFolder.isEmpty()) object["folder"] = xdrive->remoteFolder;
+            if (xdrive->service == "s3") {
+                object["endpoint"] = xdrive->s3Endpoint;
+                object["bucket"] = xdrive->s3Bucket;
+            }
         }
         return object;
     }
@@ -1707,12 +1742,19 @@ namespace Configs {
         QString XrayXDriveService(const QString& service)
         {
             if (XrayXDriveServices.contains(service.trimmed())) return {};
-            return QCoreApplication::translate("Validation", "Must be google-drive, template or local.");
+            return QCoreApplication::translate("Validation", "Must be google-drive, s3, template or local.");
         }
 
         QString XrayXDriveFolder(const QString& service, const QString& folder)
         {
             const auto s = service.trimmed();
+            if (s == "s3") {
+                auto prefix = folder.trimmed();
+                if (prefix.isEmpty()) return QCoreApplication::translate("Validation", "Enter the key prefix both ends share in the bucket.");
+                if (prefix.endsWith('/')) prefix.chop(1);
+                if (xdriveS3Name(prefix)) return {};
+                return QCoreApplication::translate("Validation", "The key prefix must be relative, without empty, \".\" or \"..\" parts, backslashes or control characters.");
+            }
             if (!folder.trimmed().isEmpty() || (s != "google-drive" && s != "local")) return {};
             if (s == "local") return QCoreApplication::translate("Validation", "Enter the directory both ends share.");
             return QCoreApplication::translate("Validation", "Enter the ID of the Google Drive folder both ends share.");
@@ -1720,6 +1762,15 @@ namespace Configs {
 
         QString XrayXDriveSecrets(const QString& service, const QStringList& secrets)
         {
+            if (service.trimmed() == "s3") {
+                if (secrets.size() < 2 || secrets.size() > 3 || secrets[0].trimmed().isEmpty() || secrets[1].trimmed().isEmpty())
+                    return QCoreApplication::translate("Validation", "S3 needs the access key ID and the secret access key; the session token is optional.");
+                if (!std::all_of(secrets.cbegin(), secrets.cend(), xdriveHeaderValue))
+                    return QCoreApplication::translate("Validation", "The S3 keys cannot contain control characters.");
+                if (secrets[0].contains(QRegularExpression("[/ ,\\t]")))
+                    return QCoreApplication::translate("Validation", "The access key ID cannot contain spaces, commas or slashes.");
+                return {};
+            }
             if (service.trimmed() != "google-drive") return {};
             // Xray drive.go: exactly three, none empty.
             if (secrets.size() == 3 && std::none_of(secrets.cbegin(), secrets.cend(), [](const QString& s) { return s.trimmed().isEmpty(); })) return {};
@@ -1730,6 +1781,40 @@ namespace Configs {
         {
             if (service.trimmed() != "template" || !templateSpec.isEmpty()) return {};
             return QCoreApplication::translate("Validation", "The template service needs a template describing the storage API.");
+        }
+
+        QString XrayXDriveS3Endpoint(const QString& service, const QString& endpoint)
+        {
+            if (service.trimmed() != "s3") return {};
+            const auto text = endpoint.trimmed();
+            if (text.isEmpty()) return QCoreApplication::translate("Validation", "Enter the S3 endpoint URL, such as https://s3.example.com.");
+            const QUrl url(text, QUrl::StrictMode);
+            const auto scheme = url.scheme().toLower();
+            if (url.isValid() && (scheme == "https" || scheme == "http") && !url.host().isEmpty() && url.userInfo().isEmpty()
+                && !url.hasQuery() && !url.hasFragment()) return {};
+            return QCoreApplication::translate("Validation", "The endpoint must be an http or https URL without credentials, query or fragment.");
+        }
+
+        QString XrayXDriveS3Region(const QString& service, const QString& region)
+        {
+            if (service.trimmed() != "s3") return {};
+            if (xdriveHeaderValue(region) && !region.contains(QRegularExpression("[/, \\t]"))) return {};
+            return QCoreApplication::translate("Validation", "The signing region cannot contain spaces, commas, slashes or control characters.");
+        }
+
+        QString XrayXDriveS3Bucket(const QString& service, const QString& bucket, const QString& endpoint, bool pathStyle)
+        {
+            if (service.trimmed() != "s3") return {};
+            if (bucket.isEmpty()) return QCoreApplication::translate("Validation", "Enter the bucket both ends share.");
+            if (bucket.contains('/') || !xdriveS3Name(bucket))
+                return QCoreApplication::translate("Validation", "The bucket name cannot be \".\" or \"..\", nor contain slashes, backslashes or control characters.");
+            if (pathStyle) return {};
+            static const QRegularExpression dnsName("^[a-z0-9.-]+$");
+            if (!dnsName.match(bucket).hasMatch() || bucket.contains("..") || bucket.startsWith('.') || bucket.endsWith('.'))
+                return QCoreApplication::translate("Validation", "Virtual-hosted addressing needs a DNS-compatible bucket name: lowercase letters, digits, dots and hyphens.");
+            if (Validation::Ip(QUrl(endpoint.trimmed()).host()).isEmpty())
+                return QCoreApplication::translate("Validation", "Virtual-hosted addressing needs a DNS endpoint, not an IP address. Turn on path-style addressing instead.");
+            return {};
         }
 
         QString XrayXDriveTuning(const QString& text)
@@ -1790,6 +1875,9 @@ namespace Configs {
             xrayStreamAdd(issues, Severity::Error, key + "remoteFolder", Checks::XrayXDriveFolder(d.service, d.remoteFolder));
             xrayStreamAdd(issues, Severity::Error, key + "secrets", Checks::XrayXDriveSecrets(d.service, d.secrets));
             xrayStreamAdd(issues, Severity::Error, key + "template", Checks::XrayXDriveTemplate(d.service, d.templateSpec));
+            xrayStreamAdd(issues, Severity::Error, key + "s3.endpoint", Checks::XrayXDriveS3Endpoint(d.service, d.s3Endpoint), d.s3Endpoint);
+            xrayStreamAdd(issues, Severity::Error, key + "s3.region", Checks::XrayXDriveS3Region(d.service, d.s3Region), d.s3Region);
+            xrayStreamAdd(issues, Severity::Error, key + "s3.bucket", Checks::XrayXDriveS3Bucket(d.service, d.s3Bucket, d.s3Endpoint, d.s3PathStyle), d.s3Bucket);
             for (const auto& [name, field] : xdriveTuning()) {
                 const auto value = QString::number(d.*field);
                 xrayStreamAdd(issues, Severity::Error, key + name, Checks::XrayXDriveTuning(value), value);

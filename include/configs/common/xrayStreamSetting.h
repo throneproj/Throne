@@ -5,7 +5,7 @@
 namespace Configs {
     inline QStringList XrayNetworks = {"raw", "xhttp", "ws", "httpupgrade", "grpc", "xdrive"};
     // Xray still takes "Google Drive" for google-drive; ParseFromJson folds it.
-    inline QStringList XrayXDriveServices = {"google-drive", "template", "local"};
+    inline QStringList XrayXDriveServices = {"google-drive", "s3", "template", "local"};
     inline QStringList XrayXHTTPModes = {"auto", "packet-up", "stream-up", "stream-one"};
     inline QStringList XrayXHTTPMetaPlacements = {"", "path", "cookie", "header", "query"};
     inline QStringList XrayXHTTPUplinkDataPlacements = {"", "auto", "body", "cookie", "header"};
@@ -68,9 +68,13 @@ namespace Configs {
 
         QString XrayXDriveService(const QString& service);
         QString XrayXDriveFolder(const QString& service, const QString& folder);
-        // google-drive takes exactly ClientID, ClientSecret and RefreshToken, none empty.
+        // google-drive takes exactly ClientID, ClientSecret and RefreshToken; s3 AccessKeyID, SecretAccessKey and an optional SessionToken.
         QString XrayXDriveSecrets(const QString& service, const QStringList& secrets);
         QString XrayXDriveTemplate(const QString& service, const QJsonObject& templateSpec);
+        QString XrayXDriveS3Endpoint(const QString& service, const QString& endpoint);
+        QString XrayXDriveS3Region(const QString& service, const QString& region);
+        // Virtual-hosted addressing puts the bucket in the endpoint's host name, which a bare IP or a non-DNS name cannot carry.
+        QString XrayXDriveS3Bucket(const QString& service, const QString& bucket, const QString& endpoint, bool pathStyle);
         // A tuning value: Xray reads a uint32, and 0 keeps its default.
         QString XrayXDriveTuning(const QString& text);
         QString XrayXDriveFrontPort(const QString& port);
@@ -225,9 +229,15 @@ namespace Configs {
     public:
         QString service = "google-drive";
         QString remoteFolder;
-        // google-drive: ClientID, ClientSecret, RefreshToken; template: read as {secret0}, {secret1}, ...
+        // google-drive: ClientID, ClientSecret, RefreshToken; s3: AccessKeyID, SecretAccessKey[, SessionToken];
+        // template: read as {secret0}, {secret1}, ...
         QStringList secrets;
         QJsonObject templateSpec;
+        // s3 only; Xray addresses the bucket path-style unless pathStyle is false.
+        QString s3Endpoint;
+        QString s3Region;
+        QString s3Bucket;
+        bool s3PathStyle = true;
         // The stream's own address and port: a front the storage API is dialed through.
         QString frontAddress;
         int frontPort = 0;

@@ -1822,6 +1822,94 @@
                     <widget class="QLineEdit" name="xray_xdrive_refresh_token"/>
                    </item>
                    <item row="3" column="0">
+                    <widget class="QLabel" name="xray_xdrive_s3_endpoint_l">
+                     <property name="text">
+                      <string>Endpoint</string>
+                     </property>
+                     <property name="buddy">
+                      <cstring>xray_xdrive_s3_endpoint</cstring>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="1">
+                    <widget class="QLineEdit" name="xray_xdrive_s3_endpoint"/>
+                   </item>
+                   <item row="3" column="2">
+                    <widget class="QLabel" name="xray_xdrive_s3_region_l">
+                     <property name="text">
+                      <string>Region</string>
+                     </property>
+                     <property name="buddy">
+                      <cstring>xray_xdrive_s3_region</cstring>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="3">
+                    <widget class="QLineEdit" name="xray_xdrive_s3_region"/>
+                   </item>
+                   <item row="4" column="0">
+                    <widget class="QLabel" name="xray_xdrive_s3_bucket_l">
+                     <property name="text">
+                      <string>Bucket</string>
+                     </property>
+                     <property name="buddy">
+                      <cstring>xray_xdrive_s3_bucket</cstring>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="4" column="1">
+                    <widget class="QLineEdit" name="xray_xdrive_s3_bucket"/>
+                   </item>
+                   <item row="4" column="2" colspan="2">
+                    <widget class="QCheckBox" name="xray_xdrive_s3_path_style">
+                     <property name="text">
+                      <string>Path-Style Addressing</string>
+                     </property>
+                     <property name="checked">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="5" column="0">
+                    <widget class="QLabel" name="xray_xdrive_s3_access_key_l">
+                     <property name="text">
+                      <string>Access Key ID</string>
+                     </property>
+                     <property name="buddy">
+                      <cstring>xray_xdrive_s3_access_key</cstring>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="5" column="1">
+                    <widget class="QLineEdit" name="xray_xdrive_s3_access_key"/>
+                   </item>
+                   <item row="5" column="2">
+                    <widget class="QLabel" name="xray_xdrive_s3_secret_key_l">
+                     <property name="text">
+                      <string>Secret Access Key</string>
+                     </property>
+                     <property name="buddy">
+                      <cstring>xray_xdrive_s3_secret_key</cstring>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="5" column="3">
+                    <widget class="QLineEdit" name="xray_xdrive_s3_secret_key"/>
+                   </item>
+                   <item row="6" column="0">
+                    <widget class="QLabel" name="xray_xdrive_s3_session_token_l">
+                     <property name="text">
+                      <string>Session Token</string>
+                     </property>
+                     <property name="buddy">
+                      <cstring>xray_xdrive_s3_session_token</cstring>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="6" column="1" colspan="3">
+                    <widget class="QLineEdit" name="xray_xdrive_s3_session_token"/>
+                   </item>
+                   <item row="7" column="0">
                     <widget class="QLabel" name="xray_xdrive_secrets_l">
                      <property name="text">
                       <string>Secrets</string>
@@ -1831,10 +1919,10 @@
                      </property>
                     </widget>
                    </item>
-                   <item row="3" column="1" colspan="3">
+                   <item row="7" column="1" colspan="3">
                     <widget class="QLineEdit" name="xray_xdrive_secrets"/>
                    </item>
-                   <item row="4" column="0">
+                   <item row="8" column="0">
                     <widget class="QLabel" name="xray_xdrive_template_l">
                      <property name="text">
                       <string>Template</string>
@@ -1844,14 +1932,14 @@
                      </property>
                     </widget>
                    </item>
-                   <item row="4" column="1" colspan="3">
+                   <item row="8" column="1" colspan="3">
                     <widget class="QPushButton" name="xray_xdrive_template_edit">
                      <property name="text">
                       <string>Edit</string>
                      </property>
                     </widget>
                    </item>
-                   <item row="5" column="0">
+                   <item row="9" column="0">
                     <widget class="QLabel" name="xray_xdrive_front_l">
                      <property name="text">
                       <string>Front Address</string>
@@ -1861,10 +1949,10 @@
                      </property>
                     </widget>
                    </item>
-                   <item row="5" column="1">
+                   <item row="9" column="1">
                     <widget class="QLineEdit" name="xray_xdrive_front"/>
                    </item>
-                   <item row="5" column="2">
+                   <item row="9" column="2">
                     <widget class="QLabel" name="xray_xdrive_front_port_l">
                      <property name="text">
                       <string>Front Port</string>
@@ -1874,7 +1962,7 @@
                      </property>
                     </widget>
                    </item>
-                   <item row="5" column="3">
+                   <item row="9" column="3">
                     <widget class="QLineEdit" name="xray_xdrive_front_port"/>
                    </item>
                   </layout>
@@ -2129,6 +2217,13 @@
   <tabstop>xray_xdrive_client_id</tabstop>
   <tabstop>xray_xdrive_client_secret</tabstop>
   <tabstop>xray_xdrive_refresh_token</tabstop>
+  <tabstop>xray_xdrive_s3_endpoint</tabstop>
+  <tabstop>xray_xdrive_s3_region</tabstop>
+  <tabstop>xray_xdrive_s3_bucket</tabstop>
+  <tabstop>xray_xdrive_s3_path_style</tabstop>
+  <tabstop>xray_xdrive_s3_access_key</tabstop>
+  <tabstop>xray_xdrive_s3_secret_key</tabstop>
+  <tabstop>xray_xdrive_s3_session_token</tabstop>
   <tabstop>xray_xdrive_secrets</tabstop>
   <tabstop>xray_xdrive_template_edit</tabstop>
   <tabstop>xray_xdrive_front</tabstop>

@@ -2679,6 +2679,34 @@ Throne will restart to complete the restore.</source>
         <translation>Refresh Token</translation>
     </message>
     <message>
+        <source>Endpoint</source>
+        <translation>Эндпоинт</translation>
+    </message>
+    <message>
+        <source>Region</source>
+        <translation>Регион</translation>
+    </message>
+    <message>
+        <source>Bucket</source>
+        <translation>Бакет</translation>
+    </message>
+    <message>
+        <source>Path-Style Addressing</source>
+        <translation>Адресация path-style</translation>
+    </message>
+    <message>
+        <source>Access Key ID</source>
+        <translation>Access Key ID</translation>
+    </message>
+    <message>
+        <source>Secret Access Key</source>
+        <translation>Secret Access Key</translation>
+    </message>
+    <message>
+        <source>Session Token</source>
+        <translation>Session Token</translation>
+    </message>
+    <message>
         <source>Secrets</source>
         <translation>Секреты</translation>
     </message>
@@ -2735,12 +2763,16 @@ Throne will restart to complete the restore.</source>
         <translation>Путь к каталогу</translation>
     </message>
     <message>
-        <source>Where both ends exchange the stream: google-drive uses a Google Drive folder, template any HTTP storage API described by Template, local a folder on this machine.</source>
-        <translation>Где обе стороны обмениваются потоком: google-drive использует папку Google Drive, template — любой HTTP API хранилища, описанный в шаблоне, local — папку на этом компьютере.</translation>
+        <source>Key prefix in the bucket</source>
+        <translation>Префикс ключей в бакете</translation>
     </message>
     <message>
-        <source>google-drive: the folder ID. local: a directory path. template: read as {folder}.</source>
-        <translation>google-drive: ID папки. local: путь к каталогу. template: подставляется как {folder}.</translation>
+        <source>Where both ends exchange the stream: google-drive uses a Google Drive folder, s3 a bucket of any S3-compatible storage, template any HTTP storage API described by Template, local a folder on this machine.</source>
+        <translation>Где обе стороны обмениваются потоком: google-drive использует папку Google Drive, s3 — бакет любого S3-совместимого хранилища, template — любой HTTP API хранилища, описанный в шаблоне, local — папку на этом компьютере.</translation>
+    </message>
+    <message>
+        <source>google-drive: the folder ID. s3: the key prefix inside the bucket. local: a directory path. template: read as {folder}.</source>
+        <translation>google-drive: ID папки. s3: префикс ключей внутри бакета. local: путь к каталогу. template: подставляется как {folder}.</translation>
     </message>
     <message>
         <source>The Google Drive OAuth client ID.</source>
@@ -2753,6 +2785,34 @@ Throne will restart to complete the restore.</source>
     <message>
         <source>The OAuth refresh token for the Google account that owns the folder.</source>
         <translation>OAuth refresh token аккаунта Google, которому принадлежит папка.</translation>
+    </message>
+    <message>
+        <source>The S3 API URL, such as https://s3.us-east-1.amazonaws.com or a MinIO or R2 endpoint.</source>
+        <translation>URL API S3, например https://s3.us-east-1.amazonaws.com или эндпоинт MinIO или R2.</translation>
+    </message>
+    <message>
+        <source>The region requests are signed for. Default: us-east-1.</source>
+        <translation>Регион, для которого подписываются запросы. По умолчанию: us-east-1.</translation>
+    </message>
+    <message>
+        <source>The bucket both ends share.</source>
+        <translation>Бакет, общий для обеих сторон.</translation>
+    </message>
+    <message>
+        <source>Puts the bucket in the URL path. When off, the bucket becomes part of the endpoint&apos;s host name, which needs a DNS endpoint and a DNS-compatible bucket name. Default: on.</source>
+        <translation>Помещает бакет в путь URL. Если выключено, бакет становится частью имени хоста эндпоинта, для чего нужны DNS-эндпоинт и совместимое с DNS имя бакета. По умолчанию: вкл.</translation>
+    </message>
+    <message>
+        <source>The S3 access key ID.</source>
+        <translation>Access key ID для S3.</translation>
+    </message>
+    <message>
+        <source>The S3 secret access key.</source>
+        <translation>Secret access key для S3.</translation>
+    </message>
+    <message>
+        <source>Optional: the session token of temporary credentials.</source>
+        <translation>Необязательно: session token временных учётных данных.</translation>
     </message>
     <message>
         <source>Values the template reads as {secret0}, {secret1}, …, separated by commas.</source>
@@ -14740,8 +14800,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>У XDRIVE нет формата ссылки. Импортируйте JSON-конфигурацию сервера.</translation>
     </message>
     <message>
-        <source>Must be google-drive, template or local.</source>
-        <translation>Должно быть google-drive, template или local.</translation>
+        <source>Must be google-drive, s3, template or local.</source>
+        <translation>Должно быть google-drive, s3, template или local.</translation>
     </message>
     <message>
         <source>Enter the directory both ends share.</source>
@@ -14758,6 +14818,54 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>The template service needs a template describing the storage API.</source>
         <translation>Сервису template нужен шаблон, описывающий API хранилища.</translation>
+    </message>
+    <message>
+        <source>Enter the key prefix both ends share in the bucket.</source>
+        <translation>Укажите префикс ключей в бакете, общий для обеих сторон.</translation>
+    </message>
+    <message>
+        <source>The key prefix must be relative, without empty, &quot;.&quot; or &quot;..&quot; parts, backslashes or control characters.</source>
+        <translation>Префикс ключей должен быть относительным, без пустых частей, «.» и «..», обратных косых черт и управляющих символов.</translation>
+    </message>
+    <message>
+        <source>S3 needs the access key ID and the secret access key; the session token is optional.</source>
+        <translation>Для S3 нужны access key ID и secret access key; session token необязателен.</translation>
+    </message>
+    <message>
+        <source>The S3 keys cannot contain control characters.</source>
+        <translation>Ключи S3 не могут содержать управляющие символы.</translation>
+    </message>
+    <message>
+        <source>The access key ID cannot contain spaces, commas or slashes.</source>
+        <translation>Access key ID не может содержать пробелы, запятые или косые черты.</translation>
+    </message>
+    <message>
+        <source>Enter the S3 endpoint URL, such as https://s3.example.com.</source>
+        <translation>Укажите URL эндпоинта S3, например https://s3.example.com.</translation>
+    </message>
+    <message>
+        <source>The endpoint must be an http or https URL without credentials, query or fragment.</source>
+        <translation>Эндпоинт должен быть URL http или https без учётных данных, параметров запроса и фрагмента.</translation>
+    </message>
+    <message>
+        <source>The signing region cannot contain spaces, commas, slashes or control characters.</source>
+        <translation>Регион подписи не может содержать пробелы, запятые, косые черты или управляющие символы.</translation>
+    </message>
+    <message>
+        <source>Enter the bucket both ends share.</source>
+        <translation>Укажите бакет, общий для обеих сторон.</translation>
+    </message>
+    <message>
+        <source>The bucket name cannot be &quot;.&quot; or &quot;..&quot;, nor contain slashes, backslashes or control characters.</source>
+        <translation>Имя бакета не может быть «.» или «..» и не может содержать косые и обратные косые черты или управляющие символы.</translation>
+    </message>
+    <message>
+        <source>Virtual-hosted addressing needs a DNS-compatible bucket name: lowercase letters, digits, dots and hyphens.</source>
+        <translation>Для адресации virtual-hosted нужно совместимое с DNS имя бакета: строчные буквы, цифры, точки и дефисы.</translation>
+    </message>
+    <message>
+        <source>Virtual-hosted addressing needs a DNS endpoint, not an IP address. Turn on path-style addressing instead.</source>
+        <translation>Для адресации virtual-hosted нужен DNS-эндпоинт, а не IP-адрес. Включите вместо этого адресацию path-style.</translation>
     </message>
     <message>
         <source>The front port is used only together with a front address.</source>
