@@ -103,6 +103,9 @@ void LaunchFiles_Submit(const QStringList &paths);
 void LaunchFiles_FlushPending();
 QStringList LaunchFiles_TakePending();
 
+// Drops the links and files to import, so a relaunch does not import them again.
+QStringList LaunchArgs_WithoutPayload(const QStringList &args);
+
 class QThread;
 inline QThread *DS_cores;
 inline QThread *LogThread;

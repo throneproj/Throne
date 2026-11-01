@@ -155,7 +155,7 @@ void MainWindow::on_menu_exit_triggered() {
     const auto program = QApplication::applicationFilePath();
     QStringList arguments;
     if (restart) {
-        arguments = Configs::dataManager->settingsRepo->argv;
+        arguments = LaunchArgs_WithoutPayload(Configs::dataManager->settingsRepo->argv);
         if (arguments.length() > 0) {
             arguments.removeFirst();
             arguments.removeAll("-tray");

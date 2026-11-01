@@ -600,6 +600,16 @@ QStringList LaunchFiles_ExtractFromArgs(const QStringList &args, const QDir &lau
     return files;
 }
 
+QStringList LaunchArgs_WithoutPayload(const QStringList &args) {
+    QStringList kept;
+    for (int i = 0; i < args.size(); i++) {
+        if (i > 0 && !args[i].startsWith('-')) continue;
+        kept << args[i];
+        if (i > 0 && launchArgTakesValue(args[i]) && i + 1 < args.size()) kept << args[++i];
+    }
+    return kept;
+}
+
 void LaunchFiles_Submit(const QStringList &paths) {
     if (paths.isEmpty()) return;
     if (MW_import_files) {
