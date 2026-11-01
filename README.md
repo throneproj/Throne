@@ -114,7 +114,8 @@ To create and manage a system TUN interface, root access is required, without it
 If Throne is force-quit while `System proxy` is enabled, the process ends immediately and Throne cannot reset the proxy. <br/>
 Solution:
 - Always close Throne normally.
-- If you force quit by accident, open Throne again, enable `System proxy`, then disable it- this will reset the settings.
+- On macOS, open Throne again: it restores its saved proxy transaction before starting profiles. If recovery fails, the error is logged and the journal is retained for a later retry. Recovery runs on the next launch, not while Throne remains closed.
+- On other platforms, or after a macOS version that did not save a proxy journal, enable `System proxy`, then disable it to reset the settings.
 
 **Where are the downloadable route profiles/rulesets coming from?**<br/>
 They are located at the [routeprofiles](https://github.com/throneproj/routeprofiles) repository.
