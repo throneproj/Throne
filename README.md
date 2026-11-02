@@ -1,55 +1,32 @@
+<div align="center">
+
+<img src="res/public/Throne.png" width="128" alt="Throne logo">
+
 # Throne
 
-Qt based Desktop cross-platform GUI proxy utility, empowered by [Sing-box](https://github.com/SagerNet/sing-box)
+**Cross-platform Qt desktop proxy client, powered by [sing-box](https://github.com/SagerNet/sing-box)**
 
-Supports Windows 11/10/8/7 / Linux / MacOS out of the box.
+[![Release](https://img.shields.io/github/v/release/throneproj/Throne?style=flat-square&label=release&color=2F80ED)](https://github.com/throneproj/Throne/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/throneproj/Throne/total?style=flat-square&logo=github&label=downloads)](https://github.com/throneproj/Throne/releases)
+[![Stars](https://img.shields.io/github/stars/throneproj/Throne?style=flat-square&logo=github&label=stars)](https://github.com/throneproj/Throne/stargazers)
+[![License](https://img.shields.io/github/license/throneproj/Throne?style=flat-square&color=6E7781)](LICENSE)
 
-Now supporting headless mode, running as a service or in a container, controlled with [thronectl](https://github.com/throneproj/Throne-api): see [Headless Throne](https://throneproj.github.io/headless/).
+</div>
 
-<img width="1002" height="789" alt="image" src="https://github.com/user-attachments/assets/af4a8e32-7e55-430c-9402-ec2d665cf71a" />
+Throne manages proxy profiles and subscriptions, routes traffic with rule-based routing profiles, and works either as a system proxy or as a Tun VPN. It also runs headless, as a service or in a container, controlled with [thronectl](https://github.com/throneproj/Throne-api): see [Headless Throne](https://throneproj.github.io/headless/).
 
-### Supporting Throne
-If Throne is useful to you, you can support its development with [crypto](.github/donate/Donate.md) (USDT, USDC, TRX or Monero) or through [GitHub Sponsors](https://github.com/sponsors/Mahdi-zarei).
+<p align="center">
+  <img width="820" alt="Throne main window" src="https://github.com/user-attachments/assets/af4a8e32-7e55-430c-9402-ec2d665cf71a" />
+</p>
 
-### Note on MacOS releases
-Apple platforms have a very strict security policy and since Throne does not have a signed certificate, you will have to remove the quarantine using `xattr -d com.apple.quarantine /path/to/throne.app`. Move `Throne.app` to `/Applications` before the first launch — the built-in privilege escalation opens `Terminal` to make the core setuid-root, and that step can fail while the app is still inside `~/Downloads`. The [Homebrew cask](#macos-homebrew) does both for you.
+## Installation
 
-### GitHub Releases (Portable ZIP)
+Portable ZIPs and installers for every platform are on [GitHub Releases](https://github.com/throneproj/Throne/releases). The [installation guide](https://throneproj.github.io/get_started/installation/) covers the rest, including the Linux install script, the APT and RPM repositories, the AUR and the other package managers.
 
-[![GitHub All Releases](https://img.shields.io/github/downloads/throneproj/Throne/total?label=downloads-total&logo=github&style=flat-square)](https://github.com/throneproj/Throne/releases)
+### macOS
+Apple platforms have a very strict security policy and since Throne does not have a signed certificate, you will have to remove the quarantine using `xattr -d com.apple.quarantine /path/to/throne.app`. Move `Throne.app` to `/Applications` before the first launch — the built-in privilege escalation opens `Terminal` to make the core setuid-root, and that step can fail while the app is still inside `~/Downloads`.
 
-### Linux CLI installer
-```bash
-curl -fsSL https://raw.githubusercontent.com/throneproj/Throne/dev/script/install_linux.py | sudo python3
-```
-
-### Linux package repositories
-Every stable release is published to signed APT and RPM repositories (the system-Qt packages, x64 and ARM64) and to the AUR, so your package manager keeps Throne up to date. See the [installation guide](https://throneproj.github.io/get_started/installation/#apt-repository) for details.
-
-Debian / Ubuntu:
-```bash
-sudo install -d -m 0755 /etc/apt/keyrings
-sudo curl -fsSLo /etc/apt/keyrings/throne.asc https://throneproj.github.io/Throne/throne.asc
-sudo curl -fsSLo /etc/apt/sources.list.d/throne.list https://throneproj.github.io/Throne/apt/throne.list
-sudo apt update && sudo apt install throne
-```
-
-Fedora / RHEL 9+:
-```bash
-sudo curl -fsSLo /etc/yum.repos.d/throne.repo https://throneproj.github.io/Throne/rpm/throne.repo
-sudo dnf install throne --refresh
-```
-
-openSUSE / SLES:
-```bash
-sudo zypper addrepo -fc https://throneproj.github.io/Throne/rpm/throne.repo
-sudo zypper install throne
-```
-
-Arch Linux (AUR): `yay -S throne` or `paru -S throne`
-
-### macOS (Homebrew)
-Every stable release is also published to Throne's own Homebrew tap (macOS 14.4 or newer, Apple Silicon and Intel). The cask installs `Throne.app` to `/Applications` and removes the quarantine flag; update with `brew upgrade --cask throne`. See the [installation guide](https://throneproj.github.io/get_started/installation/#homebrew) for details.
+The Homebrew cask (macOS 14.4 or newer, Apple Silicon and Intel) does both for you; update with `brew upgrade --cask throne`.
 ```bash
 brew install --cask throneproj/tap/throne
 ```
@@ -76,7 +53,7 @@ brew install --cask throneproj/tap/throne
 - AmneziaWG
 - MASQUE
 - SSH
-- Xray VLESS
+- Xray VLESS (XHTTP/XDrive)
 - OpenVPN/OpenConnect
 - Custom Outbound (Both Sing-box and Xray)
 - Custom Config (Both Sing-box and Xray)
@@ -100,24 +77,12 @@ Deeplinks are also supported, read the [documentation](https://throneproj.github
 - [quirc](https://github.com/dlbeer/quirc)
 - [srombauts/sqlitecpp](https://github.com/srombauts/sqlitecpp)
 
-## FAQ
-**How does this project differ from the original Nekoray?** <br/>
-Nekoray's developer partially abandoned the project on December of 2023, some minor updates were done recently but the project is now officially archived. This project was meant to continue the way of the original project, with lots of improvements, tons of new features and also, removal of obsolete features and simplifications.
+## Supporting Throne
 
-**Why does my Anti-Virus detect Throne and/or its Core as malware?** <br/>
-Throne's built-in update functionallity downloads the new release, removes the old files and replaces them with the new ones, which is quite simliar to what malwares do, remove your files and replace them with an encrypted version of your files.
+If Throne is useful to you, you can support its development through [GitHub Sponsors](https://github.com/sponsors/Mahdi-zarei) or with a crypto donation to one of these addresses:
 
-**Is setting the `SUID` bit really needed on Linux?** <br/>
-To create and manage a system TUN interface, root access is required, without it, you will have to grant the Core some `Cap_xxx_admin` and still, need to enter your password 3 to 4 times per TUN activation. You can also opt to disable the automatic privilege escalation in `Basic Settings`->`Security`, but note that features that require root access will stop working unless you manually grant the needed permissions.
-
-**Why does my internet stop working after I force quit Throne?** <br/>
-If Throne is force-quit while `System proxy` is enabled, the process ends immediately and Throne cannot reset the proxy. <br/>
-Solution:
-- Always close Throne normally.
-- If you force quit by accident, open Throne again, enable `System proxy`, then disable it- this will reset the settings.
-
-**Where are the downloadable route profiles/rulesets coming from?**<br/>
-They are located at the [routeprofiles](https://github.com/throneproj/routeprofiles) repository.
-
-**How does "Throne-\<version\>-debian-system-qt-x64.deb" differ from "Throne-\<version\>-debian-x64.deb" and why is the latter 3 times heavier then the former?**<br/>
-The first one does not pack the Qt libraries and relies on those installed on the host. The second one packs everything needed with itself, thus being heavier. The reason the first one exists is that on legacy systems provided Qt libraries use unsupported system features. If a graphical interface fails to load for your system, you may try to download the system-qt version and install fitting Qt libraries from your package manager or compile them from source.
+| Coin | Network | Address |
+|:--|:--|:--|
+| **USDT** · **TRX** | TRON (TRC20) | `THR2gbWMaTZh8ACk3VYAAyNRVffvdTRikj` |
+| **USDT** · **USDC** | BNB Smart Chain (BEP20) · Ethereum (ERC20) | `0x7c2dF1867f5AaEE807a835fB3c55E4de4507888A` |
+| **XMR** | Monero | `4AYwwN8qMQCSUb3XfwzfrLNPMHfDme6U7CmNtQY4idCF8GtHHLG68VA3iZK867ypuKFr8J7CjXiJ96eFUA2T6aLVRUbgY3A` |
