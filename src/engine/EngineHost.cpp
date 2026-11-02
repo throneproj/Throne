@@ -244,6 +244,7 @@ namespace Engine {
             if (connectionState() != ConnectionState::Idle) return;
             start(StartRequest{profileId, false});
         });
+        connect(EngineEvents::instance(), &EngineEvents::routingRestartNeeded, this, [this] { noteRestartNeeded(RestartReason::Routing); });
         // Queued and connected before the window's model refresh, so posted-event order clears the cache first.
         auto *ipLists = Scanner::IpListUpdater::instance();
         connect(ipLists, &Scanner::IpListUpdater::listsChanged, this, [] { Configs::InvalidateEndpointDisplayCache(); }, Qt::QueuedConnection);

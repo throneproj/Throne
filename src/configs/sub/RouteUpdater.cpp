@@ -21,7 +21,7 @@
 #include "include/database/RoutesRepo.h"
 #include "include/configs/generate.h"
 #include "include/engine/EditLocks.h"
-#include "include/engine/EngineHost.h"
+#include "include/engine/EngineEvents.h"
 
 namespace RouteUpdate {
     namespace {
@@ -58,7 +58,7 @@ namespace RouteUpdate {
         }
 
         void armRoutingRestart() {
-            if (auto* host = Engine::host()) host->noteRestartNeeded(Engine::RestartReason::Routing);
+            Engine::EngineEvents::RoutingRestartNeeded();
         }
 
         bool builtinOutbound(int id) {
