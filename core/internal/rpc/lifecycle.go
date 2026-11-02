@@ -123,22 +123,11 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 	}
 
 	stopSidecars := func() {
-		sysdns.Release()
 		if extraProcess != nil {
 			extraProcess.Stop()
 			extraProcess = nil
 		}
 		closeXray()
-	}
-
-	// A macOS Tun whose system resolver cannot be pointed at it would start with every lookup scoped past it.
-	systemDNS := runtime.GOOS == "darwin" && in.GetTunIpv4Cidr() != ""
-	if systemDNS {
-		if e := sysdns.Prepare(); e != nil {
-			stopSidecars()
-			err = E.Cause(e, "set up the system DNS")
-			return
-		}
 	}
 
 	var routeRules []option.Rule
@@ -153,9 +142,9 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 	}
 	setBoxInstance(box, cancel, routeRules)
 
-	if systemDNS {
-		if e := sysdns.Apply(box.Network().InterfaceMonitor()); e != nil {
-			sysdns.Release()
+	// A macOS Tun the system resolver cannot be scoped to would start with every lookup scoped past it.
+	if runtime.GOOS == "darwin" && in.GetTunIpv4Cidr() != "" {
+		if e := sysdns.Apply(in.GetTunIpv4Cidr()); e != nil {
 			box.CloseWithTimeout(cancel, time.Second*2, log.Println, true)
 			stopSidecars()
 			err = E.Cause(e, "set the system DNS")
@@ -193,7 +182,7 @@ func (s *server) Stop(ctx context.Context, in *gen.EmptyReq) (out *gen.ErrorResp
 		stopEgressForwardingWatch = nil
 	}
 
-	// Before the box closes, so the system resolver never points at a listener that is already gone.
+	// Before the box closes, so the system resolver never scopes lookups to a Tun that is already gone.
 	sysdns.Release()
 	// Unpublished first, so a poll mid-teardown sees no instance rather than a dying one.
 	setBoxInstance(nil, nil, nil)

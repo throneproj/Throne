@@ -1,388 +1,224 @@
 package sysdns
 
+/*
+#cgo LDFLAGS: -framework SystemConfiguration -framework CoreFoundation
+#include <stdlib.h>
+#include <SystemConfiguration/SystemConfiguration.h>
+
+static SCDynamicStoreRef store;
+
+static int storeOpen(void) {
+	if (store == NULL) {
+		store = SCDynamicStoreCreate(NULL, CFSTR("Throne"), NULL, NULL);
+	}
+	return store != NULL ? kSCStatusOK : SCError();
+}
+
+static int storeAddTemporary(const char *key, const void *plist, long length) {
+	CFDataRef data = CFDataCreate(NULL, plist, length);
+	if (data == NULL) {
+		return kSCStatusFailed;
+	}
+	CFPropertyListRef value = CFPropertyListCreateWithData(NULL, data, kCFPropertyListImmutable, NULL, NULL);
+	CFRelease(data);
+	if (value == NULL) {
+		return kSCStatusFailed;
+	}
+	CFStringRef name = CFStringCreateWithCString(NULL, key, kCFStringEncodingUTF8);
+	Boolean added = SCDynamicStoreAddTemporaryValue(store, name, value);
+	CFRelease(name);
+	CFRelease(value);
+	return added ? kSCStatusOK : SCError();
+}
+
+static void storeRemove(const char *key) {
+	CFStringRef name = CFStringCreateWithCString(NULL, key, kCFStringEncodingUTF8);
+	SCDynamicStoreRemoveValue(store, name);
+	CFRelease(name);
+}
+
+static void storeClose(void) {
+	if (store != NULL) {
+		CFRelease(store);
+		store = NULL;
+	}
+}
+*/
+import "C"
+
 import (
-	"context"
-	"encoding/json"
-	"errors"
+	"bytes"
+	"encoding/xml"
 	"log"
 	"net"
 	"net/netip"
-	"os"
-	"regexp"
 	"slices"
 	"strings"
 	"sync"
+	"unsafe"
 
-	tun "github.com/sagernet/sing-tun"
-	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
 	"github.com/sagernet/sing/common/shell"
-	"github.com/sagernet/sing/common/x/list"
-	"golang.org/x/sys/unix"
 )
 
 const (
-	stateDir  = "/var/db/Throne"
-	stateFile = stateDir + "/system-dns.json"
-	lockFile  = stateDir + "/system-dns.lock"
+	serviceKeyPrefix = "State:/Network/Service/Throne/"
+	// mDNSResponder scopes each query to the interface NECP routes 0.0.0.0 to, and sing-tun's darwin sub-ranges leave that on the physical one.
+	lookupRoute = "0.0.0.0/8"
 )
-
-// record is written before every change, so whatever a dead core left behind can be put back by the next one.
-type record struct {
-	PID      int                 `json:"pid"`
-	Alias    bool                `json:"alias,omitempty"`
-	Services map[string][]string `json:"services,omitempty"`
-}
 
 var (
-	mu        sync.Mutex
-	owned     record
-	current   string
-	monitor   tun.DefaultInterfaceMonitor
-	callback  *list.Element[tun.DefaultInterfaceUpdateCallback]
-	followGen int
+	mu          sync.Mutex
+	keys        []string
+	routeDevice string
 )
 
-var serviceOrderPattern = regexp.MustCompile(`(?m)^\((\d+|\*)\) (.+)\n\(Hardware Port: .*, Device: (.*)\)$`)
-
-// Prepare adds the lo0 alias and checks that Address:53 can be bound; on error the system DNS must be left alone.
-func Prepare() error {
-	if os.Geteuid() != 0 {
-		return errors.New("the core is not running as root")
-	}
+// Apply publishes the Tun as a network service whose DNS server sits inside it, then routes the lookup probe into it.
+func Apply(tunCIDR string) error {
 	mu.Lock()
 	defer mu.Unlock()
-	leftovers := restoreStaleLocked()
-	owned.PID = os.Getpid()
-	// Decided before the change is recorded: an alias that is already there belongs to someone else.
-	owned.Alias = owned.Alias || !aliasPresent()
-	for service, previous := range leftovers {
-		if owned.Services == nil {
-			owned.Services = map[string][]string{}
-		}
-		owned.Services[service] = previous
+	releaseLocked()
+	prefix, err := netip.ParsePrefix(tunCIDR)
+	if err != nil || !prefix.Addr().Is4() {
+		return E.New("invalid Tun address ", tunCIDR)
 	}
-	if err := saveLocked(); err != nil {
-		return err
-	}
-	if owned.Alias && !aliasPresent() {
-		if err := addAlias(); err != nil {
-			return err
-		}
-	}
-	return probe()
-}
-
-// Apply points the default interface's network service at Address and follows the default interface from then on.
-func Apply(interfaceMonitor tun.DefaultInterfaceMonitor) error {
-	mu.Lock()
-	defer mu.Unlock()
-	if owned.PID == 0 {
-		return errors.New("not prepared")
-	}
-	monitor = interfaceMonitor
-	followGen++
-	gen := followGen
-	callback = monitor.RegisterCallback(func(*control.Interface, int) {
-		// Off the monitor's goroutine: networksetup is slow, and each run reconciles to the latest default anyway.
-		go follow(gen)
-	})
-	return followLocked()
-}
-
-// Release puts back every service Apply changed and removes the alias; it is a no-op when nothing was changed.
-func Release() {
-	mu.Lock()
-	defer mu.Unlock()
-	followGen++
-	if monitor != nil && callback != nil {
-		monitor.UnregisterCallback(callback)
-	}
-	monitor, callback, current = nil, nil, ""
-	if owned.PID == 0 {
-		return
-	}
-	for service := range owned.Services {
-		restoreLocked(service)
-	}
-	if owned.Alias {
-		removeAlias()
-		owned.Alias = false
-	}
-	if len(owned.Services) > 0 {
-		// Kept under this PID: the next core retries once this process is gone.
-		if err := saveLocked(); err != nil {
-			log.Println("system DNS:", err)
-		}
-		return
-	}
-	removeRecordLocked()
-	owned = record{}
-}
-
-// RestoreStale undoes what a core that died without Release left in the system DNS.
-func RestoreStale() {
-	if os.Geteuid() != 0 {
-		return
-	}
-	mu.Lock()
-	defer mu.Unlock()
-	restoreStaleLocked()
-}
-
-func follow(gen int) {
-	mu.Lock()
-	defer mu.Unlock()
-	if gen != followGen {
-		return
-	}
-	if err := followLocked(); err != nil {
-		log.Println("system DNS:", err)
-	}
-}
-
-func followLocked() error {
-	defaultInterface := monitor.DefaultInterface()
-	if defaultInterface == nil {
-		return nil
-	}
-	service, err := serviceForDevice(defaultInterface.Name)
+	device, inet6, err := tunDevice(prefix.Addr())
 	if err != nil {
 		return err
 	}
-	if service == current {
-		return nil
+	if code := C.storeOpen(); code != C.kSCStatusOK {
+		return E.New("open the dynamic store: ", scError(code))
 	}
-	if err = pointLocked(service); err != nil {
-		return err
+	type entity struct {
+		name  string
+		value map[string]any
 	}
-	if previous := current; previous != "" {
-		restoreLocked(previous)
+	// Router = own address makes every route local to the Tun; with no default route configd builds no scoped resolver.
+	ipEntity := func(address string) map[string]any {
+		return map[string]any{"Addresses": []string{address}, "Router": address, "InterfaceName": device}
 	}
-	current = service
+	entities := []entity{
+		// Added first and removed last: Never keeps the service from ever becoming primary.
+		{"Service", map[string]any{"PrimaryRank": "Never"}},
+		{"IPv4", ipEntity(prefix.Addr().String())},
+	}
+	if inet6.IsValid() {
+		entities = append(entities, entity{"IPv6", ipEntity(inet6.String())})
+	}
+	entities = append(entities, entity{"DNS", map[string]any{"ServerAddresses": []string{prefix.Addr().Next().String()}}})
+	for _, entity := range entities {
+		if err = addTemporary(serviceKeyPrefix+entity.name, plist(entity.value)); err != nil {
+			releaseLocked()
+			return E.Cause(err, "publish the Tun ", entity.name)
+		}
+	}
+	output, err := shell.Exec("/sbin/route", "-n", "add", "-net", lookupRoute, "-interface", device).Read()
+	if err = withOutput(err, output); err != nil {
+		releaseLocked()
+		return E.Cause(err, "route ", lookupRoute, " into the Tun")
+	}
+	routeDevice = device
 	return nil
 }
 
-func pointLocked(service string) error {
-	if _, ok := owned.Services[service]; !ok {
-		previous, err := dnsServers(service)
-		if err != nil {
-			return err
-		}
-		// Only a dead core leaves exactly this behind, and its record has already been replayed.
-		if slices.Equal(previous, []string{Address}) {
-			previous = nil
-		}
-		if owned.Services == nil {
-			owned.Services = map[string][]string{}
-		}
-		owned.Services[service] = previous
-		if err = saveLocked(); err != nil {
-			delete(owned.Services, service)
-			return err
-		}
-	}
-	return setDNSServers(service, []string{Address})
+// Release takes the route and the service back; a dying core loses both anyway, with its utun and its configd session.
+func Release() {
+	mu.Lock()
+	defer mu.Unlock()
+	releaseLocked()
 }
 
-func restoreLocked(service string) {
-	if err := setDNSServers(service, owned.Services[service]); err != nil {
-		log.Println("system DNS: restore", service+":", err)
-		return
+func releaseLocked() {
+	if routeDevice != "" {
+		output, err := shell.Exec("/sbin/route", "-n", "delete", "-net", lookupRoute, "-interface", routeDevice).Read()
+		if err = withOutput(err, output); err != nil {
+			log.Println("system DNS: delete the lookup route:", err)
+		}
+		routeDevice = ""
 	}
-	delete(owned.Services, service)
-	if err := saveLocked(); err != nil {
-		log.Println("system DNS:", err)
+	for _, key := range slices.Backward(keys) {
+		name := C.CString(key)
+		C.storeRemove(name)
+		C.free(unsafe.Pointer(name))
 	}
+	keys = nil
+	C.storeClose()
 }
 
-// restoreStaleLocked replays the record of a dead core and returns the services it could not put back.
-func restoreStaleLocked() map[string][]string {
-	var leftovers map[string][]string
-	err := withStateLock(func() error {
-		stored, err := loadRecord()
-		if err != nil || stored.PID == os.Getpid() || alive(stored.PID) {
-			return nil
+func addTemporary(key string, value []byte) error {
+	name := C.CString(key)
+	defer C.free(unsafe.Pointer(name))
+	if code := C.storeAddTemporary(name, unsafe.Pointer(&value[0]), C.long(len(value))); code != C.kSCStatusOK {
+		return E.New(scError(code))
+	}
+	keys = append(keys, key)
+	return nil
+}
+
+func scError(code C.int) string {
+	return C.GoString(C.SCErrorString(code))
+}
+
+// plist encodes string and []string values as an XML property list dictionary.
+func plist(values map[string]any) []byte {
+	var buffer bytes.Buffer
+	buffer.WriteString(`<?xml version="1.0" encoding="UTF-8"?><plist version="1.0"><dict>`)
+	writeElement := func(tag, text string) {
+		buffer.WriteString("<" + tag + ">")
+		_ = xml.EscapeText(&buffer, []byte(text))
+		buffer.WriteString("</" + tag + ">")
+	}
+	for key, value := range values {
+		writeElement("key", key)
+		switch value := value.(type) {
+		case string:
+			writeElement("string", value)
+		case []string:
+			buffer.WriteString("<array>")
+			for _, item := range value {
+				writeElement("string", item)
+			}
+			buffer.WriteString("</array>")
 		}
-		for service, previous := range stored.Services {
-			if err = setDNSServers(service, previous); err != nil {
-				log.Println("system DNS: restore", service+":", err)
+	}
+	buffer.WriteString("</dict></plist>")
+	return buffer.Bytes()
+}
+
+// tunDevice finds the utun holding address, and its first routable IPv6 address if it has one.
+func tunDevice(address netip.Addr) (string, netip.Addr, error) {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return "", netip.Addr{}, err
+	}
+	for _, networkInterface := range interfaces {
+		addresses, addrErr := networkInterface.Addrs()
+		if addrErr != nil {
+			continue
+		}
+		var found bool
+		var inet6 netip.Addr
+		for _, entry := range addresses {
+			ipNet, ok := entry.(*net.IPNet)
+			if !ok {
 				continue
 			}
-			delete(stored.Services, service)
+			ip, ok := netip.AddrFromSlice(ipNet.IP)
+			if !ok {
+				continue
+			}
+			ip = ip.Unmap()
+			if ip == address {
+				found = true
+			} else if ip.Is6() && !ip.IsLinkLocalUnicast() && !inet6.IsValid() {
+				inet6 = ip
+			}
 		}
-		if stored.Alias {
-			removeAlias()
-			stored.Alias = false
-		}
-		if len(stored.Services) == 0 {
-			return os.Remove(stateFile)
-		}
-		leftovers = stored.Services
-		return writeRecord(stored)
-	})
-	if err != nil {
-		log.Println("system DNS:", err)
-	}
-	return leftovers
-}
-
-func saveLocked() error {
-	return withStateLock(func() error {
-		return writeRecord(owned)
-	})
-}
-
-func removeRecordLocked() {
-	err := withStateLock(func() error {
-		// A later core may have taken the file over since.
-		if stored, err := loadRecord(); err != nil || stored.PID != os.Getpid() {
-			return nil
-		}
-		return os.Remove(stateFile)
-	})
-	if err != nil {
-		log.Println("system DNS:", err)
-	}
-}
-
-func withStateLock(fn func() error) error {
-	if err := os.MkdirAll(stateDir, 0o700); err != nil {
-		return err
-	}
-	file, err := os.OpenFile(lockFile, os.O_CREATE|os.O_RDWR, 0o600)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	if err = unix.Flock(int(file.Fd()), unix.LOCK_EX); err != nil {
-		return err
-	}
-	defer unix.Flock(int(file.Fd()), unix.LOCK_UN)
-	return fn()
-}
-
-func loadRecord() (record, error) {
-	var stored record
-	data, err := os.ReadFile(stateFile)
-	if err != nil {
-		return stored, err
-	}
-	return stored, json.Unmarshal(data, &stored)
-}
-
-func writeRecord(stored record) error {
-	data, err := json.Marshal(stored)
-	if err != nil {
-		return err
-	}
-	temp := stateFile + ".tmp"
-	if err = os.WriteFile(temp, data, 0o600); err != nil {
-		return err
-	}
-	return os.Rename(temp, stateFile)
-}
-
-// alive also matches the command name: the record survives reboots, where its PID often belongs to someone else.
-func alive(pid int) bool {
-	if pid <= 0 {
-		return false
-	}
-	owner, err := unix.SysctlKinfoProc("kern.proc.pid", pid)
-	if err != nil || int(owner.Proc.P_pid) != pid {
-		return false
-	}
-	self, err := unix.SysctlKinfoProc("kern.proc.pid", os.Getpid())
-	return err == nil && owner.Proc.P_comm == self.Proc.P_comm
-}
-
-func aliasPresent() bool {
-	loopback, err := net.InterfaceByName("lo0")
-	if err != nil {
-		return false
-	}
-	addrs, err := loopback.Addrs()
-	if err != nil {
-		return false
-	}
-	for _, addr := range addrs {
-		if prefix, ok := addr.(*net.IPNet); ok && prefix.IP.String() == Address {
-			return true
+		if found {
+			return networkInterface.Name, inet6, nil
 		}
 	}
-	return false
-}
-
-func addAlias() error {
-	output, err := shell.Exec("/sbin/ifconfig", "lo0", "alias", Address, "netmask", "255.255.255.255").Read()
-	return withOutput(err, output)
-}
-
-func removeAlias() {
-	if !aliasPresent() {
-		return
-	}
-	output, err := shell.Exec("/sbin/ifconfig", "lo0", "-alias", Address).Read()
-	if err = withOutput(err, output); err != nil {
-		log.Println("system DNS: remove the loopback alias:", err)
-	}
-}
-
-// probe binds with the reuse options sing-box's reuse_addr sets, so success means the inbound will start.
-func probe() error {
-	config := net.ListenConfig{Control: control.ReuseAddr()}
-	address := net.JoinHostPort(Address, "53")
-	packetConn, err := config.ListenPacket(context.Background(), "udp4", address)
-	if err != nil {
-		return E.Cause(err, "listen on ", address)
-	}
-	packetConn.Close()
-	listener, err := config.Listen(context.Background(), "tcp4", address)
-	if err != nil {
-		return E.Cause(err, "listen on ", address)
-	}
-	return listener.Close()
-}
-
-func serviceForDevice(device string) (string, error) {
-	output, err := shell.Exec("/usr/sbin/networksetup", "-listnetworkserviceorder").ReadOutput()
-	if err != nil {
-		return "", err
-	}
-	for _, match := range serviceOrderPattern.FindAllStringSubmatch(output, -1) {
-		// "(*)" marks a disabled service.
-		if match[1] != "*" && match[3] == device {
-			return match[2], nil
-		}
-	}
-	return "", E.New("no enabled network service uses ", device)
-}
-
-func dnsServers(service string) ([]string, error) {
-	output, err := shell.Exec("/usr/sbin/networksetup", "-getdnsservers", service).ReadOutput()
-	if err != nil {
-		return nil, err
-	}
-	var servers []string
-	for line := range strings.Lines(output) {
-		line = strings.TrimSpace(line)
-		if _, parseErr := netip.ParseAddr(line); parseErr == nil {
-			servers = append(servers, line)
-		} else if !strings.HasPrefix(line, "There aren't any DNS Servers") {
-			return nil, E.New("read the DNS servers of ", service, ": ", output)
-		}
-	}
-	return servers, nil
-}
-
-func setDNSServers(service string, servers []string) error {
-	args := append([]string{"-setdnsservers", service}, servers...)
-	if len(servers) == 0 {
-		args = append(args, "Empty")
-	}
-	// networksetup commits through configd; only its plist backup needs root, so its "Permission denied" is noise.
-	output, err := shell.Exec("/usr/sbin/networksetup", args...).Read()
-	return withOutput(err, output)
+	return "", netip.Addr{}, E.New("no interface holds the Tun address ", address)
 }
 
 func withOutput(err error, output string) error {

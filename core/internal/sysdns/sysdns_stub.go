@@ -2,20 +2,12 @@
 
 package sysdns
 
-import (
-	"errors"
+import "errors"
 
-	tun "github.com/sagernet/sing-tun"
-)
-
-func Prepare() error {
-	return errors.ErrUnsupported
-}
-
-func Apply(tun.DefaultInterfaceMonitor) error {
+func Apply(string) error {
 	return errors.ErrUnsupported
 }
 
 func Release() {}
 
-func RestoreStale() {}
+func RestoreLegacy() {}
