@@ -5534,6 +5534,14 @@ rendezvous service. Replaces the server address and port.</source>
         <source>Realm needs a URL, an ID and at least one STUN server.</source>
         <translation>Realm 需要一个 URL、一个 ID 和至少一个 STUN 服务器。</translation>
     </message>
+    <message>
+        <source>None</source>
+        <translation>无</translation>
+    </message>
+    <message>
+        <source>Obfuscation needs a password; without one, it is off.</source>
+        <translation>混淆需要密码；没有密码时混淆关闭。</translation>
+    </message>
 </context>
 <context>
     <name>EditHysteriaRealm</name>

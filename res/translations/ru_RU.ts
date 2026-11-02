@@ -6067,8 +6067,12 @@ rendezvous service. Replaces the server address and port.</source>
         <translation>Параметры Realm</translation>
     </message>
     <message>
-        <source>Gecko obfuscation needs a password; without one, obfuscation is off.</source>
-        <translation>Для обфускации gecko нужен пароль; без него обфускация выключена.</translation>
+        <source>None</source>
+        <translation>Нет</translation>
+    </message>
+    <message>
+        <source>Obfuscation needs a password; without one, it is off.</source>
+        <translation>Для обфускации нужен пароль; без него она выключена.</translation>
     </message>
 </context>
 <context>

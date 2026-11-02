@@ -1932,6 +1932,14 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <source>Password</source>
         <translation type="unfinished">کلمه عبور</translation>
     </message>
+    <message>
+        <source>None</source>
+        <translation>هیچ‌کدام</translation>
+    </message>
+    <message>
+        <source>Obfuscation needs a password; without one, it is off.</source>
+        <translation>مبهم‌سازی به کلمه عبور نیاز دارد؛ بدون آن خاموش است.</translation>
+    </message>
 </context>
 <context>
     <name>EditSSH</name>

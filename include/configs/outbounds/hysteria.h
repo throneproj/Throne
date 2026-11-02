@@ -79,6 +79,11 @@ namespace Configs
             return realm_enabled && protocol_version == "2";
         }
 
+        // An empty type is the editor's "None"; it keeps the password so switching back restores it.
+        bool ObfsActive() const {
+            return !obfs.isEmpty() && !obfs_type.trimmed().isEmpty();
+        }
+
         bool HasTLS() override {
             return true;
         }
