@@ -1,3 +1,34 @@
+#### 1.4.0-beta.5
+
+* Add About dialog and move Check for Update to the Program menu
+* Show the release notes in the update dialog
+* Show the sort indicator in the profiles table
+* Add Xray Mux to Preset Settings and allow custom per-profile Xray Mux, with a Max Connections limit
+* Add AmneziaWG mode to WARP
+* Add option to serve DNS to other devices
+* Allow excluding countries in the auto selector with `!XX`
+* Start the auto selector as soon as enough profiles work
+* Reconnect when a subscription update replaces the running profile
+* Limit the data view to two lines, with the rest in its tooltip
+* Fix Hysteria2 links with `none` or `plain` obfs
+* Fix Xray XHTTP connections staying open after tests and profile switches
+* Fix DNS loop on macOS in Tun mode
+* Fix links and files opened with Throne being imported again after a restart
+* Update sing-box and Xray, and add S3 storage to XDRIVE
+* Introducing Simple interface mode **1**
+* Add per-group routing profiles and subscription routing import **2**
+* Add Web UI **3**
+* Fixes and Improvements
+
+**1**:
+New installs now start in Simple mode, which hides advanced options and merges sparse settings tabs. Hidden options keep their values and still apply. Switch modes through Program > Advanced Mode or Basic Settings > Style > Interface; existing installs stay in Advanced mode.
+
+**2**:
+Each group can now use its own routing profile instead of the one chosen in the Routing menu. Subscription groups can also import the routing profile their provider sends (Happ format) on every update; that routing profile belongs to the group and is deleted along with it. DNS settings from the subscription are never used.
+
+**3**:
+`thronectl web` serves a password-protected web UI for headless and desktop Throne, to switch and test profiles, manage groups and subscriptions, follow traffic and logs, change settings, and back up and restore. The Docker image starts it when `THRONE_WEB_LISTEN` is set, and the deb/rpm packages ship a `throne-web` service. Refer to the [documentation](https://throneproj.github.io/headless/web/) for more details.
+
 #### 1.4.0-beta.4
 
 * Add DNS settings to route profiles
