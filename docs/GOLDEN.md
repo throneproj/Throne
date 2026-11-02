@@ -2,7 +2,7 @@
 
 Desktop successor to archived [AL4AL/nekoray](https://github.com/AL4AL/nekoray). Upstream: [throneproj/Throne](https://github.com/throneproj/Throne).
 
-Also: [RELEASE.md](RELEASE.md) · [UPSTREAM.md](UPSTREAM.md)
+Also: [RELEASE.md](RELEASE.md) · [UPSTREAM.md](UPSTREAM.md) · [WINDOWS.md](WINDOWS.md)
 
 ## First release (0.1)
 

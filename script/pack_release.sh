@@ -20,12 +20,83 @@ untar() {
         xargs -0 -r -I{} -P "$JOBS" tar xzf {} "$@"
 }
 
+sign_windows_artifacts() {
+    # Authenticode: no-op unless WINDOWS_CERT_* is configured (see script/windows_sign.ps1).
+    local -a files=()
+    local f
+    for f in \
+        "$DEPLOY/windows-amd64/Throne.exe" \
+        "$DEPLOY/windows-amd64/ThroneCore.exe" \
+        "$DEPLOY/windows-arm64/Throne.exe" \
+        "$DEPLOY/windows-arm64/ThroneCore.exe" \
+        "$DEPLOY/windowslegacy-amd64/Throne.exe" \
+        "$DEPLOY/windowslegacy-amd64/ThroneCore.exe" \
+        "$DEPLOY/windowslegacy-386/Throne.exe" \
+        "$DEPLOY/windowslegacy-386/ThroneCore.exe" \
+        "$DEPLOY/Throne-$TAG-windows-universal-installer.exe" \
+        "$DEPLOY/Throne-$TAG-windows-amd64.msix" \
+        "$DEPLOY/Throne-$TAG-windows-arm64.msix"
+    do
+        [[ -f $f ]] && files+=("$(cygpath -w "$f")")
+    done
+    ((${#files[@]})) || return 0
+    local strict=()
+    [[ ${WINDOWS_SIGN_STRICT:-} == 1 ]] && strict=(-Strict)
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$ROOT/script/windows_sign.ps1")" \
+        -Path @files "${strict[@]}"
+}
+
+build_msix_packages() {
+    # Full-trust desktop MSIX for modern Windows 11/10 (amd64 + arm64). Requires Windows SDK.
+    local arch dir
+    for arch in amd64:x64 arm64:arm64; do
+        dir="${arch%%:*}"
+        arch="${arch##*:}"
+        [[ -f $DEPLOY/windows-$dir/Throne.exe ]] || continue
+        powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$ROOT/script/pack_msix.ps1")" \
+            -SourceDir "$(cygpath -w "$DEPLOY/windows-$dir")" \
+            -Tag "$TAG" \
+            -Architecture "$arch" \
+            -OutDir "$(cygpath -w "$DEPLOY")"
+    done
+}
+
+build_winget_manifests() {
+    local installer="$DEPLOY/Throne-$TAG-windows-universal-installer.exe"
+    [[ -f $installer ]] || return 0
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$ROOT/script/generate_winget_manifest.ps1")" \
+        -Tag "$TAG" \
+        -InstallerPath "$(cygpath -w "$installer")" \
+        -OutDir "$(cygpath -w "$DEPLOY/Throne-$TAG-winget")"
+}
+
 build_installer() {
     local version="${TAG#v}"
     version="${version#V}"
+    # Fork tags look like al4al-0.1.0 — strip the non-numeric prefix for Inno VersionInfo.
+    if [[ $version == *.* && $version != [0-9]* ]]; then
+        version="${version#*-}"
+    fi
     local parts
     IFS='.' read -r -a parts <<<"${version%%-*}"
-    local iscc="${ISCC:-$(command -v iscc.exe || echo '/c/Program Files (x86)/Inno Setup 6/ISCC.exe')}"
+    local iscc="${ISCC:-}"
+    if [[ -z $iscc ]]; then
+        if command -v iscc.exe >/dev/null 2>&1; then
+            iscc="$(command -v iscc.exe)"
+        elif [[ -x /c/Program\ Files\ \(x86\)/Inno\ Setup\ 6/ISCC.exe ]]; then
+            iscc='/c/Program Files (x86)/Inno Setup 6/ISCC.exe'
+        elif [[ -x /c/Program\ Files/Inno\ Setup\ 6/ISCC.exe ]]; then
+            iscc='/c/Program Files/Inno Setup 6/ISCC.exe'
+        elif [[ -x "$LOCALAPPDATA/Programs/Inno Setup 6/ISCC.exe" ]]; then
+            iscc="$LOCALAPPDATA/Programs/Inno Setup 6/ISCC.exe"
+        else
+            iscc='/c/Program Files (x86)/Inno Setup 6/ISCC.exe'
+        fi
+    fi
+    if [[ ! -x $iscc && ! -f $iscc ]]; then
+        echo "ISCC not found at: $iscc" >&2
+        exit 1
+    fi
     # ISCC is a native Windows program: stop MSYS from rewriting its /-switches as paths.
     MSYS_NO_PATHCONV=1 "$iscc" /Q \
         "/DAppVersion=$version" \
@@ -83,13 +154,16 @@ run_task() {
     return $rc
 }
 
-export -f build_installer zip_dir zip_app zip_debug pack_deb pack_rpm run_task
+export -f build_installer build_msix_packages build_winget_manifests sign_windows_artifacts zip_dir zip_app zip_debug pack_deb pack_rpm run_task
 
 case "$TARGET" in
 windows)
     untar 'windows*' --exclude='*.pdb'
+    # Sign payload EXEs before Inno/MSIX consume them; packages are signed after TASKS.
+    sign_windows_artifacts
     TASKS=(
         "installer build_installer"
+        "msix build_msix_packages"
         "zip-windows64 zip_dir windows-amd64 windows64"
         "zip-windows-arm64 zip_dir windows-arm64 windows-arm64"
         "zip-windows32 zip_dir windowslegacy-386 windows32"
@@ -148,5 +222,12 @@ for log in "$WORK"/logs/*.log; do
 done
 echo "Pack task durations:"
 sort -rn "$WORK/logs/times"
+
+if [[ $TARGET == windows && $rc -eq 0 ]]; then
+    # Sign installer/MSIX (payload EXEs were signed before packaging) and emit winget YAML.
+    sign_windows_artifacts
+    build_winget_manifests
+fi
+
 rm -rf "$WORK"
 exit "$rc"

@@ -21,6 +21,9 @@ core
 *.Debug
 # Deploy
 /deployment
+# Local Windows toolchain / certs / generated winget YAML
+/.tools
+/packaging/winget/generated
 .directory
 *.dll
 .DS_Store

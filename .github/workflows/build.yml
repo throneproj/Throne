@@ -474,8 +474,34 @@ jobs:
       - name: Install packaging tools
         if: matrix.tools
         run: sudo apt install ${{ matrix.tools }}
+      - name: Install Windows packaging tools
+        if: matrix.target == 'windows'
+        shell: pwsh
+        run: |
+          $iscc = @(
+            "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
+            "${env:ProgramFiles}\Inno Setup 6\ISCC.exe"
+          ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $iscc) {
+            choco install innosetup -y --no-progress
+            $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          }
+          if (-not (Test-Path $iscc)) { throw "ISCC.exe not found after Inno Setup install ($iscc)" }
+          Write-Host "ISCC: $iscc"
+          # makeappx / signtool ship with the runner's Windows SDK; fail clearly if missing.
+          $makeappx = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin" -Recurse -Filter makeappx.exe -ErrorAction SilentlyContinue |
+            Select-Object -First 1
+          if (-not $makeappx) { throw 'makeappx.exe not found on the Windows runner (Windows SDK App Packaging Tools required for MSIX).' }
+          Write-Host "makeappx: $($makeappx.FullName)"
       - name: Pack
         shell: bash
+        env:
+          WINDOWS_CERT_PFX_BASE64: ${{ secrets.WINDOWS_CERT_PFX_BASE64 }}
+          WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+          WINDOWS_CERT_THUMBPRINT: ${{ secrets.WINDOWS_CERT_THUMBPRINT }}
+          WINDOWS_CERT_TIMESTAMP_URL: ${{ vars.WINDOWS_CERT_TIMESTAMP_URL }}
+          WINDOWS_CERT_SUBJECT: ${{ vars.WINDOWS_CERT_SUBJECT }}
+          WINDOWS_SIGN_STRICT: ${{ vars.WINDOWS_SIGN_STRICT }}
         run: bash ./script/pack_release.sh ${{ matrix.target }} "${{ github.event.inputs.tag }}"
       # Pins each build's glibc floor: a build image bump that raises it fails here, not in an older system's loader.
       - name: Checking glibc symbol versions

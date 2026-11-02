@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  App Installer template for HTTPS-hosted MSIX updates.
+  https://learn.microsoft.com/en-us/windows/msix/app-installer/app-installer-file-overview
+
+  Replace {{REPO}}, {{TAG}}, {{VERSION}}, {{ARCH_SUFFIX}} before publishing.
+  Host this file and the .msix over HTTPS; the Publisher must match the signed package.
+-->
+<AppInstaller
+  xmlns="http://schemas.microsoft.com/appx/appinstaller/2018"
+  Version="{{VERSION}}"
+  Uri="https://github.com/{{REPO}}/releases/download/{{TAG}}/Throne.appinstaller">
+  <MainPackage
+    Name="AL4AL.Throne"
+    Publisher="CN=AL4AL"
+    Version="{{VERSION}}"
+    ProcessorArchitecture="x64"
+    Uri="https://github.com/{{REPO}}/releases/download/{{TAG}}/Throne-{{TAG}}-{{ARCH_SUFFIX}}.msix" />
+  <UpdateSettings>
+    <OnLaunch HoursBetweenUpdateChecks="24" />
+    <AutomaticBackgroundTask />
+  </UpdateSettings>
+</AppInstaller>

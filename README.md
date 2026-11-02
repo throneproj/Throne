@@ -19,6 +19,21 @@ Apple platforms have a very strict security policy and since Throne does not hav
 
 Upstream portable builds: [throneproj/Throne releases](https://github.com/throneproj/Throne/releases).
 
+### Windows 11
+
+Preferred: **Setup (Universal)** Inno installer from GitHub Releases (selects x64 / ARM64 / legacy automatically). Also published: **MSIX** (x64 / ARM64) and **winget** manifests (`packaging/winget`). Build, signing, and packaging notes: [docs/WINDOWS.md](docs/WINDOWS.md).
+
+```powershell
+# after a release is published to winget-pkgs:
+winget install AL4AL.Throne
+```
+
+Local Windows toolchain:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File script/setup_windows_dev.ps1
+```
+
 ### Linux CLI installer
 ```bash
 curl -fsSL https://raw.githubusercontent.com/throneproj/Throne/dev/script/install_linux.py | sudo python3
