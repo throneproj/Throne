@@ -15,6 +15,7 @@
 #include <limits>
 #include <numeric>
 
+#include <QAbstractListModel>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QCoreApplication>
@@ -26,13 +27,14 @@
 #include <QListView>
 #include <QListWidget>
 #include <QMessageBox>
+#include <QPair>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QScreen>
 #include <QSet>
 #include <QSizePolicy>
 #include <QStackedWidget>
-#include <QStandardItemModel>
+#include <QStringListModel>
 #include <QStyle>
 #include <QGridLayout>
 #include <QMouseEvent>
@@ -88,11 +90,134 @@ static bool routeItemNeedsRulesTab(const Configs::RouteProfile& profile) {
     });
 }
 
+struct RouteOutboundList {
+    static constexpr int maxMeasuredItems = 64;
+
+    QList<QPair<QString, int>> items;
+    QHash<int, int> rowByOutboundId;
+    QList<int> longestRows;
+};
+
+// Each dialog gets its own model over the shared list: resetting a model under a live combo
+// moves it to row 0, and the combo would write "proxy" into its rule.
+class RouteOutboundModel final : public QAbstractListModel {
+public:
+    explicit RouteOutboundModel(std::shared_ptr<const RouteOutboundList> list, QObject* parent = nullptr)
+        : QAbstractListModel(parent), list(std::move(list)) {}
+
+    int rowCount(const QModelIndex& parent = QModelIndex()) const override {
+        return parent.isValid() ? 0 : static_cast<int>(list->items.size());
+    }
+
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override {
+        if (!index.isValid() || index.row() < 0 || index.row() >= list->items.size()) return {};
+        const auto& item = list->items.at(index.row());
+        if (role == Qt::DisplayRole) return item.first;
+        if (role == Qt::UserRole) return item.second;
+        return {};
+    }
+
+    [[nodiscard]] int rowForOutboundId(int outboundId) const {
+        return list->rowByOutboundId.value(outboundId, -1);
+    }
+
+    [[nodiscard]] const QList<int>& longestItemRows() const {
+        return list->longestRows;
+    }
+
+    [[nodiscard]] const QString& labelAt(int row) const {
+        return list->items.at(row).first;
+    }
+
+private:
+    std::shared_ptr<const RouteOutboundList> list;
+};
+
+// Rebuilt only after profiles or group membership/order has changed.
+static std::shared_ptr<const RouteOutboundList> routeItemOutboundList() {
+    const quint64 profilesRevision = Configs::dataManager->profilesRepo->Revision();
+    const quint64 groupsRevision = Configs::dataManager->groupsRepo->Revision();
+
+    static std::shared_ptr<const RouteOutboundList> cached;
+    static quint64 cachedProfilesRevision = 0;
+    static quint64 cachedGroupsRevision = 0;
+
+    if (cached && profilesRevision == cachedProfilesRevision && groupsRevision == cachedGroupsRevision) return cached;
+
+    auto next = std::make_shared<RouteOutboundList>();
+    auto& items = next->items;
+    items.append({QStringLiteral("proxy"), -1});
+    items.append({QStringLiteral("direct"), -2});
+    items.append({QStringLiteral("warp-bypass"), Configs::warpBypassID});
+
+    const auto proxyListRaw = Configs::dataManager->profilesRepo->GetAllProfileIDNameMapped();
+    QHash<int, QString> idToName;
+    idToName.reserve(static_cast<qsizetype>(proxyListRaw.size()));
+    for (const auto& [id, name] : proxyListRaw) idToName.insert(id, name);
+
+    const auto groupIDs = Configs::dataManager->groupsRepo->GetGroupsTabOrder();
+    for (const int groupID : groupIDs) {
+        const auto group = Configs::dataManager->groupsRepo->GetGroup(groupID);
+        if (!group) continue;
+
+        for (const int profileID : group->profiles) {
+            const auto it = idToName.constFind(profileID);
+            if (it == idToName.cend()) continue;
+            items.append({QString("[%1] %2").arg(group->name, it.value()), profileID});
+        }
+    }
+
+    next->rowByOutboundId.reserve(items.size());
+    for (int i = 0; i < items.size(); ++i) {
+        if (!next->rowByOutboundId.contains(items.at(i).second))
+            next->rowByOutboundId.insert(items.at(i).second, i);
+    }
+    auto& longestRows = next->longestRows;
+    longestRows.resize(items.size());
+    std::iota(longestRows.begin(), longestRows.end(), 0);
+    if (longestRows.size() > RouteOutboundList::maxMeasuredItems) {
+        std::partial_sort(longestRows.begin(), longestRows.begin() + RouteOutboundList::maxMeasuredItems, longestRows.end(),
+                          [&items](const int a, const int b) {
+                              return items.at(a).first.size() > items.at(b).first.size();
+                          });
+        longestRows.resize(RouteOutboundList::maxMeasuredItems);
+    }
+
+    cached = std::move(next);
+    cachedProfilesRevision = profilesRevision;
+    cachedGroupsRevision = groupsRevision;
+    return cached;
+}
+
+static QAbstractItemModel* routeItemSimpleRuleCompleterModel() {
+    static auto* model = [] {
+        QStringList ruleItems = {"domain:", "suffix:", "regex:", "keyword:", "ip:", "processName:", "processPath:", "ruleset:"};
+        ruleItems.reserve(ruleItems.size() + static_cast<qsizetype>(ruleSetList.size()));
+        for (const auto& item : ruleSetList) {
+            ruleItems.append("ruleset:" + QString::fromUtf8(item.first.data(), static_cast<qsizetype>(item.first.size())));
+        }
+        return new QStringListModel(ruleItems, QCoreApplication::instance());
+    }();
+    return model;
+}
+
+static QAbstractItemModel* routeItemRuleSetCompleterModel() {
+    static auto* model = [] {
+        QStringList items;
+        items.reserve(static_cast<qsizetype>(ruleSetList.size()));
+        for (const auto& item : ruleSetList) {
+            items.append(QString::fromUtf8(item.first.data(), static_cast<qsizetype>(item.first.size())));
+        }
+        return new QStringListModel(items, QCoreApplication::instance());
+    }();
+    return model;
+}
+
 void adjustComboBoxWidth(const QComboBox *comboBox) {
     // Avoid shaping every profile name on the GUI thread when subscriptions contain thousands
     // of entries. QString::size() is a cheap heuristic for likely wide candidates, not a guarantee
     // of the widest rendered name; the popup is capped to the available screen width below.
-    constexpr int maxMeasuredItems = 64;
+    constexpr int maxMeasuredItems = RouteOutboundList::maxMeasuredItems;
     constexpr int padding = 30;
 
     const auto *scr = comboBox->screen() != nullptr ? comboBox->screen() : QGuiApplication::primaryScreen();
@@ -105,7 +230,13 @@ void adjustComboBoxWidth(const QComboBox *comboBox) {
     const QFontMetrics fontMetrics(comboBox->font());
     int maxWidth = 0;
 
-    if (count <= maxMeasuredItems) {
+    if (const auto* outboundModel = dynamic_cast<const RouteOutboundModel*>(comboBox->model())) {
+        maxWidth = fontMetrics.horizontalAdvance(comboBox->currentText());
+        for (const int row : outboundModel->longestItemRows()) {
+            if (maxWidth >= maxTextWidth) break;
+            maxWidth = qMax(maxWidth, fontMetrics.horizontalAdvance(outboundModel->labelAt(row)));
+        }
+    } else if (count <= maxMeasuredItems) {
         // Small combos are cheap to measure directly and need no candidate-list allocations.
         for (int i = 0; i < count && maxWidth < maxTextWidth; ++i)
             maxWidth = qMax(maxWidth, fontMetrics.horizontalAdvance(comboBox->itemText(i)));
@@ -175,36 +306,6 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
         ui->route_items->addItem(item->name);
     }
 
-    QList<QStandardItem*> outboundItems;
-    const auto addOutbound = [&outboundItems](const QString& name, const int id) {
-        auto* item = new QStandardItem(name);
-        item->setData(id, Qt::UserRole);
-        outboundItems << item;
-    };
-    addOutbound(QStringLiteral("proxy"), -1);
-    addOutbound(QStringLiteral("direct"), -2);
-    addOutbound(QStringLiteral("warp-bypass"), Configs::warpBypassID);
-    auto proxyListRaw = Configs::dataManager->profilesRepo->GetAllProfileIDNameMapped();
-    QHash<int, QString> idToName;
-    idToName.reserve(static_cast<qsizetype>(proxyListRaw.size()));
-    for (const auto& [id, name] : proxyListRaw) idToName.insert(id, name);
-    auto groupIDs = Configs::dataManager->groupsRepo->GetGroupsTabOrder();
-    for (auto groupID : groupIDs) {
-        auto group = Configs::dataManager->groupsRepo->GetGroup(groupID);
-        if (!group) continue;
-        for (int profileID : group->profiles) {
-            const auto it = idToName.constFind(profileID);
-            if (it == idToName.cend()) continue;
-            addOutbound(QString("[" + group->name + "] ") + it.value(), profileID);
-        }
-    }
-    outboundsModel = new QStandardItemModel(this);
-    outboundsModel->invisibleRootItem()->appendRows(outboundItems);
-
-    for (const auto& item : ruleSetList) {
-        geo_items.append(QString::fromUtf8(item.first.data(), item.first.size()));
-    }
-
     ui->route_name->setText(chain->name);
     ui->rule_preview->setReadOnly(true);
     ui->rule_attr_tabs->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -228,14 +329,11 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
 
     ui->def_out->setCurrentText(Configs::outboundIDToString(chain->defaultOutboundID));
 
-    QStringList ruleItems = {"domain:", "suffix:", "regex:", "keyword:", "ip:", "processName:", "processPath:", "ruleset:"};
-    for (const auto& item : ruleSetList) {
-        ruleItems.append("ruleset:" + QString::fromUtf8(item.first.data(), item.first.size()));
-    }
-    simpleDirect = new AutoCompleteTextEdit("", ruleItems, this);
-    simpleBlock = new AutoCompleteTextEdit("", ruleItems, this);
-    simpleProxy = new AutoCompleteTextEdit("", ruleItems, this);
-    simpleWarpBypass = new AutoCompleteTextEdit("", ruleItems, this);
+    auto* simpleRuleModel = routeItemSimpleRuleCompleterModel();
+    simpleDirect = new AutoCompleteTextEdit("", simpleRuleModel, this);
+    simpleBlock = new AutoCompleteTextEdit("", simpleRuleModel, this);
+    simpleProxy = new AutoCompleteTextEdit("", simpleRuleModel, this);
+    simpleWarpBypass = new AutoCompleteTextEdit("", simpleRuleModel, this);
 
     ui->simple_direct_box->layout()->replaceWidget(ui->simple_direct, simpleDirect);
     ui->simple_block_box->layout()->replaceWidget(ui->simple_block, simpleBlock);
@@ -478,6 +576,12 @@ void RouteItem::fetchRemote(bool applyToChain) {
 }
 
 static QList<QPair<QString, int>> routeItemEndpointCandidates() {
+    const quint64 profilesRevision = Configs::dataManager->profilesRepo->Revision();
+    static quint64 cachedRevision = std::numeric_limits<quint64>::max();
+    static QList<QPair<QString, int>> cachedCandidates;
+
+    if (profilesRevision == cachedRevision) return cachedCandidates;
+
     QList<QPair<QString, int>> candidates;
     QList<int> ids = Configs::dataManager->profilesRepo->GetProfileIdsByType("openvpn");
     ids += Configs::dataManager->profilesRepo->GetProfileIdsByType("openconnect");
@@ -491,7 +595,9 @@ static QList<QPair<QString, int>> routeItemEndpointCandidates() {
     std::sort(candidates.begin(), candidates.end(), [](const auto& a, const auto& b) {
         return QString::localeAwareCompare(a.first, b.first) < 0;
     });
-    return candidates;
+    cachedCandidates = candidates;
+    cachedRevision = profilesRevision;
+    return cachedCandidates;
 }
 
 static bool routeItemIsEndpointRule(const std::shared_ptr<Configs::RouteRule>& rule) {
@@ -884,8 +990,9 @@ QWidget* RouteItem::makeAttributeEditorPage(const QString& attr) {
             if (attr == QStringLiteral("outbound")) {
                 cb->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
                 if (auto* lv = qobject_cast<QListView*>(cb->view())) lv->setUniformItemSizes(true);
+                if (outboundsModel == nullptr) outboundsModel = new RouteOutboundModel(routeItemOutboundList(), this);
                 cb->setModel(outboundsModel);
-                const int selected = cb->findData(rule->outboundID);
+                const int selected = outboundsModel->rowForOutboundId(rule->outboundID);
                 if (selected >= 0) {
                     cb->setCurrentIndex(selected);
                 } else {
@@ -937,7 +1044,7 @@ QWidget* RouteItem::makeAttributeEditorPage(const QString& attr) {
                 editor = le;
                 break;
             }
-            QPlainTextEdit* te = attr == QStringLiteral("rule_set") ? new AutoCompleteTextEdit("", geo_items, container)
+            QPlainTextEdit* te = attr == QStringLiteral("rule_set") ? new AutoCompleteTextEdit("", routeItemRuleSetCompleterModel(), container)
                                                                      : new QPlainTextEdit(container);
             te->setPlainText(rule->get_current_value_string(attr).join('\n'));
             te->setMinimumHeight(100);

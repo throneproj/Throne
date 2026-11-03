@@ -63,6 +63,7 @@ namespace Qv2ray {
 
             public:
                 AutoCompleteTextEdit(const QString &prefix, const QStringList &sourceStrings, QWidget *parent = nullptr);
+                AutoCompleteTextEdit(const QString &prefix, QAbstractItemModel *sourceModel, QWidget *parent = nullptr);
                 ~AutoCompleteTextEdit();
 
             protected:

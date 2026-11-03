@@ -766,6 +766,7 @@ void DialogManageRoutes::on_new_route_clicked() {
     if (chosen == rawAct) {
         newProfile->isRaw = true;
         auto* rawWidget = new RawRouteItem(this, newProfile);
+        rawWidget->setAttribute(Qt::WA_DeleteOnClose);
         rawWidget->setWindowModality(Qt::ApplicationModal);
         rawWidget->show();
         connect(rawWidget, &RawRouteItem::settingsChanged, this, onCreated);
@@ -773,6 +774,7 @@ void DialogManageRoutes::on_new_route_clicked() {
         // Remote profiles are structured underneath; RouteItem grows a "Remote source" section when isRemote.
         if (chosen == remoteAct) newProfile->isRemote = true;
         routeChainWidget = new RouteItem(this, newProfile);
+        routeChainWidget->setAttribute(Qt::WA_DeleteOnClose);
         routeChainWidget->setWindowModality(Qt::ApplicationModal);
         routeChainWidget->show();
         connect(routeChainWidget, &RouteItem::settingsChanged, this, onCreated);
@@ -803,6 +805,7 @@ void DialogManageRoutes::applyImportedProfile(const std::shared_ptr<Configs::Rou
         auto shell = Configs::dataManager->routesRepo->NewRouteProfile();
         shell->Rules = profile->Rules;
         routeChainWidget = new RouteItem(this, shell);
+        routeChainWidget->setAttribute(Qt::WA_DeleteOnClose);
         routeChainWidget->setWindowModality(Qt::ApplicationModal);
         routeChainWidget->show();
         connect(routeChainWidget, &RouteItem::settingsChanged, this, [=, this](const std::shared_ptr<Configs::RouteProfile>& chain) {
@@ -928,11 +931,13 @@ void DialogManageRoutes::on_edit_route_clicked() {
 
     if (chainList[idx]->isRaw) {
         auto* rawWidget = new RawRouteItem(this, chainList[idx]);
+        rawWidget->setAttribute(Qt::WA_DeleteOnClose);
         rawWidget->setWindowModality(Qt::ApplicationModal);
         rawWidget->show();
         connect(rawWidget, &RawRouteItem::settingsChanged, this, onEdited);
     } else {
         routeChainWidget = new RouteItem(this, chainList[idx]);
+        routeChainWidget->setAttribute(Qt::WA_DeleteOnClose);
         routeChainWidget->setWindowModality(Qt::ApplicationModal);
         routeChainWidget->show();
         connect(routeChainWidget, &RouteItem::settingsChanged, this, onEdited);

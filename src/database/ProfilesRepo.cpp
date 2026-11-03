@@ -45,6 +45,7 @@ namespace Configs {
             db.exec("ALTER TABLE profiles ADD COLUMN endpoint_json TEXT NOT NULL DEFAULT '{}'");
 
         db.exec("CREATE INDEX IF NOT EXISTS idx_profiles_name ON profiles(name)");
+        db.exec("CREATE INDEX IF NOT EXISTS idx_profiles_type ON profiles(type)");
     }
 
     bool ProfilesRepo::profilesColumnExists(const char* columnName) const {
