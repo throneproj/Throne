@@ -7,6 +7,23 @@
 #include <QHeaderView>
 #include <QKeyEvent>
 #include <QMimeData>
+#include <QPainter>
+#include <QStyledItemDelegate>
+
+namespace {
+    // QStyleSheetStyle drops Qt::BackgroundRole once a sheet's ::item rule draws, as the feiyang themes' does.
+    class RowBackgroundDelegate : public QStyledItemDelegate {
+    public:
+        using QStyledItemDelegate::QStyledItemDelegate;
+
+        void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override {
+            if (const QVariant fill = index.data(Qt::BackgroundRole); fill.canConvert<QBrush>()) {
+                painter->fillRect(option.rect, qvariant_cast<QBrush>(fill));
+            }
+            QStyledItemDelegate::paint(painter, option, index);
+        }
+    };
+}
 
 ProfilesTableView::ProfilesTableView(QWidget *parent)
     : QTableView(parent) {
@@ -16,6 +33,7 @@ ProfilesTableView::ProfilesTableView(QWidget *parent)
     setDragEnabled(true);
     setAcceptDrops(true);
     setDefaultDropAction(Qt::MoveAction);
+    setItemDelegate(new RowBackgroundDelegate(this));
 
     m_verticalHeader = new ProfilesTableVerticalHeader(this);
     setVerticalHeader(m_verticalHeader);

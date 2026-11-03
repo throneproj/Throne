@@ -1,6 +1,7 @@
 #include "include/ui/utils/ProfilesTableVerticalHeader.h"
 #include "include/ui/utils/ProfilesFilterProxyModel.h"
 #include "include/ui/utils/ProfilesTableModel.h"
+#include "include/ui/setting/ThemeManager.hpp"
 #include <QPainter>
 #include <QTableView>
 #include <QFontMetrics>
@@ -48,20 +49,22 @@ void ProfilesTableVerticalHeader::updateWidthFromRowCount() {
 }
 
 void ProfilesTableVerticalHeader::paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const {
+    const int sourceRow = m_proxy ? m_proxy->toSourceRow(logicalIndex) : logicalIndex;
+    const ThemeTokens &tokens = themeManager()->tokens;
+    const bool marked = tokens.runningMark.isValid() && m_model && m_model->isStartedRow(sourceRow);
     painter->save();
-    painter->fillRect(rect, palette().color(QPalette::Button));
+    painter->fillRect(rect, marked ? tokens.runningMark : palette().color(QPalette::Button));
     if (rect.width() > 1) {
         painter->setPen(palette().color(QPalette::Mid));
         painter->drawLine(rect.topRight(), rect.bottomRight());
     }
     QString text;
     if (m_model) {
-        const int sourceRow = m_proxy ? m_proxy->toSourceRow(logicalIndex) : logicalIndex;
         text = m_model->rowLabel(sourceRow, logicalIndex);
     } else {
         text = QString::number(logicalIndex + 1) + QStringLiteral("  ");
     }
-    painter->setPen(palette().color(foregroundRole()));
+    painter->setPen(marked ? tokens.onRunningMark : palette().color(foregroundRole()));
     painter->drawText(rect, Qt::AlignCenter, text);
     painter->restore();
 }

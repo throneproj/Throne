@@ -2,6 +2,7 @@
 #include "include/global/Configs.hpp"
 #include "include/database/entities/Profile.h"
 #include "include/configs/common/Outbound.h"
+#include "include/ui/setting/ThemeManager.hpp"
 #include <QApplication>
 #include <QMimeData>
 #include <QPalette>
@@ -98,7 +99,10 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
 
     const int startedId = Configs::dataManager->settingsRepo->started_id;
     const bool isRunning = (profile->id == startedId);
-    QColor linkColor = isRunning ? QApplication::palette().link().color() : QColor();
+    const ThemeTokens &tokens = themeManager()->tokens;
+    QColor linkColor = !isRunning                  ? QColor()
+                       : tokens.runningRow.isValid() ? tokens.onRunningRow
+                                                     : QApplication::palette().link().color();
 
     if (role == Qt::DisplayRole) {
         switch (index.column()) {
@@ -137,6 +141,9 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
         }
         if (isRunning && linkColor.isValid()) return linkColor;
         return {};
+    }
+    if (role == Qt::BackgroundRole && isRunning && tokens.runningRow.isValid()) {
+        return tokens.runningRow;
     }
     return {};
 }
@@ -290,10 +297,14 @@ GroupSortMethod::GroupSortMethod ProfilesTableModel::sortOfColumn(int column) {
     }
 }
 
+bool ProfilesTableModel::isStartedRow(int sourceRow) const {
+    return sourceRow >= 0 && sourceRow < m_profileIds.size()
+        && m_profileIds[sourceRow] == Configs::dataManager->settingsRepo->started_id;
+}
+
 QString ProfilesTableModel::rowLabel(int sourceRow, int displayRow) const {
     if (sourceRow < 0 || sourceRow >= m_profileIds.size()) return {};
-    int id = m_profileIds[sourceRow];
-    if (Configs::dataManager->settingsRepo->started_id == id) {
+    if (isStartedRow(sourceRow)) {
         return QStringLiteral("✓");
     }
     return QString::number(displayRow + 1) + QStringLiteral("  ");

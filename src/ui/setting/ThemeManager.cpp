@@ -34,10 +34,11 @@ struct ThemeColors {
     QColor button, buttonText;
     QColor brightText;
     QColor highlight, highlightedText;
-    QColor link;            // paints the active/running config row
+    QColor link;            // also the running row's header mark
     QColor tooltipBase, tooltipText;
     QColor placeholder;
     QColor disabledText;
+    QColor runningRow;      // between the sheet's row stripes and its selection fill
 };
 
 static QPalette buildThemePalette(const ThemeColors &c) {
@@ -82,12 +83,12 @@ static QPalette buildThemePalette(const ThemeColors &c) {
     return p;
 }
 
-// Lazy: a QPalette must not be constructed before QApplication exists. The keys also define "custom theme".
-static const QMap<QString, QPalette> &customThemePalettes() {
-    static const QMap<QString, QPalette> palettes = [] {
-        QMap<QString, QPalette> m;
+// The keys define "custom theme".
+static const QMap<QString, ThemeColors> &customThemes() {
+    static const QMap<QString, ThemeColors> themes = [] {
+        QMap<QString, ThemeColors> m;
 
-        m["flatgray"] = buildThemePalette({
+        m["flatgray"] = {
             .window = "#FFFFFF", .windowText = "#57595B",
             .base = "#FFFFFF", .alternateBase = "#F6F6F6",
             .text = "#57595B",
@@ -97,9 +98,10 @@ static const QMap<QString, QPalette> &customThemePalettes() {
             .link = "#2A6CB0",
             .tooltipBase = "#FFFFFF", .tooltipText = "#57595B",
             .placeholder = "#9AA0A6", .disabledText = "#B0B0B0",
-        });
+            .runningRow = "#CADAEB",
+        };
 
-        m["lightblue"] = buildThemePalette({
+        m["lightblue"] = {
             .window = "#EAF7FF", .windowText = "#386487",
             .base = "#FFFFFF", .alternateBase = "#DAEFFF",
             .text = "#386487",
@@ -109,9 +111,10 @@ static const QMap<QString, QPalette> &customThemePalettes() {
             .link = "#1D6FB8",
             .tooltipBase = "#EAF7FF", .tooltipText = "#386487",
             .placeholder = "#7F9DB5", .disabledText = "#A6BCCE",
-        });
+            .runningRow = "#B7D5ED",
+        };
 
-        m["softpink"] = buildThemePalette({
+        m["softpink"] = {
             .window = "#FFF0FB", .windowText = "#883983",
             .base = "#FFFFFF", .alternateBase = "#FBDDF5",
             .text = "#883983",
@@ -121,9 +124,10 @@ static const QMap<QString, QPalette> &customThemePalettes() {
             .link = "#B92BA6",
             .tooltipBase = "#FFF0FB", .tooltipText = "#883983",
             .placeholder = "#C08BBA", .disabledText = "#CBA6C6",
-        });
+            .runningRow = "#EEBFE6",
+        };
 
-        m["blacksoft"] = buildThemePalette({
+        m["blacksoft"] = {
             .window = "#444444", .windowText = "#DCDCDC",
             .base = "#444444", .alternateBase = "#525252",
             .text = "#DCDCDC",
@@ -133,10 +137,11 @@ static const QMap<QString, QPalette> &customThemePalettes() {
             .link = "#5AB0FF",
             .tooltipBase = "#484848", .tooltipText = "#DCDCDC",
             .placeholder = "#9A9A9A", .disabledText = "#808080",
-        });
+            .runningRow = "#4B647C",
+        };
 
         // Mirrors the bundled darkstyle.qss.
-        m["qdarkstyle"] = buildThemePalette({
+        m["qdarkstyle"] = {
             .window = "#19232D", .windowText = "#DFE1E2",
             .base = "#19232D", .alternateBase = "#37414F",
             .text = "#DFE1E2",
@@ -146,11 +151,12 @@ static const QMap<QString, QPalette> &customThemePalettes() {
             .link = "#6FC0FF",
             .tooltipBase = "#346792", .tooltipText = "#DFE1E2",
             .placeholder = "#9DA9B5", .disabledText = "#788D9C",
-        });
+            .runningRow = "#2E4A62",
+        };
 
         return m;
     }();
-    return palettes;
+    return themes;
 }
 
 static double relLuminance(const QColor &c) {
@@ -336,9 +342,10 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
     }
 
     const auto lowerTheme = theme.toLower();
-    const auto &palettes = customThemePalettes();
-    const bool leavingCustom = palettes.contains(current_theme.toLower());
-    const bool enteringCustom = palettes.contains(lowerTheme);
+    const auto &themes = customThemes();
+    const bool leavingCustom = themes.contains(current_theme.toLower());
+    const bool enteringCustom = themes.contains(lowerTheme);
+    const ThemeColors colors = themes.value(lowerTheme);
 
     QString themeSheet;
     bool windows11Tabs = false;
@@ -346,7 +353,7 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
 
     if (enteringCustom) {
         // The whole palette goes on first, or a colour role leaks from Qt or the previous theme.
-        qApp->setPalette(palettes.value(lowerTheme));
+        qApp->setPalette(buildThemePalette(colors));
         themeSheet = lowerTheme == "qdarkstyle" ? ReadFileText(":/qdarkstyle/dark/darkstyle.qss")
                                                 : ReadFileText(":/qss/" + lowerTheme + ".css");
     } else {
@@ -365,6 +372,13 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
     // After setStyle(), which reinstalls the style's palette. Setting the sheet last is also
     // what clears the render-rule cache; a bare setPalette() does not.
     tokens = resolveTokens(qApp->palette());
+    if (enteringCustom) {
+        tokens.runningRow = colors.runningRow;
+        tokens.onRunningRow = separate(colors.link, colors.runningRow, 4.5);
+        tokens.runningMark = colors.link;
+        const QColor light = Qt::white, dark(0x1E, 0x1E, 0x1E);
+        tokens.onRunningMark = contrastRatio(light, colors.link) >= contrastRatio(dark, colors.link) ? light : dark;
+    }
     QString sheet = themeSheet + overlayStyleSheet(tokens);
     if (windows11Tabs) sheet += windows11TabStyleSheet(qApp->palette(), tokens);
     if (macosPane) sheet += macPaneStyleSheet(tokens);

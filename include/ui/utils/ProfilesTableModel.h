@@ -58,6 +58,8 @@ public:
 
     int indexOfProfile(int id);
 
+    bool isStartedRow(int sourceRow) const;
+
     QString rowLabel(int sourceRow, int displayRow) const;
 
     // Null if the profile could not be loaded; valid until the next model change.

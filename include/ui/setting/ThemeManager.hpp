@@ -23,6 +23,11 @@ struct ThemeTokens {
     QColor info;
     std::array<QColor, 5> chartSeries;
     QColor chartContext;
+    // Custom themes only; invalid under a Qt style, which keeps the Link-coloured running row.
+    QColor runningRow;
+    QColor onRunningRow;
+    QColor runningMark;
+    QColor onRunningMark;
 };
 
 class ThemeManager : public QObject {
