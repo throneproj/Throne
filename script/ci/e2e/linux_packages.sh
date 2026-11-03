@@ -185,19 +185,20 @@ pk_web_call() {
     printf '%s\n' "${out%$'\n'*}"
 }
 
-# pk_web_login PASSWORD JAR: sign in, keep the session cookie in JAR, and read Throne's status through the web UI.
+# pk_web_login PASSWORD JAR: sign in (cookie in JAR, CSRF token in WEB_CSRF) and read Throne's status through the web UI.
 pk_web_login() {
     local out
     out=$(pk_web_call "POST /auth/login" -c "$2" -H 'Content-Type: application/json' \
         --data "{\"password\":\"$1\"}" "$WEB_URL/auth/login")
     pk_eq "POST /auth/login authenticated" "$(pk_json authenticated <<<"$out")" true
-    out=$(pk_web_call "GET /api/v1/status" -b "$2" "$WEB_URL/api/v1/status")
+    WEB_CSRF=$(pk_json csrf <<<"$out")
+    out=$(pk_web_call "GET /api/v1/status" -b "$2" -H "X-CSRF-Token: $WEB_CSRF" "$WEB_URL/api/v1/status")
     pk_eq "capabilities.headless through the web UI" "$(pk_json capabilities.headless <<<"$out")" true
 }
 
-# pk_web_signed_out JAR: the web UI no longer knows the session in JAR.
+# pk_web_signed_out JAR: the web UI no longer knows the session in JAR and WEB_CSRF.
 pk_web_signed_out() {
-    [ "$(curl -fsS --max-time 5 -b "$1" "$WEB_URL/auth/state" | pk_json authenticated)" = false ]
+    [ "$(curl -fsS --max-time 5 -b "$1" -H "X-CSRF-Token: $WEB_CSRF" "$WEB_URL/auth/state" | pk_json authenticated)" = false ]
 }
 
 pk_api_restart() {
