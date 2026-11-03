@@ -29,6 +29,9 @@ namespace ScannerUi {
                                      bool *isError);
 
     [[nodiscard]] QString KindText(Configs::IpScan::Kind kind);
+
+    // Opens the newest DNS resolver scan of the profile, creating one when it has none.
+    void FindResolvers(int profileId);
 } // namespace ScannerUi
 
 class ScanItem : public QWidget {

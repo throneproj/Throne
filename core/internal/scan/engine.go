@@ -54,6 +54,7 @@ type ProbeRequest struct {
 	ICMP          ICMPOptions
 	TCP           TCPOptions
 	HTTP          HTTPOptions
+	DNS           DNSOptions
 	Concurrency   int
 	SpawnInterval time.Duration
 }
@@ -69,6 +70,11 @@ type Result struct {
 	TLSMs        int32
 	HTTPMs       int32
 	HTTPStatus   int
+	DNSMs        int32
+	MaxQName     int32
+	UploadMTU    int32
+	DownloadMTU  int32
+	DNSStage     string
 	ProbePort    uint16
 	LocalFailure bool
 
@@ -97,6 +103,7 @@ type probePlan struct {
 	icmp ICMPOptions
 	tcp  TCPOptions
 	http *httpPlan
+	dns  *dnsPlan
 }
 
 func clampTimeout(timeout, fallback time.Duration) time.Duration {
@@ -114,6 +121,13 @@ func phasePort(fallback int32) uint16 {
 }
 
 func newProbePlan(ctx context.Context, req ProbeRequest) (*probePlan, error) {
+	if req.DNS.Enabled {
+		dns, err := newDNSPlan(req.DNS)
+		if err != nil {
+			return nil, err
+		}
+		return &probePlan{dns: dns}, nil
+	}
 	plan := &probePlan{icmp: req.ICMP, tcp: req.TCP}
 	plan.icmp.Timeout = clampTimeout(plan.icmp.Timeout, time.Second)
 	plan.icmp.Count = min(max(plan.icmp.Count, 1), 10)
@@ -130,11 +144,13 @@ func newProbePlan(ctx context.Context, req ProbeRequest) (*probePlan, error) {
 }
 
 func (p *probePlan) anyPhase() bool {
-	return p.icmp.Enabled || p.tcp.Enabled || p.http != nil
+	return p.dns != nil || p.icmp.Enabled || p.tcp.Enabled || p.http != nil
 }
 
 func (p *probePlan) lastPhase() string {
 	switch {
+	case p.dns != nil:
+		return PhaseDNS
 	case p.http != nil && p.http.method != "":
 		return PhaseHTTP
 	case p.http != nil:
@@ -326,6 +342,9 @@ func (r *probeRun) safeTarget(ctx context.Context, target Target) (result Result
 }
 
 func (r *probeRun) target(ctx context.Context, target Target) Result {
+	if r.plan.dns != nil {
+		return r.dnsTarget(ctx, target)
+	}
 	result := Result{Addr: target.Addr, Port: target.Port}
 	if r.plan.icmp.Enabled {
 		display := DisplayTarget(target.Addr, target.Port)

@@ -177,6 +177,8 @@ namespace Configs
                               || (security == "reality" && !query.queryItemValue("pqv").trimmed().isEmpty());
         // Throne's Xray stream refuses any other network, which sing-box VLESS may still carry (http, quic), but it would drop the Xray-only values.
         if (!transport.isEmpty() && !XrayNetworks.contains(transport)) return xrayOnly;
+        // sing-box has no mKCP, so even a link Xray refuses goes there to get Xray's reason.
+        if (transport == "kcp") return true;
         // Xray refuses REALITY over ws and httpupgrade, which sing-box carries.
         if (!xrayOnly && !Checks::XrayRealityNetwork(security, transport).isEmpty()) return false;
         // sing-box's http transport speaks the raw HTTP header only in plaintext; TLS (which a bare sni also enables) turns it into h2

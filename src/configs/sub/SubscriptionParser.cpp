@@ -1,6 +1,7 @@
 #include "include/configs/sub/SubscriptionParser.hpp"
 
 #include "include/configs/ParseDiagnostics.h"
+#include "include/configs/common/DnsTunnel.h"
 #include "include/configs/common/OutboundFactory.h"
 #include "include/configs/common/utils.h"
 #include "include/configs/sub/SubscriptionScan.hpp"
@@ -71,6 +72,9 @@ namespace Subscription {
             {"masque", {}, {"masque"}, {"masque"}},
             {"ssh", {"ssh://"}, {"ssh"}, {"ssh"}},
             {"naive", {"naive+https://", "naive+quic://"}, {"naive"}, {}},
+            // dnst:// links of the masterdns transport go to masterdns, see link().
+            {"dnstt", {"dnst://", "slipnet://", "slipnet-enc://", "slipnet-bundle-enc://"}, {"dnstt"}, {}},
+            {"masterdns", {"masterdns://", "stormdns://"}, {"masterdns"}, {}},
         };
 
         const char *typeForScheme(std::string_view link) {
@@ -490,6 +494,8 @@ namespace Subscription {
             const auto stream = out["streamSettings"].toObject();
             const auto &s = *typed.streamSetting;
             if (stream.contains("security") && stream["security"].toString().toLower() != s.security) return true;
+            // Old mask names and xdns shapes are upgraded, and a legacy mKCP header or seed becomes masks.
+            if (s.finalmask != stream.value("finalmask").toObject()) return true;
             // The typed profile keeps neither key in any spelling, while Xray reads every spelling of sockopt.
             for (auto s = stream.constBegin(); s != stream.constEnd(); ++s) {
                 if (s.key().compare(QLatin1String("sockopt"), Qt::CaseInsensitive) != 0) continue;
@@ -1062,6 +1068,8 @@ namespace Subscription {
             ProfilePtr ent;
             if (line.starts_with("vless://") && Configs::useXrayVless(str)) {
                 ent = Configs::ProfilesRepo::NewProfile("xrayvless");
+            } else if (line.starts_with("dnst://") && Configs::DnstLinkTransport(str) == QLatin1String("masterdns")) {
+                ent = Configs::ProfilesRepo::NewProfile("masterdns");
             } else {
                 ent = Configs::ProfilesRepo::NewProfile(profileType);
             }

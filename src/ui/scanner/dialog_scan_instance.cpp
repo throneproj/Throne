@@ -1,6 +1,7 @@
 #include "include/ui/scanner/dialog_scan_instance.h"
 
 #include <QAbstractItemView>
+#include <QApplication>
 #include <QCheckBox>
 #include <QClipboard>
 #include <QCompleter>
@@ -36,6 +37,8 @@
 #include <type_traits>
 #include <vector>
 
+#include "include/configs/common/DnsTunnel.h"
+#include "include/configs/common/ResolverSource.h"
 #include "include/configs/common/TLS.h"
 #include "include/configs/sub/warp.h"
 #include "include/database/DatabaseManager.h"
@@ -43,6 +46,8 @@
 #include "include/database/IpListsRepo.h"
 #include "include/database/IpScansRepo.h"
 #include "include/database/ProfilesRepo.h"
+#include "include/engine/EditLocks.h"
+#include "include/global/RunningProfiles.hpp"
 #include "include/global/Utils.hpp"
 #include "include/global/Validation.hpp"
 #include "include/scanner/DefaultIpLists.h"
@@ -58,13 +63,15 @@
 #include "include/ui/utils/NoWheelComboBox.h"
 #include "include/ui/utils/ValidationForm.h"
 #include "include/ui/utils/NativeFileDialog.h"
+#include "include/ui/widget/ResolverSourceWidget.h"
 
 namespace {
     constexpr int kScanInstanceResultsPreview = 50000;
+    constexpr int kScanInstanceProtocolRole = Qt::UserRole + 1;
 
     const QStringList kScanInstanceCandidateExclusions = {
         QStringLiteral("custom"), QStringLiteral("extracore"), QStringLiteral("tailscale"),
-        QStringLiteral("autoselector"), QStringLiteral("direct"),
+        QStringLiteral("autoselector"), QStringLiteral("direct"), QStringLiteral("dnstt"), QStringLiteral("masterdns"),
     };
 
     const QStringList kScanInstanceTimeoutPresets = {
@@ -161,6 +168,15 @@ namespace {
         label->setWordWrap(true);
         label->setProperty("colorRole", QStringLiteral("muted"));
         return label;
+    }
+
+    QString scanInstanceResolverLevelLabel(const QString &level) {
+        if (level == QLatin1String("poll")) return DialogScanInstance::tr("Poll: relays one tunnel query");
+        if (level == QLatin1String("qname")) return DialogScanInstance::tr("Query names: also relays names as long as the profile sends");
+        if (level == QLatin1String("handshake")) return DialogScanInstance::tr("Handshake: also opens a tunnel session");
+        if (level == QLatin1String("quick")) return DialogScanInstance::tr("Quick: relays the smallest packets");
+        if (level == QLatin1String("full")) return DialogScanInstance::tr("Full: also measures the upload and download MTU");
+        return level;
     }
 
     void scanInstanceSetRowVisible(QFormLayout *form, QWidget *field, bool visible) {
@@ -275,6 +291,15 @@ namespace {
                 sortBy([](const Configs::IpListEntry &entry) {
                     return entry.latencyMs > 0 ? entry.latencyMs : std::numeric_limits<int>::max();
                 });
+                break;
+            case IpEntriesModel::MaxQNameColumn:
+                sortBy([](const Configs::IpListEntry &entry) { return entry.maxQName; });
+                break;
+            case IpEntriesModel::UploadMtuColumn:
+                sortBy([](const Configs::IpListEntry &entry) { return entry.uploadMtu; });
+                break;
+            case IpEntriesModel::DownloadMtuColumn:
+                sortBy([](const Configs::IpListEntry &entry) { return entry.downloadMtu; });
                 break;
             default: break;
         }
@@ -401,6 +426,10 @@ bool DialogScanInstance::isWarp() const {
     return scan->kind == Configs::IpScan::Kind::Warp;
 }
 
+bool DialogScanInstance::isResolver() const {
+    return scan->kind == Configs::IpScan::Kind::Resolver;
+}
+
 void DialogScanInstance::setupTargets() {
     using PortMode = Configs::ScanConfig::PortMode;
     ui->port_mode->addItem(tr("Ignore the list's ports"), static_cast<int>(PortMode::Ignore));
@@ -428,10 +457,21 @@ void DialogScanInstance::setupTargets() {
     ui->use_warp_ranges->setVisible(isWarp());
     ui->use_warp_ranges->setToolTip(
         tr("Selects an IP list of Cloudflare's WARP ranges for the chosen mode, creating it when missing, and sets the matching ports."));
+    if (isResolver()) {
+        for (QWidget *widget : {static_cast<QWidget *>(ui->ports_label), static_cast<QWidget *>(ui->ports),
+                                static_cast<QWidget *>(ui->port_mode)})
+            widget->setVisible(false);
+        ui->base_list->setToolTip(tr("Each address is tried as a resolver; an entry without a port uses port 53."));
+    }
 }
 
 void DialogScanInstance::buildPhases() {
     auto *layout = ui->phases_layout;
+    if (isResolver()) {
+        buildResolverPhase(layout);
+        layout->addStretch(1);
+        return;
+    }
     buildIcmpPhase(layout);
     if (isWarp()) {
         buildWarpPhase(layout);
@@ -638,6 +678,27 @@ void DialogScanInstance::buildWarpPhase(QVBoxLayout *layout) {
     connect(warpRegister, &QPushButton::clicked, this, [this] { registerWarpIdentity(); });
 }
 
+void DialogScanInstance::buildResolverPhase(QVBoxLayout *layout) {
+    resolverBox = new QGroupBox(tr("DNS tunnel test"), ui->phases_content);
+    auto *form = new QFormLayout(resolverBox);
+    form->addRow(scanInstanceHint(
+        tr("Each address is tried as the only resolver of this profile; those that relay its tunnel are kept."), resolverBox));
+    resolverProfile = new NoWheelComboBox(resolverBox);
+    form->addRow(tr("Profile"), resolverProfile);
+    resolverLevel = new NoWheelComboBox(resolverBox);
+    form->addRow(tr("Test"), resolverLevel);
+    resolverTimeout = new QLineEdit(resolverBox);
+    resolverTimeout->setValidator(new QIntValidator(1000, 300000, resolverTimeout));
+    resolverTimeout->setToolTip(tr("Bounds the whole test of one resolver. Empty: the default of the chosen test."));
+    form->addRow(tr("Timeout (ms)"), resolverTimeout);
+    layout->addWidget(resolverBox);
+
+    connect(resolverProfile, &QComboBox::currentIndexChanged, this, [this] {
+        if (!loading) reloadResolverLevels(resolverLevel->currentData().toString());
+    });
+    connect(resolverLevel, &QComboBox::currentIndexChanged, this, [this] { updateResolverTimeoutHint(); });
+}
+
 void DialogScanInstance::bindValidation() {
     using namespace Validation;
     form->bind(ui->name, Rules::Required());
@@ -668,6 +729,10 @@ void DialogScanInstance::bindValidation() {
         }, this, Severity::Error, httpBox->title());
     }
     if (configBox != nullptr) form->bind(configUrl, Rules::Url({QStringLiteral("http"), QStringLiteral("https")}));
+    if (resolverBox != nullptr) {
+        form->bind(resolverTimeout,
+                   [this](const QString &text) { return text.isEmpty() ? QString() : scanInstanceNumberError(resolverTimeout); });
+    }
     if (warpBox != nullptr) {
         form->bind(warpSni, Rules::Host(Empty::Allowed));
         form->bind(warpUrl, Rules::Url({QStringLiteral("http"), QStringLiteral("https")}));
@@ -690,6 +755,9 @@ void DialogScanInstance::setupResults() {
     header->setSectionResizeMode(IpEntriesModel::AddressColumn, QHeaderView::Stretch);
     header->setSectionResizeMode(IpEntriesModel::PortColumn, QHeaderView::ResizeToContents);
     header->setSectionResizeMode(IpEntriesModel::LatencyColumn, QHeaderView::ResizeToContents);
+    for (const int column : {IpEntriesModel::MaxQNameColumn, IpEntriesModel::UploadMtuColumn, IpEntriesModel::DownloadMtuColumn})
+        header->setSectionResizeMode(column, QHeaderView::ResizeToContents);
+    applyResultColumns();
 
     resultsReload = new QTimer(this);
     resultsReload->setSingleShot(true);
@@ -703,6 +771,13 @@ void DialogScanInstance::setupResults() {
     connect(ui->copy_results, &QPushButton::clicked, this, [this] { copyResults(); });
     connect(ui->export_results, &QPushButton::clicked, this, [this] { exportResults(); });
     connect(ui->remove_results, &QPushButton::clicked, this, [this] { removeSelectedResults(); });
+    if (isResolver()) {
+        useAsResolvers = new QPushButton(tr("Use as resolvers"), ui->tab_results);
+        useAsResolvers->setToolTip(
+            tr("Makes the scan's profile take its resolvers from this result list; the resolvers typed in the profile are kept."));
+        ui->layout_results_buttons->insertWidget(0, useAsResolvers);
+        connect(useAsResolvers, &QPushButton::clicked, this, [this] { useResultsAsResolvers(); });
+    }
 }
 
 void DialogScanInstance::setupRunPanel() {
@@ -734,7 +809,7 @@ void DialogScanInstance::loadForm() {
     const QScopedValueRollback guard(loading, true);
 
     ui->name->setText(scan->name);
-    ui->kind->setText(isWarp() ? tr("WARP scan") : tr("Generic scan"));
+    ui->kind->setText(isWarp() ? tr("WARP scan") : isResolver() ? tr("DNS resolver scan") : tr("Generic scan"));
     setWindowTitle(tr("%1 - IP Scanner").arg(scan->name));
 
     reloadBaseLists(scan->base_list_id);
@@ -748,9 +823,18 @@ void DialogScanInstance::loadForm() {
     ui->concurrency->setText(QString::number(config.concurrency));
     ui->spawn_interval->setText(QString::number(config.spawnIntervalMs));
 
-    icmpBox->setChecked(config.icmp.enabled);
-    icmpTimeout->setText(QString::number(config.icmp.timeoutMs));
-    icmpCount->setText(QString::number(config.icmp.count));
+    if (icmpBox != nullptr) {
+        icmpBox->setChecked(config.icmp.enabled);
+        icmpTimeout->setText(QString::number(config.icmp.timeoutMs));
+        icmpCount->setText(QString::number(config.icmp.count));
+    }
+
+    if (resolverBox != nullptr) {
+        const auto &resolver = config.resolver;
+        reloadResolverProfiles(resolver.profileId);
+        reloadResolverLevels(resolver.level);
+        resolverTimeout->setText(resolver.timeoutMs > 0 ? QString::number(resolver.timeoutMs) : QString());
+    }
 
     if (tcpBox != nullptr) {
         tcpBox->setChecked(config.tcp.enabled);
@@ -844,13 +928,29 @@ bool DialogScanInstance::collect(Configs::ScanConfig &out, int &baseListId, QStr
     if (!number(ui->spawn_interval, out.spawnIntervalMs, true, tr("Spawn interval must be between %1 and %2 ms.")))
         return false;
 
-    out.icmp.enabled = icmpBox->isChecked();
-    if (!number(icmpTimeout, out.icmp.timeoutMs, out.icmp.enabled,
-                tr("ICMP (ping): the timeout must be between %1 and %2 ms.")))
-        return false;
-    if (!number(icmpCount, out.icmp.count, out.icmp.enabled,
-                tr("ICMP (ping): echo requests must be between %1 and %2.")))
-        return false;
+    out.icmp.enabled = false;
+    if (icmpBox != nullptr) {
+        out.icmp.enabled = icmpBox->isChecked();
+        if (!number(icmpTimeout, out.icmp.timeoutMs, out.icmp.enabled,
+                    tr("ICMP (ping): the timeout must be between %1 and %2 ms.")))
+            return false;
+        if (!number(icmpCount, out.icmp.count, out.icmp.enabled,
+                    tr("ICMP (ping): echo requests must be between %1 and %2.")))
+            return false;
+    }
+
+    if (resolverBox != nullptr) {
+        // Every entry is probed on its own port, 53 when it has none.
+        out.ports.clear();
+        out.portMode = Configs::ScanConfig::PortMode::List;
+        auto &resolver = out.resolver;
+        resolver.profileId = resolverProfile->currentData().toInt();
+        resolver.level = resolverLevel->currentData().toString();
+        resolver.timeoutMs = 0;
+        if (!resolverTimeout->text().trimmed().isEmpty() &&
+            !number(resolverTimeout, resolver.timeoutMs, true, tr("DNS tunnel test: the timeout must be between %1 and %2 ms.")))
+            return false;
+    }
 
     // WARP scans have no TCP or TLS / HTTP phase.
     out.tcp.enabled = false;
@@ -1042,6 +1142,7 @@ void DialogScanInstance::refreshProfilePickers() {
         if (!typing) reloadConfigProfiles(selectedConfigProfile());
     }
     if (warpProfile != nullptr) reloadWarpProfiles(warpProfile->currentData().toInt());
+    if (resolverProfile != nullptr) reloadResolverProfiles(resolverProfile->currentData().toInt());
 }
 
 void DialogScanInstance::reloadBaseLists(int selectId) {
@@ -1070,6 +1171,10 @@ void DialogScanInstance::reloadConfigProfiles(int selectId) {
     for (const auto &type : kScanInstanceCandidateExclusions) {
         if (Scanner::IsScanBaseType(type)) continue;
         for (const int id : profiles->GetProfileIdsByType(type)) excluded.insert(id);
+    }
+    const auto xdnsCandidates = profiles->GetProfileIdsByTypeContaining(QStringLiteral("xrayvless"), QStringLiteral("xdns"));
+    for (const auto &profile : profiles->GetProfileBatch(xdnsCandidates)) {
+        if (!Scanner::IsGenericScanBase(*profile)) excluded.insert(profile->id);
     }
 
     configProfile->clear();
@@ -1125,6 +1230,56 @@ void DialogScanInstance::reloadWarpProfiles(int selectId) {
 QString DialogScanInstance::currentWarpMode() const {
     if (warpMode == nullptr) return config.warp.mode;
     return warpMode->currentData().toString();
+}
+
+void DialogScanInstance::reloadResolverProfiles(int selectId) {
+    if (resolverProfile == nullptr) return;
+    const QScopedValueRollback guard(loading, true);
+    const QString level = resolverLevel->currentData().toString();
+    auto *profiles = Configs::dataManager->profilesRepo.get();
+    QHash<int, QString> protocols;
+    for (const auto &type : {QStringLiteral("dnstt"), QStringLiteral("masterdns")}) {
+        for (const int id : profiles->GetProfileIdsByType(type)) protocols.insert(id, type);
+    }
+    const auto xdnsCandidates = profiles->GetProfileIdsByTypeContaining(QStringLiteral("xrayvless"), QStringLiteral("xdns"));
+    for (const auto &profile : profiles->GetProfileBatch(xdnsCandidates)) {
+        if (const auto protocol = Scanner::DnsTunnelProtocol(*profile); !protocol.isEmpty()) protocols.insert(profile->id, protocol);
+    }
+    auto ids = protocols.keys();
+    std::sort(ids.begin(), ids.end());
+
+    resolverProfile->clear();
+    resolverProfile->addItem(tr("Select a profile…"), -1);
+    for (const auto &[id, profileName] : profiles->GetProfileIDNameMappedBatch(ids)) {
+        resolverProfile->addItem(profileName, id);
+        resolverProfile->setItemData(resolverProfile->count() - 1, protocols.value(id), kScanInstanceProtocolRole);
+    }
+    scanInstanceSelectData(resolverProfile, selectId);
+    reloadResolverLevels(level);
+}
+
+void DialogScanInstance::reloadResolverLevels(const QString &selectLevel) {
+    if (resolverLevel == nullptr) return;
+    const QScopedValueRollback guard(loading, true);
+    const QString protocol = currentResolverProtocol();
+    const auto levels = Scanner::ResolverScanLevels(protocol);
+    resolverLevel->clear();
+    for (const auto &level : levels) resolverLevel->addItem(scanInstanceResolverLevelLabel(level), level);
+    scanInstanceSelectData(resolverLevel, levels.contains(selectLevel) ? selectLevel : Scanner::ResolverScanDefaultLevel(protocol));
+    resolverLevel->setEnabled(!levels.isEmpty());
+    updateResolverTimeoutHint();
+}
+
+QString DialogScanInstance::currentResolverProtocol() const {
+    return resolverProfile == nullptr ? QString() : resolverProfile->currentData(kScanInstanceProtocolRole).toString();
+}
+
+void DialogScanInstance::updateResolverTimeoutHint() {
+    if (resolverTimeout == nullptr) return;
+    const QString protocol = currentResolverProtocol();
+    resolverTimeout->setPlaceholderText(
+        protocol.isEmpty() ? QString()
+                           : QString::number(Scanner::ResolverScanDefaultTimeoutMs(protocol, resolverLevel->currentData().toString())));
 }
 
 void DialogScanInstance::updateHttpControls() {
@@ -1320,6 +1475,7 @@ void DialogScanInstance::applyLock(bool locked) {
     ui->save_as_list->setEnabled(hasResults);
     ui->copy_results->setEnabled(hasResults);
     ui->export_results->setEnabled(hasResults);
+    if (useAsResolvers != nullptr) useAsResolvers->setEnabled(hasResults);
 }
 
 void DialogScanInstance::applyLogLines() {
@@ -1382,12 +1538,18 @@ void DialogScanInstance::applyResults(int listId, int count, const QList<Configs
     resultsLoadedCount = count;
     resultCount = count;
     resultsModel->setEntries(entries);
+    applyResultColumns();
     QString summary;
     if (count == 0) summary = tr("No results yet.");
     else if (entries.size() < count) summary = tr("Showing the first %1 of %2 results").arg(entries.size()).arg(count);
     else summary = tr("%n result(s)", nullptr, count);
     ui->results_summary->setText(summary);
     refreshRun();
+}
+
+void DialogScanInstance::applyResultColumns() {
+    for (const int column : {IpEntriesModel::MaxQNameColumn, IpEntriesModel::UploadMtuColumn, IpEntriesModel::DownloadMtuColumn})
+        ui->results_view->setColumnHidden(column, !resultsModel->columnHasData(column));
 }
 
 void DialogScanInstance::runResultsTask(const std::function<void()> &work, const std::function<void()> &done) {
@@ -1442,6 +1604,59 @@ void DialogScanInstance::saveResultsAsList() {
             scanInstanceNotice(this, QMessageBox::Information, tr("Save as IP list"),
                                tr("Saved %n entries to the IP list \"%1\".", nullptr, *saved > 0 ? *saved : expected).arg(name));
         });
+}
+
+void DialogScanInstance::useResultsAsResolvers() {
+    reloadRow();
+    const int listId = scan->result_list_id;
+    if (listId < 0 || resultCount == 0) return;
+    const auto title = tr("Use as resolvers");
+    const int profileId = scan->config.resolver.profileId;
+    const auto profile = profileId >= 0 ? Configs::dataManager->profilesRepo->GetProfile(profileId) : nullptr;
+    auto *source = profile != nullptr && profile->outbound != nullptr ? Configs::ProfileResolverSource(*profile) : nullptr;
+    if (source == nullptr) {
+        scanInstanceNotice(this, QMessageBox::Warning, title, tr("The scan's profile was deleted or is no longer a DNS tunnel profile."));
+        return;
+    }
+    const auto list = Configs::dataManager->ipListsRepo->GetIpListHeader(listId);
+    const QString listName = list != nullptr ? list->name : QString::number(listId);
+    const QString profileName = profile->outbound->name;
+
+    if (Engine::IsBeingEdited(Engine::EditTarget::Profile, profileId)) {
+        // The open editor saves its own list choice back on OK, so the choice goes to the editor.
+        int editors = 0;
+        for (auto *widget : QApplication::allWidgets()) {
+            auto *sourceWidget = qobject_cast<ResolverSourceWidget *>(widget);
+            if (sourceWidget == nullptr || sourceWidget->profileId() != profileId) continue;
+            sourceWidget->setIpList(listId);
+            ++editors;
+        }
+        if (editors == 0) {
+            scanInstanceNotice(this, QMessageBox::Warning, title, tr("\"%1\" is open in an editor; close it and try again.").arg(profileName));
+            return;
+        }
+        scanInstanceNotice(this, QMessageBox::Information, title,
+                           tr("The open editor of \"%1\" now takes resolvers from the IP list \"%2\"; press OK there to save it.")
+                               .arg(profileName, listName));
+        return;
+    }
+
+    if (source->ipListId != listId) {
+        const int previous = source->ipListId;
+        source->ipListId = listId;
+        if (!Configs::dataManager->profilesRepo->Save(profile)) {
+            source->ipListId = previous;
+            scanInstanceNotice(this, QMessageBox::Warning, title, tr("Failed to store the profile."));
+            return;
+        }
+        QStringList args;
+        if (Configs::dataManager->settingsRepo->started_id == profileId || Configs::RunningUsesProfile(profileId))
+            args << MwArg::RestartProxy;
+        Configs::RepositionLater(QList<std::shared_ptr<Configs::Profile>>{profile}, Configs::SortInput::Config);
+        MW_dialog_message(MwMessage::ProfileChanged, args);
+    }
+    scanInstanceNotice(this, QMessageBox::Information, title,
+                       tr("\"%1\" now takes resolvers from the IP list \"%2\".").arg(profileName, listName));
 }
 
 void DialogScanInstance::copyResults() {

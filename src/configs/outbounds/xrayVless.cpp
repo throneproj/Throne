@@ -200,13 +200,17 @@ namespace Configs {
         settings["encryption"] = encryption;
         if (!flow.isEmpty() && flow != "none") settings["flow"] = flow;
         object["settings"] = settings;
-        auto streamObj = withBindInterface(streamSetting->Build().object, dialFields->bind_interface);
+        const auto stream = streamSetting->Build(DisplayTypeAndName());
+        if (!stream.error.isEmpty()) return {{}, stream.error};
+        auto streamObj = withBindInterface(stream.object, dialFields->bind_interface);
         if (!streamObj.isEmpty()) object["streamSettings"] = streamObj;
         // Not in ExportToJson: a copied interface would outlive clearing the bind in the Advanced dialog.
         BindXrayDownloadLeg(object, dialFields->bind_interface);
         // Xray refuses XDRIVE without Mux, so Keep Default turns it on there.
         const bool muxRequired = NormalizeXrayNetwork(streamSetting->network) == "xdrive";
-        if (auto muxObj = multiplex->BuildMux(muxRequired || Configs::dataManager->settingsRepo->xray_mux_default_on); !muxObj.isEmpty()) {
+        // Each XDNS connection is its own mKCP session that opens a socket per resolver; Mux shares one.
+        const bool muxDefaultOn = muxRequired || streamSetting->IsXdns() || Configs::dataManager->settingsRepo->xray_mux_default_on;
+        if (auto muxObj = multiplex->BuildMux(muxDefaultOn); !muxObj.isEmpty()) {
             // It also refuses any traffic leaving the mux there, which a preset may ask for.
             if (muxRequired) {
                 if (muxObj["concurrency"].toInt() < 0) muxObj.remove("concurrency");
@@ -250,6 +254,7 @@ namespace Configs {
             auto download = x.rawExtra.value(key).toObject();
             if (strip(download, at + key + QLatin1Char('.'))) x.rawExtra[key] = download;
         }
+        StripXrayFinalmaskKeyLog(streamSetting->finalmask, QStringLiteral("streamSettings.finalmask."), issues);
     }
 
     void xrayVless::Validate(Validation::Issues &issues) {

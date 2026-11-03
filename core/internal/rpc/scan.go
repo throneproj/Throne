@@ -21,7 +21,7 @@ func scanProbeRequest(in *gen.ScanProbeRequest) scan.ProbeRequest {
 	for _, entry := range spec.GetEntries() {
 		entries = append(entries, scan.Entry{CIDR: entry.GetCidr(), Port: entry.GetPort()})
 	}
-	icmp, tcp, http := in.GetIcmp(), in.GetTcp(), in.GetHttp()
+	icmp, tcp, http, dns := in.GetIcmp(), in.GetTcp(), in.GetHttp(), in.GetDns()
 	return scan.ProbeRequest{
 		Spec: scan.Spec{
 			Entries:          entries,
@@ -64,6 +64,13 @@ func scanProbeRequest(in *gen.ScanProbeRequest) scan.ProbeRequest {
 			MixedCaseSNI:          http.GetMixedCaseSni(),
 			Timeout:               milliseconds(http.GetTimeoutMs()),
 			FallbackPort:          http.GetFallbackPort(),
+		},
+		DNS: scan.DNSOptions{
+			Enabled:    dns.GetEnabled(),
+			Protocol:   dns.GetProtocol(),
+			ConfigJSON: dns.GetConfigJson(),
+			Level:      dns.GetLevel(),
+			Timeout:    milliseconds(dns.GetTimeoutMs()),
 		},
 		Concurrency:   int(in.GetConcurrency()),
 		SpawnInterval: milliseconds(in.GetSpawnIntervalMs()),
@@ -109,6 +116,11 @@ func (s *server) ScanProbe(ctx context.Context, in *gen.ScanProbeRequest) (*gen.
 			HttpStatus:   To(int32(r.HTTPStatus)),
 			ProbePort:    To(int32(r.ProbePort)),
 			LocalFailure: To(r.LocalFailure),
+			DnsMs:        To(r.DNSMs),
+			MaxQname:     To(r.MaxQName),
+			UploadMtu:    To(r.UploadMTU),
+			DownloadMtu:  To(r.DownloadMTU),
+			DnsStage:     To(r.DNSStage),
 		})
 	}
 	return out, nil

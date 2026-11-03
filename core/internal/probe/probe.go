@@ -255,13 +255,10 @@ func outboundHTTPClient(ctx context.Context, i Box, tag string, outbound adapter
 	}
 }
 
-// Endpoint membership, not a type assertion: plain outbounds such as direct also satisfy adapter.Endpoint.
-func tunnelEndpoints(i Box, tag string) []adapter.Endpoint {
+func walkChain(i Box, tag string, visit func(tag string, outbound adapter.Outbound)) {
 	outbounds := i.Outbound()
-	endpoints := service.FromContext[adapter.EndpointManager](i.Context())
 	visited := make(map[string]bool)
 	pending := []string{tag}
-	var tunnels []adapter.Endpoint
 	for len(pending) > 0 {
 		tag = pending[len(pending)-1]
 		pending = pending[:len(pending)-1]
@@ -273,11 +270,20 @@ func tunnelEndpoints(i Box, tag string) []adapter.Endpoint {
 		if !found {
 			continue
 		}
+		visit(tag, outbound)
+		pending = append(pending, outbound.Dependencies()...)
+	}
+}
+
+// Endpoint membership, not a type assertion: plain outbounds such as direct also satisfy adapter.Endpoint.
+func tunnelEndpoints(i Box, tag string) []adapter.Endpoint {
+	endpoints := service.FromContext[adapter.EndpointManager](i.Context())
+	var tunnels []adapter.Endpoint
+	walkChain(i, tag, func(tag string, _ adapter.Outbound) {
 		if endpoint, isEndpoint := endpoints.Get(tag); isEndpoint {
 			tunnels = append(tunnels, endpoint)
 		}
-		pending = append(pending, outbound.Dependencies()...)
-	}
+	})
 	return tunnels
 }
 
@@ -346,7 +352,9 @@ func awaitTunnels(ctx context.Context, i Box, tag string) error {
 	return nil
 }
 
+// A DNS tunnel opens its session on the first dial whether or not the request is a warm-up.
 func firstRequestTimeout(i Box, tag string, cold bool, timeout time.Duration) time.Duration {
+	timeout += dnsTunnelAllowance(i, tag)
 	if !cold {
 		return timeout
 	}

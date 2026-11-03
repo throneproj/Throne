@@ -78,6 +78,14 @@ namespace Configs {
         bool warmLatency = true;
     };
 
+    struct ScanResolverOptions {
+        int profileId = -1;
+        // dnstt: poll | qname | handshake; masterdns: quick | full; xdns: poll | qname. Empty = the protocol's default.
+        QString level;
+        // Bounds one resolver's whole probe; 0 = the level's default.
+        int timeoutMs = 0;
+    };
+
     struct ScanConfig {
         // Ignore = only `ports`, Merge = the entry's own port plus `ports`, List = only the entry's own port.
         enum class PortMode { Ignore = 0, Merge = 1, List = 2 };
@@ -97,6 +105,7 @@ namespace Configs {
         ScanHttpOptions http;
         ScanConfigTestOptions config;
         ScanWarpOptions warp;
+        ScanResolverOptions resolver;
 
         [[nodiscard]] QString PortModeKey() const;
 
@@ -109,7 +118,7 @@ namespace Configs {
 
     class IpScan {
     public:
-        enum class Kind { Generic = 0, Warp = 1 };
+        enum class Kind { Generic = 0, Warp = 1, Resolver = 2 };
         enum class Status { Idle = 0, Running = 1, Paused = 2, Completed = 3, Failed = 4 };
         enum class Mode { Initial = 0, RescanResult = 1 };
 

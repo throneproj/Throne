@@ -2,6 +2,7 @@
 
 #include <QObject>
 
+#include "include/configs/common/DnsTunnel.h"
 #include "include/configs/generate.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/global/Configs.hpp"
@@ -72,7 +73,41 @@ namespace Scanner {
 
     bool IsScanBaseType(const QString &type) {
         return !type.isEmpty() && type != QLatin1String("custom") && type != QLatin1String("extracore") &&
-               type != QLatin1String("tailscale") && type != QLatin1String("autoselector") && type != QLatin1String("direct");
+               type != QLatin1String("tailscale") && type != QLatin1String("autoselector") && type != QLatin1String("direct") &&
+               type != QLatin1String("dnstt") && type != QLatin1String("masterdns");
+    }
+
+    QString DnsTunnelProtocol(const Configs::Profile &profile) {
+        if (profile.outbound == nullptr || !Configs::IsDnsTunnelProfile(profile)) return {};
+        if (profile.type == QLatin1String("dnstt") || profile.type == QLatin1String("masterdns")) return profile.type;
+        return QStringLiteral("xdns");
+    }
+
+    bool IsDnsTunnelBase(const Configs::Profile &profile) {
+        return !DnsTunnelProtocol(profile).isEmpty();
+    }
+
+    bool IsGenericScanBase(const Configs::Profile &profile) {
+        return IsScanBaseType(profile.type) && !IsDnsTunnelBase(profile);
+    }
+
+    QStringList ResolverScanLevels(const QString &protocol) {
+        if (protocol == QLatin1String("dnstt")) return {QStringLiteral("poll"), QStringLiteral("qname"), QStringLiteral("handshake")};
+        if (protocol == QLatin1String("masterdns")) return {QStringLiteral("quick"), QStringLiteral("full")};
+        if (protocol == QLatin1String("xdns")) return {QStringLiteral("poll"), QStringLiteral("qname")};
+        return {};
+    }
+
+    QString ResolverScanDefaultLevel(const QString &protocol) {
+        return protocol == QLatin1String("masterdns") ? QStringLiteral("quick") : protocol.isEmpty() ? QString() : QStringLiteral("qname");
+    }
+
+    int ResolverScanDefaultTimeoutMs(const QString &protocol, const QString &level) {
+        // A silent exchange costs 2 x 5 s (dnstt, xdns) or 2 x 2 s per domain (masterdns); the searches add several.
+        if (protocol == QLatin1String("masterdns")) return level == QLatin1String("full") ? 90000 : 20000;
+        if (level == QLatin1String("poll")) return 15000;
+        if (level == QLatin1String("handshake")) return 120000;
+        return protocol == QLatin1String("xdns") ? 60000 : 90000;
     }
 
     QString WarpTransportOf(const QString &mode) {
@@ -81,13 +116,19 @@ namespace Scanner {
 
     std::shared_ptr<Configs::Profile> ResolveScanBase(const Configs::IpScan &scan, QString *error) {
         if (scan.kind == Configs::IpScan::Kind::Warp) return BuildWarpTemplate(scan.config.warp, error);
-        const int profileId = scan.config.config.profileId;
+        const bool resolver = scan.kind == Configs::IpScan::Kind::Resolver;
+        const int profileId = resolver ? scan.config.resolver.profileId : scan.config.config.profileId;
         const auto live = profileId >= 0 ? Configs::dataManager->profilesRepo->GetProfile(profileId) : nullptr;
         if (live == nullptr || live->outbound == nullptr) {
-            scanProfilesSetError(error, QObject::tr("Choose a profile for the config test"));
+            scanProfilesSetError(error, resolver ? QObject::tr("Choose the DNS tunnel profile to find resolvers for")
+                                                 : QObject::tr("Choose a profile for the config test"));
             return nullptr;
         }
-        if (!IsScanBaseType(live->type)) {
+        if (resolver && !IsDnsTunnelBase(*live)) {
+            scanProfilesSetError(error, QObject::tr("Only DNSTT, MasterDNS and XDNS profiles can be used to find resolvers"));
+            return nullptr;
+        }
+        if (!resolver && !IsGenericScanBase(*live)) {
             scanProfilesSetError(error, QObject::tr("This type of profile cannot be pointed at scanned addresses"));
             return nullptr;
         }

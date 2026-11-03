@@ -53,6 +53,8 @@ brew install --cask throneproj/tap/throne
 - AmneziaWG
 - MASQUE
 - SSH
+- DNSTT / VayDNS
+- MasterDNS
 - Xray VLESS (XHTTP/XDrive)
 - OpenVPN/OpenConnect
 - Custom Outbound (Both Sing-box and Xray)

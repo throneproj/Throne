@@ -541,6 +541,19 @@ message ScanHttpOptions {
   optional int32 fallback_port = 22 [default = 443];
 }
 
+// When enabled, a target is probed as a resolver only: no icmp, tcp or http phase runs. Port 0 = 53.
+message ScanDnsOptions {
+  optional bool enabled = 1 [default = false];
+  // dnstt | masterdns | xdns
+  optional string protocol = 2 [default = ""];
+  // dnstt/masterdns: the base profile's sing-box outbound object; xdns: the base's xdns mask settings. Resolvers are replaced per target.
+  optional string config_json = 3 [default = ""];
+  // dnstt: poll | qname | handshake; masterdns: quick | full; xdns: poll | qname
+  optional string level = 4 [default = ""];
+  // Bounds one target's whole probe.
+  optional int32 timeout_ms = 5 [default = 5000];
+}
+
 message ScanProbeRequest {
   optional string session_id = 1 [default = ""];
   optional ScanTargetSpec spec = 2;
@@ -553,13 +566,14 @@ message ScanProbeRequest {
   optional ScanHttpOptions http = 7;
   optional int32 concurrency = 8 [default = 0];
   optional int32 spawn_interval_ms = 9 [default = 0];
+  optional ScanDnsOptions dns = 10;
 }
 
 message ScanProbeResult {
   optional string address = 1 [default = ""];
   optional int32 port = 2 [default = 0];
   optional bool passed = 3 [default = false];
-  // icmp | tcp | tls | http; empty when passed
+  // icmp | tcp | tls | http | dns; empty when passed
   optional string failed_phase = 4 [default = ""];
   optional string error = 5 [default = ""];
   optional int32 icmp_ms = 6 [default = 0];
@@ -567,10 +581,18 @@ message ScanProbeResult {
   optional int32 tls_ms = 8 [default = 0];
   optional int32 http_ms = 9 [default = 0];
   optional int32 http_status = 10 [default = 0];
-  // The port TCP/TLS actually used: the phase fallback when port is 0.
+  // The port TCP/TLS/DNS actually used: the phase fallback when port is 0.
   optional int32 probe_port = 11 [default = 0];
   // The failure came from this machine (no route or address for the family), not the target.
   optional bool local_failure = 12 [default = false];
+  // dnstt/xdns: RTT of the first exchange the resolver answered, failed targets included; masterdns: mean RTT at the found MTUs, passes only. 0 = none.
+  optional int32 dns_ms = 13 [default = 0];
+  // dnstt: max_qname_len units; xdns: lenLimit units (wire length).
+  optional int32 max_qname = 14 [default = 0];
+  optional int32 upload_mtu = 15 [default = 0];
+  optional int32 download_mtu = 16 [default = 0];
+  // The stage a failed target stopped at.
+  optional string dns_stage = 17 [default = ""];
 }
 
 message ScanProbeResponse {
@@ -589,7 +611,7 @@ message ScanEvent {
   optional int64 seq = 1 [default = 0];
   // start | ok | fail
   optional string kind = 2 [default = ""];
-  // icmp | tcp | tls | http | url
+  // icmp | tcp | tls | http | dns | url
   optional string phase = 3 [default = ""];
   // Display form; IPv6 is bracketed.
   optional string target = 4 [default = ""];

@@ -78,7 +78,10 @@ namespace Configs {
         QList<int> GetAllProfileIds() const;
 
         QList<int> GetProfileIdsByType(const QString& type) const;
-        
+
+        // A cheap prefilter: needle is matched ASCII case-insensitively against the stored outbound JSON.
+        QList<int> GetProfileIdsByTypeContaining(const QString& type, const QString& needle) const;
+
         // No-op unless id >= 0; false for a deleted id, which is not written back.
         bool Save(const std::shared_ptr<Profile>& profile);
 

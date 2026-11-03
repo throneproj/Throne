@@ -85,7 +85,8 @@ namespace Configs {
         auto scan = std::make_shared<IpScan>();
         scan->id = stmt.getColumn(0).getInt();
         scan->name = QString::fromStdString(stmt.getColumn(1).getString());
-        scan->kind = stmt.getColumn(2).getInt() == static_cast<int>(IpScan::Kind::Warp) ? IpScan::Kind::Warp : IpScan::Kind::Generic;
+        const int kind = stmt.getColumn(2).getInt();
+        scan->kind = kind >= 0 && kind <= static_cast<int>(IpScan::Kind::Resolver) ? static_cast<IpScan::Kind>(kind) : IpScan::Kind::Generic;
         scan->base_list_id = stmt.getColumn(3).getInt();
         scan->result_list_id = stmt.getColumn(4).getInt();
         scan->config = IpScan::DefaultConfig(scan->kind);

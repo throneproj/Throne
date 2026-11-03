@@ -12,6 +12,8 @@ namespace Configs {
     namespace {
         constexpr int kIpScanMinTimeoutMs = 100;
         constexpr int kIpScanMaxTimeoutMs = 60000;
+        // The core's own bound on one resolver probe.
+        constexpr int kIpScanMaxResolverTimeoutMs = 300000;
 
         void ipScanReadBool(const QJsonObject &object, const char *key, bool &value) {
             const auto v = object.value(QLatin1String(key));
@@ -124,6 +126,12 @@ namespace Configs {
         warpObject["timeoutMs"] = warp.timeoutMs;
         warpObject["warmLatency"] = warp.warmLatency;
         object["warp"] = warpObject;
+
+        QJsonObject resolverObject;
+        resolverObject["profileId"] = resolver.profileId;
+        resolverObject["level"] = resolver.level;
+        resolverObject["timeoutMs"] = resolver.timeoutMs;
+        object["resolver"] = resolverObject;
         return object;
     }
 
@@ -211,6 +219,12 @@ namespace Configs {
         ipScanReadString(warpObject, "url", warp.url);
         ipScanReadInt(warpObject, "timeoutMs", warp.timeoutMs, kIpScanMinTimeoutMs, kIpScanMaxTimeoutMs);
         ipScanReadBool(warpObject, "warmLatency", warp.warmLatency);
+
+        const QJsonObject resolverObject = object.value(QLatin1String("resolver")).toObject();
+        ipScanReadInt(resolverObject, "profileId", resolver.profileId, -1, std::numeric_limits<int>::max());
+        ipScanReadChoice(resolverObject, "level", resolver.level, {"", "poll", "qname", "handshake", "quick", "full"});
+        ipScanReadInt(resolverObject, "timeoutMs", resolver.timeoutMs, 0, kIpScanMaxResolverTimeoutMs);
+        if (resolver.timeoutMs > 0) resolver.timeoutMs = std::max(resolver.timeoutMs, kIpScanMinTimeoutMs);
     }
 
     QString ScanConfig::PortModeKey() const {
@@ -247,6 +261,12 @@ namespace Configs {
             config.ports = Scanner::WarpPresets::kWireGuardPorts;
             config.concurrency = 16;
             config.stopAfter = 10;
+            config.tcp.enabled = false;
+        } else if (kind == Kind::Resolver) {
+            // A portless entry is probed on 53; ports never multiply resolver targets.
+            config.ports.clear();
+            config.portMode = ScanConfig::PortMode::List;
+            config.stopAfter = 0;
             config.tcp.enabled = false;
         } else {
             config.ports.clear();

@@ -92,17 +92,18 @@ namespace Scanner {
         if (scan == nullptr) return {tr("The scan no longer exists")};
         const auto &config = scan->config;
         const bool warp = scan->kind == Configs::IpScan::Kind::Warp;
+        const bool resolver = scan->kind == Configs::IpScan::Kind::Resolver;
 
-        if (!warp && !config.icmp.enabled && !config.tcp.enabled && !config.http.enabled && !config.config.enabled)
+        if (!warp && !resolver && !config.icmp.enabled && !config.tcp.enabled && !config.http.enabled && !config.config.enabled)
             return {tr("Turn on at least one test phase")};
-        if (!warp && config.http.enabled && !config.http.tls) {
+        if (!warp && !resolver && config.http.enabled && !config.http.tls) {
             if (config.http.method.compare(QStringLiteral("NONE"), Qt::CaseInsensitive) == 0)
                 return {tr("A TLS handshake check needs TLS turned on")};
             if (config.http.httpVersion == QLatin1String("3")) return {tr("HTTP/3 needs TLS turned on")};
         }
 
         std::shared_ptr<Configs::Profile> base;
-        if (warp || config.config.enabled) {
+        if (warp || resolver || config.config.enabled) {
             QString error;
             base = ResolveScanBase(*scan, &error);
             if (base == nullptr) return {error.isEmpty() ? tr("The profile for the config test cannot be used") : error};

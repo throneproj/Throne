@@ -8,11 +8,13 @@
 #include "include/ui/profile/edit_chain.h"
 #include "include/ui/profile/edit_custom.h"
 #include "include/ui/profile/edit_direct.h"
+#include "include/ui/profile/edit_dnstt.h"
 #include "include/ui/profile/edit_extra_core.h"
 #include "include/ui/profile/edit_http.h"
 #include "include/ui/profile/edit_hysteria.h"
 #include "include/ui/profile/edit_juicity.h"
 #include "include/ui/profile/edit_masque.h"
+#include "include/ui/profile/edit_masterdns.h"
 #include "include/ui/profile/edit_mieru.h"
 #include "include/ui/profile/edit_naive.h"
 #include "include/ui/profile/edit_openconnect.h"
@@ -79,6 +81,8 @@ EditorFactory editorFactory(const QString &type) {
         {"openconnect", makeEditor<EditOpenConnect>},
         {"tailscale", makeEditor<EditTailScale>},
         {"ssh", makeEditor<EditSSH>},
+        {"dnstt", makeEditor<EditDnstt>},
+        {"masterdns", makeEditor<EditMasterDns>},
         {"direct", makeEditor<EditDirect>},
         {"chain", makeEditor<EditChain>},
         {"autoselector", makeEditor<EditAutoSelector>},
@@ -98,7 +102,7 @@ bool advancedType(const QString &type) {
 }
 
 bool hasServerAddress(const QString &type) {
-    static const QSet<QString> serverless = {"chain", "autoselector", "direct", "extracore", "tailscale", "custom"};
+    static const QSet<QString> serverless = {"chain", "autoselector", "direct", "extracore", "tailscale", "custom", "dnstt", "masterdns"};
     return !serverless.contains(type);
 }
 
@@ -252,9 +256,12 @@ void DialogEditProfile::setupTypeList() {
     };
     for (const auto *t: {"autoselector", "socks", "http", "shadowsocks", "trojan", "vmess", "vless", "xrayvless",
                          "hysteria", "tuic", "juicity", "naive", "trusttunnel", "anytls", "mieru", "snell",
-                         "shadowtls", "wireguard", "masque", "openvpn", "openconnect", "tailscale", "ssh", "direct"}) {
+                         "shadowtls", "wireguard", "masque", "openvpn", "openconnect", "tailscale", "ssh"}) {
         addType(t);
     }
+    addNamedType(tr("DNSTT / VayDNS"), "dnstt");
+    addType("masterdns");
+    addType("direct");
     addNamedType(tr("Custom (%1 outbound)").arg(software_core_name), Configs::Custom::CustomOutbound);
     addNamedType(tr("Custom (%1 config)").arg(software_core_name), Configs::Custom::CustomFullConfig);
     addNamedType(tr("Custom (Xray outbound)"), Configs::Custom::CustomXrayOutbound);
@@ -321,6 +328,7 @@ void DialogEditProfile::mountEditor(QWidget *widget, ProfileEditor *editor) {
     beanLayout->addWidget(widget);
     innerWidget = widget;
     innerEditor = editor;
+    UiMode::Apply(widget);
 
     const auto innerTabOrder = collectTabOrder(this, widget);
     if (!innerTabOrder.isEmpty() && innerTabOrderIndex >= 0 && innerTabOrderIndex <= outerTabOrder.size()) {
@@ -334,6 +342,7 @@ void DialogEditProfile::mountEditor(QWidget *widget, ProfileEditor *editor) {
     editor->get_edit_text_name = [this] { return ui->name->text(); };
     editor->get_edit_text_serverAddress = [this] { return ui->address->text(); };
     editor->get_edit_text_serverPort = [this] { return ui->port->text(); };
+    editor->set_edit_title = [this](const QString &v) { ui->bean->setTitle(v); };
     editor->set_edit_text_serverAddress = [this](const QString &v) { ui->address->setText(v); };
     editor->set_edit_text_serverPort = [this](const QString &v) { ui->port->setText(v); };
     editor->editor_cache_updated = [this] { editor_cache_updated_impl(); };

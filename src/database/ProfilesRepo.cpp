@@ -477,6 +477,16 @@ namespace Configs {
         return ids;
     }
 
+    QList<int> ProfilesRepo::GetProfileIdsByTypeContaining(const QString& type, const QString& needle) const {
+        QList<int> ids;
+        auto query = db.query("SELECT id FROM profiles WHERE type = ? AND instr(lower(outbound_json), ?) > 0 ORDER BY id",
+                              type.toStdString(), needle.toLower().toStdString());
+        if (query) {
+            while (query->executeStep()) ids.append(query->getColumn(0).getInt());
+        }
+        return ids;
+    }
+
     int ProfilesRepo::NewProfileID() const {
         auto query = db.query("UPDATE entity_ids SET profile_last_id = profile_last_id + 1 RETURNING profile_last_id");
         if (query && query->executeStep()) {

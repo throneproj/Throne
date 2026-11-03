@@ -1,9 +1,10 @@
 #pragma once
 #include "include/configs/baseConfig.h"
+#include "include/configs/common/ResolverSource.h"
 #include "include/global/Validation.hpp"
 
 namespace Configs {
-    inline QStringList XrayNetworks = {"raw", "xhttp", "ws", "httpupgrade", "grpc", "xdrive"};
+    inline QStringList XrayNetworks = {"raw", "xhttp", "ws", "httpupgrade", "grpc", "kcp", "xdrive"};
     // Xray still takes "Google Drive" for google-drive; ParseFromJson folds it.
     inline QStringList XrayXDriveServices = {"google-drive", "s3", "template", "local"};
     inline QStringList XrayXHTTPModes = {"auto", "packet-up", "stream-up", "stream-one"};
@@ -11,8 +12,16 @@ namespace Configs {
     inline QStringList XrayXHTTPUplinkDataPlacements = {"", "auto", "body", "cookie", "header"};
     inline QStringList XrayXHTTPUplinkMethods = {"", "POST", "PUT", "PATCH", "GET"};
 
-    // Folds the aliases Xray itself accepts (tcp, splithttp, websocket), case-insensitively, onto the XrayNetworks names.
+    // Folds the aliases Xray itself accepts (tcp, splithttp, websocket, mkcp), case-insensitively, onto the XrayNetworks names.
     QString NormalizeXrayNetwork(const QString& network);
+
+    // Rewrites the finalmask spellings Xray now refuses or ignores (key case, old mask names, old xdns shapes); true when anything changed.
+    bool UpgradeXrayFinalmask(QJsonObject& finalmask);
+
+    // Removes masterKeyLog from the TLS settings of the finalmask's xdns resolvers; true when any went.
+    bool StripXrayFinalmaskKeyLog(QJsonObject& finalmask, const QString& at, Validation::Issues& issues);
+
+    bool XrayFinalmaskHasXdns(const QJsonObject& finalmask);
 
     // Go's strings.ToLower, for comparing against ASCII names: Qt lowercases U+0130 to two characters, Go to 'i'.
     QString XrayLower(const QString& text);
@@ -80,6 +89,16 @@ namespace Configs {
         QString XrayXDriveFrontPort(const QString& port);
         // A warning: the front port is dialed only together with a front address.
         QString XrayXDriveFrontPortAlone(const QString& address, const QString& port);
+
+        // mKCP values, which Xray reads as uint32; an empty text keeps Xray's default.
+        QString XrayKCPMtu(const QString& text);
+        QString XrayKCPTti(const QString& text);
+        QString XrayKCPCapacity(const QString& text);
+        QString XrayKCPCwndMultiplier(const QString& text);
+        // Xray sends at most maxSendingWindow / MTU packets ahead and refuses a window that holds none; an empty MTU is Xray's 1350.
+        QString XrayKCPMaxSendingWindow(const QString& text, const QString& mtu);
+        // Errors and warnings for the xdns masks of a finalmask; at is "" or ends in '.'. resolversReplaced: a resolver source stands in for theirs.
+        void XrayFinalmask(Validation::Issues& issues, const QString& at, const QJsonObject& finalmask, bool resolversReplaced = false);
     }
 
     // dns-direct answers every outbound server domain, so its "disable IPv6" caps this.
@@ -261,6 +280,30 @@ namespace Configs {
         BuildResult Build() override;
     };
 
+    // mKCP; its old header and seed live in finalmask as mkcp-legacy masks.
+    class xrayKCP : public baseConfig {
+    public:
+        static constexpr qint64 DefaultMtu = 1350;
+        static constexpr qint64 DefaultTti = 50;
+        static constexpr qint64 DefaultUplinkCapacity = 5;
+        static constexpr qint64 DefaultDownlinkCapacity = 20;
+        static constexpr qint64 DefaultCwndMultiplier = 1;
+        static constexpr qint64 DefaultMaxSendingWindow = 2097152;
+
+        qint64 mtu = DefaultMtu;
+        qint64 tti = DefaultTti;
+        qint64 uplinkCapacity = DefaultUplinkCapacity;
+        qint64 downlinkCapacity = DefaultDownlinkCapacity;
+        qint64 cwndMultiplier = DefaultCwndMultiplier;
+        qint64 maxSendingWindow = DefaultMaxSendingWindow;
+
+        bool ParseFromLink(const QString& link) override;
+        bool ParseFromJson(const QJsonObject& object) override;
+        QString ExportToLink() override;
+        QJsonObject ExportToJson() override;
+        BuildResult Build() override;
+    };
+
     class xrayStreamSetting : public baseConfig {
         public:
         QString network = "raw";
@@ -275,6 +318,9 @@ namespace Configs {
         std::shared_ptr<xrayHttpUpgrade> httpupgrade = std::make_shared<xrayHttpUpgrade>();
         std::shared_ptr<xrayGRPC> grpc = std::make_shared<xrayGRPC>();
         std::shared_ptr<xrayXDrive> xdrive = std::make_shared<xrayXDrive>();
+        std::shared_ptr<xrayKCP> kcp = std::make_shared<xrayKCP>();
+        // XDNS only; stored under Throne-only keys that Build() removes.
+        ResolverSource xdnsResolvers;
 
         bool ParseFromLink(const QString& link) override;
         bool ParseFromJson(const QJsonObject& object) override;
@@ -283,6 +329,10 @@ namespace Configs {
         QJsonObject ExportToJson() override;
         QJsonObject ExportIdentity() override;
         BuildResult Build() override;
+        BuildResult Build(const QString& owner);
+
+        // XDNS is network "kcp" with an "xdns" mask in finalmask.udp; imports and the editor store exactly these spellings.
+        [[nodiscard]] bool IsXdns() const;
 
         void Validate(Validation::Issues& issues, const QString& serverAddress);
     };

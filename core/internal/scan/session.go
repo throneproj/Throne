@@ -27,6 +27,7 @@ const (
 	PhaseTCP  = "tcp"
 	PhaseTLS  = "tls"
 	PhaseHTTP = "http"
+	PhaseDNS  = "dns"
 	PhaseURL  = "url"
 )
 

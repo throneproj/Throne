@@ -1,0 +1,500 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>EditDnstt</class>
+ <widget class="QWidget" name="EditDnstt">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>760</width>
+    <height>480</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string notr="true">EditDnstt</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <widget class="QWidget" name="tunnel_w" native="true">
+     <layout class="QVBoxLayout" name="tunnel_layout">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <layout class="QFormLayout" name="tunnel_form">
+        <item row="0" column="0">
+         <widget class="QLabel" name="mode_l">
+          <property name="text">
+           <string>Mode</string>
+          </property>
+          <property name="buddy">
+           <cstring>mode</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="mode"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="domain_l">
+          <property name="text">
+           <string>Domain</string>
+          </property>
+          <property name="buddy">
+           <cstring>domain</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="domain">
+          <property name="placeholderText">
+           <string notr="true">t.example.com</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="public_key_l">
+          <property name="text">
+           <string>Public Key</string>
+          </property>
+          <property name="buddy">
+           <cstring>public_key</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="public_key"/>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="record_type_l">
+          <property name="text">
+           <string>Record Type</string>
+          </property>
+          <property name="buddy">
+           <cstring>record_type</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QComboBox" name="record_type"/>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="client_id_size_l">
+          <property name="text">
+           <string>Client ID Size</string>
+          </property>
+          <property name="buddy">
+           <cstring>client_id_size</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLineEdit" name="client_id_size"/>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="max_qname_len_l">
+          <property name="text">
+           <string>Max QNAME Length</string>
+          </property>
+          <property name="buddy">
+           <cstring>max_qname_len</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QLineEdit" name="max_qname_len"/>
+        </item>
+        <item row="6" column="0">
+         <widget class="QLabel" name="payload_l">
+          <property name="text">
+           <string>Payload per Query</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <widget class="QLabel" name="payload">
+          <property name="textFormat">
+           <enum>Qt::PlainText</enum>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="resolvers_box">
+        <property name="title">
+         <string>Resolvers</string>
+        </property>
+        <layout class="QFormLayout" name="resolvers_form">
+         <item row="0" column="0" colspan="2">
+          <widget class="ResolverSourceWidget" name="resolvers" native="true"/>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="resolver_strategy_l">
+           <property name="text">
+            <string>Strategy</string>
+           </property>
+           <property name="buddy">
+            <cstring>resolver_strategy</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QComboBox" name="resolver_strategy"/>
+         </item>
+         <item row="2" column="0" colspan="2">
+          <widget class="QCheckBox" name="tcp_fallback">
+           <property name="text">
+            <string>Retry truncated replies over TCP</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="side_w" native="true">
+     <layout class="QVBoxLayout" name="side_layout">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QGroupBox" name="backend_box">
+        <property name="title">
+         <string>Backend</string>
+        </property>
+        <layout class="QFormLayout" name="backend_form">
+         <item row="0" column="0">
+          <widget class="QLabel" name="backend_l">
+           <property name="text">
+            <string>Type</string>
+           </property>
+           <property name="buddy">
+            <cstring>backend</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QComboBox" name="backend"/>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="socks_username_l">
+           <property name="text">
+            <string>Username</string>
+           </property>
+           <property name="buddy">
+            <cstring>socks_username</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="socks_username"/>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="socks_password_l">
+           <property name="text">
+            <string>Password</string>
+           </property>
+           <property name="buddy">
+            <cstring>socks_password</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLineEdit" name="socks_password"/>
+         </item>
+         <item row="3" column="0" colspan="2">
+          <widget class="QCheckBox" name="socks_udp_over_tcp">
+           <property name="text">
+            <string>UDP over TCP</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="ss_method_l">
+           <property name="text">
+            <string>Encryption</string>
+           </property>
+           <property name="buddy">
+            <cstring>ss_method</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QComboBox" name="ss_method">
+           <property name="editable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="ss_password_l">
+           <property name="text">
+            <string>Password</string>
+           </property>
+           <property name="buddy">
+            <cstring>ss_password</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QLineEdit" name="ss_password"/>
+         </item>
+         <item row="6" column="0" colspan="2">
+          <widget class="QCheckBox" name="ss_udp_over_tcp">
+           <property name="text">
+            <string>UDP over TCP</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="0">
+          <widget class="QLabel" name="ssh_user_l">
+           <property name="text">
+            <string>User</string>
+           </property>
+           <property name="buddy">
+            <cstring>ssh_user</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="1">
+          <widget class="QLineEdit" name="ssh_user"/>
+         </item>
+         <item row="8" column="0">
+          <widget class="QLabel" name="ssh_password_l">
+           <property name="text">
+            <string>Password</string>
+           </property>
+           <property name="buddy">
+            <cstring>ssh_password</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="1">
+          <widget class="QLineEdit" name="ssh_password"/>
+         </item>
+         <item row="9" column="0">
+          <widget class="QLabel" name="ssh_private_key_l">
+           <property name="text">
+            <string>Private Key</string>
+           </property>
+           <property name="buddy">
+            <cstring>ssh_private_key</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="1">
+          <widget class="MyPlainTextEdit" name="ssh_private_key">
+           <property name="tabChangesFocus">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="10" column="0">
+          <widget class="QLabel" name="ssh_private_key_path_l">
+           <property name="text">
+            <string>Private Key Path</string>
+           </property>
+           <property name="buddy">
+            <cstring>ssh_private_key_path</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="10" column="1">
+          <widget class="QWidget" name="ssh_private_key_path_w" native="true">
+           <layout class="QHBoxLayout" name="ssh_private_key_path_layout">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QLineEdit" name="ssh_private_key_path"/>
+            </item>
+            <item>
+             <widget class="QPushButton" name="ssh_choose_pk">
+              <property name="text">
+               <string>Choose File</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="11" column="0">
+          <widget class="QLabel" name="ssh_private_key_pass_l">
+           <property name="text">
+            <string>Private Key Password</string>
+           </property>
+           <property name="buddy">
+            <cstring>ssh_private_key_pass</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="11" column="1">
+          <widget class="QLineEdit" name="ssh_private_key_pass"/>
+         </item>
+         <item row="12" column="0">
+          <widget class="QLabel" name="ssh_host_key_l">
+           <property name="text">
+            <string>Host Keys</string>
+           </property>
+           <property name="buddy">
+            <cstring>ssh_host_key</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="12" column="1">
+          <widget class="MyPlainTextEdit" name="ssh_host_key">
+           <property name="tabChangesFocus">
+            <bool>true</bool>
+           </property>
+           <property name="lineWrapMode">
+            <enum>QPlainTextEdit::NoWrap</enum>
+           </property>
+           <property name="placeholderText">
+            <string>One per line</string>
+           </property>
+          </widget>
+         </item>
+         <item row="13" column="0">
+          <widget class="QLabel" name="ssh_host_key_algs_l">
+           <property name="text">
+            <string>Host Key Algorithms</string>
+           </property>
+           <property name="buddy">
+            <cstring>ssh_host_key_algs</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="13" column="1">
+          <widget class="QLineEdit" name="ssh_host_key_algs"/>
+         </item>
+         <item row="14" column="0">
+          <widget class="QLabel" name="ssh_client_version_l">
+           <property name="text">
+            <string>Client Version</string>
+           </property>
+           <property name="buddy">
+            <cstring>ssh_client_version</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="14" column="1">
+          <widget class="QLineEdit" name="ssh_client_version"/>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="advanced_box">
+        <property name="uiLevel" stdset="0">
+         <string notr="true">advanced</string>
+        </property>
+        <property name="title">
+         <string>Advanced</string>
+        </property>
+        <layout class="QFormLayout" name="advanced_form">
+         <item row="0" column="0">
+          <widget class="QLabel" name="idle_timeout_l">
+           <property name="text">
+            <string>Idle Timeout</string>
+           </property>
+           <property name="buddy">
+            <cstring>idle_timeout</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="idle_timeout"/>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="keepalive_interval_l">
+           <property name="text">
+            <string>Keepalive Interval</string>
+           </property>
+           <property name="buddy">
+            <cstring>keepalive_interval</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="keepalive_interval"/>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="rps_l">
+           <property name="text">
+            <string>Queries per Second</string>
+           </property>
+           <property name="buddy">
+            <cstring>rps</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLineEdit" name="rps"/>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <spacer name="side_spacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ResolverSourceWidget</class>
+   <extends>QWidget</extends>
+   <header>include/ui/widget/ResolverSourceWidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>MyPlainTextEdit</class>
+   <extends>QPlainTextEdit</extends>
+   <header>include/ui/utils/MyPlainTextEdit.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

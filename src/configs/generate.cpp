@@ -1,6 +1,7 @@
 #include "include/configs/generate.h"
 #include "include/api/RPC.h"
 #include "include/configs/AutoSelectorPlan.h"
+#include "include/configs/common/ResolverSource.h"
 #include "include/configs/common/utils.h"
 #include "include/global/Configs.hpp"
 
@@ -208,6 +209,8 @@ namespace Configs {
             QList<QString> vpnAuxTags;
             // Names whose HTTPS record a hop's ECH needs to fetch; they must not resolve over the proxy they unlock.
             QStringList echQueryNames;
+            // DNS tunnel domains; a loopback stub resolver forwarding them back through the Tun must not reach dns-remote.
+            QStringList dnsTunnelDomains;
             // The main-profile tunnel set to Strict tunnel DNS; its resolvers take every remote query.
             QString vpnStrictTag;
             QList<QString> xrayIngressTags;
@@ -488,6 +491,7 @@ namespace Configs {
         private:
             GenerateEndpointCache cache_;
             GenerateEndpointCache *previous_;
+            const ResolverSourceScope resolvers_;
         };
 
         enum class GenerateServerless { None, Missing, NoServer, Realm };
@@ -496,7 +500,7 @@ namespace Configs {
             if (profile == nullptr || profile->outbound == nullptr) return GenerateServerless::Missing;
             const auto &type = profile->type;
             if (type == "chain" || type == "custom" || type == "extracore" || type == "tailscale" ||
-                type == "autoselector" || type == "direct" || profile->outbound->IsExtraCore() ||
+                type == "autoselector" || type == "direct" || type == "dnstt" || type == "masterdns" || profile->outbound->IsExtraCore() ||
                 profile->outbound->IsXrayFullConfig())
                 return GenerateServerless::NoServer;
             if (const auto *hy = profile->Hysteria(); hy != nullptr && hy->RealmActive())
@@ -1196,6 +1200,14 @@ namespace Configs {
                 };
             }
 
+            if (!ctx.forTest && !ctx.dnsTunnelDomains.isEmpty()) {
+                headRules += QJsonObject{
+                    {"domain_suffix", QJsonArray::fromStringList(ctx.dnsTunnelDomains)},
+                    {"action", "route"},
+                    {"server", tags::dnsDirect},
+                };
+            }
+
             // Strict tunnel DNS takes every query that would otherwise go to dns-remote.
             QString remoteDnsTag = tags::dnsRemote;
             if (!ctx.forTest) {
@@ -1569,6 +1581,18 @@ namespace Configs {
             }
         }
 
+        void collectDnsTunnelDomains(BuildContext &ctx, const Profile &hop) {
+            QStringList domains;
+            if (const auto *dnstt = hop.Dnstt()) domains << dnstt->domain;
+            if (const auto *masterDns = hop.MasterDns()) domains << masterDns->domains;
+            for (const auto &domain : domains) {
+                // sing-box lower-cases the query name but matches domain_suffix entries verbatim.
+                auto name = toAceHost(domain.trimmed()).toLower();
+                if (name.endsWith(u'.')) name.chop(1);
+                if (!name.isEmpty() && !ctx.dnsTunnelDomains.contains(name)) ctx.dnsTunnelDomains << name;
+            }
+        }
+
         void buildSingboxChain(BuildContext &ctx, const QList<std::shared_ptr<Profile>> &ents, const hopChainOptions &opts) {
             for (int idx = 0; idx < ents.size(); idx++)
             {
@@ -1605,6 +1629,7 @@ namespace Configs {
                 }
                 object["tag"] = tag;
                 collectEchQueryName(ctx, *ent);
+                collectDnsTunnelDomains(ctx, *ent);
                 // Realm reads its STUN resolver off this key only; without it the hosts go through DNS rules.
                 if (auto hy = ent->Hysteria(); hy != nullptr && hy->RealmActive())
                     object["domain_resolver"] = QJsonObject{{"server", tags::dnsDirect}};

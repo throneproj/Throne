@@ -29,6 +29,8 @@
 #include "include/configs/outbounds/vless.h"
 #include "include/configs/outbounds/vmess.h"
 #include "include/configs/outbounds/xrayVless.h"
+#include "include/configs/outbounds/dnstt.h"
+#include "include/configs/outbounds/masterdns.h"
 
 #include "include/database/entities/EndpointSource.h"
 #include "include/global/CountryHelper.hpp"
@@ -187,6 +189,14 @@ namespace Configs {
 
         [[nodiscard]] Configs::extracore *ExtraCore() const {
             return dynamic_cast<Configs::extracore *>(outbound.get());
+        };
+
+        [[nodiscard]] Configs::dnstt *Dnstt() const {
+            return dynamic_cast<Configs::dnstt *>(outbound.get());
+        };
+
+        [[nodiscard]] Configs::masterdns *MasterDns() const {
+            return dynamic_cast<Configs::masterdns *>(outbound.get());
         };
     };
     class ProfileFilter {

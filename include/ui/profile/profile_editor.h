@@ -20,6 +20,7 @@ public:
     std::function<QString()> get_edit_text_name;
     std::function<QString()> get_edit_text_serverAddress;
     std::function<QString()> get_edit_text_serverPort;
+    std::function<void(const QString &)> set_edit_title;
     std::function<void(const QString &)> set_edit_text_serverAddress;
     std::function<void(const QString &)> set_edit_text_serverPort;
 

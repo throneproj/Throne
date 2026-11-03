@@ -13,6 +13,8 @@ namespace Ui {
     class DialogEditProfile;
 }
 
+class ResolverSourceWidget;
+
 class DialogEditProfile : public QDialog {
     Q_OBJECT
 
@@ -41,6 +43,8 @@ private:
     QLineEdit *addressEffective{};
     QList<QWidget *> outerTabOrder;
     qsizetype innerTabOrderIndex{-1};
+    QLabel *xdnsResolversLabel{};
+    ResolverSourceWidget *xdnsResolvers{};
 
     QString type;
     int groupId = -1;
@@ -112,4 +116,10 @@ private:
     void loadXrayXDrive(const Configs::xrayXDrive &xdrive);
     void saveXrayXDrive(Configs::xrayXDrive &xdrive);
     void updateXrayXDriveControls();
+
+    // dialog_edit_profile_kcp.cpp: the mKCP panel of the Xray stream and the finalmask checks
+    void setupXrayKCPControls();
+    void bindXrayKCP();
+    void loadXrayKCP(const Configs::xrayKCP &kcp);
+    void saveXrayKCP(Configs::xrayKCP &kcp);
 };

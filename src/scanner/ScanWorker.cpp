@@ -11,6 +11,9 @@
 #include <utility>
 
 #include "include/api/RPC.h"
+#include "include/configs/common/DnsTunnel.h"
+#include "include/configs/common/ResolverSource.h"
+#include "include/configs/common/xrayStreamSetting.h"
 #include "include/configs/generate.h"
 #include "include/database/IpListsRepo.h"
 #include "include/database/IpScansRepo.h"
@@ -18,6 +21,7 @@
 #include "include/global/Configs.hpp"
 #include "include/scanner/IpListParse.h"
 #include "include/scanner/IpListUpdater.h"
+#include "include/scanner/ScanProfiles.h"
 
 namespace Scanner {
     namespace {
@@ -73,6 +77,7 @@ namespace Scanner {
             if (phase == QLatin1String("tcp")) return QStringLiteral("TCP");
             if (phase == QLatin1String("tls")) return QStringLiteral("TLS");
             if (phase == QLatin1String("http")) return QStringLiteral("HTTP");
+            if (phase == QLatin1String("dns")) return QStringLiteral("DNS");
             if (phase == QLatin1String("url")) return ScanManager::tr("config test");
             return phase;
         }
@@ -91,6 +96,7 @@ namespace Scanner {
             if (phase == QLatin1String("tls")) return ScanManager::tr("TLS handshake with %1 succeeded (%2 ms)").arg(target).arg(ms);
             if (phase == QLatin1String("http")) return ScanManager::tr("%1 answered over HTTP (%2 ms)").arg(target).arg(ms);
             if (phase == QLatin1String("url")) return ScanManager::tr("%1 passed the config test (%2 ms)").arg(target).arg(ms);
+            if (phase == QLatin1String("dns")) return ScanManager::tr("%1 relays the DNS tunnel (%2 ms)").arg(target).arg(ms);
             return {};
         }
 
@@ -135,6 +141,16 @@ namespace Scanner {
             return {canonical.isEmpty() ? address : canonical, port, latencyMs};
         }
 
+        // Exact keys suffice only on a finalmask UpgradeXrayFinalmask has canonicalized.
+        QJsonObject scanWorkerXdnsSettings(const QJsonObject &finalmask) {
+            for (const auto &mask : finalmask.value(QLatin1String("udp")).toArray()) {
+                const auto object = mask.toObject();
+                if (object.value(QLatin1String("type")).toString() == QLatin1String("xdns"))
+                    return object.value(QLatin1String("settings")).toObject();
+            }
+            return {};
+        }
+
         int scanWorkerProbeLatency(const libcore::ScanProbeResult &result, const Configs::ScanConfig &config) {
             if (config.http.enabled) {
                 if (result.http_ms.value() > 0) return result.http_ms.value();
@@ -169,13 +185,13 @@ namespace Scanner {
         }
 
         // Test answers only once the whole batch is done, so the deadline covers its worst case.
-        int scanWorkerUrlTestTimeoutMs(qsizetype tagCount, const ScanWorkerConfigTest &test) {
+        int scanWorkerUrlTestTimeoutMs(qsizetype tagCount, const ScanWorkerConfigTest &test, qint64 startupAllowanceMs) {
             int concurrency = test.concurrency;
             if (concurrency <= 0 || concurrency >= 500) concurrency = kScanWorkerCoreMaxConcurrency;
             const qint64 requests = test.warmLatency ? 2 : 1;
             const qint64 rounds = (std::max<qsizetype>(tagCount, 1) + concurrency - 1) / concurrency;
             return scanWorkerClampTimeout(
-                rounds * (kScanWorkerTunnelHandshakeMs + requests * test.timeoutMs + kScanWorkerTunnelStartupMs) +
+                rounds * (kScanWorkerTunnelHandshakeMs + requests * test.timeoutMs + kScanWorkerTunnelStartupMs + startupAllowanceMs) +
                 kScanWorkerRpcSlackMs);
         }
     } // namespace
@@ -207,12 +223,18 @@ namespace Scanner {
           startMode_(mode),
           base_(std::move(base)),
           hooks_(std::move(hooks)),
-          configPhase_(scan.kind == Configs::IpScan::Kind::Warp || scan.config.config.enabled),
+          configPhase_(scan.kind == Configs::IpScan::Kind::Warp ||
+                       (scan.kind == Configs::IpScan::Kind::Generic && scan.config.config.enabled)),
+          resolverPhase_(scan.kind == Configs::IpScan::Kind::Resolver),
           initialStatus_(scan.status),
           scan_(scan) {
-        if (scan_.kind == Configs::IpScan::Kind::Warp) {
+        if (scan_.kind != Configs::IpScan::Kind::Generic) {
             scan_.config.tcp.enabled = false;
             scan_.config.http.enabled = false;
+        }
+        if (resolverPhase_) {
+            scan_.config.icmp.enabled = false;
+            scan_.config.config.enabled = false;
         }
         scan_.status = Configs::IpScan::Status::Running;
         scan_.last_error.clear();
@@ -290,6 +312,9 @@ namespace Scanner {
                 dialed = chain->list.isEmpty() ? nullptr : Configs::dataManager->profilesRepo->GetProfile(chain->list.first());
             if (const auto probe = Configs::CloneProfileWithServer(dialed, QStringLiteral("127.0.0.1"), 0); probe != nullptr)
                 basePort_ = probe->outbound->GetPort().toInt();
+        }
+        if (resolverPhase_) {
+            if (auto error = prepareResolverProbe(); !error.isEmpty()) return error;
         }
         if (stop_) return {};
         if (auto error = preparePass(); !error.isEmpty()) return error;
@@ -454,6 +479,35 @@ namespace Scanner {
         return {};
     }
 
+    QString ScanWorker::prepareResolverProbe() {
+        const auto unusable = ScanManager::tr("The DNS tunnel profile cannot be used to find resolvers");
+        const auto protocol = base_ == nullptr ? QString() : DnsTunnelProtocol(*base_);
+        if (protocol.isEmpty()) return unusable;
+        QJsonObject config;
+        if (protocol == QLatin1String("xdns")) {
+            auto finalmask = base_->outbound->GetXrayStream()->finalmask;
+            Configs::UpgradeXrayFinalmask(finalmask);
+            config = scanWorkerXdnsSettings(finalmask);
+        } else if (auto *source = Configs::ProfileResolverSource(*base_); source != nullptr) {
+            // The core replaces the resolvers per target; a placeholder keeps Build() off the IP lists.
+            const auto saved = std::exchange(*source, Configs::ResolverSource{{QStringLiteral("127.0.0.1")}, -1});
+            const auto built = base_->outbound->Build();
+            *source = saved;
+            if (!built.error.isEmpty()) return built.error;
+            config = built.object;
+        }
+        if (config.isEmpty()) return unusable;
+        const auto &options = scan_.config.resolver;
+        const auto level = ResolverScanLevels(protocol).contains(options.level) ? options.level : ResolverScanDefaultLevel(protocol);
+        dns_ = {};
+        dns_.enabled = true;
+        dns_.protocol = protocol.toStdString();
+        dns_.config_json = QJsonObject2QString(config, true).toStdString();
+        dns_.level = level.toStdString();
+        dns_.timeout_ms = options.timeoutMs > 0 ? options.timeoutMs : ResolverScanDefaultTimeoutMs(protocol, level);
+        return {};
+    }
+
     QString ScanWorker::runChunks(bool &completed) {
         auto &lists = *Configs::dataManager->ipListsRepo;
         const int resultId = scan_.result_list_id;
@@ -489,11 +543,13 @@ namespace Scanner {
                 confirmFailures(result, chunkStart, next);
 
             const bool anyFailure = !result.failures.isEmpty() || !result.localFailures.isEmpty();
+            const bool answered4 = result.answeredV4 || scanWorkerHasFamily(result.hits, false);
+            const bool answered6 = result.answeredV6 || scanWorkerHasFamily(result.hits, true);
             // A hit only proves its own family reachable: an IPv6 hit says nothing about IPv4 failures.
-            const bool familyUnproven =
-                (scanWorkerHasFamily(result.failures, false) && !scanWorkerHasFamily(result.hits, false)) ||
-                (scanWorkerHasFamily(result.failures, true) && !scanWorkerHasFamily(result.hits, true));
-            const bool guarded = result.error.isEmpty() && anyFailure && (rescan || result.hits.isEmpty() || familyUnproven);
+            const bool familyUnproven = (scanWorkerHasFamily(result.failures, false) && !answered4) ||
+                                        (scanWorkerHasFamily(result.failures, true) && !answered6);
+            const bool guarded =
+                result.error.isEmpty() && anyFailure && (rescan || (!answered4 && !answered6) || familyUnproven);
             bool unverified = false;
             bool ipv4Up = false;
             bool ipv6Up = false;
@@ -504,7 +560,7 @@ namespace Scanner {
                 const bool ipv4Failed = scanWorkerHasFamily(result.failures, false);
                 const bool ipv6Failed = scanWorkerHasFamily(result.failures, true);
                 const bool ipv6Any = ipv6Failed || scanWorkerHasFamily(result.localFailures, true);
-                const bool ipv6Unproven = ipv6Failed && !scanWorkerHasFamily(result.hits, true);
+                const bool ipv6Unproven = ipv6Failed && !answered6;
                 QString detail;
                 ipv4Up = networkUp(kScanWorkerNetworkCheckTargets, &detail);
                 // An initial pass cannot set a failure aside: one whose family is down rewinds the chunk.
@@ -603,6 +659,8 @@ namespace Scanner {
             result.replaced << retry.replaced;
             result.localFailures << retry.localFailures;
             result.failures = retry.failures;
+            result.answeredV4 = result.answeredV4 || retry.answeredV4;
+            result.answeredV6 = result.answeredV6 || retry.answeredV6;
         }
     }
 
@@ -628,7 +686,14 @@ namespace Scanner {
             outcome.address = scanWorkerText(item.address.value());
             outcome.port = item.port.value();
             outcome.probePort = item.probe_port.value();
-            outcome.latencyMs = scanWorkerProbeLatency(item, scan_.config);
+            outcome.latencyMs = resolverPhase_ ? item.dns_ms.value() : scanWorkerProbeLatency(item, scan_.config);
+            outcome.maxQName = item.max_qname.value();
+            outcome.uploadMtu = item.upload_mtu.value();
+            outcome.downloadMtu = item.download_mtu.value();
+            if (item.dns_ms.value() > 0) {
+                if (outcome.address.contains(QLatin1Char(':'))) result.answeredV6 = true;
+                else result.answeredV4 = true;
+            }
             if (item.passed.value()) candidates << outcome;
             else if (item.local_failure.value()) result.localFailures << scanWorkerEntry(outcome.address, outcome.port, 0);
             else result.failures << scanWorkerEntry(outcome.address, outcome.port, 0);
@@ -719,7 +784,8 @@ namespace Scanner {
             bool ok = false;
             QString coreError;
             const auto response = API::defaultClient->ScanURLTest(
-                &ok, request, &coreError, scanWorkerUrlTestTimeoutMs(build.build->outboundTags.size(), test));
+                &ok, request, &coreError,
+                scanWorkerUrlTestTimeoutMs(build.build->outboundTags.size(), test, Configs::DnsTunnelStartupAllowanceMs(base_)));
             if (!ok) {
                 if (scanWorkerIsStopped(coreError)) stop_.store(true);
                 if (stop_) {
@@ -760,7 +826,11 @@ namespace Scanner {
     }
 
     void ScanWorker::addHit(ChunkResult &result, const ProbeOutcome &candidate, int port, int latencyMs) const {
-        result.hits << scanWorkerEntry(candidate.address, port, latencyMs);
+        auto hit = scanWorkerEntry(candidate.address, port, latencyMs);
+        hit.maxQName = candidate.maxQName;
+        hit.uploadMtu = candidate.uploadMtu;
+        hit.downloadMtu = candidate.downloadMtu;
+        result.hits << hit;
         // A hit under another port must replace the stored rescan row, not add a sibling.
         if (rescanPass() && port != candidate.port) result.replaced << scanWorkerEntry(candidate.address, candidate.port, 0);
     }
@@ -916,6 +986,7 @@ namespace Scanner {
         http.timeout_ms = h.timeoutMs;
         http.fallback_port = fallbackPort;
         request.http = std::move(http);
+        if (resolverPhase_) request.dns = dns_;
     }
 
     int ScanWorker::probeTimeoutMs(int chunkSize) const {
@@ -924,6 +995,7 @@ namespace Scanner {
         if (config.icmp.enabled) perTarget += qint64(config.icmp.count) * config.icmp.timeoutMs;
         if (config.tcp.enabled) perTarget += qint64(config.tcp.attempts) * config.tcp.timeoutMs;
         if (config.http.enabled) perTarget += 2LL * config.http.timeoutMs;
+        if (resolverPhase_) perTarget += dns_.timeout_ms.value();
         perTarget = std::max<qint64>(perTarget, 1000);
         const qint64 concurrency = std::max(1, config.concurrency);
         const qint64 rounds = (std::max(chunkSize, 1) + concurrency - 1) / concurrency;
@@ -933,7 +1005,7 @@ namespace Scanner {
 
     bool ScanWorker::probePhaseEnabled() const {
         const auto &config = scan_.config;
-        return config.icmp.enabled || config.tcp.enabled || config.http.enabled;
+        return resolverPhase_ || config.icmp.enabled || config.tcp.enabled || config.http.enabled;
     }
 
     void ScanWorker::pollLoop() {

@@ -154,7 +154,15 @@ private:
     QLineEdit *warpTimeout = nullptr;
     QCheckBox *warpWarm = nullptr;
 
+    QGroupBox *resolverBox = nullptr;
+    NoWheelComboBox *resolverProfile = nullptr;
+    NoWheelComboBox *resolverLevel = nullptr;
+    QLineEdit *resolverTimeout = nullptr;
+    QPushButton *useAsResolvers = nullptr;
+
     [[nodiscard]] bool isWarp() const;
+
+    [[nodiscard]] bool isResolver() const;
 
     void setupTargets();
 
@@ -169,6 +177,8 @@ private:
     void buildConfigPhase(QVBoxLayout *layout);
 
     void buildWarpPhase(QVBoxLayout *layout);
+
+    void buildResolverPhase(QVBoxLayout *layout);
 
     void bindValidation();
 
@@ -197,6 +207,14 @@ private:
     void reloadWarpProfiles(int selectId);
 
     [[nodiscard]] QString currentWarpMode() const;
+
+    void reloadResolverProfiles(int selectId);
+
+    void reloadResolverLevels(const QString &selectLevel);
+
+    [[nodiscard]] QString currentResolverProtocol() const;
+
+    void updateResolverTimeoutHint();
 
     void updateHttpControls();
 
@@ -231,11 +249,15 @@ private:
 
     void applyResults(int listId, int count, const QList<Configs::IpListEntry> &entries);
 
+    void applyResultColumns();
+
     void runResultsTask(const std::function<void()> &work, const std::function<void()> &done);
 
     [[nodiscard]] QList<Configs::IpListEntry> selectedResults() const;
 
     void saveResultsAsList();
+
+    void useResultsAsResolvers();
 
     void copyResults();
 

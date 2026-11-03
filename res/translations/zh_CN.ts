@@ -2838,6 +2838,62 @@ Throne will restart to complete the restore.</source>
         <source>Parallel storage requests per stream. Default: 8; Xray caps it at 64.</source>
         <translation>每个数据流的并行存储请求数。默认：8；Xray 将其上限设为 64。</translation>
     </message>
+    <message>
+        <source>MTU</source>
+        <translation>MTU</translation>
+    </message>
+    <message>
+        <source>TTI</source>
+        <translation>TTI</translation>
+    </message>
+    <message>
+        <source>Uplink Capacity</source>
+        <translation>上行容量</translation>
+    </message>
+    <message>
+        <source>Downlink Capacity</source>
+        <translation>下行容量</translation>
+    </message>
+    <message>
+        <source>CWND Multiplier</source>
+        <translation>CWND 倍数</translation>
+    </message>
+    <message>
+        <source>Max Sending Window</source>
+        <translation>最大发送窗口</translation>
+    </message>
+    <message>
+        <source>Largest packet mKCP sends, in bytes, from 21 to 8192. Default: 1350.</source>
+        <translation>mKCP 发送的最大数据包，单位为字节，范围为 21 到 8192。默认：1350。</translation>
+    </message>
+    <message>
+        <source>How often mKCP sends, in milliseconds, from 10 to 1000. Default: 50.</source>
+        <translation>mKCP 的发送间隔，单位为毫秒，范围为 10 到 1000。默认：50。</translation>
+    </message>
+    <message>
+        <source>Most data sent per second, in MB/s; 0 means very little. Default: 5.</source>
+        <translation>每秒最多发送的数据量，单位为 MB/s；0 表示极少。默认：5。</translation>
+    </message>
+    <message>
+        <source>Most data received per second, in MB/s; 0 means very little. Default: 20.</source>
+        <translation>每秒最多接收的数据量，单位为 MB/s；0 表示极少。默认：20。</translation>
+    </message>
+    <message>
+        <source>Multiplies how many packets may be in flight at once. Default: 1.</source>
+        <translation>可同时在途的数据包数量的倍数。默认：1。</translation>
+    </message>
+    <message>
+        <source>Most data waiting to be sent or acknowledged, in bytes; at least the MTU. Default: 2097152.</source>
+        <translation>等待发送或确认的最大数据量，单位为字节；不小于 MTU。默认：2097152。</translation>
+    </message>
+    <message>
+        <source>Resolvers</source>
+        <translation>解析器</translation>
+    </message>
+    <message>
+        <source>DNSTT / VayDNS</source>
+        <translation>DNSTT / VayDNS</translation>
+    </message>
 </context>
 <context>
     <name>DialogEndpointDetails</name>
@@ -3822,6 +3878,17 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
     </message>
 </context>
 <context>
+    <name>DialogNewScan</name>
+    <message>
+        <source>DNS resolver scan</source>
+        <translation>DNS 解析器扫描</translation>
+    </message>
+    <message>
+        <source>Find DNS resolvers that relay the tunnel of one of your DNSTT, MasterDNS or XDNS profiles.</source>
+        <translation>查找能中继你某个 DNSTT、MasterDNS 或 XDNS 配置档隧道的 DNS 解析器。</translation>
+    </message>
+</context>
+<context>
     <name>DialogOtpManager</name>
     <message>
         <location filename="Throne-1.3.1/include/ui/setting/dialog_otp_manager.ui" line="14"/>
@@ -4195,6 +4262,113 @@ Use a number followed by ns, us, ms, s, m, h or d.</source>
         <location filename="Throne-1.3.1/include/ui/setting/dialog_preset_settings.ui" line="487"/>
         <source>Disable Path MTU Discovery</source>
         <translation>禁用路径 MTU 发现</translation>
+    </message>
+</context>
+<context>
+    <name>DialogScanInstance</name>
+    <message>
+        <source>Poll: relays one tunnel query</source>
+        <translation>轮询：中继一个隧道查询</translation>
+    </message>
+    <message>
+        <source>Query names: also relays names as long as the profile sends</source>
+        <translation>查询名：还能中继与配置档所发送的同样长的名称</translation>
+    </message>
+    <message>
+        <source>Handshake: also opens a tunnel session</source>
+        <translation>握手：还能建立隧道会话</translation>
+    </message>
+    <message>
+        <source>Quick: relays the smallest packets</source>
+        <translation>快速：中继最小的数据包</translation>
+    </message>
+    <message>
+        <source>Full: also measures the upload and download MTU</source>
+        <translation>完整：还会测量上传和下载 MTU</translation>
+    </message>
+    <message>
+        <source>Each address is tried as a resolver; an entry without a port uses port 53.</source>
+        <translation>每个地址都会作为解析器进行尝试；未指定端口的条目使用端口 53。</translation>
+    </message>
+    <message>
+        <source>Profile</source>
+        <translation>配置档</translation>
+    </message>
+    <message>
+        <source>DNS tunnel test</source>
+        <translation>DNS 隧道测试</translation>
+    </message>
+    <message>
+        <source>Each address is tried as the only resolver of this profile; those that relay its tunnel are kept.</source>
+        <translation>每个地址都会作为这个配置档唯一的解析器进行尝试；能中继其隧道的地址会被保留。</translation>
+    </message>
+    <message>
+        <source>Test</source>
+        <translation>测试</translation>
+    </message>
+    <message>
+        <source>Bounds the whole test of one resolver. Empty: the default of the chosen test.</source>
+        <translation>限制单个解析器整个测试的时长。留空：使用所选测试的默认值。</translation>
+    </message>
+    <message>
+        <source>Timeout (ms)</source>
+        <translation>超时 (毫秒)</translation>
+    </message>
+    <message>
+        <source>Use as resolvers</source>
+        <translation>用作解析器</translation>
+    </message>
+    <message>
+        <source>Makes the scan&apos;s profile take its resolvers from this result list; the resolvers typed in the profile are kept.</source>
+        <translation>让扫描的配置档从这个结果列表获取解析器；配置档中已输入的解析器会被保留。</translation>
+    </message>
+    <message>
+        <source>WARP scan</source>
+        <translation>WARP 扫描</translation>
+    </message>
+    <message>
+        <source>DNS resolver scan</source>
+        <translation>DNS 解析器扫描</translation>
+    </message>
+    <message>
+        <source>Generic scan</source>
+        <translation>通用扫描</translation>
+    </message>
+    <message>
+        <source>ICMP (ping): the timeout must be between %1 and %2 ms.</source>
+        <translation>ICMP (ping)：超时必须在 %1 到 %2 毫秒之间。</translation>
+    </message>
+    <message>
+        <source>ICMP (ping): echo requests must be between %1 and %2.</source>
+        <translation>ICMP (ping)：回显请求数必须在 %1 到 %2 之间。</translation>
+    </message>
+    <message>
+        <source>DNS tunnel test: the timeout must be between %1 and %2 ms.</source>
+        <translation>DNS 隧道测试：超时必须在 %1 到 %2 毫秒之间。</translation>
+    </message>
+    <message>
+        <source>Select a profile…</source>
+        <translation>选择一个配置档…</translation>
+    </message>
+    <message>
+        <source>The scan&apos;s profile was deleted or is no longer a DNS tunnel profile.</source>
+        <translation>扫描的配置档已被删除，或已不再是 DNS 隧道配置档。</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is open in an editor; close it and try again.</source>
+        <translation>&quot;%1&quot; 正在编辑器中打开；请关闭后重试。</translation>
+    </message>
+    <message>
+        <source>The open editor of &quot;%1&quot; now takes resolvers from the IP list &quot;%2&quot;; press OK there to save it.</source>
+        <translation>&quot;%1&quot; 已打开的编辑器现在从 IP 列表 &quot;%2&quot; 获取解析器；请在其中按“确定”保存。</translation>
+    </message>
+    <message>
+        <source>Failed to store the profile.</source>
+        <translation>保存配置档失败。</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; now takes resolvers from the IP list &quot;%2&quot;.</source>
+        <translation>&quot;%1&quot; 现在从 IP 列表 &quot;%2&quot; 获取解析器。</translation>
     </message>
 </context>
 <context>
@@ -5318,6 +5492,145 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
     </message>
 </context>
 <context>
+    <name>EditDnstt</name>
+    <message>
+        <source>Mode</source>
+        <translation>模式</translation>
+    </message>
+    <message>
+        <source>Domain</source>
+        <translation>域名</translation>
+    </message>
+    <message>
+        <source>Public Key</source>
+        <translation>公钥</translation>
+    </message>
+    <message>
+        <source>Record Type</source>
+        <translation>记录类型</translation>
+    </message>
+    <message>
+        <source>Client ID Size</source>
+        <translation>客户端 ID 长度</translation>
+    </message>
+    <message>
+        <source>Max QNAME Length</source>
+        <translation>最大 QNAME 长度</translation>
+    </message>
+    <message>
+        <source>Payload per Query</source>
+        <translation>每次查询载荷</translation>
+    </message>
+    <message>
+        <source>Resolvers</source>
+        <translation>解析器</translation>
+    </message>
+    <message>
+        <source>Strategy</source>
+        <translation>策略</translation>
+    </message>
+    <message>
+        <source>Retry truncated replies over TCP</source>
+        <translation>通过 TCP 重试被截断的应答</translation>
+    </message>
+    <message>
+        <source>Backend</source>
+        <translation>后端</translation>
+    </message>
+    <message>
+        <source>Type</source>
+        <translation>类型</translation>
+    </message>
+    <message>
+        <source>Username</source>
+        <translation>用户名</translation>
+    </message>
+    <message>
+        <source>Password</source>
+        <translation>密码</translation>
+    </message>
+    <message>
+        <source>UDP over TCP</source>
+        <translation>基于 TCP 的 UDP</translation>
+    </message>
+    <message>
+        <source>Encryption</source>
+        <translation>加密</translation>
+    </message>
+    <message>
+        <source>User</source>
+        <translation>用户</translation>
+    </message>
+    <message>
+        <source>Private Key</source>
+        <translation>私钥</translation>
+    </message>
+    <message>
+        <source>Private Key Path</source>
+        <translation>私钥路径</translation>
+    </message>
+    <message>
+        <source>Choose File</source>
+        <translation>选择文件</translation>
+    </message>
+    <message>
+        <source>Private Key Password</source>
+        <translation>私钥密码</translation>
+    </message>
+    <message>
+        <source>Host Keys</source>
+        <translation>主机钥匙</translation>
+    </message>
+    <message>
+        <source>One per line</source>
+        <translation>每行一个</translation>
+    </message>
+    <message>
+        <source>Host Key Algorithms</source>
+        <translation>主机钥匙算法</translation>
+    </message>
+    <message>
+        <source>Client Version</source>
+        <translation>客户端版本</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>高级</translation>
+    </message>
+    <message>
+        <source>Idle Timeout</source>
+        <translation>空闲超时</translation>
+    </message>
+    <message>
+        <source>Keepalive Interval</source>
+        <translation>保活间隔</translation>
+    </message>
+    <message>
+        <source>Queries per Second</source>
+        <translation>每秒查询数</translation>
+    </message>
+    <message>
+        <source>VayDNS (dnstt-compatible)</source>
+        <translation>VayDNS (兼容 dnstt)</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>默认</translation>
+    </message>
+    <message>
+        <source>None (chain only)</source>
+        <translation>无 (仅用于链式代理)</translation>
+    </message>
+    <message>
+        <source>Tunnel data each query carries; a longer domain leaves less room.</source>
+        <translation>每次查询携带的隧道数据量；域名越长，可用空间越少。</translation>
+    </message>
+    <message>
+        <source>%1 bytes</source>
+        <translation>%1 字节</translation>
+    </message>
+</context>
+<context>
     <name>EditExtraCore</name>
     <message>
         <location filename="Throne-1.3.1/include/ui/profile/edit_extra_core.ui" line="29"/>
@@ -5708,6 +6021,113 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <location filename="Throne-1.3.1/src/ui/profile/edit_masque.cpp" line="84"/>
         <source>Success!</source>
         <translation>成功!</translation>
+    </message>
+</context>
+<context>
+    <name>EditMasterDns</name>
+    <message>
+        <source>Domains</source>
+        <translation>域名</translation>
+    </message>
+    <message>
+        <source>One per line</source>
+        <translation>每行一个</translation>
+    </message>
+    <message>
+        <source>Mode</source>
+        <translation>模式</translation>
+    </message>
+    <message>
+        <source>Encryption</source>
+        <translation>加密</translation>
+    </message>
+    <message>
+        <source>Key</source>
+        <translation>密钥</translation>
+    </message>
+    <message>
+        <source>Resolvers</source>
+        <translation>解析器</translation>
+    </message>
+    <message>
+        <source>Strategy</source>
+        <translation>策略</translation>
+    </message>
+    <message>
+        <source>Transfer</source>
+        <translation>数据传输</translation>
+    </message>
+    <message>
+        <source>Duplication</source>
+        <translation>重复发送</translation>
+    </message>
+    <message>
+        <source>Setup Duplication</source>
+        <translation>建连重复发送</translation>
+    </message>
+    <message>
+        <source>Upload Compression</source>
+        <translation>上传压缩</translation>
+    </message>
+    <message>
+        <source>Download Compression</source>
+        <translation>下载压缩</translation>
+    </message>
+    <message>
+        <source>Base64-encoded replies</source>
+        <translation>Base64 编码的应答</translation>
+    </message>
+    <message>
+        <source>MTU</source>
+        <translation>MTU</translation>
+    </message>
+    <message>
+        <source>Min Upload</source>
+        <translation>最小上传</translation>
+    </message>
+    <message>
+        <source>Max Upload</source>
+        <translation>最大上传</translation>
+    </message>
+    <message>
+        <source>Min Download</source>
+        <translation>最小下载</translation>
+    </message>
+    <message>
+        <source>Max Download</source>
+        <translation>最大下载</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>高级</translation>
+    </message>
+    <message>
+        <source>MTU Test Retries</source>
+        <translation>MTU 测试重试次数</translation>
+    </message>
+    <message>
+        <source>MTU Test Timeout</source>
+        <translation>MTU 测试超时</translation>
+    </message>
+    <message>
+        <source>MTU Test Parallelism</source>
+        <translation>MTU 测试并发数</translation>
+    </message>
+    <message>
+        <source>Drop resolvers below the minimum MTU</source>
+        <translation>丢弃低于最小 MTU 的解析器</translation>
+    </message>
+    <message>
+        <source>TCP / custom chain</source>
+        <translation>TCP / 自定义链</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>默认</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation>关闭</translation>
     </message>
 </context>
 <context>
@@ -8341,6 +8761,33 @@ Improves hole-punching reliability. Requires IPv4.</source>
     <message>
         <source>This group was deleted while you were editing it.</source>
         <translation>此分组在您编辑时已被删除。</translation>
+    </message>
+</context>
+<context>
+    <name>IpEntriesModel</name>
+    <message>
+        <source>Max QNAME</source>
+        <translation>最大 QNAME</translation>
+    </message>
+    <message>
+        <source>Upload MTU</source>
+        <translation>上传 MTU</translation>
+    </message>
+    <message>
+        <source>Download MTU</source>
+        <translation>下载 MTU</translation>
+    </message>
+    <message>
+        <source>The longest query name the resolver relays: max_qname_len for DNSTT, lenLimit for XDNS.</source>
+        <translation>解析器能中继的最长查询名：对应 DNSTT 的 max_qname_len 和 XDNS 的 lenLimit。</translation>
+    </message>
+    <message>
+        <source>The largest payload per query the resolver relays.</source>
+        <translation>解析器能中继的每次查询的最大载荷。</translation>
+    </message>
+    <message>
+        <source>The largest payload per answer the resolver relays.</source>
+        <translation>解析器能中继的每个应答的最大载荷。</translation>
     </message>
 </context>
 <context>
@@ -11618,6 +12065,44 @@ How to update?</source>
         <source>[Routing] %1: updated the routing profile &quot;%2&quot; from the subscription (%3)</source>
         <translation>[路由] %1：已从订阅更新路由配置档“%2”（%3）</translation>
     </message>
+    <message>
+        <source>Choose the DNS tunnel profile to find resolvers for</source>
+        <translation>选择要查找解析器的 DNS 隧道配置档</translation>
+    </message>
+    <message>
+        <source>Choose a profile for the config test</source>
+        <translation>为配置测试选择一个配置档</translation>
+    </message>
+    <message>
+        <source>Only DNSTT, MasterDNS and XDNS profiles can be used to find resolvers</source>
+        <translation>只有 DNSTT、MasterDNS 和 XDNS 配置档可用于查找解析器</translation>
+    </message>
+    <message>
+        <source>%1: the resolver &quot;%2&quot; is invalid: %3</source>
+        <translation>%1: 解析器 &quot;%2&quot; 无效：%3</translation>
+    </message>
+    <message>
+        <source>the resolver IP list no longer exists</source>
+        <translation>解析器 IP 列表已不存在</translation>
+    </message>
+    <message>
+        <source>the resolver IP list &quot;%1&quot; is empty</source>
+        <translation>解析器 IP 列表 &quot;%1&quot; 为空</translation>
+    </message>
+    <message>
+        <source>the resolver IP list &quot;%1&quot; holds more than %2 entries; the rest were skipped</source>
+        <translation>解析器 IP 列表 &quot;%1&quot; 的条目超过 %2 个；其余的已跳过</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n entries of the resolver IP list &quot;%1&quot; were skipped: ranges too large or past the resolver limit</source>
+        <translation>
+            <numerusform>已跳过解析器 IP 列表 &quot;%1&quot; 中的 %n 个条目：范围过大或超出解析器数量上限</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Plaintext Replies</source>
+        <translation>明文应答</translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -11711,6 +12196,53 @@ outbounds and other Throne features may break. For advanced users only.</source>
         <location filename="Throne-1.3.1/src/ui/setting/RawRouteItem.cpp" line="201"/>
         <source>Invalid route</source>
         <translation>无效路由</translation>
+    </message>
+</context>
+<context>
+    <name>ResolverSourceWidget</name>
+    <message>
+        <source>IP list</source>
+        <translation>IP 列表</translation>
+    </message>
+    <message>
+        <source>Its addresses are used after the lines above; an entry without a port uses port 53.</source>
+        <translation>其中的地址排在上方各行之后使用；未指定端口的条目使用端口 53。</translation>
+    </message>
+    <message>
+        <source>Find resolvers…</source>
+        <translation>查找解析器…</translation>
+    </message>
+    <message>
+        <source>One per line. Replaces the resolvers in Finalmask; empty keeps them.</source>
+        <translation>每行一个。将替换最终掩码中的解析器；留空则保留它们。</translation>
+    </message>
+    <message>
+        <source>One per line. Empty uses the system resolver.</source>
+        <translation>每行一个。留空则使用系统解析器。</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation>无</translation>
+    </message>
+    <message>
+        <source>Missing list</source>
+        <translation>列表不存在</translation>
+    </message>
+    <message>
+        <source>Opens a scan that finds the resolvers relaying this profile&apos;s tunnel, as last saved.</source>
+        <translation>打开一个扫描，查找能中继这个配置档隧道（以最后保存的版本为准）的解析器。</translation>
+    </message>
+    <message>
+        <source>Save the profile first; the scan tests the saved profile.</source>
+        <translation>请先保存配置档；扫描测试的是已保存的配置档。</translation>
+    </message>
+    <message>
+        <source>Resolvers</source>
+        <translation>解析器</translation>
+    </message>
+    <message>
+        <source>This IP list no longer exists, so it adds no resolvers.</source>
+        <translation>这个 IP 列表已不存在，因此不会添加任何解析器。</translation>
     </message>
 </context>
 <context>
@@ -12203,6 +12735,48 @@ Remove that endpoint from this routing profile as well?</source>
     </message>
 </context>
 <context>
+    <name>ScanItem</name>
+    <message>
+        <source>WARP</source>
+        <translation>WARP</translation>
+    </message>
+    <message>
+        <source>DNS resolvers</source>
+        <translation>DNS 解析器</translation>
+    </message>
+    <message>
+        <source>Generic</source>
+        <translation>通用</translation>
+    </message>
+    <message>
+        <source>IP Scanner</source>
+        <translation>IP 扫描器</translation>
+    </message>
+    <message>
+        <source>Only a saved DNSTT, MasterDNS or XDNS profile can be used to find resolvers; save the profile first.</source>
+        <translation>只有已保存的 DNSTT、MasterDNS 或 XDNS 配置档才能用于查找解析器；请先保存配置档。</translation>
+    </message>
+    <message>
+        <source>Resolvers for %1</source>
+        <translation>%1 的解析器</translation>
+    </message>
+    <message>
+        <source>Failed to store the scan.</source>
+        <translation>保存扫描失败。</translation>
+    </message>
+</context>
+<context>
+    <name>Scanner::ScanManager</name>
+    <message>
+        <source>%1 relays the DNS tunnel (%2 ms)</source>
+        <translation>%1 能中继 DNS 隧道 (%2 毫秒)</translation>
+    </message>
+    <message>
+        <source>The DNS tunnel profile cannot be used to find resolvers</source>
+        <translation>这个 DNS 隧道配置档无法用于查找解析器</translation>
+    </message>
+</context>
+<context>
     <name>StartStopButton</name>
     <message>
         <location filename="Throne-1.3.1/src/ui/widget/StartStopButton.cpp" line="60"/>
@@ -12385,6 +12959,269 @@ Remove that endpoint from this routing profile as well?</source>
         <location filename="Throne-1.3.1/src/ui/widget/TrayProfileSelector.cpp" line="215"/>
         <source>Page %1/%2</source>
         <translation>页面 %1/%2</translation>
+    </message>
+</context>
+<context>
+    <name>Validation</name>
+    <message>
+        <source>%1: %2</source>
+        <translation>%1: %2</translation>
+    </message>
+    <message>
+        <source>Xray does not know the mKCP header type &quot;%1&quot;, so it was ignored.</source>
+        <translation>Xray 不认识 mKCP 头部类型 &quot;%1&quot;，因此已忽略。</translation>
+    </message>
+    <message>
+        <source>Add the tunnel domain the server answers for, for example &quot;domains&quot;: [{&quot;names&quot;: [&quot;t.example.com&quot;]}].</source>
+        <translation>请添加服务器负责应答的隧道域名，例如 &quot;domains&quot;: [{&quot;names&quot;: [&quot;t.example.com&quot;]}]。</translation>
+    </message>
+    <message>
+        <source>Use udp://, tcp:// or https:// resolver addresses.</source>
+        <translation>请使用 udp://、tcp:// 或 https:// 解析器地址。</translation>
+    </message>
+    <message>
+        <source>A DoH resolver needs &quot;tlsConfig&quot;, for example &quot;tlsConfig&quot;: {&quot;serverName&quot;: &quot;dns.google&quot;}.</source>
+        <translation>DoH 解析器需要 &quot;tlsConfig&quot;，例如 &quot;tlsConfig&quot;: {&quot;serverName&quot;: &quot;dns.google&quot;}。</translation>
+    </message>
+    <message>
+        <source>Over h3 the brutal congestion control crashes Xray; use bbr, reno or force-brutal.</source>
+        <translation>在 h3 上使用 brutal 拥塞控制会导致 Xray 崩溃；请使用 bbr、reno 或 force-brutal。</translation>
+    </message>
+    <message>
+        <source>Set &quot;serverName&quot; in tlsConfig: over HTTP/2 Xray does not take it from the URL, so the TLS handshake fails.</source>
+        <translation>请在 tlsConfig 中设置 &quot;serverName&quot;：使用 HTTP/2 时 Xray 不会从 URL 中获取它，因此 TLS 握手会失败。</translation>
+    </message>
+    <message>
+        <source>Add a DNS resolver to send the tunnel&apos;s queries through, for example &quot;resolvers&quot;: [{&quot;addrs&quot;: [&quot;udp://8.8.8.8:53&quot;]}]; without one Xray cannot connect.</source>
+        <translation>请添加一个用于发送隧道查询的 DNS 解析器，例如 &quot;resolvers&quot;: [{&quot;addrs&quot;: [&quot;udp://8.8.8.8:53&quot;]}]；没有它 Xray 无法连接。</translation>
+    </message>
+    <message>
+        <source>Removed from the imported configuration: it would write a file on this computer at a path the sender chose.</source>
+        <translation>已从导入的配置中移除：它会在这台电脑上由发送者指定的路径写入文件。</translation>
+    </message>
+    <message>
+        <source>List items that are not text were ignored.</source>
+        <translation>已忽略非文本的列表项。</translation>
+    </message>
+    <message>
+        <source>The resolver IP list belongs to another installation, so it was not imported.</source>
+        <translation>解析器 IP 列表属于另一个安装，因此未导入。</translation>
+    </message>
+    <message>
+        <source>Throne does not support the Xray transport &quot;%1&quot;. Use raw, xhttp, ws, httpupgrade, grpc, kcp or xdrive.</source>
+        <translation>Throne 不支持 Xray 传输方式 &quot;%1&quot;。请使用 raw、xhttp、ws、httpupgrade、grpc、kcp 或 xdrive。</translation>
+    </message>
+    <message>
+        <source>Must be at least the MTU (%1).</source>
+        <translation>不能小于 MTU (%1)。</translation>
+    </message>
+    <message>
+        <source>The xdns mask must be the last udp mask: it sends the DNS queries itself, so Xray skips the masks after it.</source>
+        <translation>xdns 掩码必须是最后一个 udp 掩码：它会自行发送 DNS 查询，因此 Xray 会跳过它之后的掩码。</translation>
+    </message>
+    <message>
+        <source>The link is too long.</source>
+        <translation>链接过长。</translation>
+    </message>
+    <message>
+        <source>Not a dnst:// link.</source>
+        <translation>不是 dnst:// 链接。</translation>
+    </message>
+    <message>
+        <source>The link is damaged: its payload is not valid base64.</source>
+        <translation>链接已损坏：其内容不是有效的 base64。</translation>
+    </message>
+    <message>
+        <source>The link is damaged: its payload is not a JSON object.</source>
+        <translation>链接已损坏：其内容不是 JSON 对象。</translation>
+    </message>
+    <message>
+        <source>The link does not name the tunnel type.</source>
+        <translation>该链接未指明隧道类型。</translation>
+    </message>
+    <message>
+        <source>The SSH private key in the link could not be read; it was ignored.</source>
+        <translation>无法读取链接中的 SSH 私钥；已忽略。</translation>
+    </message>
+    <message>
+        <source>Enter the tunnel domain, for example t.example.com.</source>
+        <translation>请输入隧道域名，例如 t.example.com。</translation>
+    </message>
+    <message>
+        <source>Use the domain name delegated to the tunnel server, for example t.example.com.</source>
+        <translation>请使用委派给隧道服务器的域名，例如 t.example.com。</translation>
+    </message>
+    <message>
+        <source>Use system, an IP address with an optional port, a range such as 192.0.2.0/24, or a udp://, tcp://, tls:// or https:// address.</source>
+        <translation>请使用 system、IP 地址（可带端口）、192.0.2.0/24 这样的范围，或 udp://、tcp://、tls:// 或 https:// 地址。</translation>
+    </message>
+    <message>
+        <source>Use system, an IP address or a range such as 192.0.2.0/24, each with an optional :port.</source>
+        <translation>请使用 system、IP 地址或 192.0.2.0/24 这样的范围，均可带可选的 :port。</translation>
+    </message>
+    <message>
+        <source>Use an IP address with an optional port, or a udp://, tcp:// or https:// address.</source>
+        <translation>请使用 IP 地址（可带端口），或 udp://、tcp:// 或 https:// 地址。</translation>
+    </message>
+    <message>
+        <source>Only https:// addresses take a path.</source>
+        <translation>只有 https:// 地址可以带路径。</translation>
+    </message>
+    <message>
+        <source>XDNS has no system resolver: enter the address of a DNS resolver.</source>
+        <translation>XDNS 没有系统解析器：请输入 DNS 解析器的地址。</translation>
+    </message>
+    <message>
+        <source>Enter single addresses here; a range works only from an IP list.</source>
+        <translation>此处请输入单个地址；范围只能通过 IP 列表使用。</translation>
+    </message>
+    <message>
+        <source>Put an IPv6 address in brackets, for example [2001:db8::1]:53.</source>
+        <translation>请将 IPv6 地址放在方括号中，例如 [2001:db8::1]:53。</translation>
+    </message>
+    <message>
+        <source>A range may hold at most %1 addresses: use /%2 or longer for IPv4 and /%3 or longer for IPv6.</source>
+        <translation>一个范围最多只能包含 %1 个地址：IPv4 请使用 /%2 或更长的前缀，IPv6 请使用 /%3 或更长的前缀。</translation>
+    </message>
+    <message>
+        <source>Only system, udp, tcp, tls and https resolvers with a server are supported.</source>
+        <translation>仅支持 system，以及带服务器的 udp、tcp、tls 和 https 解析器。</translation>
+    </message>
+    <message>
+        <source>A TLS server name other than the resolver&apos;s own host is not kept.</source>
+        <translation>与解析器自身主机不同的 TLS 服务器名称不会被保留。</translation>
+    </message>
+    <message>
+        <source>Only the first %1 resolvers were kept.</source>
+        <translation>仅保留了前 %1 个解析器。</translation>
+    </message>
+    <message>
+        <source>Use true or false.</source>
+        <translation>请使用 true 或 false。</translation>
+    </message>
+    <message>
+        <source>This DNS tunnel type is not supported.</source>
+        <translation>不支持这种 DNS 隧道类型。</translation>
+    </message>
+    <message>
+        <source>The link does not name the service behind the tunnel.</source>
+        <translation>该链接未指明隧道背后的服务。</translation>
+    </message>
+    <message>
+        <source>This service behind the tunnel is not supported.</source>
+        <translation>不支持隧道背后的这种服务。</translation>
+    </message>
+    <message>
+        <source>The resolver&apos;s transport is unknown, so it is used over UDP.</source>
+        <translation>解析器的传输方式未知，因此按 UDP 使用。</translation>
+    </message>
+    <message>
+        <source>This SlipNet link version is not supported.</source>
+        <translation>不支持这个版本的 SlipNet 链接。</translation>
+    </message>
+    <message>
+        <source>The link is damaged: it is shorter than its version allows.</source>
+        <translation>链接已损坏：长度短于其版本的要求。</translation>
+    </message>
+    <message>
+        <source>This link comes from a newer SlipNet version; check the imported settings.</source>
+        <translation>该链接来自更新版本的 SlipNet；请检查导入的设置。</translation>
+    </message>
+    <message>
+        <source>NoizDNS was imported as plain DNSTT: its server accepts that, but without NoizDNS&apos;s DPI evasion.</source>
+        <translation>NoizDNS 已作为普通 DNSTT 导入：其服务器可以接受，但不具备 NoizDNS 的 DPI 规避能力。</translation>
+    </message>
+    <message>
+        <source>This SlipNet profile type is not supported.</source>
+        <translation>不支持这种 SlipNet 配置档类型。</translation>
+    </message>
+    <message>
+        <source>Must not be negative.</source>
+        <translation>不能为负数。</translation>
+    </message>
+    <message>
+        <source>Use the server&apos;s public key: 64 hexadecimal digits, as the server prints it.</source>
+        <translation>请使用服务器的公钥：64 位十六进制数字，与服务器输出的一致。</translation>
+    </message>
+    <message>
+        <source>The classic dnstt wire only uses TXT records.</source>
+        <translation>经典 dnstt 协议只使用 TXT 记录。</translation>
+    </message>
+    <message>
+        <source>The classic dnstt wire always uses 8-byte client IDs.</source>
+        <translation>经典 dnstt 协议始终使用 8 字节的客户端 ID。</translation>
+    </message>
+    <message>
+        <source>Each query would carry %1 bytes, fewer than the %2 the tunnel needs: use a shorter domain or a longer maximum QNAME length.</source>
+        <translation>每次查询只能携带 %1 字节，少于隧道所需的 %2 字节：请使用更短的域名或更大的最大 QNAME 长度。</translation>
+    </message>
+    <message>
+        <source>The keepalive interval must be shorter than the idle timeout.</source>
+        <translation>保活间隔必须短于空闲超时。</translation>
+    </message>
+    <message>
+        <source>Without a backend, only a profile chained over this one can use the tunnel.</source>
+        <translation>没有后端时，只有经由这个配置档的链式代理配置档才能使用该隧道。</translation>
+    </message>
+    <message>
+        <source>Encrypted SlipNet links cannot be read: export the profile from SlipNet without encryption.</source>
+        <translation>无法读取加密的 SlipNet 链接：请在 SlipNet 中导出不加密的配置档。</translation>
+    </message>
+    <message>
+        <source>Use only one of socks, shadowsocks and ssh.</source>
+        <translation>socks、shadowsocks 和 ssh 只能使用其中之一。</translation>
+    </message>
+    <message>
+        <source>Unknown encryption method: use a number from 0 to 5.</source>
+        <translation>未知的加密方式：请使用 0 到 5 之间的数字。</translation>
+    </message>
+    <message>
+        <source>The SOCKS user name and password only guard a local listener, which this profile does not open; they were ignored.</source>
+        <translation>SOCKS 用户名和密码只用于保护本地监听器，而这个配置档不会开启它；已忽略。</translation>
+    </message>
+    <message>
+        <source>MasterDNS only carries a SOCKS or a custom service.</source>
+        <translation>MasterDNS 只能承载 SOCKS 或自定义服务。</translation>
+    </message>
+    <message>
+        <source>The link also carries a proxy to run over the tunnel; import that proxy separately and chain it over this profile.</source>
+        <translation>该链接还包含一个要在隧道上运行的代理；请单独导入该代理，并用链式代理让它经由这个配置档连接。</translation>
+    </message>
+    <message>
+        <source>This MasterDNS link format is not supported.</source>
+        <translation>不支持这种 MasterDNS 链接格式。</translation>
+    </message>
+    <message>
+        <source>This MasterDNS link version is not supported.</source>
+        <translation>不支持这个版本的 MasterDNS 链接。</translation>
+    </message>
+    <message>
+        <source>The link is damaged: its client configuration cannot be read.</source>
+        <translation>链接已损坏：无法读取其中的客户端配置。</translation>
+    </message>
+    <message>
+        <source>Unknown protocol type: use SOCKS5 or TCP.</source>
+        <translation>未知的协议类型：请使用 SOCKS5 或 TCP。</translation>
+    </message>
+    <message>
+        <source>Use a number of seconds above 0.</source>
+        <translation>请使用大于 0 的秒数。</translation>
+    </message>
+    <message>
+        <source>Settings this profile does not support were ignored.</source>
+        <translation>已忽略这个配置档不支持的设置。</translation>
+    </message>
+    <message>
+        <source>Enter the encryption key the server uses.</source>
+        <translation>请输入服务器使用的加密密钥。</translation>
+    </message>
+    <message>
+        <source>The minimum MTU %1 is above the maximum %2.</source>
+        <translation>最小 MTU %1 大于最大 MTU %2。</translation>
+    </message>
+    <message>
+        <source>Must be a number.</source>
+        <translation>必须是数字。</translation>
     </message>
 </context>
 <context>

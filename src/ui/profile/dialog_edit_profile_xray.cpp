@@ -4,8 +4,10 @@
 #include "include/configs/outbounds/xrayVless.h"
 #include "include/database/DatabaseManager.h"
 #include "include/global/Utils.hpp"
+#include "include/ui/utils/UiMode.h"
 #include "include/ui/utils/ValidationForm.h"
 #include "include/ui/widget/MuxSettingsWidget.h"
+#include "include/ui/widget/ResolverSourceWidget.h"
 #include "include/ui/widget/json/JsonEditorDialog.h"
 
 #include <QSignalBlocker>
@@ -28,6 +30,7 @@ void DialogEditProfile::setupXrayStream() {
     ui->xray_ed_length->setValidator(new QIntValidator(0, INT_MAX, this));
     setupXrayXHTTPControls();
     setupXrayXDriveControls();
+    setupXrayKCPControls();
 
     connect(ui->xray_network, &QComboBox::currentTextChanged, this, [this](const QString &network) {
         loadXrayNetwork(network);
@@ -86,6 +89,7 @@ void DialogEditProfile::bindXrayStream() {
     form->bind(ui->xray_ed_length, Validation::Rules::Int(0, INT_MAX));
     bindXrayXHTTP();
     bindXrayXDrive();
+    bindXrayKCP();
 }
 
 void DialogEditProfile::loadXrayStream() {
@@ -95,8 +99,12 @@ void DialogEditProfile::loadXrayStream() {
     loadXrayXHTTP(*stream->xhttp);
     CACHE.XrayDownloadSettings = stream->xhttp->downloadSettings;
     CACHE.XrayFinalmask = stream->finalmask;
+    Configs::UpgradeXrayFinalmask(CACHE.XrayFinalmask);
     CACHE.XrayXDriveTemplate = stream->xdrive->templateSpec;
     loadXrayXDrive(*stream->xdrive);
+    loadXrayKCP(*stream->kcp);
+    xdnsResolvers->load(stream->xdnsResolvers);
+    xdnsResolvers->setProfileId(ent->id);
     {
         const QSignalBlocker blocker(ui->xray_network);
         const auto network = Configs::NormalizeXrayNetwork(stream->network);
@@ -160,6 +168,7 @@ void DialogEditProfile::saveXrayStream() {
     stream->network = ui->xray_network->currentText().trimmed();
     stream->security = ui->xray_security->currentText().trimmed();
     stream->finalmask = CACHE.XrayFinalmask;
+    stream->xdnsResolvers = xdnsResolvers->save();
     const auto mux = ent->outbound->GetXrayMultiplex();
     const int muxState = ui->xray_mux->currentIndex();
     mux->saveMuxState(muxState);
@@ -207,6 +216,8 @@ void DialogEditProfile::saveXrayStream() {
         stream->httpupgrade->headers = Configs::parseHeaderPairs(ui->xray_headers->text());
     } else if (stream->network == "xdrive") {
         saveXrayXDrive(*stream->xdrive);
+    } else if (stream->network == "kcp") {
+        saveXrayKCP(*stream->kcp);
     }
 }
 
@@ -226,11 +237,15 @@ void DialogEditProfile::updateXrayRows() {
     const bool xhttp = network == "xhttp";
     const bool grpc = network == "grpc";
     const bool xdrive = network == "xdrive";
+    const bool kcp = network == "kcp";
     const bool networkBox = hasStream && network != "raw";
     ui->xray_network_box->setVisible(networkBox);
-    ui->xray_common_box->setVisible(!xdrive);
+    ui->xray_common_box->setVisible(!xdrive && !kcp);
     ui->xray_xhttp_box->setVisible(xhttp);
     ui->xray_xdrive_box->setVisible(xdrive);
+    ui->xray_kcp_box->setVisible(kcp);
+    setRowVisible(xdnsResolversLabel, xdnsResolvers, kcp && Configs::XrayFinalmaskHasXdns(CACHE.XrayFinalmask));
+    setRowVisible(ui->label_xray_finalmask, ui->xray_finalmask_edit, kcp || !UiMode::Simple());
     ui->xray_network_scroll->setMinimumWidth(xhttp || xdrive ? kXrayPanelNetworkMinWidth : 0);
     setRowVisible(ui->xray_ed_label, ui->xray_ed_length, !xhttp && !grpc);
     setRowVisible(ui->xray_headers_l, ui->xray_headers, !grpc);
@@ -251,8 +266,12 @@ void DialogEditProfile::on_xray_downloadsettings_edit_clicked() {
 }
 
 void DialogEditProfile::on_xray_finalmask_edit_clicked() {
+    const bool xdns = Configs::XrayFinalmaskHasXdns(CACHE.XrayFinalmask);
     auto editor = new JsonEdit::JsonEditorDialog(CACHE.XrayFinalmask, this);
     CACHE.XrayFinalmask = editor->OpenEditor();
+    Configs::UpgradeXrayFinalmask(CACHE.XrayFinalmask);
     editor->deleteLater();
     editor_cache_updated_impl();
+    form->revalidate(ui->xray_finalmask_edit);
+    if (Configs::XrayFinalmaskHasXdns(CACHE.XrayFinalmask) != xdns) relayout();
 }

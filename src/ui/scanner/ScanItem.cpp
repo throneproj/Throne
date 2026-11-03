@@ -14,8 +14,11 @@
 #include "include/database/DatabaseManager.h"
 #include "include/database/IpListsRepo.h"
 #include "include/database/IpScansRepo.h"
+#include "include/database/ProfilesRepo.h"
 #include "include/global/Utils.hpp"
+#include "include/scanner/ScanProfiles.h"
 #include "include/ui/mainwindow.h"
+#include "include/ui/scanner/dialog_scan_instance.h"
 #include "include/ui/setting/ThemeManager.hpp"
 
 namespace {
@@ -161,7 +164,41 @@ namespace ScannerUi {
     }
 
     QString KindText(Configs::IpScan::Kind kind) {
-        return kind == Configs::IpScan::Kind::Warp ? ScanItem::tr("WARP") : ScanItem::tr("Generic");
+        switch (kind) {
+            case Configs::IpScan::Kind::Warp:
+                return ScanItem::tr("WARP");
+            case Configs::IpScan::Kind::Resolver:
+                return ScanItem::tr("DNS resolvers");
+            case Configs::IpScan::Kind::Generic:
+                break;
+        }
+        return ScanItem::tr("Generic");
+    }
+
+    void FindResolvers(int profileId) {
+        const auto profile = profileId >= 0 ? Configs::dataManager->profilesRepo->GetProfile(profileId) : nullptr;
+        if (profile == nullptr || profile->outbound == nullptr || !Scanner::IsDnsTunnelBase(*profile)) {
+            MessageBoxWarning(ScanItem::tr("IP Scanner"),
+                              ScanItem::tr("Only a saved DNSTT, MasterDNS or XDNS profile can be used to find resolvers; save the profile first."));
+            return;
+        }
+        int scanId = -1;
+        for (const auto &scan : Configs::dataManager->ipScansRepo->GetAllIpScans()) {
+            if (scan->kind == Configs::IpScan::Kind::Resolver && scan->config.resolver.profileId == profileId)
+                scanId = qMax(scanId, scan->id);
+        }
+        if (scanId < 0) {
+            auto scan = Configs::IpScansRepo::NewIpScan(Configs::IpScan::Kind::Resolver);
+            scan->name = ScanItem::tr("Resolvers for %1").arg(profile->outbound->name);
+            scan->config.resolver.profileId = profileId;
+            if (!Configs::dataManager->ipScansRepo->AddIpScan(scan)) {
+                MessageBoxWarning(ScanItem::tr("IP Scanner"), ScanItem::tr("Failed to store the scan."));
+                return;
+            }
+            scanId = scan->id;
+            Scanner::ScanManager::instance()->NotifyScansChanged();
+        }
+        DialogScanInstance::Open(scanId);
     }
 } // namespace ScannerUi
 

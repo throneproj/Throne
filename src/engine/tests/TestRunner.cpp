@@ -1,6 +1,7 @@
 #include "include/engine/tests/TestRunner.h"
 
 #include "include/api/RPC.h"
+#include "include/configs/common/DnsTunnel.h"
 #include "include/configs/generate.h"
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
@@ -57,14 +58,25 @@ namespace Engine {
         constexpr int kTestRunnerRpcSlackMs = 30000;
 
         // Test/IPTest answer only once the whole batch is done, so the deadline covers its worst case.
-        int testRunnerBatchRpcTimeoutMs(qsizetype tagCount, int requestsPerTag) {
+        int testRunnerBatchRpcTimeoutMs(qsizetype tagCount, int requestsPerTag, int startupAllowanceMs) {
             const auto& settings = Configs::dataManager->settingsRepo;
             int concurrency = settings->test_concurrent;
             if (concurrency <= 0 || concurrency >= 500) concurrency = kTestRunnerCoreMaxConcurrency;
             const qint64 timeoutMs = settings->url_test_timeout_ms > 0 ? settings->url_test_timeout_ms : kTestRunnerCoreDefaultTimeoutMs;
             const qint64 rounds = (qMax<qsizetype>(tagCount, 1) + concurrency - 1) / concurrency;
-            const qint64 total = rounds * (kTestRunnerTunnelHandshakeMs + requestsPerTag * timeoutMs + kTestRunnerTunnelStartupMs) + kTestRunnerRpcSlackMs;
+            const qint64 total = rounds * (kTestRunnerTunnelHandshakeMs + requestsPerTag * timeoutMs + kTestRunnerTunnelStartupMs + startupAllowanceMs) +
+                                 kTestRunnerRpcSlackMs;
             return static_cast<int>(qMin<qint64>(total, std::numeric_limits<int>::max()));
+        }
+
+        int testRunnerStartupAllowanceMs(const QMap<QString, int>& tag2entID, int entID) {
+            int allowance = 0;
+            const auto add = [&allowance](int id) {
+                if (id >= 0) allowance = qMax(allowance, Configs::DnsTunnelStartupAllowanceMs(Configs::dataManager->profilesRepo->GetProfile(id)));
+            };
+            add(entID);
+            for (const int id : tag2entID) add(id);
+            return allowance;
         }
 
         int testRunnerResolveEntID(const QMap<QString, int>& tag2entID, const std::string& tag, int fallback) {
@@ -238,7 +250,9 @@ namespace Engine {
                 runOnUiThread([=, this] { observer_->testedProfilesChanged(updated); });
             }, kTestRunnerLatencyPollIntervalMs);
 
-            result = API::defaultClient->Test(&rpcOK, req, &coreError, testRunnerBatchRpcTimeoutMs(target.outboundTags.size(), 2));
+            result = API::defaultClient->Test(&rpcOK, req, &coreError,
+                                              testRunnerBatchRpcTimeoutMs(target.outboundTags.size(), 2,
+                                                                          testRunnerStartupAllowanceMs(target.tag2entID, target.entID)));
         }
 
         if (!rpcOK || result.results.empty()) {
@@ -305,7 +319,9 @@ namespace Engine {
                 runOnUiThread([=, this] { observer_->testedProfilesChanged(updated); });
             }, kTestRunnerLatencyPollIntervalMs);
 
-            result = API::defaultClient->IPTest(&rpcOK, req, &coreError, testRunnerBatchRpcTimeoutMs(target.outboundTags.size(), 1));
+            result = API::defaultClient->IPTest(&rpcOK, req, &coreError,
+                                                testRunnerBatchRpcTimeoutMs(target.outboundTags.size(), 1,
+                                                                            testRunnerStartupAllowanceMs(target.tag2entID, target.entID)));
         }
 
         if (!rpcOK || result.results.empty()) {
