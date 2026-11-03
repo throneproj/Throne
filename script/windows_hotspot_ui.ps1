@@ -2,7 +2,7 @@
 # Embedded in Throne's resources and passed in-memory to Windows PowerShell.
 [CmdletBinding()]
 param(
-    [ValidateSet('Probe', 'Run')][string]$Action = 'Probe',
+    [ValidateSet('Probe', 'Run', 'Stop')][string]$Action = 'Probe',
     [int]$ParentProcessId = 0,
     [string]$StopFile = ''
 )
@@ -46,6 +46,55 @@ function Assert-NoLegacySharing {
     }
 }
 
+function New-StopManager($AdapterId) {
+    $all = @([Windows.Networking.Connectivity.NetworkInformation]::GetConnectionProfiles())
+    $matching = @($all | Where-Object { $null -ne $_.NetworkAdapter -and $_.NetworkAdapter.NetworkAdapterId -eq [guid]$AdapterId })
+    if ($matching.Count -gt 0) { $selected = $matching[0] }
+    else { $selected = [Windows.Networking.Connectivity.NetworkInformation]::GetInternetConnectionProfile() }
+    if ($null -eq $selected) { throw 'Windows has no connection profile for hotspot shutdown.' }
+    return [Windows.Networking.NetworkOperators.NetworkOperatorTetheringManager]::CreateFromConnectionProfile($selected)
+}
+
+function Stop-OwnedHotspot($AdapterId) {
+    $lastError = 'Windows did not confirm hotspot shutdown.'
+    for ($retry = 0; $retry -lt 2; $retry++) {
+        # A fresh manager/process avoids retaining the object from startup.
+        $stopManager = New-StopManager $AdapterId
+        if ($stopManager.TetheringOperationalState.ToString() -eq 'Off') { return }
+        $operation = $stopManager.StopTetheringAsync()
+        $bridge = [System.WindowsRuntimeSystemExtensions].GetMethods() | Where-Object {
+            $_.Name -eq 'AsTask' -and $_.IsGenericMethod -and $_.GetGenericArguments().Count -eq 1 -and
+            $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation`1'
+        } | Select-Object -First 1
+        $task = $bridge.MakeGenericMethod([Windows.Networking.NetworkOperators.NetworkOperatorTetheringOperationResult]).Invoke($null, @($operation))
+        $watch = [Diagnostics.Stopwatch]::StartNew()
+        $offCount = 0
+        while ($watch.Elapsed.TotalSeconds -lt 25) {
+            # Stop operations may report a timeout after Windows has already
+            # switched Off. Confirm the actual state instead of showing that
+            # stale operation error, or discarding it while the hotspot is On.
+            if ($stopManager.TetheringOperationalState.ToString() -eq 'Off') {
+                $offCount++
+                if ($offCount -ge 2) { return }
+            } else { $offCount = 0 }
+            if ($task.IsCompleted -and $offCount -eq 0) {
+                try {
+                    $result = $task.GetAwaiter().GetResult()
+                    if ($result.Status.ToString() -ne 'Success') {
+                        $lastError = [string]$result.Status + ': ' + $result.AdditionalErrorMessage
+                        break
+                    }
+                } catch { $lastError = $_.Exception.Message; break }
+            }
+            Start-Sleep -Milliseconds 250
+        }
+        $fresh = New-StopManager $AdapterId
+        if ($fresh.TetheringOperationalState.ToString() -eq 'Off') { return }
+        Start-Sleep -Milliseconds 500
+    }
+    throw $lastError
+}
+
 $ownsSession = $false
 $manager = $null
 try {
@@ -53,6 +102,24 @@ try {
     $null = [Windows.Networking.Connectivity.NetworkInformation, Windows.Networking.Connectivity, ContentType = WindowsRuntime]
     $null = [Windows.Networking.NetworkOperators.NetworkOperatorTetheringManager, Windows.Networking.NetworkOperators, ContentType = WindowsRuntime]
     $null = [Windows.Networking.NetworkOperators.NetworkOperatorTetheringOperationResult, Windows.Networking.NetworkOperators, ContentType = WindowsRuntime]
+    if ($Action -eq 'Stop') {
+        if ([string]::IsNullOrEmpty($StopFile)) { throw 'The hotspot requires a cancellation marker.' }
+        # Only a session started by this controller writes this metadata. Wait
+        # for pending startup before treating an initial Off as stopped.
+        $deadline = [DateTime]::UtcNow.AddSeconds(50)
+        while (-not [IO.File]::Exists($StopFile + '.settled') -and [DateTime]::UtcNow -lt $deadline) {
+            if (-not [IO.File]::Exists($StopFile + '.info') -and [DateTime]::UtcNow -gt $deadline.AddSeconds(-45)) { break }
+            Start-Sleep -Milliseconds 200
+        }
+        if ([IO.File]::Exists($StopFile + '.info')) {
+            if (-not [IO.File]::Exists($StopFile + '.settled')) { throw 'Hotspot startup has not finished yet. The VPN remains enabled.' }
+            $sessionInfo = [IO.File]::ReadAllText($StopFile + '.info') | ConvertFrom-Json
+            Stop-OwnedHotspot $sessionInfo.AdapterId
+        }
+        [IO.File]::WriteAllText($StopFile + '.stopped', 'Off')
+        Send-Event @{event='stopped'}
+        exit 0
+    }
     $adapters = @([Net.NetworkInformation.NetworkInterface]::GetAllNetworkInterfaces())
     $tun = @($adapters | Where-Object { $_.Name -eq 'throne-tun' -and $_.OperationalStatus -eq 'Up' })
     if ($tun.Count -ne 1) { throw 'Enable TUN and connect a profile first.' }
@@ -86,11 +153,17 @@ try {
         [guid]$_.Id -ne $tunId -and $_.OperationalStatus -eq 'Up' -and
         $_.GetIPProperties().GatewayAddresses.Count -gt 0
     } | ForEach-Object { $_.GetIPProperties().GetIPv4Properties().Index })
-    if ($parent.HasExited -or [IO.File]::Exists($StopFile)) { exit 0 }
+    [IO.File]::WriteAllText($StopFile + '.info', (@{AdapterId=$tunId.ToString()} | ConvertTo-Json -Compress))
+    if ($parent.HasExited -or [IO.File]::Exists($StopFile)) {
+        [IO.File]::WriteAllText($StopFile + '.settled', 'cancelled')
+        Send-Event @{event='stopped'}
+        exit 0
+    }
     # The session was Off; only this operation owns any startup/cleanup below.
     $ownsSession = $true
     try {
-        Wait-Operation ($manager.StartTetheringAsync())
+        try { Wait-Operation ($manager.StartTetheringAsync()) }
+        finally { [IO.File]::WriteAllText($StopFile + '.settled', 'complete') }
         $verified = $false
         for ($attempt = 0; $attempt -lt 10; $attempt++) {
             if ($parent.HasExited -or [IO.File]::Exists($StopFile)) { break }
@@ -117,7 +190,14 @@ try {
         }
     } finally {
         if ($ownsSession -and $manager.TetheringOperationalState.ToString() -ne 'Off') {
-            Wait-Operation ($manager.StopTetheringAsync())
+            if ([IO.File]::Exists($StopFile) -and -not $parent.HasExited) {
+                # A separate Stop process owns normal shutdown. Keep the TUN
+                # and session alive after a failed stop so the user can retry.
+                while (-not [IO.File]::Exists($StopFile + '.stopped') -and -not $parent.HasExited) {
+                    Start-Sleep -Milliseconds 200
+                }
+            }
+            if (-not [IO.File]::Exists($StopFile + '.stopped')) { Stop-OwnedHotspot $tunId }
         }
         $ownsSession = $false
     }
@@ -128,6 +208,6 @@ try {
         Send-Event @{event='probe'; available=$false; reason=$_.Exception.Message}
         exit 0
     }
-    Send-Event @{event='error'; reason=$_.Exception.Message}
+    Send-Event @{event='error'; reason=$_.Exception.Message; off=(-not $ownsSession)}
     exit 1
 }

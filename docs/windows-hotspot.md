@@ -12,6 +12,10 @@ The Windows GUI includes an **Open hotspot** checkbox next to **Tun Mode** and *
 
 The checkbox is a live session control, not a saved autostart preference. It is hidden on non-Windows platforms. After a TUN restart, start sharing again explicitly. The active routing profile continues to determine proxy/direct destinations; this option does not force every destination through a server.
 
+Normal VPN stop, TUN disable, profile replacement and GUI exit first wait for confirmed hotspot shutdown. If shutdown cannot be confirmed, the requested VPN teardown is refused and can be retried. A core/OS crash cannot be held back this way. Start, ready, stop, stopped and failure events appear in the ordinary application log with `>>>>>>>>` / `<<<<<<<<` markers.
+
+Keep the GUI executable named `Throne.exe`, alongside `ThroneCore.exe`: the core checks its parent's name and directory.
+
 If the checkbox is disabled, its tooltip contains the reason. Existing unrelated sharing is not taken over. An unavailable Windows service, permission problem, disabled/unsupported Wi-Fi, or other OS restriction can prevent startup.
 
 ## Implementation
@@ -20,15 +24,15 @@ If the checkbox is disabled, its tooltip contains the reason. Existing unrelated
 
 The helper finds the active `throne-tun` adapter's connection profile by GUID and calls `NetworkOperatorTetheringManager.CreateFromConnectionProfile(profile)` followed by `StartTetheringAsync()`. This bypasses Windows Settings' source list, where a valid TUN profile can be missing. It does not change NCSI, registry values, firewall rules, VPN configuration, or core egress binding.
 
-Stopping uses a per-session cancellation marker; this avoids hidden PowerShell stdin behavior. The helper retains the original WinRT manager, watches its parent process and the TUN adapter, and performs shutdown in `finally`. It does not abandon a pending startup operation simply because the GUI requested stop. Probe processes can time out safely because they perform no network mutation.
+Stopping uses a per-session cancellation marker and a separate `Stop` worker with a fresh WinRT manager. It waits for pending startup to settle, verifies actual state Off, and acknowledges shutdown to the session worker. A timeout returned by an operation is not shown as a failure if Windows has already switched Off. A real failure keeps the checkbox on, permits retry, and blocks normal VPN teardown. The session worker retains its manager for monitoring and crash fallback; it does not abandon pending startup. Read-only probes may be timed out safely.
 
 ## Validation
 
 Tested with Windows 11, MSVC 2022 and Qt 6.8.3:
 
 - Complete Throne GUI compiles and links.
-- Six automated controller scenarios, plus test setup/cleanup, pass: TUN gating, unavailable Windows capability, start/stop and repeated start, startup failure, TUN stop during startup, and destruction while a helper needs cleanup.
-- The real embedded helper passes the opt-in integration test: capability probe, hotspot startup through the active TUN profile, forwarding verification, and shutdown.
+- Eight automated controller scenarios, plus test setup/cleanup, pass. These include waiting for confirmed shutdown before a VPN action may continue, and preserving the active state after a failed stop followed by a successful retry.
+- The initial real helper was checked with the opt-in integration test. The revised separate-worker shutdown is covered by artificial-backend tests; hardware verification of that revision remains pending and must not interrupt the user's active VPN.
 - The earlier reference workaround was also verified with a connected phone and a site normally requiring VPN.
 
 Normal automated tests do not change the machine's hotspot. The live smoke executable is built only with an explicit option and does change the saved Windows hotspot:

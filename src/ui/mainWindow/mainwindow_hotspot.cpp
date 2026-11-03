@@ -3,6 +3,7 @@
 #ifdef Q_OS_WIN
 #include "include/engine/connection/ConnectionManager.h"
 #include "include/sys/WindowsHotspot.h"
+#include "include/global/Logger.hpp"
 #include <QMessageBox>
 #include <QSignalBlocker>
 #endif
@@ -17,6 +18,7 @@ void MainWindow::setupHotspot() {
         ui->checkBox_Hotspot->setToolTip(m_hotspot->hint());
     };
     connect(m_hotspot, &WindowsHotspot::changed, this, refresh);
+    connect(m_hotspot, &WindowsHotspot::logLine, this, [](const QString &line) { MW_show_log(line); });
     connect(m_hotspot, &WindowsHotspot::problem, this, [this](const QString &error) {
         QMessageBox::warning(this, tr("Mobile hotspot"), error);
     });
@@ -31,5 +33,13 @@ void MainWindow::setupHotspot() {
     refresh();
 #else
     ui->checkBox_Hotspot->hide();
+#endif
+}
+
+bool MainWindow::prepareForTunStop() {
+#ifdef Q_OS_WIN
+    return m_hotspot == nullptr || m_hotspot->ensureStopped();
+#else
+    return true;
 #endif
 }

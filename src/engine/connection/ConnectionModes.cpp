@@ -177,6 +177,11 @@ namespace Engine {
         }
         if (enable == settings->spmode_vpn) return false;
 
+        if (!enable && !policy()->prepareForTunStop()) {
+            emit statusChanged();
+            return false;
+        }
+
         if (enable) {
             // Before any elevation prompt: nothing granted here clears another owner's Tun.
             if (const auto reason = tunBlockedReason(); !reason.isEmpty()) {

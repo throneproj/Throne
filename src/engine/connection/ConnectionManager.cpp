@@ -107,6 +107,11 @@ namespace Engine {
             return;
         }
 
+        if (runningTun() && !policy()->prepareForTunStop()) {
+            emit startFinished(request.serial, request.profileId, StartOutcome::Busy, QStringLiteral("HOT Spot shutdown was not confirmed"));
+            return;
+        }
+
         StartRequest resolved = request;
         resolved.profileId = ent->id;
 
@@ -352,6 +357,11 @@ namespace Engine {
     }
 
     void ConnectionManager::stop(const StopOptions &options) {
+        if (!options.crash && runningTun()) {
+            bool allowed = false;
+            runOnUiThread([this, &allowed] { allowed = policy()->prepareForTunStop(); }, true);
+            if (!allowed) return;
+        }
         const bool crash = options.crash;
         const bool block = options.block;
         const bool manual = options.manual;

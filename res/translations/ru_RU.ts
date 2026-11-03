@@ -15655,6 +15655,14 @@ Remove that endpoint from this routing profile as well?</source>
 </context>
 <context>
     <name>WindowsHotspot</name>
+    <message><source>&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; Starting HOT Spot</source><translation>&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; Запуск HOT Spot</translation></message>
+    <message><source>&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; HOT Spot started</source><translation>&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; HOT Spot запущен</translation></message>
+    <message><source>&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; Stopping HOT Spot</source><translation>&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; Остановка HOT Spot</translation></message>
+    <message><source>&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt; HOT Spot stopped</source><translation>&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt; HOT Spot выключен</translation></message>
+    <message><source>&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt; HOT Spot error: %1</source><translation>&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt; Ошибка HOT Spot: %1</translation></message>
+    <message><source>&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; HOT Spot: stop before disabling VPN</source><translation>&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt; HOT Spot: выключение перед остановкой VPN</translation></message>
+    <message><source>&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt; VPN kept enabled: HOT Spot shutdown was not confirmed</source><translation>&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt; VPN не выключен: остановка HOT Spot не подтверждена</translation></message>
+    <message><source>Windows did not confirm that HOT Spot is off. The VPN remains enabled.</source><translation>Windows не подтвердила выключение HOT Spot. VPN оставлен включённым.</translation></message>
     <message><source>Could not create the hotspot cancellation marker.</source><translation>Не удалось подготовить управление хот-спотом.</translation></message>
     <message><source>Could not request hotspot shutdown. Turn it off in Windows settings.</source><translation>Не удалось передать команду выключения. Выключите хот-спот в параметрах Windows.</translation></message>
     <message><source>Enable TUN and connect a profile first.</source><translation>Включите TUN и подключитесь к серверу.</translation></message>
