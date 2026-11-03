@@ -9019,6 +9019,14 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>Системный прокси</translation>
     </message>
     <message>
+        <source>Open hotspot</source>
+        <translation>Открыть хот-спот</translation>
+    </message>
+    <message>
+        <source>Mobile hotspot</source>
+        <translation>Мобильный хот-спот</translation>
+    </message>
+    <message>
         <source>Test Result</source>
         <translation>Результат теста</translation>
     </message>
@@ -15644,5 +15652,20 @@ Remove that endpoint from this routing profile as well?</source>
         <source>Must be a number.</source>
         <translation>Должно быть числом.</translation>
     </message>
+</context>
+<context>
+    <name>WindowsHotspot</name>
+    <message><source>Could not create the hotspot cancellation marker.</source><translation>Не удалось подготовить управление хот-спотом.</translation></message>
+    <message><source>Could not request hotspot shutdown. Turn it off in Windows settings.</source><translation>Не удалось передать команду выключения. Выключите хот-спот в параметрах Windows.</translation></message>
+    <message><source>Enable TUN and connect a profile first.</source><translation>Включите TUN и подключитесь к серверу.</translation></message>
+    <message><source>Starting mobile hotspot…</source><translation>Включение хот-спота…</translation></message>
+    <message><source>Stopping mobile hotspot…</source><translation>Выключение хот-спота…</translation></message>
+    <message><source>Checking mobile hotspot availability…</source><translation>Проверка доступности хот-спота…</translation></message>
+    <message><source>Sharing through TUN. Network: %1</source><translation>Раздача через TUN. Сеть: %1</translation></message>
+    <message><source>Could not run Windows PowerShell.</source><translation>Не удалось запустить Windows PowerShell.</translation></message>
+    <message><source>The hotspot helper is missing.</source><translation>Не найден встроенный скрипт хот-спота.</translation></message>
+    <message><source>Could not check Windows mobile hotspot support.</source><translation>Не удалось проверить поддержку хот-спота Windows.</translation></message>
+    <message><source>Windows did not answer the hotspot availability check.</source><translation>Windows не ответила на проверку доступности хот-спота.</translation></message>
+    <message><source>The hotspot helper stopped unexpectedly. Check Windows mobile hotspot settings.</source><translation>Скрипт хот-спота неожиданно остановился. Проверьте мобильный хот-спот в параметрах Windows.</translation></message>
 </context>
 </TS>

@@ -69,6 +69,7 @@ class DialogVpnAuth;
 class DialogScanner;
 class DialogIpLists;
 class CommandPalette;
+class WindowsHotspot;
 
 namespace Qv2ray::ui { class SyntaxHighlighter; }
 namespace SettingsIndex { struct Item; }
@@ -525,6 +526,9 @@ private:
     void OpenDashboard();
 
     void setupConnectionList();
+
+    void setupHotspot();
+    WindowsHotspot *m_hotspot = nullptr;
 
     void setupTrafficGraph();
 

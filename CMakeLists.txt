@@ -223,6 +223,7 @@ set(PROJECT_SOURCES
         src/ui/mainWindow/mainwindow_profile_lifecycle.cpp
         src/ui/mainWindow/mainwindow_scanner.cpp
         src/ui/mainWindow/mainwindow_engine_control.cpp
+        src/ui/mainWindow/mainwindow_hotspot.cpp
         src/ui/mainWindow/mainwindow_policy.cpp
         include/ui/mainWindow/MainWindowInternal.h
         include/ui/mainwindow.h
