@@ -53,6 +53,11 @@ namespace Configs {
         if (!dataManager->markersRepo->IsMarked(Markers::DefaultIpLists)) {
             Scanner::DefaultIpLists::EnsureAll();
             dataManager->markersRepo->Mark(Markers::DefaultIpLists);
+            dataManager->markersRepo->Mark(Markers::DefaultResolverLists);
+        } else if (!dataManager->markersRepo->IsMarked(Markers::DefaultResolverLists)) {
+            Scanner::DefaultIpLists::Ensure(Scanner::DefaultIpLists::kIranResolversName);
+            Scanner::DefaultIpLists::Ensure(Scanner::DefaultIpLists::kRussiaResolversName);
+            dataManager->markersRepo->Mark(Markers::DefaultResolverLists);
         }
     }
 

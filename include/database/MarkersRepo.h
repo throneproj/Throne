@@ -9,6 +9,7 @@ namespace Configs {
     namespace Markers {
         inline constexpr auto TunPrivateRangesIPv6 = "migration.tun_private_ranges_ipv6";
         inline constexpr auto DefaultIpLists = "migration.default_ip_lists";
+        inline constexpr auto DefaultResolverLists = "migration.default_resolver_lists";
     }
 
     class MarkersRepo {

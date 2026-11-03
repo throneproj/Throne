@@ -24,6 +24,8 @@ namespace {
             {kGcoreCdnName, QStringLiteral("geoip-gcore"), QStringLiteral(":/scanner/gcore-cdn.txt")},
             {kWarpWireGuardName, {}, {}, &Scanner::WarpPresets::kWireGuardRanges},
             {kWarpMasqueName, {}, {}, &Scanner::WarpPresets::kMasqueEndpoints},
+            {kIranResolversName, {}, QStringLiteral(":/scanner/iran-resolvers.txt")},
+            {kRussiaResolversName, {}, QStringLiteral(":/scanner/russia-resolvers.txt")},
         };
     }
 
