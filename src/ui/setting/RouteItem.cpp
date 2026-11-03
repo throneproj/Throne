@@ -90,80 +90,62 @@ static bool routeItemNeedsRulesTab(const Configs::RouteProfile& profile) {
     });
 }
 
-// A lightweight shared model: unlike QStandardItemModel, it does not allocate one heap item
-// object per profile. The model is built lazily when an outbound editor is actually needed.
-class RouteOutboundModel final : public QAbstractListModel {
-public:
-    using Item = QPair<QString, int>;
+struct RouteOutboundList {
     static constexpr int maxMeasuredItems = 64;
 
-    explicit RouteOutboundModel(QObject* parent = nullptr) : QAbstractListModel(parent) {}
+    QList<QPair<QString, int>> items;
+    QHash<int, int> rowByOutboundId;
+    QList<int> longestRows;
+};
+
+// Each dialog gets its own model over the shared list: resetting a model under a live combo
+// moves it to row 0, and the combo would write "proxy" into its rule.
+class RouteOutboundModel final : public QAbstractListModel {
+public:
+    explicit RouteOutboundModel(std::shared_ptr<const RouteOutboundList> list, QObject* parent = nullptr)
+        : QAbstractListModel(parent), list(std::move(list)) {}
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const override {
-        return parent.isValid() ? 0 : static_cast<int>(items.size());
+        return parent.isValid() ? 0 : static_cast<int>(list->items.size());
     }
 
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override {
-        if (!index.isValid() || index.row() < 0 || index.row() >= items.size()) return {};
-        const auto& item = items.at(index.row());
+        if (!index.isValid() || index.row() < 0 || index.row() >= list->items.size()) return {};
+        const auto& item = list->items.at(index.row());
         if (role == Qt::DisplayRole) return item.first;
         if (role == Qt::UserRole) return item.second;
         return {};
     }
 
     [[nodiscard]] int rowForOutboundId(int outboundId) const {
-        return rowByOutboundId.value(outboundId, -1);
+        return list->rowByOutboundId.value(outboundId, -1);
     }
 
     [[nodiscard]] const QList<int>& longestItemRows() const {
-        return longestRows;
+        return list->longestRows;
     }
 
     [[nodiscard]] const QString& labelAt(int row) const {
-        return items.at(row).first;
-    }
-
-    void replaceItems(QList<Item> nextItems) {
-        if (items == nextItems) return;
-        beginResetModel();
-        items = std::move(nextItems);
-        rowByOutboundId.clear();
-        rowByOutboundId.reserve(items.size());
-        for (int i = 0; i < items.size(); ++i) {
-            if (!rowByOutboundId.contains(items.at(i).second))
-                rowByOutboundId.insert(items.at(i).second, i);
-        }
-        longestRows.resize(items.size());
-        std::iota(longestRows.begin(), longestRows.end(), 0);
-        if (longestRows.size() > maxMeasuredItems) {
-            std::partial_sort(longestRows.begin(), longestRows.begin() + maxMeasuredItems, longestRows.end(),
-                              [this](const int a, const int b) {
-                                  return items.at(a).first.size() > items.at(b).first.size();
-                              });
-            longestRows.resize(maxMeasuredItems);
-        }
-        endResetModel();
+        return list->items.at(row).first;
     }
 
 private:
-    QList<Item> items;
-    QHash<int, int> rowByOutboundId;
-    QList<int> longestRows;
+    std::shared_ptr<const RouteOutboundList> list;
 };
 
-// Route editors are opened and destroyed frequently. Keep their outbound choices alive for the
-// application lifetime, and rebuild only after profiles or group membership/order has changed.
-static RouteOutboundModel* routeItemOutboundModel() {
+// Rebuilt only after profiles or group membership/order has changed.
+static std::shared_ptr<const RouteOutboundList> routeItemOutboundList() {
     const quint64 profilesRevision = Configs::dataManager->profilesRepo->Revision();
     const quint64 groupsRevision = Configs::dataManager->groupsRepo->Revision();
 
-    static auto* model = new RouteOutboundModel(QCoreApplication::instance());
-    static quint64 cachedProfilesRevision = std::numeric_limits<quint64>::max();
-    static quint64 cachedGroupsRevision = std::numeric_limits<quint64>::max();
+    static std::shared_ptr<const RouteOutboundList> cached;
+    static quint64 cachedProfilesRevision = 0;
+    static quint64 cachedGroupsRevision = 0;
 
-    if (profilesRevision == cachedProfilesRevision && groupsRevision == cachedGroupsRevision) return model;
+    if (cached && profilesRevision == cachedProfilesRevision && groupsRevision == cachedGroupsRevision) return cached;
 
-    QList<RouteOutboundModel::Item> items;
+    auto next = std::make_shared<RouteOutboundList>();
+    auto& items = next->items;
     items.append({QStringLiteral("proxy"), -1});
     items.append({QStringLiteral("direct"), -2});
     items.append({QStringLiteral("warp-bypass"), Configs::warpBypassID});
@@ -185,10 +167,26 @@ static RouteOutboundModel* routeItemOutboundModel() {
         }
     }
 
-    model->replaceItems(std::move(items));
+    next->rowByOutboundId.reserve(items.size());
+    for (int i = 0; i < items.size(); ++i) {
+        if (!next->rowByOutboundId.contains(items.at(i).second))
+            next->rowByOutboundId.insert(items.at(i).second, i);
+    }
+    auto& longestRows = next->longestRows;
+    longestRows.resize(items.size());
+    std::iota(longestRows.begin(), longestRows.end(), 0);
+    if (longestRows.size() > RouteOutboundList::maxMeasuredItems) {
+        std::partial_sort(longestRows.begin(), longestRows.begin() + RouteOutboundList::maxMeasuredItems, longestRows.end(),
+                          [&items](const int a, const int b) {
+                              return items.at(a).first.size() > items.at(b).first.size();
+                          });
+        longestRows.resize(RouteOutboundList::maxMeasuredItems);
+    }
+
+    cached = std::move(next);
     cachedProfilesRevision = profilesRevision;
     cachedGroupsRevision = groupsRevision;
-    return model;
+    return cached;
 }
 
 static QAbstractItemModel* routeItemSimpleRuleCompleterModel() {
@@ -219,7 +217,7 @@ void adjustComboBoxWidth(const QComboBox *comboBox) {
     // Avoid shaping every profile name on the GUI thread when subscriptions contain thousands
     // of entries. QString::size() is a cheap heuristic for likely wide candidates, not a guarantee
     // of the widest rendered name; the popup is capped to the available screen width below.
-    constexpr int maxMeasuredItems = RouteOutboundModel::maxMeasuredItems;
+    constexpr int maxMeasuredItems = RouteOutboundList::maxMeasuredItems;
     constexpr int padding = 30;
 
     const auto *scr = comboBox->screen() != nullptr ? comboBox->screen() : QGuiApplication::primaryScreen();
@@ -992,9 +990,9 @@ QWidget* RouteItem::makeAttributeEditorPage(const QString& attr) {
             if (attr == QStringLiteral("outbound")) {
                 cb->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
                 if (auto* lv = qobject_cast<QListView*>(cb->view())) lv->setUniformItemSizes(true);
-                auto* outboundModel = routeItemOutboundModel();
-                cb->setModel(outboundModel);
-                const int selected = outboundModel->rowForOutboundId(rule->outboundID);
+                if (outboundsModel == nullptr) outboundsModel = new RouteOutboundModel(routeItemOutboundList(), this);
+                cb->setModel(outboundsModel);
+                const int selected = outboundsModel->rowForOutboundId(rule->outboundID);
                 if (selected >= 0) {
                     cb->setCurrentIndex(selected);
                 } else {

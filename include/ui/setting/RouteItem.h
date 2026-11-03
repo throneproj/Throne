@@ -15,6 +15,7 @@
 
 class QListWidget;
 class RouteDnsEditor;
+class RouteOutboundModel;
 
 class RouteItem : public QDialog {
     Q_OBJECT
@@ -34,6 +35,8 @@ private:
     int lastNum = 0;
 
     QShortcut* deleteShortcut;
+
+    RouteOutboundModel* outboundsModel = nullptr;
 
     int outboundsPopupWidth = -1;
 

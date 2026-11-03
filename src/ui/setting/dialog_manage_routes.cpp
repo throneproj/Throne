@@ -805,6 +805,7 @@ void DialogManageRoutes::applyImportedProfile(const std::shared_ptr<Configs::Rou
         auto shell = Configs::dataManager->routesRepo->NewRouteProfile();
         shell->Rules = profile->Rules;
         routeChainWidget = new RouteItem(this, shell);
+        routeChainWidget->setAttribute(Qt::WA_DeleteOnClose);
         routeChainWidget->setWindowModality(Qt::ApplicationModal);
         routeChainWidget->show();
         connect(routeChainWidget, &RouteItem::settingsChanged, this, [=, this](const std::shared_ptr<Configs::RouteProfile>& chain) {

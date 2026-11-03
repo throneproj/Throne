@@ -63,7 +63,8 @@
 
 namespace Qv2ray::ui::widgets {
     AutoCompleteTextEdit::AutoCompleteTextEdit(const QString &prefix, const QStringList &sourceStrings, QWidget *parent)
-        : AutoCompleteTextEdit(prefix, new QStringListModel(sourceStrings, this), parent) {
+        : AutoCompleteTextEdit(prefix, static_cast<QAbstractItemModel *>(nullptr), parent) {
+        c->setModel(new QStringListModel(sourceStrings, c));
     }
 
     AutoCompleteTextEdit::AutoCompleteTextEdit(const QString &prefix, QAbstractItemModel *sourceModel, QWidget *parent) : QPlainTextEdit(parent) {
