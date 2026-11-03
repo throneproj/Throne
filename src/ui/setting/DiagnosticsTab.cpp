@@ -1,11 +1,17 @@
 #include "include/ui/setting/DiagnosticsTab.h"
 
 #include "include/global/Configs.hpp"
+#include "include/global/Logger.hpp"
 #include "include/sys/CoreDiagnostics.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
+#include "include/ui/utils/NativeFileDialog.h"
 
 #include <QColor>
+#include <QDateTime>
+#include <QDir>
+#include <QFile>
 #include <QFileInfo>
+#include <QSaveFile>
 #include <QSizePolicy>
 #include <QTimer>
 
@@ -44,6 +50,7 @@ DiagnosticsTab::DiagnosticsTab(QWidget *parent) : QWidget(parent), ui(new Ui::Di
         Sys::CoreDiagnostics::showInFolder(Sys::CoreDiagnostics::instance()->lastPath());
     });
     connect(ui->openFolder, &QPushButton::clicked, this, [] { Sys::CoreDiagnostics::openDirectory(); });
+    connect(ui->saveLogs, &QPushButton::clicked, this, [this] { saveLogs(); });
 
     connect(diagnostics, &Sys::CoreDiagnostics::stateChanged, this, [this] { refresh(); });
     connect(diagnostics, &Sys::CoreDiagnostics::progress, this,
@@ -93,13 +100,14 @@ void DiagnosticsTab::refresh() {
     if (busy) {
         showProgress(diagnostics->elapsedMs());
     } else if (!diagnostics->lastError().isEmpty()) {
-        setStatus(diagnostics->lastError(), tokens.danger);
+        setStatus(ui->status, diagnostics->lastError(), tokens.danger);
     } else if (!last.isEmpty()) {
-        setStatus(tr("Saved %1 (%2)").arg(QFileInfo(last).fileName(), ReadableSize(diagnostics->lastSize())),
+        setStatus(ui->status, tr("Saved %1 (%2)").arg(QFileInfo(last).fileName(), ReadableSize(diagnostics->lastSize())),
                   tokens.success);
     } else {
-        setStatus(QString(), tokens.muted);
+        setStatus(ui->status, QString(), tokens.muted);
     }
+    setStatus(ui->logsStatus, logsStatus_, logsFailed_ ? tokens.danger : tokens.success);
 }
 
 void DiagnosticsTab::refreshStart() {
@@ -113,17 +121,45 @@ void DiagnosticsTab::showProgress(qint64 elapsedMs) {
     const auto &muted = themeManager()->tokens.muted;
     if (elapsedMs >= durationMs || Sys::CoreDiagnostics::instance()->isStopping()) {
         ui->progress->setRange(0, 0);
-        setStatus(tr("Finishing…"), muted);
+        setStatus(ui->status, tr("Finishing…"), muted);
     } else {
         ui->progress->setRange(0, durationMs);
         ui->progress->setValue(static_cast<int>(elapsedMs));
-        setStatus(tr("Recording… %1 left").arg(clockText(durationMs - elapsedMs)), muted);
+        setStatus(ui->status, tr("Recording… %1 left").arg(clockText(durationMs - elapsedMs)), muted);
     }
 }
 
-void DiagnosticsTab::setStatus(const QString &text, const QColor &color) {
-    ui->status->setText(text);
+void DiagnosticsTab::saveLogs() {
+    if (Logging::LogFiles().isEmpty()) {
+        logsFailed_ = true;
+        logsStatus_ = tr("There is no log file to save.");
+        refresh();
+        return;
+    }
+
+    const QString name = QStringLiteral("throne-%1.log").arg(QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd-HHmmss")));
+    const QString path = NativeFileDialog::getSaveFileName(this, tr("Save logs"), QDir::home().absoluteFilePath(name),
+                                                           tr("Log files (*.log);;All files (*)"));
+    if (path.isEmpty()) return;
+
+    QSaveFile out(path);
+    bool ok = out.open(QIODevice::WriteOnly);
+    for (const auto &file : Logging::LogFiles()) {
+        if (!ok) break;
+        QFile in(file);
+        if (!in.open(QIODevice::ReadOnly)) continue;
+        const QByteArray data = in.readAll();
+        ok = out.write(data) == data.size();
+    }
+    logsFailed_ = !(ok && out.commit());
+    logsStatus_ = logsFailed_ ? tr("Cannot write to: %1").arg(QDir::toNativeSeparators(path))
+                              : tr("Saved %1 (%2)").arg(QFileInfo(path).fileName(), ReadableSize(QFileInfo(path).size()));
+    refresh();
+}
+
+void DiagnosticsTab::setStatus(QLabel *label, const QString &text, const QColor &color) {
+    label->setText(text);
     const QString sheet = QStringLiteral("color: %1;").arg(color.name());
     // setStyleSheet repolishes even when the sheet is unchanged.
-    if (ui->status->styleSheet() != sheet) ui->status->setStyleSheet(sheet);
+    if (label->styleSheet() != sheet) label->setStyleSheet(sheet);
 }

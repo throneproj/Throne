@@ -212,6 +212,34 @@ Outbound: %4</translation>
         <source>Recording… %1 left</source>
         <translation>Запись… Осталось %1</translation>
     </message>
+    <message>
+        <source>Logs</source>
+        <translation>Логи</translation>
+    </message>
+    <message>
+        <source>Saves the Throne log of this session as one file, including the core output shown in the log panel.</source>
+        <translation>Сохраняет лог Throne за текущий сеанс в один файл, включая вывод ядра из панели логов.</translation>
+    </message>
+    <message>
+        <source>Save logs…</source>
+        <translation>Сохранить логи…</translation>
+    </message>
+    <message>
+        <source>There is no log file to save.</source>
+        <translation>Нет файла лога для сохранения.</translation>
+    </message>
+    <message>
+        <source>Save logs</source>
+        <translation>Сохранить логи</translation>
+    </message>
+    <message>
+        <source>Log files (*.log);;All files (*)</source>
+        <translation>Файлы логов (*.log);;Все файлы (*)</translation>
+    </message>
+    <message>
+        <source>Cannot write to: %1</source>
+        <translation>Не удается записать файл: %1</translation>
+    </message>
 </context>
 <context>
     <name>DialogAbout</name>

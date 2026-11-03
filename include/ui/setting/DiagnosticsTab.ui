@@ -120,6 +120,58 @@
     </widget>
    </item>
    <item>
+    <widget class="QGroupBox" name="groupLogs">
+     <property name="title">
+      <string>Logs</string>
+     </property>
+     <layout class="QVBoxLayout" name="logsLayout">
+      <item>
+       <widget class="QLabel" name="logsIntro">
+        <property name="text">
+         <string>Saves the Throne log of this session as one file, including the core output shown in the log panel.</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="logsRow">
+        <item>
+         <widget class="QLabel" name="logsStatus">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string notr="true"/>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::TextInteractionFlag::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="saveLogs">
+          <property name="toolTip">
+           <string>Logs contain visited domains and server addresses.</string>
+          </property>
+          <property name="text">
+           <string>Save logs…</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <spacer name="bottomSpacer">
      <property name="orientation">
       <enum>Qt::Orientation::Vertical</enum>

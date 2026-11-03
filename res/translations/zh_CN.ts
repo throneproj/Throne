@@ -210,6 +210,34 @@ Outbound: %4</source>
         <source>Recording… %1 left</source>
         <translation>记录中… 剩余 %1</translation>
     </message>
+    <message>
+        <source>Logs</source>
+        <translation>日志</translation>
+    </message>
+    <message>
+        <source>Saves the Throne log of this session as one file, including the core output shown in the log panel.</source>
+        <translation>将本次会话的 Throne 日志保存为一个文件，包括日志面板中显示的核心输出。</translation>
+    </message>
+    <message>
+        <source>Save logs…</source>
+        <translation>保存日志…</translation>
+    </message>
+    <message>
+        <source>There is no log file to save.</source>
+        <translation>没有可保存的日志文件。</translation>
+    </message>
+    <message>
+        <source>Save logs</source>
+        <translation>保存日志</translation>
+    </message>
+    <message>
+        <source>Log files (*.log);;All files (*)</source>
+        <translation>日志文件 (*.log);;所有文件 (*)</translation>
+    </message>
+    <message>
+        <source>Cannot write to: %1</source>
+        <translation>无法写到: %1</translation>
+    </message>
 </context>
 <context>
     <name>DialogAbout</name>

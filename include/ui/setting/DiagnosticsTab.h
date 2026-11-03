@@ -11,6 +11,7 @@ namespace Ui {
 QT_END_NAMESPACE
 
 class QColor;
+class QLabel;
 class QTimer;
 
 class DiagnosticsTab : public QWidget {
@@ -28,8 +29,11 @@ private:
     void refresh();
     void refreshStart();
     void showProgress(qint64 elapsedMs);
-    void setStatus(const QString &text, const QColor &color);
+    void saveLogs();
+    static void setStatus(QLabel *label, const QString &text, const QColor &color);
 
     Ui::DiagnosticsTab *ui;
     QTimer *coreWatch_ = nullptr;
+    QString logsStatus_;
+    bool logsFailed_ = false;
 };

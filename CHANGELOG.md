@@ -1,3 +1,18 @@
+#### 1.4.0-beta.6
+
+* Add DNS tunnels: dnstt/VayDNS, MasterDNS/StormDNS and XDNS **1**
+* Improve custom themes
+* Rework macOS Tun DNS
+* Lower the glibc requirement of the Linux builds to 2.28 **2**
+* Update sing-box
+* Fixes and Improvements
+
+**1**:
+DNS tunnels carry traffic inside DNS queries sent through public resolvers, for networks where little else gets through. They can be imported from `dnst://`, `slipnet://`, `masterdns://` and `stormdns://` links or added by hand, and the IP scanner can test resolvers for them. Refer to the [documentation](https://throneproj.github.io/advanced/dns_tunnels/) for more details.
+
+**2**:
+The zip, deb and rpm builds that bundle Qt now run on older distributions such as Ubuntu 20.04, Debian 11 and RHEL/AlmaLinux 8. This does not affect system-qt builds.
+
 #### 1.4.0-beta.5
 
 * Add About dialog and move Check for Update to the Program menu

@@ -62,6 +62,8 @@ namespace Logging {
         QString g_markerPath;
         QString g_previousSessionLog;
         bool g_previousCrashed = false;
+        // Rotated files beyond this count belong to earlier sessions.
+        int g_sessionRotations = 0;
 
 #ifdef Q_OS_WIN
         std::wstring g_crashDirNative;
@@ -217,6 +219,7 @@ namespace Logging {
                 if (QFile::exists(from)) QFile::rename(from, to);
             }
             QFile::rename(g_logPath, g_logPath + ".1");
+            g_sessionRotations = qMin(g_sessionRotations + 1, MAX_ROTATED_FILES);
             if (!openTruncated(g_file, g_logPath)) return;
             g_fileBytes = 0;
         }
@@ -482,6 +485,19 @@ namespace Logging {
     QString PreviousSessionLogPath() { return g_previousSessionLog; }
 
     QString LogDir() { return g_logDir; }
+
+    QStringList LogFiles() {
+        QMutexLocker lock(&g_mutex);
+        QStringList files;
+        if (!g_file.isOpen()) return files;
+        g_file.flush();
+        for (int i = g_sessionRotations; i >= 1; --i) {
+            const QString rotated = g_logPath + "." + QString::number(i);
+            if (QFile::exists(rotated)) files.append(rotated);
+        }
+        files.append(g_logPath);
+        return files;
+    }
 
     QString CrashDir() { return g_crashDir; }
 
