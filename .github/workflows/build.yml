@@ -681,10 +681,11 @@ jobs:
             pack: linux-arm64
             image: debian:bookworm-slim
             runner: ubuntu-24.04-arm
-          # Raspberry Pi OS bullseye (glibc 2.31) has no Qt 6, so it takes the bundled build.
+          # Raspberry Pi OS bullseye (glibc 2.31) has no Qt 6, so it takes the bundled build. Ubuntu 20.04 stands in for
+          # it: same glibc and zstd-less dpkg, and Debian 11's security pool has moved to archive.debian.org.
           - package: debian-arm64.deb
             pack: linux-arm64
-            image: debian:11
+            image: ubuntu:20.04
             runner: ubuntu-24.04-arm
       fail-fast: false
     steps:
