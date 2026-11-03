@@ -1,60 +1,61 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
-rm -rf $DEST
-mkdir -p $DEST
+# The relocatable Qt prefix from throneproj/buildqt that Throne was built against.
+QT_PREFIX="${QT_PREFIX:-$GITHUB_WORKSPACE/Qt}"
+
+rm -rf "$DEST"
+mkdir -p "$DEST/usr/lib" "$DEST/usr/plugins/platforms"
 
 #### copy binary ####
-cp $GITHUB_WORKSPACE/build/Throne $DEST
+cp "$GITHUB_WORKSPACE/build/Throne" "$DEST"
 
 #### copy Throne.png ####
-cp $GITHUB_WORKSPACE/res/public/Throne.png $DEST
+cp "$GITHUB_WORKSPACE/res/public/Throne.png" "$DEST"
 
 source "$(dirname "$0")/extract_core_artifact.sh"
 
-sudo add-apt-repository universe
-sudo apt install libfuse2
-sudo apt install patchelf
-wget https://github.com/linuxdeploy/linuxdeploy/releases/latest/download/linuxdeploy-$ARCH.AppImage
-wget https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/latest/download/linuxdeploy-plugin-qt-$ARCH.AppImage
-chmod +x linuxdeploy-$ARCH.AppImage linuxdeploy-plugin-qt-$ARCH.AppImage
+#### copy plugins ####
+cp "$QT_PREFIX/plugins/platforms/libqxcb.so" "$QT_PREFIX/plugins/platforms/libqwayland.so" "$DEST/usr/plugins/platforms"
+for dir in platformthemes imageformats iconengines wayland-shell-integration wayland-decoration-client tls; do
+    cp -r "$QT_PREFIX/plugins/$dir" "$DEST/usr/plugins"
+done
 
-export EXTRA_QT_PLUGINS="iconengines;wayland-shell-integration;wayland-decoration-client;"
-export EXTRA_PLATFORM_PLUGINS="libqwayland.so;"
-./linuxdeploy-$ARCH.AppImage --appdir $DEST --executable $DEST/Throne --plugin qt
-rm linuxdeploy-$ARCH.AppImage linuxdeploy-plugin-qt-$ARCH.AppImage
-cd $DEST
-rm -r ./usr/translations ./usr/bin ./usr/share ./apprun-hooks
+#### copy libs: what Throne and the plugins load from Qt/lib, followed through DT_NEEDED ####
+mapfile -t queue < <(find "$DEST/usr/plugins" -type f -name '*.so' | sort)
+queue=("$DEST/Throne" "${queue[@]}")
+declare -A copied=()
+for ((i = 0; i < ${#queue[@]}; i++)); do
+    for lib in $(readelf -d -W "${queue[i]}" | sed -n 's/.*(NEEDED).*\[\(.*\)\]$/\1/p'); do
+        case "$lib" in
+        libQt6*.so.* | libxcb-cursor.so.* | libxcb-util.so.*) ;;
+        *) continue ;;
+        esac
+        [ -z "${copied[$lib]:-}" ] || continue
+        copied[$lib]=1
+        cp -L "$QT_PREFIX/lib/$lib" "$DEST/usr/lib/$lib"
+        queue+=("$DEST/usr/lib/$lib")
+    done
+done
+ls "$DEST/usr/lib"
 
-# fix plugins rpath
-rm -r ./usr/plugins
-mkdir ./usr/plugins
-mkdir ./usr/plugins/platforms
-cp $QT_PLUGIN_PATH/platforms/libqxcb.so ./usr/plugins/platforms
-cp $QT_PLUGIN_PATH/platforms/libqwayland.so ./usr/plugins/platforms
-cp -r $QT_PLUGIN_PATH/platformthemes ./usr/plugins
-cp -r $QT_PLUGIN_PATH/imageformats ./usr/plugins
-cp -r $QT_PLUGIN_PATH/iconengines ./usr/plugins
-cp -r $QT_PLUGIN_PATH/wayland-shell-integration ./usr/plugins
-cp -r $QT_PLUGIN_PATH/wayland-decoration-client ./usr/plugins
-cp -r $QT_PLUGIN_PATH/tls ./usr/plugins
-patchelf --set-rpath '$ORIGIN/../../lib' ./usr/plugins/platforms/libqxcb.so
-patchelf --set-rpath '$ORIGIN/../../lib' ./usr/plugins/platforms/libqwayland.so
-patchelf --set-rpath '$ORIGIN/../../lib' ./usr/plugins/platformthemes/libqgtk3.so
-patchelf --set-rpath '$ORIGIN/../../lib' ./usr/plugins/platformthemes/libqxdgdesktopportal.so
+# Strip before patchelf: strip can break a file patchelf had to grow.
+strip --strip-unneeded "$DEST"/usr/lib/* "$DEST"/usr/plugins/*/*.so
 
-# fix extra libs...
-mkdir ./usr/lib2
-ls ./usr/lib/
-cp ./usr/lib/libQt* ./usr/lib/libxcb-cursor* ./usr/lib/libxcb-util* ./usr/lib/libicuuc* ./usr/lib/libicui18n* ./usr/lib/libicudata* ./usr/lib2
-rm -r ./usr/lib
-mv ./usr/lib2 ./usr/lib
-
-# fix lib rpath
-cd $DEST
-patchelf --set-rpath '$ORIGIN/usr/lib' ./Throne
+#### fix rpath ####
+# Only where it differs: Qt's installed RUNPATHs already resolve in this layout.
+set_runpath() {
+    [ "$(patchelf --print-rpath "$2")" = "$1" ] || patchelf --set-rpath "$1" "$2"
+}
+for lib in "$DEST"/usr/lib/*; do
+    set_runpath '$ORIGIN' "$lib"
+done
+for plugin in "$DEST"/usr/plugins/*/*.so; do
+    set_runpath '$ORIGIN/../../lib' "$plugin"
+done
+set_runpath '$ORIGIN/usr/lib' "$DEST/Throne"
 
 # handle debug info
-objcopy --only-keep-debug $DEST/Throne $DEST/Throne.debug
-strip --strip-debug --strip-unneeded $DEST/Throne
-objcopy --add-gnu-debuglink=$DEST/Throne.debug $DEST/Throne
+objcopy --only-keep-debug "$DEST/Throne" "$DEST/Throne.debug"
+strip --strip-debug --strip-unneeded "$DEST/Throne"
+objcopy --add-gnu-debuglink="$DEST/Throne.debug" "$DEST/Throne"

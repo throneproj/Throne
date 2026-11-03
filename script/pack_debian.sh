@@ -10,14 +10,15 @@ DIST="$(cd "$(dirname "$0")/../dist/linux" && pwd)"
 if [[ $3 == "systemqt" ]]; then
     DEPENDS="desktop-file-utils, libqt6core6, libqt6gui6, libqt6network6, libqt6widgets6, qt6-qpa-plugins, qt6-wayland, qt6-gtk-platformtheme, qt6-xdgdesktopportal-platformtheme, libxcb-cursor0, fonts-noto-color-emoji"
 else
-    # usr/lib bundles only Qt, ICU and xcb-cursor/xcb-util. Throne links libxcb itself, and the bundled Qt loads the
-    # rest from the system even headless, so slim images and Pi OS Lite fail in the loader without them.
-    DEPENDS="desktop-file-utils, libegl1, libgl1, libopengl0, libglx0, libfontconfig1, libfreetype6, libxkbcommon0, libx11-6, libx11-xcb1, libxcb1, libdbus-1-3, libglib2.0-0 | libglib2.0-0t64, libssl3 | libssl3t64, libgssapi-krb5-2, ca-certificates"
+    # usr/lib bundles only Qt and xcb-cursor/xcb-util, and the TLS plugin links OpenSSL statically. Throne links libxcb
+    # itself, and the bundled Qt loads the rest from the system even headless, so slim images and Pi OS Lite fail in the
+    # loader without them.
+    DEPENDS="desktop-file-utils, libegl1, libgl1, libopengl0, libglx0, libfontconfig1, libfreetype6, libxkbcommon0, libx11-6, libx11-xcb1, libxcb1, libdbus-1-3, libglib2.0-0 | libglib2.0-0t64, ca-certificates"
 fi
 
-# No dpkg-shlibdeps here, so the glibc floor comes from the highest GLIBC_ symbol version the packed files need:
-# apt then refuses a system whose loader would reject them.
-GLIBC_NEED=$( (find "linux-$ARCH$SUFFIX" -type f \( -name Throne -o -name ThroneCore -o -name '*.so*' \) -exec readelf -V -W {} + 2>/dev/null || true) \
+# No dpkg-shlibdeps here, so the glibc floor comes from the highest GLIBC_ symbol version any packed ELF file needs
+# (readelf skips the rest): apt then refuses a system whose loader would reject them.
+GLIBC_NEED=$( (find "linux-$ARCH$SUFFIX" -type f ! -name Throne.debug -exec readelf -V -W {} + 2>/dev/null || true) \
     | { grep -o 'GLIBC_[0-9][0-9.]*' || true; } | sed 's/^GLIBC_//' | sort -Vu | tail -n1)
 if [ -n "$GLIBC_NEED" ]; then
     DEPENDS="libc6 (>= $GLIBC_NEED), $DEPENDS"
@@ -110,4 +111,5 @@ chmod 0755 "$PKG/DEBIAN/postinst" "$PKG/DEBIAN/prerm" "$PKG/DEBIAN/postrm"
 
 # desktop && PATH
 
-dpkg-deb --root-owner-group --build "$PKG" "Throne-$VERSION-debian-$ARCH$SUFFIX.deb"
+# xz, not Ubuntu's zstd default: dpkg before Debian 12 (Debian 10/11, Raspberry Pi OS bullseye) cannot unpack zstd.
+dpkg-deb -Zxz --root-owner-group --build "$PKG" "Throne-$VERSION-debian-$ARCH$SUFFIX.deb"

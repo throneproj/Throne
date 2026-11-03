@@ -1094,7 +1094,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get -o Acquire::Retries=3 update \
  && apt-get -o Acquire::Retries=3 install -y --no-install-recommends \
         ca-certificates libegl1 libgl1 libopengl0 libglx0 libfontconfig1 libfreetype6 libxkbcommon0 libx11-6 libx11-xcb1 \
-        libxcb1 libdbus-1-3 libglib2.0-0t64 libssl3t64 libgssapi-krb5-2 \
+        libxcb1 libdbus-1-3 libglib2.0-0t64 \
         iproute2 curl procps python3 nftables \
  && rm -rf /var/lib/apt/lists/* /etc/machine-id /var/lib/dbus/machine-id
 EOF

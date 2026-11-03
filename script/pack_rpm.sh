@@ -28,8 +28,8 @@ Requires: (google-noto-emoji-color-fonts or google-noto-coloremoji-fonts or noto
 EOF
 )
 else
-    # Fedora/RHEL name first, then openSUSE. usr/lib bundles only Qt, ICU and xcb-cursor/xcb-util; Throne links libxcb
-    # itself, and the bundled Qt loads the rest from the system even headless.
+    # Fedora/RHEL name first, then openSUSE. usr/lib bundles only Qt and xcb-cursor/xcb-util, and the TLS plugin links
+    # OpenSSL statically; Throne links libxcb itself, and the bundled Qt loads the rest from the system even headless.
     DEPENDS=$(cat <<'EOF'
 Requires: (libglvnd-egl or libEGL1)
 Requires: (libglvnd-opengl or libOpenGL0)
@@ -43,15 +43,14 @@ Requires: (libX11-xcb or libX11-xcb1)
 Requires: (libxcb or libxcb1)
 Requires: (dbus-libs or libdbus-1-3)
 Requires: (glib2 or libglib-2_0-0)
-Requires: (openssl-libs or libopenssl3)
-Requires: (krb5-libs or krb5)
 Requires: ca-certificates
 EOF
 )
 fi
 
-# AutoReqProv is off, so the glibc floor comes from the highest GLIBC_ symbol version the packed files need.
-GLIBC_NEED=$( (find "$SRC_DIR" -type f \( -name Throne -o -name ThroneCore -o -name '*.so*' \) -exec readelf -V -W {} + 2>/dev/null || true) \
+# AutoReqProv is off, so the glibc floor comes from the highest GLIBC_ symbol version any packed ELF file needs (readelf
+# skips the rest).
+GLIBC_NEED=$( (find "$SRC_DIR" -type f ! -name Throne.debug -exec readelf -V -W {} + 2>/dev/null || true) \
     | { grep -o 'GLIBC_[0-9][0-9.]*' || true; } | sed 's/^GLIBC_//' | sort -Vu | tail -n1)
 if [ -n "$GLIBC_NEED" ]; then
     DEPENDS="Requires: glibc >= $GLIBC_NEED
@@ -146,7 +145,7 @@ if [ -d /run/systemd/system ]; then
 fi
 EOF
 
-# zstd -19 like the .deb files; T0 lets rpm use one worker per core.
+# zstd -19, which RHEL 8's rpm reads too; T0 lets rpm use one worker per core.
 rpmbuild -bb \
   --define "_topdir $WORK" \
   --define "_binary_payload w19T0.zstdio" \
