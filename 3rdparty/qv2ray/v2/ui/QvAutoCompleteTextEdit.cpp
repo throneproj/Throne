@@ -62,11 +62,15 @@
 #include <QtDebug>
 
 namespace Qv2ray::ui::widgets {
-    AutoCompleteTextEdit::AutoCompleteTextEdit(const QString &prefix, const QStringList &sourceStrings, QWidget *parent) : QPlainTextEdit(parent) {
+    AutoCompleteTextEdit::AutoCompleteTextEdit(const QString &prefix, const QStringList &sourceStrings, QWidget *parent)
+        : AutoCompleteTextEdit(prefix, new QStringListModel(sourceStrings, this), parent) {
+    }
+
+    AutoCompleteTextEdit::AutoCompleteTextEdit(const QString &prefix, QAbstractItemModel *sourceModel, QWidget *parent) : QPlainTextEdit(parent) {
         this->prefix = prefix;
         this->setLineWrapMode(QPlainTextEdit::NoWrap);
         c = new QCompleter(this);
-        c->setModel(new QStringListModel(sourceStrings, c));
+        c->setModel(sourceModel);
         c->setWidget(this);
         c->setCompletionMode(QCompleter::PopupCompletion);
         c->setCaseSensitivity(Qt::CaseInsensitive);
