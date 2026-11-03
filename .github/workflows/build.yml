@@ -424,11 +424,11 @@ jobs:
         uses: actions/checkout@v7.0.1
       - *checkout-dashboard
       - *bundle-dashboard
-      # Throne's CMakeLists needs X11 and xcb, Qt6Gui's config OpenGL; cmake, patchelf and binutils come with the image.
-      # EL8's ninja-build 1.8 can't read CMake 4's multi-output rules.
+      # Throne's CMakeLists needs X11 and xcb, Qt6Gui's config OpenGL, and the link resolves libQt6Gui's libxkbcommon;
+      # cmake, patchelf and binutils come with the image. EL8's ninja-build 1.8 can't read CMake 4's multi-output rules.
       - name: Installing the build dependencies
         run: |
-          dnf install -y libX11-devel libxcb-devel mesa-libGL-devel
+          dnf install -y libX11-devel libxcb-devel mesa-libGL-devel libxkbcommon
           pipx install ninja==1.13.2
       # EPEL's ccache 3.7 ignores the cache_dir the action sets, so take the action's pinned static ccache instead.
       - name: Setup compiler cache
