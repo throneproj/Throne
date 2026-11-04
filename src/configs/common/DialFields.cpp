@@ -15,25 +15,19 @@ namespace Configs {
             return Checks::BindAddress6(value);
         }
 
-        // sing-box DialerOptions keys (option/outbound.go) that Throne has no field for.
+        // The DialerOptions keys Throne has no field for that change how the server is reached; it sets the local knobs itself.
         void dialFieldsReportUnmodelled(const QJsonObject& object)
         {
-            static const QStringList unmodelled = {"detour", "bind_address_no_port", "protect_path", "routing_mark", "netns",
-                                                   "disable_tcp_keep_alive", "tcp_keep_alive", "tcp_keep_alive_interval",
-                                                   "domain_resolver", "network_strategy", "network_type", "fallback_network_type",
-                                                   "fallback_delay", "tls_fragment", "domain_strategy"};
+            static const QStringList reported = {"detour", "tls_fragment"};
             // The core matches keys case-insensitively.
             QStringList dropped;
             for (const auto& key : object.keys()) {
-                if (unmodelled.contains(key, Qt::CaseInsensitive)) dropped << key.toLower();
+                if (reported.contains(key, Qt::CaseInsensitive)) dropped << key.toLower();
             }
             if (dropped.isEmpty()) return;
             auto message = QCoreApplication::translate("Validation", "These dial options are not supported and were ignored: %1.").arg(dropped.join(", "));
             if (dropped.contains("detour")) {
                 message += ' ' + QCoreApplication::translate("Validation", "To reach this server through another one, build a chain profile instead of a detour.");
-            }
-            if (dropped.contains("domain_resolver")) {
-                message += ' ' + QCoreApplication::translate("Validation", "Throne picks the resolver for server names itself.");
             }
             ParseDiag::Warn(QString(), message);
         }

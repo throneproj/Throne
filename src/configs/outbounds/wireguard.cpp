@@ -1,6 +1,7 @@
 #include "include/configs/outbounds/wireguard.h"
 
 #include <QCoreApplication>
+#include <QHostAddress>
 #include <QJsonArray>
 #include <QRegularExpression>
 #include <QUrlQuery>
@@ -9,6 +10,7 @@
 #include "include/configs/ParseDiagnostics.h"
 #include "include/configs/common/utils.h"
 
+#include <cmath>
 #include <limits>
 #include <tuple>
 #include <utility>
@@ -45,6 +47,17 @@ namespace Configs {
                 if (AcceptOptional("address", Validation::Cidr(address), address)) kept << address;
             }
             addresses = kept;
+        }
+
+        // Full tunnels also come as halves (0.0.0.0/1 + 128.0.0.0/1) or as "everything but the LAN" lists.
+        bool wireguardFullTunnel(const QStringList& allowedIps) {
+            double v4 = 0, v6 = 0;
+            for (const auto& cidr : allowedIps) {
+                const auto [network, prefix] = QHostAddress::parseSubnet(cidr);
+                if (prefix < 0) continue;
+                (network.protocol() == QAbstractSocket::IPv4Protocol ? v4 : v6) += std::ldexp(1.0, -prefix);
+            }
+            return v4 >= 0.5 || v6 >= 0.5;
         }
     }
 
@@ -351,19 +364,17 @@ namespace Configs {
                 else if (key == "maxhandshakeattempts" || key == "max_handshake_attempts") max_handshake_attempts = value, enable_amnezia = true;
                 else if (key == "randomtrailers" || key == "random_trailers") random_trailers = ParseAmneziaBool(value), enable_amnezia = true;
                 else if (key == "disablecookies" || key == "disable_cookies") disable_cookies = ParseAmneziaBool(value), enable_amnezia = true;
-                else if (key == "dns") {
-                    ParseDiag::Warn(rawKey, QCoreApplication::translate("Validation", "Ignored; Throne resolves names with its own DNS settings."), value);
-                }
                 else if (key == "allowedips") allowedIps << value.remove(' ').split(',', Qt::SkipEmptyParts);
-                else if (key != "listenport" && key != "table" && key != "fwmark" && key != "saveconfig" && key != "preup" &&
-                         key != "postup" && key != "predown" && key != "postdown") {
+                // wg-quick's host-side settings: Throne owns DNS and routing.
+                else if (key != "dns" && key != "listenport" && key != "table" && key != "fwmark" && key != "saveconfig" &&
+                         key != "preup" && key != "postup" && key != "predown" && key != "postdown") {
                     ParseDiag::Warn(rawKey, QCoreApplication::translate("Validation", "Unknown setting, ignored."));
                 }
             }
             if (peers > 1) {
                 ParseDiag::Warn("[Peer]", QCoreApplication::translate("Validation", "Only the last of the %1 [Peer] sections is used.").arg(peers));
             }
-            if (!allowedIps.isEmpty() && !allowedIps.contains(QStringLiteral("0.0.0.0/0"))) {
+            if (!allowedIps.isEmpty() && !wireguardFullTunnel(allowedIps)) {
                 ParseDiag::Warn("AllowedIPs", QCoreApplication::translate("Validation", "Ignored; Throne sends all traffic of this profile through the tunnel."),
                                 allowedIps.join(", "));
             }

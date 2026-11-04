@@ -124,10 +124,8 @@ namespace Configs {
             bean.encryption_key = parsed.params.value("mkey");
             if (!masterDnsReadMethod(bean, parsed.params.value("encryption"))) return false;
             if (parsed.backend == QLatin1String("socks")) {
+                // Its user name and password guard only a local listener, which this profile does not open.
                 bean.mode = "socks5";
-                if (!parsed.params.value("user").isEmpty() || !parsed.params.value("password").isEmpty()) {
-                    ParseDiag::Warn("mode", QCoreApplication::translate("Validation", "The SOCKS user name and password only guard a local listener, which this profile does not open; they were ignored."));
-                }
             } else if (parsed.backend == QLatin1String("custom")) {
                 bean.mode = "tcp";
             } else if (parsed.backend.isEmpty()) {

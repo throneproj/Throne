@@ -4255,10 +4255,6 @@ Error: %1</source>
         <translation>روش رمزگذاری ناشناخته است: عددی از 0 تا 5 به کار ببرید.</translation>
     </message>
     <message>
-        <source>The SOCKS user name and password only guard a local listener, which this profile does not open; they were ignored.</source>
-        <translation>نام کاربری و کلمه عبور SOCKS فقط از یک شنوندهٔ محلی محافظت می‌کنند که این نمایه آن را باز نمی‌کند؛ نادیده گرفته شدند.</translation>
-    </message>
-    <message>
         <source>MasterDNS only carries a SOCKS or a custom service.</source>
         <translation>MasterDNS فقط SOCKS یا یک سرویس سفارشی را حمل می‌کند.</translation>
     </message>

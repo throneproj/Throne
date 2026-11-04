@@ -18,8 +18,6 @@ namespace Configs {
 
         void anyTlsDropFastOpen(DialFields& dial)
         {
-            if (!dial.tcp_fast_open) return;
-            ParseDiag::Warn("tcp_fast_open", QCoreApplication::translate("Validation", "AnyTLS does not support TCP Fast Open, so it was turned off."));
             dial.tcp_fast_open = false;
         }
     }

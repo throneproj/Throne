@@ -346,9 +346,8 @@ namespace Configs {
 
         tls->ParseFromLink(link);
         tls->enabled = true; // Hysteria always uses tls
-        // The official hysteria2 URI pins a certificate's SHA-256 in hex, as sing-box's certificate_sha256 does in base64.
+        // Hex here, base64 in sing-box's certificate_sha256, which (unlike the official client) matches only the leaf certificate.
         if (query.hasQueryItem("pinSHA256")) {
-            bool pinned = false;
             for (auto pin : query.queryItemValue("pinSHA256", QUrl::FullyDecoded).split(u',', Qt::SkipEmptyParts)) {
                 pin = pin.trimmed();
                 // The official client's normalizeCertHash strips both separators.
@@ -363,11 +362,6 @@ namespace Configs {
                     continue;
                 }
                 if (!tls->certificate_sha256.contains(hash)) tls->certificate_sha256 << hash;
-                pinned = true;
-            }
-            // The official client accepts a pin of any certificate in the chain; sing-box checks only the server's own.
-            if (pinned) {
-                ParseDiag::Warn("pinSHA256", QCoreApplication::translate("Validation", "Only the server's own certificate is checked against this pin; if it is the hash of an intermediate or root certificate, the connection will fail."));
             }
         }
         quic->ParseFromLink(link);

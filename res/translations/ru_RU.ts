@@ -13461,10 +13461,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Чтобы подключаться к этому серверу через другой, создайте профиль цепочки вместо detour.</translation>
     </message>
     <message>
-        <source>Throne picks the resolver for server names itself.</source>
-        <translation>Резолвер для имен серверов Throne выбирает сам.</translation>
-    </message>
-    <message>
         <source>A missing, 0 or negative speed is sent as 1 Mbps. Enter your speed in Mbps, for example 100.</source>
         <translation>Отсутствующая, нулевая или отрицательная скорость отправляется как 1 Мбит/с. Укажите скорость в Мбит/с, например 100.</translation>
     </message>
@@ -13531,10 +13527,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Unknown cipher suite. Use Go&apos;s names, for example TLS_AES_128_GCM_SHA256.</source>
         <translation>Неизвестный набор шифров. Используйте названия из Go, например TLS_AES_128_GCM_SHA256.</translation>
-    </message>
-    <message>
-        <source>The trailing = padding was removed from the REALITY public key.</source>
-        <translation>Из публичного ключа REALITY удалены завершающие символы = (padding).</translation>
     </message>
     <message>
         <source>Unknown fingerprint &quot;%1&quot;. Use chrome, firefox, safari, ios, android, edge, 360, qq, random, randomized or unsafe.</source>
@@ -13813,10 +13805,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>&quot;%1&quot; — недопустимый порт; укажите число от 1 до 65535.</translation>
     </message>
     <message>
-        <source>AnyTLS does not support TCP Fast Open, so it was turned off.</source>
-        <translation>AnyTLS не поддерживает TCP Fast Open, поэтому он был отключен.</translation>
-    </message>
-    <message>
         <source>Cannot run more profiles than are ranked (%1).</source>
         <translation>Нельзя запускать больше профилей, чем ранжируется (%1).</translation>
     </message>
@@ -13999,10 +13987,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>The certificate pin must be a SHA-256 hash in hex (64 characters) or base64 (44 characters).</source>
         <translation>Pin сертификата должен быть хешем SHA-256 в hex (64 символа) или base64 (44 символа).</translation>
-    </message>
-    <message>
-        <source>Only the server&apos;s own certificate is checked against this pin; if it is the hash of an intermediate or root certificate, the connection will fail.</source>
-        <translation>С этим pin сверяется только собственный сертификат сервера; если это хеш промежуточного или корневого сертификата, подключение не удастся.</translation>
     </message>
     <message>
         <source>Not a speed such as 100 Mbps or 12 MBps, so it was ignored.</source>
@@ -14511,10 +14495,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Unknown tag &lt;%1&gt;. Use &lt;b 0x...&gt;, &lt;r N&gt;, &lt;rc N&gt;, &lt;rd N&gt;, &lt;dz N&gt;, &lt;t&gt;, &lt;d&gt; or &lt;ds&gt;.</source>
         <translation>Неизвестный тег &lt;%1&gt;. Используйте &lt;b 0x...&gt;, &lt;r N&gt;, &lt;rc N&gt;, &lt;rd N&gt;, &lt;dz N&gt;, &lt;t&gt;, &lt;d&gt; или &lt;ds&gt;.</translation>
-    </message>
-    <message>
-        <source>Ignored; Throne resolves names with its own DNS settings.</source>
-        <translation>Игнорируется; Throne разрешает имена через собственные настройки DNS.</translation>
     </message>
     <message>
         <source>Unknown setting, ignored.</source>
@@ -15623,10 +15603,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Unknown encryption method: use a number from 0 to 5.</source>
         <translation>Неизвестный метод шифрования: используйте число от 0 до 5.</translation>
-    </message>
-    <message>
-        <source>The SOCKS user name and password only guard a local listener, which this profile does not open; they were ignored.</source>
-        <translation>Имя пользователя и пароль SOCKS защищают только локальный слушатель, который этот профиль не открывает; они проигнорированы.</translation>
     </message>
     <message>
         <source>MasterDNS only carries a SOCKS or a custom service.</source>

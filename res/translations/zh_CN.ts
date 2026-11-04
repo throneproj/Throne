@@ -13204,10 +13204,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>未知的加密方式：请使用 0 到 5 之间的数字。</translation>
     </message>
     <message>
-        <source>The SOCKS user name and password only guard a local listener, which this profile does not open; they were ignored.</source>
-        <translation>SOCKS 用户名和密码只用于保护本地监听器，而这个配置档不会开启它；已忽略。</translation>
-    </message>
-    <message>
         <source>MasterDNS only carries a SOCKS or a custom service.</source>
         <translation>MasterDNS 只能承载 SOCKS 或自定义服务。</translation>
     </message>
