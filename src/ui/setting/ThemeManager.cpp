@@ -5,6 +5,11 @@
 #include <QPalette>
 #include <QColor>
 #include <QMap>
+#include <QScopedValueRollback>
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+#include <QStyleHints>
+#endif
 
 #ifdef Q_OS_MACOS
 #include <QEvent>
@@ -328,7 +333,21 @@ private:
 };
 #endif
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+// The native title bars follow the requested scheme; each request re-reads the whole platform theme, so repeats are skipped.
+static void requestColorScheme(Qt::ColorScheme scheme) {
+    static auto requested = Qt::ColorScheme::Unknown;
+    if (scheme == requested) return;
+    requested = scheme;
+    qApp->styleHints()->setColorScheme(scheme);
+}
+#endif
+
 void ThemeManager::ApplyTheme(const QString &theme, bool force) {
+    // A scheme request re-enters through MainWindow's colorSchemeChanged handler; the outer call finishes the job.
+    if (applying) return;
+    const QScopedValueRollback guard(applying, true);
+
     if (this->system_style_name.isEmpty()) {
         this->system_style_name = qApp->style()->name();
         this->system_palette = qApp->palette();
@@ -354,9 +373,17 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
     if (enteringCustom) {
         // The whole palette goes on first, or a colour role leaks from Qt or the previous theme.
         qApp->setPalette(buildThemePalette(colors));
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+        // After the palette: Qt darkens a title bar only while the app palette is dark.
+        requestColorScheme(colors.windowText.lightness() > colors.window.lightness() ? Qt::ColorScheme::Dark : Qt::ColorScheme::Light);
+#endif
         themeSheet = lowerTheme == "qdarkstyle" ? ReadFileText(":/qdarkstyle/dark/darkstyle.qss")
                                                 : ReadFileText(":/qss/" + lowerTheme + ".css");
     } else {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 8, 0)
+        // Before restyling: a style takes its palette from the platform theme, which honours the requested scheme.
+        requestColorScheme(Qt::ColorScheme::Unknown);
+#endif
         if (leavingCustom) {
             // Drop the outgoing sheet before restyling, or its rules paint a frame against the
             // incoming palette. A QStyleFactory style owns its own palette.

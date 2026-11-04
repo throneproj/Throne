@@ -47,6 +47,7 @@ signals:
 
 private:
     QHash<int, QIcon> standardIcons; // the current style's; ApplyTheme() reloads the message box icons
+    bool applying = false;
 };
 
 ThemeManager *themeManager();
