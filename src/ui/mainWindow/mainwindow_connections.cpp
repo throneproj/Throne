@@ -426,6 +426,7 @@ void MainWindow::UpdateConnectionList(const QList<Stats::ConnectionMetadata>& co
     if (connectionsModel == nullptr) return;
     connectionsModel->setConnections(connections, Stats::connection_lister->getSort(), Stats::connection_lister->isSortAscending());
     syncConnectionExpansion();
+    ui->connections->doItemsLayout();
     for (const int column : {ConnectionsTreeModel::ColTraffic, ConnectionsTreeModel::ColSpeed})
         connectionFilterHeader->growSection(column);
 }
