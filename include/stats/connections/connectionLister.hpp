@@ -5,7 +5,9 @@
 #include <QHash>
 #include <QSet>
 #include <QPair>
+#include <QList>
 #include <atomic>
+#include <functional>
 
 namespace Stats
 {
@@ -48,6 +50,7 @@ namespace Stats
         QString processPath;
         QString source;        // raw "ip:port" reported by the core, empty when unknown
         QString sourceDisplay; // tr("Local") for this machine, else the client's bare IP
+        bool sourceLocal = false; // sourceDisplay is the tr("Local") label
         QString rule;          // the matched route rule as sing-box prints it, empty when routed by final
         QString ruleItem;      // the rule's entries that matched, e.g. "domain_suffix=github.com"; empty when the core could not tell
         long long closedAtMs = 0; // 0 while live
@@ -68,6 +71,17 @@ namespace Stats
         // Selects the 1 Hz vs relaxed poll cadence; switching to visible wakes the loop at once.
         void SetInView(bool inView);
 
+        // The Throne API's watch, independent of the window: polls at 1 Hz and feeds the API sink; switching on wakes the loop.
+        void SetApiWatch(bool watch);
+
+        // Open rows first, then the recently closed ones, each newest first; at most kSnapshotMaxRows. polledAtMs: epoch ms.
+        using ApiSink = std::function<void(const QList<ConnectionMetadata>& rows, qint64 polledAtMs)>;
+
+        // Main thread only; the polls hop to the main thread before calling it.
+        void SetApiSink(ApiSink sink);
+
+        static constexpr qsizetype kSnapshotMaxRows = 2000;
+
         void stopLoop();
 
         void setSort(ConnectionSort newSort);
@@ -83,8 +97,8 @@ namespace Stats
         void SetOutboundNames(const QHash<QString, QString>& names);
 
     private:
-        // Off-view polls still sample the traffic stats; only the sort and the UI push are skipped.
-        void update(bool pushToUi);
+        // Off-view polls still sample the traffic stats; only the sort and the pushes are skipped.
+        void update(bool pushToUi, bool pushToApi);
 
         // Rebuilt from the active set on every poll, so it self-prunes.
         struct SpeedSample
@@ -99,10 +113,11 @@ namespace Stats
 
         QMutex mu;
 
-        // Interruptible poll sleep: SetInView(true), ForceUpdate() and stopLoop() wake it early.
+        // Interruptible poll sleep: SetInView(true), SetApiWatch(true), ForceUpdate() and stopLoop() wake it early.
         QMutex waitMu_;
         QWaitCondition waitCond_;
         std::atomic<bool> inView_{false};
+        std::atomic<bool> apiWatch_{false};
         bool forced_ = false; // guarded by waitMu_
 
         std::atomic<bool> stop{false};
@@ -117,6 +132,8 @@ namespace Stats
 
         QMutex namesMu_;
         QHash<QString, QString> outboundNames_;
+
+        ApiSink apiSink_; // main thread only
     };
 
     extern ConnectionLister* connection_lister;

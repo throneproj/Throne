@@ -20,6 +20,7 @@
 #include "include/api/RPC.h"
 #include "include/api/remote/Server.hpp"
 #include "include/configs/generate.h"
+#include "include/engine/EditLocks.h"
 #include "include/engine/EngineHost.h"
 #include "include/engine/ThreadCheck.h"
 #include "include/engine/app/ExitController.h"
@@ -95,7 +96,10 @@ void MainWindow::openRouteProfileEditor(int routeId) {
         connect(item, &RouteItem::settingsChanged, this, onSaved);
         editor = item;
     }
-    connect(editor, &QDialog::finished, this, [=, this] {
+    // The API must not edit what this editor saves back on OK.
+    auto routeLock = std::make_shared<Engine::EditLock>(Engine::EditTarget::Routes, routeId);
+    connect(editor, &QDialog::finished, this, [this, editor, routeLock]() mutable {
+        routeLock.reset();
         editor->deleteLater();
         setDialogInUse(false);
     });

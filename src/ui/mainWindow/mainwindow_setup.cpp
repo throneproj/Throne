@@ -175,6 +175,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(engineEvents, &Engine::EngineEvents::profilesRemoved, this, [this](const QList<int> &) {
         refresh_proxy_list({}, true, RefreshAnchor::Removal);
     });
+    connect(engineEvents, &Engine::EngineEvents::profilesChanged, this, [this](const QList<int> &) { refresh_proxy_list({}, true); });
+    // The title and tray tooltip name the routing profile in effect.
+    connect(engineEvents, &Engine::EngineEvents::routesChanged, this, [this] { refresh_status(); });
     connect(engineEvents, &Engine::EngineEvents::settingsChanged, this, [this, syncSettingsMirrors](const QStringList &) {
         refresh_status();
         syncSettingsMirrors();

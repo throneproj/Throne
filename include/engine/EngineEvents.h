@@ -23,6 +23,8 @@ namespace Engine {
         static void ExtraCoreExited();
         static void GroupsChanged();
         static void ProfilesRemoved(const QList<int> &profileIds);
+        static void ProfilesChanged(const QList<int> &profileIds);
+        static void RoutesChanged();
         static void SettingsChanged(const QStringList &keys);
 
     signals:
@@ -40,6 +42,10 @@ namespace Engine {
         // Groups were added, deleted or repaired outside the window.
         void groupsChanged();
         void profilesRemoved(const QList<int> &profileIds);
+        // Profiles were edited outside the window.
+        void profilesChanged(const QList<int> &profileIds);
+        // Routing profiles were added, edited or deleted outside the window.
+        void routesChanged();
         // API names of the settings (Engine::SettingsRegistry) that changed outside the window.
         void settingsChanged(const QStringList &keys);
 

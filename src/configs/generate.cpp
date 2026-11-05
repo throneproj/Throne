@@ -738,17 +738,7 @@ namespace Configs {
             // A verbatim raw profile takes no twins, and an unreachable bridge still starts a tun.
             ctx.l3Bridge = l3BridgeEnabled(ctx) && !(routeChain->isRaw && routeChain->preventModifications);
 
-            const bool warpMissing = settings.warp_mode == "masque"
-                ? settings.warp_masque_private_key.isEmpty() ||
-                  settings.warp_masque_peer_public_key.isEmpty() ||
-                  settings.warp_masque_ep.isEmpty() ||
-                  settings.warp_masque_ifc_addrs.isEmpty()
-                : settings.warp_private_key.isEmpty() ||
-                  settings.warp_public_key.isEmpty() ||
-                  settings.warp_ep.isEmpty() ||
-                  settings.warp_ifc_addrs.isEmpty() ||
-                  (settings.warp_mode == "amnezia" && settings.warp_amnezia_packets.isEmpty());
-            if (settings.enable_warp && warpMissing) {
+            if (settings.enable_warp && !WarpConfigured(settings.warp_mode)) {
                 ctx.error = "Warp is enabled but its config has not been generated. Please generate the Warp config first in Routing Settings.";
                 return;
             }
@@ -3484,5 +3474,21 @@ namespace Configs {
     void SplitWarpEndpoint(const QString &endpoint, int defaultPort, QString &host, int &port)
     {
         splitWarpEndpoint(endpoint, defaultPort, host, port);
+    }
+
+    bool WarpConfigured(const QString &mode)
+    {
+        const auto &settings = *dataManager->settingsRepo;
+        if (mode == "masque") {
+            return !settings.warp_masque_private_key.isEmpty() &&
+                   !settings.warp_masque_peer_public_key.isEmpty() &&
+                   !settings.warp_masque_ep.isEmpty() &&
+                   !settings.warp_masque_ifc_addrs.isEmpty();
+        }
+        return !settings.warp_private_key.isEmpty() &&
+               !settings.warp_public_key.isEmpty() &&
+               !settings.warp_ep.isEmpty() &&
+               !settings.warp_ifc_addrs.isEmpty() &&
+               !(mode == "amnezia" && settings.warp_amnezia_packets.isEmpty());
     }
 }

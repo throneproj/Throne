@@ -120,6 +120,9 @@ namespace Configs {
         // The positional placeholder paired with an endpoint, correlated by type + outboundID.
         static std::shared_ptr<RouteRule> MakeEndpointRule(int endpointProfileID);
 
+        // An empty simple rule of that type, as the Basic tab starts one; nullptr for a type that is not simple.
+        static std::shared_ptr<RouteRule> NewSimpleRule(ruleType type);
+
         // Each listed endpoint, followed by its opened-up inner hops.
         QList<int> endpointRuleTargets() const;
 

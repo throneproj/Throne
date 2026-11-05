@@ -162,6 +162,13 @@ namespace Configs {
         return rules;
     }
 
+    std::shared_ptr<RouteRule> RouteProfile::NewSimpleRule(ruleType type) {
+        for (auto &rule : get_simple_rules()) {
+            if (rule->type == type) return rule;
+        }
+        return nullptr;
+    }
+
     void RouteProfile::reset_simple_rule(std::shared_ptr<RouteRule>& rule) {
         auto cleanRules = get_simple_rules();
         for (auto &r : cleanRules) {

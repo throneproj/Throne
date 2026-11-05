@@ -805,6 +805,10 @@ namespace Configs {
         }
     }
 
+    QStringList RouteRule::action_scope(const QString& attr) {
+        return routeRuleActionScopes().value(attr);
+    }
+
     bool RouteRule::is_list_attribute(const QString& attr) {
         static const QSet<QString> lists = {
             "inbound", "domain", "domain_suffix", "domain_keyword", "domain_regex", "source_ip_cidr", "ip_cidr",

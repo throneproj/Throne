@@ -133,6 +133,26 @@ namespace RemoteApi {
         void getLogs(const Request &request, const Responder &respond, int id);
         void getEvents(const Request &request, const Responder &respond, int id);
 
+        // Profile editing (RouterProfileConfig.cpp).
+        void getProfileConfig(const Request &request, const Responder &respond, int id);
+        void putProfileConfig(const Request &request, const Responder &respond, int id);
+
+        // Routing profile editing (RouterRoutes.cpp).
+        void getRouteSchema(const Request &request, const Responder &respond, int id);
+        void getRoute(const Request &request, const Responder &respond, int id);
+        void postRoute(const Request &request, const Responder &respond, int id);
+        void putRoute(const Request &request, const Responder &respond, int id);
+        void deleteRoute(const Request &request, const Responder &respond, int id);
+
+        // Live connections (RouterConnections.cpp).
+        void getConnections(const Request &request, const Responder &respond, int id);
+        void deleteConnections(const Request &request, const Responder &respond, int id);
+
+        // WARP (RouterWarp.cpp).
+        void getWarp(const Request &request, const Responder &respond, int id);
+        void putWarp(const Request &request, const Responder &respond, int id);
+        void postWarpRegister(const Request &request, const Responder &respond, int id);
+
         static Response badRequest(const QString &message);
         static Response notFound(const QString &message);
         static Response noProfiles();

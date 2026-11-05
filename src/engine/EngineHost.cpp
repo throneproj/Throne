@@ -437,6 +437,18 @@ namespace Engine {
         return m_stats->freshLiveRates(maxAgeMs);
     }
 
+    void EngineHost::watchConnections() {
+        m_stats->watchConnections();
+    }
+
+    ConnectionSnapshot EngineHost::connectionSnapshot() const {
+        return m_stats->connectionSnapshot();
+    }
+
+    void EngineHost::closeConnections(const QStringList &ids, const std::function<void(const ConnectionCloseResult &)> &done) {
+        StatsService::closeConnections(ids, done);
+    }
+
     bool EngineHost::testsRunning() {
         return m_tests->isRunning();
     }

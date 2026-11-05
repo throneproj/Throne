@@ -111,6 +111,9 @@ namespace Configs
 
     constexpr int warpProfileID = -2408;
 
+    // The stored identity of the built-in WARP's mode ("wireguard", "amnezia" or "masque") is complete enough to build.
+    bool WarpConfigured(const QString &mode);
+
     struct PredefinedDNSEntry {
         QString domain;
         QStringList v4;
