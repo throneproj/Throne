@@ -323,6 +323,7 @@ message IPTestRes {
   optional string ip = 2 [default = "" ];
   optional string country_code = 3 [default = ""];
   optional string error = 4 [default = ""];
+  optional int32 fraud_score = 5 [default = -1];
 }
 
 message IPTestRequest {
@@ -339,6 +340,7 @@ message IPTestRequest {
   reserved "xray_outbound_dns_address";
   // See TestReq.xray_outbound_dns_strategy.
   optional string xray_outbound_dns_strategy = 10 [default = ""];
+  optional bool risk_test = 11 [default = false];
 }
 
 message IPTestResp {

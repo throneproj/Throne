@@ -121,7 +121,10 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
             return address.value();
         }
         case ColName: return profile->outbound ? profile->outbound->name : QString();
-        case ColTestResult: return profile->DisplayTestResult();
+        case ColLatency: return profile->DisplayLatency();
+        case ColExitIP: return profile->DisplayExitIP();
+        case ColSpeed: return profile->DisplaySpeed();
+        case ColRiskFactor: return profile->DisplayRiskFactor();
         case ColTraffic: return profile->DisplayTraffic();
         default: return {};
         }
@@ -135,9 +138,16 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
         return {};
     }
     if (role == Qt::ForegroundRole) {
-        if (index.column() == ColTestResult) {
-            QColor latencyColor = profile->DisplayLatencyColor();
-            if (latencyColor.isValid()) return latencyColor;
+        if (index.column() == ColLatency) {
+            const QColor latencyColor = profile->DisplayLatencyColor();
+            return latencyColor.isValid() ? QVariant(latencyColor) : QVariant();
+        }
+        if (index.column() == ColExitIP || index.column() == ColSpeed) return {};
+        if (index.column() == ColRiskFactor) {
+            if (profile->ip_risk_factor < 0) return {};
+            if (profile->ip_risk_factor <= 30) return tokens.success;
+            if (profile->ip_risk_factor <= 70) return QColor(Qt::darkYellow);
+            return tokens.danger;
         }
         if (isRunning && linkColor.isValid()) return linkColor;
         return {};
@@ -155,7 +165,10 @@ QVariant ProfilesTableModel::headerData(int section, Qt::Orientation orientation
         case ColType: return tr("Type");
         case ColAddress: return tr("Address");
         case ColName: return tr("Name");
-        case ColTestResult: return tr("Test Result");
+        case ColLatency: return tr("Latency");
+        case ColExitIP: return tr("Exit IP");
+        case ColSpeed: return tr("Speed");
+        case ColRiskFactor: return tr("Risk factor");
         case ColTraffic: return tr("Traffic");
         default: return {};
         }
@@ -225,7 +238,6 @@ void ProfilesTableModel::refreshTable(const QList<int> &ids, bool mayNeedReset) 
         m_addressCache.clear();
         m_filterKeys.clear();
         m_filterIndexBuilt = false;
-
         QModelIndex topLeft = index(0, 0);
         QModelIndex bottomRight = index(m_profileIds.count() - 1, columnCount() - 1);
 
@@ -236,11 +248,18 @@ void ProfilesTableModel::refreshTable(const QList<int> &ids, bool mayNeedReset) 
 void ProfilesTableModel::refreshProfileId(int profileId) {
     if (!id2row.contains(profileId)) return;
     m_addressCache.remove(profileId);
-    // Keep the filter key in step before dataChanged makes the proxy re-test the row.
-    if (m_filterIndexBuilt) {
-        if (auto profile = Configs::dataManager->profilesRepo->GetProfile(profileId)) {
-            m_filterKeys.insert(profileId, makeFilterKey(profile));
+    const auto profile = Configs::dataManager->profilesRepo->GetProfile(profileId);
+    if (m_cache.contains(profileId)) {
+        if (profile) m_cache[profileId] = profile;
+        else {
+            m_cache.remove(profileId);
+            m_lruOrder.removeAll(profileId);
         }
+    }
+    // Update filter keys before observers process dataChanged.
+    if (m_filterIndexBuilt) {
+        if (profile) m_filterKeys.insert(profileId, makeFilterKey(profile));
+        else m_filterKeys.remove(profileId);
     }
     auto r = id2row.value(profileId);
     QModelIndex top = index(r, 0);
@@ -273,14 +292,22 @@ int ProfilesTableModel::indexOfProfile(int id) {
     return -1;
 }
 
-int ProfilesTableModel::columnOfSort(GroupSortMethod::GroupSortMethod method) {
-    switch (method) {
+int ProfilesTableModel::columnOfSort(const Configs::Group &group) {
+    switch (group.sort.method) {
     case GroupSortMethod::ByType:
     case GroupSortMethod::BySecurity: return ColType;
     case GroupSortMethod::ByAddress: return ColAddress;
     case GroupSortMethod::ByName: return ColName;
+    case GroupSortMethod::ByLatency: return ColLatency;
     case GroupSortMethod::ByTestResult:
-    case GroupSortMethod::ByLatency: return ColTestResult;
+        switch (group.test_sort_by) {
+        case Configs::testBy::latency: return ColLatency;
+        case Configs::testBy::ipOut: return ColExitIP;
+        case Configs::testBy::dlSpeed:
+        case Configs::testBy::ulSpeed: return ColSpeed;
+        case Configs::testBy::riskFactor: return ColRiskFactor;
+        default: return -1;
+        }
     case GroupSortMethod::ByTraffic: return ColTraffic;
     default: return -1;
     }
@@ -291,7 +318,10 @@ GroupSortMethod::GroupSortMethod ProfilesTableModel::sortOfColumn(int column) {
     case ColType: return GroupSortMethod::ByType;
     case ColAddress: return GroupSortMethod::ByAddress;
     case ColName: return GroupSortMethod::ByName;
-    case ColTestResult: return GroupSortMethod::ByTestResult;
+    case ColLatency: return GroupSortMethod::ByLatency;
+    case ColExitIP:
+    case ColSpeed:
+    case ColRiskFactor: return GroupSortMethod::ByTestResult;
     case ColTraffic: return GroupSortMethod::ByTraffic;
     default: return GroupSortMethod::Raw;
     }

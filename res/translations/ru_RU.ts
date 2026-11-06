@@ -9015,6 +9015,54 @@ Improves hole-punching reliability. Requires IPv4.</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>Test Latency</source>
+        <translation>Проверить задержку</translation>
+    </message>
+    <message>
+        <source>Test Exit IP</source>
+        <translation>Проверить выходной IP</translation>
+    </message>
+    <message>
+        <source>Test Speed</source>
+        <translation>Проверить скорость</translation>
+    </message>
+    <message>
+        <source>Test Risk Factor</source>
+        <translation>Проверить коэффициент риска</translation>
+    </message>
+    <message>
+        <source>Clear Results</source>
+        <translation>Очистить результаты</translation>
+    </message>
+    <message>
+        <source>IP Risk Factor Test Selected</source>
+        <translation>Проверить коэффициент риска IP выбранных профилей</translation>
+    </message>
+    <message>
+        <source>IP Risk Factor Test Group</source>
+        <translation>Проверить коэффициент риска IP группы</translation>
+    </message>
+    <message>
+        <source>Check the exit IP's risk factor using IPPure through each selected profile.</source>
+        <translation>Проверить коэффициент риска выходного IP через IPPure для каждого выбранного профиля.</translation>
+    </message>
+    <message>
+        <source>Check the exit IP's risk factor using IPPure through each profile in the group.</source>
+        <translation>Проверить коэффициент риска выходного IP через IPPure для каждого профиля в группе.</translation>
+    </message>
+    <message>
+        <source>[%1] IP risk factor test error: %2</source>
+        <translation>[%1] Ошибка проверки коэффициента риска IP: %2</translation>
+    </message>
+    <message>
+        <source>Missing IP risk factor</source>
+        <translation>Коэффициент риска IP отсутствует</translation>
+    </message>
+    <message>
+        <source>IP risk factor test finished!</source>
+        <translation>Проверка коэффициента риска IP завершена!</translation>
+    </message>
+    <message>
         <source>Connect</source>
         <translation>Подключиться</translation>
     </message>
@@ -9809,8 +9857,8 @@ Error: %1</source>
         </translation>
     </message>
     <message>
-        <source>Stop Sorting</source>
-        <translation>Отключить сортировку</translation>
+        <source>Restore Original Order</source>
+        <translation>Восстановить исходный порядок</translation>
     </message>
     <message>
         <source>Latency</source>
@@ -10542,8 +10590,20 @@ Name: %1</source>
         <translation>Название</translation>
     </message>
     <message>
-        <source>Test Result</source>
-        <translation>Результат теста</translation>
+        <source>Latency</source>
+        <translation>Задержка</translation>
+    </message>
+    <message>
+        <source>Exit IP</source>
+        <translation>Выходной IP</translation>
+    </message>
+    <message>
+        <source>Speed</source>
+        <translation>Скорость</translation>
+    </message>
+    <message>
+        <source>Risk factor</source>
+        <translation>Коэффициент риска</translation>
     </message>
     <message>
         <source>Traffic</source>
@@ -10577,6 +10637,14 @@ Name: %1</source>
 </context>
 <context>
     <name>QObject</name>
+    <message>
+        <source>IP risk factor: %1</source>
+        <translation>Коэффициент риска IP: %1</translation>
+    </message>
+    <message>
+        <source>Running IP risk factor test</source>
+        <translation>Проверка коэффициента риска IP</translation>
+    </message>
     <message>
         <source>The selected TLS version is not supported on this system.</source>
         <translation>Выбранная версия TLS не поддерживается в этой системе.</translation>

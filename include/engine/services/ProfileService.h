@@ -8,6 +8,7 @@
 #include <QStringList>
 
 #include "include/engine/services/ServiceTypes.h"
+#include "include/engine/EngineTypes.h"
 
 namespace Engine::ProfileService {
     // Main thread. Why Delete would refuse now (an editor holds one of them).
@@ -21,8 +22,9 @@ namespace Engine::ProfileService {
     // profile, and emits ProfilesRemoved for them; no SubscriptionGroupChanged. Returns how many it deleted.
     int RemoveUnavailable(QList<int> profileIds);
 
-    // Main thread. Clears the test results of the profiles; *groupIds gets their groups. Returns how many were cleared.
-    int ClearTestResults(const QList<int> &profileIds, QList<int> *groupIds = nullptr);
+    // Main thread. Clears all results, or only kind when supplied; *groupIds gets the affected groups.
+    int ClearTestResults(const QList<int> &profileIds, QList<int> *groupIds = nullptr,
+                         std::optional<TestKind> kind = std::nullopt);
 
     struct ProfileConfig {
         QString type;

@@ -76,6 +76,8 @@ public:
     }
 
     void setLastFilterColumn(int column) {
+        // The former combined test column (3) held the country filter.
+        if (column == ProfilesTableModel::ColLatency) column = ProfilesTableModel::ColExitIP;
         m_lastFilterColumn = editForColumn(column) ? column : ProfilesTableModel::ColName;
     }
 
@@ -95,6 +97,7 @@ public:
     void focusLastFilterField() {
         if (!m_filtersVisible) return;
         QLineEdit *edit = editForColumn(m_lastFilterColumn);
+        if (!edit) edit = name_filter;
         // Tab/Backtab/Shortcut focus reasons make QLineEdit select all; OtherFocusReason does not.
         edit->setFocus(Qt::OtherFocusReason);
         edit->end(false);
@@ -181,6 +184,7 @@ public slots:
         for (QLineEdit *edit : filterEdits()) edit->setVisible(visible);
 
         emit geometriesChanged();
+        adjustPositions();
 
         if (visible) focusLastFilterField();
         else if (focused) emit focusTableRequested(false);
@@ -206,7 +210,7 @@ public slots:
         place(type_filter, ProfilesTableModel::ColType);
         place(address_filter, ProfilesTableModel::ColAddress);
         place(name_filter, ProfilesTableModel::ColName);
-        place(test_filter, ProfilesTableModel::ColTestResult);
+        place(test_filter, ProfilesTableModel::ColExitIP);
     }
 
 signals:
@@ -250,7 +254,7 @@ private:
         case ProfilesTableModel::ColType:       return type_filter;
         case ProfilesTableModel::ColAddress:    return address_filter;
         case ProfilesTableModel::ColName:       return name_filter;
-        case ProfilesTableModel::ColTestResult: return test_filter;
+        case ProfilesTableModel::ColExitIP:     return test_filter;
         default:                                return nullptr;
         }
     }
@@ -259,7 +263,7 @@ private:
         if (edit == type_filter)    return ProfilesTableModel::ColType;
         if (edit == address_filter) return ProfilesTableModel::ColAddress;
         if (edit == name_filter)    return ProfilesTableModel::ColName;
-        if (edit == test_filter)    return ProfilesTableModel::ColTestResult;
+        if (edit == test_filter)    return ProfilesTableModel::ColExitIP;
         return -1;
     }
 

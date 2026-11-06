@@ -25,8 +25,9 @@ namespace RemoteApi {
             respond(error);
             return;
         }
-        if (kind != QStringLiteral("latency") && kind != QStringLiteral("ip") && kind != QStringLiteral("speed")) {
-            respond(badRequest(QStringLiteral("\"kind\" must be latency, ip or speed")));
+        if (kind != QStringLiteral("latency") && kind != QStringLiteral("ip")
+            && kind != QStringLiteral("speed") && kind != QStringLiteral("ip_risk")) {
+            respond(badRequest(QStringLiteral("\"kind\" must be latency, ip, speed or ip_risk")));
             return;
         }
         QList<int> ids;
@@ -62,6 +63,7 @@ namespace RemoteApi {
         Engine::TestKind testKind = Engine::TestKind::Speed;
         if (kind == QStringLiteral("latency")) testKind = Engine::TestKind::Latency;
         else if (kind == QStringLiteral("ip")) testKind = Engine::TestKind::Ip;
+        else if (kind == QStringLiteral("ip_risk")) testKind = Engine::TestKind::IpRisk;
         if (!engine_->runTests(testKind, ids, onFinished)) {
             respond(busy);
             return;

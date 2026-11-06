@@ -10,6 +10,7 @@
 
 namespace Configs {
     class Profile;
+    class Group;
 }
 
 class ProfilesTableModel : public QAbstractTableModel {
@@ -21,7 +22,10 @@ public:
         ColType = 0,
         ColAddress,
         ColName,
-        ColTestResult,
+        ColLatency,
+        ColExitIP,
+        ColSpeed,
+        ColRiskFactor,
         ColTraffic,
         ColumnCount,
     };
@@ -66,7 +70,7 @@ public:
     const FilterKey *filterKeyAt(int row) const;
 
     // -1 for a method no column shows.
-    static int columnOfSort(GroupSortMethod::GroupSortMethod method);
+    static int columnOfSort(const Configs::Group &group);
 
     // Raw for a column that does not sort.
     static GroupSortMethod::GroupSortMethod sortOfColumn(int column);

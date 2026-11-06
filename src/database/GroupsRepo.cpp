@@ -35,7 +35,6 @@ namespace Configs {
                 auto_clear_unavailable INTEGER NOT NULL DEFAULT 0,
                 test_sort_by INTEGER NOT NULL DEFAULT 0,
                 traffic_sort_by INTEGER NOT NULL DEFAULT 0,
-                test_items_to_show INTEGER NOT NULL DEFAULT 0,
                 type_sort_by INTEGER NOT NULL DEFAULT 0,
                 sub_options_json TEXT NOT NULL DEFAULT '{}',
                 sub_metadata_json TEXT NOT NULL DEFAULT '{}',
@@ -109,7 +108,6 @@ namespace Configs {
         json["type_sort_by"] = static_cast<int>(group->type_sort_by);
         json["sort_method"] = static_cast<int>(group->sort.method);
         json["sort_descending"] = group->sort.descending;
-        json["test_items_to_show"] = static_cast<int>(group->test_items_to_show);
 
         return json;
     }
@@ -135,16 +133,23 @@ namespace Configs {
         group->route_id = json["route_id"].toInt(-1);
         group->import_sub_route = json["import_sub_route"].toBool();
         group->column_width = QJsonArray2QListInt(json["column_width"].toArray());
+        if (group->column_width.size() == 5) {
+            // Legacy: type, address, name, combined test, traffic. Split test columns auto-size.
+            group->column_width = {group->column_width[0], group->column_width[1], group->column_width[2],
+                                   0, 0, 0, 0, group->column_width[4]};
+        }
         group->profiles = QJsonArray2QListInt(json["profiles"].toArray());
         group->scroll_last_profile = json["scroll_last_profile"].toInt(-1);
-        group->test_sort_by = static_cast<testBy>(json["test_sort_by"].toInt(0));
+        if (const int testSortBy = json["test_sort_by"].toInt(0);
+            testSortBy >= 0 && testSortBy <= static_cast<int>(testBy::riskFactor)) {
+            group->test_sort_by = static_cast<testBy>(testSortBy);
+        }
         group->traffic_sort_by = static_cast<trafficBy>(json["traffic_sort_by"].toInt(0));
         group->type_sort_by = static_cast<typeBy>(json["type_sort_by"].toInt(0));
         if (const int method = json["sort_method"].toInt(0); method > 0 && method <= GroupSortMethod::ByLatency) {
             group->sort.method = static_cast<GroupSortMethod::GroupSortMethod>(method);
             group->sort.descending = json["sort_descending"].toBool();
         }
-        group->test_items_to_show = static_cast<testShowItems>(json["test_items_to_show"].toInt(0));
         
         return group;
     }
@@ -166,10 +171,10 @@ namespace Configs {
             INSERT INTO groups
             (id, archive, skip_auto_update, auto_clear_unavailable, name, url, info, sub_last_update,
              front_proxy_id, landing_proxy_id,
-             column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by, test_items_to_show,
+             column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by,
              type_sort_by, sub_options_json, sub_metadata_json, endpoint_json, sort_method, sort_descending,
              route_id, import_sub_route)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 archive = excluded.archive, skip_auto_update = excluded.skip_auto_update,
                 auto_clear_unavailable = excluded.auto_clear_unavailable, name = excluded.name,
@@ -177,7 +182,7 @@ namespace Configs {
                 front_proxy_id = excluded.front_proxy_id, landing_proxy_id = excluded.landing_proxy_id,
                 column_width_json = excluded.column_width_json, profiles_json = excluded.profiles_json,
                 scroll_last_profile = excluded.scroll_last_profile, test_sort_by = excluded.test_sort_by,
-                traffic_sort_by = excluded.traffic_sort_by, test_items_to_show = excluded.test_items_to_show,
+                traffic_sort_by = excluded.traffic_sort_by,
                 type_sort_by = excluded.type_sort_by, sub_options_json = excluded.sub_options_json,
                 sub_metadata_json = excluded.sub_metadata_json, endpoint_json = excluded.endpoint_json,
                 sort_method = excluded.sort_method, sort_descending = excluded.sort_descending,
@@ -199,7 +204,6 @@ namespace Configs {
             group->scroll_last_profile,
             static_cast<int>(group->test_sort_by),
             static_cast<int>(group->traffic_sort_by),
-            static_cast<int>(group->test_items_to_show),
             static_cast<int>(group->type_sort_by),
             subOptionsJson.toStdString(),
             subMetadataJson.toStdString(),
@@ -215,7 +219,7 @@ namespace Configs {
         auto query = db.query(R"(
             SELECT id, archive, skip_auto_update, auto_clear_unavailable, name, url, info, sub_last_update,
                    front_proxy_id, landing_proxy_id,
-                   column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by, test_items_to_show,
+                   column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by,
                    type_sort_by, sub_options_json, sub_metadata_json, endpoint_json, sort_method, sort_descending,
                    route_id, import_sub_route
             FROM groups WHERE id = ?
@@ -255,24 +259,23 @@ namespace Configs {
         json["scroll_last_profile"] = query->getColumn(12).getInt();
         json["test_sort_by"] = query->getColumn(13).getInt();
         json["traffic_sort_by"] = query->getColumn(14).getInt();
-        json["test_items_to_show"] = query->getColumn(15).getInt();
-        json["type_sort_by"] = query->getColumn(16).getInt();
-        if (const auto subOptionsDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(17).getText()));
+        json["type_sort_by"] = query->getColumn(15).getInt();
+        if (const auto subOptionsDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(16).getText()));
             subOptionsDoc.isObject()) {
             json["sub_options"] = subOptionsDoc.object();
         }
-        if (const auto subMetaDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(18).getText()));
+        if (const auto subMetaDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(17).getText()));
             subMetaDoc.isObject()) {
             json["sub_metadata"] = subMetaDoc.object();
         }
-        if (const auto endpointDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(19).getText()));
+        if (const auto endpointDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(18).getText()));
             endpointDoc.isObject()) {
             json["endpoint"] = endpointDoc.object();
         }
-        json["sort_method"] = query->getColumn(20).getInt();
-        json["sort_descending"] = query->getColumn(21).getInt() != 0;
-        json["route_id"] = query->getColumn(22).getInt();
-        json["import_sub_route"] = query->getColumn(23).getInt() != 0;
+        json["sort_method"] = query->getColumn(19).getInt();
+        json["sort_descending"] = query->getColumn(20).getInt() != 0;
+        json["route_id"] = query->getColumn(21).getInt();
+        json["import_sub_route"] = query->getColumn(22).getInt() != 0;
 
         auto group = groupFromJson(json);
         // Refreshes could map several identical servers onto one id, leaving it in the persisted list once per server (#1775).

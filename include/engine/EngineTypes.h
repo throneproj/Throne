@@ -89,6 +89,7 @@ namespace Engine {
         Latency,
         Ip,
         Speed,
+        IpRisk,
     };
 
     // The topics of the Throne API's GET /v1/events, in the order it lists them.
