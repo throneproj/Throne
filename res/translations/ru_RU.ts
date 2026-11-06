@@ -9015,6 +9015,10 @@ Improves hole-punching reliability. Requires IPv4.</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>Show:</source>
+        <translation>Показывать:</translation>
+    </message>
+    <message>
         <source>Are you sure you want to change the order?</source>
         <translation>Вы уверены, что хотите изменить порядок?</translation>
     </message>

@@ -6,6 +6,7 @@
 #include <QApplication>
 #include <QHeaderView>
 #include <QScrollBar>
+#include <QSet>
 #include <QTimer>
 #include <QToolButton>
 
@@ -81,22 +82,40 @@ void MainWindow::UpdateDataView(bool force)
     lastUpdatedMs.store(QDateTime::currentMSecsSinceEpoch());
 }
 
-void MainWindow::testPanelSeeded(Engine::TestKind kind, int totalProfiles)
+void MainWindow::testPanelSeeded(Engine::TestKind kind, int totalProfiles, const QList<int> &profileIds)
 {
+    int column = ProfilesTableModel::ColLatency;
     switch (kind) {
         case Engine::TestKind::Latency:
             dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::Url, totalProfiles);
             break;
         case Engine::TestKind::Ip:
             dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::Ip, totalProfiles);
+            column = ProfilesTableModel::ColExitIP;
             break;
         case Engine::TestKind::IpRisk:
             dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::IpRisk, totalProfiles);
+            column = ProfilesTableModel::ColRiskFactor;
             break;
         case Engine::TestKind::Speed:
             dataViewHtmlGenerator_.seedSpeedTest(totalProfiles);
+            column = Configs::dataManager->settingsRepo->speed_test_mode == Configs::TestConfig::COUNTRY
+                         ? ProfilesTableModel::ColExitIP : ProfilesTableModel::ColSpeed;
             break;
     }
+    runOnUiThread([this, column, profileIds] {
+        QSet<int> groups;
+        for (const auto &profile : Configs::dataManager->profilesRepo->GetProfileBatch(profileIds)) groups.insert(profile->gid);
+        bool currentChanged = false;
+        for (int gid : groups) {
+            const auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
+            if (!group || (group->visible_columns & (1 << column))) continue;
+            group->visible_columns |= 1 << column;
+            Configs::dataManager->groupsRepo->Save(group);
+            currentChanged |= gid == Configs::dataManager->settingsRepo->current_group;
+        }
+        if (currentChanged) refresh_proxy_list_column_size();
+    });
 }
 
 void MainWindow::testProgressed()
@@ -432,6 +451,9 @@ void MainWindow::refresh_proxy_list_column_size() {
         const bool vBarBlocked = vBar->blockSignals(true);
         // Header signals stay live: QTableView repaints its cells from sectionResized.
         constexpr int columnCount = ProfilesTableModel::ColumnCount;
+        for (int column = 0; column < columnCount; ++column) {
+            ui->profilesTableView->setColumnHidden(column, !(group->visible_columns & (1 << column)));
+        }
         if (!group->column_width.isEmpty() && group->column_width.size() != columnCount) {
             group->column_width.clear();
         }
@@ -445,6 +467,7 @@ void MainWindow::refresh_proxy_list_column_size() {
             // ResizeToContents only measures on-screen rows, so pin these or they jitter while scrolling.
             for (int col : {ProfilesTableModel::ColType, ProfilesTableModel::ColLatency, ProfilesTableModel::ColExitIP,
                             ProfilesTableModel::ColSpeed, ProfilesTableModel::ColRiskFactor, ProfilesTableModel::ColTraffic}) {
+                if (hHeader->isSectionHidden(col)) continue;
                 if (group->calculated_column_width.size() > col &&
                     group->calculated_column_width[col] > hHeader->sectionSize(col)) {
                     hHeader->setSectionResizeMode(col, QHeaderView::Fixed);
@@ -454,7 +477,7 @@ void MainWindow::refresh_proxy_list_column_size() {
             ui->profilesTableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
             group->clearCalculatedColumnWidth();
             for (int i = 0; i < columnCount; i++) {
-                const auto size = hHeader->sectionSize(i);
+                const auto size = hHeader->isSectionHidden(i) ? 0 : hHeader->sectionSize(i);
                 hHeader->setSectionResizeMode(i, QHeaderView::Interactive);
                 if (size > 0) hHeader->resizeSection(i, size);
                 group->calculated_column_width << size;
@@ -463,6 +486,7 @@ void MainWindow::refresh_proxy_list_column_size() {
             group->clearCalculatedColumnWidth();
             for (int i = 0; i < columnCount; i++) {
                 hHeader->setSectionResizeMode(i, QHeaderView::Interactive);
+                if (hHeader->isSectionHidden(i)) continue;
                 const int width = group->column_width.at(i);
                 if (width > 0) hHeader->resizeSection(i, width);
                 else ui->profilesTableView->resizeColumnToContents(i);

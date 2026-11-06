@@ -9124,6 +9124,10 @@ Improves hole-punching reliability. Requires IPv4.</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>Show:</source>
+        <translation>显示：</translation>
+    </message>
+    <message>
         <source>Are you sure you want to change the order?</source>
         <translation>确定更改顺序？</translation>
     </message>

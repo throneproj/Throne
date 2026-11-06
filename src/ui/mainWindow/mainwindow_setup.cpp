@@ -10,6 +10,7 @@
 #include "include/engine/tests/TestRunner.h"
 
 #include <QMenu>
+#include <array>
 
 #include "include/configs/sub/GroupUpdater.hpp"
 #include "include/configs/sub/RouteUpdater.hpp"
@@ -426,10 +427,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->profilesTableView->horizontalHeader(), &QHeaderView::sectionResized, this, [=, this](int, int, int) {
         auto group = Configs::dataManager->groupsRepo->CurrentGroup();
         if (m_adjustingColumns || Configs::dataManager->settingsRepo->refreshing_group || group == nullptr) return;
+        const auto savedWidths = group->column_width;
         group->column_width.clear();
         auto *header = ui->profilesTableView->horizontalHeader();
         for (int i = 0; i < header->count(); i++) {
-            group->column_width.push_back(header->sectionSize(i));
+            group->column_width.push_back(header->isSectionHidden(i) ? savedWidths.value(i, 0) : header->sectionSize(i));
         }
         Configs::dataManager->groupsRepo->Save(Configs::dataManager->groupsRepo->CurrentGroup());
     });
@@ -476,7 +478,25 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             if (!menu.isEmpty()) menu.addSeparator();
             auto *restoreOrder = menu.addAction(tr("Restore Original Order"));
             menu.addAction(ui->actionRefresh_Column_Widths);
+            menu.addSeparator();
+            auto *showLabel = menu.addAction(tr("Show:"));
+            showLabel->setEnabled(false);
+            std::array<QAction*, ProfilesTableModel::ColumnCount> visibilityActions{};
+            for (int column = 0; column < ProfilesTableModel::ColumnCount; ++column) {
+                auto *action = menu.addAction(profilesTableModel->headerData(column, Qt::Horizontal).toString());
+                action->setCheckable(true);
+                action->setChecked(group->visible_columns & (1 << column));
+                visibilityActions[column] = action;
+            }
             auto* chosen = menu.exec(header->mapToGlobal(pos));
+            for (int column = 0; column < ProfilesTableModel::ColumnCount; ++column) {
+                if (!chosen || chosen != visibilityActions[column]) continue;
+                if (chosen->isChecked()) group->visible_columns |= 1 << column;
+                else group->visible_columns &= ~(1 << column);
+                Configs::dataManager->groupsRepo->Save(group);
+                if (group == Configs::dataManager->groupsRepo->CurrentGroup()) refresh_proxy_list_column_size();
+                return nullptr;
+            }
             if (chosen != nullptr && chosen == runTest) {
                 const auto profileIds = group->Profiles();
                 switch (*testKind) {

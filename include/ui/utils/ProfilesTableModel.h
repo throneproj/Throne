@@ -18,6 +18,7 @@ class ProfilesTableModel : public QAbstractTableModel {
 public:
     enum { ProfileIdRole = Qt::UserRole };
 
+    // Persisted as bits in Group::visible_columns; append new columns without renumbering these.
     enum Column {
         ColType = 0,
         ColAddress,

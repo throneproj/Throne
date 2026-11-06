@@ -2867,6 +2867,10 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>Show:</source>
+        <translation>نمایش:</translation>
+    </message>
+    <message>
         <source>Are you sure you want to change the order?</source>
         <translation>آیا مطمئن هستید که می‌خواهید ترتیب را تغییر دهید؟</translation>
     </message>

@@ -44,6 +44,7 @@ namespace Configs {
                 route_id INTEGER NOT NULL DEFAULT -1,
                 import_sub_route INTEGER NOT NULL DEFAULT 0,
                 manual_order_json TEXT NOT NULL DEFAULT '[]',
+                visible_columns INTEGER NOT NULL DEFAULT 135,
                 created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
             )
@@ -67,6 +68,8 @@ namespace Configs {
             db.exec("ALTER TABLE groups ADD COLUMN import_sub_route INTEGER NOT NULL DEFAULT 0");
         if (!groupsColumnExists("manual_order_json"))
             db.exec("ALTER TABLE groups ADD COLUMN manual_order_json TEXT NOT NULL DEFAULT '[]'");
+        if (!groupsColumnExists("visible_columns"))
+            db.exec("ALTER TABLE groups ADD COLUMN visible_columns INTEGER NOT NULL DEFAULT 135");
 
         db.exec(R"(
             CREATE TABLE IF NOT EXISTS groups_order (
@@ -104,6 +107,7 @@ namespace Configs {
         json["route_id"] = group->route_id;
         json["import_sub_route"] = group->import_sub_route;
         json["column_width"] = QListInt2QJsonArray(group->column_width);
+        json["visible_columns"] = group->visible_columns;
         json["profiles"] = QListInt2QJsonArray(group->profiles);
         json["manual_order"] = QListInt2QJsonArray(group->manual_order);
         json["scroll_last_profile"] = group->scroll_last_profile;
@@ -137,6 +141,7 @@ namespace Configs {
         group->route_id = json["route_id"].toInt(-1);
         group->import_sub_route = json["import_sub_route"].toBool();
         group->column_width = QJsonArray2QListInt(json["column_width"].toArray());
+        group->visible_columns = json["visible_columns"].toInt(group->visible_columns);
         if (group->column_width.size() == 5) {
             // Legacy: type, address, name, combined test, traffic. Split test columns auto-size.
             group->column_width = {group->column_width[0], group->column_width[1], group->column_width[2],
@@ -179,8 +184,8 @@ namespace Configs {
              front_proxy_id, landing_proxy_id,
              column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by,
              type_sort_by, sub_options_json, sub_metadata_json, endpoint_json, sort_method, sort_descending,
-             route_id, import_sub_route, manual_order_json)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             route_id, import_sub_route, manual_order_json, visible_columns)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 archive = excluded.archive, skip_auto_update = excluded.skip_auto_update,
                 auto_clear_unavailable = excluded.auto_clear_unavailable, name = excluded.name,
@@ -194,6 +199,7 @@ namespace Configs {
                 sort_method = excluded.sort_method, sort_descending = excluded.sort_descending,
                 route_id = excluded.route_id, import_sub_route = excluded.import_sub_route,
                 manual_order_json = excluded.manual_order_json,
+                visible_columns = excluded.visible_columns,
                 updated_at = strftime('%s', 'now')
         )",
             id,
@@ -219,7 +225,8 @@ namespace Configs {
             group->sort.descending ? 1 : 0,
             group->route_id,
             group->import_sub_route ? 1 : 0,
-            manualOrderJson.toStdString()
+            manualOrderJson.toStdString(),
+            group->visible_columns
         );
     }
 
@@ -229,7 +236,7 @@ namespace Configs {
                    front_proxy_id, landing_proxy_id,
                    column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by,
                    type_sort_by, sub_options_json, sub_metadata_json, endpoint_json, sort_method, sort_descending,
-                   route_id, import_sub_route, manual_order_json
+                   route_id, import_sub_route, manual_order_json, visible_columns
             FROM groups WHERE id = ?
         )", id);
         if (!query || !query->executeStep()) {
@@ -284,6 +291,7 @@ namespace Configs {
         json["sort_descending"] = query->getColumn(20).getInt() != 0;
         json["route_id"] = query->getColumn(21).getInt();
         json["import_sub_route"] = query->getColumn(22).getInt() != 0;
+        json["visible_columns"] = query->getColumn(24).getInt();
         if (const auto manualOrderDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(23).getText()));
             manualOrderDoc.isArray()) {
             json["manual_order"] = manualOrderDoc.array();
