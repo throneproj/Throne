@@ -507,7 +507,7 @@ void MainWindow::sortCurrentGroup(GroupSortAction action) {
 void MainWindow::restoreOriginalOrder() {
     const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
     if (group == nullptr) return;
-    group->RestoreImportOrder();
+    group->RestoreOriginalOrder();
     Configs::dataManager->groupsRepo->Save(group);
     refresh_proxy_list({}, true);
 }

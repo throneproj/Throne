@@ -145,6 +145,8 @@ namespace Configs
         QList<int> column_width;
         QList<int> calculated_column_width; // memory only, no need to save to db
         QList<int> profiles;
+        // Last manual arrangement; empty until first drag. Never changes profile identities.
+        QList<int> manual_order;
         int scroll_last_profile = -1;
         testBy test_sort_by = testBy::latency;
         trafficBy traffic_sort_by = trafficBy::total;
@@ -166,8 +168,8 @@ namespace Configs
 
         void SetSort(GroupSortAction action);
 
-        // IDs are allocated in import order. Restore that order and stop maintaining any sort.
-        void RestoreImportOrder();
+        // Restore the manual baseline, or initial import order before the first drag; stop maintaining any sort.
+        void RestoreOriginalOrder();
 
         // The sorts below load profiles, so call them off the UI thread. Each is true when the order moved.
 
