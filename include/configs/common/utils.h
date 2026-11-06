@@ -32,7 +32,11 @@ namespace Configs
 
     void mergeUrlQuery(QUrlQuery& baseQuery, const QString& strQuery);
 
-    QString formDecodedQueryValue(const QUrlQuery& query, const QString& key);
+    // Readings of a JSON query value, likeliest first; spaceFirst breaks the tie for a bare '+' with neither %20 nor %2B.
+    QStringList queryValueDecodings(const QUrlQuery& query, const QString& key, bool spaceFirst);
+
+    // A value for QUrlQuery::addQueryItem that keeps its '%' and '+': form decoders read a bare '+' as a space.
+    QString queryLiteral(QString value);
 
     void mergeJsonObjects(QJsonObject& baseObject, const QJsonObject& obj);
 

@@ -102,12 +102,35 @@ namespace Configs
         }
     }
 
-    QString formDecodedQueryValue(const QUrlQuery& query, const QString& key)
+    namespace {
+        QStringList percentDecodings(const QByteArray& raw, bool spaceFirst, int depth)
+        {
+            auto spaced = raw;
+            spaced.replace('+', "%20");
+            const auto literal = QUrl::fromPercentEncoding(raw);
+            const auto form = QUrl::fromPercentEncoding(spaced);
+            // Form encoders (Go url.Values, quote_plus, URLEncoder) write a space as '+' and escape a real one; %20 beside a bare '+' means it is literal.
+            const bool hasEscapedPlus = raw.contains("%2B") || raw.contains("%2b");
+            const bool formFirst = raw.contains('+') && (hasEscapedPlus || (spaceFirst && !raw.contains("%20")));
+            QStringList result;
+            for (const auto& text : formFirst ? QStringList{form, literal} : QStringList{literal, form}) {
+                // Some generators encode the value twice; no JSON text starts with '%'.
+                if (const auto trimmed = text.trimmed(); depth < 2 && trimmed.startsWith('%')) result << percentDecodings(trimmed.toUtf8(), spaceFirst, depth + 1);
+                else result << text;
+            }
+            result.removeDuplicates();
+            return result;
+        }
+    }
+
+    QStringList queryValueDecodings(const QUrlQuery& query, const QString& key, bool spaceFirst)
     {
-        // urlencode()-style panels send '+' for a space, which QUrlQuery never decodes but keeps apart from %2B.
-        auto raw = query.queryItemValue(key, QUrl::FullyEncoded).toUtf8();
-        raw.replace('+', "%20");
-        return QUrl::fromPercentEncoding(raw);
+        return percentDecodings(query.queryItemValue(key, QUrl::FullyEncoded).toUtf8(), spaceFirst, 0);
+    }
+
+    QString queryLiteral(QString value)
+    {
+        return value.replace('%', QLatin1String("%25")).replace('+', QLatin1String("%2B"));
     }
 
     void mergeJsonObjects(QJsonObject& baseObject, const QJsonObject& obj)

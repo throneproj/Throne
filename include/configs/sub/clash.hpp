@@ -72,6 +72,7 @@ struct xhttpReuseSettings {
 struct xhttpDownloadSettings {
     std::optional<std::string> host;
     std::optional<std::string> path;
+    std::optional<std::map<std::string, std::string>> headers;
     std::string mode;
     std::optional<std::string> server;
     std::optional<MyInt> port;
@@ -94,11 +95,25 @@ struct xhttpOpts {
     std::string host;
     std::string path;
     std::string mode;
+    std::map<std::string, std::string> headers;
+    MyBool no_grpc_header;
+    std::string x_padding_bytes;
     MyBool x_padding_obfs_mode;
     std::string x_padding_key;
     std::string x_padding_header;
     std::string x_padding_placement;
     std::string x_padding_method;
+    std::string uplink_http_method;
+    std::string session_placement;
+    std::string session_key;
+    std::string session_table;
+    std::string session_length;
+    std::string seq_placement;
+    std::string seq_key;
+    std::string uplink_data_placement;
+    std::string uplink_data_key;
+    std::string uplink_chunk_size;
+    std::string sc_max_each_post_bytes;
     std::string sc_min_posts_interval_ms;
     xhttpReuseSettings reuse_settings;
     bool has_download_settings = false;

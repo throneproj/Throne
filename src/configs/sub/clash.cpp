@@ -182,6 +182,7 @@ void load_present(const fkyaml::node& node, const char* key, std::optional<Targe
 void from_node(const fkyaml::node& node, xhttpDownloadSettings& opts) {
     load_present(node, "host", opts.host);
     load_present(node, "path", opts.path);
+    load_present(node, "headers", opts.headers);
     load_opt(node, "mode", opts.mode);
     load_present(node, "server", opts.server);
     load_present(node, "port", opts.port);
@@ -209,11 +210,30 @@ void from_node(const fkyaml::node& node, xhttpOpts& opts) {
     load_opt(node, "host", opts.host);
     load_opt(node, "path", opts.path);
     load_opt(node, "mode", opts.mode);
+    load_opt(node, "headers", opts.headers);
+    load_opt(node, "no-grpc-header", opts.no_grpc_header);
+    load_opt(node, "x-padding-bytes", opts.x_padding_bytes);
     load_opt(node, "x-padding-obfs-mode", opts.x_padding_obfs_mode);
     load_opt(node, "x-padding-key", opts.x_padding_key);
     load_opt(node, "x-padding-header", opts.x_padding_header);
     load_opt(node, "x-padding-placement", opts.x_padding_placement);
     load_opt(node, "x-padding-method", opts.x_padding_method);
+    load_opt(node, "uplink-http-method", opts.uplink_http_method);
+    // 3x-ui writes session-id-*, which mihomo ignores; mihomo's own names win.
+    load_opt(node, "session-id-placement", opts.session_placement);
+    load_opt(node, "session-id-key", opts.session_key);
+    load_opt(node, "session-id-table", opts.session_table);
+    load_opt(node, "session-id-length", opts.session_length);
+    load_opt(node, "session-placement", opts.session_placement);
+    load_opt(node, "session-key", opts.session_key);
+    load_opt(node, "session-table", opts.session_table);
+    load_opt(node, "session-length", opts.session_length);
+    load_opt(node, "seq-placement", opts.seq_placement);
+    load_opt(node, "seq-key", opts.seq_key);
+    load_opt(node, "uplink-data-placement", opts.uplink_data_placement);
+    load_opt(node, "uplink-data-key", opts.uplink_data_key);
+    load_opt(node, "uplink-chunk-size", opts.uplink_chunk_size);
+    load_opt(node, "sc-max-each-post-bytes", opts.sc_max_each_post_bytes);
     load_opt(node, "sc-min-posts-interval-ms", opts.sc_min_posts_interval_ms);
     load_opt(node, "reuse-settings", opts.reuse_settings);
     // mihomo reads a null download-settings as none, not as a copy of the proxy.

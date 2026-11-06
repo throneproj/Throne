@@ -316,8 +316,8 @@ namespace Configs {
             return xmux;
         }
 
-        // mihomo takes every unset download-settings value from the proxy itself.
-        QJsonObject buildDownloadSettingsObject(const clash::Proxies& proxy) {
+        // mihomo takes every unset download-settings value from the proxy itself, and its download leg copies the whole upload XHTTP config.
+        QJsonObject buildDownloadSettingsObject(const clash::Proxies& proxy, QJsonObject extra) {
             const auto& settings = proxy.xhttp_opts.download_settings;
             QJsonObject object;
             if (const auto server = toAceHost(qs(settings.server.value_or(proxy.server)).trimmed()); !server.isEmpty()) object["address"] = server;
@@ -395,7 +395,17 @@ namespace Configs {
             if (const auto path = qs(settings.path.value_or(proxy.xhttp_opts.path)); !path.isEmpty()) xhttp["path"] = path;
             xhttp["mode"] = hasText(settings.mode) ? qs(settings.mode) : "auto";
 
-            QJsonObject extra;
+            extra.remove("downloadSettings");
+            if (settings.headers) {
+                QJsonObject headers;
+                for (const auto& [key, value] : *settings.headers) {
+                    // Xray refuses a Host header; it is the host field.
+                    if (qs(key).compare(QLatin1String("host"), Qt::CaseInsensitive) != 0) headers[qs(key)] = qs(value);
+                    else if (!xhttp.contains("host") && hasText(value)) xhttp["host"] = toAceHost(qs(value));
+                }
+                if (headers.isEmpty()) extra.remove("headers");
+                else extra["headers"] = headers;
+            }
             addXPaddingFields(extra, settings.x_padding_obfs_mode, settings.x_padding_key,
                               settings.x_padding_header, settings.x_padding_placement,
                               settings.x_padding_method);
@@ -476,12 +486,92 @@ namespace Configs {
             if (object.contains(key)) target = object[key].toString();
         }
 
-        void parseVariantString(const QJsonObject& object, const QString& key, QString& target) {
-            if (object.contains(key)) target = object[key].toVariant().toString();
+        // Xray reads a range as "a-b" or a number; sing-box forks also write {"from": a, "to": b}.
+        void parseRange(const QJsonObject& object, const QString& key, QString& target) {
+            if (!object.contains(key)) return;
+            const auto value = object[key];
+            if (!value.isObject()) {
+                target = value.toVariant().toString();
+                return;
+            }
+            const auto from = value.toObject().value("from").toVariant().toString();
+            const auto to = value.toObject().value("to").toVariant().toString();
+            if (from.isEmpty() || to.isEmpty() || from == to) target = from.isEmpty() ? to : from;
+            else target = from + QLatin1Char('-') + to;
+        }
+
+        QString foldXHTTPKey(const QString& key) {
+            QString folded;
+            for (const auto c : key) {
+                if (c != QLatin1Char('_') && c != QLatin1Char('-')) folded += c.toLower();
+            }
+            return folded;
+        }
+
+        // Go folds case, and sing-box forks write snake_case: every spelling becomes Xray's name, an exact one outranking a case-folded one, then an underscored one.
+        QJsonObject canonicalXHTTPKeys(const QJsonObject& obj, const QStringList& known) {
+            QJsonObject result;
+            QHash<QString, int> rank;
+            for (auto it = obj.constBegin(); it != obj.constEnd(); ++it) {
+                const auto folded = foldXHTTPKey(it.key());
+                const auto match = std::find_if(known.cbegin(), known.cend(), [&](const QString& name) { return foldXHTTPKey(name) == folded; });
+                if (match == known.cend()) {
+                    result.insert(it.key(), it.value());
+                    continue;
+                }
+                const int r = it.key() == *match ? 2 : it.key().compare(*match, Qt::CaseInsensitive) == 0 ? 1 : 0;
+                if (rank.value(*match, -1) > r) continue;
+                rank.insert(*match, r);
+                result.insert(*match, it.value());
+            }
+            return result;
+        }
+
+        // A Python dict repr (str() instead of json.dumps): quotes and True/False/None are rewritten outside strings only.
+        QString pythonReprToJson(const QString& text) {
+            QString out;
+            out.reserve(text.size());
+            QChar quote;
+            for (qsizetype i = 0; i < text.size(); ++i) {
+                const QChar c = text.at(i);
+                if (!quote.isNull()) {
+                    if (c == QLatin1Char('\\') && i + 1 < text.size()) {
+                        const QChar next = text.at(++i);
+                        if (next != QLatin1Char('\'')) out += c;
+                        out += next;
+                    } else if (c == quote) {
+                        out += QLatin1Char('"');
+                        quote = QChar();
+                    } else {
+                        if (c == QLatin1Char('"')) out += QLatin1Char('\\');
+                        out += c;
+                    }
+                } else if (c == QLatin1Char('\'') || c == QLatin1Char('"')) {
+                    quote = c;
+                    out += QLatin1Char('"');
+                } else if (c.isLetter()) {
+                    auto end = i;
+                    while (end < text.size() && (text.at(end).isLetterOrNumber() || text.at(end) == QLatin1Char('_'))) ++end;
+                    const auto word = text.mid(i, end - i);
+                    if (word == QLatin1String("True")) out += QLatin1String("true");
+                    else if (word == QLatin1String("False")) out += QLatin1String("false");
+                    else if (word == QLatin1String("None")) out += QLatin1String("null");
+                    else out += word;
+                    i = end - 1;
+                } else {
+                    out += c;
+                }
+            }
+            return out;
         }
 
         void parseBool(const QJsonObject& object, const QString& key, bool& target) {
-            if (object.contains(key)) target = object[key].toBool();
+            if (!object.contains(key)) return;
+            const auto value = object[key];
+            // Loose generators write 1 or "true"; Xray would refuse either.
+            if (value.isDouble()) target = value.toDouble() != 0;
+            else if (value.isString()) target = value.toString().trimmed().compare(QLatin1String("true"), Qt::CaseInsensitive) == 0 || value.toString().trimmed() == QLatin1String("1");
+            else target = value.toBool();
         }
 
         void parseLongLong(const QJsonObject& object, const QString& key, long long& target) {
@@ -492,17 +582,18 @@ namespace Configs {
             if (object.contains(key)) target = object[key].toVariant().toInt();
         }
 
-        void parseXHTTPXmuxObject(xrayXHTTP* config, const QJsonObject& obj) {
+        void parseXHTTPXmuxObject(xrayXHTTP* config, const QJsonObject& source) {
+            const auto obj = canonicalXHTTPKeys(source, knownXHTTPXmuxKeys());
             for (const auto& key : obj.keys()) {
                 if (!knownXHTTPXmuxKeys().contains(key)) {
                     config->rawXmux[key] = obj[key];
                 }
             }
-            parseVariantString(obj, "maxConcurrency", config->maxConcurrency);
-            parseVariantString(obj, "maxConnections", config->maxConnections);
-            parseVariantString(obj, "cMaxReuseTimes", config->cMaxReuseTimes);
-            parseVariantString(obj, "hMaxRequestTimes", config->hMaxRequestTimes);
-            parseVariantString(obj, "hMaxReusableSecs", config->hMaxReusableSecs);
+            parseRange(obj, "maxConcurrency", config->maxConcurrency);
+            parseRange(obj, "maxConnections", config->maxConnections);
+            parseRange(obj, "cMaxReuseTimes", config->cMaxReuseTimes);
+            parseRange(obj, "hMaxRequestTimes", config->hMaxRequestTimes);
+            parseRange(obj, "hMaxReusableSecs", config->hMaxReusableSecs);
             parseLongLong(obj, "hKeepAlivePeriod", config->hKeepAlivePeriod);
         }
 
@@ -539,7 +630,8 @@ namespace Configs {
             ParseDiag::Warn("extra", QCoreApplication::translate("Validation", "The extra value is not a valid JSON object, so it was ignored."));
         }
 
-        void parseXHTTPExtraObject(xrayXHTTP* config, const QJsonObject& obj) {
+        void parseXHTTPExtraObject(xrayXHTTP* config, const QJsonObject& source) {
+            const auto obj = canonicalXHTTPKeys(source, knownXHTTPExtraKeys());
             for (const auto& key : obj.keys()) {
                 if (!knownXHTTPExtraKeys().contains(key)) {
                     config->rawExtra[key] = obj[key];
@@ -553,7 +645,7 @@ namespace Configs {
                     config->headers = QJsonArray2QListString(obj["headers"].toArray());
                 }
             }
-            parseVariantString(obj, "xPaddingBytes", config->xPaddingBytes);
+            parseRange(obj, "xPaddingBytes", config->xPaddingBytes);
             parseBool(obj, "xPaddingObfsMode", config->xPaddingObfsMode);
             parseString(obj, "xPaddingKey", config->xPaddingKey);
             parseString(obj, "xPaddingHeader", config->xPaddingHeader);
@@ -565,18 +657,18 @@ namespace Configs {
             parseString(obj, "sessionKey", config->sessionIDKey); // legacy alias (pre-v26.6.22 Xray)
             parseString(obj, "sessionIDKey", config->sessionIDKey);
             parseString(obj, "sessionIDTable", config->sessionIDTable);
-            parseVariantString(obj, "sessionIDLength", config->sessionIDLength);
+            parseRange(obj, "sessionIDLength", config->sessionIDLength);
             parseString(obj, "seqPlacement", config->seqPlacement);
             parseString(obj, "seqKey", config->seqKey);
             parseString(obj, "uplinkDataPlacement", config->uplinkDataPlacement);
             parseString(obj, "uplinkDataKey", config->uplinkDataKey);
-            parseVariantString(obj, "uplinkChunkSize", config->uplinkChunkSize);
+            parseRange(obj, "uplinkChunkSize", config->uplinkChunkSize);
             parseBool(obj, "noGRPCHeader", config->noGRPCHeader);
             parseBool(obj, "noSSEHeader", config->noSSEHeader);
-            parseVariantString(obj, "scMaxEachPostBytes", config->scMaxEachPostBytes);
-            parseVariantString(obj, "scMinPostsIntervalMs", config->scMinPostsIntervalMs);
+            parseRange(obj, "scMaxEachPostBytes", config->scMaxEachPostBytes);
+            parseRange(obj, "scMinPostsIntervalMs", config->scMinPostsIntervalMs);
             parseLongLong(obj, "scMaxBufferedPosts", config->scMaxBufferedPosts);
-            parseVariantString(obj, "scStreamUpServerSecs", config->scStreamUpServerSecs);
+            parseRange(obj, "scStreamUpServerSecs", config->scStreamUpServerSecs);
             parseInt(obj, "serverMaxHeaderBytes", config->serverMaxHeaderBytes);
             if (obj.contains("downloadSettings")) {
                 if (obj["downloadSettings"].isObject()) {
@@ -596,6 +688,15 @@ namespace Configs {
                 if (!AcceptOptional(field, message, value)) value.clear();
             };
             if (!AcceptOptional("mode", Checks::XrayXHTTPMode(x.mode), x.mode)) x.mode = "auto";
+            // Xray refuses a Host header, which the host field outranks anyway.
+            for (qsizetype i = 0; i + 1 < x.headers.size();) {
+                if (x.headers[i].trimmed().compare(QLatin1String("host"), Qt::CaseInsensitive) != 0) {
+                    i += 2;
+                    continue;
+                }
+                if (x.host.isEmpty()) x.host = toAceHost(x.headers[i + 1].trimmed());
+                x.headers.remove(i, 2);
+            }
             drop("xPaddingBytes", Checks::XrayXPaddingBytes(x.xPaddingBytes), x.xPaddingBytes);
             drop("xPaddingMethod", Checks::XrayPaddingMethod(x.xPaddingMethod), x.xPaddingMethod);
             drop("xPaddingPlacement", Checks::XrayPaddingPlacement(x.xPaddingPlacement), x.xPaddingPlacement);
@@ -1351,8 +1452,7 @@ namespace Configs {
 
     bool xrayXHTTP::ParseExtraJson(const QString &str) {
         auto obj = QString2QJsonObject(str);
-        // Python dict repr ('key': True), rewritten only when strict JSON fails so valid values stay intact.
-        if (obj.isEmpty()) obj = QString2QJsonObject(QString(str).replace('\'', '"').replace("True", "true").replace("False", "false"));
+        if (obj.isEmpty()) obj = QString2QJsonObject(pythonReprToJson(str));
         if (obj.isEmpty()) return false;
         parseXHTTPExtraObject(this, obj);
         return true;
@@ -1368,8 +1468,9 @@ namespace Configs {
         if (query.hasQueryItem("path")) path = query.queryItemValue("path", QUrl::FullyDecoded);
         if (query.hasQueryItem("mode")) mode = query.queryItemValue("mode");
         if (query.hasQueryItem("extra")) {
-            const auto extra = query.queryItemValue("extra", QUrl::FullyDecoded);
-            if (!ParseExtraJson(extra) && !ParseExtraJson(formDecodedQueryValue(query, "extra"))) warnUnparsableExtra(extra);
+            // Header values such as a User-Agent make a space likelier than a literal '+'.
+            const auto readings = queryValueDecodings(query, "extra", true);
+            if (std::none_of(readings.cbegin(), readings.cend(), [this](const QString& text) { return ParseExtraJson(text); })) warnUnparsableExtra(readings.first());
         }
         if (query.hasQueryItem("headers")) headers = linkHeaders(query);
         if (query.hasQueryItem("x_padding_bytes")) xPaddingBytes = query.queryItemValue("x_padding_bytes");
@@ -1421,11 +1522,26 @@ namespace Configs {
         path = qs(opts.path);
         mode = hasText(opts.mode) ? qs(opts.mode) : "auto";
 
+        headers.clear();
+        for (const auto& [key, value] : opts.headers) headers << qs(key) << qs(value);
+        noGRPCHeader = opts.no_grpc_header;
+        xPaddingBytes = qs(opts.x_padding_bytes);
         xPaddingObfsMode = opts.x_padding_obfs_mode;
         xPaddingKey = qs(opts.x_padding_key);
         xPaddingHeader = qs(opts.x_padding_header);
         xPaddingPlacement = qs(opts.x_padding_placement);
         xPaddingMethod = qs(opts.x_padding_method);
+        uplinkHTTPMethod = qs(opts.uplink_http_method);
+        sessionIDPlacement = qs(opts.session_placement);
+        sessionIDKey = qs(opts.session_key);
+        sessionIDTable = qs(opts.session_table);
+        sessionIDLength = qs(opts.session_length);
+        seqPlacement = qs(opts.seq_placement);
+        seqKey = qs(opts.seq_key);
+        uplinkDataPlacement = qs(opts.uplink_data_placement);
+        uplinkDataKey = qs(opts.uplink_data_key);
+        uplinkChunkSize = qs(opts.uplink_chunk_size);
+        scMaxEachPostBytes = qs(opts.sc_max_each_post_bytes);
         scMinPostsIntervalMs = qs(opts.sc_min_posts_interval_ms);
 
         maxConcurrency = qs(opts.reuse_settings.max_concurrency);
@@ -1437,10 +1553,11 @@ namespace Configs {
             hKeepAlivePeriod = qs(opts.reuse_settings.h_keep_alive_period).toLongLong();
         }
 
-        if (opts.has_download_settings) {
-            downloadSettings = QJsonObject2QString(buildDownloadSettingsObject(object), true);
-        }
+        // Dropped first, so the download leg inherits only usable values.
         dropUnusableXHTTPValues(*this);
+        if (opts.has_download_settings) {
+            downloadSettings = QJsonObject2QString(buildDownloadSettingsObject(object, ExportToJson().value("extra").toObject()), true);
+        }
 
         return true;
     }
@@ -1454,10 +1571,10 @@ namespace Configs {
         if (jsonExport.contains("extra") && jsonExport["extra"].isObject()) {
             auto exObj = jsonExport["extra"].toObject();
             if (!exObj.isEmpty()) {
-                query.addQueryItem("extra", QJsonObject2QString(exObj, true));
+                query.addQueryItem("extra", queryLiteral(QJsonObject2QString(exObj, true)));
             }
         }
-        if (!headers.isEmpty()) query.addQueryItem("headers", headers.join("|"));
+        if (!headers.isEmpty()) query.addQueryItem("headers", queryLiteral(headers.join("|")));
         return query.toString(QUrl::FullyEncoded);
     }
 
@@ -1815,10 +1932,13 @@ namespace Configs {
 
         if (query.hasQueryItem("fm") || query.hasQueryItem("finalmask")) {
             auto key = query.hasQueryItem("fm") ? "fm" : "finalmask";
-            auto fmRaw = query.queryItemValue(key, QUrl::FullyDecoded);
+            // Mask values are mostly base64 and hex, where a bare '+' is more likely literal than a space.
             QJsonParseError err;
-            auto doc = QJsonDocument::fromJson(fmRaw.toUtf8(), &err);
-            if (err.error != QJsonParseError::NoError) doc = QJsonDocument::fromJson(formDecodedQueryValue(query, key).toUtf8(), &err);
+            QJsonDocument doc;
+            for (const auto& text : queryValueDecodings(query, key, false)) {
+                doc = QJsonDocument::fromJson(text.toUtf8(), &err);
+                if (err.error == QJsonParseError::NoError) break;
+            }
             if (err.error == QJsonParseError::NoError && doc.isObject()) {
                 finalmask = doc.object();
             } else if (err.error != QJsonParseError::NoError) {
@@ -1960,7 +2080,7 @@ namespace Configs {
     QString xrayStreamSetting::ExportToLink() {
         QUrlQuery query;
         if (!network.isEmpty()) query.addQueryItem("type", network == "raw" ? "tcp" : network);
-        if (const auto shared = xrayShareFinalmask(finalmask); !shared.isEmpty()) query.addQueryItem("fm", QJsonObject2QString(shared, true));
+        if (const auto shared = xrayShareFinalmask(finalmask); !shared.isEmpty()) query.addQueryItem("fm", queryLiteral(QJsonObject2QString(shared, true)));
         // value(), never operator[]: the mutable operator[] inserts a null entry for a missing key.
         if (const auto header = rawSettings.value("header").toObject();
             network == "raw" && header.value("type").toString() == "http") {
