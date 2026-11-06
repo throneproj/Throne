@@ -15,6 +15,7 @@
 #include "ast/proto-field.h"
 #include "ast/proto-file.h"
 #include "template-h.h"
+#include <ostream>
 #include <spb/io/function_ref.hpp>
 #include <string>
 #include <string_view>
