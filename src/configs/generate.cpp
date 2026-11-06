@@ -62,6 +62,7 @@ namespace Configs {
             constexpr auto dnsEchPrefix = "dns-ech";
 
             constexpr auto dnsIn = "dns-in";
+            constexpr auto dnsSystem = "dns-system";
             constexpr auto mixedIn = "mixed-in";
             constexpr auto tunIn = "tun-in";
             constexpr auto xrayFullConfigIn = "throne-bridge";
@@ -234,6 +235,11 @@ namespace Configs {
 #else
             return ctx.tunEnabled && !ctx.forTest && dataManager->settingsRepo->vpn_l3_bridge;
 #endif
+        }
+
+        // The core points macOS's system resolver at this lo0 alias and moves the inbound behind a pf redirect from :53 (#2061).
+        bool systemDnsInbound(const BuildContext &ctx) {
+            return ctx.os == Darwin && ctx.tunEnabled && !ctx.forTest;
         }
 
         // preferred_by matches only during pre-match, leaving the copy inert at L4.
@@ -1031,6 +1037,10 @@ namespace Configs {
                 if (ctx.isResolvedUsed && (ctx.tunEnabled || ctx.forTest || dataManager->settingsRepo->kill_switch)) {
                     return {{"type", "underlying"}};
                 }
+                // A macOS Tun points the system resolver at its dns-system inbound, which `local` would query and loop through (#2045).
+                if (ctx.os == Darwin && (ctx.tunEnabled || ctx.forTest)) {
+                    return {{"type", "underlying"}};
+                }
                 return {{"type", "local"}};
             }
             if (parsed.type == "dhcp") {
@@ -1392,6 +1402,15 @@ namespace Configs {
                 {"listen", settings.core_dns_in_lan ? "::" : "127.0.0.1"},
                 {"listen_port", settings.core_dns_in_port}
             });
+            if (systemDnsInbound(ctx)) {
+                inbounds.prepend(QJsonObject{
+                    {"tag", tags::dnsSystem},
+                    {"type", "direct"},
+                    {"listen", "127.0.0.53"},
+                    {"listen_port", 53},
+                    {"reuse_addr", true},
+                });
+            }
 
             QJSONARRAY_ADD(inbounds, QString2QJsonObject(settings.custom_inbound)["inbounds"].toArray())
             ctx.result->coreConfig["inbounds"] = inbounds;
@@ -2297,7 +2316,15 @@ namespace Configs {
                 QJsonObject resolve;
                 QJsonObject dnsHijack;
                 QJsonObject dnsInReject;
+                QJsonObject dnsSystem;
             } injected;
+
+            if (systemDnsInbound(ctx)) {
+                injected.dnsSystem = QJsonObject{
+                    {"inbound", tags::dnsSystem},
+                    {"action", "hijack-dns"},
+                };
+            }
 
             if (!routeChain->isRaw) {
                 injected.sniff = QJsonObject{{"action", "sniff"}};
@@ -2407,6 +2434,7 @@ namespace Configs {
             for (const auto& r : bridgeRules) routeRules.append(r);
             if (!extraCoreDirect.isEmpty()) routeRules.append(extraCoreDirect);
             auto appendIfSet = [&routeRules](const QJsonObject& r) { if (!r.isEmpty()) routeRules.append(r); };
+            appendIfSet(injected.dnsSystem);
             appendIfSet(injected.sniff);
             appendIfSet(injected.resolve);
             appendIfSet(injected.dnsHijack);

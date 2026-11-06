@@ -58,6 +58,27 @@ namespace {
                         .arg(adapter)});
     }
 
+#ifdef Q_OS_MACOS
+    // A dead core cannot put back the system DNS it pointed at its lo0 listener; the setuid core replays its own record.
+    void coreSupervisorRestoreSystemDns(const QString &corePath) {
+        auto *restore = new QProcess;
+        restore->setProcessChannelMode(QProcess::MergedChannels);
+        QObject::connect(restore, &QProcess::finished, restore, [restore](int exitCode, QProcess::ExitStatus exitStatus) {
+            const auto output = QString::fromUtf8(restore->readAll()).trimmed();
+            if (!output.isEmpty()) MW_show_log(output);
+            if (exitStatus != QProcess::NormalExit || exitCode != 0)
+                Logging::Write(Logging::Level::Warn, QString("system DNS restore exited: code=%1").arg(exitCode));
+            restore->deleteLater();
+        });
+        QObject::connect(restore, &QProcess::errorOccurred, restore, [restore](QProcess::ProcessError error) {
+            if (error != QProcess::FailedToStart) return;
+            Logging::Write(Logging::Level::Warn, "system DNS restore failed to start: " + restore->errorString());
+            restore->deleteLater();
+        });
+        restore->start(corePath, {QStringLiteral("--restore-dns")});
+    }
+#endif
+
     // Main thread: the full reply onPrivilegeProbed is handling (its signature carries only the privileged bit).
     std::optional<API::PrivilegeInfo> coreSupervisorProbeReply;
 
@@ -541,6 +562,9 @@ namespace Engine {
                 MW_show_log("[Fatal] " + QObject::tr("Core exited, cleaning up..."));
 
                 Lifecycle::StopRunningProfile(true, true, false);
+#ifdef Q_OS_MACOS
+                coreSupervisorRestoreSystemDns(process->program);
+#endif
             }
             // Unix reports a failed exec as NotRunning before errorOccurred(FailedToStart), which posts it with errorString().
             if (!failedToStart && !reachedRunning) return;
