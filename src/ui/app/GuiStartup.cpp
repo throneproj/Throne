@@ -58,8 +58,8 @@ namespace {
     void guiStartupLoadTranslate(const QString &locale) {
         QT_TRANSLATE_NOOP("QPlatformTheme", "Cancel");
         QT_TRANSLATE_NOOP("QPlatformTheme", "Apply");
-        QT_TRANSLATE_NOOP("QPlatformTheme", "Yes");
-        QT_TRANSLATE_NOOP("QPlatformTheme", "No");
+        QT_TRANSLATE_NOOP("QPlatformTheme", "&Yes");
+        QT_TRANSLATE_NOOP("QPlatformTheme", "&No");
         QT_TRANSLATE_NOOP("QPlatformTheme", "OK");
         if (guiStartupTranslator != nullptr) {
             guiStartupTranslator->deleteLater();

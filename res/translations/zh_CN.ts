@@ -8888,6 +8888,10 @@ Improves hole-punching reliability. Requires IPv4.</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>Are you sure you want to change the order?</source>
+        <translation>确定更改顺序？</translation>
+    </message>
+    <message>
         <source>Test Latency</source>
         <translation>测试延迟</translation>
     </message>
@@ -12217,12 +12221,12 @@ How to update?</source>
     </message>
     <message>
         <location filename="Throne-1.3.1/src/main.cpp" line="122"/>
-        <source>Yes</source>
+        <source>&amp;Yes</source>
         <translation>是</translation>
     </message>
     <message>
         <location filename="Throne-1.3.1/src/main.cpp" line="123"/>
-        <source>No</source>
+        <source>&amp;No</source>
         <translation>否</translation>
     </message>
     <message>

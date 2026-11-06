@@ -2867,6 +2867,10 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>Are you sure you want to change the order?</source>
+        <translation>آیا مطمئن هستید که می‌خواهید ترتیب را تغییر دهید؟</translation>
+    </message>
+    <message>
         <source>Test Latency</source>
         <translation>آزمایش تأخیر</translation>
     </message>
@@ -3786,11 +3790,11 @@ Error: %1</source>
         <translation>به‌کار بردن</translation>
     </message>
     <message>
-        <source>Yes</source>
+        <source>&amp;Yes</source>
         <translation>بله</translation>
     </message>
     <message>
-        <source>No</source>
+        <source>&amp;No</source>
         <translation>خیر</translation>
     </message>
     <message>
