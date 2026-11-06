@@ -9015,6 +9015,10 @@ Improves hole-punching reliability. Requires IPv4.</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>Are you sure you want to change the order?</source>
+        <translation>Вы уверены, что хотите изменить порядок?</translation>
+    </message>
+    <message>
         <source>Test Latency</source>
         <translation>Проверить задержку</translation>
     </message>
@@ -12075,11 +12079,11 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
         <translation>Применить</translation>
     </message>
     <message>
-        <source>Yes</source>
+        <source>&amp;Yes</source>
         <translation>Да</translation>
     </message>
     <message>
-        <source>No</source>
+        <source>&amp;No</source>
         <translation>Нет</translation>
     </message>
     <message>

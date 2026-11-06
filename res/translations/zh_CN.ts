@@ -9124,6 +9124,10 @@ Improves hole-punching reliability. Requires IPv4.</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>Are you sure you want to change the order?</source>
+        <translation>确定更改顺序？</translation>
+    </message>
+    <message>
         <source>Test Latency</source>
         <translation>测试延迟</translation>
     </message>
@@ -12327,11 +12331,11 @@ How to update?</source>
         <translation>应用</translation>
     </message>
     <message>
-        <source>Yes</source>
+        <source>&amp;Yes</source>
         <translation>是</translation>
     </message>
     <message>
-        <source>No</source>
+        <source>&amp;No</source>
         <translation>否</translation>
     </message>
     <message>
