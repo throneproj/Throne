@@ -906,7 +906,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionResolve_Out_IP, &QAction::triggered, this, [=,this]() {
         tests()->runIpTests(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles());
     });
-    connect(ui->menu_stop_testing, &QAction::triggered, this, [=,this]() { tests()->stop(); });
+    ui->menu_stop_testing->setEnabled(false);
+    ui->toolButton_stop_testing->setDefaultAction(ui->menu_stop_testing);
+    connect(ui->menu_stop_testing, &QAction::triggered, this, [this]() {
+        ui->menu_stop_testing->setEnabled(false);
+        // StopTests is a blocking RPC; keep both the button and menu responsive.
+        runOnNewThread([runner = tests()] { runner->stop(); });
+    });
     auto set_selected_or_group = [=,this](int mode) {
         // 0=group 1=select 2=unknown(menu is hide)
         ui->menu_server->setProperty("selected_or_group", mode);

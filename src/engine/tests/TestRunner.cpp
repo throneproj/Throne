@@ -537,6 +537,7 @@ namespace Engine {
             } else
             {
                 observer_->testPanelSeeded(TestKind::Speed, 1);
+                observer_->testViewChanged(true);
                 Target target;
                 target.testCurrent = true;
                 runSpeedProbe(target);
