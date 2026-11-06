@@ -3,7 +3,7 @@
 ### Join [Throne's Telegram channel](https://t.me/ThroneProj) for announcements and community support
 
 * Fix macOS Tun mode
-* Fix invalid giometry of the main window
+* Fix invalid geometry of the main window
 * Fix XHTTP Extra field parsing
 
 #### 1.4.0
