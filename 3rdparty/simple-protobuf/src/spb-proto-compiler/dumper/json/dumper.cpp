@@ -19,6 +19,7 @@
 #include <cctype>
 #include <cstdint>
 #include <map>
+#include <ostream>
 #include <set>
 #include <spb/json/deserialize.hpp>
 #include <string>

@@ -2088,6 +2088,7 @@ FK_YAML_DETAIL_NAMESPACE_END
 #define FK_YAML_DETAIL_STR_VIEW_HPP
 
 #include <limits>
+#include <ostream>
 #include <string>
 
 // #include <fkYAML/detail/macros/define_macros.hpp>
