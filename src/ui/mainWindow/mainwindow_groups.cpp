@@ -249,6 +249,9 @@ void MainWindow::show_group_tab_menu(const QPoint &p) {
         connect(menu.addAction(tr("Speed Test selected Group")), &QAction::triggered, this, [=,this]{
             if (const auto group = Configs::dataManager->groupsRepo->GetGroup(clickedGid)) tests()->runSpeedTests(group->Profiles());
         });
+        connect(menu.addAction(tr("IP Risk Factor Test Group")), &QAction::triggered, this, [this, clickedGid] {
+            if (const auto group = Configs::dataManager->groupsRepo->GetGroup(clickedGid)) tests()->runIpRiskTests(group->Profiles());
+        });
         // Clean up acts on the current group; setCurrentIndex above already switched to the clicked one.
         menu.addSeparator();
         menu.addMenu(ui->menu_clean_up);

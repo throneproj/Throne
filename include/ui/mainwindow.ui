@@ -798,6 +798,7 @@ QToolButton::menu-indicator {
     <addaction name="actionUrl_Test_Selected"/>
     <addaction name="actionSpeedtest_Selected"/>
     <addaction name="actionResolve_Selected_Out_IP"/>
+    <addaction name="actionIP_Risk_Test_Selected"/>
     <addaction name="menu_resolve_selected"/>
     <addaction name="actionClear_Test_Result"/>
     <addaction name="menu_reset_traffic"/>
@@ -822,6 +823,7 @@ QToolButton::menu-indicator {
     <addaction name="menu_delete_repeat"/>
     <addaction name="actionSpeedtest_Group"/>
     <addaction name="actionResolve_Out_IP"/>
+    <addaction name="actionIP_Risk_Test_Group"/>
     <addaction name="actionRefresh_Column_Widths"/>
     <addaction name="menu_spmode"/>
    </widget>
@@ -864,6 +866,7 @@ QToolButton::menu-indicator {
     <addaction name="actionUrl_Test_Group"/>
     <addaction name="actionSpeedtest_Group"/>
     <addaction name="actionResolve_Out_IP"/>
+    <addaction name="actionIP_Risk_Test_Group"/>
     <addaction name="menu_resolve_domain"/>
     <addaction name="menu_clear_test_result"/>
     <addaction name="separator"/>
@@ -1407,6 +1410,22 @@ QToolButton::menu-indicator {
    </property>
    <property name="uiLevel" stdset="0">
     <string notr="true">advanced</string>
+   </property>
+  </action>
+  <action name="actionIP_Risk_Test_Selected">
+   <property name="text">
+    <string>IP Risk Factor Test Selected</string>
+   </property>
+   <property name="toolTip">
+    <string>Check the exit IP's risk factor using IPPure through each selected profile.</string>
+   </property>
+  </action>
+  <action name="actionIP_Risk_Test_Group">
+   <property name="text">
+    <string>IP Risk Factor Test Group</string>
+   </property>
+   <property name="toolTip">
+    <string>Check the exit IP's risk factor using IPPure through each profile in the group.</string>
    </property>
   </action>
   <action name="actionRefresh_Column_Widths">

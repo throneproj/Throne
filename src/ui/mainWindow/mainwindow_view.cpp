@@ -90,6 +90,9 @@ void MainWindow::testPanelSeeded(Engine::TestKind kind, int totalProfiles)
         case Engine::TestKind::Ip:
             dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::Ip, totalProfiles);
             break;
+        case Engine::TestKind::IpRisk:
+            dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::IpRisk, totalProfiles);
+            break;
         case Engine::TestKind::Speed:
             dataViewHtmlGenerator_.seedSpeedTest(totalProfiles);
             break;
@@ -423,7 +426,7 @@ void MainWindow::refresh_proxy_list_column_size() {
     auto *hHeader = dynamic_cast<ProfilesTableFilterHeader*>(ui->profilesTableView->horizontalHeader());
     QTimer::singleShot(0, ui->profilesTableView, [=, this]() {
         // The resizeSection / scrollbar-policy changes below re-enter here via valueChanged.
-        if (m_adjustingColumns) return;
+        if (m_adjustingColumns || group != Configs::dataManager->groupsRepo->CurrentGroup()) return;
         m_adjustingColumns = true;
         QScrollBar *vBar = ui->profilesTableView->verticalScrollBar();
         const bool vBarBlocked = vBar->blockSignals(true);
@@ -436,30 +439,33 @@ void MainWindow::refresh_proxy_list_column_size() {
             hHeader->setSectionResizeMode(ProfilesTableModel::ColType, QHeaderView::ResizeToContents);
             hHeader->setSectionResizeMode(ProfilesTableModel::ColAddress, QHeaderView::Stretch);
             hHeader->setSectionResizeMode(ProfilesTableModel::ColName, QHeaderView::Stretch);
-            hHeader->setSectionResizeMode(ProfilesTableModel::ColTestResult, QHeaderView::ResizeToContents);
-            hHeader->setSectionResizeMode(ProfilesTableModel::ColTraffic, QHeaderView::ResizeToContents);
+            for (int col = ProfilesTableModel::ColLatency; col < columnCount; ++col) {
+                hHeader->setSectionResizeMode(col, QHeaderView::ResizeToContents);
+            }
             // ResizeToContents only measures on-screen rows, so pin these or they jitter while scrolling.
-            for (int col : {ProfilesTableModel::ColType,
-                            ProfilesTableModel::ColTestResult, ProfilesTableModel::ColTraffic}) {
+            for (int col : {ProfilesTableModel::ColType, ProfilesTableModel::ColLatency, ProfilesTableModel::ColExitIP,
+                            ProfilesTableModel::ColSpeed, ProfilesTableModel::ColRiskFactor, ProfilesTableModel::ColTraffic}) {
                 if (group->calculated_column_width.size() > col &&
                     group->calculated_column_width[col] > hHeader->sectionSize(col)) {
                     hHeader->setSectionResizeMode(col, QHeaderView::Fixed);
                     hHeader->resizeSection(col, group->calculated_column_width[col]);
                 }
             }
-            ui->profilesTableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+            ui->profilesTableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
             group->clearCalculatedColumnWidth();
             for (int i = 0; i < columnCount; i++) {
-                auto size = hHeader->sectionSize(i);
+                const auto size = hHeader->sectionSize(i);
                 hHeader->setSectionResizeMode(i, QHeaderView::Interactive);
-                hHeader->resizeSection(i, size);
+                if (size > 0) hHeader->resizeSection(i, size);
                 group->calculated_column_width << size;
             }
         } else {
             group->clearCalculatedColumnWidth();
             for (int i = 0; i < columnCount; i++) {
                 hHeader->setSectionResizeMode(i, QHeaderView::Interactive);
-                hHeader->resizeSection(i, group->column_width.at(i));
+                const int width = group->column_width.at(i);
+                if (width > 0) hHeader->resizeSection(i, width);
+                else ui->profilesTableView->resizeColumnToContents(i);
             }
             ui->profilesTableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
         }
@@ -489,7 +495,7 @@ void MainWindow::refresh_proxy_list_impl(const QList<int>& ids, bool mayNeedRese
 
 void MainWindow::refresh_sort_indicator() {
     const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
-    const int column = group == nullptr ? -1 : ProfilesTableModel::columnOfSort(group->sort.method);
+    const int column = group == nullptr ? -1 : ProfilesTableModel::columnOfSort(*group);
     auto *header = static_cast<ProfilesTableFilterHeader*>(ui->profilesTableView->horizontalHeader());
     if (header->setSortSection(column, group != nullptr && group->sort.descending)) refresh_proxy_list_column_size();
 }
@@ -503,12 +509,12 @@ void MainWindow::sortCurrentGroup(GroupSortAction action) {
     Configs::ResortLater(group->id);
 }
 
-void MainWindow::stopSortingCurrentGroup() {
+void MainWindow::restoreOriginalOrder() {
     const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
     if (group == nullptr) return;
-    group->SetSort({});
+    group->RestoreImportOrder();
     Configs::dataManager->groupsRepo->Save(group);
-    refresh_sort_indicator();
+    refresh_proxy_list({}, true);
 }
 
 void MainWindow::refresh_proxy_list_impl_refresh_data(const QList<int>& ids, bool mayNeedReset) {

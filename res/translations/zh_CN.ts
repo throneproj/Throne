@@ -9124,6 +9124,58 @@ Improves hole-punching reliability. Requires IPv4.</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>Test Latency</source>
+        <translation>测试延迟</translation>
+    </message>
+    <message>
+        <source>Test Exit IP</source>
+        <translation>测试出口 IP</translation>
+    </message>
+    <message>
+        <source>Test Speed</source>
+        <translation>测试速度</translation>
+    </message>
+    <message>
+        <source>Test Risk Factor</source>
+        <translation>测试风险系数</translation>
+    </message>
+    <message>
+        <source>Restore Original Order</source>
+        <translation>恢复原顺序</translation>
+    </message>
+    <message>
+        <source>Clear Results</source>
+        <translation>清空测试结果</translation>
+    </message>
+    <message>
+        <source>IP Risk Factor Test Selected</source>
+        <translation>测试所选节点的 IP 风险系数</translation>
+    </message>
+    <message>
+        <source>IP Risk Factor Test Group</source>
+        <translation>测试分组的 IP 风险系数</translation>
+    </message>
+    <message>
+        <source>Check the exit IP's risk factor using IPPure through each selected profile.</source>
+        <translation>通过每个所选节点访问 IPPure，查询出口 IP 的风险系数。</translation>
+    </message>
+    <message>
+        <source>Check the exit IP's risk factor using IPPure through each profile in the group.</source>
+        <translation>通过分组中的每个节点访问 IPPure，查询出口 IP 的风险系数。</translation>
+    </message>
+    <message>
+        <source>[%1] IP risk factor test error: %2</source>
+        <translation>[%1] IP 风险系数测试错误：%2</translation>
+    </message>
+    <message>
+        <source>Missing IP risk factor</source>
+        <translation>缺少 IP 风险系数</translation>
+    </message>
+    <message>
+        <source>IP risk factor test finished!</source>
+        <translation>IP 风险系数测试完成！</translation>
+    </message>
+    <message>
         <source>Program</source>
         <translation>程序</translation>
     </message>
@@ -10696,8 +10748,20 @@ Error: %1</source>
         <translation>名称</translation>
     </message>
     <message>
-        <source>Test Result</source>
-        <translation>测试结果</translation>
+        <source>Latency</source>
+        <translation>延迟</translation>
+    </message>
+    <message>
+        <source>Exit IP</source>
+        <translation>出口 IP</translation>
+    </message>
+    <message>
+        <source>Speed</source>
+        <translation>速度</translation>
+    </message>
+    <message>
+        <source>Risk factor</source>
+        <translation>风险系数</translation>
     </message>
     <message>
         <source>Traffic</source>
@@ -10731,6 +10795,14 @@ Error: %1</source>
 </context>
 <context>
     <name>QObject</name>
+    <message>
+        <source>IP risk factor: %1</source>
+        <translation>IP 风险系数：%1</translation>
+    </message>
+    <message>
+        <source>Running IP risk factor test</source>
+        <translation>正在测试 IP 风险系数</translation>
+    </message>
     <message>
         <source>Auto Selector</source>
         <translation>自动选择器</translation>

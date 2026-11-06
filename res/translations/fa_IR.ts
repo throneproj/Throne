@@ -74,6 +74,14 @@
 <context>
     <name>QObject</name>
     <message>
+        <source>IP risk factor: %1</source>
+        <translation>ضریب ریسک IP: %1</translation>
+    </message>
+    <message>
+        <source>Running IP risk factor test</source>
+        <translation>در حال آزمایش ضریب ریسک IP</translation>
+    </message>
+    <message>
         <source>Request with proxy but no profile started.</source>
         <translation type="unfinished">درخواست با پروکسی اما هیچ نمایه‌ای شروع نشده است.</translation>
     </message>
@@ -2859,6 +2867,58 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>Test Latency</source>
+        <translation>آزمایش تأخیر</translation>
+    </message>
+    <message>
+        <source>Test Exit IP</source>
+        <translation>آزمایش IP خروجی</translation>
+    </message>
+    <message>
+        <source>Test Speed</source>
+        <translation>آزمایش سرعت</translation>
+    </message>
+    <message>
+        <source>Test Risk Factor</source>
+        <translation>آزمایش ضریب ریسک</translation>
+    </message>
+    <message>
+        <source>Restore Original Order</source>
+        <translation>بازیابی ترتیب اولیه</translation>
+    </message>
+    <message>
+        <source>Clear Results</source>
+        <translation>پاک کردن نتایج</translation>
+    </message>
+    <message>
+        <source>IP Risk Factor Test Selected</source>
+        <translation>آزمایش ضریب ریسک IP نمایه‌های انتخاب‌شده</translation>
+    </message>
+    <message>
+        <source>IP Risk Factor Test Group</source>
+        <translation>آزمایش ضریب ریسک IP گروه</translation>
+    </message>
+    <message>
+        <source>Check the exit IP's risk factor using IPPure through each selected profile.</source>
+        <translation>بررسی ضریب ریسک IP خروجی با IPPure از طریق هر نمایهٔ انتخاب‌شده.</translation>
+    </message>
+    <message>
+        <source>Check the exit IP's risk factor using IPPure through each profile in the group.</source>
+        <translation>بررسی ضریب ریسک IP خروجی با IPPure از طریق هر نمایه در گروه.</translation>
+    </message>
+    <message>
+        <source>[%1] IP risk factor test error: %2</source>
+        <translation>[%1] خطای آزمایش ضریب ریسک IP: %2</translation>
+    </message>
+    <message>
+        <source>Missing IP risk factor</source>
+        <translation>ضریب ریسک IP موجود نیست</translation>
+    </message>
+    <message>
+        <source>IP risk factor test finished!</source>
+        <translation>آزمایش ضریب ریسک IP تمام شد!</translation>
+    </message>
+    <message>
         <source>Connect</source>
         <translation>اتصال</translation>
     </message>
@@ -3608,8 +3668,20 @@ Error: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Test Result</source>
-        <translation type="unfinished">نتیجه تست</translation>
+        <source>Latency</source>
+        <translation>تأخیر</translation>
+    </message>
+    <message>
+        <source>Exit IP</source>
+        <translation>IP خروجی</translation>
+    </message>
+    <message>
+        <source>Speed</source>
+        <translation>سرعت</translation>
+    </message>
+    <message>
+        <source>Risk factor</source>
+        <translation>ضریب ریسک</translation>
     </message>
     <message>
         <source>Traffic</source>

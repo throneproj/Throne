@@ -206,6 +206,10 @@ namespace Configs
                 } else if (method == GroupSortMethod::ByTestResult) {
                     if (group.test_sort_by == testBy::dlSpeed) key.number = bitrateToBps(profile->dl_speed);
                     else if (group.test_sort_by == testBy::ulSpeed) key.number = bitrateToBps(profile->ul_speed);
+                    else if (group.test_sort_by == testBy::riskFactor) {
+                        key.level = profile->ip_risk_factor < 0 ? 1 : 0;
+                        key.number = profile->ip_risk_factor;
+                    }
                     else key.text = profile->ip_out;
                 } else if (method == GroupSortMethod::ByTraffic) {
                     if (group.traffic_sort_by == trafficBy::dl) key.number = static_cast<double>(profile->traffic_downlink);
@@ -293,6 +297,12 @@ namespace Configs
     void Group::SetSort(GroupSortAction action) {
         QMutexLocker locker(&mutex);
         sort = action;
+    }
+
+    void Group::RestoreImportOrder() {
+        QMutexLocker locker(&mutex);
+        sort = {};
+        std::ranges::sort(profiles);
     }
 
     bool Group::SortProfiles(GroupSortAction action) {

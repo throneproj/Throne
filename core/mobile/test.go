@@ -340,7 +340,7 @@ func StartIPTest(platform PlatformInterface, request *TestRequest, handler IPTes
 				handler.OnResult(result.Tag, result.Result.IP, result.Result.CountryCode, errorString(result.Error))
 			},
 		).run(func() []*probe.IPTestResult {
-			return probe.BatchIPTest(testCtx, env.box, env.tags, int(request.MaxConcurrency), true, timeout)
+			return probe.BatchIPTest(testCtx, env.box, env.tags, int(request.MaxConcurrency), true, timeout, false)
 		})
 	}()
 	return nil
