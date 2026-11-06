@@ -58,6 +58,7 @@ public:
     // Re-resolves the Address column after IP lists or group endpoints change.
     void invalidateAddresses();
 
+    // Move after row2 (-1 means first), preserving Qt selections and persistent indexes by profile identity.
     void emplaceProfiles(int row1, int row2);
 
     int indexOfProfile(int id);
