@@ -276,15 +276,16 @@ void ProfilesTableModel::invalidateAddresses() {
 }
 
 void ProfilesTableModel::emplaceProfiles(int row1, int row2) {
-    if (m_profileIds.size() <= row1 || m_profileIds.size() <= row2) return;
-    m_profileIds.insert(row2+1, m_profileIds[row1]);
-    if (row1 < row2) m_profileIds.remove(row1);
-    else m_profileIds.remove(row1+1);
-
-    const int from = std::max(std::min(row1, row2), 0);
-    const int to = std::min(std::max(row1, row2), static_cast<int>(m_profileIds.size()) - 1);
+    if (row1 < 0 || row1 >= m_profileIds.size() || row2 < -1 || row2 >= m_profileIds.size()) return;
+    const int destination = row2 + 1;
+    if (destination == row1 || destination == row1 + 1) return;
+    if (!beginMoveRows(QModelIndex(), row1, row1, QModelIndex(), destination)) return;
+    const int newRow = destination > row1 ? destination - 1 : destination;
+    m_profileIds.move(row1, newRow);
+    const int from = std::min(row1, newRow);
+    const int to = std::max(row1, newRow);
     for (int i = from; i <= to; ++i) id2row[m_profileIds[i]] = i;
-    for (int i = from; i <= to; ++i) refreshProfileId(m_profileIds[i]);
+    endMoveRows();
 }
 
 int ProfilesTableModel::indexOfProfile(int id) {
