@@ -695,7 +695,7 @@ QToolButton::menu-indicator {
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="QLabel" name="label_running">
+       <widget class="ElidingLabel" name="label_running">
         <property name="text">
          <string/>
         </property>
@@ -1474,6 +1474,11 @@ QToolButton::menu-indicator {
    <class>StartStopButton</class>
    <extends>QToolButton</extends>
    <header>include/ui/widget/StartStopButton.hpp</header>
+  </customwidget>
+  <customwidget>
+   <class>ElidingLabel</class>
+   <extends>QLabel</extends>
+   <header>include/ui/widget/ElidingLabel.hpp</header>
   </customwidget>
  </customwidgets>
  <resources>

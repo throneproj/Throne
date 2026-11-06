@@ -251,6 +251,8 @@ set(PROJECT_SOURCES
         src/ui/widget/MuxSettingsWidget.cpp
         include/ui/widget/ResolverSourceWidget.h
         src/ui/widget/ResolverSourceWidget.cpp
+        include/ui/widget/ElidingLabel.hpp
+        src/ui/widget/ElidingLabel.cpp
         include/ui/widget/json/JsonTree.h
         src/ui/widget/json/JsonTree.cpp
         include/ui/widget/json/JsonValidator.h

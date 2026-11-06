@@ -56,9 +56,14 @@ void MainWindow::applyTopBarMetrics() {
     }
     for (auto* b : menuButtons) b->setMinimumWidth(uniformButtonWidth);
 
-    const QSize contentMin = minimumSizeHint();
-    setMinimumSize(qMax(designMinimumSize.width(), contentMin.width()),
-                   qMax(designMinimumSize.height(), contentMin.height()));
+    auto* centralLayout = centralWidget()->layout();
+    // Nested layouts keep stale minimums until the next layout pass.
+    centralLayout->activate();
+    const QMargins margins = centralLayout->contentsMargins();
+    // Top bar only: the rows below show profile names, and an explicit minimum never shrinks back (#2081).
+    const int topBarWidth = ui->horizontalLayout_2->minimumSize().width() + margins.left() + margins.right();
+    setMinimumSize(qMax(designMinimumSize.width(), topBarWidth),
+                   qMax(designMinimumSize.height(), minimumSizeHint().height()));
 }
 
 void MainWindow::UpdateDataView(bool force)
