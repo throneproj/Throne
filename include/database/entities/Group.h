@@ -143,6 +143,8 @@ namespace Configs
         EndpointSource endpoint;
 
         QList<int> column_width;
+        // Persisted profile-table column bits: type, address, name and traffic are visible by default.
+        int visible_columns = 0x87;
         QList<int> calculated_column_width; // memory only, no need to save to db
         QList<int> profiles;
         // Last manual arrangement; empty until first drag. Never changes profile identities.
