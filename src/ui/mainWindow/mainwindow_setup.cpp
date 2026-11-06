@@ -397,10 +397,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         if (profilesFilterModel->hasActiveFilter()) return;
         if (row1 == row2) return;
         auto group = Configs::dataManager->groupsRepo->CurrentGroup();
-        // A hand-placed row is a manual order, which a kept sort would undo.
-        group->SetSort({});
+        // The manual move also captures the new reset baseline and stops any maintained sort.
+        if (!group->EmplaceProfile(row1, row2)) return;
         refresh_sort_indicator();
-        group->EmplaceProfile(row1, row2);
         profilesTableModel->emplaceProfiles(row1, row2);
         Configs::dataManager->groupsRepo->Save(group);
     };

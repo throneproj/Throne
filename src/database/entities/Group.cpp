@@ -299,10 +299,27 @@ namespace Configs
         sort = action;
     }
 
-    void Group::RestoreImportOrder() {
+    void Group::RestoreOriginalOrder() {
         QMutexLocker locker(&mutex);
         sort = {};
-        std::ranges::sort(profiles);
+        if (manual_order.isEmpty()) {
+            std::ranges::sort(profiles);
+            return;
+        }
+        QSet<int> remaining(profiles.cbegin(), profiles.cend());
+        QList<int> restored;
+        restored.reserve(profiles.size());
+        for (int id : manual_order) {
+            if (remaining.remove(id)) restored.append(id);
+        }
+        // Deleted members stay deleted; newly imported members follow the baseline in import order.
+        const auto baselineSize = restored.size();
+        for (int id : profiles) {
+            if (remaining.remove(id)) restored.append(id);
+        }
+        std::sort(restored.begin() + baselineSize, restored.end());
+        profiles = std::move(restored);
+        manual_order = profiles;
     }
 
     bool Group::SortProfiles(GroupSortAction action) {
@@ -455,6 +472,8 @@ namespace Configs
         QMutexLocker locker(&mutex);
         if (profiles.size() <= idx1 || profiles.size() <= idx2) return false;
         profiles.swapItemsAt(idx1, idx2);
+        sort = {};
+        manual_order = profiles;
         return true;
     }
 
@@ -465,6 +484,8 @@ namespace Configs
         profiles.insert(newIdx+1, profiles[idx]);
         if (idx < newIdx) profiles.remove(idx);
         else profiles.remove(idx+1);
+        sort = {};
+        manual_order = profiles;
         return true;
     }
 
