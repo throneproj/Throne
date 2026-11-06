@@ -1,10 +1,4 @@
 
-<div align=center>
-
-[![Release Downloads](https://img.shields.io/github/downloads/{{REPO}}/{{TAG}}/total?style=flat-square&logo=github)](https://github.com/{{REPO}}/releases/tag/{{TAG}})
-
-</div>
-
 **Download based on your OS:**
 
 <table>
