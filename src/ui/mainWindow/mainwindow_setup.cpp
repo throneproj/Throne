@@ -395,8 +395,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     {
         // A drop position in a filtered list says nothing about the group's real order.
         if (profilesFilterModel->hasActiveFilter()) return;
-        if (row1 == row2) return;
+        if (row1 == row2 || row2 == row1 - 1) return;
         auto group = Configs::dataManager->groupsRepo->CurrentGroup();
+        if (group == nullptr) return;
+        const auto previousOrder = group->Profiles();
+        if (QMessageBox::question(this, tr("Confirmation"), tr("Are you sure you want to change the order?"),
+                                  QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes) return;
+        // The modal dialog can process test results or subscription updates that change these row positions.
+        if (group != Configs::dataManager->groupsRepo->CurrentGroup() || group->Profiles() != previousOrder) return;
         // The manual move also captures the new reset baseline and stops any maintained sort.
         if (!group->EmplaceProfile(row1, row2)) return;
         refresh_sort_indicator();
