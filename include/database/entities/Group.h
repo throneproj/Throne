@@ -43,18 +43,13 @@ namespace Configs
 
     SubUserInfo ParseSubUserInfo(const QString &info);
 
+    // Persisted as ints: append only.
     enum class testBy : int {
         latency = 0,
         dlSpeed,
         ulSpeed,
-        ipOut
-    };
-
-    enum class testShowItems : int {
-        all = 0,
-        none,
-        ipOnly,
-        speedOnly
+        ipOut,
+        riskFactor = 4
     };
 
     enum class trafficBy : int {
@@ -148,15 +143,18 @@ namespace Configs
         EndpointSource endpoint;
 
         QList<int> column_width;
+        // Persisted profile-table column bits: type, address, name and traffic are visible by default.
+        int visible_columns = 0x87;
         QList<int> calculated_column_width; // memory only, no need to save to db
         QList<int> profiles;
+        // Last manual arrangement; empty until first drag. Never changes profile identities.
+        QList<int> manual_order;
         int scroll_last_profile = -1;
         testBy test_sort_by = testBy::latency;
         trafficBy traffic_sort_by = trafficBy::total;
         typeBy type_sort_by = typeBy::byType;
         // The order the profiles are kept in as they change; Raw keeps the manual order.
         GroupSortAction sort;
-        testShowItems test_items_to_show = testShowItems::all;
         // Memory only. Pairs of (profileID, row as displayed).
         QList<std::pair<int, int>> selectedProfilesIdIdxPairs;
 
@@ -171,6 +169,9 @@ namespace Configs
         [[nodiscard]] bool KeepsSorted() const;
 
         void SetSort(GroupSortAction action);
+
+        // Restore the manual baseline, or initial import order before the first drag; stop maintaining any sort.
+        void RestoreOriginalOrder();
 
         // The sorts below load profiles, so call them off the UI thread. Each is true when the order moved.
 

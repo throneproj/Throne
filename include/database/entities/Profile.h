@@ -60,6 +60,7 @@ namespace Configs {
         qint64 traffic_uplink = 0;
 
         QString ip_out;
+        int ip_risk_factor = -1;
 
         QString runningCountryInfo; // volatile, not saved to db
 
@@ -75,6 +76,14 @@ namespace Configs {
         [[nodiscard]] bool IsWorking() const { return latency > 0 || latency == kLatencyConnectOnly; }
 
         [[nodiscard]] bool IsUnavailable() const { return latency < 0 && latency != kLatencyConnectOnly; }
+
+        [[nodiscard]] QString DisplayLatency() const;
+
+        [[nodiscard]] QString DisplayExitIP() const;
+
+        [[nodiscard]] QString DisplaySpeed() const;
+
+        [[nodiscard]] QString DisplayRiskFactor() const;
 
         [[nodiscard]] QString DisplayTestResult() const;
 

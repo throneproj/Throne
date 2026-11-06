@@ -10,6 +10,7 @@
 
 namespace Configs {
     class Profile;
+    class Group;
 }
 
 class ProfilesTableModel : public QAbstractTableModel {
@@ -17,11 +18,15 @@ class ProfilesTableModel : public QAbstractTableModel {
 public:
     enum { ProfileIdRole = Qt::UserRole };
 
+    // Persisted as bits in Group::visible_columns; append new columns without renumbering these.
     enum Column {
         ColType = 0,
         ColAddress,
         ColName,
-        ColTestResult,
+        ColLatency,
+        ColExitIP,
+        ColSpeed,
+        ColRiskFactor,
         ColTraffic,
         ColumnCount,
     };
@@ -54,6 +59,7 @@ public:
     // Re-resolves the Address column after IP lists or group endpoints change.
     void invalidateAddresses();
 
+    // Move after row2 (-1 means first), preserving Qt selections and persistent indexes by profile identity.
     void emplaceProfiles(int row1, int row2);
 
     int indexOfProfile(int id);
@@ -66,7 +72,7 @@ public:
     const FilterKey *filterKeyAt(int row) const;
 
     // -1 for a method no column shows.
-    static int columnOfSort(GroupSortMethod::GroupSortMethod method);
+    static int columnOfSort(const Configs::Group &group);
 
     // Raw for a column that does not sort.
     static GroupSortMethod::GroupSortMethod sortOfColumn(int column);

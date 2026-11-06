@@ -206,6 +206,10 @@ namespace Configs
                 } else if (method == GroupSortMethod::ByTestResult) {
                     if (group.test_sort_by == testBy::dlSpeed) key.number = bitrateToBps(profile->dl_speed);
                     else if (group.test_sort_by == testBy::ulSpeed) key.number = bitrateToBps(profile->ul_speed);
+                    else if (group.test_sort_by == testBy::riskFactor) {
+                        key.level = profile->ip_risk_factor < 0 ? 1 : 0;
+                        key.number = profile->ip_risk_factor;
+                    }
                     else key.text = profile->ip_out;
                 } else if (method == GroupSortMethod::ByTraffic) {
                     if (group.traffic_sort_by == trafficBy::dl) key.number = static_cast<double>(profile->traffic_downlink);
@@ -293,6 +297,29 @@ namespace Configs
     void Group::SetSort(GroupSortAction action) {
         QMutexLocker locker(&mutex);
         sort = action;
+    }
+
+    void Group::RestoreOriginalOrder() {
+        QMutexLocker locker(&mutex);
+        sort = {};
+        if (manual_order.isEmpty()) {
+            std::ranges::sort(profiles);
+            return;
+        }
+        QSet<int> remaining(profiles.cbegin(), profiles.cend());
+        QList<int> restored;
+        restored.reserve(profiles.size());
+        for (int id : manual_order) {
+            if (remaining.remove(id)) restored.append(id);
+        }
+        // Deleted members stay deleted; newly imported members follow the baseline in import order.
+        const auto baselineSize = restored.size();
+        for (int id : profiles) {
+            if (remaining.remove(id)) restored.append(id);
+        }
+        std::sort(restored.begin() + baselineSize, restored.end());
+        profiles = std::move(restored);
+        manual_order = profiles;
     }
 
     bool Group::SortProfiles(GroupSortAction action) {
@@ -445,6 +472,8 @@ namespace Configs
         QMutexLocker locker(&mutex);
         if (profiles.size() <= idx1 || profiles.size() <= idx2) return false;
         profiles.swapItemsAt(idx1, idx2);
+        sort = {};
+        manual_order = profiles;
         return true;
     }
 
@@ -455,6 +484,8 @@ namespace Configs
         profiles.insert(newIdx+1, profiles[idx]);
         if (idx < newIdx) profiles.remove(idx);
         else profiles.remove(idx+1);
+        sort = {};
+        manual_order = profiles;
         return true;
     }
 

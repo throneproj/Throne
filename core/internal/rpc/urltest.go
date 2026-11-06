@@ -102,7 +102,7 @@ func (s *server) IPTest(ctx context.Context, in *gen.IPTestRequest) (*gen.IPTest
 
 	timeout := time.Duration(in.GetTestTimeoutMs()) * time.Millisecond
 	results := probe.BatchIPTest(probe.TestContext(), env.box, env.tags,
-		int(in.GetMaxConcurrency()), !current, timeout)
+		int(in.GetMaxConcurrency()), !current, timeout, in.GetRiskTest())
 
 	res := make([]*gen.IPTestRes, 0, len(results))
 	for idx, data := range results {
@@ -115,6 +115,7 @@ func (s *server) IPTest(ctx context.Context, in *gen.IPTestRequest) (*gen.IPTest
 			Ip:          To(data.Result.IP),
 			CountryCode: To(data.Result.CountryCode),
 			Error:       To(errStr),
+			FraudScore:  To(data.Result.FraudScore),
 		})
 	}
 	return &gen.IPTestResp{Results: res}, nil
@@ -133,6 +134,7 @@ func (s *server) QueryIPTest(ctx context.Context, in *gen.EmptyReq) (out *gen.Qu
 			Ip:          To(r.Result.IP),
 			CountryCode: To(r.Result.CountryCode),
 			Error:       To(errStr),
+			FraudScore:  To(r.Result.FraudScore),
 		})
 	}
 	return

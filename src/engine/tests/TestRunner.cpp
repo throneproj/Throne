@@ -121,7 +121,7 @@ namespace Engine {
 
         class TestRunnerNullObserver final : public TestObserver {
         public:
-            void testPanelSeeded(TestKind, int) override {}
+            void testPanelSeeded(TestKind, int, const QList<int>&) override {}
             void testProgressed() override {}
             void testPanelsCleared() override {}
             void testViewChanged(bool) override {}
@@ -187,15 +187,32 @@ namespace Engine {
         Configs::dataManager->profilesRepo->Save(ent);
     }
 
-    void TestRunner::applyIpResult(const std::shared_ptr<Configs::Profile>& ent, const libcore::IPTestRes& res) {
+    void TestRunner::applyIpResult(const std::shared_ptr<Configs::Profile>& ent, const libcore::IPTestRes& res, bool riskTest) {
         const auto error = QString::fromStdString(res.error.value());
+        if (riskTest) {
+            if (testRunnerIsTestAborted(error)) return;
+            ent->ip_risk_factor = error.isEmpty() ? res.fraud_score.value() : -1;
+            if (error.isEmpty() && ent->ip_risk_factor >= 0) {
+                ent->ip_out = QString::fromStdString(res.ip.value());
+                ent->test_country = QString::fromStdString(res.country_code.value());
+            } else {
+                MW_show_log(MainWindowTr::tr("[%1] IP risk factor test error: %2")
+                    .arg(ent->outbound->DisplayTypeAndName(),
+                         error.isEmpty() ? MainWindowTr::tr("Missing IP risk factor") : error));
+            }
+            Configs::dataManager->profilesRepo->Save(ent);
+            return;
+        }
         if (error.isEmpty()) {
-            ent->ip_out = QString::fromStdString(res.ip.value());
+            auto ip = QString::fromStdString(res.ip.value());
+            if (ent->ip_out != ip) ent->ip_risk_factor = -1;
+            ent->ip_out = std::move(ip);
             ent->test_country = QString::fromStdString(res.country_code.value());
         } else {
             if (!testRunnerIsTestAborted(error)) {
                 MW_show_log(MainWindowTr::tr("[%1] IP test error: %2").arg(ent->outbound->DisplayTypeAndName(), error));
             }
+            ent->ip_risk_factor = -1;
             ent->ip_out.clear();
             ent->test_country.clear();
         }
@@ -281,7 +298,7 @@ namespace Engine {
         }
     }
 
-    void TestRunner::runIpProbe(const Target& target) {
+    void TestRunner::runIpProbe(const Target& target, bool riskTest) {
         if (stopRequested_.load()) {
             MW_show_log(MainWindowTr::tr("Profile test aborted"));
             return;
@@ -291,12 +308,13 @@ namespace Engine {
         testRunnerFillCommonTestReq(req, target);
         req.max_concurrency = Configs::dataManager->settingsRepo->test_concurrent;
         req.test_timeout_ms = Configs::dataManager->settingsRepo->url_test_timeout_ms;
+        req.risk_test = riskTest;
 
         bool rpcOK = false;
         QString coreError;
         libcore::IPTestResp result;
         {
-            TestRunnerResultPoller poller([this, gen = sessionGen_.load(), tag2entID = target.tag2entID] {
+            TestRunnerResultPoller poller([this, gen = sessionGen_.load(), tag2entID = target.tag2entID, riskTest] {
                 if (staleGen(gen)) return;
                 bool ok = false;
                 const auto resp = API::defaultClient->QueryIPTest(&ok);
@@ -311,7 +329,7 @@ namespace Engine {
                     if (entid == -1) continue;
                     auto ent = Configs::dataManager->profilesRepo->GetProfile(entid);
                     if (ent == nullptr) continue;
-                    applyIpResult(ent, res);
+                    applyIpResult(ent, res, riskTest);
                     updated << entid;
                 }
                 if (updated.isEmpty()) return;
@@ -340,7 +358,7 @@ namespace Engine {
                 MW_show_log(MainWindowTr::tr("Profile manager data is corrupted, try again."));
                 continue;
             }
-            applyIpResult(ent, res);
+            applyIpResult(ent, res, riskTest);
         }
     }
 
@@ -357,11 +375,16 @@ namespace Engine {
         return runLatencyGroup(LatencyKind::Ip, profileIDs, onFinished, false, interactive);
     }
 
+    bool TestRunner::runIpRiskTests(const QList<int>& profileIDs, const std::function<void()>& onFinished, bool interactive) {
+        return runLatencyGroup(LatencyKind::IpRisk, profileIDs, onFinished, false, interactive);
+    }
+
     bool TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedIDs,
                                      const std::function<void()>& onFinished, bool waitForSession, bool interactive,
                                      const ResultHook& onResult) {
         const bool isUrl = kind == LatencyKind::Url;
-        const auto panelKind = isUrl ? TestKind::Latency : TestKind::Ip;
+        const bool riskTest = kind == LatencyKind::IpRisk;
+        const auto panelKind = isUrl ? TestKind::Latency : (riskTest ? TestKind::IpRisk : TestKind::Ip);
         // Must fire on every exit path — a caller may be blocked on it.
         const auto finish = [onFinished] { if (onFinished) onFinished(); };
 
@@ -387,11 +410,11 @@ namespace Engine {
         stopRequested_.store(false);
         interactive_.store(interactive);
 
-        runOnNewThread([this, profileIDs, panelKind, isUrl, finish, onResult]() {
-            observer_->testPanelSeeded(panelKind, profileIDs.size());
+        runOnNewThread([this, profileIDs, panelKind, isUrl, riskTest, finish, onResult]() {
+            observer_->testPanelSeeded(panelKind, profileIDs.size(), profileIDs);
             observer_->testViewChanged(true);
 
-            auto runBatch = [this, isUrl, &onResult](const QList<std::shared_ptr<Configs::Profile>>& profileSlice, const QList<int>& ids) {
+            auto runBatch = [this, isUrl, riskTest, &onResult](const QList<std::shared_ptr<Configs::Profile>>& profileSlice, const QList<int>& ids) {
                 // Per batch, not per probe: a batch's probes drain each other's results, and tags restart each batch.
                 sessionGen_.fetch_add(1);
                 auto buildObject = Configs::BuildTestConfig(profileSlice);
@@ -404,11 +427,11 @@ namespace Engine {
                 if (testCount == 0) return;
 
                 QSemaphore batchDone;
-                const auto probe = [this, isUrl, &batchDone](const Target& target) {
-                    pool_.start([this, isUrl, target, &batchDone] {
+                const auto probe = [this, isUrl, riskTest, &batchDone](const Target& target) {
+                    pool_.start([this, isUrl, riskTest, target, &batchDone] {
                         const QSemaphoreReleaser releaser(batchDone);
                         if (isUrl) runUrlProbe(target);
-                        else runIpProbe(target);
+                        else runIpProbe(target, riskTest);
                     });
                 };
 
@@ -433,7 +456,7 @@ namespace Engine {
                 }
                 batchDone.acquire(testCount);
 
-                MW_show_log(isUrl ? "URL test for batch done." : "IP test for batch done.");
+                MW_show_log(isUrl ? "URL test for batch done." : (riskTest ? "IP risk factor test for batch done." : "IP test for batch done."));
                 runOnUiThread([=, this] {
                     observer_->testedProfilesChanged(ids);
                 });
@@ -465,7 +488,8 @@ namespace Engine {
                    ProfileService::RemoveUnavailable(profileIDs);
                 });
             }
-            MW_show_log(isUrl ? MainWindowTr::tr("URL test finished!") : MainWindowTr::tr("IP test finished!"));
+            MW_show_log(isUrl ? MainWindowTr::tr("URL test finished!")
+                             : (riskTest ? MainWindowTr::tr("IP risk factor test finished!") : MainWindowTr::tr("IP test finished!")));
         });
         return true;
     }
@@ -498,7 +522,7 @@ namespace Engine {
             QHash<int, QList<int>> tested;
             if (!testCurrent)
             {
-                observer_->testPanelSeeded(TestKind::Speed, profileIDs.size());
+                observer_->testPanelSeeded(TestKind::Speed, profileIDs.size(), profileIDs);
                 observer_->testViewChanged(true);
                 auto runBatch = [this](const QList<std::shared_ptr<Configs::Profile>>& profileSlice) {
                     auto buildObject = Configs::BuildTestConfig(profileSlice);
@@ -536,7 +560,8 @@ namespace Engine {
                 }
             } else
             {
-                observer_->testPanelSeeded(TestKind::Speed, 1);
+                const int currentId = runningProfileId();
+                observer_->testPanelSeeded(TestKind::Speed, 1, currentId >= 0 ? QList<int>{currentId} : QList<int>{});
                 Target target;
                 target.testCurrent = true;
                 runSpeedProbe(target);

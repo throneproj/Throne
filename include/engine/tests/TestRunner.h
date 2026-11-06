@@ -47,6 +47,8 @@ namespace Engine {
 
         bool runIpTests(const QList<int>& profileIDs, const std::function<void()>& onFinished = {}, bool interactive = true);
 
+        bool runIpRiskTests(const QList<int>& profileIDs, const std::function<void()>& onFinished = {}, bool interactive = true);
+
         bool runSpeedTests(const QList<int>& profileIDs, bool testCurrent = false,
                            const std::function<void()>& onFinished = {}, bool interactive = true);
 
@@ -60,7 +62,7 @@ namespace Engine {
         bool stopRequested() const { return stopRequested_.load(); }
 
     private:
-        enum class LatencyKind { Url, Ip };
+        enum class LatencyKind { Url, Ip, IpRisk };
 
         struct Target {
             QString coreConfig;
@@ -82,14 +84,14 @@ namespace Engine {
 
         void runUrlProbe(const Target& target);
 
-        void runIpProbe(const Target& target);
+        void runIpProbe(const Target& target, bool riskTest);
 
         void runSpeedProbe(const Target& target);
 
         void applyUrlResult(const std::shared_ptr<Configs::Profile>& ent, const libcore::URLTestResp& res,
                             const QHash<QString, bool>* vpnConnected = nullptr);
 
-        void applyIpResult(const std::shared_ptr<Configs::Profile>& ent, const libcore::IPTestRes& res);
+        void applyIpResult(const std::shared_ptr<Configs::Profile>& ent, const libcore::IPTestRes& res, bool riskTest);
 
         QString contextName(int entID) const;
 

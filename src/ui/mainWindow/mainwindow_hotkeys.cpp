@@ -122,6 +122,8 @@ void MainWindow::setActionsData()
     ui->actionUpdate_All_Subscriptions->setData(QString("m31"));
     ui->menu_scanner->setData(QString("m32"));
     commandPaletteAction->setData(QString("m33"));
+    ui->actionIP_Risk_Test_Group->setData(QString("m34"));
+    ui->actionIP_Risk_Test_Selected->setData(QString("m35"));
 }
 
 QList<QAction*> MainWindow::getActionsForShortcut()
