@@ -117,7 +117,7 @@
       <item row="6" column="1">
        <widget class="QLineEdit" name="mtu">
         <property name="text">
-         <string>1420</string>
+         <string notr="true">1420</string>
         </property>
        </widget>
       </item>
