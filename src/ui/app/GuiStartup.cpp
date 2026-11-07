@@ -88,6 +88,21 @@ namespace {
         QT_TRANSLATE_NOOP("QPlatformTheme", "Reset");
         QT_TRANSLATE_NOOP("QPlatformTheme", "&Reset");
         QT_TRANSLATE_NOOP("QPlatformTheme", "Restore Defaults");
+        QT_TRANSLATE_NOOP("QWidgetTextControl", "&Undo");
+        QT_TRANSLATE_NOOP("QWidgetTextControl", "&Redo");
+        QT_TRANSLATE_NOOP("QWidgetTextControl", "Cu&t");
+        QT_TRANSLATE_NOOP("QWidgetTextControl", "&Copy");
+        QT_TRANSLATE_NOOP("QWidgetTextControl", "Copy &Link Location");
+        QT_TRANSLATE_NOOP("QWidgetTextControl", "&Paste");
+        QT_TRANSLATE_NOOP("QWidgetTextControl", "Delete");
+        QT_TRANSLATE_NOOP("QWidgetTextControl", "Select All");
+        QT_TRANSLATE_NOOP("QLineEdit", "&Undo");
+        QT_TRANSLATE_NOOP("QLineEdit", "&Redo");
+        QT_TRANSLATE_NOOP("QLineEdit", "Cu&t");
+        QT_TRANSLATE_NOOP("QLineEdit", "&Copy");
+        QT_TRANSLATE_NOOP("QLineEdit", "&Paste");
+        QT_TRANSLATE_NOOP("QLineEdit", "Delete");
+        QT_TRANSLATE_NOOP("QLineEdit", "Select All");
         if (guiStartupTranslator != nullptr) {
             guiStartupTranslator->deleteLater();
         }
