@@ -17,7 +17,7 @@
    <item row="1" column="0">
     <widget class="QLabel" name="flow_l">
      <property name="text">
-      <string notr="true">Flow</string>
+      <string>Flow</string>
      </property>
      <property name="buddy">
       <cstring>flow</cstring>

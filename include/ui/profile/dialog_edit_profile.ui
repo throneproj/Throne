@@ -496,10 +496,10 @@
          <item row="2" column="0">
           <widget class="QLabel" name="path_l">
            <property name="toolTip">
-            <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;http path (ws/http/httpUpgrade)&lt;/p&gt;&lt;p&gt;serviceName (gRPC)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;http path (ws/http/httpUpgrade)&lt;/p&gt;&lt;p&gt;serviceName (gRPC)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
-            <string notr="true">Path</string>
+            <string>Path</string>
            </property>
            <property name="buddy">
             <cstring>path</cstring>
@@ -509,7 +509,7 @@
          <item row="5" column="0">
           <widget class="QLabel" name="ws_early_data_name_l">
            <property name="text">
-            <string notr="true">EarlyData Name</string>
+            <string>EarlyData Name</string>
            </property>
            <property name="buddy">
             <cstring>ws_early_data_name</cstring>
@@ -531,13 +531,13 @@
             </sizepolicy>
            </property>
            <property name="toolTip">
-            <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Headers in space seperated key value pair:&lt;/p&gt;&lt;p&gt;key1=val1 key2=&amp;quot;multi word val2&amp;quot; &amp;quot;multi word key3&amp;quot;=val3&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Headers in space separated key value pair:&lt;/p&gt;&lt;p&gt;key1=val1 key2=&amp;quot;multi word val2&amp;quot; &amp;quot;multi word key3&amp;quot;=val3&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="whatsThis">
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
-            <string notr="true">header</string>
+            <string>Headers</string>
            </property>
            <property name="buddy">
             <cstring>headers</cstring>
@@ -547,7 +547,7 @@
          <item row="4" column="0">
           <widget class="QLabel" name="ws_early_data_length_l">
            <property name="text">
-            <string notr="true">EarlyData Length</string>
+            <string>EarlyData Length</string>
            </property>
            <property name="buddy">
             <cstring>ws_early_data_length</cstring>
@@ -557,10 +557,10 @@
          <item row="3" column="0">
           <widget class="QLabel" name="host_l">
            <property name="toolTip">
-            <string notr="true">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;http host (ws/http/httpUpgrade)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;http host (ws/http/httpUpgrade)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
-            <string notr="true">Host</string>
+            <string>Host</string>
            </property>
            <property name="buddy">
             <cstring>host</cstring>
@@ -661,7 +661,7 @@
            <item>
             <widget class="QPushButton" name="certificate_edit">
              <property name="text">
-              <string notr="true">Edit</string>
+              <string>Edit</string>
              </property>
             </widget>
            </item>
@@ -898,7 +898,7 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string notr="true">Fingerprint</string>
+               <string>Fingerprint</string>
               </property>
               <property name="buddy">
                <cstring>utlsFingerprint</cstring>
@@ -935,7 +935,7 @@
                <string>Reality public key. If not empty, turn TLS into REALITY.</string>
               </property>
               <property name="text">
-               <string notr="true">Reality Pbk</string>
+               <string>Reality Pbk</string>
               </property>
               <property name="buddy">
                <cstring>reality_pbk</cstring>
