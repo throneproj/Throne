@@ -1,4 +1,7 @@
 <RCC>
+    <qresource prefix="/windows">
+        <file alias="windows_hotspot_ui.ps1">../script/windows_hotspot_ui.ps1</file>
+    </qresource>
     <qresource prefix="/">
         <file alias="icon/b-internet-web-browser.png">icon/internet-web-browser.png</file>
         <file alias="icon/b-system-run.png">icon/system-run.png</file>

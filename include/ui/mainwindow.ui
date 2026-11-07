@@ -313,6 +313,16 @@ QToolButton::menu-indicator {
           </property>
          </widget>
         </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_Hotspot">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Open hotspot</string>
+         </property>
+        </widget>
+       </item>
         <item>
          <spacer name="verticalSpacer_modes_bottom">
           <property name="orientation">

@@ -35,6 +35,10 @@ namespace Engine {
     public:
         virtual ~EnginePolicy() = default;
 
+        // GUI-owned network dependants must be stopped before a normal TUN
+        // teardown or replacement. Default keeps headless/non-Windows unchanged.
+        virtual bool prepareForTunStop() { return true; }
+
         virtual void geoAssetMissingCategory(const QString &contextName, const QString &needed, const QString &whichFile) = 0;
 
         // Whether to download the missing geoip.dat / geosite.dat now.

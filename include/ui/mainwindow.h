@@ -69,6 +69,7 @@ class DialogVpnAuth;
 class DialogScanner;
 class DialogIpLists;
 class CommandPalette;
+class WindowsHotspot;
 
 namespace Qv2ray::ui { class SyntaxHighlighter; }
 namespace SettingsIndex { struct Item; }
@@ -526,6 +527,9 @@ private:
 
     void setupConnectionList();
 
+    void setupHotspot();
+    WindowsHotspot *m_hotspot = nullptr;
+
     void setupTrafficGraph();
 
     void refresh_traffic_graph_settings();
@@ -587,6 +591,7 @@ private:
     bool offerLeftoverTunAdapterRetry(const QString &error) override;
 
     void stopFailed(const QString &error) override;
+    bool prepareForTunStop() override;
 
     Engine::SlowOperation slowOperation(Engine::SlowOperationKind kind, int delayMs) override;
 

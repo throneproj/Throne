@@ -150,6 +150,7 @@ void MainWindow::on_commitDataRequest() {
 void MainWindow::on_menu_exit_triggered() {
     // A teardown already running quits on its own; a second request would cut its nested waits short.
     if (Configs::dataManager->settingsRepo->prepare_exit || exitController()->exitInProgress()) return;
+    if (!prepareForTunStop()) return;
     exitController()->setExitInProgress(true);
     // A request made during the teardown below may overwrite exit_reason.
     const auto reason = exit_reason;
