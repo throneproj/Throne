@@ -843,6 +843,14 @@ Deleted %3 Profiles:
         <source>Each update saves the routing profile the subscription provides (Happ format) as this group&apos;s own routing profile. DNS settings from the subscription are never used.</source>
         <translation>هر به‌روزرسانی، نمایه مسیریابی ارائه‌شده توسط اشتراک (قالب Happ) را به‌عنوان نمایه مسیریابی خود این گروه ذخیره می‌کند. تنظیمات DNS اشتراک هرگز استفاده نمی‌شود.</translation>
     </message>
+    <message>
+        <source>None</source>
+        <translation>هیچ‌کدام</translation>
+    </message>
+    <message>
+        <source>INVALID</source>
+        <translation>نامعتبر</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditProfile</name>
@@ -900,7 +908,7 @@ Deleted %3 Profiles:
     </message>
     <message>
         <source>Fingerprint</source>
-        <translation type="unfinished"></translation>
+        <translation>اثر انگشت</translation>
     </message>
     <message>
         <source>ALPN</source>
@@ -908,7 +916,7 @@ Deleted %3 Profiles:
     </message>
     <message>
         <source>Reality Pbk</source>
-        <translation type="unfinished"></translation>
+        <translation>کلید عمومی Reality</translation>
     </message>
     <message>
         <source>Reality SpiderX</source>
@@ -920,7 +928,7 @@ Deleted %3 Profiles:
     </message>
     <message>
         <source>Headers</source>
-        <translation type="unfinished"></translation>
+        <translation>سربرگ‌ها</translation>
     </message>
     <message>
         <source>Max Concurrency</source>
@@ -940,7 +948,7 @@ Deleted %3 Profiles:
     </message>
     <message>
         <source>Host</source>
-        <translation type="unfinished"></translation>
+        <translation>میزبان</translation>
     </message>
     <message>
         <source>X Padding Bytes</source>
@@ -976,7 +984,7 @@ Deleted %3 Profiles:
     </message>
     <message>
         <source>Path</source>
-        <translation type="unfinished"></translation>
+        <translation>مسیر</translation>
     </message>
     <message>
         <source>Network</source>
@@ -1345,6 +1353,26 @@ Deleted %3 Profiles:
     <message>
         <source>DNSTT / VayDNS</source>
         <translation>DNSTT / VayDNS</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;http path (ws/http/httpUpgrade)&lt;/p&gt;&lt;p&gt;serviceName (gRPC)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;مسیر HTTP ‏(ws/http/httpUpgrade)&lt;/p&gt;&lt;p&gt;serviceName (gRPC)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>EarlyData Name</source>
+        <translation>نام EarlyData</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Headers in space separated key value pair:&lt;/p&gt;&lt;p&gt;key1=val1 key2=&amp;quot;multi word val2&amp;quot; &amp;quot;multi word key3&amp;quot;=val3&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;سربرگ‌ها به‌صورت جفت‌های کلید=مقدار جداشده با فاصله:&lt;/p&gt;&lt;p&gt;key1=val1 key2=&amp;quot;multi word val2&amp;quot; &amp;quot;multi word key3&amp;quot;=val3&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>EarlyData Length</source>
+        <translation>طول EarlyData</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;http host (ws/http/httpUpgrade)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;میزبان HTTP ‏(ws/http/httpUpgrade)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
 </context>
 <context>
@@ -2248,16 +2276,8 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <translation>نشانی Socks</translation>
     </message>
     <message>
-        <source>127.0.0.1</source>
-        <translation>127.0.0.1</translation>
-    </message>
-    <message>
         <source>Socks port</source>
         <translation>پورت Socks</translation>
-    </message>
-    <message>
-        <source>1080</source>
-        <translation>1080</translation>
     </message>
     <message>
         <source>Core path</source>
@@ -2561,14 +2581,6 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <source>Username</source>
         <translation type="unfinished">نام کاربری</translation>
     </message>
-    <message>
-        <source>5</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>4</source>
-        <translation type="unfinished"></translation>
-    </message>
 </context>
 <context>
     <name>EditTailScale</name>
@@ -2728,6 +2740,10 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <source>Packet Encoding</source>
         <translation type="unfinished">رمزنگاری بسته ها</translation>
     </message>
+    <message>
+        <source>Flow</source>
+        <translation>جریان (Flow)</translation>
+    </message>
 </context>
 <context>
     <name>EditWireguard</name>
@@ -2762,10 +2778,6 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>Private Key</source>
         <translation>کلید خصوصی</translation>
-    </message>
-    <message>
-        <source>1420</source>
-        <translation>1420</translation>
     </message>
     <message>
         <source>MTU</source>
@@ -3716,6 +3728,10 @@ Error: %1</source>
         <source>The core did not answer the test</source>
         <translation>هسته به آزمایش پاسخ نداد</translation>
     </message>
+    <message>
+        <source>Deep Link</source>
+        <translation>پیوند عمیق</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableModel</name>
@@ -3756,6 +3772,37 @@ Error: %1</source>
     <message>
         <source>QT_LAYOUT_DIRECTION</source>
         <translation>RTL</translation>
+    </message>
+</context>
+<context>
+    <name>QLineEdit</name>
+    <message>
+        <source>&amp;Undo</source>
+        <translation>&amp;واگرد</translation>
+    </message>
+    <message>
+        <source>&amp;Redo</source>
+        <translation>&amp;از نو</translation>
+    </message>
+    <message>
+        <source>Cu&amp;t</source>
+        <translation>&amp;برش</translation>
+    </message>
+    <message>
+        <source>&amp;Copy</source>
+        <translation>&amp;رونوشت</translation>
+    </message>
+    <message>
+        <source>&amp;Paste</source>
+        <translation>&amp;چسباندن</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>حذف</translation>
+    </message>
+    <message>
+        <source>Select All</source>
+        <translation>انتخاب همه</translation>
     </message>
 </context>
 <context>
@@ -3886,6 +3933,41 @@ Error: %1</source>
     <message>
         <source>OK</source>
         <translation>تایید</translation>
+    </message>
+</context>
+<context>
+    <name>QWidgetTextControl</name>
+    <message>
+        <source>&amp;Undo</source>
+        <translation>&amp;واگرد</translation>
+    </message>
+    <message>
+        <source>&amp;Redo</source>
+        <translation>&amp;از نو</translation>
+    </message>
+    <message>
+        <source>Cu&amp;t</source>
+        <translation>&amp;برش</translation>
+    </message>
+    <message>
+        <source>&amp;Copy</source>
+        <translation>&amp;رونوشت</translation>
+    </message>
+    <message>
+        <source>Copy &amp;Link Location</source>
+        <translation>رونوشت از &amp;نشانی پیوند</translation>
+    </message>
+    <message>
+        <source>&amp;Paste</source>
+        <translation>&amp;چسباندن</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>حذف</translation>
+    </message>
+    <message>
+        <source>Select All</source>
+        <translation>انتخاب همه</translation>
     </message>
 </context>
 <context>

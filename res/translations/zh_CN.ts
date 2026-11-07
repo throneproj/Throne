@@ -1627,6 +1627,14 @@ Throne will restart to complete the restore.</source>
         <source>Copied</source>
         <translation>已复制</translation>
     </message>
+    <message>
+        <source>None</source>
+        <translation>无</translation>
+    </message>
+    <message>
+        <source>INVALID</source>
+        <translation>无效</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroupAdvanced</name>
@@ -3096,6 +3104,22 @@ Throne will restart to complete the restore.</source>
     <message>
         <source>A directory path</source>
         <translation>目录路径</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;http path (ws/http/httpUpgrade)&lt;/p&gt;&lt;p&gt;serviceName (gRPC)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;HTTP 路径 (ws/http/httpUpgrade)&lt;/p&gt;&lt;p&gt;serviceName (gRPC)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>EarlyData Name</source>
+        <translation>EarlyData 名称</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Headers in space separated key value pair:&lt;/p&gt;&lt;p&gt;key1=val1 key2=&amp;quot;multi word val2&amp;quot; &amp;quot;multi word key3&amp;quot;=val3&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;以空格分隔的键值对形式的报头：&lt;/p&gt;&lt;p&gt;key1=val1 key2=&amp;quot;multi word val2&amp;quot; &amp;quot;multi word key3&amp;quot;=val3&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;http host (ws/http/httpUpgrade)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;HTTP 主机 (ws/http/httpUpgrade)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
 </context>
 <context>
@@ -6469,16 +6493,8 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
         <translation>Socks 地址</translation>
     </message>
     <message>
-        <source>127.0.0.1</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Socks port</source>
         <translation>Socks 端口</translation>
-    </message>
-    <message>
-        <source>1080</source>
-        <translation></translation>
     </message>
     <message>
         <source>Core path</source>
@@ -8493,14 +8509,6 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <source>Username</source>
         <translation>用户名</translation>
     </message>
-    <message>
-        <source>5</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>4</source>
-        <translation></translation>
-    </message>
 </context>
 <context>
     <name>EditTailScale</name>
@@ -8675,6 +8683,10 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <source>Packet Encoding</source>
         <translation>数据包编码</translation>
     </message>
+    <message>
+        <source>Flow</source>
+        <translation>流</translation>
+    </message>
 </context>
 <context>
     <name>EditWireguard</name>
@@ -8717,10 +8729,6 @@ Improves hole-punching reliability. Requires IPv4.</source>
     <message>
         <source>MTU</source>
         <translation>MTU</translation>
-    </message>
-    <message>
-        <source>1420</source>
-        <translation></translation>
     </message>
     <message>
         <source>Workers</source>
@@ -10703,6 +10711,10 @@ Error: %1</source>
         <source>The core did not answer the test</source>
         <translation>核心未响应测试</translation>
     </message>
+    <message>
+        <source>Deep Link</source>
+        <translation>深度链接</translation>
+    </message>
 </context>
 <context>
     <name>MuxSettingsWidget</name>
@@ -10851,6 +10863,37 @@ Error: %1</source>
     <message>
         <source>QT_LAYOUT_DIRECTION</source>
         <translation>LTR</translation>
+    </message>
+</context>
+<context>
+    <name>QLineEdit</name>
+    <message>
+        <source>&amp;Undo</source>
+        <translation>撤销(&amp;U)</translation>
+    </message>
+    <message>
+        <source>&amp;Redo</source>
+        <translation>重做(&amp;R)</translation>
+    </message>
+    <message>
+        <source>Cu&amp;t</source>
+        <translation>剪切(&amp;T)</translation>
+    </message>
+    <message>
+        <source>&amp;Copy</source>
+        <translation>复制(&amp;C)</translation>
+    </message>
+    <message>
+        <source>&amp;Paste</source>
+        <translation>粘贴(&amp;P)</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>删除</translation>
+    </message>
+    <message>
+        <source>Select All</source>
+        <translation>全选</translation>
     </message>
 </context>
 <context>
@@ -12423,6 +12466,41 @@ How to update?</source>
     <message>
         <source>OK</source>
         <translation>确定</translation>
+    </message>
+</context>
+<context>
+    <name>QWidgetTextControl</name>
+    <message>
+        <source>&amp;Undo</source>
+        <translation>撤销(&amp;U)</translation>
+    </message>
+    <message>
+        <source>&amp;Redo</source>
+        <translation>重做(&amp;R)</translation>
+    </message>
+    <message>
+        <source>Cu&amp;t</source>
+        <translation>剪切(&amp;T)</translation>
+    </message>
+    <message>
+        <source>&amp;Copy</source>
+        <translation>复制(&amp;C)</translation>
+    </message>
+    <message>
+        <source>Copy &amp;Link Location</source>
+        <translation>复制链接地址(&amp;L)</translation>
+    </message>
+    <message>
+        <source>&amp;Paste</source>
+        <translation>粘贴(&amp;P)</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>删除</translation>
+    </message>
+    <message>
+        <source>Select All</source>
+        <translation>全选</translation>
     </message>
 </context>
 <context>
