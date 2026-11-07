@@ -9954,7 +9954,7 @@ Error: %1</source>
     </message>
     <message>
         <source>Routing</source>
-        <translation>Маршрутизация</translation>
+        <translation>Маршруты</translation>
     </message>
     <message>
         <source>Operation Mode</source>
