@@ -168,6 +168,7 @@ namespace Configs {
                 std::shared_ptr<Profile> endpoint;
             };
             QList<AuxEndpointGroup> auxEndpointGroups;
+            QList<QString> endpointRuleTags;
         };
 
         struct BuildPrerequisites {
@@ -871,6 +872,13 @@ namespace Configs {
                     preReqs.routing.outboundMap[endpointID] = hopTag(tags::auxEndpointPrefix, auxSuffix);
                     auxSuffix += static_cast<int>(hopIDs.size());
                 }
+                if (!routeChain->isRaw) {
+                    for (const auto &rule : routeChain->Rules) {
+                        if (rule->disabled || rule->type != endpointPreferredBy) continue;
+                        if (const auto it = preReqs.routing.outboundMap.find(rule->outboundID); it != preReqs.routing.outboundMap.end())
+                            preReqs.routing.endpointRuleTags << it->second;
+                    }
+                }
             }
 
             for (const auto &item: *neededRuleSets) {
@@ -1211,14 +1219,22 @@ namespace Configs {
             // Strict tunnel DNS takes every query that would otherwise go to dns-remote.
             QString remoteDnsTag = tags::dnsRemote;
             if (!ctx.forTest) {
+                // Auxiliary tunnels in routing-rule order; a tag-keyed walk would put aux-10 before aux-2.
+                QList<QString> vpnDnsOrder;
+                for (const auto &tag : ctx.vpnAuxTags) {
+                    if (ctx.vpnEndpointTags.contains(tag)) vpnDnsOrder << tag;
+                }
                 for (auto it = ctx.vpnEndpointTags.cbegin(); it != ctx.vpnEndpointTags.cend(); ++it) {
-                    const auto dnsTag = QString(tags::dnsVpnPrefix) + "-" + it.key();
+                    if (!vpnDnsOrder.contains(it.key())) vpnDnsOrder << it.key();
+                }
+                for (const auto &endpointTag : vpnDnsOrder) {
+                    const auto dnsTag = QString(tags::dnsVpnPrefix) + "-" + endpointTag;
                     QJsonObject server{
                         {"tag", dnsTag},
-                        {"type", it.value()},
-                        {"endpoint", it.key()},
+                        {"type", ctx.vpnEndpointTags.value(endpointTag)},
+                        {"endpoint", endpointTag},
                     };
-                    if (it.key() == ctx.vpnStrictTag) {
+                    if (endpointTag == ctx.vpnStrictTag) {
                         server["accept_default_resolvers"] = true;
                         server["accept_search_domain"] = true;
                         remoteDnsTag = dnsTag;
@@ -2199,6 +2215,15 @@ namespace Configs {
                     ctx.vpnAuxTags << innerTags;
                     auxSuffix += static_cast<int>(group.hopIDs.size());
                 }
+                // The rules list decides which tunnel wins a route or name two of them claim, so DNS must follow it too.
+                QList<QString> ordered;
+                for (const auto &tag : ctx.prerequisites.routing.endpointRuleTags) {
+                    if (ctx.vpnAuxTags.contains(tag) && !ordered.contains(tag)) ordered << tag;
+                }
+                for (const auto &tag : std::as_const(ctx.vpnAuxTags)) {
+                    if (!ordered.contains(tag)) ordered << tag;
+                }
+                ctx.vpnAuxTags = ordered;
             }
 
             if (auto mismatch = bridgeIngressMismatch(ctx); !mismatch.isEmpty()) {
