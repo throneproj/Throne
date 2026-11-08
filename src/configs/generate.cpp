@@ -160,6 +160,7 @@ namespace Configs {
             struct RouteOutboundGroup {
                 QList<int> hopIDs;
                 std::shared_ptr<Profile> chainWrapper;
+                std::shared_ptr<Profile> profile;
             };
             QList<RouteOutboundGroup> routeOutboundGroups;
             struct AuxEndpointGroup {
@@ -767,6 +768,7 @@ namespace Configs {
                     ctx.error = "Outbounds used in routing profile cannot use an extra core or be a custom full config";
                     return;
                 }
+                QList<int> hopIDs;
                 if (neededEnt->type == "chain") {
                     auto chain = neededEnt->Chain();
                     if (chain == nullptr || chain->list.isEmpty()) {
@@ -785,15 +787,23 @@ namespace Configs {
                         }
                         if (usesXrayCore(hopEnt)) ctx.proxyUsesXray = true;
                     }
-                    preReqs.routing.outboundMap[item] = hopTag(tags::routeChainPrefix, suffix);
                     // Reversed to match the main-chain build order: outer hop first.
-                    preReqs.routing.routeOutboundGroups << RoutingDeps::RouteOutboundGroup{{chain->list.rbegin(), chain->list.rend()}, neededEnt};
-                    suffix += static_cast<int>(chain->list.size());
+                    hopIDs = {chain->list.rbegin(), chain->list.rend()};
                 } else {
                     if (usesXrayCore(neededEnt)) ctx.proxyUsesXray = true;
-                    preReqs.routing.outboundMap[item] = hopTag(tags::routeChainPrefix, suffix++);
-                    preReqs.routing.routeOutboundGroups << RoutingDeps::RouteOutboundGroup{QList<int>{item}, nullptr};
+                    hopIDs = {item};
                 }
+                // Wrapped in its own group's landing/front, as when the profile is started on its own.
+                if (const auto group = dataManager->groupsRepo->GetGroup(neededEnt->gid); group != nullptr) {
+                    if (group->landing_proxy_id >= 0) hopIDs.prepend(group->landing_proxy_id);
+                    if (group->front_proxy_id >= 0) hopIDs.append(group->front_proxy_id);
+                }
+                for (int id : groupProxyIDs(neededEnt->gid)) {
+                    if (auto pe = getProfile(id); pe != nullptr && usesXrayCore(pe)) ctx.proxyUsesXray = true;
+                }
+                preReqs.routing.outboundMap[item] = hopTag(tags::routeChainPrefix, suffix);
+                preReqs.routing.routeOutboundGroups << RoutingDeps::RouteOutboundGroup{hopIDs, neededEnt->type == "chain" ? neededEnt : nullptr, neededEnt};
+                suffix += static_cast<int>(hopIDs.size());
             }
 
             if (!routeChain->endpointProfileIDs.isEmpty()) {
@@ -2156,7 +2166,7 @@ namespace Configs {
                 if (routeGroup.chainWrapper != nullptr && grew) {
                     ctx.result->chainGroups.last().profiles.append(routeGroup.chainWrapper);
                 }
-                const auto named = routeGroup.chainWrapper != nullptr ? routeGroup.chainWrapper : getProfile(routeGroup.hopIDs.first());
+                const auto named = routeGroup.profile;
                 if (named != nullptr) ctx.result->outboundNames.insert(tag, profileDisplayName(named));
                 if (named != nullptr && grew) {
                     auto &chainGroup = ctx.result->chainGroups.last();
