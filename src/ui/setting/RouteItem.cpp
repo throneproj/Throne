@@ -423,7 +423,8 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     // Restyled in place: rebuilding the list here would delete the item the view is still handling the click for.
     connect(ui->route_items, &QListWidget::itemChanged, this, [this](QListWidgetItem* item) {
         const int row = ui->route_items->row(item);
-        if (row < 0 || row >= chain->Rules.size() || !(item->flags() & Qt::ItemIsUserCheckable)) return;
+        // Any setIcon/setFont lands here too, and an endpoint row has no check state, so it would read as unchecked.
+        if (row < 0 || row >= chain->Rules.size() || chain->Rules[row]->type == Configs::endpointPreferredBy) return;
         const bool disabled = item->checkState() != Qt::Checked;
         if (chain->Rules[row]->disabled == disabled) return;
         chain->Rules[row]->disabled = disabled;
@@ -933,6 +934,8 @@ void RouteItem::updateRouteItemsView() {
             routeItemShowDisabled(row, item->disabled);
             continue;
         }
+        // QListWidgetItem starts out user-checkable.
+        row->setFlags(row->flags() & ~Qt::ItemIsUserCheckable);
         QFont font = row->font();
         font.setItalic(true);
         row->setFont(font);

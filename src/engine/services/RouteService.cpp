@@ -263,7 +263,7 @@ namespace Engine::RouteService {
                     if (rule->canEditAttr(it.key())) rule->set_field_value(it.key(), values);
                 }
             }
-            if (disabled) rule->disabled = *disabled;
+            if (disabled && type != Configs::endpointPreferredBy) rule->disabled = *disabled;
             *out = rule;
             return std::nullopt;
         }
