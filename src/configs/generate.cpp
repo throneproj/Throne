@@ -795,11 +795,18 @@ namespace Configs {
                 }
                 // Wrapped in its own group's landing/front, as when the profile is started on its own.
                 if (const auto group = dataManager->groupsRepo->GetGroup(neededEnt->gid); group != nullptr) {
+                    for (const int proxyID : {group->landing_proxy_id, group->front_proxy_id}) {
+                        const auto proxyEnt = proxyID >= 0 ? getProfile(proxyID) : nullptr;
+                        if (proxyEnt == nullptr) continue;
+                        // No extra core starts for a route chain, and a full config would take over the shared Xray config.
+                        if ((proxyEnt->outbound != nullptr && proxyEnt->outbound->IsExtraCore()) || isCustomFullConfig(proxyEnt) || isXrayFullConfig(proxyEnt)) {
+                            ctx.error = QObject::tr("Group \"%1\" has a front or landing proxy that uses an extra core or is a full config, so its profiles cannot be routing rule outbounds").arg(group->name);
+                            return;
+                        }
+                        if (usesXrayCore(proxyEnt)) ctx.proxyUsesXray = true;
+                    }
                     if (group->landing_proxy_id >= 0) hopIDs.prepend(group->landing_proxy_id);
                     if (group->front_proxy_id >= 0) hopIDs.append(group->front_proxy_id);
-                }
-                for (int id : groupProxyIDs(neededEnt->gid)) {
-                    if (auto pe = getProfile(id); pe != nullptr && usesXrayCore(pe)) ctx.proxyUsesXray = true;
                 }
                 preReqs.routing.outboundMap[item] = hopTag(tags::routeChainPrefix, suffix);
                 preReqs.routing.routeOutboundGroups << RoutingDeps::RouteOutboundGroup{hopIDs, neededEnt->type == "chain" ? neededEnt : nullptr, neededEnt};
