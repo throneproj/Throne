@@ -10,7 +10,7 @@
 
 namespace {
     // generate.cpp chainScanError over the build order, which reads the list bottom-up.
-    QString editChainScanError(const QList<std::shared_ptr<Configs::Profile>> &topFirst) {
+    QString editChainSegmentError(const QList<std::shared_ptr<Configs::Profile>> &topFirst) {
         const auto count = topFirst.size();
         int extraCores = 0, extraCoreIndex = -1, xrayFullConfigs = 0, xrayFullConfigIndex = -1, xrayHops = 0, transitions = 0;
         bool customFullConfig = false, inXray = false;
@@ -46,6 +46,25 @@ namespace {
             return EditChain::tr("The chain switches between %1 and Xray too often; keep the Xray hops together, between %1 hops.").arg(software_core_name);
         }
         return {};
+    }
+
+    // The hops above a selector and the ones below it are built as two separate chains.
+    QString editChainScanError(const QList<std::shared_ptr<Configs::Profile>> &topFirst) {
+        qsizetype selectorAt = -1;
+        for (qsizetype i = 0; i < topFirst.size(); ++i) {
+            if (topFirst[i]->type != "autoselector") continue;
+            if (selectorAt >= 0) return EditChain::tr("A chain can hold only one auto selector.");
+            selectorAt = i;
+        }
+        if (selectorAt < 0) return editChainSegmentError(topFirst);
+        for (const auto &hop : topFirst) {
+            const bool customFullConfig = hop->type == "custom" && hop->Custom() != nullptr && hop->Custom()->type == Configs::Custom::CustomFullConfig;
+            if (hop->outbound->IsExtraCore() || hop->outbound->IsXrayFullConfig() || customFullConfig)
+                return EditChain::tr("An auto selector cannot share a chain with an Extra Core profile or a custom config.");
+        }
+        // The selector stays in the lower part: an Xray hop below it switches back to sing-box to reach it.
+        if (auto error = editChainSegmentError(topFirst.mid(selectorAt)); !error.isEmpty()) return error;
+        return editChainSegmentError(topFirst.mid(0, selectorAt));
     }
 
     using StepResult = Engine::TestRunner::ChainStepResult;
@@ -184,7 +203,7 @@ void EditChain::onStart(std::shared_ptr<Configs::Profile> _ent) {
 
     droppedHops = 0;
     for (auto id: outbound->list) {
-        if (!AddProfileToListIfExist(id, false)) droppedHops++;
+        if (!AddProfileToListIfExist(id)) droppedHops++;
     }
 }
 
@@ -295,21 +314,13 @@ void EditChain::on_select_profile_clicked() {
     });
 }
 
-static bool acceptChainHop(const std::shared_ptr<Configs::Profile> &ent, bool explain) {
-    if (ent == nullptr || ent->type == "chain") return false;
-    if (ent->type == "autoselector") {
-        if (explain) {
-            MessageBoxWarning(software_name, QObject::tr("An auto selector cannot be a hop in a chain: it moves to a different "
-                                                         "server on its own whenever one degrades."));
-        }
-        return false;
-    }
-    return true;
+static bool acceptChainHop(const std::shared_ptr<Configs::Profile> &ent) {
+    return ent != nullptr && ent->type != "chain";
 }
 
-bool EditChain::AddProfileToListIfExist(int profileId, bool explain) {
+bool EditChain::AddProfileToListIfExist(int profileId) {
     auto _ent = Configs::dataManager->profilesRepo->GetProfile(profileId);
-    if (!acceptChainHop(_ent, explain)) return false;
+    if (!acceptChainHop(_ent)) return false;
     auto wI = new QListWidgetItem();
     wI->setData(114514, profileId);
     auto w = new ProxyItem(this, _ent, wI);
@@ -327,7 +338,7 @@ bool EditChain::AddProfileToListIfExist(int profileId, bool explain) {
 
 void EditChain::ReplaceProfile(ProxyItem *w, int profileId) {
     auto _ent = Configs::dataManager->profilesRepo->GetProfile(profileId);
-    if (acceptChainHop(_ent, true)) {
+    if (acceptChainHop(_ent)) {
         w->item->setData(114514, profileId);
         w->ent = _ent;
         w->refresh_data();

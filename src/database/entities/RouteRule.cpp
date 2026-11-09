@@ -780,6 +780,8 @@ namespace Configs {
                 const auto hop = dataManager->profilesRepo->GetProfile(hopID);
                 if (hop == nullptr || hop->type == "chain" || routeRuleUnroutable(hop))
                     return QCoreApplication::translate("Validation", "Routing rules cannot use the chain \"%1\": a hop of it is missing, another chain, an extra core profile or a full config. Pick another outbound.").arg(name);
+                if (hop->type == "autoselector")
+                    return QCoreApplication::translate("Validation", "Routing rules cannot use the chain \"%1\": it holds an auto selector, so it can only be started. Pick another outbound.").arg(name);
             }
             return {};
         }

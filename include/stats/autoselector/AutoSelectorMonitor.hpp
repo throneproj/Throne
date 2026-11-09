@@ -62,6 +62,8 @@ namespace Stats
         // Core froze its ranking (local network down); nothing may be judged broken while this is set.
         bool suspended = false;
         qint64 suspendedSinceMs = 0;
+        // Members dial through chain hops in front of the selector.
+        bool upstream = false;
         int membersTotal = 0;
         int membersProbed = 0;
         int membersAlive = 0;
@@ -120,6 +122,7 @@ namespace Stats
         QHash<QString, QString> tagToName;
         QString groupTag;
         int profileID = -1;
+        bool upstream = false;
         bool active = false;
 
         qint64 exhaustedSince = 0;

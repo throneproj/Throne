@@ -165,7 +165,9 @@ namespace Engine {
             for (const auto &full : result->xrayFullConfigs) req.xray_full_configs.push_back(full.toStdString());
             if (req.need_xray || !req.xray_full_configs.empty()) {
                 req.xray_outbound_dns_strategy = result->xrayDnsStrategy.toStdString();
-                if (auto selector = ent->AutoSelector(); selector != nullptr) {
+                if (auto selector = result->autoSelectors.isEmpty() || result->autoSelectors.first().profile == nullptr
+                                        ? nullptr : result->autoSelectors.first().profile->AutoSelector();
+                    selector != nullptr) {
                     // The idle window must outlast the probe interval or the sidecar restarts every round.
                     req.xray_lazy_start = true;
                     req.xray_idle_seconds = std::max(120, selector->intervalSec * 2);

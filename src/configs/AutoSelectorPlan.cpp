@@ -1,6 +1,7 @@
 #include "include/configs/AutoSelectorPlan.h"
 
 #include "include/configs/outbounds/autoselector.h"
+#include "include/configs/outbounds/chain.h"
 #include "include/configs/outbounds/custom.h"
 #include "include/database/DatabaseManager.h"
 #include "include/database/GroupsRepo.h"
@@ -403,5 +404,43 @@ namespace Configs
         selector->poolRankedAt = QDateTime::currentSecsSinceEpoch();
         dataManager->profilesRepo->Save(ent);
         return members;
+    }
+
+    void DemoteAutoSelectorMembers(const std::shared_ptr<Profile> &ent, const QList<int> &members)
+    {
+        if (ent == nullptr || members.isEmpty()) return;
+        auto selector = ent->AutoSelector();
+        if (selector == nullptr) return;
+        const auto plan = PlanAutoSelector(ent);
+        if (!plan.error.isEmpty()) return;
+        const QSet<int> demoted(members.begin(), members.end());
+        QList<int> pool;
+        QList<int> tail;
+        for (int id : plan.pool) (demoted.contains(id) ? tail : pool) << id;
+        selector->pool = pool << tail;
+        dataManager->profilesRepo->Save(ent);
+    }
+
+    std::shared_ptr<Profile> RunningSelectorOf(const std::shared_ptr<Profile> &ent)
+    {
+        if (ent == nullptr) return nullptr;
+        if (ent->type == "autoselector") return ent;
+        const auto *chain = ent->Chain();
+        if (chain == nullptr) return nullptr;
+        for (int id : chain->list) {
+            if (auto hop = dataManager->profilesRepo->GetProfile(id); hop != nullptr && hop->type == "autoselector") return hop;
+        }
+        return nullptr;
+    }
+
+    bool SelectorBehindHops(const std::shared_ptr<Profile> &ent)
+    {
+        const auto *chain = ent != nullptr ? ent->Chain() : nullptr;
+        if (chain == nullptr) return false;
+        const auto selector = RunningSelectorOf(ent);
+        if (selector == nullptr) return false;
+        if (chain->list.indexOf(selector->id) > 0) return true;
+        const auto group = dataManager->groupsRepo->GetGroup(ent->gid);
+        return group != nullptr && group->front_proxy_id >= 0;
     }
 }

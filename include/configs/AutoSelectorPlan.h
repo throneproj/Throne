@@ -80,4 +80,13 @@ namespace Configs
 
     // `untrusted` members rank as untested whatever their stored result says.
     QList<int> RerankAutoSelectorPool(const std::shared_ptr<Profile> &ent, const QList<int> &untrusted = {});
+
+    // Moves `members` behind the rest of the pool, so the next build tries the others first.
+    void DemoteAutoSelectorMembers(const std::shared_ptr<Profile> &ent, const QList<int> &members);
+
+    // The auto selector a started profile runs: the profile itself, or the selector hop of a chain.
+    std::shared_ptr<Profile> RunningSelectorOf(const std::shared_ptr<Profile> &ent);
+
+    // A chain whose selector members dial through fixed hops, so a direct test says nothing about them.
+    bool SelectorBehindHops(const std::shared_ptr<Profile> &ent);
 }

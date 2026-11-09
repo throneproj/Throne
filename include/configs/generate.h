@@ -36,6 +36,8 @@ namespace Configs
         QString groupTag;
         std::shared_ptr<Profile> profile;
         QList<QPair<QString, std::shared_ptr<Profile>>> members;
+        // Members dial through chain hops in front of the selector.
+        bool upstream = false;
     };
 
     class BuildConfigResult {

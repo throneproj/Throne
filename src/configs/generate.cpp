@@ -74,6 +74,8 @@ namespace Configs {
             constexpr auto routeChainPrefix = "route";
             constexpr auto auxEndpointPrefix = "aux";
             constexpr auto poolChainPrefix = "pool";
+            constexpr auto selectorUpstreamPrefix = "upstream";
+            constexpr auto chainSelector = "auto-selector";
             constexpr auto testChainPrefix = "proxy";
             constexpr auto testXrayFullPrefix = "xrayfull";
             constexpr auto bridgePrefix = "bridge";
@@ -81,8 +83,12 @@ namespace Configs {
 
         QString hopTag(const QString &prefix, int index) { return prefix + "-" + Int2String(index); }
 
-        QString bridgeTagFor(const QString &singIngressTag) {
-            return QString(tags::bridgePrefix) + "-" + singIngressTag;
+        // Pool members bridging into one shared upstream repeat its ingress tag.
+        QString bridgeTagFor(const QList<QString> &singIngressTags, qsizetype idx) {
+            const auto &ingress = singIngressTags[idx];
+            const auto repeats = std::count(singIngressTags.cbegin(), singIngressTags.cbegin() + idx, ingress);
+            const auto tag = QString(tags::bridgePrefix) + "-" + ingress;
+            return repeats == 0 ? tag : tag + "-" + Int2String(static_cast<int>(repeats));
         }
 
         // -------------------------------------------------- prefixed selectors
@@ -601,6 +607,15 @@ namespace Configs {
             return ids;
         }
 
+        std::shared_ptr<Profile> chainSelectorHop(const std::shared_ptr<Profile> &ent) {
+            const auto *chain = ent != nullptr ? ent->Chain() : nullptr;
+            if (chain == nullptr) return nullptr;
+            for (int id : chain->list) {
+                if (auto hop = getProfile(id); hop != nullptr && hop->type == "autoselector") return hop;
+            }
+            return nullptr;
+        }
+
         // Decided up front: the sidecar's DNS carve-outs must be in place before the first connection.
         bool proxyPathUsesXray(const std::shared_ptr<Profile> &ent)
         {
@@ -608,7 +623,8 @@ namespace Configs {
                 if (auto chain = ent->Chain(); chain != nullptr) {
                     for (int pid : chain->list) {
                         auto hop = getProfile(pid);
-                        if (hop != nullptr && usesXrayCore(hop)) return true;
+                        if (hop == nullptr) continue;
+                        if (hop->type == "autoselector" ? proxyPathUsesXray(hop) : usesXrayCore(hop)) return true;
                     }
                 }
                 return false;
@@ -786,6 +802,11 @@ namespace Configs {
                             ctx.error = "Chain hops in routing profile cannot use an extra core, a custom full config, or be of type chain";
                             return;
                         }
+                        if (hopEnt->type == "autoselector") {
+                            ctx.error = QObject::tr("The routing profile sends traffic to %1, which holds an auto selector; such a chain can only be started, not used in routing rules")
+                                            .arg(neededEnt->outbound->DisplayTypeAndName());
+                            return;
+                        }
                         if (usesXrayCore(hopEnt)) ctx.proxyUsesXray = true;
                     }
                     // Reversed to match the main-chain build order: outer hop first.
@@ -821,9 +842,11 @@ namespace Configs {
                 }
                 const auto entHopIDs = unwrapChain(ctx.ent->id);
                 for (int hopID : entHopIDs) usedProfileIDs << hopID;
-                const auto entGroupProxyIDs = ctx.ent->type == "autoselector"
-                                                  ? memberGroupProxyIDs(PlanAutoSelector(ctx.ent).build)
-                                                  : groupProxyIDs(ctx.ent->gid);
+                auto entGroupProxyIDs = ctx.ent->type == "autoselector"
+                                            ? memberGroupProxyIDs(PlanAutoSelector(ctx.ent).build)
+                                            : groupProxyIDs(ctx.ent->gid);
+                if (const auto selectorHop = chainSelectorHop(ctx.ent); selectorHop != nullptr)
+                    entGroupProxyIDs << memberGroupProxyIDs(PlanAutoSelector(selectorHop).build);
                 for (int proxyID : entGroupProxyIDs) usedProfileIDs << proxyID;
                 int auxSuffix = 0;
                 for (int endpointID : routeChain->endpointProfileIDs) {
@@ -1591,6 +1614,9 @@ namespace Configs {
             bool warpWrap = false;
             bool auxiliary = false;
             QSet<QString> addressableTags;
+            // The last hop's detour, an outbound built outside this chain.
+            QString tailDetour;
+            bool tailResolvesViaDns = false;
         };
 
         bool resolvesHostnamesViaDnsRules(const Profile &hop) {
@@ -1676,11 +1702,14 @@ namespace Configs {
                 // Realm reads its STUN resolver off this key only; without it the hosts go through DNS rules.
                 if (auto hy = ent->Hysteria(); hy != nullptr && hy->RealmActive())
                     object["domain_resolver"] = QJsonObject{{"server", tags::dnsDirect}};
+                const bool tail = nextTag.isEmpty() && !opts.tailDetour.isEmpty();
                 if (!nextTag.isEmpty() && opts.link) object["detour"] = nextTag;
+                if (tail) object["detour"] = opts.tailDetour;
                 if (opts.warpWrap && idx == 0) object["detour"] = tags::warpBypass;
                 // A detour gets the server hostname unresolved; endpoints look it up via DNS rules, which end at dns-remote over the proxy.
-                if (!nextTag.isEmpty() && opts.link && !ent->outbound->IsEndpoint() && !object.contains("domain_resolver") &&
-                    resolvesHostnamesViaDnsRules(*ents[idx + 1]))
+                const bool detourResolvesViaDns = tail ? opts.tailResolvesViaDns
+                                                       : !nextTag.isEmpty() && opts.link && resolvesHostnamesViaDnsRules(*ents[idx + 1]);
+                if (detourResolvesViaDns && !ent->outbound->IsEndpoint() && !object.contains("domain_resolver"))
                     object["domain_resolver"] = directDomainResolver();
                 if (ent->outbound->IsEndpoint())
                 {
@@ -1743,6 +1772,9 @@ namespace Configs {
             bool warpWrap = false;
             bool auxiliary = false;
             QSet<QString> addressableTags;
+            // The directly dialed hop detours here instead; an Xray one is bridged back into sing-box for it.
+            QString tailDetour;
+            bool tailResolvesViaDns = false;
         };
 
         QString buildOutboundChain(BuildContext &ctx, const ChainBuildRequest &req)
@@ -1812,6 +1844,8 @@ namespace Configs {
                     else tailingSingEnts.append(ent);
                 }
             }
+            const bool xrayTail = !req.tailDetour.isEmpty() && !xrayEnts.isEmpty() && tailingSingEnts.isEmpty();
+            if (xrayTail) ctx.xrayToSingTransitioned = true;
             QList<int> ports;
             // A pre-probed 0 means the caller's probe failed; re-probe rather than bake in a dead port.
             auto bridgePort = [&ports](int given) {
@@ -1855,6 +1889,8 @@ namespace Configs {
                 .warpWrap = req.warpWrap,
                 .auxiliary = req.auxiliary,
                 .addressableTags = req.addressableTags,
+                .tailDetour = xrayEnts.isEmpty() ? req.tailDetour : QString(),
+                .tailResolvesViaDns = req.tailResolvesViaDns,
             };
             const int tailingStartSuffix = req.startSuffix + static_cast<int>(initialSingEnts.size());
             if (!initialSingEnts.isEmpty()) {
@@ -1862,6 +1898,7 @@ namespace Configs {
             }
             if (!xrayEnts.isEmpty()) {
                 buildXrayChain(ctx, xrayEnts, leadingOpts, xrayToSingBridgeConf);
+                if (xrayTail) ctx.singIngressTags << req.tailDetour;
             }
             if (!tailingSingEnts.isEmpty()) {
                 buildSingboxChain(ctx, tailingSingEnts, {
@@ -1871,6 +1908,8 @@ namespace Configs {
                     .startSuffix = tailingStartSuffix,
                     .markIngress = true,
                     .warpWrap = false,
+                    .tailDetour = req.tailDetour,
+                    .tailResolvesViaDns = req.tailResolvesViaDns,
                 });
             }
 
@@ -1900,7 +1939,7 @@ namespace Configs {
             }
         };
 
-        memberBridges bridgesFor(const QList<int> &hopIDs)
+        memberBridges bridgesFor(const QList<int> &hopIDs, bool tailIntoSing)
         {
             memberBridges needed;
             bool inXray = false;
@@ -1914,7 +1953,26 @@ namespace Configs {
                 if (!xray && inXray) needed.xrayToSing = true;
                 inXray = xray;
             }
+            if (tailIntoSing && inXray) needed.xrayToSing = true;
             return needed;
+        }
+
+        // entIDListtoEntList's budget with the shared upstream counted as one more sing-box hop.
+        bool fitsBeforeUpstream(const QList<int> &hopIDs)
+        {
+            int transitions = 0;
+            bool inXray = false;
+            for (int id : hopIDs)
+            {
+                auto hop = getProfile(id);
+                if (hop == nullptr || hop->outbound == nullptr) return false;
+                if (hop->outbound->IsXrayFullConfig() || hop->outbound->IsExtraCore()) return false;
+                const bool xray = hop->outbound->IsXray();
+                if (xray != inXray) transitions++;
+                inXray = xray;
+            }
+            if (inXray) transitions++;
+            return transitions <= 2;
         }
 
         // Concurrent because the RPC channel multiplexes by request id and the core answers each in its own goroutine.
@@ -1942,30 +2000,45 @@ namespace Configs {
             return invalid;
         }
 
-        QString buildAutoSelectorGroup(BuildContext &ctx, bool warpWrap)
+        struct SelectorGroupRequest
+        {
+            QString groupTag;
+            // Every member dials through this outbound; empty when they are dialed directly.
+            QString upstreamTag;
+            bool upstreamResolvesViaDns = false;
+            // Bytes land on warp rather than on a member, so the member groups collapse into one.
+            bool warpWrap = false;
+            // Credited with every member's traffic alongside the selector.
+            QList<std::shared_ptr<Profile>> credited;
+            // Set when a member's outermost hop looks hostnames up via DNS rules.
+            bool *headsResolveViaDns = nullptr;
+        };
+
+        QString buildAutoSelectorGroup(BuildContext &ctx, const std::shared_ptr<Profile> &selectorEnt, const SelectorGroupRequest &req)
         {
             const auto &settings = *dataManager->settingsRepo;
-            auto selector = ctx.ent->AutoSelector();
+            auto selector = selectorEnt->AutoSelector();
             if (selector == nullptr)
             {
                 ctx.error = "Ent is nullptr after cast to auto selector, data is corrupted";
                 return {};
             }
             selector->Normalize();
-            const auto plan = PlanAutoSelector(ctx.ent);
+            const auto plan = PlanAutoSelector(selectorEnt);
             if (!plan.error.isEmpty())
             {
                 ctx.error = plan.error;
                 return {};
             }
 
-            // With warp in front every member sits behind the single "proxy"-tagged warp outbound, so the group takes warp-bypass.
-            const QString groupTag = warpWrap ? tags::warpBypass : tags::proxy;
+            const QString groupTag = req.groupTag;
+            const bool viaUpstream = !req.upstreamTag.isEmpty();
             const int chainGroupsBefore = static_cast<int>(ctx.result->chainGroups.size());
 
             AutoSelectorBuildInfo info;
             info.groupTag = groupTag;
-            info.profile = ctx.ent;
+            info.profile = selectorEnt;
+            info.upstream = viaUpstream;
 
             // One MkManyPorts call for every member: probing per member can deal the same port twice.
             struct plannedMember
@@ -1980,6 +2053,7 @@ namespace Configs {
             const auto invalid = invalidProfileIDs(plan.build);
             // A member runs as if started on its own: wrapped in its own group's landing/front.
             QHash<int, std::shared_ptr<Group>> memberGroups;
+            int unfitForUpstream = 0;
             for (int id : plan.build)
             {
                 if (invalid.contains(id)) continue;
@@ -1992,10 +2066,24 @@ namespace Configs {
                 if (group != nullptr && group->landing_proxy_id >= 0) hopIDs.append(group->landing_proxy_id);
                 hopIDs.append(id);
                 if (group != nullptr && group->front_proxy_id >= 0) hopIDs.append(group->front_proxy_id);
-                const auto bridges = bridgesFor(hopIDs);
+                if (viaUpstream && !fitsBeforeUpstream(hopIDs))
+                {
+                    unfitForUpstream++;
+                    continue;
+                }
+                if (req.headsResolveViaDns != nullptr)
+                {
+                    if (const auto head = getProfile(hopIDs.first()); head != nullptr && resolvesHostnamesViaDnsRules(*head))
+                        *req.headsResolveViaDns = true;
+                }
+                const auto bridges = bridgesFor(hopIDs, viaUpstream);
                 bridgeCount += bridges.count();
                 planned.append({member, hopIDs, bridges});
             }
+            if (unfitForUpstream > 0)
+                MW_show_log(QObject::tr("[Auto selector] Left out %n profile(s) that cannot be reached through the hops in front of the selector "
+                                        "(custom Xray configs, or too many switches between %1 and Xray).", nullptr, unfitForUpstream)
+                                .arg(software_core_name));
             auto bridgePorts = MkManyPorts(bridgeCount);
             int portIdx = 0;
             
@@ -2018,6 +2106,8 @@ namespace Configs {
                     .xrayToSingPort = xrayToSingPort,
                     .xrayFullConfigPort = xrayFullConfigPort,
                     .soleXrayInbound = bridges.xrayFullConfig,
+                    .tailDetour = req.upstreamTag,
+                    .tailResolvesViaDns = req.upstreamResolvesViaDns,
                 });
                 if (!ctx.error.isEmpty()) return {};
                 // buildOutboundChain has one xrayConfig slot; drain it per member.
@@ -2037,7 +2127,8 @@ namespace Configs {
                 // Connections carry the member the selector picked, never the group's own tag.
                 ctx.result->outboundNames.insert(tag, profileDisplayName(member));
                 if (member->id == selector->pinnedID) pinnedTag = tag;
-                if (member->latency != 0 && member->latency_at > 0 && selector->resultValidityMins > 0)
+                // A direct result does not describe a member reached through the upstream.
+                if (!viaUpstream && member->latency != 0 && member->latency_at > 0 && selector->resultValidityMins > 0)
                 {
                     if (const auto age = builtAt - member->latency_at;
                         age >= 0 && age <= static_cast<qint64>(selector->resultValidityMins) * 60)
@@ -2051,7 +2142,7 @@ namespace Configs {
                     }
                 }
                 if (!ctx.result->chainGroups.isEmpty())
-                    ctx.result->chainGroups.last().profiles.append(ctx.ent);
+                    ctx.result->chainGroups.last().profiles << selectorEnt << req.credited;
                 idx++;
             }
             if (memberTags.isEmpty())
@@ -2060,7 +2151,7 @@ namespace Configs {
                 return {};
             }
 
-            if (warpWrap)
+            if (req.warpWrap)
             {
                 // Bytes land on the warp outbound now, so the per-member watch tags would all read zero.
                 QList<std::shared_ptr<Profile>> credited;
@@ -2095,6 +2186,7 @@ namespace Configs {
             const auto connectivityURL = selector->connectivityURL.isEmpty() ? settings.direct_test_url
                                                                              : selector->connectivityURL;
             if (!connectivityURL.isEmpty()) groupObject["connectivity_url"] = connectivityURL;
+            if (viaUpstream) groupObject["upstream"] = req.upstreamTag;
             if (selector->balance)
             {
                 groupObject["balance"] = true;
@@ -2122,6 +2214,77 @@ namespace Configs {
             else ctx.outbounds.append(warpObject);
         }
 
+        // The hops above the selector are built once and every member detours into them; the hops below detour into the group.
+        void buildChainAroundSelector(BuildContext &ctx, const Group &group, const std::shared_ptr<Profile> &selectorEnt, bool warpWrap)
+        {
+            const auto list = ctx.ent->Chain()->list;
+            const auto at = list.indexOf(selectorEnt->id);
+            QList<int> exitIDs;
+            if (warpWrap) exitIDs << warpProfileID;
+            if (group.landing_proxy_id >= 0) exitIDs << group.landing_proxy_id;
+            for (auto i = list.size() - 1; i > at; --i) exitIDs << list[i];
+            QList<int> upstreamIDs;
+            for (auto i = at - 1; i >= 0; --i) upstreamIDs << list[i];
+            if (group.front_proxy_id >= 0) upstreamIDs << group.front_proxy_id;
+
+            for (const int id : QList<int>(exitIDs) << upstreamIDs) {
+                if (id == warpProfileID) continue;
+                const auto hop = getProfile(id);
+                if (hop == nullptr) {
+                    ctx.error = missingHopError(ctx, id);
+                    return;
+                }
+                if (hop->type == "autoselector") {
+                    ctx.error = QObject::tr("A chain can hold only one auto selector");
+                    return;
+                }
+                if ((hop->outbound != nullptr && hop->outbound->IsExtraCore()) || isCustomFullConfig(hop) || isXrayFullConfig(hop)) {
+                    ctx.error = QObject::tr("Extra Core profiles and custom configs cannot share a chain with an auto selector");
+                    return;
+                }
+            }
+
+            QList<std::shared_ptr<Profile>> credited{ctx.ent};
+            QString upstreamTag;
+            bool upstreamResolvesViaDns = false;
+            if (!upstreamIDs.isEmpty()) {
+                const auto groupsBefore = ctx.result->chainGroups.size();
+                upstreamTag = buildOutboundChain(ctx, {.hopIDs = upstreamIDs, .prefix = tags::selectorUpstreamPrefix});
+                if (!ctx.error.isEmpty()) return;
+                // No connection names the upstream as its outbound, so its bytes go to whatever carried them.
+                while (ctx.result->chainGroups.size() > groupsBefore) credited << ctx.result->chainGroups.takeLast().profiles;
+                const auto nearest = getProfile(upstreamIDs.first());
+                upstreamResolvesViaDns = nearest != nullptr && resolvesHostnamesViaDnsRules(*nearest);
+            }
+
+            const bool onlyWarp = exitIDs == QList<int>{warpProfileID};
+            const QString groupTag = exitIDs.isEmpty() ? tags::proxy : onlyWarp ? tags::warpBypass : tags::chainSelector;
+            const auto memberGroupsBefore = ctx.result->chainGroups.size();
+            bool headsResolveViaDns = false;
+            buildAutoSelectorGroup(ctx, selectorEnt, {
+                .groupTag = groupTag,
+                .upstreamTag = upstreamTag,
+                .upstreamResolvesViaDns = upstreamResolvesViaDns,
+                .credited = credited,
+                .headsResolveViaDns = &headsResolveViaDns,
+            });
+            if (!ctx.error.isEmpty() || exitIDs.isEmpty()) return;
+
+            // Connections name the exit hop, which cannot tell the members apart.
+            ctx.result->chainGroups.resize(memberGroupsBefore);
+            const auto exitGroupsBefore = ctx.result->chainGroups.size();
+            buildOutboundChain(ctx, {
+                .hopIDs = exitIDs,
+                .prefix = tags::mainChainPrefix,
+                .includeProxy = true,
+                .warpWrap = warpWrap,
+                .tailDetour = groupTag,
+                .tailResolvesViaDns = headsResolveViaDns,
+            });
+            if (!ctx.error.isEmpty()) return;
+            if (ctx.result->chainGroups.size() > exitGroupsBefore) ctx.result->chainGroups.last().profiles << selectorEnt << credited;
+        }
+
         void buildOutboundsSection(BuildContext &ctx) {
             auto group = dataManager->groupsRepo->GetGroup(ctx.ent->gid);
             if (group == nullptr)
@@ -2132,13 +2295,19 @@ namespace Configs {
             const bool warpWrap = dataManager->settingsRepo->enable_warp;
             if (ctx.ent->type == "autoselector")
             {
-                buildAutoSelectorGroup(ctx, warpWrap);
+                // With warp in front every member sits behind the single "proxy"-tagged warp outbound, so the group takes warp-bypass.
+                buildAutoSelectorGroup(ctx, ctx.ent, {.groupTag = warpWrap ? tags::warpBypass : tags::proxy, .warpWrap = warpWrap});
                 if (!ctx.error.isEmpty()) return;
                 if (warpWrap)
                 {
                     buildWarpInFrontOfSelector(ctx);
                     if (!ctx.error.isEmpty()) return;
                 }
+            }
+            else if (const auto selectorHop = chainSelectorHop(ctx.ent); selectorHop != nullptr)
+            {
+                buildChainAroundSelector(ctx, *group, selectorHop, warpWrap);
+                if (!ctx.error.isEmpty()) return;
             }
             else
             {
@@ -2253,7 +2422,7 @@ namespace Configs {
                 inboundArr = ctx.result->coreConfig["inbounds"].toArray();
             }
             for (qsizetype idx = 0; idx < ctx.xrayToSingBridges.size(); idx++) {
-                inboundArr.append(socksBridgeInbound(bridgeTagFor(ctx.singIngressTags[idx]), ctx.xrayToSingBridges[idx]));
+                inboundArr.append(socksBridgeInbound(bridgeTagFor(ctx.singIngressTags, idx), ctx.xrayToSingBridges[idx]));
             }
             ctx.result->coreConfig["inbounds"] = inboundArr;
 
@@ -2413,7 +2582,7 @@ namespace Configs {
             QJsonArray bridgeRules;
             for (qsizetype idx = 0; idx < ctx.xrayToSingBridges.size(); idx++) {
                 bridgeRules.append(QJsonObject{
-                    {"inbound", bridgeTagFor(ctx.singIngressTags[idx])},
+                    {"inbound", bridgeTagFor(ctx.singIngressTags, idx)},
                     {"action", "route"},
                     {"outbound", ctx.singIngressTags[idx]},
                 });
@@ -2630,6 +2799,8 @@ namespace Configs {
                         if (hopEnt != nullptr && hopEnt->outbound != nullptr &&
                             (hopEnt->outbound->IsExtraCore() || hopEnt->outbound->IsXrayFullConfig()))
                             return {testCandidate::Skip, "Skipping chain with terminal (extra-core or Xray full config) hop (cannot test)"};
+                        if (hopEnt != nullptr && hopEnt->type == "autoselector")
+                            return {testCandidate::Skip, "Skipping chain with an auto selector hop (test its members instead)"};
                     }
                 }
                 return {testCandidate::Build, nullptr};
@@ -2680,6 +2851,8 @@ namespace Configs {
                 if (hop == nullptr || hop->outbound == nullptr) return QObject::tr("A hop of the chain no longer exists");
                 if (hop->outbound->IsExtraCore() || hop->outbound->IsXrayFullConfig())
                     return QObject::tr("Chains with an extra-core or Xray full config hop cannot be tested");
+                if (hop->type == "autoselector")
+                    return QObject::tr("Chains with an auto selector cannot be scanned");
             }
             return scanCloneBlocker(scanChainHop(chain->list.first()));
         }
@@ -3569,6 +3742,10 @@ namespace Configs {
             }
             if (hop->outbound->IsExtraCore() || hop->outbound->IsXrayFullConfig()) {
                 out.error = QObject::tr("Chains with an extra-core or Xray full config hop cannot be tested");
+                return out;
+            }
+            if (hop->type == "autoselector") {
+                out.error = QObject::tr("Chains with an auto selector cannot be tested hop by hop; test its members instead");
                 return out;
             }
         }

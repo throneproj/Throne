@@ -31,6 +31,10 @@ namespace Stats
     QString AutoSelectorView::summary() const
     {
         if (!valid) return {};
+        if (suspended && upstream) {
+            return QObject::tr("Auto selector paused — no network connection, or the chain hops in front of it are down (%1 profiles held)")
+                .arg(membersTotal);
+        }
         if (suspended) {
             return QObject::tr("Auto selector paused — no network connection (%1 profiles held)")
                 .arg(membersTotal);
@@ -80,6 +84,7 @@ namespace Stats
         exhaustedSince = 0;
         groupTag.clear();
         profileID = -1;
+        upstream = false;
         active = false;
         if (infos.isEmpty()) return;
 
@@ -87,6 +92,7 @@ namespace Stats
         const auto &info = infos.first();
         groupTag = info.groupTag;
         profileID = info.profile ? info.profile->id : -1;
+        upstream = info.upstream;
         for (const auto &[tag, member] : info.members) {
             if (member == nullptr) continue;
             tagToProfile.insert(tag, member->id);
@@ -95,6 +101,7 @@ namespace Stats
         view.valid = true;
         view.groupTag = groupTag;
         view.profileID = profileID;
+        view.upstream = upstream;
         view.phase = "starting";
         view.membersTotal = static_cast<int>(info.members.size());
         lastHealthPersist = QDateTime::currentMSecsSinceEpoch();
@@ -108,7 +115,8 @@ namespace Stats
             QMutexLocker lock(&mutex);
             if (!active || !view.valid) return;
             // A suspended core believes the local network is down, so nothing it reports describes the servers.
-            if (view.suspended) return;
+            // Measured through hops in front, a result says nothing about the profile on its own.
+            if (view.suspended || view.upstream) return;
             members = view.members;
             lastHealthPersist = QDateTime::currentMSecsSinceEpoch();
         }
@@ -146,6 +154,7 @@ namespace Stats
         exhaustedSince = 0;
         groupTag.clear();
         profileID = -1;
+        upstream = false;
     }
 
     bool AutoSelectorMonitor::Active() const
@@ -260,6 +269,7 @@ namespace Stats
         {
             QMutexLocker lock(&mutex);
             next.profileID = profileID;
+            next.upstream = upstream;
             for (const auto &member : status->members) {
                 AutoSelectorMemberView entry;
                 entry.tag = QString::fromStdString(member.tag.value());

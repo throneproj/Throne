@@ -6173,6 +6173,14 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
         <translation>测试跳点</translation>
     </message>
     <message>
+        <source>A chain can hold only one auto selector.</source>
+        <translation>一条链只能包含一个自动选择器。</translation>
+    </message>
+    <message>
+        <source>An auto selector cannot share a chain with an Extra Core profile or a custom config.</source>
+        <translation>自动选择器不能与「额外核心」配置档或自定义配置位于同一链中。</translation>
+    </message>
+    <message>
         <source>Connect OK</source>
         <translation>连接通过</translation>
     </message>
@@ -10688,6 +10696,10 @@ Error: %1</source>
         <translation>先关闭 &quot;%1&quot;</translation>
     </message>
     <message>
+        <source>[Auto selector] Every running profile stopped working through the hops in front of it — rebuilding with the next candidates.</source>
+        <translation>[自动选择器] 所有正在运行的配置档经由其前方的跳点均已失效 — 正在用下一批候选重新构建。</translation>
+    </message>
+    <message>
         <source>The core did not answer the test</source>
         <translation>核心未响应测试</translation>
     </message>
@@ -11812,10 +11824,6 @@ How to update?</source>
         <translation>不再存在的配置档</translation>
     </message>
     <message>
-        <source>An auto selector cannot be a hop in a chain: it moves to a different server on its own whenever one degrades.</source>
-        <translation>自动选择器不能作为链式代理中的中间跳点： 它会在某个节点性能下降时自行转移到不同的服务器。</translation>
-    </message>
-    <message>
         <source>Select</source>
         <translation>选择</translation>
     </message>
@@ -12356,12 +12364,42 @@ How to update?</source>
         <translation>无法读取 WARP 身份；注册一个新的</translation>
     </message>
     <message>
+        <source>The routing profile sends traffic to %1, which holds an auto selector; such a chain can only be started, not used in routing rules</source>
+        <translation>路由配置将流量发送到 %1，而它包含自动选择器；这样的链只能被启动，不能用于路由规则</translation>
+    </message>
+    <message numerus="yes">
+        <source>[Auto selector] Left out %n profile(s) that cannot be reached through the hops in front of the selector (custom Xray configs, or too many switches between %1 and Xray).</source>
+        <translation>
+            <numerusform>[自动选择器] 已排除 %n 个无法经由选择器前方跳点访问的配置档（自定义 Xray 配置，或在 %1 与 Xray 之间切换次数过多）。</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>A chain can hold only one auto selector</source>
+        <translation>一条链只能包含一个自动选择器</translation>
+    </message>
+    <message>
+        <source>Extra Core profiles and custom configs cannot share a chain with an auto selector</source>
+        <translation>「额外核心」配置档和自定义配置不能与自动选择器位于同一链中</translation>
+    </message>
+    <message>
+        <source>Chains with an auto selector cannot be scanned</source>
+        <translation>包含自动选择器的链无法扫描</translation>
+    </message>
+    <message>
         <source>The group&apos;s front or landing proxy no longer exists</source>
         <translation>分组的前端或落地代理已不存在</translation>
     </message>
     <message>
+        <source>Chains with an auto selector cannot be tested hop by hop; test its members instead</source>
+        <translation>包含自动选择器的链无法逐跳测试；请改为测试其成员</translation>
+    </message>
+    <message>
         <source>The group&apos;s front or landing proxy is not valid; the log has the details</source>
         <translation>分组的前端或落地代理无效；详情见日志</translation>
+    </message>
+    <message>
+        <source>Auto selector paused — no network connection, or the chain hops in front of it are down (%1 profiles held)</source>
+        <translation>自动选择器已暂停 — 没有网络连接，或其前方的链跳点已断开(保留了 %1 个配置档)</translation>
     </message>
 </context>
 <context>
@@ -16046,6 +16084,10 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>The minimum MTU %1 is above the maximum %2.</source>
         <translation>最小 MTU %1大于最大 MTU %2。</translation>
+    </message>
+    <message>
+        <source>Routing rules cannot use the chain &quot;%1&quot;: it holds an auto selector, so it can only be started. Pick another outbound.</source>
+        <translation>路由规则不能使用链 “%1”: 它包含自动选择器，因此只能被启动。请选择其他出站。</translation>
     </message>
 </context>
 <context>

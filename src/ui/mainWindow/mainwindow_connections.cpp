@@ -91,7 +91,7 @@ namespace
             const bool usable = chain && !chain->list.isEmpty()
                 && std::all_of(chain->list.cbegin(), chain->list.cend(), [&hops](int hopID) {
                        const auto hop = hops.value(hopID);
-                       return !UnroutableProfile(hop) && hop->type != "chain";
+                       return !UnroutableProfile(hop) && hop->type != "chain" && hop->type != "autoselector";
                    });
             if (!usable) names.remove(profile->id);
         }

@@ -51,6 +51,7 @@ namespace Engine::ProfileService {
 
         // The hop rules EditChain enforces; the build checks how the hops combine.
         void profileServiceCheckHops(int profileId, const Configs::chain &chain, Validation::Issues &issues) {
+            bool selectorSeen = false;
             for (qsizetype i = 0; i < chain.list.size(); ++i) {
                 const int hopId = chain.list[i];
                 const auto hop = Configs::dataManager->profilesRepo->GetProfile(hopId);
@@ -60,7 +61,8 @@ namespace Engine::ProfileService {
                 } else if (hopId == profileId || hop->type == QLatin1String("chain")) {
                     problem = QStringLiteral("is a chain, which cannot be a hop");
                 } else if (hop->type == QLatin1String("autoselector")) {
-                    problem = QStringLiteral("is an auto selector, which cannot be a hop");
+                    if (selectorSeen) problem = QStringLiteral("is a second auto selector; a chain can hold only one");
+                    selectorSeen = true;
                 }
                 if (problem.isEmpty()) continue;
                 issues << Validation::Issue{Validation::Severity::Error, QStringLiteral("list"),
