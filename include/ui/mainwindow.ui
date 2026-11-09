@@ -374,13 +374,6 @@ QToolButton::menu-indicator {
         </property>
        </widget>
       </item>
-      <item alignment="Qt::AlignVCenter">
-       <widget class="QToolButton" name="toolButton_stop_testing">
-        <property name="visible">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
      </layout>
     </item>
     <item>

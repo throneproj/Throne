@@ -2,6 +2,7 @@
 
 #include "include/global/CountryHelper.hpp"
 #include "include/global/Configs.hpp"
+#include "include/engine/EngineTr.h"
 #include "include/ui/setting/ThemeManager.hpp"
 
 #include <QTextDocument>
@@ -56,6 +57,7 @@ void DataViewHtmlGenerator::seedSpeedTest(int totalProfiles) {
     Configs::dataManager->settingsRepo->speed_test_mode == Configs::TestConfig::COUNTRY ? speedtest_.kind = SpeedtestPanelState::Kind::Country : speedtest_.kind = SpeedtestPanelState::Kind::Speed;
     speedtest_.totalProfiles = totalProfiles;
     speedtest_.visible = true;
+    testsStopping_ = false;
 }
 
 void DataViewHtmlGenerator::setSpeedtestProgress(const QString &profileName, const libcore::SpeedTestResult &result) {
@@ -74,6 +76,7 @@ void DataViewHtmlGenerator::seedLatencyTest(LatencyTestPanelState::Kind kind, in
     latencyTest_.visible = true;
     latencyTest_.kind = kind;
     latencyTest_.totalProfiles = totalProfiles;
+    testsStopping_ = false;
 }
 
 void DataViewHtmlGenerator::setAutoSelectorStatus(const QString &summary, const QString &detail) {
@@ -106,7 +109,13 @@ void DataViewHtmlGenerator::clearTestSections() {
     QMutexLocker lk(&mu_);
     latencyTest_ = {};
     speedtest_ = {};
+    testsStopping_ = false;
     testProgress.store(0);
+}
+
+void DataViewHtmlGenerator::markTestsStopping() {
+    QMutexLocker lk(&mu_);
+    testsStopping_ = true;
 }
 
 void DataViewHtmlGenerator::addTestProgress(int count) {
@@ -239,6 +248,7 @@ DataViewHtmlGenerator::Content DataViewHtmlGenerator::speedtestSection() {
         if (speedtest_.totalProfiles > 1) {
             firstLine += QString(" (%1 / %2)").arg(Int2String(testProgress.load()), Int2String(speedtest_.totalProfiles));
         }
+        firstLine += stopTestsLinkHtml();
         if (speedtest_.serverName.isEmpty()) return {QString("<p style='text-align:center;margin:0;'>%1</p>").arg(firstLine), {}};
         return {QString(
                     "<p style='text-align:center;margin:0;'>%1</p>"
@@ -259,7 +269,7 @@ DataViewHtmlGenerator::Content DataViewHtmlGenerator::speedtestSection() {
             res = QString("<p style='text-align:center;margin:0;'>%1</p>").arg(progress);
             content += QString(" (%1 / %2)").arg(Int2String(testProgress.load()), Int2String(speedtest_.totalProfiles));
         }
-        res += QString("<p style='text-align:center;margin:0;'>%1</p>").arg(content);
+        res += QString("<p style='text-align:center;margin:0;'>%1</p>").arg(content + stopTestsLinkHtml());
         return {res, {}};
     }
 }
@@ -274,6 +284,12 @@ QString DataViewHtmlGenerator::latencyTestSectionHtml() {
         res = QString("<p style='text-align:center;margin:0;'>%1</p>").arg(progress);
         content += QString(" (%1 / %2)").arg(Int2String(testProgress.load()), Int2String(latencyTest_.totalProfiles));
     }
-    res += QString("<p style='text-align:center;margin:0;'>%1</p>").arg(content);
+    res += QString("<p style='text-align:center;margin:0;'>%1</p>").arg(content + stopTestsLinkHtml());
     return res;
+}
+
+QString DataViewHtmlGenerator::stopTestsLinkHtml() const {
+    if (testsStopping_) return {};
+    return QString("&nbsp;&nbsp;&#183;&nbsp;&nbsp;<a style='color:%1;' href='%2'>%3</a>")
+        .arg(themeManager()->tokens.accent.name(), QString(StopTestsActionUrl), MainWindowTr::tr("Stop").toHtmlEscaped());
 }

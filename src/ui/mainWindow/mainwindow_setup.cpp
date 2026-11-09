@@ -907,10 +907,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         tests()->runIpTests(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles());
     });
     ui->menu_stop_testing->setEnabled(false);
-    ui->toolButton_stop_testing->setDefaultAction(ui->menu_stop_testing);
     connect(ui->menu_stop_testing, &QAction::triggered, this, [this]() {
         ui->menu_stop_testing->setEnabled(false);
-        // StopTests is a blocking RPC; keep both the button and menu responsive.
+        dataViewHtmlGenerator_.markTestsStopping();
+        UpdateDataView(true);
+        // StopTests is a blocking RPC.
         runOnNewThread([runner = tests()] { runner->stop(); });
     });
     auto set_selected_or_group = [=,this](int mode) {
@@ -1003,6 +1004,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             connection()->applyPendingRestart();
         } else if (action == QLatin1String(DataViewHtmlGenerator::DismissRestartActionUrl)) {
             connection()->clearRestartNeeded();
+        } else if (action == QLatin1String(DataViewHtmlGenerator::StopTestsActionUrl)) {
+            ui->menu_stop_testing->trigger();
         }
     });
 }

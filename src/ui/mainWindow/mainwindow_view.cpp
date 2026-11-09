@@ -89,10 +89,7 @@ void MainWindow::testPanelSeeded(Engine::TestKind kind, int totalProfiles)
             dataViewHtmlGenerator_.seedSpeedTest(totalProfiles);
             break;
     }
-    runOnUiThread([this] {
-        ui->menu_stop_testing->setEnabled(true);
-        ui->toolButton_stop_testing->show();
-    });
+    runOnUiThread([this] { ui->menu_stop_testing->setEnabled(true); });
 }
 
 void MainWindow::testProgressed()
@@ -103,10 +100,7 @@ void MainWindow::testProgressed()
 void MainWindow::testPanelsCleared()
 {
     dataViewHtmlGenerator_.clearTestSections();
-    runOnUiThread([this] {
-        ui->menu_stop_testing->setEnabled(false);
-        ui->toolButton_stop_testing->hide();
-    });
+    runOnUiThread([this] { ui->menu_stop_testing->setEnabled(false); });
 }
 
 void MainWindow::testViewChanged(bool force)
