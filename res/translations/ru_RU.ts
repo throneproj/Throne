@@ -4,14 +4,6 @@
 <context>
     <name>CommandPalette</name>
     <message>
-        <source>Search Commands and Settings</source>
-        <translation>Поиск команд и настроек</translation>
-    </message>
-    <message>
-        <source>Search commands and settings</source>
-        <translation>Поиск команд и настроек</translation>
-    </message>
-    <message>
         <source>↑↓ move · Enter run · Esc close · &gt; commands only · @ settings only</source>
         <translation>↑↓ выбор · Enter выполнить · Esc закрыть · &gt; только команды · @ только настройки</translation>
     </message>
@@ -38,6 +30,14 @@
     <message>
         <source>Settings in Advanced mode</source>
         <translation>Настройки в расширенном режиме</translation>
+    </message>
+    <message>
+        <source>Search Settings</source>
+        <translation>Поиск настроек</translation>
+    </message>
+    <message>
+        <source>Search settings</source>
+        <translation>Поиск настроек</translation>
     </message>
 </context>
 <context>
@@ -272,7 +272,8 @@ Outbound: %4</translation>
     </message>
     <message>
         <source>Update</source>
-        <translation>Обновление</translation>
+        <comment>button</comment>
+        <translation>Обновить</translation>
     </message>
     <message>
         <source>Throne %1 is available, you are using %2.</source>
@@ -1346,6 +1347,208 @@ Throne will restart to complete the restore.</source>
     <message>
         <source>Lets other devices on your network use this DNS server, for example a router that sends its DNS through this computer. Anyone who can reach this port can then resolve names through your DNS settings.</source>
         <translation>Позволяет другим устройствам в сети использовать этот DNS-сервер, например роутеру, который направляет DNS через этот компьютер. Любой, кто может достучаться до этого порта, сможет разрешать имена через ваши настройки DNS.</translation>
+    </message>
+    <message>
+        <source>%1 (this device)</source>
+        <translation>%1 (это устройство)</translation>
+    </message>
+    <message>
+        <source>Backup deleted, but the backup list could not be updated: %1</source>
+        <translation>Резервная копия удалена, но не удалось обновить список копий: %1</translation>
+    </message>
+    <message>
+        <source>Backup uploaded, but the backup list could not be updated: %1</source>
+        <translation>Резервная копия выгружена, но не удалось обновить список копий: %1</translation>
+    </message>
+    <message>
+        <source>Backup uploaded:
+%1</source>
+        <translation>Резервная копия выгружена:
+%1</translation>
+    </message>
+    <message>
+        <source>Connect through the proxy</source>
+        <translation>Подключаться через прокси</translation>
+    </message>
+    <message>
+        <source>Connected. The backup folder is ready.</source>
+        <translation>Подключено. Папка для резервных копий готова.</translation>
+    </message>
+    <message>
+        <source>Connection failed:
+%1</source>
+        <translation>Ошибка подключения:
+%1</translation>
+    </message>
+    <message>
+        <source>Could not delete the backup:
+%1</source>
+        <translation>Не удалось удалить резервную копию:
+%1</translation>
+    </message>
+    <message>
+        <source>Could not download the backup:
+%1</source>
+        <translation>Не удалось скачать резервную копию:
+%1</translation>
+    </message>
+    <message>
+        <source>Could not list the backups:
+%1</source>
+        <translation>Не удалось получить список резервных копий:
+%1</translation>
+    </message>
+    <message>
+        <source>Created</source>
+        <translation>Создана</translation>
+    </message>
+    <message>
+        <source>Created by: %1</source>
+        <translation>Создано: %1</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Удалить</translation>
+    </message>
+    <message>
+        <source>Delete Backup</source>
+        <translation>Удаление резервной копии</translation>
+    </message>
+    <message>
+        <source>Delete this backup from the WebDAV server? This cannot be undone.
+
+%1</source>
+        <translation>Удалить эту резервную копию с сервера WebDAV? Это действие нельзя отменить.
+
+%1</translation>
+    </message>
+    <message>
+        <source>Delete this backup from the WebDAV server? This cannot be undone.
+%1</source>
+        <translation>Удалить эту резервную копию с сервера WebDAV? Это действие нельзя отменить.
+%1</translation>
+    </message>
+    <message>
+        <source>Deleting the backup...</source>
+        <translation>Удаление резервной копии...</translation>
+    </message>
+    <message>
+        <source>Device</source>
+        <translation>Устройство</translation>
+    </message>
+    <message>
+        <source>Device name</source>
+        <translation>Имя устройства</translation>
+    </message>
+    <message>
+        <source>Downloading the backup...</source>
+        <translation>Скачивание резервной копии...</translation>
+    </message>
+    <message>
+        <source>Enter your WebDAV server in WebDAV Settings first.</source>
+        <translation>Сначала укажите сервер WebDAV в окне «Настройки WebDAV».</translation>
+    </message>
+    <message>
+        <source>Folder</source>
+        <translation>Папка</translation>
+    </message>
+    <message>
+        <source>Keep backups on a WebDAV server such as Nextcloud, a NAS or Yandex Disk. Uploads include the parts checked under Create Backup.</source>
+        <translation>Храните резервные копии на сервере WebDAV (например, Nextcloud, NAS или Яндекс Диск). Выгружаются разделы, отмеченные в блоке «Создать резервную копию».</translation>
+    </message>
+    <message>
+        <source>Loading the backup list...</source>
+        <translation>Загрузка списка резервных копий...</translation>
+    </message>
+    <message>
+        <source>Parts</source>
+        <translation>Разделы</translation>
+    </message>
+    <message>
+        <source>Password</source>
+        <translation>Пароль</translation>
+    </message>
+    <message>
+        <source>Platform</source>
+        <translation>Платформа</translation>
+    </message>
+    <message>
+        <source>Restore from WebDAV</source>
+        <translation>Восстановление из WebDAV</translation>
+    </message>
+    <message>
+        <source>Restore from WebDAV...</source>
+        <translation>Восстановить из WebDAV...</translation>
+    </message>
+    <message>
+        <source>Server URL</source>
+        <translation>URL сервера</translation>
+    </message>
+    <message>
+        <source>Size</source>
+        <translation>Размер</translation>
+    </message>
+    <message>
+        <source>Test</source>
+        <translation>Проверить</translation>
+    </message>
+    <message>
+        <source>Testing the connection...</source>
+        <translation>Проверка подключения...</translation>
+    </message>
+    <message>
+        <source>The backup list could not be read: %1</source>
+        <translation>Не удалось прочитать список резервных копий: %1</translation>
+    </message>
+    <message>
+        <source>The server URL must start with http:// or https://.</source>
+        <translation>URL сервера должен начинаться с http:// или https://.</translation>
+    </message>
+    <message>
+        <source>There are no backups in the WebDAV folder yet.</source>
+        <translation>В папке WebDAV пока нет резервных копий.</translation>
+    </message>
+    <message>
+        <source>Unknown</source>
+        <translation>Неизвестно</translation>
+    </message>
+    <message>
+        <source>Unknown device</source>
+        <translation>Неизвестное устройство</translation>
+    </message>
+    <message>
+        <source>Upload failed:
+%1</source>
+        <translation>Ошибка выгрузки:
+%1</translation>
+    </message>
+    <message>
+        <source>Upload to WebDAV</source>
+        <translation>Выгрузить в WebDAV</translation>
+    </message>
+    <message>
+        <source>Uploading the backup...</source>
+        <translation>Выгрузка резервной копии...</translation>
+    </message>
+    <message>
+        <source>Username</source>
+        <translation>Имя пользователя</translation>
+    </message>
+    <message>
+        <source>Version</source>
+        <translation>Версия</translation>
+    </message>
+    <message>
+        <source>WebDAV</source>
+        <translation>WebDAV</translation>
+    </message>
+    <message>
+        <source>WebDAV Settings</source>
+        <translation>Настройки WebDAV</translation>
+    </message>
+    <message>
+        <source>WebDAV Settings...</source>
+        <translation>Настройки WebDAV...</translation>
     </message>
 </context>
 <context>
@@ -2946,6 +3149,14 @@ Throne will restart to complete the restore.</source>
         <source>DNSTT / VayDNS</source>
         <translation>DNSTT / VayDNS</translation>
     </message>
+    <message>
+        <source>Custom</source>
+        <translation>Настраиваемое</translation>
+    </message>
+    <message>
+        <source>Configure</source>
+        <translation>Настроить</translation>
+    </message>
 </context>
 <context>
     <name>DialogEndpointDetails</name>
@@ -4004,6 +4215,10 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
     <message>
         <source>Every update of the subscription &quot;%1&quot; overwrites its rules. Deleting it stops the import.</source>
         <translation>Каждое обновление подписки «%1» перезаписывает его правила. Удаление прекращает импорт.</translation>
+    </message>
+    <message>
+        <source>It uses its own DNS servers: remote %1, direct %2.</source>
+        <translation>Использует собственные DNS-серверы: удалённый %1, прямой %2.</translation>
     </message>
 </context>
 <context>
@@ -10553,10 +10768,6 @@ Name: %1</source>
         <translation>Kill switch блокирует трафик</translation>
     </message>
     <message>
-        <source>Search Commands and Settings</source>
-        <translation>Поиск команд и настроек</translation>
-    </message>
-    <message>
         <source>close the open settings window first</source>
         <translation>сначала закройте открытое окно настроек</translation>
     </message>
@@ -10599,6 +10810,73 @@ Name: %1</source>
     <message>
         <source>The core did not answer the test</source>
         <translation>Ядро не ответило на проверку</translation>
+    </message>
+    <message>
+        <source>Search Settings</source>
+        <translation>Поиск настроек</translation>
+    </message>
+    <message>
+        <source>Failed to resolve %1: %2</source>
+        <translation>Не удалось разрешить %1: %2</translation>
+    </message>
+    <message>
+        <source>Failed to resolve domains: %1</source>
+        <translation>Не удалось разрешить домены: %1</translation>
+    </message>
+    <message>
+        <source>the core did not answer</source>
+        <translation>ядро не ответило</translation>
+    </message>
+</context>
+<context>
+    <name>MuxSettingsWidget</name>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;b&gt;Max Streams&lt;/b&gt;: reuse a connection until it carries this many streams, then open another.&lt;/p&gt;&lt;p&gt;&lt;b&gt;Max Connections&lt;/b&gt;: keep at most this many connections, and open a new one only while the least busy connection already carries Min Streams streams.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;b&gt;Макс. потоков&lt;/b&gt;: повторно использовать соединение, пока число потоков в нём не достигнет этого значения, затем открывать новое.&lt;/p&gt;&lt;p&gt;&lt;b&gt;Макс. соединений&lt;/b&gt;: держать не более указанного числа соединений и открывать новое только тогда, когда наименее загруженное соединение уже несёт не менее «Мин. потоков».&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TCP Brutal congestion control at the speeds below; the server must support it. Every stream then shares one connection, so the mode is ignored.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Управление перегрузкой TCP Brutal с указанными ниже скоростями (сервер должен его поддерживать). При этом все потоки используют одно общее соединение, поэтому выбранный режим игнорируется.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Custom Multiplex</source>
+        <translation>Настройка мультиплексирования</translation>
+    </message>
+    <message>
+        <source>Download (Mb/s)</source>
+        <translation>Приём (Мбит/с)</translation>
+    </message>
+    <message>
+        <source>Max Connections</source>
+        <translation>Макс. соединений</translation>
+    </message>
+    <message>
+        <source>Max Streams</source>
+        <translation>Макс. потоков</translation>
+    </message>
+    <message>
+        <source>Min Streams</source>
+        <translation>Мин. потоков</translation>
+    </message>
+    <message>
+        <source>Mode</source>
+        <translation>Режим</translation>
+    </message>
+    <message>
+        <source>Padding</source>
+        <translation>Дополнение (Padding)</translation>
+    </message>
+    <message>
+        <source>Protocol</source>
+        <translation>Протокол</translation>
+    </message>
+    <message>
+        <source>TCP Brutal</source>
+        <translation>TCP Brutal</translation>
+    </message>
+    <message>
+        <source>Upload (Mb/s)</source>
+        <translation>Отдача (Мбит/с)</translation>
     </message>
 </context>
 <context>
@@ -12155,6 +12433,122 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
         <source>Auto selector paused — no network connection, or the chain hops in front of it are down (%1 profiles held)</source>
         <translation>Автовыбор приостановлен — нет подключения к сети или звенья цепочки перед ним не работают (профилей удерживается: %1)</translation>
     </message>
+    <message>
+        <source>A proxy in the chain can no longer be found.</source>
+        <translation>Прокси из цепочки больше не найден.</translation>
+    </message>
+    <message>
+        <source>Chain &quot;%1&quot; has a hop (profile id %2) that no longer exists, edit the chain to remove it</source>
+        <translation>Цепочка «%1» содержит звено (профиль с ID %2), которое больше не существует; отредактируйте цепочку, чтобы удалить его</translation>
+    </message>
+    <message>
+        <source>Could not create a temporary file: %1</source>
+        <translation>Не удалось создать временный файл: %1</translation>
+    </message>
+    <message>
+        <source>Could not create the folder on the server: %1</source>
+        <translation>Не удалось создать папку на сервере: %1</translation>
+    </message>
+    <message>
+        <source>Could not read the backup file: %1</source>
+        <translation>Не удалось прочитать файл резервной копии: %1</translation>
+    </message>
+    <message>
+        <source>Could not write the downloaded backup: %1</source>
+        <translation>Не удалось записать скачанную резервную копию: %1</translation>
+    </message>
+    <message>
+        <source>Enter the WebDAV server URL in the WebDAV settings.</source>
+        <translation>Укажите URL сервера WebDAV в настройках WebDAV.</translation>
+    </message>
+    <message>
+        <source>Failed to generate WARP QUIC signature: %1</source>
+        <translation>Не удалось сгенерировать подпись QUIC для WARP: %1</translation>
+    </message>
+    <message>
+        <source>Group &quot;%1&quot; has a front proxy that has been deleted.</source>
+        <translation>В группе «%1» указан входной прокси (front proxy), который был удалён.</translation>
+    </message>
+    <message>
+        <source>Group &quot;%1&quot; has a landing proxy that has been deleted.</source>
+        <translation>В группе «%1» указан выходной прокси (landing proxy), который был удалён.</translation>
+    </message>
+    <message>
+        <source>HTTP %1</source>
+        <translation>HTTP %1</translation>
+    </message>
+    <message>
+        <source>Not an otpauth link or secret: %1</source>
+        <translation>Не ссылка otpauth и не секрет: %1</translation>
+    </message>
+    <message>
+        <source>Not found.</source>
+        <translation>Не найдено.</translation>
+    </message>
+    <message>
+        <source>Permission denied.</source>
+        <translation>Доступ запрещён.</translation>
+    </message>
+    <message>
+        <source>Request with proxy but the mixed inbound is disabled and Tun Mode is off.</source>
+        <translation>Запрос через прокси, но смешанный входящий порт (Mixed inbound) отключён и режим Tun выключен.</translation>
+    </message>
+    <message>
+        <source>Server error (HTTP %1).</source>
+        <translation>Ошибка сервера (HTTP %1).</translation>
+    </message>
+    <message>
+        <source>The WebDAV server URL must start with http:// or https://.</source>
+        <translation>URL сервера WebDAV должен начинаться с http:// или https://.</translation>
+    </message>
+    <message>
+        <source>The backup list kept changing while it was being updated.</source>
+        <translation>Список резервных копий неоднократно изменялся во время обновления.</translation>
+    </message>
+    <message>
+        <source>The backup&apos;s file name is not safe to use.</source>
+        <translation>Имя файла резервной копии небезопасно для использования.</translation>
+    </message>
+    <message>
+        <source>The core returned an invalid QUIC signature.</source>
+        <translation>Ядро вернуло некорректную подпись QUIC.</translation>
+    </message>
+    <message>
+        <source>The downloaded backup does not match the backup list; it may have been replaced or damaged.</source>
+        <translation>Скачанная резервная копия не соответствует списку копий; возможно, она была подменена или повреждена.</translation>
+    </message>
+    <message>
+        <source>The server answered with a redirect (HTTP %1); check the server URL.</source>
+        <translation>Сервер ответил перенаправлением (HTTP %1); проверьте URL сервера.</translation>
+    </message>
+    <message>
+        <source>The server could not be reached.</source>
+        <translation>Не удалось связаться с сервером.</translation>
+    </message>
+    <message>
+        <source>The server did not answer in time.</source>
+        <translation>Сервер не ответил вовремя.</translation>
+    </message>
+    <message>
+        <source>The server redirected to %1; check the server URL.</source>
+        <translation>Сервер перенаправил на %1; проверьте URL сервера.</translation>
+    </message>
+    <message>
+        <source>The server sent more than %1 MB.</source>
+        <translation>Сервер отправил более %1 МБ.</translation>
+    </message>
+    <message>
+        <source>The server&apos;s folder listing could not be read.</source>
+        <translation>Не удалось прочитать содержимое папки на сервере.</translation>
+    </message>
+    <message>
+        <source>Unknown device</source>
+        <translation>Неизвестное устройство</translation>
+    </message>
+    <message>
+        <source>Wrong username or password.</source>
+        <translation>Неверное имя пользователя или пароль.</translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -12177,6 +12571,114 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
     <message>
         <source>OK</source>
         <translation>ОК</translation>
+    </message>
+    <message>
+        <source>&amp;OK</source>
+        <translation>&amp;ОК</translation>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation>Сохранить</translation>
+    </message>
+    <message>
+        <source>&amp;Save</source>
+        <translation>&amp;Сохранить</translation>
+    </message>
+    <message>
+        <source>Save All</source>
+        <translation>Сохранить все</translation>
+    </message>
+    <message>
+        <source>Open</source>
+        <translation>Открыть</translation>
+    </message>
+    <message>
+        <source>&amp;Open</source>
+        <translation>&amp;Открыть</translation>
+    </message>
+    <message>
+        <source>&amp;Yes</source>
+        <translation>&amp;Да</translation>
+    </message>
+    <message>
+        <source>Yes to &amp;All</source>
+        <translation>Да для &amp;всех</translation>
+    </message>
+    <message>
+        <source>&amp;No</source>
+        <translation>&amp;Нет</translation>
+    </message>
+    <message>
+        <source>N&amp;o to All</source>
+        <translation>Н&amp;ет для всех</translation>
+    </message>
+    <message>
+        <source>Abort</source>
+        <translation>Прервать</translation>
+    </message>
+    <message>
+        <source>&amp;Abort</source>
+        <translation>&amp;Прервать</translation>
+    </message>
+    <message>
+        <source>Retry</source>
+        <translation>Повторить</translation>
+    </message>
+    <message>
+        <source>&amp;Retry</source>
+        <translation>П&amp;овторить</translation>
+    </message>
+    <message>
+        <source>Ignore</source>
+        <translation>Пропустить</translation>
+    </message>
+    <message>
+        <source>&amp;Ignore</source>
+        <translation>&amp;Пропустить</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Закрыть</translation>
+    </message>
+    <message>
+        <source>&amp;Close</source>
+        <translation>&amp;Закрыть</translation>
+    </message>
+    <message>
+        <source>&amp;Cancel</source>
+        <translation>&amp;Отмена</translation>
+    </message>
+    <message>
+        <source>Discard</source>
+        <translation>Не сохранять</translation>
+    </message>
+    <message>
+        <source>&amp;Discard</source>
+        <translation>&amp;Не сохранять</translation>
+    </message>
+    <message>
+        <source>Help</source>
+        <translation>Справка</translation>
+    </message>
+    <message>
+        <source>&amp;Help</source>
+        <translation>&amp;Справка</translation>
+    </message>
+    <message>
+        <source>&amp;Apply</source>
+        <translation>П&amp;рименить</translation>
+    </message>
+    <message>
+        <source>Reset</source>
+        <translation>Сбросить</translation>
+    </message>
+    <message>
+        <source>&amp;Reset</source>
+        <translation>С&amp;бросить</translation>
+    </message>
+    <message>
+        <source>Restore Defaults</source>
+        <translation>По умолчанию</translation>
     </message>
 </context>
 <context>
@@ -12239,6 +12741,14 @@ outbound и другие функции Throne могут не работать.
     <message>
         <source>Prevent modifications</source>
         <translation>Запретить изменения</translation>
+    </message>
+    <message>
+        <source>DNS</source>
+        <translation>DNS</translation>
+    </message>
+    <message>
+        <source>Route</source>
+        <translation>Маршрутизация</translation>
     </message>
 </context>
 <context>
@@ -12407,6 +12917,77 @@ outbound и другие функции Throne могут не работать.
     <message>
         <source>This IP list no longer exists, so it adds no resolvers.</source>
         <translation>Этот список IP больше не существует, поэтому резолверы из него не добавляются.</translation>
+    </message>
+</context>
+<context>
+    <name>RouteDnsEditor</name>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;examples:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://domain/path&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://domain/path&lt;/p&gt;&lt;p&gt;quic://domain:4632&lt;/p&gt;&lt;p&gt;localhost&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Примеры:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://domain/path&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://domain/path&lt;/p&gt;&lt;p&gt;quic://domain:4632&lt;/p&gt;&lt;p&gt;localhost&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Answer AAAA queries sent to this server with an empty result.</source>
+        <translation>Отвечать на запросы AAAA, отправленные на этот сервер, пустым результатом.</translation>
+    </message>
+    <message>
+        <source>Default DNS server</source>
+        <translation>DNS-сервер по умолчанию</translation>
+    </message>
+    <message>
+        <source>Direct DNS</source>
+        <translation>DNS для прямых запросов</translation>
+    </message>
+    <message>
+        <source>Disable IPv6</source>
+        <translation>Отключить IPv6</translation>
+    </message>
+    <message>
+        <source>Domains this profile sends direct are resolved with the direct DNS too.</source>
+        <translation>Домены, которые этот профиль направляет напрямую, также разрешаются через DNS для прямых запросов.</translation>
+    </message>
+    <message>
+        <source>Enable DNS Routing</source>
+        <translation>Включить DNS-маршрутизацию</translation>
+    </message>
+    <message>
+        <source>Enable FakeIP</source>
+        <translation>Включить FakeIP</translation>
+    </message>
+    <message>
+        <source>FakeIP Disable IPv6</source>
+        <translation>FakeIP: отключить IPv6</translation>
+    </message>
+    <message>
+        <source>Hand out no fake IPv6 addresses; AAAA queries are answered empty.</source>
+        <translation>Не выдавать FakeIP-адреса IPv6; на запросы AAAA даются пустые ответы.</translation>
+    </message>
+    <message>
+        <source>Local Override, the hosts file, predefined answers and the advanced DNS settings always come from Routing Settings &gt; DNS.</source>
+        <translation>Переопределение локального DNS, файл hosts, предопределённые ответы и дополнительные настройки DNS всегда берутся из «Настройки маршрутизации → DNS».</translation>
+    </message>
+    <message>
+        <source>Remote DNS</source>
+        <translation>Удалённый DNS</translation>
+    </message>
+    <message>
+        <source>Routing Settings use a custom DNS object, so that object applies instead of the values below.</source>
+        <translation>В «Настройках маршрутизации» используется собственный объект DNS, поэтому он применяется вместо значений ниже.</translation>
+    </message>
+    <message>
+        <source>The servers set in Routing Settings &gt; DNS.</source>
+        <translation>Серверы, указанные в «Настройки маршрутизации → DNS».</translation>
+    </message>
+    <message>
+        <source>These servers replace the global ones while this routing profile is in use.</source>
+        <translation>Эти серверы заменяют глобальные, пока используется данный профиль маршрутизации.</translation>
+    </message>
+    <message>
+        <source>Use custom DNS settings</source>
+        <translation>Использовать собственные настройки DNS</translation>
+    </message>
+    <message>
+        <source>Use the global DNS settings</source>
+        <translation>Использовать глобальные настройки DNS</translation>
     </message>
 </context>
 <context>
@@ -12676,6 +13257,14 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Fetched with warnings</source>
         <translation>Загружено с предупреждениями</translation>
+    </message>
+    <message>
+        <source>DNS</source>
+        <translation>DNS</translation>
+    </message>
+    <message>
+        <source>Disabled: kept in the profile but left out of the generated config.</source>
+        <translation>Отключено: правило сохраняется в профиле, но не включается в итоговую конфигурацию.</translation>
     </message>
 </context>
 <context>
@@ -15811,6 +16400,81 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Routing rules cannot use the chain &quot;%1&quot;: it holds an auto selector, so it can only be started. Pick another outbound.</source>
         <translation>В правилах маршрутизации нельзя использовать цепочку &quot;%1&quot;: в ней есть автовыбор, поэтому ее можно только запустить. Выберите другой outbound.</translation>
+    </message>
+    <message>
+        <source>Direct DNS &quot;%1&quot;: %2</source>
+        <translation>DNS для прямых запросов «%1»: %2</translation>
+    </message>
+    <message>
+        <source>Remote DNS &quot;%1&quot;: %2</source>
+        <translation>Удалённый DNS «%1»: %2</translation>
+    </message>
+    <message>
+        <source>TCP Brutal only works with a custom multiplex. Set Multiplex to Custom.</source>
+        <translation>TCP Brutal работает только при настраиваемом мультиплексировании. Установите для параметра «Мультиплексирование» значение «Настраиваемое».</translation>
+    </message>
+    <message>
+        <source>The default DNS server must be remote or direct, not &quot;%1&quot;.</source>
+        <translation>DNS-сервером по умолчанию должен быть «remote» или «direct», а не «%1».</translation>
+    </message>
+    <message>
+        <source>The profile&apos;s own DNS settings were dropped, so it uses the global ones: %1</source>
+        <translation>Собственные настройки DNS профиля были сброшены, поэтому используются глобальные: %1</translation>
+    </message>
+</context>
+<context>
+    <name>XrayMuxSettingsWidget</name>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Keep at most this many connections, for TCP and for XUDP each. Once every one carries Concurrency streams, new streams join the least busy one.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Держать не более указанного числа соединений (отдельно для TCP и для XUDP). Когда в каждом соединении набрано «Кол-во потоков», новые потоки добавляются в наименее загруженное соединение.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Streams one connection carries before another opens. 0 uses Xray&apos;s 8, and -1 sends TCP outside the mux.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Число потоков в одном соединении до открытия следующего. 0 — стандартное значение Xray (8), а -1 отправляет TCP в обход mux.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;UDP streams per connection, on connections of their own. 0 carries UDP on the TCP connections, and -1 sends it outside the mux.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Число потоков UDP на одно отдельное соединение. 0 передаёт UDP внутри соединений TCP, а -1 отправляет UDP в обход mux.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;UDP to port 443, mostly QUIC. &lt;b&gt;Reject&lt;/b&gt; makes browsers fall back to TCP (Xray&apos;s default), &lt;b&gt;Allow&lt;/b&gt; carries it through the mux, and &lt;b&gt;Skip&lt;/b&gt; sends it outside the mux.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Трафик UDP на порт 443 (в основном QUIC). &lt;b&gt;Отклонять&lt;/b&gt; заставляет браузеры переходить на TCP (по умолчанию в Xray), &lt;b&gt;Разрешать&lt;/b&gt; передаёт его через mux, а &lt;b&gt;Пропускать&lt;/b&gt; отправляет в обход mux.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <source>Allow</source>
+        <translation>Разрешать</translation>
+    </message>
+    <message>
+        <source>Concurrency</source>
+        <translation>Кол-во потоков</translation>
+    </message>
+    <message>
+        <source>Custom Mux</source>
+        <translation>Настройка Mux</translation>
+    </message>
+    <message>
+        <source>Max Connections</source>
+        <translation>Макс. соединений</translation>
+    </message>
+    <message>
+        <source>No limit</source>
+        <translation>Без ограничений</translation>
+    </message>
+    <message>
+        <source>Reject</source>
+        <translation>Отклонять</translation>
+    </message>
+    <message>
+        <source>Skip</source>
+        <translation>Пропускать</translation>
+    </message>
+    <message>
+        <source>UDP/443</source>
+        <translation>UDP/443</translation>
+    </message>
+    <message>
+        <source>XUDP Concurrency</source>
+        <translation>Параллельность XUDP</translation>
     </message>
 </context>
 </TS>
