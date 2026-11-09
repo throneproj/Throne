@@ -1405,7 +1405,8 @@ namespace Configs {
                 }
                 QJsonArray routeExcludeSets;
                 if (tun.privateRangesAsRuleSet) routeExcludeSets << tags::privateRangesRuleSet;
-                if (settings.enable_tun_routing)
+                // The kill switch drops what leaves outside the Tun and the core, so direct IPs must reach the direct outbound (#2100).
+                if (settings.enable_tun_routing && !settings.kill_switch)
                 {
                     // The route rule drops a bare IPv6's zone (Prefixable), so the exclusion must too; anything unparsable fails that rule anyway.
                     for (const auto &item: tun.directIPCIDRs) {
