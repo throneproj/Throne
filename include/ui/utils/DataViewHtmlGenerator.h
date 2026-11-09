@@ -73,6 +73,7 @@ public:
 
     static constexpr auto RestartActionUrl = "throne-action:restart-proxy";
     static constexpr auto DismissRestartActionUrl = "throne-action:dismiss-restart";
+    static constexpr auto StopTestsActionUrl = "throne-action:stop-tests";
 
     void setDownloadReport(const DownloadProgressReport &report, bool show);
 
@@ -93,6 +94,9 @@ public:
 
     void clearTestSections();
 
+    // Hides the Stop link until the next test seeds its panel.
+    void markTestsStopping();
+
     void addTestProgress(int count = 1);
 
     Content build();
@@ -112,6 +116,8 @@ private:
 
     QString latencyTestSectionHtml();
 
+    QString stopTestsLinkHtml() const;
+
     QString autoSelectorSectionHtml();
 
     QString vpnEndpointSectionHtml();
@@ -130,6 +136,7 @@ private:
     VpnEndpointPanelState vpnEndpoint_ = {};
     PendingRestartPanelState pendingRestart_ = {};
     QList<ScannerPanelItem> scanner_;
+    bool testsStopping_ = false;
 
     std::atomic<int> testProgress{0};
 };
