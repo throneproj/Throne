@@ -2,6 +2,8 @@
 
 
 #include "include/database/ProfilesRepo.h"
+#include "include/engine/EngineHost.h"
+#include "include/engine/tests/TestRunner.h"
 #include "include/ui/mainwindow.h"
 #include "include/ui/profile/ProxyItem.h"
 #include "include/ui/utils/ValidationForm.h"
@@ -45,22 +47,134 @@ namespace {
         }
         return {};
     }
+
+    using StepResult = Engine::TestRunner::ChainStepResult;
+    using StepReport = Engine::TestRunner::ChainStepReport;
+
+    struct StepRow {
+        QString text;
+        QString toolTip;
+        QString role;
+    };
+
+    struct StepVerdict {
+        QList<StepRow> rows;
+        QString status;
+        QString statusRole;
+    };
+
+    bool stepWorks(const StepResult &result) {
+        return result.latency > 0 || result.latency == Configs::kLatencyConnectOnly;
+    }
+
+    QString stepLatencyText(const StepResult &result) {
+        if (result.latency == Configs::kLatencyConnectOnly) return EditChain::tr("Connect OK");
+        return EditChain::tr("%1 ms").arg(result.latency);
+    }
+
+    QString aloneNote(const QHash<int, StepResult> &alone, int hop) {
+        if (!alone.contains(hop)) return {};
+        const auto &result = alone[hop];
+        return stepWorks(result) ? EditChain::tr("On its own: %1").arg(stepLatencyText(result))
+                                 : EditChain::tr("On its own: unavailable");
+    }
+
+    QString joinLines(const QStringList &lines) {
+        QStringList kept;
+        for (const auto &line : lines) {
+            if (!line.isEmpty()) kept << line;
+        }
+        return kept.join(QLatin1Char('\n'));
+    }
+
+    StepVerdict judgeSteps(const StepReport &report, const QStringList &names) {
+        QHash<int, StepResult> through;
+        QHash<int, StepResult> alone;
+        for (const auto &result : report.results) (result.alone ? alone : through).insert(result.hop, result);
+
+        StepVerdict out;
+        int breakAt = -1;
+        for (int i = 0; i < names.size(); ++i) {
+            StepRow row;
+            if (report.invalidHops.contains(i)) {
+                row = {EditChain::tr("Invalid"), EditChain::tr("This profile is not valid; the log has the details."), "danger"};
+                if (breakAt < 0) breakAt = i;
+            } else if (through.contains(i)) {
+                const auto &result = through[i];
+                if (stepWorks(result)) {
+                    row = {stepLatencyText(result), i == 0 ? EditChain::tr("Works.") : EditChain::tr("Works through every hop above it."), "success"};
+                } else if (breakAt >= 0) {
+                    row = {EditChain::tr("Not reached"),
+                           joinLines({EditChain::tr("A hop above already fails, so this says nothing about this hop."), aloneNote(alone, i)}),
+                           "muted"};
+                } else {
+                    breakAt = i;
+                    if (alone.contains(i) && stepWorks(alone[i])) {
+                        row = {EditChain::tr("Fails through the hops above"),
+                               joinLines({EditChain::tr("Works on its own (%1), but not through the hops above it: the hop above may not reach "
+                                                        "this server, or may not carry its protocol (UDP, for example).")
+                                              .arg(stepLatencyText(alone[i])),
+                                          result.error}),
+                               "danger"};
+                    } else {
+                        row = {EditChain::tr("Unavailable"), joinLines({aloneNote(alone, i), result.error}), "danger"};
+                    }
+                }
+            } else if (alone.contains(i)) {
+                const auto &result = alone[i];
+                row = {stepWorks(result) ? stepLatencyText(result) : EditChain::tr("Unavailable"),
+                       joinLines({EditChain::tr("Tested on its own only: a hop above is not valid."), result.error}), "muted"};
+            } else {
+                row = {EditChain::tr("Not tested"), {}, "muted"};
+            }
+            out.rows << row;
+        }
+
+        if (!report.error.isEmpty()) {
+            out.status = report.error;
+            out.statusRole = "danger";
+        } else if (report.aborted) {
+            out.status = EditChain::tr("The test was stopped.");
+            out.statusRole = "muted";
+        } else if (breakAt >= 0) {
+            out.status = EditChain::tr("The chain breaks at hop %1, %2.").arg(QString::number(breakAt + 1), names[breakAt]);
+            out.statusRole = "danger";
+        } else if (report.hasLanding) {
+            const int landing = static_cast<int>(names.size());
+            if (through.contains(landing) && stepWorks(through[landing])) {
+                out.status = EditChain::tr("Every hop works, and so does the group's landing proxy after them (%1).").arg(stepLatencyText(through[landing]));
+                out.statusRole = "success";
+            } else if (alone.contains(landing) && stepWorks(alone[landing])) {
+                out.status = EditChain::tr("Every hop works, but the group's landing proxy fails through them.");
+                out.statusRole = "danger";
+            } else {
+                out.status = EditChain::tr("Every hop works, but the group's landing proxy is unavailable.");
+                out.statusRole = "danger";
+            }
+        } else {
+            out.status = EditChain::tr("Every hop works through the ones above it.");
+            out.statusRole = "success";
+        }
+        return out;
+    }
 }
 
 EditChain::EditChain(QWidget *parent) : QWidget(parent), ui(new Ui::EditChain) {
     ui->setupUi(this);
     // Adding, removing, replacing and dragging hops are the list's focus-out.
-    const auto revalidate = [this] {
+    const auto onHopsChanged = [this] {
         if (form) form->revalidate(ui->listWidget);
+        if (!stepTestRunning && !ui->step_status->isHidden()) clearStepResults();
     };
     auto *model = ui->listWidget->model();
-    connect(model, &QAbstractItemModel::rowsInserted, this, revalidate);
-    connect(model, &QAbstractItemModel::rowsRemoved, this, revalidate);
-    connect(model, &QAbstractItemModel::rowsMoved, this, revalidate);
-    connect(model, &QAbstractItemModel::dataChanged, this, revalidate);
+    connect(model, &QAbstractItemModel::rowsInserted, this, onHopsChanged);
+    connect(model, &QAbstractItemModel::rowsRemoved, this, onHopsChanged);
+    connect(model, &QAbstractItemModel::rowsMoved, this, onHopsChanged);
+    connect(model, &QAbstractItemModel::dataChanged, this, onHopsChanged);
 }
 
 EditChain::~EditChain() {
+    if (stepTestRunning && Engine::host() != nullptr) Engine::host()->tests()->stop();
     delete ui;
 }
 
@@ -80,14 +194,7 @@ bool EditChain::onEnd() {
         return false;
     }
 
-    auto outbound = this->ent->Chain();
-
-    QList<int> idList;
-    for (int i = 0; i < ui->listWidget->count(); i++) {
-        idList << ui->listWidget->item(i)->data(114514).toInt();
-    }
-    outbound->list = idList;
-
+    this->ent->Chain()->list = hopIds();
     return true;
 }
 
@@ -101,15 +208,83 @@ void EditChain::bindValidation(Validation::Form &form) {
     }, this, Validation::Severity::Warning, label);
 }
 
+QList<int> EditChain::hopIds() const {
+    QList<int> ids;
+    for (int i = 0; i < ui->listWidget->count(); i++) ids << ui->listWidget->item(i)->data(114514).toInt();
+    return ids;
+}
+
+ProxyItem *EditChain::hopItem(int row) const {
+    return qobject_cast<ProxyItem *>(ui->listWidget->itemWidget(ui->listWidget->item(row)));
+}
+
 QString EditChain::hopsError() const {
     QList<std::shared_ptr<Configs::Profile>> hops;
-    for (int i = 0; i < ui->listWidget->count(); i++) {
-        auto hop = Configs::dataManager->profilesRepo->GetProfile(ui->listWidget->item(i)->data(114514).toInt());
+    const auto ids = hopIds();
+    for (int i = 0; i < ids.size(); i++) {
+        auto hop = Configs::dataManager->profilesRepo->GetProfile(ids[i]);
         if (hop == nullptr || hop->outbound == nullptr) return tr("Hop %1 no longer exists; replace or remove it.").arg(i + 1);
         hops << hop;
     }
     if (hops.isEmpty()) return tr("Add at least one profile to the chain.");
     return editChainScanError(hops);
+}
+
+void EditChain::clearStepResults() {
+    for (int i = 0; i < ui->listWidget->count(); i++) {
+        if (auto *item = hopItem(i)) item->refresh_data();
+    }
+    ui->step_status->hide();
+}
+
+void EditChain::setStepStatus(const QString &text, const QString &colorRole) {
+    ProxyItem::setColorRole(ui->step_status, colorRole);
+    ui->step_status->setText(text);
+    ui->step_status->show();
+}
+
+void EditChain::on_test_hops_clicked() {
+    if (stepTestRunning) return;
+    if (const auto error = hopsError(); !error.isEmpty()) {
+        clearStepResults();
+        setStepStatus(error, "danger");
+        return;
+    }
+    const auto hops = hopIds();
+    QStringList names;
+    for (int i = 0; i < hops.size(); i++) {
+        auto *item = hopItem(i);
+        names << (item != nullptr ? item->ent->outbound->DisplayName() : QString());
+        if (item != nullptr) item->showStepResult(tr("Testing…"), {}, "muted");
+    }
+    stepTestRunning = true;
+    ui->test_hops->setEnabled(false);
+    setStepStatus(tr("Testing each hop on its own and through the hops above it…"), "muted");
+
+    const QPointer<EditChain> self(this);
+    const bool started = Engine::host()->tests()->runChainStepTest(hops, ent->gid, [self, hops, names](const StepReport &report) {
+        runOnUiThread([self, hops, names, report] {
+            if (self == nullptr) return;
+            self->stepTestRunning = false;
+            self->ui->test_hops->setEnabled(true);
+            if (self->hopIds() != hops) {
+                self->clearStepResults();
+                self->setStepStatus(tr("The hops changed during the test; test again."), "muted");
+                return;
+            }
+            const auto verdict = judgeSteps(report, names);
+            for (int i = 0; i < verdict.rows.size(); i++) {
+                if (auto *item = self->hopItem(i)) item->showStepResult(verdict.rows[i].text, verdict.rows[i].toolTip, verdict.rows[i].role);
+            }
+            self->setStepStatus(verdict.status, verdict.statusRole);
+        });
+    });
+    if (!started) {
+        stepTestRunning = false;
+        ui->test_hops->setEnabled(true);
+        clearStepResults();
+        setStepStatus(tr("Another test is running; try again when it finishes."), "danger");
+    }
 }
 
 void EditChain::on_select_profile_clicked() {

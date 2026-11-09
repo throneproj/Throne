@@ -2645,6 +2645,7 @@ namespace Configs {
 
         // Far below every sentinel id (-1, warpProfileID), so a clone never resolves to one.
         constexpr int kScanSyntheticIdBase = -1000000;
+        constexpr int kChainStepSyntheticIdBase = -2000000;
 
         bool isVpnEndpointType(const QString &type) {
             return type == "openvpn" || type == "openconnect";
@@ -3539,6 +3540,94 @@ namespace Configs {
         for (auto it = out.build->tag2entID.cbegin(); it != out.build->tag2entID.cend(); ++it)
             out.tag2target.insert(it.key(), synth2target.value(it.value(), -1));
         if (isVpnEndpointType(exitType)) out.vpnEndpointTags = out.build->outboundTags;
+        return out;
+    }
+
+    ChainStepTestBuild BuildChainStepTestConfig(const QList<int> &hops, int gid)
+    {
+        const GenerateEndpointScope endpointScope;
+        ChainStepTestBuild out;
+        if (hops.isEmpty()) {
+            out.error = QObject::tr("The chain has no hops");
+            return out;
+        }
+        int front = -1;
+        int landing = -1;
+        if (const auto group = dataManager->groupsRepo->GetGroup(gid); group != nullptr) {
+            front = group->front_proxy_id;
+            landing = group->landing_proxy_id;
+        }
+        QList<int> involved = hops;
+        if (front >= 0) involved << front;
+        if (landing >= 0) involved << landing;
+        for (const int id : involved) {
+            const auto hop = getProfile(id);
+            if (hop == nullptr || hop->outbound == nullptr) {
+                out.error = id == front || id == landing ? QObject::tr("The group's front or landing proxy no longer exists")
+                                                         : QObject::tr("A hop of the chain no longer exists");
+                return out;
+            }
+            if (hop->outbound->IsExtraCore() || hop->outbound->IsXrayFullConfig()) {
+                out.error = QObject::tr("Chains with an extra-core or Xray full config hop cannot be tested");
+                return out;
+            }
+        }
+
+        const auto invalid = invalidProfileIDs(QSet<int>(involved.cbegin(), involved.cend()).values());
+        if (invalid.contains(front) || invalid.contains(landing)) {
+            out.error = QObject::tr("The group's front or landing proxy is not valid; the log has the details");
+            return out;
+        }
+        for (int i = 0; i < hops.size(); ++i) {
+            if (invalid.contains(hops[i])) out.invalidHops << i;
+        }
+
+        QHash<int, std::shared_ptr<Profile>> overrides;
+        QHash<int, ChainStepProbe> synth2probe;
+        QHash<int, QString> synthExitType;
+        QList<std::shared_ptr<Profile>> items;
+        int nextId = kChainStepSyntheticIdBase;
+        const auto addProbe = [&](QList<int> list, const ChainStepProbe &probe) {
+            const auto exit = getProfile(list.last());
+            if (front >= 0) list.prepend(front);
+            auto item = ProfilesRepo::NewProfile("chain");
+            if (item == nullptr || item->Chain() == nullptr) return;
+            item->Chain()->list = list;
+            item->gid = gid;
+            item->id = nextId--;
+            overrides.insert(item->id, item);
+            synth2probe.insert(item->id, probe);
+            synthExitType.insert(item->id, exit != nullptr ? exit->type : QString());
+            items << item;
+        };
+        bool pathValid = true;
+        for (int i = 0; i < hops.size(); ++i) {
+            if (out.invalidHops.contains(i)) {
+                pathValid = false;
+                continue;
+            }
+            if (i > 0) addProbe({hops[i]}, {i, true});
+            if (pathValid) addProbe(hops.mid(0, i + 1), {i, false});
+        }
+        if (landing >= 0) {
+            out.hasLanding = true;
+            addProbe({landing}, {static_cast<int>(hops.size()), true});
+            if (pathValid) addProbe(QList<int>(hops) << landing, {static_cast<int>(hops.size()), false});
+        }
+        if (items.isEmpty()) return out;
+
+        {
+            const ScopedProfileOverrides scoped(&overrides);
+            out.build = buildTestConfigImpl(items, {.chainPrefix = QStringLiteral("step"), .validate = false, .groupHops = false});
+        }
+        if (!out.build->error.isEmpty()) {
+            out.error = out.build->error;
+            return out;
+        }
+        for (auto it = out.build->tag2entID.cbegin(); it != out.build->tag2entID.cend(); ++it) {
+            out.tag2probe.insert(it.key(), synth2probe.value(it.value()));
+            if (isVpnEndpointType(synthExitType.value(it.value()))) out.vpnEndpointTags << it.key();
+        }
         return out;
     }
 

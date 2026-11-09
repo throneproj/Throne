@@ -211,6 +211,25 @@ namespace Configs
     // Worker thread only; group landing/front hops are not applied.
     ScanTestBuild BuildScanTestConfig(const std::shared_ptr<Profile> &base, const QList<ScanTestTarget> &targets);
 
+    struct ChainStepProbe {
+        // Index into the top-to-bottom hop list; hops.size() stands for the group's landing proxy.
+        int hop = -1;
+        // The hop dialed by itself rather than through every hop above it.
+        bool alone = false;
+    };
+
+    struct ChainStepTestBuild {
+        QString error;
+        std::shared_ptr<BuildTestConfigResult> build;
+        QHash<QString, ChainStepProbe> tag2probe;
+        QSet<int> invalidHops;
+        QStringList vpnEndpointTags;
+        bool hasLanding = false;
+    };
+
+    // Worker thread only. Unsaved hops, top first; the group's front proxy leads every probe.
+    ChainStepTestBuild BuildChainStepTestConfig(const QList<int> &hops, int gid);
+
     // Accepts host, host:port, [v6] and [v6]:port; a bare IPv6 address takes defaultPort.
     void SplitWarpEndpoint(const QString &endpoint, int defaultPort, QString &host, int &port);
 }

@@ -6164,6 +6164,114 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
         <source>Add at least one profile to the chain.</source>
         <translation>添加至少一个配置档到链。</translation>
     </message>
+    <message>
+        <source>Tests each hop on its own and through every hop above it, without saving the chain</source>
+        <translation>单独测试每个跳点，并经由其上方的所有跳点测试，不保存该链</translation>
+    </message>
+    <message>
+        <source>Test Hops</source>
+        <translation>测试跳点</translation>
+    </message>
+    <message>
+        <source>Connect OK</source>
+        <translation>连接通过</translation>
+    </message>
+    <message>
+        <source>%1 ms</source>
+        <translation>%1 ms</translation>
+    </message>
+    <message>
+        <source>On its own: %1</source>
+        <translation>单独：%1</translation>
+    </message>
+    <message>
+        <source>On its own: unavailable</source>
+        <translation>单独：不可用</translation>
+    </message>
+    <message>
+        <source>Invalid</source>
+        <translation>无效</translation>
+    </message>
+    <message>
+        <source>This profile is not valid; the log has the details.</source>
+        <translation>此配置档无效；详情见日志。</translation>
+    </message>
+    <message>
+        <source>Works.</source>
+        <translation>可用。</translation>
+    </message>
+    <message>
+        <source>Works through every hop above it.</source>
+        <translation>经由其上方的所有跳点均可用。</translation>
+    </message>
+    <message>
+        <source>Not reached</source>
+        <translation>未到达</translation>
+    </message>
+    <message>
+        <source>A hop above already fails, so this says nothing about this hop.</source>
+        <translation>上方已有跳点失败，因此无法据此判断此跳点。</translation>
+    </message>
+    <message>
+        <source>Fails through the hops above</source>
+        <translation>经由上方跳点失败</translation>
+    </message>
+    <message>
+        <source>Works on its own (%1), but not through the hops above it: the hop above may not reach this server, or may not carry its protocol (UDP, for example).</source>
+        <translation>单独可用 (%1)，但经由上方跳点不可用：上方的跳点可能无法访问此服务器，或无法承载其协议（例如 UDP）。</translation>
+    </message>
+    <message>
+        <source>Unavailable</source>
+        <translation>不可用</translation>
+    </message>
+    <message>
+        <source>Tested on its own only: a hop above is not valid.</source>
+        <translation>仅单独测试：上方有跳点无效。</translation>
+    </message>
+    <message>
+        <source>Not tested</source>
+        <translation>未测试</translation>
+    </message>
+    <message>
+        <source>The test was stopped.</source>
+        <translation>测试已停止。</translation>
+    </message>
+    <message>
+        <source>The chain breaks at hop %1, %2.</source>
+        <translation>链在第 %1 个跳点 %2 处中断。</translation>
+    </message>
+    <message>
+        <source>Every hop works, and so does the group&apos;s landing proxy after them (%1).</source>
+        <translation>所有跳点均可用，其后的分组落地代理也可用 (%1)。</translation>
+    </message>
+    <message>
+        <source>Every hop works, but the group&apos;s landing proxy fails through them.</source>
+        <translation>所有跳点均可用，但分组的落地代理经由它们失败。</translation>
+    </message>
+    <message>
+        <source>Every hop works, but the group&apos;s landing proxy is unavailable.</source>
+        <translation>所有跳点均可用，但分组的落地代理不可用。</translation>
+    </message>
+    <message>
+        <source>Every hop works through the ones above it.</source>
+        <translation>每个跳点经由其上方的跳点均可用。</translation>
+    </message>
+    <message>
+        <source>Testing…</source>
+        <translation>正在测试…</translation>
+    </message>
+    <message>
+        <source>Testing each hop on its own and through the hops above it…</source>
+        <translation>正在单独测试每个跳点，并经由其上方的跳点测试…</translation>
+    </message>
+    <message>
+        <source>The hops changed during the test; test again.</source>
+        <translation>测试期间跳点发生了变化；请重新测试。</translation>
+    </message>
+    <message>
+        <source>Another test is running; try again when it finishes.</source>
+        <translation>另一个测试正在运行；请在其结束后重试。</translation>
+    </message>
 </context>
 <context>
     <name>EditCustom</name>
@@ -10579,6 +10687,10 @@ Error: %1</source>
         <source>close &quot;%1&quot; first</source>
         <translation>先关闭 &quot;%1&quot;</translation>
     </message>
+    <message>
+        <source>The core did not answer the test</source>
+        <translation>核心未响应测试</translation>
+    </message>
 </context>
 <context>
     <name>MuxSettingsWidget</name>
@@ -12242,6 +12354,14 @@ How to update?</source>
     <message>
         <source>The WARP identity could not be read; register a new one</source>
         <translation>无法读取 WARP 身份；注册一个新的</translation>
+    </message>
+    <message>
+        <source>The group&apos;s front or landing proxy no longer exists</source>
+        <translation>分组的前端或落地代理已不存在</translation>
+    </message>
+    <message>
+        <source>The group&apos;s front or landing proxy is not valid; the log has the details</source>
+        <translation>分组的前端或落地代理无效；详情见日志</translation>
     </message>
 </context>
 <context>

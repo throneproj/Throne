@@ -33,6 +33,7 @@ private:
     QPointer<Validation::Form> form;
     // Stored hops left out on load: deleted profiles, chains and auto selectors.
     int droppedHops = 0;
+    bool stepTestRunning = false;
 
     // explain: tell the user why a picked profile cannot be a hop.
     bool AddProfileToListIfExist(int profileId, bool explain = true);
@@ -41,7 +42,17 @@ private:
 
     QString hopsError() const;
 
+    QList<int> hopIds() const;
+
+    ProxyItem *hopItem(int row) const;
+
+    void clearStepResults();
+
+    void setStepStatus(const QString &text, const QString &colorRole);
+
 private slots:
 
     void on_select_profile_clicked();
+
+    void on_test_hops_clicked();
 };

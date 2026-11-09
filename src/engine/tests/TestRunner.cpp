@@ -357,6 +357,78 @@ namespace Engine {
         return runLatencyGroup(LatencyKind::Ip, profileIDs, onFinished, false, interactive);
     }
 
+    bool TestRunner::runChainStepTest(const QList<int>& hops, int gid, const std::function<void(const ChainStepReport&)>& onDone) {
+        if (!session_.tryLock()) return false;
+        sessionGen_.fetch_add(1);
+        stopRequested_.store(false);
+        interactive_.store(true);
+
+        runOnNewThread([this, hops, gid, onDone] {
+            ChainStepReport report;
+            const auto build = Configs::BuildChainStepTestConfig(hops, gid);
+            report.invalidHops = build.invalidHops;
+            report.hasLanding = build.hasLanding;
+            if (!build.error.isEmpty()) {
+                report.error = build.error;
+            } else if (build.build != nullptr && !build.build->outboundTags.isEmpty()) {
+                Target target;
+                target.coreConfig = QJsonObject2QString(build.build->coreConfig, false);
+                target.xrayConfig = build.build->isXrayNeeded ? QJsonObject2QString(build.build->xrayConfig, false) : "";
+                target.xrayFullConfigs = build.build->xrayFullConfigs;
+                target.outboundTags = build.build->outboundTags;
+                target.xrayDnsStrategy = build.build->xrayDnsStrategy;
+
+                libcore::TestReq req;
+                testRunnerFillCommonTestReq(req, target);
+                req.url = Configs::dataManager->settingsRepo->test_latency_url.toStdString();
+                req.max_concurrency = Configs::dataManager->settingsRepo->test_concurrent;
+                req.test_timeout_ms = Configs::dataManager->settingsRepo->url_test_timeout_ms;
+                for (const auto& tag : build.vpnEndpointTags) req.vpn_endpoint_tags.push_back(tag.toStdString());
+
+                int allowance = 0;
+                for (const int id : hops) {
+                    allowance = qMax(allowance, Configs::DnsTunnelStartupAllowanceMs(Configs::dataManager->profilesRepo->GetProfile(id)));
+                }
+                bool rpcOK = false;
+                QString coreError;
+                const auto result = API::defaultClient->Test(&rpcOK, req, &coreError,
+                                                             testRunnerBatchRpcTimeoutMs(target.outboundTags.size(), 2, allowance));
+                // Test also queues every result for QueryURLTest; drain them so a later run's poller never sees these tags.
+                bool drained = false;
+                API::defaultClient->QueryURLTest(&drained);
+
+                if (!rpcOK) {
+                    report.error = coreError.isEmpty() ? MainWindowTr::tr("The core did not answer the test") : coreError;
+                } else {
+                    QHash<QString, bool> vpnConnected;
+                    for (const auto& st : result.vpn_status) vpnConnected.insert(QString::fromStdString(st.tag.value()), st.connected.value());
+                    for (const auto& res : result.results) {
+                        const auto tag = QString::fromStdString(res.outbound_tag.value());
+                        if (!build.tag2probe.contains(tag)) continue;
+                        const auto probe = build.tag2probe.value(tag);
+                        ChainStepResult step{probe.hop, probe.alone};
+                        const auto error = QString::fromStdString(res.error.value());
+                        if (error.isEmpty()) {
+                            step.latency = res.latency_ms.value();
+                        } else if (testRunnerIsTestAborted(error)) {
+                            report.aborted = true;
+                            continue;
+                        } else if (vpnConnected.value(tag, false)) {
+                            step.latency = Configs::kLatencyConnectOnly;
+                        } else {
+                            step.latency = -1;
+                            step.error = error;
+                        }
+                        report.results << step;
+                    }
+                }
+            }
+            session_.unlock();
+            if (onDone) onDone(report);
+        });
+        return true;
+    }
+
     bool TestRunner::runLatencyGroup(LatencyKind kind, const QList<int>& requestedIDs,
                                      const std::function<void()>& onFinished, bool waitForSession, bool interactive,
                                      const ResultHook& onResult) {

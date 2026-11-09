@@ -44,11 +44,35 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="select_profile">
-     <property name="text">
-      <string>Select Profile</string>
+    <widget class="QLabel" name="step_status">
+     <property name="visible">
+      <bool>false</bool>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
      </property>
     </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="buttons_layout">
+     <item>
+      <widget class="QPushButton" name="select_profile">
+       <property name="text">
+        <string>Select Profile</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="test_hops">
+       <property name="toolTip">
+        <string>Tests each hop on its own and through every hop above it, without saving the chain</string>
+       </property>
+       <property name="text">
+        <string>Test Hops</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>

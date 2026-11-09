@@ -6025,6 +6025,114 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
         <source>Add at least one profile to the chain.</source>
         <translation>Добавьте в цепочку хотя бы один профиль.</translation>
     </message>
+    <message>
+        <source>Tests each hop on its own and through every hop above it, without saving the chain</source>
+        <translation>Проверяет каждое звено отдельно и через все звенья выше него, не сохраняя цепочку</translation>
+    </message>
+    <message>
+        <source>Test Hops</source>
+        <translation>Проверить звенья</translation>
+    </message>
+    <message>
+        <source>Connect OK</source>
+        <translation>Подключено</translation>
+    </message>
+    <message>
+        <source>%1 ms</source>
+        <translation>%1 мс</translation>
+    </message>
+    <message>
+        <source>On its own: %1</source>
+        <translation>Отдельно: %1</translation>
+    </message>
+    <message>
+        <source>On its own: unavailable</source>
+        <translation>Отдельно: недоступен</translation>
+    </message>
+    <message>
+        <source>Invalid</source>
+        <translation>Недействителен</translation>
+    </message>
+    <message>
+        <source>This profile is not valid; the log has the details.</source>
+        <translation>Этот профиль недействителен; подробности в журнале.</translation>
+    </message>
+    <message>
+        <source>Works.</source>
+        <translation>Работает.</translation>
+    </message>
+    <message>
+        <source>Works through every hop above it.</source>
+        <translation>Работает через все звенья выше.</translation>
+    </message>
+    <message>
+        <source>Not reached</source>
+        <translation>Не достигнуто</translation>
+    </message>
+    <message>
+        <source>A hop above already fails, so this says nothing about this hop.</source>
+        <translation>Звено выше уже не работает, поэтому об этом звене ничего сказать нельзя.</translation>
+    </message>
+    <message>
+        <source>Fails through the hops above</source>
+        <translation>Не работает через звенья выше</translation>
+    </message>
+    <message>
+        <source>Works on its own (%1), but not through the hops above it: the hop above may not reach this server, or may not carry its protocol (UDP, for example).</source>
+        <translation>Работает отдельно (%1), но не через звенья выше: звено выше может не достигать этого сервера или не пропускать его протокол (например, UDP).</translation>
+    </message>
+    <message>
+        <source>Unavailable</source>
+        <translation>Недоступен</translation>
+    </message>
+    <message>
+        <source>Tested on its own only: a hop above is not valid.</source>
+        <translation>Проверено только отдельно: одно из звеньев выше недействительно.</translation>
+    </message>
+    <message>
+        <source>Not tested</source>
+        <translation>Не проверено</translation>
+    </message>
+    <message>
+        <source>The test was stopped.</source>
+        <translation>Проверка остановлена.</translation>
+    </message>
+    <message>
+        <source>The chain breaks at hop %1, %2.</source>
+        <translation>Цепочка обрывается на звене %1, %2.</translation>
+    </message>
+    <message>
+        <source>Every hop works, and so does the group&apos;s landing proxy after them (%1).</source>
+        <translation>Все звенья работают, как и выходной прокси группы после них (%1).</translation>
+    </message>
+    <message>
+        <source>Every hop works, but the group&apos;s landing proxy fails through them.</source>
+        <translation>Все звенья работают, но выходной прокси группы через них не работает.</translation>
+    </message>
+    <message>
+        <source>Every hop works, but the group&apos;s landing proxy is unavailable.</source>
+        <translation>Все звенья работают, но выходной прокси группы недоступен.</translation>
+    </message>
+    <message>
+        <source>Every hop works through the ones above it.</source>
+        <translation>Каждое звено работает через звенья выше.</translation>
+    </message>
+    <message>
+        <source>Testing…</source>
+        <translation>Проверка…</translation>
+    </message>
+    <message>
+        <source>Testing each hop on its own and through the hops above it…</source>
+        <translation>Проверка каждого звена отдельно и через звенья выше…</translation>
+    </message>
+    <message>
+        <source>The hops changed during the test; test again.</source>
+        <translation>Звенья изменились во время проверки; проверьте ещё раз.</translation>
+    </message>
+    <message>
+        <source>Another test is running; try again when it finishes.</source>
+        <translation>Выполняется другая проверка; повторите, когда она завершится.</translation>
+    </message>
 </context>
 <context>
     <name>EditCustom</name>
@@ -10476,6 +10584,10 @@ Name: %1</source>
         <source>The group &quot;%1&quot; uses its own routing profile, so the running profile keeps it.</source>
         <translation>Группа «%1» использует собственный профиль маршрутизации, поэтому запущенный профиль сохраняет его.</translation>
     </message>
+    <message>
+        <source>The core did not answer the test</source>
+        <translation>Ядро не ответило на проверку</translation>
+    </message>
 </context>
 <context>
     <name>OtpItem</name>
@@ -11994,6 +12106,14 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
     <message>
         <source>Plaintext Replies</source>
         <translation>Ответы без шифрования</translation>
+    </message>
+    <message>
+        <source>The group&apos;s front or landing proxy no longer exists</source>
+        <translation>Фронт-прокси или выходной прокси группы больше не существует</translation>
+    </message>
+    <message>
+        <source>The group&apos;s front or landing proxy is not valid; the log has the details</source>
+        <translation>Фронт-прокси или выходной прокси группы недействителен; подробности в журнале</translation>
     </message>
 </context>
 <context>
