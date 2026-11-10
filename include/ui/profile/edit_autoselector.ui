@@ -5,7 +5,7 @@
   <property name="windowTitle">
    <string notr="true">EditAutoSelector</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,1,0">
    <item>
     <layout class="QFormLayout" name="basic_layout">
      <property name="fieldGrowthPolicy">
@@ -136,550 +136,567 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="advanced_area" native="true">
-     <layout class="QGridLayout" name="advanced_layout">
-      <property name="leftMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <item row="0" column="0">
-       <widget class="QGroupBox" name="membership_box">
-        <property name="title">
-         <string>Which profiles to use</string>
-        </property>
-        <layout class="QFormLayout" name="membership_layout">
-         <property name="fieldGrowthPolicy">
-          <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+    <widget class="QScrollArea" name="advanced_area">
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="advanced_content">
+      <layout class="QVBoxLayout" name="advanced_layout">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="membership_box">
+         <property name="title">
+          <string>Which profiles to use</string>
          </property>
-         <item row="0" column="0">
-          <widget class="QLabel" name="country_filter_l">
-           <property name="text">
-            <string>Only countries</string>
-           </property>
-           <property name="buddy">
-            <cstring>country_filter</cstring>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="country_filter">
-           <property name="placeholderText">
-            <string>e.g. DE,NL,FR or !RU</string>
-           </property>
-           <property name="toolTip">
-            <string>Comma-separated country codes, empty means any. Put ! before a code to exclude that country instead, e.g. !RU uses every country but Russia. Uses the country found by the IP test, so profiles that were never IP-tested are skipped while this is set.</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="build_limit_l">
-           <property name="text">
-            <string>Run the best</string>
-           </property>
-           <property name="buddy">
-            <cstring>build_limit</cstring>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QSpinBox" name="build_limit">
-           <property name="minimum">
-            <number>1</number>
-           </property>
-           <property name="maximum">
-            <number>500</number>
-           </property>
-           <property name="suffix">
-            <string> profiles</string>
-           </property>
-           <property name="toolTip">
-            <string>How many profiles are loaded into the running config. The selector switches between these instantly, with no reconnect. Higher costs more memory and startup time.</string>
-           </property>
-           <property name="value">
-            <number>300</number>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="pool_cap_l">
-           <property name="text">
-            <string>Rank at most</string>
-           </property>
-           <property name="buddy">
-            <cstring>pool_cap</cstring>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QSpinBox" name="pool_cap">
-           <property name="minimum">
-            <number>1</number>
-           </property>
-           <property name="maximum">
-            <number>3000</number>
-           </property>
-           <property name="suffix">
-            <string> profiles</string>
-           </property>
-           <property name="toolTip">
-            <string>Hard ceiling on how many profiles are measured and kept in the ranked list. When every running profile dies, replacements are taken from this list.</string>
-           </property>
-           <property name="value">
-            <number>3000</number>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="result_validity_l">
-           <property name="text">
-            <string>Trust results for</string>
-           </property>
-           <property name="buddy">
-            <cstring>result_validity</cstring>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QSpinBox" name="result_validity">
-           <property name="maximum">
-            <number>10080</number>
-           </property>
-           <property name="suffix">
-            <string> min</string>
-           </property>
-           <property name="specialValueText">
-            <string>always re-test</string>
-           </property>
-           <property name="toolTip">
-            <string>URL test results this recent are reused instead of being measured again — including tests you ran yourself on the group, so starting the selector right after one does not repeat the work. Older results are treated as if the profile had never been tested. Set to zero to always run a fresh test.</string>
-           </property>
-           <property name="value">
-            <number>1440</number>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QCheckBox" name="exclude_unavailable">
-           <property name="text">
-            <string>Skip failed profiles</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-           <property name="toolTip">
-            <string>Keeps servers whose last test failed out of the pool, as long as that result is still within the trust window. Turn off if your tests are unreliable and you would rather let the selector decide for itself.</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QGroupBox" name="health_box">
-        <property name="title">
-         <string>Health checks</string>
-        </property>
-        <layout class="QFormLayout" name="health_layout">
-         <property name="fieldGrowthPolicy">
-          <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+         <layout class="QFormLayout" name="membership_layout">
+          <property name="fieldGrowthPolicy">
+           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="country_filter_l">
+            <property name="text">
+             <string>Only countries</string>
+            </property>
+            <property name="buddy">
+             <cstring>country_filter</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="country_filter">
+            <property name="placeholderText">
+             <string>e.g. DE,NL,FR or !RU</string>
+            </property>
+            <property name="toolTip">
+             <string>Comma-separated country codes, empty means any. Put ! before a code to exclude that country instead, e.g. !RU uses every country but Russia. Uses the country found by the IP test, so profiles that were never IP-tested are skipped while this is set.</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="build_limit_l">
+            <property name="text">
+             <string>Run the best</string>
+            </property>
+            <property name="buddy">
+             <cstring>build_limit</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="build_limit">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>500</number>
+            </property>
+            <property name="suffix">
+             <string> profiles</string>
+            </property>
+            <property name="toolTip">
+             <string>How many profiles are loaded into the running config. The selector switches between these instantly, with no reconnect. Higher costs more memory and startup time.</string>
+            </property>
+            <property name="value">
+             <number>300</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="pool_cap_l">
+            <property name="text">
+             <string>Rank at most</string>
+            </property>
+            <property name="buddy">
+             <cstring>pool_cap</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QSpinBox" name="pool_cap">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>3000</number>
+            </property>
+            <property name="suffix">
+             <string> profiles</string>
+            </property>
+            <property name="toolTip">
+             <string>Hard ceiling on how many profiles are measured and kept in the ranked list. When every running profile dies, replacements are taken from this list.</string>
+            </property>
+            <property name="value">
+             <number>3000</number>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="result_validity_l">
+            <property name="text">
+             <string>Trust results for</string>
+            </property>
+            <property name="buddy">
+             <cstring>result_validity</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QSpinBox" name="result_validity">
+            <property name="maximum">
+             <number>10080</number>
+            </property>
+            <property name="suffix">
+             <string> min</string>
+            </property>
+            <property name="specialValueText">
+             <string>always re-test</string>
+            </property>
+            <property name="toolTip">
+             <string>URL test results this recent are reused instead of being measured again — including tests you ran yourself on the group, so starting the selector right after one does not repeat the work. Older results are treated as if the profile had never been tested. Set to zero to always run a fresh test.</string>
+            </property>
+            <property name="value">
+             <number>1440</number>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QCheckBox" name="exclude_unavailable">
+            <property name="text">
+             <string>Skip failed profiles</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+            <property name="toolTip">
+             <string>Keeps servers whose last test failed out of the pool, as long as that result is still within the trust window. Turn off if your tests are unreliable and you would rather let the selector decide for itself.</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="health_box">
+         <property name="title">
+          <string>Health checks</string>
          </property>
-         <item row="0" column="0">
-          <widget class="QLabel" name="expected_l">
-           <property name="text">
-            <string>Keep ready</string>
-           </property>
-           <property name="buddy">
-            <cstring>expected</cstring>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QSpinBox" name="expected">
-           <property name="minimum">
-            <number>1</number>
-           </property>
-           <property name="maximum">
-            <number>500</number>
-           </property>
-           <property name="suffix">
-            <string> profiles</string>
-           </property>
-           <property name="toolTip">
-            <string>How many profiles are kept confirmed working at all times, so a failure can be covered instantly. These are also the ones traffic is shared between when balancing is on.</string>
-           </property>
-           <property name="value">
-            <number>5</number>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="active_size_l">
-           <property name="text">
-            <string>Check closely</string>
-           </property>
-           <property name="buddy">
-            <cstring>active_size</cstring>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QSpinBox" name="active_size">
-           <property name="minimum">
-            <number>1</number>
-           </property>
-           <property name="maximum">
-            <number>500</number>
-           </property>
-           <property name="suffix">
-            <string> profiles</string>
-           </property>
-           <property name="toolTip">
-            <string>The top-ranked profiles are re-checked every interval. The rest are still checked, just spread over the slower full sweep.</string>
-           </property>
-           <property name="value">
-            <number>10</number>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="interval_l">
-           <property name="text">
-            <string>Check interval</string>
-           </property>
-           <property name="buddy">
-            <cstring>interval</cstring>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QSpinBox" name="interval">
-           <property name="minimum">
-            <number>10</number>
-           </property>
-           <property name="maximum">
-            <number>3600</number>
-           </property>
-           <property name="suffix">
-            <string> s</string>
-           </property>
-           <property name="toolTip">
-            <string>How often the closely-checked profiles are measured again.</string>
-           </property>
-           <property name="value">
-            <number>60</number>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="bench_interval_l">
-           <property name="text">
-            <string>Full sweep every</string>
-           </property>
-           <property name="buddy">
-            <cstring>bench_interval</cstring>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QSpinBox" name="bench_interval">
-           <property name="minimum">
-            <number>10</number>
-           </property>
-           <property name="maximum">
-            <number>86400</number>
-           </property>
-           <property name="suffix">
-            <string> s</string>
-           </property>
-           <property name="toolTip">
-            <string>How long one pass over every running profile takes. Checks are spread evenly across it, so a large pool never causes a burst of traffic.</string>
-           </property>
-           <property name="value">
-            <number>600</number>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="watch_interval_l">
-           <property name="text">
-            <string>Watch profile in use</string>
-           </property>
-           <property name="buddy">
-            <cstring>watch_interval</cstring>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QSpinBox" name="watch_interval">
-           <property name="minimum">
-            <number>5</number>
-           </property>
-           <property name="maximum">
-            <number>3600</number>
-           </property>
-           <property name="suffix">
-            <string> s</string>
-           </property>
-           <property name="toolTip">
-            <string>How often the profile currently carrying your traffic is checked on its own. Keep this short: a server can stop working while still accepting connections, and nothing else would notice until the next full check.</string>
-           </property>
-           <property name="value">
-            <number>15</number>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="sampling_l">
-           <property name="text">
-            <string>Samples kept</string>
-           </property>
-           <property name="buddy">
-            <cstring>sampling</cstring>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="1">
-          <widget class="QSpinBox" name="sampling">
-           <property name="minimum">
-            <number>2</number>
-           </property>
-           <property name="maximum">
-            <number>60</number>
-           </property>
-           <property name="toolTip">
-            <string>Ranking uses the average and the jitter over this many recent checks, so a single bad result cannot demote a good server.</string>
-           </property>
-           <property name="value">
-            <number>10</number>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QGroupBox" name="switching_box">
-        <property name="title">
-         <string>Switching</string>
-        </property>
-        <layout class="QFormLayout" name="switching_layout">
-         <property name="fieldGrowthPolicy">
-          <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+         <layout class="QFormLayout" name="health_layout">
+          <property name="fieldGrowthPolicy">
+           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="expected_l">
+            <property name="text">
+             <string>Keep ready</string>
+            </property>
+            <property name="buddy">
+             <cstring>expected</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QSpinBox" name="expected">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>500</number>
+            </property>
+            <property name="suffix">
+             <string> profiles</string>
+            </property>
+            <property name="toolTip">
+             <string>How many profiles are kept confirmed working at all times, so a failure can be covered instantly. These are also the ones traffic is shared between when balancing is on.</string>
+            </property>
+            <property name="value">
+             <number>5</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="active_size_l">
+            <property name="text">
+             <string>Check closely</string>
+            </property>
+            <property name="buddy">
+             <cstring>active_size</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="active_size">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>500</number>
+            </property>
+            <property name="suffix">
+             <string> profiles</string>
+            </property>
+            <property name="toolTip">
+             <string>The top-ranked profiles are re-checked every interval. The rest are still checked, just spread over the slower full sweep.</string>
+            </property>
+            <property name="value">
+             <number>10</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="interval_l">
+            <property name="text">
+             <string>Check interval</string>
+            </property>
+            <property name="buddy">
+             <cstring>interval</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QSpinBox" name="interval">
+            <property name="minimum">
+             <number>10</number>
+            </property>
+            <property name="maximum">
+             <number>3600</number>
+            </property>
+            <property name="suffix">
+             <string> s</string>
+            </property>
+            <property name="toolTip">
+             <string>How often the closely-checked profiles are measured again.</string>
+            </property>
+            <property name="value">
+             <number>60</number>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="bench_interval_l">
+            <property name="text">
+             <string>Full sweep every</string>
+            </property>
+            <property name="buddy">
+             <cstring>bench_interval</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QSpinBox" name="bench_interval">
+            <property name="minimum">
+             <number>10</number>
+            </property>
+            <property name="maximum">
+             <number>86400</number>
+            </property>
+            <property name="suffix">
+             <string> s</string>
+            </property>
+            <property name="toolTip">
+             <string>How long one pass over every running profile takes. Checks are spread evenly across it, so a large pool never causes a burst of traffic.</string>
+            </property>
+            <property name="value">
+             <number>600</number>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="watch_interval_l">
+            <property name="text">
+             <string>Watch profile in use</string>
+            </property>
+            <property name="buddy">
+             <cstring>watch_interval</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QSpinBox" name="watch_interval">
+            <property name="minimum">
+             <number>5</number>
+            </property>
+            <property name="maximum">
+             <number>3600</number>
+            </property>
+            <property name="suffix">
+             <string> s</string>
+            </property>
+            <property name="toolTip">
+             <string>How often the profile currently carrying your traffic is checked on its own. Keep this short: a server can stop working while still accepting connections, and nothing else would notice until the next full check.</string>
+            </property>
+            <property name="value">
+             <number>15</number>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="sampling_l">
+            <property name="text">
+             <string>Samples kept</string>
+            </property>
+            <property name="buddy">
+             <cstring>sampling</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QSpinBox" name="sampling">
+            <property name="minimum">
+             <number>2</number>
+            </property>
+            <property name="maximum">
+             <number>60</number>
+            </property>
+            <property name="toolTip">
+             <string>Ranking uses the average and the jitter over this many recent checks, so a single bad result cannot demote a good server.</string>
+            </property>
+            <property name="value">
+             <number>10</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="switching_box">
+         <property name="title">
+          <string>Switching</string>
          </property>
-         <item row="0" column="0">
-          <widget class="QLabel" name="tolerance_l">
-           <property name="text">
-            <string>Switch tolerance</string>
-           </property>
-           <property name="buddy">
-            <cstring>tolerance</cstring>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QSpinBox" name="tolerance">
-           <property name="maximum">
-            <number>10000</number>
-           </property>
-           <property name="suffix">
-            <string> ms</string>
-           </property>
-           <property name="toolTip">
-            <string>Another profile must be at least this much faster before the selector moves to it. Higher values mean fewer switches.</string>
-           </property>
-           <property name="value">
-            <number>100</number>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="max_rtt_l">
-           <property name="text">
-            <string>Maximum latency</string>
-           </property>
-           <property name="buddy">
-            <cstring>max_rtt</cstring>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QSpinBox" name="max_rtt">
-           <property name="maximum">
-            <number>60000</number>
-           </property>
-           <property name="suffix">
-            <string> ms</string>
-           </property>
-           <property name="specialValueText">
-            <string>no limit</string>
-           </property>
-           <property name="toolTip">
-            <string>Profiles slower than this are never selected, even if nothing better is available.</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="dial_retries_l">
-           <property name="text">
-            <string>Failover attempts</string>
-           </property>
-           <property name="buddy">
-            <cstring>dial_retries</cstring>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QSpinBox" name="dial_retries">
-           <property name="maximum">
-            <number>5</number>
-           </property>
-           <property name="toolTip">
-            <string>When the chosen profile fails to connect, how many others to try immediately before the app sees an error.</string>
-           </property>
-           <property name="value">
-            <number>2</number>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QCheckBox" name="interrupt_on_switch">
-           <property name="text">
-            <string>Drop connections on switch</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-           <property name="toolTip">
-            <string>Applies when the selector switches because a profile got worse or failed. On: everything moves to the new profile at once. Off: current downloads finish on the old one. Balance rotations never drop connections either way.</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QGroupBox" name="balance_box">
-        <property name="title">
-         <string>Load balancing</string>
-        </property>
-        <layout class="QFormLayout" name="balance_layout">
-         <property name="fieldGrowthPolicy">
-          <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+         <layout class="QFormLayout" name="switching_layout">
+          <property name="fieldGrowthPolicy">
+           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="tolerance_l">
+            <property name="text">
+             <string>Switch tolerance</string>
+            </property>
+            <property name="buddy">
+             <cstring>tolerance</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QSpinBox" name="tolerance">
+            <property name="maximum">
+             <number>10000</number>
+            </property>
+            <property name="suffix">
+             <string> ms</string>
+            </property>
+            <property name="toolTip">
+             <string>Another profile must be at least this much faster before the selector moves to it. Higher values mean fewer switches.</string>
+            </property>
+            <property name="value">
+             <number>100</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="max_rtt_l">
+            <property name="text">
+             <string>Maximum latency</string>
+            </property>
+            <property name="buddy">
+             <cstring>max_rtt</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="max_rtt">
+            <property name="maximum">
+             <number>60000</number>
+            </property>
+            <property name="suffix">
+             <string> ms</string>
+            </property>
+            <property name="specialValueText">
+             <string>no limit</string>
+            </property>
+            <property name="toolTip">
+             <string>Profiles slower than this are never selected, even if nothing better is available.</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="dial_retries_l">
+            <property name="text">
+             <string>Failover attempts</string>
+            </property>
+            <property name="buddy">
+             <cstring>dial_retries</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QSpinBox" name="dial_retries">
+            <property name="maximum">
+             <number>5</number>
+            </property>
+            <property name="toolTip">
+             <string>When the chosen profile fails to connect, how many others to try immediately before the app sees an error.</string>
+            </property>
+            <property name="value">
+             <number>2</number>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QCheckBox" name="interrupt_on_switch">
+            <property name="text">
+             <string>Drop connections on switch</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+            <property name="toolTip">
+             <string>Applies when the selector switches because a profile got worse or failed. On: everything moves to the new profile at once. Off: current downloads finish on the old one. Balance rotations never drop connections either way.</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="balance_box">
+         <property name="title">
+          <string>Load balancing</string>
          </property>
-         <item row="0" column="0">
-          <widget class="QLabel" name="balance_mode_l">
-           <property name="text">
-            <string>Mode</string>
-           </property>
-           <property name="buddy">
-            <cstring>balance_mode</cstring>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QComboBox" name="balance_mode">
-           <property name="toolTip">
-            <string>How traffic is spread over the ready profiles.</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="balance_interval_l">
-           <property name="text">
-            <string>Rotate every</string>
-           </property>
-           <property name="buddy">
-            <cstring>balance_interval</cstring>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QSpinBox" name="balance_interval">
-           <property name="minimum">
-            <number>5</number>
-           </property>
-           <property name="maximum">
-            <number>3600</number>
-           </property>
-           <property name="suffix">
-            <string> s</string>
-           </property>
-           <property name="toolTip">
-            <string>How long the selector stays on one profile before moving to the next ready one.</string>
-           </property>
-           <property name="value">
-            <number>30</number>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0" colspan="2">
-          <widget class="QLabel" name="balance_hint">
-           <property name="text">
-            <string/>
-           </property>
-           <property name="wordWrap">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="2" column="0" colspan="2">
-       <widget class="QGroupBox" name="endpoints_box">
-        <property name="title">
-         <string>Test endpoints</string>
-        </property>
-        <layout class="QFormLayout" name="endpoints_layout">
-         <property name="fieldGrowthPolicy">
-          <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+         <layout class="QFormLayout" name="balance_layout">
+          <property name="fieldGrowthPolicy">
+           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="balance_mode_l">
+            <property name="text">
+             <string>Mode</string>
+            </property>
+            <property name="buddy">
+             <cstring>balance_mode</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="balance_mode">
+            <property name="toolTip">
+             <string>How traffic is spread over the ready profiles.</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="balance_interval_l">
+            <property name="text">
+             <string>Rotate every</string>
+            </property>
+            <property name="buddy">
+             <cstring>balance_interval</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="balance_interval">
+            <property name="minimum">
+             <number>5</number>
+            </property>
+            <property name="maximum">
+             <number>3600</number>
+            </property>
+            <property name="suffix">
+             <string> s</string>
+            </property>
+            <property name="toolTip">
+             <string>How long the selector stays on one profile before moving to the next ready one.</string>
+            </property>
+            <property name="value">
+             <number>30</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <widget class="QLabel" name="balance_hint">
+            <property name="text">
+             <string/>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="endpoints_box">
+         <property name="title">
+          <string>Test endpoints</string>
          </property>
-         <item row="0" column="0">
-          <widget class="QLabel" name="test_url_l">
-           <property name="text">
-            <string>Test URL</string>
-           </property>
-           <property name="buddy">
-            <cstring>test_url</cstring>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="test_url">
-           <property name="placeholderText">
-            <string>empty = use the global latency test URL</string>
-           </property>
-           <property name="toolTip">
-            <string>Fetched through each profile to measure it.</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="connectivity_url_l">
-           <property name="text">
-            <string>Connectivity URL</string>
-           </property>
-           <property name="buddy">
-            <cstring>connectivity_url</cstring>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="connectivity_url">
-           <property name="placeholderText">
-            <string>optional — inherits the Direct Test URL</string>
-           </property>
-           <property name="toolTip">
-            <string>Fetched WITHOUT the proxy to tell a dead internet connection apart from dead servers, and to notice the moment it comes back. Leave empty to inherit the Direct Test URL from Basic Settings, and empty there too to rely on the operating system's network state. A URL that turns out to be blocked can only delay a resume by a few minutes; it can never keep the selector paused.</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-     </layout>
+         <layout class="QFormLayout" name="endpoints_layout">
+          <property name="fieldGrowthPolicy">
+           <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="test_url_l">
+            <property name="text">
+             <string>Test URL</string>
+            </property>
+            <property name="buddy">
+             <cstring>test_url</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="test_url">
+            <property name="placeholderText">
+             <string>empty = use the global latency test URL</string>
+            </property>
+            <property name="toolTip">
+             <string>Fetched through each profile to measure it.</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="connectivity_url_l">
+            <property name="text">
+             <string>Connectivity URL</string>
+            </property>
+            <property name="buddy">
+             <cstring>connectivity_url</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="connectivity_url">
+            <property name="placeholderText">
+             <string>optional — inherits the Direct Test URL</string>
+            </property>
+            <property name="toolTip">
+             <string>Fetched WITHOUT the proxy to tell a dead internet connection apart from dead servers, and to notice the moment it comes back. Leave empty to inherit the Direct Test URL from Basic Settings, and empty there too to rely on the operating system's network state. A URL that turns out to be blocked can only delay a resume by a few minutes; it can never keep the selector paused.</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
    <item>

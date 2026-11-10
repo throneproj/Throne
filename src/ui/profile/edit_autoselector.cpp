@@ -14,6 +14,7 @@
 #include <QGuiApplication>
 #include <QListWidget>
 #include <QScreen>
+#include <QScrollBar>
 #include <QSet>
 
 #include <algorithm>
@@ -30,9 +31,6 @@ EditAutoSelector::EditAutoSelector(QWidget *parent) : QWidget(parent), ui(new Ui
         ui->advanced_toggle->setText(on ? tr("Advanced ▴") : tr("Advanced…"));
         resizeDialogToContent();
     });
-
-    ui->advanced_layout->setColumnStretch(0, 1);
-    ui->advanced_layout->setColumnStretch(1, 1);
 
     mirrorTooltipsToLabels();
 
@@ -78,12 +76,30 @@ void EditAutoSelector::resizeDialogToContent() {
     if (layout() != nullptr) layout()->invalidate();
     updateGeometry();
 
-    runOnThread([dialog] {
+    runOnThread([this, dialog] {
+        // QScrollArea::sizeHint() caps at 36 font heights, and the nested form layouts stay inert until activated.
+        for (auto *nested : ui->advanced_content->findChildren<QLayout *>()) nested->activate();
+        ui->advanced_area->setMinimumWidth(ui->advanced_content->sizeHint().width() + 2 * ui->advanced_area->frameWidth() +
+                                           ui->advanced_area->verticalScrollBar()->sizeHint().width());
         if (auto *dialogLayout = dialog->layout()) dialogLayout->activate();
+
+        const auto *screen = dialog->screen() != nullptr ? dialog->screen() : QGuiApplication::primaryScreen();
+        if (screen == nullptr) return;
+        const auto available = screen->availableGeometry();
+        // Title bar and borders; zero until shown.
+        const auto frame = dialog->frameGeometry().size() - dialog->size();
         // adjustSize() would clamp to 2/3 of the screen, so bound it here instead.
-        const auto available = QGuiApplication::primaryScreen()->availableGeometry().size();
-        dialog->resize(dialog->sizeHint().boundedTo(available));
-    }, dialog);
+        dialog->resize(dialog->sizeHint().boundedTo(available.size() - frame));
+        if (!dialog->isVisible()) return;
+
+        // Growing keeps the top-left corner, which can still push the buttons below the screen edge.
+        const auto outer = dialog->size() + frame;
+        const int x = std::clamp(dialog->x(), available.left(),
+                                 std::max(available.left(), available.x() + available.width() - outer.width()));
+        const int y = std::clamp(dialog->y(), available.top(),
+                                 std::max(available.top(), available.y() + available.height() - outer.height()));
+        if (QPoint(x, y) != dialog->pos()) dialog->move(x, y);
+    }, this);
 }
 
 void EditAutoSelector::mirrorTooltipsToLabels() const {
