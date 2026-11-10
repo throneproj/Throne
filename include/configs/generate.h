@@ -6,6 +6,7 @@
 
 #include <optional>
 
+#include "include/configs/RouteRuleOrigin.h"
 #include "include/database/entities/Profile.h"
 
 namespace Configs
@@ -63,6 +64,8 @@ namespace Configs
         int routeId = -1;
         // The Xray sidecar's outbound resolution, read under the build's routing profile; empty without Xray.
         QString xrayDnsStrategy;
+        // One per route.rules entry; empty for a custom full config.
+        QList<RouteRuleOrigin> routeRuleOrigins;
     };
 
     class BuildTestConfigResult {
@@ -150,6 +153,15 @@ namespace Configs
 
     // routeId overrides the routing profile, which otherwise follows ent's group (RouteIdFor).
     std::shared_ptr<BuildConfigResult> BuildSingBoxConfig(const std::shared_ptr<Profile> &ent, std::optional<int> routeId = std::nullopt);
+
+    struct RuleTestBuild {
+        QString error;
+        std::shared_ptr<BuildConfigResult> build;
+        int profileId = -1;
+    };
+
+    // UI thread. Offline and consumes no OTP code; built from preferredProfileId when it can build routes, else from another profile.
+    RuleTestBuild BuildRuleTestConfig(int routeId, int preferredProfileId);
 
     // coreUnreachable is set when a false came from a failed core call rather than from the config.
     bool IsValid(const std::shared_ptr<Profile> &ent, bool *coreUnreachable = nullptr);

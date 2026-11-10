@@ -252,6 +252,7 @@ namespace Engine {
             m_stats->setOutboundNames(result->outboundNames);
             Configs::SetRunningProfiles(result->involvedProfiles);
             Configs::SetRunningRoute(result->routeId);
+            Configs::SetRunningRouteRules({result->routeRuleOrigins, result->outboundNames, result->vpnEndpointProfiles});
             setRunning(ent, !result->tunIPv4CIDR.isEmpty());
             if (Configs::dataManager->settingsRepo->spmode_system_proxy) applySystemProxy(true);
 

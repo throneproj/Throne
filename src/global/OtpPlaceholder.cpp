@@ -4,9 +4,17 @@
 #include "include/database/OtpProfilesRepo.h"
 
 namespace Configs {
+    namespace {
+        thread_local int otpSuppressionDepth = 0;
+    }
+
+    ScopedOtpSuppression::ScopedOtpSuppression() { otpSuppressionDepth++; }
+
+    ScopedOtpSuppression::~ScopedOtpSuppression() { otpSuppressionDepth--; }
+
     QString ResolveOtpCode(int otpProfileId)
     {
-        if (otpProfileId < 0 || dataManager == nullptr || dataManager->otpProfilesRepo == nullptr) return {};
+        if (otpSuppressionDepth > 0 || otpProfileId < 0 || dataManager == nullptr || dataManager->otpProfilesRepo == nullptr) return {};
         auto profile = dataManager->otpProfilesRepo->GetOtpProfile(otpProfileId);
         if (profile == nullptr || !profile->Validate().isEmpty()) return {};
         // HOTP has no time window, so every config build consumes one counter step.

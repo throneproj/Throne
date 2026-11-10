@@ -13,6 +13,7 @@ namespace Configs {
     namespace {
         QMutex runningProfilesMu;
         QSet<int> runningProfiles;
+        RunningRouteRules runningRouteRules;
         std::atomic<int> runningRoute{-1};
         thread_local int buildRoute = -1;
     }
@@ -31,6 +32,7 @@ namespace Configs {
     {
         QMutexLocker lk(&runningProfilesMu);
         runningProfiles.clear();
+        runningRouteRules = {};
         runningRoute = -1;
     }
 
@@ -49,6 +51,18 @@ namespace Configs {
     int RunningRouteId()
     {
         return runningRoute;
+    }
+
+    void SetRunningRouteRules(const RunningRouteRules &rules)
+    {
+        QMutexLocker lk(&runningProfilesMu);
+        runningRouteRules = rules;
+    }
+
+    RunningRouteRules GetRunningRouteRules()
+    {
+        QMutexLocker lk(&runningProfilesMu);
+        return runningRouteRules;
     }
 
     int ResolveRouteId(int groupRouteId)

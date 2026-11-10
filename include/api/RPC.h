@@ -65,6 +65,8 @@ namespace API {
         // Ids already gone are a no-op; closedCount (optional) receives how many were actually live.
         QString CloseConnections(bool *rpcOK, const QStringList &ids, int *closedCount = nullptr) const;
 
+        [[nodiscard]] libcore::ListProcessesResponse ListProcesses(bool *rpcOK) const;
+
         QString UpdateRuleSets(bool *rpcOK, int *updatedCount = nullptr) const;
 
         QString CheckConfig(bool *rpcOK, const QString& config, bool isXray = false) const;
@@ -135,6 +137,9 @@ namespace API {
         // Through the core's dns-direct; config is the probe box it starts when the running profile has none.
         libcore::ResolveDomainsResponse ResolveDomains(bool *rpcOK, const QStringList &domains, const QString &config,
                                                        QString *coreError = nullptr) const;
+
+        // An empty request.config tests the running instance.
+        libcore::TestRouteResponse TestRoute(bool *rpcOK, const libcore::TestRouteRequest &request, QString *coreError = nullptr) const;
 
     private:
         class LocalSocketChannel;

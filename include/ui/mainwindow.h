@@ -68,6 +68,7 @@ class GlobalHotkeys;
 class DialogVpnAuth;
 class DialogScanner;
 class DialogIpLists;
+class DialogRuleTester;
 class CommandPalette;
 
 namespace Qv2ray::ui { class SyntaxHighlighter; }
@@ -517,6 +518,7 @@ private:
     QPointer<DialogVpnAuth> m_vpnAuthDialog;
     QPointer<DialogScanner> m_scannerDialog;
     QPointer<DialogIpLists> m_ipListsDialog;
+    QPointer<DialogRuleTester> m_ruleTesterDialog;
     QHash<int, QString> m_scannerNames;
     bool m_scannerPanelShown = false;
 

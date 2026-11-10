@@ -134,6 +134,16 @@ func (m *ruleMatchCache) reset(box *boxbox.Box, rules []option.Rule) {
 	m.entries, m.conns = make(map[adapter.Rule][]ruleEntry), make(map[uuid.UUID]string)
 }
 
+// routeRules gives the route rules box was built from, aligned with its router's; nil once another box replaced it.
+func (m *ruleMatchCache) routeRules(box *boxbox.Box) []option.Rule {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if box != m.box {
+		return nil
+	}
+	return m.rules
+}
+
 // begin opens one poll; matched must only be called between begin and end.
 func (m *ruleMatchCache) begin(box *boxbox.Box) {
 	m.mu.Lock()

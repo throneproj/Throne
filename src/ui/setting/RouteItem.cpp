@@ -5,6 +5,7 @@
 #include "include/database/GroupsRepo.h"
 #include "include/global/Configs.hpp"
 #include "include/configs/sub/RouteUpdater.hpp"
+#include "include/ui/setting/ProcessPicker.h"
 #include "include/ui/setting/RouteDnsEditor.h"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/utils/UiMode.h"
@@ -40,6 +41,7 @@
 #include <QMouseEvent>
 #include <QSignalBlocker>
 #include <QTabBar>
+#include <QTextCursor>
 #include <QTextEdit>
 #include <QTimer>
 
@@ -65,6 +67,35 @@ static QString routeItemFirstWarningLine(const QString& text, const std::functio
         return QCoreApplication::translate("Validation", "Line %1 (\"%2\"): %3").arg(QString::number(i + 1), routeItemElide(line), issue.message);
     }
     return {};
+}
+
+// Through the cursor, so the user can undo it.
+static void routeItemAppendLines(QPlainTextEdit* editor, const QStringList& lines) {
+    const QString text = editor->toPlainText();
+    QSet<QString> present;
+    for (const auto& line : text.split(u'\n')) present.insert(line.trimmed());
+    QStringList added;
+    for (const auto& line : lines) {
+        if (present.contains(line)) continue;
+        present.insert(line);
+        added << line;
+    }
+    if (added.isEmpty()) return;
+    QTextCursor cursor = editor->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    const bool needsBreak = !text.isEmpty() && !text.endsWith(u'\n');
+    cursor.insertText((needsBreak ? QStringLiteral("\n") : QString()) + added.join(u'\n'));
+    editor->setTextCursor(cursor);
+}
+
+static QPushButton* routeItemAddProgramButton(QWidget* parent, QBoxLayout* layout) {
+    auto* button = new QPushButton(RouteItem::tr("Add Program…"), parent);
+    button->setToolTip(RouteItem::tr("Pick a program that is running or has used the network, spelled exactly as the core matches it."));
+    auto* row = new QHBoxLayout;
+    row->addStretch(1);
+    row->addWidget(button);
+    layout->addLayout(row);
+    return button;
 }
 
 static void routeItemShowDisabled(QListWidgetItem* row, bool disabled) {
@@ -189,16 +220,16 @@ static std::shared_ptr<const RouteOutboundList> routeItemOutboundList() {
     return cached;
 }
 
-static QAbstractItemModel* routeItemSimpleRuleCompleterModel() {
-    static auto* model = [] {
-        QStringList ruleItems = {"domain:", "suffix:", "regex:", "keyword:", "ip:", "processName:", "processPath:", "ruleset:"};
-        ruleItems.reserve(ruleItems.size() + static_cast<qsizetype>(ruleSetList.size()));
+static const QStringList& routeItemSimpleRuleSetLines() {
+    static const QStringList lines = [] {
+        QStringList items;
+        items.reserve(static_cast<qsizetype>(ruleSetList.size()));
         for (const auto& item : ruleSetList) {
-            ruleItems.append("ruleset:" + QString::fromUtf8(item.first.data(), static_cast<qsizetype>(item.first.size())));
+            items.append("ruleset:" + QString::fromUtf8(item.first.data(), static_cast<qsizetype>(item.first.size())));
         }
-        return new QStringListModel(ruleItems, QCoreApplication::instance());
+        return items;
     }();
-    return model;
+    return lines;
 }
 
 static QAbstractItemModel* routeItemRuleSetCompleterModel() {
@@ -329,7 +360,13 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
 
     ui->def_out->setCurrentText(Configs::outboundIDToString(chain->defaultOutboundID));
 
-    auto* simpleRuleModel = routeItemSimpleRuleCompleterModel();
+    auto* simpleRuleModel = new ProcessCompletionModel({.head = {"domain:", "suffix:", "regex:", "keyword:", "ip:", "processName:", "processPath:", "ruleset:"},
+                                                        .names = true,
+                                                        .namePrefix = QStringLiteral("processName:"),
+                                                        .paths = true,
+                                                        .pathPrefix = QStringLiteral("processPath:"),
+                                                        .tail = routeItemSimpleRuleSetLines()},
+                                                       this);
     simpleDirect = new AutoCompleteTextEdit("", simpleRuleModel, this);
     simpleBlock = new AutoCompleteTextEdit("", simpleRuleModel, this);
     simpleProxy = new AutoCompleteTextEdit("", simpleRuleModel, this);
@@ -1047,8 +1084,17 @@ QWidget* RouteItem::makeAttributeEditorPage(const QString& attr) {
                 editor = le;
                 break;
             }
-            QPlainTextEdit* te = attr == QStringLiteral("rule_set") ? new AutoCompleteTextEdit("", routeItemRuleSetCompleterModel(), container)
-                                                                     : new QPlainTextEdit(container);
+            QPlainTextEdit* te = nullptr;
+            if (attr == QStringLiteral("rule_set")) {
+                te = new AutoCompleteTextEdit("", routeItemRuleSetCompleterModel(), container);
+            } else if (attr == QStringLiteral("process_name") || attr == QStringLiteral("process_path")) {
+                const bool names = attr == QStringLiteral("process_name");
+                auto* programs = new AutoCompleteTextEdit("", new ProcessCompletionModel({.names = names, .paths = !names}, container), container);
+                programs->setSpacesAllowed(true);
+                te = programs;
+            } else {
+                te = new QPlainTextEdit(container);
+            }
             te->setPlainText(rule->get_current_value_string(attr).join('\n'));
             te->setMinimumHeight(100);
             te->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -1059,6 +1105,17 @@ QWidget* RouteItem::makeAttributeEditorPage(const QString& attr) {
             });
             lay->addWidget(te, 1);
             editor = te;
+            if (attr == QStringLiteral("process_name") || attr == QStringLiteral("process_path") || attr == QStringLiteral("process_path_regex")) {
+                const auto match = attr == QStringLiteral("process_name") ? ProcessPicker::Match::Name
+                                   : attr == QStringLiteral("process_path") ? ProcessPicker::Match::Path
+                                                                            : ProcessPicker::Match::Folder;
+                auto* pick = routeItemAddProgramButton(container, lay);
+                pick->setEnabled(rule->canEditAttr(attr));
+                connect(pick, &QPushButton::clicked, this, [this, match, target = QPointer<QPlainTextEdit>(te)] {
+                    const QStringList values = ProcessPicker::Pick(this, {match});
+                    if (target) routeItemAppendLines(target, values);
+                });
+            }
             break;
         }
     }

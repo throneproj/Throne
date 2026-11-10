@@ -26,6 +26,7 @@
 #include "include/scanner/IpListUpdater.h"
 #include "include/scanner/ScanManager.h"
 #include "include/ui/stats/dialog_auto_selector.h"
+#include "include/ui/setting/dialog_rule_tester.h"
 #include "include/sys/KillSwitch.hpp"
 #include "include/sys/AutoRun.hpp"
 #include "include/sys/UrlScheme.hpp"
@@ -841,6 +842,19 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->menuRouting_Menu->addAction(actionWarp);
     ui->menuRouting_Menu->addMenu(profilesMenu);
     ui->menuRouting_Menu->addAction(ui->actionUpdate_Rule_Sets);
+    auto* actionRuleTester = new QAction(tr("Rule Tester…"), ui->menuRouting_Menu);
+    connect(actionRuleTester, &QAction::triggered, this, [this] {
+        const auto selected = get_now_selected_list();
+        const int preferred = selected.size() == 1 ? selected.first() : -1;
+        if (m_ruleTesterDialog == nullptr) {
+            m_ruleTesterDialog = new DialogRuleTester(connection(), preferred, this);
+            m_ruleTesterDialog->setAttribute(Qt::WA_DeleteOnClose);
+        } else {
+            m_ruleTesterDialog->setPreferredProfile(preferred);
+        }
+        ActivateWindow(m_ruleTesterDialog);
+    });
+    ui->menuRouting_Menu->addAction(actionRuleTester);
     ui->menuRouting_Menu->addSeparator();
 
     connect(ui->menuRouting_Menu, &QMenu::aboutToShow, this, [=,this]()

@@ -521,6 +521,21 @@ namespace API {
         }
     }
 
+    libcore::ListProcessesResponse Client::ListProcesses(bool *rpcOK) const
+    {
+        libcore::EmptyReq request;
+        libcore::ListProcessesResponse reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("ListProcesses", spb::pb::serialize<std::string>(request), resp);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return reply;
+        }
+        NOT_OK
+        return {};
+    }
+
     QString Client::UpdateRuleSets(bool *rpcOK, int *updatedCount) const
     {
         if (updatedCount != nullptr) *updatedCount = 0;
@@ -879,6 +894,24 @@ namespace API {
         // The core may start a probe box first, then runs 16 lookups at a time with 5 s each.
         const int timeoutMs = 30000 + static_cast<int>((domains.size() + 15) / 16) * 5000;
         auto status = channel->Call("ResolveDomains", spb::pb::serialize<std::string>(request), resp, timeoutMs);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return reply;
+        } else {
+            if (coreError && !resp.empty())
+                *coreError = QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
+            NOT_OK
+            return {};
+        }
+    }
+
+    libcore::TestRouteResponse Client::TestRoute(bool *rpcOK, const libcore::TestRouteRequest &request, QString *coreError) const
+    {
+        libcore::TestRouteResponse reply;
+        std::vector<uint8_t> resp;
+        // A stripped config may download its remote rule sets first.
+        auto status = channel->Call("TestRoute", spb::pb::serialize<std::string>(request), resp, 90000);
 
         if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
             *rpcOK = true;

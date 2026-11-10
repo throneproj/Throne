@@ -21,6 +21,7 @@
 
 
 #include "include/database/entities/Profile.h"
+#include "include/global/OtpPlaceholder.hpp"
 #include "include/global/RunningProfiles.hpp"
 #include "include/global/VpnCredentialOverride.hpp"
 #ifdef Q_OS_LINUX
@@ -260,17 +261,22 @@ namespace Configs {
         }
 
         // Twins must stay below the sniff rule, or UDP would reach them before it has a domain.
-        QJsonArray withL3BridgeTwins(const QJsonArray &rules) {
+        QJsonArray withL3BridgeTwins(const QJsonArray &rules, QList<RouteRuleOrigin> &origins) {
             QJsonArray res;
-            for (const auto &value : rules) {
-                const auto rule = value.toObject();
+            QList<RouteRuleOrigin> resOrigins;
+            const bool tracked = origins.size() == rules.size();
+            for (qsizetype i = 0; i < rules.size(); i++) {
+                const auto rule = rules[i].toObject();
                 const auto action = rule.value("action").toString();
                 if ((action.isEmpty() || action == "route") && !rule.contains("preferred_by") &&
                     rule.value("outbound").toString() == tags::direct) {
                     res.append(l3BridgeTwin(rule));
+                    if (tracked) resOrigins.append({RouteRuleOriginKind::L3Bridge, origins[i].profileRule, origins[i].name});
                 }
                 res.append(rule);
+                if (tracked) resOrigins.append(origins[i]);
             }
+            origins = tracked ? resOrigins : QList<RouteRuleOrigin>{};
             return res;
         }
 
@@ -2556,18 +2562,22 @@ namespace Configs {
                 }
                 rawRouteObj = RouteProfile::TranslateRawOutbounds(rawRouteObj, routeDeps.outboundMap);
                 if (routeChain->preventModifications) {
+                    auto rawRules = rawRouteObj.value("rules").toArray();
+                    QList<RouteRuleOrigin> origins;
+                    for (qsizetype i = 0; i < rawRules.size(); i++) origins.append({RouteRuleOriginKind::RawRule, static_cast<int>(i), {}});
                     // The raw JSON is verbatim, but endpoint tags are internal so the user cannot name them.
                     if (!ctx.vpnAuxTags.isEmpty()) {
-                        auto rawRules = rawRouteObj.value("rules").toArray();
                         for (const auto &auxTag : ctx.vpnAuxTags) {
                             rawRules.append(QJsonObject{
                                 {"preferred_by", QJsonArray{auxTag}},
                                 {"action", "route"},
                                 {"outbound", auxTag},
                             });
+                            origins.append({RouteRuleOriginKind::EndpointGate, -1, auxTag});
                         }
                         rawRouteObj["rules"] = rawRules;
                     }
+                    ctx.result->routeRuleOrigins = origins;
                     ctx.result->coreConfig["route"] = rawRouteObj;
                     return;
                 }
@@ -2609,9 +2619,19 @@ namespace Configs {
                 };
             }
 
+            QList<int> sourceIndexes;
             auto profileRules = routeChain->isRaw ? rawRouteObj.value("rules").toArray()
-                                                  : routeChain->get_route_rules(false, routeDeps.outboundMap);
-            if (ctx.l3Bridge) profileRules = withL3BridgeTwins(profileRules);
+                                                  : routeChain->get_route_rules(false, routeDeps.outboundMap, &sourceIndexes);
+            QList<RouteRuleOrigin> profileOrigins;
+            if (routeChain->isRaw) {
+                for (qsizetype i = 0; i < profileRules.size(); i++) profileOrigins.append({RouteRuleOriginKind::RawRule, static_cast<int>(i), {}});
+            } else if (sourceIndexes.size() == profileRules.size()) {
+                for (const int index : sourceIndexes) {
+                    if (index < 0) profileOrigins.append({RouteRuleOriginKind::AdBlock, -1, {}});
+                    else profileOrigins.append({RouteRuleOriginKind::ProfileRule, index, routeChain->Rules.at(index)->name});
+                }
+            }
+            if (ctx.l3Bridge) profileRules = withL3BridgeTwins(profileRules, profileOrigins);
 
             QJsonObject extraCoreDirect;
             if (!ctx.result->extraCoreData->path.isEmpty())
@@ -2692,23 +2712,32 @@ namespace Configs {
                 vpnFallthroughRules.append(QJsonObject{{"action", "reject"}});
             }
 
+            using Kind = RouteRuleOriginKind;
             QJsonArray routeRules;
-            for (const auto& r : bridgeRules) routeRules.append(r);
-            if (!extraCoreDirect.isEmpty()) routeRules.append(extraCoreDirect);
-            auto appendIfSet = [&routeRules](const QJsonObject& r) { if (!r.isEmpty()) routeRules.append(r); };
-            appendIfSet(injected.dnsSystem);
-            appendIfSet(injected.sniff);
-            appendIfSet(injected.resolve);
-            appendIfSet(injected.dnsHijack);
-            appendIfSet(injected.dnsInReject);
+            QList<RouteRuleOrigin> origins;
+            auto append = [&routeRules, &origins](const QJsonValue &r, Kind kind, const QString &name = {}) {
+                routeRules.append(r);
+                origins.append({kind, -1, name});
+            };
+            for (const auto& r : bridgeRules) append(r, Kind::XrayBridge);
+            if (!extraCoreDirect.isEmpty()) append(extraCoreDirect, Kind::ExtraCore);
+            auto appendIfSet = [&append](const QJsonObject& r, Kind kind) { if (!r.isEmpty()) append(r, kind); };
+            appendIfSet(injected.dnsSystem, Kind::SystemDns);
+            appendIfSet(injected.sniff, Kind::Sniff);
+            appendIfSet(injected.resolve, Kind::Resolve);
+            appendIfSet(injected.dnsHijack, Kind::DnsHijack);
+            appendIfSet(injected.dnsInReject, Kind::DnsInboundReject);
+            const bool originsKnown = profileOrigins.size() == profileRules.size();
             for (const auto& r : profileRules) routeRules.append(r);
-            for (const auto& r : vpnAuxRules) routeRules.append(r);
-            for (const auto& r : l3BridgeFinalRules) routeRules.append(r);
+            origins.append(profileOrigins);
+            for (const auto& r : vpnAuxRules) append(r, Kind::EndpointGate, r.toObject().value("outbound").toString());
+            for (const auto& r : l3BridgeFinalRules) append(r, Kind::L3Bridge);
             // final still names the tunnel, but nothing may reach it unmatched.
-            for (const auto& r : vpnFallthroughRules) routeRules.append(r);
+            for (const auto& r : vpnFallthroughRules) append(r, Kind::TunnelGate, finalTag);
             if (!routeChain->isRaw && defOut == blockID) {
-                routeRules.append(QJsonObject{{"action", "reject"}});
+                append(QJsonObject{{"action", "reject"}}, Kind::BlockFinal);
             }
+            if (originsKnown && origins.size() == routeRules.size()) ctx.result->routeRuleOrigins = origins;
 
             QJsonObject route = routeChain->isRaw ? rawRouteObj : QJsonObject{};
             route["rules"] = routeRules;
@@ -3181,6 +3210,43 @@ namespace Configs {
             ctx.result->xrayDnsStrategy = getXrayOutboundDomainStrategy();
 
         return ctx.result;
+    }
+
+    RuleTestBuild BuildRuleTestConfig(int routeId, int preferredProfileId) {
+        RuleTestBuild res;
+        if (!dataManager->routesRepo->HasRouteProfile(routeId)) {
+            res.error = QObject::tr("The routing profile no longer exists.");
+            return res;
+        }
+        auto canBuildRoutes = [](const std::shared_ptr<Profile> &ent) {
+            if (ent == nullptr || ent->outbound == nullptr || ent->type == "autoselector") return false;
+            if (ent->type != "custom") return true;
+            const auto custom = ent->Custom();
+            return custom != nullptr && custom->type != Custom::CustomFullConfig;
+        };
+
+        QList<int> candidates{preferredProfileId, dataManager->settingsRepo->remember_id};
+        auto ids = dataManager->profilesRepo->GetAllProfileIds();
+        std::sort(ids.begin(), ids.end());
+        candidates.append(ids);
+
+        const ScopedOfflineValidation offlineValidation;
+        const ScopedOtpSuppression otpSuppression;
+        constexpr int maxAttempts = 4;
+        int attempts = 0;
+        QSet<int> tried;
+        for (const int id : candidates) {
+            if (id < 0 || tried.contains(id)) continue;
+            tried.insert(id);
+            const auto ent = dataManager->profilesRepo->GetProfile(id);
+            if (!canBuildRoutes(ent)) continue;
+            auto build = BuildSingBoxConfig(ent, routeId);
+            if (build->error.isEmpty()) return {{}, build, id};
+            if (res.error.isEmpty()) res.error = build->error;
+            if (++attempts >= maxAttempts) break;
+        }
+        if (res.error.isEmpty()) res.error = QObject::tr("No profile can be used to build the routing configuration: add a proxy profile first.");
+        return res;
     }
 
     bool CanBeAuxEndpoint(const std::shared_ptr<Profile>& ent)

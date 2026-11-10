@@ -13,6 +13,7 @@ service LibcoreService {
   rpc QueryStats(EmptyReq) returns (QueryStatsResp);
   rpc QueryConnections(EmptyReq) returns (QueryConnectionsResp);
   rpc CloseConnections(CloseConnectionsRequest) returns (CloseConnectionsResponse);
+  rpc ListProcesses(EmptyReq) returns (ListProcessesResponse);
   //
   rpc IsPrivileged(EmptyReq) returns (IsPrivilegedResponse);
   //
@@ -49,6 +50,7 @@ service LibcoreService {
   rpc ScanCheckNetwork(ScanCheckNetworkRequest) returns (ScanCheckNetworkResponse);
   rpc ParseRuleSet(ParseRuleSetRequest) returns (ParseRuleSetResponse);
   rpc ResolveDomains(ResolveDomainsRequest) returns (ResolveDomainsResponse);
+  rpc TestRoute(TestRouteRequest) returns (TestRouteResponse);
 }
 
 message EmptyReq {}
@@ -246,6 +248,23 @@ message CloseConnectionsRequest {
 
 message CloseConnectionsResponse {
   optional int32 closed = 1 [default = 0];
+  optional string error = 2 [default = ""];
+}
+
+// A running program, spelled exactly as the router's process matcher sees it.
+message ProcessEntry {
+  optional uint32 pid = 1 [default = 0];
+  // What process_name compares against: the base name of path, or the OS's name for it when path is unreadable.
+  optional string name = 2 [default = ""];
+  // What process_path compares against; empty when the core could not read it.
+  optional string path = 3 [default = ""];
+  // Windows: the display name of a service hosted in a shared process (svchost). name and path are then the
+  // service's DLL, which the matcher compares too.
+  optional string service = 4 [default = ""];
+}
+
+message ListProcessesResponse {
+  repeated ProcessEntry processes = 1;
   optional string error = 2 [default = ""];
 }
 
@@ -695,4 +714,65 @@ message ResolvedDomain {
   optional string domain = 1 [default = ""];
   repeated string addresses = 2;
   optional string error = 3 [default = ""];
+}
+
+// Walks route.rules for one made-up connection the way the router would, dialing nothing.
+message TestRouteRequest {
+  // A process name ("chrome.exe") or a full executable path. A Windows service DLL is tested with the svchost.exe hosting it, as the searcher reports it.
+  optional string process = 1 [default = ""];
+  // With both domain and ip the connection goes to ip and domain is what a sniff rule finds, as under Tun.
+  optional string domain = 2 [default = ""];
+  optional string ip = 3 [default = ""];
+  optional int32 port = 4 [default = 443];
+  // "tcp" or "udp".
+  optional string network = 5 [default = "tcp"];
+  // What a sniff rule finds: "auto" guesses from network and port, "none" finds nothing, else a sniffer name (tls, http, quic, dns...).
+  optional string protocol = 6 [default = "auto"];
+  // Empty tests the running instance. Otherwise a full config that is started stripped for this test only:
+  // no inbounds, no DNS section, every outbound and endpoint a stub, and rules that need a live endpoint (preferred_by) skipped.
+  optional string config = 7 [default = ""];
+}
+
+message TestRouteStep {
+  // Index into the config's route.rules.
+  optional int32 index = 1 [default = -1];
+  // The rule's conditions as sing-box describes them.
+  optional string rule = 2 [default = ""];
+  // The action type: route, route-options, reject, hijack-dns, bypass, sniff or resolve.
+  optional string action = 3 [default = ""];
+  // The action as sing-box describes it, e.g. "route(proxy)".
+  optional string action_detail = 4 [default = ""];
+  // The values that made it match, like ConnectionMetaData.rule_item; empty for a rule without single entries.
+  optional string matched = 5 [default = ""];
+  // sniff: the protocol and domain it found, both empty when it found nothing.
+  optional string protocol = 6 [default = ""];
+  optional string sniffed_domain = 7 [default = ""];
+  // resolve: the addresses it got.
+  repeated string addresses = 8;
+  // The step failed: a lookup error, say.
+  optional string error = 9 [default = ""];
+  // Why a step did nothing, or what else it changed (an override); English, from the core.
+  optional string note = 10 [default = ""];
+}
+
+message TestRouteResponse {
+  optional string error = 1 [default = ""];
+  // Every rule that matched, in order.
+  repeated TestRouteStep steps = 2;
+  // No rule decided, so route.final applies.
+  optional bool is_final = 3 [default = false];
+  // route, reject, hijack-dns or bypass; "error" when a step failed the connection, which the last step's error explains.
+  optional string action = 4 [default = ""];
+  // The outbound tag for route, bypass and the final.
+  optional string outbound = 5 [default = ""];
+  // Each group the outbound leads through, followed by its current pick: [pick, pick of pick, ...].
+  repeated string outbound_chain = 6;
+  // Indexes of rules left out of a stripped config, which therefore never matched.
+  repeated int32 skipped = 7;
+  // The destination after sniffing, resolving and overrides.
+  optional string destination = 8 [default = ""];
+  optional string domain = 9 [default = ""];
+  repeated string addresses = 10;
+  // The inbound tag the connection was taken to arrive on.
+  optional string inbound = 11 [default = ""];
 }

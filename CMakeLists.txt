@@ -180,6 +180,8 @@ set(PROJECT_SOURCES
         src/configs/sub/ImportReport.cpp
         include/configs/ParseDiagnostics.h
         src/configs/ParseDiagnostics.cpp
+        include/configs/ProcessRules.h
+        src/configs/ProcessRules.cpp
         include/configs/sub/SubscriptionReconcile.hpp
         src/configs/sub/SubscriptionReconcile.cpp
         include/configs/sub/RouteUpdater.hpp
@@ -519,6 +521,10 @@ set(PROJECT_SOURCES
         include/ui/setting/RawRouteItem.h
         src/ui/setting/RouteDnsEditor.cpp
         include/ui/setting/RouteDnsEditor.h
+        src/ui/setting/ProcessPicker.cpp
+        include/ui/setting/ProcessPicker.h
+        src/ui/setting/dialog_rule_tester.cpp
+        include/ui/setting/dialog_rule_tester.h
 
         res/Throne.qrc
         ${QV2RAY_RC}

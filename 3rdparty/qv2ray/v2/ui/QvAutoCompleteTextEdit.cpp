@@ -96,6 +96,19 @@ namespace Qv2ray::ui::widgets {
         return tc.selectedText();
     }
 
+    // A complete value stays selected over the first match, so Enter keeps what was typed.
+    void AutoCompleteTextEdit::selectCompletion(const QString &line) {
+        const auto *model = c->completionModel();
+        int best = 0;
+        for (int row = 0, rows = model->rowCount(); row < rows; ++row) {
+            if (model->index(row, 0).data(c->completionRole()).toString() == line) {
+                best = row;
+                break;
+            }
+        }
+        c->popup()->setCurrentIndex(model->index(best, 0));
+    }
+
     QString AutoCompleteTextEdit::wordUnderCursor() const {
         QTextCursor tc = textCursor();
         tc.select(QTextCursor::WordUnderCursor);
@@ -111,7 +124,7 @@ namespace Qv2ray::ui::widgets {
             c->popup()->setCurrentIndex(c->completionModel()->index(0, 0));
         } else if (auto word = lineUnderCursor(); word != c->completionPrefix()) {
             c->setCompletionPrefix(word);
-            c->popup()->setCurrentIndex(c->completionModel()->index(0, 0));
+            selectCompletion(word);
         }
         QRect cr = cursorRect();
         cr.setWidth(c->popup()->sizeHintForColumn(0) + c->popup()->verticalScrollBar()->sizeHint().width());
@@ -129,7 +142,7 @@ namespace Qv2ray::ui::widgets {
         const bool isTab = (e->modifiers().testFlag(Qt::NoModifier) && e->key() == Qt::Key_Tab);
         const bool isOtherSpace = e->text() == "　";
         //
-        if (isSpace && !lineUnderCursor().startsWith("processName:") && !lineUnderCursor().startsWith("processPath:") || isTab || isOtherSpace) {
+        if ((isSpace && !spacesAllowed && !lineUnderCursor().startsWith("processName:") && !lineUnderCursor().startsWith("processPath:")) || isTab || isOtherSpace) {
             QToolTip::showText(this->mapToGlobal(QPoint(0, 0)), tr("You can not input space characters here."), this, QRect{}, 2000);
             return;
         }
@@ -175,7 +188,7 @@ namespace Qv2ray::ui::widgets {
 
         if (auto word = lineUnderCursor(); word != c->completionPrefix()) {
             c->setCompletionPrefix(word);
-            c->popup()->setCurrentIndex(c->completionModel()->index(0, 0));
+            selectCompletion(word);
         }
 
         QRect cr = cursorRect();

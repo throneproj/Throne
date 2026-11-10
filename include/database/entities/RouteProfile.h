@@ -100,7 +100,8 @@ namespace Configs {
         // A rule with a key the desktop cannot store is dropped into *warnings; an array left with no rule fails.
         static QList<std::shared_ptr<RouteRule>> parseJsonArray(const QJsonArray& arr, QString* parseError, QString* warnings = nullptr);
 
-        QJsonArray get_route_rules(bool forView = false, std::map<int, QString> outboundMap = {});
+        // sourceIndexes gets each returned rule's index in Rules, -1 for the injected adblock rule.
+        QJsonArray get_route_rules(bool forView = false, std::map<int, QString> outboundMap = {}, QList<int>* sourceIndexes = nullptr);
 
         // Endpoints travel as whole configs with credentials cleared; one that cannot is skipped into *warnings.
         QJsonObject ToShareObject(QString* warnings = nullptr);

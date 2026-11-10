@@ -3,6 +3,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include "include/database/entities/RouteRule.h"
+#include "include/configs/ProcessRules.h"
 
 
 #include "include/database/ProfilesRepo.h"
@@ -877,14 +878,20 @@ namespace Configs {
                 severity = Severity::Warning;
             }
         } else if (attr == "process_name") {
+            severity = Severity::Warning;
             if (value.contains(u'/') || value.contains(u'\\')) {
                 message = QCoreApplication::translate("Validation", "Write only the program's file name, such as chrome.exe; a name with a path never matches. Match a full path with a process path condition instead.");
-                severity = Severity::Warning;
+            } else if (const QString known = ProcessRules::KnownSpelling(attr, value); !known.isEmpty()) {
+                message = QCoreApplication::translate("Validation", "The core reports this program as %1 and compares names letter for letter, case included, so this never matches.").arg(known);
             }
         } else if (attr == "process_path") {
+            severity = Severity::Warning;
             if (!routeRuleAbsolutePath(value)) {
                 message = QCoreApplication::translate("Validation", "Write the full path, such as C:\\Program Files\\App\\app.exe or /usr/bin/app.");
-                severity = Severity::Warning;
+            } else if (value.size() > 2 && value[1] == u':' && value.contains(u'/')) {
+                message = QCoreApplication::translate("Validation", "Windows reports program paths with \\, so a path written with / never matches.");
+            } else if (const QString known = ProcessRules::KnownSpelling(attr, value); !known.isEmpty()) {
+                message = QCoreApplication::translate("Validation", "The core reports this path as %1 and compares it letter for letter, case included, so this never matches.").arg(known);
             }
         } else if (attr == "rule_set") {
             if (!routeRuleKnownRuleSet(value) && !routeRuleRuleSetUrl(value))
