@@ -265,9 +265,10 @@ namespace Engine::SettingsRegistryImpl {
                               QStringLiteral("must be empty (127.0.0.1) or a host name or IP address, without a scheme, port or spaces"));
             list << portOrOffKey(QStringLiteral("singbox_api_port"), &Settings::core_box_api_port, Restart::Profile);
 
-            const auto dnsAddress = [](const QString &text) { return Configs::ParseDnsAddress(text, nullptr); };
-            const auto dnsRule = QStringLiteral("must be a DNS address: local, dhcp://auto, dhcp://<interface>, udp|tcp|tls|quic://host[:port], "
-                                                "https|h3://host[:port][/path] or host[:port]");
+            const auto dnsAddress = [](const QString &text) { return Configs::DnsAddressListProblem(text).isEmpty(); };
+            const auto dnsRule = QStringLiteral("must be one or more comma-separated DNS addresses, each local, dhcp://auto, dhcp://<interface>, "
+                                                "udp|tcp|tls|quic://host[:port], https|h3://host[:port][/path] or host[:port]; "
+                                                "several are queried together and the first answer wins");
             list << stringKey(QStringLiteral("remote_dns"), &Settings::remote_dns, Restart::Profile, dnsAddress, dnsRule);
             list << stringKey(QStringLiteral("direct_dns"), &Settings::direct_dns, Restart::Profile, dnsAddress, dnsRule);
 

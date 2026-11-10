@@ -252,11 +252,9 @@ namespace Configs {
     }
 
     QString RouteDns::Problem() const {
-        DnsAddress parsed;
-        QString why;
-        if (!ParseDnsAddress(remote_dns, &parsed, &why))
+        if (const auto why = DnsAddressListProblem(remote_dns); !why.isEmpty())
             return QCoreApplication::translate("Validation", "Remote DNS \"%1\": %2").arg(remote_dns, why);
-        if (!ParseDnsAddress(direct_dns, &parsed, &why))
+        if (const auto why = DnsAddressListProblem(direct_dns); !why.isEmpty())
             return QCoreApplication::translate("Validation", "Direct DNS \"%1\": %2").arg(direct_dns, why);
         if (dns_final_out != "remote" && dns_final_out != "direct")
             return QCoreApplication::translate("Validation", "The default DNS server must be remote or direct, not \"%1\".").arg(dns_final_out);

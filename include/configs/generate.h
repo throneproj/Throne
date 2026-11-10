@@ -140,6 +140,14 @@ namespace Configs
     // "local...", "dhcp://auto|<iface>", "udp|tcp|tls|quic://host[:port]", "https|h3://host[:port][/path]" or a bare "host[:port]" (udp).
     bool ParseDnsAddress(const QString &text, DnsAddress *out, QString *why = nullptr);
 
+    // A DNS setting holds one or more comma-separated addresses; several are raced and the first definitive answer wins.
+    QStringList SplitDnsAddresses(const QString &text);
+
+    // Empty when every address parses; otherwise why, naming the bad address when there are several.
+    QString DnsAddressListProblem(const QString &text);
+
+    QString NormalizeDnsAddressList(const QString &text);
+
     // routeId overrides the routing profile, which otherwise follows ent's group (RouteIdFor).
     std::shared_ptr<BuildConfigResult> BuildSingBoxConfig(const std::shared_ptr<Profile> &ent, std::optional<int> routeId = std::nullopt);
 

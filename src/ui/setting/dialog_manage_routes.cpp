@@ -75,12 +75,6 @@ namespace {
         return DialogManageRoutes::tr("It uses its own DNS servers: remote %1, direct %2.").arg(dns.remote_dns, dns.direct_dns);
     }
 
-    QString manageRoutesDnsProblem(const QString &text) {
-        Configs::DnsAddress parsed;
-        QString why;
-        return Configs::ParseDnsAddress(text, &parsed, &why) ? QString() : why;
-    }
-
     // dns-local resolves the other servers' names, so it cannot depend on one itself.
     QString manageRoutesLocalDnsProblem(const QString &text) {
         if (text.isEmpty()) return {};
@@ -596,8 +590,8 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     UiMode::Apply(this);
     UiMode::Fold(this);
 
-    form->bind(ui->remote_dns, manageRoutesDnsProblem).label(ui->label_9->text());
-    form->bind(ui->direct_dns, manageRoutesDnsProblem).label(ui->label_8->text());
+    form->bind(ui->remote_dns, Configs::DnsAddressListProblem).label(ui->label_9->text());
+    form->bind(ui->direct_dns, Configs::DnsAddressListProblem).label(ui->label_8->text());
     form->bind(ui->local_override, manageRoutesLocalDnsProblem).label(ui->label_2->text());
     // buildDNSSection would emit an unparsable object as "dns": {}, silently dropping every DNS setting.
     form->addRule({ui->use_dns_object}, [this] {
@@ -752,8 +746,8 @@ void DialogManageRoutes::accept() {
     Configs::dataManager->settingsRepo->default_domain_strategy = ui->default_domain_strategy->currentText();
     Configs::dataManager->settingsRepo->use_dns_object = ui->use_dns_object->isChecked();
     Configs::dataManager->settingsRepo->dns_object = dns_object_text;
-    const auto remoteDns = ui->remote_dns->currentText().trimmed();
-    const auto directDns = ui->direct_dns->currentText().trimmed();
+    const auto remoteDns = Configs::NormalizeDnsAddressList(ui->remote_dns->currentText());
+    const auto directDns = Configs::NormalizeDnsAddressList(ui->direct_dns->currentText());
     if (remoteDns != Configs::dataManager->settingsRepo->remote_dns)
         DnsServerHistory::Remember(Configs::dataManager->settingsRepo->remote_dns_history, DnsServerHistory::RemotePresets(), remoteDns);
     if (directDns != Configs::dataManager->settingsRepo->direct_dns)

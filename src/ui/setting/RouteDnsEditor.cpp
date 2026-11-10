@@ -6,6 +6,7 @@
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QCoreApplication>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -16,7 +17,8 @@ namespace DnsServerHistory {
     constexpr int maxEntries = 8;
 
     const QStringList& RemotePresets() {
-        static const QStringList presets = {"https://8.8.8.8/dns-query", "tls://8.8.8.8", "tls://1.1.1.1", "8.8.8.8", "1.1.1.1"};
+        static const QStringList presets = {"https://8.8.8.8/dns-query", "tls://8.8.8.8", "tls://1.1.1.1", "8.8.8.8", "1.1.1.1",
+                                            "https://1.1.1.1/dns-query, https://8.8.8.8/dns-query"};
         return presets;
     }
 
@@ -33,6 +35,8 @@ namespace DnsServerHistory {
         combo->clear();
         combo->addItems(items);
         combo->setCurrentText(current);
+        combo->setToolTip(QCoreApplication::translate("RouteDnsEditor",
+            "Separate several servers with commas: they are queried together and the first answer wins."));
     }
 
     bool Remember(QStringList& history, const QStringList& presets, const QString& server) {
@@ -44,12 +48,6 @@ namespace DnsServerHistory {
         while (history.size() > maxEntries) history.removeLast();
         return true;
     }
-}
-
-static QString routeDnsProblem(const QString& text) {
-    Configs::DnsAddress parsed;
-    QString why;
-    return Configs::ParseDnsAddress(text, &parsed, &why) ? QString() : why;
 }
 
 RouteDnsEditor::RouteDnsEditor(const Configs::RouteProfile& profile, QWidget* parent) : QWidget(parent) {
@@ -153,8 +151,8 @@ RouteDnsEditor::RouteDnsEditor(const Configs::RouteProfile& profile, QWidget* pa
 }
 
 void RouteDnsEditor::bindTo(Validation::Form* form) {
-    form->bind(remoteDns, routeDnsProblem).label(tr("Remote DNS"));
-    form->bind(directDns, routeDnsProblem).label(tr("Direct DNS"));
+    form->bind(remoteDns, Configs::DnsAddressListProblem).label(tr("Remote DNS"));
+    form->bind(directDns, Configs::DnsAddressListProblem).label(tr("Direct DNS"));
     connect(customRadio, &QRadioButton::toggled, form, [form] { form->refresh(); });
 }
 
@@ -189,9 +187,9 @@ void RouteDnsEditor::showDns(const Configs::RouteDns& dns) const {
 
 Configs::RouteDns RouteDnsEditor::shownDns() const {
     Configs::RouteDns dns;
-    dns.remote_dns = remoteDns->currentText().trimmed();
+    dns.remote_dns = Configs::NormalizeDnsAddressList(remoteDns->currentText());
     dns.remote_dns_disable_ipv6 = remoteDisableIPv6->isChecked();
-    dns.direct_dns = directDns->currentText().trimmed();
+    dns.direct_dns = Configs::NormalizeDnsAddressList(directDns->currentText());
     dns.direct_dns_disable_ipv6 = directDisableIPv6->isChecked();
     dns.dns_final_out = finalOut->currentText();
     dns.enable_dns_routing = dnsRouting->isChecked();

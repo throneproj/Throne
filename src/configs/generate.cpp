@@ -428,24 +428,64 @@ namespace Configs {
         }
 
         // The guard answers empty instead of falling through, which would hand the query to another server.
+        // A role tag (dns-remote, dns-direct) -> its servers, lead first; the lead keeps the plain tag that resolvers pin.
+        struct DnsRace {
+            QHash<QString, QStringList> members;
+            int groups = 0;
+        };
+
+        QStringList dnsRoleTags(const QString &lead, qsizetype count) {
+            QStringList res{lead};
+            for (int i = 1; i < count; ++i) res << hopTag(lead, i);
+            return res;
+        }
+
         void appendDnsRoute(QJsonArray &rules, const QJsonObject &conditions, const QString &server,
-                            bool disableIPv6) {
+                            bool disableIPv6, DnsRace &race) {
             if (disableIPv6) {
                 auto guard = conditions;
                 guard["query_type"] = QJsonArray{"AAAA"};
                 guard["action"] = "predefined";
                 rules += guard;
             }
-            auto route = conditions;
-            route["action"] = "route";
-            route["server"] = server;
-            rules += route;
+            const auto members = race.members.value(server);
+            if (members.size() < 2) {
+                auto route = conditions;
+                route["action"] = "route";
+                route["server"] = server;
+                rules += route;
+                return;
+            }
+            // Evaluates precede the race rules: an armed race rule would hold back each later non-speculative evaluate.
+            const auto prefix = QString("race%1-").arg(race.groups++);
+            for (qsizetype i = 0; i < members.size(); ++i) {
+                auto evaluate = conditions;
+                evaluate["action"] = "evaluate";
+                evaluate["server"] = members[i];
+                evaluate["tag"] = prefix + QString::number(i);
+                rules += evaluate;
+            }
+            for (const auto *rcode : {"NOERROR", "NXDOMAIN"}) {
+                for (qsizetype i = 0; i < members.size(); ++i) {
+                    rules += QJsonObject{
+                        {"match_response", prefix + QString::number(i)},
+                        {"response_rcode", rcode},
+                        {"action", "respond"},
+                        {"race", true},
+                    };
+                }
+            }
+            // Held until every race rule missed; without it the query would fall through to a later rule's server.
+            auto fail = conditions;
+            fail["action"] = "predefined";
+            fail["rcode"] = "SERVFAIL";
+            rules += fail;
         }
 
         void appendDnsRoutingRules(QJsonArray &rules, const DomainSelectors &selectors,
-                                   const QString &server, bool disableIPv6) {
+                                   const QString &server, bool disableIPv6, DnsRace &race) {
             if (!selectors.ruleSets.isEmpty()) {
-                appendDnsRoute(rules, QJsonObject{{"rule_set", selectors.ruleSets}}, server, disableIPv6);
+                appendDnsRoute(rules, QJsonObject{{"rule_set", selectors.ruleSets}}, server, disableIPv6, race);
             }
             if (selectors.hasInlineConditions()) {
                 appendDnsRoute(rules, QJsonObject{
@@ -453,7 +493,7 @@ namespace Configs {
                     {"domain_suffix", selectors.suffixes},
                     {"domain_keyword", selectors.keywords},
                     {"domain_regex", selectors.regexes},
-                }, server, disableIPv6);
+                }, server, disableIPv6, race);
             }
         }
 
@@ -1140,39 +1180,35 @@ namespace Configs {
             bool independentCache = false;
             QJsonArray servers;
             QJsonArray rules;
-            // Merged in front of `rules` at the end; the tailscale block below prepends.
+            // Merged in front of `rules` at the end.
             QJsonArray headRules;
+            DnsRace race;
+            // An empty setting still reaches buildDnsObj, which reports it.
+            const auto roleAddresses = [](const QString &text) {
+                auto res = SplitDnsAddresses(text);
+                return res.isEmpty() ? QStringList{text} : res;
+            };
+            const auto directAddresses = roleAddresses(ctx.dns.direct_dns);
+            race.members[tags::dnsDirect] = dnsRoleTags(tags::dnsDirect, directAddresses.size());
             if (!ctx.forTest) {
-                auto remoteDnsObj = buildDnsObj(ctx, ctx.dns.remote_dns);
-                // overwrite remote dns to TCP based since Xray is shit
-                if (ctx.proxyUsesXray && ( remoteDnsObj.value("type").toString() == "udp" || remoteDnsObj.value("type").toString() == "quic" )) {
-                    remoteDnsObj = buildDnsObj(ctx, upgradeUdpDnsToDoH(remoteDnsObj.value("server").toString()));
+                const auto remoteAddresses = roleAddresses(ctx.dns.remote_dns);
+                const auto remoteTags = dnsRoleTags(tags::dnsRemote, remoteAddresses.size());
+                race.members[tags::dnsRemote] = remoteTags;
+                for (qsizetype i = 0; i < remoteAddresses.size(); ++i) {
+                    auto remoteDnsObj = buildDnsObj(ctx, remoteAddresses[i]);
+                    // overwrite remote dns to TCP based since Xray is shit
+                    if (ctx.proxyUsesXray && ( remoteDnsObj.value("type").toString() == "udp" || remoteDnsObj.value("type").toString() == "quic" )) {
+                        remoteDnsObj = buildDnsObj(ctx, upgradeUdpDnsToDoH(remoteDnsObj.value("server").toString()));
+                    }
+                    remoteDnsObj["tag"] = remoteTags[i];
+                    remoteDnsObj["domain_resolver"] = tags::dnsLocal;
+                    remoteDnsObj["detour"] = tags::proxy;
+                    servers += remoteDnsObj;
                 }
-                remoteDnsObj["tag"] = tags::dnsRemote;
-                remoteDnsObj["domain_resolver"] = tags::dnsLocal;
-                remoteDnsObj["detour"] = tags::proxy;
-                servers += remoteDnsObj;
 
                 if (isTailscale)
                 {
-                    auto tailscale = ctx.ent->Tailscale();
-                    if (tailscale != nullptr)
-                    {
-                        servers += QJsonObject{
-                            {"type", "tailscale"},
-                            {"tag", tags::dnsTailscale},
-                            {"endpoint", tags::proxy},
-                            {"accept_default_resolvers", tailscale->globalDNS},
-                        };
-
-                        rules.prepend(QJsonObject{
-                            {"domain_suffix", QJsonArray{"ts.net", "tailscale.net"}},
-                            {"action", "route"},
-                            {"server", tags::dnsTailscale},
-                        });
-                    }
-
-                    rules.prepend(QJsonObject{
+                    appendDnsRoute(rules, QJsonObject{
                         {"domain", QJsonArray{
                             "controlplane.tailscale.com",
                             "login.tailscale.com",
@@ -1183,16 +1219,34 @@ namespace Configs {
                             "tailscale.net",
                             "tailscale.io"
                         }},
-                        {"action", "route"},
-                        {"server", tags::dnsDirect},
-                    });
+                    }, tags::dnsDirect, false, race);
+
+                    auto tailscale = ctx.ent->Tailscale();
+                    if (tailscale != nullptr)
+                    {
+                        servers += QJsonObject{
+                            {"type", "tailscale"},
+                            {"tag", tags::dnsTailscale},
+                            {"endpoint", tags::proxy},
+                            {"accept_default_resolvers", tailscale->globalDNS},
+                        };
+
+                        rules += QJsonObject{
+                            {"domain_suffix", QJsonArray{"ts.net", "tailscale.net"}},
+                            {"action", "route"},
+                            {"server", tags::dnsTailscale},
+                        };
+                    }
                 }
             }
 
-            auto directDnsObj = buildDnsObj(ctx, ctx.dns.direct_dns);
-            directDnsObj["tag"] = tags::dnsDirect;
-            directDnsObj["domain_resolver"] = tags::dnsLocal;
-            servers.append(directDnsObj);
+            const auto directTags = race.members.value(tags::dnsDirect);
+            for (qsizetype i = 0; i < directAddresses.size(); ++i) {
+                auto directDnsObj = buildDnsObj(ctx, directAddresses[i]);
+                directDnsObj["tag"] = directTags[i];
+                directDnsObj["domain_resolver"] = tags::dnsLocal;
+                servers.append(directDnsObj);
+            }
 
             if (!ctx.forTest && settings.dns_predefined_enable) {
                 QList<PredefinedDNSEntry> predefined;
@@ -1240,20 +1294,16 @@ namespace Configs {
             }
 
             if (!ctx.forTest && !ctx.echQueryNames.isEmpty()) {
-                headRules += QJsonObject{
+                appendDnsRoute(headRules, QJsonObject{
                     {"domain", QJsonArray::fromStringList(ctx.echQueryNames)},
                     {"query_type", QJsonArray{"HTTPS"}},
-                    {"action", "route"},
-                    {"server", tags::dnsDirect},
-                };
+                }, tags::dnsDirect, false, race);
             }
 
             if (!ctx.forTest && !ctx.dnsTunnelDomains.isEmpty()) {
-                headRules += QJsonObject{
+                appendDnsRoute(headRules, QJsonObject{
                     {"domain_suffix", QJsonArray::fromStringList(ctx.dnsTunnelDomains)},
-                    {"action", "route"},
-                    {"server", tags::dnsDirect},
-                };
+                }, tags::dnsDirect, false, race);
             }
 
             // Strict tunnel DNS takes every query that would otherwise go to dns-remote.
@@ -1293,7 +1343,7 @@ namespace Configs {
             if (!ctx.forTest && !ctx.result->extraCoreData->path.isEmpty())
             {
                 appendDnsRoute(rules, QJsonObject{{"process_path", extraCoreProcessPaths(ctx.result->extraCoreData->path)}},
-                               tags::dnsDirect, ctx.dns.direct_dns_disable_ipv6);
+                               tags::dnsDirect, ctx.dns.direct_dns_disable_ipv6, race);
             }
 
             if (ctx.dns.fake_dns) {
@@ -1318,18 +1368,18 @@ namespace Configs {
             }
 
             if (dns.needDirectDnsRules) {
-                appendDnsRoutingRules(rules, dns.direct, tags::dnsDirect, ctx.dns.direct_dns_disable_ipv6);
+                appendDnsRoutingRules(rules, dns.direct, tags::dnsDirect, ctx.dns.direct_dns_disable_ipv6, race);
             }
 
             // A test box builds no dns-remote server at all, so its fall-through goes out direct.
             const bool useDirectFinalDNS = ctx.forTest || ctx.dns.dns_final_out == tags::direct;
 
             if (!ctx.forTest && dns.needProxyDnsRules && useDirectFinalDNS) {
-                appendDnsRoutingRules(rules, dns.proxy, remoteDnsTag, ctx.dns.remote_dns_disable_ipv6);
+                appendDnsRoutingRules(rules, dns.proxy, remoteDnsTag, ctx.dns.remote_dns_disable_ipv6, race);
             }
 
             appendDnsRoute(rules, QJsonObject{}, useDirectFinalDNS ? QString(tags::dnsDirect) : remoteDnsTag,
-                           useDirectFinalDNS ? ctx.dns.direct_dns_disable_ipv6 : ctx.dns.remote_dns_disable_ipv6);
+                           useDirectFinalDNS ? ctx.dns.direct_dns_disable_ipv6 : ctx.dns.remote_dns_disable_ipv6, race);
 
             auto dnsLocalAddress = settings.core_box_underlying_dns.isEmpty() ? "local" : settings.core_box_underlying_dns;
             auto dnsLocalObj = buildDnsObj(ctx, dnsLocalAddress);
@@ -3024,6 +3074,28 @@ namespace Configs {
         res.server = toAceHost(host);
         if (out != nullptr) *out = res;
         return true;
+    }
+
+    QStringList SplitDnsAddresses(const QString &text) {
+        auto res = Validation::Items(text, Validation::Split::Comma);
+        res.removeDuplicates();
+        return res;
+    }
+
+    QString DnsAddressListProblem(const QString &text) {
+        const auto addresses = SplitDnsAddresses(text);
+        if (addresses.isEmpty()) return QCoreApplication::translate("Validation", "The DNS address is empty.");
+        for (qsizetype i = 0; i < addresses.size(); ++i) {
+            QString why;
+            if (ParseDnsAddress(addresses[i], nullptr, &why)) continue;
+            if (addresses.size() == 1) return why;
+            return QCoreApplication::translate("Validation", "Server %1 (\"%2\"): %3").arg(QString::number(i + 1), addresses[i], why);
+        }
+        return {};
+    }
+
+    QString NormalizeDnsAddressList(const QString &text) {
+        return SplitDnsAddresses(text).join(", ");
     }
 
     std::shared_ptr<BuildConfigResult> BuildSingBoxConfig(const std::shared_ptr<Profile>& ent, std::optional<int> routeId) {
