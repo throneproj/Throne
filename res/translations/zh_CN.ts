@@ -1846,6 +1846,80 @@ Throne will restart to complete the restore.</source>
         <source>%1, so profiles use their own addresses.</source>
         <translation>%1，所以配置档使用它们自身的地址。</translation>
     </message>
+    <message>
+        <source>Filter</source>
+        <translation>过滤</translation>
+    </message>
+    <message>
+        <source>Keeps only the profiles whose name matches this regular expression, case-insensitively, each time the subscription is fetched. Empty keeps every profile.</source>
+        <translation>每次获取订阅时，仅保留名称匹配此正则表达式的配置档 (不区分大小写)。留空则保留所有配置档。</translation>
+    </message>
+    <message>
+        <source>Keep only matching</source>
+        <translation>仅保留匹配项</translation>
+    </message>
+    <message>
+        <source>e.g. HK|Hong Kong</source>
+        <translation>例如 HK|香港</translation>
+    </message>
+    <message>
+        <source>Removes the profiles whose name matches this regular expression, case-insensitively, each time the subscription is fetched. It wins over Keep only matching.</source>
+        <translation>每次获取订阅时，移除名称匹配此正则表达式的配置档 (不区分大小写)。优先于「仅保留匹配项」。</translation>
+    </message>
+    <message>
+        <source>Remove matching</source>
+        <translation>移除匹配项</translation>
+    </message>
+    <message>
+        <source>e.g. expire|traffic</source>
+        <translation>例如 到期|流量</translation>
+    </message>
+    <message>
+        <source>Removes every profile of the ticked protocols each time the subscription is fetched.</source>
+        <translation>每次获取订阅时，移除所勾选协议的全部配置档。</translation>
+    </message>
+    <message>
+        <source>Remove types</source>
+        <translation>移除类型</translation>
+    </message>
+    <message>
+        <source>Exit countries by two-letter code: HK,JP keeps only those, !RU removes one. After each update, profiles whose exit country is unknown get an IP test, and the ones outside these countries are removed. Profiles whose test fails are kept. To filter by a country written in profile names, use Keep only matching.</source>
+        <translation>以两字母代码指定出口国家: HK,JP 仅保留这些国家，!RU 移除一个国家。每次更新后，出口国家未知的配置档会进行 IP 测试，不在这些国家中的配置档将被移除。测试失败的配置档会被保留。若要按配置档名称中写明的国家过滤，请使用「仅保留匹配项」。</translation>
+    </message>
+    <message>
+        <source>Countries</source>
+        <translation>国家</translation>
+    </message>
+    <message>
+        <source>e.g. HK,JP or !RU</source>
+        <translation>例如 HK,JP 或 !RU</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation>无</translation>
+    </message>
+    <message>
+        <source>Keeps %1.</source>
+        <translation>保留 %1。</translation>
+    </message>
+    <message>
+        <source>Removes %1.</source>
+        <translation>移除 %1。</translation>
+    </message>
+    <message numerus="yes">
+        <source>After each update, profiles whose exit country is unknown are IP-tested, so the next update can test up to %n profile(s). On a large group this takes a while.</source>
+        <translation>
+            <numerusform>每次更新后，出口国家未知的配置档会进行 IP 测试，因此下次更新最多可能测试 %n 个配置档。分组较大时需要一段时间。</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>After each update, profiles whose exit country is unknown are IP-tested. On a large subscription this takes a while.</source>
+        <translation>每次更新后，出口国家未知的配置档会进行 IP 测试。订阅较大时需要一段时间。</translation>
+    </message>
+    <message>
+        <source>Custom (JSON)</source>
+        <translation>自定义 (JSON)</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditIpList</name>
@@ -12461,6 +12535,38 @@ How to update?</source>
         <source>Auto selector paused — no network connection, or the chain hops in front of it are down (%1 profiles held)</source>
         <translation>自动选择器已暂停 — 没有网络连接，或其前方的链跳点已断开(保留了 %1 个配置档)</translation>
     </message>
+    <message>
+        <source>Filters of %1: %2</source>
+        <translation>%1 的过滤器: %2</translation>
+    </message>
+    <message>
+        <source>The filters of %1 remove all %2 profiles of the subscription, so the group was left unchanged.</source>
+        <translation>%1 的过滤器会移除订阅的全部 %2 个配置档，因此分组保持不变。</translation>
+    </message>
+    <message>
+        <source>Filtered out %1 profiles.</source>
+        <translation>过滤掉了 %1 个配置档。</translation>
+    </message>
+    <message>
+        <source>The country rules accept none of the %1 tested profiles, so none were removed.</source>
+        <translation>国家规则不接受已测试的 %1 个配置档中的任何一个，因此没有移除任何配置档。</translation>
+    </message>
+    <message>
+        <source>Removed %1 profiles outside the country rules:</source>
+        <translation>移除了 %1 个不符合国家规则的配置档:</translation>
+    </message>
+    <message>
+        <source>Testing the exit country of %1 profiles of %2 for its country rules. On a large group this takes a while.</source>
+        <translation>正在为 %2 的国家规则测试 %1 个配置档的出口国家。分组较大时需要一段时间。</translation>
+    </message>
+    <message>
+        <source>%1 profiles without a test result were kept; the next update tests them again.</source>
+        <translation>%1 个没有测试结果的配置档被保留；下次更新时会再次测试。</translation>
+    </message>
+    <message>
+        <source>After the country test of %1:</source>
+        <translation>在 %1 进行国家测试后:</translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -16148,6 +16254,34 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Routing rules cannot use the chain &quot;%1&quot;: it holds an auto selector, so it can only be started. Pick another outbound.</source>
         <translation>路由规则不能使用链 “%1”: 它包含自动选择器，因此只能被启动。请选择其他出站。</translation>
+    </message>
+    <message>
+        <source>Not a valid regular expression: %1 (at character %2).</source>
+        <translation>不是有效的正则表达式: %1 (位于第 %2 个字符)。</translation>
+    </message>
+    <message>
+        <source>Not a two-letter country code: %1. Use codes such as HK,JP to keep only those countries, or !RU to remove one.</source>
+        <translation>不是两字母国家代码: %1。使用 HK,JP 之类的代码仅保留这些国家，或使用 !RU 移除一个国家。</translation>
+    </message>
+    <message>
+        <source>%1 is not a valid regular expression, so it was ignored: %2</source>
+        <translation>「%1」不是有效的正则表达式，已被忽略: %2</translation>
+    </message>
+    <message>
+        <source>Keep only matching</source>
+        <translation>仅保留匹配项</translation>
+    </message>
+    <message>
+        <source>Remove matching</source>
+        <translation>移除匹配项</translation>
+    </message>
+    <message>
+        <source>Unknown protocol in Remove types, ignored: %1</source>
+        <translation>「移除类型」中的未知协议，已被忽略: %1</translation>
+    </message>
+    <message>
+        <source>Not a two-letter country code, ignored: %1</source>
+        <translation>不是两字母国家代码，已被忽略: %1</translation>
     </message>
 </context>
 <context>

@@ -6,6 +6,7 @@
 #include <memory>
 #include <mutex>
 #include <map>
+#include <QByteArray>
 #include <QHash>
 #include <QJsonObject>
 #include <QList>
@@ -60,6 +61,12 @@ namespace Configs {
         
         // No-op unless id >= 0; false for a deleted id, which is not written back.
         bool Save(const std::shared_ptr<Group>& group);
+
+        // Exit countries from earlier IP tests, keyed by profile content digest: the country filter's memory of
+        // profiles it already removed, so a refresh does not import and test them again.
+        QHash<QByteArray, QString> CountryVerdicts(int gid) const;
+
+        void SetCountryVerdicts(int gid, const QHash<QByteArray, QString>& verdicts) const;
 
         // Any thread; moves with every write, view-only ones such as column widths included.
         quint64 Revision() const { return revision.load(); }

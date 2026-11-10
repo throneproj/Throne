@@ -64,6 +64,9 @@ namespace Engine {
 
         bool runIpTests(const QList<int>& profileIDs, const std::function<void()>& onFinished = {}, bool interactive = true);
 
+        // queueUrlTests for the IP test.
+        void queueIpTests(const QList<int>& profileIDs, const std::function<void()>& onFinished, bool interactive = true);
+
         bool runSpeedTests(const QList<int>& profileIDs, bool testCurrent = false,
                            const std::function<void()>& onFinished = {}, bool interactive = true);
 

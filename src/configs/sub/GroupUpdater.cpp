@@ -3,6 +3,7 @@
 #include "include/configs/generate.h"
 #include "include/configs/sub/ImportReport.hpp"
 #include "include/configs/sub/RouteUpdater.hpp"
+#include "include/configs/sub/SubscriptionFilter.hpp"
 #include "include/configs/sub/SubscriptionParser.hpp"
 #include "include/configs/sub/SubscriptionReconcile.hpp"
 #include "include/configs/sub/SubscriptionScan.hpp"
@@ -159,11 +160,12 @@ namespace Subscription {
         public:
             ImportSink(int gid, ContentIndex *index) : gid(gid), index(index) {}
 
-            void add(std::shared_ptr<Configs::Profile> ent) {
+            // contentKey: ent's contentKeyOf when the caller already has it.
+            void add(std::shared_ptr<Configs::Profile> ent, QByteArray contentKey = {}) {
                 NewEntry entry;
                 entry.display = ent->outbound->DisplayTypeAndName();
                 if (index != nullptr) {
-                    entry.keys.content = contentKeyOf(*ent);
+                    entry.keys.content = contentKey.isEmpty() ? contentKeyOf(*ent) : std::move(contentKey);
                     index->noteArrival(entry.keys.content);
                     entry.contentKnown = index->knows(entry.keys.content);
                     if (const auto oldId = index->claim(entry.keys.content)) {
@@ -231,14 +233,31 @@ namespace Subscription {
             return parseSink;
         }
 
+        // Whether the group's filters let ent in; a country an earlier IP test found for the same content (key) counts as known and is stamped on it.
+        bool admitted(const ImportFilter &filter, const QHash<QByteArray, QString> &verdicts, Configs::Profile &ent, const QByteArray &key) {
+            const auto country = key.isEmpty() ? QString() : verdicts.value(key);
+            if (filter.judge(ent, country) != ImportFilter::Verdict::Keep) return false;
+            if (!country.isEmpty()) ent.test_country = country;
+            return true;
+        }
+
+        struct ProbeCount {
+            int found = 0;
+            int kept = 0;
+        };
+
         // A dry run, as the real parse inserts as it goes. Its diagnostics only matter when it finds nothing: otherwise the real parse repeats them.
-        bool yieldsProfile(const QByteArray &body, ImportReport &diagnostics) {
-            bool found = false;
+        ProbeCount probeDocument(const QByteArray &body, ImportReport &diagnostics, const ImportFilter &filter,
+                                 const QHash<QByteArray, QString> &verdicts) {
+            ProbeCount count;
             ParseSink probe;
-            probe.profile = [&found](const std::shared_ptr<Configs::Profile> &) { found = true; };
+            probe.profile = [&](const std::shared_ptr<Configs::Profile> &ent) {
+                ++count.found;
+                if (!filter.active() || admitted(filter, verdicts, *ent, verdicts.isEmpty() ? QByteArray() : contentKeyOf(*ent))) ++count.kept;
+            };
             probe.report = [&diagnostics](const ParseReport &item) { diagnostics.add(item); };
             ParseDocument(body, probe);
-            return found;
+            return count;
         }
 
         void logImportReport(const ImportReport &report) {
@@ -493,6 +512,61 @@ namespace Subscription {
             }
             return deleted;
         }
+
+        struct CountryOutcome {
+            bool ok = true;
+            // Members with no known exit country; never removed, as a failed test is no verdict.
+            QList<int> untested;
+            QList<int> deleted;
+            QList<int> kept;
+            std::shared_ptr<Configs::Profile> stopped;
+        };
+
+        // Removes the members the country rules refuse, unless some still await their test and this is not the final pass.
+        // A refused verdict is remembered only once its profile goes, so a refresh drops that content before it is imported.
+        CountryOutcome applyCountryRules(const std::shared_ptr<Configs::Group> &group, const CountryRules &rules,
+                                         QHash<QByteArray, QString> &verdicts, bool final, QString &report) {
+            CountryOutcome outcome;
+            QList<int> refused;
+            QStringList refusedNames;
+            QList<std::pair<QByteArray, QString>> refusedVerdicts;
+            int accepted = 0;
+            forEachProfile(withoutSelectors(group->Profiles()), [&](const std::shared_ptr<Configs::Profile> &ent) {
+                const auto country = ent->test_country.trimmed().toUpper();
+                if (country.isEmpty()) {
+                    outcome.untested << ent->id;
+                    return;
+                }
+                if (rules.accepts(country)) {
+                    ++accepted;
+                    verdicts.insert(contentKeyOf(*ent), country);
+                    return;
+                }
+                refused << ent->id;
+                refusedNames << ent->outbound->DisplayTypeAndName();
+                refusedVerdicts.append({contentKeyOf(*ent), country});
+            });
+
+            const bool decide = !refused.isEmpty() && (final || outcome.untested.isEmpty());
+            // Like a fetch the filters would empty: rules that accept none of the tested profiles are likelier wrong than meant.
+            if (decide && accepted == 0) {
+                report += "\n" + QObject::tr("The country rules accept none of the %1 tested profiles, so none were removed.").arg(refused.size());
+            } else if (decide) {
+                const auto deleted = deleteProfiles(refused);
+                if (!deleted.ok) {
+                    reportDeleteFailure();
+                    outcome.ok = false;
+                }
+                outcome.deleted = deleted.deleted;
+                outcome.kept = deleted.kept;
+                outcome.stopped = deleted.stopped;
+                for (const auto &[key, country] : refusedVerdicts) verdicts.insert(key, country);
+                report += "\n" + QObject::tr("Removed %1 profiles outside the country rules:").arg(refusedNames.size()) + "\n" + notice(refusedNames, "[-]", "removed");
+                if (!deleted.kept.isEmpty()) report += "\n" + QObject::tr("The running profile was kept.");
+            }
+            Configs::dataManager->groupsRepo->SetCountryVerdicts(group->id, verdicts);
+            return outcome;
+        }
     } // namespace
 
     AutoUpdatePlan ResolveAutoUpdate(const Configs::Group &group) {
@@ -544,6 +618,11 @@ namespace Subscription {
     void GroupUpdater::SetUrlTester(UrlTester tester) {
         QMutexLocker locker(&mutex);
         urlTester = std::move(tester);
+    }
+
+    void GroupUpdater::SetCountryTester(UrlTester tester) {
+        QMutexLocker locker(&mutex);
+        countryTester = std::move(tester);
     }
 
     void GroupUpdater::RefreshGroup(int gid, const Finish &finish, bool showDiff) {
@@ -1012,9 +1091,15 @@ namespace Subscription {
             return;
         }
 
+        const ImportFilter filter(options);
+        for (const auto &warning : filter.warnings()) MW_show_log(QObject::tr("Filters of %1: %2").arg(group->name, warning));
+        const bool countryRules = filter.countries().active();
+        auto verdicts = countryRules ? groupsRepo->CountryVerdicts(gid) : QHash<QByteArray, QString>{};
+
         // Not a single profile is far likelier a broken or blocked response than an emptied subscription: touch nothing.
         ImportReport probeReport;
-        if (!yieldsProfile(body, probeReport)) {
+        const auto probe = probeDocument(body, probeReport, filter, verdicts);
+        if (probe.found == 0) {
             if (looksLikeWebPage(body)) {
                 probeReport.addFatal(QObject::tr("The server returned a web page instead of a subscription. If it is a CAPTCHA or a bot check, try another TLS version, HTTP version or User Agent in the group's Advanced settings."));
             }
@@ -1031,6 +1116,24 @@ namespace Subscription {
             result.failure = UpdateOutcome::Failure::Empty;
             result.error = probeReport.fatalReasons().join('\n');
             result.report = std::move(probeReport);
+            return;
+        }
+        // Likewise when the filters leave nothing: a provider renaming its servers must not empty the group.
+        if (probe.kept == 0) {
+            if (subInfo.valid) {
+                group->sub_info = subInfo;
+                group->info.clear();
+                groupsRepo->Save(group);
+            }
+            ImportReport filteredReport;
+            filteredReport.addFatal(QObject::tr("The filters of %1 remove all %2 profiles of the subscription, so the group was left unchanged.")
+                                        .arg(group->name)
+                                        .arg(probe.found));
+            logImportReport(filteredReport);
+            if (surface != Surface::Log) ShowImportReport(reportTitle(surface, group->name), filteredReport);
+            result.failure = UpdateOutcome::Failure::Empty;
+            result.error = QStringLiteral("The filters remove every profile of the subscription, so the group was left unchanged.");
+            result.report = std::move(filteredReport);
             return;
         }
 
@@ -1067,8 +1170,9 @@ namespace Subscription {
             auto doomed = members();
             if (options.keep_working) {
                 QSet<int> working;
-                forEachProfile(doomed, [&working](const std::shared_ptr<Configs::Profile> &ent) {
-                    if (ent->IsWorking()) working.insert(ent->id);
+                forEachProfile(doomed, [&](const std::shared_ptr<Configs::Profile> &ent) {
+                    // The filters win over keep_working.
+                    if (ent->IsWorking() && filter.judge(*ent, ent->test_country) == ImportFilter::Verdict::Keep) working.insert(ent->id);
                 });
                 doomed.removeIf([&working](int id) { return working.contains(id); });
             }
@@ -1091,16 +1195,37 @@ namespace Subscription {
         if (!cleared) {
             forEachProfile(members(), [&](const std::shared_ptr<Configs::Profile> &ent) {
                 old.append({ent->id, {contentKeyOf(*ent), identityKeyOf(*ent)}, ent->outbound->DisplayTypeAndName()});
-                if (options.keep_working && ent->IsWorking()) working.insert(ent->id);
+                if (options.keep_working && ent->IsWorking() && filter.judge(*ent, ent->test_country) == ImportFilter::Verdict::Keep) {
+                    working.insert(ent->id);
+                }
             });
         }
         ContentIndex index(old);
         ImportSink sink(gid, cleared ? nullptr : &index);
         ImportReport report;
 
+        // A filtered-out profile never reaches the database; an old one that no longer passes goes stale below.
+        int filteredOut = 0;
+        QSet<QByteArray> arrived;
+        auto parseSink = sinkFor(sink, report);
+        if (filter.active()) {
+            const bool keyed = countryRules || !cleared;
+            parseSink.profile = [&](std::shared_ptr<Configs::Profile> ent) {
+                auto key = keyed ? contentKeyOf(*ent) : QByteArray();
+                if (countryRules) arrived.insert(key);
+                if (!admitted(filter, verdicts, *ent, key)) {
+                    ++filteredOut;
+                    return;
+                }
+                sink.add(std::move(ent), std::move(key));
+            };
+        }
+
         MW_show_log(">>>>>>>> " + QObject::tr("Processing subscription data..."));
-        ParseDocument(std::move(body), sinkFor(sink, report));
+        ParseDocument(std::move(body), parseSink);
         sink.flush();
+        // Verdicts for content the subscription no longer sends would only grow the table.
+        if (countryRules) verdicts.removeIf([&arrived](const QHash<QByteArray, QString>::iterator it) { return !arrived.contains(it.key()); });
         MW_show_log(">>>>>>>> " + QObject::tr("Process complete, applying..."));
         report.setImported(sink.stored());
 
@@ -1203,14 +1328,33 @@ namespace Subscription {
                 change_text = QObject::tr("Nothing");
             }
         }
+        if (filteredOut > 0) change_text += "\n" + QObject::tr("Filtered out %1 profiles.").arg(filteredOut);
 
         const auto flagged = removeFlagged(members(), options, change_text);
         disturbed << flagged.deleted;
         if (flagged.stopped != nullptr) stoppedRunning = flagged.stopped;
         result.removed += static_cast<int>(flagged.deleted.size());
         for (int id : flagged.kept) keptIds << id;
+
+        // Country rules judge by an IP test: members with a known country are settled here, the rest once tested.
+        QList<int> untested;
+        UrlTester countryTest;
+        bool countryFailed = false;
+        if (countryRules) {
+            {
+                QMutexLocker locker(&mutex);
+                countryTest = countryTester;
+            }
+            const auto countries = applyCountryRules(group, filter.countries(), verdicts, countryTest == nullptr, change_text);
+            untested = countries.untested;
+            disturbed << countries.deleted;
+            if (countries.stopped != nullptr) stoppedRunning = countries.stopped;
+            result.removed += static_cast<int>(countries.deleted.size());
+            for (int id : countries.kept) keptIds << id;
+            countryFailed = !countries.ok;
+        }
         result.kept = static_cast<int>(keptIds.size());
-        if (deleteFailed || !flagged.ok) {
+        if (deleteFailed || !flagged.ok || countryFailed) {
             result.failure = UpdateOutcome::Failure::Database;
             result.error = QStringLiteral("Some profiles could not be deleted from the database.");
         }
@@ -1241,7 +1385,19 @@ namespace Subscription {
         Engine::EngineEvents::SubscriptionFinished(-1, true);
         result.report = std::move(report);
 
-        if (!options.url_test) return;
+        const bool interactive = surface != Surface::Log;
+        if (!untested.isEmpty() && countryTest != nullptr) {
+            MW_show_log(QObject::tr("Testing the exit country of %1 profiles of %2 for its country rules. On a large group this takes a while.")
+                            .arg(untested.size())
+                            .arg(group->name));
+            // The URL test waits for the country test, so it skips the profiles that one removes.
+            countryTest(untested, interactive, [=, this] { enqueue({-1, false, [=, this] { afterCountryTest(gid, interactive); }, nullptr}); });
+            return;
+        }
+        if (options.url_test) startUrlTest(gid, members(), interactive);
+    }
+
+    void GroupUpdater::startUrlTest(int gid, const QList<int> &profileIDs, bool interactive) {
         UrlTester tester;
         {
             QMutexLocker locker(&mutex);
@@ -1249,7 +1405,26 @@ namespace Subscription {
         }
         if (tester == nullptr) return;
         // Back through the queue, so the follow-up never races another job over the group.
-        tester(members(), surface != Surface::Log, [=, this] { enqueue({-1, false, [=, this] { afterUrlTest(gid); }, nullptr}); });
+        tester(profileIDs, interactive, [=, this] { enqueue({-1, false, [=, this] { afterUrlTest(gid); }, nullptr}); });
+    }
+
+    void GroupUpdater::afterCountryTest(int gid, bool interactive) {
+        const auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
+        if (group == nullptr || group->archive) return;
+        const auto options = group->sub_options;
+        if (const ImportFilter filter(options); filter.countries().active()) {
+            auto verdicts = Configs::dataManager->groupsRepo->CountryVerdicts(gid);
+            QString report;
+            const auto countries = applyCountryRules(group, filter.countries(), verdicts, true, report);
+            if (!countries.untested.isEmpty()) {
+                report += "\n" + QObject::tr("%1 profiles without a test result were kept; the next update tests them again.").arg(countries.untested.size());
+            }
+            if (!report.isEmpty()) MW_show_log("<<<<<<<< " + QObject::tr("After the country test of %1:").arg(group->name) + report);
+            if (countries.stopped != nullptr) reconnectSuccessor(withoutSelectors(group->Profiles()), countries.stopped);
+            Engine::EngineEvents::SubscriptionGroupChanged(gid, countries.deleted);
+            Engine::EngineEvents::SubscriptionFinished(-1, true);
+        }
+        if (options.url_test) startUrlTest(gid, withoutSelectors(group->Profiles()), interactive);
     }
 
     void GroupUpdater::afterUrlTest(int gid) {

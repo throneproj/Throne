@@ -357,6 +357,10 @@ namespace Engine {
         return runLatencyGroup(LatencyKind::Ip, profileIDs, onFinished, false, interactive);
     }
 
+    void TestRunner::queueIpTests(const QList<int>& profileIDs, const std::function<void()>& onFinished, bool interactive) {
+        runOnNewThread([=, this] { runLatencyGroup(LatencyKind::Ip, profileIDs, onFinished, true, interactive); });
+    }
+
     bool TestRunner::runChainStepTest(const QList<int>& hops, int gid, const std::function<void(const ChainStepReport&)>& onDone) {
         if (!session_.tryLock()) return false;
         sessionGen_.fetch_add(1);

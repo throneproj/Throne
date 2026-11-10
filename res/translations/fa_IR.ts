@@ -845,6 +845,83 @@ Deleted %3 Profiles:
     </message>
 </context>
 <context>
+    <name>DialogEditGroupAdvanced</name>
+    <message>
+        <source>Filter</source>
+        <translation>فیلتر</translation>
+    </message>
+    <message>
+        <source>Keeps only the profiles whose name matches this regular expression, case-insensitively, each time the subscription is fetched. Empty keeps every profile.</source>
+        <translation>هر بار که اشتراک دریافت می‌شود، فقط نمایه‌هایی را نگه می‌دارد که نامشان با این عبارت باقاعده منطبق باشد (بدون حساسیت به بزرگی و کوچکی حروف). خالی بودن یعنی همهٔ نمایه‌ها نگه داشته شوند.</translation>
+    </message>
+    <message>
+        <source>Keep only matching</source>
+        <translation>فقط نگه داشتن موارد منطبق</translation>
+    </message>
+    <message>
+        <source>e.g. HK|Hong Kong</source>
+        <translation>مثلاً HK|Hong Kong</translation>
+    </message>
+    <message>
+        <source>Removes the profiles whose name matches this regular expression, case-insensitively, each time the subscription is fetched. It wins over Keep only matching.</source>
+        <translation>هر بار که اشتراک دریافت می‌شود، نمایه‌هایی را که نامشان با این عبارت باقاعده منطبق باشد حذف می‌کند (بدون حساسیت به بزرگی و کوچکی حروف). بر «فقط نگه داشتن موارد منطبق» اولویت دارد.</translation>
+    </message>
+    <message>
+        <source>Remove matching</source>
+        <translation>حذف موارد منطبق</translation>
+    </message>
+    <message>
+        <source>e.g. expire|traffic</source>
+        <translation>مثلاً expire|traffic</translation>
+    </message>
+    <message>
+        <source>Removes every profile of the ticked protocols each time the subscription is fetched.</source>
+        <translation>هر بار که اشتراک دریافت می‌شود، همهٔ نمایه‌های پروتکل‌های علامت‌خورده را حذف می‌کند.</translation>
+    </message>
+    <message>
+        <source>Remove types</source>
+        <translation>حذف انواع</translation>
+    </message>
+    <message>
+        <source>Exit countries by two-letter code: HK,JP keeps only those, !RU removes one. After each update, profiles whose exit country is unknown get an IP test, and the ones outside these countries are removed. Profiles whose test fails are kept. To filter by a country written in profile names, use Keep only matching.</source>
+        <translation>کشورهای خروجی با کد دوحرفی: HK,JP فقط همان‌ها را نگه می‌دارد و !RU یک کشور را حذف می‌کند. پس از هر به‌روزرسانی، نمایه‌هایی که کشور خروجی‌شان نامعلوم است آزمایش IP می‌شوند و آن‌هایی که خارج از این کشورها هستند حذف می‌شوند. نمایه‌هایی که آزمایششان ناموفق باشد نگه داشته می‌شوند. برای فیلتر بر اساس کشوری که در نام نمایه‌ها نوشته شده، از «فقط نگه داشتن موارد منطبق» استفاده کنید.</translation>
+    </message>
+    <message>
+        <source>Countries</source>
+        <translation>کشورها</translation>
+    </message>
+    <message>
+        <source>e.g. HK,JP or !RU</source>
+        <translation>مثلاً HK,JP یا !RU</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation>هیچ‌کدام</translation>
+    </message>
+    <message>
+        <source>Keeps %1.</source>
+        <translation>%1 را نگه می‌دارد.</translation>
+    </message>
+    <message>
+        <source>Removes %1.</source>
+        <translation>%1 را حذف می‌کند.</translation>
+    </message>
+    <message numerus="yes">
+        <source>After each update, profiles whose exit country is unknown are IP-tested, so the next update can test up to %n profile(s). On a large group this takes a while.</source>
+        <translation>
+            <numerusform>پس از هر به‌روزرسانی، نمایه‌هایی که کشور خروجی‌شان نامعلوم است آزمایش IP می‌شوند، بنابراین به‌روزرسانی بعدی ممکن است تا %n نمایه را آزمایش کند. در یک گروه بزرگ این کار مدتی طول می‌کشد.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>After each update, profiles whose exit country is unknown are IP-tested. On a large subscription this takes a while.</source>
+        <translation>پس از هر به‌روزرسانی، نمایه‌هایی که کشور خروجی‌شان نامعلوم است آزمایش IP می‌شوند. در یک اشتراک بزرگ این کار مدتی طول می‌کشد.</translation>
+    </message>
+    <message>
+        <source>Custom (JSON)</source>
+        <translation>سفارشی (JSON)</translation>
+    </message>
+</context>
+<context>
     <name>DialogEditProfile</name>
     <message>
         <source>Edit</source>
@@ -3924,6 +4001,38 @@ Grant them once with a Windows confirmation; Throne itself keeps running as a st
         <source>Auto selector paused — no network connection, or the chain hops in front of it are down (%1 profiles held)</source>
         <translation>انتخابگر خودکار متوقف شد — اتصال شبکه وجود ندارد، یا هاپ‌های زنجیره در جلوی آن از کار افتاده‌اند (%1 نمایه نگه داشته شد)</translation>
     </message>
+    <message>
+        <source>Filters of %1: %2</source>
+        <translation>فیلترهای %1: %2</translation>
+    </message>
+    <message>
+        <source>The filters of %1 remove all %2 profiles of the subscription, so the group was left unchanged.</source>
+        <translation>فیلترهای %1 همهٔ %2 نمایهٔ اشتراک را حذف می‌کنند، بنابراین گروه بدون تغییر ماند.</translation>
+    </message>
+    <message>
+        <source>Filtered out %1 profiles.</source>
+        <translation>%1 نمایه فیلتر شد.</translation>
+    </message>
+    <message>
+        <source>The country rules accept none of the %1 tested profiles, so none were removed.</source>
+        <translation>قوانین کشور هیچ‌یک از %1 نمایهٔ آزمایش‌شده را نمی‌پذیرند، بنابراین هیچ نمایه‌ای حذف نشد.</translation>
+    </message>
+    <message>
+        <source>Removed %1 profiles outside the country rules:</source>
+        <translation>%1 نمایهٔ خارج از قوانین کشور حذف شد:</translation>
+    </message>
+    <message>
+        <source>Testing the exit country of %1 profiles of %2 for its country rules. On a large group this takes a while.</source>
+        <translation>در حال آزمایش کشور خروجی %1 نمایه از %2 برای قوانین کشور آن. در یک گروه بزرگ این کار مدتی طول می‌کشد.</translation>
+    </message>
+    <message>
+        <source>%1 profiles without a test result were kept; the next update tests them again.</source>
+        <translation>%1 نمایهٔ بدون نتیجهٔ آزمایش نگه داشته شد؛ به‌روزرسانی بعدی دوباره آن‌ها را آزمایش می‌کند.</translation>
+    </message>
+    <message>
+        <source>After the country test of %1:</source>
+        <translation>پس از آزمایش کشور %1:</translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -4523,6 +4632,34 @@ Grant them once with a Windows confirmation; Throne itself keeps running as a st
     <message>
         <source>Routing rules cannot use the chain &quot;%1&quot;: it holds an auto selector, so it can only be started. Pick another outbound.</source>
         <translation>قوانین مسیریابی نمی‌توانند از زنجیرهٔ «%1» استفاده کنند: این زنجیره یک انتخابگر خودکار دارد، پس فقط قابل اجراست. خروجی دیگری انتخاب کنید.</translation>
+    </message>
+    <message>
+        <source>Not a valid regular expression: %1 (at character %2).</source>
+        <translation>عبارت باقاعدهٔ معتبر نیست: %1 (در نویسهٔ %2).</translation>
+    </message>
+    <message>
+        <source>Not a two-letter country code: %1. Use codes such as HK,JP to keep only those countries, or !RU to remove one.</source>
+        <translation>کد دوحرفی کشور نیست: %1. برای نگه داشتن فقط همان کشورها از کدهایی مانند HK,JP، یا برای حذف یک کشور از !RU استفاده کنید.</translation>
+    </message>
+    <message>
+        <source>%1 is not a valid regular expression, so it was ignored: %2</source>
+        <translation>«%1» عبارت باقاعدهٔ معتبری نیست، بنابراین نادیده گرفته شد: %2</translation>
+    </message>
+    <message>
+        <source>Keep only matching</source>
+        <translation>فقط نگه داشتن موارد منطبق</translation>
+    </message>
+    <message>
+        <source>Remove matching</source>
+        <translation>حذف موارد منطبق</translation>
+    </message>
+    <message>
+        <source>Unknown protocol in Remove types, ignored: %1</source>
+        <translation>پروتکل ناشناخته در «حذف انواع» نادیده گرفته شد: %1</translation>
+    </message>
+    <message>
+        <source>Not a two-letter country code, ignored: %1</source>
+        <translation>کد دوحرفی کشور نیست، نادیده گرفته شد: %1</translation>
     </message>
 </context>
 <context>

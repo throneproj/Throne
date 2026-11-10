@@ -1665,6 +1665,82 @@ Throne will restart to complete the restore.</source>
         <source>Enter a host name or an IP address, without a port.</source>
         <translation>Введите имя хоста или IP-адрес без порта.</translation>
     </message>
+    <message>
+        <source>Filter</source>
+        <translation>Фильтр</translation>
+    </message>
+    <message>
+        <source>Keeps only the profiles whose name matches this regular expression, case-insensitively, each time the subscription is fetched. Empty keeps every profile.</source>
+        <translation>При каждой загрузке подписки оставляет только профили, имя которых совпадает с этим регулярным выражением (без учёта регистра). Пустое поле оставляет все профили.</translation>
+    </message>
+    <message>
+        <source>Keep only matching</source>
+        <translation>Оставлять только совпадающие</translation>
+    </message>
+    <message>
+        <source>e.g. HK|Hong Kong</source>
+        <translation>например, HK|Hong Kong</translation>
+    </message>
+    <message>
+        <source>Removes the profiles whose name matches this regular expression, case-insensitively, each time the subscription is fetched. It wins over Keep only matching.</source>
+        <translation>При каждой загрузке подписки удаляет профили, имя которых совпадает с этим регулярным выражением (без учёта регистра). Имеет приоритет над «Оставлять только совпадающие».</translation>
+    </message>
+    <message>
+        <source>Remove matching</source>
+        <translation>Удалять совпадающие</translation>
+    </message>
+    <message>
+        <source>e.g. expire|traffic</source>
+        <translation>например, expire|traffic</translation>
+    </message>
+    <message>
+        <source>Removes every profile of the ticked protocols each time the subscription is fetched.</source>
+        <translation>При каждой загрузке подписки удаляет все профили отмеченных протоколов.</translation>
+    </message>
+    <message>
+        <source>Remove types</source>
+        <translation>Удалять типы</translation>
+    </message>
+    <message>
+        <source>Exit countries by two-letter code: HK,JP keeps only those, !RU removes one. After each update, profiles whose exit country is unknown get an IP test, and the ones outside these countries are removed. Profiles whose test fails are kept. To filter by a country written in profile names, use Keep only matching.</source>
+        <translation>Страны выхода по двухбуквенному коду: HK,JP оставляет только их, !RU убирает одну. После каждого обновления профили с неизвестной страной выхода проходят IP-тест, а профили вне этих стран удаляются. Профили, тест которых не удался, сохраняются. Чтобы фильтровать по стране, указанной в имени профиля, используйте «Оставлять только совпадающие».</translation>
+    </message>
+    <message>
+        <source>Countries</source>
+        <translation>Страны</translation>
+    </message>
+    <message>
+        <source>e.g. HK,JP or !RU</source>
+        <translation>например, HK,JP или !RU</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation>Нет</translation>
+    </message>
+    <message>
+        <source>Keeps %1.</source>
+        <translation>Оставляет: %1.</translation>
+    </message>
+    <message>
+        <source>Removes %1.</source>
+        <translation>Удаляет: %1.</translation>
+    </message>
+    <message numerus="yes">
+        <source>After each update, profiles whose exit country is unknown are IP-tested, so the next update can test up to %n profile(s). On a large group this takes a while.</source>
+        <translation>
+            <numerusform>После каждого обновления профили с неизвестной страной выхода проходят IP-тест, поэтому следующее обновление может проверить до %n профиля. Для большой группы это займёт некоторое время.</numerusform>
+            <numerusform>После каждого обновления профили с неизвестной страной выхода проходят IP-тест, поэтому следующее обновление может проверить до %n профилей. Для большой группы это займёт некоторое время.</numerusform>
+            <numerusform>После каждого обновления профили с неизвестной страной выхода проходят IP-тест, поэтому следующее обновление может проверить до %n профилей. Для большой группы это займёт некоторое время.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>After each update, profiles whose exit country is unknown are IP-tested. On a large subscription this takes a while.</source>
+        <translation>После каждого обновления профили с неизвестной страной выхода проходят IP-тест. Для большой подписки это займёт некоторое время.</translation>
+    </message>
+    <message>
+        <source>Custom (JSON)</source>
+        <translation>Пользовательский (JSON)</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditIpList</name>
@@ -12215,6 +12291,38 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
         <source>Auto selector paused — no network connection, or the chain hops in front of it are down (%1 profiles held)</source>
         <translation>Автовыбор приостановлен — нет подключения к сети или звенья цепочки перед ним не работают (профилей удерживается: %1)</translation>
     </message>
+    <message>
+        <source>Filters of %1: %2</source>
+        <translation>Фильтры группы %1: %2</translation>
+    </message>
+    <message>
+        <source>The filters of %1 remove all %2 profiles of the subscription, so the group was left unchanged.</source>
+        <translation>Фильтры группы %1 отсеивают все профили подписки (%2), поэтому группа оставлена без изменений.</translation>
+    </message>
+    <message>
+        <source>Filtered out %1 profiles.</source>
+        <translation>Отфильтровано профилей: %1.</translation>
+    </message>
+    <message>
+        <source>The country rules accept none of the %1 tested profiles, so none were removed.</source>
+        <translation>Правила стран не пропускают ни один из проверенных профилей (%1), поэтому ничего не удалено.</translation>
+    </message>
+    <message>
+        <source>Removed %1 profiles outside the country rules:</source>
+        <translation>Удалено профилей вне правил стран (%1):</translation>
+    </message>
+    <message>
+        <source>Testing the exit country of %1 profiles of %2 for its country rules. On a large group this takes a while.</source>
+        <translation>Проверка страны выхода для профилей группы %2 (%1) по её правилам стран. Для большой группы это займёт некоторое время.</translation>
+    </message>
+    <message>
+        <source>%1 profiles without a test result were kept; the next update tests them again.</source>
+        <translation>Профили без результата проверки сохранены (%1); следующее обновление проверит их снова.</translation>
+    </message>
+    <message>
+        <source>After the country test of %1:</source>
+        <translation>После проверки стран группы %1:</translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -15871,6 +15979,34 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Routing rules cannot use the chain &quot;%1&quot;: it holds an auto selector, so it can only be started. Pick another outbound.</source>
         <translation>В правилах маршрутизации нельзя использовать цепочку &quot;%1&quot;: в ней есть автовыбор, поэтому ее можно только запустить. Выберите другой outbound.</translation>
+    </message>
+    <message>
+        <source>Not a valid regular expression: %1 (at character %2).</source>
+        <translation>Некорректное регулярное выражение: %1 (символ %2).</translation>
+    </message>
+    <message>
+        <source>Not a two-letter country code: %1. Use codes such as HK,JP to keep only those countries, or !RU to remove one.</source>
+        <translation>Не двухбуквенный код страны: %1. Укажите коды вроде HK,JP, чтобы оставить только эти страны, или !RU, чтобы убрать одну.</translation>
+    </message>
+    <message>
+        <source>%1 is not a valid regular expression, so it was ignored: %2</source>
+        <translation>«%1»: некорректное регулярное выражение, поле пропущено: %2</translation>
+    </message>
+    <message>
+        <source>Keep only matching</source>
+        <translation>Оставлять только совпадающие</translation>
+    </message>
+    <message>
+        <source>Remove matching</source>
+        <translation>Удалять совпадающие</translation>
+    </message>
+    <message>
+        <source>Unknown protocol in Remove types, ignored: %1</source>
+        <translation>Неизвестный протокол в «Удалять типы» пропущен: %1</translation>
+    </message>
+    <message>
+        <source>Not a two-letter country code, ignored: %1</source>
+        <translation>Пропущено (не двухбуквенный код страны): %1</translation>
     </message>
 </context>
 <context>

@@ -184,6 +184,8 @@ set(PROJECT_SOURCES
         src/configs/ProcessRules.cpp
         include/configs/sub/SubscriptionReconcile.hpp
         src/configs/sub/SubscriptionReconcile.cpp
+        include/configs/sub/SubscriptionFilter.hpp
+        src/configs/sub/SubscriptionFilter.cpp
         include/configs/sub/RouteUpdater.hpp
         src/configs/sub/RouteUpdater.cpp
         src/configs/sub/clash.cpp

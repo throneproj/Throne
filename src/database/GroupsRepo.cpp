@@ -72,6 +72,38 @@ namespace Configs {
                 display_order INTEGER NOT NULL
             )
         )");
+
+        db.exec(R"(
+            CREATE TABLE IF NOT EXISTS sub_country_verdicts (
+                gid INTEGER NOT NULL PRIMARY KEY,
+                verdicts_json TEXT NOT NULL DEFAULT '{}'
+            )
+        )");
+    }
+
+    QHash<QByteArray, QString> GroupsRepo::CountryVerdicts(int gid) const {
+        QHash<QByteArray, QString> verdicts;
+        const auto query = db.query("SELECT verdicts_json FROM sub_country_verdicts WHERE gid = ?", gid);
+        if (!query || !query->executeStep()) return verdicts;
+        const auto json = QJsonDocument::fromJson(QByteArray(query->getColumn(0).getText())).object();
+        for (auto it = json.constBegin(); it != json.constEnd(); ++it) {
+            const auto key = QByteArray::fromBase64(it.key().toLatin1());
+            if (const auto country = it.value().toString(); !key.isEmpty() && !country.isEmpty()) verdicts.insert(key, country);
+        }
+        return verdicts;
+    }
+
+    void GroupsRepo::SetCountryVerdicts(int gid, const QHash<QByteArray, QString>& verdicts) const {
+        if (verdicts.isEmpty()) {
+            db.exec("DELETE FROM sub_country_verdicts WHERE gid = ?", gid);
+            return;
+        }
+        QJsonObject json;
+        for (auto it = verdicts.constBegin(); it != verdicts.constEnd(); ++it) json.insert(QString::fromLatin1(it.key().toBase64()), it.value());
+        db.exec(R"(
+            INSERT INTO sub_country_verdicts (gid, verdicts_json) VALUES (?, ?)
+            ON CONFLICT(gid) DO UPDATE SET verdicts_json = excluded.verdicts_json
+        )", gid, QJsonDocument(json).toJson(QJsonDocument::Compact).toStdString());
     }
 
     bool GroupsRepo::groupsColumnExists(const char* columnName) const {
@@ -351,6 +383,7 @@ namespace Configs {
                 }
                 db.execThrow("DELETE FROM groups_order WHERE group_id = ?", id);
                 db.execDeleteByIdInThrow("profiles", "id", std::vector<int>(profileIds.cbegin(), profileIds.cend()));
+                db.execThrow("DELETE FROM sub_country_verdicts WHERE gid = ?", id);
                 db.execThrow("DELETE FROM groups WHERE id = ?", id);
                 return true;
             });

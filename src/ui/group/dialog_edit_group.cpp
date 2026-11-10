@@ -69,7 +69,8 @@ DialogEditGroup::DialogEditGroup(const std::shared_ptr<Configs::Group> &ent, QWi
     subOptions = ent->sub_options;
     endpoint = ent->endpoint;
     connect(ui->advanced, &QPushButton::clicked, this, [this] {
-        auto dialog = new DialogEditGroupAdvanced(subOptions, this->ent->sub_info.server_interval, endpoint, ui->type->currentIndex() == 1, this);
+        auto dialog = new DialogEditGroupAdvanced(subOptions, this->ent->sub_info.server_interval, endpoint, ui->type->currentIndex() == 1,
+                                                  static_cast<int>(this->ent->Profiles().size()), this);
         connect(dialog, &QDialog::accepted, this, [this, dialog] {
             subOptions = dialog->Options();
             endpoint = dialog->Endpoint();
@@ -286,6 +287,7 @@ void DialogEditGroup::accept() {
     ent->auto_clear_unavailable = ui->auto_clear_unavailable->isChecked();
     ent->url = newUrl;
     ent->skip_auto_update = ui->skip_auto_update->isChecked();
+    refreshNeeded = ent->id >= 0 && !newUrl.isEmpty() && !ent->archive && !ent->sub_options.SameFilters(subOptions);
     ent->sub_options = subOptions;
     restartNeeded = endpoint != ent->endpoint && editGroupRunningProfileInherits(ent->Profiles());
     ent->endpoint = endpoint;

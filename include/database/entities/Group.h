@@ -4,6 +4,7 @@
 #include <QList>
 #include <QMutex>
 #include <QString>
+#include <QStringList>
 #include <algorithm>
 
 #include <optional>
@@ -108,6 +109,15 @@ namespace Configs
         // Follow-ups of url_test: ignored while it is off.
         bool remove_unavailable = false;
         bool sort_by_latency = false;
+        // Case-insensitive regexes on the profile name, applied as a fetch is parsed; the exclusion wins.
+        QString name_filter;
+        QString name_exclude;
+        // Subscription::FilterProtocols() ids.
+        QStringList type_exclude;
+        // "HK,JP" keeps, "!RU" drops; judged by an IP test after each update.
+        QString country_filter;
+
+        [[nodiscard]] bool SameFilters(const SubscriptionOptions &other) const;
 
         [[nodiscard]] QJsonObject ToJson() const;
 
