@@ -55,8 +55,9 @@ void MainWindow::on_profilesTableView_doubleClicked(const QModelIndex &index) {
         finish_select_mode(id);
         return;
     }
-    auto dialog = new DialogEditProfile("", id, this);
-    connect(dialog, &QDialog::finished, dialog, &QDialog::deleteLater);
+    // 选中当前双击的行并触发启动节点（等同于在行上按下回车键启动）
+    ui->profilesTableView->selectRow(index.row());
+    on_action_start_triggered();
 }
 
 void MainWindow::on_menu_add_from_input_triggered() {
