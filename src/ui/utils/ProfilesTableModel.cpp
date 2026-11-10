@@ -11,6 +11,25 @@
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
 
+namespace {
+    // 界面显示顺序: 0:名称, 1:类型, 2:测试结果, 3:流量, 4:地址
+    constexpr int DisplayToLogical[ProfilesTableModel::ColumnCount] = {
+        ProfilesTableModel::ColName,
+        ProfilesTableModel::ColType,
+        ProfilesTableModel::ColTestResult,
+        ProfilesTableModel::ColTraffic,
+        ProfilesTableModel::ColAddress
+    };
+
+    constexpr int LogicalToDisplay[ProfilesTableModel::ColumnCount] = {
+        1, // ColType -> 第 1 列
+        4, // ColAddress -> 第 4 列
+        0, // ColName -> 第 0 列
+        2, // ColTestResult -> 第 2 列
+        3  // ColTraffic -> 第 3 列
+    };
+}
+
 ProfilesTableModel::ProfilesTableModel(QObject *parent)
     : QAbstractTableModel(parent) {}
 
@@ -87,6 +106,7 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
         || index.column() < 0 || index.column() >= ColumnCount) {
         return {};
     }
+    const int col = DisplayToLogical[index.column()];
     const int profileId = m_profileIds[index.row()];
     if (role == ProfileIdRole) {
         return profileId;
@@ -105,7 +125,7 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
                                                      : QApplication::palette().link().color();
 
     if (role == Qt::DisplayRole) {
-        switch (index.column()) {
+        switch (col) {
         case ColType: {
             if (!profile->outbound) return QString();
             auto type = profile->outbound->DisplayType();
@@ -127,7 +147,7 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
         }
     }
     if (role == Qt::ToolTipRole) {
-        if (index.column() == ColType && Configs::dataManager->settingsRepo->show_config_security && profile->outbound) {
+        if (col == ColType && Configs::dataManager->settingsRepo->show_config_security && profile->outbound) {
             const auto security = profile->outbound->EffectiveSecurity();
             if (security.compromised) return tr("Certificate checks are turned off by the \"Skip TLS certificate authentication\" setting.");
             if (security.isDangerous()) return tr("This config's traffic is not properly protected.");
@@ -135,7 +155,7 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
         return {};
     }
     if (role == Qt::ForegroundRole) {
-        if (index.column() == ColTestResult) {
+        if (col == ColTestResult) {
             QColor latencyColor = profile->DisplayLatencyColor();
             if (latencyColor.isValid()) return latencyColor;
         }
@@ -151,7 +171,9 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
 QVariant ProfilesTableModel::headerData(int section, Qt::Orientation orientation, int role) const {
     if (role != Qt::DisplayRole) return {};
     if (orientation == Qt::Horizontal) {
-        switch (section) {
+        if (section < 0 || section >= ColumnCount) return {};
+        const int col = DisplayToLogical[section];
+        switch (col) {
         case ColType: return tr("Type");
         case ColAddress: return tr("Address");
         case ColName: return tr("Name");
@@ -253,7 +275,8 @@ void ProfilesTableModel::invalidateAddresses() {
     m_filterKeys.clear();
     m_filterIndexBuilt = false;
     if (m_profileIds.isEmpty()) return;
-    emit dataChanged(index(0, ColAddress), index(static_cast<int>(m_profileIds.size()) - 1, ColAddress), {Qt::DisplayRole});
+    const int displayCol = LogicalToDisplay[ColAddress];
+    emit dataChanged(index(0, displayCol), index(static_cast<int>(m_profileIds.size()) - 1, displayCol), {Qt::DisplayRole});
 }
 
 void ProfilesTableModel::emplaceProfiles(int row1, int row2) {
@@ -274,20 +297,24 @@ int ProfilesTableModel::indexOfProfile(int id) {
 }
 
 int ProfilesTableModel::columnOfSort(GroupSortMethod::GroupSortMethod method) {
+    int logicalCol = -1;
     switch (method) {
     case GroupSortMethod::ByType:
-    case GroupSortMethod::BySecurity: return ColType;
-    case GroupSortMethod::ByAddress: return ColAddress;
-    case GroupSortMethod::ByName: return ColName;
+    case GroupSortMethod::BySecurity: logicalCol = ColType; break;
+    case GroupSortMethod::ByAddress: logicalCol = ColAddress; break;
+    case GroupSortMethod::ByName: logicalCol = ColName; break;
     case GroupSortMethod::ByTestResult:
-    case GroupSortMethod::ByLatency: return ColTestResult;
-    case GroupSortMethod::ByTraffic: return ColTraffic;
+    case GroupSortMethod::ByLatency: logicalCol = ColTestResult; break;
+    case GroupSortMethod::ByTraffic: logicalCol = ColTraffic; break;
     default: return -1;
     }
+    return LogicalToDisplay[logicalCol];
 }
 
 GroupSortMethod::GroupSortMethod ProfilesTableModel::sortOfColumn(int column) {
-    switch (column) {
+    if (column < 0 || column >= ColumnCount) return GroupSortMethod::Raw;
+    int logicalCol = DisplayToLogical[column];
+    switch (logicalCol) {
     case ColType: return GroupSortMethod::ByType;
     case ColAddress: return GroupSortMethod::ByAddress;
     case ColName: return GroupSortMethod::ByName;
