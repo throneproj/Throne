@@ -11,11 +11,15 @@ import (
 	"net/http/httptrace"
 	"net/url"
 	"slices"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"time"
 
+	tf "github.com/sagernet/sing-box/common/tlsfragment"
+	C "github.com/sagernet/sing-box/constant"
 	E "github.com/sagernet/sing/common/exceptions"
+	"github.com/sagernet/sing/common/json/badoption"
 )
 
 const (
@@ -92,10 +96,11 @@ type client struct {
 	httpClient *http.Client
 }
 
-func newClient(proxy string) (*client, error) {
+func newClient(proxy string, fragment TLSFragmentOptions) (*client, error) {
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	transport.Proxy = nil
-	transport.DialContext = (&net.Dialer{Timeout: dialTimeout, KeepAlive: 30 * time.Second}).DialContext
+	dialer := &net.Dialer{Timeout: dialTimeout, KeepAlive: 30 * time.Second}
+	transport.DialContext = dialer.DialContext
 	transport.TLSHandshakeTimeout = tlsHandshakeTimeout
 	if proxy != "" {
 		proxyURL, err := url.Parse(proxy)
@@ -103,6 +108,28 @@ func newClient(proxy string) (*client, error) {
 			return nil, E.Cause(err, "parse proxy")
 		}
 		transport.Proxy = http.ProxyURL(proxyURL)
+	} else if fragment.Fragment || fragment.RecordFragment {
+		fallbackDelay := C.TLSFragmentFallbackDelay
+		if fragment.FallbackDelay != "" {
+			// The sing-box option parser, so the GUI's duration syntax (e.g. "1d") means the same here.
+			var delay badoption.Duration
+			err := delay.UnmarshalJSON([]byte(strconv.Quote(fragment.FallbackDelay)))
+			if err != nil {
+				return nil, E.Cause(err, "parse TLS fragment fallback delay")
+			}
+			if delay < 0 {
+				return nil, E.New("invalid TLS fragment fallback delay: ", fragment.FallbackDelay)
+			}
+			fallbackDelay = delay.Build()
+		}
+		transport.DialContext = func(ctx context.Context, network, address string) (net.Conn, error) {
+			conn, err := dialer.DialContext(ctx, network, address)
+			if err != nil {
+				return nil, err
+			}
+			// ctx only bounds the ClientHello's ACK wait, and the transport's TLS handshake runs under this same dial ctx.
+			return tf.NewConn(conn, ctx, fragment.Fragment, fragment.RecordFragment, fallbackDelay), nil
+		}
 	}
 	return &client{httpClient: &http.Client{Transport: transport}}, nil
 }

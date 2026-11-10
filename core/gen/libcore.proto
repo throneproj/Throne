@@ -359,6 +359,10 @@ message WarpRegisterRequest {
   optional string tunnel_type = 1 [default = ""]; // "wireguard" | "masque"
   optional string proxy = 2 [default = ""];       // "http://[user:pass@]host:port"; empty = direct
   repeated string api_hosts = 3;                  // tried in order; empty = api.cloudflareclient.com
+  // Direct calls only: through a proxy the ClientHello is the proxy outbound's to shape.
+  optional bool tls_fragment = 4 [default = false];
+  optional bool tls_record_fragment = 5 [default = false];
+  optional string tls_fragment_fallback_delay = 6 [default = ""]; // Go duration; empty = 500ms
 }
 
 message WarpRegisterResponse {

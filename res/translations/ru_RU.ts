@@ -4005,6 +4005,38 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <source>Every update of the subscription &quot;%1&quot; overwrites its rules. Deleting it stops the import.</source>
         <translation>Каждое обновление подписки «%1» перезаписывает его правила. Удаление прекращает импорт.</translation>
     </message>
+    <message>
+        <source>TLS fragmentation for WARP registration</source>
+        <translation>Фрагментация TLS при регистрации WARP</translation>
+    </message>
+    <message>
+        <source>Advanced…</source>
+        <translation>Дополнительно…</translation>
+    </message>
+    <message>
+        <source>Advanced WARP Settings</source>
+        <translation>Доп. настройки WARP</translation>
+    </message>
+    <message>
+        <source>Registration</source>
+        <translation>Регистрация</translation>
+    </message>
+    <message>
+        <source>Applies only when registration connects directly, not through a running profile.</source>
+        <translation>Действует только при прямой регистрации, а не через запущенный профиль.</translation>
+    </message>
+    <message>
+        <source>Fragment TLS</source>
+        <translation>Фрагментация TLS</translation>
+    </message>
+    <message>
+        <source>Record fragment</source>
+        <translation>Фрагментация записей</translation>
+    </message>
+    <message>
+        <source>Fallback delay</source>
+        <translation>Резервная задержка</translation>
+    </message>
 </context>
 <context>
     <name>DialogNewScan</name>
@@ -5053,6 +5085,14 @@ Close without saving?</source>
         <source>&quot;%1&quot; now takes resolvers from the IP list &quot;%2&quot;.</source>
         <translation>&quot;%1&quot; теперь берет резолверы из списка IP &quot;%2&quot;.</translation>
     </message>
+    <message>
+        <source>QUIC opener</source>
+        <translation>QUIC-приманка</translation>
+    </message>
+    <message>
+        <source>Sends one decoy packet before each new UDP flow, so networks that block QUIC by its first packet let the real handshake through.</source>
+        <translation>Отправляет один пакет-приманку перед каждым новым UDP-потоком, чтобы сети, блокирующие QUIC по первому пакету, пропускали настоящее рукопожатие.</translation>
+    </message>
 </context>
 <context>
     <name>DialogScanner</name>
@@ -5599,6 +5639,14 @@ Close without saving?</source>
     <message>
         <source>Already set</source>
         <translation>Уже задано</translation>
+    </message>
+    <message>
+        <source>QUIC Opener</source>
+        <translation>QUIC-приманка</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sends one decoy packet before each new UDP flow, so networks that block QUIC by its first packet let the real handshake through. It helps HTTP/3 carriers (MASQUE, Hysteria2, TUIC). It does nothing when the profile dials through another profile.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Отправляет один пакет-приманку перед каждым новым UDP-потоком, чтобы сети, блокирующие QUIC по первому пакету, пропускали настоящее рукопожатие. Помогает протоколам поверх HTTP/3 (MASQUE, Hysteria2, TUIC). Не действует, если профиль подключается через другой профиль.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
 </context>
 <context>

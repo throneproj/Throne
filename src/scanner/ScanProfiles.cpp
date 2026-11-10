@@ -168,6 +168,7 @@ namespace Scanner {
             scanProfilesSetError(error, QObject::tr("The WARP identity could not be read; register a new one"));
             return nullptr;
         }
+        profile->outbound->dialFields->quic_opener = opt.quicOpener;
 
         if (auto *wireguard = profile->Wireguard(); wireguard != nullptr) {
             if (opt.mtu > 0) wireguard->mtu = opt.mtu;

@@ -647,6 +647,10 @@ void DialogScanInstance::buildWarpPhase(QVBoxLayout *layout) {
     warpSni = new QLineEdit(warpBox);
     warpSni->setPlaceholderText(QStringLiteral("consumer-masque.cloudflareclient.com"));
     warpForm->addRow(tr("SNI"), warpSni);
+    warpQuicOpener = new QCheckBox(tr("QUIC opener"), warpBox);
+    warpQuicOpener->setToolTip(tr("Sends one decoy packet before each new UDP flow, so networks that block QUIC by its first packet "
+                                  "let the real handshake through."));
+    warpForm->addRow(warpQuicOpener);
 
     warpJc = scanInstanceNumberEdit(warpBox, 0, 128, defaults.warp.jc);
     warpForm->addRow(tr("Junk packets (Jc)"), warpJc);
@@ -881,6 +885,7 @@ void DialogScanInstance::loadForm() {
         reloadWarpProfiles(warp.profileId);
         warpMtu->setText(QString::number(warp.mtu));
         warpSni->setText(warp.sni);
+        warpQuicOpener->setChecked(warp.quicOpener);
         warpJc->setText(QString::number(warp.jc));
         warpJmin->setText(QString::number(warp.jmin));
         warpJmax->setText(QString::number(warp.jmax));
@@ -1016,6 +1021,7 @@ bool DialogScanInstance::collect(Configs::ScanConfig &out, int &baseListId, QStr
         warp.profileId = warpProfile->currentData().toInt();
         if (!number(warpMtu, warp.mtu, true, tr("WARP test: the MTU must be between %1 and %2."))) return false;
         warp.sni = warpSni->text().trimmed();
+        warp.quicOpener = warpQuicOpener->isChecked();
         const bool amnezia = warp.mode == QStringLiteral("amneziawg");
         if (!number(warpJc, warp.jc, amnezia, tr("WARP test: Jc must be between %1 and %2."))) return false;
         if (!number(warpJmin, warp.jmin, amnezia, tr("WARP test: Jmin must be between %1 and %2."))) return false;

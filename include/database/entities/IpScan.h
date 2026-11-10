@@ -68,6 +68,8 @@ namespace Configs {
         int mtu = 1280;
         // masque; empty = consumer-masque.cloudflareclient.com
         QString sni;
+        // Overrides the identity source's own dial option.
+        bool quicOpener = false;
         // amneziawg junk; Cloudflare runs vanilla WireGuard, so s1..s4 and h1..h4 never apply.
         int jc = 0;
         int jmin = 0;

@@ -114,6 +114,7 @@ namespace Configs {
         warpObject["generatedMode"] = warp.generatedMode;
         warpObject["mtu"] = warp.mtu;
         warpObject["sni"] = warp.sni;
+        warpObject["quicOpener"] = warp.quicOpener;
         warpObject["jc"] = warp.jc;
         warpObject["jmin"] = warp.jmin;
         warpObject["jmax"] = warp.jmax;
@@ -208,6 +209,7 @@ namespace Configs {
         ipScanReadChoice(warpObject, "generatedMode", warp.generatedMode, {"", "wireguard", "masque"});
         ipScanReadInt(warpObject, "mtu", warp.mtu, 576, 9000);
         ipScanReadString(warpObject, "sni", warp.sni);
+        ipScanReadBool(warpObject, "quicOpener", warp.quicOpener);
         ipScanReadInt(warpObject, "jc", warp.jc, 0, 128);
         ipScanReadInt(warpObject, "jmin", warp.jmin, 0, 1280);
         ipScanReadInt(warpObject, "jmax", warp.jmax, 0, 1280);

@@ -54,10 +54,15 @@ namespace Configs {
             Scanner::DefaultIpLists::EnsureAll();
             dataManager->markersRepo->Mark(Markers::DefaultIpLists);
             dataManager->markersRepo->Mark(Markers::DefaultResolverLists);
-        } else if (!dataManager->markersRepo->IsMarked(Markers::DefaultResolverLists)) {
-            Scanner::DefaultIpLists::Ensure(Scanner::DefaultIpLists::kIranResolversName);
-            Scanner::DefaultIpLists::Ensure(Scanner::DefaultIpLists::kRussiaResolversName);
-            dataManager->markersRepo->Mark(Markers::DefaultResolverLists);
+            dataManager->markersRepo->Mark(Markers::WarpMasqueRanges);
+        } else {
+            if (!dataManager->markersRepo->IsMarked(Markers::DefaultResolverLists)) {
+                Scanner::DefaultIpLists::Ensure(Scanner::DefaultIpLists::kIranResolversName);
+                Scanner::DefaultIpLists::Ensure(Scanner::DefaultIpLists::kRussiaResolversName);
+                dataManager->markersRepo->Mark(Markers::DefaultResolverLists);
+            }
+            if (!dataManager->markersRepo->IsMarked(Markers::WarpMasqueRanges) && Scanner::DefaultIpLists::MigrateWarpMasqueRanges())
+                dataManager->markersRepo->Mark(Markers::WarpMasqueRanges);
         }
     }
 

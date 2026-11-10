@@ -437,6 +437,19 @@
           </widget>
          </item>
          <item>
+          <widget class="QPushButton" name="warp_advanced_btn">
+           <property name="uiLevel" stdset="0">
+            <string notr="true">advanced</string>
+           </property>
+           <property name="toolTip">
+            <string>TLS fragmentation for WARP registration</string>
+           </property>
+           <property name="text">
+            <string>Advanced…</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <spacer name="warp_autogen_spacer">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>

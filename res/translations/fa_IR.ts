@@ -1668,6 +1668,38 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <source>Every update of the subscription &quot;%1&quot; overwrites its rules. Deleting it stops the import.</source>
         <translation>هر به‌روزرسانی اشتراک «%1» قوانین آن را بازنویسی می‌کند. حذف آن، وارد کردن را متوقف می‌کند.</translation>
     </message>
+    <message>
+        <source>TLS fragmentation for WARP registration</source>
+        <translation>قطعه‌بندی TLS برای ثبت‌نام WARP</translation>
+    </message>
+    <message>
+        <source>Advanced…</source>
+        <translation>پیشرفته…</translation>
+    </message>
+    <message>
+        <source>Advanced WARP Settings</source>
+        <translation>تنظیمات پیشرفتهٔ WARP</translation>
+    </message>
+    <message>
+        <source>Registration</source>
+        <translation>ثبت‌نام</translation>
+    </message>
+    <message>
+        <source>Applies only when registration connects directly, not through a running profile.</source>
+        <translation>فقط وقتی اعمال می‌شود که ثبت‌نام مستقیم وصل شود، نه از طریق نمایهٔ در حال اجرا.</translation>
+    </message>
+    <message>
+        <source>Fragment TLS</source>
+        <translation>قطعه‌بندی TLS</translation>
+    </message>
+    <message>
+        <source>Record fragment</source>
+        <translation>قطعه‌بندی رکورد</translation>
+    </message>
+    <message>
+        <source>Fallback delay</source>
+        <translation>تأخیر جایگزین</translation>
+    </message>
 </context>
 <context>
     <name>DialogNewScan</name>
@@ -1785,6 +1817,14 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>&quot;%1&quot; now takes resolvers from the IP list &quot;%2&quot;.</source>
         <translation>«%1» اکنون ریزالورها را از فهرست IP «%2» می‌گیرد.</translation>
+    </message>
+    <message>
+        <source>QUIC opener</source>
+        <translation>بازکنندهٔ QUIC</translation>
+    </message>
+    <message>
+        <source>Sends one decoy packet before each new UDP flow, so networks that block QUIC by its first packet let the real handshake through.</source>
+        <translation>پیش از هر جریان UDP تازه یک بستهٔ فریب می‌فرستد تا شبکه‌هایی که QUIC را از روی نخستین بسته مسدود می‌کنند، دست‌دهی واقعی را عبور دهند.</translation>
     </message>
 </context>
 <context>
@@ -1923,6 +1963,14 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>Certificate sha256</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>QUIC Opener</source>
+        <translation>بازکنندهٔ QUIC</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sends one decoy packet before each new UDP flow, so networks that block QUIC by its first packet let the real handshake through. It helps HTTP/3 carriers (MASQUE, Hysteria2, TUIC). It does nothing when the profile dials through another profile.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;پیش از هر جریان UDP تازه یک بستهٔ فریب می‌فرستد تا شبکه‌هایی که QUIC را از روی نخستین بسته مسدود می‌کنند، دست‌دهی واقعی را عبور دهند. برای حامل‌های HTTP/3 (MASQUE، Hysteria2، TUIC) مفید است. وقتی نمایه از طریق نمایهٔ دیگری متصل می‌شود، اثری ندارد.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
 </context>
 <context>

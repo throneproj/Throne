@@ -16,9 +16,13 @@ const (
 	warpRegisterHostTimeout = 10 * time.Second
 )
 
+// TLSFragmentFallbackDelay is a Go duration, empty = 500ms; the fragment fields are ignored with a Proxy.
 type WarpRegisterRequest struct {
-	TunnelType string
-	Proxy      string
+	TunnelType               string
+	Proxy                    string
+	TLSFragment              bool
+	TLSRecordFragment        bool
+	TLSFragmentFallbackDelay string
 
 	apiHosts []string
 }
@@ -56,7 +60,11 @@ func WarpRegister(request *WarpRegisterRequest) (*WarpIdentity, error) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), warpRegisterTimeout+time.Duration(hosts)*warpRegisterHostTimeout)
 	defer cancel()
-	identity, err := warp.Register(ctx, request.TunnelType, request.Proxy, request.apiHosts)
+	identity, err := warp.Register(ctx, request.TunnelType, request.Proxy, request.apiHosts, warp.TLSFragmentOptions{
+		Fragment:       request.TLSFragment,
+		RecordFragment: request.TLSRecordFragment,
+		FallbackDelay:  request.TLSFragmentFallbackDelay,
+	})
 	if err != nil {
 		return nil, err
 	}

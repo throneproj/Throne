@@ -82,7 +82,8 @@ namespace API {
         libcore::GenWgKeyPairResponse GenWgKeyPair(bool *rpcOK);
 
         libcore::WarpRegisterResponse WarpRegister(bool *rpcOK, const QString &tunnelType, const QString &proxy,
-                                                   const QStringList &apiHosts);
+                                                   const QStringList &apiHosts, bool tlsFragment, bool tlsRecordFragment,
+                                                   const QString &tlsFragmentFallbackDelay);
 
         libcore::GenQuicSignatureResponse GenQuicSignature(bool *rpcOK, const QString &domain);
 

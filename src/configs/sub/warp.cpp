@@ -28,8 +28,12 @@ namespace Configs_network {
         if (!error->isEmpty()) return nullptr;
 
         bool rpcOK = false;
-        const auto reply = API::defaultClient->WarpRegister(&rpcOK, tunnelType, proxy,
-                                                            Configs::dataManager->settingsRepo->warp_api_hosts);
+        const auto &settings = Configs::dataManager->settingsRepo;
+        // The dialog validates the delay only while fragmenting is on.
+        const auto fallbackDelay = settings->warp_api_tls_fragment ? settings->warp_api_tls_fragment_fallback_delay.trimmed() : QString();
+        const auto reply = API::defaultClient->WarpRegister(&rpcOK, tunnelType, proxy, settings->warp_api_hosts,
+                                                            settings->warp_api_tls_fragment, settings->warp_api_tls_record_fragment,
+                                                            fallbackDelay);
         if (!rpcOK) {
             *error = QObject::tr("Failed to reach the core.");
             return nullptr;

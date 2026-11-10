@@ -4142,6 +4142,38 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>更新了 %1, 失败了 %2:
 %3</translation>
     </message>
+    <message>
+        <source>TLS fragmentation for WARP registration</source>
+        <translation>WARP 注册时的 TLS 分片</translation>
+    </message>
+    <message>
+        <source>Advanced…</source>
+        <translation>高级…</translation>
+    </message>
+    <message>
+        <source>Advanced WARP Settings</source>
+        <translation>高级 WARP 设置</translation>
+    </message>
+    <message>
+        <source>Registration</source>
+        <translation>注册</translation>
+    </message>
+    <message>
+        <source>Applies only when registration connects directly, not through a running profile.</source>
+        <translation>仅在注册直接连接、而非经由正在运行的配置档时生效。</translation>
+    </message>
+    <message>
+        <source>Fragment TLS</source>
+        <translation>TLS 分片</translation>
+    </message>
+    <message>
+        <source>Record fragment</source>
+        <translation>记录分片</translation>
+    </message>
+    <message>
+        <source>Fallback delay</source>
+        <translation>回退延时</translation>
+    </message>
 </context>
 <context>
     <name>DialogNewScan</name>
@@ -5168,6 +5200,14 @@ Close without saving?</source>
         <source>Rescan current results</source>
         <translation>重新扫描当前结果</translation>
     </message>
+    <message>
+        <source>QUIC opener</source>
+        <translation>QUIC 前导包</translation>
+    </message>
+    <message>
+        <source>Sends one decoy packet before each new UDP flow, so networks that block QUIC by its first packet let the real handshake through.</source>
+        <translation>在每个新的 UDP 流之前发送一个诱饵包，使按首个数据包封锁 QUIC 的网络放行真正的握手。</translation>
+    </message>
 </context>
 <context>
     <name>DialogScanner</name>
@@ -5742,6 +5782,14 @@ Close without saving?</source>
     <message>
         <source>Already set</source>
         <translation>已设置</translation>
+    </message>
+    <message>
+        <source>QUIC Opener</source>
+        <translation>QUIC 前导包</translation>
+    </message>
+    <message>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sends one decoy packet before each new UDP flow, so networks that block QUIC by its first packet let the real handshake through. It helps HTTP/3 carriers (MASQUE, Hysteria2, TUIC). It does nothing when the profile dials through another profile.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;在每个新的 UDP 流之前发送一个诱饵包，使按首个数据包封锁 QUIC 的网络放行真正的握手。适用于基于 HTTP/3 的协议（MASQUE、Hysteria2、TUIC）。当此配置档通过另一个配置档拨号时无效。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
 </context>
 <context>

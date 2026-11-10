@@ -386,8 +386,8 @@ github.com/throneproj/cronet-go/lib/darwin_arm64 v0.0.0-20260923015522-0dc5a60c5
 github.com/throneproj/cronet-go/lib/darwin_arm64 v0.0.0-20260923015522-0dc5a60c5c47/go.mod h1:kojvtUc29KKnk8hs2QIANynVR59921SnGWA9kXohHc0=
 github.com/throneproj/sing v0.9.4-0.20261024082846-e3e392877db8 h1:V3PK33YPQX6LACVpQ05UFTUKou6jm6bMUJ+sY/otZis=
 github.com/throneproj/sing v0.9.4-0.20261024082846-e3e392877db8/go.mod h1:K3Owt3xPhHugvlnlPPxZJ/exXdaJfEPOTNorGk4AXjo=
-github.com/throneproj/sing-box v1.11.16-0.20261109011219-1f09fd8d107c h1:rwLbLTLLscYb5YJ5nfzfhh0PtXBRFQ0/bFKwAiTiN90=
-github.com/throneproj/sing-box v1.11.16-0.20261109011219-1f09fd8d107c/go.mod h1:28+tNuWCwFrrpLMkbd9+FUWG0vc9ZLEfoOlSf9uAA2I=
+github.com/throneproj/sing-box v1.11.16-0.20261110105159-d42377f8af91 h1:jE0iTrmrz0UXA0Kl/MCFFmXqm75ZdYeMeRXr35OCSJg=
+github.com/throneproj/sing-box v1.11.16-0.20261110105159-d42377f8af91/go.mod h1:28+tNuWCwFrrpLMkbd9+FUWG0vc9ZLEfoOlSf9uAA2I=
 github.com/throneproj/utls v1.8.8-0.20261105093534-f0ae7792aa1d h1:iIz+TLSsaRmo/LuX/IaZFiR3wpkKGYRUpPZx197SjLk=
 github.com/throneproj/utls v1.8.8-0.20261105093534-f0ae7792aa1d/go.mod h1:kncGGVhFaoGn5M3pFe3SXhZCzsbCJayNOH4UEqTKTko=
 github.com/throneproj/wireguard-go v0.0.0-20261031210827-e11787583013 h1:MOqnvmWxl7xQhENqWF5TuapPNVnajsWXMbdkxjMK2Bs=

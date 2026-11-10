@@ -54,6 +54,7 @@ namespace Configs {
         if (query.hasQueryItem("tcp_fast_open")) tcp_fast_open = query.queryItemValue("tcp_fast_open") == "true";
         if (query.hasQueryItem("tcp_multi_path")) tcp_multi_path = query.queryItemValue("tcp_multi_path") == "true";
         if (query.hasQueryItem("udp_fragment")) udp_fragment = query.queryItemValue("udp_fragment") == "true";
+        if (query.hasQueryItem("quic_opener")) quic_opener = query.queryItemValue("quic_opener") == "true";
         if (query.hasQueryItem("bind_interface")) bind_interface = query.queryItemValue("bind_interface");
         for (const auto& [key, target] : {std::pair{QStringLiteral("connect_timeout"), &connect_timeout},
                                           std::pair{QStringLiteral("inet4_bind_address"), &inet4_bind_address},
@@ -73,6 +74,7 @@ namespace Configs {
         if (object.contains("tcp_fast_open")) tcp_fast_open = object["tcp_fast_open"].toBool();
         if (object.contains("tcp_multi_path")) tcp_multi_path = object["tcp_multi_path"].toBool();
         if (object.contains("udp_fragment")) udp_fragment = object["udp_fragment"].toBool();
+        if (object.contains("quic_opener")) quic_opener = object["quic_opener"].toBool();
         if (object.contains("bind_interface")) bind_interface = object["bind_interface"].toString();
         for (const auto& [key, target] : {std::pair{QStringLiteral("connect_timeout"), &connect_timeout},
                                           std::pair{QStringLiteral("inet4_bind_address"), &inet4_bind_address},
@@ -92,6 +94,7 @@ namespace Configs {
         if (tcp_fast_open) query.addQueryItem("tcp_fast_open", "true");
         if (tcp_multi_path) query.addQueryItem("tcp_multi_path", "true");
         if (udp_fragment) query.addQueryItem("udp_fragment", "true");
+        if (quic_opener) query.addQueryItem("quic_opener", "true");
         if (!bind_interface.isEmpty()) query.addQueryItem("bind_interface", bind_interface);
         if (!inet4_bind_address.isEmpty()) query.addQueryItem("inet4_bind_address", inet4_bind_address);
         if (!inet6_bind_address.isEmpty()) query.addQueryItem("inet6_bind_address", inet6_bind_address);
@@ -105,6 +108,7 @@ namespace Configs {
         if (tcp_fast_open) object["tcp_fast_open"] = tcp_fast_open;
         if (tcp_multi_path) object["tcp_multi_path"] = tcp_multi_path;
         if (udp_fragment) object["udp_fragment"] = udp_fragment;
+        if (quic_opener) object["quic_opener"] = quic_opener;
         if (!bind_interface.isEmpty()) object["bind_interface"] = bind_interface;
         if (!inet4_bind_address.isEmpty()) object["inet4_bind_address"] = inet4_bind_address;
         if (!inet6_bind_address.isEmpty()) object["inet6_bind_address"] = inet6_bind_address;

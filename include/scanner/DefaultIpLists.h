@@ -15,4 +15,8 @@ namespace Scanner::DefaultIpLists {
     int Ensure(const QString &name);
 
     int EnsureAll();
+
+    // Puts the 162.159.198.0/24 and 199.0/24 seeds in the MASQUE list in place of the .1/.2 hosts they cover.
+    // True when done or there is nothing to do (the list is gone); false when the rewrite failed.
+    bool MigrateWarpMasqueRanges();
 } // namespace Scanner::DefaultIpLists

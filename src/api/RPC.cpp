@@ -662,12 +662,16 @@ namespace API {
     }
 
     libcore::WarpRegisterResponse Client::WarpRegister(bool *rpcOK, const QString &tunnelType, const QString &proxy,
-                                                       const QStringList &apiHosts)
+                                                       const QStringList &apiHosts, bool tlsFragment, bool tlsRecordFragment,
+                                                       const QString &tlsFragmentFallbackDelay)
     {
         libcore::WarpRegisterRequest request;
         request.tunnel_type = tunnelType.toStdString();
         request.proxy = proxy.toStdString();
         for (const auto &host : apiHosts) request.api_hosts.push_back(host.toStdString());
+        request.tls_fragment = tlsFragment;
+        request.tls_record_fragment = tlsRecordFragment;
+        request.tls_fragment_fallback_delay = tlsFragmentFallbackDelay.toStdString();
         libcore::WarpRegisterResponse reply;
         std::vector<uint8_t> resp;
         // Must outlast the core's per-host budget in server_warp.go.

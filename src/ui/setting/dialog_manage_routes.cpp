@@ -18,6 +18,8 @@
 #include <QScreen>
 #include <QGridLayout>
 #include <QFormLayout>
+#include <QGroupBox>
+#include <QLineEdit>
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QRegularExpression>
@@ -181,6 +183,60 @@ namespace {
             if (!popupForm->validateAll()) return;
             Configs::dataManager->settingsRepo->warp_api_hosts = normalizeWarpApiHosts(tEdit->toPlainText());
             Configs::dataManager->settingsRepo->Save();
+            w->accept();
+        });
+        QObject::connect(buttons, &QDialogButtonBox::rejected, w, &QDialog::reject);
+
+        w->resize(w->sizeHint().boundedTo(parent->screen()->availableGeometry().size()));
+        w->exec();
+        w->deleteLater();
+    }
+
+    void editWarpAdvanced(QWidget *parent) {
+        auto w = new QDialog(parent);
+        w->setWindowTitle(DialogManageRoutes::tr("Advanced WARP Settings"));
+        w->setWindowModality(Qt::ApplicationModal);
+
+        auto *settings = Configs::dataManager->settingsRepo.get();
+        auto layout = new QVBoxLayout(w);
+
+        auto registration = new QGroupBox(DialogManageRoutes::tr("Registration"), w);
+        auto registrationForm = new QFormLayout(registration);
+        auto hint = new QLabel(DialogManageRoutes::tr("Applies only when registration connects directly, not through a running profile."),
+                               registration);
+        hint->setWordWrap(true);
+        registrationForm->addRow(hint);
+        auto fragment = new QCheckBox(DialogManageRoutes::tr("Fragment TLS"), registration);
+        fragment->setChecked(settings->warp_api_tls_fragment);
+        registrationForm->addRow(fragment);
+        auto recordFragment = new QCheckBox(DialogManageRoutes::tr("Record fragment"), registration);
+        recordFragment->setChecked(settings->warp_api_tls_record_fragment);
+        registrationForm->addRow(recordFragment);
+        auto fallbackDelay = new QLineEdit(settings->warp_api_tls_fragment_fallback_delay, registration);
+        fallbackDelay->setPlaceholderText(QStringLiteral("500ms"));
+        registrationForm->addRow(DialogManageRoutes::tr("Fallback delay"), fallbackDelay);
+        const auto syncFallbackDelay = [=] {
+            fallbackDelay->setEnabled(fragment->isChecked());
+            if (auto *label = registrationForm->labelForField(fallbackDelay)) label->setEnabled(fragment->isChecked());
+        };
+        QObject::connect(fragment, &QCheckBox::toggled, w, syncFallbackDelay);
+        syncFallbackDelay();
+        layout->addWidget(registration);
+
+        auto buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, w);
+        layout->addWidget(buttons);
+
+        auto popupForm = new Validation::Form(w);
+        popupForm->attachStatus(buttons);
+        popupForm->bind(fallbackDelay, Validation::Rules::Duration());
+        popupForm->markAll();
+
+        QObject::connect(buttons, &QDialogButtonBox::accepted, w, [=] {
+            if (!popupForm->validateAll()) return;
+            settings->warp_api_tls_fragment = fragment->isChecked();
+            settings->warp_api_tls_record_fragment = recordFragment->isChecked();
+            settings->warp_api_tls_fragment_fallback_delay = fallbackDelay->text().trimmed();
+            settings->Save();
             w->accept();
         });
         QObject::connect(buttons, &QDialogButtonBox::rejected, w, &QDialog::reject);
@@ -530,6 +586,7 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     connect(ui->warp_mode, &QComboBox::currentIndexChanged, this, showWarpMode);
     connect(ui->warp_autogen, &QPushButton::clicked, this, &DialogManageRoutes::generate_warp_config);
     connect(ui->warp_api_hosts_btn, &QPushButton::clicked, this, [this] { editWarpApiHosts(this); });
+    connect(ui->warp_advanced_btn, &QPushButton::clicked, this, [this] { editWarpAdvanced(this); });
 
     // A custom DNS object greys out the DNS fields, so Simple mode keeps its switch beside them while it is on.
     if (ui->use_dns_object->isChecked()) {

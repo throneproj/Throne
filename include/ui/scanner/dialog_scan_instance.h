@@ -146,6 +146,7 @@ private:
     NoWheelComboBox *warpProfile = nullptr;
     QLineEdit *warpMtu = nullptr;
     QLineEdit *warpSni = nullptr;
+    QCheckBox *warpQuicOpener = nullptr;
     QLineEdit *warpJc = nullptr;
     QLineEdit *warpJmin = nullptr;
     QLineEdit *warpJmax = nullptr;

@@ -7,6 +7,8 @@
 
 #include <QFile>
 
+#include <algorithm>
+
 namespace {
     struct DefaultIpListSpec {
         QString name;
@@ -76,5 +78,43 @@ namespace Scanner::DefaultIpLists {
             if (Ensure(spec.name) >= 0) ++created;
         }
         return created;
+    }
+
+    bool MigrateWarpMasqueRanges() {
+        const int id = defaultIpListFind(kWarpMasqueName);
+        if (id < 0) return true;
+        static const QStringList covered = {
+            QStringLiteral("162.159.198.1"), QStringLiteral("162.159.198.2"),
+            QStringLiteral("162.159.199.1"), QStringLiteral("162.159.199.2"),
+        };
+        const auto entries = Configs::dataManager->ipListsRepo->GetEntries(id);
+        const auto contains = [&entries](const Configs::IpListEntry &wanted) {
+            return std::any_of(entries.cbegin(), entries.cend(), [&wanted](const Configs::IpListEntry &entry) {
+                return entry.cidr == wanted.cidr && entry.port == wanted.port;
+            });
+        };
+        QList<Configs::IpListEntry> ranges;
+        for (const auto &range : Scanner::EntriesFromCidrs({QStringLiteral("162.159.198.0/24"), QStringLiteral("162.159.199.0/24")}, 0)) {
+            if (!contains(range)) ranges << range;
+        }
+
+        QList<Configs::IpListEntry> migrated;
+        migrated.reserve(entries.size() + ranges.size());
+        bool placed = false;
+        bool changed = !ranges.isEmpty();
+        for (const auto &entry : entries) {
+            // Only the seeded portless hosts: an entry with its own port is not covered by a portless range.
+            if (entry.port == 0 && covered.contains(entry.cidr)) {
+                // The ranges take the first seed's place, so a migrated list reads like a fresh seed.
+                if (!placed) migrated << ranges;
+                placed = true;
+                changed = true;
+                continue;
+            }
+            migrated << entry;
+        }
+        if (!changed) return true;
+        if (!placed) migrated << ranges;
+        return Configs::dataManager->ipListsRepo->ReplaceEntries(id, migrated);
     }
 } // namespace Scanner::DefaultIpLists
