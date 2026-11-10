@@ -39,6 +39,29 @@ private:
 
     void refreshPlanSummary();
 
+    [[nodiscard]] bool prioritySelected() const;
+
+    void updateStrategyControls() const;
+
+    void setTierRows(const QList<Configs::autoSelector::Tier> &tiers);
+
+    void appendTierRow(const Configs::autoSelector::Tier &tier);
+
+    [[nodiscard]] QList<Configs::autoSelector::Tier> tierRows() const;
+
+    void moveTier(int offset);
+
+    void onTiersChanged(bool revalidate);
+
+    void updateTierButtons() const;
+
+    // True when the table's height changed.
+    bool fitTierTable() const;
+
+    void chainTierTabOrder() const;
+
+    [[nodiscard]] QString tierIssue() const;
+
     void updateBalanceEnabled() const;
 
     void refreshPinnedRow() const;

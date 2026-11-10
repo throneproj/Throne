@@ -2148,6 +2148,7 @@ namespace Configs {
             QString pinnedTag;
 
             QJsonArray memberTags;
+            QList<QJsonArray> tierTags(selector->Prioritized() ? selector->tiers.size() : 0);
             int idx = 0;
             for (const auto &[member, hopIDs, bridges] : planned)
             {
@@ -2179,6 +2180,8 @@ namespace Configs {
                     ctx.result->isXrayNeeded = false;
                 }
                 memberTags.append(tag);
+                // Members matching no tier stay unlisted: the core ranks them after the last tier.
+                if (const int tier = plan.tierOf.value(member->id, -1); tier >= 0 && tier < tierTags.size()) tierTags[tier].append(tag);
                 info.members.append({tag, member});
                 // Connections carry the member the selector picked, never the group's own tag.
                 ctx.result->outboundNames.insert(tag, profileDisplayName(member));
@@ -2249,6 +2252,18 @@ namespace Configs {
                 groupObject["balance_mode"] = selector->balanceMode;
                 groupObject["balance_interval"] = Int2String(selector->balanceIntervalSec) + "s";
             }
+            if (selector->Prioritized())
+            {
+                QJsonArray tiers;
+                for (const auto &tags : std::as_const(tierTags)) tiers.append(tags);
+                groupObject["strategy"] = "priority";
+                groupObject["tiers"] = tiers;
+                groupObject["failback_checks"] = selector->failbackChecks;
+                groupObject["failback_delay"] = Int2String(selector->failbackDelaySec) + "s";
+                if (selector->failbackInterrupt) groupObject["failback_interrupt"] = true;
+            }
+            if (selector->passive)
+                groupObject["passive"] = QJsonObject{{"enabled", true}, {"site_memory", Int2String(selector->siteMemoryMins) + "m"}};
             ctx.outbounds.append(groupObject);
             ctx.result->autoSelectors.append(info);
             return groupTag;

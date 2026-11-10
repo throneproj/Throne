@@ -414,7 +414,7 @@ message GenQuicSignatureResponse {
 message AutoSelectorMember {
   optional string tag = 1 [default = ""];
   optional int32 rank = 2 [default = 0];
-  // ok | degraded | untested | dead | cooldown
+  // ok | degraded | suspect | untested | dead | cooldown
   optional string state = 3 [default = ""];
   optional bool selected = 4 [default = false];
   optional bool selected_udp = 5 [default = false];
@@ -434,6 +434,21 @@ message AutoSelectorMember {
   optional int64 last_probe_ms = 18 [default = 0];
   optional int64 cooldown_until_ms = 19 [default = 0];
   optional string last_error = 20 [default = ""];
+  // priority strategy: index of the member's tier, 0 = most preferred
+  optional int32 priority = 21 [default = 0];
+  // successful checks in a row since the last failure; fail-back needs failback_checks of them
+  optional int32 streak = 22 [default = 0];
+  // last failed check or dial, 0 = none on record
+  optional int64 last_failure_ms = 23 [default = 0];
+  // passive scoring: time-weighted average time to the first response byte on real connections, 0 = none yet
+  optional int32 first_byte_ms = 24 [default = 0];
+  optional int32 passive_answered = 25 [default = 0];
+  optional int32 passive_failed = 26 [default = 0];
+  // the same outcomes with exponential decay, rounded; suspect needs recent_failed >= 3 and >= recent_answered
+  optional int32 recent_answered = 27 [default = 0];
+  optional int32 recent_failed = 28 [default = 0];
+  // passive scoring holds the member out of the selection until then, 0 = not suspect
+  optional int64 suspect_until_ms = 29 [default = 0];
 }
 
 message AutoSelectorStatus {
@@ -463,6 +478,14 @@ message AutoSelectorStatus {
   optional int64 last_switch_ms = 18 [default = 0];
   optional string last_switch_reason = 19 [default = ""];
   repeated AutoSelectorMember members = 20;
+  // latency | priority
+  optional string strategy = 22 [default = ""];
+  // priority strategy: what a recovered higher-tier member must pass before the group moves back up to it
+  optional int32 failback_checks = 23 [default = 0];
+  optional int64 failback_delay_ms = 24 [default = 0];
+  // passive scoring is on; sites_remembered counts sites holding a member that answered them
+  optional bool passive = 25 [default = false];
+  optional int32 sites_remembered = 26 [default = 0];
 }
 
 // Idempotent snapshot: unlike QueryStats this never clears core-side counters,

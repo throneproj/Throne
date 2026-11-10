@@ -19,6 +19,13 @@ namespace Configs
 {
     namespace
     {
+        struct MemberTierFilter
+        {
+            int gid = -1;
+            QRegularExpression name;
+            bool hasName = false;
+        };
+
         struct MemberFilters
         {
             QRegularExpression name;
@@ -26,6 +33,8 @@ namespace Configs
             QSet<QString> countries;
             // "!RU": removed whether or not includes are given.
             QSet<QString> excludedCountries;
+            // Priority strategy only, in tier order.
+            QList<MemberTierFilter> tiers;
         };
 
         MemberFilters buildFilters(const autoSelector *selector)
@@ -43,7 +52,31 @@ namespace Configs
                 if (code.isEmpty()) continue;
                 (exclude ? filters.excludedCountries : filters.countries).insert(code.toUpper());
             }
+            if (selector->Prioritized()) {
+                for (const auto &tier : selector->tiers) {
+                    MemberTierFilter tierFilter;
+                    tierFilter.gid = tier.gid;
+                    if (const auto pattern = tier.nameFilter.trimmed(); !pattern.isEmpty()) {
+                        tierFilter.name = QRegularExpression(pattern, QRegularExpression::CaseInsensitiveOption);
+                        tierFilter.hasName = true;
+                    }
+                    filters.tiers << tierFilter;
+                }
+            }
             return filters;
+        }
+
+        // First match wins, tiers.size() when none does; an invalid pattern matches nothing.
+        int memberTierOf(const std::shared_ptr<Profile> &member, const MemberFilters &filters)
+        {
+            const auto name = member->outbound->DisplayName();
+            for (int i = 0; i < filters.tiers.size(); i++) {
+                const auto &tier = filters.tiers[i];
+                if (tier.gid >= 0 && member->gid != tier.gid) continue;
+                if (tier.hasName && (!tier.name.isValid() || !tier.name.match(name).hasMatch())) continue;
+                return i;
+            }
+            return static_cast<int>(filters.tiers.size());
         }
 
         bool hasFreshResult(const std::shared_ptr<Profile> &member, const autoSelector *selector, qint64 now)
@@ -212,6 +245,7 @@ namespace Configs
                         skips[AutoSelectorSkip::CoreTransitions]++;
                         continue;
                     }
+                    if (plan != nullptr && selector->Prioritized()) plan->tierOf.insert(id, memberTierOf(member, filters));
                     if (skip == AutoSelectorSkip::Unavailable) {
                         unavailable << id;
                         continue;
@@ -257,6 +291,42 @@ namespace Configs
             sortByLatency(newcomers, selector, now);
             ordered << newcomers;
             return ordered;
+        }
+
+        // Cuts a tier-sorted list to `limit` without crowding out a tier: each one first gets a fair share, the rest goes in tier order.
+        QList<int> capByTier(const QList<int> &ordered, int limit, const QHash<int, int> &tierOf, int noTier)
+        {
+            if (ordered.size() <= limit) return ordered;
+            QList<QList<int>> byTier(noTier + 1);
+            for (int id : ordered) byTier[tierOf.value(id, noTier)] << id;
+            int nonEmpty = 0;
+            for (const auto &members : std::as_const(byTier)) {
+                if (!members.isEmpty()) nonEmpty++;
+            }
+            const int reserve = std::max(1, limit / (2 * nonEmpty));
+            QList<int> quota(byTier.size(), 0);
+            int given = 0;
+            for (int i = 0; i < byTier.size(); i++) {
+                quota[i] = std::min(static_cast<int>(byTier[i].size()), reserve);
+                given += quota[i];
+            }
+            if (given > limit) {
+                // More tiers than slots: one each, in tier order.
+                given = 0;
+                for (int i = 0; i < byTier.size(); i++) {
+                    quota[i] = !byTier[i].isEmpty() && given < limit ? 1 : 0;
+                    given += quota[i];
+                }
+            }
+            for (int i = 0; i < byTier.size() && given < limit; i++) {
+                const int extra = std::min(static_cast<int>(byTier[i].size()) - quota[i], limit - given);
+                quota[i] += extra;
+                given += extra;
+            }
+            QList<int> capped;
+            capped.reserve(given);
+            for (int i = 0; i < byTier.size(); i++) capped << byTier[i].mid(0, quota[i]);
+            return capped;
         }
     } // namespace
 
@@ -306,10 +376,25 @@ namespace Configs
 
         const auto now = QDateTime::currentSecsSinceEpoch();
         auto ordered = orderMembers(members, selector->pool, selector, now);
+        const int noTier = static_cast<int>(selector->tiers.size());
         plan.truncated = ordered.size() > selector->poolCap;
-        if (plan.truncated) ordered = ordered.mid(0, selector->poolCap);
-        plan.pool = ordered;
-        plan.build = ordered.mid(0, std::min<qsizetype>(ordered.size(), selector->buildLimit));
+        if (selector->Prioritized()) {
+            // The core reads this order as its ranking prior, and capByTier keeps it.
+            std::stable_sort(ordered.begin(), ordered.end(), [&plan, noTier](int left, int right) {
+                return plan.tierOf.value(left, noTier) < plan.tierOf.value(right, noTier);
+            });
+            plan.tierEligible = QList<int>(noTier + 1, 0);
+            for (int id : std::as_const(ordered)) plan.tierEligible[plan.tierOf.value(id, noTier)]++;
+            ordered = capByTier(ordered, selector->poolCap, plan.tierOf, noTier);
+            plan.pool = ordered;
+            plan.build = capByTier(ordered, selector->buildLimit, plan.tierOf, noTier);
+            plan.tierBuilt = QList<int>(noTier + 1, 0);
+            for (int id : std::as_const(plan.build)) plan.tierBuilt[plan.tierOf.value(id, noTier)]++;
+        } else {
+            if (plan.truncated) ordered = ordered.mid(0, selector->poolCap);
+            plan.pool = ordered;
+            plan.build = ordered.mid(0, std::min<qsizetype>(ordered.size(), selector->buildLimit));
+        }
 
         if (ordered.size() > selector->buildLimit) {
             int unranked = 0;

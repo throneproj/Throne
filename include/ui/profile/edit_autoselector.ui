@@ -56,7 +56,140 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
        </property>
       </widget>
      </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="strategy_l">
+       <property name="text">
+        <string>Choose</string>
+       </property>
+       <property name="buddy">
+        <cstring>strategy</cstring>
+       </property>
+      </widget>
+     </item>
      <item row="2" column="1">
+      <widget class="QComboBox" name="strategy">
+       <property name="toolTip">
+        <string>Fastest and steadiest: always use the best measured profile out of all of them.
+In priority order: try the tiers below from the top. The selector stays on the highest tier that has a working profile, and moves back up once a higher tier works again.</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="tiers_l">
+       <property name="text">
+        <string>Priority tiers</string>
+       </property>
+       <property name="buddy">
+        <cstring>tiers</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QWidget" name="tiers_area" native="true">
+       <layout class="QVBoxLayout" name="tiers_layout">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QTableWidget" name="tiers">
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
+          <property name="horizontalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOff</enum>
+          </property>
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+          <property name="tabKeyNavigation">
+           <bool>false</bool>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::SingleSelection</enum>
+          </property>
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
+          <column>
+           <property name="text">
+            <string>Group</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Names matching</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="tiers_buttons">
+          <item>
+           <widget class="QPushButton" name="tier_add">
+            <property name="text">
+             <string>Add</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="tier_remove">
+            <property name="text">
+             <string>Remove</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="tier_up">
+            <property name="text">
+             <string>Move up</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="tier_down">
+            <property name="text">
+             <string>Move down</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="tiers_spacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QLabel" name="tiers_hint">
+          <property name="text">
+           <string>A profile belongs to the first tier it matches, and profiles that match none come last. The selector uses the highest tier that has a working profile and, inside it, the best measured one.</string>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="4" column="1">
       <widget class="QCheckBox" name="balance">
        <property name="text">
         <string>Share traffic between the best profiles</string>
@@ -66,14 +199,14 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
        </property>
       </widget>
      </item>
-     <item row="3" column="0">
+     <item row="5" column="0">
       <widget class="QLabel" name="pinned_l">
        <property name="text">
         <string>Preferred profile</string>
        </property>
       </widget>
      </item>
-     <item row="3" column="1">
+     <item row="5" column="1">
       <layout class="QHBoxLayout" name="pinned_layout">
        <item>
         <widget class="QLabel" name="pinned_name">
@@ -110,7 +243,7 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
        </item>
       </layout>
      </item>
-     <item row="4" column="1">
+     <item row="6" column="1">
       <widget class="QLabel" name="plan_summary">
        <property name="text">
         <string/>
@@ -572,6 +705,119 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
             </property>
            </widget>
           </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="failback_checks_l">
+            <property name="text">
+             <string>Move back up after</string>
+            </property>
+            <property name="buddy">
+             <cstring>failback_checks</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QSpinBox" name="failback_checks">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>60</number>
+            </property>
+            <property name="suffix">
+             <string> checks</string>
+            </property>
+            <property name="toolTip">
+             <string>In priority order: once a profile from a higher tier works again, the selector moves back to it only after it passes this many checks in a row. Cannot be more than the samples kept.</string>
+            </property>
+            <property name="value">
+             <number>3</number>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="failback_delay_l">
+            <property name="text">
+             <string>Failure-free for</string>
+            </property>
+            <property name="buddy">
+             <cstring>failback_delay</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QSpinBox" name="failback_delay">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>3600</number>
+            </property>
+            <property name="suffix">
+             <string> s</string>
+            </property>
+            <property name="toolTip">
+             <string>In priority order: a profile from a higher tier must also go this long without a failed check or connection before the selector moves back to it.</string>
+            </property>
+            <property name="value">
+             <number>60</number>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QCheckBox" name="failback_interrupt">
+            <property name="text">
+             <string>Drop connections when moving back up</string>
+            </property>
+            <property name="toolTip">
+             <string>In priority order. Off: connections that are already open stay on their profile, and only new ones move up to the higher tier. On: everything moves up at once.</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
+           <widget class="QCheckBox" name="passive">
+            <property name="text">
+             <string>Learn from real connections</string>
+            </property>
+            <property name="toolTip">
+             <string>Also judge profiles by the connections your apps make through them, not only by health checks. A connection counts as failed when it gets no reply at all or cannot connect. When recent connections through a profile fail at least as often as they succeed, three times or more, the profile is set aside even though its checks pass: for a minute, twice as long each time it happens again, up to 16 minutes. Each website also sticks with the profile that last worked for it and avoids one that just failed it. While real traffic flows, fewer health checks are sent.</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="0">
+           <widget class="QLabel" name="site_memory_l">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Remember per-site choices for</string>
+            </property>
+            <property name="buddy">
+             <cstring>site_memory</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="1">
+           <widget class="QSpinBox" name="site_memory">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>1440</number>
+            </property>
+            <property name="suffix">
+             <string> min</string>
+            </property>
+            <property name="toolTip">
+             <string>How long a website keeps using the profile that last worked for it, and keeps avoiding a profile that failed it.</string>
+            </property>
+            <property name="value">
+             <number>60</number>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
@@ -717,6 +963,11 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
  <tabstops>
   <tabstop>groups</tabstop>
   <tabstop>name_filter</tabstop>
+  <tabstop>strategy</tabstop>
+  <tabstop>tier_add</tabstop>
+  <tabstop>tier_remove</tabstop>
+  <tabstop>tier_up</tabstop>
+  <tabstop>tier_down</tabstop>
   <tabstop>balance</tabstop>
   <tabstop>pinned_clear</tabstop>
   <tabstop>advanced_toggle</tabstop>
@@ -735,6 +986,11 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
   <tabstop>max_rtt</tabstop>
   <tabstop>dial_retries</tabstop>
   <tabstop>interrupt_on_switch</tabstop>
+  <tabstop>failback_checks</tabstop>
+  <tabstop>failback_delay</tabstop>
+  <tabstop>failback_interrupt</tabstop>
+  <tabstop>passive</tabstop>
+  <tabstop>site_memory</tabstop>
   <tabstop>balance_mode</tabstop>
   <tabstop>balance_interval</tabstop>
   <tabstop>test_url</tabstop>

@@ -13,6 +13,9 @@ namespace Configs
         QString AutoSelectorWatchInterval(int watchInterval, int interval);
         QString AutoSelectorReadyCount(int activeSize, int expected);
         QString AutoSelectorCloseCount(int activeSize, int buildLimit);
+        QString AutoSelectorTierMatch(int gid, const QString &nameFilter);
+        QString AutoSelectorTierCount(int tiers);
+        QString AutoSelectorFailbackChecks(int failbackChecks, int sampling);
     }
 
     // Membership resolves at build time from gids; ranking is client-side, best first in pool.
@@ -51,6 +54,30 @@ namespace Configs
         bool balance = false;
         QString balanceMode = "rotate"; // "rotate" | "connection"
         int balanceIntervalSec = 30;
+
+        QString strategy = "latency"; // "latency" | "priority"
+
+        struct Tier {
+            int gid = -1; // -1 = any tracked group
+            QString nameFilter;
+        };
+
+        // A member takes the first tier it matches; members matching none form an implicit last tier.
+        QList<Tier> tiers;
+        // Moving back up to a recovered higher tier: checks passed in a row, and seconds since its last failure.
+        int failbackChecks = 3;
+        int failbackDelaySec = 60;
+        bool failbackInterrupt = false;
+
+        // Also judge members by how the real connections they carry end, not only by probes.
+        bool passive = false;
+        // How long a site sticks to the member that last answered it, and avoids one that failed it.
+        int siteMemoryMins = 60;
+
+        [[nodiscard]] bool Prioritized() const { return strategy == "priority"; }
+
+        // Index tiers.size() names the members that match no tier.
+        [[nodiscard]] QString TierLabel(int index) const;
 
         // Ranked membership from the last client-side sweep, best first.
         QList<int> pool;
@@ -106,6 +133,20 @@ namespace Configs
             if (object.contains("balance")) balance = object["balance"].toBool(false);
             if (object.contains("balance_mode")) balanceMode = object["balance_mode"].toString("rotate");
             if (object.contains("balance_interval_sec")) balanceIntervalSec = object["balance_interval_sec"].toInt(30);
+            if (object.contains("strategy")) strategy = object["strategy"].toString("latency");
+            if (object.contains("tiers")) {
+                QList<Tier> parsed;
+                for (const auto &value : object["tiers"].toArray()) {
+                    const auto entry = value.toObject();
+                    parsed << Tier{entry["gid"].toInt(-1), entry["name_filter"].toString()};
+                }
+                tiers = parsed;
+            }
+            if (object.contains("failback_checks")) failbackChecks = object["failback_checks"].toInt(3);
+            if (object.contains("failback_delay_sec")) failbackDelaySec = object["failback_delay_sec"].toInt(60);
+            if (object.contains("failback_interrupt")) failbackInterrupt = object["failback_interrupt"].toBool(false);
+            if (object.contains("passive")) passive = object["passive"].toBool(false);
+            if (object.contains("site_memory_mins")) siteMemoryMins = object["site_memory_mins"].toInt(60);
             if (object.contains("pool")) pool = QJsonArray2QListInt(object["pool"].toArray());
             if (object.contains("pool_ranked_at")) poolRankedAt = static_cast<qint64>(object["pool_ranked_at"].toDouble());
             if (object.contains("pinned_id")) pinnedID = object["pinned_id"].toInt(-1);
@@ -144,7 +185,16 @@ namespace Configs
             object["balance"] = balance;
             object["balance_mode"] = balanceMode;
             object["balance_interval_sec"] = balanceIntervalSec;
-            object["pool"] = QListInt2QJsonArray(pool);
+            object["strategy"] = strategy;
+            QJsonArray tierArray;
+            for (const auto &tier : tiers) tierArray.append(QJsonObject{{"gid", tier.gid}, {"name_filter", tier.nameFilter}});
+            object["tiers"] = tierArray;
+            object["failback_checks"] = failbackChecks;
+            object["failback_delay_sec"] = failbackDelaySec;
+            object["failback_interrupt"] = failbackInterrupt;
+            object["passive"] = passive;
+            object["site_memory_mins"] = siteMemoryMins;
+            object["pool"] =QListInt2QJsonArray(pool);
             object["pool_ranked_at"] = static_cast<double>(poolRankedAt);
             object["pinned_id"] = pinnedID;
             object["last_built"] = QListInt2QJsonArray(lastBuilt);
@@ -185,6 +235,13 @@ namespace Configs
             if (activeSize > buildLimit) activeSize = buildLimit;
             if (sampling < 2) sampling = 2;
             if (sampling > 60) sampling = 60;
+            if (failbackChecks < 1) failbackChecks = 1;
+            // The core cannot prove more checks in a row than it keeps samples.
+            if (failbackChecks > sampling) failbackChecks = sampling;
+            if (failbackDelaySec < 1) failbackDelaySec = 1;
+            if (failbackDelaySec > 3600) failbackDelaySec = 3600;
+            if (siteMemoryMins < 1) siteMemoryMins = 1;
+            if (siteMemoryMins > 1440) siteMemoryMins = 1440;
             if (toleranceMs < 0) toleranceMs = 0;
             if (maxRTTms < 0) maxRTTms = 0;
             if (expected > buildLimit) expected = buildLimit;
@@ -192,6 +249,10 @@ namespace Configs
             if (dialRetries > 5) dialRetries = 5;
             if (balanceIntervalSec < 5) balanceIntervalSec = 5;
             if (balanceMode != "connection") balanceMode = "rotate";
+            if (strategy != "priority") strategy = "latency";
+            for (auto &tier : tiers) {
+                if (tier.gid < -1) tier.gid = -1;
+            }
         }
 
         static constexpr int kMaxPoolCap = 3000;

@@ -21,7 +21,7 @@ private:
     void buildRows(const Stats::AutoSelectorView &view);
 
     // QTableWidget's own sort compares displayed strings, ordering "100 ms" before "20 ms".
-    void sortRows(QList<Stats::AutoSelectorMemberView> &rows) const;
+    void sortRows(QList<Stats::AutoSelectorMemberView> &rows, const Stats::AutoSelectorView &view) const;
 
     void onHeaderClicked(int column);
 
