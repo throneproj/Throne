@@ -51,6 +51,9 @@ service LibcoreService {
   rpc ParseRuleSet(ParseRuleSetRequest) returns (ParseRuleSetResponse);
   rpc ResolveDomains(ResolveDomainsRequest) returns (ResolveDomainsResponse);
   rpc TestRoute(TestRouteRequest) returns (TestRouteResponse);
+  rpc ServiceTest(ServiceTestRequest) returns (ServiceTestResponse);
+  rpc QueryServiceTest(EmptyReq) returns (QueryServiceTestResponse);
+  rpc ParseServiceChecks(ParseServiceChecksRequest) returns (ParseServiceChecksResponse);
 }
 
 message EmptyReq {}
@@ -360,6 +363,9 @@ message IPTestRequest {
   reserved "xray_outbound_dns_address";
   // See TestReq.xray_outbound_dns_strategy.
   optional string xray_outbound_dns_strategy = 10 [default = ""];
+  // An exit_lookup_provider id (ip2location, ip-api, ipwho, ipinfo, ipapi-co, freeipapi, cloudflare);
+  // "" or auto tries ip2location, ip-api, ipwho, ipinfo and cloudflare in turn.
+  optional string provider = 11 [default = ""];
 }
 
 message IPTestResp {
@@ -798,4 +804,92 @@ message TestRouteResponse {
   repeated string addresses = 10;
   // The inbound tag the connection was taken to arrive on.
   optional string inbound = 11 [default = ""];
+}
+
+message ServiceTestRequest {
+  optional string config = 1 [default = ""];
+  repeated string outbound_tags = 2;
+  optional bool use_default_outbound = 3 [default = false];
+  optional int32 max_concurrency = 4 [default = 0];
+  // Per request; 0 = 10 s.
+  optional int32 test_timeout_ms = 5 [default = 0];
+  optional bool need_xray = 6 [default = false];
+  optional string xray_config = 7 [default = ""];
+  // See TestReq.xray_full_configs.
+  repeated string xray_full_configs = 8;
+  // See TestReq.xray_outbound_dns_strategy.
+  optional string xray_outbound_dns_strategy = 9 [default = ""];
+  // The check definitions document (checks.json).
+  optional string checks = 10 [default = ""];
+  // Ids of the checks to run; empty runs them all.
+  repeated string only = 11;
+  optional bool skip_ip_info = 12 [default = false];
+}
+
+message ServiceCheckOutcome {
+  optional string id = 1 [default = ""];
+  optional string name = 2 [default = ""];
+  optional string category = 3 [default = ""];
+  // available | partial | restricted | blocked | unknown | failed
+  optional string status = 4 [default = ""];
+  // ISO 3166-1 alpha-2 country the service placed the exit in, "" = not known.
+  optional string region = 5 [default = ""];
+  // Short English detail: the matched rule's note, or the error.
+  optional string note = 6 [default = ""];
+}
+
+message ServiceIPInfo {
+  optional string provider = 1 [default = ""];
+  optional string ip = 2 [default = ""];
+  optional string country_code = 3 [default = ""];
+  optional string asn = 4 [default = ""];
+  optional string org = 5 [default = ""];
+  // The provider's network type, lower case: isp, hosting, business, education...
+  optional string type = 6 [default = ""];
+  // 0-100, -1 = the provider gives none.
+  optional int32 risk_score = 7 [default = -1];
+  // The flags the provider set, among vpn, proxy, tor, hosting, abuser, anonymous, relay, mobile.
+  repeated string flags = 8;
+  optional string error = 9 [default = ""];
+}
+
+message ServiceTestResult {
+  optional string outbound_tag = 1 [default = ""];
+  repeated ServiceCheckOutcome checks = 2;
+  repeated ServiceIPInfo ip_info = 3;
+  // The profile could not be checked at all (tunnel down, aborted); checks is then empty.
+  optional string error = 4 [default = ""];
+}
+
+message ServiceTestResponse {
+  repeated ServiceTestResult results = 1;
+}
+
+message QueryServiceTestResponse {
+  repeated ServiceTestResult results = 1;
+}
+
+message ParseServiceChecksRequest {
+  optional string checks = 1 [default = ""];
+}
+
+message ServiceCategory {
+  optional string id = 1 [default = ""];
+  optional string name = 2 [default = ""];
+  optional string icon = 3 [default = ""];
+}
+
+message ServiceCheckInfo {
+  optional string id = 1 [default = ""];
+  optional string name = 2 [default = ""];
+  optional string category = 3 [default = ""];
+}
+
+message ParseServiceChecksResponse {
+  // Why the document was rejected; the other fields are then empty.
+  optional string error = 1 [default = ""];
+  optional int32 version = 2 [default = 0];
+  optional int64 revision = 3 [default = 0];
+  repeated ServiceCategory categories = 4;
+  repeated ServiceCheckInfo checks = 5;
 }

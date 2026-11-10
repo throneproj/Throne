@@ -60,6 +60,13 @@ namespace API {
 
         libcore::QueryIPTestResponse QueryIPTest(bool *rpcOK);
 
+        libcore::ServiceTestResponse ServiceTest(bool *rpcOK, const libcore::ServiceTestRequest &request, QString *coreError = nullptr, int timeoutMs = 0);
+
+        libcore::QueryServiceTestResponse QueryServiceTest(bool *rpcOK);
+
+        // Empty checks describes the core's embedded definitions; a non-empty reply.error rejects the document.
+        libcore::ParseServiceChecksResponse ParseServiceChecks(bool *rpcOK, const QByteArray &checks, QString *coreError = nullptr);
+
         [[nodiscard]] libcore::QueryConnectionsResp QueryConnections() const;
 
         // Ids already gone are a no-op; closedCount (optional) receives how many were actually live.

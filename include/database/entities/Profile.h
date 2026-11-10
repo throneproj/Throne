@@ -61,6 +61,9 @@ namespace Configs {
 
         QString ip_out;
 
+        // The last service check as JSON (ServiceChecks::ResultJson); empty = never checked.
+        QString service_checks;
+
         QString runningCountryInfo; // volatile, not saved to db
 
         Profile() = default;
@@ -77,6 +80,12 @@ namespace Configs {
         [[nodiscard]] bool IsUnavailable() const { return latency < 0 && latency != kLatencyConnectOnly; }
 
         [[nodiscard]] QString DisplayTestResult() const;
+
+        // One icon and status dot per category, then the exit IP's kind; empty without a service check.
+        [[nodiscard]] QString DisplayServiceMarks() const;
+
+        // Rich text, safe for any setToolTip; empty without a service check.
+        [[nodiscard]] QString DisplayServiceToolTip() const;
 
         [[nodiscard]] QColor DisplayLatencyColor() const;
 

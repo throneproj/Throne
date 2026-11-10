@@ -150,6 +150,9 @@ var handlers = map[string]handlerFn{
 	"ParseRuleSet":        handle(globalServer.ParseRuleSet),
 	"ResolveDomains":      handle(globalServer.ResolveDomains),
 	"TestRoute":           handle(globalServer.TestRoute),
+	"ServiceTest":         handle(globalServer.ServiceTest),
+	"QueryServiceTest":    handle(globalServer.QueryServiceTest),
+	"ParseServiceChecks":  handle(globalServer.ParseServiceChecks),
 }
 
 func dispatch(methodName string, payload []byte) ([]byte, error) {

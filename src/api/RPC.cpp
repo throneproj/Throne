@@ -380,6 +380,55 @@ namespace API {
         }
     }
 
+    libcore::ServiceTestResponse Client::ServiceTest(bool *rpcOK, const libcore::ServiceTestRequest &request, QString *coreError, int timeoutMs) {
+        libcore::ServiceTestResponse reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("ServiceTest", spb::pb::serialize<std::string>(request), resp, timeoutMs);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return reply;
+        } else {
+            if (coreError && !resp.empty())
+                *coreError = QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
+            NOT_OK
+            return {};
+        }
+    }
+
+    libcore::QueryServiceTestResponse Client::QueryServiceTest(bool *rpcOK) {
+        libcore::EmptyReq request;
+        libcore::QueryServiceTestResponse reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("QueryServiceTest", spb::pb::serialize<std::string>(request), resp);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return reply;
+        } else {
+            NOT_OK
+            return {};
+        }
+    }
+
+    libcore::ParseServiceChecksResponse Client::ParseServiceChecks(bool *rpcOK, const QByteArray &checks, QString *coreError) {
+        libcore::ParseServiceChecksRequest request;
+        request.checks = checks.toStdString();
+        libcore::ParseServiceChecksResponse reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("ParseServiceChecks", spb::pb::serialize<std::string>(request), resp);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return reply;
+        } else {
+            if (coreError && !resp.empty())
+                *coreError = QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
+            NOT_OK
+            return {};
+        }
+    }
+
     libcore::GetDefaultInterfaceResponse Client::GetDefaultInterface(bool *rpcOK) const {
         libcore::EmptyReq request;
         libcore::GetDefaultInterfaceResponse reply;

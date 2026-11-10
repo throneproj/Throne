@@ -503,6 +503,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             connect(actionShowOutIP, &QAction::triggered, this, updateTestItemsToShow);
             connect(actionShowSpeed, &QAction::triggered, this, updateTestItemsToShow);
 
+            auto* actionShowServices = menu.addAction(tr("Services"));
+            actionShowServices->setCheckable(true);
+            actionShowServices->setChecked(group->show_service_checks);
+            connect(actionShowServices, &QAction::triggered, this, [this, group](bool checked) {
+                group->show_service_checks = checked;
+                Configs::dataManager->groupsRepo->Save(group);
+                if (group->calculated_column_width.size() > ProfilesTableModel::ColTestResult) {
+                    group->calculated_column_width[ProfilesTableModel::ColTestResult] = 0;
+                }
+                refresh_proxy_list();
+            });
+
             menu.addSeparator();
             auto* sortByLabel = menu.addAction(tr("Sort By:"));
             sortByLabel->setEnabled(false);
@@ -718,12 +730,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             ui->actionUrl_Test_Selected->setEnabled(false);
             ui->menu_resolve_selected->setEnabled(false);
             ui->actionResolve_Selected_Out_IP->setEnabled(false);
+            ui->actionService_Check_Selected->setEnabled(false);
         } else
         {
             ui->actionSpeedtest_Selected->setEnabled(true);
             ui->actionUrl_Test_Selected->setEnabled(true);
             ui->menu_resolve_selected->setEnabled(true);
             ui->actionResolve_Selected_Out_IP->setEnabled(true);
+            ui->actionService_Check_Selected->setEnabled(true);
         }
         if (tests()->isRunning()) {
             ui->menu_server->addAction(ui->menu_stop_testing);
@@ -920,6 +934,25 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     });
     connect(ui->actionResolve_Out_IP, &QAction::triggered, this, [=,this]() {
         tests()->runIpTests(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles());
+    });
+    const auto startServiceChecks = [this](const QList<int>& ids) {
+        if (ids.size() > Engine::TestRunner::kMaxServiceCheckProfiles) {
+            MessageBoxWarning(tr("Service Check"), tr("A service check can test up to 100 profiles at a time. Select fewer profiles."));
+            return;
+        }
+        if (ids.size() > 20
+            && QMessageBox::question(this, tr("Service Check"),
+                                     tr("This checks %1 profiles. Each one sends about 20 requests to the checked services. Continue?").arg(ids.size()))
+                   != QMessageBox::StandardButton::Yes) {
+            return;
+        }
+        tests()->runServiceChecks(ids);
+    };
+    connect(ui->actionService_Check_Selected, &QAction::triggered, this, [this, startServiceChecks] {
+        startServiceChecks(get_now_selected_list());
+    });
+    connect(ui->actionService_Check_Group, &QAction::triggered, this, [startServiceChecks] {
+        if (const auto group = Configs::dataManager->groupsRepo->CurrentGroup()) startServiceChecks(group->Profiles());
     });
     ui->menu_stop_testing->setEnabled(false);
     connect(ui->menu_stop_testing, &QAction::triggered, this, [this]() {

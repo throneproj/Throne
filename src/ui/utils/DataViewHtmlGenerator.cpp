@@ -276,8 +276,9 @@ DataViewHtmlGenerator::Content DataViewHtmlGenerator::speedtestSection() {
 
 QString DataViewHtmlGenerator::latencyTestSectionHtml() {
     QString res;
-    auto content =
-        latencyTest_.kind == LatencyTestPanelState::Kind::Url ? QString("Running URL test") : QString("Running IP test");
+    QString content = QString("Running URL test");
+    if (latencyTest_.kind == LatencyTestPanelState::Kind::Ip) content = QString("Running IP test");
+    else if (latencyTest_.kind == LatencyTestPanelState::Kind::Service) content = QString("Running service check");
     if (latencyTest_.totalProfiles > 1) {
         auto progress = getProgressBar(testProgress.load(), latencyTest_.totalProfiles);
         progress += QString(" ") + Int2String(100 * testProgress.load() / latencyTest_.totalProfiles) + "%";

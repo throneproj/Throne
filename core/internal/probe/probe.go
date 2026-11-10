@@ -239,6 +239,15 @@ func LiveInstance(ctx context.Context) context.Context {
 // Dials carry a child of the batch context, not the per-request one, so cancelling the batch tears
 // them down -- and so does the closer, leaving none inside the outbound once the probe returns.
 func outboundHTTPClient(ctx context.Context, i Box, tag string, outbound adapter.Outbound) (*http.Client, func()) {
+	dial, cancelDials := outboundDial(ctx, i, tag, outbound)
+	client, closeClient := dialerHTTPClient(dial, 0)
+	return client, func() {
+		cancelDials()
+		closeClient()
+	}
+}
+
+func outboundDial(ctx context.Context, i Box, tag string, outbound adapter.Outbound) (func(ctx context.Context, network, addr string) (net.Conn, error), context.CancelFunc) {
 	dialCtx, cancelDials := context.WithCancel(ctx)
 	dial := func(_ context.Context, network, addr string) (net.Conn, error) {
 		return outbound.DialContext(dialCtx, "tcp", metadata.ParseSocksaddr(addr))
@@ -248,11 +257,7 @@ func outboundHTTPClient(ctx context.Context, i Box, tag string, outbound adapter
 			dial = tunnelResolvingDial(dialCtx, outbound)
 		}
 	}
-	client, closeClient := dialerHTTPClient(dial, 0)
-	return client, func() {
-		cancelDials()
-		closeClient()
-	}
+	return dial, cancelDials
 }
 
 func walkChain(i Box, tag string, visit func(tag string, outbound adapter.Outbound)) {

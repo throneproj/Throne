@@ -784,6 +784,8 @@ set(ENGINE_SOURCES
         include/engine/tests/TestObserver.h
         include/engine/tests/TestRunner.h
         src/engine/tests/TestRunner.cpp
+        include/engine/tests/ServiceChecks.h
+        src/engine/tests/ServiceChecks.cpp
         include/engine/autoselector/AutoSelectorController.h
         src/engine/autoselector/AutoSelectorController.cpp
         include/engine/connection/ConnectionManager.h

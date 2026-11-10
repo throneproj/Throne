@@ -1,13 +1,92 @@
 #include <include/database/entities/Profile.h>
 
+#include <QJsonArray>
 #include <QJsonDocument>
+#include <QJsonObject>
+#include <QLocale>
 #include <QSet>
+#include <QTextDocument>
 
 #include "include/database/GroupsRepo.h"
 #include "include/global/Configs.hpp"
 
 namespace Configs
 {
+    namespace {
+        // A available, P partial, R restricted or blocked; unknown and failed checks count for none.
+        QString serviceCategoryDot(int available, int partial, int refused) {
+            if (available + partial + refused == 0) return QStringLiteral("⚪");
+            if (refused == 0 && partial == 0) return QStringLiteral("🟢");
+            if (available + partial == 0) return QStringLiteral("🔴");
+            return QStringLiteral("🟡");
+        }
+
+        // Every provider's answer merged: the network kind, then a flag when any of them saw anonymizing or abuse.
+        QString serviceIpMark(const QJsonArray &entries) {
+            static const QSet<QString> riskFlags{"vpn", "proxy", "tor", "abuser", "anonymous"};
+            QSet<QString> traits;
+            bool risky = false;
+            for (const auto &value : entries) {
+                const auto entry = value.toObject();
+                traits.insert(entry["type"].toString().toLower());
+                for (const auto &flag : entry["flags"].toArray()) {
+                    const auto name = flag.toString().toLower();
+                    traits.insert(name);
+                    risky = risky || riskFlags.contains(name);
+                }
+            }
+            QString mark;
+            if (traits.contains("hosting") || traits.contains("datacenter")) mark = QStringLiteral("🖥️");
+            else if (traits.contains("mobile")) mark = QStringLiteral("📱");
+            else if (traits.contains("business")) mark = QStringLiteral("🏢");
+            else if (traits.contains("isp")) mark = QStringLiteral("🏠");
+            if (risky) mark += QStringLiteral("🚩");
+            return mark;
+        }
+
+        QString serviceStatusIcon(const QString &status) {
+            if (status == "available") return QStringLiteral("✅");
+            if (status == "partial") return QStringLiteral("🟡");
+            if (status == "restricted") return QStringLiteral("⛔");
+            if (status == "blocked") return QStringLiteral("🚫");
+            if (status == "failed") return QStringLiteral("⚠️");
+            return QStringLiteral("❔");
+        }
+
+        QString serviceStatusText(const QString &status) {
+            if (status == "available") return QObject::tr("Available");
+            if (status == "partial") return QObject::tr("Partial");
+            if (status == "restricted") return QObject::tr("Restricted");
+            if (status == "blocked") return QObject::tr("Blocked");
+            if (status == "unknown") return QObject::tr("Unknown");
+            if (status == "failed") return QObject::tr("Failed");
+            return status;
+        }
+
+        QString serviceIpLine(const QJsonObject &entry) {
+            const auto provider = entry["provider"].toString();
+            if (const auto error = entry["error"].toString(); !error.isEmpty()) return provider + ": " + error;
+            const auto joined = [](const QStringList &parts, const QString &separator) {
+                QStringList kept;
+                for (const auto &part : parts) {
+                    if (!part.isEmpty()) kept << part;
+                }
+                return kept.join(separator);
+            };
+            QStringList flags;
+            for (const auto &flag : entry["flags"].toArray()) flags << flag.toString();
+            const int risk = entry["risk"].toInt(-1);
+            const QString details = joined({
+                joined({entry["ip"].toString(), entry["cc"].toString()}, " "),
+                joined({entry["asn"].toString(), entry["org"].toString()}, " "),
+                entry["type"].toString(),
+                risk >= 0 ? QObject::tr("risk %1").arg(risk) : QString(),
+                joined(flags, ", "),
+            }, " · ");
+            return details.isEmpty() ? provider : provider + ": " + details;
+        }
+    } // namespace
+
     Profile::Profile(Configs::outbound *outbound, const QString &type_)
     {
         if (!type_.isEmpty()) this->type = type_;
@@ -21,6 +100,7 @@ namespace Configs
     void Profile::ClearTestResults() {
         test_country.clear();
         ip_out.clear();
+        service_checks.clear();
         latency = 0;
         latency_at = 0;
         dl_speed.clear();
@@ -36,14 +116,18 @@ namespace Configs
     QString Profile::DisplayTestResult() const {
         auto group = dataManager->groupsRepo->GetGroup(gid);
         if (group == nullptr) return "";
+        const auto withServiceMarks = [this, &group](QString text) {
+            const auto marks = group->show_service_checks ? DisplayServiceMarks() : QString();
+            if (marks.isEmpty()) return text;
+            if (!text.isEmpty() && !text.endsWith(QLatin1Char(' '))) text += QLatin1Char(' ');
+            return text + marks;
+        };
         QString result;
         if (!test_country.isEmpty()) result += UNICODE_LRO + CountryCodeToFlag(test_country) + " ";
         if (latency == kLatencyConnectOnly) {
-            result = QObject::tr("Connect OK");
-            return result;
+            return withServiceMarks(QObject::tr("Connect OK"));
         } else if (latency < 0) {
-            result = QObject::tr("Unavailable");
-            return result;
+            return withServiceMarks(QObject::tr("Unavailable"));
         } else if (latency > 0) {
             result += QString("%1 ms").arg(latency);
         }
@@ -52,7 +136,66 @@ namespace Configs
         if (!dl_speed.isEmpty() && dl_speed != "N/A" && showSpeed) result += " ↓" + dl_speed;
         if (!ul_speed.isEmpty() && ul_speed != "N/A" && showSpeed) result += " ↑" + ul_speed;
         if (!ip_out.isEmpty() && showIP) result += " 🌐" + ip_out;
-        return result;
+        return withServiceMarks(result);
+    }
+
+    QString Profile::DisplayServiceMarks() const {
+        if (service_checks.isEmpty()) return {};
+        const auto root = QJsonDocument::fromJson(service_checks.toUtf8()).object();
+        if (root.isEmpty()) return {};
+        if (!root["error"].toString().isEmpty()) return QStringLiteral("⚠️");
+        const auto checks = root["checks"].toArray();
+        QStringList marks;
+        for (const auto &categoryValue : root["cats"].toArray()) {
+            const auto category = categoryValue.toObject();
+            const auto id = category["id"].toString();
+            int available = 0, partial = 0, refused = 0;
+            for (const auto &checkValue : checks) {
+                const auto check = checkValue.toObject();
+                if (check["cat"].toString() != id) continue;
+                const auto status = check["status"].toString();
+                if (status == "available") ++available;
+                else if (status == "partial") ++partial;
+                else if (status == "restricted" || status == "blocked") ++refused;
+            }
+            const auto icon = category["icon"].toString();
+            marks << (icon.isEmpty() ? category["name"].toString() : icon) + serviceCategoryDot(available, partial, refused);
+        }
+        if (const auto ipMark = serviceIpMark(root["ip"].toArray()); !ipMark.isEmpty()) marks << ipMark;
+        return marks.join(QLatin1Char(' '));
+    }
+
+    QString Profile::DisplayServiceToolTip() const {
+        if (service_checks.isEmpty()) return {};
+        const auto root = QJsonDocument::fromJson(service_checks.toUtf8()).object();
+        if (root.isEmpty()) return {};
+        const auto checkedAt = QDateTime::fromSecsSinceEpoch(root["at"].toInteger());
+        QStringList lines{QObject::tr("Service check, %1").arg(QLocale().toString(checkedAt, QLocale::ShortFormat))};
+        if (const auto error = root["error"].toString(); !error.isEmpty()) {
+            lines << error;
+        } else {
+            const auto checks = root["checks"].toArray();
+            for (const auto &categoryValue : root["cats"].toArray()) {
+                const auto category = categoryValue.toObject();
+                const auto id = category["id"].toString();
+                lines << QString() << QStringList{category["icon"].toString(), category["name"].toString()}.join(QLatin1Char(' ')).trimmed();
+                for (const auto &checkValue : checks) {
+                    const auto check = checkValue.toObject();
+                    if (check["cat"].toString() != id) continue;
+                    const auto status = check["status"].toString();
+                    auto line = serviceStatusIcon(status) + " " + check["name"].toString() + " — " + serviceStatusText(status);
+                    if (const auto region = check["region"].toString(); !region.isEmpty()) line += " (" + region + ")";
+                    if (const auto note = check["note"].toString(); !note.isEmpty()) line += ": " + note;
+                    lines << line;
+                }
+            }
+            if (const auto ip = root["ip"].toArray(); !ip.isEmpty()) {
+                lines << QString() << QObject::tr("IP");
+                for (const auto &entry : ip) lines << serviceIpLine(entry.toObject());
+            }
+        }
+        // Names and notes come from downloaded definitions: never let them render as markup.
+        return Qt::convertFromPlainText(lines.join(QLatin1Char('\n')));
     }
 
     QColor Profile::DisplayLatencyColor() const {

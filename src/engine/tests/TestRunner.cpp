@@ -15,6 +15,7 @@
 #include "include/stats/traffic/TrafficStatsManager.hpp"
 
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QSemaphore>
 #include <QSet>
 #include <QThread>
@@ -83,6 +84,32 @@ namespace Engine {
             if (tag2entID.isEmpty()) return fallback;
             return tag2entID.value(QString::fromStdString(tag), -1);
         }
+
+        constexpr int kTestRunnerServiceBatchSize = 25;
+        constexpr int kTestRunnerServiceConcurrency = 4;
+        constexpr int kTestRunnerServiceRequestTimeoutMs = 10000;
+        constexpr qint64 kTestRunnerServiceRoundMs = 200000;
+        constexpr qint64 kTestRunnerServiceSlackMs = 60000;
+
+        int testRunnerServiceRpcTimeoutMs(qsizetype tagCount) {
+            const qint64 rounds = (qMax<qsizetype>(tagCount, 1) + kTestRunnerServiceConcurrency - 1) / kTestRunnerServiceConcurrency;
+            return static_cast<int>(qMin<qint64>(rounds * kTestRunnerServiceRoundMs + kTestRunnerServiceSlackMs, std::numeric_limits<int>::max()));
+        }
+
+        // A poll and the final reply can both carry a finished profile; whichever comes first applies it.
+        class TestRunnerClaimedTags {
+        public:
+            bool claim(const QString& tag) {
+                QMutexLocker locker(&mu_);
+                if (tags_.contains(tag)) return false;
+                tags_.insert(tag);
+                return true;
+            }
+
+        private:
+            QMutex mu_;
+            QSet<QString> tags_;
+        };
 
         // Target is deduced, not named: access control applies to naming a private type.
         template <typename Req, typename Target>
@@ -202,6 +229,18 @@ namespace Engine {
         Configs::dataManager->profilesRepo->Save(ent);
     }
 
+    void TestRunner::applyServiceResult(const std::shared_ptr<Configs::Profile>& ent, const libcore::ServiceTestResult& res,
+                                        const QList<ServiceChecks::Category>& categories) {
+        const auto error = QString::fromStdString(res.error.value());
+        // An aborted check says nothing about the profile, so its previous one stays.
+        if (testRunnerIsTestAborted(error)) return;
+        if (!error.isEmpty()) {
+            MW_show_log(MainWindowTr::tr("[%1] service check error: %2").arg(ent->outbound->DisplayTypeAndName(), error));
+        }
+        ent->service_checks = ServiceChecks::ResultJson(res, categories, QDateTime::currentSecsSinceEpoch());
+        Configs::dataManager->profilesRepo->Save(ent);
+    }
+
     void TestRunner::runUrlProbe(const Target& target) {
         if (stopRequested_.load()) {
             MW_show_log(MainWindowTr::tr("Profile test aborted"));
@@ -291,6 +330,7 @@ namespace Engine {
         testRunnerFillCommonTestReq(req, target);
         req.max_concurrency = Configs::dataManager->settingsRepo->test_concurrent;
         req.test_timeout_ms = Configs::dataManager->settingsRepo->url_test_timeout_ms;
+        req.provider = Configs::dataManager->settingsRepo->exit_lookup_provider.toStdString();
 
         bool rpcOK = false;
         QString coreError;
@@ -341,6 +381,75 @@ namespace Engine {
                 continue;
             }
             applyIpResult(ent, res);
+        }
+    }
+
+    void TestRunner::runServiceProbe(const Target& target, const std::shared_ptr<const ServiceChecks::Definitions>& definitions) {
+        if (stopRequested_.load()) {
+            MW_show_log(MainWindowTr::tr("Profile test aborted"));
+            return;
+        }
+
+        libcore::ServiceTestRequest req;
+        testRunnerFillCommonTestReq(req, target);
+        req.max_concurrency = kTestRunnerServiceConcurrency;
+        req.test_timeout_ms = kTestRunnerServiceRequestTimeoutMs;
+        req.checks = definitions->text.toStdString();
+
+        const auto claimed = std::make_shared<TestRunnerClaimedTags>();
+        bool rpcOK = false;
+        QString coreError;
+        libcore::ServiceTestResponse result;
+        {
+            TestRunnerResultPoller poller([this, gen = sessionGen_.load(), tag2entID = target.tag2entID, definitions, claimed] {
+                if (staleGen(gen)) return;
+                bool ok = false;
+                const auto resp = API::defaultClient->QueryServiceTest(&ok);
+                if (staleGen(gen)) return;
+                if (!ok || resp.results.empty()) return;
+
+                QList<int> updated;
+                for (const auto& res : resp.results) {
+                    const int entid = testRunnerResolveEntID(tag2entID, res.outbound_tag.value(), -1);
+                    if (entid == -1) continue;
+                    auto ent = Configs::dataManager->profilesRepo->GetProfile(entid);
+                    if (ent == nullptr || !claimed->claim(QString::fromStdString(res.outbound_tag.value()))) continue;
+                    observer_->testProgressed();
+                    observer_->testViewChanged(false);
+                    applyServiceResult(ent, res, definitions->categories);
+                    updated << entid;
+                }
+                if (updated.isEmpty()) return;
+                observer_->testViewChanged(true);
+                runOnUiThread([=, this] { observer_->testedProfilesChanged(updated); });
+            }, kTestRunnerLatencyPollIntervalMs);
+
+            result = API::defaultClient->ServiceTest(&rpcOK, req, &coreError, testRunnerServiceRpcTimeoutMs(target.outboundTags.size()));
+        }
+
+        if (!rpcOK) {
+            if (testRunnerIsTestAborted(coreError)) return;
+            if (!AssetUpdates::HandleXrayGeoError(policy_, coreError, contextName(target.entID), interactive_.load())) {
+                MW_show_log(MainWindowTr::tr("Service check failed: %1")
+                                .arg(coreError.isEmpty() ? MainWindowTr::tr("The core did not answer the test") : coreError));
+            }
+            return;
+        }
+
+        for (const auto& res : result.results) {
+            const int entid = testRunnerResolveEntID(target.tag2entID, res.outbound_tag.value(), target.entID);
+            if (entid == -1) {
+                MW_show_log(MainWindowTr::tr("Something is very wrong, the subject ent cannot be found!"));
+                continue;
+            }
+            auto ent = Configs::dataManager->profilesRepo->GetProfile(entid);
+            if (ent == nullptr) {
+                MW_show_log(MainWindowTr::tr("Profile manager data is corrupted, try again."));
+                continue;
+            }
+            if (!claimed->claim(QString::fromStdString(res.outbound_tag.value()))) continue;
+            observer_->testProgressed();
+            applyServiceResult(ent, res, definitions->categories);
         }
     }
 
@@ -542,6 +651,86 @@ namespace Engine {
                 });
             }
             MW_show_log(isUrl ? MainWindowTr::tr("URL test finished!") : MainWindowTr::tr("IP test finished!"));
+        });
+        return true;
+    }
+
+    bool TestRunner::runServiceChecks(const QList<int>& requestedIDs, const std::function<void()>& onFinished, bool interactive) {
+        const auto finish = [onFinished] { if (onFinished) onFinished(); };
+        const auto profileIDs = testRunnerWithoutAutoSelectors(requestedIDs);
+        if (profileIDs.isEmpty()) {
+            finish();
+            return false;
+        }
+        // The menus ask first; this also holds for API callers.
+        if (profileIDs.size() > kMaxServiceCheckProfiles) {
+            MW_show_log(MainWindowTr::tr("A service check can test up to 100 profiles at a time. Select fewer profiles."));
+            finish();
+            return false;
+        }
+        if (!session_.tryLock()) {
+            const auto text = MainWindowTr::tr("The last test did not exit completely, please wait. If it persists, please restart the program.");
+            if (interactive && QThread::currentThread() == QCoreApplication::instance()->thread()) policy_->testSessionBusy(text);
+            else MW_show_log(text);
+            finish();
+            return false;
+        }
+        sessionGen_.fetch_add(1);
+        stopRequested_.store(false);
+        interactive_.store(interactive);
+
+        runOnNewThread([this, profileIDs, finish] {
+            observer_->testPanelSeeded(TestKind::Service, profileIDs.size());
+            observer_->testViewChanged(true);
+
+            const auto definitions = std::make_shared<const ServiceChecks::Definitions>(ServiceChecks::Prepare());
+            if (!definitions->error.isEmpty()) MW_show_log(MainWindowTr::tr("Service check failed: %1").arg(definitions->error));
+
+            for (int i = 0; definitions->error.isEmpty() && i < profileIDs.length(); i += kTestRunnerServiceBatchSize) {
+                if (stopRequested_.load()) break;
+                const auto ids = profileIDs.mid(i, kTestRunnerServiceBatchSize);
+                sessionGen_.fetch_add(1);
+                const auto buildObject = Configs::BuildTestConfig(Configs::dataManager->profilesRepo->GetProfileBatch(ids));
+                if (!buildObject->error.isEmpty()) {
+                    MW_show_log(MainWindowTr::tr("Failed to build test config for batch: ") + buildObject->error);
+                    continue;
+                }
+                const int testCount = buildObject->fullConfigs.size() + (buildObject->outboundTags.empty() ? 0 : 1);
+                if (testCount == 0) continue;
+
+                QSemaphore batchDone;
+                const auto probe = [this, &definitions, &batchDone](const Target& target) {
+                    pool_.start([this, target, definitions, &batchDone] {
+                        const QSemaphoreReleaser releaser(batchDone);
+                        runServiceProbe(target, definitions);
+                    });
+                };
+                for (const auto& entID : buildObject->fullConfigs.keys()) {
+                    Target target;
+                    target.coreConfig = buildObject->fullConfigs[entID];
+                    target.useDefaultOutbound = true;
+                    target.entID = entID;
+                    probe(target);
+                }
+                if (!buildObject->outboundTags.empty()) {
+                    Target target;
+                    target.coreConfig = QJsonObject2QString(buildObject->coreConfig, false);
+                    target.xrayConfig = buildObject->isXrayNeeded ? QJsonObject2QString(buildObject->xrayConfig, false) : "";
+                    target.xrayFullConfigs = buildObject->xrayFullConfigs;
+                    target.outboundTags = buildObject->outboundTags;
+                    target.tag2entID = buildObject->tag2entID;
+                    target.xrayDnsStrategy = buildObject->xrayDnsStrategy;
+                    probe(target);
+                }
+                batchDone.acquire(testCount);
+                runOnUiThread([=, this] { observer_->testedProfilesChanged(ids); });
+            }
+
+            observer_->testPanelsCleared();
+            observer_->testViewChanged(true);
+            session_.unlock();
+            finish();
+            if (definitions->error.isEmpty()) MW_show_log(MainWindowTr::tr("Service check finished!"));
         });
         return true;
     }

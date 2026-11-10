@@ -10837,6 +10837,38 @@ Grant them once with a Windows confirmation; Throne itself keeps running as a st
         <source>The update was cancelled, Throne keeps running</source>
         <translation>已取消更新，Throne 仍在运行中</translation>
     </message>
+    <message>
+        <source>Service Check</source>
+        <translation>服务检查</translation>
+    </message>
+    <message>
+        <source>Service Check Group</source>
+        <translation>服务检查本组</translation>
+    </message>
+    <message>
+        <source>Services</source>
+        <translation>服务</translation>
+    </message>
+    <message>
+        <source>A service check can test up to 100 profiles at a time. Select fewer profiles.</source>
+        <translation>服务检查一次最多可检查 100 个配置档。请选择更少的配置档。</translation>
+    </message>
+    <message>
+        <source>This checks %1 profiles. Each one sends about 20 requests to the checked services. Continue?</source>
+        <translation>将检查 %1 个配置档。每个配置档会向被检查的服务发送约 20 个请求。是否继续？</translation>
+    </message>
+    <message>
+        <source>Service check finished!</source>
+        <translation>服务检查完成！</translation>
+    </message>
+    <message>
+        <source>[%1] service check error: %2</source>
+        <translation>[%1] 服务检查错误: %2</translation>
+    </message>
+    <message>
+        <source>Service check failed: %1</source>
+        <translation>服务检查失败: %1</translation>
+    </message>
 </context>
 <context>
     <name>MuxSettingsWidget</name>
@@ -12567,6 +12599,38 @@ How to update?</source>
         <source>After the country test of %1:</source>
         <translation>在 %1 进行国家测试后:</translation>
     </message>
+    <message>
+        <source>Service check, %1</source>
+        <translation>服务检查，%1</translation>
+    </message>
+    <message>
+        <source>Available</source>
+        <translation>可用</translation>
+    </message>
+    <message>
+        <source>Partial</source>
+        <translation>部分可用</translation>
+    </message>
+    <message>
+        <source>Restricted</source>
+        <translation>受限</translation>
+    </message>
+    <message>
+        <source>Blocked</source>
+        <translation>已屏蔽</translation>
+    </message>
+    <message>
+        <source>Failed</source>
+        <translation>失败</translation>
+    </message>
+    <message>
+        <source>IP</source>
+        <translation>IP</translation>
+    </message>
+    <message>
+        <source>risk %1</source>
+        <translation>风险 %1</translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -13215,6 +13279,14 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>N/A</source>
         <translation>不可用</translation>
+    </message>
+    <message>
+        <source>Services</source>
+        <translation>服务</translation>
+    </message>
+    <message>
+        <source>Check</source>
+        <translation>检查</translation>
     </message>
 </context>
 <context>

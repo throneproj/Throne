@@ -132,6 +132,10 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
             if (security.compromised) return tr("Certificate checks are turned off by the \"Skip TLS certificate authentication\" setting.");
             if (security.isDangerous()) return tr("This config's traffic is not properly protected.");
         }
+        if (index.column() == ColTestResult && !profile->service_checks.isEmpty()) {
+            const auto group = Configs::dataManager->groupsRepo->GetGroup(profile->gid);
+            if (group != nullptr && group->show_service_checks) return profile->DisplayServiceToolTip();
+        }
         return {};
     }
     if (role == Qt::ForegroundRole) {

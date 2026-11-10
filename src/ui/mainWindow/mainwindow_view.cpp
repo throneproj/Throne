@@ -90,6 +90,9 @@ void MainWindow::testPanelSeeded(Engine::TestKind kind, int totalProfiles)
         case Engine::TestKind::Ip:
             dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::Ip, totalProfiles);
             break;
+        case Engine::TestKind::Service:
+            dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::Service, totalProfiles);
+            break;
         case Engine::TestKind::Speed:
             dataViewHtmlGenerator_.seedSpeedTest(totalProfiles);
             break;

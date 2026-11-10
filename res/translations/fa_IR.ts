@@ -281,6 +281,42 @@ Deleted %3 Profiles:
         <source>[Routing] %1: updated the routing profile &quot;%2&quot; from the subscription (%3)</source>
         <translation>[مسیریابی] %1: نمایه مسیریابی «%2» از اشتراک به‌روز شد (%3)</translation>
     </message>
+    <message>
+        <source>Service check, %1</source>
+        <translation>بررسی سرویس‌ها، %1</translation>
+    </message>
+    <message>
+        <source>Available</source>
+        <translation>در دسترس</translation>
+    </message>
+    <message>
+        <source>Partial</source>
+        <translation>نسبی</translation>
+    </message>
+    <message>
+        <source>Restricted</source>
+        <translation>محدود</translation>
+    </message>
+    <message>
+        <source>Blocked</source>
+        <translation>مسدود</translation>
+    </message>
+    <message>
+        <source>Unknown</source>
+        <translation>نامشخص</translation>
+    </message>
+    <message>
+        <source>Failed</source>
+        <translation>ناموفق</translation>
+    </message>
+    <message>
+        <source>IP</source>
+        <translation>IP</translation>
+    </message>
+    <message>
+        <source>risk %1</source>
+        <translation>ریسک %1</translation>
+    </message>
 </context>
 <context>
     <name>DialogAbout</name>
@@ -3853,6 +3889,38 @@ Grant them once with a Windows confirmation; Throne itself keeps running as a st
         <source>The update was cancelled, Throne keeps running</source>
         <translation>به‌روزرسانی لغو شد، Throne به کار خود ادامه می‌دهد</translation>
     </message>
+    <message>
+        <source>Service Check</source>
+        <translation>بررسی سرویس‌ها</translation>
+    </message>
+    <message>
+        <source>Service Check Group</source>
+        <translation>بررسی سرویس‌های گروه</translation>
+    </message>
+    <message>
+        <source>Services</source>
+        <translation>سرویس‌ها</translation>
+    </message>
+    <message>
+        <source>A service check can test up to 100 profiles at a time. Select fewer profiles.</source>
+        <translation>بررسی سرویس‌ها هر بار حداکثر 100 نمایه را بررسی می‌کند. نمایه‌های کمتری انتخاب کنید.</translation>
+    </message>
+    <message>
+        <source>This checks %1 profiles. Each one sends about 20 requests to the checked services. Continue?</source>
+        <translation>%1 نمایه بررسی می‌شود. هر نمایه حدود 20 درخواست به سرویس‌های بررسی‌شده می‌فرستد. ادامه می‌دهید؟</translation>
+    </message>
+    <message>
+        <source>Service check finished!</source>
+        <translation>بررسی سرویس‌ها به پایان رسید!</translation>
+    </message>
+    <message>
+        <source>[%1] service check error: %2</source>
+        <translation>[%1] خطای بررسی سرویس‌ها: %2</translation>
+    </message>
+    <message>
+        <source>Service check failed: %1</source>
+        <translation>بررسی سرویس‌ها ناموفق بود: %1</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableModel</name>
@@ -4728,6 +4796,17 @@ Grant them once with a Windows confirmation; Throne itself keeps running as a st
     <message>
         <source>The helper failed with exit code 0x%1.</source>
         <translation>برنامهٔ کمکی با کد خروج 0x%1 شکست خورد.</translation>
+    </message>
+</context>
+<context>
+    <name>RuntimeStatsWidget</name>
+    <message>
+        <source>Services</source>
+        <translation>سرویس‌ها</translation>
+    </message>
+    <message>
+        <source>Check</source>
+        <translation>بررسی</translation>
     </message>
 </context>
 </TS>

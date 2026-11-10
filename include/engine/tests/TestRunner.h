@@ -19,6 +19,7 @@
 #endif
 
 #include "include/database/entities/Profile.h"
+#include "include/engine/tests/ServiceChecks.h"
 
 namespace Engine {
     class EnginePolicy;
@@ -70,6 +71,10 @@ namespace Engine {
         bool runSpeedTests(const QList<int>& profileIDs, bool testCurrent = false,
                            const std::function<void()>& onFinished = {}, bool interactive = true);
 
+        // Never automatic: every profile sends about 20 requests to third-party services.
+        static constexpr int kMaxServiceCheckProfiles = 100;
+        bool runServiceChecks(const QList<int>& profileIDs, const std::function<void()>& onFinished = {}, bool interactive = true);
+
         // Refused while another test runs. Saves nothing; onDone runs once, on a test thread.
         bool runChainStepTest(const QList<int>& hops, int gid, const std::function<void(const ChainStepReport&)>& onDone);
 
@@ -109,10 +114,15 @@ namespace Engine {
 
         void runSpeedProbe(const Target& target);
 
+        void runServiceProbe(const Target& target, const std::shared_ptr<const ServiceChecks::Definitions>& definitions);
+
         void applyUrlResult(const std::shared_ptr<Configs::Profile>& ent, const libcore::URLTestResp& res,
                             const QHash<QString, bool>* vpnConnected = nullptr);
 
         void applyIpResult(const std::shared_ptr<Configs::Profile>& ent, const libcore::IPTestRes& res);
+
+        void applyServiceResult(const std::shared_ptr<Configs::Profile>& ent, const libcore::ServiceTestResult& res,
+                                const QList<ServiceChecks::Category>& categories);
 
         QString contextName(int entID) const;
 

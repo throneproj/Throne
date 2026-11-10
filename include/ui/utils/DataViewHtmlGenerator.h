@@ -34,7 +34,7 @@ public:
     };
 
     struct LatencyTestPanelState {
-        enum class Kind { Url, Ip };
+        enum class Kind { Url, Ip, Service };
         bool visible = false;
         Kind kind = Kind::Url;
         int totalProfiles = 0;

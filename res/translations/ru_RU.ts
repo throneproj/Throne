@@ -10736,6 +10736,38 @@ Grant them once with a Windows confirmation; Throne itself keeps running as a st
         <source>The update was cancelled, Throne keeps running</source>
         <translation>Обновление отменено, Throne продолжает работу</translation>
     </message>
+    <message>
+        <source>Service Check</source>
+        <translation>Проверка сервисов</translation>
+    </message>
+    <message>
+        <source>Service Check Group</source>
+        <translation>Проверка сервисов группы</translation>
+    </message>
+    <message>
+        <source>Services</source>
+        <translation>Сервисы</translation>
+    </message>
+    <message>
+        <source>A service check can test up to 100 profiles at a time. Select fewer profiles.</source>
+        <translation>Проверка сервисов охватывает не более 100 профилей за раз. Выберите меньше профилей.</translation>
+    </message>
+    <message>
+        <source>This checks %1 profiles. Each one sends about 20 requests to the checked services. Continue?</source>
+        <translation>Будет проверено профилей: %1. Каждый отправит около 20 запросов к проверяемым сервисам. Продолжить?</translation>
+    </message>
+    <message>
+        <source>Service check finished!</source>
+        <translation>Проверка сервисов завершена!</translation>
+    </message>
+    <message>
+        <source>[%1] service check error: %2</source>
+        <translation>[%1] Ошибка проверки сервисов: %2</translation>
+    </message>
+    <message>
+        <source>Service check failed: %1</source>
+        <translation>Не удалось проверить сервисы: %1</translation>
+    </message>
 </context>
 <context>
     <name>OtpItem</name>
@@ -12323,6 +12355,38 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
         <source>After the country test of %1:</source>
         <translation>После проверки стран группы %1:</translation>
     </message>
+    <message>
+        <source>Service check, %1</source>
+        <translation>Проверка сервисов, %1</translation>
+    </message>
+    <message>
+        <source>Available</source>
+        <translation>Доступно</translation>
+    </message>
+    <message>
+        <source>Partial</source>
+        <translation>Частично</translation>
+    </message>
+    <message>
+        <source>Restricted</source>
+        <translation>Ограничено</translation>
+    </message>
+    <message>
+        <source>Blocked</source>
+        <translation>Заблокировано</translation>
+    </message>
+    <message>
+        <source>Failed</source>
+        <translation>Сбой</translation>
+    </message>
+    <message>
+        <source>IP</source>
+        <translation>IP</translation>
+    </message>
+    <message>
+        <source>risk %1</source>
+        <translation>риск %1</translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -12963,6 +13027,14 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>State</source>
         <translation>Состояние</translation>
+    </message>
+    <message>
+        <source>Services</source>
+        <translation>Сервисы</translation>
+    </message>
+    <message>
+        <source>Check</source>
+        <translation>Проверить</translation>
     </message>
 </context>
 <context>

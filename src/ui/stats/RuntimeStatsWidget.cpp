@@ -5,10 +5,12 @@
 #include "include/engine/EngineHost.h"
 #include "include/engine/connection/ConnectionManager.h"
 #include "include/engine/supervisor/CoreSupervisor.h"
+#include "include/engine/tests/TestRunner.h"
 #include "include/engine/vpn/VpnEndpoints.h"
 #include "include/configs/sub/GroupUpdater.hpp"
 #include "include/stats/traffic/TrafficLooper.hpp"
 #include "include/database/DatabaseManager.h"
+#include "include/database/ProfilesRepo.h"
 #include "include/database/SettingsRepo.h"
 #include "include/global/Utils.hpp"
 #include "include/global/ExitLookup.hpp"
@@ -40,6 +42,15 @@ namespace {
         const auto running = engine != nullptr ? engine->connection()->runningSnapshot() : nullptr;
         if (running == nullptr || running->outbound == nullptr) return {};
         return running->outbound->DisplayTypeAndName();
+    }
+
+    std::shared_ptr<Configs::Profile> runningProfile() {
+        auto *engine = Engine::host();
+        const auto running = engine != nullptr ? engine->connection()->runningSnapshot() : nullptr;
+        if (running == nullptr) return nullptr;
+        // The repo's copy is the one a finished service check writes to.
+        const auto stored = Configs::dataManager->profilesRepo->GetProfile(running->id);
+        return stored != nullptr ? stored : running;
     }
 
     QString formatCpu(const Sys::ProcessMetrics::Sample& s) {
@@ -87,6 +98,12 @@ RuntimeStatsWidget::RuntimeStatsWidget(QWidget* parent) : QWidget(parent), ui(ne
     // A lookup service's answer: as AutoText a tag in it would render as HTML.
     ui->vOutIp->setTextFormat(Qt::PlainText);
     ui->vCountry->setTextFormat(Qt::PlainText);
+    ui->vServices->setTextFormat(Qt::PlainText);
+    connect(ui->btnServiceCheck, &QPushButton::clicked, this, [] {
+        auto *engine = Engine::host();
+        const auto running = engine != nullptr ? engine->connection()->runningSnapshot() : nullptr;
+        if (running != nullptr) engine->tests()->runServiceChecks({running->id});
+    });
 
     ui->groupEndpoints->setVisible(false);
     auto* endpoints = ui->endpointsTable;
@@ -228,6 +245,14 @@ void RuntimeStatsWidget::refreshLive() {
             probeEgress();
         }
     }
+
+    const auto running = runningProfile();
+    const QString serviceMarks = running != nullptr ? running->DisplayServiceMarks() : QString();
+    ui->vServices->setText(serviceMarks.isEmpty() ? QStringLiteral("—") : serviceMarks);
+    ui->vServices->setToolTip(running != nullptr ? running->DisplayServiceToolTip() : QString());
+    // The runner skips auto selectors, so the button would do nothing for one.
+    ui->btnServiceCheck->setEnabled(running != nullptr && running->type != QStringLiteral("autoselector") && engine != nullptr
+                                    && !engine->tests()->isRunning());
 
     if (!connBusy_.exchange(true)) {
         QPointer<RuntimeStatsWidget> self(this);

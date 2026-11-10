@@ -4,6 +4,7 @@
 
 #include <QDateTime>
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QRegularExpression>
 #include <QSet>
 #include <QTimer>
@@ -546,6 +547,7 @@ namespace RemoteApi {
             {"upload_bps", RouterImpl::bitsPerSecond(profile->ul_speed)},
             {"country", profile->test_country},
             {"ip_out", profile->ip_out},
+            {"service_checks", QJsonDocument::fromJson(profile->service_checks.toUtf8()).object()},
             {"traffic_up", profile->traffic_uplink},
             {"traffic_down", profile->traffic_downlink},
             {"running", running != nullptr && running->id == profile->id},

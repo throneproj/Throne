@@ -798,6 +798,7 @@ QToolButton::menu-indicator {
     <addaction name="actionUrl_Test_Selected"/>
     <addaction name="actionSpeedtest_Selected"/>
     <addaction name="actionResolve_Selected_Out_IP"/>
+    <addaction name="actionService_Check_Selected"/>
     <addaction name="menu_resolve_selected"/>
     <addaction name="actionClear_Test_Result"/>
     <addaction name="menu_reset_traffic"/>
@@ -864,6 +865,7 @@ QToolButton::menu-indicator {
     <addaction name="actionUrl_Test_Group"/>
     <addaction name="actionSpeedtest_Group"/>
     <addaction name="actionResolve_Out_IP"/>
+    <addaction name="actionService_Check_Group"/>
     <addaction name="menu_resolve_domain"/>
     <addaction name="menu_clear_test_result"/>
     <addaction name="separator"/>
@@ -1407,6 +1409,16 @@ QToolButton::menu-indicator {
    </property>
    <property name="uiLevel" stdset="0">
     <string notr="true">advanced</string>
+   </property>
+  </action>
+  <action name="actionService_Check_Selected">
+   <property name="text">
+    <string>Service Check</string>
+   </property>
+  </action>
+  <action name="actionService_Check_Group">
+   <property name="text">
+    <string>Service Check Group</string>
    </property>
   </action>
   <action name="actionRefresh_Column_Widths">

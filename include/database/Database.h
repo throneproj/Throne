@@ -30,6 +30,7 @@ namespace Configs {
         long long traffic_dl = 0;
         long long traffic_up = 0;
         std::string endpoint_json = "{}";
+        std::string service_checks;
     };
     // icons is the icons/ folder, handled by the UI layer rather than the database.
     struct BackupParts {
@@ -197,9 +198,9 @@ namespace Configs {
             }
         }
 
-        // 14 bind params per row.
+        // 15 bind params per row.
         void execBatchInsertProfiles0(const std::vector<ProfileInsertRow>& rows) {
-            const size_t chunkSize = BATCH_LIMIT_WRITE / 14;
+            const size_t chunkSize = BATCH_LIMIT_WRITE / 15;
             for (size_t off = 0; off < rows.size(); off += chunkSize) {
                 size_t end = std::min(off + chunkSize, rows.size());
                 std::vector<ProfileInsertRow> chunk(rows.begin() + static_cast<std::ptrdiff_t>(off),
@@ -209,7 +210,7 @@ namespace Configs {
         }
 
         void execBatchReplaceProfiles0(const std::vector<ProfileInsertRow>& rows) {
-            const size_t chunkSize = BATCH_LIMIT_WRITE / 14;
+            const size_t chunkSize = BATCH_LIMIT_WRITE / 15;
             for (size_t off = 0; off < rows.size(); off += chunkSize) {
                 size_t end = std::min(off + chunkSize, rows.size());
                 std::vector<ProfileInsertRow> chunk(rows.begin() + static_cast<std::ptrdiff_t>(off),
