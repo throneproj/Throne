@@ -4156,6 +4156,14 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <source>Find DNS resolvers that relay the tunnel of one of your DNSTT, MasterDNS or XDNS profiles.</source>
         <translation>Находит DNS-резолверы, которые пропускают туннель одного из ваших профилей DNSTT, MasterDNS или XDNS.</translation>
     </message>
+    <message>
+        <source>Find working settings</source>
+        <translation>Поиск рабочих настроек</translation>
+    </message>
+    <message>
+        <source>Try variants of one profile&apos;s anti-censorship settings several times each and rank them; nothing changes in the profile until you apply a result.</source>
+        <translation>Каждый вариант настроек обхода цензуры одного профиля проверяется несколько раз, и варианты ранжируются; профиль не меняется, пока вы не примените результат.</translation>
+    </message>
 </context>
 <context>
     <name>DialogOtpManager</name>
@@ -5168,6 +5176,350 @@ Close without saving?</source>
     <message>
         <source>Sends one decoy packet before each new UDP flow, so networks that block QUIC by its first packet let the real handshake through.</source>
         <translation>Отправляет один пакет-приманку перед каждым новым UDP-потоком, чтобы сети, блокирующие QUIC по первому пакету, пропускали настоящее рукопожатие.</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; already uses these settings.</source>
+        <translation>«%1» уже использует эти настройки.</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; cannot be searched. %2.</source>
+        <translation>Для «%1» поиск невозможен. %2.</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; could not be copied.</source>
+        <translation>Не удалось скопировать «%1».</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is open in an editor; close the profile&apos;s editor first, then apply again.</source>
+        <translation>«%1» открыт в редакторе; сначала закройте редактор профиля, затем примените снова.</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; now uses: %2.</source>
+        <translation>«%1» теперь использует: %2.</translation>
+    </message>
+    <message>
+        <source>%1 (tuned)</source>
+        <translation>%1 (подобрано)</translation>
+    </message>
+    <message>
+        <source>%1 ms</source>
+        <translation>%1 мс</translation>
+    </message>
+    <message>
+        <source>%1/%2</source>
+        <translation>%1/%2</translation>
+    </message>
+    <message>
+        <source>A censor that resets only some handshakes needs several tries to tell a working variant from a lucky one.</source>
+        <translation>Если цензор сбрасывает лишь часть рукопожатий, нужно несколько попыток, чтобы отличить рабочий вариант от случайно удачного.</translation>
+    </message>
+    <message>
+        <source>Adds a copy of the profile with the selected variant to its group; the profile itself stays as it is.</source>
+        <translation>Добавляет в группу профиля копию с выбранным вариантом; сам профиль не меняется.</translation>
+    </message>
+    <message>
+        <source>Apply to profile</source>
+        <translation>Применить к профилю</translation>
+    </message>
+    <message>
+        <source>At most this many attempts start in any minute.</source>
+        <translation>Не больше стольких попыток начинается за любую минуту.</translation>
+    </message>
+    <message>
+        <source>Attempt limit</source>
+        <translation>Лимит попыток</translation>
+    </message>
+    <message>
+        <source>Attempts per minute</source>
+        <translation>Попыток в минуту</translation>
+    </message>
+    <message>
+        <source>Attempts per variant</source>
+        <translation>Попыток на вариант</translation>
+    </message>
+    <message>
+        <source>Best: %1 (passed %2/%3, median %4)</source>
+        <translation>Лучший: %1 (успешно %2/%3, медиана %4)</translation>
+    </message>
+    <message>
+        <source>Choose the profile whose settings to search.</source>
+        <translation>Выберите профиль, настройки которого нужно подобрать.</translation>
+    </message>
+    <message>
+        <source>Comma-separated durations such as 100ms, 500ms, 1s, tried on the best variant that fragments. Only the built-in fragment implementation uses them.</source>
+        <translation>Длительности через запятую, например 100ms, 500ms, 1s; проверяются на лучшем варианте с фрагментацией. Используются только встроенной реализацией фрагментации.</translation>
+    </message>
+    <message>
+        <source>Comma-separated uTLS fingerprints; &quot;off&quot; tries Go&apos;s own TLS.</source>
+        <translation>uTLS fingerprint через запятую; «off» проверяет собственный TLS Go.</translation>
+    </message>
+    <message>
+        <source>Confirmed</source>
+        <translation>Подтверждён</translation>
+    </message>
+    <message numerus="yes">
+        <source>Copied %n variant(s)</source>
+        <translation>
+            <numerusform>Скопирован %n вариант</numerusform>
+            <numerusform>Скопировано %n варианта</numerusform>
+            <numerusform>Скопировано %n вариантов</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Copies the table as tab-separated text.</source>
+        <translation>Копирует таблицу как текст с разделителями-табуляциями.</translation>
+    </message>
+    <message>
+        <source>Download URL</source>
+        <translation>URL загрузки</translation>
+    </message>
+    <message>
+        <source>Download size (bytes)</source>
+        <translation>Размер загрузки (байт)</translation>
+    </message>
+    <message>
+        <source>Downloaded through the tunnel to check each MTU. Empty: Cloudflare&apos;s speed test.</source>
+        <translation>Загружается через туннель для проверки каждого MTU. Пусто: тест скорости Cloudflare.</translation>
+    </message>
+    <message>
+        <source>Dropped early</source>
+        <translation>Отсеян досрочно</translation>
+    </message>
+    <message>
+        <source>Each setting is first tried on its own, a switch flipped or a list value by value; the changes that help are then combined.</source>
+        <translation>Сначала каждая настройка проверяется отдельно: переключатель — в обратном положении, список — значение за значением; затем полезные изменения объединяются.</translation>
+    </message>
+    <message>
+        <source>Every attempt requests this URL through the profile. While the MTU is searched, attempts download from the MTU download URL instead.</source>
+        <translation>Каждая попытка запрашивает этот URL через профиль. Пока подбирается MTU, попытки вместо этого загружают данные с URL загрузки для MTU.</translation>
+    </message>
+    <message>
+        <source>Fallback delays to try</source>
+        <translation>Резервные задержки для проверки</translation>
+    </message>
+    <message>
+        <source>Find working settings</source>
+        <translation>Поиск рабочих настроек</translation>
+    </message>
+    <message>
+        <source>Finds the largest MTU that still carries a bulk download through the tunnel.</source>
+        <translation>Находит наибольший MTU, при котором через туннель ещё проходит объёмная загрузка.</translation>
+    </message>
+    <message>
+        <source>Fingerprints to try</source>
+        <translation>Проверяемые fingerprint</translation>
+    </message>
+    <message>
+        <source>How many bytes each MTU check downloads.</source>
+        <translation>Сколько байт загружает каждая проверка MTU.</translation>
+    </message>
+    <message>
+        <source>Largest MTU</source>
+        <translation>Наибольший MTU</translation>
+    </message>
+    <message>
+        <source>Largest working MTU</source>
+        <translation>Наибольший рабочий MTU</translation>
+    </message>
+    <message>
+        <source>MTU (WireGuard)</source>
+        <translation>MTU (WireGuard)</translation>
+    </message>
+    <message>
+        <source>MTU probe</source>
+        <translation>Проба MTU</translation>
+    </message>
+    <message>
+        <source>MTU step</source>
+        <translation>Шаг MTU</translation>
+    </message>
+    <message>
+        <source>MTU: the download size must be between %1 and %2 bytes.</source>
+        <translation>MTU: размер загрузки должен быть от %1 до %2 байт.</translation>
+    </message>
+    <message>
+        <source>MTU: the largest MTU must be between %1 and %2; leave it empty for the profile&apos;s own.</source>
+        <translation>MTU: наибольший MTU должен быть от %1 до %2; оставьте поле пустым, чтобы использовать значение профиля.</translation>
+    </message>
+    <message>
+        <source>MTU: the smallest MTU must be between %1 and %2.</source>
+        <translation>MTU: наименьший MTU должен быть от %1 до %2.</translation>
+    </message>
+    <message>
+        <source>MTU: the step must be between %1 and %2.</source>
+        <translation>MTU: шаг должен быть от %1 до %2.</translation>
+    </message>
+    <message>
+        <source>Median latency</source>
+        <translation>Медианная задержка</translation>
+    </message>
+    <message>
+        <source>Needs SNI turned on with a domain name, and no REALITY.</source>
+        <translation>Нужен включённый SNI с доменным именем и без REALITY.</translation>
+    </message>
+    <message>
+        <source>Needs a profile that opens UDP flows to its server: QUIC, MASQUE over HTTP/3 or WireGuard.</source>
+        <translation>Нужен профиль, открывающий UDP-потоки к своему серверу: QUIC, MASQUE поверх HTTP/3 или WireGuard.</translation>
+    </message>
+    <message>
+        <source>No variant has passed yet.</source>
+        <translation>Пока ни один вариант не прошёл.</translation>
+    </message>
+    <message>
+        <source>No variant passed.</source>
+        <translation>Ни один вариант не прошёл.</translation>
+    </message>
+    <message>
+        <source>Not usable</source>
+        <translation>Нельзя использовать</translation>
+    </message>
+    <message>
+        <source>Not usable: %1</source>
+        <translation>Нельзя использовать: %1</translation>
+    </message>
+    <message>
+        <source>Note</source>
+        <translation>Примечание</translation>
+    </message>
+    <message>
+        <source>Only WireGuard and AmneziaWG profiles have an MTU to search.</source>
+        <translation>MTU можно подбирать только у профилей WireGuard и AmneziaWG.</translation>
+    </message>
+    <message>
+        <source>Only the built-in fragment implementation uses a fallback delay.</source>
+        <translation>Резервную задержку использует только встроенная реализация фрагментации.</translation>
+    </message>
+    <message>
+        <source>Pacing</source>
+        <translation>Темп</translation>
+    </message>
+    <message>
+        <source>Pacing: attempts per minute must be between %1 and %2.</source>
+        <translation>Темп: число попыток в минуту должно быть от %1 до %2.</translation>
+    </message>
+    <message>
+        <source>Pacing: attempts per variant must be between %1 and %2.</source>
+        <translation>Темп: число попыток на вариант должно быть от %1 до %2.</translation>
+    </message>
+    <message>
+        <source>Pacing: the attempt limit must be between %1 and %2.</source>
+        <translation>Темп: лимит попыток должен быть от %1 до %2.</translation>
+    </message>
+    <message>
+        <source>Pacing: the time limit must be between %1 and %2 minutes.</source>
+        <translation>Темп: лимит времени должен быть от %1 до %2 минут.</translation>
+    </message>
+    <message>
+        <source>Pacing: the timeout must be between %1 and %2 ms.</source>
+        <translation>Темп: таймаут должен быть от %1 до %2 мс.</translation>
+    </message>
+    <message>
+        <source>Passed</source>
+        <translation>Успешно</translation>
+    </message>
+    <message>
+        <source>Profile as it is</source>
+        <translation>Профиль без изменений</translation>
+    </message>
+    <message>
+        <source>Recommended</source>
+        <translation>Рекомендуется</translation>
+    </message>
+    <message>
+        <source>Save as new profile</source>
+        <translation>Сохранить как новый профиль</translation>
+    </message>
+    <message>
+        <source>Saved &quot;%1&quot; with: %2.</source>
+        <translation>Сохранён «%1» с настройками: %2.</translation>
+    </message>
+    <message>
+        <source>Settings</source>
+        <translation>Настройки</translation>
+    </message>
+    <message>
+        <source>Smallest MTU</source>
+        <translation>Наименьший MTU</translation>
+    </message>
+    <message>
+        <source>TLS fragment</source>
+        <translation>Фрагментация TLS</translation>
+    </message>
+    <message>
+        <source>TLS record fragment</source>
+        <translation>Фрагментация записи TLS</translation>
+    </message>
+    <message>
+        <source>Tested through %1</source>
+        <translation>Проверено через %1</translation>
+    </message>
+    <message>
+        <source>Tests through %1</source>
+        <translation>Проверка через %1</translation>
+    </message>
+    <message>
+        <source>The largest MTU must be above the smallest; leave it empty for the profile&apos;s own.</source>
+        <translation>Наибольший MTU должен быть больше наименьшего; оставьте поле пустым, чтобы использовать значение профиля.</translation>
+    </message>
+    <message>
+        <source>The profile has no server address to test.</source>
+        <translation>У профиля нет адреса сервера для проверки.</translation>
+    </message>
+    <message>
+        <source>The profile of this search no longer exists.</source>
+        <translation>Профиль этого поиска больше не существует.</translation>
+    </message>
+    <message>
+        <source>The profile this search was made for no longer exists.</source>
+        <translation>Профиль, для которого создан этот поиск, больше не существует.</translation>
+    </message>
+    <message>
+        <source>The profile&apos;s own</source>
+        <translation>Значение профиля</translation>
+    </message>
+    <message>
+        <source>The search stops after this many attempts in all.</source>
+        <translation>Поиск останавливается после стольких попыток в сумме.</translation>
+    </message>
+    <message>
+        <source>The search stops after this many minutes.</source>
+        <translation>Поиск останавливается через столько минут.</translation>
+    </message>
+    <message>
+        <source>The settings could not be applied to &quot;%1&quot;: %2.</source>
+        <translation>Не удалось применить настройки к «%1»: %2.</translation>
+    </message>
+    <message>
+        <source>The settings could not be applied to the copy: %1.</source>
+        <translation>Не удалось применить настройки к копии: %1.</translation>
+    </message>
+    <message>
+        <source>These results are for another profile; start the search to test the one chosen now.</source>
+        <translation>Эти результаты относятся к другому профилю; запустите поиск, чтобы проверить выбранный сейчас.</translation>
+    </message>
+    <message>
+        <source>This profile does not use TLS over TCP.</source>
+        <translation>Этот профиль не использует TLS поверх TCP.</translation>
+    </message>
+    <message>
+        <source>This type of profile has no uTLS fingerprint.</source>
+        <translation>У профилей этого типа нет uTLS fingerprint.</translation>
+    </message>
+    <message>
+        <source>Time limit (minutes)</source>
+        <translation>Лимит времени (минуты)</translation>
+    </message>
+    <message>
+        <source>Variants of this profile&apos;s anti-censorship settings are tested through the core, one attempt at a time. The profile itself changes only when you apply a result.</source>
+        <translation>Варианты настроек обхода цензуры этого профиля проверяются через ядро, по одной попытке за раз. Сам профиль меняется, только когда вы применяете результат.</translation>
+    </message>
+    <message>
+        <source>What to try</source>
+        <translation>Что проверять</translation>
+    </message>
+    <message>
+        <source>Writes the selected variant into the profile&apos;s own settings; global defaults stay as they are.</source>
+        <translation>Записывает выбранный вариант в собственные настройки профиля; глобальные значения по умолчанию не меняются.</translation>
     </message>
 </context>
 <context>
@@ -10768,6 +11120,10 @@ Grant them once with a Windows confirmation; Throne itself keeps running as a st
         <source>Service check failed: %1</source>
         <translation>Не удалось проверить сервисы: %1</translation>
     </message>
+    <message>
+        <source>Find working settings…</source>
+        <translation>Поиск рабочих настроек…</translation>
+    </message>
 </context>
 <context>
     <name>OtpItem</name>
@@ -12387,6 +12743,14 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
         <source>risk %1</source>
         <translation>риск %1</translation>
     </message>
+    <message>
+        <source>Choose the profile to find working settings for</source>
+        <translation>Выберите профиль, для которого нужно найти рабочие настройки</translation>
+    </message>
+    <message>
+        <source>The profile could not be copied</source>
+        <translation>Не удалось скопировать профиль</translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -13167,6 +13531,50 @@ Remove that endpoint from this routing profile as well?</source>
         <source>Failed to store the scan.</source>
         <translation>Не удалось сохранить сканирование.</translation>
     </message>
+    <message>
+        <source>&quot;%1&quot; cannot be searched. %2.</source>
+        <translation>Для «%1» поиск невозможен. %2.</translation>
+    </message>
+    <message>
+        <source>%1 / %2 attempts (%3%)</source>
+        <translation>%1 / %2 попыток (%3%)</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n working variant(s)</source>
+        <translation>
+            <numerusform>%n рабочий вариант</numerusform>
+            <numerusform>%n рабочих варианта</numerusform>
+            <numerusform>%n рабочих вариантов</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Find working settings</source>
+        <translation>Поиск рабочих настроек</translation>
+    </message>
+    <message>
+        <source>Only a saved profile can be searched; save the profile first.</source>
+        <translation>Подбирать можно только сохранённый профиль; сначала сохраните профиль.</translation>
+    </message>
+    <message>
+        <source>Settings for %1</source>
+        <translation>Настройки для %1</translation>
+    </message>
+    <message numerus="yes">
+        <source>Start over and discard the %n tested variant(s)?</source>
+        <translation>
+            <numerusform>Начать заново и отбросить %n проверенный вариант?</numerusform>
+            <numerusform>Начать заново и отбросить %n проверенных варианта?</numerusform>
+            <numerusform>Начать заново и отбросить %n проверенных вариантов?</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>The profile or the search options changed since this search was paused, so it cannot resume. Start over?</source>
+        <translation>Профиль или параметры поиска изменились после его приостановки, поэтому продолжить нельзя. Начать заново?</translation>
+    </message>
+    <message>
+        <source>Working settings</source>
+        <translation>Рабочие настройки</translation>
+    </message>
 </context>
 <context>
     <name>Scanner::IpListUpdater</name>
@@ -13496,6 +13904,205 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>The DNS tunnel profile cannot be used to find resolvers</source>
         <translation>Профиль DNS-туннеля нельзя использовать для поиска резолверов</translation>
+    </message>
+    <message>
+        <source>A settings search has no results to rescan</source>
+        <translation>У поиска настроек нет результатов для повторного сканирования</translation>
+    </message>
+    <message>
+        <source>Choose the profile to find working settings for</source>
+        <translation>Выберите профиль, для которого нужно найти рабочие настройки</translation>
+    </message>
+    <message>
+        <source>Nothing to try: turn on a setting this profile supports</source>
+        <translation>Нечего проверять: включите настройку, которую поддерживает этот профиль</translation>
+    </message>
+    <message>
+        <source>The profile has no server address to test</source>
+        <translation>У профиля нет адреса сервера для проверки</translation>
+    </message>
+    <message>
+        <source>Every variant connects to %1</source>
+        <translation>Каждый вариант подключается к %1</translation>
+    </message>
+    <message numerus="yes">
+        <source>Stopped at the time limit of %n minute(s)</source>
+        <translation>
+            <numerusform>Остановлено: достигнут лимит времени в %n минуту</numerusform>
+            <numerusform>Остановлено: достигнут лимит времени в %n минуты</numerusform>
+            <numerusform>Остановлено: достигнут лимит времени в %n минут</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Stopped at the limit of %n attempt(s)</source>
+        <translation>
+            <numerusform>Остановлено: достигнут лимит в %n попытку</numerusform>
+            <numerusform>Остановлено: достигнут лимит в %n попытки</numerusform>
+            <numerusform>Остановлено: достигнут лимит в %n попыток</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>%1: cannot be used: %2</source>
+        <translation>%1: нельзя использовать: %2</translation>
+    </message>
+    <message>
+        <source>%1: passed in %2 ms (%3/%4)</source>
+        <translation>%1: успешно за %2 мс (%3/%4)</translation>
+    </message>
+    <message>
+        <source>The network is down, so the search paused; resume it when the connection is back</source>
+        <translation>Сеть недоступна, поэтому поиск приостановлен; продолжите его, когда подключение восстановится</translation>
+    </message>
+    <message>
+        <source>%1: failed (%2/%3): %4</source>
+        <translation>%1: ошибка (%2/%3): %4</translation>
+    </message>
+    <message>
+        <source>The profile could not be copied</source>
+        <translation>Не удалось скопировать профиль</translation>
+    </message>
+    <message>
+        <source>This profile cannot be pointed at %1</source>
+        <translation>Этот профиль нельзя направить на %1</translation>
+    </message>
+    <message>
+        <source>The core returned no result</source>
+        <translation>Ядро не вернуло результат</translation>
+    </message>
+    <message>
+        <source>The core did not answer the network check, so the search paused</source>
+        <translation>Ядро не ответило на проверку сети, поэтому поиск приостановлен</translation>
+    </message>
+    <message>
+        <source>Confirming the best variants</source>
+        <translation>Подтверждение лучших вариантов</translation>
+    </message>
+    <message>
+        <source>Testing the profile as it is</source>
+        <translation>Проверка профиля без изменений</translation>
+    </message>
+    <message>
+        <source>Trying one change at a time</source>
+        <translation>Проверка изменений по одному</translation>
+    </message>
+    <message>
+        <source>Combining what helped</source>
+        <translation>Объединение того, что помогло</translation>
+    </message>
+    <message>
+        <source>Trying fragment delays</source>
+        <translation>Проверка задержек фрагментации</translation>
+    </message>
+    <message>
+        <source>Searching for the largest working MTU</source>
+        <translation>Поиск наибольшего рабочего MTU</translation>
+    </message>
+</context>
+<context>
+    <name>Scanner::Tune</name>
+    <message>
+        <source>The profile could not be read</source>
+        <translation>Не удалось прочитать профиль</translation>
+    </message>
+    <message>
+        <source>A chain cannot be searched as a whole; run the search on the profiles of its hops</source>
+        <translation>Цепочку нельзя проверить целиком; запустите поиск для профилей её звеньев</translation>
+    </message>
+    <message>
+        <source>Xray profiles are not supported yet: the search changes sing-box settings</source>
+        <translation>Профили Xray пока не поддерживаются: поиск меняет настройки sing-box</translation>
+    </message>
+    <message>
+        <source>This profile has no setting the search can change: that needs TLS over TCP, QUIC or WireGuard</source>
+        <translation>У этого профиля нет настроек, которые может менять поиск: для этого нужен TLS поверх TCP, QUIC или WireGuard</translation>
+    </message>
+    <message>
+        <source>The MTU applies only to WireGuard profiles</source>
+        <translation>MTU применяется только к профилям WireGuard</translation>
+    </message>
+    <message>
+        <source>The profile no longer uses TLS over TCP</source>
+        <translation>Профиль больше не использует TLS поверх TCP</translation>
+    </message>
+    <message>
+        <source>This type of profile has no uTLS fingerprint</source>
+        <translation>У профилей этого типа нет uTLS fingerprint</translation>
+    </message>
+    <message>
+        <source>Unknown setting “%1”</source>
+        <translation>Неизвестная настройка «%1»</translation>
+    </message>
+    <message>
+        <source>The profile as it is</source>
+        <translation>Профиль без изменений</translation>
+    </message>
+    <message>
+        <source>uTLS off</source>
+        <translation>uTLS выкл.</translation>
+    </message>
+    <message>
+        <source>Fingerprint %1</source>
+        <translation>Fingerprint %1</translation>
+    </message>
+    <message>
+        <source>TLS fragment on</source>
+        <translation>Фрагментация TLS вкл.</translation>
+    </message>
+    <message>
+        <source>TLS fragment off</source>
+        <translation>Фрагментация TLS выкл.</translation>
+    </message>
+    <message>
+        <source>Fragment delay %1</source>
+        <translation>Задержка фрагментации %1</translation>
+    </message>
+    <message>
+        <source>default</source>
+        <translation>по умолчанию</translation>
+    </message>
+    <message>
+        <source>Record fragment on</source>
+        <translation>Фрагментация записи вкл.</translation>
+    </message>
+    <message>
+        <source>Record fragment off</source>
+        <translation>Фрагментация записи выкл.</translation>
+    </message>
+    <message>
+        <source>Mixed-case SNI on</source>
+        <translation>SNI в смешанном регистре вкл.</translation>
+    </message>
+    <message>
+        <source>Mixed-case SNI off</source>
+        <translation>SNI в смешанном регистре выкл.</translation>
+    </message>
+    <message>
+        <source>QUIC opener on</source>
+        <translation>QUIC-приманка вкл.</translation>
+    </message>
+    <message>
+        <source>QUIC opener off</source>
+        <translation>QUIC-приманка выкл.</translation>
+    </message>
+    <message>
+        <source>MTU %1</source>
+        <translation>MTU %1</translation>
+    </message>
+    <message>
+        <source>“%1” changes from one start to the next, so it cannot be tried</source>
+        <translation>«%1» меняется при каждом запуске, поэтому его нельзя проверить</translation>
+    </message>
+    <message>
+        <source>“%1” is not a uTLS fingerprint</source>
+        <translation>«%1» — не uTLS fingerprint</translation>
+    </message>
+    <message>
+        <source>Fragment delay “%1”: %2</source>
+        <translation>Задержка фрагментации «%1»: %2</translation>
+    </message>
+    <message>
+        <source>The largest MTU must be above the smallest</source>
+        <translation>Наибольший MTU должен быть больше наименьшего</translation>
     </message>
 </context>
 <context>

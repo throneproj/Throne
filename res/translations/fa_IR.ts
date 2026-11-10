@@ -317,6 +317,14 @@ Deleted %3 Profiles:
         <source>risk %1</source>
         <translation>ریسک %1</translation>
     </message>
+    <message>
+        <source>Choose the profile to find working settings for</source>
+        <translation>نمایه‌ای را که برایش تنظیمات کارا پیدا شود انتخاب کنید</translation>
+    </message>
+    <message>
+        <source>The profile could not be copied</source>
+        <translation>نمایه کپی نشد</translation>
+    </message>
 </context>
 <context>
     <name>DialogAbout</name>
@@ -1824,6 +1832,14 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
         <source>Find DNS resolvers that relay the tunnel of one of your DNSTT, MasterDNS or XDNS profiles.</source>
         <translation>ریزالورهای DNS را پیدا می‌کند که تونل یکی از نمایه‌های DNSTT، MasterDNS یا XDNS شما را عبور می‌دهند.</translation>
     </message>
+    <message>
+        <source>Find working settings</source>
+        <translation>یافتن تنظیمات کارا</translation>
+    </message>
+    <message>
+        <source>Try variants of one profile&apos;s anti-censorship settings several times each and rank them; nothing changes in the profile until you apply a result.</source>
+        <translation>گونه‌های تنظیمات ضدسانسور یک نمایه را هر کدام چند بار امتحان و رتبه‌بندی می‌کند؛ تا وقتی نتیجه‌ای را اعمال نکنید، چیزی در نمایه تغییر نمی‌کند.</translation>
+    </message>
 </context>
 <context>
     <name>DialogScanInstance</name>
@@ -1938,6 +1954,348 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>Sends one decoy packet before each new UDP flow, so networks that block QUIC by its first packet let the real handshake through.</source>
         <translation>پیش از هر جریان UDP تازه یک بستهٔ فریب می‌فرستد تا شبکه‌هایی که QUIC را از روی نخستین بسته مسدود می‌کنند، دست‌دهی واقعی را عبور دهند.</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; already uses these settings.</source>
+        <translation>«%1» هم‌اکنون از همین تنظیمات استفاده می‌کند.</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; cannot be searched. %2.</source>
+        <translation>«%1» قابل جستجو نیست. %2.</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; could not be copied.</source>
+        <translation>«%1» کپی نشد.</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is open in an editor; close the profile&apos;s editor first, then apply again.</source>
+        <translation>«%1» در ویرایشگر باز است؛ ابتدا ویرایشگر نمایه را ببندید و دوباره اعمال کنید.</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; now uses: %2.</source>
+        <translation>«%1» اکنون از این‌ها استفاده می‌کند: %2.</translation>
+    </message>
+    <message>
+        <source>%1 (tuned)</source>
+        <translation>%1 (تنظیم‌شده)</translation>
+    </message>
+    <message>
+        <source>%1 ms</source>
+        <translation>%1 میلی‌ثانیه</translation>
+    </message>
+    <message>
+        <source>%1/%2</source>
+        <translation>%1/%2</translation>
+    </message>
+    <message>
+        <source>A censor that resets only some handshakes needs several tries to tell a working variant from a lucky one.</source>
+        <translation>سانسوری که فقط برخی از دست‌دهی‌ها را قطع می‌کند، چند تلاش لازم دارد تا گونهٔ کارا از گونهٔ خوش‌شانس تشخیص داده شود.</translation>
+    </message>
+    <message>
+        <source>Adds a copy of the profile with the selected variant to its group; the profile itself stays as it is.</source>
+        <translation>یک کپی از نمایه با گونهٔ انتخاب‌شده به گروهش اضافه می‌کند؛ خود نمایه همان‌طور که هست می‌ماند.</translation>
+    </message>
+    <message>
+        <source>Apply to profile</source>
+        <translation>اعمال روی نمایه</translation>
+    </message>
+    <message>
+        <source>At most this many attempts start in any minute.</source>
+        <translation>در هر دقیقه حداکثر همین تعداد تلاش آغاز می‌شود.</translation>
+    </message>
+    <message>
+        <source>Attempt limit</source>
+        <translation>سقف تلاش‌ها</translation>
+    </message>
+    <message>
+        <source>Attempts per minute</source>
+        <translation>تلاش در دقیقه</translation>
+    </message>
+    <message>
+        <source>Attempts per variant</source>
+        <translation>تلاش برای هر گونه</translation>
+    </message>
+    <message>
+        <source>Best: %1 (passed %2/%3, median %4)</source>
+        <translation>بهترین: %1 (موفق %2/%3، میانه %4)</translation>
+    </message>
+    <message>
+        <source>Choose the profile whose settings to search.</source>
+        <translation>نمایه‌ای را که تنظیماتش جستجو شود انتخاب کنید.</translation>
+    </message>
+    <message>
+        <source>Comma-separated durations such as 100ms, 500ms, 1s, tried on the best variant that fragments. Only the built-in fragment implementation uses them.</source>
+        <translation>مدت‌زمان‌هایی جداشده با کاما مانند 100ms, 500ms, 1s که روی بهترین گونهٔ دارای قطعه‌بندی امتحان می‌شوند. فقط پیاده‌سازی داخلی قطعه‌بندی از آن‌ها استفاده می‌کند.</translation>
+    </message>
+    <message>
+        <source>Comma-separated uTLS fingerprints; &quot;off&quot; tries Go&apos;s own TLS.</source>
+        <translation>اثرانگشت‌های uTLS جداشده با کاما؛ «off» خود TLS زبان Go را امتحان می‌کند.</translation>
+    </message>
+    <message>
+        <source>Confirmed</source>
+        <translation>تأییدشده</translation>
+    </message>
+    <message numerus="yes">
+        <source>Copied %n variant(s)</source>
+        <translation>
+            <numerusform>%n گونه کپی شد</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Copies the table as tab-separated text.</source>
+        <translation>جدول را به‌صورت متن جداشده با Tab کپی می‌کند.</translation>
+    </message>
+    <message>
+        <source>Download URL</source>
+        <translation>نشانی دانلود</translation>
+    </message>
+    <message>
+        <source>Download size (bytes)</source>
+        <translation>حجم دانلود (بایت)</translation>
+    </message>
+    <message>
+        <source>Downloaded through the tunnel to check each MTU. Empty: Cloudflare&apos;s speed test.</source>
+        <translation>برای بررسی هر MTU از طریق تونل دانلود می‌شود. خالی: تست سرعت Cloudflare.</translation>
+    </message>
+    <message>
+        <source>Dropped early</source>
+        <translation>زودتر کنار گذاشته شد</translation>
+    </message>
+    <message>
+        <source>Each setting is first tried on its own, a switch flipped or a list value by value; the changes that help are then combined.</source>
+        <translation>هر تنظیم ابتدا به‌تنهایی امتحان می‌شود، یک کلید برعکس یا یک فهرست مقدار به مقدار؛ سپس تغییرهای مؤثر با هم ترکیب می‌شوند.</translation>
+    </message>
+    <message>
+        <source>Every attempt requests this URL through the profile. While the MTU is searched, attempts download from the MTU download URL instead.</source>
+        <translation>هر تلاش این نشانی را از طریق نمایه درخواست می‌کند. هنگام جستجوی MTU، تلاش‌ها به‌جای آن از نشانی دانلود MTU دانلود می‌کنند.</translation>
+    </message>
+    <message>
+        <source>Fallback delays to try</source>
+        <translation>تأخیرهای جایگزین برای امتحان</translation>
+    </message>
+    <message>
+        <source>Find working settings</source>
+        <translation>یافتن تنظیمات کارا</translation>
+    </message>
+    <message>
+        <source>Finds the largest MTU that still carries a bulk download through the tunnel.</source>
+        <translation>بزرگ‌ترین MTU را پیدا می‌کند که هنوز یک دانلود حجیم را از تونل عبور می‌دهد.</translation>
+    </message>
+    <message>
+        <source>Fingerprints to try</source>
+        <translation>اثرانگشت‌ها برای امتحان</translation>
+    </message>
+    <message>
+        <source>How many bytes each MTU check downloads.</source>
+        <translation>تعداد بایتی که هر بررسی MTU دانلود می‌کند.</translation>
+    </message>
+    <message>
+        <source>Largest MTU</source>
+        <translation>بیشترین MTU</translation>
+    </message>
+    <message>
+        <source>Largest working MTU</source>
+        <translation>بزرگ‌ترین MTU کارا</translation>
+    </message>
+    <message>
+        <source>MTU (WireGuard)</source>
+        <translation>MTU (WireGuard)</translation>
+    </message>
+    <message>
+        <source>MTU probe</source>
+        <translation>کاوش MTU</translation>
+    </message>
+    <message>
+        <source>MTU step</source>
+        <translation>گام MTU</translation>
+    </message>
+    <message>
+        <source>MTU: the download size must be between %1 and %2 bytes.</source>
+        <translation>MTU: حجم دانلود باید بین %1 و %2 بایت باشد.</translation>
+    </message>
+    <message>
+        <source>MTU: the largest MTU must be between %1 and %2; leave it empty for the profile&apos;s own.</source>
+        <translation>MTU: بیشترین MTU باید بین %1 و %2 باشد؛ برای مقدار خود نمایه آن را خالی بگذارید.</translation>
+    </message>
+    <message>
+        <source>MTU: the smallest MTU must be between %1 and %2.</source>
+        <translation>MTU: کمترین MTU باید بین %1 و %2 باشد.</translation>
+    </message>
+    <message>
+        <source>MTU: the step must be between %1 and %2.</source>
+        <translation>MTU: گام باید بین %1 و %2 باشد.</translation>
+    </message>
+    <message>
+        <source>Median latency</source>
+        <translation>میانهٔ تأخیر</translation>
+    </message>
+    <message>
+        <source>Needs SNI turned on with a domain name, and no REALITY.</source>
+        <translation>به SNI روشن با نام دامنه و بدون REALITY نیاز دارد.</translation>
+    </message>
+    <message>
+        <source>Needs a profile that opens UDP flows to its server: QUIC, MASQUE over HTTP/3 or WireGuard.</source>
+        <translation>به نمایه‌ای نیاز دارد که جریان‌های UDP به سرورش باز کند: QUIC، MASQUE روی HTTP/3 یا WireGuard.</translation>
+    </message>
+    <message>
+        <source>No variant has passed yet.</source>
+        <translation>هنوز هیچ گونه‌ای موفق نشده است.</translation>
+    </message>
+    <message>
+        <source>No variant passed.</source>
+        <translation>هیچ گونه‌ای موفق نشد.</translation>
+    </message>
+    <message>
+        <source>Not usable</source>
+        <translation>قابل استفاده نیست</translation>
+    </message>
+    <message>
+        <source>Not usable: %1</source>
+        <translation>قابل استفاده نیست: %1</translation>
+    </message>
+    <message>
+        <source>Note</source>
+        <translation>یادداشت</translation>
+    </message>
+    <message>
+        <source>Only WireGuard and AmneziaWG profiles have an MTU to search.</source>
+        <translation>فقط نمایه‌های WireGuard و AmneziaWG دارای MTU قابل جستجو هستند.</translation>
+    </message>
+    <message>
+        <source>Only the built-in fragment implementation uses a fallback delay.</source>
+        <translation>فقط پیاده‌سازی داخلی قطعه‌بندی از تأخیر جایگزین استفاده می‌کند.</translation>
+    </message>
+    <message>
+        <source>Pacing</source>
+        <translation>زمان‌بندی</translation>
+    </message>
+    <message>
+        <source>Pacing: attempts per minute must be between %1 and %2.</source>
+        <translation>زمان‌بندی: تلاش در دقیقه باید بین %1 و %2 باشد.</translation>
+    </message>
+    <message>
+        <source>Pacing: attempts per variant must be between %1 and %2.</source>
+        <translation>زمان‌بندی: تلاش برای هر گونه باید بین %1 و %2 باشد.</translation>
+    </message>
+    <message>
+        <source>Pacing: the attempt limit must be between %1 and %2.</source>
+        <translation>زمان‌بندی: سقف تلاش‌ها باید بین %1 و %2 باشد.</translation>
+    </message>
+    <message>
+        <source>Pacing: the time limit must be between %1 and %2 minutes.</source>
+        <translation>زمان‌بندی: سقف زمانی باید بین %1 و %2 دقیقه باشد.</translation>
+    </message>
+    <message>
+        <source>Pacing: the timeout must be between %1 and %2 ms.</source>
+        <translation>زمان‌بندی: مهلت باید بین %1 و %2 میلی‌ثانیه باشد.</translation>
+    </message>
+    <message>
+        <source>Passed</source>
+        <translation>موفق</translation>
+    </message>
+    <message>
+        <source>Profile as it is</source>
+        <translation>نمایه همان‌طور که هست</translation>
+    </message>
+    <message>
+        <source>Recommended</source>
+        <translation>پیشنهادی</translation>
+    </message>
+    <message>
+        <source>Save as new profile</source>
+        <translation>ذخیره به‌عنوان نمایهٔ جدید</translation>
+    </message>
+    <message>
+        <source>Saved &quot;%1&quot; with: %2.</source>
+        <translation>«%1» با این‌ها ذخیره شد: %2.</translation>
+    </message>
+    <message>
+        <source>Settings</source>
+        <translation>تنظیمات</translation>
+    </message>
+    <message>
+        <source>Smallest MTU</source>
+        <translation>کمترین MTU</translation>
+    </message>
+    <message>
+        <source>TLS fragment</source>
+        <translation>قطعه‌بندی TLS</translation>
+    </message>
+    <message>
+        <source>TLS record fragment</source>
+        <translation>قطعه‌بندی رکورد TLS</translation>
+    </message>
+    <message>
+        <source>Tested through %1</source>
+        <translation>از طریق %1 آزمایش شد</translation>
+    </message>
+    <message>
+        <source>Tests through %1</source>
+        <translation>از طریق %1 آزمایش می‌کند</translation>
+    </message>
+    <message>
+        <source>The largest MTU must be above the smallest; leave it empty for the profile&apos;s own.</source>
+        <translation>بیشترین MTU باید از کمترین بزرگ‌تر باشد؛ برای مقدار خود نمایه آن را خالی بگذارید.</translation>
+    </message>
+    <message>
+        <source>The profile has no server address to test.</source>
+        <translation>نمایه نشانی سروری برای آزمایش ندارد.</translation>
+    </message>
+    <message>
+        <source>The profile of this search no longer exists.</source>
+        <translation>نمایهٔ این جستجو دیگر وجود ندارد.</translation>
+    </message>
+    <message>
+        <source>The profile this search was made for no longer exists.</source>
+        <translation>نمایه‌ای که این جستجو برای آن ساخته شده بود دیگر وجود ندارد.</translation>
+    </message>
+    <message>
+        <source>The profile&apos;s own</source>
+        <translation>مقدار خود نمایه</translation>
+    </message>
+    <message>
+        <source>The search stops after this many attempts in all.</source>
+        <translation>جستجو پس از این تعداد تلاش در مجموع متوقف می‌شود.</translation>
+    </message>
+    <message>
+        <source>The search stops after this many minutes.</source>
+        <translation>جستجو پس از این تعداد دقیقه متوقف می‌شود.</translation>
+    </message>
+    <message>
+        <source>The settings could not be applied to &quot;%1&quot;: %2.</source>
+        <translation>تنظیمات روی «%1» اعمال نشد: %2.</translation>
+    </message>
+    <message>
+        <source>The settings could not be applied to the copy: %1.</source>
+        <translation>تنظیمات روی کپی اعمال نشد: %1.</translation>
+    </message>
+    <message>
+        <source>These results are for another profile; start the search to test the one chosen now.</source>
+        <translation>این نتایج مربوط به نمایهٔ دیگری است؛ برای آزمایش نمایهٔ انتخاب‌شدهٔ فعلی، جستجو را شروع کنید.</translation>
+    </message>
+    <message>
+        <source>This profile does not use TLS over TCP.</source>
+        <translation>این نمایه از TLS روی TCP استفاده نمی‌کند.</translation>
+    </message>
+    <message>
+        <source>This type of profile has no uTLS fingerprint.</source>
+        <translation>این نوع نمایه اثرانگشت uTLS ندارد.</translation>
+    </message>
+    <message>
+        <source>Time limit (minutes)</source>
+        <translation>سقف زمانی (دقیقه)</translation>
+    </message>
+    <message>
+        <source>Variants of this profile&apos;s anti-censorship settings are tested through the core, one attempt at a time. The profile itself changes only when you apply a result.</source>
+        <translation>گونه‌های تنظیمات ضدسانسور این نمایه از طریق هسته، هر بار یک تلاش، آزمایش می‌شوند. خود نمایه فقط وقتی تغییر می‌کند که نتیجه‌ای را اعمال کنید.</translation>
+    </message>
+    <message>
+        <source>What to try</source>
+        <translation>چه چیزهایی امتحان شود</translation>
+    </message>
+    <message>
+        <source>Writes the selected variant into the profile&apos;s own settings; global defaults stay as they are.</source>
+        <translation>گونهٔ انتخاب‌شده را در تنظیمات خود نمایه می‌نویسد؛ پیش‌فرض‌های سراسری همان‌طور می‌مانند.</translation>
     </message>
 </context>
 <context>
@@ -3921,6 +4279,10 @@ Grant them once with a Windows confirmation; Throne itself keeps running as a st
         <source>Service check failed: %1</source>
         <translation>بررسی سرویس‌ها ناموفق بود: %1</translation>
     </message>
+    <message>
+        <source>Find working settings…</source>
+        <translation>یافتن تنظیمات کارا…</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableModel</name>
@@ -4334,6 +4696,46 @@ Grant them once with a Windows confirmation; Throne itself keeps running as a st
         <source>Failed to store the scan.</source>
         <translation>ذخیرهٔ اسکن ناموفق بود.</translation>
     </message>
+    <message>
+        <source>&quot;%1&quot; cannot be searched. %2.</source>
+        <translation>«%1» قابل جستجو نیست. %2.</translation>
+    </message>
+    <message>
+        <source>%1 / %2 attempts (%3%)</source>
+        <translation>%1 / %2 تلاش (%3%)</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n working variant(s)</source>
+        <translation>
+            <numerusform>%n گونهٔ کارا</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Find working settings</source>
+        <translation>یافتن تنظیمات کارا</translation>
+    </message>
+    <message>
+        <source>Only a saved profile can be searched; save the profile first.</source>
+        <translation>فقط نمایهٔ ذخیره‌شده قابل جستجو است؛ ابتدا نمایه را ذخیره کنید.</translation>
+    </message>
+    <message>
+        <source>Settings for %1</source>
+        <translation>تنظیمات برای %1</translation>
+    </message>
+    <message numerus="yes">
+        <source>Start over and discard the %n tested variant(s)?</source>
+        <translation>
+            <numerusform>از نو شروع شود و %n گونهٔ آزمایش‌شده کنار گذاشته شود؟</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>The profile or the search options changed since this search was paused, so it cannot resume. Start over?</source>
+        <translation>از زمان توقف این جستجو، نمایه یا گزینه‌های جستجو تغییر کرده‌اند، پس نمی‌توان آن را ادامه داد. از نو شروع شود؟</translation>
+    </message>
+    <message>
+        <source>Working settings</source>
+        <translation>تنظیمات کارا</translation>
+    </message>
 </context>
 <context>
     <name>Scanner::ScanManager</name>
@@ -4344,6 +4746,118 @@ Grant them once with a Windows confirmation; Throne itself keeps running as a st
     <message>
         <source>The DNS tunnel profile cannot be used to find resolvers</source>
         <translation>از نمایهٔ تونل DNS نمی‌توان برای یافتن ریزالور استفاده کرد</translation>
+    </message>
+    <message>
+        <source>A settings search has no results to rescan</source>
+        <translation>جستجوی تنظیمات نتیجه‌ای برای اسکن دوباره ندارد</translation>
+    </message>
+    <message>
+        <source>Choose the profile to find working settings for</source>
+        <translation>نمایه‌ای را که برایش تنظیمات کارا پیدا شود انتخاب کنید</translation>
+    </message>
+    <message>
+        <source>Nothing to try: turn on a setting this profile supports</source>
+        <translation>چیزی برای امتحان نیست: تنظیمی را که این نمایه پشتیبانی می‌کند روشن کنید</translation>
+    </message>
+    <message>
+        <source>The profile has no server address to test</source>
+        <translation>نمایه نشانی سروری برای آزمایش ندارد</translation>
+    </message>
+    <message>
+        <source>Every variant connects to %1</source>
+        <translation>همهٔ گونه‌ها به %1 وصل می‌شوند</translation>
+    </message>
+    <message numerus="yes">
+        <source>Stopped at the time limit of %n minute(s)</source>
+        <translation>
+            <numerusform>در سقف زمانی %n دقیقه متوقف شد</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Stopped at the limit of %n attempt(s)</source>
+        <translation>
+            <numerusform>در سقف %n تلاش متوقف شد</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>%1: cannot be used: %2</source>
+        <translation>%1: قابل استفاده نیست: %2</translation>
+    </message>
+    <message>
+        <source>%1: passed in %2 ms (%3/%4)</source>
+        <translation>%1: در %2 میلی‌ثانیه موفق شد (%3/%4)</translation>
+    </message>
+    <message>
+        <source>The network is down, so the search paused; resume it when the connection is back</source>
+        <translation>شبکه قطع است، پس جستجو متوقف شد؛ وقتی اتصال برگشت آن را ادامه دهید</translation>
+    </message>
+    <message>
+        <source>%1: failed (%2/%3): %4</source>
+        <translation>%1: ناموفق (%2/%3): %4</translation>
+    </message>
+    <message>
+        <source>The profile could not be copied</source>
+        <translation>نمایه کپی نشد</translation>
+    </message>
+    <message>
+        <source>This profile cannot be pointed at %1</source>
+        <translation>این نمایه را نمی‌توان به %1 هدایت کرد</translation>
+    </message>
+    <message>
+        <source>The core returned no result</source>
+        <translation>هسته نتیجه‌ای برنگرداند</translation>
+    </message>
+    <message>
+        <source>The core did not answer the network check, so the search paused</source>
+        <translation>هسته به بررسی شبکه پاسخ نداد، پس جستجو متوقف شد</translation>
+    </message>
+    <message>
+        <source>Confirming the best variants</source>
+        <translation>در حال تأیید بهترین گونه‌ها</translation>
+    </message>
+    <message>
+        <source>Testing the profile as it is</source>
+        <translation>در حال آزمایش نمایه همان‌طور که هست</translation>
+    </message>
+    <message>
+        <source>Trying one change at a time</source>
+        <translation>در حال امتحان تغییرها یکی‌یکی</translation>
+    </message>
+    <message>
+        <source>Combining what helped</source>
+        <translation>در حال ترکیب تغییرهای مؤثر</translation>
+    </message>
+    <message>
+        <source>Trying fragment delays</source>
+        <translation>در حال امتحان تأخیرهای قطعه‌بندی</translation>
+    </message>
+    <message>
+        <source>Searching for the largest working MTU</source>
+        <translation>در حال یافتن بزرگ‌ترین MTU کارا</translation>
+    </message>
+    <message>
+        <source>Preparing</source>
+        <translation>در حال آماده‌سازی</translation>
+    </message>
+    <message>
+        <source>Checking network</source>
+        <translation>در حال بررسی شبکه</translation>
+    </message>
+    <message>
+        <source>The scan stopped on an unexpected error</source>
+        <translation>اسکن با یک خطای غیرمنتظره متوقف شد</translation>
+    </message>
+    <message>
+        <source>Scan %1: saving its final state failed</source>
+        <translation>اسکن %1: ذخیرهٔ وضعیت نهایی آن ناموفق بود</translation>
+    </message>
+    <message>
+        <source>Scan %1 stopped: %2</source>
+        <translation>اسکن %1 متوقف شد: %2</translation>
+    </message>
+    <message>
+        <source>The core did not answer the config test</source>
+        <translation>هسته به تست پیکربندی پاسخ نداد</translation>
     </message>
 </context>
 <context>
@@ -4430,6 +4944,113 @@ Grant them once with a Windows confirmation; Throne itself keeps running as a st
     <message>
         <source>The core keeps exiting, so it is no longer restarted. Use Restart Core to try again.</source>
         <translation>هسته مدام متوقف می‌شود، بنابراین دیگر دوباره راه‌اندازی نمی‌شود. برای تلاش دوباره از «Restart Core» استفاده کنید.</translation>
+    </message>
+</context>
+<context>
+    <name>Scanner::Tune</name>
+    <message>
+        <source>The profile could not be read</source>
+        <translation>نمایه خوانده نشد</translation>
+    </message>
+    <message>
+        <source>A chain cannot be searched as a whole; run the search on the profiles of its hops</source>
+        <translation>زنجیره را نمی‌توان یک‌جا جستجو کرد؛ جستجو را روی نمایه‌های هاپ‌های آن اجرا کنید</translation>
+    </message>
+    <message>
+        <source>Xray profiles are not supported yet: the search changes sing-box settings</source>
+        <translation>نمایه‌های Xray هنوز پشتیبانی نمی‌شوند: جستجو تنظیمات sing-box را تغییر می‌دهد</translation>
+    </message>
+    <message>
+        <source>This profile has no setting the search can change: that needs TLS over TCP, QUIC or WireGuard</source>
+        <translation>این نمایه تنظیمی ندارد که جستجو بتواند تغییرش دهد: برای این کار TLS روی TCP، QUIC یا WireGuard لازم است</translation>
+    </message>
+    <message>
+        <source>The MTU applies only to WireGuard profiles</source>
+        <translation>MTU فقط برای نمایه‌های WireGuard به کار می‌رود</translation>
+    </message>
+    <message>
+        <source>The profile no longer uses TLS over TCP</source>
+        <translation>نمایه دیگر از TLS روی TCP استفاده نمی‌کند</translation>
+    </message>
+    <message>
+        <source>This type of profile has no uTLS fingerprint</source>
+        <translation>این نوع نمایه اثرانگشت uTLS ندارد</translation>
+    </message>
+    <message>
+        <source>Unknown setting “%1”</source>
+        <translation>تنظیم ناشناخته «%1»</translation>
+    </message>
+    <message>
+        <source>The profile as it is</source>
+        <translation>نمایه همان‌طور که هست</translation>
+    </message>
+    <message>
+        <source>uTLS off</source>
+        <translation>uTLS خاموش</translation>
+    </message>
+    <message>
+        <source>Fingerprint %1</source>
+        <translation>اثرانگشت %1</translation>
+    </message>
+    <message>
+        <source>TLS fragment on</source>
+        <translation>قطعه‌بندی TLS روشن</translation>
+    </message>
+    <message>
+        <source>TLS fragment off</source>
+        <translation>قطعه‌بندی TLS خاموش</translation>
+    </message>
+    <message>
+        <source>Fragment delay %1</source>
+        <translation>تأخیر قطعه‌بندی %1</translation>
+    </message>
+    <message>
+        <source>default</source>
+        <translation>پیش‌فرض</translation>
+    </message>
+    <message>
+        <source>Record fragment on</source>
+        <translation>قطعه‌بندی رکورد روشن</translation>
+    </message>
+    <message>
+        <source>Record fragment off</source>
+        <translation>قطعه‌بندی رکورد خاموش</translation>
+    </message>
+    <message>
+        <source>Mixed-case SNI on</source>
+        <translation>SNI با حروف کوچک و بزرگ درهم روشن</translation>
+    </message>
+    <message>
+        <source>Mixed-case SNI off</source>
+        <translation>SNI با حروف کوچک و بزرگ درهم خاموش</translation>
+    </message>
+    <message>
+        <source>QUIC opener on</source>
+        <translation>بازکنندهٔ QUIC روشن</translation>
+    </message>
+    <message>
+        <source>QUIC opener off</source>
+        <translation>بازکنندهٔ QUIC خاموش</translation>
+    </message>
+    <message>
+        <source>MTU %1</source>
+        <translation>MTU %1</translation>
+    </message>
+    <message>
+        <source>“%1” changes from one start to the next, so it cannot be tried</source>
+        <translation>«%1» در هر بار شروع تغییر می‌کند، پس نمی‌توان آن را امتحان کرد</translation>
+    </message>
+    <message>
+        <source>“%1” is not a uTLS fingerprint</source>
+        <translation>«%1» اثرانگشت uTLS نیست</translation>
+    </message>
+    <message>
+        <source>Fragment delay “%1”: %2</source>
+        <translation>تأخیر قطعه‌بندی «%1»: %2</translation>
+    </message>
+    <message>
+        <source>The largest MTU must be above the smallest</source>
+        <translation>بیشترین MTU باید از کمترین بزرگ‌تر باشد</translation>
     </message>
 </context>
 <context>

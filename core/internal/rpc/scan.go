@@ -198,8 +198,14 @@ func (s *server) ScanURLTest(ctx context.Context, in *gen.ScanURLTestRequest) (*
 		}
 		session.RecordURL(labelOf[result.Tag], result.Duration, result.Error)
 	}
-	results := probe.BatchURLTestTo(scanCtx, env.box, env.tags, test.GetUrl(), int(test.GetMaxConcurrency()),
-		in.GetWarmLatency(), milliseconds(test.GetTestTimeoutMs()), publish)
+	var results []*probe.URLTestResult
+	if bodyBytes := in.GetBodyBytes(); bodyBytes > 0 {
+		results = probe.BatchDownloadTestTo(scanCtx, env.box, env.tags, test.GetUrl(), bodyBytes, int(test.GetMaxConcurrency()),
+			milliseconds(test.GetTestTimeoutMs()), publish)
+	} else {
+		results = probe.BatchURLTestTo(scanCtx, env.box, env.tags, test.GetUrl(), int(test.GetMaxConcurrency()),
+			in.GetWarmLatency(), milliseconds(test.GetTestTimeoutMs()), publish)
+	}
 	if scanCtx.Err() == nil && egressLost() {
 		return nil, scan.ErrEgressLost
 	}

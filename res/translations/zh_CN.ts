@@ -4291,6 +4291,14 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <source>Failed to store the scan.</source>
         <translation>存储该扫描失败。</translation>
     </message>
+    <message>
+        <source>Find working settings</source>
+        <translation>查找可用设置</translation>
+    </message>
+    <message>
+        <source>Try variants of one profile&apos;s anti-censorship settings several times each and rank them; nothing changes in the profile until you apply a result.</source>
+        <translation>将某个配置档的反审查设置的各个变体各尝试多次并排名；在你应用结果之前，配置档不会有任何改变。</translation>
+    </message>
 </context>
 <context>
     <name>DialogOtpManager</name>
@@ -5281,6 +5289,348 @@ Close without saving?</source>
     <message>
         <source>Sends one decoy packet before each new UDP flow, so networks that block QUIC by its first packet let the real handshake through.</source>
         <translation>在每个新的 UDP 流之前发送一个诱饵包，使按首个数据包封锁 QUIC 的网络放行真正的握手。</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; already uses these settings.</source>
+        <translation>“%1”已在使用这些设置。</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; cannot be searched. %2.</source>
+        <translation>无法搜索“%1”。%2。</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; could not be copied.</source>
+        <translation>无法复制“%1”。</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is open in an editor; close the profile&apos;s editor first, then apply again.</source>
+        <translation>“%1”正在编辑器中打开；请先关闭该配置档的编辑器，然后再次应用。</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; now uses: %2.</source>
+        <translation>“%1”现在使用：%2。</translation>
+    </message>
+    <message>
+        <source>%1 (tuned)</source>
+        <translation>%1（已调优）</translation>
+    </message>
+    <message>
+        <source>%1 ms</source>
+        <translation>%1 毫秒</translation>
+    </message>
+    <message>
+        <source>%1/%2</source>
+        <translation>%1/%2</translation>
+    </message>
+    <message>
+        <source>A censor that resets only some handshakes needs several tries to tell a working variant from a lucky one.</source>
+        <translation>若审查只重置部分握手，就需要多次尝试才能区分真正可用的变体和侥幸成功的变体。</translation>
+    </message>
+    <message>
+        <source>Adds a copy of the profile with the selected variant to its group; the profile itself stays as it is.</source>
+        <translation>将带有所选变体的配置档副本添加到其分组；原配置档保持不变。</translation>
+    </message>
+    <message>
+        <source>Apply to profile</source>
+        <translation>应用到配置档</translation>
+    </message>
+    <message>
+        <source>At most this many attempts start in any minute.</source>
+        <translation>任意一分钟内最多开始这么多次尝试。</translation>
+    </message>
+    <message>
+        <source>Attempt limit</source>
+        <translation>尝试次数上限</translation>
+    </message>
+    <message>
+        <source>Attempts per minute</source>
+        <translation>每分钟尝试次数</translation>
+    </message>
+    <message>
+        <source>Attempts per variant</source>
+        <translation>每个变体的尝试次数</translation>
+    </message>
+    <message>
+        <source>Best: %1 (passed %2/%3, median %4)</source>
+        <translation>最佳：%1（通过 %2/%3，中位数 %4）</translation>
+    </message>
+    <message>
+        <source>Choose the profile whose settings to search.</source>
+        <translation>选择要搜索其设置的配置档。</translation>
+    </message>
+    <message>
+        <source>Comma-separated durations such as 100ms, 500ms, 1s, tried on the best variant that fragments. Only the built-in fragment implementation uses them.</source>
+        <translation>以逗号分隔的时长，例如 100ms, 500ms, 1s，在进行分片的最佳变体上尝试。只有内置的分片实现会使用它们。</translation>
+    </message>
+    <message>
+        <source>Comma-separated uTLS fingerprints; &quot;off&quot; tries Go&apos;s own TLS.</source>
+        <translation>以逗号分隔的 uTLS 指纹；“off”表示尝试 Go 自带的 TLS。</translation>
+    </message>
+    <message>
+        <source>Confirmed</source>
+        <translation>已确认</translation>
+    </message>
+    <message numerus="yes">
+        <source>Copied %n variant(s)</source>
+        <translation>
+            <numerusform>已复制 %n 个变体</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Copies the table as tab-separated text.</source>
+        <translation>将表格复制为以制表符分隔的文本。</translation>
+    </message>
+    <message>
+        <source>Download URL</source>
+        <translation>下载 URL</translation>
+    </message>
+    <message>
+        <source>Download size (bytes)</source>
+        <translation>下载大小（字节）</translation>
+    </message>
+    <message>
+        <source>Downloaded through the tunnel to check each MTU. Empty: Cloudflare&apos;s speed test.</source>
+        <translation>通过隧道下载以检查每个 MTU。留空：使用 Cloudflare 的测速。</translation>
+    </message>
+    <message>
+        <source>Dropped early</source>
+        <translation>提前淘汰</translation>
+    </message>
+    <message>
+        <source>Each setting is first tried on its own, a switch flipped or a list value by value; the changes that help are then combined.</source>
+        <translation>每项设置先单独尝试：开关翻转一次，列表则逐个值尝试；随后将有帮助的更改组合起来。</translation>
+    </message>
+    <message>
+        <source>Every attempt requests this URL through the profile. While the MTU is searched, attempts download from the MTU download URL instead.</source>
+        <translation>每次尝试都通过该配置档请求此 URL。搜索 MTU 时，尝试改为从 MTU 下载 URL 下载。</translation>
+    </message>
+    <message>
+        <source>Fallback delays to try</source>
+        <translation>要尝试的回退延时</translation>
+    </message>
+    <message>
+        <source>Find working settings</source>
+        <translation>查找可用设置</translation>
+    </message>
+    <message>
+        <source>Finds the largest MTU that still carries a bulk download through the tunnel.</source>
+        <translation>查找仍能通过隧道完成大文件下载的最大 MTU。</translation>
+    </message>
+    <message>
+        <source>Fingerprints to try</source>
+        <translation>要尝试的指纹</translation>
+    </message>
+    <message>
+        <source>How many bytes each MTU check downloads.</source>
+        <translation>每次 MTU 检查下载的字节数。</translation>
+    </message>
+    <message>
+        <source>Largest MTU</source>
+        <translation>最大 MTU</translation>
+    </message>
+    <message>
+        <source>Largest working MTU</source>
+        <translation>最大可用 MTU</translation>
+    </message>
+    <message>
+        <source>MTU (WireGuard)</source>
+        <translation>MTU (WireGuard)</translation>
+    </message>
+    <message>
+        <source>MTU probe</source>
+        <translation>MTU 探测</translation>
+    </message>
+    <message>
+        <source>MTU step</source>
+        <translation>MTU 步长</translation>
+    </message>
+    <message>
+        <source>MTU: the download size must be between %1 and %2 bytes.</source>
+        <translation>MTU：下载大小必须在 %1 到 %2 字节之间。</translation>
+    </message>
+    <message>
+        <source>MTU: the largest MTU must be between %1 and %2; leave it empty for the profile&apos;s own.</source>
+        <translation>MTU：最大 MTU 必须在 %1 到 %2 之间；留空则使用配置档自身的值。</translation>
+    </message>
+    <message>
+        <source>MTU: the smallest MTU must be between %1 and %2.</source>
+        <translation>MTU：最小 MTU 必须在 %1 到 %2 之间。</translation>
+    </message>
+    <message>
+        <source>MTU: the step must be between %1 and %2.</source>
+        <translation>MTU：步长必须在 %1 到 %2 之间。</translation>
+    </message>
+    <message>
+        <source>Median latency</source>
+        <translation>延迟中位数</translation>
+    </message>
+    <message>
+        <source>Needs SNI turned on with a domain name, and no REALITY.</source>
+        <translation>需要开启 SNI 且使用域名，并且不使用 REALITY。</translation>
+    </message>
+    <message>
+        <source>Needs a profile that opens UDP flows to its server: QUIC, MASQUE over HTTP/3 or WireGuard.</source>
+        <translation>需要会向其服务器建立 UDP 流的配置档：QUIC、基于 HTTP/3 的 MASQUE 或 WireGuard。</translation>
+    </message>
+    <message>
+        <source>No variant has passed yet.</source>
+        <translation>尚无变体通过。</translation>
+    </message>
+    <message>
+        <source>No variant passed.</source>
+        <translation>没有变体通过。</translation>
+    </message>
+    <message>
+        <source>Not usable</source>
+        <translation>不可用</translation>
+    </message>
+    <message>
+        <source>Not usable: %1</source>
+        <translation>不可用：%1</translation>
+    </message>
+    <message>
+        <source>Note</source>
+        <translation>备注</translation>
+    </message>
+    <message>
+        <source>Only WireGuard and AmneziaWG profiles have an MTU to search.</source>
+        <translation>只有 WireGuard 和 AmneziaWG 配置档才有可搜索的 MTU。</translation>
+    </message>
+    <message>
+        <source>Only the built-in fragment implementation uses a fallback delay.</source>
+        <translation>只有内置的分片实现会使用回退延时。</translation>
+    </message>
+    <message>
+        <source>Pacing</source>
+        <translation>节奏</translation>
+    </message>
+    <message>
+        <source>Pacing: attempts per minute must be between %1 and %2.</source>
+        <translation>节奏：每分钟尝试次数必须在 %1 到 %2 之间。</translation>
+    </message>
+    <message>
+        <source>Pacing: attempts per variant must be between %1 and %2.</source>
+        <translation>节奏：每个变体的尝试次数必须在 %1 到 %2 之间。</translation>
+    </message>
+    <message>
+        <source>Pacing: the attempt limit must be between %1 and %2.</source>
+        <translation>节奏：尝试次数上限必须在 %1 到 %2 之间。</translation>
+    </message>
+    <message>
+        <source>Pacing: the time limit must be between %1 and %2 minutes.</source>
+        <translation>节奏：时间上限必须在 %1 到 %2 分钟之间。</translation>
+    </message>
+    <message>
+        <source>Pacing: the timeout must be between %1 and %2 ms.</source>
+        <translation>节奏：超时时间必须在 %1 到 %2 毫秒之间。</translation>
+    </message>
+    <message>
+        <source>Passed</source>
+        <translation>通过</translation>
+    </message>
+    <message>
+        <source>Profile as it is</source>
+        <translation>原样的配置档</translation>
+    </message>
+    <message>
+        <source>Recommended</source>
+        <translation>推荐</translation>
+    </message>
+    <message>
+        <source>Save as new profile</source>
+        <translation>另存为新配置档</translation>
+    </message>
+    <message>
+        <source>Saved &quot;%1&quot; with: %2.</source>
+        <translation>已保存“%1”，使用：%2。</translation>
+    </message>
+    <message>
+        <source>Settings</source>
+        <translation>设置</translation>
+    </message>
+    <message>
+        <source>Smallest MTU</source>
+        <translation>最小 MTU</translation>
+    </message>
+    <message>
+        <source>TLS fragment</source>
+        <translation>TLS 分片</translation>
+    </message>
+    <message>
+        <source>TLS record fragment</source>
+        <translation>TLS 记录分片</translation>
+    </message>
+    <message>
+        <source>Tested through %1</source>
+        <translation>已通过 %1 测试</translation>
+    </message>
+    <message>
+        <source>Tests through %1</source>
+        <translation>通过 %1 测试</translation>
+    </message>
+    <message>
+        <source>The largest MTU must be above the smallest; leave it empty for the profile&apos;s own.</source>
+        <translation>最大 MTU 必须大于最小 MTU；留空则使用配置档自身的值。</translation>
+    </message>
+    <message>
+        <source>The profile has no server address to test.</source>
+        <translation>该配置档没有可测试的服务器地址。</translation>
+    </message>
+    <message>
+        <source>The profile of this search no longer exists.</source>
+        <translation>此搜索的配置档已不存在。</translation>
+    </message>
+    <message>
+        <source>The profile this search was made for no longer exists.</source>
+        <translation>此搜索所针对的配置档已不存在。</translation>
+    </message>
+    <message>
+        <source>The profile&apos;s own</source>
+        <translation>配置档自身的值</translation>
+    </message>
+    <message>
+        <source>The search stops after this many attempts in all.</source>
+        <translation>总尝试次数达到此值后搜索停止。</translation>
+    </message>
+    <message>
+        <source>The search stops after this many minutes.</source>
+        <translation>搜索在这么多分钟后停止。</translation>
+    </message>
+    <message>
+        <source>The settings could not be applied to &quot;%1&quot;: %2.</source>
+        <translation>无法将设置应用到“%1”：%2。</translation>
+    </message>
+    <message>
+        <source>The settings could not be applied to the copy: %1.</source>
+        <translation>无法将设置应用到副本：%1。</translation>
+    </message>
+    <message>
+        <source>These results are for another profile; start the search to test the one chosen now.</source>
+        <translation>这些结果属于另一个配置档；请开始搜索以测试当前选择的配置档。</translation>
+    </message>
+    <message>
+        <source>This profile does not use TLS over TCP.</source>
+        <translation>此配置档未使用基于 TCP 的 TLS。</translation>
+    </message>
+    <message>
+        <source>This type of profile has no uTLS fingerprint.</source>
+        <translation>此类型的配置档没有 uTLS 指纹。</translation>
+    </message>
+    <message>
+        <source>Time limit (minutes)</source>
+        <translation>时间上限（分钟）</translation>
+    </message>
+    <message>
+        <source>Variants of this profile&apos;s anti-censorship settings are tested through the core, one attempt at a time. The profile itself changes only when you apply a result.</source>
+        <translation>此配置档的反审查设置的各个变体将通过核心逐次测试。只有在你应用结果时，配置档本身才会改变。</translation>
+    </message>
+    <message>
+        <source>What to try</source>
+        <translation>要尝试的项目</translation>
+    </message>
+    <message>
+        <source>Writes the selected variant into the profile&apos;s own settings; global defaults stay as they are.</source>
+        <translation>将所选变体写入配置档自身的设置；全局默认值保持不变。</translation>
     </message>
 </context>
 <context>
@@ -10869,6 +11219,10 @@ Grant them once with a Windows confirmation; Throne itself keeps running as a st
         <source>Service check failed: %1</source>
         <translation>服务检查失败: %1</translation>
     </message>
+    <message>
+        <source>Find working settings…</source>
+        <translation>查找可用设置…</translation>
+    </message>
 </context>
 <context>
     <name>MuxSettingsWidget</name>
@@ -12631,6 +12985,14 @@ How to update?</source>
         <source>risk %1</source>
         <translation>风险 %1</translation>
     </message>
+    <message>
+        <source>Choose the profile to find working settings for</source>
+        <translation>选择要为其查找可用设置的配置档</translation>
+    </message>
+    <message>
+        <source>The profile could not be copied</source>
+        <translation>无法复制该配置档</translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -13409,6 +13771,46 @@ Remove that endpoint from this routing profile as well?</source>
         <source>Start</source>
         <translation>启动</translation>
     </message>
+    <message>
+        <source>&quot;%1&quot; cannot be searched. %2.</source>
+        <translation>无法搜索“%1”。%2。</translation>
+    </message>
+    <message>
+        <source>%1 / %2 attempts (%3%)</source>
+        <translation>%1 / %2 次尝试 (%3%)</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n working variant(s)</source>
+        <translation>
+            <numerusform>%n 个可用变体</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Find working settings</source>
+        <translation>查找可用设置</translation>
+    </message>
+    <message>
+        <source>Only a saved profile can be searched; save the profile first.</source>
+        <translation>只能搜索已保存的配置档；请先保存该配置档。</translation>
+    </message>
+    <message>
+        <source>Settings for %1</source>
+        <translation>%1 的设置</translation>
+    </message>
+    <message numerus="yes">
+        <source>Start over and discard the %n tested variant(s)?</source>
+        <translation>
+            <numerusform>重新开始并丢弃已测试的 %n 个变体吗？</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>The profile or the search options changed since this search was paused, so it cannot resume. Start over?</source>
+        <translation>自暂停此搜索以来，配置档或搜索选项已更改，因此无法继续。要重新开始吗？</translation>
+    </message>
+    <message>
+        <source>Working settings</source>
+        <translation>可用设置</translation>
+    </message>
 </context>
 <context>
     <name>Scanner::IpListUpdater</name>
@@ -13726,6 +14128,201 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Checking network</source>
         <translation>检查网络</translation>
+    </message>
+    <message>
+        <source>A settings search has no results to rescan</source>
+        <translation>设置搜索没有可重新扫描的结果</translation>
+    </message>
+    <message>
+        <source>Choose the profile to find working settings for</source>
+        <translation>选择要为其查找可用设置的配置档</translation>
+    </message>
+    <message>
+        <source>Nothing to try: turn on a setting this profile supports</source>
+        <translation>没有可尝试的项目：请开启一项此配置档支持的设置</translation>
+    </message>
+    <message>
+        <source>The profile has no server address to test</source>
+        <translation>该配置档没有可测试的服务器地址</translation>
+    </message>
+    <message>
+        <source>Every variant connects to %1</source>
+        <translation>每个变体都连接到 %1</translation>
+    </message>
+    <message numerus="yes">
+        <source>Stopped at the time limit of %n minute(s)</source>
+        <translation>
+            <numerusform>已在 %n 分钟的时间上限处停止</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Stopped at the limit of %n attempt(s)</source>
+        <translation>
+            <numerusform>已在 %n 次尝试的上限处停止</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>%1: cannot be used: %2</source>
+        <translation>%1：无法使用：%2</translation>
+    </message>
+    <message>
+        <source>%1: passed in %2 ms (%3/%4)</source>
+        <translation>%1：通过，用时 %2 毫秒 (%3/%4)</translation>
+    </message>
+    <message>
+        <source>The network is down, so the search paused; resume it when the connection is back</source>
+        <translation>网络已断开，因此搜索已暂停；连接恢复后请继续</translation>
+    </message>
+    <message>
+        <source>%1: failed (%2/%3): %4</source>
+        <translation>%1：失败 (%2/%3)：%4</translation>
+    </message>
+    <message>
+        <source>The profile could not be copied</source>
+        <translation>无法复制该配置档</translation>
+    </message>
+    <message>
+        <source>This profile cannot be pointed at %1</source>
+        <translation>无法将此配置档指向 %1</translation>
+    </message>
+    <message>
+        <source>The core returned no result</source>
+        <translation>核心没有返回结果</translation>
+    </message>
+    <message>
+        <source>The core did not answer the network check, so the search paused</source>
+        <translation>核心没有响应网络检查，因此搜索已暂停</translation>
+    </message>
+    <message>
+        <source>Confirming the best variants</source>
+        <translation>正在确认最佳变体</translation>
+    </message>
+    <message>
+        <source>Testing the profile as it is</source>
+        <translation>正在测试原样的配置档</translation>
+    </message>
+    <message>
+        <source>Trying one change at a time</source>
+        <translation>正在逐项尝试更改</translation>
+    </message>
+    <message>
+        <source>Combining what helped</source>
+        <translation>正在组合有效的更改</translation>
+    </message>
+    <message>
+        <source>Trying fragment delays</source>
+        <translation>正在尝试分片延迟</translation>
+    </message>
+    <message>
+        <source>Searching for the largest working MTU</source>
+        <translation>正在搜索可用的最大 MTU</translation>
+    </message>
+</context>
+<context>
+    <name>Scanner::Tune</name>
+    <message>
+        <source>The profile could not be read</source>
+        <translation>无法读取该配置档</translation>
+    </message>
+    <message>
+        <source>A chain cannot be searched as a whole; run the search on the profiles of its hops</source>
+        <translation>无法对整条链进行搜索；请对其各跳点的配置档分别运行搜索</translation>
+    </message>
+    <message>
+        <source>Xray profiles are not supported yet: the search changes sing-box settings</source>
+        <translation>暂不支持 Xray 配置档：搜索更改的是 sing-box 设置</translation>
+    </message>
+    <message>
+        <source>This profile has no setting the search can change: that needs TLS over TCP, QUIC or WireGuard</source>
+        <translation>此配置档没有可供搜索更改的设置：需要基于 TCP 的 TLS、QUIC 或 WireGuard</translation>
+    </message>
+    <message>
+        <source>The MTU applies only to WireGuard profiles</source>
+        <translation>MTU 仅适用于 WireGuard 配置档</translation>
+    </message>
+    <message>
+        <source>The profile no longer uses TLS over TCP</source>
+        <translation>该配置档不再使用基于 TCP 的 TLS</translation>
+    </message>
+    <message>
+        <source>This type of profile has no uTLS fingerprint</source>
+        <translation>此类型的配置档没有 uTLS 指纹</translation>
+    </message>
+    <message>
+        <source>Unknown setting “%1”</source>
+        <translation>未知设置“%1”</translation>
+    </message>
+    <message>
+        <source>The profile as it is</source>
+        <translation>原样的配置档</translation>
+    </message>
+    <message>
+        <source>uTLS off</source>
+        <translation>关闭 uTLS</translation>
+    </message>
+    <message>
+        <source>Fingerprint %1</source>
+        <translation>指纹 %1</translation>
+    </message>
+    <message>
+        <source>TLS fragment on</source>
+        <translation>TLS 分片开启</translation>
+    </message>
+    <message>
+        <source>TLS fragment off</source>
+        <translation>TLS 分片关闭</translation>
+    </message>
+    <message>
+        <source>Fragment delay %1</source>
+        <translation>分片延迟 %1</translation>
+    </message>
+    <message>
+        <source>default</source>
+        <translation>默认</translation>
+    </message>
+    <message>
+        <source>Record fragment on</source>
+        <translation>记录分片开启</translation>
+    </message>
+    <message>
+        <source>Record fragment off</source>
+        <translation>记录分片关闭</translation>
+    </message>
+    <message>
+        <source>Mixed-case SNI on</source>
+        <translation>混合大小写 SNI 开启</translation>
+    </message>
+    <message>
+        <source>Mixed-case SNI off</source>
+        <translation>混合大小写 SNI 关闭</translation>
+    </message>
+    <message>
+        <source>QUIC opener on</source>
+        <translation>QUIC 前导包开启</translation>
+    </message>
+    <message>
+        <source>QUIC opener off</source>
+        <translation>QUIC 前导包关闭</translation>
+    </message>
+    <message>
+        <source>MTU %1</source>
+        <translation>MTU %1</translation>
+    </message>
+    <message>
+        <source>“%1” changes from one start to the next, so it cannot be tried</source>
+        <translation>“%1”每次启动都会变化，因此无法尝试</translation>
+    </message>
+    <message>
+        <source>“%1” is not a uTLS fingerprint</source>
+        <translation>“%1”不是 uTLS 指纹</translation>
+    </message>
+    <message>
+        <source>Fragment delay “%1”: %2</source>
+        <translation>分片延迟“%1”：%2</translation>
+    </message>
+    <message>
+        <source>The largest MTU must be above the smallest</source>
+        <translation>最大 MTU 必须大于最小 MTU</translation>
     </message>
 </context>
 <context>

@@ -88,6 +88,36 @@ namespace Configs {
         int timeoutMs = 0;
     };
 
+    // "Find working settings": variants of one profile's DPI-evasion and MTU settings.
+    struct ScanTuneOptions {
+        int profileId = -1;
+        bool fingerprints = true;
+        // uTLS names, comma separated; "off" = Go's own TLS.
+        QString fingerprintList = QStringLiteral("chrome, firefox, safari, edge, ios, android, off");
+        bool fragment = true;
+        // Tried on the best result while the built-in TLS fragment is on; empty = skip.
+        QString fragmentDelays = QStringLiteral("100ms, 500ms, 1s");
+        bool recordFragment = true;
+        bool mixedCaseSni = true;
+        bool quicOpener = true;
+        // WireGuard / AmneziaWG: the largest MTU in [mtuMin, mtuMax] that still carries a bulk download.
+        bool mtu = true;
+        int mtuMin = 1280;
+        // 0 = the profile's own MTU.
+        int mtuMax = 0;
+        int mtuStep = 10;
+        // Empty = speed.cloudflare.com serving mtuBytes.
+        QString mtuUrl;
+        int mtuBytes = 200000;
+        int attempts = 6;
+        int perMinute = 20;
+        int maxAttempts = 150;
+        int maxMinutes = 20;
+        // Empty = the global test URL.
+        QString url;
+        int timeoutMs = 5000;
+    };
+
     struct ScanConfig {
         // Ignore = only `ports`, Merge = the entry's own port plus `ports`, List = only the entry's own port.
         enum class PortMode { Ignore = 0, Merge = 1, List = 2 };
@@ -108,6 +138,7 @@ namespace Configs {
         ScanConfigTestOptions config;
         ScanWarpOptions warp;
         ScanResolverOptions resolver;
+        ScanTuneOptions tune;
 
         [[nodiscard]] QString PortModeKey() const;
 
@@ -120,7 +151,7 @@ namespace Configs {
 
     class IpScan {
     public:
-        enum class Kind { Generic = 0, Warp = 1, Resolver = 2 };
+        enum class Kind { Generic = 0, Warp = 1, Resolver = 2, Tune = 3 };
         enum class Status { Idle = 0, Running = 1, Paused = 2, Completed = 3, Failed = 4 };
         enum class Mode { Initial = 0, RescanResult = 1 };
 
@@ -151,6 +182,9 @@ namespace Configs {
         QString last_error;
         qint64 started_at = 0;
         qint64 finished_at = 0;
+
+        // Tune scans: the search's trials; written only by IpScansRepo::SaveTuneState, never by Save.
+        QJsonObject tune_state;
 
         static ScanConfig DefaultConfig(Kind kind);
 

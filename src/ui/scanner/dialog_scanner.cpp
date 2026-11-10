@@ -156,13 +156,17 @@ void DialogScanner::deleteScan(int scanId) {
     QMessageBox box(QMessageBox::Question, tr("Confirmation"), tr("Delete the scan \"%1\"?").arg(scan->name),
                     QMessageBox::Yes | QMessageBox::No, this);
     box.setTextFormat(Qt::PlainText);
-    auto *alsoResults = new QCheckBox(tr("Also delete its result list"), &box);
-    box.setCheckBox(alsoResults);
+    // A settings search keeps its trials in the scan row, so it has no result list.
+    QCheckBox *alsoResults = nullptr;
+    if (scan->kind != Configs::IpScan::Kind::Tune) {
+        alsoResults = new QCheckBox(tr("Also delete its result list"), &box);
+        box.setCheckBox(alsoResults);
+    }
     box.setDefaultButton(QMessageBox::No);
     box.exec();
     if (box.clickedButton() != box.button(QMessageBox::Yes)) return;
 
-    const auto error = Scanner::ScanManager::instance()->DeleteScan(scanId, alsoResults->isChecked());
+    const auto error = Scanner::ScanManager::instance()->DeleteScan(scanId, alsoResults != nullptr && alsoResults->isChecked());
     if (!error.isEmpty()) {
         MessageBoxWarning(tr("IP Scanner"), error);
         return;

@@ -6,6 +6,7 @@
 #include "include/configs/generate.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/global/Configs.hpp"
+#include "include/scanner/TuneProfiles.h"
 
 namespace Scanner {
     namespace {
@@ -116,6 +117,21 @@ namespace Scanner {
 
     std::shared_ptr<Configs::Profile> ResolveScanBase(const Configs::IpScan &scan, QString *error) {
         if (scan.kind == Configs::IpScan::Kind::Warp) return BuildWarpTemplate(scan.config.warp, error);
+        if (scan.kind == Configs::IpScan::Kind::Tune) {
+            const int tuneProfileId = scan.config.tune.profileId;
+            const auto profile = tuneProfileId >= 0 ? Configs::dataManager->profilesRepo->GetProfile(tuneProfileId) : nullptr;
+            if (profile == nullptr || profile->outbound == nullptr) {
+                scanProfilesSetError(error, QObject::tr("Choose the profile to find working settings for"));
+                return nullptr;
+            }
+            if (const auto why = Tune::Unsupported(*profile); !why.isEmpty()) {
+                scanProfilesSetError(error, why);
+                return nullptr;
+            }
+            auto copy = scanProfilesClone(profile);
+            if (copy == nullptr) scanProfilesSetError(error, QObject::tr("The profile could not be copied"));
+            return copy;
+        }
         const bool resolver = scan.kind == Configs::IpScan::Kind::Resolver;
         const int profileId = resolver ? scan.config.resolver.profileId : scan.config.config.profileId;
         const auto live = profileId >= 0 ? Configs::dataManager->profilesRepo->GetProfile(profileId) : nullptr;

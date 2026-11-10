@@ -739,6 +739,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             ui->actionResolve_Selected_Out_IP->setEnabled(true);
             ui->actionService_Check_Selected->setEnabled(true);
         }
+        ui->menu_find_settings->setEnabled(get_now_selected_list().size() == 1);
         if (tests()->isRunning()) {
             ui->menu_server->addAction(ui->menu_stop_testing);
         } else {

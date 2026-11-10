@@ -10,6 +10,7 @@
 
 #include "include/database/entities/IpList.h"
 #include "include/database/entities/IpScan.h"
+#include "include/scanner/TunePlanner.h"
 #include "ui_dialog_scan_instance.h"
 
 QT_BEGIN_NAMESPACE
@@ -19,6 +20,7 @@ namespace Ui {
 QT_END_NAMESPACE
 
 class QCheckBox;
+class QComboBox;
 class QFormLayout;
 class QGroupBox;
 class QLabel;
@@ -26,6 +28,7 @@ class QLineEdit;
 class QMenu;
 class QPushButton;
 class QSortFilterProxyModel;
+class QStandardItemModel;
 class QStringListModel;
 class QTimer;
 class QVBoxLayout;
@@ -161,9 +164,49 @@ private:
     QLineEdit *resolverTimeout = nullptr;
     QPushButton *useAsResolvers = nullptr;
 
+    QGroupBox *tuneProfileBox = nullptr;
+    NoWheelComboBox *tuneProfile = nullptr;
+    QHash<QString, int> tuneProfileIds;
+    QStringListModel *tuneProfileNames = nullptr;
+    QLabel *tuneProfileHint = nullptr;
+    // Unsupported() verdicts by profile id, valid while ProfilesRepo::Revision() stays at tuneSupportedRevision.
+    QHash<int, bool> tuneSupported;
+    quint64 tuneSupportedRevision = 0;
+    QGroupBox *tuneTryBox = nullptr;
+    QCheckBox *tuneFingerprints = nullptr;
+    QLineEdit *tuneFingerprintList = nullptr;
+    QCheckBox *tuneFragment = nullptr;
+    QLineEdit *tuneFragmentDelays = nullptr;
+    QCheckBox *tuneRecordFragment = nullptr;
+    QCheckBox *tuneMixedCaseSni = nullptr;
+    QCheckBox *tuneQuicOpener = nullptr;
+    QCheckBox *tuneMtu = nullptr;
+    QLineEdit *tuneMtuMin = nullptr;
+    QLineEdit *tuneMtuMax = nullptr;
+    QLineEdit *tuneMtuStep = nullptr;
+    QLineEdit *tuneMtuUrl = nullptr;
+    QLineEdit *tuneMtuBytes = nullptr;
+    QGroupBox *tunePacingBox = nullptr;
+    QLineEdit *tuneAttempts = nullptr;
+    QLineEdit *tunePerMinute = nullptr;
+    QLineEdit *tuneMaxAttempts = nullptr;
+    QLineEdit *tuneMaxMinutes = nullptr;
+    QLineEdit *tuneUrl = nullptr;
+    QLineEdit *tuneTimeout = nullptr;
+
+    QStandardItemModel *tuneModel = nullptr;
+    QList<Scanner::Tune::Trial> tuneTrials;
+    QPushButton *tuneApply = nullptr;
+    QPushButton *tuneSaveNew = nullptr;
+    // The user picked a row, so a rebuild keeps it rather than moving to the new best.
+    bool tuneSelectionPinned = false;
+    bool tuneFilling = false;
+
     [[nodiscard]] bool isWarp() const;
 
     [[nodiscard]] bool isResolver() const;
+
+    [[nodiscard]] bool isTune() const;
 
     void setupTargets();
 
@@ -181,7 +224,13 @@ private:
 
     void buildResolverPhase(QVBoxLayout *layout);
 
+    void buildTunePhase(QVBoxLayout *layout);
+
+    void setupProfilePicker(QComboBox *combo, QStringListModel *names);
+
     void bindValidation();
+
+    void bindTuneValidation();
 
     void setupResults();
 
@@ -216,6 +265,14 @@ private:
     [[nodiscard]] QString currentResolverProtocol() const;
 
     void updateResolverTimeoutHint();
+
+    void loadTuneForm();
+
+    void reloadTuneProfiles(int selectId);
+
+    [[nodiscard]] int selectedTuneProfile() const;
+
+    void updateTuneControls();
 
     void updateHttpControls();
 
@@ -265,6 +322,20 @@ private:
     void exportResults();
 
     void removeSelectedResults();
+
+    void setupTuneResults();
+
+    void reloadTuneResults();
+
+    void updateTuneActions();
+
+    [[nodiscard]] int selectedTuneTrial() const;
+
+    void applyTuneResult();
+
+    void saveTuneResultAsProfile();
+
+    void copyTuneResults();
 
     void startClicked();
 

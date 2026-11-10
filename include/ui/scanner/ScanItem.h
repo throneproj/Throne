@@ -32,6 +32,9 @@ namespace ScannerUi {
 
     // Opens the newest DNS resolver scan of the profile, creating one when it has none.
     void FindResolvers(int profileId);
+
+    // Opens the newest settings search of the profile, creating one when it has none.
+    void FindSettings(int profileId);
 } // namespace ScannerUi
 
 class ScanItem : public QWidget {

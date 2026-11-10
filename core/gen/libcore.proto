@@ -701,6 +701,8 @@ message ScanURLTestRequest {
   repeated string target_labels = 3;
   // false = one request per target, so the latency includes the handshake.
   optional bool warm_latency = 4 [default = true];
+  // > 0: one cold GET per target that passes only with a 2xx and this many body bytes; warm_latency is ignored.
+  optional int64 body_bytes = 5 [default = 0];
 }
 
 message ScanCheckNetworkRequest {

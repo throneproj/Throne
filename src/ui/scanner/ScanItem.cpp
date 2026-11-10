@@ -10,6 +10,7 @@
 #include <QStyle>
 #include <QToolButton>
 #include <QVBoxLayout>
+#include <algorithm>
 
 #include "include/database/DatabaseManager.h"
 #include "include/database/IpListsRepo.h"
@@ -17,6 +18,8 @@
 #include "include/database/ProfilesRepo.h"
 #include "include/global/Utils.hpp"
 #include "include/scanner/ScanProfiles.h"
+#include "include/scanner/TunePlanner.h"
+#include "include/scanner/TuneProfiles.h"
 #include "include/ui/mainwindow.h"
 #include "include/ui/scanner/dialog_scan_instance.h"
 #include "include/ui/setting/ThemeManager.hpp"
@@ -43,6 +46,10 @@ namespace {
         if (total == 0) return 0;
         return static_cast<int>(qMin<quint64>(1000, tested * 1000 / total));
     }
+
+    QList<Scanner::Tune::Trial> scanItemTrials(const Configs::IpScan &scan) {
+        return Scanner::Tune::TrialsFromJson(scan.tune_state.value(QLatin1String("trials")).toArray());
+    }
 }
 
 namespace ScannerUi {
@@ -58,6 +65,8 @@ namespace ScannerUi {
     }
 
     bool IsResumable(const Configs::IpScan &scan) {
+        if (scan.kind == Configs::IpScan::Kind::Tune)
+            return scan.status == Configs::IpScan::Status::Paused && !scan.tune_state.value(QLatin1String("trials")).toArray().isEmpty();
         if (scan.mode == Configs::IpScan::Mode::RescanResult && scan.rescan_snapshot_list_id >= 0 &&
             scan.rescan_total > 0 && scan.rescan_cursor < scan.rescan_total)
             return true;
@@ -65,11 +74,24 @@ namespace ScannerUi {
     }
 
     int ResultCount(const Configs::IpScan &scan) {
+        if (scan.kind == Configs::IpScan::Kind::Tune) {
+            const auto trials = scanItemTrials(scan);
+            return static_cast<int>(std::count_if(trials.cbegin(), trials.cend(), [](const auto &trial) { return trial.successes > 0; }));
+        }
         if (scan.result_list_id < 0) return 0;
         return Configs::dataManager->ipListsRepo->EntryCount(scan.result_list_id);
     }
 
     bool ConfirmWipe(QWidget *parent, const Configs::IpScan &scan) {
+        if (scan.kind == Configs::IpScan::Kind::Tune) {
+            const auto trials = scanItemTrials(scan);
+            const auto tested =
+                static_cast<int>(std::count_if(trials.cbegin(), trials.cend(), [](const auto &trial) { return trial.Attempts() > 0; }));
+            if (tested <= 0) return true;
+            return QMessageBox::question(parent, ScanItem::tr("IP Scanner"),
+                                         ScanItem::tr("Start over and discard the %n tested variant(s)?", nullptr, tested)) ==
+                   QMessageBox::Yes;
+        }
         const int results = ResultCount(scan);
         const bool resumable = IsResumable(scan);
         if (results <= 0 && !resumable) return true;
@@ -91,12 +113,18 @@ namespace ScannerUi {
         if (result.targetsChanged) {
             const auto scan = Configs::dataManager->ipScansRepo->GetIpScan(scanId);
             const int results = scan != nullptr ? ResultCount(*scan) : 0;
-            const QString text =
-                results > 0 ? ScanItem::tr("The targets changed since this scan was paused, so it cannot resume. Start over from "
-                                           "the beginning and clear its %n result(s)?",
-                                           nullptr, results)
-                            : ScanItem::tr("The targets changed since this scan was paused, so it cannot resume. Start over from "
-                                           "the beginning?");
+            QString text;
+            if (scan != nullptr && scan->kind == Configs::IpScan::Kind::Tune) {
+                text = ScanItem::tr("The profile or the search options changed since this search was paused, so it cannot resume. "
+                                    "Start over?");
+            } else if (results > 0) {
+                text = ScanItem::tr("The targets changed since this scan was paused, so it cannot resume. Start over from "
+                                    "the beginning and clear its %n result(s)?",
+                                    nullptr, results);
+            } else {
+                text = ScanItem::tr("The targets changed since this scan was paused, so it cannot resume. Start over from "
+                                    "the beginning?");
+            }
             if (QMessageBox::question(parent, ScanItem::tr("IP Scanner"), text) != QMessageBox::Yes) return false;
             result = manager->Start(scanId, Scanner::StartMode::FromInitial);
         }
@@ -146,14 +174,18 @@ namespace ScannerUi {
         }
 
         if (showCounts) {
+            const bool tune = scan.kind == Configs::IpScan::Kind::Tune;
             const bool finished = !live.running && scan.status == Status::Completed;
             if (live.total > 0 && !finished) {
-                parts << ScanItem::tr("%1 / %2 (%3%)")
+                parts << (tune ? ScanItem::tr("%1 / %2 attempts (%3%)") : ScanItem::tr("%1 / %2 (%3%)"))
                              .arg(live.tested)
                              .arg(live.total)
                              .arg(scanItemPermille(live.tested, live.total) / 10);
             }
-            if (live.found > 0 || finished) parts << ScanItem::tr("%n found", nullptr, live.found);
+            if (live.found > 0 || finished) {
+                parts << (tune ? ScanItem::tr("%n working variant(s)", nullptr, live.found)
+                               : ScanItem::tr("%n found", nullptr, live.found));
+            }
             if (live.removed > 0) parts << ScanItem::tr("%n removed", nullptr, live.removed);
         }
 
@@ -169,6 +201,8 @@ namespace ScannerUi {
                 return ScanItem::tr("WARP");
             case Configs::IpScan::Kind::Resolver:
                 return ScanItem::tr("DNS resolvers");
+            case Configs::IpScan::Kind::Tune:
+                return ScanItem::tr("Working settings");
             case Configs::IpScan::Kind::Generic:
                 break;
         }
@@ -193,6 +227,35 @@ namespace ScannerUi {
             scan->config.resolver.profileId = profileId;
             if (!Configs::dataManager->ipScansRepo->AddIpScan(scan)) {
                 MessageBoxWarning(ScanItem::tr("IP Scanner"), ScanItem::tr("Failed to store the scan."));
+                return;
+            }
+            scanId = scan->id;
+            Scanner::ScanManager::instance()->NotifyScansChanged();
+        }
+        DialogScanInstance::Open(scanId);
+    }
+
+    void FindSettings(int profileId) {
+        const auto title = ScanItem::tr("Find working settings");
+        const auto profile = profileId >= 0 ? Configs::dataManager->profilesRepo->GetProfile(profileId) : nullptr;
+        if (profile == nullptr || profile->outbound == nullptr) {
+            MessageBoxWarning(title, ScanItem::tr("Only a saved profile can be searched; save the profile first."));
+            return;
+        }
+        if (const auto reason = Scanner::Tune::Unsupported(*profile); !reason.isEmpty()) {
+            MessageBoxWarning(title, ScanItem::tr("\"%1\" cannot be searched. %2.").arg(profile->outbound->name, reason));
+            return;
+        }
+        int scanId = -1;
+        for (const auto &scan : Configs::dataManager->ipScansRepo->GetAllIpScans()) {
+            if (scan->kind == Configs::IpScan::Kind::Tune && scan->config.tune.profileId == profileId) scanId = qMax(scanId, scan->id);
+        }
+        if (scanId < 0) {
+            auto scan = Configs::IpScansRepo::NewIpScan(Configs::IpScan::Kind::Tune);
+            scan->name = ScanItem::tr("Settings for %1").arg(profile->outbound->name);
+            scan->config.tune.profileId = profileId;
+            if (!Configs::dataManager->ipScansRepo->AddIpScan(scan)) {
+                MessageBoxWarning(title, ScanItem::tr("Failed to store the scan."));
                 return;
             }
             scanId = scan->id;

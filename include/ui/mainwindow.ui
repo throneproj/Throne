@@ -799,6 +799,7 @@ QToolButton::menu-indicator {
     <addaction name="actionSpeedtest_Selected"/>
     <addaction name="actionResolve_Selected_Out_IP"/>
     <addaction name="actionService_Check_Selected"/>
+    <addaction name="menu_find_settings"/>
     <addaction name="menu_resolve_selected"/>
     <addaction name="actionClear_Test_Result"/>
     <addaction name="menu_reset_traffic"/>
@@ -1220,6 +1221,14 @@ QToolButton::menu-indicator {
   <action name="menu_scanner">
    <property name="text">
     <string>IP Scanner</string>
+   </property>
+   <property name="uiLevel" stdset="0">
+    <string notr="true">advanced</string>
+   </property>
+  </action>
+  <action name="menu_find_settings">
+   <property name="text">
+    <string>Find working settings…</string>
    </property>
    <property name="uiLevel" stdset="0">
     <string notr="true">advanced</string>

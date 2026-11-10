@@ -133,6 +133,29 @@ namespace Configs {
         resolverObject["level"] = resolver.level;
         resolverObject["timeoutMs"] = resolver.timeoutMs;
         object["resolver"] = resolverObject;
+
+        QJsonObject tuneObject;
+        tuneObject["profileId"] = tune.profileId;
+        tuneObject["fingerprints"] = tune.fingerprints;
+        tuneObject["fingerprintList"] = tune.fingerprintList;
+        tuneObject["fragment"] = tune.fragment;
+        tuneObject["fragmentDelays"] = tune.fragmentDelays;
+        tuneObject["recordFragment"] = tune.recordFragment;
+        tuneObject["mixedCaseSni"] = tune.mixedCaseSni;
+        tuneObject["quicOpener"] = tune.quicOpener;
+        tuneObject["mtu"] = tune.mtu;
+        tuneObject["mtuMin"] = tune.mtuMin;
+        tuneObject["mtuMax"] = tune.mtuMax;
+        tuneObject["mtuStep"] = tune.mtuStep;
+        tuneObject["mtuUrl"] = tune.mtuUrl;
+        tuneObject["mtuBytes"] = tune.mtuBytes;
+        tuneObject["attempts"] = tune.attempts;
+        tuneObject["perMinute"] = tune.perMinute;
+        tuneObject["maxAttempts"] = tune.maxAttempts;
+        tuneObject["maxMinutes"] = tune.maxMinutes;
+        tuneObject["url"] = tune.url;
+        tuneObject["timeoutMs"] = tune.timeoutMs;
+        object["tune"] = tuneObject;
         return object;
     }
 
@@ -227,6 +250,28 @@ namespace Configs {
         ipScanReadChoice(resolverObject, "level", resolver.level, {"", "poll", "qname", "handshake", "quick", "full"});
         ipScanReadInt(resolverObject, "timeoutMs", resolver.timeoutMs, 0, kIpScanMaxResolverTimeoutMs);
         if (resolver.timeoutMs > 0) resolver.timeoutMs = std::max(resolver.timeoutMs, kIpScanMinTimeoutMs);
+
+        const QJsonObject tuneObject = object.value(QLatin1String("tune")).toObject();
+        ipScanReadInt(tuneObject, "profileId", tune.profileId, -1, std::numeric_limits<int>::max());
+        ipScanReadBool(tuneObject, "fingerprints", tune.fingerprints);
+        ipScanReadString(tuneObject, "fingerprintList", tune.fingerprintList);
+        ipScanReadBool(tuneObject, "fragment", tune.fragment);
+        ipScanReadString(tuneObject, "fragmentDelays", tune.fragmentDelays);
+        ipScanReadBool(tuneObject, "recordFragment", tune.recordFragment);
+        ipScanReadBool(tuneObject, "mixedCaseSni", tune.mixedCaseSni);
+        ipScanReadBool(tuneObject, "quicOpener", tune.quicOpener);
+        ipScanReadBool(tuneObject, "mtu", tune.mtu);
+        ipScanReadInt(tuneObject, "mtuMin", tune.mtuMin, 576, 9000);
+        ipScanReadInt(tuneObject, "mtuMax", tune.mtuMax, 0, 9000);
+        ipScanReadInt(tuneObject, "mtuStep", tune.mtuStep, 1, 1000);
+        ipScanReadString(tuneObject, "mtuUrl", tune.mtuUrl);
+        ipScanReadInt(tuneObject, "mtuBytes", tune.mtuBytes, 1000, 100000000);
+        ipScanReadInt(tuneObject, "attempts", tune.attempts, 1, 50);
+        ipScanReadInt(tuneObject, "perMinute", tune.perMinute, 1, 120);
+        ipScanReadInt(tuneObject, "maxAttempts", tune.maxAttempts, 1, 5000);
+        ipScanReadInt(tuneObject, "maxMinutes", tune.maxMinutes, 1, 1440);
+        ipScanReadString(tuneObject, "url", tune.url);
+        ipScanReadInt(tuneObject, "timeoutMs", tune.timeoutMs, kIpScanMinTimeoutMs, kIpScanMaxTimeoutMs);
     }
 
     QString ScanConfig::PortModeKey() const {
@@ -268,6 +313,10 @@ namespace Configs {
             // A portless entry is probed on 53; ports never multiply resolver targets.
             config.ports.clear();
             config.portMode = ScanConfig::PortMode::List;
+            config.stopAfter = 0;
+            config.tcp.enabled = false;
+        } else if (kind == Kind::Tune) {
+            config.ports.clear();
             config.stopAfter = 0;
             config.tcp.enabled = false;
         } else {
