@@ -55,9 +55,9 @@ void MainWindow::on_profilesTableView_doubleClicked(const QModelIndex &index) {
         finish_select_mode(id);
         return;
     }
-    // 选中当前双击的行并触发启动节点（等同于在该节点上按 Return 回车键）
+    // 选中当前双击的行并直接启动该节点（等同于回车启动）
     ui->profilesTableView->selectRow(index.row());
-    on_menu_start_triggered();
+    profile_start(id);
 }
 
 void MainWindow::on_menu_add_from_input_triggered() {
