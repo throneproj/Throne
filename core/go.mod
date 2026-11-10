@@ -5,6 +5,7 @@ go 1.26.0
 require (
 	github.com/Mahdi-zarei/speedtest-go v1.7.13-0.20260107171856-79c565dfd83a
 	github.com/dustin/go-humanize v1.0.1
+	github.com/go-ole/go-ole v1.3.0
 	github.com/gofrs/uuid/v5 v5.5.1
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/miekg/dns v1.1.73
@@ -71,7 +72,6 @@ require (
 	github.com/go-chi/chi/v5 v5.2.5 // indirect
 	github.com/go-chi/render v1.0.3 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
-	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go4org/hashtriemap v0.0.0-20251130024219-545ba229f689 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect

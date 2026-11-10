@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <QProcess>
 
 namespace Configs_sys {
@@ -30,12 +31,20 @@ namespace Configs_sys {
 
         void Start();
 
-        // Waits up to waitMs for the process to exit.
+        // Waits up to waitMs for the process to exit, then (Windows) up to 10 s of what is left for the adopted elevated core.
         void Kill(int waitMs = 30000);
 
         CoreProcess(const QString &core_path, const QString &socketName, bool debugMode);
 
+        // Also waits up to 5 s for the adopted elevated core, so the new one cannot race it for the Tun adapter and ports.
         void Restart();
+
+        // Any thread. The pid the core reported, when it is not this process (Windows: the elevated core behind the stub
+        // ThroneCore). Ignored when the generation has moved on; released by the next Start(). True when newly adopted.
+        bool AdoptElevatedPid(qint64 pid, quint64 forGeneration);
+
+        // Any thread. The adopted elevated core while it runs, else processId().
+        qint64 EffectivePid() const;
 
         // A core adopts the kill switch group (Linux/macOS) only at startup; this records whether the running one was asked to.
         std::atomic<bool> guard_identity = false;
@@ -48,8 +57,14 @@ namespace Configs_sys {
         bool restarting = false;
 
     private:
+        void waitElevated(int waitMs) const;
+
         QString m_socketName;
         bool m_debugMode = false;
+        // Guards the two below; a wait holds its own reference, so an adopt or a release never closes a watch in use.
+        mutable std::mutex m_elevatedMutex;
+        std::shared_ptr<void> m_elevatedWatch;
+        qint64 m_elevatedPid = 0;
 
     protected:
         bool started = false;

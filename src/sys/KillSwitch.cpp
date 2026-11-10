@@ -2,6 +2,7 @@
 
 #include "include/global/Configs.hpp"
 #include "include/global/Logger.hpp"
+#include "include/sys/CoreElevation.hpp"
 #include "include/sys/Process.hpp"
 #include "include/sys/ServiceManager.hpp"
 
@@ -175,7 +176,7 @@ namespace Sys {
         QString text;
         if (failureCode_ == kPrivilege) {
 #ifdef Q_OS_WIN
-            text = tr("The kill switch needs Throne to run as administrator.");
+            text = tr("The kill switch needs the core to run as administrator.");
 #else
             text = tr("The kill switch needs the core to have root privileges.");
 #endif
@@ -366,7 +367,9 @@ namespace Sys {
         // Under an identity failure the state stays Failed (unsupported) whatever the guard does.
         if (active_ == nullptr && !identityUnsupported()) setState(State::Arming);
         guard->readyTimer->start(kReadyTimeoutMs);
-        guard->setProcessEnvironment(Sys::ServiceManager::ChildEnvironment());
+        auto env = Sys::ServiceManager::ChildEnvironment();
+        Sys::CoreElevation::ApplyEnvironment(env);
+        guard->setProcessEnvironment(env);
         Configs_sys::IsolateChild(guard);
         guard->start(Configs::FindCoreRealPath(), {QStringLiteral("--guard")});
     }

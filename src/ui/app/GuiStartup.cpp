@@ -19,7 +19,9 @@
 
 #ifdef Q_OS_WIN
 #include <3rdparty/WinCommander.hpp>
+#include "include/sys/CoreElevation.hpp"
 #include "include/sys/windows/eventHandler.h"
+#include "include/sys/windows/guihelper.h"
 #include "include/sys/windows/WinVersion.h"
 #endif
 #ifdef Q_OS_MACOS
@@ -144,10 +146,23 @@ namespace GuiStartup {
 #ifdef Q_OS_WIN
     bool RelaunchElevatedIfNeeded(Engine::InstanceServer &server, const QStringList &arguments, const QString &launchDeeplink,
                                   const QStringList &launchFiles) {
-        if (Configs::dataManager->settingsRepo->windows_set_admin && !Configs::IsAdmin() && !Configs::dataManager->settingsRepo->disable_run_admin)
+        const auto &settings = Configs::dataManager->settingsRepo;
+        // Cached here on the main thread for the callers on other threads.
+        const auto elevationStatus = Sys::CoreElevation::CurrentStatus();
+        if (settings->windows_set_admin && !Windows_IsInAdmin() && !settings->disable_run_admin)
         {
-            Configs::dataManager->settingsRepo->windows_set_admin = false; // so that if permission denied, we will run as user on the next run
-            Configs::dataManager->settingsRepo->Save();
+            settings->windows_set_admin = false; // so that if permission denied, we will run as user on the next run
+            settings->Save();
+            if (Sys::CoreElevation::CanGrant()) {
+                // The grant's one UAC prompt replaces the elevated relaunch; declined, Throne carries on unelevated.
+                if (elevationStatus != Sys::CoreElevation::Status::Granted) {
+                    const int code = Sys::CoreElevation::Grant();
+                    const QString outcome = "core elevation grant: " + Sys::CoreElevation::ResultText(code);
+                    if (code == Sys::CoreElevation::HelperOk || code == -1) LOG_INFO(outcome);
+                    else LOG_WARN(outcome);
+                }
+                return false;
+            }
             // Hand-offs already accepted are read into the pending buffers first; closing the server would drop them.
             const QDeadlineTimer pump(200);
             while (!pump.hasExpired()) QCoreApplication::processEvents(QEventLoop::AllEvents, 20);
@@ -162,6 +177,11 @@ namespace GuiStartup {
             if (!server.listen()) LOG_WARN("could not restart the instance server: " + server.errorString());
             Deeplink_Submit(pendingDeeplink);
             LaunchFiles_Submit(pendingFiles);
+        }
+        // An elevated session is remembered, so the next start elevates again (or grants the core in its place).
+        if (const bool elevated = Windows_IsInAdmin(); settings->windows_set_admin != elevated) {
+            settings->windows_set_admin = elevated;
+            settings->Save();
         }
         return false;
     }

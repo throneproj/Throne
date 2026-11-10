@@ -10,7 +10,7 @@ namespace Engine {
         bool systemProxy = true;
         // True: a remembered Tun the boot cannot restore holds the boot start (degraded tun_unavailable), never proxy-only.
         bool tunRequired = false;
-        // False: an unknown Tun privilege answer counts as no, instead of a blocking IsPrivileged RPC on the main thread (Unix).
+        // False: an unknown Tun privilege answer counts as no, instead of a blocking IsPrivileged RPC on the main thread.
         bool blockingPrivilegeCheck = true;
         // Unattended starts that hit missing geoip/geosite files download them, and a start that failed for them retries once.
         bool geoAutoDownload = false;

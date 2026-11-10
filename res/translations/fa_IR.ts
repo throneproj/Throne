@@ -3764,6 +3764,18 @@ Error: %1</source>
         <source>The core did not answer the test</source>
         <translation>هسته به آزمایش پاسخ نداد</translation>
     </message>
+    <message>
+        <source>Tun Mode and the kill switch need the core to run with administrator rights.
+
+Grant them once with a Windows confirmation; Throne itself keeps running as a standard user.</source>
+        <translation>حالت Tun و کیل سوییچ نیاز دارند که هسته با دسترسی مدیر اجرا شود.
+
+یک بار با تأیید ویندوز این دسترسی را بدهید؛ خود Throne همچنان به‌عنوان کاربر عادی اجرا می‌شود.</translation>
+    </message>
+    <message>
+        <source>The update was cancelled, Throne keeps running</source>
+        <translation>به‌روزرسانی لغو شد، Throne به کار خود ادامه می‌دهد</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableModel</name>
@@ -4529,6 +4541,56 @@ Error: %1</source>
     <message>
         <source>A background Throne (PID %1) owns Tun on this computer; stop it or use thronectl.</source>
         <translation>حالت Tun روی این رایانه در اختیار یک Throne پس‌زمینه (PID %1) است؛ آن را متوقف کنید یا از thronectl استفاده کنید.</translation>
+    </message>
+</context>
+<context>
+    <name>Sys::KillSwitch</name>
+    <message>
+        <source>The kill switch needs the core to run as administrator.</source>
+        <translation>کیل سوییچ نیاز دارد هسته با دسترسی مدیر اجرا شود.</translation>
+    </message>
+</context>
+<context>
+    <name>Sys::CoreElevation</name>
+    <message>
+        <source>The Windows administrator prompt was declined or could not be shown.</source>
+        <translation>درخواست دسترسی مدیر ویندوز رد شد یا نمایش داده نشد.</translation>
+    </message>
+    <message>
+        <source>Done.</source>
+        <translation>انجام شد.</translation>
+    </message>
+    <message>
+        <source>The helper did not receive administrator rights.</source>
+        <translation>برنامهٔ کمکی دسترسی مدیر دریافت نکرد.</translation>
+    </message>
+    <message>
+        <source>Windows asked for a different administrator account; the grant must come from your own account.</source>
+        <translation>ویندوز حساب مدیر دیگری را درخواست کرد؛ اعطای دسترسی باید از حساب خود شما انجام شود.</translation>
+    </message>
+    <message>
+        <source>The helper was started with invalid arguments.</source>
+        <translation>برنامهٔ کمکی با آرگومان‌های نامعتبر اجرا شد.</translation>
+    </message>
+    <message>
+        <source>Could not copy ThroneCore into its protected folder.</source>
+        <translation>کپی ThroneCore در پوشهٔ محافظت‌شده ممکن نشد.</translation>
+    </message>
+    <message>
+        <source>Could not register the scheduled task that starts ThroneCore as administrator.</source>
+        <translation>ثبت وظیفهٔ زمان‌بندی‌شده‌ای که ThroneCore را با دسترسی مدیر اجرا می‌کند ممکن نشد.</translation>
+    </message>
+    <message>
+        <source>Could not remove the scheduled task or the protected copy of ThroneCore.</source>
+        <translation>حذف وظیفهٔ زمان‌بندی‌شده یا نسخهٔ محافظت‌شدهٔ ThroneCore ممکن نشد.</translation>
+    </message>
+    <message>
+        <source>Could not prepare or start the updater.</source>
+        <translation>آماده‌سازی یا اجرای به‌روزرسان ممکن نشد.</translation>
+    </message>
+    <message>
+        <source>The helper failed with exit code 0x%1.</source>
+        <translation>برنامهٔ کمکی با کد خروج 0x%1 شکست خورد.</translation>
     </message>
 </context>
 </TS>

@@ -16,6 +16,7 @@ import (
 
 	"ThroneCore/internal/boxmain"
 	"ThroneCore/internal/capcheck"
+	"ThroneCore/internal/elevation"
 	"ThroneCore/internal/guard"
 	"ThroneCore/internal/ipc"
 	"ThroneCore/internal/parentcheck"
@@ -83,14 +84,37 @@ func writeHeapProfile() (string, error) {
 	return f.Name(), f.Sync()
 }
 
-func RunCore() {
+func watchParent(pid int, name string) {
+	parent, err := os.FindProcess(pid)
+	if err != nil {
+		log.Fatalln("find "+name+":", err)
+	}
+	if runtime.GOOS == "windows" {
+		state, err := parent.Wait()
+		log.Fatalln(name+" exited:", state, err)
+	} else {
+		for {
+			time.Sleep(time.Second * 10)
+			err = parent.Signal(syscall.Signal(0))
+			if err != nil {
+				sysdns.Release()
+				log.Fatalln(name+" exited:", err)
+			}
+		}
+	}
+}
+
+// attached is set in the elevated child of a Windows stub, which already holds Throne's pipe and has no parentcheck parent.
+func RunCore(attached *elevation.Attached) {
 	socketName := os.Getenv("THRONE_CORE_SOCKET")
 	if socketName == "" {
 		log.Fatal("THRONE_CORE_SOCKET not set")
 	}
 	debug := os.Getenv("THRONE_CORE_DEBUG") == "1"
 
-	parentcheck.CheckParentProcess()
+	if attached == nil {
+		parentcheck.CheckParentProcess()
+	}
 	if err := guard.ApplyIdentity(); err != nil {
 		fmt.Fprintf(os.Stderr, "kill switch: cannot adopt the guard group: %v\n", err)
 		os.Exit(guard.IdentityExitCode)
@@ -98,40 +122,29 @@ func RunCore() {
 	guard.CleanupStale()
 	sysdns.RestoreStale()
 
-	go func() {
-		parent, err := os.FindProcess(parentcheck.ParentPID)
-		if err != nil {
-			log.Fatalln("find parent:", err)
-		}
-		if runtime.GOOS == "windows" {
-			state, err := parent.Wait()
-			log.Fatalln("parent exited:", state, err)
-		} else {
-			for {
-				time.Sleep(time.Second * 10)
-				err = parent.Signal(syscall.Signal(0))
-				if err != nil {
-					sysdns.Release()
-					log.Fatalln("parent exited:", err)
-				}
-			}
-		}
-	}()
+	go watchParent(parentcheck.ParentPID, "parent")
+	if attached != nil {
+		go watchParent(attached.StubPID, "stub")
+	}
 
 	boxmain.DisableColor()
 
 	var conn net.Conn
-	var err error
-	for i := 0; i < 10; i++ {
-		conn, err = ipc.ConnectIPC(socketName, parentcheck.ParentPID)
-		if err == nil {
-			break
+	if attached != nil {
+		conn = attached.Conn
+	} else {
+		var err error
+		for i := 0; i < 10; i++ {
+			conn, err = ipc.ConnectIPC(socketName, parentcheck.ParentPID)
+			if err == nil {
+				break
+			}
+			log.Printf("IPC connect attempt %d/10 failed: %v", i+1, err)
+			time.Sleep(500 * time.Millisecond)
 		}
-		log.Printf("IPC connect attempt %d/10 failed: %v", i+1, err)
-		time.Sleep(500 * time.Millisecond)
-	}
-	if err != nil {
-		log.Fatalf("failed to connect to GUI socket after 10 attempts: %v", err)
+		if err != nil {
+			log.Fatalf("failed to connect to GUI socket after 10 attempts: %v", err)
+		}
 	}
 
 	fmt.Println("Core Has Successfully Connected to Throne!")
@@ -146,12 +159,41 @@ func printVersions() {
 	fmt.Println("Go:", runtime.Version())
 }
 
+func runCore(attached *elevation.Attached) {
+	defer func() {
+		if err := recover(); err != nil {
+			// The exit code is all the GUI has to tell a panic from a clean stop.
+			fmt.Fprintf(os.Stderr, "Core panicked: %v\n%s\n", err, runtimeDebug.Stack())
+			os.Exit(2)
+		}
+	}()
+	printVersions()
+	fmt.Println()
+	runtimeDebug.SetMemoryLimit(memoryLimit)
+	go watchMemory()
+
+	RunCore(attached)
+}
+
+func runAttached(attached elevation.Attached) {
+	if attached.Mode == elevation.ModeGuard {
+		guard.PermitExecutable(attached.Core)
+		guard.Run(attached.GuiPID, attached.StubPID)
+	}
+	runCore(&attached)
+}
+
 func main() {
 	// Before anything prints: stdout is the guard's protocol channel and the --check line.
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
+		case "--attach":
+			elevation.RunAttach(os.Args[2:], runAttached)
 		case "--guard":
 			parentcheck.CheckParentProcess()
+			if elevation.Requested() {
+				elevation.RunStub(elevation.ModeGuard)
+			}
 			guard.Run(parentcheck.ParentPID)
 		case "--check":
 			parentcheck.CheckParentProcess()
@@ -170,18 +212,10 @@ func main() {
 		}
 	}
 
-	defer func() {
-		if err := recover(); err != nil {
-			// The exit code is all the GUI has to tell a panic from a clean stop.
-			fmt.Fprintf(os.Stderr, "Core panicked: %v\n%s\n", err, runtimeDebug.Stack())
-			os.Exit(2)
-		}
-	}()
-	printVersions()
-	fmt.Println()
-	runtimeDebug.SetMemoryLimit(memoryLimit)
-	go watchMemory()
-
-	RunCore()
-	return
+	// The stub prints nothing: stdout belongs to the elevated child.
+	if elevation.Requested() {
+		parentcheck.CheckParentProcess()
+		elevation.RunStub(elevation.ModeCore)
+	}
+	runCore(nil)
 }

@@ -79,9 +79,19 @@ type wfpBackend struct {
 	tunFilters []uint64
 }
 
+// Not GetCurrentProcessToken: that pseudo-handle needs Windows 8, and on Windows 7 every query through it fails.
+func tokenElevated() bool {
+	var token windows.Token
+	if windows.OpenProcessToken(windows.CurrentProcess(), windows.TOKEN_QUERY, &token) != nil {
+		return false
+	}
+	defer token.Close()
+	return token.IsElevated()
+}
+
 func newBackend() (backend, error) {
-	if !windows.GetCurrentProcessToken().IsElevated() {
-		return nil, newError(CodePrivilege, "the kill switch needs Throne to run as administrator")
+	if !tokenElevated() {
+		return nil, newError(CodePrivilege, "the kill switch needs the core to run with administrator rights")
 	}
 	return &wfpBackend{stop: make(chan struct{})}, nil
 }
@@ -348,6 +358,18 @@ func resolveAppIDs(extraPaths []string) (appIDs []*fwpByteBlob, skipped []string
 	}
 	appIDs = append(appIDs, appID)
 	for _, path := range extraPaths {
+		if appID, err = appIDFromFile(path); err != nil {
+			skipped = append(skipped, fmt.Sprintf("%s (%v)", path, err))
+			continue
+		}
+		appIDs = append(appIDs, appID)
+	}
+	known := append([]string{self}, extraPaths...)
+	for _, path := range permittedExecutables {
+		if slices.ContainsFunc(known, func(other string) bool { return strings.EqualFold(other, path) }) {
+			continue
+		}
+		known = append(known, path)
 		if appID, err = appIDFromFile(path); err != nil {
 			skipped = append(skipped, fmt.Sprintf("%s (%v)", path, err))
 			continue

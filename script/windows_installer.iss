@@ -70,6 +70,10 @@ Type: files; Name: "{app}\updater.old"
 [Run]
 Filename: "{app}\Throne.exe"; Description: "{cm:LaunchProgram,Throne}"; Flags: postinstall nowait skipifsilent
 
+[UninstallRun]
+; Removes this user's elevated-core task and protected ThroneCore copy; asks for UAC only when there is one.
+Filename: "{app}\Throne.exe"; Parameters: "--elevated-helper uninstall"; Flags: runhidden waituntilterminated; RunOnceId: "RevokeCoreElevation"
+
 [Code]
 const
   LegacyUninstall = 'Microsoft\Windows\CurrentVersion\Uninstall\Throne';

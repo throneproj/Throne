@@ -588,6 +588,7 @@ namespace API {
             info.netAdmin = reply.net_admin;
             info.killSwitch = reply.kill_switch_privilege;
             if (reply.detail) info.detail = QString::fromStdString(*reply.detail);
+            info.corePid = reply.core_pid.value_or(0);
             return info;
         } else
         {

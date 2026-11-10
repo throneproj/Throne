@@ -69,12 +69,8 @@ namespace Engine {
 
     bool ConnectionManager::tunPrivileged() {
         ENGINE_CHECK_MAIN_THREAD();
-#ifdef Q_OS_WIN
-        return Configs::IsAdmin();
-#else
         if (const auto known = Configs::KnownAdmin()) return *known;
         return m_options.blockingPrivilegeCheck && Configs::IsAdmin();
-#endif
     }
 
     QString ConnectionManager::tunBlockedReason() {

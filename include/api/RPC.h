@@ -15,16 +15,18 @@ class QLocalSocket;
 namespace API {
     // The core's privilege report. The optionals are unset where the core cannot tell (another OS, an older core).
     struct PrivilegeInfo {
-        // euid 0 or the Tun capabilities (Linux), as IsPrivileged always meant.
+        // euid 0 or the Tun capabilities (Linux), an elevated token (Windows), as IsPrivileged always meant.
         bool privileged = false;
         // Linux: /dev/net/tun opened read-write.
         std::optional<bool> tunDevice;
         // Linux: CAP_NET_ADMIN in the effective set.
         std::optional<bool> netAdmin;
-        // Linux: euid 0 and CAP_NET_ADMIN; macOS: euid 0.
+        // Linux: euid 0 and CAP_NET_ADMIN; macOS: euid 0; Windows: an elevated token.
         std::optional<bool> killSwitch;
         // The first failing reason, plain English; empty when nothing failed.
         QString detail;
+        // The answering core's own pid; on Windows the elevated core, not the stub Throne started. 0 = an older core.
+        qint64 corePid = 0;
     };
 
     class Client {

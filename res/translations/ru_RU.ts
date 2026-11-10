@@ -10648,6 +10648,18 @@ Name: %1</source>
         <source>The core did not answer the test</source>
         <translation>Ядро не ответило на проверку</translation>
     </message>
+    <message>
+        <source>Tun Mode and the kill switch need the core to run with administrator rights.
+
+Grant them once with a Windows confirmation; Throne itself keeps running as a standard user.</source>
+        <translation>Для режима TUN и kill switch ядру нужны права администратора.
+
+Предоставьте их один раз с подтверждением Windows; сам Throne продолжит работать как обычный пользователь.</translation>
+    </message>
+    <message>
+        <source>The update was cancelled, Throne keeps running</source>
+        <translation>Обновление отменено, Throne продолжает работу</translation>
+    </message>
 </context>
 <context>
     <name>OtpItem</name>
@@ -13474,8 +13486,8 @@ Remove that endpoint from this routing profile as well?</source>
 <context>
     <name>Sys::KillSwitch</name>
     <message>
-        <source>The kill switch needs Throne to run as administrator.</source>
-        <translation>Для kill switch нужно запустить Throne от имени администратора.</translation>
+        <source>The kill switch needs the core to run as administrator.</source>
+        <translation>Для kill switch ядро должно работать от имени администратора.</translation>
     </message>
     <message>
         <source>The kill switch needs the core to have root privileges.</source>
@@ -15859,6 +15871,49 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Routing rules cannot use the chain &quot;%1&quot;: it holds an auto selector, so it can only be started. Pick another outbound.</source>
         <translation>В правилах маршрутизации нельзя использовать цепочку &quot;%1&quot;: в ней есть автовыбор, поэтому ее можно только запустить. Выберите другой outbound.</translation>
+    </message>
+</context>
+<context>
+    <name>Sys::CoreElevation</name>
+    <message>
+        <source>The Windows administrator prompt was declined or could not be shown.</source>
+        <translation>Запрос администратора Windows был отклонён или не может быть показан.</translation>
+    </message>
+    <message>
+        <source>Done.</source>
+        <translation>Готово.</translation>
+    </message>
+    <message>
+        <source>The helper did not receive administrator rights.</source>
+        <translation>Вспомогательный процесс не получил права администратора.</translation>
+    </message>
+    <message>
+        <source>Windows asked for a different administrator account; the grant must come from your own account.</source>
+        <translation>Windows запросил другую учётную запись администратора; права должны быть предоставлены из вашей собственной учётной записи.</translation>
+    </message>
+    <message>
+        <source>The helper was started with invalid arguments.</source>
+        <translation>Вспомогательный процесс запущен с неверными аргументами.</translation>
+    </message>
+    <message>
+        <source>Could not copy ThroneCore into its protected folder.</source>
+        <translation>Не удалось скопировать ThroneCore в защищённую папку.</translation>
+    </message>
+    <message>
+        <source>Could not register the scheduled task that starts ThroneCore as administrator.</source>
+        <translation>Не удалось зарегистрировать задачу планировщика, запускающую ThroneCore от имени администратора.</translation>
+    </message>
+    <message>
+        <source>Could not remove the scheduled task or the protected copy of ThroneCore.</source>
+        <translation>Не удалось удалить задачу планировщика или защищённую копию ThroneCore.</translation>
+    </message>
+    <message>
+        <source>Could not prepare or start the updater.</source>
+        <translation>Не удалось подготовить или запустить программу обновления.</translation>
+    </message>
+    <message>
+        <source>The helper failed with exit code 0x%1.</source>
+        <translation>Вспомогательный процесс завершился с кодом 0x%1.</translation>
     </message>
 </context>
 </TS>

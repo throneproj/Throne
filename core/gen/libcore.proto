@@ -259,6 +259,8 @@ message IsPrivilegedResponse {
   optional bool kill_switch_privilege = 4;
   // The first failing reason, plain English; empty when nothing failed.
   optional string detail = 5;
+  // The pid of the process answering; on Windows an elevated core runs apart from the stub Throne started.
+  optional int32 core_pid = 6;
 }
 
 message GetDefaultInterfaceResponse {

@@ -52,6 +52,8 @@
 
 #ifdef Q_OS_WIN
 #include "3rdparty/WinCommander.hpp"
+#include "include/sys/CoreElevation.hpp"
+#include "include/sys/windows/guihelper.h"
 #include "include/sys/windows/WinVersion.h"
 #endif
 
@@ -183,10 +185,25 @@ void MainWindow::on_menu_exit_triggered() {
         }
         relaunched = true;
     }
+    if (reason == ExitReason::RunUpdater && !Windows_IsInAdmin() && !Sys::CoreElevation::InstallDirWritable()) {
+        // This Throne cannot replace its own files: the elevated helper starts the updater once this process has exited.
+        const int code = Sys::CoreElevation::RunUpdater(Configs::GetBasePath() + "/Throne.zip", QCoreApplication::applicationPid());
+        if (code != Sys::CoreElevation::HelperOk) {
+            exitController()->setExitInProgress(false);
+            exit_reason = ExitReason::None;
+            if (code == -1) {
+                MW_show_log(tr("The update was cancelled, Throne keeps running"));
+            } else {
+                MessageBoxWarning(QObject::tr("Update"), Sys::CoreElevation::ResultText(code));
+            }
+            return;
+        }
+        relaunched = true;
+    }
 #endif
 
     Engine::host()->shutdown(!unattended);
-    if (reason == ExitReason::RunUpdater) {
+    if (reason == ExitReason::RunUpdater && !relaunched) {
         QDir::setCurrent(QApplication::applicationDirPath());
 #ifdef Q_OS_WIN
         QFile::copy("./updater.exe", "./updater.old");
@@ -464,7 +481,12 @@ void MainWindow::CheckUpdate() {
     runOnUiThread([=,this] {
         const auto headless = Sys::HostPresence::OtherHeadless();
         const bool headlessSameInstall = headless && Sys::HostPresence::SameInstall(*headless, QCoreApplication::applicationDirPath());
-        const bool allow_updater = !Configs::dataManager->settingsRepo->flag_use_appdata && !headlessSameInstall;
+        bool allow_updater = !Configs::dataManager->settingsRepo->flag_use_appdata;
+#ifdef Q_OS_WIN
+        // The elevated helper installs into a folder this Throne cannot write.
+        if (!Sys::CoreElevation::InstallDirWritable() && Sys::CoreElevation::CanGrant()) allow_updater = true;
+#endif
+        allow_updater = allow_updater && !headlessSameInstall;
         const auto notice = headlessSameInstall
             ? tr("Update is unavailable while a background Throne (PID %1) runs from this installation; stop it first.").arg(headless->pid)
             : QString();

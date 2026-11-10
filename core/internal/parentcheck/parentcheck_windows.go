@@ -66,14 +66,30 @@ func getParentExePath(pid int) (string, error) {
 		return "", fmt.Errorf("OpenProcess: %w", err)
 	}
 	defer windows.CloseHandle(h)
+	return imageName(h)
+}
 
+func imageName(process windows.Handle) (string, error) {
 	var size uint32 = 4096
 	buf := make([]uint16, size)
-	if err := windows.QueryFullProcessImageName(h, 0, &buf[0], &size); err != nil {
+	if err := windows.QueryFullProcessImageName(process, 0, &buf[0], &size); err != nil {
 		return "", fmt.Errorf("QueryFullProcessImageName: %w", err)
 	}
 
 	return getDrivePath(windows.UTF16ToString(buf[:size])), nil
+}
+
+// ImagePath is the executable of an already opened process, resolved like CheckParentProcess resolves its parent's.
+func ImagePath(process windows.Handle) (string, error) {
+	path, err := imageName(process)
+	if err != nil {
+		return "", err
+	}
+	return resolveFinalPath(path), nil
+}
+
+func FinalPath(path string) string {
+	return resolveFinalPath(path)
 }
 
 // Not filepath.EvalSymlinks: Go 1.23+ stopped reporting NTFS junctions as ModeSymlink, so it bails with ENOTDIR on one (e.g. Scoop's "current").

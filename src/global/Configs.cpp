@@ -110,31 +110,29 @@ namespace Configs {
     bool IsAdmin(bool forceRenew) {
         if (isAdminCache >= 0 && !forceRenew) return isAdminCache;
 
-        bool admin = false;
 #ifdef Q_OS_WIN
-        admin = Windows_IsInAdmin();
-        Configs::dataManager->settingsRepo->windows_set_admin = admin;
-#else
+        // The core inherits an elevated Throne's token.
+        if (Windows_IsInAdmin()) {
+            isAdminCache = 1;
+            return true;
+        }
+#endif
         // Unknown until the core answers; caching that would pin "not elevated" for the session.
         if (API::defaultClient == nullptr || !API::defaultClient->IsConnected()) return false;
         bool ok;
         const auto info = API::defaultClient->Privileges(&ok);
         if (!ok) return false;
-        admin = info.privileged;
         SetKnownCapabilities(info);
-#endif
-        isAdminCache = admin;
-        return admin;
+        isAdminCache = info.privileged;
+        return info.privileged;
     }
 
     std::optional<bool> KnownAdmin() {
-        if (isAdminCache >= 0) return isAdminCache != 0;
 #ifdef Q_OS_WIN
-        // Local and cheap; unlike IsAdmin it leaves windows_set_admin alone.
-        return Windows_IsInAdmin();
-#else
-        return std::nullopt;
+        if (Windows_IsInAdmin()) return true;
 #endif
+        if (isAdminCache >= 0) return isAdminCache != 0;
+        return std::nullopt;
     }
 
     void SetKnownAdmin(bool admin) {

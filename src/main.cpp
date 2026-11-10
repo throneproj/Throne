@@ -36,6 +36,7 @@
 #include "include/api/RPC.h"
 
 #ifdef Q_OS_WIN
+#include "include/sys/CoreElevation.hpp"
 #include "include/sys/windows/MiniDump.h"
 #include "include/sys/windows/eventHandler.h"
 #include "include/sys/windows/WinVersion.h"
@@ -66,6 +67,10 @@ void signal_handler(int signum) {
 }
 
 int main(int argc, char* argv[]) {
+#ifdef Q_OS_WIN
+    // The elevated grant helper: no logging, settings or UI.
+    if (Sys::CoreElevation::IsHelperInvocation(argc, argv)) return Sys::CoreElevation::RunHelper(argc, argv);
+#endif
     Logging::InstallQtMessageHandler();
 
     // Ahead of the crash handler: its MessageBoxW would hang a displayless run.

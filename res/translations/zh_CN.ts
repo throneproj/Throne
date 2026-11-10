@@ -10751,6 +10751,18 @@ Error: %1</source>
         <source>The core did not answer the test</source>
         <translation>核心未响应测试</translation>
     </message>
+    <message>
+        <source>Tun Mode and the kill switch need the core to run with administrator rights.
+
+Grant them once with a Windows confirmation; Throne itself keeps running as a standard user.</source>
+        <translation>Tun 模式和急停开关需要核心以管理员权限运行。
+
+只需在 Windows 确认窗口中授予一次；Throne 本身仍以标准用户身份运行。</translation>
+    </message>
+    <message>
+        <source>The update was cancelled, Throne keeps running</source>
+        <translation>已取消更新，Throne 仍在运行中</translation>
+    </message>
 </context>
 <context>
     <name>MuxSettingsWidget</name>
@@ -13775,8 +13787,8 @@ Remove that endpoint from this routing profile as well?</source>
 <context>
     <name>Sys::KillSwitch</name>
     <message>
-        <source>The kill switch needs Throne to run as administrator.</source>
-        <translation>急停开关需要 Throne 以管理员身份运行。</translation>
+        <source>The kill switch needs the core to run as administrator.</source>
+        <translation>急停开关需要核心以管理员身份运行。</translation>
     </message>
     <message>
         <source>The kill switch needs the core to have root privileges.</source>
@@ -16191,6 +16203,49 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Custom Mux</source>
         <translation>自定义多路复用</translation>
+    </message>
+</context>
+<context>
+    <name>Sys::CoreElevation</name>
+    <message>
+        <source>The Windows administrator prompt was declined or could not be shown.</source>
+        <translation>Windows 管理员确认被拒绝或无法显示。</translation>
+    </message>
+    <message>
+        <source>Done.</source>
+        <translation>完成。</translation>
+    </message>
+    <message>
+        <source>The helper did not receive administrator rights.</source>
+        <translation>辅助程序未获得管理员权限。</translation>
+    </message>
+    <message>
+        <source>Windows asked for a different administrator account; the grant must come from your own account.</source>
+        <translation>Windows 请求了另一个管理员帐户；必须由您自己的帐户授予。</translation>
+    </message>
+    <message>
+        <source>The helper was started with invalid arguments.</source>
+        <translation>辅助程序的启动参数无效。</translation>
+    </message>
+    <message>
+        <source>Could not copy ThroneCore into its protected folder.</source>
+        <translation>无法将 ThroneCore 复制到受保护的文件夹。</translation>
+    </message>
+    <message>
+        <source>Could not register the scheduled task that starts ThroneCore as administrator.</source>
+        <translation>无法注册以管理员身份启动 ThroneCore 的计划任务。</translation>
+    </message>
+    <message>
+        <source>Could not remove the scheduled task or the protected copy of ThroneCore.</source>
+        <translation>无法删除计划任务或 ThroneCore 的受保护副本。</translation>
+    </message>
+    <message>
+        <source>Could not prepare or start the updater.</source>
+        <translation>无法准备或启动更新程序。</translation>
+    </message>
+    <message>
+        <source>The helper failed with exit code 0x%1.</source>
+        <translation>辅助程序失败，退出代码 0x%1。</translation>
     </message>
 </context>
 </TS>
