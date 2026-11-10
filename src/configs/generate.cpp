@@ -3530,12 +3530,23 @@ namespace Configs {
         ctx.outbounds << QJsonObject{{"type", "direct"}, {"tag", tags::direct}};
         ctx.result->coreConfig["outbounds"] = ctx.outbounds;
         ctx.result->coreConfig["endpoints"] = ctx.endpoints;
-        QJsonArray inboundArr;
-        for (const auto &bridgeConf : ctx.xrayToSingBridges) {
-            inboundArr.append(socksBridgeInbound(
-                QString(tags::bridgePrefix) + "-" + Int2String(bridgeConf.port), bridgeConf));
+        if (auto mismatch = bridgeIngressMismatch(ctx); !mismatch.isEmpty()) {
+            res->error = mismatch;
+            return res;
         }
+        QJsonArray inboundArr;
         QJsonArray routeRules;
+        // There is no route.final here, so an unrouted bridge would exit through the batch's first outbound.
+        for (qsizetype idx = 0; idx < ctx.xrayToSingBridges.size(); idx++) {
+            const auto &bridgeConf = ctx.xrayToSingBridges[idx];
+            const auto inboundTag = QString(tags::bridgePrefix) + "-" + Int2String(bridgeConf.port);
+            inboundArr.append(socksBridgeInbound(inboundTag, bridgeConf));
+            routeRules.append(QJsonObject{
+                {"inbound", inboundTag},
+                {"action", "route"},
+                {"outbound", ctx.singIngressTags[idx]},
+            });
+        }
         // A running Tun owns the OS resolver, so the sidecar resolves against the probe box's dns-direct instead.
         if (ctx.result->isXrayNeeded || !res->xrayFullConfigs.isEmpty()) {
             res->xrayDnsStrategy = getXrayOutboundDomainStrategy();
