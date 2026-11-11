@@ -827,6 +827,26 @@ Deleted %3 Profiles:
         <source>The WARP identity could not be read; register a new one</source>
         <translation>هویت WARP خوانده نشد؛ هویت تازه‌ای ثبت کنید</translation>
     </message>
+    <message>
+        <source>Datacenter IP</source>
+        <translation>IP دیتاسنتر</translation>
+    </message>
+    <message>
+        <source>Mobile IP</source>
+        <translation>IP موبایل</translation>
+    </message>
+    <message>
+        <source>Business IP</source>
+        <translation>IP تجاری</translation>
+    </message>
+    <message>
+        <source>Residential IP</source>
+        <translation>IP خانگی</translation>
+    </message>
+    <message>
+        <source>listed as %1</source>
+        <translation>شناخته‌شده به‌عنوان %1</translation>
+    </message>
 </context>
 <context>
     <name>DialogAbout</name>
@@ -7102,6 +7122,22 @@ Grant them once with a Windows confirmation; Throne itself keeps running as a st
     <message>
         <source>Check</source>
         <translation>بررسی</translation>
+    </message>
+    <message>
+        <source>Details</source>
+        <translation>جزئیات</translation>
+    </message>
+    <message>
+        <source>Checking…</source>
+        <translation>در حال بررسی…</translation>
+    </message>
+    <message>
+        <source>Checked just now</source>
+        <translation>همین الان بررسی شد</translation>
+    </message>
+    <message>
+        <source>Checked %1 ago</source>
+        <translation>%1 پیش بررسی شد</translation>
     </message>
 </context>
 </TS>

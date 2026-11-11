@@ -33,7 +33,7 @@ type Dialer func(ctx context.Context, network, address string) (net.Conn, error)
 type Client struct {
 	Dial    Dialer
 	Timeout time.Duration
-	// The first request may also be starting the tunnel; 0 = Timeout.
+	// Requests sent before the first one ends may also be starting the tunnel; 0 = Timeout.
 	FirstTimeout time.Duration
 	// Context for the TLS configs; nil = context.Background().
 	Context context.Context
@@ -52,7 +52,7 @@ func (c *Client) hopTimeout() time.Duration {
 	if timeout <= 0 {
 		timeout = DefaultRequestTimeout
 	}
-	if !c.warm.Swap(true) && c.FirstTimeout > timeout {
+	if !c.warm.Load() && c.FirstTimeout > timeout {
 		return c.FirstTimeout
 	}
 	return timeout
@@ -140,6 +140,7 @@ func isRedirect(status int) bool {
 func (s *session) roundTrip(ctx context.Context, method string, target *url.URL, headers map[string]string, maxBody int64) (*http.Response, []byte, error) {
 	ctx, cancel := context.WithTimeout(ctx, s.client.hopTimeout())
 	defer cancel()
+	defer s.client.warm.Store(true)
 	req, err := http.NewRequestWithContext(ctx, method, target.String(), nil)
 	if err != nil {
 		return nil, nil, err

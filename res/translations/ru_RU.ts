@@ -12757,6 +12757,26 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
         <source>The profile could not be copied</source>
         <translation>Не удалось скопировать профиль</translation>
     </message>
+    <message>
+        <source>Datacenter IP</source>
+        <translation>IP дата-центра</translation>
+    </message>
+    <message>
+        <source>Mobile IP</source>
+        <translation>Мобильный IP</translation>
+    </message>
+    <message>
+        <source>Business IP</source>
+        <translation>Корпоративный IP</translation>
+    </message>
+    <message>
+        <source>Residential IP</source>
+        <translation>Домашний IP</translation>
+    </message>
+    <message>
+        <source>listed as %1</source>
+        <translation>отмечен как %1</translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -13405,6 +13425,18 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Check</source>
         <translation>Проверить</translation>
+    </message>
+    <message>
+        <source>Checking…</source>
+        <translation>Проверка…</translation>
+    </message>
+    <message>
+        <source>Checked just now</source>
+        <translation>Проверено только что</translation>
+    </message>
+    <message>
+        <source>Checked %1 ago</source>
+        <translation>Проверено %1 назад</translation>
     </message>
 </context>
 <context>

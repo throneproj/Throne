@@ -24,9 +24,8 @@ const (
 	serviceTestBudget = 3 * time.Minute
 )
 
-// BatchServiceTest runs the checks through each tag. Each exit gets its own session per check and
-// its requests go one at a time, so a handful of exits in parallel stays well within what one
-// browser user would send.
+// BatchServiceTest runs the checks through each tag. Each check gets its own session and an exit runs
+// its checks side by side, about what one browser opening a few tabs would send.
 func BatchServiceTest(ctx context.Context, i Box, outboundTags []string, maxConcurrency int, cold bool, defs *servicecheck.Definitions, timeout time.Duration, options servicecheck.Options) []*ServiceTestResult {
 	if timeout <= 0 {
 		timeout = servicecheck.DefaultRequestTimeout

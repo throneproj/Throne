@@ -395,6 +395,7 @@ namespace Engine {
         req.max_concurrency = kTestRunnerServiceConcurrency;
         req.test_timeout_ms = kTestRunnerServiceRequestTimeoutMs;
         req.checks = definitions->text.toStdString();
+        req.test_current = target.testCurrent;
 
         const auto claimed = std::make_shared<TestRunnerClaimedTags>();
         bool rpcOK = false;
@@ -436,6 +437,8 @@ namespace Engine {
             return;
         }
 
+        // The live instance changed under the check, so its answers may describe another exit.
+        if (target.testCurrent && runningProfileId() != target.entID) return;
         for (const auto& res : result.results) {
             const int entid = testRunnerResolveEntID(target.tag2entID, res.outbound_tag.value(), target.entID);
             if (entid == -1) {
@@ -656,6 +659,20 @@ namespace Engine {
     }
 
     bool TestRunner::runServiceChecks(const QList<int>& requestedIDs, const std::function<void()>& onFinished, bool interactive) {
+        return runServiceSession(requestedIDs, false, onFinished, interactive);
+    }
+
+    bool TestRunner::runCurrentServiceCheck(const std::function<void()>& onFinished, bool interactive) {
+        const auto running = runningSnapshot_();
+        if (running == nullptr) {
+            if (onFinished) onFinished();
+            return false;
+        }
+        return runServiceSession({running->id}, true, onFinished, interactive);
+    }
+
+    bool TestRunner::runServiceSession(const QList<int>& requestedIDs, bool testCurrent, const std::function<void()>& onFinished,
+                                       bool interactive) {
         const auto finish = [onFinished] { if (onFinished) onFinished(); };
         const auto profileIDs = testRunnerWithoutAutoSelectors(requestedIDs);
         if (profileIDs.isEmpty()) {
@@ -679,14 +696,21 @@ namespace Engine {
         stopRequested_.store(false);
         interactive_.store(interactive);
 
-        runOnNewThread([this, profileIDs, finish] {
+        runOnNewThread([this, profileIDs, testCurrent, finish] {
             observer_->testPanelSeeded(TestKind::Service, profileIDs.size());
             observer_->testViewChanged(true);
 
             const auto definitions = std::make_shared<const ServiceChecks::Definitions>(ServiceChecks::Prepare());
             if (!definitions->error.isEmpty()) MW_show_log(MainWindowTr::tr("Service check failed: %1").arg(definitions->error));
 
-            for (int i = 0; definitions->error.isEmpty() && i < profileIDs.length(); i += kTestRunnerServiceBatchSize) {
+            if (testCurrent && definitions->error.isEmpty()) {
+                Target target;
+                target.testCurrent = true;
+                target.entID = profileIDs.first();
+                runServiceProbe(target, definitions);
+                runOnUiThread([=, this] { observer_->testedProfilesChanged(profileIDs); });
+            }
+            for (int i = 0; !testCurrent && definitions->error.isEmpty() && i < profileIDs.length(); i += kTestRunnerServiceBatchSize) {
                 if (stopRequested_.load()) break;
                 const auto ids = profileIDs.mid(i, kTestRunnerServiceBatchSize);
                 sessionGen_.fetch_add(1);

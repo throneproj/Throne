@@ -3,6 +3,7 @@
 #include "include/database/entities/Profile.h"
 #include "include/configs/common/Outbound.h"
 #include "include/ui/setting/ThemeManager.hpp"
+#include "include/ui/utils/ServiceCheckHtml.h"
 #include <QApplication>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -135,7 +136,7 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
             if (security.compromised) return tr("Certificate checks are turned off by the \"Skip TLS certificate authentication\" setting.");
             if (security.isDangerous()) return tr("This config's traffic is not properly protected.");
         }
-        if (index.column() == ColTestResult && !profile->service_checks.isEmpty()) return profile->DisplayServiceToolTip();
+        if (index.column() == ColTestResult && !profile->service_checks.isEmpty()) return ServiceCheckHtml::details(*profile);
         return {};
     }
     if (role == Qt::ForegroundRole) {

@@ -186,7 +186,7 @@
          </widget>
         </item>
         <item row="4" column="1" colspan="3">
-         <layout class="QHBoxLayout" name="servicesLayout">
+         <layout class="QHBoxLayout" name="servicesLayout" stretch="1,0,0,0">
           <item>
            <widget class="QLabel" name="vServices">
             <property name="text">
@@ -198,6 +198,16 @@
            <widget class="QPushButton" name="btnServiceCheck">
             <property name="text">
              <string>Check</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="vServiceChecked">
+            <property name="text">
+             <string notr="true"/>
+            </property>
+            <property name="colorRole" stdset="0">
+             <string notr="true">muted</string>
             </property>
            </widget>
           </item>

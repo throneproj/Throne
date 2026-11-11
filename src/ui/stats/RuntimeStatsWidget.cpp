@@ -14,6 +14,7 @@
 #include "include/database/SettingsRepo.h"
 #include "include/global/Utils.hpp"
 #include "include/global/ExitLookup.hpp"
+#include "include/ui/utils/ServiceCheckHtml.h"
 #include "include/ui/widget/LiveChart.h"
 
 #include <QBrush>
@@ -98,11 +99,17 @@ RuntimeStatsWidget::RuntimeStatsWidget(QWidget* parent) : QWidget(parent), ui(ne
     // A lookup service's answer: as AutoText a tag in it would render as HTML.
     ui->vOutIp->setTextFormat(Qt::PlainText);
     ui->vCountry->setTextFormat(Qt::PlainText);
-    ui->vServices->setTextFormat(Qt::PlainText);
-    connect(ui->btnServiceCheck, &QPushButton::clicked, this, [] {
+    // Rich text built by ServiceCheckHtml::summary, which escapes everything it did not write itself.
+    ui->vServices->setTextFormat(Qt::RichText);
+    ui->vServices->setWordWrap(true);
+    ui->vServiceChecked->setTextFormat(Qt::PlainText);
+    ui->vServiceChecked->setCursor(Qt::WhatsThisCursor);
+    connect(ui->btnServiceCheck, &QPushButton::clicked, this, [this] {
         auto *engine = Engine::host();
-        const auto running = engine != nullptr ? engine->connection()->runningSnapshot() : nullptr;
-        if (running != nullptr) engine->tests()->runServiceChecks({running->id});
+        if (engine == nullptr) return;
+        serviceChecking_->store(true);
+        engine->tests()->runCurrentServiceCheck([checking = serviceChecking_] { checking->store(false); });
+        refreshServices();
     });
 
     ui->groupEndpoints->setVisible(false);
@@ -147,6 +154,33 @@ void RuntimeStatsWidget::hideEvent(QHideEvent *event) {
     timer_->stop();
     // Nothing refreshes it while the panel is away, and it would sit there showing a frozen endpoint.
     if (details_) details_->close();
+}
+
+void RuntimeStatsWidget::refreshServices() {
+    auto *engine = Engine::host();
+    const auto running = runningProfile();
+    const QString summary = running != nullptr ? ServiceCheckHtml::summary(*running) : QString();
+    ui->vServices->setText(summary.isEmpty() ? QStringLiteral("—") : summary);
+    const QString details = running != nullptr ? ServiceCheckHtml::details(*running) : QString();
+    ui->vServices->setToolTip(details);
+
+    QString checked;
+    if (serviceChecking_->load()) {
+        checked = tr("Checking…");
+    } else if (!details.isEmpty()) {
+        const qint64 age = qMax<qint64>(0, QDateTime::currentSecsSinceEpoch() - running->ServiceCheckedAt());
+        if (age < 60) checked = tr("Checked just now");
+        else checked = tr("Checked %1 ago").arg(age < 3600    ? QStringLiteral("%1m").arg(age / 60)
+                                                : age < 86400 ? QStringLiteral("%1h").arg(age / 3600)
+                                                              : QStringLiteral("%1d").arg(age / 86400));
+    }
+    ui->vServiceChecked->setText(checked);
+    ui->vServiceChecked->setToolTip(details);
+    ui->vServiceChecked->setVisible(!checked.isEmpty());
+
+    // The runner skips auto selectors, so the button would do nothing for one.
+    ui->btnServiceCheck->setEnabled(running != nullptr && running->type != QStringLiteral("autoselector") && engine != nullptr
+                                    && !engine->tests()->isRunning());
 }
 
 void RuntimeStatsWidget::refreshLive() {
@@ -246,13 +280,7 @@ void RuntimeStatsWidget::refreshLive() {
         }
     }
 
-    const auto running = runningProfile();
-    const QString serviceMarks = running != nullptr ? running->DisplayServiceMarks() : QString();
-    ui->vServices->setText(serviceMarks.isEmpty() ? QStringLiteral("—") : serviceMarks);
-    ui->vServices->setToolTip(running != nullptr ? running->DisplayServiceToolTip() : QString());
-    // The runner skips auto selectors, so the button would do nothing for one.
-    ui->btnServiceCheck->setEnabled(running != nullptr && running->type != QStringLiteral("autoselector") && engine != nullptr
-                                    && !engine->tests()->isRunning());
+    refreshServices();
 
     if (!connBusy_.exchange(true)) {
         QPointer<RuntimeStatsWidget> self(this);

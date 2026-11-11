@@ -826,6 +826,8 @@ message ServiceTestRequest {
   // Ids of the checks to run; empty runs them all.
   repeated string only = 11;
   optional bool skip_ip_info = 12 [default = false];
+  // Checks the running instance's proxy outbound instead of building a box from `config`.
+  optional bool test_current = 13 [default = false];
 }
 
 message ServiceCheckOutcome {

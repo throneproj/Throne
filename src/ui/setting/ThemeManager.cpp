@@ -224,6 +224,8 @@ static ThemeTokens resolveTokens(const QPalette &pal) {
     t.muted   = separate(blendToward(t.onSurface, t.surface, 0.62), t.surface, 4.0);
     t.tag     = separate(QColor(0xFB, 0x72, 0x99), t.surface, 4.0);
     t.danger  = separate(QColor(0xC6, 0x28, 0x28), t.surface, 4.5);
+    // 4.5 would darken it to brown on a light surface; 3.0 keeps it reading as yellow.
+    t.warning = separate(QColor(0xE0, 0x9B, 0x1A), t.surface, 3.0);
     t.success = separate(QColor(0x2E, 0x7D, 0x32), t.surface, 4.5);
     t.info    = separate(QColor(0x32, 0x99, 0xFF), t.surface, 4.0);
     const std::array<QColor, 5> series{QColor(0x2A, 0x78, 0xD6), QColor(0xEB, 0x68, 0x34), QColor(0x1B, 0xAF, 0x7A),

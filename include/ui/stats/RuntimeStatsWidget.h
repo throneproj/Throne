@@ -6,6 +6,7 @@
 #include <QStringList>
 
 #include <atomic>
+#include <memory>
 
 #include "ui_RuntimeStatsWidget.h"
 
@@ -34,6 +35,7 @@ protected:
 
 private:
     void refreshLive();
+    void refreshServices();
     void probeEgress();
 
     void applyEndpoints(const QList<Stats::VpnEndpointView>& views);
@@ -58,6 +60,8 @@ private:
     QString egressLookup_;
 
     QPointer<DialogEndpointDetails> details_;
+    // Shared with the check's onFinished, which runs on a test thread and may outlive the widget.
+    std::shared_ptr<std::atomic<bool>> serviceChecking_ = std::make_shared<std::atomic<bool>>(false);
     QList<Stats::VpnEndpointView> endpointViews_;
     QStringList endpointTags_;
 };

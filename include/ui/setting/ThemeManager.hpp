@@ -19,6 +19,7 @@ struct ThemeTokens {
     QColor muted;
     QColor tag;
     QColor danger;
+    QColor warning;
     QColor success;
     QColor info;
     std::array<QColor, 5> chartSeries;

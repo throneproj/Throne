@@ -75,6 +75,9 @@ namespace Engine {
         static constexpr int kMaxServiceCheckProfiles = 100;
         bool runServiceChecks(const QList<int>& profileIDs, const std::function<void()>& onFinished = {}, bool interactive = true);
 
+        // The running profile, through the running core's own proxy outbound.
+        bool runCurrentServiceCheck(const std::function<void()>& onFinished = {}, bool interactive = true);
+
         // Refused while another test runs. Saves nothing; onDone runs once, on a test thread.
         bool runChainStepTest(const QList<int>& hops, int gid, const std::function<void(const ChainStepReport&)>& onDone);
 
@@ -113,6 +116,8 @@ namespace Engine {
         void runIpProbe(const Target& target);
 
         void runSpeedProbe(const Target& target);
+
+        bool runServiceSession(const QList<int>& requestedIDs, bool testCurrent, const std::function<void()>& onFinished, bool interactive);
 
         void runServiceProbe(const Target& target, const std::shared_ptr<const ServiceChecks::Definitions>& definitions);
 

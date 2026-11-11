@@ -81,11 +81,8 @@ namespace Configs {
 
         [[nodiscard]] QString DisplayTestResult() const;
 
-        // One icon and status dot per category, then the exit IP's kind; empty without a service check.
-        [[nodiscard]] QString DisplayServiceMarks() const;
-
-        // Rich text, safe for any setToolTip; empty without a service check.
-        [[nodiscard]] QString DisplayServiceToolTip() const;
+        // Epoch seconds of the stored service check; 0 without one.
+        [[nodiscard]] qint64 ServiceCheckedAt() const;
 
         [[nodiscard]] QColor DisplayLatencyColor() const;
 

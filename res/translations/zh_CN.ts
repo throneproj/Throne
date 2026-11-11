@@ -12999,6 +12999,26 @@ How to update?</source>
         <source>The profile could not be copied</source>
         <translation>无法复制该配置档</translation>
     </message>
+    <message>
+        <source>Datacenter IP</source>
+        <translation>数据中心 IP</translation>
+    </message>
+    <message>
+        <source>Mobile IP</source>
+        <translation>移动网络 IP</translation>
+    </message>
+    <message>
+        <source>Business IP</source>
+        <translation>企业 IP</translation>
+    </message>
+    <message>
+        <source>Residential IP</source>
+        <translation>家庭宽带 IP</translation>
+    </message>
+    <message>
+        <source>listed as %1</source>
+        <translation>被标记为 %1</translation>
+    </message>
 </context>
 <context>
     <name>QPlatformTheme</name>
@@ -13655,6 +13675,18 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Check</source>
         <translation>检查</translation>
+    </message>
+    <message>
+        <source>Checking…</source>
+        <translation>检测中…</translation>
+    </message>
+    <message>
+        <source>Checked just now</source>
+        <translation>刚刚检测</translation>
+    </message>
+    <message>
+        <source>Checked %1 ago</source>
+        <translation>%1前检测</translation>
     </message>
 </context>
 <context>

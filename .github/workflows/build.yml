@@ -8,6 +8,10 @@ on:
       publish:
         description: "r for normal release, p for prerelease, leave empty to not publish anything"
         required: false
+      tests:
+        description: "Run the smoke and end-to-end test jobs"
+        type: boolean
+        default: false
 env:
   # Every job's Go, and the golang image the Dockerfile builds thronectl with. The legacy builds use MetaCubeX's Go 1.26.
   GO_VERSION: "1.27.3"
@@ -470,6 +474,7 @@ jobs:
     needs:
       - build-cpp
       - build-cpp-manylinux
+    if: inputs.tests
     permissions:
       contents: read
     timeout-minutes: 20
@@ -656,6 +661,7 @@ jobs:
     runs-on: ${{ matrix.runner }}
     needs:
       - pack
+    if: inputs.tests
     permissions:
       contents: read
     timeout-minutes: 15
@@ -745,12 +751,13 @@ jobs:
             done
           '
   # Builds the headless image for linux/amd64 and linux/arm64 from the packed linux zips and runs both; pushes it to
-  # ghcr.io only when publishing: the tag for p and r, plus latest for r.
+  # ghcr.io only when publishing: the tag for p and r, plus latest for r. Skipped when neither testing nor publishing.
   docker-image:
     name: Docker image
     runs-on: ubuntu-latest
     needs:
       - pack
+    if: inputs.tests || github.event.inputs.publish == 'p' || github.event.inputs.publish == 'r'
     permissions:
       contents: read
       packages: write
@@ -923,8 +930,8 @@ jobs:
           tags: ${{ steps.context.outputs.tags }}
           push: true
   # ===================================================================================================== Headless end to end
-  # script/ci/e2e runs headless Throne the way users do, so no scratch VMs are needed. These jobs only report: publish
-  # does not wait for them. Tun and the kill switch run only in containers with their own network namespace, never on a
+  # script/ci/e2e runs headless Throne the way users do, so no scratch VMs are needed. These jobs run only with the tests
+  # input and only report: publish does not wait for them. Tun and the kill switch run only in containers with their own network namespace, never on a
   # runner host, which they would cut off. A failed job uploads its logs as the artifact <job id>-logs.
   # A needs on a matrix job waits for every leg and skips the job when any leg failed; Actions cannot depend on one leg.
   # So each job runs unless the run was cancelled or its matrix never ran, and downloads the one artifact it tests right
@@ -935,7 +942,7 @@ jobs:
     runs-on: ubuntu-24.04
     needs:
       - pack
-    if: ${{ !cancelled() && needs.pack.result != 'skipped' }}
+    if: ${{ inputs.tests && !cancelled() && needs.pack.result != 'skipped' }}
     permissions:
       contents: read
     timeout-minutes: 40
@@ -998,7 +1005,7 @@ jobs:
     runs-on: ubuntu-24.04
     needs:
       - build-cpp-manylinux
-    if: ${{ !cancelled() && needs.build-cpp-manylinux.result != 'skipped' }}
+    if: ${{ inputs.tests && !cancelled() && needs.build-cpp-manylinux.result != 'skipped' }}
     permissions:
       contents: read
     timeout-minutes: 75
@@ -1069,7 +1076,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     needs:
       - pack
-    if: ${{ !cancelled() && needs.pack.result != 'skipped' }}
+    if: ${{ inputs.tests && !cancelled() && needs.pack.result != 'skipped' }}
     permissions:
       contents: read
     timeout-minutes: 30
@@ -1132,7 +1139,7 @@ jobs:
     runs-on: macos-latest
     needs:
       - build-cpp
-    if: ${{ !cancelled() && needs.build-cpp.result != 'skipped' }}
+    if: ${{ inputs.tests && !cancelled() && needs.build-cpp.result != 'skipped' }}
     permissions:
       contents: read
     timeout-minutes: 30
@@ -1196,7 +1203,7 @@ jobs:
     runs-on: windows-latest
     needs:
       - build-cpp
-    if: ${{ !cancelled() && needs.build-cpp.result != 'skipped' }}
+    if: ${{ inputs.tests && !cancelled() && needs.build-cpp.result != 'skipped' }}
     permissions:
       contents: read
     timeout-minutes: 30
