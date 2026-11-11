@@ -80,6 +80,7 @@ namespace Qv2ray {
                 QString lineUnderCursor() const;
                 QString wordUnderCursor() const;
                 void selectCompletion(const QString &line);
+                void showPopup();
 
                 QString prefix;
                 QCompleter *c = nullptr;

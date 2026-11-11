@@ -503,18 +503,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             connect(actionShowOutIP, &QAction::triggered, this, updateTestItemsToShow);
             connect(actionShowSpeed, &QAction::triggered, this, updateTestItemsToShow);
 
-            auto* actionShowServices = menu.addAction(tr("Services"));
-            actionShowServices->setCheckable(true);
-            actionShowServices->setChecked(group->show_service_checks);
-            connect(actionShowServices, &QAction::triggered, this, [this, group](bool checked) {
-                group->show_service_checks = checked;
-                Configs::dataManager->groupsRepo->Save(group);
-                if (group->calculated_column_width.size() > ProfilesTableModel::ColTestResult) {
-                    group->calculated_column_width[ProfilesTableModel::ColTestResult] = 0;
-                }
-                refresh_proxy_list();
-            });
-
             menu.addSeparator();
             auto* sortByLabel = menu.addAction(tr("Sort By:"));
             sortByLabel->setEnabled(false);
@@ -611,7 +599,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     });
     connect(filterHeader, &ProfilesTableFilterHeader::testFilterChanged, this, [this](const QString& currentText)
     {
-       countryFilterString = currentText;
+       testFilterString = currentText;
        m_filterRefreshDebounce->start();
     });
     connect(filterHeader, &ProfilesTableFilterHeader::focusTableRequested, this,
@@ -858,7 +846,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->menuRouting_Menu->addAction(actionWarp);
     ui->menuRouting_Menu->addMenu(profilesMenu);
     ui->menuRouting_Menu->addAction(ui->actionUpdate_Rule_Sets);
-    auto* actionRuleTester = new QAction(tr("Rule Tester…"), ui->menuRouting_Menu);
+    auto* actionRuleTester = new QAction(tr("Route path lookup"), ui->menuRouting_Menu);
     connect(actionRuleTester, &QAction::triggered, this, [this] {
         const auto selected = get_now_selected_list();
         const int preferred = selected.size() == 1 ? selected.first() : -1;

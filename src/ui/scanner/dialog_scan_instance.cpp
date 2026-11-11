@@ -13,7 +13,6 @@
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QGuiApplication>
-#include <QHBoxLayout>
 #include <QHeaderView>
 #include <QHostAddress>
 #include <QInputDialog>
@@ -93,11 +92,8 @@ namespace {
         if (!presets.isEmpty()) edit->setCompleter(new QCompleter(presets, edit));
     }
 
-    QLineEdit *scanInstanceNumberEdit(QWidget *parent, int minimum, int maximum, int defaultValue,
-                                      const QStringList &presets = {}) {
-        auto *edit = new QLineEdit(parent);
+    void scanInstanceSetupNumber(QLineEdit *edit, int minimum, int maximum, int defaultValue, const QStringList &presets = {}) {
         scanInstanceSetupNumber(edit, minimum, maximum, QString::number(defaultValue), presets);
-        return edit;
     }
 
     // Parses with the validator's locale, the one that accepted the text.
@@ -162,13 +158,6 @@ namespace {
             return DialogScanInstance::tr("The method \"None\" only checks the TLS handshake, so it needs TLS.");
         if (httpVersion == QStringLiteral("3")) return DialogScanInstance::tr("HTTP/3 needs TLS.");
         return {};
-    }
-
-    QLabel *scanInstanceHint(const QString &text, QWidget *parent) {
-        auto *label = new QLabel(text, parent);
-        label->setWordWrap(true);
-        label->setProperty("colorRole", QStringLiteral("muted"));
-        return label;
     }
 
     QString scanInstanceResolverLevelLabel(const QString &level) {
@@ -420,7 +409,13 @@ DialogScanInstance::~DialogScanInstance() {
     auto &windows = openWindows();
     if (windows.value(scanId) == this || windows.value(scanId) == nullptr) windows.remove(scanId);
     if (watching) ScannerUi::Watch(scanId, false);
+    delete phasesUi;
+    delete tuneUi;
     delete ui;
+}
+
+bool DialogScanInstance::isGeneric() const {
+    return scan->kind == Configs::IpScan::Kind::Generic;
 }
 
 bool DialogScanInstance::isWarp() const {
@@ -441,7 +436,7 @@ void DialogScanInstance::setupTargets() {
     ui->port_mode->addItem(tr("Merge with the list's ports"), static_cast<int>(PortMode::Merge));
     ui->port_mode->addItem(tr("Only the list's ports"), static_cast<int>(PortMode::List));
     ui->port_mode->setItemData(
-        2, tr("Your ports are ignored; entries without a port are probed on port 443 (80 for plain HTTP)."), Qt::ToolTipRole);
+        2, tr("Entries without a port use 443 (80 for plain HTTP)."), Qt::ToolTipRole);
     connect(ui->port_mode, &QComboBox::currentIndexChanged, this, [this] {
         const bool ownPorts = ui->port_mode->currentData().toInt() != static_cast<int>(PortMode::List);
         ui->ports->setEnabled(ownPorts);
@@ -460,13 +455,12 @@ void DialogScanInstance::setupTargets() {
     });
     connect(ui->use_warp_ranges, &QPushButton::clicked, this, [this] { useBuiltinWarpRanges(); });
     ui->use_warp_ranges->setVisible(isWarp());
-    ui->use_warp_ranges->setToolTip(
-        tr("Selects an IP list of Cloudflare's WARP ranges for the chosen mode, creating it when missing, and sets the matching ports."));
+    ui->use_warp_ranges->setToolTip(tr("Use Cloudflare's WARP ranges and ports for this mode."));
     if (isResolver()) {
         for (QWidget *widget : {static_cast<QWidget *>(ui->ports_label), static_cast<QWidget *>(ui->ports),
                                 static_cast<QWidget *>(ui->port_mode)})
             widget->setVisible(false);
-        ui->base_list->setToolTip(tr("Each address is tried as a resolver; an entry without a port uses port 53."));
+        ui->base_list->setToolTip(tr("Each address is tried as a resolver; the default port is 53."));
     }
     if (isTune()) {
         ui->tabs->setTabVisible(ui->tabs->indexOf(ui->tab_targets), false);
@@ -477,236 +471,106 @@ void DialogScanInstance::setupTargets() {
 
 void DialogScanInstance::buildPhases() {
     auto *layout = ui->phases_layout;
-    if (isResolver()) {
-        buildResolverPhase(layout);
-        layout->addStretch(1);
-        return;
-    }
     if (isTune()) {
         buildTunePhase(layout);
         layout->addStretch(1);
         return;
     }
-    buildIcmpPhase(layout);
-    if (isWarp()) {
-        buildWarpPhase(layout);
-    } else {
-        buildTcpPhase(layout);
-        buildHttpPhase(layout);
-        buildConfigPhase(layout);
-    }
+    phasesUi = new Ui::ScanPhases;
+    auto *page = new QWidget(ui->phases_content);
+    phasesUi->setupUi(page);
+    layout->addWidget(page);
     layout->addStretch(1);
+
+    phasesUi->icmp_box->setVisible(!isResolver());
+    for (auto *box : {phasesUi->tcp_box, phasesUi->http_box, phasesUi->config_box}) box->setVisible(isGeneric());
+    phasesUi->warp_box->setVisible(isWarp());
+    phasesUi->resolver_box->setVisible(isResolver());
+    if (!isResolver()) buildIcmpPhase();
+    if (isGeneric()) {
+        buildTcpPhase();
+        buildHttpPhase();
+        buildConfigPhase();
+    }
+    if (isWarp()) buildWarpPhase();
+    if (isResolver()) buildResolverPhase();
 }
 
-void DialogScanInstance::buildIcmpPhase(QVBoxLayout *layout) {
-    icmpBox = new QGroupBox(tr("ICMP (ping)"), ui->phases_content);
-    icmpBox->setCheckable(true);
-    auto *form = new QFormLayout(icmpBox);
-    icmpTimeout = scanInstanceNumberEdit(icmpBox, 100, 60000, defaults.icmp.timeoutMs, kScanInstanceTimeoutPresets);
-    form->addRow(tr("Timeout (ms)"), icmpTimeout);
-    icmpCount = scanInstanceNumberEdit(icmpBox, 1, 10, defaults.icmp.count);
-    form->addRow(tr("Echo requests"), icmpCount);
-    layout->addWidget(icmpBox);
+void DialogScanInstance::buildIcmpPhase() {
+    scanInstanceSetupNumber(phasesUi->icmp_timeout, 100, 60000, defaults.icmp.timeoutMs, kScanInstanceTimeoutPresets);
+    scanInstanceSetupNumber(phasesUi->icmp_count, 1, 10, defaults.icmp.count);
 }
 
-void DialogScanInstance::buildTcpPhase(QVBoxLayout *layout) {
-    tcpBox = new QGroupBox(tr("TCP connect"), ui->phases_content);
-    tcpBox->setCheckable(true);
-    auto *form = new QFormLayout(tcpBox);
-    tcpTimeout = scanInstanceNumberEdit(tcpBox, 100, 60000, defaults.tcp.timeoutMs, kScanInstanceTimeoutPresets);
-    form->addRow(tr("Timeout (ms)"), tcpTimeout);
-    tcpAttempts = scanInstanceNumberEdit(tcpBox, 1, 10, defaults.tcp.attempts);
-    form->addRow(tr("Attempts"), tcpAttempts);
-    layout->addWidget(tcpBox);
+void DialogScanInstance::buildTcpPhase() {
+    scanInstanceSetupNumber(phasesUi->tcp_timeout, 100, 60000, defaults.tcp.timeoutMs, kScanInstanceTimeoutPresets);
+    scanInstanceSetupNumber(phasesUi->tcp_attempts, 1, 10, defaults.tcp.attempts);
 }
 
-void DialogScanInstance::buildHttpPhase(QVBoxLayout *layout) {
-    httpBox = new QGroupBox(tr("TLS / HTTP"), ui->phases_content);
-    httpBox->setCheckable(true);
-    httpForm = new QFormLayout(httpBox);
-    httpTls = new QCheckBox(tr("Use TLS"), httpBox);
-    httpForm->addRow(httpTls);
-    httpSni = new QLineEdit(httpBox);
-    httpSni->setPlaceholderText(tr("The target address"));
-    httpForm->addRow(tr("SNI"), httpSni);
-    httpHost = new QLineEdit(httpBox);
-    httpHost->setPlaceholderText(tr("The SNI, or the target address"));
-    httpForm->addRow(tr("Host header"), httpHost);
-    httpPath = new QLineEdit(httpBox);
-    httpPath->setPlaceholderText(QStringLiteral("/"));
-    httpForm->addRow(tr("Path"), httpPath);
-    httpMethod = new NoWheelComboBox(httpBox);
-    httpMethod->addItem(QStringLiteral("GET"), QStringLiteral("GET"));
-    httpMethod->addItem(QStringLiteral("HEAD"), QStringLiteral("HEAD"));
-    httpMethod->addItem(tr("None (TLS handshake only)"), QStringLiteral("NONE"));
-    httpMethod->setToolTip(tr("A request passes only when the answer is 200 OK."));
-    httpForm->addRow(tr("Method"), httpMethod);
-    httpVersion = new NoWheelComboBox(httpBox);
-    httpVersion->addItem(QStringLiteral("HTTP/1.1"), QStringLiteral("1.1"));
-    httpVersion->addItem(QStringLiteral("HTTP/2"), QStringLiteral("2"));
-    httpVersion->addItem(QStringLiteral("HTTP/3"), QStringLiteral("3"));
-    httpForm->addRow(tr("HTTP version"), httpVersion);
-    httpAlpn = new QLineEdit(httpBox);
-    httpAlpn->setPlaceholderText(tr("From the HTTP version"));
-    httpForm->addRow(tr("ALPN"), httpAlpn);
-    httpMinTls = new NoWheelComboBox(httpBox);
-    httpMaxTls = new NoWheelComboBox(httpBox);
-    for (auto *combo : {httpMinTls, httpMaxTls}) {
+void DialogScanInstance::buildHttpPhase() {
+    phasesUi->http_method->addItem(QStringLiteral("GET"), QStringLiteral("GET"));
+    phasesUi->http_method->addItem(QStringLiteral("HEAD"), QStringLiteral("HEAD"));
+    phasesUi->http_method->addItem(tr("None (TLS handshake only)"), QStringLiteral("NONE"));
+    for (const auto &version : {QStringLiteral("1.1"), QStringLiteral("2"), QStringLiteral("3")})
+        phasesUi->http_version->addItem(QStringLiteral("HTTP/") + version, version);
+    for (auto *combo : {phasesUi->http_min_tls, phasesUi->http_max_tls}) {
         combo->addItem(tr("Default"), QString());
         for (const auto &version : {QStringLiteral("1.0"), QStringLiteral("1.1"), QStringLiteral("1.2"), QStringLiteral("1.3")})
             combo->addItem(QStringLiteral("TLS ") + version, version);
     }
-    httpForm->addRow(tr("Minimum TLS version"), httpMinTls);
-    httpForm->addRow(tr("Maximum TLS version"), httpMaxTls);
-    httpFingerprint = new NoWheelComboBox(httpBox);
     for (const auto &fingerprint : Configs::tlsFingerprints) {
         // the probe's Default already is Go's own TLS stack
         if (fingerprint == Configs::tlsUnsafeFingerprint) continue;
-        httpFingerprint->addItem(fingerprint.isEmpty() ? tr("Default") : fingerprint, fingerprint);
+        phasesUi->http_fingerprint->addItem(fingerprint.isEmpty() ? tr("Default") : fingerprint, fingerprint);
     }
-    httpForm->addRow(tr("uTLS fingerprint"), httpFingerprint);
-    httpInsecure = new QCheckBox(tr("Allow insecure certificates"), httpBox);
-    httpForm->addRow(httpInsecure);
-    httpDisableSni = new QCheckBox(tr("Disable SNI"), httpBox);
-    httpForm->addRow(httpDisableSni);
-    httpFragment = new QCheckBox(tr("Fragment the TLS handshake"), httpBox);
-    httpForm->addRow(httpFragment);
-    httpFragmentDelay = scanInstanceNumberEdit(httpBox, 0, 10000, defaults.http.fragmentFallbackDelayMs);
-    httpForm->addRow(tr("Fragment fallback delay (ms)"), httpFragmentDelay);
-    httpRecordFragment = new QCheckBox(tr("Fragment TLS records"), httpBox);
-    httpForm->addRow(httpRecordFragment);
-    httpMixedCaseSni = new QCheckBox(tr("Mixed-case SNI"), httpBox);
-    httpForm->addRow(httpMixedCaseSni);
-    httpTimeout = scanInstanceNumberEdit(httpBox, 100, 60000, defaults.http.timeoutMs, kScanInstanceTimeoutPresets);
-    httpForm->addRow(tr("Timeout (ms)"), httpTimeout);
-    layout->addWidget(httpBox);
+    scanInstanceSetupNumber(phasesUi->http_fragment_delay, 0, 10000, defaults.http.fragmentFallbackDelayMs);
+    scanInstanceSetupNumber(phasesUi->http_timeout, 100, 60000, defaults.http.timeoutMs, kScanInstanceTimeoutPresets);
 
-    connect(httpBox, &QGroupBox::toggled, this, [this] { updateHttpControls(); });
-    connect(httpTls, &QCheckBox::toggled, this, [this] { updateHttpControls(); });
-    connect(httpFragment, &QCheckBox::toggled, this, [this] { updateHttpControls(); });
-    connect(httpMethod, &QComboBox::currentIndexChanged, this, [this] { updateHttpControls(); });
+    connect(phasesUi->http_box, &QGroupBox::toggled, this, [this] { updateHttpControls(); });
+    connect(phasesUi->http_tls, &QCheckBox::toggled, this, [this] { updateHttpControls(); });
+    connect(phasesUi->http_fragment, &QCheckBox::toggled, this, [this] { updateHttpControls(); });
+    connect(phasesUi->http_method, &QComboBox::currentIndexChanged, this, [this] { updateHttpControls(); });
 }
 
-void DialogScanInstance::buildConfigPhase(QVBoxLayout *layout) {
-    configBox = new QGroupBox(tr("Config test"), ui->phases_content);
-    configBox->setCheckable(true);
-    auto *form = new QFormLayout(configBox);
-    form->addRow(scanInstanceHint(
-        tr("Candidates that pass the probes are tested through a copy of this profile pointed at each of them."), configBox));
-
-    configProfile = new NoWheelComboBox(configBox);
+void DialogScanInstance::buildConfigPhase() {
     configProfileNames = new QStringListModel(this);
-    setupProfilePicker(configProfile, configProfileNames);
-    form->addRow(tr("Profile"), configProfile);
-
-    configUrl = new QLineEdit(configBox);
-    configUrl->setPlaceholderText(Configs::dataManager->settingsRepo->test_latency_url);
-    form->addRow(tr("Test URL"), configUrl);
-    configTimeout = scanInstanceNumberEdit(configBox, 100, 60000, defaults.config.timeoutMs, kScanInstanceTimeoutPresets);
-    form->addRow(tr("Timeout (ms)"), configTimeout);
-    configWarm = new QCheckBox(tr("Report warm latency (two requests per target)"), configBox);
-    form->addRow(configWarm);
-    layout->addWidget(configBox);
+    setupProfilePicker(phasesUi->config_profile, configProfileNames);
+    phasesUi->config_url->setPlaceholderText(Configs::dataManager->settingsRepo->test_latency_url);
+    scanInstanceSetupNumber(phasesUi->config_timeout, 100, 60000, defaults.config.timeoutMs, kScanInstanceTimeoutPresets);
 }
 
-void DialogScanInstance::buildWarpPhase(QVBoxLayout *layout) {
-    warpBox = new QGroupBox(tr("WARP test"), ui->phases_content);
-    warpForm = new QFormLayout(warpBox);
-    warpForm->addRow(scanInstanceHint(
-        tr("Candidates that pass the probes are tested by connecting to WARP through them."), warpBox));
+void DialogScanInstance::buildWarpPhase() {
+    phasesUi->warp_mode->addItem(QStringLiteral("WireGuard"), QStringLiteral("wireguard"));
+    phasesUi->warp_mode->addItem(QStringLiteral("AmneziaWG"), QStringLiteral("amneziawg"));
+    phasesUi->warp_mode->addItem(QStringLiteral("MASQUE"), QStringLiteral("masque"));
+    phasesUi->warp_http_mode->addItem(tr("HTTP/3, falling back to HTTP/2"), 0);
+    phasesUi->warp_http_mode->addItem(tr("HTTP/3 only"), 1);
+    phasesUi->warp_http_mode->addItem(tr("HTTP/2 only"), 2);
+    phasesUi->warp_identity->addItem(tr("Dedicated for this scan (recommended)"), QStringLiteral("generated"));
+    phasesUi->warp_identity->addItem(tr("From a profile"), QStringLiteral("profile"));
+    phasesUi->warp_identity->addItem(tr("Built-in WARP settings"), QStringLiteral("builtin"));
+    scanInstanceSetupNumber(phasesUi->warp_mtu, 576, 9000, defaults.warp.mtu, kScanInstanceMtuPresets);
+    scanInstanceSetupNumber(phasesUi->warp_jc, 0, 128, defaults.warp.jc);
+    scanInstanceSetupNumber(phasesUi->warp_jmin, 0, 1280, defaults.warp.jmin);
+    scanInstanceSetupNumber(phasesUi->warp_jmax, 0, 1280, defaults.warp.jmax);
+    warpPackets = {phasesUi->warp_i1, phasesUi->warp_i2, phasesUi->warp_i3, phasesUi->warp_i4, phasesUi->warp_i5};
+    phasesUi->warp_url->setPlaceholderText(Configs::dataManager->settingsRepo->test_latency_url);
+    scanInstanceSetupNumber(phasesUi->warp_timeout, 100, 60000, defaults.warp.timeoutMs, kScanInstanceTimeoutPresets);
 
-    warpMode = new NoWheelComboBox(warpBox);
-    warpMode->addItem(QStringLiteral("WireGuard"), QStringLiteral("wireguard"));
-    warpMode->addItem(QStringLiteral("AmneziaWG"), QStringLiteral("amneziawg"));
-    warpMode->addItem(QStringLiteral("MASQUE"), QStringLiteral("masque"));
-    warpForm->addRow(tr("Mode"), warpMode);
-
-    warpHttpMode = new NoWheelComboBox(warpBox);
-    warpHttpMode->addItem(tr("HTTP/3, falling back to HTTP/2"), 0);
-    warpHttpMode->addItem(tr("HTTP/3 only"), 1);
-    warpHttpMode->addItem(tr("HTTP/2 only"), 2);
-    warpForm->addRow(tr("MASQUE transport"), warpHttpMode);
-
-    warpIdentity = new NoWheelComboBox(warpBox);
-    warpIdentity->addItem(tr("Dedicated for this scan (recommended)"), QStringLiteral("generated"));
-    warpIdentity->addItem(tr("From a profile"), QStringLiteral("profile"));
-    warpIdentity->addItem(tr("Built-in WARP settings"), QStringLiteral("builtin"));
-    warpForm->addRow(tr("Identity"), warpIdentity);
-
-    warpRegisterRow = new QWidget(warpBox);
-    auto *registerLayout = new QHBoxLayout(warpRegisterRow);
-    registerLayout->setContentsMargins(0, 0, 0, 0);
-    warpIdentityStatus = new QLabel(warpRegisterRow);
-    warpIdentityStatus->setTextFormat(Qt::PlainText);
-    warpIdentityStatus->setWordWrap(true);
-    registerLayout->addWidget(warpIdentityStatus, 1);
-    warpRegister = new QPushButton(tr("Register"), warpRegisterRow);
-    registerLayout->addWidget(warpRegister, 0);
-    warpForm->addRow(tr("Device"), warpRegisterRow);
-    if (auto *label = qobject_cast<QLabel *>(warpForm->labelForField(warpRegisterRow))) label->setBuddy(warpRegister);
-
-    warpProfile = new NoWheelComboBox(warpBox);
-    warpForm->addRow(tr("Profile"), warpProfile);
-
-    warpMtu = scanInstanceNumberEdit(warpBox, 576, 9000, defaults.warp.mtu, kScanInstanceMtuPresets);
-    warpForm->addRow(tr("MTU"), warpMtu);
-    warpSni = new QLineEdit(warpBox);
-    warpSni->setPlaceholderText(QStringLiteral("consumer-masque.cloudflareclient.com"));
-    warpForm->addRow(tr("SNI"), warpSni);
-    warpQuicOpener = new QCheckBox(tr("QUIC opener"), warpBox);
-    warpQuicOpener->setToolTip(tr("Sends one decoy packet before each new UDP flow, so networks that block QUIC by its first packet "
-                                  "let the real handshake through."));
-    warpForm->addRow(warpQuicOpener);
-
-    warpJc = scanInstanceNumberEdit(warpBox, 0, 128, defaults.warp.jc);
-    warpForm->addRow(tr("Junk packets (Jc)"), warpJc);
-    warpJmin = scanInstanceNumberEdit(warpBox, 0, 1280, defaults.warp.jmin);
-    warpForm->addRow(tr("Junk minimum size (Jmin)"), warpJmin);
-    warpJmax = scanInstanceNumberEdit(warpBox, 0, 1280, defaults.warp.jmax);
-    warpForm->addRow(tr("Junk maximum size (Jmax)"), warpJmax);
-    for (int i = 1; i <= 5; ++i) {
-        auto *packet = new QLineEdit(warpBox);
-        warpPackets.append(packet);
-        warpForm->addRow(QStringLiteral("I%1").arg(i), packet);
-    }
-
-    warpUrl = new QLineEdit(warpBox);
-    warpUrl->setPlaceholderText(Configs::dataManager->settingsRepo->test_latency_url);
-    warpForm->addRow(tr("Test URL"), warpUrl);
-    warpTimeout = scanInstanceNumberEdit(warpBox, 100, 60000, defaults.warp.timeoutMs, kScanInstanceTimeoutPresets);
-    warpForm->addRow(tr("Timeout (ms)"), warpTimeout);
-    warpWarm = new QCheckBox(tr("Report warm latency (two requests per target)"), warpBox);
-    warpForm->addRow(warpWarm);
-    layout->addWidget(warpBox);
-
-    connect(warpMode, &QComboBox::currentIndexChanged, this, [this] {
-        reloadWarpProfiles(warpProfile->currentData().toInt());
+    connect(phasesUi->warp_mode, &QComboBox::currentIndexChanged, this, [this] {
+        reloadWarpProfiles(phasesUi->warp_profile->currentData().toInt());
         updateWarpControls();
         matchWarpTargets();
     });
-    connect(warpIdentity, &QComboBox::currentIndexChanged, this, [this] { updateWarpControls(); });
-    connect(warpRegister, &QPushButton::clicked, this, [this] { registerWarpIdentity(); });
+    connect(phasesUi->warp_identity, &QComboBox::currentIndexChanged, this, [this] { updateWarpControls(); });
+    connect(phasesUi->warp_register, &QPushButton::clicked, this, [this] { registerWarpIdentity(); });
 }
 
-void DialogScanInstance::buildResolverPhase(QVBoxLayout *layout) {
-    resolverBox = new QGroupBox(tr("DNS tunnel test"), ui->phases_content);
-    auto *form = new QFormLayout(resolverBox);
-    form->addRow(scanInstanceHint(
-        tr("Each address is tried as the only resolver of this profile; those that relay its tunnel are kept."), resolverBox));
-    resolverProfile = new NoWheelComboBox(resolverBox);
-    form->addRow(tr("Profile"), resolverProfile);
-    resolverLevel = new NoWheelComboBox(resolverBox);
-    form->addRow(tr("Test"), resolverLevel);
-    resolverTimeout = new QLineEdit(resolverBox);
-    resolverTimeout->setValidator(new QIntValidator(1000, 300000, resolverTimeout));
-    resolverTimeout->setToolTip(tr("Bounds the whole test of one resolver. Empty: the default of the chosen test."));
-    form->addRow(tr("Timeout (ms)"), resolverTimeout);
-    layout->addWidget(resolverBox);
-
-    connect(resolverProfile, &QComboBox::currentIndexChanged, this, [this] {
-        if (!loading) reloadResolverLevels(resolverLevel->currentData().toString());
+void DialogScanInstance::buildResolverPhase() {
+    phasesUi->resolver_timeout->setValidator(new QIntValidator(1000, 300000, phasesUi->resolver_timeout));
+    connect(phasesUi->resolver_profile, &QComboBox::currentIndexChanged, this, [this] {
+        if (!loading) reloadResolverLevels(phasesUi->resolver_level->currentData().toString());
     });
-    connect(resolverLevel, &QComboBox::currentIndexChanged, this, [this] { updateResolverTimeoutHint(); });
+    connect(phasesUi->resolver_level, &QComboBox::currentIndexChanged, this, [this] { updateResolverTimeoutHint(); });
 }
 
 // Editable: the first items are listed and the completer searches every name.
@@ -732,50 +596,58 @@ void DialogScanInstance::bindValidation() {
         return bad.isEmpty() ? QString() : tr("\"%1\" is not a valid port (1-65535).").arg(bad);
     });
     form->bind(ui->stop_after, [this](const QString &text) { return text.isEmpty() ? QString() : scanInstanceNumberError(ui->stop_after); });
-    for (QLineEdit *edit : {ui->concurrency, ui->spawn_interval, icmpTimeout, icmpCount, tcpTimeout, tcpAttempts, httpFragmentDelay,
-                            httpTimeout, configTimeout, warpMtu, warpJc, warpJmin, warpJmax, warpTimeout, tuneMtuMin, tuneMtuStep,
-                            tuneMtuBytes, tuneAttempts, tunePerMinute, tuneMaxAttempts, tuneMaxMinutes, tuneTimeout}) {
-        if (edit != nullptr) form->bind(edit, [edit](const QString &) { return scanInstanceNumberError(edit); });
+    QList<QLineEdit *> numbers = {ui->concurrency, ui->spawn_interval};
+    if (isGeneric() || isWarp()) numbers << phasesUi->icmp_timeout << phasesUi->icmp_count;
+    if (isGeneric()) {
+        numbers << phasesUi->tcp_timeout << phasesUi->tcp_attempts << phasesUi->http_fragment_delay << phasesUi->http_timeout
+                << phasesUi->config_timeout;
     }
+    if (isWarp()) numbers << phasesUi->warp_mtu << phasesUi->warp_jc << phasesUi->warp_jmin << phasesUi->warp_jmax << phasesUi->warp_timeout;
+    for (QLineEdit *edit : numbers) form->bind(edit, [edit](const QString &) { return scanInstanceNumberError(edit); });
 
-    if (httpBox != nullptr) {
-        form->bind(httpSni, Rules::Host(Empty::Allowed));
-        form->bind(httpHost, Rules::HostPort(false, Empty::Allowed));
-        form->bind(httpPath, [](const QString &text) { return scanInstancePathError(text); });
-        form->addRule({httpMinTls, httpMaxTls}, [this] {
-            return scanInstanceTlsRangeError(httpMinTls->currentData().toString(), httpMaxTls->currentData().toString());
-        }, this, Severity::Error, httpBox->title());
-        form->addRule({httpAlpn, httpVersion}, [this] {
-            if (!httpTls->isChecked() || httpMethod->currentData().toString() == QStringLiteral("NONE")) return QString();
-            return scanInstanceAlpnError(httpVersion->currentData().toString(), scanInstanceAlpn(httpAlpn->text()));
-        }, this, Severity::Error, httpBox->title());
-        form->addRule({httpMethod, httpVersion, httpTls}, [this] {
-            return scanInstanceNeedsTlsError(httpTls->isChecked(), httpMethod->currentData().toString(), httpVersion->currentData().toString());
-        }, this, Severity::Error, httpBox->title());
+    if (isGeneric()) {
+        form->bind(phasesUi->http_sni, Rules::Host(Empty::Allowed));
+        form->bind(phasesUi->http_host, Rules::HostPort(false, Empty::Allowed));
+        form->bind(phasesUi->http_path, [](const QString &text) { return scanInstancePathError(text); });
+        form->addRule({phasesUi->http_min_tls, phasesUi->http_max_tls}, [this] {
+            return scanInstanceTlsRangeError(phasesUi->http_min_tls->currentData().toString(), phasesUi->http_max_tls->currentData().toString());
+        }, this, Severity::Error, phasesUi->http_box->title());
+        form->addRule({phasesUi->http_alpn, phasesUi->http_version}, [this] {
+            if (!phasesUi->http_tls->isChecked() || phasesUi->http_method->currentData().toString() == QStringLiteral("NONE")) return QString();
+            return scanInstanceAlpnError(phasesUi->http_version->currentData().toString(), scanInstanceAlpn(phasesUi->http_alpn->text()));
+        }, this, Severity::Error, phasesUi->http_box->title());
+        form->addRule({phasesUi->http_method, phasesUi->http_version, phasesUi->http_tls}, [this] {
+            return scanInstanceNeedsTlsError(phasesUi->http_tls->isChecked(), phasesUi->http_method->currentData().toString(), phasesUi->http_version->currentData().toString());
+        }, this, Severity::Error, phasesUi->http_box->title());
     }
-    if (configBox != nullptr) form->bind(configUrl, Rules::Url({QStringLiteral("http"), QStringLiteral("https")}));
-    if (resolverBox != nullptr) {
-        form->bind(resolverTimeout,
-                   [this](const QString &text) { return text.isEmpty() ? QString() : scanInstanceNumberError(resolverTimeout); });
+    if (isGeneric()) form->bind(phasesUi->config_url, Rules::Url({QStringLiteral("http"), QStringLiteral("https")}));
+    if (isResolver()) {
+        form->bind(phasesUi->resolver_timeout,
+                   [this](const QString &text) { return text.isEmpty() ? QString() : scanInstanceNumberError(phasesUi->resolver_timeout); });
     }
-    if (warpBox != nullptr) {
-        form->bind(warpSni, Rules::Host(Empty::Allowed));
-        form->bind(warpUrl, Rules::Url({QStringLiteral("http"), QStringLiteral("https")}));
-        form->addRule({warpJmin, warpJmax}, [this] {
+    if (isWarp()) {
+        form->bind(phasesUi->warp_sni, Rules::Host(Empty::Allowed));
+        form->bind(phasesUi->warp_url, Rules::Url({QStringLiteral("http"), QStringLiteral("https")}));
+        form->addRule({phasesUi->warp_jmin, phasesUi->warp_jmax}, [this] {
             int jmin = 0, jmax = 0;
-            if (!scanInstanceReadNumber(warpJmin, jmin) || !scanInstanceReadNumber(warpJmax, jmax) || jmin <= jmax) return QString();
+            if (!scanInstanceReadNumber(phasesUi->warp_jmin, jmin) || !scanInstanceReadNumber(phasesUi->warp_jmax, jmax) || jmin <= jmax) return QString();
             return tr("Jmin must not be larger than Jmax.");
-        }, this, Severity::Error, warpBox->title());
+        }, this, Severity::Error, phasesUi->warp_box->title());
     }
-    if (tuneTryBox != nullptr) {
-        form->bind(tuneMtuMax, [this](const QString &text) { return text.isEmpty() ? QString() : scanInstanceNumberError(tuneMtuMax); });
-        form->addRule({tuneMtuMin, tuneMtuMax}, [this] {
+    if (tuneUi != nullptr) {
+        for (QLineEdit *edit : {tuneUi->mtu_min, tuneUi->mtu_step, tuneUi->mtu_bytes, tuneUi->attempts, tuneUi->per_minute,
+                                tuneUi->max_attempts, tuneUi->max_minutes, tuneUi->timeout})
+            form->bind(edit, [edit](const QString &) { return scanInstanceNumberError(edit); });
+        auto *mtuMinEdit = tuneUi->mtu_min;
+        auto *mtuMaxEdit = tuneUi->mtu_max;
+        form->bind(mtuMaxEdit, [mtuMaxEdit](const QString &text) { return text.isEmpty() ? QString() : scanInstanceNumberError(mtuMaxEdit); });
+        form->addRule({mtuMinEdit, mtuMaxEdit}, [mtuMinEdit, mtuMaxEdit] {
             int mtuMin = 0, mtuMax = 0;
-            if (!tuneMtuMax->isEnabled() || !scanInstanceReadNumber(tuneMtuMin, mtuMin) || !scanInstanceReadNumber(tuneMtuMax, mtuMax) ||
+            if (!mtuMaxEdit->isEnabled() || !scanInstanceReadNumber(mtuMinEdit, mtuMin) || !scanInstanceReadNumber(mtuMaxEdit, mtuMax) ||
                 mtuMax == 0 || mtuMax > mtuMin)
                 return QString();
             return tr("The largest MTU must be above the smallest; leave it empty for the profile's own.");
-        }, this, Severity::Error, tuneTryBox->title());
+        }, this, Severity::Error, tuneUi->try_box->title());
         bindTuneValidation();
     }
 }
@@ -788,6 +660,8 @@ void DialogScanInstance::setupResults() {
     connect(ui->tabs, &QTabWidget::currentChanged, this, [this] {
         if (resultsStale && ui->tabs->currentWidget() == ui->tab_results) reloadResults();
     });
+    ui->apply_result->setVisible(isTune());
+    ui->save_result_as_profile->setVisible(isTune());
     if (isTune()) {
         setupTuneResults();
         return;
@@ -813,8 +687,7 @@ void DialogScanInstance::setupResults() {
     connect(ui->remove_results, &QPushButton::clicked, this, [this] { removeSelectedResults(); });
     if (isResolver()) {
         useAsResolvers = new QPushButton(tr("Use as resolvers"), ui->tab_results);
-        useAsResolvers->setToolTip(
-            tr("Makes the scan's profile take its resolvers from this result list; the resolvers typed in the profile are kept."));
+        useAsResolvers->setToolTip(tr("Add this list to the profile's resolvers."));
         ui->layout_results_buttons->insertWidget(0, useAsResolvers);
         connect(useAsResolvers, &QPushButton::clicked, this, [this] { useResultsAsResolvers(); });
     }
@@ -866,76 +739,76 @@ void DialogScanInstance::loadForm() {
     ui->concurrency->setText(QString::number(config.concurrency));
     ui->spawn_interval->setText(QString::number(config.spawnIntervalMs));
 
-    if (icmpBox != nullptr) {
-        icmpBox->setChecked(config.icmp.enabled);
-        icmpTimeout->setText(QString::number(config.icmp.timeoutMs));
-        icmpCount->setText(QString::number(config.icmp.count));
+    if (isGeneric() || isWarp()) {
+        phasesUi->icmp_box->setChecked(config.icmp.enabled);
+        phasesUi->icmp_timeout->setText(QString::number(config.icmp.timeoutMs));
+        phasesUi->icmp_count->setText(QString::number(config.icmp.count));
     }
 
-    if (resolverBox != nullptr) {
+    if (isResolver()) {
         const auto &resolver = config.resolver;
         reloadResolverProfiles(resolver.profileId);
         reloadResolverLevels(resolver.level);
-        resolverTimeout->setText(resolver.timeoutMs > 0 ? QString::number(resolver.timeoutMs) : QString());
+        phasesUi->resolver_timeout->setText(resolver.timeoutMs > 0 ? QString::number(resolver.timeoutMs) : QString());
     }
 
-    if (tcpBox != nullptr) {
-        tcpBox->setChecked(config.tcp.enabled);
-        tcpTimeout->setText(QString::number(config.tcp.timeoutMs));
-        tcpAttempts->setText(QString::number(config.tcp.attempts));
+    if (isGeneric()) {
+        phasesUi->tcp_box->setChecked(config.tcp.enabled);
+        phasesUi->tcp_timeout->setText(QString::number(config.tcp.timeoutMs));
+        phasesUi->tcp_attempts->setText(QString::number(config.tcp.attempts));
     }
 
-    if (httpBox != nullptr) {
+    if (isGeneric()) {
         const auto &http = config.http;
-        httpBox->setChecked(http.enabled);
-        httpTls->setChecked(http.tls);
-        httpSni->setText(http.serverName);
-        httpHost->setText(http.host);
-        httpPath->setText(http.path);
-        scanInstanceSelectData(httpMethod, http.method.toUpper());
-        scanInstanceSelectData(httpVersion, http.httpVersion);
-        httpAlpn->setText(http.alpn.join(QStringLiteral(", ")));
-        scanInstanceSelectData(httpMinTls, http.minVersion);
-        scanInstanceSelectData(httpMaxTls, http.maxVersion);
-        scanInstanceSelectData(httpFingerprint, http.fingerprint);
-        httpInsecure->setChecked(http.insecure);
-        httpDisableSni->setChecked(http.disableSni);
-        httpFragment->setChecked(http.fragment);
-        httpFragmentDelay->setText(QString::number(http.fragmentFallbackDelayMs));
-        httpRecordFragment->setChecked(http.recordFragment);
-        httpMixedCaseSni->setChecked(http.mixedCaseSni);
-        httpTimeout->setText(QString::number(http.timeoutMs));
+        phasesUi->http_box->setChecked(http.enabled);
+        phasesUi->http_tls->setChecked(http.tls);
+        phasesUi->http_sni->setText(http.serverName);
+        phasesUi->http_host->setText(http.host);
+        phasesUi->http_path->setText(http.path);
+        scanInstanceSelectData(phasesUi->http_method, http.method.toUpper());
+        scanInstanceSelectData(phasesUi->http_version, http.httpVersion);
+        phasesUi->http_alpn->setText(http.alpn.join(QStringLiteral(", ")));
+        scanInstanceSelectData(phasesUi->http_min_tls, http.minVersion);
+        scanInstanceSelectData(phasesUi->http_max_tls, http.maxVersion);
+        scanInstanceSelectData(phasesUi->http_fingerprint, http.fingerprint);
+        phasesUi->http_insecure->setChecked(http.insecure);
+        phasesUi->http_disable_sni->setChecked(http.disableSni);
+        phasesUi->http_fragment->setChecked(http.fragment);
+        phasesUi->http_fragment_delay->setText(QString::number(http.fragmentFallbackDelayMs));
+        phasesUi->http_record_fragment->setChecked(http.recordFragment);
+        phasesUi->http_mixed_case_sni->setChecked(http.mixedCaseSni);
+        phasesUi->http_timeout->setText(QString::number(http.timeoutMs));
     }
 
-    if (configBox != nullptr) {
+    if (isGeneric()) {
         const auto &test = config.config;
-        configBox->setChecked(test.enabled);
+        phasesUi->config_box->setChecked(test.enabled);
         reloadConfigProfiles(test.profileId);
-        configUrl->setText(test.url);
-        configTimeout->setText(QString::number(test.timeoutMs));
-        configWarm->setChecked(test.warmLatency);
+        phasesUi->config_url->setText(test.url);
+        phasesUi->config_timeout->setText(QString::number(test.timeoutMs));
+        phasesUi->config_warm->setChecked(test.warmLatency);
     }
 
-    if (warpBox != nullptr) {
+    if (isWarp()) {
         const auto &warp = config.warp;
-        scanInstanceSelectData(warpMode, warp.mode);
-        scanInstanceSelectData(warpHttpMode, warp.httpMode);
-        scanInstanceSelectData(warpIdentity, warp.identity);
+        scanInstanceSelectData(phasesUi->warp_mode, warp.mode);
+        scanInstanceSelectData(phasesUi->warp_http_mode, warp.httpMode);
+        scanInstanceSelectData(phasesUi->warp_identity, warp.identity);
         reloadWarpProfiles(warp.profileId);
-        warpMtu->setText(QString::number(warp.mtu));
-        warpSni->setText(warp.sni);
-        warpQuicOpener->setChecked(warp.quicOpener);
-        warpJc->setText(QString::number(warp.jc));
-        warpJmin->setText(QString::number(warp.jmin));
-        warpJmax->setText(QString::number(warp.jmax));
+        phasesUi->warp_mtu->setText(QString::number(warp.mtu));
+        phasesUi->warp_sni->setText(warp.sni);
+        phasesUi->warp_quic_opener->setChecked(warp.quicOpener);
+        phasesUi->warp_jc->setText(QString::number(warp.jc));
+        phasesUi->warp_jmin->setText(QString::number(warp.jmin));
+        phasesUi->warp_jmax->setText(QString::number(warp.jmax));
         const QStringList packets = {warp.i1, warp.i2, warp.i3, warp.i4, warp.i5};
         for (int i = 0; i < warpPackets.size() && i < packets.size(); ++i) warpPackets[i]->setText(packets[i]);
-        warpUrl->setText(warp.url);
-        warpTimeout->setText(QString::number(warp.timeoutMs));
-        warpWarm->setChecked(warp.warmLatency);
+        phasesUi->warp_url->setText(warp.url);
+        phasesUi->warp_timeout->setText(QString::number(warp.timeoutMs));
+        phasesUi->warp_warm->setChecked(warp.warmLatency);
     }
 
-    if (tuneTryBox != nullptr) loadTuneForm();
+    if (tuneUi != nullptr) loadTuneForm();
 
     updateHttpControls();
     updateWarpControls();
@@ -975,26 +848,26 @@ bool DialogScanInstance::collect(Configs::ScanConfig &out, int &baseListId, QStr
         return false;
 
     out.icmp.enabled = false;
-    if (icmpBox != nullptr) {
-        out.icmp.enabled = icmpBox->isChecked();
-        if (!number(icmpTimeout, out.icmp.timeoutMs, out.icmp.enabled,
+    if (isGeneric() || isWarp()) {
+        out.icmp.enabled = phasesUi->icmp_box->isChecked();
+        if (!number(phasesUi->icmp_timeout, out.icmp.timeoutMs, out.icmp.enabled,
                     tr("ICMP (ping): the timeout must be between %1 and %2 ms.")))
             return false;
-        if (!number(icmpCount, out.icmp.count, out.icmp.enabled,
+        if (!number(phasesUi->icmp_count, out.icmp.count, out.icmp.enabled,
                     tr("ICMP (ping): echo requests must be between %1 and %2.")))
             return false;
     }
 
-    if (resolverBox != nullptr) {
+    if (isResolver()) {
         // Every entry is probed on its own port, 53 when it has none.
         out.ports.clear();
         out.portMode = Configs::ScanConfig::PortMode::List;
         auto &resolver = out.resolver;
-        resolver.profileId = resolverProfile->currentData().toInt();
-        resolver.level = resolverLevel->currentData().toString();
+        resolver.profileId = phasesUi->resolver_profile->currentData().toInt();
+        resolver.level = phasesUi->resolver_level->currentData().toString();
         resolver.timeoutMs = 0;
-        if (!resolverTimeout->text().trimmed().isEmpty() &&
-            !number(resolverTimeout, resolver.timeoutMs, true, tr("DNS tunnel test: the timeout must be between %1 and %2 ms.")))
+        if (!phasesUi->resolver_timeout->text().trimmed().isEmpty() &&
+            !number(phasesUi->resolver_timeout, resolver.timeoutMs, true, tr("DNS tunnel test: the timeout must be between %1 and %2 ms.")))
             return false;
     }
 
@@ -1002,71 +875,71 @@ bool DialogScanInstance::collect(Configs::ScanConfig &out, int &baseListId, QStr
     out.tcp.enabled = false;
     out.http.enabled = false;
 
-    if (tcpBox != nullptr) {
-        out.tcp.enabled = tcpBox->isChecked();
-        if (!number(tcpTimeout, out.tcp.timeoutMs, out.tcp.enabled,
+    if (isGeneric()) {
+        out.tcp.enabled = phasesUi->tcp_box->isChecked();
+        if (!number(phasesUi->tcp_timeout, out.tcp.timeoutMs, out.tcp.enabled,
                     tr("TCP connect: the timeout must be between %1 and %2 ms.")))
             return false;
-        if (!number(tcpAttempts, out.tcp.attempts, out.tcp.enabled,
+        if (!number(phasesUi->tcp_attempts, out.tcp.attempts, out.tcp.enabled,
                     tr("TCP connect: attempts must be between %1 and %2.")))
             return false;
     }
 
-    if (httpBox != nullptr) {
+    if (isGeneric()) {
         auto &http = out.http;
-        http.enabled = httpBox->isChecked();
-        http.tls = httpTls->isChecked();
-        http.serverName = httpSni->text().trimmed();
-        http.host = httpHost->text().trimmed();
-        http.path = httpPath->text().trimmed();
+        http.enabled = phasesUi->http_box->isChecked();
+        http.tls = phasesUi->http_tls->isChecked();
+        http.serverName = phasesUi->http_sni->text().trimmed();
+        http.host = phasesUi->http_host->text().trimmed();
+        http.path = phasesUi->http_path->text().trimmed();
         if (http.path.isEmpty()) http.path = QStringLiteral("/");
-        http.method = httpMethod->currentData().toString();
-        http.httpVersion = httpVersion->currentData().toString();
-        http.alpn = scanInstanceAlpn(httpAlpn->text());
-        http.minVersion = httpMinTls->currentData().toString();
-        http.maxVersion = httpMaxTls->currentData().toString();
-        http.fingerprint = httpFingerprint->currentData().toString();
-        http.insecure = httpInsecure->isChecked();
-        http.disableSni = httpDisableSni->isChecked();
-        http.fragment = httpFragment->isChecked();
-        if (!number(httpFragmentDelay, http.fragmentFallbackDelayMs, http.enabled && http.tls && http.fragment,
+        http.method = phasesUi->http_method->currentData().toString();
+        http.httpVersion = phasesUi->http_version->currentData().toString();
+        http.alpn = scanInstanceAlpn(phasesUi->http_alpn->text());
+        http.minVersion = phasesUi->http_min_tls->currentData().toString();
+        http.maxVersion = phasesUi->http_max_tls->currentData().toString();
+        http.fingerprint = phasesUi->http_fingerprint->currentData().toString();
+        http.insecure = phasesUi->http_insecure->isChecked();
+        http.disableSni = phasesUi->http_disable_sni->isChecked();
+        http.fragment = phasesUi->http_fragment->isChecked();
+        if (!number(phasesUi->http_fragment_delay, http.fragmentFallbackDelayMs, http.enabled && http.tls && http.fragment,
                     tr("TLS / HTTP: the fragment fallback delay must be between %1 and %2 ms.")))
             return false;
-        http.recordFragment = httpRecordFragment->isChecked();
-        http.mixedCaseSni = httpMixedCaseSni->isChecked();
-        if (!number(httpTimeout, http.timeoutMs, http.enabled,
+        http.recordFragment = phasesUi->http_record_fragment->isChecked();
+        http.mixedCaseSni = phasesUi->http_mixed_case_sni->isChecked();
+        if (!number(phasesUi->http_timeout, http.timeoutMs, http.enabled,
                     tr("TLS / HTTP: the timeout must be between %1 and %2 ms.")))
             return false;
         if (http.enabled) {
             if (const auto problem = scanInstanceNeedsTlsError(http.tls, http.method, http.httpVersion); !problem.isEmpty())
-                return fail(QStringLiteral("%1: %2").arg(httpBox->title(), problem));
+                return fail(QStringLiteral("%1: %2").arg(phasesUi->http_box->title(), problem));
         }
     }
 
-    if (configBox != nullptr) {
+    if (isGeneric()) {
         auto &test = out.config;
-        test.enabled = configBox->isChecked();
+        test.enabled = phasesUi->config_box->isChecked();
         test.profileId = selectedConfigProfile();
-        test.url = configUrl->text().trimmed();
-        if (!number(configTimeout, test.timeoutMs, test.enabled,
+        test.url = phasesUi->config_url->text().trimmed();
+        if (!number(phasesUi->config_timeout, test.timeoutMs, test.enabled,
                     tr("Config test: the timeout must be between %1 and %2 ms.")))
             return false;
-        test.warmLatency = configWarm->isChecked();
+        test.warmLatency = phasesUi->config_warm->isChecked();
     }
 
-    if (warpBox != nullptr) {
+    if (isWarp()) {
         auto &warp = out.warp;
-        warp.mode = warpMode->currentData().toString();
-        warp.httpMode = warpHttpMode->currentData().toInt();
-        warp.identity = warpIdentity->currentData().toString();
-        warp.profileId = warpProfile->currentData().toInt();
-        if (!number(warpMtu, warp.mtu, true, tr("WARP test: the MTU must be between %1 and %2."))) return false;
-        warp.sni = warpSni->text().trimmed();
-        warp.quicOpener = warpQuicOpener->isChecked();
+        warp.mode = phasesUi->warp_mode->currentData().toString();
+        warp.httpMode = phasesUi->warp_http_mode->currentData().toInt();
+        warp.identity = phasesUi->warp_identity->currentData().toString();
+        warp.profileId = phasesUi->warp_profile->currentData().toInt();
+        if (!number(phasesUi->warp_mtu, warp.mtu, true, tr("WARP test: the MTU must be between %1 and %2."))) return false;
+        warp.sni = phasesUi->warp_sni->text().trimmed();
+        warp.quicOpener = phasesUi->warp_quic_opener->isChecked();
         const bool amnezia = warp.mode == QStringLiteral("amneziawg");
-        if (!number(warpJc, warp.jc, amnezia, tr("WARP test: Jc must be between %1 and %2."))) return false;
-        if (!number(warpJmin, warp.jmin, amnezia, tr("WARP test: Jmin must be between %1 and %2."))) return false;
-        if (!number(warpJmax, warp.jmax, amnezia, tr("WARP test: Jmax must be between %1 and %2."))) return false;
+        if (!number(phasesUi->warp_jc, warp.jc, amnezia, tr("WARP test: Jc must be between %1 and %2."))) return false;
+        if (!number(phasesUi->warp_jmin, warp.jmin, amnezia, tr("WARP test: Jmin must be between %1 and %2."))) return false;
+        if (!number(phasesUi->warp_jmax, warp.jmax, amnezia, tr("WARP test: Jmax must be between %1 and %2."))) return false;
         QStringList packets;
         for (const auto *packet : warpPackets) packets << packet->text().trimmed();
         while (packets.size() < 5) packets << QString();
@@ -1075,14 +948,14 @@ bool DialogScanInstance::collect(Configs::ScanConfig &out, int &baseListId, QStr
         warp.i3 = packets[2];
         warp.i4 = packets[3];
         warp.i5 = packets[4];
-        warp.url = warpUrl->text().trimmed();
-        if (!number(warpTimeout, warp.timeoutMs, true, tr("WARP test: the timeout must be between %1 and %2 ms.")))
+        warp.url = phasesUi->warp_url->text().trimmed();
+        if (!number(phasesUi->warp_timeout, warp.timeoutMs, true, tr("WARP test: the timeout must be between %1 and %2 ms.")))
             return false;
-        warp.warmLatency = warpWarm->isChecked();
+        warp.warmLatency = phasesUi->warp_warm->isChecked();
         if (amnezia && warp.jmin > warp.jmax) return fail(tr("WARP test: Jmin must not be larger than Jmax."));
     }
 
-    if (tuneTryBox != nullptr) {
+    if (tuneUi != nullptr) {
         auto &tune = out.tune;
         // A control disabled for the selected profile, or by its own switch, keeps its stored value.
         const auto active = [this](const QWidget *control) { return control->isEnabledTo(ui->phases_content); };
@@ -1090,32 +963,32 @@ bool DialogScanInstance::collect(Configs::ScanConfig &out, int &baseListId, QStr
             return !active(edit) || number(edit, value, true, rangeError);
         };
         tune.profileId = selectedTuneProfile();
-        if (active(tuneFingerprints)) tune.fingerprints = tuneFingerprints->isChecked();
-        if (active(tuneFingerprintList)) tune.fingerprintList = tuneFingerprintList->text().trimmed();
-        if (active(tuneFragment)) tune.fragment = tuneFragment->isChecked();
-        if (active(tuneFragmentDelays)) tune.fragmentDelays = tuneFragmentDelays->text().trimmed();
-        if (active(tuneRecordFragment)) tune.recordFragment = tuneRecordFragment->isChecked();
-        if (active(tuneMixedCaseSni)) tune.mixedCaseSni = tuneMixedCaseSni->isChecked();
-        if (active(tuneQuicOpener)) tune.quicOpener = tuneQuicOpener->isChecked();
-        if (active(tuneMtu)) tune.mtu = tuneMtu->isChecked();
-        if (!field(tuneMtuMin, tune.mtuMin, tr("MTU: the smallest MTU must be between %1 and %2."))) return false;
-        if (active(tuneMtuMax) && tuneMtuMax->text().trimmed().isEmpty()) {
+        if (active(tuneUi->fingerprints)) tune.fingerprints = tuneUi->fingerprints->isChecked();
+        if (active(tuneUi->fingerprint_list)) tune.fingerprintList = tuneUi->fingerprint_list->text().trimmed();
+        if (active(tuneUi->fragment)) tune.fragment = tuneUi->fragment->isChecked();
+        if (active(tuneUi->fragment_delays)) tune.fragmentDelays = tuneUi->fragment_delays->text().trimmed();
+        if (active(tuneUi->record_fragment)) tune.recordFragment = tuneUi->record_fragment->isChecked();
+        if (active(tuneUi->mixed_case_sni)) tune.mixedCaseSni = tuneUi->mixed_case_sni->isChecked();
+        if (active(tuneUi->quic_opener)) tune.quicOpener = tuneUi->quic_opener->isChecked();
+        if (active(tuneUi->mtu)) tune.mtu = tuneUi->mtu->isChecked();
+        if (!field(tuneUi->mtu_min, tune.mtuMin, tr("MTU: the smallest MTU must be between %1 and %2."))) return false;
+        if (active(tuneUi->mtu_max) && tuneUi->mtu_max->text().trimmed().isEmpty()) {
             tune.mtuMax = 0;
-        } else if (!field(tuneMtuMax, tune.mtuMax,
+        } else if (!field(tuneUi->mtu_max, tune.mtuMax,
                           tr("MTU: the largest MTU must be between %1 and %2; leave it empty for the profile's own."))) {
             return false;
         }
-        if (!field(tuneMtuStep, tune.mtuStep, tr("MTU: the step must be between %1 and %2."))) return false;
-        if (active(tuneMtuUrl)) tune.mtuUrl = tuneMtuUrl->text().trimmed();
-        if (!field(tuneMtuBytes, tune.mtuBytes, tr("MTU: the download size must be between %1 and %2 bytes."))) return false;
-        if (!field(tuneAttempts, tune.attempts, tr("Pacing: attempts per variant must be between %1 and %2."))) return false;
-        if (!field(tunePerMinute, tune.perMinute, tr("Pacing: attempts per minute must be between %1 and %2."))) return false;
-        if (!field(tuneMaxAttempts, tune.maxAttempts, tr("Pacing: the attempt limit must be between %1 and %2."))) return false;
-        if (!field(tuneMaxMinutes, tune.maxMinutes, tr("Pacing: the time limit must be between %1 and %2 minutes."))) return false;
-        tune.url = tuneUrl->text().trimmed();
-        if (!field(tuneTimeout, tune.timeoutMs, tr("Pacing: the timeout must be between %1 and %2 ms."))) return false;
+        if (!field(tuneUi->mtu_step, tune.mtuStep, tr("MTU: the step must be between %1 and %2."))) return false;
+        if (active(tuneUi->mtu_url)) tune.mtuUrl = tuneUi->mtu_url->text().trimmed();
+        if (!field(tuneUi->mtu_bytes, tune.mtuBytes, tr("MTU: the download size must be between %1 and %2 bytes."))) return false;
+        if (!field(tuneUi->attempts, tune.attempts, tr("Pacing: attempts per variant must be between %1 and %2."))) return false;
+        if (!field(tuneUi->per_minute, tune.perMinute, tr("Pacing: attempts per minute must be between %1 and %2."))) return false;
+        if (!field(tuneUi->max_attempts, tune.maxAttempts, tr("Pacing: the attempt limit must be between %1 and %2."))) return false;
+        if (!field(tuneUi->max_minutes, tune.maxMinutes, tr("Pacing: the time limit must be between %1 and %2 minutes."))) return false;
+        tune.url = tuneUi->url->text().trimmed();
+        if (!field(tuneUi->timeout, tune.timeoutMs, tr("Pacing: the timeout must be between %1 and %2 ms."))) return false;
         if (const auto problem = Scanner::Tune::CheckOptions(tune); !problem.isEmpty())
-            return fail(QStringLiteral("%1: %2").arg(tuneTryBox->title(), problem));
+            return fail(QStringLiteral("%1: %2").arg(tuneUi->try_box->title(), problem));
     }
     return true;
 }
@@ -1220,14 +1093,14 @@ void DialogScanInstance::changeEvent(QEvent *event) {
 }
 
 void DialogScanInstance::refreshProfilePickers() {
-    if (configProfile != nullptr) {
-        const bool typing = configProfile->lineEdit()->isModified() && selectedConfigProfile() < 0;
+    if (isGeneric()) {
+        const bool typing = phasesUi->config_profile->lineEdit()->isModified() && selectedConfigProfile() < 0;
         if (!typing) reloadConfigProfiles(selectedConfigProfile());
     }
-    if (warpProfile != nullptr) reloadWarpProfiles(warpProfile->currentData().toInt());
-    if (resolverProfile != nullptr) reloadResolverProfiles(resolverProfile->currentData().toInt());
-    if (tuneProfile != nullptr) {
-        const bool typing = tuneProfile->lineEdit()->isModified() && selectedTuneProfile() < 0;
+    if (isWarp()) reloadWarpProfiles(phasesUi->warp_profile->currentData().toInt());
+    if (isResolver()) reloadResolverProfiles(phasesUi->resolver_profile->currentData().toInt());
+    if (tuneUi != nullptr) {
+        const bool typing = tuneUi->profile->lineEdit()->isModified() && selectedTuneProfile() < 0;
         if (!typing) reloadTuneProfiles(selectedTuneProfile());
     }
 }
@@ -1248,7 +1121,7 @@ void DialogScanInstance::reloadBaseLists(int selectId) {
 }
 
 void DialogScanInstance::reloadConfigProfiles(int selectId) {
-    if (configProfile == nullptr) return;
+    if (!isGeneric()) return;
     const QScopedValueRollback guard(loading, true);
 
     auto *profiles = Configs::dataManager->profilesRepo.get();
@@ -1264,9 +1137,9 @@ void DialogScanInstance::reloadConfigProfiles(int selectId) {
         if (!Scanner::IsGenericScanBase(*profile)) excluded.insert(profile->id);
     }
 
-    configProfile->clear();
+    phasesUi->config_profile->clear();
     configProfileIds.clear();
-    configProfile->addItem(tr("None"), -1);
+    phasesUi->config_profile->addItem(tr("None"), -1);
     QStringList names;
     QString selectedName;
     for (const int gid : Configs::dataManager->groupsRepo->GetGroupsTabOrder()) {
@@ -1281,48 +1154,48 @@ void DialogScanInstance::reloadConfigProfiles(int selectId) {
             names << display;
             if (!configProfileIds.contains(display)) configProfileIds.insert(display, id);
             if (id == selectId) selectedName = display;
-            if (configProfile->count() < configProfile->maxCount()) configProfile->addItem(display, id);
+            if (phasesUi->config_profile->count() < phasesUi->config_profile->maxCount()) phasesUi->config_profile->addItem(display, id);
         }
     }
     configProfileNames->setStringList(names);
 
-    const int index = configProfile->findData(selectId);
-    if (index >= 0) configProfile->setCurrentIndex(index);
-    else if (!selectedName.isEmpty()) configProfile->setCurrentText(selectedName);
-    else configProfile->setCurrentIndex(0);
+    const int index = phasesUi->config_profile->findData(selectId);
+    if (index >= 0) phasesUi->config_profile->setCurrentIndex(index);
+    else if (!selectedName.isEmpty()) phasesUi->config_profile->setCurrentText(selectedName);
+    else phasesUi->config_profile->setCurrentIndex(0);
 }
 
 int DialogScanInstance::selectedConfigProfile() const {
-    if (configProfile == nullptr) return -1;
-    const QString text = configProfile->currentText().trimmed();
+    if (!isGeneric()) return -1;
+    const QString text = phasesUi->config_profile->currentText().trimmed();
     if (text.isEmpty() || text == tr("None")) return -1;
-    const int index = configProfile->findText(text, Qt::MatchExactly);
-    if (index >= 0) return configProfile->itemData(index).toInt();
+    const int index = phasesUi->config_profile->findText(text, Qt::MatchExactly);
+    if (index >= 0) return phasesUi->config_profile->itemData(index).toInt();
     return configProfileIds.value(text, -1);
 }
 
 void DialogScanInstance::reloadWarpProfiles(int selectId) {
-    if (warpProfile == nullptr) return;
+    if (!isWarp()) return;
     const QScopedValueRollback guard(loading, true);
     auto *profiles = Configs::dataManager->profilesRepo.get();
     const bool masque = currentWarpMode() == QStringLiteral("masque");
     const auto ids = profiles->GetProfileIdsByType(masque ? QStringLiteral("masque") : QStringLiteral("wireguard"));
 
-    warpProfile->clear();
-    warpProfile->addItem(tr("Select a profile…"), -1);
-    for (const auto &[id, profileName] : profiles->GetProfileIDNameMappedBatch(ids)) warpProfile->addItem(profileName, id);
-    scanInstanceSelectData(warpProfile, selectId);
+    phasesUi->warp_profile->clear();
+    phasesUi->warp_profile->addItem(tr("Select a profile…"), -1);
+    for (const auto &[id, profileName] : profiles->GetProfileIDNameMappedBatch(ids)) phasesUi->warp_profile->addItem(profileName, id);
+    scanInstanceSelectData(phasesUi->warp_profile, selectId);
 }
 
 QString DialogScanInstance::currentWarpMode() const {
-    if (warpMode == nullptr) return config.warp.mode;
-    return warpMode->currentData().toString();
+    if (!isWarp()) return config.warp.mode;
+    return phasesUi->warp_mode->currentData().toString();
 }
 
 void DialogScanInstance::reloadResolverProfiles(int selectId) {
-    if (resolverProfile == nullptr) return;
+    if (!isResolver()) return;
     const QScopedValueRollback guard(loading, true);
-    const QString level = resolverLevel->currentData().toString();
+    const QString level = phasesUi->resolver_level->currentData().toString();
     auto *profiles = Configs::dataManager->profilesRepo.get();
     QHash<int, QString> protocols;
     for (const auto &type : {QStringLiteral("dnstt"), QStringLiteral("masterdns")}) {
@@ -1335,78 +1208,78 @@ void DialogScanInstance::reloadResolverProfiles(int selectId) {
     auto ids = protocols.keys();
     std::sort(ids.begin(), ids.end());
 
-    resolverProfile->clear();
-    resolverProfile->addItem(tr("Select a profile…"), -1);
+    phasesUi->resolver_profile->clear();
+    phasesUi->resolver_profile->addItem(tr("Select a profile…"), -1);
     for (const auto &[id, profileName] : profiles->GetProfileIDNameMappedBatch(ids)) {
-        resolverProfile->addItem(profileName, id);
-        resolverProfile->setItemData(resolverProfile->count() - 1, protocols.value(id), kScanInstanceProtocolRole);
+        phasesUi->resolver_profile->addItem(profileName, id);
+        phasesUi->resolver_profile->setItemData(phasesUi->resolver_profile->count() - 1, protocols.value(id), kScanInstanceProtocolRole);
     }
-    scanInstanceSelectData(resolverProfile, selectId);
+    scanInstanceSelectData(phasesUi->resolver_profile, selectId);
     reloadResolverLevels(level);
 }
 
 void DialogScanInstance::reloadResolverLevels(const QString &selectLevel) {
-    if (resolverLevel == nullptr) return;
+    if (!isResolver()) return;
     const QScopedValueRollback guard(loading, true);
     const QString protocol = currentResolverProtocol();
     const auto levels = Scanner::ResolverScanLevels(protocol);
-    resolverLevel->clear();
-    for (const auto &level : levels) resolverLevel->addItem(scanInstanceResolverLevelLabel(level), level);
-    scanInstanceSelectData(resolverLevel, levels.contains(selectLevel) ? selectLevel : Scanner::ResolverScanDefaultLevel(protocol));
-    resolverLevel->setEnabled(!levels.isEmpty());
+    phasesUi->resolver_level->clear();
+    for (const auto &level : levels) phasesUi->resolver_level->addItem(scanInstanceResolverLevelLabel(level), level);
+    scanInstanceSelectData(phasesUi->resolver_level, levels.contains(selectLevel) ? selectLevel : Scanner::ResolverScanDefaultLevel(protocol));
+    phasesUi->resolver_level->setEnabled(!levels.isEmpty());
     updateResolverTimeoutHint();
 }
 
 QString DialogScanInstance::currentResolverProtocol() const {
-    return resolverProfile == nullptr ? QString() : resolverProfile->currentData(kScanInstanceProtocolRole).toString();
+    return isResolver() ? phasesUi->resolver_profile->currentData(kScanInstanceProtocolRole).toString() : QString();
 }
 
 void DialogScanInstance::updateResolverTimeoutHint() {
-    if (resolverTimeout == nullptr) return;
+    if (!isResolver()) return;
     const QString protocol = currentResolverProtocol();
-    resolverTimeout->setPlaceholderText(
+    phasesUi->resolver_timeout->setPlaceholderText(
         protocol.isEmpty() ? QString()
-                           : QString::number(Scanner::ResolverScanDefaultTimeoutMs(protocol, resolverLevel->currentData().toString())));
+                           : QString::number(Scanner::ResolverScanDefaultTimeoutMs(protocol, phasesUi->resolver_level->currentData().toString())));
 }
 
 void DialogScanInstance::updateHttpControls() {
-    if (httpBox == nullptr) return;
+    if (!isGeneric()) return;
     // setEnabled(true) on a child would override the unchecked group box's own disabling.
-    const bool on = httpBox->isChecked();
-    const bool tls = on && httpTls->isChecked();
-    const QString method = httpMethod->currentData().toString();
+    const bool on = phasesUi->http_box->isChecked();
+    const bool tls = on && phasesUi->http_tls->isChecked();
+    const QString method = phasesUi->http_method->currentData().toString();
     const bool request = on && method != QStringLiteral("NONE");
-    for (QWidget *widget : {static_cast<QWidget *>(httpSni), static_cast<QWidget *>(httpAlpn),
-                            static_cast<QWidget *>(httpMinTls), static_cast<QWidget *>(httpMaxTls),
-                            static_cast<QWidget *>(httpFingerprint), static_cast<QWidget *>(httpInsecure),
-                            static_cast<QWidget *>(httpDisableSni), static_cast<QWidget *>(httpFragment),
-                            static_cast<QWidget *>(httpRecordFragment), static_cast<QWidget *>(httpMixedCaseSni)})
+    for (QWidget *widget : {static_cast<QWidget *>(phasesUi->http_sni), static_cast<QWidget *>(phasesUi->http_alpn),
+                            static_cast<QWidget *>(phasesUi->http_min_tls), static_cast<QWidget *>(phasesUi->http_max_tls),
+                            static_cast<QWidget *>(phasesUi->http_fingerprint), static_cast<QWidget *>(phasesUi->http_insecure),
+                            static_cast<QWidget *>(phasesUi->http_disable_sni), static_cast<QWidget *>(phasesUi->http_fragment),
+                            static_cast<QWidget *>(phasesUi->http_record_fragment), static_cast<QWidget *>(phasesUi->http_mixed_case_sni)})
         widget->setEnabled(tls);
-    httpFragmentDelay->setEnabled(tls && httpFragment->isChecked());
-    for (QWidget *widget : {static_cast<QWidget *>(httpHost), static_cast<QWidget *>(httpPath),
-                            static_cast<QWidget *>(httpVersion)})
+    phasesUi->http_fragment_delay->setEnabled(tls && phasesUi->http_fragment->isChecked());
+    for (QWidget *widget : {static_cast<QWidget *>(phasesUi->http_host), static_cast<QWidget *>(phasesUi->http_path),
+                            static_cast<QWidget *>(phasesUi->http_version)})
         widget->setEnabled(request);
 }
 
 void DialogScanInstance::updateWarpControls() {
-    if (warpBox == nullptr) return;
+    if (!isWarp()) return;
     const QString mode = currentWarpMode();
     const bool masque = mode == QStringLiteral("masque");
     const bool amnezia = mode == QStringLiteral("amneziawg");
-    const QString identity = warpIdentity->currentData().toString();
+    const QString identity = phasesUi->warp_identity->currentData().toString();
 
-    scanInstanceSetRowVisible(warpForm, warpHttpMode, masque);
-    scanInstanceSetRowVisible(warpForm, warpSni, masque);
-    for (QWidget *junk : {static_cast<QWidget *>(warpJc), static_cast<QWidget *>(warpJmin), static_cast<QWidget *>(warpJmax)})
-        scanInstanceSetRowVisible(warpForm, junk, amnezia);
-    for (auto *packet : warpPackets) scanInstanceSetRowVisible(warpForm, packet, amnezia);
-    scanInstanceSetRowVisible(warpForm, warpRegisterRow, identity == QStringLiteral("generated"));
-    scanInstanceSetRowVisible(warpForm, warpProfile, identity == QStringLiteral("profile"));
+    scanInstanceSetRowVisible(phasesUi->warp_form, phasesUi->warp_http_mode, masque);
+    scanInstanceSetRowVisible(phasesUi->warp_form, phasesUi->warp_sni, masque);
+    for (QWidget *junk : {static_cast<QWidget *>(phasesUi->warp_jc), static_cast<QWidget *>(phasesUi->warp_jmin), static_cast<QWidget *>(phasesUi->warp_jmax)})
+        scanInstanceSetRowVisible(phasesUi->warp_form, junk, amnezia);
+    for (auto *packet : warpPackets) scanInstanceSetRowVisible(phasesUi->warp_form, packet, amnezia);
+    scanInstanceSetRowVisible(phasesUi->warp_form, phasesUi->warp_register_row, identity == QStringLiteral("generated"));
+    scanInstanceSetRowVisible(phasesUi->warp_form, phasesUi->warp_profile, identity == QStringLiteral("profile"));
     updateWarpIdentityStatus();
 }
 
 void DialogScanInstance::updateWarpIdentityStatus() {
-    if (warpIdentityStatus == nullptr) return;
+    if (!isWarp()) return;
     const auto &warp = config.warp;
     const QString transport = Scanner::WarpTransportOf(currentWarpMode());
     QString text;
@@ -1421,9 +1294,9 @@ void DialogScanInstance::updateWarpIdentityStatus() {
     } else {
         text = tr("A WARP device is registered for this scan.");
     }
-    warpIdentityStatus->setText(text);
-    warpRegister->setText(warp.generatedIdentity.isEmpty() ? tr("Register") : tr("Register again"));
-    warpRegister->setEnabled(!registering);
+    phasesUi->warp_identity_status->setText(text);
+    phasesUi->warp_register->setText(warp.generatedIdentity.isEmpty() ? tr("Register") : tr("Register again"));
+    phasesUi->warp_register->setEnabled(!registering);
 }
 
 void DialogScanInstance::useBuiltinWarpRanges() {
@@ -1442,7 +1315,7 @@ void DialogScanInstance::useBuiltinWarpRanges() {
 }
 
 void DialogScanInstance::matchWarpTargets() {
-    if (loading || warpBox == nullptr) return;
+    if (loading || !isWarp()) return;
     const bool masque = currentWarpMode() == QStringLiteral("masque");
     const QString listName = baseListNames.value(ui->base_list->currentData().toInt());
     const auto ports = scanInstanceParsePorts(ui->ports->text(), nullptr);

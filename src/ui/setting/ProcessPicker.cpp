@@ -640,7 +640,7 @@ void ProcessCompletionModel::rebuild() {
         }
         if (config.paths && !program.path.isEmpty() && !paths.contains(program.path)) {
             paths.insert(program.path);
-            next << Suggestion{config.pathPrefix + program.path, program.path, {}};
+            next << Suggestion{config.pathPrefix + program.path, program.path, program.path};
         }
     }
     if (next == programs) return;

@@ -76,6 +76,8 @@ namespace Qv2ray::ui::widgets {
         c->setCompletionMode(QCompleter::PopupCompletion);
         c->setCaseSensitivity(Qt::CaseInsensitive);
         c->setFilterMode(Qt::MatchContains);
+        // Program paths run long; keeping both ends shows the folder and the executable.
+        c->popup()->setTextElideMode(Qt::ElideMiddle);
         QObject::connect(c, static_cast<void (QCompleter::*)(const QString &)>(&QCompleter::activated), this, &AutoCompleteTextEdit::insertCompletion);
     }
 
@@ -109,6 +111,16 @@ namespace Qv2ray::ui::widgets {
         c->popup()->setCurrentIndex(model->index(best, 0));
     }
 
+    // Sized to the widest row, but capped so a long path cannot stretch the popup across the screen.
+    void AutoCompleteTextEdit::showPopup() {
+        auto *popup = c->popup();
+        const int natural = popup->sizeHintForColumn(0) + popup->verticalScrollBar()->sizeHint().width();
+        const int cap = fontMetrics().averageCharWidth() * 60;
+        QRect cr = cursorRect();
+        cr.setWidth(qMin(natural, cap));
+        c->complete(cr);
+    }
+
     QString AutoCompleteTextEdit::wordUnderCursor() const {
         QTextCursor tc = textCursor();
         tc.select(QTextCursor::WordUnderCursor);
@@ -126,9 +138,7 @@ namespace Qv2ray::ui::widgets {
             c->setCompletionPrefix(word);
             selectCompletion(word);
         }
-        QRect cr = cursorRect();
-        cr.setWidth(c->popup()->sizeHintForColumn(0) + c->popup()->verticalScrollBar()->sizeHint().width());
-        c->complete(cr); // popup it up!
+        showPopup();
 
         QPlainTextEdit::focusInEvent(e);
     }
@@ -171,9 +181,7 @@ namespace Qv2ray::ui::widgets {
         if (lineUnderCursor().isEmpty()) {
             c->setCompletionPrefix("");
             c->popup()->setCurrentIndex(c->completionModel()->index(0, 0));
-            QRect cr = cursorRect();
-            cr.setWidth(c->popup()->sizeHintForColumn(0) + c->popup()->verticalScrollBar()->sizeHint().width());
-            c->complete(cr); // popup it up!
+            showPopup();
             return;
         }
 
@@ -191,8 +199,6 @@ namespace Qv2ray::ui::widgets {
             selectCompletion(word);
         }
 
-        QRect cr = cursorRect();
-        cr.setWidth(c->popup()->sizeHintForColumn(0) + c->popup()->verticalScrollBar()->sizeHint().width());
-        c->complete(cr); // popup it up!
+        showPopup();
     }
 } // namespace Qv2ray::ui::widgets

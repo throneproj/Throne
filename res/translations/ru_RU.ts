@@ -4508,20 +4508,20 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>Порты</translation>
     </message>
     <message>
-        <source>Ports to scan. Targets left without any port are probed on port 443 (80 for plain HTTP).</source>
-        <translation>Порты для сканирования. Цели без порта проверяются на порту 443 (80 для обычного HTTP).</translation>
+        <source>Ports to scan. Targets without one use 443 (80 for plain HTTP).</source>
+        <translation>Порты для сканирования. Цели без порта используют 443 (80 для обычного HTTP).</translation>
     </message>
     <message>
-        <source>Fill in the ports Cloudflare&apos;s WARP endpoints listen on</source>
-        <translation>Подставить порты, которые слушают конечные точки Cloudflare WARP</translation>
+        <source>WARP port presets</source>
+        <translation>Наборы портов WARP</translation>
     </message>
     <message>
         <source>WARP ports</source>
         <translation>Порты WARP</translation>
     </message>
     <message>
-        <source>How these ports combine with the ports stored in the IP list.</source>
-        <translation>Как эти порты сочетаются с портами, сохраненными в списке IP.</translation>
+        <source>How these combine with the list&apos;s own ports.</source>
+        <translation>Как эти порты сочетаются с портами из списка.</translation>
     </message>
     <message>
         <source>Shuffle the target order</source>
@@ -4540,16 +4540,16 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>Лимит результатов</translation>
     </message>
     <message>
-        <source>The scan completes once its result list holds this many entries. Empty or 0: no limit.</source>
-        <translation>Сканирование завершается, когда в его списке результатов наберется столько записей. Пусто или 0: без ограничения.</translation>
+        <source>Stop after this many results. Empty: no limit.</source>
+        <translation>Остановиться после стольких результатов. Пусто: без ограничения.</translation>
     </message>
     <message>
         <source>Concurrency</source>
         <translation>Кол-во потоков</translation>
     </message>
     <message>
-        <source>Targets probed or tested at the same time, in every phase.</source>
-        <translation>Число целей, проверяемых или тестируемых одновременно, на каждом этапе.</translation>
+        <source>Targets checked at the same time.</source>
+        <translation>Число целей, проверяемых одновременно.</translation>
     </message>
     <message>
         <source>Spawn interval (ms)</source>
@@ -4572,8 +4572,8 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>Сохранить как список IP</translation>
     </message>
     <message>
-        <source>Copies the selected entries, or every entry when none is selected.</source>
-        <translation>Копирует выбранные записи или все записи, если ничего не выбрано.</translation>
+        <source>Copy the selected entries, or all if none are selected.</source>
+        <translation>Копировать выбранные записи или все, если ничего не выбрано.</translation>
     </message>
     <message>
         <source>Copy</source>
@@ -4612,16 +4612,16 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>Только порты списка</translation>
     </message>
     <message>
-        <source>Your ports are ignored; entries without a port are probed on port 443 (80 for plain HTTP).</source>
-        <translation>Ваши порты игнорируются; записи без порта проверяются на порту 443 (80 для обычного HTTP).</translation>
+        <source>Entries without a port use 443 (80 for plain HTTP).</source>
+        <translation>Записи без порта используют 443 (80 для обычного HTTP).</translation>
     </message>
     <message>
         <source>No limit</source>
         <translation>Без ограничения</translation>
     </message>
     <message>
-        <source>Selects an IP list of Cloudflare&apos;s WARP ranges for the chosen mode, creating it when missing, and sets the matching ports.</source>
-        <translation>Выбирает список IP с диапазонами Cloudflare WARP для выбранного режима (создает его, если его нет) и подставляет соответствующие порты.</translation>
+        <source>Use Cloudflare&apos;s WARP ranges and ports for this mode.</source>
+        <translation>Использовать диапазоны и порты Cloudflare WARP для этого режима.</translation>
     </message>
     <message>
         <source>ICMP (ping)</source>
@@ -5114,8 +5114,8 @@ Close without saving?</source>
         <translation>Полная: также измеряет MTU отправки и приема</translation>
     </message>
     <message>
-        <source>Each address is tried as a resolver; an entry without a port uses port 53.</source>
-        <translation>Каждый адрес проверяется в роли резолвера; запись без порта использует порт 53.</translation>
+        <source>Each address is tried as a resolver; the default port is 53.</source>
+        <translation>Каждый адрес проверяется как резолвер; порт по умолчанию — 53.</translation>
     </message>
     <message>
         <source>DNS tunnel test</source>
@@ -5138,8 +5138,8 @@ Close without saving?</source>
         <translation>Использовать как резолверы</translation>
     </message>
     <message>
-        <source>Makes the scan&apos;s profile take its resolvers from this result list; the resolvers typed in the profile are kept.</source>
-        <translation>Профиль сканирования будет брать резолверы из этого списка результатов; резолверы, введенные в профиле, сохраняются.</translation>
+        <source>Add this list to the profile&apos;s resolvers.</source>
+        <translation>Добавить этот список к резолверам профиля.</translation>
     </message>
     <message>
         <source>DNS resolver scan</source>
@@ -5174,8 +5174,8 @@ Close without saving?</source>
         <translation>QUIC-приманка</translation>
     </message>
     <message>
-        <source>Sends one decoy packet before each new UDP flow, so networks that block QUIC by its first packet let the real handshake through.</source>
-        <translation>Отправляет один пакет-приманку перед каждым новым UDP-потоком, чтобы сети, блокирующие QUIC по первому пакету, пропускали настоящее рукопожатие.</translation>
+        <source>Sends a decoy packet before each UDP flow to get past QUIC blocking.</source>
+        <translation>Отправляет пакет-приманку перед каждым UDP-потоком, чтобы обойти блокировку QUIC.</translation>
     </message>
     <message>
         <source>&quot;%1&quot; already uses these settings.</source>
@@ -5214,8 +5214,8 @@ Close without saving?</source>
         <translation>Если цензор сбрасывает лишь часть рукопожатий, нужно несколько попыток, чтобы отличить рабочий вариант от случайно удачного.</translation>
     </message>
     <message>
-        <source>Adds a copy of the profile with the selected variant to its group; the profile itself stays as it is.</source>
-        <translation>Добавляет в группу профиля копию с выбранным вариантом; сам профиль не меняется.</translation>
+        <source>Add a copy of the profile with the selected variant.</source>
+        <translation>Добавить копию профиля с выбранным вариантом.</translation>
     </message>
     <message>
         <source>Apply to profile</source>
@@ -5246,8 +5246,8 @@ Close without saving?</source>
         <translation>Выберите профиль, настройки которого нужно подобрать.</translation>
     </message>
     <message>
-        <source>Comma-separated durations such as 100ms, 500ms, 1s, tried on the best variant that fragments. Only the built-in fragment implementation uses them.</source>
-        <translation>Длительности через запятую, например 100ms, 500ms, 1s; проверяются на лучшем варианте с фрагментацией. Используются только встроенной реализацией фрагментации.</translation>
+        <source>Comma-separated, e.g. 100ms, 500ms, 1s.</source>
+        <translation>Через запятую, например 100ms, 500ms, 1s.</translation>
     </message>
     <message>
         <source>Comma-separated uTLS fingerprints; &quot;off&quot; tries Go&apos;s own TLS.</source>
@@ -5278,8 +5278,8 @@ Close without saving?</source>
         <translation>Размер загрузки (байт)</translation>
     </message>
     <message>
-        <source>Downloaded through the tunnel to check each MTU. Empty: Cloudflare&apos;s speed test.</source>
-        <translation>Загружается через туннель для проверки каждого MTU. Пусто: тест скорости Cloudflare.</translation>
+        <source>Downloaded to check each MTU. Empty: Cloudflare&apos;s speed test.</source>
+        <translation>Загружается для проверки каждого MTU. Пусто: тест скорости Cloudflare.</translation>
     </message>
     <message>
         <source>Dropped early</source>
@@ -5302,8 +5302,8 @@ Close without saving?</source>
         <translation>Поиск рабочих настроек</translation>
     </message>
     <message>
-        <source>Finds the largest MTU that still carries a bulk download through the tunnel.</source>
-        <translation>Находит наибольший MTU, при котором через туннель ещё проходит объёмная загрузка.</translation>
+        <source>Finds the largest MTU that still works.</source>
+        <translation>Находит наибольший рабочий MTU.</translation>
     </message>
     <message>
         <source>Fingerprints to try</source>
@@ -5358,8 +5358,8 @@ Close without saving?</source>
         <translation>Нужен включённый SNI с доменным именем и без REALITY.</translation>
     </message>
     <message>
-        <source>Needs a profile that opens UDP flows to its server: QUIC, MASQUE over HTTP/3 or WireGuard.</source>
-        <translation>Нужен профиль, открывающий UDP-потоки к своему серверу: QUIC, MASQUE поверх HTTP/3 или WireGuard.</translation>
+        <source>Needs QUIC, MASQUE over HTTP/3 or WireGuard.</source>
+        <translation>Нужен QUIC, MASQUE поверх HTTP/3 или WireGuard.</translation>
     </message>
     <message>
         <source>No variant has passed yet.</source>
@@ -5518,8 +5518,8 @@ Close without saving?</source>
         <translation>Что проверять</translation>
     </message>
     <message>
-        <source>Writes the selected variant into the profile&apos;s own settings; global defaults stay as they are.</source>
-        <translation>Записывает выбранный вариант в собственные настройки профиля; глобальные значения по умолчанию не меняются.</translation>
+        <source>Save the selected variant into the profile.</source>
+        <translation>Сохранить выбранный вариант в профиль.</translation>
     </message>
 </context>
 <context>
@@ -11155,8 +11155,14 @@ Grant them once with a Windows confirmation; Throne itself keeps running as a st
         <translation>Фильтр...</translation>
     </message>
     <message>
-        <source>Filter by country...</source>
-        <translation>Фильтр по странам...</translation>
+        <source>Filter by country or service...</source>
+        <translation>Фильтр по стране или сервису...</translation>
+    </message>
+    <message>
+        <source>Countries and working services, e.g. &quot;DE gemini&quot; or &quot;ai&quot;.
+&quot;!netflix&quot; finds profiles Netflix refused.</source>
+        <translation>Страны и работающие сервисы, например «DE gemini» или «ai».
+«!netflix» находит профили, где Netflix отказал.</translation>
     </message>
     <message>
         <source>Disable Filter</source>
@@ -13574,6 +13580,324 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Working settings</source>
         <translation>Рабочие настройки</translation>
+    </message>
+</context>
+<context>
+    <name>ScanPhases</name>
+    <message>
+        <source>ICMP (ping)</source>
+        <translation>ICMP (ping)</translation>
+    </message>
+    <message>
+        <source>Timeout (ms)</source>
+        <translation>Таймаут (мс)</translation>
+    </message>
+    <message>
+        <source>Echo requests</source>
+        <translation>Число эхо-запросов</translation>
+    </message>
+    <message>
+        <source>TCP connect</source>
+        <translation>TCP-подключение</translation>
+    </message>
+    <message>
+        <source>Attempts</source>
+        <translation>Число попыток</translation>
+    </message>
+    <message>
+        <source>TLS / HTTP</source>
+        <translation>TLS / HTTP</translation>
+    </message>
+    <message>
+        <source>Use TLS</source>
+        <translation>Использовать TLS</translation>
+    </message>
+    <message>
+        <source>SNI</source>
+        <translation>SNI</translation>
+    </message>
+    <message>
+        <source>The target address</source>
+        <translation>Адрес цели</translation>
+    </message>
+    <message>
+        <source>Host header</source>
+        <translation>Заголовок Host</translation>
+    </message>
+    <message>
+        <source>The SNI, or the target address</source>
+        <translation>SNI или адрес цели</translation>
+    </message>
+    <message>
+        <source>Path</source>
+        <translation>Path</translation>
+    </message>
+    <message>
+        <source>Method</source>
+        <translation>Метод</translation>
+    </message>
+    <message>
+        <source>Only a 200 OK answer passes.</source>
+        <translation>Успешен только ответ 200 OK.</translation>
+    </message>
+    <message>
+        <source>HTTP version</source>
+        <translation>Версия HTTP</translation>
+    </message>
+    <message>
+        <source>ALPN</source>
+        <translation>ALPN</translation>
+    </message>
+    <message>
+        <source>From the HTTP version</source>
+        <translation>По версии HTTP</translation>
+    </message>
+    <message>
+        <source>Minimum TLS version</source>
+        <translation>Минимальная версия TLS</translation>
+    </message>
+    <message>
+        <source>Maximum TLS version</source>
+        <translation>Максимальная версия TLS</translation>
+    </message>
+    <message>
+        <source>uTLS fingerprint</source>
+        <translation>uTLS fingerprint</translation>
+    </message>
+    <message>
+        <source>Allow insecure certificates</source>
+        <translation>Allow insecure</translation>
+    </message>
+    <message>
+        <source>Disable SNI</source>
+        <translation>Отключить SNI</translation>
+    </message>
+    <message>
+        <source>Fragment the TLS handshake</source>
+        <translation>Фрагментировать хендшейк TLS</translation>
+    </message>
+    <message>
+        <source>Fragment fallback delay (ms)</source>
+        <translation>Резервная задержка фрагментации (мс)</translation>
+    </message>
+    <message>
+        <source>Fragment TLS records</source>
+        <translation>Фрагментировать записи TLS</translation>
+    </message>
+    <message>
+        <source>Mixed-case SNI</source>
+        <translation>SNI в смешанном регистре</translation>
+    </message>
+    <message>
+        <source>Config test</source>
+        <translation>Тест конфигурации</translation>
+    </message>
+    <message>
+        <source>Candidates that pass the probes are tested through a copy of this profile pointed at each of them.</source>
+        <translation>Кандидаты, прошедшие проверки, тестируются через копию этого профиля, направленную на каждый из них.</translation>
+    </message>
+    <message>
+        <source>Profile</source>
+        <translation>Профиль</translation>
+    </message>
+    <message>
+        <source>Test URL</source>
+        <translation>URL проверки</translation>
+    </message>
+    <message>
+        <source>Report warm latency (two requests per target)</source>
+        <translation>Измерять задержку на прогретом соединении (два запроса на цель)</translation>
+    </message>
+    <message>
+        <source>WARP test</source>
+        <translation>Тест WARP</translation>
+    </message>
+    <message>
+        <source>Candidates that pass the probes are tested by connecting to WARP through them.</source>
+        <translation>Кандидаты, прошедшие проверки, тестируются подключением к WARP через них.</translation>
+    </message>
+    <message>
+        <source>Mode</source>
+        <translation>Режим</translation>
+    </message>
+    <message>
+        <source>MASQUE transport</source>
+        <translation>Транспорт MASQUE</translation>
+    </message>
+    <message>
+        <source>Identity</source>
+        <translation>Идентификатор</translation>
+    </message>
+    <message>
+        <source>Device</source>
+        <translation>Устройство</translation>
+    </message>
+    <message>
+        <source>Register</source>
+        <translation>Зарегистрировать</translation>
+    </message>
+    <message>
+        <source>MTU</source>
+        <translation>MTU</translation>
+    </message>
+    <message>
+        <source>QUIC opener</source>
+        <translation>QUIC-приманка</translation>
+    </message>
+    <message>
+        <source>Sends a decoy packet before each UDP flow to get past QUIC blocking.</source>
+        <translation>Отправляет пакет-приманку перед каждым UDP-потоком, чтобы обойти блокировку QUIC.</translation>
+    </message>
+    <message>
+        <source>Junk packets (Jc)</source>
+        <translation>Junk packets (Jc)</translation>
+    </message>
+    <message>
+        <source>Junk minimum size (Jmin)</source>
+        <translation>Junk minimum size (Jmin)</translation>
+    </message>
+    <message>
+        <source>Junk maximum size (Jmax)</source>
+        <translation>Junk maximum size (Jmax)</translation>
+    </message>
+    <message>
+        <source>DNS tunnel test</source>
+        <translation>Проверка DNS-туннеля</translation>
+    </message>
+    <message>
+        <source>Each address is tried as the only resolver of this profile; those that relay its tunnel are kept.</source>
+        <translation>Каждый адрес проверяется как единственный резолвер этого профиля; сохраняются те, что пропускают его туннель.</translation>
+    </message>
+    <message>
+        <source>Test</source>
+        <translation>Проверка</translation>
+    </message>
+    <message>
+        <source>Time limit per resolver. Empty: the test&apos;s default.</source>
+        <translation>Ограничение времени на один резолвер. Пусто: значение по умолчанию для проверки.</translation>
+    </message>
+</context>
+<context>
+    <name>ScanTuneSettings</name>
+    <message>
+        <source>Profile</source>
+        <translation>Профиль</translation>
+    </message>
+    <message>
+        <source>Variants of this profile&apos;s anti-censorship settings are tested through the core, one attempt at a time. The profile itself changes only when you apply a result.</source>
+        <translation>Варианты настроек обхода цензуры этого профиля проверяются через ядро, по одной попытке за раз. Сам профиль меняется, только когда вы применяете результат.</translation>
+    </message>
+    <message>
+        <source>What to try</source>
+        <translation>Что проверять</translation>
+    </message>
+    <message>
+        <source>Each setting is first tried on its own, a switch flipped or a list value by value; the changes that help are then combined.</source>
+        <translation>Сначала каждая настройка проверяется отдельно: переключатель — в обратном положении, список — значение за значением; затем полезные изменения объединяются.</translation>
+    </message>
+    <message>
+        <source>uTLS fingerprint</source>
+        <translation>uTLS fingerprint</translation>
+    </message>
+    <message>
+        <source>Fingerprints to try</source>
+        <translation>Проверяемые fingerprint</translation>
+    </message>
+    <message>
+        <source>TLS fragment</source>
+        <translation>Фрагментация TLS</translation>
+    </message>
+    <message>
+        <source>Fallback delays to try</source>
+        <translation>Резервные задержки для проверки</translation>
+    </message>
+    <message>
+        <source>TLS record fragment</source>
+        <translation>Фрагментация записи TLS</translation>
+    </message>
+    <message>
+        <source>Mixed-case SNI</source>
+        <translation>SNI в смешанном регистре</translation>
+    </message>
+    <message>
+        <source>QUIC opener</source>
+        <translation>QUIC-приманка</translation>
+    </message>
+    <message>
+        <source>MTU (WireGuard)</source>
+        <translation>MTU (WireGuard)</translation>
+    </message>
+    <message>
+        <source>Smallest MTU</source>
+        <translation>Наименьший MTU</translation>
+    </message>
+    <message>
+        <source>Largest MTU</source>
+        <translation>Наибольший MTU</translation>
+    </message>
+    <message>
+        <source>The profile&apos;s own</source>
+        <translation>Значение профиля</translation>
+    </message>
+    <message>
+        <source>MTU step</source>
+        <translation>Шаг MTU</translation>
+    </message>
+    <message>
+        <source>Download URL</source>
+        <translation>URL загрузки</translation>
+    </message>
+    <message>
+        <source>Download size (bytes)</source>
+        <translation>Размер загрузки (байт)</translation>
+    </message>
+    <message>
+        <source>Pacing</source>
+        <translation>Темп</translation>
+    </message>
+    <message>
+        <source>Attempts per variant</source>
+        <translation>Попыток на вариант</translation>
+    </message>
+    <message>
+        <source>More attempts tell a working variant from a lucky one.</source>
+        <translation>Больше попыток помогает отличить рабочий вариант от случайно удачного.</translation>
+    </message>
+    <message>
+        <source>Attempts per minute</source>
+        <translation>Попыток в минуту</translation>
+    </message>
+    <message>
+        <source>At most this many attempts start in any minute.</source>
+        <translation>Не больше стольких попыток начинается за любую минуту.</translation>
+    </message>
+    <message>
+        <source>Attempt limit</source>
+        <translation>Лимит попыток</translation>
+    </message>
+    <message>
+        <source>The search stops after this many attempts in all.</source>
+        <translation>Поиск останавливается после стольких попыток в сумме.</translation>
+    </message>
+    <message>
+        <source>Time limit (minutes)</source>
+        <translation>Лимит времени (минуты)</translation>
+    </message>
+    <message>
+        <source>The search stops after this many minutes.</source>
+        <translation>Поиск останавливается через столько минут.</translation>
+    </message>
+    <message>
+        <source>Test URL</source>
+        <translation>URL проверки</translation>
+    </message>
+    <message>
+        <source>Requested through the profile on every attempt.</source>
+        <translation>Запрашивается через профиль при каждой попытке.</translation>
+    </message>
+    <message>
+        <source>Timeout (ms)</source>
+        <translation>Таймаут (мс)</translation>
     </message>
 </context>
 <context>

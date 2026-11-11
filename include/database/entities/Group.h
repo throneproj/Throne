@@ -167,7 +167,6 @@ namespace Configs
         // The order the profiles are kept in as they change; Raw keeps the manual order.
         GroupSortAction sort;
         testShowItems test_items_to_show = testShowItems::all;
-        bool show_service_checks = true;
         // Memory only. Pairs of (profileID, row as displayed).
         QList<std::pair<int, int>> selectedProfilesIdIdxPairs;
 

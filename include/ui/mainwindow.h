@@ -298,7 +298,7 @@ private:
     QString addressFilterString;
     QString nameFilterString;
     QString typeFilterString;
-    QString countryFilterString;
+    QString testFilterString;
 
     QTimer *m_filterRefreshDebounce = nullptr;
 

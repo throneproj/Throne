@@ -4633,20 +4633,20 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>端口</translation>
     </message>
     <message>
-        <source>Ports to scan. Targets left without any port are probed on port 443 (80 for plain HTTP).</source>
-        <translation>要扫描的端口。未指定任何端口的目标会在端口 443 （对于纯 HTTP 为 80）上进行探测。</translation>
+        <source>Ports to scan. Targets without one use 443 (80 for plain HTTP).</source>
+        <translation>要扫描的端口。无端口的目标使用 443（纯 HTTP 为 80）。</translation>
     </message>
     <message>
-        <source>Fill in the ports Cloudflare&apos;s WARP endpoints listen on</source>
-        <translation>填入 Cloudflare 的 WARP 端点监听的端口</translation>
+        <source>WARP port presets</source>
+        <translation>WARP 端口预设</translation>
     </message>
     <message>
         <source>WARP ports</source>
         <translation>WARP 端口</translation>
     </message>
     <message>
-        <source>How these ports combine with the ports stored in the IP list.</source>
-        <translation>这些端口如何与 IP 列表中存储的端口组合。</translation>
+        <source>How these combine with the list&apos;s own ports.</source>
+        <translation>这些端口如何与列表自带的端口组合。</translation>
     </message>
     <message>
         <source>Shuffle the target order</source>
@@ -4665,16 +4665,16 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>停止结果数</translation>
     </message>
     <message>
-        <source>The scan completes once its result list holds this many entries. Empty or 0: no limit.</source>
-        <translation>扫描完成的条件是结果列表达到这么多项。留空或 0：无限。</translation>
+        <source>Stop after this many results. Empty: no limit.</source>
+        <translation>达到此数量的结果后停止。留空：无限制。</translation>
     </message>
     <message>
         <source>Concurrency</source>
         <translation>并发数</translation>
     </message>
     <message>
-        <source>Targets probed or tested at the same time, in every phase.</source>
-        <translation>在每个阶段同时探测或测试目标。</translation>
+        <source>Targets checked at the same time.</source>
+        <translation>同时检查的目标数。</translation>
     </message>
     <message>
         <source>Spawn interval (ms)</source>
@@ -4697,8 +4697,8 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>保存为 IP 列表</translation>
     </message>
     <message>
-        <source>Copies the selected entries, or every entry when none is selected.</source>
-        <translation>复制选定的条目，或者在没有选定任何条目是复制所有条目。</translation>
+        <source>Copy the selected entries, or all if none are selected.</source>
+        <translation>复制选中的条目；未选中时复制全部。</translation>
     </message>
     <message>
         <source>Copy</source>
@@ -4785,20 +4785,20 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>仅该列表的端口</translation>
     </message>
     <message>
-        <source>Your ports are ignored; entries without a port are probed on port 443 (80 for plain HTTP).</source>
-        <translation>你的端口被忽略。无端口的条目会在端口 443 （对于纯 HTTP 为 80）上进行探测。</translation>
+        <source>Entries without a port use 443 (80 for plain HTTP).</source>
+        <translation>无端口的条目使用 443（纯 HTTP 为 80）。</translation>
     </message>
     <message>
         <source>No limit</source>
         <translation>无限制</translation>
     </message>
     <message>
-        <source>Selects an IP list of Cloudflare&apos;s WARP ranges for the chosen mode, creating it when missing, and sets the matching ports.</source>
-        <translation>为选择的模式选择 Cloudflare 的 WARP 范围的 IP 列表，缺少时会创建，并设置匹配的端口。</translation>
+        <source>Use Cloudflare&apos;s WARP ranges and ports for this mode.</source>
+        <translation>使用此模式对应的 Cloudflare WARP 地址范围和端口。</translation>
     </message>
     <message>
-        <source>Each address is tried as a resolver; an entry without a port uses port 53.</source>
-        <translation>依次尝试将每个地址用作 DNS 解析器；无端口的条目将使用 53 端口。</translation>
+        <source>Each address is tried as a resolver; the default port is 53.</source>
+        <translation>每个地址都作为 DNS 解析器尝试；默认端口为 53。</translation>
     </message>
     <message>
         <source>ICMP (ping)</source>
@@ -5029,8 +5029,8 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>用作解析器</translation>
     </message>
     <message>
-        <source>Makes the scan&apos;s profile take its resolvers from this result list; the resolvers typed in the profile are kept.</source>
-        <translation>让扫描所用的配置档从这个结果列表中获取 DNS 解析器；在配置档中键入的解析器也会保留。</translation>
+        <source>Add this list to the profile&apos;s resolvers.</source>
+        <translation>将此列表添加到配置档的 DNS 解析器中。</translation>
     </message>
     <message>
         <source>WARP scan</source>
@@ -5287,8 +5287,8 @@ Close without saving?</source>
         <translation>QUIC 前导包</translation>
     </message>
     <message>
-        <source>Sends one decoy packet before each new UDP flow, so networks that block QUIC by its first packet let the real handshake through.</source>
-        <translation>在每个新的 UDP 流之前发送一个诱饵包，使按首个数据包封锁 QUIC 的网络放行真正的握手。</translation>
+        <source>Sends a decoy packet before each UDP flow to get past QUIC blocking.</source>
+        <translation>在每个 UDP 流之前发送一个诱饵包，以绕过 QUIC 封锁。</translation>
     </message>
     <message>
         <source>&quot;%1&quot; already uses these settings.</source>
@@ -5327,8 +5327,8 @@ Close without saving?</source>
         <translation>若审查只重置部分握手，就需要多次尝试才能区分真正可用的变体和侥幸成功的变体。</translation>
     </message>
     <message>
-        <source>Adds a copy of the profile with the selected variant to its group; the profile itself stays as it is.</source>
-        <translation>将带有所选变体的配置档副本添加到其分组；原配置档保持不变。</translation>
+        <source>Add a copy of the profile with the selected variant.</source>
+        <translation>添加带有所选变体的配置档副本。</translation>
     </message>
     <message>
         <source>Apply to profile</source>
@@ -5359,8 +5359,8 @@ Close without saving?</source>
         <translation>选择要搜索其设置的配置档。</translation>
     </message>
     <message>
-        <source>Comma-separated durations such as 100ms, 500ms, 1s, tried on the best variant that fragments. Only the built-in fragment implementation uses them.</source>
-        <translation>以逗号分隔的时长，例如 100ms, 500ms, 1s，在进行分片的最佳变体上尝试。只有内置的分片实现会使用它们。</translation>
+        <source>Comma-separated, e.g. 100ms, 500ms, 1s.</source>
+        <translation>以逗号分隔，例如 100ms, 500ms, 1s。</translation>
     </message>
     <message>
         <source>Comma-separated uTLS fingerprints; &quot;off&quot; tries Go&apos;s own TLS.</source>
@@ -5389,8 +5389,8 @@ Close without saving?</source>
         <translation>下载大小（字节）</translation>
     </message>
     <message>
-        <source>Downloaded through the tunnel to check each MTU. Empty: Cloudflare&apos;s speed test.</source>
-        <translation>通过隧道下载以检查每个 MTU。留空：使用 Cloudflare 的测速。</translation>
+        <source>Downloaded to check each MTU. Empty: Cloudflare&apos;s speed test.</source>
+        <translation>下载以检查每个 MTU。留空：使用 Cloudflare 的测速。</translation>
     </message>
     <message>
         <source>Dropped early</source>
@@ -5413,8 +5413,8 @@ Close without saving?</source>
         <translation>查找可用设置</translation>
     </message>
     <message>
-        <source>Finds the largest MTU that still carries a bulk download through the tunnel.</source>
-        <translation>查找仍能通过隧道完成大文件下载的最大 MTU。</translation>
+        <source>Finds the largest MTU that still works.</source>
+        <translation>查找仍可用的最大 MTU。</translation>
     </message>
     <message>
         <source>Fingerprints to try</source>
@@ -5469,8 +5469,8 @@ Close without saving?</source>
         <translation>需要开启 SNI 且使用域名，并且不使用 REALITY。</translation>
     </message>
     <message>
-        <source>Needs a profile that opens UDP flows to its server: QUIC, MASQUE over HTTP/3 or WireGuard.</source>
-        <translation>需要会向其服务器建立 UDP 流的配置档：QUIC、基于 HTTP/3 的 MASQUE 或 WireGuard。</translation>
+        <source>Needs QUIC, MASQUE over HTTP/3 or WireGuard.</source>
+        <translation>需要 QUIC、基于 HTTP/3 的 MASQUE 或 WireGuard。</translation>
     </message>
     <message>
         <source>No variant has passed yet.</source>
@@ -5629,8 +5629,8 @@ Close without saving?</source>
         <translation>要尝试的项目</translation>
     </message>
     <message>
-        <source>Writes the selected variant into the profile&apos;s own settings; global defaults stay as they are.</source>
-        <translation>将所选变体写入配置档自身的设置；全局默认值保持不变。</translation>
+        <source>Save the selected variant into the profile.</source>
+        <translation>将所选变体保存到配置档。</translation>
     </message>
 </context>
 <context>
@@ -11305,8 +11305,14 @@ Grant them once with a Windows confirmation; Throne itself keeps running as a st
         <translation>筛选...</translation>
     </message>
     <message>
-        <source>Filter by country...</source>
-        <translation>按国别筛选...</translation>
+        <source>Filter by country or service...</source>
+        <translation>按国家或服务筛选...</translation>
+    </message>
+    <message>
+        <source>Countries and working services, e.g. &quot;DE gemini&quot; or &quot;ai&quot;.
+&quot;!netflix&quot; finds profiles Netflix refused.</source>
+        <translation>国家和可用的服务，例如“DE gemini”或“ai”。
+“!netflix”查找 Netflix 拒绝访问的配置。</translation>
     </message>
     <message>
         <source>Disable Filter</source>
@@ -13810,6 +13816,324 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Working settings</source>
         <translation>可用设置</translation>
+    </message>
+</context>
+<context>
+    <name>ScanPhases</name>
+    <message>
+        <source>ICMP (ping)</source>
+        <translation>ICMP (ping)</translation>
+    </message>
+    <message>
+        <source>Timeout (ms)</source>
+        <translation>超时 (毫秒)</translation>
+    </message>
+    <message>
+        <source>Echo requests</source>
+        <translation>回显请求</translation>
+    </message>
+    <message>
+        <source>TCP connect</source>
+        <translation>TCP 连接</translation>
+    </message>
+    <message>
+        <source>Attempts</source>
+        <translation>尝试次数</translation>
+    </message>
+    <message>
+        <source>TLS / HTTP</source>
+        <translation>TLS / HTTP</translation>
+    </message>
+    <message>
+        <source>Use TLS</source>
+        <translation>使用 TLS</translation>
+    </message>
+    <message>
+        <source>SNI</source>
+        <translation>SNI</translation>
+    </message>
+    <message>
+        <source>The target address</source>
+        <translation>目标地址</translation>
+    </message>
+    <message>
+        <source>Host header</source>
+        <translation>主机标头</translation>
+    </message>
+    <message>
+        <source>The SNI, or the target address</source>
+        <translation>SNI 或目标地址</translation>
+    </message>
+    <message>
+        <source>Path</source>
+        <translation>路径</translation>
+    </message>
+    <message>
+        <source>Method</source>
+        <translation>方法</translation>
+    </message>
+    <message>
+        <source>Only a 200 OK answer passes.</source>
+        <translation>仅 200 OK 应答算通过。</translation>
+    </message>
+    <message>
+        <source>HTTP version</source>
+        <translation>HTTP 版本</translation>
+    </message>
+    <message>
+        <source>ALPN</source>
+        <translation>ALPN</translation>
+    </message>
+    <message>
+        <source>From the HTTP version</source>
+        <translation>来自 HTTP 版本</translation>
+    </message>
+    <message>
+        <source>Minimum TLS version</source>
+        <translation>最低 TLS 版本</translation>
+    </message>
+    <message>
+        <source>Maximum TLS version</source>
+        <translation>最高 TLS 版本</translation>
+    </message>
+    <message>
+        <source>uTLS fingerprint</source>
+        <translation>uTLS 指纹</translation>
+    </message>
+    <message>
+        <source>Allow insecure certificates</source>
+        <translation>允许不安全证书</translation>
+    </message>
+    <message>
+        <source>Disable SNI</source>
+        <translation>禁用 SNI (不发送服务器名称指示)</translation>
+    </message>
+    <message>
+        <source>Fragment the TLS handshake</source>
+        <translation>分片 TLS 握手</translation>
+    </message>
+    <message>
+        <source>Fragment fallback delay (ms)</source>
+        <translation>分片回退延时 (毫秒)</translation>
+    </message>
+    <message>
+        <source>Fragment TLS records</source>
+        <translation>分片 TLS 记录</translation>
+    </message>
+    <message>
+        <source>Mixed-case SNI</source>
+        <translation>混合大小写 SNI</translation>
+    </message>
+    <message>
+        <source>Config test</source>
+        <translation>配置测试</translation>
+    </message>
+    <message>
+        <source>Candidates that pass the probes are tested through a copy of this profile pointed at each of them.</source>
+        <translation>通过探针的候选者会通过一个指向它们中每一个的这个配置档的副本进行测试。</translation>
+    </message>
+    <message>
+        <source>Profile</source>
+        <translation>配置档</translation>
+    </message>
+    <message>
+        <source>Test URL</source>
+        <translation>测试 URL</translation>
+    </message>
+    <message>
+        <source>Report warm latency (two requests per target)</source>
+        <translation>报告热机延时 (每个目标的两次请求)</translation>
+    </message>
+    <message>
+        <source>WARP test</source>
+        <translation>WARP 测试</translation>
+    </message>
+    <message>
+        <source>Candidates that pass the probes are tested by connecting to WARP through them.</source>
+        <translation>通过探测的候选项将通过经它们连接到 WARP 进行测试。</translation>
+    </message>
+    <message>
+        <source>Mode</source>
+        <translation>模式</translation>
+    </message>
+    <message>
+        <source>MASQUE transport</source>
+        <translation>MASQUE 传输</translation>
+    </message>
+    <message>
+        <source>Identity</source>
+        <translation>身份</translation>
+    </message>
+    <message>
+        <source>Device</source>
+        <translation>设备</translation>
+    </message>
+    <message>
+        <source>Register</source>
+        <translation>注册</translation>
+    </message>
+    <message>
+        <source>MTU</source>
+        <translation>MTU</translation>
+    </message>
+    <message>
+        <source>QUIC opener</source>
+        <translation>QUIC 前导包</translation>
+    </message>
+    <message>
+        <source>Sends a decoy packet before each UDP flow to get past QUIC blocking.</source>
+        <translation>在每个 UDP 流之前发送一个诱饵包，以绕过 QUIC 封锁。</translation>
+    </message>
+    <message>
+        <source>Junk packets (Jc)</source>
+        <translation>垃圾数据包 (Jc)</translation>
+    </message>
+    <message>
+        <source>Junk minimum size (Jmin)</source>
+        <translation>垃圾数据包最小大小 (Jmin)</translation>
+    </message>
+    <message>
+        <source>Junk maximum size (Jmax)</source>
+        <translation>垃圾数据包最大大小 (Jmax)</translation>
+    </message>
+    <message>
+        <source>DNS tunnel test</source>
+        <translation>DNS 隧道测试</translation>
+    </message>
+    <message>
+        <source>Each address is tried as the only resolver of this profile; those that relay its tunnel are kept.</source>
+        <translation>依次将每个地址作为这个配置档的唯一 DNS 解析器进行尝试；能够转发其隧道流量的地址会被保留。</translation>
+    </message>
+    <message>
+        <source>Test</source>
+        <translation>测试</translation>
+    </message>
+    <message>
+        <source>Time limit per resolver. Empty: the test&apos;s default.</source>
+        <translation>每个 DNS 解析器的时间限制。留空：使用测试的默认值。</translation>
+    </message>
+</context>
+<context>
+    <name>ScanTuneSettings</name>
+    <message>
+        <source>Profile</source>
+        <translation>配置档</translation>
+    </message>
+    <message>
+        <source>Variants of this profile&apos;s anti-censorship settings are tested through the core, one attempt at a time. The profile itself changes only when you apply a result.</source>
+        <translation>此配置档的反审查设置的各个变体将通过核心逐次测试。只有在你应用结果时，配置档本身才会改变。</translation>
+    </message>
+    <message>
+        <source>What to try</source>
+        <translation>要尝试的项目</translation>
+    </message>
+    <message>
+        <source>Each setting is first tried on its own, a switch flipped or a list value by value; the changes that help are then combined.</source>
+        <translation>每项设置先单独尝试：开关翻转一次，列表则逐个值尝试；随后将有帮助的更改组合起来。</translation>
+    </message>
+    <message>
+        <source>uTLS fingerprint</source>
+        <translation>uTLS 指纹</translation>
+    </message>
+    <message>
+        <source>Fingerprints to try</source>
+        <translation>要尝试的指纹</translation>
+    </message>
+    <message>
+        <source>TLS fragment</source>
+        <translation>TLS 分片</translation>
+    </message>
+    <message>
+        <source>Fallback delays to try</source>
+        <translation>要尝试的回退延时</translation>
+    </message>
+    <message>
+        <source>TLS record fragment</source>
+        <translation>TLS 记录分片</translation>
+    </message>
+    <message>
+        <source>Mixed-case SNI</source>
+        <translation>混合大小写 SNI</translation>
+    </message>
+    <message>
+        <source>QUIC opener</source>
+        <translation>QUIC 前导包</translation>
+    </message>
+    <message>
+        <source>MTU (WireGuard)</source>
+        <translation>MTU (WireGuard)</translation>
+    </message>
+    <message>
+        <source>Smallest MTU</source>
+        <translation>最小 MTU</translation>
+    </message>
+    <message>
+        <source>Largest MTU</source>
+        <translation>最大 MTU</translation>
+    </message>
+    <message>
+        <source>The profile&apos;s own</source>
+        <translation>配置档自身的值</translation>
+    </message>
+    <message>
+        <source>MTU step</source>
+        <translation>MTU 步长</translation>
+    </message>
+    <message>
+        <source>Download URL</source>
+        <translation>下载 URL</translation>
+    </message>
+    <message>
+        <source>Download size (bytes)</source>
+        <translation>下载大小（字节）</translation>
+    </message>
+    <message>
+        <source>Pacing</source>
+        <translation>节奏</translation>
+    </message>
+    <message>
+        <source>Attempts per variant</source>
+        <translation>每个变体的尝试次数</translation>
+    </message>
+    <message>
+        <source>More attempts tell a working variant from a lucky one.</source>
+        <translation>尝试次数越多，越能区分真正可用的变体和侥幸成功的变体。</translation>
+    </message>
+    <message>
+        <source>Attempts per minute</source>
+        <translation>每分钟尝试次数</translation>
+    </message>
+    <message>
+        <source>At most this many attempts start in any minute.</source>
+        <translation>任意一分钟内最多开始这么多次尝试。</translation>
+    </message>
+    <message>
+        <source>Attempt limit</source>
+        <translation>尝试次数上限</translation>
+    </message>
+    <message>
+        <source>The search stops after this many attempts in all.</source>
+        <translation>总尝试次数达到此值后搜索停止。</translation>
+    </message>
+    <message>
+        <source>Time limit (minutes)</source>
+        <translation>时间上限（分钟）</translation>
+    </message>
+    <message>
+        <source>The search stops after this many minutes.</source>
+        <translation>搜索在这么多分钟后停止。</translation>
+    </message>
+    <message>
+        <source>Test URL</source>
+        <translation>测试 URL</translation>
+    </message>
+    <message>
+        <source>Requested through the profile on every attempt.</source>
+        <translation>每次尝试都通过该配置档请求。</translation>
+    </message>
+    <message>
+        <source>Timeout (ms)</source>
+        <translation>超时 (毫秒)</translation>
     </message>
 </context>
 <context>

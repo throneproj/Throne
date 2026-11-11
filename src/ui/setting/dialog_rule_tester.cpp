@@ -1,6 +1,7 @@
 #include "include/ui/setting/dialog_rule_tester.h"
 
 #include <QComboBox>
+#include <QAbstractItemView>
 #include <QCompleter>
 #include <QDialogButtonBox>
 #include <QFormLayout>
@@ -70,7 +71,7 @@ namespace {
 DialogRuleTester::DialogRuleTester(Engine::ConnectionManager *connection, int preferredProfileId, QWidget *parent)
     : QDialog(parent), m_connection(connection), m_preferredProfileId(preferredProfileId)
 {
-    setWindowTitle(tr("Rule Tester"));
+    setWindowTitle(tr("Route path lookup"));
 
     auto *layout = new QVBoxLayout(this);
 
@@ -105,6 +106,7 @@ DialogRuleTester::DialogRuleTester(Engine::ConnectionManager *connection, int pr
     completer->setModel(new ProcessCompletionModel({.names = true, .paths = true}, completer));
     completer->setCaseSensitivity(Qt::CaseInsensitive);
     completer->setFilterMode(Qt::MatchContains);
+    completer->popup()->setTextElideMode(Qt::ElideMiddle);
     m_process->setCompleter(completer);
     auto *pick = new QPushButton(tr("Pick…"), this);
     pick->setAutoDefault(false);

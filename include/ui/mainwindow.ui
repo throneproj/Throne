@@ -1228,7 +1228,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="menu_find_settings">
    <property name="text">
-    <string>Find working settings…</string>
+    <string>Scan DPI evasion settings</string>
    </property>
    <property name="uiLevel" stdset="0">
     <string notr="true">advanced</string>

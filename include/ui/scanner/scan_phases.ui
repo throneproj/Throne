@@ -1,0 +1,763 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ScanPhases</class>
+ <widget class="QWidget" name="ScanPhases">
+  <layout class="QVBoxLayout" name="layout">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QGroupBox" name="icmp_box">
+     <property name="title">
+      <string>ICMP (ping)</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <layout class="QFormLayout" name="icmp_form">
+      <item row="0" column="0">
+       <widget class="QLabel" name="icmp_timeout_l">
+        <property name="text">
+         <string>Timeout (ms)</string>
+        </property>
+        <property name="buddy">
+         <cstring>icmp_timeout</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="icmp_timeout"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="icmp_count_l">
+        <property name="text">
+         <string>Echo requests</string>
+        </property>
+        <property name="buddy">
+         <cstring>icmp_count</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="icmp_count"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="tcp_box">
+     <property name="title">
+      <string>TCP connect</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <layout class="QFormLayout" name="tcp_form">
+      <item row="0" column="0">
+       <widget class="QLabel" name="tcp_timeout_l">
+        <property name="text">
+         <string>Timeout (ms)</string>
+        </property>
+        <property name="buddy">
+         <cstring>tcp_timeout</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="tcp_timeout"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="tcp_attempts_l">
+        <property name="text">
+         <string>Attempts</string>
+        </property>
+        <property name="buddy">
+         <cstring>tcp_attempts</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="tcp_attempts"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="http_box">
+     <property name="title">
+      <string>TLS / HTTP</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <layout class="QFormLayout" name="http_form">
+      <item row="0" column="0" colspan="2">
+       <widget class="QCheckBox" name="http_tls">
+        <property name="text">
+         <string>Use TLS</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="http_sni_l">
+        <property name="text">
+         <string>SNI</string>
+        </property>
+        <property name="buddy">
+         <cstring>http_sni</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="http_sni">
+        <property name="placeholderText">
+         <string>The target address</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="http_host_l">
+        <property name="text">
+         <string>Host header</string>
+        </property>
+        <property name="buddy">
+         <cstring>http_host</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="http_host">
+        <property name="placeholderText">
+         <string>The SNI, or the target address</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="http_path_l">
+        <property name="text">
+         <string>Path</string>
+        </property>
+        <property name="buddy">
+         <cstring>http_path</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="http_path">
+        <property name="placeholderText">
+         <string notr="true">/</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="http_method_l">
+        <property name="text">
+         <string>Method</string>
+        </property>
+        <property name="buddy">
+         <cstring>http_method</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="NoWheelComboBox" name="http_method">
+        <property name="toolTip">
+         <string>Only a 200 OK answer passes.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="http_version_l">
+        <property name="text">
+         <string>HTTP version</string>
+        </property>
+        <property name="buddy">
+         <cstring>http_version</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="NoWheelComboBox" name="http_version"/>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="http_alpn_l">
+        <property name="text">
+         <string>ALPN</string>
+        </property>
+        <property name="buddy">
+         <cstring>http_alpn</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QLineEdit" name="http_alpn">
+        <property name="placeholderText">
+         <string>From the HTTP version</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0">
+       <widget class="QLabel" name="http_min_tls_l">
+        <property name="text">
+         <string>Minimum TLS version</string>
+        </property>
+        <property name="buddy">
+         <cstring>http_min_tls</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1">
+       <widget class="NoWheelComboBox" name="http_min_tls"/>
+      </item>
+      <item row="8" column="0">
+       <widget class="QLabel" name="http_max_tls_l">
+        <property name="text">
+         <string>Maximum TLS version</string>
+        </property>
+        <property name="buddy">
+         <cstring>http_max_tls</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="1">
+       <widget class="NoWheelComboBox" name="http_max_tls"/>
+      </item>
+      <item row="9" column="0">
+       <widget class="QLabel" name="http_fingerprint_l">
+        <property name="text">
+         <string>uTLS fingerprint</string>
+        </property>
+        <property name="buddy">
+         <cstring>http_fingerprint</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="1">
+       <widget class="NoWheelComboBox" name="http_fingerprint"/>
+      </item>
+      <item row="10" column="0" colspan="2">
+       <widget class="QCheckBox" name="http_insecure">
+        <property name="text">
+         <string>Allow insecure certificates</string>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="0" colspan="2">
+       <widget class="QCheckBox" name="http_disable_sni">
+        <property name="text">
+         <string>Disable SNI</string>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="0" colspan="2">
+       <widget class="QCheckBox" name="http_fragment">
+        <property name="text">
+         <string>Fragment the TLS handshake</string>
+        </property>
+       </widget>
+      </item>
+      <item row="13" column="0">
+       <widget class="QLabel" name="http_fragment_delay_l">
+        <property name="text">
+         <string>Fragment fallback delay (ms)</string>
+        </property>
+        <property name="buddy">
+         <cstring>http_fragment_delay</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="13" column="1">
+       <widget class="QLineEdit" name="http_fragment_delay"/>
+      </item>
+      <item row="14" column="0" colspan="2">
+       <widget class="QCheckBox" name="http_record_fragment">
+        <property name="text">
+         <string>Fragment TLS records</string>
+        </property>
+       </widget>
+      </item>
+      <item row="15" column="0" colspan="2">
+       <widget class="QCheckBox" name="http_mixed_case_sni">
+        <property name="text">
+         <string>Mixed-case SNI</string>
+        </property>
+       </widget>
+      </item>
+      <item row="16" column="0">
+       <widget class="QLabel" name="http_timeout_l">
+        <property name="text">
+         <string>Timeout (ms)</string>
+        </property>
+        <property name="buddy">
+         <cstring>http_timeout</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="16" column="1">
+       <widget class="QLineEdit" name="http_timeout"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="config_box">
+     <property name="title">
+      <string>Config test</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <layout class="QFormLayout" name="config_form">
+      <item row="0" column="0" colspan="2">
+       <widget class="QLabel" name="config_intro">
+        <property name="text">
+         <string>Candidates that pass the probes are tested through a copy of this profile pointed at each of them.</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::TextFormat::PlainText</enum>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+        <property name="colorRole" stdset="0">
+         <string notr="true">muted</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="config_profile_l">
+        <property name="text">
+         <string>Profile</string>
+        </property>
+        <property name="buddy">
+         <cstring>config_profile</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="NoWheelComboBox" name="config_profile"/>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="config_url_l">
+        <property name="text">
+         <string>Test URL</string>
+        </property>
+        <property name="buddy">
+         <cstring>config_url</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="config_url"/>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="config_timeout_l">
+        <property name="text">
+         <string>Timeout (ms)</string>
+        </property>
+        <property name="buddy">
+         <cstring>config_timeout</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="config_timeout"/>
+      </item>
+      <item row="4" column="0" colspan="2">
+       <widget class="QCheckBox" name="config_warm">
+        <property name="text">
+         <string>Report warm latency (two requests per target)</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="warp_box">
+     <property name="title">
+      <string>WARP test</string>
+     </property>
+     <layout class="QFormLayout" name="warp_form">
+      <item row="0" column="0" colspan="2">
+       <widget class="QLabel" name="warp_intro">
+        <property name="text">
+         <string>Candidates that pass the probes are tested by connecting to WARP through them.</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::TextFormat::PlainText</enum>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+        <property name="colorRole" stdset="0">
+         <string notr="true">muted</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="warp_mode_l">
+        <property name="text">
+         <string>Mode</string>
+        </property>
+        <property name="buddy">
+         <cstring>warp_mode</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="NoWheelComboBox" name="warp_mode"/>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="warp_http_mode_l">
+        <property name="text">
+         <string>MASQUE transport</string>
+        </property>
+        <property name="buddy">
+         <cstring>warp_http_mode</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="NoWheelComboBox" name="warp_http_mode"/>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="warp_identity_l">
+        <property name="text">
+         <string>Identity</string>
+        </property>
+        <property name="buddy">
+         <cstring>warp_identity</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="NoWheelComboBox" name="warp_identity"/>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="warp_register_row_l">
+        <property name="text">
+         <string>Device</string>
+        </property>
+        <property name="buddy">
+         <cstring>warp_register</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QWidget" name="warp_register_row">
+        <layout class="QHBoxLayout" name="warp_register_layout" stretch="1,0">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="warp_identity_status">
+           <property name="textFormat">
+            <enum>Qt::TextFormat::PlainText</enum>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="warp_register">
+           <property name="text">
+            <string>Register</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="warp_profile_l">
+        <property name="text">
+         <string>Profile</string>
+        </property>
+        <property name="buddy">
+         <cstring>warp_profile</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="NoWheelComboBox" name="warp_profile"/>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="warp_mtu_l">
+        <property name="text">
+         <string>MTU</string>
+        </property>
+        <property name="buddy">
+         <cstring>warp_mtu</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QLineEdit" name="warp_mtu"/>
+      </item>
+      <item row="7" column="0">
+       <widget class="QLabel" name="warp_sni_l">
+        <property name="text">
+         <string>SNI</string>
+        </property>
+        <property name="buddy">
+         <cstring>warp_sni</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1">
+       <widget class="QLineEdit" name="warp_sni">
+        <property name="placeholderText">
+         <string notr="true">consumer-masque.cloudflareclient.com</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="0" colspan="2">
+       <widget class="QCheckBox" name="warp_quic_opener">
+        <property name="text">
+         <string>QUIC opener</string>
+        </property>
+        <property name="toolTip">
+         <string>Sends a decoy packet before each UDP flow to get past QUIC blocking.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="0">
+       <widget class="QLabel" name="warp_jc_l">
+        <property name="text">
+         <string>Junk packets (Jc)</string>
+        </property>
+        <property name="buddy">
+         <cstring>warp_jc</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="1">
+       <widget class="QLineEdit" name="warp_jc"/>
+      </item>
+      <item row="10" column="0">
+       <widget class="QLabel" name="warp_jmin_l">
+        <property name="text">
+         <string>Junk minimum size (Jmin)</string>
+        </property>
+        <property name="buddy">
+         <cstring>warp_jmin</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="1">
+       <widget class="QLineEdit" name="warp_jmin"/>
+      </item>
+      <item row="11" column="0">
+       <widget class="QLabel" name="warp_jmax_l">
+        <property name="text">
+         <string>Junk maximum size (Jmax)</string>
+        </property>
+        <property name="buddy">
+         <cstring>warp_jmax</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="1">
+       <widget class="QLineEdit" name="warp_jmax"/>
+      </item>
+      <item row="12" column="0">
+       <widget class="QLabel" name="warp_i1_l">
+        <property name="text">
+         <string notr="true">I1</string>
+        </property>
+        <property name="buddy">
+         <cstring>warp_i1</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="1">
+       <widget class="QLineEdit" name="warp_i1"/>
+      </item>
+      <item row="13" column="0">
+       <widget class="QLabel" name="warp_i2_l">
+        <property name="text">
+         <string notr="true">I2</string>
+        </property>
+        <property name="buddy">
+         <cstring>warp_i2</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="13" column="1">
+       <widget class="QLineEdit" name="warp_i2"/>
+      </item>
+      <item row="14" column="0">
+       <widget class="QLabel" name="warp_i3_l">
+        <property name="text">
+         <string notr="true">I3</string>
+        </property>
+        <property name="buddy">
+         <cstring>warp_i3</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="14" column="1">
+       <widget class="QLineEdit" name="warp_i3"/>
+      </item>
+      <item row="15" column="0">
+       <widget class="QLabel" name="warp_i4_l">
+        <property name="text">
+         <string notr="true">I4</string>
+        </property>
+        <property name="buddy">
+         <cstring>warp_i4</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="15" column="1">
+       <widget class="QLineEdit" name="warp_i4"/>
+      </item>
+      <item row="16" column="0">
+       <widget class="QLabel" name="warp_i5_l">
+        <property name="text">
+         <string notr="true">I5</string>
+        </property>
+        <property name="buddy">
+         <cstring>warp_i5</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="16" column="1">
+       <widget class="QLineEdit" name="warp_i5"/>
+      </item>
+      <item row="17" column="0">
+       <widget class="QLabel" name="warp_url_l">
+        <property name="text">
+         <string>Test URL</string>
+        </property>
+        <property name="buddy">
+         <cstring>warp_url</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="17" column="1">
+       <widget class="QLineEdit" name="warp_url"/>
+      </item>
+      <item row="18" column="0">
+       <widget class="QLabel" name="warp_timeout_l">
+        <property name="text">
+         <string>Timeout (ms)</string>
+        </property>
+        <property name="buddy">
+         <cstring>warp_timeout</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="18" column="1">
+       <widget class="QLineEdit" name="warp_timeout"/>
+      </item>
+      <item row="19" column="0" colspan="2">
+       <widget class="QCheckBox" name="warp_warm">
+        <property name="text">
+         <string>Report warm latency (two requests per target)</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="resolver_box">
+     <property name="title">
+      <string>DNS tunnel test</string>
+     </property>
+     <layout class="QFormLayout" name="resolver_form">
+      <item row="0" column="0" colspan="2">
+       <widget class="QLabel" name="resolver_intro">
+        <property name="text">
+         <string>Each address is tried as the only resolver of this profile; those that relay its tunnel are kept.</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::TextFormat::PlainText</enum>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+        <property name="colorRole" stdset="0">
+         <string notr="true">muted</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="resolver_profile_l">
+        <property name="text">
+         <string>Profile</string>
+        </property>
+        <property name="buddy">
+         <cstring>resolver_profile</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="NoWheelComboBox" name="resolver_profile"/>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="resolver_level_l">
+        <property name="text">
+         <string>Test</string>
+        </property>
+        <property name="buddy">
+         <cstring>resolver_level</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="NoWheelComboBox" name="resolver_level"/>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="resolver_timeout_l">
+        <property name="text">
+         <string>Timeout (ms)</string>
+        </property>
+        <property name="buddy">
+         <cstring>resolver_timeout</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="resolver_timeout">
+        <property name="toolTip">
+         <string>Time limit per resolver. Empty: the test's default.</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>NoWheelComboBox</class>
+   <extends>QComboBox</extends>
+   <header>include/ui/utils/NoWheelComboBox.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

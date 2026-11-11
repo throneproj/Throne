@@ -58,7 +58,9 @@ public:
         });
 
         test_filter = new QLineEdit(this->viewport()); 
-        test_filter->setPlaceholderText(tr("Filter by country..."));
+        test_filter->setPlaceholderText(tr("Filter by country or service..."));
+        test_filter->setToolTip(tr("Countries and working services, e.g. \"DE gemini\" or \"ai\".\n"
+                                   "\"!netflix\" finds profiles Netflix refused."));
         test_filter->setClearButtonEnabled(true);
         connect(test_filter, &QLineEdit::textChanged, [this](const QString &text) {
             emit testFilterChanged(text);

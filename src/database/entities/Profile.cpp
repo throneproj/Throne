@@ -116,18 +116,12 @@ namespace Configs
     QString Profile::DisplayTestResult() const {
         auto group = dataManager->groupsRepo->GetGroup(gid);
         if (group == nullptr) return "";
-        const auto withServiceMarks = [this, &group](QString text) {
-            const auto marks = group->show_service_checks ? DisplayServiceMarks() : QString();
-            if (marks.isEmpty()) return text;
-            if (!text.isEmpty() && !text.endsWith(QLatin1Char(' '))) text += QLatin1Char(' ');
-            return text + marks;
-        };
         QString result;
         if (!test_country.isEmpty()) result += UNICODE_LRO + CountryCodeToFlag(test_country) + " ";
         if (latency == kLatencyConnectOnly) {
-            return withServiceMarks(QObject::tr("Connect OK"));
+            return QObject::tr("Connect OK");
         } else if (latency < 0) {
-            return withServiceMarks(QObject::tr("Unavailable"));
+            return QObject::tr("Unavailable");
         } else if (latency > 0) {
             result += QString("%1 ms").arg(latency);
         }
@@ -136,7 +130,7 @@ namespace Configs
         if (!dl_speed.isEmpty() && dl_speed != "N/A" && showSpeed) result += " ↓" + dl_speed;
         if (!ul_speed.isEmpty() && ul_speed != "N/A" && showSpeed) result += " ↑" + ul_speed;
         if (!ip_out.isEmpty() && showIP) result += " 🌐" + ip_out;
-        return withServiceMarks(result);
+        return result;
     }
 
     QString Profile::DisplayServiceMarks() const {

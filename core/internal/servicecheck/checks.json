@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "revision": 2026111101,
+  "revision": 2026111102,
   "categories": [
     {"id": "ai", "name": "AI", "icon": "🤖"},
     {"id": "streaming", "name": "Streaming", "icon": "🎬"},
@@ -55,11 +55,12 @@
       "region": [
         {"from": "body", "match": ",2,1,200,\"([A-Z]{3})\""}
       ],
-      "deny_regions": ["CN", "HK", "MO", "RU", "BY", "IR", "KP", "SY", "CU", "AF"],
       "rules": [
         {"if": [{"status": ["2xx"], "url": "^https://consent\\."}], "result": "unknown", "note": "Consent page"},
-        {"if": [{"status": ["2xx"], "url": "^https://gemini\\.google\\.com/"}], "result": "available"},
-        {"if": [{"status": ["403", "429"]}], "result": "blocked"}
+        {"if": [{"status": ["2xx"], "url": "^https://gemini\\.google\\.com/", "body": "45631641(?:\\\\?\":|,null,)true"}], "result": "available"},
+        {"if": [{"status": ["2xx"], "url": "^https://gemini\\.google\\.com/", "body": "45631641(?:\\\\?\":|,null,)false"}], "result": "partial", "note": "Refused when signed out; a signed-in account can still work"},
+        {"if": [{"status": ["403", "429"]}], "result": "blocked"},
+        {"if": [{"status": ["2xx"], "url": "^https://gemini\\.google\\.com/"}], "result": "unknown", "note": "No availability flag on the page"}
       ]
     },
     {

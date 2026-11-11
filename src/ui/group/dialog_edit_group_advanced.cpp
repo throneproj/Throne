@@ -168,15 +168,13 @@ DialogEditGroupAdvanced::DialogEditGroupAdvanced(const Configs::SubscriptionOpti
     ADD_ASTERISK(this)
     form->markAll();
 
-    // QScrollArea::sizeHint() caps at 24 font heights, so the window is sized off the content; a short screen scrolls it instead.
+    // QScrollArea::sizeHint() caps at 36x24 font cells: the width follows the content, the height stays capped and scrolls.
     for (auto *nested : ui->scroll_content->findChildren<QLayout *>()) nested->activate();
     const auto margins = layout()->contentsMargins();
-    const auto content = ui->scroll_content->sizeHint();
-    const int frame = 2 * ui->scroll->frameWidth();
-    const QSize full(content.width() + frame + ui->scroll->verticalScrollBar()->sizeHint().width() + margins.left() + margins.right(),
-                     content.height() + frame + qMax(0, layout()->spacing()) + ui->buttonBox->sizeHint().height() + margins.top() + margins.bottom());
+    const int width = ui->scroll_content->sizeHint().width() + 2 * ui->scroll->frameWidth() +
+                      ui->scroll->verticalScrollBar()->sizeHint().width() + margins.left() + margins.right();
     const auto *scr = screen() != nullptr ? screen() : QGuiApplication::primaryScreen();
-    if (scr != nullptr) resize(full.expandedTo(QSize(400, 0)).boundedTo(scr->availableGeometry().size()));
+    if (scr != nullptr) resize(QSize(width, sizeHint().height()).expandedTo(QSize(400, 0)).boundedTo(scr->availableGeometry().size()));
 }
 
 DialogEditGroupAdvanced::~DialogEditGroupAdvanced() {

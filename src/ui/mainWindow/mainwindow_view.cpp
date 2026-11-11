@@ -181,7 +181,7 @@ void MainWindow::updateLogFilterFields() {
 void MainWindow::applyProfileFilters()
 {
     if (!profilesFilterModel) return;
-    profilesFilterModel->setFilters(typeFilterString, addressFilterString, nameFilterString, countryFilterString);
+    profilesFilterModel->setFilters(typeFilterString, addressFilterString, nameFilterString, testFilterString);
     refresh_proxy_list_column_size();
 }
 

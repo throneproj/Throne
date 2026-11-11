@@ -4,7 +4,6 @@
 #include <QCheckBox>
 #include <QClipboard>
 #include <QCursor>
-#include <QFormLayout>
 #include <QGroupBox>
 #include <QGuiApplication>
 #include <QHeaderView>
@@ -42,19 +41,9 @@ namespace {
     constexpr int kScanInstanceTuneNoteColumn = 3;
     constexpr int kScanInstanceTuneColumns = 4;
 
-    QLineEdit *scanInstanceTuneNumberEdit(QWidget *parent, int minimum, int maximum, int defaultValue) {
-        auto *edit = new QLineEdit(parent);
+    void scanInstanceTuneNumber(QLineEdit *edit, int minimum, int maximum, int defaultValue) {
         edit->setValidator(new QIntValidator(minimum, maximum, edit));
         edit->setPlaceholderText(QString::number(defaultValue));
-        return edit;
-    }
-
-    QLabel *scanInstanceTuneHint(const QString &text, QWidget *parent) {
-        auto *label = new QLabel(text, parent);
-        label->setWordWrap(true);
-        label->setTextFormat(Qt::PlainText);
-        label->setProperty("colorRole", QStringLiteral("muted"));
-        return label;
     }
 
     void scanInstanceTuneNotice(QWidget *parent, QMessageBox::Icon icon, const QString &title, const QString &text) {
@@ -89,138 +78,82 @@ namespace {
 
 void DialogScanInstance::buildTunePhase(QVBoxLayout *layout) {
     const auto &tuneDefaults = defaults.tune;
+    tuneUi = new Ui::ScanTuneSettings;
+    auto *page = new QWidget(ui->phases_content);
+    tuneUi->setupUi(page);
+    layout->addWidget(page);
 
-    tuneProfileBox = new QGroupBox(tr("Profile"), ui->phases_content);
-    auto *profileForm = new QFormLayout(tuneProfileBox);
-    profileForm->addRow(scanInstanceTuneHint(
-        tr("Variants of this profile's anti-censorship settings are tested through the core, one attempt at a time. The profile "
-           "itself changes only when you apply a result."),
-        tuneProfileBox));
-    tuneProfile = new NoWheelComboBox(tuneProfileBox);
     tuneProfileNames = new QStringListModel(this);
-    setupProfilePicker(tuneProfile, tuneProfileNames);
-    tuneProfile->lineEdit()->setPlaceholderText(tr("Select a profile…"));
-    profileForm->addRow(tr("Profile"), tuneProfile);
-    tuneProfileHint = scanInstanceTuneHint(QString(), tuneProfileBox);
-    profileForm->addRow(static_cast<QWidget *>(nullptr), tuneProfileHint);
-    layout->addWidget(tuneProfileBox);
+    setupProfilePicker(tuneUi->profile, tuneProfileNames);
+    tuneUi->profile->lineEdit()->setPlaceholderText(tr("Select a profile…"));
+    scanInstanceTuneNumber(tuneUi->mtu_min, 576, 9000, tuneDefaults.mtuMin);
+    tuneUi->mtu_max->setValidator(new QIntValidator(0, 9000, tuneUi->mtu_max));
+    scanInstanceTuneNumber(tuneUi->mtu_step, 1, 1000, tuneDefaults.mtuStep);
+    scanInstanceTuneNumber(tuneUi->mtu_bytes, 1000, 100000000, tuneDefaults.mtuBytes);
+    scanInstanceTuneNumber(tuneUi->attempts, 1, 50, tuneDefaults.attempts);
+    scanInstanceTuneNumber(tuneUi->per_minute, 1, 120, tuneDefaults.perMinute);
+    scanInstanceTuneNumber(tuneUi->max_attempts, 1, 5000, tuneDefaults.maxAttempts);
+    scanInstanceTuneNumber(tuneUi->max_minutes, 1, 1440, tuneDefaults.maxMinutes);
+    scanInstanceTuneNumber(tuneUi->timeout, 100, 60000, tuneDefaults.timeoutMs);
+    tuneUi->url->setPlaceholderText(Configs::dataManager->settingsRepo->test_latency_url);
 
-    tuneTryBox = new QGroupBox(tr("What to try"), ui->phases_content);
-    auto *tryForm = new QFormLayout(tuneTryBox);
-    tryForm->addRow(scanInstanceTuneHint(
-        tr("Each setting is first tried on its own, a switch flipped or a list value by value; the changes that help are then "
-           "combined."),
-        tuneTryBox));
-    tuneFingerprints = new QCheckBox(tr("uTLS fingerprint"), tuneTryBox);
-    tryForm->addRow(tuneFingerprints);
-    tuneFingerprintList = new QLineEdit(tuneTryBox);
-    tryForm->addRow(tr("Fingerprints to try"), tuneFingerprintList);
-    tuneFragment = new QCheckBox(tr("TLS fragment"), tuneTryBox);
-    tryForm->addRow(tuneFragment);
-    tuneFragmentDelays = new QLineEdit(tuneTryBox);
-    tryForm->addRow(tr("Fallback delays to try"), tuneFragmentDelays);
-    tuneRecordFragment = new QCheckBox(tr("TLS record fragment"), tuneTryBox);
-    tryForm->addRow(tuneRecordFragment);
-    tuneMixedCaseSni = new QCheckBox(tr("Mixed-case SNI"), tuneTryBox);
-    tryForm->addRow(tuneMixedCaseSni);
-    tuneQuicOpener = new QCheckBox(tr("QUIC opener"), tuneTryBox);
-    tryForm->addRow(tuneQuicOpener);
-    tuneMtu = new QCheckBox(tr("MTU (WireGuard)"), tuneTryBox);
-    tryForm->addRow(tuneMtu);
-    tuneMtuMin = scanInstanceTuneNumberEdit(tuneTryBox, 576, 9000, tuneDefaults.mtuMin);
-    tryForm->addRow(tr("Smallest MTU"), tuneMtuMin);
-    tuneMtuMax = new QLineEdit(tuneTryBox);
-    tuneMtuMax->setValidator(new QIntValidator(0, 9000, tuneMtuMax));
-    tuneMtuMax->setPlaceholderText(tr("The profile's own"));
-    tryForm->addRow(tr("Largest MTU"), tuneMtuMax);
-    tuneMtuStep = scanInstanceTuneNumberEdit(tuneTryBox, 1, 1000, tuneDefaults.mtuStep);
-    tryForm->addRow(tr("MTU step"), tuneMtuStep);
-    tuneMtuUrl = new QLineEdit(tuneTryBox);
-    tryForm->addRow(tr("Download URL"), tuneMtuUrl);
-    tuneMtuBytes = scanInstanceTuneNumberEdit(tuneTryBox, 1000, 100000000, tuneDefaults.mtuBytes);
-    tryForm->addRow(tr("Download size (bytes)"), tuneMtuBytes);
-    layout->addWidget(tuneTryBox);
-
-    tunePacingBox = new QGroupBox(tr("Pacing"), ui->phases_content);
-    auto *pacingForm = new QFormLayout(tunePacingBox);
-    tuneAttempts = scanInstanceTuneNumberEdit(tunePacingBox, 1, 50, tuneDefaults.attempts);
-    tuneAttempts->setToolTip(tr("A censor that resets only some handshakes needs several tries to tell a working variant from a lucky one."));
-    pacingForm->addRow(tr("Attempts per variant"), tuneAttempts);
-    tunePerMinute = scanInstanceTuneNumberEdit(tunePacingBox, 1, 120, tuneDefaults.perMinute);
-    tunePerMinute->setToolTip(tr("At most this many attempts start in any minute."));
-    pacingForm->addRow(tr("Attempts per minute"), tunePerMinute);
-    tuneMaxAttempts = scanInstanceTuneNumberEdit(tunePacingBox, 1, 5000, tuneDefaults.maxAttempts);
-    tuneMaxAttempts->setToolTip(tr("The search stops after this many attempts in all."));
-    pacingForm->addRow(tr("Attempt limit"), tuneMaxAttempts);
-    tuneMaxMinutes = scanInstanceTuneNumberEdit(tunePacingBox, 1, 1440, tuneDefaults.maxMinutes);
-    tuneMaxMinutes->setToolTip(tr("The search stops after this many minutes."));
-    pacingForm->addRow(tr("Time limit (minutes)"), tuneMaxMinutes);
-    tuneUrl = new QLineEdit(tunePacingBox);
-    tuneUrl->setPlaceholderText(Configs::dataManager->settingsRepo->test_latency_url);
-    tuneUrl->setToolTip(tr("Every attempt requests this URL through the profile. While the MTU is searched, attempts download from "
-                           "the MTU download URL instead."));
-    pacingForm->addRow(tr("Test URL"), tuneUrl);
-    tuneTimeout = scanInstanceTuneNumberEdit(tunePacingBox, 100, 60000, tuneDefaults.timeoutMs);
-    pacingForm->addRow(tr("Timeout (ms)"), tuneTimeout);
-    layout->addWidget(tunePacingBox);
-
-    connect(tuneProfile, &QComboBox::currentTextChanged, this, [this] {
+    connect(tuneUi->profile, &QComboBox::currentTextChanged, this, [this] {
         if (!loading) updateTuneControls();
     });
-    for (auto *box : {tuneFingerprints, tuneFragment, tuneMtu}) connect(box, &QCheckBox::toggled, this, [this] { updateTuneControls(); });
+    for (auto *box : {tuneUi->fingerprints, tuneUi->fragment, tuneUi->mtu}) connect(box, &QCheckBox::toggled, this, [this] { updateTuneControls(); });
     const auto updateMtuUrlHint = [this] {
         Configs::ScanTuneOptions options;
         bool ok = false;
-        const int bytes = tuneMtuBytes->hasAcceptableInput() ? tuneMtuBytes->validator()->locale().toInt(tuneMtuBytes->text(), &ok) : 0;
+        const int bytes = tuneUi->mtu_bytes->hasAcceptableInput() ? tuneUi->mtu_bytes->validator()->locale().toInt(tuneUi->mtu_bytes->text(), &ok) : 0;
         if (ok) options.mtuBytes = bytes;
-        tuneMtuUrl->setPlaceholderText(Scanner::Tune::MtuTestUrl(options));
+        tuneUi->mtu_url->setPlaceholderText(Scanner::Tune::MtuTestUrl(options));
     };
-    connect(tuneMtuBytes, &QLineEdit::textChanged, this, updateMtuUrlHint);
+    connect(tuneUi->mtu_bytes, &QLineEdit::textChanged, this, updateMtuUrlHint);
     updateMtuUrlHint();
 }
 
 void DialogScanInstance::bindTuneValidation() {
-    form->bind(tuneFingerprintList, [](const QString &text) {
+    form->bind(tuneUi->fingerprint_list, [](const QString &text) {
         QString error;
         (void) Scanner::Tune::ParseFingerprints(text, &error);
         return error;
     });
-    form->bind(tuneFragmentDelays, [](const QString &text) {
+    form->bind(tuneUi->fragment_delays, [](const QString &text) {
         QString error;
         (void) Scanner::Tune::ParseDelays(text, &error);
         return error;
     });
-    form->bind(tuneMtuUrl, Validation::Rules::Url({QStringLiteral("http"), QStringLiteral("https")}));
-    form->bind(tuneUrl, Validation::Rules::Url({QStringLiteral("http"), QStringLiteral("https")}));
+    form->bind(tuneUi->mtu_url, Validation::Rules::Url({QStringLiteral("http"), QStringLiteral("https")}));
+    form->bind(tuneUi->url, Validation::Rules::Url({QStringLiteral("http"), QStringLiteral("https")}));
 }
 
 void DialogScanInstance::loadTuneForm() {
     const auto &tune = config.tune;
     reloadTuneProfiles(tune.profileId);
-    tuneFingerprints->setChecked(tune.fingerprints);
-    tuneFingerprintList->setText(tune.fingerprintList);
-    tuneFragment->setChecked(tune.fragment);
-    tuneFragmentDelays->setText(tune.fragmentDelays);
-    tuneRecordFragment->setChecked(tune.recordFragment);
-    tuneMixedCaseSni->setChecked(tune.mixedCaseSni);
-    tuneQuicOpener->setChecked(tune.quicOpener);
-    tuneMtu->setChecked(tune.mtu);
-    tuneMtuMin->setText(QString::number(tune.mtuMin));
-    tuneMtuMax->setText(tune.mtuMax > 0 ? QString::number(tune.mtuMax) : QString());
-    tuneMtuStep->setText(QString::number(tune.mtuStep));
-    tuneMtuUrl->setText(tune.mtuUrl);
-    tuneMtuBytes->setText(QString::number(tune.mtuBytes));
-    tuneAttempts->setText(QString::number(tune.attempts));
-    tunePerMinute->setText(QString::number(tune.perMinute));
-    tuneMaxAttempts->setText(QString::number(tune.maxAttempts));
-    tuneMaxMinutes->setText(QString::number(tune.maxMinutes));
-    tuneUrl->setText(tune.url);
-    tuneTimeout->setText(QString::number(tune.timeoutMs));
+    tuneUi->fingerprints->setChecked(tune.fingerprints);
+    tuneUi->fingerprint_list->setText(tune.fingerprintList);
+    tuneUi->fragment->setChecked(tune.fragment);
+    tuneUi->fragment_delays->setText(tune.fragmentDelays);
+    tuneUi->record_fragment->setChecked(tune.recordFragment);
+    tuneUi->mixed_case_sni->setChecked(tune.mixedCaseSni);
+    tuneUi->quic_opener->setChecked(tune.quicOpener);
+    tuneUi->mtu->setChecked(tune.mtu);
+    tuneUi->mtu_min->setText(QString::number(tune.mtuMin));
+    tuneUi->mtu_max->setText(tune.mtuMax > 0 ? QString::number(tune.mtuMax) : QString());
+    tuneUi->mtu_step->setText(QString::number(tune.mtuStep));
+    tuneUi->mtu_url->setText(tune.mtuUrl);
+    tuneUi->mtu_bytes->setText(QString::number(tune.mtuBytes));
+    tuneUi->attempts->setText(QString::number(tune.attempts));
+    tuneUi->per_minute->setText(QString::number(tune.perMinute));
+    tuneUi->max_attempts->setText(QString::number(tune.maxAttempts));
+    tuneUi->max_minutes->setText(QString::number(tune.maxMinutes));
+    tuneUi->url->setText(tune.url);
+    tuneUi->timeout->setText(QString::number(tune.timeoutMs));
     updateTuneControls();
 }
 
 void DialogScanInstance::reloadTuneProfiles(int selectId) {
-    if (tuneProfile == nullptr) return;
+    if (tuneUi == nullptr) return;
     const QScopedValueRollback guard(loading, true);
     auto *profiles = Configs::dataManager->profilesRepo.get();
     if (const auto revision = profiles->Revision(); revision != tuneSupportedRevision) {
@@ -237,7 +170,7 @@ void DialogScanInstance::reloadTuneProfiles(int selectId) {
     for (const auto &profile : profiles->GetProfileBatch(unknown))
         tuneSupported.insert(profile->id, Scanner::Tune::Unsupported(*profile).isEmpty());
 
-    tuneProfile->clear();
+    tuneUi->profile->clear();
     tuneProfileIds.clear();
     QStringList names;
     QString selectedName;
@@ -253,31 +186,31 @@ void DialogScanInstance::reloadTuneProfiles(int selectId) {
             names << display;
             if (!tuneProfileIds.contains(display)) tuneProfileIds.insert(display, id);
             if (id == selectId) selectedName = display;
-            if (tuneProfile->count() < tuneProfile->maxCount()) tuneProfile->addItem(display, id);
+            if (tuneUi->profile->count() < tuneUi->profile->maxCount()) tuneUi->profile->addItem(display, id);
         }
     }
     tuneProfileNames->setStringList(names);
 
-    const int index = selectId >= 0 ? tuneProfile->findData(selectId) : -1;
-    if (index >= 0) tuneProfile->setCurrentIndex(index);
-    else if (!selectedName.isEmpty()) tuneProfile->setCurrentText(selectedName);
-    else tuneProfile->setCurrentIndex(-1);
+    const int index = selectId >= 0 ? tuneUi->profile->findData(selectId) : -1;
+    if (index >= 0) tuneUi->profile->setCurrentIndex(index);
+    else if (!selectedName.isEmpty()) tuneUi->profile->setCurrentText(selectedName);
+    else tuneUi->profile->setCurrentIndex(-1);
     updateTuneControls();
 }
 
 int DialogScanInstance::selectedTuneProfile() const {
-    if (tuneProfile == nullptr) return -1;
-    const QString text = tuneProfile->currentText();
+    if (tuneUi == nullptr) return -1;
+    const QString text = tuneUi->profile->currentText();
     if (text.trimmed().isEmpty()) return -1;
     // The current item first: two profiles of one group can share a name.
-    if (const int current = tuneProfile->currentIndex(); current >= 0 && tuneProfile->itemText(current) == text)
-        return tuneProfile->itemData(current).toInt();
-    if (const int index = tuneProfile->findText(text, Qt::MatchExactly); index >= 0) return tuneProfile->itemData(index).toInt();
+    if (const int current = tuneUi->profile->currentIndex(); current >= 0 && tuneUi->profile->itemText(current) == text)
+        return tuneUi->profile->itemData(current).toInt();
+    if (const int index = tuneUi->profile->findText(text, Qt::MatchExactly); index >= 0) return tuneUi->profile->itemData(index).toInt();
     return tuneProfileIds.value(text, tuneProfileIds.value(text.trimmed(), -1));
 }
 
 void DialogScanInstance::updateTuneControls() {
-    if (tuneTryBox == nullptr) return;
+    if (tuneUi == nullptr) return;
     using namespace Scanner::Tune;
     const int id = selectedTuneProfile();
     const auto profile = id >= 0 ? Configs::dataManager->profilesRepo->GetProfile(id) : nullptr;
@@ -299,7 +232,7 @@ void DialogScanInstance::updateTuneControls() {
         if (!keys.contains(QLatin1String(kRecordFragment))) recordFragmentWhy = noTls;
         if (!keys.contains(QLatin1String(kMixedCaseSni))) mixedCaseSniWhy = tls ? tr("Needs SNI turned on with a domain name, and no REALITY.") : noTls;
         if (!keys.contains(QLatin1String(kQuicOpener)))
-            quicOpenerWhy = tr("Needs a profile that opens UDP flows to its server: QUIC, MASQUE over HTTP/3 or WireGuard.");
+            quicOpenerWhy = tr("Needs QUIC, MASQUE over HTTP/3 or WireGuard.");
         if (space.mtuCurrent <= 0) mtuWhy = tr("Only WireGuard and AmneziaWG profiles have an MTU to search.");
     }
 
@@ -308,25 +241,19 @@ void DialogScanInstance::updateTuneControls() {
         control->setEnabled(why.isEmpty() && on);
         control->setToolTip(why.isEmpty() ? tip : why);
     };
-    mark(tuneFingerprints, fingerprintWhy, {}, true);
-    mark(tuneFingerprintList, fingerprintWhy, tr("Comma-separated uTLS fingerprints; \"off\" tries Go's own TLS."),
-         tuneFingerprints->isChecked());
-    mark(tuneFragment, fragmentWhy, {}, true);
-    mark(tuneFragmentDelays, delayWhy,
-         tr("Comma-separated durations such as 100ms, 500ms, 1s, tried on the best variant that fragments. Only the built-in "
-            "fragment implementation uses them."),
-         tuneFragment->isChecked());
-    mark(tuneRecordFragment, recordFragmentWhy, {}, true);
-    mark(tuneMixedCaseSni, mixedCaseSniWhy, {}, true);
-    mark(tuneQuicOpener, quicOpenerWhy,
-         tr("Sends one decoy packet before each new UDP flow, so networks that block QUIC by its first packet let the real "
-            "handshake through."),
-         true);
-    mark(tuneMtu, mtuWhy, tr("Finds the largest MTU that still carries a bulk download through the tunnel."), true);
-    const bool mtuOn = tuneMtu->isChecked();
-    for (QLineEdit *edit : {tuneMtuMin, tuneMtuMax, tuneMtuStep}) mark(edit, mtuWhy, {}, mtuOn);
-    mark(tuneMtuUrl, mtuWhy, tr("Downloaded through the tunnel to check each MTU. Empty: Cloudflare's speed test."), mtuOn);
-    mark(tuneMtuBytes, mtuWhy, tr("How many bytes each MTU check downloads."), mtuOn);
+    mark(tuneUi->fingerprints, fingerprintWhy, {}, true);
+    mark(tuneUi->fingerprint_list, fingerprintWhy, tr("Comma-separated uTLS fingerprints; \"off\" tries Go's own TLS."),
+         tuneUi->fingerprints->isChecked());
+    mark(tuneUi->fragment, fragmentWhy, {}, true);
+    mark(tuneUi->fragment_delays, delayWhy, tr("Comma-separated, e.g. 100ms, 500ms, 1s."), tuneUi->fragment->isChecked());
+    mark(tuneUi->record_fragment, recordFragmentWhy, {}, true);
+    mark(tuneUi->mixed_case_sni, mixedCaseSniWhy, {}, true);
+    mark(tuneUi->quic_opener, quicOpenerWhy, tr("Sends a decoy packet before each UDP flow to get past QUIC blocking."), true);
+    mark(tuneUi->mtu, mtuWhy, tr("Finds the largest MTU that still works."), true);
+    const bool mtuOn = tuneUi->mtu->isChecked();
+    for (QLineEdit *edit : {tuneUi->mtu_min, tuneUi->mtu_max, tuneUi->mtu_step}) mark(edit, mtuWhy, {}, mtuOn);
+    mark(tuneUi->mtu_url, mtuWhy, tr("Downloaded to check each MTU. Empty: Cloudflare's speed test."), mtuOn);
+    mark(tuneUi->mtu_bytes, mtuWhy, tr("How many bytes each MTU check downloads."), mtuOn);
 
     QString hint = tr("Choose the profile whose settings to search.");
     if (profile != nullptr) {
@@ -341,7 +268,7 @@ void DialogScanInstance::updateTuneControls() {
             hint = tr("\"%1\" cannot be searched. %2.").arg(storedName, reason);
         }
     }
-    tuneProfileHint->setText(hint);
+    tuneUi->profile_hint->setText(hint);
 }
 
 void DialogScanInstance::setupTuneResults() {
@@ -362,16 +289,10 @@ void DialogScanInstance::setupTuneResults() {
     for (QWidget *listOnly : {static_cast<QWidget *>(ui->save_as_list), static_cast<QWidget *>(ui->export_results),
                               static_cast<QWidget *>(ui->remove_results)})
         listOnly->hide();
-    tuneApply = new QPushButton(tr("Apply to profile"), ui->tab_results);
-    tuneApply->setToolTip(tr("Writes the selected variant into the profile's own settings; global defaults stay as they are."));
-    tuneSaveNew = new QPushButton(tr("Save as new profile"), ui->tab_results);
-    tuneSaveNew->setToolTip(tr("Adds a copy of the profile with the selected variant to its group; the profile itself stays as it is."));
-    ui->layout_results_buttons->insertWidget(0, tuneApply);
-    ui->layout_results_buttons->insertWidget(1, tuneSaveNew);
     ui->copy_results->setToolTip(tr("Copies the table as tab-separated text."));
 
-    connect(tuneApply, &QPushButton::clicked, this, [this] { applyTuneResult(); });
-    connect(tuneSaveNew, &QPushButton::clicked, this, [this] { saveTuneResultAsProfile(); });
+    connect(ui->apply_result, &QPushButton::clicked, this, [this] { applyTuneResult(); });
+    connect(ui->save_result_as_profile, &QPushButton::clicked, this, [this] { saveTuneResultAsProfile(); });
     connect(ui->copy_results, &QPushButton::clicked, this, [this] { copyTuneResults(); });
     connect(view->selectionModel(), &QItemSelectionModel::selectionChanged, this, [this] {
         if (!tuneFilling) tuneSelectionPinned = selectedTuneTrial() >= 0;
@@ -466,8 +387,8 @@ void DialogScanInstance::reloadTuneResults() {
 void DialogScanInstance::updateTuneActions() {
     if (tuneModel == nullptr) return;
     const bool usable = !settingsLocked && selectedTuneTrial() >= 0;
-    tuneApply->setEnabled(usable);
-    tuneSaveNew->setEnabled(usable);
+    ui->apply_result->setEnabled(usable);
+    ui->save_result_as_profile->setEnabled(usable);
     ui->copy_results->setEnabled(tuneModel->rowCount() > 0);
 }
 

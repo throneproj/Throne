@@ -4,11 +4,14 @@
 #include "include/configs/common/Outbound.h"
 #include "include/ui/setting/ThemeManager.hpp"
 #include <QApplication>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QMimeData>
 #include <QPalette>
+#include <QRegularExpression>
 
 #include "include/configs/generate.h"
-#include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
 
 ProfilesTableModel::ProfilesTableModel(QObject *parent)
@@ -132,10 +135,7 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
             if (security.compromised) return tr("Certificate checks are turned off by the \"Skip TLS certificate authentication\" setting.");
             if (security.isDangerous()) return tr("This config's traffic is not properly protected.");
         }
-        if (index.column() == ColTestResult && !profile->service_checks.isEmpty()) {
-            const auto group = Configs::dataManager->groupsRepo->GetGroup(profile->gid);
-            if (group != nullptr && group->show_service_checks) return profile->DisplayServiceToolTip();
-        }
+        if (index.column() == ColTestResult && !profile->service_checks.isEmpty()) return profile->DisplayServiceToolTip();
         return {};
     }
     if (role == Qt::ForegroundRole) {
@@ -184,10 +184,38 @@ void ProfilesTableModel::setProfileIds(const QList<int> &ids) {
 }
 
 namespace {
+    QList<ProfilesTableModel::ServiceFilterKey> serviceFilterKeys(const QString &serviceChecks) {
+        if (serviceChecks.isEmpty()) return {};
+        const auto root = QJsonDocument::fromJson(serviceChecks.toUtf8()).object();
+        if (!root["error"].toString().isEmpty()) return {};
+        QHash<QString, QString> categoryNames;
+        for (const auto &value : root["cats"].toArray()) {
+            const auto category = value.toObject();
+            categoryNames.insert(category["id"].toString(), category["name"].toString());
+        }
+        static const QRegularExpression separators(QStringLiteral("[^\\p{L}\\p{N}]+"));
+        QList<ProfilesTableModel::ServiceFilterKey> services;
+        for (const auto &value : root["checks"].toArray()) {
+            const auto check = value.toObject();
+            const auto category = check["cat"].toString();
+            const auto status = check["status"].toString();
+            ProfilesTableModel::ServiceFilterKey service;
+            service.state = status == "available" || status == "partial" ? 1 : status == "restricted" || status == "blocked" ? -1 : 0;
+            for (const auto &name : {check["id"].toString(), check["name"].toString(), category, categoryNames.value(category)}) {
+                if (name.isEmpty()) continue;
+                service.names << name.toLower();
+                service.words << name.toLower().split(separators, Qt::SkipEmptyParts);
+            }
+            services << service;
+        }
+        return services;
+    }
+
     ProfilesTableModel::FilterKey makeFilterKey(const std::shared_ptr<Configs::Profile> &profile) {
         ProfilesTableModel::FilterKey key;
         key.type = profile->type;
         key.country = profile->test_country;
+        key.services = serviceFilterKeys(profile->service_checks);
         if (profile->outbound) {
             key.address = profile->outbound->server;
             key.effectiveAddress = Configs::EffectiveEndpointHost(profile);
