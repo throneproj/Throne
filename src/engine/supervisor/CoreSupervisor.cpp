@@ -7,6 +7,7 @@
 #include "include/global/Configs.hpp"
 #include "include/global/Logger.hpp"
 #include "include/global/Notice.hpp"
+#include "include/sys/CoreElevation.hpp"
 #include "include/sys/KillSwitch.hpp"
 #include "include/sys/Process.hpp"
 
@@ -445,6 +446,9 @@ namespace Engine {
         if (ok) {
             Configs::SetKnownAdmin(privileged);
             if (coreSupervisorProbeReply) Configs::SetKnownCapabilities(*coreSupervisorProbeReply);
+            QMutexLocker lock(&m_processMutex);
+            const bool throughGrant = m_process && m_process->generation.load() == gen && m_process->through_grant.load();
+            Sys::CoreElevation::NoteCoreReport(throughGrant, privileged);
         }
         if (ok && coreSupervisorProbeReply && coreSupervisorProbeReply->corePid > 0) {
             QMutexLocker lock(&m_processMutex);

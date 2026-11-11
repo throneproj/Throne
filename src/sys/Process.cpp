@@ -122,6 +122,7 @@ namespace Configs_sys {
 
         auto env = Sys::ServiceManager::ChildEnvironment();
         Sys::CoreElevation::ApplyEnvironment(env);
+        through_grant = env.contains(QString::fromLatin1(Sys::CoreElevation::kTaskEnv));
         env.insert("THRONE_CORE_SOCKET", m_socketName);
         // Turns an unrecovered Go panic into a real abort, so all goroutine stacks are dumped and WER captures the core too.
         env.insert("GOTRACEBACK", "crash");

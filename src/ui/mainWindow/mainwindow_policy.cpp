@@ -18,6 +18,20 @@
 #include "include/sys/macos/MacOS.h"
 #endif
 
+#ifdef Q_OS_WIN
+namespace {
+    bool policyOfferElevatedRestart(QWidget *parent, const QString &text) {
+        QMessageBox box(QMessageBox::Warning, software_name, text, QMessageBox::NoButton, parent);
+        auto *restart = box.addButton(MainWindow::tr("Restart as Administrator"), QMessageBox::AcceptRole);
+        auto *cancel = box.addButton(QMessageBox::Cancel);
+        box.setDefaultButton(restart);
+        box.setEscapeButton(cancel);
+        box.exec();
+        return box.clickedButton() == restart;
+    }
+} // namespace
+#endif
+
 void MainWindow::geoAssetMissingCategory(const QString &contextName, const QString &needed, const QString &whichFile) {
     MessageBoxWarning(
         tr("Geo asset missing category"),
@@ -69,8 +83,8 @@ void MainWindow::killSwitchProblem() {
     // The guard still blocks and the core cannot join its group: neither a retry nor more privileges changes that.
     QPushButton *fix = nullptr;
 #ifdef Q_OS_WIN
-    // Only an administrator's own account can grant the core; anyone else needs the whole Throne elevated.
-    const bool restartElevated = !Sys::CoreElevation::CanGrant();
+    // Only an administrator's own account can grant the core, and a grant that did not take effect is not fixed by another.
+    const bool restartElevated = !Sys::CoreElevation::CanGrant() || Sys::CoreElevation::GrantIneffective();
 #else
     const bool restartElevated = false;
 #endif
@@ -206,35 +220,42 @@ bool MainWindow::requestCorePrivileges() {
     }
 #endif
 #ifdef Q_OS_WIN
+    if (Sys::CoreElevation::GrantIneffective()) {
+        if (policyOfferElevatedRestart(GetMessageBoxParent(),
+                                       tr("The core did not get administrator rights, although they were granted. The log shows why.\n\n"
+                                          "Restart Throne as administrator to use Tun Mode and the kill switch."))) {
+            this->exit_reason = ExitReason::RestartWithTun;
+            on_menu_exit_triggered();
+        }
+        return false;
+    }
     if (Sys::CoreElevation::CanGrant()) {
         QMessageBox box(QMessageBox::Warning, software_name,
                         tr("Tun Mode and the kill switch need the core to run with administrator rights.\n\n"
                            "Grant them once with a Windows confirmation; Throne itself keeps running as a standard user."),
                         QMessageBox::NoButton, GetMessageBoxParent());
         auto *grant = box.addButton(tr("Grant Privileges"), QMessageBox::AcceptRole);
-        auto *restart = box.addButton(tr("Restart as Administrator"), QMessageBox::ActionRole);
         auto *cancel = box.addButton(QMessageBox::Cancel);
         box.setDefaultButton(grant);
         box.setEscapeButton(cancel);
         box.exec();
-        if (box.clickedButton() == grant) {
-            Sys::CoreElevation::GrantAsync(this, [this](int code) {
-                const auto result = Sys::CoreElevation::ResultText(code);
-                if (code == Sys::CoreElevation::HelperOk) {
-                    LOG_INFO("core elevation grant: " + result);
-                    // The core restarts elevated, like after the Linux grant.
-                    StopVPNProcess();
-                } else if (code == -1) {
-                    LOG_INFO("core elevation grant: " + result);
-                } else {
-                    LOG_WARN("core elevation grant: " + result);
-                    MessageBoxWarning(software_name, result);
+        if (box.clickedButton() != grant) return false;
+        Sys::CoreElevation::GrantAsync(this, [this](int code) {
+            const auto result = Sys::CoreElevation::ResultText(code);
+            if (code == Sys::CoreElevation::HelperOk) {
+                LOG_INFO("core elevation grant: " + result);
+                // The core restarts elevated, like after the Linux grant.
+                StopVPNProcess();
+            } else if (code == -1) {
+                LOG_INFO("core elevation grant: " + result);
+            } else {
+                LOG_WARN("core elevation grant: " + result);
+                if (policyOfferElevatedRestart(GetMessageBoxParent(), result + "\n\n" + tr("Throne can restart as administrator instead."))) {
+                    this->exit_reason = ExitReason::RestartWithTun;
+                    on_menu_exit_triggered();
                 }
-            });
-        } else if (box.clickedButton() == restart) {
-            this->exit_reason = ExitReason::RestartWithTun;
-            on_menu_exit_triggered();
-        }
+            }
+        });
         return false;
     }
     auto n = QMessageBox::warning(GetMessageBoxParent(), software_name, tr("Please run Throne as admin"), QMessageBox::Yes | QMessageBox::No);

@@ -11223,6 +11223,18 @@ Grant them once with a Windows confirmation; Throne itself keeps running as a st
         <source>Find working settings…</source>
         <translation>查找可用设置…</translation>
     </message>
+    <message>
+        <source>The core did not get administrator rights, although they were granted. The log shows why.
+
+Restart Throne as administrator to use Tun Mode and the kill switch.</source>
+        <translation>虽然已授予管理员权限，但核心未能以管理员身份运行。原因请查看日志。
+
+请以管理员身份重启 Throne 以使用 Tun 模式和急停开关。</translation>
+    </message>
+    <message>
+        <source>Throne can restart as administrator instead.</source>
+        <translation>也可以改为以管理员身份重启 Throne。</translation>
+    </message>
 </context>
 <context>
     <name>MuxSettingsWidget</name>

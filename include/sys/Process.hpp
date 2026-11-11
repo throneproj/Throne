@@ -49,6 +49,9 @@ namespace Configs_sys {
         // A core adopts the kill switch group (Linux/macOS) only at startup; this records whether the running one was asked to.
         std::atomic<bool> guard_identity = false;
 
+        // Windows: whether the running core was asked to start elevated through the grant.
+        std::atomic<bool> through_grant = false;
+
         // Bumped by each Start(), so an exit or connection can be matched to the attempt that produced it.
         std::atomic<quint64> generation = 0;
 

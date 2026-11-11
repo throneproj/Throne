@@ -153,14 +153,13 @@ namespace GuiStartup {
         {
             settings->windows_set_admin = false; // so that if permission denied, we will run as user on the next run
             settings->Save();
-            if (Sys::CoreElevation::CanGrant()) {
-                // The grant's one UAC prompt replaces the elevated relaunch; declined, Throne carries on unelevated.
-                if (elevationStatus != Sys::CoreElevation::Status::Granted) {
-                    const int code = Sys::CoreElevation::Grant();
-                    const QString outcome = "core elevation grant: " + Sys::CoreElevation::ResultText(code);
-                    if (code == Sys::CoreElevation::HelperOk || code == -1) LOG_INFO(outcome);
-                    else LOG_WARN(outcome);
-                }
+            // The grant's one UAC prompt replaces the elevated relaunch; declined, Throne carries on unelevated. With a grant
+            // already in place, the elevated session was chosen over it (it did not take effect), so the relaunch stays.
+            if (Sys::CoreElevation::CanGrant() && elevationStatus != Sys::CoreElevation::Status::Granted) {
+                const int code = Sys::CoreElevation::Grant();
+                const QString outcome = "core elevation grant: " + Sys::CoreElevation::ResultText(code);
+                if (code == Sys::CoreElevation::HelperOk || code == -1) LOG_INFO(outcome);
+                else LOG_WARN(outcome);
                 return false;
             }
             // Hand-offs already accepted are read into the pending buffers first; closing the server would drop them.

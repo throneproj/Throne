@@ -5273,6 +5273,26 @@ Grant them once with a Windows confirmation; Throne itself keeps running as a st
         <source>Find working settings…</source>
         <translation>یافتن تنظیمات کارا…</translation>
     </message>
+    <message>
+        <source>The core did not get administrator rights, although they were granted. The log shows why.
+
+Restart Throne as administrator to use Tun Mode and the kill switch.</source>
+        <translation>هسته با وجود اعطای دسترسی، با دسترسی مدیر اجرا نشد. علت در گزارش آمده است.
+
+برای استفاده از حالت Tun و کیل سوییچ، Throne را با دسترسی مدیر دوباره اجرا کنید.</translation>
+    </message>
+    <message>
+        <source>Throne can restart as administrator instead.</source>
+        <translation>به‌جای آن می‌توانید Throne را با دسترسی مدیر دوباره اجرا کنید.</translation>
+    </message>
+    <message>
+        <source>Restart as Administrator</source>
+        <translation>اجرای دوباره با دسترسی مدیر</translation>
+    </message>
+    <message>
+        <source>Grant Privileges</source>
+        <translation>اعطای دسترسی</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableFilterHeader</name>

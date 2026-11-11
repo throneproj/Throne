@@ -11124,6 +11124,18 @@ Grant them once with a Windows confirmation; Throne itself keeps running as a st
         <source>Find working settings…</source>
         <translation>Поиск рабочих настроек…</translation>
     </message>
+    <message>
+        <source>The core did not get administrator rights, although they were granted. The log shows why.
+
+Restart Throne as administrator to use Tun Mode and the kill switch.</source>
+        <translation>Ядро не получило права администратора, хотя они были предоставлены. Причина указана в журнале.
+
+Перезапустите Throne от имени администратора, чтобы использовать режим TUN и kill switch.</translation>
+    </message>
+    <message>
+        <source>Throne can restart as administrator instead.</source>
+        <translation>Вместо этого Throne можно перезапустить от имени администратора.</translation>
+    </message>
 </context>
 <context>
     <name>OtpItem</name>

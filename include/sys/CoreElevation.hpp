@@ -44,6 +44,10 @@ namespace Sys::CoreElevation {
     bool InstallDirWritable();
     // Always removes kTaskEnv, then sets it when Throne is not elevated and the grant is current.
     void ApplyEnvironment(QProcessEnvironment &env);
+    // Each privilege report of the core: whether that core was started through the grant, and whether it is privileged.
+    void NoteCoreReport(bool throughGrant, bool privileged);
+    // The grant is current, yet the last core started through it is not privileged: granting again cannot help.
+    bool GrantIneffective();
     // UAC, then the elevated helper; blocks until the helper exits. A HelperExit, or -1 when UAC was declined.
     int Grant();
     int Revoke();
@@ -69,6 +73,8 @@ namespace Sys::CoreElevation {
     inline bool CanGrant() { return false; }
     inline bool InstallDirWritable() { return true; }
     inline void ApplyEnvironment(QProcessEnvironment &env) { env.remove(QString::fromLatin1(kTaskEnv)); }
+    inline void NoteCoreReport(bool, bool) {}
+    inline bool GrantIneffective() { return false; }
     inline void *OpenWatch(qint64) { return nullptr; }
     inline bool WaitWatch(void *, int) { return true; }
     inline void CloseWatch(void *) {}

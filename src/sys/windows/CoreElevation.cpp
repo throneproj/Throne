@@ -12,6 +12,7 @@
 #include <QtEndian>
 
 #include <algorithm>
+#include <atomic>
 #include <cstring>
 #include <mutex>
 #include <optional>
@@ -43,6 +44,7 @@ namespace Sys::CoreElevation {
 
         std::mutex coreElevationMutex;
         std::optional<Status> coreElevationStatus;
+        std::atomic<bool> coreElevationGrantedCoreUnprivileged = false;
 
         struct CoreElevationInstall {
             QString gui;
@@ -480,8 +482,17 @@ namespace Sys::CoreElevation {
         env.insert(name, "\\" + coreElevationLocalInstall(coreElevationUserSid()).taskName);
     }
 
+    void NoteCoreReport(bool throughGrant, bool privileged) {
+        coreElevationGrantedCoreUnprivileged = throughGrant && !privileged;
+    }
+
+    bool GrantIneffective() {
+        return coreElevationGrantedCoreUnprivileged && CurrentStatus() == Status::Granted;
+    }
+
     int Grant() {
         const int code = coreElevationLaunch({QStringLiteral("grant"), coreElevationUserSid(), coreElevationArgPath(Logging::CrashDir())});
+        if (code == HelperOk) coreElevationGrantedCoreUnprivileged = false;
         Invalidate();
         return code;
     }
