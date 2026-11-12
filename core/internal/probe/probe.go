@@ -239,6 +239,15 @@ func LiveInstance(ctx context.Context) context.Context {
 // Dials carry a child of the batch context, not the per-request one, so cancelling the batch tears
 // them down -- and so does the closer, leaving none inside the outbound once the probe returns.
 func outboundHTTPClient(ctx context.Context, i Box, tag string, outbound adapter.Outbound) (*http.Client, func()) {
+	dial, cancelDials := outboundDial(ctx, i, tag, outbound)
+	client, closeClient := dialerHTTPClient(dial, 0)
+	return client, func() {
+		cancelDials()
+		closeClient()
+	}
+}
+
+func outboundDial(ctx context.Context, i Box, tag string, outbound adapter.Outbound) (func(ctx context.Context, network, addr string) (net.Conn, error), context.CancelFunc) {
 	dialCtx, cancelDials := context.WithCancel(ctx)
 	dial := func(_ context.Context, network, addr string) (net.Conn, error) {
 		return outbound.DialContext(dialCtx, "tcp", metadata.ParseSocksaddr(addr))
@@ -248,20 +257,13 @@ func outboundHTTPClient(ctx context.Context, i Box, tag string, outbound adapter
 			dial = tunnelResolvingDial(dialCtx, outbound)
 		}
 	}
-	client, closeClient := dialerHTTPClient(dial, 0)
-	return client, func() {
-		cancelDials()
-		closeClient()
-	}
+	return dial, cancelDials
 }
 
-// Endpoint membership, not a type assertion: plain outbounds such as direct also satisfy adapter.Endpoint.
-func tunnelEndpoints(i Box, tag string) []adapter.Endpoint {
+func walkChain(i Box, tag string, visit func(tag string, outbound adapter.Outbound)) {
 	outbounds := i.Outbound()
-	endpoints := service.FromContext[adapter.EndpointManager](i.Context())
 	visited := make(map[string]bool)
 	pending := []string{tag}
-	var tunnels []adapter.Endpoint
 	for len(pending) > 0 {
 		tag = pending[len(pending)-1]
 		pending = pending[:len(pending)-1]
@@ -273,11 +275,20 @@ func tunnelEndpoints(i Box, tag string) []adapter.Endpoint {
 		if !found {
 			continue
 		}
+		visit(tag, outbound)
+		pending = append(pending, outbound.Dependencies()...)
+	}
+}
+
+// Endpoint membership, not a type assertion: plain outbounds such as direct also satisfy adapter.Endpoint.
+func tunnelEndpoints(i Box, tag string) []adapter.Endpoint {
+	endpoints := service.FromContext[adapter.EndpointManager](i.Context())
+	var tunnels []adapter.Endpoint
+	walkChain(i, tag, func(tag string, _ adapter.Outbound) {
 		if endpoint, isEndpoint := endpoints.Get(tag); isEndpoint {
 			tunnels = append(tunnels, endpoint)
 		}
-		pending = append(pending, outbound.Dependencies()...)
-	}
+	})
 	return tunnels
 }
 
@@ -346,7 +357,9 @@ func awaitTunnels(ctx context.Context, i Box, tag string) error {
 	return nil
 }
 
+// A DNS tunnel opens its session on the first dial whether or not the request is a warm-up.
 func firstRequestTimeout(i Box, tag string, cold bool, timeout time.Duration) time.Duration {
+	timeout += dnsTunnelAllowance(i, tag)
 	if !cold {
 		return timeout
 	}

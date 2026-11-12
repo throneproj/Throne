@@ -62,15 +62,22 @@
 #include <QtDebug>
 
 namespace Qv2ray::ui::widgets {
-    AutoCompleteTextEdit::AutoCompleteTextEdit(const QString &prefix, const QStringList &sourceStrings, QWidget *parent) : QPlainTextEdit(parent) {
+    AutoCompleteTextEdit::AutoCompleteTextEdit(const QString &prefix, const QStringList &sourceStrings, QWidget *parent)
+        : AutoCompleteTextEdit(prefix, static_cast<QAbstractItemModel *>(nullptr), parent) {
+        c->setModel(new QStringListModel(sourceStrings, c));
+    }
+
+    AutoCompleteTextEdit::AutoCompleteTextEdit(const QString &prefix, QAbstractItemModel *sourceModel, QWidget *parent) : QPlainTextEdit(parent) {
         this->prefix = prefix;
         this->setLineWrapMode(QPlainTextEdit::NoWrap);
         c = new QCompleter(this);
-        c->setModel(new QStringListModel(sourceStrings, c));
+        c->setModel(sourceModel);
         c->setWidget(this);
         c->setCompletionMode(QCompleter::PopupCompletion);
         c->setCaseSensitivity(Qt::CaseInsensitive);
         c->setFilterMode(Qt::MatchContains);
+        // Program paths run long; keeping both ends shows the folder and the executable.
+        c->popup()->setTextElideMode(Qt::ElideMiddle);
         QObject::connect(c, static_cast<void (QCompleter::*)(const QString &)>(&QCompleter::activated), this, &AutoCompleteTextEdit::insertCompletion);
     }
 
@@ -91,6 +98,29 @@ namespace Qv2ray::ui::widgets {
         return tc.selectedText();
     }
 
+    // A complete value stays selected over the first match, so Enter keeps what was typed.
+    void AutoCompleteTextEdit::selectCompletion(const QString &line) {
+        const auto *model = c->completionModel();
+        int best = 0;
+        for (int row = 0, rows = model->rowCount(); row < rows; ++row) {
+            if (model->index(row, 0).data(c->completionRole()).toString() == line) {
+                best = row;
+                break;
+            }
+        }
+        c->popup()->setCurrentIndex(model->index(best, 0));
+    }
+
+    // Sized to the widest row, but capped so a long path cannot stretch the popup across the screen.
+    void AutoCompleteTextEdit::showPopup() {
+        auto *popup = c->popup();
+        const int natural = popup->sizeHintForColumn(0) + popup->verticalScrollBar()->sizeHint().width();
+        const int cap = fontMetrics().averageCharWidth() * 60;
+        QRect cr = cursorRect();
+        cr.setWidth(qMin(natural, cap));
+        c->complete(cr);
+    }
+
     QString AutoCompleteTextEdit::wordUnderCursor() const {
         QTextCursor tc = textCursor();
         tc.select(QTextCursor::WordUnderCursor);
@@ -106,11 +136,9 @@ namespace Qv2ray::ui::widgets {
             c->popup()->setCurrentIndex(c->completionModel()->index(0, 0));
         } else if (auto word = lineUnderCursor(); word != c->completionPrefix()) {
             c->setCompletionPrefix(word);
-            c->popup()->setCurrentIndex(c->completionModel()->index(0, 0));
+            selectCompletion(word);
         }
-        QRect cr = cursorRect();
-        cr.setWidth(c->popup()->sizeHintForColumn(0) + c->popup()->verticalScrollBar()->sizeHint().width());
-        c->complete(cr); // popup it up!
+        showPopup();
 
         QPlainTextEdit::focusInEvent(e);
     }
@@ -124,7 +152,7 @@ namespace Qv2ray::ui::widgets {
         const bool isTab = (e->modifiers().testFlag(Qt::NoModifier) && e->key() == Qt::Key_Tab);
         const bool isOtherSpace = e->text() == "　";
         //
-        if (isSpace && !lineUnderCursor().startsWith("processName:") && !lineUnderCursor().startsWith("processPath:") || isTab || isOtherSpace) {
+        if ((isSpace && !spacesAllowed && !lineUnderCursor().startsWith("processName:") && !lineUnderCursor().startsWith("processPath:")) || isTab || isOtherSpace) {
             QToolTip::showText(this->mapToGlobal(QPoint(0, 0)), tr("You can not input space characters here."), this, QRect{}, 2000);
             return;
         }
@@ -153,9 +181,7 @@ namespace Qv2ray::ui::widgets {
         if (lineUnderCursor().isEmpty()) {
             c->setCompletionPrefix("");
             c->popup()->setCurrentIndex(c->completionModel()->index(0, 0));
-            QRect cr = cursorRect();
-            cr.setWidth(c->popup()->sizeHintForColumn(0) + c->popup()->verticalScrollBar()->sizeHint().width());
-            c->complete(cr); // popup it up!
+            showPopup();
             return;
         }
 
@@ -170,11 +196,9 @@ namespace Qv2ray::ui::widgets {
 
         if (auto word = lineUnderCursor(); word != c->completionPrefix()) {
             c->setCompletionPrefix(word);
-            c->popup()->setCurrentIndex(c->completionModel()->index(0, 0));
+            selectCompletion(word);
         }
 
-        QRect cr = cursorRect();
-        cr.setWidth(c->popup()->sizeHintForColumn(0) + c->popup()->verticalScrollBar()->sizeHint().width());
-        c->complete(cr); // popup it up!
+        showPopup();
     }
 } // namespace Qv2ray::ui::widgets

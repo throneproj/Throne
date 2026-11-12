@@ -11,11 +11,16 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QRegularExpression>
 #include <QThread>
+#include <QUrl>
+#include <array>
+#include <optional>
 
 #include "include/api/RPC.h"
 #include "include/api/remote/Server.hpp"
 #include "include/configs/generate.h"
+#include "include/engine/EditLocks.h"
 #include "include/engine/EngineHost.h"
 #include "include/engine/ThreadCheck.h"
 #include "include/engine/app/ExitController.h"
@@ -26,12 +31,14 @@
 #include "include/global/HTTPRequestHelper.hpp"
 #include "include/global/LocalNetwork.hpp"
 #include "include/global/Logger.hpp"
+#include "include/global/RunningProfiles.hpp"
 #include "include/scanner/ScanManager.h"
 #include "include/sys/HostPresence.hpp"
 #include "include/sys/KillSwitch.hpp"
 #include "include/sys/SystemProxy.hpp"
 #include "include/ui/mainWindow/MainWindowInternal.h"
 
+#include "include/ui/app/dialog_update.h"
 #include "include/ui/group/dialog_manage_groups.h"
 #include "include/ui/setting/dialog_basic_settings.h"
 #include "include/ui/setting/dialog_integration.h"
@@ -46,6 +53,8 @@
 
 #ifdef Q_OS_WIN
 #include "3rdparty/WinCommander.hpp"
+#include "include/sys/CoreElevation.hpp"
+#include "include/sys/windows/guihelper.h"
 #include "include/sys/windows/WinVersion.h"
 #endif
 
@@ -59,11 +68,11 @@ void MainWindow::on_menu_manage_groups_triggered() {
 
 void MainWindow::on_menu_routing_settings_triggered() {
     if (dialog_is_using) return;
-    dialog_is_using = true;
+    setDialogInUse(true);
     auto dialog = new DialogManageRoutes(this);
     connect(dialog, &QDialog::finished, this, [=,this] {
         dialog->deleteLater();
-        dialog_is_using = false;
+        setDialogInUse(false);
     });
     dialog->show();
 }
@@ -73,11 +82,11 @@ void MainWindow::openRouteProfileEditor(int routeId) {
     if (dialog_is_using) return;
     const auto profile = Configs::dataManager->routesRepo->GetRouteProfile(routeId);
     if (profile == nullptr) return;
-    dialog_is_using = true;
+    setDialogInUse(true);
 
     const auto onSaved = [this](const std::shared_ptr<Configs::RouteProfile>& chain) {
         if (!Configs::dataManager->routesRepo->Save(chain)) return;
-        if (chain->id == Configs::dataManager->settingsRepo->current_route_id)
+        if (chain->id == Configs::ActiveRouteId())
             connection()->noteRestartNeeded(Engine::RestartReason::Routing);
     };
     QDialog* editor;
@@ -90,9 +99,12 @@ void MainWindow::openRouteProfileEditor(int routeId) {
         connect(item, &RouteItem::settingsChanged, this, onSaved);
         editor = item;
     }
-    connect(editor, &QDialog::finished, this, [=, this] {
+    // The API must not edit what this editor saves back on OK.
+    auto routeLock = std::make_shared<Engine::EditLock>(Engine::EditTarget::Routes, routeId);
+    connect(editor, &QDialog::finished, this, [this, editor, routeLock]() mutable {
+        routeLock.reset();
         editor->deleteLater();
-        dialog_is_using = false;
+        setDialogInUse(false);
     });
     editor->setWindowModality(Qt::ApplicationModal);
     editor->show();
@@ -120,12 +132,12 @@ void MainWindow::on_menu_otp_manager_triggered() {
 
 void MainWindow::on_menu_integration_settings_triggered() {
     if (dialog_is_using) return;
-    dialog_is_using = true;
+    setDialogInUse(true);
     auto dialog = new DialogIntegration(this, getActionsForShortcut());
     connect(dialog, &QDialog::finished, this, [=,this]
     {
         dialog->deleteLater();
-        dialog_is_using = false;
+        setDialogInUse(false);
     });
     dialog->show();
 }
@@ -158,7 +170,7 @@ void MainWindow::on_menu_exit_triggered() {
     const auto program = QApplication::applicationFilePath();
     QStringList arguments;
     if (restart) {
-        arguments = Configs::dataManager->settingsRepo->argv;
+        arguments = LaunchArgs_WithoutPayload(Configs::dataManager->settingsRepo->argv);
         if (arguments.length() > 0) {
             arguments.removeFirst();
             arguments.removeAll("-tray");
@@ -182,10 +194,25 @@ void MainWindow::on_menu_exit_triggered() {
         }
         relaunched = true;
     }
+    if (reason == ExitReason::RunUpdater && !Windows_IsInAdmin() && !Sys::CoreElevation::InstallDirWritable()) {
+        // This Throne cannot replace its own files: the elevated helper starts the updater once this process has exited.
+        const int code = Sys::CoreElevation::RunUpdater(Configs::GetBasePath() + "/Throne.zip", QCoreApplication::applicationPid());
+        if (code != Sys::CoreElevation::HelperOk) {
+            exitController()->setExitInProgress(false);
+            exit_reason = ExitReason::None;
+            if (code == -1) {
+                MW_show_log(tr("The update was cancelled, Throne keeps running"));
+            } else {
+                MessageBoxWarning(QObject::tr("Update"), Sys::CoreElevation::ResultText(code));
+            }
+            return;
+        }
+        relaunched = true;
+    }
 #endif
 
     Engine::host()->shutdown(!unattended);
-    if (reason == ExitReason::RunUpdater) {
+    if (reason == ExitReason::RunUpdater && !relaunched) {
         QDir::setCurrent(QApplication::applicationDirPath());
 #ifdef Q_OS_WIN
         QFile::copy("./updater.exe", "./updater.old");
@@ -256,71 +283,62 @@ void MainWindow::confirm_disable_kill_switch() {
 
 namespace {
 
-bool isNewer(QString assetName) {
+// [major, minor, patch, stage, number]; alpha, beta and rc are stages 1-3, so they rank below the release itself.
+using Version = std::array<int, 5>;
+constexpr int kReleaseStage = 4;
+
+std::optional<Version> parseVersion(const QString &text) {
+    static const QRegularExpression pattern(QStringLiteral(R"(^v?(\d+)\.(\d+)\.(\d+)(?:-(alpha|beta|rc)\.?(\d*))?$)"));
+    const auto match = pattern.match(text.trimmed());
+    if (!match.hasMatch()) return std::nullopt;
+    const auto stage = match.captured(4);
+    const int stageRank = stage.isEmpty() ? kReleaseStage
+                        : stage == QLatin1String("alpha") ? 1
+                        : stage == QLatin1String("beta") ? 2 : 3;
+    return Version{match.captured(1).toInt(), match.captured(2).toInt(), match.captured(3).toInt(), stageRank,
+                   match.captured(5).toInt()};
+}
+
+bool isNewer(const QString &version) {
     if (QString(NKR_VERSION).isEmpty()) return false;
-    assetName = assetName.mid(7); // take out Throne-
-    QString version;
-    auto spl = assetName.split('-');
-    version += spl[0];
-    if (spl[1].contains("beta") || spl[1].contains("alpha") || spl[1].contains("rc")) version += "."+spl[1];
-    auto parts = version.split("."); // [1,2,3,beta,13]
-    auto currentParts = QString(NKR_VERSION).replace("-", ".").split('.');
-    if (parts.size() < 3 || currentParts.size() < 3)
-    {
-        MW_show_log("Version strings seem to be invalid" + QString(NKR_VERSION) + " and " + version);
+    const auto current = parseVersion(NKR_VERSION);
+    const auto offered = parseVersion(version);
+    if (!current || !offered) {
+        MW_show_log("Version strings seem to be invalid " + QString(NKR_VERSION) + " and " + version);
         return false;
     }
-    std::vector<int> verNums;
-    std::vector<int> currNums;
-    verNums.push_back(parts[0].toInt());
-    verNums.push_back(parts[1].toInt());
-    verNums.push_back(parts[2].toInt());
-    if (parts.size() > 3)
-    {
-        if (parts[3] == "alpha") verNums.push_back(1);
-        if (parts[3] == "beta") verNums.push_back(2);
-        if (parts[3] == "rc") verNums.push_back(3);
-        if (parts.size() > 4) verNums.push_back(parts[4].toInt());
-    }
+    return *offered > *current;
+}
 
-    currNums.push_back(currentParts[0].toInt());
-    currNums.push_back(currentParts[1].toInt());
-    currNums.push_back(currentParts[2].toInt());
-    if (currentParts.size() > 3)
-    {
-        if (currentParts[3] == "alpha") currNums.push_back(1);
-        if (currentParts[3] == "beta") currNums.push_back(2);
-        if (currentParts[3] == "rc") currNums.push_back(3);
-        if (currentParts.size() > 4) currNums.push_back(currentParts[4].toInt());
-    }
+// Sections after the running version up to the offered one; a stable release's own section covers its pre-releases.
+QString releaseNotes(const QString &changelog, const QString &target) {
+    const auto current = parseVersion(NKR_VERSION);
+    const auto offered = parseVersion(target);
+    if (!current || !offered) return {};
+    const bool withPreReleases = offered->at(3) != kReleaseStage;
 
-    if (verNums.size() < 3 || currNums.size() < 3)
-    {
-        MW_show_log("Version strings seem to be invalid" + QString(NKR_VERSION) + " and " + version);
-        return false;
-    }
-
-    for (int i=0;i<3;i++)
-    {
-        if (verNums[i] > currNums[i]) return true;
-        if (verNums[i] < currNums[i]) return false;
-    }
-
-    if (verNums.size() == 5 && currNums.size() == 3) return false;
-    if (verNums.size() == 3 && currNums.size() == 5) return true;
-    if (verNums.size() == 5 && currNums.size() == 5)
-    {
-        for (int i=3;i<5;i++)
-        {
-            if (verNums[i] > currNums[i]) return true;
-            if (verNums[i] < currNums[i]) return false;
+    QStringList sections;
+    QString heading;
+    QStringList body;
+    const auto flush = [&] {
+        const auto version = parseVersion(heading);
+        const auto text = body.join('\n').trimmed();
+        if (!version || text.isEmpty() || *version <= *current || *version > *offered) return;
+        if (version->at(3) != kReleaseStage && !withPreReleases) return;
+        sections << QStringLiteral("#### ") + heading + QStringLiteral("\n\n") + text;
+    };
+    for (auto line : changelog.split('\n')) {
+        if (line.endsWith('\r')) line.chop(1);
+        if (line.startsWith(QLatin1String("#### "))) {
+            flush();
+            heading = line.mid(5).trimmed();
+            body.clear();
+        } else {
+            body << line;
         }
-    } else
-    {
-		MW_show_log("There are no updates. You have the latest version - " + QString(NKR_VERSION));
-        return false;
     }
-    return false;
+    flush();
+    return sections.join(QStringLiteral("\n\n"));
 }
 
 constexpr auto dashboardDownloadURL = "https://github.com/SagerNet/sing-box-dashboard/archive/refs/heads/gh-pages.zip";
@@ -438,51 +456,52 @@ void MainWindow::CheckUpdate() {
         return;
     }
 
-    QString assets_name, release_download_url, release_url, release_note, note_pre_release;
-    bool exitFlag = false;
+    QString release_tag, release_download_url, release_url;
+    bool pre_release = false;
     QJsonArray array = QString2QJsonArray(resp.data);
     for (const QJsonValue value : array) {
         QJsonObject release = value.toObject();
         if (release["prerelease"].toBool() && !Configs::dataManager->settingsRepo->allow_beta_update) continue;
         for (const QJsonValue asset : release["assets"].toArray()) {
             if (asset["name"].toString().contains(search) && asset["name"].toString().section('.', -1) == QString("zip")) {
-                note_pre_release = release["prerelease"].toBool() ? " (Pre-release)" : "";
+                pre_release = release["prerelease"].toBool();
                 release_url = release["html_url"].toString();
-                release_note = release["body"].toString();
-                assets_name = asset["name"].toString();
+                release_tag = release["tag_name"].toString();
                 release_download_url = asset["browser_download_url"].toString();
-                exitFlag = true;
                 break;
             }
         }
-        if (exitFlag) break;
+        if (!release_download_url.isEmpty()) break;
     }
 
-    if (release_download_url.isEmpty() || !isNewer(assets_name)) {
+    if (release_download_url.isEmpty() || !isNewer(release_tag)) {
         runOnUiThread([=,this] {
             MessageBoxInfo(QObject::tr("Update"), QObject::tr("No update"));
         });
         return;
     }
 
+    options.headers = {{"Accept", "application/vnd.github.raw+json"}};
+    const auto changelog = NetworkRequestHelper::HttpGet(
+        QStringLiteral("https://api.github.com/repos/throneproj/Throne/contents/CHANGELOG.md?ref=") +
+            QString::fromLatin1(QUrl::toPercentEncoding(release_tag)), options);
+    const auto notes = changelog.error.isEmpty() ? releaseNotes(QString::fromUtf8(changelog.data), release_tag) : QString();
+
     runOnUiThread([=,this] {
         const auto headless = Sys::HostPresence::OtherHeadless();
         const bool headlessSameInstall = headless && Sys::HostPresence::SameInstall(*headless, QCoreApplication::applicationDirPath());
-        auto allow_updater = !Configs::dataManager->settingsRepo->flag_use_appdata && !headlessSameInstall;
-        QMessageBox box(QMessageBox::Question, QObject::tr("Update") + note_pre_release,
-                        QObject::tr("Update found: %1\nRelease note:\n%2").arg(assets_name, release_note));
-        if (headlessSameInstall) {
-            box.setInformativeText(tr("Update is unavailable while a background Throne (PID %1) runs from this installation; stop it first.")
-                                       .arg(headless->pid));
-        }
-        QAbstractButton *btn1 = nullptr;
-        if (allow_updater) {
-            btn1 = box.addButton(QObject::tr("Update"), QMessageBox::AcceptRole);
-        }
-        QAbstractButton *btn2 = box.addButton(QObject::tr("Open in browser"), QMessageBox::AcceptRole);
-        box.addButton(QObject::tr("Close"), QMessageBox::RejectRole);
-        box.exec();
-        if (btn1 == box.clickedButton() && allow_updater) {
+        bool allow_updater = !Configs::dataManager->settingsRepo->flag_use_appdata;
+#ifdef Q_OS_WIN
+        // The elevated helper installs into a folder this Throne cannot write.
+        if (!Sys::CoreElevation::InstallDirWritable() && Sys::CoreElevation::CanGrant()) allow_updater = true;
+#endif
+        allow_updater = allow_updater && !headlessSameInstall;
+        const auto notice = headlessSameInstall
+            ? tr("Update is unavailable while a background Throne (PID %1) runs from this installation; stop it first.").arg(headless->pid)
+            : QString();
+        auto *dialog = new DialogUpdate(release_tag, pre_release, notes, QUrl(release_url), allow_updater, notice, this);
+        dialog->setAttribute(Qt::WA_DeleteOnClose);
+        connect(dialog, &DialogUpdate::updateRequested, this, [=,this] {
             runOnNewThread([=,this] {
                 if (!mu_download_update.tryLock()) {
                     runOnUiThread([=,this](){
@@ -511,8 +530,7 @@ void MainWindow::CheckUpdate() {
                     }
                 });
             });
-        } else if (btn2 == box.clickedButton()) {
-            QDesktopServices::openUrl(QUrl(release_url));
-        }
+        });
+        dialog->open();
     });
 }

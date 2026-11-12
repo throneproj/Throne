@@ -28,6 +28,7 @@
 #include "include/ui/setting/OtpListWidget.h"
 #include "include/ui/setting/dialog_edit_otp.h"
 #include "include/ui/utils/ScreenQrScanner.h"
+#include "include/ui/utils/NativeFileDialog.h"
 
 namespace {
     constexpr qint64 MAX_IMPORT_FILE_SIZE = 50 * 1024 * 1024;
@@ -301,8 +302,8 @@ void DialogOtpManager::importOtpFromClipboard() {
 }
 
 void DialogOtpManager::importOtpFromFiles() {
-    const auto paths = QFileDialog::getOpenFileNames(this, tr("Import OTP"), QDir::homePath(),
-                                                     tr("QR images and exports (*.png *.jpg *.jpeg *.bmp *.gif *.json *.txt);;All files (*)"));
+    const auto paths = NativeFileDialog::getOpenFileNames(this, tr("Import OTP"), QDir::homePath(),
+                                                          tr("QR images and exports (*.png *.jpg *.jpeg *.bmp *.gif *.json *.txt);;All files (*)"));
     if (paths.isEmpty()) return;
 
     QStringList payloads;
@@ -407,8 +408,8 @@ void DialogOtpManager::exportOtpAsMigration(const QList<std::shared_ptr<Configs:
 }
 
 void DialogOtpManager::exportOtpAsJson(const QList<std::shared_ptr<Configs::OtpProfile>> &profiles) {
-    const auto path = QFileDialog::getSaveFileName(this, tr("Export OTP"), QDir::homePath() + "/Throne-otp.json",
-                                                   tr("JSON (*.json)"));
+    const auto path = NativeFileDialog::getSaveFileName(this, tr("Export OTP"), QDir::homePath() + "/Throne-otp.json",
+                                                        tr("JSON (*.json)"));
     if (path.isEmpty()) return;
 
     QList<OTP::Entry> entries;

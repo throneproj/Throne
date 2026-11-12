@@ -7,6 +7,7 @@
 
 #include "include/database/DatabaseManager.h"
 #include "include/database/GroupsRepo.h"
+#include "include/database/RoutesRepo.h"
 #include "include/engine/EditLocks.h"
 #include "include/engine/EngineEvents.h"
 #include "include/engine/ThreadCheck.h"
@@ -48,11 +49,19 @@ namespace Engine::GroupService {
             !Validation::Url(url, {QStringLiteral("http"), QStringLiteral("https")}, Validation::Empty::Required).isEmpty()) {
             return ServiceError{400, QStringLiteral("bad_request"), QStringLiteral("The subscription URL must be an http or https URL")};
         }
+        if (spec.routeId >= 0 && !Configs::dataManager->routesRepo->HasRouteProfile(spec.routeId)) {
+            return ServiceError{404, QStringLiteral("not_found"), QStringLiteral("Unknown routing profile %1").arg(spec.routeId)};
+        }
+        if (spec.importRoute && url.isEmpty()) {
+            return ServiceError{400, QStringLiteral("bad_request"), QStringLiteral("Only a subscription group can import its routing profile")};
+        }
 
         auto group = Configs::GroupsRepo::NewGroup();
         group->name = name;
         group->url = url;
         group->skip_auto_update = !spec.autoUpdate;
+        group->route_id = spec.routeId < 0 ? -1 : spec.routeId;
+        group->import_sub_route = spec.importRoute;
         if (!Configs::dataManager->groupsRepo->AddGroup(group)) {
             return ServiceError{500, QStringLiteral("internal"), QStringLiteral("Could not save the group")};
         }
@@ -147,6 +156,11 @@ namespace Engine::GroupService {
         const QSet<int> deletedProfiles(profileIds.cbegin(), profileIds.cend());
         if (!Configs::dataManager->groupsRepo->DeleteGroup(groupId)) {
             return ServiceError{500, QStringLiteral("internal"), QStringLiteral("Could not delete the group")};
+        }
+        // The routing profiles its subscription imported go with it; the repo moves the global choice off them.
+        if (const auto ownedRoutes = Configs::dataManager->routesRepo->OwnedBy(groupId); !ownedRoutes.isEmpty()) {
+            Configs::dataManager->routesRepo->DeleteRouteProfiles(ownedRoutes);
+            MW_show_log(QStringLiteral("[Groups] %1: deleted the routing profile(s) its subscription provided").arg(group->name));
         }
 
         auto *settings = Configs::dataManager->settingsRepo.get();

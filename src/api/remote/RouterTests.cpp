@@ -25,8 +25,9 @@ namespace RemoteApi {
             respond(error);
             return;
         }
-        if (kind != QStringLiteral("latency") && kind != QStringLiteral("ip") && kind != QStringLiteral("speed")) {
-            respond(badRequest(QStringLiteral("\"kind\" must be latency, ip or speed")));
+        if (kind != QStringLiteral("latency") && kind != QStringLiteral("ip") && kind != QStringLiteral("speed")
+            && kind != QStringLiteral("services")) {
+            respond(badRequest(QStringLiteral("\"kind\" must be latency, ip, speed or services")));
             return;
         }
         QList<int> ids;
@@ -62,6 +63,7 @@ namespace RemoteApi {
         Engine::TestKind testKind = Engine::TestKind::Speed;
         if (kind == QStringLiteral("latency")) testKind = Engine::TestKind::Latency;
         else if (kind == QStringLiteral("ip")) testKind = Engine::TestKind::Ip;
+        else if (kind == QStringLiteral("services")) testKind = Engine::TestKind::Service;
         if (!engine_->runTests(testKind, ids, onFinished)) {
             respond(busy);
             return;
@@ -69,6 +71,7 @@ namespace RemoteApi {
 
         jobs_.prepend(job);
         while (jobs_.size() > RouterJobs::kKeptJobs) jobs_.removeLast();
+        noteChanged(Engine::ChangeTopic::Tests);
         if (!options.wait) {
             respond(Response::Ok(jobJson(*job, false), 202));
             return;
@@ -127,6 +130,7 @@ namespace RemoteApi {
         if (job == nullptr || job->state != QStringLiteral("running")) return;
         job->state = stopped || job->cancelRequested ? QStringLiteral("cancelled") : QStringLiteral("done");
         job->finishedAt = QDateTime::currentSecsSinceEpoch();
+        noteChanged(Engine::ChangeTopic::Tests | Engine::ChangeTopic::Profiles);
         const auto response = jobResponse(*job);
         for (const auto &waiter : std::exchange(job->waiters, {})) answer(waiter, response);
     }

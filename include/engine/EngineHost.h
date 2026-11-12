@@ -103,6 +103,12 @@ namespace Engine {
 
         std::optional<LiveRates> freshLiveRates(qint64 maxAgeMs) const override;
 
+        void watchConnections() override;
+
+        ConnectionSnapshot connectionSnapshot() const override;
+
+        void closeConnections(const QStringList &ids, const std::function<void(const ConnectionCloseResult &)> &done) override;
+
         bool testsRunning() override;
 
         bool testsStopRequested() const override;
@@ -148,6 +154,8 @@ namespace Engine {
         explicit EngineHost(const RuntimeOptions &options);
 
         void construct();
+
+        void connectChangeTopics();
 
         void registerPeriodicJobs();
 

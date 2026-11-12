@@ -3,10 +3,31 @@
 #include "include/ui/utils/ProfilesTableFilterHeader.h"
 #include "include/ui/utils/ProfilesFilterProxyModel.h"
 #include "include/ui/utils/ProfilesTableModel.h"
+#include "include/ui/setting/ThemeManager.hpp"
 #include <QDragMoveEvent>
 #include <QHeaderView>
 #include <QKeyEvent>
 #include <QMimeData>
+#include <QPainter>
+#include <QStyledItemDelegate>
+
+namespace {
+    // QStyleSheetStyle drops Qt::BackgroundRole once a sheet's ::item rule draws, as the feiyang themes' does.
+    class RowBackgroundDelegate : public QStyledItemDelegate {
+    public:
+        using QStyledItemDelegate::QStyledItemDelegate;
+
+        void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override {
+            if (const QVariant fill = index.data(Qt::BackgroundRole); fill.canConvert<QBrush>()) {
+                painter->fillRect(option.rect, qvariant_cast<QBrush>(fill));
+            }
+            QStyledItemDelegate::paint(painter, option, index);
+            if (ProfilesTableModel::endsPinnedBlock(index)) {
+                painter->fillRect(QRect(option.rect.left(), option.rect.bottom() - 1, option.rect.width(), 2), themeManager()->tokens.muted);
+            }
+        }
+    };
+}
 
 ProfilesTableView::ProfilesTableView(QWidget *parent)
     : QTableView(parent) {
@@ -16,6 +37,7 @@ ProfilesTableView::ProfilesTableView(QWidget *parent)
     setDragEnabled(true);
     setAcceptDrops(true);
     setDefaultDropAction(Qt::MoveAction);
+    setItemDelegate(new RowBackgroundDelegate(this));
 
     m_verticalHeader = new ProfilesTableVerticalHeader(this);
     setVerticalHeader(m_verticalHeader);
@@ -109,21 +131,16 @@ void ProfilesTableView::dropEvent(QDropEvent *event) {
         QPoint pos = event->position().toPoint();
         QModelIndex targetIndex = indexAt(pos);
 
-        int newRow;
-        if (!targetIndex.isValid()) {
-            newRow = model()->rowCount() - 1;
-        } else {
-            DropIndicatorPosition indicatorPos = dropIndicatorPosition();
-            newRow = targetIndex.row();
-            if (indicatorPos == AboveItem) {
-                newRow--;
-            }
+        // Rows are not drop targets, so the indicator is above or below: the upper or lower half of the row.
+        int target = model()->rowCount() - 1;
+        bool below = true;
+        if (targetIndex.isValid()) {
+            target = targetIndex.row();
+            below = dropIndicatorPosition() != AboveItem;
         }
-        if (m_filterProxy && newRow >= 0) {
-            newRow = m_filterProxy->toSourceRow(newRow);
-            if (newRow < 0) return;
-        }
-        rowsSwapped(rowNum, newRow);
+        if (m_filterProxy) target = m_filterProxy->toSourceRow(target);
+        if (target < 0) return;
+        if (rowDropped) rowDropped(rowNum, target, below);
         event->accept();
     } else {
         QTableView::dropEvent(event);

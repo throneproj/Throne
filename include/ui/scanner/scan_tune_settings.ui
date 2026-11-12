@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ScanTuneSettings</class>
+ <widget class="QWidget" name="ScanTuneSettings">
+  <layout class="QVBoxLayout" name="layout">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QGroupBox" name="profile_box">
+     <property name="title">
+      <string>Profile</string>
+     </property>
+     <layout class="QFormLayout" name="profile_box_form">
+      <item row="0" column="0" colspan="2">
+       <widget class="QLabel" name="profile_intro">
+        <property name="text">
+         <string>Variants of this profile's anti-censorship settings are tested through the core, one attempt at a time. The profile itself changes only when you apply a result.</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::TextFormat::PlainText</enum>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+        <property name="colorRole" stdset="0">
+         <string notr="true">muted</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="profile_l">
+        <property name="text">
+         <string>Profile</string>
+        </property>
+        <property name="buddy">
+         <cstring>profile</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="NoWheelComboBox" name="profile"/>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLabel" name="profile_hint">
+        <property name="text">
+         <string notr="true"/>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::TextFormat::PlainText</enum>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+        <property name="colorRole" stdset="0">
+         <string notr="true">muted</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="try_box">
+     <property name="title">
+      <string>What to try</string>
+     </property>
+     <layout class="QFormLayout" name="try_box_form">
+      <item row="0" column="0" colspan="2">
+       <widget class="QLabel" name="try_intro">
+        <property name="text">
+         <string>Each setting is first tried on its own, a switch flipped or a list value by value; the changes that help are then combined.</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::TextFormat::PlainText</enum>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+        <property name="colorRole" stdset="0">
+         <string notr="true">muted</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="QCheckBox" name="fingerprints">
+        <property name="text">
+         <string>uTLS fingerprint</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="fingerprint_list_l">
+        <property name="text">
+         <string>Fingerprints to try</string>
+        </property>
+        <property name="buddy">
+         <cstring>fingerprint_list</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="fingerprint_list"/>
+      </item>
+      <item row="3" column="0" colspan="2">
+       <widget class="QCheckBox" name="fragment">
+        <property name="text">
+         <string>TLS fragment</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="fragment_delays_l">
+        <property name="text">
+         <string>Fallback delays to try</string>
+        </property>
+        <property name="buddy">
+         <cstring>fragment_delays</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QLineEdit" name="fragment_delays"/>
+      </item>
+      <item row="5" column="0" colspan="2">
+       <widget class="QCheckBox" name="record_fragment">
+        <property name="text">
+         <string>TLS record fragment</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0" colspan="2">
+       <widget class="QCheckBox" name="mixed_case_sni">
+        <property name="text">
+         <string>Mixed-case SNI</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0" colspan="2">
+       <widget class="QCheckBox" name="quic_opener">
+        <property name="text">
+         <string>QUIC opener</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="0" colspan="2">
+       <widget class="QCheckBox" name="mtu">
+        <property name="text">
+         <string>MTU (WireGuard)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="0">
+       <widget class="QLabel" name="mtu_min_l">
+        <property name="text">
+         <string>Smallest MTU</string>
+        </property>
+        <property name="buddy">
+         <cstring>mtu_min</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="1">
+       <widget class="QLineEdit" name="mtu_min"/>
+      </item>
+      <item row="10" column="0">
+       <widget class="QLabel" name="mtu_max_l">
+        <property name="text">
+         <string>Largest MTU</string>
+        </property>
+        <property name="buddy">
+         <cstring>mtu_max</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="1">
+       <widget class="QLineEdit" name="mtu_max">
+        <property name="placeholderText">
+         <string>The profile's own</string>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="0">
+       <widget class="QLabel" name="mtu_step_l">
+        <property name="text">
+         <string>MTU step</string>
+        </property>
+        <property name="buddy">
+         <cstring>mtu_step</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="11" column="1">
+       <widget class="QLineEdit" name="mtu_step"/>
+      </item>
+      <item row="12" column="0">
+       <widget class="QLabel" name="mtu_url_l">
+        <property name="text">
+         <string>Download URL</string>
+        </property>
+        <property name="buddy">
+         <cstring>mtu_url</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="12" column="1">
+       <widget class="QLineEdit" name="mtu_url"/>
+      </item>
+      <item row="13" column="0">
+       <widget class="QLabel" name="mtu_bytes_l">
+        <property name="text">
+         <string>Download size (bytes)</string>
+        </property>
+        <property name="buddy">
+         <cstring>mtu_bytes</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="13" column="1">
+       <widget class="QLineEdit" name="mtu_bytes"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="pacing_box">
+     <property name="title">
+      <string>Pacing</string>
+     </property>
+     <layout class="QFormLayout" name="pacing_box_form">
+      <item row="0" column="0">
+       <widget class="QLabel" name="attempts_l">
+        <property name="text">
+         <string>Attempts per variant</string>
+        </property>
+        <property name="buddy">
+         <cstring>attempts</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="attempts">
+        <property name="toolTip">
+         <string>More attempts tell a working variant from a lucky one.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="per_minute_l">
+        <property name="text">
+         <string>Attempts per minute</string>
+        </property>
+        <property name="buddy">
+         <cstring>per_minute</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="per_minute">
+        <property name="toolTip">
+         <string>At most this many attempts start in any minute.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="max_attempts_l">
+        <property name="text">
+         <string>Attempt limit</string>
+        </property>
+        <property name="buddy">
+         <cstring>max_attempts</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="max_attempts">
+        <property name="toolTip">
+         <string>The search stops after this many attempts in all.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="max_minutes_l">
+        <property name="text">
+         <string>Time limit (minutes)</string>
+        </property>
+        <property name="buddy">
+         <cstring>max_minutes</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="max_minutes">
+        <property name="toolTip">
+         <string>The search stops after this many minutes.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="url_l">
+        <property name="text">
+         <string>Test URL</string>
+        </property>
+        <property name="buddy">
+         <cstring>url</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QLineEdit" name="url">
+        <property name="toolTip">
+         <string>Requested through the profile on every attempt.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="timeout_l">
+        <property name="text">
+         <string>Timeout (ms)</string>
+        </property>
+        <property name="buddy">
+         <cstring>timeout</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QLineEdit" name="timeout"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>NoWheelComboBox</class>
+   <extends>QComboBox</extends>
+   <header>include/ui/utils/NoWheelComboBox.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

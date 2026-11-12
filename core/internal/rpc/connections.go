@@ -13,7 +13,7 @@ import (
 	"github.com/sagernet/sing/service"
 )
 
-func connMetaToProto(c *trafficcontrol.TrackerMetadata) *gen.ConnectionMetaData {
+func connMetaToProto(c *trafficcontrol.TrackerMetadata, ruleItem string) *gen.ConnectionMetaData {
 	process := ""
 	processPath := ""
 	if c.Metadata.ProcessInfo != nil {
@@ -31,6 +31,10 @@ func connMetaToProto(c *trafficcontrol.TrackerMetadata) *gen.ConnectionMetaData 
 	if c.Metadata.Source.IsValid() {
 		source = c.Metadata.Source.String()
 	}
+	rule := ""
+	if c.Rule != nil {
+		rule = c.Rule.String()
+	}
 	return &gen.ConnectionMetaData{
 		Id:          To(c.ID.String()),
 		CreatedAt:   To(c.CreatedAt.UnixMilli()),
@@ -46,6 +50,8 @@ func connMetaToProto(c *trafficcontrol.TrackerMetadata) *gen.ConnectionMetaData 
 		Chain:       c.Chain,
 		ClosedAt:    To(closedAt),
 		Source:      To(source),
+		Rule:        To(rule),
+		RuleItem:    To(ruleItem),
 	}
 }
 
@@ -60,13 +66,15 @@ func (s *server) QueryConnections(ctx context.Context, in *gen.EmptyReq) (*gen.Q
 		return &gen.QueryConnectionsResp{}, errors.New("no traffic manager found")
 	}
 
+	connRules.begin(box)
+	defer connRules.end()
 	active := make([]*gen.ConnectionMetaData, 0)
 	for _, c := range tm.Connections() {
-		active = append(active, connMetaToProto(c))
+		active = append(active, connMetaToProto(c, connRules.matched(c)))
 	}
 	closed := make([]*gen.ConnectionMetaData, 0)
 	for _, c := range tm.ClosedConnections() {
-		closed = append(closed, connMetaToProto(c))
+		closed = append(closed, connMetaToProto(c, connRules.matched(c)))
 	}
 	return &gen.QueryConnectionsResp{Active: active, Closed: closed}, nil
 }

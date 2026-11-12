@@ -84,8 +84,8 @@ namespace Configs {
             port = port.trimmed();
             if (port.isEmpty()) continue;
             if (port.contains('-')) {
-                ranges << port;
-            } else if (!ParseDiag::Accept("port", Validation::Port(port), port, Validation::Severity::Error)) {
+                if (AcceptOptional("port", mieruPortRange(port), port)) ranges << port;
+            } else if (!AcceptOptional("port", Validation::Port(port), port)) {
                 continue;
             } else if (!haveSinglePort) {
                 server_port = port.toInt();

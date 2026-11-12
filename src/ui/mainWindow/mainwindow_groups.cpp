@@ -215,6 +215,7 @@ void MainWindow::show_group_tab_menu(const QPoint &p) {
             if (dialog->result() == QDialog::Accepted) {
                 if (Configs::dataManager->groupsRepo->Save(ent)) {
                     MW_dialog_message(MwMessage::GroupsChanged, dialog->RestartNeeded() ? QStringList{MwArg::RestartProxy} : QStringList{});
+                    if (dialog->RefreshNeeded()) Subscription::updater()->RefreshGroup(ent->id, nullptr, true);
                 } else {
                     MessageBoxWarning(tr("Edit selected Group"), tr("This group was deleted while you were editing it."));
                 }

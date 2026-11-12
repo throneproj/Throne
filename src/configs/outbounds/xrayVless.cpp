@@ -24,9 +24,23 @@ namespace Configs {
             return raw.trimmed().toLower();
         }
 
+        // Share links leave encryption empty for none, which Xray refuses.
         QString xrayVlessImportEncryption(const QString &raw) {
             const QString value = raw.trimmed();
-            return value.compare("none", Qt::CaseInsensitive) == 0 ? QStringLiteral("none") : value;
+            return value.isEmpty() || value.compare("none", Qt::CaseInsensitive) == 0 ? QStringLiteral("none") : value;
+        }
+
+        QString xrayVlessFlowProblem(const xrayVless &v) {
+            static const QStringList flows = QStringList{"", "none"} + xrayFlows;
+            if (auto message = Validation::OneOf(v.flow, flows); !message.isEmpty()) return message;
+            const auto &stream = *v.streamSetting;
+            if (auto message = Checks::XrayVlessVision(v.flow, v.encryption, stream.network, stream.security); !message.isEmpty()) return message;
+            return Checks::XrayXDriveFlow(v.flow, stream.network);
+        }
+
+        // No flow is Xray's default; an unknown one stops it and a misplaced Vision fails every connection.
+        void dropUnusableXrayVlessFlow(xrayVless &v) {
+            if (!AcceptOptional("flow", xrayVlessFlowProblem(v), v.flow)) v.flow.clear();
         }
     }
 
@@ -56,6 +70,22 @@ namespace Configs {
             if ((normalized.isEmpty() || normalized == "raw") && (security == "tls" || security == "reality")) return {};
             return QCoreApplication::translate("Validation", "XTLS Vision needs the raw network with TLS or REALITY, or VLESS encryption: change the network or security, or clear the flow.");
         }
+
+        QString XrayXDriveEncryption(const QString &encryption, const QString &network) {
+            if (NormalizeXrayNetwork(network.trimmed()) != "xdrive" || IsVlessEncrypted(encryption.trimmed())) return {};
+            return QCoreApplication::translate("Validation", "XDRIVE needs VLESS encryption: enter the mlkem768x25519plus string the server gives.");
+        }
+
+        QString XrayXDriveFlow(const QString &flow, const QString &network) {
+            const auto f = flow.trimmed();
+            if (NormalizeXrayNetwork(network.trimmed()) != "xdrive" || f.isEmpty() || f.compare("none", Qt::CaseInsensitive) == 0) return {};
+            return QCoreApplication::translate("Validation", "XDRIVE does not support a flow; clear it.");
+        }
+
+        QString XrayXDriveMux(int muxState, const QString &network) {
+            if (NormalizeXrayNetwork(network.trimmed()) != "xdrive" || muxState != 2) return {};
+            return QCoreApplication::translate("Validation", "XDRIVE needs Mux: set it to On or Keep Default.");
+        }
     }
 
     bool xrayVless::ParseFromLink(const QString &link) {
@@ -69,6 +99,7 @@ namespace Configs {
         flow = xrayVlessImportFlow(query.queryItemValue("flow"));
         if (!streamSetting->ParseFromLink(link)) return false;
         multiplex->ParseFromLink(link);
+        dropUnusableXrayVlessFlow(*this);
         return !(uuid.isEmpty() || server.isEmpty());
     }
 
@@ -96,6 +127,7 @@ namespace Configs {
         if (ParseDiag::Active()) {
             flow = xrayVlessImportFlow(flow);
             encryption = xrayVlessImportEncryption(encryption);
+            dropUnusableXrayVlessFlow(*this);
         }
         // False lets the importer fall back to a lossless custom Xray outbound; the DB loader ignores the result.
         return streamParsed;
@@ -109,10 +141,13 @@ namespace Configs {
         if (!object.encryption.empty()) encryption = xrayVlessImportEncryption(QString::fromStdString(object.encryption));
         streamSetting->ParseFromClash(object);
         multiplex->ParseFromClash(object);
+        dropUnusableXrayVlessFlow(*this);
         return true;
     }
 
     QString xrayVless::ExportToLink() {
+        // Callers fall back to ExportJsonLink, which keeps the storage settings a vless:// link cannot carry.
+        if (NormalizeXrayNetwork(streamSetting->network) == "xdrive") return {};
         QUrl url;
         QUrlQuery query;
         url.setScheme("vless");
@@ -165,11 +200,25 @@ namespace Configs {
         settings["encryption"] = encryption;
         if (!flow.isEmpty() && flow != "none") settings["flow"] = flow;
         object["settings"] = settings;
-        auto streamObj = withBindInterface(streamSetting->Build().object, dialFields->bind_interface);
+        const auto stream = streamSetting->Build(DisplayTypeAndName());
+        if (!stream.error.isEmpty()) return {{}, stream.error};
+        auto streamObj = withBindInterface(stream.object, dialFields->bind_interface);
         if (!streamObj.isEmpty()) object["streamSettings"] = streamObj;
         // Not in ExportToJson: a copied interface would outlive clearing the bind in the Advanced dialog.
         BindXrayDownloadLeg(object, dialFields->bind_interface);
-        if (auto muxObj = multiplex->Build().object; !muxObj.isEmpty()) object["mux"] = muxObj;
+        // Xray refuses XDRIVE without Mux, so Keep Default turns it on there.
+        const bool muxRequired = NormalizeXrayNetwork(streamSetting->network) == "xdrive";
+        // Each XDNS connection is its own mKCP session that opens a socket per resolver; Mux shares one.
+        const bool muxDefaultOn = muxRequired || streamSetting->IsXdns() || Configs::dataManager->settingsRepo->xray_mux_default_on;
+        if (auto muxObj = multiplex->BuildMux(muxDefaultOn); !muxObj.isEmpty()) {
+            // It also refuses any traffic leaving the mux there, which a preset may ask for.
+            if (muxRequired) {
+                if (muxObj["concurrency"].toInt() < 0) muxObj.remove("concurrency");
+                if (muxObj["xudpConcurrency"].toInt() < 0) muxObj.remove("xudpConcurrency");
+                if (muxObj["xudpProxyUDP443"].toString() == "skip") muxObj.remove("xudpProxyUDP443");
+            }
+            object["mux"] = muxObj;
+        }
         return {object, ""};
     }
 
@@ -205,6 +254,7 @@ namespace Configs {
             auto download = x.rawExtra.value(key).toObject();
             if (strip(download, at + key + QLatin1Char('.'))) x.rawExtra[key] = download;
         }
+        StripXrayFinalmaskKeyLog(streamSetting->finalmask, QStringLiteral("streamSettings.finalmask."), issues);
     }
 
     void xrayVless::Validate(Validation::Issues &issues) {
@@ -212,11 +262,13 @@ namespace Configs {
         using Validation::Severity;
         if (auto message = Validation::XrayId(uuid); !message.isEmpty()) issues.append({Severity::Error, "id", message});
         if (auto message = Checks::XrayVlessEncryption(encryption); !message.isEmpty()) issues.append({Severity::Error, "encryption", message});
-        static const QStringList flows = QStringList{"", "none"} + xrayFlows;
-        if (auto message = Validation::OneOf(flow, flows); !message.isEmpty()) {
-            issues.append({Severity::Error, "flow", message, flow});
-        } else if (auto message = Checks::XrayVlessVision(flow, encryption, streamSetting->network, streamSetting->security); !message.isEmpty()) {
-            issues.append({Severity::Error, "flow", message, flow});
+        if (auto message = xrayVlessFlowProblem(*this); !message.isEmpty()) issues.append({Severity::Error, "flow", message, flow});
+        if (auto message = Checks::XrayXDriveEncryption(encryption, streamSetting->network); !message.isEmpty()) {
+            issues.append({Severity::Error, "encryption", message});
         }
+        if (auto message = Checks::XrayXDriveMux(multiplex->getMuxState(), streamSetting->network); !message.isEmpty()) {
+            issues.append({Severity::Error, "mux", message});
+        }
+        multiplex->Validate(issues);
     }
 }

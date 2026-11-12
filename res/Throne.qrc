@@ -35,6 +35,8 @@
         <file alias="cloudflare-cdn.txt">scanner/cloudflare-cdn.txt</file>
         <file alias="fastly-cdn.txt">scanner/fastly-cdn.txt</file>
         <file alias="gcore-cdn.txt">scanner/gcore-cdn.txt</file>
+        <file alias="iran-resolvers.txt">scanner/iran-resolvers.txt</file>
+        <file alias="russia-resolvers.txt">scanner/russia-resolvers.txt</file>
     </qresource>
     <qresource prefix="/schema">
         <file alias="sing-box.json">schema/sing-box.json</file>

@@ -78,9 +78,13 @@ func prepareTestEnv(current bool, needXray bool, xrayConfig string, xrayFullConf
 	}
 	cleanups = append(cleanups, func() { closeXrayInstances(fullXray) })
 
+	var xrayTunnelHops map[string]int
 	box, cancel, err := boxmain.Create([]byte(coreConfig), boxCtx.publish, func(options *option.Options) {
 		applyAutoRedirectMark(options, autoRedirectMark.Load())
 		probe.LimitWireGuardWorkers(options)
+		if needXray {
+			xrayTunnelHops = probe.XrayDNSTunnelHops(options, xrayConfig)
+		}
 	})
 	if err != nil {
 		unwind()
@@ -88,7 +92,7 @@ func prepareTestEnv(current bool, needXray bool, xrayConfig string, xrayFullConf
 	}
 	cleanups = append(cleanups, func() {
 		box.CloseWithTimeout(cancel, 2*time.Second, log.Println, false)
-	})
+	}, probe.TrackDNSTunnels(box, xrayTunnelHops))
 
 	outTags := tags
 	if useDefaultOutbound {

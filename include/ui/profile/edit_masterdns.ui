@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>EditMasterDns</class>
+ <widget class="QWidget" name="EditMasterDns">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>760</width>
+    <height>480</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string notr="true">EditMasterDns</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <widget class="QWidget" name="tunnel_w" native="true">
+     <layout class="QVBoxLayout" name="tunnel_layout">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <layout class="QFormLayout" name="tunnel_form">
+        <item row="0" column="0">
+         <widget class="QLabel" name="domains_l">
+          <property name="text">
+           <string>Domains</string>
+          </property>
+          <property name="buddy">
+           <cstring>domains</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="MyPlainTextEdit" name="domains">
+          <property name="tabChangesFocus">
+           <bool>true</bool>
+          </property>
+          <property name="lineWrapMode">
+           <enum>QPlainTextEdit::NoWrap</enum>
+          </property>
+          <property name="placeholderText">
+           <string>One per line</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="mode_l">
+          <property name="text">
+           <string>Mode</string>
+          </property>
+          <property name="buddy">
+           <cstring>mode</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QComboBox" name="mode"/>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="encryption_method_l">
+          <property name="text">
+           <string>Encryption</string>
+          </property>
+          <property name="buddy">
+           <cstring>encryption_method</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QComboBox" name="encryption_method"/>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="encryption_key_l">
+          <property name="text">
+           <string>Key</string>
+          </property>
+          <property name="buddy">
+           <cstring>encryption_key</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="encryption_key"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="resolvers_box">
+        <property name="title">
+         <string>Resolvers</string>
+        </property>
+        <layout class="QFormLayout" name="resolvers_form">
+         <item row="0" column="0" colspan="2">
+          <widget class="ResolverSourceWidget" name="resolvers" native="true"/>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="balancing_strategy_l">
+           <property name="text">
+            <string>Strategy</string>
+           </property>
+           <property name="buddy">
+            <cstring>balancing_strategy</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QComboBox" name="balancing_strategy"/>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="side_w" native="true">
+     <layout class="QVBoxLayout" name="side_layout">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QGroupBox" name="transfer_box">
+        <property name="title">
+         <string>Transfer</string>
+        </property>
+        <layout class="QFormLayout" name="transfer_form">
+         <item row="0" column="0">
+          <widget class="QLabel" name="packet_duplication_l">
+           <property name="text">
+            <string>Duplication</string>
+           </property>
+           <property name="buddy">
+            <cstring>packet_duplication</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="packet_duplication">
+           <property name="placeholderText">
+            <string notr="true">3</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="setup_packet_duplication_l">
+           <property name="text">
+            <string>Setup Duplication</string>
+           </property>
+           <property name="buddy">
+            <cstring>setup_packet_duplication</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="setup_packet_duplication">
+           <property name="placeholderText">
+            <string notr="true">4</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="upload_compression_l">
+           <property name="text">
+            <string>Upload Compression</string>
+           </property>
+           <property name="buddy">
+            <cstring>upload_compression</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QComboBox" name="upload_compression"/>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="download_compression_l">
+           <property name="text">
+            <string>Download Compression</string>
+           </property>
+           <property name="buddy">
+            <cstring>download_compression</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QComboBox" name="download_compression"/>
+         </item>
+         <item row="4" column="0" colspan="2">
+          <widget class="QCheckBox" name="base64_response">
+           <property name="text">
+            <string>Base64-encoded replies</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="mtu_box">
+        <property name="title">
+         <string>MTU</string>
+        </property>
+        <layout class="QFormLayout" name="mtu_form">
+         <item row="0" column="0">
+          <widget class="QLabel" name="mtu_min_upload_l">
+           <property name="text">
+            <string>Min Upload</string>
+           </property>
+           <property name="buddy">
+            <cstring>mtu_min_upload</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="mtu_min_upload">
+           <property name="placeholderText">
+            <string notr="true">38</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="mtu_max_upload_l">
+           <property name="text">
+            <string>Max Upload</string>
+           </property>
+           <property name="buddy">
+            <cstring>mtu_max_upload</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="mtu_max_upload">
+           <property name="placeholderText">
+            <string notr="true">150</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="mtu_min_download_l">
+           <property name="text">
+            <string>Min Download</string>
+           </property>
+           <property name="buddy">
+            <cstring>mtu_min_download</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLineEdit" name="mtu_min_download">
+           <property name="placeholderText">
+            <string notr="true">200</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="mtu_max_download_l">
+           <property name="text">
+            <string>Max Download</string>
+           </property>
+           <property name="buddy">
+            <cstring>mtu_max_download</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QLineEdit" name="mtu_max_download">
+           <property name="placeholderText">
+            <string notr="true">4000</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="advanced_box">
+        <property name="uiLevel" stdset="0">
+         <string notr="true">advanced</string>
+        </property>
+        <property name="title">
+         <string>Advanced</string>
+        </property>
+        <layout class="QFormLayout" name="advanced_form">
+         <item row="0" column="0">
+          <widget class="QLabel" name="mtu_test_retries_l">
+           <property name="text">
+            <string>MTU Test Retries</string>
+           </property>
+           <property name="buddy">
+            <cstring>mtu_test_retries</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="mtu_test_retries">
+           <property name="placeholderText">
+            <string notr="true">2</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="mtu_test_timeout_l">
+           <property name="text">
+            <string>MTU Test Timeout</string>
+           </property>
+           <property name="buddy">
+            <cstring>mtu_test_timeout</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="mtu_test_timeout">
+           <property name="placeholderText">
+            <string notr="true">2s</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="mtu_test_parallelism_l">
+           <property name="text">
+            <string>MTU Test Parallelism</string>
+           </property>
+           <property name="buddy">
+            <cstring>mtu_test_parallelism</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLineEdit" name="mtu_test_parallelism">
+           <property name="placeholderText">
+            <string notr="true">32</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0" colspan="2">
+          <widget class="QCheckBox" name="mtu_auto_remove_low">
+           <property name="text">
+            <string>Drop resolvers below the minimum MTU</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <spacer name="side_spacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ResolverSourceWidget</class>
+   <extends>QWidget</extends>
+   <header>include/ui/widget/ResolverSourceWidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>MyPlainTextEdit</class>
+   <extends>QPlainTextEdit</extends>
+   <header>include/ui/utils/MyPlainTextEdit.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

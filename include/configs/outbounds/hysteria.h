@@ -6,6 +6,9 @@ namespace Configs
 {
     inline QStringList hysteriaBBRProfiles = {"standard", "conservative", "aggressive"};
     inline QStringList hysteriaObfsTypes = {"salamander", "gecko"};
+    // The core refuses Hysteria v1 without both rates; Build() falls back to these.
+    constexpr int kHysteriaV1DefaultUpMbps = 10;
+    constexpr int kHysteriaV1DefaultDownMbps = 50;
 
     // Shared by EditHysteria (widget text) and hysteria::Validate (bean fields).
     namespace Checks {
@@ -74,6 +77,11 @@ namespace Configs
 
         bool RealmActive() const {
             return realm_enabled && protocol_version == "2";
+        }
+
+        // An empty type is the editor's "None"; it keeps the password so switching back restores it.
+        bool ObfsActive() const {
+            return !obfs.isEmpty() && !obfs_type.trimmed().isEmpty();
         }
 
         bool HasTLS() override {

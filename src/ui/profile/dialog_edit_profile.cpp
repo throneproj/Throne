@@ -8,11 +8,13 @@
 #include "include/ui/profile/edit_chain.h"
 #include "include/ui/profile/edit_custom.h"
 #include "include/ui/profile/edit_direct.h"
+#include "include/ui/profile/edit_dnstt.h"
 #include "include/ui/profile/edit_extra_core.h"
 #include "include/ui/profile/edit_http.h"
 #include "include/ui/profile/edit_hysteria.h"
 #include "include/ui/profile/edit_juicity.h"
 #include "include/ui/profile/edit_masque.h"
+#include "include/ui/profile/edit_masterdns.h"
 #include "include/ui/profile/edit_mieru.h"
 #include "include/ui/profile/edit_naive.h"
 #include "include/ui/profile/edit_openconnect.h"
@@ -36,12 +38,15 @@
 #include "include/ui/utils/GuiUtils.hpp"
 #include "include/global/RunningProfiles.hpp"
 #include "include/global/Utils.hpp"
+#include "include/ui/utils/UiMode.h"
 #include "include/ui/utils/ValidationForm.h"
 
 #include <QLabel>
 #include <QLineEdit>
+#include <QListView>
 #include <QPointer>
 #include <QSet>
+#include <QStandardItemModel>
 
 namespace {
 using EditorFactory = std::pair<QWidget *, ProfileEditor *> (*)(QWidget *);
@@ -76,6 +81,8 @@ EditorFactory editorFactory(const QString &type) {
         {"openconnect", makeEditor<EditOpenConnect>},
         {"tailscale", makeEditor<EditTailScale>},
         {"ssh", makeEditor<EditSSH>},
+        {"dnstt", makeEditor<EditDnstt>},
+        {"masterdns", makeEditor<EditMasterDns>},
         {"direct", makeEditor<EditDirect>},
         {"chain", makeEditor<EditChain>},
         {"autoselector", makeEditor<EditAutoSelector>},
@@ -90,8 +97,12 @@ bool isCustomSubtype(const QString &type) {
            type == Configs::Custom::CustomXrayOutbound || type == Configs::Custom::CustomXrayFullConfig;
 }
 
+bool advancedType(const QString &type) {
+    return type == "direct" || type == "chain" || type == "extracore" || isCustomSubtype(type);
+}
+
 bool hasServerAddress(const QString &type) {
-    static const QSet<QString> serverless = {"chain", "autoselector", "direct", "extracore", "tailscale", "custom"};
+    static const QSet<QString> serverless = {"chain", "autoselector", "direct", "extracore", "tailscale", "custom", "dnstt", "masterdns"};
     return !serverless.contains(type);
 }
 
@@ -220,6 +231,7 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
         deleteLater();
         return;
     }
+    UiMode::Apply(this);
     runOnThread([self = QPointer<DialogEditProfile>(this)] {
         if (self == nullptr) return;
         self->fitToContent();
@@ -234,19 +246,27 @@ DialogEditProfile::~DialogEditProfile() {
 }
 
 void DialogEditProfile::setupTypeList() {
-    const auto addType = [this](const QString &t) {
-        ui->type->addItem(Configs::dataManager->profilesRepo->NewProfile(t)->outbound->DisplayType(), t);
+    // The type the dialog opened with stays listed, or the combo would name another type than the editor shows.
+    const auto offered = [this](const QString &t) { return !UiMode::Simple() || t == type || !advancedType(t); };
+    const auto addNamedType = [this, offered](const QString &text, const QString &t) {
+        if (offered(t)) ui->type->addItem(text, t);
+    };
+    const auto addType = [this, offered](const QString &t) {
+        if (offered(t)) ui->type->addItem(Configs::dataManager->profilesRepo->NewProfile(t)->outbound->DisplayType(), t);
     };
     for (const auto *t: {"autoselector", "socks", "http", "shadowsocks", "trojan", "vmess", "vless", "xrayvless",
                          "hysteria", "tuic", "juicity", "naive", "trusttunnel", "anytls", "mieru", "snell",
-                         "shadowtls", "wireguard", "masque", "openvpn", "openconnect", "tailscale", "ssh", "direct"}) {
+                         "shadowtls", "wireguard", "masque", "openvpn", "openconnect", "tailscale", "ssh"}) {
         addType(t);
     }
-    ui->type->addItem(tr("Custom (%1 outbound)").arg(software_core_name), Configs::Custom::CustomOutbound);
-    ui->type->addItem(tr("Custom (%1 config)").arg(software_core_name), Configs::Custom::CustomFullConfig);
-    ui->type->addItem(tr("Custom (Xray outbound)"), Configs::Custom::CustomXrayOutbound);
-    ui->type->addItem(tr("Custom (Xray config)"), Configs::Custom::CustomXrayFullConfig);
-    ui->type->addItem(tr("Extra Core"), "extracore");
+    addNamedType(tr("DNSTT / VayDNS"), "dnstt");
+    addType("masterdns");
+    addType("direct");
+    addNamedType(tr("Custom (%1 outbound)").arg(software_core_name), Configs::Custom::CustomOutbound);
+    addNamedType(tr("Custom (%1 config)").arg(software_core_name), Configs::Custom::CustomFullConfig);
+    addNamedType(tr("Custom (Xray outbound)"), Configs::Custom::CustomXrayOutbound);
+    addNamedType(tr("Custom (Xray config)"), Configs::Custom::CustomXrayFullConfig);
+    addNamedType(tr("Extra Core"), "extracore");
     addType("chain");
 
     ui->type->setCurrentIndex(qMax(0, ui->type->findData(type)));
@@ -308,6 +328,7 @@ void DialogEditProfile::mountEditor(QWidget *widget, ProfileEditor *editor) {
     beanLayout->addWidget(widget);
     innerWidget = widget;
     innerEditor = editor;
+    UiMode::Apply(widget);
 
     const auto innerTabOrder = collectTabOrder(this, widget);
     if (!innerTabOrder.isEmpty() && innerTabOrderIndex >= 0 && innerTabOrderIndex <= outerTabOrder.size()) {
@@ -321,6 +342,7 @@ void DialogEditProfile::mountEditor(QWidget *widget, ProfileEditor *editor) {
     editor->get_edit_text_name = [this] { return ui->name->text(); };
     editor->get_edit_text_serverAddress = [this] { return ui->address->text(); };
     editor->get_edit_text_serverPort = [this] { return ui->port->text(); };
+    editor->set_edit_title = [this](const QString &v) { ui->bean->setTitle(v); };
     editor->set_edit_text_serverAddress = [this](const QString &v) { ui->address->setText(v); };
     editor->set_edit_text_serverPort = [this](const QString &v) { ui->port->setText(v); };
     editor->editor_cache_updated = [this] { editor_cache_updated_impl(); };
@@ -352,7 +374,7 @@ void DialogEditProfile::updateCommonRows() {
     addressEffective->setToolTip(!overridden ? QString()
                                  : own.isEmpty() ? tr("Set by %1.").arg(endpoint.origin)
                                                  : tr("Set by %1; the profile's own address is %2.").arg(endpoint.origin, own));
-    ui->advanced_button->setVisible(server || type == "direct");
+    UiMode::SetVisible(ui->advanced_button, server || type == "direct");
 }
 
 void DialogEditProfile::relayout() {
@@ -403,6 +425,7 @@ void DialogEditProfile::editor_cache_updated_impl() {
     setCacheButtonText(ui->certificate_edit, !CACHE.certificate.isEmpty());
     setCacheButtonText(ui->xray_downloadsettings_edit, !CACHE.XrayDownloadSettings.isEmpty());
     setCacheButtonText(ui->xray_finalmask_edit, !CACHE.XrayFinalmask.isEmpty());
+    setCacheButtonText(ui->xray_xdrive_template_edit, !CACHE.XrayXDriveTemplate.isEmpty());
     for (const auto &[button, value]: innerEditor->get_editor_cached()) {
         setCacheButtonText(button, !value.isEmpty());
     }
@@ -419,4 +442,13 @@ void DialogEditProfile::setRowVisible(QWidget *label, QWidget *field, bool visib
 
 void DialogEditProfile::selectComboText(QComboBox *combo, const QString &text) {
     combo->setCurrentIndex(qMax(0, combo->findText(text)));
+}
+
+// The item stays for index-based load/save; disabling it also keeps the keyboard and wheel from landing on it.
+void DialogEditProfile::offerCustomMux(QComboBox *combo, int customIndex) {
+    const bool offered = !UiMode::Simple() || combo->currentIndex() == customIndex;
+    if (auto *view = qobject_cast<QListView *>(combo->view())) view->setRowHidden(customIndex, !offered);
+    if (auto *model = qobject_cast<QStandardItemModel *>(combo->model())) {
+        if (auto *item = model->item(customIndex)) item->setEnabled(offered);
+    }
 }

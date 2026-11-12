@@ -8,10 +8,20 @@ on:
       publish:
         description: "r for normal release, p for prerelease, leave empty to not publish anything"
         required: false
+      tests:
+        description: "Run the smoke and end-to-end test jobs"
+        type: boolean
+        default: false
 env:
-  # thronectl's source for the headless smoke test and the Docker image; the commit must be pushed to throneproj/Throne-api.
+  # Every job's Go, and the golang image the Dockerfile builds thronectl with. The legacy builds use MetaCubeX's Go 1.26.
+  GO_VERSION: "1.27.3"
+  PROTOC_VERSION: "36.2"
+  # throneproj/cronet-go commit whose Chromium toolchain builds the Linux core.
+  CRONET_GO_REF: "2ee86b72426042457b8eb879ab32296f5752bf2f"
+  # thronectl's source for the Linux zips and packages, the Docker image and the tests; the commit must be pushed to
+  # throneproj/Throne-api.
   # A THRONE_API_REF repository variable overrides it.
-  THRONE_API_REF: ${{ vars.THRONE_API_REF || 'cd3e77bd2e60e025924fd7ba287f04aa71c4526c' }}
+  THRONE_API_REF: ${{ vars.THRONE_API_REF || 'b5758e3ca341aab6d4124aedc4d04845ca1ab069' }}
 jobs:
   lint:
     permissions:
@@ -22,6 +32,11 @@ jobs:
         uses: actions/checkout@v7.0.1
       - name: Checking the engine/UI boundary
         run: cmake -DROOT=${{ github.workspace }} -P cmake/EngineBoundary.cmake
+      - name: Checking the changelog
+        if: github.event.inputs.publish == 'r' || github.event.inputs.publish == 'p'
+        env:
+          TAG: ${{ github.event.inputs.tag }}
+        run: bash ./script/release_notes.sh "$TAG" > /dev/null
   build-go:
     permissions:
       contents: read
@@ -30,39 +45,30 @@ jobs:
         include:
           - cross_os: windows
             cross_arch: amd64
-            go_version: "1.27.2"
             runner: ubuntu-22.04
           - cross_os: windows
             cross_arch: arm64
-            go_version: "1.27.2"
             runner: ubuntu-22.04
           - cross_os: linux
             cross_arch: amd64
-            go_version: "1.27.2"
             runner: ubuntu-22.04
           - cross_os: linux
             cross_arch: arm64
-            go_version: "1.27.2"
             runner: ubuntu-22.04
           - cross_os: darwin
             cross_arch: amd64
-            go_version: "1.27.2"
             runner: macos-latest
           - cross_os: darwin
             cross_arch: arm64
-            go_version: "1.27.2"
             runner: macos-latest
           - cross_os: darwinlegacy
             cross_arch: amd64
-            go_version: "1.27.2"
             runner: macos-latest
           - cross_os: windowslegacy
             cross_arch: amd64
-            go_version: "1.27.2"
             runner: macos-latest
           - cross_os: windowslegacy
             cross_arch: 386
-            go_version: "1.27.2"
             runner: macos-latest
       fail-fast: false
     runs-on: ${{ matrix.runner }}
@@ -76,12 +82,12 @@ jobs:
         uses: actions/cache@v6.1.0
         with:
           path: artifacts.tgz
-          key: CommonCache-${{ matrix.cross_os }}-${{ matrix.cross_arch }}-${{ hashFiles('script/build_go.sh', 'core/**') }}-${{ matrix.go_version }}
+          key: CommonCache-${{ matrix.cross_os }}-${{ matrix.cross_arch }}-${{ hashFiles('script/build_go.sh', 'core/**') }}-${{ env.GO_VERSION }}-${{ env.CRONET_GO_REF }}
       - name: Install Golang
         if: steps.cache-common.outputs.cache-hit != 'true'
         uses: actions/setup-go@v7.0.0
         with:
-          go-version: ${{ matrix.go_version }}
+          go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: |
             core/go.sum
       - name: Install Golang For Legacy OS
@@ -92,32 +98,38 @@ jobs:
           curl -fL "https://github.com/MetaCubeX/go/releases/download/build/go1.26.$(go env GOHOSTOS)-$(go env GOHOSTARCH).tar.gz" | tar -xz -C golang.org
       - name: Install Protoc
         if: steps.cache-common.outputs.cache-hit != 'true'
-        uses: arduino/setup-protoc@v3
-        with:
-          version: "31.1"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          case "$RUNNER_OS-$RUNNER_ARCH" in
+            Linux-X64) platform=linux-x86_64 ;;
+            Linux-ARM64) platform=linux-aarch_64 ;;
+            macOS-*) platform=osx-universal_binary ;;
+          esac
+          curl -fLso "$RUNNER_TEMP/protoc.zip" "https://github.com/protocolbuffers/protobuf/releases/download/v$PROTOC_VERSION/protoc-$PROTOC_VERSION-$platform.zip"
+          unzip -q "$RUNNER_TEMP/protoc.zip" -d "$RUNNER_TEMP/protoc"
+          echo "$RUNNER_TEMP/protoc/bin" >> "$GITHUB_PATH"
       - name: Installing protoc-gen-go
         if: steps.cache-common.outputs.cache-hit != 'true'
         run: |
           go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.12
           go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.6.2
       - name: Clone cronet-go
-        if: matrix.cross_os == 'linux'
+        if: matrix.cross_os == 'linux' && steps.cache-common.outputs.cache-hit != 'true'
         run: |
           set -xeuo pipefail
           git init ~/cronet-go
           git -C ~/cronet-go remote add origin https://github.com/throneproj/cronet-go.git
-          git -C ~/cronet-go fetch --depth=1 origin "2ee86b72426042457b8eb879ab32296f5752bf2f"
+          git -C ~/cronet-go fetch --depth=1 origin "$CRONET_GO_REF"
           git -C ~/cronet-go checkout FETCH_HEAD
           git -C ~/cronet-go submodule update --init --recursive --depth=1
       - name: Download Chromium toolchain
-        if: matrix.cross_os == 'linux'
+        if: matrix.cross_os == 'linux' && steps.cache-common.outputs.cache-hit != 'true'
         run: |
           set -xeuo pipefail
           cd ~/cronet-go
           go run ./cmd/build-naive --target=linux/${{ matrix.cross_arch }} download-toolchain
       - name: Set Chromium toolchain environment
-        if: matrix.cross_os == 'linux'
+        if: matrix.cross_os == 'linux' && steps.cache-common.outputs.cache-hit != 'true'
         run: |
           set -xeuo pipefail
           cd ~/cronet-go
@@ -131,7 +143,7 @@ jobs:
         if: steps.cache-common.outputs.cache-hit != 'true'
         run: tar czf artifacts.tgz ./deployment
       - name: Uploading Artifact
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: Throne-${{ github.sha }}-Common-${{ matrix.cross_os }}-${{ matrix.cross_arch }}
           path: artifacts.tgz
@@ -149,11 +161,11 @@ jobs:
       - name: Install Golang
         uses: actions/setup-go@v7.0.0
         with:
-          go-version: "1.27.2"
+          go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: |
             core/go.sum
       - name: Install JDK 17
-        uses: actions/setup-java@v6.0.1
+        uses: actions/setup-java@v6.1.0
         with:
           distribution: temurin
           java-version: "17"
@@ -170,7 +182,7 @@ jobs:
         shell: bash
         run: ./script/build_android.sh
       - name: Uploading Artifact
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: ThroneCore-android-${{ github.sha }}
           path: deployment/android/ThroneCore.aar
@@ -197,23 +209,12 @@ jobs:
             dest_suffix: windows-arm64
             common: windows-arm64
             launcher: ""
-          - platform: ubuntu-22.04
-            qt_version: "6.12.0"
-            target: x86_64
-            dest_suffix: linux-amd64
-            common: linux-amd64
-            launcher: ccache
+          # The bundled-Qt linux-amd64 and linux-arm64 builds are build-cpp-manylinux's.
           - platform: ubuntu-22.04
             qt_version: "6.2.0"
             target: x86_64
             dest_suffix: linux-amd64-system-qt
             common: linux-amd64
-            launcher: ccache
-          - platform: ubuntu-24.04-arm
-            qt_version: "6.12.0"
-            target: aarch64
-            dest_suffix: linux-arm64
-            common: linux-arm64
             launcher: ccache
           - platform: ubuntu-22.04-arm
             qt_version: "6.2.0"
@@ -223,18 +224,21 @@ jobs:
             launcher: ccache
           - platform: macos-latest
             qt_version: "6.12.0"
+            osx_target: "14.4"
             target: x86_64
             dest_suffix: darwin-amd64
             common: darwin-amd64
             launcher: ccache
           - platform: macos-latest
             qt_version: "6.12.0"
+            osx_target: "14.4"
             target: arm64
             dest_suffix: darwin-arm64
             common: darwin-arm64
             launcher: ccache
           - platform: macos-15
             qt_version: "6.4.3"
+            osx_target: "10.15"
             target: x86_64
             dest_suffix: darwinlegacy-amd64
             common: darwinlegacy-amd64
@@ -262,13 +266,15 @@ jobs:
     steps:
       - name: Checking out sources
         uses: actions/checkout@v7.0.1
-      - name: Checking out the web dashboard
+      - &checkout-dashboard
+        name: Checking out the web dashboard
         uses: actions/checkout@v7.0.1
         with:
           repository: SagerNet/sing-box-dashboard
           ref: gh-pages
           path: dashboard-src
-      - name: Bundling the web dashboard
+      - &bundle-dashboard
+        name: Bundling the web dashboard
         shell: bash
         run: |
           # Read-only pack files make this flaky on Windows; cmake filters .git out anyway.
@@ -277,11 +283,26 @@ jobs:
           # cmake globs res/dashboard at configure time and silently ships nothing if it
           # is empty, so fail here instead of releasing a build without the dashboard.
           test -f res/dashboard/index.html
+      # What ilammy/msvc-dev-cmd did: export the environment vcvarsall.bat sets up to the later steps.
       - name: Install MSVC compiler
         if: contains( matrix.platform, 'windows' )
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: ${{ matrix.target }}
+        shell: pwsh
+        env:
+          MSVC_ARCH: ${{ matrix.target }}
+        run: |
+          $vs = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -prerelease -property installationPath
+          if (-not $vs) { throw 'Visual Studio not found' }
+          # A wrapper script keeps the quoted path away from PowerShell's cmd.exe argument quoting.
+          $bat = Join-Path $env:RUNNER_TEMP 'vcvars.cmd'
+          Set-Content -LiteralPath $bat -Encoding ascii -Value "@call `"$vs\VC\Auxiliary\Build\vcvarsall.bat`" $env:MSVC_ARCH >nul && set"
+          $vars = & $bat
+          # vcvarsall exits 0 even when it rejects the architecture.
+          if (-not ($vars -ceq "VSCMD_ARG_TGT_ARCH=$env:MSVC_ARCH")) { throw "vcvarsall.bat $env:MSVC_ARCH did not set up the $env:MSVC_ARCH tools" }
+          $changed = foreach ($line in $vars) {
+            $name, $value = $line -split '=', 2
+            if ($null -ne $value -and $value -cne [Environment]::GetEnvironmentVariable($name)) { "$name=$value" }
+          }
+          Add-Content -LiteralPath $env:GITHUB_ENV -Value $changed
       - name: Setup compiler cache
         if: matrix.launcher != ''
         uses: hendrikmuhs/ccache-action@v1.2.24
@@ -289,15 +310,16 @@ jobs:
           key: ${{ matrix.dest_suffix }}-${{ matrix.qt_version }}
           variant: ${{ matrix.launcher }}
           max-size: 500M
-      - name: Download Artifacts
-        uses: actions/download-artifact@v8.0.1
+      - &download-common
+        name: Download Artifacts
+        uses: actions/download-artifact@v8.0.2
         with:
           name: Throne-${{ github.sha }}-Common-${{ matrix.common }}
           path: download-artifact
       # ========================================================================================================= Qt Install
       - name: Install Qt
-        uses: jurplel/install-qt-action@v4.3.1
-        if: (!contains(matrix.platform, 'windows')) && matrix.qt_version != '6.2.0'
+        uses: jurplel/install-qt-action@v4.5.0
+        if: contains( matrix.platform, 'macos' )
         with:
           version: ${{ matrix.qt_version }}
           setup-python: true
@@ -334,18 +356,6 @@ jobs:
           ninja
           cd ..
           ./script/deploy_windows.sh
-      - name: Linux - Generate MakeFile and Build
-        shell: bash
-        if: contains( matrix.platform, 'ubuntu' ) && matrix.qt_version != '6.2.0'
-        run: |
-          sudo apt update
-          mkdir build
-          cd build
-          curl -fLso srslist.h "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/srslist.h"
-          cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++" $LAUNCHER_ARGS ..
-          ninja
-          cd ..
-          ./script/deploy_linux64.sh
       - name: Linux Using System Qt - Generate MakeFile and Build
         shell: bash
         if: contains( matrix.platform, 'ubuntu' ) && matrix.qt_version == '6.2.0'
@@ -366,26 +376,105 @@ jobs:
           mkdir build
           cd build
           curl -fLso srslist.h "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/srslist.h"
-          cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DNKR_PACKAGE_MACOS=1 -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=${{ matrix.target }} $LAUNCHER_ARGS ..
+          cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DNKR_PACKAGE_MACOS=1 -DCMAKE_OSX_DEPLOYMENT_TARGET=${{ matrix.osx_target }} -DCMAKE_OSX_ARCHITECTURES=${{ matrix.target }} $LAUNCHER_ARGS ..
           ninja
           cd ..
           ./script/deploy_macos.sh
       # ========================================================================================================= Deployments
-      - name: Tar files
+      - &tar-deployment
+        name: Tar files
         shell: bash
         run: tar czf artifacts.tgz ./deployment
-      - name: Uploading Artifact
-        uses: actions/upload-artifact@v7.0.1
+      - &upload-deployment
+        name: Uploading Artifact
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: Throne-${{ github.sha }}-${{ matrix.dest_suffix }}
           path: artifacts.tgz
           compression-level: 0
+  # The bundled-Qt Linux builds, in the manylinux_2_28 image (AlmaLinux 8, glibc 2.28) that throneproj/buildqt builds
+  # their Qt in. gcc-toolset's libstdc++_nonshared links the C++ symbols newer than GCC 8 statically, so the zip and its
+  # packages need no more than Debian 10, Ubuntu 20.04 and RHEL 8 ship.
+  build-cpp-manylinux:
+    permissions:
+      contents: read
+    needs:
+      - lint
+      - build-go
+    strategy:
+      matrix:
+        include:
+          - platform: ubuntu-24.04
+            qt_version: "6.12.0"
+            target: x86_64
+            dest_suffix: linux-amd64
+            common: linux-amd64
+          - platform: ubuntu-24.04-arm
+            qt_version: "6.12.0"
+            target: aarch64
+            dest_suffix: linux-arm64
+            common: linux-arm64
+      fail-fast: false
+    runs-on: ${{ matrix.platform }}
+    container: quay.io/pypa/manylinux_2_28_${{ matrix.target }}:2026.11.01-2
+    defaults:
+      run:
+        shell: bash
+    env:
+      INPUT_VERSION: ${{ github.event.inputs.tag }}
+      DEST_SUFFIX: ${{ matrix.dest_suffix }}
+    steps:
+      - name: Checking out sources
+        uses: actions/checkout@v7.0.1
+      - *checkout-dashboard
+      - *bundle-dashboard
+      # Throne's CMakeLists needs X11 and xcb, Qt6Gui's config OpenGL, and the link resolves libQt6Gui's libxkbcommon;
+      # cmake, patchelf and binutils come with the image. EL8's ninja-build 1.8 can't read CMake 4's multi-output rules.
+      - name: Installing the build dependencies
+        run: |
+          dnf install -y libX11-devel libxcb-devel mesa-libGL-devel libxkbcommon
+          pipx install ninja==1.13.2
+      # EPEL's ccache 3.7 ignores the cache_dir the action sets, so take the action's pinned static ccache instead.
+      - name: Setup compiler cache
+        uses: hendrikmuhs/ccache-action@v1.2.24
+        with:
+          key: ${{ matrix.dest_suffix }}-${{ matrix.qt_version }}-manylinux_2_28
+          install: binary
+          max-size: 500M
+      - *download-common
+      - name: Cache Qt
+        id: cache-qt
+        uses: actions/cache@v6.1.0
+        with:
+          path: qt.tar.xz
+          key: LinuxQt-${{ matrix.qt_version }}-${{ matrix.target }}
+      - name: Download Qt
+        if: steps.cache-qt.outputs.cache-hit != 'true'
+        run: curl -fLo qt.tar.xz https://github.com/throneproj/buildqt/releases/download/Qt_${{ matrix.qt_version }}/Qt_${{ matrix.qt_version }}_linux_${{ matrix.target }}.tar.xz
+      # No -static-libgcc: the toolset links the system's GCC 8 libgcc_s, which the bundled Qt loads anyway.
+      - name: Generate MakeFile and Build
+        run: |
+          tar xJf qt.tar.xz
+          export CMAKE_PREFIX_PATH=$PWD/Qt/lib/cmake
+          # github.workspace is the runner's path, not this container's.
+          export DEST=$GITHUB_WORKSPACE/deployment/$DEST_SUFFIX
+          mkdir build
+          cd build
+          curl -fLso srslist.h "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/srslist.h"
+          cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ..
+          cmake --build .
+          cd ..
+          ./script/deploy_linux64.sh
+      - *tar-deployment
+      - *upload-deployment
   # Runs the linux-amd64 build headless: as the runner user, then as a root systemd notify unit with a watchdog.
   headless-smoke:
     name: Headless smoke test
     runs-on: ubuntu-22.04
     needs:
       - build-cpp
+      - build-cpp-manylinux
+    if: inputs.tests
     permissions:
       contents: read
     timeout-minutes: 20
@@ -410,20 +499,20 @@ jobs:
       - name: Install Golang
         uses: actions/setup-go@v7.0.0
         with:
-          go-version: "1.27.2"
+          go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: |
             throne-api/go.sum
       - name: Building thronectl
         working-directory: throne-api
         run: CGO_ENABLED=0 go build -trimpath -o "$THRONECTL" ./cmd/thronectl
       - name: Download Artifacts
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           name: Throne-${{ github.sha }}-linux-amd64
           path: download-artifact
       - name: Unpacking the build
         run: tar xzf download-artifact/artifacts.tgz
-      # Qt6Gui links these at load time even headless; build-cpp only had them via install-qt-action.
+      # Qt6Gui links these at load time even headless, and the runner image lacks some.
       - name: Installing the Qt runtime libraries
         run: |
           sudo apt-get update
@@ -437,6 +526,7 @@ jobs:
     runs-on: ${{ matrix.runner }}
     needs:
       - build-cpp
+      - build-cpp-manylinux
     permissions:
       contents: read
     strategy:
@@ -445,17 +535,18 @@ jobs:
           - target: windows
             runner: windows-latest
             artifacts: "windows*"
-          # glibc: <deployment dir>=<glibc of the build-cpp image it was built on>, the highest GLIBC_ version it may need.
+          # symbol_limits: <deployment dir>=<GLIBC>[,<GLIBCXX>,<CXXABI>], the newest versions its ELF files may need: the
+          # glibc of the image it was built in and, for the bundled builds, GCC 8's libstdc++ (Debian 10, RHEL 8).
           - target: linux-amd64
             runner: ubuntu-latest
             artifacts: "linux-amd64*"
             tools: rpm
-            glibc: "linux-amd64=2.35 linux-amd64-system-qt=2.35"
+            symbol_limits: "linux-amd64=2.28,3.4.25,1.3.11 linux-amd64-system-qt=2.35"
           - target: linux-arm64
             runner: ubuntu-latest
             artifacts: "linux-arm64*"
             tools: rpm
-            glibc: "linux-arm64=2.39 linux-arm64-system-qt=2.35"
+            symbol_limits: "linux-arm64=2.28,3.4.25,1.3.11 linux-arm64-system-qt=2.35"
           - target: macos
             runner: ubuntu-latest
             artifacts: "darwin*"
@@ -463,11 +554,18 @@ jobs:
             runner: ubuntu-latest
             artifacts: "*"
       fail-fast: false
+    env:
+      THRONECTL: ${{ github.workspace }}/throne-api/thronectl
     steps:
+      - name: Checking the Throne-api ref is pushed
+        if: startsWith(matrix.target, 'linux-')
+        run: |
+          git init -q "$RUNNER_TEMP/throne-api-ref"
+          git -C "$RUNNER_TEMP/throne-api-ref" fetch -q --depth=1 https://github.com/throneproj/Throne-api "$THRONE_API_REF" || { echo "::error::Throne-api $THRONE_API_REF is not on GitHub; push it first"; exit 1; }
       - name: Checking out sources
         uses: actions/checkout@v7.0.1
       - name: Download Artifacts
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           pattern: Throne-${{ github.sha }}-${{ matrix.artifacts }}
           path: download-artifact
@@ -493,6 +591,29 @@ jobs:
             Select-Object -First 1
           if (-not $makeappx) { throw 'makeappx.exe not found on the Windows runner (Windows SDK App Packaging Tools required for MSIX).' }
           Write-Host "makeappx: $($makeappx.FullName)"
+      # thronectl ships in the Linux zip and packages. No -X main.version: release builds set it to a tag, while
+      # THRONE_API_REF is a commit, so Go's VCS stamping names it (the tag when the commit has one), as in the image.
+      - name: Checking out Throne-api
+        if: startsWith(matrix.target, 'linux-')
+        uses: actions/checkout@v7.0.1
+        with:
+          repository: throneproj/Throne-api
+          ref: ${{ env.THRONE_API_REF }}
+          path: throne-api
+          persist-credentials: false
+      - name: Install Golang
+        if: startsWith(matrix.target, 'linux-')
+        uses: actions/setup-go@v7.0.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: |
+            throne-api/go.sum
+      - name: Building thronectl
+        if: startsWith(matrix.target, 'linux-')
+        working-directory: throne-api
+        env:
+          TARGET: ${{ matrix.target }}
+        run: CGO_ENABLED=0 GOOS=linux GOARCH="${TARGET#linux-}" go build -trimpath -ldflags "-s -w" -o "$THRONECTL" ./cmd/thronectl
       - name: Pack
         shell: bash
         env:
@@ -503,37 +624,48 @@ jobs:
           WINDOWS_CERT_SUBJECT: ${{ vars.WINDOWS_CERT_SUBJECT }}
           WINDOWS_SIGN_STRICT: ${{ vars.WINDOWS_SIGN_STRICT }}
         run: bash ./script/pack_release.sh ${{ matrix.target }} "${{ github.event.inputs.tag }}"
-      # Pins each build's glibc floor: a build image bump that raises it fails here, not in an older system's loader.
-      - name: Checking glibc symbol versions
-        if: matrix.glibc
+      # Pins each build's floor over every ELF file it ships, Qt and its plugins included: a build image or dependency
+      # bump that raises it fails here, not in an older system's loader.
+      - name: Checking glibc and libstdc++ symbol versions
+        if: matrix.symbol_limits
         shell: bash
         env:
-          GLIBC_LIMITS: ${{ matrix.glibc }}
+          SYMBOL_LIMITS: ${{ matrix.symbol_limits }}
         run: |
           rc=0
-          for entry in $GLIBC_LIMITS; do
+          kinds=(GLIBC GLIBCXX CXXABI)
+          row() { printf '%-22s %-56s %-8s %-8s %-8s %s\n' "$@"; }
+          row dir file "${kinds[@]}" limit
+          for entry in $SYMBOL_LIMITS; do
             dir=${entry%%=*}
             limit=${entry#*=}
+            IFS=, read -r -a max <<<"$limit"
             for bin in Throne ThroneCore; do
-              file="deployment/$dir/$bin"
-              if [ ! -f "$file" ]; then
-                echo "::error::$file is missing"
-                rc=1
-                continue
-              fi
-              # readelf, unlike this runner's objdump, reads arm64 binaries too.
-              need=$(readelf -V -W "$file" | { grep -o 'GLIBC_[0-9][0-9.]*' || true; } | sed 's/^GLIBC_//' | sort -Vu | tail -n1)
-              printf '%-24s %-11s GLIBC_%-7s limit %s\n' "$dir" "$bin" "${need:-none}" "$limit"
-              if [ -n "$need" ] && [ "$(printf '%s\n' "$need" "$limit" | sort -V | tail -n1)" != "$limit" ]; then
-                echo "::error::$dir/$bin needs GLIBC_$need, newer than the $limit of the image it was built on"
-                rc=1
-              fi
+              [ -f "deployment/$dir/$bin" ] || { echo "::error::deployment/$dir/$bin is missing"; rc=1; }
             done
+            while IFS= read -r -d '' file; do
+              [ "$(od -An -tx1 -N4 "$file" | tr -d ' \n')" = 7f454c46 ] || continue
+              name=${file#deployment/$dir/}
+              # readelf, unlike this runner's objdump, reads arm64 binaries too.
+              versions=$(readelf -V -W "$file")
+              need=()
+              for i in 0 1 2; do
+                need[i]=$({ grep -o "${kinds[i]}_[0-9][0-9.]*" <<<"$versions" || true; } | sed "s/^${kinds[i]}_//" | sort -Vu | tail -n1)
+              done
+              row "$dir" "$name" "${need[0]:--}" "${need[1]:--}" "${need[2]:--}" "$limit"
+              for i in 0 1 2; do
+                if [ -n "${need[i]}" ] && [ -n "${max[i]:-}" ] &&
+                  [ "$(printf '%s\n' "${need[i]}" "${max[i]}" | sort -V | tail -n1)" != "${max[i]}" ]; then
+                  echo "::error::$dir/$name needs ${kinds[i]}_${need[i]}, newer than the ${kinds[i]}_${max[i]} this build may need"
+                  rc=1
+                fi
+              done
+            done < <(find "deployment/$dir" -type f ! -name '*.debug' -print0 | sort -z)
           done
           exit $rc
       - name: Uploading Artifact
         if: matrix.target != 'debug'
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: Pack-${{ github.sha }}-${{ matrix.target }}
           path: deployment/Throne-*
@@ -541,38 +673,56 @@ jobs:
           compression-level: 0
       - name: Uploading Debug Artifact
         if: matrix.target == 'debug'
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: Debug-${{ github.sha }}
           path: deployment/debug-symbols.zip
           if-no-files-found: error
           compression-level: 0
-  # Installs a .deb into a bare Debian container and loads both binaries there, so a dependency the package does not
-  # declare fails here instead of in a user's dynamic loader.
+  # Installs a package into a bare container of a system it targets and loads its binaries there, so a dependency the
+  # package does not declare, or a glibc or libstdc++ the system is too old for, fails here instead of in a user's
+  # dynamic loader.
   package-smoke:
-    name: Package smoke ${{ matrix.deb }} in ${{ matrix.image }}
+    name: Package smoke ${{ matrix.package }} in ${{ matrix.image }}
     runs-on: ${{ matrix.runner }}
     needs:
       - pack
+    if: inputs.tests
     permissions:
       contents: read
     timeout-minutes: 15
     strategy:
       matrix:
         include:
-          - deb: debian-amd64
+          - package: debian-amd64.deb
             pack: linux-amd64
             image: debian:12
             runner: ubuntu-latest
-          # Raspberry Pi OS bookworm (glibc 2.36) takes the system-qt build; this is the arm runner that builds it.
-          - deb: debian-arm64-system-qt
+          # Ubuntu 20.04 (glibc 2.31), the oldest Ubuntu the bundled build targets.
+          - package: debian-amd64.deb
+            pack: linux-amd64
+            image: ubuntu:20.04
+            runner: ubuntu-latest
+          # RHEL 8: exactly the bundled build's glibc 2.28 and GCC 8 libstdc++.
+          - package: fedora-amd64.rpm
+            pack: linux-amd64
+            image: almalinux:8
+            runner: ubuntu-latest
+          # Raspberry Pi OS bookworm (glibc 2.36) with its own Qt 6 takes the system-qt build.
+          - package: debian-arm64-system-qt.deb
             pack: linux-arm64
             image: debian:bookworm-slim
-            runner: ubuntu-22.04-arm
+            runner: ubuntu-24.04-arm
+          # Raspberry Pi OS bullseye (glibc 2.31) has no Qt 6, so it takes the bundled build. Ubuntu 20.04 stands in for
+          # it: same glibc and zstd-less dpkg, and Debian 11's security pool has moved to archive.debian.org.
+          - package: debian-arm64.deb
+            pack: linux-arm64
+            image: ubuntu:20.04
+            runner: ubuntu-24.04-arm
       fail-fast: false
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           name: Pack-${{ github.sha }}-${{ matrix.pack }}
           path: download-artifact
@@ -580,26 +730,36 @@ jobs:
         shell: bash
         env:
           TAG: ${{ github.event.inputs.tag }}
-          DEB: Throne-${{ github.event.inputs.tag }}-${{ matrix.deb }}.deb
+          PKG: Throne-${{ github.event.inputs.tag }}-${{ matrix.package }}
           IMAGE: ${{ matrix.image }}
         run: |
-          if [ ! -f "download-artifact/$DEB" ]; then
-            echo "::error::$DEB is not in Pack-${{ github.sha }}-${{ matrix.pack }}"
+          if [ ! -f "download-artifact/$PKG" ]; then
+            echo "::error::$PKG is not in Pack-${{ github.sha }}-${{ matrix.pack }}"
             exit 1
           fi
-          docker run --rm -e TAG -e DEB -e IMAGE -e DEBIAN_FRONTEND=noninteractive \
+          docker run --rm -e TAG -e PKG -e IMAGE -e DEBIAN_FRONTEND=noninteractive \
             -v "$PWD/download-artifact:/pkg:ro" "$IMAGE" bash -c '
             set -euo pipefail
-            apt-get update -qq
-            apt-get install -y --no-install-recommends "/pkg/$DEB"
+            cd /pkg
+            if command -v apt-get >/dev/null; then
+              apt-get update -qq
+              apt-get install -y --no-install-recommends "./$PKG"
+            else
+              dnf install -y --setopt=install_weak_deps=False "./$PKG"
+            fi
+            # The bundled builds also run the updater and, for every download, a TLS plugin carrying its own OpenSSL.
+            bins=(/opt/Throne/Throne /opt/Throne/ThroneCore)
+            for bin in /opt/Throne/updater /opt/Throne/usr/plugins/tls/*.so; do
+              if [ -f "$bin" ]; then bins+=("$bin"); fi
+            done
             rc=0
-            for bin in /opt/Throne/Throne /opt/Throne/ThroneCore; do
+            for bin in "${bins[@]}"; do
               echo "::group::ldd $bin"
               out=$(ldd "$bin" 2>&1) || true
               echo "$out"
               echo "::endgroup::"
               if grep -F "not found" <<<"$out"; then
-                echo "::error::$bin does not load in $IMAGE: the package misses a dependency"
+                echo "::error::$bin does not load in $IMAGE: the package misses a dependency, or needs a newer one"
                 rc=1
               fi
             done
@@ -610,14 +770,20 @@ jobs:
               echo "::error::Throne --headless --version printed \"$version\", not \"Throne $TAG\""
               exit 1
             fi
+            version=$(thronectl version) || { echo "::error::thronectl version failed in $IMAGE"; exit 1; }
+            echo "$version"
+            for file in /usr/lib/systemd/system/throne-web.service /etc/throne/web.env; do
+              [ -f "$file" ] || { echo "::error::the package installs no $file"; exit 1; }
+            done
           '
   # Builds the headless image for linux/amd64 and linux/arm64 from the packed linux zips and runs both; pushes it to
-  # ghcr.io only when publishing: the tag for p and r, plus latest for r.
+  # ghcr.io only when publishing: the tag for p and r, plus latest for r. Skipped when neither testing nor publishing.
   docker-image:
     name: Docker image
     runs-on: ubuntu-latest
     needs:
       - pack
+    if: inputs.tests || github.event.inputs.publish == 'p' || github.event.inputs.publish == 'r'
     permissions:
       contents: read
       packages: write
@@ -630,7 +796,7 @@ jobs:
       - name: Checking out sources
         uses: actions/checkout@v7.0.1
       - name: Download Artifacts
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           pattern: Pack-${{ github.sha }}-linux-*
           merge-multiple: true
@@ -652,7 +818,7 @@ jobs:
             mv "$RUNNER_TEMP/zip-$arch/Throne" "$CONTEXT/linux-$arch"
             # The amd64 runner would run a misplaced amd64 binary natively in the arm64 image, so --version cannot tell.
             machine=$([ "$arch" = amd64 ] && echo x86-64 || echo aarch64)
-            for bin in Throne ThroneCore; do
+            for bin in Throne ThroneCore thronectl; do
               case "$(file -b "$CONTEXT/linux-$arch/$bin")" in
               *"$machine"*) ;;
               *)
@@ -690,7 +856,9 @@ jobs:
         with:
           context: ${{ env.CONTEXT }}
           file: docker/Dockerfile
-          build-args: THRONE_API_REF=${{ env.THRONE_API_REF }}
+          build-args: |
+            THRONE_API_REF=${{ env.THRONE_API_REF }}
+            GO_VERSION=${{ env.GO_VERSION }}
           platforms: linux/amd64
           load: true
           tags: throne-ci:amd64
@@ -699,7 +867,9 @@ jobs:
         with:
           context: ${{ env.CONTEXT }}
           file: docker/Dockerfile
-          build-args: THRONE_API_REF=${{ env.THRONE_API_REF }}
+          build-args: |
+            THRONE_API_REF=${{ env.THRONE_API_REF }}
+            GO_VERSION=${{ env.GO_VERSION }}
           platforms: linux/arm64
           load: true
           tags: throne-ci:arm64
@@ -717,10 +887,10 @@ jobs:
             docker run --rm --platform "linux/$arch" --entrypoint thronectl "throne-ci:$arch" version
           done
       # amd64 only: under QEMU the arm64 start is too slow for a stable deadline.
-      - name: Starting the amd64 image, connecting thronectl, stopping it
+      - name: Starting the amd64 image, connecting thronectl and the web UI, stopping it
         shell: bash
         run: |
-          docker run -d --name throne-ci --platform linux/amd64 throne-ci:amd64
+          docker run -d --name throne-ci --platform linux/amd64 -e 'THRONE_WEB_LISTEN=*:9096' throne-ci:amd64
           trap 'echo "::group::Container log"; docker logs throne-ci 2>&1; echo "::endgroup::"' EXIT
           deadline=$((SECONDS + 90))
           until docker exec throne-ci /opt/Throne/Throne --health >/dev/null 2>&1; do
@@ -733,6 +903,26 @@ jobs:
           done
           docker exec throne-ci /opt/Throne/Throne --health
           docker exec throne-ci sh -c 'eval "$(/opt/Throne/Throne --print-connection)" && thronectl status'
+          # THRONE_WEB_LISTEN makes the entrypoint run the web UI beside Throne; the image has no curl, so the runner
+          # reaches it on the container's address (HTTPS, self-signed).
+          web="https://$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' throne-ci):9096"
+          deadline=$((SECONDS + 30))
+          until curl -fsk -o /dev/null "$web/auth/state"; do
+            if ((SECONDS >= deadline)); then
+              echo "::error::thronectl web did not answer on $web within 30 s"
+              exit 1
+            fi
+            sleep 1
+          done
+          password=$(docker logs throne-ci 2>&1 | sed -n 's/^thronectl web: created the web UI password: //p' | tail -n1)
+          [ -n "$password" ] || { echo "::error::the container log has no created web UI password"; exit 1; }
+          jar="$RUNNER_TEMP/web-cookies"
+          # The session cookie counts only together with its CSRF token from the login.
+          csrf=$(jq -nc --arg password "$password" '{password: $password}' |
+            curl -fsSk -c "$jar" -H 'Content-Type: application/json' --data @- "$web/auth/login" |
+            jq -er 'select(.authenticated == true) | .csrf') || { echo "::error::POST /auth/login did not sign in"; exit 1; }
+          curl -fsSk -b "$jar" -H "X-CSRF-Token: $csrf" "$web/api/v1/status" |
+            jq -e '.capabilities.headless == true' >/dev/null || { echo "::error::GET /api/v1/status through the web UI failed"; exit 1; }
           docker stop --time 45 throne-ci
           code=$(docker inspect -f '{{.State.ExitCode}}' throne-ci)
           if [ "$code" != 0 ]; then
@@ -745,7 +935,7 @@ jobs:
           fi
       - name: Logging in to ghcr.io
         if: steps.context.outputs.push == 'true'
-        uses: docker/login-action@v4.6.0
+        uses: docker/login-action@v4.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -756,7 +946,9 @@ jobs:
         with:
           context: ${{ env.CONTEXT }}
           file: docker/Dockerfile
-          build-args: THRONE_API_REF=${{ env.THRONE_API_REF }}
+          build-args: |
+            THRONE_API_REF=${{ env.THRONE_API_REF }}
+            GO_VERSION=${{ env.GO_VERSION }}
           platforms: linux/amd64,linux/arm64
           labels: |
             org.opencontainers.image.version=${{ env.TAG }}
@@ -764,19 +956,19 @@ jobs:
           tags: ${{ steps.context.outputs.tags }}
           push: true
   # ===================================================================================================== Headless end to end
-  # script/ci/e2e runs headless Throne the way users do, so no scratch VMs are needed. These jobs only report: publish
-  # does not wait for them. Tun and the kill switch run only in containers with their own network namespace, never on a
+  # script/ci/e2e runs headless Throne the way users do, so no scratch VMs are needed. These jobs run only with the tests
+  # input and only report: publish does not wait for them. Tun and the kill switch run only in containers with their own network namespace, never on a
   # runner host, which they would cut off. A failed job uploads its logs as the artifact <job id>-logs.
   # A needs on a matrix job waits for every leg and skips the job when any leg failed; Actions cannot depend on one leg.
   # So each job runs unless the run was cancelled or its matrix never ran, and downloads the one artifact it tests right
   # after the checkout: when that leg failed, the job ends there with "Artifact not found". The jobs that test packages
-  # still need every build-cpp leg, because pack does.
+  # still need every build-cpp and build-cpp-manylinux leg, because pack does.
   e2e-linux-packages:
     name: E2E deb under systemd
     runs-on: ubuntu-24.04
     needs:
       - pack
-    if: ${{ !cancelled() && needs.pack.result != 'skipped' }}
+    if: ${{ inputs.tests && !cancelled() && needs.pack.result != 'skipped' }}
     permissions:
       contents: read
     timeout-minutes: 40
@@ -793,7 +985,7 @@ jobs:
       - name: Checking out sources
         uses: actions/checkout@v7.0.1
       - name: Download Artifacts
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           name: Pack-${{ github.sha }}-linux-amd64
           path: download-artifact
@@ -807,7 +999,7 @@ jobs:
       - name: Install Golang
         uses: actions/setup-go@v7.0.0
         with:
-          go-version: "1.27.2"
+          go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: |
             throne-api/go.sum
       - name: Building thronectl
@@ -828,7 +1020,7 @@ jobs:
           fi
       - name: Uploading the logs
         if: failure()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: e2e-linux-packages-logs
           path: e2e-logs
@@ -838,8 +1030,8 @@ jobs:
     name: E2E Linux scenarios in containers
     runs-on: ubuntu-24.04
     needs:
-      - build-cpp
-    if: ${{ !cancelled() && needs.build-cpp.result != 'skipped' }}
+      - build-cpp-manylinux
+    if: ${{ inputs.tests && !cancelled() && needs.build-cpp-manylinux.result != 'skipped' }}
     permissions:
       contents: read
     timeout-minutes: 75
@@ -857,7 +1049,7 @@ jobs:
       - name: Checking out sources
         uses: actions/checkout@v7.0.1
       - name: Download Artifacts
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           name: Throne-${{ github.sha }}-linux-amd64
           path: download-artifact
@@ -871,7 +1063,7 @@ jobs:
       - name: Install Golang
         uses: actions/setup-go@v7.0.0
         with:
-          go-version: "1.27.2"
+          go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: |
             throne-api/go.sum
       - name: Building thronectl
@@ -884,7 +1076,7 @@ jobs:
       # scenario 11, which then finds no $E2E_IMAGE; the other ten still run, and the job still fails.
       - name: Building the Docker image
         continue-on-error: true
-        run: docker build -f docker/Dockerfile --build-arg THRONE_API_REF="$THRONE_API_REF" -t "$E2E_IMAGE" deployment
+        run: docker build -f docker/Dockerfile --build-arg THRONE_API_REF="$THRONE_API_REF" --build-arg GO_VERSION="$GO_VERSION" -t "$E2E_IMAGE" deployment
       - name: Running the scenarios
         timeout-minutes: 60
         run: bash ./script/ci/e2e/linux_scenarios.sh
@@ -899,7 +1091,7 @@ jobs:
           fi
       - name: Uploading the logs
         if: failure()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: e2e-linux-scenarios-logs
           path: e2e-logs
@@ -910,7 +1102,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     needs:
       - pack
-    if: ${{ !cancelled() && needs.pack.result != 'skipped' }}
+    if: ${{ inputs.tests && !cancelled() && needs.pack.result != 'skipped' }}
     permissions:
       contents: read
     timeout-minutes: 30
@@ -928,7 +1120,7 @@ jobs:
       - name: Checking out sources
         uses: actions/checkout@v7.0.1
       - name: Download Artifacts
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           name: Pack-${{ github.sha }}-linux-arm64
           path: download-artifact
@@ -942,13 +1134,13 @@ jobs:
       - name: Install Golang
         uses: actions/setup-go@v7.0.0
         with:
-          go-version: "1.27.2"
+          go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: |
             throne-api/go.sum
       - name: Building thronectl
         working-directory: throne-api
         run: CGO_ENABLED=0 go build -trimpath -o "$THRONECTL" ./cmd/thronectl
-      - name: Running the arm64 packages in Debian bookworm
+      - name: Running the arm64 packages in Ubuntu 18.04 and Debian bookworm
         timeout-minutes: 20
         run: bash ./script/ci/e2e/linux_arm64.sh
       - name: Collecting the logs
@@ -961,7 +1153,7 @@ jobs:
           fi
       - name: Uploading the logs
         if: failure()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: e2e-linux-arm64-logs
           path: e2e-logs
@@ -973,7 +1165,7 @@ jobs:
     runs-on: macos-latest
     needs:
       - build-cpp
-    if: ${{ !cancelled() && needs.build-cpp.result != 'skipped' }}
+    if: ${{ inputs.tests && !cancelled() && needs.build-cpp.result != 'skipped' }}
     permissions:
       contents: read
     timeout-minutes: 30
@@ -990,7 +1182,7 @@ jobs:
       - name: Checking out sources
         uses: actions/checkout@v7.0.1
       - name: Download Artifacts
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           name: Throne-${{ github.sha }}-darwin-arm64
           path: download-artifact
@@ -1004,7 +1196,7 @@ jobs:
       - name: Install Golang
         uses: actions/setup-go@v7.0.0
         with:
-          go-version: "1.27.2"
+          go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: |
             throne-api/go.sum
       - name: Building thronectl
@@ -1026,7 +1218,7 @@ jobs:
           fi
       - name: Uploading the logs
         if: failure()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: e2e-macos-logs
           path: e2e-logs
@@ -1037,7 +1229,7 @@ jobs:
     runs-on: windows-latest
     needs:
       - build-cpp
-    if: ${{ !cancelled() && needs.build-cpp.result != 'skipped' }}
+    if: ${{ inputs.tests && !cancelled() && needs.build-cpp.result != 'skipped' }}
     permissions:
       contents: read
     timeout-minutes: 30
@@ -1057,7 +1249,7 @@ jobs:
       - name: Checking out sources
         uses: actions/checkout@v7.0.1
       - name: Download Artifacts
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           name: Throne-${{ github.sha }}-windows-amd64
           path: download-artifact
@@ -1071,7 +1263,7 @@ jobs:
       - name: Install Golang
         uses: actions/setup-go@v7.0.0
         with:
-          go-version: "1.27.2"
+          go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: |
             throne-api/go.sum
       - name: Building thronectl
@@ -1107,7 +1299,7 @@ jobs:
           exit 0
       - name: Uploading the logs
         if: failure()
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: e2e-windows-logs
           path: e2e-logs
@@ -1125,28 +1317,32 @@ jobs:
       - name: Checking out sources
         uses: actions/checkout@v7.0.1
       - name: Download Artifacts
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           pattern: Pack-${{ github.sha }}-*
           merge-multiple: true
           path: deployment
       - name: Uploading Artifact
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: Deployment-${{ github.sha }}
           path: deployment
           compression-level: 0
       - name: Installing ghr
         run: |
-          curl -Lo - https://github.com/tcnksm/ghr/releases/download/v0.17.0/ghr_v0.17.0_linux_amd64.tar.gz | tar xzv
+          curl -fLo - https://github.com/tcnksm/ghr/releases/download/v0.18.5/ghr_v0.18.5_linux_amd64.tar.gz | tar xzv
           mv ghr*linux_amd64/ghr .
-      # The changelog is written above the generated download table after publishing.
       - name: Generating release notes
+        if: github.event.inputs.publish == 'r' || github.event.inputs.publish == 'p'
         env:
           TAG: ${{ github.event.inputs.tag }}
           REPO: ${{ github.repository }}
         run: |
-          sed "s|{{TAG}}|$TAG|g; s|{{REPO}}|$REPO|g" .github/release_template.md > "$RUNNER_TEMP/release.md"
+          {
+            bash ./script/release_notes.sh "$TAG"
+            echo
+            sed "s|{{TAG}}|$TAG|g; s|{{REPO}}|$REPO|g" .github/release_template.md
+          } > "$RUNNER_TEMP/release.md"
       - name: PreRelease
         if: github.event.inputs.publish == 'p'
         run: |
@@ -1198,7 +1394,7 @@ jobs:
       - name: Checking out sources
         uses: actions/checkout@v7.0.1
       - name: Download macOS artifacts
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           name: Pack-${{ github.sha }}-macos
           path: deployment
@@ -1261,7 +1457,7 @@ jobs:
       SIGNING_FPR: 5EEB21A857E9C485DBA5F4E000316AB4369049D6
     steps:
       - name: Download Linux artifacts
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           pattern: Pack-${{ github.sha }}-linux-*
           merge-multiple: true

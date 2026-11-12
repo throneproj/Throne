@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QHash>
 #include <QList>
 #include <QString>
 #include <memory>
@@ -30,9 +31,9 @@ namespace Configs
 
     struct AutoSelectorPlan
     {
-        // Eligible members, best first, capped at poolCap.
+        // Eligible members, best first, capped at poolCap; in priority mode tier by tier, each tier keeping a share.
         QList<int> pool;
-        // The prefix of pool that actually enters the config.
+        // The members of pool that enter the config, capped at buildLimit the same way.
         QList<int> build;
 
         // Profiles across every tracked group that still exists, the selector itself excluded.
@@ -50,6 +51,13 @@ namespace Configs
         // The caller should run a client-side URL test before building.
         bool needsRanking = false;
 
+        // Priority strategy only. Member id -> index of the first tier it matches, tiers.size() when none.
+        QHash<int, int> tierOf;
+        // Members of build per tier; the extra last slot counts those matching no tier.
+        QList<int> tierBuilt;
+        // Eligible members per tier before the caps, laid out like tierBuilt.
+        QList<int> tierEligible;
+
         QString error;
 
         [[nodiscard]] int skippedCount() const
@@ -65,8 +73,28 @@ namespace Configs
     QList<int> AutoSelectorRankingCandidates(const std::shared_ptr<Profile> &ent);
 
     // `stale` = members whose stored result no longer reflects reality; they are re-measured.
+    // `working`, when set, receives how many of the other candidates already hold a fresh successful result.
     QList<int> AutoSelectorUnmeasuredCandidates(const std::shared_ptr<Profile> &ent,
-                                                const QList<int> &stale = {});
+                                                const QList<int> &stale = {}, int *working = nullptr);
 
-    QList<int> RerankAutoSelectorPool(const std::shared_ptr<Profile> &ent);
+    // Whether the ranking counts `member` as working: a successful result inside the selector's validity window.
+    bool AutoSelectorMemberWorks(const std::shared_ptr<Profile> &ent, const std::shared_ptr<Profile> &member);
+
+    // Working members a selector needs before it may start while its ranking sweep still runs.
+    int AutoSelectorStartQuorum(const std::shared_ptr<Profile> &ent);
+
+    // Whether the build the plan takes now would drop a member of lastBuilt or add one that works.
+    bool AutoSelectorBuildChanged(const std::shared_ptr<Profile> &ent);
+
+    // `untrusted` members rank as untested whatever their stored result says.
+    QList<int> RerankAutoSelectorPool(const std::shared_ptr<Profile> &ent, const QList<int> &untrusted = {});
+
+    // Moves `members` behind the rest of the pool, so the next build tries the others first.
+    void DemoteAutoSelectorMembers(const std::shared_ptr<Profile> &ent, const QList<int> &members);
+
+    // The auto selector a started profile runs: the profile itself, or the selector hop of a chain.
+    std::shared_ptr<Profile> RunningSelectorOf(const std::shared_ptr<Profile> &ent);
+
+    // A chain whose selector members dial through fixed hops, so a direct test says nothing about them.
+    bool SelectorBehindHops(const std::shared_ptr<Profile> &ent);
 }

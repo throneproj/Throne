@@ -5,10 +5,15 @@
 #include <QSet>
 #include <QString>
 #include <QStringList>
+#include <functional>
 #include <memory>
 
+namespace Configs {
+    class IpScan;
+}
+
 namespace Scanner {
-    class ScanWorker;
+    class ScanRun;
 
     enum class StartMode {
         // Falls back to the initial pass when there is nothing to continue.
@@ -34,6 +39,35 @@ namespace Scanner {
         QString stage;
         QStringList log;
         QString error;
+    };
+
+    struct ScanRunHooks {
+        std::function<void()> progress;
+        std::function<void()> results;
+        // Run thread, once, after the last DB write.
+        std::function<void()> finished;
+    };
+
+    // One running scan; ScanManager owns it on the UI thread while it works on threads of its own.
+    class ScanRun {
+    public:
+        virtual ~ScanRun() = default;
+
+        virtual void Start() = 0;
+
+        // The caller also sends StopScan, which ends the RPC in flight.
+        virtual void RequestStop() = 0;
+
+        virtual void DisablePersist() = 0;
+
+        [[nodiscard]] virtual bool IsStopping() const = 0;
+
+        // The final status is stored; a later status write would overwrite it.
+        [[nodiscard]] virtual bool IsFinalized() const = 0;
+
+        [[nodiscard]] virtual ScanLiveState LiveState() const = 0;
+
+        [[nodiscard]] virtual QString SessionId() const = 0;
     };
 
     // UI thread only; owns every run so scans outlive their windows.
@@ -86,7 +120,11 @@ namespace Scanner {
 
         void onWorkerFinished(int scanId);
 
-        QHash<int, std::shared_ptr<ScanWorker>> workers;
+        StartResult startTune(const std::shared_ptr<Configs::IpScan> &scan, StartMode mode);
+
+        [[nodiscard]] ScanRunHooks hooksFor(int scanId);
+
+        QHash<int, std::shared_ptr<ScanRun>> workers;
         QSet<int> watched;
         bool persistDisabled = false;
     };

@@ -38,11 +38,18 @@ type Identity struct {
 	Reserved      []byte
 }
 
-func Register(ctx context.Context, tunnelType string, proxy string, apiHosts []string) (*Identity, error) {
+// TLSFragmentOptions apply to direct API calls only: through a proxy the ClientHello is the proxy outbound's to shape.
+type TLSFragmentOptions struct {
+	Fragment       bool
+	RecordFragment bool
+	FallbackDelay  string
+}
+
+func Register(ctx context.Context, tunnelType string, proxy string, apiHosts []string, fragment TLSFragmentOptions) (*Identity, error) {
 	if tunnelType != TunnelWireGuard && tunnelType != TunnelMASQUE {
 		return nil, E.New("unknown tunnel type: ", tunnelType)
 	}
-	apiClient, err := newClient(proxy)
+	apiClient, err := newClient(proxy, fragment)
 	if err != nil {
 		return nil, err
 	}

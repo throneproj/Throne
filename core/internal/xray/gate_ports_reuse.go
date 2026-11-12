@@ -15,6 +15,9 @@ import (
 // second Xray instance taking it would share it silently instead of failing.
 const probesHoldThroughStart = true
 
+// The same sharing lets a replacement instance bind the ports of the one it replaces before that one closes.
+const listenersSharePorts = true
+
 var probeListenConfig = net.ListenConfig{
 	Control: func(_, _ string, conn syscall.RawConn) error {
 		var optErr error

@@ -42,6 +42,11 @@ namespace {
 #else
     constexpr bool kConnectionManagerLinux = false;
 #endif
+#ifdef Q_OS_WIN
+    constexpr bool kConnectionManagerWindows = true;
+#else
+    constexpr bool kConnectionManagerWindows = false;
+#endif
 
     // Main thread, headless Linux, as a start brings the Tun up: once per boot each, the Tun settings that cut API clients off.
     void connectionManagerWarnTunApiReach() {
@@ -182,8 +187,10 @@ namespace Engine {
             req.need_xray = !result->xrayConfig.isEmpty();
             for (const auto &full : result->xrayFullConfigs) req.xray_full_configs.push_back(full.toStdString());
             if (req.need_xray || !req.xray_full_configs.empty()) {
-                req.xray_outbound_dns_strategy = Configs::getXrayOutboundDomainStrategy().toStdString();
-                if (auto selector = ent->AutoSelector(); selector != nullptr) {
+                req.xray_outbound_dns_strategy = result->xrayDnsStrategy.toStdString();
+                if (auto selector = result->autoSelectors.isEmpty() || result->autoSelectors.first().profile == nullptr
+                                        ? nullptr : result->autoSelectors.first().profile->AutoSelector();
+                    selector != nullptr) {
                     // The idle window must outlast the probe interval or the sidecar restarts every round.
                     req.xray_lazy_start = true;
                     req.xray_idle_seconds = std::max(120, selector->intervalSec * 2);
@@ -240,6 +247,14 @@ namespace Engine {
                 if (error.contains("configure tun interface")) {
                     finish(StartOutcome::TunFailed, error);
                     if (!resolved.interactive) return false;
+                    if (error.contains("open existing adapter")) {
+                        runOnUiThread([=, this] {
+                            if (!policy()->offerLeftoverTunAdapterRetry(error)) return;
+                            if (Configs::dataManager->settingsRepo->prepare_exit || connectionState() != ConnectionState::Idle) return;
+                            start(StartRequest{ent->id});
+                        });
+                        return false;
+                    }
                     runOnUiThread([=, this] {
                         if (policy()->offerCoreReset(error)) m_coreSupervisor->resetCore();
                     });
@@ -259,6 +274,8 @@ namespace Engine {
             Stats::SetVpnEndpointProfiles(result->vpnEndpointProfiles);
             m_stats->setOutboundNames(result->outboundNames);
             Configs::SetRunningProfiles(result->involvedProfiles);
+            Configs::SetRunningRoute(result->routeId);
+            Configs::SetRunningRouteRules({result->routeRuleOrigins, result->outboundNames, result->vpnEndpointProfiles});
             setRunning(ent, !result->tunIPv4CIDR.isEmpty());
             if (Configs::dataManager->settingsRepo->spmode_system_proxy) applySystemProxy(true);
 
@@ -317,8 +334,10 @@ namespace Engine {
 
         if (kConnectionManagerLinux && m_options.headless && Configs::dataManager->settingsRepo->spmode_vpn) connectionManagerWarnTunApiReach();
 
+        // Wintun spends 15 s on a leftover adapter before failing; a restart from the prompt inside that window strands a new one.
+        const int slowStartMs = kConnectionManagerWindows && !result->tunIPv4CIDR.isEmpty() ? 20000 : 10000;
         const Engine::SlowOperation slowStart = resolved.interactive
-            ? policy()->slowOperation(Engine::SlowOperationKind::Start, 10000)
+            ? policy()->slowOperation(Engine::SlowOperationKind::Start, slowStartMs)
             : Engine::SlowOperation{};
 
         runOnUiThread([this] {

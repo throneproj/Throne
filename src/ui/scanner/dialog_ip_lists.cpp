@@ -32,6 +32,7 @@
 #include "include/ui/scanner/IpListItem.h"
 #include "include/ui/scanner/dialog_edit_ip_list.h"
 #include "include/ui/utils/ReorderListWidget.h"
+#include "include/ui/utils/NativeFileDialog.h"
 
 namespace {
     constexpr qint64 kIpListsMaxImportFileSize = 50 * 1024 * 1024;
@@ -398,8 +399,8 @@ void DialogIpLists::on_export_list_clicked() {
     if (fileName.trimmed().isEmpty()) fileName = QStringLiteral("ip-list");
 
     const auto title = tr("Export IP list");
-    const auto path = QFileDialog::getSaveFileName(this, title, QDir::homePath() + "/" + fileName + ".txt",
-                                                   tr("Text files (*.txt);;All files (*)"));
+    const auto path = NativeFileDialog::getSaveFileName(this, title, QDir::homePath() + "/" + fileName + ".txt",
+                                                        tr("Text files (*.txt);;All files (*)"));
     if (path.isEmpty()) return;
 
     const auto entries = Configs::dataManager->ipListsRepo->GetEntries(list->id);
@@ -421,7 +422,7 @@ void DialogIpLists::on_export_list_clicked() {
 
 void DialogIpLists::importFromFiles() {
     if (importing) return;
-    const auto paths = QFileDialog::getOpenFileNames(
+    const auto paths = NativeFileDialog::getOpenFileNames(
         this, tr("Import IP lists"), QDir::homePath(),
         tr("All files (*);;Text and CSV (*.txt *.csv *.lst *.list);;sing-box rule-sets (*.srs *.json)"));
     if (paths.isEmpty()) return;

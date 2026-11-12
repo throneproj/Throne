@@ -6,11 +6,13 @@
 #include <QObject>
 #include <QString>
 
+#include <array>
 #include <functional>
 #include <memory>
 #include <optional>
 
 #include "include/api/remote/Message.hpp"
+#include "include/engine/EngineTypes.h"
 
 class QRegularExpression;
 class QTimer;
@@ -56,6 +58,19 @@ namespace RemoteApi {
         struct WaitOptions {
             bool wait = true;
             int timeoutMs = 30000;
+        };
+
+        struct FeedWaiter {
+            quint64 after = 0;
+            int limit = 0;
+            WaiterPtr waiter;
+        };
+
+        struct RepoRevisions {
+            quint64 groups = 0;
+            quint64 profiles = 0;
+            quint64 routes = 0;
+            quint64 settings = 0;
         };
 
         struct Job {
@@ -114,6 +129,30 @@ namespace RemoteApi {
         void postRestoreApply(const Request &request, const Responder &respond, int id);
         void deleteRestore(const Request &request, const Responder &respond, int id);
 
+        // Log and change feeds (RouterFeeds.cpp).
+        void getLogs(const Request &request, const Responder &respond, int id);
+        void getEvents(const Request &request, const Responder &respond, int id);
+
+        // Profile editing (RouterProfileConfig.cpp).
+        void getProfileConfig(const Request &request, const Responder &respond, int id);
+        void putProfileConfig(const Request &request, const Responder &respond, int id);
+
+        // Routing profile editing (RouterRoutes.cpp).
+        void getRouteSchema(const Request &request, const Responder &respond, int id);
+        void getRoute(const Request &request, const Responder &respond, int id);
+        void postRoute(const Request &request, const Responder &respond, int id);
+        void putRoute(const Request &request, const Responder &respond, int id);
+        void deleteRoute(const Request &request, const Responder &respond, int id);
+
+        // Live connections (RouterConnections.cpp).
+        void getConnections(const Request &request, const Responder &respond, int id);
+        void deleteConnections(const Request &request, const Responder &respond, int id);
+
+        // WARP (RouterWarp.cpp).
+        void getWarp(const Request &request, const Responder &respond, int id);
+        void putWarp(const Request &request, const Responder &respond, int id);
+        void postWarpRegister(const Request &request, const Responder &respond, int id);
+
         static Response badRequest(const QString &message);
         static Response notFound(const QString &message);
         static Response noProfiles();
@@ -164,6 +203,22 @@ namespace RemoteApi {
         // is in flight. then() runs even when the request's waiter has already timed out.
         std::optional<Response> afterStop(bool stopRunning, const std::function<void()> &then);
 
+        void setupFeeds();
+        void noteChanged(Engine::ChangeTopics topics);
+        bool changedAfter(quint64 after) const;
+        Response eventsResponse(quint64 after, bool everything) const;
+        Response logsResponse(bool sameInstance, quint64 after, int limit) const;
+        size_t statusHashNow() const;
+        size_t groupsHashNow() const;
+        size_t settingsHashNow() const;
+        void settleEvents();
+        void pollStatus();
+        // Catches writes made straight to the repos, as the window's are; groups and settings count only when their API view changed.
+        void pollRepos();
+        void pollLogs();
+        // Once Throne exits, the transport has closed every connection: drops the held feeds and their timers.
+        bool releaseFeedsOnExit();
+
         Engine::EngineControl *engine_;
         // Keyed by StartRequest serial; called once, with no failure when the profile started.
         QHash<quint64, std::function<void(const std::optional<Response> &failure)>> starts_;
@@ -182,5 +237,19 @@ namespace RemoteApi {
         QTimer *transferSweep_ = nullptr;
         // A restore was applied and the restart is queued: every request is answered 503 restarting.
         bool restarting_ = false;
+
+        quint64 changeSeq_ = 0;
+        // Per ChangeTopic, in topic order: the changeSeq_ of its last change.
+        std::array<quint64, 5> topicSeqs_{};
+        QList<FeedWaiter> eventWaiters_;
+        QList<FeedWaiter> logWaiters_;
+        QTimer *eventSettle_ = nullptr;
+        // Safety net for status changes no signal reports; runs while events requests are held.
+        QTimer *statusPoll_ = nullptr;
+        std::optional<size_t> statusHash_;
+        std::optional<RepoRevisions> repoRevisions_;
+        size_t groupsHash_ = 0;
+        size_t settingsHash_ = 0;
+        QTimer *logPoll_ = nullptr;
     };
 }

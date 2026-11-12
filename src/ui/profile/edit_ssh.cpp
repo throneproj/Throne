@@ -3,6 +3,7 @@
 
 #include "include/global/Utils.hpp"
 #include "include/ui/utils/ValidationForm.h"
+#include "include/ui/utils/NativeFileDialog.h"
 
 EditSSH::EditSSH(QWidget *parent) : QWidget(parent), ui(new Ui::EditSSH) {
     ui->setupUi(this);
@@ -26,8 +27,8 @@ void EditSSH::onStart(std::shared_ptr<Configs::Profile> _ent) {
     ui->client_version->setText(outbound->client_version);
 
     connect(ui->choose_pk, &QPushButton::clicked, this, [=,this] {
-        auto fn = QFileDialog::getOpenFileName(this, QObject::tr("Select"), QDir::currentPath(),
-                                               "", nullptr, QFileDialog::Option::ReadOnly);
+        auto fn = NativeFileDialog::getOpenFileName(this, QObject::tr("Select"), QDir::currentPath(),
+                                                    "", nullptr, QFileDialog::Option::ReadOnly);
         if (!fn.isEmpty()) {
             ui->private_key_path->setText(fn);
             if (form) form->revalidate(ui->private_key_path);

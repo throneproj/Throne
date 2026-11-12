@@ -1,0 +1,47 @@
+[Unit]
+Description=Throne web UI (thronectl web)
+Documentation=https://throneproj.github.io/headless/web/
+Wants=network-online.target
+After=throne.service network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=exec
+ExecStart=/usr/bin/thronectl web
+EnvironmentFile=-/etc/throne/web.env
+DynamicUser=yes
+# /var/lib/throne is root-only. Until Throne's first start creates the key, the start fails and Restart= retries.
+LoadCredential=api.key:/var/lib/throne/config/api.key
+# Password hash and TLS certificate; with DynamicUser it lives in /var/lib/private/throne-web.
+StateDirectory=throne-web
+StateDirectoryMode=0700
+UMask=0077
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=invisible
+# AF_NETLINK: Go lists the interface addresses through it (TLS certificate names, the URLs of a *:PORT listener).
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX AF_NETLINK
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+CapabilityBoundingSet=
+AmbientCapabilities=
+
+[Install]
+WantedBy=multi-user.target

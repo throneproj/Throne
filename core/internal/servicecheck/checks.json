@@ -1,0 +1,233 @@
+{
+  "version": 1,
+  "revision": 2026111102,
+  "categories": [
+    {"id": "ai", "name": "AI", "icon": "🤖"},
+    {"id": "streaming", "name": "Streaming", "icon": "🎬"},
+    {"id": "social", "name": "Social", "icon": "💬"},
+    {"id": "reputation", "name": "IP reputation", "icon": "🛡️"}
+  ],
+  "checks": [
+    {
+      "id": "chatgpt",
+      "name": "ChatGPT",
+      "category": "ai",
+      "requests": [
+        {"id": "trace", "url": "https://chatgpt.com/cdn-cgi/trace", "max_body": 4096},
+        {"id": "home", "url": "https://chatgpt.com/", "max_body": 65536}
+      ],
+      "region": [
+        {"request": "trace", "from": "body", "match": "(?m)^loc=([A-Z]{2})\\r?$"}
+      ],
+      "deny_regions": ["CN", "HK", "MO", "RU", "BY", "IR", "KP", "SY", "CU", "VE"],
+      "rules": [
+        {"if": [{"request": "home", "status": ["403"], "headers": {"Cf-Mitigated": "challenge"}}], "result": "unknown", "note": "Bot check"},
+        {"if": [{"request": "home", "status": ["403", "451"]}], "result": "blocked"},
+        {"if": [{"request": "home", "status": ["2xx"]}], "result": "available"}
+      ]
+    },
+    {
+      "id": "claude",
+      "name": "Claude",
+      "category": "ai",
+      "requests": [
+        {"id": "trace", "url": "https://claude.ai/cdn-cgi/trace", "max_body": 4096},
+        {"id": "home", "url": "https://claude.ai/", "follow": false, "max_body": 16384}
+      ],
+      "region": [
+        {"request": "trace", "from": "body", "match": "(?m)^loc=([A-Z]{2})\\r?$"}
+      ],
+      "deny_regions": ["CN", "HK", "MO", "RU", "BY", "IR", "KP", "SY", "CU", "VE", "AF", "YE", "MM"],
+      "rules": [
+        {"if": [{"request": "home", "status": ["3xx"], "headers": {"Location": "app-unavailable-in-region"}}], "result": "restricted"},
+        {"if": [{"request": "home", "status": ["403"], "headers": {"Cf-Mitigated": "challenge"}}], "result": "unknown", "note": "Bot check"},
+        {"if": [{"request": "home", "status": ["403", "451"]}], "result": "blocked"},
+        {"if": [{"request": "home", "status": ["2xx", "3xx"]}], "result": "available"}
+      ]
+    },
+    {
+      "id": "gemini",
+      "name": "Gemini",
+      "category": "ai",
+      "requests": [
+        {"id": "app", "url": "https://gemini.google.com/app?hl=en", "max_body": 1572864, "headers": {"Cookie": "SOCS=CAI"}}
+      ],
+      "region": [
+        {"from": "body", "match": ",2,1,200,\"([A-Z]{3})\""}
+      ],
+      "rules": [
+        {"if": [{"status": ["2xx"], "url": "^https://consent\\."}], "result": "unknown", "note": "Consent page"},
+        {"if": [{"status": ["2xx"], "url": "^https://gemini\\.google\\.com/", "body": "45631641(?:\\\\?\":|,null,)true"}], "result": "available"},
+        {"if": [{"status": ["2xx"], "url": "^https://gemini\\.google\\.com/", "body": "45631641(?:\\\\?\":|,null,)false"}], "result": "partial", "note": "Refused when signed out; a signed-in account can still work"},
+        {"if": [{"status": ["403", "429"]}], "result": "blocked"},
+        {"if": [{"status": ["2xx"], "url": "^https://gemini\\.google\\.com/"}], "result": "unknown", "note": "No availability flag on the page"}
+      ]
+    },
+    {
+      "id": "copilot",
+      "name": "Copilot",
+      "category": "ai",
+      "requests": [
+        {"id": "user", "url": "https://copilot.microsoft.com/c/api/user?api-version=2", "max_body": 16384, "headers": {"Accept": "application/json"}}
+      ],
+      "region": [
+        {"from": "body", "match": "\"regionCode\":\"([A-Z]{2})\""}
+      ],
+      "deny_regions": ["CN", "RU", "BY", "IR", "KP", "SY", "CU"],
+      "rules": [
+        {"if": [{"status": ["403"], "headers": {"Cf-Mitigated": "challenge"}}], "result": "unknown", "note": "Bot check"},
+        {"if": [{"status": ["2xx"], "body": "\"regionCode\""}], "result": "available"},
+        {"if": [{"status": ["403", "451"]}], "result": "blocked"}
+      ]
+    },
+    {
+      "id": "netflix",
+      "name": "Netflix",
+      "category": "streaming",
+      "requests": [
+        {"id": "original", "url": "https://www.netflix.com/title/80057281", "max_body": 655360},
+        {"id": "licensed", "url": "https://www.netflix.com/title/70143836", "max_body": 65536}
+      ],
+      "region": [
+        {"request": "original", "from": "url", "match": "netflix\\.com/([a-z]{2})(?:-[a-z]{2})?/title/"},
+        {"request": "original", "from": "header:Location", "match": "netflix\\.com/([a-z]{2})(?:-[a-z]{2})?/title/"},
+        {"request": "original", "from": "body", "match": "\"country\":\"([A-Z]{2})\""}
+      ],
+      "deny_regions": ["CN", "RU", "IR", "KP", "SY"],
+      "rules": [
+        {"if": [{"request": "original", "status": ["403"]}], "result": "blocked", "note": "Proxy detected"},
+        {"if": [{"request": "original", "status": ["2xx"]}, {"request": "licensed", "status": ["2xx"]}], "result": "available"},
+        {"if": [{"request": "original", "status": ["2xx"]}, {"request": "licensed", "status": ["404"]}], "result": "partial", "note": "Netflix originals only"},
+        {"if": [{"request": "original", "status": ["404"]}], "result": "restricted"}
+      ]
+    },
+    {
+      "id": "youtube_premium",
+      "name": "YouTube Premium",
+      "category": "streaming",
+      "requests": [
+        {"id": "premium", "url": "https://www.youtube.com/premium?hl=en", "max_body": 1572864, "headers": {"Cookie": "SOCS=CAI"}}
+      ],
+      "region": [
+        {"from": "body", "match": "\"INNERTUBE_CONTEXT_GL\":\"([A-Z]{2})\""}
+      ],
+      "deny_regions": ["CN", "RU", "IR", "KP", "SY", "CU"],
+      "rules": [
+        {"if": [{"status": ["2xx"], "body": "Premium is not available in your country"}], "result": "restricted", "clear_region": true},
+        {"if": [{"status": ["2xx"], "url": "^https://consent\\."}], "result": "unknown", "note": "Consent page"},
+        {"if": [{"status": ["2xx"], "url": "^https://www\\.youtube\\.com/premium"}], "result": "available"},
+        {"if": [{"status": ["403", "429"]}], "result": "blocked"}
+      ]
+    },
+    {
+      "id": "spotify",
+      "name": "Spotify",
+      "category": "streaming",
+      "requests": [
+        {"id": "signup", "url": "https://www.spotify.com/signup", "max_body": 131072}
+      ],
+      "region": [
+        {"from": "url", "match": "spotify\\.com/([a-z]{2})(?:-[a-z]{2})?/signup"}
+      ],
+      "deny_regions": ["CN", "RU", "BY", "IR", "KP", "SY", "CU"],
+      "rules": [
+        {"if": [{"status": ["2xx"], "body": "\"status\":\"LAUNCHED\""}], "result": "available"},
+        {"if": [{"status": ["403", "429"]}], "result": "blocked"}
+      ]
+    },
+    {
+      "id": "prime_video",
+      "name": "Prime Video",
+      "category": "streaming",
+      "requests": [
+        {"id": "home", "url": "https://www.primevideo.com/", "max_body": 393216}
+      ],
+      "region": [
+        {"from": "body", "match": "\"currentTerritory\":\"([A-Z]{2})\""}
+      ],
+      "deny_regions": ["CN", "RU", "BY", "IR", "KP", "SY", "CU"],
+      "rules": [
+        {"if": [{"status": ["2xx"], "body": "(?i)not available in your (country|location|region)"}], "result": "restricted"},
+        {"if": [{"status": ["2xx"], "body": "\"currentTerritory\":\"[A-Z]{2}\""}], "result": "available"},
+        {"if": [{"status": ["403"]}], "result": "blocked"}
+      ]
+    },
+    {
+      "id": "tiktok",
+      "name": "TikTok",
+      "category": "social",
+      "requests": [
+        {"id": "home", "url": "https://www.tiktok.com/", "max_body": 262144}
+      ],
+      "region": [
+        {"from": "body", "match": "\"region\":\"([A-Z]{2})\""}
+      ],
+      "deny_regions": ["CN", "IN"],
+      "rules": [
+        {"if": [{"status": ["2xx"], "body": "(?i)not available in your (country|region)"}], "result": "restricted"},
+        {"if": [{"status": ["2xx"], "body": "\"region\":\"[A-Z]{2}\""}], "result": "available"},
+        {"if": [{"status": ["403", "429"]}], "result": "blocked"}
+      ]
+    },
+    {
+      "id": "google_search",
+      "name": "Google Search",
+      "category": "reputation",
+      "requests": [
+        {"id": "search", "url": "https://www.google.com/search?q=weather&hl=en", "follow": false, "max_body": 65536, "headers": {"Cookie": "SOCS=CAI"}}
+      ],
+      "rules": [
+        {"if": [{"status": ["3xx"], "headers": {"Location": "/sorry/"}}], "result": "blocked", "note": "Captcha"},
+        {"if": [{"status": ["429"]}], "result": "blocked", "note": "Captcha"},
+        {"if": [{"status": ["3xx"], "headers": {"Location": "^https://consent\\."}}], "result": "unknown", "note": "Consent page"},
+        {"if": [{"status": ["2xx"]}], "result": "available"}
+      ]
+    },
+    {
+      "id": "wikipedia",
+      "name": "Wikipedia editing",
+      "category": "reputation",
+      "requests": [
+        {"id": "userinfo", "url": "https://en.wikipedia.org/w/api.php?action=query&meta=userinfo&uiprop=blockinfo&format=json", "max_body": 16384, "headers": {"Accept": "application/json"}}
+      ],
+      "rules": [
+        {"if": [{"status": ["2xx"], "body": "\"blockid\""}], "result": "blocked", "note": "Editing blocked"},
+        {"if": [{"status": ["2xx"], "body": "\"userinfo\""}], "result": "available"}
+      ]
+    },
+    {
+      "id": "steam",
+      "name": "Steam store",
+      "category": "reputation",
+      "requests": [
+        {"id": "store", "url": "https://store.steampowered.com/", "max_body": 65536}
+      ],
+      "region": [
+        {"from": "header:Set-Cookie", "match": "^steamCountry=([A-Z]{2})"}
+      ],
+      "rules": [
+        {"if": [{"status": ["2xx"]}], "result": "available"},
+        {"if": [{"status": ["403", "429"]}], "result": "blocked"}
+      ]
+    }
+  ],
+  "ip_info": [
+    {
+      "id": "iplocate",
+      "name": "iplocate.io",
+      "url": "https://iplocate.io/api/lookup/",
+      "fields": {"ip": "ip", "country_code": "country_code", "asn": "asn.asn", "org": "asn.name", "type": "asn.type"},
+      "flags": {
+        "vpn": "privacy.is_vpn", "proxy": "privacy.is_proxy", "tor": "privacy.is_tor", "hosting": "privacy.is_hosting",
+        "abuser": "privacy.is_abuser", "anonymous": "privacy.is_anonymous", "relay": "privacy.is_icloud_relay"
+      }
+    },
+    {
+      "id": "ipquery",
+      "name": "ipquery.io",
+      "url": "https://api.ipquery.io/?format=json",
+      "fields": {"ip": "ip", "country_code": "location.country_code", "asn": "isp.asn", "org": "isp.org", "risk_score": "risk.risk_score"},
+      "flags": {"vpn": "risk.is_vpn", "proxy": "risk.is_proxy", "tor": "risk.is_tor", "hosting": "risk.is_datacenter", "mobile": "risk.is_mobile"}
+    }
+  ]
+}

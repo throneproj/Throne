@@ -15,7 +15,7 @@ set(UI_INCLUDE_ALLOWLIST
 
 set(LOWER_LAYER_REGEX "^(include|src)/(api|configs|database|global|scanner|stats|sys)/")
 set(LOWER_LAYER_EXEMPT_REGEX "^src/api/remote/Router[^/]*\\.cpp$")
-set(LOWER_ENGINE_HEADERS EngineTypes.h Lifecycle.h EngineEvents.h EngineTr.h)
+set(LOWER_ENGINE_HEADERS EngineTypes.h Lifecycle.h EngineEvents.h EngineTr.h EditLocks.h)
 
 set(SOURCE_EXT_REGEX "\\.(h|hh|hpp|hxx|inl|ipp|c|cc|cpp|cxx|m|mm)$")
 set(IDENT_END "([^A-Za-z0-9_]|$)")

@@ -28,8 +28,12 @@ namespace Configs_network {
         if (!error->isEmpty()) return nullptr;
 
         bool rpcOK = false;
-        const auto reply = API::defaultClient->WarpRegister(&rpcOK, tunnelType, proxy,
-                                                            Configs::dataManager->settingsRepo->warp_api_hosts);
+        const auto &settings = Configs::dataManager->settingsRepo;
+        // The dialog validates the delay only while fragmenting is on.
+        const auto fallbackDelay = settings->warp_api_tls_fragment ? settings->warp_api_tls_fragment_fallback_delay.trimmed() : QString();
+        const auto reply = API::defaultClient->WarpRegister(&rpcOK, tunnelType, proxy, settings->warp_api_hosts,
+                                                            settings->warp_api_tls_fragment, settings->warp_api_tls_record_fragment,
+                                                            fallbackDelay);
         if (!rpcOK) {
             *error = QObject::tr("Failed to reach the core.");
             return nullptr;
@@ -49,6 +53,24 @@ namespace Configs_network {
         identity->ipv6 = QString::fromStdString(reply.ipv6.value_or(""));
         for (const auto byte : reply.reserved) identity->reserved << byte;
         return identity;
+    }
+
+    QStringList GenerateWarpCamouflage(QString &error) {
+        error.clear();
+        bool rpcOK = false;
+        const auto reply = API::defaultClient
+            ? API::defaultClient->GenQuicSignature(&rpcOK, QStringLiteral("www.cloudflare.com"))
+            : libcore::GenQuicSignatureResponse{};
+        error = rpcOK ? QString::fromStdString(reply.error.value_or("")) : QObject::tr("Failed to reach the core.");
+        QStringList packets;
+        for (const auto &packet : reply.packets) packets << QString::fromStdString(packet);
+        if (error.isEmpty() && (packets.isEmpty() || packets.size() > 5 || packets.contains(QString())))
+            error = QObject::tr("The core returned an invalid QUIC signature.");
+        if (!error.isEmpty()) {
+            error = QObject::tr("Failed to generate WARP QUIC signature: %1").arg(error);
+            return {};
+        }
+        return packets;
     }
 
     bool ConfirmWarpTerms(QWidget *parent) {

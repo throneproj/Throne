@@ -91,6 +91,11 @@ public:
     void setConnections(const QList<Stats::ConnectionMetadata> &connections, Stats::ConnectionSort sort, bool ascending);
 
     static QString displayProcessName(const QString &processName);
+    // The menu's "Matched: <entries> → <proxy|direct|server>": the rule's entries that matched, else the whole rule,
+    // else "final", shortened to maxGraphemes.
+    static QString matchedRuleText(const Stats::ConnectionMetadata &meta, int maxGraphemes);
+    // The same in full, naming the server and its tag.
+    static QString matchedRuleToolTip(const Stats::ConnectionMetadata &meta);
 
     bool isProcessIndex(const QModelIndex &index) const;
     QString processNameAt(const QModelIndex &index) const;

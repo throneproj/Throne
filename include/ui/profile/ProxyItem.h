@@ -24,6 +24,11 @@ public:
 
     void refresh_data();
 
+    // Replaces the stored test result until the next refresh_data().
+    void showStepResult(const QString &text, const QString &toolTip, const QString &colorRole);
+
+    static void setColorRole(QWidget *widget, const QString &role);
+
     QPushButton *get_change_button();
 
     std::shared_ptr<Configs::Profile> ent;

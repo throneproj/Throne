@@ -34,47 +34,29 @@
            <property name="title">
             <string notr="true">Sing-box</string>
            </property>
-           <layout class="QGridLayout" name="gridLayout_mux_singbox">
-            <item row="0" column="0">
-             <widget class="QLabel" name="mux_protocol_l">
-              <property name="text">
-               <string>Protocol</string>
-              </property>
-             </widget>
+           <layout class="QVBoxLayout" name="verticalLayout_mux_singbox">
+            <item>
+             <widget class="MuxSettingsWidget" name="mux_singbox" native="true"/>
             </item>
-            <item row="0" column="1">
-             <widget class="QComboBox" name="mux_protocol"/>
-            </item>
-            <item row="0" column="2">
-             <widget class="QLabel" name="mux_concurrency_l">
-              <property name="text">
-               <string>Concurrency</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="3">
-             <widget class="QLineEdit" name="mux_concurrency">
-              <property name="maximumSize">
-               <size>
-                <width>120</width>
-                <height>16777215</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0" colspan="2">
-             <widget class="QCheckBox" name="mux_padding">
-              <property name="text">
-               <string notr="true">Padding</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2" colspan="2">
+            <item>
              <widget class="QCheckBox" name="mux_default_on">
               <property name="text">
                <string>Default On</string>
               </property>
              </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_mux_singbox">
+              <property name="orientation">
+               <enum>Qt::Orientation::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>0</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </widget>
@@ -84,30 +66,29 @@
            <property name="title">
             <string notr="true">Xray</string>
            </property>
-           <layout class="QGridLayout" name="gridLayout_mux_xray">
-            <item row="0" column="0">
-             <widget class="QLabel" name="xray_mux_concurrency_l">
-              <property name="text">
-               <string>Concurrency</string>
-              </property>
-             </widget>
+           <layout class="QVBoxLayout" name="verticalLayout_mux_xray">
+            <item>
+             <widget class="XrayMuxSettingsWidget" name="mux_xray" native="true"/>
             </item>
-            <item row="0" column="1">
-             <widget class="QLineEdit" name="xray_mux_concurrency">
-              <property name="maximumSize">
-               <size>
-                <width>120</width>
-                <height>16777215</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0" colspan="2">
+            <item>
              <widget class="QCheckBox" name="xray_default_mux">
               <property name="text">
                <string>Default Mux On</string>
               </property>
              </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_mux_xray">
+              <property name="orientation">
+               <enum>Qt::Orientation::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>0</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </widget>
@@ -520,6 +501,18 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MuxSettingsWidget</class>
+   <extends>QWidget</extends>
+   <header>include/ui/widget/MuxSettingsWidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>XrayMuxSettingsWidget</class>
+   <extends>QWidget</extends>
+   <header>include/ui/widget/MuxSettingsWidget.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

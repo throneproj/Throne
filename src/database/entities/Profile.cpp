@@ -1,6 +1,7 @@
 #include <include/database/entities/Profile.h>
 
 #include <QJsonDocument>
+#include <QJsonObject>
 #include <QSet>
 
 #include "include/database/GroupsRepo.h"
@@ -21,6 +22,7 @@ namespace Configs
     void Profile::ClearTestResults() {
         test_country.clear();
         ip_out.clear();
+        service_checks.clear();
         latency = 0;
         latency_at = 0;
         dl_speed.clear();
@@ -39,11 +41,9 @@ namespace Configs
         QString result;
         if (!test_country.isEmpty()) result += UNICODE_LRO + CountryCodeToFlag(test_country) + " ";
         if (latency == kLatencyConnectOnly) {
-            result = QObject::tr("Connect OK");
-            return result;
+            return QObject::tr("Connect OK");
         } else if (latency < 0) {
-            result = QObject::tr("Unavailable");
-            return result;
+            return QObject::tr("Unavailable");
         } else if (latency > 0) {
             result += QString("%1 ms").arg(latency);
         }
@@ -53,6 +53,11 @@ namespace Configs
         if (!ul_speed.isEmpty() && ul_speed != "N/A" && showSpeed) result += " ↑" + ul_speed;
         if (!ip_out.isEmpty() && showIP) result += " 🌐" + ip_out;
         return result;
+    }
+
+    qint64 Profile::ServiceCheckedAt() const {
+        if (service_checks.isEmpty()) return 0;
+        return QJsonDocument::fromJson(service_checks.toUtf8()).object()["at"].toInteger();
     }
 
     QColor Profile::DisplayLatencyColor() const {

@@ -4,6 +4,7 @@
 
 #include "include/ui/profile/dialog_edit_profile.h"
 #include "include/ui/utils/ValidationForm.h"
+#include "include/ui/utils/NativeFileDialog.h"
 
 EditExtraCore::EditExtraCore(QWidget *parent) : QWidget(parent),
                                                 ui(new Ui::EditExtraCore) {
@@ -29,7 +30,7 @@ void EditExtraCore::onStart(std::shared_ptr<Configs::Profile> _ent) {
 
     connect(ui->path_button, &QPushButton::pressed, this, [=,this]
     {
-        auto f = QFileDialog::getOpenFileName();
+        auto f = NativeFileDialog::getOpenFileName();
         if (f.isEmpty())
         {
             return;

@@ -77,6 +77,11 @@ namespace Engine {
         return false;
     }
 
+    bool HeadlessPolicy::offerLeftoverTunAdapterRetry(const QString &error) {
+        MW_show_log(QStringLiteral("Windows still held the Tun adapter of an earlier session; start the profile again: %1").arg(error));
+        return false;
+    }
+
     void HeadlessPolicy::stopFailed(const QString &error) {
         MW_show_log(QStringLiteral("Stop return error: %1").arg(error));
     }

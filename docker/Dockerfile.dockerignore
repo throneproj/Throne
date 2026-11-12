@@ -3,3 +3,5 @@
 !linux-amd64
 !linux-arm64
 **/Throne.debug
+# The release zips carry thronectl too; the image builds its own into /usr/local/bin.
+**/thronectl

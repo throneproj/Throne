@@ -62,7 +62,7 @@ namespace Engine {
         bool setStartWhenUp(int profileId);
         // Main thread. A user stop while nothing runs: the profile waiting for the core to come back is not started.
         void cancelResume();
-        // Main thread. True from a Linux/macOS accept until its coreStarted, while the privilege probe runs; never on Windows.
+        // Main thread. True from an accept until its coreStarted, while the privilege probe runs.
         bool awaitingCoreStarted() const;
         // Main thread. The profile the next coreStarted carries; -1 when none.
         int startWhenUp() const;
@@ -76,7 +76,8 @@ namespace Engine {
         // the start error, or the connect timeout; one line, at most 300 chars; empty when unknown or after a restart request.
         QString lastCoreError() const;
 
-        qint64 corePid() const;                   // any thread
+        // Any thread. The elevated core behind the stub once its probe reported it (Windows), else the process Throne started.
+        qint64 corePid() const;
         // Main thread. Every respawn, counted where they all funnel (postProcessRestart).
         int restartCount() const;
         // Main thread. The failures counted towards giving up.
@@ -86,7 +87,7 @@ namespace Engine {
     signals:
         // Main thread, on every core connection, right after the RPC client was reconnected to it.
         void rpcConnected();
-        // Main thread, once a verified core connected and, on Linux/macOS, answered the privilege probe; profileId < 0 when nothing should start.
+        // Main thread, once a verified core connected and answered the privilege probe; profileId < 0 when nothing should start.
         void coreStarted(int profileId);
         // Main thread. The core kept exiting and is no longer restarted until a restart is requested.
         void coreGaveUp(const QString &reason);

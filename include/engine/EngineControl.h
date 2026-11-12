@@ -7,6 +7,7 @@
 #include <QList>
 #include <QObject>
 #include <QString>
+#include <QStringList>
 
 #include "include/engine/EngineTypes.h"
 
@@ -15,6 +16,9 @@ namespace Configs {
 }
 
 namespace Engine {
+    struct ConnectionCloseResult;
+    struct ConnectionSnapshot;
+
     // What the Throne API drives; EngineHost implements it. Main thread only unless noted.
     class EngineControl : public QObject {
         Q_OBJECT
@@ -47,6 +51,15 @@ namespace Engine {
 
         // Empty when nothing runs, stats are off, or the last sample is older than maxAgeMs.
         virtual std::optional<LiveRates> freshLiveRates(qint64 maxAgeMs) const = 0;
+
+        // Keeps the connection list polled at 1 Hz for the next 10 s, whether or not the window shows it.
+        virtual void watchConnections() = 0;
+
+        // The latest list a watch polled; empty before its first poll. The caller checks that a profile runs.
+        virtual ConnectionSnapshot connectionSnapshot() const = 0;
+
+        // Returns at once; the RPC runs on a new thread and done on the main thread.
+        virtual void closeConnections(const QStringList &ids, const std::function<void(const ConnectionCloseResult &)> &done) = 0;
 
         virtual bool testsRunning() = 0;
 
@@ -93,5 +106,8 @@ namespace Engine {
         void stopFinished(int profileId);
 
         void connectionStateChanged(Engine::ConnectionState state);
+
+        // Main thread. Hints: a topic may be reported without a visible change.
+        void changed(Engine::ChangeTopics topics);
     };
 } // namespace Engine

@@ -23,6 +23,8 @@ private:
     QLineEdit *nameEdit;
     QRadioButton *genericRadio;
     QRadioButton *warpRadio;
+    QRadioButton *resolverRadio;
+    QRadioButton *tuneRadio;
     Validation::Form *form;
     int createdId = -1;
 };

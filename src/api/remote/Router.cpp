@@ -4,6 +4,7 @@
 
 #include <QDateTime>
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QRegularExpression>
 #include <QSet>
 #include <QTimer>
@@ -24,6 +25,7 @@
 #include "include/engine/EngineControl.h"
 #include "include/engine/services/ServiceTypes.h"
 #include "include/global/Configs.hpp"
+#include "include/global/RunningProfiles.hpp"
 #include "include/stats/traffic/TrafficStatsManager.hpp"
 #include "include/sys/KillSwitch.hpp"
 
@@ -193,6 +195,7 @@ namespace RemoteApi {
             if (state == Engine::ConnectionState::Connecting) return;
             for (const auto &waiter : std::exchange(settling_, {})) answer(waiter, Response::Ok(statusJson()));
         });
+        setupFeeds();
     }
 
     void Router::dispatch(const Request &request, const Responder &respond) {
@@ -241,6 +244,20 @@ namespace RemoteApi {
             {"POST", "/v1/geo-assets/update", &Router::postGeoAssetsUpdate},
             {"POST", "/v1/restart", &Router::postRestart, true},
             {"POST", "/v1/shutdown", &Router::postShutdown, true},
+            {"GET", "/v1/logs", &Router::getLogs, true},
+            {"GET", "/v1/events", &Router::getEvents},
+            {"GET", "/v1/profiles/{id}/config", &Router::getProfileConfig, true},
+            {"PUT", "/v1/profiles/{id}/config", &Router::putProfileConfig, true},
+            {"GET", "/v1/routes/schema", &Router::getRouteSchema},
+            {"GET", "/v1/routes/{id}", &Router::getRoute},
+            {"POST", "/v1/routes", &Router::postRoute, true},
+            {"PUT", "/v1/routes/{id}", &Router::putRoute, true},
+            {"DELETE", "/v1/routes/{id}", &Router::deleteRoute, true},
+            {"GET", "/v1/connections", &Router::getConnections, true},
+            {"DELETE", "/v1/connections", &Router::deleteConnections, true},
+            {"GET", "/v1/warp", &Router::getWarp},
+            {"PUT", "/v1/warp", &Router::putWarp, true},
+            {"POST", "/v1/warp/register", &Router::postWarpRegister, true},
         };
 
         const auto &settings = Configs::dataManager->settingsRepo;
@@ -481,7 +498,7 @@ namespace RemoteApi {
     QJsonObject Router::statusJson() const {
         const auto &settings = Configs::dataManager->settingsRepo;
         const auto running = engine_->runningSnapshot();
-        const auto route = Configs::dataManager->routesRepo->GetRouteProfile(settings->current_route_id);
+        const auto route = Configs::dataManager->routesRepo->GetRouteProfile(Configs::ActiveRouteId());
         const auto degraded = engine_->degradedReason();
         // Empty while this instance's Tun is on.
         const auto tunConflict = engine_->tunBlockedReason();
@@ -530,6 +547,7 @@ namespace RemoteApi {
             {"upload_bps", RouterImpl::bitsPerSecond(profile->ul_speed)},
             {"country", profile->test_country},
             {"ip_out", profile->ip_out},
+            {"service_checks", QJsonDocument::fromJson(profile->service_checks.toUtf8()).object()},
             {"traffic_up", profile->traffic_uplink},
             {"traffic_down", profile->traffic_downlink},
             {"running", running != nullptr && running->id == profile->id},
@@ -546,6 +564,9 @@ namespace RemoteApi {
             {"archived", group.archive},
             {"profile_count", static_cast<qint64>(QSet<int>(ids.begin(), ids.end()).size())},
             {"updated_at", subscription ? group.sub_last_update : 0},
+            // A dangling override builds with the active routing profile, so it reads as none.
+            {"route_id", group.route_id >= 0 && Configs::dataManager->routesRepo->HasRouteProfile(group.route_id) ? group.route_id : -1},
+            {"import_route", subscription && group.import_sub_route},
         };
     }
 
@@ -553,7 +574,11 @@ namespace RemoteApi {
         return {
             {"id", route.id},
             {"name", route.name},
+            // The global choice PUT /v1/routes/active sets; a group can override it, which in_use reflects.
             {"active", route.id == Configs::dataManager->settingsRepo->current_route_id},
+            {"in_use", route.id == Configs::ActiveRouteId()},
+            {"source_group_id", route.source_gid},
+            {"kind", route.isRaw ? QStringLiteral("raw") : route.isRemote ? QStringLiteral("remote") : QStringLiteral("rules")},
         };
     }
 

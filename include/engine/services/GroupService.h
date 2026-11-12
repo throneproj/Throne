@@ -15,6 +15,10 @@ namespace Engine::GroupService {
         // Empty: a basic group. Otherwise a subscription group; http and https only.
         QString url;
         bool autoUpdate = true;
+        // -1 follows the global routing profile.
+        int routeId = -1;
+        // Subscription groups only.
+        bool importRoute = false;
     };
 
     // Main thread. Adds the group at the end of the tab order and emits GroupsChanged.

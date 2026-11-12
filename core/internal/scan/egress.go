@@ -53,6 +53,9 @@ func errorText(err error) string {
 	if err == nil {
 		return ""
 	}
+	if staged, ok := err.(*dnsStageError); ok {
+		return staged.stage + ": " + errorText(staged.err)
+	}
 	if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, os.ErrDeadlineExceeded) {
 		return "timeout"
 	}

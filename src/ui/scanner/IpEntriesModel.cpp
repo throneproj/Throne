@@ -31,8 +31,23 @@ void IpEntriesModel::setEntries(QList<Configs::IpListEntry> entries) {
     entries_ = std::move(entries);
     addressKeys_.clear();
     addressKeys_.reserve(entries_.size());
-    for (const auto &entry : entries_) addressKeys_.append(ipEntriesAddressKey(entry.cidr));
+    hasMaxQName_ = hasUploadMtu_ = hasDownloadMtu_ = false;
+    for (const auto &entry : entries_) {
+        addressKeys_.append(ipEntriesAddressKey(entry.cidr));
+        hasMaxQName_ = hasMaxQName_ || entry.maxQName > 0;
+        hasUploadMtu_ = hasUploadMtu_ || entry.uploadMtu > 0;
+        hasDownloadMtu_ = hasDownloadMtu_ || entry.downloadMtu > 0;
+    }
     endResetModel();
+}
+
+bool IpEntriesModel::columnHasData(int column) const {
+    switch (column) {
+        case MaxQNameColumn: return hasMaxQName_;
+        case UploadMtuColumn: return hasUploadMtu_;
+        case DownloadMtuColumn: return hasDownloadMtu_;
+        default: return true;
+    }
 }
 
 int IpEntriesModel::rowCount(const QModelIndex &parent) const {
@@ -52,6 +67,9 @@ QVariant IpEntriesModel::data(const QModelIndex &index, int role) const {
             case AddressColumn: return entry.cidr;
             case PortColumn: return entry.port > 0 ? QString::number(entry.port) : QString();
             case LatencyColumn: return entry.latencyMs > 0 ? tr("%1 ms").arg(entry.latencyMs) : QString();
+            case MaxQNameColumn: return entry.maxQName > 0 ? QString::number(entry.maxQName) : QString();
+            case UploadMtuColumn: return entry.uploadMtu > 0 ? QString::number(entry.uploadMtu) : QString();
+            case DownloadMtuColumn: return entry.downloadMtu > 0 ? QString::number(entry.downloadMtu) : QString();
             default: return {};
         }
     }
@@ -60,6 +78,9 @@ QVariant IpEntriesModel::data(const QModelIndex &index, int role) const {
             case AddressColumn: return addressKeys_.at(index.row());
             case PortColumn: return entry.port;
             case LatencyColumn: return entry.latencyMs > 0 ? entry.latencyMs : std::numeric_limits<int>::max();
+            case MaxQNameColumn: return entry.maxQName;
+            case UploadMtuColumn: return entry.uploadMtu;
+            case DownloadMtuColumn: return entry.downloadMtu;
             default: return {};
         }
     }
@@ -70,11 +91,22 @@ QVariant IpEntriesModel::data(const QModelIndex &index, int role) const {
 }
 
 QVariant IpEntriesModel::headerData(int section, Qt::Orientation orientation, int role) const {
+    if (orientation == Qt::Horizontal && role == Qt::ToolTipRole) {
+        switch (section) {
+            case MaxQNameColumn: return tr("The longest query name the resolver relays: max_qname_len for DNSTT, lenLimit for XDNS.");
+            case UploadMtuColumn: return tr("The largest payload per query the resolver relays.");
+            case DownloadMtuColumn: return tr("The largest payload per answer the resolver relays.");
+            default: break;
+        }
+    }
     if (orientation != Qt::Horizontal || role != Qt::DisplayRole) return QAbstractTableModel::headerData(section, orientation, role);
     switch (section) {
         case AddressColumn: return tr("Address");
         case PortColumn: return tr("Port");
         case LatencyColumn: return tr("Latency");
+        case MaxQNameColumn: return tr("Max QNAME");
+        case UploadMtuColumn: return tr("Upload MTU");
+        case DownloadMtuColumn: return tr("Download MTU");
         default: return {};
     }
 }

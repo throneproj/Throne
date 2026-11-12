@@ -14,8 +14,8 @@
 #include "include/ui/utils/ValidationForm.h"
 
 class QListWidget;
-class QStandardItemModel;
 class RouteDnsEditor;
+class RouteOutboundModel;
 
 class RouteItem : public QDialog {
     Q_OBJECT
@@ -34,12 +34,9 @@ private:
 
     int lastNum = 0;
 
-    QStringList geo_items;
-
     QShortcut* deleteShortcut;
 
-    // Shared by every rule's outbound combo: refilling and re-measuring thousands of profiles froze each rule switch.
-    QStandardItemModel* outboundsModel = nullptr;
+    RouteOutboundModel* outboundsModel = nullptr;
 
     int outboundsPopupWidth = -1;
 

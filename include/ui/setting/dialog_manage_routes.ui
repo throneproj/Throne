@@ -32,6 +32,9 @@
           </item>
           <item row="2" column="0">
            <widget class="QLabel" name="label_3">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Used as default strategy when resolving outbound/dns server Domain addresses&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
@@ -45,6 +48,9 @@
           </item>
           <item row="1" column="1">
            <widget class="QComboBox" name="domainStrategyCombo">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
             <property name="editable">
              <bool>false</bool>
             </property>
@@ -52,6 +58,9 @@
           </item>
           <item row="2" column="1">
            <widget class="QComboBox" name="default_domain_strategy">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
             <property name="editable">
              <bool>false</bool>
             </property>
@@ -59,6 +68,9 @@
           </item>
           <item row="4" column="0">
            <widget class="QLabel" name="ruleset_mirror_l">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
             <property name="text">
              <string>Remote Rule-set Mirror</string>
             </property>
@@ -69,6 +81,9 @@
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_6">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If not empty, resolves domains in requests according to the strategy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
@@ -92,6 +107,9 @@
           </item>
           <item row="4" column="1">
            <widget class="QComboBox" name="ruleset_mirror">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
             <item>
              <property name="text">
               <string>GitHub</string>
@@ -127,9 +145,25 @@
          </layout>
         </widget>
        </item>
+       <item>
+        <spacer name="common_bottom_spacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="tab_5">
+      <property name="uiFoldInto" stdset="0">
+       <string notr="true">tab</string>
+      </property>
       <attribute name="title">
        <string>Warp</string>
       </attribute>
@@ -150,7 +184,7 @@
           <item row="1" column="0">
            <widget class="QLabel" name="warp_mode_l">
             <property name="toolTip">
-             <string>WireGuard runs over UDP. MASQUE tunnels over HTTP/3 or HTTP/2 and passes networks that block WireGuard.</string>
+             <string>WireGuard runs over UDP. AmneziaWG adds WARP-compatible junk and camouflage packets. MASQUE tunnels over HTTP/3 or HTTP/2.</string>
             </property>
             <property name="text">
              <string>Mode</string>
@@ -163,7 +197,7 @@
           <item row="1" column="1">
            <widget class="QComboBox" name="warp_mode">
             <property name="toolTip">
-             <string>WireGuard runs over UDP. MASQUE tunnels over HTTP/3 or HTTP/2 and passes networks that block WireGuard.</string>
+             <string>WireGuard runs over UDP. AmneziaWG adds WARP-compatible junk and camouflage packets. MASQUE tunnels over HTTP/3 or HTTP/2.</string>
             </property>
             <item>
              <property name="text">
@@ -175,6 +209,11 @@
               <string notr="true">MASQUE</string>
              </property>
             </item>
+            <item>
+             <property name="text">
+              <string notr="true">AmneziaWG</string>
+             </property>
+            </item>
            </widget>
           </item>
          </layout>
@@ -182,6 +221,9 @@
        </item>
        <item>
         <widget class="QGroupBox" name="warp_wg_box">
+         <property name="uiLevel" stdset="0">
+          <string notr="true">advanced</string>
+         </property>
          <property name="title">
           <string notr="true">WireGuard</string>
          </property>
@@ -256,6 +298,9 @@
        </item>
        <item>
         <widget class="QGroupBox" name="warp_masque_box">
+         <property name="uiLevel" stdset="0">
+          <string notr="true">advanced</string>
+         </property>
          <property name="title">
           <string notr="true">MASQUE</string>
          </property>
@@ -380,11 +425,27 @@
          </item>
          <item>
           <widget class="QPushButton" name="warp_api_hosts_btn">
+           <property name="uiLevel" stdset="0">
+            <string notr="true">advanced</string>
+           </property>
            <property name="toolTip">
             <string>Cloudflare API domains to try, in order, when generating a WARP config</string>
            </property>
            <property name="text">
             <string>Registration Domains…</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="warp_advanced_btn">
+           <property name="uiLevel" stdset="0">
+            <string notr="true">advanced</string>
+           </property>
+           <property name="toolTip">
+            <string>TLS fragmentation for WARP registration</string>
+           </property>
+           <property name="text">
+            <string>Advanced…</string>
            </property>
           </widget>
          </item>
@@ -425,12 +486,18 @@
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
         <widget class="QGroupBox" name="simple_dns_box">
+         <property name="uiFoldInto" stdset="0">
+          <string notr="true">tab</string>
+         </property>
          <property name="title">
           <string>Simple DNS Settings</string>
          </property>
          <layout class="QGridLayout" name="gridLayout">
           <item row="4" column="0">
            <widget class="QLabel" name="label_2">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Local DNS can not be used in some configurations, you will have to set an ip here to be used as local dns in such situations&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
@@ -460,6 +527,9 @@
             </item>
             <item>
              <widget class="QCheckBox" name="enable_dns_routing">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
               <property name="toolTip">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, domains destined for direct outbound will also be resolved using direct dns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
@@ -470,6 +540,9 @@
             </item>
             <item>
              <widget class="QCheckBox" name="respect_hosts">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
               <property name="toolTip">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Answer A/AAAA queries from the system hosts file before consulting any DNS server. Only domains actually listed in the file are affected.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
@@ -480,6 +553,9 @@
             </item>
             <item>
              <widget class="QPushButton" name="predefined_dns">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -509,7 +585,11 @@
           <item row="4" column="3">
            <layout class="QHBoxLayout" name="horizontalLayout_5">
             <item>
-             <widget class="QLineEdit" name="local_override"/>
+             <widget class="QLineEdit" name="local_override">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -530,6 +610,9 @@
             </item>
             <item>
              <widget class="QCheckBox" name="direct_dns_disable_ipv6">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
               <property name="toolTip">
                <string>Answer AAAA queries sent to this server with an empty result.</string>
               </property>
@@ -572,6 +655,9 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
             </item>
             <item>
              <widget class="QCheckBox" name="remote_dns_disable_ipv6">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
               <property name="toolTip">
                <string>Answer AAAA queries sent to this server with an empty result.</string>
               </property>
@@ -596,6 +682,9 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
            <layout class="QHBoxLayout" name="horizontalLayout_6">
             <item>
              <widget class="QCheckBox" name="enable_fakeip">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
               <property name="text">
                <string>Enable FakeIP</string>
               </property>
@@ -603,6 +692,9 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
             </item>
             <item>
              <widget class="QCheckBox" name="fakeip_disable_ipv6">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
               <property name="toolTip">
                <string>Hand out no fake IPv6 addresses; AAAA queries are answered empty.</string>
               </property>
@@ -618,6 +710,9 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
        </item>
        <item>
         <widget class="QGroupBox" name="groupBox">
+         <property name="uiLevel" stdset="0">
+          <string notr="true">advanced</string>
+         </property>
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
            <horstretch>0</horstretch>
@@ -670,6 +765,19 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
           </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <spacer name="dns_bottom_spacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>

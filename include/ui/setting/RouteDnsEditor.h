@@ -18,7 +18,7 @@ namespace DnsServerHistory {
 
     const QStringList& DirectPresets();
 
-    // Typed servers first, newest first, then the presets they do not repeat.
+    // Typed servers first, newest first, then the presets they do not repeat; the tooltip explains server lists.
     void Fill(QComboBox* combo, const QStringList& history, const QStringList& presets, const QString& current);
 
     // Moves a typed server to the front, keeping at most 8; false when the history did not change.

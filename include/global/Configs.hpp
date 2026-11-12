@@ -18,9 +18,12 @@ namespace Configs {
 
     QString FindCoreRealPath();
 
+    // Whether the core is privileged for Tun and the kill switch: euid 0 or the Tun capabilities (Linux/macOS), an elevated token
+    // (Windows). Unless cached, a blocking RPC to the connected core; false while none answers. Windows: true at once in an
+    // elevated Throne, whose core inherits its token.
     bool IsAdmin(bool forceRenew=false);
 
-    // The cached IsAdmin answer without an RPC or side effects; empty while unknown. Main thread.
+    // The cached IsAdmin answer without an RPC; empty while unknown. Windows: also true in an elevated Throne. Main thread.
     std::optional<bool> KnownAdmin();
 
     // Caches an answer IsAdmin would have fetched, such as the core's privilege probe. Main thread.

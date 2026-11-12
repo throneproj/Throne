@@ -1,6 +1,7 @@
 *.log
 *.pem
 *.json
+!internal/servicecheck/checks.json
 *.exe
 *.dat
 *.db

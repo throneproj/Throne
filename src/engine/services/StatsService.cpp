@@ -2,6 +2,7 @@
 
 #include <QMetaObject>
 #include <QThread>
+#include <QTimer>
 
 #include "include/api/RPC.h"
 #include "include/configs/generate.h"
@@ -13,13 +14,28 @@
 #include "include/stats/traffic/TrafficStatsManager.hpp"
 
 namespace Engine {
+    namespace {
+        constexpr int kStatsConnectionsWatchMs = 10000;
+    } // namespace
+
     StatsService::StatsService(QObject *parent) : QObject(parent) {
         Stats::SetStatsSink(this);
+        connectionsWatch_ = new QTimer(this);
+        connectionsWatch_->setSingleShot(true);
+        connect(connectionsWatch_, &QTimer::timeout, this, [this] {
+            Stats::connection_lister->SetApiWatch(false);
+            connections_ = {};
+        });
+        Stats::connection_lister->SetApiSink([this](const QList<Stats::ConnectionMetadata> &rows, qint64 polledAtMs) {
+            onApiConnections(rows, polledAtMs);
+        });
     }
 
     StatsService::~StatsService() {
         // The pointer is main-only, so posted loop callbacks still pending see null.
         if (Stats::CurrentStatsSink() == this) Stats::SetStatsSink(nullptr);
+        Stats::connection_lister->SetApiSink({});
+        Stats::connection_lister->SetApiWatch(false);
     }
 
     void StatsService::startLoops() {
@@ -51,10 +67,14 @@ namespace Engine {
     }
 
     void StatsService::clearConnectionList() {
-        if (QThread::currentThread() == thread()) {
+        const auto clear = [this] {
+            connections_ = {};
             emit connectionsUpdated({});
+        };
+        if (QThread::currentThread() == thread()) {
+            clear();
         } else {
-            QMetaObject::invokeMethod(this, [this] { emit connectionsUpdated({}); }, Qt::QueuedConnection);
+            QMetaObject::invokeMethod(this, clear, Qt::QueuedConnection);
         }
     }
 
@@ -69,6 +89,29 @@ namespace Engine {
             }
             Stats::connection_lister->ForceUpdate();
         });
+    }
+
+    void StatsService::closeConnections(const QStringList &ids, const std::function<void(const ConnectionCloseResult &)> &done) {
+        if (ids.isEmpty()) {
+            runOnUiThread([done] { done(ConnectionCloseResult{.rpcOK = true}); });
+            return;
+        }
+        runOnNewThread([ids, done] {
+            ConnectionCloseResult result;
+            result.error = API::defaultClient->CloseConnections(&result.rpcOK, ids, &result.closed);
+            if (result.rpcOK && result.error.isEmpty()) Stats::connection_lister->ForceUpdate();
+            runOnUiThread([done, result] { done(result); });
+        });
+    }
+
+    void StatsService::watchConnections() {
+        ENGINE_CHECK_MAIN_THREAD();
+        Stats::connection_lister->SetApiWatch(true);
+        connectionsWatch_->start(kStatsConnectionsWatchMs);
+    }
+
+    ConnectionSnapshot StatsService::connectionSnapshot() const {
+        return connections_;
     }
 
     std::optional<LiveRates> StatsService::freshLiveRates(qint64 maxAgeMs) const {
@@ -108,5 +151,12 @@ namespace Engine {
     void StatsService::onConnections(const QList<Stats::ConnectionMetadata> &rows) {
         ENGINE_CHECK_MAIN_THREAD();
         emit connectionsUpdated(rows);
+    }
+
+    void StatsService::onApiConnections(const QList<Stats::ConnectionMetadata> &rows, qint64 polledAtMs) {
+        ENGINE_CHECK_MAIN_THREAD();
+        // A poll that was in flight when the watch lapsed.
+        if (!connectionsWatch_->isActive()) return;
+        connections_ = ConnectionSnapshot{.rows = rows, .updatedAtMs = polledAtMs};
     }
 } // namespace Engine

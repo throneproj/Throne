@@ -613,7 +613,9 @@ namespace Configs {
                 else out.redirect_private = true;
                 for (int i = 1; i < args.size(); i++) {
                     const auto flag = args[i].toLower();
-                    if (flag == "block-local" || flag == "bypass-dhcp" || flag == "bypass-dns") {
+                    // Host-route exceptions for the DHCP and DNS servers; Throne routes per connection, so they never apply.
+                    if (flag == "bypass-dhcp" || flag == "bypass-dns") continue;
+                    if (flag == "block-local") {
                         notes << QObject::tr("redirect-gateway flag has no sing-box equivalent: %1").arg(flag);
                         continue;
                     }

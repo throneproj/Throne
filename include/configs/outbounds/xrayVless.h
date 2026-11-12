@@ -15,6 +15,12 @@ namespace Configs {
 
         // Without VLESS encryption, Vision needs TLS or REALITY directly on the raw network.
         QString XrayVlessVision(const QString &flow, const QString &encryption, const QString &network, const QString &security);
+
+        // Xray runs XDRIVE only for VLESS with encryption, no flow, and Mux on (Keep Default counts: the build turns it on).
+        QString XrayXDriveEncryption(const QString &encryption, const QString &network);
+        QString XrayXDriveFlow(const QString &flow, const QString &network);
+        // muxState as xrayMultiplex::getMuxState(): 0 Keep Default, 1 On, 2 Off, 3 Custom.
+        QString XrayXDriveMux(int muxState, const QString &network);
     }
 
     class xrayVless : public outbound {

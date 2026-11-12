@@ -152,7 +152,6 @@ namespace Configs {
         auto unpadded = key;
         while (unpadded.endsWith('=')) unpadded.chop(1);
         if (unpadded.isEmpty() || !Checks::RealityPublicKey(unpadded).isEmpty()) return key;
-        ParseDiag::Warn(field, QCoreApplication::translate("Validation", "The trailing = padding was removed from the REALITY public key."));
         return unpadded;
     }
 

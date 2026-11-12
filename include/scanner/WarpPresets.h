@@ -20,12 +20,10 @@ namespace Scanner::WarpPresets {
         3476, 3581, 3854, 4177, 4198, 4233, 4500, 5279, 5956, 7103, 7152, 7156, 7281, 7559, 8319, 8742, 8854, 8886,
     };
 
-    // Only .1/.2 of these answer MASQUE over HTTP/3; the rest of the /24s fail TLS.
+    // Every sampled address serves MASQUE over TCP and QUIC (2026-11-09), except .1 of each /24, a plain CDN edge over TCP.
     inline const QStringList kMasqueEndpoints = {
-        QStringLiteral("162.159.198.1"),
-        QStringLiteral("162.159.198.2"),
-        QStringLiteral("162.159.199.1"),
-        QStringLiteral("162.159.199.2"),
+        QStringLiteral("162.159.198.0/24"),
+        QStringLiteral("162.159.199.0/24"),
         QStringLiteral("2606:4700:103::1"),
         QStringLiteral("2606:4700:103::2"),
         QStringLiteral("2606:4700:104::1"),

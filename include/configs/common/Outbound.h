@@ -1,5 +1,4 @@
 #pragma once
-#include <QHostInfo>
 #include <utility>
 #include "DialFields.h"
 #include "QUICFields.h"
@@ -77,21 +76,6 @@ namespace Configs
         // Owning profile, stamped by ProfilesRepo; not part of the serialised outbound.
         int profile_id = -1;
         std::shared_ptr<DialFields> dialFields = std::make_shared<DialFields>();
-
-        void ResolveDomainToIP(const std::function<void()> &onFinished) {
-            bool noResolve = false;
-            auto serverAddr = GetAddress();
-            if (IsIpAddress(serverAddr) || serverAddr.isEmpty()) noResolve = true;
-            if (noResolve) {
-                onFinished();
-                return;
-            }
-            QHostInfo::lookupHost(serverAddr, QApplication::instance(), [=, this](const QHostInfo &host) {
-                auto addrs = host.addresses();
-                if (!addrs.isEmpty()) SetAddress(addrs.first().toString());
-                onFinished();
-            });
-        }
 
         virtual void SetAddress(QString newAddr) {
             server = std::move(newAddr);

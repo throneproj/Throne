@@ -6,8 +6,8 @@
 #include "include/engine/EngineHost.h"
 #include "include/engine/supervisor/CoreSupervisor.h"
 #include "include/ui/utils/ValidationForm.h"
+#include "include/ui/utils/UiMode.h"
 
-#include <QMessageBox>
 #include <QHostAddress>
 
 
@@ -47,14 +47,9 @@ DialogVPNSettings::DialogVPNSettings(QWidget *parent) : QDialog(parent), ui(new 
     for (const auto &range : Configs::dataManager->settingsRepo->vpn_private_ranges) privateRanges << WithPrefixLength(range);
     ui->priv_ranges->setPlainText(privateRanges.join("\n"));
     ui->auto_redirect->setChecked(Configs::dataManager->settingsRepo->vpn_auto_redirect);
-#ifndef Q_OS_LINUX
-    ui->auto_redirect->hide();
-#endif
     ui->l3_bridge->setChecked(Configs::dataManager->settingsRepo->vpn_l3_bridge);
-    // The core's bridge backend has no implementation for Windows on ARM.
-#if defined(Q_OS_WIN) && defined(Q_PROCESSOR_ARM)
-    ui->l3_bridge->hide();
-#endif
+    for (auto *widget : UnavailableWidgets(ui)) widget->hide();
+    UiMode::Apply(this);
 
     using namespace Validation;
     form->bind(ui->vpn_mtu, Rules::Int(kVpnMinMtu, kVpnMaxMtu, Empty::Required)).label(ui->label_10->text());
@@ -78,6 +73,19 @@ DialogVPNSettings::DialogVPNSettings(QWidget *parent) : QDialog(parent), ui(new 
 
 DialogVPNSettings::~DialogVPNSettings() {
     delete ui;
+}
+
+QList<QWidget *> DialogVPNSettings::UnavailableWidgets(const Ui::DialogVPNSettings *ui) {
+    Q_UNUSED(ui) // On Linux x86 nothing is unavailable.
+    QList<QWidget *> widgets;
+#ifndef Q_OS_LINUX
+    widgets << ui->auto_redirect;
+#endif
+    // The core's bridge backend has no implementation for Windows on ARM.
+#if defined(Q_OS_WIN) && defined(Q_PROCESSOR_ARM)
+    widgets << ui->l3_bridge;
+#endif
+    return widgets;
 }
 
 void DialogVPNSettings::accept() {
@@ -115,26 +123,6 @@ void DialogVPNSettings::on_restore_default_ranges_clicked() {
     form->revalidate(ui->priv_ranges);
 }
 
-void DialogVPNSettings::on_troubleshooting_clicked() {
-
-
-    QMessageBox msg(
-        QMessageBox::Information,
-        tr("Troubleshooting"),
-        tr("If you have trouble starting VPN, you can force reset Core process here.\n\n"
-            "If still not working, see documentation for more information.\n"
-            "https://matsuridayo.github.io/n-configuration/#vpn-tun"),
-        QMessageBox::NoButton,
-        this
-    );
-    auto reset = msg.addButton(tr("Reset"), QMessageBox::ActionRole);
-    auto cancel = msg.addButton(tr("Cancel"), QMessageBox::ActionRole);
-
-    msg.setDefaultButton(cancel);
-    msg.setEscapeButton(cancel);
-
-    msg.exec();
-    if (msg.clickedButton() == reset) {
-        Engine::host()->supervisor()->resetCore();
-    }
+void DialogVPNSettings::on_restart_core_clicked() {
+    Engine::host()->supervisor()->resetCore();
 }

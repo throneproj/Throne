@@ -54,7 +54,7 @@ namespace Engine {
         // deferStartToCore does).
         void setBootStart(const StartRequest &request);
 
-        // Windows: IsAdmin(). Elsewhere: KnownAdmin() when known; otherwise options.blockingPrivilegeCheck && IsAdmin().
+        // KnownAdmin() when known; otherwise options.blockingPrivilegeCheck && IsAdmin().
         bool tunPrivileged();
 
         // A remembered Tun the boot could not restore; cleared by a Tun disable or a successful enable.

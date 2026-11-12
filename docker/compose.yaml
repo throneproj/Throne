@@ -28,5 +28,12 @@ services:
     #   THRONE_API_ALLOW: "192.168.1.0/24"
     #   THRONE_API_ADMIN_LAN: "1"
     # ports: ["2080:2080", "9095:9095"]
+    # Web UI (thronectl web, https://throneproj.github.io/headless/web/), run in this container beside Throne with full
+    # management rights. As above, map only the LAN address ("192.168.1.2:9096:9096") on a host the internet reaches.
+    # It serves HTTPS with a self-signed certificate: docker compose logs throne shows its fingerprint and the password
+    # created on the first start, and docker compose exec throne thronectl web passwd changes the password.
+    # environment:
+    #   THRONE_WEB_LISTEN: "*:9096"
+    # ports: ["2080:2080", "9096:9096"]
 volumes:
   throne-data:

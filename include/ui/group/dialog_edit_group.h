@@ -27,8 +27,12 @@ public:
 
     ~DialogEditGroup() override;
 
-    // The accepted edit changed the endpoint of a group whose inheriting profile the running config uses.
+    // The accepted edit changed the endpoint of a group whose inheriting profile the running config uses,
+    // or the routing profile the running profile of this group is built with.
     [[nodiscard]] bool RestartNeeded() const { return restartNeeded; }
+
+    // The accepted edit changed the profile filters of an existing subscription, which apply only when it is fetched again.
+    [[nodiscard]] bool RefreshNeeded() const { return refreshNeeded; }
 
 private:
     Ui::DialogEditGroup *ui;
@@ -50,6 +54,8 @@ private:
     Configs::EndpointSource endpoint;
 
     bool restartNeeded = false;
+
+    bool refreshNeeded = false;
 
     QHash<QString, int> proxyNameToId;
 

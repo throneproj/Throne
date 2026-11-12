@@ -1,4 +1,5 @@
 #include "include/global/Utils.hpp"
+#include "include/global/LogBuffer.hpp"
 #include "include/global/Logger.hpp"
 
 #include "3rdparty/QThreadCreateThread.hpp"
@@ -66,6 +67,7 @@ namespace {
 
 void MW_show_log(const QString &line) {
     try {
+        Logging::BufferUserLog(line);
         if (const auto sink = loadSink(g_userLogSink)) {
             (*sink)(line);
         } else {
@@ -596,6 +598,16 @@ QStringList LaunchFiles_ExtractFromArgs(const QStringList &args, const QDir &lau
         if (info.isFile()) files << info.absoluteFilePath();
     }
     return files;
+}
+
+QStringList LaunchArgs_WithoutPayload(const QStringList &args) {
+    QStringList kept;
+    for (int i = 0; i < args.size(); i++) {
+        if (i > 0 && !args[i].startsWith('-')) continue;
+        kept << args[i];
+        if (i > 0 && launchArgTakesValue(args[i]) && i + 1 < args.size()) kept << args[++i];
+    }
+    return kept;
 }
 
 void LaunchFiles_Submit(const QStringList &paths) {

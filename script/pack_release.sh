@@ -173,6 +173,10 @@ windows)
 linux-amd64 | linux-arm64)
     arch="${TARGET#linux-}"
     untar "linux-$arch*" --exclude=Throne.debug
+    # The zip and both package variants carry thronectl next to Throne; the packages link it into /usr/bin.
+    for dir in "linux-$arch" "linux-$arch-system-qt"; do
+        install -m 0755 "${THRONECTL:?set THRONECTL to a linux/$arch thronectl}" "$DEPLOY/$dir/thronectl"
+    done
     TASKS=(
         "deb-$arch pack_deb $arch"
         "rpm-$arch pack_rpm $arch"

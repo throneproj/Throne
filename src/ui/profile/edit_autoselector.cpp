@@ -7,14 +7,19 @@
 #include "include/database/entities/Group.h"
 #include "include/database/entities/Profile.h"
 #include "include/stats/autoselector/AutoSelectorMonitor.hpp"
+#include "include/ui/utils/NoWheelComboBox.h"
 #include "include/ui/utils/ValidationForm.h"
 
 #include <QFormLayout>
 #include <QGridLayout>
 #include <QGuiApplication>
+#include <QHeaderView>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QScreen>
+#include <QScrollBar>
 #include <QSet>
+#include <QTableWidget>
 
 #include <algorithm>
 
@@ -24,15 +29,20 @@ EditAutoSelector::EditAutoSelector(QWidget *parent) : QWidget(parent), ui(new Ui
     ui->balance_mode->addItem(tr("Rotate on a timer (keeps sessions stable)"), "rotate");
     ui->balance_mode->addItem(tr("Per connection (widest spread)"), "connection");
 
+    ui->strategy->addItem(tr("Fastest and steadiest"), "latency");
+    ui->strategy->addItem(tr("In priority order"), "priority");
+    ui->tiers->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->tiers->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    updateStrategyControls();
+    fitTierTable();
+    updateTierButtons();
+
     ui->advanced_area->setVisible(false);
     connect(ui->advanced_toggle, &QPushButton::toggled, this, [this](bool on) {
         ui->advanced_area->setVisible(on);
         ui->advanced_toggle->setText(on ? tr("Advanced ▴") : tr("Advanced…"));
         resizeDialogToContent();
     });
-
-    ui->advanced_layout->setColumnStretch(0, 1);
-    ui->advanced_layout->setColumnStretch(1, 1);
 
     mirrorTooltipsToLabels();
 
@@ -54,6 +64,35 @@ EditAutoSelector::EditAutoSelector(QWidget *parent) : QWidget(parent), ui(new Ui
 
     connect(ui->balance, &QCheckBox::toggled, this, [this] { updateBalanceEnabled(); });
     connect(ui->balance_mode, &QComboBox::currentIndexChanged, this, [this] { updateBalanceEnabled(); });
+
+    connect(ui->strategy, &QComboBox::currentIndexChanged, this, [this] {
+        updateStrategyControls();
+        updateBalanceEnabled();
+        if (!m_loading) resizeDialogToContent();
+        refreshPlanSummary();
+    });
+    connect(ui->tier_add, &QPushButton::clicked, this, [this] {
+        appendTierRow({});
+        chainTierTabOrder();
+        const int row = ui->tiers->rowCount() - 1;
+        ui->tiers->setCurrentCell(row, 1);
+        if (auto *names = ui->tiers->cellWidget(row, 1)) names->setFocus();
+        // A blank row is checked once its editor loses focus, not the moment it appears.
+        onTiersChanged(false);
+    });
+    connect(ui->tier_remove, &QPushButton::clicked, this, [this] {
+        const int row = ui->tiers->currentRow();
+        if (row < 0) return;
+        ui->tiers->removeRow(row);
+        onTiersChanged(true);
+    });
+    connect(ui->tier_up, &QPushButton::clicked, this, [this] { moveTier(-1); });
+    connect(ui->tier_down, &QPushButton::clicked, this, [this] { moveTier(1); });
+    connect(ui->tiers, &QTableWidget::currentCellChanged, this, [this] { updateTierButtons(); });
+    connect(ui->passive, &QCheckBox::toggled, this, [this](bool on) {
+        ui->site_memory_l->setEnabled(on);
+        ui->site_memory->setEnabled(on);
+    });
 
     connect(ui->groups, &QListWidget::itemChanged, this, [this] {
         if (form) form->revalidate(ui->groups);
@@ -78,12 +117,30 @@ void EditAutoSelector::resizeDialogToContent() {
     if (layout() != nullptr) layout()->invalidate();
     updateGeometry();
 
-    runOnThread([dialog] {
+    runOnThread([this, dialog] {
+        // QScrollArea::sizeHint() caps at 36 font heights, and the nested form layouts stay inert until activated.
+        for (auto *nested : ui->advanced_content->findChildren<QLayout *>()) nested->activate();
+        ui->advanced_area->setMinimumWidth(ui->advanced_content->sizeHint().width() + 2 * ui->advanced_area->frameWidth() +
+                                           ui->advanced_area->verticalScrollBar()->sizeHint().width());
         if (auto *dialogLayout = dialog->layout()) dialogLayout->activate();
+
+        const auto *screen = dialog->screen() != nullptr ? dialog->screen() : QGuiApplication::primaryScreen();
+        if (screen == nullptr) return;
+        const auto available = screen->availableGeometry();
+        // Title bar and borders; zero until shown.
+        const auto frame = dialog->frameGeometry().size() - dialog->size();
         // adjustSize() would clamp to 2/3 of the screen, so bound it here instead.
-        const auto available = QGuiApplication::primaryScreen()->availableGeometry().size();
-        dialog->resize(dialog->sizeHint().boundedTo(available));
-    }, dialog);
+        dialog->resize(dialog->sizeHint().boundedTo(available.size() - frame));
+        if (!dialog->isVisible()) return;
+
+        // Growing keeps the top-left corner, which can still push the buttons below the screen edge.
+        const auto outer = dialog->size() + frame;
+        const int x = std::clamp(dialog->x(), available.left(),
+                                 std::max(available.left(), available.x() + available.width() - outer.width()));
+        const int y = std::clamp(dialog->y(), available.top(),
+                                 std::max(available.top(), available.y() + available.height() - outer.height()));
+        if (QPoint(x, y) != dialog->pos()) dialog->move(x, y);
+    }, this);
 }
 
 void EditAutoSelector::mirrorTooltipsToLabels() const {
@@ -178,7 +235,16 @@ void EditAutoSelector::onStart(std::shared_ptr<Configs::Profile> _ent) {
         ui->balance_mode->setCurrentIndex(idx);
     ui->balance_interval->setValue(outbound->balanceIntervalSec);
 
+    if (const int idx = ui->strategy->findData(outbound->strategy); idx >= 0) ui->strategy->setCurrentIndex(idx);
+    setTierRows(outbound->tiers);
+    ui->failback_checks->setValue(outbound->failbackChecks);
+    ui->failback_delay->setValue(outbound->failbackDelaySec);
+    ui->failback_interrupt->setChecked(outbound->failbackInterrupt);
+    ui->passive->setChecked(outbound->passive);
+    ui->site_memory->setValue(outbound->siteMemoryMins);
+
     m_loading = false;
+    updateStrategyControls();
     updateBalanceEnabled();
     refreshPlanSummary();
 
@@ -228,6 +294,13 @@ bool EditAutoSelector::onEnd() {
     outbound->expected = ui->expected->value();
     outbound->balanceMode = ui->balance_mode->currentData().toString();
     outbound->balanceIntervalSec = ui->balance_interval->value();
+    outbound->strategy = ui->strategy->currentData().toString();
+    outbound->tiers = tierRows();
+    outbound->failbackChecks = ui->failback_checks->value();
+    outbound->failbackDelaySec = ui->failback_delay->value();
+    outbound->failbackInterrupt = ui->failback_interrupt->isChecked();
+    outbound->passive = ui->passive->isChecked();
+    outbound->siteMemoryMins = ui->site_memory->value();
     // The cross-field rules have passed, so this only clamps what the spin boxes cannot produce.
     outbound->Normalize();
 
@@ -268,6 +341,12 @@ void EditAutoSelector::bindValidation(Validation::Form &form) {
     form.addRule({ui->active_size, ui->build_limit}, [this] {
         return AutoSelectorCloseCount(ui->active_size->value(), ui->build_limit->value());
     }, this);
+    form.addRule({ui->tiers}, [this] { return tierIssue(); }, this);
+    // Sampling stays checkable in latency mode, where failback is not used.
+    form.addRule({ui->failback_checks, ui->sampling}, [this] {
+        if (!prioritySelected()) return QString();
+        return AutoSelectorFailbackChecks(ui->failback_checks->value(), ui->sampling->value());
+    }, this);
 
     // The rules above skip a collapsed section, so its problems are reported here and expand it when revealed.
     form.addIssueSource([this] {
@@ -288,8 +367,145 @@ void EditAutoSelector::bindValidation(Validation::Form &form) {
         add(ui->watch_interval, AutoSelectorWatchInterval(ui->watch_interval->value(), ui->interval->value()));
         add(ui->active_size, AutoSelectorReadyCount(ui->active_size->value(), ui->expected->value()));
         add(ui->active_size, AutoSelectorCloseCount(ui->active_size->value(), ui->build_limit->value()));
+        if (prioritySelected()) {
+            add(ui->failback_checks, AutoSelectorFailbackChecks(ui->failback_checks->value(), ui->sampling->value()));
+        }
         return issues;
     }, this);
+}
+
+bool EditAutoSelector::prioritySelected() const {
+    return ui->strategy->currentData().toString() == "priority";
+}
+
+void EditAutoSelector::updateStrategyControls() const {
+    const bool prioritized = prioritySelected();
+    ui->tiers_l->setVisible(prioritized);
+    ui->tiers_area->setVisible(prioritized);
+    for (QWidget *widget : std::initializer_list<QWidget *>{ui->failback_checks_l, ui->failback_checks, ui->failback_delay_l,
+                                                            ui->failback_delay, ui->failback_interrupt}) {
+        widget->setEnabled(prioritized);
+    }
+}
+
+void EditAutoSelector::setTierRows(const QList<Configs::autoSelector::Tier> &tiers) {
+    ui->tiers->setRowCount(0);
+    for (const auto &tier : tiers) appendTierRow(tier);
+    chainTierTabOrder();
+    fitTierTable();
+    updateTierButtons();
+}
+
+void EditAutoSelector::appendTierRow(const Configs::autoSelector::Tier &tier) {
+    const int row = ui->tiers->rowCount();
+    ui->tiers->insertRow(row);
+
+    auto *group = new NoWheelComboBox(ui->tiers);
+    group->addItem(tr("Any group"), -1);
+    for (int i = 0; i < ui->groups->count(); i++) {
+        const auto *item = ui->groups->item(i);
+        group->addItem(item->text(), item->data(Qt::UserRole));
+    }
+    // Kept selectable so saving never turns a tier for an unlisted group into "any group".
+    if (tier.gid >= 0 && group->findData(tier.gid) < 0) {
+        const auto stored = Configs::dataManager->groupsRepo->GetGroup(tier.gid);
+        group->addItem(stored != nullptr ? stored->name : tr("missing group"), tier.gid);
+    }
+    group->setCurrentIndex(std::max(0, group->findData(tier.gid)));
+    ui->tiers->setCellWidget(row, 0, group);
+
+    auto *names = new QLineEdit(tier.nameFilter, ui->tiers);
+    names->setPlaceholderText(tr("any name"));
+    names->setToolTip(tr("Optional regular expression, matched anywhere in the profile name and ignoring case, for example ^DE or germany|nl."));
+    ui->tiers->setCellWidget(row, 1, names);
+
+    connect(group, &QComboBox::currentIndexChanged, this, [this] { onTiersChanged(true); });
+    connect(names, &QLineEdit::textChanged, this, [this] { refreshPlanSummary(); });
+    // The tier rule is anchored on the table, which never sees its cell editors' focus-out.
+    connect(names, &QLineEdit::editingFinished, this, [this] {
+        if (form) form->revalidate(ui->tiers);
+    });
+}
+
+QList<Configs::autoSelector::Tier> EditAutoSelector::tierRows() const {
+    QList<Configs::autoSelector::Tier> tiers;
+    for (int row = 0; row < ui->tiers->rowCount(); row++) {
+        Configs::autoSelector::Tier tier;
+        if (const auto *group = qobject_cast<QComboBox *>(ui->tiers->cellWidget(row, 0))) tier.gid = group->currentData().toInt();
+        if (const auto *names = qobject_cast<QLineEdit *>(ui->tiers->cellWidget(row, 1))) tier.nameFilter = names->text().trimmed();
+        tiers << tier;
+    }
+    return tiers;
+}
+
+void EditAutoSelector::moveTier(int offset) {
+    const int row = ui->tiers->currentRow();
+    const int target = row + offset;
+    if (row < 0 || target < 0 || target >= ui->tiers->rowCount()) return;
+    auto tiers = tierRows();
+    tiers.swapItemsAt(row, target);
+    setTierRows(tiers);
+    ui->tiers->setCurrentCell(target, 1);
+    onTiersChanged(true);
+}
+
+void EditAutoSelector::onTiersChanged(bool revalidate) {
+    updateTierButtons();
+    if (fitTierTable() && !m_loading) resizeDialogToContent();
+    if (revalidate && form) form->revalidate(ui->tiers);
+    refreshPlanSummary();
+}
+
+void EditAutoSelector::updateTierButtons() const {
+    const int row = ui->tiers->currentRow();
+    ui->tier_remove->setEnabled(row >= 0);
+    ui->tier_up->setEnabled(row > 0);
+    ui->tier_down->setEnabled(row >= 0 && row < ui->tiers->rowCount() - 1);
+}
+
+// Up to five tiers, then it scrolls; rows take their editors' height so nothing clips.
+bool EditAutoSelector::fitTierTable() const {
+    auto *table = ui->tiers;
+    // Theme fonts and borders apply at polish, which Qt otherwise defers to the event loop.
+    table->ensurePolished();
+    table->setVerticalScrollBarPolicy(table->rowCount() > 5 ? Qt::ScrollBarAsNeeded : Qt::ScrollBarAlwaysOff);
+    auto *rows = table->verticalHeader();
+    int rowHeight = rows->defaultSectionSize();
+    if (table->rowCount() > 0) {
+        for (int column = 0; column < table->columnCount(); column++) {
+            if (const auto *cell = table->cellWidget(0, column)) rowHeight = std::max(rowHeight, cell->sizeHint().height());
+        }
+    }
+    if (rowHeight != rows->defaultSectionSize()) rows->setDefaultSectionSize(rowHeight);
+    const int height = table->horizontalHeader()->sizeHint().height() + qBound(1, table->rowCount(), 5) * rowHeight +
+                       2 * table->frameWidth();
+    if (table->minimumHeight() == height && table->maximumHeight() == height) return false;
+    table->setFixedHeight(height);
+    return true;
+}
+
+// Cell widgets join the focus chain at its end, so slot them in after the strategy box.
+void EditAutoSelector::chainTierTabOrder() const {
+    QWidget *previous = ui->strategy;
+    for (int row = 0; row < ui->tiers->rowCount(); row++) {
+        for (int column = 0; column < ui->tiers->columnCount(); column++) {
+            if (auto *cell = ui->tiers->cellWidget(row, column)) {
+                QWidget::setTabOrder(previous, cell);
+                previous = cell;
+            }
+        }
+    }
+}
+
+QString EditAutoSelector::tierIssue() const {
+    const auto tiers = tierRows();
+    if (auto message = Configs::Checks::AutoSelectorTierCount(static_cast<int>(tiers.size())); !message.isEmpty()) return message;
+    for (int i = 0; i < tiers.size(); i++) {
+        auto message = Configs::Checks::AutoSelectorTierMatch(tiers[i].gid, tiers[i].nameFilter);
+        if (message.isEmpty()) message = Validation::Regex(tiers[i].nameFilter);
+        if (!message.isEmpty()) return tr("Tier %1: %2").arg(QString::number(i + 1), message);
+    }
+    return {};
 }
 
 void EditAutoSelector::refreshPinnedRow() const
@@ -320,13 +536,14 @@ void EditAutoSelector::updateBalanceEnabled() const {
                                      "kept verified so one can take over instantly."));
         return;
     }
-    if (rotating) {
-        ui->balance_hint->setText(tr("New connections move to another good profile on each rotation; open ones are "
-                                     "left alone and finish where they started. Traffic is counted exactly."));
-    } else {
-        ui->balance_hint->setText(tr("Every new connection may take a different profile. Widest spread, but your "
-                                     "exit IP changes mid-session and per-profile traffic becomes approximate."));
+    QString hint = rotating ? tr("New connections move to another good profile on each rotation; open ones are "
+                                 "left alone and finish where they started. Traffic is counted exactly.")
+                            : tr("Every new connection may take a different profile. Widest spread, but your "
+                                 "exit IP changes mid-session and per-profile traffic becomes approximate.");
+    if (prioritySelected()) {
+        hint += QLatin1Char(' ') + tr("In priority order, traffic is only spread over the ready profiles of the tier in use.");
     }
+    ui->balance_hint->setText(hint);
 }
 
 void EditAutoSelector::refreshPlanSummary() {
@@ -348,6 +565,8 @@ void EditAutoSelector::refreshPlanSummary() {
     preview->poolCap = ui->pool_cap->value();
     preview->buildLimit = ui->build_limit->value();
     preview->resultValidityMins = ui->result_validity->value();
+    preview->strategy = ui->strategy->currentData().toString();
+    preview->tiers = tierRows();
 
     const auto plan = Configs::PlanAutoSelector(probe);
 
@@ -361,6 +580,27 @@ void EditAutoSelector::refreshPlanSummary() {
                  .arg(plan.eligible)
                  .arg(plan.membersInGroups)
                  .arg(plan.build.size());
+    if (preview->Prioritized() && !plan.tierBuilt.isEmpty()) {
+        const int rest = static_cast<int>(plan.tierBuilt.size()) - 1;
+        QStringList counts;
+        QStringList empty;
+        QStringList crowded;
+        for (int i = 0; i <= rest; i++) {
+            counts << tr("%1 → %2").arg(i < rest ? QString::number(i + 1) : tr("everything else"), QString::number(plan.tierBuilt[i]));
+            if (i < rest && plan.tierBuilt[i] == 0) (plan.tierEligible.value(i) > 0 ? crowded : empty) << QString::number(i + 1);
+        }
+        lines << tr("By tier: %1.").arg(counts.join(tr(", ")));
+        if (empty.size() == 1) {
+            lines << tr("No usable profile belongs to tier %1.").arg(empty.first());
+        } else if (!empty.isEmpty()) {
+            lines << tr("No usable profile belongs to tiers %1.").arg(empty.join(tr(", ")));
+        }
+        if (crowded.size() == 1) {
+            lines << tr("Too few profiles may run to cover every tier, so tier %1 runs none.").arg(crowded.first());
+        } else if (!crowded.isEmpty()) {
+            lines << tr("Too few profiles may run to cover every tier, so tiers %1 run none.").arg(crowded.join(tr(", ")));
+        }
+    }
     if (plan.missingGroups > 0) {
         lines << tr("%n tracked group(s) no longer exist and are ignored; saving removes them.", nullptr,
                     plan.missingGroups);
@@ -378,13 +618,17 @@ void EditAutoSelector::refreshPlanSummary() {
                      .arg(plan.keptUnavailable);
     }
     if (plan.truncated) {
-        lines << tr("More than %1 profiles match, so only the best-ranked ones are kept.").arg(plan.poolCapUsed);
+        lines << (preview->Prioritized()
+                      ? tr("More than %1 profiles match, so only the best-ranked ones of each tier are kept.")
+                      : tr("More than %1 profiles match, so only the best-ranked ones are kept."))
+                     .arg(plan.poolCapUsed);
     }
     if (plan.rankedByTest > 0) {
         lines << tr("%1 have a recent test result that will be reused.").arg(plan.rankedByTest);
     }
     if (plan.needsRanking) {
-        lines << tr("The rest will be measured before the selector starts.");
+        lines << tr("The rest will be measured as the selector starts: it runs as soon as enough profiles work, and "
+                    "switches to the full ranking once all are measured.");
     }
     ui->plan_summary->setText(lines.join(" "));
 }

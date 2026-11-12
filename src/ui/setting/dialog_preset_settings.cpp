@@ -11,17 +11,12 @@
 #include <QScreen>
 #include <QValidator>
 
-#include <limits>
-
 namespace {
     // 0 means "keep the core default" and is omitted from the config, so show it as blank.
     void LoadOptionalInt(QLineEdit *edit, const int value, QObject *parent) {
         edit->setText(value > 0 ? Int2String(value) : "");
         edit->setValidator(new QRegularExpressionValidator(QRegularExpression("^[0-9]+$"), parent));
     }
-
-    // Xray decodes mux concurrency into an int16.
-    constexpr int kPresetMaxXrayMuxConcurrency = 32767;
 }
 
 DialogPresetSettings::DialogPresetSettings(QWidget *parent) : QDialog(parent), ui(new Ui::DialogPresetSettings) {
@@ -30,12 +25,9 @@ DialogPresetSettings::DialogPresetSettings(QWidget *parent) : QDialog(parent), u
     form = new Validation::Form(this);
     form->attachStatus(ui->buttonBox);
 
-    ui->mux_protocol->addItems({"h2mux", "smux", "yamux"});
-    D_LOAD_COMBO_STRING(mux_protocol)
-    D_LOAD_INT(mux_concurrency)
-    D_LOAD_BOOL(mux_padding)
+    ui->mux_singbox->setSettings(Configs::MuxSettings::Preset());
     D_LOAD_BOOL(mux_default_on)
-    ui->xray_mux_concurrency->setText(Int2String(Configs::dataManager->settingsRepo->xray_mux_concurrency));
+    ui->mux_xray->setSettings(Configs::XrayMuxSettings::Preset());
     ui->xray_default_mux->setChecked(Configs::dataManager->settingsRepo->xray_mux_default_on);
 
     ui->fragment_implementation->addItems({"built-in", "custom"});
@@ -80,8 +72,8 @@ DialogPresetSettings::DialogPresetSettings(QWidget *parent) : QDialog(parent), u
 
     using namespace Validation;
     const auto boxLabel = [](const QGroupBox *box, const QLabel *label) { return QStringLiteral("%1 %2").arg(box->title(), label->text()); };
-    form->bind(ui->mux_concurrency, Rules::Int(0, std::numeric_limits<int>::max())).label(boxLabel(ui->mux_singbox_box, ui->mux_concurrency_l));
-    form->bind(ui->xray_mux_concurrency, Rules::Int(0, kPresetMaxXrayMuxConcurrency)).label(boxLabel(ui->mux_xray_box, ui->xray_mux_concurrency_l));
+    ui->mux_singbox->bindValidation(form, ui->mux_singbox_box->title());
+    ui->mux_xray->bindValidation(form, ui->mux_xray_box->title());
     const QString fragmentSizeLabel = boxLabel(ui->tls_fragment_box, ui->fragment_size_l);
     form->bind(ui->fragment_size, Configs::Checks::TlsFragmentSize).label(fragmentSizeLabel);
     form->bind(ui->fragment_size, Configs::Checks::TlsFragmentSizeLarge).label(fragmentSizeLabel).warning();
@@ -109,11 +101,9 @@ DialogPresetSettings::~DialogPresetSettings() {
 
 void DialogPresetSettings::accept() {
     if (!form->validateAll()) return;
-    D_SAVE_COMBO_STRING(mux_protocol)
-    D_SAVE_INT(mux_concurrency)
-    D_SAVE_BOOL(mux_padding)
+    ui->mux_singbox->settings().SaveAsPreset();
     D_SAVE_BOOL(mux_default_on)
-    Configs::dataManager->settingsRepo->xray_mux_concurrency = ui->xray_mux_concurrency->text().trimmed().toInt();
+    ui->mux_xray->settings().SaveAsPreset();
     Configs::dataManager->settingsRepo->xray_mux_default_on = ui->xray_default_mux->isChecked();
 
     D_SAVE_COMBO_STRING(fragment_implementation)

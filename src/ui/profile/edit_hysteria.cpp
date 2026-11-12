@@ -24,7 +24,7 @@ EditHysteria::EditHysteria(QWidget *parent)
     ui->setupUi(this);
 
     const auto updateLayout = [this] {
-        editHysteriaLayout(ui->protocol_version->currentText(), ui->obfuscation_type->currentText());
+        editHysteriaLayout(ui->protocol_version->currentText(), obfsType());
         if (editor_state_changed) editor_state_changed();
     };
     connect(ui->protocol_version, &QComboBox::currentTextChanged, this, updateLayout);
@@ -67,12 +67,15 @@ void EditHysteria::onStart(std::shared_ptr<Configs::Profile> _ent) {
     ui->password->setText(outbound->password);
     ui->min_packet_size->setText(Int2String(outbound->min_packet_size));
     ui->max_packet_size->setText(Int2String(outbound->max_packet_size));
-    ui->obfuscation_type->setCurrentIndex(qMax(0, ui->obfuscation_type->findText(outbound->obfs_type.trimmed(), Qt::MatchFixedString)));
+    // Without a password no obfs reaches the core, so that opens as None too.
+    const auto storedType = outbound->obfs_type.trimmed();
+    ui->obfuscation_type->setCurrentIndex(outbound->obfs.isEmpty() || storedType.isEmpty()
+                                              ? 0 : qMax(1, ui->obfuscation_type->findText(storedType, Qt::MatchFixedString)));
     ui->bbr_profile->setCurrentText(outbound->bbr_profile);
     ui->password->setText(outbound->password);
     ui->disable_chrome_parrot->setChecked(outbound->disable_chrome_parrot);
     ui->realm_enabled->setChecked(outbound->realm_enabled);
-    editHysteriaLayout(outbound->protocol_version, ui->obfuscation_type->currentText());
+    editHysteriaLayout(outbound->protocol_version, obfsType());
 }
 
 bool EditHysteria::onEnd() {
@@ -93,7 +96,7 @@ bool EditHysteria::onEnd() {
     outbound->password = ui->password->text();
     outbound->min_packet_size = ui->min_packet_size->text().trimmed().toInt();
     outbound->max_packet_size = ui->max_packet_size->text().trimmed().toInt();
-    outbound->obfs_type = ui->obfuscation_type->currentText().trimmed();
+    outbound->obfs_type = obfsType();
     outbound->bbr_profile = ui->bbr_profile->currentText().trimmed();
     outbound->disable_chrome_parrot = ui->disable_chrome_parrot->isChecked();
     outbound->realm_enabled = ui->realm_enabled->isChecked();
@@ -132,7 +135,7 @@ void EditHysteria::bindValidation(Validation::Form &form) {
         const auto up = editHysteriaNumber(ui->up_mbps, kIntMax), down = editHysteriaNumber(ui->down_mbps, kIntMax);
         if (isV2() || !up || !down) return QString();
         return Configs::Checks::HysteriaV1Speed(*up, *down);
-    }, this);
+    }, this, Severity::Warning);
 
     form.addRule({ui->auth, ui->auth_type}, [this] {
         return Configs::Checks::HysteriaAuth(ui->auth_type->currentText().trimmed(), ui->auth->text());
@@ -144,14 +147,14 @@ void EditHysteria::bindValidation(Validation::Form &form) {
     form.bind(ui->recv_window_conn, Rules::Int(0, kIntMax), this);
 
     form.bind(ui->obfs, [this](const QString &text) {
-        if (!isV2() || ui->obfuscation_type->currentText() != "gecko" || !text.isEmpty()) return QString();
-        return tr("Gecko obfuscation needs a password; without one, obfuscation is off.");
+        if (!isV2() || obfsType().isEmpty() || !text.isEmpty()) return QString();
+        return tr("Obfuscation needs a password; without one, it is off.");
     }, this).raw().warning();
     form.bind(ui->min_packet_size, Rules::Int(0, 2048), this);
     form.bind(ui->max_packet_size, Rules::Int(0, 2048), this);
     form.addRule({ui->min_packet_size, ui->max_packet_size}, [this] {
         // Without a password Build() emits no obfs, so the sizes go unused.
-        if (!isV2() || ui->obfuscation_type->currentText() != "gecko" || ui->obfs->text().isEmpty()) return QString();
+        if (!isV2() || obfsType() != "gecko" || ui->obfs->text().isEmpty()) return QString();
         const auto minSize = editHysteriaNumber(ui->min_packet_size, 2048), maxSize = editHysteriaNumber(ui->max_packet_size, 2048);
         if (!minSize || !maxSize) return QString();
         return Configs::Checks::HysteriaGeckoSizes(*minSize, *maxSize);
@@ -191,6 +194,11 @@ bool EditHysteria::hopping() const {
     return !realmOn() && !Validation::Items(ui->server_ports->text(), Validation::Split::Comma).isEmpty();
 }
 
+// Index 0 is the translated "None"; the others are notr type names.
+QString EditHysteria::obfsType() const {
+    return ui->obfuscation_type->currentIndex() <= 0 ? QString() : ui->obfuscation_type->currentText().trimmed();
+}
+
 void EditHysteria::editHysteriaLayout(const QString& version, const QString& obfs_type) {
     if (version == "1")
     {
@@ -203,6 +211,8 @@ void EditHysteria::editHysteriaLayout(const QString& version, const QString& obf
         ui->recv_window->setVisible(true);
         ui->recv_window_l->setVisible(true);
         ui->disable_mtu_discovery->setVisible(true);
+        ui->obfs->setVisible(true);
+        ui->label_5->setVisible(true);
         ui->password->setVisible(false);
         ui->password_l->setVisible(false);
         ui->min_packet_size->setVisible(false);
@@ -234,18 +244,14 @@ void EditHysteria::editHysteriaLayout(const QString& version, const QString& obf
         ui->hop_interval_max_l->setVisible(true);
         ui->bbr_profile->setVisible(true);
         ui->bbr_profile_l->setVisible(true);
-        if (obfs_type == "gecko") {
-            ui->min_packet_size->setVisible(true);
-            ui->min_packet_size_l->setVisible(true);
-            ui->max_packet_size->setVisible(true);
-            ui->max_packet_size_l->setVisible(true);
-        }
-        if (obfs_type == "salamander") {
-            ui->min_packet_size->setVisible(false);
-            ui->min_packet_size_l->setVisible(false);
-            ui->max_packet_size->setVisible(false);
-            ui->max_packet_size_l->setVisible(false);
-        }
+        const bool obfsOn = !obfs_type.isEmpty();
+        ui->obfs->setVisible(obfsOn);
+        ui->label_5->setVisible(obfsOn);
+        const bool gecko = obfs_type == "gecko";
+        ui->min_packet_size->setVisible(gecko);
+        ui->min_packet_size_l->setVisible(gecko);
+        ui->max_packet_size->setVisible(gecko);
+        ui->max_packet_size_l->setVisible(gecko);
     }
 
     const auto realm = version == "2" && ui->realm_enabled->isChecked();

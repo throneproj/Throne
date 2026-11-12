@@ -6,11 +6,10 @@
 #include <QHeaderView>
 #include <QKeyEvent>
 #include <QLineEdit>
-#include <QPainter>
-#include <QStyle>
 #include <QToolButton>
 
 #include "include/ui/utils/ConnectionsTreeModel.h"
+#include "include/ui/utils/HeaderSortArrow.h"
 
 class ConnectionsFilterHeader : public QHeaderView {
     Q_OBJECT
@@ -84,7 +83,7 @@ protected:
     QSize sectionSizeFromContents(int logicalIndex) const override {
         QSize s = QHeaderView::sectionSizeFromContents(logicalIndex);
         if (logicalIndex == m_sortSection) {
-            s.rwidth() += 2 * kSortArrowRoom;
+            s.rwidth() += 2 * HeaderSortArrow::kRoom;
         }
         if (m_filtersVisible && editForColumn(logicalIndex) != nullptr) {
             s.setWidth(qMax(s.width(), 120));
@@ -95,20 +94,7 @@ protected:
 
     void paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const override {
         QHeaderView::paintSection(painter, rect, logicalIndex);
-        if (logicalIndex != m_sortSection) return;
-
-        // The label is top-aligned, so the arrow sits on its line just past the text.
-        const QFontMetrics metrics(font());
-        const QString label = model() ? model()->headerData(logicalIndex, orientation()).toString() : QString();
-        const qreal x = qMin(rect.center().x() + metrics.horizontalAdvance(label) / 2.0 + 10, rect.right() - 6.0);
-        const qreal y = rect.top() + style()->pixelMetric(QStyle::PM_HeaderMargin, nullptr, this) + metrics.height() / 2.0;
-        const qreal tip = m_sortDescending ? 2.5 : -2.5;
-        painter->save();
-        painter->setRenderHint(QPainter::Antialiasing);
-        painter->setPen(Qt::NoPen);
-        painter->setBrush(palette().color(QPalette::Highlight));
-        painter->drawPolygon(QPolygonF{{x - 4, y - tip}, {x + 4, y - tip}, {x, y + tip}});
-        painter->restore();
+        if (logicalIndex == m_sortSection) HeaderSortArrow::paint(this, painter, rect, logicalIndex, m_sortDescending);
     }
 
     // Runs after every relayout, expand, viewport resize and (via the view's column timer) section resize.
@@ -188,8 +174,6 @@ signals:
     void closeRequested();
 
 private:
-    static constexpr int kSortArrowRoom = 14;
-
     // Outbound fits its content into what the stretched Target leaves past the Target's own content, so a long address wins.
     void fitOutboundSection() {
         using Model = ConnectionsTreeModel;

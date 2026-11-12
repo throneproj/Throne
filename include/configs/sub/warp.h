@@ -1,6 +1,7 @@
 #pragma once
 #include <QList>
 #include <QString>
+#include <QStringList>
 #include <memory>
 
 class QWidget;
@@ -10,6 +11,9 @@ namespace Configs_network {
         QString deviceId, token, privateKey, peerPublicKey, endpoint, ipv4, ipv6;
         QList<int> reserved;
     };
+
+    // Fresh offline QUIC flight from the core. Blocking RPC; never call on the UI thread.
+    QStringList GenerateWarpCamouflage(QString &error);
 
     // Blocking (RPC); never call on the UI thread. tunnelType: "wireguard" | "masque".
     std::shared_ptr<WarpIdentity> RegisterWarp(const QString &tunnelType, QString *error);

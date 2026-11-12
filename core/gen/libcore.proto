@@ -13,6 +13,7 @@ service LibcoreService {
   rpc QueryStats(EmptyReq) returns (QueryStatsResp);
   rpc QueryConnections(EmptyReq) returns (QueryConnectionsResp);
   rpc CloseConnections(CloseConnectionsRequest) returns (CloseConnectionsResponse);
+  rpc ListProcesses(EmptyReq) returns (ListProcessesResponse);
   //
   rpc IsPrivileged(EmptyReq) returns (IsPrivilegedResponse);
   //
@@ -48,6 +49,11 @@ service LibcoreService {
   rpc ScanURLTest(ScanURLTestRequest) returns (TestResp);
   rpc ScanCheckNetwork(ScanCheckNetworkRequest) returns (ScanCheckNetworkResponse);
   rpc ParseRuleSet(ParseRuleSetRequest) returns (ParseRuleSetResponse);
+  rpc ResolveDomains(ResolveDomainsRequest) returns (ResolveDomainsResponse);
+  rpc TestRoute(TestRouteRequest) returns (TestRouteResponse);
+  rpc ServiceTest(ServiceTestRequest) returns (ServiceTestResponse);
+  rpc QueryServiceTest(EmptyReq) returns (QueryServiceTestResponse);
+  rpc ParseServiceChecks(ParseServiceChecksRequest) returns (ParseServiceChecksResponse);
 }
 
 message EmptyReq {}
@@ -233,6 +239,8 @@ message ConnectionMetaData {
   repeated string chain = 12;                        // outbound chain, for later use
   optional int64 closed_at = 13 [default = 0];       // 0 while live
   optional string source = 14 [default = ""];        // client address "ip:port", empty when unknown
+  optional string rule = 15 [default = ""];          // matched route rule as sing-box prints it, empty when routed by final
+  optional string rule_item = 16 [default = ""];     // the rule's entries that matched, e.g. "domain_suffix=github.com"; empty when unknown
 }
 
 // Ids come from a previous QueryConnections; ones that already closed are a
@@ -246,6 +254,23 @@ message CloseConnectionsResponse {
   optional string error = 2 [default = ""];
 }
 
+// A running program, spelled exactly as the router's process matcher sees it.
+message ProcessEntry {
+  optional uint32 pid = 1 [default = 0];
+  // What process_name compares against: the base name of path, or the OS's name for it when path is unreadable.
+  optional string name = 2 [default = ""];
+  // What process_path compares against; empty when the core could not read it.
+  optional string path = 3 [default = ""];
+  // Windows: the display name of a service hosted in a shared process (svchost). name and path are then the
+  // service's DLL, which the matcher compares too.
+  optional string service = 4 [default = ""];
+}
+
+message ListProcessesResponse {
+  repeated ProcessEntry processes = 1;
+  optional string error = 2 [default = ""];
+}
+
 message IsPrivilegedResponse {
   optional bool has_privilege = 1 [default = false];
   // Linux: /dev/net/tun opened read-write. Unset elsewhere.
@@ -256,6 +281,8 @@ message IsPrivilegedResponse {
   optional bool kill_switch_privilege = 4;
   // The first failing reason, plain English; empty when nothing failed.
   optional string detail = 5;
+  // The pid of the process answering; on Windows an elevated core runs apart from the stub Throne started.
+  optional int32 core_pid = 6;
 }
 
 message GetDefaultInterfaceResponse {
@@ -336,6 +363,9 @@ message IPTestRequest {
   reserved "xray_outbound_dns_address";
   // See TestReq.xray_outbound_dns_strategy.
   optional string xray_outbound_dns_strategy = 10 [default = ""];
+  // An exit_lookup_provider id (ip2location, ip-api, ipwho, ipinfo, ipapi-co, freeipapi, cloudflare);
+  // "" or auto tries ip2location, ip-api, ipwho, ipinfo and cloudflare in turn.
+  optional string provider = 11 [default = ""];
 }
 
 message IPTestResp {
@@ -356,6 +386,10 @@ message WarpRegisterRequest {
   optional string tunnel_type = 1 [default = ""]; // "wireguard" | "masque"
   optional string proxy = 2 [default = ""];       // "http://[user:pass@]host:port"; empty = direct
   repeated string api_hosts = 3;                  // tried in order; empty = api.cloudflareclient.com
+  // Direct calls only: through a proxy the ClientHello is the proxy outbound's to shape.
+  optional bool tls_fragment = 4 [default = false];
+  optional bool tls_record_fragment = 5 [default = false];
+  optional string tls_fragment_fallback_delay = 6 [default = ""]; // Go duration; empty = 500ms
 }
 
 message WarpRegisterResponse {
@@ -386,7 +420,7 @@ message GenQuicSignatureResponse {
 message AutoSelectorMember {
   optional string tag = 1 [default = ""];
   optional int32 rank = 2 [default = 0];
-  // ok | degraded | untested | dead | cooldown
+  // ok | degraded | suspect | untested | dead | cooldown
   optional string state = 3 [default = ""];
   optional bool selected = 4 [default = false];
   optional bool selected_udp = 5 [default = false];
@@ -406,6 +440,21 @@ message AutoSelectorMember {
   optional int64 last_probe_ms = 18 [default = 0];
   optional int64 cooldown_until_ms = 19 [default = 0];
   optional string last_error = 20 [default = ""];
+  // priority strategy: index of the member's tier, 0 = most preferred
+  optional int32 priority = 21 [default = 0];
+  // successful checks in a row since the last failure; fail-back needs failback_checks of them
+  optional int32 streak = 22 [default = 0];
+  // last failed check or dial, 0 = none on record
+  optional int64 last_failure_ms = 23 [default = 0];
+  // passive scoring: time-weighted average time to the first response byte on real connections, 0 = none yet
+  optional int32 first_byte_ms = 24 [default = 0];
+  optional int32 passive_answered = 25 [default = 0];
+  optional int32 passive_failed = 26 [default = 0];
+  // the same outcomes with exponential decay, rounded; suspect needs recent_failed >= 3 and >= recent_answered
+  optional int32 recent_answered = 27 [default = 0];
+  optional int32 recent_failed = 28 [default = 0];
+  // passive scoring holds the member out of the selection until then, 0 = not suspect
+  optional int64 suspect_until_ms = 29 [default = 0];
 }
 
 message AutoSelectorStatus {
@@ -435,6 +484,14 @@ message AutoSelectorStatus {
   optional int64 last_switch_ms = 18 [default = 0];
   optional string last_switch_reason = 19 [default = ""];
   repeated AutoSelectorMember members = 20;
+  // latency | priority
+  optional string strategy = 22 [default = ""];
+  // priority strategy: what a recovered higher-tier member must pass before the group moves back up to it
+  optional int32 failback_checks = 23 [default = 0];
+  optional int64 failback_delay_ms = 24 [default = 0];
+  // passive scoring is on; sites_remembered counts sites holding a member that answered them
+  optional bool passive = 25 [default = false];
+  optional int32 sites_remembered = 26 [default = 0];
 }
 
 // Idempotent snapshot: unlike QueryStats this never clears core-side counters,
@@ -538,6 +595,19 @@ message ScanHttpOptions {
   optional int32 fallback_port = 22 [default = 443];
 }
 
+// When enabled, a target is probed as a resolver only: no icmp, tcp or http phase runs. Port 0 = 53.
+message ScanDnsOptions {
+  optional bool enabled = 1 [default = false];
+  // dnstt | masterdns | xdns
+  optional string protocol = 2 [default = ""];
+  // dnstt/masterdns: the base profile's sing-box outbound object; xdns: the base's xdns mask settings. Resolvers are replaced per target.
+  optional string config_json = 3 [default = ""];
+  // dnstt: poll | qname | handshake; masterdns: quick | full; xdns: poll | qname
+  optional string level = 4 [default = ""];
+  // Bounds one target's whole probe.
+  optional int32 timeout_ms = 5 [default = 5000];
+}
+
 message ScanProbeRequest {
   optional string session_id = 1 [default = ""];
   optional ScanTargetSpec spec = 2;
@@ -550,13 +620,14 @@ message ScanProbeRequest {
   optional ScanHttpOptions http = 7;
   optional int32 concurrency = 8 [default = 0];
   optional int32 spawn_interval_ms = 9 [default = 0];
+  optional ScanDnsOptions dns = 10;
 }
 
 message ScanProbeResult {
   optional string address = 1 [default = ""];
   optional int32 port = 2 [default = 0];
   optional bool passed = 3 [default = false];
-  // icmp | tcp | tls | http; empty when passed
+  // icmp | tcp | tls | http | dns; empty when passed
   optional string failed_phase = 4 [default = ""];
   optional string error = 5 [default = ""];
   optional int32 icmp_ms = 6 [default = 0];
@@ -564,10 +635,18 @@ message ScanProbeResult {
   optional int32 tls_ms = 8 [default = 0];
   optional int32 http_ms = 9 [default = 0];
   optional int32 http_status = 10 [default = 0];
-  // The port TCP/TLS actually used: the phase fallback when port is 0.
+  // The port TCP/TLS/DNS actually used: the phase fallback when port is 0.
   optional int32 probe_port = 11 [default = 0];
   // The failure came from this machine (no route or address for the family), not the target.
   optional bool local_failure = 12 [default = false];
+  // dnstt/xdns: RTT of the first exchange the resolver answered, failed targets included; masterdns: mean RTT at the found MTUs, passes only. 0 = none.
+  optional int32 dns_ms = 13 [default = 0];
+  // dnstt: max_qname_len units; xdns: lenLimit units (wire length).
+  optional int32 max_qname = 14 [default = 0];
+  optional int32 upload_mtu = 15 [default = 0];
+  optional int32 download_mtu = 16 [default = 0];
+  // The stage a failed target stopped at.
+  optional string dns_stage = 17 [default = ""];
 }
 
 message ScanProbeResponse {
@@ -586,7 +665,7 @@ message ScanEvent {
   optional int64 seq = 1 [default = 0];
   // start | ok | fail
   optional string kind = 2 [default = ""];
-  // icmp | tcp | tls | http | url
+  // icmp | tcp | tls | http | dns | url
   optional string phase = 3 [default = ""];
   // Display form; IPv6 is bracketed.
   optional string target = 4 [default = ""];
@@ -622,6 +701,8 @@ message ScanURLTestRequest {
   repeated string target_labels = 3;
   // false = one request per target, so the latency includes the handshake.
   optional bool warm_latency = 4 [default = true];
+  // > 0: one cold GET per target that passes only with a 2xx and this many body bytes; warm_latency is ignored.
+  optional int64 body_bytes = 5 [default = 0];
 }
 
 message ScanCheckNetworkRequest {
@@ -646,4 +727,173 @@ message ParseRuleSetResponse {
   // Inverted and AND rules: they do not describe a set of addresses.
   optional int32 skipped_rules = 3 [default = 0];
   optional int32 version = 4 [default = 0];
+}
+
+// Looked up through dns-direct, the resolver the core dials servers with, never the OS resolver.
+message ResolveDomainsRequest {
+  repeated string domains = 1;
+  // A probe box config, started only when the running profile has no dns-direct (or none runs).
+  optional string config = 2 [default = ""];
+}
+
+message ResolveDomainsResponse {
+  // In request order.
+  repeated ResolvedDomain results = 1;
+}
+
+message ResolvedDomain {
+  optional string domain = 1 [default = ""];
+  repeated string addresses = 2;
+  optional string error = 3 [default = ""];
+}
+
+// Walks route.rules for one made-up connection the way the router would, dialing nothing.
+message TestRouteRequest {
+  // A process name ("chrome.exe") or a full executable path. A Windows service DLL is tested with the svchost.exe hosting it, as the searcher reports it.
+  optional string process = 1 [default = ""];
+  // With both domain and ip the connection goes to ip and domain is what a sniff rule finds, as under Tun.
+  optional string domain = 2 [default = ""];
+  optional string ip = 3 [default = ""];
+  optional int32 port = 4 [default = 443];
+  // "tcp" or "udp".
+  optional string network = 5 [default = "tcp"];
+  // What a sniff rule finds: "auto" guesses from network and port, "none" finds nothing, else a sniffer name (tls, http, quic, dns...).
+  optional string protocol = 6 [default = "auto"];
+  // Empty tests the running instance. Otherwise a full config that is started stripped for this test only:
+  // no inbounds, no DNS section, every outbound and endpoint a stub, and rules that need a live endpoint (preferred_by) skipped.
+  optional string config = 7 [default = ""];
+}
+
+message TestRouteStep {
+  // Index into the config's route.rules.
+  optional int32 index = 1 [default = -1];
+  // The rule's conditions as sing-box describes them.
+  optional string rule = 2 [default = ""];
+  // The action type: route, route-options, reject, hijack-dns, bypass, sniff or resolve.
+  optional string action = 3 [default = ""];
+  // The action as sing-box describes it, e.g. "route(proxy)".
+  optional string action_detail = 4 [default = ""];
+  // The values that made it match, like ConnectionMetaData.rule_item; empty for a rule without single entries.
+  optional string matched = 5 [default = ""];
+  // sniff: the protocol and domain it found, both empty when it found nothing.
+  optional string protocol = 6 [default = ""];
+  optional string sniffed_domain = 7 [default = ""];
+  // resolve: the addresses it got.
+  repeated string addresses = 8;
+  // The step failed: a lookup error, say.
+  optional string error = 9 [default = ""];
+  // Why a step did nothing, or what else it changed (an override); English, from the core.
+  optional string note = 10 [default = ""];
+}
+
+message TestRouteResponse {
+  optional string error = 1 [default = ""];
+  // Every rule that matched, in order.
+  repeated TestRouteStep steps = 2;
+  // No rule decided, so route.final applies.
+  optional bool is_final = 3 [default = false];
+  // route, reject, hijack-dns or bypass; "error" when a step failed the connection, which the last step's error explains.
+  optional string action = 4 [default = ""];
+  // The outbound tag for route, bypass and the final.
+  optional string outbound = 5 [default = ""];
+  // Each group the outbound leads through, followed by its current pick: [pick, pick of pick, ...].
+  repeated string outbound_chain = 6;
+  // Indexes of rules left out of a stripped config, which therefore never matched.
+  repeated int32 skipped = 7;
+  // The destination after sniffing, resolving and overrides.
+  optional string destination = 8 [default = ""];
+  optional string domain = 9 [default = ""];
+  repeated string addresses = 10;
+  // The inbound tag the connection was taken to arrive on.
+  optional string inbound = 11 [default = ""];
+}
+
+message ServiceTestRequest {
+  optional string config = 1 [default = ""];
+  repeated string outbound_tags = 2;
+  optional bool use_default_outbound = 3 [default = false];
+  optional int32 max_concurrency = 4 [default = 0];
+  // Per request; 0 = 10 s.
+  optional int32 test_timeout_ms = 5 [default = 0];
+  optional bool need_xray = 6 [default = false];
+  optional string xray_config = 7 [default = ""];
+  // See TestReq.xray_full_configs.
+  repeated string xray_full_configs = 8;
+  // See TestReq.xray_outbound_dns_strategy.
+  optional string xray_outbound_dns_strategy = 9 [default = ""];
+  // The check definitions document (checks.json).
+  optional string checks = 10 [default = ""];
+  // Ids of the checks to run; empty runs them all.
+  repeated string only = 11;
+  optional bool skip_ip_info = 12 [default = false];
+  // Checks the running instance's proxy outbound instead of building a box from `config`.
+  optional bool test_current = 13 [default = false];
+}
+
+message ServiceCheckOutcome {
+  optional string id = 1 [default = ""];
+  optional string name = 2 [default = ""];
+  optional string category = 3 [default = ""];
+  // available | partial | restricted | blocked | unknown | failed
+  optional string status = 4 [default = ""];
+  // ISO 3166-1 alpha-2 country the service placed the exit in, "" = not known.
+  optional string region = 5 [default = ""];
+  // Short English detail: the matched rule's note, or the error.
+  optional string note = 6 [default = ""];
+}
+
+message ServiceIPInfo {
+  optional string provider = 1 [default = ""];
+  optional string ip = 2 [default = ""];
+  optional string country_code = 3 [default = ""];
+  optional string asn = 4 [default = ""];
+  optional string org = 5 [default = ""];
+  // The provider's network type, lower case: isp, hosting, business, education...
+  optional string type = 6 [default = ""];
+  // 0-100, -1 = the provider gives none.
+  optional int32 risk_score = 7 [default = -1];
+  // The flags the provider set, among vpn, proxy, tor, hosting, abuser, anonymous, relay, mobile.
+  repeated string flags = 8;
+  optional string error = 9 [default = ""];
+}
+
+message ServiceTestResult {
+  optional string outbound_tag = 1 [default = ""];
+  repeated ServiceCheckOutcome checks = 2;
+  repeated ServiceIPInfo ip_info = 3;
+  // The profile could not be checked at all (tunnel down, aborted); checks is then empty.
+  optional string error = 4 [default = ""];
+}
+
+message ServiceTestResponse {
+  repeated ServiceTestResult results = 1;
+}
+
+message QueryServiceTestResponse {
+  repeated ServiceTestResult results = 1;
+}
+
+message ParseServiceChecksRequest {
+  optional string checks = 1 [default = ""];
+}
+
+message ServiceCategory {
+  optional string id = 1 [default = ""];
+  optional string name = 2 [default = ""];
+  optional string icon = 3 [default = ""];
+}
+
+message ServiceCheckInfo {
+  optional string id = 1 [default = ""];
+  optional string name = 2 [default = ""];
+  optional string category = 3 [default = ""];
+}
+
+message ParseServiceChecksResponse {
+  // Why the document was rejected; the other fields are then empty.
+  optional string error = 1 [default = ""];
+  optional int32 version = 2 [default = 0];
+  optional int64 revision = 3 [default = 0];
+  repeated ServiceCategory categories = 4;
+  repeated ServiceCheckInfo checks = 5;
 }

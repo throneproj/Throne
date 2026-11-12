@@ -1,7 +1,13 @@
 #include "include/sys/Process.hpp"
 #include "include/global/Configs.hpp"
+#include "include/global/Logger.hpp"
+#include "include/sys/CoreElevation.hpp"
 #include "include/sys/KillSwitch.hpp"
 #include "include/sys/ServiceManager.hpp"
+
+#include <QElapsedTimer>
+
+#include <algorithm>
 
 #ifdef Q_OS_UNIX
 #include <signal.h>
@@ -12,6 +18,9 @@
 namespace Configs_sys {
     namespace {
         std::atomic<bool> g_processIsolateChildren{false};
+
+        constexpr int kProcessKillElevatedWaitMs = 10000;
+        constexpr int kProcessRestartElevatedWaitMs = 5000;
 
 #ifdef Q_OS_WIN
         // CREATE_NEW_PROCESS_GROUP and CREATE_NO_WINDOW from <winbase.h>, which this portable TU does not include.
@@ -53,9 +62,45 @@ namespace Configs_sys {
     }
 
     void CoreProcess::Kill(int waitMs) {
+        QElapsedTimer elapsed;
+        elapsed.start();
         KillChildGroup(this);
         kill();
         waitForFinished(waitMs);
+        // The stub's job takes the elevated core down with it, but not synchronously.
+        waitElevated(waitMs < 0 ? kProcessKillElevatedWaitMs
+                                : int(std::clamp<qint64>(waitMs - elapsed.elapsed(), 0, kProcessKillElevatedWaitMs)));
+    }
+
+    void CoreProcess::waitElevated(int waitMs) const {
+        std::shared_ptr<void> watch;
+        qint64 pid = 0;
+        {
+            std::lock_guard lock(m_elevatedMutex);
+            watch = m_elevatedWatch;
+            pid = m_elevatedPid;
+        }
+        if (!watch || Sys::CoreElevation::WaitWatch(watch.get(), waitMs)) return;
+        LOG_WARN(QString("the elevated core (PID %1) is still running %2 ms after its stub was killed").arg(pid).arg(waitMs));
+    }
+
+    bool CoreProcess::AdoptElevatedPid(qint64 pid, quint64 forGeneration) {
+        if (pid <= 0 || pid == processId()) return false;
+        std::lock_guard lock(m_elevatedMutex);
+        if (generation.load() != forGeneration || pid == m_elevatedPid) return false;
+        void *watch = Sys::CoreElevation::OpenWatch(pid);
+        if (watch == nullptr) return false;
+        m_elevatedWatch = std::shared_ptr<void>(watch, [](void *opened) { Sys::CoreElevation::CloseWatch(opened); });
+        m_elevatedPid = pid;
+        return true;
+    }
+
+    qint64 CoreProcess::EffectivePid() const {
+        {
+            std::lock_guard lock(m_elevatedMutex);
+            if (m_elevatedWatch && !Sys::CoreElevation::WaitWatch(m_elevatedWatch.get(), 0)) return m_elevatedPid;
+        }
+        return processId();
     }
 
     CoreProcess::CoreProcess(const QString &core_path, const QString &socketName, bool debugMode)
@@ -66,10 +111,18 @@ namespace Configs_sys {
     void CoreProcess::Start() {
         if (started) return;
         started = true;
-        ++generation;
+        {
+            // With the bump, so an adopt for the previous generation cannot land after the release.
+            std::lock_guard lock(m_elevatedMutex);
+            ++generation;
+            m_elevatedWatch.reset();
+            m_elevatedPid = 0;
+        }
         failed_to_start = false;
 
         auto env = Sys::ServiceManager::ChildEnvironment();
+        Sys::CoreElevation::ApplyEnvironment(env);
+        through_grant = env.contains(QString::fromLatin1(Sys::CoreElevation::kTaskEnv));
         env.insert("THRONE_CORE_SOCKET", m_socketName);
         // Turns an unrecovered Go panic into a real abort, so all goroutine stacks are dumped and WER captures the core too.
         env.insert("GOTRACEBACK", "crash");
@@ -90,6 +143,7 @@ namespace Configs_sys {
         KillChildGroup(this);
         kill();
         waitForFinished(500);
+        waitElevated(kProcessRestartElevatedWaitMs);
         started = false;
         Start();
         restarting = false;

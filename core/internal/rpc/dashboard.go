@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"ThroneCore/gen"
+	"ThroneCore/internal/invoker"
 
 	E "github.com/sagernet/sing/common/exceptions"
 )
@@ -19,30 +20,41 @@ func (s *server) InstallDashboard(ctx context.Context, in *gen.InstallDashboardR
 	if archivePath == "" || targetDir == "" {
 		return &gen.ErrorResp{Error: To("missing archive path or target dir")}, nil
 	}
+	// Both paths come from the client, so every step runs with its rights rather than the core's.
+	if err := invoker.Do(func() error { return installDashboard(archivePath, targetDir) }); err != nil {
+		return &gen.ErrorResp{Error: To(err.Error())}, nil
+	}
+	return &gen.ErrorResp{}, nil
+}
 
+func installDashboard(archivePath, targetDir string) error {
 	reader, err := zip.OpenReader(archivePath)
 	if err != nil {
-		return &gen.ErrorResp{Error: To(E.Cause(err, "open dashboard archive").Error())}, nil
+		return E.Cause(err, "open dashboard archive")
 	}
 	defer reader.Close()
 
 	trimDir := zipIsInSingleDirectory(reader.File)
 	tempDir := targetDir + ".tmp"
 	if err = os.RemoveAll(tempDir); err != nil {
-		return &gen.ErrorResp{Error: To(err.Error())}, nil
+		return err
 	}
 	if err = os.MkdirAll(tempDir, 0o755); err != nil {
-		return &gen.ErrorResp{Error: To(err.Error())}, nil
+		return err
 	}
 
-	failed := func(err error) (*gen.ErrorResp, error) {
+	failed := func(err error) error {
 		os.RemoveAll(tempDir)
-		return &gen.ErrorResp{Error: To(err.Error())}, nil
+		return err
 	}
 	var extracted int
 	for _, file := range reader.File {
-		if file.FileInfo().IsDir() {
+		mode := file.Mode()
+		if mode.IsDir() {
 			continue
+		}
+		if !mode.IsRegular() {
+			return failed(E.New("unsupported dashboard archive entry: ", file.Name))
 		}
 		elements := strings.Split(file.Name, "/")
 		if trimDir {
@@ -67,9 +79,6 @@ func (s *server) InstallDashboard(ctx context.Context, in *gen.InstallDashboardR
 	if extracted == 0 {
 		return failed(E.New("dashboard archive is empty"))
 	}
-	if err = adoptExtracted(tempDir); err != nil {
-		return failed(E.Cause(err, "hand the dashboard files to the invoking user"))
-	}
 
 	if err = os.RemoveAll(targetDir); err != nil {
 		return failed(err)
@@ -77,7 +86,7 @@ func (s *server) InstallDashboard(ctx context.Context, in *gen.InstallDashboardR
 	if err = os.Rename(tempDir, targetDir); err != nil {
 		return failed(err)
 	}
-	return &gen.ErrorResp{}, nil
+	return nil
 }
 
 func extractZipEntry(file *zip.File, savePath string) error {

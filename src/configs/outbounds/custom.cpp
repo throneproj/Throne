@@ -175,7 +175,10 @@ namespace Configs
                 streams << o.value(key).toObject();
             }
             SecurityInfo info;
-            info.transport = DisplayTransportName(customValueNamed(streams.value(0), "network").toString().toLower());
+            const auto network = customValueNamed(streams.value(0), "network").toString().toLower();
+            info.transport = NormalizeXrayNetwork(network) == "kcp" && XrayFinalmaskHasXdns(customValueNamed(streams.value(0), "finalmask").toObject())
+                                 ? QStringLiteral("XDNS")
+                                 : DisplayTransportName(network);
 
             QStringList securities;
             for (const auto& stream : streams) {
@@ -547,6 +550,9 @@ namespace Configs
                     return changed;
                 });
             }
+            removed |= editObjectNamed(stream, "finalmask", at, [&](QJsonObject& finalmask, const QString& finalmaskAt) {
+                return StripXrayFinalmaskKeyLog(finalmask, finalmaskAt, issues);
+            });
             return removed;
         }
 

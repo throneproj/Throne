@@ -34,6 +34,12 @@ namespace Configs {
             return std::nullopt;
         }
 
+        // The official client reads "" and "plain" as no obfuscation; panels also write "none".
+        QString hysteriaObfsType(const QString &type) {
+            const auto t = type.trimmed().toLower();
+            return t == u"none" || t == u"plain" ? QString() : t;
+        }
+
         void hysteriaDropBadGeckoSizes(int &minSize, int &maxSize) {
             if (!ParseDiag::Active()) return;
             const auto message = Checks::HysteriaGeckoSizes(minSize, maxSize);
@@ -130,7 +136,8 @@ namespace Configs {
 
         QString HysteriaV1Speed(qint64 upMbps, qint64 downMbps) {
             if (upMbps > 0 && downMbps > 0) return {};
-            return QCoreApplication::translate("Validation", "Hysteria v1 needs both Up Mbps and Down Mbps, for example 100.");
+            return QCoreApplication::translate("Validation", "Hysteria v1 needs both Up Mbps and Down Mbps; %1 up and %2 down is used for a missing one. Set your real line speed for the best results.")
+                .arg(kHysteriaV1DefaultUpMbps).arg(kHysteriaV1DefaultDownMbps);
         }
 
         QString HysteriaGeckoSizes(qint64 minSize, qint64 maxSize) {
@@ -245,9 +252,8 @@ namespace Configs {
         return static_cast<int>(std::max<long long>(1, rounded));
     }
 
-    static int hysteriaClashSpeed(const QString &field, const std::string &raw)
+    static int hysteriaBandwidth(const QString &field, const QString &text)
     {
-        const auto text = QString::fromStdString(raw);
         const int mbps = clashBandwidthToMbps(text);
         if (mbps == 0 && Validation::ToInt(text) != 0) {
             ParseDiag::Warn(field, QCoreApplication::translate("Validation", "Not a bandwidth such as 100 Mbps or 50 MB/s, so it was ignored."), text);
@@ -301,7 +307,7 @@ namespace Configs {
                 obfs = query.queryItemValue("obfs-password", QUrl::FullyDecoded);
             }
             if (query.hasQueryItem("obfs")) {
-                obfs_type = query.queryItemValue("obfs").trimmed().toLower();
+                obfs_type = hysteriaObfsType(query.queryItemValue("obfs"));
             }
             else if (query.hasQueryItem("min_packet_size") || query.hasQueryItem("max_packet_size")) {
                 obfs_type = "gecko";
@@ -326,10 +332,9 @@ namespace Configs {
             if (query.hasQueryItem("disable_chrome_parrot")) disable_chrome_parrot = query.queryItemValue("disable_chrome_parrot") == "true";
         }
 
+        // The URI scheme says a bare number, but panels commonly write "55Mbps".
         for (const auto &[key, target] : {std::pair{"upmbps", &up_mbps}, std::pair{"downmbps", &down_mbps}}) {
-            if (!query.hasQueryItem(key)) continue;
-            const auto value = query.queryItemValue(key).trimmed();
-            if (hysteriaKeep(key, value, Validation::Rules::Int(0, std::numeric_limits<int>::max()))) *target = value.toInt();
+            if (query.hasQueryItem(key)) *target = hysteriaBandwidth(key, query.queryItemValue(key, QUrl::FullyDecoded));
         }
         if (query.hasQueryItem("hop_interval")) {
             const auto value = query.queryItemValue("hop_interval").trimmed();
@@ -341,9 +346,8 @@ namespace Configs {
 
         tls->ParseFromLink(link);
         tls->enabled = true; // Hysteria always uses tls
-        // The official hysteria2 URI pins a certificate's SHA-256 in hex, as sing-box's certificate_sha256 does in base64.
+        // Hex here, base64 in sing-box's certificate_sha256, which (unlike the official client) matches only the leaf certificate.
         if (query.hasQueryItem("pinSHA256")) {
-            bool pinned = false;
             for (auto pin : query.queryItemValue("pinSHA256", QUrl::FullyDecoded).split(u',', Qt::SkipEmptyParts)) {
                 pin = pin.trimmed();
                 // The official client's normalizeCertHash strips both separators.
@@ -358,11 +362,6 @@ namespace Configs {
                     continue;
                 }
                 if (!tls->certificate_sha256.contains(hash)) tls->certificate_sha256 << hash;
-                pinned = true;
-            }
-            // The official client accepts a pin of any certificate in the chain; sing-box checks only the server's own.
-            if (pinned) {
-                ParseDiag::Warn("pinSHA256", QCoreApplication::translate("Validation", "Only the server's own certificate is checked against this pin; if it is the hash of an intermediate or root certificate, the connection will fail."));
             }
         }
         quic->ParseFromLink(link);
@@ -421,7 +420,7 @@ namespace Configs {
             if (object.contains("obfs")) {
                 auto obfsObj = object["obfs"].toObject();
                 if (obfsObj.contains("password")) obfs = obfsObj["password"].toString();
-                if (obfsObj.contains("type")) obfs_type = obfsObj["type"].toString().trimmed().toLower();
+                if (obfsObj.contains("type")) obfs_type = hysteriaObfsType(obfsObj["type"].toString());
                 else obfs_type = "salamander";
                 for (const auto &[key, target] : {std::pair{"min_packet_size", &min_packet_size}, std::pair{"max_packet_size", &max_packet_size}}) {
                     if (!obfsObj.contains(key)) continue;
@@ -483,8 +482,8 @@ namespace Configs {
         outbound::ParseFromClash(object);
 
         if (!object.ports.empty()) server_ports = portsToPorts(QString::fromStdString(object.ports).split(QRegularExpression("[,/]"), Qt::SkipEmptyParts));
-        if (!object.up.empty()) up_mbps = hysteriaClashSpeed("up", object.up);
-        if (!object.down.empty()) down_mbps = hysteriaClashSpeed("down", object.down);
+        if (!object.up.empty()) up_mbps = hysteriaBandwidth("up", QString::fromStdString(object.up));
+        if (!object.down.empty()) down_mbps = hysteriaBandwidth("down", QString::fromStdString(object.down));
         if (protocol_version == "1") {
             hysteriaRejectTransport("protocol", QString::fromStdString(object.protocol));
             if (!object.auth_str.empty()) {
@@ -508,7 +507,8 @@ namespace Configs {
             disable_mtu_discovery = object.disable_mtu_discovery;
         } else {
             if (!object.password.empty()) password = QString::fromStdString(object.password);
-            if (!object.obfs.empty()) obfs_type = QString::fromStdString(object.obfs).trimmed().toLower();
+            // mihomo turns obfs on only by its type; a lone obfs-password is ignored there.
+            obfs_type = hysteriaObfsType(QString::fromStdString(object.obfs));
             if (!object.obfs_password.empty()) obfs = QString::fromStdString(object.obfs_password);
         }
 
@@ -540,7 +540,7 @@ namespace Configs {
         hysteriaReport(issues, "hop_interval", Checks::HysteriaHopMinimum(hopping, hop_interval));
 
         if (protocol_version == "1") {
-            hysteriaReport(issues, "up_mbps", Checks::HysteriaV1Speed(up_mbps, down_mbps));
+            hysteriaReport(issues, "up_mbps", Checks::HysteriaV1Speed(up_mbps, down_mbps), Severity::Warning);
             hysteriaReport(issues, "auth", Checks::HysteriaAuth(auth_type, auth));
             hysteriaReport(issues, "auth", Checks::HysteriaAuthType(auth_type, auth), Severity::Warning);
             return;
@@ -549,7 +549,7 @@ namespace Configs {
         if (!realm) hysteriaReport(issues, "hop_interval_max", Validation::Duration(hop_interval_max));
         hysteriaReport(issues, "hop_interval_max", Checks::HysteriaHopMaximum(hopping, hop_interval, hop_interval_max));
         hysteriaReport(issues, "hop_interval_max", Checks::HysteriaHopMaximumIgnored(hopping, hop_interval, hop_interval_max), Severity::Warning);
-        if (!obfs.isEmpty()) {
+        if (ObfsActive()) {
             const auto type = obfs_type.trimmed().toLower();
             if (const auto message = Validation::OneOf(type, hysteriaObfsTypes); !message.isEmpty()) {
                 hysteriaReport(issues, "obfs.type", message, Severity::Error, obfs_type);
@@ -590,7 +590,7 @@ namespace Configs {
             } else {
                 url.setUserName(password);
             }
-            if (!obfs.isEmpty()) {
+            if (ObfsActive()) {
                 query.addQueryItem("obfs", QUrl::toPercentEncoding(obfs_type));
                 query.addQueryItem("obfs-password", QUrl::toPercentEncoding(obfs));
                 if (min_packet_size > 0) query.addQueryItem("min_packet_size", QString::number(min_packet_size));
@@ -686,7 +686,7 @@ namespace Configs {
         auto object = outbound::ExportIdentity();
         object["protocol_version"] = protocol_version;
         if (!server_ports.isEmpty()) object["server_ports"] = server_ports.join(",");
-        if (!obfs.isEmpty()) object["obfs"] = true;
+        if (protocol_version == "1" ? !obfs.isEmpty() : ObfsActive()) object["obfs"] = true;
         return object;
     }
 
@@ -701,9 +701,10 @@ namespace Configs {
         if (!server_ports.isEmpty()) object["server_ports"] = QListStr2QJsonArray(portsToPorts(server_ports));
         // Unused under realm, where the editor stops checking it, yet the core would still parse it.
         if (!hop_interval.isEmpty() && !realm) object["hop_interval"] = hop_interval;
-        if (up_mbps > 0) object["up_mbps"] = up_mbps;
-        if (down_mbps > 0) object["down_mbps"] = down_mbps;
-        if (protocol_version == "1") {
+        const bool v1 = protocol_version == "1";
+        if (up_mbps > 0 || v1) object["up_mbps"] = up_mbps > 0 ? up_mbps : kHysteriaV1DefaultUpMbps;
+        if (down_mbps > 0 || v1) object["down_mbps"] = down_mbps > 0 ? down_mbps : kHysteriaV1DefaultDownMbps;
+        if (v1) {
             if (!obfs.isEmpty()) object["obfs"] = obfs;
             if (!auth.isEmpty()) {
                 if (auth_type == "BASE64") object["auth"] = auth;
@@ -713,7 +714,7 @@ namespace Configs {
             if (recv_window > 0) object["recv_window"] = recv_window;
             if (disable_mtu_discovery) object["disable_mtu_discovery"] = disable_mtu_discovery;
         } else {
-            if (!obfs.isEmpty()) {
+            if (ObfsActive()) {
                 const auto obfsType = obfs_type.trimmed().toLower();
                 if (obfsType == "salamander") {
                     object["obfs"] = QJsonObject{

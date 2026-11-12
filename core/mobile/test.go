@@ -36,9 +36,17 @@ type TestRequest struct {
 	OnlyCountry        bool
 	CountryConcurrency int32
 
+	// IP test: an exit_lookup_provider id; "" or "auto" tries several.
+	IPProvider string
+
+	// Service test: the definitions document, "" = the embedded default.
+	ServiceChecks string
+	SkipIPInfo    bool
+
 	tags            []string
 	xrayFullConfigs []string
 	vpnEndpointTags []string
+	serviceOnly     []string
 }
 
 func (r *TestRequest) AddOutboundTag(tag string) {
@@ -340,7 +348,7 @@ func StartIPTest(platform PlatformInterface, request *TestRequest, handler IPTes
 				handler.OnResult(result.Tag, result.Result.IP, result.Result.CountryCode, errorString(result.Error))
 			},
 		).run(func() []*probe.IPTestResult {
-			return probe.BatchIPTest(testCtx, env.box, env.tags, int(request.MaxConcurrency), true, timeout)
+			return probe.BatchIPTest(testCtx, env.box, env.tags, int(request.MaxConcurrency), true, timeout, request.IPProvider)
 		})
 	}()
 	return nil

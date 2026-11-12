@@ -21,7 +21,11 @@ func (s *server) WarpRegister(ctx context.Context, in *gen.WarpRegisterRequest) 
 	}
 	ctx, cancel := context.WithTimeout(ctx, warpRegisterTimeout+time.Duration(hosts)*warpRegisterHostTimeout)
 	defer cancel()
-	identity, err := warp.Register(ctx, in.GetTunnelType(), in.GetProxy(), in.GetApiHosts())
+	identity, err := warp.Register(ctx, in.GetTunnelType(), in.GetProxy(), in.GetApiHosts(), warp.TLSFragmentOptions{
+		Fragment:       in.GetTlsFragment(),
+		RecordFragment: in.GetTlsRecordFragment(),
+		FallbackDelay:  in.GetTlsFragmentFallbackDelay(),
+	})
 	if err != nil {
 		return &gen.WarpRegisterResponse{Error: To(err.Error())}, nil
 	}

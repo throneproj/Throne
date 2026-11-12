@@ -10,6 +10,10 @@ namespace Configs {
         int port = 0;
         // Scan result lists only; 0 = unknown.
         int latencyMs = 0;
+        // DNS resolver scan results only; 0 = unknown. maxQName: dnstt max_qname_len or xdns lenLimit the resolver forwards.
+        int maxQName = 0;
+        int uploadMtu = 0;
+        int downloadMtu = 0;
     };
 
     class IpList {

@@ -4,20 +4,17 @@ Qt desktop proxy manager (sing-box / Xray). Fork of [throneproj/Throne](https://
 
 **What we ship and how we release:** [docs/GOLDEN.md](docs/GOLDEN.md) · [docs/RELEASE.md](docs/RELEASE.md) · [docs/UPSTREAM.md](docs/UPSTREAM.md)
 
-Supports Windows 11/10/8/7 / Linux / MacOS out of the box.
+Throne manages proxy profiles and subscriptions, routes traffic with rule-based routing profiles, and works either as a system proxy or as a Tun VPN. It also runs headless, as a service or in a container, controlled with [thronectl](https://github.com/throneproj/Throne-api): see [Headless Throne](https://throneproj.github.io/headless/).
 
-Now supporting headless mode, running as a service or in a container, controlled with [thronectl](https://github.com/throneproj/Throne-api): see [Headless Throne](https://throneproj.github.io/headless/).
+<p align="center">
+  <img width="820" alt="Throne main window" src="https://github.com/user-attachments/assets/af4a8e32-7e55-430c-9402-ec2d665cf71a" />
+</p>
 
-<img width="1002" height="789" alt="image" src="https://github.com/user-attachments/assets/af4a8e32-7e55-430c-9402-ec2d665cf71a" />
-
-### Note on MacOS releases
-Apple platforms have a very strict security policy and since Throne does not have a signed certificate, you will have to remove the quarantine using `xattr -d com.apple.quarantine /path/to/throne.app`. Move `Throne.app` to `/Applications` before the first launch — the built-in privilege escalation opens `Terminal` to make the core setuid-root, and that step can fail while the app is still inside `~/Downloads`. The [Homebrew cask](#macos-homebrew) does both for you.
-
-### GitHub Releases (Portable ZIP)
+## Installation
 
 [![GitHub All Releases](https://img.shields.io/github/downloads/AL4AL/Throne/total?label=downloads-total&logo=github&style=flat-square)](https://github.com/AL4AL/Throne/releases)
 
-Upstream portable builds: [throneproj/Throne releases](https://github.com/throneproj/Throne/releases).
+Upstream portable builds: [throneproj/Throne releases](https://github.com/throneproj/Throne/releases). The [installation guide](https://throneproj.github.io/get_started/installation/) covers APT and RPM repositories, the AUR, and other package managers.
 
 ### Windows 11
 
@@ -34,9 +31,12 @@ Local Windows toolchain:
 powershell -ExecutionPolicy Bypass -File script/setup_windows_dev.ps1
 ```
 
-### Linux CLI installer
+### macOS
+Apple platforms have a very strict security policy and since Throne does not have a signed certificate, you will have to remove the quarantine using `xattr -d com.apple.quarantine /path/to/throne.app`. Move `Throne.app` to `/Applications` before the first launch — the built-in privilege escalation opens `Terminal` to make the core setuid-root, and that step can fail while the app is still inside `~/Downloads`.
+
+The Homebrew cask (macOS 14.4 or newer, Apple Silicon and Intel) does both for you; update with `brew upgrade --cask throne`.
 ```bash
-curl -fsSL https://raw.githubusercontent.com/throneproj/Throne/dev/script/install_linux.py | sudo python3
+brew install --cask throneproj/tap/throne
 ```
 
 ### Linux package repositories
@@ -66,11 +66,6 @@ sudo zypper install throne
 
 Arch Linux (AUR): `yay -S throne` or `paru -S throne`
 
-### macOS (Homebrew)
-```bash
-brew install --cask throneproj/tap/throne
-```
-
 ## Supported protocols
 
 - SOCKS
@@ -93,7 +88,9 @@ brew install --cask throneproj/tap/throne
 - AmneziaWG
 - MASQUE
 - SSH
-- Xray VLESS
+- DNSTT / VayDNS
+- MasterDNS
+- Xray VLESS (XHTTP/XDrive)
 - OpenVPN/OpenConnect
 - Custom Outbound (Both Sing-box and Xray)
 - Custom Config (Both Sing-box and Xray)
@@ -138,3 +135,13 @@ They are located at the [routeprofiles](https://github.com/throneproj/routeprofi
 
 **How does "Throne-\<version\>-debian-system-qt-x64.deb" differ from "Throne-\<version\>-debian-x64.deb" and why is the latter 3 times heavier then the former?**  
 The first one does not pack the Qt libraries and relies on those installed on the host. The second one packs everything needed with itself, thus being heavier. The reason the first one exists is that on legacy systems provided Qt libraries use unsupported system features. If a graphical interface fails to load for your system, you may try to download the system-qt version and install fitting Qt libraries from your package manager or compile them from source.
+
+## Supporting upstream Throne
+
+If upstream Throne is useful to you, you can support its development through [GitHub Sponsors](https://github.com/sponsors/Mahdi-zarei) or with a crypto donation to one of these addresses:
+
+| Coin | Network | Address |
+|:--|:--|:--|
+| **USDT** · **TRX** | TRON (TRC20) | `THR2gbWMaTZh8ACk3VYAAyNRVffvdTRikj` |
+| **USDT** · **USDC** | BNB Smart Chain (BEP20) · Ethereum (ERC20) | `0x7c2dF1867f5AaEE807a835fB3c55E4de4507888A` |
+| **XMR** | Monero | `4AYwwN8qMQCSUb3XfwzfrLNPMHfDme6U7CmNtQY4idCF8GtHHLG68VA3iZK867ypuKFr8J7CjXiJ96eFUA2T6aLVRUbgY3A` |

@@ -7,11 +7,11 @@
 #include <QHeaderView>
 #include <QKeyEvent>
 #include <QLineEdit>
-#include <QPainter>
 #include <QVector>
 #include <QScrollBar>
 #include <QToolButton>
 
+#include "include/ui/utils/HeaderSortArrow.h"
 #include "include/ui/utils/ProfilesTableModel.h"
 #include "include/ui/widget/SubscriptionInfoCard.hpp"
 
@@ -22,11 +22,10 @@ namespace Configs {
 class ProfilesTableFilterHeader : public QHeaderView {
     Q_OBJECT
 public:
-    // The band is the header's own child (setOffset() scrolls viewport children), built before setSortIndicatorShown() reaches adjustPositions().
+    // The band is the header's own child: setOffset() scrolls viewport children.
     explicit ProfilesTableFilterHeader(QWidget *parent = nullptr)
         : QHeaderView(Qt::Horizontal, parent), m_subCard(new SubscriptionInfoCard(this)) {
         setSectionsClickable(true);
-        setSortIndicatorShown(true);
         setDefaultAlignment(Qt::AlignHCenter | Qt::AlignTop);
 
         // Clicks on the band must not reach QHeaderView, which would sort by the section under them.
@@ -59,7 +58,9 @@ public:
         });
 
         test_filter = new QLineEdit(this->viewport()); 
-        test_filter->setPlaceholderText(tr("Filter by country..."));
+        test_filter->setPlaceholderText(tr("Filter by country or service..."));
+        test_filter->setToolTip(tr("Countries and working services, e.g. \"DE gemini\" or \"ai\".\n"
+                                   "\"!netflix\" finds profiles Netflix refused."));
         test_filter->setClearButtonEnabled(true);
         connect(test_filter, &QLineEdit::textChanged, [this](const QString &text) {
             emit testFilterChanged(text);
@@ -82,6 +83,17 @@ public:
 
     bool filtersVisible() const { return m_filtersVisible; }
 
+    // Section -1 hides the arrow. Returns whether the section moved, which changes the reserved room and so the fitted widths.
+    bool setSortSection(int section, bool descending) {
+        if (section == m_sortSection && descending == m_sortDescending) return false;
+        const int previous = m_sortSection;
+        m_sortSection = section;
+        m_sortDescending = descending;
+        if (previous >= 0) updateSection(previous);
+        if (section >= 0) updateSection(section);
+        return previous != section;
+    }
+
     void focusLastFilterField() {
         if (!m_filtersVisible) return;
         QLineEdit *edit = editForColumn(m_lastFilterColumn);
@@ -102,9 +114,17 @@ public:
     }
 
 protected:
+    QSize sectionSizeFromContents(int logicalIndex) const override {
+        QSize s = QHeaderView::sectionSizeFromContents(logicalIndex);
+        if (logicalIndex == m_sortSection) s.rwidth() += 2 * HeaderSortArrow::kRoom;
+        return s;
+    }
+
     void paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const override {
         const int bandHeight = m_subCard->isHidden() ? 0 : m_subCard->height();
-        QHeaderView::paintSection(painter, rect.adjusted(0, bandHeight, 0, 0), logicalIndex);
+        const QRect sectionRect = rect.adjusted(0, bandHeight, 0, 0);
+        QHeaderView::paintSection(painter, sectionRect, logicalIndex);
+        if (logicalIndex == m_sortSection) HeaderSortArrow::paint(this, painter, sectionRect, logicalIndex, m_sortDescending);
     }
 
     void updateGeometries() override {
@@ -252,4 +272,6 @@ private:
     QLineEdit* test_filter;
     bool m_filtersVisible = false;
     int m_lastFilterColumn = ProfilesTableModel::ColName;
+    int m_sortSection = -1;
+    bool m_sortDescending = false;
 };

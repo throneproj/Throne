@@ -10,7 +10,10 @@
 
 #include "include/database/entities/IpList.h"
 #include "include/database/entities/IpScan.h"
+#include "include/scanner/TunePlanner.h"
 #include "ui_dialog_scan_instance.h"
+#include "ui_scan_phases.h"
+#include "ui_scan_tune_settings.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -18,19 +21,16 @@ namespace Ui {
 }
 QT_END_NAMESPACE
 
-class QCheckBox;
-class QFormLayout;
-class QGroupBox;
-class QLabel;
+class QComboBox;
 class QLineEdit;
 class QMenu;
 class QPushButton;
 class QSortFilterProxyModel;
+class QStandardItemModel;
 class QStringListModel;
 class QTimer;
 class QVBoxLayout;
 class IpEntriesModel;
-class NoWheelComboBox;
 
 namespace Configs_network {
     struct WarpIdentity;
@@ -99,78 +99,58 @@ private:
     QSortFilterProxyModel *resultsProxy = nullptr;
     QTimer *resultsReload = nullptr;
 
-    QGroupBox *icmpBox = nullptr;
-    QLineEdit *icmpTimeout = nullptr;
-    QLineEdit *icmpCount = nullptr;
-
-    QGroupBox *tcpBox = nullptr;
-    QLineEdit *tcpTimeout = nullptr;
-    QLineEdit *tcpAttempts = nullptr;
-
-    QGroupBox *httpBox = nullptr;
-    QFormLayout *httpForm = nullptr;
-    QCheckBox *httpTls = nullptr;
-    QLineEdit *httpSni = nullptr;
-    QLineEdit *httpHost = nullptr;
-    QLineEdit *httpPath = nullptr;
-    NoWheelComboBox *httpMethod = nullptr;
-    NoWheelComboBox *httpVersion = nullptr;
-    QLineEdit *httpAlpn = nullptr;
-    NoWheelComboBox *httpMinTls = nullptr;
-    NoWheelComboBox *httpMaxTls = nullptr;
-    NoWheelComboBox *httpFingerprint = nullptr;
-    QCheckBox *httpInsecure = nullptr;
-    QCheckBox *httpDisableSni = nullptr;
-    QCheckBox *httpFragment = nullptr;
-    QLineEdit *httpFragmentDelay = nullptr;
-    QCheckBox *httpRecordFragment = nullptr;
-    QCheckBox *httpMixedCaseSni = nullptr;
-    QLineEdit *httpTimeout = nullptr;
-
-    QGroupBox *configBox = nullptr;
-    NoWheelComboBox *configProfile = nullptr;
+    // Null for a "Find working settings" scan; the boxes of phases the scan kind lacks stay hidden.
+    Ui::ScanPhases *phasesUi = nullptr;
     QHash<QString, int> configProfileIds;
     QStringListModel *configProfileNames = nullptr;
-    QLineEdit *configUrl = nullptr;
-    QLineEdit *configTimeout = nullptr;
-    QCheckBox *configWarm = nullptr;
-
-    QGroupBox *warpBox = nullptr;
-    QFormLayout *warpForm = nullptr;
-    NoWheelComboBox *warpMode = nullptr;
-    NoWheelComboBox *warpHttpMode = nullptr;
-    NoWheelComboBox *warpIdentity = nullptr;
-    QWidget *warpRegisterRow = nullptr;
-    QLabel *warpIdentityStatus = nullptr;
-    QPushButton *warpRegister = nullptr;
-    NoWheelComboBox *warpProfile = nullptr;
-    QLineEdit *warpMtu = nullptr;
-    QLineEdit *warpSni = nullptr;
-    QLineEdit *warpJc = nullptr;
-    QLineEdit *warpJmin = nullptr;
-    QLineEdit *warpJmax = nullptr;
     QList<QLineEdit *> warpPackets;
-    QLineEdit *warpUrl = nullptr;
-    QLineEdit *warpTimeout = nullptr;
-    QCheckBox *warpWarm = nullptr;
+    QPushButton *useAsResolvers = nullptr;
+
+    // Set only for a "Find working settings" scan.
+    Ui::ScanTuneSettings *tuneUi = nullptr;
+    QHash<QString, int> tuneProfileIds;
+    QStringListModel *tuneProfileNames = nullptr;
+    // Unsupported() verdicts by profile id, valid while ProfilesRepo::Revision() stays at tuneSupportedRevision.
+    QHash<int, bool> tuneSupported;
+    quint64 tuneSupportedRevision = 0;
+
+    QStandardItemModel *tuneModel = nullptr;
+    QList<Scanner::Tune::Trial> tuneTrials;
+    // The user picked a row, so a rebuild keeps it rather than moving to the new best.
+    bool tuneSelectionPinned = false;
+    bool tuneFilling = false;
+
+    [[nodiscard]] bool isGeneric() const;
 
     [[nodiscard]] bool isWarp() const;
+
+    [[nodiscard]] bool isResolver() const;
+
+    [[nodiscard]] bool isTune() const;
 
     void setupTargets();
 
     void buildPhases();
 
-    void buildIcmpPhase(QVBoxLayout *layout);
+    void buildIcmpPhase();
 
-    void buildTcpPhase(QVBoxLayout *layout);
+    void buildTcpPhase();
 
-    void buildHttpPhase(QVBoxLayout *layout);
+    void buildHttpPhase();
 
-    void buildConfigPhase(QVBoxLayout *layout);
+    void buildConfigPhase();
 
-    void buildWarpPhase(QVBoxLayout *layout);
+    void buildWarpPhase();
+
+    void buildResolverPhase();
+
+    void buildTunePhase(QVBoxLayout *layout);
+
+    void setupProfilePicker(QComboBox *combo, QStringListModel *names);
 
     void bindValidation();
+
+    void bindTuneValidation();
 
     void setupResults();
 
@@ -197,6 +177,22 @@ private:
     void reloadWarpProfiles(int selectId);
 
     [[nodiscard]] QString currentWarpMode() const;
+
+    void reloadResolverProfiles(int selectId);
+
+    void reloadResolverLevels(const QString &selectLevel);
+
+    [[nodiscard]] QString currentResolverProtocol() const;
+
+    void updateResolverTimeoutHint();
+
+    void loadTuneForm();
+
+    void reloadTuneProfiles(int selectId);
+
+    [[nodiscard]] int selectedTuneProfile() const;
+
+    void updateTuneControls();
 
     void updateHttpControls();
 
@@ -231,17 +227,35 @@ private:
 
     void applyResults(int listId, int count, const QList<Configs::IpListEntry> &entries);
 
+    void applyResultColumns();
+
     void runResultsTask(const std::function<void()> &work, const std::function<void()> &done);
 
     [[nodiscard]] QList<Configs::IpListEntry> selectedResults() const;
 
     void saveResultsAsList();
 
+    void useResultsAsResolvers();
+
     void copyResults();
 
     void exportResults();
 
     void removeSelectedResults();
+
+    void setupTuneResults();
+
+    void reloadTuneResults();
+
+    void updateTuneActions();
+
+    [[nodiscard]] int selectedTuneTrial() const;
+
+    void applyTuneResult();
+
+    void saveTuneResultAsProfile();
+
+    void copyTuneResults();
 
     void startClicked();
 

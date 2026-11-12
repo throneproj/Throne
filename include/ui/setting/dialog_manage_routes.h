@@ -50,6 +50,9 @@ private:
 
     QList<std::shared_ptr<Configs::RouteProfile>> chainList;
 
+    // Saved profiles removed from the list, deleted on OK.
+    QList<int> removedIds;
+
     std::shared_ptr<Configs::RouteProfile> currentRoute;
 
     int tooltipID = 0;
@@ -61,6 +64,12 @@ private:
     void show_dns_object_editor();
 
     void generate_warp_config();
+
+    void generate_amnezia_packets();
+
+    QStringList warpAmneziaPackets;
+    QString warpAmneziaError;
+    bool warpAmneziaPending = false;
 
     struct DnsAdvancedDraft {
         int cache_capacity;

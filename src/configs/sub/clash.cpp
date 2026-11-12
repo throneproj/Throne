@@ -5,6 +5,7 @@
 #include <QByteArray>
 #include <QCoreApplication>
 #include <QString>
+#include <QStringList>
 
 #include <cmath>
 #include <limits>
@@ -86,12 +87,31 @@ void from_node(const fkyaml::node& node, MyInt& i) {
 }
 
 void from_node(const fkyaml::node& node, WgReserved& w) {
+    w = {};
     if (node.is_string()) {
-        std::string s = node.get_value<std::string>();
-        w.value.assign(s.begin(), s.end());
+        const auto s = node.get_value<std::string>();
+        // Go's StdEncoding: padded, so the length is a multiple of four.
+        const auto decoded = QByteArray::fromBase64Encoding(QByteArray::fromStdString(s), QByteArray::AbortOnBase64DecodingErrors);
+        if (decoded && s.size() % 4 == 0) {
+            for (const char byte : *decoded) w.value.push_back(static_cast<uint8_t>(byte));
+        } else {
+            w.text = s;
+        }
     } else if (node.is_sequence()) {
-        auto seq = node.get_value<std::vector<uint8_t>>();
-        w.value = seq;
+        QStringList items;
+        bool numeric = true;
+        for (const auto& item : node.as_seq()) {
+            int byte = 0;
+            numeric = clashReadInt(item, byte) && numeric;
+            w.value.push_back(byte);
+            items << clashNodeText(item);
+        }
+        if (!numeric) {
+            w.value.clear();
+            w.text = items.join(',').toStdString();
+        }
+    } else if (!node.is_null()) {
+        w.text = clashNodeText(node).toStdString();
     }
 }
 
@@ -182,6 +202,7 @@ void load_present(const fkyaml::node& node, const char* key, std::optional<Targe
 void from_node(const fkyaml::node& node, xhttpDownloadSettings& opts) {
     load_present(node, "host", opts.host);
     load_present(node, "path", opts.path);
+    load_present(node, "headers", opts.headers);
     load_opt(node, "mode", opts.mode);
     load_present(node, "server", opts.server);
     load_present(node, "port", opts.port);
@@ -209,11 +230,30 @@ void from_node(const fkyaml::node& node, xhttpOpts& opts) {
     load_opt(node, "host", opts.host);
     load_opt(node, "path", opts.path);
     load_opt(node, "mode", opts.mode);
+    load_opt(node, "headers", opts.headers);
+    load_opt(node, "no-grpc-header", opts.no_grpc_header);
+    load_opt(node, "x-padding-bytes", opts.x_padding_bytes);
     load_opt(node, "x-padding-obfs-mode", opts.x_padding_obfs_mode);
     load_opt(node, "x-padding-key", opts.x_padding_key);
     load_opt(node, "x-padding-header", opts.x_padding_header);
     load_opt(node, "x-padding-placement", opts.x_padding_placement);
     load_opt(node, "x-padding-method", opts.x_padding_method);
+    load_opt(node, "uplink-http-method", opts.uplink_http_method);
+    // 3x-ui writes session-id-*, which mihomo ignores; mihomo's own names win.
+    load_opt(node, "session-id-placement", opts.session_placement);
+    load_opt(node, "session-id-key", opts.session_key);
+    load_opt(node, "session-id-table", opts.session_table);
+    load_opt(node, "session-id-length", opts.session_length);
+    load_opt(node, "session-placement", opts.session_placement);
+    load_opt(node, "session-key", opts.session_key);
+    load_opt(node, "session-table", opts.session_table);
+    load_opt(node, "session-length", opts.session_length);
+    load_opt(node, "seq-placement", opts.seq_placement);
+    load_opt(node, "seq-key", opts.seq_key);
+    load_opt(node, "uplink-data-placement", opts.uplink_data_placement);
+    load_opt(node, "uplink-data-key", opts.uplink_data_key);
+    load_opt(node, "uplink-chunk-size", opts.uplink_chunk_size);
+    load_opt(node, "sc-max-each-post-bytes", opts.sc_max_each_post_bytes);
     load_opt(node, "sc-min-posts-interval-ms", opts.sc_min_posts_interval_ms);
     load_opt(node, "reuse-settings", opts.reuse_settings);
     // mihomo reads a null download-settings as none, not as a copy of the proxy.
@@ -279,7 +319,47 @@ void from_node(const fkyaml::node& node, wgPeer& peer) {
     if (node.is_mapping() && node.contains("reserved")) {
         peer.reserved = node["reserved"].get_value<WgReserved>();
     }
-    load_opt(node, "allowed_ips", peer.allowed_ips);
+    // mihomo folds '_' into '-' when matching keys.
+    for (const char* key : {"allowed-ips", "allowed_ips"}) {
+        if (!node.is_mapping() || !node.contains(key)) continue;
+        const auto& ips = node[key];
+        if (ips.is_string()) {
+            peer.allowed_ips.push_back(ips.get_value<std::string>());
+        } else if (ips.is_sequence()) {
+            for (const auto& ip : ips.as_seq()) {
+                if (ip.is_string()) peer.allowed_ips.push_back(ip.get_value<std::string>());
+            }
+        }
+        break;
+    }
+}
+
+void from_node(const fkyaml::node& node, wgAmneziaOpts& opts) {
+    load_opt(node, "jc", opts.jc);
+    load_opt(node, "jmin", opts.jmin);
+    load_opt(node, "jmax", opts.jmax);
+    load_opt(node, "s1", opts.s1);
+    load_opt(node, "s2", opts.s2);
+    load_opt(node, "s3", opts.s3);
+    load_opt(node, "s4", opts.s4);
+    load_opt(node, "h1", opts.h1);
+    load_opt(node, "h2", opts.h2);
+    load_opt(node, "h3", opts.h3);
+    load_opt(node, "h4", opts.h4);
+    load_opt(node, "i1", opts.i1);
+    load_opt(node, "i2", opts.i2);
+    load_opt(node, "i3", opts.i3);
+    load_opt(node, "i4", opts.i4);
+    load_opt(node, "i5", opts.i5);
+    load_opt(node, "header-protection-key", opts.header_protection_key);
+    load_opt(node, "content-padding-addition", opts.content_padding_addition);
+    load_opt(node, "rekey-after-time", opts.rekey_after_time);
+    load_opt(node, "rekey-timeout", opts.rekey_timeout);
+    load_opt(node, "reject-after-time", opts.reject_after_time);
+    load_opt(node, "keepalive-timeout", opts.keepalive_timeout);
+    load_opt(node, "max-handshake-attempts", opts.max_handshake_attempts);
+    load_opt(node, "random-trailers", opts.random_trailers);
+    load_opt(node, "disable-cookies", opts.disable_cookies);
 }
 
 void from_node(const fkyaml::node& node, Proxies& p) {
@@ -312,8 +392,16 @@ void from_node(const fkyaml::node& node, Proxies& p) {
         }
     }
     load_opt(node, "plugin", p.plugin);
-    if (node.is_mapping() && node.contains("plugin-opts")) {
-        p.plugin_opts = node["plugin-opts"];
+    // Read in place: destroying a copy of an anchored fkYAML node nulls the anchor and every alias of it.
+    if (p.type == "ss" && node.is_mapping() && node.contains("plugin-opts")) {
+        const auto& opts = node["plugin-opts"];
+        if (p.plugin == "v2ray-plugin") {
+            p.plugin_opts = opts.get_value<v2rayPlugin>();
+        } else if (p.plugin == "obfs") {
+            const auto simple = opts.get_value<obfs>();
+            p.plugin_opts.mode = simple.mode;
+            p.plugin_opts.host = simple.host;
+        }
     }
     load_opt(node, "fingerprint", p.fingerprint);
     load_opt(node, "obfs", p.obfs);
@@ -363,6 +451,16 @@ void from_node(const fkyaml::node& node, Proxies& p) {
     }
     load_opt(node, "dialer-proxy", p.dialer_proxy);
     load_opt(node, "peers", p.peers);
+    load_opt(node, "workers", p.workers);
+    load_opt(node, "persistent-keepalive", p.persistent_keepalive);
+    load_opt(node, "keepalive", p.keepalive);
+    // A null option leaves mihomo's pointer nil, so it is not AmneziaWG.
+    if (node.is_mapping() && node.contains("amnezia-wg-option") && node["amnezia-wg-option"].is_mapping()) {
+        p.amnezia_wg_option = node["amnezia-wg-option"].get_value<wgAmneziaOpts>();
+    }
+    load_opt(node, "wnoise", p.wnoise);
+    load_opt(node, "wnoisecount", p.wnoisecount);
+    load_opt(node, "wpayloadsize", p.wpayloadsize);
     load_opt(node, "mtu", p.mtu);
     load_opt(node, "disable-sni", p.disable_sni);
     load_opt(node, "congestion-controller", p.congestion_controller);

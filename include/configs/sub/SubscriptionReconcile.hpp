@@ -21,6 +21,7 @@ namespace Subscription {
         int id = -1;
         ProfileKeys keys;
         QString display;
+        QString name;
     };
 
     struct NewEntry {
@@ -29,6 +30,8 @@ namespace Subscription {
         bool contentKnown = false;
         ProfileKeys keys;
         QString display;
+        // Left empty where no name match is possible: reused arrivals, imports without an index.
+        QString name;
     };
 
     // Each old profile is claimed at most once, in group order, by identical arrivals in arrival order (#1775).
@@ -49,9 +52,16 @@ namespace Subscription {
         QSet<int> claimedIds;
     };
 
+    struct ProfileUpdate {
+        int oldId = -1;
+        int newId = -1;
+        // Paired by name alone, so possibly another server or protocol.
+        bool byName = false;
+    };
+
     struct ReconcilePlan {
         QList<int> order;
-        QList<QPair<int, int>> updates;
+        QList<ProfileUpdate> updates;
         QList<int> stale;
         QStringList added;
         QStringList updated;

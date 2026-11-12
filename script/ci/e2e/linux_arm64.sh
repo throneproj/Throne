@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# L3 of the headless e2e suite, on the arm64 runner. In debian:bookworm, the stand-in for Raspberry Pi OS bookworm
-# (glibc 2.36): apt refuses the bundled arm64 .deb for its glibc floor, and installs the system-qt one, which then runs
-# headless in the foreground through the proxy scenario.
+# L3 of the headless e2e suite, on the arm64 runner. In ubuntu:18.04 (glibc 2.27, below the bundled build's 2.28) apt
+# refuses the bundled arm64 .deb for its glibc floor; in debian:bookworm, the stand-in for Raspberry Pi OS bookworm
+# (glibc 2.36), it installs the system-qt one, which then runs headless in the foreground through the proxy scenario.
 # Env: SYSTEMQT_DEB, BUNDLED_DEB (Throne-<tag>-debian-arm64-system-qt.deb, Throne-<tag>-debian-arm64.deb), THRONECTL
-# (a linux/arm64 thronectl), FIXTURES, E2E_TMP; BOOKWORM_IMAGE (default debian:bookworm). Needs docker.
+# (a linux/arm64 thronectl), FIXTURES, E2E_TMP; BOOKWORM_IMAGE (default debian:bookworm), OLD_GLIBC_IMAGE (default
+# ubuntu:18.04). Needs docker.
 # The system-qt part re-runs this script inside its container, with the argument "inside".
 set -euo pipefail
 
@@ -16,6 +17,7 @@ export E2E_TMP FIXTURES
 source "$SCRIPT_DIR/lib.sh"
 
 IMAGE=${BOOKWORM_IMAGE:-debian:bookworm}
+OLD_IMAGE=${OLD_GLIBC_IMAGE:-ubuntu:18.04}
 PLATFORM=linux/arm64
 
 pk_eq() { [ "$2" = "$3" ] || fail "$1 is '$2', want '$3'"; }
@@ -52,34 +54,34 @@ host_cleanup() {
     return 0
 }
 
-# The bundled build carries its own Qt but needs the glibc of the image it was built on, which bookworm lacks.
+# The bundled build carries its own Qt but needs the glibc of the image it was built in, which $OLD_IMAGE predates.
 host_bundled_refused() {
     local deb=$1 floor have out rc=0
     floor=$(dpkg-deb -f "$deb" Depends | grep -oE 'libc6 \(>= [^)]+\)' | head -n1 | sed -E 's/^libc6 \(>= ([^)]+)\)$/\1/' || true)
     dpkg-deb -f "$deb" Depends
     [ -n "$floor" ] || fail "$(basename "$deb") declares no libc6 (>= ...) floor, so apt cannot refuse it on an older glibc"
     out=$(docker run --rm --platform "$PLATFORM" -e DEBIAN_FRONTEND=noninteractive \
-        -v "$deb:/pkg/throne-bundled.deb:ro" "$IMAGE" bash -c '
+        -v "$deb:/pkg/throne-bundled.deb:ro" "$OLD_IMAGE" bash -c '
             apt-get update -qq >/dev/null || { echo "apt-get update failed"; exit 90; }
-            echo "bookworm libc6 $(dpkg-query -W -f="\${Version}" libc6)"
+            echo "image libc6 $(dpkg-query -W -f="\${Version}" libc6)"
             rc=0
             apt-get install -y --no-install-recommends /pkg/throne-bundled.deb || rc=$?
             echo "apt-get install exit status $rc"
             if dpkg -s throne >/dev/null 2>&1; then echo "throne is installed"; fi
         ' 2>&1) || rc=$?
     echo "$out"
-    ((rc == 0)) || fail "the bookworm container for the bundled deb failed with status $rc"
-    have=$(sed -n 's/^bookworm libc6 //p' <<<"$out")
-    [ -n "$have" ] || fail "could not read bookworm's libc6 version"
+    ((rc == 0)) || fail "the $OLD_IMAGE container for the bundled deb failed with status $rc"
+    have=$(sed -n 's/^image libc6 //p' <<<"$out")
+    [ -n "$have" ] || fail "could not read $OLD_IMAGE's libc6 version"
     if ! dpkg --compare-versions "$have" lt "$floor"; then
-        fail "bookworm's libc6 $have satisfies the bundled deb's floor libc6 (>= $floor), so apt cannot refuse it there"
+        fail "$OLD_IMAGE's libc6 $have satisfies the bundled deb's floor libc6 (>= $floor), so apt cannot refuse it there"
     fi
     if grep -qx 'apt-get install exit status 0' <<<"$out" || grep -qx 'throne is installed' <<<"$out"; then
-        fail "apt installed the bundled arm64 deb on bookworm (glibc $have) although it needs libc6 (>= $floor)"
+        fail "apt installed the bundled arm64 deb on $OLD_IMAGE (glibc $have) although it needs libc6 (>= $floor)"
     fi
     grep -qF "Depends: libc6 (>= $floor)" <<<"$out" ||
         fail "apt refused the bundled deb, but not for libc6 (>= $floor): no 'Depends: libc6 (>= $floor)' line above"
-    echo "apt refused the bundled deb: it needs libc6 (>= $floor), bookworm has $have"
+    echo "apt refused the bundled deb: it needs libc6 (>= $floor), $OLD_IMAGE has $have"
 }
 
 host_main() {
@@ -99,10 +101,11 @@ host_main() {
     rm -rf "$OUT"
     mkdir -p "$OUT"
 
-    step "L3: pulling $IMAGE ($PLATFORM)"
+    step "L3: pulling $OLD_IMAGE and $IMAGE ($PLATFORM)"
+    docker pull -q --platform "$PLATFORM" "$OLD_IMAGE"
     docker pull -q --platform "$PLATFORM" "$IMAGE"
 
-    step "L3: apt refuses the bundled arm64 deb on bookworm (glibc floor)"
+    step "L3: apt refuses the bundled arm64 deb on $OLD_IMAGE (glibc floor)"
     host_bundled_refused "$bundled"
 
     step "L3: the arm64 system-qt deb in bookworm (container)"

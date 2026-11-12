@@ -9,6 +9,7 @@ import (
 	"ThroneCore/internal/process"
 	"ThroneCore/internal/xray"
 
+	"github.com/sagernet/sing-box/option"
 	"github.com/xtls/xray-core/core"
 )
 
@@ -33,9 +34,9 @@ var xrayFullGates []*xray.Gate
 // Reached only from Start/Stop, i.e. always under lifecycleMu.
 var extraProcess *process.Process
 
-var needUnsetDNS bool
-
 var stopEgressForwardingWatch func()
+
+var untrackDNSTunnels func()
 
 var errInstanceNotRunning = errors.New("Instance is not running")
 
@@ -51,10 +52,11 @@ func currentInstance() (*boxbox.Box, context.CancelFunc) {
 	return boxInstance, instanceCancel
 }
 
-func setBoxInstance(box *boxbox.Box, cancel context.CancelFunc) {
+func setBoxInstance(box *boxbox.Box, cancel context.CancelFunc, routeRules []option.Rule) {
 	stateMu.Lock()
 	defer stateMu.Unlock()
 	boxInstance, instanceCancel = box, cancel
+	connRules.reset(box, routeRules)
 }
 
 func setXray(instance *core.Instance, gate *xray.Gate) {

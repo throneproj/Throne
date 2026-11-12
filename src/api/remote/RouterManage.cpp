@@ -193,6 +193,7 @@ namespace RemoteApi {
         });
         // The service logs every outcome, so a late one needs no log line here.
         const auto refused = Engine::ImportService::Import(importRequest, [this, waiter](const Subscription::UpdateOutcome &outcome) {
+            noteChanged(Engine::ChangeTopic::Groups | Engine::ChangeTopic::Profiles);
             answer(waiter, outcome.ok() ? Response::Ok(RouterManageImpl::importJson(outcome)) : RouterManageImpl::importFailure(outcome));
         }, gid.get());
         if (refused) answer(waiter, serviceError(*refused));
@@ -205,10 +206,13 @@ namespace RemoteApi {
         std::optional<QString> url;
         std::optional<bool> autoUpdate;
         std::optional<bool> update;
+        std::optional<int> routeId;
+        std::optional<bool> importRoute;
         WaitOptions options;
         if (!bodyObject(request, true, &body, &error) || !readString(body, QStringLiteral("name"), &name, &error) ||
             !readString(body, QStringLiteral("url"), &url, &error) || !readBool(body, QStringLiteral("auto_update"), &autoUpdate, &error) ||
-            !readBool(body, QStringLiteral("update"), &update, &error) ||
+            !readBool(body, QStringLiteral("update"), &update, &error) || !readId(body, QStringLiteral("route_id"), &routeId, &error) ||
+            !readBool(body, QStringLiteral("import_route"), &importRoute, &error) ||
             !readWait(body, true, RouterManageImpl::kGroupUpdateWaitSec, &options, &error)) {
             respond(error);
             return;
@@ -227,11 +231,18 @@ namespace RemoteApi {
             }
         }
         spec.autoUpdate = autoUpdate.value_or(true);
+        spec.routeId = routeId.value_or(-1);
+        if (spec.routeId < -1) {
+            respond(badRequest(QStringLiteral("\"route_id\" must be -1 or a routing profile id")));
+            return;
+        }
+        spec.importRoute = importRoute.value_or(false);
         int gid = -1;
         if (const auto refused = Engine::GroupService::Add(spec, &gid)) {
             respond(serviceError(*refused));
             return;
         }
+        noteChanged(Engine::ChangeTopic::Groups | Engine::ChangeTopic::Profiles);
 
         const auto groupValue = [gid] {
             const auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
@@ -339,6 +350,7 @@ namespace RemoteApi {
                 fail(waiter, serviceError(*refused));
                 return;
             }
+            noteChanged(Engine::ChangeTopic::Groups | Engine::ChangeTopic::Profiles);
             if (usedByRunning) engine_->noteRestartNeeded(Engine::RestartReason::Group);
             answer(waiter, Response::Ok(QJsonObject{{"deleted", id}}));
         });
@@ -376,6 +388,7 @@ namespace RemoteApi {
             const bool usedByRunning = RouterManageImpl::anyRunningUses(ids);
             int deleted = 0;
             const auto refused = Engine::ProfileService::Delete(ids, &deleted);
+            if (deleted > 0) noteChanged(Engine::ChangeTopic::Groups | Engine::ChangeTopic::Profiles);
             if (usedByRunning && deleted > 0) engine_->noteRestartNeeded(Engine::RestartReason::Profile);
             if (refused) {
                 fail(waiter, serviceError(*refused));
@@ -422,6 +435,7 @@ namespace RemoteApi {
             return;
         }
         if (result.restartNeeded) engine_->noteRestartNeeded(Engine::RestartReason::Settings);
+        if (!result.changed.isEmpty()) noteChanged(Engine::ChangeTopic::Settings | Engine::ChangeTopic::Status);
         respond(Response::Ok(QJsonObject{
             {"settings", Engine::SettingsRegistry::Values()},
             {"changed", QJsonArray::fromStringList(result.changed)},

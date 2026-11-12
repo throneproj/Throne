@@ -60,6 +60,9 @@ namespace Engine {
         // Tun did not come up; whether to reset the core.
         virtual bool offerCoreReset(const QString &error) = 0;
 
+        // Windows still held the Tun adapter of a session that did not close cleanly; whether to start the profile again.
+        virtual bool offerLeftoverTunAdapterRetry(const QString &error) = 0;
+
         // Interactive stops only.
         virtual void stopFailed(const QString &error) = 0;
 

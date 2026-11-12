@@ -104,7 +104,8 @@ namespace Configs {
         }
     }
 
-    // Official deep link: tt://?<base64url TLV payload>, see DEEP_LINK.md in TrustTunnel/TrustTunnel.
+    // Official deep link: tt://?<base64url TLV payload>, see DEEP_LINK.md in TrustTunnel/TrustTunnel (version 2).
+    // A subscription URL does not make the static fields optional here, so a subscription-only link fails.
     bool trusttunnel::ParseFromDeepLink(const QString& payload)
     {
         const auto data = QByteArray::fromBase64(payload.toLatin1(), QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
@@ -124,7 +125,7 @@ namespace Configs {
                 case 0x00: {
                     int at = 0;
                     quint64 version = 0;
-                    if (!readVarInt(value, at, version) || version > 1) return false;
+                    if (!readVarInt(value, at, version) || version > 2) return false;
                     break;
                 }
                 case 0x01: tls->server_name = text; break;
@@ -158,7 +159,10 @@ namespace Configs {
                 }
                 case 0x0B: client_random = text.trimmed(); break;
                 case 0x0C: name = text; break;
-                default: break; // has_ipv6, dns_upstreams and unknown tags
+                case 0x0E:
+                    if (!text.startsWith("https://")) return false;
+                    break;
+                default: break; // has_ipv6, dns_upstreams, client_random_auth_key and unknown tags
             }
         }
         if (extraAddresses > 0) {

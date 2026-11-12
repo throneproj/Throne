@@ -107,6 +107,7 @@ void GroupItem::on_edit_clicked() {
         }
         refresh_data();
         MW_dialog_message(MwMessage::GroupsChanged, dialog->RestartNeeded() ? QStringList{MwArg::RestartProxy} : QStringList{});
+        if (dialog->RefreshNeeded()) Subscription::updater()->RefreshGroup(ent->id, nullptr, true);
     });
     dialog->show();
 }

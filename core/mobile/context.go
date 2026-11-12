@@ -68,6 +68,13 @@ func CheckConfig(coreConfig string) (err error) {
 	if err != nil {
 		return err
 	}
+	// On Android box.New loads the whole system CA store through JNI for the default store, and a
+	// check never verifies a peer; user-provided certificates are still loaded and validated.
+	if certificate := options.Certificate; certificate == nil ||
+		(certificate.Store == "" || certificate.Store == C.CertificateStoreSystem) &&
+			len(certificate.Certificate) == 0 && len(certificate.CertificatePath) == 0 && len(certificate.CertificateDirectoryPath) == 0 {
+		options.Certificate = &option.CertificateOptions{Store: C.CertificateStoreNone}
+	}
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	instance, err := box.New(box.Options{

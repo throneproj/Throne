@@ -63,7 +63,11 @@ namespace Qv2ray {
 
             public:
                 AutoCompleteTextEdit(const QString &prefix, const QStringList &sourceStrings, QWidget *parent = nullptr);
+                AutoCompleteTextEdit(const QString &prefix, QAbstractItemModel *sourceModel, QWidget *parent = nullptr);
                 ~AutoCompleteTextEdit();
+
+                // For lists whose values may contain spaces, such as program names and paths.
+                void setSpacesAllowed(bool allowed) { spacesAllowed = allowed; }
 
             protected:
                 void keyPressEvent(QKeyEvent *e) override;
@@ -75,9 +79,12 @@ namespace Qv2ray {
             private:
                 QString lineUnderCursor() const;
                 QString wordUnderCursor() const;
+                void selectCompletion(const QString &line);
+                void showPopup();
 
                 QString prefix;
                 QCompleter *c = nullptr;
+                bool spacesAllowed = false;
             };
         } // namespace widgets
     }     // namespace ui

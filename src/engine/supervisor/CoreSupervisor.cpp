@@ -7,6 +7,7 @@
 #include "include/global/Configs.hpp"
 #include "include/global/Logger.hpp"
 #include "include/global/Notice.hpp"
+#include "include/sys/CoreElevation.hpp"
 #include "include/sys/KillSwitch.hpp"
 #include "include/sys/Process.hpp"
 
@@ -57,6 +58,27 @@ namespace {
                                 "To fix this, share the hotspot from the throne-tun adapter instead of \"%1\" (Settings > Mobile hotspot > Share my internet connection from), or turn the hotspot off while using Tun mode.")
                         .arg(adapter)});
     }
+
+#ifdef Q_OS_MACOS
+    // A dead core cannot put back the system DNS it pointed at its lo0 listener; the setuid core replays its own record.
+    void coreSupervisorRestoreSystemDns(const QString &corePath) {
+        auto *restore = new QProcess;
+        restore->setProcessChannelMode(QProcess::MergedChannels);
+        QObject::connect(restore, &QProcess::finished, restore, [restore](int exitCode, QProcess::ExitStatus exitStatus) {
+            const auto output = QString::fromUtf8(restore->readAll()).trimmed();
+            if (!output.isEmpty()) MW_show_log(output);
+            if (exitStatus != QProcess::NormalExit || exitCode != 0)
+                Logging::Write(Logging::Level::Warn, QString("system DNS restore exited: code=%1").arg(exitCode));
+            restore->deleteLater();
+        });
+        QObject::connect(restore, &QProcess::errorOccurred, restore, [restore](QProcess::ProcessError error) {
+            if (error != QProcess::FailedToStart) return;
+            Logging::Write(Logging::Level::Warn, "system DNS restore failed to start: " + restore->errorString());
+            restore->deleteLater();
+        });
+        restore->start(corePath, {QStringLiteral("--restore-dns")});
+    }
+#endif
 
     // Main thread: the full reply onPrivilegeProbed is handling (its signature carries only the privileged bit).
     std::optional<API::PrivilegeInfo> coreSupervisorProbeReply;
@@ -309,7 +331,7 @@ namespace Engine {
 
     qint64 CoreSupervisor::corePid() const {
         QMutexLocker lock(&m_processMutex);
-        return m_process ? m_process->processId() : 0;
+        return m_process ? m_process->EffectivePid() : 0;
     }
 
     int CoreSupervisor::restartCount() const {
@@ -396,14 +418,8 @@ namespace Engine {
         }
         m_connectTimer->stop();
         setState(CoreState::Connected);
-#ifdef Q_OS_WIN
-        // Local and quick, and it writes windows_set_admin, so it stays here on the main thread.
-        LOG_INFO(QString("elevated: %1").arg(Configs::IsAdmin(true) ? "yes" : "no"));
-        emitCoreStarted();
-#else
         m_probing = true;
         startPrivilegeProbe(m_acceptedGen);
-#endif
     }
 
     void CoreSupervisor::startPrivilegeProbe(quint64 gen, int attempt) {
@@ -430,6 +446,15 @@ namespace Engine {
         if (ok) {
             Configs::SetKnownAdmin(privileged);
             if (coreSupervisorProbeReply) Configs::SetKnownCapabilities(*coreSupervisorProbeReply);
+            QMutexLocker lock(&m_processMutex);
+            const bool throughGrant = m_process && m_process->generation.load() == gen && m_process->through_grant.load();
+            Sys::CoreElevation::NoteCoreReport(throughGrant, privileged);
+        }
+        if (ok && coreSupervisorProbeReply && coreSupervisorProbeReply->corePid > 0) {
+            QMutexLocker lock(&m_processMutex);
+            if (m_process && m_process->AdoptElevatedPid(coreSupervisorProbeReply->corePid, gen)) {
+                LOG_INFO(QString("elevated core: PID %1 (stub PID %2)").arg(coreSupervisorProbeReply->corePid).arg(m_process->processId()));
+            }
         }
         QString elevated = QString("elevated: %1").arg(ok && privileged ? "yes" : "no");
         if (ok && coreSupervisorProbeReply && !coreSupervisorProbeReply->detail.isEmpty())
@@ -541,6 +566,9 @@ namespace Engine {
                 MW_show_log("[Fatal] " + QObject::tr("Core exited, cleaning up..."));
 
                 Lifecycle::StopRunningProfile(true, true, false);
+#ifdef Q_OS_MACOS
+                coreSupervisorRestoreSystemDns(process->program);
+#endif
             }
             // Unix reports a failed exec as NotRunning before errorOccurred(FailedToStart), which posts it with errorString().
             if (!failedToStart && !reachedRunning) return;

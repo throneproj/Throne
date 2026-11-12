@@ -24,6 +24,8 @@ namespace Engine {
 
         bool offerCoreReset(const QString &error) override;
 
+        bool offerLeftoverTunAdapterRetry(const QString &error) override;
+
         void stopFailed(const QString &error) override;
 
         SlowOperation slowOperation(SlowOperationKind kind, int delayMs) override;

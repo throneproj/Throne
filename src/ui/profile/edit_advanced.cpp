@@ -42,6 +42,9 @@ EditAdvanced::EditAdvanced(QWidget *parent, const std::shared_ptr<Configs::Profi
     ui->reuse_addr->setChecked(dialFieldsObj->reuse_addr);
     ui->tcp_fast_open->setChecked(dialFieldsObj->tcp_fast_open);
     ui->udp_fragment->setChecked(dialFieldsObj->udp_fragment);
+    ui->quic_opener->setChecked(dialFieldsObj->quic_opener);
+    // Xray builds its own dialer, so the option never reaches it.
+    ui->quic_opener->setEnabled(!ent->outbound->IsXray());
     ui->tcp_multipath->setChecked(dialFieldsObj->tcp_multi_path);
     ui->connect_timeout->setText(dialFieldsObj->connect_timeout);
 
@@ -271,6 +274,7 @@ void EditAdvanced::accept() {
     dialFieldsObj->reuse_addr = ui->reuse_addr->isChecked();
     dialFieldsObj->tcp_fast_open = ui->tcp_fast_open->isChecked();
     dialFieldsObj->udp_fragment = ui->udp_fragment->isChecked();
+    dialFieldsObj->quic_opener = ui->quic_opener->isChecked();
     dialFieldsObj->tcp_multi_path = ui->tcp_multipath->isChecked();
     dialFieldsObj->connect_timeout = ui->connect_timeout->text().trimmed();
     dialFieldsObj->bind_interface = ui->bind_interface->currentText().trimmed();

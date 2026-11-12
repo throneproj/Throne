@@ -55,9 +55,14 @@ type Gate struct {
 	failure  error
 	failedAt time.Time
 
+	// Bumped under mu by Recycle. A relayed connection is bound to the generation its instance was handed out in, and
+	// one bound to a retired generation is refused, so Recycle never misses a connection still on its way to the old instance.
+	generation atomic.Uint64
+
 	// conns is nil once the gate is closed, which is how a connection accepted during teardown learns to give up.
+	// Each maps to its generation, 0 until ensure hands it an instance.
 	connsMu sync.Mutex
-	conns   map[net.Conn]struct{}
+	conns   map[net.Conn]uint64
 
 	active  atomic.Int64
 	lastUse atomic.Int64 // unix nanos
@@ -90,8 +95,9 @@ func StartGate(config string, idle time.Duration, prepare func(*core.Instance) e
 		idle:    idle,
 		prepare: prepare,
 		stopped: make(chan struct{}),
-		conns:   make(map[net.Conn]struct{}),
+		conns:   make(map[net.Conn]uint64),
 	}
+	gate.generation.Store(1)
 	gate.touch()
 
 	// Bound before any internal port is drawn, so a draw can never hand out a port the gate is about to take.
@@ -219,6 +225,36 @@ func (g *Gate) Close() {
 	}
 }
 
+// Recycle retires the running instance with the connections it carries, and the next connection starts a fresh one:
+// its pooled transports (XHTTP, gRPC, mux) would otherwise sit on a network that went away until their health checks
+// give up. A no-op while the gate is cold.
+func (g *Gate) Recycle() {
+	g.mu.Lock()
+	instance := g.instance
+	if instance == nil {
+		g.mu.Unlock()
+		return
+	}
+	g.instance, g.targets = nil, nil
+	retired := g.generation.Add(1) - 1
+	g.mu.Unlock()
+
+	var stale []net.Conn
+	g.connsMu.Lock()
+	for conn, generation := range g.conns {
+		if generation == retired {
+			stale = append(stale, conn)
+		}
+	}
+	g.connsMu.Unlock()
+	for _, conn := range stale {
+		_ = conn.Close()
+	}
+
+	log.Println("Xray gate: retired the instance, the next connection starts a fresh one")
+	_ = instance.Close()
+}
+
 func (g *Gate) serve(bridge net.Listener, index int) {
 	for {
 		conn, err := bridge.Accept()
@@ -230,7 +266,7 @@ func (g *Gate) serve(bridge net.Listener, index int) {
 }
 
 func (g *Gate) handle(conn net.Conn, index int) {
-	if !g.track(conn) {
+	if !g.track(conn, 0) {
 		_ = conn.Close()
 		return
 	}
@@ -247,8 +283,8 @@ func (g *Gate) handle(conn net.Conn, index int) {
 		g.touch()
 	}()
 
-	targets, err := g.ensure()
-	if err != nil {
+	targets, generation, err := g.ensure()
+	if err != nil || !g.track(conn, generation) {
 		return
 	}
 	upstream, err := net.Dial("tcp", targets[index])
@@ -256,7 +292,7 @@ func (g *Gate) handle(conn net.Conn, index int) {
 		log.Println("Xray gate: failed to reach the instance:", err)
 		return
 	}
-	if !g.track(upstream) {
+	if !g.track(upstream, generation) {
 		_ = upstream.Close()
 		return
 	}
@@ -282,17 +318,17 @@ func relay(dst, src net.Conn, done chan<- struct{}) {
 }
 
 // Logs a failure once per start, not once per connection it drops.
-func (g *Gate) ensure() ([]string, error) {
+func (g *Gate) ensure() ([]string, uint64, error) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	if g.closed {
-		return nil, errors.New("xray gate: closed")
+		return nil, 0, errors.New("xray gate: closed")
 	}
 	if g.instance != nil {
-		return g.targets, nil
+		return g.targets, g.generation.Load(), nil
 	}
 	if g.failure != nil && time.Since(g.failedAt) < gateStartCooldown {
-		return nil, g.failure
+		return nil, 0, g.failure
 	}
 
 	var err error
@@ -304,7 +340,7 @@ func (g *Gate) ensure() ([]string, error) {
 		if instance, targets, err = g.startInstance(hold); err == nil {
 			log.Println("Xray gate: started the instance on demand")
 			g.instance, g.targets, g.failure = instance, targets, nil
-			return targets, nil
+			return targets, g.generation.Load(), nil
 		}
 		if !isAddrInUse(err) {
 			break
@@ -313,7 +349,7 @@ func (g *Gate) ensure() ([]string, error) {
 	}
 	g.failure, g.failedAt = err, time.Now()
 	FailureLog(fmt.Sprintf("Xray gate: cannot start the instance behind %s, dropping its connections: %v", g.describe(), err))
-	return nil, err
+	return nil, 0, err
 }
 
 // Draws new internal ports on every start: the ones a swept instance used were free for anyone to take while it was down.
@@ -397,14 +433,15 @@ func (g *Gate) touch() {
 	g.lastUse.Store(time.Now().UnixNano())
 }
 
-// Reports false once the gate is closed and nothing will come back for the connection.
-func (g *Gate) track(conn net.Conn) bool {
+// Reports false once the gate is closed and nothing will come back for the connection, or once Recycle has retired
+// the generation it would be bound to.
+func (g *Gate) track(conn net.Conn, generation uint64) bool {
 	g.connsMu.Lock()
 	defer g.connsMu.Unlock()
-	if g.conns == nil {
+	if g.conns == nil || generation != 0 && generation != g.generation.Load() {
 		return false
 	}
-	g.conns[conn] = struct{}{}
+	g.conns[conn] = generation
 	return true
 }
 

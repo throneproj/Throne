@@ -3,11 +3,18 @@
 #include "include/database/DatabaseManager.h"
 #include "include/database/IpScansRepo.h"
 #include "include/scanner/ScanManager.h"
+#include "include/ui/scanner/ScanItem.h"
 #include "include/ui/scanner/dialog_ip_lists.h"
 #include "include/ui/scanner/dialog_scanner.h"
 
 void MainWindow::on_menu_scanner_triggered() {
     showScannerDialog();
+}
+
+void MainWindow::on_menu_find_settings_triggered() {
+    const auto selected = get_now_selected_list();
+    if (selected.size() != 1) return;
+    ScannerUi::FindSettings(selected.first());
 }
 
 void MainWindow::showScannerDialog() {

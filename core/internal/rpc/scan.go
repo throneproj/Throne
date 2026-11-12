@@ -21,7 +21,7 @@ func scanProbeRequest(in *gen.ScanProbeRequest) scan.ProbeRequest {
 	for _, entry := range spec.GetEntries() {
 		entries = append(entries, scan.Entry{CIDR: entry.GetCidr(), Port: entry.GetPort()})
 	}
-	icmp, tcp, http := in.GetIcmp(), in.GetTcp(), in.GetHttp()
+	icmp, tcp, http, dns := in.GetIcmp(), in.GetTcp(), in.GetHttp(), in.GetDns()
 	return scan.ProbeRequest{
 		Spec: scan.Spec{
 			Entries:          entries,
@@ -64,6 +64,13 @@ func scanProbeRequest(in *gen.ScanProbeRequest) scan.ProbeRequest {
 			MixedCaseSNI:          http.GetMixedCaseSni(),
 			Timeout:               milliseconds(http.GetTimeoutMs()),
 			FallbackPort:          http.GetFallbackPort(),
+		},
+		DNS: scan.DNSOptions{
+			Enabled:    dns.GetEnabled(),
+			Protocol:   dns.GetProtocol(),
+			ConfigJSON: dns.GetConfigJson(),
+			Level:      dns.GetLevel(),
+			Timeout:    milliseconds(dns.GetTimeoutMs()),
 		},
 		Concurrency:   int(in.GetConcurrency()),
 		SpawnInterval: milliseconds(in.GetSpawnIntervalMs()),
@@ -109,6 +116,11 @@ func (s *server) ScanProbe(ctx context.Context, in *gen.ScanProbeRequest) (*gen.
 			HttpStatus:   To(int32(r.HTTPStatus)),
 			ProbePort:    To(int32(r.ProbePort)),
 			LocalFailure: To(r.LocalFailure),
+			DnsMs:        To(r.DNSMs),
+			MaxQname:     To(r.MaxQName),
+			UploadMtu:    To(r.UploadMTU),
+			DownloadMtu:  To(r.DownloadMTU),
+			DnsStage:     To(r.DNSStage),
 		})
 	}
 	return out, nil
@@ -186,8 +198,14 @@ func (s *server) ScanURLTest(ctx context.Context, in *gen.ScanURLTestRequest) (*
 		}
 		session.RecordURL(labelOf[result.Tag], result.Duration, result.Error)
 	}
-	results := probe.BatchURLTestTo(scanCtx, env.box, env.tags, test.GetUrl(), int(test.GetMaxConcurrency()),
-		in.GetWarmLatency(), milliseconds(test.GetTestTimeoutMs()), publish)
+	var results []*probe.URLTestResult
+	if bodyBytes := in.GetBodyBytes(); bodyBytes > 0 {
+		results = probe.BatchDownloadTestTo(scanCtx, env.box, env.tags, test.GetUrl(), bodyBytes, int(test.GetMaxConcurrency()),
+			milliseconds(test.GetTestTimeoutMs()), publish)
+	} else {
+		results = probe.BatchURLTestTo(scanCtx, env.box, env.tags, test.GetUrl(), int(test.GetMaxConcurrency()),
+			in.GetWarmLatency(), milliseconds(test.GetTestTimeoutMs()), publish)
+	}
 	if scanCtx.Err() == nil && egressLost() {
 		return nil, scan.ErrEgressLost
 	}

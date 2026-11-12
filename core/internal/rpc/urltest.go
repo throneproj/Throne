@@ -102,7 +102,7 @@ func (s *server) IPTest(ctx context.Context, in *gen.IPTestRequest) (*gen.IPTest
 
 	timeout := time.Duration(in.GetTestTimeoutMs()) * time.Millisecond
 	results := probe.BatchIPTest(probe.TestContext(), env.box, env.tags,
-		int(in.GetMaxConcurrency()), !current, timeout)
+		int(in.GetMaxConcurrency()), !current, timeout, in.GetProvider())
 
 	res := make([]*gen.IPTestRes, 0, len(results))
 	for idx, data := range results {

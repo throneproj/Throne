@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # L1 of the headless e2e suite: the bundled amd64 .deb on the runner VM, run by the system unit it installs
 # (dist/linux/throne.service). Covers apt install, Type=notify READY and STATUS, the watchdog, exit 75 restarts by
-# systemd (thronectl restart, SIGHUP) that resume the running profile, a clean stop, and apt-get remove / purge.
+# systemd (thronectl restart, SIGHUP) that resume the running profile, a clean stop, and apt-get remove / purge; and
+# the packaged thronectl under throne-web.service (sign-in, Throne's status through it, the documented passwd recipe).
 # Env: DEB (Throne-<tag>-debian-amd64.deb), THRONECTL, FIXTURES, E2E_TMP. Needs root and a running systemd, and
 # changes the host, so it is for a disposable runner VM only; started as another user it re-runs itself with sudo -E.
 set -euo pipefail
@@ -22,6 +23,9 @@ DEB=${DEB:?set DEB to the bundled amd64 .deb}
 THRONECTL=${THRONECTL:?set THRONECTL to a thronectl built for this runner}
 
 UNIT=throne.service
+WEB_UNIT=throne-web.service
+WEB_URL=http://127.0.0.1:9096
+WEB_STATE=/var/lib/throne-web
 THRONE=/opt/Throne/Throne
 DATA=/var/lib/throne
 FILE_LOG=$DATA/config/logs/throne.log
@@ -160,6 +164,43 @@ pk_session_clean() {
     assert_log_clean "$copy"
 }
 
+pk_web_prop() { systemctl show "$WEB_UNIT" -p "$1" --value; }
+
+pk_web_password() {
+    journalctl -u "$WEB_UNIT" --since "@$JOURNAL_SINCE" --no-pager -o cat 2>/dev/null |
+        sed -n 's/^thronectl web: created the web UI password: //p' | tail -n1
+}
+
+pk_web_password_logged() { [ -n "$(pk_web_password)" ]; }
+
+pk_web_up() { curl -fsS --max-time 5 -o /dev/null "$WEB_URL/auth/state"; }
+
+# pk_web_call LABEL CURL_ARGS...: the response body of a request to the web UI that must answer 200.
+pk_web_call() {
+    local label=$1 out code
+    shift
+    out=$(curl -sS --max-time 15 -w '\n%{http_code}' "$@") || fail "curl failed: $label"
+    code=${out##*$'\n'}
+    pk_eq "HTTP status of $label" "$code" 200
+    printf '%s\n' "${out%$'\n'*}"
+}
+
+# pk_web_login PASSWORD JAR: sign in (cookie in JAR, CSRF token in WEB_CSRF) and read Throne's status through the web UI.
+pk_web_login() {
+    local out
+    out=$(pk_web_call "POST /auth/login" -c "$2" -H 'Content-Type: application/json' \
+        --data "{\"password\":\"$1\"}" "$WEB_URL/auth/login")
+    pk_eq "POST /auth/login authenticated" "$(pk_json authenticated <<<"$out")" true
+    WEB_CSRF=$(pk_json csrf <<<"$out")
+    out=$(pk_web_call "GET /api/v1/status" -b "$2" -H "X-CSRF-Token: $WEB_CSRF" "$WEB_URL/api/v1/status")
+    pk_eq "capabilities.headless through the web UI" "$(pk_json capabilities.headless <<<"$out")" true
+}
+
+# pk_web_signed_out JAR: the web UI no longer knows the session in JAR and WEB_CSRF.
+pk_web_signed_out() {
+    [ "$(curl -fsS --max-time 5 -b "$1" -H "X-CSRF-Token: $WEB_CSRF" "$WEB_URL/auth/state" | pk_json authenticated)" = false ]
+}
+
 pk_api_restart() {
     local out
     out=$("$THRONECTL" --json restart) || fail "thronectl restart failed"
@@ -219,9 +260,13 @@ e2e_on_exit() {
         for file in "$FIXTURE_LOG" "$FIXTURE_LOG.stderr"; do
             [ -f "$file" ] && echo "--- $file" && cat "$file"
         done
+        echo "--- $WEB_UNIT"
+        systemctl status "$WEB_UNIT" --no-pager -l
+        journalctl -u "$WEB_UNIT" --since "@$JOURNAL_SINCE" --no-pager -o short-monotonic
         echo "::endgroup::"
     fi
     if pk_installed; then
+        timeout 60 systemctl disable --now "$WEB_UNIT" >/dev/null 2>&1
         timeout 60 systemctl disable --now "$UNIT" >/dev/null 2>&1
     fi
     pkill -KILL -x ThroneCore 2>/dev/null
@@ -233,7 +278,7 @@ e2e_on_exit() {
 # ---------------------------------------------------------------------------------------------------- scenario
 
 main() {
-    local deb out t0 elapsed mode first pid
+    local deb out t0 elapsed mode first pid jar password
     [ -d /run/systemd/system ] || fail "systemd is not running here; L1 needs the runner VM, not a container"
     [ -f "$DEB" ] || fail "DEB '$DEB' is not a file"
     [ -x "$THRONECTL" ] || fail "THRONECTL '$THRONECTL' is not executable"
@@ -263,14 +308,24 @@ main() {
     [ -f /etc/throne/throne.env ] || fail "no /etc/throne/throne.env after the install"
     dpkg-query -W -f='${Conffiles}\n' throne | grep -qF /etc/throne/throne.env ||
         fail "/etc/throne/throne.env is not a conffile of the package"
+    out=$(/usr/bin/thronectl version) || fail "/usr/bin/thronectl version failed"
+    echo "$out"
+    [[ $out == "thronectl "* ]] || fail "/usr/bin/thronectl version printed '$out'"
+    cmp "$ROOT/dist/linux/throne-web.service" "/usr/lib/systemd/system/$WEB_UNIT" ||
+        fail "the installed $WEB_UNIT differs from dist/linux/throne-web.service"
+    dpkg-query -W -f='${Conffiles}\n' throne | grep -qF /etc/throne/web.env ||
+        fail "/etc/throne/web.env is not a conffile of the package"
 
-    step "L1: the unit is installed and disabled"
+    step "L1: the units are installed and disabled"
     pk_show
     pk_eq LoadState "$(pk_prop LoadState)" loaded
     pk_eq FragmentPath "$(pk_prop FragmentPath)" /usr/lib/systemd/system/throne.service
     pk_eq UnitFileState "$(pk_prop UnitFileState)" disabled
     pk_eq ActiveState "$(pk_prop ActiveState)" inactive
     pk_no_process Throne || fail "a Throne process runs although the package must not start the unit"
+    pk_eq "$WEB_UNIT LoadState" "$(pk_web_prop LoadState)" loaded
+    pk_eq "$WEB_UNIT UnitFileState" "$(pk_web_prop UnitFileState)" disabled
+    pk_eq "$WEB_UNIT ActiveState" "$(pk_web_prop ActiveState)" inactive
 
     step "L1: systemctl enable --now throne (READY within 90 s)"
     t0=$SECONDS
@@ -312,6 +367,23 @@ main() {
     pk_eq capabilities.headless "$(pk_json capabilities.headless <<<"$out")" true
     pk_eq state "$(pk_json state <<<"$out")" idle
     "$THRONECTL" status
+
+    step "L1: systemctl enable --now throne-web: sign in with the logged password, Throne's status through it"
+    timeout 60 systemctl enable --now "$WEB_UNIT" || fail "systemctl enable --now $WEB_UNIT failed"
+    wait_until 20 "the journal of $WEB_UNIT logging the created password" pk_web_password_logged
+    wait_until 20 "the web UI answering on $WEB_URL" pk_web_up
+    pk_eq "$WEB_UNIT NRestarts (LoadCredential found Throne's key)" "$(pk_web_prop NRestarts)" 0
+    [ -L "$WEB_STATE" ] || fail "$WEB_STATE is not systemd's DynamicUser symlink into /var/lib/private"
+    pk_eq "/var/lib/private/throne-web mode" "$(stat -c '%a' /var/lib/private/throne-web)" 700
+    jar=$OUT/web-cookies
+    pk_web_login "$(pk_web_password)" "$jar"
+
+    step "L1: thronectl web passwd as root, as throne-web.env says"
+    password=e2e-web-$RANDOM-$RANDOM
+    printf '%s\n' "$password" | /usr/bin/thronectl web passwd --state-dir "$WEB_STATE"
+    pk_eq "password file owner" "$(stat -L -c '%u' "$WEB_STATE/password")" "$(stat -L -c '%u' "$WEB_STATE")"
+    wait_until 20 "the web UI signing the old session out after the password change" pk_web_signed_out "$jar"
+    pk_web_login "$password" "$jar"
 
     step "L1: fixtures (HTTP $HTTP_PORT, SOCKS5 $SOCKS_PORT)"
     start_fixtures 127.0.0.1 "$FIXTURE_LOG"
@@ -361,6 +433,7 @@ main() {
     wait_until 60 "profile $PROFILE_ID resumed before the remove" pk_profile_running
     pk_health
     pk_previous_exit 0 SIGTERM "the boot after systemctl stop"
+    pk_eq "$WEB_UNIT ActiveState before the remove" "$(pk_web_prop ActiveState)" active
     pid=$(pk_prop MainPID)
     apt-get remove -y throne
     wait_until 10 "Throne (PID $pid) gone after apt-get remove" pk_gone "$pid"
@@ -371,6 +444,14 @@ main() {
         [ ! -L /etc/systemd/system/multi-user.target.wants/throne.service ] ||
         fail "apt-get remove left the unit enabled (multi-user.target.wants/throne.service)"
     [ ! -e /usr/lib/systemd/system/throne.service ] || fail "apt-get remove left the unit file"
+    [ "$(systemctl is-active "$WEB_UNIT" 2>/dev/null || true)" != active ] || fail "$WEB_UNIT is still active after apt-get remove"
+    wait_until 10 "no thronectl process left after apt-get remove" pk_no_process thronectl
+    [ ! -e "/etc/systemd/system/multi-user.target.wants/$WEB_UNIT" ] &&
+        [ ! -L "/etc/systemd/system/multi-user.target.wants/$WEB_UNIT" ] ||
+        fail "apt-get remove left $WEB_UNIT enabled (multi-user.target.wants/$WEB_UNIT)"
+    [ ! -e "/usr/lib/systemd/system/$WEB_UNIT" ] || fail "apt-get remove left the $WEB_UNIT file"
+    [ ! -e /usr/bin/thronectl ] && [ ! -L /usr/bin/thronectl ] || fail "apt-get remove left /usr/bin/thronectl"
+    [ -f /etc/throne/web.env ] || fail "apt-get remove deleted the conffile /etc/throne/web.env; only purge may"
     [ ! -e "$THRONE" ] || fail "apt-get remove left $THRONE"
     pk_eq "package state after remove" "$(dpkg-query -W -f='${Status}' throne 2>/dev/null || true)" "deinstall ok config-files"
     [ -f /etc/throne/throne.env ] || fail "apt-get remove deleted the conffile /etc/throne/throne.env; only purge may"

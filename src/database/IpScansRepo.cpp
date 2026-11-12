@@ -9,7 +9,7 @@ namespace Configs {
         const std::string kIpScansRepoSelect =
             "SELECT id, name, kind, base_list_id, result_list_id, config_json, status, mode, snapshot_list_id, seed, "
             "cursor, total, spec_hash, rescan_snapshot_list_id, rescan_cursor, rescan_total, found, removed, last_error, "
-            "started_at, finished_at FROM ip_scans";
+            "started_at, finished_at, tune_json FROM ip_scans";
 
         // Column order must match both the INSERT and the UPDATE; returns the next index.
         int ipScansRepoBindColumns(SQLite::Statement &stmt, int index, const IpScan &scan) {
@@ -67,9 +67,11 @@ namespace Configs {
                 started_at INTEGER NOT NULL DEFAULT 0,
                 finished_at INTEGER NOT NULL DEFAULT 0,
                 created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
-                updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+                updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
+                tune_json TEXT NOT NULL DEFAULT ''
             )
         )");
+        if (!ipScansColumnExists("tune_json")) db.exec("ALTER TABLE ip_scans ADD COLUMN tune_json TEXT NOT NULL DEFAULT ''");
     }
 
     bool IpScansRepo::ipScansColumnExists(const char *columnName) const {
@@ -85,7 +87,8 @@ namespace Configs {
         auto scan = std::make_shared<IpScan>();
         scan->id = stmt.getColumn(0).getInt();
         scan->name = QString::fromStdString(stmt.getColumn(1).getString());
-        scan->kind = stmt.getColumn(2).getInt() == static_cast<int>(IpScan::Kind::Warp) ? IpScan::Kind::Warp : IpScan::Kind::Generic;
+        const int kind = stmt.getColumn(2).getInt();
+        scan->kind = kind >= 0 && kind <= static_cast<int>(IpScan::Kind::Tune) ? static_cast<IpScan::Kind>(kind) : IpScan::Kind::Generic;
         scan->base_list_id = stmt.getColumn(3).getInt();
         scan->result_list_id = stmt.getColumn(4).getInt();
         scan->config = IpScan::DefaultConfig(scan->kind);
@@ -109,6 +112,8 @@ namespace Configs {
         scan->last_error = QString::fromStdString(stmt.getColumn(18).getString());
         scan->started_at = stmt.getColumn(19).getInt64();
         scan->finished_at = stmt.getColumn(20).getInt64();
+        const auto tune = QJsonDocument::fromJson(QByteArray::fromStdString(stmt.getColumn(21).getString()));
+        if (tune.isObject()) scan->tune_state = tune.object();
         return scan;
     }
 
@@ -205,6 +210,13 @@ namespace Configs {
                        : "UPDATE ip_scans SET mode = ?, cursor = ?, total = ?, found = ?, removed = ?, "
                          "updated_at = strftime('%s', 'now') WHERE id = ?",
                 static_cast<int>(mode), static_cast<qint64>(cursor), static_cast<qint64>(total), found, removed, id);
+    }
+
+    void IpScansRepo::SaveTuneState(int id, const QJsonObject &state) {
+        if (id < 0) return;
+        std::lock_guard lock(db.WriteMutex());
+        const auto text = state.isEmpty() ? std::string() : QJsonDocument(state).toJson(QJsonDocument::Compact).toStdString();
+        db.exec("UPDATE ip_scans SET tune_json = ?, updated_at = strftime('%s', 'now') WHERE id = ?", text, id);
     }
 
     void IpScansRepo::SaveStatus(int id, IpScan::Status status, const QString &lastError) {

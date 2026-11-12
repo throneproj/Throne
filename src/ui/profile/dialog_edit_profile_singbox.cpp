@@ -4,6 +4,7 @@
 #include "include/database/DatabaseManager.h"
 #include "include/global/Utils.hpp"
 #include "include/ui/utils/ValidationForm.h"
+#include "include/ui/widget/MuxSettingsWidget.h"
 
 #include <QInputDialog>
 
@@ -16,11 +17,10 @@ void DialogEditProfile::setupSingboxStream() {
     connect(ui->network, &QComboBox::currentTextChanged, this, [this] { relayout(); });
     connect(ui->security, &QComboBox::currentTextChanged, this, [this] { relayout(); });
     connect(ui->fragment, &QComboBox::currentIndexChanged, this, [this] { relayout(); });
-    connect(ui->multiplex, &QComboBox::currentIndexChanged, this, [this](int index) {
-        if (index == Configs::kTriStateOff) ui->brutal_enable->setChecked(false);
-        relayout();
+    connect(ui->multiplex, &QComboBox::currentIndexChanged, this, [this] { relayout(); });
+    connect(ui->multiplex_custom, &QPushButton::clicked, this, [this] {
+        MuxSettingsWidget::openDialog(this, CACHE.mux, [this](const Configs::MuxSettings &settings) { CACHE.mux = settings; });
     });
-    connect(ui->brutal_enable, &QCheckBox::toggled, this, [this] { form->refresh(); });
     bindSingboxStream();
 }
 
@@ -109,15 +109,6 @@ void DialogEditProfile::bindSingboxStream() {
     form->addRule({ui->utlsFingerprint, ui->fragment, ui->tls_rec_frag}, [this] {
         return Checks::SpoofIgnored(!ownTlsSpoof().isEmpty(), singboxUtlsActive(), singboxTlsFragmentOn(), ui->tls_rec_frag->isChecked());
     }, nullptr, Severity::Warning);
-
-    const auto brutalOn = [this] { return ui->brutal_enable->isChecked(); };
-    for (auto *speed: {ui->brutal_d_speed, ui->brutal_u_speed}) {
-        form->bind(speed, Validation::Rules::Int(INT_MIN, INT_MAX)).when(brutalOn);
-        form->bind(speed, Checks::BrutalSpeed).when(brutalOn).warning();
-    }
-    form->addRule({ui->brutal_enable, ui->multiplex}, [this] {
-        return Checks::BrutalNeedsMux(ui->brutal_enable->isChecked(), ui->multiplex->currentIndex() == 1);
-    }, nullptr, Severity::Warning);
 }
 
 void DialogEditProfile::loadSingboxStream() {
@@ -158,11 +149,9 @@ void DialogEditProfile::loadSingboxStream() {
     }
     if (outbound->HasMux()) {
         const auto mux = outbound->GetMux();
-        // Before brutal_enable: selecting Off unchecks it.
         ui->multiplex->setCurrentIndex(mux->getMuxState());
-        ui->brutal_enable->setChecked(mux->brutal->enabled);
-        ui->brutal_d_speed->setText(Int2String(mux->brutal->down_mbps));
-        ui->brutal_u_speed->setText(Int2String(mux->brutal->up_mbps));
+        offerCustomMux(ui->multiplex, Configs::kMuxCustom);
+        CACHE.mux = mux->CustomSettings();
     }
 }
 
@@ -198,10 +187,9 @@ void DialogEditProfile::saveSingboxStream() {
     }
     if (outbound->HasMux()) {
         auto mux = outbound->GetMux();
-        mux->saveMuxState(ui->multiplex->currentIndex());
-        mux->brutal->enabled = ui->brutal_enable->isChecked();
-        mux->brutal->down_mbps = ui->brutal_d_speed->text().trimmed().toInt();
-        mux->brutal->up_mbps = ui->brutal_u_speed->text().trimmed().toInt();
+        const int state = ui->multiplex->currentIndex();
+        mux->saveMuxState(state);
+        if (state == Configs::kMuxCustom) mux->SetCustomSettings(CACHE.mux);
     }
 }
 
@@ -214,10 +202,11 @@ void DialogEditProfile::updateSingboxRows() {
     setRowVisible(ui->network_l, ui->network, hasTransport);
     setRowVisible(ui->security_l, ui->security, hasTLS);
     setRowVisible(ui->multiplex_l, ui->multiplex, hasMux);
+    ui->multiplex_custom->setVisible(hasMux && ui->multiplex->currentIndex() == Configs::kMuxCustom);
     ui->security->setEnabled(!outbound->MustTLS());
-    ui->multiplex->setEnabled(!innerEditor->blocksMultiplex());
-    ui->brutal_box->setVisible(hasMux);
-    ui->brutal_box->setEnabled(ui->multiplex->currentIndex() != Configs::kTriStateOff);
+    const bool muxEditable = !innerEditor->blocksMultiplex();
+    ui->multiplex->setEnabled(muxEditable);
+    ui->multiplex_custom->setEnabled(muxEditable);
     ui->stream_box->setVisible(hasTransport || hasTLS || hasMux);
 
     const auto network = ui->network->currentText();

@@ -139,18 +139,105 @@ namespace Configs {
     }
     BuildResult Multiplex::Build()
     {
-        auto obj = ExportToJson();
-        if (unspecified && Configs::dataManager->settingsRepo->mux_default_on) obj["enabled"] = true;
-        if (!obj["enabled"].toBool()) return {{}, ""};
-        if (protocol.isEmpty()) obj["protocol"] = Configs::dataManager->settingsRepo->mux_protocol;
-        if (max_streams == 0 && max_connections == 0 && min_streams == 0) obj["max_streams"] = Configs::dataManager->settingsRepo->mux_concurrency;
-        if (Configs::dataManager->settingsRepo->mux_padding) obj["padding"] = true;
-        return {obj, ""};
+        if (!EffectivelyOn()) return {{}, ""};
+        return {(IsCustom() ? CustomSettings() : MuxSettings::Preset()).Build(), ""};
     }
 
     bool Multiplex::EffectivelyOn() const
     {
         return enabled || (unspecified && Configs::dataManager->settingsRepo->mux_default_on);
+    }
+
+    bool Multiplex::HasOwnSettings() const
+    {
+        return !protocol.isEmpty() || max_connections > 0 || min_streams > 0 || max_streams > 0 || padding || brutal->enabled;
+    }
+
+    MuxSettings Multiplex::CustomSettings() const
+    {
+        auto settings = MuxSettings::Preset();
+        if (!HasOwnSettings()) return settings;
+        if (!protocol.isEmpty()) settings.protocol = protocol;
+        // The core lets max_connections win over max_streams; with neither, the preset's pool applies.
+        if (max_connections > 0) {
+            settings.by_connections = true;
+            settings.max_connections = max_connections;
+            settings.min_streams = min_streams;
+        } else if (max_streams > 0) {
+            settings.by_connections = false;
+            settings.max_streams = max_streams;
+        }
+        settings.padding = padding;
+        settings.brutal = brutal->enabled;
+        if (brutal->enabled) {
+            settings.brutal_up_mbps = brutal->up_mbps;
+            settings.brutal_down_mbps = brutal->down_mbps;
+        }
+        return settings;
+    }
+
+    void Multiplex::SetCustomSettings(const MuxSettings& settings)
+    {
+        protocol = settings.protocol;
+        max_connections = settings.by_connections ? settings.max_connections : 0;
+        min_streams = settings.by_connections ? settings.min_streams : 0;
+        max_streams = settings.by_connections ? 0 : settings.max_streams;
+        padding = settings.padding;
+        brutal->enabled = settings.brutal;
+        brutal->up_mbps = settings.brutal_up_mbps;
+        brutal->down_mbps = settings.brutal_down_mbps;
+    }
+
+    MuxSettings MuxSettings::Preset()
+    {
+        const auto& repo = *Configs::dataManager->settingsRepo;
+        MuxSettings settings;
+        settings.protocol = repo.mux_protocol;
+        settings.by_connections = repo.mux_mode == "max_connections";
+        settings.max_streams = repo.mux_concurrency;
+        settings.max_connections = repo.mux_max_connections;
+        settings.min_streams = repo.mux_min_streams;
+        settings.padding = repo.mux_padding;
+        settings.brutal = repo.mux_brutal;
+        settings.brutal_up_mbps = repo.mux_brutal_up_mbps;
+        settings.brutal_down_mbps = repo.mux_brutal_down_mbps;
+        return settings;
+    }
+
+    void MuxSettings::SaveAsPreset() const
+    {
+        auto& repo = *Configs::dataManager->settingsRepo;
+        repo.mux_protocol = protocol;
+        repo.mux_mode = by_connections ? "max_connections" : "max_streams";
+        repo.mux_concurrency = max_streams;
+        repo.mux_max_connections = max_connections;
+        repo.mux_min_streams = min_streams;
+        repo.mux_padding = padding;
+        repo.mux_brutal = brutal;
+        repo.mux_brutal_up_mbps = brutal_up_mbps;
+        repo.mux_brutal_down_mbps = brutal_down_mbps;
+    }
+
+    QJsonObject MuxSettings::Build() const
+    {
+        QJsonObject object;
+        object["enabled"] = true;
+        if (!protocol.isEmpty()) object["protocol"] = protocol;
+        if (by_connections) {
+            if (max_connections > 0) object["max_connections"] = max_connections;
+            if (min_streams > 0) object["min_streams"] = min_streams;
+        } else if (max_streams > 0) {
+            object["max_streams"] = max_streams;
+        }
+        if (padding) object["padding"] = true;
+        if (brutal) {
+            TcpBrutal options;
+            options.enabled = true;
+            options.up_mbps = brutal_up_mbps;
+            options.down_mbps = brutal_down_mbps;
+            object["brutal"] = options.ExportToJson();
+        }
+        return object;
     }
 
     namespace Checks {
@@ -159,30 +246,24 @@ namespace Configs {
             return Validation::OneOf(protocol, muxProtocols);
         }
 
-        QString BrutalSpeed(const QString& text)
-        {
-            const auto value = Validation::ToInt(text);
-            if (!text.trimmed().isEmpty() && (!value || *value > 0)) return {};
-            return QCoreApplication::translate("Validation", "A missing, 0 or negative speed is sent as 1 Mbps. Enter your speed in Mbps, for example 100.");
-        }
-
         QString BrutalNeedsMux(bool brutal, bool muxOn)
         {
             if (!brutal || muxOn) return {};
-            return QCoreApplication::translate("Validation", "TCP Brutal only works with multiplex on. Set Multiplex to On.");
+            return QCoreApplication::translate("Validation", "TCP Brutal only works with a custom multiplex. Set Multiplex to Custom.");
         }
     }
 
     void Multiplex::Validate(Validation::Issues& issues)
     {
         using Validation::Severity;
-        const bool explicitOn = !unspecified && enabled;
-        if (const auto message = Checks::BrutalNeedsMux(brutal->enabled, explicitOn); !message.isEmpty()) {
+        // Only a Custom multiplex builds from the profile's own settings.
+        const bool custom = IsCustom();
+        if (const auto message = Checks::BrutalNeedsMux(brutal->enabled, custom); !message.isEmpty()) {
             issues.append({Severity::Warning, "multiplex.brutal", message});
         }
-        if (!EffectivelyOn()) return;
+        if (!custom) return;
         if (const auto message = Checks::MuxProtocol(protocol); !message.isEmpty()) issues.append({Severity::Error, "multiplex.protocol", message, protocol});
-        if (explicitOn && brutal->enabled && (brutal->up_mbps <= 0 || brutal->down_mbps <= 0)) {
+        if (brutal->enabled && (brutal->up_mbps <= 0 || brutal->down_mbps <= 0)) {
             issues.append({Severity::Warning, "multiplex.brutal",
                            QCoreApplication::translate("Validation", "TCP Brutal needs both speeds; a missing one is sent as 1 Mbps.")});
         }

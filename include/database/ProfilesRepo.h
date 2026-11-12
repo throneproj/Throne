@@ -3,6 +3,7 @@
 #include "Database.h"
 #include "include/database/entities/Profile.h"
 #include <3rdparty/SQLiteCpp/include/SQLiteCpp.h>
+#include <atomic>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -19,6 +20,7 @@ namespace Configs {
         mutable std::map<int, std::weak_ptr<Profile>> identityMap;
         // Deleted ids: never reused, so Save/SaveBatch refuse them for the rest of the process.
         QSet<int> tombstones;
+        std::atomic<quint64> revision{0};
 
         std::shared_ptr<Profile> profileFromJson(const QJsonObject& json) const;
         
@@ -76,7 +78,10 @@ namespace Configs {
         QList<int> GetAllProfileIds() const;
 
         QList<int> GetProfileIdsByType(const QString& type) const;
-        
+
+        // A cheap prefilter: needle is matched ASCII case-insensitively against the stored outbound JSON.
+        QList<int> GetProfileIdsByTypeContaining(const QString& type, const QString& needle) const;
+
         // No-op unless id >= 0; false for a deleted id, which is not written back.
         bool Save(const std::shared_ptr<Profile>& profile);
 
@@ -87,5 +92,8 @@ namespace Configs {
 
         // Runs on a new thread; skips null profiles, id < 0 and deleted ids.
         void SaveBatch(const QList<std::shared_ptr<Profile>>& profiles);
+
+        // Any thread; moves with every write except the traffic-only ones (SaveTraffic, SaveTrafficBatch).
+        quint64 Revision() const { return revision.load(); }
     };
 }

@@ -380,6 +380,55 @@ namespace API {
         }
     }
 
+    libcore::ServiceTestResponse Client::ServiceTest(bool *rpcOK, const libcore::ServiceTestRequest &request, QString *coreError, int timeoutMs) {
+        libcore::ServiceTestResponse reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("ServiceTest", spb::pb::serialize<std::string>(request), resp, timeoutMs);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return reply;
+        } else {
+            if (coreError && !resp.empty())
+                *coreError = QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
+            NOT_OK
+            return {};
+        }
+    }
+
+    libcore::QueryServiceTestResponse Client::QueryServiceTest(bool *rpcOK) {
+        libcore::EmptyReq request;
+        libcore::QueryServiceTestResponse reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("QueryServiceTest", spb::pb::serialize<std::string>(request), resp);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return reply;
+        } else {
+            NOT_OK
+            return {};
+        }
+    }
+
+    libcore::ParseServiceChecksResponse Client::ParseServiceChecks(bool *rpcOK, const QByteArray &checks, QString *coreError) {
+        libcore::ParseServiceChecksRequest request;
+        request.checks = checks.toStdString();
+        libcore::ParseServiceChecksResponse reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("ParseServiceChecks", spb::pb::serialize<std::string>(request), resp);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return reply;
+        } else {
+            if (coreError && !resp.empty())
+                *coreError = QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
+            NOT_OK
+            return {};
+        }
+    }
+
     libcore::GetDefaultInterfaceResponse Client::GetDefaultInterface(bool *rpcOK) const {
         libcore::EmptyReq request;
         libcore::GetDefaultInterfaceResponse reply;
@@ -521,6 +570,21 @@ namespace API {
         }
     }
 
+    libcore::ListProcessesResponse Client::ListProcesses(bool *rpcOK) const
+    {
+        libcore::EmptyReq request;
+        libcore::ListProcessesResponse reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("ListProcesses", spb::pb::serialize<std::string>(request), resp);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return reply;
+        }
+        NOT_OK
+        return {};
+    }
+
     QString Client::UpdateRuleSets(bool *rpcOK, int *updatedCount) const
     {
         if (updatedCount != nullptr) *updatedCount = 0;
@@ -588,6 +652,7 @@ namespace API {
             info.netAdmin = reply.net_admin;
             info.killSwitch = reply.kill_switch_privilege;
             if (reply.detail) info.detail = QString::fromStdString(*reply.detail);
+            info.corePid = reply.core_pid.value_or(0);
             return info;
         } else
         {
@@ -662,12 +727,16 @@ namespace API {
     }
 
     libcore::WarpRegisterResponse Client::WarpRegister(bool *rpcOK, const QString &tunnelType, const QString &proxy,
-                                                       const QStringList &apiHosts)
+                                                       const QStringList &apiHosts, bool tlsFragment, bool tlsRecordFragment,
+                                                       const QString &tlsFragmentFallbackDelay)
     {
         libcore::WarpRegisterRequest request;
         request.tunnel_type = tunnelType.toStdString();
         request.proxy = proxy.toStdString();
         for (const auto &host : apiHosts) request.api_hosts.push_back(host.toStdString());
+        request.tls_fragment = tlsFragment;
+        request.tls_record_fragment = tlsRecordFragment;
+        request.tls_fragment_fallback_delay = tlsFragmentFallbackDelay.toStdString();
         libcore::WarpRegisterResponse reply;
         std::vector<uint8_t> resp;
         // Must outlast the core's per-host budget in server_warp.go.
@@ -860,6 +929,47 @@ namespace API {
             if (status != LocalSocketChannel::CallOK && !resp.empty())
                 return QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
             return "IPC error";
+        }
+    }
+
+    libcore::ResolveDomainsResponse Client::ResolveDomains(bool *rpcOK, const QStringList &domains, const QString &config,
+                                                           QString *coreError) const
+    {
+        libcore::ResolveDomainsRequest request;
+        for (const auto &domain : domains) request.domains.push_back(domain.toStdString());
+        request.config = config.toStdString();
+        libcore::ResolveDomainsResponse reply;
+        std::vector<uint8_t> resp;
+        // The core may start a probe box first, then runs 16 lookups at a time with 5 s each.
+        const int timeoutMs = 30000 + static_cast<int>((domains.size() + 15) / 16) * 5000;
+        auto status = channel->Call("ResolveDomains", spb::pb::serialize<std::string>(request), resp, timeoutMs);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return reply;
+        } else {
+            if (coreError && !resp.empty())
+                *coreError = QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
+            NOT_OK
+            return {};
+        }
+    }
+
+    libcore::TestRouteResponse Client::TestRoute(bool *rpcOK, const libcore::TestRouteRequest &request, QString *coreError) const
+    {
+        libcore::TestRouteResponse reply;
+        std::vector<uint8_t> resp;
+        // A stripped config may download its remote rule sets first.
+        auto status = channel->Call("TestRoute", spb::pb::serialize<std::string>(request), resp, 90000);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return reply;
+        } else {
+            if (coreError && !resp.empty())
+                *coreError = QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
+            NOT_OK
+            return {};
         }
     }
 

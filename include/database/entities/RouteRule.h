@@ -186,6 +186,8 @@ namespace Configs {
 
         [[nodiscard]] static bool is_list_attribute(const QString& attr);
         [[nodiscard]] static bool is_match_attribute(const QString& attr);
+        // The actions get_rule_json emits attr for; empty when it applies to every action.
+        [[nodiscard]] static QStringList action_scope(const QString& attr);
         // The action get_rule_json emits: a route rule to block or dns_out is a reject or hijack-dns rule.
         [[nodiscard]] QString effective_action() const;
         [[nodiscard]] bool has_match_conditions() const;

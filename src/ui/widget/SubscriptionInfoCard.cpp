@@ -322,11 +322,11 @@ QString SubscriptionInfoCard::expiryText(qint64 expire) {
     const qint64 left = expire - QDateTime::currentSecsSinceEpoch();
     if (left < 0)
         return tr("Expired");
-    if (left < 3600)
-        return tr("%1m left").arg(std::max<qint64>(1, left / 60));
-    if (left < 86400)
-        return tr("%1h left").arg(left / 3600);
-    return tr("%1d left").arg(left / 86400);
+    if (left >= 86400)
+        return tr("%1d %2h left").arg(left / 86400).arg(left % 86400 / 3600);
+    if (left >= 3600)
+        return tr("%1h %2m left").arg(left / 3600).arg(left % 3600 / 60);
+    return tr("%1m left").arg(std::max<qint64>(1, left / 60));
 }
 
 void SubscriptionInfoCard::setGroup(const std::shared_ptr<Configs::Group> &group) {

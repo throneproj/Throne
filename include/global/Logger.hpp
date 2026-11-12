@@ -67,6 +67,9 @@ namespace Logging {
 
     QString LogDir();
 
+    // This session's log files, oldest first, with the current one flushed.
+    QStringList LogFiles();
+
     QString CrashDir();
 
 #ifdef Q_OS_WIN

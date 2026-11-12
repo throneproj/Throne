@@ -8,8 +8,8 @@ class ProfilesTableView : public QTableView {
 public:
     explicit ProfilesTableView(QWidget *parent = nullptr);
 
-    // Drop-to-reorder: (from, to) as source-model rows, not view rows.
-    std::function<void(int row1, int row2)> rowsSwapped;
+    // Drop-to-reorder: the dragged row lands above or below `target`; both are source-model rows, not view rows.
+    std::function<void(int from, int target, bool below)> rowDropped;
 
     void setModel(QAbstractItemModel *model) override;
 

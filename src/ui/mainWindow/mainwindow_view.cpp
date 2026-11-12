@@ -18,6 +18,7 @@
 #include "include/engine/vpn/VpnAuthController.h"
 #include "include/engine/vpn/VpnEndpoints.h"
 #include "include/global/LocalNetwork.hpp"
+#include "include/global/RunningProfiles.hpp"
 #include "include/stats/autoselector/AutoSelectorMonitor.hpp"
 #include "include/sys/KillSwitch.hpp"
 #include "include/ui/setting/Icon.hpp"
@@ -55,9 +56,14 @@ void MainWindow::applyTopBarMetrics() {
     }
     for (auto* b : menuButtons) b->setMinimumWidth(uniformButtonWidth);
 
-    const QSize contentMin = minimumSizeHint();
-    setMinimumSize(qMax(designMinimumSize.width(), contentMin.width()),
-                   qMax(designMinimumSize.height(), contentMin.height()));
+    auto* centralLayout = centralWidget()->layout();
+    // Nested layouts keep stale minimums until the next layout pass.
+    centralLayout->activate();
+    const QMargins margins = centralLayout->contentsMargins();
+    // Top bar only: the rows below show profile names, and an explicit minimum never shrinks back (#2081).
+    const int topBarWidth = ui->horizontalLayout_2->minimumSize().width() + margins.left() + margins.right();
+    setMinimumSize(qMax(designMinimumSize.width(), topBarWidth),
+                   qMax(designMinimumSize.height(), minimumSizeHint().height()));
 }
 
 void MainWindow::UpdateDataView(bool force)
@@ -67,9 +73,10 @@ void MainWindow::UpdateDataView(bool force)
     {
         return;
     }
-    auto html = dataViewHtmlGenerator_.buildHtml();
+    auto content = dataViewHtmlGenerator_.build();
     runOnUiThread([=, this] {
-        ui->data_view->setHtml(html);
+        ui->data_view->setHtml(content.html);
+        ui->data_view->setToolTip(content.toolTip);
     }, true);
     lastUpdatedMs.store(QDateTime::currentMSecsSinceEpoch());
 }
@@ -83,10 +90,14 @@ void MainWindow::testPanelSeeded(Engine::TestKind kind, int totalProfiles)
         case Engine::TestKind::Ip:
             dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::Ip, totalProfiles);
             break;
+        case Engine::TestKind::Service:
+            dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::Service, totalProfiles);
+            break;
         case Engine::TestKind::Speed:
             dataViewHtmlGenerator_.seedSpeedTest(totalProfiles);
             break;
     }
+    runOnUiThread([this] { ui->menu_stop_testing->setEnabled(true); });
 }
 
 void MainWindow::testProgressed()
@@ -97,6 +108,7 @@ void MainWindow::testProgressed()
 void MainWindow::testPanelsCleared()
 {
     dataViewHtmlGenerator_.clearTestSections();
+    runOnUiThread([this] { ui->menu_stop_testing->setEnabled(false); });
 }
 
 void MainWindow::testViewChanged(bool force)
@@ -169,7 +181,7 @@ void MainWindow::updateLogFilterFields() {
 void MainWindow::applyProfileFilters()
 {
     if (!profilesFilterModel) return;
-    profilesFilterModel->setFilters(typeFilterString, addressFilterString, nameFilterString, countryFilterString);
+    profilesFilterModel->setFilters(typeFilterString, addressFilterString, nameFilterString, testFilterString);
     refresh_proxy_list_column_size();
 }
 
@@ -247,7 +259,7 @@ void MainWindow::refresh_status(const QString &traffic_update) {
         ui->label_running->setToolTip({});
     }
 
-    const auto route = Configs::dataManager->routesRepo->GetRouteProfile(settings->current_route_id);
+    const auto route = Configs::dataManager->routesRepo->GetRouteProfile(Configs::ActiveRouteId());
     const QString activeRouteName = (route && route->name != "Default") ? route->name : "";
     const auto killSwitchState = Sys::KillSwitch::instance()->state();
     const bool killSwitchBlocking = killSwitchState == Sys::KillSwitch::State::Failed && Sys::KillSwitch::instance()->failedForIdentity();
@@ -349,6 +361,28 @@ void MainWindow::refresh_startstop_button() {
         if (tray != nullptr) tray->setIcon(Icon::GetTrayIcon(iconStatus));
         icon_status = iconStatus;
     }
+}
+
+void MainWindow::refresh_action_states() {
+    qsizetype selectedRows = 0;
+    if (const auto *selection = ui->profilesTableView->selectionModel()) {
+        // The view selects whole rows and the ranges never overlap, so their heights add up to the row count.
+        for (const auto &range : selection->selection()) {
+            selectedRows += range.height();
+            if (selectedRows > 1) break;
+        }
+    }
+    const bool anySelected = selectedRows > 0;
+    ui->actionSpeedtest_Selected->setEnabled(anySelected);
+    ui->actionUrl_Test_Selected->setEnabled(anySelected);
+    ui->menu_resolve_selected->setEnabled(anySelected);
+    ui->actionResolve_Selected_Out_IP->setEnabled(anySelected);
+    ui->actionService_Check_Selected->setEnabled(anySelected);
+    ui->menu_find_settings->setEnabled(selectedRows == 1);
+
+    const bool running = runningSnapshot() != nullptr;
+    ui->actionSpeedtest_Current->setEnabled(running);
+    ui->actionUpdate_Rule_Sets->setEnabled(running);
 }
 
 void MainWindow::set_traffic_lines(const QList<Stats::TrafficLine> &lines) {
@@ -489,9 +523,8 @@ void MainWindow::refresh_proxy_list_impl(const QList<int>& ids, bool mayNeedRese
 void MainWindow::refresh_sort_indicator() {
     const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
     const int column = group == nullptr ? -1 : ProfilesTableModel::columnOfSort(group->sort.method);
-    const auto order = group != nullptr && group->sort.descending ? Qt::DescendingOrder : Qt::AscendingOrder;
-    // Section -1 hides the indicator.
-    ui->profilesTableView->horizontalHeader()->setSortIndicator(column, order);
+    auto *header = static_cast<ProfilesTableFilterHeader*>(ui->profilesTableView->horizontalHeader());
+    if (header->setSortSection(column, group != nullptr && group->sort.descending)) refresh_proxy_list_column_size();
 }
 
 void MainWindow::sortCurrentGroup(GroupSortAction action) {
@@ -517,7 +550,7 @@ void MainWindow::refresh_proxy_list_impl_refresh_data(const QList<int>& ids, boo
     if (!ids.isEmpty()) {
         for (auto id:ids) profilesTableModel->refreshProfileId(id);
     } else {
-        profilesTableModel->refreshTable(currentGroup->profiles, mayNeedReset);
+        profilesTableModel->refreshTable(currentGroup->profiles, currentGroup->PinnedCount(), mayNeedReset);
     }
 }
 

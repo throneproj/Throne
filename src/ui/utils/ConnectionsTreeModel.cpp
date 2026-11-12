@@ -34,6 +34,28 @@ namespace {
     QString outboundToolTip(const QString &name, const QString &tag) {
         return name == tag ? name : QStringLiteral("%1 (%2)").arg(name, tag);
     }
+
+    // Where the rule sent the connection: a well-known tag says it better than the profile behind it,
+    // which the Outbound column already shows, while a rule's own server (route-N) has nothing but its name.
+    QString routeTarget(const Stats::ConnectionMetadata &meta) {
+        static const QStringList plainTags{QStringLiteral("proxy"), QStringLiteral("direct"), QStringLiteral("warp-bypass")};
+        return plainTags.contains(meta.outbound) || meta.outboundName.isEmpty() ? meta.outbound : meta.outboundName;
+    }
+
+    // The rule's entries that matched, else the whole rule, else sing-box's fallback.
+    QString matchedPart(const Stats::ConnectionMetadata &meta) {
+        if (!meta.ruleItem.isEmpty()) return meta.ruleItem;
+        return meta.rule.isEmpty() ? QStringLiteral("final") : meta.rule;
+    }
+}
+
+QString ConnectionsTreeModel::matchedRuleText(const Stats::ConnectionMetadata &meta, int maxGraphemes) {
+    return tr("Matched: %1 → %2").arg(ShortDisplayName(matchedPart(meta), maxGraphemes), ShortDisplayName(routeTarget(meta)));
+}
+
+QString ConnectionsTreeModel::matchedRuleToolTip(const Stats::ConnectionMetadata &meta) {
+    // The full server name too: the Outbound column cuts it, and this tooltip is the only place left to read it.
+    return tr("Matched: %1 → %2").arg(matchedPart(meta), outboundToolTip(meta.outboundName, meta.outbound));
 }
 
 ConnectionsTreeModel::ConnectionsTreeModel(QObject *parent)
@@ -152,8 +174,8 @@ QVariant ConnectionsTreeModel::data(const QModelIndex &index, int role) const {
             return {};
         }
     case Qt::ToolTipRole: {
+        if (index.column() == ColOutbound) return matchedRuleToolTip(leaf->meta);
         const QString outbound = outboundToolTip(leaf->meta.outboundName, leaf->meta.outbound);
-        if (index.column() == ColOutbound) return outbound;
         if (index.column() != ColTarget) return {};
         const QString process = displayProcessName(leaf->parent->processName);
         if (leaf->count > 1) {
@@ -232,7 +254,7 @@ void ConnectionsTreeModel::setConnections(const QList<Stats::ConnectionMetadata>
 
         const QString dest = DisplayDest(c.dest, c.domain);
         const QString protocol = c.protocol.isEmpty() ? c.network : c.network + " (" + c.protocol + ")";
-        const QString key = dest + "\t" + protocol + "\t" + c.outbound + "\t" + c.sourceDisplay;
+        const QString key = dest + "\t" + protocol + "\t" + c.outbound + "\t" + c.sourceDisplay + "\t" + c.rule + "\t" + c.ruleItem;
         ConnectionLeafItem *&leaf = leafByKey[process + "\n" + key];
         if (leaf == nullptr) {
             leaf = group->children.emplace_back(std::make_unique<ConnectionLeafItem>()).get();

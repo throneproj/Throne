@@ -7,6 +7,20 @@
 
 #include "include/sys/GlobalHotkeys.hpp"
 
+namespace {
+    // Other actions carry data of their own (route ids, protocol names); only "m<digits>" is a shortcut id.
+    QString shortcutId(const QAction *action) {
+        const QVariant data = action->data();
+        if (data.typeId() != QMetaType::QString) return {};
+        const QString id = data.toString();
+        if (id.size() < 2 || id[0] != QLatin1Char('m')) return {};
+        for (qsizetype i = 1; i < id.size(); ++i) {
+            if (id[i] < QLatin1Char('0') || id[i] > QLatin1Char('9')) return {};
+        }
+        return id;
+    }
+}
+
 QStringList MainWindow::RegisterHotkey(bool unregister) {
     if (!globalHotkeys) {
         globalHotkeys = new GlobalHotkeys(this);
@@ -77,8 +91,11 @@ void MainWindow::RegisterHiddenMenuShortcuts(bool unregister) {
     // A native menubar keeps its actions' shortcuts live even while hidden, so a second binding makes both ambiguous and kills them.
     if (ui->menubar->isNativeMenuBar()) return;
 
-    // Menus on visible toolButtons already register their actions' shortcuts; seed to avoid duplicates.
+    // Menus on visible toolButtons and the window's own actions already register their shortcuts; seed to avoid duplicates.
     QSet<QKeySequence> claimed;
+    for (const auto *action : actions()) {
+        for (const auto &seq : action->shortcuts()) claimed.insert(seq);
+    }
     collectMenuShortcuts(ui->menu_program, claimed);
     collectMenuShortcuts(ui->menu_preferences, claimed);
     collectMenuShortcuts(ui->menuRouting_Menu, claimed);
@@ -121,6 +138,29 @@ void MainWindow::setActionsData()
     ui->menu_remove_insecure->setData(QString("m30"));
     ui->actionUpdate_All_Subscriptions->setData(QString("m31"));
     ui->menu_scanner->setData(QString("m32"));
+    commandPaletteAction->setData(QString("m33"));
+    ui->actionService_Check_Selected->setData(QString("m34"));
+    ui->actionService_Check_Group->setData(QString("m35"));
+    ui->menu_find_settings->setData(QString("m36"));
+    ui->actionRule_Tester->setData(QString("m37"));
+    ui->actionRestart_Proxy->setData(QString("m38"));
+    ui->menu_stop->setData(QString("m39"));
+    ui->actionUpdate_Rule_Sets->setData(QString("m40"));
+    ui->menu_basic_settings->setData(QString("m41"));
+    ui->menu_routing_settings->setData(QString("m42"));
+    ui->menu_vpn_settings->setData(QString("m43"));
+    ui->menu_preset_settings->setData(QString("m44"));
+    ui->menu_integration_settings->setData(QString("m45"));
+    ui->menu_manage_groups->setData(QString("m46"));
+    ui->actionAdd_New_Group->setData(QString("m47"));
+    ui->actionEdit_Group->setData(QString("m48"));
+    ui->menu_otp_manager->setData(QString("m49"));
+    ui->actionTraffic_Stats->setData(QString("m50"));
+    ui->menu_open_dashboard->setData(QString("m51"));
+    ui->actionAuto_Selector->setData(QString("m52"));
+    ui->actionAdblock->setData(QString("m53"));
+    ui->actionWarp->setData(QString("m54"));
+    ui->menu_pin->setData(QString("m55"));
 }
 
 QList<QAction*> MainWindow::getActionsForShortcut()
@@ -129,7 +169,7 @@ QList<QAction*> MainWindow::getActionsForShortcut()
     QList<QAction *> actions = findChildren<QAction *>();
 
     for (QAction *action : actions) {
-        if (action->data().isNull() || action->data().toString().isEmpty()) continue;
+        if (shortcutId(action).isEmpty()) continue;
         list.append(action);
     }
     return list;
@@ -140,9 +180,10 @@ void MainWindow::loadShortcuts()
     auto mp = Configs::dataManager->settingsRepo->shortcuts;
     for (QList<QAction *> actions = findChildren<QAction *>(); QAction *action : actions)
     {
-        if (action->data().isNull() || action->data().toString().isEmpty()) continue;
-        if (mp.count(action->data().toString()) > 0) {
-            action->setShortcut(mp[action->data().toString()]);
+        const QString id = shortcutId(action);
+        if (id.isEmpty()) continue;
+        if (mp.count(id) > 0) {
+            action->setShortcut(mp[id]);
         }
     }
 

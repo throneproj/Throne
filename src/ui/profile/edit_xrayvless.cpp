@@ -5,7 +5,7 @@
 #include "include/ui/utils/ValidationForm.h"
 
 namespace {
-    // The Xray network and security live in the outer dialog, and they decide whether Vision can work.
+    // The Xray network and security live in the outer dialog, and they decide whether Vision or XDRIVE can work.
     QComboBox *xrayVlessOuterCombo(QWidget *dialog, const QWidget *editor, const QString &name) {
         if (dialog == nullptr) return nullptr;
         for (auto *combo : dialog->findChildren<QComboBox *>(name)) {
@@ -60,10 +60,19 @@ void EditXrayVless::bindValidation(Validation::Form &form) {
     QWidget *dialog = get_edit_dialog ? get_edit_dialog() : nullptr;
     const QPointer<QComboBox> network = xrayVlessOuterCombo(dialog, this, QStringLiteral("xray_network"));
     const QPointer<QComboBox> security = xrayVlessOuterCombo(dialog, this, QStringLiteral("xray_security"));
+    form.addRule({ui->xray_enc, network}, [this, network] {
+        if (network == nullptr) return QString();
+        return Configs::Checks::XrayXDriveEncryption(ui->xray_enc->text().trimmed(), network->currentText().trimmed());
+    }, this);
     form.addRule({ui->xray_flow, network, security, ui->xray_enc}, [this, network, security] {
-        if (auto message = Validation::OneOf(ui->xray_flow->currentText(), QStringList{""} + Configs::xrayFlows); !message.isEmpty()) return message;
+        const auto flow = ui->xray_flow->currentText();
+        if (auto message = Validation::OneOf(flow, QStringList{""} + Configs::xrayFlows); !message.isEmpty()) return message;
         if (network == nullptr || security == nullptr) return QString();
-        return Configs::Checks::XrayVlessVision(ui->xray_flow->currentText(), ui->xray_enc->text().trimmed(),
-                                                network->currentText().trimmed(), security->currentText().trimmed());
+        const auto net = network->currentText().trimmed();
+        if (auto message = Configs::Checks::XrayVlessVision(flow, ui->xray_enc->text().trimmed(), net, security->currentText().trimmed());
+            !message.isEmpty()) {
+            return message;
+        }
+        return Configs::Checks::XrayXDriveFlow(flow, net);
     }, this);
 }

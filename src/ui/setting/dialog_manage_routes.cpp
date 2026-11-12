@@ -18,6 +18,8 @@
 #include <QScreen>
 #include <QGridLayout>
 #include <QFormLayout>
+#include <QGroupBox>
+#include <QLineEdit>
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QRegularExpression>
@@ -30,9 +32,11 @@
 #include "include/configs/sub/warp.h"
 #include "include/configs/sub/RouteUpdater.hpp"
 
+#include "include/database/GroupsRepo.h"
 #include "include/database/RoutesRepo.h"
 #include "include/ui/setting/RawRouteItem.h"
 #include "include/ui/setting/RouteDnsEditor.h"
+#include "include/ui/utils/UiMode.h"
 
 namespace {
     constexpr auto defaultWarpApiHost = "api.cloudflareclient.com";
@@ -69,12 +73,6 @@ namespace {
     // Shown before import: those servers would see every query made while the profile is in use.
     QString manageRoutesDnsNote(const Configs::RouteDns &dns) {
         return DialogManageRoutes::tr("It uses its own DNS servers: remote %1, direct %2.").arg(dns.remote_dns, dns.direct_dns);
-    }
-
-    QString manageRoutesDnsProblem(const QString &text) {
-        Configs::DnsAddress parsed;
-        QString why;
-        return Configs::ParseDnsAddress(text, &parsed, &why) ? QString() : why;
     }
 
     // dns-local resolves the other servers' names, so it cannot depend on one itself.
@@ -187,6 +185,60 @@ namespace {
         w->exec();
         w->deleteLater();
     }
+
+    void editWarpAdvanced(QWidget *parent) {
+        auto w = new QDialog(parent);
+        w->setWindowTitle(DialogManageRoutes::tr("Advanced WARP Settings"));
+        w->setWindowModality(Qt::ApplicationModal);
+
+        auto *settings = Configs::dataManager->settingsRepo.get();
+        auto layout = new QVBoxLayout(w);
+
+        auto registration = new QGroupBox(DialogManageRoutes::tr("Registration"), w);
+        auto registrationForm = new QFormLayout(registration);
+        auto hint = new QLabel(DialogManageRoutes::tr("Applies only when registration connects directly, not through a running profile."),
+                               registration);
+        hint->setWordWrap(true);
+        registrationForm->addRow(hint);
+        auto fragment = new QCheckBox(DialogManageRoutes::tr("Fragment TLS"), registration);
+        fragment->setChecked(settings->warp_api_tls_fragment);
+        registrationForm->addRow(fragment);
+        auto recordFragment = new QCheckBox(DialogManageRoutes::tr("Record fragment"), registration);
+        recordFragment->setChecked(settings->warp_api_tls_record_fragment);
+        registrationForm->addRow(recordFragment);
+        auto fallbackDelay = new QLineEdit(settings->warp_api_tls_fragment_fallback_delay, registration);
+        fallbackDelay->setPlaceholderText(QStringLiteral("500ms"));
+        registrationForm->addRow(DialogManageRoutes::tr("Fallback delay"), fallbackDelay);
+        const auto syncFallbackDelay = [=] {
+            fallbackDelay->setEnabled(fragment->isChecked());
+            if (auto *label = registrationForm->labelForField(fallbackDelay)) label->setEnabled(fragment->isChecked());
+        };
+        QObject::connect(fragment, &QCheckBox::toggled, w, syncFallbackDelay);
+        syncFallbackDelay();
+        layout->addWidget(registration);
+
+        auto buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, w);
+        layout->addWidget(buttons);
+
+        auto popupForm = new Validation::Form(w);
+        popupForm->attachStatus(buttons);
+        popupForm->bind(fallbackDelay, Validation::Rules::Duration());
+        popupForm->markAll();
+
+        QObject::connect(buttons, &QDialogButtonBox::accepted, w, [=] {
+            if (!popupForm->validateAll()) return;
+            settings->warp_api_tls_fragment = fragment->isChecked();
+            settings->warp_api_tls_record_fragment = recordFragment->isChecked();
+            settings->warp_api_tls_fragment_fallback_delay = fallbackDelay->text().trimmed();
+            settings->Save();
+            w->accept();
+        });
+        QObject::connect(buttons, &QDialogButtonBox::rejected, w, &QDialog::reject);
+
+        w->resize(w->sizeHint().boundedTo(parent->screen()->availableGeometry().size()));
+        w->exec();
+        w->deleteLater();
+    }
 }
 
 void DialogManageRoutes::reloadProfileItems() {
@@ -203,7 +255,12 @@ void DialogManageRoutes::reloadProfileItems() {
     int i=0;
     for (const auto &item: chainList) {
         ui->route_prof->addItem(item->name);
-        ui->route_profiles->addItem(item->name);
+        if (const auto owner = Configs::dataManager->groupsRepo->GetGroup(item->source_gid); owner != nullptr && owner->import_sub_route) {
+            auto *row = new QListWidgetItem(tr("%1 (updated by subscription \"%2\")").arg(item->name, owner->name), ui->route_profiles);
+            row->setToolTip(tr("Every update of the subscription \"%1\" overwrites its rules. Deleting it stops the import.").arg(owner->name));
+        } else {
+            ui->route_profiles->addItem(item->name);
+        }
         if (item == currentRoute) {
             ui->route_prof->setCurrentIndex(i);
             selectedChainGone=false;
@@ -501,7 +558,7 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     });
 
     ui->enable_warp->setChecked(Configs::dataManager->settingsRepo->enable_warp);
-    ui->warp_mode->setCurrentIndex(Configs::dataManager->settingsRepo->warp_mode == "masque" ? 1 : 0);
+    ui->warp_mode->setCurrentIndex(Configs::dataManager->settingsRepo->warp_mode == "masque" ? 1 : Configs::dataManager->settingsRepo->warp_mode == "amnezia" ? 2 : 0);
     ui->warp_private_key->setText(Configs::dataManager->settingsRepo->warp_private_key);
     ui->warp_public_key->setText(Configs::dataManager->settingsRepo->warp_public_key);
     ui->warp_ifc_addrs->setText(Configs::dataManager->settingsRepo->warp_ifc_addrs.join(","));
@@ -513,17 +570,28 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     ui->warp_masque_ifc_addrs->setText(Configs::dataManager->settingsRepo->warp_masque_ifc_addrs.join(","));
     ui->warp_masque_sni->setText(Configs::dataManager->settingsRepo->warp_masque_sni);
     ui->warp_masque_http_mode->setCurrentIndex(std::clamp(Configs::dataManager->settingsRepo->warp_masque_http_mode, 0, 2));
+    warpAmneziaPackets = Configs::dataManager->settingsRepo->warp_amnezia_packets;
     auto showWarpMode = [this](int index) {
-        ui->warp_wg_box->setVisible(index == 0);
-        ui->warp_masque_box->setVisible(index == 1);
+        UiMode::SetVisible(ui->warp_wg_box, index != 1);
+        UiMode::SetVisible(ui->warp_masque_box, index == 1);
+        if (index == 2 && warpAmneziaPackets.isEmpty()) generate_amnezia_packets();
     };
     showWarpMode(ui->warp_mode->currentIndex());
     connect(ui->warp_mode, &QComboBox::currentIndexChanged, this, showWarpMode);
     connect(ui->warp_autogen, &QPushButton::clicked, this, &DialogManageRoutes::generate_warp_config);
     connect(ui->warp_api_hosts_btn, &QPushButton::clicked, this, [this] { editWarpApiHosts(this); });
+    connect(ui->warp_advanced_btn, &QPushButton::clicked, this, [this] { editWarpAdvanced(this); });
 
-    form->bind(ui->remote_dns, manageRoutesDnsProblem).label(ui->label_9->text());
-    form->bind(ui->direct_dns, manageRoutesDnsProblem).label(ui->label_8->text());
+    // A custom DNS object greys out the DNS fields, so Simple mode keeps its switch beside them while it is on.
+    if (ui->use_dns_object->isChecked()) {
+        UiMode::Unmark(ui->groupBox);
+        UiMode::Unmark(ui->simple_dns_box);
+    }
+    UiMode::Apply(this);
+    UiMode::Fold(this);
+
+    form->bind(ui->remote_dns, Configs::DnsAddressListProblem).label(ui->label_9->text());
+    form->bind(ui->direct_dns, Configs::DnsAddressListProblem).label(ui->label_8->text());
     form->bind(ui->local_override, manageRoutesLocalDnsProblem).label(ui->label_2->text());
     // buildDNSSection would emit an unparsable object as "dns": {}, silently dropping every DNS setting.
     form->addRule({ui->use_dns_object}, [this] {
@@ -560,6 +628,20 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     };
     connect(ui->enable_warp, &QCheckBox::toggled, form, revalidateWarp);
     connect(ui->warp_mode, &QComboBox::currentIndexChanged, form, revalidateWarp);
+    // Simple mode hides the fields above, and hidden fields are not validated.
+    form->addRule({ui->enable_warp, ui->warp_mode}, [this] {
+        if (!UiMode::Simple() || !ui->enable_warp->isChecked()) return QString();
+        const QList<QLineEdit *> fields = ui->warp_mode->currentIndex() == 1
+            ? QList<QLineEdit *>{ui->warp_masque_ep, ui->warp_masque_private_key, ui->warp_masque_peer_public_key, ui->warp_masque_ifc_addrs}
+            : QList<QLineEdit *>{ui->warp_ep, ui->warp_private_key, ui->warp_public_key, ui->warp_ifc_addrs};
+        const bool missing = std::any_of(fields.cbegin(), fields.cend(), [](const QLineEdit *edit) { return edit->text().trimmed().isEmpty(); });
+        return missing ? tr("WARP has no config yet: click Generate Warp Config.") : QString();
+    }, nullptr, Validation::Severity::Error, ui->enable_warp->text());
+    form->addRule({ui->enable_warp, ui->warp_mode}, [this] {
+        if (!ui->enable_warp->isChecked() || ui->warp_mode->currentIndex() != 2 || !warpAmneziaPackets.isEmpty()) return QString();
+        if (warpAmneziaPending) return tr("Generating the AmneziaWG QUIC signature...");
+        return warpAmneziaError.isEmpty() ? tr("AmneziaWG has no QUIC signature yet: click Generate Warp Config.") : warpAmneziaError;
+    }, nullptr, Validation::Severity::Error, ui->warp_mode_l->text());
     form->markAll();
 
     ADD_ASTERISK(this)
@@ -571,15 +653,18 @@ void DialogManageRoutes::generate_warp_config() {
     if (!Configs_network::ConfirmWarpTerms(this)) return;
 
     const bool masque = ui->warp_mode->currentIndex() == 1;
+    const bool amnezia = ui->warp_mode->currentIndex() == 2;
     const auto originalText = ui->warp_autogen->text();
     ui->warp_autogen->setEnabled(false);
     ui->warp_autogen->setText(tr("Generating config..."));
 
     QPointer<DialogManageRoutes> self(this);
-    runOnNewThread([self, masque, originalText] {
+    runOnNewThread([self, masque, amnezia, originalText] {
         QString error;
+        QString packetError;
         const auto conf = Configs_network::RegisterWarp(masque ? "masque" : "wireguard", &error);
-        runOnUiThread([self, masque, originalText, conf, error] {
+        const auto packets = conf && amnezia ? Configs_network::GenerateWarpCamouflage(packetError) : QStringList();
+        runOnUiThread([self, masque, amnezia, originalText, conf, error, packets, packetError] {
             if (self == nullptr) return;
             auto *dialog = self.data();
             if (!conf) {
@@ -587,6 +672,10 @@ void DialogManageRoutes::generate_warp_config() {
                 dialog->ui->warp_autogen->setEnabled(true);
                 MessageBoxWarning(tr("Failed to generate warp config"), error);
                 return;
+            }
+            if (amnezia) {
+                if (packetError.isEmpty()) dialog->warpAmneziaPackets = packets;
+                dialog->warpAmneziaError = packetError;
             }
             QStringList addrs;
             if (!conf->ipv4.isEmpty()) addrs << conf->ipv4 + "/32";
@@ -603,11 +692,36 @@ void DialogManageRoutes::generate_warp_config() {
                 dialog->ui->warp_ifc_addrs->setText(addrs.join(","));
                 dialog->ui->warp_reserved->setText(QListInt2QListString(conf->reserved).join(","));
             }
+            dialog->form->refresh();
+            if (!packetError.isEmpty()) {
+                dialog->ui->warp_autogen->setText(originalText);
+                dialog->ui->warp_autogen->setEnabled(true);
+                MessageBoxWarning(tr("Failed to generate warp config"), packetError);
+                return;
+            }
             dialog->ui->warp_autogen->setText(tr("Success!"));
             setTimeout([dialog, originalText] {
                 dialog->ui->warp_autogen->setText(originalText);
                 dialog->ui->warp_autogen->setEnabled(true);
             }, dialog, 2000);
+        });
+    });
+}
+
+void DialogManageRoutes::generate_amnezia_packets() {
+    if (warpAmneziaPending) return;
+    warpAmneziaPending = true;
+    QPointer<DialogManageRoutes> self(this);
+    runOnNewThread([self] {
+        QString error;
+        const auto packets = Configs_network::GenerateWarpCamouflage(error);
+        runOnUiThread([self, packets, error] {
+            if (self == nullptr) return;
+            auto *dialog = self.data();
+            dialog->warpAmneziaPending = false;
+            if (error.isEmpty()) dialog->warpAmneziaPackets = packets;
+            dialog->warpAmneziaError = error;
+            dialog->form->refresh();
         });
     });
 }
@@ -632,8 +746,8 @@ void DialogManageRoutes::accept() {
     Configs::dataManager->settingsRepo->default_domain_strategy = ui->default_domain_strategy->currentText();
     Configs::dataManager->settingsRepo->use_dns_object = ui->use_dns_object->isChecked();
     Configs::dataManager->settingsRepo->dns_object = dns_object_text;
-    const auto remoteDns = ui->remote_dns->currentText().trimmed();
-    const auto directDns = ui->direct_dns->currentText().trimmed();
+    const auto remoteDns = Configs::NormalizeDnsAddressList(ui->remote_dns->currentText());
+    const auto directDns = Configs::NormalizeDnsAddressList(ui->direct_dns->currentText());
     if (remoteDns != Configs::dataManager->settingsRepo->remote_dns)
         DnsServerHistory::Remember(Configs::dataManager->settingsRepo->remote_dns_history, DnsServerHistory::RemotePresets(), remoteDns);
     if (directDns != Configs::dataManager->settingsRepo->direct_dns)
@@ -663,7 +777,7 @@ void DialogManageRoutes::accept() {
     }
     Configs::dataManager->settingsRepo->dns_predefined_rules = predefinedRules;
 
-    Configs::dataManager->routesRepo->UpdateRouteProfiles(chainList);
+    Configs::dataManager->routesRepo->UpdateRouteProfiles(chainList, removedIds);
     Configs::dataManager->settingsRepo->current_route_id = currentRoute->id;
 
     Configs::dataManager->settingsRepo->enable_warp = ui->enable_warp->isChecked();
@@ -672,7 +786,9 @@ void DialogManageRoutes::accept() {
     Configs::dataManager->settingsRepo->warp_private_key = ui->warp_private_key->text().trimmed();
     Configs::dataManager->settingsRepo->warp_public_key = ui->warp_public_key->text().trimmed();
     Configs::dataManager->settingsRepo->warp_reserved = SplitAndTrim(ui->warp_reserved->text(), ",", false);
-    Configs::dataManager->settingsRepo->warp_mode = ui->warp_mode->currentIndex() == 1 ? "masque" : "wireguard";
+    Configs::dataManager->settingsRepo->warp_mode = ui->warp_mode->currentIndex() == 1 ? "masque"
+        : ui->warp_mode->currentIndex() == 2 ? "amnezia" : "wireguard";
+    Configs::dataManager->settingsRepo->warp_amnezia_packets = warpAmneziaPackets;
     Configs::dataManager->settingsRepo->warp_masque_ep = ui->warp_masque_ep->text().trimmed();
     Configs::dataManager->settingsRepo->warp_masque_private_key = ui->warp_masque_private_key->text().trimmed();
     Configs::dataManager->settingsRepo->warp_masque_peer_public_key = ui->warp_masque_peer_public_key->text().trimmed();
@@ -701,6 +817,7 @@ void DialogManageRoutes::on_new_route_clicked() {
     if (chosen == rawAct) {
         newProfile->isRaw = true;
         auto* rawWidget = new RawRouteItem(this, newProfile);
+        rawWidget->setAttribute(Qt::WA_DeleteOnClose);
         rawWidget->setWindowModality(Qt::ApplicationModal);
         rawWidget->show();
         connect(rawWidget, &RawRouteItem::settingsChanged, this, onCreated);
@@ -708,6 +825,7 @@ void DialogManageRoutes::on_new_route_clicked() {
         // Remote profiles are structured underneath; RouteItem grows a "Remote source" section when isRemote.
         if (chosen == remoteAct) newProfile->isRemote = true;
         routeChainWidget = new RouteItem(this, newProfile);
+        routeChainWidget->setAttribute(Qt::WA_DeleteOnClose);
         routeChainWidget->setWindowModality(Qt::ApplicationModal);
         routeChainWidget->show();
         connect(routeChainWidget, &RouteItem::settingsChanged, this, onCreated);
@@ -738,6 +856,7 @@ void DialogManageRoutes::applyImportedProfile(const std::shared_ptr<Configs::Rou
         auto shell = Configs::dataManager->routesRepo->NewRouteProfile();
         shell->Rules = profile->Rules;
         routeChainWidget = new RouteItem(this, shell);
+        routeChainWidget->setAttribute(Qt::WA_DeleteOnClose);
         routeChainWidget->setWindowModality(Qt::ApplicationModal);
         routeChainWidget->show();
         connect(routeChainWidget, &RouteItem::settingsChanged, this, [=, this](const std::shared_ptr<Configs::RouteProfile>& chain) {
@@ -845,6 +964,8 @@ void DialogManageRoutes::on_clone_route_clicked() {
     auto chainCopy = std::make_shared<Configs::RouteProfile>(*chainList[idx]);
     chainCopy->name = chainCopy->name + " clone";
     chainCopy->id = -1;
+    // The clone is the user's own: the subscription keeps updating only the original.
+    chainCopy->source_gid = -1;
     chainList.append(chainCopy);
     reloadProfileItems();
 }
@@ -861,11 +982,13 @@ void DialogManageRoutes::on_edit_route_clicked() {
 
     if (chainList[idx]->isRaw) {
         auto* rawWidget = new RawRouteItem(this, chainList[idx]);
+        rawWidget->setAttribute(Qt::WA_DeleteOnClose);
         rawWidget->setWindowModality(Qt::ApplicationModal);
         rawWidget->show();
         connect(rawWidget, &RawRouteItem::settingsChanged, this, onEdited);
     } else {
         routeChainWidget = new RouteItem(this, chainList[idx]);
+        routeChainWidget->setAttribute(Qt::WA_DeleteOnClose);
         routeChainWidget->setWindowModality(Qt::ApplicationModal);
         routeChainWidget->show();
         connect(routeChainWidget, &RouteItem::settingsChanged, this, onEdited);
@@ -882,6 +1005,7 @@ void DialogManageRoutes::on_delete_route_clicked() {
 
     auto profileToDel = chainList[idx];
     chainList.removeAt(idx);
+    if (profileToDel->id >= 0) removedIds << profileToDel->id;
     if (profileToDel == currentRoute) {
         currentRoute = chainList[0];
     }

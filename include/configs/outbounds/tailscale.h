@@ -8,7 +8,6 @@ namespace Configs
         public:
         bool HasServerEndpoint() override { return false; }
 
-        QString state_directory = "$HOME/.tailscale";
         QString auth_key;
         QString control_url = "https://controlplane.tailscale.com";
         bool ephemeral = false;

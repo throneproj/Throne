@@ -31,6 +31,10 @@ namespace Stats
     QString AutoSelectorView::summary() const
     {
         if (!valid) return {};
+        if (suspended && upstream) {
+            return QObject::tr("Auto selector paused — no network connection, or the chain hops in front of it are down (%1 profiles held)")
+                .arg(membersTotal);
+        }
         if (suspended) {
             return QObject::tr("Auto selector paused — no network connection (%1 profiles held)")
                 .arg(membersTotal);
@@ -47,12 +51,31 @@ namespace Stats
             return QObject::tr("Auto selector — no working profile out of %1, still checking")
                 .arg(membersTotal);
         }
-        QString base = QObject::tr("Auto selector on %1 (%2 of %3 working)")
-                           .arg(selectedName.isEmpty() ? selectedTag : selectedName)
-                           .arg(membersAlive)
-                           .arg(membersTotal);
+        const auto name = selectedName.isEmpty() ? selectedTag : selectedName;
+        QString base;
+        if (const int tier = selectedPriority(); prioritized() && tier >= 0) {
+            base = QObject::tr("Auto selector on %1, tier %2 (%3 of %4 working)")
+                       .arg(name, QString::number(tier + 1), QString::number(membersAlive), QString::number(membersTotal));
+        } else {
+            base = QObject::tr("Auto selector on %1 (%2 of %3 working)")
+                       .arg(name, QString::number(membersAlive), QString::number(membersTotal));
+        }
         if (lastSwitchMs > 0) base += QObject::tr(", switched %1").arg(elapsedText(lastSwitchMs));
         return base;
+    }
+
+    QString AutoSelectorView::tierLabel(int priority) const
+    {
+        if (priority >= 0 && priority < tierLabels.size()) return tierLabels[priority];
+        return QObject::tr("tier %1").arg(priority + 1);
+    }
+
+    int AutoSelectorView::selectedPriority() const
+    {
+        for (const auto &member : members) {
+            if (member.selected) return member.priority;
+        }
+        return -1;
     }
 
     QString AutoSelectorView::detail() const
@@ -62,6 +85,9 @@ namespace Stats
         if (membersProbed > 0) {
             parts << QObject::tr("%1 working").arg(membersAlive);
             if (membersCooldown > 0) parts << QObject::tr("%1 cooling down").arg(membersCooldown);
+            int suspect = 0;
+            for (const auto &member : members) suspect += member.isSuspect() ? 1 : 0;
+            if (suspect > 0) parts << QObject::tr("%1 suspect").arg(suspect);
             const int untested = membersTotal - membersProbed;
             if (untested > 0) parts << QObject::tr("%1 not checked yet").arg(untested);
         }
@@ -73,13 +99,22 @@ namespace Stats
 
     void AutoSelectorMonitor::SetBuild(const QList<Configs::AutoSelectorBuildInfo> &infos)
     {
+        QStringList labels;
+        if (!infos.isEmpty() && infos.first().profile != nullptr) {
+            if (const auto *bean = infos.first().profile->AutoSelector(); bean != nullptr && bean->Prioritized()) {
+                for (int i = 0; i <= bean->tiers.size(); i++) labels << bean->TierLabel(i);
+            }
+        }
+
         QMutexLocker lock(&mutex);
         tagToProfile.clear();
         tagToName.clear();
+        tierLabels = labels;
         view = AutoSelectorView{};
         exhaustedSince = 0;
         groupTag.clear();
         profileID = -1;
+        upstream = false;
         active = false;
         if (infos.isEmpty()) return;
 
@@ -87,6 +122,7 @@ namespace Stats
         const auto &info = infos.first();
         groupTag = info.groupTag;
         profileID = info.profile ? info.profile->id : -1;
+        upstream = info.upstream;
         for (const auto &[tag, member] : info.members) {
             if (member == nullptr) continue;
             tagToProfile.insert(tag, member->id);
@@ -95,6 +131,8 @@ namespace Stats
         view.valid = true;
         view.groupTag = groupTag;
         view.profileID = profileID;
+        view.upstream = upstream;
+        view.tierLabels = tierLabels;
         view.phase = "starting";
         view.membersTotal = static_cast<int>(info.members.size());
         lastHealthPersist = QDateTime::currentMSecsSinceEpoch();
@@ -108,7 +146,8 @@ namespace Stats
             QMutexLocker lock(&mutex);
             if (!active || !view.valid) return;
             // A suspended core believes the local network is down, so nothing it reports describes the servers.
-            if (view.suspended) return;
+            // Measured through hops in front, a result says nothing about the profile on its own.
+            if (view.suspended || view.upstream) return;
             members = view.members;
             lastHealthPersist = QDateTime::currentMSecsSinceEpoch();
         }
@@ -143,9 +182,11 @@ namespace Stats
         view = AutoSelectorView{};
         tagToProfile.clear();
         tagToName.clear();
+        tierLabels.clear();
         exhaustedSince = 0;
         groupTag.clear();
         profileID = -1;
+        upstream = false;
     }
 
     bool AutoSelectorMonitor::Active() const
@@ -254,12 +295,19 @@ namespace Stats
         next.nextRoundMs = status->next_round_ms.value();
         next.lastSwitchMs = status->last_switch_ms.value();
         next.lastSwitchReason = QString::fromStdString(status->last_switch_reason.value());
+        next.strategy = QString::fromStdString(status->strategy.value());
+        next.failbackChecks = status->failback_checks.value();
+        next.failbackDelayMs = status->failback_delay_ms.value();
+        next.passive = status->passive.value();
+        next.sitesRemembered = status->sites_remembered.value();
         next.updatedAtMs = QDateTime::currentMSecsSinceEpoch();
 
         int usable = 0;
         {
             QMutexLocker lock(&mutex);
             next.profileID = profileID;
+            next.upstream = upstream;
+            next.tierLabels = tierLabels;
             for (const auto &member : status->members) {
                 AutoSelectorMemberView entry;
                 entry.tag = QString::fromStdString(member.tag.value());
@@ -284,14 +332,23 @@ namespace Stats
                 entry.lastProbeMs = member.last_probe_ms.value();
                 entry.cooldownUntilMs = member.cooldown_until_ms.value();
                 entry.lastError = QString::fromStdString(member.last_error.value());
+                entry.priority = member.priority.value();
+                entry.streak = member.streak.value();
+                entry.lastFailureMs = member.last_failure_ms.value();
+                entry.firstByteMs = member.first_byte_ms.value();
+                entry.passiveAnswered = member.passive_answered.value();
+                entry.passiveFailed = member.passive_failed.value();
+                entry.recentAnswered = member.recent_answered.value();
+                entry.recentFailed = member.recent_failed.value();
+                entry.suspectUntilMs = member.suspect_until_ms.value();
                 entry.pinned = !next.pinnedTag.isEmpty() && entry.tag == next.pinnedTag;
                 if (entry.selected) {
                     next.selectedName = entry.name;
                     next.selectedProfileID = entry.profileID;
                 }
                 if (entry.pinned) next.pinnedName = entry.name;
-                // "untested" counts as usable: it has not failed, only not been reached.
-                if (entry.isUsable() || entry.state == "untested") usable++;
+                // "untested" has not failed, only not been reached; "suspect" passes the probes a re-rank would repeat.
+                if (entry.isUsable() || entry.state == "untested" || entry.isSuspect()) usable++;
                 next.members.append(entry);
             }
         }

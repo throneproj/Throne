@@ -45,6 +45,11 @@ func autoSelectorStatusToProto(status group.AutoSelectorStatus) *gen.AutoSelecto
 		Selected:         To(status.Selected),
 		SelectedUdp:      To(status.SelectedUDP),
 		Pinned:           To(status.Pinned),
+		Strategy:         To(status.Strategy),
+		FailbackChecks:   To(int32(status.FailbackChecks)),
+		FailbackDelayMs:  To(status.FailbackDelay.Milliseconds()),
+		Passive:          To(status.Passive),
+		SitesRemembered:  To(int32(status.SitesRemembered)),
 		Balance:          To(status.Balance),
 		BalanceMode:      To(status.BalanceMode),
 		Suspended:        To(status.Suspended),
@@ -84,6 +89,15 @@ func autoSelectorStatusToProto(status group.AutoSelectorStatus) *gen.AutoSelecto
 			LastProbeMs:     To(unixMilliOrZero(member.LastProbe)),
 			CooldownUntilMs: To(unixMilliOrZero(member.CooldownUntil)),
 			LastError:       To(member.LastError),
+			Priority:        To(int32(member.Priority)),
+			Streak:          To(int32(member.Streak)),
+			LastFailureMs:   To(unixMilliOrZero(member.LastFailure)),
+			FirstByteMs:     To(int32(member.FirstByteMs)),
+			PassiveAnswered: To(int32(member.PassiveAnswered)),
+			PassiveFailed:   To(int32(member.PassiveFailed)),
+			RecentAnswered:  To(int32(member.RecentAnswered)),
+			RecentFailed:    To(int32(member.RecentFailed)),
+			SuspectUntilMs:  To(unixMilliOrZero(member.SuspectUntil)),
 		})
 	}
 	return out

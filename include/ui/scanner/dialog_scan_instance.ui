@@ -132,7 +132,7 @@
              <item>
               <widget class="QLineEdit" name="ports">
                <property name="toolTip">
-                <string>Ports to scan. Targets left without any port are probed on port 443 (80 for plain HTTP).</string>
+                <string>Ports to scan. Targets without one use 443 (80 for plain HTTP).</string>
                </property>
                <property name="placeholderText">
                 <string notr="true">443, 2053</string>
@@ -142,7 +142,7 @@
              <item>
               <widget class="QToolButton" name="port_presets">
                <property name="toolTip">
-                <string>Fill in the ports Cloudflare's WARP endpoints listen on</string>
+                <string>WARP port presets</string>
                </property>
                <property name="text">
                 <string>WARP ports</string>
@@ -155,7 +155,7 @@
              <item>
               <widget class="NoWheelComboBox" name="port_mode">
                <property name="toolTip">
-                <string>How these ports combine with the ports stored in the IP list.</string>
+                <string>How these combine with the list's own ports.</string>
                </property>
               </widget>
              </item>
@@ -191,7 +191,7 @@
            <item row="5" column="1">
             <widget class="QLineEdit" name="stop_after">
              <property name="toolTip">
-              <string>The scan completes once its result list holds this many entries. Empty or 0: no limit.</string>
+              <string>Stop after this many results. Empty: no limit.</string>
              </property>
             </widget>
            </item>
@@ -208,7 +208,7 @@
            <item row="6" column="1">
             <widget class="QLineEdit" name="concurrency">
              <property name="toolTip">
-              <string>Targets probed or tested at the same time, in every phase.</string>
+              <string>Targets checked at the same time.</string>
              </property>
             </widget>
            </item>
@@ -304,6 +304,26 @@
        <item>
         <layout class="QHBoxLayout" name="layout_results_buttons">
          <item>
+          <widget class="QPushButton" name="apply_result">
+           <property name="toolTip">
+            <string>Save the selected variant into the profile.</string>
+           </property>
+           <property name="text">
+            <string>Apply to profile</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="save_result_as_profile">
+           <property name="toolTip">
+            <string>Add a copy of the profile with the selected variant.</string>
+           </property>
+           <property name="text">
+            <string>Save as new profile</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="save_as_list">
            <property name="text">
             <string>Save as IP list</string>
@@ -313,7 +333,7 @@
          <item>
           <widget class="QPushButton" name="copy_results">
            <property name="toolTip">
-            <string>Copies the selected entries, or every entry when none is selected.</string>
+            <string>Copy the selected entries, or all if none are selected.</string>
            </property>
            <property name="text">
             <string>Copy</string>

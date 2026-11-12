@@ -298,13 +298,15 @@ namespace Validation {
 
         bool liveWindow() const { return scope->window()->isVisible(); }
 
-        // isVisibleTo() treats every non-current tab page as hidden; a page still in its stack can be switched to.
+        // isVisibleTo() treats every non-current tab page as hidden; a page still in its stack can be switched to,
+        // unless its tab itself is hidden.
         bool revealable(QWidget *widget) const {
             for (QWidget *p = widget; p != nullptr && p != scope; p = p->parentWidget()) {
                 if (!p->isHidden()) continue;
                 auto *stack = qobject_cast<QStackedWidget *>(p->parentWidget());
-                if (stack != nullptr && stack->indexOf(p) >= 0) continue;
-                return false;
+                if (stack == nullptr || stack->indexOf(p) < 0) return false;
+                auto *tabs = qobject_cast<QTabWidget *>(stack->parentWidget());
+                if (tabs != nullptr && !tabs->isTabVisible(tabs->indexOf(p))) return false;
             }
             return true;
         }

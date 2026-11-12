@@ -12,6 +12,8 @@ import (
 // instance binds and a port lost in between surfaces as a start failure that is retried.
 const probesHoldThroughStart = false
 
+const listenersSharePorts = false
+
 var probeListenConfig net.ListenConfig
 
 const wsaeAddrInUse = syscall.Errno(10048)

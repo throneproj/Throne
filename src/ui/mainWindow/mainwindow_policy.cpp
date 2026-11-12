@@ -5,6 +5,8 @@
 
 #include "include/engine/app/ExitController.h"
 #include "include/engine/connection/ConnectionManager.h"
+#include "include/global/Logger.hpp"
+#include "include/sys/CoreElevation.hpp"
 #include "include/sys/KillSwitch.hpp"
 #include "include/ui/profile/dialog_vpn_auth.h"
 #include "include/ui/utils/RestartPrompt.h"
@@ -15,6 +17,20 @@
 #endif
 #ifdef Q_OS_MACOS
 #include "include/sys/macos/MacOS.h"
+#endif
+
+#ifdef Q_OS_WIN
+namespace {
+    bool policyOfferElevatedRestart(QWidget *parent, const QString &text) {
+        QMessageBox box(QMessageBox::Warning, software_name, text, QMessageBox::NoButton, parent);
+        auto *restart = box.addButton(MainWindow::tr("Restart as Administrator"), QMessageBox::AcceptRole);
+        auto *cancel = box.addButton(QMessageBox::Cancel);
+        box.setDefaultButton(restart);
+        box.setEscapeButton(cancel);
+        box.exec();
+        return box.clickedButton() == restart;
+    }
+} // namespace
 #endif
 
 void MainWindow::geoAssetMissingCategory(const QString &contextName, const QString &needed, const QString &whichFile) {
@@ -67,12 +83,15 @@ void MainWindow::killSwitchProblem() {
     box->setProperty("identity", identity);
     // The guard still blocks and the core cannot join its group: neither a retry nor more privileges changes that.
     QPushButton *fix = nullptr;
-    if (!identity) {
 #ifdef Q_OS_WIN
-        fix = box->addButton(privilege ? tr("Restart as Administrator") : tr("Retry"), QMessageBox::AcceptRole);
+    // Only an administrator's own account can grant the core, and a grant that did not take effect is not fixed by another.
+    const bool restartElevated = !Sys::CoreElevation::CanGrant() || Sys::CoreElevation::GrantIneffective();
 #else
-        fix = box->addButton(privilege ? tr("Grant Privileges") : tr("Retry"), QMessageBox::AcceptRole);
+    const bool restartElevated = false;
 #endif
+    if (!identity) {
+        fix = box->addButton(!privilege ? tr("Retry") : restartElevated ? tr("Restart as Administrator") : tr("Grant Privileges"),
+                             QMessageBox::AcceptRole);
     }
     auto *disable = box->addButton(tr("Disable Kill Switch"), QMessageBox::DestructiveRole);
     auto *cancel = box->addButton(QMessageBox::Cancel);
@@ -81,7 +100,7 @@ void MainWindow::killSwitchProblem() {
     m_killSwitchDialog = box;
 
     // Custom-button result codes changed in Qt 6.5, so only the clicked button pointer is trusted.
-    connect(box, &QMessageBox::finished, this, [this, box, fix, disable, privilege] {
+    connect(box, &QMessageBox::finished, this, [this, box, fix, disable, privilege, restartElevated] {
         const auto *clicked = box->clickedButton();
         if (m_killSwitchDialog == box) m_killSwitchDialog = nullptr;
         if (clicked == disable) {
@@ -93,12 +112,12 @@ void MainWindow::killSwitchProblem() {
             Sys::KillSwitch::instance()->apply();
             return;
         }
-#ifdef Q_OS_WIN
-        exitController()->requestExit(ExitReason::RestartElevated, false);
-#else
+        if (restartElevated) {
+            exitController()->requestExit(ExitReason::RestartElevated, false);
+            return;
+        }
         // Otherwise the core restarts once it is privileged, and onCoreStarted retries.
         if (connection()->ensureTunPrivileges(true)) Sys::KillSwitch::instance()->apply();
-#endif
     });
     box->open();
 }
@@ -155,6 +174,25 @@ bool MainWindow::offerCoreReset(const QString &error) {
     return msg.clickedButton() == reset;
 }
 
+bool MainWindow::offerLeftoverTunAdapterRetry(const QString &error) {
+    QMessageBox msg(
+        QMessageBox::Information,
+        tr("Leftover Tun adapter"),
+        tr("Windows was still holding the Tun adapter from an earlier session that did not close cleanly. "
+           "Starting the profile again usually works; if it keeps failing, restart Windows.\n\nError: %1").arg(error),
+        QMessageBox::NoButton,
+        this
+    );
+    auto startAgain = msg.addButton(tr("Start Again"), QMessageBox::AcceptRole);
+    auto cancel = msg.addButton(tr("Cancel"), QMessageBox::RejectRole);
+
+    msg.setDefaultButton(startAgain);
+    msg.setEscapeButton(cancel);
+
+    msg.exec();
+    return msg.clickedButton() == startAgain;
+}
+
 void MainWindow::stopFailed(const QString &error) {
     MessageBoxWarning(tr("Stop return error"), error);
 }
@@ -196,6 +234,44 @@ bool MainWindow::requestCorePrivileges() {
     }
 #endif
 #ifdef Q_OS_WIN
+    if (Sys::CoreElevation::GrantIneffective()) {
+        if (policyOfferElevatedRestart(GetMessageBoxParent(),
+                                       tr("The core did not get administrator rights, although they were granted. The log shows why.\n\n"
+                                          "Restart Throne as administrator to use Tun Mode and the kill switch."))) {
+            this->exit_reason = ExitReason::RestartWithTun;
+            on_menu_exit_triggered();
+        }
+        return false;
+    }
+    if (Sys::CoreElevation::CanGrant()) {
+        QMessageBox box(QMessageBox::Warning, software_name,
+                        tr("Tun Mode and the kill switch need the core to run with administrator rights.\n\n"
+                           "Grant them once with a Windows confirmation; Throne itself keeps running as a standard user."),
+                        QMessageBox::NoButton, GetMessageBoxParent());
+        auto *grant = box.addButton(tr("Grant Privileges"), QMessageBox::AcceptRole);
+        auto *cancel = box.addButton(QMessageBox::Cancel);
+        box.setDefaultButton(grant);
+        box.setEscapeButton(cancel);
+        box.exec();
+        if (box.clickedButton() != grant) return false;
+        Sys::CoreElevation::GrantAsync(this, [this](int code) {
+            const auto result = Sys::CoreElevation::ResultText(code);
+            if (code == Sys::CoreElevation::HelperOk) {
+                LOG_INFO("core elevation grant: " + result);
+                // The core restarts elevated, like after the Linux grant.
+                StopVPNProcess();
+            } else if (code == -1) {
+                LOG_INFO("core elevation grant: " + result);
+            } else {
+                LOG_WARN("core elevation grant: " + result);
+                if (policyOfferElevatedRestart(GetMessageBoxParent(), result + "\n\n" + tr("Throne can restart as administrator instead."))) {
+                    this->exit_reason = ExitReason::RestartWithTun;
+                    on_menu_exit_triggered();
+                }
+            }
+        });
+        return false;
+    }
     auto n = QMessageBox::warning(GetMessageBoxParent(), software_name, tr("Please run Throne as admin"), QMessageBox::Yes | QMessageBox::No);
     if (n == QMessageBox::Yes) {
         this->exit_reason = ExitReason::RestartWithTun;

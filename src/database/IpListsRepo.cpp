@@ -12,7 +12,7 @@ namespace Configs {
     namespace {
         // Keeps every WriteMutex and file-lock hold far below BUSY_TIMEOUT_MS.
         constexpr int kIpListsRepoChunkRows = 20000;
-        constexpr int kIpListsRepoRowsPerInsert = BATCH_LIMIT_WRITE / 6;
+        constexpr int kIpListsRepoRowsPerInsert = BATCH_LIMIT_WRITE / 9;
 
         struct IpListsRepoPace {
             std::chrono::steady_clock::time_point lastEnd;
@@ -64,6 +64,9 @@ namespace Configs {
                 cidr TEXT NOT NULL,
                 port INTEGER NOT NULL DEFAULT 0,
                 latency_ms INTEGER NOT NULL DEFAULT 0,
+                max_qname INTEGER NOT NULL DEFAULT 0,
+                upload_mtu INTEGER NOT NULL DEFAULT 0,
+                download_mtu INTEGER NOT NULL DEFAULT 0,
                 PRIMARY KEY (ip_list_id, generation, entry_order),
                 FOREIGN KEY (ip_list_id) REFERENCES ip_lists(id) ON DELETE CASCADE
             ) WITHOUT ROWID
@@ -79,12 +82,12 @@ namespace Configs {
         }
 
         std::string ipListsRepoInsertSql(int rows) {
-            std::string sql =
-                "INSERT OR IGNORE INTO ip_list_entries (ip_list_id, generation, entry_order, cidr, port, latency_ms) VALUES ";
-            sql.reserve(sql.size() + static_cast<size_t>(rows) * 14);
+            std::string sql = "INSERT OR IGNORE INTO ip_list_entries (ip_list_id, generation, entry_order, cidr, port, "
+                              "latency_ms, max_qname, upload_mtu, download_mtu) VALUES ";
+            sql.reserve(sql.size() + static_cast<size_t>(rows) * 20);
             for (int i = 0; i < rows; ++i) {
                 if (i > 0) sql += ',';
-                sql += "(?,?,?,?,?,?)";
+                sql += "(?,?,?,?,?,?,?,?,?)";
             }
             return sql;
         }
@@ -129,6 +132,9 @@ namespace Configs {
                     stmt->bind(index++, entry.cidr.toStdString());
                     stmt->bind(index++, entry.port);
                     stmt->bind(index++, entry.latencyMs);
+                    stmt->bind(index++, entry.maxQName);
+                    stmt->bind(index++, entry.uploadMtu);
+                    stmt->bind(index++, entry.downloadMtu);
                 }
                 written += stmt->exec();
                 stmt->reset();
@@ -268,10 +274,12 @@ namespace Configs {
                 if (ipListsRepoGeneration(db, id) != generation) return false;
                 const int page = static_cast<int>(std::min<qint64>(remaining, kIpListsRepoChunkRows));
                 const auto query =
-                    after < 0 ? db.queryThrow("SELECT entry_order, cidr, port, latency_ms FROM ip_list_entries "
+                    after < 0 ? db.queryThrow("SELECT entry_order, cidr, port, latency_ms, max_qname, upload_mtu, download_mtu "
+                                              "FROM ip_list_entries "
                                               "WHERE ip_list_id = ? AND generation = ? ORDER BY entry_order LIMIT ? OFFSET ?",
                                               id, generation, page, std::max(offset, 0))
-                              : db.queryThrow("SELECT entry_order, cidr, port, latency_ms FROM ip_list_entries "
+                              : db.queryThrow("SELECT entry_order, cidr, port, latency_ms, max_qname, upload_mtu, download_mtu "
+                                              "FROM ip_list_entries "
                                               "WHERE ip_list_id = ? AND generation = ? AND entry_order > ? "
                                               "ORDER BY entry_order LIMIT ?",
                                               id, generation, after, page);
@@ -281,7 +289,8 @@ namespace Configs {
                     const auto cidrColumn = query->getColumn(1);
                     const char *cidr = cidrColumn.getText();
                     const int cidrBytes = cidrColumn.getBytes();
-                    out.append({QString::fromUtf8(cidr, cidrBytes), query->getColumn(2).getInt(), query->getColumn(3).getInt()});
+                    out.append({QString::fromUtf8(cidr, cidrBytes), query->getColumn(2).getInt(), query->getColumn(3).getInt(),
+                                query->getColumn(4).getInt(), query->getColumn(5).getInt(), query->getColumn(6).getInt()});
                     ++rows;
                 }
                 if (rows < page) break;
@@ -388,6 +397,10 @@ namespace Configs {
                 db.execThrow("DROP TABLE ip_list_entries_legacy");
                 return true;
             });
+        }
+        for (const char *column : {"max_qname", "upload_mtu", "download_mtu"}) {
+            if (!ipListsRepoHasColumn(db, "ip_list_entries", column))
+                db.exec(std::string("ALTER TABLE ip_list_entries ADD COLUMN ") + column + " INTEGER NOT NULL DEFAULT 0");
         }
         db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_ip_list_entries_target ON ip_list_entries(ip_list_id, generation, cidr, port)");
         ipListsRepoPurgeLeftovers(db);
@@ -602,10 +615,11 @@ namespace Configs {
                     if (query->executeStep()) order = query->getColumn(0).getInt64() + 1;
                 }
                 const auto insert = db.queryThrow(
-                    "INSERT OR IGNORE INTO ip_list_entries (ip_list_id, generation, entry_order, cidr, port, latency_ms) "
-                    "VALUES (?, ?, ?, ?, ?, ?)");
+                    "INSERT OR IGNORE INTO ip_list_entries (ip_list_id, generation, entry_order, cidr, port, latency_ms, "
+                    "max_qname, upload_mtu, download_mtu) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 const auto update = db.queryThrow(
-                    "UPDATE ip_list_entries SET latency_ms = ? WHERE ip_list_id = ? AND generation = ? AND cidr = ? AND port = ?");
+                    "UPDATE ip_list_entries SET latency_ms = ?, max_qname = ?, upload_mtu = ?, download_mtu = ? "
+                    "WHERE ip_list_id = ? AND generation = ? AND cidr = ? AND port = ?");
                 for (qsizetype i = begin; i < end; ++i) {
                     const auto &entry = entries[i];
                     if (entry.cidr.isEmpty()) continue;
@@ -616,6 +630,9 @@ namespace Configs {
                     insert->bind(4, cidr);
                     insert->bind(5, entry.port);
                     insert->bind(6, entry.latencyMs);
+                    insert->bind(7, entry.maxQName);
+                    insert->bind(8, entry.uploadMtu);
+                    insert->bind(9, entry.downloadMtu);
                     const int inserted = insert->exec();
                     insert->reset();
                     if (inserted > 0) {
@@ -624,10 +641,13 @@ namespace Configs {
                         continue;
                     }
                     update->bind(1, entry.latencyMs);
-                    update->bind(2, id);
-                    update->bind(3, static_cast<int64_t>(generation));
-                    update->bind(4, cidr);
-                    update->bind(5, entry.port);
+                    update->bind(2, entry.maxQName);
+                    update->bind(3, entry.uploadMtu);
+                    update->bind(4, entry.downloadMtu);
+                    update->bind(5, id);
+                    update->bind(6, static_cast<int64_t>(generation));
+                    update->bind(7, cidr);
+                    update->bind(8, entry.port);
                     update->exec();
                     update->reset();
                 }
@@ -764,8 +784,10 @@ namespace Configs {
                     }
                     last = bound < 0;
                     db.execThrow(
-                        "INSERT INTO ip_list_entries (ip_list_id, generation, entry_order, cidr, port, latency_ms) "
-                        "SELECT ?, 1, entry_order, cidr, port, latency_ms FROM ip_list_entries "
+                        "INSERT INTO ip_list_entries (ip_list_id, generation, entry_order, cidr, port, latency_ms, max_qname, "
+                        "upload_mtu, download_mtu) "
+                        "SELECT ?, 1, entry_order, cidr, port, latency_ms, max_qname, upload_mtu, download_mtu "
+                        "FROM ip_list_entries "
                         "WHERE ip_list_id = ? AND generation = ? AND entry_order > ? AND entry_order <= ?",
                         id, sourceId, sourceGeneration, after, last ? std::numeric_limits<qint64>::max() : bound);
                     if (last) db.execThrow("UPDATE ip_lists SET entries_generation = 1 WHERE id = ?", id);

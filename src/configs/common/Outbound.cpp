@@ -177,7 +177,7 @@ namespace Configs {
         if (IsXray()) {
             auto stream = GetXrayStream();
             SecurityInfo info;
-            info.transport = DisplayTransportName(stream->network);
+            info.transport = stream->IsXdns() ? QStringLiteral("XDNS") : DisplayTransportName(stream->network);
             if (stream->security == "reality") {
                 info.label = QObject::tr("Reality");
                 info.level = SecurityLevel::Secure;
