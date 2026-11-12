@@ -23,7 +23,7 @@ bash script/ci/p0_xhttp_pin_check.sh
 bash script/ci/p1_sub_nul_check.sh
 ```
 
-Ubuntu 24 system-Qt `.deb`: `script/pack_ubuntu24_amd64.sh` reads `packaging/ubuntu24_version.txt`, or takes `[version]` / `UBUNTU_DEB_VERSION`. Current local package line: **`1.0.5+al4al.dev-1`** (PPTP / L2TP-IPsec egress with PSK, dependency check/fix).
+Ubuntu 24 system-Qt `.deb`: `script/pack_ubuntu24_amd64.sh` reads `packaging/ubuntu24_version.txt`, or takes `[version]` / `UBUNTU_DEB_VERSION`. Current local package line: **`1.0.6+al4al.dev-1`** (PPTP / L2TP-IPsec egress with PSK, dependency check/fix).
 
 ## Local Windows check
 

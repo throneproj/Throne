@@ -1,3 +1,11 @@
+#### al4al-1.0.6
+
+### AL4AL fork release (upstream dev through 1.4.1)
+
+* Merge [throneproj/Throne](https://github.com/throneproj/Throne) `dev` at `47332470` (release **1.4.1**): simple interface, headless / Web UI, rule tester, Windows elevation rework, subscription routing import, and related fixes
+* Fork-only: **PPTP / L2TP-IPsec** egress on Linux, **Remove duplicates on update** on subscriptions, **Windows Setup (universal)**, **MSIX**, and **winget** manifest output
+* Release assets match upstream’s platform matrix plus MSIX packages (see [release template](.github/release_template.md))
+
 #### 1.4.1
 
 ### Join [Throne's Telegram channel](https://t.me/ThroneProj) for announcements and community support
