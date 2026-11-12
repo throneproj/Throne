@@ -1275,6 +1275,7 @@ namespace Configs {
         if (query.hasQueryItem("peer")) serverName = query.queryItemValue("peer");
         if (query.hasQueryItem("server_name")) serverName = query.queryItemValue("server_name");
         if (query.hasQueryItem("pcs")) pinnedPeerCertSha256 = query.queryItemValue("pcs", QUrl::FullyDecoded);
+        else if (query.hasQueryItem("pinSHA256")) pinnedPeerCertSha256 = query.queryItemValue("pinSHA256", QUrl::FullyDecoded);
         if (query.hasQueryItem("vcn")) verifyPeerCertByName = query.queryItemValue("vcn", QUrl::FullyDecoded);
         if (query.hasQueryItem("alpn")) alpn = SplitAndTrim(query.queryItemValue("alpn", QUrl::FullyDecoded), ",", false);
         if (query.hasQueryItem("fp")) fingerprint = xrayStreamKnownFingerprint(query.queryItemValue("fp"), false, "fp");
@@ -1287,6 +1288,8 @@ namespace Configs {
         if (object.isEmpty()) return false;
         if (object.contains("serverName")) serverName = object["serverName"].toString();
         if (object.contains("pinnedPeerCertSha256")) pinnedPeerCertSha256 = object["pinnedPeerCertSha256"].toString();
+        else if (object.contains("pcs")) pinnedPeerCertSha256 = object["pcs"].toString();
+        else if (object.contains("pinSHA256")) pinnedPeerCertSha256 = object["pinSHA256"].toString();
         if (object.contains("verifyPeerCertByName")) verifyPeerCertByName = object["verifyPeerCertByName"].toString();
         // ParseFromJson is also the DB loader: only an import normalises or drops values.
         const bool importing = ParseDiag::Active();
