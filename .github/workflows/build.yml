@@ -41,6 +41,8 @@ jobs:
     permissions:
       contents: read
     strategy:
+      # Fork orgs often hit macOS runner queue limits; serializing a bit avoids 15m "not acquired" cancels.
+      max-parallel: 2
       matrix:
         include:
           - cross_os: windows
