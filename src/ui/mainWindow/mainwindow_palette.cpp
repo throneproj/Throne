@@ -119,7 +119,6 @@ void MainWindow::setDialogInUse(bool inUse) {
 void MainWindow::applyUiMode() {
     UiMode::Apply(this);
     UiMode::Apply(trayMenu);
-    ui->actionAdvanced_Mode->setChecked(!UiMode::Simple());
     if (commandPalette) fillPaletteSettings();
 }
 

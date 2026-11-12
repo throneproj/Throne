@@ -9703,16 +9703,8 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>Удалить</translation>
     </message>
     <message>
-        <source>Debug Info</source>
-        <translation>Отладочная информация</translation>
-    </message>
-    <message>
         <source>QR Code and link</source>
         <translation>QR-код и ссылка</translation>
-    </message>
-    <message>
-        <source>Copy Link</source>
-        <translation>Копировать ссылку</translation>
     </message>
     <message>
         <source>Resolve out IP for group</source>
@@ -9743,10 +9735,6 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>Сканировать QR-код</translation>
     </message>
     <message>
-        <source>Disable</source>
-        <translation>Отключить</translation>
-    </message>
-    <message>
         <source>Clean up</source>
         <translation>Очистка</translation>
     </message>
@@ -9767,14 +9755,6 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>Удалить дубликаты</translation>
     </message>
     <message>
-        <source>fake</source>
-        <translation>фейк</translation>
-    </message>
-    <message>
-        <source>Move</source>
-        <translation>Переместить</translation>
-    </message>
-    <message>
         <source>Start with system</source>
         <translation>Запускать вместе с системой</translation>
     </message>
@@ -9789,10 +9769,6 @@ Improves hole-punching reliability. Requires IPv4.</source>
     <message>
         <source>Remove Unavailable</source>
         <translation>Удалить недоступные</translation>
-    </message>
-    <message>
-        <source>Full Test</source>
-        <translation>Полный тест</translation>
     </message>
     <message>
         <source>Select All</source>
@@ -10561,10 +10537,6 @@ Error: %1</source>
         <translation>Экспортировать конфиг</translation>
     </message>
     <message>
-        <source>Open Manager</source>
-        <translation>Открыть менеджер</translation>
-    </message>
-    <message>
         <source>Profile test aborted</source>
         <translation>Тест профиля прерван</translation>
     </message>
@@ -11043,14 +11015,6 @@ Name: %1</source>
     <message>
         <source>About</source>
         <translation>О программе</translation>
-    </message>
-    <message>
-        <source>Advanced Mode</source>
-        <translation>Расширенный режим</translation>
-    </message>
-    <message>
-        <source>Show every option. Simple mode hides the advanced ones; they keep their values and still apply.</source>
-        <translation>Показывать все параметры. Простой режим скрывает дополнительные, но их значения сохраняются и продолжают действовать.</translation>
     </message>
     <message>
         <source>[Auto selector] %1 working profiles found; starting now while the remaining %2 are still being measured.</source>

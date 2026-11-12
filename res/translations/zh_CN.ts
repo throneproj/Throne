@@ -9832,16 +9832,8 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>删除</translation>
     </message>
     <message>
-        <source>Debug Info</source>
-        <translation>调试信息</translation>
-    </message>
-    <message>
         <source>QR Code and link</source>
         <translation>二维码和链接</translation>
-    </message>
-    <message>
-        <source>Copy Link</source>
-        <translation>复制链接</translation>
     </message>
     <message>
         <source>Clear Group test result</source>
@@ -9856,20 +9848,8 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>扫描二维码</translation>
     </message>
     <message>
-        <source>Disable</source>
-        <translation>禁用</translation>
-    </message>
-    <message>
         <source>Remove Duplicates</source>
         <translation>移除重复项</translation>
-    </message>
-    <message>
-        <source>fake</source>
-        <translation>Fake</translation>
-    </message>
-    <message>
-        <source>Move</source>
-        <translation>移动</translation>
     </message>
     <message>
         <source>Start with system</source>
@@ -9880,24 +9860,12 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>记住上次的配置档</translation>
     </message>
     <message>
-        <source>Advanced Mode</source>
-        <translation>高级模式</translation>
-    </message>
-    <message>
-        <source>Show every option. Simple mode hides the advanced ones; they keep their values and still apply.</source>
-        <translation>显示每个选项。简单模式隐藏高级选项；它们会保留其值并仍然生效。</translation>
-    </message>
-    <message>
         <source>Allow other devices to connect</source>
         <translation>允许其他设备连接</translation>
     </message>
     <message>
         <source>Remove Unavailable</source>
         <translation>移除不可用项</translation>
-    </message>
-    <message>
-        <source>Full Test</source>
-        <translation>完整测试</translation>
     </message>
     <message>
         <source>Select All</source>
@@ -9978,10 +9946,6 @@ Improves hole-punching reliability. Requires IPv4.</source>
     <message>
         <source>Remove Insecure Configs</source>
         <translation>移除不安全的配置</translation>
-    </message>
-    <message>
-        <source>Open Manager</source>
-        <translation>打开管理器</translation>
     </message>
     <message>
         <source>Speedtest Current</source>

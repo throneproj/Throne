@@ -357,6 +357,28 @@ void MainWindow::refresh_startstop_button() {
     }
 }
 
+void MainWindow::refresh_action_states() {
+    qsizetype selectedRows = 0;
+    if (const auto *selection = ui->profilesTableView->selectionModel()) {
+        // The view selects whole rows and the ranges never overlap, so their heights add up to the row count.
+        for (const auto &range : selection->selection()) {
+            selectedRows += range.height();
+            if (selectedRows > 1) break;
+        }
+    }
+    const bool anySelected = selectedRows > 0;
+    ui->actionSpeedtest_Selected->setEnabled(anySelected);
+    ui->actionUrl_Test_Selected->setEnabled(anySelected);
+    ui->menu_resolve_selected->setEnabled(anySelected);
+    ui->actionResolve_Selected_Out_IP->setEnabled(anySelected);
+    ui->actionService_Check_Selected->setEnabled(anySelected);
+    ui->menu_find_settings->setEnabled(selectedRows == 1);
+
+    const bool running = runningSnapshot() != nullptr;
+    ui->actionSpeedtest_Current->setEnabled(running);
+    ui->actionUpdate_Rule_Sets->setEnabled(running);
+}
+
 void MainWindow::set_traffic_lines(const QList<Stats::TrafficLine> &lines) {
     m_trafficLines = lines;
     if (trafficChart == nullptr) return;

@@ -4580,16 +4580,8 @@ Close without saving?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Debug Info</source>
-        <translation>اطلاعات اشکال زدایی</translation>
-    </message>
-    <message>
         <source>QR Code and link</source>
         <translation>کد QR و پیوند</translation>
-    </message>
-    <message>
-        <source>Copy Link</source>
-        <translation>لینک را کپی کنید</translation>
     </message>
     <message>
         <source>Clear Test Result</source>
@@ -4612,24 +4604,12 @@ Close without saving?</source>
         <translation>پروکسی سیستم را فعال کنید</translation>
     </message>
     <message>
-        <source>Disable</source>
-        <translation>غیرفعال کردن</translation>
-    </message>
-    <message>
         <source>Clean up</source>
         <translation>پاکسازی</translation>
     </message>
     <message>
         <source>Remove Duplicates</source>
         <translation>موارد تکراری را حذف کردن</translation>
-    </message>
-    <message>
-        <source>fake</source>
-        <translation>جعلی</translation>
-    </message>
-    <message>
-        <source>Move</source>
-        <translation>جابجایی</translation>
     </message>
     <message>
         <source>Start with system</source>
@@ -4646,10 +4626,6 @@ Close without saving?</source>
     <message>
         <source>Remove Unavailable</source>
         <translation>غیرقابل دستیابی پاک شود</translation>
-    </message>
-    <message>
-        <source>Full Test</source>
-        <translation>تست کامل</translation>
     </message>
     <message>
         <source>Hotkey Settings</source>
@@ -4984,10 +4960,6 @@ Error: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Open Manager</source>
-        <translation>باز کردن مدیر</translation>
-    </message>
-    <message>
         <source>Profile test aborted</source>
         <translation>تست نمایه لغو شد</translation>
     </message>
@@ -5208,14 +5180,6 @@ Error: %1</source>
     <message>
         <source>About</source>
         <translation>درباره</translation>
-    </message>
-    <message>
-        <source>Advanced Mode</source>
-        <translation>حالت پیشرفته</translation>
-    </message>
-    <message>
-        <source>Show every option. Simple mode hides the advanced ones; they keep their values and still apply.</source>
-        <translation>همه گزینه‌ها را نشان می‌دهد. حالت ساده گزینه‌های پیشرفته را پنهان می‌کند؛ مقدارشان حفظ می‌شود و همچنان اعمال می‌شوند.</translation>
     </message>
     <message>
         <source>The current routing profile is updated by the subscription &quot;%1&quot;.</source>

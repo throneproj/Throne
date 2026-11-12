@@ -376,6 +376,7 @@ private:
     QList<int> get_now_selected_list();
     void refresh_startstop_button();
     void refresh_pin_action();
+    void refresh_action_states();
 
     // View slots of ConnectionManager and VpnAuthController, in mainwindow_view.cpp.
     void addRunMarker(qint64 monoMs, Engine::RunMarker kind, const QString &name);
