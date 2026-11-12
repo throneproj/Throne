@@ -1,0 +1,69 @@
+name: Checks
+
+on:
+  push:
+    branches: [dev, main, fix/**, ci/**]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  GO_VERSION: "1.27.3"
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.filter.outputs.configs }}
+    steps:
+      - name: Checking out sources
+        uses: actions/checkout@v7.0.1
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            configs:
+              - 'src/configs/**'
+              - 'include/configs/**'
+              - 'script/ci/p0_xhttp_pin_check.sh'
+              - 'script/ci/p1_sub_nul_check.sh'
+
+  engine-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checking out sources
+        uses: actions/checkout@v7.0.1
+      - name: Checking the engine/UI boundary
+        run: cmake -DROOT=${{ github.workspace }} -P cmake/EngineBoundary.cmake
+
+  config-smoke:
+    needs: changes
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      needs.changes.outputs.configs == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checking out sources
+        uses: actions/checkout@v7.0.1
+      - name: P0 cert-pin alias smoke
+        run: bash script/ci/p0_xhttp_pin_check.sh
+      - name: P1 subscription NUL-safety
+        run: bash script/ci/p1_sub_nul_check.sh
+
+  go-unit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: core
+    steps:
+      - name: Checking out sources
+        uses: actions/checkout@v7.0.1
+      - name: Install Golang
+        uses: actions/setup-go@v7.0.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: core/go.sum
+      - name: Go unit tests (servicecheck, rulesets)
+        run: go test ./internal/servicecheck/... ./internal/rulesets/... -count=1
