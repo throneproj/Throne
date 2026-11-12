@@ -386,12 +386,12 @@ github.com/throneproj/cronet-go/lib/darwin_arm64 v0.0.0-20260923015522-0dc5a60c5
 github.com/throneproj/cronet-go/lib/darwin_arm64 v0.0.0-20260923015522-0dc5a60c5c47/go.mod h1:kojvtUc29KKnk8hs2QIANynVR59921SnGWA9kXohHc0=
 github.com/throneproj/sing v0.9.4-0.20261024082846-e3e392877db8 h1:V3PK33YPQX6LACVpQ05UFTUKou6jm6bMUJ+sY/otZis=
 github.com/throneproj/sing v0.9.4-0.20261024082846-e3e392877db8/go.mod h1:K3Owt3xPhHugvlnlPPxZJ/exXdaJfEPOTNorGk4AXjo=
-github.com/throneproj/sing-box v1.11.16-0.20261110221151-acec9c0d0728 h1:q3GUpe1AfMAqsIvNu6Jj5wkzxtMUaNxUh+EB/fyf3Zw=
-github.com/throneproj/sing-box v1.11.16-0.20261110221151-acec9c0d0728/go.mod h1:28+tNuWCwFrrpLMkbd9+FUWG0vc9ZLEfoOlSf9uAA2I=
+github.com/throneproj/sing-box v1.11.16-0.20261112143719-823b0a3f5374 h1:UL1/YelKq3+PeCv+BJFLXAfysOA835SgBnUFfRvdPAc=
+github.com/throneproj/sing-box v1.11.16-0.20261112143719-823b0a3f5374/go.mod h1:jNrYEyctriflHn8tGTNsxTNcxL5a7tihqaslFgbc2fU=
 github.com/throneproj/utls v1.8.8-0.20261105093534-f0ae7792aa1d h1:iIz+TLSsaRmo/LuX/IaZFiR3wpkKGYRUpPZx197SjLk=
 github.com/throneproj/utls v1.8.8-0.20261105093534-f0ae7792aa1d/go.mod h1:kncGGVhFaoGn5M3pFe3SXhZCzsbCJayNOH4UEqTKTko=
-github.com/throneproj/wireguard-go v0.0.0-20261031210827-e11787583013 h1:MOqnvmWxl7xQhENqWF5TuapPNVnajsWXMbdkxjMK2Bs=
-github.com/throneproj/wireguard-go v0.0.0-20261031210827-e11787583013/go.mod h1:er10sELpmzLXq7S7Pbc1Zsbyapcr+/gxNAHKTo6fzVA=
+github.com/throneproj/wireguard-go v0.0.0-20261112143559-827ce83a4eed h1:kiBqon1s689TBSghRQ/SDSJgdkPxAcffMYe8JgpCn+o=
+github.com/throneproj/wireguard-go v0.0.0-20261112143559-827ce83a4eed/go.mod h1:er10sELpmzLXq7S7Pbc1Zsbyapcr+/gxNAHKTo6fzVA=
 github.com/throneproj/xray-core v1.251015.1-0.20261101081745-1c6eb7771c4d h1:PVedMsGJ0xZkJANhPi8w57dcTqyJUHhdcr5abdEiDcY=
 github.com/throneproj/xray-core v1.251015.1-0.20261101081745-1c6eb7771c4d/go.mod h1:SQ8RYpPoRB/nHiqNfvvmJVQc9wK94NlsTYpPANjhH0s=
 github.com/tidwall/gjson v1.14.2/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
