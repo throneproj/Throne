@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <cctype>
 #include <initializer_list>
+#include <optional>
 #include <string_view>
 
 namespace Subscription {
@@ -68,7 +69,7 @@ namespace Subscription {
             {"juicity", {"juicity://"}, {"juicity"}, {}},
             {"trusttunnel", {"tt://"}, {"trusttunnel"}, {}},
             {"shadowtls", {"shadowtls://"}, {"shadowtls"}, {}},
-            {"wireguard", {"awg://", "wg://", "wireguard://"}, {"wireguard"}, {}},
+            {"wireguard", {"awg://", "wg://", "wireguard://"}, {"wireguard"}, {"wireguard"}},
             {"masque", {}, {"masque"}, {"masque"}},
             {"ssh", {"ssh://"}, {"ssh"}, {"ssh"}},
             {"naive", {"naive+https://", "naive+quic://"}, {"naive"}, {}},
@@ -599,6 +600,156 @@ namespace Subscription {
             }
         }
 
+        // Thrown past ClashMerges' limits; Parser::clash then reports the entry, or the document, as unreadable.
+        struct ClashMergeLimit {};
+
+        // Flattens YAML merge keys as gopkg.in/yaml.v3 (mihomo) does; fkYAML keeps "<<" as an ordinary key.
+        class ClashMerges {
+        public:
+            // Without "<<" in the text there is nothing to flatten, so such documents skip the scan entirely.
+            explicit ClashMerges(std::string_view text) : enabled(text.find("<<") != std::string_view::npos) {}
+
+            std::optional<fkyaml::node> entry(const fkyaml::node &node) {
+                if (!enabled) return std::nullopt;
+                entryWork = 0;
+                return flatten(node, 0);
+            }
+
+            // Follows only the root's own merge key, so a proxies list supplied by an anchor is found.
+            const fkyaml::node *rootValue(const fkyaml::node &root, const char *key) {
+                entryWork = 0;
+                return lookup(root, fkyaml::node(key), 0);
+            }
+
+        private:
+            static constexpr int kDepth = 32;
+            static constexpr std::size_t kEntryWork = 1 << 16;
+            static constexpr std::size_t kDocumentWork = 1 << 22;
+
+            const bool enabled;
+            std::size_t entryWork = 0;
+            std::size_t documentWork = 0;
+            // Anchored values found free of merge keys; aliases share their anchor's value, so each is scanned once.
+            QSet<const void *> clean;
+
+            void spend() {
+                if (++entryWork > kEntryWork || ++documentWork > kDocumentWork) throw ClashMergeLimit{};
+            }
+
+            static bool isMergeKey(const fkyaml::node &key) {
+                return key.is_string() && key.as_str() == "<<";
+            }
+
+            static bool isMappingList(const fkyaml::node &value) {
+                if (!value.is_sequence()) return false;
+                const auto &items = value.as_seq();
+                return std::all_of(items.begin(), items.end(), [](const fkyaml::node &item) { return item.is_mapping(); });
+            }
+
+            const fkyaml::node *lookup(const fkyaml::node &mapping, const fkyaml::node &key, int depth) {
+                if (depth > kDepth) throw ClashMergeLimit{};
+                spend();
+                const auto &map = mapping.as_map();
+                if (const auto it = map.find(key); it != map.end()) return &it->second;
+                const auto merge = enabled ? map.find(fkyaml::node("<<")) : map.end();
+                if (merge == map.end()) return nullptr;
+                if (merge->second.is_mapping()) return lookup(merge->second, key, depth + 1);
+                if (!isMappingList(merge->second)) return nullptr;
+                for (const auto &source : merge->second.as_seq()) {
+                    if (const auto *value = lookup(source, key, depth + 1)) return value;
+                }
+                return nullptr;
+            }
+
+            // Copying an anchor node would destroy the anchored value along with the copy, so anchors become aliases.
+            fkyaml::node copy(const fkyaml::node &node, int depth) {
+                if (depth > kDepth) throw ClashMergeLimit{};
+                spend();
+                if (node.is_anchor()) return fkyaml::node::alias_of(node);
+                if (node.is_alias()) return node;
+                if (node.is_sequence()) {
+                    auto out = fkyaml::node::sequence();
+                    for (const auto &item : node.as_seq()) out.as_seq().push_back(copy(item, depth + 1));
+                    return out;
+                }
+                if (node.is_mapping()) {
+                    auto out = fkyaml::node::mapping();
+                    for (const auto &[key, value] : node.as_map()) out.as_map().emplace(copy(key, depth + 1), copy(value, depth + 1));
+                    return out;
+                }
+                return node;
+            }
+
+            // Explicit keys are already in `out`; within a list, earlier mappings win.
+            void mergeFrom(fkyaml::node &out, const fkyaml::node &value, int depth) {
+                if (depth > kDepth) throw ClashMergeLimit{};
+                if (value.is_mapping()) {
+                    mergeMapping(out, value, depth);
+                } else if (isMappingList(value)) {
+                    for (const auto &source : value.as_seq()) mergeMapping(out, source, depth);
+                }
+            }
+
+            void mergeMapping(fkyaml::node &out, const fkyaml::node &source, int depth) {
+                const fkyaml::node *nested = nullptr;
+                for (const auto &[key, value] : source.as_map()) {
+                    spend();
+                    if (isMergeKey(key)) {
+                        nested = &value;
+                    } else if (!out.as_map().contains(key)) {
+                        auto flat = flatten(value, depth + 1);
+                        out.as_map().emplace(copy(key, depth + 1), flat ? std::move(*flat) : copy(value, depth + 1));
+                    }
+                }
+                if (nested != nullptr) mergeFrom(out, *nested, depth + 1);
+            }
+
+            // Merge keys nested deeper than kDepth are not looked for.
+            std::optional<fkyaml::node> flatten(const fkyaml::node &node, int depth) {
+                if (depth > kDepth) return std::nullopt;
+                spend();
+                const bool shared = node.is_anchor() || node.is_alias();
+                std::optional<fkyaml::node> out;
+                if (node.is_mapping()) {
+                    const auto &map = node.as_map();
+                    if (shared && clean.contains(&map)) return std::nullopt;
+                    const fkyaml::node *merge = nullptr;
+                    for (auto it = map.begin(); it != map.end(); ++it) {
+                        const bool isMerge = isMergeKey(it->first);
+                        std::optional<fkyaml::node> value;
+                        if (!isMerge) value = flatten(it->second, depth + 1);
+                        if (!out && !isMerge && !value) continue;
+                        if (!out) {
+                            out.emplace(fkyaml::node::mapping());
+                            for (auto prev = map.begin(); prev != it; ++prev)
+                                out->as_map().emplace(copy(prev->first, depth + 1), copy(prev->second, depth + 1));
+                        }
+                        if (isMerge) {
+                            merge = &it->second;
+                        } else {
+                            out->as_map().emplace(copy(it->first, depth + 1), value ? std::move(*value) : copy(it->second, depth + 1));
+                        }
+                    }
+                    if (merge != nullptr) mergeFrom(*out, *merge, depth + 1);
+                    if (!out && shared) clean.insert(&map);
+                } else if (node.is_sequence()) {
+                    const auto &items = node.as_seq();
+                    if (shared && clean.contains(&items)) return std::nullopt;
+                    for (std::size_t i = 0; i < items.size(); ++i) {
+                        auto item = flatten(items[i], depth + 1);
+                        if (!out && !item) continue;
+                        if (!out) {
+                            out.emplace(fkyaml::node::sequence());
+                            for (std::size_t prev = 0; prev < i; ++prev) out->as_seq().push_back(copy(items[prev], depth + 1));
+                        }
+                        out->as_seq().push_back(item ? std::move(*item) : copy(items[i], depth + 1));
+                    }
+                    if (!out && shared) clean.insert(&items);
+                }
+                return out;
+            }
+        };
+
         class Parser {
         public:
             explicit Parser(const ParseSink &sink) : sink(sink) {}
@@ -907,9 +1058,11 @@ namespace Subscription {
         void Parser::clash(std::string_view text) {
             try {
                 const fkyaml::node root = fkyaml::node::deserialize(sanitizeClashYaml(text));
+                ClashMerges merges(text);
                 const bool mapping = root.is_mapping();
-                if (!mapping || !root.contains("proxies") || !root["proxies"].is_sequence() || root["proxies"].empty()) {
-                    const auto message = mapping && root.contains("proxy-providers")
+                const fkyaml::node *proxies = mapping ? merges.rootValue(root, "proxies") : nullptr;
+                if (proxies == nullptr || !proxies->is_sequence() || proxies->empty()) {
+                    const auto message = mapping && merges.rootValue(root, "proxy-providers") != nullptr
                         ? QCoreApplication::translate("Validation", "This Clash config only lists proxy-providers, which are not downloaded. Add each provider's URL as a subscription instead.")
                         : QCoreApplication::translate("Validation", "This Clash config has no proxies list.");
                     reportDocument({}, {parserError(message)});
@@ -917,18 +1070,20 @@ namespace Subscription {
                 }
 
                 int index = 0;
-                for (const auto &node : root["proxies"]) {
+                for (const auto &node : *proxies) {
                     ++index;
                     QString reason;
+                    std::optional<fkyaml::node> merged;
                     try {
-                        clashProxy(node, index);
+                        merged = merges.entry(node);
+                        clashProxy(merged ? *merged : node, index);
                         continue;
                     } catch (const std::exception &ex) {
                         reason = QCoreApplication::translate("Validation", "Could not be read: %1").arg(QString::fromUtf8(ex.what()));
                     } catch (...) {
                         reason = QCoreApplication::translate("Validation", "Could not be read.");
                     }
-                    report([&] { return clashSource(clashEntryName(node), index); }, false, {parserError(reason)});
+                    report([&] { return clashSource(clashEntryName(merged ? *merged : node), index); }, false, {parserError(reason)});
                 }
             // fkYAML can throw beyond fkyaml::exception on hostile input (bad_alloc, length_error).
             } catch (const std::exception &ex) {

@@ -193,7 +193,7 @@ namespace Configs {
             } else if (object.plugin == "v2ray-plugin") {
                 plugin = "v2ray-plugin";
                 QStringList ssPlugin;
-                clash::v2rayPlugin plugin_config = object.plugin_opts.get_value<clash::v2rayPlugin>();
+                const auto& plugin_config = object.plugin_opts;
                 if (plugin_config.tls) ssPlugin << "tls";
                 if (!plugin_config.host.empty()) ssPlugin << "host=" + QString::fromStdString(plugin_config.host);
                 if (!plugin_config.path.empty()) ssPlugin << "path=" + QString::fromStdString(plugin_config.path);
@@ -203,7 +203,7 @@ namespace Configs {
             } else if (object.plugin == "obfs") {
                 plugin = "obfs-local";
                 QStringList ssPlugin;
-                clash::obfs plugin_config = object.plugin_opts.get_value<clash::obfs>();
+                const auto& plugin_config = object.plugin_opts;
                 if (!plugin_config.mode.empty()) ssPlugin << "obfs=" + QString::fromStdString(plugin_config.mode);
                 if (!plugin_config.host.empty()) ssPlugin << "obfs-host=" + QString::fromStdString(plugin_config.host);
                 plugin_opts = ssPlugin.join(";");
