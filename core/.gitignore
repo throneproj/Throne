@@ -2,6 +2,8 @@
 *.pem
 *.json
 !internal/servicecheck/checks.json
+!internal/servicecheck/testdata/*.json
+!internal/rulesets/testdata/*.json
 *.exe
 *.dat
 *.db

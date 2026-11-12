@@ -1,0 +1,7 @@
+{
+  "id": "demo",
+  "name": "Demo",
+  "category": "t",
+  "requests": [{"id": "home", "url": "https://example.com/"}],
+  "rules": [{"if": [{"request": "home", "status": ["2xx"]}], "result": "available"}]
+}
