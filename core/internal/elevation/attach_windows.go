@@ -33,10 +33,16 @@ type child struct {
 	reply   *os.File
 }
 
+var attachedChild bool
+
+// IsAttached reports whether this is the elevated child of an unelevated stub.
+func IsAttached() bool { return attachedChild }
+
 // RunAttach is the elevated copy the task starts as --attach <B> <arg0>: it takes over the stub's stdio, job and, in core
 // mode, Throne's IPC pipe, then calls run, which must not return.
 func RunAttach(args []string, run func(Attached)) {
 	attached := attach(args)
+	attachedChild = true
 	run(attached)
 	os.Exit(0)
 }

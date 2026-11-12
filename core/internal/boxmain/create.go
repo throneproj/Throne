@@ -16,12 +16,27 @@ import (
 	"github.com/sagernet/sing/common/json"
 )
 
+const (
+	tailscaleStateDirectory    = "tailscale"
+	tailscaleTaildropDirectory = "Taildrop"
+)
+
 func parseConfig(ctx context.Context, configContent []byte) (*option.Options, error) {
 	options, err := json.UnmarshalExtendedContext[option.Options](ctx, configContent)
 	if err != nil {
 		return nil, E.Cause(err, "decode config at ", string(configContent))
 	}
 	return &options, nil
+}
+
+// Fixed so that a config cannot point Tailscale's state or received files at an arbitrary folder.
+func pinTailscaleDirectories(options *option.Options) {
+	for _, endpoint := range options.Endpoints {
+		if tailscaleOptions, isTailscale := endpoint.Options.(*option.TailscaleEndpointOptions); isTailscale {
+			tailscaleOptions.StateDirectory = tailscaleStateDirectory
+			tailscaleOptions.TaildropDirectory = tailscaleTaildropDirectory
+		}
+	}
 }
 
 // onCreated runs between New and Start: the Xray sidecars start first and resolve through this box.
@@ -32,6 +47,7 @@ func Create(configContent []byte, onCreated func(*boxbox.Box), adjust ...func(*o
 	if err != nil {
 		return nil, nil, err
 	}
+	pinTailscaleDirectories(options)
 	if disableColor {
 		if options.Log == nil {
 			options.Log = &option.LogOptions{}

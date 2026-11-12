@@ -15,7 +15,6 @@ void EditTailScale::onStart(std::shared_ptr<Configs::Profile> _ent) {
     this->ent = _ent;
     auto outbound = this->ent->Tailscale();
 
-    ui->state_dir->setText(outbound->state_directory);
     ui->auth_key->setText(outbound->auth_key);
     ui->control_plane->setText(outbound->control_url);
     ui->ephemeral->setChecked(outbound->ephemeral);
@@ -31,7 +30,6 @@ void EditTailScale::onStart(std::shared_ptr<Configs::Profile> _ent) {
 bool EditTailScale::onEnd() {
     auto outbound = this->ent->Tailscale();
 
-    outbound->state_directory = ui->state_dir->text().trimmed();
     outbound->auth_key = ui->auth_key->text();
     outbound->control_url = ui->control_plane->text().trimmed();
     outbound->ephemeral = ui->ephemeral->isChecked();

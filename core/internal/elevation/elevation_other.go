@@ -6,6 +6,8 @@ import "log"
 
 func Requested() bool { return false }
 
+func IsAttached() bool { return false }
+
 func RunStub(Mode) {
 	log.Fatal("elevation: the elevated core stub exists only on Windows")
 }
