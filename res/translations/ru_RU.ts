@@ -11136,6 +11136,14 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
         <source>Throne can restart as administrator instead.</source>
         <translation>Вместо этого Throne можно перезапустить от имени администратора.</translation>
     </message>
+    <message>
+        <source>Pin</source>
+        <translation>Закрепить</translation>
+    </message>
+    <message>
+        <source>Unpin</source>
+        <translation>Открепить</translation>
+    </message>
 </context>
 <context>
     <name>OtpItem</name>
@@ -12572,6 +12580,14 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
     <message>
         <source>%1 was replaced by the update; connecting to the profile with the same name.</source>
         <translation>%1 заменён при обновлении; подключение к профилю с тем же названием.</translation>
+    </message>
+    <message>
+        <source>%1 was changed by the update while running; the change applies on its next start.</source>
+        <translation>%1 изменён при обновлении во время работы; изменения вступят в силу при следующем запуске.</translation>
+    </message>
+    <message>
+        <source>%1 was changed by the update; reconnecting with its new settings.</source>
+        <translation>%1 изменён при обновлении; переподключение с новыми настройками.</translation>
     </message>
     <message>
         <source>the routing profile is not in the Happ format</source>

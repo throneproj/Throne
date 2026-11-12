@@ -3,6 +3,7 @@
 #include "include/ui/utils/ProfilesTableFilterHeader.h"
 #include "include/ui/utils/ProfilesFilterProxyModel.h"
 #include "include/ui/utils/ProfilesTableModel.h"
+#include "include/ui/setting/ThemeManager.hpp"
 #include <QDragMoveEvent>
 #include <QHeaderView>
 #include <QKeyEvent>
@@ -21,6 +22,9 @@ namespace {
                 painter->fillRect(option.rect, qvariant_cast<QBrush>(fill));
             }
             QStyledItemDelegate::paint(painter, option, index);
+            if (ProfilesTableModel::endsPinnedBlock(index)) {
+                painter->fillRect(QRect(option.rect.left(), option.rect.bottom() - 1, option.rect.width(), 2), themeManager()->tokens.muted);
+            }
         }
     };
 }
@@ -127,21 +131,16 @@ void ProfilesTableView::dropEvent(QDropEvent *event) {
         QPoint pos = event->position().toPoint();
         QModelIndex targetIndex = indexAt(pos);
 
-        int newRow;
-        if (!targetIndex.isValid()) {
-            newRow = model()->rowCount() - 1;
-        } else {
-            DropIndicatorPosition indicatorPos = dropIndicatorPosition();
-            newRow = targetIndex.row();
-            if (indicatorPos == AboveItem) {
-                newRow--;
-            }
+        // Rows are not drop targets, so the indicator is above or below: the upper or lower half of the row.
+        int target = model()->rowCount() - 1;
+        bool below = true;
+        if (targetIndex.isValid()) {
+            target = targetIndex.row();
+            below = dropIndicatorPosition() != AboveItem;
         }
-        if (m_filterProxy && newRow >= 0) {
-            newRow = m_filterProxy->toSourceRow(newRow);
-            if (newRow < 0) return;
-        }
-        rowsSwapped(rowNum, newRow);
+        if (m_filterProxy) target = m_filterProxy->toSourceRow(target);
+        if (target < 0) return;
+        if (rowDropped) rowDropped(rowNum, target, below);
         event->accept();
     } else {
         QTableView::dropEvent(event);

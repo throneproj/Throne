@@ -26,16 +26,29 @@ namespace Subscription {
             leftoverByIdentity[entry.keys.identity].append(entry.id);
         }
 
-        QHash<int, int> supersededBy;
+        QHash<int, ProfileUpdate> supersededBy;
         QSet<int> matchedOld;
         for (const auto &entry : incoming) {
             if (entry.id < 0 || entry.reused || entry.contentKnown) continue;
             const auto it = leftoverByIdentity.find(entry.keys.identity);
             if (it == leftoverByIdentity.end() || it->isEmpty()) continue;
             const int oldId = it->takeFirst();
-            plan.updates.append(qMakePair(oldId, entry.id));
-            plan.updated << entry.display;
-            supersededBy.insert(entry.id, oldId);
+            supersededBy.insert(entry.id, {oldId, entry.id, false});
+            matchedOld.insert(oldId);
+        }
+
+        // Best effort on what both passes left, excess duplicates and known content included.
+        QHash<QString, QList<int>> leftoverByName;
+        for (const auto &entry : old) {
+            if (entry.name.isEmpty() || index.isClaimed(entry.id) || matchedOld.contains(entry.id)) continue;
+            leftoverByName[entry.name].append(entry.id);
+        }
+        for (const auto &entry : incoming) {
+            if (entry.id < 0 || entry.reused || entry.name.isEmpty() || supersededBy.contains(entry.id)) continue;
+            const auto it = leftoverByName.find(entry.name);
+            if (it == leftoverByName.end() || it->isEmpty()) continue;
+            const int oldId = it->takeFirst();
+            supersededBy.insert(entry.id, {oldId, entry.id, true});
             matchedOld.insert(oldId);
         }
 
@@ -52,7 +65,9 @@ namespace Subscription {
                 continue;
             }
             if (const auto it = supersededBy.constFind(entry.id); it != supersededBy.constEnd()) {
-                plan.order << it.value();
+                plan.updates << it.value();
+                plan.updated << entry.display;
+                plan.order << it->oldId;
                 plan.stale << entry.id;
                 continue;
             }

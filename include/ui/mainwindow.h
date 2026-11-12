@@ -194,6 +194,8 @@ private slots:
 
     void on_menu_clone_triggered();
 
+    void on_menu_pin_triggered();
+
     void on_menu_delete_repeat_triggered();
 
     void on_menu_delete_triggered();
@@ -373,6 +375,7 @@ private:
 
     QList<int> get_now_selected_list();
     void refresh_startstop_button();
+    void refresh_pin_action();
 
     // View slots of ConnectionManager and VpnAuthController, in mainwindow_view.cpp.
     void addRunMarker(qint64 monoMs, Engine::RunMarker kind, const QString &name);

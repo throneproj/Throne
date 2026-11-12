@@ -794,6 +794,7 @@ QToolButton::menu-indicator {
     <addaction name="separator"/>
     <addaction name="menu_select_all"/>
     <addaction name="menu_clone"/>
+    <addaction name="menu_pin"/>
     <addaction name="separator"/>
     <addaction name="actionUrl_Test_Selected"/>
     <addaction name="actionSpeedtest_Selected"/>
@@ -1173,6 +1174,11 @@ QToolButton::menu-indicator {
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+D</string>
+   </property>
+  </action>
+  <action name="menu_pin">
+   <property name="text">
+    <string>Pin</string>
    </property>
   </action>
   <action name="menu_update_subscription">

@@ -122,6 +122,7 @@ void MainWindow::setActionsData()
     ui->actionUpdate_All_Subscriptions->setData(QString("m31"));
     ui->menu_scanner->setData(QString("m32"));
     commandPaletteAction->setData(QString("m33"));
+    ui->menu_pin->setData(QString("m55"));
 }
 
 QList<QAction*> MainWindow::getActionsForShortcut()

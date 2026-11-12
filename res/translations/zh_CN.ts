@@ -11235,6 +11235,14 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
         <source>Throne can restart as administrator instead.</source>
         <translation>也可以改为以管理员身份重启 Throne。</translation>
     </message>
+    <message>
+        <source>Pin</source>
+        <translation>置顶</translation>
+    </message>
+    <message>
+        <source>Unpin</source>
+        <translation>取消置顶</translation>
+    </message>
 </context>
 <context>
     <name>MuxSettingsWidget</name>
@@ -11680,6 +11688,14 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
     <message>
         <source>%1 was replaced by the update; connecting to the profile with the same name.</source>
         <translation>%1 已被该更新替换；正在连接到同名的配置档。</translation>
+    </message>
+    <message>
+        <source>%1 was changed by the update while running; the change applies on its next start.</source>
+        <translation>%1 在运行期间已被该更新修改；更改将在下次启动时生效。</translation>
+    </message>
+    <message>
+        <source>%1 was changed by the update; reconnecting with its new settings.</source>
+        <translation>%1 已被该更新修改；正在以新设置重新连接。</translation>
     </message>
     <message>
         <source>Subscription update already queued: %1</source>

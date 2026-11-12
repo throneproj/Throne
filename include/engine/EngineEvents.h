@@ -33,7 +33,8 @@ namespace Engine {
         void subscriptionFinished(int importedCount, bool quiet);
         void subscriptionGroupChanged(int groupId, const QList<int> &disturbedProfileIds);
         void subscriptionDiff(const QString &title, const QString &body);
-        // A refresh deleted the running profile; profileId is its only same-name successor in the group.
+        // A refresh stopped the running profile: profileId is its only same-name successor after a delete,
+        // or the profile itself after a name match updated it in place.
         void subscriptionReplacedRunning(int profileId);
         // The routing profile the running config uses changed underneath it.
         void routingRestartNeeded();

@@ -522,7 +522,7 @@ void MainWindow::refresh_proxy_list_impl_refresh_data(const QList<int>& ids, boo
     if (!ids.isEmpty()) {
         for (auto id:ids) profilesTableModel->refreshProfileId(id);
     } else {
-        profilesTableModel->refreshTable(currentGroup->profiles, mayNeedReset);
+        profilesTableModel->refreshTable(currentGroup->profiles, currentGroup->PinnedCount(), mayNeedReset);
     }
 }
 

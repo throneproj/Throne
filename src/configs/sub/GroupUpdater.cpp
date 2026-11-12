@@ -10,8 +10,10 @@
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/engine/EngineEvents.h"
+#include "include/engine/Lifecycle.h"
 #include "include/global/HTTPRequestHelper.hpp"
 #include "include/global/Notice.hpp"
+#include "include/global/RunningProfiles.hpp"
 #include "include/global/Utils.hpp"
 
 #include <QCoreApplication>
@@ -155,6 +157,21 @@ namespace Subscription {
             Engine::EngineEvents::SubscriptionReplacedRunning(matches.first());
         }
 
+        void reconnectUpdated(int id) {
+            const auto &settings = Configs::dataManager->settingsRepo;
+            const auto ent = Configs::dataManager->profilesRepo->GetProfile(id);
+            if (ent == nullptr || settings->started_id != id || !Configs::RunningUsesProfile(id)) return;
+            const auto display = ent->outbound->DisplayTypeAndName();
+            if (!settings->allow_stopping_active_profile) {
+                MW_show_log(QObject::tr("%1 was changed by the update while running; the change applies on its next start.").arg(display));
+                return;
+            }
+            MW_show_log(QObject::tr("%1 was changed by the update; reconnecting with its new settings.").arg(display));
+            // The replaced-running event only starts from idle, so stop first, as a delete of the running profile would.
+            Engine::Lifecycle::StopRunningProfile(false, true, false, false);
+            Engine::EngineEvents::SubscriptionReplacedRunning(id);
+        }
+
         // Inserts in chunks; only per-profile digests survive a flush.
         class ImportSink {
         public:
@@ -175,6 +192,7 @@ namespace Subscription {
                         return;
                     }
                     if (!entry.contentKnown) entry.keys.identity = identityKeyOf(*ent);
+                    entry.name = ent->outbound->name;
                 }
                 entryIndex.append(entries.size());
                 entries.append(std::move(entry));
@@ -1165,6 +1183,7 @@ namespace Subscription {
         bool deleteFailed = false;
         bool cleared = false;
         std::shared_ptr<Configs::Profile> stoppedRunning;
+        int updatedRunning = -1;
         if (settings->sub_clear) {
             MW_show_log(QObject::tr("Clearing servers..."));
             auto doomed = members();
@@ -1194,7 +1213,7 @@ namespace Subscription {
         QSet<int> working;
         if (!cleared) {
             forEachProfile(members(), [&](const std::shared_ptr<Configs::Profile> &ent) {
-                old.append({ent->id, {contentKeyOf(*ent), identityKeyOf(*ent)}, ent->outbound->DisplayTypeAndName()});
+                old.append({ent->id, {contentKeyOf(*ent), identityKeyOf(*ent)}, ent->outbound->DisplayTypeAndName(), ent->outbound->name});
                 if (options.keep_working && ent->IsWorking() && filter.judge(*ent, ent->test_country) == ImportFilter::Verdict::Keep) {
                     working.insert(ent->id);
                 }
@@ -1241,7 +1260,7 @@ namespace Subscription {
             const auto plan = Reconcile(old, sink.entries, index);
             result.added = static_cast<int>(plan.added.size());
             result.updated = static_cast<int>(plan.updates.size());
-            for (const auto &[oldId, newId] : plan.updates) {
+            for (const auto &[oldId, newId, byName] : plan.updates) {
                 auto oldEnt = profilesRepo->GetProfile(oldId);
                 const auto newEnt = profilesRepo->GetProfile(newId);
                 if (oldEnt != nullptr && newEnt != nullptr) {
@@ -1249,6 +1268,13 @@ namespace Subscription {
                     // Still stamped with the temporary row's id; VPN credential overrides are keyed by it.
                     oldEnt->outbound->profile_id = oldId;
                     oldEnt->name = oldEnt->outbound->name;
+                    // Possibly another server: tested like the arrival, not by the old results.
+                    if (byName) {
+                        oldEnt->type = newEnt->type;
+                        oldEnt->ClearTestResults();
+                        oldEnt->test_country = newEnt->test_country;
+                        if (oldId == settings->started_id) updatedRunning = oldId;
+                    }
                     profilesRepo->Save(oldEnt);
                 }
                 disturbed << oldId;
@@ -1300,6 +1326,8 @@ namespace Subscription {
                 if (!restore(id)) continue;
                 if (const auto ent = profilesRepo->GetProfile(id); ent != nullptr) workingNames << ent->outbound->DisplayTypeAndName();
             }
+            // plan.order knows nothing of pins: surviving pinned profiles return to the head, deleted ones drop out.
+            group->NormalizePins();
             if (!outcome.kept.isEmpty() || !keptWorking.isEmpty()) groupsRepo->Save(group);
 
             auto deletedNames = plan.deleted;
@@ -1380,6 +1408,7 @@ namespace Subscription {
             ShowImportReport(reportTitle(surface, group->name), report);
         }
         if (stoppedRunning != nullptr) reconnectSuccessor(members(), stoppedRunning);
+        else if (updatedRunning >= 0) reconnectUpdated(updatedRunning);
         // Auto selectors resolve members from the group at build time, so a refresh can invalidate an untouched one.
         Engine::EngineEvents::SubscriptionGroupChanged(group->id, disturbed);
         Engine::EngineEvents::SubscriptionFinished(-1, true);

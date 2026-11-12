@@ -700,6 +700,14 @@ Deleted %3 Profiles:
         <translation>%1 با به‌روزرسانی جایگزین شد؛ در حال اتصال به نمایهٔ هم‌نام.</translation>
     </message>
     <message>
+        <source>%1 was changed by the update while running; the change applies on its next start.</source>
+        <translation>%1 هنگام اجرا با به‌روزرسانی تغییر کرد؛ این تغییر در اجرای بعدی آن اعمال می‌شود.</translation>
+    </message>
+    <message>
+        <source>%1 was changed by the update; reconnecting with its new settings.</source>
+        <translation>%1 با به‌روزرسانی تغییر کرد؛ در حال اتصال دوباره با تنظیمات جدید آن.</translation>
+    </message>
+    <message>
         <source>the routing profile is not in the Happ format</source>
         <translation>نمایه مسیریابی در قالب Happ نیست</translation>
     </message>
@@ -5292,6 +5300,14 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
     <message>
         <source>Grant Privileges</source>
         <translation>اعطای دسترسی</translation>
+    </message>
+    <message>
+        <source>Pin</source>
+        <translation>سنجاق کردن</translation>
+    </message>
+    <message>
+        <source>Unpin</source>
+        <translation>برداشتن سنجاق</translation>
     </message>
 </context>
 <context>

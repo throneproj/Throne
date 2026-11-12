@@ -393,17 +393,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     ui->profilesTableView->setModel(profilesFilterModel);
     connect(ui->profilesTableView->selectionModel(), &QItemSelectionModel::selectionChanged, this,
             [this] { refresh_startstop_button(); });
-    ui->profilesTableView->rowsSwapped = [this](int row1, int row2)
+    ui->profilesTableView->rowDropped = [this](int from, int target, bool below)
     {
         // A drop position in a filtered list says nothing about the group's real order.
         if (profilesFilterModel->hasActiveFilter()) return;
-        if (row1 == row2) return;
         auto group = Configs::dataManager->groupsRepo->CurrentGroup();
-        // A hand-placed row is a manual order, which a kept sort would undo.
-        group->SetSort({});
+        if (group == nullptr) return;
+        // A hand-placed row among the unpinned ones is a manual order, so MoveProfile also stops a kept sort.
+        const int to = group->MoveProfile(from, target, below);
+        if (to < 0) return;
         refresh_sort_indicator();
-        group->EmplaceProfile(row1, row2);
-        profilesTableModel->emplaceProfiles(row1, row2);
+        profilesTableModel->moveProfile(from, to, group->PinnedCount());
         Configs::dataManager->groupsRepo->Save(group);
     };
     connect(ui->profilesTableView->horizontalHeader(), &QHeaderView::sectionClicked, this, [this](int logicalIndex) {
@@ -728,6 +728,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             ui->actionService_Check_Selected->setEnabled(true);
         }
         ui->menu_find_settings->setEnabled(get_now_selected_list().size() == 1);
+        refresh_pin_action();
         if (tests()->isRunning()) {
             ui->menu_server->addAction(ui->menu_stop_testing);
         } else {
