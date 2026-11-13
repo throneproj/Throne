@@ -5,6 +5,11 @@ namespace Configs {
     // The built-in Tor exit; the core pins the executable and data paths itself.
     class tor : public outbound {
     public:
+        // Any thread; under tor/ in the config folder, where the core pins it.
+        static QString ExecutablePath();
+
+        static bool Installed();
+
         QString DisplayType() override;
 
         bool HasServerEndpoint() override { return false; }
