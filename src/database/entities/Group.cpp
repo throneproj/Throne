@@ -53,10 +53,13 @@ namespace Configs
             const QStringView key = match.capturedView(1);
             const qint64 value = match.capturedView(2).toLongLong();
             const auto is = [key](QStringView name) { return key.compare(name, Qt::CaseInsensitive) == 0; };
+            // traffic without a total is an unlimited quota
             if (is(u"upload")) {
                 result.upload = value;
+                result.has_quota = true;
             } else if (is(u"download")) {
                 result.download = value;
+                result.has_quota = true;
             } else if (is(u"total")) {
                 result.total = value;
                 result.has_quota = true;
