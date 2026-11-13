@@ -16,6 +16,7 @@
 #include <QPlainTextEdit>
 #include <QCheckBox>
 #include <QScreen>
+#include <QStyle>
 #include <QGridLayout>
 #include <QFormLayout>
 #include <QGroupBox>
@@ -511,11 +512,13 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     connect(ui->use_dns_object, &QCheckBox::stateChanged, this, [=,this](int state) {
         auto useDNSObject = state == Qt::Checked;
         ui->simple_dns_box->setDisabled(useDNSObject);
+        ui->dns_resolution_box->setDisabled(useDNSObject);
         ui->dns_advanced->setDisabled(useDNSObject);
         ui->dns_object_edit->setDisabled(!useDNSObject);
     });
     ui->use_dns_object->stateChanged(Qt::Unchecked);
     ui->ruleset_mirror->setCurrentIndex(Configs::dataManager->settingsRepo->ruleset_mirror);
+    D_LOAD_INT_ENABLE(route_auto_update, route_auto_update_enable)
     ui->default_domain_strategy->setCurrentText(Configs::dataManager->settingsRepo->default_domain_strategy);
     ui->domainStrategyCombo->setCurrentText(Configs::dataManager->settingsRepo->resolve_domain_strategy);
     ui->use_dns_object->setChecked(Configs::dataManager->settingsRepo->use_dns_object);
@@ -558,7 +561,13 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
         on_import_route_clicked();
     });
 
-    ui->enable_warp->setChecked(Configs::dataManager->settingsRepo->enable_warp && !Configs::dataManager->settingsRepo->enable_tor);
+    if (Configs::dataManager->settingsRepo->enable_tor) ui->enable_tor->setChecked(true);
+    else if (Configs::dataManager->settingsRepo->enable_warp) ui->enable_warp->setChecked(true);
+    else ui->exit_server->setChecked(true);
+    // Lines each hint up with its radio button's text.
+    const int hintIndent = style()->pixelMetric(QStyle::PM_ExclusiveIndicatorWidth, nullptr, ui->exit_server)
+                         + style()->pixelMetric(QStyle::PM_RadioButtonLabelSpacing, nullptr, ui->exit_server);
+    for (auto *hint : {ui->exit_server_hint, ui->enable_warp_hint, ui->tor_status}) hint->setIndent(hintIndent);
     ui->warp_mode->setCurrentIndex(Configs::dataManager->settingsRepo->warp_mode == "masque" ? 1 : Configs::dataManager->settingsRepo->warp_mode == "amnezia" ? 2 : 0);
     ui->warp_private_key->setText(Configs::dataManager->settingsRepo->warp_private_key);
     ui->warp_public_key->setText(Configs::dataManager->settingsRepo->warp_public_key);
@@ -583,32 +592,25 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     connect(ui->warp_api_hosts_btn, &QPushButton::clicked, this, [this] { editWarpApiHosts(this); });
     connect(ui->warp_advanced_btn, &QPushButton::clicked, this, [this] { editWarpAdvanced(this); });
 
-    ui->enable_tor->setChecked(Configs::dataManager->settingsRepo->enable_tor);
     const auto showTorStatus = [this] {
         const bool installed = Engine::AssetUpdates::TorInstalled();
         ui->tor_status->setText(installed ? tr("Tor is installed.") : tr("Tor will be downloaded when you press OK."));
         ui->tor_status->setVisible(installed || ui->enable_tor->isChecked());
     };
     showTorStatus();
-    connect(ui->enable_tor, &QCheckBox::toggled, this, [this, showTorStatus](bool on) {
-        if (on) ui->enable_warp->setChecked(false);
-        showTorStatus();
-    });
-    connect(ui->enable_warp, &QCheckBox::toggled, this, [this](bool on) {
-        if (on) ui->enable_tor->setChecked(false);
-    });
+    connect(ui->enable_tor, &QAbstractButton::toggled, this, showTorStatus);
 
     // A custom DNS object greys out the DNS fields, so Simple mode keeps its switch beside them while it is on.
-    if (ui->use_dns_object->isChecked()) {
-        UiMode::Unmark(ui->groupBox);
-        UiMode::Unmark(ui->simple_dns_box);
-    }
+    if (ui->use_dns_object->isChecked()) UiMode::Unmark(ui->groupBox);
     UiMode::Apply(this);
     UiMode::Fold(this);
 
     form->bind(ui->remote_dns, Configs::DnsAddressListProblem).label(ui->label_9->text());
     form->bind(ui->direct_dns, Configs::DnsAddressListProblem).label(ui->label_8->text());
     form->bind(ui->local_override, manageRoutesLocalDnsProblem).label(ui->label_2->text());
+    form->bind(ui->route_auto_update, Validation::Rules::Int(30, 525600, Validation::Empty::Required))
+        .when([this] { return ui->route_auto_update_enable->isChecked(); });
+    connect(ui->route_auto_update_enable, &QAbstractButton::toggled, form, [this] { form->refresh(); });
     // buildDNSSection would emit an unparsable object as "dns": {}, silently dropping every DNS setting.
     form->addRule({ui->use_dns_object}, [this] {
         if (!ui->use_dns_object->isChecked()) return QString();
@@ -642,7 +644,7 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     const auto revalidateWarp = [this, warpFields] {
         for (auto *field : warpFields) form->revalidate(field);
     };
-    connect(ui->enable_warp, &QCheckBox::toggled, form, revalidateWarp);
+    connect(ui->enable_warp, &QAbstractButton::toggled, form, revalidateWarp);
     connect(ui->warp_mode, &QComboBox::currentIndexChanged, form, revalidateWarp);
     // Simple mode hides the fields above, and hidden fields are not validated.
     form->addRule({ui->enable_warp, ui->warp_mode}, [this] {
@@ -758,6 +760,7 @@ void DialogManageRoutes::accept() {
     }
 
     Configs::dataManager->settingsRepo->ruleset_mirror = ui->ruleset_mirror->currentIndex();
+    D_SAVE_INT_ENABLE(route_auto_update, route_auto_update_enable)
     Configs::dataManager->settingsRepo->resolve_domain_strategy = ui->domainStrategyCombo->currentText();
     Configs::dataManager->settingsRepo->default_domain_strategy = ui->default_domain_strategy->currentText();
     Configs::dataManager->settingsRepo->use_dns_object = ui->use_dns_object->isChecked();

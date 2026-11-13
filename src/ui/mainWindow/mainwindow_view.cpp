@@ -437,7 +437,7 @@ void MainWindow::refresh_traffic_graph_settings() {
     if (trafficChart == nullptr) return;
     if (settings->disable_traffic_stats) {
         trafficChart->setBlocked(tr("Traffic statistics are disabled"),
-                                 tr("Untick “Disable Traffic Stats” in Basic Settings → Miscellaneous to record speeds again."));
+                                 tr("Untick “Disable Traffic Stats” in Basic Settings → Core → Statistics to record speeds again."));
     } else {
         trafficChart->setBlocked({});
     }

@@ -340,7 +340,7 @@ void MainWindow::OpenDashboard() {
     const auto &settings = *Configs::dataManager->settingsRepo;
     const auto port = settings.core_box_api_port;
     if (port <= 0) {
-        MessageBoxWarning(software_name, tr("The sing-box API is disabled. Set a listen port in Preferences > Basic Settings > Core."));
+        MessageBoxWarning(software_name, tr("The sing-box API is disabled. Set a listen port in Preferences > Integration Settings > Core APIs."));
         return;
     }
     if (settings.started_id < 0) {

@@ -363,6 +363,108 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tab_core_apis">
+      <attribute name="title">
+       <string>Core APIs</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="coreApisLayout">
+       <item>
+        <widget class="QGroupBox" name="clash_api_box">
+         <property name="title">
+          <string>Clash API</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_clash_api">
+          <item row="0" column="0">
+           <widget class="QLabel" name="core_box_clash_listen_addr_l">
+            <property name="text">
+             <string>Listen Address</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="MyLineEdit" name="core_box_clash_listen_addr"/>
+          </item>
+          <item row="0" column="2">
+           <widget class="QLabel" name="core_box_clash_api_l">
+            <property name="text">
+             <string>Listen Port</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3">
+           <widget class="MyLineEdit" name="core_box_clash_api"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="core_box_clash_api_secret_l">
+            <property name="text">
+             <string>Secret</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1" colspan="3">
+           <widget class="MyLineEdit" name="core_box_clash_api_secret"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="api_service_box">
+         <property name="title">
+          <string>sing-box API / Dashboard</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_api_service">
+          <item row="0" column="0">
+           <widget class="QLabel" name="core_box_api_port_l">
+            <property name="text">
+             <string>Listen Port</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="MyLineEdit" name="core_box_api_port"/>
+          </item>
+          <item row="0" column="2">
+           <widget class="QLabel" name="core_box_api_secret_l">
+            <property name="text">
+             <string>Secret</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3">
+           <widget class="MyLineEdit" name="core_box_api_secret"/>
+          </item>
+          <item row="1" column="0" colspan="3">
+           <widget class="QLabel" name="core_box_api_hint">
+            <property name="text">
+             <string>Loopback only. Leave the port empty to keep the web dashboard off.</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QPushButton" name="core_box_api_regen">
+            <property name="text">
+             <string>Regenerate Secret</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="coreApisSpacer">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
    <item>
@@ -382,6 +484,11 @@
    <class>QtExtKeySequenceEdit</class>
    <extends>QKeySequenceEdit</extends>
    <header>3rdparty/QtExtKeySequenceEdit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>MyLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>include/ui/utils/MyLineEdit.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

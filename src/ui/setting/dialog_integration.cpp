@@ -10,9 +10,14 @@
 #include <QAction>
 #include <QClipboard>
 #include <QHostAddress>
+#include <QIntValidator>
 #include <QLabel>
 #include <QMessageBox>
 #include <QScreen>
+#include <QUuid>
+
+#include <functional>
+#include <optional>
 
 namespace {
     // Mirrors GlobalHotkeys::setActions, which registers only the first chord and refuses keys that would swallow typing.
@@ -71,6 +76,8 @@ DialogIntegration::DialogIntegration(QWidget *parent, const QList<QAction*>& act
         return Validation::EachItem(QString(text).replace(QLatin1Char(','), QLatin1Char(' ')), Validation::Split::Whitespace,
                                     integrationAllowEntryError);
     });
+    setupCoreApisTab();
+    bindCoreApiValidation();
 
     // Sized with the LAN warning shown, so selecting "Local network" later never needs a taller window.
     ui->api_lan_warning->setVisible(true);
@@ -196,6 +203,74 @@ void DialogIntegration::copyForScripts()
     QApplication::clipboard()->setText(QStringLiteral("THRONE_ADDR=%1:%2\nTHRONE_KEY=%3").arg(host, QString::number(ui->api_port->value()), ui->api_key->text()));
 }
 
+void DialogIntegration::setupCoreApisTab()
+{
+    const auto &settings = Configs::dataManager->settingsRepo;
+    ui->core_box_clash_listen_addr->setText(settings->core_box_clash_listen_addr);
+    ui->core_box_clash_listen_addr->setPlaceholderText(tr("127.0.0.1 (default)"));
+    ui->core_box_clash_api->setValidator(new QIntValidator(1, 65535, ui->core_box_clash_api));
+    ui->core_box_clash_api->setText(settings->core_box_clash_api > 0 ? Int2String(settings->core_box_clash_api) : QString());
+    ui->core_box_clash_api_secret->setText(settings->core_box_clash_api_secret);
+
+    ui->core_box_api_port->setValidator(new QIntValidator(1, 65535, ui->core_box_api_port));
+    ui->core_box_api_port->setText(settings->core_box_api_port > 0 ? Int2String(settings->core_box_api_port) : QString());
+    ui->core_box_api_secret->setText(settings->core_box_api_secret);
+    connect(ui->core_box_api_regen, &QPushButton::clicked, this, [this] {
+        ui->core_box_api_secret->setText(QUuid::createUuid().toString(QUuid::WithoutBraces).remove('-'));
+    });
+}
+
+void DialogIntegration::bindCoreApiValidation()
+{
+    using namespace Validation;
+    const auto clashLabel = [this](const QLabel *label) { return QStringLiteral("%1 %2").arg(ui->clash_api_box->title(), label->text()); };
+    form->bind(ui->core_box_clash_listen_addr, Rules::Host(Empty::Allowed)).label(clashLabel(ui->core_box_clash_listen_addr_l));
+    form->bind(ui->core_box_clash_api, Rules::Port(Empty::Allowed)).label(clashLabel(ui->core_box_clash_api_l));
+    form->bind(ui->core_box_api_port, Rules::Port(Empty::Allowed))
+        .label(QStringLiteral("%1 %2").arg(ui->api_service_box->title(), ui->core_box_api_port_l->text()));
+
+    struct PortUse {
+        QWidget *widget;
+        QString name;
+        std::function<std::optional<qint64>()> port;
+    };
+    // The first two are this tab's own; the inbound ports come from saved settings, since Basic Settings edits them.
+    const QList<PortUse> ports = {
+        {ui->core_box_clash_api, tr("Clash API"), [this] { return ToInt(ui->core_box_clash_api->text()); }},
+        {ui->core_box_api_port, tr("sing-box API"), [this] { return ToInt(ui->core_box_api_port->text()); }},
+        {ui->api_port, tr("Throne API"), [this]() -> std::optional<qint64> {
+             if (!ui->api_enable->isChecked()) return std::nullopt;
+             return ui->api_port->value();
+         }},
+        {nullptr, tr("Mixed inbound"), []() -> std::optional<qint64> {
+             const auto &settings = Configs::dataManager->settingsRepo;
+             if (settings->disable_mixed_inbound || settings->random_inbound_port) return std::nullopt;
+             return settings->inbound_socks_port;
+         }},
+        {nullptr, tr("DNS server"), []() -> std::optional<qint64> {
+             const int port = Configs::dataManager->settingsRepo->core_dns_in_port;
+             if (port <= 0) return std::nullopt;
+             return port;
+         }},
+    };
+    for (qsizetype i = 0; i < 2; ++i) {
+        for (qsizetype j = i + 1; j < ports.size(); ++j) {
+            QList<QWidget *> participants{ports[i].widget};
+            if (ports[j].widget != nullptr) participants << ports[j].widget;
+            form->addRule(participants, [a = ports[i], b = ports[j]] {
+                const auto port = a.port();
+                if (!port || *port <= 0 || port != b.port()) return QString();
+                return tr("Port %1 is already used by: %2. Choose a different port.").arg(QString::number(*port), b.name);
+            }, nullptr, Severity::Error, ports[i].name);
+        }
+    }
+    connect(ui->api_enable, &QCheckBox::toggled, this, [this] {
+        form->revalidate(ui->core_box_clash_api);
+        form->revalidate(ui->core_box_api_port);
+        form->refresh();
+    });
+}
+
 void DialogIntegration::accept()
 {
     if (!form->validateAll()) return;
@@ -230,10 +305,29 @@ void DialogIntegration::accept()
     settings->remote_api_key = apiKey;
     settings->remote_api_allow = apiAllow;
     settings->remote_api_admin_lan = apiAdminLan;
+
+    const auto clashListen = ui->core_box_clash_listen_addr->text().trimmed();
+    const int clashPort = ui->core_box_clash_api->text().trimmed().toInt();
+    const auto clashSecret = ui->core_box_clash_api_secret->text().trimmed();
+    const int boxApiPort = ui->core_box_api_port->text().trimmed().toInt();
+    auto boxApiSecret = ui->core_box_api_secret->text().trimmed();
+    // Blank means "no authentication" to sing-box, so never let the field clear it.
+    if (boxApiSecret.isEmpty()) boxApiSecret = settings->core_box_api_secret;
+    // A stored port <= 0 is off, the same as an empty field.
+    const auto portOrOff = [](int port) { return port > 0 ? port : 0; };
+    const bool coreApisChanged = clashListen != settings->core_box_clash_listen_addr || clashPort != portOrOff(settings->core_box_clash_api)
+                                 || clashSecret != settings->core_box_clash_api_secret || boxApiPort != portOrOff(settings->core_box_api_port)
+                                 || boxApiSecret != settings->core_box_api_secret;
+    settings->core_box_clash_listen_addr = clashListen;
+    settings->core_box_clash_api = clashPort;
+    settings->core_box_clash_api_secret = clashSecret;
+    settings->core_box_api_port = boxApiPort;
+    settings->core_box_api_secret = boxApiSecret;
     settings->Save();
 
     MW_dialog_message(MwMessage::UpdateShortcuts, {});
-    if (apiChanged) MW_dialog_message(MwMessage::UpdateSettings, {MwArg::RemoteApi});
+    if (apiChanged || coreApisChanged)
+        MW_dialog_message(MwMessage::UpdateSettings, apiChanged ? QStringList{MwArg::RemoteApi} : QStringList{});
     const auto failures = GetMainWindow()->RegisterHotkey(false);
     if (!failures.isEmpty() && GetMainWindow()->IsGlobalHotkeySupported()) {
         QMessageBox box(QMessageBox::Warning, tr("Hotkey"), tr("These global hotkeys could not be registered:") + "\n\n" + failures.join('\n'), QMessageBox::Ok, this);

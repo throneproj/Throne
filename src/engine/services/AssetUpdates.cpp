@@ -361,7 +361,7 @@ namespace Engine::AssetUpdates {
                     }
                     return true;
                 }
-                MW_show_log(MainWindowTr::tr("The Xray config \"%1\" needs geo data files that are not installed: %2. Download them under Basic Settings > Miscellaneous > Xray Geo Assets.")
+                MW_show_log(MainWindowTr::tr("The Xray config \"%1\" needs geo data files that are not installed: %2. Download them under Basic Settings > Core > Xray Core.")
                                 .arg(contextName, missing.join(QStringLiteral(", "))));
             }
             return true;

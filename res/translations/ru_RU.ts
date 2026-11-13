@@ -450,10 +450,6 @@ It stays a preference, not a lock: if that profile stops working the selector st
         <translation>Основные настройки</translation>
     </message>
     <message>
-        <source>Common</source>
-        <translation>Общие</translation>
-    </message>
-    <message>
         <source>Listen Address</source>
         <translation>Прослушиваемый адрес</translation>
     </message>
@@ -490,16 +486,8 @@ It stays a preference, not a lock: if that profile stops working the selector st
         <translation>Предотвращает сворачивание приложения в системный трей при закрытии окна. Вместо этого приложение завершит работу</translation>
     </message>
     <message>
-        <source>Style</source>
-        <translation>Интерфейс</translation>
-    </message>
-    <message>
         <source>Theme</source>
         <translation>Тема</translation>
-    </message>
-    <message>
-        <source>Connection statistics</source>
-        <translation>Статистика подключений</translation>
     </message>
     <message>
         <source>Hide dashboard at startup</source>
@@ -510,20 +498,8 @@ It stays a preference, not a lock: if that profile stops working the selector st
         <translation>Макс. кол-во строк в логах</translation>
     </message>
     <message>
-        <source>Subscription</source>
-        <translation>Подписка</translation>
-    </message>
-    <message>
         <source>User Agent</source>
         <translation>User Agent</translation>
-    </message>
-    <message>
-        <source>Use proxy</source>
-        <translation>Использовать прокси</translation>
-    </message>
-    <message>
-        <source>Ignore TLS errors</source>
-        <translation>Игнорировать ошибки TLS</translation>
     </message>
     <message>
         <source>Clear servers before updating subscription</source>
@@ -606,10 +582,6 @@ It stays a preference, not a lock: if that profile stops working the selector st
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;В минутах&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <source>Xray Geo Assets</source>
-        <translation>Geo-файлы Xray</translation>
-    </message>
-    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;URL for geoip.dat, downloaded when a full Xray config&apos;s routing needs geoip: rules.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;URL-адрес файла geoip.dat, загружаемого, когда для маршрутизации полной конфигурации Xray требуются правила geoip:.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
@@ -636,10 +608,6 @@ It stays a preference, not a lock: if that profile stops working the selector st
     <message>
         <source>Download geosite.dat now from the URL on the left</source>
         <translation>Загрузить файл geosite.dat прямо сейчас по ссылке слева</translation>
-    </message>
-    <message>
-        <source>Backup and Restore</source>
-        <translation>Резервное копирование и восстановление</translation>
     </message>
     <message>
         <source>Create a portable backup file. Choose which parts to include:</source>
@@ -716,14 +684,6 @@ The local network stays reachable unless Private Range Bypass is turned off in T
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Использовать прокси для запросов подписок, проверки обновлений и т. д.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <source>Restart Proxy On System Proxy Disable</source>
-        <translation>Перезапускать прокси при отключении системного прокси</translation>
-    </message>
-    <message>
-        <source>Inbound Settings</source>
-        <translation>Настройки inbound</translation>
-    </message>
-    <message>
         <source>Testing</source>
         <translation>Проверка</translation>
     </message>
@@ -786,10 +746,6 @@ The local network stays reachable unless Private Range Bypass is turned off in T
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Removes every config file association Throne wrote, including those added by older versions. Associations owned by other applications are left alone.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Удаляет все ассоциации конфигурационных файлов, созданные Throne, включая те, что были добавлены более старыми версиями. Ассоциации, принадлежащие другим приложениям, остаются без изменений.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Logging</source>
-        <translation>Логирование</translation>
     </message>
     <message>
         <source>Sing-box Log level</source>
@@ -872,10 +828,6 @@ The local network stays reachable unless Private Range Bypass is turned off in T
         <translation>Отображать окно с изменениями после обновления подписки вручную</translation>
     </message>
     <message>
-        <source>Subscription auto update</source>
-        <translation>Автообновление подписки</translation>
-    </message>
-    <message>
         <source>Interval (minute, invalid if less than 30)</source>
         <translation>Интервал (мин, не менее 30)</translation>
     </message>
@@ -928,32 +880,8 @@ The local network stays reachable unless Private Range Bypass is turned off in T
         <translation>HTTP/1.1</translation>
     </message>
     <message>
-        <source>Routing profiles auto update</source>
-        <translation>Автообновление профилей маршрутизации</translation>
-    </message>
-    <message>
         <source>Clash API</source>
         <translation>Clash API</translation>
-    </message>
-    <message>
-        <source>Secret</source>
-        <translation>Secret</translation>
-    </message>
-    <message>
-        <source>sing-box API / Dashboard</source>
-        <translation>sing-box API / Веб-панель</translation>
-    </message>
-    <message>
-        <source>Loopback only. Leave the port empty to keep the web dashboard off.</source>
-        <translation>Только локальный адрес (loopback). Оставьте порт пустым, чтобы отключить веб-панель.</translation>
-    </message>
-    <message>
-        <source>Regenerate Secret</source>
-        <translation>Сгенерировать Secret</translation>
-    </message>
-    <message>
-        <source>Miscellaneous</source>
-        <translation>Прочее</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Might Improve Ping and Performance&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -966,10 +894,6 @@ The local network stays reachable unless Private Range Bypass is turned off in T
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A DNS server for local use will be deployed on this port&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;На этом порту будет запущен DNS-сервер для локального использования&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>DNS Server Port</source>
-        <translation>Порт DNS-сервера</translation>
     </message>
     <message>
         <source>NTP Settings</source>
@@ -1050,10 +974,6 @@ The local network stays reachable unless Private Range Bypass is turned off in T
     <message>
         <source>Use Mozilla Certificate Store</source>
         <translation>Исп. хранилище сертификатов Mozilla</translation>
-    </message>
-    <message>
-        <source>Network Settings</source>
-        <translation>Настройки сети</translation>
     </message>
     <message>
         <source>Only Country</source>
@@ -1184,10 +1104,6 @@ Select which parts to restore:</source>
     <message>
         <source>Could not register the config file associations.</source>
         <translation>Не удалось зарегистрировать ассоциации файлов конфигурации.</translation>
-    </message>
-    <message>
-        <source>127.0.0.1 (default)</source>
-        <translation>127.0.0.1 (по умолчанию)</translation>
     </message>
     <message>
         <source>Diagnostics</source>
@@ -1556,6 +1472,122 @@ Throne will restart to complete the restore.</source>
     <message>
         <source>WebDAV Settings...</source>
         <translation>Настройки WebDAV...</translation>
+    </message>
+    <message>
+        <source>Appearance</source>
+        <translation>Внешний вид</translation>
+    </message>
+    <message>
+        <source>Authentication</source>
+        <translation>Аутентификация</translation>
+    </message>
+    <message>
+        <source>Auto update</source>
+        <translation>Автообновление</translation>
+    </message>
+    <message>
+        <source>Backup</source>
+        <translation>Резервные копии</translation>
+    </message>
+    <message>
+        <source>Certificates</source>
+        <translation>Сертификаты</translation>
+    </message>
+    <message>
+        <source>Connection</source>
+        <translation>Подключение</translation>
+    </message>
+    <message>
+        <source>Enable connection statistics</source>
+        <translation>Включить статистику подключений</translation>
+    </message>
+    <message>
+        <source>Exit country</source>
+        <translation>Страна выхода</translation>
+    </message>
+    <message>
+        <source>General</source>
+        <translation>Общие</translation>
+    </message>
+    <message>
+        <source>Ignore TLS errors in Throne&apos;s own requests</source>
+        <translation>Игнорировать ошибки TLS в собственных запросах Throne</translation>
+    </message>
+    <message>
+        <source>Latency</source>
+        <translation>Задержка</translation>
+    </message>
+    <message>
+        <source>Local DNS server</source>
+        <translation>Локальный DNS-сервер</translation>
+    </message>
+    <message>
+        <source>Local proxy</source>
+        <translation>Локальный прокси</translation>
+    </message>
+    <message>
+        <source>Log level</source>
+        <translation>Уровень логов</translation>
+    </message>
+    <message>
+        <source>Log panel</source>
+        <translation>Панель логов</translation>
+    </message>
+    <message>
+        <source>Logs</source>
+        <translation>Логи</translation>
+    </message>
+    <message>
+        <source>Privileges</source>
+        <translation>Привилегии</translation>
+    </message>
+    <message>
+        <source>Profile list</source>
+        <translation>Список профилей</translation>
+    </message>
+    <message>
+        <source>Protection</source>
+        <translation>Защита</translation>
+    </message>
+    <message>
+        <source>Requests</source>
+        <translation>Запросы</translation>
+    </message>
+    <message>
+        <source>Restart proxy when the system proxy is turned off</source>
+        <translation>Перезапускать прокси при выключении системного прокси</translation>
+    </message>
+    <message>
+        <source>Send Throne&apos;s own requests through the proxy</source>
+        <translation>Отправлять собственные запросы Throne через прокси</translation>
+    </message>
+    <message>
+        <source>Speed test</source>
+        <translation>Тест скорости</translation>
+    </message>
+    <message>
+        <source>Statistics</source>
+        <translation>Статистика</translation>
+    </message>
+    <message>
+        <source>Subscriptions</source>
+        <translation>Подписки</translation>
+    </message>
+    <message>
+        <source>Throne API</source>
+        <translation>Throne API</translation>
+    </message>
+    <message>
+        <source>Updates and downloads</source>
+        <translation>Обновления и загрузки</translation>
+    </message>
+    <message>
+        <source>When updating</source>
+        <translation>При обновлении</translation>
+    </message>
+    <message>
+        <source>Window</source>
+        <translation>Окно</translation>
     </message>
 </context>
 <context>
@@ -3490,6 +3522,58 @@ Throne will restart to complete the restore.</source>
         <source>Shortcuts</source>
         <translation>Сочетания клавиш</translation>
     </message>
+    <message>
+        <source>127.0.0.1 (default)</source>
+        <translation>127.0.0.1 (по умолчанию)</translation>
+    </message>
+    <message>
+        <source>Clash API</source>
+        <translation>Clash API</translation>
+    </message>
+    <message>
+        <source>Core APIs</source>
+        <translation>API ядра</translation>
+    </message>
+    <message>
+        <source>DNS server</source>
+        <translation>DNS-сервер</translation>
+    </message>
+    <message>
+        <source>Listen Address</source>
+        <translation>Прослушиваемый адрес</translation>
+    </message>
+    <message>
+        <source>Listen Port</source>
+        <translation>Прослушиваемый порт</translation>
+    </message>
+    <message>
+        <source>Loopback only. Leave the port empty to keep the web dashboard off.</source>
+        <translation>Только локальный адрес (loopback). Оставьте порт пустым, чтобы отключить веб-панель.</translation>
+    </message>
+    <message>
+        <source>Mixed inbound</source>
+        <translation>Mixed inbound</translation>
+    </message>
+    <message>
+        <source>Port %1 is already used by: %2. Choose a different port.</source>
+        <translation>Порт %1 уже используется: %2. Выберите другой порт.</translation>
+    </message>
+    <message>
+        <source>Regenerate Secret</source>
+        <translation>Сгенерировать Secret</translation>
+    </message>
+    <message>
+        <source>Secret</source>
+        <translation>Secret</translation>
+    </message>
+    <message>
+        <source>sing-box API</source>
+        <translation>API sing-box</translation>
+    </message>
+    <message>
+        <source>sing-box API / Dashboard</source>
+        <translation>sing-box API / Веб-панель</translation>
+    </message>
 </context>
 <context>
     <name>DialogIpLists</name>
@@ -3692,14 +3776,6 @@ Throne will restart to complete the restore.</source>
 <context>
     <name>DialogManageRoutes</name>
     <message>
-        <source>Routes</source>
-        <translation>Маршрутизация</translation>
-    </message>
-    <message>
-        <source>Common</source>
-        <translation>Основные</translation>
-    </message>
-    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Used as default strategy when resolving outbound/dns server Domain addresses&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Используется как стратегия по умолчанию при разрешении доменных адресов для исходящих соединений и DNS-серверов&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
@@ -3712,16 +3788,8 @@ Throne will restart to complete the restore.</source>
         <translation>Стратегия разрешения доменов в запросах</translation>
     </message>
     <message>
-        <source>Warp</source>
-        <translation>Warp</translation>
-    </message>
-    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enables the following config to be used as egress, useful for bypassing services restrciting non-warp VPNs&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Использовать конфигурацию ниже как выходной узел (egress). Полезно для обхода сервисов, которые блокируют любые VPN, кроме Warp&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Enable Warp</source>
-        <translation>Включить Warp</translation>
     </message>
     <message>
         <source>Endpoint</source>
@@ -3754,10 +3822,6 @@ Throne will restart to complete the restore.</source>
     <message>
         <source>DNS</source>
         <translation>DNS</translation>
-    </message>
-    <message>
-        <source>Simple DNS Settings</source>
-        <translation>Основные настройки DNS</translation>
     </message>
     <message>
         <source>Direct DNS</source>
@@ -3822,10 +3886,6 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>Cache Capacity</source>
         <translation>Емкость кэша</translation>
-    </message>
-    <message>
-        <source>Route</source>
-        <translation>Маршрутизация</translation>
     </message>
     <message>
         <source>Routing Profiles</source>
@@ -4358,6 +4418,62 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
     <message>
         <source>It uses its own DNS servers: remote %1, direct %2.</source>
         <translation>Использует собственные DNS-серверы: удалённый %1, прямой %2.</translation>
+    </message>
+    <message>
+        <source>Domain Strategy</source>
+        <translation>Стратегия доменов</translation>
+    </message>
+    <message>
+        <source>Egress</source>
+        <translation>Выход</translation>
+    </message>
+    <message>
+        <source>Enable</source>
+        <translation>Включить</translation>
+    </message>
+    <message>
+        <source>Exit through</source>
+        <translation>Выход через</translation>
+    </message>
+    <message>
+        <source>Interval (minute, invalid if less than 30)</source>
+        <translation>Интервал (мин, не менее 30)</translation>
+    </message>
+    <message>
+        <source>Resolution</source>
+        <translation>Разрешение имён</translation>
+    </message>
+    <message>
+        <source>Routing</source>
+        <translation>Маршрутизация</translation>
+    </message>
+    <message>
+        <source>Routing Settings</source>
+        <translation>Настройки маршрутизации</translation>
+    </message>
+    <message>
+        <source>Routing profiles auto update</source>
+        <translation>Автообновление профилей маршрутизации</translation>
+    </message>
+    <message>
+        <source>Selected server</source>
+        <translation>Выбранный сервер</translation>
+    </message>
+    <message>
+        <source>Servers</source>
+        <translation>Серверы</translation>
+    </message>
+    <message>
+        <source>Traffic leaves through the server you started.</source>
+        <translation>Трафик выходит через запущенный сервер.</translation>
+    </message>
+    <message>
+        <source>Updates</source>
+        <translation>Обновления</translation>
+    </message>
+    <message>
+        <source>WARP runs over the selected server.</source>
+        <translation>WARP работает поверх выбранного сервера.</translation>
     </message>
 </context>
 <context>
@@ -10767,8 +10883,8 @@ Error: %1</source>
         <translation>[Kill switch] Перезапуск ядра, чтобы его собственный трафик проходил через kill switch...</translation>
     </message>
     <message>
-        <source>The sing-box API is disabled. Set a listen port in Preferences &gt; Basic Settings &gt; Core.</source>
-        <translation>API sing-box отключен. Укажите прослушиваемый порт в разделе Настройки &gt; Основные настройки &gt; Ядро.</translation>
+        <source>The sing-box API is disabled. Set a listen port in Preferences &gt; Integration Settings &gt; Core APIs.</source>
+        <translation>API sing-box отключен. Укажите прослушиваемый порт в разделе Настройки &gt; Настройки интеграции &gt; API ядра.</translation>
     </message>
     <message>
         <source>Start a profile first; the dashboard is served by the running core.</source>
@@ -11235,8 +11351,8 @@ Name: %1</source>
         <translation>Статистика трафика отключена</translation>
     </message>
     <message>
-        <source>Untick “Disable Traffic Stats” in Basic Settings → Miscellaneous to record speeds again.</source>
-        <translation>Снимите флажок «Отключить статистику трафика» в разделе «Основные настройки → Прочее», чтобы снова записывать скорость.</translation>
+        <source>Untick “Disable Traffic Stats” in Basic Settings → Core → Statistics to record speeds again.</source>
+        <translation>Снимите флажок «Отключить статистику трафика» в разделе «Основные настройки → Ядро → Статистика», чтобы снова записывать скорость.</translation>
     </message>
     <message>
         <source>Open Traffic Statistics…</source>
@@ -11251,8 +11367,8 @@ Name: %1</source>
         <translation>Конфигурации Xray «%1» нужен «%2», но в установленном %3 его нет.</translation>
     </message>
     <message>
-        <source>The Xray config &quot;%1&quot; needs geo data files that are not installed: %2. Download them under Basic Settings &gt; Miscellaneous &gt; Xray Geo Assets.</source>
-        <translation>Конфигурации Xray «%1» нужны неустановленные файлы геоданных: %2. Загрузите их в разделе «Основные настройки → Прочее → Geo-файлы Xray».</translation>
+        <source>The Xray config &quot;%1&quot; needs geo data files that are not installed: %2. Download them under Basic Settings &gt; Core &gt; Xray Core.</source>
+        <translation>Конфигурации Xray «%1» нужны неустановленные файлы геоданных: %2. Загрузите их в разделе «Основные настройки → Ядро → Ядро Xray».</translation>
     </message>
     <message>
         <source>Geo asset files are already being downloaded.</source>
@@ -13170,6 +13286,10 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
     <message>
         <source>Wrong username or password.</source>
         <translation>Неверное имя пользователя или пароль.</translation>
+    </message>
+    <message>
+        <source>Tor is enabled but not downloaded yet. Open Routing Settings &gt; Egress and press OK to download it.</source>
+        <translation>Tor включён, но ещё не загружен. Откройте «Настройки маршрутизации &gt; Выход» и нажмите OK, чтобы загрузить его.</translation>
     </message>
 </context>
 <context>

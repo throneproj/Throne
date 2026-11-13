@@ -855,6 +855,10 @@ Deleted %3 Profiles:
         <source>listed as %1</source>
         <translation>شناخته‌شده به‌عنوان %1</translation>
     </message>
+    <message>
+        <source>Tor is enabled but not downloaded yet. Open Routing Settings &gt; Egress and press OK to download it.</source>
+        <translation>Tor فعال است ولی هنوز دانلود نشده است. «تنظیمات مسیریابی &gt; خروجی» را باز کنید و OK را بزنید تا دانلود شود.</translation>
+    </message>
 </context>
 <context>
     <name>DialogAbout</name>
@@ -934,20 +938,8 @@ Deleted %3 Profiles:
         <translation>عامل کاربر</translation>
     </message>
     <message>
-        <source>Common</source>
-        <translation>متداول</translation>
-    </message>
-    <message>
-        <source>Style</source>
-        <translation>استایل</translation>
-    </message>
-    <message>
         <source>Theme</source>
         <translation>پوسته</translation>
-    </message>
-    <message>
-        <source>Subscription</source>
-        <translation>اشتراک</translation>
     </message>
     <message>
         <source>Core</source>
@@ -969,10 +961,6 @@ Deleted %3 Profiles:
         <source>Security</source>
         <translatorcomment>امنیت security</translatorcomment>
         <translation>امنیت</translation>
-    </message>
-    <message>
-        <source>Connection statistics</source>
-        <translation>آمار اتصال</translation>
     </message>
     <message>
         <source>Hide dashboard at startup</source>
@@ -1203,18 +1191,6 @@ Deleted %3 Profiles:
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Network Settings</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Use proxy</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Ignore TLS errors</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Test Settings</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1317,6 +1293,126 @@ Deleted %3 Profiles:
     <message>
         <source>Lets other devices on your network use this DNS server, for example a router that sends its DNS through this computer. Anyone who can reach this port can then resolve names through your DNS settings.</source>
         <translation>به دستگاه‌های دیگر شبکه اجازه می‌دهد از این سرور DNS استفاده کنند، مثلاً روتری که DNS خود را از طریق این رایانه می‌فرستد. هر کسی که به این پورت دسترسی داشته باشد می‌تواند نام‌ها را با تنظیمات DNS شما ترجمه کند.</translation>
+    </message>
+    <message>
+        <source>Appearance</source>
+        <translation>ظاهر</translation>
+    </message>
+    <message>
+        <source>Authentication</source>
+        <translation>احراز هویت</translation>
+    </message>
+    <message>
+        <source>Auto update</source>
+        <translation>به‌روزرسانی خودکار</translation>
+    </message>
+    <message>
+        <source>Backup</source>
+        <translation>پشتیبان‌گیری</translation>
+    </message>
+    <message>
+        <source>Certificates</source>
+        <translation>گواهی‌ها</translation>
+    </message>
+    <message>
+        <source>Connection</source>
+        <translation>اتصال</translation>
+    </message>
+    <message>
+        <source>Enable connection statistics</source>
+        <translation>فعال‌سازی آمار اتصال‌ها</translation>
+    </message>
+    <message>
+        <source>Exit country</source>
+        <translation>کشور خروجی</translation>
+    </message>
+    <message>
+        <source>General</source>
+        <translation>عمومی</translation>
+    </message>
+    <message>
+        <source>Ignore TLS errors in Throne&apos;s own requests</source>
+        <translation>نادیده گرفتن خطاهای TLS در درخواست‌های خود Throne</translation>
+    </message>
+    <message>
+        <source>Latency</source>
+        <translation>تأخیر</translation>
+    </message>
+    <message>
+        <source>Local DNS server</source>
+        <translation>سرور DNS محلی</translation>
+    </message>
+    <message>
+        <source>Local proxy</source>
+        <translation>پروکسی محلی</translation>
+    </message>
+    <message>
+        <source>Log level</source>
+        <translation>سطح لاگ</translation>
+    </message>
+    <message>
+        <source>Log panel</source>
+        <translation>پنل لاگ</translation>
+    </message>
+    <message>
+        <source>Logs</source>
+        <translation>لاگ‌ها</translation>
+    </message>
+    <message>
+        <source>Privileges</source>
+        <translation>دسترسی‌ها</translation>
+    </message>
+    <message>
+        <source>Profile list</source>
+        <translation>فهرست پروفایل‌ها</translation>
+    </message>
+    <message>
+        <source>Protection</source>
+        <translation>محافظت</translation>
+    </message>
+    <message>
+        <source>Requests</source>
+        <translation>درخواست‌ها</translation>
+    </message>
+    <message>
+        <source>Restart proxy when the system proxy is turned off</source>
+        <translation>راه‌اندازی مجدد پروکسی هنگام خاموش شدن پروکسی سیستم</translation>
+    </message>
+    <message>
+        <source>Send Throne&apos;s own requests through the proxy</source>
+        <translation>ارسال درخواست‌های خود Throne از طریق پروکسی</translation>
+    </message>
+    <message>
+        <source>Speed test</source>
+        <translation>تست سرعت</translation>
+    </message>
+    <message>
+        <source>Statistics</source>
+        <translation>آمار</translation>
+    </message>
+    <message>
+        <source>Subscriptions</source>
+        <translation>اشتراک‌ها</translation>
+    </message>
+    <message>
+        <source>Throne API</source>
+        <translation>Throne API</translation>
+    </message>
+    <message>
+        <source>Updates and downloads</source>
+        <translation>به‌روزرسانی و دانلود</translation>
+    </message>
+    <message>
+        <source>When updating</source>
+        <translation>هنگام به‌روزرسانی</translation>
+    </message>
+    <message>
+        <source>Window</source>
+        <translation>پنجره</translation>
+    </message>
+    <message>
+        <source>Testing</source>
+        <translation>تست</translation>
     </message>
 </context>
 <context>
@@ -2068,6 +2164,58 @@ Deleted %3 Profiles:
         <source>Lets devices on the local network import, delete, change settings, back up and restore through the Throne API. This device can always do so.</source>
         <translation>به دستگاه‌های شبکهٔ محلی اجازه می‌دهد از طریق Throne API وارد کنند، حذف کنند، تنظیمات را تغییر دهند، پشتیبان بگیرند و بازیابی کنند. این دستگاه همیشه می‌تواند این کارها را انجام دهد.</translation>
     </message>
+    <message>
+        <source>Core APIs</source>
+        <translation>API هسته</translation>
+    </message>
+    <message>
+        <source>Listen Address</source>
+        <translation>آدرس درحال شنود</translation>
+    </message>
+    <message>
+        <source>Listen Port</source>
+        <translation>پورت شنود</translation>
+    </message>
+    <message>
+        <source>127.0.0.1 (default)</source>
+        <translation>127.0.0.1 (پیش‌فرض)</translation>
+    </message>
+    <message>
+        <source>Clash API</source>
+        <translation>Clash API</translation>
+    </message>
+    <message>
+        <source>DNS server</source>
+        <translation>سرور DNS</translation>
+    </message>
+    <message>
+        <source>Loopback only. Leave the port empty to keep the web dashboard off.</source>
+        <translation>فقط loopback. برای خاموش ماندن داشبورد وب، پورت را خالی بگذارید.</translation>
+    </message>
+    <message>
+        <source>Mixed inbound</source>
+        <translation>ورودی Mixed</translation>
+    </message>
+    <message>
+        <source>Port %1 is already used by: %2. Choose a different port.</source>
+        <translation>پورت %1 از قبل در اختیار %2 است. پورت دیگری انتخاب کنید.</translation>
+    </message>
+    <message>
+        <source>Regenerate Secret</source>
+        <translation>ساخت دوبارهٔ کلید مخفی</translation>
+    </message>
+    <message>
+        <source>Secret</source>
+        <translation>کلید مخفی</translation>
+    </message>
+    <message>
+        <source>sing-box API</source>
+        <translation>API sing-box</translation>
+    </message>
+    <message>
+        <source>sing-box API / Dashboard</source>
+        <translation>API sing-box / داشبورد</translation>
+    </message>
 </context>
 <context>
     <name>DialogManageGroups</name>
@@ -2095,10 +2243,6 @@ Deleted %3 Profiles:
 <context>
     <name>DialogManageRoutes</name>
     <message>
-        <source>Routes</source>
-        <translation>مسیرها</translation>
-    </message>
-    <message>
         <source>Sniffing Mode</source>
         <translation>حالت پویش</translation>
     </message>
@@ -2119,16 +2263,8 @@ Deleted %3 Profiles:
         <translation>نتیجه پویش برای مسیریابی</translation>
     </message>
     <message>
-        <source>Common</source>
-        <translation>متداول</translation>
-    </message>
-    <message>
         <source>DNS</source>
         <translation>دی‌ان‌اس</translation>
-    </message>
-    <message>
-        <source>Simple DNS Settings</source>
-        <translation>تنظیمات دی ان اس ساده</translation>
     </message>
     <message>
         <source>Use DNS Object</source>
@@ -2170,10 +2306,6 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>Default DNS server</source>
         <translation>سرور دی‌ان‌اس پیش‌فرض</translation>
-    </message>
-    <message>
-        <source>Route</source>
-        <translation>مسیر</translation>
     </message>
     <message>
         <source>Routing Profiles</source>
@@ -2378,6 +2510,58 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>Fallback delay</source>
         <translation>تأخیر جایگزین</translation>
+    </message>
+    <message>
+        <source>Domain Strategy</source>
+        <translation>استراتژی دامنه</translation>
+    </message>
+    <message>
+        <source>Egress</source>
+        <translation>خروجی</translation>
+    </message>
+    <message>
+        <source>Exit through</source>
+        <translation>خروج از طریق</translation>
+    </message>
+    <message>
+        <source>Interval (minute, invalid if less than 30)</source>
+        <translation>فاصله (به دقیقا ، اگر کمتر از ۳۰ باشد نادرست است)</translation>
+    </message>
+    <message>
+        <source>Resolution</source>
+        <translation>تفکیک نام</translation>
+    </message>
+    <message>
+        <source>Routing</source>
+        <translation>مسیریابی</translation>
+    </message>
+    <message>
+        <source>Routing Settings</source>
+        <translation>تنظیمات مسیریابی</translation>
+    </message>
+    <message>
+        <source>Routing profiles auto update</source>
+        <translation>به‌روزرسانی خودکار پروفایل‌های مسیریابی</translation>
+    </message>
+    <message>
+        <source>Selected server</source>
+        <translation>سرور انتخاب‌شده</translation>
+    </message>
+    <message>
+        <source>Servers</source>
+        <translation>سرورها</translation>
+    </message>
+    <message>
+        <source>Traffic leaves through the server you started.</source>
+        <translation>ترافیک از سروری که اجرا کرده‌اید خارج می‌شود.</translation>
+    </message>
+    <message>
+        <source>Updates</source>
+        <translation>به‌روزرسانی‌ها</translation>
+    </message>
+    <message>
+        <source>WARP runs over the selected server.</source>
+        <translation>WARP روی سرور انتخاب‌شده اجرا می‌شود.</translation>
     </message>
 </context>
 <context>
@@ -5196,8 +5380,8 @@ Error: %1</source>
         <translation>آمار ترافیک غیرفعال است</translation>
     </message>
     <message>
-        <source>Untick “Disable Traffic Stats” in Basic Settings → Miscellaneous to record speeds again.</source>
-        <translation>تیک «غیرفعال کردن آمار ترافیک» را در تنظیمات پایه ← متفرقه بردارید تا سرعت‌ها دوباره ثبت شوند</translation>
+        <source>Untick “Disable Traffic Stats” in Basic Settings → Core → Statistics to record speeds again.</source>
+        <translation>تیک «غیرفعال کردن آمار ترافیک» را در تنظیمات پایه ← هسته ← آمار بردارید تا سرعت‌ها دوباره ثبت شوند</translation>
     </message>
     <message>
         <source>Open Traffic Statistics…</source>
@@ -5212,8 +5396,8 @@ Error: %1</source>
         <translation>پیکربندی Xray «%1» به «%2» نیاز دارد، اما %3 نصب‌شده آن را ندارد.</translation>
     </message>
     <message>
-        <source>The Xray config &quot;%1&quot; needs geo data files that are not installed: %2. Download them under Basic Settings &gt; Miscellaneous &gt; Xray Geo Assets.</source>
-        <translation>پیکربندی Xray «%1» به فایل‌های دادهٔ جغرافیایی نصب‌نشده نیاز دارد: %2. آن‌ها را از «تنظیمات پایه &gt; متفرقه &gt; داده‌های جغرافیایی Xray» دانلود کنید.</translation>
+        <source>The Xray config &quot;%1&quot; needs geo data files that are not installed: %2. Download them under Basic Settings &gt; Core &gt; Xray Core.</source>
+        <translation>پیکربندی Xray «%1» به فایل‌های دادهٔ جغرافیایی نصب‌نشده نیاز دارد: %2. آن‌ها را از «تنظیمات پایه &gt; هسته &gt; هسته Xray» دانلود کنید.</translation>
     </message>
     <message>
         <source>Geo asset files are already being downloaded.</source>
@@ -5330,6 +5514,10 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
     <message>
         <source>Deep Link</source>
         <translation>پیوند عمیق</translation>
+    </message>
+    <message>
+        <source>The sing-box API is disabled. Set a listen port in Preferences &gt; Integration Settings &gt; Core APIs.</source>
+        <translation>API sing-box غیرفعال است. یک پورت شنود در «تنظیمات &gt; تنظیمات یکپارچه‌سازی &gt; API هسته» تعیین کنید.</translation>
     </message>
 </context>
 <context>

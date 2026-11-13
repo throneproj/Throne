@@ -434,14 +434,6 @@ It stays a preference, not a lock: if that profile stops working the selector st
         <translation>基本设置</translation>
     </message>
     <message>
-        <source>Common</source>
-        <translation>通用</translation>
-    </message>
-    <message>
-        <source>Inbound Settings</source>
-        <translation>入站设置</translation>
-    </message>
-    <message>
         <source>Enable Authorization</source>
         <translation>启用认证</translation>
     </message>
@@ -613,10 +605,6 @@ It stays a preference, not a lock: if that profile stops working the selector st
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;移除由 Throne 写入的每个配置文件关联，包括由较旧版本添加的那些。属于其他应用程序的条目会保留不变。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <source>Logging</source>
-        <translation>日志</translation>
-    </message>
-    <message>
         <source>Max log lines</source>
         <translation>最多日志行数</translation>
     </message>
@@ -657,10 +645,6 @@ It stays a preference, not a lock: if that profile stops working the selector st
         <translation>排除正则表达式</translation>
     </message>
     <message>
-        <source>Style</source>
-        <translation>样式</translation>
-    </message>
-    <message>
         <source>Font</source>
         <translation>字体</translation>
     </message>
@@ -679,10 +663,6 @@ It stays a preference, not a lock: if that profile stops working the selector st
     <message>
         <source>Log Browser Font Size</source>
         <translation>日志浏览器字体大小</translation>
-    </message>
-    <message>
-        <source>Connection statistics</source>
-        <translation>连接统计</translation>
     </message>
     <message>
         <source>Enable</source>
@@ -761,10 +741,6 @@ It stays a preference, not a lock: if that profile stops working the selector st
         <translation>高级</translation>
     </message>
     <message>
-        <source>Subscription</source>
-        <translation>订阅</translation>
-    </message>
-    <message>
         <source>hwid=custom_value,os=custom_os,osVersion=custom_version,model=custom_model</source>
         <translation>hwid=自定义值,os=自定义操作系统,osVersion=自定义版本,model=自定义型号</translation>
     </message>
@@ -779,10 +755,6 @@ It stays a preference, not a lock: if that profile stops working the selector st
     <message>
         <source>Show the changes window after a manual subscription update</source>
         <translation>订阅手动更新后显示变化窗口</translation>
-    </message>
-    <message>
-        <source>Subscription auto update</source>
-        <translation>订阅自动更新</translation>
     </message>
     <message>
         <source>Interval (minute, invalid if less than 30)</source>
@@ -858,32 +830,12 @@ It stays a preference, not a lock: if that profile stops working the selector st
         <translation>HTTP/1.1</translation>
     </message>
     <message>
-        <source>Routing profiles auto update</source>
-        <translation>路由配置档自动更新</translation>
-    </message>
-    <message>
         <source>Core</source>
         <translation>核心</translation>
     </message>
     <message>
         <source>Clash API</source>
         <translation>Clash API</translation>
-    </message>
-    <message>
-        <source>Secret</source>
-        <translation>密钥</translation>
-    </message>
-    <message>
-        <source>sing-box API / Dashboard</source>
-        <translation>sing-box API / 仪表盘</translation>
-    </message>
-    <message>
-        <source>Loopback only. Leave the port empty to keep the web dashboard off.</source>
-        <translation>仅限 Loopback (回环)访问。 端口留空表示关闭Web仪表盘。</translation>
-    </message>
-    <message>
-        <source>Regenerate Secret</source>
-        <translation>重新生成密钥</translation>
     </message>
     <message>
         <source>Xray Core</source>
@@ -898,32 +850,12 @@ It stays a preference, not a lock: if that profile stops working the selector st
         <translation>Xray VLESS 首选项</translation>
     </message>
     <message>
-        <source>Miscellaneous</source>
-        <translation>杂项</translation>
-    </message>
-    <message>
-        <source>Network Settings</source>
-        <translation>网络设置</translation>
-    </message>
-    <message>
         <source>Allow updating to beta versions</source>
         <translation>允许更新到 beta 版</translation>
     </message>
     <message>
-        <source>Ignore TLS errors</source>
-        <translation>忽略 TLS 错误</translation>
-    </message>
-    <message>
-        <source>Restart Proxy On System Proxy Disable</source>
-        <translation>系统代理禁用时重启代理</translation>
-    </message>
-    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use proxy for subscription request, update request etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;使用代理处理订阅请求、更新请求等&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Use proxy</source>
-        <translation>使用代理</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Might Improve Ping and Performance&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -936,10 +868,6 @@ It stays a preference, not a lock: if that profile stops working the selector st
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A DNS server for local use will be deployed on this port&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;供本地使用的 DNS 服务器将部署在这个端口上&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>DNS Server Port</source>
-        <translation>DNS 服务器端口</translation>
     </message>
     <message>
         <source>Lets other devices on your network use this DNS server, for example a router that sends its DNS through this computer. Anyone who can reach this port can then resolve names through your DNS settings.</source>
@@ -982,10 +910,6 @@ It stays a preference, not a lock: if that profile stops working the selector st
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;发送 NTP 查询所通过的出站方式或通道&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <source>Xray Geo Assets</source>
-        <translation>Xray Geo 资源</translation>
-    </message>
-    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;URL for geoip.dat, downloaded when a full Xray config&apos;s routing needs geoip: rules.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;geoip.dat 的 URL，当完整的 Xray 配置的路由需要 geoip: 规则时（将从该地址）下载。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
@@ -1012,10 +936,6 @@ It stays a preference, not a lock: if that profile stops working the selector st
     <message>
         <source>Download geosite.dat now from the URL on the left</source>
         <translation>立即从左边的 URL 下载 geosite.dat</translation>
-    </message>
-    <message>
-        <source>Backup and Restore</source>
-        <translation>备份和恢复</translation>
     </message>
     <message>
         <source>Create Backup</source>
@@ -1268,10 +1188,6 @@ This backup may have been created with a newer version of the application.</sour
     <message>
         <source>Automatic</source>
         <translation>自动</translation>
-    </message>
-    <message>
-        <source>127.0.0.1 (default)</source>
-        <translation>127.0.0.1 (默认)</translation>
     </message>
     <message>
         <source>Speed test timeout</source>
@@ -1527,6 +1443,122 @@ Throne will restart to complete the restore.</source>
     <message>
         <source>Backup restored successfully. Throne will now restart for the changes to take effect.</source>
         <translation>备份成功恢复。 Throne 现在将要重启以使得更改生效。</translation>
+    </message>
+    <message>
+        <source>Appearance</source>
+        <translation>外观</translation>
+    </message>
+    <message>
+        <source>Authentication</source>
+        <translation>认证</translation>
+    </message>
+    <message>
+        <source>Auto update</source>
+        <translation>自动更新</translation>
+    </message>
+    <message>
+        <source>Backup</source>
+        <translation>备份</translation>
+    </message>
+    <message>
+        <source>Certificates</source>
+        <translation>证书</translation>
+    </message>
+    <message>
+        <source>Connection</source>
+        <translation>连接</translation>
+    </message>
+    <message>
+        <source>Enable connection statistics</source>
+        <translation>启用连接统计</translation>
+    </message>
+    <message>
+        <source>Exit country</source>
+        <translation>出口国家</translation>
+    </message>
+    <message>
+        <source>General</source>
+        <translation>通用</translation>
+    </message>
+    <message>
+        <source>Ignore TLS errors in Throne&apos;s own requests</source>
+        <translation>忽略 Throne 自身请求中的 TLS 错误</translation>
+    </message>
+    <message>
+        <source>Latency</source>
+        <translation>延迟</translation>
+    </message>
+    <message>
+        <source>Local DNS server</source>
+        <translation>本地 DNS 服务器</translation>
+    </message>
+    <message>
+        <source>Local proxy</source>
+        <translation>本地代理</translation>
+    </message>
+    <message>
+        <source>Log level</source>
+        <translation>日志等级</translation>
+    </message>
+    <message>
+        <source>Log panel</source>
+        <translation>日志面板</translation>
+    </message>
+    <message>
+        <source>Logs</source>
+        <translation>日志</translation>
+    </message>
+    <message>
+        <source>Privileges</source>
+        <translation>权限</translation>
+    </message>
+    <message>
+        <source>Profile list</source>
+        <translation>配置列表</translation>
+    </message>
+    <message>
+        <source>Protection</source>
+        <translation>防护</translation>
+    </message>
+    <message>
+        <source>Requests</source>
+        <translation>请求</translation>
+    </message>
+    <message>
+        <source>Restart proxy when the system proxy is turned off</source>
+        <translation>关闭系统代理时重启代理</translation>
+    </message>
+    <message>
+        <source>Send Throne&apos;s own requests through the proxy</source>
+        <translation>通过代理发送 Throne 自身的请求</translation>
+    </message>
+    <message>
+        <source>Speed test</source>
+        <translation>测速</translation>
+    </message>
+    <message>
+        <source>Statistics</source>
+        <translation>统计</translation>
+    </message>
+    <message>
+        <source>Subscriptions</source>
+        <translation>订阅</translation>
+    </message>
+    <message>
+        <source>Throne API</source>
+        <translation>Throne API</translation>
+    </message>
+    <message>
+        <source>Updates and downloads</source>
+        <translation>更新与下载</translation>
+    </message>
+    <message>
+        <source>When updating</source>
+        <translation>更新时</translation>
+    </message>
+    <message>
+        <source>Window</source>
+        <translation>窗口</translation>
     </message>
 </context>
 <context>
@@ -3421,6 +3453,58 @@ Throne will restart to complete the restore.</source>
         <source>These global hotkeys could not be registered:</source>
         <translation>这些全局热键无法被注册:</translation>
     </message>
+    <message>
+        <source>127.0.0.1 (default)</source>
+        <translation>127.0.0.1 (默认)</translation>
+    </message>
+    <message>
+        <source>Clash API</source>
+        <translation>Clash API</translation>
+    </message>
+    <message>
+        <source>Core APIs</source>
+        <translation>核心 API</translation>
+    </message>
+    <message>
+        <source>DNS server</source>
+        <translation>DNS 服务器</translation>
+    </message>
+    <message>
+        <source>Listen Address</source>
+        <translation>监听地址</translation>
+    </message>
+    <message>
+        <source>Listen Port</source>
+        <translation>监听端口</translation>
+    </message>
+    <message>
+        <source>Loopback only. Leave the port empty to keep the web dashboard off.</source>
+        <translation>仅限 Loopback (回环)访问。 端口留空表示关闭Web仪表盘。</translation>
+    </message>
+    <message>
+        <source>Mixed inbound</source>
+        <translation>混合入站</translation>
+    </message>
+    <message>
+        <source>Port %1 is already used by: %2. Choose a different port.</source>
+        <translation>端口 %1 已被 %2 使用。选择不同的端口。</translation>
+    </message>
+    <message>
+        <source>Regenerate Secret</source>
+        <translation>重新生成密钥</translation>
+    </message>
+    <message>
+        <source>Secret</source>
+        <translation>密钥</translation>
+    </message>
+    <message>
+        <source>sing-box API</source>
+        <translation>sing-box API</translation>
+    </message>
+    <message>
+        <source>sing-box API / Dashboard</source>
+        <translation>sing-box API / 仪表盘</translation>
+    </message>
 </context>
 <context>
     <name>DialogIpLists</name>
@@ -3611,14 +3695,6 @@ Throne will restart to complete the restore.</source>
 <context>
     <name>DialogManageRoutes</name>
     <message>
-        <source>Routes</source>
-        <translation>路由</translation>
-    </message>
-    <message>
-        <source>Common</source>
-        <translation>通用</translation>
-    </message>
-    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Used as default strategy when resolving outbound/dns server Domain addresses&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;解析出站/DNS 服务器域地址时，作为默认策略使用&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
@@ -3667,16 +3743,8 @@ Throne will restart to complete the restore.</source>
         <translation>jsDelivr(CDN)</translation>
     </message>
     <message>
-        <source>Warp</source>
-        <translation>Warp</translation>
-    </message>
-    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enables the following config to be used as egress, useful for bypassing services restrciting non-warp VPNs&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;启用以下配置作为出口(egress)使用，对于绕过限制非 warp VPNs 的服务很有用&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Enable Warp</source>
-        <translation>启用 Warp</translation>
     </message>
     <message>
         <source>WireGuard runs over UDP. AmneziaWG adds WARP-compatible junk and camouflage packets. MASQUE tunnels over HTTP/3 or HTTP/2.</source>
@@ -3749,10 +3817,6 @@ Throne will restart to complete the restore.</source>
     <message>
         <source>DNS</source>
         <translation>DNS</translation>
-    </message>
-    <message>
-        <source>Simple DNS Settings</source>
-        <translation>简易 DNS 设置</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Local DNS can not be used in some configurations, you will have to set an ip here to be used as local dns in such situations&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -3845,10 +3909,6 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>Edit DNS Object</source>
         <translation>编辑 DNS 对象</translation>
-    </message>
-    <message>
-        <source>Route</source>
-        <translation>路由</translation>
     </message>
     <message>
         <source>Routing Profiles</source>
@@ -4271,6 +4331,62 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
     <message>
         <source>Fallback delay</source>
         <translation>回退延时</translation>
+    </message>
+    <message>
+        <source>Domain Strategy</source>
+        <translation>域名策略</translation>
+    </message>
+    <message>
+        <source>Egress</source>
+        <translation>出口</translation>
+    </message>
+    <message>
+        <source>Enable</source>
+        <translation>启用</translation>
+    </message>
+    <message>
+        <source>Exit through</source>
+        <translation>出口方式</translation>
+    </message>
+    <message>
+        <source>Interval (minute, invalid if less than 30)</source>
+        <translation>时间间隔 (分钟，少于 30 则无效)</translation>
+    </message>
+    <message>
+        <source>Resolution</source>
+        <translation>解析</translation>
+    </message>
+    <message>
+        <source>Routing</source>
+        <translation>路由</translation>
+    </message>
+    <message>
+        <source>Routing Settings</source>
+        <translation>路由设置</translation>
+    </message>
+    <message>
+        <source>Routing profiles auto update</source>
+        <translation>路由配置档自动更新</translation>
+    </message>
+    <message>
+        <source>Selected server</source>
+        <translation>所选服务器</translation>
+    </message>
+    <message>
+        <source>Servers</source>
+        <translation>服务器</translation>
+    </message>
+    <message>
+        <source>Traffic leaves through the server you started.</source>
+        <translation>流量从你启动的服务器出去。</translation>
+    </message>
+    <message>
+        <source>Updates</source>
+        <translation>更新</translation>
+    </message>
+    <message>
+        <source>WARP runs over the selected server.</source>
+        <translation>WARP 运行在所选服务器之上。</translation>
     </message>
 </context>
 <context>
@@ -10530,8 +10646,8 @@ URL: %2</translation>
         <translation>Xray 配置 &quot;%1&quot; 需要 &quot;%2&quot;，但已安装的 %3 不包含它。</translation>
     </message>
     <message>
-        <source>The Xray config &quot;%1&quot; needs geo data files that are not installed: %2. Download them under Basic Settings &gt; Miscellaneous &gt; Xray Geo Assets.</source>
-        <translation>Xray 配置 “%1” 需要未安装的地理数据文件：%2。在 “基本设置 &gt; 其他 &gt; Xray 地理资源” 部分下载它们。</translation>
+        <source>The Xray config &quot;%1&quot; needs geo data files that are not installed: %2. Download them under Basic Settings &gt; Core &gt; Xray Core.</source>
+        <translation>Xray 配置 “%1” 需要未安装的地理数据文件：%2。在 “基本设置 &gt; 核心 &gt; Xray 核心” 部分下载它们。</translation>
     </message>
     <message>
         <source>Geo asset files are already being downloaded.</source>
@@ -10944,8 +11060,8 @@ Error: %1</source>
         <translation>关闭该急停开关吗？不经过 Throne 的流量将不再被阻止。</translation>
     </message>
     <message>
-        <source>The sing-box API is disabled. Set a listen port in Preferences &gt; Basic Settings &gt; Core.</source>
-        <translation>sing-box API 被禁用。在“首选项 &gt; 基本设置 &gt; 核心” 中设置一个监听端口。</translation>
+        <source>The sing-box API is disabled. Set a listen port in Preferences &gt; Integration Settings &gt; Core APIs.</source>
+        <translation>sing-box API 被禁用。在“首选项 &gt; 集成设置 &gt; 核心 API” 中设置一个监听端口。</translation>
     </message>
     <message>
         <source>Start a profile first; the dashboard is served by the running core.</source>
@@ -11032,8 +11148,8 @@ Error: %1</source>
         <translation>流量统计被禁用</translation>
     </message>
     <message>
-        <source>Untick “Disable Traffic Stats” in Basic Settings → Miscellaneous to record speeds again.</source>
-        <translation>在 “基本设置 → 其他” 中取消勾选 “禁用流量统计”，就可以重新记录速度。</translation>
+        <source>Untick “Disable Traffic Stats” in Basic Settings → Core → Statistics to record speeds again.</source>
+        <translation>在 “基本设置 → 核心 → 统计” 中取消勾选 “禁用流量统计”，就可以重新记录速度。</translation>
     </message>
     <message>
         <source>Connect OK</source>
@@ -13058,6 +13174,10 @@ How to update?</source>
     <message>
         <source>listed as %1</source>
         <translation>被标记为 %1</translation>
+    </message>
+    <message>
+        <source>Tor is enabled but not downloaded yet. Open Routing Settings &gt; Egress and press OK to download it.</source>
+        <translation>Tor 已启用但尚未下载。打开“路由设置 &gt; 出口”并按“确定”即可下载。</translation>
     </message>
 </context>
 <context>

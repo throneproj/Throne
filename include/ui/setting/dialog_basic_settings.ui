@@ -38,178 +38,134 @@
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="tab_1">
+     <widget class="QWidget" name="tab_general">
       <attribute name="title">
-       <string>Common</string>
+       <string>General</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
+      <layout class="QVBoxLayout" name="verticalLayout_general">
        <item>
-        <widget class="QGroupBox" name="groupBox_5">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
+        <widget class="QGroupBox" name="interface_box">
          <property name="title">
-          <string>Inbound Settings</string>
+          <string>Interface</string>
          </property>
-         <layout class="QGridLayout" name="gridLayout_9">
-          <item row="2" column="5">
-           <widget class="QCheckBox" name="inbound_auth">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
+         <layout class="QGridLayout" name="gridLayout_interface">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_15">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
             <property name="text">
-             <string>Enable Authorization</string>
+             <string>Language</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="4">
-           <widget class="QLineEdit" name="inbound_socks_port">
+          <item row="0" column="1">
+           <widget class="QComboBox" name="language">
+            <item>
+             <property name="text">
+              <string notr="true">System</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string notr="true">English</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string notr="true">简体中文</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string notr="true">فارسی</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string notr="true">Русский</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="ui_mode_l">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>Simple hides the advanced options. They keep their values and still apply.</string>
+            </property>
+            <property name="text">
+             <string>Interface</string>
+            </property>
+            <property name="buddy">
+             <cstring>ui_mode</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="ui_mode">
+            <item>
+             <property name="text">
+              <string>Simple</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Advanced</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="window_box">
+         <property name="title">
+          <string>Window</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_window">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="start_minimal">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QLabel" name="label_11">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="text">
-             <string>Custom Inbound</string>
+             <string>Hide dashboard at startup</string>
             </property>
            </widget>
           </item>
-          <item row="4" column="2">
-           <widget class="QPushButton" name="custom_inbound_edit">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
-            <property name="text">
-             <string>Edit</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLabel" name="inbound_user_l">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
-            <property name="text">
-             <string>Inbound Username</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QCheckBox" name="disable_mixed_inbound">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
-            <property name="text">
-             <string>Disable Mixed Inbound</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="4">
-           <widget class="QLineEdit" name="inbound_pass">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="2">
-           <widget class="QLineEdit" name="inbound_user">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="5">
-           <widget class="QCheckBox" name="random_listen_port">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="disable_tray">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Selects a random available port on every run&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Prevents the app from minimizing to the tray when the window is closed. The app will exit instead</string>
             </property>
             <property name="text">
-             <string>Random port</string>
+             <string>Disable tray</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="3">
-           <widget class="QLabel" name="inbound_socks_port_l">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Socks
-                                                                + HTTP Proxy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
-                                                            </string>
-            </property>
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="skip_delete_confirm">
             <property name="text">
-             <string>Listen Port</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLabel" name="label">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
-            <property name="text">
-             <string>Listen Address</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="3">
-           <widget class="QLabel" name="inbound_pass_l">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
-            <property name="text">
-             <string>Inbound Password</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="4">
-           <widget class="QComboBox" name="proxy_scheme">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
-            <item>
-             <property name="text">
-              <string notr="true">{ip}:{port}</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">http://{ip}:{port}</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">socks={ip}:{port}</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="4" column="3">
-           <widget class="QLabel" name="proxy_scheme_l">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
-            <property name="text">
-             <string>Proxy Format</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QLineEdit" name="inbound_address">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
+             <string>Skip confirmation When Deleting Profiles</string>
             </property>
            </widget>
           </item>
@@ -217,226 +173,43 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_testing">
-         <property name="title">
-          <string>Testing</string>
+        <widget class="QGroupBox" name="groupBox_network">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_8">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_10">
-            <item>
-             <widget class="QLabel" name="label_12">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-              <property name="text">
-               <string>Speedtest mode</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="speedtest_mode">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-              <item>
-               <property name="text">
-                <string>Download + Upload</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Only Download</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Only Upload</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Simple Download</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Only Country</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_19">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;timeout in milliseconds&lt;br/&gt;applies to all tests individually&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="text">
-               <string>Timeout</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="test_timeout">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
+         <property name="title">
+          <string>Updates and downloads</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_12">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="allow_beta">
+            <property name="text">
+             <string>Allow updating to beta versions</string>
+            </property>
+           </widget>
           </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_9">
-            <item>
-             <widget class="QLabel" name="label_16">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-              <property name="text">
-               <string>Simple Download URL</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="simple_down_url">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="net_use_proxy">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use proxy for subscription request, update request etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Send Throne's own requests through the proxy</string>
+            </property>
+           </widget>
           </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_6">
-            <item>
-             <widget class="QLabel" name="label_13">
-              <property name="text">
-               <string>Latency Test URL</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="test_latency_url"/>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_direct_test">
-            <item>
-             <widget class="QLabel" name="label_direct_test_url">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fetched &lt;span style=&quot; font-weight:600;&quot;&gt;without&lt;/span&gt; any proxy, so features that must tell a dead internet connection apart from dead servers — such as the auto selector — can check the connection itself, and notice the moment it comes back.&lt;/p&gt;&lt;p&gt;Only put a URL here that is reachable &lt;span style=&quot; font-weight:600;&quot;&gt;directly&lt;/span&gt; on your network. Leave it empty to rely on the operating system's network state instead.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="text">
-               <string>Direct Test URL</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="direct_test_url">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-              <property name="placeholderText">
-               <string>optional — use the OS network state</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_exit_lookup">
-            <item>
-             <widget class="QCheckBox" name="exit_country_lookup">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;After connecting, Throne asks an IP lookup service — through the proxy — which IP and country the connection exits from.&lt;/p&gt;&lt;p&gt;Turn this off to never contact such a service automatically.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="text">
-               <string>Look up exit country</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_exit_lookup_provider">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-              <property name="text">
-               <string>Lookup service</string>
-              </property>
-              <property name="buddy">
-               <cstring>exit_lookup_provider</cstring>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="exit_lookup_provider">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_exit_lookup">
-              <property name="orientation">
-               <enum>Qt::Orientation::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_11">
-            <item>
-             <widget class="QLabel" name="label_14">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-              <property name="text">
-               <string>Concurrency</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="test_concurrent">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_22">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Timeout for URLtest in ms&lt;br/&gt;Note that muxed connections take a much longer time for their initial request, and setting this value too low will cause the test to falsely report that the config is not working&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="text">
-               <string>Timeout</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="url_timeout">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="net_insecure">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="text">
+             <string>Ignore TLS errors in Throne's own requests</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -541,30 +314,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QWidget" name="horizontalWidget_1" native="true">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-         </layout>
-        </widget>
-       </item>
-       <item>
         <spacer name="verticalSpacer_common">
          <property name="orientation">
           <enum>Qt::Orientation::Vertical</enum>
@@ -579,386 +328,45 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="Logging">
-      <property name="uiLevel" stdset="0">
-       <string notr="true">advanced</string>
-      </property>
+     <widget class="QWidget" name="tab_appearance">
       <attribute name="title">
-       <string>Logging</string>
+       <string>Appearance</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_6">
+      <layout class="QVBoxLayout" name="verticalLayout_appearance">
        <item>
-        <widget class="QFrame" name="frame">
-         <property name="frameShape">
-          <enum>QFrame::Shape::StyledPanel</enum>
+        <widget class="QGroupBox" name="theme_box">
+         <property name="uiFoldInto" stdset="0">
+          <string notr="true">tab_general</string>
          </property>
-         <property name="frameShadow">
-          <enum>QFrame::Shadow::Raised</enum>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_7">
-          <item>
-           <widget class="QWidget" name="widget_3" native="true">
-            <layout class="QHBoxLayout" name="horizontalLayout_7">
-             <item>
-              <widget class="QLabel" name="label_17">
-               <property name="text">
-                <string>Max log lines</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="max_log_line">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QWidget" name="widget_2" native="true">
-            <layout class="QHBoxLayout" name="horizontalLayout_8">
-             <item>
-              <widget class="QLabel" name="label_3">
-               <property name="text">
-                <string>Sing-box Log level</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QComboBox" name="log_level">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_10">
-               <property name="text">
-                <string>Xray Log level</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QComboBox" name="xray_loglevel">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_4">
          <property name="title">
-          <string>Log Filtering</string>
+          <string>Theme</string>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <item>
-           <widget class="QFrame" name="log_include_frame">
-            <property name="frameShape">
-             <enum>QFrame::Shape::StyledPanel</enum>
+         <layout class="QGridLayout" name="gridLayout_theme">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_8">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
-            <property name="frameShadow">
-             <enum>QFrame::Shadow::Raised</enum>
+            <property name="text">
+             <string>Theme</string>
             </property>
-            <layout class="QFormLayout" name="formLayout_3">
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_25">
-               <property name="text">
-                <string>Include Keywords</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="MyTextEdit" name="log_include_keyword"/>
-             </item>
-             <item row="3" column="1">
-              <widget class="MyTextEdit" name="log_include_regex"/>
-             </item>
-             <item row="3" column="0">
-              <widget class="QLabel" name="label_26">
-               <property name="text">
-                <string>Include Regex</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QCheckBox" name="enable_log_include">
-               <property name="text">
-                <string>Enable Include Rules</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
            </widget>
           </item>
-          <item>
-           <widget class="QFrame" name="log_exclude_frame">
-            <property name="frameShape">
-             <enum>QFrame::Shape::StyledPanel</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Shadow::Raised</enum>
-            </property>
-            <layout class="QFormLayout" name="formLayout_4">
-             <item row="0" column="0">
-              <widget class="QCheckBox" name="enable_log_exclude">
-               <property name="text">
-                <string>Enable Exclude Rules</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="MyTextEdit" name="log_exclude_keyword"/>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_28">
-               <property name="text">
-                <string>Exclude Keywords</string>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="0">
-              <widget class="QLabel" name="label_27">
-               <property name="text">
-                <string>Exclude Regex</string>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="1">
-              <widget class="MyTextEdit" name="log_exclude_regex"/>
-             </item>
-            </layout>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="theme">
+            <item>
+             <property name="text">
+              <string notr="true">System</string>
+             </property>
+            </item>
            </widget>
           </item>
-         </layout>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tab_2">
-      <attribute name="title">
-       <string>Style</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_5">
-       <item row="2" column="0">
-        <layout class="QHBoxLayout" name="style_h_2">
-         <item>
-          <widget class="QGroupBox" name="traffic_statistics_box">
-           <layout class="QGridLayout" name="gridLayout_8">
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_2">
-              <property name="text">
-               <string>Font</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QFontComboBox" name="font"/>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_5">
-              <property name="text">
-               <string>Font Size</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QComboBox" name="font_size"/>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_log_font">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-              <property name="text">
-               <string>Log Browser Font</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QFontComboBox" name="log_font_family">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-              <property name="fontFilters">
-               <set>QFontComboBox::FontFilter::MonospacedFonts</set>
-              </property>
-              <property name="toolTip">
-               <string>Only monospaced fonts are listed. An unavailable family falls back to a built-in monospace list.</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="0">
-             <widget class="QLabel" name="label_log_font_size">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-              <property name="text">
-               <string>Log Browser Font Size</string>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="1">
-             <widget class="QComboBox" name="log_font_size">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <widget class="QGroupBox" name="connection_statistics_box">
-           <property name="uiLevel" stdset="0">
-            <string notr="true">advanced</string>
-           </property>
-           <layout class="QGridLayout" name="gridLayout_11">
-            <item row="1" column="0">
-             <widget class="QLabel" name="label_9">
-              <property name="text">
-               <string>Connection statistics</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2">
-             <widget class="QCheckBox" name="connection_statistics">
-              <property name="text">
-               <string>Enable</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0" colspan="3">
-             <widget class="QCheckBox" name="disable_traffic_aggregation">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fully disables the traffic aggregation feature (per-config and per-app usage history kept in a separate database, shown in the Traffic Stats dashboard). Does not affect the per-profile traffic counters in the main window.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="text">
-               <string>Disable Traffic Aggregation</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="0">
-             <widget class="QCheckBox" name="show_config_security">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show each config's security next to its type in the proxy list, e.g. &quot;Trojan (WebSocket+TLS)&quot;. Insecure configs are marked with a warning sign.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="text">
-               <string>Show Config Security</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="3" column="0">
-        <layout class="QHBoxLayout" name="style_h_3">
-         <item>
-          <widget class="QGroupBox" name="horizontalGroupBox_5">
-           <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item row="1" column="0" colspan="2">
+           <layout class="QHBoxLayout" name="horizontalLayout_custom_icon">
             <item>
-             <widget class="QCheckBox" name="start_minimal">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>Hide dashboard at startup</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="disable_tray">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="toolTip">
-               <string>Prevents the app from minimizing to the tray when the window is closed. The app will exit instead</string>
-              </property>
-              <property name="text">
-               <string>Disable tray</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <widget class="QGroupBox" name="groupBox_2">
-           <layout class="QHBoxLayout" name="horizontalLayout_23">
-            <item>
-             <widget class="QCheckBox" name="skip_delete_confirm">
-              <property name="text">
-               <string>Skip confirmation When Deleting Profiles</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="0" column="0">
-        <layout class="QHBoxLayout" name="style_h_1">
-         <item>
-          <widget class="QGroupBox" name="groupBox">
-           <layout class="QGridLayout" name="gridLayout_10">
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_8">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>Theme</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QComboBox" name="theme">
-              <item>
-               <property name="text">
-                <string notr="true">System</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QPushButton" name="select_custom_icon">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-              <property name="text">
-               <string>Select</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
              <widget class="QCheckBox" name="enable_custom_icon">
               <property name="uiLevel" stdset="0">
                <string notr="true">advanced</string>
@@ -968,386 +376,872 @@
               </property>
              </widget>
             </item>
-            <item row="2" column="0">
-             <widget class="QCheckBox" name="follow_status_in_taskbar">
+            <item>
+             <widget class="QPushButton" name="select_custom_icon">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
+              <property name="text">
+               <string>Select</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_custom_icon">
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <widget class="QCheckBox" name="follow_status_in_taskbar">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="toolTip">
+             <string>Follow the connection status icon in the dock/taskbar. When off, it always shows the Throne icon</string>
+            </property>
+            <property name="text">
+             <string>Follow Status Icon in Taskbar</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="font_box">
+         <property name="uiFoldInto" stdset="0">
+          <string notr="true">tab_general</string>
+         </property>
+         <property name="title">
+          <string>Font</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_font">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Font</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_font" stretch="1,0,0">
+            <item>
+             <widget class="QFontComboBox" name="font"/>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_5">
+              <property name="text">
+               <string>Font Size</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="font_size"/>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="profile_list_box">
+         <property name="uiLevel" stdset="0">
+          <string notr="true">advanced</string>
+         </property>
+         <property name="title">
+          <string>Profile list</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_profile_list">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="show_config_security">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show each config's security next to its type in the proxy list, e.g. &quot;Trojan (WebSocket+TLS)&quot;. Insecure configs are marked with a warning sign.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Show Config Security</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_appearance">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_connection">
+      <attribute name="title">
+       <string>Connection</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_connection">
+       <item>
+        <widget class="QGroupBox" name="groupBox_5">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string>Local proxy</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_9">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="text">
+             <string>Listen Address</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="inbound_address">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="inbound_socks_port_l">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Socks
+                                                                + HTTP Proxy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+                                                            </string>
+            </property>
+            <property name="text">
+             <string>Listen Port</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_listen_port" stretch="1,0">
+            <item>
+             <widget class="QLineEdit" name="inbound_socks_port">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="random_listen_port">
               <property name="uiLevel" stdset="0">
                <string notr="true">advanced</string>
               </property>
               <property name="toolTip">
-               <string>Follow the connection status icon in the dock/taskbar. When off, it always shows the Throne icon</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Selects a random available port on every run&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
-               <string>Follow Status Icon in Taskbar</string>
+               <string>Random port</string>
               </property>
              </widget>
             </item>
            </layout>
-          </widget>
-         </item>
-         <item>
-          <widget class="QGroupBox" name="groupBox2">
-           <layout class="QGridLayout" name="gridLayout_4">
-            <item row="0" column="2">
-             <widget class="QComboBox" name="language">
-              <item>
-               <property name="text">
-                <string notr="true">System</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string notr="true">English</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string notr="true">简体中文</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string notr="true">فارسی</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string notr="true">Русский</string>
-               </property>
-              </item>
-             </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="proxy_scheme_l">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="text">
+             <string>Proxy Format</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QComboBox" name="proxy_scheme">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <item>
+             <property name="text">
+              <string notr="true">{ip}:{port}</string>
+             </property>
             </item>
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_15">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
+            <item>
+             <property name="text">
+              <string notr="true">http://{ip}:{port}</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string notr="true">socks={ip}:{port}</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="3" column="0" colspan="2">
+           <widget class="QCheckBox" name="disable_mixed_inbound">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="text">
+             <string>Disable Mixed Inbound</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_11">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="text">
+             <string>Custom Inbound</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_custom_inbound">
+            <item>
+             <widget class="QPushButton" name="custom_inbound_edit">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
               </property>
               <property name="text">
-               <string>Language</string>
+               <string>Edit</string>
               </property>
              </widget>
             </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="ui_mode_l">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
+            <item>
+             <spacer name="horizontalSpacer_custom_inbound">
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
               </property>
-              <property name="toolTip">
-               <string>Simple hides the advanced options. They keep their values and still apply.</string>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
               </property>
-              <property name="text">
-               <string>Interface</string>
-              </property>
-              <property name="buddy">
-               <cstring>ui_mode</cstring>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2">
-             <widget class="QComboBox" name="ui_mode">
-              <item>
-               <property name="text">
-                <string>Simple</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Advanced</string>
-               </property>
-              </item>
-             </widget>
+             </spacer>
             </item>
            </layout>
-          </widget>
-         </item>
-        </layout>
+          </item>
+          <item row="5" column="0" colspan="2">
+           <widget class="QCheckBox" name="reset_proxy_on_disable_sp">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="text">
+             <string>Restart proxy when the system proxy is turned off</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="auth_box">
+         <property name="uiLevel" stdset="0">
+          <string notr="true">advanced</string>
+         </property>
+         <property name="title">
+          <string>Authentication</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_auth">
+          <item row="0" column="0" colspan="2">
+           <widget class="QCheckBox" name="inbound_auth">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="text">
+             <string>Enable Authorization</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="inbound_user_l">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="text">
+             <string>Inbound Username</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="inbound_user">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="inbound_pass_l">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="text">
+             <string>Inbound Password</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="inbound_pass">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="dns_server_box">
+         <property name="uiLevel" stdset="0">
+          <string notr="true">advanced</string>
+         </property>
+         <property name="title">
+          <string>Local DNS server</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_dns_server">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_29">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A DNS server for local use will be deployed on this port&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Listen Port</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="dns_in_port"/>
+          </item>
+          <item row="1" column="0" colspan="2">
+           <widget class="QCheckBox" name="dns_in_lan">
+            <property name="toolTip">
+             <string>Lets other devices on your network use this DNS server, for example a router that sends its DNS through this computer. Anyone who can reach this port can then resolve names through your DNS settings.</string>
+            </property>
+            <property name="text">
+             <string>Allow other devices to connect</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_connection">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_3">
-      <property name="uiFoldInto" stdset="0">
-       <string notr="true">tab_1</string>
-      </property>
+     <widget class="QWidget" name="tab_testing">
       <attribute name="title">
-       <string>Subscription</string>
+       <string>Testing</string>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout_7">
-       <item row="10" column="1">
-        <widget class="QLineEdit" name="sub_custom_hwid_params">
+      <layout class="QVBoxLayout" name="verticalLayout_testing">
+       <item>
+        <widget class="QGroupBox" name="latency_box">
+         <property name="uiFoldInto" stdset="0">
+          <string notr="true">tab_connection</string>
+         </property>
+         <property name="title">
+          <string>Latency</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_latency">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_13">
+            <property name="text">
+             <string>Latency Test URL</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="test_latency_url"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_14">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="text">
+             <string>Concurrency</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_url_test" stretch="1,0,1">
+            <item>
+             <widget class="QLineEdit" name="test_concurrent">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_22">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Timeout for URLtest in ms&lt;br/&gt;Note that muxed connections take a much longer time for their initial request, and setting this value too low will cause the test to falsely report that the config is not working&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Timeout</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="url_timeout">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_direct_test_url">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fetched &lt;span style=&quot; font-weight:600;&quot;&gt;without&lt;/span&gt; any proxy, so features that must tell a dead internet connection apart from dead servers — such as the auto selector — can check the connection itself, and notice the moment it comes back.&lt;/p&gt;&lt;p&gt;Only put a URL here that is reachable &lt;span style=&quot; font-weight:600;&quot;&gt;directly&lt;/span&gt; on your network. Leave it empty to rely on the operating system's network state instead.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Direct Test URL</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="direct_test_url">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="placeholderText">
+             <string>optional — use the OS network state</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="speedtest_box">
          <property name="uiLevel" stdset="0">
           <string notr="true">advanced</string>
          </property>
-         <property name="placeholderText">
-          <string>hwid=custom_value,os=custom_os,osVersion=custom_version,model=custom_model</string>
+         <property name="title">
+          <string>Speed test</string>
          </property>
+         <layout class="QGridLayout" name="gridLayout_speedtest">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_12">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="text">
+             <string>Speedtest mode</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_speedtest" stretch="1,0,1">
+            <item>
+             <widget class="QComboBox" name="speedtest_mode">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
+              <item>
+               <property name="text">
+                <string>Download + Upload</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Only Download</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Only Upload</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Simple Download</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Only Country</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_19">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;timeout in milliseconds&lt;br/&gt;applies to all tests individually&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Timeout</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="test_timeout">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_16">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="text">
+             <string>Simple Download URL</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="simple_down_url">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
-       <item row="7" column="0">
-        <widget class="QCheckBox" name="sub_clear">
-         <property name="text">
-          <string>Clear servers before updating subscription</string>
+       <item>
+        <widget class="QGroupBox" name="exit_country_box">
+         <property name="uiFoldInto" stdset="0">
+          <string notr="true">tab_connection</string>
          </property>
+         <property name="title">
+          <string>Exit country</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_exit_country">
+          <item row="0" column="0" colspan="2">
+           <widget class="QCheckBox" name="exit_country_lookup">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;After connecting, Throne asks an IP lookup service — through the proxy — which IP and country the connection exits from.&lt;/p&gt;&lt;p&gt;Turn this off to never contact such a service automatically.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Look up exit country</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_exit_lookup_provider">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="text">
+             <string>Lookup service</string>
+            </property>
+            <property name="buddy">
+             <cstring>exit_lookup_provider</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="exit_lookup_provider">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
-       <item row="8" column="0" colspan="2">
-        <widget class="QCheckBox" name="sub_show_change_popup">
+       <item>
+        <spacer name="verticalSpacer_testing">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_subscriptions">
+      <attribute name="title">
+       <string>Subscriptions</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_subscriptions">
+       <item>
+        <widget class="QGroupBox" name="sub_auto_update_box">
+         <property name="title">
+          <string>Auto update</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_sub_auto_update">
+          <item row="0" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0,1">
+            <item>
+             <widget class="QCheckBox" name="sub_auto_update_enable">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Enable</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_21">
+              <property name="text">
+               <string>Interval (minute, invalid if less than 30)</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="sub_auto_update">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="sub_respect_server_interval">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="toolTip">
+             <string>Subscriptions whose server sends an update interval (profile-update-interval) follow it; the interval above applies when a server sends none. Groups can override this in their Advanced settings.</string>
+            </property>
+            <property name="text">
+             <string>Use the update interval sent by the server</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="sub_update_box">
+         <property name="title">
+          <string>When updating</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_sub_update">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="sub_clear">
+            <property name="text">
+             <string>Clear servers before updating subscription</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="sub_show_change_popup">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, a window listing added / updated / deleted profiles is shown after a manual subscription update. The same information is always written to the log.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Show the changes window after a manual subscription update</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="allow_stopping_active_profile">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, If the currently active profile needs to be removed, it will be stopped and removed, otherwise it will not be removed at all&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Allow stopping the active profile</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="sub_request_box">
          <property name="uiLevel" stdset="0">
           <string notr="true">advanced</string>
          </property>
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, a window listing added / updated / deleted profiles is shown after a manual subscription update. The same information is always written to the log.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <property name="title">
+          <string>Requests</string>
          </property>
-         <property name="text">
-          <string>Show the changes window after a manual subscription update</string>
-         </property>
+         <layout class="QGridLayout" name="gridLayout_sub_request">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="text">
+             <string>User Agent</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="MyLineEdit" name="user_agent">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="sub_tls_version_l">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="toolTip">
+             <string>TLS versions offered when fetching subscriptions. Some servers answer the default handshake with a CAPTCHA or a block page; TLS 1.2 often gets through.</string>
+            </property>
+            <property name="text">
+             <string>TLS Version</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_sub_versions" stretch="1,0,1">
+            <item>
+             <widget class="QComboBox" name="sub_tls_version">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
+              <item>
+               <property name="text">
+                <string>Auto</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>TLS 1.2</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>TLS 1.3</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="sub_http_version_l">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
+              <property name="toolTip">
+               <string>Auto uses HTTP/2 when the server offers it.</string>
+              </property>
+              <property name="text">
+               <string>HTTP Version</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="sub_http_version">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
+              <item>
+               <property name="text">
+                <string>Auto</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>HTTP/1.1</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <widget class="QCheckBox" name="sub_send_hwid">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;HWID=%1&lt;/p&gt;&lt;p&gt;OS=%2&lt;/p&gt;&lt;p&gt;OS Version=%3&lt;/p&gt;&lt;p&gt;Model=%4&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Enable sending HWID, device model, and OS version when updating subscription</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_custom_hwid_params">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Format: hwid=value,os=value,osVersion=value,model=value&lt;/p&gt;&lt;p&gt;Leave empty to use default values. Only specify the parameters you want to override.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Custom System Parameters (optional)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="sub_custom_hwid_params">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="placeholderText">
+             <string>hwid=custom_value,os=custom_os,osVersion=custom_version,model=custom_model</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
-       <item row="3" column="1">
-        <widget class="MyLineEdit" name="user_agent">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_20">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Subscription auto update</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <layout class="QHBoxLayout" name="horizontalLayout_5">
-         <item>
-          <widget class="QCheckBox" name="sub_auto_update_enable">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Enable</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_21">
-           <property name="text">
-            <string>Interval (minute, invalid if less than 30)</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="sub_auto_update">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="2" column="1">
-        <widget class="QCheckBox" name="sub_respect_server_interval">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
-         <property name="toolTip">
-          <string>Subscriptions whose server sends an update interval (profile-update-interval) follow it; the interval above applies when a server sends none. Groups can override this in their Advanced settings.</string>
-         </property>
-         <property name="text">
-          <string>Use the update interval sent by the server</string>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="0" colspan="2">
-        <widget class="QCheckBox" name="sub_send_hwid">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;HWID=%1&lt;/p&gt;&lt;p&gt;OS=%2&lt;/p&gt;&lt;p&gt;OS Version=%3&lt;/p&gt;&lt;p&gt;Model=%4&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>Enable sending HWID, device model, and OS version when updating subscription</string>
-         </property>
-        </widget>
-       </item>
-       <item row="10" column="0">
-        <widget class="QLabel" name="label_custom_hwid_params">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Format: hwid=value,os=value,osVersion=value,model=value&lt;/p&gt;&lt;p&gt;Leave empty to use default values. Only specify the parameters you want to override.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>Custom System Parameters (optional)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0">
-        <widget class="QCheckBox" name="allow_stopping_active_profile">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, If the currently active profile needs to be removed, it will be stopped and removed, otherwise it will not be removed at all&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>Allow stopping the active profile</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_4">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
-         <property name="text">
-          <string>User Agent</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="sub_tls_version_l">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
-         <property name="toolTip">
-          <string>TLS versions offered when fetching subscriptions. Some servers answer the default handshake with a CAPTCHA or a block page; TLS 1.2 often gets through.</string>
-         </property>
-         <property name="text">
-          <string>TLS Version</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QComboBox" name="sub_tls_version">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
-         <item>
-          <property name="text">
-           <string>Auto</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>TLS 1.2</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>TLS 1.3</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <widget class="QLabel" name="sub_http_version_l">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
-         <property name="toolTip">
-          <string>Auto uses HTTP/2 when the server offers it.</string>
-         </property>
-         <property name="text">
-          <string>HTTP Version</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1">
-        <widget class="QComboBox" name="sub_http_version">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
-         <item>
-          <property name="text">
-           <string>Auto</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>HTTP/1.1</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <layout class="QHBoxLayout" name="horizontalLayout_route_auto_update">
-         <item>
-          <widget class="QCheckBox" name="route_auto_update_enable">
-           <property name="uiLevel" stdset="0">
-            <string notr="true">advanced</string>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Enable</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_route_auto_update_interval">
-           <property name="uiLevel" stdset="0">
-            <string notr="true">advanced</string>
-           </property>
-           <property name="text">
-            <string>Interval (minute, invalid if less than 30)</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="route_auto_update">
-           <property name="uiLevel" stdset="0">
-            <string notr="true">advanced</string>
-           </property>
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_route_auto_update">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Routing profiles auto update</string>
-         </property>
-        </widget>
-       </item>
-       <item row="11" column="0" colspan="2">
+       <item>
         <spacer name="verticalSpacer_subscription">
          <property name="orientation">
           <enum>Qt::Orientation::Vertical</enum>
@@ -1362,223 +1256,20 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_4">
+     <widget class="QWidget" name="tab_core">
       <property name="uiLevel" stdset="0">
        <string notr="true">advanced</string>
       </property>
       <attribute name="title">
        <string>Core</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout">
+      <layout class="QVBoxLayout" name="verticalLayout_core">
        <item>
-        <widget class="QGroupBox" name="groupBox_core">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
+        <widget class="QGroupBox" name="stats_box">
          <property name="title">
-          <string notr="true">Sing-box</string>
+          <string>Statistics</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <item>
-           <widget class="QGroupBox" name="clash_api_box">
-            <property name="title">
-             <string>Clash API</string>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_clash_api">
-             <item row="0" column="0">
-              <widget class="QLabel" name="core_box_clash_listen_addr_l">
-               <property name="text">
-                <string>Listen Address</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="MyLineEdit" name="core_box_clash_listen_addr"/>
-             </item>
-             <item row="0" column="2">
-              <widget class="QLabel" name="core_box_clash_api_l">
-               <property name="text">
-                <string>Listen Port</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="3">
-              <widget class="MyLineEdit" name="core_box_clash_api"/>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="core_box_clash_api_secret_l">
-               <property name="text">
-                <string>Secret</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1" colspan="3">
-              <widget class="MyLineEdit" name="core_box_clash_api_secret"/>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="api_service_box">
-            <property name="title">
-             <string>sing-box API / Dashboard</string>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_api_service">
-             <item row="0" column="0">
-              <widget class="QLabel" name="core_box_api_port_l">
-               <property name="text">
-                <string>Listen Port</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="MyLineEdit" name="core_box_api_port"/>
-             </item>
-             <item row="0" column="2">
-              <widget class="QLabel" name="core_box_api_secret_l">
-               <property name="text">
-                <string>Secret</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="3">
-              <widget class="MyLineEdit" name="core_box_api_secret"/>
-             </item>
-             <item row="1" column="0" colspan="3">
-              <widget class="QLabel" name="core_box_api_hint">
-               <property name="text">
-                <string>Loopback only. Leave the port empty to keep the web dashboard off.</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="3">
-              <widget class="QPushButton" name="core_box_api_regen">
-               <property name="text">
-                <string>Regenerate Secret</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="xray_core_box">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="title">
-          <string>Xray Core</string>
-         </property>
-         <layout class="QFormLayout" name="formLayout">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_24">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When to choose Xray when importing vless profiles&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Xray VLESS Preference</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="vless_xray_pref"/>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_core">
-         <property name="orientation">
-          <enum>Qt::Orientation::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>0</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tab_misc">
-      <attribute name="title">
-       <string>Miscellaneous</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_misc">
-       <item>
-        <widget class="QGroupBox" name="groupBox_network">
-         <property name="uiFoldInto" stdset="0">
-          <string notr="true">tab_1</string>
-         </property>
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="title">
-          <string>Network Settings</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_12">
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="allow_beta">
-            <property name="text">
-             <string>Allow updating to beta versions</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QCheckBox" name="net_insecure">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
-            <property name="text">
-             <string>Ignore TLS errors</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QCheckBox" name="reset_proxy_on_disable_sp">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
-            <property name="text">
-             <string>Restart Proxy On System Proxy Disable</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QCheckBox" name="net_use_proxy">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use proxy for subscription request, update request etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Use proxy</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="misc_core_box">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
-         <property name="title">
-          <string notr="true">Sing-box</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_misc_core">
+         <layout class="QGridLayout" name="gridLayout_stats">
           <item row="0" column="0">
            <widget class="QCheckBox" name="disable_stats">
             <property name="toolTip">
@@ -1589,39 +1280,20 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <spacer name="horizontalSpacer_disable_stats">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="0" column="2">
-           <widget class="QLabel" name="label_29">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A DNS server for local use will be deployed on this port&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="connection_statistics">
             <property name="text">
-             <string>DNS Server Port</string>
+             <string>Enable connection statistics</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="3">
-           <widget class="QLineEdit" name="dns_in_port"/>
-          </item>
-          <item row="1" column="2" colspan="2">
-           <widget class="QCheckBox" name="dns_in_lan">
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="disable_traffic_aggregation">
             <property name="toolTip">
-             <string>Lets other devices on your network use this DNS server, for example a router that sends its DNS through this computer. Anyone who can reach this port can then resolve names through your DNS settings.</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fully disables the traffic aggregation feature (per-config and per-app usage history kept in a separate database, shown in the Traffic Stats dashboard). Does not affect the per-profile traffic counters in the main window.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>Allow other devices to connect</string>
+             <string>Disable Traffic Aggregation</string>
             </property>
            </widget>
           </item>
@@ -1735,15 +1407,31 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="xray_assets_box">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
+        <widget class="QGroupBox" name="xray_core_box">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
          <property name="title">
-          <string>Xray Geo Assets</string>
+          <string>Xray Core</string>
          </property>
-         <layout class="QFormLayout" name="formLayout_xray_assets">
+         <layout class="QFormLayout" name="formLayout">
           <item row="0" column="0">
+           <widget class="QLabel" name="label_24">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When to choose Xray when importing vless profiles&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Xray VLESS Preference</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="vless_xray_pref"/>
+          </item>
+          <item row="1" column="0">
            <widget class="QLabel" name="label_xray_geoip_url">
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;URL for geoip.dat, downloaded when a full Xray config's routing needs geoip: rules.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -1753,7 +1441,7 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
+          <item row="1" column="1">
            <widget class="QWidget" name="xray_geoip_url_row" native="true">
             <layout class="QHBoxLayout" name="xray_geoip_url_layout">
              <property name="leftMargin">
@@ -1797,7 +1485,7 @@
             </layout>
            </widget>
           </item>
-          <item row="1" column="0">
+          <item row="2" column="0">
            <widget class="QLabel" name="label_xray_geosite_url">
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;URL for geosite.dat, downloaded when a full Xray config's routing needs geosite: rules.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -1807,7 +1495,7 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
+          <item row="2" column="1">
            <widget class="QWidget" name="xray_geosite_url_row" native="true">
             <layout class="QHBoxLayout" name="xray_geosite_url_layout">
              <property name="leftMargin">
@@ -1855,7 +1543,340 @@
         </widget>
        </item>
        <item>
-        <spacer name="verticalSpacer_misc">
+        <spacer name="verticalSpacer_core">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_logs">
+      <property name="uiLevel" stdset="0">
+       <string notr="true">advanced</string>
+      </property>
+      <attribute name="title">
+       <string>Logs</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_6">
+       <item>
+        <widget class="QGroupBox" name="log_panel_box">
+         <property name="title">
+          <string>Log panel</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_log_panel">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_17">
+            <property name="text">
+             <string>Max log lines</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="max_log_line">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_log_font">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="text">
+             <string>Log Browser Font</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_log_font" stretch="1,0,0">
+            <item>
+             <widget class="QFontComboBox" name="log_font_family">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
+              <property name="fontFilters">
+               <set>QFontComboBox::FontFilter::MonospacedFonts</set>
+              </property>
+              <property name="toolTip">
+               <string>Only monospaced fonts are listed. An unavailable family falls back to a built-in monospace list.</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_log_font_size">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
+              <property name="text">
+               <string>Log Browser Font Size</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="log_font_size">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="log_level_box">
+         <property name="title">
+          <string>Log level</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_log_level">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Sing-box Log level</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="log_level">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_10">
+            <property name="text">
+             <string>Xray Log level</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="xray_loglevel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_4">
+         <property name="title">
+          <string>Log Filtering</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QFrame" name="log_include_frame">
+            <property name="frameShape">
+             <enum>QFrame::Shape::StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Shadow::Raised</enum>
+            </property>
+            <layout class="QFormLayout" name="formLayout_3">
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_25">
+               <property name="text">
+                <string>Include Keywords</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="MyTextEdit" name="log_include_keyword"/>
+             </item>
+             <item row="3" column="1">
+              <widget class="MyTextEdit" name="log_include_regex"/>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="label_26">
+               <property name="text">
+                <string>Include Regex</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QCheckBox" name="enable_log_include">
+               <property name="text">
+                <string>Enable Include Rules</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QFrame" name="log_exclude_frame">
+            <property name="frameShape">
+             <enum>QFrame::Shape::StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Shadow::Raised</enum>
+            </property>
+            <layout class="QFormLayout" name="formLayout_4">
+             <item row="0" column="0">
+              <widget class="QCheckBox" name="enable_log_exclude">
+               <property name="text">
+                <string>Enable Exclude Rules</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="MyTextEdit" name="log_exclude_keyword"/>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_28">
+               <property name="text">
+                <string>Exclude Keywords</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0">
+              <widget class="QLabel" name="label_27">
+               <property name="text">
+                <string>Exclude Regex</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="MyTextEdit" name="log_exclude_regex"/>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_security">
+      <attribute name="title">
+       <string>Security</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_security">
+       <item>
+        <widget class="QGroupBox" name="protection_box">
+         <property name="uiFoldInto" stdset="0">
+          <string notr="true">tab_connection</string>
+         </property>
+         <property name="title">
+          <string>Protection</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_protection">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="kill_switch">
+            <property name="toolTip">
+             <string>While Throne is running, block all traffic that does not go through Throne, including when no profile is running.
+The local network stays reachable unless Private Range Bypass is turned off in Tun Settings.</string>
+            </property>
+            <property name="text">
+             <string>Kill Switch</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="cert_box">
+         <property name="uiLevel" stdset="0">
+          <string notr="true">advanced</string>
+         </property>
+         <property name="title">
+          <string>Certificates</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_cert">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="mozilla_cert">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="text">
+             <string>Use Mozilla Certificate Store</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="xray_use_system_ca">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="toolTip">
+             <string>Xray verifies servers only against its built-in root certificates. Turn this on to also trust the certificates installed in the system, such as a company or self-signed root. A profile or Xray config that sets useSystemCA itself keeps its own value.</string>
+            </property>
+            <property name="text">
+             <string>Trust System Certificates in Xray</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="skip_cert">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="text">
+             <string>Skip TLS certificate authentication by default (allowInsecure)</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="priv_box">
+         <property name="uiLevel" stdset="0">
+          <string notr="true">advanced</string>
+         </property>
+         <property name="title">
+          <string>Privileges</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_priv">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="disable_priv_req">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="text">
+             <string>Disable Privilege request</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="windows_no_admin">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Do not attempt to start as Admin unless explicitly requested&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Always Start as Standard User</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_security">
          <property name="orientation">
           <enum>Qt::Orientation::Vertical</enum>
          </property>
@@ -1871,7 +1892,7 @@
      </widget>
      <widget class="QWidget" name="tab_backup">
       <attribute name="title">
-       <string>Backup and Restore</string>
+       <string>Backup</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_backup">
        <item>
@@ -2097,96 +2118,6 @@
        </item>
        <item>
         <spacer name="verticalSpacer_backup">
-         <property name="orientation">
-          <enum>Qt::Orientation::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>0</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tab_5">
-      <property name="uiFoldInto" stdset="0">
-       <string notr="true">tab_1</string>
-      </property>
-      <attribute name="title">
-       <string>Security</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_4">
-       <item>
-        <widget class="QCheckBox" name="kill_switch">
-         <property name="toolTip">
-          <string>While Throne is running, block all traffic that does not go through Throne, including when no profile is running.
-The local network stays reachable unless Private Range Bypass is turned off in Tun Settings.</string>
-         </property>
-         <property name="text">
-          <string>Kill Switch</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="disable_priv_req">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
-         <property name="text">
-          <string>Disable Privilege request</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="mozilla_cert">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
-         <property name="text">
-          <string>Use Mozilla Certificate Store</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="xray_use_system_ca">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
-         <property name="toolTip">
-          <string>Xray verifies servers only against its built-in root certificates. Turn this on to also trust the certificates installed in the system, such as a company or self-signed root. A profile or Xray config that sets useSystemCA itself keeps its own value.</string>
-         </property>
-         <property name="text">
-          <string>Trust System Certificates in Xray</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="skip_cert">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
-         <property name="text">
-          <string>Skip TLS certificate authentication by default (allowInsecure)</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="windows_no_admin">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Do not attempt to start as Admin unless explicitly requested&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string>Always Start as Standard User</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_security">
          <property name="orientation">
           <enum>Qt::Orientation::Vertical</enum>
          </property>

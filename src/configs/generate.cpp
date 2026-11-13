@@ -826,7 +826,7 @@ namespace Configs {
 
             if (torExit()) {
                 if (!tor::Installed()) {
-                    ctx.error = QObject::tr("Tor is enabled but not downloaded yet. Open Routing Settings > Tor and press OK to download it.");
+                    ctx.error = QObject::tr("Tor is enabled but not downloaded yet. Open Routing Settings > Egress and press OK to download it.");
                     return;
                 }
             } else if (settings.enable_warp && !WarpConfigured(settings.warp_mode)) {

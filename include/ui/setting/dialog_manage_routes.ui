@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Routes</string>
+   <string>Routing Settings</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -19,54 +19,178 @@
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="tab">
+     <widget class="QWidget" name="tab_routing">
       <attribute name="title">
-       <string>Common</string>
+       <string>Routing</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_3">
+      <layout class="QVBoxLayout" name="routing_page_layout">
        <item>
-        <widget class="QWidget" name="widget" native="true">
-         <layout class="QGridLayout" name="gridLayout_2">
-          <item row="3" column="1">
-           <widget class="QComboBox" name="route_prof"/>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_3">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Used as default strategy when resolving outbound/dns server Domain addresses&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
+        <widget class="QGroupBox" name="route_profiles_box">
+         <property name="title">
+          <string>Routing Profiles</string>
+         </property>
+         <layout class="QGridLayout" name="route_profiles_layout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="route_prof_l">
             <property name="text">
-             <string>Default Domain Strategy</string>
+             <string>Routing Profile</string>
             </property>
             <property name="buddy">
-             <cstring>default_domain_strategy</cstring>
+             <cstring>route_prof</cstring>
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QComboBox" name="domainStrategyCombo">
+          <item row="0" column="1">
+           <widget class="QComboBox" name="route_prof"/>
+          </item>
+          <item row="1" column="0" colspan="2">
+           <layout class="QHBoxLayout" name="route_profiles_row">
+            <item>
+             <widget class="QListWidget" name="route_profiles"/>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="route_buttons">
+              <item>
+               <widget class="QPushButton" name="new_route">
+                <property name="text">
+                 <string>New</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="clone_route">
+                <property name="text">
+                 <string>Clone</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="import_route">
+                <property name="text">
+                 <string>Import</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="export_route">
+                <property name="text">
+                 <string>Export</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="edit_route">
+                <property name="text">
+                 <string>Edit</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="delete_route">
+                <property name="text">
+                 <string>Delete</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="update_route">
+                <property name="toolTip">
+                 <string>Update the selected remote routing profile, or all of them</string>
+                </property>
+                <property name="text">
+                 <string>Update</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="route_buttons_spacer">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>0</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="route_updates_box">
+         <property name="uiLevel" stdset="0">
+          <string notr="true">advanced</string>
+         </property>
+         <property name="title">
+          <string>Updates</string>
+         </property>
+         <layout class="QGridLayout" name="route_updates_layout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_route_auto_update">
             <property name="uiLevel" stdset="0">
              <string notr="true">advanced</string>
             </property>
-            <property name="editable">
-             <bool>false</bool>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Routing profiles auto update</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
-           <widget class="QComboBox" name="default_domain_strategy">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
-            <property name="editable">
-             <bool>false</bool>
-            </property>
-           </widget>
+          <item row="0" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_route_auto_update">
+            <item>
+             <widget class="QCheckBox" name="route_auto_update_enable">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Enable</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_route_auto_update_interval">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
+              <property name="text">
+               <string>Interval (minute, invalid if less than 30)</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="route_auto_update">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
-          <item row="4" column="0">
+          <item row="1" column="0">
            <widget class="QLabel" name="ruleset_mirror_l">
             <property name="uiLevel" stdset="0">
              <string notr="true">advanced</string>
@@ -79,33 +203,7 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_6">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If not empty, resolves domains in requests according to the strategy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Resolve Domain Strategy</string>
-            </property>
-            <property name="buddy">
-             <cstring>domainStrategyCombo</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="route_prof_l">
-            <property name="text">
-             <string>Routing Profile</string>
-            </property>
-            <property name="buddy">
-             <cstring>route_prof</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
+          <item row="1" column="1">
            <widget class="QComboBox" name="ruleset_mirror">
             <property name="uiLevel" stdset="0">
              <string notr="true">advanced</string>
@@ -146,406 +244,93 @@
         </widget>
        </item>
        <item>
-        <spacer name="common_bottom_spacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>0</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tab_5">
-      <property name="uiFoldInto" stdset="0">
-       <string notr="true">tab</string>
-      </property>
-      <attribute name="title">
-       <string>Warp</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_8">
-       <item>
-        <widget class="QWidget" name="widget_3" native="true">
-         <layout class="QFormLayout" name="formLayout_3">
-          <item row="0" column="0">
-           <widget class="QCheckBox" name="enable_warp">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enables the following config to be used as egress, useful for bypassing services restrciting non-warp VPNs&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Enable Warp</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="warp_mode_l">
-            <property name="toolTip">
-             <string>WireGuard runs over UDP. AmneziaWG adds WARP-compatible junk and camouflage packets. MASQUE tunnels over HTTP/3 or HTTP/2.</string>
-            </property>
-            <property name="text">
-             <string>Mode</string>
-            </property>
-            <property name="buddy">
-             <cstring>warp_mode</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QComboBox" name="warp_mode">
-            <property name="toolTip">
-             <string>WireGuard runs over UDP. AmneziaWG adds WARP-compatible junk and camouflage packets. MASQUE tunnels over HTTP/3 or HTTP/2.</string>
-            </property>
-            <item>
-             <property name="text">
-              <string notr="true">WireGuard</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">MASQUE</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">AmneziaWG</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="warp_wg_box">
+        <widget class="QGroupBox" name="domain_strategy_box">
          <property name="uiLevel" stdset="0">
           <string notr="true">advanced</string>
          </property>
          <property name="title">
-          <string notr="true">WireGuard</string>
+          <string>Domain Strategy</string>
          </property>
-         <layout class="QFormLayout" name="warp_wg_form">
+         <layout class="QGridLayout" name="domain_strategy_layout">
           <item row="0" column="0">
-           <widget class="QLabel" name="label_7">
+           <widget class="QLabel" name="label_3">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Used as default strategy when resolving outbound/dns server Domain addresses&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="text">
-             <string>Endpoint</string>
+             <string>Default Domain Strategy</string>
             </property>
             <property name="buddy">
-             <cstring>warp_ep</cstring>
+             <cstring>default_domain_strategy</cstring>
             </property>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QLineEdit" name="warp_ep"/>
+           <widget class="QComboBox" name="default_domain_strategy">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="editable">
+             <bool>false</bool>
+            </property>
+           </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QLabel" name="label_4">
+           <widget class="QLabel" name="label_6">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If not empty, resolves domains in requests according to the strategy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="text">
-             <string>Private Key</string>
+             <string>Resolve Domain Strategy</string>
             </property>
             <property name="buddy">
-             <cstring>warp_private_key</cstring>
+             <cstring>domainStrategyCombo</cstring>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QLineEdit" name="warp_private_key"/>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_5">
-            <property name="text">
-             <string>Public Key</string>
+           <widget class="QComboBox" name="domainStrategyCombo">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
             </property>
-            <property name="buddy">
-             <cstring>warp_public_key</cstring>
+            <property name="editable">
+             <bool>false</bool>
             </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="warp_public_key"/>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_12">
-            <property name="text">
-             <string>Interface Addresses</string>
-            </property>
-            <property name="buddy">
-             <cstring>warp_ifc_addrs</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QLineEdit" name="warp_ifc_addrs"/>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>Reserved</string>
-            </property>
-            <property name="buddy">
-             <cstring>warp_reserved</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QLineEdit" name="warp_reserved"/>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="warp_masque_box">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
-         <property name="title">
-          <string notr="true">MASQUE</string>
-         </property>
-         <layout class="QFormLayout" name="warp_masque_form">
-          <item row="0" column="0">
-           <widget class="QLabel" name="warp_masque_ep_l">
-            <property name="text">
-             <string>Endpoint</string>
-            </property>
-            <property name="buddy">
-             <cstring>warp_masque_ep</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="warp_masque_ep"/>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="warp_masque_private_key_l">
-            <property name="text">
-             <string>Private Key</string>
-            </property>
-            <property name="buddy">
-             <cstring>warp_masque_private_key</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLineEdit" name="warp_masque_private_key"/>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="warp_masque_peer_public_key_l">
-            <property name="toolTip">
-             <string>Base64 DER of the server's public key. When set, it pins the server certificate.</string>
-            </property>
-            <property name="text">
-             <string>Peer Public Key</string>
-            </property>
-            <property name="buddy">
-             <cstring>warp_masque_peer_public_key</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="warp_masque_peer_public_key"/>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="warp_masque_ifc_addrs_l">
-            <property name="text">
-             <string>Interface Addresses</string>
-            </property>
-            <property name="buddy">
-             <cstring>warp_masque_ifc_addrs</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QLineEdit" name="warp_masque_ifc_addrs"/>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="warp_masque_sni_l">
-            <property name="text">
-             <string notr="true">SNI</string>
-            </property>
-            <property name="buddy">
-             <cstring>warp_masque_sni</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QLineEdit" name="warp_masque_sni"/>
-          </item>
-          <item row="5" column="0">
-           <widget class="QLabel" name="warp_masque_http_mode_l">
-            <property name="toolTip">
-             <string>HTTP/3 runs over UDP; HTTP/2 runs over TLS on TCP and works where UDP is blocked.</string>
-            </property>
-            <property name="text">
-             <string>HTTP Version</string>
-            </property>
-            <property name="buddy">
-             <cstring>warp_masque_http_mode</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="1">
-           <widget class="QComboBox" name="warp_masque_http_mode">
-            <property name="toolTip">
-             <string>HTTP/3 runs over UDP; HTTP/2 runs over TLS on TCP and works where UDP is blocked.</string>
-            </property>
-            <item>
-             <property name="text">
-              <string>HTTP/3 (fallback to HTTP/2)</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>HTTP/3 only</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">HTTP/2</string>
-             </property>
-            </item>
            </widget>
           </item>
          </layout>
         </widget>
        </item>
-       <item>
-        <layout class="QHBoxLayout" name="warp_autogen_row">
-         <item>
-          <widget class="QPushButton" name="warp_autogen">
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Gets a new config from cloudflare API&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-           <property name="text">
-            <string>Generate Warp Config</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="warp_api_hosts_btn">
-           <property name="uiLevel" stdset="0">
-            <string notr="true">advanced</string>
-           </property>
-           <property name="toolTip">
-            <string>Cloudflare API domains to try, in order, when generating a WARP config</string>
-           </property>
-           <property name="text">
-            <string>Registration Domains…</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="warp_advanced_btn">
-           <property name="uiLevel" stdset="0">
-            <string notr="true">advanced</string>
-           </property>
-           <property name="toolTip">
-            <string>TLS fragmentation for WARP registration</string>
-           </property>
-           <property name="text">
-            <string>Advanced…</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="warp_autogen_spacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <spacer name="warp_bottom_spacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_tor">
-      <property name="uiFoldInto" stdset="0">
-       <string notr="true">tab</string>
-      </property>
-      <attribute name="title">
-       <string notr="true">Tor</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="tor_layout">
-       <item>
-        <widget class="QCheckBox" name="enable_tor">
-         <property name="toolTip">
-          <string>Sends proxied traffic out through Tor, over the selected server. TCP only.</string>
-         </property>
-         <property name="text">
-          <string>Exit through Tor</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="tor_status"/>
-       </item>
-       <item>
-        <spacer name="tor_bottom_spacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tab_3">
+     <widget class="QWidget" name="tab_dns">
       <attribute name="title">
        <string>DNS</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
         <widget class="QGroupBox" name="simple_dns_box">
-         <property name="uiFoldInto" stdset="0">
-          <string notr="true">tab</string>
-         </property>
          <property name="title">
-          <string>Simple DNS Settings</string>
+          <string>Servers</string>
          </property>
          <layout class="QGridLayout" name="gridLayout">
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Local DNS can not be used in some configurations, you will have to set an ip here to be used as local dns in such situations&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="dns_final_out_l">
             <property name="text">
-             <string>Local Override</string>
+             <string>Default DNS server</string>
             </property>
             <property name="buddy">
-             <cstring>local_override</cstring>
+             <cstring>dns_final_out</cstring>
             </property>
            </widget>
           </item>
-          <item row="7" column="3">
+          <item row="0" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout_3">
             <item>
              <widget class="QComboBox" name="dns_final_out">
@@ -562,46 +347,17 @@
              </widget>
             </item>
             <item>
-             <widget class="QCheckBox" name="enable_dns_routing">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
+             <spacer name="dns_final_out_spacer">
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
               </property>
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, domains destined for direct outbound will also be resolved using direct dns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
               </property>
-              <property name="text">
-               <string>Enable DNS Routing</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="respect_hosts">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Answer A/AAAA queries from the system hosts file before consulting any DNS server. Only domains actually listed in the file are affected.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="text">
-               <string>Respect Hosts File</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="predefined_dns">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>Predefined Answers</string>
-              </property>
-             </widget>
+             </spacer>
             </item>
            </layout>
           </item>
@@ -618,63 +374,7 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="3">
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <item>
-             <widget class="QLineEdit" name="local_override">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="2" column="3">
-           <layout class="QHBoxLayout" name="horizontalLayout_8">
-            <item>
-             <widget class="QComboBox" name="direct_dns">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="editable">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="direct_dns_disable_ipv6">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
-              <property name="toolTip">
-               <string>Answer AAAA queries sent to this server with an empty result.</string>
-              </property>
-              <property name="text">
-               <string>Disable IPv6</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_8">
-            <property name="toolTip">
-             <string>This is especially important and it is recommended to use the default value of &quot;localhost&quot;.
-If the default value does not work, try changing it to &quot;223.5.5.5&quot;.
-For more information, see the document &quot;Configuration/DNS&quot;.</string>
-            </property>
-            <property name="text">
-             <string>Direct DNS</string>
-            </property>
-            <property name="buddy">
-             <cstring>direct_dns</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="3">
+          <item row="1" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout_7">
             <item>
              <widget class="QComboBox" name="remote_dns">
@@ -704,17 +404,113 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
             </item>
            </layout>
           </item>
-          <item row="7" column="0">
-           <widget class="QLabel" name="dns_final_out_l">
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_8">
+            <property name="toolTip">
+             <string>This is especially important and it is recommended to use the default value of &quot;localhost&quot;.
+If the default value does not work, try changing it to &quot;223.5.5.5&quot;.
+For more information, see the document &quot;Configuration/DNS&quot;.</string>
+            </property>
             <property name="text">
-             <string>Default DNS server</string>
+             <string>Direct DNS</string>
             </property>
             <property name="buddy">
-             <cstring>dns_final_out</cstring>
+             <cstring>direct_dns</cstring>
             </property>
            </widget>
           </item>
-          <item row="8" column="3">
+          <item row="2" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_8">
+            <item>
+             <widget class="QComboBox" name="direct_dns">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="editable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="direct_dns_disable_ipv6">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
+              <property name="toolTip">
+               <string>Answer AAAA queries sent to this server with an empty result.</string>
+              </property>
+              <property name="text">
+               <string>Disable IPv6</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Local DNS can not be used in some configurations, you will have to set an ip here to be used as local dns in such situations&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Local Override</string>
+            </property>
+            <property name="buddy">
+             <cstring>local_override</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="local_override">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="dns_resolution_box">
+         <property name="uiLevel" stdset="0">
+          <string notr="true">advanced</string>
+         </property>
+         <property name="title">
+          <string>Resolution</string>
+         </property>
+         <layout class="QGridLayout" name="dns_resolution_layout">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="enable_dns_routing">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, domains destined for direct outbound will also be resolved using direct dns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Enable DNS Routing</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="respect_hosts">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Answer A/AAAA queries from the system hosts file before consulting any DNS server. Only domains actually listed in the file are affected.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Respect Hosts File</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
            <layout class="QHBoxLayout" name="horizontalLayout_6">
             <item>
              <widget class="QCheckBox" name="enable_fakeip">
@@ -739,7 +535,36 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
               </property>
              </widget>
             </item>
+            <item>
+             <spacer name="fakeip_spacer">
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
            </layout>
+          </item>
+          <item row="3" column="0" alignment="Qt::AlignmentFlag::AlignLeft">
+           <widget class="QPushButton" name="predefined_dns">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Predefined Answers</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -817,80 +642,405 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_2">
+     <widget class="QWidget" name="tab_egress">
       <attribute name="title">
-       <string>Route</string>
+       <string>Egress</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
+      <layout class="QVBoxLayout" name="egress_page_layout">
        <item>
-        <widget class="QGroupBox" name="route_profiles_box">
+        <widget class="QGroupBox" name="egress_box">
          <property name="title">
-          <string>Routing Profiles</string>
+          <string>Exit through</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_6">
-          <item>
-           <widget class="QListWidget" name="route_profiles"/>
+         <layout class="QGridLayout" name="egress_box_layout">
+          <item row="0" column="0">
+           <layout class="QVBoxLayout" name="exit_server_option">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QRadioButton" name="exit_server">
+              <property name="text">
+               <string>Selected server</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="exit_server_hint">
+              <property name="text">
+               <string>Traffic leaves through the server you started.</string>
+              </property>
+              <property name="wordWrap">
+               <bool>true</bool>
+              </property>
+              <property name="colorRole" stdset="0">
+               <string notr="true">muted</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
-          <item>
-           <widget class="QWidget" name="widget_2" native="true">
-            <layout class="QHBoxLayout" name="horizontalLayout_2">
-             <item>
-              <widget class="QPushButton" name="new_route">
+          <item row="1" column="0">
+           <layout class="QVBoxLayout" name="enable_warp_option">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QRadioButton" name="enable_warp">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enables the following config to be used as egress, useful for bypassing services restrciting non-warp VPNs&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string notr="true">Cloudflare WARP</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="enable_warp_hint">
+              <property name="text">
+               <string>WARP runs over the selected server.</string>
+              </property>
+              <property name="wordWrap">
+               <bool>true</bool>
+              </property>
+              <property name="colorRole" stdset="0">
+               <string notr="true">muted</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="0">
+           <layout class="QVBoxLayout" name="enable_tor_option">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QRadioButton" name="enable_tor">
+              <property name="toolTip">
+               <string>Sends proxied traffic out through Tor, over the selected server. TCP only.</string>
+              </property>
+              <property name="text">
+               <string notr="true">Tor</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="tor_status">
+              <property name="wordWrap">
+               <bool>true</bool>
+              </property>
+              <property name="colorRole" stdset="0">
+               <string notr="true">muted</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="warp_box">
+         <property name="title">
+          <string notr="true">WARP</string>
+         </property>
+         <layout class="QGridLayout" name="warp_box_layout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="warp_mode_l">
+            <property name="toolTip">
+             <string>WireGuard runs over UDP. AmneziaWG adds WARP-compatible junk and camouflage packets. MASQUE tunnels over HTTP/3 or HTTP/2.</string>
+            </property>
+            <property name="text">
+             <string>Mode</string>
+            </property>
+            <property name="buddy">
+             <cstring>warp_mode</cstring>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="warp_mode">
+            <property name="toolTip">
+             <string>WireGuard runs over UDP. AmneziaWG adds WARP-compatible junk and camouflage packets. MASQUE tunnels over HTTP/3 or HTTP/2.</string>
+            </property>
+            <item>
+             <property name="text">
+              <string notr="true">WireGuard</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string notr="true">MASQUE</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string notr="true">AmneziaWG</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="2">
+           <widget class="QGroupBox" name="warp_wg_box">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="title">
+             <string notr="true">WireGuard</string>
+            </property>
+            <layout class="QFormLayout" name="warp_wg_form">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_7">
                <property name="text">
-                <string>New</string>
+                <string>Endpoint</string>
+               </property>
+               <property name="buddy">
+                <cstring>warp_ep</cstring>
                </property>
               </widget>
              </item>
-             <item>
-              <widget class="QPushButton" name="clone_route">
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="warp_ep"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_4">
                <property name="text">
-                <string>Clone</string>
+                <string>Private Key</string>
+               </property>
+               <property name="buddy">
+                <cstring>warp_private_key</cstring>
                </property>
               </widget>
              </item>
-             <item>
-              <widget class="QPushButton" name="export_route">
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="warp_private_key"/>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_5">
                <property name="text">
-                <string>Export</string>
+                <string>Public Key</string>
+               </property>
+               <property name="buddy">
+                <cstring>warp_public_key</cstring>
                </property>
               </widget>
              </item>
-             <item>
-              <widget class="QPushButton" name="import_route">
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="warp_public_key"/>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="label_12">
                <property name="text">
-                <string>Import</string>
+                <string>Interface Addresses</string>
+               </property>
+               <property name="buddy">
+                <cstring>warp_ifc_addrs</cstring>
                </property>
               </widget>
              </item>
-             <item>
-              <widget class="QPushButton" name="edit_route">
+             <item row="3" column="1">
+              <widget class="QLineEdit" name="warp_ifc_addrs"/>
+             </item>
+             <item row="4" column="0">
+              <widget class="QLabel" name="label">
                <property name="text">
-                <string>Edit</string>
+                <string>Reserved</string>
+               </property>
+               <property name="buddy">
+                <cstring>warp_reserved</cstring>
                </property>
               </widget>
              </item>
-             <item>
-              <widget class="QPushButton" name="delete_route">
+             <item row="4" column="1">
+              <widget class="QLineEdit" name="warp_reserved"/>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <widget class="QGroupBox" name="warp_masque_box">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="title">
+             <string notr="true">MASQUE</string>
+            </property>
+            <layout class="QFormLayout" name="warp_masque_form">
+             <item row="0" column="0">
+              <widget class="QLabel" name="warp_masque_ep_l">
                <property name="text">
-                <string>Delete</string>
+                <string>Endpoint</string>
+               </property>
+               <property name="buddy">
+                <cstring>warp_masque_ep</cstring>
                </property>
               </widget>
              </item>
-             <item>
-              <widget class="QPushButton" name="update_route">
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="warp_masque_ep"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="warp_masque_private_key_l">
+               <property name="text">
+                <string>Private Key</string>
+               </property>
+               <property name="buddy">
+                <cstring>warp_masque_private_key</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="warp_masque_private_key"/>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="warp_masque_peer_public_key_l">
                <property name="toolTip">
-                <string>Update the selected remote routing profile, or all of them</string>
+                <string>Base64 DER of the server's public key. When set, it pins the server certificate.</string>
                </property>
                <property name="text">
-                <string>Update</string>
+                <string>Peer Public Key</string>
                </property>
+               <property name="buddy">
+                <cstring>warp_masque_peer_public_key</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="warp_masque_peer_public_key"/>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="warp_masque_ifc_addrs_l">
+               <property name="text">
+                <string>Interface Addresses</string>
+               </property>
+               <property name="buddy">
+                <cstring>warp_masque_ifc_addrs</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QLineEdit" name="warp_masque_ifc_addrs"/>
+             </item>
+             <item row="4" column="0">
+              <widget class="QLabel" name="warp_masque_sni_l">
+               <property name="text">
+                <string notr="true">SNI</string>
+               </property>
+               <property name="buddy">
+                <cstring>warp_masque_sni</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QLineEdit" name="warp_masque_sni"/>
+             </item>
+             <item row="5" column="0">
+              <widget class="QLabel" name="warp_masque_http_mode_l">
+               <property name="toolTip">
+                <string>HTTP/3 runs over UDP; HTTP/2 runs over TLS on TCP and works where UDP is blocked.</string>
+               </property>
+               <property name="text">
+                <string>HTTP Version</string>
+               </property>
+               <property name="buddy">
+                <cstring>warp_masque_http_mode</cstring>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="1">
+              <widget class="QComboBox" name="warp_masque_http_mode">
+               <property name="toolTip">
+                <string>HTTP/3 runs over UDP; HTTP/2 runs over TLS on TCP and works where UDP is blocked.</string>
+               </property>
+               <item>
+                <property name="text">
+                 <string>HTTP/3 (fallback to HTTP/2)</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>HTTP/3 only</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string notr="true">HTTP/2</string>
+                </property>
+               </item>
               </widget>
              </item>
             </layout>
            </widget>
           </item>
+          <item row="3" column="0" colspan="2">
+           <layout class="QHBoxLayout" name="warp_autogen_row">
+            <item>
+             <widget class="QPushButton" name="warp_autogen">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Gets a new config from cloudflare API&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Generate Warp Config</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="warp_api_hosts_btn">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
+              <property name="toolTip">
+               <string>Cloudflare API domains to try, in order, when generating a WARP config</string>
+              </property>
+              <property name="text">
+               <string>Registration Domains…</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="warp_advanced_btn">
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
+              <property name="toolTip">
+               <string>TLS fragmentation for WARP registration</string>
+              </property>
+              <property name="text">
+               <string>Advanced…</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="warp_autogen_spacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <spacer name="warp_bottom_spacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -915,16 +1065,6 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
    </item>
   </layout>
  </widget>
- <tabstops>
-  <tabstop>tabWidget</tabstop>
-  <tabstop>domainStrategyCombo</tabstop>
-  <tabstop>default_domain_strategy</tabstop>
-  <tabstop>remote_dns</tabstop>
-  <tabstop>remote_dns_disable_ipv6</tabstop>
-  <tabstop>direct_dns</tabstop>
-  <tabstop>direct_dns_disable_ipv6</tabstop>
-  <tabstop>dns_final_out</tabstop>
- </tabstops>
  <resources/>
  <connections>
   <connection>

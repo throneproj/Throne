@@ -79,9 +79,10 @@ inline QString GroupDeleteRefusalText(const Engine::ServiceError &error) {
             label->setText(text + "*");                              \
         }                                                            \
     }                                                                \
-    for (auto checkBox: parent->findChildren<QCheckBox *>()) {       \
-        auto text = checkBox->text();                                \
-        if (!checkBox->toolTip().isEmpty() && !text.endsWith("*")) { \
-            checkBox->setText(text + "*");                           \
+    for (auto button: parent->findChildren<QAbstractButton *>()) {   \
+        if (!button->inherits("QCheckBox") && !button->inherits("QRadioButton")) continue; \
+        auto text = button->text();                                  \
+        if (!button->toolTip().isEmpty() && !text.endsWith("*")) {   \
+            button->setText(text + "*");                             \
         }                                                            \
     }

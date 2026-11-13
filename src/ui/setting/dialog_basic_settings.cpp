@@ -27,7 +27,6 @@
 #include <QJsonObject>
 #include <QDir>
 #include <QStandardPaths>
-#include <QUuid>
 #include <QCheckBox>
 #include <QScreen>
 #include <QVBoxLayout>
@@ -418,7 +417,6 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     D_LOAD_STRING(sub_custom_hwid_params)
     D_LOAD_INT_ENABLE(sub_auto_update, sub_auto_update_enable)
     D_LOAD_BOOL(sub_respect_server_interval)
-    D_LOAD_INT_ENABLE(route_auto_update, route_auto_update_enable)
     auto details = GetDeviceDetails();
 	ui->sub_send_hwid->setToolTip(
         ui->sub_send_hwid->toolTip()
@@ -430,23 +428,6 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->dns_in_port->setValidator(new QIntValidator(1, 65535, ui->dns_in_port));
     ui->dns_in_port->setText(Int2String(Configs::dataManager->settingsRepo->core_dns_in_port));
     ui->dns_in_lan->setChecked(Configs::dataManager->settingsRepo->core_dns_in_lan);
-
-    ui->core_box_clash_listen_addr->setText(Configs::dataManager->settingsRepo->core_box_clash_listen_addr);
-    ui->core_box_clash_listen_addr->setPlaceholderText(tr("127.0.0.1 (default)"));
-    ui->core_box_clash_api->setValidator(new QIntValidator(1, 65535, ui->core_box_clash_api));
-    ui->core_box_clash_api->setText(Configs::dataManager->settingsRepo->core_box_clash_api > 0
-                                        ? Int2String(Configs::dataManager->settingsRepo->core_box_clash_api)
-                                        : "");
-    ui->core_box_clash_api_secret->setText(Configs::dataManager->settingsRepo->core_box_clash_api_secret);
-
-    ui->core_box_api_port->setValidator(new QIntValidator(1, 65535, ui->core_box_api_port));
-    ui->core_box_api_port->setText(Configs::dataManager->settingsRepo->core_box_api_port > 0
-                                       ? Int2String(Configs::dataManager->settingsRepo->core_box_api_port)
-                                       : "");
-    ui->core_box_api_secret->setText(Configs::dataManager->settingsRepo->core_box_api_secret);
-    connect(ui->core_box_api_regen, &QPushButton::clicked, this, [this] {
-        ui->core_box_api_secret->setText(QUuid::createUuid().toString(QUuid::WithoutBraces).remove('-'));
-    });
 
     ui->vless_xray_pref->addItems(Configs::Xray::XrayVlessPreferenceString);
     ui->vless_xray_pref->setCurrentIndex(Configs::dataManager->settingsRepo->xray_vless_preference);
@@ -545,8 +526,6 @@ void DialogBasicSettings::bindValidation() {
         {ui->inbound_socks_port, tr("Mixed inbound"),
          [this] { return !ui->disable_mixed_inbound->isChecked() && !ui->random_listen_port->isChecked(); }},
         {ui->dns_in_port, tr("DNS server"), [] { return true; }},
-        {ui->core_box_clash_api, tr("Clash API"), [this] { return !ui->core_box_clash_api->text().trimmed().isEmpty(); }},
-        {ui->core_box_api_port, tr("sing-box API"), [this] { return !ui->core_box_api_port->text().trimmed().isEmpty(); }},
     };
     for (qsizetype i = 0; i < ports.size(); ++i) {
         for (qsizetype j = i + 1; j < ports.size(); ++j) {
@@ -557,6 +536,26 @@ void DialogBasicSettings::bindValidation() {
                 return tr("Port %1 is already used by: %2. Choose a different port.").arg(QString::number(*port), b.name);
             }, nullptr, Severity::Error, ports[i].name);
         }
+    }
+    // These are edited in Integration Settings, so only their saved ports can clash.
+    const auto savedPorts = [] {
+        const auto &settings = Configs::dataManager->settingsRepo;
+        QList<QPair<int, QString>> taken;
+        if (settings->core_box_clash_api > 0) taken.append({settings->core_box_clash_api, tr("Clash API")});
+        if (settings->core_box_api_port > 0) taken.append({settings->core_box_api_port, tr("sing-box API")});
+        if (settings->remote_api_enable) taken.append({settings->remote_api_port, tr("Throne API")});
+        return taken;
+    };
+    for (const auto &use : ports) {
+        form->addRule({use.edit}, [use, savedPorts] {
+            if (!use.used()) return QString();
+            const auto port = ToInt(use.edit->text());
+            if (!port || *port <= 0) return QString();
+            for (const auto &[taken, name] : savedPorts()) {
+                if (*port == taken) return tr("Port %1 is already used by: %2. Choose a different port.").arg(QString::number(*port), name);
+            }
+            return QString();
+        }, nullptr, Severity::Error, use.name);
     }
     refreshOn(ui->disable_mixed_inbound);
     refreshOn(ui->random_listen_port);
@@ -572,17 +571,9 @@ void DialogBasicSettings::bindValidation() {
     form->bind(ui->sub_custom_hwid_params, [](const QString &text) { return basicSettingsHwidParamsError(text); });
     form->bind(ui->sub_auto_update, Rules::Int(kBasicSettingsMinAutoUpdate, kBasicSettingsMaxAutoUpdate, Empty::Required))
         .when([this] { return ui->sub_auto_update_enable->isChecked(); });
-    form->bind(ui->route_auto_update, Rules::Int(kBasicSettingsMinAutoUpdate, kBasicSettingsMaxAutoUpdate, Empty::Required))
-        .when([this] { return ui->route_auto_update_enable->isChecked(); });
     refreshOn(ui->sub_auto_update_enable);
-    refreshOn(ui->route_auto_update_enable);
 
     form->bind(ui->dns_in_port, Rules::Port());
-    const auto clashLabel = [this](const QLabel *label) { return QStringLiteral("%1 %2").arg(ui->clash_api_box->title(), label->text()); };
-    form->bind(ui->core_box_clash_listen_addr, Rules::Host(Empty::Allowed)).label(clashLabel(ui->core_box_clash_listen_addr_l));
-    form->bind(ui->core_box_clash_api, Rules::Port(Empty::Allowed)).label(clashLabel(ui->core_box_clash_api_l));
-    form->bind(ui->core_box_api_port, Rules::Port(Empty::Allowed))
-        .label(QStringLiteral("%1 %2").arg(ui->api_service_box->title(), ui->core_box_api_port_l->text()));
 
     form->bind(ui->ntp_server, Rules::Host(Empty::Allowed)).label(tr("NTP server"));
     // The core turns port 0 into 123.
@@ -721,18 +712,10 @@ void DialogBasicSettings::accept() {
     Configs::dataManager->settingsRepo->sub_custom_hwid_params = ui->sub_custom_hwid_params->text().trimmed();
     D_SAVE_INT_ENABLE(sub_auto_update, sub_auto_update_enable)
     D_SAVE_BOOL(sub_respect_server_interval)
-    D_SAVE_INT_ENABLE(route_auto_update, route_auto_update_enable)
 
     Configs::dataManager->settingsRepo->disable_traffic_stats = ui->disable_stats->isChecked();
     Configs::dataManager->settingsRepo->core_dns_in_port = ui->dns_in_port->text().trimmed().toInt();
     Configs::dataManager->settingsRepo->core_dns_in_lan = ui->dns_in_lan->isChecked();
-    Configs::dataManager->settingsRepo->core_box_clash_listen_addr = ui->core_box_clash_listen_addr->text().trimmed();
-    Configs::dataManager->settingsRepo->core_box_clash_api = ui->core_box_clash_api->text().trimmed().toInt();
-    Configs::dataManager->settingsRepo->core_box_clash_api_secret = ui->core_box_clash_api_secret->text().trimmed();
-    Configs::dataManager->settingsRepo->core_box_api_port = ui->core_box_api_port->text().trimmed().toInt();
-    // Blank means "no authentication" to sing-box, so never let the field clear it.
-    if (const auto secret = ui->core_box_api_secret->text().trimmed(); !secret.isEmpty())
-        Configs::dataManager->settingsRepo->core_box_api_secret = secret;
 
     Configs::dataManager->settingsRepo->xray_vless_preference = static_cast<Configs::Xray::XrayVlessPreference>(ui->vless_xray_pref->currentIndex());
     // An empty field means the provider shown as its placeholder; the download at profile start has no fallback of its own.
