@@ -3,7 +3,7 @@
 package process
 
 import (
-	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"os/user"
@@ -15,28 +15,28 @@ import (
 	"ThroneCore/internal/guard"
 )
 
-func startChild(path string, args []string, noOut bool) (running, error) {
-	cmd := newCmd(path, args, noOut)
-	if err := applyPrivilegeDrop(cmd); err != nil {
+func startChild(s childSpec) (Running, error) {
+	cmd := newCmd(s)
+	if err := applyPrivilegeDrop(cmd, s); err != nil {
 		return nil, err
 	}
 	return startCmd(cmd)
 }
 
 // Under setuid-root the real uid still identifies the launching user; SysProcAttr.Credential setuids in the child before exec, race-free.
-func applyPrivilegeDrop(cmd *exec.Cmd) error {
+func applyPrivilegeDrop(cmd *exec.Cmd, s childSpec) error {
 	if os.Geteuid() != 0 {
 		return nil
 	}
 	ruid := os.Getuid()
 	rgid := os.Getgid()
 	if ruid == 0 {
-		return errors.New("refusing to start extra process as root: no unprivileged user to drop to")
+		return fmt.Errorf("refusing to start %s as root: no unprivileged user to drop to", s.name)
 	}
 
 	gid := uint32(rgid)
 	groups := supplementaryGroups(ruid, rgid)
-	if guard.IdentityEnabled() {
+	if s.guardGroup && guard.IdentityEnabled() {
 		// The kill switch admits the extra core by its primary group; the user's own groups keep its file access.
 		gid = guard.GID
 		if !slices.Contains(groups, uint32(rgid)) {

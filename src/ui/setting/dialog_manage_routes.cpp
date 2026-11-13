@@ -34,6 +34,7 @@
 
 #include "include/database/GroupsRepo.h"
 #include "include/database/RoutesRepo.h"
+#include "include/engine/services/AssetUpdates.h"
 #include "include/ui/setting/RawRouteItem.h"
 #include "include/ui/setting/RouteDnsEditor.h"
 #include "include/ui/utils/UiMode.h"
@@ -557,7 +558,7 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
         on_import_route_clicked();
     });
 
-    ui->enable_warp->setChecked(Configs::dataManager->settingsRepo->enable_warp);
+    ui->enable_warp->setChecked(Configs::dataManager->settingsRepo->enable_warp && !Configs::dataManager->settingsRepo->enable_tor);
     ui->warp_mode->setCurrentIndex(Configs::dataManager->settingsRepo->warp_mode == "masque" ? 1 : Configs::dataManager->settingsRepo->warp_mode == "amnezia" ? 2 : 0);
     ui->warp_private_key->setText(Configs::dataManager->settingsRepo->warp_private_key);
     ui->warp_public_key->setText(Configs::dataManager->settingsRepo->warp_public_key);
@@ -581,6 +582,21 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     connect(ui->warp_autogen, &QPushButton::clicked, this, &DialogManageRoutes::generate_warp_config);
     connect(ui->warp_api_hosts_btn, &QPushButton::clicked, this, [this] { editWarpApiHosts(this); });
     connect(ui->warp_advanced_btn, &QPushButton::clicked, this, [this] { editWarpAdvanced(this); });
+
+    ui->enable_tor->setChecked(Configs::dataManager->settingsRepo->enable_tor);
+    const auto showTorStatus = [this] {
+        const bool installed = Engine::AssetUpdates::TorInstalled();
+        ui->tor_status->setText(installed ? tr("Tor is installed.") : tr("Tor will be downloaded when you press OK."));
+        ui->tor_status->setVisible(installed || ui->enable_tor->isChecked());
+    };
+    showTorStatus();
+    connect(ui->enable_tor, &QCheckBox::toggled, this, [this, showTorStatus](bool on) {
+        if (on) ui->enable_warp->setChecked(false);
+        showTorStatus();
+    });
+    connect(ui->enable_warp, &QCheckBox::toggled, this, [this](bool on) {
+        if (on) ui->enable_tor->setChecked(false);
+    });
 
     // A custom DNS object greys out the DNS fields, so Simple mode keeps its switch beside them while it is on.
     if (ui->use_dns_object->isChecked()) {
@@ -781,6 +797,10 @@ void DialogManageRoutes::accept() {
     Configs::dataManager->settingsRepo->current_route_id = currentRoute->id;
 
     Configs::dataManager->settingsRepo->enable_warp = ui->enable_warp->isChecked();
+    const bool torWanted = ui->enable_tor->isChecked();
+    const bool torMissing = torWanted && !Engine::AssetUpdates::TorInstalled();
+    // Switched on only once downloaded: a restart without the binary would drop the proxy the download runs through.
+    Configs::dataManager->settingsRepo->enable_tor = torWanted && !torMissing;
     Configs::dataManager->settingsRepo->warp_ep = ui->warp_ep->text().trimmed();
     Configs::dataManager->settingsRepo->warp_ifc_addrs = manageRoutesWithPrefix(SplitAndTrim(ui->warp_ifc_addrs->text(), ",", false));
     Configs::dataManager->settingsRepo->warp_private_key = ui->warp_private_key->text().trimmed();
@@ -797,6 +817,19 @@ void DialogManageRoutes::accept() {
     Configs::dataManager->settingsRepo->warp_masque_http_mode = ui->warp_masque_http_mode->currentIndex();
 
     MW_dialog_message(MwMessage::UpdateSettings, {MwArg::Route});
+
+    if (torMissing) {
+        const bool started = Engine::AssetUpdates::InstallTor([](const QString &error) {
+            if (!error.isEmpty()) {
+                MessageBoxWarning(tr("Tor download failed"), error);
+                return;
+            }
+            Configs::dataManager->settingsRepo->enable_tor = true;
+            Configs::dataManager->settingsRepo->enable_warp = false;
+            MW_dialog_message(MwMessage::UpdateSettings, {MwArg::Route});
+        });
+        if (!started) MW_show_log(tr("[Tor] A download is already running; turn Tor on again once it finishes."));
+    }
 
     QDialog::accept();
 }

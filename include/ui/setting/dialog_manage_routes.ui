@@ -479,6 +479,42 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tab_tor">
+      <property name="uiFoldInto" stdset="0">
+       <string notr="true">tab</string>
+      </property>
+      <attribute name="title">
+       <string notr="true">Tor</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="tor_layout">
+       <item>
+        <widget class="QCheckBox" name="enable_tor">
+         <property name="toolTip">
+          <string>Sends proxied traffic out through Tor, over the selected server. TCP only.</string>
+         </property>
+         <property name="text">
+          <string>Exit through Tor</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="tor_status"/>
+       </item>
+       <item>
+        <spacer name="tor_bottom_spacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
      <widget class="QWidget" name="tab_3">
       <attribute name="title">
        <string>DNS</string>

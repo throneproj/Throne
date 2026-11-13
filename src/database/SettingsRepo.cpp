@@ -75,6 +75,7 @@ namespace Configs {
             {"log_enable_include",            &log_enable_include},
             {"log_enable_exclude",            &log_enable_exclude},
             {"enable_warp",                   &enable_warp},
+            {"enable_tor",                    &enable_tor},
             {"warp_tos_accepted",             &warp_tos_accepted},
             {"warp_api_tls_fragment",         &warp_api_tls_fragment},
             {"warp_api_tls_record_fragment",  &warp_api_tls_record_fragment},

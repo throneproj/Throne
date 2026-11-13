@@ -295,6 +295,8 @@ namespace Configs {
 
         // Warp
         bool enable_warp = false;
+        // Outranks enable_warp; the two are kept mutually exclusive.
+        bool enable_tor = false;
         QString warp_private_key = "";
         QString warp_public_key = "";
         QStringList warp_ifc_addrs = {};

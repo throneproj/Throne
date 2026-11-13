@@ -100,6 +100,8 @@ namespace API {
 
         QString InstallDashboard(bool *rpcOK, const QString &archivePath, const QString &targetDir) const;
 
+        QString InstallTor(bool *rpcOK, const QString &archivePath, const QString &sha256) const;
+
         // Empty name = the OS has no default route.
         [[nodiscard]] libcore::GetDefaultInterfaceResponse GetDefaultInterface(bool *rpcOK) const;
 

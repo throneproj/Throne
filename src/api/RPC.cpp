@@ -787,6 +787,24 @@ namespace API {
         }
     }
 
+    QString Client::InstallTor(bool *rpcOK, const QString &archivePath, const QString &sha256) const
+    {
+        libcore::InstallTorRequest request;
+        request.archive_path = archivePath.toStdString();
+        request.sha256 = sha256.toStdString();
+        libcore::ErrorResp reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("InstallTor", spb::pb::serialize<std::string>(request), resp);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return QString::fromStdString(reply.error.value());
+        } else {
+            NOT_OK
+            return "IPC error";
+        }
+    }
+
     libcore::DiagnosticsResponse Client::CaptureDiagnostics(bool *rpcOK, const libcore::DiagnosticsRequest &request, int timeoutMs)
     {
         libcore::DiagnosticsResponse reply;

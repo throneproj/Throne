@@ -789,6 +789,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionWarp, &QAction::triggered, this, [this] {
         const bool enable = !Configs::dataManager->settingsRepo->enable_warp;
         Configs::dataManager->settingsRepo->enable_warp = enable;
+        if (enable) Configs::dataManager->settingsRepo->enable_tor = false;
         ui->actionWarp->setChecked(enable);
         Configs::dataManager->settingsRepo->Save();
         connection()->restartStartedProfile();

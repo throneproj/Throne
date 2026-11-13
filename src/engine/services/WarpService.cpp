@@ -84,10 +84,13 @@ namespace Engine::WarpService {
             if (auto refused = beforeWrite()) return refused;
         }
         result->changed = true;
+        const bool torWas = settings->enable_tor;
         settings->enable_warp = enabled;
+        if (enabled) settings->enable_tor = false;
         settings->warp_mode = mode;
         settings->Save();
-        result->restartNeeded = wasEnabled || enabled;
+        // Tor outranks WARP, so WARP changes under a Tor that stays on change nothing.
+        result->restartNeeded = torWas ? enabled : wasEnabled || enabled;
         return std::nullopt;
     }
 
@@ -129,7 +132,7 @@ namespace Engine::WarpService {
                     result.error = refused;
                 } else {
                     warpServiceStore(mode, *identity, packets);
-                    result.restartNeeded = Configs::dataManager->settingsRepo->enable_warp;
+                    result.restartNeeded = Configs::dataManager->settingsRepo->enable_warp && !Configs::dataManager->settingsRepo->enable_tor;
                 }
                 done(result);
             });

@@ -622,6 +622,8 @@ set(PROJECT_SOURCES
         src/configs/outbounds/dnstt.cpp
         include/configs/outbounds/masterdns.h
         src/configs/outbounds/masterdns.cpp
+        include/configs/outbounds/tor.h
+        src/configs/outbounds/tor.cpp
         src/configs/outbounds/custom.cpp
         include/configs/generate.h
         src/configs/generate.cpp

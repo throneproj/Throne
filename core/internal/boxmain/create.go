@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"ThroneCore/internal/boxbox"
+	"ThroneCore/internal/torproc"
 
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/log"
@@ -39,6 +40,17 @@ func pinTailscaleDirectories(options *option.Options) {
 	}
 }
 
+// Fixed so that a config cannot run another program as tor or point its data at an arbitrary folder.
+func pinTorPaths(options *option.Options) {
+	for _, outbound := range options.Outbounds {
+		if torOptions, isTor := outbound.Options.(*option.TorOutboundOptions); isTor {
+			torOptions.ExecutablePath = torproc.ExecutablePath()
+			torOptions.DataDirectory = torproc.DataDirectoryPath()
+			torOptions.ExtraArgs = nil
+		}
+	}
+}
+
 // onCreated runs between New and Start: the Xray sidecars start first and resolve through this box.
 func Create(configContent []byte, onCreated func(*boxbox.Box), adjust ...func(*option.Options)) (*boxbox.Box, context.CancelFunc, error) {
 	// Fresh context per call: concurrent boxes sharing one service.Registry clobber each other's OutboundManager.
@@ -48,6 +60,7 @@ func Create(configContent []byte, onCreated func(*boxbox.Box), adjust ...func(*o
 		return nil, nil, err
 	}
 	pinTailscaleDirectories(options)
+	pinTorPaths(options)
 	if disableColor {
 		if options.Log == nil {
 			options.Log = &option.LogOptions{}

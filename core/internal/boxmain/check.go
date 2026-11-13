@@ -16,6 +16,7 @@ func Check(content []byte) error {
 		return err
 	}
 	pinTailscaleDirectories(options)
+	pinTorPaths(options)
 	ctx, cancel := context.WithCancel(ctx)
 	instance, err := boxbox.New(boxbox.Options{
 		Context: ctx,

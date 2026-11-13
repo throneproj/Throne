@@ -30,6 +30,7 @@ service LibcoreService {
   rpc GenQuicSignature(GenQuicSignatureRequest) returns (GenQuicSignatureResponse);
 
   rpc InstallDashboard(InstallDashboardRequest) returns (ErrorResp);
+  rpc InstallTor(InstallTorRequest) returns (ErrorResp);
   //
   rpc QueryAutoSelectors(EmptyReq) returns (QueryAutoSelectorsResponse);
   rpc AutoSelectorAction(AutoSelectorActionRequest) returns (ErrorResp);
@@ -511,6 +512,11 @@ message AutoSelectorActionRequest {
 message InstallDashboardRequest {
   optional string archive_path = 1 [default = ""];
   optional string target_dir = 2 [default = ""];
+}
+
+message InstallTorRequest {
+  optional string archive_path = 1 [default = ""];
+  optional string sha256 = 2 [default = ""];
 }
 
 message DiagnosticsAttachment {

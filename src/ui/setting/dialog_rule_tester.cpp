@@ -508,6 +508,8 @@ QString DialogRuleTester::originLabel(const Configs::RouteRuleOrigin &origin, co
             return tr("System DNS (Throne)");
         case Kind::Sniff:
             return tr("Sniff (Throne)");
+        case Kind::TorOnion:
+            return tr("Onion sites via Tor (Throne)");
         case Kind::Resolve:
             return tr("Domain resolve (Throne)");
         case Kind::DnsHijack:

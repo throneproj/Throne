@@ -19,7 +19,7 @@ import (
 )
 
 // exec.Cmd+SysProcAttr.Token routes through CreateProcessAsUser, needing SeAssignPrimaryTokenPrivilege that elevated admins lack; CreateProcessWithTokenW needs only SeImpersonatePrivilege (#1482).
-func startChild(path string, args []string, noOut bool) (running, error) {
+func startChild(s childSpec) (Running, error) {
 	self, err := selfToken()
 	if err != nil {
 		return nil, fmt.Errorf("cannot open process token: %w", err)
@@ -27,25 +27,29 @@ func startChild(path string, args []string, noOut bool) (running, error) {
 	defer self.Close()
 
 	if !self.IsElevated() {
-		return startCmd(newCmd(path, args, noOut))
+		cmd := newCmd(s)
+		if s.noWindow {
+			cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CreationFlags: windows.CREATE_NO_WINDOW}
+		}
+		return startCmd(cmd)
 	}
 
-	tok, err := unprivilegedToken(self)
+	tok, err := unprivilegedToken(self, s.logPrefix)
 	if err != nil {
-		return nil, fmt.Errorf("refusing to start extra process: cannot obtain an unprivileged user token: %w", err)
+		return nil, fmt.Errorf("refusing to start %s: cannot obtain an unprivileged user token: %w", s.name, err)
 	}
 	defer tok.Close()
 
-	return startWithToken(path, args, noOut, tok)
+	return startWithToken(s, tok)
 }
 
 // CreateProcessWithTokenW is served by the Secondary Logon service, which some systems disable; CreateProcessAsUser then still works for a Core running as SYSTEM.
-func startWithToken(path string, args []string, noOut bool, tok windows.Token) (running, error) {
-	run, err := startWithTokenW(path, args, noOut, tok)
+func startWithToken(s childSpec, tok windows.Token) (Running, error) {
+	run, err := startWithTokenW(s, tok)
 	if err == nil {
 		return run, nil
 	}
-	cmd := newCmd(path, args, noOut)
+	cmd := newCmd(s)
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Token:         syscall.Token(tok),
 		HideWindow:    true,
@@ -61,8 +65,8 @@ func startWithToken(path string, args []string, noOut bool, tok windows.Token) (
 var procCreateProcessWithTokenW = windows.NewLazySystemDLL("advapi32.dll").NewProc("CreateProcessWithTokenW")
 
 // CreateProcessWithTokenW inherits no arbitrary handles, but the secondary-logon service still duplicates the three std handles into a 64-bit child.
-func startWithTokenW(path string, args []string, noOut bool, tok windows.Token) (running, error) {
-	exe, err := exec.LookPath(path)
+func startWithTokenW(s childSpec, tok windows.Token) (Running, error) {
+	exe, err := exec.LookPath(s.path)
 	if err != nil {
 		return nil, err
 	}
@@ -101,12 +105,12 @@ func startWithTokenW(path string, args []string, noOut bool, tok windows.Token) 
 		closeAll(outR, outW, errR, errW, nul)
 		return nil, err
 	}
-	cmdLine, err := windows.UTF16PtrFromString(windows.ComposeCommandLine(append([]string{exe}, args...)))
+	cmdLine, err := windows.UTF16PtrFromString(windows.ComposeCommandLine(append([]string{exe}, s.args...)))
 	if err != nil {
 		closeAll(outR, outW, errR, errW, nul)
 		return nil, err
 	}
-	envBlock, err := makeEnvBlock(childEnv())
+	envBlock, err := makeEnvBlock(s.env)
 	if err != nil {
 		closeAll(outR, outW, errR, errW, nul)
 		return nil, err
@@ -140,7 +144,7 @@ func startWithTokenW(path string, args []string, noOut bool, tok windows.Token) 
 
 	done := make(chan struct{}, 2)
 	pump := func(r *os.File) {
-		_, _ = io.Copy(&pipeLogger{prefix: extraCorePrefix, noOut: noOut}, r)
+		_, _ = io.Copy(&pipeLogger{prefix: s.logPrefix, noOut: s.noOut}, r)
 		_ = r.Close()
 		done <- struct{}{}
 	}
@@ -236,12 +240,12 @@ var tokenSources = []tokenSource{
 	{"restricted self token", restrictedSelfToken},
 }
 
-func unprivilegedToken(self windows.Token) (windows.Token, error) {
+func unprivilegedToken(self windows.Token, logPrefix string) (windows.Token, error) {
 	var errs []error
 	for _, src := range tokenSources {
 		tok, err := src.get(self)
 		if err == nil {
-			log.Printf("%s: dropping privileges via %s", extraCorePrefix, src.name)
+			log.Printf("%s: dropping privileges via %s", logPrefix, src.name)
 			return tok, nil
 		}
 		errs = append(errs, fmt.Errorf("%s: %w", src.name, err))

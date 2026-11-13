@@ -3,6 +3,8 @@
 #include "include/configs/AutoSelectorPlan.h"
 #include "include/configs/common/ResolverSource.h"
 #include "include/configs/common/utils.h"
+#include "include/configs/outbounds/tor.h"
+#include "include/engine/services/AssetUpdates.h"
 #include "include/global/Configs.hpp"
 
 #include <QApplication>
@@ -708,8 +710,23 @@ namespace Configs {
             if (const auto parsed = portText.toInt(); parsed > 0 && parsed <= 65535) port = parsed;
         }
 
+        // Tor outranks WARP; either one wraps the selected server and takes the "proxy" tag.
+        bool torExit() { return dataManager->settingsRepo->enable_tor; }
+
+        bool exitWrapperOn() { return torExit() || dataManager->settingsRepo->enable_warp; }
+
         std::shared_ptr<Profile> getWarpProfile() {
             const auto &settings = *dataManager->settingsRepo;
+            if (torExit()) {
+                auto torProfile = std::make_shared<Profile>();
+                torProfile->type = "tor";
+                torProfile->name = "Tor";
+                torProfile->id = warpProfileID;
+                torProfile->outbound = std::make_shared<tor>();
+                torProfile->outbound->name = "Tor";
+                return torProfile;
+            }
+
             auto warpProfile = std::make_shared<Profile>();
             warpProfile->name = "warp";
             warpProfile->id = warpProfileID;
@@ -808,7 +825,12 @@ namespace Configs {
             // A verbatim raw profile takes no twins, and an unreachable bridge still starts a tun.
             ctx.l3Bridge = l3BridgeEnabled(ctx) && !(routeChain->isRaw && routeChain->preventModifications);
 
-            if (settings.enable_warp && !WarpConfigured(settings.warp_mode)) {
+            if (torExit()) {
+                if (!Engine::AssetUpdates::TorInstalled()) {
+                    ctx.error = QObject::tr("Tor is enabled but not downloaded yet. Open Routing Settings > Tor and press OK to download it.");
+                    return;
+                }
+            } else if (settings.enable_warp && !WarpConfigured(settings.warp_mode)) {
                 ctx.error = "Warp is enabled but its config has not been generated. Please generate the Warp config first in Routing Settings.";
                 return;
             }
@@ -817,7 +839,7 @@ namespace Configs {
             auto neededRuleSets = routeChain->get_used_rule_sets();
             preReqs.routing.outboundMap[-1] = tags::proxy;
             preReqs.routing.outboundMap[-2] = tags::direct;
-            preReqs.routing.outboundMap[warpBypassID] = settings.enable_warp ? tags::warpBypass : tags::proxy;
+            preReqs.routing.outboundMap[warpBypassID] = exitWrapperOn() ? tags::warpBypass : tags::proxy;
             int suffix = 0;
             if (proxyPathUsesXray(ctx.ent)) ctx.proxyUsesXray = true;
             for (const auto &item: *neededOutbounds) {
@@ -1202,8 +1224,8 @@ namespace Configs {
                 race.members[tags::dnsRemote] = remoteTags;
                 for (qsizetype i = 0; i < remoteAddresses.size(); ++i) {
                     auto remoteDnsObj = buildDnsObj(ctx, remoteAddresses[i]);
-                    // overwrite remote dns to TCP based since Xray is shit
-                    if (ctx.proxyUsesXray && ( remoteDnsObj.value("type").toString() == "udp" || remoteDnsObj.value("type").toString() == "quic" )) {
+                    // overwrite remote dns to TCP based since Xray is shit, and Tor carries no UDP
+                    if ((ctx.proxyUsesXray || torExit()) && ( remoteDnsObj.value("type").toString() == "udp" || remoteDnsObj.value("type").toString() == "quic" )) {
                         remoteDnsObj = buildDnsObj(ctx, upgradeUdpDnsToDoH(remoteDnsObj.value("server").toString()));
                     }
                     remoteDnsObj["tag"] = remoteTags[i];
@@ -1352,7 +1374,8 @@ namespace Configs {
                                tags::dnsDirect, ctx.dns.direct_dns_disable_ipv6, race);
             }
 
-            if (ctx.dns.fake_dns) {
+            const bool torOnion = !ctx.forTest && torExit();
+            if (ctx.dns.fake_dns || torOnion) {
                 QJsonObject fakeServer{
                         {"tag", tags::dnsFake},
                         {"type", "fakeip"},
@@ -1362,6 +1385,9 @@ namespace Configs {
                 // Not fc00::/18: the Tun's fc00::/7 private-range bypass would route fake addresses outside it.
                 if (!ctx.dns.fakeip_disable_ipv6) fakeServer["inet6_range"] = "2001:db8::/32";
                 servers += fakeServer;
+                independentCache = true;
+            }
+            if (ctx.dns.fake_dns) {
                 rules += QJsonObject{
                         {"query_type", QJsonArray{
                             "A",
@@ -1370,7 +1396,6 @@ namespace Configs {
                      {"action", "route"},
                      {"server", tags::dnsFake}
                 };
-                independentCache = true;
             }
 
             if (dns.needDirectDnsRules) {
@@ -1412,6 +1437,22 @@ namespace Configs {
             if (!headRules.isEmpty()) {
                 for (const auto &rule : rules) headRules.append(rule);
                 rules = headRules;
+            }
+
+            if (torOnion) {
+                // Tun apps resolve first and real resolvers NXDOMAIN .onion, so a fake address carries the name to Tor.
+                rules.insert(0, QJsonObject{
+                    {"domain_suffix", QJsonArray{"onion"}},
+                    {"query_type", QJsonArray{"A", "AAAA"}},
+                    {"action", "route"},
+                    {"server", tags::dnsFake},
+                });
+                // The fakeip transport answers only A/AAAA; any other type would leak the name to a resolver.
+                rules.insert(1, QJsonObject{
+                    {"domain_suffix", QJsonArray{"onion"}},
+                    {"action", "predefined"},
+                    {"rcode", "NOERROR"},
+                });
             }
 
             auto dnsObj = QJsonObject{
@@ -2363,7 +2404,7 @@ namespace Configs {
                 ctx.error = "No group found for ent, data is corrupted";
                 return;
             }
-            const bool warpWrap = dataManager->settingsRepo->enable_warp;
+            const bool warpWrap = exitWrapperOn();
             if (ctx.ent->type == "autoselector")
             {
                 // With warp in front every member sits behind the single "proxy"-tagged warp outbound, so the group takes warp-bypass.
@@ -2415,7 +2456,7 @@ namespace Configs {
                 }
             }
             ctx.result->outboundNames.insert(warpWrap ? tags::warpBypass : tags::proxy, profileDisplayName(ctx.ent));
-            if (warpWrap) ctx.result->outboundNames.insert(tags::proxy, QStringLiteral("WARP"));
+            if (warpWrap) ctx.result->outboundNames.insert(tags::proxy, torExit() ? QStringLiteral("Tor") : QStringLiteral("WARP"));
 
             int routeSuffix = 0;
             for (const auto& routeGroup : ctx.prerequisites.routing.routeOutboundGroups) {
@@ -2600,6 +2641,7 @@ namespace Configs {
 
             struct InjectedRules {
                 QJsonObject sniff;
+                QJsonObject torOnion;
                 QJsonObject resolve;
                 QJsonObject dnsHijack;
                 QJsonObject dnsInReject;
@@ -2631,6 +2673,14 @@ namespace Configs {
                 injected.dnsInReject = QJsonObject{
                     {"inbound", tags::dnsIn},
                     {"action", "reject"},
+                };
+            }
+            // Ahead of resolve, which would swap the name for a fake address Tor cannot dial.
+            if (!ctx.forTest && torExit()) {
+                injected.torOnion = QJsonObject{
+                    {"domain_suffix", QJsonArray{"onion"}},
+                    {"action", "route"},
+                    {"outbound", tags::proxy},
                 };
             }
 
@@ -2682,7 +2732,7 @@ namespace Configs {
             const QString finalTag = routeChain->isRaw
                 ? (rawRouteObj.contains("final") ? rawRouteObj.value("final").toString() : QString(tags::proxy))
                 : defOut == blockID       ? QString(tags::direct)
-                : defOut == warpBypassID  ? QString(settings.enable_warp ? tags::warpBypass : tags::proxy)
+                : defOut == warpBypassID  ? QString(exitWrapperOn() ? tags::warpBypass : tags::proxy)
                                           : outboundIDToString(defOut);
 
             // An endpoint rule the user positioned already emitted this tag's gate.
@@ -2739,6 +2789,7 @@ namespace Configs {
             auto appendIfSet = [&append](const QJsonObject& r, Kind kind) { if (!r.isEmpty()) append(r, kind); };
             appendIfSet(injected.dnsSystem, Kind::SystemDns);
             appendIfSet(injected.sniff, Kind::Sniff);
+            appendIfSet(injected.torOnion, Kind::TorOnion);
             appendIfSet(injected.resolve, Kind::Resolve);
             appendIfSet(injected.dnsHijack, Kind::DnsHijack);
             appendIfSet(injected.dnsInReject, Kind::DnsInboundReject);

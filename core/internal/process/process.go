@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/sagernet/sing/common/atomic"
@@ -16,13 +18,36 @@ type Process struct {
 	args        []string
 	noOut       bool
 	cleanupPath string
-	run         running
+	run         Running
 	stopped     atomic.Bool
 }
 
-type running interface {
+type Running interface {
 	Wait() error
 	Kill() error
+}
+
+type childSpec struct {
+	path       string
+	args       []string
+	env        []string
+	name       string
+	logPrefix  string
+	noOut      bool
+	guardGroup bool
+	noWindow   bool
+}
+
+// StartAsUser runs path as the invoking user when the core is privileged and fails rather than run it with the core's rights; env entries replace inherited ones.
+func StartAsUser(path string, args, env []string, logPrefix string) (Running, error) {
+	return startChild(childSpec{
+		path:      path,
+		args:      args,
+		env:       childEnv(env...),
+		name:      filepath.Base(path),
+		logPrefix: logPrefix,
+		noWindow:  true,
+	})
 }
 
 func NewProcess(path string, args []string, noOut bool) *Process {
@@ -35,7 +60,15 @@ func (p *Process) SetCleanupPath(path string) {
 }
 
 func (p *Process) Start() error {
-	run, err := startChild(p.path, p.args, p.noOut)
+	run, err := startChild(childSpec{
+		path:       p.path,
+		args:       p.args,
+		env:        childEnv(),
+		name:       "extra process",
+		logPrefix:  extraCorePrefix,
+		noOut:      p.noOut,
+		guardGroup: true,
+	})
 	if err != nil {
 		p.cleanup()
 		return err
@@ -62,15 +95,15 @@ func (p *Process) Stop() {
 	p.cleanup()
 }
 
-func newCmd(path string, args []string, noOut bool) *exec.Cmd {
-	cmd := exec.Command(path, args...)
-	cmd.Stdout = &pipeLogger{prefix: extraCorePrefix, noOut: noOut}
-	cmd.Stderr = &pipeLogger{prefix: extraCorePrefix, noOut: noOut}
-	cmd.Env = childEnv()
+func newCmd(s childSpec) *exec.Cmd {
+	cmd := exec.Command(s.path, s.args...)
+	cmd.Stdout = &pipeLogger{prefix: s.logPrefix, noOut: s.noOut}
+	cmd.Stderr = &pipeLogger{prefix: s.logPrefix, noOut: s.noOut}
+	cmd.Env = s.env
 	return cmd
 }
 
-func startCmd(cmd *exec.Cmd) (running, error) {
+func startCmd(cmd *exec.Cmd) (Running, error) {
 	if err := cmd.Start(); err != nil {
 		return nil, err
 	}
@@ -117,14 +150,21 @@ func CreateExtraConfig(content string) (string, string, error) {
 	return configPath, cleanupPath, nil
 }
 
-func childEnv() []string {
+func childEnv(extra ...string) []string {
 	parent := os.Environ()
-	out := make([]string, 0, len(parent))
+	out := make([]string, 0, len(parent)+len(extra))
 	for _, kv := range parent {
-		if name, _, ok := strings.Cut(kv, "="); ok && strings.HasPrefix(strings.ToUpper(name), "THRONE") {
+		if name, _, ok := strings.Cut(kv, "="); ok && (strings.HasPrefix(strings.ToUpper(name), "THRONE") || hasEnvKey(extra, name)) {
 			continue
 		}
 		out = append(out, kv)
 	}
-	return out
+	return append(out, extra...)
+}
+
+func hasEnvKey(env []string, name string) bool {
+	return slices.ContainsFunc(env, func(kv string) bool {
+		key, _, _ := strings.Cut(kv, "=")
+		return strings.EqualFold(key, name)
+	})
 }
