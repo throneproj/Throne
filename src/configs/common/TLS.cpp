@@ -607,7 +607,8 @@ namespace Configs {
         if (query.hasQueryItem("tls_certificate")) certificate = query.queryItemValue("tls_certificate").split(",");
         if (query.hasQueryItem("tls_certificate_path")) certificate_path = query.queryItemValue("tls_certificate_path");
         if (query.hasQueryItem("pcs")) certificate_sha256 = certificateSha256FromPcs(query.queryItemValue("pcs", QUrl::FullyDecoded), "pcs");
-        else if (query.hasQueryItem("pinSHA256")) certificate_sha256 = certificateSha256FromPcs(query.queryItemValue("pinSHA256", QUrl::FullyDecoded), "pinSHA256");
+        // Hysteria parses its own pinSHA256, which also takes base64 and dash-separated hex.
+        else if (query.hasQueryItem("pinSHA256") && !QStringList{"hysteria", "hysteria2", "hy2"}.contains(url.scheme().toLower())) certificate_sha256 = certificateSha256FromPcs(query.queryItemValue("pinSHA256", QUrl::FullyDecoded), "pinSHA256");
         if (query.hasQueryItem("tls_certificate_public_key_sha256")) certificate_public_key_sha256 = tlsLinkList(query.queryItemValue("tls_certificate_public_key_sha256"));
         if (query.hasQueryItem("tls_client_certificate")) client_certificate = query.queryItemValue("tls_client_certificate").split(",");
         if (query.hasQueryItem("tls_client_certificate_path")) client_certificate_path = query.queryItemValue("tls_client_certificate_path");

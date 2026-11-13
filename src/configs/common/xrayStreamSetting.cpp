@@ -1288,8 +1288,6 @@ namespace Configs {
         if (object.isEmpty()) return false;
         if (object.contains("serverName")) serverName = object["serverName"].toString();
         if (object.contains("pinnedPeerCertSha256")) pinnedPeerCertSha256 = object["pinnedPeerCertSha256"].toString();
-        else if (object.contains("pcs")) pinnedPeerCertSha256 = object["pcs"].toString();
-        else if (object.contains("pinSHA256")) pinnedPeerCertSha256 = object["pinSHA256"].toString();
         if (object.contains("verifyPeerCertByName")) verifyPeerCertByName = object["verifyPeerCertByName"].toString();
         // ParseFromJson is also the DB loader: only an import normalises or drops values.
         const bool importing = ParseDiag::Active();
