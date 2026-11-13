@@ -312,7 +312,7 @@ void MainWindow::display_qr_link(bool nkrFormat) {
             l->setScaledContents(true);
             layout()->addWidget(l);
             cb = new QCheckBox;
-            cb->setText("Deep Link");
+            cb->setText(MainWindow::tr("Deep Link"));
             // Set before wiring toggled, so refresh() below draws it just once.
             cb->setChecked(showDeep);
             layout()->addWidget(cb);
