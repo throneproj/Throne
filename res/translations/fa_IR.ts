@@ -3900,6 +3900,17 @@ Close without saving?</source>
     </message>
 </context>
 <context>
+    <name>EditJuicity</name>
+    <message>
+        <source>Cert Chain SHA256</source>
+        <translation>SHA256 زنجیرهٔ گواهی</translation>
+    </message>
+    <message>
+        <source>Certificate chain hash printed by juicity-server; replaces CA verification, even with Allow insecure</source>
+        <translation>هش زنجیرهٔ گواهی که juicity-server چاپ می‌کند؛ حتی با «اجازه ناامن بودن» جایگزین اعتبارسنجی CA می‌شود</translation>
+    </message>
+</context>
+<context>
     <name>EditMasterDns</name>
     <message>
         <source>Domains</source>
@@ -7131,6 +7142,10 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
     <message>
         <source>Not a two-letter country code, ignored: %1</source>
         <translation>کد دوحرفی کشور نیست، نادیده گرفته شد: %1</translation>
+    </message>
+    <message>
+        <source>Use the 32-byte certificate chain hash in base64 (44 characters ending in =), as juicity-server prints it.</source>
+        <translation>هش 32 بایتی زنجیرهٔ گواهی را به صورت base64 (44 نویسه که با = تمام می‌شود)، همان‌طور که juicity-server چاپ می‌کند، وارد کنید.</translation>
     </message>
 </context>
 <context>

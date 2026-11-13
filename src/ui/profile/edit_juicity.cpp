@@ -19,6 +19,7 @@ void EditJuicity::onStart(std::shared_ptr<Configs::Profile> _ent) {
 
     ui->uuid->setText(outbound->uuid);
     ui->password->setText(outbound->password);
+    ui->pinned_certchain_sha256->setText(outbound->pinned_certchain_sha256);
 }
 
 bool EditJuicity::onEnd() {
@@ -26,9 +27,11 @@ bool EditJuicity::onEnd() {
 
     outbound->uuid = ui->uuid->text().trimmed();
     outbound->password = ui->password->text();
+    outbound->pinned_certchain_sha256 = ui->pinned_certchain_sha256->text().trimmed();
     return true;
 }
 
 void EditJuicity::bindValidation(Validation::Form &form) {
     form.bind(ui->uuid, Validation::Rules::Uuid(), this);
+    form.bind(ui->pinned_certchain_sha256, Configs::Checks::JuicityPinnedCertChain, this);
 }

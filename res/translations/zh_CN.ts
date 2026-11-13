@@ -7198,6 +7198,14 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <source>UUID</source>
         <translation>UUID</translation>
     </message>
+    <message>
+        <source>Cert Chain SHA256</source>
+        <translation>证书链 SHA256</translation>
+    </message>
+    <message>
+        <source>Certificate chain hash printed by juicity-server; replaces CA verification, even with Allow insecure</source>
+        <translation>juicity-server 输出的证书链哈希；即使启用了“允许不安全”，也会替代 CA 验证</translation>
+    </message>
 </context>
 <context>
     <name>EditMasque</name>
@@ -17383,6 +17391,10 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Not a two-letter country code, ignored: %1</source>
         <translation>不是两字母国家代码，已被忽略: %1</translation>
+    </message>
+    <message>
+        <source>Use the 32-byte certificate chain hash in base64 (44 characters ending in =), as juicity-server prints it.</source>
+        <translation>请使用 base64 格式的 32 字节证书链哈希（44 个字符，以 = 结尾），即 juicity-server 输出的值。</translation>
     </message>
 </context>
 <context>
