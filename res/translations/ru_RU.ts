@@ -17533,6 +17533,10 @@ Remove that endpoint from this routing profile as well?</source>
         <source>Use either Client Random or Client Random Key, not both.</source>
         <translation>Укажите либо Client Random, либо ключ Client Random, но не оба.</translation>
     </message>
+    <message>
+        <source>The certificate chain pin replaces certificate verification; clear the TLS certificate and certificate pins.</source>
+        <translation>Хеш цепочки сертификатов заменяет проверку сертификата; очистите сертификат TLS и закрепление сертификатов.</translation>
+    </message>
 </context>
 <context>
     <name>Sys::CoreElevation</name>

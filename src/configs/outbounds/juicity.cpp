@@ -73,6 +73,15 @@ namespace Configs {
         if (const auto message = Checks::JuicityPinnedCertChain(pinned_certchain_sha256); !message.isEmpty()) {
             issues << Validation::Issue{Validation::Severity::Error, "pinned_certchain_sha256", message, pinned_certchain_sha256};
         }
+        const auto hasText = [](const QStringList& lines) {
+            return std::any_of(lines.cbegin(), lines.cend(), [](const QString& line) { return !line.trimmed().isEmpty(); });
+        };
+        if (!pinned_certchain_sha256.isEmpty() &&
+            (hasText(tls->certificate) || !tls->certificate_path.trimmed().isEmpty() || hasText(tls->certificate_sha256) ||
+             hasText(tls->certificate_public_key_sha256))) {
+            issues << Validation::Issue{Validation::Severity::Error, "pinned_certchain_sha256",
+                                        QCoreApplication::translate("Validation", "The certificate chain pin replaces certificate verification; clear the TLS certificate and certificate pins."), {}};
+        }
     }
 
     QString juicity::ExportToLink()

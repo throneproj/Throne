@@ -7162,6 +7162,10 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
         <source>Use either Client Random or Client Random Key, not both.</source>
         <translation>فقط یکی از Client Random یا کلید Client Random را تنظیم کنید، نه هر دو.</translation>
     </message>
+    <message>
+        <source>The certificate chain pin replaces certificate verification; clear the TLS certificate and certificate pins.</source>
+        <translation>هش زنجیرهٔ گواهی جایگزین اعتبارسنجی گواهی می‌شود؛ گواهی TLS و پین‌های گواهی را پاک کنید.</translation>
+    </message>
 </context>
 <context>
     <name>GuiStartup</name>

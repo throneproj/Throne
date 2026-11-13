@@ -17408,6 +17408,10 @@ Remove that endpoint from this routing profile as well?</source>
         <source>Use either Client Random or Client Random Key, not both.</source>
         <translation>“客户端随机”和“客户端随机密钥”只能设置其中一个。</translation>
     </message>
+    <message>
+        <source>The certificate chain pin replaces certificate verification; clear the TLS certificate and certificate pins.</source>
+        <translation>证书链固定会取代证书验证；请清除 TLS 证书和证书固定。</translation>
+    </message>
 </context>
 <context>
     <name>XrayMuxSettingsWidget</name>
