@@ -61,7 +61,7 @@ require (
 	github.com/dgryski/go-camellia v0.0.0-20191119043421-69a8a13fb23d // indirect
 	github.com/dgryski/go-metro v0.0.0-20180109044635-280f6062b5bc // indirect
 	github.com/ebitengine/purego v0.10.0 // indirect
-	github.com/enfein/mieru/v3 v3.33.0 // indirect
+	github.com/enfein/mieru/v3 v3.39.0 // indirect
 	github.com/exclavenetwork/sing-juicity v0.3.0-beta.2 // indirect
 	github.com/florianl/go-nfqueue/v2 v2.1.0 // indirect
 	github.com/flynn/noise v1.1.0 // indirect
