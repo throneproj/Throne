@@ -1,6 +1,0 @@
-{
-  "version": 1,
-  "rules": [
-    {"ip_cidr": ["203.0.113.0/24"], "invert": true}
-  ]
-}

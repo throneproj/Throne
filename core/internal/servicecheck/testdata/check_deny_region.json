@@ -1,9 +1,0 @@
-{
-  "id": "demo",
-  "name": "Demo",
-  "category": "t",
-  "requests": [{"id": "trace", "url": "https://example.com/cdn-cgi/trace"}],
-  "region": [{"request": "trace", "from": "body", "match": "(?m)^loc=([A-Z]{2})\\r?$"}],
-  "deny_regions": ["CN"],
-  "rules": [{"if": [{"request": "trace", "status": ["2xx"]}], "result": "available"}]
-}
