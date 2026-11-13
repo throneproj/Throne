@@ -9114,6 +9114,14 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <source>QUIC</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Client Random Key</source>
+        <translation>客户端随机密钥</translation>
+    </message>
+    <message>
+        <source>Hex key of the server&apos;s client_random_auth_key rule; use instead of Client Random</source>
+        <translation>服务器 client_random_auth_key 规则的十六进制密钥；代替“客户端随机”使用</translation>
+    </message>
 </context>
 <context>
     <name>EditTuic</name>
@@ -17395,6 +17403,10 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Use the 32-byte certificate chain hash in base64 (44 characters ending in =), as juicity-server prints it.</source>
         <translation>请使用 base64 格式的 32 字节证书链哈希（44 个字符，以 = 结尾），即 juicity-server 输出的值。</translation>
+    </message>
+    <message>
+        <source>Use either Client Random or Client Random Key, not both.</source>
+        <translation>“客户端随机”和“客户端随机密钥”只能设置其中一个。</translation>
     </message>
 </context>
 <context>

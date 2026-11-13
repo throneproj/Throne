@@ -9203,6 +9203,14 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <source>QUIC</source>
         <translation>QUIC</translation>
     </message>
+    <message>
+        <source>Client Random Key</source>
+        <translation>Ключ Client Random</translation>
+    </message>
+    <message>
+        <source>Hex key of the server&apos;s client_random_auth_key rule; use instead of Client Random</source>
+        <translation>Ключ в hex из правила client_random_auth_key на сервере; указывается вместо Client Random</translation>
+    </message>
 </context>
 <context>
     <name>EditTuic</name>
@@ -17520,6 +17528,10 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Use the 32-byte certificate chain hash in base64 (44 characters ending in =), as juicity-server prints it.</source>
         <translation>Укажите 32-байтовый хеш цепочки сертификатов в base64 (44 символа, в конце =), как его выводит juicity-server.</translation>
+    </message>
+    <message>
+        <source>Use either Client Random or Client Random Key, not both.</source>
+        <translation>Укажите либо Client Random, либо ключ Client Random, но не оба.</translation>
     </message>
 </context>
 <context>

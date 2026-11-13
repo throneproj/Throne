@@ -12,6 +12,7 @@ namespace Configs
         QString congestion_control;
         QString custom_sni;
         QString client_random;
+        QString client_random_auth_key;
         bool health_check = false;
         bool quic = false;
         std::shared_ptr<TLS> tls = std::make_shared<TLS>();
@@ -46,8 +47,10 @@ namespace Configs
     namespace Checks {
         // hex prefix[/mask], 1 to 32 bytes, the mask as long as the prefix.
         QString TrustTunnelClientRandom(const QString& text);
+        QString TrustTunnelClientRandomAuthKey(const QString& text);
+        QString TrustTunnelClientRandomPair(bool clientRandom, bool authKey);
         QString TrustTunnelCredentials(const QString& username, const QString& password);
-        // client_random and custom_sni against the TLS settings; a QUIC build drops uTLS and REALITY.
+        // client_random (set or derived from the auth key) and custom_sni against the TLS settings; a QUIC build drops uTLS and REALITY.
         QString TrustTunnelTlsConflict(bool clientRandom, bool customSni, bool quic, bool ech, bool reality, bool disableSni,
                                        const QString& utlsFingerprint);
     }

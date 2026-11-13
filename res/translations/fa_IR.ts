@@ -4181,6 +4181,17 @@ Close without saving?</source>
     </message>
 </context>
 <context>
+    <name>EditTrustTunnel</name>
+    <message>
+        <source>Client Random Key</source>
+        <translation>کلید Client Random</translation>
+    </message>
+    <message>
+        <source>Hex key of the server&apos;s client_random_auth_key rule; use instead of Client Random</source>
+        <translation>کلید هگز قاعدهٔ client_random_auth_key سرور؛ به جای Client Random به کار می‌رود</translation>
+    </message>
+</context>
+<context>
     <name>EditTuic</name>
     <message>
         <source>Form</source>
@@ -7146,6 +7157,10 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
     <message>
         <source>Use the 32-byte certificate chain hash in base64 (44 characters ending in =), as juicity-server prints it.</source>
         <translation>هش 32 بایتی زنجیرهٔ گواهی را به صورت base64 (44 نویسه که با = تمام می‌شود)، همان‌طور که juicity-server چاپ می‌کند، وارد کنید.</translation>
+    </message>
+    <message>
+        <source>Use either Client Random or Client Random Key, not both.</source>
+        <translation>فقط یکی از Client Random یا کلید Client Random را تنظیم کنید، نه هر دو.</translation>
     </message>
 </context>
 <context>
