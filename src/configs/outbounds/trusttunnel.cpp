@@ -92,6 +92,18 @@ namespace Configs {
             return QCoreApplication::translate("Validation", "Use either Client Random or Client Random Key, not both.");
         }
 
+        QString TrustTunnelClientRandomAuthKeySni(bool disableSni, bool mixedCaseSni, const QString& serverName)
+        {
+            if (disableSni) return QCoreApplication::translate("Validation", "Client Random Key cannot be combined with Disable SNI.");
+            if (mixedCaseSni) return QCoreApplication::translate("Validation", "Client Random Key cannot be combined with mixed-case SNI.");
+            auto name = serverName.trimmed();
+            while (name.endsWith('.')) name.chop(1);
+            if (name.isEmpty() || IsIpAddress(name)) {
+                return QCoreApplication::translate("Validation", "Client Random Key needs a domain name as the SNI; set Custom SNI or the TLS server name.");
+            }
+            return {};
+        }
+
         QString TrustTunnelCredentials(const QString& username, const QString& password)
         {
             if (!username.trimmed().isEmpty() && !password.isEmpty()) return {};
@@ -304,6 +316,8 @@ namespace Configs {
             if (!quic && !tlsObject.contains("utls")) {
                 tlsObject["utls"] = QJsonObject{{"enabled", true}, {"fingerprint", "chrome"}};
             }
+            // Only the global mixed-case default can reach here with an auth key; the core rejects the pair.
+            if (!client_random_auth_key.isEmpty()) tlsObject.remove("tls_tricks");
             object["tls"] = tlsObject;
         }
         return {object, ""};
@@ -331,6 +345,10 @@ namespace Configs {
         report("client_random", Checks::TrustTunnelClientRandom(client_random));
         report("client_random_auth_key", Checks::TrustTunnelClientRandomAuthKey(client_random_auth_key));
         report("client_random_auth_key", Checks::TrustTunnelClientRandomPair(!client_random.isEmpty(), !client_random_auth_key.isEmpty()));
+        if (!client_random_auth_key.isEmpty()) {
+            const auto sni = !custom_sni.isEmpty() ? custom_sni : !tls->server_name.isEmpty() ? tls->server_name : server;
+            report("client_random_auth_key", Checks::TrustTunnelClientRandomAuthKeySni(tls->disable_sni, tls->tls_tricks, sni));
+        }
         report("tls", Checks::TrustTunnelTlsConflict(!client_random.isEmpty() || !client_random_auth_key.isEmpty(), !custom_sni.isEmpty(), quic, tls->ech->enabled,
                                                      tls->reality->enabled, tls->disable_sni,
                                                      tls->utls->enabled ? tls->utls->fingerPrint : QString()));

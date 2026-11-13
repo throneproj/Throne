@@ -17534,6 +17534,18 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Укажите либо Client Random, либо ключ Client Random, но не оба.</translation>
     </message>
     <message>
+        <source>Client Random Key cannot be combined with Disable SNI.</source>
+        <translation>Ключ Client Random нельзя совмещать с «Отключить SNI».</translation>
+    </message>
+    <message>
+        <source>Client Random Key cannot be combined with mixed-case SNI.</source>
+        <translation>Ключ Client Random нельзя совмещать с SNI в смешанном регистре.</translation>
+    </message>
+    <message>
+        <source>Client Random Key needs a domain name as the SNI; set Custom SNI or the TLS server name.</source>
+        <translation>Для ключа Client Random в SNI нужно доменное имя; укажите пользовательский SNI или имя сервера TLS.</translation>
+    </message>
+    <message>
         <source>The certificate chain pin replaces certificate verification; clear the TLS certificate and certificate pins.</source>
         <translation>Хеш цепочки сертификатов заменяет проверку сертификата; очистите сертификат TLS и закрепление сертификатов.</translation>
     </message>

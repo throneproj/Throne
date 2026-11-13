@@ -7163,6 +7163,18 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
         <translation>فقط یکی از Client Random یا کلید Client Random را تنظیم کنید، نه هر دو.</translation>
     </message>
     <message>
+        <source>Client Random Key cannot be combined with Disable SNI.</source>
+        <translation>کلید Client Random را نمی‌توان با «غیرفعال کردن SNI» ترکیب کرد.</translation>
+    </message>
+    <message>
+        <source>Client Random Key cannot be combined with mixed-case SNI.</source>
+        <translation>کلید Client Random را نمی‌توان با SNI با حروف کوچک و بزرگ درهم ترکیب کرد.</translation>
+    </message>
+    <message>
+        <source>Client Random Key needs a domain name as the SNI; set Custom SNI or the TLS server name.</source>
+        <translation>کلید Client Random به یک نام دامنه به عنوان SNI نیاز دارد؛ SNI سفارشی یا نام سرور TLS را تنظیم کنید.</translation>
+    </message>
+    <message>
         <source>The certificate chain pin replaces certificate verification; clear the TLS certificate and certificate pins.</source>
         <translation>هش زنجیرهٔ گواهی جایگزین اعتبارسنجی گواهی می‌شود؛ گواهی TLS و پین‌های گواهی را پاک کنید.</translation>
     </message>

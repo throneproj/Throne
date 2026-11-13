@@ -17409,6 +17409,18 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>“客户端随机”和“客户端随机密钥”只能设置其中一个。</translation>
     </message>
     <message>
+        <source>Client Random Key cannot be combined with Disable SNI.</source>
+        <translation>“客户端随机密钥”不能与“禁用 SNI”结合使用。</translation>
+    </message>
+    <message>
+        <source>Client Random Key cannot be combined with mixed-case SNI.</source>
+        <translation>“客户端随机密钥”不能与混合大小写的 SNI 结合使用。</translation>
+    </message>
+    <message>
+        <source>Client Random Key needs a domain name as the SNI; set Custom SNI or the TLS server name.</source>
+        <translation>“客户端随机密钥”要求 SNI 为域名；请设置“自定义 SNI”或 TLS 服务器名称。</translation>
+    </message>
+    <message>
         <source>The certificate chain pin replaces certificate verification; clear the TLS certificate and certificate pins.</source>
         <translation>证书链固定会取代证书验证；请清除 TLS 证书和证书固定。</translation>
     </message>

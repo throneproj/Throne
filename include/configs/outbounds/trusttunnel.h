@@ -49,6 +49,8 @@ namespace Configs
         QString TrustTunnelClientRandom(const QString& text);
         QString TrustTunnelClientRandomAuthKey(const QString& text);
         QString TrustTunnelClientRandomPair(bool clientRandom, bool authKey);
+        // The auth key is derived from the exact SNI on the wire, so that SNI must be a domain sent as is.
+        QString TrustTunnelClientRandomAuthKeySni(bool disableSni, bool mixedCaseSni, const QString& serverName);
         QString TrustTunnelCredentials(const QString& username, const QString& password);
         // client_random (set or derived from the auth key) and custom_sni against the TLS settings; a QUIC build drops uTLS and REALITY.
         QString TrustTunnelTlsConflict(bool clientRandom, bool customSni, bool quic, bool ech, bool reality, bool disableSni,
