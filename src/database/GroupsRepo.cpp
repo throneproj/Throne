@@ -520,9 +520,8 @@ namespace Configs {
                     const auto group = dataManager->groupsRepo->GetGroup(it.key());
                     if (group == nullptr) continue;
                     const bool reordered = it->full ? group->Resort() : group->Reposition(it->changed.values());
-                    if (!reordered) continue;
-                    dataManager->groupsRepo->Save(group);
-                    moved << it.key();
+                    if (reordered) dataManager->groupsRepo->Save(group);
+                    if (reordered || it->full) moved << it.key();
                 }
                 if (!moved.isEmpty()) Engine::EngineEvents::GroupOrderChanged(moved);
             }
