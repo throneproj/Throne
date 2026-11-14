@@ -171,14 +171,29 @@ namespace Engine::ProfileService {
         return static_cast<int>(del_ids.size());
     }
 
-    int ClearTestResults(const QList<int> &profileIds, QList<int> *groupIds) {
+    int ClearTestResults(const QList<int> &profileIds, QList<int> *groupIds, std::optional<TestKind> kind) {
         ENGINE_CHECK_MAIN_THREAD();
         if (groupIds != nullptr) groupIds->clear();
         const auto ents = Configs::dataManager->profilesRepo->GetProfileBatch(profileIds);
         if (ents.empty()) return 0;
         QSet<int> gids;
         for (const auto &ent: ents) {
-            ent->ClearTestResults();
+            if (!kind) {
+                ent->ClearTestResults();
+            } else {
+                switch (*kind) {
+                    case TestKind::Latency: ent->SetLatency(0); break;
+                    case TestKind::Ip:
+                        ent->ip_out.clear();
+                        ent->test_country.clear();
+                        break;
+                    case TestKind::Speed:
+                        ent->dl_speed.clear();
+                        ent->ul_speed.clear();
+                        break;
+                    case TestKind::Service: ent->service_checks.clear(); break;
+                }
+            }
             gids.insert(ent->gid);
         }
         Configs::dataManager->profilesRepo->SaveBatch(ents);

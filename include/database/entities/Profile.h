@@ -79,6 +79,12 @@ namespace Configs {
 
         [[nodiscard]] bool IsUnavailable() const { return latency < 0 && latency != kLatencyConnectOnly; }
 
+        [[nodiscard]] QString DisplayLatency() const;
+
+        [[nodiscard]] QString DisplayExitIP() const;
+
+        [[nodiscard]] QString DisplaySpeed() const;
+
         [[nodiscard]] QString DisplayTestResult() const;
 
         // Epoch seconds of the stored service check; 0 without one.

@@ -51,13 +51,6 @@ namespace Configs
         ipOut
     };
 
-    enum class testShowItems : int {
-        all = 0,
-        none,
-        ipOnly,
-        speedOnly
-    };
-
     enum class trafficBy : int {
         total = 0,
         dl,
@@ -158,6 +151,8 @@ namespace Configs
         EndpointSource endpoint;
 
         QList<int> column_width;
+        // Persisted column bits: type, address, name and traffic are visible by default.
+        int visible_columns = 0x47;
         QList<int> calculated_column_width; // memory only, no need to save to db
         QList<int> profiles;
         // Always the head of `profiles`, in this order; sorts only order the rows below them.
@@ -168,7 +163,6 @@ namespace Configs
         typeBy type_sort_by = typeBy::byType;
         // The order the profiles are kept in as they change; Raw keeps the manual order.
         GroupSortAction sort;
-        testShowItems test_items_to_show = testShowItems::all;
         // Memory only. Pairs of (profileID, row as displayed).
         QList<std::pair<int, int>> selectedProfilesIdIdxPairs;
 

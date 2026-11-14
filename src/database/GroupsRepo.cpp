@@ -35,7 +35,6 @@ namespace Configs {
                 auto_clear_unavailable INTEGER NOT NULL DEFAULT 0,
                 test_sort_by INTEGER NOT NULL DEFAULT 0,
                 traffic_sort_by INTEGER NOT NULL DEFAULT 0,
-                test_items_to_show INTEGER NOT NULL DEFAULT 0,
                 type_sort_by INTEGER NOT NULL DEFAULT 0,
                 sub_options_json TEXT NOT NULL DEFAULT '{}',
                 sub_metadata_json TEXT NOT NULL DEFAULT '{}',
@@ -45,6 +44,7 @@ namespace Configs {
                 route_id INTEGER NOT NULL DEFAULT -1,
                 import_sub_route INTEGER NOT NULL DEFAULT 0,
                 pinned_json TEXT NOT NULL DEFAULT '[]',
+                visible_columns INTEGER NOT NULL DEFAULT 71,
                 created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
             )
@@ -66,6 +66,8 @@ namespace Configs {
             db.exec("ALTER TABLE groups ADD COLUMN route_id INTEGER NOT NULL DEFAULT -1");
         if (!groupsColumnExists("import_sub_route"))
             db.exec("ALTER TABLE groups ADD COLUMN import_sub_route INTEGER NOT NULL DEFAULT 0");
+        if (!groupsColumnExists("visible_columns"))
+            db.exec("ALTER TABLE groups ADD COLUMN visible_columns INTEGER NOT NULL DEFAULT 71");
         if (!groupsColumnExists("pinned_json"))
             db.exec("ALTER TABLE groups ADD COLUMN pinned_json TEXT NOT NULL DEFAULT '[]'");
 
@@ -137,6 +139,7 @@ namespace Configs {
         json["route_id"] = group->route_id;
         json["import_sub_route"] = group->import_sub_route;
         json["column_width"] = QListInt2QJsonArray(group->column_width);
+        json["visible_columns"] = group->visible_columns;
         json["profiles"] = QListInt2QJsonArray(group->profiles);
         json["pinned"] = QListInt2QJsonArray(group->pinned);
         json["scroll_last_profile"] = group->scroll_last_profile;
@@ -145,7 +148,6 @@ namespace Configs {
         json["type_sort_by"] = static_cast<int>(group->type_sort_by);
         json["sort_method"] = static_cast<int>(group->sort.method);
         json["sort_descending"] = group->sort.descending;
-        json["test_items_to_show"] = static_cast<int>(group->test_items_to_show);
 
         return json;
     }
@@ -171,6 +173,11 @@ namespace Configs {
         group->route_id = json["route_id"].toInt(-1);
         group->import_sub_route = json["import_sub_route"].toBool();
         group->column_width = QJsonArray2QListInt(json["column_width"].toArray());
+        group->visible_columns = json["visible_columns"].toInt(group->visible_columns);
+        if (group->column_width.size() == 5) {
+            group->column_width = {group->column_width[0], group->column_width[1], group->column_width[2],
+                                   0, 0, 0, group->column_width[4]};
+        }
         group->profiles = QJsonArray2QListInt(json["profiles"].toArray());
         group->pinned = QJsonArray2QListInt(json["pinned"].toArray());
         group->scroll_last_profile = json["scroll_last_profile"].toInt(-1);
@@ -181,7 +188,6 @@ namespace Configs {
             group->sort.method = static_cast<GroupSortMethod::GroupSortMethod>(method);
             group->sort.descending = json["sort_descending"].toBool();
         }
-        group->test_items_to_show = static_cast<testShowItems>(json["test_items_to_show"].toInt(0));
 
         return group;
     }
@@ -204,9 +210,9 @@ namespace Configs {
             INSERT INTO groups
             (id, archive, skip_auto_update, auto_clear_unavailable, name, url, info, sub_last_update,
              front_proxy_id, landing_proxy_id,
-             column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by, test_items_to_show,
+             column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by,
              type_sort_by, sub_options_json, sub_metadata_json, endpoint_json, sort_method, sort_descending,
-             route_id, import_sub_route, pinned_json)
+             route_id, import_sub_route, pinned_json, visible_columns)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 archive = excluded.archive, skip_auto_update = excluded.skip_auto_update,
@@ -215,12 +221,12 @@ namespace Configs {
                 front_proxy_id = excluded.front_proxy_id, landing_proxy_id = excluded.landing_proxy_id,
                 column_width_json = excluded.column_width_json, profiles_json = excluded.profiles_json,
                 scroll_last_profile = excluded.scroll_last_profile, test_sort_by = excluded.test_sort_by,
-                traffic_sort_by = excluded.traffic_sort_by, test_items_to_show = excluded.test_items_to_show,
+                traffic_sort_by = excluded.traffic_sort_by,
                 type_sort_by = excluded.type_sort_by, sub_options_json = excluded.sub_options_json,
                 sub_metadata_json = excluded.sub_metadata_json, endpoint_json = excluded.endpoint_json,
                 sort_method = excluded.sort_method, sort_descending = excluded.sort_descending,
                 route_id = excluded.route_id, import_sub_route = excluded.import_sub_route,
-                pinned_json = excluded.pinned_json,
+                pinned_json = excluded.pinned_json, visible_columns = excluded.visible_columns,
                 updated_at = strftime('%s', 'now')
         )",
             id,
@@ -238,7 +244,6 @@ namespace Configs {
             group->scroll_last_profile,
             static_cast<int>(group->test_sort_by),
             static_cast<int>(group->traffic_sort_by),
-            static_cast<int>(group->test_items_to_show),
             static_cast<int>(group->type_sort_by),
             subOptionsJson.toStdString(),
             subMetadataJson.toStdString(),
@@ -247,7 +252,8 @@ namespace Configs {
             group->sort.descending ? 1 : 0,
             group->route_id,
             group->import_sub_route ? 1 : 0,
-            pinnedJson.toStdString()
+            pinnedJson.toStdString(),
+            group->visible_columns
         );
     }
 
@@ -255,9 +261,9 @@ namespace Configs {
         auto query = db.query(R"(
             SELECT id, archive, skip_auto_update, auto_clear_unavailable, name, url, info, sub_last_update,
                    front_proxy_id, landing_proxy_id,
-                   column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by, test_items_to_show,
+                   column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by,
                    type_sort_by, sub_options_json, sub_metadata_json, endpoint_json, sort_method, sort_descending,
-                   route_id, import_sub_route, pinned_json
+                   route_id, import_sub_route, pinned_json, visible_columns
             FROM groups WHERE id = ?
         )", id);
         if (!query || !query->executeStep()) {
@@ -295,25 +301,25 @@ namespace Configs {
         json["scroll_last_profile"] = query->getColumn(12).getInt();
         json["test_sort_by"] = query->getColumn(13).getInt();
         json["traffic_sort_by"] = query->getColumn(14).getInt();
-        json["test_items_to_show"] = query->getColumn(15).getInt();
-        json["type_sort_by"] = query->getColumn(16).getInt();
-        if (const auto subOptionsDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(17).getText()));
+        json["visible_columns"] = query->getColumn(24).getInt();
+        json["type_sort_by"] = query->getColumn(15).getInt();
+        if (const auto subOptionsDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(16).getText()));
             subOptionsDoc.isObject()) {
             json["sub_options"] = subOptionsDoc.object();
         }
-        if (const auto subMetaDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(18).getText()));
+        if (const auto subMetaDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(17).getText()));
             subMetaDoc.isObject()) {
             json["sub_metadata"] = subMetaDoc.object();
         }
-        if (const auto endpointDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(19).getText()));
+        if (const auto endpointDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(18).getText()));
             endpointDoc.isObject()) {
             json["endpoint"] = endpointDoc.object();
         }
-        json["sort_method"] = query->getColumn(20).getInt();
-        json["sort_descending"] = query->getColumn(21).getInt() != 0;
-        json["route_id"] = query->getColumn(22).getInt();
-        json["import_sub_route"] = query->getColumn(23).getInt() != 0;
-        if (const auto pinnedDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(24).getText()));
+        json["sort_method"] = query->getColumn(19).getInt();
+        json["sort_descending"] = query->getColumn(20).getInt() != 0;
+        json["route_id"] = query->getColumn(21).getInt();
+        json["import_sub_route"] = query->getColumn(22).getInt() != 0;
+        if (const auto pinnedDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(23).getText()));
             pinnedDoc.isArray()) {
             json["pinned"] = pinnedDoc.array();
         }

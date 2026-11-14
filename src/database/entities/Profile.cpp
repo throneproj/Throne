@@ -4,7 +4,6 @@
 #include <QJsonObject>
 #include <QSet>
 
-#include "include/database/GroupsRepo.h"
 #include "include/global/Configs.hpp"
 
 namespace Configs
@@ -35,23 +34,41 @@ namespace Configs
         latency_at = ms == 0 ? 0 : QDateTime::currentSecsSinceEpoch();
     }
 
-    QString Profile::DisplayTestResult() const {
-        auto group = dataManager->groupsRepo->GetGroup(gid);
-        if (group == nullptr) return "";
+    QString Profile::DisplayLatency() const {
+        if (latency == kLatencyConnectOnly) return QObject::tr("Connect OK");
+        if (latency < 0) return QObject::tr("Unavailable");
+        return latency > 0 ? QStringLiteral("%1 ms").arg(latency) : QString();
+    }
+
+    QString Profile::DisplayExitIP() const {
         QString result;
-        if (!test_country.isEmpty()) result += UNICODE_LRO + CountryCodeToFlag(test_country) + " ";
-        if (latency == kLatencyConnectOnly) {
-            return QObject::tr("Connect OK");
-        } else if (latency < 0) {
-            return QObject::tr("Unavailable");
-        } else if (latency > 0) {
-            result += QString("%1 ms").arg(latency);
+        if (!test_country.isEmpty()) result = CountryCodeToFlag(test_country);
+        if (!ip_out.isEmpty()) {
+            if (!result.isEmpty()) result += ' ';
+            result += ip_out;
         }
-        bool showSpeed = group->test_items_to_show == testShowItems::all || group->test_items_to_show == testShowItems::speedOnly;
-        bool showIP = group->test_items_to_show == testShowItems::all || group->test_items_to_show == testShowItems::ipOnly;
-        if (!dl_speed.isEmpty() && dl_speed != "N/A" && showSpeed) result += " ↓" + dl_speed;
-        if (!ul_speed.isEmpty() && ul_speed != "N/A" && showSpeed) result += " ↑" + ul_speed;
-        if (!ip_out.isEmpty() && showIP) result += " 🌐" + ip_out;
+        return result.isEmpty() ? result : UNICODE_LRO + result;
+    }
+
+    QString Profile::DisplaySpeed() const {
+        QString result;
+        if (!dl_speed.isEmpty() && dl_speed != QLatin1String("N/A")) result = QStringLiteral("↓") + dl_speed;
+        if (!ul_speed.isEmpty() && ul_speed != QLatin1String("N/A")) {
+            if (!result.isEmpty()) result += ' ';
+            result += QStringLiteral("↑") + ul_speed;
+        }
+        return result;
+    }
+
+    QString Profile::DisplayTestResult() const {
+        QString result = DisplayLatency();
+        const auto append = [&result](const QString &value) {
+            if (value.isEmpty()) return;
+            if (!result.isEmpty()) result += ' ';
+            result += value;
+        };
+        append(DisplayExitIP());
+        append(DisplaySpeed());
         return result;
     }
 

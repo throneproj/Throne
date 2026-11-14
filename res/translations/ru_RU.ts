@@ -9989,6 +9989,26 @@ Improves hole-punching reliability. Requires IPv4.</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>Show:</source>
+        <translation>Показывать:</translation>
+    </message>
+    <message>
+        <source>Test Latency</source>
+        <translation>Проверить задержку</translation>
+    </message>
+    <message>
+        <source>Test Exit IP</source>
+        <translation>Проверить выходной IP</translation>
+    </message>
+    <message>
+        <source>Test Speed</source>
+        <translation>Проверить скорость</translation>
+    </message>
+    <message>
+        <source>Clear Results</source>
+        <translation>Очистить результаты</translation>
+    </message>
+    <message>
         <source>Connect</source>
         <translation>Подключиться</translation>
     </message>
@@ -11582,8 +11602,16 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
         <translation>Название</translation>
     </message>
     <message>
-        <source>Test Result</source>
-        <translation>Результат теста</translation>
+        <source>Latency</source>
+        <translation>Задержка</translation>
+    </message>
+    <message>
+        <source>Exit IP</source>
+        <translation>Выходной IP</translation>
+    </message>
+    <message>
+        <source>Speed</source>
+        <translation>Скорость</translation>
     </message>
     <message>
         <source>Traffic</source>

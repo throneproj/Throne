@@ -4730,6 +4730,26 @@ Close without saving?</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>Show:</source>
+        <translation>نمایش:</translation>
+    </message>
+    <message>
+        <source>Test Latency</source>
+        <translation>آزمایش تأخیر</translation>
+    </message>
+    <message>
+        <source>Test Exit IP</source>
+        <translation>آزمایش IP خروجی</translation>
+    </message>
+    <message>
+        <source>Test Speed</source>
+        <translation>آزمایش سرعت</translation>
+    </message>
+    <message>
+        <source>Clear Results</source>
+        <translation>پاک کردن نتایج</translation>
+    </message>
+    <message>
         <source>Connect</source>
         <translation>اتصال</translation>
     </message>
@@ -5548,8 +5568,16 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Test Result</source>
-        <translation type="unfinished">نتیجه تست</translation>
+        <source>Latency</source>
+        <translation>تأخیر</translation>
+    </message>
+    <message>
+        <source>Exit IP</source>
+        <translation>IP خروجی</translation>
+    </message>
+    <message>
+        <source>Speed</source>
+        <translation>سرعت</translation>
     </message>
     <message>
         <source>Traffic</source>
