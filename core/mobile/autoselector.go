@@ -32,6 +32,15 @@ type AutoSelectorMember struct {
 	LastProbeMs     int64
 	CooldownUntilMs int64
 	LastError       string
+	Priority        int32
+	Streak          int32
+	LastFailureMs   int64
+	FirstByteMs     int32
+	PassiveAnswered int32
+	PassiveFailed   int32
+	RecentAnswered  int32
+	RecentFailed    int32
+	SuspectUntilMs  int64
 }
 
 type AutoSelectorMemberIterator interface {
@@ -46,6 +55,11 @@ type AutoSelectorStatus struct {
 	Selected         string
 	SelectedUDP      string
 	Pinned           string
+	Strategy         string
+	FailbackChecks   int32
+	FailbackDelayMs  int64
+	Passive          bool
+	SitesRemembered  int32
 	Balance          bool
 	BalanceMode      string
 	Suspended        bool
@@ -143,6 +157,11 @@ func newAutoSelectorStatus(status group.AutoSelectorStatus) *AutoSelectorStatus 
 		Selected:         status.Selected,
 		SelectedUDP:      status.SelectedUDP,
 		Pinned:           status.Pinned,
+		Strategy:         status.Strategy,
+		FailbackChecks:   int32(status.FailbackChecks),
+		FailbackDelayMs:  status.FailbackDelay.Milliseconds(),
+		Passive:          status.Passive,
+		SitesRemembered:  int32(status.SitesRemembered),
 		Balance:          status.Balance,
 		BalanceMode:      status.BalanceMode,
 		Suspended:        status.Suspended,
@@ -182,6 +201,15 @@ func newAutoSelectorStatus(status group.AutoSelectorStatus) *AutoSelectorStatus 
 			LastProbeMs:     unixMilliOrZero(member.LastProbe),
 			CooldownUntilMs: unixMilliOrZero(member.CooldownUntil),
 			LastError:       member.LastError,
+			Priority:        int32(member.Priority),
+			Streak:          int32(member.Streak),
+			LastFailureMs:   unixMilliOrZero(member.LastFailure),
+			FirstByteMs:     int32(member.FirstByteMs),
+			PassiveAnswered: int32(member.PassiveAnswered),
+			PassiveFailed:   int32(member.PassiveFailed),
+			RecentAnswered:  int32(member.RecentAnswered),
+			RecentFailed:    int32(member.RecentFailed),
+			SuspectUntilMs:  unixMilliOrZero(member.SuspectUntil),
 		})
 	}
 	return out

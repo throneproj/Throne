@@ -17,6 +17,7 @@ import (
 	"github.com/sagernet/sing-box/common/urltest"
 	"github.com/sagernet/sing-box/experimental/clashmode"
 	"github.com/sagernet/sing-box/log"
+	"github.com/sagernet/sing-box/option"
 	tun "github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -73,6 +74,8 @@ type Instance struct {
 	cacheFile      adapter.CacheFile
 	urlTestHistory *urltest.HistoryStorage
 	logFactory     log.Factory
+	// The route rules the router was built from, in its order, for TestRoute.
+	routeRules []option.Rule
 
 	interfaceMonitor  tun.DefaultInterfaceMonitor
 	interfaceCallback *list.Element[tun.DefaultInterfaceUpdateCallback]
@@ -141,6 +144,10 @@ func NewInstance(platform PlatformInterface, options *StartOptions) (*Instance, 
 	// Published before Start, not after: a remote rule-set fetched during Start may already dial
 	// through an Xray outbound, whose resolver needs this box's DNS router (see xraydns).
 	holder.publish(ctx)
+	var routeRules []option.Rule
+	if boxOptions.Route != nil {
+		routeRules = boxOptions.Route.Rules
+	}
 	instance := &Instance{
 		platform:       platform,
 		handle:         &boxHandle{ctx: ctx, Box: boxInstance},
@@ -154,6 +161,7 @@ func NewInstance(platform PlatformInterface, options *StartOptions) (*Instance, 
 		cacheFile:      service.FromContext[adapter.CacheFile](ctx),
 		urlTestHistory: urlTestHistory,
 		logFactory:     boxInstance.LogFactory(),
+		routeRules:     routeRules,
 	}
 	instance.watchDefaultInterface(boxInstance.Network().InterfaceMonitor())
 	return instance, nil
