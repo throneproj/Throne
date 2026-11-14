@@ -49,6 +49,7 @@
 
 #include "include/ui/utils/ProfilesTableFilterHeader.h"
 #include "include/ui/utils/ProfilesTableModel.h"
+#include "include/ui/utils/PaneMask.h"
 #include "include/ui/utils/UiMode.h"
 
 #include "include/ui/group/dialog_edit_group.h"
@@ -62,6 +63,7 @@
 #include <QClipboard>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QStackedWidget>
 #include <QDesktopServices>
 #include <QTimer>
 #include <QMessageBox>
@@ -197,6 +199,16 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     }
     themeManager()->ApplyTheme(Configs::dataManager->settingsRepo->theme);
     ui->setupUi(this);
+
+    ui->stats_widget->setAutoFillBackground(false);
+    for (auto *tabs : {ui->tabWidget, ui->stats_widget}) {
+        auto *stack = tabs->findChild<QStackedWidget *>(QString(), Qt::FindDirectChildrenOnly);
+        if (!stack) continue;
+        auto *mask = new PaneMask(stack, themeManager()->paneCornerRadius());
+        connect(themeManager(), &ThemeManager::themeChanged, mask, [mask] {
+            mask->setRadius(themeManager()->paneCornerRadius());
+        });
+    }
 
     setupCommandPalette();
     setActionsData();
