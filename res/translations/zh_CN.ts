@@ -6542,8 +6542,8 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
         <translation>保留样本</translation>
     </message>
     <message>
-        <source>Ranking uses the average and the jitter over this many recent checks, so a single bad result cannot demote a good server.</source>
-        <translation>排名使用这几次近期检查的均值和抖动(Jitter)，因此单次的异常结果不会降级一个良好的服务器。</translation>
+        <source>Ranking uses the average over this many recent checks, so a single bad result cannot demote a good server.</source>
+        <translation>排名使用这几次近期检查的均值，因此单次的异常结果不会降级一个良好的服务器。</translation>
     </message>
     <message>
         <source>Switching</source>
@@ -6570,8 +6570,8 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
         <translation>无限制</translation>
     </message>
     <message>
-        <source>Profiles slower than this are never selected, even if nothing better is available.</source>
-        <translation>比这个慢的配置档永远不会被选择，即使没有更好的项可用。</translation>
+        <source>Profiles slower than this are used only when no faster one works.</source>
+        <translation>比这个慢的配置档仅在没有更快的配置档可用时使用。</translation>
     </message>
     <message>
         <source>Failover attempts</source>

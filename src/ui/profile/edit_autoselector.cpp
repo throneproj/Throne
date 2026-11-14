@@ -29,7 +29,7 @@ EditAutoSelector::EditAutoSelector(QWidget *parent) : QWidget(parent), ui(new Ui
     ui->balance_mode->addItem(tr("Rotate on a timer (keeps sessions stable)"), "rotate");
     ui->balance_mode->addItem(tr("Per connection (widest spread)"), "connection");
 
-    ui->strategy->addItem(tr("Fastest and steadiest"), "latency");
+    ui->strategy->addItem(tr("Fastest"), "latency");
     ui->strategy->addItem(tr("In priority order"), "priority");
     ui->tiers->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->tiers->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);

@@ -73,11 +73,11 @@ namespace Configs
     QList<int> AutoSelectorRankingCandidates(const std::shared_ptr<Profile> &ent);
 
     // `stale` = members whose stored result no longer reflects reality; they are re-measured.
-    // `working`, when set, receives how many of the other candidates already hold a fresh successful result.
+    // `working`, when set, receives how many of the other candidates already count as working (see AutoSelectorMemberWorks).
     QList<int> AutoSelectorUnmeasuredCandidates(const std::shared_ptr<Profile> &ent,
                                                 const QList<int> &stale = {}, int *working = nullptr);
 
-    // Whether the ranking counts `member` as working: a successful result inside the selector's validity window.
+    // Whether the ranking counts `member` as working: a successful result inside the validity window and under the latency cap.
     bool AutoSelectorMemberWorks(const std::shared_ptr<Profile> &ent, const std::shared_ptr<Profile> &member);
 
     // Working members a selector needs before it may start while its ranking sweep still runs.

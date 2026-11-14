@@ -153,12 +153,23 @@ namespace Configs
                    && !landing->outbound->IsExtraCore();
         }
 
-        // Untested (1) outranks failed (2) so a fresh subscription still gets explored.
-        int latencyRank(int latency)
+        // Same test as the core's qualifies(): at or over the cap, a member is only a fallback.
+        bool overCap(int latency, const autoSelector *selector)
         {
-            if (latency > 0) return 0;
+            return latency > 0 && selector->maxRTTms > 0 && latency >= selector->maxRTTms;
+        }
+
+        bool qualifyingLatency(int latency, const autoSelector *selector)
+        {
+            return latency > 0 && !overCap(latency, selector);
+        }
+
+        // Untested outranks over-cap and failed: it may still qualify, so a fresh subscription gets explored.
+        int latencyRank(int latency, const autoSelector *selector)
+        {
+            if (latency > 0) return overCap(latency, selector) ? 2 : 0;
             if (latency == 0) return 1;
-            return 2;
+            return 3;
         }
 
         int effectiveLatency(const std::shared_ptr<Profile> &member, const autoSelector *selector, qint64 now)
@@ -171,12 +182,12 @@ namespace Configs
             return effectiveLatency(dataManager->profilesRepo->GetProfile(id), selector, now);
         }
 
-        bool byLatency(int leftLatency, int rightLatency)
+        bool byLatency(int leftLatency, int rightLatency, const autoSelector *selector)
         {
-            const int leftRank = latencyRank(leftLatency);
-            const int rightRank = latencyRank(rightLatency);
+            const int leftRank = latencyRank(leftLatency, selector);
+            const int rightRank = latencyRank(rightLatency, selector);
             if (leftRank != rightRank) return leftRank < rightRank;
-            if (leftRank == 0) return leftLatency < rightLatency;
+            if (leftLatency > 0) return leftLatency < rightLatency;
             return false;
         }
 
@@ -188,8 +199,9 @@ namespace Configs
             for (int id : std::as_const(ids)) {
                 latency.insert(id, untrusted.contains(id) ? 0 : effectiveLatencyOf(id, selector, now));
             }
-            std::stable_sort(ids.begin(), ids.end(),
-                             [&latency](int left, int right) { return byLatency(latency.value(left), latency.value(right)); });
+            std::stable_sort(ids.begin(), ids.end(), [&latency, selector](int left, int right) {
+                return byLatency(latency.value(left), latency.value(right), selector);
+            });
         }
 
         QList<int> eligibleMembers(const std::shared_ptr<Profile> &ent,
@@ -270,7 +282,7 @@ namespace Configs
             return members;
         }
 
-        // The persisted order is the core's ranking prior: keep it, append newcomers by latency.
+        // The persisted order is the core's ranking prior; newcomers follow by latency, over-cap then failed members last.
         QList<int> orderMembers(const QList<int> &members, const QList<int> &persistedPool,
                                 const autoSelector *selector, qint64 now)
         {
@@ -290,6 +302,15 @@ namespace Configs
             }
             sortByLatency(newcomers, selector, now);
             ordered << newcomers;
+
+            QHash<int, int> demotion;
+            demotion.reserve(ordered.size());
+            for (int id : std::as_const(ordered)) {
+                const int latency = effectiveLatencyOf(id, selector, now);
+                demotion.insert(id, latency < 0 ? 2 : overCap(latency, selector) ? 1 : 0);
+            }
+            std::stable_sort(ordered.begin(), ordered.end(),
+                             [&demotion](int left, int right) { return demotion.value(left) < demotion.value(right); });
             return ordered;
         }
 
@@ -433,7 +454,7 @@ namespace Configs
             }
             const int latency = effectiveLatencyOf(id, selector, now);
             if (latency == 0) needed << id;
-            else if (latency > 0 && working != nullptr) ++*working;
+            else if (qualifyingLatency(latency, selector) && working != nullptr) ++*working;
         }
         return needed;
     }
@@ -442,7 +463,8 @@ namespace Configs
     {
         if (ent == nullptr) return false;
         const auto selector = ent->AutoSelector();
-        return selector != nullptr && effectiveLatency(member, selector, QDateTime::currentSecsSinceEpoch()) > 0;
+        return selector != nullptr
+               && qualifyingLatency(effectiveLatency(member, selector, QDateTime::currentSecsSinceEpoch()), selector);
     }
 
     int AutoSelectorStartQuorum(const std::shared_ptr<Profile> &ent)
@@ -470,7 +492,7 @@ namespace Configs
         // The build drops members that fail validation, so an unbuilt one counts only when it is known to work.
         const auto now = QDateTime::currentSecsSinceEpoch();
         for (int id : next) {
-            if (!built.contains(id) && effectiveLatencyOf(id, selector, now) > 0) return true;
+            if (!built.contains(id) && qualifyingLatency(effectiveLatencyOf(id, selector, now), selector)) return true;
         }
         return false;
     }

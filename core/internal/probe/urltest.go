@@ -13,7 +13,10 @@ import (
 
 var URLReporter resultBuffer[URLTestResult]
 
-const URLTestTimeout = 3 * time.Second
+const (
+	URLTestTimeout    = 3 * time.Second
+	urlTestDrainLimit = 64 * 1024
+)
 
 type URLTestResult struct {
 	Duration time.Duration
@@ -115,6 +118,9 @@ func urlTest(ctx context.Context, client *http.Client, url string, timeout time.
 	if err != nil {
 		return 0, err
 	}
+	duration := time.Since(begin)
+	// A body closed before EOF costs the connection, and the timed request would dial cold again.
+	_, _ = io.CopyN(io.Discard, resp.Body, urlTestDrainLimit)
 	_ = resp.Body.Close()
-	return time.Since(begin), nil
+	return duration, nil
 }

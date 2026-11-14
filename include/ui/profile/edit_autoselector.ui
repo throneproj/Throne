@@ -69,7 +69,7 @@ Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neith
      <item row="2" column="1">
       <widget class="QComboBox" name="strategy">
        <property name="toolTip">
-        <string>Fastest and steadiest: always use the best measured profile out of all of them.
+        <string>Fastest: always use the best measured profile out of all of them.
 In priority order: try the tiers below from the top. The selector stays on the highest tier that has a working profile, and moves back up once a higher tier works again.</string>
        </property>
       </widget>
@@ -598,7 +598,7 @@ In priority order: try the tiers below from the top. The selector stays on the h
              <number>60</number>
             </property>
             <property name="toolTip">
-             <string>Ranking uses the average and the jitter over this many recent checks, so a single bad result cannot demote a good server.</string>
+             <string>Ranking uses the average over this many recent checks, so a single bad result cannot demote a good server.</string>
             </property>
             <property name="value">
              <number>10</number>
@@ -665,7 +665,7 @@ In priority order: try the tiers below from the top. The selector stays on the h
              <string>no limit</string>
             </property>
             <property name="toolTip">
-             <string>Profiles slower than this are never selected, even if nothing better is available.</string>
+             <string>Profiles slower than this are used only when no faster one works.</string>
             </property>
            </widget>
           </item>

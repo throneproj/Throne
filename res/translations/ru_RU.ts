@@ -6609,8 +6609,8 @@ Close without saving?</source>
         <translation>Число хранимых замеров</translation>
     </message>
     <message>
-        <source>Ranking uses the average and the jitter over this many recent checks, so a single bad result cannot demote a good server.</source>
-        <translation>Для ранжирования используются среднее значение и джиттер по этому числу последних проверок, поэтому один неудачный результат не понизит хороший сервер.</translation>
+        <source>Ranking uses the average over this many recent checks, so a single bad result cannot demote a good server.</source>
+        <translation>Для ранжирования используется среднее значение по этому числу последних проверок, поэтому один неудачный результат не понизит хороший сервер.</translation>
     </message>
     <message>
         <source>Switching</source>
@@ -6637,8 +6637,8 @@ Close without saving?</source>
         <translation>без ограничений</translation>
     </message>
     <message>
-        <source>Profiles slower than this are never selected, even if nothing better is available.</source>
-        <translation>Профили медленнее этого значения никогда не выбираются, даже если лучших нет.</translation>
+        <source>Profiles slower than this are used only when no faster one works.</source>
+        <translation>Профили медленнее этого значения используются, только если ни один более быстрый не работает.</translation>
     </message>
     <message>
         <source>Failover attempts</source>
