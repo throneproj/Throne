@@ -34,7 +34,7 @@ if (UNIX AND NOT APPLE)
     set(QT_DBUS_LIBRARY Qt6::DBus)
 endif ()
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Network LinguistTools Svg ${QT_DBUS_COMPONENT})
+find_package(Qt6 REQUIRED COMPONENTS Widgets Network LinguistTools ${QT_DBUS_COMPONENT})
 
 include("cmake/nkr.cmake")
 
@@ -930,7 +930,7 @@ target_sources(Throne PRIVATE ${CMAKE_BINARY_DIR}/translations.qrc)
 # Target Link
 
 target_link_libraries(Throne PRIVATE
-        Qt6::Widgets Qt6::Network Qt6::Svg ${QT_DBUS_LIBRARY}
+        Qt6::Widgets Qt6::Network ${QT_DBUS_LIBRARY}
         Threads::Threads
         ${NKR_EXTERNAL_TARGETS}
         ${PLATFORM_LIBRARIES}

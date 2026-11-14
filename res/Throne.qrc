@@ -21,7 +21,7 @@
         <file>icon/material/eye-outline.png</file>
         <file>icon/material/eye-off-outline.png</file>
         <file>icon/material/swap-horizontal.png</file>
-        <file>icon/material/keep.svg</file>
+        <file>icon/material/keep.png</file>
     </qresource>
     <qresource prefix="/Throne">
         <file alias="Throne.png">public/Throne.png</file>

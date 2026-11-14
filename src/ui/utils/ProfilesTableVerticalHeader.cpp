@@ -67,7 +67,7 @@ void ProfilesTableVerticalHeader::paintSection(QPainter *painter, const QRect &r
     painter->fillRect(rect, marked ? tokens.runningMark : palette().color(QPalette::Button));
     const int pinWidth = m_pinnedVisible ? fontMetrics().height() + 6 : 0;
     if (m_pinnedVisible && m_model && m_model->isPinnedRow(sourceRow)) {
-        static const QIcon keepIcon(":/icon/material/keep.svg");
+        static const QIcon keepIcon(":/icon/material/keep.png");
         const QRect iconRect(rect.left() + 3, rect.center().y() - fontMetrics().height() / 2, fontMetrics().height(), fontMetrics().height());
         keepIcon.paint(painter, iconRect);
     }
