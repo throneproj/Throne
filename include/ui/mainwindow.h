@@ -433,7 +433,7 @@ private:
     // Keeps the current group sorted by `action` from now on.
     void sortCurrentGroup(GroupSortAction action);
 
-    void stopSortingCurrentGroup();
+    void restoreOriginalOrder();
 
     void refresh_proxy_list_impl(const QList<int> &ids = {}, bool mayNeedReset = false);
 

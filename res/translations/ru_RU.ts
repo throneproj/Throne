@@ -9989,6 +9989,14 @@ Improves hole-punching reliability. Requires IPv4.</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>Changing the order will prevent you from restoring the order before sorting. Are you sure you want to change the order?</source>
+        <translation>После изменения порядка восстановить порядок до сортировки будет невозможно. Вы уверены, что хотите изменить порядок?</translation>
+    </message>
+    <message>
+        <source>Restore Original Order</source>
+        <translation>Восстановить исходный порядок</translation>
+    </message>
+    <message>
         <source>Show:</source>
         <translation>Показывать:</translation>
     </message>

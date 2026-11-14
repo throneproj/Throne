@@ -43,7 +43,7 @@ Qt::DropActions ProfilesTableModel::supportedDropActions() const {
 }
 
 QStringList ProfilesTableModel::mimeTypes() const {
-    return {"application/profile-row-number"};
+    return {"application/profile-id"};
 }
 
 QMimeData* ProfilesTableModel::mimeData(const QModelIndexList &indexes) const {
@@ -53,10 +53,10 @@ QMimeData* ProfilesTableModel::mimeData(const QModelIndexList &indexes) const {
     QDataStream stream(&encodedData, QIODevice::WriteOnly);
 
     if (!indexes.isEmpty()) {
-        stream << indexes.at(0).row();
+        stream << indexes.at(0).data(ProfileIdRole).toInt();
     }
 
-    mimeData->setData("application/profile-row-number", encodedData);
+    mimeData->setData("application/profile-id", encodedData);
     return mimeData;
 }
 
@@ -156,8 +156,9 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
         if (isRunning && linkColor.isValid()) return linkColor;
         return {};
     }
-    if (role == Qt::BackgroundRole && isRunning && tokens.runningRow.isValid()) {
-        return tokens.runningRow;
+    if (role == Qt::BackgroundRole) {
+        if (isPinnedRow(index.row())) return QColor(220, 242, 220);
+        if (isRunning && tokens.runningRow.isValid()) return tokens.runningRow;
     }
     return {};
 }
@@ -306,24 +307,6 @@ void ProfilesTableModel::invalidateAddresses() {
     m_filterIndexBuilt = false;
     if (m_profileIds.isEmpty()) return;
     emit dataChanged(index(0, ColAddress), index(static_cast<int>(m_profileIds.size()) - 1, ColAddress), {Qt::DisplayRole});
-}
-
-void ProfilesTableModel::moveProfile(int from, int to, int pinnedCount) {
-    const auto count = static_cast<int>(m_profileIds.size());
-    if (from < 0 || to < 0 || from >= count || to >= count) return;
-    m_profileIds.move(from, to);
-    int first = std::min(from, to);
-    int last = std::max(from, to);
-    for (int i = first; i <= last; ++i) id2row[m_profileIds[i]] = i;
-
-    const int oldPinned = m_pinnedCount;
-    setPinnedCount(pinnedCount);
-    if (m_pinnedCount != oldPinned) {
-        // The divider under the last pinned row moves with the count.
-        first = std::max(std::min({first, oldPinned - 1, m_pinnedCount - 1}), 0);
-        last = std::max({last, oldPinned - 1, m_pinnedCount - 1});
-    }
-    emit dataChanged(index(first, 0), index(last, ColumnCount - 1));
 }
 
 int ProfilesTableModel::indexOfProfile(int id) {

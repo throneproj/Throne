@@ -67,9 +67,6 @@ public:
     // Re-resolves the Address column after IP lists or group endpoints change.
     void invalidateAddresses();
 
-    // `to` is the row's index after the move.
-    void moveProfile(int from, int to, int pinnedCount);
-
     int indexOfProfile(int id);
 
     bool isStartedRow(int sourceRow) const;

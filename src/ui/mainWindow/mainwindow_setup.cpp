@@ -397,12 +397,29 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         if (profilesFilterModel->hasActiveFilter()) return;
         auto group = Configs::dataManager->groupsRepo->CurrentGroup();
         if (group == nullptr) return;
-        // A hand-placed row among the unpinned ones is a manual order, so MoveProfile also stops a kept sort.
-        const int to = group->MoveProfile(from, target, below);
-        if (to < 0) return;
-        refresh_sort_indicator();
-        profilesTableModel->moveProfile(from, to, group->PinnedCount());
+        const auto previousProfiles = group->Profiles();
+        const auto previousOrder = group->DisplayedProfiles();
+        const auto previousPins = group->pinned;
+        const auto previousSort = group->sort;
+        if (from < 0 || from >= previousOrder.size() || target < 0 || target > previousOrder.size()) return;
+        // A background sort may have finished before the table receives its refresh.
+        if (profilesTableModel->rowCount() != previousOrder.size()) return;
+        for (int row = 0; row < previousOrder.size(); ++row) {
+            if (profilesTableModel->index(row, 0).data(ProfilesTableModel::ProfileIdRole).toInt() != previousOrder[row]) return;
+        }
+        int to = target == previousOrder.size() ? target : target + (below ? 1 : 0);
+        if (from < to) --to;
+        if (to == from && (from < group->PinnedCount()) == (target < group->PinnedCount())) return;
+        if (QMessageBox::question(this, tr("Confirmation"),
+                                  tr("Changing the order will prevent you from restoring the order before sorting. Are you sure you want to change the order?"),
+                                  QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes) return;
+        // The modal dialog can process test results or subscription updates that change these row positions.
+        if (group != Configs::dataManager->groupsRepo->CurrentGroup() || group->Profiles() != previousProfiles
+            || group->DisplayedProfiles() != previousOrder || group->pinned != previousPins
+            || group->sort != previousSort || profilesFilterModel->hasActiveFilter()) return;
+        if (group->MoveProfile(from, target, below) < 0) return;
         Configs::dataManager->groupsRepo->Save(group);
+        refresh_proxy_list({}, true);
     };
     connect(ui->profilesTableView->horizontalHeader(), &QHeaderView::sectionClicked, this, [this](int logicalIndex) {
         const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
@@ -465,7 +482,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                 clearResults->setEnabled(!tests()->isRunning());
             }
             if (!menu.isEmpty()) menu.addSeparator();
-            QAction* stopSorting = group->KeepsSorted() ? menu.addAction(tr("Stop Sorting")) : nullptr;
+            auto *restoreOrder = menu.addAction(tr("Restore Original Order"));
             menu.addAction(ui->actionRefresh_Column_Widths);
             menu.addSeparator();
             auto *showLabel = menu.addAction(tr("Show:"));
@@ -502,8 +519,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                 refresh_proxy_list();
                 return nullptr;
             }
-            if (chosen != nullptr && chosen == stopSorting) {
-                stopSortingCurrentGroup();
+            if (chosen == restoreOrder) {
+                restoreOriginalOrder();
                 return nullptr;
             }
             return chosen == ui->actionRefresh_Column_Widths ? nullptr : chosen;

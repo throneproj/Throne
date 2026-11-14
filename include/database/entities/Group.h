@@ -155,13 +155,15 @@ namespace Configs
         int visible_columns = 0x47;
         QList<int> calculated_column_width; // memory only, no need to save to db
         QList<int> profiles;
-        // Always the head of `profiles`, in this order; sorts only order the rows below them.
+        // Last custom arrangement of all profiles; pinning does not change it.
+        QList<int> custom_order;
+        // Pinned membership and custom order, independent from the ordinary profiles.
         QList<int> pinned;
         int scroll_last_profile = -1;
         testBy test_sort_by = testBy::latency;
         trafficBy traffic_sort_by = trafficBy::total;
         typeBy type_sort_by = typeBy::byType;
-        // The order the profiles are kept in as they change; Raw keeps the manual order.
+        // The underlying order maintained by the active sort; custom_order is its saved baseline.
         GroupSortAction sort;
         // Memory only. Pairs of (profileID, row as displayed).
         QList<std::pair<int, int>> selectedProfilesIdIdxPairs;
@@ -172,18 +174,22 @@ namespace Configs
 
         [[nodiscard]] QList<int> Profiles() const;
 
+        [[nodiscard]] QList<int> DisplayedProfiles() const;
+
         [[nodiscard]] bool SortReads(SortInput input) const;
 
         [[nodiscard]] bool KeepsSorted() const;
 
         void SetSort(GroupSortAction action);
 
+        void RestoreOriginalOrder();
+
         // The sorts below load profiles, so call them off the UI thread. Each is true when the order moved.
 
         // Sorts by `action` and keeps the group sorted that way.
         bool SortProfiles(GroupSortAction action);
 
-        // Re-applies the kept sort to every unpinned row.
+        // Re-applies the kept sort to all profiles.
         bool Resort();
 
         // Moves just the changed profiles into place; the rest must still be sorted. Falls back to Resort when many changed.
@@ -197,9 +203,6 @@ namespace Configs
 
         bool AddProfileBatch(const QList<int>& IDs);
 
-        // False for a swap across the pinned block's edge.
-        bool SwapProfiles(int idx1, int idx2);
-
         [[nodiscard]] bool HasProfile(int ID) const;
 
         [[nodiscard]] int PinnedCount() const;
@@ -209,13 +212,14 @@ namespace Configs
         // The unpinned ones of IDs join the end of the pinned block in list order; true when any was pinned.
         bool PinProfiles(const QList<int>& IDs);
 
-        // The pinned ones of IDs lead the unpinned rows; returns them.
+        // Removes pins without changing the underlying order; returns the unpinned profiles.
         QList<int> UnpinProfiles(const QList<int>& IDs);
 
-        // Drops row `from` above or below `target`, pinned iff `target` is; landing among unpinned rows stops a kept sort. The new row, or -1.
+        // Drops above/below target, adopting its pinned state; target == row count means the unpinned end.
+        // A sorted drag saves the resulting display as the custom order and stops sorting. Returns the new row or -1.
         int MoveProfile(int from, int target, bool below);
 
-        // Re-heads `profiles` with `pinned` after a wholesale rewrite, dropping pins of unlisted profiles; true when anything changed.
+        // Drops missing or duplicate pins after a wholesale rewrite; true when any were removed.
         bool NormalizePins();
     };
 }// namespace Configs

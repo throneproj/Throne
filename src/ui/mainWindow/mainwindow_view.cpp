@@ -558,12 +558,12 @@ void MainWindow::sortCurrentGroup(GroupSortAction action) {
     Configs::ResortLater(group->id);
 }
 
-void MainWindow::stopSortingCurrentGroup() {
+void MainWindow::restoreOriginalOrder() {
     const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
     if (group == nullptr) return;
-    group->SetSort({});
+    group->RestoreOriginalOrder();
     Configs::dataManager->groupsRepo->Save(group);
-    refresh_sort_indicator();
+    refresh_proxy_list({}, true);
 }
 
 void MainWindow::refresh_proxy_list_impl_refresh_data(const QList<int>& ids, bool mayNeedReset) {
@@ -572,7 +572,7 @@ void MainWindow::refresh_proxy_list_impl_refresh_data(const QList<int>& ids, boo
     if (!ids.isEmpty()) {
         for (auto id:ids) profilesTableModel->refreshProfileId(id);
     } else {
-        profilesTableModel->refreshTable(currentGroup->profiles, currentGroup->PinnedCount(), mayNeedReset);
+        profilesTableModel->refreshTable(currentGroup->DisplayedProfiles(), currentGroup->PinnedCount(), mayNeedReset);
     }
 }
 

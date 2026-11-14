@@ -45,6 +45,7 @@ namespace Configs {
                 import_sub_route INTEGER NOT NULL DEFAULT 0,
                 pinned_json TEXT NOT NULL DEFAULT '[]',
                 visible_columns INTEGER NOT NULL DEFAULT 71,
+                custom_order_json TEXT NOT NULL DEFAULT '[]',
                 created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
             )
@@ -66,6 +67,8 @@ namespace Configs {
             db.exec("ALTER TABLE groups ADD COLUMN route_id INTEGER NOT NULL DEFAULT -1");
         if (!groupsColumnExists("import_sub_route"))
             db.exec("ALTER TABLE groups ADD COLUMN import_sub_route INTEGER NOT NULL DEFAULT 0");
+        if (!groupsColumnExists("custom_order_json"))
+            db.exec("ALTER TABLE groups ADD COLUMN custom_order_json TEXT NOT NULL DEFAULT '[]'");
         if (!groupsColumnExists("visible_columns"))
             db.exec("ALTER TABLE groups ADD COLUMN visible_columns INTEGER NOT NULL DEFAULT 71");
         if (!groupsColumnExists("pinned_json"))
@@ -141,6 +144,7 @@ namespace Configs {
         json["column_width"] = QListInt2QJsonArray(group->column_width);
         json["visible_columns"] = group->visible_columns;
         json["profiles"] = QListInt2QJsonArray(group->profiles);
+        json["custom_order"] = QListInt2QJsonArray(group->custom_order);
         json["pinned"] = QListInt2QJsonArray(group->pinned);
         json["scroll_last_profile"] = group->scroll_last_profile;
         json["test_sort_by"] = static_cast<int>(group->test_sort_by);
@@ -179,6 +183,7 @@ namespace Configs {
                                    0, 0, 0, group->column_width[4]};
         }
         group->profiles = QJsonArray2QListInt(json["profiles"].toArray());
+        group->custom_order = QJsonArray2QListInt(json["custom_order"].toArray());
         group->pinned = QJsonArray2QListInt(json["pinned"].toArray());
         group->scroll_last_profile = json["scroll_last_profile"].toInt(-1);
         group->test_sort_by = static_cast<testBy>(json["test_sort_by"].toInt(0));
@@ -204,6 +209,7 @@ namespace Configs {
         QString subOptionsJson = QString::fromUtf8(QJsonDocument(group->sub_options.ToJson()).toJson(QJsonDocument::Compact));
         QString subMetadataJson = QString::fromUtf8(QJsonDocument(group->sub_info.toJson()).toJson(QJsonDocument::Compact));
         QString endpointJson = QString::fromUtf8(QJsonDocument(group->endpoint.ToJson()).toJson(QJsonDocument::Compact));
+        const auto customOrderJson = QJsonDocument(QListInt2QJsonArray(group->custom_order)).toJson(QJsonDocument::Compact);
         QString pinnedJson = QString::fromUtf8(QJsonDocument(QListInt2QJsonArray(group->pinned)).toJson(QJsonDocument::Compact));
 
         db.exec(R"(
@@ -212,8 +218,8 @@ namespace Configs {
              front_proxy_id, landing_proxy_id,
              column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by,
              type_sort_by, sub_options_json, sub_metadata_json, endpoint_json, sort_method, sort_descending,
-             route_id, import_sub_route, pinned_json, visible_columns)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             route_id, import_sub_route, pinned_json, visible_columns, custom_order_json)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 archive = excluded.archive, skip_auto_update = excluded.skip_auto_update,
                 auto_clear_unavailable = excluded.auto_clear_unavailable, name = excluded.name,
@@ -227,6 +233,7 @@ namespace Configs {
                 sort_method = excluded.sort_method, sort_descending = excluded.sort_descending,
                 route_id = excluded.route_id, import_sub_route = excluded.import_sub_route,
                 pinned_json = excluded.pinned_json, visible_columns = excluded.visible_columns,
+                custom_order_json = excluded.custom_order_json,
                 updated_at = strftime('%s', 'now')
         )",
             id,
@@ -253,7 +260,8 @@ namespace Configs {
             group->route_id,
             group->import_sub_route ? 1 : 0,
             pinnedJson.toStdString(),
-            group->visible_columns
+            group->visible_columns,
+            customOrderJson.toStdString()
         );
     }
 
@@ -263,7 +271,7 @@ namespace Configs {
                    front_proxy_id, landing_proxy_id,
                    column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by,
                    type_sort_by, sub_options_json, sub_metadata_json, endpoint_json, sort_method, sort_descending,
-                   route_id, import_sub_route, pinned_json, visible_columns
+                   route_id, import_sub_route, pinned_json, visible_columns, custom_order_json
             FROM groups WHERE id = ?
         )", id);
         if (!query || !query->executeStep()) {
@@ -302,6 +310,7 @@ namespace Configs {
         json["test_sort_by"] = query->getColumn(13).getInt();
         json["traffic_sort_by"] = query->getColumn(14).getInt();
         json["visible_columns"] = query->getColumn(24).getInt();
+        json["custom_order"] = QJsonDocument::fromJson(QByteArray(query->getColumn(25).getText())).array();
         json["type_sort_by"] = query->getColumn(15).getInt();
         if (const auto subOptionsDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(16).getText()));
             subOptionsDoc.isObject()) {
@@ -336,7 +345,7 @@ namespace Configs {
         }
         bool repaired = unique.size() != group->profiles.size();
         if (repaired) group->profiles = std::move(unique);
-        // A save between a wholesale rewrite of the order and its NormalizePins leaves the pins apart from the head.
+        // A wholesale rewrite can remove profiles that were pinned.
         if (group->NormalizePins()) repaired = true;
         // The caller (GetGroup) already holds the mutex, so write straight through.
         if (repaired) saveToDatabase(group.get(), group->id);

@@ -4730,6 +4730,14 @@ Close without saving?</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>Changing the order will prevent you from restoring the order before sorting. Are you sure you want to change the order?</source>
+        <translation>پس از تغییر ترتیب، دیگر نمی‌توانید ترتیب پیش از مرتب‌سازی را بازیابی کنید. آیا مطمئن هستید که می‌خواهید ترتیب را تغییر دهید؟</translation>
+    </message>
+    <message>
+        <source>Restore Original Order</source>
+        <translation>بازیابی ترتیب اولیه</translation>
+    </message>
+    <message>
         <source>Show:</source>
         <translation>نمایش:</translation>
     </message>

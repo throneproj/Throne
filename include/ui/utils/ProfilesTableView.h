@@ -8,14 +8,17 @@ class ProfilesTableView : public QTableView {
 public:
     explicit ProfilesTableView(QWidget *parent = nullptr);
 
-    // Drop-to-reorder: the dragged row lands above or below `target`; both are source-model rows, not view rows.
+    // Drops in source-model rows; target == row count means the unpinned end.
     std::function<void(int from, int target, bool below)> rowDropped;
+
+    void updatePinnedIndicator();
 
     void setModel(QAbstractItemModel *model) override;
 
     int firstVisibleRow();
 
 protected:
+    void startDrag(Qt::DropActions supportedActions) override;
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dragMoveEvent(QDragMoveEvent *event) override;
     void dropEvent(QDropEvent *event) override;
