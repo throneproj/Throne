@@ -52,8 +52,8 @@ namespace Configs
 
     QString Profile::DisplaySpeed() const {
         QString result;
-        if (!dl_speed.isEmpty() && dl_speed != QLatin1String("N/A")) result = QStringLiteral("↓") + dl_speed;
-        if (!ul_speed.isEmpty() && ul_speed != QLatin1String("N/A")) {
+        if (!dl_speed.isEmpty()) result = QStringLiteral("↓") + dl_speed;
+        if (!ul_speed.isEmpty()) {
             if (!result.isEmpty()) result += ' ';
             result += QStringLiteral("↑") + ul_speed;
         }
