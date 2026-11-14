@@ -23,9 +23,9 @@ namespace Configs {
 class ProfilesTableFilterHeader : public QHeaderView {
     Q_OBJECT
 public:
-    // The band is the header's own child: setOffset() scrolls viewport children.
+    // A table child spans the row-number gutter and stays fixed during horizontal scrolling.
     explicit ProfilesTableFilterHeader(QWidget *parent = nullptr)
-        : QHeaderView(Qt::Horizontal, parent), m_subCard(new SubscriptionInfoCard(this)) {
+        : QHeaderView(Qt::Horizontal, parent), m_subCard(new SubscriptionInfoCard(parent)) {
         setSectionsClickable(true);
         setDefaultAlignment(Qt::AlignHCenter | Qt::AlignTop);
 
@@ -209,7 +209,10 @@ public slots:
 
     void adjustPositions() {
         if (!m_subCard->isHidden()) {
-            m_subCard->setGeometry(0, 0, width(), m_subCard->height());
+            const QRect tableRect = parentWidget()->contentsRect();
+            const QPoint headerPos = mapTo(parentWidget(), QPoint(0, 0));
+            m_subCard->setGeometry(tableRect.left(), headerPos.y(),
+                                   headerPos.x() + width() - tableRect.left(), m_subCard->height());
             m_subCard->raise();
         }
 
