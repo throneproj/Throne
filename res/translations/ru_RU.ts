@@ -9989,6 +9989,34 @@ Improves hole-punching reliability. Requires IPv4.</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>Changing the order will prevent you from restoring the order before sorting. Are you sure you want to change the order?</source>
+        <translation>После изменения порядка восстановить порядок до сортировки будет невозможно. Вы уверены, что хотите изменить порядок?</translation>
+    </message>
+    <message>
+        <source>Restore Original Order</source>
+        <translation>Восстановить исходный порядок</translation>
+    </message>
+    <message>
+        <source>Show:</source>
+        <translation>Показывать:</translation>
+    </message>
+    <message>
+        <source>Test Latency</source>
+        <translation>Проверить задержку</translation>
+    </message>
+    <message>
+        <source>Test Exit IP</source>
+        <translation>Проверить выходной IP</translation>
+    </message>
+    <message>
+        <source>Test Speed</source>
+        <translation>Проверить скорость</translation>
+    </message>
+    <message>
+        <source>Clear Results</source>
+        <translation>Очистить результаты</translation>
+    </message>
+    <message>
         <source>Connect</source>
         <translation>Подключиться</translation>
     </message>
@@ -11582,8 +11610,16 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
         <translation>Название</translation>
     </message>
     <message>
-        <source>Test Result</source>
-        <translation>Результат теста</translation>
+        <source>Latency</source>
+        <translation>Задержка</translation>
+    </message>
+    <message>
+        <source>Exit IP</source>
+        <translation>Выходной IP</translation>
+    </message>
+    <message>
+        <source>Speed</source>
+        <translation>Скорость</translation>
     </message>
     <message>
         <source>Traffic</source>

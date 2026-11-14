@@ -14,6 +14,7 @@
 #include <algorithm>
 
 #include "include/configs/generate.h"
+#include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
 
 ProfilesTableModel::ProfilesTableModel(QObject *parent)
@@ -42,7 +43,7 @@ Qt::DropActions ProfilesTableModel::supportedDropActions() const {
 }
 
 QStringList ProfilesTableModel::mimeTypes() const {
-    return {"application/profile-row-number"};
+    return {"application/profile-id"};
 }
 
 QMimeData* ProfilesTableModel::mimeData(const QModelIndexList &indexes) const {
@@ -52,10 +53,10 @@ QMimeData* ProfilesTableModel::mimeData(const QModelIndexList &indexes) const {
     QDataStream stream(&encodedData, QIODevice::WriteOnly);
 
     if (!indexes.isEmpty()) {
-        stream << indexes.at(0).row();
+        stream << indexes.at(0).data(ProfileIdRole).toInt();
     }
 
-    mimeData->setData("application/profile-row-number", encodedData);
+    mimeData->setData("application/profile-id", encodedData);
     return mimeData;
 }
 
@@ -129,7 +130,9 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
             return address.value();
         }
         case ColName: return profile->outbound ? profile->outbound->name : QString();
-        case ColTestResult: return profile->DisplayTestResult();
+        case ColLatency: return profile->DisplayLatency();
+        case ColExitIP: return profile->DisplayExitIP();
+        case ColSpeed: return profile->DisplaySpeed();
         case ColTraffic: return profile->DisplayTraffic();
         default: return {};
         }
@@ -140,19 +143,22 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
             if (security.compromised) return tr("Certificate checks are turned off by the \"Skip TLS certificate authentication\" setting.");
             if (security.isDangerous()) return tr("This config's traffic is not properly protected.");
         }
-        if (index.column() == ColTestResult && !profile->service_checks.isEmpty()) return ServiceCheckHtml::details(*profile);
+        if ((index.column() == ColLatency || index.column() == ColExitIP || index.column() == ColSpeed)
+            && !profile->service_checks.isEmpty()) return ServiceCheckHtml::details(*profile);
         return {};
     }
     if (role == Qt::ForegroundRole) {
-        if (index.column() == ColTestResult) {
-            QColor latencyColor = profile->DisplayLatencyColor();
-            if (latencyColor.isValid()) return latencyColor;
+        if (index.column() == ColLatency) {
+            const QColor latencyColor = profile->DisplayLatencyColor();
+            return latencyColor.isValid() ? QVariant(latencyColor) : QVariant();
         }
+        if (index.column() == ColExitIP || index.column() == ColSpeed) return {};
         if (isRunning && linkColor.isValid()) return linkColor;
         return {};
     }
-    if (role == Qt::BackgroundRole && isRunning && tokens.runningRow.isValid()) {
-        return tokens.runningRow;
+    if (role == Qt::BackgroundRole) {
+        if (isPinnedRow(index.row())) return QColor(220, 242, 220);
+        if (isRunning && tokens.runningRow.isValid()) return tokens.runningRow;
     }
     return {};
 }
@@ -164,7 +170,9 @@ QVariant ProfilesTableModel::headerData(int section, Qt::Orientation orientation
         case ColType: return tr("Type");
         case ColAddress: return tr("Address");
         case ColName: return tr("Name");
-        case ColTestResult: return tr("Test Result");
+        case ColLatency: return tr("Latency");
+        case ColExitIP: return tr("Exit IP");
+        case ColSpeed: return tr("Speed");
         case ColTraffic: return tr("Traffic");
         default: return {};
         }
@@ -301,37 +309,26 @@ void ProfilesTableModel::invalidateAddresses() {
     emit dataChanged(index(0, ColAddress), index(static_cast<int>(m_profileIds.size()) - 1, ColAddress), {Qt::DisplayRole});
 }
 
-void ProfilesTableModel::moveProfile(int from, int to, int pinnedCount) {
-    const auto count = static_cast<int>(m_profileIds.size());
-    if (from < 0 || to < 0 || from >= count || to >= count) return;
-    m_profileIds.move(from, to);
-    int first = std::min(from, to);
-    int last = std::max(from, to);
-    for (int i = first; i <= last; ++i) id2row[m_profileIds[i]] = i;
-
-    const int oldPinned = m_pinnedCount;
-    setPinnedCount(pinnedCount);
-    if (m_pinnedCount != oldPinned) {
-        // The divider under the last pinned row moves with the count.
-        first = std::max(std::min({first, oldPinned - 1, m_pinnedCount - 1}), 0);
-        last = std::max({last, oldPinned - 1, m_pinnedCount - 1});
-    }
-    emit dataChanged(index(first, 0), index(last, ColumnCount - 1));
-}
-
 int ProfilesTableModel::indexOfProfile(int id) {
     if (id2row.contains(id)) return id2row.value(id);
     return -1;
 }
 
-int ProfilesTableModel::columnOfSort(GroupSortMethod::GroupSortMethod method) {
-    switch (method) {
+int ProfilesTableModel::columnOfSort(const Configs::Group &group) {
+    switch (group.sort.method) {
     case GroupSortMethod::ByType:
     case GroupSortMethod::BySecurity: return ColType;
     case GroupSortMethod::ByAddress: return ColAddress;
     case GroupSortMethod::ByName: return ColName;
+    case GroupSortMethod::ByLatency: return ColLatency;
     case GroupSortMethod::ByTestResult:
-    case GroupSortMethod::ByLatency: return ColTestResult;
+        switch (group.test_sort_by) {
+        case Configs::testBy::latency: return ColLatency;
+        case Configs::testBy::ipOut: return ColExitIP;
+        case Configs::testBy::dlSpeed:
+        case Configs::testBy::ulSpeed: return ColSpeed;
+        default: return -1;
+        }
     case GroupSortMethod::ByTraffic: return ColTraffic;
     default: return -1;
     }
@@ -342,7 +339,9 @@ GroupSortMethod::GroupSortMethod ProfilesTableModel::sortOfColumn(int column) {
     case ColType: return GroupSortMethod::ByType;
     case ColAddress: return GroupSortMethod::ByAddress;
     case ColName: return GroupSortMethod::ByName;
-    case ColTestResult: return GroupSortMethod::ByTestResult;
+    case ColLatency: return GroupSortMethod::ByLatency;
+    case ColExitIP:
+    case ColSpeed: return GroupSortMethod::ByTestResult;
     case ColTraffic: return GroupSortMethod::ByTraffic;
     default: return GroupSortMethod::Raw;
     }

@@ -146,6 +146,46 @@ namespace Configs
         return profiles;
     }
 
+    QList<int> Group::DisplayedProfiles() const {
+        const QSet<int> existing(profiles.cbegin(), profiles.cend());
+        QSet<int> pinnedSet(pinned.cbegin(), pinned.cend());
+        pinnedSet.intersect(existing);
+
+        if (KeepsSorted()) {
+            QList<int> pinned;
+            QList<int> ordinary;
+            pinned.reserve(profiles.size());
+            ordinary.reserve(profiles.size());
+            for (int id : profiles) {
+                (pinnedSet.contains(id) ? pinned : ordinary).append(id);
+            }
+            pinned += ordinary;
+            return pinned;
+        }
+
+        QList<int> displayed;
+        displayed.reserve(profiles.size());
+        for (int id : pinned) if (existing.contains(id)) displayed.append(id);
+
+        QHash<int, int> remaining;
+        for (int id : profiles) {
+            if (!pinnedSet.contains(id)) ++remaining[id];
+        }
+        for (int id : custom_order) {
+            if (!pinnedSet.contains(id) && remaining.value(id) > 0) {
+                displayed.append(id);
+                --remaining[id];
+            }
+        }
+        for (int id : profiles) {
+            if (!pinnedSet.contains(id) && remaining.value(id) > 0) {
+                displayed.append(id);
+                --remaining[id];
+            }
+        }
+        return displayed;
+    }
+
     double bitrateToBps(const QString& str)
     {
         if (str.endsWith("Gbps", Qt::CaseInsensitive)) {
@@ -312,7 +352,38 @@ namespace Configs
 
     void Group::SetSort(GroupSortAction action) {
         QMutexLocker locker(&mutex);
+        if (custom_order.isEmpty() && !KeepsSorted() && action.method != GroupSortMethod::Raw) custom_order = profiles;
         sort = action;
+    }
+
+    void Group::RestoreOriginalOrder() {
+        QMutexLocker locker(&mutex);
+        sort = {};
+        QList<int> restored;
+        restored.reserve(profiles.size());
+        if (custom_order.isEmpty()) {
+            restored = profiles;
+            std::ranges::sort(restored);
+        } else {
+            QHash<int, int> remaining;
+            for (int id : profiles) ++remaining[id];
+            for (int id : custom_order) {
+                if (remaining.value(id) > 0) {
+                    restored.append(id);
+                    --remaining[id];
+                }
+            }
+            // Newly imported members follow the current baseline in import order.
+            const auto baselineSize = restored.size();
+            for (int id : profiles) {
+                if (remaining.value(id) > 0) {
+                    restored.append(id);
+                    --remaining[id];
+                }
+            }
+            std::ranges::sort(restored.begin() + baselineSize, restored.end());
+        }
+        profiles = std::move(restored);
     }
 
     bool Group::SortProfiles(GroupSortAction action) {
@@ -333,13 +404,12 @@ namespace Configs
                 action = sort;
             }
 
-            const qsizetype head = std::min(pins.size(), snapshot.size());
             const SortRule rule(*this, action);
             SortKeys keys(rule);
-            keys.load(snapshot.sliced(head));
+            keys.load(snapshot);
             // Stable, so a re-sort leaves rows with equal keys where they were.
             QList<int> order = snapshot;
-            std::ranges::stable_sort(order.begin() + head, order.end(), [&keys](int a, int b) { return keys.less(a, b); });
+            std::ranges::stable_sort(order, [&keys](int a, int b) { return keys.less(a, b); });
 
             switch (commit(*this, snapshot, pins, action, std::move(order))) {
                 case Commit::Moved: return true;
@@ -365,46 +435,43 @@ namespace Configs
                 action = sort;
             }
 
-            // Pinned rows head the list and stay out of the sort, changed or not.
-            const qsizetype head = std::min(pins.size(), snapshot.size());
             const qsizetype count = snapshot.size();
             QList<qsizetype> positions;
-            for (qsizetype i = head; i < count; ++i) {
+            for (qsizetype i = 0; i < count; ++i) {
                 if (changedSet.contains(snapshot[i])) positions << i;
             }
             if (positions.isEmpty()) return false;
             // A full sort loads each row once, a reinsertion about log2(n) rows one by one.
-            const qsizetype sorted = count - head;
-            const auto probes = static_cast<qsizetype>(std::bit_width(static_cast<quint64>(sorted))) + 4;
-            if (positions.size() * probes >= sorted) return Resort();
+            const auto probes = static_cast<qsizetype>(std::bit_width(static_cast<quint64>(count))) + 4;
+            if (positions.size() * probes >= count) return Resort();
 
             const SortRule rule(*this, action);
             SortKeys keys(rule);
             QList<int> around;
             for (const auto i : positions) {
                 around << snapshot[i];
-                if (i > head) around << snapshot[i - 1];
+                if (i > 0) around << snapshot[i - 1];
                 if (i + 1 < count) around << snapshot[i + 1];
             }
             keys.load(around);
             // The rest was sorted before, so the whole list still is when every changed row fits its neighbours.
             const bool inPlace = std::ranges::all_of(positions, [&](qsizetype i) {
-                return (i == head || !keys.less(snapshot[i], snapshot[i - 1]))
+                return (i == 0 || !keys.less(snapshot[i], snapshot[i - 1]))
                        && (i + 1 == count || !keys.less(snapshot[i + 1], snapshot[i]));
             });
             if (inPlace) return false;
 
             // Lift every changed row, not just the misplaced ones: a fitting row's neighbour may be leaving too.
-            QList<int> order = snapshot.first(head);
+            QList<int> order;
             order.reserve(count);
-            for (qsizetype i = head; i < count; ++i) {
+            for (qsizetype i = 0; i < count; ++i) {
                 if (!changedSet.contains(snapshot[i])) order << snapshot[i];
             }
             for (const auto i : positions) {
                 const int id = snapshot[i];
                 const auto key = keys.get(id);
                 // After equal keys, where a stable sort leaves a row that came last.
-                const auto at = std::upper_bound(order.cbegin() + head, order.cend(), key, [&](const SortKey &k, int other) {
+                const auto at = std::upper_bound(order.cbegin(), order.cend(), key, [&](const SortKey &k, int other) {
                     return rule.less(k, keys.get(other));
                 });
                 order.insert(at, id);
@@ -450,6 +517,7 @@ namespace Configs
         if (!HasProfile(ID)) return false;
         profiles.removeAll(ID);
         pinned.removeAll(ID);
+        custom_order.removeAll(ID);
         return true;
     }
 
@@ -467,17 +535,7 @@ namespace Configs
         }
         profiles = newIDs;
         pinned.removeIf([&toDel](int id) { return toDel.contains(id); });
-        return true;
-    }
-
-    bool Group::SwapProfiles(int idx1, int idx2)
-    {
-        QMutexLocker locker(&mutex);
-        if (profiles.size() <= idx1 || profiles.size() <= idx2) return false;
-        const qsizetype head = pinned.size();
-        if ((idx1 < head) != (idx2 < head)) return false;
-        profiles.swapItemsAt(idx1, idx2);
-        if (idx1 < head) pinned.swapItemsAt(idx1, idx2);
+        custom_order.removeIf([&toDel](int id) { return toDel.contains(id); });
         return true;
     }
 
@@ -497,43 +555,79 @@ namespace Configs
     bool Group::PinProfiles(const QList<int> &IDs) {
         const QSet<int> wanted(IDs.cbegin(), IDs.cend());
         QMutexLocker locker(&mutex);
-        QList<int> joining;
-        QList<int> rest;
-        for (qsizetype i = pinned.size(); i < profiles.size(); ++i) {
-            (wanted.contains(profiles[i]) ? joining : rest) << profiles[i];
+        bool changed = false;
+        for (int id : DisplayedProfiles()) {
+            if (!wanted.contains(id) || pinned.contains(id)) continue;
+            pinned << id;
+            changed = true;
         }
-        if (joining.isEmpty()) return false;
-        pinned << joining;
-        profiles = pinned + rest;
-        return true;
+        return changed;
     }
 
     QList<int> Group::UnpinProfiles(const QList<int> &IDs) {
         const QSet<int> wanted(IDs.cbegin(), IDs.cend());
         QMutexLocker locker(&mutex);
-        QList<int> kept;
         QList<int> leaving;
-        for (int id : pinned) (wanted.contains(id) ? leaving : kept) << id;
-        if (leaving.isEmpty()) return {};
-        profiles = kept + leaving + profiles.mid(pinned.size());
-        pinned = kept;
+        for (int id : pinned) if (wanted.contains(id)) leaving << id;
+        pinned.removeIf([&wanted](int id) { return wanted.contains(id); });
         return leaving;
     }
 
-    int Group::MoveProfile(int from, int target, bool below) {
+    int Group::MoveProfile(int from, int target, bool below)
+    {
         QMutexLocker locker(&mutex);
-        const auto count = static_cast<int>(profiles.size());
-        if (from < 0 || from >= count || target < 0 || target >= count) return -1;
-        const auto head = static_cast<int>(pinned.size());
-        const bool wasPinned = from < head;
-        const bool toPinned = target < head;
-        int to = below ? target + 1 : target;
+        const bool wasSorted = KeepsSorted();
+        const auto displayed = DisplayedProfiles();
+        const auto count = static_cast<int>(displayed.size());
+        if (from < 0 || from >= count || target < 0 || target > count) return -1;
+
+        const int pinnedRows = std::count_if(displayed.cbegin(), displayed.cend(), [this](int id) {
+            return pinned.contains(id);
+        });
+        const bool sourcePinned = from < pinnedRows;
+        const bool targetPinned = target < pinnedRows;
+        int to = target == count ? count : target + (below ? 1 : 0);
         if (from < to) --to;
-        if (to == from && wasPinned == toPinned) return -1;
-        // Both blocks stay contiguous: `to` falls inside the pinned block exactly when the target was pinned.
-        profiles.move(from, to);
-        pinned = profiles.first(head - (wasPinned ? 1 : 0) + (toPinned ? 1 : 0));
-        if (!toPinned) sort = {};
+        if (to == from && sourcePinned == targetPinned) return -1;
+
+        QList<int> reordered = displayed;
+        reordered.move(from, to);
+        if (wasSorted || sourcePinned || targetPinned) {
+            QList<int> newPinned;
+            QSet<int> seen;
+            const int newPinnedRows = pinnedRows - (sourcePinned ? 1 : 0) + (targetPinned ? 1 : 0);
+            for (int id : reordered.mid(0, newPinnedRows)) {
+                if (seen.contains(id)) continue;
+                seen.insert(id);
+                newPinned.append(id);
+            }
+            pinned = std::move(newPinned);
+        }
+        if (wasSorted) {
+            // A sorted drag replaces both manual arrangements with the final displayed order.
+            custom_order = reordered;
+            profiles = custom_order;
+        } else if (!targetPinned) {
+            const QList<int> ordinary = reordered.mid(pinned.size());
+            QList<int> baseline = custom_order.isEmpty() ? profiles : custom_order;
+            const QSet<int> pinnedSet(pinned.cbegin(), pinned.cend());
+            const QSet<int> profileSet(profiles.cbegin(), profiles.cend());
+            baseline.removeIf([&profileSet](int id) { return !profileSet.contains(id); });
+            QSet<int> seen;
+            int ordinaryIndex = 0;
+            for (int &id : baseline) {
+                if (!pinnedSet.contains(id)) id = ordinary[ordinaryIndex++];
+                seen.insert(id);
+            }
+            for (int id : profiles) {
+                if (seen.contains(id)) continue;
+                baseline.append(pinnedSet.contains(id) ? id : ordinary[ordinaryIndex++]);
+                seen.insert(id);
+            }
+            custom_order = baseline;
+            profiles = custom_order;
+        }
+        sort = {};
         return to;
     }
 
@@ -548,15 +642,8 @@ namespace Configs
                 keptSet.insert(id);
             }
         }
-        const bool pruned = kept.size() != pinned.size();
-        pinned = kept;
-        if (profiles.size() >= kept.size() && std::equal(kept.cbegin(), kept.cend(), profiles.cbegin())) return pruned;
-        QList<int> order = kept;
-        order.reserve(profiles.size());
-        for (int id : profiles) {
-            if (!keptSet.contains(id)) order << id;
-        }
-        profiles = std::move(order);
-        return true;
+        const bool pruned = kept != pinned;
+        pinned = std::move(kept);
+        return pruned;
     }
 }

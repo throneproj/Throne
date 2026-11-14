@@ -433,7 +433,7 @@ private:
     // Keeps the current group sorted by `action` from now on.
     void sortCurrentGroup(GroupSortAction action);
 
-    void stopSortingCurrentGroup();
+    void restoreOriginalOrder();
 
     void refresh_proxy_list_impl(const QList<int> &ids = {}, bool mayNeedReset = false);
 
@@ -620,7 +620,7 @@ private:
     void exitProgram(ExitReason reason, bool unattended) override;
 
     // TestObserver, in mainwindow_view.cpp; synchronous, so a panel seed never lands after the next session's clear.
-    void testPanelSeeded(Engine::TestKind kind, int totalProfiles) override;
+    void testPanelSeeded(Engine::TestKind kind, int totalProfiles, const QList<int> &profileIds) override;
 
     void testProgressed() override;
 

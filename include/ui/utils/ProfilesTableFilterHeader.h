@@ -10,6 +10,7 @@
 #include <QVector>
 #include <QScrollBar>
 #include <QToolButton>
+#include <QStyle>
 
 #include "include/ui/utils/HeaderSortArrow.h"
 #include "include/ui/utils/ProfilesTableModel.h"
@@ -22,9 +23,9 @@ namespace Configs {
 class ProfilesTableFilterHeader : public QHeaderView {
     Q_OBJECT
 public:
-    // The band is the header's own child: setOffset() scrolls viewport children.
+    // A table child spans the row-number gutter and stays fixed during horizontal scrolling.
     explicit ProfilesTableFilterHeader(QWidget *parent = nullptr)
-        : QHeaderView(Qt::Horizontal, parent), m_subCard(new SubscriptionInfoCard(this)) {
+        : QHeaderView(Qt::Horizontal, parent), m_subCard(new SubscriptionInfoCard(parent)) {
         setSectionsClickable(true);
         setDefaultAlignment(Qt::AlignHCenter | Qt::AlignTop);
 
@@ -78,6 +79,8 @@ public:
     }
 
     void setLastFilterColumn(int column) {
+        // The former combined test column (3) held the country filter.
+        if (column == ProfilesTableModel::ColLatency) column = ProfilesTableModel::ColExitIP;
         m_lastFilterColumn = editForColumn(column) ? column : ProfilesTableModel::ColName;
     }
 
@@ -97,6 +100,19 @@ public:
     void focusLastFilterField() {
         if (!m_filtersVisible) return;
         QLineEdit *edit = editForColumn(m_lastFilterColumn);
+        if (!edit || isSectionHidden(columnOf(edit))) {
+            edit = nullptr;
+            for (auto *candidate : filterEdits()) {
+                if (!isSectionHidden(columnOf(candidate))) {
+                    edit = candidate;
+                    break;
+                }
+            }
+        }
+        if (!edit) {
+            emit focusTableRequested(false);
+            return;
+        }
         // Tab/Backtab/Shortcut focus reasons make QLineEdit select all; OtherFocusReason does not.
         edit->setFocus(Qt::OtherFocusReason);
         edit->end(false);
@@ -104,6 +120,8 @@ public:
 
     QSize sizeHint() const override {
         QSize s = QHeaderView::sizeHint();
+        // Keep a right-clickable header even when every column has been unchecked.
+        s.setHeight(qMax(s.height(), fontMetrics().height() + 2 * style()->pixelMetric(QStyle::PM_HeaderMargin, nullptr, this)));
         if (m_filtersVisible) {
             s.setHeight(s.height() + 32);
         }
@@ -183,6 +201,7 @@ public slots:
         for (QLineEdit *edit : filterEdits()) edit->setVisible(visible);
 
         emit geometriesChanged();
+        adjustPositions();
 
         if (visible) focusLastFilterField();
         else if (focused) emit focusTableRequested(false);
@@ -190,7 +209,10 @@ public slots:
 
     void adjustPositions() {
         if (!m_subCard->isHidden()) {
-            m_subCard->setGeometry(0, 0, width(), m_subCard->height());
+            const QRect tableRect = parentWidget()->contentsRect();
+            const QPoint headerPos = mapTo(parentWidget(), QPoint(0, 0));
+            m_subCard->setGeometry(tableRect.left(), headerPos.y(),
+                                   headerPos.x() + width() - tableRect.left(), m_subCard->height());
             m_subCard->raise();
         }
 
@@ -201,14 +223,23 @@ public slots:
 
         const int editHeight = 24;
         const int topPos = height() - editHeight - 4;
+        QLineEdit *hiddenFocus = nullptr;
 
         auto place = [&](QLineEdit *edit, int section) {
+            const bool visible = !isSectionHidden(section);
+            if (!visible) {
+                if (edit->hasFocus()) hiddenFocus = edit;
+                edit->clear();
+            }
+            edit->setVisible(visible);
+            if (!visible) return;
             edit->setGeometry(sectionViewportPosition(section) + 2, topPos, sectionSize(section) - 4, editHeight);
         };
         place(type_filter, ProfilesTableModel::ColType);
         place(address_filter, ProfilesTableModel::ColAddress);
         place(name_filter, ProfilesTableModel::ColName);
-        place(test_filter, ProfilesTableModel::ColTestResult);
+        place(test_filter, ProfilesTableModel::ColExitIP);
+        if (hiddenFocus) focusLastFilterField();
     }
 
 signals:
@@ -252,7 +283,7 @@ private:
         case ProfilesTableModel::ColType:       return type_filter;
         case ProfilesTableModel::ColAddress:    return address_filter;
         case ProfilesTableModel::ColName:       return name_filter;
-        case ProfilesTableModel::ColTestResult: return test_filter;
+        case ProfilesTableModel::ColExitIP:     return test_filter;
         default:                                return nullptr;
         }
     }
@@ -261,7 +292,7 @@ private:
         if (edit == type_filter)    return ProfilesTableModel::ColType;
         if (edit == address_filter) return ProfilesTableModel::ColAddress;
         if (edit == name_filter)    return ProfilesTableModel::ColName;
-        if (edit == test_filter)    return ProfilesTableModel::ColTestResult;
+        if (edit == test_filter)    return ProfilesTableModel::ColExitIP;
         return -1;
     }
 

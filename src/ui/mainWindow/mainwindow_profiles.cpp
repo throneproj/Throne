@@ -101,8 +101,6 @@ void MainWindow::on_menu_pin_triggered() {
     }
     Configs::dataManager->groupsRepo->Save(group);
     refresh_proxy_list({}, true);
-    // They wait at the top of the unpinned rows until a kept sort places them.
-    if (!unpinned.isEmpty()) Configs::RepositionLater(QHash<int, QList<int>>{{group->id, unpinned}}, Configs::SortInput::Membership);
 }
 
 void MainWindow::on_menu_delete_repeat_triggered() {

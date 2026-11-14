@@ -321,7 +321,7 @@ void MainWindow::dialog_message_impl(MwMessage cmd, const QStringList &args) {
             // Both settings feed the security a Type sort reads.
             for (const int gid : Configs::dataManager->groupsRepo->GetAllGroupIds()) {
                 const auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
-                if (group != nullptr && ProfilesTableModel::columnOfSort(group->sort.method) == ProfilesTableModel::ColType) {
+                if (group != nullptr && ProfilesTableModel::columnOfSort(*group) == ProfilesTableModel::ColType) {
                     Configs::ResortLater(gid);
                 }
             }

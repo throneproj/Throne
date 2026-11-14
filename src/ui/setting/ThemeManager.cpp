@@ -398,6 +398,9 @@ void ThemeManager::ApplyTheme(const QString &theme, bool force) {
         macosPane = styleName.compare(QStringLiteral("macos"), Qt::CaseInsensitive) == 0;
     }
 
+    // Inner radius of the pane's one-pixel border; square themes must also clear old masks.
+    m_paneCornerRadius = macosPane ? 5 : (windows11Tabs || lowerTheme == "qdarkstyle" ? 3 : 0);
+
     // After setStyle(), which reinstalls the style's palette. Setting the sheet last is also
     // what clears the render-rule cache; a bare setPalette() does not.
     tokens = resolveTokens(qApp->palette());

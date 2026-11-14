@@ -361,7 +361,7 @@ jobs:
         if: contains( matrix.platform, 'ubuntu' ) && matrix.qt_version == '6.2.0'
         run: |
           sudo apt update
-          sudo apt install -y qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools libqt6svg6-dev qt6-translations-l10n libglx-dev libgl1-mesa-dev
+          sudo apt install -y qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools qt6-translations-l10n libglx-dev libgl1-mesa-dev
           mkdir build
           cd build
           curl -fLso srslist.h "https://raw.githubusercontent.com/throneproj/routeprofiles/rule-set/srslist.h"
