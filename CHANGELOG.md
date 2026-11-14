@@ -1,3 +1,42 @@
+#### 1.4.2
+
+* Add Tor as an egress option **1**
+* Add Rule Tester and a program picker for process rules
+* Add profile pinning
+* Add QUIC Opener **2**
+* Allow multiple DNS servers, queried in parallel
+* Allow an auto selector inside a chain and add hop-by-hop chain testing
+* Add Service Check (experimental) **3**
+* Add DPI evasion settings scan (experimental) **4**
+* Add subscription profile filters (experimental)
+* Add priority tiers and passive scoring to the auto selector (experimental)
+* Run only the core as administrator on Windows **5**
+* Reorganize the settings dialogs
+* Improve subscription updates and Clash import
+* Improve WireGuard handshake DPI resistance
+* Rework Juicity and TrustTunnel for better compatibility
+* Remove the Tailscale state directory option **6**
+* Update sing-box and Mieru
+* Fixes and Improvements
+
+**1**:
+Routing Settings > Egress > Tor sends traffic through the Tor network after the selected server and opens `.onion` sites. Tor binary is downloaded from the Tor Project when you first enable it.
+
+**2**:
+Found in a profile's Advanced settings. It sends a decoy packet before each new UDP flow, so networks that block QUIC by its first packet let MASQUE, Hysteria2 and TUIC through.
+
+**3**:
+Service Check, in the profile context menu, tests which services (ChatGPT, Gemini, Netflix, YouTube Premium, ...) work through a profile and what kind of IP it exits from.
+
+**4**:
+Scan DPI evasion settings, in the profile context menu, tests variations of a profile's anti-DPI settings on your network and lets you apply the one that works best.
+
+**5**:
+Tun mode and the kill switch now ask once to Grant Privileges, after which Throne itself no longer needs to run as administrator.
+
+**6**:
+Tailscale profiles now keep their state in a fixed folder, so they need to log in once more after updating.
+
 #### 1.4.1
 
 ### Join [Throne's Telegram channel](https://t.me/ThroneProj) for announcements and community support
