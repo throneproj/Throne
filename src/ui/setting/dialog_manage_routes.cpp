@@ -41,7 +41,7 @@
 #include "include/ui/utils/UiMode.h"
 
 namespace {
-    constexpr auto defaultWarpApiHost = "api.cloudflareclient.com";
+    constexpr auto defaultWarpApiHost = "api.devices.cloudflare.com";
 
     constexpr int manageRoutesDefaultCacheCapacity = 65536;
 
