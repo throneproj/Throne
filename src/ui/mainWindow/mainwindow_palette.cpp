@@ -51,6 +51,7 @@ void MainWindow::createCommandPalette() {
                                             {ui->toolButton_routing->text(), ui->menuRouting_Menu},
                                             {ui->toolButton_tools->text(), ui->menuTools},
                                             {ui->menu_server->title(), ui->menu_server},
+                                            {ui->menu_profiles_space->title(), ui->menu_profiles_space},
                                         },
                                         commandPaletteAction);
     // Reading the settings forms costs a few milliseconds, so it waits for the first open.

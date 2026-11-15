@@ -3718,20 +3718,20 @@ Throne will restart to complete the restore.</source>
         </translation>
     </message>
     <message>
-        <source>From text…</source>
-        <translation>Из текста…</translation>
+        <source>From text</source>
+        <translation>Из текста</translation>
     </message>
     <message>
-        <source>From file…</source>
-        <translation>Из файла…</translation>
+        <source>From file</source>
+        <translation>Из файла</translation>
     </message>
     <message>
-        <source>From URL…</source>
-        <translation>По URL…</translation>
+        <source>From URL</source>
+        <translation>По URL</translation>
     </message>
     <message>
-        <source>From rule-set…</source>
-        <translation>Из набора правил…</translation>
+        <source>From rule-set</source>
+        <translation>Из набора правил</translation>
     </message>
     <message>
         <source>Add default lists</source>
@@ -4324,8 +4324,8 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;В некоторых конфигурациях локальный DNS использовать нельзя — тогда укажите здесь IP-адрес, который будет использоваться как локальный DNS&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <source>Local Override</source>
-        <translation>Переопределение локального DNS</translation>
+        <source>Resolver for DNS server names</source>
+        <translation>Резолвер имен DNS-серверов</translation>
     </message>
     <message>
         <source>Import from clipboard</source>
@@ -4714,16 +4714,16 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>Все профили как ссылку otpauth-migration:// и QR-код</translation>
     </message>
     <message>
-        <source>All as JSON file...</source>
-        <translation>Все профили в JSON-файл...</translation>
+        <source>All as JSON file</source>
+        <translation>Все профили в JSON-файл</translation>
     </message>
     <message>
-        <source>Add manually...</source>
-        <translation>Добавить вручную...</translation>
+        <source>Add manually</source>
+        <translation>Добавить вручную</translation>
     </message>
     <message>
-        <source>From link or text...</source>
-        <translation>Из ссылки или из текста...</translation>
+        <source>From link or text</source>
+        <translation>Из ссылки или из текста</translation>
     </message>
     <message>
         <source>Import OTP</source>
@@ -4754,8 +4754,8 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>Из буфера обмена</translation>
     </message>
     <message>
-        <source>From QR image file...</source>
-        <translation>Из файла с изображением QR-кода...</translation>
+        <source>From QR image file</source>
+        <translation>Из файла с изображением QR-кода</translation>
     </message>
     <message>
         <source>Unable to capture screen</source>
@@ -6290,6 +6290,49 @@ Close without saving?</source>
     <message>
         <source>Submitting...</source>
         <translation>Отправка...</translation>
+    </message>
+</context>
+<context>
+    <name>DnsServerListEdit</name>
+    <message>
+        <source>Drag to reorder</source>
+        <translation>Перетащите, чтобы изменить порядок</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation>Удалить</translation>
+    </message>
+    <message>
+        <source>System</source>
+        <translation>Системный</translation>
+    </message>
+    <message>
+        <source>Also resolves proxy server addresses</source>
+        <translation>Также преобразует адреса прокси-серверов в IP</translation>
+    </message>
+    <message>
+        <source>Add</source>
+        <translation>Добавить</translation>
+    </message>
+    <message>
+        <source>Recent</source>
+        <translation>Недавние</translation>
+    </message>
+    <message>
+        <source>Custom address</source>
+        <translation>Свой адрес</translation>
+    </message>
+    <message>
+        <source>Address, e.g. tls://1.1.1.1</source>
+        <translation>Адрес, например tls://1.1.1.1</translation>
+    </message>
+    <message>
+        <source>Queried together; the fastest answer wins.</source>
+        <translation>Запрашиваются одновременно; используется самый быстрый ответ.</translation>
+    </message>
+    <message>
+        <source>Add at least one server.</source>
+        <translation>Добавьте хотя бы один сервер.</translation>
     </message>
 </context>
 <context>
@@ -10157,10 +10200,6 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>Настройки</translation>
     </message>
     <message>
-        <source>Server</source>
-        <translation>Сервер</translation>
-    </message>
-    <message>
         <source>Tun Mode</source>
         <translation>Режим TUN</translation>
     </message>
@@ -10177,11 +10216,11 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>Поделиться</translation>
     </message>
     <message>
-        <source>Exit</source>
+        <source>Quit</source>
         <translation>Выход</translation>
     </message>
     <message>
-        <source>Show Window</source>
+        <source>Show window</source>
         <translation>Показать окно</translation>
     </message>
     <message>
@@ -10213,11 +10252,11 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>Настройки интеграции</translation>
     </message>
     <message>
-        <source>Resolve Domain for group</source>
-        <translation>Преобразовать домены группы в IP</translation>
+        <source>Resolve domains</source>
+        <translation>Преобразовать домены в IP</translation>
     </message>
     <message>
-        <source>Restart Core</source>
+        <source>Restart core</source>
         <translation>Перезапустить ядро</translation>
     </message>
     <message>
@@ -10225,27 +10264,27 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>Скрыть окно</translation>
     </message>
     <message>
-        <source>Add profile from clipboard</source>
-        <translation>Добавить профиль из буфера обмена</translation>
+        <source>Paste from clipboard</source>
+        <translation>Вставить из буфера обмена</translation>
     </message>
     <message>
         <source>Delete</source>
         <translation>Удалить</translation>
     </message>
     <message>
-        <source>QR Code and link</source>
+        <source>QR code and link</source>
         <translation>QR-код и ссылка</translation>
     </message>
     <message>
-        <source>Resolve out IP for group</source>
-        <translation>Определить выходной IP группы</translation>
+        <source>Exit IP</source>
+        <translation>Выходной IP</translation>
     </message>
     <message>
-        <source>Clear Test Result</source>
-        <translation>Очистить результат теста</translation>
+        <source>Clear results</source>
+        <translation>Очистить результаты</translation>
     </message>
     <message>
-        <source>Reset Traffic</source>
+        <source>Reset traffic</source>
         <translation>Сбросить трафик</translation>
     </message>
     <message>
@@ -10253,15 +10292,11 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>Утилиты</translation>
     </message>
     <message>
-        <source>Manage Groups</source>
+        <source>Manage groups</source>
         <translation>Управление группами</translation>
     </message>
     <message>
-        <source>Clear Group test result</source>
-        <translation>Очистить результат теста для группы</translation>
-    </message>
-    <message>
-        <source>Scan QR Code</source>
+        <source>Scan QR code</source>
         <translation>Сканировать QR-код</translation>
     </message>
     <message>
@@ -10281,7 +10316,7 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>Регулярное выражение</translation>
     </message>
     <message>
-        <source>Remove Duplicates</source>
+        <source>Remove duplicates</source>
         <translation>Удалить дубликаты</translation>
     </message>
     <message>
@@ -10297,20 +10332,20 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>Разрешить подключаться другим устройствам</translation>
     </message>
     <message>
-        <source>Remove Unavailable</source>
+        <source>Remove unavailable</source>
         <translation>Удалить недоступные</translation>
     </message>
     <message>
-        <source>Select All</source>
+        <source>Select all</source>
         <translation>Выбрать все</translation>
     </message>
     <message>
-        <source>Copy links of selected (Deep Links)</source>
-        <translation>Копировать ссылки выбранных (deep links)</translation>
+        <source>Copy deep link</source>
+        <translation>Копировать deep link</translation>
     </message>
     <message>
-        <source>Copy links of selected</source>
-        <translation>Копировать ссылки выбранных</translation>
+        <source>Copy link</source>
+        <translation>Копировать ссылку</translation>
     </message>
     <message>
         <source>Clone</source>
@@ -10337,23 +10372,23 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>Открыть веб-панель</translation>
     </message>
     <message>
-        <source>Remove Insecure Configs</source>
+        <source>Remove insecure configs</source>
         <translation>Удалить небезопасные конфигурации</translation>
     </message>
     <message>
-        <source>Edit current Group</source>
-        <translation>Редактировать текущую группу</translation>
+        <source>Edit group</source>
+        <translation>Изменить группу</translation>
     </message>
     <message>
-        <source>Delete current Group</source>
-        <translation>Удалить текущую группу</translation>
+        <source>Delete group</source>
+        <translation>Удалить группу</translation>
     </message>
     <message>
         <source>Update all subscriptions</source>
         <translation>Обновить все подписки</translation>
     </message>
     <message>
-        <source>Update Rule-Sets</source>
+        <source>Update rule-sets</source>
         <translation>Обновить наборы правил</translation>
     </message>
     <message>
@@ -10377,7 +10412,7 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>Настройки режима TUN</translation>
     </message>
     <message>
-        <source>Restart Program</source>
+        <source>Restart program</source>
         <translation>Перезапустить программу</translation>
     </message>
     <message>
@@ -10385,15 +10420,11 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>Открыть папку конфигурации</translation>
     </message>
     <message>
-        <source>Resolve Selected Out IP</source>
-        <translation>Определить выходной IP выбранных</translation>
-    </message>
-    <message>
         <source>Refresh Column Widths</source>
         <translation>Обновить ширину колонок</translation>
     </message>
     <message>
-        <source>Copy Test Result</source>
+        <source>Copy test result</source>
         <translation>Копировать результат теста</translation>
     </message>
     <message>
@@ -10441,14 +10472,6 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>Ошибка</translation>
     </message>
     <message>
-        <source>Url Test selected Group</source>
-        <translation>Тест задержки выбранной группы</translation>
-    </message>
-    <message>
-        <source>Speed Test selected Group</source>
-        <translation>Тест скорости выбранной группы</translation>
-    </message>
-    <message>
         <source>Ignored deeplink with unknown command: %1</source>
         <translation>Проигнорирован deep link с неизвестной командой: %1</translation>
     </message>
@@ -10493,12 +10516,12 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>Обновить все подписки?</translation>
     </message>
     <message>
-        <source>Enable AdBlock</source>
-        <translation>Включить AdBlock</translation>
+        <source>Block ads</source>
+        <translation>Блокировать рекламу</translation>
     </message>
     <message>
-        <source>Enable Warp</source>
-        <translation>Включить Warp</translation>
+        <source>Toggle WARP</source>
+        <translation>Переключить WARP</translation>
     </message>
     <message>
         <source>Add this subscription?
@@ -10775,7 +10798,7 @@ Download them now?</source>
         <translation>[VPN] %1: сохраненные учетные данные отклонены.</translation>
     </message>
     <message>
-        <source>Stop Testing</source>
+        <source>Stop testing</source>
         <translation>Остановить тестирование</translation>
     </message>
     <message>
@@ -10823,39 +10846,27 @@ Error: %1</source>
         <translation>Запустить снова</translation>
     </message>
     <message>
-        <source>Add new Group</source>
-        <translation>Добавить новую группу</translation>
-    </message>
-    <message>
-        <source>Delete selected Group</source>
-        <translation>Удалить выбранную группу</translation>
-    </message>
-    <message>
-        <source>Edit selected Group</source>
-        <translation>Редактировать выбранную группу</translation>
+        <source>New group</source>
+        <translation>Новая группа</translation>
     </message>
     <message>
         <source>Remove %1?</source>
         <translation>Удалить %1?</translation>
     </message>
     <message>
-        <source>Url Test Selected</source>
+        <source>URL test</source>
         <translation>Тест задержки</translation>
-    </message>
-    <message>
-        <source>Url Test Group</source>
-        <translation>Тест задержки всей группы</translation>
     </message>
     <message>
         <source>Hidden menu</source>
         <translation>Скрытое меню</translation>
     </message>
     <message>
-        <source>Resolve Selected Domain</source>
-        <translation>Преобразовать выбранный домен в IP</translation>
+        <source>Resolve domain</source>
+        <translation>Преобразовать домен в IP</translation>
     </message>
     <message>
-        <source>Remove Invalid</source>
+        <source>Remove invalid</source>
         <translation>Удалить недействительные</translation>
     </message>
     <message>
@@ -11151,12 +11162,8 @@ Please try again.</source>
         <translation>Тест скорости текущего профиля</translation>
     </message>
     <message>
-        <source>Speedtest Selected</source>
+        <source>Speed test</source>
         <translation>Тест скорости</translation>
-    </message>
-    <message>
-        <source>Speedtest Group</source>
-        <translation>Тест скорости всей группы</translation>
     </message>
     <message>
         <source>URL test finished!</source>
@@ -11183,19 +11190,19 @@ Please try again.</source>
         <translation>Пожалуйста, запустите Throne от имени администратора</translation>
     </message>
     <message>
-        <source>Add profile from File(s)</source>
-        <translation>Добавить профиль из файла</translation>
+        <source>Import from file</source>
+        <translation>Импорт из файла</translation>
     </message>
     <message>
         <source>Add subscription</source>
         <translation>Добавить подписку</translation>
     </message>
     <message>
-        <source>Select Routing</source>
-        <translation>Выбор маршрутизации</translation>
+        <source>Routing: %1</source>
+        <translation>Маршрутизация: %1</translation>
     </message>
     <message>
-        <source>OTP Codes</source>
+        <source>OTP codes</source>
         <translation>Коды OTP</translation>
     </message>
     <message>
@@ -11495,8 +11502,8 @@ Name: %1</source>
         <translation>Снимите флажок «Отключить статистику трафика» в разделе «Основные настройки → Ядро → Статистика», чтобы снова записывать скорость.</translation>
     </message>
     <message>
-        <source>Open Traffic Statistics…</source>
-        <translation>Открыть статистику трафика…</translation>
+        <source>Open Traffic Statistics</source>
+        <translation>Открыть статистику трафика</translation>
     </message>
     <message>
         <source>This group was deleted while you were editing it.</source>
@@ -11575,12 +11582,8 @@ Grant them once with a Windows confirmation; Throne itself keeps running as a st
         <translation>Обновление отменено, Throne продолжает работу</translation>
     </message>
     <message>
-        <source>Service Check</source>
+        <source>Service check</source>
         <translation>Проверка сервисов</translation>
-    </message>
-    <message>
-        <source>Service Check Group</source>
-        <translation>Проверка сервисов группы</translation>
     </message>
     <message>
         <source>Services</source>
@@ -11623,8 +11626,8 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
         <translation>Вместо этого Throne можно перезапустить от имени администратора.</translation>
     </message>
     <message>
-        <source>Pin</source>
-        <translation>Закрепить</translation>
+        <source>Pin to top</source>
+        <translation>Закрепить вверху</translation>
     </message>
     <message>
         <source>Unpin</source>
@@ -11739,8 +11742,108 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
         <translation>Не удалось выполнить тест задержки: %1</translation>
     </message>
     <message>
+        <source>Errors %1</source>
+        <translation>Ошибки %1</translation>
+    </message>
+    <message>
+        <source>Warnings %1</source>
+        <translation>Предупреждения %1</translation>
+    </message>
+    <message>
+        <source>Info %1</source>
+        <translation>Инфо %1</translation>
+    </message>
+    <message>
+        <source>Debug %1</source>
+        <translation>Отладка %1</translation>
+    </message>
+    <message>
+        <source>Find working settings</source>
+        <translation>Поиск рабочих настроек</translation>
+    </message>
+    <message>
+        <source>Route lookup</source>
+        <translation>Поиск маршрута</translation>
+    </message>
+    <message>
+        <source>Profiles</source>
+        <translation>Профили</translation>
+    </message>
+    <message>
+        <source>Edit</source>
+        <translation>Изменить</translation>
+    </message>
+    <message>
+        <source>Test</source>
+        <translation>Тест</translation>
+    </message>
+    <message>
+        <source>Move to group</source>
+        <translation>Переместить в группу</translation>
+    </message>
+    <message>
+        <source>Selected server</source>
+        <translation>Выбранный сервер</translation>
+    </message>
+    <message>
+        <source>Edit current profile</source>
+        <translation>Изменить текущий профиль</translation>
+    </message>
+    <message>
+        <source>Download route profile</source>
+        <translation>Скачать профиль маршрутизации</translation>
+    </message>
+    <message>
+        <source>%1 (downloading)</source>
+        <translation>%1 (загрузка)</translation>
+    </message>
+    <message>
+        <source>Connected · %1</source>
+        <translation>Подключено · %1</translation>
+    </message>
+    <message>
+        <source>Not connected</source>
+        <translation>Не подключено</translation>
+    </message>
+    <message>
+        <source>Profile: %1</source>
+        <translation>Профиль: %1</translation>
+    </message>
+    <message>
+        <source>System proxy</source>
+        <translation>Системный прокси</translation>
+    </message>
+    <message>
+        <source>Tun mode</source>
+        <translation>Режим TUN</translation>
+    </message>
+    <message>
+        <source>Restart</source>
+        <translation>Перезапуск</translation>
+    </message>
+    <message>
+        <source>A selected profile is open in an editor. Close it first.</source>
+        <translation>Выбранный профиль открыт в редакторе. Сначала закройте его.</translation>
+    </message>
+    <message>
+        <source>A subscription group&apos;s next update removes profiles moved into it. Choose another group.</source>
+        <translation>Следующее обновление группы-подписки удалит перемещенные в нее профили. Выберите другую группу.</translation>
+    </message>
+    <message>
+        <source>[Tor] Downloading Tor; it turns on when the download finishes.</source>
+        <translation>[Tor] Скачивается Tor; он включится, когда скачивание завершится.</translation>
+    </message>
+    <message>
+        <source>Select profile</source>
+        <translation>Выбрать профиль</translation>
+    </message>
+    <message>
         <source>No services are selected for the service check. Choose them in Basic Settings.</source>
         <translation>Для проверки сервисов не выбрано ни одного сервиса. Выберите их в «Основных настройках».</translation>
+    </message>
+    <message>
+        <source>Server without WARP</source>
+        <translation>Сервер без WARP</translation>
     </message>
 </context>
 <context>
@@ -14264,6 +14367,78 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Pick a program that is running or has used the network, spelled exactly as the core matches it.</source>
         <translation>Выберите программу, которая запущена или уже обращалась к сети; она будет записана именно так, как ее сопоставляет ядро.</translation>
+    </message>
+    <message>
+        <source>Rule %1</source>
+        <translation>Правило %1</translation>
+    </message>
+    <message>
+        <source>DNS queries</source>
+        <translation>DNS-запросы</translation>
+    </message>
+    <message>
+        <source>Lists</source>
+        <translation>Списки</translation>
+    </message>
+    <message>
+        <source>%1 · rule %2 in the list</source>
+        <translation>%1 · правило %2 в списке</translation>
+    </message>
+    <message>
+        <source>Custom</source>
+        <translation>Собственные</translation>
+    </message>
+    <message>
+        <source>Global</source>
+        <translation>Глобальные</translation>
+    </message>
+    <message>
+        <source>Unsaved changes</source>
+        <translation>Несохраненные изменения</translation>
+    </message>
+    <message>
+        <source>Discard the changes to this routing profile?</source>
+        <translation>Отменить изменения в этом профиле маршрутизации?</translation>
+    </message>
+    <message>
+        <source>Discard</source>
+        <translation>Не сохранять</translation>
+    </message>
+    <message>
+        <source>Keep editing</source>
+        <translation>Продолжить редактирование</translation>
+    </message>
+    <message>
+        <source>Everything else goes to</source>
+        <translation>Остальной трафик:</translation>
+    </message>
+    <message>
+        <source>Traffic that no rule matches. Proxy is the selected server, which exits through Cloudflare when built-in WARP is on.</source>
+        <translation>Трафик, который не совпал ни с одним правилом. «Прокси» — это выбранный сервер; при включенном встроенном WARP выход идет через Cloudflare.</translation>
+    </message>
+    <message>
+        <source>Remote profile</source>
+        <translation>Удаленный профиль</translation>
+    </message>
+    <message>
+        <source>Re-fetch this profile from the URL when subscriptions auto-update.</source>
+        <translation>Заново загружать этот профиль по URL при автообновлении подписок.</translation>
+    </message>
+    <message>
+        <source>Fetch now</source>
+        <translation>Загрузить сейчас</translation>
+    </message>
+    <message>
+        <source>Each update replaces the rules, so changes made here last until the next one.</source>
+        <translation>Каждое обновление заменяет правила, поэтому сделанные здесь изменения сохранятся только до следующего.</translation>
+    </message>
+    <message>
+        <source>OpenVPN and OpenConnect profiles started together with this routing profile. Each one adds an endpoint rule to the list, which you can move but not edit.</source>
+        <translation>Профили OpenVPN и OpenConnect, которые запускаются вместе с этим профилем маршрутизации. Каждый из них добавляет в список правило конечной точки: его можно перемещать, но не изменять.</translation>
+    </message>
+    <message>
+        <source>Choose a profile</source>
+        <translation>Выберите профиль</translation>
     </message>
 </context>
 <context>
@@ -18195,8 +18370,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Не выдавать FakeIP-адреса IPv6; на запросы AAAA даются пустые ответы.</translation>
     </message>
     <message>
-        <source>Local Override, the hosts file, predefined answers and the advanced DNS settings always come from Routing Settings &gt; DNS.</source>
-        <translation>Переопределение локального DNS, файл hosts, предопределённые ответы и дополнительные настройки DNS всегда берутся из «Настройки маршрутизации → DNS».</translation>
+        <source>The resolver for DNS server names, the hosts file, predefined answers and the advanced DNS settings always come from Routing Settings &gt; DNS.</source>
+        <translation>Резолвер имен DNS-серверов, файл hosts, предопределенные ответы и дополнительные настройки DNS всегда берутся из «Настройки маршрутизации → DNS».</translation>
     </message>
     <message>
         <source>Remote DNS</source>
@@ -18221,10 +18396,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Use the global DNS settings</source>
         <translation>Использовать глобальные настройки DNS</translation>
-    </message>
-    <message>
-        <source>Separate several servers with commas: they are queried together and the first answer wins.</source>
-        <translation>Несколько серверов разделяйте запятыми: запросы к ним отправляются одновременно, и используется первый ответ.</translation>
     </message>
 </context>
 <context>
@@ -18713,6 +18884,10 @@ Remove that endpoint from this routing profile as well?</source>
         <source>“%1” is not an IP address.</source>
         <translation>«%1» — не IP-адрес.</translation>
     </message>
+    <message>
+        <source>Route lookup</source>
+        <translation>Поиск маршрута</translation>
+    </message>
 </context>
 <context>
     <name>ProcessPicker</name>
@@ -18954,6 +19129,820 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Other</source>
         <translation>Другое</translation>
+    </message>
+</context>
+<context>
+    <name>RouteEditor</name>
+    <message>
+        <source>Unnamed rule</source>
+        <translation>Правило без названия</translation>
+    </message>
+    <message>
+        <source>Proxy</source>
+        <translation>Прокси</translation>
+    </message>
+    <message>
+        <source>Direct</source>
+        <translation>Напрямую</translation>
+    </message>
+    <message>
+        <source>Server without WARP</source>
+        <translation>Сервер без WARP</translation>
+    </message>
+    <message>
+        <source>Block</source>
+        <translation>Блокировать</translation>
+    </message>
+    <message>
+        <source>Hijack DNS</source>
+        <translation>Перехват DNS</translation>
+    </message>
+    <message>
+        <source>Sniff</source>
+        <translation>Сниффинг</translation>
+    </message>
+    <message>
+        <source>Resolve</source>
+        <translation>Разрешение домена</translation>
+    </message>
+    <message>
+        <source>Set route options</source>
+        <translation>Задать параметры маршрута</translation>
+    </message>
+    <message>
+        <source>Bypass</source>
+        <translation>Обход</translation>
+    </message>
+    <message>
+        <source>Profile</source>
+        <translation>Профиль</translation>
+    </message>
+    <message>
+        <source>Other action</source>
+        <translation>Другое действие</translation>
+    </message>
+    <message>
+        <source>The selected server. With built-in WARP on, it exits through Cloudflare.</source>
+        <translation>Выбранный сервер. При включенном встроенном WARP выход идет через Cloudflare.</translation>
+    </message>
+    <message>
+        <source>Leaves this computer without a proxy.</source>
+        <translation>Уходит с этого компьютера без прокси.</translation>
+    </message>
+    <message>
+        <source>The selected server without the WARP layer. Same as Proxy while WARP is off.</source>
+        <translation>Выбранный сервер без слоя WARP. Пока WARP выключен, это то же, что Прокси.</translation>
+    </message>
+    <message>
+        <source>Rejected: the app sees the connection refused.</source>
+        <translation>Отклоняется: приложение видит, что в подключении отказано.</translation>
+    </message>
+    <message>
+        <source>Answered by Throne&apos;s DNS. The DNS tab picks the servers.</source>
+        <translation>Отвечает DNS Throne. Серверы выбираются на вкладке DNS.</translation>
+    </message>
+    <message>
+        <source>Reads the protocol and domain, then continues with the next rule.</source>
+        <translation>Определяет протокол и домен, затем переходит к следующему правилу.</translation>
+    </message>
+    <message>
+        <source>Resolves the domain to an IP, then continues with the next rule.</source>
+        <translation>Разрешает домен в IP, затем переходит к следующему правилу.</translation>
+    </message>
+    <message>
+        <source>Applies the connection options below, then continues with the next rule.</source>
+        <translation>Применяет параметры подключения ниже, затем переходит к следующему правилу.</translation>
+    </message>
+    <message>
+        <source>Linux auto-redirect only: the connection skips sing-box in the kernel.</source>
+        <translation>Только для auto-redirect в Linux: подключение минует sing-box на уровне ядра.</translation>
+    </message>
+    <message>
+        <source>Through this profile instead of the selected server.</source>
+        <translation>Через этот профиль вместо выбранного сервера.</translation>
+    </message>
+    <message>
+        <source>An action this editor does not offer; it is kept as it is.</source>
+        <translation>Действие, которого нет в этом редакторе; оно сохраняется как есть.</translation>
+    </message>
+    <message>
+        <source>Missing profile (id %1)</source>
+        <translation>Отсутствующий профиль (id %1)</translation>
+    </message>
+    <message>
+        <source>Destination</source>
+        <translation>Назначение</translation>
+    </message>
+    <message>
+        <source>Destination port</source>
+        <translation>Порт назначения</translation>
+    </message>
+    <message>
+        <source>Source</source>
+        <translation>Источник</translation>
+    </message>
+    <message>
+        <source>Source port</source>
+        <translation>Порт источника</translation>
+    </message>
+    <message>
+        <source>IP version</source>
+        <translation>Версия IP</translation>
+    </message>
+    <message>
+        <source>Network</source>
+        <translation>Сеть</translation>
+    </message>
+    <message>
+        <source>Protocol (sniffed)</source>
+        <translation>Протокол (по сниффингу)</translation>
+    </message>
+    <message>
+        <source>Inbound</source>
+        <translation>Inbound</translation>
+    </message>
+    <message>
+        <source>Domain</source>
+        <translation>Домен</translation>
+    </message>
+    <message>
+        <source>Domain suffix</source>
+        <translation>Суффикс домена</translation>
+    </message>
+    <message>
+        <source>Domain keyword</source>
+        <translation>Ключевое слово домена</translation>
+    </message>
+    <message>
+        <source>Domain regex</source>
+        <translation>Регулярное выражение домена</translation>
+    </message>
+    <message>
+        <source>Source IP range</source>
+        <translation>Диапазон IP источника</translation>
+    </message>
+    <message>
+        <source>Source private IP</source>
+        <translation>Частный IP источника</translation>
+    </message>
+    <message>
+        <source>IP range</source>
+        <translation>Диапазон IP</translation>
+    </message>
+    <message>
+        <source>Private IP</source>
+        <translation>Частный IP</translation>
+    </message>
+    <message>
+        <source>Source port range</source>
+        <translation>Диапазон портов источника</translation>
+    </message>
+    <message>
+        <source>Port</source>
+        <translation>Порт</translation>
+    </message>
+    <message>
+        <source>Port range</source>
+        <translation>Диапазон портов</translation>
+    </message>
+    <message>
+        <source>Process name</source>
+        <translation>Имя процесса</translation>
+    </message>
+    <message>
+        <source>Process path</source>
+        <translation>Путь процесса</translation>
+    </message>
+    <message>
+        <source>Process path regex</source>
+        <translation>Регулярное выражение пути процесса</translation>
+    </message>
+    <message>
+        <source>Package name</source>
+        <translation>Имя пакета</translation>
+    </message>
+    <message>
+        <source>Wi-Fi name (SSID)</source>
+        <translation>Имя Wi-Fi (SSID)</translation>
+    </message>
+    <message>
+        <source>Wi-Fi BSSID</source>
+        <translation>Wi-Fi BSSID</translation>
+    </message>
+    <message>
+        <source>Rule set</source>
+        <translation>Набор правил</translation>
+    </message>
+    <message>
+        <source>Invert</source>
+        <translation>Инвертировать</translation>
+    </message>
+    <message>
+        <source>Action</source>
+        <translation>Действие</translation>
+    </message>
+    <message>
+        <source>Outbound</source>
+        <translation>Outbound</translation>
+    </message>
+    <message>
+        <source>Override address</source>
+        <translation>Заменить адрес</translation>
+    </message>
+    <message>
+        <source>Override port</source>
+        <translation>Заменить порт</translation>
+    </message>
+    <message>
+        <source>Fragment the TLS handshake</source>
+        <translation>Фрагментировать TLS-рукопожатие</translation>
+    </message>
+    <message>
+        <source>Fallback delay</source>
+        <translation>Задержка перед откатом</translation>
+    </message>
+    <message>
+        <source>Split into TLS records</source>
+        <translation>Разбить на TLS-записи</translation>
+    </message>
+    <message>
+        <source>Spoof SNI</source>
+        <translation>Подмена SNI</translation>
+    </message>
+    <message>
+        <source>Spoof method</source>
+        <translation>Способ подмены</translation>
+    </message>
+    <message>
+        <source>Reject with</source>
+        <translation>Способ отклонения</translation>
+    </message>
+    <message>
+        <source>Never switch to drop</source>
+        <translation>Никогда не переходить на drop</translation>
+    </message>
+    <message>
+        <source>Use the sniffed domain as the destination</source>
+        <translation>Использовать найденный домен как назначение</translation>
+    </message>
+    <message>
+        <source>Strategy</source>
+        <translation>Стратегия</translation>
+    </message>
+    <message>
+        <source>Ports</source>
+        <translation>Порты</translation>
+    </message>
+    <message>
+        <source>App</source>
+        <translation>Приложение</translation>
+    </message>
+    <message>
+        <source>Connection</source>
+        <translation>Подключение</translation>
+    </message>
+    <message>
+        <source>Wi-Fi</source>
+        <translation>Wi-Fi</translation>
+    </message>
+    <message>
+        <source>any private address</source>
+        <translation>любой частный адрес</translation>
+    </message>
+    <message>
+        <source>%1 and %2 more</source>
+        <translation>%1 и еще %2</translation>
+    </message>
+    <message>
+        <source>All traffic</source>
+        <translation>Весь трафик</translation>
+    </message>
+    <message>
+        <source>Not: %1</source>
+        <translation>Кроме: %1</translation>
+    </message>
+    <message>
+        <source>This rule has no conditions, so it would catch all traffic. Add a condition, or turn the rule off.</source>
+        <translation>У этого правила нет условий, поэтому оно перехватит весь трафик. Добавьте условие или отключите правило.</translation>
+    </message>
+</context>
+<context>
+    <name>RouteEditor::ValueChip</name>
+    <message>
+        <source>Remove</source>
+        <translation>Удалить</translation>
+    </message>
+</context>
+<context>
+    <name>QuickLists</name>
+    <message>
+        <source>Already in this list.</source>
+        <translation>Уже есть в этом списке.</translation>
+    </message>
+    <message>
+        <source>Add a prefix such as keyword: or processName: to say what this is.</source>
+        <translation>Добавьте префикс, например keyword: или processName:, чтобы указать, что это.</translation>
+    </message>
+    <message>
+        <source>domain</source>
+        <translation>домен</translation>
+    </message>
+    <message>
+        <source>suffix</source>
+        <translation>суффикс</translation>
+    </message>
+    <message>
+        <source>keyword</source>
+        <translation>ключевое слово</translation>
+    </message>
+    <message>
+        <source>regex</source>
+        <translation>regex</translation>
+    </message>
+    <message>
+        <source>rule set</source>
+        <translation>набор правил</translation>
+    </message>
+    <message>
+        <source>ip</source>
+        <translation>IP</translation>
+    </message>
+    <message>
+        <source>process</source>
+        <translation>процесс</translation>
+    </message>
+    <message>
+        <source>path</source>
+        <translation>путь</translation>
+    </message>
+    <message>
+        <source>Empty, left out of the config</source>
+        <translation>Пусто, не попадает в конфигурацию</translation>
+    </message>
+    <message>
+        <source>1 entry</source>
+        <translation>Записей: 1</translation>
+    </message>
+    <message>
+        <source>%1 entries</source>
+        <translation>Записей: %1</translation>
+    </message>
+    <message>
+        <source>1 error</source>
+        <translation>Ошибок: 1</translation>
+    </message>
+    <message>
+        <source>%1 errors</source>
+        <translation>Ошибок: %1</translation>
+    </message>
+    <message>
+        <source>Only differs from Proxy while built-in WARP is on: these sites use the selected server without the WARP layer.</source>
+        <translation>Отличается от «Прокси» только при включенном встроенном WARP: эти сайты идут через выбранный сервер без слоя WARP.</translation>
+    </message>
+</context>
+<context>
+    <name>QuickListEditor</name>
+    <message>
+        <source>Off: kept in the profile but left out of the config.</source>
+        <translation>Выключено: остается в профиле, но не попадает в конфигурацию.</translation>
+    </message>
+    <message>
+        <source>No entries. An empty list is left out of the config.</source>
+        <translation>Записей нет. Пустой список не попадает в конфигурацию.</translation>
+    </message>
+    <message>
+        <source>example.com, 10.0.0.0/8, app.exe or ruleset:name</source>
+        <translation>example.com, 10.0.0.0/8, app.exe или ruleset:имя</translation>
+    </message>
+    <message>
+        <source>Add</source>
+        <translation>Добавить</translation>
+    </message>
+    <message>
+        <source>A quick list matches like one rule. Drag its row to run it earlier or later.</source>
+        <translation>Быстрый список срабатывает как одно правило. Перетащите его строку, чтобы он проверялся раньше или позже.</translation>
+    </message>
+    <message>
+        <source>%1 list</source>
+        <translation>Список «%1»</translation>
+    </message>
+    <message>
+        <source>Every entry here goes nowhere: it is blocked. Lines are typed by their prefix or their shape.</source>
+        <translation>Записи этого списка никуда не идут: они блокируются. Тип строки определяется по префиксу или по ее виду.</translation>
+    </message>
+    <message>
+        <source>Every entry here goes to %1. Lines are typed by their prefix or their shape.</source>
+        <translation>Действие для всех записей здесь: «%1». Тип строки определяется по префиксу или по ее виду.</translation>
+    </message>
+    <message>
+        <source>The %1 list also has rows at %2.</source>
+        <translation>У списка «%1» есть и другие строки: %2.</translation>
+    </message>
+</context>
+<context>
+    <name>QuickListsView</name>
+    <message>
+        <source>Empty.</source>
+        <translation>Пусто.</translation>
+    </message>
+    <message>
+        <source>Add an entry</source>
+        <translation>Добавить запись</translation>
+    </message>
+    <message>
+        <source>Add</source>
+        <translation>Добавить</translation>
+    </message>
+    <message>
+        <source>A line without a prefix is typed by its shape: example.com is a domain suffix, 10.0.0.0/8 an IP range, app.exe a process. The prefixes domain:, keyword:, regex:, ruleset: and processPath: still work.</source>
+        <translation>Строка без префикса распознается по виду: example.com — суффикс домена, 10.0.0.0/8 — диапазон IP, app.exe — процесс. Префиксы domain:, keyword:, regex:, ruleset: и processPath: тоже работают.</translation>
+    </message>
+    <message>
+        <source>%1 list</source>
+        <translation>Список «%1»</translation>
+    </message>
+    <message>
+        <source>Entry %1 (&quot;%2&quot;): %3</source>
+        <translation>Запись %1 («%2»): %3</translation>
+    </message>
+    <message>
+        <source>Advanced mode shows other rules too. Before these lists: %1. After them: %2.</source>
+        <translation>В расширенном режиме видны и другие правила. Перед этими списками: %1. После них: %2.</translation>
+    </message>
+    <message>
+        <source>Show fewer</source>
+        <translation>Свернуть</translation>
+    </message>
+    <message>
+        <source>%1 more</source>
+        <translation>Еще %1</translation>
+    </message>
+</context>
+<context>
+    <name>EndpointRulePanel</name>
+    <message>
+        <source>The Endpoints tab adds and removes this rule. Here you can only move it, to choose which rules run before it.</source>
+        <translation>Это правило добавляется и удаляется на вкладке «Конечные точки». Здесь его можно только перемещать, чтобы выбрать, какие правила проверяются раньше него.</translation>
+    </message>
+    <message>
+        <source>Then</source>
+        <translation>Действие</translation>
+    </message>
+    <message>
+        <source>Open the Endpoints tab</source>
+        <translation>Открыть вкладку «Конечные точки»</translation>
+    </message>
+    <message>
+        <source>%1 endpoint, from the Endpoints tab</source>
+        <translation>Конечная точка %1 с вкладки «Конечные точки»</translation>
+    </message>
+    <message>
+        <source>Traffic to the networks this endpoint advertises goes into its tunnel.</source>
+        <translation>Трафик в сети, которые объявляет эта конечная точка, идет в ее туннель.</translation>
+    </message>
+    <message>
+        <source>An inner hop of %1.</source>
+        <translation>Внутреннее звено конечной точки «%1».</translation>
+    </message>
+</context>
+<context>
+    <name>RouteThenPicker</name>
+    <message>
+        <source>Search profiles</source>
+        <translation>Поиск профилей</translation>
+    </message>
+    <message>
+        <source>Current choice</source>
+        <translation>Текущий выбор</translation>
+    </message>
+    <message>
+        <source>Continues with the next rule</source>
+        <translation>Затем проверяется следующее правило</translation>
+    </message>
+    <message>
+        <source>Linux auto-redirect only</source>
+        <translation>Только для auto-redirect в Linux</translation>
+    </message>
+    <message>
+        <source>Send through</source>
+        <translation>Отправить через</translation>
+    </message>
+    <message>
+        <source>The selected server</source>
+        <translation>Выбранный сервер</translation>
+    </message>
+    <message>
+        <source>No proxy</source>
+        <translation>Без прокси</translation>
+    </message>
+    <message>
+        <source>Proxy minus the WARP layer</source>
+        <translation>Прокси без слоя WARP</translation>
+    </message>
+    <message>
+        <source>Stop it</source>
+        <translation>Остановить</translation>
+    </message>
+    <message>
+        <source>Other actions</source>
+        <translation>Другие действия</translation>
+    </message>
+    <message>
+        <source>A specific profile</source>
+        <translation>Определенный профиль</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n more profiles: type to find them.</source>
+        <translation>
+            <numerusform>Еще %n профиль: начните вводить имя для поиска.</numerusform>
+            <numerusform>Еще %n профиля: начните вводить имя для поиска.</numerusform>
+            <numerusform>Еще %n профилей: начните вводить имя для поиска.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Nothing matches.</source>
+        <translation>Ничего не найдено.</translation>
+    </message>
+</context>
+<context>
+    <name>RouteRuleList</name>
+    <message>
+        <source>Inner hop of %1, from the Endpoints tab</source>
+        <translation>Внутреннее звено «%1», с вкладки «Конечные точки»</translation>
+    </message>
+    <message>
+        <source>From the Endpoints tab</source>
+        <translation>С вкладки «Конечные точки»</translation>
+    </message>
+    <message>
+        <source>%1 endpoint, from the Endpoints tab</source>
+        <translation>Конечная точка %1 с вкладки «Конечные точки»</translation>
+    </message>
+    <message>
+        <source>Everything else</source>
+        <translation>Остальной трафик</translation>
+    </message>
+    <message>
+        <source>The default route. Always last, set above the list.</source>
+        <translation>Маршрут по умолчанию. Всегда последний, задается над списком.</translation>
+    </message>
+    <message>
+        <source>Set above the list, under Everything else goes to.</source>
+        <translation>Задается над списком, в поле «Остальной трафик».</translation>
+    </message>
+    <message>
+        <source>Quick list</source>
+        <translation>Быстрый список</translation>
+    </message>
+    <message>
+        <source>Off · %1</source>
+        <translation>Выкл. · %1</translation>
+    </message>
+    <message>
+        <source>Entry &quot;%1&quot;: %2</source>
+        <translation>Запись «%1»: %2</translation>
+    </message>
+    <message>
+        <source>Endpoint</source>
+        <translation>Конечная точка</translation>
+    </message>
+    <message>
+        <source>#</source>
+        <translation>#</translation>
+    </message>
+    <message>
+        <source>Then</source>
+        <translation>Действие</translation>
+    </message>
+    <message>
+        <source>Rule</source>
+        <translation>Правило</translation>
+    </message>
+    <message>
+        <source>Rules</source>
+        <translation>Правила</translation>
+    </message>
+</context>
+<context>
+    <name>RouteRuleEditor</name>
+    <message>
+        <source>Name</source>
+        <translation>Название</translation>
+    </message>
+    <message>
+        <source>When</source>
+        <translation>Условия</translation>
+    </message>
+    <message>
+        <source>+ Add condition</source>
+        <translation>+ Добавить условие</translation>
+    </message>
+    <message>
+        <source>A box matches when any one of its values matches. Every box must match.</source>
+        <translation>Блок срабатывает, если совпадает любое из его значений. Совпасть должны все блоки.</translation>
+    </message>
+    <message>
+        <source>Invert: match only what this rule would not match</source>
+        <translation>Инвертировать: срабатывать только на то, что не подходит под условия</translation>
+    </message>
+    <message>
+        <source>Then</source>
+        <translation>Действие</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>По умолчанию</translation>
+    </message>
+    <message>
+        <source>Drop</source>
+        <translation>Отбросить</translation>
+    </message>
+    <message>
+        <source>Reply</source>
+        <translation>Ответить</translation>
+    </message>
+    <message>
+        <source>Otherwise sing-box drops instead after 50 rejects in 30 s.</source>
+        <translation>Иначе после 50 отклонений за 30 с sing-box начинает отбрасывать пакеты.</translation>
+    </message>
+    <message>
+        <source>IPv4 only</source>
+        <translation>Только IPv4</translation>
+    </message>
+    <message>
+        <source>IPv6 only</source>
+        <translation>Только IPv6</translation>
+    </message>
+    <message>
+        <source>Prefer IPv4</source>
+        <translation>Предпочитать IPv4</translation>
+    </message>
+    <message>
+        <source>Prefer IPv6</source>
+        <translation>Предпочитать IPv6</translation>
+    </message>
+    <message>
+        <source>Connection options</source>
+        <translation>Параметры подключения</translation>
+    </message>
+    <message>
+        <source>Override, TLS fragment, TLS spoof</source>
+        <translation>Замена адреса, фрагментация TLS, подмена TLS</translation>
+    </message>
+    <message>
+        <source>Keep the original</source>
+        <translation>Оставить исходный</translation>
+    </message>
+    <message>
+        <source>Fallback delay, such as 500ms</source>
+        <translation>Задержка перед откатом, например 500ms</translation>
+    </message>
+    <message>
+        <source>Server name to send</source>
+        <translation>Отправляемое имя сервера</translation>
+    </message>
+    <message>
+        <source>Default method</source>
+        <translation>Способ по умолчанию</translation>
+    </message>
+    <message>
+        <source>sing-box JSON</source>
+        <translation>sing-box JSON</translation>
+    </message>
+    <message>
+        <source>read-only</source>
+        <translation>только чтение</translation>
+    </message>
+    <message>
+        <source>Any of these</source>
+        <translation>Любое из условий</translation>
+    </message>
+    <message>
+        <source>Any of these values</source>
+        <translation>Любое из значений</translation>
+    </message>
+    <message>
+        <source>+ Add</source>
+        <translation>+ Добавить</translation>
+    </message>
+    <message>
+        <source>Choose app</source>
+        <translation>Выбрать приложение</translation>
+    </message>
+    <message>
+        <source>Pick a running program, or one that has used the network</source>
+        <translation>Выберите запущенную программу или ту, что уже обращалась к сети</translation>
+    </message>
+    <message>
+        <source>This rule&apos;s profile no longer exists. Pick another one to see the JSON.</source>
+        <translation>Профиль этого правила больше не существует. Выберите другой, чтобы увидеть JSON.</translation>
+    </message>
+</context>
+<context>
+    <name>RouteRulesPage</name>
+    <message>
+        <source>New rule</source>
+        <translation>Новое правило</translation>
+    </message>
+    <message>
+        <source>Duplicate</source>
+        <translation>Дублировать</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Удалить</translation>
+    </message>
+    <message>
+        <source>Filter by name, domain or app</source>
+        <translation>Фильтр по имени, домену или приложению</translation>
+    </message>
+    <message>
+        <source>Drag a row to change the order. Right-click a rule for Duplicate, Move to top, Move to bottom, Disable and Delete.</source>
+        <translation>Перетащите строку, чтобы изменить порядок. Щелкните правило правой кнопкой мыши, чтобы дублировать, переместить в начало или в конец, отключить или удалить его.</translation>
+    </message>
+    <message>
+        <source>Select a rule to edit it.</source>
+        <translation>Выберите правило, чтобы изменить его.</translation>
+    </message>
+    <message>
+        <source>Rule %1 &quot;%2&quot;</source>
+        <translation>Правило %1 «%2»</translation>
+    </message>
+    <message>
+        <source>Then</source>
+        <translation>Действие</translation>
+    </message>
+    <message>
+        <source>%1 list</source>
+        <translation>Список «%1»</translation>
+    </message>
+    <message>
+        <source>Entry %1 (&quot;%2&quot;): %3</source>
+        <translation>Запись %1 («%2»): %3</translation>
+    </message>
+    <message>
+        <source>Rule %1 of %2</source>
+        <translation>Правило %1 из %2</translation>
+    </message>
+    <message>
+        <source>First match wins</source>
+        <translation>Срабатывает первое совпавшее</translation>
+    </message>
+    <message>
+        <source>Quick list</source>
+        <translation>Быстрый список</translation>
+    </message>
+    <message>
+        <source>Endpoint rule</source>
+        <translation>Правило конечной точки</translation>
+    </message>
+    <message>
+        <source>Remove all entries</source>
+        <translation>Удалить все записи</translation>
+    </message>
+    <message>
+        <source>Remove endpoint</source>
+        <translation>Удалить конечную точку</translation>
+    </message>
+    <message>
+        <source>Rule %1</source>
+        <translation>Правило %1</translation>
+    </message>
+    <message>
+        <source>%1 copy</source>
+        <translation>%1 (копия)</translation>
+    </message>
+    <message>
+        <source>Delete rule</source>
+        <translation>Удаление правила</translation>
+    </message>
+    <message>
+        <source>Delete the rule &quot;%1&quot;?</source>
+        <translation>Удалить правило «%1»?</translation>
+    </message>
+    <message numerus="yes">
+        <source>Remove all %n entries from the %1 list?</source>
+        <translation>
+            <numerusform>Удалить %n запись из списка «%1»?</numerusform>
+            <numerusform>Удалить все %n записи из списка «%1»?</numerusform>
+            <numerusform>Удалить все %n записей из списка «%1»?</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Move to top</source>
+        <translation>Переместить в начало</translation>
+    </message>
+    <message>
+        <source>Move to bottom</source>
+        <translation>Переместить в конец</translation>
+    </message>
+    <message>
+        <source>Enable</source>
+        <translation>Включить</translation>
+    </message>
+    <message>
+        <source>Disable</source>
+        <translation>Отключить</translation>
     </message>
 </context>
 </TS>

@@ -361,7 +361,7 @@
             </item>
            </layout>
           </item>
-          <item row="1" column="0">
+          <item row="1" column="0" alignment="Qt::AlignmentFlag::AlignTop">
            <widget class="QLabel" name="label_9">
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;examples:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://domain/path&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://domain/path&lt;/p&gt;&lt;p&gt;quic://domain:4632&lt;/p&gt;&lt;p&gt;etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -375,19 +375,9 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_7">
+           <layout class="QVBoxLayout" name="remote_dns_layout">
             <item>
-             <widget class="QComboBox" name="remote_dns">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="editable">
-               <bool>true</bool>
-              </property>
-             </widget>
+             <widget class="DnsServerListEdit" name="remote_dns"/>
             </item>
             <item>
              <widget class="QCheckBox" name="remote_dns_disable_ipv6">
@@ -404,7 +394,7 @@
             </item>
            </layout>
           </item>
-          <item row="2" column="0">
+          <item row="2" column="0" alignment="Qt::AlignmentFlag::AlignTop">
            <widget class="QLabel" name="label_8">
             <property name="toolTip">
              <string>This is especially important and it is recommended to use the default value of &quot;localhost&quot;.
@@ -420,19 +410,9 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
            </widget>
           </item>
           <item row="2" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_8">
+           <layout class="QVBoxLayout" name="direct_dns_layout">
             <item>
-             <widget class="QComboBox" name="direct_dns">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="editable">
-               <bool>true</bool>
-              </property>
-             </widget>
+             <widget class="DnsServerListEdit" name="direct_dns"/>
             </item>
             <item>
              <widget class="QCheckBox" name="direct_dns_disable_ipv6">
@@ -458,7 +438,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Local DNS can not be used in some configurations, you will have to set an ip here to be used as local dns in such situations&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>Local Override</string>
+             <string>Resolver for DNS server names</string>
             </property>
             <property name="buddy">
              <cstring>local_override</cstring>
@@ -1065,6 +1045,13 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>DnsServerListEdit</class>
+   <extends>QWidget</extends>
+   <header>include/ui/widget/DnsServerListEdit.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

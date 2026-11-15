@@ -343,6 +343,7 @@ void MainWindow::refresh_startstop_button() {
         }
         trayConnectAction->setEnabled(!connecting && !disconnecting &&
                                       (running != nullptr || get_profile_to_start() >= 0));
+        refreshTrayMenu();
     }
 
     // Here rather than in refresh_status(): the connecting/disconnecting flags only ever refresh this button.

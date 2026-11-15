@@ -94,7 +94,7 @@ void MainWindow::refresh_pin_action() {
     const auto selected = get_now_selected_list();
     const bool unpin = group != nullptr && !selected.isEmpty()
                        && std::ranges::all_of(selected, [&group](int id) { return group->IsPinned(id); });
-    ui->menu_pin->setText(unpin ? tr("Unpin") : tr("Pin"));
+    ui->menu_pin->setText(unpin ? tr("Unpin") : tr("Pin to top"));
 }
 
 void MainWindow::on_menu_pin_triggered() {
@@ -407,7 +407,7 @@ void MainWindow::on_menu_select_all_triggered() {
 
 void MainWindow::on_menu_update_subscription_triggered() {
     auto group = Configs::dataManager->groupsRepo->CurrentGroup();
-    if (group->url.isEmpty()) return;
+    if (group == nullptr || group->url.isEmpty()) return;
     if (mw_sub_updating) return;
     mw_sub_updating = true;
     Subscription::updater()->RefreshGroup(group->id, [&] { mw_sub_updating = false; }, true);
@@ -490,7 +490,7 @@ void MainWindow::on_menu_remove_insecure_triggered() {
     }
 
     if (del_ids.isEmpty()) {
-        QMessageBox::information(this, tr("Remove Insecure Configs"), tr("No insecure configs found."));
+        QMessageBox::information(this, tr("Remove insecure configs"), tr("No insecure configs found."));
         return;
     }
     if (Configs::dataManager->settingsRepo->skip_delete_confirmation ||
@@ -585,7 +585,7 @@ void MainWindow::on_menu_resolve_domain_triggered() {
 }
 
 void MainWindow::on_profilesTableView_customContextMenuRequested(const QPoint &pos) {
-    ui->menu_server->popup(ui->profilesTableView->viewport()->mapToGlobal(pos));
+    showProfilesContextMenu(pos);
 }
 
 QList<int> MainWindow::get_now_selected_list() {

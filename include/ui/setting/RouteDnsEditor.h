@@ -4,6 +4,7 @@
 
 #include "include/database/entities/RouteProfile.h"
 
+class DnsServerListEdit;
 class QCheckBox;
 class QComboBox;
 class QLabel;
@@ -17,9 +18,6 @@ namespace DnsServerHistory {
     const QStringList& RemotePresets();
 
     const QStringList& DirectPresets();
-
-    // Typed servers first, newest first, then the presets they do not repeat; the tooltip explains server lists.
-    void Fill(QComboBox* combo, const QStringList& history, const QStringList& presets, const QString& current);
 
     // Moves a typed server to the front, keeping at most 8; false when the history did not change.
     bool Remember(QStringList& history, const QStringList& presets, const QString& server);
@@ -38,6 +36,14 @@ public:
     // Also remembers the servers typed into the fields.
     void applyTo(Configs::RouteProfile& profile) const;
 
+    // applyTo without touching the server history.
+    void writeTo(Configs::RouteProfile& profile) const;
+
+    [[nodiscard]] bool isCustom() const;
+
+signals:
+    void customChanged(bool custom);
+
 private:
     void showDns(const Configs::RouteDns& dns) const;
 
@@ -49,9 +55,9 @@ private:
     QRadioButton* customRadio = nullptr;
     QLabel* dnsObjectNote = nullptr;
     QWidget* fields = nullptr;
-    QComboBox* remoteDns = nullptr;
+    DnsServerListEdit* remoteDns = nullptr;
     QCheckBox* remoteDisableIPv6 = nullptr;
-    QComboBox* directDns = nullptr;
+    DnsServerListEdit* directDns = nullptr;
     QCheckBox* directDisableIPv6 = nullptr;
     QComboBox* finalOut = nullptr;
     QCheckBox* dnsRouting = nullptr;

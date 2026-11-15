@@ -226,6 +226,8 @@ set(PROJECT_SOURCES
         src/ui/mainWindow/mainwindow_deeplink.cpp
         src/ui/mainWindow/mainwindow_system.cpp
         src/ui/mainWindow/mainwindow_log.cpp
+        src/ui/mainWindow/mainwindow_icons.cpp
+        src/ui/mainWindow/mainwindow_menus.cpp
         src/ui/mainWindow/mainwindow_hotkeys.cpp
         src/ui/mainWindow/mainwindow_palette.cpp
         src/ui/mainWindow/mainwindow_profile_lifecycle.cpp
@@ -257,6 +259,8 @@ set(PROJECT_SOURCES
         src/ui/widget/ResolverSourceWidget.cpp
         include/ui/widget/ElidingLabel.hpp
         src/ui/widget/ElidingLabel.cpp
+        include/ui/widget/DnsServerListEdit.h
+        src/ui/widget/DnsServerListEdit.cpp
         include/ui/widget/json/JsonTree.h
         src/ui/widget/json/JsonTree.cpp
         include/ui/widget/json/JsonValidator.h
@@ -307,6 +311,8 @@ set(PROJECT_SOURCES
         src/ui/utils/SettingsIndex.cpp
         include/ui/utils/UiMode.h
         src/ui/utils/UiMode.cpp
+        include/ui/utils/ThemedIcon.hpp
+        src/ui/utils/ThemedIcon.cpp
 
         include/ui/profile/dialog_edit_profile.h
         src/ui/profile/dialog_edit_profile.cpp
@@ -534,6 +540,22 @@ set(PROJECT_SOURCES
         src/ui/setting/RouteItem.cpp
         include/ui/setting/RouteItem.h
         include/ui/setting/RouteItem.ui
+        src/ui/setting/route/RouteEditorCommon.cpp
+        include/ui/setting/route/RouteEditorCommon.h
+        src/ui/setting/route/RouteEditorWidgets.cpp
+        include/ui/setting/route/RouteEditorWidgets.h
+        src/ui/setting/route/RouteRulesPage.cpp
+        include/ui/setting/route/RouteRulesPage.h
+        src/ui/setting/route/RouteRuleList.cpp
+        include/ui/setting/route/RouteRuleList.h
+        src/ui/setting/route/RouteRuleEditor.cpp
+        include/ui/setting/route/RouteRuleEditor.h
+        src/ui/setting/route/RouteThenPicker.cpp
+        include/ui/setting/route/RouteThenPicker.h
+        src/ui/setting/route/RouteQuickLists.cpp
+        include/ui/setting/route/RouteQuickLists.h
+        src/ui/setting/route/RouteEndpointPanel.cpp
+        include/ui/setting/route/RouteEndpointPanel.h
 
         src/ui/setting/RawRouteItem.cpp
         include/ui/setting/RawRouteItem.h

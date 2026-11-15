@@ -54,10 +54,6 @@ QToolButton::menu-indicator {
         <property name="text">
          <string>Program</string>
         </property>
-        <property name="icon">
-         <iconset resource="../../res/Throne.qrc">
-          <normaloff>:/icon/b-system-run.png</normaloff>:/icon/b-system-run.png</iconset>
-        </property>
         <property name="iconSize">
          <size>
           <width>24</width>
@@ -102,10 +98,6 @@ QToolButton::menu-indicator {
         </property>
         <property name="text">
          <string>Settings</string>
-        </property>
-        <property name="icon">
-         <iconset resource="../../res/Throne.qrc">
-          <normaloff>:/icon/b-preferences.png</normaloff>:/icon/b-preferences.png</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -152,10 +144,6 @@ QToolButton::menu-indicator {
         <property name="text">
          <string>Groups</string>
         </property>
-        <property name="icon">
-         <iconset resource="../../res/Throne.qrc">
-          <normaloff>:/icon/b-testing-button.png</normaloff>:/icon/b-testing-button.png</iconset>
-        </property>
         <property name="iconSize">
          <size>
           <width>24</width>
@@ -201,10 +189,6 @@ QToolButton::menu-indicator {
         <property name="text">
          <string>Routing</string>
         </property>
-        <property name="icon">
-         <iconset resource="../../res/Throne.qrc">
-          <normaloff>:/icon/b-network-routing.png</normaloff>:/icon/b-network-routing.png</iconset>
-        </property>
         <property name="iconSize">
          <size>
           <width>24</width>
@@ -249,10 +233,6 @@ QToolButton::menu-indicator {
         </property>
         <property name="text">
          <string>Tools</string>
-        </property>
-        <property name="icon">
-         <iconset resource="../../res/Throne.qrc">
-          <normaloff>:/icon/b-tools-button.png</normaloff>:/icon/b-tools-button.png</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -752,8 +732,6 @@ QToolButton::menu-indicator {
     <addaction name="actionCheck_For_Update"/>
     <addaction name="actionAbout"/>
     <addaction name="separator"/>
-    <addaction name="actionRestart_Proxy"/>
-    <addaction name="actionRestart_Program"/>
     <addaction name="menu_exit"/>
    </widget>
    <widget class="QMenu" name="menu_preferences">
@@ -769,41 +747,63 @@ QToolButton::menu-indicator {
    </widget>
    <widget class="QMenu" name="menu_server">
     <property name="title">
-     <string>Server</string>
+     <string>Profile</string>
     </property>
+    <widget class="QMenu" name="menu_test_selected">
+     <property name="title">
+      <string>Test</string>
+     </property>
+     <addaction name="actionUrl_Test_Selected"/>
+     <addaction name="actionSpeedtest_Selected"/>
+     <addaction name="actionService_Check_Selected"/>
+     <addaction name="actionResolve_Selected_Out_IP"/>
+     <addaction name="menu_resolve_selected"/>
+     <addaction name="menu_find_settings"/>
+     <addaction name="separator"/>
+     <addaction name="menu_stop_testing"/>
+     <addaction name="actionClear_Test_Result"/>
+    </widget>
     <widget class="QMenu" name="menu_share_item">
      <property name="title">
       <string>Share</string>
      </property>
      <addaction name="menu_qr"/>
-     <addaction name="menu_export_config"/>
-     <addaction name="separator"/>
      <addaction name="menu_copy_links"/>
      <addaction name="menu_copy_links_nkr"/>
      <addaction name="actionCopy_Test_Result"/>
+     <addaction name="separator"/>
+     <addaction name="menu_export_config"/>
     </widget>
+    <widget class="QMenu" name="menu_move_to_group">
+     <property name="title">
+      <string>Move to group</string>
+     </property>
+    </widget>
+    <addaction name="menu_start"/>
+    <addaction name="menu_stop"/>
+    <addaction name="menu_edit"/>
+    <addaction name="separator"/>
+    <addaction name="menu_test_selected"/>
+    <addaction name="menu_share_item"/>
+    <addaction name="menu_clone"/>
+    <addaction name="menu_pin"/>
+    <addaction name="menu_move_to_group"/>
+    <addaction name="separator"/>
+    <addaction name="menu_reset_traffic"/>
+    <addaction name="menu_delete"/>
+   </widget>
+   <widget class="QMenu" name="menu_profiles_space">
+    <property name="title">
+     <string>Profiles</string>
+    </property>
     <addaction name="menu_add_from_input"/>
     <addaction name="menu_add_from_clipboard"/>
     <addaction name="actionAdd_profile_from_File"/>
     <addaction name="menu_scan_qr"/>
     <addaction name="separator"/>
-    <addaction name="menu_start"/>
-    <addaction name="menu_stop"/>
-    <addaction name="menu_share_item"/>
-    <addaction name="menu_delete"/>
+    <addaction name="menu_add_subscription"/>
     <addaction name="separator"/>
     <addaction name="menu_select_all"/>
-    <addaction name="menu_clone"/>
-    <addaction name="menu_pin"/>
-    <addaction name="separator"/>
-    <addaction name="actionUrl_Test_Selected"/>
-    <addaction name="actionSpeedtest_Selected"/>
-    <addaction name="actionResolve_Selected_Out_IP"/>
-    <addaction name="actionService_Check_Selected"/>
-    <addaction name="menu_find_settings"/>
-    <addaction name="menu_resolve_selected"/>
-    <addaction name="actionClear_Test_Result"/>
-    <addaction name="menu_reset_traffic"/>
    </widget>
    <widget class="QMenu" name="menuHidden_menu">
     <property name="title">
@@ -827,6 +827,8 @@ QToolButton::menu-indicator {
     <addaction name="actionResolve_Out_IP"/>
     <addaction name="actionRefresh_Column_Widths"/>
     <addaction name="menu_spmode"/>
+    <addaction name="actionRestart_Proxy"/>
+    <addaction name="actionWarp"/>
    </widget>
    <widget class="QMenu" name="menuRouting_Menu">
     <property name="title">
@@ -850,6 +852,19 @@ QToolButton::menu-indicator {
     <property name="title">
      <string>Groups</string>
     </property>
+    <widget class="QMenu" name="menu_test_group">
+     <property name="title">
+      <string>Test</string>
+     </property>
+     <addaction name="actionUrl_Test_Group"/>
+     <addaction name="actionSpeedtest_Group"/>
+     <addaction name="actionService_Check_Group"/>
+     <addaction name="actionResolve_Out_IP"/>
+     <addaction name="menu_resolve_domain"/>
+     <addaction name="separator"/>
+     <addaction name="menu_stop_testing"/>
+     <addaction name="menu_clear_test_result"/>
+    </widget>
     <widget class="QMenu" name="menu_clean_up">
      <property name="title">
       <string>Clean up</string>
@@ -859,26 +874,22 @@ QToolButton::menu-indicator {
      <addaction name="menu_remove_invalid"/>
      <addaction name="menu_remove_insecure"/>
     </widget>
-    <addaction name="menu_manage_groups"/>
-    <addaction name="actionAdd_New_Group"/>
-    <addaction name="actionEdit_Group"/>
-    <addaction name="actionDelete_Group"/>
-    <addaction name="separator"/>
-    <addaction name="actionUrl_Test_Group"/>
-    <addaction name="actionSpeedtest_Group"/>
-    <addaction name="actionResolve_Out_IP"/>
-    <addaction name="actionService_Check_Group"/>
-    <addaction name="menu_resolve_domain"/>
-    <addaction name="menu_clear_test_result"/>
-    <addaction name="separator"/>
     <addaction name="menu_update_subscription"/>
     <addaction name="actionUpdate_All_Subscriptions"/>
+    <addaction name="separator"/>
+    <addaction name="menu_test_group"/>
     <addaction name="menu_clean_up"/>
     <addaction name="separator"/>
+    <addaction name="actionAdd_New_Group"/>
+    <addaction name="actionEdit_Group"/>
+    <addaction name="menu_manage_groups"/>
+    <addaction name="separator"/>
+    <addaction name="actionDelete_Group"/>
    </widget>
    <addaction name="menu_program"/>
    <addaction name="menu_preferences"/>
    <addaction name="menu_server"/>
+   <addaction name="menu_profiles_space"/>
    <addaction name="menuHidden_menu"/>
    <addaction name="menuRouting_Menu"/>
    <addaction name="menuTesting"/>
@@ -886,12 +897,12 @@ QToolButton::menu-indicator {
   </widget>
   <action name="menu_exit">
    <property name="text">
-    <string>Exit</string>
+    <string>Quit</string>
    </property>
   </action>
   <action name="actionShow_window">
    <property name="text">
-    <string>Show Window</string>
+    <string>Show window</string>
    </property>
   </action>
   <action name="menu_basic_settings">
@@ -909,7 +920,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="menu_manage_groups">
    <property name="text">
-    <string>Manage Groups</string>
+    <string>Manage groups</string>
    </property>
   </action>
   <action name="menu_start">
@@ -935,7 +946,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="menu_add_from_clipboard">
    <property name="text">
-    <string>Add profile from clipboard</string>
+    <string>Paste from clipboard</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+V</string>
@@ -951,12 +962,12 @@ QToolButton::menu-indicator {
   </action>
   <action name="menu_qr">
    <property name="text">
-    <string>QR Code and link</string>
+    <string>QR code and link</string>
    </property>
   </action>
   <action name="menu_clear_test_result">
    <property name="text">
-    <string>Clear Group test result</string>
+    <string>Clear results</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+Shift+C</string>
@@ -975,7 +986,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="menu_reset_traffic">
    <property name="text">
-    <string>Reset Traffic</string>
+    <string>Reset traffic</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+R</string>
@@ -986,7 +997,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="menu_scan_qr">
    <property name="text">
-    <string>Scan QR Code</string>
+    <string>Scan QR code</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+Shift+Q</string>
@@ -997,15 +1008,12 @@ QToolButton::menu-indicator {
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>System Proxy</string>
+    <string>System proxy</string>
    </property>
   </action>
   <action name="menu_delete_repeat">
    <property name="text">
-    <string>Remove Duplicates</string>
-   </property>
-   <property name="shortcut">
-    <string notr="true">Ctrl+Shift+D</string>
+    <string>Remove duplicates</string>
    </property>
   </action>
   <action name="actionStart_with_system">
@@ -1034,10 +1042,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="menu_remove_unavailable">
    <property name="text">
-    <string>Remove Unavailable</string>
-   </property>
-   <property name="shortcut">
-    <string notr="true">Ctrl+Shift+R</string>
+    <string>Remove unavailable</string>
    </property>
   </action>
   <action name="menu_integration_settings">
@@ -1050,7 +1055,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="menu_select_all">
    <property name="text">
-    <string>Select All</string>
+    <string>Select all</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+A</string>
@@ -1058,7 +1063,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="menu_copy_links_nkr">
    <property name="text">
-    <string>Copy links of selected (Deep Links)</string>
+    <string>Copy deep link</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+Alt+C</string>
@@ -1069,7 +1074,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="menu_copy_links">
    <property name="text">
-    <string>Copy links of selected</string>
+    <string>Copy link</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+C</string>
@@ -1080,7 +1085,7 @@ QToolButton::menu-indicator {
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Tun Mode</string>
+    <string>Tun mode</string>
    </property>
   </action>
   <action name="menu_clone">
@@ -1093,7 +1098,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="menu_pin">
    <property name="text">
-    <string>Pin</string>
+    <string>Pin to top</string>
    </property>
   </action>
   <action name="menu_update_subscription">
@@ -1109,7 +1114,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="menu_resolve_domain">
    <property name="text">
-    <string>Resolve Domain for group</string>
+    <string>Resolve domains</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+Shift+I</string>
@@ -1149,7 +1154,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="menu_find_settings">
    <property name="text">
-    <string>Scan DPI evasion settings</string>
+    <string>Find working settings</string>
    </property>
    <property name="uiLevel" stdset="0">
     <string notr="true">advanced</string>
@@ -1157,7 +1162,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="actionRestart_Program">
    <property name="text">
-    <string>Restart Program</string>
+    <string>Restart program</string>
    </property>
   </action>
   <action name="menu_open_config_folder">
@@ -1178,12 +1183,12 @@ QToolButton::menu-indicator {
   </action>
   <action name="actionRestart_Proxy">
    <property name="text">
-    <string>Restart Core</string>
+    <string>Restart core</string>
    </property>
   </action>
   <action name="menu_stop_testing">
    <property name="text">
-    <string>Stop Testing</string>
+    <string>Stop testing</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+.</string>
@@ -1191,7 +1196,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="actionUrl_Test_Selected">
    <property name="text">
-    <string>Url Test Selected</string>
+    <string>URL test</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+Shift+S</string>
@@ -1205,7 +1210,7 @@ QToolButton::menu-indicator {
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Url Test Group</string>
+    <string>URL test</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+Shift+G</string>
@@ -1216,7 +1221,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="menu_resolve_selected">
    <property name="text">
-    <string>Resolve Selected Domain</string>
+    <string>Resolve domain</string>
    </property>
    <property name="visible">
     <bool>true</bool>
@@ -1227,10 +1232,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="menu_remove_invalid">
    <property name="text">
-    <string>Remove Invalid</string>
-   </property>
-   <property name="shortcut">
-    <string notr="true">Ctrl+Alt+I</string>
+    <string>Remove invalid</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::TextHeuristicRole</enum>
@@ -1238,7 +1240,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="menu_remove_insecure">
    <property name="text">
-    <string>Remove Insecure Configs</string>
+    <string>Remove insecure configs</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::TextHeuristicRole</enum>
@@ -1254,7 +1256,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="actionSpeedtest_Selected">
    <property name="text">
-    <string>Speedtest Selected</string>
+    <string>Speed test</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+Shift+P</string>
@@ -1262,7 +1264,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="actionSpeedtest_Group">
    <property name="text">
-    <string>Speedtest Group</string>
+    <string>Speed test</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+Alt+P</string>
@@ -1278,7 +1280,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="actionAdd_profile_from_File">
    <property name="text">
-    <string>Add profile from File(s)</string>
+    <string>Import from file</string>
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+O</string>
@@ -1286,7 +1288,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="actionResolve_Out_IP">
    <property name="text">
-    <string>Resolve out IP for group</string>
+    <string>Exit IP</string>
    </property>
    <property name="uiLevel" stdset="0">
     <string notr="true">advanced</string>
@@ -1294,17 +1296,17 @@ QToolButton::menu-indicator {
   </action>
   <action name="actionAdd_New_Group">
    <property name="text">
-    <string>Add new Group</string>
+    <string>New group</string>
    </property>
   </action>
   <action name="actionEdit_Group">
    <property name="text">
-    <string>Edit current Group</string>
+    <string>Edit group</string>
    </property>
   </action>
   <action name="actionDelete_Group">
    <property name="text">
-    <string>Delete current Group</string>
+    <string>Delete group</string>
    </property>
   </action>
   <action name="actionUpdate_All_Subscriptions">
@@ -1314,7 +1316,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="actionResolve_Selected_Out_IP">
    <property name="text">
-    <string>Resolve Selected Out IP</string>
+    <string>Exit IP</string>
    </property>
    <property name="uiLevel" stdset="0">
     <string notr="true">advanced</string>
@@ -1322,12 +1324,12 @@ QToolButton::menu-indicator {
   </action>
   <action name="actionService_Check_Selected">
    <property name="text">
-    <string>Service Check</string>
+    <string>Service check</string>
    </property>
   </action>
   <action name="actionService_Check_Group">
    <property name="text">
-    <string>Service Check Group</string>
+    <string>Service check</string>
    </property>
   </action>
   <action name="actionRefresh_Column_Widths">
@@ -1337,12 +1339,12 @@ QToolButton::menu-indicator {
   </action>
   <action name="actionCopy_Test_Result">
    <property name="text">
-    <string>Copy Test Result</string>
+    <string>Copy test result</string>
    </property>
   </action>
   <action name="actionClear_Test_Result">
    <property name="text">
-    <string>Clear Test Result</string>
+    <string>Clear results</string>
    </property>
   </action>
   <action name="actionAuto_Selector">
@@ -1373,7 +1375,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="actionUpdate_Rule_Sets">
    <property name="text">
-    <string>Update Rule-Sets</string>
+    <string>Update rule-sets</string>
    </property>
   </action>
   <action name="actionAdblock">
@@ -1381,7 +1383,7 @@ QToolButton::menu-indicator {
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Enable AdBlock</string>
+    <string>Block ads</string>
    </property>
   </action>
   <action name="actionWarp">
@@ -1389,12 +1391,51 @@ QToolButton::menu-indicator {
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Enable Warp</string>
+    <string>Toggle WARP</string>
    </property>
   </action>
   <action name="actionRule_Tester">
    <property name="text">
-    <string>Route path lookup</string>
+    <string>Route lookup</string>
+   </property>
+  </action>
+  <action name="menu_edit">
+   <property name="text">
+    <string>Edit</string>
+   </property>
+  </action>
+  <action name="menu_add_subscription">
+   <property name="text">
+    <string>Add subscription</string>
+   </property>
+  </action>
+  <action name="menu_exit_server">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Selected server</string>
+   </property>
+  </action>
+  <action name="menu_exit_warp">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string notr="true">Cloudflare WARP</string>
+   </property>
+  </action>
+  <action name="menu_exit_tor">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string notr="true">Tor</string>
+   </property>
+  </action>
+  <action name="menu_edit_route">
+   <property name="text">
+    <string>Edit current profile</string>
    </property>
   </action>
  </widget>

@@ -14,6 +14,7 @@
 #include <QtDBus>
 #endif
 
+#include <array>
 #include <deque>
 #include <optional>
 #include <QKeyEvent>
@@ -71,7 +72,10 @@ class DialogIpLists;
 class DialogRuleTester;
 class CommandPalette;
 
-namespace Qv2ray::ui { class SyntaxHighlighter; }
+namespace Qv2ray::ui {
+    class SyntaxHighlighter;
+    enum class LogLevel : quint8;
+}
 namespace SettingsIndex { struct Item; }
 
 QT_BEGIN_NAMESPACE
@@ -237,6 +241,14 @@ private slots:
 
     void on_profilesTableView_customContextMenuRequested(const QPoint &pos);
 
+    void showProfilesContextMenu(const QPoint &pos);
+
+    void on_menu_server_aboutToHide();
+
+    void on_menu_edit_triggered();
+
+    void on_menu_add_subscription_triggered();
+
     void on_tabWidget_currentChanged(int index);
 
     void on_tabWidget_customContextMenuRequested(const QPoint& p);
@@ -249,11 +261,17 @@ private:
     ProfilesFilterProxyModel *profilesFilterModel = nullptr;
     TrayIcon *tray = nullptr;
     QMenu *trayMenu = nullptr;
+    QAction *trayStatusAction = nullptr;
     QAction *trayConnectAction = nullptr;
+    QAction *trayProfileAction = nullptr;
+    QAction *trayRoutingAction = nullptr;
     QPointer<TrayProfileSelector> traySelector;
     void openTraySelector(bool routing);
     QPointer<TrayOtpCodes> trayOtpCodes;
     void openTrayOtpCodes();
+    void setupTrayMenu();
+    // DBusMenu may never send aboutToShow, so state changes call this instead.
+    void refreshTrayMenu();
     QThreadPool *parallelCoreCallPool = new QThreadPool(this);
     // Engine::host()'s objects, in mainwindow_engine_control.cpp.
     Engine::ConnectionManager *connection() const;
@@ -327,12 +345,18 @@ private:
     // while the user is scrolled up, arrivals wait in m_logHeld so the view stays frozen.
     struct LogLine {
         QString text;
+        Qv2ray::ui::LogLevel level{};
         bool visible = true;
     };
     std::deque<LogLine> m_logLines;
     std::deque<QString> m_logHeld;
     bool m_logFollow = true;
     QRegularExpression m_logSearch;
+    // One bit per LogLevel: what the chips select, and what the view is filtered by (all while the bar is hidden).
+    quint8 m_logLevelChoice = 0x0F;
+    quint8 m_logLevelFilter = 0x0F;
+    std::array<int, 4> m_logLevelCounts{};
+    std::array<QToolButton *, 4> logLevelChips{};
     QTimer *m_logSearchDebounce = nullptr;
     QToolButton *logFilterButton = nullptr;
     QToolButton *logJumpLatestButton = nullptr;
@@ -354,6 +378,14 @@ private:
     void flush_log_batch();
 
     void setupLogView();
+
+    void setupThemedIcons();
+
+    void pushLogLine(QString &&text);
+
+    [[nodiscard]] bool logLineVisible(const LogLine &line) const;
+
+    void refreshLogLevelChips();
 
     void releaseHeldLogs();
 
@@ -543,6 +575,8 @@ private:
     void setupConnectionList();
 
     void setupTrafficGraph();
+
+    void setupRoutingMenu();
 
     void refresh_traffic_graph_settings();
 

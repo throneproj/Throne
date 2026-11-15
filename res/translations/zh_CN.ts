@@ -3671,20 +3671,20 @@ Included: %2</source>
         </translation>
     </message>
     <message>
-        <source>From text…</source>
-        <translation>来自文本...</translation>
+        <source>From text</source>
+        <translation>来自文本</translation>
     </message>
     <message>
-        <source>From file…</source>
-        <translation>来自文件...</translation>
+        <source>From file</source>
+        <translation>来自文件</translation>
     </message>
     <message>
-        <source>From URL…</source>
-        <translation>来自 URL...</translation>
+        <source>From URL</source>
+        <translation>来自 URL</translation>
     </message>
     <message>
-        <source>From rule-set…</source>
-        <translation>来自规则集...</translation>
+        <source>From rule-set</source>
+        <translation>来自规则集</translation>
     </message>
     <message>
         <source>Add default lists</source>
@@ -3959,8 +3959,8 @@ Included: %2</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;在某些配置中无法使用本地 DNS，在这种情况下您必须在这里设置一个 IP 作为本地 DNS 使用&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <source>Local Override</source>
-        <translation>本地覆盖</translation>
+        <source>Resolver for DNS server names</source>
+        <translation>DNS 服务器域名解析器</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, domains destined for direct outbound will also be resolved using direct dns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -4665,16 +4665,16 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>全部为 otpauth-migration:// 链接和 QR 形式</translation>
     </message>
     <message>
-        <source>All as JSON file...</source>
-        <translation>全部为 JSON 文件...</translation>
+        <source>All as JSON file</source>
+        <translation>全部为 JSON 文件</translation>
     </message>
     <message>
-        <source>Add manually...</source>
-        <translation>手动添加...</translation>
+        <source>Add manually</source>
+        <translation>手动添加</translation>
     </message>
     <message>
-        <source>From link or text...</source>
-        <translation>来自链接或文本...</translation>
+        <source>From link or text</source>
+        <translation>来自链接或文本</translation>
     </message>
     <message>
         <source>Import OTP</source>
@@ -4703,8 +4703,8 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>来自剪贴板</translation>
     </message>
     <message>
-        <source>From QR image file...</source>
-        <translation>来自 QR 图像文件...</translation>
+        <source>From QR image file</source>
+        <translation>来自 QR 图像文件</translation>
     </message>
     <message>
         <source>Unable to capture screen</source>
@@ -6255,6 +6255,49 @@ Close without saving?</source>
     <message>
         <source>Submitting...</source>
         <translation>正在提交...</translation>
+    </message>
+</context>
+<context>
+    <name>DnsServerListEdit</name>
+    <message>
+        <source>Drag to reorder</source>
+        <translation>拖动以调整顺序</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation>删除</translation>
+    </message>
+    <message>
+        <source>System</source>
+        <translation>系统</translation>
+    </message>
+    <message>
+        <source>Also resolves proxy server addresses</source>
+        <translation>也用于解析代理服务器地址</translation>
+    </message>
+    <message>
+        <source>Add</source>
+        <translation>添加</translation>
+    </message>
+    <message>
+        <source>Recent</source>
+        <translation>最近使用</translation>
+    </message>
+    <message>
+        <source>Custom address</source>
+        <translation>自定义地址</translation>
+    </message>
+    <message>
+        <source>Address, e.g. tls://1.1.1.1</source>
+        <translation>地址，例如 tls://1.1.1.1</translation>
+    </message>
+    <message>
+        <source>Queried together; the fastest answer wins.</source>
+        <translation>同时查询，采用最快的应答。</translation>
+    </message>
+    <message>
+        <source>Add at least one server.</source>
+        <translation>请至少添加一个服务器。</translation>
     </message>
 </context>
 <context>
@@ -10124,10 +10167,6 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>首选项</translation>
     </message>
     <message>
-        <source>Server</source>
-        <translation>服务器</translation>
-    </message>
-    <message>
         <source>Share</source>
         <translation>分享</translation>
     </message>
@@ -10148,11 +10187,11 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>清理</translation>
     </message>
     <message>
-        <source>Exit</source>
+        <source>Quit</source>
         <translation>退出</translation>
     </message>
     <message>
-        <source>Show Window</source>
+        <source>Show window</source>
         <translation>显示窗口</translation>
     </message>
     <message>
@@ -10164,7 +10203,7 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>新建配置档</translation>
     </message>
     <message>
-        <source>Manage Groups</source>
+        <source>Manage groups</source>
         <translation>管理分组</translation>
     </message>
     <message>
@@ -10180,31 +10219,27 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>路由设置</translation>
     </message>
     <message>
-        <source>Add profile from clipboard</source>
-        <translation>添加剪贴板中的配置档</translation>
+        <source>Paste from clipboard</source>
+        <translation>从剪贴板粘贴</translation>
     </message>
     <message>
         <source>Delete</source>
         <translation>删除</translation>
     </message>
     <message>
-        <source>QR Code and link</source>
+        <source>QR code and link</source>
         <translation>二维码和链接</translation>
     </message>
     <message>
-        <source>Clear Group test result</source>
-        <translation>清除本组测试结果</translation>
-    </message>
-    <message>
-        <source>Reset Traffic</source>
+        <source>Reset traffic</source>
         <translation>重置流量</translation>
     </message>
     <message>
-        <source>Scan QR Code</source>
+        <source>Scan QR code</source>
         <translation>扫描二维码</translation>
     </message>
     <message>
-        <source>Remove Duplicates</source>
+        <source>Remove duplicates</source>
         <translation>移除重复项</translation>
     </message>
     <message>
@@ -10220,20 +10255,20 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>允许其他设备连接</translation>
     </message>
     <message>
-        <source>Remove Unavailable</source>
+        <source>Remove unavailable</source>
         <translation>移除不可用项</translation>
     </message>
     <message>
-        <source>Select All</source>
+        <source>Select all</source>
         <translation>全选</translation>
     </message>
     <message>
-        <source>Copy links of selected (Deep Links)</source>
-        <translation>复制选定项的链接 (深度链接)</translation>
+        <source>Copy deep link</source>
+        <translation>复制深度链接</translation>
     </message>
     <message>
-        <source>Copy links of selected</source>
-        <translation>复制选定项的链接</translation>
+        <source>Copy link</source>
+        <translation>复制链接</translation>
     </message>
     <message>
         <source>Clone</source>
@@ -10244,8 +10279,8 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>更新订阅</translation>
     </message>
     <message>
-        <source>Resolve Domain for group</source>
-        <translation>为本组解析域名</translation>
+        <source>Resolve domains</source>
+        <translation>解析域名</translation>
     </message>
     <message>
         <source>Tun Settings</source>
@@ -10264,7 +10299,7 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>IP 扫描器</translation>
     </message>
     <message>
-        <source>Restart Program</source>
+        <source>Restart program</source>
         <translation>重启程序</translation>
     </message>
     <message>
@@ -10276,31 +10311,27 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>打开网络仪表盘</translation>
     </message>
     <message>
-        <source>Restart Core</source>
+        <source>Restart core</source>
         <translation>重启核心</translation>
     </message>
     <message>
-        <source>Stop Testing</source>
+        <source>Stop testing</source>
         <translation>停止测试</translation>
     </message>
     <message>
-        <source>Url Test Selected</source>
-        <translation>URL 测试选定项</translation>
+        <source>URL test</source>
+        <translation>URL 测试</translation>
     </message>
     <message>
-        <source>Url Test Group</source>
-        <translation>URL 测试本组</translation>
+        <source>Resolve domain</source>
+        <translation>解析域名</translation>
     </message>
     <message>
-        <source>Resolve Selected Domain</source>
-        <translation>解析选定域名</translation>
-    </message>
-    <message>
-        <source>Remove Invalid</source>
+        <source>Remove invalid</source>
         <translation>移除无效项</translation>
     </message>
     <message>
-        <source>Remove Insecure Configs</source>
+        <source>Remove insecure configs</source>
         <translation>移除不安全的配置</translation>
     </message>
     <message>
@@ -10308,63 +10339,55 @@ Improves hole-punching reliability. Requires IPv4.</source>
         <translation>速度测试当前项</translation>
     </message>
     <message>
-        <source>Speedtest Selected</source>
-        <translation>速度测试选定项</translation>
-    </message>
-    <message>
-        <source>Speedtest Group</source>
-        <translation>速度测试本组</translation>
+        <source>Speed test</source>
+        <translation>速度测试</translation>
     </message>
     <message>
         <source>Hide window</source>
         <translation>隐藏窗口</translation>
     </message>
     <message>
-        <source>Add profile from File(s)</source>
-        <translation>添加文件中的配置档</translation>
+        <source>Import from file</source>
+        <translation>从文件导入</translation>
     </message>
     <message>
-        <source>Resolve out IP for group</source>
-        <translation>为本组解析 IP</translation>
+        <source>Exit IP</source>
+        <translation>出口 IP</translation>
     </message>
     <message>
-        <source>Add new Group</source>
-        <translation>添加新分组</translation>
+        <source>New group</source>
+        <translation>新建分组</translation>
     </message>
     <message>
-        <source>Edit current Group</source>
-        <translation>编辑当前分组</translation>
+        <source>Edit group</source>
+        <translation>编辑分组</translation>
     </message>
     <message>
-        <source>Delete current Group</source>
-        <translation>删除当前分组</translation>
+        <source>Delete group</source>
+        <translation>删除分组</translation>
     </message>
     <message>
         <source>Update all subscriptions</source>
         <translation>更新所有订阅</translation>
     </message>
     <message>
-        <source>Resolve Selected Out IP</source>
-        <translation>解析选定的出口 IP</translation>
-    </message>
-    <message>
         <source>Refresh Column Widths</source>
         <translation>刷新列宽</translation>
     </message>
     <message>
-        <source>Copy Test Result</source>
+        <source>Copy test result</source>
         <translation>复制测试结果</translation>
     </message>
     <message>
-        <source>Clear Test Result</source>
-        <translation>清理测试结果</translation>
+        <source>Clear results</source>
+        <translation>清除结果</translation>
     </message>
     <message>
         <source>About</source>
         <translation>关于</translation>
     </message>
     <message>
-        <source>Update Rule-Sets</source>
+        <source>Update rule-sets</source>
         <translation>更新规则集</translation>
     </message>
     <message>
@@ -10790,28 +10813,12 @@ URL: %2</translation>
         <translation>错误</translation>
     </message>
     <message>
-        <source>Edit selected Group</source>
-        <translation>编辑选定分组</translation>
-    </message>
-    <message>
         <source>This group was deleted while you were editing it.</source>
         <translation>这个分组在你编辑时被删除。</translation>
     </message>
     <message>
-        <source>Delete selected Group</source>
-        <translation>删除选定分组</translation>
-    </message>
-    <message>
         <source>Remove %1?</source>
         <translation>删除 %1 吗?</translation>
-    </message>
-    <message>
-        <source>Url Test selected Group</source>
-        <translation>URL 测试选定分组</translation>
-    </message>
-    <message>
-        <source>Speed Test selected Group</source>
-        <translation>速度测试选定分组</translation>
     </message>
     <message>
         <source>New logs are held while the view is scrolled up</source>
@@ -11160,11 +11167,11 @@ Error: %1</source>
         <translation>选择配置档</translation>
     </message>
     <message>
-        <source>Select Routing</source>
-        <translation>选择路由</translation>
+        <source>Routing: %1</source>
+        <translation>路由：%1</translation>
     </message>
     <message>
-        <source>OTP Codes</source>
+        <source>OTP codes</source>
         <translation>OTP 代码</translation>
     </message>
     <message>
@@ -11176,12 +11183,12 @@ Error: %1</source>
         <translation>更新所有订阅吗？</translation>
     </message>
     <message>
-        <source>Enable AdBlock</source>
-        <translation>启用 AdBlock (广告屏蔽)</translation>
+        <source>Block ads</source>
+        <translation>屏蔽广告</translation>
     </message>
     <message>
-        <source>Enable Warp</source>
-        <translation>启用 Warp</translation>
+        <source>Toggle WARP</source>
+        <translation>切换 WARP</translation>
     </message>
     <message>
         <source> Test result(s) copied to clipboard!</source>
@@ -11204,8 +11211,8 @@ Error: %1</source>
         <translation>选择配置档文件</translation>
     </message>
     <message>
-        <source>Open Traffic Statistics…</source>
-        <translation>打开流量统计…</translation>
+        <source>Open Traffic Statistics</source>
+        <translation>打开流量统计</translation>
     </message>
     <message>
         <source>routing profiles</source>
@@ -11500,12 +11507,8 @@ Grant them once with a Windows confirmation; Throne itself keeps running as a st
         <translation>已取消更新，Throne 仍在运行中</translation>
     </message>
     <message>
-        <source>Service Check</source>
+        <source>Service check</source>
         <translation>服务检查</translation>
-    </message>
-    <message>
-        <source>Service Check Group</source>
-        <translation>服务检查本组</translation>
     </message>
     <message>
         <source>Services</source>
@@ -11548,7 +11551,7 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
         <translation>也可以改为以管理员身份重启 Throne。</translation>
     </message>
     <message>
-        <source>Pin</source>
+        <source>Pin to top</source>
         <translation>置顶</translation>
     </message>
     <message>
@@ -11708,8 +11711,108 @@ Error: %1</source>
 错误: %1</translation>
     </message>
     <message>
+        <source>Errors %1</source>
+        <translation>错误 %1</translation>
+    </message>
+    <message>
+        <source>Warnings %1</source>
+        <translation>警告 %1</translation>
+    </message>
+    <message>
+        <source>Info %1</source>
+        <translation>信息 %1</translation>
+    </message>
+    <message>
+        <source>Debug %1</source>
+        <translation>调试 %1</translation>
+    </message>
+    <message>
+        <source>Find working settings</source>
+        <translation>查找可用设置</translation>
+    </message>
+    <message>
+        <source>Route lookup</source>
+        <translation>路由查询</translation>
+    </message>
+    <message>
+        <source>Profiles</source>
+        <translation>配置档</translation>
+    </message>
+    <message>
+        <source>Edit</source>
+        <translation>编辑</translation>
+    </message>
+    <message>
+        <source>Test</source>
+        <translation>测试</translation>
+    </message>
+    <message>
+        <source>Move to group</source>
+        <translation>移动到分组</translation>
+    </message>
+    <message>
+        <source>Selected server</source>
+        <translation>所选服务器</translation>
+    </message>
+    <message>
+        <source>Edit current profile</source>
+        <translation>编辑当前配置档</translation>
+    </message>
+    <message>
+        <source>Download route profile</source>
+        <translation>下载路由配置档</translation>
+    </message>
+    <message>
+        <source>%1 (downloading)</source>
+        <translation>%1（下载中）</translation>
+    </message>
+    <message>
+        <source>Connected · %1</source>
+        <translation>已连接 · %1</translation>
+    </message>
+    <message>
+        <source>Not connected</source>
+        <translation>未连接</translation>
+    </message>
+    <message>
+        <source>Profile: %1</source>
+        <translation>配置档：%1</translation>
+    </message>
+    <message>
+        <source>System proxy</source>
+        <translation>系统代理</translation>
+    </message>
+    <message>
+        <source>Tun mode</source>
+        <translation>Tun 模式</translation>
+    </message>
+    <message>
+        <source>Restart</source>
+        <translation>重启</translation>
+    </message>
+    <message>
+        <source>A selected profile is open in an editor. Close it first.</source>
+        <translation>所选配置档正在编辑器中打开，请先关闭它。</translation>
+    </message>
+    <message>
+        <source>A subscription group&apos;s next update removes profiles moved into it. Choose another group.</source>
+        <translation>订阅分组下次更新时会移除移入其中的配置档。请选择其他分组。</translation>
+    </message>
+    <message>
+        <source>[Tor] Downloading Tor; it turns on when the download finishes.</source>
+        <translation>[Tor] 正在下载 Tor；下载完成后将自动开启。</translation>
+    </message>
+    <message>
+        <source>Select profile</source>
+        <translation>选择配置档</translation>
+    </message>
+    <message>
         <source>No services are selected for the service check. Choose them in Basic Settings.</source>
         <translation>服务检查未选择任何服务。请在“基本设置”中选择。</translation>
+    </message>
+    <message>
+        <source>Server without WARP</source>
+        <translation>不经 WARP 的服务器</translation>
     </message>
 </context>
 <context>
@@ -13960,12 +14063,8 @@ outbounds and other Throne features may break. For advanced users only.</source>
         <translation>不发出伪 IPv6 地址； AAAA 查询会被回答空结果。</translation>
     </message>
     <message>
-        <source>Local Override, the hosts file, predefined answers and the advanced DNS settings always come from Routing Settings &gt; DNS.</source>
-        <translation>“本地覆盖”、hosts 文件、预定义应答和高级 DNS 设置总是来自“路由设置 &gt; DNS”。</translation>
-    </message>
-    <message>
-        <source>Separate several servers with commas: they are queried together and the first answer wins.</source>
-        <translation>多个服务器用逗号分隔：它们会被同时查询，以最先返回的应答为准。</translation>
+        <source>The resolver for DNS server names, the hosts file, predefined answers and the advanced DNS settings always come from Routing Settings &gt; DNS.</source>
+        <translation>DNS 服务器域名解析器、hosts 文件、预定义应答和高级 DNS 设置总是来自“路由设置 &gt; DNS”。</translation>
     </message>
 </context>
 <context>
@@ -14263,6 +14362,78 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>这条规则属于端点“%1”，且无法单独删除。
 
 同时从这个路由配置档中移除该端点吗？</translation>
+    </message>
+    <message>
+        <source>Rule %1</source>
+        <translation>规则 %1</translation>
+    </message>
+    <message>
+        <source>DNS queries</source>
+        <translation>DNS 查询</translation>
+    </message>
+    <message>
+        <source>Lists</source>
+        <translation>列表</translation>
+    </message>
+    <message>
+        <source>%1 · rule %2 in the list</source>
+        <translation>%1 · 列表中的第 %2 条规则</translation>
+    </message>
+    <message>
+        <source>Custom</source>
+        <translation>自定义</translation>
+    </message>
+    <message>
+        <source>Global</source>
+        <translation>全局</translation>
+    </message>
+    <message>
+        <source>Unsaved changes</source>
+        <translation>未保存的更改</translation>
+    </message>
+    <message>
+        <source>Discard the changes to this routing profile?</source>
+        <translation>放弃对此路由配置档的更改？</translation>
+    </message>
+    <message>
+        <source>Discard</source>
+        <translation>放弃</translation>
+    </message>
+    <message>
+        <source>Keep editing</source>
+        <translation>继续编辑</translation>
+    </message>
+    <message>
+        <source>Everything else goes to</source>
+        <translation>其余流量：</translation>
+    </message>
+    <message>
+        <source>Traffic that no rule matches. Proxy is the selected server, which exits through Cloudflare when built-in WARP is on.</source>
+        <translation>未被任何规则匹配的流量。“代理”即所选服务器，开启内置 WARP 时经由 Cloudflare 出站。</translation>
+    </message>
+    <message>
+        <source>Remote profile</source>
+        <translation>远程配置档</translation>
+    </message>
+    <message>
+        <source>Re-fetch this profile from the URL when subscriptions auto-update.</source>
+        <translation>订阅自动更新时，从该 URL 重新获取此配置档。</translation>
+    </message>
+    <message>
+        <source>Fetch now</source>
+        <translation>立即获取</translation>
+    </message>
+    <message>
+        <source>Each update replaces the rules, so changes made here last until the next one.</source>
+        <translation>每次更新都会替换规则，因此在这里所做的更改只保留到下一次更新。</translation>
+    </message>
+    <message>
+        <source>OpenVPN and OpenConnect profiles started together with this routing profile. Each one adds an endpoint rule to the list, which you can move but not edit.</source>
+        <translation>与此路由配置档一同启动的 OpenVPN 和 OpenConnect 配置档。每个都会在列表中添加一条端点规则，你可以移动它，但不能编辑。</translation>
+    </message>
+    <message>
+        <source>Choose a profile</source>
+        <translation>选择配置档</translation>
     </message>
 </context>
 <context>
@@ -18618,6 +18789,10 @@ Remove that endpoint from this routing profile as well?</source>
         <source>“%1” is not an IP address.</source>
         <translation>“%1” 不是 IP 地址。</translation>
     </message>
+    <message>
+        <source>Route lookup</source>
+        <translation>路由查询</translation>
+    </message>
 </context>
 <context>
     <name>ProcessPicker</name>
@@ -18851,6 +19026,816 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Other</source>
         <translation>其它</translation>
+    </message>
+</context>
+<context>
+    <name>RouteEditor</name>
+    <message>
+        <source>Unnamed rule</source>
+        <translation>未命名规则</translation>
+    </message>
+    <message>
+        <source>Proxy</source>
+        <translation>代理</translation>
+    </message>
+    <message>
+        <source>Direct</source>
+        <translation>直连</translation>
+    </message>
+    <message>
+        <source>Server without WARP</source>
+        <translation>不经 WARP 的服务器</translation>
+    </message>
+    <message>
+        <source>Block</source>
+        <translation>阻止</translation>
+    </message>
+    <message>
+        <source>Hijack DNS</source>
+        <translation>劫持 DNS</translation>
+    </message>
+    <message>
+        <source>Sniff</source>
+        <translation>嗅探</translation>
+    </message>
+    <message>
+        <source>Resolve</source>
+        <translation>解析</translation>
+    </message>
+    <message>
+        <source>Set route options</source>
+        <translation>设置路由选项</translation>
+    </message>
+    <message>
+        <source>Bypass</source>
+        <translation>绕过</translation>
+    </message>
+    <message>
+        <source>Profile</source>
+        <translation>配置档</translation>
+    </message>
+    <message>
+        <source>Other action</source>
+        <translation>其他动作</translation>
+    </message>
+    <message>
+        <source>The selected server. With built-in WARP on, it exits through Cloudflare.</source>
+        <translation>所选服务器。开启内置 WARP 时，经由 Cloudflare 出站。</translation>
+    </message>
+    <message>
+        <source>Leaves this computer without a proxy.</source>
+        <translation>不经代理，直接离开本机。</translation>
+    </message>
+    <message>
+        <source>The selected server without the WARP layer. Same as Proxy while WARP is off.</source>
+        <translation>所选服务器，但不经 WARP 层。WARP 关闭时与“代理”相同。</translation>
+    </message>
+    <message>
+        <source>Rejected: the app sees the connection refused.</source>
+        <translation>拒绝：应用会看到连接被拒绝。</translation>
+    </message>
+    <message>
+        <source>Answered by Throne&apos;s DNS. The DNS tab picks the servers.</source>
+        <translation>由 Throne 的 DNS 应答。服务器在“DNS”选项卡中选择。</translation>
+    </message>
+    <message>
+        <source>Reads the protocol and domain, then continues with the next rule.</source>
+        <translation>读取协议和域名，然后继续匹配下一条规则。</translation>
+    </message>
+    <message>
+        <source>Resolves the domain to an IP, then continues with the next rule.</source>
+        <translation>将域名解析为 IP，然后继续匹配下一条规则。</translation>
+    </message>
+    <message>
+        <source>Applies the connection options below, then continues with the next rule.</source>
+        <translation>应用下方的连接选项，然后继续匹配下一条规则。</translation>
+    </message>
+    <message>
+        <source>Linux auto-redirect only: the connection skips sing-box in the kernel.</source>
+        <translation>仅限 Linux auto-redirect：连接在内核层绕过 sing-box。</translation>
+    </message>
+    <message>
+        <source>Through this profile instead of the selected server.</source>
+        <translation>经由此配置档，而非所选服务器。</translation>
+    </message>
+    <message>
+        <source>An action this editor does not offer; it is kept as it is.</source>
+        <translation>此编辑器不提供的动作；将保持原样。</translation>
+    </message>
+    <message>
+        <source>Missing profile (id %1)</source>
+        <translation>缺失的配置档（id %1）</translation>
+    </message>
+    <message>
+        <source>Destination</source>
+        <translation>目标</translation>
+    </message>
+    <message>
+        <source>Destination port</source>
+        <translation>目标端口</translation>
+    </message>
+    <message>
+        <source>Source</source>
+        <translation>来源</translation>
+    </message>
+    <message>
+        <source>Source port</source>
+        <translation>来源端口</translation>
+    </message>
+    <message>
+        <source>IP version</source>
+        <translation>IP 版本</translation>
+    </message>
+    <message>
+        <source>Network</source>
+        <translation>网络</translation>
+    </message>
+    <message>
+        <source>Protocol (sniffed)</source>
+        <translation>协议（嗅探）</translation>
+    </message>
+    <message>
+        <source>Inbound</source>
+        <translation>入站</translation>
+    </message>
+    <message>
+        <source>Domain</source>
+        <translation>域名</translation>
+    </message>
+    <message>
+        <source>Domain suffix</source>
+        <translation>域名后缀</translation>
+    </message>
+    <message>
+        <source>Domain keyword</source>
+        <translation>域名关键词</translation>
+    </message>
+    <message>
+        <source>Domain regex</source>
+        <translation>域名正则</translation>
+    </message>
+    <message>
+        <source>Source IP range</source>
+        <translation>来源 IP 范围</translation>
+    </message>
+    <message>
+        <source>Source private IP</source>
+        <translation>来源私有 IP</translation>
+    </message>
+    <message>
+        <source>IP range</source>
+        <translation>IP 范围</translation>
+    </message>
+    <message>
+        <source>Private IP</source>
+        <translation>私有 IP</translation>
+    </message>
+    <message>
+        <source>Source port range</source>
+        <translation>来源端口范围</translation>
+    </message>
+    <message>
+        <source>Port</source>
+        <translation>端口</translation>
+    </message>
+    <message>
+        <source>Port range</source>
+        <translation>端口范围</translation>
+    </message>
+    <message>
+        <source>Process name</source>
+        <translation>进程名</translation>
+    </message>
+    <message>
+        <source>Process path</source>
+        <translation>进程路径</translation>
+    </message>
+    <message>
+        <source>Process path regex</source>
+        <translation>进程路径正则</translation>
+    </message>
+    <message>
+        <source>Package name</source>
+        <translation>包名</translation>
+    </message>
+    <message>
+        <source>Wi-Fi name (SSID)</source>
+        <translation>Wi-Fi 名称（SSID）</translation>
+    </message>
+    <message>
+        <source>Wi-Fi BSSID</source>
+        <translation>Wi-Fi BSSID</translation>
+    </message>
+    <message>
+        <source>Rule set</source>
+        <translation>规则集</translation>
+    </message>
+    <message>
+        <source>Invert</source>
+        <translation>反转</translation>
+    </message>
+    <message>
+        <source>Action</source>
+        <translation>动作</translation>
+    </message>
+    <message>
+        <source>Outbound</source>
+        <translation>出站</translation>
+    </message>
+    <message>
+        <source>Override address</source>
+        <translation>覆盖地址</translation>
+    </message>
+    <message>
+        <source>Override port</source>
+        <translation>覆盖端口</translation>
+    </message>
+    <message>
+        <source>Fragment the TLS handshake</source>
+        <translation>分片 TLS 握手</translation>
+    </message>
+    <message>
+        <source>Fallback delay</source>
+        <translation>回退延迟</translation>
+    </message>
+    <message>
+        <source>Split into TLS records</source>
+        <translation>拆分为 TLS 记录</translation>
+    </message>
+    <message>
+        <source>Spoof SNI</source>
+        <translation>伪造 SNI</translation>
+    </message>
+    <message>
+        <source>Spoof method</source>
+        <translation>伪造方式</translation>
+    </message>
+    <message>
+        <source>Reject with</source>
+        <translation>拒绝方式</translation>
+    </message>
+    <message>
+        <source>Never switch to drop</source>
+        <translation>从不切换为 drop</translation>
+    </message>
+    <message>
+        <source>Use the sniffed domain as the destination</source>
+        <translation>将嗅探到的域名作为目标</translation>
+    </message>
+    <message>
+        <source>Strategy</source>
+        <translation>策略</translation>
+    </message>
+    <message>
+        <source>Ports</source>
+        <translation>端口</translation>
+    </message>
+    <message>
+        <source>App</source>
+        <translation>应用</translation>
+    </message>
+    <message>
+        <source>Connection</source>
+        <translation>连接</translation>
+    </message>
+    <message>
+        <source>Wi-Fi</source>
+        <translation>Wi-Fi</translation>
+    </message>
+    <message>
+        <source>any private address</source>
+        <translation>任意私有地址</translation>
+    </message>
+    <message>
+        <source>%1 and %2 more</source>
+        <translation>%1 等另外 %2 项</translation>
+    </message>
+    <message>
+        <source>All traffic</source>
+        <translation>所有流量</translation>
+    </message>
+    <message>
+        <source>Not: %1</source>
+        <translation>非：%1</translation>
+    </message>
+    <message>
+        <source>This rule has no conditions, so it would catch all traffic. Add a condition, or turn the rule off.</source>
+        <translation>此规则没有条件，会匹配所有流量。请添加条件，或关闭此规则。</translation>
+    </message>
+</context>
+<context>
+    <name>RouteEditor::ValueChip</name>
+    <message>
+        <source>Remove</source>
+        <translation>删除</translation>
+    </message>
+</context>
+<context>
+    <name>QuickLists</name>
+    <message>
+        <source>Already in this list.</source>
+        <translation>已在此列表中。</translation>
+    </message>
+    <message>
+        <source>Add a prefix such as keyword: or processName: to say what this is.</source>
+        <translation>请添加前缀（如 keyword: 或 processName:）来说明这是什么。</translation>
+    </message>
+    <message>
+        <source>domain</source>
+        <translation>域名</translation>
+    </message>
+    <message>
+        <source>suffix</source>
+        <translation>后缀</translation>
+    </message>
+    <message>
+        <source>keyword</source>
+        <translation>关键词</translation>
+    </message>
+    <message>
+        <source>regex</source>
+        <translation>正则</translation>
+    </message>
+    <message>
+        <source>rule set</source>
+        <translation>规则集</translation>
+    </message>
+    <message>
+        <source>ip</source>
+        <translation>IP</translation>
+    </message>
+    <message>
+        <source>process</source>
+        <translation>进程</translation>
+    </message>
+    <message>
+        <source>path</source>
+        <translation>路径</translation>
+    </message>
+    <message>
+        <source>Empty, left out of the config</source>
+        <translation>空，不写入配置</translation>
+    </message>
+    <message>
+        <source>1 entry</source>
+        <translation>1 个条目</translation>
+    </message>
+    <message>
+        <source>%1 entries</source>
+        <translation>%1 个条目</translation>
+    </message>
+    <message>
+        <source>1 error</source>
+        <translation>1 个错误</translation>
+    </message>
+    <message>
+        <source>%1 errors</source>
+        <translation>%1 个错误</translation>
+    </message>
+    <message>
+        <source>Only differs from Proxy while built-in WARP is on: these sites use the selected server without the WARP layer.</source>
+        <translation>仅在开启内置 WARP 时与“代理”不同：这些网站使用所选服务器，但不经 WARP 层。</translation>
+    </message>
+</context>
+<context>
+    <name>QuickListEditor</name>
+    <message>
+        <source>Off: kept in the profile but left out of the config.</source>
+        <translation>已关闭：保留在配置档中，但不写入配置。</translation>
+    </message>
+    <message>
+        <source>No entries. An empty list is left out of the config.</source>
+        <translation>没有条目。空列表不会写入配置。</translation>
+    </message>
+    <message>
+        <source>example.com, 10.0.0.0/8, app.exe or ruleset:name</source>
+        <translation>example.com、10.0.0.0/8、app.exe 或 ruleset:名称</translation>
+    </message>
+    <message>
+        <source>Add</source>
+        <translation>添加</translation>
+    </message>
+    <message>
+        <source>A quick list matches like one rule. Drag its row to run it earlier or later.</source>
+        <translation>快速列表作为一条规则匹配。拖动它所在的行，可让它更早或更晚执行。</translation>
+    </message>
+    <message>
+        <source>%1 list</source>
+        <translation>“%1”列表</translation>
+    </message>
+    <message>
+        <source>Every entry here goes nowhere: it is blocked. Lines are typed by their prefix or their shape.</source>
+        <translation>这里的条目不会发往任何地方：它们会被阻止。各行的类型由前缀或其形式决定。</translation>
+    </message>
+    <message>
+        <source>Every entry here goes to %1. Lines are typed by their prefix or their shape.</source>
+        <translation>这里的每个条目都走“%1”。各行的类型由前缀或其形式决定。</translation>
+    </message>
+    <message>
+        <source>The %1 list also has rows at %2.</source>
+        <translation>“%1”列表还有其他行：%2。</translation>
+    </message>
+</context>
+<context>
+    <name>QuickListsView</name>
+    <message>
+        <source>Empty.</source>
+        <translation>空。</translation>
+    </message>
+    <message>
+        <source>Add an entry</source>
+        <translation>添加条目</translation>
+    </message>
+    <message>
+        <source>Add</source>
+        <translation>添加</translation>
+    </message>
+    <message>
+        <source>A line without a prefix is typed by its shape: example.com is a domain suffix, 10.0.0.0/8 an IP range, app.exe a process. The prefixes domain:, keyword:, regex:, ruleset: and processPath: still work.</source>
+        <translation>没有前缀的行按其形式识别：example.com 是域名后缀，10.0.0.0/8 是 IP 范围，app.exe 是进程。domain:、keyword:、regex:、ruleset: 和 processPath: 前缀仍然可用。</translation>
+    </message>
+    <message>
+        <source>%1 list</source>
+        <translation>“%1”列表</translation>
+    </message>
+    <message>
+        <source>Entry %1 (&quot;%2&quot;): %3</source>
+        <translation>条目 %1（“%2”）：%3</translation>
+    </message>
+    <message>
+        <source>Advanced mode shows other rules too. Before these lists: %1. After them: %2.</source>
+        <translation>高级模式还会显示其他规则。这些列表之前：%1 条；之后：%2 条。</translation>
+    </message>
+    <message>
+        <source>Show fewer</source>
+        <translation>收起</translation>
+    </message>
+    <message>
+        <source>%1 more</source>
+        <translation>还有 %1 项</translation>
+    </message>
+</context>
+<context>
+    <name>EndpointRulePanel</name>
+    <message>
+        <source>The Endpoints tab adds and removes this rule. Here you can only move it, to choose which rules run before it.</source>
+        <translation>此规则由“端点”选项卡添加和删除。在这里只能移动它，以决定哪些规则先于它执行。</translation>
+    </message>
+    <message>
+        <source>Then</source>
+        <translation>动作</translation>
+    </message>
+    <message>
+        <source>Open the Endpoints tab</source>
+        <translation>打开“端点”选项卡</translation>
+    </message>
+    <message>
+        <source>%1 endpoint, from the Endpoints tab</source>
+        <translation>%1 端点，来自“端点”选项卡</translation>
+    </message>
+    <message>
+        <source>Traffic to the networks this endpoint advertises goes into its tunnel.</source>
+        <translation>发往此端点所公布网络的流量会进入它的隧道。</translation>
+    </message>
+    <message>
+        <source>An inner hop of %1.</source>
+        <translation>“%1”的内部跳点。</translation>
+    </message>
+</context>
+<context>
+    <name>RouteThenPicker</name>
+    <message>
+        <source>Search profiles</source>
+        <translation>搜索配置档</translation>
+    </message>
+    <message>
+        <source>Current choice</source>
+        <translation>当前选择</translation>
+    </message>
+    <message>
+        <source>Continues with the next rule</source>
+        <translation>随后继续匹配下一条规则</translation>
+    </message>
+    <message>
+        <source>Linux auto-redirect only</source>
+        <translation>仅限 Linux auto-redirect</translation>
+    </message>
+    <message>
+        <source>Send through</source>
+        <translation>发送方式</translation>
+    </message>
+    <message>
+        <source>The selected server</source>
+        <translation>所选服务器</translation>
+    </message>
+    <message>
+        <source>No proxy</source>
+        <translation>不使用代理</translation>
+    </message>
+    <message>
+        <source>Proxy minus the WARP layer</source>
+        <translation>代理，但不经 WARP 层</translation>
+    </message>
+    <message>
+        <source>Stop it</source>
+        <translation>阻断</translation>
+    </message>
+    <message>
+        <source>Other actions</source>
+        <translation>其他动作</translation>
+    </message>
+    <message>
+        <source>A specific profile</source>
+        <translation>指定配置档</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n more profiles: type to find them.</source>
+        <translation>
+            <numerusform>还有 %n 个配置档：输入文字即可查找。</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Nothing matches.</source>
+        <translation>没有匹配项。</translation>
+    </message>
+</context>
+<context>
+    <name>RouteRuleList</name>
+    <message>
+        <source>Inner hop of %1, from the Endpoints tab</source>
+        <translation>“%1”的内部跳点，来自“端点”选项卡</translation>
+    </message>
+    <message>
+        <source>From the Endpoints tab</source>
+        <translation>来自“端点”选项卡</translation>
+    </message>
+    <message>
+        <source>%1 endpoint, from the Endpoints tab</source>
+        <translation>%1 端点，来自“端点”选项卡</translation>
+    </message>
+    <message>
+        <source>Everything else</source>
+        <translation>其余流量</translation>
+    </message>
+    <message>
+        <source>The default route. Always last, set above the list.</source>
+        <translation>默认路由。始终在最后，在列表上方设置。</translation>
+    </message>
+    <message>
+        <source>Set above the list, under Everything else goes to.</source>
+        <translation>在列表上方的“其余流量”处设置。</translation>
+    </message>
+    <message>
+        <source>Quick list</source>
+        <translation>快速列表</translation>
+    </message>
+    <message>
+        <source>Off · %1</source>
+        <translation>已关闭 · %1</translation>
+    </message>
+    <message>
+        <source>Entry &quot;%1&quot;: %2</source>
+        <translation>条目“%1”：%2</translation>
+    </message>
+    <message>
+        <source>Endpoint</source>
+        <translation>端点</translation>
+    </message>
+    <message>
+        <source>#</source>
+        <translation>#</translation>
+    </message>
+    <message>
+        <source>Then</source>
+        <translation>动作</translation>
+    </message>
+    <message>
+        <source>Rule</source>
+        <translation>规则</translation>
+    </message>
+    <message>
+        <source>Rules</source>
+        <translation>规则</translation>
+    </message>
+</context>
+<context>
+    <name>RouteRuleEditor</name>
+    <message>
+        <source>Name</source>
+        <translation>名称</translation>
+    </message>
+    <message>
+        <source>When</source>
+        <translation>条件</translation>
+    </message>
+    <message>
+        <source>+ Add condition</source>
+        <translation>+ 添加条件</translation>
+    </message>
+    <message>
+        <source>A box matches when any one of its values matches. Every box must match.</source>
+        <translation>一个框内任一值匹配即算匹配；所有框都必须匹配。</translation>
+    </message>
+    <message>
+        <source>Invert: match only what this rule would not match</source>
+        <translation>反转：只匹配本规则原本不会匹配的流量</translation>
+    </message>
+    <message>
+        <source>Then</source>
+        <translation>动作</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>默认</translation>
+    </message>
+    <message>
+        <source>Drop</source>
+        <translation>丢弃</translation>
+    </message>
+    <message>
+        <source>Reply</source>
+        <translation>回复</translation>
+    </message>
+    <message>
+        <source>Otherwise sing-box drops instead after 50 rejects in 30 s.</source>
+        <translation>否则 30 秒内拒绝 50 次后，sing-box 会改为丢弃。</translation>
+    </message>
+    <message>
+        <source>IPv4 only</source>
+        <translation>仅 IPv4</translation>
+    </message>
+    <message>
+        <source>IPv6 only</source>
+        <translation>仅 IPv6</translation>
+    </message>
+    <message>
+        <source>Prefer IPv4</source>
+        <translation>优先 IPv4</translation>
+    </message>
+    <message>
+        <source>Prefer IPv6</source>
+        <translation>优先 IPv6</translation>
+    </message>
+    <message>
+        <source>Connection options</source>
+        <translation>连接选项</translation>
+    </message>
+    <message>
+        <source>Override, TLS fragment, TLS spoof</source>
+        <translation>覆盖、TLS 分片、TLS 伪造</translation>
+    </message>
+    <message>
+        <source>Keep the original</source>
+        <translation>保持原样</translation>
+    </message>
+    <message>
+        <source>Fallback delay, such as 500ms</source>
+        <translation>回退延迟，如 500ms</translation>
+    </message>
+    <message>
+        <source>Server name to send</source>
+        <translation>要发送的服务器名</translation>
+    </message>
+    <message>
+        <source>Default method</source>
+        <translation>默认方式</translation>
+    </message>
+    <message>
+        <source>sing-box JSON</source>
+        <translation>sing-box JSON</translation>
+    </message>
+    <message>
+        <source>read-only</source>
+        <translation>只读</translation>
+    </message>
+    <message>
+        <source>Any of these</source>
+        <translation>满足任一</translation>
+    </message>
+    <message>
+        <source>Any of these values</source>
+        <translation>任一值</translation>
+    </message>
+    <message>
+        <source>+ Add</source>
+        <translation>+ 添加</translation>
+    </message>
+    <message>
+        <source>Choose app</source>
+        <translation>选择应用</translation>
+    </message>
+    <message>
+        <source>Pick a running program, or one that has used the network</source>
+        <translation>选择正在运行的程序，或曾使用过网络的程序</translation>
+    </message>
+    <message>
+        <source>This rule&apos;s profile no longer exists. Pick another one to see the JSON.</source>
+        <translation>此规则的配置档已不存在。请另选一个以查看 JSON。</translation>
+    </message>
+</context>
+<context>
+    <name>RouteRulesPage</name>
+    <message>
+        <source>New rule</source>
+        <translation>新建规则</translation>
+    </message>
+    <message>
+        <source>Duplicate</source>
+        <translation>复制</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>删除</translation>
+    </message>
+    <message>
+        <source>Filter by name, domain or app</source>
+        <translation>按名称、域名或应用过滤</translation>
+    </message>
+    <message>
+        <source>Drag a row to change the order. Right-click a rule for Duplicate, Move to top, Move to bottom, Disable and Delete.</source>
+        <translation>拖动行以调整顺序。右键单击规则可复制、移到顶部、移到底部、停用和删除。</translation>
+    </message>
+    <message>
+        <source>Select a rule to edit it.</source>
+        <translation>选择一条规则进行编辑。</translation>
+    </message>
+    <message>
+        <source>Rule %1 &quot;%2&quot;</source>
+        <translation>规则 %1“%2”</translation>
+    </message>
+    <message>
+        <source>Then</source>
+        <translation>动作</translation>
+    </message>
+    <message>
+        <source>%1 list</source>
+        <translation>“%1”列表</translation>
+    </message>
+    <message>
+        <source>Entry %1 (&quot;%2&quot;): %3</source>
+        <translation>条目 %1（“%2”）：%3</translation>
+    </message>
+    <message>
+        <source>Rule %1 of %2</source>
+        <translation>第 %1 条，共 %2 条</translation>
+    </message>
+    <message>
+        <source>First match wins</source>
+        <translation>首个匹配生效</translation>
+    </message>
+    <message>
+        <source>Quick list</source>
+        <translation>快速列表</translation>
+    </message>
+    <message>
+        <source>Endpoint rule</source>
+        <translation>端点规则</translation>
+    </message>
+    <message>
+        <source>Remove all entries</source>
+        <translation>删除所有条目</translation>
+    </message>
+    <message>
+        <source>Remove endpoint</source>
+        <translation>移除端点</translation>
+    </message>
+    <message>
+        <source>Rule %1</source>
+        <translation>规则 %1</translation>
+    </message>
+    <message>
+        <source>%1 copy</source>
+        <translation>%1 副本</translation>
+    </message>
+    <message>
+        <source>Delete rule</source>
+        <translation>删除规则</translation>
+    </message>
+    <message>
+        <source>Delete the rule &quot;%1&quot;?</source>
+        <translation>删除规则“%1”？</translation>
+    </message>
+    <message numerus="yes">
+        <source>Remove all %n entries from the %1 list?</source>
+        <translation>
+            <numerusform>从“%1”列表中删除全部 %n 个条目？</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Move to top</source>
+        <translation>移到顶部</translation>
+    </message>
+    <message>
+        <source>Move to bottom</source>
+        <translation>移到底部</translation>
+    </message>
+    <message>
+        <source>Enable</source>
+        <translation>启用</translation>
+    </message>
+    <message>
+        <source>Disable</source>
+        <translation>停用</translation>
     </message>
 </context>
 </TS>

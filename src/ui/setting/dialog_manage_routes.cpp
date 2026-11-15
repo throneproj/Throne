@@ -555,12 +555,20 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     S_LOAD_COMBO_STRING(default_domain_strategy)
     ui->domainStrategyCombo->setCurrentText(snapshot_.resolve_domain_strategy);
     S_LOAD_BOOL(use_dns_object)
-    DnsServerHistory::Fill(ui->remote_dns, snapshot_.remote_dns_history,
-                           DnsServerHistory::RemotePresets(), snapshot_.remote_dns);
+    ui->remote_dns->setPresets(DnsServerHistory::RemotePresets());
+    ui->remote_dns->setRecent(snapshot_.remote_dns_history);
+    ui->remote_dns->setServers(snapshot_.remote_dns);
     S_LOAD_BOOL(remote_dns_disable_ipv6)
-    DnsServerHistory::Fill(ui->direct_dns, snapshot_.direct_dns_history,
-                           DnsServerHistory::DirectPresets(), snapshot_.direct_dns);
+    ui->direct_dns->setPresets(DnsServerHistory::DirectPresets());
+    ui->direct_dns->setRecent(snapshot_.direct_dns_history);
+    ui->direct_dns->setPrimaryNote(true);
+    ui->direct_dns->setServers(snapshot_.direct_dns);
     S_LOAD_BOOL(direct_dns_disable_ipv6)
+    // A top-aligned label beside a tall field: 7/4 of its own height centers its text on the first row.
+    for (auto *label : {ui->label_9, ui->label_8}) {
+        label->ensurePolished();
+        label->setMinimumHeight(label->sizeHint().height() * 7 / 4);
+    }
     S_LOAD_COMBO_STRING(dns_final_out)
     S_LOAD_BOOL(enable_dns_routing)
     ui->respect_hosts->setChecked(snapshot_.dns_use_hosts);
@@ -638,8 +646,8 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     UiMode::Apply(this);
     UiMode::Fold(this);
 
-    form->bind(ui->remote_dns, Configs::DnsAddressListProblem).label(ui->label_9->text());
-    form->bind(ui->direct_dns, Configs::DnsAddressListProblem).label(ui->label_8->text());
+    ui->remote_dns->bindTo(form, ui->label_9->text());
+    ui->direct_dns->bindTo(form, ui->label_8->text());
     form->bind(ui->local_override, manageRoutesLocalDnsProblem).label(ui->label_2->text());
     form->bind(ui->route_auto_update, Validation::Rules::Int(30, 525600, Validation::Empty::Required))
         .when([this] { return ui->route_auto_update_enable->isChecked(); });
@@ -800,8 +808,8 @@ void DialogManageRoutes::accept() {
     S_SAVE_COMBO_STRING(default_domain_strategy)
     S_SAVE_BOOL(use_dns_object)
     proposed.dns_object = dns_object_text;
-    const auto remoteDns = Configs::NormalizeDnsAddressList(ui->remote_dns->currentText());
-    const auto directDns = Configs::NormalizeDnsAddressList(ui->direct_dns->currentText());
+    const auto remoteDns = ui->remote_dns->servers();
+    const auto directDns = ui->direct_dns->servers();
     if (remoteDns != snapshot_.remote_dns)
         DnsServerHistory::Remember(proposed.remote_dns_history, DnsServerHistory::RemotePresets(), remoteDns);
     if (directDns != snapshot_.direct_dns)
@@ -896,6 +904,8 @@ void DialogManageRoutes::on_new_route_clicked() {
     auto newProfile = Configs::dataManager->routesRepo->NewRouteProfile();
     auto onCreated = [=, this](const std::shared_ptr<Configs::RouteProfile>& chain) {
         chainList << chain;
+        // Saved at once: Cancel here must not undo the editor's Save.
+        if (const auto error = Engine::RouteService::Commit({chain}, {})) MessageBoxWarning(windowTitle(), error->message);
         reloadProfileItems();
     };
     if (chosen == rawAct) {
@@ -945,6 +955,8 @@ void DialogManageRoutes::applyImportedProfile(const std::shared_ptr<Configs::Rou
         routeChainWidget->show();
         connect(routeChainWidget, &RouteItem::settingsChanged, this, [=, this](const std::shared_ptr<Configs::RouteProfile>& chain) {
             chainList << chain;
+            // Saved at once: Cancel here must not undo the editor's Save.
+            if (const auto error = Engine::RouteService::Commit({chain}, {})) MessageBoxWarning(windowTitle(), error->message);
             reloadProfileItems();
         });
     } else {
@@ -1075,7 +1087,13 @@ void DialogManageRoutes::on_edit_route_clicked() {
     auto onEdited = [=, this](const std::shared_ptr<Configs::RouteProfile>& chain) {
         if (currentRoute == chainList[idx]) currentRoute = chain;
         chainList[idx] = chain;
-        editedIds.insert(chain->id);
+        // Saved at once: Cancel here must not undo the editor's Save.
+        if (const auto error = Engine::RouteService::Commit({chain}, {})) {
+            editedIds.insert(chain->id);
+            MessageBoxWarning(windowTitle(), error->message);
+        } else {
+            editedIds.remove(chain->id);
+        }
         reloadProfileItems();
     };
 

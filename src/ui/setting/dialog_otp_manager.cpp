@@ -236,7 +236,7 @@ void DialogOtpManager::showOtpExportMenu(const std::shared_ptr<Configs::OtpProfi
     menu.addAction(tr("This one as otpauth:// link and QR"), this, [this, profile] { exportOtpAsLink(profile); });
     menu.addSeparator();
     menu.addAction(tr("All as otpauth-migration:// link and QR"), this, [this, all] { exportOtpAsMigration(all); });
-    menu.addAction(tr("All as JSON file..."), this, [this, all] { exportOtpAsJson(all); });
+    menu.addAction(tr("All as JSON file"), this, [this, all] { exportOtpAsJson(all); });
     menu.exec(anchor->mapToGlobal(QPoint(0, anchor->height())));
 }
 
@@ -246,16 +246,16 @@ void DialogOtpManager::on_otp_scan_clicked() {
 
 void DialogOtpManager::on_otp_import_clicked() {
     QMenu menu(this);
-    menu.addAction(tr("Add manually..."), this, [this] { addOtpProfile(); });
+    menu.addAction(tr("Add manually"), this, [this] { addOtpProfile(); });
     menu.addSeparator();
-    menu.addAction(tr("From link or text..."), this, [this] {
+    menu.addAction(tr("From link or text"), this, [this] {
         const auto text = AskForText(this, tr("Import OTP"),
                                      tr("Paste otpauth:// links, an otpauth-migration:// link, a JSON export, "
                                         "or just a base32 secret."));
         if (!text.trimmed().isEmpty()) importOtpFromText(text);
     });
     menu.addAction(tr("From clipboard"), this, [this] { importOtpFromClipboard(); });
-    menu.addAction(tr("From QR image file..."), this, [this] { importOtpFromFiles(); });
+    menu.addAction(tr("From QR image file"), this, [this] { importOtpFromFiles(); });
     menu.exec(ui->otp_import->mapToGlobal(QPoint(0, ui->otp_import->height())));
 }
 

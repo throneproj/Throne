@@ -3,10 +3,10 @@
 #include "include/configs/generate.h"
 #include "include/global/Configs.hpp"
 #include "include/ui/utils/ValidationForm.h"
+#include "include/ui/widget/DnsServerListEdit.h"
 
 #include <QCheckBox>
 #include <QComboBox>
-#include <QCoreApplication>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -25,18 +25,6 @@ namespace DnsServerHistory {
     const QStringList& DirectPresets() {
         static const QStringList presets = {"localhost", "223.5.5.5", "119.29.29.29", "178.22.122.100", "77.88.8.8"};
         return presets;
-    }
-
-    void Fill(QComboBox* combo, const QStringList& history, const QStringList& presets, const QString& current) {
-        QStringList items = history;
-        for (const auto& preset : presets) {
-            if (!items.contains(preset)) items << preset;
-        }
-        combo->clear();
-        combo->addItems(items);
-        combo->setCurrentText(current);
-        combo->setToolTip(QCoreApplication::translate("RouteDnsEditor",
-            "Separate several servers with commas: they are queried together and the first answer wins."));
     }
 
     bool Remember(QStringList& history, const QStringList& presets, const QString& server) {
@@ -81,29 +69,37 @@ RouteDnsEditor::RouteDnsEditor(const Configs::RouteProfile& profile, QWidget* pa
 
     auto* remoteLabel = new QLabel(tr("Remote DNS"), fields);
     remoteLabel->setToolTip(serverHint);
-    remoteDns = new QComboBox(fields);
-    remoteDns->setEditable(true);
-    remoteDns->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    DnsServerHistory::Fill(remoteDns, settings.remote_dns_history, DnsServerHistory::RemotePresets(), customDraft.remote_dns);
+    remoteDns = new DnsServerListEdit(fields);
+    remoteDns->setPresets(DnsServerHistory::RemotePresets());
+    remoteDns->setRecent(settings.remote_dns_history);
     remoteLabel->setBuddy(remoteDns);
     remoteDisableIPv6 = new QCheckBox(tr("Disable IPv6"), fields);
     remoteDisableIPv6->setToolTip(tr("Answer AAAA queries sent to this server with an empty result."));
-    grid->addWidget(remoteLabel, 0, 0);
-    grid->addWidget(remoteDns, 0, 1);
-    grid->addWidget(remoteDisableIPv6, 0, 2);
+    auto* remoteColumn = new QVBoxLayout();
+    remoteColumn->addWidget(remoteDns);
+    remoteColumn->addWidget(remoteDisableIPv6);
+    grid->addWidget(remoteLabel, 0, 0, Qt::AlignTop);
+    grid->addLayout(remoteColumn, 0, 1);
 
     auto* directLabel = new QLabel(tr("Direct DNS"), fields);
     directLabel->setToolTip(serverHint);
-    directDns = new QComboBox(fields);
-    directDns->setEditable(true);
-    directDns->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    DnsServerHistory::Fill(directDns, settings.direct_dns_history, DnsServerHistory::DirectPresets(), customDraft.direct_dns);
+    directDns = new DnsServerListEdit(fields);
+    directDns->setPresets(DnsServerHistory::DirectPresets());
+    directDns->setRecent(settings.direct_dns_history);
+    directDns->setPrimaryNote(true);
     directLabel->setBuddy(directDns);
     directDisableIPv6 = new QCheckBox(tr("Disable IPv6"), fields);
     directDisableIPv6->setToolTip(remoteDisableIPv6->toolTip());
-    grid->addWidget(directLabel, 1, 0);
-    grid->addWidget(directDns, 1, 1);
-    grid->addWidget(directDisableIPv6, 1, 2);
+    auto* directColumn = new QVBoxLayout();
+    directColumn->addWidget(directDns);
+    directColumn->addWidget(directDisableIPv6);
+    grid->addWidget(directLabel, 1, 0, Qt::AlignTop);
+    grid->addLayout(directColumn, 1, 1);
+    // A top-aligned label beside a tall field: 7/4 of its own height centers its text on the first row.
+    for (auto* label : {remoteLabel, directLabel}) {
+        label->ensurePolished();
+        label->setMinimumHeight(label->sizeHint().height() * 7 / 4);
+    }
 
     auto* finalLabel = new QLabel(tr("Default DNS server"), fields);
     finalOut = new QComboBox(fields);
@@ -116,7 +112,7 @@ RouteDnsEditor::RouteDnsEditor(const Configs::RouteProfile& profile, QWidget* pa
     finalRow->addWidget(dnsRouting);
     finalRow->addStretch();
     grid->addWidget(finalLabel, 2, 0);
-    grid->addLayout(finalRow, 2, 1, 1, 2);
+    grid->addLayout(finalRow, 2, 1);
 
     fakeIP = new QCheckBox(tr("Enable FakeIP"), fields);
     fakeIPDisableIPv6 = new QCheckBox(tr("FakeIP Disable IPv6"), fields);
@@ -125,11 +121,11 @@ RouteDnsEditor::RouteDnsEditor(const Configs::RouteProfile& profile, QWidget* pa
     fakeRow->addWidget(fakeIP);
     fakeRow->addWidget(fakeIPDisableIPv6);
     fakeRow->addStretch();
-    grid->addLayout(fakeRow, 3, 1, 1, 2);
+    grid->addLayout(fakeRow, 3, 1);
     grid->setColumnStretch(1, 1);
     layout->addWidget(fields);
 
-    auto* scopeNote = new QLabel(tr("Local Override, the hosts file, predefined answers and the advanced DNS settings always come from Routing Settings > DNS."), this);
+    auto* scopeNote = new QLabel(tr("The resolver for DNS server names, the hosts file, predefined answers and the advanced DNS settings always come from Routing Settings > DNS."), this);
     scopeNote->setWordWrap(true);
     layout->addWidget(scopeNote);
     layout->addStretch();
@@ -147,21 +143,20 @@ RouteDnsEditor::RouteDnsEditor(const Configs::RouteProfile& profile, QWidget* pa
             showDns(Configs::RouteDns::Global());
         }
         syncState();
+        emit customChanged(custom);
     });
 }
 
 void RouteDnsEditor::bindTo(Validation::Form* form) {
-    form->bind(remoteDns, Configs::DnsAddressListProblem).label(tr("Remote DNS"));
-    form->bind(directDns, Configs::DnsAddressListProblem).label(tr("Direct DNS"));
+    remoteDns->bindTo(form, tr("Remote DNS"));
+    directDns->bindTo(form, tr("Direct DNS"));
     connect(customRadio, &QRadioButton::toggled, form, [form] { form->refresh(); });
 }
 
 void RouteDnsEditor::applyTo(Configs::RouteProfile& profile) const {
-    profile.customDns = customRadio->isChecked();
-    const auto values = profile.customDns ? shownDns() : customDraft;
-    // Untouched seed values stay unstored, so a later switch to custom starts from the global settings of that time.
-    if (!profile.customDns && !profile.dns && values == opened) return;
-    profile.dns = values;
+    writeTo(profile);
+    if (!profile.dns) return;
+    const auto& values = *profile.dns;
 
     auto& settings = *Configs::dataManager->settingsRepo;
     bool remembered = false;
@@ -174,10 +169,22 @@ void RouteDnsEditor::applyTo(Configs::RouteProfile& profile) const {
     if (remembered) settings.Save();
 }
 
+void RouteDnsEditor::writeTo(Configs::RouteProfile& profile) const {
+    profile.customDns = customRadio->isChecked();
+    const auto values = profile.customDns ? shownDns() : customDraft;
+    // Untouched seed values stay unstored, so a later switch to custom starts from the global settings of that time.
+    if (!profile.customDns && !profile.dns && values == opened) return;
+    profile.dns = values;
+}
+
+bool RouteDnsEditor::isCustom() const {
+    return customRadio->isChecked();
+}
+
 void RouteDnsEditor::showDns(const Configs::RouteDns& dns) const {
-    remoteDns->setCurrentText(dns.remote_dns);
+    remoteDns->setServers(dns.remote_dns);
     remoteDisableIPv6->setChecked(dns.remote_dns_disable_ipv6);
-    directDns->setCurrentText(dns.direct_dns);
+    directDns->setServers(dns.direct_dns);
     directDisableIPv6->setChecked(dns.direct_dns_disable_ipv6);
     finalOut->setCurrentText(dns.dns_final_out);
     dnsRouting->setChecked(dns.enable_dns_routing);
@@ -187,9 +194,9 @@ void RouteDnsEditor::showDns(const Configs::RouteDns& dns) const {
 
 Configs::RouteDns RouteDnsEditor::shownDns() const {
     Configs::RouteDns dns;
-    dns.remote_dns = Configs::NormalizeDnsAddressList(remoteDns->currentText());
+    dns.remote_dns = remoteDns->servers();
     dns.remote_dns_disable_ipv6 = remoteDisableIPv6->isChecked();
-    dns.direct_dns = Configs::NormalizeDnsAddressList(directDns->currentText());
+    dns.direct_dns = directDns->servers();
     dns.direct_dns_disable_ipv6 = directDisableIPv6->isChecked();
     dns.dns_final_out = finalOut->currentText();
     dns.enable_dns_routing = dnsRouting->isChecked();

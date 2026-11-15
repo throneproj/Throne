@@ -17,6 +17,7 @@
 #include "include/ui/utils/ConnectionsFilterHeader.h"
 #include "include/ui/utils/ConnectionsTreeFilterProxyModel.h"
 #include "include/ui/utils/ConnectionsTreeModel.h"
+#include "include/ui/utils/ThemedIcon.hpp"
 
 #include <QHostAddress>
 
@@ -282,7 +283,7 @@ void MainWindow::applyConnectionSort(Stats::ConnectionSort sort)
 void MainWindow::setupConnectionFilter()
 {
     auto* btnFilter = new QToolButton(this);
-    btnFilter->setIcon(QIcon(":/icon/filter.png"));
+    btnFilter->setIcon(ThemedIcon(QStringLiteral("funnel")));
     btnFilter->setToolTip(tr("Enable Filter"));
     btnFilter->setCheckable(true);
     connect(btnFilter, &QToolButton::toggled, connectionFilterHeader, &ConnectionsFilterHeader::setFiltersVisible);
@@ -584,7 +585,7 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos)
         { Configs::proxy,      tr("Proxy") },
         { Configs::block,      tr("Block") },
         // Not offered from here, but a target already sitting in its list still has to show up as taken.
-        { Configs::warpBypass, tr("Warp-bypass"), false },
+        { Configs::warpBypass, tr("Server without WARP"), false },
     };
 
     // Looked up once per menu: the dialog asks for a server's name on every refresh.

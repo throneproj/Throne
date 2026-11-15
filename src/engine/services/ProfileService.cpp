@@ -7,6 +7,7 @@
 
 #include "include/configs/ParseDiagnostics.h"
 #include "include/configs/common/Protocols.h"
+#include "include/configs/sub/GroupUpdater.hpp"
 #include "include/database/DatabaseManager.h"
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
@@ -15,6 +16,7 @@
 #include "include/engine/EngineHost.h"
 #include "include/engine/Lifecycle.h"
 #include "include/engine/ThreadCheck.h"
+#include "include/engine/services/ImportService.h"
 #include "include/global/RunningProfiles.hpp"
 #include "include/global/Utils.hpp"
 #include "include/global/Validation.hpp"
@@ -72,16 +74,20 @@ namespace Engine::ProfileService {
                                             QStringLiteral("Hop %1 (profile %2) %3").arg(QString::number(i + 1), QString::number(hopId), problem), {}};
             }
         }
+
+        std::optional<ServiceError> profileServiceEditing(const QList<int> &profileIds) {
+            if (!IsBeingEdited(EditTarget::Profile)) return std::nullopt;
+            for (const int id : profileIds) {
+                if (!IsBeingEdited(EditTarget::Profile, id)) continue;
+                return ServiceError{409, QStringLiteral("editing"), QStringLiteral("Profile %1 is open in an editor in Throne's window").arg(id)};
+            }
+            return std::nullopt;
+        }
     } // namespace
 
     std::optional<ServiceError> CheckDelete(const QList<int> &profileIds) {
         ENGINE_CHECK_MAIN_THREAD();
-        if (!IsBeingEdited(EditTarget::Profile)) return std::nullopt;
-        for (const int id : profileIds) {
-            if (!IsBeingEdited(EditTarget::Profile, id)) continue;
-            return ServiceError{409, QStringLiteral("editing"), QStringLiteral("Profile %1 is open in an editor in Throne's window").arg(id)};
-        }
-        return std::nullopt;
+        return profileServiceEditing(profileIds);
     }
 
     std::optional<ServiceError> Delete(const QList<int> &profileIds, int *deleted, const DeleteOptions &options) {
@@ -204,6 +210,66 @@ namespace Engine::ProfileService {
         if (del_ids.isEmpty()) return 0;
         EngineEvents::ProfilesRemoved(del_ids);
         return static_cast<int>(del_ids.size());
+    }
+
+    std::optional<ServiceError> MoveToGroup(const QList<int> &profileIds, int targetGid, int *moved) {
+        ENGINE_CHECK_MAIN_THREAD();
+        if (moved != nullptr) *moved = 0;
+        if (auto refusal = ImportService::CheckTarget(targetGid)) return refusal;
+        if (auto refusal = profileServiceEditing(profileIds)) return refusal;
+
+        auto *profiles = Configs::dataManager->profilesRepo.get();
+        QList<std::shared_ptr<Configs::Profile>> moving;
+        QList<int> movingIds;
+        QSet<int> seen;
+        QList<int> sources;
+        QHash<int, QList<int>> leaving;
+        for (const auto &profile : profiles->GetProfileBatch(profileIds)) {
+            if (profile->gid == targetGid || seen.contains(profile->id)) continue;
+            seen.insert(profile->id);
+            moving.append(profile);
+            movingIds.append(profile->id);
+            if (!leaving.contains(profile->gid)) sources.append(profile->gid);
+            leaving[profile->gid].append(profile->id);
+        }
+        if (moving.isEmpty()) return std::nullopt;
+        // A refresh rewrites its group's listing from a snapshot, which would bring a moved profile back or delete it.
+        for (const int gid : std::as_const(sources)) {
+            if (Subscription::updater()->IsBusy(gid)) return ServiceError{409, QStringLiteral("busy"), QStringLiteral("The group's subscription is updating")};
+        }
+
+        // Target listing, then source listings, then gid: a crash in between leaves a profile listed twice, never unlisted.
+        auto *groups = Configs::dataManager->groupsRepo.get();
+        const auto target = groups->GetGroup(targetGid);
+        target->AddProfileBatch(movingIds);
+        if (!groups->Save(target)) {
+            return ServiceError{404, QStringLiteral("not_found"), QStringLiteral("Group %1 was deleted meanwhile").arg(targetGid)};
+        }
+        for (const int gid : std::as_const(sources)) {
+            const auto source = groups->GetGroup(gid);
+            if (source == nullptr) continue;
+            source->RemoveProfileBatch(leaving.value(gid));
+            groups->Save(source);
+        }
+
+        const int startedId = Lifecycle::ResumeTargetId();
+        QList<int> movedIds;
+        bool usedByRunning = false;
+        for (const auto &profile : std::as_const(moving)) {
+            profile->gid = targetGid;
+            if (!profiles->Save(profile)) continue;
+            movedIds.append(profile->id);
+            if (profile->id == startedId || Configs::RunningUsesProfile(profile->id)) usedByRunning = true;
+        }
+        if (moved != nullptr) *moved = static_cast<int>(movedIds.size());
+
+        Configs::ResortLater(targetGid);
+        // The running config was built with the old group's proxies, routing and endpoint.
+        if (auto *engine = host(); engine != nullptr && usedByRunning) engine->noteRestartNeeded(RestartReason::Group);
+        for (const int gid : std::as_const(sources)) EngineEvents::SubscriptionGroupChanged(gid, leaving.value(gid));
+        EngineEvents::ProfilesChanged(movedIds);
+        EngineEvents::GroupsChanged();
+        return std::nullopt;
     }
 
     int ClearTestResults(const QList<int> &profileIds, QList<int> *groupIds) {

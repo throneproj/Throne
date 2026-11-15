@@ -42,6 +42,11 @@ namespace Engine::ProfileService {
     // profile, and emits ProfilesRemoved for them; no SubscriptionGroupChanged. Returns how many it deleted.
     int RemoveUnavailable(QList<int> profileIds);
 
+    // Main thread. Refuses a target ImportService::CheckTarget refuses, profiles open in an editor, or a source group whose
+    // subscription is updating ("busy"). Notes a Group restart if the running config uses a moved profile; emits
+    // SubscriptionGroupChanged per source group, ProfilesChanged and GroupsChanged.
+    std::optional<ServiceError> MoveToGroup(const QList<int> &profileIds, int targetGid, int *moved = nullptr);
+
     // Main thread. Clears the test results of the profiles; *groupIds gets their groups. Returns how many were cleared.
     int ClearTestResults(const QList<int> &profileIds, QList<int> *groupIds = nullptr);
 

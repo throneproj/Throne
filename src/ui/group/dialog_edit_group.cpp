@@ -257,6 +257,11 @@ DialogEditGroup::~DialogEditGroup() {
     delete ui;
 }
 
+void DialogEditGroup::StartAsSubscription() {
+    ui->type->setCurrentIndex(1);
+    ui->url->setFocus();
+}
+
 int DialogEditGroup::resolve_proxy_selection(QComboBox *combo, int fallback) const {
     const QString text = combo->currentText().trimmed();
     if (text.isEmpty() || text == "None" || text == tr("None")) {

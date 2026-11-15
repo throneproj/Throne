@@ -71,7 +71,7 @@ namespace {
 DialogRuleTester::DialogRuleTester(Engine::ConnectionManager *connection, int preferredProfileId, QWidget *parent)
     : QDialog(parent), m_connection(connection), m_preferredProfileId(preferredProfileId)
 {
-    setWindowTitle(tr("Route path lookup"));
+    setWindowTitle(tr("Route lookup"));
 
     auto *layout = new QVBoxLayout(this);
 

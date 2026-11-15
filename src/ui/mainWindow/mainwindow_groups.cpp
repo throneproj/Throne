@@ -171,87 +171,18 @@ void MainWindow::on_tabWidget_customContextMenuRequested(const QPoint &p) {
 
 void MainWindow::show_group_tab_menu(const QPoint &p) {
     const int clickedIndex = ui->tabWidget->tabBar()->tabAt(p);
+    const QPoint globalPos = ui->tabWidget->tabBar()->mapToGlobal(p);
     if (clickedIndex == -1) {
         QMenu menu(this);
-        connect(menu.addAction(tr("Add new Group")), &QAction::triggered, this, [=,this]{
-            auto ent = Configs::dataManager->groupsRepo->NewGroup();
-            auto dialog = new DialogEditGroup(ent, this);
-            const int ret = dialog->exec();
-            dialog->deleteLater();
-
-            if (ret == QDialog::Accepted) {
-                if (const auto error = Engine::GroupService::Add(ent)) MW_show_log(error->message);
-            }
-        });
-
-        menu.exec(ui->tabWidget->tabBar()->mapToGlobal(p));
+        menu.addAction(ui->actionAdd_New_Group);
+        menu.addAction(ui->menu_manage_groups);
+        menu.exec(globalPos);
         return;
     }
 
-    // The actions run inside menu.exec(), whose event loop may let the API add or delete groups: each resolves the id again.
-    const int clickedGid = ui->tabWidget->tabBar()->tabData(clickedIndex).toInt();
+    // Every Groups menu action works on the current group, so the clicked tab becomes current first.
     ui->tabWidget->setCurrentIndex(clickedIndex);
-    QMenu menu(this);
-
-    const auto clickedGroup = Configs::dataManager->groupsRepo->GetGroup(clickedGid);
-
-    connect(menu.addAction(tr("Add new Group")), &QAction::triggered, this, [=,this]{
-        auto ent = Configs::dataManager->groupsRepo->NewGroup();
-        auto dialog = new DialogEditGroup(ent, this);
-        const int ret = dialog->exec();
-        dialog->deleteLater();
-
-        if (ret == QDialog::Accepted) {
-            if (const auto error = Engine::GroupService::Add(ent)) MW_show_log(error->message);
-        }
-    });
-    connect(menu.addAction(tr("Edit selected Group")), &QAction::triggered, this, [=,this]{
-        auto ent = Configs::dataManager->groupsRepo->GetGroup(clickedGid);
-        if (ent == nullptr) return;
-        auto dialog = new DialogEditGroup(ent, this);
-        connect(dialog, &QDialog::finished, this, [=,this] {
-            if (dialog->result() == QDialog::Accepted) {
-                if (!Engine::GroupService::Save(ent, dialog->RestartNeeded())) {
-                    if (dialog->RefreshNeeded()) Subscription::updater()->RefreshGroup(ent->id, nullptr, true);
-                } else {
-                    MessageBoxWarning(tr("Edit selected Group"), tr("This group was deleted while you were editing it."));
-                }
-            }
-            dialog->deleteLater();
-        });
-        dialog->show();
-    });
-    if (Configs::dataManager->groupsRepo->GetAllGroupIds().size() > 1) {
-        connect(menu.addAction(tr("Delete selected Group")), &QAction::triggered, this, [=,this] {
-            const auto group = Configs::dataManager->groupsRepo->GetGroup(clickedGid);
-            if (group == nullptr) return;
-            if (QMessageBox::question(this, tr("Confirmation"), tr("Remove %1?").arg(group->name) + HopReferenceWarning(group->Profiles(), clickedGid)) ==
-                QMessageBox::StandardButton::Yes) {
-                delete_group(clickedGid, tr("Delete selected Group"));
-            }
-        });
-    }
-    if (clickedGroup != nullptr && !clickedGroup->url.isEmpty()) {
-        connect(menu.addAction(tr("Update subscription")), &QAction::triggered, this, [=,this]{
-            auto group = Configs::dataManager->groupsRepo->GetGroup(clickedGid);
-            if (group == nullptr || group->url.isEmpty()) return;
-            if (mw_sub_updating) return;
-            mw_sub_updating = true;
-            Subscription::updater()->RefreshGroup(group->id, [&] { mw_sub_updating = false; }, true);
-        });
-    }
-    if (clickedGroup != nullptr) {
-        connect(menu.addAction(tr("Url Test selected Group")), &QAction::triggered, this, [=,this]{
-            if (const auto group = Configs::dataManager->groupsRepo->GetGroup(clickedGid)) tests()->runUrlTests(group->Profiles());
-        });
-        connect(menu.addAction(tr("Speed Test selected Group")), &QAction::triggered, this, [=,this]{
-            if (const auto group = Configs::dataManager->groupsRepo->GetGroup(clickedGid)) tests()->runSpeedTests(group->Profiles());
-        });
-        // Clean up acts on the current group; setCurrentIndex above already switched to the clicked one.
-        menu.addSeparator();
-        menu.addMenu(ui->menu_clean_up);
-    }
-    menu.exec(ui->tabWidget->tabBar()->mapToGlobal(p));
+    ui->menuTesting->exec(globalPos);
 }
 
 void MainWindow::delete_group(int gid, const QString &title) {
