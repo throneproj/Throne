@@ -28,12 +28,16 @@ namespace RouteEditor {
         // Deletes every item and its widget.
         void clear();
 
+        // Every item starts a line of its own, except a button, which stays beside the item before it.
+        void setStacked(bool stacked);
+
     private:
         int doLayout(const QRect& rect, bool testOnly) const;
 
         QList<QLayoutItem*> items;
         int hSpace;
         int vSpace;
+        bool stacked = false;
     };
 
     // A value with a remove button: the button or Delete removes it, a double-click or Enter asks to edit it.

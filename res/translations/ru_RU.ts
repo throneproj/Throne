@@ -3906,10 +3906,6 @@ Throne will restart to complete the restore.</source>
         <translation>DNS-серверы для прямого трафика. По умолчанию: localhost.</translation>
     </message>
     <message>
-        <source>Routing Profile</source>
-        <translation>Профиль маршрутизации</translation>
-    </message>
-    <message>
         <source>Remote Rule-set Mirror</source>
         <translation>Зеркало наборов правил</translation>
     </message>
@@ -5947,10 +5943,6 @@ Close without saving?</source>
     <message>
         <source>Remove</source>
         <translation>Удалить</translation>
-    </message>
-    <message>
-        <source>System</source>
-        <translation>Системный</translation>
     </message>
     <message>
         <source>Also resolves proxy server addresses</source>
@@ -18609,50 +18601,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Другое действие</translation>
     </message>
     <message>
-        <source>The selected profile, exiting through WARP or Tor when one is on.</source>
-        <translation>Выбранный профиль с выходом через WARP или Tor, если один из них включен.</translation>
-    </message>
-    <message>
-        <source>Leaves this computer without a proxy.</source>
-        <translation>Уходит с этого компьютера без прокси.</translation>
-    </message>
-    <message>
-        <source>The selected profile without the WARP or Tor layer. Same as Proxy while both are off.</source>
-        <translation>Выбранный профиль без слоя WARP или Tor. Пока оба выключены, это то же, что Прокси.</translation>
-    </message>
-    <message>
-        <source>Rejected: the app sees the connection refused.</source>
-        <translation>Отклоняется: приложение видит, что в подключении отказано.</translation>
-    </message>
-    <message>
-        <source>Answered by Throne&apos;s DNS. The DNS tab picks the servers.</source>
-        <translation>Отвечает DNS Throne. Серверы выбираются на вкладке DNS.</translation>
-    </message>
-    <message>
-        <source>Reads the protocol and domain, then continues with the next rule.</source>
-        <translation>Определяет протокол и домен, затем переходит к следующему правилу.</translation>
-    </message>
-    <message>
-        <source>Resolves the domain to an IP, then continues with the next rule.</source>
-        <translation>Разрешает домен в IP, затем переходит к следующему правилу.</translation>
-    </message>
-    <message>
-        <source>Applies the connection options below, then continues with the next rule.</source>
-        <translation>Применяет параметры подключения ниже, затем переходит к следующему правилу.</translation>
-    </message>
-    <message>
-        <source>Linux auto-redirect only: the connection skips sing-box in the kernel.</source>
-        <translation>Только для auto-redirect в Linux: подключение минует sing-box на уровне ядра.</translation>
-    </message>
-    <message>
-        <source>Through this profile instead of the selected profile.</source>
-        <translation>Через этот профиль вместо выбранного профиля.</translation>
-    </message>
-    <message>
-        <source>An action this editor does not offer; it is kept as it is.</source>
-        <translation>Действие, которого нет в этом редакторе; оно сохраняется как есть.</translation>
-    </message>
-    <message>
         <source>Missing profile (id %1)</source>
         <translation>Отсутствующий профиль (id %1)</translation>
     </message>
@@ -19031,28 +18979,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Текущий выбор</translation>
     </message>
     <message>
-        <source>Continues with the next rule</source>
-        <translation>Затем проверяется следующее правило</translation>
-    </message>
-    <message>
-        <source>Linux auto-redirect only</source>
-        <translation>Только для auto-redirect в Linux</translation>
-    </message>
-    <message>
         <source>Send through</source>
         <translation>Отправить через</translation>
-    </message>
-    <message>
-        <source>The selected profile</source>
-        <translation>Выбранный профиль</translation>
-    </message>
-    <message>
-        <source>No proxy</source>
-        <translation>Без прокси</translation>
-    </message>
-    <message>
-        <source>Proxy minus the WARP or Tor layer</source>
-        <translation>Прокси без слоя WARP или Tor</translation>
     </message>
     <message>
         <source>Stop it</source>

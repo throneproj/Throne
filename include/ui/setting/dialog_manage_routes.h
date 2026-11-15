@@ -42,6 +42,8 @@ private:
 
     void reloadProfileItems();
 
+    void syncRouteChecks(QListWidgetItem *changed);
+
     void applyImportedProfile(const std::shared_ptr<Configs::RouteProfile>& profile, bool wasOldArray);
 
     bool tryImportRemoteRoutesLink(const QString& text);
@@ -98,8 +100,6 @@ private:
     QShortcut* deleteShortcut;
 public slots:
     void accept() override;
-
-    void updateCurrentRouteProfile(int idx);
 
     void on_new_route_clicked();
 

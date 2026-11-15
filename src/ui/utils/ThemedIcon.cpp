@@ -78,9 +78,7 @@ namespace {
                 default: break;
             }
             if (hue < 0) return palette.color(QPalette::Active, QPalette::ButtonText);
-            const QColor surface = palette.color(QPalette::Active, QPalette::Window);
-            const QColor muted = QColor::fromHslF(static_cast<float>(hue % 360) / 360.0f, 0.38f, surface.lightnessF() < 0.5f ? 0.68f : 0.42f);
-            return ContrastSeparated(muted, surface, 3.0);
+            return MutedTint(hue, palette.color(QPalette::Active, QPalette::Window));
         }
 
         QString name;

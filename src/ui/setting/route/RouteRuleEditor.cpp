@@ -631,6 +631,7 @@ void RouteRuleEditor::buildBox(const QString& title, const QStringList& attrs, b
         }
         auto* host = new QWidget(frame);
         auto* flow = new RouteEditor::FlowLayout(host, 5, 5);
+        flow->setStacked(true);
         grid->addWidget(host, row, grouped ? 1 : 0, 1, grouped ? 1 : 2);
         if (Configs::RouteRule::get_input_type(attr) == Configs::select) {
             host->setProperty(ruleEditorSelectProperty, attr);

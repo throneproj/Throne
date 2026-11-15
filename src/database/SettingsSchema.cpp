@@ -93,6 +93,7 @@ namespace Configs::SettingsSchema {
                 {"font", &SettingsValues::font, Host},
                 {"font_size", &SettingsValues::font_size, Host},
                 {"mw_size", &SettingsValues::mw_size, Host},
+                {"routing_settings_size", &SettingsValues::routing_settings_size, Host},
                 {"log_enable_include", &SettingsValues::log_enable_include, Portable, UiLogFilter},
                 {"log_enable_exclude", &SettingsValues::log_enable_exclude, Portable, UiLogFilter},
                 {"log_include_keyword", &SettingsValues::log_include_keyword, Portable, UiLogFilter},

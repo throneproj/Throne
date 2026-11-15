@@ -2,6 +2,7 @@
 
 #include "include/ui/setting/ThemeManager.hpp"
 
+#include <QAbstractButton>
 #include <QFontMetrics>
 #include <QHelpEvent>
 #include <QKeyEvent>
@@ -21,7 +22,7 @@ namespace RouteEditor {
         // The width a chip needs around a value of textWidth.
         int chipWidth(const QFontMetrics& metrics, const QString& kind, bool removable, int textWidth) {
             int width = kChipPadding + textWidth;
-            if (!kind.isEmpty()) width += metrics.horizontalAdvance(kind) + kChipGap;
+            if (!kind.isEmpty()) width += TextWidth(metrics, kind) + kChipGap;
             width += removable ? kChipGap / 2 + kRemoveSize + kRemoveMargin : kChipPadding;
             return width;
         }
@@ -81,6 +82,11 @@ namespace RouteEditor {
         doLayout(rect, false);
     }
 
+    void FlowLayout::setStacked(bool on) {
+        stacked = on;
+        invalidate();
+    }
+
     void FlowLayout::clear() {
         while (QLayoutItem* item = takeAt(0)) {
             // Later, as a chip may be clearing its own row from one of its signals.
@@ -117,7 +123,8 @@ namespace RouteEditor {
         for (QLayoutItem* item : items) {
             if (item->isEmpty()) continue;
             const QSize size = item->sizeHint().boundedTo(QSize(qMax(1, area.width()), QWIDGETSIZE_MAX)).expandedTo(item->minimumSize());
-            if (!line.isEmpty() && lineWidth + hSpace + size.width() > area.width()) flush();
+            const bool ownLine = stacked && qobject_cast<QAbstractButton*>(item->widget()) == nullptr;
+            if (!line.isEmpty() && (ownLine || lineWidth + hSpace + size.width() > area.width())) flush();
             lineWidth = line.isEmpty() ? size.width() : lineWidth + hSpace + size.width();
             lineHeight = qMax(lineHeight, size.height());
             line.append({item, size});
@@ -156,13 +163,13 @@ namespace RouteEditor {
 
     QSize ValueChip::sizeHint() const {
         const QFontMetrics metrics(font());
-        return {chipWidth(metrics, kindText, removable, metrics.horizontalAdvance(shownValue())),
+        return {chipWidth(metrics, kindText, removable, TextWidth(metrics, shownValue())),
                 qMax(metrics.height() + 8, kRemoveSize + 6)};
     }
 
     QSize ValueChip::minimumSizeHint() const {
         const QFontMetrics metrics(font());
-        const int text = qMin(metrics.horizontalAdvance(shownValue()), metrics.averageCharWidth() * 8);
+        const int text = qMin(TextWidth(metrics, shownValue()), metrics.averageCharWidth() * 8);
         return {chipWidth(metrics, kindText, removable, text), sizeHint().height()};
     }
 
@@ -183,7 +190,7 @@ namespace RouteEditor {
                 tip = tr("Remove");
             } else {
                 const QFontMetrics metrics(font());
-                const bool elided = chipWidth(metrics, kindText, removable, metrics.horizontalAdvance(shownValue())) > width();
+                const bool elided = chipWidth(metrics, kindText, removable, TextWidth(metrics, shownValue())) > width();
                 tip = elided ? value : QString();
                 if (!issueText.isEmpty()) tip = tip.isEmpty() ? issueText : tip + QLatin1Char('\n') + issueText;
             }
@@ -221,7 +228,7 @@ namespace RouteEditor {
         int x = kChipPadding;
         if (!kindText.isEmpty()) {
             painter.setPen(tokens.muted);
-            const int kindWidth = metrics.horizontalAdvance(kindText);
+            const int kindWidth = TextWidth(metrics, kindText);
             painter.drawText(QRect(x, 0, kindWidth, height()), Qt::AlignVCenter | Qt::AlignLeft, kindText);
             x += kindWidth + kChipGap;
         }

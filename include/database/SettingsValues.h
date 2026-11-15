@@ -74,6 +74,7 @@ namespace Configs {
         QString font = "";
         int font_size = 0;
         QString mw_size = "";
+        QString routing_settings_size = "";
         bool log_enable_include = false;
         bool log_enable_exclude = false;
         QStringList log_include_keyword = {};

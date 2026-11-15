@@ -478,10 +478,6 @@
         <translation>حذف</translation>
     </message>
     <message>
-        <source>System</source>
-        <translation>سیستم</translation>
-    </message>
-    <message>
         <source>Also resolves proxy server addresses</source>
         <translation>نشانی سرورهای پروکسی را هم حل می‌کند</translation>
     </message>
@@ -2415,10 +2411,6 @@ Included: %2</source>
     <message>
         <source>DNS servers for direct traffic. Default: localhost.</source>
         <translation>سرورهای DNS برای ترافیک مستقیم. پیش‌فرض: localhost.</translation>
-    </message>
-    <message>
-        <source>Routing Profile</source>
-        <translation>نمایه مسیریابی</translation>
     </message>
     <message>
         <source>Default DNS server</source>
@@ -8565,50 +8557,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>اقدام دیگر</translation>
     </message>
     <message>
-        <source>The selected profile, exiting through WARP or Tor when one is on.</source>
-        <translation>نمایهٔ انتخاب‌شده، که وقتی WARP یا Tor روشن است از طریق آن خارج می‌شود.</translation>
-    </message>
-    <message>
-        <source>Leaves this computer without a proxy.</source>
-        <translation>بدون پروکسی از این رایانه خارج می‌شود.</translation>
-    </message>
-    <message>
-        <source>The selected profile without the WARP or Tor layer. Same as Proxy while both are off.</source>
-        <translation>نمایهٔ انتخاب‌شده بدون لایهٔ WARP یا Tor. تا وقتی هر دو خاموش هستند، همان پروکسی است.</translation>
-    </message>
-    <message>
-        <source>Rejected: the app sees the connection refused.</source>
-        <translation>رد می‌شود: برنامه می‌بیند که اتصال رد شده است.</translation>
-    </message>
-    <message>
-        <source>Answered by Throne&apos;s DNS. The DNS tab picks the servers.</source>
-        <translation>DNS خودِ Throne پاسخ می‌دهد. سرورها در برگهٔ DNS انتخاب می‌شوند.</translation>
-    </message>
-    <message>
-        <source>Reads the protocol and domain, then continues with the next rule.</source>
-        <translation>پروتکل و دامنه را می‌خواند، سپس به قانون بعدی می‌رود.</translation>
-    </message>
-    <message>
-        <source>Resolves the domain to an IP, then continues with the next rule.</source>
-        <translation>دامنه را به IP تبدیل می‌کند، سپس به قانون بعدی می‌رود.</translation>
-    </message>
-    <message>
-        <source>Applies the connection options below, then continues with the next rule.</source>
-        <translation>گزینه‌های اتصال زیر را اعمال می‌کند، سپس به قانون بعدی می‌رود.</translation>
-    </message>
-    <message>
-        <source>Linux auto-redirect only: the connection skips sing-box in the kernel.</source>
-        <translation>فقط برای auto-redirect در لینوکس: اتصال در سطح هسته sing-box را دور می‌زند.</translation>
-    </message>
-    <message>
-        <source>Through this profile instead of the selected profile.</source>
-        <translation>از طریق این نمایه به‌جای نمایهٔ انتخاب‌شده.</translation>
-    </message>
-    <message>
-        <source>An action this editor does not offer; it is kept as it is.</source>
-        <translation>اقدامی که این ویرایشگر ارائه نمی‌دهد؛ همان‌طور که هست حفظ می‌شود.</translation>
-    </message>
-    <message>
         <source>Missing profile (id %1)</source>
         <translation>نمایهٔ ناموجود (شناسه %1)</translation>
     </message>
@@ -8987,28 +8935,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>انتخاب فعلی</translation>
     </message>
     <message>
-        <source>Continues with the next rule</source>
-        <translation>سپس قانون بعدی بررسی می‌شود</translation>
-    </message>
-    <message>
-        <source>Linux auto-redirect only</source>
-        <translation>فقط برای auto-redirect در لینوکس</translation>
-    </message>
-    <message>
         <source>Send through</source>
         <translation>ارسال از طریق</translation>
-    </message>
-    <message>
-        <source>The selected profile</source>
-        <translation>نمایهٔ انتخاب‌شده</translation>
-    </message>
-    <message>
-        <source>No proxy</source>
-        <translation>بدون پروکسی</translation>
-    </message>
-    <message>
-        <source>Proxy minus the WARP or Tor layer</source>
-        <translation>پروکسی بدون لایهٔ WARP یا Tor</translation>
     </message>
     <message>
         <source>Stop it</source>

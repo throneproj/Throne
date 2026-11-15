@@ -25,25 +25,76 @@
       </attribute>
       <layout class="QVBoxLayout" name="routing_page_layout">
        <item>
+        <widget class="QGroupBox" name="domain_strategy_box">
+         <property name="title">
+          <string>Domain Strategy</string>
+         </property>
+         <property name="uiLevel" stdset="0">
+          <string notr="true">advanced</string>
+         </property>
+         <layout class="QGridLayout" name="domain_strategy_layout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="toolTip">
+             <string>Strategy for resolving the domains of servers and DNS servers.</string>
+            </property>
+            <property name="text">
+             <string>Default Domain Strategy</string>
+            </property>
+            <property name="buddy">
+             <cstring>default_domain_strategy</cstring>
+            </property>
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="default_domain_strategy">
+            <property name="editable">
+             <bool>false</bool>
+            </property>
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_6">
+            <property name="toolTip">
+             <string>Resolve request domains with this strategy. Empty: off.</string>
+            </property>
+            <property name="text">
+             <string>Resolve Domain Strategy</string>
+            </property>
+            <property name="buddy">
+             <cstring>domainStrategyCombo</cstring>
+            </property>
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="domainStrategyCombo">
+            <property name="editable">
+             <bool>false</bool>
+            </property>
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <widget class="QGroupBox" name="route_profiles_box">
          <property name="title">
           <string>Routing Profiles</string>
          </property>
          <layout class="QGridLayout" name="route_profiles_layout">
           <item row="0" column="0">
-           <widget class="QLabel" name="route_prof_l">
-            <property name="text">
-             <string>Routing Profile</string>
-            </property>
-            <property name="buddy">
-             <cstring>route_prof</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="route_prof"/>
-          </item>
-          <item row="1" column="0" colspan="2">
            <layout class="QHBoxLayout" name="route_profiles_row">
             <item>
              <widget class="QListWidget" name="route_profiles"/>
@@ -124,18 +175,15 @@
        </item>
        <item>
         <widget class="QGroupBox" name="route_updates_box">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
          <property name="title">
           <string>Updates</string>
+         </property>
+         <property name="uiLevel" stdset="0">
+          <string notr="true">advanced</string>
          </property>
          <layout class="QGridLayout" name="route_updates_layout">
           <item row="0" column="0">
            <widget class="QLabel" name="label_route_auto_update">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
               <horstretch>0</horstretch>
@@ -145,15 +193,15 @@
             <property name="text">
              <string>Routing profiles auto update</string>
             </property>
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
            </widget>
           </item>
           <item row="0" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout_route_auto_update">
             <item>
              <widget class="QCheckBox" name="route_auto_update_enable">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -163,28 +211,31 @@
               <property name="text">
                <string>Enable</string>
               </property>
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
              </widget>
             </item>
             <item>
              <widget class="QLabel" name="label_route_auto_update_interval">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <property name="text">
                <string>Interval (minute, invalid if less than 30)</string>
+              </property>
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QLineEdit" name="route_auto_update">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
+              </property>
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
               </property>
              </widget>
             </item>
@@ -192,14 +243,14 @@
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="ruleset_mirror_l">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="text">
              <string>Remote Rule-set Mirror</string>
             </property>
             <property name="buddy">
              <cstring>ruleset_mirror</cstring>
+            </property>
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
             </property>
            </widget>
           </item>
@@ -238,70 +289,6 @@
               <string>jsDelivr(CDN)</string>
              </property>
             </item>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="domain_strategy_box">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
-         <property name="title">
-          <string>Domain Strategy</string>
-         </property>
-         <layout class="QGridLayout" name="domain_strategy_layout">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_3">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
-            <property name="toolTip">
-             <string>Strategy for resolving the domains of servers and DNS servers.</string>
-            </property>
-            <property name="text">
-             <string>Default Domain Strategy</string>
-            </property>
-            <property name="buddy">
-             <cstring>default_domain_strategy</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="default_domain_strategy">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
-            <property name="editable">
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_6">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
-            <property name="toolTip">
-             <string>Resolve request domains with this strategy. Empty: off.</string>
-            </property>
-            <property name="text">
-             <string>Resolve Domain Strategy</string>
-            </property>
-            <property name="buddy">
-             <cstring>domainStrategyCombo</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QComboBox" name="domainStrategyCombo">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
-            <property name="editable">
-             <bool>false</bool>
-            </property>
            </widget>
           </item>
          </layout>
@@ -377,18 +364,18 @@
           <item row="1" column="1">
            <layout class="QVBoxLayout" name="remote_dns_layout">
             <item>
-             <widget class="DnsServerListEdit" name="remote_dns"/>
+             <widget class="DnsServerListEdit" name="remote_dns" native="true"/>
             </item>
             <item>
              <widget class="QCheckBox" name="remote_dns_disable_ipv6">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <property name="toolTip">
                <string>Answer AAAA queries sent to this server with an empty result.</string>
               </property>
               <property name="text">
                <string>Disable IPv6</string>
+              </property>
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
               </property>
              </widget>
             </item>
@@ -410,18 +397,18 @@
           <item row="2" column="1">
            <layout class="QVBoxLayout" name="direct_dns_layout">
             <item>
-             <widget class="DnsServerListEdit" name="direct_dns"/>
+             <widget class="DnsServerListEdit" name="direct_dns" native="true"/>
             </item>
             <item>
              <widget class="QCheckBox" name="direct_dns_disable_ipv6">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <property name="toolTip">
                <string>Answer AAAA queries sent to this server with an empty result.</string>
               </property>
               <property name="text">
                <string>Disable IPv6</string>
+              </property>
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
               </property>
              </widget>
             </item>
@@ -429,9 +416,6 @@
           </item>
           <item row="3" column="0">
            <widget class="QLabel" name="label_2">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="toolTip">
              <string>IP of the DNS server that resolves DNS server hostnames.</string>
             </property>
@@ -440,6 +424,9 @@
             </property>
             <property name="buddy">
              <cstring>local_override</cstring>
+            </property>
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
             </property>
            </widget>
           </item>
@@ -455,61 +442,81 @@
        </item>
        <item>
         <widget class="QGroupBox" name="dns_resolution_box">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
          <property name="title">
           <string>Resolution</string>
          </property>
-         <layout class="QGridLayout" name="dns_resolution_layout">
-          <item row="0" column="0">
-           <widget class="QCheckBox" name="enable_dns_routing">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
-            <property name="toolTip">
-             <string>Domains sent direct are resolved with the direct DNS too.</string>
-            </property>
-            <property name="text">
-             <string>Enable DNS routing</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="respect_hosts">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
-            <property name="toolTip">
-             <string>Answer A/AAAA queries from the system hosts file first.</string>
-            </property>
-            <property name="text">
-             <string>Respect hosts file</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_6">
+         <property name="uiLevel" stdset="0">
+          <string notr="true">advanced</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
-             <widget class="QCheckBox" name="enable_fakeip">
+             <widget class="QCheckBox" name="enable_dns_routing">
+              <property name="toolTip">
+               <string>Domains sent direct are resolved with the direct DNS too.</string>
+              </property>
+              <property name="text">
+               <string>Enable DNS routing</string>
+              </property>
               <property name="uiLevel" stdset="0">
                <string notr="true">advanced</string>
               </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="respect_hosts">
+              <property name="toolTip">
+               <string>Answer A/AAAA queries from the system hosts file first.</string>
+              </property>
+              <property name="text">
+               <string>Respect hosts file</string>
+              </property>
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="predefined_dns">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Predefined Answers</string>
+              </property>
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_6">
+            <item>
+             <widget class="QCheckBox" name="enable_fakeip">
               <property name="text">
                <string>Enable FakeIP</string>
+              </property>
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QCheckBox" name="fakeip_disable_ipv6">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <property name="toolTip">
                <string>Hand out no fake IPv6 addresses; AAAA queries are answered empty.</string>
               </property>
               <property name="text">
                <string>Disable IPv6 for FakeIP</string>
+              </property>
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
               </property>
              </widget>
             </item>
@@ -528,30 +535,11 @@
             </item>
            </layout>
           </item>
-          <item row="3" column="0" alignment="Qt::AlignmentFlag::AlignLeft">
-           <widget class="QPushButton" name="predefined_dns">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Predefined Answers</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
        </item>
        <item>
         <widget class="QGroupBox" name="groupBox">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
            <horstretch>0</horstretch>
@@ -560,6 +548,9 @@
          </property>
          <property name="title">
           <string>Advanced</string>
+         </property>
+         <property name="uiLevel" stdset="0">
+          <string notr="true">advanced</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
@@ -608,7 +599,7 @@
        <item>
         <spacer name="dns_bottom_spacer">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Orientation::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -761,11 +752,11 @@
           </item>
           <item row="1" column="0" colspan="2">
            <widget class="QGroupBox" name="warp_wg_box">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="title">
              <string notr="true">WireGuard</string>
+            </property>
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
             </property>
             <layout class="QFormLayout" name="warp_wg_form">
              <item row="0" column="0">
@@ -838,11 +829,11 @@
           </item>
           <item row="2" column="0" colspan="2">
            <widget class="QGroupBox" name="warp_masque_box">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="title">
              <string notr="true">MASQUE</string>
+            </property>
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
             </property>
             <layout class="QFormLayout" name="warp_masque_form">
              <item row="0" column="0">
@@ -965,34 +956,34 @@
             </item>
             <item>
              <widget class="QPushButton" name="warp_api_hosts_btn">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <property name="toolTip">
                <string>Cloudflare API domains to try, in order, when generating a WARP config</string>
               </property>
               <property name="text">
                <string>Registration Domains</string>
               </property>
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="warp_advanced_btn">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <property name="toolTip">
                <string>TLS fragmentation for WARP registration</string>
               </property>
               <property name="text">
                <string>Advanced</string>
               </property>
+              <property name="uiLevel" stdset="0">
+               <string notr="true">advanced</string>
+              </property>
              </widget>
             </item>
             <item>
              <spacer name="warp_autogen_spacer">
               <property name="orientation">
-               <enum>Qt::Horizontal</enum>
+               <enum>Qt::Orientation::Horizontal</enum>
               </property>
               <property name="sizeHint" stdset="0">
                <size>
@@ -1010,7 +1001,7 @@
        <item>
         <spacer name="warp_bottom_spacer">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Orientation::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>

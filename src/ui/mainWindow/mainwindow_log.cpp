@@ -60,7 +60,7 @@ namespace {
                                 a.blueF() + (b.blueF() - a.blueF()) * amount);
     }
 
-    // A screen of log lines reads calmer with its colours desaturated and drawn toward the text colour.
+    // Level colours read calmer desaturated and drawn toward the text colour.
     QColor calmLogColor(const QColor &color, const QColor &text, float maxSaturation = 0.38f) {
         float h = 0, s = 0, l = 0, a = 1;
         color.getHslF(&h, &s, &l, &a);
@@ -120,12 +120,12 @@ void MainWindow::setLogHighlighter(bool darkMode) {
     colors.info = levels[1];
     colors.warn = levels[2];
     colors.error = levels[3];
-    colors.ok = calmLogColor(tokens.success, tokens.onSurface);
-    colors.host = mixColors(colors.info, tokens.onSurface, 0.35f);
-    colors.inbound = calmLogColor(tokens.chartSeries[2], tokens.onSurface);
-    colors.outbound = calmLogColor(tokens.chartSeries[4], tokens.onSurface);
-    colors.dns = calmLogColor(tokens.chartSeries[1], tokens.onSurface);
-    colors.router = calmLogColor(tokens.chartSeries[3], tokens.onSurface);
+    colors.ok = tokens.success;
+    colors.host = mixColors(tokens.info, tokens.onSurface, 0.35f);
+    colors.inbound = tokens.chartSeries[2];
+    colors.outbound = tokens.chartSeries[4];
+    colors.dns = tokens.chartSeries[1];
+    colors.router = tokens.chartSeries[3];
     colors.other = tokens.chartContext;
     colors.searchBackground = darkMode ? QColor(150, 110, 0) : QColor(255, 225, 90);
     colors.searchForeground = darkMode ? QColor(Qt::white) : QColor(Qt::black);

@@ -25,34 +25,13 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include <cmath>
+
 namespace {
     constexpr int dnsListVisibleRows = 6;
     // Below this many rows the list never scrolls, however tight the dialog.
     constexpr int dnsListMinimumRows = 4;
     constexpr int dnsListRecentLimit = 8;
-
-    enum class DnsListTone { None, Encrypted, Plain, System };
-
-    struct DnsListKind {
-        QString badge;
-        DnsListTone tone = DnsListTone::None;
-    };
-
-    DnsListKind dnsListKind(const QString &address) {
-        // ParseDnsAddress takes every "local..." address as the system resolver.
-        if (address.startsWith(QLatin1String("local"), Qt::CaseInsensitive)) return {DnsServerListEdit::tr("System"), DnsListTone::System};
-        const auto schemeEnd = address.indexOf(QLatin1String("://"));
-        if (schemeEnd < 0) return {QStringLiteral("UDP"), DnsListTone::Plain};
-        const QString scheme = address.left(schemeEnd).toLower();
-        if (scheme == QLatin1String("https")) return {QStringLiteral("DoH"), DnsListTone::Encrypted};
-        if (scheme == QLatin1String("h3")) return {QStringLiteral("DoH3"), DnsListTone::Encrypted};
-        if (scheme == QLatin1String("tls")) return {QStringLiteral("DoT"), DnsListTone::Encrypted};
-        if (scheme == QLatin1String("quic")) return {QStringLiteral("DoQ"), DnsListTone::Encrypted};
-        if (scheme == QLatin1String("tcp")) return {QStringLiteral("TCP"), DnsListTone::Plain};
-        if (scheme == QLatin1String("udp")) return {QStringLiteral("UDP"), DnsListTone::Plain};
-        if (scheme == QLatin1String("dhcp")) return {QStringLiteral("DHCP"), DnsListTone::System};
-        return {};
-    }
 
     QFont dnsListScaledFont(QFont font, const qreal factor) {
         if (font.pointSizeF() > 0) font.setPointSizeF(font.pointSizeF() * factor);
@@ -67,10 +46,9 @@ namespace {
         return fixed;
     }
 
-    QFont dnsListBadgeFont(const QFont &base) {
-        QFont font = dnsListScaledFont(base, 0.85);
-        font.setWeight(QFont::Bold);
-        return font;
+    // horizontalAdvance() rounded up: elidedText() elides a text even a fraction of a pixel wider than its width.
+    int dnsListTextWidth(const QFontMetrics &metrics, const QString &text) {
+        return static_cast<int>(std::ceil(QFontMetricsF(metrics).horizontalAdvance(text)));
     }
 
     // Escaped: a tooltip that merely looks like HTML is rendered as HTML.
@@ -81,13 +59,6 @@ namespace {
     QColor dnsListColor(const QWidget *widget, const QColor &token, const QPalette::ColorRole fallback) {
         if (!widget->isEnabled()) return widget->palette().color(QPalette::Disabled, QPalette::Text);
         return token.isValid() ? token : widget->palette().color(fallback);
-    }
-
-    QColor dnsListToneColor(const QWidget *widget, const DnsListTone tone) {
-        const auto &tokens = themeManager()->tokens;
-        if (tone == DnsListTone::Encrypted) return dnsListColor(widget, tokens.success, QPalette::Text);
-        if (tone == DnsListTone::System) return dnsListColor(widget, tokens.info, QPalette::Text);
-        return dnsListColor(widget, tokens.muted, QPalette::PlaceholderText);
     }
 
     void dnsListShowProblem(QLineEdit *edit, const QString &problem) {
@@ -157,43 +128,6 @@ namespace {
         [[nodiscard]] int dotSize() const { return qMax(2, fontMetrics().height() / 7); }
     };
 
-    class DnsListBadge : public DnsListPiece {
-    public:
-        DnsListBadge(QWidget *parent, DnsListKind kind_) : DnsListPiece(parent), kind(std::move(kind_)) {
-            setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-        }
-
-        // One width for every badge, so the addresses line up.
-        [[nodiscard]] QSize sizeHint() const override {
-            const QFontMetrics metrics(dnsListBadgeFont(font()));
-            int widest = 0;
-            for (const auto &text : {QStringLiteral("DoH"), QStringLiteral("DoH3"), QStringLiteral("DoT"), QStringLiteral("DoQ"), QStringLiteral("TCP"),
-                                     QStringLiteral("UDP"), QStringLiteral("DHCP"), DnsServerListEdit::tr("System")})
-                widest = qMax(widest, metrics.horizontalAdvance(text));
-            return {widest + metrics.height(), metrics.height() + 4};
-        }
-
-    protected:
-        void paintEvent(QPaintEvent *) override {
-            if (kind.badge.isEmpty()) return;
-            QPainter painter(this);
-            painter.setRenderHint(QPainter::Antialiasing);
-            const QColor color = dnsListToneColor(this, kind.tone);
-            QColor fill = color;
-            fill.setAlphaF(isEnabled() ? 0.16f : 0.08f);
-            const QRectF box = QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5);
-            painter.setPen(Qt::NoPen);
-            painter.setBrush(fill);
-            painter.drawRoundedRect(box, box.height() / 4, box.height() / 4);
-            painter.setFont(dnsListBadgeFont(font()));
-            painter.setPen(color);
-            painter.drawText(rect(), Qt::AlignCenter, kind.badge);
-        }
-
-    private:
-        DnsListKind kind;
-    };
-
     class DnsListAddress : public DnsListPiece {
     public:
         DnsListAddress(QWidget *parent, QString address_, QString note_, const bool invalid_)
@@ -203,7 +137,7 @@ namespace {
 
         [[nodiscard]] QSize sizeHint() const override {
             const QFontMetrics fixed(dnsListFixedFont(font()));
-            return {fixed.horizontalAdvance(address), fixed.height()};
+            return {dnsListTextWidth(fixed, address), fixed.height()};
         }
 
     protected:
@@ -212,7 +146,7 @@ namespace {
             QPainter painter(this);
             const QFont fixedFont = dnsListFixedFont(font());
             const QFontMetrics fixed(fixedFont);
-            const int addressWidth = qMin(fixed.horizontalAdvance(address), width());
+            const int addressWidth = qMin(dnsListTextWidth(fixed, address), width());
             const int space = noteSpace(addressWidth);
             const QRect line(0, (height() - fixed.height()) / 2, space > 0 ? addressWidth : width(), fixed.height());
             const int leading = int(QStyle::visualAlignment(layoutDirection(), Qt::AlignLeft | Qt::AlignVCenter)) | Qt::TextSingleLine;
@@ -232,10 +166,10 @@ namespace {
 
         void resizeEvent(QResizeEvent *event) override {
             DnsListPiece::resizeEvent(event);
-            const int addressWidth = QFontMetrics(dnsListFixedFont(font())).horizontalAdvance(address);
+            const int addressWidth = dnsListTextWidth(QFontMetrics(dnsListFixedFont(font())), address);
             QStringList tip;
             if (addressWidth > width()) tip << address;
-            if (!note.isEmpty() && noteSpace(addressWidth) < QFontMetrics(noteFont()).horizontalAdvance(note)) tip << note;
+            if (!note.isEmpty() && noteSpace(addressWidth) < dnsListTextWidth(QFontMetrics(noteFont()), note)) tip << note;
             setToolTip(dnsListTip(tip.join(QLatin1Char('\n'))));
         }
 
@@ -332,7 +266,6 @@ namespace {
             auto *grip = new DnsListGrip(this);
             if (!draggable) grip->hide();
             layout->addWidget(grip);
-            layout->addWidget(new DnsListBadge(this, dnsListKind(address)));
             text = new DnsListAddress(this, address, note, !problem.isEmpty());
             layout->addWidget(text, 1);
             if (!problem.isEmpty()) layout->addWidget(new DnsListMark(this, problem));

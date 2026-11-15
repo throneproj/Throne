@@ -72,7 +72,6 @@ namespace RouteEditor {
     QString ThenLabel(Then then);
     // A Profile rule names its profile, Other its raw action.
     QString ThenLabel(const Configs::RouteRule& rule);
-    QString ThenHint(Then then);
 
     // Every profile as "[Group] Name" with its id, in group tab order; rebuilt only after profiles or groups changed.
     const QList<QPair<QString, int>>& ProfileChoices();
@@ -96,6 +95,8 @@ namespace RouteEditor {
     };
     // From the current theme tokens, so read them when painting.
     ToneColors ColorsOf(Tone tone);
+    // horizontalAdvance() rounded up: elidedText() elides a text even a fraction of a pixel wider than its width.
+    int TextWidth(const QFontMetrics& metrics, const QString& text);
     QSize PillSize(const QFontMetrics& metrics, const QString& text);
     // Draws with the painter's font; pass a rect of PillSize().
     void PaintPill(QPainter* painter, const QRect& rect, const QString& text, Tone tone);

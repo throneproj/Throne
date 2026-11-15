@@ -349,23 +349,6 @@ namespace RouteEditor {
         return ThenLabel(then);
     }
 
-    QString ThenHint(Then then) {
-        switch (then) {
-            case Then::Proxy: return tr("The selected profile, exiting through WARP or Tor when one is on.");
-            case Then::Direct: return tr("Leaves this computer without a proxy.");
-            case Then::NoWarp: return tr("The selected profile without the WARP or Tor layer. Same as Proxy while both are off.");
-            case Then::Block: return tr("Rejected: the app sees the connection refused.");
-            case Then::HijackDns: return tr("Answered by Throne's DNS. The DNS tab picks the servers.");
-            case Then::Sniff: return tr("Reads the protocol and domain, then continues with the next rule.");
-            case Then::Resolve: return tr("Resolves the domain to an IP, then continues with the next rule.");
-            case Then::RouteOptions: return tr("Applies the connection options below, then continues with the next rule.");
-            case Then::Bypass: return tr("Linux auto-redirect only: the connection skips sing-box in the kernel.");
-            case Then::Profile: return tr("Through this profile instead of the selected profile.");
-            case Then::Other: break;
-        }
-        return tr("An action this editor does not offer; it is kept as it is.");
-    }
-
     const QList<QPair<QString, int>>& ProfileChoices() {
         return profileCache().choices;
     }
@@ -443,8 +426,12 @@ namespace RouteEditor {
         return colors;
     }
 
+    int TextWidth(const QFontMetrics& metrics, const QString& text) {
+        return static_cast<int>(std::ceil(QFontMetricsF(metrics).horizontalAdvance(text)));
+    }
+
     QSize PillSize(const QFontMetrics& metrics, const QString& text) {
-        return {metrics.horizontalAdvance(text) + 2 * kPillPadding + 2, metrics.height() + 4};
+        return {TextWidth(metrics, text) + 2 * kPillPadding + 2, metrics.height() + 4};
     }
 
     QColor Mix(const QColor& color, const QColor& base, double amount) {

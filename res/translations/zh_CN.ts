@@ -3786,10 +3786,6 @@ Included: %2</source>
         <translation>解析域策略</translation>
     </message>
     <message>
-        <source>Routing Profile</source>
-        <translation>路由配置档</translation>
-    </message>
-    <message>
         <source>GitHub</source>
         <translation>GitHub</translation>
     </message>
@@ -5897,10 +5893,6 @@ Close without saving?</source>
     <message>
         <source>Remove</source>
         <translation>删除</translation>
-    </message>
-    <message>
-        <source>System</source>
-        <translation>系统</translation>
     </message>
     <message>
         <source>Also resolves proxy server addresses</source>
@@ -18359,50 +18351,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>其他动作</translation>
     </message>
     <message>
-        <source>The selected profile, exiting through WARP or Tor when one is on.</source>
-        <translation>所选配置档，开启 WARP 或 Tor 时经由其出站。</translation>
-    </message>
-    <message>
-        <source>Leaves this computer without a proxy.</source>
-        <translation>不经代理，直接离开本机。</translation>
-    </message>
-    <message>
-        <source>The selected profile without the WARP or Tor layer. Same as Proxy while both are off.</source>
-        <translation>所选配置档，但不经 WARP 或 Tor 层。两者都关闭时与“代理”相同。</translation>
-    </message>
-    <message>
-        <source>Rejected: the app sees the connection refused.</source>
-        <translation>拒绝：应用会看到连接被拒绝。</translation>
-    </message>
-    <message>
-        <source>Answered by Throne&apos;s DNS. The DNS tab picks the servers.</source>
-        <translation>由 Throne 的 DNS 应答。服务器在“DNS”选项卡中选择。</translation>
-    </message>
-    <message>
-        <source>Reads the protocol and domain, then continues with the next rule.</source>
-        <translation>读取协议和域名，然后继续匹配下一条规则。</translation>
-    </message>
-    <message>
-        <source>Resolves the domain to an IP, then continues with the next rule.</source>
-        <translation>将域名解析为 IP，然后继续匹配下一条规则。</translation>
-    </message>
-    <message>
-        <source>Applies the connection options below, then continues with the next rule.</source>
-        <translation>应用下方的连接选项，然后继续匹配下一条规则。</translation>
-    </message>
-    <message>
-        <source>Linux auto-redirect only: the connection skips sing-box in the kernel.</source>
-        <translation>仅限 Linux auto-redirect：连接在内核层绕过 sing-box。</translation>
-    </message>
-    <message>
-        <source>Through this profile instead of the selected profile.</source>
-        <translation>经由此配置档，而非所选配置档。</translation>
-    </message>
-    <message>
-        <source>An action this editor does not offer; it is kept as it is.</source>
-        <translation>此编辑器不提供的动作；将保持原样。</translation>
-    </message>
-    <message>
         <source>Missing profile (id %1)</source>
         <translation>缺失的配置档（id %1）</translation>
     </message>
@@ -18781,28 +18729,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>当前选择</translation>
     </message>
     <message>
-        <source>Continues with the next rule</source>
-        <translation>随后继续匹配下一条规则</translation>
-    </message>
-    <message>
-        <source>Linux auto-redirect only</source>
-        <translation>仅限 Linux auto-redirect</translation>
-    </message>
-    <message>
         <source>Send through</source>
         <translation>发送方式</translation>
-    </message>
-    <message>
-        <source>The selected profile</source>
-        <translation>所选配置档</translation>
-    </message>
-    <message>
-        <source>No proxy</source>
-        <translation>不使用代理</translation>
-    </message>
-    <message>
-        <source>Proxy minus the WARP or Tor layer</source>
-        <translation>代理，但不经 WARP 或 Tor 层</translation>
     </message>
     <message>
         <source>Stop it</source>

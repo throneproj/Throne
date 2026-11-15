@@ -28,8 +28,7 @@ namespace {
     constexpr int thenPickerKindRole = Qt::UserRole;
     constexpr int thenPickerThenRole = Qt::UserRole + 1;
     constexpr int thenPickerProfileRole = Qt::UserRole + 2;
-    constexpr int thenPickerHintRole = Qt::UserRole + 3;
-    constexpr int thenPickerCurrentRole = Qt::UserRole + 4;
+    constexpr int thenPickerCurrentRole = Qt::UserRole + 3;
     constexpr int thenPickerMaxProfiles = 8;
     constexpr int thenPickerPad = 8;
     constexpr int thenPickerArrowGap = 8;
@@ -79,21 +78,12 @@ namespace {
                 painter->drawRoundedRect(QRectF(option.rect).adjusted(2.5, 0.5, -2.5, -0.5), 5, 5);
             }
             const QFontMetrics metrics(option.font);
-            const QFont smallFont = thenPickerSmallFont(option.font);
-            const QFontMetrics small(smallFont);
             const int mark = metrics.height();
             const QRect textArea = area.adjusted(0, 5, -(mark + 6), -5);
             const QRect labelRect(textArea.left(), textArea.top(), textArea.width(), metrics.height());
             painter->setFont(option.font);
             painter->setPen(tokens.onSurface);
             painter->drawText(labelRect, Qt::AlignLeft | Qt::AlignVCenter, metrics.elidedText(text, Qt::ElideRight, labelRect.width()));
-            const QString hint = index.data(thenPickerHintRole).toString();
-            if (!hint.isEmpty()) {
-                const QRect hintRect(textArea.left(), labelRect.bottom() + 2, textArea.width(), small.height());
-                painter->setFont(smallFont);
-                painter->setPen(tokens.muted);
-                painter->drawText(hintRect, Qt::AlignLeft | Qt::AlignVCenter, small.elidedText(hint, Qt::ElideRight, hintRect.width()));
-            }
             if (index.data(thenPickerCurrentRole).toBool()) {
                 const QRectF box(area.right() - mark + 1, labelRect.top(), mark, mark);
                 QPainterPath check;
@@ -114,9 +104,7 @@ namespace {
                 case ThenPickerKind::Note: return {0, small.height() + 8};
                 case ThenPickerKind::Option: break;
             }
-            const QFontMetrics metrics(option.font);
-            const bool hint = !index.data(thenPickerHintRole).toString().isEmpty();
-            return {0, metrics.height() + (hint ? small.height() + 2 : 0) + 10};
+            return {0, QFontMetrics(option.font).height() + 10};
         }
     };
 
@@ -207,13 +195,12 @@ namespace {
             item->setData(thenPickerKindRole, static_cast<int>(ThenPickerKind::Note));
         }
 
-        void addOption(const QString& label, RouteEditor::Then then, int profileId, const QString& hint) {
+        void addOption(const QString& label, RouteEditor::Then then, int profileId) {
             auto* item = new QListWidgetItem(label, list);
             item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
             item->setData(thenPickerKindRole, static_cast<int>(ThenPickerKind::Option));
             item->setData(thenPickerThenRole, static_cast<int>(then));
             item->setData(thenPickerProfileRole, profileId);
-            item->setData(thenPickerHintRole, hint);
             const bool isCurrent = then == current && (then != RouteEditor::Then::Profile || profileId == currentProfile);
             item->setData(thenPickerCurrentRole, isCurrent);
             if (isCurrent) item->setData(Qt::AccessibleDescriptionRole, RouteThenPicker::tr("Current choice"));
@@ -225,25 +212,21 @@ namespace {
             const auto matches = [&needle](const QString& text) { return needle.isEmpty() || text.contains(needle, Qt::CaseInsensitive); };
             list->clear();
 
-            const QString next = RouteThenPicker::tr("Continues with the next rule");
-            QList<QPair<Then, QString>> others = {{Then::HijackDns, {}}, {Then::Sniff, next}, {Then::Resolve, next}, {Then::RouteOptions, next}};
-            if (offerBypass) others.append({Then::Bypass, RouteThenPicker::tr("Linux auto-redirect only")});
-            const QList<QPair<QString, QList<QPair<Then, QString>>>> sections = {
-                {RouteThenPicker::tr("Send through"),
-                 {{Then::Proxy, RouteThenPicker::tr("The selected profile")},
-                  {Then::Direct, RouteThenPicker::tr("No proxy")},
-                  {Then::NoWarp, RouteThenPicker::tr("Proxy minus the WARP or Tor layer")}}},
-                {RouteThenPicker::tr("Stop it"), {{Then::Block, {}}}},
+            QList<Then> others = {Then::HijackDns, Then::Sniff, Then::Resolve, Then::RouteOptions};
+            if (offerBypass) others.append(Then::Bypass);
+            const QList<QPair<QString, QList<Then>>> sections = {
+                {RouteThenPicker::tr("Send through"), {Then::Proxy, Then::Direct, Then::NoWarp}},
+                {RouteThenPicker::tr("Stop it"), {Then::Block}},
                 {RouteThenPicker::tr("Other actions"), others},
             };
             for (const auto& [title, offers] : sections) {
                 bool headed = false;
-                for (const auto& [then, hint] : offers) {
+                for (const Then then : offers) {
                     const QString label = RouteEditor::ThenLabel(then);
                     if (!matches(label)) continue;
                     if (!headed) addSection(title);
                     headed = true;
-                    addOption(label, then, -1, hint);
+                    addOption(label, then, -1);
                 }
             }
 
@@ -260,7 +243,7 @@ namespace {
             }
             if (!profiles.isEmpty()) {
                 addSection(RouteThenPicker::tr("A specific profile"));
-                for (const auto& [label, id] : profiles) addOption(label, Then::Profile, id, {});
+                for (const auto& [label, id] : profiles) addOption(label, Then::Profile, id);
             }
             if (more > 0) addNote(RouteThenPicker::tr("%n more profiles: type to find them.", nullptr, more));
             if (list->count() == 0) addNote(RouteThenPicker::tr("Nothing matches."));
@@ -311,10 +294,7 @@ namespace {
                 const auto* item = list->item(i);
                 const ThenPickerKind kind = thenPickerKindOf(item);
                 int width = (kind == ThenPickerKind::Option ? metrics : small).horizontalAdvance(item->text());
-                if (kind == ThenPickerKind::Option) {
-                    width += metrics.height() + 6;
-                    width = qMax(width, small.horizontalAdvance(item->data(thenPickerHintRole).toString()));
-                }
+                if (kind == ThenPickerKind::Option) width += metrics.height() + 6;
                 textWidth = qMax(textWidth, width);
                 listHeight += list->sizeHintForRow(i);
             }
@@ -369,8 +349,7 @@ void RouteThenPicker::refresh() {
         setToolTip({});
     } else {
         setAccessibleName(RouteEditor::ThenLabel(*rule));
-        const RouteEditor::Then then = RouteEditor::ThenOf(*rule);
-        setToolTip(then == RouteEditor::Then::Profile ? RouteEditor::ProfileLabel(rule->outboundID) : RouteEditor::ThenHint(then));
+        setToolTip(RouteEditor::ThenOf(*rule) == RouteEditor::Then::Profile ? RouteEditor::ProfileLabel(rule->outboundID) : QString());
     }
     updateGeometry();
     update();

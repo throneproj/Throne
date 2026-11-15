@@ -4,7 +4,7 @@
 #include <QCoreApplication>
 #include <QItemSelectionModel>
 #include <QMenu>
-#include <QPainter>
+#include <QStyleOptionMenuItem>
 
 #include "include/configs/generate.h"
 #include "include/database/GroupsRepo.h"
@@ -58,24 +58,16 @@ namespace {
         return trayMenuName(profile->outbound != nullptr ? profile->outbound->DisplayName() : profile->name);
     }
 
-    // Also the Disabled pixmap: the status line is a disabled action, which would grey the dot out.
-    QIcon trayConnectedIcon() {
-        QIcon icon;
-        for (const qreal dpr : {1.0, 2.0}) {
-            QPixmap pixmap(QSize(16, 16) * dpr);
-            pixmap.setDevicePixelRatio(dpr);
-            pixmap.fill(Qt::transparent);
-            QPainter painter(&pixmap);
-            painter.setRenderHint(QPainter::Antialiasing);
-            painter.setPen(Qt::NoPen);
-            painter.setBrush(QColor(0x3F, 0xB9, 0x50));
-            painter.drawEllipse(QRectF(4.5, 4.5, 7, 7));
-            painter.end();
-            icon.addPixmap(pixmap, QIcon::Normal);
-            icon.addPixmap(pixmap, QIcon::Disabled);
+    constexpr char trayConnectedProperty[] = "trayConnected";
+
+    // Marks the connected status line :read-only, which the theme sheet tints green; a native or D-Bus tray menu shows it plain.
+    class TrayMenu : public QMenu {
+    protected:
+        void initStyleOption(QStyleOptionMenuItem *option, const QAction *action) const override {
+            QMenu::initStyleOption(option, action);
+            if (action->property(trayConnectedProperty).toBool()) option->state |= QStyle::State_ReadOnly;
         }
-        return icon;
-    }
+    };
 }
 
 void MainWindow::showProfilesContextMenu(const QPoint &pos) {
@@ -328,7 +320,7 @@ void MainWindow::setupRoutingMenu() {
 }
 
 void MainWindow::setupTrayMenu() {
-    trayMenu = new QMenu();
+    trayMenu = new TrayMenu();
     trayStatusAction = new QAction(trayMenu);
     trayStatusAction->setEnabled(false);
     trayMenu->addAction(trayStatusAction);
@@ -374,8 +366,8 @@ void MainWindow::refreshTrayMenu() {
     if (trayMenu == nullptr) return;
     const auto &settings = Configs::dataManager->settingsRepo;
     const auto running = runningSnapshot();
+    trayStatusAction->setProperty(trayConnectedProperty, running != nullptr);
     trayStatusAction->setText(running != nullptr ? tr("Connected · %1").arg(trayProfileName(running)) : tr("Not connected"));
-    if (trayStatusAction->icon().isNull() == (running != nullptr)) trayStatusAction->setIcon(running != nullptr ? trayConnectedIcon() : QIcon());
 
     auto profile = running;
     if (profile == nullptr) {

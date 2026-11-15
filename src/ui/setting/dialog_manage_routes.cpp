@@ -281,31 +281,32 @@ void DialogManageRoutes::reloadProfileItems() {
         return;
     }
 
-    QSignalBlocker blocker = QSignalBlocker(ui->route_prof); // currentIndexChanged during clear() crashes us
-    ui->route_prof->clear();
-
+    if (!chainList.contains(currentRoute)) currentRoute = chainList[0];
+    // Or itemChanged would see the half-built list.
+    const QSignalBlocker blocker(ui->route_profiles);
     ui->route_profiles->clear();
-    bool selectedChainGone = true;
-    int i=0;
     for (const auto &item: chainList) {
-        ui->route_prof->addItem(item->name);
+        QListWidgetItem *row = nullptr;
         if (const auto owner = Configs::dataManager->groupsRepo->GetGroup(item->source_gid); owner != nullptr && owner->import_sub_route) {
-            auto *row = new QListWidgetItem(tr("%1 (updated by subscription \"%2\")").arg(item->name, owner->name), ui->route_profiles);
+            row = new QListWidgetItem(tr("%1 (updated by subscription \"%2\")").arg(item->name, owner->name), ui->route_profiles);
             row->setToolTip(tr("Each update of \"%1\" overwrites this profile's rules.").arg(owner->name));
         } else {
-            ui->route_profiles->addItem(item->name);
+            row = new QListWidgetItem(item->name, ui->route_profiles);
         }
-        if (item == currentRoute) {
-            ui->route_prof->setCurrentIndex(i);
-            selectedChainGone=false;
-        }
-        i++;
+        row->setFlags(row->flags() | Qt::ItemIsUserCheckable);
+        row->setCheckState(item == currentRoute ? Qt::Checked : Qt::Unchecked);
     }
-    if (selectedChainGone) {
-        currentRoute=chainList[0];
-        ui->route_prof->setCurrentIndex(0);
+}
+
+// The checked profile is the one in use, so checking another moves the mark and unchecking it puts it back.
+void DialogManageRoutes::syncRouteChecks(QListWidgetItem *changed) {
+    const int row = ui->route_profiles->row(changed);
+    if (row < 0 || row >= chainList.size()) return;
+    if (changed->checkState() == Qt::Checked) currentRoute = chainList[row];
+    const QSignalBlocker blocker(ui->route_profiles);
+    for (int i = 0; i < ui->route_profiles->count() && i < chainList.size(); ++i) {
+        ui->route_profiles->item(i)->setCheckState(chainList[i] == currentRoute ? Qt::Checked : Qt::Unchecked);
     }
-    blocker.unblock();
 }
 
 void DialogManageRoutes::show_predefined_dns_editor() {
@@ -578,7 +579,7 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
         on_edit_route_clicked();
     });
 
-    connect(ui->route_prof, &QComboBox::currentIndexChanged, this, &DialogManageRoutes::updateCurrentRouteProfile);
+    connect(ui->route_profiles, &QListWidget::itemChanged, this, &DialogManageRoutes::syncRouteChecks);
 
     deleteShortcut = new QShortcut(QKeySequence(Qt::Key_Delete), this);
 
@@ -701,8 +702,17 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     form->markAll();
 
     ADD_ASTERISK(this)
-    // Frozen .ui geometry clips this dialog once a translation outgrows it.
-    resize(sizeHint().expandedTo(size()).boundedTo(screen()->availableGeometry().size()));
+    // The size it was last closed at, which the layout still grows to its minimum; else the .ui geometry, grown once a translation outgrows it.
+    const QStringList savedSize = snapshot_.routing_settings_size.split('x');
+    QSize initialSize = savedSize.size() == 2 ? QSize(savedSize[0].toInt(), savedSize[1].toInt()) : QSize();
+    if (initialSize.isEmpty()) initialSize = sizeHint().expandedTo(size());
+    resize(initialSize.boundedTo(screen()->availableGeometry().size()));
+    connect(this, &QDialog::finished, this, [this] {
+        if (windowState() & (Qt::WindowMaximized | Qt::WindowFullScreen)) return;
+        const auto &settings = Configs::dataManager->settingsRepo;
+        settings->routing_settings_size = QStringLiteral("%1x%2").arg(width()).arg(height());
+        settings->Save();
+    });
 }
 
 void DialogManageRoutes::generate_warp_config() {
@@ -780,10 +790,6 @@ void DialogManageRoutes::generate_amnezia_packets() {
             dialog->form->refresh();
         });
     });
-}
-
-void DialogManageRoutes::updateCurrentRouteProfile(int idx) {
-    currentRoute = chainList[idx];
 }
 
 DialogManageRoutes::~DialogManageRoutes() {
