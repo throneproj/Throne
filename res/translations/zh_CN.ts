@@ -11814,6 +11814,34 @@ Error: %1</source>
         <source>Server without WARP</source>
         <translation>不经 WARP 的服务器</translation>
     </message>
+    <message>
+        <source>[VPN] %1 rejected its sign-in; it stays down until the profile restarts.</source>
+        <translation>[VPN] %1 拒绝了登录；在配置档重启之前它将保持断开。</translation>
+    </message>
+    <message>
+        <source>The server refused the credentials saved with this profile. Enter the ones to use for this session; the profile itself is left unchanged. Reconnecting restarts the running profile and drops its open connections.</source>
+        <translation>服务器拒绝了随这个配置档保存的凭据。请输入用于本次会话的凭据；该配置档本身将保持不变。重连会重启正在运行的配置档，并断开其所有已打开的连接。</translation>
+    </message>
+    <message>
+        <source>VPN sign-in refused</source>
+        <translation>VPN 登录被拒绝</translation>
+    </message>
+    <message>
+        <source>%1 refused its sign-in, so traffic routed through it fails. Restarting the profile signs it in again with a new one-time code, but drops every open connection.
+
+Error: %2</source>
+        <translation>%1 拒绝了登录，因此经由它路由的流量会失败。重启配置档会用新的一次性代码重新登录，但会断开所有已打开的连接。
+
+错误：%2</translation>
+    </message>
+    <message>
+        <source>Restart profile</source>
+        <translation>重启配置档</translation>
+    </message>
+    <message>
+        <source>Not now</source>
+        <translation>暂不</translation>
+    </message>
 </context>
 <context>
     <name>MuxSettingsWidget</name>

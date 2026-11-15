@@ -41,6 +41,9 @@ namespace Engine {
         void vpnCredentialsRejected(int profileId, const VpnAuthChallenge &challenge,
                                     const std::function<void(const QString &username, const QString &password)> &retryWith) override;
 
+        void offerVpnSignInRestart(const QString &endpointName, const QString &error,
+                                   std::function<void(bool restart)> answered) override;
+
         void vpnChallengesCleared() override;
 
         void settingsNeedTunRestart() override;

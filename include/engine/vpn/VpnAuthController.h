@@ -80,7 +80,9 @@ namespace Engine {
         void submitAutoAnswer(const VpnAuthChallenge &challenge, const QString &username, const QString &password,
                               const QString &secret, const QMap<QString, QString> &formValues);
 
-        bool autoRestartForAuth(const QString &endpointTag, int profileID);
+        void autoRestartForAuth(const QString &endpointTag, int profileID);
+
+        void offerRestartForAuth(const QString &endpointTag, int profileID, const QString &error);
 
         void showChallenge(const VpnAuthChallenge &challenge);
 
@@ -108,6 +110,9 @@ namespace Engine {
         QSet<QString> m_vpnChallengeAnswering;
         QHash<int, int> m_vpnAutoRestarts;
         qint64 m_vpnAutoRestartAt = 0;
+        // This run already restarted for a sign-in, or asked whether to; one question per run.
+        bool m_vpnRestartOffered = false;
+        quint64 m_vpnRunSerial = 0;
         // Survives the restart the recovery itself triggers, so a rejected retry cannot loop.
         QHash<int, int> m_vpnAuthPrompted;
         int m_vpnAuthRestartID = -1;

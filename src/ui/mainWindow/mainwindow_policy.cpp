@@ -371,8 +371,34 @@ void MainWindow::vpnCredentialsRejected(int, const VpnAuthChallenge &challenge,
     ActivateWindow(dialog);
 }
 
+void MainWindow::offerVpnSignInRestart(const QString &endpointName, const QString &error,
+                                       std::function<void(bool restart)> answered) {
+    if (policyOpenBox(m_policyBoxes, __func__) != nullptr) {
+        answered(false);
+        return;
+    }
+    auto *msg = new QMessageBox(
+        QMessageBox::Warning,
+        tr("VPN sign-in refused"),
+        tr("%1 refused its sign-in, so traffic routed through it fails. Restarting the profile signs it in again with a new "
+           "one-time code, but drops every open connection.\n\nError: %2").arg(endpointName, error),
+        QMessageBox::NoButton,
+        this
+    );
+    auto restart = msg->addButton(tr("Restart profile"), QMessageBox::AcceptRole);
+    auto later = msg->addButton(tr("Not now"), QMessageBox::RejectRole);
+
+    // Not a default restart: the box can pop up while the user is typing elsewhere.
+    msg->setDefaultButton(later);
+    msg->setEscapeButton(later);
+
+    policyAsk(m_policyBoxes, __func__, msg, restart, std::move(answered));
+}
+
 void MainWindow::vpnChallengesCleared() {
     if (m_vpnAuthDialog != nullptr) m_vpnAuthDialog->close();
+    // The question belongs to the run that just ended.
+    if (auto *box = policyOpenBox(m_policyBoxes, "offerVpnSignInRestart")) box->close();
 }
 
 void MainWindow::settingsNeedTunRestart() {

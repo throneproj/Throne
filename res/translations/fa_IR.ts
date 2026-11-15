@@ -6157,6 +6157,34 @@ Error: %1</source>
         <source>Server without WARP</source>
         <translation>سرور بدون WARP</translation>
     </message>
+    <message>
+        <source>[VPN] %1 rejected its sign-in; it stays down until the profile restarts.</source>
+        <translation>[VPN] %1 ورود را رد کرد؛ تا راه‌اندازی مجدد نمایه قطع می‌ماند.</translation>
+    </message>
+    <message>
+        <source>The server refused the credentials saved with this profile. Enter the ones to use for this session; the profile itself is left unchanged. Reconnecting restarts the running profile and drops its open connections.</source>
+        <translation>سرور اعتبارنامه‌های ذخیره‌شده در این نمایه را رد کرد. اعتبارنامه‌های این نشست را وارد کنید؛ خود نمایه تغییری نمی‌کند. اتصال مجدد، نمایه در حال اجرا را دوباره راه‌اندازی می‌کند و اتصال‌های باز آن را قطع می‌کند.</translation>
+    </message>
+    <message>
+        <source>VPN sign-in refused</source>
+        <translation>ورود VPN رد شد</translation>
+    </message>
+    <message>
+        <source>%1 refused its sign-in, so traffic routed through it fails. Restarting the profile signs it in again with a new one-time code, but drops every open connection.
+
+Error: %2</source>
+        <translation>%1 ورود را رد کرد، بنابراین ترافیکی که از آن مسیریابی می‌شود از کار می‌افتد. راه‌اندازی مجدد نمایه با یک کد یکبارمصرف جدید دوباره وارد می‌شود، اما همهٔ اتصال‌های باز را قطع می‌کند.
+
+خطا: %2</translation>
+    </message>
+    <message>
+        <source>Restart profile</source>
+        <translation>راه‌اندازی مجدد نمایه</translation>
+    </message>
+    <message>
+        <source>Not now</source>
+        <translation>فعلاً نه</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableFilterHeader</name>

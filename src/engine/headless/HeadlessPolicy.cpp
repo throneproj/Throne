@@ -135,6 +135,12 @@ namespace Engine {
                         .arg(Stats::VpnEndpointDisplayName(challenge.endpointTag), QString::number(profileId)));
     }
 
+    void HeadlessPolicy::offerVpnSignInRestart(const QString &endpointName, const QString &,
+                                               std::function<void(bool restart)> answered) {
+        MW_show_log(QStringLiteral("[VPN] %1: restart the profile to sign it in again (status: vpn_auth_failed).").arg(endpointName));
+        answered(false);
+    }
+
     void HeadlessPolicy::vpnChallengesCleared() {}
 
     void HeadlessPolicy::settingsNeedTunRestart() {

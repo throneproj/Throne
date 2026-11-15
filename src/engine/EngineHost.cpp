@@ -116,6 +116,11 @@ namespace Engine {
             target(__func__)->vpnCredentialsRejected(profileId, challenge, retryWith);
         }
 
+        void offerVpnSignInRestart(const QString &endpointName, const QString &error,
+                                   std::function<void(bool restart)> answered) override {
+            target(__func__)->offerVpnSignInRestart(endpointName, error, std::move(answered));
+        }
+
         void vpnChallengesCleared() override {
             target(__func__)->vpnChallengesCleared();
         }

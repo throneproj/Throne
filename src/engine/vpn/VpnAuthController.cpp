@@ -204,6 +204,8 @@ namespace Engine {
         }
         m_cancelTimers.clear();
         m_authFailed = false;
+        m_vpnRestartOffered = false;
+        ++m_vpnRunSerial;
         emit endpointStatusChanged({}, {}, false);
     }
 
@@ -417,30 +419,39 @@ namespace Engine {
         });
     }
 
-    bool VpnAuthController::autoRestartForAuth(const QString &endpointTag, int profileID) {
-        const auto ent = Configs::dataManager->profilesRepo->GetProfile(profileID);
+    void VpnAuthController::autoRestartForAuth(const QString &endpointTag, int profileID) {
         const auto running = m_control->runningSnapshot();
-        if (ent == nullptr || running == nullptr) return false;
-
-        int otpID = -1;
-        if (const auto *ovpn = ent->OpenVPN(); ovpn != nullptr) otpID = ovpn->otp_profile_id;
-        else if (const auto *ocon = ent->OpenConnect(); ocon != nullptr) {
-            if (ocon->password_authentication_disabled) return false;
-            otpID = ocon->otp_profile_id;
-        }
-        if (otpID < 0) return false;
-        if (m_vpnAutoRestarts.value(profileID) >= kMaxAutoRestarts) return false;
+        if (running == nullptr) return;
 
         const auto now = QDateTime::currentSecsSinceEpoch();
-        if (now - m_vpnAutoRestartAt < kAutoRestartCooldownSecs) return true;
+        if (now - m_vpnAutoRestartAt < kAutoRestartCooldownSecs) return;
 
         m_vpnAutoRestarts[profileID] = m_vpnAutoRestarts.value(profileID) + 1;
         m_vpnAutoRestartAt = now;
+        m_vpnRestartOffered = true;
 
         MW_show_log(MainWindowTr::tr("[VPN] %1 rejected the saved credentials; restarting the profile with a new one-time code.")
                         .arg(Stats::VpnEndpointDisplayName(endpointTag)));
         restartForAuth(running->id, false);
-        return true;
+    }
+
+    void VpnAuthController::offerRestartForAuth(const QString &endpointTag, int profileID, const QString &error) {
+        const auto running = m_control->runningSnapshot();
+        if (running == nullptr) return;
+        m_vpnRestartOffered = true;
+
+        const auto name = Stats::VpnEndpointDisplayName(endpointTag);
+        MW_show_log(MainWindowTr::tr("[VPN] %1 rejected its sign-in; it stays down until the profile restarts.").arg(name));
+
+        const int runningID = running->id;
+        const auto run = m_vpnRunSerial;
+        QPointer<VpnAuthController> self(this);
+        policy()->offerVpnSignInRestart(name, error, [self, run, runningID, profileID](bool restart) {
+            if (!restart || self == nullptr || self->m_vpnRunSerial != run) return;
+            if (const auto current = self->m_control->runningSnapshot(); current == nullptr || current->id != runningID) return;
+            self->m_vpnAutoRestarts[profileID] = self->m_vpnAutoRestarts.value(profileID) + 1;
+            self->restartForAuth(runningID, true);
+        });
     }
 
     void VpnAuthController::showChallenge(const VpnAuthChallenge &challenge) {
@@ -464,28 +475,39 @@ namespace Engine {
         const auto key = endpointTag + QChar(0x1F) + "auth-failed";
         if (m_vpnChallengeSeen.contains(key)) return;
 
+        const auto ent = Configs::dataManager->profilesRepo->GetProfile(profileID);
+        if (ent == nullptr) return;
+        const auto *ovpn = ent->OpenVPN();
+        const auto *ocon = ent->OpenConnect();
+        // The core reports a refused password-less login the same way, and neither a restart nor credentials can fix it.
+        if ((ovpn == nullptr && ocon == nullptr) || (ocon != nullptr && ocon->password_authentication_disabled)) {
+            m_vpnChallengeSeen.insert(key);
+            return;
+        }
+
+        // Only the exit's failure has already cut the proxy off; a restart for any other endpoint drops working connections.
+        const bool isExit = endpointTag == QStringLiteral("proxy");
         // The core reads credentials once, at build time; rebuilding is the only way to hand it a new code.
-        if (autoRestartForAuth(endpointTag, profileID)) return;
+        const int otpID = ovpn != nullptr ? ovpn->otp_profile_id : ocon->otp_profile_id;
+        if (otpID >= 0 && m_vpnAutoRestarts.value(profileID) < kMaxAutoRestarts) {
+            if (isExit) autoRestartForAuth(endpointTag, profileID);
+            else if (!m_vpnRestartOffered) offerRestartForAuth(endpointTag, profileID, error);
+            return;
+        }
 
         m_vpnChallengeSeen.insert(key);
         if (m_vpnAuthPrompted.value(profileID) >= kMaxCredentialPrompts) return;
 
-        const auto ent = Configs::dataManager->profilesRepo->GetProfile(profileID);
-        if (ent == nullptr) return;
-
         VpnAuthChallenge challenge;
         challenge.endpointTag = endpointTag;
         challenge.kind = "credentials";
-        if (const auto *ovpn = ent->OpenVPN(); ovpn != nullptr) challenge.username = ovpn->username;
-        else if (const auto *ocon = ent->OpenConnect(); ocon != nullptr) {
-            // The core reports a refused password-less login the same way, and credentials cannot fix it.
-            if (ocon->password_authentication_disabled) return;
-            challenge.username = ocon->username;
-        }
-        else return;
+        challenge.username = ovpn != nullptr ? ovpn->username : ocon->username;
         challenge.error = error;
-        challenge.message = MainWindowTr::tr("The server refused the credentials saved with this profile. Enter the ones "
-                                             "to use for this session; the profile itself is left unchanged.");
+        challenge.message = isExit ? MainWindowTr::tr("The server refused the credentials saved with this profile. Enter the ones "
+                                                      "to use for this session; the profile itself is left unchanged.")
+                                   : MainWindowTr::tr("The server refused the credentials saved with this profile. Enter the ones "
+                                                      "to use for this session; the profile itself is left unchanged. Reconnecting "
+                                                      "restarts the running profile and drops its open connections.");
 
         m_vpnAuthPrompted[profileID] = m_vpnAuthPrompted.value(profileID) + 1;
         MW_show_log(MainWindowTr::tr("[VPN] %1 rejected the saved credentials.").arg(Stats::VpnEndpointDisplayName(endpointTag)));

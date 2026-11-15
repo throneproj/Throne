@@ -84,6 +84,11 @@ namespace Engine {
         virtual void vpnCredentialsRejected(int profileId, const VpnAuthChallenge &challenge,
                                             const std::function<void(const QString &username, const QString &password)> &retryWith) = 0;
 
+        // An endpoint other than the exit refused its sign-in; whether to restart the profile, dropping its open connections,
+        // so the endpoint signs in again with a new one-time code.
+        virtual void offerVpnSignInRestart(const QString &endpointName, const QString &error,
+                                           std::function<void(bool restart)> answered) = 0;
+
         // The run the pending prompts belong to has ended.
         virtual void vpnChallengesCleared() = 0;
 

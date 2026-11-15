@@ -11845,6 +11845,34 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
         <source>Server without WARP</source>
         <translation>Сервер без WARP</translation>
     </message>
+    <message>
+        <source>[VPN] %1 rejected its sign-in; it stays down until the profile restarts.</source>
+        <translation>[VPN] %1: вход отклонен; подключение не работает до перезапуска профиля.</translation>
+    </message>
+    <message>
+        <source>The server refused the credentials saved with this profile. Enter the ones to use for this session; the profile itself is left unchanged. Reconnecting restarts the running profile and drops its open connections.</source>
+        <translation>Сервер отклонил учетные данные, сохраненные в этом профиле. Введите данные для этого сеанса; сам профиль не изменится. Переподключение перезапустит запущенный профиль и разорвет его открытые соединения.</translation>
+    </message>
+    <message>
+        <source>VPN sign-in refused</source>
+        <translation>Вход в VPN отклонен</translation>
+    </message>
+    <message>
+        <source>%1 refused its sign-in, so traffic routed through it fails. Restarting the profile signs it in again with a new one-time code, but drops every open connection.
+
+Error: %2</source>
+        <translation>%1 отклонил вход, поэтому трафик, направленный через него, не проходит. Перезапуск профиля выполнит вход заново с новым одноразовым кодом, но разорвет все открытые соединения.
+
+Ошибка: %2</translation>
+    </message>
+    <message>
+        <source>Restart profile</source>
+        <translation>Перезапустить профиль</translation>
+    </message>
+    <message>
+        <source>Not now</source>
+        <translation>Не сейчас</translation>
+    </message>
 </context>
 <context>
     <name>OtpItem</name>
