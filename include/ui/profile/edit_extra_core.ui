@@ -120,7 +120,7 @@
          <item row="1" column="0">
           <widget class="QLabel" name="label_4">
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;args to pass to the executable. You can insert a single %s and it will be replaced with the path to a file containing the config entered below.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>Arguments for the executable; %s becomes the path of the config below.</string>
            </property>
            <property name="text">
             <string>Args</string>
@@ -140,7 +140,7 @@
          <item row="2" column="0">
           <widget class="QLabel" name="label_5">
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;contents of the config file that will be passed to the extra core process if %s is specified in the args&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>Config file contents, passed via %s in the arguments.</string>
            </property>
            <property name="text">
             <string>Config</string>

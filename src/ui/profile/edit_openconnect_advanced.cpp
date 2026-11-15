@@ -184,7 +184,7 @@ void EditOpenConnectAdvanced::editTnccCertificate() {
     auto item = ui->tncc_certificates_table->item(row, 0);
     if (item == nullptr) return;
     bool ok;
-    auto txt = QInputDialog::getMultiLineText(this, tr("TNCC Machine Certificate"), "",
+    auto txt = QInputDialog::getMultiLineText(this, tr("TNCC machine certificate"), "",
                                               item->data(kPemRole).toString(), &ok);
     if (!ok) return;
     auto lines = txt.split("\n", Qt::SkipEmptyParts);

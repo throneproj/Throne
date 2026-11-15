@@ -193,7 +193,7 @@ namespace {
             if (part == QLatin1String("profiles")) label = DialogBasicSettings::tr("Profiles");
             else if (part == QLatin1String("routes")) label = DialogBasicSettings::tr("Routing profiles");
             else if (part == QLatin1String("settings")) label = DialogBasicSettings::tr("Settings");
-            else if (part == QLatin1String("otp")) label = DialogBasicSettings::tr("OTP profiles");
+            else if (part == QLatin1String("otp")) label = DialogBasicSettings::tr("OTP entries");
             else if (part == QLatin1String("ip_lists")) label = DialogBasicSettings::tr("IP lists and scans");
             else if (part == QLatin1String("icons")) label = DialogBasicSettings::tr("Custom icons");
             if (!label.isEmpty() && !shown.contains(label)) shown << label;
@@ -832,7 +832,7 @@ void DialogBasicSettings::on_backup_create_clicked() {
     const Configs::BackupParts parts = basicSettingsCheckedParts(ui);
 
     if (!parts.any()) {
-        QMessageBox::warning(this, tr("Create Backup"),
+        QMessageBox::warning(this, tr("Create backup"),
             tr("Select at least one part to include in the backup."));
         return;
     }
@@ -841,14 +841,14 @@ void DialogBasicSettings::on_backup_create_clicked() {
 
     QString filePath = NativeFileDialog::getSaveFileName(
         this,
-        tr("Create Backup"),
+        tr("Create backup"),
         QDir::homePath() + "/Throne-backup.thrbackup",
         tr("Throne Backup (*.thrbackup)")
     );
     if (filePath.isEmpty()) return;
 
     if (const auto error = Engine::BackupArchive::Build(parts, filePath); !error.isEmpty()) {
-        QMessageBox::critical(this, tr("Backup Failed"), basicSettingsBackupError(error));
+        QMessageBox::critical(this, tr("Backup failed"), basicSettingsBackupError(error));
         return;
     }
 
@@ -856,11 +856,11 @@ void DialogBasicSettings::on_backup_create_clicked() {
     if (parts.profiles) included << tr("Profiles");
     if (parts.routes) included << tr("Routing profiles");
     if (parts.settings) included << tr("Settings");
-    if (parts.otp) included << tr("OTP profiles");
+    if (parts.otp) included << tr("OTP entries");
     if (parts.ipLists) included << tr("IP lists and scans");
     if (parts.icons) included << tr("Custom icons");
 
-    QMessageBox::information(this, tr("Backup Created"),
+    QMessageBox::information(this, tr("Backup created"),
         tr("Backup created successfully:\n%1\n\nIncluded: %2")
             .arg(filePath, included.join(", ")));
 }
@@ -869,7 +869,7 @@ void DialogBasicSettings::on_backup_restore_clicked() {
     if (webDavBusy) return;
     QString filePath = NativeFileDialog::getOpenFileName(
         this,
-        tr("Restore Backup"),
+        tr("Restore backup"),
         QDir::homePath(),
         tr("Throne Backup (*.thrbackup)")
     );
@@ -880,7 +880,7 @@ void DialogBasicSettings::on_backup_restore_clicked() {
 void DialogBasicSettings::restoreBackupFile(const QString &filePath, const QString &fallbackDeviceName) {
     Engine::BackupArchive::Info info;
     if (const auto error = Engine::BackupArchive::Inspect(filePath, &info); !error.isEmpty()) {
-        QMessageBox::critical(this, tr("Restore Failed"), basicSettingsBackupError(error));
+        QMessageBox::critical(this, tr("Restore failed"), basicSettingsBackupError(error));
         return;
     }
     const Configs::BackupParts avail = info.available;
@@ -906,7 +906,7 @@ void DialogBasicSettings::restoreBackupFile(const QString &filePath, const QStri
     auto* cbProfiles = new QCheckBox(tr("Profiles (groups and proxies)"), &dlg);
     auto* cbRoutes = new QCheckBox(tr("Routing profiles"), &dlg);
     auto* cbSettings = new QCheckBox(tr("Settings"), &dlg);
-    auto* cbOtp = new QCheckBox(tr("OTP profiles"), &dlg);
+    auto* cbOtp = new QCheckBox(tr("OTP entries"), &dlg);
     auto* cbIpLists = new QCheckBox(tr("IP lists and scans"), &dlg);
     auto* cbIcons = new QCheckBox(tr("Custom icons"), &dlg);
     for (auto* cb : {cbProfiles, cbRoutes, cbSettings, cbOtp, cbIpLists, cbIcons}) cb->setChecked(true);
@@ -952,7 +952,7 @@ void DialogBasicSettings::restoreBackupFile(const QString &filePath, const QStri
     chosen.icons = avail.icons && cbIcons->isChecked();
 
     if (!chosen.any()) {
-        QMessageBox::warning(this, tr("Restore Backup"),
+        QMessageBox::warning(this, tr("Restore backup"),
             tr("Select at least one part to restore."));
         return;
     }
@@ -960,7 +960,7 @@ void DialogBasicSettings::restoreBackupFile(const QString &filePath, const QStri
     // Apply keeps the device-local settings; the window restores every other one, only the API also keeps this host's keys.
     Engine::BackupArchive::ApplyResult result;
     if (const auto error = Engine::BackupArchive::Apply(filePath, chosen, {}, &result); !error.isEmpty()) {
-        QMessageBox::critical(this, tr("Restore Failed"), basicSettingsBackupError(error));
+        QMessageBox::critical(this, tr("Restore failed"), basicSettingsBackupError(error));
         return;
     }
     const int skippedRules = result.skippedRules;
@@ -968,7 +968,7 @@ void DialogBasicSettings::restoreBackupFile(const QString &filePath, const QStri
     QString done = tr("Backup restored successfully. Throne will now restart for the changes to take effect.");
     if (skippedRules > 0)
         done += "\n\n" + tr("Skipped %n routing rule(s) that use conditions this version of Throne does not support.", nullptr, skippedRules);
-    QMessageBox::information(this, tr("Restore Complete"), done);
+    QMessageBox::information(this, tr("Restore complete"), done);
     MW_dialog_message(MwMessage::RestartProgram, {});
     QDialog::reject();
 }
@@ -1273,7 +1273,7 @@ void DialogBasicSettings::deleteWebDavBackup(const std::shared_ptr<WebDavChooser
     if (row < 0 || row >= chooser->entries.size()) return;
     const auto entry = chooser->entries.at(row);
 
-    auto *confirm = new QMessageBox(QMessageBox::Question, tr("Delete Backup"),
+    auto *confirm = new QMessageBox(QMessageBox::Question, tr("Delete backup"),
                                     tr("Delete this backup from the WebDAV server? This cannot be undone.\n\n%1").arg(basicSettingsRemoteText(entry.file)),
                                     QMessageBox::Yes | QMessageBox::No, chooser->dialog.data());
     confirm->setTextFormat(Qt::PlainText);
@@ -1294,7 +1294,7 @@ void DialogBasicSettings::deleteWebDavBackup(const std::shared_ptr<WebDavChooser
                 self->webDavBusy = false;
                 if (!chooser->dialog) return;
                 if (!error.isEmpty()) {
-                    basicSettingsWebDavMessage(chooser->dialog, QMessageBox::Critical, tr("Delete Backup"),
+                    basicSettingsWebDavMessage(chooser->dialog, QMessageBox::Critical, tr("Delete backup"),
                                                tr("Could not delete the backup:\n%1").arg(error));
                     return;
                 }

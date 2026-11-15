@@ -71,7 +71,7 @@ namespace {
 DialogRuleTester::DialogRuleTester(Engine::ConnectionManager *connection, int preferredProfileId, QWidget *parent)
     : QDialog(parent), m_connection(connection), m_preferredProfileId(preferredProfileId)
 {
-    setWindowTitle(tr("Route lookup"));
+    setWindowTitle(tr("Route Lookup"));
 
     auto *layout = new QVBoxLayout(this);
 
@@ -108,7 +108,7 @@ DialogRuleTester::DialogRuleTester(Engine::ConnectionManager *connection, int pr
     completer->setFilterMode(Qt::MatchContains);
     completer->popup()->setTextElideMode(Qt::ElideMiddle);
     m_process->setCompleter(completer);
-    auto *pick = new QPushButton(tr("Pick…"), this);
+    auto *pick = new QPushButton(tr("Pick"), this);
     pick->setAutoDefault(false);
     pick->setToolTip(tr("Choose from running programs and the ones seen connecting, or browse for a file."));
     connect(pick, &QPushButton::clicked, this, &DialogRuleTester::pickProcess);
@@ -503,7 +503,7 @@ QString DialogRuleTester::originLabel(const Configs::RouteRuleOrigin &origin, co
         case Kind::XrayBridge:
             return tr("Xray bridge (Throne)");
         case Kind::ExtraCore:
-            return tr("Extra core goes direct (Throne)");
+            return tr("Extra Core goes direct (Throne)");
         case Kind::SystemDns:
             return tr("System DNS (Throne)");
         case Kind::Sniff:

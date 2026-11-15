@@ -337,7 +337,7 @@ namespace Configs {
             const auto &settings = *dataManager->settingsRepo;
             auto routeChain = dataManager->routesRepo->GetRouteProfile(ctx.routeId);
             if (routeChain == nullptr) {
-                ctx.error = "Routing profile does not exist, try resetting the route profile in Routing Settings";
+                ctx.error = "Routing profile does not exist, try resetting the routing profile in Routing Settings";
                 return;
             }
             routeChain = std::make_shared<RouteProfile>(*routeChain);

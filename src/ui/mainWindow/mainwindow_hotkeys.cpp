@@ -49,12 +49,12 @@ QStringList MainWindow::RegisterHotkey(bool unregister) {
     const auto &settings = Configs::dataManager->settingsRepo;
     const QList<GlobalHotkeys::Action> actions{
         {"show-main-window", tr("Trigger main window"), QKeySequence(settings->hotkey_mainwindow)},
-        {"show-groups", tr("Show groups"), QKeySequence(settings->hotkey_group)},
-        {"show-routes", tr("Show routes"), QKeySequence(settings->hotkey_route)},
+        {"show-groups", tr("Manage groups"), QKeySequence(settings->hotkey_group)},
+        {"show-routes", tr("Open Routing Settings"), QKeySequence(settings->hotkey_route)},
         {"proxy-mode-menu", tr("Proxy mode"), QKeySequence(settings->hotkey_system_proxy_menu)},
-        {"toggle-system-proxy", tr("Toggle System Proxy"), QKeySequence(settings->hotkey_toggle_system_proxy)},
+        {"toggle-system-proxy", tr("Toggle system proxy"), QKeySequence(settings->hotkey_toggle_system_proxy)},
         {"toggle-connection", tr("Start/Stop Profile"), QKeySequence(settings->hotkey_toggle_connection)},
-        {"toggle-tun", tr("Toggle Tun Mode"), QKeySequence(settings->hotkey_toggle_tun)},
+        {"toggle-tun", tr("Toggle Tun mode"), QKeySequence(settings->hotkey_toggle_tun)},
     };
     const auto failures = globalHotkeys->setActions(actions);
 

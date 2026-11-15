@@ -27,10 +27,10 @@ EditAutoSelector::EditAutoSelector(QWidget *parent) : QWidget(parent), ui(new Ui
     ui->setupUi(this);
 
     ui->balance_mode->addItem(tr("Rotate every %1 s").arg(Configs::autoSelector::kBalanceIntervalSec), "rotate");
-    ui->balance_mode->setItemData(0, tr("New connections move to the next ready profile on each rotation; open ones stay put."),
+    ui->balance_mode->setItemData(0, tr("New connections switch to the next ready profile every rotation."),
                                   Qt::ToolTipRole);
     ui->balance_mode->addItem(tr("Per connection"), "connection");
-    ui->balance_mode->setItemData(1, tr("Each new connection may take a different profile, so your exit IP can change mid-session."),
+    ui->balance_mode->setItemData(1, tr("Each new connection may use a different profile and exit IP."),
                                   Qt::ToolTipRole);
 
     ui->strategy->addItem(tr("Fastest"), "latency");
@@ -347,7 +347,7 @@ void EditAutoSelector::appendTierRow(const Configs::autoSelector::Tier &tier) {
     // Kept selectable so saving never turns a tier for an unlisted group into "any group".
     if (tier.gid >= 0 && group->findData(tier.gid) < 0) {
         const auto stored = Configs::dataManager->groupsRepo->GetGroup(tier.gid);
-        group->addItem(stored != nullptr ? stored->name : tr("missing group"), tier.gid);
+        group->addItem(stored != nullptr ? stored->name : tr("Missing group"), tier.gid);
     }
     group->setCurrentIndex(std::max(0, group->findData(tier.gid)));
     ui->tiers->setCellWidget(row, 0, group);

@@ -64,7 +64,7 @@ namespace {
 namespace {
     bool policyOfferElevatedRestart(QWidget *parent, const QString &text) {
         QMessageBox box(QMessageBox::Warning, software_name, text, QMessageBox::NoButton, parent);
-        auto *restart = box.addButton(MainWindow::tr("Restart as Administrator"), QMessageBox::AcceptRole);
+        auto *restart = box.addButton(MainWindow::tr("Restart as administrator"), QMessageBox::AcceptRole);
         auto *cancel = box.addButton(QMessageBox::Cancel);
         box.setDefaultButton(restart);
         box.setEscapeButton(cancel);
@@ -104,7 +104,7 @@ void MainWindow::geoAssetDownloadFinished(const QString &error) {
         policyNotice(m_policyBoxes, __func__, this, QMessageBox::Warning, tr("Geo asset download failed"), error);
     } else {
         policyNotice(m_policyBoxes, __func__, this, QMessageBox::Information, tr("Geo assets installed"),
-            tr("Geo data files were downloaded successfully.\n\n"
+            tr("Geo assets were downloaded successfully.\n\n"
                "Please try again."));
     }
 }
@@ -137,10 +137,10 @@ void MainWindow::killSwitchProblem() {
     const bool restartElevated = false;
 #endif
     if (!identity) {
-        fix = box->addButton(!privilege ? tr("Retry") : restartElevated ? tr("Restart as Administrator") : tr("Grant Privileges"),
+        fix = box->addButton(!privilege ? tr("Retry") : restartElevated ? tr("Restart as administrator") : tr("Grant privileges"),
                              QMessageBox::AcceptRole);
     }
-    auto *disable = box->addButton(tr("Disable Kill Switch"), QMessageBox::DestructiveRole);
+    auto *disable = box->addButton(tr("Disable kill switch"), QMessageBox::DestructiveRole);
     auto *cancel = box->addButton(QMessageBox::Cancel);
     box->setDefaultButton(fix != nullptr ? fix : cancel);
     box->setEscapeButton(cancel);
@@ -186,8 +186,8 @@ void MainWindow::strictRouteUnavailable(const QString &error) {
     policyNotice(m_policyBoxes, __func__, this, QMessageBox::Warning,
         tr("Strict routing unavailable"),
         tr("Windows could not enable strict routing. Open Tun Settings, "
-           "disable Strict Route, and start the profile again.\n\n"
-           "Disabling Strict Route may cause DNS leaks.\n\nError: %1").arg(error));
+           "disable Strict route, and start the profile again.\n\n"
+           "Disabling Strict route may cause DNS leaks.\n\nError: %1").arg(error));
 }
 
 void MainWindow::offerCoreReset(const QString &error, std::function<void(bool reset)> answered) {
@@ -224,7 +224,7 @@ void MainWindow::offerLeftoverTunAdapterRetry(const QString &error, std::functio
         QMessageBox::NoButton,
         this
     );
-    auto startAgain = msg->addButton(tr("Start Again"), QMessageBox::AcceptRole);
+    auto startAgain = msg->addButton(tr("Start again"), QMessageBox::AcceptRole);
     auto cancel = msg->addButton(tr("Cancel"), QMessageBox::RejectRole);
 
     msg->setDefaultButton(startAgain);
@@ -277,7 +277,7 @@ bool MainWindow::requestCorePrivileges() {
     if (Sys::CoreElevation::GrantIneffective()) {
         if (policyOfferElevatedRestart(GetMessageBoxParent(),
                                        tr("The core did not get administrator rights, although they were granted. The log shows why.\n\n"
-                                          "Restart Throne as administrator to use Tun Mode and the kill switch."))) {
+                                          "Restart Throne as administrator to use Tun mode and the kill switch."))) {
             this->exit_reason = ExitReason::RestartWithTun;
             on_menu_exit_triggered();
         }
@@ -285,10 +285,10 @@ bool MainWindow::requestCorePrivileges() {
     }
     if (Sys::CoreElevation::CanGrant()) {
         QMessageBox box(QMessageBox::Warning, software_name,
-                        tr("Tun Mode and the kill switch need the core to run with administrator rights.\n\n"
+                        tr("Tun mode and the kill switch need the core to run with administrator rights.\n\n"
                            "Grant them once with a Windows confirmation; Throne itself keeps running as a standard user."),
                         QMessageBox::NoButton, GetMessageBoxParent());
-        auto *grant = box.addButton(tr("Grant Privileges"), QMessageBox::AcceptRole);
+        auto *grant = box.addButton(tr("Grant privileges"), QMessageBox::AcceptRole);
         auto *cancel = box.addButton(QMessageBox::Cancel);
         box.setDefaultButton(grant);
         box.setEscapeButton(cancel);

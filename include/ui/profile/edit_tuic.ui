@@ -47,7 +47,7 @@
    <item row="4" column="1">
     <widget class="QCheckBox" name="zero_rtt">
      <property name="text">
-      <string>Zero RTT Handshake</string>
+      <string>Zero RTT handshake</string>
      </property>
     </widget>
    </item>
@@ -116,7 +116,7 @@
    <item row="4" column="0">
     <widget class="QCheckBox" name="udp_over_stream">
      <property name="text">
-      <string>UDP over Stream</string>
+      <string>UDP over stream</string>
      </property>
     </widget>
    </item>

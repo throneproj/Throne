@@ -282,14 +282,14 @@ QToolButton::menu-indicator {
            </sizepolicy>
           </property>
           <property name="text">
-           <string>Tun Mode</string>
+           <string>Tun mode</string>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QCheckBox" name="checkBox_SystemProxy">
           <property name="text">
-           <string>System Proxy</string>
+           <string>System proxy</string>
           </property>
          </widget>
         </item>
@@ -736,7 +736,7 @@ QToolButton::menu-indicator {
    </widget>
    <widget class="QMenu" name="menu_preferences">
     <property name="title">
-     <string>Preferences</string>
+     <string>Settings</string>
     </property>
     <addaction name="menu_basic_settings"/>
     <addaction name="menu_routing_settings"/>
@@ -811,7 +811,7 @@ QToolButton::menu-indicator {
     </property>
     <widget class="QMenu" name="menu_spmode">
      <property name="title">
-      <string>Operation Mode</string>
+      <string>Proxy mode</string>
      </property>
      <addaction name="menu_spmode_system_proxy"/>
      <addaction name="menu_spmode_vpn"/>
@@ -832,7 +832,7 @@ QToolButton::menu-indicator {
    </widget>
    <widget class="QMenu" name="menuRouting_Menu">
     <property name="title">
-     <string>Routing Menu</string>
+     <string>Routing</string>
     </property>
    </widget>
    <widget class="QMenu" name="menuTools">
@@ -1167,7 +1167,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="menu_open_config_folder">
    <property name="text">
-    <string>Open Config Folder</string>
+    <string>Open config folder</string>
    </property>
    <property name="uiLevel" stdset="0">
     <string notr="true">advanced</string>
@@ -1175,7 +1175,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="menu_open_dashboard">
    <property name="text">
-    <string>Open Web dashboard</string>
+    <string>Open web dashboard</string>
    </property>
    <property name="uiLevel" stdset="0">
     <string notr="true">advanced</string>
@@ -1240,7 +1240,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="menu_remove_insecure">
    <property name="text">
-    <string>Remove insecure configs</string>
+    <string>Remove insecure profiles</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::TextHeuristicRole</enum>
@@ -1248,7 +1248,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="actionSpeedtest_Current">
    <property name="text">
-    <string>Speedtest Current</string>
+    <string>Speed test current connection</string>
    </property>
    <property name="shortcut">
     <string notr="true">F6</string>
@@ -1334,7 +1334,7 @@ QToolButton::menu-indicator {
   </action>
   <action name="actionRefresh_Column_Widths">
    <property name="text">
-    <string>Refresh Column Widths</string>
+    <string>Refresh column widths</string>
    </property>
   </action>
   <action name="actionCopy_Test_Result">
@@ -1357,12 +1357,12 @@ QToolButton::menu-indicator {
   </action>
   <action name="actionTraffic_Stats">
    <property name="text">
-    <string>Traffic Stats</string>
+    <string>Traffic Statistics</string>
    </property>
   </action>
   <action name="actionCheck_For_Update">
    <property name="text">
-    <string>Check For Update</string>
+    <string>Check for updates</string>
    </property>
   </action>
   <action name="actionAbout">
@@ -1414,7 +1414,7 @@ QToolButton::menu-indicator {
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Selected server</string>
+    <string>Selected profile</string>
    </property>
   </action>
   <action name="menu_exit_warp">

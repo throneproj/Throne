@@ -84,7 +84,7 @@ namespace Configs {
 
         QString XrayXDriveMux(int muxState, const QString &network) {
             if (NormalizeXrayNetwork(network.trimmed()) != "xdrive" || muxState != 2) return {};
-            return QCoreApplication::translate("Validation", "XDRIVE needs Mux: set it to On or Keep Default.");
+            return QCoreApplication::translate("Validation", "XDRIVE needs Multiplex: set it to On or Keep default.");
         }
     }
 

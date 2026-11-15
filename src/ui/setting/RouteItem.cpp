@@ -380,7 +380,7 @@ void RouteItem::fetchRemote(bool applyToChain) {
             }
             auto* dlg = new QDialog(this);
             dlg->setAttribute(Qt::WA_DeleteOnClose);
-            dlg->setWindowTitle(tr("Remote routing profile preview"));
+            dlg->setWindowTitle(tr("Remote Routing Profile Preview"));
             auto* lay = new QVBoxLayout(dlg);
             auto* header = new QLabel(tr("%1 — %2 rule(s)").arg(target->name.isEmpty() ? tr("(unnamed)") : target->name,
                                                                QString::number(target->Rules.size())), dlg);
@@ -475,7 +475,7 @@ void RouteItem::addEndpointRow(int profileId, bool innerHops) {
     if (hasInnerHops) {
         row.toggle = new QCheckBox(tr("Allow routing to inner hops"), frame);
         row.toggle->setChecked(row.innerHops);
-        row.toggle->setToolTip(tr("Give each OpenVPN/OpenConnect hop behind the exit its own rule, so traffic can be routed to it as well."));
+        row.toggle->setToolTip(tr("Add a rule for each OpenVPN/OpenConnect hop behind this exit."));
         connect(row.toggle, &QCheckBox::toggled, this, [this, profileId](const bool on) {
             for (auto& listedRow : endpointRows) {
                 if (listedRow.profileId == profileId) listedRow.innerHops = on;
@@ -692,7 +692,7 @@ void RouteItem::accept() {
     if (!chain->isRemote && chain->IsEmpty()) {
         QuickLists::EnsureLists(*chain);
         reloadRules();
-        MessageBoxInfo(tr("Empty Route Profile"), tr("No valid rules are in the profile"));
+        MessageBoxInfo(tr("Empty routing profile"), tr("No valid rules are in the profile"));
         return;
     }
 

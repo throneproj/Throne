@@ -251,7 +251,7 @@ void MainWindow::refresh_status(const QString &traffic_update) {
     ui->checkBox_SystemProxy->setChecked(settings->spmode_system_proxy);
     if (select_mode) {
         ui->label_running->setText(tr("Select") + " *");
-        ui->label_running->setToolTip(tr("Select mode, double-click or press Enter to select a profile, press ESC to exit."));
+        ui->label_running->setToolTip(tr("Double-click or press Enter to pick a profile; Esc to cancel."));
     } else {
         ui->label_running->setToolTip({});
     }
@@ -267,8 +267,8 @@ void MainWindow::refresh_status(const QString &traffic_update) {
         if (select_mode) tt << "[" + tr("Select") + "]";
         if (!title_error.isEmpty()) tt << "[" + title_error + "]";
         if (settings->spmode_vpn && !settings->spmode_system_proxy) tt << "[Tun]";
-        if (!settings->spmode_vpn && settings->spmode_system_proxy) tt << "[" + tr("System Proxy") + "]";
-        if (settings->spmode_vpn && settings->spmode_system_proxy) tt << "[Tun+" + tr("System Proxy") + "]";
+        if (!settings->spmode_vpn && settings->spmode_system_proxy) tt << "[" + tr("System proxy") + "]";
+        if (settings->spmode_vpn && settings->spmode_system_proxy) tt << "[Tun+" + tr("System proxy") + "]";
         if (settings->kill_switch && killSwitchState == Sys::KillSwitch::State::Armed) tt << "[" + tr("Kill switch") + "]";
         if (settings->kill_switch && killSwitchState == Sys::KillSwitch::State::Failed) {
             tt << "[" + (killSwitchBlocking ? tr("Kill switch is blocking traffic") : tr("Kill switch: not active")) + "]";
@@ -438,8 +438,8 @@ void MainWindow::refresh_traffic_graph_settings() {
     if (m_trafficStatsChartAction != nullptr) m_trafficStatsChartAction->setVisible(!settings->disable_traffic_aggregation);
     if (trafficChart == nullptr) return;
     if (settings->disable_traffic_stats) {
-        trafficChart->setBlocked(tr("Traffic statistics are disabled"),
-                                 tr("Untick “Disable Traffic Stats” in Basic Settings → Core → Statistics to record speeds again."));
+        trafficChart->setBlocked(tr("Traffic counters are disabled"),
+                                 tr("Untick “Disable traffic counters” in Basic Settings → Core → Statistics to record speeds again."));
     } else {
         trafficChart->setBlocked({});
     }
@@ -570,7 +570,7 @@ void MainWindow::url_test_current() {
 
         runOnUiThread([=,this] {
             if (!result.results[0].error.value().empty()) {
-                MW_show_log(QString("UrlTest error: %1").arg(QString::fromStdString(result.results[0].error.value())));
+                MW_show_log(QString("URL test error: %1").arg(QString::fromStdString(result.results[0].error.value())));
             }
             if (latency <= 0) {
                 ui->label_running->setText(tr("Test Result") + ": " + (vpnText.isEmpty() ? tr("Unavailable") : vpnText));

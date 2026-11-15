@@ -37,7 +37,7 @@
    <item row="2" column="1">
     <widget class="QLineEdit" name="custom_sni">
      <property name="toolTip">
-      <string>Server name sent in the TLS ClientHello instead of the TLS server name, which is still used to verify the certificate; not compatible with ECH or REALITY</string>
+      <string>SNI sent instead of the TLS server name; not with ECH or REALITY.</string>
      </property>
      <property name="placeholderText">
       <string>optional, e.g. cdn.example.net</string>
@@ -57,7 +57,7 @@
    <item row="3" column="1">
     <widget class="QLineEdit" name="client_random">
      <property name="toolTip">
-      <string>TLS ClientHello random prefix required by the server's client_random_prefix rule; not compatible with ECH or REALITY</string>
+      <string>ClientHello random prefix the server requires; not with ECH or REALITY.</string>
      </property>
      <property name="placeholderText">
       <string>prefix[/mask] (hex), e.g. a0b0/f0f0</string>
@@ -84,7 +84,7 @@
    <item row="5" column="0">
     <widget class="QCheckBox" name="health_check">
      <property name="text">
-      <string>Health Check</string>
+      <string>Health check</string>
      </property>
     </widget>
    </item>

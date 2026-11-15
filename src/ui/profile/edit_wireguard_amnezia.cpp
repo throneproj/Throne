@@ -93,7 +93,7 @@ EditWireguardAmnezia::~EditWireguardAmnezia()
 
 void EditWireguardAmnezia::generateSignature() {
     bool ok = false;
-    const auto domain = QInputDialog::getText(this, tr("QUIC Signature"), tr("Domain to imitate:"), QLineEdit::Normal,
+    const auto domain = QInputDialog::getText(this, tr("QUIC signature"), tr("Domain to imitate:"), QLineEdit::Normal,
                                               lastSignatureDomain, &ok).trimmed();
     if (!ok || domain.isEmpty()) return;
     lastSignatureDomain = domain;

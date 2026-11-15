@@ -62,9 +62,7 @@ RouteDnsEditor::RouteDnsEditor(const Configs::RouteProfile& profile, QWidget* pa
     auto* grid = new QGridLayout(fields);
     grid->setContentsMargins(0, 0, 0, 0);
 
-    const QString serverHint = tr("<html><head/><body><p>examples:<br/>tls://8.8.8.8<br/>https://domain/path</p>"
-                                  "<p>tcp://8.8.8.8:1234</p><p>dhcp://auto</p><p>h3://domain/path</p>"
-                                  "<p>quic://domain:4632</p><p>localhost</p></body></html>");
+    const QString serverHint = tr("DNS servers, e.g. tls://8.8.8.8, https://domain/path or localhost.");
     const auto& settings = *Configs::dataManager->settingsRepo;
 
     auto* remoteLabel = new QLabel(tr("Remote DNS"), fields);
@@ -105,7 +103,7 @@ RouteDnsEditor::RouteDnsEditor(const Configs::RouteProfile& profile, QWidget* pa
     finalOut = new QComboBox(fields);
     finalOut->addItems({QStringLiteral("remote"), QStringLiteral("direct")});
     finalLabel->setBuddy(finalOut);
-    dnsRouting = new QCheckBox(tr("Enable DNS Routing"), fields);
+    dnsRouting = new QCheckBox(tr("Enable DNS routing"), fields);
     dnsRouting->setToolTip(tr("Domains this profile sends direct are resolved with the direct DNS too."));
     auto* finalRow = new QHBoxLayout();
     finalRow->addWidget(finalOut);
@@ -115,7 +113,7 @@ RouteDnsEditor::RouteDnsEditor(const Configs::RouteProfile& profile, QWidget* pa
     grid->addLayout(finalRow, 2, 1);
 
     fakeIP = new QCheckBox(tr("Enable FakeIP"), fields);
-    fakeIPDisableIPv6 = new QCheckBox(tr("FakeIP Disable IPv6"), fields);
+    fakeIPDisableIPv6 = new QCheckBox(tr("Disable IPv6 for FakeIP"), fields);
     fakeIPDisableIPv6->setToolTip(tr("Hand out no fake IPv6 addresses; AAAA queries are answered empty."));
     auto* fakeRow = new QHBoxLayout();
     fakeRow->addWidget(fakeIP);

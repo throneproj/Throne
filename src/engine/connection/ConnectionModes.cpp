@@ -61,7 +61,7 @@ namespace Engine {
         }
         if (const auto blocker = connectionModesTunCapsBlocker(interactive); !blocker.isEmpty()) {
             MW_show_log(QStringLiteral("[Tun] The core cannot use Tun: %1").arg(blocker));
-            if (interactive && !m_options.headless) PostNotice({NoticeLevel::Warning, MainWindowTr::tr("Tun Mode"), blocker});
+            if (interactive && !m_options.headless) PostNotice({NoticeLevel::Warning, MainWindowTr::tr("Tun mode"), blocker});
             return false;
         }
         if (tunPrivileged()) return true;
@@ -179,7 +179,7 @@ namespace Engine {
             if (const auto reason = tunBlockedReason(); !reason.isEmpty()) {
                 MW_show_log(QStringLiteral("[Tun] Not enabling Tun: %1").arg(reason));
                 // Headless has no notice sink, so a notice there would only repeat the line above.
-                if (!m_options.headless) PostNotice({NoticeLevel::Warning, MainWindowTr::tr("Tun Mode"), reason});
+                if (!m_options.headless) PostNotice({NoticeLevel::Warning, MainWindowTr::tr("Tun mode"), reason});
                 emit statusChanged();
                 return false;
             }

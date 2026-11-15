@@ -258,7 +258,7 @@
              <string notr="true">advanced</string>
             </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Used as default strategy when resolving outbound/dns server Domain addresses&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Strategy for resolving the domains of servers and DNS servers.</string>
             </property>
             <property name="text">
              <string>Default Domain Strategy</string>
@@ -284,7 +284,7 @@
              <string notr="true">advanced</string>
             </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If not empty, resolves domains in requests according to the strategy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Resolve request domains with this strategy. Empty: off.</string>
             </property>
             <property name="text">
              <string>Resolve Domain Strategy</string>
@@ -364,7 +364,7 @@
           <item row="1" column="0" alignment="Qt::AlignmentFlag::AlignTop">
            <widget class="QLabel" name="label_9">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;examples:&lt;br/&gt;tls://8.8.8.8&lt;br/&gt;https://domain/path&lt;/p&gt;&lt;p&gt;tcp://8.8.8.8:1234&lt;/p&gt;&lt;p&gt;dhcp://auto&lt;/p&gt;&lt;p&gt;h3://domain/path&lt;/p&gt;&lt;p&gt;quic://domain:4632&lt;/p&gt;&lt;p&gt;etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Remote DNS servers, e.g. tls://8.8.8.8 or https://domain/path.</string>
             </property>
             <property name="text">
              <string>Remote DNS</string>
@@ -397,9 +397,7 @@
           <item row="2" column="0" alignment="Qt::AlignmentFlag::AlignTop">
            <widget class="QLabel" name="label_8">
             <property name="toolTip">
-             <string>This is especially important and it is recommended to use the default value of &quot;localhost&quot;.
-If the default value does not work, try changing it to &quot;223.5.5.5&quot;.
-For more information, see the document &quot;Configuration/DNS&quot;.</string>
+             <string>DNS servers for direct traffic. Default: localhost.</string>
             </property>
             <property name="text">
              <string>Direct DNS</string>
@@ -435,7 +433,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
              <string notr="true">advanced</string>
             </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Local DNS can not be used in some configurations, you will have to set an ip here to be used as local dns in such situations&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>IP of the DNS server that resolves DNS server hostnames.</string>
             </property>
             <property name="text">
              <string>Resolver for DNS server names</string>
@@ -470,10 +468,10 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
              <string notr="true">advanced</string>
             </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, domains destined for direct outbound will also be resolved using direct dns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Domains sent direct are resolved with the direct DNS too.</string>
             </property>
             <property name="text">
-             <string>Enable DNS Routing</string>
+             <string>Enable DNS routing</string>
             </property>
            </widget>
           </item>
@@ -483,10 +481,10 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
              <string notr="true">advanced</string>
             </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Answer A/AAAA queries from the system hosts file before consulting any DNS server. Only domains actually listed in the file are affected.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Answer A/AAAA queries from the system hosts file first.</string>
             </property>
             <property name="text">
-             <string>Respect Hosts File</string>
+             <string>Respect hosts file</string>
             </property>
            </widget>
           </item>
@@ -511,7 +509,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
                <string>Hand out no fake IPv6 addresses; AAAA queries are answered empty.</string>
               </property>
               <property name="text">
-               <string>FakeIP Disable IPv6</string>
+               <string>Disable IPv6 for FakeIP</string>
               </property>
              </widget>
             </item>
@@ -576,7 +574,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Cache behaviour, optimistic cache and query timeout.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>Advanced Settings</string>
+             <string>Advanced DNS Settings</string>
             </property>
            </widget>
           </item>
@@ -585,7 +583,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
             <item>
              <widget class="QCheckBox" name="use_dns_object">
               <property name="text">
-               <string>Use Custom DNS Object</string>
+               <string>Use custom DNS object</string>
               </property>
              </widget>
             </item>
@@ -624,13 +622,13 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
      </widget>
      <widget class="QWidget" name="tab_egress">
       <attribute name="title">
-       <string>Egress</string>
+       <string>Exit</string>
       </attribute>
       <layout class="QVBoxLayout" name="egress_page_layout">
        <item>
         <widget class="QGroupBox" name="egress_box">
          <property name="title">
-          <string>Exit through</string>
+          <string>Exit Through</string>
          </property>
          <layout class="QGridLayout" name="egress_box_layout">
           <item row="0" column="0">
@@ -641,14 +639,14 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
             <item>
              <widget class="QRadioButton" name="exit_server">
               <property name="text">
-               <string>Selected server</string>
+               <string>Selected profile</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QLabel" name="exit_server_hint">
               <property name="text">
-               <string>Traffic leaves through the server you started.</string>
+               <string>Traffic leaves through the profile you started.</string>
               </property>
               <property name="wordWrap">
                <bool>true</bool>
@@ -668,7 +666,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
             <item>
              <widget class="QRadioButton" name="enable_warp">
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enables the following config to be used as egress, useful for bypassing services restrciting non-warp VPNs&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>Send traffic out through WARP, for services that block other VPNs.</string>
               </property>
               <property name="text">
                <string notr="true">Cloudflare WARP</string>
@@ -678,7 +676,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
             <item>
              <widget class="QLabel" name="enable_warp_hint">
               <property name="text">
-               <string>WARP runs over the selected server.</string>
+               <string>WARP runs over the selected profile.</string>
               </property>
               <property name="wordWrap">
                <bool>true</bool>
@@ -698,7 +696,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
             <item>
              <widget class="QRadioButton" name="enable_tor">
               <property name="toolTip">
-               <string>Sends proxied traffic out through Tor, over the selected server. TCP only.</string>
+               <string>Send proxied traffic out through Tor over the selected profile; TCP only.</string>
               </property>
               <property name="text">
                <string notr="true">Tor</string>
@@ -729,7 +727,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
           <item row="0" column="0">
            <widget class="QLabel" name="warp_mode_l">
             <property name="toolTip">
-             <string>WireGuard runs over UDP. AmneziaWG adds WARP-compatible junk and camouflage packets. MASQUE tunnels over HTTP/3 or HTTP/2.</string>
+             <string>WireGuard, AmneziaWG (adds junk packets) or MASQUE (HTTP/3 or HTTP/2).</string>
             </property>
             <property name="text">
              <string>Mode</string>
@@ -742,7 +740,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
           <item row="0" column="1">
            <widget class="QComboBox" name="warp_mode">
             <property name="toolTip">
-             <string>WireGuard runs over UDP. AmneziaWG adds WARP-compatible junk and camouflage packets. MASQUE tunnels over HTTP/3 or HTTP/2.</string>
+             <string>WireGuard, AmneziaWG (adds junk packets) or MASQUE (HTTP/3 or HTTP/2).</string>
             </property>
             <item>
              <property name="text">
@@ -958,10 +956,10 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
             <item>
              <widget class="QPushButton" name="warp_autogen">
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Gets a new config from cloudflare API&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>Get a new config from the Cloudflare API.</string>
               </property>
               <property name="text">
-               <string>Generate Warp Config</string>
+               <string>Generate WARP config</string>
               </property>
              </widget>
             </item>
@@ -974,7 +972,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
                <string>Cloudflare API domains to try, in order, when generating a WARP config</string>
               </property>
               <property name="text">
-               <string>Registration Domains…</string>
+               <string>Registration Domains</string>
               </property>
              </widget>
             </item>
@@ -987,7 +985,7 @@ For more information, see the document &quot;Configuration/DNS&quot;.</string>
                <string>TLS fragmentation for WARP registration</string>
               </property>
               <property name="text">
-               <string>Advanced…</string>
+               <string>Advanced</string>
               </property>
              </widget>
             </item>

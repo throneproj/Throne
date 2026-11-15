@@ -778,7 +778,7 @@ namespace Engine::Preflight {
                 report.ok(QStringLiteral("Tun: available (the core runs elevated through its scheduled task)"));
             } else {
                 report.warn(QStringLiteral("Tun: unavailable: neither Throne nor its core runs elevated") + preflightGrantState() + remembered,
-                            {QStringLiteral("grant the core administrator rights once from the Throne window (Tun Mode asks for it), run "
+                            {QStringLiteral("grant the core administrator rights once from the Throne window (Tun mode asks for it), run "
                                             "Throne from an elevated prompt, or as a Windows service (Throne --headless --service)")});
             }
 #else

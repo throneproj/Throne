@@ -269,7 +269,7 @@ namespace QuickLists {
         if (prefix == QLatin1String("suffix")) return QCoreApplication::translate("QuickLists", "suffix");
         if (prefix == QLatin1String("keyword")) return QCoreApplication::translate("QuickLists", "keyword");
         if (prefix == QLatin1String("regex")) return QCoreApplication::translate("QuickLists", "regex");
-        if (prefix == QLatin1String("ruleset")) return QCoreApplication::translate("QuickLists", "rule set");
+        if (prefix == QLatin1String("ruleset")) return QCoreApplication::translate("QuickLists", "rule-set");
         if (prefix == QLatin1String("ip")) return QCoreApplication::translate("QuickLists", "ip");
         if (prefix == QLatin1String("processName")) return QCoreApplication::translate("QuickLists", "process");
         if (prefix == QLatin1String("processPath")) return QCoreApplication::translate("QuickLists", "path");
@@ -339,7 +339,7 @@ namespace QuickListsDetail {
     }
 
     QString noWarpHint() {
-        return QCoreApplication::translate("QuickLists", "Only differs from Proxy while built-in WARP is on: these sites use the selected server without the WARP layer.");
+        return QCoreApplication::translate("QuickLists", "Only differs from Proxy while WARP or Tor is on: these sites skip that layer.");
     }
 
     const QStringList& ruleSetLines() {

@@ -239,7 +239,7 @@
              <widget class="QComboBox" name="xray_mux">
               <item>
                <property name="text">
-                <string>Keep Default</string>
+                <string>Keep default</string>
                </property>
               </item>
               <item>
@@ -308,7 +308,7 @@
            <item row="1" column="0">
             <widget class="QLabel" name="security_l">
              <property name="toolTip">
-              <string>Transport Layer Security. It must be consistent with the server, otherwise, the connection cannot be established.</string>
+              <string>Transport security; must match the server.</string>
              </property>
              <property name="text">
               <string>Security</string>
@@ -335,7 +335,7 @@
            <item row="0" column="0">
             <widget class="QLabel" name="network_l">
              <property name="toolTip">
-              <string>The underlying transport method. It must be consistent with the server, otherwise, the connection cannot be established.</string>
+              <string>Transport method; must match the server.</string>
              </property>
              <property name="text">
               <string>Network</string>
@@ -357,7 +357,7 @@
                </property>
                <item>
                 <property name="text">
-                 <string>Keep Default</string>
+                 <string>Keep default</string>
                 </property>
                </item>
                <item>
@@ -496,7 +496,7 @@
          <item row="2" column="0">
           <widget class="QLabel" name="path_l">
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;http path (ws/http/httpUpgrade)&lt;/p&gt;&lt;p&gt;serviceName (gRPC)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>HTTP path for ws, http and httpUpgrade; serviceName for gRPC.</string>
            </property>
            <property name="text">
             <string>Path</string>
@@ -531,7 +531,7 @@
             </sizepolicy>
            </property>
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Headers in space separated key value pair:&lt;/p&gt;&lt;p&gt;key1=val1 key2=&amp;quot;multi word val2&amp;quot; &amp;quot;multi word key3&amp;quot;=val3&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>Space-separated key=value headers; quote keys or values with spaces.</string>
            </property>
            <property name="whatsThis">
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -557,7 +557,7 @@
          <item row="3" column="0">
           <widget class="QLabel" name="host_l">
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;http host (ws/http/httpUpgrade)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>Host header for ws, http and httpUpgrade.</string>
            </property>
            <property name="text">
             <string>Host</string>
@@ -573,7 +573,7 @@
          <item row="1" column="0">
           <widget class="QLabel" name="method_l">
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Method of http request, will be converted to uppercase&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>HTTP request method.</string>
            </property>
            <property name="text">
             <string>Method</string>
@@ -625,7 +625,7 @@
               </sizepolicy>
              </property>
              <property name="toolTip">
-              <string>When enabled, V2Ray will not check the validity of the TLS certificate provided by the remote host (the security is equivalent to plaintext)</string>
+              <string>Skip TLS certificate checks, leaving TLS as unsafe as plaintext.</string>
              </property>
              <property name="text">
               <string>Allow insecure</string>
@@ -672,7 +672,7 @@
            <item row="1" column="0">
             <widget class="QLabel" name="alpn_l">
              <property name="toolTip">
-              <string>Application layer protocol negotiation, clear text. Please separate them with commas.</string>
+              <string>Comma-separated ALPN values, e.g. h2,http/1.1.</string>
              </property>
              <property name="text">
               <string notr="true">ALPN</string>
@@ -782,11 +782,11 @@
                <item>
                 <widget class="QComboBox" name="fragment">
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TLS ClientHello fragmentation. The implementation (built-in / custom) and the &amp;quot;Keep Default&amp;quot; behaviour are configured in Settings &gt; Core.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>Fragment the TLS ClientHello. Keep default: as set in Preset Settings.</string>
                  </property>
                  <item>
                   <property name="text">
-                   <string>Keep Default</string>
+                   <string>Keep default</string>
                   </property>
                  </item>
                  <item>
@@ -804,7 +804,7 @@
                <item>
                 <widget class="QLabel" name="tls_frag_fall_delay_l">
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;time format, like 500ms, 10ms etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>Delay between fragments when it cannot be measured. Default: 500ms.</string>
                  </property>
                  <property name="text">
                   <string>Fallback Delay</string>
@@ -823,7 +823,7 @@
             <item>
              <widget class="QCheckBox" name="tls_rec_frag">
               <property name="text">
-               <string>Enable TLS Record Fragment</string>
+               <string>Enable TLS record fragment</string>
               </property>
              </widget>
             </item>
@@ -855,11 +855,11 @@
                <item>
                 <widget class="QComboBox" name="tls_tricks">
                  <property name="toolTip">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Mixed-case SNI to evade exact-match SNI filtering. The &amp;quot;Keep Default&amp;quot; behaviour is configured in Settings &gt; Core.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>Mixed-case SNI to evade exact-match filters. Keep default: Preset Settings.</string>
                  </property>
                  <item>
                   <property name="text">
-                   <string>Keep Default</string>
+                   <string>Keep default</string>
                   </property>
                  </item>
                  <item>
@@ -925,7 +925,7 @@
             <item row="1" column="1">
              <widget class="MyLineEdit" name="cipher_suites">
               <property name="toolTip">
-               <string>Colon-separated TLS 1.2 cipher suite names. A uTLS fingerprint ignores them; use the "unsafe" fingerprint (Go's own TLS stack) to apply them.</string>
+               <string>Colon-separated TLS 1.2 cipher suites; only the "unsafe" fingerprint uses them.</string>
               </property>
              </widget>
             </item>
@@ -948,7 +948,7 @@
             <item row="3" column="0">
              <widget class="QLabel" name="reality_sid_l">
               <property name="toolTip">
-               <string>Reality short id. Accept only one value.</string>
+               <string>REALITY short ID, a single value.</string>
               </property>
               <property name="text">
                <string>Reality SID</string>
@@ -1040,7 +1040,7 @@
             <item row="1" column="1">
              <widget class="QLineEdit" name="xray_pinned_peer_cert_sha256">
               <property name="toolTip">
-               <string>pinnedPeerCertSha256: hex SHA256 of the peer certificate (comma-separated for multiple). Replacement for allowInsecure.</string>
+               <string>pinnedPeerCertSha256: hex SHA-256 of the peer certificate, comma-separated.</string>
               </property>
              </widget>
             </item>
@@ -1057,7 +1057,7 @@
             <item row="2" column="1">
              <widget class="QLineEdit" name="xray_verify_peer_cert_by_name">
               <property name="toolTip">
-               <string>verifyPeerCertByName: verify the peer certificate against this name instead of the SNI.</string>
+               <string>verifyPeerCertByName: verify the certificate against this name, not the SNI.</string>
               </property>
              </widget>
             </item>
@@ -1074,7 +1074,7 @@
             <item row="3" column="1">
              <widget class="QLineEdit" name="xray_ech_config_list">
               <property name="toolTip">
-               <string>echConfigList: a base64 ECHConfigList, or "domain+https://dns/dns-query" to let Xray fetch it over DoH (e.g. cloudflare-ech.com+https://8.8.8.8/dns-query).</string>
+               <string>echConfigList: base64 ECHConfigList, or domain+https://dns/dns-query.</string>
               </property>
              </widget>
             </item>
@@ -1091,7 +1091,7 @@
             <item row="4" column="1">
              <widget class="QLineEdit" name="xray_cipher_suites">
               <property name="toolTip">
-               <string>cipherSuites: colon-separated TLS 1.2 cipher suite names, including Go's insecure ones. Only applied with the "unsafe" fingerprint.</string>
+               <string>cipherSuites: colon-separated TLS 1.2 suites; needs the "unsafe" fingerprint.</string>
               </property>
              </widget>
             </item>
@@ -1252,7 +1252,7 @@
                 <item row="3" column="0">
                  <widget class="QCheckBox" name="xray_multi_mode">
                   <property name="text">
-                   <string>Multi Mode</string>
+                   <string>Multi mode</string>
                   </property>
                  </widget>
                 </item>
@@ -1857,7 +1857,7 @@
                    <item row="4" column="2" colspan="2">
                     <widget class="QCheckBox" name="xray_xdrive_s3_path_style">
                      <property name="text">
-                      <string>Path-Style Addressing</string>
+                      <string>Path-style addressing</string>
                      </property>
                      <property name="checked">
                       <bool>true</bool>

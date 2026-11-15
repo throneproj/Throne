@@ -119,7 +119,7 @@ namespace Configs::Protocols {
             {.id = "extracore", .create = protocolsCreate<extracore>, .flags = Serverless | NoScan | Advanced | RunsProgram,
              .foreignRefusal = QT_TRANSLATE_NOOP("Validation", "Refused to import an Extra Core profile: it would run a program on this computer.")},
             {.id = "chain", .create = protocolsCreate<chain>, .flags = Serverless | Advanced | Composite,
-             .foreignRefusal = QT_TRANSLATE_NOOP("Validation", "Refused to import a Chain Proxy profile: its hops are profiles of another installation.")},
+             .foreignRefusal = QT_TRANSLATE_NOOP("Validation", "Refused to import a Proxy Chain profile: its hops are profiles of another installation.")},
         };
 
         constexpr QLatin1String protocolsLatin1(std::string_view text) {

@@ -73,7 +73,7 @@ EditWireguard::EditWireguard(QWidget *parent) : QWidget(parent), ui(new Ui::Edit
                 if (!conf) {
                     editor->ui->warp_autogen->setText(originalText);
                     editor->ui->warp_autogen->setEnabled(true);
-                    MessageBoxWarning(tr("Failed to generate warp config"), error);
+                    MessageBoxWarning(tr("Failed to generate WARP config"), error);
                     return;
                 }
                 editor->ui->private_key->setText(conf->privateKey);

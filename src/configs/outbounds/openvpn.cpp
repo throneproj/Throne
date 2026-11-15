@@ -480,7 +480,7 @@ namespace Configs {
         QString OtpPlaceholderUnbound(const QString& value, int otpProfileId)
         {
             if (otpProfileId >= 0 || !value.contains(kOtpPlaceholder)) return {};
-            return QCoreApplication::translate("Validation", "%1 is replaced by a one-time code only when an authenticator entry is selected.")
+            return QCoreApplication::translate("Validation", "%1 is replaced by a one-time code only when an OTP entry is selected.")
                 .arg(kOtpPlaceholder);
         }
     }
@@ -968,7 +968,7 @@ namespace Configs {
         if (otp_profile_id < 0) return;
         otp_profile_id = -1;
         issues << Validation::Issue{Validation::Severity::Warning, "otp_profile_id",
-                                    QCoreApplication::translate("Validation", "Removed the link to a one-time password entry; choose the entry again in the profile's settings."), {}};
+                                    QCoreApplication::translate("Validation", "Removed the link to an OTP entry; choose the entry again in the profile's settings."), {}};
     }
 
     void openvpn::Validate(Validation::Issues& issues)

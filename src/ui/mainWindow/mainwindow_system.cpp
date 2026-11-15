@@ -250,7 +250,7 @@ bool MainWindow::StopVPNProcess() {
 void MainWindow::show_startstop_menu() {
     if (!Configs::dataManager->settingsRepo->kill_switch) return;
     QMenu menu(this);
-    connect(menu.addAction(tr("Disable Kill Switch")), &QAction::triggered, this, [this] { confirm_disable_kill_switch(); });
+    connect(menu.addAction(tr("Disable kill switch")), &QAction::triggered, this, [this] { confirm_disable_kill_switch(); });
     auto *button = ui->toolButton_startstop;
     menu.exec(button->mapToGlobal(QPoint(0, button->height())));
 }
@@ -260,7 +260,7 @@ void MainWindow::confirm_disable_kill_switch() {
                                 tr("Turn off the kill switch? Traffic that does not go through Throne will no longer be blocked."),
                                 QMessageBox::NoButton, this);
     box->setAttribute(Qt::WA_DeleteOnClose);
-    auto *disable = box->addButton(tr("Disable Kill Switch"), QMessageBox::DestructiveRole);
+    auto *disable = box->addButton(tr("Disable kill switch"), QMessageBox::DestructiveRole);
     auto *cancel = box->addButton(QMessageBox::Cancel);
     // Cancel is the default, so a stray Enter cannot complete the two-step disable.
     box->setDefaultButton(cancel);
@@ -339,7 +339,7 @@ void MainWindow::OpenDashboard() {
     const auto &settings = *Configs::dataManager->settingsRepo;
     const auto port = settings.core_box_api_port;
     if (port <= 0) {
-        MessageBoxWarning(software_name, tr("The sing-box API is disabled. Set a listen port in Preferences > Integration Settings > Core APIs."));
+        MessageBoxWarning(software_name, tr("The sing-box API is disabled. Set a listen port in Settings > Integration Settings > Core APIs."));
         return;
     }
     if (Engine::Lifecycle::RunningProfileId() < 0) {

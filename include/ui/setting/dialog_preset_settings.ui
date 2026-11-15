@@ -41,7 +41,7 @@
             <item>
              <widget class="QCheckBox" name="mux_default_on">
               <property name="text">
-               <string>Default On</string>
+               <string>Default on</string>
               </property>
              </widget>
             </item>
@@ -73,7 +73,7 @@
             <item>
              <widget class="QCheckBox" name="xray_default_mux">
               <property name="text">
-               <string>Default Mux On</string>
+               <string>Multiplex by default</string>
               </property>
              </widget>
             </item>
@@ -131,7 +131,7 @@
           <item row="0" column="1">
            <widget class="QComboBox" name="fragment_implementation">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Which TLS fragmentation implementation profiles use: built-in (sing-box tls.fragment) or custom (Hiddify dialer-level ClientHello fragmentation).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>TLS fragmentation used by profiles: built-in (sing-box) or custom (Hiddify).</string>
             </property>
            </widget>
           </item>
@@ -151,7 +151,7 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Custom implementation only: bytes per ClientHello fragment, as a range min-max (e.g. 10-100).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Custom only: bytes per ClientHello fragment, as min-max (e.g. 10-100).</string>
             </property>
            </widget>
           </item>
@@ -171,17 +171,17 @@
              </size>
             </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Custom implementation only: milliseconds to sleep between fragment bursts, as a range min-max (e.g. 2-5).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Custom only: milliseconds between fragment bursts, as min-max (e.g. 2-5).</string>
             </property>
            </widget>
           </item>
           <item row="1" column="0" colspan="6">
            <widget class="QCheckBox" name="fragment_default_on">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fragment profiles whose Fragment setting is left on &amp;quot;Keep Default&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fragment profiles whose Fragment setting is left on &amp;quot;Keep default&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>Default On</string>
+             <string>Default on</string>
             </property>
            </widget>
           </item>
@@ -199,10 +199,10 @@
             <item>
              <widget class="QCheckBox" name="tls_tricks_default_on">
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable mixed-case SNI for profiles whose TLS Tricks setting is left on &amp;quot;Keep Default&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>Use mixed-case SNI where TLS Tricks is left on "Keep default".</string>
               </property>
               <property name="text">
-               <string>Default On</string>
+               <string>Default on</string>
               </property>
              </widget>
             </item>
@@ -243,7 +243,7 @@
           <item>
            <widget class="QLabel" name="tls_spoof_l">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Inject a forged TLS ClientHello carrying this SNI before the real one, to pass SNI filtering that allows specific hostnames. Profiles that set their own Spoof SNI override this one.&lt;/p&gt;&lt;p&gt;Client only. Requires elevated privileges (root on macOS, CAP_NET_RAW and CAP_NET_ADMIN on Linux, Administrator on Windows for the WinDivert driver). Not supported on Windows ARM64. &amp;quot;wrong-timestamp&amp;quot; is not supported on macOS.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>SNI for a forged ClientHello sent before the real one; needs admin.</string>
             </property>
             <property name="text">
              <string>Spoof SNI</string>
@@ -273,17 +273,17 @@
           <item>
            <widget class="QComboBox" name="tls_spoof_method">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;How the forged ClientHello is made invalid for the server, so only the filter acts on it. Empty keeps the core's default.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>How the forged ClientHello is made invalid. Empty: core default.</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QCheckBox" name="tls_spoof_default_on">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Spoof profiles whose TLS Spoof setting is left on &amp;quot;Keep Default&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Spoof profiles whose TLS Spoof setting is left on &amp;quot;Keep default&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>Default On</string>
+             <string>Default on</string>
             </property>
            </widget>
           </item>

@@ -66,11 +66,10 @@ namespace
     QString realTrafficTip(const Stats::AutoSelectorMemberView &member)
     {
         const auto firstReply = member.firstByteMs > 0
-                                    ? QObject::tr("Time to the first reply: %1 ms on average, recent connections counting most.")
+                                    ? QObject::tr("Time to the first reply: %1 ms on average.")
                                           .arg(member.firstByteMs)
                                     : QObject::tr("Time to the first reply: none yet.");
-        const auto recent = QObject::tr("Recently %1 answered and %2 failed, older connections counting less. The profile is "
-                                        "set aside once failures reach 3 and are at least as many as the answers.")
+        const auto recent = QObject::tr("Recently %1 answered and %2 failed.")
                                 .arg(member.recentAnswered)
                                 .arg(member.recentFailed);
         return firstReply + QLatin1Char('\n') + recent;
@@ -175,11 +174,7 @@ DialogAutoSelector::DialogAutoSelector(QWidget *parent) : QDialog(parent)
     controls->addStretch();
 
     m_pin = new QPushButton(tr("Use this profile"), this);
-    m_pin->setToolTip(tr("Keep the selected profile in use instead of letting the ranking choose. "
-                         "Useful when several profiles measure much the same and you prefer one of "
-                         "them.\n\nIt stays a preference, not a lock: if that profile stops working "
-                         "the selector still moves on, and comes back to your choice once it "
-                         "recovers."));
+    m_pin->setToolTip(tr("Prefer the selected profile over the ranking while it works."));
     connect(m_pin, &QPushButton::clicked, this, [this] { applySelection(highlightedTag()); });
     controls->addWidget(m_pin);
 
@@ -189,8 +184,7 @@ DialogAutoSelector::DialogAutoSelector(QWidget *parent) : QDialog(parent)
     controls->addWidget(m_release);
 
     m_recheck = new QPushButton(tr("Check all now"), this);
-    m_recheck->setToolTip(tr("Re-measure every running profile immediately instead of waiting for the "
-                             "next scheduled check."));
+    m_recheck->setToolTip(tr("Re-measure every running profile now."));
     connect(m_recheck, &QPushButton::clicked, this, [this] {
         Stats::autoSelectorMonitor->RequestRecheck();
         m_footer->setText(tr("Re-checking every profile..."));

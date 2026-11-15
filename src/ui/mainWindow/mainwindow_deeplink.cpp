@@ -183,7 +183,7 @@ void MainWindow::handle_deeplink_impl(const QString &url) {
         return;
     }
 
-    MW_show_log(tr("Ignored deeplink with unknown command: %1").arg(cmd));
+    MW_show_log(tr("Ignored deep link with unknown command: %1").arg(cmd));
 }
 
 void MainWindow::handle_import_route(const QString &url) {
@@ -316,7 +316,7 @@ void MainWindow::import_text(const QString &text) {
             QObject::tr("Import HTTP proxy profile"),
         };
         bool ok = false;
-        const auto choice = QInputDialog::getItem(nullptr, QObject::tr("url detected"),
+        const auto choice = QInputDialog::getItem(nullptr, QObject::tr("URL detected"),
                                                   QObject::tr("%1\nHow to update?").arg(content), items, 0, false, &ok);
         if (!ok) return;
         switch (items.indexOf(choice)) {

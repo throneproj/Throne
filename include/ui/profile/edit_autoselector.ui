@@ -14,7 +14,7 @@
      <item row="0" column="0">
       <widget class="QLabel" name="groups_l">
        <property name="text">
-        <string>Servers from</string>
+        <string>Profiles from</string>
        </property>
        <property name="buddy">
         <cstring>groups</cstring>
@@ -24,7 +24,7 @@
      <item row="0" column="1">
       <widget class="QListWidget" name="groups">
        <property name="toolTip">
-        <string>Profiles from every checked group are pooled; each keeps its own group's proxies.</string>
+        <string>Profiles from every checked group are pooled.</string>
        </property>
        <property name="horizontalScrollBarPolicy">
         <enum>Qt::ScrollBarAlwaysOff</enum>
@@ -67,7 +67,7 @@
      <item row="2" column="1">
       <widget class="QComboBox" name="strategy">
        <property name="toolTip">
-        <string>Fastest takes the best measured profile; priority order takes the highest tier that works.</string>
+        <string>Use the fastest profile, or the highest tier that works.</string>
        </property>
       </widget>
      </item>
@@ -288,7 +288,7 @@
       <bool>true</bool>
      </property>
      <property name="toolTip">
-      <string>Every setting here has a working default.</string>
+      <string>Show or hide the advanced settings.</string>
      </property>
     </widget>
    </item>
@@ -320,7 +320,7 @@
        <item>
         <widget class="QGroupBox" name="membership_box">
          <property name="title">
-          <string>Which profiles to use</string>
+          <string>Which Profiles to Use</string>
          </property>
          <layout class="QFormLayout" name="membership_layout">
           <property name="fieldGrowthPolicy">
@@ -342,7 +342,7 @@
              <string>e.g. DE,NL,FR or !RU</string>
             </property>
             <property name="toolTip">
-             <string>Country codes from the IP test, e.g. DE,NL or !RU; profiles never IP-tested are skipped.</string>
+             <string>Exit countries from the exit IP test, e.g. DE,NL or !RU; untested profiles are skipped.</string>
             </property>
            </widget>
           </item>
@@ -368,7 +368,7 @@
              <string> profiles</string>
             </property>
             <property name="toolTip">
-             <string>How many profiles the running config holds; the selector switches among them instantly.</string>
+             <string>How many profiles the running config holds for instant switching.</string>
             </property>
             <property name="value">
              <number>300</number>
@@ -381,7 +381,7 @@
        <item>
         <widget class="QGroupBox" name="health_box">
          <property name="title">
-          <string>Health checks</string>
+          <string>Health Checks</string>
          </property>
          <layout class="QFormLayout" name="health_layout">
           <property name="fieldGrowthPolicy">
@@ -409,7 +409,7 @@
              <string> profiles</string>
             </property>
             <property name="toolTip">
-             <string>How many profiles stay confirmed working, for instant failover and for sharing traffic.</string>
+             <string>How many profiles to keep confirmed working, for failover and sharing.</string>
             </property>
             <property name="value">
              <number>3</number>
@@ -531,7 +531,7 @@
              <string>Learn from real connections</string>
             </property>
             <property name="toolTip">
-             <string>Also judges profiles by your apps' real connections and sets aside ones that keep failing.</string>
+             <string>Set aside profiles whose real app connections keep failing.</string>
             </property>
            </widget>
           </item>
@@ -541,7 +541,7 @@
        <item>
         <widget class="QGroupBox" name="endpoints_box">
          <property name="title">
-          <string>Test endpoints</string>
+          <string>Test Endpoints</string>
          </property>
          <layout class="QFormLayout" name="endpoints_layout">
           <property name="fieldGrowthPolicy">

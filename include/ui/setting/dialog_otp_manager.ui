@@ -48,7 +48,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Scan QR Code</string>
+        <string>Scan QR code</string>
        </property>
       </widget>
      </item>

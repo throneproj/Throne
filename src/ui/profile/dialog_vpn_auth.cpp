@@ -93,7 +93,7 @@ DialogVpnAuth::DialogVpnAuth(QWidget *parent, Engine::VpnAuthController *_auth, 
         dismissButton = ui->buttonBox->button(QDialogButtonBox::Close);
         cancelButton = ui->buttonBox->button(QDialogButtonBox::Cancel);
         if (!challenge.url.isEmpty()) {
-            openUrlButton = ui->buttonBox->addButton(tr("Open in Browser"), QDialogButtonBox::ActionRole);
+            openUrlButton = ui->buttonBox->addButton(tr("Open in browser"), QDialogButtonBox::ActionRole);
         }
         // The server resolves this one out of band, so dismissing must not cancel it.
         closeAction = CloseAction::None;

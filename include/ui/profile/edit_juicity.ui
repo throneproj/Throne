@@ -53,7 +53,7 @@
    <item row="2" column="1">
     <widget class="QLineEdit" name="pinned_certchain_sha256">
      <property name="toolTip">
-      <string>Certificate chain hash printed by juicity-server; replaces CA verification, even with Allow insecure</string>
+      <string>Certificate chain hash printed by juicity-server; replaces CA checks.</string>
      </property>
     </widget>
    </item>

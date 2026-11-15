@@ -675,7 +675,7 @@ namespace Engine {
             m_startWhenUp = -1;
             Lifecycle::ClearResumeTarget();
             if (IsGuiApp()) {
-                m_lastFailure = tr("The core keeps exiting, so it is no longer restarted. Use Restart Core to try again.");
+                m_lastFailure = tr("The core keeps exiting, so it is no longer restarted. Use Restart core to try again.");
             } else {
                 m_lastFailure = !wasConnected && m_startFailures >= kGiveUpAfter
                                     ? QStringLiteral("the core exited %1 times without connecting").arg(m_startFailures)

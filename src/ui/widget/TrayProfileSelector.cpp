@@ -132,7 +132,7 @@ void TrayProfileSelector::rebuild() {
     QString stopText;
 
     if (m_mode == Routing) {
-        title = tr("Select Routing");
+        title = tr("Select routing");
         ensureRouteCache();
         const int cur = Configs::dataManager->settingsRepo->current_route_id;
         for (int i = 0; i < m_routeCache.size(); ++i) {
@@ -146,7 +146,7 @@ void TrayProfileSelector::rebuild() {
         const bool running = m_cb.isRunning && m_cb.isRunning();
         const int rid = (running && m_cb.runningId) ? m_cb.runningId() : -1;
         if (searching) {
-            title = tr("Select Server");
+            title = tr("Select profile");
             ensureServerCache();
             for (int i = 0; i < m_serverCache.size(); ++i) {
                 if (!m_serverCacheLower[i].contains(q)) continue;
@@ -155,7 +155,7 @@ void TrayProfileSelector::rebuild() {
             }
             if (entries.isEmpty()) entries.append({0, -1, tr("No matches"), false, false});
         } else if (m_groupId < 0) {
-            title = tr("Select Server");
+            title = tr("Select profile");
             if (running) {
                 showStop = true;
                 stopText = tr("Stop: %1").arg(m_cb.runningName ? m_cb.runningName() : QString());
@@ -166,7 +166,7 @@ void TrayProfileSelector::rebuild() {
                 if (!group || group->archive || group->Profiles().isEmpty()) continue;
                 entries.append({KindGroup, gid, group->name, true, gid == rgid});
             }
-            if (entries.isEmpty()) entries.append({0, -1, tr("No servers"), false, false});
+            if (entries.isEmpty()) entries.append({0, -1, tr("No profiles"), false, false});
         } else {
             auto group = Configs::dataManager->groupsRepo->GetGroup(m_groupId);
             if (!group || group->archive) {
@@ -180,7 +180,7 @@ void TrayProfileSelector::rebuild() {
             for (const auto &[id, name] : mapped) {
                 entries.append({KindProfile, id, name, true, id == rid});
             }
-            if (entries.isEmpty()) entries.append({0, -1, tr("No servers"), false, false});
+            if (entries.isEmpty()) entries.append({0, -1, tr("No profiles"), false, false});
         }
     }
 

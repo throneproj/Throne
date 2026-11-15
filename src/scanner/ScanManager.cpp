@@ -145,7 +145,7 @@ namespace Scanner {
     StartResult ScanManager::startTune(const std::shared_ptr<Configs::IpScan> &scan, StartMode mode) {
         const int scanId = scan->id;
         const auto &options = scan->config.tune;
-        if (mode == StartMode::RescanResults) return {tr("A settings search has no results to rescan")};
+        if (mode == StartMode::RescanResults) return {tr("A working settings search has no results to rescan")};
         if (const auto error = Tune::CheckOptions(options); !error.isEmpty()) return {error};
         QString error;
         const auto base = ResolveScanBase(*scan, &error);

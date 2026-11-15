@@ -329,7 +329,7 @@ namespace RouteEditor {
         switch (then) {
             case Then::Proxy: return tr("Proxy");
             case Then::Direct: return tr("Direct");
-            case Then::NoWarp: return tr("Server without WARP");
+            case Then::NoWarp: return tr("Proxy without WARP");
             case Then::Block: return tr("Block");
             case Then::HijackDns: return tr("Hijack DNS");
             case Then::Sniff: return tr("Sniff");
@@ -351,16 +351,16 @@ namespace RouteEditor {
 
     QString ThenHint(Then then) {
         switch (then) {
-            case Then::Proxy: return tr("The selected server. With built-in WARP on, it exits through Cloudflare.");
+            case Then::Proxy: return tr("The selected profile, exiting through WARP or Tor when one is on.");
             case Then::Direct: return tr("Leaves this computer without a proxy.");
-            case Then::NoWarp: return tr("The selected server without the WARP layer. Same as Proxy while WARP is off.");
+            case Then::NoWarp: return tr("The selected profile without the WARP or Tor layer. Same as Proxy while both are off.");
             case Then::Block: return tr("Rejected: the app sees the connection refused.");
             case Then::HijackDns: return tr("Answered by Throne's DNS. The DNS tab picks the servers.");
             case Then::Sniff: return tr("Reads the protocol and domain, then continues with the next rule.");
             case Then::Resolve: return tr("Resolves the domain to an IP, then continues with the next rule.");
             case Then::RouteOptions: return tr("Applies the connection options below, then continues with the next rule.");
             case Then::Bypass: return tr("Linux auto-redirect only: the connection skips sing-box in the kernel.");
-            case Then::Profile: return tr("Through this profile instead of the selected server.");
+            case Then::Profile: return tr("Through this profile instead of the selected profile.");
             case Then::Other: break;
         }
         return tr("An action this editor does not offer; it is kept as it is.");
@@ -494,7 +494,7 @@ namespace RouteEditor {
             {"package_name", QT_TRANSLATE_NOOP("RouteEditor", "Package name")},
             {"wifi_ssid", QT_TRANSLATE_NOOP("RouteEditor", "Wi-Fi name (SSID)")},
             {"wifi_bssid", QT_TRANSLATE_NOOP("RouteEditor", "Wi-Fi BSSID")},
-            {"rule_set", QT_TRANSLATE_NOOP("RouteEditor", "Rule set")},
+            {"rule_set", QT_TRANSLATE_NOOP("RouteEditor", "Rule-set")},
             {"invert", QT_TRANSLATE_NOOP("RouteEditor", "Invert")},
             {"action", QT_TRANSLATE_NOOP("RouteEditor", "Action")},
             {"outbound", QT_TRANSLATE_NOOP("RouteEditor", "Outbound")},

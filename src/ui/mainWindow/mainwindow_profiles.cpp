@@ -244,7 +244,7 @@ void MainWindow::on_menu_export_config_triggered() {
     if (!result->xrayConfig.isEmpty()) xrayConfigs.prepend(QJsonObject2QString(result->xrayConfig, false));
 
     QDialog dialog(this);
-    dialog.setWindowTitle(tr("Export config"));
+    dialog.setWindowTitle(tr("Export Config"));
     auto *layout = new QVBoxLayout(&dialog);
     auto *tabs = new QTabWidget(&dialog);
     const auto addConfigTab = [tabs](const QString &name, const QString &config) {
@@ -333,7 +333,7 @@ void MainWindow::display_qr_link(bool nkrFormat) {
             l->setScaledContents(true);
             layout()->addWidget(l);
             cb = new QCheckBox;
-            cb->setText(MainWindow::tr("Deep Link"));
+            cb->setText(MainWindow::tr("Deep link"));
             // Set before wiring toggled, so refresh() below draws it just once.
             cb->setChecked(showDeep);
             layout()->addWidget(cb);
@@ -490,12 +490,12 @@ void MainWindow::on_menu_remove_insecure_triggered() {
     }
 
     if (del_ids.isEmpty()) {
-        QMessageBox::information(this, tr("Remove insecure configs"), tr("No insecure configs found."));
+        QMessageBox::information(this, tr("Remove insecure profiles"), tr("No insecure profiles found."));
         return;
     }
     if (Configs::dataManager->settingsRepo->skip_delete_confirmation ||
         QMessageBox::question(this, tr("Confirmation"),
-            tr("Remove %1 insecure config(s)?").arg(del_ids.length()) + "\n" + remove_display + HopReferenceWarning(del_ids)) == QMessageBox::StandardButton::Yes) {
+            tr("Remove %1 insecure profile(s)?").arg(del_ids.length()) + "\n" + remove_display + HopReferenceWarning(del_ids)) == QMessageBox::StandardButton::Yes) {
         if (const auto refusal = Engine::ProfileService::Delete(del_ids, nullptr, {.stopRunning = true})) reportProfileDeleteRefusal(*refusal);
     }
 }

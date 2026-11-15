@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Route Profile</string>
+   <string>Routing Profile</string>
   </property>
   <layout class="QVBoxLayout" name="mainLayout">
    <item>
@@ -62,7 +62,7 @@
      <item row="2" column="1">
       <widget class="QLabel" name="defaultHint">
        <property name="text">
-        <string>Traffic that no rule matches. Proxy is the selected server, which exits through Cloudflare when built-in WARP is on.</string>
+        <string>Traffic that no rule matches. Proxy is the selected profile, which exits through Cloudflare when built-in WARP is on.</string>
        </property>
        <property name="wordWrap">
         <bool>true</bool>
@@ -133,7 +133,7 @@
         <item>
          <widget class="QPushButton" name="remotePreviewBtn">
           <property name="toolTip">
-           <string>Fetch the URL and show the routing profile without changing the current rules.</string>
+           <string>Fetch the URL and preview the routing profile.</string>
           </property>
           <property name="text">
            <string>Preview</string>

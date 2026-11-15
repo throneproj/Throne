@@ -291,7 +291,7 @@ void DialogManageRoutes::reloadProfileItems() {
         ui->route_prof->addItem(item->name);
         if (const auto owner = Configs::dataManager->groupsRepo->GetGroup(item->source_gid); owner != nullptr && owner->import_sub_route) {
             auto *row = new QListWidgetItem(tr("%1 (updated by subscription \"%2\")").arg(item->name, owner->name), ui->route_profiles);
-            row->setToolTip(tr("Every update of the subscription \"%1\" overwrites its rules. Deleting it stops the import.").arg(owner->name));
+            row->setToolTip(tr("Each update of \"%1\" overwrites this profile's rules.").arg(owner->name));
         } else {
             ui->route_profiles->addItem(item->name);
         }
@@ -310,7 +310,7 @@ void DialogManageRoutes::reloadProfileItems() {
 
 void DialogManageRoutes::show_predefined_dns_editor() {
     auto w = new QDialog(this);
-    w->setWindowTitle(tr("Predefined DNS Answers"));
+    w->setWindowTitle(tr("Predefined Answers"));
     w->setWindowModality(Qt::ApplicationModal);
 
     auto layout = new QGridLayout(w);
@@ -372,10 +372,8 @@ void DialogManageRoutes::show_dns_advanced_editor() {
     queryTimeout->setPlaceholderText(tr("10s (default)"));
     layout->addRow(tr("Query Timeout"), queryTimeout);
 
-    auto optimistic = new QCheckBox(tr("Optimistic Cache"), w);
-    optimistic->setToolTip(tr("<html><head/><body><p>Keep serving an expired answer while it is "
-                              "refreshed in the background. Cannot be combined with Disable Cache "
-                              "or Disable Expire.</p></body></html>"));
+    auto optimistic = new QCheckBox(tr("Optimistic cache"), w);
+    optimistic->setToolTip(tr("Serve expired answers while refreshing them in the background."));
     optimistic->setChecked(dns_advanced.optimistic);
     layout->addRow(optimistic);
 
@@ -383,21 +381,20 @@ void DialogManageRoutes::show_dns_advanced_editor() {
     optimisticTimeout->setPlaceholderText(tr("3d (default)"));
     layout->addRow(tr("Optimistic Timeout"), optimisticTimeout);
 
-    auto disableCache = new QCheckBox(tr("Disable Cache"), w);
+    auto disableCache = new QCheckBox(tr("Disable cache"), w);
     disableCache->setChecked(dns_advanced.disable_cache);
     layout->addRow(disableCache);
 
-    auto disableExpire = new QCheckBox(tr("Disable Expire"), w);
+    auto disableExpire = new QCheckBox(tr("Disable expire"), w);
     disableExpire->setChecked(dns_advanced.disable_expire);
     layout->addRow(disableExpire);
 
-    auto persistCache = new QCheckBox(tr("Save Cache To File"), w);
-    persistCache->setToolTip(tr("<html><head/><body><p>Write cached DNS answers and FakeIP mappings to the core's cache "
-                                "file so they survive a restart. Off by default: each entry costs a disk write.</p></body></html>"));
+    auto persistCache = new QCheckBox(tr("Save cache to file"), w);
+    persistCache->setToolTip(tr("Keep cached DNS answers and FakeIP mappings across restarts."));
     persistCache->setChecked(dns_advanced.persist_cache);
     layout->addRow(persistCache);
 
-    auto reverseMapping = new QCheckBox(tr("Reverse Mapping"), w);
+    auto reverseMapping = new QCheckBox(tr("Reverse mapping"), w);
     reverseMapping->setChecked(dns_advanced.reverse_mapping);
     layout->addRow(reverseMapping);
 
@@ -665,7 +662,7 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     // The fields the build refuses to start without while WARP is on; it ignores them all while WARP is off.
     const auto warpField = [this](Validation::Rule rule) -> Validation::Rule {
         return [this, rule = std::move(rule)](const QString &text) {
-            if (text.isEmpty()) return tr("Required while WARP is on: click Generate Warp Config, or fill it in.");
+            if (text.isEmpty()) return tr("Required while WARP is on: click Generate WARP config, or fill it in.");
             return rule ? rule(text) : QString();
         };
     };
@@ -694,12 +691,12 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
             ? QList<QLineEdit *>{ui->warp_masque_ep, ui->warp_masque_private_key, ui->warp_masque_peer_public_key, ui->warp_masque_ifc_addrs}
             : QList<QLineEdit *>{ui->warp_ep, ui->warp_private_key, ui->warp_public_key, ui->warp_ifc_addrs};
         const bool missing = std::any_of(fields.cbegin(), fields.cend(), [](const QLineEdit *edit) { return edit->text().trimmed().isEmpty(); });
-        return missing ? tr("WARP has no config yet: click Generate Warp Config.") : QString();
+        return missing ? tr("WARP has no config yet: click Generate WARP config.") : QString();
     }, nullptr, Validation::Severity::Error, ui->enable_warp->text());
     form->addRule({ui->enable_warp, ui->warp_mode}, [this] {
         if (!ui->enable_warp->isChecked() || ui->warp_mode->currentIndex() != 2 || !warpAmneziaPackets.isEmpty()) return QString();
         if (warpAmneziaPending) return tr("Generating the AmneziaWG QUIC signature...");
-        return warpAmneziaError.isEmpty() ? tr("AmneziaWG has no QUIC signature yet: click Generate Warp Config.") : warpAmneziaError;
+        return warpAmneziaError.isEmpty() ? tr("AmneziaWG has no QUIC signature yet: click Generate WARP config.") : warpAmneziaError;
     }, nullptr, Validation::Severity::Error, ui->warp_mode_l->text());
     form->markAll();
 
@@ -729,7 +726,7 @@ void DialogManageRoutes::generate_warp_config() {
             if (!conf) {
                 dialog->ui->warp_autogen->setText(originalText);
                 dialog->ui->warp_autogen->setEnabled(true);
-                MessageBoxWarning(tr("Failed to generate warp config"), error);
+                MessageBoxWarning(tr("Failed to generate WARP config"), error);
                 return;
             }
             if (amnezia) {
@@ -755,7 +752,7 @@ void DialogManageRoutes::generate_warp_config() {
             if (!packetError.isEmpty()) {
                 dialog->ui->warp_autogen->setText(originalText);
                 dialog->ui->warp_autogen->setEnabled(true);
-                MessageBoxWarning(tr("Failed to generate warp config"), packetError);
+                MessageBoxWarning(tr("Failed to generate WARP config"), packetError);
                 return;
             }
             dialog->ui->warp_autogen->setText(tr("Success!"));
@@ -1028,7 +1025,7 @@ void DialogManageRoutes::on_import_route_clicked()
     }
 
     auto w = new QDialog(this);
-    w->setWindowTitle(tr("Import routing profile"));
+    w->setWindowTitle(tr("Import Routing Profile"));
     w->setWindowModality(Qt::ApplicationModal);
 
     auto layout = new QGridLayout(w);

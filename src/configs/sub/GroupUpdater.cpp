@@ -1203,7 +1203,7 @@ namespace Subscription {
         int updatedRunning = -1;
         QList<Configs::HopReference> clearedHops;
         if (settings->sub_clear) {
-            MW_show_log(QObject::tr("Clearing servers..."));
+            MW_show_log(QObject::tr("Clearing profiles..."));
             auto doomed = members();
             if (options.keep_working) {
                 QSet<int> working;

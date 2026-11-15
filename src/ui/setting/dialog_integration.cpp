@@ -192,7 +192,7 @@ void DialogIntegration::updateApiControls()
 void DialogIntegration::regenerateApiKey()
 {
     if (!savedApiKey.isEmpty() && ui->api_key->text() == savedApiKey) {
-        QMessageBox box(QMessageBox::Question, tr("Regenerate Key"), tr("Generate a new key?"), QMessageBox::Yes | QMessageBox::Cancel, this);
+        QMessageBox box(QMessageBox::Question, tr("Regenerate key"), tr("Generate a new key?"), QMessageBox::Yes | QMessageBox::Cancel, this);
         box.setInformativeText(tr("Scripts using the current key will stop working."));
         if (box.exec() != QMessageBox::Yes) return;
     }

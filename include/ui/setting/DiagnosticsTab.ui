@@ -14,7 +14,7 @@
    <item>
     <widget class="QGroupBox" name="groupProfile">
      <property name="title">
-      <string>Performance profile</string>
+      <string>Performance Profile</string>
      </property>
      <layout class="QVBoxLayout" name="profileLayout">
       <item>
@@ -128,7 +128,7 @@
       <item>
        <widget class="QLabel" name="logsIntro">
         <property name="text">
-         <string>Saves the Throne log of this session as one file, including the core output shown in the log panel.</string>
+         <string>Saves the Throne log of this session as one file, including the core output shown in the Logs tab.</string>
         </property>
         <property name="wordWrap">
          <bool>true</bool>
@@ -162,7 +162,7 @@
            <string>Logs contain visited domains and server addresses.</string>
           </property>
           <property name="text">
-           <string>Save logs…</string>
+           <string>Save logs</string>
           </property>
          </widget>
         </item>

@@ -223,7 +223,7 @@ void DialogOtpManager::addOtpProfile() {
     if (dialog.exec() != QDialog::Accepted) return;
 
     if (!Configs::dataManager->otpProfilesRepo->AddOtpProfile(profile)) {
-        MessageBoxWarning(tr("OTP"), tr("Failed to store the OTP profile."));
+        MessageBoxWarning(tr("OTP"), tr("Failed to store the OTP entry."));
         return;
     }
     reloadOtpProfiles();
@@ -388,7 +388,7 @@ void DialogOtpManager::importOtpEntries(const QList<OTP::Entry> &entries, const 
 
     reloadOtpProfiles();
     otpManagerImportNotice(this, added > 0 ? QMessageBox::Information : QMessageBox::Warning,
-                           tr("Imported %1 OTP profile(s).").arg(added), reasons);
+                           tr("OTP entries imported: %1.").arg(added), reasons);
 }
 
 void DialogOtpManager::exportOtpAsLink(const std::shared_ptr<Configs::OtpProfile> &profile) {
@@ -423,5 +423,5 @@ void DialogOtpManager::exportOtpAsJson(const QList<std::shared_ptr<Configs::OtpP
     file.write(OTP::ExportToJson(entries));
     file.close();
 
-    MessageBoxInfo(tr("Export OTP"), tr("Exported %1 OTP profile(s) to:\n%2").arg(entries.size()).arg(path));
+    MessageBoxInfo(tr("Export OTP"), tr("OTP entries exported: %1\n%2").arg(entries.size()).arg(path));
 }

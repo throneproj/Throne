@@ -863,7 +863,7 @@ bool DialogScanInstance::collect(Configs::ScanConfig &out, int &baseListId, QStr
         resolver.level = phasesUi->resolver_level->currentData().toString();
         resolver.timeoutMs = 0;
         if (!phasesUi->resolver_timeout->text().trimmed().isEmpty() &&
-            !number(phasesUi->resolver_timeout, resolver.timeoutMs, true, tr("DNS tunnel test: the timeout must be between %1 and %2 ms.")))
+            !number(phasesUi->resolver_timeout, resolver.timeoutMs, true, tr("DNS Tunnel Test: the timeout must be between %1 and %2 ms.")))
             return false;
     }
 
@@ -874,10 +874,10 @@ bool DialogScanInstance::collect(Configs::ScanConfig &out, int &baseListId, QStr
     if (isGeneric()) {
         out.tcp.enabled = phasesUi->tcp_box->isChecked();
         if (!number(phasesUi->tcp_timeout, out.tcp.timeoutMs, out.tcp.enabled,
-                    tr("TCP connect: the timeout must be between %1 and %2 ms.")))
+                    tr("TCP Connect: the timeout must be between %1 and %2 ms.")))
             return false;
         if (!number(phasesUi->tcp_attempts, out.tcp.attempts, out.tcp.enabled,
-                    tr("TCP connect: attempts must be between %1 and %2.")))
+                    tr("TCP Connect: attempts must be between %1 and %2.")))
             return false;
     }
 
@@ -918,7 +918,7 @@ bool DialogScanInstance::collect(Configs::ScanConfig &out, int &baseListId, QStr
         test.profileId = selectedConfigProfile();
         test.url = phasesUi->config_url->text().trimmed();
         if (!number(phasesUi->config_timeout, test.timeoutMs, test.enabled,
-                    tr("Config test: the timeout must be between %1 and %2 ms.")))
+                    tr("Config Test: the timeout must be between %1 and %2 ms.")))
             return false;
         test.warmLatency = phasesUi->config_warm->isChecked();
     }
@@ -929,13 +929,13 @@ bool DialogScanInstance::collect(Configs::ScanConfig &out, int &baseListId, QStr
         warp.httpMode = phasesUi->warp_http_mode->currentData().toInt();
         warp.identity = phasesUi->warp_identity->currentData().toString();
         warp.profileId = phasesUi->warp_profile->currentData().toInt();
-        if (!number(phasesUi->warp_mtu, warp.mtu, true, tr("WARP test: the MTU must be between %1 and %2."))) return false;
+        if (!number(phasesUi->warp_mtu, warp.mtu, true, tr("WARP Test: the MTU must be between %1 and %2."))) return false;
         warp.sni = phasesUi->warp_sni->text().trimmed();
         warp.quicOpener = phasesUi->warp_quic_opener->isChecked();
         const bool amnezia = warp.mode == QStringLiteral("amneziawg");
-        if (!number(phasesUi->warp_jc, warp.jc, amnezia, tr("WARP test: Jc must be between %1 and %2."))) return false;
-        if (!number(phasesUi->warp_jmin, warp.jmin, amnezia, tr("WARP test: Jmin must be between %1 and %2."))) return false;
-        if (!number(phasesUi->warp_jmax, warp.jmax, amnezia, tr("WARP test: Jmax must be between %1 and %2."))) return false;
+        if (!number(phasesUi->warp_jc, warp.jc, amnezia, tr("WARP Test: Jc must be between %1 and %2."))) return false;
+        if (!number(phasesUi->warp_jmin, warp.jmin, amnezia, tr("WARP Test: Jmin must be between %1 and %2."))) return false;
+        if (!number(phasesUi->warp_jmax, warp.jmax, amnezia, tr("WARP Test: Jmax must be between %1 and %2."))) return false;
         QStringList packets;
         for (const auto *packet : warpPackets) packets << packet->text().trimmed();
         while (packets.size() < 5) packets << QString();
@@ -945,10 +945,10 @@ bool DialogScanInstance::collect(Configs::ScanConfig &out, int &baseListId, QStr
         warp.i4 = packets[3];
         warp.i5 = packets[4];
         warp.url = phasesUi->warp_url->text().trimmed();
-        if (!number(phasesUi->warp_timeout, warp.timeoutMs, true, tr("WARP test: the timeout must be between %1 and %2 ms.")))
+        if (!number(phasesUi->warp_timeout, warp.timeoutMs, true, tr("WARP Test: the timeout must be between %1 and %2 ms.")))
             return false;
         warp.warmLatency = phasesUi->warp_warm->isChecked();
-        if (amnezia && warp.jmin > warp.jmax) return fail(tr("WARP test: Jmin must not be larger than Jmax."));
+        if (amnezia && warp.jmin > warp.jmax) return fail(tr("WARP Test: Jmin must not be larger than Jmax."));
     }
 
     if (tuneUi != nullptr) {

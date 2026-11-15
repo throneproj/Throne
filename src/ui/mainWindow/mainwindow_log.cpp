@@ -171,7 +171,7 @@ void MainWindow::setupLogView() {
 
     // Both sit in the stats tab corner, which setupConnectionFilter() builds.
     logJumpLatestButton = new QToolButton(this);
-    logJumpLatestButton->setToolTip(tr("New logs are held while the view is scrolled up"));
+    logJumpLatestButton->setToolTip(tr("Scroll to the newest logs and keep following them."));
     connect(logJumpLatestButton, &QToolButton::clicked, this, [this] { releaseHeldLogs(); });
     logFilterButton = new QToolButton(this);
     logFilterButton->setIcon(ThemedIcon(QStringLiteral("funnel")));

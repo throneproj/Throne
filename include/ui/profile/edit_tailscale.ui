@@ -70,7 +70,7 @@
    <item row="8" column="0">
     <widget class="QCheckBox" name="exit_node_lan_access">
      <property name="text">
-      <string>Exit node allow lan access</string>
+      <string>Exit node allow LAN access</string>
      </property>
     </widget>
    </item>
@@ -97,7 +97,7 @@
    <item row="4" column="0">
     <widget class="QLabel" name="label_6">
      <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;comma seperated list of subnets&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>Subnets to advertise, comma-separated.</string>
      </property>
      <property name="text">
       <string>Advertise routes</string>
@@ -113,7 +113,7 @@
    <item row="5" column="0">
     <widget class="QCheckBox" name="global_dns">
      <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;use tailscale dns as the remote dns&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>Use Tailscale DNS as the remote DNS.</string>
      </property>
      <property name="text">
       <string>Global DNS</string>

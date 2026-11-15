@@ -91,12 +91,12 @@ DialogEditGroupAdvanced::DialogEditGroupAdvanced(const Configs::SubscriptionOpti
     const auto &settings = Configs::dataManager->settingsRepo;
     ui->update_interval->setSuffix(tr(" min"));
     ui->update_interval->setSpecialValueText(
-        tr("Keep Default (%1)").arg(settings->sub_auto_update >= 30 ? tr("%1 min").arg(settings->sub_auto_update) : tr("Off")));
+        tr("Keep default (%1)").arg(settings->sub_auto_update >= 30 ? tr("%1 min").arg(settings->sub_auto_update) : tr("Off")));
     ui->update_interval->setValue(options.update_interval);
-    ui->server_interval->setItemText(0, tr("Keep Default (%1)").arg(ui->server_interval->itemText(settings->sub_respect_server_interval ? 1 : 2)));
+    ui->server_interval->setItemText(0, tr("Keep default (%1)").arg(ui->server_interval->itemText(settings->sub_respect_server_interval ? 1 : 2)));
     ui->server_interval->setCurrentIndex(options.respect_server_interval ? (*options.respect_server_interval ? 1 : 2) : 0);
     if (serverIntervalHours > 0) {
-        const auto tip = ui->server_interval_l->toolTip() + "\n\n" + tr("This server last sent %1 h.").arg(serverIntervalHours);
+        const auto tip = tr("Use the update interval the subscription server sends (now %1 h).").arg(serverIntervalHours);
         ui->server_interval_l->setToolTip(tip);
         ui->server_interval->setToolTip(tip);
     }
@@ -104,9 +104,9 @@ DialogEditGroupAdvanced::DialogEditGroupAdvanced(const Configs::SubscriptionOpti
     const auto defaults = Subscription::ResolveIdentity(nullptr);
     globalSendHwid = defaults.sendHwid;
     ui->send_hwid->setItemText(static_cast<int>(Configs::sendHwid::keepDefault),
-                               tr("Keep Default (%1)").arg(globalSendHwid ? tr("On") : tr("Off")));
-    ui->tls_version->setItemText(0, tr("Keep Default (%1)").arg(ui->tls_version->itemText(overrideIndex(std::optional(defaults.tlsVersion)))));
-    ui->http_version->setItemText(0, tr("Keep Default (%1)").arg(ui->http_version->itemText(overrideIndex(std::optional(defaults.httpVersion)))));
+                               tr("Keep default (%1)").arg(globalSendHwid ? tr("On") : tr("Off")));
+    ui->tls_version->setItemText(0, tr("Keep default (%1)").arg(ui->tls_version->itemText(overrideIndex(std::optional(defaults.tlsVersion)))));
+    ui->http_version->setItemText(0, tr("Keep default (%1)").arg(ui->http_version->itemText(overrideIndex(std::optional(defaults.httpVersion)))));
     if (auto *model = qobject_cast<QStandardItemModel *>(ui->tls_version->model()); model && !QSslSocket::isProtocolSupported(QSsl::TlsV1_3)) {
         model->item(overrideIndex(std::optional(Configs::subTlsVersion::tls13)))->setEnabled(false);
     }
@@ -292,8 +292,8 @@ void DialogEditGroupAdvanced::syncCountryHint() {
         if (!rules.keep.isEmpty()) summary << tr("Keeps %1.").arg(names(rules.keep));
         if (!rules.drop.isEmpty()) summary << tr("Removes %1.").arg(names(rules.drop));
         const QString warning = profileCount > 0
-            ? tr("After each update, profiles whose exit country is unknown are IP-tested, so the next update can test up to %n profile(s). On a large group this takes a while.", nullptr, profileCount)
-            : tr("After each update, profiles whose exit country is unknown are IP-tested. On a large subscription this takes a while.");
+            ? tr("After each update, profiles whose exit country is unknown get an exit IP test, so the next update can test up to %n profile(s). On a large group this takes a while.", nullptr, profileCount)
+            : tr("After each update, profiles whose exit country is unknown get an exit IP test. On a large subscription this takes a while.");
         hint = summary.join(QLatin1Char(' ')) + QLatin1Char('\n') + warning;
     }
     ui->country_hint->setText(hint);

@@ -252,7 +252,7 @@ namespace ScannerUi {
         }
         if (scanId < 0) {
             auto scan = Configs::IpScansRepo::NewIpScan(Configs::IpScan::Kind::Tune);
-            scan->name = ScanItem::tr("Settings for %1").arg(profile->outbound->name);
+            scan->name = ScanItem::tr("Working settings for %1").arg(profile->outbound->name);
             scan->config.tune.profileId = profileId;
             if (!Configs::dataManager->ipScansRepo->AddIpScan(scan)) {
                 MessageBoxWarning(title, ScanItem::tr("Failed to store the scan."));

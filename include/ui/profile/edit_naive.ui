@@ -121,7 +121,7 @@
       <number>64</number>
      </property>
      <property name="toolTip">
-      <string>Parallel tunnel connections to the server, 0 to disable. More connections are easier to detect.</string>
+      <string>Parallel tunnel connections; more are easier to detect. 0: off.</string>
      </property>
     </widget>
    </item>

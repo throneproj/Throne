@@ -39,7 +39,7 @@ namespace {
         if (refusal.code == QLatin1String("exiting")) return {};
         return refusal.code == QLatin1String("editing")
                    ? MainWindow::tr("Routing Settings is open; close it and try again.")
-                   : MainWindow::tr("WARP has no config yet: click Generate Warp Config in Routing Settings > Egress.");
+                   : MainWindow::tr("WARP has no config yet: click Generate WARP config in Routing Settings > Exit.");
     }
 
     // Cut by characters, not pixels, since the shell may draw the tray menu; '&' doubled so it shows as itself.
@@ -223,7 +223,7 @@ void MainWindow::setupRoutingMenu() {
         connect(item, &QAction::triggered, this, [chooseExit, item] { chooseExit(item); });
     }
 
-    auto *downloadMenu = new QMenu(tr("Download route profile"), menu);
+    auto *downloadMenu = new QMenu(tr("Download routing profile"), menu);
     const QList<QPair<QString, QString>> routeCountries{{"China", tr("China")}, {"Iran", tr("Iran")}, {"Russia", tr("Russia")}};
     for (const auto &entry : routeCountries) {
         const QString country = entry.first;
@@ -239,7 +239,7 @@ void MainWindow::setupRoutingMenu() {
                     guard->setText(label);
                     guard->setEnabled(true);
                     if (!resp.error.isEmpty()) {
-                        MessageBoxWarning(tr("Download route profile"), QObject::tr("Requesting profile error: %1").arg(resp.error + "\n" + resp.data));
+                        MessageBoxWarning(tr("Download routing profile"), QObject::tr("Requesting profile error: %1").arg(resp.error + "\n" + resp.data));
                         return;
                     }
                     handle_add_remote_routes(resp.data);
@@ -338,7 +338,7 @@ void MainWindow::setupTrayMenu() {
     UiMode::MarkAdvanced(actOtpCodes);
     trayMenu->addAction(actOtpCodes);
     trayMenu->addAction(ui->actionShow_window);
-    auto *preferencesMenu = trayMenu->addMenu(tr("Preferences"));
+    auto *preferencesMenu = trayMenu->addMenu(tr("Program"));
     preferencesMenu->addAction(ui->actionStart_with_system);
     preferencesMenu->addAction(ui->actionRemember_last_proxy);
     preferencesMenu->addAction(ui->actionAllow_LAN);

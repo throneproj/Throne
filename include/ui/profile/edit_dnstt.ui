@@ -342,7 +342,7 @@
             <item>
              <widget class="QPushButton" name="ssh_choose_pk">
               <property name="text">
-               <string>Choose File</string>
+               <string>Choose file</string>
               </property>
              </widget>
             </item>

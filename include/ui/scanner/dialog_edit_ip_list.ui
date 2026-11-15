@@ -3,7 +3,7 @@
  <class>DialogEditIpList</class>
  <widget class="QDialog" name="DialogEditIpList">
   <property name="windowTitle">
-   <string>Edit IP list</string>
+   <string>Edit IP List</string>
   </property>
   <layout class="QVBoxLayout" name="layout_main">
    <item>

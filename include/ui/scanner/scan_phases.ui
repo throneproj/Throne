@@ -56,7 +56,7 @@
    <item>
     <widget class="QGroupBox" name="tcp_box">
      <property name="title">
-      <string>TCP connect</string>
+      <string>TCP Connect</string>
      </property>
      <property name="checkable">
       <bool>true</bool>
@@ -311,7 +311,7 @@
    <item>
     <widget class="QGroupBox" name="config_box">
      <property name="title">
-      <string>Config test</string>
+      <string>Config Test</string>
      </property>
      <property name="checkable">
       <bool>true</bool>
@@ -385,7 +385,7 @@
    <item>
     <widget class="QGroupBox" name="warp_box">
      <property name="title">
-      <string>WARP test</string>
+      <string>WARP Test</string>
      </property>
      <layout class="QFormLayout" name="warp_form">
       <item row="0" column="0" colspan="2">
@@ -684,7 +684,7 @@
    <item>
     <widget class="QGroupBox" name="resolver_box">
      <property name="title">
-      <string>DNS tunnel test</string>
+      <string>DNS Tunnel Test</string>
      </property>
      <layout class="QFormLayout" name="resolver_form">
       <item row="0" column="0" colspan="2">

@@ -352,7 +352,7 @@ namespace Engine::AssetUpdates {
                 if (classified.refGeoip) missing << QStringLiteral("geoip.dat");
                 if (classified.refGeosite) missing << QStringLiteral("geosite.dat");
                 if (assetGeoUnattendedFetch.load()) {
-                    MW_show_log(QStringLiteral("[Geo assets] The Xray config \"%1\" needs geo data files that are not installed: %2. Downloading them.")
+                    MW_show_log(QStringLiteral("[Geo assets] The Xray config \"%1\" needs geo assets that are not installed: %2. Downloading them.")
                                     .arg(contextName, missing.join(QStringLiteral(", "))));
                     // Queued even from the main thread, so the caller reports its failure before a retry can run.
                     if (auto *app = QCoreApplication::instance()) {
@@ -362,7 +362,7 @@ namespace Engine::AssetUpdates {
                     }
                     return true;
                 }
-                MW_show_log(MainWindowTr::tr("The Xray config \"%1\" needs geo data files that are not installed: %2. Download them under Basic Settings > Core > Xray Core.")
+                MW_show_log(MainWindowTr::tr("The Xray config \"%1\" needs geo assets that are not installed: %2. Download them under Basic Settings > Core > Xray Core.")
                                 .arg(contextName, missing.join(QStringLiteral(", "))));
             }
             return true;

@@ -287,7 +287,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             [this](const QPoint& pos) { show_group_tab_menu(pos); });
     auto btnFilter = new QToolButton(this);
     btnFilter->setIcon(ThemedIcon(QStringLiteral("funnel")));
-    btnFilter->setToolTip(QString("%1\n%2").arg(tr("Enable Filter"), QKeySequence(QKeySequence::Find).toString(QKeySequence::NativeText)));
+    btnFilter->setToolTip(QString("%1 (%2)").arg(tr("Enable Filter"), QKeySequence(QKeySequence::Find).toString(QKeySequence::NativeText)));
     btnFilter->setShortcut(QKeySequence::Find);
     btnFilter->setCheckable(true);
     // Sits inside the tab strip: an ignored right-click here would propagate to the group menu.
@@ -441,7 +441,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         // The column-widths action carries its shortcut id as data, so it must never be read as a sort key.
         auto execHeaderMenu = [&](QMenu& menu) -> QAction* {
             if (!menu.isEmpty()) menu.addSeparator();
-            QAction* stopSorting = group->KeepsSorted() ? menu.addAction(tr("Stop Sorting")) : nullptr;
+            QAction* stopSorting = group->KeepsSorted() ? menu.addAction(tr("Stop sorting")) : nullptr;
             menu.addAction(ui->actionRefresh_Column_Widths);
             auto* chosen = menu.exec(header->mapToGlobal(pos));
             if (chosen != nullptr && chosen == stopSorting) {
@@ -458,7 +458,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         };
         if (columnIndex == ProfilesTableModel::ColType && Configs::dataManager->settingsRepo->show_config_security) {
             QMenu menu(this);
-            auto* sortByLabel = menu.addAction(tr("Sort By:"));
+            auto* sortByLabel = menu.addAction(tr("Sort by:"));
             sortByLabel->setEnabled(false);
 
             struct TypeSortOption { Configs::typeBy value; QString label; };
@@ -485,7 +485,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             auto* includeLabel = menu.addAction(tr("Include:"));
             includeLabel->setEnabled(false);
 
-            auto* actionShowOutIP = menu.addAction(tr("Out IP"));
+            auto* actionShowOutIP = menu.addAction(tr("Exit IP"));
             actionShowOutIP->setCheckable(true);
             actionShowOutIP->setChecked(group->test_items_to_show == Configs::testShowItems::all ||
                 group->test_items_to_show == Configs::testShowItems::ipOnly);
@@ -513,15 +513,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             connect(actionShowSpeed, &QAction::triggered, this, updateTestItemsToShow);
 
             menu.addSeparator();
-            auto* sortByLabel = menu.addAction(tr("Sort By:"));
+            auto* sortByLabel = menu.addAction(tr("Sort by:"));
             sortByLabel->setEnabled(false);
 
             struct SortOption { int value; QString label; };
             QList<SortOption> options = {
                 { static_cast<int>(Configs::testBy::latency), tr("Latency") },
-                { static_cast<int>(Configs::testBy::dlSpeed), tr("Download Speed") },
-                { static_cast<int>(Configs::testBy::ulSpeed), tr("Upload Speed") },
-                { static_cast<int>(Configs::testBy::ipOut), tr("IP Out") }
+                { static_cast<int>(Configs::testBy::dlSpeed), tr("Download speed") },
+                { static_cast<int>(Configs::testBy::ulSpeed), tr("Upload speed") },
+                { static_cast<int>(Configs::testBy::ipOut), tr("Exit IP") }
             };
             for (const auto& opt : options) {
                 auto* act = menu.addAction(opt.label);
@@ -539,7 +539,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         }
         if (columnIndex == ProfilesTableModel::ColTraffic) {
             QMenu menu(this);
-            auto* sortByLabel = menu.addAction(tr("Sort By:"));
+            auto* sortByLabel = menu.addAction(tr("Sort by:"));
             sortByLabel->setEnabled(false);
 
             struct TrafficSortOption { int value; QString label; };

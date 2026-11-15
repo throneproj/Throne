@@ -19,9 +19,7 @@ EditOpenVPN::EditOpenVPN(QWidget *parent) : QWidget(parent), ui(new Ui::EditOpen
     ui->tunnel_dns->addItem(tr("Prefer"), QString(Configs::kTunnelDnsPrefer));
     ui->tunnel_dns->addItem(tr("Strict"), QString(Configs::kTunnelDnsStrict));
 
-    ui->otp_profile_l->setToolTip(tr("<html><head/><body><p>Binds an authenticator entry to this profile. %1 in the "
-                                     "username or password is replaced with a generated code at connect time, and a "
-                                     "static challenge is answered with the same code.</p></body></html>")
+    ui->otp_profile_l->setToolTip(tr("OTP entry whose code replaces %1 and answers static challenges.")
                                       .arg(Configs::kOtpPlaceholder));
     ui->password->setPlaceholderText(tr("%1 is replaced at connect time").arg(Configs::kOtpPlaceholder));
 

@@ -73,8 +73,8 @@ void StartStopButton::updateToolTip() {
     switch (m_lock) {
         case Lock::Hidden: break;
         case Lock::Pending: tip += "\n" + tr("Kill switch: starting…"); break;
-        case Lock::Blocking: tip += "\n" + tr("Kill switch: Tun is not running, so most traffic is blocked"); break;
-        case Lock::Passing: tip += "\n" + tr("Kill switch: on — traffic only flows through Throne's Tun"); break;
+        case Lock::Blocking: tip += "\n" + tr("Kill switch: most traffic blocked while Tun is off"); break;
+        case Lock::Passing: tip += "\n" + tr("Kill switch: on"); break;
         case Lock::Fault:
             tip += "\n" + (Sys::KillSwitch::instance()->failedForIdentity() ? tr("Kill switch is blocking traffic") : tr("Kill switch is not active"));
             break;

@@ -52,12 +52,12 @@ ResolverSourceWidget::ResolverSourceWidget(QWidget *parent) : QWidget(parent) {
     m_ipList->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
     m_ipList->setMinimumContentsLength(16);
     m_ipListLabel->setBuddy(m_ipList);
-    const auto hint = tr("Its addresses are used after the lines above; an entry without a port uses port 53.");
+    const auto hint = tr("Resolvers from this IP list, used after the lines above. Default port: 53.");
     m_ipListLabel->setToolTip(hint);
     m_ipList->setToolTip(hint);
     m_row->addWidget(m_ipListLabel);
     m_row->addWidget(m_ipList, 1);
-    m_find = new QPushButton(tr("Find resolvers…"), this);
+    m_find = new QPushButton(tr("Find resolvers"), this);
     m_find->setAutoDefault(false);
     m_row->addWidget(m_find);
     layout->addLayout(m_row);
@@ -103,7 +103,7 @@ void ResolverSourceWidget::setIpList(int id) {
 void ResolverSourceWidget::setProfileId(int id) {
     m_profileId = id;
     m_find->setEnabled(id >= 0);
-    m_find->setToolTip(id >= 0 ? tr("Opens a scan that finds the resolvers relaying this profile's tunnel, as last saved.")
+    m_find->setToolTip(id >= 0 ? tr("Scan for resolvers that relay this profile's tunnel, as last saved.")
                                : tr("Save the profile first; the scan tests the saved profile."));
 }
 

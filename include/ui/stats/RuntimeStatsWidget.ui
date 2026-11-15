@@ -150,7 +150,7 @@
         <item row="3" column="2">
          <widget class="QLabel" name="labelOutIp">
           <property name="text">
-           <string>Out IP</string>
+           <string>Exit IP</string>
           </property>
          </widget>
         </item>
@@ -478,7 +478,7 @@
       <item row="0" column="9">
        <widget class="QLabel" name="labelRouteUpdate">
         <property name="text">
-         <string>Next remote route update</string>
+         <string>Next remote routing profile update</string>
         </property>
        </widget>
       </item>

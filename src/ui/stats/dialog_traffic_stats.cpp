@@ -166,7 +166,7 @@ void DialogTrafficStats::populateProfileTable(long long fromSecs, long long toSe
             } else if (const auto prof = Configs::dataManager->profilesRepo->GetProfile(u.profile_id)) {
                 name = prof->name;
             } else if (u.profile_id == Configs::warpProfileID) {
-                name = "built-in warp";
+                name = "built-in WARP";
             } else {
                 name = tr("Profile #%1 (deleted)").arg(u.profile_id);
             }

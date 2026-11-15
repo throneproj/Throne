@@ -230,9 +230,9 @@ namespace {
             if (offerBypass) others.append({Then::Bypass, RouteThenPicker::tr("Linux auto-redirect only")});
             const QList<QPair<QString, QList<QPair<Then, QString>>>> sections = {
                 {RouteThenPicker::tr("Send through"),
-                 {{Then::Proxy, RouteThenPicker::tr("The selected server")},
+                 {{Then::Proxy, RouteThenPicker::tr("The selected profile")},
                   {Then::Direct, RouteThenPicker::tr("No proxy")},
-                  {Then::NoWarp, RouteThenPicker::tr("Proxy minus the WARP layer")}}},
+                  {Then::NoWarp, RouteThenPicker::tr("Proxy minus the WARP or Tor layer")}}},
                 {RouteThenPicker::tr("Stop it"), {{Then::Block, {}}}},
                 {RouteThenPicker::tr("Other actions"), others},
             };

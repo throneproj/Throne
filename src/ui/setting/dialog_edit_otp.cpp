@@ -138,7 +138,7 @@ void DialogEditOtp::accept() {
     if (!form->validateAll()) return;
     Configs::OtpProfile candidate;
     if (const auto error = collect(candidate); !error.isEmpty()) {
-        MessageBoxWarning(tr("OTP Profile"), error);
+        MessageBoxWarning(tr("OTP Entry"), error);
         return;
     }
 

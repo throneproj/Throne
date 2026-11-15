@@ -59,8 +59,7 @@ public:
 
         test_filter = new QLineEdit(this->viewport()); 
         test_filter->setPlaceholderText(tr("Filter by country or service..."));
-        test_filter->setToolTip(tr("Countries and working services, e.g. \"DE gemini\" or \"ai\".\n"
-                                   "\"!netflix\" finds profiles Netflix refused."));
+        test_filter->setToolTip(tr("Countries or working services, e.g. \"DE gemini\"; \"!netflix\" finds refusals."));
         test_filter->setClearButtonEnabled(true);
         connect(test_filter, &QLineEdit::textChanged, [this](const QString &text) {
             emit testFilterChanged(text);
@@ -177,7 +176,7 @@ public slots:
         }
 
         if (auto btn = qobject_cast<QToolButton*>(sender())) {
-            btn->setToolTip(QString("%1\n%2").arg(visible ? tr("Disable Filter") : tr("Enable Filter"), QKeySequence(QKeySequence::Find).toString(QKeySequence::NativeText)));
+            btn->setToolTip(QString("%1 (%2)").arg(visible ? tr("Disable Filter") : tr("Enable Filter"), QKeySequence(QKeySequence::Find).toString(QKeySequence::NativeText)));
         }
 
         for (QLineEdit *edit : filterEdits()) edit->setVisible(visible);

@@ -242,7 +242,7 @@ QString DataViewHtmlGenerator::downloadSectionHtml() {
 }
 
 DataViewHtmlGenerator::Content DataViewHtmlGenerator::speedtestSection() {
-    auto firstLine = MainWindowTr::tr("Running Speedtest: %1").arg(speedtest_.profileName);
+    auto firstLine = MainWindowTr::tr("Running speed test: %1").arg(speedtest_.profileName);
     if (speedtest_.totalProfiles > 1) {
         firstLine += QString(" (%1 / %2)").arg(Int2String(testProgress.load()), Int2String(speedtest_.totalProfiles));
     }
@@ -263,7 +263,7 @@ DataViewHtmlGenerator::Content DataViewHtmlGenerator::speedtestSection() {
 QString DataViewHtmlGenerator::latencyTestSectionHtml() {
     QString res;
     QString content = MainWindowTr::tr("Running URL test");
-    if (latencyTest_.kind == LatencyTestPanelState::Kind::Ip) content = MainWindowTr::tr("Running IP test");
+    if (latencyTest_.kind == LatencyTestPanelState::Kind::Ip) content = MainWindowTr::tr("Running exit IP test");
     else if (latencyTest_.kind == LatencyTestPanelState::Kind::Service) content = MainWindowTr::tr("Running service check");
     if (latencyTest_.totalProfiles > 1) {
         auto progress = getProgressBar(testProgress.load(), latencyTest_.totalProfiles);

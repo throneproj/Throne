@@ -63,7 +63,7 @@ namespace Configs_network {
             return false;
         }
         if (!settings->disable_mixed_inbound) return true;
-        if (!settings->spmode_vpn) *error = QObject::tr("Request with proxy but the mixed inbound is disabled and Tun Mode is off.");
+        if (!settings->spmode_vpn) *error = QObject::tr("Request with proxy but the mixed inbound is disabled and Tun mode is off.");
         return false;
     }
 

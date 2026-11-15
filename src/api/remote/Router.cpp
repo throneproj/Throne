@@ -174,7 +174,7 @@ namespace RemoteApi::RouterImpl {
         if (profileId == Stats::DIRECT_STAT_PROFILE_ID) return QStringLiteral("Direct");
         if (const auto name = metaNames.value(profileId); !name.isEmpty()) return name;
         if (const auto profile = Configs::dataManager->profilesRepo->GetProfile(profileId)) return profileDisplayName(*profile);
-        if (profileId == Configs::warpProfileID) return QStringLiteral("built-in warp");
+        if (profileId == Configs::warpProfileID) return QStringLiteral("built-in WARP");
         return {};
     }
 }

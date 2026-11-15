@@ -66,7 +66,7 @@ void TrayOtpCodes::rebuild() {
     }
 
     if (m_list->count() == 0) {
-        auto *empty = new QListWidgetItem(profiles.isEmpty() ? tr("No OTP profiles yet") : tr("No matches"));
+        auto *empty = new QListWidgetItem(profiles.isEmpty() ? tr("No OTP entries yet") : tr("No matches"));
         empty->setFlags(Qt::NoItemFlags);
         m_list->addItem(empty);
     }

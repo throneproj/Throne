@@ -471,7 +471,7 @@ void DialogScanInstance::saveTuneResultAsProfile() {
         scanInstanceTuneNotice(this, QMessageBox::Warning, title, tr("The settings could not be applied to the copy: %1.").arg(error));
         return;
     }
-    const QString name = tr("%1 (tuned)").arg(profile->outbound->name);
+    const QString name = tr("%1 (working settings)").arg(profile->outbound->name);
     copy->name = name;
     copy->outbound->name = name;
     if (Engine::ProfileService::Add(copy, profile->gid)) {

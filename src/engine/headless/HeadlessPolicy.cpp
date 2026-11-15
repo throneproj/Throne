@@ -69,7 +69,7 @@ namespace Engine {
     }
 
     void HeadlessPolicy::strictRouteUnavailable(const QString &error) {
-        MW_show_log(QStringLiteral("Windows could not enable strict routing; disable Strict Route in the Tun settings. Error: %1").arg(error));
+        MW_show_log(QStringLiteral("Windows could not enable strict routing; disable Strict route in the Tun Settings. Error: %1").arg(error));
     }
 
     void HeadlessPolicy::offerCoreReset(const QString &error, std::function<void(bool)> answered) {
@@ -144,7 +144,7 @@ namespace Engine {
     void HeadlessPolicy::vpnChallengesCleared() {}
 
     void HeadlessPolicy::settingsNeedTunRestart() {
-        MW_show_log(QStringLiteral("Tun settings changed; they take effect when Tun restarts."));
+        MW_show_log(QStringLiteral("Tun Settings changed; they take effect when Tun restarts."));
     }
 
     bool HeadlessPolicy::confirmRestartProgram() {

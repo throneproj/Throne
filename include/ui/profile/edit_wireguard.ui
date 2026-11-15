@@ -91,7 +91,7 @@
       <item row="5" column="0">
        <widget class="QLabel" name="local_addr_l">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;comma seperated list of subnets&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>Interface addresses with prefix, comma-separated.</string>
         </property>
         <property name="text">
          <string>Local Address</string>
@@ -137,7 +137,7 @@
       <item row="8" column="1">
        <widget class="QCheckBox" name="sys_ifc">
         <property name="text">
-         <string>Use System Interface</string>
+         <string>Use system interface</string>
         </property>
        </widget>
       </item>
@@ -151,7 +151,7 @@
       <item row="10" column="0" colspan="2">
        <widget class="QPushButton" name="amnezia_options">
         <property name="toolTip">
-         <string>Edit the AmneziaWG obfuscation parameters (junk packets, magic headers, signatures).</string>
+         <string>Edit the AmneziaWG obfuscation parameters.</string>
         </property>
         <property name="text">
          <string>Amnezia Options</string>
@@ -161,10 +161,10 @@
       <item row="11" column="0" colspan="2">
        <widget class="QPushButton" name="warp_autogen">
         <property name="toolTip">
-         <string>Generate a Cloudflare WARP account and fill the key, address and endpoint fields above.</string>
+         <string>Create a Cloudflare WARP account and fill in the fields above.</string>
         </property>
         <property name="text">
-         <string>Generate Warp Config</string>
+         <string>Generate WARP config</string>
         </property>
        </widget>
       </item>

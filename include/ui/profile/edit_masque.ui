@@ -20,7 +20,7 @@
       <item row="0" column="0">
        <widget class="QLabel" name="private_key_l">
         <property name="toolTip">
-         <string>Base64 DER of the enrolled ECDSA P-256 key; it signs the TLS client certificate.</string>
+         <string>Base64 DER of the enrolled ECDSA P-256 key.</string>
         </property>
         <property name="text">
          <string>Private Key</string>
@@ -36,7 +36,7 @@
       <item row="1" column="0">
        <widget class="QLabel" name="peer_public_key_l">
         <property name="toolTip">
-         <string>Base64 DER of the server's public key. When set, it pins the server certificate, even with Allow insecure.</string>
+         <string>Base64 DER of the server's public key; pins the server certificate.</string>
         </property>
         <property name="text">
          <string>Peer Public Key</string>
@@ -52,7 +52,7 @@
       <item row="2" column="0">
        <widget class="QLabel" name="address_l">
         <property name="toolTip">
-         <string>Comma separated list of the tunnel's own addresses, e.g. 172.16.0.2/32,2606:4700::1/128</string>
+         <string>Tunnel addresses, comma-separated, e.g. 172.16.0.2/32,2606:4700::1/128.</string>
         </property>
         <property name="text">
          <string>Local Address</string>
@@ -120,7 +120,7 @@
       <item row="5" column="0" colspan="2">
        <widget class="QPushButton" name="warp_autogen">
         <property name="toolTip">
-         <string>Register a new Cloudflare WARP device for MASQUE and fill the key, address and server fields.</string>
+         <string>Register a Cloudflare WARP device for MASQUE and fill in its fields.</string>
         </property>
         <property name="text">
          <string>Generate WARP identity</string>

@@ -60,7 +60,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Update Subscription</string>
+        <string>Update subscription</string>
        </property>
       </widget>
      </item>

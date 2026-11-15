@@ -234,7 +234,7 @@ namespace Engine {
             ent->ip_out = QString::fromStdString(res.ip.value());
             ent->test_country = QString::fromStdString(res.country_code.value());
         } else {
-            MW_show_log(MainWindowTr::tr("[%1] IP test error: %2").arg(ent->outbound->DisplayTypeAndName(), error));
+            MW_show_log(MainWindowTr::tr("[%1] Exit IP test error: %2").arg(ent->outbound->DisplayTypeAndName(), error));
             ent->ip_out.clear();
             ent->test_country.clear();
         }
@@ -376,7 +376,7 @@ namespace Engine {
         }
 
         if (!rpcOK) {
-            reportProbeFailure(MainWindowTr::tr("IP test failed: %1"), coreError, target.entID);
+            reportProbeFailure(MainWindowTr::tr("Exit IP test failed: %1"), coreError, target.entID);
             return;
         }
 
@@ -627,7 +627,7 @@ namespace Engine {
                 }
                 batchDone.acquire(testCount);
 
-                MW_show_log(isUrl ? "URL test for batch done." : "IP test for batch done.");
+                MW_show_log(isUrl ? "URL test for batch done." : "Exit IP test for batch done.");
                 runOnUiThread([=, this] {
                     observer_->testedProfilesChanged(ids);
                 });
@@ -665,7 +665,7 @@ namespace Engine {
                     ProfileService::RemoveUnavailable(clearable);
                 });
             }
-            MW_show_log(isUrl ? MainWindowTr::tr("URL test finished!") : MainWindowTr::tr("IP test finished!"));
+            MW_show_log(isUrl ? MainWindowTr::tr("URL test finished!") : MainWindowTr::tr("Exit IP test finished!"));
         });
         return true;
     }
@@ -852,7 +852,7 @@ namespace Engine {
             finish();
             runOnUiThread([=,this]{
                 observer_->testedProfilesChanged(profileIDs);
-                MW_show_log(MainWindowTr::tr("Speedtest finished!"));
+                MW_show_log(MainWindowTr::tr("Speed test finished!"));
             });
         });
         return true;

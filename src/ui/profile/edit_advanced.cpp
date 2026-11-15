@@ -336,7 +336,7 @@ void EditAdvanced::accept() {
 }
 
 void EditAdvanced::setCacheButtonText(QPushButton *button, const QStringList &value) {
-    button->setText(value.isEmpty() ? tr("Not Set") : tr("Already set"));
+    button->setText(value.isEmpty() ? tr("Not set") : tr("Already set"));
 }
 
 void EditAdvanced::editCachedList(QPushButton *button, const QString &title, QStringList &target) {

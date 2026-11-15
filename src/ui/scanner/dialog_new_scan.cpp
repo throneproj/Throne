@@ -40,7 +40,7 @@ namespace {
 }
 
 DialogNewScan::DialogNewScan(QWidget *parent) : QDialog(parent) {
-    setWindowTitle(tr("New scan"));
+    setWindowTitle(tr("New Scan"));
     form = new Validation::Form(this);
 
     auto *layout = new QVBoxLayout(this);
