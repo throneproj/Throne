@@ -10,6 +10,7 @@
 #include <cmath>
 
 #include "include/configs/ParseDiagnostics.h"
+#include "include/configs/common/Protocols.h"
 #include "include/configs/common/ResolverSource.h"
 #include "include/configs/common/utils.h"
 #include "include/database/DatabaseManager.h"
@@ -184,7 +185,7 @@ namespace Configs {
     }
 
     bool IsDnsTunnelProfile(const Profile &profile) {
-        return profile.type == QLatin1String("dnstt") || profile.type == QLatin1String("masterdns") || dnsTunnelIsXdns(profile);
+        return Protocols::Is(profile.type, Protocols::DnsTunnel) || dnsTunnelIsXdns(profile);
     }
 
     int DnsTunnelStartupAllowanceMs(const std::shared_ptr<Profile> &profile) {

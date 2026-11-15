@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"ThroneCore/internal/probe"
+	"ThroneCore/internal/testenv"
 
 	box "github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/adapter"
@@ -94,97 +95,57 @@ type SpeedTestHandler interface {
 	OnDone()
 }
 
-type testEnv struct {
-	box   probe.Box
-	tags  []string
-	close func()
-}
-
-// Copy of rpc.prepareTestEnv. A probe env builds its own eager Xray instances and its own box
-// (PlatformLogWriter nil: no cache.db sharing, no accounting; its log reaches the sink through a
-// writer attached afterwards) around a separate context holder; `current` measures the running
-// instance instead and owns nothing.
-func prepareTestEnv(current *Instance, testCurrent bool, platform PlatformInterface, request *TestRequest) (*testEnv, error) {
-	holder := new(boxContextHolder)
-	prepareXray := xrayPreparer(request.XrayOutboundDNSStrategy, holder.get)
-
+// The probe box gets no PlatformLogWriter: it shares no cache.db and keeps no accounting.
+func prepareTestEnv(current *Instance, testCurrent bool, platform PlatformInterface, request *TestRequest) (*testenv.Env[*boxHandle], error) {
 	if testCurrent {
 		if current == nil || !current.running() {
 			return nil, errInstanceNotRunning
 		}
-		outTags := request.tags
-		useDefaultOutbound := request.UseDefaultOutbound
-		if _, exists := current.outbounds.Outbound("proxy"); exists {
-			outTags = []string{"proxy"}
-		} else {
-			useDefaultOutbound = true
-		}
-		if useDefaultOutbound {
-			outTags = []string{current.outbounds.Default().Tag()}
-		}
-		return &testEnv{box: current.handle, tags: outTags, close: func() {}}, nil
+		return testenv.Current(current.handle, request.tags, request.UseDefaultOutbound), nil
 	}
 
 	installProtector(platform)
 
-	var cleanups []func()
-	unwind := func() {
-		for i := len(cleanups) - 1; i >= 0; i-- {
-			cleanups[i]()
-		}
+	envRequest := testenv.Request{
+		NeedXray:           request.NeedXray,
+		XrayConfig:         request.XrayConfig,
+		XrayFullConfigs:    request.xrayFullConfigs,
+		XrayDNSStrategy:    request.XrayOutboundDNSStrategy,
+		Tags:               request.tags,
+		UseDefaultOutbound: request.UseDefaultOutbound,
 	}
-
-	if request.NeedXray {
-		instance, err := startXrayInstance(request.XrayConfig, prepareXray)
+	// No egress, as for the running instance: the protect controller covers the probe's Xray sockets.
+	return testenv.Prepare(envRequest, nil, func(publish func(context.Context)) (*boxHandle, func(), error) {
+		var platformInterface adapter.PlatformInterface
+		if platform != nil {
+			platformInterface = newPlatformInterfaceWrapper(platform)
+		}
+		ctx := newBoxContext(platform, platformInterface)
+		options, err := parseConfig(ctx, request.CoreConfig)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		cleanups = append(cleanups, func() { _ = instance.Close() })
-	}
-
-	fullXray, err := startXrayFullConfigs(request.xrayFullConfigs, prepareXray)
-	if err != nil {
-		unwind()
-		return nil, err
-	}
-	cleanups = append(cleanups, func() { closeXrayInstances(fullXray) })
-
-	var platformInterface adapter.PlatformInterface
-	if platform != nil {
-		platformInterface = newPlatformInterfaceWrapper(platform)
-	}
-	ctx := newBoxContext(platform, platformInterface)
-	options, err := parseConfig(ctx, request.CoreConfig)
-	if err != nil {
-		unwind()
-		return nil, err
-	}
-	probe.LimitWireGuardWorkers(&options)
-	ctx, cancel := context.WithCancel(ctx)
-	boxInstance, err := box.New(box.Options{
-		Context: ctx,
-		Options: options,
+		probe.LimitWireGuardWorkers(&options)
+		ctx, cancel := context.WithCancel(ctx)
+		boxInstance, err := box.New(box.Options{
+			Context: ctx,
+			Options: options,
+		})
+		if err != nil {
+			cancel()
+			return nil, nil, E.Cause(err, "create service")
+		}
+		// Before Start, which flushes the lines logged so far; a disabled log is a no-op factory.
+		logFactory := boxInstance.LogFactory()
+		logFactory.AttachPlatformWriter(testLogWriter{level: logFactory.Level()})
+		publish(ctx)
+		closeBox := func() { closeBoxWithTimeout(cancel, boxInstance, boxCloseTimeout, false) }
+		if err = boxInstance.Start(); err != nil {
+			closeBox()
+			return nil, nil, E.Cause(err, "start service")
+		}
+		return &boxHandle{ctx: ctx, Box: boxInstance}, closeBox, nil
 	})
-	if err != nil {
-		cancel()
-		unwind()
-		return nil, E.Cause(err, "create service")
-	}
-	// Before Start, which flushes the lines logged so far; a disabled log is a no-op factory.
-	logFactory := boxInstance.LogFactory()
-	logFactory.AttachPlatformWriter(testLogWriter{level: logFactory.Level()})
-	holder.publish(ctx)
-	cleanups = append(cleanups, func() { closeBoxWithTimeout(cancel, boxInstance, boxCloseTimeout, false) })
-	if err = boxInstance.Start(); err != nil {
-		unwind()
-		return nil, E.Cause(err, "start service")
-	}
-
-	outTags := request.tags
-	if request.UseDefaultOutbound {
-		outTags = []string{boxInstance.Outbound().Default().Tag()}
-	}
-	return &testEnv{box: &boxHandle{ctx: ctx, Box: boxInstance}, tags: outTags, close: unwind}, nil
 }
 
 func errorString(err error) string {
@@ -306,21 +267,21 @@ func StartURLTest(current *Instance, platform PlatformInterface, request *TestRe
 	timeout := time.Duration(request.TimeoutMs) * time.Millisecond
 	go func() {
 		defer handler.OnDone()
-		defer env.close()
-		failed := make(map[string]bool, len(env.tags))
-		newTestReporter(env.tags, probe.URLReporter.Results,
+		defer env.Close()
+		failed := make(map[string]bool, len(env.Tags))
+		newTestReporter(env.Tags, probe.URLReporter.Results,
 			func(result *probe.URLTestResult) string { return result.Tag },
 			func(result *probe.URLTestResult) {
 				failed[result.Tag] = result.Error != nil
 				handler.OnResult(result.Tag, int32(result.Duration.Milliseconds()), errorString(result.Error))
 			},
 		).run(func() []*probe.URLTestResult {
-			return probe.BatchURLTest(testCtx, env.box, env.tags, request.URL, int(request.MaxConcurrency), twice, timeout)
+			return probe.BatchURLTest(testCtx, env.Box, env.Tags, request.URL, int(request.MaxConcurrency), twice, timeout)
 		})
 		// A snapshot before the box closes: the probe already sat out the handshake.
 		for _, tag := range request.vpnEndpointTags {
 			if failed[tag] {
-				connected, state, err := vpnEndpointVerdict(env.box, tag)
+				connected, state, err := vpnEndpointVerdict(env.Box, tag)
 				handler.OnVPNStatus(tag, connected, state, err)
 			}
 		}
@@ -341,14 +302,14 @@ func StartIPTest(platform PlatformInterface, request *TestRequest, handler IPTes
 	timeout := time.Duration(request.TimeoutMs) * time.Millisecond
 	go func() {
 		defer handler.OnDone()
-		defer env.close()
-		newTestReporter(env.tags, probe.IPReporter.Results,
+		defer env.Close()
+		newTestReporter(env.Tags, probe.IPReporter.Results,
 			func(result *probe.IPTestResult) string { return result.Tag },
 			func(result *probe.IPTestResult) {
 				handler.OnResult(result.Tag, result.Result.IP, result.Result.CountryCode, errorString(result.Error))
 			},
 		).run(func() []*probe.IPTestResult {
-			return probe.BatchIPTest(testCtx, env.box, env.tags, int(request.MaxConcurrency), true, timeout, request.IPProvider)
+			return probe.BatchIPTest(testCtx, env.Box, env.Tags, int(request.MaxConcurrency), true, timeout, request.IPProvider)
 		})
 	}()
 	return nil
@@ -385,10 +346,10 @@ func StartSpeedTest(current *Instance, platform PlatformInterface, request *Test
 	timeout := time.Duration(request.TimeoutMs) * time.Millisecond
 	go func() {
 		defer handler.OnDone()
-		defer env.close()
+		defer env.Close()
 		emit := func(result *probe.SpeedTestResult) { handler.OnResult(flattenSpeedTestResult(*result, false)) }
 		batch := func() []*probe.SpeedTestResult {
-			return probe.BatchSpeedTest(testCtx, env.box, env.tags,
+			return probe.BatchSpeedTest(testCtx, env.Box, env.Tags,
 				request.TestDownload, request.TestUpload, request.SimpleDownload, request.SimpleDownloadAddr,
 				timeout, request.OnlyCountry, request.CountryConcurrency)
 		}
@@ -399,7 +360,7 @@ func StartSpeedTest(current *Instance, platform PlatformInterface, request *Test
 			}
 			return
 		}
-		newTestReporter(env.tags, probe.CountryResults.Results,
+		newTestReporter(env.Tags, probe.CountryResults.Results,
 			func(result *probe.SpeedTestResult) string { return result.Tag }, emit).run(batch)
 	}()
 	return nil

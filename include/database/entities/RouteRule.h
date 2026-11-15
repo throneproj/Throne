@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QSet>
 
+#include <variant>
+
 #include "include/global/Validation.hpp"
 
 namespace Configs {
@@ -108,11 +110,14 @@ namespace Configs {
         return ruleSet;
     }
 
+    struct RouteRuleAttribute;
+
     class RouteRule {
     public:
         RouteRule() = default;
 
         RouteRule(const RouteRule& other);
+        RouteRule& operator=(const RouteRule& other) = default;
 
         QString name = "";
         int type = custom;
@@ -171,6 +176,8 @@ namespace Configs {
 
         [[nodiscard]] QJsonObject get_rule_json(bool forView = false, const QString& outboundTag = "");
         [[nodiscard]] QJsonObject to_share_json();
+        // Every attribute, in get_attributes() order, whatever the OS.
+        static const QList<RouteRuleAttribute>& attribute_table();
         static QStringList get_attributes();
         static QStringList tab_attributes();
         [[nodiscard]] static bool is_attribute_at_default(const RouteRule& rule, const QString& attr);
@@ -197,5 +204,38 @@ namespace Configs {
         [[nodiscard]] QList<RuleIssue> validate() const;
         // The (attr, related, severity) shapes validate() reports cross-field problems in.
         [[nodiscard]] static QList<RuleIssue> cross_checks();
+    };
+
+    // action and outbound have no member: their values are read and written by hand.
+    struct RouteRuleAttribute {
+        enum Flag { Match = 1, NoTab = 2, NotOnDarwin = 4 };
+        // How get_rule_json writes a set value; Plain writes a flag as true, text trimmed and a list's non-blank items.
+        enum class Json { Plain, Number, PositiveNumber, Numbers, RuleSets, ByHand };
+
+        QString name;
+        std::variant<std::monostate, QString RouteRule::*, QStringList RouteRule::*, bool RouteRule::*> member;
+        inputType input = text;
+        int flags = 0;
+        QStringList scope;
+        // Holds text, a JSON array or 0/1, by the member's type; null when not persisted.
+        const char* column = nullptr;
+        Json json = Json::Plain;
+        // get_rule_json writes it only alongside this key.
+        QString needs;
+        // When a text value is at its default; isEmpty() when null.
+        bool (*unset)(const QString& value) = nullptr;
+        QStringList (*values)() = nullptr;
+        QString (*check)(const QString& value, Validation::Severity* severity) = nullptr;
+
+        template<typename T>
+        [[nodiscard]] T* field(RouteRule& rule) const {
+            const auto ptr = std::get_if<T RouteRule::*>(&member);
+            return ptr != nullptr ? &(rule.*(*ptr)) : nullptr;
+        }
+        template<typename T>
+        [[nodiscard]] const T* field(const RouteRule& rule) const {
+            const auto ptr = std::get_if<T RouteRule::*>(&member);
+            return ptr != nullptr ? &(rule.*(*ptr)) : nullptr;
+        }
     };
 } // namespace Configs

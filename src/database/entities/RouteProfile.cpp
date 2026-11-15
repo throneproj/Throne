@@ -1,4 +1,5 @@
 #include <QCoreApplication>
+#include <QHash>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -6,6 +7,7 @@
 #include "include/database/entities/RouteProfile.h"
 #include <array>
 #include <iostream>
+#include <limits>
 #include <optional>
 
 #include "include/database/ProfilesRepo.h"
@@ -538,6 +540,25 @@ namespace Configs {
         return -1;
     }
 
+    // A dry run creates none: a config it would create gets a placeholder id above any real one, and a repeat the same id, as materializing would match it to the first.
+    struct RouteProfileAdoption {
+        bool dryRun = false;
+        int created = 0;
+        QHash<QString, int> placeholders;
+
+        int placeholderFor(const QString& identityKey) {
+            if (!placeholders.contains(identityKey)) {
+                placeholders.insert(identityKey, std::numeric_limits<int>::max() - created);
+                ++created;
+            }
+            return placeholders.value(identityKey);
+        }
+
+        [[nodiscard]] bool isPlaceholder(int id) const {
+            return dryRun && id > std::numeric_limits<int>::max() - created;
+        }
+    };
+
     // Errors that StripCredentials causes on the sharer's side: the material it cleared is missing, so these ask to re-enter it.
     static bool routeProfileStrippedSecret(const QString& type, const Validation::Issue& issue) {
         if (type == "openvpn") {
@@ -550,7 +571,7 @@ namespace Configs {
     }
 
     // hopMap rewrites a chain's machine-local hop ids onto the ones created here.
-    static int routeProfileAdoptConfig(const QJsonObject& config, QString* warnings, const QMap<int, int>* hopMap) {
+    static int routeProfileAdoptConfig(const QJsonObject& config, QString* warnings, const QMap<int, int>* hopMap, RouteProfileAdoption& adoption) {
         const auto type = config.value("type").toString();
         // Only a top-level chain gets its hop ids remapped onto profiles created here.
         if (const auto refusal = RefusedForeignType(type); !refusal.isEmpty() && (type != "chain" || hopMap == nullptr)) {
@@ -601,20 +622,22 @@ namespace Configs {
             ch->list = mapped;
         }
         if (const int existing = routeProfileMatchLocal(ent); existing >= 0) return existing;
+        if (adoption.dryRun) return adoption.placeholderFor(routeProfileIdentityKey(ent));
         if (!Configs::dataManager->profilesRepo->AddProfile(ent)) {
             appendWarning(warnings, QString("could not create endpoint profile \"%1\"").arg(ent->outbound->DisplayName()));
             return -1;
         }
+        ++adoption.created;
         appendWarning(warnings, QString("created endpoint profile %1").arg(ent->outbound->DisplayTypeAndName()));
         return ent->id;
     }
 
-    static int routeProfileAdoptEndpoint(const QJsonObject& entry, QString* warnings, QMap<int, int>* outHopMap = nullptr) {
+    static int routeProfileAdoptEndpoint(const QJsonObject& entry, QString* warnings, RouteProfileAdoption& adoption, QMap<int, int>* outHopMap = nullptr) {
         QMap<int, int> hopMap;
         for (const auto& item: entry.value("hops").toArray()) {
             const QJsonObject hop = item.toObject();
             const int original = hop.value("id").toInt(INVALID_ID);
-            const int local = original == INVALID_ID ? -1 : routeProfileAdoptConfig(hop.value("config").toObject(), warnings, nullptr);
+            const int local = original == INVALID_ID ? -1 : routeProfileAdoptConfig(hop.value("config").toObject(), warnings, nullptr, adoption);
             if (local < 0) {
                 appendWarning(warnings, "a shared endpoint chain has an unusable hop, dropped");
                 return -1;
@@ -622,11 +645,11 @@ namespace Configs {
             hopMap[original] = local;
         }
         if (outHopMap != nullptr) *outHopMap = hopMap;
-        return routeProfileAdoptConfig(entry.value("config").toObject(), warnings, &hopMap);
+        return routeProfileAdoptConfig(entry.value("config").toObject(), warnings, &hopMap, adoption);
     }
 
-    // *idMap is original id -> local id, hops included, so the paired rules can be remapped.
-    static QList<int> routeProfileEndpointsFromJson(const QJsonArray& arr, QString* warnings, bool materialize,
+    // *idMap is original id -> local id, hops included, so the paired rules can be remapped. Without adoption, shared endpoints are left out.
+    static QList<int> routeProfileEndpointsFromJson(const QJsonArray& arr, QString* warnings, RouteProfileAdoption* adoption,
                                                    QMap<int, int>* idMap, QList<int>* innerHopIDs) {
         QList<int> ids;
         for (const auto& item: arr) {
@@ -641,8 +664,9 @@ namespace Configs {
                 const QJsonObject entry = item.toObject();
                 originalID = entry.value("id").toInt(INVALID_ID);
                 innerHops = entry.value("inner_hops").toBool();
-                if (!materialize) continue;
-                if (originalID != INVALID_ID) localID = routeProfileAdoptEndpoint(entry, warnings, &hopMap);
+                if (adoption == nullptr) continue;
+                if (originalID != INVALID_ID) localID = routeProfileAdoptEndpoint(entry, warnings, *adoption, &hopMap);
+                if (adoption->isPlaceholder(localID)) continue;
             }
             if (originalID == INVALID_ID || localID < 0 || ids.contains(localID)) continue;
             const auto profile = Configs::dataManager->profilesRepo->GetProfile(localID);
@@ -714,8 +738,10 @@ namespace Configs {
         return QStringLiteral("throne://route/") + QString::fromLatin1(b64);
     }
 
-    std::shared_ptr<RouteProfile> RouteProfile::FromShareInput(const QString& input, QString* fatalError, QString* warnings, bool* wasOldArray, bool materializeEndpoints) {
+    std::shared_ptr<RouteProfile> RouteProfile::FromShareInput(const QString& input, QString* fatalError, QString* warnings, bool* wasOldArray,
+                                                               bool materializeEndpoints, int* newEndpointProfiles) {
         if (wasOldArray) *wasOldArray = false;
+        if (newEndpointProfiles) *newEndpointProfiles = 0;
         QString text = input.trimmed();
         if (text.isEmpty()) {
             fatalError->append("Empty input");
@@ -752,13 +778,16 @@ namespace Configs {
                 fatalError->append("Unrecognized route object");
                 return nullptr;
             }
+            RouteProfileAdoption adoption{.dryRun = !materializeEndpoints};
+            RouteProfileAdoption* const endpointAdoption = materializeEndpoints || newEndpointProfiles != nullptr ? &adoption : nullptr;
             if (root.value("raw").toBool()) {
                 auto profile = std::make_shared<RouteProfile>();
                 profile->id = -1;
                 profile->isRaw = true;
                 profile->name = root.value("name").toString();
                 profile->preventModifications = root.value("prevent_modifications").toBool();
-                profile->endpointProfileIDs = routeProfileEndpointsFromJson(root.value("endpoints").toArray(), warnings, materializeEndpoints, nullptr, &profile->innerHopEndpointIDs);
+                profile->endpointProfileIDs = routeProfileEndpointsFromJson(root.value("endpoints").toArray(), warnings, endpointAdoption, nullptr, &profile->innerHopEndpointIDs);
+                if (newEndpointProfiles) *newEndpointProfiles = adoption.created;
                 QJsonObject routeObj = root.value("route").toObject();
                 routeObj = remapRawOutboundsByName(routeObj, root.value("outbound_names").toObject(), warnings);
                 profile->rawRoute = QJsonObject2QString(routeObj, false);
@@ -774,7 +803,8 @@ namespace Configs {
                 appendWarning(warnings, QCoreApplication::translate("Validation", "The default outbound \"%1\" is unknown, so proxy is used.").arg(defaultOutbound));
             }
             QMap<int, int> endpointIDMap;
-            profile->endpointProfileIDs = routeProfileEndpointsFromJson(root.value("endpoints").toArray(), warnings, materializeEndpoints, &endpointIDMap, &profile->innerHopEndpointIDs);
+            profile->endpointProfileIDs = routeProfileEndpointsFromJson(root.value("endpoints").toArray(), warnings, endpointAdoption, &endpointIDMap, &profile->innerHopEndpointIDs);
+            if (newEndpointProfiles) *newEndpointProfiles = adoption.created;
             int fallbackNum = 1;
             int position = 0;
             for (const auto& v: root.value("rules").toArray()) {

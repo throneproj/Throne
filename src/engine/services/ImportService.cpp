@@ -18,6 +18,22 @@ namespace Engine::ImportService {
         }
     } // namespace
 
+    std::optional<ServiceError> CheckTarget(int groupId) {
+        ENGINE_CHECK_MAIN_THREAD();
+        const auto group = Configs::dataManager->groupsRepo->GetGroup(groupId);
+        if (group == nullptr) {
+            return ServiceError{404, QStringLiteral("not_found"), QStringLiteral("Unknown group %1").arg(groupId)};
+        }
+        if (group->archive) {
+            return ServiceError{409, QStringLiteral("group_archived"), QStringLiteral("The group is archived")};
+        }
+        if (!group->url.isEmpty()) {
+            return ServiceError{409, QStringLiteral("subscription_group"),
+                                QStringLiteral("Profiles imported into a subscription group are removed by its next update")};
+        }
+        return std::nullopt;
+    }
+
     std::optional<ServiceError> Import(const Request &request, const Done &done, int *groupId) {
         ENGINE_CHECK_MAIN_THREAD();
         const QString payload = request.payload.trimmed();
@@ -31,17 +47,7 @@ namespace Engine::ImportService {
 
         const int gid = request.groupId >= 0 ? request.groupId : Configs::dataManager->settingsRepo->current_group;
         if (groupId != nullptr) *groupId = gid;
-        const auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
-        if (group == nullptr) {
-            return ServiceError{404, QStringLiteral("not_found"), QStringLiteral("Unknown group %1").arg(gid)};
-        }
-        if (group->archive) {
-            return ServiceError{409, QStringLiteral("group_archived"), QStringLiteral("The group is archived")};
-        }
-        if (!group->url.isEmpty()) {
-            return ServiceError{409, QStringLiteral("subscription_group"),
-                                QStringLiteral("Profiles imported into a subscription group are removed by its next update")};
-        }
+        if (auto refusal = CheckTarget(gid)) return refusal;
 
         const auto finish = [done, gid](const Subscription::UpdateOutcome &outcome) {
             // The updater logs an import with problems itself.

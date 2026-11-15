@@ -179,42 +179,49 @@ namespace Configs
     }
 
     // TODO add setting items and use them here
+    bool useXrayVless(const VlessTraits& traits) {
+        const auto& transport = traits.transport;
+        // Throne's Xray stream refuses any other network, which sing-box VLESS may still carry (http, quic), but it would drop the Xray-only values.
+        if (!transport.isEmpty() && !XrayNetworks.contains(transport)) return traits.xrayOnly;
+        // sing-box has no mKCP, so even a profile Xray refuses goes there to get Xray's reason.
+        if (transport == "kcp") return true;
+        // Xray refuses REALITY over ws and httpupgrade, which sing-box carries.
+        if (!traits.xrayOnly && traits.reality && !Checks::XrayRealityNetwork(QStringLiteral("reality"), transport).isEmpty()) return false;
+
+        const auto preference = dataManager->settingsRepo->xray_vless_preference;
+        return traits.xrayOnly
+               || preference == Xray::AllVLESS
+               || traits.rawHttpOverTls
+               || transport == "xhttp"
+               || transport == "xdrive"
+               || (traits.reality && preference == Xray::XhttpAndReality);
+    }
+
     bool useXrayVless(const QString& link) {
         auto url = QUrl(link);
         if (!url.isValid()) return false;
         auto query = QUrlQuery(url.query());
-        const auto transport = NormalizeXrayNetwork(query.queryItemValue("type"));
         const auto encryption = query.queryItemValue("encryption");
-        const auto security = query.queryItemValue("security").trimmed().toLower();
-        const bool xrayOnly = query.hasQueryItem("fm")
-                              || query.hasQueryItem("finalmask")
-                              // sing-box has no counterpart to verifyPeerCertByName
-                              || query.hasQueryItem("vcn")
-                              // sing-box rejects the CBC suites `cs` is used for; Xray accepts them with fp=unsafe
-                              || query.hasQueryItem("cs")
-                              // sing-box VLESS takes only "" and xtls-rprx-vision
-                              || query.queryItemValue("flow").trimmed().toLower() == "xtls-rprx-vision-udp443"
-                              || (!encryption.isEmpty() && encryption != "none")
-                              || !query.queryItemValue("extra").isEmpty()
-                              // sing-box REALITY cannot verify the ML-DSA-65 signature
-                              || (security == "reality" && !query.queryItemValue("pqv").trimmed().isEmpty());
-        // Throne's Xray stream refuses any other network, which sing-box VLESS may still carry (http, quic), but it would drop the Xray-only values.
-        if (!transport.isEmpty() && !XrayNetworks.contains(transport)) return xrayOnly;
-        // sing-box has no mKCP, so even a link Xray refuses goes there to get Xray's reason.
-        if (transport == "kcp") return true;
-        // Xray refuses REALITY over ws and httpupgrade, which sing-box carries.
-        if (!xrayOnly && !Checks::XrayRealityNetwork(security, transport).isEmpty()) return false;
+        VlessTraits traits;
+        traits.transport = NormalizeXrayNetwork(query.queryItemValue("type"));
+        traits.reality = query.queryItemValue("security").trimmed().toLower() == "reality";
+        traits.xrayOnly = query.hasQueryItem("fm")
+                          || query.hasQueryItem("finalmask")
+                          // sing-box has no counterpart to verifyPeerCertByName
+                          || query.hasQueryItem("vcn")
+                          // sing-box rejects the CBC suites `cs` is used for; Xray accepts them with fp=unsafe
+                          || query.hasQueryItem("cs")
+                          // sing-box VLESS takes only "" and xtls-rprx-vision
+                          || query.queryItemValue("flow").trimmed().toLower() == "xtls-rprx-vision-udp443"
+                          || (!encryption.isEmpty() && encryption != "none")
+                          || !query.queryItemValue("extra").isEmpty()
+                          // sing-box REALITY cannot verify the ML-DSA-65 signature
+                          || (traits.reality && !query.queryItemValue("pqv").trimmed().isEmpty());
         // sing-box's http transport speaks the raw HTTP header only in plaintext; TLS (which a bare sni also enables) turns it into h2
-        const bool rawHttpOverTls = (transport.isEmpty() || transport == "raw")
-                                    && query.queryItemValue("headerType") == "http"
-                                    && linkEnablesTls(query);
-
-        return xrayOnly
-               || dataManager->settingsRepo->xray_vless_preference == Xray::AllVLESS
-               || rawHttpOverTls
-               || transport == "xhttp"
-               || transport == "xdrive"
-               || (security == "reality" && dataManager->settingsRepo->xray_vless_preference == Xray::XhttpAndReality);
+        traits.rawHttpOverTls = (traits.transport.isEmpty() || traits.transport == "raw")
+                                && query.queryItemValue("headerType") == "http"
+                                && linkEnablesTls(query);
+        return useXrayVless(traits);
     }
 
     QString toAceHost(const QString& host)

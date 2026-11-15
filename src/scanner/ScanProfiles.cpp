@@ -3,6 +3,7 @@
 #include <QObject>
 
 #include "include/configs/common/DnsTunnel.h"
+#include "include/configs/common/Protocols.h"
 #include "include/configs/generate.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/global/Configs.hpp"
@@ -73,14 +74,12 @@ namespace Scanner {
     } // namespace
 
     bool IsScanBaseType(const QString &type) {
-        return !type.isEmpty() && type != QLatin1String("custom") && type != QLatin1String("extracore") &&
-               type != QLatin1String("tailscale") && type != QLatin1String("autoselector") && type != QLatin1String("direct") &&
-               type != QLatin1String("dnstt") && type != QLatin1String("masterdns");
+        return !type.isEmpty() && !Configs::Protocols::Is(type, Configs::Protocols::NoScan);
     }
 
     QString DnsTunnelProtocol(const Configs::Profile &profile) {
         if (profile.outbound == nullptr || !Configs::IsDnsTunnelProfile(profile)) return {};
-        if (profile.type == QLatin1String("dnstt") || profile.type == QLatin1String("masterdns")) return profile.type;
+        if (Configs::Protocols::Is(profile.type, Configs::Protocols::DnsTunnel)) return profile.type;
         return QStringLiteral("xdns");
     }
 

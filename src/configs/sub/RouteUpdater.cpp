@@ -22,6 +22,7 @@
 #include "include/configs/generate.h"
 #include "include/engine/EditLocks.h"
 #include "include/engine/EngineEvents.h"
+#include "include/engine/Lifecycle.h"
 
 namespace RouteUpdate {
     namespace {
@@ -265,7 +266,7 @@ namespace RouteUpdate {
         }
 
         bool startedInGroup(int gid) {
-            const int started = Configs::dataManager->settingsRepo->started_id;
+            const int started = Engine::Lifecycle::ResumeTargetId();
             if (started < 0) return false;
             const auto profile = Configs::dataManager->profilesRepo->GetProfile(started);
             return profile != nullptr && profile->gid == gid;
@@ -314,9 +315,11 @@ namespace RouteUpdate {
                 created->source_gid = gid;
                 if (created->name.isEmpty()) created->name = QObject::tr("%1 routing").arg(group->name);
                 if (!routes->AddRouteProfile(created)) return;
+                Engine::EngineEvents::RoutesChanged();
                 if (group->route_id < 0 || !routes->HasRouteProfile(group->route_id)) {
                     group->route_id = created->id;
                     Configs::dataManager->groupsRepo->Save(group);
+                    Engine::EngineEvents::GroupsChanged();
                 }
                 MW_show_log(QObject::tr("[Routing] %1: created the routing profile \"%2\" from the subscription (%3)").arg(group->name, created->name, counts));
                 if (Configs::RunningRouteId() >= 0 && startedInGroup(gid) && Configs::RouteIdFor(gid) != Configs::RunningRouteId()) armRoutingRestart();
@@ -327,6 +330,7 @@ namespace RouteUpdate {
             replaceRules(*updated, *fetched);
             if (routeFingerprint(*updated) == routeFingerprint(*current)) return;
             routes->Save(updated);
+            Engine::EngineEvents::RoutesChanged();
             MW_show_log(QObject::tr("[Routing] %1: updated the routing profile \"%2\" from the subscription (%3)").arg(group->name, updated->name, counts));
             if (updated->id == Configs::RunningRouteId()) armRoutingRestart();
         });
@@ -359,17 +363,22 @@ namespace RouteUpdate {
 }
 
 void UI_update_all_remote_routes(bool onlyAllowed) {
-    runOnNewThread([=] {
-        auto profiles = Configs::dataManager->routesRepo->GetAllRouteProfiles();
-        int updated = 0;
+    // The worker updates copies; they replace the live routes on the UI thread, where the edit locks are checked.
+    QList<std::shared_ptr<Configs::RouteProfile>> originals;
+    QList<std::shared_ptr<Configs::RouteProfile>> copies;
+    for (const auto& p : Configs::dataManager->routesRepo->GetAllRouteProfiles()) {
+        if (!p->isRemote || p->remoteURL.trimmed().isEmpty()) continue;
+        if (onlyAllowed && !p->autoUpdate) continue;
+        originals << p;
+        copies << std::make_shared<Configs::RouteProfile>(*p);
+    }
+    runOnNewThread([originals, copies] {
         QStringList failures;
-        for (const auto& p : profiles) {
-            if (!p->isRemote || p->remoteURL.trimmed().isEmpty()) continue;
-            if (onlyAllowed && !p->autoUpdate) continue;
-
+        QList<int> fetched;
+        QStringList fetchWarnings;
+        for (int i = 0; i < copies.size(); ++i) {
+            const auto& p = copies[i];
             MW_show_log(">>>>>>>> " + QObject::tr("Updating remote routing profile: %1").arg(p->name));
-            const bool running = p->id == Configs::RunningRouteId();
-            const QByteArray before = running ? RouteUpdate::routeFingerprint(*p) : QByteArray();
             QString warnings;
             auto err = RouteUpdate::UpdateProfile(p, &warnings);
             if (!err.isEmpty()) {
@@ -377,12 +386,32 @@ void UI_update_all_remote_routes(bool onlyAllowed) {
                 MW_show_log("<<<<<<<< " + QObject::tr("Remote routing profile %1 failed: %2").arg(p->name, err));
                 continue;
             }
-            Configs::dataManager->routesRepo->Save(p);
-            updated++;
-            if (running && RouteUpdate::routeFingerprint(*p) != before) runOnUiThread(RouteUpdate::armRoutingRestart);
-            MW_show_log("<<<<<<<< " + QObject::tr("Remote routing profile updated: %1").arg(p->name)
-                        + (warnings.isEmpty() ? QString() : "\n" + warnings));
+            fetched << i;
+            fetchWarnings << warnings;
         }
-        MW_show_log(QObject::tr("Remote routing profiles: %1 updated, %2 failed").arg(updated).arg(failures.size()));
+        runOnUiThread([originals, copies, failures, fetched, fetchWarnings]() mutable {
+            int updated = 0;
+            for (int n = 0; n < fetched.size(); ++n) {
+                const auto& p = copies[fetched[n]];
+                const auto& original = originals[fetched[n]];
+                // Replaced or deleted meanwhile: that change wins, and the next run updates the new one.
+                if (Configs::dataManager->routesRepo->GetRouteProfile(p->id) != original) continue;
+                if (Engine::IsBeingEdited(Engine::EditTarget::Routes, p->id)) {
+                    const QString err = QObject::tr("the routing profiles are open for editing");
+                    failures << (p->name + ": " + err);
+                    MW_show_log("<<<<<<<< " + QObject::tr("Remote routing profile %1 failed: %2").arg(p->name, err));
+                    continue;
+                }
+                const bool changed = RouteUpdate::routeFingerprint(*p) != RouteUpdate::routeFingerprint(*original);
+                Configs::dataManager->routesRepo->Save(p);
+                updated++;
+                if (changed && p->id == Configs::RunningRouteId()) RouteUpdate::armRoutingRestart();
+                const QString& warnings = fetchWarnings[n];
+                MW_show_log("<<<<<<<< " + QObject::tr("Remote routing profile updated: %1").arg(p->name)
+                            + (warnings.isEmpty() ? QString() : "\n" + warnings));
+            }
+            if (updated > 0) Engine::EngineEvents::RoutesChanged();
+            MW_show_log(QObject::tr("Remote routing profiles: %1 updated, %2 failed").arg(updated).arg(failures.size()));
+        });
     });
 }

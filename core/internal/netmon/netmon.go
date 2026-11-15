@@ -2,25 +2,28 @@ package netmon
 
 import (
 	"fmt"
-	"os"
+	"sync"
 
 	tun "github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common/control"
 	"github.com/sagernet/sing/common/logger"
 )
 
-// Always-on and independent of the box lifecycle; both stay nil when the monitor could not be created.
+var startOnce sync.Once
+
+// Always-on and independent of the box lifecycle; both stay nil until Start, or when the monitor could not be created.
 var (
 	monitor tun.DefaultInterfaceMonitor
 	// Kept current by monitor on every network change.
 	finder control.InterfaceFinder
 )
 
-func init() {
-	// The kill switch guard is this same binary and its stdout is a line protocol.
-	if len(os.Args) > 1 && os.Args[1] == "--guard" {
-		return
-	}
+// Readers must start after it returns: the accessors read without synchronization.
+func Start() {
+	startOnce.Do(start)
+}
+
+func start() {
 	nop := logger.NOP()
 	updMonitor, err := tun.NewNetworkUpdateMonitor(nop)
 	if err != nil {

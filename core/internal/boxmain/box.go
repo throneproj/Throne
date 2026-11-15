@@ -1,13 +1,25 @@
-package boxbox
+package boxmain
 
 import (
 	"context"
 	"fmt"
 	"io"
 	"time"
+
+	box "github.com/sagernet/sing-box"
 )
 
-func (s *Box) CloseWithTimeout(cancal context.CancelFunc, d time.Duration, logFunc func(v ...any), block bool) {
+// ctx is the one handed to box.New, which registers every service into its registry instead of deriving its own.
+type Box struct {
+	*box.Box
+	ctx context.Context
+}
+
+func (s *Box) Context() context.Context {
+	return s.ctx
+}
+
+func (s *Box) CloseWithTimeout(cancel context.CancelFunc, d time.Duration, logFunc func(v ...any), block bool) {
 	start := time.Now()
 	t := time.NewTimer(d)
 	done := make(chan struct{})
@@ -23,7 +35,7 @@ func (s *Box) CloseWithTimeout(cancal context.CancelFunc, d time.Duration, logFu
 		if !t.Stop() {
 			printCloseTime()
 		}
-	}(cancal, s)
+	}(cancel, s)
 
 	select {
 	case <-t.C:

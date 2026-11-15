@@ -52,33 +52,9 @@ void MW_show_log(const QString &line);
 void SetUserLogSink(std::function<void(const QString &)> sink);
 
 enum class MwMessage {
-    UpdateSettings,       // args: MwArg settings-change tokens
     RestartProgram,
     Raise,
-    UpdateShortcuts,
-    ProfileChanged,       // arg MwArg::RestartProxy when the saved profile is part of the running config
-    GroupsChanged,        // arg MwArg::RestartProxy when the edited group changed what a running profile dials
 };
-
-// String tokens carried in a MwMessage's argument list.
-namespace MwArg {
-    // UpdateSettings args.
-    inline const QString Route        = QStringLiteral("route");
-    inline const QString Vpn          = QStringLiteral("vpn");
-    inline const QString NeedRestart  = QStringLiteral("needRestart");
-    inline const QString ChoosePort   = QStringLiteral("choosePort");
-    inline const QString DisableTray  = QStringLiteral("disableTray");
-    inline const QString TrayIcon     = QStringLiteral("trayIcon");
-    inline const QString MaxLogLines  = QStringLiteral("maxLogLines");
-    inline const QString DisableAdmin = QStringLiteral("disableAdmin");
-    inline const QString ProfileListDisplay = QStringLiteral("profileListDisplay");
-    inline const QString KillSwitch   = QStringLiteral("killSwitch");
-    inline const QString LogFont      = QStringLiteral("logFont");
-    inline const QString RemoteApi    = QStringLiteral("remoteApi");
-    inline const QString UiMode       = QStringLiteral("uiMode");
-    // ProfileChanged arg.
-    inline const QString RestartProxy = QStringLiteral("restartProxy");
-}
 
 // Thread-safe; dropped while no sink is installed.
 void MW_dialog_message(MwMessage cmd, const QStringList &args);

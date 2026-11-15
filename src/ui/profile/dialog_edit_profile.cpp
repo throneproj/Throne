@@ -1,5 +1,6 @@
 #include "include/ui/profile/dialog_edit_profile.h"
 
+#include "include/configs/common/Protocols.h"
 #include "include/configs/generate.h"
 
 #include "include/ui/profile/edit_advanced.h"
@@ -35,12 +36,13 @@
 
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
+#include "include/engine/services/ProfileService.h"
 #include "include/ui/utils/GuiUtils.hpp"
-#include "include/global/RunningProfiles.hpp"
 #include "include/global/Utils.hpp"
 #include "include/ui/utils/UiMode.h"
 #include "include/ui/utils/ValidationForm.h"
 
+#include <QDebug>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListView>
@@ -89,6 +91,14 @@ EditorFactory editorFactory(const QString &type) {
         {"extracore", makeEditor<EditExtraCore>},
         {"custom", makeEditor<EditCustom>},
     };
+#ifdef NKR_CPP_DEBUG
+    [[maybe_unused]] static const bool covered = [] {
+        for (const auto &protocol : Configs::Protocols::All()) {
+            if (!factories.contains(protocol.Id())) qWarning() << "DialogEditProfile: no editor for profile type" << protocol.Id();
+        }
+        return true;
+    }();
+#endif
     return factories.value(type);
 }
 
@@ -98,12 +108,11 @@ bool isCustomSubtype(const QString &type) {
 }
 
 bool advancedType(const QString &type) {
-    return type == "direct" || type == "chain" || type == "extracore" || isCustomSubtype(type);
+    return isCustomSubtype(type) || Configs::Protocols::Is(type, Configs::Protocols::Advanced);
 }
 
 bool hasServerAddress(const QString &type) {
-    static const QSet<QString> serverless = {"chain", "autoselector", "direct", "extracore", "tailscale", "custom", "dnstt", "masterdns"};
-    return !serverless.contains(type);
+    return !Configs::Protocols::Is(type, Configs::Protocols::Serverless);
 }
 
 bool serverFieldsEditable(const QString &type, ProfileEditor *editor) {
@@ -254,20 +263,21 @@ void DialogEditProfile::setupTypeList() {
     const auto addType = [this, offered](const QString &t) {
         if (offered(t)) ui->type->addItem(Configs::dataManager->profilesRepo->NewProfile(t)->outbound->DisplayType(), t);
     };
-    for (const auto *t: {"autoselector", "socks", "http", "shadowsocks", "trojan", "vmess", "vless", "xrayvless",
-                         "hysteria", "tuic", "juicity", "naive", "trusttunnel", "anytls", "mieru", "snell",
-                         "shadowtls", "wireguard", "masque", "openvpn", "openconnect", "tailscale", "ssh"}) {
-        addType(t);
+    for (const auto &protocol : Configs::Protocols::All()) {
+        const QString t = protocol.Id();
+        if (protocol.id == "dnstt") {
+            addNamedType(tr("DNSTT / VayDNS"), t);
+        } else if (protocol.id == "custom") {
+            addNamedType(tr("Custom (%1 outbound)").arg(software_core_name), Configs::Custom::CustomOutbound);
+            addNamedType(tr("Custom (%1 config)").arg(software_core_name), Configs::Custom::CustomFullConfig);
+            addNamedType(tr("Custom (Xray outbound)"), Configs::Custom::CustomXrayOutbound);
+            addNamedType(tr("Custom (Xray config)"), Configs::Custom::CustomXrayFullConfig);
+        } else if (protocol.id == "extracore") {
+            addNamedType(tr("Extra Core"), t);
+        } else {
+            addType(t);
+        }
     }
-    addNamedType(tr("DNSTT / VayDNS"), "dnstt");
-    addType("masterdns");
-    addType("direct");
-    addNamedType(tr("Custom (%1 outbound)").arg(software_core_name), Configs::Custom::CustomOutbound);
-    addNamedType(tr("Custom (%1 config)").arg(software_core_name), Configs::Custom::CustomFullConfig);
-    addNamedType(tr("Custom (Xray outbound)"), Configs::Custom::CustomXrayOutbound);
-    addNamedType(tr("Custom (Xray config)"), Configs::Custom::CustomXrayFullConfig);
-    addNamedType(tr("Extra Core"), "extracore");
-    addType("chain");
 
     ui->type->setCurrentIndex(qMax(0, ui->type->findData(type)));
     connect(ui->type, &QComboBox::currentIndexChanged, this, [this](int index) {
@@ -416,19 +426,17 @@ void DialogEditProfile::accept() {
     // The stored test results describe the old server.
     if (!newEnt && (ent->outbound->GetAddress() != originalAddress || ent->outbound->GetPort() != originalPort)) ent->ClearTestResults();
 
-    QStringList args;
     if (newEnt) {
-        if (!Configs::dataManager->profilesRepo->AddProfile(ent, groupId)) MessageBoxWarning("???", "id exists");
-    } else if (!Configs::dataManager->profilesRepo->Save(ent)) {
+        const int gid = groupId >= 0 ? groupId : Configs::dataManager->settingsRepo->current_group;
+        if (const auto error = Engine::ProfileService::Add(ent, gid)) {
+            if (error->code == QLatin1String("not_found")) MessageBoxWarning(software_name, QObject::tr("This group no longer exists."));
+            else MessageBoxWarning("???", "id exists");
+        }
+    } else if (Engine::ProfileService::Save({ent})) {
         MessageBoxWarning(software_name, tr("This profile was deleted while you were editing it."));
         QDialog::reject();
         return;
-    } else if (Configs::dataManager->settingsRepo->started_id == ent->id || Configs::RunningUsesProfile(ent->id)) {
-        args << MwArg::RestartProxy;
     }
-    if (!newEnt) Configs::RepositionLater(QList<std::shared_ptr<Configs::Profile>>{ent}, Configs::SortInput::Config);
-
-    MW_dialog_message(MwMessage::ProfileChanged, args);
     QDialog::accept();
 }
 

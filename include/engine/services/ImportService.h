@@ -25,6 +25,9 @@ namespace Engine::ImportService {
 
     using Done = std::function<void(const Subscription::UpdateOutcome &outcome)>;
 
+    // Main thread. Why Import would refuse groupId as its target now.
+    std::optional<ServiceError> CheckTarget(int groupId);
+
     // Main thread. Checks the request and the target group, then queues a quiet import (no report box; one log entry);
     // done runs on the main thread. *groupId receives the resolved group. Returns the refusal instead when it queued nothing.
     std::optional<ServiceError> Import(const Request &request, const Done &done, int *groupId = nullptr);

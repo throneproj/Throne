@@ -30,7 +30,8 @@ namespace Engine {
     };
 
     // Every point where the engine asks or tells the user something; MainWindow answers with dialogs, HeadlessPolicy without.
-    // Main thread only. A method that returns an answer may block for it; the others return at once or after a modal notice.
+    // Main thread only. A method that returns an answer may block for it (user-started paths only); the others never block, and
+    // an `answered` callback runs exactly once on the main thread, possibly before the call returns.
     class EnginePolicy {
     public:
         virtual ~EnginePolicy() = default;
@@ -38,7 +39,7 @@ namespace Engine {
         virtual void geoAssetMissingCategory(const QString &contextName, const QString &needed, const QString &whichFile) = 0;
 
         // Whether to download the missing geoip.dat / geosite.dat now.
-        virtual bool confirmGeoAssetDownload(const QString &contextName) = 0;
+        virtual void confirmGeoAssetDownload(const QString &contextName, std::function<void(bool download)> answered) = 0;
 
         // error is empty when every file arrived.
         virtual void geoAssetDownloadFinished(const QString &error) = 0;
@@ -58,10 +59,10 @@ namespace Engine {
         virtual void strictRouteUnavailable(const QString &error) = 0;
 
         // Tun did not come up; whether to reset the core.
-        virtual bool offerCoreReset(const QString &error) = 0;
+        virtual void offerCoreReset(const QString &error, std::function<void(bool reset)> answered) = 0;
 
         // Windows still held the Tun adapter of a session that did not close cleanly; whether to start the profile again.
-        virtual bool offerLeftoverTunAdapterRetry(const QString &error) = 0;
+        virtual void offerLeftoverTunAdapterRetry(const QString &error, std::function<void(bool retry)> answered) = 0;
 
         // Interactive stops only.
         virtual void stopFailed(const QString &error) = 0;

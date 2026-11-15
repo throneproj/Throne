@@ -107,8 +107,9 @@ namespace Configs {
         QJsonObject ToShareObject(QString* warnings = nullptr);
         // ToShareObject() compacted, base64url-encoded, wrapped as throne://route/<...>
         QString ToShareLink(QString* warnings = nullptr);
-        // *wasOldArray = legacy bare rule array (no name / default outbound); materializeEndpoints=false matches shared endpoints without creating local ones.
-        static std::shared_ptr<RouteProfile> FromShareInput(const QString& input, QString* fatalError, QString* warnings, bool* wasOldArray, bool materializeEndpoints = true);
+        // *wasOldArray = legacy bare rule array (no name / default outbound). materializeEndpoints=false creates no profile and skips shared endpoints, unless newEndpointProfiles asks how many it would create.
+        static std::shared_ptr<RouteProfile> FromShareInput(const QString& input, QString* fatalError, QString* warnings, bool* wasOldArray,
+                                                            bool materializeEndpoints = true, int* newEndpointProfiles = nullptr);
 
         // *wasRemoteRouteLink is true even when the payload is invalid; a non-remoteRoute input returns {} with it false so callers can fall through.
         static QList<std::shared_ptr<RouteProfile>> FromRemoteRoutesLink(const QString& input, bool* wasRemoteRouteLink, QString* error);

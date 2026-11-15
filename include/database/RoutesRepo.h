@@ -23,12 +23,6 @@ namespace Configs {
         mutable std::map<int, std::weak_ptr<RouteProfile>> identityMap;
         std::atomic<quint64> revision{0};
 
-        QJsonObject routeRuleToJson(const RouteRule* rule) const;
-        
-        std::shared_ptr<RouteRule> routeRuleFromJson(const QJsonObject& json) const;
-        
-        QJsonObject routeProfileToJson(const RouteProfile* routeProfile) const;
-        
         std::shared_ptr<RouteProfile> routeProfileFromJson(const QJsonObject& json) const;
         
         void saveToDatabase(const RouteProfile* routeProfile, int id) const;
@@ -42,7 +36,7 @@ namespace Configs {
         std::shared_ptr<RouteProfile> routeProfileFromProfileRow(SQLite::Statement& stmt) const;
         
         // baseCol is the column index the rule name sits at.
-        QJsonObject ruleJsonFromRow(SQLite::Statement& stmt, int baseCol) const;
+        std::shared_ptr<RouteRule> ruleFromRow(SQLite::Statement& stmt, int baseCol) const;
 
         // Appends to byId[profileId]->Rules rather than replacing.
         void loadRulesForProfileIdsChunk(const QList<int>& profileIds, std::map<int, std::shared_ptr<RouteProfile>>& byId) const;

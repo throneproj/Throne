@@ -7,6 +7,7 @@
 #include "include/engine/EngineControl.h"
 #include "include/engine/EnginePolicy.h"
 #include "include/engine/EngineTr.h"
+#include "include/engine/Lifecycle.h"
 #include "include/engine/ThreadCheck.h"
 #include "include/engine/vpn/VpnEndpoints.h"
 #include "include/global/OtpPlaceholder.hpp"
@@ -91,7 +92,14 @@ namespace {
 
 namespace Engine {
     VpnAuthController::VpnAuthController(EnginePolicy *policy, EngineControl *control, QObject *parent)
-        : QObject(parent), m_policy(policy), m_control(control) {}
+        : QObject(parent), m_policy(policy), m_control(control) {
+        connect(m_control, &EngineControl::startFinished, this, [this](quint64 serial, int profileId, StartOutcome, const QString &) {
+            if (m_vpnAuthRestartSerial == 0 || serial != m_vpnAuthRestartSerial) return;
+            m_vpnAuthRestartSerial = 0;
+            // noteRunStopped consumed the marker of a restart that reached its switch stop; this drops one refused before it.
+            if (m_vpnAuthRestartID == profileId) m_vpnAuthRestartID = -1;
+        });
+    }
 
     void VpnAuthController::noteRunStarted() {
         if (m_vpnChallengeTimer == nullptr) {
@@ -103,9 +111,9 @@ namespace Engine {
         m_vpnChallengeTimer->start();
     }
 
-    void VpnAuthController::noteRunStopped(int profileId, bool manual) {
-        // start() stops the old run first, so only a stop outside a restart is the user's.
-        const bool restartingForAuth = manual && profileId == m_vpnAuthRestartID;
+    void VpnAuthController::noteRunStopped(int profileId, bool manual, bool switching) {
+        // Only the restart's own switch stop keeps the session credentials; a user stop while it waits (ranking) does not.
+        const bool restartingForAuth = switching && profileId == m_vpnAuthRestartID;
         m_vpnAuthRestartID = -1;
         if (manual && !restartingForAuth) clearCredentialOverrides();
         stopPoll();
@@ -200,7 +208,7 @@ namespace Engine {
     }
 
     void VpnAuthController::poll() {
-        if (Configs::dataManager->settingsRepo->started_id < 0) return;
+        if (Lifecycle::ResumeTargetId() < 0) return;
         if (m_vpnChallengeBusy.exchange(true)) return;
 
         runOnNewThread([this] {
@@ -431,9 +439,7 @@ namespace Engine {
 
         MW_show_log(MainWindowTr::tr("[VPN] %1 rejected the saved credentials; restarting the profile with a new one-time code.")
                         .arg(Stats::VpnEndpointDisplayName(endpointTag)));
-        const int runningID = running->id;
-        m_vpnAuthRestartID = runningID;
-        m_control->start(StartRequest{runningID});
+        restartForAuth(running->id, false);
         return true;
     }
 
@@ -494,8 +500,14 @@ namespace Engine {
                                                  const QString &password) {
         if (const auto current = m_control->runningSnapshot(); current == nullptr || current->id != runningProfileId) return;
         Configs::SetVpnCredentialOverride(profileId, {username, password});
+        restartForAuth(runningProfileId, true);
+    }
+
+    void VpnAuthController::restartForAuth(int runningProfileId, bool interactive) {
+        // Both set first: a refused start emits startFinished from inside start().
         m_vpnAuthRestartID = runningProfileId;
-        m_control->start(StartRequest{runningProfileId});
+        m_vpnAuthRestartSerial = m_control->nextStartSerial();
+        m_control->start(StartRequest{runningProfileId, interactive, m_vpnAuthRestartSerial});
     }
 
     void VpnAuthController::clearCredentialOverrides() {

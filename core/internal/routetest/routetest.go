@@ -39,7 +39,7 @@ var (
 	domainSniffers  = []string{C.ProtocolTLS, C.ProtocolHTTP, C.ProtocolQUIC}
 )
 
-// Box is what a test reads from a started box; the desktop's boxbox.Box and the mobile instance's box both fit.
+// Box is what a test reads from a started box; the desktop's boxmain.Box and the mobile instance's box both fit.
 type Box interface {
 	Context() context.Context
 	Inbound() adapter.InboundManager

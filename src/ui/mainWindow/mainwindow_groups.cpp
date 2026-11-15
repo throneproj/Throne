@@ -180,8 +180,7 @@ void MainWindow::show_group_tab_menu(const QPoint &p) {
             dialog->deleteLater();
 
             if (ret == QDialog::Accepted) {
-                Configs::dataManager->groupsRepo->AddGroup(ent);
-                MW_dialog_message(MwMessage::GroupsChanged, {});
+                if (const auto error = Engine::GroupService::Add(ent)) MW_show_log(error->message);
             }
         });
 
@@ -203,8 +202,7 @@ void MainWindow::show_group_tab_menu(const QPoint &p) {
         dialog->deleteLater();
 
         if (ret == QDialog::Accepted) {
-            Configs::dataManager->groupsRepo->AddGroup(ent);
-            MW_dialog_message(MwMessage::GroupsChanged, {});
+            if (const auto error = Engine::GroupService::Add(ent)) MW_show_log(error->message);
         }
     });
     connect(menu.addAction(tr("Edit selected Group")), &QAction::triggered, this, [=,this]{
@@ -213,8 +211,7 @@ void MainWindow::show_group_tab_menu(const QPoint &p) {
         auto dialog = new DialogEditGroup(ent, this);
         connect(dialog, &QDialog::finished, this, [=,this] {
             if (dialog->result() == QDialog::Accepted) {
-                if (Configs::dataManager->groupsRepo->Save(ent)) {
-                    MW_dialog_message(MwMessage::GroupsChanged, dialog->RestartNeeded() ? QStringList{MwArg::RestartProxy} : QStringList{});
+                if (!Engine::GroupService::Save(ent, dialog->RestartNeeded())) {
                     if (dialog->RefreshNeeded()) Subscription::updater()->RefreshGroup(ent->id, nullptr, true);
                 } else {
                     MessageBoxWarning(tr("Edit selected Group"), tr("This group was deleted while you were editing it."));
@@ -228,7 +225,7 @@ void MainWindow::show_group_tab_menu(const QPoint &p) {
         connect(menu.addAction(tr("Delete selected Group")), &QAction::triggered, this, [=,this] {
             const auto group = Configs::dataManager->groupsRepo->GetGroup(clickedGid);
             if (group == nullptr) return;
-            if (QMessageBox::question(this, tr("Confirmation"), tr("Remove %1?").arg(group->name)) ==
+            if (QMessageBox::question(this, tr("Confirmation"), tr("Remove %1?").arg(group->name) + HopReferenceWarning(group->Profiles(), clickedGid)) ==
                 QMessageBox::StandardButton::Yes) {
                 delete_group(clickedGid, tr("Delete selected Group"));
             }

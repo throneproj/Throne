@@ -1,10 +1,12 @@
 #pragma once
 
 #include <QDialog>
+#include <QFont>
 #include <QJsonObject>
 #include <QTimer>
 #include <memory>
 #include "ui_dialog_basic_settings.h"
+#include "include/database/SettingsValues.h"
 #include "include/engine/EditLocks.h"
 #include "include/engine/services/WebDavBackup.h"
 
@@ -31,7 +33,9 @@ public:
 
 public slots:
 
-    void accept();
+    void accept() override;
+
+    void done(int r) override;
 
 private:
     Ui::DialogBasicSettings *ui;
@@ -39,6 +43,8 @@ private:
     Validation::Form *form = nullptr;
 
     Engine::EditLock settingsLock{Engine::EditTarget::Settings};
+
+    Configs::SettingsValues snapshot_;
 
     ServiceCheckSelector *serviceChecks_ = nullptr;
 
@@ -77,14 +83,15 @@ private:
 
     struct {
         QString custom_inbound;
-        bool needRestart = false;
-        bool updateDisableTray = false;
-        bool updateTrayIcon = false;
-        bool updateMaxLogLines = false;
         // What the log font boxes showed on open; left untouched, an unset family/size keeps following its default.
         QString shownLogFontFamily;
         int shownLogFontSize = 0;
-        bool updateDisableAdmin = false;
+        // Previewed live and committed only by OK; any other close restores the look the window opened with.
+        QString theme;
+        QString font;
+        int font_size = 0;
+        QString openTheme;
+        QFont openFont;
     } CACHE;
 
 private slots:

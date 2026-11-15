@@ -1716,6 +1716,10 @@ Throne will restart to complete the restore.</source>
         <source>INVALID</source>
         <translation>НЕДЕЙСТВИТЕЛЬНЫЙ</translation>
     </message>
+    <message>
+        <source>Missing profile (#%1)</source>
+        <translation>Отсутствующий профиль (#%1)</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroupAdvanced</name>
@@ -4582,6 +4586,14 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
     <message>
         <source>WARP runs over the selected server.</source>
         <translation>WARP работает поверх выбранного сервера.</translation>
+    </message>
+    <message numerus="yes">
+        <source>Its endpoints will be added as %n new profile(s) to the group &quot;%1&quot;.</source>
+        <translation>
+            <numerusform>Его конечные точки будут добавлены как %n новый профиль в группу «%1».</numerusform>
+            <numerusform>Его конечные точки будут добавлены как %n новых профиля в группу «%1».</numerusform>
+            <numerusform>Его конечные точки будут добавлены как %n новых профилей в группу «%1».</numerusform>
+        </translation>
     </message>
     <message>
         <source>Sends proxied traffic out through Tor, over the selected server. TCP only.</source>
@@ -11087,6 +11099,10 @@ Please try again.</source>
         <translation>Другой профиль останавливается...</translation>
     </message>
     <message>
+        <source>Stop requested; the profile stops once its start finishes.</source>
+        <translation>Остановка запрошена; профиль остановится, как только завершится его запуск.</translation>
+    </message>
+    <message>
         <source>Try to start the config, but the core has not listened to the RPC port, so restart it...</source>
         <translation>Попытка запустить конфигурацию, но ядро не слушает порт RPC — перезапуск ядра...</translation>
     </message>
@@ -11633,6 +11649,30 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
     <message>
         <source>Deep Link</source>
         <translation>Deep Link</translation>
+    </message>
+    <message numerus="yes">
+        <source>Its endpoints will be added as %n new profile(s) to the group &quot;%1&quot;.</source>
+        <translation>
+            <numerusform>Его конечные точки будут добавлены как %n новый профиль в группу «%1».</numerusform>
+            <numerusform>Его конечные точки будут добавлены как %n новых профиля в группу «%1».</numerusform>
+            <numerusform>Его конечные точки будут добавлены как %n новых профилей в группу «%1».</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>A settings window is open; close it and try again.</source>
+        <translation>Открыто окно настроек; закройте его и повторите попытку.</translation>
+    </message>
+    <message>
+        <source>Routing Settings is open; close it and try again.</source>
+        <translation>Открыты настройки маршрутизации; закройте их и повторите попытку.</translation>
+    </message>
+    <message>
+        <source>One of the profiles to delete is open in an editor. Close it first.</source>
+        <translation>Один из удаляемых профилей открыт в редакторе. Сначала закройте его.</translation>
+    </message>
+    <message>
+        <source>WARP has no config yet: click Generate Warp Config in Routing Settings &gt; Egress.</source>
+        <translation>У WARP ещё нет конфигурации: нажмите «Сгенерировать конфигурацию Warp» в разделе «Настройки маршрутизации &gt; Выход».</translation>
     </message>
     <message>
         <source>Another test is still running. Wait for it to finish, or stop it first.</source>
@@ -13120,6 +13160,10 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
         <translation>Сначала закройте редактор этой группы или одного из её профилей.</translation>
     </message>
     <message>
+        <source>Close Routing Settings or the editor of this group&apos;s routing profile first.</source>
+        <translation>Сначала закройте настройки маршрутизации или редактор профиля маршрутизации этой группы.</translation>
+    </message>
+    <message>
         <source>This group no longer exists.</source>
         <translation>Этой группы больше не существует.</translation>
     </message>
@@ -13470,6 +13514,50 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
     <message>
         <source>Tor is enabled but not downloaded yet. Open Routing Settings &gt; Egress and press OK to download it.</source>
         <translation>Tor включён, но ещё не загружен. Откройте «Настройки маршрутизации &gt; Выход» и нажмите OK, чтобы загрузить его.</translation>
+    </message>
+    <message>
+        <source>The custom Xray config uses the tag &quot;%1&quot;, which Throne also generates for another Xray profile; rename it in the custom config</source>
+        <translation>Пользовательская конфигурация Xray использует тег «%1», который Throne также создаёт для другого профиля Xray; переименуйте его в пользовательской конфигурации</translation>
+    </message>
+    <message>
+        <source>The custom Xray config&apos;s selector &quot;%1&quot; also matches &quot;%2&quot;, which Throne generates for another Xray profile; make the selector more specific in the custom config</source>
+        <translation>Селектор «%1» пользовательской конфигурации Xray также совпадает с «%2», который Throne создаёт для другого профиля Xray; уточните селектор в пользовательской конфигурации</translation>
+    </message>
+    <message>
+        <source>These groups use a profile being deleted as their front or landing proxy. It will be removed from them, so they will connect without it:</source>
+        <translation>Эти группы используют удаляемый профиль как фронт-прокси или выходной прокси. Он будет из них убран, и они будут подключаться без него:</translation>
+    </message>
+    <message>
+        <source>These groups used a deleted profile as their front or landing proxy. It was removed from them, so they connect without it:</source>
+        <translation>Эти группы использовали удалённый профиль как фронт-прокси или выходной прокси. Он был из них убран, и теперь они подключаются без него:</translation>
+    </message>
+    <message>
+        <source>%1 (front proxy)</source>
+        <translation>%1 (фронт-прокси)</translation>
+    </message>
+    <message>
+        <source>%1 (landing proxy)</source>
+        <translation>%1 (выходной прокси)</translation>
+    </message>
+    <message>
+        <source>This group is a subscription: its next update removes profiles imported into it. Select another group, then import again.</source>
+        <translation>Эта группа — подписка: при следующем обновлении импортированные в неё профили будут удалены. Выберите другую группу и импортируйте снова.</translation>
+    </message>
+    <message>
+        <source>This group is archived. Select another group, then import again.</source>
+        <translation>Эта группа в архиве. Выберите другую группу и импортируйте снова.</translation>
+    </message>
+    <message>
+        <source>Two of these settings would use the same port. Choose a different port, then try again.</source>
+        <translation>Два из этих параметров используют один и тот же порт. Выберите другой порт и повторите попытку.</translation>
+    </message>
+    <message>
+        <source>Throne is shutting down, so the settings were not saved.</source>
+        <translation>Throne завершает работу, поэтому настройки не сохранены.</translation>
+    </message>
+    <message>
+        <source>the routing profiles are open for editing</source>
+        <translation>профили маршрутизации открыты для редактирования</translation>
     </message>
     <message>
         <source>%1 is not in the Tor Project&apos;s checksum list.</source>
@@ -15350,8 +15438,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Запустить</translation>
     </message>
     <message>
-        <source>Connecting…</source>
-        <translation>Подключение…</translation>
+        <source>Connecting… click to stop</source>
+        <translation>Подключение… нажмите, чтобы остановить</translation>
     </message>
     <message>
         <source>Stop</source>

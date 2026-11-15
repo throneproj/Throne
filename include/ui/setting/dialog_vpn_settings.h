@@ -2,6 +2,7 @@
 
 #include <QDialog>
 #include "ui_dialog_vpn_settings.h"
+#include "include/database/SettingsValues.h"
 #include "include/engine/EditLocks.h"
 
 QT_BEGIN_NAMESPACE
@@ -31,6 +32,8 @@ private:
     Validation::Form *form = nullptr;
 
     Engine::EditLock settingsLock{Engine::EditTarget::Settings};
+
+    Configs::SettingsValues snapshot_;
 
 public slots:
 

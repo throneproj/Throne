@@ -44,6 +44,18 @@ namespace Configs
 
     QJsonObject qStringListToJsonObject(const QStringList& list);
 
+    // What the choice between sing-box and Xray VLESS reads, from a link or any other import format.
+    struct VlessTraits {
+        // An XrayNetworks name, else the format's own spelling; empty for the default.
+        QString transport;
+        bool reality = false;
+        // Carries a value only Xray runs.
+        bool xrayOnly = false;
+        bool rawHttpOverTls = false;
+    };
+
+    bool useXrayVless(const VlessTraits& traits);
+
     bool useXrayVless(const QString& link);
 
     QString toAceHost(const QString& host);

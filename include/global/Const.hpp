@@ -3,7 +3,7 @@
 #include <QStringList>
 
 namespace Configs {
-    // started_id / remember_id when nothing is selected. Consumers test < 0.
+    // The resume target / remember_id when nothing is selected. Consumers test < 0.
     constexpr int NoProfileId = -1919;
 
     namespace DomainMatcher {

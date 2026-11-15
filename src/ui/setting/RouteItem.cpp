@@ -1,5 +1,6 @@
 #include "include/ui/setting/RouteItem.h"
 
+#include "include/configs/common/Protocols.h"
 #include "include/configs/generate.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/database/GroupsRepo.h"
@@ -621,8 +622,10 @@ static QList<QPair<QString, int>> routeItemEndpointCandidates() {
     if (profilesRevision == cachedRevision) return cachedCandidates;
 
     QList<QPair<QString, int>> candidates;
-    QList<int> ids = Configs::dataManager->profilesRepo->GetProfileIdsByType("openvpn");
-    ids += Configs::dataManager->profilesRepo->GetProfileIdsByType("openconnect");
+    QList<int> ids;
+    for (const auto& type : Configs::Protocols::IdsWith(Configs::Protocols::VpnEndpoint)) {
+        ids += Configs::dataManager->profilesRepo->GetProfileIdsByType(type);
+    }
     ids += Configs::dataManager->profilesRepo->GetProfileIdsByType("chain");
     for (const int id : ids) {
         const auto ent = Configs::dataManager->profilesRepo->GetProfile(id);

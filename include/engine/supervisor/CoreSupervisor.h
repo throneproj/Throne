@@ -60,7 +60,9 @@ namespace Engine {
 
         // Main thread. The profile to start once the next core connects. False when no core process exists yet.
         bool setStartWhenUp(int profileId);
-        // Main thread. A user stop while nothing runs: the profile waiting for the core to come back is not started.
+        // Main thread. While a core is Starting and no exit runs: profileId replaces what it starts on connecting; else false.
+        bool deferToStartingCore(int profileId);
+        // Main thread. A user stop: the profile waiting for the core to come back is not started.
         void cancelResume();
         // Main thread. True from an accept until its coreStarted, while the privilege probe runs.
         bool awaitingCoreStarted() const;
@@ -97,7 +99,7 @@ namespace Engine {
         void stateChanged(Engine::CoreState state);
         // Main thread. Unexpected exits only, after the expected-exit return and before the give-up branch.
         void coreExited(bool wasConnected);
-        // Main thread, from cancelResume(): a user stop with nothing running cancelled the resume that waits for the core.
+        // Main thread, from cancelResume(): a user stop cancelled the resume that waits for the core.
         void resumeCancelled();
 
     private:

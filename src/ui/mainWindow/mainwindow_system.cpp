@@ -22,16 +22,17 @@
 #include "include/configs/generate.h"
 #include "include/engine/EditLocks.h"
 #include "include/engine/EngineHost.h"
+#include "include/engine/Lifecycle.h"
 #include "include/engine/ThreadCheck.h"
 #include "include/engine/app/ExitController.h"
 #include "include/engine/connection/ConnectionManager.h"
 #include "include/engine/services/Dashboard.h"
+#include "include/engine/services/RouteService.h"
 #include "include/engine/supervisor/CoreSupervisor.h"
 #include "include/global/Configs.hpp"
 #include "include/global/HTTPRequestHelper.hpp"
 #include "include/global/LocalNetwork.hpp"
 #include "include/global/Logger.hpp"
-#include "include/global/RunningProfiles.hpp"
 #include "include/scanner/ScanManager.h"
 #include "include/sys/HostPresence.hpp"
 #include "include/sys/KillSwitch.hpp"
@@ -83,10 +84,8 @@ void MainWindow::openRouteProfileEditor(int routeId) {
     if (profile == nullptr) return;
     setDialogInUse(true);
 
-    const auto onSaved = [this](const std::shared_ptr<Configs::RouteProfile>& chain) {
-        if (!Configs::dataManager->routesRepo->Save(chain)) return;
-        if (chain->id == Configs::ActiveRouteId())
-            connection()->noteRestartNeeded(Engine::RestartReason::Routing);
+    const auto onSaved = [](const std::shared_ptr<Configs::RouteProfile>& chain) {
+        if (const auto error = Engine::RouteService::Save(chain)) MW_show_log(error->message);
     };
     QDialog* editor;
     if (profile->isRaw) {
@@ -343,7 +342,7 @@ void MainWindow::OpenDashboard() {
         MessageBoxWarning(software_name, tr("The sing-box API is disabled. Set a listen port in Preferences > Integration Settings > Core APIs."));
         return;
     }
-    if (settings.started_id < 0) {
+    if (Engine::Lifecycle::RunningProfileId() < 0) {
         MessageBoxWarning(software_name, tr("Start a profile first; the dashboard is served by the running core."));
         return;
     }

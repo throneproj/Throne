@@ -5,6 +5,7 @@
 #include "include/global/Validation.hpp"
 #include "include/configs/common/Outbound.h"
 #include "include/configs/common/QUICFields.h"
+#include "include/engine/services/SettingsService.h"
 #include "include/ui/utils/ValidationForm.h"
 
 #include <QRegularExpression>
@@ -20,22 +21,23 @@ namespace {
 }
 
 DialogPresetSettings::DialogPresetSettings(QWidget *parent) : QDialog(parent), ui(new Ui::DialogPresetSettings) {
+    snapshot_ = *Configs::dataManager->settingsRepo;
     ui->setupUi(this);
     ADD_ASTERISK(this);
     form = new Validation::Form(this);
     form->attachStatus(ui->buttonBox);
 
     ui->mux_singbox->setSettings(Configs::MuxSettings::Preset());
-    D_LOAD_BOOL(mux_default_on)
+    S_LOAD_BOOL(mux_default_on)
     ui->mux_xray->setSettings(Configs::XrayMuxSettings::Preset());
-    ui->xray_default_mux->setChecked(Configs::dataManager->settingsRepo->xray_mux_default_on);
+    ui->xray_default_mux->setChecked(snapshot_.xray_mux_default_on);
 
     ui->fragment_implementation->addItems({"built-in", "custom"});
-    D_LOAD_COMBO_STRING(fragment_implementation)
-    D_LOAD_STRING(fragment_size)
-    D_LOAD_STRING(fragment_sleep)
-    D_LOAD_BOOL(fragment_default_on)
-    D_LOAD_BOOL(tls_tricks_default_on)
+    S_LOAD_COMBO_STRING(fragment_implementation)
+    S_LOAD_STRING(fragment_size)
+    S_LOAD_STRING(fragment_sleep)
+    S_LOAD_BOOL(fragment_default_on)
+    S_LOAD_BOOL(tls_tricks_default_on)
     ui->fragment_size->setValidator(new QRegularExpressionValidator(QRegularExpression("^[0-9]+(-[0-9]+)?$"), this));
     ui->fragment_sleep->setValidator(new QRegularExpressionValidator(QRegularExpression("^[0-9]+(-[0-9]+)?$"), this));
     auto syncFragParams = [this](const QString &impl) {
@@ -48,12 +50,12 @@ DialogPresetSettings::DialogPresetSettings(QWidget *parent) : QDialog(parent), u
     connect(ui->fragment_implementation, &QComboBox::currentTextChanged, this, syncFragParams);
     syncFragParams(ui->fragment_implementation->currentText());
     ui->utlsFingerprint->addItems(Configs::tlsFingerprints);
-    ui->utlsFingerprint->setCurrentText(Configs::dataManager->settingsRepo->utlsFingerprint);
+    ui->utlsFingerprint->setCurrentText(snapshot_.utlsFingerprint);
     // a non-editable combo drops setCurrentText while it holds no items
     ui->tls_spoof_method->addItems(Configs::tlsSpoofMethods);
-    D_LOAD_STRING(tls_spoof)
-    D_LOAD_COMBO_STRING(tls_spoof_method)
-    D_LOAD_BOOL(tls_spoof_default_on)
+    S_LOAD_STRING(tls_spoof)
+    S_LOAD_COMBO_STRING(tls_spoof_method)
+    S_LOAD_BOOL(tls_spoof_default_on)
     auto syncSpoofFields = [this](const QString &sni) {
         ui->tls_spoof_method->setEnabled(!sni.isEmpty());
         ui->tls_spoof_method_l->setEnabled(!sni.isEmpty());
@@ -62,13 +64,13 @@ DialogPresetSettings::DialogPresetSettings(QWidget *parent) : QDialog(parent), u
     connect(ui->tls_spoof, &QLineEdit::textChanged, this, syncSpoofFields);
     syncSpoofFields(ui->tls_spoof->text());
 
-    D_LOAD_STRING(h2_idle_timeout)
-    D_LOAD_STRING(h2_keep_alive_period)
-    D_LOAD_STRING(h2_stream_receive_window)
-    D_LOAD_STRING(h2_connection_receive_window)
-    LoadOptionalInt(ui->h2_max_concurrent_streams, Configs::dataManager->settingsRepo->h2_max_concurrent_streams, this);
-    LoadOptionalInt(ui->quic_initial_packet_size, Configs::dataManager->settingsRepo->quic_initial_packet_size, this);
-    D_LOAD_BOOL(quic_disable_path_mtu_discovery)
+    S_LOAD_STRING(h2_idle_timeout)
+    S_LOAD_STRING(h2_keep_alive_period)
+    S_LOAD_STRING(h2_stream_receive_window)
+    S_LOAD_STRING(h2_connection_receive_window)
+    LoadOptionalInt(ui->h2_max_concurrent_streams, snapshot_.h2_max_concurrent_streams, this);
+    LoadOptionalInt(ui->quic_initial_packet_size, snapshot_.quic_initial_packet_size, this);
+    S_LOAD_BOOL(quic_disable_path_mtu_discovery)
 
     using namespace Validation;
     const auto boxLabel = [](const QGroupBox *box, const QLabel *label) { return QStringLiteral("%1 %2").arg(box->title(), label->text()); };
@@ -101,29 +103,33 @@ DialogPresetSettings::~DialogPresetSettings() {
 
 void DialogPresetSettings::accept() {
     if (!form->validateAll()) return;
-    ui->mux_singbox->settings().SaveAsPreset();
-    D_SAVE_BOOL(mux_default_on)
-    ui->mux_xray->settings().SaveAsPreset();
-    Configs::dataManager->settingsRepo->xray_mux_default_on = ui->xray_default_mux->isChecked();
+    Configs::SettingsValues proposed = snapshot_;
+    ui->mux_singbox->settings().SaveAsPreset(proposed);
+    S_SAVE_BOOL(mux_default_on)
+    ui->mux_xray->settings().SaveAsPreset(proposed);
+    proposed.xray_mux_default_on = ui->xray_default_mux->isChecked();
 
-    D_SAVE_COMBO_STRING(fragment_implementation)
-    Configs::dataManager->settingsRepo->fragment_size = ui->fragment_size->text().trimmed();
-    Configs::dataManager->settingsRepo->fragment_sleep = ui->fragment_sleep->text().trimmed();
-    D_SAVE_BOOL(fragment_default_on)
-    D_SAVE_BOOL(tls_tricks_default_on)
-    Configs::dataManager->settingsRepo->utlsFingerprint = ui->utlsFingerprint->currentText().trimmed();
-    Configs::dataManager->settingsRepo->tls_spoof = ui->tls_spoof->text().trimmed();
-    D_SAVE_COMBO_STRING(tls_spoof_method)
-    D_SAVE_BOOL(tls_spoof_default_on)
+    S_SAVE_COMBO_STRING(fragment_implementation)
+    proposed.fragment_size = ui->fragment_size->text().trimmed();
+    proposed.fragment_sleep = ui->fragment_sleep->text().trimmed();
+    S_SAVE_BOOL(fragment_default_on)
+    S_SAVE_BOOL(tls_tricks_default_on)
+    proposed.utlsFingerprint = ui->utlsFingerprint->currentText().trimmed();
+    proposed.tls_spoof = ui->tls_spoof->text().trimmed();
+    S_SAVE_COMBO_STRING(tls_spoof_method)
+    S_SAVE_BOOL(tls_spoof_default_on)
 
-    Configs::dataManager->settingsRepo->h2_idle_timeout = ui->h2_idle_timeout->text().trimmed();
-    Configs::dataManager->settingsRepo->h2_keep_alive_period = ui->h2_keep_alive_period->text().trimmed();
-    Configs::dataManager->settingsRepo->h2_stream_receive_window = ui->h2_stream_receive_window->text().trimmed();
-    Configs::dataManager->settingsRepo->h2_connection_receive_window = ui->h2_connection_receive_window->text().trimmed();
-    D_SAVE_INT(h2_max_concurrent_streams)
-    D_SAVE_INT(quic_initial_packet_size)
-    D_SAVE_BOOL(quic_disable_path_mtu_discovery)
+    proposed.h2_idle_timeout = ui->h2_idle_timeout->text().trimmed();
+    proposed.h2_keep_alive_period = ui->h2_keep_alive_period->text().trimmed();
+    proposed.h2_stream_receive_window = ui->h2_stream_receive_window->text().trimmed();
+    proposed.h2_connection_receive_window = ui->h2_connection_receive_window->text().trimmed();
+    S_SAVE_INT(h2_max_concurrent_streams)
+    S_SAVE_INT(quic_initial_packet_size)
+    S_SAVE_BOOL(quic_disable_path_mtu_discovery)
 
-    MW_dialog_message(MwMessage::UpdateSettings, {});
+    if (const auto error = Engine::SettingsService::ApplyEdit(snapshot_, proposed, {.interactive = true})) {
+        MessageBoxWarning(windowTitle(), SettingsApplyErrorText(*error));
+        return;
+    }
     QDialog::accept();
 }

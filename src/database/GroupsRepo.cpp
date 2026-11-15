@@ -385,10 +385,10 @@ namespace Configs {
     bool GroupsRepo::DeleteGroup(int id) {
         const auto group = GetGroup(id);
         const QList<int> listed = group != nullptr ? group->Profiles() : QList<int>{};
+        QSet<int> profileIds(listed.cbegin(), listed.cend());
         // Runs under ProfilesRepo's lock, so no profile Save lands between the delete and the tombstones.
-        return dataManager->profilesRepo->DeleteAndForget([&](QList<int>& deletedIds) {
+        const bool deleted = dataManager->profilesRepo->DeleteAndForget([&](QList<int>& deletedIds) {
             QMutexLocker locker(&mutex);
-            QSet<int> profileIds(listed.cbegin(), listed.cend());
             const bool ok = db.transaction("GroupsRepo::DeleteGroup", [&] {
                 {
                     const auto owned = db.queryThrow("SELECT id FROM profiles WHERE gid = ?", id);
@@ -408,6 +408,8 @@ namespace Configs {
             ++revision;
             return true;
         });
+        if (deleted) ClearHopReferences(profileIds);
+        return deleted;
     }
 
     QList<int> GroupsRepo::GetAllGroupIds() const {
@@ -477,6 +479,36 @@ namespace Configs {
         }
         LOG_DEBUG(QString("Group %1 was deleted; not saving it").arg(group->id));
         return false;
+    }
+
+    QList<HopReference> GroupsRepo::HopReferences(const QSet<int>& profileIds, int exceptGroup) const {
+        QList<HopReference> refs;
+        if (profileIds.isEmpty()) return refs;
+        for (const int gid : GetAllGroupIds()) {
+            if (gid == exceptGroup) continue;
+            const auto group = GetGroup(gid);
+            if (group == nullptr) continue;
+            if (profileIds.contains(group->front_proxy_id)) refs.append({gid, group->name, HopRole::Front, group->front_proxy_id});
+            if (profileIds.contains(group->landing_proxy_id)) refs.append({gid, group->name, HopRole::Landing, group->landing_proxy_id});
+        }
+        return refs;
+    }
+
+    QList<HopReference> GroupsRepo::ClearHopReferences(const QSet<int>& deletedProfileIds) {
+        QList<HopReference> cleared;
+        for (const auto& ref : HopReferences(deletedProfileIds)) {
+            const auto group = GetGroup(ref.groupId);
+            if (group == nullptr) continue;
+            int& proxyId = ref.role == HopRole::Front ? group->front_proxy_id : group->landing_proxy_id;
+            if (proxyId != ref.profileId) continue;
+            proxyId = -1;
+            if (!Save(group)) continue;
+            MW_show_log(ref.role == HopRole::Front
+                            ? QStringLiteral("[Groups] %1: front proxy removed (its profile was deleted)").arg(ref.groupName)
+                            : QStringLiteral("[Groups] %1: landing proxy removed (its profile was deleted)").arg(ref.groupName));
+            cleared << ref;
+        }
+        return cleared;
     }
 
     namespace {

@@ -32,6 +32,7 @@
 
 #include "NkrVersion.h"
 #include "include/api/remote/Protocol.hpp"
+#include "include/database/SettingsSchema.h"
 #include "include/engine/app/DataDirLock.h"
 #include "include/engine/app/ExitCodes.h"
 #include "include/engine/headless/HeadlessInstance.h"
@@ -445,24 +446,6 @@ namespace Engine::Preflight {
 
         // ---- 4. settings
 
-        struct PreflightSettings {
-            bool remoteApiEnable = false;
-            bool remoteApiLan = false;
-            int remoteApiPort = RemoteApi::kDefaultPort;
-            QString remoteApiKey;
-            QString inboundAddress = QStringLiteral("127.0.0.1");
-            int inboundPort = 2080;
-            bool randomInboundPort = false;
-            bool disableMixedInbound = false;
-            int dnsInPort = 5533;
-            int clashApiPort = -9090;
-            QString clashListen = QStringLiteral("127.0.0.1");
-            int coreApiPort = -9091;
-            bool killSwitch = false;
-            QString tunCidr = QStringLiteral("172.19.0.1/24");
-            bool rememberTun = false;
-        };
-
         // Database keys, as SettingsRepo stores them (remember_tun is tun_mode_enabled).
         constexpr const char *preflightSettingKeys[] = {
             "remote_api_enable", "remote_api_lan", "remote_api_port", "remote_api_key", "inbound_address", "inbound_socks_port",
@@ -483,29 +466,6 @@ namespace Engine::Preflight {
             return sql + ")";
         }
 
-        // As SettingsRepo::loadAllSettings parses them.
-        void preflightApplySetting(PreflightSettings &settings, const QString &key, const QString &value) {
-            const bool flag = value == QLatin1String("true") || value == QLatin1String("1");
-            bool ok = false;
-            int number = value.toInt(&ok);
-            if (!ok) number = 0;
-            if (key == QLatin1String("remote_api_enable")) settings.remoteApiEnable = flag;
-            else if (key == QLatin1String("remote_api_lan")) settings.remoteApiLan = flag;
-            else if (key == QLatin1String("remote_api_port")) settings.remoteApiPort = number;
-            else if (key == QLatin1String("remote_api_key")) settings.remoteApiKey = value;
-            else if (key == QLatin1String("inbound_address")) settings.inboundAddress = value;
-            else if (key == QLatin1String("inbound_socks_port")) settings.inboundPort = number;
-            else if (key == QLatin1String("random_inbound_port")) settings.randomInboundPort = flag;
-            else if (key == QLatin1String("disable_mixed_inbound")) settings.disableMixedInbound = flag;
-            else if (key == QLatin1String("core_dns_in_port")) settings.dnsInPort = number;
-            else if (key == QLatin1String("core_box_clash_api")) settings.clashApiPort = number;
-            else if (key == QLatin1String("core_box_clash_listen_addr")) settings.clashListen = value;
-            else if (key == QLatin1String("core_box_api_port")) settings.coreApiPort = number;
-            else if (key == QLatin1String("kill_switch")) settings.killSwitch = flag;
-            else if (key == QLatin1String("vpn_tun_ipv4_cidr")) settings.tunCidr = value;
-            else if (key == QLatin1String("tun_mode_enabled")) settings.rememberTun = flag;
-        }
-
         struct PreflightDbRead {
             bool read = false;
             bool noTable = false;
@@ -514,7 +474,7 @@ namespace Engine::Preflight {
             QString error;
         };
 
-        PreflightDbRead preflightQuerySettings(const std::string &name, int flags, PreflightSettings *settings) {
+        PreflightDbRead preflightQuerySettings(const std::string &name, int flags, Configs::SettingsValues *settings) {
             PreflightDbRead result;
             try {
                 SQLite::Database db(name, flags, preflightDbBusyMs);
@@ -522,12 +482,14 @@ namespace Engine::Preflight {
                     result.noTable = true;
                     return result;
                 }
-                PreflightSettings read;
+                Configs::SettingsValues read;
                 SQLite::Statement query(db, preflightSettingsSql());
                 while (query.executeStep()) {
-                    preflightApplySetting(read, QString::fromUtf8(query.getColumn(0).getText()), QString::fromUtf8(query.getColumn(1).getText()));
+                    if (const auto *key = Configs::SettingsSchema::Find(QString::fromUtf8(query.getColumn(0).getText()))) {
+                        Configs::SettingsSchema::Parse(read, *key, QString::fromUtf8(query.getColumn(1).getText()));
+                    }
                 }
-                *settings = read;
+                *settings = std::move(read);
                 result.read = true;
             } catch (const SQLite::Exception &e) {
                 result.code = e.getErrorCode() & 0xff;
@@ -540,7 +502,7 @@ namespace Engine::Preflight {
 
         // A read-only connection still creates a missing -wal/-shm beside a WAL database (root-owned, when root runs this), and a
         // zero-length database makes SQLite delete an existing -wal; immutable reads the main file alone and never writes.
-        PreflightDbRead preflightReadSettings(const QString &dbFile, PreflightSettings *settings) {
+        PreflightDbRead preflightReadSettings(const QString &dbFile, Configs::SettingsValues *settings) {
             const QFileInfo info(dbFile);
             const bool wal = info.size() > 0 && QFileInfo::exists(dbFile + QStringLiteral("-wal")) &&
                              QFileInfo::exists(dbFile + QStringLiteral("-shm"));
@@ -561,8 +523,9 @@ namespace Engine::Preflight {
             return preflightQuerySettings(uri, SQLite::OPEN_READONLY | SQLite::OPEN_URI, settings);
         }
 
-        PreflightSettings preflightSettings(PreflightReport &report, const Bootstrap::DataDir &dataDir, const PreflightInstance &instance) {
-            PreflightSettings settings;
+        Configs::SettingsValues preflightSettings(PreflightReport &report, const Bootstrap::DataDir &dataDir,
+                                                  const PreflightInstance &instance) {
+            Configs::SettingsValues settings;
             const QString dbFile = QDir(dataDir.configDir).absoluteFilePath(QStringLiteral("throne.db"));
             const QString shown = preflightNative(dbFile);
             const QString advice = QStringLiteral("make %1 and its -wal and -shm files readable and writable by the user Throne runs as").arg(shown);
@@ -758,8 +721,8 @@ namespace Engine::Preflight {
 
         // ---- 7. Tun
 
-        void preflightTun(PreflightReport &report, const PreflightCore &core, const PreflightSettings &settings) {
-            const QString remembered = settings.rememberTun
+        void preflightTun(PreflightReport &report, const PreflightCore &core, const Configs::SettingsValues &settings) {
+            const QString remembered = settings.remember_tun
                                            ? QStringLiteral("; the remembered Tun mode will not come back at start (degraded: tun_unavailable)")
                                            : QString();
             const QString corePath = preflightQuote(core.path);
@@ -828,12 +791,12 @@ namespace Engine::Preflight {
 
         // ---- 8. kill switch
 
-        void preflightKillSwitch(PreflightReport &report, const PreflightCore &core, const PreflightSettings &settings,
+        void preflightKillSwitch(PreflightReport &report, const PreflightCore &core, const Configs::SettingsValues &settings,
                                  const HeadlessCli::LaunchOptions &options) {
             QString setting;
-            if (settings.killSwitch && options.noKillSwitch) {
+            if (settings.kill_switch && options.noKillSwitch) {
                 setting = QStringLiteral("kill_switch is on in the settings, but --no-kill-switch turns it off for this run");
-            } else if (settings.killSwitch) {
+            } else if (settings.kill_switch) {
                 setting = QStringLiteral("kill_switch is on in the settings, so profiles stay refused until this is fixed or kill_switch is "
                                          "turned off");
             } else {
@@ -941,11 +904,11 @@ namespace Engine::Preflight {
         }
 
         // RemoteApi::EffectiveConfig over the peeked settings; the overlay is never installed.
-        PreflightApi preflightApiConfig(const PreflightSettings &settings, const RemoteApi::Overlay &overlay, const QString &configDir) {
+        PreflightApi preflightApiConfig(const Configs::SettingsValues &settings, const RemoteApi::Overlay &overlay, const QString &configDir) {
             PreflightApi api;
-            api.enabled = settings.remoteApiEnable;
-            bool lan = settings.remoteApiLan;
-            if (settings.remoteApiPort >= 1 && settings.remoteApiPort <= 65535) api.port = static_cast<quint16>(settings.remoteApiPort);
+            api.enabled = settings.remote_api_enable;
+            bool lan = settings.remote_api_lan;
+            if (settings.remote_api_port >= 1 && settings.remote_api_port <= 65535) api.port = static_cast<quint16>(settings.remote_api_port);
             api.source = preflightApiSource(RemoteApi::ConfigSource::Settings);
             QHostAddress address;
             if (overlay.headless && !api.enabled) {
@@ -975,13 +938,13 @@ namespace Engine::Preflight {
             return api;
         }
 
-        void preflightApiKey(PreflightReport &report, const PreflightApi &api, const PreflightSettings &settings,
+        void preflightApiKey(PreflightReport &report, const PreflightApi &api, const Configs::SettingsValues &settings,
                              const RemoteApi::Overlay &overlay) {
             if (!api.enabled) return;
             const QString shown = preflightNative(api.keyFile);
             switch (api.key) {
                 case PreflightApi::Key::Settings:
-                    if (RemoteApi::KeyFromText(settings.remoteApiKey).isEmpty()) {
+                    if (RemoteApi::KeyFromText(settings.remote_api_key).isEmpty()) {
                         report.warn(QStringLiteral("API key: remote_api_key in the settings is missing or invalid, so the Throne API will not "
                                                    "listen (key_invalid)"),
                                     {QStringLiteral("pass --api-key-file FILE (create one with: thronectl keygen -o FILE)")});
@@ -1136,7 +1099,7 @@ namespace Engine::Preflight {
             return note;
         }
 
-        void preflightPorts(PreflightReport &report, const PreflightSettings &settings, const RemoteApi::Overlay &overlay,
+        void preflightPorts(PreflightReport &report, const Configs::SettingsValues &settings, const RemoteApi::Overlay &overlay,
                             const Bootstrap::DataDir &dataDir, const PreflightInstance &instance) {
             const PreflightApi api = preflightApiConfig(settings, overlay, dataDir.configDir);
             preflightApiKey(report, api, settings, overlay);
@@ -1172,48 +1135,48 @@ namespace Engine::Preflight {
                 report.info(QStringLiteral("port: the Throne API is off (%1)").arg(api.source));
             }
 
-            if (settings.disableMixedInbound) {
+            if (settings.disable_mixed_inbound) {
                 report.info(QStringLiteral("port: the mixed proxy is off in the settings"));
-            } else if (settings.randomInboundPort) {
+            } else if (settings.random_inbound_port) {
                 report.info(QStringLiteral("port: the mixed proxy takes a random free port at each start"));
-            } else if (const auto address = preflightListenAddress(settings.inboundAddress, QStringLiteral("127.0.0.1")); !address) {
+            } else if (const auto address = preflightListenAddress(settings.inbound_address, QStringLiteral("127.0.0.1")); !address) {
                 report.fail(QStringLiteral("port: the mixed proxy listen address \"%1\" is not an IP address, so profiles fail to start")
-                                .arg(settings.inboundAddress),
+                                .arg(settings.inbound_address),
                             {QStringLiteral("thronectl settings set inbound_address=127.0.0.1")});
             } else {
-                listeners << coreListener(QStringLiteral("the mixed proxy, inbound_port"), *address, settings.inboundPort, false,
+                listeners << coreListener(QStringLiteral("the mixed proxy, inbound_port"), *address, settings.inbound_socks_port, false,
                                           QStringLiteral("pick another: thronectl settings set inbound_port=PORT"));
             }
 
             const QString dnsLabel = QStringLiteral("the core's DNS server, dns_in_port");
             const QString dnsChange = QStringLiteral("pick another: thronectl settings set dns_in_port=PORT");
-            listeners << coreListener(dnsLabel, QHostAddress(QHostAddress::LocalHost), settings.dnsInPort, false, dnsChange);
-            listeners << coreListener(dnsLabel, QHostAddress(QHostAddress::LocalHost), settings.dnsInPort, true, dnsChange);
-            if (settings.clashApiPort > 0) {
+            listeners << coreListener(dnsLabel, QHostAddress(QHostAddress::LocalHost), settings.core_dns_in_port, false, dnsChange);
+            listeners << coreListener(dnsLabel, QHostAddress(QHostAddress::LocalHost), settings.core_dns_in_port, true, dnsChange);
+            if (settings.core_box_clash_api > 0) {
                 const QString clashLabel = QStringLiteral("the Clash API, clash_api_port");
                 const QString clashChange =
                     QStringLiteral("pick another: thronectl settings set clash_api_port=PORT (0 turns the Clash API off)");
                 const QStringList clashAddressFix{QStringLiteral("thronectl settings set clash_listen_addr=127.0.0.1, or turn the Clash API "
                                                                  "off: thronectl settings set clash_api_port=0")};
-                const QString clashName = settings.clashListen.trimmed();
-                if (const auto address = preflightListenAddress(settings.clashListen, QStringLiteral("127.0.0.1")); address) {
-                    listeners << coreListener(clashLabel, *address, settings.clashApiPort, false, clashChange);
+                const QString clashName = settings.core_box_clash_listen_addr.trimmed();
+                if (const auto address = preflightListenAddress(settings.core_box_clash_listen_addr, QStringLiteral("127.0.0.1")); address) {
+                    listeners << coreListener(clashLabel, *address, settings.core_box_clash_api, false, clashChange);
                 } else if (!Validation::Host(clashName, Validation::Empty::Allowed).isEmpty()) {
                     report.fail(QStringLiteral("port: the Clash API listen address \"%1\" is neither an IP address nor a host name, so profiles "
                                                "fail to start")
-                                    .arg(settings.clashListen),
+                                    .arg(settings.core_box_clash_listen_addr),
                                 clashAddressFix);
                 } else if (const auto resolved = preflightResolveListenHost(clashName); resolved) {
-                    listeners << coreListener(clashLabel + QStringLiteral(", ") + clashName, *resolved, settings.clashApiPort, false,
+                    listeners << coreListener(clashLabel + QStringLiteral(", ") + clashName, *resolved, settings.core_box_clash_api, false,
                                               clashChange);
                 } else {
                     report.fail(QStringLiteral("port: the Clash API listen address \"%1\" does not resolve, so profiles fail to start").arg(clashName),
                                 clashAddressFix);
                 }
             }
-            if (settings.coreApiPort > 0) {
+            if (settings.core_box_api_port > 0) {
                 listeners << coreListener(QStringLiteral("the sing-box API, singbox_api_port"), QHostAddress(QHostAddress::LocalHost),
-                                          settings.coreApiPort, false,
+                                          settings.core_box_api_port, false,
                                           QStringLiteral("pick another: thronectl settings set singbox_api_port=PORT (0 turns the sing-box API off)"));
             }
 
@@ -1316,7 +1279,7 @@ namespace Engine::Preflight {
             return {};
         }
 
-        void preflightHost(PreflightReport &report, const PreflightSettings &settings, const Bootstrap::DataDir &dataDir,
+        void preflightHost(PreflightReport &report, const Configs::SettingsValues &settings, const Bootstrap::DataDir &dataDir,
                            const PreflightInstance &instance) {
 #ifdef Q_OS_WIN
             constexpr Qt::CaseSensitivity pathCase = Qt::CaseInsensitive;
@@ -1334,12 +1297,13 @@ namespace Engine::Preflight {
             } else {
                 report.info(QStringLiteral("host: no other headless Throne on this computer"));
             }
-            const QString conflict = Sys::HostTun::Conflict(settings.tunCidr, 0);
+            const QString conflict = Sys::HostTun::Conflict(settings.vpn_tun_ipv4_cidr, 0);
             if (conflict.isEmpty()) {
-                report.ok(QStringLiteral("Tun owner: nothing else uses %1 or %2").arg(QLatin1String(Sys::HostTun::kTunName), settings.tunCidr));
+                report.ok(QStringLiteral("Tun owner: nothing else uses %1 or %2")
+                              .arg(QLatin1String(Sys::HostTun::kTunName), settings.vpn_tun_ipv4_cidr));
                 return;
             }
-            const QString lanOwner = preflightTunLanOwner(settings.tunCidr);
+            const QString lanOwner = preflightTunLanOwner(settings.vpn_tun_ipv4_cidr);
             if (lanOwner.isEmpty() && instance.health && instance.tunOn) {
                 report.info(QStringLiteral("Tun owner: %1 (%2, PID %3, runs Tun)").arg(conflict, instance.who, QString::number(instance.pid)));
             } else if (lanOwner.isEmpty() && !instance.health && instance.pid > 0) {
@@ -1466,7 +1430,7 @@ namespace Engine::Preflight {
         preflightBuild(report);
         preflightDataDir(report, options, env, dataDir);
         const PreflightInstance instance = preflightInstance(report, dataDir);
-        const PreflightSettings settings = preflightSettings(report, dataDir, instance);
+        const Configs::SettingsValues settings = preflightSettings(report, dataDir, instance);
         preflightTls(report);
         const PreflightCore core = preflightCore(report, env);
         preflightTun(report, core, settings);

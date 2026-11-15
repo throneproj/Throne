@@ -20,6 +20,7 @@
 #include "include/configs/outbounds/tor.h"
 #include "include/engine/EnginePolicy.h"
 #include "include/engine/EngineTr.h"
+#include "include/engine/Lifecycle.h"
 #include "include/engine/ThreadCheck.h"
 #include "include/global/Configs.hpp"
 #include "include/global/HTTPRequestHelper.hpp"
@@ -287,7 +288,7 @@ namespace Engine::AssetUpdates {
         ENGINE_CHECK_MAIN_THREAD();
         if (assetTorBusy.exchange(true)) return false;
         // Through the proxy when one runs; a start that fails on missing Tor must not lock out the download.
-        const bool viaProxy = Configs::dataManager->settingsRepo->started_id >= 0;
+        const bool viaProxy = Lifecycle::RunningProfileId() >= 0;
         runOnNewThread([viaProxy, done = std::move(done)] {
             const QString error = assetTorInstall(viaProxy);
             if (error.isEmpty()) MW_show_log(QStringLiteral("[Tor] Installed."));
@@ -379,26 +380,27 @@ namespace Engine::AssetUpdates {
                     return;
                 }
 
-                const bool confirmed = policy->confirmGeoAssetDownload(contextName);
-                assetXrayGeoPromptBusy = false;
-                if (!confirmed) return;
+                policy->confirmGeoAssetDownload(contextName, [policy](bool confirmed) {
+                    assetXrayGeoPromptBusy = false;
+                    if (!confirmed) return;
 
-                GeoRequest request;
-                request.files.clear();
-                for (const auto &status : GeoStatus()) {
-                    if (!status.present) request.files << status.file;
-                }
-                request.onlyMissing = true;
-                const bool started = UpdateGeoAssets(request, [policy](const QList<GeoFileResult> &results) {
-                    QString dlErr;
-                    for (const auto &result : results) {
-                        if (!result.error.isEmpty()) dlErr += result.fileName + ": " + result.error + "\n";
+                    GeoRequest request;
+                    request.files.clear();
+                    for (const auto &status : GeoStatus()) {
+                        if (!status.present) request.files << status.file;
                     }
-                    if (dlErr.isEmpty()) MW_show_log(MainWindowTr::tr("Downloaded Xray geo asset files."));
-                    policy->geoAssetDownloadFinished(dlErr);
+                    request.onlyMissing = true;
+                    const bool started = UpdateGeoAssets(request, [policy](const QList<GeoFileResult> &results) {
+                        QString dlErr;
+                        for (const auto &result : results) {
+                            if (!result.error.isEmpty()) dlErr += result.fileName + ": " + result.error + "\n";
+                        }
+                        if (dlErr.isEmpty()) MW_show_log(MainWindowTr::tr("Downloaded Xray geo asset files."));
+                        policy->geoAssetDownloadFinished(dlErr);
+                    });
+                    // An API request may have started a download while the question was open.
+                    if (!started) MW_show_log(MainWindowTr::tr("Geo asset files are already being downloaded."));
                 });
-                // An API request may have started a download while the question was open.
-                if (!started) MW_show_log(MainWindowTr::tr("Geo asset files are already being downloaded."));
             }, QCoreApplication::instance(), 300);
         });
         return true;

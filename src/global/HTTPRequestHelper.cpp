@@ -14,6 +14,7 @@
 
 
 
+#include "include/engine/Lifecycle.h"
 #include "include/global/Configs.hpp"
 #include "include/global/LocalNetwork.hpp"
 #include "include/sys/KillSwitch.hpp"
@@ -56,7 +57,7 @@ namespace Configs_network {
         const auto &settings = Configs::dataManager->settingsRepo;
         const bool guarded = Sys::KillSwitch::BlocksAppTraffic();
         if (!settings->net_use_proxy && !settings->spmode_system_proxy && !useProxy && !guarded) return false;
-        if (settings->started_id < 0) {
+        if (Engine::Lifecycle::RunningProfileId() < 0) {
             *error = guarded ? QObject::tr("The kill switch blocks this request while no profile is running.")
                              : QObject::tr("Request with proxy but no profile started.");
             return false;

@@ -66,7 +66,7 @@ void StartStopButton::updateToolTip() {
     switch (m_state) {
         case State::Disabled: tip = tr("Select a profile to start"); break;
         case State::Idle: tip = tr("Start"); break;
-        case State::Connecting: tip = tr("Connecting…"); break;
+        case State::Connecting: tip = tr("Connecting… click to stop"); break;
         case State::Running: tip = tr("Stop"); break;
         case State::Disconnecting: tip = tr("Stopping…"); break;
     }
@@ -83,13 +83,13 @@ void StartStopButton::updateToolTip() {
 }
 
 void StartStopButton::applyState(bool animated) {
-    const bool interactive = (m_state == State::Idle || m_state == State::Running);
+    const bool interactive = (m_state == State::Idle || m_state == State::Running || m_state == State::Connecting);
     setEnabled(interactive);
     setCursor(interactive ? Qt::PointingHandCursor : Qt::ArrowCursor);
 
     updateToolTip();
 
-    const qreal morphTarget = (m_state == State::Running || m_state == State::Disconnecting) ? 1.0 : 0.0;
+    const qreal morphTarget = (m_state == State::Idle || m_state == State::Disabled) ? 0.0 : 1.0;
     const qreal dimTarget = (m_state == State::Disabled) ? 0.45 : 1.0;
     const QColor ringTarget = targetRingColor();
 
@@ -190,7 +190,7 @@ QColor StartStopButton::idleRingColor() const {
 }
 
 QColor StartStopButton::glyphColor() const {
-    if (m_state == State::Running || m_state == State::Disconnecting) return {0x99, 0x46, 0x46}; // dim, slightly darker red
+    if (m_state != State::Idle && m_state != State::Disabled) return {0x99, 0x46, 0x46}; // dim, slightly darker red
     return Qt::darkGreen;
 }
 
@@ -217,8 +217,8 @@ void StartStopButton::ensureChromeCache() {
     opt.features &= ~QStyleOptionToolButton::HasMenu;
     opt.subControls &= ~QStyle::SC_ToolButtonMenu;
     opt.arrowType = Qt::NoArrow;
-    if (m_state == State::Connecting || m_state == State::Disconnecting) {
-        // Force the frame to look enabled: a transition is not clickable but must not look dead.
+    if (m_state == State::Disconnecting) {
+        // Force the frame to look enabled: a stop is not clickable but must not look dead.
         opt.state |= QStyle::State_Enabled;
         opt.state &= ~QStyle::State_Sunken;
     }
@@ -351,7 +351,7 @@ void StartStopButton::paintEvent(QPaintEvent *) {
     QPen gpen(QBrush(lg), corner);
     gpen.setJoinStyle(Qt::RoundJoin);
     gpen.setCapStyle(Qt::RoundCap);
-    const qreal glyphAlpha = (m_state == State::Connecting || m_state == State::Disconnecting) ? 0.5 : 1.0;
+    const qreal glyphAlpha = m_state == State::Disconnecting ? 0.5 : 1.0;
     p.setOpacity(m_dim * glyphAlpha);
     p.setPen(gpen);
     p.setBrush(QBrush(lg));

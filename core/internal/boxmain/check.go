@@ -3,22 +3,22 @@ package boxmain
 import (
 	"context"
 
+	box "github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/include"
-
-	"ThroneCore/internal/boxbox"
 )
 
 func Check(content []byte) error {
 	ctx := context.Background()
-	ctx = boxbox.Context(ctx, include.InboundRegistry(), include.OutboundRegistry(), include.EndpointRegistry(), include.DNSTransportRegistry(), include.ServiceRegistry(), include.CertificateProviderRegistry())
+	ctx = box.Context(ctx, include.InboundRegistry(), include.OutboundRegistry(), include.EndpointRegistry(), include.DNSTransportRegistry(), include.ServiceRegistry(), include.CertificateProviderRegistry())
 	options, err := parseConfig(ctx, content)
 	if err != nil {
 		return err
 	}
 	pinTailscaleDirectories(options)
 	pinTorPaths(options)
+	dropDebugOptions(options)
 	ctx, cancel := context.WithCancel(ctx)
-	instance, err := boxbox.New(boxbox.Options{
+	instance, err := box.New(box.Options{
 		Context: ctx,
 		Options: *options,
 	})

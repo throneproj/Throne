@@ -13,12 +13,16 @@
 
 #include "include/configs/sub/GroupUpdater.hpp"
 #include "include/configs/sub/RouteUpdater.hpp"
+#include "include/engine/EditLocks.h"
 #include "include/engine/EngineEvents.h"
 #include "include/engine/Lifecycle.h"
 #include "include/engine/ThreadCheck.h"
 #include "include/engine/connection/ConnectionManager.h"
 #include "include/engine/services/AssetUpdates.h"
+#include "include/engine/services/GroupService.h"
+#include "include/engine/services/SettingsService.h"
 #include "include/engine/services/StatsService.h"
+#include "include/engine/services/WarpService.h"
 #include "include/engine/supervisor/CoreSupervisor.h"
 #include "include/engine/vpn/VpnAuthController.h"
 #include "include/global/PeriodicRunner.hpp"
@@ -43,6 +47,7 @@
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/database/RoutesRepo.h"
+#include "include/database/SettingsSchema.h"
 #include "include/global/Common.h"
 
 #include "include/ui/utils/ProfilesTableFilterHeader.h"
@@ -172,7 +177,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         if (groupIds.contains(Configs::dataManager->settingsRepo->current_group)) refresh_proxy_list({}, true);
     });
     connect(engineEvents, &Engine::EngineEvents::groupsChanged, this, [this] {
-        dialog_message_impl(MwMessage::GroupsChanged, {});
+        refresh_groups();
+        profilesTableModel->invalidateAddresses();
     });
     connect(engineEvents, &Engine::EngineEvents::profilesRemoved, this, [this](const QList<int> &) {
         refresh_proxy_list({}, true, RefreshAnchor::Removal);
@@ -180,7 +186,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(engineEvents, &Engine::EngineEvents::profilesChanged, this, [this](const QList<int> &) { refresh_proxy_list({}, true); });
     // The title and tray tooltip name the routing profile in effect.
     connect(engineEvents, &Engine::EngineEvents::routesChanged, this, [this] { refresh_status(); });
-    connect(engineEvents, &Engine::EngineEvents::settingsChanged, this, [this, syncSettingsMirrors](const QStringList &) {
+    connect(engineEvents, &Engine::EngineEvents::settingsChanged, this, [this, syncSettingsMirrors](const QStringList &keys) {
+        applySettingsUi(Configs::SettingsSchema::EffectsOf(keys));
         refresh_status();
         syncSettingsMirrors();
     });
@@ -218,7 +225,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
     connect(qApp->styleHints(), &QStyleHints::colorSchemeChanged, this, [=,this](const Qt::ColorScheme& scheme) {
         setLogHighlighter(scheme == Qt::ColorScheme::Dark);
-        themeManager()->ApplyTheme(Configs::dataManager->settingsRepo->theme, true);
+        // The shown theme, not the stored one: an open settings window may be previewing another.
+        themeManager()->ApplyTheme(themeManager()->current_theme, true);
     });
 #endif
     connect(themeManager(), &ThemeManager::themeChanged, this, [=,this](const QString& theme){
@@ -252,7 +260,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->menu_start, &QAction::triggered, this, [=,this]() { profile_start(); });
     connect(ui->menu_stop, &QAction::triggered, this, [=,this]() { profile_stop(false, false, true); });
     connect(ui->toolButton_startstop, &QAbstractButton::clicked, this, [=,this]() {
-        if (runningSnapshot() != nullptr) profile_stop(false, false, true);
+        // During Connecting the stop waits for the start, which a first start has not made running yet.
+        const bool stops = runningSnapshot() != nullptr || connection()->connectionState() == ConnectionState::Connecting;
+        if (stops) profile_stop(false, false, true);
         else profile_start();
     });
     ui->toolButton_startstop->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -360,6 +370,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->stats_widget->tabBar(), &QTabBar::currentChanged, this, [=,this](int index)
     {
         Configs::dataManager->settingsRepo->stats_tab = ui->stats_widget->tabBar()->currentIndex();
+        Configs::dataManager->settingsRepo->Save();
         syncConnectionViewState();
     });
     syncConnectionViewState();
@@ -676,9 +687,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(ui->actionRestart_Program, &QAction::triggered, this, [=,this] { MW_dialog_message(MwMessage::RestartProgram, {}); });
     connect(ui->actionShow_window, &QAction::triggered, this, [=,this] { ActivateWindow(this); });
     connect(ui->actionRemember_last_proxy, &QAction::triggered, this, [=,this](bool checked) {
-        Configs::dataManager->settingsRepo->remember_enable = checked;
-        ui->actionRemember_last_proxy->setChecked(checked);
-        Configs::dataManager->settingsRepo->Save();
+        Engine::SettingsService::Update([checked](Configs::SettingsValues &values) { values.remember_enable = checked; }, {.interactive = true});
+        syncSettingsMirrors();
     });
     connect(ui->actionStart_with_system, &QAction::triggered, this, [=,this](bool checked) {
         if (QString error; !AutoRun_SetEnabled(checked, &error)) {
@@ -687,9 +697,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         ui->actionStart_with_system->setChecked(AutoRun_IsEnabled());
     });
     connect(ui->actionAllow_LAN, &QAction::triggered, this, [=,this](bool checked) {
-        Configs::dataManager->settingsRepo->inbound_address = checked ? "::" : "127.0.0.1";
-        ui->actionAllow_LAN->setChecked(checked);
-        MW_dialog_message(MwMessage::UpdateSettings, {});
+        if (Engine::IsBeingEdited(Engine::EditTarget::Settings)) {
+            syncSettingsMirrors();
+            MessageBoxWarning(ui->actionAllow_LAN->text(), tr("A settings window is open; close it and try again."));
+            return;
+        }
+        const QString address = checked ? QStringLiteral("::") : QStringLiteral("127.0.0.1");
+        Engine::SettingsService::Update([&address](Configs::SettingsValues &values) { values.inbound_address = address; }, {.interactive = true});
+        syncSettingsMirrors();
     });
     applyUiMode();
     connect(ui->checkBox_VPN, &QCheckBox::clicked, this, [=,this](bool checked) { connection()->setTun(checked); });
@@ -730,8 +745,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         dialog->deleteLater();
 
         if (ret == QDialog::Accepted) {
-            Configs::dataManager->groupsRepo->AddGroup(ent);
-            MW_dialog_message(MwMessage::GroupsChanged, {});
+            if (const auto error = Engine::GroupService::Add(ent)) MW_show_log(error->message);
         }
     });
 
@@ -741,8 +755,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         auto dialog = new DialogEditGroup(ent, this);
         connect(dialog, &QDialog::finished, this, [=,this] {
             if (dialog->result() == QDialog::Accepted) {
-                if (Configs::dataManager->groupsRepo->Save(ent)) {
-                    MW_dialog_message(MwMessage::GroupsChanged, dialog->RestartNeeded() ? QStringList{MwArg::RestartProxy} : QStringList{});
+                if (!Engine::GroupService::Save(ent, dialog->RestartNeeded())) {
                     if (dialog->RefreshNeeded()) Subscription::updater()->RefreshGroup(ent->id, nullptr, true);
                 } else {
                     MessageBoxWarning(tr("Edit current Group"), tr("This group was deleted while you were editing it."));
@@ -757,7 +770,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         if (Configs::dataManager->groupsRepo->GetAllGroupIds().size() <= 1) return;
         const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
         if (group == nullptr) return;
-        if (QMessageBox::question(this, tr("Confirmation"), tr("Remove %1?").arg(group->name)) ==
+        if (QMessageBox::question(this, tr("Confirmation"), tr("Remove %1?").arg(group->name) + HopReferenceWarning(group->Profiles(), group->id)) ==
             QMessageBox::StandardButton::Yes) {
             delete_group(group->id, tr("Delete current Group"));
         }
@@ -780,36 +793,46 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     // A shortcut triggers these without the menu's aboutToShow resync, so the checked state may be stale.
     connect(ui->actionAdblock, &QAction::triggered, this, [this] {
         const bool enable = !Configs::dataManager->settingsRepo->adblock_enable;
-        Configs::dataManager->settingsRepo->adblock_enable = enable;
-        ui->actionAdblock->setChecked(enable);
-        Configs::dataManager->settingsRepo->Save();
-        connection()->restartStartedProfile();
+        Engine::SettingsService::ApplyResult result;
+        Engine::SettingsService::Update([enable](Configs::SettingsValues &values) { values.adblock_enable = enable; }, {.interactive = true}, &result);
+        ui->actionAdblock->setChecked(Configs::dataManager->settingsRepo->adblock_enable);
+        if (!result.changed.isEmpty()) connection()->applyPendingRestart();
     });
 
     connect(ui->actionWarp, &QAction::triggered, this, [this] {
-        const bool enable = !Configs::dataManager->settingsRepo->enable_warp;
-        Configs::dataManager->settingsRepo->enable_warp = enable;
-        if (enable) Configs::dataManager->settingsRepo->enable_tor = false;
-        ui->actionWarp->setChecked(enable);
-        Configs::dataManager->settingsRepo->Save();
-        connection()->restartStartedProfile();
+        const auto &settings = Configs::dataManager->settingsRepo;
+        Engine::WarpService::ChangeResult result;
+        const auto refused = Engine::WarpService::Apply({.enabled = !settings->enable_warp}, {}, &result);
+        ui->actionWarp->setChecked(settings->enable_warp);
+        if (refused) {
+            if (refused->code == QLatin1String("exiting")) return;
+            const QString reason = refused->code == QLatin1String("editing")
+                                       ? tr("Routing Settings is open; close it and try again.")
+                                       : tr("WARP has no config yet: click Generate Warp Config in Routing Settings > Egress.");
+            MessageBoxWarning(ui->actionWarp->text(), reason);
+            return;
+        }
+        if (result.restartNeeded) connection()->applyPendingRestart();
     });
 
     auto* profilesMenu = new QMenu(QObject::tr("Download Profiles"), ui->menuRouting_Menu);
-    for (const QString &country : QStringList{"China", "Iran", "Russia"})
+    const QList<QPair<QString, QString>> routeCountries{{"China", tr("China")}, {"Iran", tr("Iran")}, {"Russia", tr("Russia")}};
+    for (const auto &entry : routeCountries)
     {
-        auto* action = new QAction(profilesMenu);
-        action->setText(country);
+        const QString country = entry.first;
+        auto* action = new QAction(entry.second, profilesMenu);
         connect(action, &QAction::triggered, this, [=,this]()
         {
-            auto resp = NetworkRequestHelper::HttpGet(Configs::get_jsdelivr_link("https://raw.githubusercontent.com/throneproj/routeprofiles/profile/Profile_" + country));
-            if (!resp.error.isEmpty()) {
-                runOnUiThread([=] {
-                    MessageBoxWarning(QObject::tr("Download Profiles"), QObject::tr("Requesting profile error: %1").arg(resp.error + "\n" + resp.data));
+            runOnNewThread([=,this] {
+                const auto resp = NetworkRequestHelper::HttpGet(Configs::get_jsdelivr_link("https://raw.githubusercontent.com/throneproj/routeprofiles/profile/Profile_" + country));
+                runOnUiThread([=,this] {
+                    if (!resp.error.isEmpty()) {
+                        MessageBoxWarning(QObject::tr("Download Profiles"), QObject::tr("Requesting profile error: %1").arg(resp.error + "\n" + resp.data));
+                        return;
+                    }
+                    handle_add_remote_routes(resp.data);
                 });
-                return;
-            }
-            handle_add_remote_routes(resp.data);
+            });
         });
         profilesMenu->addAction(action);
     }

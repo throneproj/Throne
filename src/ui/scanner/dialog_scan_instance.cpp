@@ -37,6 +37,7 @@
 #include <vector>
 
 #include "include/configs/common/DnsTunnel.h"
+#include "include/configs/common/Protocols.h"
 #include "include/configs/common/ResolverSource.h"
 #include "include/configs/common/TLS.h"
 #include "include/configs/sub/warp.h"
@@ -46,7 +47,7 @@
 #include "include/database/IpScansRepo.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/engine/EditLocks.h"
-#include "include/global/RunningProfiles.hpp"
+#include "include/engine/services/ProfileService.h"
 #include "include/global/Utils.hpp"
 #include "include/global/Validation.hpp"
 #include "include/scanner/DefaultIpLists.h"
@@ -68,11 +69,6 @@
 namespace {
     constexpr int kScanInstanceResultsPreview = 50000;
     constexpr int kScanInstanceProtocolRole = Qt::UserRole + 1;
-
-    const QStringList kScanInstanceCandidateExclusions = {
-        QStringLiteral("custom"), QStringLiteral("extracore"), QStringLiteral("tailscale"),
-        QStringLiteral("autoselector"), QStringLiteral("direct"), QStringLiteral("dnstt"), QStringLiteral("masterdns"),
-    };
 
     const QStringList kScanInstanceTimeoutPresets = {
         QStringLiteral("1000"), QStringLiteral("2000"), QStringLiteral("3000"), QStringLiteral("5000"),
@@ -1128,8 +1124,7 @@ void DialogScanInstance::reloadConfigProfiles(int selectId) {
     QHash<int, QString> idToName;
     for (const auto &[id, profileName] : profiles->GetAllProfileIDNameMapped()) idToName.insert(id, profileName);
     QSet<int> excluded;
-    for (const auto &type : kScanInstanceCandidateExclusions) {
-        if (Scanner::IsScanBaseType(type)) continue;
+    for (const auto &type : Configs::Protocols::IdsWith(Configs::Protocols::NoScan)) {
         for (const int id : profiles->GetProfileIdsByType(type)) excluded.insert(id);
     }
     const auto xdnsCandidates = profiles->GetProfileIdsByTypeContaining(QStringLiteral("xrayvless"), QStringLiteral("xdns"));
@@ -1198,7 +1193,7 @@ void DialogScanInstance::reloadResolverProfiles(int selectId) {
     const QString level = phasesUi->resolver_level->currentData().toString();
     auto *profiles = Configs::dataManager->profilesRepo.get();
     QHash<int, QString> protocols;
-    for (const auto &type : {QStringLiteral("dnstt"), QStringLiteral("masterdns")}) {
+    for (const auto &type : Configs::Protocols::IdsWith(Configs::Protocols::DnsTunnel)) {
         for (const int id : profiles->GetProfileIdsByType(type)) protocols.insert(id, type);
     }
     const auto xdnsCandidates = profiles->GetProfileIdsByTypeContaining(QStringLiteral("xrayvless"), QStringLiteral("xdns"));
@@ -1612,16 +1607,11 @@ void DialogScanInstance::useResultsAsResolvers() {
     if (source->ipListId != listId) {
         const int previous = source->ipListId;
         source->ipListId = listId;
-        if (!Configs::dataManager->profilesRepo->Save(profile)) {
+        if (Engine::ProfileService::Save({profile})) {
             source->ipListId = previous;
             scanInstanceNotice(this, QMessageBox::Warning, title, tr("Failed to store the profile."));
             return;
         }
-        QStringList args;
-        if (Configs::dataManager->settingsRepo->started_id == profileId || Configs::RunningUsesProfile(profileId))
-            args << MwArg::RestartProxy;
-        Configs::RepositionLater(QList<std::shared_ptr<Configs::Profile>>{profile}, Configs::SortInput::Config);
-        MW_dialog_message(MwMessage::ProfileChanged, args);
     }
     scanInstanceNotice(this, QMessageBox::Information, title,
                        tr("\"%1\" now takes resolvers from the IP list \"%2\".").arg(profileName, listName));

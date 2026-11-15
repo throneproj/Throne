@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"ThroneCore/gen"
-	"ThroneCore/internal/boxbox"
+	"ThroneCore/internal/boxmain"
 
 	"github.com/sagernet/sing-box/adapter"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -180,7 +180,7 @@ func openConnectStatusToProto(tag string, status adapter.OpenConnectStatus) *gen
 	return out
 }
 
-func lookupEndpoint(box *boxbox.Box, tag string) (adapter.Endpoint, error) {
+func lookupEndpoint(box *boxmain.Box, tag string) (adapter.Endpoint, error) {
 	if box == nil {
 		return nil, errInstanceNotRunning
 	}
@@ -195,7 +195,7 @@ func lookupEndpoint(box *boxbox.Box, tag string) (adapter.Endpoint, error) {
 	return found, nil
 }
 
-func resolveVPNEndpoint(box *boxbox.Box, tag string) (*vpnEndpoint, error) {
+func resolveVPNEndpoint(box *boxmain.Box, tag string) (*vpnEndpoint, error) {
 	found, err := lookupEndpoint(box, tag)
 	if err != nil {
 		return nil, err
@@ -243,7 +243,7 @@ func awaitVPNStatus(ctx context.Context, endpoint *vpnEndpoint, timeout time.Dur
 	}
 }
 
-func vpnEndpointTags(box *boxbox.Box) []string {
+func vpnEndpointTags(box *boxmain.Box) []string {
 	if box == nil {
 		return nil
 	}
@@ -262,7 +262,7 @@ func vpnEndpointTags(box *boxbox.Box) []string {
 	return tags
 }
 
-func collectVPNStatus(ctx context.Context, box *boxbox.Box, tags []string, timeout time.Duration) []*gen.VPNEndpointStatus {
+func collectVPNStatus(ctx context.Context, box *boxmain.Box, tags []string, timeout time.Duration) []*gen.VPNEndpointStatus {
 	out := make([]*gen.VPNEndpointStatus, len(tags))
 	var wg sync.WaitGroup
 	for idx, tag := range tags {

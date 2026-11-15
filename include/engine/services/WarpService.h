@@ -39,10 +39,12 @@ namespace Engine::WarpService {
         bool changed = false;
         // The exit wrapper (WARP or Tor) changed, so the running config is out of date.
         bool restartNeeded = false;
+        bool torTurnedOff = false;
     };
 
-    // Writes and saves enable_warp and warp_mode; enabling WARP turns enable_tor off. Refuses an unknown mode; a change that changes nothing succeeds. A real
-    // change is refused while Routing Settings is open, when enabled with an unconfigured mode, and when beforeWrite refuses.
+    // Commits enable_warp and warp_mode through SettingsService, which raises the restart hint; enabling WARP turns enable_tor off and logs
+    // it. Refuses an unknown mode; a change that changes nothing succeeds. A real change is refused while Routing Settings is open, when
+    // enabled with an unconfigured mode, when beforeWrite refuses, and while Throne exits.
     std::optional<ServiceError> Apply(const Change &change, const std::function<std::optional<ServiceError>()> &beforeWrite,
                                       ChangeResult *result);
 

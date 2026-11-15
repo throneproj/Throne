@@ -1711,6 +1711,10 @@ Included: %2</source>
         <source>INVALID</source>
         <translation>无效</translation>
     </message>
+    <message>
+        <source>Missing profile (#%1)</source>
+        <translation>缺失的配置档（#%1）</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroupAdvanced</name>
@@ -4519,6 +4523,12 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
     <message>
         <source>WARP runs over the selected server.</source>
         <translation>WARP 运行在所选服务器之上。</translation>
+    </message>
+    <message numerus="yes">
+        <source>Its endpoints will be added as %n new profile(s) to the group &quot;%1&quot;.</source>
+        <translation>
+            <numerusform>它的端点将作为 %n 个新配置档添加到分组 &quot;%1&quot; 中。</numerusform>
+        </translation>
     </message>
     <message>
         <source>One entry per line, hosts-file syntax:
@@ -10968,6 +10978,10 @@ Error: %1</source>
         <translation>另一个配置档正在停止...</translation>
     </message>
     <message>
+        <source>Stop requested; the profile stops once its start finishes.</source>
+        <translation>已请求停止；配置档启动完成后即停止。</translation>
+    </message>
+    <message>
         <source>Try to start the config, but the core has not listened to the RPC port, so restart it...</source>
         <translation>尝试启动该配置，但核心尚未监听到 RPC 端口，因此请重启它...</translation>
     </message>
@@ -11544,6 +11558,28 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
     <message>
         <source>Deep Link</source>
         <translation>深度链接</translation>
+    </message>
+    <message numerus="yes">
+        <source>Its endpoints will be added as %n new profile(s) to the group &quot;%1&quot;.</source>
+        <translation>
+            <numerusform>它的端点将作为 %n 个新配置档添加到分组 &quot;%1&quot; 中。</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>A settings window is open; close it and try again.</source>
+        <translation>有一个设置窗口处于打开状态；请关闭它后重试。</translation>
+    </message>
+    <message>
+        <source>Routing Settings is open; close it and try again.</source>
+        <translation>路由设置已打开；请关闭它后重试。</translation>
+    </message>
+    <message>
+        <source>One of the profiles to delete is open in an editor. Close it first.</source>
+        <translation>要删除的配置档中有一个正在编辑器中打开。请先关闭它。</translation>
+    </message>
+    <message>
+        <source>WARP has no config yet: click Generate Warp Config in Routing Settings &gt; Egress.</source>
+        <translation>WARP 尚无配置：请在【路由设置 &gt; 出口】中点击【生成 Warp 配置】。</translation>
     </message>
     <message>
         <source>Add this routing profile?
@@ -13184,6 +13220,10 @@ How to update?</source>
         <translation>先关闭这个分组的编辑器，或者它的其中一个配置档的编辑器。</translation>
     </message>
     <message>
+        <source>Close Routing Settings or the editor of this group&apos;s routing profile first.</source>
+        <translation>先关闭路由设置，或者这个分组的路由配置档的编辑器。</translation>
+    </message>
+    <message>
         <source>This group no longer exists.</source>
         <translation>这个分组不再存在。</translation>
     </message>
@@ -13470,6 +13510,50 @@ How to update?</source>
     <message>
         <source>Tor is enabled but not downloaded yet. Open Routing Settings &gt; Egress and press OK to download it.</source>
         <translation>Tor 已启用但尚未下载。打开“路由设置 &gt; 出口”并按“确定”即可下载。</translation>
+    </message>
+    <message>
+        <source>The custom Xray config uses the tag &quot;%1&quot;, which Throne also generates for another Xray profile; rename it in the custom config</source>
+        <translation>自定义 Xray 配置使用了标签 &quot;%1&quot;，而 Throne 也会为另一个 Xray 配置档生成这个标签；请在自定义配置中将其重命名</translation>
+    </message>
+    <message>
+        <source>The custom Xray config&apos;s selector &quot;%1&quot; also matches &quot;%2&quot;, which Throne generates for another Xray profile; make the selector more specific in the custom config</source>
+        <translation>自定义 Xray 配置的选择器 &quot;%1&quot; 也会匹配到 &quot;%2&quot;，而它是 Throne 为另一个 Xray 配置档生成的；请在自定义配置中让该选择器更精确</translation>
+    </message>
+    <message>
+        <source>These groups use a profile being deleted as their front or landing proxy. It will be removed from them, so they will connect without it:</source>
+        <translation>以下分组把要删除的配置档用作前置代理或落地代理。该配置档将从这些分组中移除，之后它们连接时不再经过它：</translation>
+    </message>
+    <message>
+        <source>These groups used a deleted profile as their front or landing proxy. It was removed from them, so they connect without it:</source>
+        <translation>以下分组曾把已删除的配置档用作前置代理或落地代理。该配置档已从这些分组中移除，它们现在连接时不再经过它：</translation>
+    </message>
+    <message>
+        <source>%1 (front proxy)</source>
+        <translation>%1（前置代理）</translation>
+    </message>
+    <message>
+        <source>%1 (landing proxy)</source>
+        <translation>%1（落地代理）</translation>
+    </message>
+    <message>
+        <source>This group is a subscription: its next update removes profiles imported into it. Select another group, then import again.</source>
+        <translation>这个分组是订阅：下次更新会移除导入到其中的配置档。请选择另一个分组，然后重新导入。</translation>
+    </message>
+    <message>
+        <source>This group is archived. Select another group, then import again.</source>
+        <translation>这个分组已归档。请选择另一个分组，然后重新导入。</translation>
+    </message>
+    <message>
+        <source>Two of these settings would use the same port. Choose a different port, then try again.</source>
+        <translation>其中两项设置会使用同一个端口。请选择不同的端口，然后重试。</translation>
+    </message>
+    <message>
+        <source>Throne is shutting down, so the settings were not saved.</source>
+        <translation>Throne 正在退出，因此设置未保存。</translation>
+    </message>
+    <message>
+        <source>the routing profiles are open for editing</source>
+        <translation>路由配置档正在编辑中</translation>
     </message>
     <message>
         <source>%1 is not in the Tor Project&apos;s checksum list.</source>
@@ -15415,8 +15499,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>启动</translation>
     </message>
     <message>
-        <source>Connecting…</source>
-        <translation>连接中…</translation>
+        <source>Connecting… click to stop</source>
+        <translation>连接中… 点击停止</translation>
     </message>
     <message>
         <source>Stop</source>

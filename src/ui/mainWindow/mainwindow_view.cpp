@@ -311,9 +311,10 @@ void MainWindow::refresh_startstop_button() {
     }
     btn->setMode(mode);
 
+    const bool stopHeld = connecting && connection()->stopPending();
     StartStopButton::State state;
-    if (connecting) state = StartStopButton::State::Connecting;
-    else if (disconnecting) state = StartStopButton::State::Disconnecting;
+    if (connecting && !stopHeld) state = StartStopButton::State::Connecting;
+    else if (connecting || disconnecting) state = StartStopButton::State::Disconnecting;
     else if (running != nullptr) state = StartStopButton::State::Running;
     else if (get_profile_to_start() >= 0) state = StartStopButton::State::Idle;
     else state = StartStopButton::State::Disabled;
@@ -333,9 +334,9 @@ void MainWindow::refresh_startstop_button() {
     btn->setLock(lock);
 
     if (trayConnectAction != nullptr) {
-        if (connecting) {
+        if (connecting && !stopHeld) {
             trayConnectAction->setText(tr("Connecting"));
-        } else if (disconnecting) {
+        } else if (connecting || disconnecting) {
             trayConnectAction->setText(tr("Disconnecting"));
         } else {
             trayConnectAction->setText(running != nullptr ? tr("Disconnect") : tr("Connect"));

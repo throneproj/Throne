@@ -4,7 +4,7 @@ import (
 	"slices"
 	"sync"
 
-	"ThroneCore/internal/boxbox"
+	"ThroneCore/internal/boxmain"
 	"ThroneCore/internal/rulematch"
 
 	"github.com/gofrs/uuid/v5"
@@ -19,7 +19,7 @@ var connRules ruleMatchCache
 
 type ruleMatchCache struct {
 	mu      sync.Mutex
-	box     *boxbox.Box
+	box     *boxmain.Box
 	rules   []option.Rule
 	entries map[adapter.Rule][]rulematch.Entry
 	conns   map[uuid.UUID]string
@@ -27,7 +27,7 @@ type ruleMatchCache struct {
 }
 
 // reset ties the cache to box and the route rules its router was built from; a nil box lets a stopped one go.
-func (m *ruleMatchCache) reset(box *boxbox.Box, rules []option.Rule) {
+func (m *ruleMatchCache) reset(box *boxmain.Box, rules []option.Rule) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.box, m.rules = box, rules
@@ -35,7 +35,7 @@ func (m *ruleMatchCache) reset(box *boxbox.Box, rules []option.Rule) {
 }
 
 // routeRules gives the route rules box was built from, aligned with its router's; nil once another box replaced it.
-func (m *ruleMatchCache) routeRules(box *boxbox.Box) []option.Rule {
+func (m *ruleMatchCache) routeRules(box *boxmain.Box) []option.Rule {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if box != m.box {
@@ -45,7 +45,7 @@ func (m *ruleMatchCache) routeRules(box *boxbox.Box) []option.Rule {
 }
 
 // begin opens one poll; matched must only be called between begin and end.
-func (m *ruleMatchCache) begin(box *boxbox.Box) {
+func (m *ruleMatchCache) begin(box *boxmain.Box) {
 	m.mu.Lock()
 	// A poll that read the box just before a restart replaced it has no rules to match against.
 	if box != m.box {

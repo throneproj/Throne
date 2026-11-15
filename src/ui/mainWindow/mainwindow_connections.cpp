@@ -7,7 +7,8 @@
 #include "include/database/ProfilesRepo.h"
 #include "include/database/RoutesRepo.h"
 #include "include/database/SettingsRepo.h"
-#include "include/engine/connection/ConnectionManager.h"
+#include "include/engine/EditLocks.h"
+#include "include/engine/services/RouteService.h"
 #include "include/engine/services/StatsService.h"
 #include "include/global/Common.h"
 #include "include/global/LocalNetwork.hpp"
@@ -489,6 +490,8 @@ QString MainWindow::routeRuleAppendBlocker() const
     if (currentRoute->isRemote && currentRoute->autoUpdate) return tr("The current routing profile auto-updates from a URL.");
     if (const auto owner = dm->groupsRepo->GetGroup(currentRoute->source_gid); owner != nullptr && owner->import_sub_route)
         return tr("The current routing profile is updated by the subscription \"%1\".").arg(owner->name);
+    if (Engine::IsBeingEdited(Engine::EditTarget::Routes, currentRoute->id))
+        return tr("Routing Settings is open; close it and try again.");
     return {};
 }
 
@@ -504,9 +507,9 @@ MainWindow::RuleToggle MainWindow::toggleRuleInCurrentRoute(const QString& rawRu
 
     if (const auto blocker = routeRuleAppendBlocker(); !blocker.isEmpty()) return fail(blocker);
 
-    const auto& dm = Configs::dataManager;
-    const auto currentRoute = dm->routesRepo->GetRouteProfile(Configs::ActiveRouteId());
-    if (!currentRoute) return fail(tr("No active routing profile found."));
+    const auto stored = Configs::dataManager->routesRepo->GetRouteProfile(Configs::ActiveRouteId());
+    if (!stored) return fail(tr("No active routing profile found."));
+    const auto currentRoute = std::make_shared<Configs::RouteProfile>(*stored);
 
     const QString name = nameOf(target);
     RuleToggle result;
@@ -540,11 +543,10 @@ MainWindow::RuleToggle MainWindow::toggleRuleInCurrentRoute(const QString& rawRu
                         .arg(rawRule, movedFrom.join(", "), name, currentRoute->name);
     }
 
-    if (!dm->routesRepo->Save(currentRoute))
+    if (Engine::RouteService::Save(currentRoute))
         return fail(tr("Failed to save routing rule: %1").arg(rawRule));
 
     MW_show_log(log);
-    connection()->noteRestartNeeded(Engine::RestartReason::Routing);
     return result;
 }
 

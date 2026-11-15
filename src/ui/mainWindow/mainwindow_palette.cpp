@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QMenu>
 
+#include "include/engine/services/SettingsService.h"
 #include "include/ui/app/dialog_about.h"
 #include "include/ui/group/dialog_manage_groups.h"
 #include "include/ui/mainWindow/MainWindowInternal.h"
@@ -123,12 +124,7 @@ void MainWindow::applyUiMode() {
 }
 
 void MainWindow::setSimpleMode(bool simple) {
-    auto &settings = Configs::dataManager->settingsRepo;
-    if (settings->simple_mode != simple) {
-        settings->simple_mode = simple;
-        settings->Save();
-    }
-    applyUiMode();
+    Engine::SettingsService::Update([simple](Configs::SettingsValues &values) { values.simple_mode = simple; }, {.interactive = true});
 }
 
 void MainWindow::revealSetting(const SettingsIndex::Item &item) {

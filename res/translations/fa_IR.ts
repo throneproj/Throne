@@ -684,6 +684,10 @@ Deleted %3 Profiles:
         <translation>ابتدا ویرایشگر این گروه یا یکی از پروفایل‌های آن را ببندید.</translation>
     </message>
     <message>
+        <source>Close Routing Settings or the editor of this group&apos;s routing profile first.</source>
+        <translation>ابتدا تنظیمات مسیریابی یا ویرایشگر نمایه مسیریابی این گروه را ببندید.</translation>
+    </message>
+    <message>
         <source>This group no longer exists.</source>
         <translation>این گروه دیگر وجود ندارد.</translation>
     </message>
@@ -850,6 +854,50 @@ Deleted %3 Profiles:
     <message>
         <source>Tor is enabled but not downloaded yet. Open Routing Settings &gt; Egress and press OK to download it.</source>
         <translation>Tor فعال است ولی هنوز دانلود نشده است. «تنظیمات مسیریابی &gt; خروجی» را باز کنید و OK را بزنید تا دانلود شود.</translation>
+    </message>
+    <message>
+        <source>The custom Xray config uses the tag &quot;%1&quot;, which Throne also generates for another Xray profile; rename it in the custom config</source>
+        <translation>پیکربندی سفارشی Xray از برچسب «%1» استفاده می‌کند که Throne آن را برای یک نمایهٔ Xray دیگر هم می‌سازد؛ نام آن را در پیکربندی سفارشی تغییر دهید</translation>
+    </message>
+    <message>
+        <source>The custom Xray config&apos;s selector &quot;%1&quot; also matches &quot;%2&quot;, which Throne generates for another Xray profile; make the selector more specific in the custom config</source>
+        <translation>انتخابگر «%1» در پیکربندی سفارشی Xray با «%2» هم تطبیق دارد که Throne آن را برای یک نمایهٔ Xray دیگر می‌سازد؛ انتخابگر را در پیکربندی سفارشی دقیق‌تر کنید</translation>
+    </message>
+    <message>
+        <source>These groups use a profile being deleted as their front or landing proxy. It will be removed from them, so they will connect without it:</source>
+        <translation>این گروه‌ها از نمایه‌ای که حذف می‌شود به‌عنوان پروکسی front یا پروکسی مقصد استفاده می‌کنند. این نمایه از آن‌ها برداشته می‌شود و بدون آن وصل خواهند شد:</translation>
+    </message>
+    <message>
+        <source>These groups used a deleted profile as their front or landing proxy. It was removed from them, so they connect without it:</source>
+        <translation>این گروه‌ها از یک نمایهٔ حذف‌شده به‌عنوان پروکسی front یا پروکسی مقصد استفاده می‌کردند. این نمایه از آن‌ها برداشته شد و اکنون بدون آن وصل می‌شوند:</translation>
+    </message>
+    <message>
+        <source>%1 (front proxy)</source>
+        <translation>%1 (پروکسی front)</translation>
+    </message>
+    <message>
+        <source>%1 (landing proxy)</source>
+        <translation>%1 (پروکسی مقصد)</translation>
+    </message>
+    <message>
+        <source>This group is a subscription: its next update removes profiles imported into it. Select another group, then import again.</source>
+        <translation>این گروه یک اشتراک است: به‌روزرسانی بعدی، نمایه‌هایی را که در آن وارد شده‌اند حذف می‌کند. گروه دیگری را انتخاب کنید و سپس دوباره وارد کنید.</translation>
+    </message>
+    <message>
+        <source>This group is archived. Select another group, then import again.</source>
+        <translation>این گروه آرشیو شده است. گروه دیگری را انتخاب کنید و سپس دوباره وارد کنید.</translation>
+    </message>
+    <message>
+        <source>Two of these settings would use the same port. Choose a different port, then try again.</source>
+        <translation>دو مورد از این تنظیمات از یک پورت استفاده می‌کنند. پورت دیگری انتخاب کنید و دوباره تلاش کنید.</translation>
+    </message>
+    <message>
+        <source>Throne is shutting down, so the settings were not saved.</source>
+        <translation>Throne در حال بسته شدن است، بنابراین تنظیمات ذخیره نشد.</translation>
+    </message>
+    <message>
+        <source>the routing profiles are open for editing</source>
+        <translation>نمایه‌های مسیریابی در حال ویرایش هستند</translation>
     </message>
     <message>
         <source>%1 is not in the Tor Project&apos;s checksum list.</source>
@@ -1650,6 +1698,10 @@ Included: %2</source>
     <message>
         <source>INVALID</source>
         <translation>نامعتبر</translation>
+    </message>
+    <message>
+        <source>Missing profile (#%1)</source>
+        <translation>نمایهٔ ناموجود (#%1)</translation>
     </message>
 </context>
 <context>
@@ -2780,6 +2832,12 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>WARP runs over the selected server.</source>
         <translation>WARP روی سرور انتخاب‌شده اجرا می‌شود.</translation>
+    </message>
+    <message numerus="yes">
+        <source>Its endpoints will be added as %n new profile(s) to the group &quot;%1&quot;.</source>
+        <translation>
+            <numerusform>نقاط پایانی آن به‌صورت %n نمایهٔ جدید به گروه «%1» افزوده می‌شوند.</numerusform>
+        </translation>
     </message>
     <message>
         <source>One entry per line, hosts-file syntax:
@@ -5512,6 +5570,10 @@ Error: %1</source>
         <translation>نمایه دیگری در حال توقف است...</translation>
     </message>
     <message>
+        <source>Stop requested; the profile stops once its start finishes.</source>
+        <translation>توقف درخواست شد؛ نمایه پس از پایان راه‌اندازی متوقف می‌شود.</translation>
+    </message>
+    <message>
         <source>Try to start the config, but the core has not listened to the RPC port, so restart it...</source>
         <translation>تلاش برای شروع پیکربندی، اما هسته به پورت RPC گوش نداده است، بنابراین آن را دوباره راه‌اندازی کنید...</translation>
     </message>
@@ -5764,6 +5826,28 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
     <message>
         <source>The sing-box API is disabled. Set a listen port in Preferences &gt; Integration Settings &gt; Core APIs.</source>
         <translation>API sing-box غیرفعال است. یک پورت شنود در «تنظیمات &gt; تنظیمات یکپارچه‌سازی &gt; API هسته» تعیین کنید.</translation>
+    </message>
+    <message numerus="yes">
+        <source>Its endpoints will be added as %n new profile(s) to the group &quot;%1&quot;.</source>
+        <translation>
+            <numerusform>نقاط پایانی آن به‌صورت %n نمایهٔ جدید به گروه «%1» افزوده می‌شوند.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>A settings window is open; close it and try again.</source>
+        <translation>یک پنجرهٔ تنظیمات باز است؛ آن را ببندید و دوباره تلاش کنید.</translation>
+    </message>
+    <message>
+        <source>Routing Settings is open; close it and try again.</source>
+        <translation>تنظیمات مسیریابی باز است؛ آن را ببندید و دوباره تلاش کنید.</translation>
+    </message>
+    <message>
+        <source>One of the profiles to delete is open in an editor. Close it first.</source>
+        <translation>یکی از پروفایل‌هایی که حذف می‌شوند در ویرایشگر باز است. ابتدا آن را ببندید.</translation>
+    </message>
+    <message>
+        <source>WARP has no config yet: click Generate Warp Config in Routing Settings &gt; Egress.</source>
+        <translation>WARP هنوز پیکربندی ندارد: در «تنظیمات مسیریابی &gt; خروجی» روی «Generate Warp Config» کلیک کنید.</translation>
     </message>
     <message>
         <source>Add this routing profile?
@@ -7448,6 +7532,10 @@ Remove that endpoint from this routing profile as well?</source>
 <context>
     <name>StartStopButton</name>
     <message>
+        <source>Connecting… click to stop</source>
+        <translation>در حال اتصال… برای توقف کلیک کنید</translation>
+    </message>
+    <message>
         <source>Kill switch is blocking traffic</source>
         <translation>Kill switch در حال مسدود کردن ترافیک است</translation>
     </message>
@@ -7765,6 +7853,12 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>The certificate chain pin replaces certificate verification; clear the TLS certificate and certificate pins.</source>
         <translation>هش زنجیرهٔ گواهی جایگزین اعتبارسنجی گواهی می‌شود؛ گواهی TLS و پین‌های گواهی را پاک کنید.</translation>
+    </message>
+    <message numerus="yes">
+        <source>…and %n more</source>
+        <translation>
+            <numerusform>…و %n مورد دیگر</numerusform>
+        </translation>
     </message>
     <message numerus="yes">
         <source>%n more line(s) have problems.</source>

@@ -30,6 +30,8 @@ func Serve(conn net.Conn, debug bool) {
 	debugLog = debug
 	defer conn.Close()
 
+	startEgressMonitor()
+
 	var writeMu sync.Mutex
 
 	writeResponse := func(reqId uint32, status uint8, data []byte) {

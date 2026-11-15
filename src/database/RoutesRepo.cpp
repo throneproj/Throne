@@ -7,6 +7,40 @@
 #include <QSet>
 
 namespace Configs {
+    namespace {
+        // ruleFromRow reads this order: the hand-written columns, then the attribute table's in table order.
+        const std::string& routesRepoRuleColumns() {
+            static const std::string columns = [] {
+                std::string out = "name, type, outbound_id, action, sniffers_json, disabled";
+                for (const auto& attr : RouteRule::attribute_table()) {
+                    if (attr.column != nullptr) out += std::string(", ") + attr.column;
+                }
+                return out;
+            }();
+            return columns;
+        }
+
+        const std::string& routesRepoRuleInsert() {
+            static const std::string sql = [] {
+                std::string values = "?, ?, ?, ?, ?, ?, ?, ?";
+                for (const auto& attr : RouteRule::attribute_table()) {
+                    if (attr.column != nullptr) values += ", ?";
+                }
+                return "INSERT INTO route_rules (route_profile_id, rule_order, " + routesRepoRuleColumns() + ") VALUES (" + values + ")";
+            }();
+            return sql;
+        }
+
+        std::string routesRepoListJson(const QList<QString>& list) {
+            return QString::fromUtf8(QJsonDocument(QListStr2QJsonArray(list)).toJson(QJsonDocument::Compact)).toStdString();
+        }
+
+        QList<QString> routesRepoParseList(const std::string& s) {
+            QJsonDocument doc = QJsonDocument::fromJson(QString::fromStdString(s).toUtf8());
+            return QJsonArray2QListString(doc.isArray() ? doc.array() : QJsonArray());
+        }
+    }
+
     RoutesRepo::RoutesRepo(Database& database) : db(database) {
         createTables();
     }
@@ -145,137 +179,6 @@ namespace Configs {
         return false;
     }
 
-    QJsonObject RoutesRepo::routeRuleToJson(const RouteRule* rule) const {
-        QJsonObject json;
-        
-        json["name"] = rule->name;
-        json["type"] = rule->type;
-        json["disabled"] = rule->disabled;
-        json["ip_version"] = rule->ip_version;
-        json["network"] = rule->network;
-        json["protocol"] = rule->protocol;
-        json["inbound"] = QListStr2QJsonArray(rule->inbound);
-        json["domain"] = QListStr2QJsonArray(rule->domain);
-        json["domain_suffix"] = QListStr2QJsonArray(rule->domain_suffix);
-        json["domain_keyword"] = QListStr2QJsonArray(rule->domain_keyword);
-        json["domain_regex"] = QListStr2QJsonArray(rule->domain_regex);
-        json["source_ip_cidr"] = QListStr2QJsonArray(rule->source_ip_cidr);
-        json["source_ip_is_private"] = rule->source_ip_is_private;
-        json["ip_cidr"] = QListStr2QJsonArray(rule->ip_cidr);
-        json["ip_is_private"] = rule->ip_is_private;
-        json["source_port"] = QListStr2QJsonArray(rule->source_port);
-        json["source_port_range"] = QListStr2QJsonArray(rule->source_port_range);
-        json["port"] = QListStr2QJsonArray(rule->port);
-        json["port_range"] = QListStr2QJsonArray(rule->port_range);
-        json["process_name"] = QListStr2QJsonArray(rule->process_name);
-        json["process_path"] = QListStr2QJsonArray(rule->process_path);
-        json["process_path_regex"] = QListStr2QJsonArray(rule->process_path_regex);
-        json["package_name"] = QListStr2QJsonArray(rule->package_name);
-        json["wifi_ssid"] = QListStr2QJsonArray(rule->wifi_ssid);
-        json["wifi_bssid"] = QListStr2QJsonArray(rule->wifi_bssid);
-        json["rule_set"] = QListStr2QJsonArray(rule->rule_set);
-        json["invert"] = rule->invert;
-        json["outboundID"] = rule->outboundID;
-        json["action"] = rule->action;
-        json["rejectMethod"] = rule->rejectMethod;
-        json["no_drop"] = rule->no_drop;
-        json["override_address"] = rule->override_address;
-        json["override_port"] = rule->override_port;
-        json["tls_fragment"] = rule->tls_fragment;
-        json["tls_fragment_fallback_delay"] = rule->tls_fragment_fallback_delay;
-        json["tls_record_fragment"] = rule->tls_record_fragment;
-        json["tls_spoof"] = rule->tls_spoof;
-        json["tls_spoof_method"] = rule->tls_spoof_method;
-        json["sniffers"] = QListStr2QJsonArray(rule->sniffers);
-        json["sniffOverrideDest"] = rule->sniffOverrideDest;
-        json["strategy"] = rule->strategy;
-        
-        return json;
-    }
-
-    std::shared_ptr<RouteRule> RoutesRepo::routeRuleFromJson(const QJsonObject& json) const {
-        auto rule = std::make_shared<RouteRule>();
-        
-        rule->name = json["name"].toString();
-        rule->type = json["type"].toInt();
-        // The editor used to switch endpoint rules off by accident; they cannot be disabled.
-        rule->disabled = json["disabled"].toBool() && rule->type != endpointPreferredBy;
-        rule->ip_version = json["ip_version"].toString();
-        rule->network = json["network"].toString();
-        rule->protocol = json["protocol"].toString();
-        rule->inbound = QJsonArray2QListString(json["inbound"].toArray());
-        rule->domain = QJsonArray2QListString(json["domain"].toArray());
-        rule->domain_suffix = QJsonArray2QListString(json["domain_suffix"].toArray());
-        rule->domain_keyword = QJsonArray2QListString(json["domain_keyword"].toArray());
-        rule->domain_regex = QJsonArray2QListString(json["domain_regex"].toArray());
-        rule->source_ip_cidr = QJsonArray2QListString(json["source_ip_cidr"].toArray());
-        rule->source_ip_is_private = json["source_ip_is_private"].toBool();
-        rule->ip_cidr = QJsonArray2QListString(json["ip_cidr"].toArray());
-        rule->ip_is_private = json["ip_is_private"].toBool();
-        rule->source_port = QJsonArray2QListString(json["source_port"].toArray());
-        rule->source_port_range = QJsonArray2QListString(json["source_port_range"].toArray());
-        rule->port = QJsonArray2QListString(json["port"].toArray());
-        rule->port_range = QJsonArray2QListString(json["port_range"].toArray());
-        rule->process_name = QJsonArray2QListString(json["process_name"].toArray());
-        rule->process_path = QJsonArray2QListString(json["process_path"].toArray());
-        rule->process_path_regex = QJsonArray2QListString(json["process_path_regex"].toArray());
-        rule->package_name = QJsonArray2QListString(json["package_name"].toArray());
-        rule->wifi_ssid = QJsonArray2QListString(json["wifi_ssid"].toArray());
-        rule->wifi_bssid = QJsonArray2QListString(json["wifi_bssid"].toArray());
-        rule->rule_set = QJsonArray2QListString(json["rule_set"].toArray());
-        rule->invert = json["invert"].toBool();
-        rule->outboundID = json["outboundID"].toInt();
-        rule->action = json["action"].toString();
-        rule->rejectMethod = json["rejectMethod"].toString();
-        rule->no_drop = json["no_drop"].toBool();
-        rule->override_address = json["override_address"].toString();
-        rule->override_port = json["override_port"].toString();
-        rule->tls_fragment = json["tls_fragment"].toBool();
-        rule->tls_fragment_fallback_delay = json["tls_fragment_fallback_delay"].toString();
-        rule->tls_record_fragment = json["tls_record_fragment"].toBool();
-        rule->tls_spoof = json["tls_spoof"].toString();
-        rule->tls_spoof_method = json["tls_spoof_method"].toString();
-        rule->sniffers = QJsonArray2QListString(json["sniffers"].toArray());
-        rule->sniffOverrideDest = json["sniffOverrideDest"].toBool();
-        rule->strategy = json["strategy"].toString();
-        
-        return rule;
-    }
-
-    QJsonObject RoutesRepo::routeProfileToJson(const RouteProfile* routeProfile) const {
-        QJsonObject json;
-        
-        json["id"] = routeProfile->id;
-        json["name"] = routeProfile->name;
-        json["defaultOutboundID"] = routeProfile->defaultOutboundID;
-        json["isRaw"] = routeProfile->isRaw;
-        json["rawRoute"] = routeProfile->rawRoute;
-        json["preventModifications"] = routeProfile->preventModifications;
-        json["isRemote"] = routeProfile->isRemote;
-        json["remoteURL"] = routeProfile->remoteURL;
-        json["autoUpdate"] = routeProfile->autoUpdate;
-        json["remoteLastUpdate"] = routeProfile->remoteLastUpdate;
-        json["sourceGid"] = routeProfile->source_gid;
-
-        QJsonArray endpointsArray;
-        for (const int endpointID : routeProfile->endpointProfileIDs) endpointsArray.append(endpointID);
-        json["endpointProfileIDs"] = endpointsArray;
-
-        QJsonArray innerHopsArray;
-        for (const int endpointID : routeProfile->innerHopEndpointIDs) innerHopsArray.append(endpointID);
-        json["innerHopEndpointIDs"] = innerHopsArray;
-        json["customDns"] = routeProfile->customDns;
-        if (routeProfile->dns) json["dns"] = routeProfile->dns->ToJson();
-
-        QJsonArray rulesArray;
-        for (const auto& rule : routeProfile->Rules) {
-            rulesArray.append(routeRuleToJson(rule.get()));
-        }
-        json["rules"] = rulesArray;
-        
-        return json;
-    }
-
     std::shared_ptr<RouteProfile> RoutesRepo::routeProfileFromJson(const QJsonObject& json) const {
         auto routeProfile = std::make_shared<RouteProfile>();
         
@@ -298,17 +201,6 @@ namespace Configs {
         }
         if (json["dns"].isObject()) routeProfile->dns = RouteDns::FromJson(json["dns"].toObject());
         routeProfile->customDns = json["customDns"].toBool() && routeProfile->dns.has_value();
-
-        if (json.contains("rules") && json["rules"].isArray()) {
-            QJsonArray rulesArray = json["rules"].toArray();
-            for (const auto& ruleValue : rulesArray) {
-                if (ruleValue.isObject()) {
-                    auto rule = routeRuleFromJson(ruleValue.toObject());
-                    routeProfile->Rules.append(rule);
-                }
-            }
-        }
-        
         return routeProfile;
     }
 
@@ -369,155 +261,41 @@ namespace Configs {
 
         int ruleOrder = 0;
         for (const auto& rule : routeProfile->Rules) {
-            QJsonArray inboundArray = QListStr2QJsonArray(rule->inbound);
-            QJsonArray domainArray = QListStr2QJsonArray(rule->domain);
-            QJsonArray domainSuffixArray = QListStr2QJsonArray(rule->domain_suffix);
-            QJsonArray domainKeywordArray = QListStr2QJsonArray(rule->domain_keyword);
-            QJsonArray domainRegexArray = QListStr2QJsonArray(rule->domain_regex);
-            QJsonArray sourceIpCidrArray = QListStr2QJsonArray(rule->source_ip_cidr);
-            QJsonArray ipCidrArray = QListStr2QJsonArray(rule->ip_cidr);
-            QJsonArray sourcePortArray = QListStr2QJsonArray(rule->source_port);
-            QJsonArray sourcePortRangeArray = QListStr2QJsonArray(rule->source_port_range);
-            QJsonArray portArray = QListStr2QJsonArray(rule->port);
-            QJsonArray portRangeArray = QListStr2QJsonArray(rule->port_range);
-            QJsonArray processNameArray = QListStr2QJsonArray(rule->process_name);
-            QJsonArray processPathArray = QListStr2QJsonArray(rule->process_path);
-            QJsonArray processPathRegexArray = QListStr2QJsonArray(rule->process_path_regex);
-            QJsonArray ruleSetArray = QListStr2QJsonArray(rule->rule_set);
-            QJsonArray sniffersArray = QListStr2QJsonArray(rule->sniffers);
-            QJsonArray wifiSsidArray = QListStr2QJsonArray(rule->wifi_ssid);
-            QJsonArray wifiBssidArray = QListStr2QJsonArray(rule->wifi_bssid);
-            QJsonArray packageNameArray = QListStr2QJsonArray(rule->package_name);
-
-            QString inboundJson = QString::fromUtf8(QJsonDocument(inboundArray).toJson(QJsonDocument::Compact));
-            QString domainJson = QString::fromUtf8(QJsonDocument(domainArray).toJson(QJsonDocument::Compact));
-            QString domainSuffixJson = QString::fromUtf8(QJsonDocument(domainSuffixArray).toJson(QJsonDocument::Compact));
-            QString domainKeywordJson = QString::fromUtf8(QJsonDocument(domainKeywordArray).toJson(QJsonDocument::Compact));
-            QString domainRegexJson = QString::fromUtf8(QJsonDocument(domainRegexArray).toJson(QJsonDocument::Compact));
-            QString sourceIpCidrJson = QString::fromUtf8(QJsonDocument(sourceIpCidrArray).toJson(QJsonDocument::Compact));
-            QString ipCidrJson = QString::fromUtf8(QJsonDocument(ipCidrArray).toJson(QJsonDocument::Compact));
-            QString sourcePortJson = QString::fromUtf8(QJsonDocument(sourcePortArray).toJson(QJsonDocument::Compact));
-            QString sourcePortRangeJson = QString::fromUtf8(QJsonDocument(sourcePortRangeArray).toJson(QJsonDocument::Compact));
-            QString portJson = QString::fromUtf8(QJsonDocument(portArray).toJson(QJsonDocument::Compact));
-            QString portRangeJson = QString::fromUtf8(QJsonDocument(portRangeArray).toJson(QJsonDocument::Compact));
-            QString processNameJson = QString::fromUtf8(QJsonDocument(processNameArray).toJson(QJsonDocument::Compact));
-            QString processPathJson = QString::fromUtf8(QJsonDocument(processPathArray).toJson(QJsonDocument::Compact));
-            QString processPathRegexJson = QString::fromUtf8(QJsonDocument(processPathRegexArray).toJson(QJsonDocument::Compact));
-            QString ruleSetJson = QString::fromUtf8(QJsonDocument(ruleSetArray).toJson(QJsonDocument::Compact));
-            QString sniffersJson = QString::fromUtf8(QJsonDocument(sniffersArray).toJson(QJsonDocument::Compact));
-            QString wifiSsidJson = QString::fromUtf8(QJsonDocument(wifiSsidArray).toJson(QJsonDocument::Compact));
-            QString wifiBssidJson = QString::fromUtf8(QJsonDocument(wifiBssidArray).toJson(QJsonDocument::Compact));
-            QString packageNameJson = QString::fromUtf8(QJsonDocument(packageNameArray).toJson(QJsonDocument::Compact));
-
-            db.execThrow(R"(
-                INSERT INTO route_rules
-                (route_profile_id, rule_order, name, type, ip_version, network, protocol,
-                 inbound_json, domain_json, domain_suffix_json, domain_keyword_json, domain_regex_json,
-                 source_ip_cidr_json, source_ip_is_private, ip_cidr_json, ip_is_private,
-                 source_port_json, source_port_range_json, port_json, port_range_json,
-                 process_name_json, process_path_json, process_path_regex_json, rule_set_json,
-                 invert, outbound_id, action, reject_method, no_drop,
-                 override_address, override_port, sniffers_json, sniff_override_dest, strategy,
-                 wifi_ssid_json, wifi_bssid_json, tls_spoof, tls_spoof_method, package_name_json,
-                 tls_fragment, tls_fragment_fallback_delay, tls_record_fragment, disabled)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            )",
-                id,
-                ruleOrder++,
-                rule->name.toStdString(),
-                rule->type,
-                rule->ip_version.toStdString(),
-                rule->network.toStdString(),
-                rule->protocol.toStdString(),
-                inboundJson.toStdString(),
-                domainJson.toStdString(),
-                domainSuffixJson.toStdString(),
-                domainKeywordJson.toStdString(),
-                domainRegexJson.toStdString(),
-                sourceIpCidrJson.toStdString(),
-                rule->source_ip_is_private ? 1 : 0,
-                ipCidrJson.toStdString(),
-                rule->ip_is_private ? 1 : 0,
-                sourcePortJson.toStdString(),
-                sourcePortRangeJson.toStdString(),
-                portJson.toStdString(),
-                portRangeJson.toStdString(),
-                processNameJson.toStdString(),
-                processPathJson.toStdString(),
-                processPathRegexJson.toStdString(),
-                ruleSetJson.toStdString(),
-                rule->invert ? 1 : 0,
-                rule->outboundID,
-                rule->action.toStdString(),
-                rule->rejectMethod.toStdString(),
-                rule->no_drop ? 1 : 0,
-                rule->override_address.toStdString(),
-                rule->override_port.toStdString(),
-                sniffersJson.toStdString(),
-                rule->sniffOverrideDest ? 1 : 0,
-                rule->strategy.toStdString(),
-                wifiSsidJson.toStdString(),
-                wifiBssidJson.toStdString(),
-                rule->tls_spoof.toStdString(),
-                rule->tls_spoof_method.toStdString(),
-                packageNameJson.toStdString(),
-                rule->tls_fragment ? 1 : 0,
-                rule->tls_fragment_fallback_delay.toStdString(),
-                rule->tls_record_fragment ? 1 : 0,
-                rule->disabled ? 1 : 0
-            );
+            const RouteRule& r = *rule;
+            const auto insert = db.queryThrow(routesRepoRuleInsert(), id, ruleOrder++, r.name.toStdString(), r.type, r.outboundID,
+                                              r.action.toStdString(), routesRepoListJson(r.sniffers), r.disabled ? 1 : 0);
+            // Bound here, as execThrow takes a fixed argument list.
+            int index = 8;
+            for (const auto& attr : RouteRule::attribute_table()) {
+                if (attr.column == nullptr) continue;
+                ++index;
+                if (const bool* flag = attr.field<bool>(r)) insert->bind(index, static_cast<int64_t>(*flag ? 1 : 0));
+                else if (const QString* text = attr.field<QString>(r)) insert->bind(index, text->toStdString());
+                else if (const QList<QString>* list = attr.field<QList<QString>>(r)) insert->bind(index, routesRepoListJson(*list));
+            }
+            insert->exec();
+            db.countWrites(1);
         }
     }
 
-    QJsonObject RoutesRepo::ruleJsonFromRow(SQLite::Statement& stmt, int baseCol) const {
-        QJsonObject ruleJson;
-        ruleJson["name"] = QString::fromStdString(stmt.getColumn(baseCol + 0).getText());
-        ruleJson["type"] = stmt.getColumn(baseCol + 1).getInt();
-        ruleJson["ip_version"] = QString::fromStdString(stmt.getColumn(baseCol + 2).getText());
-        ruleJson["network"] = QString::fromStdString(stmt.getColumn(baseCol + 3).getText());
-        ruleJson["protocol"] = QString::fromStdString(stmt.getColumn(baseCol + 4).getText());
-        
-        auto parseJsonArray = [](const std::string& s) {
-            QJsonDocument doc = QJsonDocument::fromJson(QString::fromStdString(s).toUtf8());
-            return doc.isArray() ? doc.array() : QJsonArray();
-        };
-        ruleJson["inbound"] = parseJsonArray(stmt.getColumn(baseCol + 5).getText());
-        ruleJson["domain"] = parseJsonArray(stmt.getColumn(baseCol + 6).getText());
-        ruleJson["domain_suffix"] = parseJsonArray(stmt.getColumn(baseCol + 7).getText());
-        ruleJson["domain_keyword"] = parseJsonArray(stmt.getColumn(baseCol + 8).getText());
-        ruleJson["domain_regex"] = parseJsonArray(stmt.getColumn(baseCol + 9).getText());
-        ruleJson["source_ip_cidr"] = parseJsonArray(stmt.getColumn(baseCol + 10).getText());
-        ruleJson["source_ip_is_private"] = stmt.getColumn(baseCol + 11).getInt() != 0;
-        ruleJson["ip_cidr"] = parseJsonArray(stmt.getColumn(baseCol + 12).getText());
-        ruleJson["ip_is_private"] = stmt.getColumn(baseCol + 13).getInt() != 0;
-        ruleJson["source_port"] = parseJsonArray(stmt.getColumn(baseCol + 14).getText());
-        ruleJson["source_port_range"] = parseJsonArray(stmt.getColumn(baseCol + 15).getText());
-        ruleJson["port"] = parseJsonArray(stmt.getColumn(baseCol + 16).getText());
-        ruleJson["port_range"] = parseJsonArray(stmt.getColumn(baseCol + 17).getText());
-        ruleJson["process_name"] = parseJsonArray(stmt.getColumn(baseCol + 18).getText());
-        ruleJson["process_path"] = parseJsonArray(stmt.getColumn(baseCol + 19).getText());
-        ruleJson["process_path_regex"] = parseJsonArray(stmt.getColumn(baseCol + 20).getText());
-        ruleJson["rule_set"] = parseJsonArray(stmt.getColumn(baseCol + 21).getText());
-        ruleJson["invert"] = stmt.getColumn(baseCol + 22).getInt() != 0;
-        ruleJson["outboundID"] = stmt.getColumn(baseCol + 23).getInt();
-        ruleJson["action"] = QString::fromStdString(stmt.getColumn(baseCol + 24).getText());
-        ruleJson["rejectMethod"] = QString::fromStdString(stmt.getColumn(baseCol + 25).getText());
-        ruleJson["no_drop"] = stmt.getColumn(baseCol + 26).getInt() != 0;
-        ruleJson["override_address"] = QString::fromStdString(stmt.getColumn(baseCol + 27).getText());
-        ruleJson["override_port"] = QString::fromStdString(stmt.getColumn(baseCol + 28).getText());
-        ruleJson["sniffers"] = parseJsonArray(stmt.getColumn(baseCol + 29).getText());
-        ruleJson["sniffOverrideDest"] = stmt.getColumn(baseCol + 30).getInt() != 0;
-        ruleJson["strategy"] = QString::fromStdString(stmt.getColumn(baseCol + 31).getText());
-        ruleJson["wifi_ssid"] = parseJsonArray(stmt.getColumn(baseCol + 32).getText());
-        ruleJson["wifi_bssid"] = parseJsonArray(stmt.getColumn(baseCol + 33).getText());
-        ruleJson["tls_spoof"] = QString::fromStdString(stmt.getColumn(baseCol + 34).getText());
-        ruleJson["tls_spoof_method"] = QString::fromStdString(stmt.getColumn(baseCol + 35).getText());
-        ruleJson["package_name"] = parseJsonArray(stmt.getColumn(baseCol + 36).getText());
-        ruleJson["tls_fragment"] = stmt.getColumn(baseCol + 37).getInt() != 0;
-        ruleJson["tls_fragment_fallback_delay"] = QString::fromStdString(stmt.getColumn(baseCol + 38).getText());
-        ruleJson["tls_record_fragment"] = stmt.getColumn(baseCol + 39).getInt() != 0;
-        ruleJson["disabled"] = stmt.getColumn(baseCol + 40).getInt() != 0;
-        return ruleJson;
+    std::shared_ptr<RouteRule> RoutesRepo::ruleFromRow(SQLite::Statement& stmt, int baseCol) const {
+        auto rule = std::make_shared<RouteRule>();
+        int col = baseCol;
+        rule->name = QString::fromStdString(stmt.getColumn(col++).getText());
+        rule->type = stmt.getColumn(col++).getInt();
+        rule->outboundID = stmt.getColumn(col++).getInt();
+        rule->action = QString::fromStdString(stmt.getColumn(col++).getText());
+        rule->sniffers = routesRepoParseList(stmt.getColumn(col++).getText());
+        // The editor used to switch endpoint rules off by accident; they cannot be disabled.
+        rule->disabled = stmt.getColumn(col++).getInt() != 0 && rule->type != endpointPreferredBy;
+        for (const auto& attr : RouteRule::attribute_table()) {
+            if (attr.column == nullptr) continue;
+            const SQLite::Column column = stmt.getColumn(col++);
+            if (bool* flag = attr.field<bool>(*rule)) *flag = column.getInt() != 0;
+            else if (QString* text = attr.field<QString>(*rule)) *text = QString::fromStdString(column.getText());
+            else if (QList<QString>* list = attr.field<QList<QString>>(*rule)) *list = routesRepoParseList(column.getText());
+        }
+        return rule;
     }
 
     std::shared_ptr<RouteProfile> RoutesRepo::routeProfileFromProfileRow(SQLite::Statement& stmt) const {
@@ -540,7 +318,6 @@ namespace Configs {
             json["dns"] = dnsDoc.object();
         json["customDns"] = stmt.getColumn(13).getInt() != 0;
         json["sourceGid"] = stmt.getColumn(14).getInt();
-        json["rules"] = QJsonArray();
         return routeProfileFromJson(json);
     }
 
@@ -551,24 +328,15 @@ namespace Configs {
             if (i > 0) idList += ",";
             idList += QString::number(profileIds[i]);
         }
-        std::string sql =
-            "SELECT route_profile_id, name, type, ip_version, network, protocol, "
-            "inbound_json, domain_json, domain_suffix_json, domain_keyword_json, domain_regex_json, "
-            "source_ip_cidr_json, source_ip_is_private, ip_cidr_json, ip_is_private, "
-            "source_port_json, source_port_range_json, port_json, port_range_json, "
-            "process_name_json, process_path_json, process_path_regex_json, rule_set_json, "
-            "invert, outbound_id, action, reject_method, no_drop, "
-            "override_address, override_port, sniffers_json, sniff_override_dest, strategy, "
-            "wifi_ssid_json, wifi_bssid_json, tls_spoof, tls_spoof_method, package_name_json, "
-            "tls_fragment, tls_fragment_fallback_delay, tls_record_fragment, disabled "
-            "FROM route_rules WHERE route_profile_id IN (" + idList.toStdString() + ") ORDER BY route_profile_id, rule_order";
+        std::string sql = "SELECT route_profile_id, " + routesRepoRuleColumns() + " FROM route_rules WHERE route_profile_id IN (" +
+                          idList.toStdString() + ") ORDER BY route_profile_id, rule_order";
         auto rulesQuery = db.query(sql);
         if (!rulesQuery) return;
         while (rulesQuery->executeStep()) {
             int profileId = rulesQuery->getColumn(0).getInt();
             auto it = byId.find(profileId);
             if (it != byId.end()) {
-                it->second->Rules.append(routeRuleFromJson(ruleJsonFromRow(*rulesQuery, 1)));
+                it->second->Rules.append(ruleFromRow(*rulesQuery, 1));
             }
         }
     }
@@ -586,21 +354,10 @@ namespace Configs {
         
         auto routeProfile = routeProfileFromProfileRow(*profileQuery);
         
-        auto rulesQuery = db.query(R"(
-            SELECT name, type, ip_version, network, protocol,
-                   inbound_json, domain_json, domain_suffix_json, domain_keyword_json, domain_regex_json,
-                   source_ip_cidr_json, source_ip_is_private, ip_cidr_json, ip_is_private,
-                   source_port_json, source_port_range_json, port_json, port_range_json,
-                   process_name_json, process_path_json, process_path_regex_json, rule_set_json,
-                   invert, outbound_id, action, reject_method, no_drop,
-                   override_address, override_port, sniffers_json, sniff_override_dest, strategy,
-                   wifi_ssid_json, wifi_bssid_json, tls_spoof, tls_spoof_method, package_name_json,
-                   tls_fragment, tls_fragment_fallback_delay, tls_record_fragment, disabled
-            FROM route_rules WHERE route_profile_id = ? ORDER BY rule_order
-        )", id);
+        auto rulesQuery = db.query("SELECT " + routesRepoRuleColumns() + " FROM route_rules WHERE route_profile_id = ? ORDER BY rule_order", id);
         if (rulesQuery) {
             while (rulesQuery->executeStep()) {
-                routeProfile->Rules.append(routeRuleFromJson(ruleJsonFromRow(*rulesQuery, 0)));
+                routeProfile->Rules.append(ruleFromRow(*rulesQuery, 0));
             }
         }
         

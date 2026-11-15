@@ -113,6 +113,9 @@ public:
 
     void refresh_status(const QString &traffic_update = "");
 
+    // After the custom tray icons on disk changed.
+    void refreshTrayIcon();
+
     // Lines of the config about to run; must arrive before its first add_traffic_point.
     void set_traffic_lines(const QList<Stats::TrafficLine> &lines);
 
@@ -412,6 +415,9 @@ private:
 
     void dialog_message_impl(MwMessage cmd, const QStringList &args);
 
+    // The SettingsSchema Ui bits in effects, for a settings commit.
+    void applySettingsUi(quint32 effects);
+
     void handle_deeplink_impl(const QString &url);
 
     void handle_addsub(const QString &url, const QString &name);
@@ -520,6 +526,8 @@ private:
     void confirm_disable_kill_switch();
 
     QPointer<QMessageBox> m_killSwitchDialog;
+    // The last box each EnginePolicy method opened, keyed by the method's name; at most one is open per method.
+    QHash<QString, QPointer<QMessageBox>> m_policyBoxes;
 
     QPointer<DialogVpnAuth> m_vpnAuthDialog;
     QPointer<DialogScanner> m_scannerDialog;
@@ -576,7 +584,7 @@ private:
     // EnginePolicy, in mainwindow_policy.cpp; reached through EngineHost::policy().
     void geoAssetMissingCategory(const QString &contextName, const QString &needed, const QString &whichFile) override;
 
-    bool confirmGeoAssetDownload(const QString &contextName) override;
+    void confirmGeoAssetDownload(const QString &contextName, std::function<void(bool download)> answered) override;
 
     void geoAssetDownloadFinished(const QString &error) override;
 
@@ -590,9 +598,9 @@ private:
 
     void strictRouteUnavailable(const QString &error) override;
 
-    bool offerCoreReset(const QString &error) override;
+    void offerCoreReset(const QString &error, std::function<void(bool reset)> answered) override;
 
-    bool offerLeftoverTunAdapterRetry(const QString &error) override;
+    void offerLeftoverTunAdapterRetry(const QString &error, std::function<void(bool retry)> answered) override;
 
     void stopFailed(const QString &error) override;
 

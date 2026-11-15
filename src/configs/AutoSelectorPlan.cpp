@@ -1,5 +1,6 @@
 #include "include/configs/AutoSelectorPlan.h"
 
+#include "include/configs/common/Protocols.h"
 #include "include/configs/outbounds/autoselector.h"
 #include "include/configs/outbounds/chain.h"
 #include "include/configs/outbounds/custom.h"
@@ -92,8 +93,7 @@ namespace Configs
             if (member == nullptr || member->outbound == nullptr) return AutoSelectorSkip::Missing;
             if (member->type == "chain" || member->type == "autoselector") return AutoSelectorSkip::MetaType;
             if (member->type == "tailscale") return AutoSelectorSkip::Tailscale;
-            if (member->type == "openvpn" || member->type == "openconnect")
-                return AutoSelectorSkip::ManagementEndpoint;
+            if (Protocols::Is(member->type, Protocols::VpnEndpoint)) return AutoSelectorSkip::ManagementEndpoint;
             if (member->outbound->IsExtraCore()) return AutoSelectorSkip::ExtraCore;
             if (member->type == "custom") {
                 const auto custom = member->Custom();

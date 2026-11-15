@@ -40,14 +40,14 @@ namespace Engine {
         void routingRestartNeeded();
         void groupOrderChanged(const QList<int> &groupIds);
         void extraCoreExited();
-        // Groups were added, deleted or repaired outside the window.
+        // Groups were added, edited, deleted or repaired: committed by a service, from the window or the API.
         void groupsChanged();
         void profilesRemoved(const QList<int> &profileIds);
-        // Profiles were edited outside the window.
+        // Profiles were added or edited: committed by a service, from the window or the API.
         void profilesChanged(const QList<int> &profileIds);
-        // Routing profiles were added, edited or deleted outside the window.
+        // Routing profiles were added, edited or deleted: committed by a service, from the window or the API.
         void routesChanged();
-        // API names of the settings (Engine::SettingsRegistry) that changed outside the window.
+        // Database keys a settings commit (Engine::SettingsService) changed, from a window, a menu or the API alike.
         void settingsChanged(const QStringList &keys);
 
     private:

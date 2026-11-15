@@ -1,104 +1,57 @@
 package rpc
 
 import (
+	"context"
 	"log"
 	"time"
 
-	"ThroneCore/internal/boxbox"
 	"ThroneCore/internal/boxmain"
 	"ThroneCore/internal/probe"
-	"ThroneCore/internal/xray"
+	"ThroneCore/internal/testenv"
 
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/option"
 )
 
-type testEnv struct {
-	box   *boxbox.Box
-	tags  []string
-	close func()
-}
-
 // `current` measures the running instance instead of building one, and owns nothing.
 func prepareTestEnv(current bool, needXray bool, xrayConfig string, xrayFullConfigs []string,
 	coreConfig string, tags []string, useDefaultOutbound bool,
-	xrayDNSStrategy string) (*testEnv, error) {
-
-	// Owned here, not by the caller: this builds the probe box the Xray instances below resolve through.
-	var boxCtx boxContextHolder
-	prepareXray := xrayPreparer(xrayDNSStrategy, boxCtx.get)
+	xrayDNSStrategy string) (*testenv.Env[*boxmain.Box], error) {
 
 	if current {
 		box := currentBox()
 		if box == nil {
 			return nil, errInstanceNotRunning
 		}
-		outTags := tags
-		if _, exists := box.Outbound().Outbound("proxy"); exists {
-			outTags = []string{"proxy"}
-		} else {
-			useDefaultOutbound = true
-		}
-		if useDefaultOutbound {
-			outTags = []string{box.Outbound().Default().Tag()}
-		}
-		return &testEnv{box: box, tags: outTags, close: func() {}}, nil
+		return testenv.Current(box, tags, useDefaultOutbound), nil
 	}
 
-	var cleanups []func()
-	unwind := func() {
-		for i := len(cleanups) - 1; i >= 0; i-- {
-			cleanups[i]()
-		}
+	request := testenv.Request{
+		NeedXray:           needXray,
+		XrayConfig:         xrayConfig,
+		XrayFullConfigs:    xrayFullConfigs,
+		XrayDNSStrategy:    xrayDNSStrategy,
+		Tags:               tags,
+		UseDefaultOutbound: useDefaultOutbound,
 	}
-
-	if needXray {
-		instance, err := xray.CreateXrayInstance(xrayConfig)
+	return testenv.Prepare(request, currentEgress, func(publish func(context.Context)) (*boxmain.Box, func(), error) {
+		var xrayTunnelHops map[string]int
+		box, cancel, err := boxmain.Create([]byte(coreConfig), publish, func(options *option.Options) {
+			applyAutoRedirectMark(options, autoRedirectMark.Load())
+			probe.LimitWireGuardWorkers(options)
+			if needXray {
+				xrayTunnelHops = probe.XrayDNSTunnelHops(options, xrayConfig)
+			}
+		})
 		if err != nil {
-			unwind()
-			return nil, err
+			return nil, nil, err
 		}
-		if err = prepareXray(instance); err != nil {
-			_ = instance.Close()
-			unwind()
-			return nil, err
-		}
-		if err = instance.Start(); err != nil {
-			_ = instance.Close()
-			unwind()
-			return nil, err
-		}
-		cleanups = append(cleanups, func() { _ = instance.Close() })
-	}
-
-	fullXray, err := startXrayFullConfigs(xrayFullConfigs, prepareXray)
-	if err != nil {
-		unwind()
-		return nil, err
-	}
-	cleanups = append(cleanups, func() { closeXrayInstances(fullXray) })
-
-	var xrayTunnelHops map[string]int
-	box, cancel, err := boxmain.Create([]byte(coreConfig), boxCtx.publish, func(options *option.Options) {
-		applyAutoRedirectMark(options, autoRedirectMark.Load())
-		probe.LimitWireGuardWorkers(options)
-		if needXray {
-			xrayTunnelHops = probe.XrayDNSTunnelHops(options, xrayConfig)
-		}
+		untrack := probe.TrackDNSTunnels(box, xrayTunnelHops)
+		return box, func() {
+			untrack()
+			box.CloseWithTimeout(cancel, 2*time.Second, log.Println, false)
+		}, nil
 	})
-	if err != nil {
-		unwind()
-		return nil, err
-	}
-	cleanups = append(cleanups, func() {
-		box.CloseWithTimeout(cancel, 2*time.Second, log.Println, false)
-	}, probe.TrackDNSTunnels(box, xrayTunnelHops))
-
-	outTags := tags
-	if useDefaultOutbound {
-		outTags = []string{box.Outbound().Default().Tag()}
-	}
-	return &testEnv{box: box, tags: outTags, close: unwind}, nil
 }
 
 // A probe box has no tun to mark its sockets, so the running Tun's auto_redirect nftables rules would capture them.

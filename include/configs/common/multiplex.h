@@ -4,6 +4,8 @@
 
 namespace Configs
 {
+    struct SettingsValues;
+
     inline QStringList muxProtocols = {"smux", "yamux", "h2mux"};
 
     // Index of "Custom" in the profile's Keep Default / On / Off / Custom multiplex combo.
@@ -30,7 +32,7 @@ namespace Configs
         int brutal_down_mbps = 0;
 
         static MuxSettings Preset();
-        void SaveAsPreset() const;
+        void SaveAsPreset(SettingsValues &values) const;
         // The enabled multiplex object for the core config.
         QJsonObject Build() const;
     };

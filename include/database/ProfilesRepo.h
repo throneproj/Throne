@@ -13,6 +13,8 @@
 #include <QJsonObject>
 
 namespace Configs {
+    struct HopReference;
+
     class ProfilesRepo {
     private:
         Database& db;
@@ -68,8 +70,9 @@ namespace Configs {
         QStringList GetAllProfileNames();
         
         // A running profile in ids is stopped (interactive per the flag) when stopRunningProfile, else dropped from ids.
-        // A missing group is skipped. False when the rows could not be deleted.
-        bool BatchDeleteProfiles(QList<int>& ids, bool stopRunningProfile = false, bool interactive = true);
+        // A missing group is skipped; groups lose the deleted ones as front/landing proxy. False when the rows could not be deleted.
+        bool BatchDeleteProfiles(QList<int>& ids, bool stopRunningProfile = false, bool interactive = true,
+                                 QList<HopReference>* clearedHops = nullptr);
 
         // Runs deleteRows under this repo's lock; when it returns true, the ids it filled leave the identity map and are
         // tombstoned. Lock order: this repo, then GroupsRepo.

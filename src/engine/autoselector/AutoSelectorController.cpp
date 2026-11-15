@@ -219,7 +219,7 @@ namespace Engine {
                 if (const auto running = control_->runningSnapshot(); running == nullptr || running->id != ent->id) return;
                 MW_show_log(MainWindowTr::tr("[Auto selector] Every profile is measured and the best ones changed — rebuilding "
                                              "with the full ranking."));
-                startRanked(ent->id, [=, this] { control_->start(StartRequest{ent->id}); });
+                startRanked(ent->id, [=, this] { control_->start(StartRequest{ent->id, false}); });
             });
         });
     }
@@ -258,7 +258,7 @@ namespace Engine {
 
         if (restartID < 0) return;
         MW_show_log(MainWindowTr::tr("[Auto selector] The subscription replaced profiles it was running on — rebuilding."));
-        control_->start(StartRequest{restartID});
+        control_->start(StartRequest{restartID, false});
     }
 
     void AutoSelectorController::onPoolExhausted(int profileID) {
@@ -274,7 +274,7 @@ namespace Engine {
             MW_show_log(MainWindowTr::tr("[Auto selector] Every running profile stopped working through the hops in front "
                                          "of it — rebuilding with the next candidates."));
             if (auto selector = ent->AutoSelector(); selector != nullptr) Configs::DemoteAutoSelectorMembers(ent, selector->lastBuilt);
-            control_->start(StartRequest{runningID});
+            control_->start(StartRequest{runningID, false});
             return;
         }
 
@@ -283,12 +283,12 @@ namespace Engine {
         ++rankingInFlight_;
         const auto restart = [=, this] {
             if (const auto current = control_->runningSnapshot(); current == nullptr || current->id != runningID) return;
-            startRanked(runningID, [=, this] { control_->start(StartRequest{runningID}); });
+            startRanked(runningID, [=, this] { control_->start(StartRequest{runningID, false}); });
         };
         runOnNewThread([=, this] {
             QList<int> stale;
             if (auto selector = ent->AutoSelector(); selector != nullptr) stale = selector->lastBuilt;
-            const bool startedEarly = rank(ent, true, stale, restart);
+            const bool startedEarly = rank(ent, false, stale, restart);
             runOnUiThread([=, this] {
                 --rankingInFlight_;
                 if (startedEarly) finishEarlySweep(running);

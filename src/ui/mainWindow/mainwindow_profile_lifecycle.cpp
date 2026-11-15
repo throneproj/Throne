@@ -51,8 +51,8 @@ std::shared_ptr<Configs::Profile> MainWindow::runningSnapshot() const {
 
 void MainWindow::toggle_connection() {
     const auto state = connection()->connectionState();
-    if (select_mode || state == ConnectionState::Connecting || state == ConnectionState::Stopping) return;
-    if (runningSnapshot() != nullptr) {
+    if (select_mode || state == ConnectionState::Stopping) return;
+    if (state == ConnectionState::Connecting || runningSnapshot() != nullptr) {
         profile_stop(false, false, true);
         return;
     }

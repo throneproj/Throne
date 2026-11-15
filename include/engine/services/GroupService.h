@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 #include <optional>
 
 #include <QList>
@@ -8,6 +9,10 @@
 
 #include "include/configs/sub/GroupUpdater.hpp"
 #include "include/engine/services/ServiceTypes.h"
+
+namespace Configs {
+    class Group;
+}
 
 namespace Engine::GroupService {
     struct NewGroup {
@@ -23,6 +28,14 @@ namespace Engine::GroupService {
 
     // Main thread. Adds the group at the end of the tab order and emits GroupsChanged.
     std::optional<ServiceError> Add(const NewGroup &spec, int *groupId);
+
+    // Main thread. Adds a group the window's editor filled in at the end of the tab order and emits GroupsChanged; the spec
+    // overload builds its group and ends here.
+    std::optional<ServiceError> Add(const std::shared_ptr<Configs::Group> &group);
+
+    // Main thread. Commits the window's edit of a live group (its editor holds the lock): saves it, notes a Group restart when
+    // restartNeeded, and emits GroupsChanged. not_found when it was deleted meanwhile.
+    std::optional<ServiceError> Save(const std::shared_ptr<Configs::Group> &group, bool restartNeeded = false);
 
     using UpdateDone = std::function<void(const Subscription::UpdateOutcome &outcome)>;
 
@@ -40,6 +53,7 @@ namespace Engine::GroupService {
     std::optional<ServiceError> CheckDelete(int groupId);
 
     // Main thread, with no profile of the group running. Deletes the group and its profiles, repairs current_group and
-    // the front/landing proxies that pointed into it, and emits GroupsChanged.
+    // the front/landing proxies that pointed into it, notes a Group restart when the running config used one of its
+    // profiles, and emits GroupsChanged.
     std::optional<ServiceError> Delete(int groupId);
 } // namespace Engine::GroupService

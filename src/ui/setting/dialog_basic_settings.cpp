@@ -9,9 +9,11 @@
 #include "include/global/DeviceDetailsHelper.hpp"
 #include "include/global/ExitLookup.hpp"
 #include "include/global/Validation.hpp"
+#include "include/database/SettingsSchema.h"
 #include "include/database/entities/Group.h"
 #include "include/engine/services/AssetUpdates.h"
 #include "include/engine/services/BackupArchive.h"
+#include "include/engine/services/SettingsService.h"
 #include "include/ui/setting/ServiceCheckSelector.h"
 #include "include/ui/utils/UiMode.h"
 #include "include/ui/utils/ValidationForm.h"
@@ -58,6 +60,11 @@
 namespace {
     constexpr int kBasicSettingsMinAutoUpdate = 30;
     constexpr int kBasicSettingsMaxAutoUpdate = 525600;
+
+    Configs::SettingsSchema::IntRange basicSettingsRange(const QString &key, Configs::SettingsSchema::IntRange fallback) {
+        const auto *found = Configs::SettingsSchema::Find(key);
+        return found != nullptr && found->range ? *found->range : fallback;
+    }
 
     // The test runners read a bare integer; anything else, "3s" included, becomes 0.
     QString basicSettingsMillisError(const QString &text, int example, bool zeroIsDefault) {
@@ -227,6 +234,7 @@ struct DialogBasicSettings::WebDavChooser {
 
 DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     : QDialog(parent), ui(new Ui::DialogBasicSettings) {
+    snapshot_ = *Configs::dataManager->settingsRepo;
     ui->setupUi(this);
     form = new Validation::Form(this);
     form->attachStatus(ui->buttonBox);
@@ -235,45 +243,46 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->inbound_socks_port_l->setText(ui->inbound_socks_port_l->text().replace("Socks", "Mixed (SOCKS+HTTP)"));
     ui->log_level->addItems(QString("trace debug info warn error fatal panic").split(" "));
     ui->xray_loglevel->addItems(Configs::Xray::XrayLogLevels);
-    ui->disable_stats->setChecked(Configs::dataManager->settingsRepo->disable_traffic_stats);
-    ui->proxy_scheme->setCurrentText(Configs::dataManager->settingsRepo->proxy_scheme);
+    ui->disable_stats->setChecked(snapshot_.disable_traffic_stats);
+    ui->proxy_scheme->setCurrentText(snapshot_.proxy_scheme);
 
-    D_LOAD_STRING(inbound_address)
-    CACHE.custom_inbound = Configs::dataManager->settingsRepo->custom_inbound;
-    D_LOAD_INT(inbound_socks_port)
-    ui->random_listen_port->setChecked(Configs::dataManager->settingsRepo->random_inbound_port);
-    D_LOAD_INT(test_concurrent)
-    D_LOAD_STRING(test_latency_url)
-    D_LOAD_STRING(direct_test_url)
-    D_LOAD_BOOL(exit_country_lookup)
+    S_LOAD_STRING(inbound_address)
+    CACHE.custom_inbound = snapshot_.custom_inbound;
+    S_LOAD_INT(inbound_socks_port)
+    ui->random_listen_port->setChecked(snapshot_.random_inbound_port);
+    S_LOAD_INT(test_concurrent)
+    S_LOAD_STRING(test_latency_url)
+    S_LOAD_STRING(direct_test_url)
+    S_LOAD_BOOL(exit_country_lookup)
     ui->exit_lookup_provider->addItem(tr("Automatic"), Configs_network::ExitLookupAutoId);
     for (const auto &provider : Configs_network::ExitLookupProviders()) ui->exit_lookup_provider->addItem(provider.label, provider.id);
     ui->exit_lookup_provider->setCurrentIndex(
-        std::max(0, ui->exit_lookup_provider->findData(Configs::dataManager->settingsRepo->exit_lookup_provider)));
+        std::max(0, ui->exit_lookup_provider->findData(snapshot_.exit_lookup_provider)));
     ui->label_exit_lookup_provider->setEnabled(ui->exit_country_lookup->isChecked());
     ui->exit_lookup_provider->setEnabled(ui->exit_country_lookup->isChecked());
     connect(ui->exit_country_lookup, &QCheckBox::toggled, this, [this](bool enabled) {
         ui->label_exit_lookup_provider->setEnabled(enabled);
         ui->exit_lookup_provider->setEnabled(enabled);
     });
-    serviceChecks_ = new ServiceCheckSelector(Configs::dataManager->settingsRepo->service_check_disabled, ui->service_check_box);
+    serviceChecks_ = new ServiceCheckSelector(snapshot_.service_check_disabled, ui->service_check_box);
     ui->serviceCheckLayout->addWidget(serviceChecks_);
-    D_LOAD_BOOL(disable_tray)
-    ui->reset_proxy_on_disable_sp->setChecked(Configs::dataManager->settingsRepo->reset_proxy_on_disable_sp);
-    ui->url_timeout->setText(Int2String(Configs::dataManager->settingsRepo->url_test_timeout_ms));
-    const int speedTestMode = Configs::dataManager->settingsRepo->speed_test_mode;
+    S_LOAD_BOOL(disable_tray)
+    ui->reset_proxy_on_disable_sp->setChecked(snapshot_.reset_proxy_on_disable_sp);
+    ui->url_timeout->setText(Int2String(snapshot_.url_test_timeout_ms));
+    const int speedTestMode = snapshot_.speed_test_mode;
     ui->speedtest_mode->setCurrentIndex(speedTestMode >= 0 && speedTestMode < ui->speedtest_mode->count() ? speedTestMode : 0);
-    ui->test_timeout->setText(Int2String(Configs::dataManager->settingsRepo->speed_test_timeout_ms));
-    ui->simple_down_url->setText(Configs::dataManager->settingsRepo->simple_dl_url);
-    ui->allow_beta->setChecked(Configs::dataManager->settingsRepo->allow_beta_update);
-    ui->disable_mixed_inbound->setChecked(Configs::dataManager->settingsRepo->disable_mixed_inbound);
-    D_LOAD_BOOL(inbound_auth)
-    D_LOAD_STRING(inbound_user)
-    D_LOAD_STRING(inbound_pass)
+    ui->test_timeout->setText(Int2String(snapshot_.speed_test_timeout_ms));
+    ui->simple_down_url->setText(snapshot_.simple_dl_url);
+    ui->allow_beta->setChecked(snapshot_.allow_beta_update);
+    ui->disable_mixed_inbound->setChecked(snapshot_.disable_mixed_inbound);
+    S_LOAD_BOOL(inbound_auth)
+    S_LOAD_STRING(inbound_user)
+    S_LOAD_STRING(inbound_pass)
 
-    ui->url_scheme_auto_register->setChecked(Configs::dataManager->settingsRepo->url_scheme_auto_register);
-    ui->file_assoc_auto_register->setChecked(Configs::dataManager->settingsRepo->file_assoc_auto_register);
-    const auto connectAssociation = [this](Association a, QCheckBox *autoRegister, QPushButton *install, QPushButton *uninstall, const QString &failure) {
+    ui->url_scheme_auto_register->setChecked(snapshot_.url_scheme_auto_register);
+    ui->file_assoc_auto_register->setChecked(snapshot_.file_assoc_auto_register);
+    const auto connectAssociation = [this](Association a, bool Configs::SettingsValues::*autoRegisterKey, QCheckBox *autoRegister,
+                                           QPushButton *install, QPushButton *uninstall, const QString &failure) {
         connect(install, &QPushButton::clicked, this, [=,this] {
             const bool ok = UrlScheme_Install(a);
             refreshUrlSchemeStatus();
@@ -281,23 +290,22 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
         });
         connect(uninstall, &QPushButton::clicked, this, [=,this] {
             UrlScheme_Uninstall(a);
+            // Uninstall saved auto registration off, so ticking the box again before OK must count as turning it on.
+            snapshot_.*autoRegisterKey = false;
             autoRegister->setChecked(false);
             refreshUrlSchemeStatus();
         });
     };
-    connectAssociation(Association::Links, ui->url_scheme_auto_register, ui->url_scheme_install, ui->url_scheme_uninstall,
-                       tr("Could not register the handler for throne:// links."));
-    connectAssociation(Association::ConfigFiles, ui->file_assoc_auto_register, ui->file_assoc_install, ui->file_assoc_uninstall,
-                       tr("Could not register the config file associations."));
+    connectAssociation(Association::Links, &Configs::SettingsValues::url_scheme_auto_register, ui->url_scheme_auto_register,
+                       ui->url_scheme_install, ui->url_scheme_uninstall, tr("Could not register the handler for throne:// links."));
+    connectAssociation(Association::ConfigFiles, &Configs::SettingsValues::file_assoc_auto_register, ui->file_assoc_auto_register,
+                       ui->file_assoc_install, ui->file_assoc_uninstall, tr("Could not register the config file associations."));
     for (auto *widget : UnavailableWidgets(ui)) widget->hide();
     ui->url_scheme_box->setEnabled(UrlScheme_IsSupported(Association::Links));
     refreshUrlSchemeStatus();
 
     connect(ui->custom_inbound_edit, &QPushButton::clicked, this, [=,this] {
         C_EDIT_JSON_ALLOW_EMPTY(custom_inbound, JsonEdit::SingBox::Config)
-    });
-    connect(ui->disable_tray, &QCheckBox::stateChanged, this, [=,this](const bool &) {
-        CACHE.updateDisableTray = true;
     });
     connect(ui->random_listen_port, &QCheckBox::stateChanged, this, [=,this](const bool &state)
     {
@@ -310,33 +318,34 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
         }
     });
 
-    ui->max_log_line->setText(QString::number(Configs::dataManager->settingsRepo->max_log_line));
-    ui->log_level->setCurrentText(Configs::dataManager->settingsRepo->log_level);
-    ui->xray_loglevel->setCurrentText(Configs::dataManager->settingsRepo->xray_log_level);
-    ui->enable_log_include->setChecked(Configs::dataManager->settingsRepo->log_enable_include);
-    ui->enable_log_exclude->setChecked(Configs::dataManager->settingsRepo->log_enable_exclude);
-    ui->log_include_keyword->setText(Configs::dataManager->settingsRepo->log_include_keyword.join("\n"));
-    ui->log_exclude_keyword->setText(Configs::dataManager->settingsRepo->log_exclude_keyword.join("\n"));
-    ui->log_include_regex->setText(Configs::dataManager->settingsRepo->log_include_regex.join("\n"));
-    ui->log_exclude_regex->setText(Configs::dataManager->settingsRepo->log_exclude_regex.join("\n"));
+    ui->max_log_line->setText(QString::number(snapshot_.max_log_line));
+    ui->log_level->setCurrentText(snapshot_.log_level);
+    ui->xray_loglevel->setCurrentText(snapshot_.xray_log_level);
+    ui->enable_log_include->setChecked(snapshot_.log_enable_include);
+    ui->enable_log_exclude->setChecked(snapshot_.log_enable_exclude);
+    ui->log_include_keyword->setText(snapshot_.log_include_keyword.join("\n"));
+    ui->log_exclude_keyword->setText(snapshot_.log_exclude_keyword.join("\n"));
+    ui->log_include_regex->setText(snapshot_.log_include_regex.join("\n"));
+    ui->log_exclude_regex->setText(snapshot_.log_exclude_regex.join("\n"));
     applyRegexHighlighting();
 
-    ui->connection_statistics->setChecked(Configs::dataManager->settingsRepo->enable_stats);
-    ui->disable_traffic_aggregation->setChecked(Configs::dataManager->settingsRepo->disable_traffic_aggregation);
-    D_LOAD_BOOL(start_minimal)
-    ui->skip_delete_confirm->setChecked(Configs::dataManager->settingsRepo->skip_delete_confirmation);
-    D_LOAD_BOOL(show_config_security)
-    ui->language->setCurrentIndex(Configs::dataManager->settingsRepo->language);
-    ui->ui_mode->setCurrentIndex(Configs::dataManager->settingsRepo->simple_mode ? 0 : 1);
-    connect(ui->language, &QComboBox::currentIndexChanged, this, [=,this](int index) {
-        CACHE.needRestart = true;
-    });
+    ui->connection_statistics->setChecked(snapshot_.enable_stats);
+    ui->disable_traffic_aggregation->setChecked(snapshot_.disable_traffic_aggregation);
+    S_LOAD_BOOL(start_minimal)
+    ui->skip_delete_confirm->setChecked(snapshot_.skip_delete_confirmation);
+    S_LOAD_BOOL(show_config_security)
+    ui->language->setCurrentIndex(snapshot_.language);
+    ui->ui_mode->setCurrentIndex(snapshot_.simple_mode ? 0 : 1);
+    CACHE.theme = snapshot_.theme;
+    CACHE.font = snapshot_.font;
+    CACHE.font_size = snapshot_.font_size;
+    CACHE.openTheme = themeManager()->current_theme;
+    CACHE.openFont = qApp->font();
     connect(ui->font, &QComboBox::currentTextChanged, this, [=,this](const QString &fontName) {
         auto font = qApp->font();
         font.setFamily(fontName);
         qApp->setFont(font);
-        Configs::dataManager->settingsRepo->font = fontName;
-        Configs::dataManager->settingsRepo->Save();
+        CACHE.font = fontName;
         adjustSize();
     });
     for (int i=7;i<=26;i++) {
@@ -347,24 +356,23 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
         auto font = qApp->font();
         font.setPointSize(sizeStr.toInt());
         qApp->setFont(font);
-        Configs::dataManager->settingsRepo->font_size = sizeStr.toInt();
-        Configs::dataManager->settingsRepo->Save();
+        CACHE.font_size = sizeStr.toInt();
         adjustSize();
     });
-    ui->log_font_family->setCurrentFont(QFont(ResolveLogFontFamily(Configs::dataManager->settingsRepo->log_font_family)));
+    ui->log_font_family->setCurrentFont(QFont(ResolveLogFontFamily(snapshot_.log_font_family)));
     CACHE.shownLogFontFamily = ui->log_font_family->currentFont().family();
     for (int i=7;i<=26;i++) {
         ui->log_font_size->addItem(Int2String(i));
     }
-    const int logFontSize = Configs::dataManager->settingsRepo->log_font_size;
+    const int logFontSize = snapshot_.log_font_size;
     ui->log_font_size->setCurrentText(Int2String(logFontSize > 0 ? logFontSize : qApp->font().pointSize()));
     CACHE.shownLogFontSize = ui->log_font_size->currentText().toInt();
     ui->theme->addItems(QStyleFactory::keys());
     ui->theme->addItem("QDarkStyle");
     // Custom stylesheet themes, not QStyleFactory keys.
     ui->theme->addItems({"FlatGray", "LightBlue", "SoftPink", "BlackSoft"});
-    ui->enable_custom_icon->setChecked(Configs::dataManager->settingsRepo->use_custom_icons);
-    ui->follow_status_in_taskbar->setChecked(Configs::dataManager->settingsRepo->follow_status_in_taskbar);
+    ui->enable_custom_icon->setChecked(snapshot_.use_custom_icons);
+    ui->follow_status_in_taskbar->setChecked(snapshot_.follow_status_in_taskbar);
     ui->follow_status_in_taskbar->setEnabled(ui->enable_custom_icon->isChecked());
     connect(ui->enable_custom_icon, &QCheckBox::toggled, this, [this](bool enabled) {
         ui->follow_status_in_taskbar->setEnabled(enabled);
@@ -376,7 +384,6 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
                 tr("Select png icons"), QDir::homePath(), tr("Image Files (*.png)"));
             QString errors;
             for (const auto& fileName : fileNames) {
-                CACHE.updateTrayIcon = true;
                 QFileInfo fileInfo(fileName);
                 if (auto pixMap = QPixmap(fileName); pixMap.isNull()) errors += "Failed to load " + fileName + "\n";
                 else if (pixMap.width() != pixMap.height()) errors += "Image does not have equal width and height: " + fileName + "\n";
@@ -386,41 +393,41 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
                     if (!QFile::copy(fileName, QDir("icons").filePath(fileInfo.fileName()))) errors += "Failed to copy " + fileName + "\n";
                 }
             }
+            if (!fileNames.isEmpty()) GetMainWindow()->refreshTrayIcon();
             if (!errors.isEmpty()) {
                 QMessageBox::warning(this, "Select custom image error", errors);
             }
         }
     });
     bool ok;
-    auto themeId = Configs::dataManager->settingsRepo->theme.toInt(&ok);
+    auto themeId = snapshot_.theme.toInt(&ok);
     if (ok) {
         ui->theme->setCurrentIndex(themeId);
     } else {
-        ui->theme->setCurrentText(Configs::dataManager->settingsRepo->theme);
+        ui->theme->setCurrentText(snapshot_.theme);
     }
     connect(ui->theme, &QComboBox::currentIndexChanged, this, [=,this](int index) {
         themeManager()->ApplyTheme(ui->theme->currentText());
-        Configs::dataManager->settingsRepo->theme = ui->theme->currentText().trimmed();
-        Configs::dataManager->settingsRepo->Save();
+        CACHE.theme = ui->theme->currentText().trimmed();
         refreshUrlSchemeStatus();
     });
 
-    ui->user_agent->setText(Configs::dataManager->settingsRepo->user_agent);
+    ui->user_agent->setText(snapshot_.user_agent);
     ui->user_agent->setPlaceholderText(Configs::dataManager->settingsRepo->GetUserAgent(true));
-    ui->sub_tls_version->setCurrentIndex(std::clamp(Configs::dataManager->settingsRepo->sub_tls_version, 0, ui->sub_tls_version->count() - 1));
-    ui->sub_http_version->setCurrentIndex(std::clamp(Configs::dataManager->settingsRepo->sub_http_version, 0, ui->sub_http_version->count() - 1));
+    ui->sub_tls_version->setCurrentIndex(std::clamp(snapshot_.sub_tls_version, 0, ui->sub_tls_version->count() - 1));
+    ui->sub_http_version->setCurrentIndex(std::clamp(snapshot_.sub_http_version, 0, ui->sub_http_version->count() - 1));
     if (auto *model = qobject_cast<QStandardItemModel *>(ui->sub_tls_version->model()); model && !QSslSocket::isProtocolSupported(QSsl::TlsV1_3)) {
         model->item(static_cast<int>(Configs::subTlsVersion::tls13))->setEnabled(false);
     }
-    D_LOAD_BOOL(net_use_proxy)
-    D_LOAD_BOOL(allow_stopping_active_profile)
-    D_LOAD_BOOL(sub_clear)
-    D_LOAD_BOOL(sub_show_change_popup)
-    D_LOAD_BOOL(net_insecure)
-    D_LOAD_BOOL(sub_send_hwid)
-    D_LOAD_STRING(sub_custom_hwid_params)
-    D_LOAD_INT_ENABLE(sub_auto_update, sub_auto_update_enable)
-    D_LOAD_BOOL(sub_respect_server_interval)
+    S_LOAD_BOOL(net_use_proxy)
+    S_LOAD_BOOL(allow_stopping_active_profile)
+    S_LOAD_BOOL(sub_clear)
+    S_LOAD_BOOL(sub_show_change_popup)
+    S_LOAD_BOOL(net_insecure)
+    S_LOAD_BOOL(sub_send_hwid)
+    S_LOAD_STRING(sub_custom_hwid_params)
+    S_LOAD_INT_ENABLE(sub_auto_update, sub_auto_update_enable)
+    S_LOAD_BOOL(sub_respect_server_interval)
     auto details = GetDeviceDetails();
 	ui->sub_send_hwid->setToolTip(
         ui->sub_send_hwid->toolTip()
@@ -429,12 +436,13 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
                 details.osVersion.isEmpty() ? "N/A" : details.osVersion,
                 details.model.isEmpty() ? "N/A" : details.model));
 
-    ui->dns_in_port->setValidator(new QIntValidator(1, 65535, ui->dns_in_port));
-    ui->dns_in_port->setText(Int2String(Configs::dataManager->settingsRepo->core_dns_in_port));
-    ui->dns_in_lan->setChecked(Configs::dataManager->settingsRepo->core_dns_in_lan);
+    const auto dnsInPortRange = basicSettingsRange(QStringLiteral("core_dns_in_port"), {1, 65535});
+    ui->dns_in_port->setValidator(new QIntValidator(dnsInPortRange.min, dnsInPortRange.max, ui->dns_in_port));
+    ui->dns_in_port->setText(Int2String(snapshot_.core_dns_in_port));
+    ui->dns_in_lan->setChecked(snapshot_.core_dns_in_lan);
 
     ui->vless_xray_pref->addItems(Configs::Xray::XrayVlessPreferenceString);
-    ui->vless_xray_pref->setCurrentIndex(Configs::dataManager->settingsRepo->xray_vless_preference);
+    ui->vless_xray_pref->setCurrentIndex(snapshot_.xray_vless_preference);
     auto populateGeoAssetCombo = [](QComboBox *combo, bool geoip, const QString &current, const QStringList &history) {
         for (const auto &p: Configs::Xray::XrayGeoAssetProviders) {
             combo->addItem(geoip ? p.geoip : p.geosite);
@@ -447,22 +455,18 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
         combo->lineEdit()->setPlaceholderText(geoip ? fallback.geoip : fallback.geosite);
         combo->setCurrentText(current);
     };
-    populateGeoAssetCombo(ui->xray_geoip_url, true,
-                          Configs::dataManager->settingsRepo->xray_geoip_url,
-                          Configs::dataManager->settingsRepo->xray_geoip_url_history);
-    populateGeoAssetCombo(ui->xray_geosite_url, false,
-                          Configs::dataManager->settingsRepo->xray_geosite_url,
-                          Configs::dataManager->settingsRepo->xray_geosite_url_history);
+    populateGeoAssetCombo(ui->xray_geoip_url, true, snapshot_.xray_geoip_url, snapshot_.xray_geoip_url_history);
+    populateGeoAssetCombo(ui->xray_geosite_url, false, snapshot_.xray_geosite_url, snapshot_.xray_geosite_url_history);
 
-    ui->ntp_enable->setChecked(Configs::dataManager->settingsRepo->enable_ntp);
-    ui->ntp_server->setEnabled(Configs::dataManager->settingsRepo->enable_ntp);
-    ui->ntp_port->setEnabled(Configs::dataManager->settingsRepo->enable_ntp);
-    ui->ntp_interval->setEnabled(Configs::dataManager->settingsRepo->enable_ntp);
-    ui->ntp_outbound->setEnabled(Configs::dataManager->settingsRepo->enable_ntp);
-    ui->ntp_server->setText(Configs::dataManager->settingsRepo->ntp_server_address);
-    ui->ntp_port->setText(Int2String(Configs::dataManager->settingsRepo->ntp_server_port));
-    ui->ntp_interval->setCurrentText(Configs::dataManager->settingsRepo->ntp_interval);
-    ui->ntp_outbound->setCurrentText(Configs::dataManager->settingsRepo->ntp_outbound);
+    ui->ntp_enable->setChecked(snapshot_.enable_ntp);
+    ui->ntp_server->setEnabled(snapshot_.enable_ntp);
+    ui->ntp_port->setEnabled(snapshot_.enable_ntp);
+    ui->ntp_interval->setEnabled(snapshot_.enable_ntp);
+    ui->ntp_outbound->setEnabled(snapshot_.enable_ntp);
+    ui->ntp_server->setText(snapshot_.ntp_server_address);
+    ui->ntp_port->setText(Int2String(snapshot_.ntp_server_port));
+    ui->ntp_interval->setCurrentText(snapshot_.ntp_interval);
+    ui->ntp_outbound->setCurrentText(snapshot_.ntp_outbound);
     connect(ui->ntp_enable, &QCheckBox::stateChanged, this, [=,this](const bool &state) {
         ui->ntp_server->setEnabled(state);
         ui->ntp_port->setEnabled(state);
@@ -470,13 +474,13 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
         ui->ntp_outbound->setEnabled(state);
     });
 
-    ui->disable_priv_req->setChecked(Configs::dataManager->settingsRepo->disable_privilege_req);
-    ui->windows_no_admin->setChecked(Configs::dataManager->settingsRepo->disable_run_admin);
-    ui->mozilla_cert->setChecked(Configs::dataManager->settingsRepo->use_mozilla_certs);
-    D_LOAD_BOOL(xray_use_system_ca)
-    D_LOAD_BOOL(kill_switch)
+    ui->disable_priv_req->setChecked(snapshot_.disable_privilege_req);
+    ui->windows_no_admin->setChecked(snapshot_.disable_run_admin);
+    ui->mozilla_cert->setChecked(snapshot_.use_mozilla_certs);
+    S_LOAD_BOOL(xray_use_system_ca)
+    S_LOAD_BOOL(kill_switch)
 
-    D_LOAD_BOOL(skip_cert)
+    S_LOAD_BOOL(skip_cert)
 
     ui->tabWidget->addTab(new DiagnosticsTab(ui->tabWidget), tr("Diagnostics"));
     if (ui->random_listen_port->isChecked()) UiMode::Unmark(ui->random_listen_port);
@@ -510,7 +514,8 @@ void DialogBasicSettings::bindValidation() {
     const auto refreshOn = [this](QAbstractButton *toggle) { connect(toggle, &QAbstractButton::toggled, form, [this] { form->refresh(); }); };
 
     form->bind(ui->inbound_address, Rules::Ip());
-    form->bind(ui->inbound_socks_port, Rules::Port());
+    const auto socksPort = basicSettingsRange(QStringLiteral("inbound_socks_port"), {1, 65535});
+    form->bind(ui->inbound_socks_port, Rules::AllOf({Rules::Port(), Rules::Int(socksPort.min, socksPort.max, Empty::Required)}));
     // Only the URL test treats 0 as its default; the download/upload test would time out at once.
     form->bind(ui->test_timeout, [](const QString &text) { return basicSettingsMillisError(text, 5000, false); }).label(tr("Speed test timeout"));
     form->bind(ui->simple_down_url, Rules::Url(http, Empty::Required)).label(ui->label_16->text())
@@ -518,8 +523,14 @@ void DialogBasicSettings::bindValidation() {
     connect(ui->speedtest_mode, &QComboBox::currentIndexChanged, form, [this] { form->refresh(); });
     form->bind(ui->test_latency_url, Rules::Url(http, Empty::Required)).label(ui->label_13->text());
     form->bind(ui->direct_test_url, Rules::Url(http)).label(ui->label_direct_test_url->text());
-    form->bind(ui->test_concurrent, Rules::Int(0, 499, Empty::Required)).label(ui->label_14->text());
-    form->bind(ui->url_timeout, [](const QString &text) { return basicSettingsMillisError(text, 3000, true); }).label(tr("URL test timeout"));
+    const auto concurrency = basicSettingsRange(QStringLiteral("test_concurrent"), {0, 499});
+    form->bind(ui->test_concurrent, Rules::Int(concurrency.min, concurrency.max, Empty::Required)).label(ui->label_14->text());
+    // 0 means the default whatever the schema's minimum, so only its maximum applies.
+    const int urlTimeoutMax = basicSettingsRange(QStringLiteral("url_test_timeout_ms"), {0, std::numeric_limits<int>::max()}).max;
+    form->bind(ui->url_timeout, [urlTimeoutMax](const QString &text) {
+        if (auto problem = basicSettingsMillisError(text, 3000, true); !problem.isEmpty()) return problem;
+        return Int(text, 0, urlTimeoutMax);
+    }).label(tr("URL test timeout"));
 
     struct PortUse {
         QLineEdit *edit;
@@ -577,7 +588,8 @@ void DialogBasicSettings::bindValidation() {
         .when([this] { return ui->sub_auto_update_enable->isChecked(); });
     refreshOn(ui->sub_auto_update_enable);
 
-    form->bind(ui->dns_in_port, Rules::Port());
+    const auto dnsInPort = basicSettingsRange(QStringLiteral("core_dns_in_port"), {1, 65535});
+    form->bind(ui->dns_in_port, Rules::AllOf({Rules::Port(), Rules::Int(dnsInPort.min, dnsInPort.max, Empty::Required)}));
 
     form->bind(ui->ntp_server, Rules::Host(Empty::Allowed)).label(tr("NTP server"));
     // The core turns port 0 into 123.
@@ -627,142 +639,123 @@ void DialogBasicSettings::applyRegexHighlighting() {
 
 void DialogBasicSettings::accept() {
     if (!form->validateAll()) return;
-    bool needChoosePort = false;
+    Configs::SettingsValues proposed = snapshot_;
 
-    Configs::dataManager->settingsRepo->inbound_address = ui->inbound_address->text().trimmed();
-    Configs::dataManager->settingsRepo->custom_inbound = CACHE.custom_inbound;
-    D_SAVE_INT(inbound_socks_port)
-    if (!Configs::dataManager->settingsRepo->random_inbound_port && ui->random_listen_port->isChecked())
-    {
-        needChoosePort = true;
-    }
-    Configs::dataManager->settingsRepo->random_inbound_port = ui->random_listen_port->isChecked();
-    D_SAVE_INT(test_concurrent)
-    Configs::dataManager->settingsRepo->test_latency_url = ui->test_latency_url->text().trimmed();
-    Configs::dataManager->settingsRepo->direct_test_url = ui->direct_test_url->text().trimmed();
-    D_SAVE_BOOL(exit_country_lookup)
-    Configs::dataManager->settingsRepo->exit_lookup_provider = ui->exit_lookup_provider->currentData().toString();
-    D_SAVE_BOOL(disable_tray)
-    Configs::dataManager->settingsRepo->proxy_scheme = ui->proxy_scheme->currentText().toLower();
-    Configs::dataManager->settingsRepo->speed_test_mode = ui->speedtest_mode->currentIndex();
-    Configs::dataManager->settingsRepo->simple_dl_url = ui->simple_down_url->text().trimmed();
-    Configs::dataManager->settingsRepo->url_test_timeout_ms = ui->url_timeout->text().trimmed().toInt();
-    Configs::dataManager->settingsRepo->speed_test_timeout_ms = ui->test_timeout->text().trimmed().toInt();
-    Configs::dataManager->settingsRepo->allow_beta_update = ui->allow_beta->isChecked();
-    Configs::dataManager->settingsRepo->disable_mixed_inbound = ui->disable_mixed_inbound->isChecked();
-    Configs::dataManager->settingsRepo->reset_proxy_on_disable_sp = ui->reset_proxy_on_disable_sp->isChecked();
-    D_SAVE_BOOL(inbound_auth)
-    D_SAVE_STRING(inbound_user)
-    D_SAVE_STRING(inbound_pass)
+    proposed.inbound_address = ui->inbound_address->text().trimmed();
+    proposed.custom_inbound = CACHE.custom_inbound;
+    S_SAVE_INT(inbound_socks_port)
+    proposed.random_inbound_port = ui->random_listen_port->isChecked();
+    S_SAVE_INT(test_concurrent)
+    proposed.test_latency_url = ui->test_latency_url->text().trimmed();
+    proposed.direct_test_url = ui->direct_test_url->text().trimmed();
+    S_SAVE_BOOL(exit_country_lookup)
+    proposed.exit_lookup_provider = ui->exit_lookup_provider->currentData().toString();
+    proposed.service_check_disabled = serviceChecks_->disabledIds();
+    S_SAVE_BOOL(disable_tray)
+    proposed.proxy_scheme = ui->proxy_scheme->currentText().toLower();
+    proposed.speed_test_mode = ui->speedtest_mode->currentIndex();
+    proposed.simple_dl_url = ui->simple_down_url->text().trimmed();
+    proposed.url_test_timeout_ms = ui->url_timeout->text().trimmed().toInt();
+    proposed.speed_test_timeout_ms = ui->test_timeout->text().trimmed().toInt();
+    proposed.allow_beta_update = ui->allow_beta->isChecked();
+    proposed.disable_mixed_inbound = ui->disable_mixed_inbound->isChecked();
+    proposed.reset_proxy_on_disable_sp = ui->reset_proxy_on_disable_sp->isChecked();
+    S_SAVE_BOOL(inbound_auth)
+    S_SAVE_STRING(inbound_user)
+    S_SAVE_STRING(inbound_pass)
 
-    const bool registrationTurnedOn =
-        (!Configs::dataManager->settingsRepo->url_scheme_auto_register && ui->url_scheme_auto_register->isChecked()) ||
-        (!Configs::dataManager->settingsRepo->file_assoc_auto_register && ui->file_assoc_auto_register->isChecked());
-    Configs::dataManager->settingsRepo->url_scheme_auto_register = ui->url_scheme_auto_register->isChecked();
-    Configs::dataManager->settingsRepo->file_assoc_auto_register = ui->file_assoc_auto_register->isChecked();
-    if (registrationTurnedOn) UrlScheme_RegisterIfNeeded();
+    proposed.url_scheme_auto_register = ui->url_scheme_auto_register->isChecked();
+    proposed.file_assoc_auto_register = ui->file_assoc_auto_register->isChecked();
+    const bool registrationTurnedOn = (!snapshot_.url_scheme_auto_register && proposed.url_scheme_auto_register) ||
+                                      (!snapshot_.file_assoc_auto_register && proposed.file_assoc_auto_register);
 
-    auto oldMaxLogLines = Configs::dataManager->settingsRepo->max_log_line;
-    Configs::dataManager->settingsRepo->max_log_line = ui->max_log_line->text().trimmed().toInt();
-    if (oldMaxLogLines != Configs::dataManager->settingsRepo->max_log_line) CACHE.updateMaxLogLines = true;
-    Configs::dataManager->settingsRepo->log_level = ui->log_level->currentText().trimmed();
-    Configs::dataManager->settingsRepo->xray_log_level = ui->xray_loglevel->currentText().trimmed();
-    Configs::dataManager->settingsRepo->log_enable_include = ui->enable_log_include->isChecked();
-    Configs::dataManager->settingsRepo->log_enable_exclude = ui->enable_log_exclude->isChecked();
-    Configs::dataManager->settingsRepo->log_include_keyword = SplitAndTrim(ui->log_include_keyword->toPlainText(), "\n", false);
-    Configs::dataManager->settingsRepo->log_exclude_keyword = SplitAndTrim(ui->log_exclude_keyword->toPlainText(), "\n", false);
+    proposed.max_log_line = ui->max_log_line->text().trimmed().toInt();
+    proposed.log_level = ui->log_level->currentText().trimmed();
+    proposed.xray_log_level = ui->xray_loglevel->currentText().trimmed();
+    proposed.log_enable_include = ui->enable_log_include->isChecked();
+    proposed.log_enable_exclude = ui->enable_log_exclude->isChecked();
+    proposed.log_include_keyword = SplitAndTrim(ui->log_include_keyword->toPlainText(), "\n", false);
+    proposed.log_exclude_keyword = SplitAndTrim(ui->log_exclude_keyword->toPlainText(), "\n", false);
 
-    Configs::dataManager->settingsRepo->log_include_regex = SplitAndTrim(ui->log_include_regex->toPlainText(), "\n", false);
-    Configs::dataManager->settingsRepo->log_exclude_regex = SplitAndTrim(ui->log_exclude_regex->toPlainText(), "\n", false);
+    proposed.log_include_regex = SplitAndTrim(ui->log_include_regex->toPlainText(), "\n", false);
+    proposed.log_exclude_regex = SplitAndTrim(ui->log_exclude_regex->toPlainText(), "\n", false);
 
-    Configs::dataManager->settingsRepo->enable_stats = ui->connection_statistics->isChecked();
-    Configs::dataManager->settingsRepo->disable_traffic_aggregation = ui->disable_traffic_aggregation->isChecked();
-    Configs::dataManager->settingsRepo->language = ui->language->currentIndex();
-    const bool simpleMode = ui->ui_mode->currentIndex() == 0;
-    const bool uiModeChanged = Configs::dataManager->settingsRepo->simple_mode != simpleMode;
-    Configs::dataManager->settingsRepo->simple_mode = simpleMode;
-    auto oldUseCustomIcon = Configs::dataManager->settingsRepo->use_custom_icons;
-    Configs::dataManager->settingsRepo->use_custom_icons = ui->enable_custom_icon->isChecked();
-    if (oldUseCustomIcon != Configs::dataManager->settingsRepo->use_custom_icons) CACHE.updateTrayIcon = true;
-    auto oldFollowStatusInTaskbar = Configs::dataManager->settingsRepo->follow_status_in_taskbar;
-    Configs::dataManager->settingsRepo->follow_status_in_taskbar = ui->follow_status_in_taskbar->isChecked();
-    if (oldFollowStatusInTaskbar != Configs::dataManager->settingsRepo->follow_status_in_taskbar) CACHE.updateTrayIcon = true;
-    D_SAVE_BOOL(start_minimal)
-    Configs::dataManager->settingsRepo->skip_delete_confirmation = ui->skip_delete_confirm->isChecked();
-    bool profileListDisplayChanged =
-        Configs::dataManager->settingsRepo->show_config_security != ui->show_config_security->isChecked();
-    D_SAVE_BOOL(show_config_security)
+    proposed.enable_stats = ui->connection_statistics->isChecked();
+    proposed.disable_traffic_aggregation = ui->disable_traffic_aggregation->isChecked();
+    proposed.language = ui->language->currentIndex();
+    proposed.simple_mode = ui->ui_mode->currentIndex() == 0;
+    proposed.use_custom_icons = ui->enable_custom_icon->isChecked();
+    proposed.follow_status_in_taskbar = ui->follow_status_in_taskbar->isChecked();
+    S_SAVE_BOOL(start_minimal)
+    proposed.skip_delete_confirmation = ui->skip_delete_confirm->isChecked();
+    S_SAVE_BOOL(show_config_security)
+    proposed.theme = CACHE.theme;
+    proposed.font = CACHE.font;
+    proposed.font_size = CACHE.font_size;
 
     QString logFontFamily = ui->log_font_family->currentFont().family();
-    if (Configs::dataManager->settingsRepo->log_font_family.isEmpty() && logFontFamily == CACHE.shownLogFontFamily) logFontFamily.clear();
+    if (snapshot_.log_font_family.isEmpty() && logFontFamily == CACHE.shownLogFontFamily) logFontFamily.clear();
     int logFontSize = ui->log_font_size->currentText().toInt();
-    if (Configs::dataManager->settingsRepo->log_font_size <= 0 && logFontSize == CACHE.shownLogFontSize) logFontSize = 0;
-    const bool logFontChanged = logFontFamily != Configs::dataManager->settingsRepo->log_font_family ||
-                                logFontSize != Configs::dataManager->settingsRepo->log_font_size;
-    Configs::dataManager->settingsRepo->log_font_family = logFontFamily;
-    Configs::dataManager->settingsRepo->log_font_size = logFontSize;
+    if (snapshot_.log_font_size <= 0 && logFontSize == CACHE.shownLogFontSize) logFontSize = 0;
+    proposed.log_font_family = logFontFamily;
+    proposed.log_font_size = logFontSize;
 
     // The PeriodicRunner reads these intervals live; no timer needs restarting.
 
-    Configs::dataManager->settingsRepo->user_agent = ui->user_agent->text().trimmed();
-    Configs::dataManager->settingsRepo->sub_tls_version = ui->sub_tls_version->currentIndex();
-    Configs::dataManager->settingsRepo->sub_http_version = ui->sub_http_version->currentIndex();
-    D_SAVE_BOOL(net_use_proxy)
-    D_SAVE_BOOL(allow_stopping_active_profile)
-    D_SAVE_BOOL(sub_clear)
-    D_SAVE_BOOL(sub_show_change_popup)
-    D_SAVE_BOOL(net_insecure)
-    D_SAVE_BOOL(sub_send_hwid)
-    Configs::dataManager->settingsRepo->sub_custom_hwid_params = ui->sub_custom_hwid_params->text().trimmed();
-    D_SAVE_INT_ENABLE(sub_auto_update, sub_auto_update_enable)
-    D_SAVE_BOOL(sub_respect_server_interval)
+    proposed.user_agent = ui->user_agent->text().trimmed();
+    proposed.sub_tls_version = ui->sub_tls_version->currentIndex();
+    proposed.sub_http_version = ui->sub_http_version->currentIndex();
+    S_SAVE_BOOL(net_use_proxy)
+    S_SAVE_BOOL(allow_stopping_active_profile)
+    S_SAVE_BOOL(sub_clear)
+    S_SAVE_BOOL(sub_show_change_popup)
+    S_SAVE_BOOL(net_insecure)
+    S_SAVE_BOOL(sub_send_hwid)
+    proposed.sub_custom_hwid_params = ui->sub_custom_hwid_params->text().trimmed();
+    S_SAVE_INT_ENABLE(sub_auto_update, sub_auto_update_enable)
+    S_SAVE_BOOL(sub_respect_server_interval)
 
-    Configs::dataManager->settingsRepo->disable_traffic_stats = ui->disable_stats->isChecked();
-    Configs::dataManager->settingsRepo->core_dns_in_port = ui->dns_in_port->text().trimmed().toInt();
-    Configs::dataManager->settingsRepo->core_dns_in_lan = ui->dns_in_lan->isChecked();
+    proposed.disable_traffic_stats = ui->disable_stats->isChecked();
+    proposed.core_dns_in_port = ui->dns_in_port->text().trimmed().toInt();
+    proposed.core_dns_in_lan = ui->dns_in_lan->isChecked();
 
-    Configs::dataManager->settingsRepo->xray_vless_preference = static_cast<Configs::Xray::XrayVlessPreference>(ui->vless_xray_pref->currentIndex());
+    proposed.xray_vless_preference = static_cast<Configs::Xray::XrayVlessPreference>(ui->vless_xray_pref->currentIndex());
     // An empty field means the provider shown as its placeholder; the download at profile start has no fallback of its own.
     const auto geoAssetUrl = [](const QComboBox *combo) {
         const auto url = combo->currentText().trimmed();
         return url.isEmpty() ? combo->lineEdit()->placeholderText() : url;
     };
-    Configs::dataManager->settingsRepo->xray_geoip_url = geoAssetUrl(ui->xray_geoip_url);
-    Configs::dataManager->settingsRepo->xray_geosite_url = geoAssetUrl(ui->xray_geosite_url);
+    proposed.xray_geoip_url = geoAssetUrl(ui->xray_geoip_url);
+    proposed.xray_geosite_url = geoAssetUrl(ui->xray_geosite_url);
 
-    Configs::dataManager->settingsRepo->enable_ntp = ui->ntp_enable->isChecked();
-    Configs::dataManager->settingsRepo->ntp_server_address = ui->ntp_server->text().trimmed();
-    Configs::dataManager->settingsRepo->ntp_server_port = ui->ntp_port->text().trimmed().toInt();
-    Configs::dataManager->settingsRepo->ntp_interval = ui->ntp_interval->currentText().trimmed();
-    Configs::dataManager->settingsRepo->ntp_outbound = ui->ntp_outbound->currentText().trimmed();
+    proposed.enable_ntp = ui->ntp_enable->isChecked();
+    proposed.ntp_server_address = ui->ntp_server->text().trimmed();
+    proposed.ntp_server_port = ui->ntp_port->text().trimmed().toInt();
+    proposed.ntp_interval = ui->ntp_interval->currentText().trimmed();
+    proposed.ntp_outbound = ui->ntp_outbound->currentText().trimmed();
 
-    // The Type column marks TLS profiles compromised while this is on.
-    profileListDisplayChanged |= Configs::dataManager->settingsRepo->skip_cert != ui->skip_cert->isChecked();
-    D_SAVE_BOOL(skip_cert)
-    const auto serviceCheckDisabled = serviceChecks_->disabledIds();
-    profileListDisplayChanged |= Configs::dataManager->settingsRepo->service_check_disabled != serviceCheckDisabled;
-    Configs::dataManager->settingsRepo->service_check_disabled = serviceCheckDisabled;
-    Configs::dataManager->settingsRepo->disable_privilege_req = ui->disable_priv_req->isChecked();
-    if (Configs::dataManager->settingsRepo->disable_run_admin != ui->windows_no_admin->isChecked()) CACHE.updateDisableAdmin = true;
-    Configs::dataManager->settingsRepo->disable_run_admin = ui->windows_no_admin->isChecked();
-    Configs::dataManager->settingsRepo->use_mozilla_certs = ui->mozilla_cert->isChecked();
-    D_SAVE_BOOL(xray_use_system_ca)
-    const bool killSwitchChanged = Configs::dataManager->settingsRepo->kill_switch != ui->kill_switch->isChecked();
-    D_SAVE_BOOL(kill_switch)
+    S_SAVE_BOOL(skip_cert)
+    proposed.disable_privilege_req = ui->disable_priv_req->isChecked();
+    proposed.disable_run_admin = ui->windows_no_admin->isChecked();
+    proposed.use_mozilla_certs = ui->mozilla_cert->isChecked();
+    S_SAVE_BOOL(xray_use_system_ca)
+    S_SAVE_BOOL(kill_switch)
 
-    QStringList changes;
-    if (CACHE.needRestart) changes << MwArg::NeedRestart;
-    if (CACHE.updateDisableTray) changes << MwArg::DisableTray;
-    if (CACHE.updateTrayIcon) changes << MwArg::TrayIcon;
-    if (CACHE.updateMaxLogLines) changes << MwArg::MaxLogLines;
-    if (CACHE.updateDisableAdmin) changes << MwArg::DisableAdmin;
-    if (needChoosePort) changes << MwArg::ChoosePort;
-    if (profileListDisplayChanged) changes << MwArg::ProfileListDisplay;
-    if (killSwitchChanged) changes << MwArg::KillSwitch;
-    if (logFontChanged) changes << MwArg::LogFont;
-    if (uiModeChanged) changes << MwArg::UiMode;
-    MW_dialog_message(MwMessage::UpdateSettings, changes);
+    if (const auto error = Engine::SettingsService::ApplyEdit(snapshot_, proposed, {.interactive = true})) {
+        MessageBoxWarning(windowTitle(), SettingsApplyErrorText(*error));
+        return;
+    }
+    if (registrationTurnedOn) UrlScheme_RegisterIfNeeded();
     QDialog::accept();
+}
+
+void DialogBasicSettings::done(int r) {
+    // Before QDialog::done: a slot on finished may delete the window.
+    if (r != QDialog::Accepted) {
+        if (themeManager()->current_theme != CACHE.openTheme) themeManager()->ApplyTheme(CACHE.openTheme);
+        if (qApp->font() != CACHE.openFont) qApp->setFont(CACHE.openFont);
+    }
+    QDialog::done(r);
 }
 
 void DialogBasicSettings::downloadXrayGeoAsset(const QString &url, const QString &fileName) {

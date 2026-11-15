@@ -15,6 +15,7 @@
 
 #include "include/configs/generate.h"
 #include "include/database/ProfilesRepo.h"
+#include "include/engine/Lifecycle.h"
 
 ProfilesTableModel::ProfilesTableModel(QObject *parent)
     : QAbstractTableModel(parent) {}
@@ -109,7 +110,7 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
         return QVariant::fromValue(ServiceCheckHtml::items(*profile));
     }
 
-    const int startedId = Configs::dataManager->settingsRepo->started_id;
+    const int startedId = Engine::Lifecycle::ResumeTargetId();
     const bool isRunning = (profile->id == startedId);
     const ThemeTokens &tokens = themeManager()->tokens;
     QColor linkColor = !isRunning                  ? QColor()
@@ -356,7 +357,7 @@ GroupSortMethod::GroupSortMethod ProfilesTableModel::sortOfColumn(int column) {
 
 bool ProfilesTableModel::isStartedRow(int sourceRow) const {
     return sourceRow >= 0 && sourceRow < m_profileIds.size()
-        && m_profileIds[sourceRow] == Configs::dataManager->settingsRepo->started_id;
+        && m_profileIds[sourceRow] == Engine::Lifecycle::ResumeTargetId();
 }
 
 bool ProfilesTableModel::endsPinnedBlock(const QModelIndex &index) {

@@ -1,53 +1,48 @@
 #pragma once
 
 #include "Database.h"
-#include "include/global/Const.hpp"
-#include "include/sys/UrlScheme.hpp"
+#include "include/database/SettingsValues.h"
 #include <QMutexLocker>
 #include <QJsonObject>
-#include <QMap>
-#include <QKeySequence>
+#include <QHash>
+#include <QSet>
 #include <atomic>
-
-#ifdef Q_OS_WIN
-#include "include/sys/windows/WinVersion.h"
-#endif
+#include <mutex>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace Configs {
-    // Loopback/broadcast are deliberately absent: routing them into the tun breaks the sing-box <-> Xray bridges and local DNS.
-    inline QStringList defaultTunPrivateRanges() {
-        return {"10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "169.254.0.0/16", "224.0.0.0/4",
-                "fc00::/7", "fe80::/10", "ff00::/8"};
-    }
-
-    class SettingsRepo {
+    class SettingsRepo : public SettingsValues {
     private:
         Database& db;
 
-        QMap<QString, bool*>        boolMap;
-        QMap<QString, int*>         intMap;
-        QMap<QString, QString*>     stringMap;
-        QMap<QString, QStringList*> stringListMap;
+        // Each key's serialized value as last read from or written to the database.
+        QHash<QString, std::string> stored;
+        // Keys whose last write failed; rewritten by the next save without being reported as changed again.
+        QSet<QString> unsaved;
+        // Guards stored and unsaved. All known Save() callers run on the main thread (EngineState posts the resume target there).
+        std::mutex saveMutex;
         std::atomic<quint64> revision{0};
 
-        void initMaps();
         void createTables() const;
         void loadAllSettings();
-        void saveAllSettings() const;
+        [[nodiscard]] std::vector<std::pair<QString, std::string>> serializeAll() const;
+        QStringList saveAllSettings();
 
     public:
         bool noSave = false;
 
         explicit SettingsRepo(Database& database);
         
-        bool Save();
+        // Writes only the keys whose value changed since the last Save(); false when none did. changedKeys gets their DB names.
+        bool Save(QStringList *changedKeys = nullptr);
         
-        // Any thread; moves with every Save(), bookkeeping ones such as the traffic graph's state included.
+        // Any thread; moves with every Save() that changes a value, bookkeeping ones such as the traffic graph's state included.
         quint64 Revision() const { return revision.load(); }
 
         // Runtime state and flags below are never persisted.
         QString core_socket_name = "";
-        int started_id = NoProfileId;
         bool core_running = false;
         bool prepare_exit = false;
         bool spmode_vpn = false;
@@ -64,307 +59,6 @@ namespace Configs {
         bool flag_tray = false;
         bool flag_debug = false;
         bool flag_restart_tun_on = false;
-
-        // Persisted settings.
-        QString mainWindowGeometry;
-        QString log_level = "info";
-        QString test_latency_url = "http://cp.cloudflare.com/";
-        // Fetched WITHOUT any proxy, so it must be reachable directly; empty falls back to the OS.
-        QString direct_test_url = "";
-        // Both keys are shared with the Android app's settings table; the provider is a Configs_network::ExitLookupProviders() id.
-        bool exit_country_lookup = true;
-        QString exit_lookup_provider = "auto";
-        // Service Check ids turned off; checks that a newer definitions revision adds stay on.
-        QStringList service_check_disabled = {};
-        int url_test_timeout_ms = 3000;
-        bool disable_tray = false;
-        int test_concurrent = 10;
-        bool disable_traffic_stats = false;
-        int current_group = 0;
-        QString mux_protocol = "smux";
-        bool mux_padding = false;
-        // "max_streams" pools by mux_concurrency streams per connection, "max_connections" by the two below.
-        QString mux_mode = "max_streams";
-        int mux_concurrency = 8;
-        int mux_max_connections = 4;
-        int mux_min_streams = 4;
-        bool mux_brutal = false;
-        int mux_brutal_up_mbps = 0;
-        int mux_brutal_down_mbps = 0;
-        bool mux_default_on = false;
-        // "built-in" = sing-box tls.fragment, "custom" = hiddify dialer-level tls_fragment.
-        QString fragment_implementation = "built-in";
-        bool fragment_default_on = false;
-        // "min-max" ranges, custom implementation only: bytes per ClientHello fragment, and ms to sleep between bursts.
-        QString fragment_size = "10-100";
-        QString fragment_sleep = "2-5";
-        // TLS tricks = mixed-case SNI.
-        bool tls_tricks_default_on = false;
-        // SNI to forge and how the real server rejects the forged segment; profiles with an empty field of their own inherit these.
-        QString tls_spoof = "";
-        QString tls_spoof_method = "";
-        bool tls_spoof_default_on = false;
-
-        // Shared by HTTP/2 and the QUIC outbounds; empty / 0 means "leave the core's default" and is omitted from the config.
-        QString h2_idle_timeout = "";
-        QString h2_keep_alive_period = "";
-        QString h2_stream_receive_window = "";
-        QString h2_connection_receive_window = "";
-        int h2_max_concurrent_streams = 0;
-        int quic_initial_packet_size = 0;
-        bool quic_disable_path_mtu_discovery = false;
-        QString theme = "0";
-        int language = 0;
-        QString font = "";
-        int font_size = 0;
-        QString mw_size = "";
-        bool log_enable_include = false;
-        bool log_enable_exclude = false;
-        QStringList log_include_keyword = {};
-        QStringList log_include_regex = {};
-        QStringList log_exclude_keyword = {};
-        QStringList log_exclude_regex = {};
-        bool start_minimal = false;
-        int max_log_line = 500;
-        // Log view font; empty family / 0 size fall back to the built-in monospace list / the app font size.
-        QString log_font_family = "";
-        int log_font_size = 0;
-        // On-disk diagnostic log only; log_level is the core's browser verbosity.
-        QString log_file_level = "debug";
-        QString splitter_state = "";
-        bool enable_stats = true;
-        int stats_tab = 0; // either connection or log
-        // LiveChartState of the traffic graph; keys are Stats::TrafficLine keys.
-        QStringList traffic_graph_hidden = {};
-        // Bit 0 hides download, bit 1 upload.
-        int traffic_graph_hidden_dirs = 0;
-        int traffic_graph_range = 1;
-        bool traffic_graph_smooth = true;
-        bool traffic_graph_markers = true;
-        // Stats::ConnectionSort; 0 == Stats::Default, the core's own ordering.
-        int connection_sort = 0;
-        bool connection_sort_asc = false;
-        // Days of hour-resolution history to retain (the 48h minute-resolution window is fixed); clamped to >= 1 in use.
-        int traffic_stats_retention_days = 90;
-        bool disable_traffic_aggregation = false;
-        int speed_test_mode = TestConfig::FULL;
-        int speed_test_timeout_ms = 5000;
-        QString simple_dl_url = "http://cachefly.cachefly.net/1mb.test";
-        bool allow_beta_update = false;
-        bool use_custom_icons = false;
-        bool follow_status_in_taskbar = true;
-        bool skip_delete_confirmation = false;
-        bool show_config_security = false;
-        // UI only: config generation never reads it. A fresh install starts simple, an upgraded one advanced.
-        bool simple_mode = false;
-        // -1 until a filter column has been used.
-        int last_filter_column = -1;
-
-        // Mirrors of the registrations we last wrote to the OS; startup re-registers only when they differ.
-        QString url_scheme_mirror = "";
-        bool url_scheme_auto_register = UrlScheme_AutoRegisterByDefault();
-        QString file_assoc_mirror = "";
-        bool file_assoc_auto_register = false;
-
-        // Network
-        bool net_use_proxy = false;
-        bool net_insecure = false;
-        bool reset_proxy_on_disable_sp = false;
-
-        // Subscription
-        QString user_agent = ""; // set at main.cpp
-        // Configs::subTlsVersion / Configs::subHttpVersion values.
-        int sub_tls_version = 0;
-        int sub_http_version = 0;
-        // Sign encodes enabled (negative = off), magnitude = interval minutes (ignored if < 30).
-        int sub_auto_update = -30;
-        // Follow a server's profile-update-interval instead of sub_auto_update's minutes.
-        bool sub_respect_server_interval = false;
-        bool sub_clear = false;
-        bool sub_show_change_popup = true;
-        bool sub_send_hwid = false;
-        QString sub_custom_hwid_params = "";
-        bool allow_stopping_active_profile = false;
-
-        // Security
-        bool skip_cert = false;
-        QString utlsFingerprint = "";
-        bool disable_run_admin = false; // windows only
-        bool use_mozilla_certs = false;
-        bool kill_switch = false;
-
-        // Remote API
-        bool remote_api_enable = false;
-        bool remote_api_lan = false;
-        bool remote_api_admin_lan = false;
-        int remote_api_port = 9095;
-        QString remote_api_key = "";
-        // CIDRs separated by commas or whitespace; empty allows every LAN address.
-        QString remote_api_allow = "";
-
-        // WebDAV backup and this device's identity: device-local, see BackupArchive::DeviceLocalSettingKeys().
-        QString webdav_server = "";
-        QString webdav_user = "";
-        QString webdav_pass = "";
-        QString webdav_path = "Throne";
-        bool webdav_use_proxy = false;
-        // Generated on first use; an empty name means the host name.
-        QString device_id = "";
-        QString device_name = "";
-
-        // Remember
-        bool remember_system_proxy = false;
-        bool remember_tun = false;
-        int remember_id = NoProfileId;
-        bool remember_enable = false;
-        bool windows_set_admin = false;
-        QMap<QString, QKeySequence> shortcuts;
-
-        // Routing
-        int current_route_id = 1;
-        // Same sign-encoded interval scheme as sub_auto_update.
-        int route_auto_update = -1440;
-        qint64 route_auto_update_last = 0;
-        QString remote_dns = "https://8.8.8.8/dns-query";
-        bool remote_dns_disable_ipv6 = false;
-        QString direct_dns = "localhost";
-        bool direct_dns_disable_ipv6 = false;
-        // Servers typed into the remote / direct DNS fields, newest first.
-        QStringList remote_dns_history = {};
-        QStringList direct_dns_history = {};
-        int dns_cache_capacity = 65536;
-        bool dns_disable_cache = false;
-        bool dns_disable_expire = false;
-        bool dns_persist_cache = false;
-        bool dns_reverse_mapping = false;
-        bool enable_dns_routing = true;
-        bool use_dns_object = false;
-        QString dns_object = "";
-        QString dns_final_out = "remote";
-        bool dns_optimistic = false;
-        QString dns_optimistic_timeout = "";
-        QString dns_query_timeout = "";
-        bool dns_use_hosts = false;
-        bool dns_predefined_enable = true;
-        QStringList dns_predefined_rules = {"127.0.0.1 localhost"};
-        QString resolve_domain_strategy = "";
-        QString default_domain_strategy = "";
-        int ruleset_mirror = Mirrors::CLOUDFLARE;
-
-        // Socks & HTTP Inbound
-        bool disable_mixed_inbound = false;
-        QString inbound_address = "127.0.0.1";
-        int inbound_socks_port = 2080; // Mixed, actually
-        bool random_inbound_port = false;
-        QString custom_inbound = "{\"inbounds\": []}";
-        QString proxy_scheme = "{ip}:{port}";
-        bool inbound_auth = false;
-        QString inbound_user = "";
-        QString inbound_pass = "";
-
-        // Routing
-        QString custom_route_global = "{\"rules\": []}";
-        QString active_routing = "Default";
-        bool adblock_enable = false;
-
-        // VPN
-        bool fake_dns = false;
-        bool fakeip_disable_ipv6 = false;
-        bool enable_tun_routing = false;
-#ifdef Q_OS_WIN
-        bool vpn_strict_route = WinVersion::IsBuildNumGreaterOrEqual(BuildNumber::Windows_10_1507);
-#else
-        bool vpn_strict_route = false;
-#endif
-        // Linux only; while on, the host cannot act as a network gateway.
-        bool vpn_auto_redirect = true;
-        // Only UDP and ICMP reach the bridge: pre-match aborts at the sniff rule for TCP.
-        bool vpn_l3_bridge = false;
-        int vpn_mtu = 1500;
-        bool disable_private_range_bypass = false;
-        QStringList vpn_private_ranges = defaultTunPrivateRanges();
-        bool vpn_ipv6 = false;
-        QString vpn_tun_ipv4_cidr = "172.19.0.1/24";
-        QString vpn_tun_ipv6_cidr = "fdfe:dcba:9876::1/96";
-        bool disable_privilege_req = false;
-
-        // NTP
-        bool enable_ntp = false;
-        QString ntp_server_address = "";
-        int ntp_server_port = 0;
-        QString ntp_interval = "";
-        QString ntp_outbound = "direct"; // "direct" or "proxy"
-
-        // Warp
-        bool enable_warp = false;
-        // Outranks enable_warp; the two are kept mutually exclusive.
-        bool enable_tor = false;
-        QString warp_private_key = "";
-        QString warp_public_key = "";
-        QStringList warp_ifc_addrs = {};
-        QString warp_ep = "";
-        QStringList warp_reserved = {};
-        bool warp_tos_accepted = false;
-        QString warp_mode = "wireguard"; // "wireguard", "amnezia", or "masque"
-        QStringList warp_amnezia_packets = {}; // AmneziaWG I1-I5, generated with the identity so config builds need no RPC
-        QString warp_masque_private_key = "";
-        QString warp_masque_peer_public_key = "";
-        QString warp_masque_ep = "";
-        QStringList warp_masque_ifc_addrs = {};
-        QString warp_masque_sni = "consumer-masque.cloudflareclient.com";
-        int warp_masque_http_mode = 0; // 0 = HTTP/3 with fallback, 1 = HTTP/3 only, 2 = HTTP/2
-        QStringList warp_api_hosts = {}; // registration API domains, tried in order; empty = api.cloudflareclient.com
-        // Registration ClientHello shaping; the core skips it when registration goes through the mixed inbound.
-        bool warp_api_tls_fragment = false;
-        bool warp_api_tls_record_fragment = false;
-        QString warp_api_tls_fragment_fallback_delay = ""; // Go duration; empty = 500ms
-
-        // Hotkey
-        QString hotkey_mainwindow = "";
-        QString hotkey_group = "";
-        QString hotkey_route = "";
-        QString hotkey_system_proxy_menu = "";
-        QString hotkey_toggle_system_proxy = "";
-        QString hotkey_toggle_connection = "";
-        QString hotkey_toggle_tun = "";
-
-        // Core
-        int core_box_clash_api = -9090;
-        QString core_box_clash_listen_addr = "127.0.0.1";
-        QString core_box_clash_api_secret = "";
-        // Port only publishes the dashboard; the service itself also carries the stats tracker.
-        int core_box_api_port = -9091;
-        QString core_box_api_secret = "";
-        QString core_box_underlying_dns = "";
-        int core_dns_in_port = 5533;
-        bool core_dns_in_lan = false;
-
-        // Xray
-        QString xray_log_level = "warning";
-        int xray_mux_concurrency = 8;
-        int xray_mux_max_connections = 0;
-        int xray_mux_xudp_concurrency = 16;
-        QString xray_mux_xudp_proxy_udp443 = "reject";
-        bool xray_mux_default_on = false;
-        // Xray otherwise trusts only its built-in root certificates.
-        bool xray_use_system_ca = false;
-        Xray::XrayVlessPreference xray_vless_preference = Xray::XhttpAndReality;
-        // Fetched on demand into GetBasePath(), which the core exposes to Xray via XRAY_LOCATION_ASSET.
-        QString xray_geoip_url = "https://github.com/Loyalsoldier/v2ray-rules-dat/raw/release/geoip.dat";
-        QString xray_geosite_url = "https://github.com/Loyalsoldier/v2ray-rules-dat/raw/release/geosite.dat";
-        // Last 5 hand-typed URLs per field, offered alongside the built-in providers.
-        QStringList xray_geoip_url_history = {};
-        QStringList xray_geosite_url_history = {};
-
-        // Extra Core Paths
-        QStringList extraCorePaths = {};
-
-        // Last 5 custom entries per field.
-        QStringList dial_bind_interface_history = {};
-        QStringList dial_inet4_bind_address_history = {};
-        QStringList dial_inet6_bind_address_history = {};
-
-        void UpdateStartedId(int id);
 
         [[nodiscard]] QString GetUserAgent(bool isDefault = false) const;
         

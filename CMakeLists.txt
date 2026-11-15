@@ -298,6 +298,7 @@ set(PROJECT_SOURCES
         include/ui/utils/NoWheelComboBox.h
         include/ui/utils/MyPlainTextEdit.h
         include/ui/utils/GuiUtils.hpp
+        src/ui/utils/GuiUtils.cpp
         include/ui/utils/ValidationForm.h
         src/ui/utils/ValidationForm.cpp
         include/ui/utils/CommandPalette.h
@@ -567,6 +568,7 @@ set(PROJECT_SOURCES
         include/configs/common/transport.h
         include/configs/common/Outbound.h
         include/configs/common/OutboundFactory.h
+        include/configs/common/Protocols.h
 
         # common impl
         src/configs/common/DialFields.cpp
@@ -575,7 +577,7 @@ set(PROJECT_SOURCES
         src/configs/common/multiplex.cpp
         src/configs/common/transport.cpp
         src/configs/common/Outbound.cpp
-        src/configs/common/OutboundFactory.cpp
+        src/configs/common/Protocols.cpp
         include/configs/common/ResolverSource.h
         src/configs/common/ResolverSource.cpp
         include/configs/common/DnsTunnel.h
@@ -630,7 +632,21 @@ set(PROJECT_SOURCES
         src/configs/outbounds/tor.cpp
         src/configs/outbounds/custom.cpp
         include/configs/generate.h
+        include/configs/ConfigBuild.h
+        include/configs/DnsAddress.h
+        include/configs/EndpointOverride.h
+        include/configs/RuleSetMirror.h
+        include/configs/Warp.h
+        include/configs/generate_internal.h
         src/configs/generate.cpp
+        src/configs/generate_profiles.cpp
+        src/configs/generate_plan.cpp
+        src/configs/generate_dns.cpp
+        src/configs/generate_chain.cpp
+        src/configs/generate_outbounds.cpp
+        src/configs/generate_route.cpp
+        src/configs/generate_xray.cpp
+        src/configs/generate_test.cpp
         include/configs/common/utils.h
         src/configs/common/utils.cpp
         include/configs/outbounds/custom.h
@@ -702,6 +718,9 @@ set(PROJECT_SOURCES
         include/database/DatabaseManager.h
         src/database/DatabaseManager.cpp
 
+        include/database/SettingsValues.h
+        include/database/SettingsSchema.h
+        src/database/SettingsSchema.cpp
         include/database/SettingsRepo.h
         src/database/SettingsRepo.cpp
         include/configs/sub/warp.h
@@ -786,6 +805,8 @@ set(ENGINE_SOURCES
         src/engine/services/ProfileService.cpp
         include/engine/services/SettingsRegistry.h
         src/engine/services/SettingsRegistry.cpp
+        include/engine/services/SettingsService.h
+        src/engine/services/SettingsService.cpp
         include/engine/services/BackupArchive.h
         src/engine/services/BackupArchive.cpp
         include/engine/services/WebDavBackup.h
@@ -808,6 +829,10 @@ set(ENGINE_SOURCES
         include/engine/connection/ConnectionManager.h
         src/engine/connection/ConnectionManager.cpp
         src/engine/connection/ConnectionModes.cpp
+        include/engine/connection/EngineState.h
+        src/engine/connection/EngineState.cpp
+        include/engine/connection/StartCoordinator.h
+        src/engine/connection/StartCoordinator.cpp
         include/engine/vpn/VpnAuthController.h
         src/engine/vpn/VpnAuthController.cpp
         include/engine/services/Dashboard.h

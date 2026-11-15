@@ -1,11 +1,8 @@
 #pragma once
 
-#include <atomic>
 #include <memory>
 
-#include <QElapsedTimer>
 #include <QList>
-#include <QMutex>
 #include <QObject>
 #include <QString>
 
@@ -20,6 +17,8 @@ namespace Engine {
     class AutoSelectorController;
     class CoreSupervisor;
     class EnginePolicy;
+    class EngineState;
+    class StartCoordinator;
     class StatsService;
     class TestRunner;
     class VpnAuthController;
@@ -42,16 +41,17 @@ namespace Engine {
         // startFinished fires once per request. profileId < 0: NotFound.
         void start(const StartRequest &request);
 
-        // Any thread, a start worker included; runs on the caller. block: the caller spins a nested loop until the main-thread
-        // teardown ran.
+        // Any thread; decided on the main thread (posted from elsewhere). block: the caller spins a nested loop until the stop it
+        // started or joined was torn down, or it found nothing; during a start it waits for that start first. Crash stops and
+        // stops during exit never wait for another.
         void stop(const StopOptions &options);
 
-        bool restartStartedProfile(bool interactive = true, quint64 restartSerial = 0);
+        // A stop waits for the start in flight to end.
+        bool stopPending() const;
 
         void applyPendingRestart();
 
-        // Before CoreSupervisor::start(): the first coreStarted for request.profileId runs exactly this request (as
-        // deferStartToCore does).
+        // Before CoreSupervisor::start(): the first coreStarted for request.profileId runs exactly this request.
         void setBootStart(const StartRequest &request);
 
         // KnownAdmin() when known; otherwise options.blockingPrivilegeCheck && IsAdmin().
@@ -78,6 +78,9 @@ namespace Engine {
 
         quint64 nextStartSerial();
 
+        // Any thread. Shared with the Lifecycle resume-target hooks.
+        std::shared_ptr<EngineState> state() const;
+
         // ConnectionModes.cpp. Each returns whether it restarted the profile.
         bool setSystemProxy(bool enable, const ModeChange &change = {});
 
@@ -92,7 +95,7 @@ namespace Engine {
 
         void disableKillSwitch();
 
-        // A no-op while nothing was started.
+        // A no-op while nothing was started and no start is in flight.
         void noteRestartNeeded(RestartReason reason);
 
         void clearRestartNeeded();
@@ -105,11 +108,12 @@ namespace Engine {
         // API; EngineHost relays them with Qt::DirectConnection. The types are unregistered.
         void startFinished(quint64 serial, int profileId, Engine::StartOutcome outcome, const QString &error);
 
-        // Main thread, inside start() once the profile resolved and before its config is built; every pass of one request
-        // (rank and kill-switch re-entries) emits it again with the same serial. Direct connections only.
+        // Main thread, inside start() once the request passed the kill-switch, guard and Busy checks, before its rank and build.
+        // Every pass of one request that gets there (rank and kill-switch re-entries) emits it with the same serial. Direct
+        // connections only.
         void startDispatching(quint64 serial, int profileId);
 
-        // After mu_stopping is released.
+        // After the stop's teardown.
         void stopFinished(int profileId);
 
         void connectionStateChanged(Engine::ConnectionState state);
@@ -127,70 +131,23 @@ namespace Engine {
         void restartReasonsChanged();
 
     private:
-        static constexpr qint64 kGuardRestartWindowMs = 15000;
-
         EnginePolicy *policy() const { return m_policy; }
 
         void onCoreStarted(int profileId);
 
-        void onCoreGaveUp(const QString &reason);
-
-        void failStart(const StartRequest &request, StartOutcome outcome, const QString &title, const QString &error);
-
-        void deferStartToCore(const StartRequest &request);
-
-        // tun: the running config carries a tun inbound (generated Tun or a custom config's).
-        void setRunning(std::shared_ptr<Configs::Profile> profile, bool tun = false);
-
         // ConnectionModes.cpp. Why the boot Tun restore was held: the host conflict, the capability blocker, else privileges.
         QString tunRestoreHoldReason();
-
-        void syncState();
-
-        void lookupExitCountry(const std::shared_ptr<Configs::Profile> &ent);
 
         // ConnectionModes.cpp.
         void onKillSwitchStateChanged();
 
-        bool guardRestartPending() const;
-
-        void restartCoreForGuard(const StartRequest &request);
-
-        // A start that failed with GeoAssetsMissing restarts once per profile after the unattended download, unless a start or a
-        // manual stop moved token on since the failure.
-        void retryAfterGeoFetch(int profileId, quint64 token);
-
         EnginePolicy *m_policy;
-        CoreSupervisor *m_coreSupervisor;
-        StatsService *m_stats;
-        TestRunner *m_tests = nullptr;
-        AutoSelectorController *m_autoSelector = nullptr;
-        VpnAuthController *m_vpnAuth = nullptr;
-
-        // Written by the start/stop workers; read through runningSnapshot().
-        mutable QMutex m_runningMutex;
-        std::shared_ptr<Configs::Profile> m_running;
-        bool m_runningTun = false;
+        std::shared_ptr<EngineState> m_state;
+        StartCoordinator *m_coordinator = nullptr;
 
         // Main thread only.
-        int m_lastProfileId = -1;
-        bool m_profileConnecting = false;
-        bool m_profileDisconnecting = false;
-        ConnectionState m_lastConnectionState = ConnectionState::Idle;
-        quint64 m_startSerial = 0;
-        StartRequest m_killSwitchDeferredStart;
-        // coreStarted carries only a profile id, so the rest of the request waits here.
-        StartRequest m_coreStartRequest;
-        QElapsedTimer m_guardCoreRestart;
         bool m_killSwitchWasFailed = false;
         bool m_killSwitchWasArmed = false;
-        QList<RestartReason> m_restartReasons;
-
-        // Locked and unlocked on different threads by design; no owner tracking.
-        QMutex mu_starting;
-        QMutex mu_stopping;
-        // Set while start() stops the running profile, so that stop is marked as part of the switch.
-        std::atomic<bool> m_switchingProfile{false};
 
         RuntimeOptions m_options;
         bool m_tunRestoreHeld = false;
@@ -198,10 +155,5 @@ namespace Engine {
         // The inputs m_tunBlockedCache was computed from (Tun CIDR and probed DNS port); a change recomputes it.
         QString m_tunBlockedKey;
         qint64 m_tunBlockedAtMs = 0;
-        // The boot request's serial until the first coreStarted; only that request is refused while the Tun is held.
-        quint64 m_bootSerial = 0;
-        int m_geoRetriedProfile = -1;
-        // Any thread: bumped by every start and manual stop; deferred continuations compare it.
-        std::atomic<quint64> m_intentToken{0};
     };
 } // namespace Engine

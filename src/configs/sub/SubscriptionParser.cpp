@@ -3,6 +3,7 @@
 #include "include/configs/ParseDiagnostics.h"
 #include "include/configs/common/DnsTunnel.h"
 #include "include/configs/common/OutboundFactory.h"
+#include "include/configs/common/Protocols.h"
 #include "include/configs/common/utils.h"
 #include "include/configs/sub/SubscriptionScan.hpp"
 #include "include/configs/sub/clash.hpp"
@@ -47,77 +48,17 @@ namespace Subscription {
             invalid,
         };
 
-        struct Protocol {
-            const char *type;
-            const char *schemes[4];
-            const char *singbox[2];
-            const char *clash[2];
-        };
-
-        constexpr Protocol kProtocols[] = {
-            {"socks", {"socks5://", "socks4://", "socks4a://", "socks://"}, {"socks"}, {"socks5"}},
-            {"http", {"http://", "https://"}, {"http"}, {"http"}},
-            {"shadowsocks", {"ss://"}, {"shadowsocks"}, {"ss"}},
-            {"vmess", {"vmess://"}, {"vmess"}, {"vmess"}},
-            {"vless", {"vless://"}, {"vless"}, {"vless"}},
-            {"trojan", {"trojan://"}, {"trojan"}, {"trojan"}},
-            {"anytls", {"anytls://"}, {"anytls"}, {"anytls"}},
-            {"mieru", {"mierus://", "mieru://"}, {"mieru"}, {}},
-            {"snell", {"snell://"}, {"snell"}, {"snell"}},
-            {"hysteria", {"hysteria://", "hysteria2://", "hy2://"}, {"hysteria", "hysteria2"}, {"hysteria", "hysteria2"}},
-            {"tuic", {"tuic://"}, {"tuic"}, {"tuic"}},
-            {"juicity", {"juicity://"}, {"juicity"}, {}},
-            {"trusttunnel", {"tt://"}, {"trusttunnel"}, {}},
-            {"shadowtls", {"shadowtls://"}, {"shadowtls"}, {}},
-            {"wireguard", {"awg://", "wg://", "wireguard://"}, {"wireguard"}, {"wireguard"}},
-            {"masque", {}, {"masque"}, {"masque"}},
-            {"ssh", {"ssh://"}, {"ssh"}, {"ssh"}},
-            {"naive", {"naive+https://", "naive+quic://"}, {"naive"}, {}},
-            // dnst:// links of the masterdns transport go to masterdns, see link().
-            {"dnstt", {"dnst://", "slipnet://", "slipnet-enc://", "slipnet-bundle-enc://"}, {"dnstt"}, {}},
-            {"masterdns", {"masterdns://", "stormdns://"}, {"masterdns"}, {}},
-        };
-
-        const char *typeForScheme(std::string_view link) {
-            for (const auto &p : kProtocols) {
-                for (const char *scheme : p.schemes) {
-                    if (scheme != nullptr && link.starts_with(scheme)) return p.type;
-                }
-            }
-            return nullptr;
-        }
-
-        const char *typeForSingBox(const QString &type) {
-            for (const auto &p : kProtocols) {
-                for (const char *name : p.singbox) {
-                    if (name != nullptr && type == QLatin1String(name)) return p.type;
-                }
-            }
-            return nullptr;
-        }
-
-        const char *typeForClash(const std::string &type) {
-            for (const auto &p : kProtocols) {
-                for (const char *name : p.clash) {
-                    if (name != nullptr && type == name) return p.type;
-                }
-            }
-            return nullptr;
-        }
-
-        // The links' REALITY preference (useXrayVless), limited to the networks Xray runs REALITY over; sing-box also carries ws.
-        bool clashRealityOnXray(const clash::Proxies &out) {
-            if (!out.tls || out.reality_opts.public_key.empty()) return false;
-            if (Configs::dataManager->settingsRepo->xray_vless_preference == Configs::Xray::XhttpOnly) return false;
-            return out.network.empty() || out.network == "tcp" || out.network == "grpc";
-        }
-
-        // sing-box VLESS rejects the vision-udp443 flow; Xray accepts it.
         bool clashUsesXrayVless(const clash::Proxies &out) {
+            if (out.type != "vless") return false;
             const auto flow = QString::fromStdString(out.flow).trimmed().toLower();
-            const bool singBoxFlow = flow.isEmpty() || flow == "none" || flow == "xtls-rprx-vision";
-            return out.type == "vless" && (out.network == "xhttp" || (!out.encryption.empty() && out.encryption != "none")
-                                           || !singBoxFlow || clashRealityOnXray(out));
+            Configs::VlessTraits traits;
+            // Not NormalizeXrayNetwork: xrayStreamSetting::ParseFromClash folds only tcp.
+            traits.transport = out.network == "tcp" ? QStringLiteral("raw") : QString::fromStdString(out.network);
+            traits.reality = out.tls && !out.reality_opts.public_key.empty();
+            // sing-box VLESS rejects the vision-udp443 flow; Xray accepts it.
+            traits.xrayOnly = (!out.encryption.empty() && out.encryption != "none")
+                              || !(flow.isEmpty() || flow == "none" || flow == "xtls-rprx-vision");
+            return Configs::useXrayVless(traits);
         }
 
         // Non-proxy entries every full config carries; skipping them is not worth a report.
@@ -948,15 +889,15 @@ namespace Subscription {
                     return;
                 }
                 const auto type = out["type"].toString();
-                const char *profileType = typeForSingBox(type);
-                if (profileType == nullptr) {
+                const auto *protocol = Configs::Protocols::ForSingBox(type);
+                if (protocol == nullptr) {
                     if (isSingBoxInfraType(type)) return;
                     report(source, false, {parserWarning(type.isEmpty()
                         ? QCoreApplication::translate("Validation", "Missing \"type\".")
                         : QCoreApplication::translate("Validation", "Unsupported sing-box type \"%1\".").arg(type))});
                     return;
                 }
-                auto ent = Configs::ProfilesRepo::NewProfile(profileType);
+                auto ent = Configs::ProfilesRepo::NewProfile(protocol->Id());
                 Validation::Issues issues;
                 const bool parsed = scoped([&] { return ent->outbound->ParseFromJson(out); }, issues);
                 accept(ent, parsed, std::move(issues), source);
@@ -1106,11 +1047,11 @@ namespace Subscription {
                 Configs::ParseDiag::Scope scope;
                 const auto out = node.get_value<clash::Proxies>();
                 name = QString::fromStdString(out.name);
-                if (const char *profileType = typeForClash(out.type); profileType == nullptr) {
+                if (const auto *protocol = Configs::Protocols::ForClash(out.type); protocol == nullptr) {
                     infra = isClashInfraType(out.type);
                     unsupported = QString::fromStdString(out.type);
                 } else {
-                    ent = Configs::ProfilesRepo::NewProfile(clashUsesXrayVless(out) ? "xrayvless" : profileType);
+                    ent = Configs::ProfilesRepo::NewProfile(clashUsesXrayVless(out) ? QLatin1String("xrayvless") : protocol->Id());
                     parsed = ent->outbound->ParseFromClash(out);
                 }
                 issues = scope.take();
@@ -1205,13 +1146,13 @@ namespace Subscription {
                 return;
             }
 
-            const char *profileType = typeForScheme(line);
-            if (profileType == nullptr) {
+            const auto *protocol = Configs::Protocols::ForLink(line);
+            if (protocol == nullptr) {
                 if (isRoutingLink(line)) return;
                 if (const auto scheme = linkScheme(line); !scheme.empty() && sink.report) {
                     const auto written = toQString(scheme);
                     const auto lower = written.toLower();
-                    const bool known = lower == "json" || typeForScheme((lower + "://").toStdString()) != nullptr;
+                    const bool known = lower == "json" || Configs::Protocols::ForLink((lower + "://").toStdString()) != nullptr;
                     const auto message = known
                         ? QCoreApplication::translate("Validation", "Write the link type in lower case: \"%1://\", not \"%2://\".").arg(lower, written)
                         : QCoreApplication::translate("Validation", "Unsupported link type \"%1://\".").arg(written);
@@ -1226,12 +1167,12 @@ namespace Subscription {
             } else if (line.starts_with("dnst://") && Configs::DnstLinkTransport(str) == QLatin1String("masterdns")) {
                 ent = Configs::ProfilesRepo::NewProfile("masterdns");
             } else {
-                ent = Configs::ProfilesRepo::NewProfile(profileType);
+                ent = Configs::ProfilesRepo::NewProfile(protocol->Id());
             }
             Validation::Issues issues;
             const bool parsed = scoped([&] { return ent->outbound->ParseFromLink(str); }, issues);
 
-            if (parsed && std::string_view(profileType) == "wireguard") setNameIfEmpty(*ent, {overrideName});
+            if (parsed && protocol->id == "wireguard") setNameIfEmpty(*ent, {overrideName});
 
             accept(ent, parsed, std::move(issues), [&] { return linkSource(str, ent->outbound.get()); });
         }
@@ -1276,7 +1217,7 @@ namespace Subscription {
                     damaged(refusal);
                     return;
                 }
-                ent = Configs::ProfilesRepo::NewProfile(type == "hysteria2" ? QStringLiteral("hysteria") : type);
+                ent = Configs::ProfilesRepo::NewProfile(Configs::Protocols::Canonical(type));
             }
             if (ent->outbound->invalid) {
                 damaged(type.isEmpty() ? QCoreApplication::translate("Validation", "Missing \"type\".")

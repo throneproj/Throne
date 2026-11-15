@@ -15,7 +15,7 @@ import (
 	"github.com/sagernet/sing/service"
 )
 
-// What a probe needs from an instance; *boxbox.Box and core/mobile's box handle both satisfy it.
+// What a probe needs from an instance; *boxmain.Box and core/mobile's box handle both satisfy it.
 type Box interface {
 	Context() context.Context
 	Outbound() adapter.OutboundManager

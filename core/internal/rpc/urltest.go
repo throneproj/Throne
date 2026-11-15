@@ -23,7 +23,7 @@ func (s *server) Test(ctx context.Context, in *gen.TestReq) (*gen.TestResp, erro
 		}
 		return nil, err
 	}
-	defer env.close()
+	defer env.Close()
 
 	// Held, not re-read: StopTest rearms a fresh context, uncancelled.
 	testCtx := probe.TestContext()
@@ -33,7 +33,7 @@ func (s *server) Test(ctx context.Context, in *gen.TestReq) (*gen.TestResp, erro
 
 	// A muxed config needs a warm connection; the live instance already is one.
 	twice := !in.GetTestCurrent()
-	results := probe.BatchURLTest(testCtx, env.box, env.tags, in.GetUrl(),
+	results := probe.BatchURLTest(testCtx, env.Box, env.Tags, in.GetUrl(),
 		int(in.GetMaxConcurrency()), twice, time.Duration(in.GetTestTimeoutMs())*time.Millisecond)
 
 	res := make([]*gen.URLTestResp, 0, len(results))
@@ -43,16 +43,16 @@ func (s *server) Test(ctx context.Context, in *gen.TestReq) (*gen.TestResp, erro
 		if data.Error != nil {
 			errStr = data.Error.Error()
 		}
-		failed[env.tags[idx]] = errStr != ""
+		failed[env.Tags[idx]] = errStr != ""
 		res = append(res, &gen.URLTestResp{
-			OutboundTag: To(env.tags[idx]),
+			OutboundTag: To(env.Tags[idx]),
 			LatencyMs:   To(int32(data.Duration.Milliseconds())),
 			Error:       To(errStr),
 		})
 	}
 
 	out := &gen.TestResp{Results: res}
-	// `defer env.close()` tears the box down on return, so this cannot wait.
+	// `defer env.Close()` tears the box down on return, so this cannot wait.
 	var pending []string
 	for _, tag := range in.VpnEndpointTags {
 		if failed[tag] {
@@ -61,7 +61,7 @@ func (s *server) Test(ctx context.Context, in *gen.TestReq) (*gen.TestResp, erro
 	}
 	if len(pending) > 0 {
 		// A snapshot: the probe already sat out the handshake, so a tunnel that settles only now never carried it.
-		out.VpnStatus = collectVPNStatus(testCtx, env.box, pending, 0)
+		out.VpnStatus = collectVPNStatus(testCtx, env.Box, pending, 0)
 	}
 	return out, nil
 }
@@ -98,10 +98,10 @@ func (s *server) IPTest(ctx context.Context, in *gen.IPTestRequest) (*gen.IPTest
 	if err != nil {
 		return nil, err
 	}
-	defer env.close()
+	defer env.Close()
 
 	timeout := time.Duration(in.GetTestTimeoutMs()) * time.Millisecond
-	results := probe.BatchIPTest(probe.TestContext(), env.box, env.tags,
+	results := probe.BatchIPTest(probe.TestContext(), env.Box, env.Tags,
 		int(in.GetMaxConcurrency()), !current, timeout, in.GetProvider())
 
 	res := make([]*gen.IPTestRes, 0, len(results))
@@ -111,7 +111,7 @@ func (s *server) IPTest(ctx context.Context, in *gen.IPTestRequest) (*gen.IPTest
 			errStr = data.Error.Error()
 		}
 		res = append(res, &gen.IPTestRes{
-			OutboundTag: To(env.tags[idx]),
+			OutboundTag: To(env.Tags[idx]),
 			Ip:          To(data.Result.IP),
 			CountryCode: To(data.Result.CountryCode),
 			Error:       To(errStr),

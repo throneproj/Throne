@@ -14,8 +14,7 @@ import (
 
 	// Pins the gomobile bind runtime in go.mod the same way the sing-box fork does.
 	_ "github.com/sagernet/gomobile"
-	// Links every Xray protocol into the AAR; ThroneCore/internal/distro/all must stay out because it
-	// starts the desktop's netlink monitors at init.
+	// Links every Xray protocol into the AAR. Never call internal/netmon.Start here: it starts the desktop's netlink monitors.
 	_ "github.com/xtls/xray-core/main/distro/all"
 )
 

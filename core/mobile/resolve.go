@@ -51,7 +51,7 @@ func ResolveDomains(current *Instance, platform PlatformInterface, request *Reso
 		if err != nil {
 			return nil, nil, err
 		}
-		return env.box.Context(), env.close, nil
+		return env.Box.Context(), env.Close, nil
 	}, request.domains)
 	if err != nil {
 		return nil, err

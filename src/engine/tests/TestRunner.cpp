@@ -2,6 +2,7 @@
 
 #include "include/api/RPC.h"
 #include "include/configs/common/DnsTunnel.h"
+#include "include/configs/common/Protocols.h"
 #include "include/configs/generate.h"
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
@@ -47,7 +48,7 @@ namespace Engine {
         }
 
         bool testRunnerIsVpnProfile(const std::shared_ptr<Configs::Profile>& ent) {
-            return ent != nullptr && (ent->type == "openvpn" || ent->type == "openconnect");
+            return ent != nullptr && Configs::Protocols::Is(ent->type, Configs::Protocols::VpnEndpoint);
         }
 
         // Mirror the core's URLTestTimeout, TunnelStartupTimeout, TunnelHandshakeTimeout and normalizeConcurrency.

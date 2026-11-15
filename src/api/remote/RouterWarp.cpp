@@ -58,7 +58,6 @@ namespace RemoteApi {
             respond(serviceError(*refused));
             return;
         }
-        if (result.restartNeeded) engine_->noteRestartNeeded(Engine::RestartReason::Routing);
         if (result.changed) noteChanged(Engine::ChangeTopic::Settings | Engine::ChangeTopic::Status);
         auto json = RouterWarpImpl::warpJson();
         json.insert(QStringLiteral("restart_needed"), engine_->restartPending());
