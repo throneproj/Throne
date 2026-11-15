@@ -1,5 +1,4 @@
 #include "include/ui/setting/RouteItem.h"
-#include "ui_RouteItem.h"
 
 #include "include/configs/common/Protocols.h"
 #include "include/configs/generate.h"

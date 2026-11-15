@@ -9,6 +9,7 @@
 #include <memory>
 
 #include "include/database/entities/RouteProfile.h"
+#include "ui_RouteItem.h"
 
 class QCheckBox;
 class QCloseEvent;
@@ -18,10 +19,6 @@ class QuickListsView;
 class RouteDnsEditor;
 class RouteRulesPage;
 class RouteTabBadge;
-
-namespace Ui {
-    class RouteItem;
-}
 
 namespace Validation {
     class Form;
