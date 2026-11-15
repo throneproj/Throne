@@ -12,6 +12,7 @@
 #include "include/database/entities/Group.h"
 #include "include/engine/services/AssetUpdates.h"
 #include "include/engine/services/BackupArchive.h"
+#include "include/ui/setting/ServiceCheckSelector.h"
 #include "include/ui/utils/UiMode.h"
 #include "include/ui/utils/ValidationForm.h"
 
@@ -255,10 +256,13 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
         ui->label_exit_lookup_provider->setEnabled(enabled);
         ui->exit_lookup_provider->setEnabled(enabled);
     });
+    serviceChecks_ = new ServiceCheckSelector(Configs::dataManager->settingsRepo->service_check_disabled, ui->service_check_box);
+    ui->serviceCheckLayout->addWidget(serviceChecks_);
     D_LOAD_BOOL(disable_tray)
     ui->reset_proxy_on_disable_sp->setChecked(Configs::dataManager->settingsRepo->reset_proxy_on_disable_sp);
     ui->url_timeout->setText(Int2String(Configs::dataManager->settingsRepo->url_test_timeout_ms));
-    ui->speedtest_mode->setCurrentIndex(Configs::dataManager->settingsRepo->speed_test_mode);
+    const int speedTestMode = Configs::dataManager->settingsRepo->speed_test_mode;
+    ui->speedtest_mode->setCurrentIndex(speedTestMode >= 0 && speedTestMode < ui->speedtest_mode->count() ? speedTestMode : 0);
     ui->test_timeout->setText(Int2String(Configs::dataManager->settingsRepo->speed_test_timeout_ms));
     ui->simple_down_url->setText(Configs::dataManager->settingsRepo->simple_dl_url);
     ui->allow_beta->setChecked(Configs::dataManager->settingsRepo->allow_beta_update);
@@ -735,6 +739,9 @@ void DialogBasicSettings::accept() {
     // The Type column marks TLS profiles compromised while this is on.
     profileListDisplayChanged |= Configs::dataManager->settingsRepo->skip_cert != ui->skip_cert->isChecked();
     D_SAVE_BOOL(skip_cert)
+    const auto serviceCheckDisabled = serviceChecks_->disabledIds();
+    profileListDisplayChanged |= Configs::dataManager->settingsRepo->service_check_disabled != serviceCheckDisabled;
+    Configs::dataManager->settingsRepo->service_check_disabled = serviceCheckDisabled;
     Configs::dataManager->settingsRepo->disable_privilege_req = ui->disable_priv_req->isChecked();
     if (Configs::dataManager->settingsRepo->disable_run_admin != ui->windows_no_admin->isChecked()) CACHE.updateDisableAdmin = true;
     Configs::dataManager->settingsRepo->disable_run_admin = ui->windows_no_admin->isChecked();

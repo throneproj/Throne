@@ -88,8 +88,6 @@ namespace API {
 
         libcore::QuerySpeedTestResponse QueryCurrentSpeedTests(bool *rpcOK);
 
-        libcore::QueryCountryTestResponse QueryCountryTestResults(bool *rpcOK);
-
         libcore::GenWgKeyPairResponse GenWgKeyPair(bool *rpcOK);
 
         libcore::WarpRegisterResponse WarpRegister(bool *rpcOK, const QString &tunnelType, const QString &proxy,

@@ -54,7 +54,6 @@ void DataViewHtmlGenerator::setDownloadReport(const DownloadProgressReport &repo
 void DataViewHtmlGenerator::seedSpeedTest(int totalProfiles) {
     QMutexLocker lk(&mu_);
     testProgress.store(0);
-    Configs::dataManager->settingsRepo->speed_test_mode == Configs::TestConfig::COUNTRY ? speedtest_.kind = SpeedtestPanelState::Kind::Country : speedtest_.kind = SpeedtestPanelState::Kind::Speed;
     speedtest_.totalProfiles = totalProfiles;
     speedtest_.visible = true;
     testsStopping_ = false;
@@ -238,47 +237,34 @@ QString DataViewHtmlGenerator::downloadSectionHtml() {
     auto progressText = getProgressBar(download_.report.downloadedSize, download_.report.totalSize);
     const QString stat =
         ReadableSize(download_.report.downloadedSize) + "/" + ReadableSize(download_.report.totalSize);
-    return QString("<p style='text-align:center;margin:0;'>Downloading %1: %2 %3</p>")
-        .arg(download_.report.fileName, stat, progressText);
+    return QString("<p style='text-align:center;margin:0;'>%1</p>")
+        .arg(MainWindowTr::tr("Downloading %1: %2 %3").arg(download_.report.fileName, stat, progressText));
 }
 
 DataViewHtmlGenerator::Content DataViewHtmlGenerator::speedtestSection() {
-    if (speedtest_.kind == SpeedtestPanelState::Kind::Speed) {
-        auto firstLine = QStringLiteral("Running Speedtest: %1").arg(speedtest_.profileName);
-        if (speedtest_.totalProfiles > 1) {
-            firstLine += QString(" (%1 / %2)").arg(Int2String(testProgress.load()), Int2String(speedtest_.totalProfiles));
-        }
-        firstLine += stopTestsLinkHtml();
-        if (speedtest_.serverName.isEmpty()) return {QString("<p style='text-align:center;margin:0;'>%1</p>").arg(firstLine), {}};
-        return {QString(
-                    "<p style='text-align:center;margin:0;'>%1</p>"
-                    "<div style='text-align: center;'>"
-                    "<span style='color: %4;'>Dl↓ %2</span>  "
-                    "<span style='color: %5;'>Ul↑ %3</span>"
-                    "</div>")
-                    .arg(firstLine, speedtest_.dlSpeed, speedtest_.ulSpeed, themeManager()->tokens.info.name(),
-                         themeManager()->tokens.success.name()),
-                dataViewToolTip({QStringLiteral("Server: %1%2, %3").arg(speedtest_.serverCountryFlag, speedtest_.serverCountry,
-                                                                         speedtest_.serverName)})};
-    } else {
-        QString res;
-        auto content = QString("Running Country Test");
-        if (speedtest_.totalProfiles > 1) {
-            auto progress = getProgressBar(testProgress.load(), speedtest_.totalProfiles);
-            progress += QString(" ") + Int2String(100 * testProgress.load() / speedtest_.totalProfiles) + "%";
-            res = QString("<p style='text-align:center;margin:0;'>%1</p>").arg(progress);
-            content += QString(" (%1 / %2)").arg(Int2String(testProgress.load()), Int2String(speedtest_.totalProfiles));
-        }
-        res += QString("<p style='text-align:center;margin:0;'>%1</p>").arg(content + stopTestsLinkHtml());
-        return {res, {}};
+    auto firstLine = MainWindowTr::tr("Running Speedtest: %1").arg(speedtest_.profileName);
+    if (speedtest_.totalProfiles > 1) {
+        firstLine += QString(" (%1 / %2)").arg(Int2String(testProgress.load()), Int2String(speedtest_.totalProfiles));
     }
+    firstLine += stopTestsLinkHtml();
+    if (speedtest_.serverName.isEmpty()) return {QString("<p style='text-align:center;margin:0;'>%1</p>").arg(firstLine), {}};
+    return {QString(
+                "<p style='text-align:center;margin:0;'>%1</p>"
+                "<div style='text-align: center;'>"
+                "<span style='color: %4;'>Dl↓ %2</span>  "
+                "<span style='color: %5;'>Ul↑ %3</span>"
+                "</div>")
+                .arg(firstLine, speedtest_.dlSpeed, speedtest_.ulSpeed, themeManager()->tokens.info.name(),
+                     themeManager()->tokens.success.name()),
+            dataViewToolTip({MainWindowTr::tr("Server: %1%2, %3").arg(speedtest_.serverCountryFlag, speedtest_.serverCountry,
+                                                                     speedtest_.serverName)})};
 }
 
 QString DataViewHtmlGenerator::latencyTestSectionHtml() {
     QString res;
-    QString content = QString("Running URL test");
-    if (latencyTest_.kind == LatencyTestPanelState::Kind::Ip) content = QString("Running IP test");
-    else if (latencyTest_.kind == LatencyTestPanelState::Kind::Service) content = QString("Running service check");
+    QString content = MainWindowTr::tr("Running URL test");
+    if (latencyTest_.kind == LatencyTestPanelState::Kind::Ip) content = MainWindowTr::tr("Running IP test");
+    else if (latencyTest_.kind == LatencyTestPanelState::Kind::Service) content = MainWindowTr::tr("Running service check");
     if (latencyTest_.totalProfiles > 1) {
         auto progress = getProgressBar(testProgress.load(), latencyTest_.totalProfiles);
         progress += QString(" ") + Int2String(100 * testProgress.load() / latencyTest_.totalProfiles) + "%";

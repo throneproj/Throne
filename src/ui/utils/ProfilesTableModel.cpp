@@ -104,6 +104,10 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
     if (it == m_cache.constEnd()) return {};
     const std::shared_ptr<Configs::Profile> &profile = it.value();
     if (!profile) return {};
+    if (role == ServiceItemsRole) {
+        if (index.column() != ColTestResult) return {};
+        return QVariant::fromValue(ServiceCheckHtml::items(*profile));
+    }
 
     const int startedId = Configs::dataManager->settingsRepo->started_id;
     const bool isRunning = (profile->id == startedId);
@@ -140,7 +144,7 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
             if (security.compromised) return tr("Certificate checks are turned off by the \"Skip TLS certificate authentication\" setting.");
             if (security.isDangerous()) return tr("This config's traffic is not properly protected.");
         }
-        if (index.column() == ColTestResult && !profile->service_checks.isEmpty()) return ServiceCheckHtml::details(*profile);
+        if (index.column() == ColTestResult && !profile->service_checks.isEmpty()) return ServiceCheckHtml::summaryLine(*profile);
         return {};
     }
     if (role == Qt::ForegroundRole) {
@@ -209,9 +213,11 @@ namespace {
             categoryNames.insert(category["id"].toString(), category["name"].toString());
         }
         static const QRegularExpression separators(QStringLiteral("[^\\p{L}\\p{N}]+"));
+        const auto &disabled = Configs::dataManager->settingsRepo->service_check_disabled;
         QList<ProfilesTableModel::ServiceFilterKey> services;
         for (const auto &value : root["checks"].toArray()) {
             const auto check = value.toObject();
+            if (disabled.contains(check["id"].toString())) continue;
             const auto category = check["cat"].toString();
             const auto status = check["status"].toString();
             ProfilesTableModel::ServiceFilterKey service;

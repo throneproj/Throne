@@ -282,6 +282,10 @@ set(PROJECT_SOURCES
         src/ui/utils/ProfilesTableVerticalHeader.cpp
         include/ui/utils/ServiceCheckHtml.h
         src/ui/utils/ServiceCheckHtml.cpp
+        include/ui/utils/ServiceIcons.h
+        src/ui/utils/ServiceIcons.cpp
+        include/ui/setting/ServiceCheckSelector.h
+        src/ui/setting/ServiceCheckSelector.cpp
         include/ui/utils/ProfilesTableFilterHeader.h
         include/ui/utils/ConnectionsFilterHeader.h
         include/ui/utils/HeaderSortArrow.h

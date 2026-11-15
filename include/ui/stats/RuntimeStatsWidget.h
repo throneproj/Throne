@@ -21,6 +21,7 @@ QT_END_NAMESPACE
 
 class QTimer;
 class LiveChart;
+class ServiceIconStrip;
 
 class RuntimeStatsWidget : public QWidget {
     Q_OBJECT
@@ -48,6 +49,7 @@ private:
     QTimer* timer_ = nullptr;
     LiveChart* cpuChart_ = nullptr;
     LiveChart* ramChart_ = nullptr;
+    ServiceIconStrip* serviceStrip_ = nullptr;
     Sys::ProcessMetrics metrics_;
     std::atomic<bool> probing_{false};
     std::atomic<bool> connBusy_{false};

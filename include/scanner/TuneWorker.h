@@ -16,6 +16,7 @@
 #include "include/database/entities/Profile.h"
 #include "include/scanner/ScanManager.h"
 #include "include/scanner/TunePlanner.h"
+#include "include/scanner/TuneProfiles.h"
 
 namespace Configs {
     class BuildTestConfigResult;
@@ -26,7 +27,7 @@ namespace Scanner {
     // and after every failure so an outage pauses the search instead of failing variants.
     class TuneWorker : public ScanRun, public std::enable_shared_from_this<TuneWorker> {
     public:
-        TuneWorker(const Configs::IpScan &scan, std::shared_ptr<Configs::Profile> base, QString dialHost, QString specHash,
+        TuneWorker(const Configs::IpScan &scan, std::shared_ptr<Configs::Profile> base, Tune::DialTarget dial, QString specHash,
                    bool resume, ScanRunHooks hooks);
 
         TuneWorker(const TuneWorker &) = delete;
@@ -76,7 +77,7 @@ namespace Scanner {
         const int scanId_;
         const QString sessionId_;
         const std::shared_ptr<Configs::Profile> base_;
-        const QString dialHost_;
+        const Tune::DialTarget dial_;
         const QString specHash_;
         const bool resume_;
         const ScanRunHooks hooks_;

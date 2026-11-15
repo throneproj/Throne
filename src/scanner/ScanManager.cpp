@@ -152,9 +152,9 @@ namespace Scanner {
         if (base == nullptr) return {error.isEmpty() ? tr("Choose the profile to find working settings for") : error};
         if (Tune::SpaceFor(*base, options).IsEmpty()) return {tr("Nothing to try: turn on a setting this profile supports")};
         // The live profile, not the copy: only it knows the endpoint override it dials instead of its own address.
-        const auto dialHost = Tune::DialHost(Configs::dataManager->profilesRepo->GetProfile(options.profileId));
-        if (dialHost.isEmpty()) return {tr("The profile has no server address to test")};
-        const auto specHash = Tune::SpecHash(*base, dialHost, options);
+        const auto dial = Tune::DialTargetFor(Configs::dataManager->profilesRepo->GetProfile(options.profileId));
+        if (dial.host.isEmpty()) return {tr("The profile has no server address to test")};
+        const auto specHash = Tune::SpecHash(*base, dial, options);
 
         bool resume = false;
         if (mode == StartMode::Resume && !scan->tune_state.value(QLatin1String("trials")).toArray().isEmpty()) {
@@ -167,7 +167,7 @@ namespace Scanner {
         }
 
         persistDisabled = false;
-        auto worker = std::make_shared<TuneWorker>(*scan, base, dialHost, specHash, resume, hooksFor(scanId));
+        auto worker = std::make_shared<TuneWorker>(*scan, base, dial, specHash, resume, hooksFor(scanId));
         Configs::dataManager->ipScansRepo->SaveStatus(scanId, Configs::IpScan::Status::Running, {});
         workers.insert(scanId, worker);
         emit statusChanged(scanId);

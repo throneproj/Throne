@@ -16,6 +16,8 @@ namespace Validation {
     class Form;
 }
 
+class ServiceCheckSelector;
+
 class DialogBasicSettings : public QDialog {
     Q_OBJECT
 
@@ -37,6 +39,8 @@ private:
     Validation::Form *form = nullptr;
 
     Engine::EditLock settingsLock{Engine::EditTarget::Settings};
+
+    ServiceCheckSelector *serviceChecks_ = nullptr;
 
     void bindValidation();
 

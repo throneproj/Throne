@@ -201,7 +201,7 @@ namespace Engine {
         // The boot request's serial until the first coreStarted; only that request is refused while the Tun is held.
         quint64 m_bootSerial = 0;
         int m_geoRetriedProfile = -1;
-        // Any thread: bumped by start() and every manual stop.
-        std::atomic<quint64> m_geoRetryToken{0};
+        // Any thread: bumped by every start and manual stop; deferred continuations compare it.
+        std::atomic<quint64> m_intentToken{0};
     };
 } // namespace Engine

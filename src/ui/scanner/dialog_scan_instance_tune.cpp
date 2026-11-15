@@ -257,8 +257,8 @@ void DialogScanInstance::updateTuneControls() {
 
     QString hint = tr("Choose the profile whose settings to search.");
     if (profile != nullptr) {
-        const auto host = DialHost(profile);
-        hint = host.isEmpty() ? tr("The profile has no server address to test.") : tr("Tests through %1").arg(host);
+        const auto dial = DialTargetFor(profile);
+        hint = dial.host.isEmpty() ? tr("The profile has no server address to test.") : tr("Tests through %1").arg(dial.Display());
     } else if (id < 0 && config.tune.profileId >= 0) {
         const auto stored = Configs::dataManager->profilesRepo->GetProfile(config.tune.profileId);
         if (stored == nullptr) {

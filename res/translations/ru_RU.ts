@@ -359,10 +359,6 @@ It stays a preference, not a lock: if that profile stops working the selector st
         <translation>Задержка</translation>
     </message>
     <message>
-        <source>Jitter</source>
-        <translation>Джиттер</translation>
-    </message>
-    <message>
         <source>Checks</source>
         <translation>Проверки</translation>
     </message>
@@ -431,16 +427,40 @@ It stays a preference, not a lock: if that profile stops working the selector st
         <translation>Лучший %1 мс, худший %2 мс</translation>
     </message>
     <message>
-        <source>How much the latency moves around. The selector prefers steady profiles over fast but erratic ones.</source>
-        <translation>Насколько сильно колеблется задержка. Автовыбор отдаёт предпочтение стабильным профилям перед быстрыми, но нестабильными.</translation>
-    </message>
-    <message>
         <source>%1 / %2 ok</source>
         <translation>%1 / %2 ок</translation>
     </message>
     <message>
         <source>Real connection attempts made by apps through this profile.</source>
         <translation>Реальные попытки подключения, предпринятые приложениями через этот профиль.</translation>
+    </message>
+    <message>
+        <source>%1 ok / %2 failed</source>
+        <translation>%1 ок / %2 с ошибкой</translation>
+    </message>
+    <message>
+        <source>It moves back up once a profile from a higher tier passes %1 checks in a row and goes %2 s without a failure.</source>
+        <translation>Автовыбор вернется выше, когда профиль более высокого уровня пройдет подряд нужное число проверок (%1) и проработает %2 сек без сбоев.</translation>
+    </message>
+    <message numerus="yes">
+        <source>Learning from real connections: %n site(s) remember a profile.</source>
+        <translation>
+            <numerusform>Обучение на реальных подключениях: %n сайт помнит свой профиль.</numerusform>
+            <numerusform>Обучение на реальных подключениях: %n сайта помнят свой профиль.</numerusform>
+            <numerusform>Обучение на реальных подключениях: %n сайтов помнят свой профиль.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Real traffic</source>
+        <translation>Реальный трафик</translation>
+    </message>
+    <message>
+        <source>Tier</source>
+        <translation>Уровень</translation>
+    </message>
+    <message>
+        <source>Using tier %1: %2.</source>
+        <translation>Используется уровень %1: %2.</translation>
     </message>
 </context>
 <context>
@@ -974,10 +994,6 @@ The local network stays reachable unless Private Range Bypass is turned off in T
     <message>
         <source>Use Mozilla Certificate Store</source>
         <translation>Исп. хранилище сертификатов Mozilla</translation>
-    </message>
-    <message>
-        <source>Only Country</source>
-        <translation>Только проверка страны</translation>
     </message>
     <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;timeout in milliseconds&lt;br/&gt;applies to all tests individually&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
@@ -1589,6 +1605,10 @@ Throne will restart to complete the restore.</source>
         <source>Window</source>
         <translation>Окно</translation>
     </message>
+    <message>
+        <source>Service check</source>
+        <translation>Проверка сервисов</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>
@@ -1990,6 +2010,94 @@ Throne will restart to complete the restore.</source>
     <message>
         <source>Custom (JSON)</source>
         <translation>Пользовательский (JSON)</translation>
+    </message>
+    <message>
+        <source>AnyTLS</source>
+        <translation>AnyTLS</translation>
+    </message>
+    <message>
+        <source>DNSTT</source>
+        <translation>DNSTT</translation>
+    </message>
+    <message>
+        <source>HTTP</source>
+        <translation>HTTP</translation>
+    </message>
+    <message>
+        <source>Hysteria / Hysteria2</source>
+        <translation>Hysteria / Hysteria2</translation>
+    </message>
+    <message>
+        <source>Juicity</source>
+        <translation>Juicity</translation>
+    </message>
+    <message>
+        <source>MASQUE</source>
+        <translation>MASQUE</translation>
+    </message>
+    <message>
+        <source>MasterDNS</source>
+        <translation>MasterDNS</translation>
+    </message>
+    <message>
+        <source>Mieru</source>
+        <translation>Mieru</translation>
+    </message>
+    <message>
+        <source>NaiveProxy</source>
+        <translation>NaiveProxy</translation>
+    </message>
+    <message>
+        <source>OpenConnect</source>
+        <translation>OpenConnect</translation>
+    </message>
+    <message>
+        <source>OpenVPN</source>
+        <translation>OpenVPN</translation>
+    </message>
+    <message>
+        <source>SOCKS</source>
+        <translation>SOCKS</translation>
+    </message>
+    <message>
+        <source>SSH</source>
+        <translation>SSH</translation>
+    </message>
+    <message>
+        <source>ShadowTLS</source>
+        <translation>ShadowTLS</translation>
+    </message>
+    <message>
+        <source>Shadowsocks</source>
+        <translation>Shadowsocks</translation>
+    </message>
+    <message>
+        <source>Snell</source>
+        <translation>Snell</translation>
+    </message>
+    <message>
+        <source>TUIC</source>
+        <translation>TUIC</translation>
+    </message>
+    <message>
+        <source>Trojan</source>
+        <translation>Trojan</translation>
+    </message>
+    <message>
+        <source>TrustTunnel</source>
+        <translation>TrustTunnel</translation>
+    </message>
+    <message>
+        <source>VLESS</source>
+        <translation>VLESS</translation>
+    </message>
+    <message>
+        <source>VMess</source>
+        <translation>VMess</translation>
+    </message>
+    <message>
+        <source>WireGuard / AmneziaWG</source>
+        <translation>WireGuard / AmneziaWG</translation>
     </message>
 </context>
 <context>
@@ -4475,6 +4583,26 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <source>WARP runs over the selected server.</source>
         <translation>WARP работает поверх выбранного сервера.</translation>
     </message>
+    <message>
+        <source>Sends proxied traffic out through Tor, over the selected server. TCP only.</source>
+        <translation>Направляет проксируемый трафик на выход через Tor поверх выбранного сервера. Только TCP.</translation>
+    </message>
+    <message>
+        <source>Tor download failed</source>
+        <translation>Ошибка загрузки Tor</translation>
+    </message>
+    <message>
+        <source>Tor is installed.</source>
+        <translation>Tor установлен.</translation>
+    </message>
+    <message>
+        <source>Tor will be downloaded when you press OK.</source>
+        <translation>Tor будет загружен после нажатия OK.</translation>
+    </message>
+    <message>
+        <source>[Tor] A download is already running; turn Tor on again once it finishes.</source>
+        <translation>[Tor] Загрузка уже выполняется; включите Tor снова, когда она завершится.</translation>
+    </message>
 </context>
 <context>
     <name>DialogNewScan</name>
@@ -6469,8 +6597,8 @@ Close without saving?</source>
         <translation>Фильтр по названию</translation>
     </message>
     <message>
-        <source>The groups whose profiles this selector picks from. Profiles from every checked group are pooled together, and each one is still wrapped in its own group&apos;s front and landing proxy, so it behaves as if started on its own. New servers added by a subscription update join automatically — you never have to edit this profile again.</source>
-        <translation>Группы, из профилей которых выбирает автовыбор. Профили из всех отмеченных групп объединяются в общий пул, при этом каждый по-прежнему использует фронт-прокси и выходной прокси своей группы, поэтому ведет себя так же, как при отдельном запуске. Новые серверы, добавленные обновлением подписки, подхватываются автоматически — редактировать этот профиль больше не придется.</translation>
+        <source>Profiles from every checked group are pooled; each keeps its own group&apos;s proxies.</source>
+        <translation>Профили из всех отмеченных групп объединяются; каждый сохраняет прокси своей группы.</translation>
     </message>
     <message>
         <source>leave empty to use every profile in the checked groups</source>
@@ -6481,8 +6609,8 @@ Close without saving?</source>
         <translation>Распределить трафик между лучшими профилями</translation>
     </message>
     <message>
-        <source>Off by default: one profile carries everything and the rest stand by. Turn on to spread traffic over the profiles that are confirmed working.</source>
-        <translation>По умолчанию выключено: весь трафик идет через один профиль, остальные в резерве. Включите, чтобы распределять трафик между профилями, работоспособность которых подтверждена.</translation>
+        <source>Spreads traffic over the ready profiles instead of using only the best one.</source>
+        <translation>Распределяет трафик между готовыми профилями, а не использует только лучший.</translation>
     </message>
     <message>
         <source>Preferred profile</source>
@@ -6497,12 +6625,12 @@ Close without saving?</source>
         <translation>Перестать отдавать предпочтение этому профилю и позволить автовыбору снова выбирать на основе измерений.</translation>
     </message>
     <message>
-        <source>Advanced…</source>
-        <translation>Дополнительно…</translation>
+        <source>Advanced ▾</source>
+        <translation>Дополнительно ▾</translation>
     </message>
     <message>
-        <source>Everything here has a working default. Open it only if you want to tune how the selector measures and switches.</source>
-        <translation>У всех параметров здесь есть рабочие значения по умолчанию. Открывайте этот раздел, только если хотите настроить, как автовыбор измеряет профили и переключается между ними.</translation>
+        <source>Every setting here has a working default.</source>
+        <translation>У каждого параметра здесь есть рабочее значение по умолчанию.</translation>
     </message>
     <message>
         <source>Which profiles to use</source>
@@ -6521,40 +6649,8 @@ Close without saving?</source>
         <translation> проф.</translation>
     </message>
     <message>
-        <source>How many profiles are loaded into the running config. The selector switches between these instantly, with no reconnect. Higher costs more memory and startup time.</source>
-        <translation>Сколько профилей загружается в работающую конфигурацию. Автовыбор переключается между ними мгновенно, без переподключения. Чем больше значение, тем больше расход памяти и время запуска.</translation>
-    </message>
-    <message>
-        <source>Rank at most</source>
-        <translation>Ранжировать не более</translation>
-    </message>
-    <message>
-        <source>Hard ceiling on how many profiles are measured and kept in the ranked list. When every running profile dies, replacements are taken from this list.</source>
-        <translation>Жёсткий предел числа профилей, которые измеряются и хранятся в рейтинге. Когда все запущенные профили перестают работать, замена берётся из этого списка.</translation>
-    </message>
-    <message>
-        <source>Trust results for</source>
-        <translation>Срок доверия к результатам</translation>
-    </message>
-    <message>
-        <source> min</source>
-        <translation> мин.</translation>
-    </message>
-    <message>
-        <source>always re-test</source>
-        <translation>всегда перепроверять</translation>
-    </message>
-    <message>
-        <source>URL test results this recent are reused instead of being measured again — including tests you ran yourself on the group, so starting the selector right after one does not repeat the work. Older results are treated as if the profile had never been tested. Set to zero to always run a fresh test.</source>
-        <translation>Результаты URL-тестов не старше этого срока используются повторно вместо новых замеров — в том числе тесты, которые вы сами запускали для группы, так что автовыбор, запущенный сразу после них, не повторяет работу. Профиль с более старыми результатами считается непроверенным. Установите 0, чтобы всегда выполнять новый тест.</translation>
-    </message>
-    <message>
-        <source>Skip failed profiles</source>
-        <translation>Пропускать профили, не прошедшие тест</translation>
-    </message>
-    <message>
-        <source>Keeps servers whose last test failed out of the pool, as long as that result is still within the trust window. Turn off if your tests are unreliable and you would rather let the selector decide for itself.</source>
-        <translation>Исключает из пула серверы, последний тест которых завершился неудачно, пока этот результат не старше срока доверия. Выключите, если ваши тесты ненадежны и вы предпочитаете, чтобы автовыбор решал сам.</translation>
+        <source>How many profiles the running config holds; the selector switches among them instantly.</source>
+        <translation>Сколько профилей содержит работающая конфигурация; автовыбор переключается между ними мгновенно.</translation>
     </message>
     <message>
         <source>Health checks</source>
@@ -6565,16 +6661,8 @@ Close without saving?</source>
         <translation>Держать наготове</translation>
     </message>
     <message>
-        <source>How many profiles are kept confirmed working at all times, so a failure can be covered instantly. These are also the ones traffic is shared between when balancing is on.</source>
-        <translation>Сколько профилей постоянно держать проверенными и рабочими, чтобы при сбое мгновенно переключиться. Между ними же распределяется трафик при включённой балансировке.</translation>
-    </message>
-    <message>
-        <source>Check closely</source>
-        <translation>Часто проверять</translation>
-    </message>
-    <message>
-        <source>The top-ranked profiles are re-checked every interval. The rest are still checked, just spread over the slower full sweep.</source>
-        <translation>Профили из верхней части рейтинга перепроверяются с заданным интервалом проверки. Остальные тоже проверяются, но реже — в ходе более медленного полного прохода.</translation>
+        <source>How many profiles stay confirmed working, for instant failover and for sharing traffic.</source>
+        <translation>Сколько профилей держать проверенными и рабочими — для мгновенной замены при сбое и распределения трафика.</translation>
     </message>
     <message>
         <source>Check interval</source>
@@ -6585,32 +6673,8 @@ Close without saving?</source>
         <translation> сек</translation>
     </message>
     <message>
-        <source>How often the closely-checked profiles are measured again.</source>
-        <translation>Как часто заново измеряются профили из пункта «Часто проверять».</translation>
-    </message>
-    <message>
-        <source>Full sweep every</source>
-        <translation>Полный проход каждые</translation>
-    </message>
-    <message>
-        <source>How long one pass over every running profile takes. Checks are spread evenly across it, so a large pool never causes a burst of traffic.</source>
-        <translation>Сколько длится один проход по всем запущенным профилям. Проверки распределяются по нему равномерно, поэтому даже большой пул не вызывает всплеска трафика.</translation>
-    </message>
-    <message>
-        <source>Watch profile in use</source>
-        <translation>Мониторинг текущего профиля</translation>
-    </message>
-    <message>
-        <source>How often the profile currently carrying your traffic is checked on its own. Keep this short: a server can stop working while still accepting connections, and nothing else would notice until the next full check.</source>
-        <translation>Как часто автоматически проверяется профиль, через который сейчас идёт ваш трафик. Делайте интервал коротким: сервер может перестать работать, продолжая принимать соединения, и до следующей полной проверки этого никто не заметит.</translation>
-    </message>
-    <message>
-        <source>Samples kept</source>
-        <translation>Число хранимых замеров</translation>
-    </message>
-    <message>
-        <source>Ranking uses the average over this many recent checks, so a single bad result cannot demote a good server.</source>
-        <translation>Для ранжирования используется среднее значение по этому числу последних проверок, поэтому один неудачный результат не понизит хороший сервер.</translation>
+        <source>How often the top-ranked profiles are measured again.</source>
+        <translation>Как часто заново измеряются профили из верхней части рейтинга.</translation>
     </message>
     <message>
         <source>Switching</source>
@@ -6625,8 +6689,8 @@ Close without saving?</source>
         <translation> мс</translation>
     </message>
     <message>
-        <source>Another profile must be at least this much faster before the selector moves to it. Higher values mean fewer switches.</source>
-        <translation>Другой профиль должен быть быстрее как минимум на это значение, чтобы автовыбор переключился на него. Чем больше значение, тем реже переключения.</translation>
+        <source>Another profile must be this much faster before the selector moves to it.</source>
+        <translation>Насколько другой профиль должен быть быстрее, чтобы автовыбор переключился на него.</translation>
     </message>
     <message>
         <source>Maximum latency</source>
@@ -6641,40 +6705,16 @@ Close without saving?</source>
         <translation>Профили медленнее этого значения используются, только если ни один более быстрый не работает.</translation>
     </message>
     <message>
-        <source>Failover attempts</source>
-        <translation>Кол-во попыток при сбое</translation>
+        <source>Drop connections when a profile fails</source>
+        <translation>Разрывать подключения при сбое профиля</translation>
     </message>
     <message>
-        <source>When the chosen profile fails to connect, how many others to try immediately before the app sees an error.</source>
-        <translation>Сколько других профилей сразу попробовать, если выбранный не подключается, прежде чем приложение получит ошибку.</translation>
-    </message>
-    <message>
-        <source>Drop connections on switch</source>
-        <translation>Разрывать подключения при переключении</translation>
-    </message>
-    <message>
-        <source>Applies when the selector switches because a profile got worse or failed. On: everything moves to the new profile at once. Off: current downloads finish on the old one. Balance rotations never drop connections either way.</source>
-        <translation>Применяется, когда автовыбор переключается из-за ухудшения или сбоя профиля. Включено: всё сразу переходит на новый профиль. Выключено: текущие загрузки завершаются на старом. Ротация в режиме балансировки в любом случае не разрывает подключения.</translation>
-    </message>
-    <message>
-        <source>Load balancing</source>
-        <translation>Балансировка нагрузки</translation>
-    </message>
-    <message>
-        <source>Mode</source>
-        <translation>Режим</translation>
+        <source>Open connections move at once instead of finishing on the failed profile.</source>
+        <translation>Открытые подключения сразу переходят на другой профиль, а не завершаются на сбойном.</translation>
     </message>
     <message>
         <source>How traffic is spread over the ready profiles.</source>
         <translation>Как трафик распределяется между готовыми профилями.</translation>
-    </message>
-    <message>
-        <source>Rotate every</source>
-        <translation>Переключать каждые</translation>
-    </message>
-    <message>
-        <source>How long the selector stays on one profile before moving to the next ready one.</source>
-        <translation>Как долго автовыбор остаётся на одном профиле, прежде чем перейти к следующему готовому.</translation>
     </message>
     <message>
         <source>Test endpoints</source>
@@ -6701,16 +6741,16 @@ Close without saving?</source>
         <translation>необязательно — наследует «URL проверки Direct»</translation>
     </message>
     <message>
-        <source>Fetched WITHOUT the proxy to tell a dead internet connection apart from dead servers, and to notice the moment it comes back. Leave empty to inherit the Direct Test URL from Basic Settings, and empty there too to rely on the operating system&apos;s network state. A URL that turns out to be blocked can only delay a resume by a few minutes; it can never keep the selector paused.</source>
-        <translation>Запрашивается БЕЗ прокси, чтобы отличить отсутствие интернета от неработающих серверов и сразу заметить, когда связь вернется. Оставьте пустым, чтобы использовать «URL проверки Direct» из основных настроек; если пусто и там, используется состояние сети операционной системы. Если этот URL окажется заблокирован, это лишь задержит возобновление на несколько минут, но никогда не оставит автовыбор на паузе.</translation>
+        <source>Fetched without the proxy to tell a dead internet connection from dead servers.</source>
+        <translation>Запрашивается без прокси, чтобы отличить отсутствие интернета от неработающих серверов.</translation>
     </message>
     <message>
-        <source>Rotate on a timer (keeps sessions stable)</source>
-        <translation>Переключение по таймеру (обеспечивает стабильность сеансов)</translation>
+        <source>Rotate every %1 s</source>
+        <translation>Переключать каждые %1 сек</translation>
     </message>
     <message>
-        <source>Per connection (widest spread)</source>
-        <translation>На каждое подключение (максимальное распределение)</translation>
+        <source>Per connection</source>
+        <translation>На каждое подключение</translation>
     </message>
     <message>
         <source>Advanced ▴</source>
@@ -6725,16 +6765,12 @@ Close without saving?</source>
         <translation>%1 — выбран вами, поэтому автовыбор останется на нём, пока профиль работает</translation>
     </message>
     <message>
-        <source>The best profile carries all traffic; the other ready profiles are kept verified so one can take over instantly.</source>
-        <translation>Лучший профиль обрабатывает весь трафик; остальные готовые профили регулярно проверяются, чтобы любой из них мог мгновенно его заменить.</translation>
+        <source>New connections move to the next ready profile on each rotation; open ones stay put.</source>
+        <translation>При каждой ротации новые подключения переходят на следующий готовый профиль; открытые остаются на месте.</translation>
     </message>
     <message>
-        <source>New connections move to another good profile on each rotation; open ones are left alone and finish where they started. Traffic is counted exactly.</source>
-        <translation>При каждой ротации новые подключения переходят на другой хороший профиль; открытые остаются на прежнем и завершаются там же. Трафик подсчитывается точно.</translation>
-    </message>
-    <message>
-        <source>Every new connection may take a different profile. Widest spread, but your exit IP changes mid-session and per-profile traffic becomes approximate.</source>
-        <translation>Каждое новое подключение может пойти через другой профиль. Максимальное распределение, но ваш внешний IP меняется посреди сеанса, а трафик по профилям считается приблизительно.</translation>
+        <source>Each new connection may take a different profile, so your exit IP can change mid-session.</source>
+        <translation>Каждое новое подключение может пойти через другой профиль, поэтому внешний IP может смениться посреди сеанса.</translation>
     </message>
     <message>
         <source>Check at least one group for this auto selector to track.</source>
@@ -6765,10 +6801,6 @@ Close without saving?</source>
         <translation>, </translation>
     </message>
     <message>
-        <source>Every profile&apos;s last test failed, which usually means the network was down rather than the servers, so all %1 are kept and will be re-checked.</source>
-        <translation>При последней проверке не сработал ни один профиль — обычно это значит, что не работала сеть, а не серверы, поэтому все %1 сохраняются и будут проверены повторно.</translation>
-    </message>
-    <message>
         <source>More than %1 profiles match, so only the best-ranked ones are kept.</source>
         <translation>Подходящих профилей больше %1, поэтому оставлены только лучшие по рейтингу.</translation>
     </message>
@@ -6777,24 +6809,128 @@ Close without saving?</source>
         <translation>Профилей с недавним результатом теста (он будет использован повторно): %1.</translation>
     </message>
     <message>
-        <source>Optional regular expression, matched anywhere in the profile name and ignoring case. Only profiles whose name matches are used.
-Pick several: germany|nl
-Leave some out: ^(?!.*(germany|🇩🇪)).*$ uses every name that contains neither.</source>
-        <translation>Необязательное регулярное выражение; ищется в любом месте названия профиля без учёта регистра. Используются только профили с подходящим названием.
-Выбрать несколько: germany|nl
-Исключить некоторые: ^(?!.*(germany|🇩🇪)).*$ берёт все названия, где нет ни того, ни другого.</translation>
+        <source>Regular expression matched against profile names, ignoring case, e.g. germany|nl.</source>
+        <translation>Регулярное выражение для названий профилей, без учёта регистра, например germany|nl.</translation>
     </message>
     <message>
         <source>e.g. DE,NL,FR or !RU</source>
         <translation>например, DE,NL,FR или !RU</translation>
     </message>
     <message>
-        <source>Comma-separated country codes, empty means any. Put ! before a code to exclude that country instead, e.g. !RU uses every country but Russia. Uses the country found by the IP test, so profiles that were never IP-tested are skipped while this is set.</source>
-        <translation>Коды стран через запятую; пустое поле — любая страна. Поставьте ! перед кодом, чтобы исключить страну, например !RU — все страны, кроме России. Используется страна, определённая IP-тестом, поэтому, пока фильтр задан, профили без IP-теста пропускаются.</translation>
+        <source>Country codes from the IP test, e.g. DE,NL or !RU; profiles never IP-tested are skipped.</source>
+        <translation>Коды стран по IP-тесту, например DE,NL или !RU; профили без IP-теста пропускаются.</translation>
     </message>
     <message>
         <source>The rest will be measured as the selector starts: it runs as soon as enough profiles work, and switches to the full ranking once all are measured.</source>
         <translation>Остальные профили будут измерены при запуске: автовыбор заработает, как только наберётся достаточно рабочих профилей, и перейдёт на полный рейтинг, когда измерены все.</translation>
+    </message>
+    <message>
+        <source>%1 → %2</source>
+        <translation>%1 → %2</translation>
+    </message>
+    <message>
+        <source>A profile belongs to the first tier it matches, and profiles that match none come last. The selector uses the highest tier that has a working profile and, inside it, the best measured one.</source>
+        <translation>Профиль относится к первому подходящему уровню, а профили, не подходящие ни к одному, идут последними. Автовыбор использует самый высокий уровень, где есть рабочий профиль, а внутри него — лучший по замерам.</translation>
+    </message>
+    <message>
+        <source>Add</source>
+        <translation>Добавить</translation>
+    </message>
+    <message>
+        <source>Also judges profiles by your apps&apos; real connections and sets aside ones that keep failing.</source>
+        <translation>Также оценивает профили по реальным подключениям приложений и откладывает те, что продолжают давать сбои.</translation>
+    </message>
+    <message>
+        <source>Any group</source>
+        <translation>Любая группа</translation>
+    </message>
+    <message>
+        <source>By tier: %1.</source>
+        <translation>По уровням: %1.</translation>
+    </message>
+    <message>
+        <source>Choose</source>
+        <translation>Выбор</translation>
+    </message>
+    <message>
+        <source>Fastest</source>
+        <translation>Самый быстрый</translation>
+    </message>
+    <message>
+        <source>Fastest takes the best measured profile; priority order takes the highest tier that works.</source>
+        <translation>«Самый быстрый» берёт лучший по замерам профиль, «По приоритету» — самый высокий работающий уровень.</translation>
+    </message>
+    <message>
+        <source>Group</source>
+        <translation>Группа</translation>
+    </message>
+    <message>
+        <source>In priority order</source>
+        <translation>По приоритету</translation>
+    </message>
+    <message>
+        <source>Learn from real connections</source>
+        <translation>Учиться на реальных подключениях</translation>
+    </message>
+    <message>
+        <source>More than %1 profiles match, so only the best-ranked ones of each tier are kept.</source>
+        <translation>Подходящих профилей больше %1, поэтому на каждом уровне оставлены только лучшие по рейтингу.</translation>
+    </message>
+    <message>
+        <source>Move down</source>
+        <translation>Ниже</translation>
+    </message>
+    <message>
+        <source>Move up</source>
+        <translation>Выше</translation>
+    </message>
+    <message>
+        <source>Names matching</source>
+        <translation>Фильтр по названию</translation>
+    </message>
+    <message>
+        <source>No usable profile belongs to tier %1.</source>
+        <translation>На уровне %1 нет пригодных профилей.</translation>
+    </message>
+    <message>
+        <source>No usable profile belongs to tiers %1.</source>
+        <translation>На уровнях %1 нет пригодных профилей.</translation>
+    </message>
+    <message>
+        <source>Optional regular expression over the profile name, e.g. ^DE or germany|nl.</source>
+        <translation>Необязательное регулярное выражение для названия профиля, например ^DE или germany|nl.</translation>
+    </message>
+    <message>
+        <source>Priority tiers</source>
+        <translation>Уровни приоритета</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation>Удалить</translation>
+    </message>
+    <message>
+        <source>Tier %1: %2</source>
+        <translation>Уровень %1: %2</translation>
+    </message>
+    <message>
+        <source>Too few profiles may run to cover every tier, so tier %1 runs none.</source>
+        <translation>Лимит запускаемых профилей слишком мал, чтобы охватить все уровни, поэтому на уровне %1 не запускается ни один.</translation>
+    </message>
+    <message>
+        <source>Too few profiles may run to cover every tier, so tiers %1 run none.</source>
+        <translation>Лимит запускаемых профилей слишком мал, чтобы охватить все уровни, поэтому на уровнях %1 не запускается ни один.</translation>
+    </message>
+    <message>
+        <source>any name</source>
+        <translation>любое название</translation>
+    </message>
+    <message>
+        <source>everything else</source>
+        <translation>все остальное</translation>
+    </message>
+    <message>
+        <source>missing group</source>
+        <translation>группа отсутствует</translation>
     </message>
 </context>
 <context>
@@ -10503,16 +10639,8 @@ URL: %2</translation>
         <translation>Недоступен</translation>
     </message>
     <message>
-        <source>The last test did not exit completely, please wait. If it persists, please restart the program.</source>
-        <translation>Предыдущий тест еще не завершился, подождите. Если проблема не исчезнет, перезапустите программу.</translation>
-    </message>
-    <message>
         <source>IP test finished!</source>
         <translation>Тест IP завершён!</translation>
-    </message>
-    <message>
-        <source>The last test did not finish completely, please wait. If it persists, please restart the program.</source>
-        <translation>Предыдущий тест еще не завершился, подождите. Если проблема не исчезнет, перезапустите программу.</translation>
     </message>
     <message>
         <source>Failed to build batch test config: </source>
@@ -11015,10 +11143,6 @@ Please try again.</source>
         <translation>Тест скорости всей группы</translation>
     </message>
     <message>
-        <source>The last url test did not exit completely, please wait. If it persists, please restart the program.</source>
-        <translation>Предыдущий тест задержки еще не завершился, подождите. Если проблема не исчезнет, перезапустите программу.</translation>
-    </message>
-    <message>
         <source>URL test finished!</source>
         <translation>Тест задержки завершён!</translation>
     </message>
@@ -11509,6 +11633,74 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
     <message>
         <source>Deep Link</source>
         <translation>Deep Link</translation>
+    </message>
+    <message>
+        <source>Another test is still running. Wait for it to finish, or stop it first.</source>
+        <translation>Другой тест еще выполняется. Дождитесь его завершения или сначала остановите его.</translation>
+    </message>
+    <message>
+        <source>China</source>
+        <translation>Китай</translation>
+    </message>
+    <message>
+        <source>Close Routing Settings before switching the routing profile.</source>
+        <translation>Закройте настройки маршрутизации, прежде чем переключать профиль маршрутизации.</translation>
+    </message>
+    <message>
+        <source>Disabled</source>
+        <translation>Выключено</translation>
+    </message>
+    <message>
+        <source>Downloading %1: %2 %3</source>
+        <translation>Загрузка %1: %2 %3</translation>
+    </message>
+    <message>
+        <source>IP test failed: %1</source>
+        <translation>Не удалось выполнить тест IP: %1</translation>
+    </message>
+    <message>
+        <source>Iran</source>
+        <translation>Иран</translation>
+    </message>
+    <message>
+        <source>Mixed: %1</source>
+        <translation>Mixed: %1</translation>
+    </message>
+    <message>
+        <source>Running IP test</source>
+        <translation>Выполняется тест IP</translation>
+    </message>
+    <message>
+        <source>Running Speedtest: %1</source>
+        <translation>Выполняется тест скорости: %1</translation>
+    </message>
+    <message>
+        <source>Running URL test</source>
+        <translation>Выполняется тест задержки</translation>
+    </message>
+    <message>
+        <source>Running service check</source>
+        <translation>Выполняется проверка сервисов</translation>
+    </message>
+    <message>
+        <source>Russia</source>
+        <translation>Россия</translation>
+    </message>
+    <message>
+        <source>Server: %1%2, %3</source>
+        <translation>Сервер: %1%2, %3</translation>
+    </message>
+    <message>
+        <source>Speed test failed: %1</source>
+        <translation>Не удалось выполнить тест скорости: %1</translation>
+    </message>
+    <message>
+        <source>URL test failed: %1</source>
+        <translation>Не удалось выполнить тест задержки: %1</translation>
+    </message>
+    <message>
+        <source>No services are selected for the service check. Choose them in Basic Settings.</source>
+        <translation>Для проверки сервисов не выбрано ни одного сервиса. Выберите их в «Основных настройках».</translation>
     </message>
 </context>
 <context>
@@ -12174,10 +12366,6 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
     <message>
         <source>filtered out by country</source>
         <translation>отфильтрованы по стране</translation>
-    </message>
-    <message>
-        <source>last test failed</source>
-        <translation>последний тест завершился с ошибкой</translation>
     </message>
     <message>
         <source>Xray full config cannot be combined with the group&apos;s proxies</source>
@@ -13136,14 +13324,6 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
         <translation>Сбой</translation>
     </message>
     <message>
-        <source>IP</source>
-        <translation>IP</translation>
-    </message>
-    <message>
-        <source>risk %1</source>
-        <translation>риск %1</translation>
-    </message>
-    <message>
         <source>Choose the profile to find working settings for</source>
         <translation>Выберите профиль, для которого нужно найти рабочие настройки</translation>
     </message>
@@ -13290,6 +13470,114 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
     <message>
         <source>Tor is enabled but not downloaded yet. Open Routing Settings &gt; Egress and press OK to download it.</source>
         <translation>Tor включён, но ещё не загружен. Откройте «Настройки маршрутизации &gt; Выход» и нажмите OK, чтобы загрузить его.</translation>
+    </message>
+    <message>
+        <source>%1 is not in the Tor Project&apos;s checksum list.</source>
+        <translation>%1 отсутствует в списке контрольных сумм Tor Project.</translation>
+    </message>
+    <message>
+        <source>%1 suspect</source>
+        <translation>под подозрением %1</translation>
+    </message>
+    <message>
+        <source>Auto selector on %1, tier %2 (%3 of %4 working)</source>
+        <translation>Автовыбор: %1, уровень %2 (работает %3 из %4)</translation>
+    </message>
+    <message>
+        <source>Could not get the Tor checksums: %1</source>
+        <translation>Не удалось получить контрольные суммы Tor: %1</translation>
+    </message>
+    <message>
+        <source>Could not look up the Tor version: %1</source>
+        <translation>Не удалось узнать версию Tor: %1</translation>
+    </message>
+    <message>
+        <source>Could not sign %1 (codesign exit code %2).</source>
+        <translation>Не удалось подписать %1 (код выхода codesign: %2).</translation>
+    </message>
+    <message>
+        <source>Group &quot;%1&quot; has a front or landing proxy that uses an extra core or is a full config, so its profiles cannot be routing rule outbounds</source>
+        <translation>У группы «%1» фронт-прокси или выходной прокси использует доп. ядро или является полной конфигурацией, поэтому ее профили нельзя использовать как outbound в правилах маршрутизации</translation>
+    </message>
+    <message>
+        <source>No profile can be used to build the routing configuration: add a proxy profile first.</source>
+        <translation>Нет профиля, с которым можно собрать конфигурацию маршрутизации: сначала добавьте профиль прокси.</translation>
+    </message>
+    <message>
+        <source>Recently %1 answered and %2 failed, older connections counting less. The profile is set aside once failures reach 3 and are at least as many as the answers.</source>
+        <translation>Недавно: ответов — %1, сбоев — %2, старые подключения учитываются с меньшим весом. Профиль временно исключается, когда сбоев становится 3 или больше и не меньше, чем ответов.</translation>
+    </message>
+    <message>
+        <source>Suspect</source>
+        <translation>Под подозрением</translation>
+    </message>
+    <message>
+        <source>The Tor Project publishes no Tor build for this platform.</source>
+        <translation>Tor Project не публикует сборку Tor для этой платформы.</translation>
+    </message>
+    <message>
+        <source>The Tor download list names no usable version.</source>
+        <translation>В списке загрузок Tor нет подходящей версии.</translation>
+    </message>
+    <message>
+        <source>The core did not answer.</source>
+        <translation>Ядро не ответило.</translation>
+    </message>
+    <message>
+        <source>The routing profile no longer exists.</source>
+        <translation>Профиль маршрутизации больше не существует.</translation>
+    </message>
+    <message>
+        <source>Time to the first reply: %1 ms on average, recent connections counting most.</source>
+        <translation>Время до первого ответа: в среднем %1 мс, недавние подключения учитываются с наибольшим весом.</translation>
+    </message>
+    <message>
+        <source>Time to the first reply: none yet.</source>
+        <translation>Время до первого ответа: пока нет данных.</translation>
+    </message>
+    <message>
+        <source>any profile</source>
+        <translation>любой профиль</translation>
+    </message>
+    <message>
+        <source>everything else</source>
+        <translation>все остальное</translation>
+    </message>
+    <message>
+        <source>names matching %1</source>
+        <translation>названия по шаблону %1</translation>
+    </message>
+    <message>
+        <source>real connections failing — retried in %1s</source>
+        <translation>реальные подключения не проходят — повтор через %1 сек.</translation>
+    </message>
+    <message>
+        <source>real connections failing — retried soon</source>
+        <translation>реальные подключения не проходят — скоро повтор</translation>
+    </message>
+    <message>
+        <source>recovering</source>
+        <translation>восстанавливается</translation>
+    </message>
+    <message>
+        <source>recovering — %1 of %2 checks passed</source>
+        <translation>восстанавливается — пройдено проверок: %1 из %2</translation>
+    </message>
+    <message>
+        <source>recovering — moving back in %1s</source>
+        <translation>восстанавливается — возврат через %1 сек.</translation>
+    </message>
+    <message>
+        <source>tier %1</source>
+        <translation>уровень %1</translation>
+    </message>
+    <message>
+        <source>The kill switch blocks this request while no profile is running.</source>
+        <translation>Kill switch блокирует этот запрос, пока не запущен ни один профиль.</translation>
+    </message>
+    <message>
+        <source>%1: %2</source>
+        <translation>%1: %2</translation>
     </message>
 </context>
 <context>
@@ -13880,6 +14168,14 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Disabled: kept in the profile but left out of the generated config.</source>
         <translation>Отключено: правило сохраняется в профиле, но не включается в итоговую конфигурацию.</translation>
+    </message>
+    <message>
+        <source>Add Program…</source>
+        <translation>Добавить программу…</translation>
+    </message>
+    <message>
+        <source>Pick a program that is running or has used the network, spelled exactly as the core matches it.</source>
+        <translation>Выберите программу, которая запущена или уже обращалась к сети; она будет записана именно так, как ее сопоставляет ядро.</translation>
     </message>
 </context>
 <context>
@@ -15748,26 +16044,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>&quot;%1&quot; is not a valid port; use a number from 1 to 65535.</source>
         <translation>«%1» — недопустимый порт; укажите число от 1 до 65535.</translation>
-    </message>
-    <message>
-        <source>Cannot run more profiles than are ranked (%1).</source>
-        <translation>Нельзя запускать больше профилей, чем ранжируется (%1).</translation>
-    </message>
-    <message>
-        <source>The full sweep cannot run more often than the check interval (%1 s).</source>
-        <translation>Полный проход не может выполняться чаще интервала проверки (%1 сек).</translation>
-    </message>
-    <message>
-        <source>Watching the profile in use cannot be slower than the check interval (%1 s).</source>
-        <translation>Мониторинг текущего профиля не может выполняться реже интервала проверки (%1 сек).</translation>
-    </message>
-    <message>
-        <source>Check closely at least as many profiles as are kept ready (%1).</source>
-        <translation>Часто проверяемых профилей должно быть не меньше, чем профилей наготове (%1).</translation>
-    </message>
-    <message>
-        <source>Cannot check closely more profiles than are run (%1).</source>
-        <translation>Часто проверяемых профилей не может быть больше, чем запускаемых (%1).</translation>
     </message>
     <message>
         <source>Removed the Tor executable path from the imported configuration; add it back only if you trust that program.</source>
@@ -17669,6 +17945,30 @@ Remove that endpoint from this routing profile as well?</source>
         <source>The certificate chain pin replaces certificate verification; clear the TLS certificate and certificate pins.</source>
         <translation>Хеш цепочки сертификатов заменяет проверку сертификата; очистите сертификат TLS и закрепление сертификатов.</translation>
     </message>
+    <message>
+        <source>Add at least one tier to choose in priority order.</source>
+        <translation>Добавьте хотя бы один уровень для выбора по приоритету.</translation>
+    </message>
+    <message>
+        <source>Pick a group or enter a name pattern for this tier.</source>
+        <translation>Выберите группу или введите шаблон названия для этого уровня.</translation>
+    </message>
+    <message>
+        <source>Server %1 (&quot;%2&quot;): %3</source>
+        <translation>Сервер %1 («%2»): %3</translation>
+    </message>
+    <message>
+        <source>The core reports this path as %1 and compares it letter for letter, case included, so this never matches.</source>
+        <translation>Ядро определяет этот путь как %1 и сравнивает его посимвольно, с учетом регистра, поэтому это условие никогда не сработает.</translation>
+    </message>
+    <message>
+        <source>The core reports this program as %1 and compares names letter for letter, case included, so this never matches.</source>
+        <translation>Ядро определяет эту программу как %1 и сравнивает имена посимвольно, с учетом регистра, поэтому это условие никогда не сработает.</translation>
+    </message>
+    <message>
+        <source>Windows reports program paths with \, so a path written with / never matches.</source>
+        <translation>Windows записывает пути программ через \, поэтому путь, записанный через /, никогда не сработает.</translation>
+    </message>
 </context>
 <context>
     <name>Sys::CoreElevation</name>
@@ -17834,6 +18134,10 @@ Remove that endpoint from this routing profile as well?</source>
         <source>Use the global DNS settings</source>
         <translation>Использовать глобальные настройки DNS</translation>
     </message>
+    <message>
+        <source>Separate several servers with commas: they are queried together and the first answer wins.</source>
+        <translation>Несколько серверов разделяйте запятыми: запросы к ним отправляются одновременно, и используется первый ответ.</translation>
+    </message>
 </context>
 <context>
     <name>XrayMuxSettingsWidget</name>
@@ -17977,6 +18281,591 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Select All</source>
         <translation>Выделить всё</translation>
+    </message>
+</context>
+<context>
+    <name>DialogRuleTester</name>
+    <message numerus="yes">
+        <source>%n endpoint rule(s) were skipped: they need a running profile.</source>
+        <translation>
+            <numerusform>%n правило для конечной точки пропущено: ему нужен запущенный профиль.</numerusform>
+            <numerusform>%n правила для конечных точек пропущены: им нужен запущенный профиль.</numerusform>
+            <numerusform>%n правил для конечных точек пропущено: им нужен запущенный профиль.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>1.1.1.1 or 2606:4700::1111</source>
+        <translation>1.1.1.1 или 2606:4700::1111</translation>
+    </message>
+    <message>
+        <source>Action</source>
+        <translation>Действие</translation>
+    </message>
+    <message>
+        <source>AdBlock</source>
+        <translation>AdBlock</translation>
+    </message>
+    <message>
+        <source>Addresses: %1</source>
+        <translation>Адреса: %1</translation>
+    </message>
+    <message>
+        <source>Auto (by port)</source>
+        <translation>Авто (по порту)</translation>
+    </message>
+    <message>
+        <source>Block</source>
+        <translation>Блокировать</translation>
+    </message>
+    <message>
+        <source>Block the rest (Throne)</source>
+        <translation>Блокировать остальное (Throne)</translation>
+    </message>
+    <message>
+        <source>Built with %1</source>
+        <translation>Собрано с профилем %1</translation>
+    </message>
+    <message>
+        <source>Bypass</source>
+        <translation>Обход</translation>
+    </message>
+    <message>
+        <source>Bypass to %1</source>
+        <translation>Обход: %1</translation>
+    </message>
+    <message>
+        <source>Choose from running programs and the ones seen connecting, or browse for a file.</source>
+        <translation>Выбрать из запущенных программ и тех, что уже подключались, или указать файл.</translation>
+    </message>
+    <message>
+        <source>Could not build the configuration: %1</source>
+        <translation>Не удалось собрать конфигурацию: %1</translation>
+    </message>
+    <message>
+        <source>DNS hijack (Throne)</source>
+        <translation>Перехват DNS (Throne)</translation>
+    </message>
+    <message>
+        <source>DNS inbound guard (Throne)</source>
+        <translation>Защита DNS inbound (Throne)</translation>
+    </message>
+    <message>
+        <source>Destination: %1</source>
+        <translation>Пункт назначения: %1</translation>
+    </message>
+    <message>
+        <source>Details</source>
+        <translation>Подробности</translation>
+    </message>
+    <message>
+        <source>Direct</source>
+        <translation>Напрямую</translation>
+    </message>
+    <message>
+        <source>Direct (L3 bridge)</source>
+        <translation>Напрямую (L3-мост)</translation>
+    </message>
+    <message>
+        <source>Domain</source>
+        <translation>Домен</translation>
+    </message>
+    <message>
+        <source>Domain resolve (Throne)</source>
+        <translation>Разрешение доменов (Throne)</translation>
+    </message>
+    <message>
+        <source>Domain: %1</source>
+        <translation>Домен: %1</translation>
+    </message>
+    <message>
+        <source>Endpoint: %1</source>
+        <translation>Конечная точка: %1</translation>
+    </message>
+    <message>
+        <source>Enter a process, a domain or an IP address.</source>
+        <translation>Введите процесс, домен или IP-адрес.</translation>
+    </message>
+    <message>
+        <source>Error: %1</source>
+        <translation>Ошибка: %1</translation>
+    </message>
+    <message>
+        <source>Extra core goes direct (Throne)</source>
+        <translation>Доп. ядро напрямую (Throne)</translation>
+    </message>
+    <message>
+        <source>Found %1, domain %2</source>
+        <translation>Найден %1, домен %2</translation>
+    </message>
+    <message>
+        <source>Found %1, no domain</source>
+        <translation>Найден %1, без домена</translation>
+    </message>
+    <message>
+        <source>Found nothing</source>
+        <translation>Ничего не найдено</translation>
+    </message>
+    <message>
+        <source>Handled as DNS</source>
+        <translation>Обработано как DNS</translation>
+    </message>
+    <message>
+        <source>Handled as DNS by %1</source>
+        <translation>Обработано как DNS: %1</translation>
+    </message>
+    <message>
+        <source>Hijack DNS</source>
+        <translation>Перехват DNS</translation>
+    </message>
+    <message>
+        <source>IP address</source>
+        <translation>IP-адрес</translation>
+    </message>
+    <message>
+        <source>Inbound: %1</source>
+        <translation>Inbound: %1</translation>
+    </message>
+    <message>
+        <source>L3 bridge copy of %1</source>
+        <translation>Копия для L3-моста: %1</translation>
+    </message>
+    <message>
+        <source>L3 bridge direct (Throne)</source>
+        <translation>L3-мост напрямую (Throne)</translation>
+    </message>
+    <message>
+        <source>Matched %1</source>
+        <translation>Совпадение: %1</translation>
+    </message>
+    <message>
+        <source>Network</source>
+        <translation>Сеть</translation>
+    </message>
+    <message>
+        <source>No rule matched: the default outbound applies.</source>
+        <translation>Ни одно правило не совпало: применяется outbound по умолчанию.</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation>Нет</translation>
+    </message>
+    <message>
+        <source>Nothing is running, so the test builds the configuration this routing profile would start with. Outbounds are not dialed, endpoint rules are skipped and domains resolve with the system resolver.</source>
+        <translation>Ничего не запущено, поэтому для проверки собирается конфигурация, с которой запустился бы этот профиль маршрутизации. Подключения к outbound не устанавливаются, правила для конечных точек пропускаются, а домены разрешаются системным резолвером.</translation>
+    </message>
+    <message>
+        <source>Onion sites via Tor (Throne)</source>
+        <translation>Onion-сайты через Tor (Throne)</translation>
+    </message>
+    <message>
+        <source>Pick…</source>
+        <translation>Выбрать…</translation>
+    </message>
+    <message>
+        <source>Port</source>
+        <translation>Порт</translation>
+    </message>
+    <message>
+        <source>Process</source>
+        <translation>Процесс</translation>
+    </message>
+    <message>
+        <source>Raw rule %1</source>
+        <translation>Raw-правило %1</translation>
+    </message>
+    <message>
+        <source>Reject</source>
+        <translation>Отклонить</translation>
+    </message>
+    <message>
+        <source>Rejected</source>
+        <translation>Отклонено</translation>
+    </message>
+    <message>
+        <source>Rejected by %1</source>
+        <translation>Отклонено: %1</translation>
+    </message>
+    <message>
+        <source>Resolve</source>
+        <translation>Разрешение домена</translation>
+    </message>
+    <message>
+        <source>Resolved to %1</source>
+        <translation>Разрешено в %1</translation>
+    </message>
+    <message>
+        <source>Route</source>
+        <translation>Маршрут</translation>
+    </message>
+    <message>
+        <source>Route options</source>
+        <translation>Параметры маршрута</translation>
+    </message>
+    <message>
+        <source>Route to %1</source>
+        <translation>Маршрут: %1</translation>
+    </message>
+    <message>
+        <source>Routing profile</source>
+        <translation>Профиль маршрутизации</translation>
+    </message>
+    <message>
+        <source>Rule</source>
+        <translation>Правило</translation>
+    </message>
+    <message>
+        <source>Rule %1</source>
+        <translation>Правило %1</translation>
+    </message>
+    <message>
+        <source>Select a routing profile to test.</source>
+        <translation>Выберите профиль маршрутизации для проверки.</translation>
+    </message>
+    <message>
+        <source>Sniff</source>
+        <translation>Сниффинг</translation>
+    </message>
+    <message>
+        <source>Sniff (Throne)</source>
+        <translation>Сниффинг (Throne)</translation>
+    </message>
+    <message>
+        <source>Sniffed protocol</source>
+        <translation>Распознанный протокол</translation>
+    </message>
+    <message>
+        <source>System DNS (Throne)</source>
+        <translation>Системный DNS (Throne)</translation>
+    </message>
+    <message>
+        <source>Test</source>
+        <translation>Проверить</translation>
+    </message>
+    <message>
+        <source>Testing the running configuration, routing profile “%1”.</source>
+        <translation>Проверяется текущая конфигурация, профиль маршрутизации «%1».</translation>
+    </message>
+    <message>
+        <source>Testing the running configuration.</source>
+        <translation>Проверяется текущая конфигурация.</translation>
+    </message>
+    <message>
+        <source>Testing the running configuration. It is a custom configuration, so rules are shown as sing-box describes them.</source>
+        <translation>Проверяется текущая конфигурация. Это пользовательская конфигурация, поэтому правила показаны так, как их описывает sing-box.</translation>
+    </message>
+    <message>
+        <source>Testing…</source>
+        <translation>Проверка…</translation>
+    </message>
+    <message>
+        <source>The connection would be closed: %1</source>
+        <translation>Соединение было бы закрыто: %1</translation>
+    </message>
+    <message>
+        <source>The test failed: %1</source>
+        <translation>Проверка не удалась: %1</translation>
+    </message>
+    <message>
+        <source>Tunnel gate (Throne)</source>
+        <translation>Фильтр туннеля (Throne)</translation>
+    </message>
+    <message>
+        <source>Unknown outbound</source>
+        <translation>Неизвестный outbound</translation>
+    </message>
+    <message>
+        <source>What a sniff rule finds in the connection&apos;s first packets.</source>
+        <translation>Что правило сниффинга находит в первых пакетах соединения.</translation>
+    </message>
+    <message>
+        <source>Xray bridge (Throne)</source>
+        <translation>Мост Xray (Throne)</translation>
+    </message>
+    <message>
+        <source>a protocol</source>
+        <translation>протокол</translation>
+    </message>
+    <message>
+        <source>chrome.exe or full path</source>
+        <translation>chrome.exe или полный путь</translation>
+    </message>
+    <message>
+        <source>example.com</source>
+        <translation>example.com</translation>
+    </message>
+    <message>
+        <source>raw rule %1</source>
+        <translation>raw-правило %1</translation>
+    </message>
+    <message>
+        <source>rule %1</source>
+        <translation>правило %1</translation>
+    </message>
+    <message>
+        <source>the core did not answer</source>
+        <translation>ядро не ответило</translation>
+    </message>
+    <message>
+        <source>unknown error</source>
+        <translation>неизвестная ошибка</translation>
+    </message>
+    <message>
+        <source>“%1”</source>
+        <translation>«%1»</translation>
+    </message>
+    <message>
+        <source>“%1” is an IP address: enter it under IP address.</source>
+        <translation>«%1» — это IP-адрес: введите его в поле «IP-адрес».</translation>
+    </message>
+    <message>
+        <source>“%1” is not a valid domain.</source>
+        <translation>«%1» — недопустимый домен.</translation>
+    </message>
+    <message>
+        <source>“%1” is not an IP address.</source>
+        <translation>«%1» — не IP-адрес.</translation>
+    </message>
+</context>
+<context>
+    <name>ProcessPicker</name>
+    <message>
+        <source>%1 holds many other programs, and the rule catches all of them.</source>
+        <translation>%1 содержит много других программ, и правило охватит их все.</translation>
+    </message>
+    <message>
+        <source>%1 is a script: what connects is the interpreter that runs it, which other scripts share.</source>
+        <translation>%1 — это скрипт: подключается интерпретатор, который его запускает, а им пользуются и другие скрипты.</translation>
+    </message>
+    <message>
+        <source>%1 runs many unrelated programs, so the rule catches all of them.</source>
+        <translation>%1 запускает много не связанных между собой программ, поэтому правило охватит их все.</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n d ago</source>
+        <translation>
+            <numerusform>%n дн. назад</numerusform>
+            <numerusform>%n дн. назад</numerusform>
+            <numerusform>%n дн. назад</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n h ago</source>
+        <translation>
+            <numerusform>%n ч. назад</numerusform>
+            <numerusform>%n ч. назад</numerusform>
+            <numerusform>%n ч. назад</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n min ago</source>
+        <translation>
+            <numerusform>%n мин. назад</numerusform>
+            <numerusform>%n мин. назад</numerusform>
+            <numerusform>%n мин. назад</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Activity</source>
+        <translation>Активность</translation>
+    </message>
+    <message>
+        <source>Add</source>
+        <translation>Добавить</translation>
+    </message>
+    <message>
+        <source>Add Programs</source>
+        <translation>Добавление программ</translation>
+    </message>
+    <message>
+        <source>Adds: %1</source>
+        <translation>Будут добавлены: %1</translation>
+    </message>
+    <message>
+        <source>App folder</source>
+        <translation>Папка приложения</translation>
+    </message>
+    <message>
+        <source>Applications (*.app);;All files (*)</source>
+        <translation>Приложения (*.app);;Все файлы (*)</translation>
+    </message>
+    <message>
+        <source>Apps like %1 often connect from helper programs inside the bundle; match by app folder to catch them too.</source>
+        <translation>Приложения вроде %1 часто подключаются через вспомогательные программы внутри пакета; чтобы охватить и их, выберите сопоставление по папке приложения.</translation>
+    </message>
+    <message>
+        <source>Browse…</source>
+        <translation>Обзор…</translation>
+    </message>
+    <message>
+        <source>Choose</source>
+        <translation>Выбрать</translation>
+    </message>
+    <message>
+        <source>Choose a Program</source>
+        <translation>Выбор программы</translation>
+    </message>
+    <message>
+        <source>Chosen file</source>
+        <translation>Выбранный файл</translation>
+    </message>
+    <message>
+        <source>Connected now</source>
+        <translation>Подключено сейчас</translation>
+    </message>
+    <message>
+        <source>Everything, with services and system programs</source>
+        <translation>Все, включая службы и системные программы</translation>
+    </message>
+    <message>
+        <source>Exact path</source>
+        <translation>Точный путь</translation>
+    </message>
+    <message>
+        <source>Looking for programs…</source>
+        <translation>Поиск программ…</translation>
+    </message>
+    <message>
+        <source>Match by:</source>
+        <translation>Сопоставлять по:</translation>
+    </message>
+    <message>
+        <source>Matches every program in the app&apos;s folder, helpers and later versions included (process_path_regex).</source>
+        <translation>Охватывает все программы в папке приложения, включая вспомогательные и будущие версии (process_path_regex).</translation>
+    </message>
+    <message>
+        <source>Matches only this file (process_path).</source>
+        <translation>Охватывает только этот файл (process_path).</translation>
+    </message>
+    <message>
+        <source>Matches the program wherever it is installed (process_name).</source>
+        <translation>Охватывает программу, где бы она ни была установлена (process_name).</translation>
+    </message>
+    <message>
+        <source>More warnings for the other selected programs.</source>
+        <translation>Есть и другие предупреждения для остальных выбранных программ.</translation>
+    </message>
+    <message>
+        <source>Path</source>
+        <translation>Путь</translation>
+    </message>
+    <message>
+        <source>Program</source>
+        <translation>Программа</translation>
+    </message>
+    <message>
+        <source>Program name</source>
+        <translation>Имя программы</translation>
+    </message>
+    <message>
+        <source>Programs</source>
+        <translation>Программы</translation>
+    </message>
+    <message>
+        <source>Programs (*.exe);;All files (*)</source>
+        <translation>Программы (*.exe);;Все файлы (*)</translation>
+    </message>
+    <message>
+        <source>Refresh</source>
+        <translation>Обновить</translation>
+    </message>
+    <message>
+        <source>Running</source>
+        <translation>Выполняется</translation>
+    </message>
+    <message>
+        <source>Running (%1)</source>
+        <translation>Выполняется (%1)</translation>
+    </message>
+    <message>
+        <source>Search by name or path</source>
+        <translation>Поиск по имени или пути</translation>
+    </message>
+    <message>
+        <source>Seen %1</source>
+        <translation>Замечено %1</translation>
+    </message>
+    <message>
+        <source>Select a program, or browse for one.</source>
+        <translation>Выберите программу или укажите файл.</translation>
+    </message>
+    <message>
+        <source>Select one or more programs, or browse for one.</source>
+        <translation>Выберите одну или несколько программ или укажите файл.</translation>
+    </message>
+    <message>
+        <source>Service: %1</source>
+        <translation>Служба: %1</translation>
+    </message>
+    <message>
+        <source>Some programs could not be listed: %1</source>
+        <translation>Не удалось получить список некоторых программ: %1</translation>
+    </message>
+    <message>
+        <source>The core could not read where %1 is, so it can only be matched by name.</source>
+        <translation>Ядру не удалось определить расположение %1, поэтому сопоставление возможно только по имени.</translation>
+    </message>
+    <message>
+        <source>The core could not read where this program is.</source>
+        <translation>Ядру не удалось определить расположение этой программы.</translation>
+    </message>
+    <message>
+        <source>The core did not answer, so running programs are not listed.</source>
+        <translation>Ядро не ответило, поэтому запущенные программы не показаны.</translation>
+    </message>
+    <message>
+        <source>The core is not connected, so running programs are not listed.</source>
+        <translation>Ядро не подключено, поэтому запущенные программы не показаны.</translation>
+    </message>
+    <message>
+        <source>The path of %1 has a version number in it, so the rule stops matching after an update.</source>
+        <translation>Путь к %1 содержит номер версии, поэтому после обновления правило перестанет срабатывать.</translation>
+    </message>
+    <message numerus="yes">
+        <source>and %n more</source>
+        <translation>
+            <numerusform>и еще %n</numerusform>
+            <numerusform>и еще %n</numerusform>
+            <numerusform>и еще %n</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>just now</source>
+        <translation>только что</translation>
+    </message>
+</context>
+<context>
+    <name>ServiceCheckSelector</name>
+    <message>
+        <source>Loading services</source>
+        <translation>Загрузка сервисов</translation>
+    </message>
+    <message>
+        <source>Cannot load services: %1</source>
+        <translation>Не удалось загрузить сервисы: %1</translation>
+    </message>
+    <message>
+        <source>No services available</source>
+        <translation>Нет доступных сервисов</translation>
+    </message>
+    <message>
+        <source>AI</source>
+        <translation>ИИ</translation>
+    </message>
+    <message>
+        <source>Streaming</source>
+        <translation>Стриминг</translation>
+    </message>
+    <message>
+        <source>Social</source>
+        <translation>Соцсети</translation>
+    </message>
+    <message>
+        <source>IP reputation</source>
+        <translation>Репутация IP</translation>
+    </message>
+    <message>
+        <source>Other</source>
+        <translation>Другое</translation>
     </message>
 </context>
 </TS>

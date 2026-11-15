@@ -4,6 +4,7 @@
 #include "include/database/DatabaseManager.h"
 #include "include/database/GroupsRepo.h"
 #include "include/database/entities/Profile.h"
+#include "include/engine/EditLocks.h"
 #include "include/engine/EnginePolicy.h"
 #include "include/engine/EngineTr.h"
 #include "include/engine/ThreadCheck.h"
@@ -210,6 +211,11 @@ namespace Engine {
         ENGINE_CHECK_MAIN_THREAD();
         const auto &settings = Configs::dataManager->settingsRepo;
         if (settings->current_route_id == routeId) return false;
+        // The modeless editor writes current_route_id back on OK.
+        if (IsBeingEdited(EditTarget::Routes)) {
+            MW_show_log(MainWindowTr::tr("Close Routing Settings before switching the routing profile."));
+            return false;
+        }
         settings->current_route_id = routeId;
         settings->Save();
         if (settings->started_id < 0) return false;

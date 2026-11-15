@@ -50,6 +50,8 @@ private:
     int groupId = -1;
     bool newEnt = false;
     std::shared_ptr<Configs::Profile> ent;
+    QString originalAddress;
+    QString originalPort;
     std::optional<Engine::EditLock> editLock;
 
     QString network_title_base;

@@ -203,10 +203,14 @@ namespace Configs
     struct EndpointResolution {
         // Empty: the profile dials its own address.
         QString address;
+        // 0: the profile keeps its own port.
+        int port = 0;
         // Where the address comes from, for hints and logs, e.g. IP list “Scan CF Result”.
         QString origin;
         // Why a configured source supplied no address: a missing or empty IP list.
         QString problem;
+
+        [[nodiscard]] QString DisplayTarget() const;
     };
 
     // What `source` makes a profile dial; Inherit and Own supply nothing.

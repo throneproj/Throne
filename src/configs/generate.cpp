@@ -580,7 +580,7 @@ namespace Configs {
                 const auto source = EffectiveEndpointSource(*ent);
                 const auto resolution = ResolveEndpointSource(source);
                 if (!resolution.address.isEmpty()) {
-                    clone = CloneProfileWithServer(ent, resolution.address, 0);
+                    clone = CloneProfileWithServer(ent, resolution.address, resolution.port);
                     if (clone != nullptr) clone->id = ent->id;
                 } else if (!resolution.problem.isEmpty() && cache != nullptr && !cache->loggedLists.contains(source.ipListId)) {
                     cache->loggedLists.insert(source.ipListId);
@@ -2227,10 +2227,10 @@ namespace Configs {
                 ctx.result->outboundNames.insert(tag, profileDisplayName(member));
                 if (member->id == selector->pinnedID) pinnedTag = tag;
                 // A direct result does not describe a member reached through the upstream.
-                if (!viaUpstream && member->latency != 0 && member->latency_at > 0 && selector->resultValidityMins > 0)
+                if (!viaUpstream && member->latency != 0 && member->latency_at > 0)
                 {
                     if (const auto age = builtAt - member->latency_at;
-                        age >= 0 && age <= static_cast<qint64>(selector->resultValidityMins) * 60)
+                        age >= 0 && age <= AutoSelectorResultValiditySecs(*member))
                     {
                         warm.append(QJsonObject{
                             {"tag", tag},
@@ -2268,13 +2268,13 @@ namespace Configs {
                 {"outbounds", memberTags},
                 {"url", selector->testURL.isEmpty() ? settings.test_latency_url : selector->testURL},
                 {"interval", Int2String(selector->intervalSec) + "s"},
-                {"bench_interval", Int2String(selector->benchIntervalSec) + "s"},
-                {"watch_interval", Int2String(selector->watchIntervalSec) + "s"},
-                {"active_size", selector->activeSize},
-                {"sampling", selector->sampling},
+                {"bench_interval", Int2String(selector->BenchIntervalSec(static_cast<int>(memberTags.size()))) + "s"},
+                {"watch_interval", Int2String(selector->WatchIntervalSec()) + "s"},
+                {"active_size", selector->ActiveSize()},
+                {"sampling", autoSelector::kSampling},
                 {"tolerance", selector->toleranceMs},
                 {"expected", selector->expected},
-                {"dial_retries", selector->dialRetries},
+                {"dial_retries", autoSelector::kDialRetries},
                 {"interrupt_exist_connections", selector->interruptOnSwitch},
             };
             if (!warm.isEmpty()) groupObject["warm"] = warm;
@@ -2290,7 +2290,7 @@ namespace Configs {
             {
                 groupObject["balance"] = true;
                 groupObject["balance_mode"] = selector->balanceMode;
-                groupObject["balance_interval"] = Int2String(selector->balanceIntervalSec) + "s";
+                groupObject["balance_interval"] = Int2String(autoSelector::kBalanceIntervalSec) + "s";
             }
             if (selector->Prioritized())
             {
@@ -2298,12 +2298,11 @@ namespace Configs {
                 for (const auto &tags : std::as_const(tierTags)) tiers.append(tags);
                 groupObject["strategy"] = "priority";
                 groupObject["tiers"] = tiers;
-                groupObject["failback_checks"] = selector->failbackChecks;
-                groupObject["failback_delay"] = Int2String(selector->failbackDelaySec) + "s";
-                if (selector->failbackInterrupt) groupObject["failback_interrupt"] = true;
+                groupObject["failback_checks"] = autoSelector::kFailbackChecks;
+                groupObject["failback_delay"] = Int2String(autoSelector::kFailbackDelaySec) + "s";
             }
             if (selector->passive)
-                groupObject["passive"] = QJsonObject{{"enabled", true}, {"site_memory", Int2String(selector->siteMemoryMins) + "m"}};
+                groupObject["passive"] = QJsonObject{{"enabled", true}, {"site_memory", Int2String(autoSelector::kSiteMemoryMins) + "m"}};
             ctx.outbounds.append(groupObject);
             ctx.result->autoSelectors.append(info);
             return groupTag;
@@ -3765,10 +3764,15 @@ namespace Configs {
         return clone;
     }
 
+    QString EndpointResolution::DisplayTarget() const
+    {
+        return port > 0 ? DisplayAddress(address, port) : address;
+    }
+
     EndpointResolution ResolveEndpointSource(const EndpointSource &source)
     {
         if (source.mode == EndpointSource::Mode::Address)
-            return {source.address.trimmed(), QObject::tr("the group's fixed address"), {}};
+            return {source.address.trimmed(), 0, QObject::tr("the group's fixed address"), {}};
         if (source.mode != EndpointSource::Mode::IpList) return {};
 
         auto *cache = generateEndpointCache;
@@ -3780,9 +3784,10 @@ namespace Configs {
             res.problem = QObject::tr("The IP list no longer exists");
         } else {
             res.origin = QObject::tr("IP list \"%1\"").arg(list->name);
-            if (const auto first = dataManager->ipListsRepo->GetEntries(source.ipListId, 0, 1); !first.isEmpty())
-                res.address = first.first().cidr.section('/', 0, 0);
-            else
+            if (const auto best = dataManager->ipListsRepo->GetBestEntry(source.ipListId)) {
+                res.address = best->cidr.section('/', 0, 0);
+                res.port = best->port;
+            } else
                 res.problem = QObject::tr("The IP list \"%1\" is empty").arg(list->name);
         }
         if (cache != nullptr) cache->lists.insert(source.ipListId, res);
@@ -3813,31 +3818,37 @@ namespace Configs {
 
     namespace {
         QMutex generateDisplayListsMutex;
-        QHash<int, QString> generateDisplayListHosts;
+        QHash<int, EndpointResolution> generateDisplayLists;
+
+        EndpointResolution generateDisplayEndpoint(const std::shared_ptr<Profile> &profile)
+        {
+            if (generateServerlessReason(profile) != GenerateServerless::None) return {};
+            const auto source = EffectiveEndpointSource(*profile);
+            if (source.mode == EndpointSource::Mode::Address) return {source.address.trimmed()};
+            if (source.mode != EndpointSource::Mode::IpList) return {};
+            {
+                QMutexLocker locker(&generateDisplayListsMutex);
+                if (const auto it = generateDisplayLists.constFind(source.ipListId); it != generateDisplayLists.constEnd())
+                    return it.value();
+            }
+            const auto resolution = ResolveEndpointSource(source);
+            QMutexLocker locker(&generateDisplayListsMutex);
+            generateDisplayLists.insert(source.ipListId, resolution);
+            return resolution;
+        }
     } // namespace
 
     QString EffectiveEndpointHost(const std::shared_ptr<Profile> &profile)
     {
-        if (generateServerlessReason(profile) != GenerateServerless::None) return {};
-        const auto source = EffectiveEndpointSource(*profile);
-        if (source.mode == EndpointSource::Mode::Address) return source.address.trimmed();
-        if (source.mode != EndpointSource::Mode::IpList) return {};
-        {
-            QMutexLocker locker(&generateDisplayListsMutex);
-            if (const auto it = generateDisplayListHosts.constFind(source.ipListId); it != generateDisplayListHosts.constEnd())
-                return it.value();
-        }
-        const QString host = ResolveEndpointSource(source).address;
-        QMutexLocker locker(&generateDisplayListsMutex);
-        generateDisplayListHosts.insert(source.ipListId, host);
-        return host;
+        return generateDisplayEndpoint(profile).address;
     }
 
     QString DisplayEffectiveAddress(const std::shared_ptr<Profile> &profile)
     {
         if (profile == nullptr || profile->outbound == nullptr) return {};
-        if (const auto host = EffectiveEndpointHost(profile); !host.isEmpty()) {
-            if (const auto clone = CloneProfileWithServer(profile, host, 0); clone != nullptr) return clone->outbound->DisplayAddress();
+        if (const auto endpoint = generateDisplayEndpoint(profile); !endpoint.address.isEmpty()) {
+            if (const auto clone = CloneProfileWithServer(profile, endpoint.address, endpoint.port); clone != nullptr)
+                return clone->outbound->DisplayAddress();
         }
         return profile->outbound->DisplayAddress();
     }
@@ -3845,7 +3856,7 @@ namespace Configs {
     void InvalidateEndpointDisplayCache()
     {
         QMutexLocker locker(&generateDisplayListsMutex);
-        generateDisplayListHosts.clear();
+        generateDisplayLists.clear();
     }
 
     QString ValidateScanBase(const std::shared_ptr<Profile> &base)

@@ -31,11 +31,20 @@ namespace Scanner::Tune {
 
     [[nodiscard]] QString CheckOptions(const Configs::ScanTuneOptions &options);
 
-    // The endpoint override, else the profile's own address. UI thread: it needs the live profile.
-    [[nodiscard]] QString DialHost(const std::shared_ptr<Configs::Profile> &profile);
+    // What every variant dials: the endpoint override, else the profile's own address.
+    struct DialTarget {
+        QString host;
+        // 0: the profile's own port.
+        int port = 0;
 
-    // Covers the profile, the host it dials, the options and the global defaults a variant inherits.
-    [[nodiscard]] QString SpecHash(const Configs::Profile &profile, const QString &dialHost, const Configs::ScanTuneOptions &options);
+        [[nodiscard]] QString Display() const;
+    };
+
+    // Resolved the way a running profile resolves its endpoint override. UI thread: it needs the live profile.
+    [[nodiscard]] DialTarget DialTargetFor(const std::shared_ptr<Configs::Profile> &profile);
+
+    // Covers the profile, the target it dials, the options and the global defaults a variant inherits.
+    [[nodiscard]] QString SpecHash(const Configs::Profile &profile, const DialTarget &dial, const Configs::ScanTuneOptions &options);
 
     [[nodiscard]] QString MtuTestUrl(const Configs::ScanTuneOptions &options);
 } // namespace Scanner::Tune

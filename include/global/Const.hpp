@@ -43,7 +43,6 @@ namespace Configs {
             DL,
             UL,
             SIMPLEDL,
-            COUNTRY,
         };
     }
 

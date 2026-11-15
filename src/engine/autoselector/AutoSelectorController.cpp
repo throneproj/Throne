@@ -60,7 +60,7 @@ namespace Engine {
     bool AutoSelectorController::rankBeforeStart(const std::shared_ptr<Configs::Profile> &ent, bool interactive,
                                                  const std::function<void()> &resume) {
         ENGINE_CHECK_MAIN_THREAD();
-        // A pool can still need ranking right after a sweep (validity 0, refused sweep); re-ranking on resume would loop.
+        // Right after a sweep, re-ranking on resume would loop on a refused one, or undo an early start's untrusted order.
         const bool justRanked = std::exchange(rankedFor_, -1) == ent->id;
         // A second sweep would only be refused while one runs, and an early-started selector restarts during it.
         if (rankingInFlight_ > 0 || justRanked) return false;
@@ -68,7 +68,12 @@ namespace Engine {
         const auto selectorEnt = Configs::RunningSelectorOf(ent);
         if (selectorEnt == nullptr || Configs::SelectorBehindHops(ent)) return false;
         const auto plan = Configs::PlanAutoSelector(selectorEnt);
-        if (!plan.error.isEmpty() || !plan.needsRanking) return false;
+        if (!plan.error.isEmpty()) return false;
+        if (!plan.needsRanking) {
+            // Results stored since the last sweep (manual tests, persisted health) reorder the pool this build takes.
+            Configs::RerankAutoSelectorPool(selectorEnt);
+            return false;
+        }
 
         ++rankingInFlight_;
         const auto resumeRanked = [=, this] { startRanked(ent->id, resume); };

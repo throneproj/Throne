@@ -898,11 +898,6 @@
                 <string>Simple Download</string>
                </property>
               </item>
-              <item>
-               <property name="text">
-                <string>Only Country</string>
-               </property>
-              </item>
              </widget>
             </item>
             <item>
@@ -987,6 +982,17 @@
            </widget>
           </item>
          </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="service_check_box">
+         <property name="uiFoldInto" stdset="0">
+          <string notr="true">tab_connection</string>
+         </property>
+         <property name="title">
+          <string>Service check</string>
+         </property>
+         <layout class="QVBoxLayout" name="serviceCheckLayout"/>
         </widget>
        </item>
        <item>

@@ -244,7 +244,7 @@ void MainWindow::refresh_status(const QString &traffic_update) {
             display_socks = DisplayAddress(lan, settings->inbound_socks_port);
         }
     }
-    ui->label_inbound->setText(QString("Mixed: %1").arg(inbound_disabled ? "Disabled" : display_socks));
+    ui->label_inbound->setText(tr("Mixed: %1").arg(inbound_disabled ? tr("Disabled") : display_socks));
     ui->label_inbound->setToolTip(inbound_tip);
     syncConnectionSourceColumn();
     ui->checkBox_VPN->setChecked(settings->spmode_vpn);

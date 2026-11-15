@@ -79,6 +79,7 @@ Deeplinks are also supported, read the [documentation](https://throneproj.github
 - [fkYAML](https://github.com/fktn-k/fkYAML)
 - [quirc](https://github.com/dlbeer/quirc)
 - [srombauts/sqlitecpp](https://github.com/srombauts/sqlitecpp)
+- Service logos: [Simple Icons](https://github.com/simple-icons/simple-icons), [theSVG](https://github.com/glincker/thesvg) and [selfh.st/icons](https://github.com/selfhst/icons) (CC BY 4.0)
 
 ## Supporting Throne
 

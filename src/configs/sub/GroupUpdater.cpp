@@ -589,14 +589,18 @@ namespace Subscription {
 
     AutoUpdatePlan ResolveAutoUpdate(const Configs::Group &group) {
         const auto &settings = Configs::dataManager->settingsRepo;
-        if (settings->sub_auto_update < 30 || group.url.isEmpty() || group.archive || group.skip_auto_update) return {};
+        if (group.url.isEmpty() || group.archive || group.skip_auto_update) return {};
         const auto &options = group.sub_options;
-        if (options.respect_server_interval.value_or(settings->sub_respect_server_interval) && group.sub_info.server_interval > 0) {
+        // A group's own choices stand alone; inherited ones follow the global switch.
+        const bool globalOn = settings->sub_auto_update >= 30;
+        if (options.respect_server_interval.value_or(globalOn && settings->sub_respect_server_interval) &&
+            group.sub_info.server_interval > 0) {
             return {static_cast<qint64>(group.sub_info.server_interval) * 3600, AutoUpdatePlan::Source::server};
         }
         if (options.update_interval > 0) {
             return {static_cast<qint64>(std::max(options.update_interval, 30)) * 60, AutoUpdatePlan::Source::group};
         }
+        if (!globalOn) return {};
         return {static_cast<qint64>(settings->sub_auto_update) * 60, AutoUpdatePlan::Source::global};
     }
 

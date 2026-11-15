@@ -694,22 +694,6 @@ namespace API {
         }
     }
 
-    libcore::QueryCountryTestResponse Client::QueryCountryTestResults(bool* rpcOK)
-    {
-        const libcore::EmptyReq request;
-        libcore::QueryCountryTestResponse reply;
-        std::vector<uint8_t> resp;
-        auto status = channel->Call("QueryCountryTest", spb::pb::serialize<std::string>(request), resp);
-
-        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
-            *rpcOK = true;
-            return reply;
-        } else {
-            NOT_OK
-            return {};
-        }
-    }
-
     libcore::GenWgKeyPairResponse Client::GenWgKeyPair(bool *rpcOK)
     {
         const libcore::EmptyReq request;

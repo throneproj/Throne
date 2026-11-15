@@ -240,6 +240,7 @@ namespace Configs {
             {"log_exclude_keyword",      &log_exclude_keyword},
             {"log_exclude_regex",        &log_exclude_regex},
             {"traffic_graph_hidden",     &traffic_graph_hidden},
+            {"service_check_disabled",   &service_check_disabled},
             {"warp_ifc_addrs",           &warp_ifc_addrs},
             {"vpn_private_ranges",       &vpn_private_ranges},
             {"xray_geoip_url_history",   &xray_geoip_url_history},

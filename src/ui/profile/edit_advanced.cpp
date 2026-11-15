@@ -260,7 +260,7 @@ void EditAdvanced::syncEndpoint() {
     }
     QString hint;
     if (!resolution.address.isEmpty()) {
-        hint = tr("Connects to %1 (%2).").arg(resolution.address, resolution.origin);
+        hint = tr("Connects to %1 (%2).").arg(resolution.DisplayTarget(), resolution.origin);
     } else if (!resolution.problem.isEmpty()) {
         hint = tr("%1, so the profile's own address is used.").arg(resolution.problem);
     }

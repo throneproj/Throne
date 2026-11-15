@@ -784,14 +784,6 @@ Deleted %3 Profiles:
         <translation>ناموفق</translation>
     </message>
     <message>
-        <source>IP</source>
-        <translation>IP</translation>
-    </message>
-    <message>
-        <source>risk %1</source>
-        <translation>ریسک %1</translation>
-    </message>
-    <message>
         <source>Choose the profile to find working settings for</source>
         <translation>نمایه‌ای را که برایش تنظیمات کارا پیدا شود انتخاب کنید</translation>
     </message>
@@ -858,6 +850,126 @@ Deleted %3 Profiles:
     <message>
         <source>Tor is enabled but not downloaded yet. Open Routing Settings &gt; Egress and press OK to download it.</source>
         <translation>Tor فعال است ولی هنوز دانلود نشده است. «تنظیمات مسیریابی &gt; خروجی» را باز کنید و OK را بزنید تا دانلود شود.</translation>
+    </message>
+    <message>
+        <source>%1 is not in the Tor Project&apos;s checksum list.</source>
+        <translation>%1 در فهرست چک‌سام‌های پروژهٔ Tor نیست.</translation>
+    </message>
+    <message>
+        <source>%1 suspect</source>
+        <translation>%1 مشکوک</translation>
+    </message>
+    <message>
+        <source>Auto selector on %1, tier %2 (%3 of %4 working)</source>
+        <translation>انتخابگر خودکار روی %1، سطح %2 (%3 از %4 کارا)</translation>
+    </message>
+    <message>
+        <source>Could not get the Tor checksums: %1</source>
+        <translation>دریافت چک‌سام‌های Tor ممکن نشد: %1</translation>
+    </message>
+    <message>
+        <source>Could not look up the Tor version: %1</source>
+        <translation>یافتن نسخهٔ Tor ممکن نشد: %1</translation>
+    </message>
+    <message>
+        <source>Could not sign %1 (codesign exit code %2).</source>
+        <translation>امضای %1 ممکن نشد (کد خروج codesign: %2).</translation>
+    </message>
+    <message>
+        <source>Group &quot;%1&quot; has a front or landing proxy that uses an extra core or is a full config, so its profiles cannot be routing rule outbounds</source>
+        <translation>پروکسی front یا پروکسی مقصد گروه «%1» از هستهٔ اضافی استفاده می‌کند یا یک پیکربندی کامل است، پس نمایه‌های آن نمی‌توانند خروجی قوانین مسیریابی باشند</translation>
+    </message>
+    <message>
+        <source>IPv4 forwarding is on for the network adapter &quot;%1&quot;, usually because Mobile Hotspot or Internet Connection Sharing is sharing it.
+
+Windows then ignores the adapter binding that keeps Throne&apos;s own connections out of the Tun, so they loop back into it and fail.
+
+To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&quot; (Settings &gt; Mobile hotspot &gt; Share my internet connection from), or turn the hotspot off while using Tun mode.</source>
+        <translation>فورواردینگ IPv4 برای آداپتور شبکهٔ «%1» روشن است، معمولاً چون هات‌اسپات موبایل یا اشتراک‌گذاری اتصال اینترنت (ICS) آن را به اشتراک گذاشته است.
+
+در این حالت ویندوز بایند شدن به آداپتور را که اتصال‌های خود Throne را بیرون از Tun نگه می‌دارد نادیده می‌گیرد، پس این اتصال‌ها دوباره وارد Tun می‌شوند و شکست می‌خورند.
+
+برای رفع این مشکل، هات‌اسپات را به‌جای «%1» از آداپتور throne-tun به اشتراک بگذارید (Settings &gt; Mobile hotspot &gt; Share my internet connection from)، یا هنگام استفاده از حالت Tun هات‌اسپات را خاموش کنید.</translation>
+    </message>
+    <message>
+        <source>No profile can be used to build the routing configuration: add a proxy profile first.</source>
+        <translation>هیچ نمایه‌ای برای ساخت پیکربندی مسیریابی قابل استفاده نیست: ابتدا یک نمایهٔ پروکسی اضافه کنید.</translation>
+    </message>
+    <message>
+        <source>Recently %1 answered and %2 failed, older connections counting less. The profile is set aside once failures reach 3 and are at least as many as the answers.</source>
+        <translation>اخیراً %1 پاسخ و %2 شکست ثبت شده است؛ اتصال‌های قدیمی‌تر وزن کمتری دارند. وقتی شکست‌ها به 3 برسد و دست‌کم به تعداد پاسخ‌ها باشد، نمایه کنار گذاشته می‌شود.</translation>
+    </message>
+    <message>
+        <source>Suspect</source>
+        <translation>مشکوک</translation>
+    </message>
+    <message>
+        <source>The Tor Project publishes no Tor build for this platform.</source>
+        <translation>پروژهٔ Tor هیچ نسخه‌ای از Tor برای این پلتفرم منتشر نمی‌کند.</translation>
+    </message>
+    <message>
+        <source>The Tor download list names no usable version.</source>
+        <translation>فهرست دانلود Tor هیچ نسخهٔ قابل‌استفاده‌ای را نام نمی‌برد.</translation>
+    </message>
+    <message>
+        <source>The core did not answer.</source>
+        <translation>هسته پاسخ نداد.</translation>
+    </message>
+    <message>
+        <source>The routing profile no longer exists.</source>
+        <translation>نمایهٔ مسیریابی دیگر وجود ندارد.</translation>
+    </message>
+    <message>
+        <source>Time to the first reply: %1 ms on average, recent connections counting most.</source>
+        <translation>زمان تا نخستین پاسخ: به‌طور میانگین %1 میلی‌ثانیه، با بیشترین وزن برای اتصال‌های اخیر.</translation>
+    </message>
+    <message>
+        <source>Time to the first reply: none yet.</source>
+        <translation>زمان تا نخستین پاسخ: هنوز ثبت نشده.</translation>
+    </message>
+    <message>
+        <source>any profile</source>
+        <translation>هر نمایه‌ای</translation>
+    </message>
+    <message>
+        <source>everything else</source>
+        <translation>سایر نمایه‌ها</translation>
+    </message>
+    <message>
+        <source>names matching %1</source>
+        <translation>نام‌های منطبق با %1</translation>
+    </message>
+    <message>
+        <source>real connections failing — retried in %1s</source>
+        <translation>اتصال‌های واقعی ناموفق‌اند — تلاش دوباره تا %1 ثانیه دیگر</translation>
+    </message>
+    <message>
+        <source>real connections failing — retried soon</source>
+        <translation>اتصال‌های واقعی ناموفق‌اند — به‌زودی دوباره تلاش می‌شود</translation>
+    </message>
+    <message>
+        <source>recovering</source>
+        <translation>در حال بازیابی</translation>
+    </message>
+    <message>
+        <source>recovering — %1 of %2 checks passed</source>
+        <translation>در حال بازیابی — %1 از %2 بررسی موفق</translation>
+    </message>
+    <message>
+        <source>recovering — moving back in %1s</source>
+        <translation>در حال بازیابی — بازگشت تا %1 ثانیه دیگر</translation>
+    </message>
+    <message>
+        <source>tier %1</source>
+        <translation>سطح %1</translation>
+    </message>
+    <message>
+        <source>The kill switch blocks this request while no profile is running.</source>
+        <translation>تا زمانی که هیچ نمایه‌ای اجرا نشده، Kill switch این درخواست را مسدود می‌کند.</translation>
+    </message>
+    <message>
+        <source>%1: %2</source>
+        <translation>%1: %2</translation>
     </message>
 </context>
 <context>
@@ -1195,10 +1307,6 @@ Deleted %3 Profiles:
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Only Country</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;timeout in milliseconds&lt;br/&gt;applies to all tests individually&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1414,6 +1522,28 @@ Deleted %3 Profiles:
         <source>Testing</source>
         <translation>تست</translation>
     </message>
+    <message>
+        <source>Backup created successfully:
+%1
+
+Included: %2</source>
+        <translation>پشتیبان با موفقیت ایجاد شد:
+%1
+
+شامل: %2</translation>
+    </message>
+    <message>
+        <source>Delete this backup from the WebDAV server? This cannot be undone.
+
+%1</source>
+        <translation>این پشتیبان از سرور WebDAV حذف شود؟ این کار برگشت‌پذیر نیست.
+
+%1</translation>
+    </message>
+    <message>
+        <source>Service check</source>
+        <translation>بررسی سرویس‌ها</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>
@@ -1597,6 +1727,94 @@ Deleted %3 Profiles:
     <message>
         <source>Custom (JSON)</source>
         <translation>سفارشی (JSON)</translation>
+    </message>
+    <message>
+        <source>AnyTLS</source>
+        <translation>AnyTLS</translation>
+    </message>
+    <message>
+        <source>DNSTT</source>
+        <translation>DNSTT</translation>
+    </message>
+    <message>
+        <source>HTTP</source>
+        <translation>HTTP</translation>
+    </message>
+    <message>
+        <source>Hysteria / Hysteria2</source>
+        <translation>Hysteria / Hysteria2</translation>
+    </message>
+    <message>
+        <source>Juicity</source>
+        <translation>Juicity</translation>
+    </message>
+    <message>
+        <source>MASQUE</source>
+        <translation>MASQUE</translation>
+    </message>
+    <message>
+        <source>MasterDNS</source>
+        <translation>MasterDNS</translation>
+    </message>
+    <message>
+        <source>Mieru</source>
+        <translation>Mieru</translation>
+    </message>
+    <message>
+        <source>NaiveProxy</source>
+        <translation>NaiveProxy</translation>
+    </message>
+    <message>
+        <source>OpenConnect</source>
+        <translation>OpenConnect</translation>
+    </message>
+    <message>
+        <source>OpenVPN</source>
+        <translation>OpenVPN</translation>
+    </message>
+    <message>
+        <source>SOCKS</source>
+        <translation>SOCKS</translation>
+    </message>
+    <message>
+        <source>SSH</source>
+        <translation>SSH</translation>
+    </message>
+    <message>
+        <source>ShadowTLS</source>
+        <translation>ShadowTLS</translation>
+    </message>
+    <message>
+        <source>Shadowsocks</source>
+        <translation>Shadowsocks</translation>
+    </message>
+    <message>
+        <source>Snell</source>
+        <translation>Snell</translation>
+    </message>
+    <message>
+        <source>TUIC</source>
+        <translation>TUIC</translation>
+    </message>
+    <message>
+        <source>Trojan</source>
+        <translation>Trojan</translation>
+    </message>
+    <message>
+        <source>TrustTunnel</source>
+        <translation>TrustTunnel</translation>
+    </message>
+    <message>
+        <source>VLESS</source>
+        <translation>VLESS</translation>
+    </message>
+    <message>
+        <source>VMess</source>
+        <translation>VMess</translation>
+    </message>
+    <message>
+        <source>WireGuard / AmneziaWG</source>
+        <translation>WireGuard / AmneziaWG</translation>
     </message>
 </context>
 <context>
@@ -2562,6 +2780,42 @@ For more information, see the document &quot;Configuration/DNS&quot;.</source>
     <message>
         <source>WARP runs over the selected server.</source>
         <translation>WARP روی سرور انتخاب‌شده اجرا می‌شود.</translation>
+    </message>
+    <message>
+        <source>One entry per line, hosts-file syntax:
+
+127.0.0.1 localhost
+10.0.0.5 nas.lan files.lan
+::1 localhost6
+
+A domain listed with only one address family is answered NXDOMAIN for the other, so the override cannot be bypassed.</source>
+        <translation>هر خط یک مورد، با قالب فایل hosts:
+
+127.0.0.1 localhost
+10.0.0.5 nas.lan files.lan
+::1 localhost6
+
+دامنه‌ای که فقط با یک نوع نشانی (IPv4 یا IPv6) آمده باشد، برای نوع دیگر پاسخ NXDOMAIN می‌گیرد تا این جایگزینی دور زده نشود.</translation>
+    </message>
+    <message>
+        <source>Sends proxied traffic out through Tor, over the selected server. TCP only.</source>
+        <translation>ترافیک پروکسی‌شده را روی سرور انتخاب‌شده از طریق Tor خارج می‌کند. فقط TCP.</translation>
+    </message>
+    <message>
+        <source>Tor download failed</source>
+        <translation>دانلود Tor ناموفق بود</translation>
+    </message>
+    <message>
+        <source>Tor is installed.</source>
+        <translation>Tor نصب شده است.</translation>
+    </message>
+    <message>
+        <source>Tor will be downloaded when you press OK.</source>
+        <translation>با زدن «تایید»، Tor دانلود می‌شود.</translation>
+    </message>
+    <message>
+        <source>[Tor] A download is already running; turn Tor on again once it finishes.</source>
+        <translation>[Tor] یک دانلود در حال انجام است؛ پس از پایان آن، Tor را دوباره روشن کنید.</translation>
     </message>
 </context>
 <context>
@@ -4374,6 +4628,10 @@ Close without saving?</source>
         <source>Hex key of the server&apos;s client_random_auth_key rule; use instead of Client Random</source>
         <translation>کلید هگز قاعدهٔ client_random_auth_key سرور؛ به جای Client Random به کار می‌رود</translation>
     </message>
+    <message>
+        <source>QUIC</source>
+        <translation>QUIC</translation>
+    </message>
 </context>
 <context>
     <name>EditTuic</name>
@@ -4399,7 +4657,7 @@ Close without saving?</source>
     </message>
     <message>
         <source>UUID</source>
-        <translation type="unfinished">شناسه یکتا</translation>
+        <translation>UUID</translation>
     </message>
     <message>
         <source>bbr</source>
@@ -4457,7 +4715,7 @@ Close without saving?</source>
     <name>EditVless</name>
     <message>
         <source>UUID</source>
-        <translation type="unfinished">شناسه یکتا</translation>
+        <translation>UUID</translation>
     </message>
     <message>
         <source>Packet Encoding</source>
@@ -5226,15 +5484,7 @@ Error: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>The last test did not exit completely, please wait. If it persists, please restart the program.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>IP test finished!</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>The last test did not finish completely, please wait. If it persists, please restart the program.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -5304,10 +5554,6 @@ Error: %1</source>
     <message>
         <source>Speedtest Group</source>
         <translation>تست سرعت گروه</translation>
-    </message>
-    <message>
-        <source>The last url test did not exit completely, please wait. If it persists, please restart the program.</source>
-        <translation>آخرین تست نشانی به‌طور کامل پایان نیافته است، لطفاً صبر کنید. اگر ادامه یافت، برنامه را دوباره راه‌اندازی کنید.</translation>
     </message>
     <message>
         <source>URL test finished!</source>
@@ -5518,6 +5764,132 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
     <message>
         <source>The sing-box API is disabled. Set a listen port in Preferences &gt; Integration Settings &gt; Core APIs.</source>
         <translation>API sing-box غیرفعال است. یک پورت شنود در «تنظیمات &gt; تنظیمات یکپارچه‌سازی &gt; API هسته» تعیین کنید.</translation>
+    </message>
+    <message>
+        <source>Add this routing profile?
+
+Name: %1</source>
+        <translation>این نمایهٔ مسیریابی افزوده شود؟
+
+نام: %1</translation>
+    </message>
+    <message>
+        <source>Add this subscription?
+
+Name: %1
+URL: %2</source>
+        <translation>این اشتراک افزوده شود؟
+
+نام: %1
+URL: %2</translation>
+    </message>
+    <message>
+        <source>Another test is still running. Wait for it to finish, or stop it first.</source>
+        <translation>تست دیگری هنوز در حال اجراست. صبر کنید تا تمام شود، یا ابتدا آن را متوقف کنید.</translation>
+    </message>
+    <message>
+        <source>China</source>
+        <translation>چین</translation>
+    </message>
+    <message>
+        <source>Close Routing Settings before switching the routing profile.</source>
+        <translation>پیش از تغییر نمایهٔ مسیریابی، «تنظیمات مسیریابی» را ببندید.</translation>
+    </message>
+    <message>
+        <source>Disabled</source>
+        <translation>غیرفعال</translation>
+    </message>
+    <message>
+        <source>Downloading %1: %2 %3</source>
+        <translation>در حال دانلود %1: %2 %3</translation>
+    </message>
+    <message>
+        <source>Geo data files were downloaded successfully.
+
+Please try again.</source>
+        <translation>فایل‌های دادهٔ جغرافیایی با موفقیت دانلود شدند.
+
+لطفاً دوباره تلاش کنید.</translation>
+    </message>
+    <message>
+        <source>IP test failed: %1</source>
+        <translation>تست IP ناموفق بود: %1</translation>
+    </message>
+    <message>
+        <source>Iran</source>
+        <translation>ایران</translation>
+    </message>
+    <message>
+        <source>Mixed: %1</source>
+        <translation>Mixed: %1</translation>
+    </message>
+    <message>
+        <source>Running IP test</source>
+        <translation>در حال اجرای تست IP</translation>
+    </message>
+    <message>
+        <source>Running Speedtest: %1</source>
+        <translation>در حال اجرای تست سرعت: %1</translation>
+    </message>
+    <message>
+        <source>Running URL test</source>
+        <translation>در حال اجرای تست نشانی</translation>
+    </message>
+    <message>
+        <source>Running service check</source>
+        <translation>در حال بررسی سرویس‌ها</translation>
+    </message>
+    <message>
+        <source>Russia</source>
+        <translation>روسیه</translation>
+    </message>
+    <message>
+        <source>Server: %1%2, %3</source>
+        <translation>سرور: %1%2، %3</translation>
+    </message>
+    <message>
+        <source>Speed test failed: %1</source>
+        <translation>تست سرعت ناموفق بود: %1</translation>
+    </message>
+    <message>
+        <source>The Xray config &quot;%1&quot; needs &quot;%2&quot;, but the installed %3 does not contain it.
+
+Re-downloading from the same source will not fix this — the data file does not include that category. Set the GeoIP/GeoSite asset URL in Settings to a source that provides &quot;%2&quot;, then delete %3 from the app folder and download it again.</source>
+        <translation>پیکربندی Xray «%1» به «%2» نیاز دارد، اما %3 نصب‌شده آن را ندارد.
+
+دانلود دوباره از همان منبع این مشکل را حل نمی‌کند — فایل داده این دسته را ندارد. در تنظیمات، URL فایل GeoIP/GeoSite را روی منبعی تنظیم کنید که «%2» را ارائه می‌دهد، سپس %3 را از پوشهٔ برنامه حذف کنید و دوباره دانلود کنید.</translation>
+    </message>
+    <message>
+        <source>The Xray config &quot;%1&quot; uses geoip/geosite routing rules, but the required data files (geoip.dat / geosite.dat) are not installed.
+
+Download them now?</source>
+        <translation>پیکربندی Xray «%1» از قوانین مسیریابی geoip/geosite استفاده می‌کند، اما فایل‌های دادهٔ لازم (geoip.dat / geosite.dat) نصب نشده‌اند.
+
+هم‌اکنون دانلود شوند؟</translation>
+    </message>
+    <message>
+        <source>URL test failed: %1</source>
+        <translation>تست نشانی ناموفق بود: %1</translation>
+    </message>
+    <message>
+        <source>Windows could not enable strict routing. Open Tun Settings, disable Strict Route, and start the profile again.
+
+Disabling Strict Route may cause DNS leaks.
+
+Error: %1</source>
+        <translation>ویندوز نتوانست مسیریابی سخت‌گیرانه را فعال کند. «تنظیمات Tun» را باز کنید، «مسیر سخت‌گیرانه» را غیرفعال کنید و نمایه را دوباره راه‌اندازی کنید.
+
+غیرفعال کردن «مسیر سخت‌گیرانه» ممکن است باعث نشت DNS شود.
+
+خطا: %1</translation>
+    </message>
+    <message>
+        <source>[VPN] %1: %2</source>
+        <translation>[VPN] %1: %2</translation>
+    </message>
+    <message>
+        <source>No services are selected for the service check. Choose them in Basic Settings.</source>
+        <translation>هیچ سرویسی برای بررسی سرویس‌ها انتخاب نشده است. آن‌ها را در تنظیمات پایه انتخاب کنید.</translation>
     </message>
 </context>
 <context>
@@ -5965,6 +6337,34 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
     <message>
         <source>Default outbound</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add Program…</source>
+        <translation>افزودن برنامه…</translation>
+    </message>
+    <message>
+        <source>DNS</source>
+        <translation>DNS</translation>
+    </message>
+    <message>
+        <source>Pick a program that is running or has used the network, spelled exactly as the core matches it.</source>
+        <translation>برنامه‌ای را انتخاب کنید که در حال اجراست یا از شبکه استفاده کرده است، با همان املای دقیقی که هسته تطبیق می‌دهد.</translation>
+    </message>
+    <message>
+        <source>This rule belongs to &quot;%1&quot;, an inner hop of the endpoint &quot;%2&quot;.
+
+Stop routing to that endpoint&apos;s inner hops?</source>
+        <translation>این قانون به «%1» تعلق دارد که یک هاپ داخلی نقطهٔ پایانی «%2» است.
+
+مسیریابی به هاپ‌های داخلی آن نقطهٔ پایانی متوقف شود؟</translation>
+    </message>
+    <message>
+        <source>This rule belongs to the endpoint &quot;%1&quot; and cannot be deleted on its own.
+
+Remove that endpoint from this routing profile as well?</source>
+        <translation>این قانون به نقطهٔ پایانی «%1» تعلق دارد و به‌تنهایی حذف نمی‌شود.
+
+آن نقطهٔ پایانی هم از این نمایهٔ مسیریابی حذف شود؟</translation>
     </message>
 </context>
 <context>
@@ -7366,6 +7766,48 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
         <source>The certificate chain pin replaces certificate verification; clear the TLS certificate and certificate pins.</source>
         <translation>هش زنجیرهٔ گواهی جایگزین اعتبارسنجی گواهی می‌شود؛ گواهی TLS و پین‌های گواهی را پاک کنید.</translation>
     </message>
+    <message numerus="yes">
+        <source>%n more line(s) have problems.</source>
+        <translation>
+            <numerusform>%n خط دیگر هم مشکل دارد.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Add at least one tier to choose in priority order.</source>
+        <translation>برای انتخاب به ترتیب اولویت، دست‌کم یک سطح اضافه کنید.</translation>
+    </message>
+    <message numerus="yes">
+        <source>Only the first server of %n was imported.</source>
+        <translation>
+            <numerusform>از %n سرور، فقط نخستین سرور وارد شد.</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Only the first user of %n was imported.</source>
+        <translation>
+            <numerusform>از %n کاربر، فقط نخستین کاربر وارد شد.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Pick a group or enter a name pattern for this tier.</source>
+        <translation>برای این سطح یک گروه انتخاب کنید یا الگوی نام وارد کنید.</translation>
+    </message>
+    <message>
+        <source>Server %1 (&quot;%2&quot;): %3</source>
+        <translation>سرور %1 («%2»): %3</translation>
+    </message>
+    <message>
+        <source>The core reports this path as %1 and compares it letter for letter, case included, so this never matches.</source>
+        <translation>هسته این مسیر را به‌صورت %1 گزارش می‌کند و آن را حرف‌به‌حرف و با حساسیت به بزرگی و کوچکی حروف مقایسه می‌کند، پس این مقدار هرگز منطبق نمی‌شود.</translation>
+    </message>
+    <message>
+        <source>The core reports this program as %1 and compares names letter for letter, case included, so this never matches.</source>
+        <translation>هسته این برنامه را به‌صورت %1 گزارش می‌کند و نام‌ها را حرف‌به‌حرف و با حساسیت به بزرگی و کوچکی حروف مقایسه می‌کند، پس این مقدار هرگز منطبق نمی‌شود.</translation>
+    </message>
+    <message>
+        <source>Windows reports program paths with \, so a path written with / never matches.</source>
+        <translation>ویندوز مسیر برنامه‌ها را با \ گزارش می‌کند، پس مسیری که با / نوشته شود هرگز منطبق نمی‌شود.</translation>
+    </message>
 </context>
 <context>
     <name>GuiStartup</name>
@@ -7549,6 +7991,815 @@ Restart Throne as administrator to use Tun Mode and the kill switch.</source>
     <message>
         <source>Select All</source>
         <translation>انتخاب همه</translation>
+    </message>
+</context>
+<context>
+    <name>DialogAutoSelector</name>
+    <message>
+        <source>%1 ok / %2 failed</source>
+        <translation>%1 موفق / %2 ناموفق</translation>
+    </message>
+    <message>
+        <source>It moves back up once a profile from a higher tier passes %1 checks in a row and goes %2 s without a failure.</source>
+        <translation>به محض اینکه نمایه‌ای از سطح بالاتر %1 بررسی پیاپی را با موفقیت بگذراند و %2 ثانیه بدون خطا بماند، انتخابگر به آن سطح بازمی‌گردد.</translation>
+    </message>
+    <message>
+        <source>Keep the selected profile in use instead of letting the ranking choose. Useful when several profiles measure much the same and you prefer one of them.
+
+It stays a preference, not a lock: if that profile stops working the selector still moves on, and comes back to your choice once it recovers.</source>
+        <translation>نمایهٔ انتخاب‌شده را به‌جای سپردن انتخاب به رتبه‌بندی، در حال استفاده نگه می‌دارد. وقتی چند نمایه نتایج اندازه‌گیری تقریباً یکسانی دارند و یکی را ترجیح می‌دهید، مفید است.
+
+این فقط یک ترجیح است، نه قفل: اگر آن نمایه از کار بیفتد، انتخابگر باز هم به نمایهٔ دیگری می‌رود و پس از بهبود آن، به انتخاب شما بازمی‌گردد.</translation>
+    </message>
+    <message numerus="yes">
+        <source>Learning from real connections: %n site(s) remember a profile.</source>
+        <translation>
+            <numerusform>یادگیری از اتصال‌های واقعی: برای %n سایت، نمایه‌ای به خاطر سپرده شده است.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Real traffic</source>
+        <translation>ترافیک واقعی</translation>
+    </message>
+    <message>
+        <source>Tier</source>
+        <translation>سطح</translation>
+    </message>
+    <message>
+        <source>Using tier %1: %2.</source>
+        <translation>استفاده از سطح %1: %2.</translation>
+    </message>
+</context>
+<context>
+    <name>DialogRuleTester</name>
+    <message numerus="yes">
+        <source>%n endpoint rule(s) were skipped: they need a running profile.</source>
+        <translation>
+            <numerusform>%n قانون نقطهٔ پایانی نادیده گرفته شد: قوانین نقطهٔ پایانی به یک نمایهٔ در حال اجرا نیاز دارند.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>1.1.1.1 or 2606:4700::1111</source>
+        <translation>1.1.1.1 یا 2606:4700::1111</translation>
+    </message>
+    <message>
+        <source>Action</source>
+        <translation>اقدام</translation>
+    </message>
+    <message>
+        <source>AdBlock</source>
+        <translation>AdBlock</translation>
+    </message>
+    <message>
+        <source>Addresses: %1</source>
+        <translation>نشانی‌ها: %1</translation>
+    </message>
+    <message>
+        <source>Auto (by port)</source>
+        <translation>خودکار (بر اساس پورت)</translation>
+    </message>
+    <message>
+        <source>Block</source>
+        <translation>مسدود کردن</translation>
+    </message>
+    <message>
+        <source>Block the rest (Throne)</source>
+        <translation>مسدود کردن بقیه (Throne)</translation>
+    </message>
+    <message>
+        <source>Built with %1</source>
+        <translation>ساخته‌شده با %1</translation>
+    </message>
+    <message>
+        <source>Bypass</source>
+        <translation>بای‌پس</translation>
+    </message>
+    <message>
+        <source>Bypass to %1</source>
+        <translation>بای‌پس به %1</translation>
+    </message>
+    <message>
+        <source>Choose from running programs and the ones seen connecting, or browse for a file.</source>
+        <translation>از میان برنامه‌های در حال اجرا و برنامه‌هایی که در حال اتصال دیده شده‌اند انتخاب کنید، یا فایلی را مرور کنید.</translation>
+    </message>
+    <message>
+        <source>Could not build the configuration: %1</source>
+        <translation>پیکربندی ساخته نشد: %1</translation>
+    </message>
+    <message>
+        <source>DNS hijack (Throne)</source>
+        <translation>ربایش DNS (Throne)</translation>
+    </message>
+    <message>
+        <source>DNS inbound guard (Throne)</source>
+        <translation>محافظ ورودی DNS (Throne)</translation>
+    </message>
+    <message>
+        <source>Destination: %1</source>
+        <translation>مقصد: %1</translation>
+    </message>
+    <message>
+        <source>Details</source>
+        <translation>جزئیات</translation>
+    </message>
+    <message>
+        <source>Direct</source>
+        <translation>مستقیم</translation>
+    </message>
+    <message>
+        <source>Direct (L3 bridge)</source>
+        <translation>مستقیم (پل L3)</translation>
+    </message>
+    <message>
+        <source>Domain</source>
+        <translation>دامنه</translation>
+    </message>
+    <message>
+        <source>Domain resolve (Throne)</source>
+        <translation>حل دامنه (Throne)</translation>
+    </message>
+    <message>
+        <source>Domain: %1</source>
+        <translation>دامنه: %1</translation>
+    </message>
+    <message>
+        <source>Endpoint: %1</source>
+        <translation>نقطهٔ پایانی: %1</translation>
+    </message>
+    <message>
+        <source>Enter a process, a domain or an IP address.</source>
+        <translation>یک فرآیند، دامنه یا نشانی IP وارد کنید.</translation>
+    </message>
+    <message>
+        <source>Error: %1</source>
+        <translation>خطا: %1</translation>
+    </message>
+    <message>
+        <source>Extra core goes direct (Throne)</source>
+        <translation>اتصال مستقیم هستهٔ اضافی (Throne)</translation>
+    </message>
+    <message>
+        <source>Found %1, domain %2</source>
+        <translation>%1 یافت شد، دامنهٔ %2</translation>
+    </message>
+    <message>
+        <source>Found %1, no domain</source>
+        <translation>%1 یافت شد، بدون دامنه</translation>
+    </message>
+    <message>
+        <source>Found nothing</source>
+        <translation>چیزی یافت نشد</translation>
+    </message>
+    <message>
+        <source>Handled as DNS</source>
+        <translation>به‌عنوان DNS پردازش شد</translation>
+    </message>
+    <message>
+        <source>Handled as DNS by %1</source>
+        <translation>توسط %1 به‌عنوان DNS پردازش شد</translation>
+    </message>
+    <message>
+        <source>Hijack DNS</source>
+        <translation>ربایش DNS</translation>
+    </message>
+    <message>
+        <source>IP address</source>
+        <translation>نشانی IP</translation>
+    </message>
+    <message>
+        <source>Inbound: %1</source>
+        <translation>ورودی: %1</translation>
+    </message>
+    <message>
+        <source>L3 bridge copy of %1</source>
+        <translation>کپی پل L3 از %1</translation>
+    </message>
+    <message>
+        <source>L3 bridge direct (Throne)</source>
+        <translation>اتصال مستقیم پل L3 (Throne)</translation>
+    </message>
+    <message>
+        <source>Matched %1</source>
+        <translation>منطبق با %1</translation>
+    </message>
+    <message>
+        <source>Network</source>
+        <translation>شبکه</translation>
+    </message>
+    <message>
+        <source>No rule matched: the default outbound applies.</source>
+        <translation>هیچ قانونی منطبق نشد: خروجی پیش‌فرض اعمال می‌شود.</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation>هیچ‌کدام</translation>
+    </message>
+    <message>
+        <source>Nothing is running, so the test builds the configuration this routing profile would start with. Outbounds are not dialed, endpoint rules are skipped and domains resolve with the system resolver.</source>
+        <translation>چیزی در حال اجرا نیست، پس تست پیکربندی‌ای را می‌سازد که این نمایهٔ مسیریابی با آن آغاز می‌شد. به خروجی‌ها وصل نمی‌شود، قوانین نقطهٔ پایانی نادیده گرفته می‌شوند و دامنه‌ها با ریزالور سیستم حل می‌شوند.</translation>
+    </message>
+    <message>
+        <source>Onion sites via Tor (Throne)</source>
+        <translation>سایت‌های Onion از طریق Tor (Throne)</translation>
+    </message>
+    <message>
+        <source>Pick…</source>
+        <translation>انتخاب…</translation>
+    </message>
+    <message>
+        <source>Port</source>
+        <translation>پورت</translation>
+    </message>
+    <message>
+        <source>Process</source>
+        <translation>فرآیند</translation>
+    </message>
+    <message>
+        <source>Raw rule %1</source>
+        <translation>قانون خام %1</translation>
+    </message>
+    <message>
+        <source>Reject</source>
+        <translation>رد کردن</translation>
+    </message>
+    <message>
+        <source>Rejected</source>
+        <translation>رد شد</translation>
+    </message>
+    <message>
+        <source>Rejected by %1</source>
+        <translation>توسط %1 رد شد</translation>
+    </message>
+    <message>
+        <source>Resolve</source>
+        <translation>حل دامنه</translation>
+    </message>
+    <message>
+        <source>Resolved to %1</source>
+        <translation>به %1 حل شد</translation>
+    </message>
+    <message>
+        <source>Route</source>
+        <translation>مسیریابی</translation>
+    </message>
+    <message>
+        <source>Route options</source>
+        <translation>گزینه‌های مسیریابی</translation>
+    </message>
+    <message>
+        <source>Route to %1</source>
+        <translation>مسیریابی به %1</translation>
+    </message>
+    <message>
+        <source>Routing profile</source>
+        <translation>نمایهٔ مسیریابی</translation>
+    </message>
+    <message>
+        <source>Rule</source>
+        <translation>قانون</translation>
+    </message>
+    <message>
+        <source>Rule %1</source>
+        <translation>قانون %1</translation>
+    </message>
+    <message>
+        <source>Select a routing profile to test.</source>
+        <translation>یک نمایهٔ مسیریابی برای تست انتخاب کنید.</translation>
+    </message>
+    <message>
+        <source>Sniff</source>
+        <translation>پویش</translation>
+    </message>
+    <message>
+        <source>Sniff (Throne)</source>
+        <translation>پویش (Throne)</translation>
+    </message>
+    <message>
+        <source>Sniffed protocol</source>
+        <translation>پروتکل پویش‌شده</translation>
+    </message>
+    <message>
+        <source>System DNS (Throne)</source>
+        <translation>DNS سیستم (Throne)</translation>
+    </message>
+    <message>
+        <source>Test</source>
+        <translation>تست</translation>
+    </message>
+    <message>
+        <source>Testing the running configuration, routing profile “%1”.</source>
+        <translation>تست پیکربندی در حال اجرا، نمایهٔ مسیریابی «%1».</translation>
+    </message>
+    <message>
+        <source>Testing the running configuration.</source>
+        <translation>تست پیکربندی در حال اجرا.</translation>
+    </message>
+    <message>
+        <source>Testing the running configuration. It is a custom configuration, so rules are shown as sing-box describes them.</source>
+        <translation>تست پیکربندی در حال اجرا. این یک پیکربندی سفارشی است، پس قوانین همان‌طور که sing-box آن‌ها را توصیف می‌کند نمایش داده می‌شوند.</translation>
+    </message>
+    <message>
+        <source>Testing…</source>
+        <translation>در حال تست…</translation>
+    </message>
+    <message>
+        <source>The connection would be closed: %1</source>
+        <translation>اتصال بسته می‌شد: %1</translation>
+    </message>
+    <message>
+        <source>The test failed: %1</source>
+        <translation>تست ناموفق بود: %1</translation>
+    </message>
+    <message>
+        <source>Tunnel gate (Throne)</source>
+        <translation>دروازهٔ تونل (Throne)</translation>
+    </message>
+    <message>
+        <source>Unknown outbound</source>
+        <translation>خروجی ناشناخته</translation>
+    </message>
+    <message>
+        <source>What a sniff rule finds in the connection&apos;s first packets.</source>
+        <translation>آنچه قانون پویش در نخستین بسته‌های اتصال پیدا می‌کند.</translation>
+    </message>
+    <message>
+        <source>Xray bridge (Throne)</source>
+        <translation>پل Xray (Throne)</translation>
+    </message>
+    <message>
+        <source>a protocol</source>
+        <translation>یک پروتکل</translation>
+    </message>
+    <message>
+        <source>chrome.exe or full path</source>
+        <translation>chrome.exe یا مسیر کامل</translation>
+    </message>
+    <message>
+        <source>example.com</source>
+        <translation>example.com</translation>
+    </message>
+    <message>
+        <source>raw rule %1</source>
+        <translation>قانون خام %1</translation>
+    </message>
+    <message>
+        <source>rule %1</source>
+        <translation>قانون %1</translation>
+    </message>
+    <message>
+        <source>the core did not answer</source>
+        <translation>هسته پاسخ نداد</translation>
+    </message>
+    <message>
+        <source>unknown error</source>
+        <translation>خطای ناشناخته</translation>
+    </message>
+    <message>
+        <source>“%1”</source>
+        <translation>«%1»</translation>
+    </message>
+    <message>
+        <source>“%1” is an IP address: enter it under IP address.</source>
+        <translation>«%1» یک نشانی IP است: آن را در «نشانی IP» وارد کنید.</translation>
+    </message>
+    <message>
+        <source>“%1” is not a valid domain.</source>
+        <translation>«%1» دامنهٔ معتبری نیست.</translation>
+    </message>
+    <message>
+        <source>“%1” is not an IP address.</source>
+        <translation>«%1» نشانی IP نیست.</translation>
+    </message>
+</context>
+<context>
+    <name>EditAutoSelector</name>
+    <message>
+        <source>%1 → %2</source>
+        <translation>%1 ← %2</translation>
+    </message>
+    <message>
+        <source>A profile belongs to the first tier it matches, and profiles that match none come last. The selector uses the highest tier that has a working profile and, inside it, the best measured one.</source>
+        <translation>هر نمایه به نخستین سطحی تعلق دارد که با آن منطبق است و نمایه‌هایی که با هیچ سطحی منطبق نیستند در آخر می‌آیند. انتخابگر از بالاترین سطحی که نمایهٔ کارا دارد استفاده می‌کند و در آن سطح، بهترین نمایهٔ اندازه‌گیری‌شده را برمی‌گزیند.</translation>
+    </message>
+    <message>
+        <source>Add</source>
+        <translation>افزودن</translation>
+    </message>
+    <message>
+        <source>Also judges profiles by your apps&apos; real connections and sets aside ones that keep failing.</source>
+        <translation>نمایه‌ها را بر اساس اتصال‌های واقعی برنامه‌ها هم می‌سنجد و نمایه‌هایی را که پیاپی شکست می‌خورند کنار می‌گذارد.</translation>
+    </message>
+    <message>
+        <source>Any group</source>
+        <translation>هر گروهی</translation>
+    </message>
+    <message>
+        <source>By tier: %1.</source>
+        <translation>به تفکیک سطح: %1.</translation>
+    </message>
+    <message>
+        <source>Choose</source>
+        <translation>انتخاب</translation>
+    </message>
+    <message>
+        <source>Fastest</source>
+        <translation>سریع‌ترین</translation>
+    </message>
+    <message>
+        <source>Fastest takes the best measured profile; priority order takes the highest tier that works.</source>
+        <translation>«سریع‌ترین» بهترین نمایهٔ اندازه‌گیری‌شده را برمی‌گزیند؛ «به ترتیب اولویت» بالاترین سطحی را که کار می‌کند.</translation>
+    </message>
+    <message>
+        <source>Group</source>
+        <translation>گروه</translation>
+    </message>
+    <message>
+        <source>In priority order</source>
+        <translation>به ترتیب اولویت</translation>
+    </message>
+    <message>
+        <source>Learn from real connections</source>
+        <translation>یادگیری از اتصال‌های واقعی</translation>
+    </message>
+    <message>
+        <source>More than %1 profiles match, so only the best-ranked ones of each tier are kept.</source>
+        <translation>بیش از %1 نمایه منطبق است، پس فقط نمایه‌های دارای بهترین رتبه در هر سطح نگه داشته می‌شوند.</translation>
+    </message>
+    <message>
+        <source>Move down</source>
+        <translation>پایین آوردن</translation>
+    </message>
+    <message>
+        <source>Move up</source>
+        <translation>بالا بردن</translation>
+    </message>
+    <message>
+        <source>Names matching</source>
+        <translation>نام‌های منطبق</translation>
+    </message>
+    <message>
+        <source>No usable profile belongs to tier %1.</source>
+        <translation>هیچ نمایهٔ قابل‌استفاده‌ای به سطح %1 تعلق ندارد.</translation>
+    </message>
+    <message>
+        <source>No usable profile belongs to tiers %1.</source>
+        <translation>هیچ نمایهٔ قابل‌استفاده‌ای به سطح‌های %1 تعلق ندارد.</translation>
+    </message>
+    <message>
+        <source>Optional regular expression over the profile name, e.g. ^DE or germany|nl.</source>
+        <translation>عبارت باقاعدهٔ اختیاری برای نام نمایه، برای مثال ^DE یا germany|nl.</translation>
+    </message>
+    <message>
+        <source>Priority tiers</source>
+        <translation>سطح‌های اولویت</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation>حذف کردن</translation>
+    </message>
+    <message>
+        <source>Tier %1: %2</source>
+        <translation>سطح %1: %2</translation>
+    </message>
+    <message>
+        <source>Too few profiles may run to cover every tier, so tier %1 runs none.</source>
+        <translation>تعداد نمایه‌هایی که می‌توانند اجرا شوند برای پوشش همهٔ سطح‌ها کافی نیست، پس از سطح %1 هیچ نمایه‌ای اجرا نمی‌شود.</translation>
+    </message>
+    <message>
+        <source>Too few profiles may run to cover every tier, so tiers %1 run none.</source>
+        <translation>تعداد نمایه‌هایی که می‌توانند اجرا شوند برای پوشش همهٔ سطح‌ها کافی نیست، پس از سطح‌های %1 هیچ نمایه‌ای اجرا نمی‌شود.</translation>
+    </message>
+    <message>
+        <source>any name</source>
+        <translation>هر نامی</translation>
+    </message>
+    <message>
+        <source>everything else</source>
+        <translation>سایر نمایه‌ها</translation>
+    </message>
+    <message>
+        <source>missing group</source>
+        <translation>گروه ناموجود</translation>
+    </message>
+    <message>
+        <source>Drop connections when a profile fails</source>
+        <translation>قطع اتصال‌ها هنگام شکست نمایه</translation>
+    </message>
+    <message>
+        <source>Open connections move at once instead of finishing on the failed profile.</source>
+        <translation>اتصال‌های باز فوراً منتقل می‌شوند، نه اینکه روی نمایهٔ ناموفق تمام شوند.</translation>
+    </message>
+    <message>
+        <source>Profiles from every checked group are pooled; each keeps its own group&apos;s proxies.</source>
+        <translation>نمایه‌های همهٔ گروه‌های علامت‌خورده با هم جمع می‌شوند؛ هر نمایه پروکسی‌های گروه خودش را نگه می‌دارد.</translation>
+    </message>
+    <message>
+        <source>Regular expression matched against profile names, ignoring case, e.g. germany|nl.</source>
+        <translation>عبارت باقاعده‌ای که بدون حساسیت به بزرگی و کوچکی حروف با نام نمایه‌ها تطبیق داده می‌شود، برای مثال germany|nl.</translation>
+    </message>
+    <message>
+        <source>Spreads traffic over the ready profiles instead of using only the best one.</source>
+        <translation>ترافیک را به‌جای استفاده از تنها بهترین نمایه، میان نمایه‌های آماده پخش می‌کند.</translation>
+    </message>
+    <message>
+        <source>Every setting here has a working default.</source>
+        <translation>هر تنظیم این بخش یک مقدار پیش‌فرض کارا دارد.</translation>
+    </message>
+    <message>
+        <source>Advanced ▾</source>
+        <translation>پیشرفته ▾</translation>
+    </message>
+    <message>
+        <source>Country codes from the IP test, e.g. DE,NL or !RU; profiles never IP-tested are skipped.</source>
+        <translation>کد کشورها بر اساس آزمایش IP، برای مثال DE,NL یا !RU؛ نمایه‌هایی که هرگز آزمایش IP نشده‌اند کنار گذاشته می‌شوند.</translation>
+    </message>
+    <message>
+        <source>How many profiles the running config holds; the selector switches among them instantly.</source>
+        <translation>تعداد نمایه‌هایی که پیکربندی در حال اجرا نگه می‌دارد؛ انتخابگر بی‌درنگ میان آن‌ها جابه‌جا می‌شود.</translation>
+    </message>
+    <message>
+        <source>How many profiles stay confirmed working, for instant failover and for sharing traffic.</source>
+        <translation>تعداد نمایه‌هایی که کارا بودنشان پیوسته تأیید می‌شود، برای جایگزینی فوری هنگام خرابی و پخش ترافیک.</translation>
+    </message>
+    <message>
+        <source>How often the top-ranked profiles are measured again.</source>
+        <translation>نمایه‌های بالای رتبه‌بندی هر چند وقت یک بار دوباره اندازه‌گیری می‌شوند.</translation>
+    </message>
+    <message>
+        <source>Another profile must be this much faster before the selector moves to it.</source>
+        <translation>نمایهٔ دیگر باید دست‌کم این‌قدر سریع‌تر باشد تا انتخابگر به آن برود.</translation>
+    </message>
+    <message>
+        <source>Fetched without the proxy to tell a dead internet connection from dead servers.</source>
+        <translation>بدون پروکسی دریافت می‌شود تا قطعی اینترنت از خرابی سرورها تشخیص داده شود.</translation>
+    </message>
+    <message>
+        <source>Rotate every %1 s</source>
+        <translation>چرخش هر %1 ثانیه</translation>
+    </message>
+    <message>
+        <source>Per connection</source>
+        <translation>برای هر اتصال</translation>
+    </message>
+    <message>
+        <source>New connections move to the next ready profile on each rotation; open ones stay put.</source>
+        <translation>در هر چرخش، اتصال‌های جدید به نمایهٔ آمادهٔ بعدی می‌روند؛ اتصال‌های باز سر جای خود می‌مانند.</translation>
+    </message>
+    <message>
+        <source>Each new connection may take a different profile, so your exit IP can change mid-session.</source>
+        <translation>هر اتصال جدید ممکن است از نمایهٔ دیگری برود، پس IP خروجی شما ممکن است وسط نشست عوض شود.</translation>
+    </message>
+    <message>
+        <source>Advanced ▴</source>
+        <translation>پیشرفته ▴</translation>
+    </message>
+</context>
+<context>
+    <name>ProcessPicker</name>
+    <message>
+        <source>%1 holds many other programs, and the rule catches all of them.</source>
+        <translation>%1 برنامه‌های بسیار دیگری را در خود دارد و این قانون همهٔ آن‌ها را در بر می‌گیرد.</translation>
+    </message>
+    <message>
+        <source>%1 is a script: what connects is the interpreter that runs it, which other scripts share.</source>
+        <translation>%1 یک اسکریپت است: آنچه وصل می‌شود مفسری است که آن را اجرا می‌کند و اسکریپت‌های دیگر هم از آن استفاده می‌کنند.</translation>
+    </message>
+    <message>
+        <source>%1 runs many unrelated programs, so the rule catches all of them.</source>
+        <translation>%1 برنامه‌های نامرتبط بسیاری را اجرا می‌کند، پس این قانون همهٔ آن‌ها را در بر می‌گیرد.</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n d ago</source>
+        <translation>
+            <numerusform>%n روز پیش</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n h ago</source>
+        <translation>
+            <numerusform>%n ساعت پیش</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>%n min ago</source>
+        <translation>
+            <numerusform>%n دقیقه پیش</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Activity</source>
+        <translation>فعالیت</translation>
+    </message>
+    <message>
+        <source>Add</source>
+        <translation>افزودن</translation>
+    </message>
+    <message>
+        <source>Add Programs</source>
+        <translation>افزودن برنامه‌ها</translation>
+    </message>
+    <message>
+        <source>Adds: %1</source>
+        <translation>افزوده می‌شود: %1</translation>
+    </message>
+    <message>
+        <source>App folder</source>
+        <translation>پوشهٔ برنامه</translation>
+    </message>
+    <message>
+        <source>Applications (*.app);;All files (*)</source>
+        <translation>برنامه‌ها (*.app);;همهٔ فایل‌ها (*)</translation>
+    </message>
+    <message>
+        <source>Apps like %1 often connect from helper programs inside the bundle; match by app folder to catch them too.</source>
+        <translation>برنامه‌هایی مانند %1 اغلب از برنامه‌های کمکی داخل بسته وصل می‌شوند؛ برای پوشش آن‌ها هم، بر اساس «پوشهٔ برنامه» تطبیق دهید.</translation>
+    </message>
+    <message>
+        <source>Browse…</source>
+        <translation>مرور…</translation>
+    </message>
+    <message>
+        <source>Choose</source>
+        <translation>انتخاب</translation>
+    </message>
+    <message>
+        <source>Choose a Program</source>
+        <translation>انتخاب برنامه</translation>
+    </message>
+    <message>
+        <source>Chosen file</source>
+        <translation>فایل انتخاب‌شده</translation>
+    </message>
+    <message>
+        <source>Connected now</source>
+        <translation>اکنون متصل</translation>
+    </message>
+    <message>
+        <source>Everything, with services and system programs</source>
+        <translation>همه، همراه با سرویس‌ها و برنامه‌های سیستمی</translation>
+    </message>
+    <message>
+        <source>Exact path</source>
+        <translation>مسیر دقیق</translation>
+    </message>
+    <message>
+        <source>Looking for programs…</source>
+        <translation>در حال جستجوی برنامه‌ها…</translation>
+    </message>
+    <message>
+        <source>Match by:</source>
+        <translation>تطبیق بر اساس:</translation>
+    </message>
+    <message>
+        <source>Matches every program in the app&apos;s folder, helpers and later versions included (process_path_regex).</source>
+        <translation>همهٔ برنامه‌های داخل پوشهٔ برنامه را تطبیق می‌دهد، از جمله برنامه‌های کمکی و نسخه‌های بعدی (process_path_regex).</translation>
+    </message>
+    <message>
+        <source>Matches only this file (process_path).</source>
+        <translation>فقط همین فایل را تطبیق می‌دهد (process_path).</translation>
+    </message>
+    <message>
+        <source>Matches the program wherever it is installed (process_name).</source>
+        <translation>برنامه را هر جا که نصب شده باشد تطبیق می‌دهد (process_name).</translation>
+    </message>
+    <message>
+        <source>More warnings for the other selected programs.</source>
+        <translation>برای دیگر برنامه‌های انتخاب‌شده هم هشدارهای بیشتری وجود دارد.</translation>
+    </message>
+    <message>
+        <source>Path</source>
+        <translation>مسیر</translation>
+    </message>
+    <message>
+        <source>Program</source>
+        <translation>برنامه</translation>
+    </message>
+    <message>
+        <source>Program name</source>
+        <translation>نام برنامه</translation>
+    </message>
+    <message>
+        <source>Programs</source>
+        <translation>برنامه‌ها</translation>
+    </message>
+    <message>
+        <source>Programs (*.exe);;All files (*)</source>
+        <translation>برنامه‌ها (*.exe);;همهٔ فایل‌ها (*)</translation>
+    </message>
+    <message>
+        <source>Refresh</source>
+        <translation>تازه‌سازی</translation>
+    </message>
+    <message>
+        <source>Running</source>
+        <translation>در حال اجرا</translation>
+    </message>
+    <message>
+        <source>Running (%1)</source>
+        <translation>در حال اجرا (%1)</translation>
+    </message>
+    <message>
+        <source>Search by name or path</source>
+        <translation>جستجو بر اساس نام یا مسیر</translation>
+    </message>
+    <message>
+        <source>Seen %1</source>
+        <translation>%1 دیده شد</translation>
+    </message>
+    <message>
+        <source>Select a program, or browse for one.</source>
+        <translation>یک برنامه انتخاب کنید یا با «مرور…» آن را پیدا کنید.</translation>
+    </message>
+    <message>
+        <source>Select one or more programs, or browse for one.</source>
+        <translation>یک یا چند برنامه انتخاب کنید یا با «مرور…» برنامه‌ای را پیدا کنید.</translation>
+    </message>
+    <message>
+        <source>Service: %1</source>
+        <translation>سرویس: %1</translation>
+    </message>
+    <message>
+        <source>Some programs could not be listed: %1</source>
+        <translation>برخی برنامه‌ها فهرست نشدند: %1</translation>
+    </message>
+    <message>
+        <source>The core could not read where %1 is, so it can only be matched by name.</source>
+        <translation>هسته نتوانست محل %1 را بخواند، پس فقط بر اساس نام قابل تطبیق است.</translation>
+    </message>
+    <message>
+        <source>The core could not read where this program is.</source>
+        <translation>هسته نتوانست محل این برنامه را بخواند.</translation>
+    </message>
+    <message>
+        <source>The core did not answer, so running programs are not listed.</source>
+        <translation>هسته پاسخ نداد، پس برنامه‌های در حال اجرا فهرست نمی‌شوند.</translation>
+    </message>
+    <message>
+        <source>The core is not connected, so running programs are not listed.</source>
+        <translation>هسته متصل نیست، پس برنامه‌های در حال اجرا فهرست نمی‌شوند.</translation>
+    </message>
+    <message>
+        <source>The path of %1 has a version number in it, so the rule stops matching after an update.</source>
+        <translation>مسیر %1 شمارهٔ نسخه دارد، پس این قانون پس از به‌روزرسانی دیگر منطبق نمی‌شود.</translation>
+    </message>
+    <message numerus="yes">
+        <source>and %n more</source>
+        <translation>
+            <numerusform>و %n مورد دیگر</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>just now</source>
+        <translation>همین حالا</translation>
+    </message>
+</context>
+<context>
+    <name>RawRouteItem</name>
+    <message>
+        <source>DNS</source>
+        <translation>DNS</translation>
+    </message>
+</context>
+<context>
+    <name>RouteDnsEditor</name>
+    <message>
+        <source>Separate several servers with commas: they are queried together and the first answer wins.</source>
+        <translation>چند سرور را با ویرگول از هم جدا کنید: همه با هم پرس‌وجو می‌شوند و نخستین پاسخ پذیرفته می‌شود.</translation>
+    </message>
+</context>
+<context>
+    <name>ServiceCheckSelector</name>
+    <message>
+        <source>Loading services</source>
+        <translation>در حال بارگذاری سرویس‌ها</translation>
+    </message>
+    <message>
+        <source>Cannot load services: %1</source>
+        <translation>بارگذاری سرویس‌ها ممکن نشد: %1</translation>
+    </message>
+    <message>
+        <source>No services available</source>
+        <translation>هیچ سرویسی در دسترس نیست</translation>
+    </message>
+    <message>
+        <source>AI</source>
+        <translation>هوش مصنوعی</translation>
+    </message>
+    <message>
+        <source>Streaming</source>
+        <translation>استریم</translation>
+    </message>
+    <message>
+        <source>Social</source>
+        <translation>شبکه‌های اجتماعی</translation>
+    </message>
+    <message>
+        <source>IP reputation</source>
+        <translation>اعتبار IP</translation>
+    </message>
+    <message>
+        <source>Other</source>
+        <translation>سایر</translation>
     </message>
 </context>
 </TS>

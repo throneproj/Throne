@@ -307,8 +307,10 @@ bool DialogEditProfile::typeSelected(const QString &newType) {
         innerEditor->onStart(ent);
         innerEditor->bindValidation(*form);
         ui->name->setText(ent->outbound->name);
-        ui->address->setText(ent->outbound->GetAddress());
-        ui->port->setText(ent->outbound->GetPort());
+        originalAddress = ent->outbound->GetAddress();
+        originalPort = ent->outbound->GetPort();
+        ui->address->setText(originalAddress);
+        ui->port->setText(originalPort);
 
         ADD_ASTERISK(this)
         editor_cache_updated_impl();
@@ -367,10 +369,17 @@ void DialogEditProfile::updateCommonRows() {
     }
     const auto endpoint = endpointOverride(ent, server && !locked);
     const bool overridden = !endpoint.address.isEmpty();
+    // An IP list entry with a port replaces the profile's port too.
+    const bool portOverridden = overridden && endpoint.port > 0;
     ui->address->setVisible(server && !overridden);
+    ui->port_l->setVisible(server && !portOverridden);
+    ui->port->setVisible(server && !portOverridden);
     addressEffective->setVisible(overridden);
-    addressEffective->setText(endpoint.address);
-    const QString own = ui->address->text().trimmed();
+    addressEffective->setText(endpoint.DisplayTarget());
+    QString own = ui->address->text().trimmed();
+    if (const int ownPort = ui->port->text().trimmed().toInt(); portOverridden && !own.isEmpty() && ownPort > 0) {
+        own = DisplayAddress(own, ownPort);
+    }
     addressEffective->setToolTip(!overridden ? QString()
                                  : own.isEmpty() ? tr("Set by %1.").arg(endpoint.origin)
                                                  : tr("Set by %1; the profile's own address is %2.").arg(endpoint.origin, own));
@@ -404,6 +413,8 @@ bool DialogEditProfile::onEnd() {
 
 void DialogEditProfile::accept() {
     if (!onEnd()) return;
+    // The stored test results describe the old server.
+    if (!newEnt && (ent->outbound->GetAddress() != originalAddress || ent->outbound->GetPort() != originalPort)) ent->ClearTestResults();
 
     QStringList args;
     if (newEnt) {

@@ -5,6 +5,7 @@
 #include <condition_variable>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <set>
 
 #include "Database.h"
@@ -48,6 +49,9 @@ namespace Configs {
         [[nodiscard]] QList<std::shared_ptr<IpList>> GetAllIpLists(bool includeHidden = false) const;
 
         [[nodiscard]] QList<IpListEntry> GetEntries(int id, int offset = 0, int limit = -1) const;
+
+        // Lowest positive latency; with none measured, the first entry in list order.
+        [[nodiscard]] std::optional<IpListEntry> GetBestEntry(int id) const;
 
         [[nodiscard]] int EntryCount(int id) const;
 

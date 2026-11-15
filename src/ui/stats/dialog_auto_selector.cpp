@@ -24,7 +24,6 @@ namespace
         ColName,
         ColState,
         ColLatency,
-        ColJitter,
         ColChecks,
         ColDials,
         ColTraffic,
@@ -83,7 +82,6 @@ namespace
     };
 
     Key latencyKey(const Stats::AutoSelectorMemberView &m) { return {m.samples > 0 && m.averageMs > 0, static_cast<double>(m.averageMs)}; }
-    Key jitterKey(const Stats::AutoSelectorMemberView &m) { return {m.samples > 0, static_cast<double>(m.deviationMs)}; }
 
     Key checksKey(const Stats::AutoSelectorMemberView &m)
     {
@@ -202,7 +200,7 @@ DialogAutoSelector::DialogAutoSelector(QWidget *parent) : QDialog(parent)
 
     m_table = new QTableWidget(this);
     m_table->setColumnCount(ColCount);
-    m_table->setHorizontalHeaderLabels({"#", tr("Tier"), tr("Profile"), tr("Status"), tr("Latency"), tr("Jitter"),
+    m_table->setHorizontalHeaderLabels({"#", tr("Tier"), tr("Profile"), tr("Status"), tr("Latency"),
                                         tr("Checks"), tr("Connects"), tr("Real traffic"), tr("Last OK"), tr("Notes")});
     m_table->setColumnHidden(ColTier, true);
     m_table->setColumnHidden(ColTraffic, true);
@@ -371,7 +369,6 @@ void DialogAutoSelector::sortRows(QList<Stats::AutoSelectorMemberView> &rows, co
                     return ascending ? stateOrder(a) < stateOrder(b) : stateOrder(a) > stateOrder(b);
                 break;
             case ColLatency: result = compareKeys(latencyKey(a), latencyKey(b), decided); break;
-            case ColJitter: result = compareKeys(jitterKey(a), jitterKey(b), decided); break;
             case ColChecks: result = compareKeys(checksKey(a), checksKey(b), decided); break;
             case ColDials: result = compareKeys(dialsKey(a), dialsKey(b), decided); break;
             case ColTraffic:
@@ -431,7 +428,7 @@ void DialogAutoSelector::buildRows(const Stats::AutoSelectorView &view)
             m_table->setItem(row, column, item);
         }
         if (item->text() != text) item->setText(text);
-        if (!tip.isEmpty()) item->setToolTip(tip);
+        if (item->toolTip() != tip) item->setToolTip(tip);
     };
 
     for (int row = 0; row < rows.size(); row++) {
@@ -441,10 +438,7 @@ void DialogAutoSelector::buildRows(const Stats::AutoSelectorView &view)
         setCell(row, ColName, member.name.isEmpty() ? member.tag : member.name, member.tag);
         setCell(row, ColState, stateText(member));
         setCell(row, ColLatency, member.averageMs > 0 ? tr("%1 ms").arg(member.averageMs) : QStringLiteral("-"),
-                member.samples > 0 ? tr("Best %1 ms, worst %2 ms").arg(member.minMs).arg(member.maxMs) : QString());
-        setCell(row, ColJitter, member.samples > 0 ? tr("%1 ms").arg(member.deviationMs) : QStringLiteral("-"),
-                tr("How much the latency moves around. The selector prefers steady profiles over "
-                   "fast but erratic ones."));
+                member.minMs > 0 ? tr("Best %1 ms, worst %2 ms").arg(member.minMs).arg(member.maxMs) : QString());
         setCell(row, ColChecks,
                 member.samples > 0 ? tr("%1 / %2 ok").arg(member.samples - member.failures).arg(member.samples)
                                    : QStringLiteral("-"));

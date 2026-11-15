@@ -74,6 +74,8 @@ namespace Configs {
         // Both keys are shared with the Android app's settings table; the provider is a Configs_network::ExitLookupProviders() id.
         bool exit_country_lookup = true;
         QString exit_lookup_provider = "auto";
+        // Service Check ids turned off; checks that a newer definitions revision adds stay on.
+        QStringList service_check_disabled = {};
         int url_test_timeout_ms = 3000;
         bool disable_tray = false;
         int test_concurrent = 10;

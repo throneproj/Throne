@@ -82,7 +82,7 @@ namespace Engine {
 
     void ConnectionManager::start(const StartRequest &request) {
         ENGINE_CHECK_MAIN_THREAD();
-        ++m_geoRetryToken;
+        ++m_intentToken;
         if (Configs::dataManager->settingsRepo->prepare_exit) {
             emit startFinished(request.serial, request.profileId, StartOutcome::Exiting, {});
             return;
@@ -144,7 +144,14 @@ namespace Engine {
         }
 
         // Ranking must run before the config is built and it blocks, so hop off the UI thread.
-        if (m_autoSelector->rankBeforeStart(ent, resolved.interactive, [=, this] { start(resolved); })) return;
+        const auto resume = [=, this, intent = m_intentToken.load()] {
+            if (intent != m_intentToken.load()) {
+                emit startFinished(resolved.serial, resolved.profileId, StartOutcome::Superseded, {});
+                return;
+            }
+            start(resolved);
+        };
+        if (m_autoSelector->rankBeforeStart(ent, resolved.interactive, resume)) return;
 
         const auto result = Configs::BuildSingBoxConfig(ent);
         if (!result->error.isEmpty()) {
@@ -208,7 +215,7 @@ namespace Engine {
             if (!error.isEmpty()) {
                 std::function<void()> onGeoInstalled;
                 if (m_options.geoAutoDownload) {
-                    onGeoInstalled = [this, id = ent->id, token = m_geoRetryToken.load()] { retryAfterGeoFetch(id, token); };
+                    onGeoInstalled = [this, id = ent->id, token = m_intentToken.load()] { retryAfterGeoFetch(id, token); };
                 }
                 if (Engine::AssetUpdates::HandleXrayGeoError(policy(), error, ent->outbound->DisplayTypeAndName(), resolved.interactive,
                                                              onGeoInstalled)) {
@@ -327,7 +334,7 @@ namespace Engine {
             const bool switching = runningSnapshot() != nullptr;
             if (switching) {
                 m_switchingProfile = true;
-                stop({false, false, true, resolved.interactive});
+                stop({.manual = true, .interactive = resolved.interactive, .keepIntent = true});
                 mu_stopping.lock();
                 mu_stopping.unlock();
                 m_switchingProfile = false;
@@ -362,7 +369,7 @@ namespace Engine {
         const int rpcTimeoutMs = options.rpcTimeoutMs;
         const bool skipTests = options.skipTests;
 
-        if (manual) ++m_geoRetryToken;
+        if (manual && !options.keepIntent) ++m_intentToken;
         const auto current = runningSnapshot();
         if (current == nullptr) {
             // A crashed profile waits for the restarted core with nothing running; a user stop cancels that.
@@ -552,7 +559,7 @@ namespace Engine {
 
     void ConnectionManager::retryAfterGeoFetch(int profileId, quint64 token) {
         ENGINE_CHECK_MAIN_THREAD();
-        if (token != m_geoRetryToken.load()) return;
+        if (token != m_intentToken.load()) return;
         if (std::exchange(m_geoRetriedProfile, profileId) == profileId) return;
         if (Configs::dataManager->settingsRepo->prepare_exit || connectionState() != ConnectionState::Idle ||
             m_lastProfileId != profileId) {

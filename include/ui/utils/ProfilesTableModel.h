@@ -15,7 +15,8 @@ namespace Configs {
 class ProfilesTableModel : public QAbstractTableModel {
     Q_OBJECT
 public:
-    enum { ProfileIdRole = Qt::UserRole, PinnedRole };
+    // ServiceItemsRole: the test column's QList<ServiceIcons::Item>.
+    enum { ProfileIdRole = Qt::UserRole, PinnedRole, ServiceItemsRole };
 
     enum Column {
         ColType = 0,

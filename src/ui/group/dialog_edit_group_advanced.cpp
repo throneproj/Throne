@@ -241,7 +241,7 @@ void DialogEditGroupAdvanced::syncEndpoint() {
         source.mode = mode;
         source.ipListId = ui->endpoint_list->currentData().toInt();
         if (const auto resolution = Configs::ResolveEndpointSource(source); !resolution.address.isEmpty()) {
-            hint = tr("Profiles connect to %1 (%2).").arg(resolution.address, resolution.origin);
+            hint = tr("Profiles connect to %1 (%2).").arg(resolution.DisplayTarget(), resolution.origin);
         } else if (!resolution.problem.isEmpty()) {
             hint = tr("%1, so profiles use their own addresses.").arg(resolution.problem);
         }
