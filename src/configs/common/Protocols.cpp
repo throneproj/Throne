@@ -126,6 +126,10 @@ namespace Configs::Protocols {
             return QLatin1String(text.data(), qsizetype(text.size()));
         }
 
+        constexpr std::string_view protocolsSlot(const char *slot) {
+            return slot != nullptr ? std::string_view(slot) : std::string_view();
+        }
+
         constexpr bool protocolsIdsUnique() {
             for (const auto &a : kProtocolsTable) {
                 if (a.id.empty()) return false;
@@ -138,12 +142,15 @@ namespace Configs::Protocols {
         }
 
         template <std::size_t N>
-        constexpr bool protocolsNamesUnique(std::array<std::string_view, N> ProtocolInfo::*column) {
+        constexpr bool protocolsNamesUnique(std::array<const char *, N> ProtocolInfo::*column) {
             for (const auto &a : kProtocolsTable) {
-                for (const auto name : a.*column) {
+                for (const auto *slot : a.*column) {
+                    const auto name = protocolsSlot(slot);
                     if (name.empty()) continue;
                     int count = 0;
-                    for (const auto &b : kProtocolsTable) count += static_cast<int>(std::ranges::count(b.*column, name));
+                    for (const auto &b : kProtocolsTable) {
+                        for (const auto *other : b.*column) count += static_cast<int>(protocolsSlot(other) == name);
+                    }
                     if (count != 1) return false;
                 }
             }
@@ -153,7 +160,8 @@ namespace Configs::Protocols {
         // A scheme with a single ':' in its "://" cannot prefix another one, so ForLink's row order never matters.
         constexpr bool protocolsSchemesWellFormed() {
             for (const auto &p : kProtocolsTable) {
-                for (const auto scheme : p.importSchemes) {
+                for (const auto *slot : p.importSchemes) {
+                    const auto scheme = protocolsSlot(slot);
                     if (!scheme.empty() && (!scheme.ends_with("://") || scheme.find(':') != scheme.size() - 3)) return false;
                 }
             }
@@ -190,7 +198,7 @@ namespace Configs::Protocols {
 
         constexpr bool protocolsRefusalsConsistent() {
             const auto unused = [](const auto &names) {
-                return std::ranges::all_of(names, [](std::string_view name) { return name.empty(); });
+                return std::ranges::all_of(names, [](const char *name) { return protocolsSlot(name).empty(); });
             };
             for (const auto &p : kProtocolsTable) {
                 const bool localOnly = p.has(Composite) || p.has(RunsProgram);
@@ -250,7 +258,8 @@ namespace Configs::Protocols {
 
     const ProtocolInfo *ForLink(std::string_view line) {
         for (const auto &p : kProtocolsTable) {
-            for (const auto scheme : p.importSchemes) {
+            for (const auto *slot : p.importSchemes) {
+                const auto scheme = protocolsSlot(slot);
                 if (!scheme.empty() && line.starts_with(scheme)) return &p;
             }
         }
@@ -259,7 +268,8 @@ namespace Configs::Protocols {
 
     const ProtocolInfo *ForSingBox(QStringView type) {
         for (const auto &p : kProtocolsTable) {
-            for (const auto name : p.importSingBox) {
+            for (const auto *slot : p.importSingBox) {
+                const auto name = protocolsSlot(slot);
                 if (!name.empty() && type == protocolsLatin1(name)) return &p;
             }
         }
@@ -268,7 +278,8 @@ namespace Configs::Protocols {
 
     const ProtocolInfo *ForClash(std::string_view type) {
         for (const auto &p : kProtocolsTable) {
-            for (const auto name : p.importClash) {
+            for (const auto *slot : p.importClash) {
+                const auto name = protocolsSlot(slot);
                 if (!name.empty() && type == name) return &p;
             }
         }

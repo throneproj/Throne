@@ -32,9 +32,10 @@ namespace Configs::Protocols {
         std::string_view alias{};
         outbound *(*create)() = nullptr;
         unsigned flags = 0;
-        std::array<std::string_view, 4> importSchemes{};
-        std::array<std::string_view, 2> importSingBox{};
-        std::array<std::string_view, 2> importClash{};
+        // nullptr marks a free slot: GCC before 13 cannot read value-initialized std::string_view slots at compile time.
+        std::array<const char *, 4> importSchemes{};
+        std::array<const char *, 2> importSingBox{};
+        std::array<const char *, 2> importClash{};
         // QT_TRANSLATE_NOOP in the Validation context.
         const char *foreignRefusal = nullptr;
         // 1-based slot in the subscription "Remove types" menu; 0 when not listed.
