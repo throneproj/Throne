@@ -130,29 +130,19 @@ RouteRulesPage::RouteRulesPage(std::shared_ptr<Configs::RouteProfile> routeProfi
     leftLayout->addLayout(toolbar);
     list = new RouteRuleList(profile, left);
     leftLayout->addWidget(list, 1);
-    leftLayout->addWidget(rulesPageLabel(tr("Drag a row to change the order. Right-click a rule for Duplicate, Move to top, Move to bottom, Disable and Delete."), left,
-                                         true, 0.92));
 
     auto* right = new QWidget(splitter);
     auto* rightLayout = new QVBoxLayout(right);
     rightLayout->setContentsMargins(0, 0, 0, 0);
     rightLayout->setSpacing(0);
-    auto* header = new QHBoxLayout;
-    header->setContentsMargins(12, 4, 12, 0);
-    header->setSpacing(10);
-    positionLabel = rulesPageLabel({}, right, false, 0.92);
-    kindLabel = rulesPageLabel({}, right, false, 0.92);
-    header->addWidget(positionLabel);
-    header->addStretch(1);
-    header->addWidget(kindLabel);
-    rightLayout->addLayout(header);
 
     detailScroll = new QScrollArea(right);
     detailScroll->setWidgetResizable(true);
     detailScroll->setFrameShape(QFrame::NoFrame);
+    detailScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     auto* detail = new QWidget(detailScroll);
     auto* detailLayout = new QVBoxLayout(detail);
-    detailLayout->setContentsMargins(12, 8, 12, 12);
+    detailLayout->setContentsMargins(12, 4, 12, 12);
     stack = new RulesPageStack(detail);
     detailLayout->addWidget(stack);
     placeholder = new QWidget(stack);
@@ -169,12 +159,15 @@ RouteRulesPage::RouteRulesPage(std::shared_ptr<Configs::RouteProfile> routeProfi
     stack->addWidget(endpointPanel);
     stack->setCurrentWidget(placeholder);
     detailScroll->setWidget(detail);
+    detail->installEventFilter(this);
     rightLayout->addWidget(detailScroll, 1);
 
     splitter->addWidget(left);
     splitter->addWidget(right);
-    splitter->setStretchFactor(0, 5);
-    splitter->setStretchFactor(1, 4);
+    splitter->setStretchFactor(0, 1);
+    splitter->setStretchFactor(1, 1);
+    // Weights until the handle is dragged; without them the list's size hint takes most of the width.
+    splitter->setSizes({1100, 900});
 
     connect(newButton, &QPushButton::clicked, this, &RouteRulesPage::addRule);
     connect(duplicateButton, &QPushButton::clicked, this, [this] { duplicateRow(list->selectedRow()); });
@@ -190,6 +183,7 @@ RouteRulesPage::RouteRulesPage(std::shared_ptr<Configs::RouteProfile> routeProfi
     connect(endpointPanel, &EndpointRulePanel::openEndpointsRequested, this, &RouteRulesPage::openEndpointsRequested);
 
     onRowSelected(-1);
+    fitDetailWidth();
 }
 
 RouteRulesPage::~RouteRulesPage() = default;
@@ -207,10 +201,6 @@ void RouteRulesPage::selectRule(const std::shared_ptr<Configs::RouteRule>& rule)
     if (row < 0) return;
     if (!list->isRowShown(row)) filterEdit->clear();
     list->setSelectedRow(row);
-}
-
-int RouteRulesPage::rowCount() const {
-    return static_cast<int>(list->rows().size());
 }
 
 QList<Validation::FormIssue> RouteRulesPage::issues() {
@@ -292,28 +282,22 @@ void RouteRulesPage::onRowSelected(int row) {
     if (rule == nullptr) {
         ruleEditor->setRule(nullptr);
         showPage(placeholder);
-        positionLabel->clear();
-        kindLabel->clear();
     } else {
         const RouteEditor::Row current = rows.at(row);
-        positionLabel->setText(tr("Rule %1 of %2").arg(QString::number(row + 1), QString::number(rows.size())));
         switch (current.kind) {
             case RouteEditor::RowKind::Rule:
                 ruleEditor->setRule(rule);
                 showPage(ruleEditor);
-                kindLabel->setText(tr("First match wins"));
                 break;
             case RouteEditor::RowKind::QuickList:
                 ruleEditor->setRule(nullptr);
                 quickListEditor->setRow(current, rows);
                 showPage(quickListEditor);
-                kindLabel->setText(tr("Quick list"));
                 break;
             case RouteEditor::RowKind::Endpoint:
                 ruleEditor->setRule(nullptr);
                 endpointPanel->setRule(rule);
                 showPage(endpointPanel);
-                kindLabel->setText(tr("Endpoint rule"));
                 break;
         }
     }
@@ -325,6 +309,19 @@ void RouteRulesPage::showPage(QWidget* page) {
     if (stack->currentWidget() == page) return;
     stack->setCurrentWidget(page);
     stack->updateGeometry();
+    fitDetailWidth();
+}
+
+// The editor pane never scrolls sideways, so the splitter must leave it the shown page's minimum width.
+void RouteRulesPage::fitDetailWidth() {
+    const QWidget* detail = detailScroll->widget();
+    const int need = detail->minimumSizeHint().width() + detailScroll->verticalScrollBar()->sizeHint().width() + 2 * detailScroll->frameWidth();
+    if (detailScroll->minimumWidth() != need) detailScroll->setMinimumWidth(need);
+}
+
+bool RouteRulesPage::eventFilter(QObject* watched, QEvent* event) {
+    if (watched == detailScroll->widget() && event->type() == QEvent::LayoutRequest) fitDetailWidth();
+    return QWidget::eventFilter(watched, event);
 }
 
 void RouteRulesPage::updateActions() {

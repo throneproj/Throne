@@ -369,8 +369,8 @@ void RouteThenPicker::refresh() {
         setToolTip({});
     } else {
         setAccessibleName(RouteEditor::ThenLabel(*rule));
-        const bool profile = RouteEditor::ThenOf(*rule) == RouteEditor::Then::Profile;
-        setToolTip(profile ? RouteEditor::ProfileLabel(rule->outboundID) : QString());
+        const RouteEditor::Then then = RouteEditor::ThenOf(*rule);
+        setToolTip(then == RouteEditor::Then::Profile ? RouteEditor::ProfileLabel(rule->outboundID) : RouteEditor::ThenHint(then));
     }
     updateGeometry();
     update();

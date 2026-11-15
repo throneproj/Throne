@@ -143,7 +143,6 @@ private:
     QCheckBox* invertCheck = nullptr;
 
     RouteThenPicker* thenPicker = nullptr;
-    QLabel* thenHint = nullptr;
     QLabel* thenIssues = nullptr;
     QWidget* extrasFrame = nullptr;
     QWidget* rejectGroup = nullptr;

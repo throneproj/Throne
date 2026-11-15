@@ -5825,14 +5825,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>%1 · قانون %2 در فهرست</translation>
     </message>
     <message>
-        <source>Custom</source>
-        <translation>سفارشی</translation>
-    </message>
-    <message>
-        <source>Global</source>
-        <translation>سراسری</translation>
-    </message>
-    <message>
         <source>Unsaved changes</source>
         <translation>تغییرات ذخیره‌نشده</translation>
     </message>
@@ -5851,10 +5843,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Everything else goes to</source>
         <translation>بقیهٔ ترافیک:</translation>
-    </message>
-    <message>
-        <source>Traffic that no rule matches. Proxy is the selected profile, which exits through Cloudflare when built-in WARP is on.</source>
-        <translation>ترافیکی که با هیچ قانونی جور نمی‌شود. «پروکسی» همان نمایهٔ انتخاب‌شده است که وقتی WARP داخلی روشن است از طریق Cloudflare خارج می‌شود.</translation>
     </message>
     <message>
         <source>Remote profile</source>
@@ -8914,20 +8902,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>افزودن</translation>
     </message>
     <message>
-        <source>A quick list matches like one rule. Drag its row to run it earlier or later.</source>
-        <translation>فهرست سریع مثل یک قانون تطبیق داده می‌شود. ردیفش را بکشید تا زودتر یا دیرتر اجرا شود.</translation>
-    </message>
-    <message>
         <source>%1 list</source>
         <translation>فهرست «%1»</translation>
-    </message>
-    <message>
-        <source>Every entry here goes nowhere: it is blocked. Lines are typed by their prefix or their shape.</source>
-        <translation>موردهای اینجا به هیچ جا نمی‌روند: مسدود می‌شوند. نوع هر خط از پیشوند یا شکل آن تشخیص داده می‌شود.</translation>
-    </message>
-    <message>
-        <source>Every entry here goes to %1. Lines are typed by their prefix or their shape.</source>
-        <translation>همهٔ موردهای اینجا به «%1» می‌روند. نوع هر خط از پیشوند یا شکل آن تشخیص داده می‌شود.</translation>
     </message>
     <message>
         <source>The %1 list also has rows at %2.</source>
@@ -9131,10 +9107,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>+ افزودن شرط</translation>
     </message>
     <message>
-        <source>A box matches when any one of its values matches. Every box must match.</source>
-        <translation>یک کادر وقتی تطبیق می‌کند که یکی از مقدارهایش تطبیق کند. همهٔ کادرها باید تطبیق کنند.</translation>
-    </message>
-    <message>
         <source>Invert: match only what this rule would not match</source>
         <translation>وارونه: فقط چیزی را بگیرد که این قانون در حالت عادی نمی‌گیرد</translation>
     </message>
@@ -9203,10 +9175,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>sing-box JSON</translation>
     </message>
     <message>
-        <source>read-only</source>
-        <translation>فقط‌خواندنی</translation>
-    </message>
-    <message>
         <source>Any of these</source>
         <translation>هر کدام از این‌ها</translation>
     </message>
@@ -9250,10 +9218,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>فیلتر بر اساس نام، دامنه یا برنامه</translation>
     </message>
     <message>
-        <source>Drag a row to change the order. Right-click a rule for Duplicate, Move to top, Move to bottom, Disable and Delete.</source>
-        <translation>برای تغییر ترتیب، ردیف را بکشید. با راست‌کلیک روی یک قانون می‌توانید آن را تکثیر، به ابتدا یا انتها منتقل، غیرفعال یا حذف کنید.</translation>
-    </message>
-    <message>
         <source>Select a rule to edit it.</source>
         <translation>برای ویرایش، یک قانون انتخاب کنید.</translation>
     </message>
@@ -9272,22 +9236,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Entry %1 (&quot;%2&quot;): %3</source>
         <translation>مورد %1 («%2»): %3</translation>
-    </message>
-    <message>
-        <source>Rule %1 of %2</source>
-        <translation>قانون %1 از %2</translation>
-    </message>
-    <message>
-        <source>First match wins</source>
-        <translation>اولین تطبیق برنده است</translation>
-    </message>
-    <message>
-        <source>Quick list</source>
-        <translation>فهرست سریع</translation>
-    </message>
-    <message>
-        <source>Endpoint rule</source>
-        <translation>قانون نقطهٔ پایانی</translation>
     </message>
     <message>
         <source>Remove all entries</source>

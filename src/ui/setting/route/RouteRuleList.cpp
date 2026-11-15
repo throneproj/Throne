@@ -331,7 +331,7 @@ namespace {
             const QFont pillFont = ruleListBoldSmallFont(option.font);
             const QFontMetrics pillMetrics(pillFont);
             QSize pill = RouteEditor::PillSize(pillMetrics, look.pill);
-            pill.setWidth(qMin(pill.width(), qMax(pillMetrics.averageCharWidth() * 8, columns.text.width() * 2 / 5)));
+            pill.setWidth(qMin(pill.width(), qMax(RouteEditor::PillSize(pillMetrics, QString(12, QLatin1Char('x'))).width(), columns.text.width() / 2)));
             const QRect pillRect(columns.right - pill.width() + 1, option.rect.center().y() - pill.height() / 2, pill.width(), pill.height());
             painter->setFont(pillFont);
             RouteEditor::PaintPill(painter, visual(pillRect), look.pill, look.tone);

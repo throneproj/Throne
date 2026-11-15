@@ -67,13 +67,6 @@ namespace {
         return label;
     }
 
-    // A sing-box key, small and muted at the end of its row.
-    QLabel* ruleEditorKey(const QString& attr, QWidget* parent) {
-        auto* label = ruleEditorLabel(attr, parent, "muted", 0.85);
-        label->setContentsMargins(0, 3, 0, 0);
-        return label;
-    }
-
     QLabel* ruleEditorHeading(const QString& text, QWidget* parent) {
         auto* label = ruleEditorLabel(text, parent, "muted", 0.85, true);
         QFont font = label->font();
@@ -216,11 +209,14 @@ RouteRuleEditor::RouteRuleEditor(QWidget* parent) : QWidget(parent) {
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(8);
 
+    auto* nameRow = new QHBoxLayout;
+    nameRow->setSpacing(8);
     auto* nameLabel = ruleEditorLabel(tr("Name"), this, "muted");
     nameEdit = new QLineEdit(this);
     nameLabel->setBuddy(nameEdit);
-    layout->addWidget(nameLabel);
-    layout->addWidget(nameEdit);
+    nameRow->addWidget(nameLabel);
+    nameRow->addWidget(nameEdit, 1);
+    layout->addLayout(nameRow);
     connect(nameEdit, &QLineEdit::textEdited, this, [this](const QString& text) {
         if (loading || current == nullptr) return;
         current->name = text;
@@ -245,13 +241,13 @@ RouteRuleEditor::RouteRuleEditor(QWidget* parent) : QWidget(parent) {
         }
     }
     addConditionButton->setMenu(conditionMenu);
+    invertCheck = new QCheckBox(RouteEditor::ConditionLabel(QStringLiteral("invert")), this);
+    invertCheck->setToolTip(tr("Invert: match only what this rule would not match"));
     auto* addRow = new QHBoxLayout;
     addRow->addWidget(addConditionButton);
     addRow->addStretch(1);
+    addRow->addWidget(invertCheck);
     layout->addLayout(addRow);
-    layout->addWidget(ruleEditorLabel(tr("A box matches when any one of its values matches. Every box must match."), this, "muted", 0.92, false, true));
-    invertCheck = new QCheckBox(tr("Invert: match only what this rule would not match"), this);
-    layout->addWidget(invertCheck);
     connect(invertCheck, &QCheckBox::toggled, this, [this](bool on) {
         if (loading || current == nullptr) return;
         current->invert = on;
@@ -287,8 +283,6 @@ void RouteRuleEditor::buildThenSection(QVBoxLayout* layout) {
     pickerRow->addStretch(1);
     layout->addLayout(pickerRow);
     connect(thenPicker, &RouteThenPicker::picked, this, &RouteRuleEditor::onThenPicked);
-    thenHint = ruleEditorLabel({}, this, "muted", 0.95, false, true);
-    layout->addWidget(thenHint);
     thenIssues = ruleEditorLabel({}, this, nullptr, 0.95, false, true);
     thenIssues->hide();
     layout->addWidget(thenIssues);
@@ -313,12 +307,10 @@ void RouteRuleEditor::buildThenSection(QVBoxLayout* layout) {
     rejectLabel->setBuddy(rejectCombo);
     rejectGrid->addWidget(rejectLabel, 0, 0);
     rejectGrid->addWidget(rejectCombo, 0, 1, Qt::AlignLeft);
-    rejectGrid->addWidget(ruleEditorKey(QStringLiteral("method"), rejectGroup), 0, 2, Qt::AlignRight | Qt::AlignVCenter);
     noDropCheck = new QCheckBox(RouteEditor::ConditionLabel(QStringLiteral("no_drop")), rejectGroup);
+    noDropCheck->setToolTip(tr("Otherwise sing-box drops instead after 50 rejects in 30 s."));
     rejectGrid->addWidget(noDropCheck, 1, 0, 1, 2);
-    rejectGrid->addWidget(ruleEditorKey(QStringLiteral("no_drop"), rejectGroup), 1, 2, Qt::AlignRight | Qt::AlignVCenter);
-    rejectGrid->addWidget(ruleEditorLabel(tr("Otherwise sing-box drops instead after 50 rejects in 30 s."), rejectGroup, "muted", 0.92, false, true), 2, 0, 1, 3);
-    rejectGrid->addWidget(addSettingIssues({QStringLiteral("method"), QStringLiteral("no_drop")}, rejectGroup), 3, 0, 1, 3);
+    rejectGrid->addWidget(addSettingIssues({QStringLiteral("method"), QStringLiteral("no_drop")}, rejectGroup), 2, 0, 1, 2);
     rejectGrid->setColumnStretch(1, 1);
     extrasLayout->addWidget(rejectGroup);
     connect(rejectCombo, &QComboBox::currentIndexChanged, this, [this](int) {
@@ -335,8 +327,7 @@ void RouteRuleEditor::buildThenSection(QVBoxLayout* layout) {
     sniffGrid->setVerticalSpacing(4);
     sniffOverrideCheck = new QCheckBox(RouteEditor::ConditionLabel(QStringLiteral("override_destination")), sniffGroup);
     sniffGrid->addWidget(sniffOverrideCheck, 0, 0);
-    sniffGrid->addWidget(ruleEditorKey(QStringLiteral("override_destination"), sniffGroup), 0, 1, Qt::AlignRight | Qt::AlignVCenter);
-    sniffGrid->addWidget(addSettingIssues({QStringLiteral("override_destination")}, sniffGroup), 1, 0, 1, 2);
+    sniffGrid->addWidget(addSettingIssues({QStringLiteral("override_destination")}, sniffGroup), 1, 0);
     sniffGrid->setColumnStretch(0, 1);
     extrasLayout->addWidget(sniffGroup);
     connect(sniffOverrideCheck, &QCheckBox::toggled, this, [this](bool on) {
@@ -363,8 +354,7 @@ void RouteRuleEditor::buildThenSection(QVBoxLayout* layout) {
     strategyLabel->setBuddy(strategyCombo);
     resolveGrid->addWidget(strategyLabel, 0, 0);
     resolveGrid->addWidget(strategyCombo, 0, 1, Qt::AlignLeft);
-    resolveGrid->addWidget(ruleEditorKey(QStringLiteral("strategy"), resolveGroup), 0, 2, Qt::AlignRight | Qt::AlignVCenter);
-    resolveGrid->addWidget(addSettingIssues({QStringLiteral("strategy")}, resolveGroup), 1, 0, 1, 3);
+    resolveGrid->addWidget(addSettingIssues({QStringLiteral("strategy")}, resolveGroup), 1, 0, 1, 2);
     resolveGrid->setColumnStretch(1, 1);
     extrasLayout->addWidget(resolveGroup);
     connect(strategyCombo, &QComboBox::currentIndexChanged, this, [this](int) {
@@ -387,8 +377,9 @@ void RouteRuleEditor::buildOptions(QVBoxLayout* layout) {
     auto* head = new QHBoxLayout;
     head->setSpacing(8);
     optionsToggle = ruleEditorDisclosure(tr("Connection options"), frame);
+    optionsToggle->setToolTip(tr("Override, TLS fragment, TLS spoof"));
     head->addWidget(optionsToggle);
-    head->addWidget(ruleEditorLabel(tr("Override, TLS fragment, TLS spoof"), frame, "muted", 0.92, false, true), 1);
+    head->addStretch(1);
     frameLayout->addLayout(head);
     connect(optionsToggle, &QToolButton::toggled, this, [this](bool open) { setOptionsOpen(open); });
 
@@ -398,9 +389,8 @@ void RouteRuleEditor::buildOptions(QVBoxLayout* layout) {
     grid->setHorizontalSpacing(10);
     grid->setVerticalSpacing(4);
     int row = 0;
-    const auto finishRow = [this, grid, &row](const QString& key, const QStringList& attrs) {
-        grid->addWidget(ruleEditorKey(key, optionsBody), row, 2, Qt::AlignRight | Qt::AlignVCenter);
-        grid->addWidget(addSettingIssues(attrs, optionsBody), row + 1, 0, 1, 3);
+    const auto finishRow = [this, grid, &row](const QStringList& attrs) {
+        grid->addWidget(addSettingIssues(attrs, optionsBody), row + 1, 0, 1, 2);
         row += 2;
     };
     const auto bindText = [this](QLineEdit* edit, const QString& attr) {
@@ -420,7 +410,7 @@ void RouteRuleEditor::buildOptions(QVBoxLayout* layout) {
     grid->addWidget(addressLabel, row, 0);
     grid->addWidget(overrideAddressEdit, row, 1);
     bindText(overrideAddressEdit, QStringLiteral("override_address"));
-    finishRow(QStringLiteral("override_address"), {QStringLiteral("override_address")});
+    finishRow({QStringLiteral("override_address")});
 
     auto* portLabel = new QLabel(RouteEditor::ConditionLabel(QStringLiteral("override_port")), optionsBody);
     overridePortEdit = new QLineEdit(optionsBody);
@@ -429,7 +419,7 @@ void RouteRuleEditor::buildOptions(QVBoxLayout* layout) {
     grid->addWidget(portLabel, row, 0);
     grid->addWidget(overridePortEdit, row, 1);
     bindText(overridePortEdit, QStringLiteral("override_port"));
-    finishRow(QStringLiteral("override_port"), {QStringLiteral("override_port")});
+    finishRow({QStringLiteral("override_port")});
 
     fragmentCheck = new QCheckBox(RouteEditor::ConditionLabel(QStringLiteral("tls_fragment")), optionsBody);
     fragmentDelayEdit = new QLineEdit(optionsBody);
@@ -438,7 +428,7 @@ void RouteRuleEditor::buildOptions(QVBoxLayout* layout) {
     grid->addWidget(fragmentCheck, row, 0);
     grid->addWidget(fragmentDelayEdit, row, 1);
     bindText(fragmentDelayEdit, QStringLiteral("tls_fragment_fallback_delay"));
-    finishRow(QStringLiteral("tls_fragment"), {QStringLiteral("tls_fragment"), QStringLiteral("tls_fragment_fallback_delay")});
+    finishRow({QStringLiteral("tls_fragment"), QStringLiteral("tls_fragment_fallback_delay")});
     connect(fragmentCheck, &QCheckBox::toggled, this, [this](bool on) {
         fragmentDelayEdit->setEnabled(on);
         if (!loading && current != nullptr) setScopedFlag(QStringLiteral("tls_fragment"), on);
@@ -446,7 +436,7 @@ void RouteRuleEditor::buildOptions(QVBoxLayout* layout) {
 
     recordFragmentCheck = new QCheckBox(RouteEditor::ConditionLabel(QStringLiteral("tls_record_fragment")), optionsBody);
     grid->addWidget(recordFragmentCheck, row, 0, 1, 2);
-    finishRow(QStringLiteral("tls_record_fragment"), {QStringLiteral("tls_record_fragment")});
+    finishRow({QStringLiteral("tls_record_fragment")});
     connect(recordFragmentCheck, &QCheckBox::toggled, this, [this](bool on) {
         if (!loading && current != nullptr) setScopedFlag(QStringLiteral("tls_record_fragment"), on);
     });
@@ -468,7 +458,7 @@ void RouteRuleEditor::buildOptions(QVBoxLayout* layout) {
     grid->addWidget(spoofLabel, row, 0);
     grid->addLayout(spoofRow, row, 1);
     bindText(spoofEdit, QStringLiteral("tls_spoof"));
-    finishRow(QStringLiteral("tls_spoof"), {QStringLiteral("tls_spoof"), QStringLiteral("tls_spoof_method")});
+    finishRow({QStringLiteral("tls_spoof"), QStringLiteral("tls_spoof_method")});
     connect(spoofMethodCombo, &QComboBox::currentIndexChanged, this, [this](int) {
         if (!loading && current != nullptr) setScopedText(QStringLiteral("tls_spoof_method"), spoofMethodCombo->currentData().toString());
     });
@@ -487,7 +477,6 @@ void RouteRuleEditor::buildJson(QVBoxLayout* layout) {
     head->setSpacing(8);
     jsonToggle = ruleEditorDisclosure(tr("sing-box JSON"), this);
     head->addWidget(jsonToggle);
-    head->addWidget(ruleEditorLabel(tr("read-only"), this, "muted", 0.92));
     head->addStretch(1);
     layout->addSpacing(4);
     layout->addLayout(head);
@@ -555,7 +544,6 @@ void RouteRuleEditor::loadRule() {
 
 void RouteRuleEditor::loadThenSection() {
     if (current == nullptr) {
-        thenHint->clear();
         thenIssues->hide();
         extrasFrame->hide();
         optionsFrame->hide();
@@ -563,7 +551,6 @@ void RouteRuleEditor::loadThenSection() {
     }
     const RouteEditor::Then then = RouteEditor::ThenOf(*current);
     thenPicker->refresh();
-    thenHint->setText(RouteEditor::ThenHint(then));
     const bool reject = RouteEditor::ThenUses(then, QStringLiteral("method"));
     const bool sniff = RouteEditor::ThenUses(then, QStringLiteral("override_destination"));
     const bool resolve = RouteEditor::ThenUses(then, QStringLiteral("strategy"));
@@ -632,7 +619,7 @@ void RouteRuleEditor::buildBox(const QString& title, const QStringList& attrs, b
     headerLayout->addWidget(ruleEditorLabel(title, header, nullptr, 1.0, true));
     headerLayout->addStretch(1);
     headerLayout->addWidget(ruleEditorLabel(grouped ? tr("Any of these") : tr("Any of these values"), header, "muted", 0.92));
-    grid->addWidget(header, 0, 0, 1, 3);
+    grid->addWidget(header, 0, 0, 1, 2);
     frame->setDivider(header);
 
     int row = 1;
@@ -645,7 +632,6 @@ void RouteRuleEditor::buildBox(const QString& title, const QStringList& attrs, b
         auto* host = new QWidget(frame);
         auto* flow = new RouteEditor::FlowLayout(host, 5, 5);
         grid->addWidget(host, row, grouped ? 1 : 0, 1, grouped ? 1 : 2);
-        grid->addWidget(ruleEditorKey(attr, frame), row, 2, Qt::AlignRight | Qt::AlignTop);
         if (Configs::RouteRule::get_input_type(attr) == Configs::select) {
             host->setProperty(ruleEditorSelectProperty, attr);
             host->installEventFilter(this);
@@ -657,7 +643,7 @@ void RouteRuleEditor::buildBox(const QString& title, const QStringList& attrs, b
     grid->setColumnStretch(1, 1);
     auto* issues = ruleEditorLabel({}, frame, nullptr, 0.95, false, true);
     issues->hide();
-    grid->addWidget(issues, row, 0, 1, 3);
+    grid->addWidget(issues, row, 0, 1, 2);
     boxesLayout->addWidget(frame);
     boxViews.append(BoxView{attrs, grouped, frame, issues});
 }

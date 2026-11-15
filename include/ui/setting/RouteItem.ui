@@ -59,16 +59,6 @@
        </item>
       </layout>
      </item>
-     <item row="2" column="1">
-      <widget class="QLabel" name="defaultHint">
-       <property name="text">
-        <string>Traffic that no rule matches. Proxy is the selected profile, which exits through Cloudflare when built-in WARP is on.</string>
-       </property>
-       <property name="wordWrap">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
     </layout>
    </item>
    <item>

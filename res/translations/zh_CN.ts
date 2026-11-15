@@ -13760,14 +13760,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>%1 · 列表中的第 %2 条规则</translation>
     </message>
     <message>
-        <source>Custom</source>
-        <translation>自定义</translation>
-    </message>
-    <message>
-        <source>Global</source>
-        <translation>全局</translation>
-    </message>
-    <message>
         <source>Unsaved changes</source>
         <translation>未保存的更改</translation>
     </message>
@@ -13786,10 +13778,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Everything else goes to</source>
         <translation>其余流量：</translation>
-    </message>
-    <message>
-        <source>Traffic that no rule matches. Proxy is the selected profile, which exits through Cloudflare when built-in WARP is on.</source>
-        <translation>未被任何规则匹配的流量。“代理”即所选配置档，开启内置 WARP 时经由 Cloudflare 出站。</translation>
     </message>
     <message>
         <source>Remote profile</source>
@@ -18708,20 +18696,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>添加</translation>
     </message>
     <message>
-        <source>A quick list matches like one rule. Drag its row to run it earlier or later.</source>
-        <translation>快速列表作为一条规则匹配。拖动它所在的行，可让它更早或更晚执行。</translation>
-    </message>
-    <message>
         <source>%1 list</source>
         <translation>“%1”列表</translation>
-    </message>
-    <message>
-        <source>Every entry here goes nowhere: it is blocked. Lines are typed by their prefix or their shape.</source>
-        <translation>这里的条目不会发往任何地方：它们会被阻止。各行的类型由前缀或其形式决定。</translation>
-    </message>
-    <message>
-        <source>Every entry here goes to %1. Lines are typed by their prefix or their shape.</source>
-        <translation>这里的每个条目都走“%1”。各行的类型由前缀或其形式决定。</translation>
     </message>
     <message>
         <source>The %1 list also has rows at %2.</source>
@@ -18925,10 +18901,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>+ 添加条件</translation>
     </message>
     <message>
-        <source>A box matches when any one of its values matches. Every box must match.</source>
-        <translation>一个框内任一值匹配即算匹配；所有框都必须匹配。</translation>
-    </message>
-    <message>
         <source>Invert: match only what this rule would not match</source>
         <translation>反转：只匹配本规则原本不会匹配的流量</translation>
     </message>
@@ -18997,10 +18969,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>sing-box JSON</translation>
     </message>
     <message>
-        <source>read-only</source>
-        <translation>只读</translation>
-    </message>
-    <message>
         <source>Any of these</source>
         <translation>满足任一</translation>
     </message>
@@ -19044,10 +19012,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>按名称、域名或应用过滤</translation>
     </message>
     <message>
-        <source>Drag a row to change the order. Right-click a rule for Duplicate, Move to top, Move to bottom, Disable and Delete.</source>
-        <translation>拖动行以调整顺序。右键单击规则可复制、移到顶部、移到底部、停用和删除。</translation>
-    </message>
-    <message>
         <source>Select a rule to edit it.</source>
         <translation>选择一条规则进行编辑。</translation>
     </message>
@@ -19066,22 +19030,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Entry %1 (&quot;%2&quot;): %3</source>
         <translation>条目 %1（“%2”）：%3</translation>
-    </message>
-    <message>
-        <source>Rule %1 of %2</source>
-        <translation>第 %1 条，共 %2 条</translation>
-    </message>
-    <message>
-        <source>First match wins</source>
-        <translation>首个匹配生效</translation>
-    </message>
-    <message>
-        <source>Quick list</source>
-        <translation>快速列表</translation>
-    </message>
-    <message>
-        <source>Endpoint rule</source>
-        <translation>端点规则</translation>
     </message>
     <message>
         <source>Remove all entries</source>

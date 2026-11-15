@@ -141,7 +141,6 @@ RouteDnsEditor::RouteDnsEditor(const Configs::RouteProfile& profile, QWidget* pa
             showDns(Configs::RouteDns::Global());
         }
         syncState();
-        emit customChanged(custom);
     });
 }
 
@@ -173,10 +172,6 @@ void RouteDnsEditor::writeTo(Configs::RouteProfile& profile) const {
     // Untouched seed values stay unstored, so a later switch to custom starts from the global settings of that time.
     if (!profile.customDns && !profile.dns && values == opened) return;
     profile.dns = values;
-}
-
-bool RouteDnsEditor::isCustom() const {
-    return customRadio->isChecked();
 }
 
 void RouteDnsEditor::showDns(const Configs::RouteDns& dns) const {

@@ -13820,14 +13820,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>%1 · правило %2 в списке</translation>
     </message>
     <message>
-        <source>Custom</source>
-        <translation>Собственные</translation>
-    </message>
-    <message>
-        <source>Global</source>
-        <translation>Глобальные</translation>
-    </message>
-    <message>
         <source>Unsaved changes</source>
         <translation>Несохраненные изменения</translation>
     </message>
@@ -13846,10 +13838,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Everything else goes to</source>
         <translation>Остальной трафик:</translation>
-    </message>
-    <message>
-        <source>Traffic that no rule matches. Proxy is the selected profile, which exits through Cloudflare when built-in WARP is on.</source>
-        <translation>Трафик, который не совпал ни с одним правилом. «Прокси» — это выбранный профиль; при включенном встроенном WARP выход идет через Cloudflare.</translation>
     </message>
     <message>
         <source>Remote profile</source>
@@ -18958,20 +18946,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Добавить</translation>
     </message>
     <message>
-        <source>A quick list matches like one rule. Drag its row to run it earlier or later.</source>
-        <translation>Быстрый список срабатывает как одно правило. Перетащите его строку, чтобы он проверялся раньше или позже.</translation>
-    </message>
-    <message>
         <source>%1 list</source>
         <translation>Список «%1»</translation>
-    </message>
-    <message>
-        <source>Every entry here goes nowhere: it is blocked. Lines are typed by their prefix or their shape.</source>
-        <translation>Записи этого списка никуда не идут: они блокируются. Тип строки определяется по префиксу или по ее виду.</translation>
-    </message>
-    <message>
-        <source>Every entry here goes to %1. Lines are typed by their prefix or their shape.</source>
-        <translation>Действие для всех записей здесь: «%1». Тип строки определяется по префиксу или по ее виду.</translation>
     </message>
     <message>
         <source>The %1 list also has rows at %2.</source>
@@ -19177,10 +19153,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>+ Добавить условие</translation>
     </message>
     <message>
-        <source>A box matches when any one of its values matches. Every box must match.</source>
-        <translation>Блок срабатывает, если совпадает любое из его значений. Совпасть должны все блоки.</translation>
-    </message>
-    <message>
         <source>Invert: match only what this rule would not match</source>
         <translation>Инвертировать: срабатывать только на то, что не подходит под условия</translation>
     </message>
@@ -19249,10 +19221,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>sing-box JSON</translation>
     </message>
     <message>
-        <source>read-only</source>
-        <translation>только чтение</translation>
-    </message>
-    <message>
         <source>Any of these</source>
         <translation>Любое из условий</translation>
     </message>
@@ -19296,10 +19264,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Фильтр по имени, домену или приложению</translation>
     </message>
     <message>
-        <source>Drag a row to change the order. Right-click a rule for Duplicate, Move to top, Move to bottom, Disable and Delete.</source>
-        <translation>Перетащите строку, чтобы изменить порядок. Щелкните правило правой кнопкой мыши, чтобы дублировать, переместить в начало или в конец, отключить или удалить его.</translation>
-    </message>
-    <message>
         <source>Select a rule to edit it.</source>
         <translation>Выберите правило, чтобы изменить его.</translation>
     </message>
@@ -19318,22 +19282,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Entry %1 (&quot;%2&quot;): %3</source>
         <translation>Запись %1 («%2»): %3</translation>
-    </message>
-    <message>
-        <source>Rule %1 of %2</source>
-        <translation>Правило %1 из %2</translation>
-    </message>
-    <message>
-        <source>First match wins</source>
-        <translation>Срабатывает первое совпавшее</translation>
-    </message>
-    <message>
-        <source>Quick list</source>
-        <translation>Быстрый список</translation>
-    </message>
-    <message>
-        <source>Endpoint rule</source>
-        <translation>Правило конечной точки</translation>
     </message>
     <message>
         <source>Remove all entries</source>

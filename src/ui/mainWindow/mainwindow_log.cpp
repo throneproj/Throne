@@ -60,6 +60,19 @@ namespace {
                                 a.blueF() + (b.blueF() - a.blueF()) * amount);
     }
 
+    // A screen of log lines reads calmer with its colours desaturated and drawn toward the text colour.
+    QColor calmLogColor(const QColor &color, const QColor &text, float maxSaturation = 0.38f) {
+        float h = 0, s = 0, l = 0, a = 1;
+        color.getHslF(&h, &s, &l, &a);
+        return mixColors(QColor::fromHslF(h, std::min(s, maxSaturation), l, a), text, 0.2f);
+    }
+
+    // Debug, Info, Warn, Error.
+    std::array<QColor, 4> logLevelColors(const ThemeTokens &tokens) {
+        return {tokens.muted, calmLogColor(tokens.info, tokens.onSurface), calmLogColor(tokens.warning, tokens.onSurface, 0.55f),
+                calmLogColor(tokens.danger, tokens.onSurface, 0.55f)};
+    }
+
     QPixmap levelDotPixmap(const QColor &color, int size, qreal dpr) {
         QPixmap pixmap(QSize(size, size) * dpr);
         pixmap.setDevicePixelRatio(dpr);
@@ -100,18 +113,19 @@ void MainWindow::applyLogBrowserFont() {
 
 void MainWindow::setLogHighlighter(bool darkMode) {
     const auto &tokens = themeManager()->tokens;
+    const auto levels = logLevelColors(tokens);
     Qv2ray::ui::LogColors colors;
     colors.text = tokens.onSurface;
-    colors.muted = tokens.muted;
-    colors.info = tokens.info;
-    colors.warn = tokens.warning;
-    colors.error = tokens.danger;
-    colors.ok = tokens.success;
-    colors.host = mixColors(tokens.info, tokens.onSurface, 0.35f);
-    colors.inbound = tokens.chartSeries[2];
-    colors.outbound = tokens.chartSeries[4];
-    colors.dns = tokens.chartSeries[1];
-    colors.router = tokens.chartSeries[3];
+    colors.muted = levels[0];
+    colors.info = levels[1];
+    colors.warn = levels[2];
+    colors.error = levels[3];
+    colors.ok = calmLogColor(tokens.success, tokens.onSurface);
+    colors.host = mixColors(colors.info, tokens.onSurface, 0.35f);
+    colors.inbound = calmLogColor(tokens.chartSeries[2], tokens.onSurface);
+    colors.outbound = calmLogColor(tokens.chartSeries[4], tokens.onSurface);
+    colors.dns = calmLogColor(tokens.chartSeries[1], tokens.onSurface);
+    colors.router = calmLogColor(tokens.chartSeries[3], tokens.onSurface);
     colors.other = tokens.chartContext;
     colors.searchBackground = darkMode ? QColor(150, 110, 0) : QColor(255, 225, 90);
     colors.searchForeground = darkMode ? QColor(Qt::white) : QColor(Qt::black);
@@ -124,8 +138,7 @@ void MainWindow::setLogHighlighter(bool darkMode) {
 }
 
 void MainWindow::refreshLogLevelChips() {
-    const auto &tokens = themeManager()->tokens;
-    const std::array<QColor, 4> dots = {tokens.muted, tokens.info, tokens.warning, tokens.danger};
+    const auto dots = logLevelColors(themeManager()->tokens);
     for (int i = 0; i < 4; ++i) {
         if (logLevelChips[i] != nullptr) logLevelChips[i]->setIcon(levelDotIcon(dots[i]));
     }

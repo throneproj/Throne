@@ -332,7 +332,7 @@ namespace RouteEditor {
     QSize ThenPill::minimumSizeHint() const {
         const QFontMetrics metrics = fontMetrics();
         const QSize full = PillSize(metrics, label);
-        return {qMin(full.width(), PillSize(metrics, QStringLiteral("Xxxxxx")).width()), full.height()};
+        return {qMin(full.width(), PillSize(metrics, QStringLiteral("Xxxxxxxxxxxx")).width()), full.height()};
     }
 
     void ThenPill::paintEvent(QPaintEvent*) {

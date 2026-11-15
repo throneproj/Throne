@@ -30,7 +30,6 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
-#include <QPainter>
 #include <QPlainTextEdit>
 #include <QPointer>
 #include <QPushButton>
@@ -41,51 +40,6 @@
 #include <QTabWidget>
 #include <QTimer>
 #include <QVBoxLayout>
-
-// A tab's count or state, painted small beside its title.
-class RouteTabBadge : public QWidget {
-public:
-    explicit RouteTabBadge(QWidget* parent) : QWidget(parent) {
-        setAttribute(Qt::WA_TransparentForMouseEvents);
-        QFont small = font();
-        small.setWeight(QFont::DemiBold);
-        if (small.pointSizeF() > 0) small.setPointSizeF(small.pointSizeF() * 0.85);
-        setFont(small);
-        connect(themeManager(), &ThemeManager::themeChanged, this, [this] { update(); });
-    }
-
-    // QTabBar lays its buttons out by their current size, not their size hint.
-    void setText(const QString& value) {
-        text = value;
-        resize(sizeHint());
-        update();
-    }
-
-    [[nodiscard]] const QString& label() const { return text; }
-
-    [[nodiscard]] QSize sizeHint() const override {
-        const QFontMetrics metrics(font());
-        return {metrics.horizontalAdvance(text) + metrics.height(), metrics.height() + 2};
-    }
-
-protected:
-    void paintEvent(QPaintEvent*) override {
-        QPainter painter(this);
-        painter.setRenderHint(QPainter::Antialiasing);
-        const auto& tokens = themeManager()->tokens;
-        QColor fill = tokens.onSurface;
-        fill.setAlphaF(0.10f);
-        painter.setPen(Qt::NoPen);
-        painter.setBrush(fill);
-        const QRectF box = QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5);
-        painter.drawRoundedRect(box, box.height() / 2, box.height() / 2);
-        painter.setPen(tokens.muted);
-        painter.drawText(rect(), Qt::AlignCenter, text);
-    }
-
-private:
-    QString text;
-};
 
 // User text and names from shared profiles must not render as rich text.
 static void routeItemPlainBox(QWidget* parent, QMessageBox::Icon icon, const QString& title, const QString& text) {
@@ -222,10 +176,7 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     } else {
         rulesPage = new RouteRulesPage(chain, ui->rulesTab);
         ui->rulesTabLayout->addWidget(rulesPage);
-        connect(rulesPage, &RouteRulesPage::changed, this, [this] {
-            updateBadges();
-            refreshEndpointSubtitles();
-        });
+        connect(rulesPage, &RouteRulesPage::changed, this, &RouteItem::refreshEndpointSubtitles);
         connect(rulesPage, &RouteRulesPage::openEndpointsRequested, this, [this] { ui->tabWidget->setCurrentWidget(ui->endpointsTab); });
         // Deferred: both come from the page's own handlers, and syncing the endpoints reloads the page.
         connect(rulesPage, &RouteRulesPage::endpointRemovalRequested, this, [this](int profileId) {
@@ -241,7 +192,6 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
 
     dnsEditor = new RouteDnsEditor(*chain, ui->tabWidget);
     ui->tabWidget->addTab(dnsEditor, tr("DNS"));
-    connect(dnsEditor, &RouteDnsEditor::customChanged, this, [this] { updateBadges(); });
 
     const int endpointsIndex = ui->tabWidget->indexOf(ui->endpointsTab);
     if (UiMode::Simple()) {
@@ -256,7 +206,6 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     }
     ui->tabWidget->tabBar()->setVisible(visibleTabs > 1);
     ui->tabWidget->setCurrentWidget(ui->rulesTab);
-    updateBadges();
 
     form = new Validation::Form(this);
     form->attachStatus(ui->buttonBox);
@@ -291,7 +240,6 @@ void RouteItem::setupHeader() {
         ui->defaultCombo->addItem(RouteEditor::ThenLabel(RouteEditor::ThenOfOutbound(id)), id);
     }
     setDefaultOutbound(chain->defaultOutboundID);
-    routeItemTint(ui->defaultHint, false);
 }
 
 void RouteItem::setDefaultOutbound(int outboundID) {
@@ -598,27 +546,6 @@ void RouteItem::refreshEndpointSubtitles() {
 void RouteItem::reloadRules() {
     if (rulesPage != nullptr) rulesPage->reload();
     if (quickListsView != nullptr) quickListsView->reload();
-    updateBadges();
-}
-
-void RouteItem::updateBadges() {
-    if (rulesPage != nullptr) setBadge(ui->rulesTab, rulesBadge, QString::number(rulesPage->rowCount()));
-    setBadge(ui->endpointsTab, endpointsBadge, endpointRows.isEmpty() ? QString() : QString::number(endpointRows.size()));
-    if (dnsEditor != nullptr) setBadge(dnsEditor, dnsBadge, dnsEditor->isCustom() ? tr("Custom") : tr("Global"));
-}
-
-void RouteItem::setBadge(QWidget* page, RouteTabBadge*& badge, const QString& text) {
-    const int index = ui->tabWidget->indexOf(page);
-    if (index < 0) return;
-    auto* bar = ui->tabWidget->tabBar();
-    const bool shown = !text.isEmpty() && ui->tabWidget->isTabVisible(index);
-    if (shown && badge != nullptr && bar->tabButton(index, QTabBar::RightSide) == badge && badge->label() == text) return;
-    // Setting the button a tab already has would hide it, so it is cleared first.
-    bar->setTabButton(index, QTabBar::RightSide, nullptr);
-    if (!shown) return;
-    if (badge == nullptr) badge = new RouteTabBadge(bar);
-    badge->setText(text);
-    bar->setTabButton(index, QTabBar::RightSide, badge);
 }
 
 QString RouteItem::fingerprint() const {

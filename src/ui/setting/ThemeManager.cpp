@@ -196,6 +196,10 @@ static QColor separate(QColor c, const QColor &surface, double target) {
     return c;
 }
 
+QColor ContrastSeparated(const QColor &color, const QColor &surface, double ratio) {
+    return separate(color, surface, ratio);
+}
+
 static QColor paletteAccent(const QPalette &pal) {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
     return pal.color(QPalette::Active, QPalette::Accent);

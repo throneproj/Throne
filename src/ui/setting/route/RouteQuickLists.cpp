@@ -914,8 +914,6 @@ QuickListEditor::QuickListEditor(std::shared_ptr<Configs::RouteProfile> profile,
         d->addError->hide();
     });
     layout->addWidget(d->addError);
-
-    layout->addWidget(makeLabel(this, Tone::Muted, true, tr("A quick list matches like one rule. Drag its row to run it earlier or later.")));
 }
 
 QuickListEditor::~QuickListEditor() = default;
@@ -950,9 +948,9 @@ void QuickListEditor::reload(int current, int scroll) {
     const auto then = RouteEditor::ThenOfList(list);
     d->title->setText(tr("%1 list").arg(RouteEditor::ListName(list)));
     d->pill->setPill(RouteEditor::ThenLabel(then), RouteEditor::ToneOf(then));
-    if (list == Configs::warpBypass) d->intro->setText(noWarpHint());
-    else if (list == Configs::block) d->intro->setText(tr("Every entry here goes nowhere: it is blocked. Lines are typed by their prefix or their shape."));
-    else d->intro->setText(tr("Every entry here goes to %1. Lines are typed by their prefix or their shape.").arg(RouteEditor::ThenLabel(then)));
+    // The pill already says where entries go; only WARP bypass needs a word on when it differs from Proxy.
+    d->intro->setText(list == Configs::warpBypass ? noWarpHint() : QString());
+    d->intro->setVisible(list == Configs::warpBypass);
 
     const int end = qMin(d->row.first + d->row.count, static_cast<int>(d->profile->Rules.size()));
     bool allOff = d->row.first < end;

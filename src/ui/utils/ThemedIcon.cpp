@@ -1,5 +1,7 @@
 #include "include/ui/utils/ThemedIcon.hpp"
 
+#include "include/ui/setting/ThemeManager.hpp"
+
 #include <QGuiApplication>
 #include <QIconEngine>
 #include <QPainter>
@@ -9,7 +11,7 @@
 namespace {
     class ThemedIconEngine final : public QIconEngine {
     public:
-        explicit ThemedIconEngine(const QString &name) : name(name) {
+        ThemedIconEngine(const QString &name, int hue) : name(name), hue(hue) {
             const QString base = QStringLiteral(":/icon/lucide/") + name;
             mask.addFile(base + QStringLiteral(".png"));
             mask.addFile(base + QStringLiteral("@2x.png"));
@@ -26,7 +28,7 @@ namespace {
         }
 
         QPixmap scaledPixmap(const QSize &size, QIcon::Mode mode, QIcon::State, qreal scale) override {
-            const QColor color = tint(mode);
+            const QColor color = tint(mode, hue);
             const QString key = QStringLiteral("themed-icon/%1/%2x%3/%4/%5")
                                     .arg(name)
                                     .arg(size.width())
@@ -68,20 +70,25 @@ namespace {
         }
 
     private:
-        static QColor tint(QIcon::Mode mode) {
+        static QColor tint(QIcon::Mode mode, int hue) {
             const QPalette palette = QGuiApplication::palette();
             switch (mode) {
                 case QIcon::Disabled: return palette.color(QPalette::Disabled, QPalette::ButtonText);
                 case QIcon::Selected: return palette.color(QPalette::Active, QPalette::HighlightedText);
-                default: return palette.color(QPalette::Active, QPalette::ButtonText);
+                default: break;
             }
+            if (hue < 0) return palette.color(QPalette::Active, QPalette::ButtonText);
+            const QColor surface = palette.color(QPalette::Active, QPalette::Window);
+            const QColor muted = QColor::fromHslF(static_cast<float>(hue % 360) / 360.0f, 0.38f, surface.lightnessF() < 0.5f ? 0.68f : 0.42f);
+            return ContrastSeparated(muted, surface, 3.0);
         }
 
         QString name;
+        int hue;
         QIcon mask;
     };
 } // namespace
 
-QIcon ThemedIcon(const QString &name) {
-    return QIcon(new ThemedIconEngine(name));
+QIcon ThemedIcon(const QString &name, int hue) {
+    return QIcon(new ThemedIconEngine(name, hue));
 }

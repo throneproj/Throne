@@ -10,6 +10,7 @@
 
 #include <QRegularExpression>
 #include <QScreen>
+#include <QScrollBar>
 #include <QValidator>
 
 namespace {
@@ -89,7 +90,25 @@ DialogPresetSettings::DialogPresetSettings(QWidget *parent) : QDialog(parent), u
     form->bind(ui->quic_initial_packet_size, Configs::Checks::QuicInitialPacketSize);
     form->markAll();
 
-    QSize want = sizeHint();
+    ensurePolished();
+    int contentsHeight = 0;
+    for (QScrollArea *scroll : {ui->mux_scroll, ui->tls_scroll, ui->h2_quic_scroll}) {
+        QWidget *contents = scroll->widget();
+        scroll->setFocusPolicy(Qt::NoFocus);
+        // The tab pane shows through, as it did before the pages scrolled.
+        scroll->viewport()->setAutoFillBackground(false);
+        contents->setAutoFillBackground(false);
+        // Nested layouts keep stale size hints until activated.
+        for (auto *nested : contents->findChildren<QLayout *>()) nested->activate();
+        const int frame = 2 * scroll->frameWidth();
+        scroll->setMinimumWidth(contents->minimumSizeHint().width() + scroll->verticalScrollBar()->sizeHint().width() + frame);
+        contentsHeight = qMax(contentsHeight, contents->sizeHint().height() + frame);
+    }
+    // QScrollArea::sizeHint() caps the height at 24 font heights, so add what the tallest tab still lacks.
+    int pagesHeight = 0;
+    for (int i = 0; i < ui->tabWidget->count(); ++i) pagesHeight = qMax(pagesHeight, ui->tabWidget->widget(i)->sizeHint().height());
+
+    QSize want = sizeHint() + QSize(0, qMax(0, contentsHeight - pagesHeight));
     if (const QScreen *scr = parent ? parent->screen() : screen()) {
         const QRect avail = scr->availableGeometry();
         want = want.boundedTo(QSize(avail.width() - 24, avail.height() - 72));

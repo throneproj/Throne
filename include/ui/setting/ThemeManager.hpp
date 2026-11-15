@@ -52,3 +52,6 @@ private:
 };
 
 ThemeManager *themeManager();
+
+// Walks color's HSL lightness away from surface until their contrast ratio reaches ratio; hue and saturation stay.
+QColor ContrastSeparated(const QColor &color, const QColor &surface, double ratio);

@@ -39,11 +39,6 @@ public:
     // applyTo without touching the server history.
     void writeTo(Configs::RouteProfile& profile) const;
 
-    [[nodiscard]] bool isCustom() const;
-
-signals:
-    void customChanged(bool custom);
-
 private:
     void showDns(const Configs::RouteDns& dns) const;
 

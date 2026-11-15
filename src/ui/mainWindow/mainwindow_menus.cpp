@@ -4,6 +4,7 @@
 #include <QCoreApplication>
 #include <QItemSelectionModel>
 #include <QMenu>
+#include <QPainter>
 
 #include "include/configs/generate.h"
 #include "include/database/GroupsRepo.h"
@@ -55,6 +56,25 @@ namespace {
 
     QString trayProfileName(const std::shared_ptr<Configs::Profile> &profile) {
         return trayMenuName(profile->outbound != nullptr ? profile->outbound->DisplayName() : profile->name);
+    }
+
+    // Also the Disabled pixmap: the status line is a disabled action, which would grey the dot out.
+    QIcon trayConnectedIcon() {
+        QIcon icon;
+        for (const qreal dpr : {1.0, 2.0}) {
+            QPixmap pixmap(QSize(16, 16) * dpr);
+            pixmap.setDevicePixelRatio(dpr);
+            pixmap.fill(Qt::transparent);
+            QPainter painter(&pixmap);
+            painter.setRenderHint(QPainter::Antialiasing);
+            painter.setPen(Qt::NoPen);
+            painter.setBrush(QColor(0x3F, 0xB9, 0x50));
+            painter.drawEllipse(QRectF(4.5, 4.5, 7, 7));
+            painter.end();
+            icon.addPixmap(pixmap, QIcon::Normal);
+            icon.addPixmap(pixmap, QIcon::Disabled);
+        }
+        return icon;
     }
 }
 
@@ -355,6 +375,7 @@ void MainWindow::refreshTrayMenu() {
     const auto &settings = Configs::dataManager->settingsRepo;
     const auto running = runningSnapshot();
     trayStatusAction->setText(running != nullptr ? tr("Connected · %1").arg(trayProfileName(running)) : tr("Not connected"));
+    if (trayStatusAction->icon().isNull() == (running != nullptr)) trayStatusAction->setIcon(running != nullptr ? trayConnectedIcon() : QIcon());
 
     auto profile = running;
     if (profile == nullptr) {

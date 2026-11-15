@@ -8,7 +8,6 @@
 #include "include/ui/utils/ValidationForm.h"
 
 class EndpointRulePanel;
-class QLabel;
 class QLineEdit;
 class QPushButton;
 class QScrollArea;
@@ -37,9 +36,6 @@ public:
     // Every row's problems for the dialog's Form; each reveal selects the row and returns the widget to focus.
     QList<Validation::FormIssue> issues();
 
-    // Without "Everything else".
-    [[nodiscard]] int rowCount() const;
-
 signals:
     // Rules added, removed, moved, turned on or off, or edited.
     void changed();
@@ -49,6 +45,9 @@ signals:
     // Delete on an inner hop's rule, confirmed: the dialog stops routing to that endpoint's inner hops.
     void innerHopsOffRequested(int ownerProfileId);
 
+protected:
+    bool eventFilter(QObject* watched, QEvent* event) override;
+
 private:
     [[nodiscard]] std::shared_ptr<Configs::RouteRule> firstRuleOf(int row) const;
     // The row holding rule, which need not be its first one.
@@ -57,6 +56,7 @@ private:
     void rebuild(const std::shared_ptr<Configs::RouteRule>& keep, bool recompute);
     void onRowSelected(int row);
     void showPage(QWidget* page);
+    void fitDetailWidth();
     void updateActions();
     void rowEdited(int row);
     void scheduleQuickListRebuild();
@@ -83,8 +83,6 @@ private:
     QPushButton* deleteButton = nullptr;
     QLineEdit* filterEdit = nullptr;
     RouteRuleList* list = nullptr;
-    QLabel* positionLabel = nullptr;
-    QLabel* kindLabel = nullptr;
     QScrollArea* detailScroll = nullptr;
     QStackedWidget* stack = nullptr;
     RouteRuleEditor* ruleEditor = nullptr;

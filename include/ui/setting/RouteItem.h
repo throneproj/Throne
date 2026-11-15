@@ -18,7 +18,6 @@ class QLabel;
 class QuickListsView;
 class RouteDnsEditor;
 class RouteRulesPage;
-class RouteTabBadge;
 
 namespace Validation {
     class Form;
@@ -66,10 +65,6 @@ private:
 
     RouteDnsEditor* dnsEditor = nullptr;
 
-    RouteTabBadge* rulesBadge = nullptr;
-    RouteTabBadge* endpointsBadge = nullptr;
-    RouteTabBadge* dnsBadge = nullptr;
-
     QList<QPair<QString, int>> endpointCandidates;
 
     QList<EndpointRow> endpointRows;
@@ -106,10 +101,6 @@ private:
     void refreshEndpointSubtitles();
 
     void reloadRules();
-
-    void updateBadges();
-
-    void setBadge(QWidget* page, RouteTabBadge*& badge, const QString& text);
 
     void setDefaultOutbound(int outboundID);
 

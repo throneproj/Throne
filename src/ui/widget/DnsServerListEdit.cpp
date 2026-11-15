@@ -27,6 +27,8 @@
 
 namespace {
     constexpr int dnsListVisibleRows = 6;
+    // Below this many rows the list never scrolls, however tight the dialog.
+    constexpr int dnsListMinimumRows = 4;
     constexpr int dnsListRecentLimit = 8;
 
     enum class DnsListTone { None, Encrypted, Plain, System };
@@ -201,37 +203,52 @@ namespace {
 
         [[nodiscard]] QSize sizeHint() const override {
             const QFontMetrics fixed(dnsListFixedFont(font()));
-            const int noteHeight = note.isEmpty() ? 0 : QFontMetrics(noteFont()).height();
-            return {fixed.horizontalAdvance(address), fixed.height() + noteHeight};
+            return {fixed.horizontalAdvance(address), fixed.height()};
         }
 
     protected:
+        // The note sits at the end of the address's line, so every row is one line tall.
         void paintEvent(QPaintEvent *) override {
             QPainter painter(this);
             const QFont fixedFont = dnsListFixedFont(font());
             const QFontMetrics fixed(fixedFont);
-            const int align = int(QStyle::visualAlignment(layoutDirection(), Qt::AlignLeft | Qt::AlignVCenter)) | Qt::TextSingleLine;
-            QRect line(0, (height() - sizeHint().height()) / 2, width(), fixed.height());
+            const int addressWidth = qMin(fixed.horizontalAdvance(address), width());
+            const int space = noteSpace(addressWidth);
+            const QRect line(0, (height() - fixed.height()) / 2, space > 0 ? addressWidth : width(), fixed.height());
+            const int leading = int(QStyle::visualAlignment(layoutDirection(), Qt::AlignLeft | Qt::AlignVCenter)) | Qt::TextSingleLine;
             painter.setFont(fixedFont);
             painter.setPen(invalid ? dnsListColor(this, themeManager()->tokens.danger, QPalette::Text) : palette().color(QPalette::Text));
-            painter.drawText(line, align | Qt::TextForceLeftToRight, fixed.elidedText(address, Qt::ElideRight, width()));
-            if (note.isEmpty()) return;
+            painter.drawText(QStyle::visualRect(layoutDirection(), rect(), line), leading | Qt::TextForceLeftToRight,
+                             fixed.elidedText(address, Qt::ElideRight, line.width()));
+            if (space <= 0) return;
             const QFont smaller = noteFont();
             const QFontMetrics metrics(smaller);
-            line = QRect(0, line.bottom() + 1, width(), metrics.height());
+            const QRect noteRect(width() - space, (height() - metrics.height()) / 2, space, metrics.height());
+            const int trailing = int(QStyle::visualAlignment(layoutDirection(), Qt::AlignRight | Qt::AlignVCenter)) | Qt::TextSingleLine;
             painter.setFont(smaller);
             painter.setPen(dnsListColor(this, themeManager()->tokens.muted, QPalette::PlaceholderText));
-            painter.drawText(line, align, metrics.elidedText(note, Qt::ElideRight, width()));
+            painter.drawText(QStyle::visualRect(layoutDirection(), rect(), noteRect), trailing, metrics.elidedText(note, Qt::ElideRight, space));
         }
 
         void resizeEvent(QResizeEvent *event) override {
             DnsListPiece::resizeEvent(event);
-            const bool elided = QFontMetrics(dnsListFixedFont(font())).horizontalAdvance(address) > width();
-            setToolTip(elided ? dnsListTip(address) : QString());
+            const int addressWidth = QFontMetrics(dnsListFixedFont(font())).horizontalAdvance(address);
+            QStringList tip;
+            if (addressWidth > width()) tip << address;
+            if (!note.isEmpty() && noteSpace(addressWidth) < QFontMetrics(noteFont()).horizontalAdvance(note)) tip << note;
+            setToolTip(dnsListTip(tip.join(QLatin1Char('\n'))));
         }
 
     private:
         [[nodiscard]] QFont noteFont() const { return dnsListScaledFont(font(), 0.9); }
+
+        // Zero when the note has no room worth drawing in; its tooltip carries it then.
+        [[nodiscard]] int noteSpace(const int addressWidth) const {
+            if (note.isEmpty()) return 0;
+            const QFontMetrics metrics(noteFont());
+            const int space = width() - addressWidth - 2 * metrics.averageCharWidth();
+            return space >= 8 * metrics.averageCharWidth() ? space : 0;
+        }
 
         QString address;
         QString note;
@@ -368,7 +385,7 @@ public:
 
     [[nodiscard]] QSize sizeHint() const override { return {ReorderListWidget::sizeHint().width(), heightFor(dnsListVisibleRows)}; }
 
-    [[nodiscard]] QSize minimumSizeHint() const override { return {ReorderListWidget::minimumSizeHint().width(), heightFor(1)}; }
+    [[nodiscard]] QSize minimumSizeHint() const override { return {ReorderListWidget::minimumSizeHint().width(), heightFor(dnsListMinimumRows)}; }
 
 protected:
     void paintEvent(QPaintEvent *event) override {
