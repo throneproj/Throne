@@ -5,6 +5,8 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QScreen>
+#include <QSizePolicy>
+#include <QTextDocument>
 #include <QTextBrowser>
 #include <QVBoxLayout>
 
@@ -20,13 +22,15 @@ DialogUpdate::DialogUpdate(const QString &version, bool preRelease, const QStrin
 
     auto *notesView = new QTextBrowser(this);
     notesView->setOpenLinks(false);
+    notesView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    notesView->setMinimumSize(0, 0);
     connect(notesView, &QTextBrowser::anchorClicked, this, [](const QUrl &url) {
         if (url.scheme() == QLatin1String("https") || url.scheme() == QLatin1String("http")) QDesktopServices::openUrl(url);
     });
     if (notes.isEmpty()) {
         notesView->setPlainText(tr("Release notes are unavailable."));
     } else {
-        notesView->setMarkdown(notes);
+        notesView->document()->setMarkdown(notes, QTextDocument::MarkdownDialectGitHub);
     }
 
     auto *layout = new QVBoxLayout(this);
@@ -56,7 +60,9 @@ DialogUpdate::DialogUpdate(const QString &version, bool preRelease, const QStrin
 
     QSize size(fontMetrics().averageCharWidth() * 80, fontMetrics().lineSpacing() * 28);
     if (const auto *screen = parent != nullptr ? parent->screen() : this->screen()) {
-        size = size.boundedTo(screen->availableGeometry().size() * 0.8);
+        const auto availableSize = screen->availableGeometry().size();
+        size = size.boundedTo(availableSize * 0.8);
+        setMaximumSize(availableSize * 0.9);
     }
     resize(size);
 }
