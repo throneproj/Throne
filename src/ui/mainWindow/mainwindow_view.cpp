@@ -55,7 +55,7 @@ void MainWindow::applyTopBarMetrics() {
     }
     for (auto* b : menuButtons) b->setMinimumWidth(uniformButtonWidth);
 
-    auto* centralLayout = ui->centralwidget->layout();
+    auto* centralLayout = centralWidget()->layout();
     // Nested layouts keep stale minimums until the next layout pass.
     centralLayout->activate();
     const QMargins margins = centralLayout->contentsMargins();

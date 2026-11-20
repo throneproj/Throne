@@ -52,7 +52,6 @@
 #include "include/ui/utils/ProfilesTableModel.h"
 #include "include/ui/utils/ThemedIcon.hpp"
 #include "include/ui/utils/UiMode.h"
-#include "include/ui/utils/WindowTitleBar.h"
 
 #include "include/ui/group/dialog_edit_group.h"
 #include "include/ui/utils/NativeFileDialog.h"
@@ -204,10 +203,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     }
     themeManager()->ApplyTheme(Configs::dataManager->settingsRepo->theme);
     ui->setupUi(this);
-    if (WindowTitleBar::Supported()) {
-        titleBar = WindowTitleBar::Install(this);
-        titleBar->setCustomFrame(!Configs::dataManager->settingsRepo->system_title_bar);
-    }
 
     setupCommandPalette();
     setActionsData();

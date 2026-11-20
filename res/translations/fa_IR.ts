@@ -1528,10 +1528,6 @@ Included: %2</source>
         <source>Settings</source>
         <translation>تنظیمات</translation>
     </message>
-    <message>
-        <source>Use the system title bar</source>
-        <translation>استفاده از نوار عنوان سیستم</translation>
-    </message>
 </context>
 <context>
     <name>DialogEditGroup</name>
@@ -9279,25 +9275,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Select profile</source>
         <translation>انتخاب نمایه</translation>
-    </message>
-</context>
-<context>
-    <name>WindowTitleBar</name>
-    <message>
-        <source>Minimize</source>
-        <translation>کوچک کردن</translation>
-    </message>
-    <message>
-        <source>Close</source>
-        <translation>بستن</translation>
-    </message>
-    <message>
-        <source>Restore</source>
-        <translation>بازگرداندن</translation>
-    </message>
-    <message>
-        <source>Maximize</source>
-        <translation>بزرگ کردن</translation>
     </message>
 </context>
 </TS>

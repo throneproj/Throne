@@ -11,7 +11,39 @@
 #include "include/engine/connection/ConnectionManager.h"
 #include "include/ui/widget/TrayOtpCodes.hpp"
 #include "include/ui/widget/TrayProfileSelector.hpp"
-#include "include/ui/utils/WindowTitleBar.h"
+
+#ifdef Q_OS_MACOS
+#include "include/sys/macos/MacOS.h"
+#endif
+
+namespace {
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    // GNOME and the shells built on it draw no app icon in a title bar.
+    bool mainWindowTitleShowsNoIcon() {
+        const auto desktops = qEnvironmentVariable("XDG_CURRENT_DESKTOP").split(QLatin1Char(':'), Qt::SkipEmptyParts);
+        for (const auto &desktop : desktops) {
+            for (const char *name : {"GNOME", "Unity", "Pantheon", "Budgie"}) {
+                if (desktop.compare(QLatin1String(name), Qt::CaseInsensitive) == 0) return true;
+            }
+        }
+        return false;
+    }
+#endif
+
+    // A bare name is worse than no title, so it shows only where the bar has the app icon beside it.
+    void applyNativeWindowTitle(QWidget *window) {
+#ifdef Q_OS_MACOS
+        // Hidden rather than cleared, so the title still names the window in the Dock, Mission Control and VoiceOver.
+        Mac_HideWindowTitle(window->winId());
+#elif defined(Q_OS_UNIX)
+        // A space: Qt shows the application name for an empty title.
+        static const bool blank = mainWindowTitleShowsNoIcon();
+        if (blank) window->setWindowTitle(QStringLiteral(" "));
+#else
+        Q_UNUSED(window)
+#endif
+    }
+}
 
 void MainWindow::trayClickEvent() {
     constexpr qint64 recentlyActiveMs = 350;
@@ -89,14 +121,9 @@ void MainWindow::changeEvent(QEvent *event) {
     QMainWindow::changeEvent(event);
 }
 
-bool MainWindow::nativeEvent(const QByteArray &eventType, void *message, qintptr *result) {
-    if (titleBar != nullptr && titleBar->handleWindowMessage(eventType, message, result)) return true;
-    return QMainWindow::nativeEvent(eventType, message, result);
-}
-
 void MainWindow::showEvent(QShowEvent *event) {
     QMainWindow::showEvent(event);
-    WindowTitleBar::ApplyNativeTitle(this);
+    applyNativeWindowTitle(this);
     syncConnectionViewState();
     scheduleProxyListRefresh();
 }

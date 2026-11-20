@@ -71,7 +71,6 @@ class DialogScanner;
 class DialogIpLists;
 class DialogRuleTester;
 class CommandPalette;
-class WindowTitleBar;
 
 namespace Qv2ray::ui {
     class SyntaxHighlighter;
@@ -256,8 +255,6 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    // Null where WindowTitleBar is unsupported.
-    WindowTitleBar *titleBar = nullptr;
     QElapsedTimer sinceWindowDeactivated;
     ProfilesTableModel *profilesTableModel = nullptr;
 
@@ -494,8 +491,6 @@ private:
     void closeEvent(QCloseEvent *event) override;
 
     void changeEvent(QEvent *event) override;
-
-    bool nativeEvent(const QByteArray &eventType, void *message, qintptr *result) override;
 
     void showEvent(QShowEvent *event) override;
 

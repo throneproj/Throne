@@ -125,7 +125,6 @@ namespace Configs::SettingsSchema {
                 {"follow_status_in_taskbar", &SettingsValues::follow_status_in_taskbar, Portable, UiTrayIcon},
                 {"skip_delete_confirmation", &SettingsValues::skip_delete_confirmation},
                 {"show_config_security", &SettingsValues::show_config_security, Portable, UiProfileList},
-                {"system_title_bar", &SettingsValues::system_title_bar, Host, UiWindowFrame},
                 {"simple_mode", &SettingsValues::simple_mode, Portable, UiMode},
                 {"last_filter_column", &SettingsValues::last_filter_column},
                 {"url_scheme_mirror", &SettingsValues::url_scheme_mirror, Host},
