@@ -696,6 +696,10 @@ Outbound: %4</source>
         <translation>任务栏图标跟随状态</translation>
     </message>
     <message>
+        <source>Use the system title bar</source>
+        <translation>使用系统标题栏</translation>
+    </message>
+    <message>
         <source>Language</source>
         <translation>语言</translation>
     </message>
@@ -10666,6 +10670,10 @@ Close without saving?</source>
         <translation>速度</translation>
     </message>
     <message>
+        <source>Services</source>
+        <translation>服务</translation>
+    </message>
+    <message>
         <source>Latency</source>
         <translation>延迟</translation>
     </message>
@@ -13813,6 +13821,14 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Core</source>
         <translation>核心</translation>
+    </message>
+    <message>
+        <source>capabilities</source>
+        <translation>能力</translation>
+    </message>
+    <message>
+        <source>Admin</source>
+        <translation>管理员</translation>
     </message>
     <message>
         <source>Running Config</source>
@@ -19130,6 +19146,25 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>unsupported protocol version</source>
         <translation>不支持的协议版本</translation>
+    </message>
+</context>
+<context>
+    <name>WindowTitleBar</name>
+    <message>
+        <source>Minimize</source>
+        <translation>最小化</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>关闭</translation>
+    </message>
+    <message>
+        <source>Restore</source>
+        <translation>还原</translation>
+    </message>
+    <message>
+        <source>Maximize</source>
+        <translation>最大化</translation>
     </message>
 </context>
 </TS>

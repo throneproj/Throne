@@ -36,9 +36,41 @@
 #include <algorithm>
 #include <limits>
 
+#ifdef Q_OS_WIN
+#include "include/sys/windows/guihelper.h"
+#else
+#include <unistd.h>
+#endif
+
 namespace {
     const QColor kRuntimeThroneColor = Stats::kStatsAccentColor;
     const QColor kRuntimeCoreColor = Stats::kStatsHealthyColor;
+
+    QString runtimeProcessName(const QColor &color, const QString &name, const QString &privilege) {
+        const QString text = privilege.isEmpty() ? name : QStringLiteral("%1 (%2)").arg(name, privilege);
+        return QStringLiteral("<span style=\"color:%1\">●</span> %2").arg(color.name(), text.toHtmlEscaped());
+    }
+
+    QString runtimeThronePrivilege() {
+#ifdef Q_OS_WIN
+        return Windows_IsInAdmin() ? RuntimeStatsWidget::tr("Admin") : QString();
+#else
+        return ::geteuid() == 0 ? QStringLiteral("root") : QString();
+#endif
+    }
+
+    QString runtimeCorePrivilege() {
+        const auto report = Configs::KnownCapabilities();
+        if (!report || !report->privileged) return {};
+#ifdef Q_OS_WIN
+        return RuntimeStatsWidget::tr("Admin");
+#elif defined(Q_OS_MACOS)
+        return QStringLiteral("root");
+#else
+        // A Linux core can hold the Tun capabilities as the user; only a root one may run the kill switch.
+        return report->killSwitch.value_or(true) ? QStringLiteral("root") : RuntimeStatsWidget::tr("capabilities");
+#endif
+    }
 
     QString runningConfigName() {
         auto *engine = Engine::host();
@@ -94,10 +126,8 @@ RuntimeStatsWidget::RuntimeStatsWidget(QWidget* parent) : QWidget(parent), ui(ne
         chart->setRows(processRows);
         ui->chartsRow->addWidget(chart);
     }
-    ui->labelThroneName->setText(QStringLiteral("<span style=\"color:%1\">●</span> %2")
-                                     .arg(kRuntimeThroneColor.name(), "Throne"));
-    ui->labelCoreName->setText(QStringLiteral("<span style=\"color:%1\">●</span> %2")
-                                   .arg(kRuntimeCoreColor.name(), tr("Core")));
+    ui->labelThroneName->setText(runtimeProcessName(kRuntimeThroneColor, QStringLiteral("Throne"), runtimeThronePrivilege()));
+    ui->labelCoreName->setText(runtimeProcessName(kRuntimeCoreColor, tr("Core"), {}));
     // A lookup service's answer: as AutoText a tag in it would render as HTML.
     ui->vOutIp->setTextFormat(Qt::PlainText);
     ui->vCountry->setTextFormat(Qt::PlainText);
@@ -207,6 +237,8 @@ void RuntimeStatsWidget::refreshLive() {
     const auto coreSample = corePid > 0 ? metrics_.sample(corePid) : Sys::ProcessMetrics::Sample{};
     ui->vCoreRam->setText(formatRam(coreSample));
     ui->vCoreCpu->setText(formatCpu(coreSample));
+    // The core's report comes in after each start; a restarted core can hold other rights.
+    ui->labelCoreName->setText(runtimeProcessName(kRuntimeCoreColor, tr("Core"), corePid > 0 ? runtimeCorePrivilege() : QString()));
 
     const auto cpu = [](const Sys::ProcessMetrics::Sample &s) {
         return s.ok && s.cpuValid ? s.cpuPercent : std::numeric_limits<double>::quiet_NaN();

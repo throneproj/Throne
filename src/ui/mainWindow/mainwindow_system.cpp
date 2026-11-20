@@ -49,6 +49,7 @@
 #include "include/ui/setting/dialog_vpn_settings.h"
 #include "include/ui/setting/RawRouteItem.h"
 #include "include/ui/setting/RouteItem.h"
+#include "include/ui/utils/WindowTitleBar.h"
 #include "include/database/RoutesRepo.h"
 
 #ifdef Q_OS_WIN
@@ -135,7 +136,8 @@ void MainWindow::on_menu_integration_settings_triggered() {
 void MainWindow::saveWindowState() {
     auto* settings = Configs::dataManager->settingsRepo.get();
 
-    settings->mainWindowGeometry = this->saveGeometry().toBase64(QByteArray::Base64Encoding);
+    const QByteArray geometry = titleBar != nullptr ? titleBar->saveWindowGeometry() : saveGeometry();
+    settings->mainWindowGeometry = geometry.toBase64(QByteArray::Base64Encoding);
     if (!isMaximized()) {
         auto news = QString("%1x%2").arg(size().width()).arg(size().height());
         if (settings->mw_size != news) settings->mw_size = news;

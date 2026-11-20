@@ -112,6 +112,8 @@ namespace Configs {
         bool follow_status_in_taskbar = true;
         bool skip_delete_confirmation = false;
         bool show_config_security = false;
+        // The native title bar instead of Throne's own, where WindowTitleBar::Supported().
+        bool system_title_bar = false;
         // UI only: config generation never reads it. A fresh install starts simple, an upgraded one advanced.
         bool simple_mode = false;
         // -1 until a filter column has been used.

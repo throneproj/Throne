@@ -17,6 +17,7 @@
 #include "include/ui/setting/ServiceCheckSelector.h"
 #include "include/ui/utils/UiMode.h"
 #include "include/ui/utils/ValidationForm.h"
+#include "include/ui/utils/WindowTitleBar.h"
 
 #include <QStyleFactory>
 #include <QFileDialog>
@@ -334,6 +335,9 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     S_LOAD_BOOL(start_minimal)
     ui->skip_delete_confirm->setChecked(snapshot_.skip_delete_confirmation);
     S_LOAD_BOOL(show_config_security)
+    S_LOAD_BOOL(system_title_bar)
+    // Hidden before UiMode::Apply(), which keeps a widget's first-seen visibility.
+    ui->system_title_bar->setVisible(WindowTitleBar::Supported());
     ui->language->setCurrentIndex(snapshot_.language);
     ui->ui_mode->setCurrentIndex(snapshot_.simple_mode ? 0 : 1);
     CACHE.theme = snapshot_.theme;
@@ -689,6 +693,7 @@ void DialogBasicSettings::accept() {
     S_SAVE_BOOL(start_minimal)
     proposed.skip_delete_confirmation = ui->skip_delete_confirm->isChecked();
     S_SAVE_BOOL(show_config_security)
+    S_SAVE_BOOL(system_title_bar)
     proposed.theme = CACHE.theme;
     proposed.font = CACHE.font;
     proposed.font_size = CACHE.font_size;

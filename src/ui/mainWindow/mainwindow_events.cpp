@@ -11,6 +11,7 @@
 #include "include/engine/connection/ConnectionManager.h"
 #include "include/ui/widget/TrayOtpCodes.hpp"
 #include "include/ui/widget/TrayProfileSelector.hpp"
+#include "include/ui/utils/WindowTitleBar.h"
 
 void MainWindow::trayClickEvent() {
     constexpr qint64 recentlyActiveMs = 350;
@@ -88,8 +89,14 @@ void MainWindow::changeEvent(QEvent *event) {
     QMainWindow::changeEvent(event);
 }
 
+bool MainWindow::nativeEvent(const QByteArray &eventType, void *message, qintptr *result) {
+    if (titleBar != nullptr && titleBar->handleWindowMessage(eventType, message, result)) return true;
+    return QMainWindow::nativeEvent(eventType, message, result);
+}
+
 void MainWindow::showEvent(QShowEvent *event) {
     QMainWindow::showEvent(event);
+    WindowTitleBar::ApplyNativeTitle(this);
     syncConnectionViewState();
     scheduleProxyListRefresh();
 }

@@ -36,6 +36,7 @@ namespace Configs::SettingsSchema {
         UiTrafficStats = 1u << 23,
         UiShortcuts = 1u << 24,
         UiMirrors = 1u << 25,
+        UiWindowFrame = 1u << 26,
     };
 
     // For the members whose type has no generic encoding (the shortcut map, the VLESS preference enum).

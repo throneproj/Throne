@@ -14,8 +14,16 @@
 #include <algorithm>
 
 #include "include/configs/generate.h"
+#include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/engine/Lifecycle.h"
+
+namespace {
+    bool showsServices(const Configs::Profile &profile) {
+        const auto group = Configs::dataManager->groupsRepo->GetGroup(profile.gid);
+        return group == nullptr || group->show_services;
+    }
+}
 
 ProfilesTableModel::ProfilesTableModel(QObject *parent)
     : QAbstractTableModel(parent) {}
@@ -106,7 +114,7 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
     const std::shared_ptr<Configs::Profile> &profile = it.value();
     if (!profile) return {};
     if (role == ServiceItemsRole) {
-        if (index.column() != ColTestResult) return {};
+        if (index.column() != ColTestResult || !showsServices(*profile)) return {};
         return QVariant::fromValue(ServiceCheckHtml::items(*profile));
     }
 
@@ -146,7 +154,9 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
                                                 "set.");
             if (security.isDangerous()) return tr("This config's traffic is not properly protected.");
         }
-        if (index.column() == ColTestResult && !profile->service_checks.isEmpty()) return ServiceCheckHtml::summaryLine(*profile);
+        if (index.column() == ColTestResult && !profile->service_checks.isEmpty() && showsServices(*profile)) {
+            return ServiceCheckHtml::summaryLine(*profile);
+        }
         return {};
     }
     if (role == Qt::ForegroundRole) {

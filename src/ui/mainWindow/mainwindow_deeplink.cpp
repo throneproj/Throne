@@ -34,6 +34,7 @@
 #include "include/ui/mainWindow/MainWindowInternal.h"
 #include "include/ui/setting/Icon.hpp"
 #include "include/ui/utils/ProfilesTableModel.h"
+#include "include/ui/utils/WindowTitleBar.h"
 
 namespace {
 
@@ -367,6 +368,7 @@ void MainWindow::applySettingsUi(quint32 effects) {
         refresh_proxy_list({}, true);
     }
     if (has(Schema::UiShortcuts)) loadShortcuts();
+    if (has(Schema::UiWindowFrame) && titleBar != nullptr) titleBar->setCustomFrame(!settings->system_title_bar);
 }
 
 void MainWindow::refreshTrayIcon() {

@@ -818,6 +818,10 @@ Outbound: %4</translation>
         <translation>Показывать иконку статуса на панели задач</translation>
     </message>
     <message>
+        <source>Use the system title bar</source>
+        <translation>Использовать системный заголовок окна</translation>
+    </message>
+    <message>
         <source>List the added, updated and deleted profiles after a manual update.</source>
         <translation>Показывать список добавленных, обновленных и удаленных профилей после ручного обновления.</translation>
     </message>
@@ -10488,6 +10492,10 @@ Error: %1</source>
         <translation>Скорость</translation>
     </message>
     <message>
+        <source>Services</source>
+        <translation>Сервисы</translation>
+    </message>
+    <message>
         <source>Sort by:</source>
         <translation>Сортировать по:</translation>
     </message>
@@ -13917,6 +13925,14 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Core</source>
         <translation>Ядро</translation>
+    </message>
+    <message>
+        <source>capabilities</source>
+        <translation>возможности</translation>
+    </message>
+    <message>
+        <source>Admin</source>
+        <translation>Администратор</translation>
     </message>
     <message>
         <source>Network</source>
@@ -19266,6 +19282,25 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Disable</source>
         <translation>Отключить</translation>
+    </message>
+</context>
+<context>
+    <name>WindowTitleBar</name>
+    <message>
+        <source>Minimize</source>
+        <translation>Свернуть</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>Закрыть</translation>
+    </message>
+    <message>
+        <source>Restore</source>
+        <translation>Свернуть в окно</translation>
+    </message>
+    <message>
+        <source>Maximize</source>
+        <translation>Развернуть</translation>
     </message>
 </context>
 </TS>

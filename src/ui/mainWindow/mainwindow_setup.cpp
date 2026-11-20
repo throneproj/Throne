@@ -52,6 +52,7 @@
 #include "include/ui/utils/ProfilesTableModel.h"
 #include "include/ui/utils/ThemedIcon.hpp"
 #include "include/ui/utils/UiMode.h"
+#include "include/ui/utils/WindowTitleBar.h"
 
 #include "include/ui/group/dialog_edit_group.h"
 #include "include/ui/utils/NativeFileDialog.h"
@@ -203,6 +204,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     }
     themeManager()->ApplyTheme(Configs::dataManager->settingsRepo->theme);
     ui->setupUi(this);
+    if (WindowTitleBar::Supported()) {
+        titleBar = WindowTitleBar::Install(this);
+        titleBar->setCustomFrame(!Configs::dataManager->settingsRepo->system_title_bar);
+    }
 
     setupCommandPalette();
     setActionsData();
@@ -495,13 +500,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             actionShowSpeed->setChecked(group->test_items_to_show == Configs::testShowItems::all ||
                 group->test_items_to_show == Configs::testShowItems::speedOnly);
 
-            auto updateTestItemsToShow = [this, group, actionShowOutIP, actionShowSpeed] {
+            auto* actionShowServices = menu.addAction(tr("Services"));
+            actionShowServices->setCheckable(true);
+            actionShowServices->setChecked(group->show_services);
+
+            auto updateTestItemsToShow = [this, group, actionShowOutIP, actionShowSpeed, actionShowServices] {
                     const bool ip = actionShowOutIP->isChecked();
                     const bool speed = actionShowSpeed->isChecked();
                     if (ip && speed) group->test_items_to_show = Configs::testShowItems::all;
                     else if (ip) group->test_items_to_show = Configs::testShowItems::ipOnly;
                     else if (speed) group->test_items_to_show = Configs::testShowItems::speedOnly;
                     else group->test_items_to_show = Configs::testShowItems::none;
+                    group->show_services = actionShowServices->isChecked();
                     Configs::dataManager->groupsRepo->Save(group);
                     if (group->calculated_column_width.size() > ProfilesTableModel::ColTestResult) {
                         group->calculated_column_width[ProfilesTableModel::ColTestResult] = 0;
@@ -511,6 +521,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
             connect(actionShowOutIP, &QAction::triggered, this, updateTestItemsToShow);
             connect(actionShowSpeed, &QAction::triggered, this, updateTestItemsToShow);
+            connect(actionShowServices, &QAction::triggered, this, updateTestItemsToShow);
 
             menu.addSeparator();
             auto* sortByLabel = menu.addAction(tr("Sort by:"));

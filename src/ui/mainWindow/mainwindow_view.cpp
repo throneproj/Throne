@@ -1,5 +1,4 @@
 #include "include/ui/mainwindow.h"
-#include "NkrVersion.h"
 
 #include <algorithm>
 
@@ -56,7 +55,7 @@ void MainWindow::applyTopBarMetrics() {
     }
     for (auto* b : menuButtons) b->setMinimumWidth(uniformButtonWidth);
 
-    auto* centralLayout = centralWidget()->layout();
+    auto* centralLayout = ui->centralwidget->layout();
     // Nested layouts keep stale minimums until the next layout pass.
     centralLayout->activate();
     const QMargins margins = centralLayout->contentsMargins();
@@ -261,9 +260,10 @@ void MainWindow::refresh_status(const QString &traffic_update) {
     const auto killSwitchState = Sys::KillSwitch::instance()->state();
     const bool killSwitchBlocking = killSwitchState == Sys::KillSwitch::State::Failed && Sys::KillSwitch::instance()->failedForIdentity();
 
-    auto make_title = [=,this](bool isTray) {
+    // The window title stays the plain "Throne" from the .ui: this status shows in the window itself.
+    if (tray != nullptr) {
         QStringList tt;
-        if (!isTray && Configs::KnownAdmin().value_or(false)) tt << "[Admin]";
+        if (Configs::KnownAdmin().value_or(false)) tt << "[Admin]";
         if (select_mode) tt << "[" + tr("Select") + "]";
         if (!title_error.isEmpty()) tt << "[" + title_error + "]";
         if (settings->spmode_vpn && !settings->spmode_system_proxy) tt << "[Tun]";
@@ -274,7 +274,6 @@ void MainWindow::refresh_status(const QString &traffic_update) {
             tt << "[" + (killSwitchBlocking ? tr("Kill switch is blocking traffic") : tr("Kill switch: not active")) + "]";
         }
         tt << software_name;
-        if (!isTray) tt << QString(NKR_VERSION);
         if (!activeRouteName.isEmpty()) {
             tt << "[" + activeRouteName + "]";
         }
@@ -284,11 +283,8 @@ void MainWindow::refresh_status(const QString &traffic_update) {
                 tt << runningDetail;
             }
         }
-        return tt.join(isTray ? "\n" : " ");
-    };
-
-    setWindowTitle(make_title(false));
-    if (tray != nullptr) tray->setToolTip(make_title(true));
+        tray->setToolTip(tt.join("\n"));
+    }
 
     refresh_startstop_button();
 }

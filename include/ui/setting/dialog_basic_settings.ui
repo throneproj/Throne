@@ -414,6 +414,16 @@
             </property>
            </widget>
           </item>
+          <item row="3" column="0" colspan="2">
+           <widget class="QCheckBox" name="system_title_bar">
+            <property name="uiLevel" stdset="0">
+             <string notr="true">advanced</string>
+            </property>
+            <property name="text">
+             <string>Use the system title bar</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>

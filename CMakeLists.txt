@@ -209,6 +209,8 @@ set(PROJECT_SOURCES
 
         include/sys/SystemProxy.hpp
 
+        include/sys/WindowFrame.hpp
+
         include/sys/GlobalHotkeys.hpp
         include/sys/GlobalHotkeyBackend.hpp
         src/sys/GlobalHotkeys.cpp
@@ -313,6 +315,8 @@ set(PROJECT_SOURCES
         src/ui/utils/UiMode.cpp
         include/ui/utils/ThemedIcon.hpp
         src/ui/utils/ThemedIcon.cpp
+        include/ui/utils/WindowTitleBar.h
+        src/ui/utils/WindowTitleBar.cpp
 
         include/ui/profile/dialog_edit_profile.h
         src/ui/profile/dialog_edit_profile.cpp
