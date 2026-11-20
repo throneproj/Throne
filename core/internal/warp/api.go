@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	defaultAPIHost = "api.cloudflareclient.com"
+	defaultAPIHost = "api.devices.cloudflare.com"
 	apiVersion     = "v0a4471"
 	clientVersion  = "a-6.35-4471"
 	userAgent      = "WARP for Android"
