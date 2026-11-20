@@ -25,9 +25,14 @@
 #include <QLabel>
 #include <QRegularExpression>
 #include <QDialogButtonBox>
+#include <QApplication>
+#include <QImage>
+#include <QPainter>
+#include <QStyledItemDelegate>
 
 #include <algorithm>
 #include <climits>
+#include <cmath>
 
 #include "include/configs/generate.h"
 #include "include/configs/sub/warp.h"
@@ -42,6 +47,7 @@
 #include "include/ui/mainwindow.h"
 #include "include/ui/setting/RawRouteItem.h"
 #include "include/ui/setting/RouteDnsEditor.h"
+#include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/utils/UiMode.h"
 
 namespace {
@@ -273,6 +279,79 @@ namespace {
         w->exec();
         w->deleteLater();
     }
+
+    QColor manageRoutesMix(const QColor &top, const QColor &bottom, const float amount) {
+        return QColor::fromRgbF(top.redF() * amount + bottom.redF() * (1 - amount), top.greenF() * amount + bottom.greenF() * (1 - amount),
+                                top.blueF() * amount + bottom.blueF() * (1 - amount));
+    }
+
+    // What the mark sits on, as the style paints the row over the list's base: a selected row may be filled with the accent itself.
+    QColor manageRoutesBackdrop(const QStyleOptionViewItem &item, const QPoint &at, const QStyle *style, const QWidget *widget) {
+        QStyleOptionViewItem row(item);
+        row.state &= ~QStyle::State_HasFocus;
+        row.styleObject = nullptr;
+        QImage sample(1, 1, QImage::Format_ARGB32_Premultiplied);
+        sample.fill(item.palette.color(QPalette::Base));
+        QPainter painter(&sample);
+        painter.translate(-at.x(), -at.y());
+        style->drawControl(QStyle::CE_ItemViewItem, &row, &painter, widget);
+        painter.end();
+        return sample.pixelColor(0, 0);
+    }
+
+    // Only one profile is in use, so its mark is a radio: a solid accent disc, or a muted ring.
+    // Drawn where the style puts the check box, which keeps the stock hit area, Space toggling and the text's place.
+    class ManageRoutesRadioDelegate : public QStyledItemDelegate {
+    public:
+        using QStyledItemDelegate::QStyledItemDelegate;
+
+        void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override {
+            QStyleOptionViewItem item(option);
+            initStyleOption(&item, index);
+            if (!(item.features & QStyleOptionViewItem::HasCheckIndicator) || (item.features & QStyleOptionViewItem::HasDecoration)) {
+                QStyledItemDelegate::paint(painter, option, index);
+                return;
+            }
+            const QWidget *widget = item.widget;
+            QStyle *style = widget != nullptr ? widget->style() : QApplication::style();
+            const QSize indicator(style->pixelMetric(QStyle::PM_IndicatorWidth, &item, widget), style->pixelMetric(QStyle::PM_IndicatorHeight, &item, widget));
+            const int side = qMin(indicator.width(), indicator.height());
+            // Centred on the check box's own rect: that is where a click toggles.
+            const QRect box = QStyle::alignedRect(item.direction, Qt::AlignCenter, QSize(side, side),
+                                                  style->subElementRect(QStyle::SE_ItemViewItemCheckIndicator, &item, widget));
+            const bool checked = item.checkState == Qt::Checked;
+            item.features &= ~QStyleOptionViewItem::HasCheckIndicator;
+            item.features |= QStyleOptionViewItem::HasDecoration;
+            item.decorationSize = indicator;
+            item.icon = QIcon();
+            style->drawControl(QStyle::CE_ItemViewItem, &item, painter, widget);
+
+            const QColor backdrop = manageRoutesBackdrop(item, box.center(), style, widget);
+            const auto &tokens = themeManager()->tokens;
+            const QColor surface = tokens.surface.isValid() ? tokens.surface : item.palette.color(QPalette::Base);
+            const QColor onSurface = tokens.onSurface.isValid() ? tokens.onSurface : item.palette.color(QPalette::Text);
+            const QColor accent = tokens.accent.isValid() ? tokens.accent : item.palette.color(QPalette::Highlight);
+
+            // Edges and stroke on whole device pixels keep the circle crisp at fractional scales.
+            const qreal ratio = painter->device() != nullptr ? painter->device()->devicePixelRatioF() : 1.0;
+            const auto snap = [ratio](const qreal at) { return std::round(at * ratio) / ratio; };
+            const QRectF circle(QPointF(snap(box.left()), snap(box.top())), QPointF(snap(box.left() + side), snap(box.top() + side)));
+            painter->save();
+            painter->setRenderHint(QPainter::Antialiasing);
+            if (!(item.state & QStyle::State_Enabled)) painter->setOpacity(0.4);
+            if (checked) {
+                painter->setPen(Qt::NoPen);
+                painter->setBrush(ContrastSeparated(accent, backdrop, 3.0));
+                painter->drawEllipse(circle);
+            } else {
+                const qreal stroke = qMax(1.0, std::round(1.2 * ratio)) / ratio;
+                painter->setPen(QPen(ContrastSeparated(manageRoutesMix(onSurface, surface, 0.55f), backdrop, 3.0), stroke));
+                painter->setBrush(Qt::NoBrush);
+                painter->drawEllipse(circle.adjusted(stroke / 2, stroke / 2, -stroke / 2, -stroke / 2));
+            }
+            painter->restore();
+        }
+    };
 }
 
 void DialogManageRoutes::reloadProfileItems() {
@@ -573,6 +652,7 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     predefined_dns_enabled = snapshot_.dns_predefined_enable;
     predefined_dns_text = snapshot_.dns_predefined_rules.join("\n");
     connect(ui->predefined_dns, &QPushButton::clicked, this, &DialogManageRoutes::show_predefined_dns_editor);
+    ui->route_profiles->setItemDelegate(new ManageRoutesRadioDelegate(ui->route_profiles));
     reloadProfileItems();
 
     connect(ui->route_profiles, &QListWidget::itemDoubleClicked, this, [=,this](const QListWidgetItem* item){

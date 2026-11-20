@@ -15,8 +15,8 @@
   </property>
   <layout class="QVBoxLayout" name="mainLayout">
    <item>
-    <layout class="QGridLayout" name="headerGrid">
-     <item row="0" column="0">
+    <layout class="QHBoxLayout" name="headerRow" stretch="0,1,0,0,0">
+     <item>
       <widget class="QLabel" name="nameLabel">
        <property name="text">
         <string>Name</string>
@@ -26,38 +26,37 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
+     <item>
       <widget class="QLineEdit" name="nameEdit"/>
      </item>
-     <item row="1" column="0">
+     <item>
+      <spacer name="headerGap">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Policy::Fixed</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>10</width>
+         <height>0</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
       <widget class="QLabel" name="defaultLabel">
        <property name="text">
-        <string>Everything else goes to</string>
+        <string>Final Exit</string>
        </property>
        <property name="buddy">
         <cstring>defaultCombo</cstring>
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
-      <layout class="QHBoxLayout" name="defaultRow">
-       <item>
-        <widget class="QComboBox" name="defaultCombo"/>
-       </item>
-       <item>
-        <spacer name="defaultSpacer">
-         <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
+     <item>
+      <widget class="QComboBox" name="defaultCombo"/>
      </item>
     </layout>
    </item>

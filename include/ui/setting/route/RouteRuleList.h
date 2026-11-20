@@ -8,7 +8,7 @@
 
 class RouteRuleListModel;
 
-// The Rules tab's rows, painted by a delegate under a "#, Rule, Then" header, with "Everything else" fixed last.
+// The Rules tab's rows, one line each, painted by a delegate, with "Everything else" fixed last.
 // Any row but that one drags to a new place; the list only asks for changes, the page makes them.
 class RouteRuleList : public QListView {
     Q_OBJECT
@@ -62,7 +62,6 @@ protected:
     void dropEvent(QDropEvent* event) override;
     void paintEvent(QPaintEvent* event) override;
     void changeEvent(QEvent* event) override;
-    bool viewportEvent(QEvent* event) override;
 
 private:
     void startRowDrag(int row);
@@ -71,11 +70,9 @@ private:
     [[nodiscard]] QPixmap rowPixmap(int row) const;
     [[nodiscard]] bool onCheckBox(int row, const QPoint& pos) const;
     void applyFilter(int row);
-    void placeHeader();
     void requestReorder(int from, int to);
 
     RouteRuleListModel* rowModel;
-    QWidget* headerLine;
     QString filter;
     QPoint pressPos;
     int pressRow = -1;

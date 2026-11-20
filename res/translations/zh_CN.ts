@@ -5903,8 +5903,8 @@ Close without saving?</source>
         <translation>也用于解析代理服务器地址</translation>
     </message>
     <message>
-        <source>Add</source>
-        <translation>添加</translation>
+        <source>Add server</source>
+        <translation>添加服务器</translation>
     </message>
     <message>
         <source>Recent</source>
@@ -13784,8 +13784,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>继续编辑</translation>
     </message>
     <message>
-        <source>Everything else goes to</source>
-        <translation>其余流量：</translation>
+        <source>Final Exit</source>
+        <translation>最终出口</translation>
     </message>
     <message>
         <source>Remote profile</source>
@@ -18327,8 +18327,8 @@ Remove that endpoint from this routing profile as well?</source>
 <context>
     <name>RouteEditor</name>
     <message>
-        <source>Unnamed rule</source>
-        <translation>未命名规则</translation>
+        <source>Protocol</source>
+        <translation>协议</translation>
     </message>
     <message>
         <source>Proxy</source>
@@ -18802,12 +18802,12 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>默认路由。始终在最后，在列表上方设置。</translation>
     </message>
     <message>
-        <source>Set above the list, under Everything else goes to.</source>
-        <translation>在列表上方的“其余流量”处设置。</translation>
-    </message>
-    <message>
         <source>Quick list</source>
         <translation>快速列表</translation>
+    </message>
+    <message>
+        <source>empty</source>
+        <translation>空</translation>
     </message>
     <message>
         <source>Off · %1</source>
@@ -18822,18 +18822,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>端点</translation>
     </message>
     <message>
-        <source>#</source>
-        <translation>#</translation>
-    </message>
-    <message>
-        <source>Then</source>
-        <translation>动作</translation>
-    </message>
-    <message>
-        <source>Rule</source>
-        <translation>规则</translation>
-    </message>
-    <message>
         <source>Rules</source>
         <translation>规则</translation>
     </message>
@@ -18841,12 +18829,16 @@ Remove that endpoint from this routing profile as well?</source>
 <context>
     <name>RouteRuleEditor</name>
     <message>
-        <source>Name</source>
-        <translation>名称</translation>
+        <source>Rule name</source>
+        <translation>规则名称</translation>
     </message>
     <message>
-        <source>When</source>
-        <translation>条件</translation>
+        <source>AND</source>
+        <translation>且</translation>
+    </message>
+    <message>
+        <source>OR</source>
+        <translation>或</translation>
     </message>
     <message>
         <source>+ Add condition</source>
@@ -18855,10 +18847,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Invert: match only what this rule would not match</source>
         <translation>反转：只匹配本规则原本不会匹配的流量</translation>
-    </message>
-    <message>
-        <source>Then</source>
-        <translation>动作</translation>
     </message>
     <message>
         <source>Default</source>
@@ -18921,16 +18909,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>sing-box JSON</translation>
     </message>
     <message>
-        <source>Any of these</source>
-        <translation>满足任一</translation>
-    </message>
-    <message>
-        <source>Any of these values</source>
-        <translation>任一值</translation>
-    </message>
-    <message>
-        <source>+ Add</source>
-        <translation>+ 添加</translation>
+        <source>Add a value</source>
+        <translation>添加值</translation>
     </message>
     <message>
         <source>Choose app</source>
@@ -18958,6 +18938,10 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Delete</source>
         <translation>删除</translation>
+    </message>
+    <message>
+        <source>Filter rules</source>
+        <translation>过滤规则</translation>
     </message>
     <message>
         <source>Filter by name, domain or app</source>

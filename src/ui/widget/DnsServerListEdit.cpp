@@ -5,6 +5,7 @@
 #include "include/ui/utils/ReorderListWidget.h"
 #include "include/ui/utils/ValidationForm.h"
 
+#include <QAbstractButton>
 #include <QAction>
 #include <QDynamicPropertyChangeEvent>
 #include <QFocusEvent>
@@ -16,6 +17,7 @@
 #include <QListWidgetItem>
 #include <QMenu>
 #include <QPainter>
+#include <QScreen>
 #include <QScrollBar>
 #include <QStyle>
 #include <QStyleOptionToolButton>
@@ -263,7 +265,7 @@ namespace {
             const QString problem = Configs::DnsAddressListProblem(address);
             auto *layout = new QHBoxLayout(this);
             layout->setContentsMargins(4, 2, 2, 2);
-            auto *grip = new DnsListGrip(this);
+            grip = new DnsListGrip(this);
             if (!draggable) grip->hide();
             layout->addWidget(grip);
             text = new DnsListAddress(this, address, note, !problem.isEmpty());
@@ -287,6 +289,11 @@ namespace {
             update();
         }
 
+        // From the leading edge, once laid out: where the address starts and where the grip's middle is.
+        [[nodiscard]] int addressInset() const { return QStyle::visualRect(layoutDirection(), rect(), text->geometry()).left(); }
+
+        [[nodiscard]] qreal gripCenter() const { return QRectF(QStyle::visualRect(layoutDirection(), rect(), grip->geometry())).center().x(); }
+
         DnsListRemove *removeButton = nullptr;
 
     protected:
@@ -300,6 +307,7 @@ namespace {
         }
 
     private:
+        DnsListGrip *grip = nullptr;
         DnsListAddress *text = nullptr;
         bool selected = false;
     };
@@ -314,13 +322,46 @@ public:
         setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
         setItemDelegate(new DnsListDelegate(this));
+        // Ends the scroll bar where the rows end, beside the add row.
+        barEnd = new DnsListPiece(this);
+        addScrollBarWidget(barEnd, Qt::AlignBottom);
     }
 
     [[nodiscard]] QSize sizeHint() const override { return {ReorderListWidget::sizeHint().width(), heightFor(dnsListVisibleRows)}; }
 
     [[nodiscard]] QSize minimumSizeHint() const override { return {ReorderListWidget::minimumSizeHint().width(), heightFor(dnsListMinimumRows)}; }
 
+    // A band under the rows, inside the frame, that never scrolls: the add row's place.
+    void setFooterHeight(const int height) {
+        if (height == viewportMargins().bottom()) return;
+        barEnd->setFixedHeight(height);
+        setViewportMargins(0, 0, 0, height);
+        updateGeometry();
+    }
+
+    [[nodiscard]] QRect footerRect() const {
+        const QRect area = viewport()->geometry();
+        return {area.left(), area.bottom() + 1, area.width(), viewportMargins().bottom()};
+    }
+
 protected:
+    bool event(QEvent *event) override {
+        // Where the viewport alone fills the list's background, the band outside it needs the same fill.
+        if (event->type() == QEvent::Paint && viewport()->autoFillBackground()) {
+            QPainter painter(this);
+            const QRect inner = contentsRect();
+            const int top = viewport()->geometry().bottom() + 1;
+            painter.fillRect(QRect(inner.left(), top, inner.width(), inner.bottom() + 1 - top), viewport()->palette().brush(viewport()->backgroundRole()));
+        }
+        return ReorderListWidget::event(event);
+    }
+
+    // The viewport's resize: it also follows the scroll bar coming and going.
+    void resizeEvent(QResizeEvent *event) override {
+        ReorderListWidget::resizeEvent(event);
+        owner->layoutFooter();
+    }
+
     void paintEvent(QPaintEvent *event) override {
         ReorderListWidget::paintEvent(event);
         if (count() > 0) return;
@@ -336,13 +377,126 @@ protected:
 private:
     [[nodiscard]] int heightFor(const int shown) const {
         ensurePolished();
-        int height = count() == 0 ? owner->emptyRowHeight : 0;
+        int height = count() == 0 ? owner->rowHeight : 0;
         for (int row = 0; row < qMin(shown, count()); ++row) height += item(row)->sizeHint().height();
         const QMargins inner = viewportMargins();
         return height + 2 * frameWidth() + inner.top() + inner.bottom();
     }
 
     DnsServerListEdit *owner;
+    QWidget *barEnd = nullptr;
+};
+
+// The list's last row, pinned in the band under the rows; it opens the add menu.
+class DnsServerListEdit::AddRow : public QAbstractButton {
+public:
+    AddRow(QListWidget *list_, QWidget *parent) : QAbstractButton(parent), list(list_) {
+        setFocusPolicy(Qt::TabFocus);
+        setText(DnsServerListEdit::tr("Add server"));
+        setAccessibleName(text());
+    }
+
+    // Both from the leading edge: the plus sits in the grip's column, the label lines up with the addresses.
+    void setInsets(const qreal glyph, const int label) {
+        glyphCenter = glyph;
+        labelInset = label;
+        update();
+    }
+
+    void setOpen(const bool on) {
+        open = on;
+        update();
+    }
+
+protected:
+    bool event(QEvent *event) override {
+        // Kept from the dialogs, which bind Delete to deleting something else.
+        if (event->type() == QEvent::ShortcutOverride) {
+            const auto *key = static_cast<QKeyEvent *>(event);
+            if ((key->modifiers() & ~Qt::KeypadModifier) == Qt::NoModifier && (key->key() == Qt::Key_Delete || key->key() == Qt::Key_Backspace)) {
+                event->accept();
+                return true;
+            }
+        }
+        return QAbstractButton::event(event);
+    }
+
+    // Opens on press, as a menu button does.
+    void mousePressEvent(QMouseEvent *event) override {
+        if (event->button() != Qt::LeftButton) {
+            QAbstractButton::mousePressEvent(event);
+            return;
+        }
+        event->accept();
+        click();
+    }
+
+    void keyPressEvent(QKeyEvent *event) override {
+        const int key = event->key();
+        if ((event->modifiers() & ~Qt::KeypadModifier) == Qt::NoModifier &&
+            (key == Qt::Key_Space || key == Qt::Key_Select || key == Qt::Key_Return || key == Qt::Key_Enter)) {
+            // Repeats are taken too: an Enter reaching the dialog would press its default button.
+            event->accept();
+            if (!event->isAutoRepeat()) click();
+            return;
+        }
+        QAbstractButton::keyPressEvent(event);
+    }
+
+    void enterEvent(QEnterEvent *event) override {
+        QAbstractButton::enterEvent(event);
+        update();
+    }
+
+    void leaveEvent(QEvent *event) override {
+        QAbstractButton::leaveEvent(event);
+        update();
+    }
+
+    // Scrolls the rows above; left unaccepted at either end, it carries on to the parents.
+    void wheelEvent(QWheelEvent *event) override { QCoreApplication::sendEvent(list->viewport(), event); }
+
+    void paintEvent(QPaintEvent *) override {
+        QPainter painter(this);
+        const bool lit = isEnabled() && (underMouse() || hasFocus() || open);
+        if (lit) {
+            // The hover the style gives the rows above.
+            QStyleOptionViewItem option;
+            option.initFrom(list);
+            option.rect = rect();
+            option.styleObject = nullptr;
+            option.widget = list;
+            // With no text to fit, only this spans the hover and the focus frame over the whole row.
+            option.showDecorationSelected = true;
+            option.state &= ~(QStyle::State_Selected | QStyle::State_HasFocus);
+            option.state |= QStyle::State_MouseOver;
+            if (hasFocus()) option.state |= QStyle::State_HasFocus;
+            list->style()->drawControl(QStyle::CE_ItemViewItem, &option, &painter, list);
+        }
+        const QColor color = lit ? list->palette().color(QPalette::Text) : dnsListColor(this, themeManager()->tokens.muted, QPalette::PlaceholderText);
+
+        // Whole device pixels for the stroke, centred to match, keep the plus sharp at any scale.
+        const qreal ratio = devicePixelRatioF();
+        const qreal half = fontMetrics().height() * 0.22;
+        const qreal stroke = qMax(1.0, std::round(qMax(1.2, half / 2.7) * ratio)) / ratio;
+        const qreal offset = std::fmod(std::round(stroke * ratio), 2.0) / 2.0;
+        const auto snap = [ratio, offset](const qreal at) { return (std::round(at * ratio - offset) + offset) / ratio; };
+        const QPointF center(snap(isRightToLeft() ? width() - glyphCenter : glyphCenter), snap(height() / 2.0));
+        painter.setRenderHint(QPainter::Antialiasing);
+        painter.setPen(QPen(color, stroke, Qt::SolidLine, Qt::RoundCap));
+        painter.drawLine(center - QPointF(half, 0), center + QPointF(half, 0));
+        painter.drawLine(center - QPointF(0, half), center + QPointF(0, half));
+
+        const QRect label = QStyle::visualRect(layoutDirection(), rect(), rect().adjusted(labelInset, 0, -2, 0));
+        const int align = int(QStyle::visualAlignment(layoutDirection(), Qt::AlignLeft | Qt::AlignVCenter)) | Qt::TextSingleLine;
+        painter.drawText(label, align, fontMetrics().elidedText(text(), Qt::ElideRight, label.width()));
+    }
+
+private:
+    QListWidget *list;
+    qreal glyphCenter = 0;
+    int labelInset = 0;
+    bool open = false;
 };
 
 DnsServerListEdit::DnsServerListEdit(QWidget *parent) : QWidget(parent) {
@@ -352,24 +506,20 @@ DnsServerListEdit::DnsServerListEdit(QWidget *parent) : QWidget(parent) {
     rows = new Rows(this);
     layout->addWidget(rows);
 
+    // Both lie over the band under the rows, one at a time; the edit comes first in the focus chain, so closing it hands focus to the add row.
     customEdit = new QLineEdit(this);
     customEdit->setPlaceholderText(tr("Address, e.g. tls://1.1.1.1"));
     customEdit->hide();
-    layout->addWidget(customEdit);
+    addRow = new AddRow(rows, this);
+    addMenu = new QMenu(addRow);
+    // A press on the row while its menu is open only closes the menu.
+    addMenu->setNoReplayFor(addRow);
 
-    auto *footer = new QHBoxLayout();
-    addButton = new QToolButton(this);
-    addButton->setText(tr("Add"));
-    addButton->setPopupMode(QToolButton::InstantPopup);
-    addMenu = new QMenu(addButton);
-    addButton->setMenu(addMenu);
-    footer->addWidget(addButton, 0, Qt::AlignLeading | Qt::AlignTop);
     raceHint = new QLabel(tr("Queried together; the fastest answer wins."), this);
     raceHint->setProperty("colorRole", QStringLiteral("muted"));
     raceHint->setWordWrap(true);
     raceHint->hide();
-    footer->addWidget(raceHint, 1);
-    layout->addLayout(footer);
+    layout->addWidget(raceHint);
 
     setFocusProxy(rows);
     setFocusPolicy(Qt::StrongFocus);
@@ -382,7 +532,8 @@ DnsServerListEdit::DnsServerListEdit(QWidget *parent) : QWidget(parent) {
     connect(rows, &QListWidget::itemDoubleClicked, this, [this](const QListWidgetItem *item) { editServer(rows->row(item)); });
     connect(rows, &QListWidget::itemSelectionChanged, this, &DnsServerListEdit::syncSelection);
     connect(customEdit, &QLineEdit::textEdited, this, [this] { dnsListShowProblem(customEdit, {}); });
-    connect(addMenu, &QMenu::aboutToShow, this, &DnsServerListEdit::fillAddMenu);
+    connect(addRow, &QAbstractButton::clicked, this, &DnsServerListEdit::openAddMenu);
+    connect(addMenu, &QMenu::aboutToHide, addRow, [this] { addRow->setOpen(false); });
     connect(themeManager(), &ThemeManager::themeChanged, this, &DnsServerListEdit::queueMetrics);
 
     rebuildRows(-1);
@@ -430,7 +581,7 @@ bool DnsServerListEdit::event(QEvent *event) {
         if (event->type() == QEvent::DynamicPropertyChange &&
             static_cast<QDynamicPropertyChangeEvent *>(event)->propertyName() == "invalid")
             rows->viewport()->update();
-        else if (event->type() == QEvent::FontChange || event->type() == QEvent::StyleChange)
+        else if (event->type() == QEvent::FontChange || event->type() == QEvent::StyleChange || event->type() == QEvent::LayoutDirectionChange)
             queueMetrics();
     }
     return QWidget::event(event);
@@ -478,6 +629,8 @@ bool DnsServerListEdit::eventFilter(QObject *watched, QEvent *event) {
             if (edit == customEdit) commitCustom();
             else commitRowEdit(false);
         }
+    } else if (type == QEvent::Move && watched == rows) {
+        layoutFooter();
     }
     return QWidget::eventFilter(watched, event);
 }
@@ -531,11 +684,15 @@ void DnsServerListEdit::refreshMetrics() {
             item->setSizeHint(QSize(0, widget->sizeHint().height()));
         }
     }
-    if (rows->count() == 0) {
-        DnsListRow probe(rows, QStringLiteral("1.1.1.1"), {}, false);
-        probe.ensurePolished();
-        emptyRowHeight = probe.sizeHint().height();
-    }
+    // The empty list, the add row and the custom address all take their measures from a stand-in row.
+    DnsListRow probe(rows, QStringLiteral("1.1.1.1"), {}, false);
+    probe.ensurePolished();
+    probe.resize(probe.sizeHint());
+    probe.layout()->activate();
+    rowHeight = probe.height();
+    addressInset = probe.addressInset();
+    addRow->setInsets(probe.gripCenter(), addressInset);
+    layoutFooter();
     rows->updateGeometry();
     rows->viewport()->update();
 }
@@ -546,11 +703,37 @@ void DnsServerListEdit::queueMetrics() {
     QTimer::singleShot(0, this, &DnsServerListEdit::refreshMetrics);
 }
 
+void DnsServerListEdit::layoutFooter() {
+    if (addRow == nullptr) return;
+    // The custom address takes more room than a row when it needs to, as an edited row does.
+    const int editHeight = customEdit->sizeHint().height();
+    rows->setFooterHeight(customEdit->isHidden() ? rowHeight : qMax(rowHeight, editHeight + 4));
+    const QRect band = rows->footerRect().translated(rows->pos());
+    addRow->setGeometry(band);
+    const QRect edit(band.left() + addressInset, band.top() + (band.height() - editHeight) / 2, qMax(0, band.width() - addressInset - 2), editHeight);
+    customEdit->setGeometry(QStyle::visualRect(layoutDirection(), band, edit));
+}
+
 void DnsServerListEdit::syncSelection() {
     for (int row = 0; row < rows->count(); ++row) {
         auto *item = rows->item(row);
         if (auto *widget = static_cast<DnsListRow *>(rows->itemWidget(item))) widget->setSelected(item->isSelected());
     }
+}
+
+void DnsServerListEdit::openAddMenu() {
+    if (addMenu->isVisible()) return;
+    fillAddMenu();
+    const QSize size = addMenu->sizeHint();
+    const QRect row(addRow->mapToGlobal(QPoint(0, 0)), addRow->size());
+    QPoint at(addRow->isRightToLeft() ? row.right() + 1 - size.width() : row.left(), row.bottom() + 1);
+    // Above the row when the screen has no room below it, as a menu button does.
+    if (const QScreen *screen = addRow->screen()) {
+        const QRect area = screen->availableGeometry();
+        if (at.y() + size.height() > area.bottom() + 1 && row.top() - size.height() >= area.top()) at.setY(row.top() - size.height());
+    }
+    addRow->setOpen(true);
+    addMenu->popup(at);
 }
 
 void DnsServerListEdit::fillAddMenu() {
@@ -685,16 +868,25 @@ void DnsServerListEdit::cancelRowEdit() {
 void DnsServerListEdit::openCustom() {
     commitRowEdit(true);
     customEdit->show();
+    layoutFooter();
+    // Before the add row hides, or its focus would move on down the dialog.
+    customEdit->setFocus(Qt::OtherFocusReason);
+    addRow->hide();
     // After the menu has closed and handed focus back.
-    QTimer::singleShot(0, customEdit, [this] { customEdit->setFocus(Qt::OtherFocusReason); });
+    QTimer::singleShot(0, customEdit, [this] {
+        if (!customEdit->isHidden()) customEdit->setFocus(Qt::OtherFocusReason);
+    });
 }
 
 void DnsServerListEdit::closeCustom() {
     const bool hadFocus = customEdit->hasFocus();
+    addRow->show();
+    // Hidden first, so its focus out commits nothing; the focus passes to the add row, next in the chain.
     customEdit->hide();
+    if (hadFocus && !addRow->hasFocus()) addRow->setFocus(Qt::OtherFocusReason);
     customEdit->clear();
     dnsListShowProblem(customEdit, {});
-    if (hadFocus) rows->setFocus(Qt::OtherFocusReason);
+    layoutFooter();
 }
 
 void DnsServerListEdit::commitCustom() {

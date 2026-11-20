@@ -7,7 +7,6 @@
 class QLabel;
 class QLineEdit;
 class QMenu;
-class QToolButton;
 
 namespace Validation {
     class Form;
@@ -42,6 +41,7 @@ protected:
 
 private:
     class Rows;
+    class AddRow;
 
     [[nodiscard]] QString problem() const;
 
@@ -53,7 +53,11 @@ private:
 
     void queueMetrics();
 
+    void layoutFooter();
+
     void syncSelection();
+
+    void openAddMenu();
 
     void fillAddMenu();
 
@@ -89,12 +93,13 @@ private:
     bool primaryNote = false;
     Rows *rows = nullptr;
     QLineEdit *customEdit = nullptr;
-    QToolButton *addButton = nullptr;
+    AddRow *addRow = nullptr;
     QMenu *addMenu = nullptr;
     QLabel *raceHint = nullptr;
     QPointer<QLineEdit> rowEditor;
     int editedRow = -1;
-    int emptyRowHeight = 0;
+    int rowHeight = 0;
+    int addressInset = 0;
     bool metricsQueued = false;
     QPointer<Validation::Form> form;
 };

@@ -8,6 +8,7 @@
 #include <QAbstractListModel>
 #include <QApplication>
 #include <QContextMenuEvent>
+#include <QCoreApplication>
 #include <QDrag>
 #include <QHash>
 #include <QKeyEvent>
@@ -23,9 +24,8 @@ namespace {
     constexpr int ruleListPad = 10;
     constexpr int ruleListGripWidth = 8;
     constexpr int ruleListGap = 8;
-    constexpr int ruleListVPad = 7;
+    constexpr int ruleListVPad = 4;
     constexpr int ruleListDotSize = 7;
-    constexpr int ruleListTagPad = 5;
     constexpr int ruleListPillGap = 10;
     constexpr char ruleListMime[] = "application/x-throne-route-row";
 
@@ -87,6 +87,35 @@ namespace {
         painter->restore();
     }
 
+    void ruleListPaintCheck(QPainter* painter, const QRect& column, int indicator, bool checked, bool enabled) {
+        const auto& tokens = themeManager()->tokens;
+        const int side = qBound(12, qRound(indicator * 0.75), 13);
+        const QRectF box(column.left() + (column.width() - side) / 2, column.top() + (column.height() - side) / 2, side, side);
+        painter->save();
+        painter->setRenderHint(QPainter::Antialiasing, true);
+        if (!enabled) painter->setOpacity(painter->opacity() * 0.4);
+        if (checked) {
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(tokens.accent);
+            painter->drawRoundedRect(box, 3, 3);
+            const auto at = [&box](qreal x, qreal y) { return QPointF(box.left() + x * box.width(), box.top() + y * box.height()); };
+            const QPointF mark[] = {at(0.26, 0.52), at(0.43, 0.69), at(0.75, 0.33)};
+            painter->setPen(QPen(ContrastSeparated(tokens.surface, tokens.accent, 4.5), side / 8.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+            painter->setBrush(Qt::NoBrush);
+            painter->drawPolyline(mark, 3);
+        } else {
+            painter->setPen(QPen(RouteEditor::Mix(tokens.onSurface, tokens.surface, 0.5), 1));
+            painter->setBrush(Qt::NoBrush);
+            painter->drawRoundedRect(box.adjusted(0.5, 0.5, -0.5, -0.5), 3, 3);
+        }
+        painter->restore();
+    }
+
+    // QuickLists' strings, so their translations carry over.
+    QString ruleListEntryCount(qsizetype count) {
+        return count == 1 ? QCoreApplication::translate("QuickLists", "1 entry") : QCoreApplication::translate("QuickLists", "%1 entries").arg(count);
+    }
+
     QString ruleListEndpointSummary(const Configs::RouteProfile& profile, int endpointId) {
         if (const int owner = RouteEditor::InnerHopOwner(profile, endpointId); owner >= 0)
             return RouteRuleList::tr("Inner hop of %1, from the Endpoints tab").arg(RouteEditor::ProfileName(owner));
@@ -102,7 +131,7 @@ namespace {
 
 struct RouteRuleListLook {
     QString title;
-    QString tag;
+    QString titleSuffix;
     QString summary;
     QString pill;
     QString issue;
@@ -115,6 +144,8 @@ struct RouteRuleListLook {
     bool checkable = false;
     bool checked = false;
     bool everythingElse = false;
+    bool mutedTitle = false;
+    bool italicTitle = false;
 };
 
 // One entry per row plus "Everything else"; each row's look is computed when the row changes, never while painting.
@@ -137,10 +168,10 @@ public:
         const RouteRuleListLook& look = lookOf(index.row());
         switch (role) {
             case Qt::DisplayRole:
-            case Qt::AccessibleTextRole: return look.title;
+            case Qt::AccessibleTextRole: return look.title + look.titleSuffix;
             case Qt::AccessibleDescriptionRole: return look.summary + QStringLiteral(" · ") + look.pill;
             case Qt::ToolTipRole: {
-                const QString tip = look.everythingElse ? RouteRuleList::tr("Set above the list, under Everything else goes to.") : look.issue;
+                const QString tip = look.issue.isEmpty() ? look.summary : look.issue;
                 return tip.isEmpty() ? QVariant() : QVariant(Qt::convertFromPlainText(tip));
             }
             case Qt::CheckStateRole:
@@ -209,15 +240,17 @@ private:
         RouteRuleListLook look;
         const auto& rules = profile->Rules;
         if (row.first < 0 || row.count < 1 || row.first + row.count > rules.size()) return look;
-        look.title = RouteEditor::RowTitle(*profile, row);
-        QStringList hay = {look.title};
+        QStringList hay;
         switch (row.kind) {
             case RouteEditor::RowKind::QuickList: {
                 const auto entries = QuickLists::Entries(*profile, row.first, row.count);
                 bool anyOn = false;
                 for (int i = row.first; i < row.first + row.count; ++i) anyOn = anyOn || !rules.at(i)->disabled;
                 const RouteEditor::Then then = RouteEditor::ThenOfList(row.list);
-                look.tag = RouteRuleList::tr("Quick list");
+                look.title = RouteRuleList::tr("Quick list");
+                look.titleSuffix = QStringLiteral(" · ") + (entries.isEmpty() ? RouteRuleList::tr("empty") : ruleListEntryCount(entries.size()));
+                look.mutedTitle = true;
+                look.italicTitle = true;
                 look.summary = QuickLists::Summary(entries);
                 if (!anyOn) look.summary = RouteRuleList::tr("Off · %1").arg(look.summary);
                 look.pill = RouteEditor::ThenLabel(then);
@@ -225,6 +258,7 @@ private:
                 look.dimmed = entries.isEmpty() || !anyOn;
                 look.checkable = true;
                 look.checked = anyOn;
+                hay << look.pill;
                 for (const auto& entry : entries) {
                     hay << entry.value;
                     if (!look.error && !entry.issue.message.isEmpty() && entry.issue.severity == Validation::Severity::Error) {
@@ -236,7 +270,9 @@ private:
             }
             case RouteEditor::RowKind::Endpoint: {
                 const auto& rule = rules.at(row.first);
-                look.tag = RouteRuleList::tr("Endpoint");
+                look.title = RouteRuleList::tr("Endpoint");
+                look.mutedTitle = true;
+                look.italicTitle = true;
                 look.endpoint = true;
                 look.summary = ruleListEndpointSummary(*profile, rule->outboundID);
                 look.pill = RouteEditor::ThenLabel(*rule);
@@ -246,8 +282,11 @@ private:
             }
             case RouteEditor::RowKind::Rule: {
                 const auto& rule = rules.at(row.first);
-                look.summary = RouteEditor::RuleSummary(*rule);
-                if (rule->disabled) look.summary = RouteRuleList::tr("Off · %1").arg(look.summary);
+                const QString summary = RouteEditor::RuleSummary(*rule);
+                const bool named = !rule->name.trimmed().isEmpty();
+                look.title = named ? rule->name : summary;
+                look.mutedTitle = !named;
+                look.summary = rule->disabled ? RouteRuleList::tr("Off · %1").arg(summary) : summary;
                 look.pill = RouteEditor::ThenLabel(*rule);
                 look.tone = RouteEditor::ToneOf(*rule);
                 look.dimmed = rule->disabled;
@@ -264,7 +303,7 @@ private:
                 break;
             }
         }
-        hay << look.summary;
+        hay << look.title << look.summary;
         look.haystack = hay.join(QLatin1Char('\n'));
         return look;
     }
@@ -300,9 +339,10 @@ namespace {
             painter->setPen(QPen(RouteEditor::Mix(tokens.onSurface, tokens.surface, 0.1), 1));
             painter->drawLine(option.rect.bottomLeft(), option.rect.bottomRight());
 
+            const QRect content = option.rect.adjusted(0, 0, 0, -1);
             const QFont smallFont = ruleListSmallFont(option.font);
             const QFontMetrics small(smallFont);
-            const RuleListColumns columns = ruleListColumns(option.rect, ruleListBoxWidth(style, widget), ruleListNumberWidth(small, model->rowCount() - 1));
+            const RuleListColumns columns = ruleListColumns(content, ruleListBoxWidth(style, widget), ruleListNumberWidth(small, model->rowCount() - 1));
             const QColor faint = RouteEditor::Mix(tokens.muted, tokens.surface, 0.75);
 
             if (!look.everythingElse) {
@@ -313,18 +353,15 @@ namespace {
                     for (const qreal dy : {-4.0, 0.0, 4.0}) painter->drawEllipse(grip + QPointF(dx, dy), 1.2, 1.2);
                 }
                 if (look.checkable) {
-                    QStyleOptionViewItem check(option);
-                    const int width = style->pixelMetric(QStyle::PM_IndicatorWidth, nullptr, widget);
-                    const int height = style->pixelMetric(QStyle::PM_IndicatorHeight, nullptr, widget);
-                    check.rect = visual(QRect(columns.box.left() + (columns.box.width() - width) / 2, columns.box.center().y() - height / 2 + 1, width, height));
-                    check.state = (option.state & QStyle::State_Enabled) | (look.checked ? QStyle::State_On : QStyle::State_Off);
-                    style->drawPrimitive(QStyle::PE_IndicatorItemViewItemCheck, &check, painter, widget);
+                    ruleListPaintCheck(painter, visual(columns.box), style->pixelMetric(QStyle::PM_IndicatorWidth, nullptr, widget), look.checked,
+                                       option.state.testFlag(QStyle::State_Enabled));
                 } else if (look.endpoint) {
                     ruleListPaintLink(painter, QRectF(visual(columns.box)).center(), tokens.muted);
                 }
                 painter->setFont(smallFont);
                 painter->setPen(faint);
-                painter->drawText(visual(columns.number), leftAlign, QString::number(index.row() + 1));
+                painter->drawText(visual(columns.number), QStyle::visualAlignment(option.direction, Qt::AlignRight | Qt::AlignVCenter),
+                                  QString::number(index.row() + 1));
             }
 
             if (look.dimmed) painter->setOpacity(0.5);
@@ -332,100 +369,50 @@ namespace {
             const QFontMetrics pillMetrics(pillFont);
             QSize pill = RouteEditor::PillSize(pillMetrics, look.pill);
             pill.setWidth(qMin(pill.width(), qMax(RouteEditor::PillSize(pillMetrics, QString(12, QLatin1Char('x'))).width(), columns.text.width() / 2)));
-            const QRect pillRect(columns.right - pill.width() + 1, option.rect.center().y() - pill.height() / 2, pill.width(), pill.height());
+            const QRect pillRect(columns.right - pill.width() + 1, content.top() + (content.height() - pill.height()) / 2, pill.width(), pill.height());
             painter->setFont(pillFont);
             RouteEditor::PaintPill(painter, visual(pillRect), look.pill, look.tone);
 
-            const QRect text(columns.text.left(), option.rect.top(), qMax(0, pillRect.left() - ruleListPillGap - columns.text.left()), option.rect.height());
-            QFont titleFont = option.font;
-            if (look.endpoint) titleFont.setItalic(true);
-            if (look.everythingElse) titleFont.setWeight(QFont::DemiBold);
-            const QFontMetrics titleMetrics(titleFont);
-            const int top = option.rect.top() + (option.rect.height() - (titleMetrics.height() + 2 + small.height())) / 2;
-            int x = text.left();
+            int x = columns.text.left();
             if (look.error) {
                 painter->setPen(Qt::NoPen);
                 painter->setBrush(tokens.danger);
-                painter->drawEllipse(visual(QRect(x, top + (titleMetrics.height() - ruleListDotSize) / 2, ruleListDotSize, ruleListDotSize)));
+                painter->drawEllipse(visual(QRect(x, content.top() + (content.height() - ruleListDotSize) / 2, ruleListDotSize, ruleListDotSize)));
                 x += ruleListDotSize + 6;
             }
-            const QFont tagFont = ruleListBoldSmallFont(option.font);
-            const QFontMetrics tagMetrics(tagFont);
-            const int tagWidth = look.tag.isEmpty() ? 0 : tagMetrics.horizontalAdvance(look.tag) + 2 * ruleListTagPad;
-            const int titleSpace = qMax(0, text.right() + 1 - x - (tagWidth > 0 ? tagWidth + 7 : 0));
-            const QString title = titleMetrics.elidedText(look.title, Qt::ElideRight, titleSpace);
+            QFont titleFont = option.font;
+            titleFont.setItalic(look.italicTitle);
+            if (look.everythingElse) titleFont.setWeight(QFont::DemiBold);
+            const QFontMetrics titleMetrics(titleFont);
+            const int space = qMax(0, pillRect.left() - ruleListPillGap - x);
+            const QString title = titleMetrics.elidedText(look.title, Qt::ElideRight, space);
             painter->setFont(titleFont);
-            painter->setPen(tokens.onSurface);
-            painter->drawText(visual(QRect(x, top, titleSpace, titleMetrics.height())), leftAlign, title);
-            if (tagWidth > 0 && titleSpace > 0) {
-                const int tagLeft = x + qMin(titleSpace, titleMetrics.horizontalAdvance(title)) + 7;
-                const QRect tag = visual(QRect(tagLeft, top + (titleMetrics.height() - tagMetrics.height() - 2) / 2, tagWidth, tagMetrics.height() + 2));
-                painter->setPen(QPen(RouteEditor::Mix(tokens.onSurface, tokens.surface, 0.25), 1));
-                painter->setBrush(Qt::NoBrush);
-                painter->drawRoundedRect(QRectF(tag).adjusted(0.5, 0.5, -0.5, -0.5), 4, 4);
-                painter->setFont(tagFont);
-                painter->setPen(tokens.muted);
-                painter->drawText(tag, Qt::AlignCenter, look.tag);
+            painter->setPen(look.mutedTitle ? tokens.muted : tokens.onSurface);
+            painter->drawText(visual(QRect(x, content.top(), space, content.height())), leftAlign, title);
+            const int titleWidth = RouteEditor::TextWidth(titleMetrics, title);
+            if (!look.titleSuffix.isEmpty() && title == look.title && titleWidth < space) {
+                const QRect suffix(x + titleWidth, content.top(), space - titleWidth, content.height());
+                painter->setFont(option.font);
+                painter->setPen(faint);
+                painter->drawText(visual(suffix), leftAlign, QFontMetrics(option.font).elidedText(look.titleSuffix, Qt::ElideRight, suffix.width()));
             }
-            const QRect summary(text.left(), top + titleMetrics.height() + 2, text.width(), small.height());
-            painter->setFont(smallFont);
-            painter->setPen(look.error ? tokens.danger : tokens.muted);
-            painter->drawText(visual(summary), leftAlign, small.elidedText(look.summary, Qt::ElideRight, summary.width()));
             painter->restore();
         }
 
         [[nodiscard]] QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex&) const override {
-            const QFontMetrics metrics(option.font);
-            const QFontMetrics small(ruleListSmallFont(option.font));
-            const int content = qMax(metrics.height() + 2 + small.height(), QFontMetrics(ruleListBoldSmallFont(option.font)).height() + 4);
+            const int pill = RouteEditor::PillSize(QFontMetrics(ruleListBoldSmallFont(option.font)), QString()).height();
             // No width: the list makes every row as wide as its viewport.
-            return {0, content + 2 * ruleListVPad + 1};
+            return {0, qMax(QFontMetrics(option.font).height(), pill) + 2 * ruleListVPad + 1};
         }
 
         bool editorEvent(QEvent*, QAbstractItemModel*, const QStyleOptionViewItem&, const QModelIndex&) override {
             return false;
         }
     };
-
-    // The "#, Rule, Then" line over the rows, aligned with the delegate's columns.
-    class RuleListHeader : public QWidget {
-    public:
-        explicit RuleListHeader(RouteRuleList* owner) : QWidget(owner), list(owner) {}
-
-    protected:
-        void paintEvent(QPaintEvent*) override {
-            const auto& tokens = themeManager()->tokens;
-            QPainter painter(this);
-            painter.fillRect(rect(), palette().color(QPalette::Base));
-            painter.setPen(QPen(RouteEditor::Mix(tokens.onSurface, tokens.surface, 0.1), 1));
-            painter.drawLine(rect().bottomLeft(), rect().bottomRight());
-
-            QFont font = ruleListBoldSmallFont(list->font());
-            font.setCapitalization(QFont::AllUppercase);
-            const QFontMetrics small(ruleListSmallFont(list->font()));
-            const int rows = list->model() != nullptr ? list->model()->rowCount() - 1 : 0;
-            const RuleListColumns columns = ruleListColumns(rect(), ruleListBoxWidth(list->style(), list), ruleListNumberWidth(small, rows));
-            const auto visual = [this](const QRect& r) { return QStyle::visualRect(layoutDirection(), rect(), r); };
-            const Qt::Alignment leftAlign = QStyle::visualAlignment(layoutDirection(), Qt::AlignLeft | Qt::AlignVCenter);
-            const Qt::Alignment rightAlign = QStyle::visualAlignment(layoutDirection(), Qt::AlignRight | Qt::AlignVCenter);
-            painter.setFont(font);
-            painter.setPen(RouteEditor::Mix(tokens.muted, tokens.surface, 0.8));
-            painter.drawText(visual(QRect(columns.number.left(), 0, columns.number.width() + ruleListGap, height())), leftAlign, RouteRuleList::tr("#"));
-            const QString then = RouteRuleList::tr("Then");
-            const int thenWidth = QFontMetrics(font).horizontalAdvance(then);
-            painter.drawText(visual(QRect(columns.right - thenWidth - 1, 0, thenWidth + 2, height())), rightAlign, then);
-            const int ruleWidth = qMax(0, columns.right - thenWidth - ruleListPillGap - columns.text.left());
-            painter.drawText(visual(QRect(columns.text.left(), 0, ruleWidth, height())), leftAlign,
-                             QFontMetrics(font).elidedText(RouteRuleList::tr("Rule"), Qt::ElideRight, ruleWidth));
-        }
-
-    private:
-        RouteRuleList* list;
-    };
 } // namespace
 
 RouteRuleList::RouteRuleList(std::shared_ptr<Configs::RouteProfile> profile, QWidget* parent)
-    : QListView(parent), rowModel(new RouteRuleListModel(std::move(profile), this)), headerLine(new RuleListHeader(this)) {
+    : QListView(parent), rowModel(new RouteRuleListModel(std::move(profile), this)) {
     setModel(rowModel);
     setItemDelegate(new RuleListDelegate(this));
     setUniformItemSizes(true);
@@ -442,11 +429,7 @@ RouteRuleList::RouteRuleList(std::shared_ptr<Configs::RouteProfile> profile, QWi
     setAutoScroll(true);
     setAccessibleName(tr("Rules"));
     rowModel->rebuild(true);
-    placeHeader();
-    connect(themeManager(), &ThemeManager::themeChanged, this, [this] {
-        viewport()->update();
-        headerLine->update();
-    });
+    connect(themeManager(), &ThemeManager::themeChanged, this, [this] { viewport()->update(); });
 }
 
 RouteRuleList::~RouteRuleList() = default;
@@ -454,7 +437,6 @@ RouteRuleList::~RouteRuleList() = default;
 void RouteRuleList::rebuild(bool recompute) {
     rowModel->rebuild(recompute);
     for (int row = 0; row < rows().size(); ++row) applyFilter(row);
-    headerLine->update();
 }
 
 const QList<RouteEditor::Row>& RouteRuleList::rows() const {
@@ -728,23 +710,7 @@ void RouteRuleList::paintEvent(QPaintEvent* event) {
 
 void RouteRuleList::changeEvent(QEvent* event) {
     QListView::changeEvent(event);
-    if (event->type() == QEvent::FontChange || event->type() == QEvent::StyleChange) {
-        scheduleDelayedItemsLayout();
-        placeHeader();
-        headerLine->update();
-    }
-}
-
-bool RouteRuleList::viewportEvent(QEvent* event) {
-    if (event->type() == QEvent::Resize) placeHeader();
-    return QListView::viewportEvent(event);
-}
-
-void RouteRuleList::placeHeader() {
-    const int height = QFontMetrics(ruleListBoldSmallFont(font())).height() + 10;
-    if (viewportMargins().top() != height) setViewportMargins(0, height, 0, 0);
-    const QRect area = viewport()->geometry();
-    headerLine->setGeometry(area.left(), area.top() - height, area.width(), height);
+    if (event->type() == QEvent::FontChange || event->type() == QEvent::StyleChange) scheduleDelayedItemsLayout();
 }
 
 void RouteRuleList::requestReorder(int from, int to) {

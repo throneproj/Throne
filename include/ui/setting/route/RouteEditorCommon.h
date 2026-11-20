@@ -41,9 +41,6 @@ namespace RouteEditor {
     // Moves rows[from] whole so that it becomes row to of the new order.
     void MoveRow(Configs::RouteProfile& profile, const QList<Row>& rows, int from, int to);
 
-    // A rule's name, the list's name or the endpoint profile's name.
-    QString RowTitle(const Configs::RouteProfile& profile, const Row& row);
-
     // Direct, Proxy, Block, Server without WARP.
     const QList<Configs::simpleAction>& QuickListOrder();
     QString ListName(Configs::simpleAction list);
@@ -104,6 +101,8 @@ namespace RouteEditor {
     QColor Mix(const QColor& color, const QColor& base, double amount);
 
     QString ConditionLabel(const QString& attr);
+    // ConditionLabel where the condition tree's leaf shows the rest as a tooltip: "Protocol" for "Protocol (sniffed)".
+    QString ShortConditionLabel(const QString& attr);
 
     struct ConditionGroup {
         QString title;
