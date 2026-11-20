@@ -95,6 +95,7 @@ var ipLookupProviders = []ipLookupProvider{
 	{"ipinfo", "https://ipinfo.io/json", jsonFields("ip", "country")},
 	{"ipapi-co", "https://ipapi.co/json/", parseIPAPICo},
 	{"freeipapi", "https://free.freeipapi.com/api/v1/json", jsonFields("ipAddress", "countryCode")},
+	{"internetdata", "https://api.internetdata.io/myip", parseInternetData},
 	{"cloudflare", "https://www.cloudflare.com/cdn-cgi/trace", parseCloudflareTrace},
 }
 
@@ -231,6 +232,18 @@ func parseIPAPICo(body []byte) (string, string, error) {
 		return "", "", failure(stringField(obj, "reason"))
 	}
 	return stringField(obj, "ip"), stringField(obj, "country_code"), nil
+}
+
+func parseInternetData(body []byte) (string, string, error) {
+	obj, err := decodeObject(body)
+	if err != nil {
+		return "", "", err
+	}
+	if reason := stringField(obj, "error"); reason != "" {
+		return "", "", failure(reason)
+	}
+	location, _ := obj["location"].(map[string]any)
+	return stringField(obj, "ip"), stringField(location, "country"), nil
 }
 
 func parseCloudflareTrace(body []byte) (string, string, error) {

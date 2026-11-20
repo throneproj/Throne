@@ -13,7 +13,7 @@ namespace Configs_network {
     namespace {
         constexpr qint64 kExitLookupAutoBudgetMs = 20000;
 
-        enum class ExitLookupFormat { IpApi, IpWho, IpInfo, IpApiCo, Ip2Location, FreeIpApi, CloudflareTrace };
+        enum class ExitLookupFormat { IpApi, IpWho, IpInfo, IpApiCo, Ip2Location, FreeIpApi, InternetData, CloudflareTrace };
 
         struct ExitLookupEntry {
             ExitLookupProvider provider;
@@ -30,6 +30,8 @@ namespace Configs_network {
                  ExitLookupFormat::Ip2Location},
                 {{QStringLiteral("freeipapi"), QStringLiteral("FreeIPAPI"), QStringLiteral("https://free.freeipapi.com/api/v1/json")},
                  ExitLookupFormat::FreeIpApi},
+                {{QStringLiteral("internetdata"), QStringLiteral("InternetData"), QStringLiteral("https://api.internetdata.io/myip")},
+                 ExitLookupFormat::InternetData},
                 {{QStringLiteral("cloudflare"), QStringLiteral("Cloudflare"), QStringLiteral("https://www.cloudflare.com/cdn-cgi/trace")},
                  ExitLookupFormat::CloudflareTrace},
             };
@@ -106,6 +108,13 @@ namespace Configs_network {
                 case ExitLookupFormat::FreeIpApi:
                     *info = {field("ipAddress"), field("countryCode"), field("countryName"), field("cityName")};
                     break;
+                case ExitLookupFormat::InternetData: {
+                    if (const auto reason = field("error"); !reason.isEmpty()) return failure(reason);
+                    const auto location = obj.value(QLatin1String("location")).toObject();
+                    *info = {field("ip"), location.value(QLatin1String("country")).toString().trimmed(),
+                             location.value(QLatin1String("country_name")).toString().trimmed(), {}};
+                    break;
+                }
                 case ExitLookupFormat::CloudflareTrace:
                     break;
             }
