@@ -874,17 +874,17 @@ QToolButton::menu-indicator {
      <addaction name="menu_remove_invalid"/>
      <addaction name="menu_remove_insecure"/>
     </widget>
-    <addaction name="menu_update_subscription"/>
-    <addaction name="actionUpdate_All_Subscriptions"/>
-    <addaction name="separator"/>
+    <addaction name="actionAdd_New_Group"/>
+    <addaction name="actionEdit_Group"/>
+    <addaction name="actionDelete_Group"/>
     <addaction name="menu_test_group"/>
     <addaction name="menu_clean_up"/>
     <addaction name="separator"/>
-    <addaction name="actionAdd_New_Group"/>
-    <addaction name="actionEdit_Group"/>
+    <addaction name="menu_update_subscription"/>
+    <addaction name="actionUpdate_All_Subscriptions"/>
+    <addaction name="separator"/>
     <addaction name="menu_manage_groups"/>
     <addaction name="separator"/>
-    <addaction name="actionDelete_Group"/>
    </widget>
    <addaction name="menu_program"/>
    <addaction name="menu_preferences"/>
@@ -1456,8 +1456,6 @@ QToolButton::menu-indicator {
    <header>include/ui/widget/ElidingLabel.hpp</header>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="../../res/Throne.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>
