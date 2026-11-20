@@ -273,28 +273,36 @@ void MainWindow::setupRoutingMenu() {
         ActivateWindow(m_ruleTesterDialog);
     });
 
-    QAction *routesEnd = menu->addSeparator();
+    auto *routesHeading = new QAction(tr("Choose profile:"), menu);
+    routesHeading->setEnabled(false);
+    routesHeading->setProperty("menuHeading", true);
+    auto *moreRoutesMenu = new QMenu(tr("More"), menu);
+    moreRoutesMenu->installEventFilter(this);
+
+    menu->addAction(ui->menu_routing_settings);
+    menu->addAction(ui->menu_edit_route);
     menu->addMenu(exitMenu);
     menu->addAction(ui->actionAdblock);
     menu->addSeparator();
-    menu->addAction(ui->menu_edit_route);
+    menu->addAction(routesHeading);
+    QAction *moreRoutesAction = menu->addMenu(moreRoutesMenu);
+    menu->addSeparator();
     menu->addAction(ui->actionRule_Tester);
     menu->addAction(ui->actionUpdate_Rule_Sets);
     menu->addMenu(downloadMenu);
-    menu->addAction(ui->menu_routing_settings);
 
     auto *routeGroup = new QActionGroup(menu);
     const auto syncRouteChecks = [routeGroup] {
         const int current = Configs::dataManager->settingsRepo->current_route_id;
         for (auto *action : routeGroup->actions()) action->setChecked(action->data().toInt() == current);
     };
-    connect(menu, &QMenu::aboutToShow, this, [this, menu, routesEnd, routeGroup, syncExitChecks, syncRouteChecks] {
+    connect(menu, &QMenu::aboutToShow, this, [this, menu, routesHeading, moreRoutesMenu, moreRoutesAction, routeGroup, syncExitChecks, syncRouteChecks] {
         ui->actionAdblock->setChecked(Configs::dataManager->settingsRepo->adblock_enable);
         syncExitChecks();
         refresh_action_states();
 
         // Kept across shows unless the profiles' ids or names changed: the command palette holds on to these actions.
-        const auto routeActions = routeGroup->actions();
+        auto routeActions = routeGroup->actions();
         const auto routes = Configs::dataManager->routesRepo->GetAllRouteProfiles();
         bool changed = routes.size() != routeActions.size();
         for (int i = 0; !changed && i < routes.size(); ++i) {
@@ -312,9 +320,35 @@ void MainWindow::setupRoutingMenu() {
                     connection()->chooseRoute(action->data().toInt());
                     syncRouteChecks();
                 });
-                menu->insertAction(routesEnd, action);
             }
+            routeActions = routeGroup->actions();
         }
+
+        // At most five rows, "More" counting as one; the current profile always keeps a row.
+        constexpr qsizetype maxRouteRows = 5;
+        const qsizetype shownCount = routeActions.size() <= maxRouteRows ? routeActions.size() : maxRouteRows - 1;
+        QList<QAction *> shown = routeActions.mid(0, shownCount);
+        QList<QAction *> hidden = routeActions.mid(shownCount);
+        const int current = Configs::dataManager->settingsRepo->current_route_id;
+        for (qsizetype i = 0; i < hidden.size(); ++i) {
+            if (hidden[i]->data().toInt() != current) continue;
+            QAction *pinned = hidden.takeAt(i);
+            hidden.prepend(shown.takeLast());
+            shown.append(pinned);
+            break;
+        }
+        const auto menuActions = menu->actions();
+        const qsizetype first = menuActions.indexOf(routesHeading) + 1;
+        if (menuActions.mid(first, menuActions.indexOf(moreRoutesAction) - first) != shown || moreRoutesMenu->actions() != hidden) {
+            for (auto *action : routeActions) {
+                menu->removeAction(action);
+                moreRoutesMenu->removeAction(action);
+            }
+            menu->insertActions(moreRoutesAction, shown);
+            moreRoutesMenu->addActions(hidden);
+        }
+        routesHeading->setVisible(!routeActions.isEmpty());
+        moreRoutesAction->setVisible(!hidden.isEmpty());
         syncRouteChecks();
     });
 }

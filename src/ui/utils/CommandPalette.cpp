@@ -392,7 +392,7 @@ void CommandPalette::collect(QMenu *menu, const QString &section, const QString 
     // Menus that fill their actions on demand.
     if (!refreshed.contains(menu)) emit menu->aboutToShow();
     for (QAction *action : menu->actions()) {
-        if (action->isSeparator() || action == skipAction) continue;
+        if (action->isSeparator() || action == skipAction || action->property("menuHeading").toBool()) continue;
         // Toggled or disabled from a menu or the tray: an open palette shows it at once.
         connect(action, &QAction::changed, this, &CommandPalette::queueRefilter, Qt::UniqueConnection);
         if (auto *sub = action->menu()) {

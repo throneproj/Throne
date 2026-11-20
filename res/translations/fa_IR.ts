@@ -5322,6 +5322,14 @@ Error: %1</source>
         <translation>دانلود نمایهٔ مسیریابی</translation>
     </message>
     <message>
+        <source>Choose profile:</source>
+        <translation>انتخاب نمایه:</translation>
+    </message>
+    <message>
+        <source>More</source>
+        <translation>بیشتر</translation>
+    </message>
+    <message>
         <source>Update rule-sets</source>
         <translation>به‌روزرسانی مجموعه‌قوانین</translation>
     </message>

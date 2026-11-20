@@ -11344,6 +11344,14 @@ Restart Throne as administrator to use Tun mode and the kill switch.</source>
         <translation>Скачать профиль маршрутизации</translation>
     </message>
     <message>
+        <source>Choose profile:</source>
+        <translation>Выберите профиль:</translation>
+    </message>
+    <message>
+        <source>More</source>
+        <translation>Ещё</translation>
+    </message>
+    <message>
         <source>%1 (downloading)</source>
         <translation>%1 (загрузка)</translation>
     </message>

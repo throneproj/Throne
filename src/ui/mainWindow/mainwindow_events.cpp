@@ -210,11 +210,14 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event) {
         if (resize->size().width() != resize->oldSize().width()) refresh_proxy_list_column_size();
     }
     // QMenu triggers an action on a right-button release too, which would switch to the profile instead of editing it.
-    if ((type == QEvent::MouseButtonPress || type == QEvent::MouseButtonRelease) && obj == ui->menuRouting_Menu
+    auto *routeMenu = qobject_cast<QMenu *>(obj);
+    if ((type == QEvent::MouseButtonPress || type == QEvent::MouseButtonRelease) && routeMenu != nullptr
+        && (routeMenu == ui->menuRouting_Menu || routeMenu->parent() == ui->menuRouting_Menu)
         && static_cast<QMouseEvent *>(event)->button() == Qt::RightButton) {
-        const QAction *action = ui->menuRouting_Menu->actionAt(static_cast<QMouseEvent *>(event)->position().toPoint());
+        const QAction *action = routeMenu->actionAt(static_cast<QMouseEvent *>(event)->position().toPoint());
         if (const QVariant routeId = action != nullptr ? action->property("routeProfileId") : QVariant(); routeId.isValid()) {
             if (type == QEvent::MouseButtonRelease) {
+                routeMenu->close();
                 ui->menuRouting_Menu->close();
                 QTimer::singleShot(0, this, [this, id = routeId.toInt()] { openRouteProfileEditor(id); });
             }

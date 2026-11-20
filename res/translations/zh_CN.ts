@@ -11258,6 +11258,14 @@ Error: %1</source>
         <translation>下载路由配置档</translation>
     </message>
     <message>
+        <source>Choose profile:</source>
+        <translation>选择配置档：</translation>
+    </message>
+    <message>
+        <source>More</source>
+        <translation>更多</translation>
+    </message>
+    <message>
         <source>%1 (downloading)</source>
         <translation>%1（下载中）</translation>
     </message>
