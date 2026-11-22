@@ -174,6 +174,7 @@ namespace Engine::RouteService {
                 {"type", Configs::ruleTypeToToken(rule.type)},
                 {"name", rule.name},
                 {"disabled", rule.disabled},
+                {"remote", rule.remote},
                 {"attributes", attributes},
             };
         }
@@ -230,9 +231,11 @@ namespace Engine::RouteService {
             std::optional<QString> token;
             std::optional<QString> name;
             std::optional<bool> disabled;
+            std::optional<bool> remote;
             if (auto error = routeServiceReadString(object, QStringLiteral("type"), &token)) return bad(error->message);
             if (auto error = routeServiceReadString(object, QStringLiteral("name"), &name)) return bad(error->message);
             if (auto error = routeServiceReadBool(object, QStringLiteral("disabled"), &disabled)) return bad(error->message);
+            if (auto error = routeServiceReadBool(object, QStringLiteral("remote"), &remote)) return bad(error->message);
             const int type = Configs::tokenToRuleType(token.value_or(QStringLiteral("custom")));
             if (Configs::ruleTypeToToken(type) != token.value_or(QStringLiteral("custom"))) {
                 return bad(QStringLiteral("unknown type \"%1\"").arg(*token));
@@ -266,6 +269,8 @@ namespace Engine::RouteService {
                 }
             }
             if (disabled && type != Configs::endpointPreferredBy) rule->disabled = *disabled;
+            // Echoed back from a read, it keeps the rule replaced by the next update.
+            if (remote && type != Configs::endpointPreferredBy) rule->remote = *remote;
             *out = rule;
             return std::nullopt;
         }

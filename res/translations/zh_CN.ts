@@ -13664,8 +13664,8 @@ Windows 随后会忽略让 Throne 自身连接不进入 Tun 的适配器绑定�
         <translation>从远端获取</translation>
     </message>
     <message>
-        <source>This will replace the current rules with the ones fetched from the URL. Continue?</source>
-        <translation>这样将会用从该 URL 获取的规则来替换当前规则。 继续吗?</translation>
+        <source>This will replace the rules that came from the URL, edits to them included, with the ones fetched now. Rules added here are kept. Continue?</source>
+        <translation>这将用现在获取的规则替换来自该 URL 的规则，包括对它们所做的修改。在这里添加的规则会被保留。继续吗?</translation>
     </message>
     <message>
         <source>Fetching...</source>
@@ -13796,8 +13796,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>立即获取</translation>
     </message>
     <message>
-        <source>Each update replaces the rules, so changes made here last until the next one.</source>
-        <translation>每次更新都会替换规则，因此在这里所做的更改只保留到下一次更新。</translation>
+        <source>Each update replaces the rules that came from the URL, so edits to them last until the next one. Rules added here are kept.</source>
+        <translation>每次更新都会替换来自该 URL 的规则，因此对这些规则的修改只保留到下一次更新。在这里添加的规则会被保留。</translation>
     </message>
     <message>
         <source>OpenVPN and OpenConnect profiles started together with this routing profile. Each one adds an endpoint rule to the list, which you can move but not edit.</source>

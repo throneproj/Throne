@@ -154,7 +154,8 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     ui->setupUi(this);
 
     chain = std::make_shared<Configs::RouteProfile>(*routeChain);
-    if (chain->IsEmpty()) {
+    // Not for a remote profile: a seeded rule would be local and outlive every update.
+    if (chain->IsEmpty() && !chain->isRemote) {
         auto rule = std::make_shared<Configs::RouteRule>();
         rule->name = tr("DNS queries");
         rule->protocol = "dns";
@@ -274,9 +275,10 @@ void RouteItem::fetchRemote(bool applyToChain) {
         MessageBoxWarning(tr("Invalid URL"), tr("Enter a valid http(s) URL first."));
         return;
     }
-    if (applyToChain && !chain->IsEmpty()) {
+    const bool hasRemoteRules = std::any_of(chain->Rules.cbegin(), chain->Rules.cend(), [](const auto& rule) { return rule->remote; });
+    if (applyToChain && hasRemoteRules) {
         if (QMessageBox::question(this, tr("Fetch from remote"),
-                                  tr("This will replace the current rules with the ones fetched from the URL. Continue?"))
+                                  tr("This will replace the rules that came from the URL, edits to them included, with the ones fetched now. Rules added here are kept. Continue?"))
             != QMessageBox::StandardButton::Yes) {
             return;
         }
@@ -309,6 +311,7 @@ void RouteItem::fetchRemote(bool applyToChain) {
                 MessageBoxWarning(tr("Could not fetch routing profile"), err);
                 return;
             }
+            const auto fetchedCount = std::count_if(target->Rules.cbegin(), target->Rules.cend(), [](const auto& rule) { return rule->remote; });
             if (applyToChain) {
                 chain->Rules = target->Rules;
                 chain->defaultOutboundID = target->defaultOutboundID;
@@ -320,17 +323,21 @@ void RouteItem::fetchRemote(bool applyToChain) {
                 setDefaultOutbound(chain->defaultOutboundID);
                 syncEndpointRules();
                 form->refresh();
-                const QString msg = tr("Loaded %1 rule(s) from the remote URL.").arg(target->Rules.size());
+                const QString msg = tr("Loaded %1 rule(s) from the remote URL.").arg(fetchedCount);
                 if (warnings.isEmpty()) MessageBoxInfo(tr("Fetched"), msg);
                 else routeItemPlainBox(this, QMessageBox::Information, tr("Fetched with warnings"), msg + "\n\n" + warnings.trimmed());
                 return;
             }
+            // Only what the URL serves: the local rules and endpoints merged into target are not part of it.
+            target->Rules.removeIf([](const auto& rule) { return !rule->remote; });
+            target->endpointProfileIDs.clear();
+            target->innerHopEndpointIDs.clear();
             auto* dlg = new QDialog(this);
             dlg->setAttribute(Qt::WA_DeleteOnClose);
             dlg->setWindowTitle(tr("Remote Routing Profile Preview"));
             auto* lay = new QVBoxLayout(dlg);
             auto* header = new QLabel(tr("%1 — %2 rule(s)").arg(target->name.isEmpty() ? tr("(unnamed)") : target->name,
-                                                               QString::number(target->Rules.size())), dlg);
+                                                               QString::number(fetchedCount)), dlg);
             header->setTextFormat(Qt::PlainText);
             lay->addWidget(header);
             if (!warnings.isEmpty()) {

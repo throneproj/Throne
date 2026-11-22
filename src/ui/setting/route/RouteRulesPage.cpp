@@ -401,6 +401,7 @@ void RouteRulesPage::duplicateRow(int row) {
     for (int n = 2; taken.contains(name); ++n) name = QStringLiteral("%1 (%2)").arg(base, QString::number(n));
     auto copy = std::make_shared<Configs::RouteRule>(*source);
     copy->name = name;
+    copy->remote = false;
     profile->Rules.insert(at + 1, copy);
     rebuild(copy, false);
     emit changed();

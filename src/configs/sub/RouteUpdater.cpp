@@ -26,26 +26,35 @@
 
 namespace RouteUpdate {
     namespace {
-        // Endpoint rules belong to the local profile, so they survive the swap by index.
+        // Local rules (endpoint rules included) stay put; the fetched rules take the old remote slots in order,
+        // extras follow the last slot (the top when there was none: remote takes precedence), and slots left over close up.
         void replaceRules(Configs::RouteProfile& profile, const Configs::RouteProfile& fetched) {
-            QList<QPair<int, std::shared_ptr<Configs::RouteRule>>> endpointRules;
+            QList<int> remoteAt;
             QSet<QString> disabledNames;
+            QList<std::shared_ptr<Configs::RouteRule>> local;
             for (int i = 0; i < profile.Rules.size(); i++) {
-                if (profile.Rules[i]->type == Configs::endpointPreferredBy) endpointRules << qMakePair(i, profile.Rules[i]);
-                else if (profile.Rules[i]->disabled) disabledNames << profile.Rules[i]->name;
+                const auto& rule = profile.Rules[i];
+                if (!rule->remote) {
+                    local << rule;
+                    continue;
+                }
+                remoteAt << i;
+                if (rule->disabled) disabledNames << rule->name;
             }
 
             profile.isRaw = false;
             profile.rawRoute.clear();
-            profile.Rules.clear();
+            profile.Rules = local;
+            int next = remoteAt.isEmpty() ? 0 : remoteAt.last() + 1;
+            int placed = 0;
             for (const auto& rule : fetched.Rules) {
                 if (rule->type == Configs::endpointPreferredBy) continue;
                 // A rule switched off locally stays off across refreshes, matched by name.
                 if (disabledNames.contains(rule->name)) rule->disabled = true;
-                profile.Rules << rule;
-            }
-            for (const auto& [index, rule] : endpointRules) {
-                profile.Rules.insert(std::min<qsizetype>(index, profile.Rules.size()), rule);
+                rule->remote = true;
+                const int at = placed < remoteAt.size() ? remoteAt[placed] : next++;
+                profile.Rules.insert(std::min<qsizetype>(at, profile.Rules.size()), rule);
+                ++placed;
             }
             profile.SyncEndpointRules();
             profile.defaultOutboundID = fetched.defaultOutboundID;
@@ -313,6 +322,7 @@ namespace RouteUpdate {
                 auto created = fetched;
                 created->id = -1;
                 created->source_gid = gid;
+                for (const auto& rule : created->Rules) rule->remote = true;
                 if (created->name.isEmpty()) created->name = QObject::tr("%1 routing").arg(group->name);
                 if (!routes->AddRouteProfile(created)) return;
                 Engine::EngineEvents::RoutesChanged();

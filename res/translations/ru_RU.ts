@@ -13784,8 +13784,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Предпросмотр удалённого профиля</translation>
     </message>
     <message>
-        <source>This will replace the current rules with the ones fetched from the URL. Continue?</source>
-        <translation>Текущие правила будут заменены правилами, загруженными по URL. Продолжить?</translation>
+        <source>This will replace the rules that came from the URL, edits to them included, with the ones fetched now. Rules added here are kept. Continue?</source>
+        <translation>Правила, полученные по URL, будут заменены загруженными сейчас, вместе с вашими правками в них. Добавленные здесь правила сохранятся. Продолжить?</translation>
     </message>
     <message>
         <source>Enter a valid http(s) URL first.</source>
@@ -13856,8 +13856,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Загрузить сейчас</translation>
     </message>
     <message>
-        <source>Each update replaces the rules, so changes made here last until the next one.</source>
-        <translation>Каждое обновление заменяет правила, поэтому сделанные здесь изменения сохранятся только до следующего.</translation>
+        <source>Each update replaces the rules that came from the URL, so edits to them last until the next one. Rules added here are kept.</source>
+        <translation>Каждое обновление заменяет правила, полученные по URL, поэтому правки в них сохранятся только до следующего. Добавленные здесь правила сохраняются.</translation>
     </message>
     <message>
         <source>OpenVPN and OpenConnect profiles started together with this routing profile. Each one adds an endpoint rule to the list, which you can move but not edit.</source>

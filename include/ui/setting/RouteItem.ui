@@ -150,7 +150,7 @@
       <item>
        <widget class="QLabel" name="remoteNote">
         <property name="text">
-         <string>Each update replaces the rules, so changes made here last until the next one.</string>
+         <string>Each update replaces the rules that came from the URL, so edits to them last until the next one. Rules added here are kept.</string>
         </property>
         <property name="wordWrap">
          <bool>true</bool>

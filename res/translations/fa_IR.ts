@@ -5861,8 +5861,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>اکنون دریافت شود</translation>
     </message>
     <message>
-        <source>Each update replaces the rules, so changes made here last until the next one.</source>
-        <translation>هر به‌روزرسانی قوانین را جایگزین می‌کند، پس تغییراتی که اینجا می‌دهید تا به‌روزرسانی بعدی می‌مانند.</translation>
+        <source>Each update replaces the rules that came from the URL, so edits to them last until the next one. Rules added here are kept.</source>
+        <translation>هر به‌روزرسانی قوانینی را که از URL آمده‌اند جایگزین می‌کند، پس تغییرات شما در آن‌ها تا به‌روزرسانی بعدی می‌مانند. قوانینی که اینجا اضافه می‌کنید حفظ می‌شوند.</translation>
     </message>
     <message>
         <source>OpenVPN and OpenConnect profiles started together with this routing profile. Each one adds an endpoint rule to the list, which you can move but not edit.</source>
@@ -5885,8 +5885,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>دریافت از راه دور</translation>
     </message>
     <message>
-        <source>This will replace the current rules with the ones fetched from the URL. Continue?</source>
-        <translation>این کار قوانین فعلی را با قوانین دریافت‌شده از URL جایگزین می‌کند. ادامه می‌دهید؟</translation>
+        <source>This will replace the rules that came from the URL, edits to them included, with the ones fetched now. Rules added here are kept. Continue?</source>
+        <translation>این کار قوانینی را که از URL آمده‌اند، همراه با تغییراتی که در آن‌ها داده‌اید، با قوانین تازه دریافت‌شده جایگزین می‌کند. قوانینی که اینجا اضافه کرده‌اید حفظ می‌شوند. ادامه می‌دهید؟</translation>
     </message>
     <message>
         <source>Fetching...</source>
