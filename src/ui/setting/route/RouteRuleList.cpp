@@ -22,7 +22,6 @@
 
 namespace {
     constexpr int ruleListPad = 10;
-    constexpr int ruleListGripWidth = 8;
     constexpr int ruleListGap = 8;
     constexpr int ruleListVPad = 4;
     constexpr int ruleListDotSize = 7;
@@ -55,7 +54,6 @@ namespace {
 
     // Left to right; QStyle::visualRect mirrors them for right-to-left.
     struct RuleListColumns {
-        QRect grip;
         QRect box;
         QRect number;
         QRect text;
@@ -65,8 +63,6 @@ namespace {
     RuleListColumns ruleListColumns(const QRect& rect, int boxWidth, int numberWidth) {
         RuleListColumns columns;
         int x = rect.left() + ruleListPad;
-        columns.grip = QRect(x, rect.top(), ruleListGripWidth, rect.height());
-        x += ruleListGripWidth + ruleListGap;
         columns.box = QRect(x, rect.top(), boxWidth, rect.height());
         x += boxWidth + ruleListGap - 2;
         columns.number = QRect(x, rect.top(), numberWidth, rect.height());
@@ -130,6 +126,8 @@ namespace {
 } // namespace
 
 struct RouteRuleListLook {
+    // The row's rules when the look was computed; rebuild() matches looks to the new rows by it.
+    QString key;
     QString title;
     QString titleSuffix;
     QString summary;
@@ -197,9 +195,12 @@ public:
     }
 
     void rebuild(bool recompute) {
+        // Keys from the stored looks: callers change profile->Rules before calling, so keyOf(old row) would name the new rules.
         QHash<QString, RouteRuleListLook> previous;
         if (!recompute) {
-            for (int i = 0; i < rowList.size() && i < looks.size(); ++i) previous.insert(keyOf(rowList.at(i)), looks.at(i));
+            for (const auto& look : std::as_const(looks)) {
+                if (!look.key.isEmpty()) previous.insert(look.key, look);
+            }
         }
         beginResetModel();
         rowList = RouteEditor::BuildRows(*profile);
@@ -240,6 +241,7 @@ private:
         RouteRuleListLook look;
         const auto& rules = profile->Rules;
         if (row.first < 0 || row.count < 1 || row.first + row.count > rules.size()) return look;
+        look.key = keyOf(row);
         QStringList hay;
         switch (row.kind) {
             case RouteEditor::RowKind::QuickList: {
@@ -346,12 +348,6 @@ namespace {
             const QColor faint = RouteEditor::Mix(tokens.muted, tokens.surface, 0.75);
 
             if (!look.everythingElse) {
-                painter->setPen(Qt::NoPen);
-                painter->setBrush(faint);
-                const QPointF grip = QRectF(visual(columns.grip)).center();
-                for (const qreal dx : {-2.0, 2.0}) {
-                    for (const qreal dy : {-4.0, 0.0, 4.0}) painter->drawEllipse(grip + QPointF(dx, dy), 1.2, 1.2);
-                }
                 if (look.checkable) {
                     ruleListPaintCheck(painter, visual(columns.box), style->pixelMetric(QStyle::PM_IndicatorWidth, nullptr, widget), look.checked,
                                        option.state.testFlag(QStyle::State_Enabled));
