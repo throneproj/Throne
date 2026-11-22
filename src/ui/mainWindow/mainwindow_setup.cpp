@@ -51,7 +51,6 @@
 #include "include/ui/utils/ProfilesTableFilterHeader.h"
 #include "include/ui/utils/ProfilesTableModel.h"
 #include "include/ui/utils/ThemedIcon.hpp"
-#include "include/ui/utils/UiMode.h"
 
 #include "include/ui/group/dialog_edit_group.h"
 #include "include/ui/utils/NativeFileDialog.h"
@@ -668,7 +667,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         Engine::SettingsService::Update([&address](Configs::SettingsValues &values) { values.inbound_address = address; }, {.interactive = true});
         syncSettingsMirrors();
     });
-    applyUiMode();
     connect(ui->checkBox_VPN, &QCheckBox::clicked, this, [=,this](bool checked) { connection()->setTun(checked); });
     connect(ui->checkBox_SystemProxy, &QCheckBox::clicked, this, [=,this](bool checked) { connection()->setSystemProxy(checked); });
     connect(ui->menu_spmode, &QMenu::aboutToShow, this, [=,this]() {
@@ -819,7 +817,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         QString name;
         auto selected = get_now_selected_list();
 
-        UiMode::SetVisible(ui->menu_export_config, false);
+        ui->menu_export_config->setVisible(false);
         if (selected.isEmpty()) return;
 
         auto profile = Configs::dataManager->profilesRepo->GetProfile(selected.first());
@@ -831,7 +829,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             ui->actionCopy_Test_Result->setVisible(true);
         }
 
-        UiMode::SetVisible(ui->menu_export_config, true);
+        ui->menu_export_config->setVisible(true);
     });
     connect(ui->actionCopy_Test_Result, &QAction::triggered, this, [=,this]() {
         auto ents = get_now_selected_list();

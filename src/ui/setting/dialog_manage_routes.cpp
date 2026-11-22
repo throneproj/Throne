@@ -48,7 +48,6 @@
 #include "include/ui/setting/RawRouteItem.h"
 #include "include/ui/setting/RouteDnsEditor.h"
 #include "include/ui/setting/ThemeManager.hpp"
-#include "include/ui/utils/UiMode.h"
 
 namespace {
     constexpr auto defaultWarpApiHost = "api.cloudflareclient.com";
@@ -701,8 +700,8 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     ui->warp_masque_http_mode->setCurrentIndex(std::clamp(snapshot_.warp_masque_http_mode, 0, 2));
     warpAmneziaPackets = snapshot_.warp_amnezia_packets;
     auto showWarpMode = [this](int index) {
-        UiMode::SetVisible(ui->warp_wg_box, index != 1);
-        UiMode::SetVisible(ui->warp_masque_box, index == 1);
+        ui->warp_wg_box->setVisible(index != 1);
+        ui->warp_masque_box->setVisible(index == 1);
         if (index == 2 && warpAmneziaPackets.isEmpty()) generate_amnezia_packets();
     };
     showWarpMode(ui->warp_mode->currentIndex());
@@ -718,11 +717,6 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     };
     showTorStatus();
     connect(ui->enable_tor, &QAbstractButton::toggled, this, showTorStatus);
-
-    // A custom DNS object greys out the DNS fields, so Simple mode keeps its switch beside them while it is on.
-    if (ui->use_dns_object->isChecked()) UiMode::Unmark(ui->groupBox);
-    UiMode::Apply(this);
-    UiMode::Fold(this);
 
     ui->remote_dns->bindTo(form, ui->label_9->text());
     ui->direct_dns->bindTo(form, ui->label_8->text());
@@ -765,15 +759,6 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     };
     connect(ui->enable_warp, &QAbstractButton::toggled, form, revalidateWarp);
     connect(ui->warp_mode, &QComboBox::currentIndexChanged, form, revalidateWarp);
-    // Simple mode hides the fields above, and hidden fields are not validated.
-    form->addRule({ui->enable_warp, ui->warp_mode}, [this] {
-        if (!UiMode::Simple() || !ui->enable_warp->isChecked()) return QString();
-        const QList<QLineEdit *> fields = ui->warp_mode->currentIndex() == 1
-            ? QList<QLineEdit *>{ui->warp_masque_ep, ui->warp_masque_private_key, ui->warp_masque_peer_public_key, ui->warp_masque_ifc_addrs}
-            : QList<QLineEdit *>{ui->warp_ep, ui->warp_private_key, ui->warp_public_key, ui->warp_ifc_addrs};
-        const bool missing = std::any_of(fields.cbegin(), fields.cend(), [](const QLineEdit *edit) { return edit->text().trimmed().isEmpty(); });
-        return missing ? tr("WARP has no config yet: click Generate WARP config.") : QString();
-    }, nullptr, Validation::Severity::Error, ui->enable_warp->text());
     form->addRule({ui->enable_warp, ui->warp_mode}, [this] {
         if (!ui->enable_warp->isChecked() || ui->warp_mode->currentIndex() != 2 || !warpAmneziaPackets.isEmpty()) return QString();
         if (warpAmneziaPending) return tr("Generating the AmneziaWG QUIC signature...");

@@ -24,10 +24,6 @@
         <translation>设置</translation>
     </message>
     <message>
-        <source>Settings in Advanced mode</source>
-        <translation>高级模式中的设置</translation>
-    </message>
-    <message>
         <source>Nothing found</source>
         <translation>找不到任何内容</translation>
     </message>
@@ -700,20 +696,8 @@ Outbound: %4</source>
         <translation>语言</translation>
     </message>
     <message>
-        <source>Simple hides the advanced options.</source>
-        <translation>简洁模式隐藏高级选项。</translation>
-    </message>
-    <message>
         <source>Interface</source>
         <translation>界面</translation>
-    </message>
-    <message>
-        <source>Simple</source>
-        <translation>简洁</translation>
-    </message>
-    <message>
-        <source>Advanced</source>
-        <translation>高级</translation>
     </message>
     <message>
         <source>hwid=custom_value,os=custom_os,osVersion=custom_version,model=custom_model</source>
@@ -4176,10 +4160,6 @@ Included: %2</source>
     <message>
         <source>Required while WARP is on: click Generate WARP config, or fill it in.</source>
         <translation>WARP 开启时必需：点击【生成 WARP 配置】，或手动填写。</translation>
-    </message>
-    <message>
-        <source>WARP has no config yet: click Generate WARP config.</source>
-        <translation>WARP 尚无配置: 点击【生成 WARP 配置】。</translation>
     </message>
     <message>
         <source>Generating the AmneziaWG QUIC signature...</source>
@@ -13768,10 +13748,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>DNS 查询</translation>
     </message>
     <message>
-        <source>Lists</source>
-        <translation>列表</translation>
-    </message>
-    <message>
         <source>%1 · rule %2 in the list</source>
         <translation>%1 · 列表中的第 %2 条规则</translation>
     </message>
@@ -18682,45 +18658,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>The %1 list also has rows at %2.</source>
         <translation>“%1”列表还有其他行：%2。</translation>
-    </message>
-</context>
-<context>
-    <name>QuickListsView</name>
-    <message>
-        <source>Empty.</source>
-        <translation>空。</translation>
-    </message>
-    <message>
-        <source>Add an entry</source>
-        <translation>添加条目</translation>
-    </message>
-    <message>
-        <source>Add</source>
-        <translation>添加</translation>
-    </message>
-    <message>
-        <source>A line without a prefix is typed by its shape: example.com is a domain suffix, 10.0.0.0/8 an IP range, app.exe a process. The prefixes domain:, keyword:, regex:, ruleset: and processPath: still work.</source>
-        <translation>没有前缀的行按其形式识别：example.com 是域名后缀，10.0.0.0/8 是 IP 范围，app.exe 是进程。domain:、keyword:、regex:、ruleset: 和 processPath: 前缀仍然可用。</translation>
-    </message>
-    <message>
-        <source>%1 list</source>
-        <translation>“%1”列表</translation>
-    </message>
-    <message>
-        <source>Entry %1 (&quot;%2&quot;): %3</source>
-        <translation>条目 %1（“%2”）：%3</translation>
-    </message>
-    <message>
-        <source>Advanced mode shows other rules too. Before these lists: %1. After them: %2.</source>
-        <translation>高级模式还会显示其他规则。这些列表之前：%1 条；之后：%2 条。</translation>
-    </message>
-    <message>
-        <source>Show fewer</source>
-        <translation>收起</translation>
-    </message>
-    <message>
-        <source>%1 more</source>
-        <translation>还有 %1 项</translation>
     </message>
 </context>
 <context>

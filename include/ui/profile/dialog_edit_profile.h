@@ -79,7 +79,6 @@ private:
     void setCacheButtonText(QPushButton *button, bool isSet);
     static void setRowVisible(QWidget *label, QWidget *field, bool visible);
     static void selectComboText(QComboBox *combo, const QString &text);
-    static void offerCustomMux(QComboBox *combo, int customIndex);
 
     // dialog_edit_profile_singbox.cpp: sing-box transport, TLS and multiplex
     void setupSingboxStream();

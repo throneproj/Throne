@@ -23,7 +23,6 @@
 #include "include/ui/group/dialog_edit_group.h"
 #include "include/ui/setting/dialog_rule_tester.h"
 #include "include/ui/utils/GuiUtils.hpp"
-#include "include/ui/utils/UiMode.h"
 
 namespace {
     QString moveRefusalText(const Engine::ServiceError &error) {
@@ -381,7 +380,6 @@ void MainWindow::setupTrayMenu() {
 
     auto *actOtpCodes = new QAction(tr("OTP codes"), trayMenu);
     connect(actOtpCodes, &QAction::triggered, this, [this]() { openTrayOtpCodes(); });
-    UiMode::MarkAdvanced(actOtpCodes);
     trayMenu->addAction(actOtpCodes);
     trayMenu->addAction(ui->actionShow_window);
     auto *preferencesMenu = trayMenu->addMenu(tr("Program"));

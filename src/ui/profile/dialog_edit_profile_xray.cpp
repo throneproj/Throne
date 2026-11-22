@@ -4,7 +4,6 @@
 #include "include/configs/outbounds/xrayVless.h"
 #include "include/database/DatabaseManager.h"
 #include "include/global/Utils.hpp"
-#include "include/ui/utils/UiMode.h"
 #include "include/ui/utils/ValidationForm.h"
 #include "include/ui/widget/MuxSettingsWidget.h"
 #include "include/ui/widget/ResolverSourceWidget.h"
@@ -116,7 +115,6 @@ void DialogEditProfile::loadXrayStream() {
     selectComboText(ui->xray_security, stream->security.toLower());
     const auto mux = ent->outbound->GetXrayMultiplex();
     ui->xray_mux->setCurrentIndex(mux->getMuxState());
-    offerCustomMux(ui->xray_mux, Configs::kXrayMuxCustom);
     CACHE.xrayMux = mux->CustomSettings();
 
     const bool tls = stream->security == "tls";
@@ -245,7 +243,6 @@ void DialogEditProfile::updateXrayRows() {
     ui->xray_xdrive_box->setVisible(xdrive);
     ui->xray_kcp_box->setVisible(kcp);
     setRowVisible(xdnsResolversLabel, xdnsResolvers, kcp && Configs::XrayFinalmaskHasXdns(CACHE.XrayFinalmask));
-    setRowVisible(ui->label_xray_finalmask, ui->xray_finalmask_edit, kcp || !UiMode::Simple());
     ui->xray_network_scroll->setMinimumWidth(xhttp || xdrive ? kXrayPanelNetworkMinWidth : 0);
     setRowVisible(ui->xray_ed_label, ui->xray_ed_length, !xhttp && !grpc);
     setRowVisible(ui->xray_headers_l, ui->xray_headers, !grpc);

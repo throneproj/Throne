@@ -28,10 +28,6 @@
         <translation> (выкл.)</translation>
     </message>
     <message>
-        <source>Settings in Advanced mode</source>
-        <translation>Настройки в расширенном режиме</translation>
-    </message>
-    <message>
         <source>Search Settings</source>
         <translation>Поиск настроек</translation>
     </message>
@@ -1240,18 +1236,6 @@ Throne will restart to complete the restore.</source>
     <message>
         <source>Interface</source>
         <translation>Интерфейс</translation>
-    </message>
-    <message>
-        <source>Simple hides the advanced options.</source>
-        <translation>Простой режим скрывает дополнительные параметры.</translation>
-    </message>
-    <message>
-        <source>Simple</source>
-        <translation>Простой</translation>
-    </message>
-    <message>
-        <source>Advanced</source>
-        <translation>Расширенный</translation>
     </message>
     <message>
         <source>Allow other devices to use this DNS server</source>
@@ -4400,10 +4384,6 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
     <message>
         <source>Add these remote routing profiles?</source>
         <translation>Добавить эти удалённые профили маршрутизации?</translation>
-    </message>
-    <message>
-        <source>WARP has no config yet: click Generate WARP config.</source>
-        <translation>У WARP еще нет конфигурации: нажмите «Сгенерировать конфигурацию WARP».</translation>
     </message>
     <message>
         <source>Generating the AmneziaWG QUIC signature...</source>
@@ -13828,10 +13808,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>DNS-запросы</translation>
     </message>
     <message>
-        <source>Lists</source>
-        <translation>Списки</translation>
-    </message>
-    <message>
         <source>%1 · rule %2 in the list</source>
         <translation>%1 · правило %2 в списке</translation>
     </message>
@@ -18932,45 +18908,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>The %1 list also has rows at %2.</source>
         <translation>У списка «%1» есть и другие строки: %2.</translation>
-    </message>
-</context>
-<context>
-    <name>QuickListsView</name>
-    <message>
-        <source>Empty.</source>
-        <translation>Пусто.</translation>
-    </message>
-    <message>
-        <source>Add an entry</source>
-        <translation>Добавить запись</translation>
-    </message>
-    <message>
-        <source>Add</source>
-        <translation>Добавить</translation>
-    </message>
-    <message>
-        <source>A line without a prefix is typed by its shape: example.com is a domain suffix, 10.0.0.0/8 an IP range, app.exe a process. The prefixes domain:, keyword:, regex:, ruleset: and processPath: still work.</source>
-        <translation>Строка без префикса распознается по виду: example.com — суффикс домена, 10.0.0.0/8 — диапазон IP, app.exe — процесс. Префиксы domain:, keyword:, regex:, ruleset: и processPath: тоже работают.</translation>
-    </message>
-    <message>
-        <source>%1 list</source>
-        <translation>Список «%1»</translation>
-    </message>
-    <message>
-        <source>Entry %1 (&quot;%2&quot;): %3</source>
-        <translation>Запись %1 («%2»): %3</translation>
-    </message>
-    <message>
-        <source>Advanced mode shows other rules too. Before these lists: %1. After them: %2.</source>
-        <translation>В расширенном режиме видны и другие правила. Перед этими списками: %1. После них: %2.</translation>
-    </message>
-    <message>
-        <source>Show fewer</source>
-        <translation>Свернуть</translation>
-    </message>
-    <message>
-        <source>%1 more</source>
-        <translation>Еще %1</translation>
     </message>
 </context>
 <context>

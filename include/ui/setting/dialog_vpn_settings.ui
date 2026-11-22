@@ -16,9 +16,6 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QGroupBox" name="groupBox">
-     <property name="uiLevel" stdset="0">
-      <string notr="true">advanced</string>
-     </property>
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
        <horstretch>0</horstretch>
@@ -107,9 +104,6 @@
        <layout class="QHBoxLayout" name="checksRow2">
         <item>
          <widget class="QCheckBox" name="auto_redirect">
-          <property name="uiLevel" stdset="0">
-           <string notr="true">advanced</string>
-          </property>
           <property name="toolTip">
            <string>Faster Tun routing with nftables; this machine can't act as a gateway.</string>
           </property>
@@ -120,9 +114,6 @@
         </item>
         <item>
          <widget class="QCheckBox" name="l3_bridge">
-          <property name="uiLevel" stdset="0">
-           <string notr="true">advanced</string>
-          </property>
           <property name="toolTip">
            <string>Forward bypassed UDP and ICMP straight out, keeping NAT intact for games.</string>
           </property>
@@ -151,9 +142,6 @@
    </item>
    <item>
     <widget class="QGroupBox" name="tunAddressGroupBox">
-     <property name="uiLevel" stdset="0">
-      <string notr="true">advanced</string>
-     </property>
      <property name="title">
       <string>Tun Address</string>
      </property>
@@ -198,9 +186,6 @@
    </item>
    <item>
     <widget class="QGroupBox" name="privRangeGroupBox">
-     <property name="uiLevel" stdset="0">
-      <string notr="true">advanced</string>
-     </property>
      <property name="toolTip">
       <string>CIDRs that skip the core and go straight to the network card, one per line.</string>
      </property>

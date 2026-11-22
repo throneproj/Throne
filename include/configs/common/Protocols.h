@@ -18,7 +18,6 @@ namespace Configs::Protocols {
         Serverless = 1u << 0,
         // Chain is Serverless but scans through its first hop.
         NoScan = 1u << 1,
-        Advanced = 1u << 2,
         VpnEndpoint = 1u << 3,
         // The id is also the Go scanner's protocol name.
         DnsTunnel = 1u << 4,

@@ -4,10 +4,6 @@
 <context>
     <name>CommandPalette</name>
     <message>
-        <source>Settings in Advanced mode</source>
-        <translation>تنظیمات حالت پیشرفته</translation>
-    </message>
-    <message>
         <source>Settings</source>
         <translation>تنظیمات</translation>
     </message>
@@ -1371,18 +1367,6 @@ Throne در پس‌زمینه دوباره تلاش می‌کند و راه‌ا
         <translation>رابط کاربری</translation>
     </message>
     <message>
-        <source>Simple hides the advanced options.</source>
-        <translation>حالت ساده گزینه‌های پیشرفته را پنهان می‌کند.</translation>
-    </message>
-    <message>
-        <source>Simple</source>
-        <translation>ساده</translation>
-    </message>
-    <message>
-        <source>Advanced</source>
-        <translation>پیشرفته</translation>
-    </message>
-    <message>
         <source>Allow other devices to use this DNS server</source>
         <translation>به دستگاه‌های دیگر اجازه دهید از این سرور DNS استفاده کنند</translation>
     </message>
@@ -2515,10 +2499,6 @@ Included: %2</source>
     <message>
         <source>Resolver for DNS server names</source>
         <translation>ریزالور نام سرورهای DNS</translation>
-    </message>
-    <message>
-        <source>WARP has no config yet: click Generate WARP config.</source>
-        <translation>WARP هنوز پیکربندی ندارد: روی «Generate WARP config» کلیک کنید.</translation>
     </message>
     <message>
         <source>%1 (updated by subscription &quot;%2&quot;)</source>
@@ -5833,10 +5813,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>پرس‌وجوهای DNS</translation>
     </message>
     <message>
-        <source>Lists</source>
-        <translation>فهرست‌ها</translation>
-    </message>
-    <message>
         <source>%1 · rule %2 in the list</source>
         <translation>%1 · قانون %2 در فهرست</translation>
     </message>
@@ -8888,45 +8864,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>The %1 list also has rows at %2.</source>
         <translation>فهرست «%1» ردیف‌های دیگری هم دارد: %2.</translation>
-    </message>
-</context>
-<context>
-    <name>QuickListsView</name>
-    <message>
-        <source>Empty.</source>
-        <translation>خالی.</translation>
-    </message>
-    <message>
-        <source>Add an entry</source>
-        <translation>افزودن مورد</translation>
-    </message>
-    <message>
-        <source>Add</source>
-        <translation>افزودن</translation>
-    </message>
-    <message>
-        <source>A line without a prefix is typed by its shape: example.com is a domain suffix, 10.0.0.0/8 an IP range, app.exe a process. The prefixes domain:, keyword:, regex:, ruleset: and processPath: still work.</source>
-        <translation>خطی که پیشوند ندارد از شکلش شناخته می‌شود: example.com پسوند دامنه است، 10.0.0.0/8 محدودهٔ IP و app.exe یک فرآیند. پیشوندهای domain:، keyword:، regex:، ruleset: و processPath: هم همچنان کار می‌کنند.</translation>
-    </message>
-    <message>
-        <source>%1 list</source>
-        <translation>فهرست «%1»</translation>
-    </message>
-    <message>
-        <source>Entry %1 (&quot;%2&quot;): %3</source>
-        <translation>مورد %1 («%2»): %3</translation>
-    </message>
-    <message>
-        <source>Advanced mode shows other rules too. Before these lists: %1. After them: %2.</source>
-        <translation>حالت پیشرفته قوانین دیگری را هم نشان می‌دهد. پیش از این فهرست‌ها: %1. پس از آن‌ها: %2.</translation>
-    </message>
-    <message>
-        <source>Show fewer</source>
-        <translation>نمایش کمتر</translation>
-    </message>
-    <message>
-        <source>%1 more</source>
-        <translation>%1 مورد دیگر</translation>
     </message>
 </context>
 <context>

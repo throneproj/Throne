@@ -114,9 +114,6 @@
          </item>
          <item>
           <widget class="QPushButton" name="advanced_button">
-           <property name="uiLevel" stdset="0">
-            <string notr="true">advanced</string>
-           </property>
            <property name="text">
             <string>Advanced Settings</string>
            </property>
@@ -729,9 +726,6 @@
          </property>
          <item>
           <widget class="QWidget" name="tls_camouflage_w" native="true">
-           <property name="uiLevel" stdset="0">
-            <string notr="true">advanced</string>
-           </property>
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
              <horstretch>0</horstretch>
@@ -1324,9 +1318,6 @@
                 </item>
                 <item>
                  <widget class="QGroupBox" name="xray_xhttp_padding_box">
-                  <property name="uiLevel" stdset="0">
-                   <string notr="true">advanced</string>
-                  </property>
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
                     <horstretch>0</horstretch>
@@ -1401,9 +1392,6 @@
                 </item>
                 <item>
                  <widget class="QGroupBox" name="xray_xhttp_packet_box">
-                  <property name="uiLevel" stdset="0">
-                   <string notr="true">advanced</string>
-                  </property>
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
                     <horstretch>0</horstretch>
@@ -1632,9 +1620,6 @@
                 </item>
                 <item>
                  <widget class="QGroupBox" name="xray_xhttp_xmux_box">
-                  <property name="uiLevel" stdset="0">
-                   <string notr="true">advanced</string>
-                  </property>
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
                     <horstretch>0</horstretch>
@@ -1964,9 +1949,6 @@
                 </item>
                 <item>
                  <widget class="QGroupBox" name="xray_xdrive_tuning_box">
-                  <property name="uiLevel" stdset="0">
-                   <string notr="true">advanced</string>
-                  </property>
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
                     <horstretch>0</horstretch>
@@ -2128,9 +2110,6 @@
                 </item>
                 <item>
                  <widget class="QGroupBox" name="xray_kcp_tuning_box">
-                  <property name="uiLevel" stdset="0">
-                   <string notr="true">advanced</string>
-                  </property>
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
                     <horstretch>0</horstretch>

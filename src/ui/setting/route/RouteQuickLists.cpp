@@ -10,8 +10,6 @@
 #include <QApplication>
 #include <QCompleter>
 #include <QCoreApplication>
-#include <QFrame>
-#include <QGridLayout>
 #include <QHBoxLayout>
 #include <QHash>
 #include <QHostAddress>
@@ -22,16 +20,13 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPersistentModelIndex>
-#include <QPointer>
 #include <QPushButton>
 #include <QRegularExpression>
-#include <QScrollArea>
 #include <QScrollBar>
 #include <QSet>
 #include <QStyle>
 #include <QStyledItemDelegate>
 #include <QTimer>
-#include <QToolButton>
 #include <QUrl>
 #include <QVBoxLayout>
 
@@ -39,7 +34,6 @@
 #include <array>
 #include <functional>
 #include <string_view>
-#include <vector>
 
 namespace {
     struct QuickAttr {
@@ -189,14 +183,6 @@ namespace QuickLists {
         return entries;
     }
 
-    QList<Entry> ListEntries(const Configs::RouteProfile& profile, Configs::simpleAction list) {
-        QList<Entry> entries;
-        for (const auto& rule : profile.Rules) {
-            if (inList(rule, list)) appendEntries(entries, rule);
-        }
-        return entries;
-    }
-
     QString Canonical(const QString& line, QString* error) {
         if (error != nullptr) error->clear();
         const QString text = line.trimmed();
@@ -238,15 +224,6 @@ namespace QuickLists {
         const int end = qMin(row.first + row.count, static_cast<int>(profile.Rules.size()));
         for (int i = qMax(0, row.first); i < end; ++i) scope << i;
         return insertLine(profile, row.list, scope, end, line, error);
-    }
-
-    bool AddToList(Configs::RouteProfile& profile, Configs::simpleAction list, const QString& line, QString* error) {
-        QList<int> scope;
-        for (int i = 0; i < profile.Rules.size(); ++i) {
-            if (inList(profile.Rules.at(i), list)) scope << i;
-        }
-        const int insertAt = scope.isEmpty() ? static_cast<int>(profile.Rules.size()) : scope.last() + 1;
-        return insertLine(profile, list, scope, insertAt, line, error);
     }
 
     void Remove(const Entry& entry) {
@@ -305,9 +282,6 @@ namespace QuickLists {
 } // namespace QuickLists
 
 namespace QuickListsDetail {
-    constexpr int collapsedRows = 6;
-    constexpr int expandedRows = 14;
-
     enum class Tone { Text, Muted, Danger };
 
     QColor colorOf(Tone tone) {
@@ -332,10 +306,6 @@ namespace QuickListsDetail {
         font.setBold(true);
         if (scale != 1.0 && font.pointSizeF() > 0) font.setPointSizeF(font.pointSizeF() * scale);
         widget->setFont(font);
-    }
-
-    QString entryCount(int count) {
-        return count == 1 ? QCoreApplication::translate("QuickLists", "1 entry") : QCoreApplication::translate("QuickLists", "%1 entries").arg(count);
     }
 
     QString noWarpHint() {
@@ -445,18 +415,8 @@ namespace QuickListsDetail {
             endResetModel();
         }
 
-        // At most that many rows, -1 for all.
-        void setLimit(int rows) {
-            if (limit == rows) return;
-            beginResetModel();
-            limit = rows;
-            endResetModel();
-        }
-
         [[nodiscard]] int rowCount(const QModelIndex& parent = QModelIndex()) const override {
-            if (parent.isValid()) return 0;
-            const int size = static_cast<int>(entries.size());
-            return limit < 0 ? size : qMin(size, limit);
+            return parent.isValid() ? 0 : static_cast<int>(entries.size());
         }
 
         [[nodiscard]] QVariant data(const QModelIndex& index, int role) const override {
@@ -473,7 +433,6 @@ namespace QuickListsDetail {
 
         QList<QuickLists::Entry> entries;
         QList<Item> items;
-        int limit = -1;
     };
 
     struct EntryMetrics {
@@ -560,25 +519,6 @@ namespace QuickListsDetail {
         int hoverRow = -1;
         bool hoverRemove = false;
 
-        // Fixes the height to that many rows; -1 lets the layout size it.
-        void setVisibleRows(int rows) {
-            visibleRows = rows;
-            setSizePolicy(QSizePolicy::Expanding, rows > 0 ? QSizePolicy::Fixed : QSizePolicy::Expanding);
-            updateGeometry();
-        }
-
-        [[nodiscard]] QSize sizeHint() const override {
-            QSize size = QListView::sizeHint();
-            if (visibleRows > 0) size.setHeight(heightFor(visibleRows));
-            return size;
-        }
-
-        [[nodiscard]] QSize minimumSizeHint() const override {
-            QSize size = QListView::minimumSizeHint();
-            if (visibleRows > 0) size.setHeight(heightFor(visibleRows));
-            return size;
-        }
-
         // Restores the current row and the scroll position after the model was reset.
         void keepPosition(int current, int scroll) {
             executeDelayedItemsLayout();
@@ -598,7 +538,6 @@ namespace QuickListsDetail {
             hoverRemove = false;
             pressedRemove = -1;
             QListView::reset();
-            if (visibleRows > 0) updateGeometry();
         }
 
     protected:
@@ -676,21 +615,11 @@ namespace QuickListsDetail {
 
     private:
         EntryDelegate* delegate;
-        int visibleRows = -1;
         int pressedRemove = -1;
 
         static bool isRemoveKey(const QKeyEvent* event) {
             const Qt::KeyboardModifiers modifiers = event->modifiers() & ~Qt::KeyboardModifiers(Qt::KeypadModifier);
             return (event->key() == Qt::Key_Delete || event->key() == Qt::Key_Backspace) && modifiers == Qt::NoModifier;
-        }
-
-        [[nodiscard]] int heightFor(int rows) const {
-            const int count = model() != nullptr ? model()->rowCount() : 0;
-            const int shown = qMin(count, rows);
-            int height = 0;
-            for (int i = 0; i < shown; ++i) height += sizeHintForRow(i);
-            if (shown == 0) height = delegate->rowHeight(font(), false);
-            return height + frameWidth() * 2;
         }
 
         [[nodiscard]] QRect removeRectOf(const QModelIndex& index) const {
@@ -811,31 +740,6 @@ namespace QuickListsDetail {
                 return;
             }
             QLineEdit::keyPressEvent(event);
-        }
-    };
-
-    class BannerPanel : public QWidget {
-    public:
-        explicit BannerPanel(QWidget* parent) : QWidget(parent), label(makeLabel(this, Tone::Text, true)) {
-            auto* layout = new QHBoxLayout(this);
-            const int margin = fontMetrics().height() / 2;
-            layout->setContentsMargins(margin + 4, margin, margin + 4, margin);
-            layout->addWidget(label);
-        }
-
-        QLabel* label;
-
-    protected:
-        void paintEvent(QPaintEvent*) override {
-            QPainter painter(this);
-            painter.setRenderHint(QPainter::Antialiasing);
-            QColor fill = themeManager()->tokens.info;
-            QColor border = fill;
-            fill.setAlphaF(0.14f);
-            border.setAlphaF(0.35f);
-            painter.setPen(QPen(border, 1));
-            painter.setBrush(fill);
-            painter.drawRoundedRect(QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5), 6, 6);
         }
     };
 } // namespace QuickListsDetail
@@ -1002,215 +906,4 @@ void QuickListEditor::editEntry(int row) {
     reload(-1, d->view->verticalScrollBar()->value());
     putLine(d->input, entry.prefix + QLatin1Char(':') + entry.value);
     emit changed();
-}
-
-struct QuickListsView::Card {
-    Configs::simpleAction list = Configs::proxy;
-    QFrame* frame = nullptr;
-    QLabel* count = nullptr;
-    EntryModel* model = nullptr;
-    EntryView* view = nullptr;
-    QToolButton* more = nullptr;
-    EntryInput* input = nullptr;
-    QLabel* error = nullptr;
-    bool expanded = false;
-};
-
-struct QuickListsView::Private {
-    std::shared_ptr<Configs::RouteProfile> profile;
-    QScrollArea* scroll = nullptr;
-    BannerPanel* banner = nullptr;
-    std::vector<std::unique_ptr<QuickListsView::Card>> cards;
-};
-
-QuickListsView::QuickListsView(std::shared_ptr<Configs::RouteProfile> profile, QWidget* parent) : QWidget(parent), d(std::make_unique<Private>()) {
-    d->profile = std::move(profile);
-    auto* outer = new QVBoxLayout(this);
-    outer->setContentsMargins(0, 0, 0, 0);
-    d->scroll = new QScrollArea(this);
-    d->scroll->setWidgetResizable(true);
-    d->scroll->setFrameShape(QFrame::NoFrame);
-    auto* content = new QWidget(d->scroll);
-    auto* layout = new QVBoxLayout(content);
-
-    d->banner = new BannerPanel(content);
-    layout->addWidget(d->banner);
-
-    auto* grid = new QGridLayout();
-    auto* completions = completionModel(this);
-    const auto& order = RouteEditor::QuickListOrder();
-    for (int i = 0; i < order.size(); ++i) {
-        auto card = std::make_unique<Card>();
-        Card* c = card.get();
-        c->list = order.at(i);
-        c->frame = new QFrame(content);
-        c->frame->setFrameShape(QFrame::StyledPanel);
-        auto* box = new QVBoxLayout(c->frame);
-
-        auto* header = new QHBoxLayout();
-        auto* name = makeLabel(c->frame, Tone::Text, false, RouteEditor::ListName(c->list));
-        boldFont(name, 1.0);
-        c->count = makeLabel(c->frame, Tone::Muted, false);
-        auto* pill = new RouteEditor::ThenPill(c->frame);
-        const auto then = RouteEditor::ThenOfList(c->list);
-        pill->setPill(RouteEditor::ThenLabel(then), RouteEditor::ToneOf(then));
-        header->addWidget(name);
-        header->addWidget(c->count);
-        header->addStretch(1);
-        header->addWidget(pill);
-        box->addLayout(header);
-        if (c->list == Configs::warpBypass) box->addWidget(makeLabel(c->frame, Tone::Muted, true, noWarpHint()));
-
-        c->model = new EntryModel(c->frame);
-        c->view = new EntryView(c->frame);
-        c->view->setModel(c->model);
-        c->view->emptyText = tr("Empty.");
-        c->view->onRemove = [this, c](int row) { removeEntry(*c, row); };
-        c->view->onEdit = [this, c](int row) { editEntry(*c, row); };
-        box->addWidget(c->view);
-
-        c->more = new QToolButton(c->frame);
-        c->more->setAutoRaise(true);
-        c->more->setToolButtonStyle(Qt::ToolButtonTextOnly);
-        connect(c->more, &QToolButton::clicked, this, [this, c] { setExpanded(*c, !c->expanded); });
-        box->addWidget(c->more, 0, Qt::AlignLeft);
-
-        auto* addRow = new QHBoxLayout();
-        c->input = new EntryInput(c->frame);
-        c->input->setPlaceholderText(tr("Add an entry"));
-        c->input->setClearButtonEnabled(true);
-        attachCompleter(c->input, completions);
-        c->input->onSubmit = [this, c] { submit(*c); };
-        auto* add = new QPushButton(tr("Add"), c->frame);
-        add->setAutoDefault(false);
-        connect(add, &QPushButton::clicked, this, [this, c] { submit(*c); });
-        addRow->addWidget(c->input, 1);
-        addRow->addWidget(add);
-        box->addLayout(addRow);
-
-        c->error = makeLabel(c->frame, Tone::Danger, true);
-        c->error->hide();
-        connect(c->input, &QLineEdit::textEdited, c->error, [c] {
-            c->error->clear();
-            c->error->hide();
-        });
-        box->addWidget(c->error);
-        box->addStretch(1);
-
-        grid->addWidget(c->frame, i / 2, i % 2);
-        d->cards.push_back(std::move(card));
-    }
-    grid->setColumnStretch(0, 1);
-    grid->setColumnStretch(1, 1);
-    layout->addLayout(grid);
-
-    layout->addWidget(makeLabel(content, Tone::Muted, true,
-                                tr("A line without a prefix is typed by its shape: example.com is a domain suffix, 10.0.0.0/8 an IP range, app.exe a process. "
-                                   "The prefixes domain:, keyword:, regex:, ruleset: and processPath: still work.")));
-    layout->addStretch(1);
-    d->scroll->setWidget(content);
-    outer->addWidget(d->scroll);
-
-    reload();
-}
-
-QuickListsView::~QuickListsView() = default;
-
-void QuickListsView::reload() {
-    for (const auto& card : d->cards) reloadCard(*card, -1, 0);
-    updateBanner();
-}
-
-QList<Validation::FormIssue> QuickListsView::issues() {
-    QList<Validation::FormIssue> result;
-    const QPointer<QuickListsView> self(this);
-    for (const auto& card : d->cards) {
-        const auto& entries = card->model->entries;
-        for (int i = 0; i < entries.size(); ++i) {
-            const auto& entry = entries.at(i);
-            if (entry.issue.message.isEmpty()) continue;
-            Validation::FormIssue issue;
-            // A turned-off list never blocks saving.
-            issue.severity = entry.rule != nullptr && entry.rule->disabled ? Validation::Severity::Warning : entry.issue.severity;
-            issue.label = tr("%1 list").arg(RouteEditor::ListName(card->list));
-            issue.message = tr("Entry %1 (\"%2\"): %3").arg(QString::number(i + 1), entry.value, entry.issue.message);
-            issue.reveal = [self, list = card->list, i]() -> QWidget* { return self.isNull() ? nullptr : self->reveal(list, i); };
-            result << issue;
-        }
-    }
-    return result;
-}
-
-void QuickListsView::reloadCard(Card& card, int current, int scroll) {
-    card.model->setEntries(QuickLists::ListEntries(*d->profile, card.list));
-    const int count = static_cast<int>(card.model->entries.size());
-    card.count->setText(count > 0 ? entryCount(count) : QString());
-    setExpanded(card, card.expanded);
-    card.view->keepPosition(current, scroll);
-}
-
-void QuickListsView::updateBanner() {
-    const auto rows = RouteEditor::BuildRows(*d->profile);
-    int before = 0;
-    int after = 0;
-    bool seenList = false;
-    for (const auto& row : rows) {
-        if (row.kind == RouteEditor::RowKind::QuickList) seenList = true;
-        else if (seenList) ++after;
-        else ++before;
-    }
-    d->banner->label->setText(tr("Advanced mode shows other rules too. Before these lists: %1. After them: %2.").arg(before).arg(after));
-    d->banner->setVisible(before + after > 0);
-}
-
-void QuickListsView::submit(Card& card) {
-    QString lastAdded;
-    const bool added = submitLines(card.input, card.error, [this, &card](const QString& line, QString* error) {
-        return QuickLists::AddToList(*d->profile, card.list, line, error);
-    }, &lastAdded);
-    if (!added) return;
-    reloadCard(card, -1, card.view->verticalScrollBar()->value());
-    card.view->selectRow(entryRow(card.model->entries, lastAdded));
-    updateBanner();
-    emit changed();
-}
-
-void QuickListsView::removeEntry(Card& card, int row) {
-    if (row < 0 || row >= card.model->entries.size()) return;
-    int current = card.view->currentIndex().row();
-    if (current > row) --current;
-    QuickLists::Remove(card.model->entries.at(row));
-    reloadCard(card, current, card.view->verticalScrollBar()->value());
-    emit changed();
-}
-
-void QuickListsView::editEntry(Card& card, int row) {
-    if (row < 0 || row >= card.model->entries.size()) return;
-    const auto entry = card.model->entries.at(row);
-    QuickLists::Remove(entry);
-    reloadCard(card, -1, card.view->verticalScrollBar()->value());
-    putLine(card.input, entry.prefix + QLatin1Char(':') + entry.value);
-    emit changed();
-}
-
-void QuickListsView::setExpanded(Card& card, bool expanded) {
-    const int count = static_cast<int>(card.model->entries.size());
-    card.expanded = expanded && count > collapsedRows;
-    card.model->setLimit(card.expanded ? -1 : collapsedRows);
-    card.view->setVerticalScrollBarPolicy(card.expanded ? Qt::ScrollBarAsNeeded : Qt::ScrollBarAlwaysOff);
-    card.view->setVisibleRows(card.expanded ? expandedRows : collapsedRows);
-    card.more->setVisible(count > collapsedRows);
-    card.more->setText(card.expanded ? tr("Show fewer") : tr("%1 more").arg(count - collapsedRows));
-}
-
-QWidget* QuickListsView::reveal(Configs::simpleAction list, int index) {
-    for (const auto& card : d->cards) {
-        if (card->list != list) continue;
-        if (index >= collapsedRows && !card->expanded) setExpanded(*card, true);
-        card->view->selectRow(index);
-        if (auto* content = d->scroll->widget(); content != nullptr && content->layout() != nullptr) content->layout()->activate();
-        d->scroll->ensureWidgetVisible(card->view);
-        return card->view;
-    }
-    return nullptr;
 }

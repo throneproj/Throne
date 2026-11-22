@@ -636,9 +636,6 @@ QToolButton::menu-indicator {
               </layout>
              </widget>
              <widget class="QWidget" name="runtime_tab">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <attribute name="title">
                <string>Runtime Stats</string>
               </attribute>
@@ -980,9 +977,6 @@ QToolButton::menu-indicator {
    <property name="shortcut">
     <string notr="true">Ctrl+E</string>
    </property>
-   <property name="uiLevel" stdset="0">
-    <string notr="true">advanced</string>
-   </property>
   </action>
   <action name="menu_reset_traffic">
    <property name="text">
@@ -990,9 +984,6 @@ QToolButton::menu-indicator {
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+R</string>
-   </property>
-   <property name="uiLevel" stdset="0">
-    <string notr="true">advanced</string>
    </property>
   </action>
   <action name="menu_scan_qr">
@@ -1049,9 +1040,6 @@ QToolButton::menu-indicator {
    <property name="text">
     <string>Integration Settings</string>
    </property>
-   <property name="uiLevel" stdset="0">
-    <string notr="true">advanced</string>
-   </property>
   </action>
   <action name="menu_select_all">
    <property name="text">
@@ -1067,9 +1055,6 @@ QToolButton::menu-indicator {
    </property>
    <property name="shortcut">
     <string notr="true">Ctrl+Alt+C</string>
-   </property>
-   <property name="uiLevel" stdset="0">
-    <string notr="true">advanced</string>
    </property>
   </action>
   <action name="menu_copy_links">
@@ -1119,9 +1104,6 @@ QToolButton::menu-indicator {
    <property name="shortcut">
     <string notr="true">Ctrl+Shift+I</string>
    </property>
-   <property name="uiLevel" stdset="0">
-    <string notr="true">advanced</string>
-   </property>
   </action>
   <action name="menu_vpn_settings">
    <property name="text">
@@ -1132,32 +1114,20 @@ QToolButton::menu-indicator {
    <property name="text">
     <string>Preset Settings</string>
    </property>
-   <property name="uiLevel" stdset="0">
-    <string notr="true">advanced</string>
-   </property>
   </action>
   <action name="menu_otp_manager">
    <property name="text">
     <string>OTP Manager</string>
-   </property>
-   <property name="uiLevel" stdset="0">
-    <string notr="true">advanced</string>
    </property>
   </action>
   <action name="menu_scanner">
    <property name="text">
     <string>IP Scanner</string>
    </property>
-   <property name="uiLevel" stdset="0">
-    <string notr="true">advanced</string>
-   </property>
   </action>
   <action name="menu_find_settings">
    <property name="text">
     <string>Find working settings</string>
-   </property>
-   <property name="uiLevel" stdset="0">
-    <string notr="true">advanced</string>
    </property>
   </action>
   <action name="actionRestart_Program">
@@ -1169,16 +1139,10 @@ QToolButton::menu-indicator {
    <property name="text">
     <string>Open config folder</string>
    </property>
-   <property name="uiLevel" stdset="0">
-    <string notr="true">advanced</string>
-   </property>
   </action>
   <action name="menu_open_dashboard">
    <property name="text">
     <string>Open web dashboard</string>
-   </property>
-   <property name="uiLevel" stdset="0">
-    <string notr="true">advanced</string>
    </property>
   </action>
   <action name="actionRestart_Proxy">
@@ -1225,9 +1189,6 @@ QToolButton::menu-indicator {
    </property>
    <property name="visible">
     <bool>true</bool>
-   </property>
-   <property name="uiLevel" stdset="0">
-    <string notr="true">advanced</string>
    </property>
   </action>
   <action name="menu_remove_invalid">
@@ -1290,9 +1251,6 @@ QToolButton::menu-indicator {
    <property name="text">
     <string>Exit IP</string>
    </property>
-   <property name="uiLevel" stdset="0">
-    <string notr="true">advanced</string>
-   </property>
   </action>
   <action name="actionAdd_New_Group">
    <property name="text">
@@ -1317,9 +1275,6 @@ QToolButton::menu-indicator {
   <action name="actionResolve_Selected_Out_IP">
    <property name="text">
     <string>Exit IP</string>
-   </property>
-   <property name="uiLevel" stdset="0">
-    <string notr="true">advanced</string>
    </property>
   </action>
   <action name="actionService_Check_Selected">

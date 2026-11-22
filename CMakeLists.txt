@@ -309,8 +309,6 @@ set(PROJECT_SOURCES
         src/ui/utils/CommandPalette.cpp
         include/ui/utils/SettingsIndex.h
         src/ui/utils/SettingsIndex.cpp
-        include/ui/utils/UiMode.h
-        src/ui/utils/UiMode.cpp
         include/ui/utils/ThemedIcon.hpp
         src/ui/utils/ThemedIcon.cpp
 

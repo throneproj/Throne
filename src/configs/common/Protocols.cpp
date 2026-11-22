@@ -113,12 +113,12 @@ namespace Configs::Protocols {
             {.id = "masterdns", .create = protocolsCreate<masterdns>, .flags = Serverless | NoScan | DnsTunnel,
              .importSchemes = {"masterdns://", "stormdns://"}, .importSingBox = {"masterdns"},
              .filterRank = 20, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "MasterDNS")},
-            {.id = "direct", .create = protocolsCreate<direct>, .flags = Serverless | NoScan | Advanced},
-            {.id = "custom", .create = protocolsCreate<Custom>, .flags = Serverless | NoScan | Advanced,
+            {.id = "direct", .create = protocolsCreate<direct>, .flags = Serverless | NoScan},
+            {.id = "custom", .create = protocolsCreate<Custom>, .flags = Serverless | NoScan,
              .filterRank = 23, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "Custom (JSON)")},
-            {.id = "extracore", .create = protocolsCreate<extracore>, .flags = Serverless | NoScan | Advanced | RunsProgram,
+            {.id = "extracore", .create = protocolsCreate<extracore>, .flags = Serverless | NoScan | RunsProgram,
              .foreignRefusal = QT_TRANSLATE_NOOP("Validation", "Refused to import an Extra Core profile: it would run a program on this computer.")},
-            {.id = "chain", .create = protocolsCreate<chain>, .flags = Serverless | Advanced | Composite,
+            {.id = "chain", .create = protocolsCreate<chain>, .flags = Serverless | Composite,
              .foreignRefusal = QT_TRANSLATE_NOOP("Validation", "Refused to import a Proxy Chain profile: its hops are profiles of another installation.")},
         };
 

@@ -4,7 +4,6 @@
 #include <QDialog>
 #include <QMenu>
 
-#include "include/engine/services/SettingsService.h"
 #include "include/ui/app/dialog_about.h"
 #include "include/ui/group/dialog_manage_groups.h"
 #include "include/ui/mainWindow/MainWindowInternal.h"
@@ -17,7 +16,6 @@
 #include "include/ui/stats/dialog_traffic_stats.h"
 #include "include/ui/utils/CommandPalette.h"
 #include "include/ui/utils/SettingsIndex.h"
-#include "include/ui/utils/UiMode.h"
 
 void MainWindow::setupCommandPalette() {
     commandPaletteAction = new QAction(tr("Search Settings"), this);
@@ -59,7 +57,6 @@ void MainWindow::createCommandPalette() {
 }
 
 void MainWindow::fillPaletteSettings() {
-    const bool simple = UiMode::Simple();
     QList<CommandPalette::Entry> settings;
     for (const auto &item : SettingsIndex::Build()) {
         QAction *opener = settingsDialogOpeners.value(item.dialogClass);
@@ -72,12 +69,8 @@ void MainWindow::fillPaletteSettings() {
         entry.section = title;
         entry.keywords = item.keywords;
         entry.action = opener;
-        entry.advanced = item.advanced || UiMode::IsAdvanced(opener);
-        // Running a parked entry switches to Advanced first, so it opens where the full layout puts it.
-        const QString &where = simple && !entry.advanced ? item.simplePath : item.path;
-        entry.path = where.isEmpty() ? title : title + " › " + where;
-        entry.run = [this, opener, item, advanced = entry.advanced] {
-            if (advanced && UiMode::Simple()) setSimpleMode(false);
+        entry.path = item.path.isEmpty() ? title : title + " › " + item.path;
+        entry.run = [this, opener, item] {
             opener->trigger();
             revealSetting(item);
         };
@@ -116,16 +109,6 @@ void MainWindow::showCommandPalette() {
 void MainWindow::setDialogInUse(bool inUse) {
     dialog_is_using = inUse;
     if (commandPalette) commandPalette->blockersChanged();
-}
-
-void MainWindow::applyUiMode() {
-    UiMode::Apply(this);
-    UiMode::Apply(trayMenu);
-    if (commandPalette) fillPaletteSettings();
-}
-
-void MainWindow::setSimpleMode(bool simple) {
-    Engine::SettingsService::Update([simple](Configs::SettingsValues &values) { values.simple_mode = simple; }, {.interactive = true});
 }
 
 void MainWindow::revealSetting(const SettingsIndex::Item &item) {
