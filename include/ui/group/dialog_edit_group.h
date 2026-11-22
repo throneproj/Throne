@@ -51,6 +51,9 @@ private:
         int landing_proxy;
     } LANDING;
 
+    int loadedFrontProxy = -1;
+    int loadedLandingProxy = -1;
+
     Configs::SubscriptionOptions subOptions;
 
     Configs::EndpointSource endpoint;

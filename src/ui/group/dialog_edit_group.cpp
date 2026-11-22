@@ -83,8 +83,8 @@ DialogEditGroup::DialogEditGroup(const std::shared_ptr<Configs::Group> &ent, QWi
     ui->type->setCurrentIndex(ent->url.isEmpty() ? 0 : 1);
     ui->type->currentIndexChanged(ui->type->currentIndex());
     ui->cat_share->setVisible(false);
-    CACHE.front_proxy = ent->front_proxy_id;
-    LANDING.landing_proxy = ent->landing_proxy_id;
+    loadedFrontProxy = CACHE.front_proxy = ent->front_proxy_id;
+    loadedLandingProxy = LANDING.landing_proxy = ent->landing_proxy_id;
 
     if (ent->id >= 0) { // already a group
         ui->type->setDisabled(true);
@@ -306,9 +306,9 @@ void DialogEditGroup::accept() {
     }
     ent->route_id = routeId;
     ent->import_sub_route = !newUrl.isEmpty() && ui->import_sub_route->isChecked();
-    // Written only when changed here: deleting the profile meanwhile cleared the live pointer, and OK must not restore it.
-    if (const int front = resolve_proxy_selection(ui->front_proxy, CACHE.front_proxy); front != CACHE.front_proxy) ent->front_proxy_id = front;
-    if (const int landing = resolve_proxy_selection(ui->landing_proxy, LANDING.landing_proxy); landing != LANDING.landing_proxy) {
+    // Written only when changed from the loaded value: deleting the profile meanwhile cleared the live pointer, and OK must not restore it.
+    if (const int front = resolve_proxy_selection(ui->front_proxy, CACHE.front_proxy); front != loadedFrontProxy) ent->front_proxy_id = front;
+    if (const int landing = resolve_proxy_selection(ui->landing_proxy, LANDING.landing_proxy); landing != loadedLandingProxy) {
         ent->landing_proxy_id = landing;
     }
     QDialog::accept();
