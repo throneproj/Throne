@@ -972,6 +972,18 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
 برای رفع این مشکل، هات‌اسپات را به‌جای «%1» از آداپتور throne-tun به اشتراک بگذارید (Settings &gt; Mobile hotspot &gt; Share my internet connection from)، یا هنگام استفاده از حالت Tun هات‌اسپات را خاموش کنید.</translation>
     </message>
     <message>
+        <source>System DNS not restored</source>
+        <translation>DNS سیستم بازگردانده نشد</translation>
+    </message>
+    <message>
+        <source>After Tun stopped, Throne could not put back the DNS servers of these network services: %1. Websites may not load until they are restored.
+
+Throne keeps retrying in the background, and restarting Throne retries as well.</source>
+        <translation>پس از توقف Tun، Throne نتوانست سرورهای DNS این سرویس‌های شبکه را بازگرداند: %1. تا زمان بازگردانی، ممکن است وب‌سایت‌ها باز نشوند.
+
+Throne در پس‌زمینه دوباره تلاش می‌کند و راه‌اندازی دوباره Throne هم دوباره تلاش می‌کند.</translation>
+    </message>
+    <message>
         <source>No profile can be used to build the routing configuration: add a proxy profile first.</source>
         <translation>هیچ نمایه‌ای برای ساخت پیکربندی مسیریابی قابل استفاده نیست: ابتدا یک نمایهٔ پروکسی اضافه کنید.</translation>
     </message>

@@ -11728,6 +11728,18 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
 Чтобы это исправить, раздавайте хот-спот с адаптера throne-tun вместо «%1» (Параметры &gt; Мобильный хот-спот &gt; Совместное использование подключения к Интернету) или отключайте хот-спот на время работы в режиме Tun.</translation>
     </message>
     <message>
+        <source>System DNS not restored</source>
+        <translation>Системный DNS не восстановлен</translation>
+    </message>
+    <message>
+        <source>After Tun stopped, Throne could not put back the DNS servers of these network services: %1. Websites may not load until they are restored.
+
+Throne keeps retrying in the background, and restarting Throne retries as well.</source>
+        <translation>После остановки Tun Throne не смог вернуть DNS-серверы следующих сетевых служб: %1. Пока они не восстановлены, сайты могут не открываться.
+
+Throne продолжает попытки в фоне; перезапуск Throne тоже повторит попытку.</translation>
+    </message>
+    <message>
         <source>Core exited, cleaning up...</source>
         <translation>Ядро завершило работу, очистка...</translation>
     </message>

@@ -13225,6 +13225,18 @@ Windows 随后会忽略让 Throne 自身连接不进入 Tun 的适配器绑定�
 要修复这个问题，请从 throne-tun 适配器而不是 &quot;%1&quot; 共享热点 (设置 &gt; 移动热点 &gt; 从以下位置共享我的 Internet 连接)，或在使用 Tun 模式时关闭热点。</translation>
     </message>
     <message>
+        <source>System DNS not restored</source>
+        <translation>系统 DNS 未恢复</translation>
+    </message>
+    <message>
+        <source>After Tun stopped, Throne could not put back the DNS servers of these network services: %1. Websites may not load until they are restored.
+
+Throne keeps retrying in the background, and restarting Throne retries as well.</source>
+        <translation>Tun 停止后，Throne 无法恢复以下网络服务的 DNS 服务器：%1。在恢复之前，网站可能无法打开。
+
+Throne 会在后台持续重试，重启 Throne 也会重试。</translation>
+    </message>
+    <message>
         <source>No profile can be used to build the routing configuration: add a proxy profile first.</source>
         <translation>没有可用于构建路由配置的配置档：请先添加一个代理配置档。</translation>
     </message>

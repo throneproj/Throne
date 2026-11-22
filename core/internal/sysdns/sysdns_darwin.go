@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"maps"
 	"net"
 	"net/netip"
 	"os"
@@ -35,6 +36,13 @@ const (
 	lockFile  = stateDir + "/system-dns.lock"
 	// Ahead of Apple's children, like the kill switch's anchors.
 	redirectAnchor = pfctl.RootAnchor + "/000.throne-dns"
+	// Must match kCoreSupervisorDnsRestoreMarker in src/engine/supervisor/CoreSupervisor.cpp.
+	restoreFailedMarker = "The system DNS could not be restored on: "
+
+	restoreAttempts   = 3
+	restoreAttemptGap = 500 * time.Millisecond
+	retryFirstDelay   = 5 * time.Second
+	retryMaxDelay     = time.Minute
 )
 
 // record is written before every change, so whatever a dead core left behind can be put back by the next one.
@@ -67,6 +75,8 @@ func Prepare() error {
 	}
 	mu.Lock()
 	defer mu.Unlock()
+	// Ends a retryRelease: from here the services belong to this Tun again.
+	followGen++
 	leftovers := restoreStaleLocked()
 	owned.PID = os.Getpid()
 	// Decided before the change is recorded: an alias that is already there belongs to someone else.
@@ -91,7 +101,9 @@ func Prepare() error {
 		return nil
 	}
 	log.Println("system DNS: listening on port 53 itself, so macOS Internet Sharing's DNS proxy cannot start:", err)
-	releaseRedirectLocked()
+	if err = releaseRedirectLocked(); err != nil {
+		log.Println("system DNS:", err)
+	}
 	listenPort = 53
 	return probe()
 }
@@ -131,10 +143,11 @@ func Apply(interfaceMonitor tun.DefaultInterfaceMonitor) error {
 	if owned.Redirect {
 		go keepRedirect(gen)
 	}
-	return followLocked()
+	return followLocked(true)
 }
 
 // Release puts back every service Apply changed and removes the alias; it is a no-op when nothing was changed.
+// What it cannot put back is retried in the background until it succeeds or the next Prepare takes the services over.
 func Release() {
 	mu.Lock()
 	defer mu.Unlock()
@@ -147,23 +160,80 @@ func Release() {
 	if owned.PID == 0 {
 		return
 	}
-	for service := range owned.Services {
-		restoreLocked(service)
+	failed, err := releaseLocked()
+	if err == nil {
+		return
 	}
-	releaseRedirectLocked()
+	log.Println("system DNS:", err)
+	if len(failed) > 0 {
+		fmt.Println(restoreFailedMarker + strings.Join(failed, ", "))
+	}
+	go retryRelease(followGen)
+}
+
+// releaseLocked returns the services still pointed at Address; the record stays under this PID while anything is left,
+// so the next core finishes the job once this process is gone.
+func releaseLocked() ([]string, error) {
+	var errs []error
+	for service := range owned.Services {
+		if err := restoreLocked(service); err != nil {
+			errs = append(errs, E.Cause(err, "restore ", service))
+		}
+	}
+	if err := releaseRedirectLocked(); err != nil {
+		errs = append(errs, err)
+	}
 	if owned.Alias {
 		removeAlias()
 		owned.Alias = false
 	}
-	if len(owned.Services) > 0 || owned.Redirect {
-		// Kept under this PID: the next core retries once this process is gone.
-		if err := saveLocked(); err != nil {
-			log.Println("system DNS:", err)
+	if len(owned.Services) == 0 && !owned.Redirect {
+		removeRecordLocked()
+		owned = record{}
+		return nil, nil
+	}
+	if err := saveLocked(); err != nil {
+		errs = append(errs, err)
+	}
+	return slices.Sorted(maps.Keys(owned.Services)), E.Errors(errs...)
+}
+
+func retryRelease(gen int) {
+	delay := retryFirstDelay
+	for {
+		time.Sleep(delay)
+		delay = min(delay*2, retryMaxDelay)
+		mu.Lock()
+		if gen != followGen || owned.PID == 0 {
+			mu.Unlock()
+			return
 		}
+		dropMissingServicesLocked()
+		_, err := releaseLocked()
+		mu.Unlock()
+		if err == nil {
+			log.Println("system DNS: restored")
+			return
+		}
+	}
+}
+
+// dropMissingServicesLocked forgets services deleted or renamed since they were pointed, which no retry can put back.
+func dropMissingServicesLocked() {
+	output, err := shell.Exec("/usr/sbin/networksetup", "-listnetworkserviceorder").ReadOutput()
+	if err != nil {
 		return
 	}
-	removeRecordLocked()
-	owned = record{}
+	present := map[string]bool{}
+	for _, match := range serviceOrderPattern.FindAllStringSubmatch(output, -1) {
+		present[match[2]] = true
+	}
+	for service := range owned.Services {
+		if !present[service] {
+			log.Println("system DNS:", service, "no longer exists, so its DNS servers are not restored")
+			delete(owned.Services, service)
+		}
+	}
 }
 
 // RestoreStale undoes what a core that died without Release left in the system DNS.
@@ -182,13 +252,14 @@ func follow(gen int) {
 	if gen != followGen {
 		return
 	}
-	if err := followLocked(); err != nil {
+	if err := followLocked(false); err != nil {
 		log.Println("system DNS:", err)
 	}
 }
 
 // followLocked points every service not pointed yet; only a failure on the default interface's service is an error.
-func followLocked() error {
+// repoint also covers services kept from a failed release, whose current servers are unknown.
+func followLocked(repoint bool) error {
 	services, err := listServices()
 	if err != nil {
 		return err
@@ -202,7 +273,7 @@ func followLocked() error {
 	for _, service := range services {
 		isDefault := service.device == defaultDevice
 		defaultFound = defaultFound || isDefault
-		if _, pointed := owned.Services[service.name]; pointed {
+		if _, pointed := owned.Services[service.name]; pointed && !repoint {
 			continue
 		}
 		if err = pointLocked(service.name); err == nil {
@@ -245,15 +316,32 @@ func pointLocked(service string) error {
 	return setDNSServers(service, []string{Address})
 }
 
-func restoreLocked(service string) {
-	if err := setDNSServers(service, owned.Services[service]); err != nil {
-		log.Println("system DNS: restore", service+":", err)
-		return
+// restoreLocked reads the servers back: only what networksetup reports afterwards proves the change was committed.
+func restoreLocked(service string) error {
+	previous := owned.Services[service]
+	var err error
+	for attempt := range restoreAttempts {
+		if attempt > 0 {
+			time.Sleep(restoreAttemptGap)
+		}
+		if err = setDNSServers(service, previous); err != nil {
+			continue
+		}
+		var current []string
+		if current, err = dnsServers(service); err != nil {
+			continue
+		}
+		if !slices.Equal(current, previous) {
+			err = E.New("the servers read back as [", strings.Join(current, " "), "]")
+			continue
+		}
+		delete(owned.Services, service)
+		if err = saveLocked(); err != nil {
+			log.Println("system DNS:", err)
+		}
+		return nil
 	}
-	delete(owned.Services, service)
-	if err := saveLocked(); err != nil {
-		log.Println("system DNS:", err)
-	}
+	return err
 }
 
 // restoreStaleLocked replays the record of a dead core and returns the services it could not put back.
@@ -440,21 +528,21 @@ func redirectLocked() (uint16, error) {
 	return port, checkRedirect(target)
 }
 
-func releaseRedirectLocked() {
+func releaseRedirectLocked() error {
+	var err error
 	if owned.Redirect {
-		if err := pfctl.FlushAnchor(redirectAnchor); err != nil {
-			log.Println("system DNS:", err)
-		} else {
+		if err = pfctl.FlushAnchor(redirectAnchor); err == nil {
 			owned.Redirect = false
 		}
 	}
 	if owned.Token != "" {
-		if err := pfctl.ReleaseToken(owned.Token, owned.TokenPID); err != nil {
-			log.Println("system DNS: release the pf reference:", err)
+		if tokenErr := pfctl.ReleaseToken(owned.Token, owned.TokenPID); tokenErr != nil {
+			log.Println("system DNS: release the pf reference:", tokenErr)
 		}
 		owned.Token, owned.TokenPID = "", ""
 	}
 	redirectFailing = false
+	return err
 }
 
 func loadRedirect(port uint16) error {

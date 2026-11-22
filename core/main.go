@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"os/signal"
 	"runtime"
 	runtimeDebug "runtime/debug"
 	"runtime/metrics"
@@ -104,6 +105,15 @@ func watchParent(pid int, name string) {
 	}
 }
 
+// Logout and shutdown end the core with SIGTERM, whose default action would leave the system DNS on a listener that is gone.
+func releaseOnSignal() {
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
+	received := <-signals
+	sysdns.Release()
+	log.Fatalln("received", received)
+}
+
 // attached is set in the elevated child of a Windows stub, which already holds Throne's pipe and has no parentcheck parent.
 func RunCore(attached *elevation.Attached) {
 	socketName := os.Getenv("THRONE_CORE_SOCKET")
@@ -121,6 +131,9 @@ func RunCore(attached *elevation.Attached) {
 	}
 	guard.CleanupStale()
 	sysdns.RestoreStale()
+	if runtime.GOOS == "darwin" {
+		go releaseOnSignal()
+	}
 
 	go watchParent(parentcheck.ParentPID, "parent")
 	if attached != nil {
