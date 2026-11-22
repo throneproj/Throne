@@ -1130,7 +1130,8 @@ QList<Validation::FormIssue> QuickListsView::issues() {
             const auto& entry = entries.at(i);
             if (entry.issue.message.isEmpty()) continue;
             Validation::FormIssue issue;
-            issue.severity = entry.issue.severity;
+            // A turned-off list never blocks saving.
+            issue.severity = entry.rule != nullptr && entry.rule->disabled ? Validation::Severity::Warning : entry.issue.severity;
             issue.label = tr("%1 list").arg(RouteEditor::ListName(card->list));
             issue.message = tr("Entry %1 (\"%2\"): %3").arg(QString::number(i + 1), entry.value, entry.issue.message);
             issue.reveal = [self, list = card->list, i]() -> QWidget* { return self.isNull() ? nullptr : self->reveal(list, i); };
