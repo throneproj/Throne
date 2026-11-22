@@ -15,6 +15,7 @@
 
 #include "include/configs/generate.h"
 #include "include/configs/common/ResolverSource.h"
+#include "include/configs/common/xrayStreamSetting.h"
 #include "include/database/entities/Profile.h"
 #include "include/database/entities/RouteProfile.h"
 #include "include/global/Utils.hpp"
@@ -43,7 +44,7 @@ namespace Configs {
             constexpr auto dnsSystem = "dns-system";
             constexpr auto mixedIn = "mixed-in";
             constexpr auto tunIn = "tun-in";
-            constexpr auto xrayFullConfigIn = "throne-bridge";
+            constexpr auto xrayFullConfigIn = XrayFullConfigBridgeTag;
 
             constexpr auto adblockRuleSet = "throne-adblocksingbox";
             constexpr auto privateRangesRuleSet = "throne-private-ranges";

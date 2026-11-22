@@ -389,6 +389,7 @@ namespace Configs {
                     {"destOverride", QJsonArray{"http", "tls", "quic"}},
                     {"routeOnly", false}
                 };
+                RouteXrayListenerRulesViaBridge(userXrayConfig);
                 auto inbounds = (!ctx.policy.listeners || req.soleXrayInbound) ? QJsonArray()
                                                                                : userXrayConfig["inbounds"].toArray();
                 inbounds.prepend(bridgeInbound);

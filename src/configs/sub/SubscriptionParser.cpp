@@ -5,6 +5,7 @@
 #include "include/configs/common/OutboundFactory.h"
 #include "include/configs/common/Protocols.h"
 #include "include/configs/common/utils.h"
+#include "include/configs/common/xrayStreamSetting.h"
 #include "include/configs/sub/SubscriptionScan.hpp"
 #include "include/configs/sub/clash.hpp"
 #include "include/configs/sub/vpnFileImport.hpp"
@@ -918,6 +919,8 @@ namespace Subscription {
                     auto cfg = c.toObject();
                     if (!cfg.contains("outbounds")) continue;
                     // Throne injects its own bridge inbound; the bundled ones only risk port-bind conflicts.
+                    // Their rules (often the only way into a balancer) must keep matching, now via the bridge.
+                    Configs::RouteXrayListenerRulesViaBridge(cfg);
                     cfg.remove("inbounds");
                     auto ent = Configs::ProfilesRepo::NewProfile("custom");
                     ent->Custom()->type = Configs::Custom::CustomXrayFullConfig;
