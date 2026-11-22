@@ -147,6 +147,11 @@ namespace Sys::CoreElevation {
             return SUCCEEDED(root.status()) && root.find(name);
         }
 
+        // cronet-go looks for the naive DLL only beside the running exe and on PATH, so the protected copy needs its own (#2146).
+        QString coreElevationCronetIn(const QString &dir) {
+            return QDir::toNativeSeparators(QDir::cleanPath(dir)) + "\\libcronet.dll";
+        }
+
         Status coreElevationEvaluate() {
             const CoreElevationInstall install = coreElevationLocalInstall(coreElevationUserSid());
             if (install.grantDir.isEmpty()) return Status::NotGranted;
@@ -158,9 +163,14 @@ namespace Sys::CoreElevation {
             const QJsonObject record = QJsonDocument::fromJson(file.read(64 * 1024)).object();
             qint64 size = 0;
             qint64 mtime = 0;
+            qint64 cronetSize = -1;
+            qint64 cronetMtime = -1;
+            const bool cronet = coreElevationStamp(coreElevationCronetIn(QFileInfo(install.core).absolutePath()), &cronetSize, &cronetMtime);
             const bool current = coreElevationExists(install.grantDir + "\\ThroneCore.exe") && coreElevationStamp(install.core, &size, &mtime)
                 && record.value("size").toInteger(-1) == size && record.value("mtime").toInteger(-1) == mtime
-                && record.value("core").toString().compare(install.core, Qt::CaseInsensitive) == 0;
+                && record.value("core").toString().compare(install.core, Qt::CaseInsensitive) == 0
+                && record.value("cronet_size").toInteger(-1) == cronetSize && record.value("cronet_mtime").toInteger(-1) == cronetMtime
+                && (!cronet || coreElevationExists(coreElevationCronetIn(install.grantDir)));
             return current ? Status::Granted : Status::Stale;
         }
 
@@ -233,6 +243,15 @@ namespace Sys::CoreElevation {
             return ok;
         }
 
+        bool coreElevationPlace(const QString &target, const QByteArray &data) {
+            const QString temp = target + ".tmp";
+            if (!coreElevationWriteFile(temp, data)) return false;
+            if (MoveFileExW(qUtf16Printable(temp), qUtf16Printable(target), MOVEFILE_REPLACE_EXISTING)
+                || (coreElevationSetAside(target) && MoveFileExW(qUtf16Printable(temp), qUtf16Printable(target), 0))) return true;
+            DeleteFileW(qUtf16Printable(temp));
+            return false;
+        }
+
         // ThroneCore is a console program; as a GUI one, Task Scheduler starts it without a console window.
         bool coreElevationPatchSubsystem(QByteArray &image) {
             if (image.size() < 0x40 || image.at(0) != 'M' || image.at(1) != 'Z') return false;
@@ -302,19 +321,29 @@ namespace Sys::CoreElevation {
             source.close();
             if (image.size() != size || !coreElevationPatchSubsystem(image)) return HelperCopyFailed;
 
+            const QString cronetSource = coreElevationCronetIn(QFileInfo(install.core).absolutePath());
+            qint64 cronetSize = -1;
+            qint64 cronetMtime = -1;
+            QByteArray cronet;
+            if (coreElevationStamp(cronetSource, &cronetSize, &cronetMtime)) {
+                QFile library(cronetSource);
+                if (!library.open(QIODevice::ReadOnly)) return HelperCopyFailed;
+                cronet = library.readAll();
+                if (cronet.size() != cronetSize) return HelperCopyFailed;
+            }
+
             for (const QString &name : QDir(install.grantDir).entryList({"*.old", "*.tmp"}, QDir::Files | QDir::Hidden | QDir::System)) {
                 DeleteFileW(qUtf16Printable(install.grantDir + "\\" + name));
             }
-            const QString target = install.grantDir + "\\ThroneCore.exe";
-            const QString temp = target + ".tmp";
-            if (!coreElevationWriteFile(temp, image)) return HelperCopyFailed;
-            if (!MoveFileExW(qUtf16Printable(temp), qUtf16Printable(target), MOVEFILE_REPLACE_EXISTING)
-                && !(coreElevationSetAside(target) && MoveFileExW(qUtf16Printable(temp), qUtf16Printable(target), 0))) {
-                DeleteFileW(qUtf16Printable(temp));
-                return HelperCopyFailed;
+            if (!coreElevationPlace(install.grantDir + "\\ThroneCore.exe", image)) return HelperCopyFailed;
+            const QString cronetTarget = coreElevationCronetIn(install.grantDir);
+            if (cronetSize >= 0) {
+                if (!coreElevationPlace(cronetTarget, cronet)) return HelperCopyFailed;
+            } else {
+                DeleteFileW(qUtf16Printable(cronetTarget));
             }
 
-            const QJsonObject record{
+            QJsonObject record{
                 {"core", install.core},
                 {"gui", install.gui},
                 {"size", size},
@@ -322,6 +351,10 @@ namespace Sys::CoreElevation {
                 {"version", QString::fromUtf8(NKR_VERSION)},
                 {"sid", install.sid},
             };
+            if (cronetSize >= 0) {
+                record.insert("cronet_size", cronetSize);
+                record.insert("cronet_mtime", cronetMtime);
+            }
             if (!coreElevationWriteFile(install.grantDir + "\\grant.json", QJsonDocument(record).toJson(QJsonDocument::Compact))) {
                 return HelperCopyFailed;
             }
