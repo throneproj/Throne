@@ -13900,7 +13900,7 @@ Remove that endpoint from this routing profile as well?</source>
     </message>
     <message>
         <source>Disabled</source>
-        <translation>Выключено</translation>
+        <translation>Выкл.</translation>
     </message>
     <message>
         <source>Due now</source>
@@ -13960,11 +13960,11 @@ Remove that endpoint from this routing profile as well?</source>
     </message>
     <message>
         <source>Next sub update</source>
-        <translation>След. обновл. подписки</translation>
+        <translation>Обновл. подписки</translation>
     </message>
     <message>
         <source>Next remote routing profile update</source>
-        <translation>След. обновл. удаленного профиля маршрутизации</translation>
+        <translation>Обновл. маршрутов</translation>
     </message>
     <message>
         <source>System</source>
