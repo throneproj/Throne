@@ -230,6 +230,7 @@ func (i *Instance) Start() error {
 		runningInstances.Add(1)
 	}
 	i.stateAccess.Unlock()
+	warmProxyChain(i.outbounds)
 	return nil
 }
 

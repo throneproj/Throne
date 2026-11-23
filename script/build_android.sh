@@ -3,7 +3,7 @@ set -e
 
 # Android AAR of core/mobile via the sagernet gomobile fork (gomobile + gobind on PATH, JDK 17,
 # ANDROID_HOME/ANDROID_NDK_HOME set). No protoc step: core/mobile does not import gen.
-TAGS="with_gvisor,with_quic,with_wireguard,with_utls,with_clash_api,with_openvpn,with_openconnect,with_naive_outbound,badlinkname,tfogo_checklinkname0"
+TAGS="with_gvisor,with_quic,with_wireguard,with_utls,with_clash_api,with_openvpn,with_openconnect,with_naive_outbound,with_psiphon,PSIPHON_DISABLE_QUIC,PSIPHON_DISABLE_INPROXY,badlinkname,tfogo_checklinkname0"
 TARGET="android/arm64,android/arm,android/amd64"
 DEST=${DEST:-$PWD/deployment/android}
 
