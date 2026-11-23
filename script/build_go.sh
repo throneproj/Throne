@@ -23,15 +23,19 @@ legacy_modfile() {
   trap 'rm -rf "$LEGACY_WORK"' EXIT
   cp go.mod go.sum "$LEGACY_WORK/"
   go mod edit -go="$legacy" -toolchain=none "$LEGACY_WORK/go.mod"
-  modules=$(go list -m -f '{{if not .Main}}{{.Path}} {{.GoVersion}}{{end}}' all)
+  # Xray's Chrome 155 uTLS needs Go 1.27 APIs, so legacy builds keep the previous uTLS and its Chrome 133 fingerprint.
+  go mod edit -require=github.com/refraction-networking/utls@v1.8.3-0.20260301010127-aa6edf4b11af \
+    -droprequire=github.com/molecule-man/go-brrr "$LEGACY_WORK/go.mod"
+  go mod download -modfile="$LEGACY_WORK/go.mod" github.com/refraction-networking/utls
+  modules=$(go list -modfile="$LEGACY_WORK/go.mod" -m -f '{{if not .Main}}{{.Path}} {{.GoVersion}}{{end}}' all)
   while read -r path go_version; do
     if [[ -n "$go_version" ]] && ! printf '%s\n%s\n' "$go_version" "$legacy" | sort -V -C; then
       stale+=("$path")
     fi
   done <<< "$modules"
   [[ ${#stale[@]} -gt 0 ]] || return 0
-  go mod download "${stale[@]}"
-  modules=$(go list -m -f '{{.Path}}|{{.Version}}|{{.Dir}}' "${stale[@]}")
+  go mod download -modfile="$LEGACY_WORK/go.mod" "${stale[@]}"
+  modules=$(go list -modfile="$LEGACY_WORK/go.mod" -m -f '{{.Path}}|{{.Version}}|{{.Dir}}' "${stale[@]}")
   while IFS='|' read -r path version dir; do
     n=$((n + 1))
     cp -R "$dir" "$LEGACY_WORK/mod$n"
