@@ -42,7 +42,9 @@ namespace Configs {
 
         if (query.hasQueryItem("path")) path = query.queryItemValue("path");
         if (const auto raw = query.queryItemValue("headers"); !raw.isEmpty()) {
-            headers = raw.split(",");
+            // A comma inside a name or value stays escaped in the PrettyDecoded value, so items decode after the split.
+            headers.clear();
+            for (const auto& item : raw.split(',')) headers << QUrl::fromPercentEncoding(item.toUtf8());
             if (headers.size() % 2 != 0) {
                 ParseDiag::Warn("headers", QCoreApplication::translate("Validation", "The headers must alternate names and values separated by commas, for example User-Agent,curl, so they were ignored."));
                 headers.clear();
@@ -88,7 +90,12 @@ namespace Configs {
         if (!username.isEmpty()) url.setUserName(username);
         if (!password.isEmpty()) url.setPassword(password);
         if (!path.isEmpty()) query.addQueryItem("path", path);
-        if (!headers.empty()) query.addQueryItem("headers", headers.join(","));
+        // Bare commas separate the items, so a comma inside one goes out as %2C.
+        if (!headers.empty()) {
+            QStringList items;
+            for (auto item : headers) items << item.replace('%', "%25").replace(',', "%2C");
+            query.addQueryItem("headers", items.join(','));
+        }
         mergeUrlQuery(query, tls->ExportToLink());
         mergeUrlQuery(query, outbound::ExportToLink());
         if (!query.isEmpty()) url.setQuery(query);

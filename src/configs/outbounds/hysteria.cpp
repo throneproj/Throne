@@ -289,6 +289,10 @@ namespace Configs {
             protocol_version = "1";
             if (query.hasQueryItem("protocol")) hysteriaRejectTransport("protocol", query.queryItemValue("protocol"));
             if (query.hasQueryItem("obfsParam")) obfs = query.queryItemValue("obfsParam", QUrl::FullyDecoded);
+            if (query.hasQueryItem("auth_base64")) {
+                auth = query.queryItemValue("auth_base64", QUrl::FullyDecoded);
+                auth_type = "BASE64";
+            }
             if (query.hasQueryItem("auth")) {
                 auth = query.queryItemValue("auth");
                 auth_type = "STRING";
@@ -579,7 +583,11 @@ namespace Configs {
             if (!obfs.isEmpty()) {
                 query.addQueryItem("obfsParam", QUrl::toPercentEncoding(obfs));
             }
-            if (auth_type == "STRING" && !auth.isEmpty()) query.addQueryItem("auth", auth);
+            if (!auth.isEmpty()) {
+                // The URI's auth is the string form; the base64 one has a key of its own.
+                if (auth_type == "STRING") query.addQueryItem("auth", auth);
+                if (auth_type == "BASE64") query.addQueryItem("auth_base64", auth);
+            }
             if (recv_window_conn > 0) query.addQueryItem("recv_window_conn", QString::number(recv_window_conn));
             if (recv_window > 0) query.addQueryItem("recv_window", QString::number(recv_window));
             if (disable_mtu_discovery) query.addQueryItem("disable_mtu_discovery", "true");

@@ -57,7 +57,9 @@ namespace Configs {
         url.setUserName(password);
         if (tls->enabled) mergeUrlQuery(query, tls->ExportToLink());
         if (!transport->type.isEmpty()) mergeUrlQuery(query, transport->ExportToLink(tls->enabled));
-        if (multiplex->enabled) mergeUrlQuery(query, multiplex->ExportToLink());
+        // An explicit multiplex Off goes out as mux=false.
+        mergeUrlQuery(query, multiplex->ExportToLink());
+        mergeUrlQuery(query, outbound::ExportToLink());
         if (!query.isEmpty()) url.setQuery(query);
         return url.toString(QUrl::FullyEncoded);
     }

@@ -680,6 +680,12 @@ namespace Configs {
         return object;
     }
 
+    // Keyed on the peer, which every parser fills; ParseFromJson leaves the base server empty.
+    QJsonObject wireguard::ExportIdentity() {
+        if (peer->address.isEmpty()) return ExportToJson();
+        return {{"server", toAceHost(peer->address)}, {"server_port", peer->port}};
+    }
+
     BuildResult wireguard::Build() {
         QJsonObject object;
         object["type"] = "wireguard";

@@ -92,7 +92,8 @@ namespace Configs {
 
         if (!idle_session_check_interval.isEmpty()) query.addQueryItem("idle_session_check_interval", idle_session_check_interval);
         if (!idle_session_timeout.isEmpty()) query.addQueryItem("idle_session_timeout", idle_session_timeout);
-        if (min_idle_session > 0) query.addQueryItem("min_idle_session", QString::number(min_idle_session));
+        // 0 is written too: a missing key reads back as the app default of 5, not the core's 0.
+        if (min_idle_session >= 0) query.addQueryItem("min_idle_session", QString::number(min_idle_session));
         
         mergeUrlQuery(query, tls->ExportToLink());
         mergeUrlQuery(query, outbound::ExportToLink());
@@ -109,7 +110,7 @@ namespace Configs {
         if (!password.isEmpty()) object["password"] = password;
         if (!idle_session_check_interval.isEmpty()) object["idle_session_check_interval"] = idle_session_check_interval;
         if (!idle_session_timeout.isEmpty()) object["idle_session_timeout"] = idle_session_timeout;
-        if (min_idle_session > 0) object["min_idle_session"] = min_idle_session;
+        if (min_idle_session >= 0) object["min_idle_session"] = min_idle_session;
         object["tls"] = tls->ExportToJson();
         return object;
     }

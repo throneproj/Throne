@@ -219,6 +219,8 @@ namespace Configs {
 
         mergeUrlQuery(query, streamSetting->ExportToLink());
         mergeUrlQuery(query, multiplex->ExportToLink());
+        // The one dial field Xray takes (withBindInterface); ParseFromLink reads it back through outbound::ParseFromLink.
+        if (!dialFields->bind_interface.isEmpty()) query.addQueryItem("bind_interface", dialFields->bind_interface);
 
         if (!query.isEmpty()) url.setQuery(query.toString(QUrl::FullyEncoded).replace('+', "%2B"), QUrl::TolerantMode);
         return url.toString(QUrl::FullyEncoded);
