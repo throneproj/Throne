@@ -380,7 +380,7 @@ ProcessPicker::ProcessPicker(QWidget* parent, const QList<Match>& allowed, bool 
                 break;
             case Match::Folder:
                 radio = new QRadioButton(tr("App folder"), this);
-                radio->setToolTip(tr("Matches every program in the app's folder, helpers and later versions included (process_path_regex)."));
+                radio->setToolTip(tr("Matches every program in the app's folder (process_path_regex)."));
                 break;
         }
         matchGroup->addButton(radio, static_cast<int>(kind));
@@ -400,7 +400,7 @@ ProcessPicker::ProcessPicker(QWidget* parent, const QList<Match>& allowed, bool 
     auto* buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     addButton = buttons->button(QDialogButtonBox::Ok);
     addButton->setText(chooseOne ? tr("Choose") : tr("Add"));
-    auto* browseButton = buttons->addButton(tr("Browse…"), QDialogButtonBox::ActionRole);
+    auto* browseButton = buttons->addButton(tr("Browse"), QDialogButtonBox::ActionRole);
 
     auto* topRow = new QHBoxLayout;
     topRow->addWidget(search, 1);
@@ -516,7 +516,7 @@ void ProcessPicker::browse() {
     const QString filters;
     const QString start = QStringLiteral("/usr/bin");
 #endif
-    const QString chosen = NativeFileDialog::getOpenFileName(this, tr("Choose a Program"), start, filters);
+    const QString chosen = NativeFileDialog::getOpenFileName(this, tr("Choose a program"), start, filters);
     if (chosen.isEmpty()) return;
 
     ProcessPickerProgram program;

@@ -6,12 +6,17 @@
 #include <utility>
 
 #include "include/configs/ParseDiagnostics.h"
+#include "include/configs/common/Protocols.h"
+#include "include/configs/sub/GroupUpdater.hpp"
 #include "include/database/DatabaseManager.h"
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/engine/EditLocks.h"
 #include "include/engine/EngineEvents.h"
+#include "include/engine/EngineHost.h"
+#include "include/engine/Lifecycle.h"
 #include "include/engine/ThreadCheck.h"
+#include "include/engine/services/ImportService.h"
 #include "include/global/RunningProfiles.hpp"
 #include "include/global/Utils.hpp"
 #include "include/global/Validation.hpp"
@@ -36,7 +41,7 @@ namespace Engine::ProfileService {
 
         // Empty when the API may edit it. StripForeignState changes what it runs on, so it runs on a round-tripped clone.
         QString profileServiceForeignReason(const std::shared_ptr<Configs::Profile> &profile) {
-            if (profile->type == QLatin1String("extracore")) {
+            if (Configs::Protocols::Is(profile->type, Configs::Protocols::RunsProgram)) {
                 return QStringLiteral("Extra Core profiles run programs, so only Throne's window can edit them");
             }
             const auto clone = Configs::ProfilesRepo::NewProfile(profile->type);
@@ -69,19 +74,23 @@ namespace Engine::ProfileService {
                                             QStringLiteral("Hop %1 (profile %2) %3").arg(QString::number(i + 1), QString::number(hopId), problem), {}};
             }
         }
+
+        std::optional<ServiceError> profileServiceEditing(const QList<int> &profileIds) {
+            if (!IsBeingEdited(EditTarget::Profile)) return std::nullopt;
+            for (const int id : profileIds) {
+                if (!IsBeingEdited(EditTarget::Profile, id)) continue;
+                return ServiceError{409, QStringLiteral("editing"), QStringLiteral("Profile %1 is open in an editor in Throne's window").arg(id)};
+            }
+            return std::nullopt;
+        }
     } // namespace
 
     std::optional<ServiceError> CheckDelete(const QList<int> &profileIds) {
         ENGINE_CHECK_MAIN_THREAD();
-        if (!IsBeingEdited(EditTarget::Profile)) return std::nullopt;
-        for (const int id : profileIds) {
-            if (!IsBeingEdited(EditTarget::Profile, id)) continue;
-            return ServiceError{409, QStringLiteral("editing"), QStringLiteral("Profile %1 is open in an editor in Throne's window").arg(id)};
-        }
-        return std::nullopt;
+        return profileServiceEditing(profileIds);
     }
 
-    std::optional<ServiceError> Delete(const QList<int> &profileIds, int *deleted) {
+    std::optional<ServiceError> Delete(const QList<int> &profileIds, int *deleted, const DeleteOptions &options) {
         ENGINE_CHECK_MAIN_THREAD();
         if (deleted != nullptr) *deleted = 0;
         if (auto refusal = CheckDelete(profileIds)) return refusal;
@@ -96,9 +105,20 @@ namespace Engine::ProfileService {
         }
         if (requested.isEmpty()) return std::nullopt;
 
-        // None of them runs, so a started_id among them was left by a core crash; BatchDeleteProfiles would skip it.
-        auto *settings = Configs::dataManager->settingsRepo.get();
-        if (requested.contains(settings->started_id)) settings->UpdateStartedId(Configs::NoProfileId);
+        if (options.stopRunning) {
+            if (requested.contains(Lifecycle::ResumeTargetId())) Lifecycle::StopRunningProfile(false, true, false, options.interactive);
+        } else if (auto *engine = host(); engine != nullptr) {
+            if (const auto running = engine->runningSnapshot(); running != nullptr && groupOf.contains(running->id)) {
+                return ServiceError{409, QStringLiteral("busy"), QStringLiteral("One of the profiles is running")};
+            }
+        }
+
+        bool usedByRunning = false;
+        for (const int id : std::as_const(requested)) {
+            if (id == Lifecycle::ResumeTargetId() || Configs::RunningUsesProfile(id)) usedByRunning = true;
+        }
+        // None of them runs now, so a resume target among them was left by a crash or a non-manual stop; BatchDeleteProfiles would skip it.
+        if (const int target = Lifecycle::ResumeTargetId(); requested.contains(target)) Lifecycle::ForgetResumeTarget(target);
 
         QList<int> removed = requested;
         const bool ok = profiles->BatchDeleteProfiles(removed, false);
@@ -116,24 +136,6 @@ namespace Engine::ProfileService {
         if (deleted != nullptr) *deleted = static_cast<int>(removed.size());
 
         if (!removed.isEmpty()) {
-            const QSet<int> removedSet(removed.cbegin(), removed.cend());
-            for (const int gid : Configs::dataManager->groupsRepo->GetAllGroupIds()) {
-                const auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
-                if (group == nullptr) continue;
-                bool changed = false;
-                if (removedSet.contains(group->front_proxy_id)) {
-                    group->front_proxy_id = -1;
-                    changed = true;
-                    MW_show_log(QStringLiteral("[Groups] %1: front proxy removed (its profile was deleted)").arg(group->name));
-                }
-                if (removedSet.contains(group->landing_proxy_id)) {
-                    group->landing_proxy_id = -1;
-                    changed = true;
-                    MW_show_log(QStringLiteral("[Groups] %1: landing proxy removed (its profile was deleted)").arg(group->name));
-                }
-                if (changed) Configs::dataManager->groupsRepo->Save(group);
-            }
-
             QList<int> affectedGroups;
             QHash<int, QList<int>> removedByGroup;
             for (const int id : removed) {
@@ -141,6 +143,7 @@ namespace Engine::ProfileService {
                 if (!removedByGroup.contains(gid)) affectedGroups.append(gid);
                 removedByGroup[gid].append(id);
             }
+            if (auto *engine = host(); engine != nullptr && usedByRunning) engine->noteRestartNeeded(RestartReason::Profile);
             for (const int gid : affectedGroups) EngineEvents::SubscriptionGroupChanged(gid, removedByGroup.value(gid));
             EngineEvents::ProfilesRemoved(removed);
         }
@@ -149,6 +152,44 @@ namespace Engine::ProfileService {
             if (survivors.contains(id)) return ServiceError{500, QStringLiteral("internal"), QStringLiteral("Could not delete profile %1").arg(id)};
         }
         return std::nullopt;
+    }
+
+    std::optional<ServiceError> Add(const std::shared_ptr<Configs::Profile> &profile, int groupId) {
+        ENGINE_CHECK_MAIN_THREAD();
+        if (Configs::dataManager->groupsRepo->GetGroup(groupId) == nullptr) {
+            return ServiceError{404, QStringLiteral("not_found"), QStringLiteral("Unknown group %1").arg(groupId)};
+        }
+        auto added = profile;
+        if (!Configs::dataManager->profilesRepo->AddProfile(added, groupId)) {
+            return ServiceError{500, QStringLiteral("internal"), QStringLiteral("Could not save the profile")};
+        }
+        EngineEvents::ProfilesChanged({added->id});
+        return std::nullopt;
+    }
+
+    std::optional<ServiceError> Save(const QList<std::shared_ptr<Configs::Profile>> &profiles) {
+        ENGINE_CHECK_MAIN_THREAD();
+        const int startedId = Lifecycle::ResumeTargetId();
+        QList<std::shared_ptr<Configs::Profile>> saved;
+        QList<int> savedIds;
+        std::optional<ServiceError> missing;
+        bool usedByRunning = false;
+        for (const auto &profile : profiles) {
+            if (profile == nullptr) continue;
+            if (!Configs::dataManager->profilesRepo->Save(profile)) {
+                if (!missing) missing = ServiceError{404, QStringLiteral("not_found"), QStringLiteral("Profile %1 was deleted meanwhile").arg(profile->id)};
+                continue;
+            }
+            saved.append(profile);
+            savedIds.append(profile->id);
+            if (profile->id == startedId || Configs::RunningUsesProfile(profile->id)) usedByRunning = true;
+        }
+        if (saved.isEmpty()) return missing;
+
+        Configs::RepositionLater(saved, Configs::SortInput::Config);
+        if (auto *engine = host(); engine != nullptr && usedByRunning) engine->noteRestartNeeded(RestartReason::Profile);
+        EngineEvents::ProfilesChanged(savedIds);
+        return missing;
     }
 
     int RemoveUnavailable(QList<int> profileIds) {
@@ -164,11 +205,71 @@ namespace Engine::ProfileService {
         }
         if (del_ids.isEmpty()) return 0;
 
-        // Strips started_id from del_ids, so the running profile survives.
+        // Strips the resume target from del_ids, so the running profile survives.
         if (!Configs::dataManager->profilesRepo->BatchDeleteProfiles(del_ids)) return 0;
         if (del_ids.isEmpty()) return 0;
         EngineEvents::ProfilesRemoved(del_ids);
         return static_cast<int>(del_ids.size());
+    }
+
+    std::optional<ServiceError> MoveToGroup(const QList<int> &profileIds, int targetGid, int *moved) {
+        ENGINE_CHECK_MAIN_THREAD();
+        if (moved != nullptr) *moved = 0;
+        if (auto refusal = ImportService::CheckTarget(targetGid)) return refusal;
+        if (auto refusal = profileServiceEditing(profileIds)) return refusal;
+
+        auto *profiles = Configs::dataManager->profilesRepo.get();
+        QList<std::shared_ptr<Configs::Profile>> moving;
+        QList<int> movingIds;
+        QSet<int> seen;
+        QList<int> sources;
+        QHash<int, QList<int>> leaving;
+        for (const auto &profile : profiles->GetProfileBatch(profileIds)) {
+            if (profile->gid == targetGid || seen.contains(profile->id)) continue;
+            seen.insert(profile->id);
+            moving.append(profile);
+            movingIds.append(profile->id);
+            if (!leaving.contains(profile->gid)) sources.append(profile->gid);
+            leaving[profile->gid].append(profile->id);
+        }
+        if (moving.isEmpty()) return std::nullopt;
+        // A refresh rewrites its group's listing from a snapshot, which would bring a moved profile back or delete it.
+        for (const int gid : std::as_const(sources)) {
+            if (Subscription::updater()->IsBusy(gid)) return ServiceError{409, QStringLiteral("busy"), QStringLiteral("The group's subscription is updating")};
+        }
+
+        // Target listing, then source listings, then gid: a crash in between leaves a profile listed twice, never unlisted.
+        auto *groups = Configs::dataManager->groupsRepo.get();
+        const auto target = groups->GetGroup(targetGid);
+        target->AddProfileBatch(movingIds);
+        if (!groups->Save(target)) {
+            return ServiceError{404, QStringLiteral("not_found"), QStringLiteral("Group %1 was deleted meanwhile").arg(targetGid)};
+        }
+        for (const int gid : std::as_const(sources)) {
+            const auto source = groups->GetGroup(gid);
+            if (source == nullptr) continue;
+            source->RemoveProfileBatch(leaving.value(gid));
+            groups->Save(source);
+        }
+
+        const int startedId = Lifecycle::ResumeTargetId();
+        QList<int> movedIds;
+        bool usedByRunning = false;
+        for (const auto &profile : std::as_const(moving)) {
+            profile->gid = targetGid;
+            if (!profiles->Save(profile)) continue;
+            movedIds.append(profile->id);
+            if (profile->id == startedId || Configs::RunningUsesProfile(profile->id)) usedByRunning = true;
+        }
+        if (moved != nullptr) *moved = static_cast<int>(movedIds.size());
+
+        Configs::ResortLater(targetGid);
+        // The running config was built with the old group's proxies, routing and endpoint.
+        if (auto *engine = host(); engine != nullptr && usedByRunning) engine->noteRestartNeeded(RestartReason::Group);
+        for (const int gid : std::as_const(sources)) EngineEvents::SubscriptionGroupChanged(gid, leaving.value(gid));
+        EngineEvents::ProfilesChanged(movedIds);
+        EngineEvents::GroupsChanged();
+        return std::nullopt;
     }
 
     int ClearTestResults(const QList<int> &profileIds, QList<int> *groupIds, std::optional<TestKind> kind) {
@@ -288,15 +389,8 @@ namespace Engine::ProfileService {
         outbound->profile_id = profile->id;
         profile->outbound = outbound;
         profile->name = outbound->name;
-        if (!Configs::dataManager->profilesRepo->Save(profile)) {
-            return ServiceError{404, QStringLiteral("not_found"), QStringLiteral("Profile %1 was deleted meanwhile").arg(profileId)};
-        }
-        Configs::RepositionLater(QList<std::shared_ptr<Configs::Profile>>{profile}, Configs::SortInput::Config);
-        EngineEvents::ProfilesChanged({profileId});
-        if (applied != nullptr) {
-            applied->warnings = warnings;
-            applied->usedByRunning = Configs::dataManager->settingsRepo->started_id == profileId || Configs::RunningUsesProfile(profileId);
-        }
+        if (auto refusal = Save({profile})) return refusal;
+        if (applied != nullptr) applied->warnings = warnings;
         return std::nullopt;
     }
 } // namespace Engine::ProfileService

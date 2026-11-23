@@ -204,18 +204,17 @@ namespace Configs {
         return settings;
     }
 
-    void MuxSettings::SaveAsPreset() const
+    void MuxSettings::SaveAsPreset(SettingsValues &values) const
     {
-        auto& repo = *Configs::dataManager->settingsRepo;
-        repo.mux_protocol = protocol;
-        repo.mux_mode = by_connections ? "max_connections" : "max_streams";
-        repo.mux_concurrency = max_streams;
-        repo.mux_max_connections = max_connections;
-        repo.mux_min_streams = min_streams;
-        repo.mux_padding = padding;
-        repo.mux_brutal = brutal;
-        repo.mux_brutal_up_mbps = brutal_up_mbps;
-        repo.mux_brutal_down_mbps = brutal_down_mbps;
+        values.mux_protocol = protocol;
+        values.mux_mode = by_connections ? "max_connections" : "max_streams";
+        values.mux_concurrency = max_streams;
+        values.mux_max_connections = max_connections;
+        values.mux_min_streams = min_streams;
+        values.mux_padding = padding;
+        values.mux_brutal = brutal;
+        values.mux_brutal_up_mbps = brutal_up_mbps;
+        values.mux_brutal_down_mbps = brutal_down_mbps;
     }
 
     QJsonObject MuxSettings::Build() const

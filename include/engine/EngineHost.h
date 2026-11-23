@@ -61,8 +61,9 @@ namespace Engine {
         // Idempotent; ends with KillSwitch::shutdown(). interactive false: a failing or slow stop is logged, never shown.
         void shutdown(bool interactive = true);
 
-        // Engine half of MwMessage::UpdateSettings; its dialogs appear only when interactive.
-        void applySettingsChange(const QStringList &flags, bool interactive);
+        // After the save of a settings commit: runs the SettingsSchema engine bits in effects for the database keys changedKeys;
+        // its dialogs appear only when interactive.
+        void applySettingsEffects(const QStringList &changedKeys, quint32 effects, bool interactive);
 
         // Stable for the process: forwards to the bound policy, or to the headless answers while none is bound.
         EnginePolicy *policy() const;
@@ -141,7 +142,7 @@ namespace Engine {
         bool runningTun() const;
 
     signals:
-        // Where applySettingsChange used to refresh the status bar; slots run before its restart prompt.
+        // Where applySettingsEffects refreshes the status bar; slots run before its restart prompt.
         void statusChanged();
 
         // After clearTestResults() cleared at least one profile; the groups of the cleared profiles.

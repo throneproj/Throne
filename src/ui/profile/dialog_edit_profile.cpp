@@ -1,5 +1,6 @@
 #include "include/ui/profile/dialog_edit_profile.h"
 
+#include "include/configs/common/Protocols.h"
 #include "include/configs/generate.h"
 
 #include "include/ui/profile/edit_advanced.h"
@@ -19,12 +20,14 @@
 #include "include/ui/profile/edit_naive.h"
 #include "include/ui/profile/edit_openconnect.h"
 #include "include/ui/profile/edit_openvpn.h"
+#include "include/ui/profile/edit_psiphon.h"
 #include "include/ui/profile/edit_shadowsocks.h"
 #include "include/ui/profile/edit_shadowtls.h"
 #include "include/ui/profile/edit_snell.h"
 #include "include/ui/profile/edit_socks.h"
 #include "include/ui/profile/edit_ssh.h"
 #include "include/ui/profile/edit_tailscale.h"
+#include "include/ui/profile/edit_tor.h"
 #include "include/ui/profile/edit_trojan.h"
 #include "include/ui/profile/edit_trusttunnel.h"
 #include "include/ui/profile/edit_tuic.h"
@@ -35,18 +38,16 @@
 
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
+#include "include/engine/services/ProfileService.h"
 #include "include/ui/utils/GuiUtils.hpp"
-#include "include/global/RunningProfiles.hpp"
 #include "include/global/Utils.hpp"
-#include "include/ui/utils/UiMode.h"
 #include "include/ui/utils/ValidationForm.h"
 
+#include <QDebug>
 #include <QLabel>
 #include <QLineEdit>
-#include <QListView>
 #include <QPointer>
 #include <QSet>
-#include <QStandardItemModel>
 
 namespace {
 using EditorFactory = std::pair<QWidget *, ProfileEditor *> (*)(QWidget *);
@@ -83,12 +84,22 @@ EditorFactory editorFactory(const QString &type) {
         {"ssh", makeEditor<EditSSH>},
         {"dnstt", makeEditor<EditDnstt>},
         {"masterdns", makeEditor<EditMasterDns>},
+        {"tor", makeEditor<EditTor>},
+        {"psiphon", makeEditor<EditPsiphon>},
         {"direct", makeEditor<EditDirect>},
         {"chain", makeEditor<EditChain>},
         {"autoselector", makeEditor<EditAutoSelector>},
         {"extracore", makeEditor<EditExtraCore>},
         {"custom", makeEditor<EditCustom>},
     };
+#ifdef NKR_CPP_DEBUG
+    [[maybe_unused]] static const bool covered = [] {
+        for (const auto &protocol : Configs::Protocols::All()) {
+            if (!factories.contains(protocol.Id())) qWarning() << "DialogEditProfile: no editor for profile type" << protocol.Id();
+        }
+        return true;
+    }();
+#endif
     return factories.value(type);
 }
 
@@ -97,13 +108,8 @@ bool isCustomSubtype(const QString &type) {
            type == Configs::Custom::CustomXrayOutbound || type == Configs::Custom::CustomXrayFullConfig;
 }
 
-bool advancedType(const QString &type) {
-    return type == "direct" || type == "chain" || type == "extracore" || isCustomSubtype(type);
-}
-
 bool hasServerAddress(const QString &type) {
-    static const QSet<QString> serverless = {"chain", "autoselector", "direct", "extracore", "tailscale", "custom", "dnstt", "masterdns"};
-    return !serverless.contains(type);
+    return !Configs::Protocols::Is(type, Configs::Protocols::Serverless);
 }
 
 bool serverFieldsEditable(const QString &type, ProfileEditor *editor) {
@@ -231,7 +237,6 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
         deleteLater();
         return;
     }
-    UiMode::Apply(this);
     runOnThread([self = QPointer<DialogEditProfile>(this)] {
         if (self == nullptr) return;
         self->fitToContent();
@@ -246,28 +251,25 @@ DialogEditProfile::~DialogEditProfile() {
 }
 
 void DialogEditProfile::setupTypeList() {
-    // The type the dialog opened with stays listed, or the combo would name another type than the editor shows.
-    const auto offered = [this](const QString &t) { return !UiMode::Simple() || t == type || !advancedType(t); };
-    const auto addNamedType = [this, offered](const QString &text, const QString &t) {
-        if (offered(t)) ui->type->addItem(text, t);
+    const auto addNamedType = [this](const QString &text, const QString &t) { ui->type->addItem(text, t); };
+    const auto addType = [this](const QString &t) {
+        ui->type->addItem(Configs::dataManager->profilesRepo->NewProfile(t)->outbound->DisplayType(), t);
     };
-    const auto addType = [this, offered](const QString &t) {
-        if (offered(t)) ui->type->addItem(Configs::dataManager->profilesRepo->NewProfile(t)->outbound->DisplayType(), t);
-    };
-    for (const auto *t: {"autoselector", "socks", "http", "shadowsocks", "trojan", "vmess", "vless", "xrayvless",
-                         "hysteria", "tuic", "juicity", "naive", "trusttunnel", "anytls", "mieru", "snell",
-                         "shadowtls", "wireguard", "masque", "openvpn", "openconnect", "tailscale", "ssh"}) {
-        addType(t);
+    for (const auto &protocol : Configs::Protocols::All()) {
+        const QString t = protocol.Id();
+        if (protocol.id == "dnstt") {
+            addNamedType(tr("DNSTT / VayDNS"), t);
+        } else if (protocol.id == "custom") {
+            addNamedType(tr("Custom (%1 outbound)").arg(software_core_name), Configs::Custom::CustomOutbound);
+            addNamedType(tr("Custom (%1 config)").arg(software_core_name), Configs::Custom::CustomFullConfig);
+            addNamedType(tr("Custom (Xray outbound)"), Configs::Custom::CustomXrayOutbound);
+            addNamedType(tr("Custom (Xray config)"), Configs::Custom::CustomXrayFullConfig);
+        } else if (protocol.id == "extracore") {
+            addNamedType(tr("Extra Core"), t);
+        } else {
+            addType(t);
+        }
     }
-    addNamedType(tr("DNSTT / VayDNS"), "dnstt");
-    addType("masterdns");
-    addType("direct");
-    addNamedType(tr("Custom (%1 outbound)").arg(software_core_name), Configs::Custom::CustomOutbound);
-    addNamedType(tr("Custom (%1 config)").arg(software_core_name), Configs::Custom::CustomFullConfig);
-    addNamedType(tr("Custom (Xray outbound)"), Configs::Custom::CustomXrayOutbound);
-    addNamedType(tr("Custom (Xray config)"), Configs::Custom::CustomXrayFullConfig);
-    addNamedType(tr("Extra Core"), "extracore");
-    addType("chain");
 
     ui->type->setCurrentIndex(qMax(0, ui->type->findData(type)));
     connect(ui->type, &QComboBox::currentIndexChanged, this, [this](int index) {
@@ -307,8 +309,10 @@ bool DialogEditProfile::typeSelected(const QString &newType) {
         innerEditor->onStart(ent);
         innerEditor->bindValidation(*form);
         ui->name->setText(ent->outbound->name);
-        ui->address->setText(ent->outbound->GetAddress());
-        ui->port->setText(ent->outbound->GetPort());
+        originalAddress = ent->outbound->GetAddress();
+        originalPort = ent->outbound->GetPort();
+        ui->address->setText(originalAddress);
+        ui->port->setText(originalPort);
 
         ADD_ASTERISK(this)
         editor_cache_updated_impl();
@@ -328,7 +332,6 @@ void DialogEditProfile::mountEditor(QWidget *widget, ProfileEditor *editor) {
     beanLayout->addWidget(widget);
     innerWidget = widget;
     innerEditor = editor;
-    UiMode::Apply(widget);
 
     const auto innerTabOrder = collectTabOrder(this, widget);
     if (!innerTabOrder.isEmpty() && innerTabOrderIndex >= 0 && innerTabOrderIndex <= outerTabOrder.size()) {
@@ -367,14 +370,21 @@ void DialogEditProfile::updateCommonRows() {
     }
     const auto endpoint = endpointOverride(ent, server && !locked);
     const bool overridden = !endpoint.address.isEmpty();
+    // An IP list entry with a port replaces the profile's port too.
+    const bool portOverridden = overridden && endpoint.port > 0;
     ui->address->setVisible(server && !overridden);
+    ui->port_l->setVisible(server && !portOverridden);
+    ui->port->setVisible(server && !portOverridden);
     addressEffective->setVisible(overridden);
-    addressEffective->setText(endpoint.address);
-    const QString own = ui->address->text().trimmed();
+    addressEffective->setText(endpoint.DisplayTarget());
+    QString own = ui->address->text().trimmed();
+    if (const int ownPort = ui->port->text().trimmed().toInt(); portOverridden && !own.isEmpty() && ownPort > 0) {
+        own = DisplayAddress(own, ownPort);
+    }
     addressEffective->setToolTip(!overridden ? QString()
                                  : own.isEmpty() ? tr("Set by %1.").arg(endpoint.origin)
                                                  : tr("Set by %1; the profile's own address is %2.").arg(endpoint.origin, own));
-    UiMode::SetVisible(ui->advanced_button, server || type == "direct");
+    ui->advanced_button->setVisible(server || type == "direct");
 }
 
 void DialogEditProfile::relayout() {
@@ -404,20 +414,20 @@ bool DialogEditProfile::onEnd() {
 
 void DialogEditProfile::accept() {
     if (!onEnd()) return;
+    // The stored test results describe the old server.
+    if (!newEnt && (ent->outbound->GetAddress() != originalAddress || ent->outbound->GetPort() != originalPort)) ent->ClearTestResults();
 
-    QStringList args;
     if (newEnt) {
-        if (!Configs::dataManager->profilesRepo->AddProfile(ent, groupId)) MessageBoxWarning("???", "id exists");
-    } else if (!Configs::dataManager->profilesRepo->Save(ent)) {
+        const int gid = groupId >= 0 ? groupId : Configs::dataManager->settingsRepo->current_group;
+        if (const auto error = Engine::ProfileService::Add(ent, gid)) {
+            if (error->code == QLatin1String("not_found")) MessageBoxWarning(software_name, QObject::tr("This group no longer exists."));
+            else MessageBoxWarning("???", "id exists");
+        }
+    } else if (Engine::ProfileService::Save({ent})) {
         MessageBoxWarning(software_name, tr("This profile was deleted while you were editing it."));
         QDialog::reject();
         return;
-    } else if (Configs::dataManager->settingsRepo->started_id == ent->id || Configs::RunningUsesProfile(ent->id)) {
-        args << MwArg::RestartProxy;
     }
-    if (!newEnt) Configs::RepositionLater(QList<std::shared_ptr<Configs::Profile>>{ent}, Configs::SortInput::Config);
-
-    MW_dialog_message(MwMessage::ProfileChanged, args);
     QDialog::accept();
 }
 
@@ -444,11 +454,3 @@ void DialogEditProfile::selectComboText(QComboBox *combo, const QString &text) {
     combo->setCurrentIndex(qMax(0, combo->findText(text)));
 }
 
-// The item stays for index-based load/save; disabling it also keeps the keyboard and wheel from landing on it.
-void DialogEditProfile::offerCustomMux(QComboBox *combo, int customIndex) {
-    const bool offered = !UiMode::Simple() || combo->currentIndex() == customIndex;
-    if (auto *view = qobject_cast<QListView *>(combo->view())) view->setRowHidden(customIndex, !offered);
-    if (auto *model = qobject_cast<QStandardItemModel *>(combo->model())) {
-        if (auto *item = model->item(customIndex)) item->setEnabled(offered);
-    }
-}

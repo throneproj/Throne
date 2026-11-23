@@ -2,9 +2,11 @@
 
 #include <QDialog>
 #include <QMenu>
+#include <QSet>
 
 #include <atomic>
 
+#include "include/database/SettingsValues.h"
 #include "include/engine/EditLocks.h"
 #include "include/global/Configs.hpp"
 #include "include/ui/setting/RouteItem.h"
@@ -13,6 +15,7 @@
 #include "include/database/entities/RouteProfile.h"
 
 QT_BEGIN_NAMESPACE
+class QButtonGroup;
 namespace Ui {
     class DialogManageRoutes;
 }
@@ -34,9 +37,16 @@ private:
     Engine::EditLock settingsLock{Engine::EditTarget::Settings};
     Engine::EditLock routesLock{Engine::EditTarget::Routes};
 
+    Configs::SettingsValues snapshot_;
+
+    // Button ids are Configs::ExitThrough values.
+    QButtonGroup *exitButtons = nullptr;
+
     RouteItem* routeChainWidget;
 
     void reloadProfileItems();
+
+    void syncRouteChecks(QListWidgetItem *changed);
 
     void applyImportedProfile(const std::shared_ptr<Configs::RouteProfile>& profile, bool wasOldArray);
 
@@ -44,14 +54,17 @@ private:
 
     void updateRemoteProfiles(const QList<std::shared_ptr<Configs::RouteProfile>>& profiles);
 
-    // routeUpdateRunning is UI-thread only; routeUpdateCancel is set there and polled by the worker.
+    // routeUpdateRunning is UI-thread only; the worker polls the run's cancel flag, which outlives the window.
     bool routeUpdateRunning = false;
-    std::atomic<bool> routeUpdateCancel{false};
+    std::shared_ptr<std::atomic<bool>> routeUpdateCancel;
 
     QList<std::shared_ptr<Configs::RouteProfile>> chainList;
 
     // Saved profiles removed from the list, deleted on OK.
     QList<int> removedIds;
+
+    // Saved profiles replaced by an edit or a remote update, saved on OK; new ones (id < 0) are saved anyway.
+    QSet<int> editedIds;
 
     std::shared_ptr<Configs::RouteProfile> currentRoute;
 
@@ -91,8 +104,6 @@ private:
     QShortcut* deleteShortcut;
 public slots:
     void accept() override;
-
-    void updateCurrentRouteProfile(int idx);
 
     void on_new_route_clicked();
 

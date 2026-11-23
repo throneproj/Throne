@@ -647,7 +647,7 @@ namespace OTP {
             // A lone token may be a mistyped secret, so only prose is echoed.
             if (problems) {
                 *problems << (LooksLikeBareSecret(line) ? QCoreApplication::translate("Validation", "Skipped a secret that is not valid base32 (letters A-Z and digits 2-7).")
-                                                        : QObject::tr("Not an otpauth link or secret: %1").arg(line.left(40)));
+                                                        : QCoreApplication::translate("QObject", "Not an otpauth link or secret: %1").arg(line.left(40)));
             }
         }
         return result;

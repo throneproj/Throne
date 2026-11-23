@@ -17,7 +17,7 @@ func (s *server) ResolveDomains(ctx context.Context, in *gen.ResolveDomainsReque
 		if err != nil {
 			return nil, nil, err
 		}
-		return env.box.Context(), env.close, nil
+		return env.Box.Context(), env.Close, nil
 	}, in.GetDomains())
 	if err != nil {
 		return nil, err

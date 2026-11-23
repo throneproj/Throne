@@ -18,9 +18,7 @@ EditOpenConnect::EditOpenConnect(QWidget *parent) : QWidget(parent), ui(new Ui::
     ui->tunnel_dns->addItem(tr("Prefer"), QString(Configs::kTunnelDnsPrefer));
     ui->tunnel_dns->addItem(tr("Strict"), QString(Configs::kTunnelDnsStrict));
 
-    ui->otp_profile_l->setToolTip(tr("<html><head/><body><p>Binds an authenticator entry to this profile. %1 in the "
-                                     "username, password, software token or form entry fields is replaced with a "
-                                     "generated code at connect time.</p></body></html>")
+    ui->otp_profile_l->setToolTip(tr("OTP entry whose code replaces %1 in credentials and form fields.")
                                       .arg(Configs::kOtpPlaceholder));
     ui->password->setPlaceholderText(tr("%1 is replaced at connect time").arg(Configs::kOtpPlaceholder));
 
@@ -169,7 +167,7 @@ void EditOpenConnect::bindValidation(Validation::Form &form) {
         for (const auto &entry: o.form_entries) advanced << entry->value;
         for (const auto &value: advanced) {
             if (!OtpPlaceholderUnbound(value, o.otp_profile_id).isEmpty()) {
-                return tr("The token or form entries under Advanced use %1; select an authenticator entry.").arg(Configs::kOtpPlaceholder);
+                return tr("The token or form entries under Advanced use %1; select an OTP entry.").arg(Configs::kOtpPlaceholder);
             }
         }
         return QString();

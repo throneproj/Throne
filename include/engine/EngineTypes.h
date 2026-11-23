@@ -26,6 +26,8 @@ namespace Engine {
         StrictRouteUnavailable,
         TunFailed,
         StartFailed,
+        // The config has a tor outbound and the Tor executable is not downloaded.
+        TorMissing,
     };
 
     struct StartRequest {
@@ -44,6 +46,8 @@ namespace Engine {
         int rpcTimeoutMs = 0;
         // Skip StopTests in the stop.
         bool skipTests = false;
+        // A start's own stop of the previous profile: pending starts stay valid.
+        bool keepIntent = false;
     };
 
     struct ModeChange {

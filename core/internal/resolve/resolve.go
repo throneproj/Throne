@@ -2,6 +2,7 @@ package resolve
 
 import (
 	"context"
+	"net/netip"
 	"sync"
 	"time"
 
@@ -87,6 +88,25 @@ func lookup(ctx context.Context, router adapter.DNSRouter, transport adapter.DNS
 		result.Addresses = append(result.Addresses, address.Unmap().String())
 	}
 	return result
+}
+
+var ErrNoDirectServer = E.New("no ", DirectDNSTag, " server")
+
+// Direct looks domain up through the dns-direct server of the box whose service context is running.
+func Direct(ctx context.Context, running context.Context, domain string) ([]netip.Addr, error) {
+	transport := directTransport(running)
+	if transport == nil {
+		return nil, ErrNoDirectServer
+	}
+	router := service.FromContext[adapter.DNSRouter](running)
+	if router == nil {
+		return nil, ErrNoDirectServer
+	}
+	return router.Lookup(ctx, domain, adapter.DNSQueryOptions{
+		Transport: transport,
+		Strategy:  C.DomainStrategyAsIS,
+		Timeout:   lookupTimeout,
+	})
 }
 
 // nil when the box has none, which a raw DNS object may leave out.

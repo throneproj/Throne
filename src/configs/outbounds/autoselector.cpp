@@ -25,36 +25,6 @@ namespace Configs
             return Validation::Url(text, {"http", "https"});
         }
 
-        QString AutoSelectorBuildLimit(int buildLimit, int poolCap)
-        {
-            if (buildLimit <= poolCap) return {};
-            return QCoreApplication::translate("Validation", "Cannot run more profiles than are ranked (%1).").arg(poolCap);
-        }
-
-        QString AutoSelectorBenchInterval(int benchInterval, int interval)
-        {
-            if (benchInterval >= interval) return {};
-            return QCoreApplication::translate("Validation", "The full sweep cannot run more often than the check interval (%1 s).").arg(interval);
-        }
-
-        QString AutoSelectorWatchInterval(int watchInterval, int interval)
-        {
-            if (watchInterval <= interval) return {};
-            return QCoreApplication::translate("Validation", "Watching the profile in use cannot be slower than the check interval (%1 s).").arg(interval);
-        }
-
-        QString AutoSelectorReadyCount(int activeSize, int expected)
-        {
-            if (activeSize >= expected) return {};
-            return QCoreApplication::translate("Validation", "Check closely at least as many profiles as are kept ready (%1).").arg(expected);
-        }
-
-        QString AutoSelectorCloseCount(int activeSize, int buildLimit)
-        {
-            if (activeSize <= buildLimit) return {};
-            return QCoreApplication::translate("Validation", "Cannot check closely more profiles than are run (%1).").arg(buildLimit);
-        }
-
         // A tier with neither would take every profile, leaving the tiers below it empty.
         QString AutoSelectorTierMatch(int gid, const QString &nameFilter)
         {
@@ -66,12 +36,6 @@ namespace Configs
         {
             if (tiers > 0) return {};
             return QCoreApplication::translate("Validation", "Add at least one tier to choose in priority order.");
-        }
-
-        QString AutoSelectorFailbackChecks(int failbackChecks, int sampling)
-        {
-            if (failbackChecks <= sampling) return {};
-            return QCoreApplication::translate("Validation", "Cannot require more checks in a row than are kept (%1).").arg(sampling);
         }
     }
 

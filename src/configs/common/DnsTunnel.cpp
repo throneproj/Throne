@@ -9,18 +9,23 @@
 #include <algorithm>
 #include <cmath>
 
+#include "include/configs/ExitThrough.h"
 #include "include/configs/ParseDiagnostics.h"
+#include "include/configs/common/Protocols.h"
 #include "include/configs/common/ResolverSource.h"
 #include "include/configs/common/utils.h"
 #include "include/database/DatabaseManager.h"
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
+#include "include/database/SettingsRepo.h"
 #include "include/global/Validation.hpp"
 
 namespace Configs {
     namespace {
         constexpr int kDnsTunnelStartupMs = 30000;
         constexpr int kDnsTunnelMasterDnsStartupMs = 90000;
+        constexpr int kSlowStartTorMs = 90000;
+        constexpr int kSlowStartPsiphonMs = 60000;
         constexpr int kDnsTunnelMaxDepth = 8;
         constexpr qsizetype kDnstMaxLinkSize = 64 * 1024;
 
@@ -40,16 +45,48 @@ namespace Configs {
             return 0;
         }
 
+        int slowStartOwnAllowanceMs(const Profile &profile) {
+            if (profile.type == QLatin1String("tor")) return kSlowStartTorMs;
+            if (profile.type == QLatin1String("psiphon")) return kSlowStartPsiphonMs;
+            return 0;
+        }
+
+        int startupOwnAllowanceMs(const Profile &profile) {
+            return dnsTunnelOwnAllowanceMs(profile) + slowStartOwnAllowanceMs(profile);
+        }
+
         // Stacked tunnels start one after another, so their allowances add up.
-        int dnsTunnelHopsAllowanceMs(const std::shared_ptr<Profile> &profile, QSet<int> &visited, int depth) {
+        int startupHopsAllowanceMs(const std::shared_ptr<Profile> &profile, int (*ownAllowanceMs)(const Profile &), QSet<int> &visited,
+                                   int depth) {
             if (profile == nullptr || profile->outbound == nullptr || depth > kDnsTunnelMaxDepth) return 0;
             if (profile->id >= 0) {
                 if (visited.contains(profile->id)) return 0;
                 visited.insert(profile->id);
             }
-            int allowance = dnsTunnelOwnAllowanceMs(*profile);
+            int allowance = ownAllowanceMs(*profile);
             if (const auto *chain = profile->Chain(); chain != nullptr) {
-                for (const int id : chain->list) allowance += dnsTunnelHopsAllowanceMs(dataManager->profilesRepo->GetProfile(id), visited, depth + 1);
+                for (const int id : chain->list) {
+                    if (id == warpProfileID) {
+                        // The exit placeholder: the Tor and Psiphon exits are profiles of the type their exit_through value spells.
+                        Profile exit;
+                        exit.type = ExitValue(ExitOf(dataManager->settingsRepo->exit_through));
+                        allowance += ownAllowanceMs(exit);
+                        continue;
+                    }
+                    allowance += startupHopsAllowanceMs(dataManager->profilesRepo->GetProfile(id), ownAllowanceMs, visited, depth + 1);
+                }
+            }
+            return allowance;
+        }
+
+        int startupProfileAllowanceMs(const std::shared_ptr<Profile> &profile, int (*ownAllowanceMs)(const Profile &)) {
+            if (profile == nullptr || dataManager == nullptr) return 0;
+            QSet<int> visited;
+            int allowance = startupHopsAllowanceMs(profile, ownAllowanceMs, visited, 0);
+            if (const auto group = dataManager->groupsRepo->GetGroup(profile->gid); group != nullptr) {
+                for (const int id : {group->front_proxy_id, group->landing_proxy_id}) {
+                    if (id >= 0) allowance += startupHopsAllowanceMs(dataManager->profilesRepo->GetProfile(id), ownAllowanceMs, visited, 1);
+                }
             }
             return allowance;
         }
@@ -184,19 +221,15 @@ namespace Configs {
     }
 
     bool IsDnsTunnelProfile(const Profile &profile) {
-        return profile.type == QLatin1String("dnstt") || profile.type == QLatin1String("masterdns") || dnsTunnelIsXdns(profile);
+        return Protocols::Is(profile.type, Protocols::DnsTunnel) || dnsTunnelIsXdns(profile);
     }
 
-    int DnsTunnelStartupAllowanceMs(const std::shared_ptr<Profile> &profile) {
-        if (profile == nullptr || dataManager == nullptr) return 0;
-        QSet<int> visited;
-        int allowance = dnsTunnelHopsAllowanceMs(profile, visited, 0);
-        if (const auto group = dataManager->groupsRepo->GetGroup(profile->gid); group != nullptr) {
-            for (const int id : {group->front_proxy_id, group->landing_proxy_id}) {
-                if (id >= 0) allowance += dnsTunnelHopsAllowanceMs(dataManager->profilesRepo->GetProfile(id), visited, 1);
-            }
-        }
-        return allowance;
+    int StartupAllowanceMs(const std::shared_ptr<Profile> &profile) {
+        return startupProfileAllowanceMs(profile, startupOwnAllowanceMs);
+    }
+
+    bool HasSlowStartHop(const std::shared_ptr<Profile> &profile) {
+        return startupProfileAllowanceMs(profile, slowStartOwnAllowanceMs) > 0;
     }
 
     ResolverSource *ProfileResolverSource(const Profile &profile) {

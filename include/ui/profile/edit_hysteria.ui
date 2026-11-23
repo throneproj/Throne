@@ -77,7 +77,7 @@
    <item row="3" column="1">
     <widget class="QLineEdit" name="hop_interval_max">
      <property name="toolTip">
-      <string>When set, each hop waits a random duration between Hop Interval and this value. Requires Hop Interval.</string>
+      <string>Hop at a random interval up to this value. Empty: fixed Hop Interval.</string>
      </property>
     </widget>
    </item>
@@ -283,7 +283,7 @@
    <item row="15" column="1">
     <widget class="QCheckBox" name="disable_mtu_discovery">
      <property name="text">
-      <string>Disable Mtu Discovery</string>
+      <string>Disable Path MTU Discovery</string>
      </property>
     </widget>
    </item>
@@ -303,12 +303,10 @@
    <item row="17" column="1">
     <widget class="QCheckBox" name="disable_chrome_parrot">
      <property name="toolTip">
-      <string>Parroting makes the QUIC handshake look like Chrome's. On by default.
-It overrides idle timeout, max concurrent streams,
-initial packet size and the initial receive windows.</string>
+      <string>Stop making the QUIC handshake look like Chrome's.</string>
      </property>
      <property name="text">
-      <string>Disable Chrome Parrot</string>
+      <string>Disable Chrome parrot</string>
      </property>
     </widget>
    </item>
@@ -317,18 +315,17 @@ initial packet size and the initial receive windows.</string>
      <item>
       <widget class="QCheckBox" name="realm_enabled">
        <property name="toolTip">
-        <string>Reach a Hysteria2 server behind NAT through a Hysteria Realm
-rendezvous service. Replaces the server address and port.</string>
+        <string>Reach a Hysteria2 server behind NAT through a Hysteria Realm service.</string>
        </property>
        <property name="text">
-        <string>Realm (NAT Traversal)</string>
+        <string>Realm (NAT traversal)</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="realm_options">
        <property name="text">
-        <string>Realm Options</string>
+        <string>Realm options</string>
        </property>
       </widget>
      </item>

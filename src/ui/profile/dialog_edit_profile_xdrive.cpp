@@ -89,7 +89,7 @@ void DialogEditProfile::setupXrayXDriveDescriptions() {
                      tr("The region requests are signed for. Default: us-east-1."));
     setXrayXHTTPHelp(ui->xray_xdrive_s3_bucket_l, ui->xray_xdrive_s3_bucket, tr("Bucket"), "s3.bucket",
                      tr("The bucket both ends share."));
-    setXrayXHTTPHelp(ui->xray_xdrive_s3_path_style, nullptr, tr("Path-Style Addressing"), "s3.pathStyle",
+    setXrayXHTTPHelp(ui->xray_xdrive_s3_path_style, nullptr, tr("Path-style addressing"), "s3.pathStyle",
                      tr("Puts the bucket in the URL path. When off, the bucket becomes part of the endpoint's host name, "
                         "which needs a DNS endpoint and a DNS-compatible bucket name. Default: on."));
     setXrayXHTTPHelp(ui->xray_xdrive_s3_access_key_l, ui->xray_xdrive_s3_access_key, tr("Access Key ID"), "secrets[0]",

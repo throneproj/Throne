@@ -6,76 +6,82 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>780</width>
-    <height>802</height>
+    <width>1000</width>
+    <height>680</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Route Profile</string>
+   <string>Routing Profile</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_3">
+  <layout class="QVBoxLayout" name="mainLayout">
    <item>
-    <widget class="QGroupBox" name="generalBox">
-     <property name="title">
-      <string>General</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="0">
-       <widget class="QLabel" name="route_name_l">
-        <property name="text">
-         <string>Name</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="route_name"/>
-      </item>
-      <item row="2" column="1">
-       <widget class="QComboBox" name="def_out">
-        <item>
-         <property name="text">
-          <string notr="true">proxy</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">direct</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">block</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">warp-bypass</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="def_out_l">
-        <property name="text">
-         <string>Default outbound</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
+    <layout class="QHBoxLayout" name="headerRow" stretch="0,1,0,0,0">
+     <item>
+      <widget class="QLabel" name="nameLabel">
+       <property name="text">
+        <string>Name</string>
+       </property>
+       <property name="buddy">
+        <cstring>nameEdit</cstring>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="nameEdit"/>
+     </item>
+     <item>
+      <spacer name="headerGap">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Policy::Fixed</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>10</width>
+         <height>0</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QLabel" name="defaultLabel">
+       <property name="text">
+        <string>Final Exit</string>
+       </property>
+       <property name="buddy">
+        <cstring>defaultCombo</cstring>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="defaultCombo"/>
+     </item>
+    </layout>
    </item>
    <item>
-    <widget class="QGroupBox" name="remoteBox">
-     <property name="title">
-      <string>Remote source</string>
+    <widget class="QFrame" name="remoteBox">
+     <property name="frameShape">
+      <enum>QFrame::Shape::StyledPanel</enum>
      </property>
-     <layout class="QVBoxLayout" name="remoteBoxLayout">
+     <layout class="QVBoxLayout" name="remoteLayout">
+      <item>
+       <widget class="QLabel" name="remoteCaption">
+        <property name="text">
+         <string>Remote profile</string>
+        </property>
+       </widget>
+      </item>
       <item>
        <layout class="QHBoxLayout" name="remoteUrlRow">
         <item>
          <widget class="QLabel" name="remoteUrlLabel">
           <property name="text">
            <string>URL</string>
+          </property>
+          <property name="buddy">
+           <cstring>remoteUrlEdit</cstring>
           </property>
          </widget>
         </item>
@@ -93,7 +99,7 @@
         <item>
          <widget class="QCheckBox" name="autoUpdateCheck">
           <property name="toolTip">
-           <string>Re-fetch this profile from the URL when subscriptions auto-update.&#10;Your local edits are overwritten on each update.</string>
+           <string>Re-fetch this profile from the URL when subscriptions auto-update.</string>
           </property>
           <property name="text">
            <string>Auto update</string>
@@ -107,8 +113,8 @@
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>40</width>
-            <height>20</height>
+            <width>0</width>
+            <height>0</height>
            </size>
           </property>
          </spacer>
@@ -116,10 +122,13 @@
         <item>
          <widget class="QPushButton" name="remotePreviewBtn">
           <property name="toolTip">
-           <string>Fetch the URL and show the routing profile without changing the current rules.</string>
+           <string>Fetch the URL and preview the routing profile.</string>
           </property>
           <property name="text">
            <string>Preview</string>
+          </property>
+          <property name="autoDefault">
+           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -129,122 +138,88 @@
            <string>Fetch the URL and replace the current rules with the fetched ones.</string>
           </property>
           <property name="text">
-           <string>Fetch</string>
+           <string>Fetch now</string>
+          </property>
+          <property name="autoDefault">
+           <bool>false</bool>
           </property>
          </widget>
         </item>
        </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="remoteNote">
+        <property name="text">
+         <string>Each update replaces the rules that came from the URL, so edits to them last until the next one. Rules added here are kept.</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
    </item>
    <item>
     <widget class="QTabWidget" name="tabWidget">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>1</verstretch>
+      </sizepolicy>
+     </property>
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="tab_2">
+     <widget class="QWidget" name="rulesTab">
       <attribute name="title">
-       <string>Basic</string>
+       <string>Rules</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_5">
-       <item>
-        <widget class="QPushButton" name="howtouse_button">
-         <property name="text">
-          <string>How to use</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QGridLayout" name="simpleGrid">
-         <item row="0" column="0">
-          <widget class="QGroupBox" name="simple_direct_box">
-           <layout class="QVBoxLayout" name="verticalLayout_6">
-            <item>
-             <widget class="QLabel" name="label">
-              <property name="text">
-               <string>Direct</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QTextEdit" name="simple_direct"/>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QGroupBox" name="simple_proxy_box">
-           <layout class="QVBoxLayout" name="verticalLayout_7">
-            <item>
-             <widget class="QLabel" name="label_2">
-              <property name="text">
-               <string>Proxy</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QTextEdit" name="simple_proxy"/>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QGroupBox" name="simple_block_box">
-           <layout class="QVBoxLayout" name="verticalLayout_8">
-            <item>
-             <widget class="QLabel" name="label_3">
-              <property name="text">
-               <string>Block</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QTextEdit" name="simple_block"/>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QGroupBox" name="simple_warpbypass_box">
-           <layout class="QVBoxLayout" name="verticalLayout_10">
-            <item>
-             <widget class="QLabel" name="label_4">
-              <property name="text">
-               <string>Warp-bypass</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QTextEdit" name="simple_warpbypass"/>
-            </item>
-           </layout>
-          </widget>
-         </item>
-        </layout>
-       </item>
+      <layout class="QVBoxLayout" name="rulesTabLayout">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
       </layout>
      </widget>
      <widget class="QWidget" name="endpointsTab">
       <attribute name="title">
        <string>Endpoints</string>
       </attribute>
-      <attribute name="toolTip">
-       <string>OpenVPN / OpenConnect profiles started alongside this routing profile. Traffic for the networks they advertise goes through them; everything else follows this profile's rules. Each endpoint gets a rule in the Advanced tab that you can move among your own rules. A chain endpoint can hand out one rule per inner OpenVPN / OpenConnect hop too, so traffic can be routed to a hop before the exit.</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="endpointsTabLayout">
+      <layout class="QVBoxLayout" name="endpointsLayout">
+       <item>
+        <widget class="QLabel" name="endpointsIntro">
+         <property name="text">
+          <string>OpenVPN and OpenConnect profiles started together with this routing profile. Each one adds an endpoint rule to the list, which you can move but not edit.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
        <item>
         <layout class="QHBoxLayout" name="endpointsActionRow">
          <item>
           <widget class="QComboBox" name="endpointPicker">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-             <horstretch>1</horstretch>
+             <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
            <property name="sizeAdjustPolicy">
             <enum>QComboBox::SizeAdjustPolicy::AdjustToMinimumContentsLengthWithIcon</enum>
+           </property>
+           <property name="placeholderText">
+            <string>Choose a profile</string>
            </property>
           </widget>
          </item>
@@ -253,238 +228,50 @@
            <property name="text">
             <string>Add</string>
            </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="endpointRemoveBtn">
-           <property name="text">
-            <string>Remove</string>
+           <property name="autoDefault">
+            <bool>false</bool>
            </property>
           </widget>
          </item>
         </layout>
        </item>
        <item>
-        <widget class="QListWidget" name="endpointList"/>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tab">
-      <attribute name="title">
-       <string>Advanced</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_4">
-       <item>
-        <widget class="QGroupBox" name="groupBox">
-         <property name="title">
-          <string>Rules</string>
+        <widget class="QScrollArea" name="endpointScroll">
+         <property name="frameShape">
+          <enum>QFrame::Shape::NoFrame</enum>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <widget class="QFrame" name="frame">
-            <property name="frameShape">
-             <enum>QFrame::Shape::NoFrame</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Shadow::Raised</enum>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_9">
-             <property name="spacing">
-              <number>7</number>
-             </property>
-             <property name="leftMargin">
-              <number>5</number>
-             </property>
-             <property name="topMargin">
-              <number>5</number>
-             </property>
-             <property name="rightMargin">
-              <number>5</number>
-             </property>
-             <property name="bottomMargin">
-              <number>5</number>
-             </property>
-             <item>
-              <widget class="QListWidget" name="route_items"/>
-             </item>
-             <item>
-              <widget class="QWidget" name="widget_2" native="true">
-               <layout class="QHBoxLayout" name="horizontalLayout_2">
-                <item>
-                 <widget class="QPushButton" name="new_route_item">
-                  <property name="text">
-                   <string>New</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="moveup_route_item">
-                  <property name="text">
-                   <string>Move Up</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="movedown_route_item">
-                  <property name="text">
-                   <string>Move Down</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="delete_route_item">
-                  <property name="text">
-                   <string>Delete</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QFrame" name="rule_attr_box">
-            <layout class="QVBoxLayout" name="verticalLayout">
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>5</number>
-             </property>
-             <property name="rightMargin">
-              <number>5</number>
-             </property>
-             <property name="bottomMargin">
-              <number>5</number>
-             </property>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_5">
-               <item>
-                <widget class="QLabel" name="rule_name_l">
-                 <property name="text">
-                  <string>Name</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="rule_name"/>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <widget class="QLabel" name="rule_preview_l">
-               <property name="text">
-                <string>Preview</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QTextBrowser" name="rule_preview">
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>120</height>
-                </size>
-               </property>
-               <property name="documentTitle">
-                <string notr="true"/>
-               </property>
-               <property name="openExternalLinks">
-                <bool>false</bool>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_2">
-         <property name="title">
-          <string>Rule Settings</string>
+         <property name="widgetResizable">
+          <bool>true</bool>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
-          <property name="spacing">
-           <number>7</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_action">
-            <property name="leftMargin">
-             <number>4</number>
-            </property>
-            <property name="rightMargin">
-             <number>4</number>
-            </property>
-            <item>
-             <widget class="QLabel" name="rule_action_l">
-              <property name="text">
-               <string>Action</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="rule_action_combo"/>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QLabel" name="rule_managed_note">
-            <property name="text">
-             <string>This rule is managed by the Endpoints tab. You can only move it.</string>
-            </property>
-            <property name="wordWrap">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QTabWidget" name="rule_attr_tabs">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>100</height>
-             </size>
-            </property>
-            <property name="currentIndex">
-             <number>-1</number>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <widget class="QWidget" name="endpointRowsHost">
+          <layout class="QVBoxLayout" name="endpointRowsLayout">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <spacer name="endpointRowsSpacer">
+             <property name="orientation">
+              <enum>Qt::Orientation::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
         </widget>
        </item>
       </layout>
@@ -494,7 +281,7 @@
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="standardButtons">
-      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
+      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Save</set>
      </property>
     </widget>
    </item>

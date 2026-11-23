@@ -58,17 +58,17 @@
      <item>
       <widget class="QPushButton" name="select_profile">
        <property name="text">
-        <string>Select Profile</string>
+        <string>Select profile</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="test_hops">
        <property name="toolTip">
-        <string>Tests each hop on its own and through every hop above it, without saving the chain</string>
+        <string>Test each hop alone and through the hops above it.</string>
        </property>
        <property name="text">
-        <string>Test Hops</string>
+        <string>Test hops</string>
        </property>
       </widget>
      </item>

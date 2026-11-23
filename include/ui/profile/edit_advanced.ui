@@ -67,7 +67,7 @@
      <layout class="QGridLayout" name="gridLayout_2">      <item row="0" column="0">
        <widget class="QCheckBox" name="reuse_addr">
         <property name="text">
-         <string>Reuse Address</string>
+         <string>Reuse address</string>
         </property>
        </widget>
       </item>
@@ -81,24 +81,24 @@
       <item row="0" column="2">
        <widget class="QCheckBox" name="tcp_multipath">
         <property name="text">
-         <string>TCP MultiPath</string>
+         <string>TCP multipath</string>
         </property>
        </widget>
       </item>
       <item row="1" column="0">
        <widget class="QCheckBox" name="udp_fragment">
         <property name="text">
-         <string>UDP Fragment</string>
+         <string>UDP fragment</string>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
        <widget class="QCheckBox" name="quic_opener">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sends one decoy packet before each new UDP flow, so networks that block QUIC by its first packet let the real handshake through. It helps HTTP/3 carriers (MASQUE, Hysteria2, TUIC). It does nothing when the profile dials through another profile.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>Sends a decoy packet before each UDP flow to get past QUIC blocking.</string>
         </property>
         <property name="text">
-         <string>QUIC Opener</string>
+         <string>QUIC opener</string>
         </property>
        </widget>
       </item>
@@ -177,10 +177,10 @@
      <layout class="QGridLayout" name="interface_form">      <item row="0" column="0" colspan="4">
        <widget class="QCheckBox" name="system">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Requires privilege and cannot conflict with existing system interfaces. The internal network stack is used when disabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>Use a system network interface instead of the internal stack; needs admin.</string>
         </property>
         <property name="text">
-         <string>Use System Interface</string>
+         <string>Use system interface</string>
         </property>
        </widget>
       </item>
@@ -329,7 +329,7 @@
       <item row="2" column="0">
        <widget class="QLabel" name="tls_spoof_state_l">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Whether this profile injects a forged ClientHello. &amp;quot;Keep Default&amp;quot; follows Preset Settings, unless a Spoof SNI is set below.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>Inject a forged ClientHello. Keep default: Preset Settings.</string>
         </property>
         <property name="text">
          <string>TLS Spoof</string>
@@ -343,7 +343,7 @@
        <widget class="QComboBox" name="tls_spoof_state">
         <item>
          <property name="text">
-          <string>Keep Default</string>
+          <string>Keep default</string>
          </property>
         </item>
         <item>
@@ -361,7 +361,7 @@
       <item row="2" column="2">
        <widget class="QLabel" name="tls_spoof_l">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Inject a forged TLS ClientHello carrying this SNI before the real one, to pass SNI filtering that allows specific hostnames.&lt;/p&gt;&lt;p&gt;Client only. Requires elevated privileges (root / Administrator). Not supported on Windows ARM64. &amp;quot;wrong-timestamp&amp;quot; is not supported on macOS.&lt;/p&gt;&lt;p&gt;Leave empty to inherit the global value from Preset Settings.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>SNI for a forged ClientHello sent first; needs admin. Empty: Preset Settings.</string>
         </property>
         <property name="text">
          <string>Spoof SNI</string>
@@ -400,7 +400,7 @@
       <item row="3" column="2">
        <widget class="QLabel" name="label_8">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;h4 style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a name=&quot;query_server_name&quot;/&gt;&lt;span style=&quot; font-size:medium; font-weight:700;&quot;&gt;q&lt;/span&gt;&lt;span style=&quot; font-size:medium; font-weight:700;&quot;&gt;uery_server_name in sing-box&lt;/span&gt;&lt;/h4&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>Domain to look up the ECH config for. Empty: the TLS server name.</string>
         </property>
         <property name="text">
          <string>ECH Query Name / Resolver</string>
@@ -430,14 +430,14 @@
       <item row="4" column="1">
        <widget class="QPushButton" name="ech_config">
         <property name="text">
-         <string>Not Set</string>
+         <string>Not set</string>
         </property>
        </widget>
       </item>
       <item row="5" column="0">
        <widget class="QLabel" name="label_3">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;SHA-256 of the server's whole certificate in base64, one per line (pcs in share links). A match replaces CA verification, so a self-signed certificate works.&lt;/p&gt;&lt;p&gt;Cannot be combined with a custom Certificate.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>Base64 SHA-256 of the server certificate, one per line; replaces CA checks.</string>
         </property>
         <property name="text">
          <string>Certificate SHA256</string>
@@ -450,14 +450,14 @@
       <item row="5" column="1">
        <widget class="QPushButton" name="cert_sha256">
         <property name="text">
-         <string>Not Set</string>
+         <string>Not set</string>
         </property>
        </widget>
       </item>
       <item row="5" column="2">
        <widget class="QLabel" name="cert_public_key_sha256_l">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;SHA-256 of the server certificate's public key in base64, one per line. A match replaces CA verification and survives renewals that keep the key.&lt;/p&gt;&lt;p&gt;Cannot be combined with a custom Certificate.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>Base64 SHA-256 of the server's public key, one per line; replaces CA checks.</string>
         </property>
         <property name="text">
          <string>Public Key SHA256</string>
@@ -470,7 +470,7 @@
       <item row="5" column="3">
        <widget class="QPushButton" name="cert_public_key_sha256">
         <property name="text">
-         <string>Not Set</string>
+         <string>Not set</string>
         </property>
        </widget>
       </item>
@@ -487,7 +487,7 @@
       <item row="6" column="1">
        <widget class="QPushButton" name="client_cert">
         <property name="text">
-         <string>Not Set</string>
+         <string>Not set</string>
         </property>
        </widget>
       </item>
@@ -504,7 +504,7 @@
       <item row="6" column="3">
        <widget class="QPushButton" name="client_key">
         <property name="text">
-         <string>Not Set</string>
+         <string>Not set</string>
         </property>
        </widget>
       </item>
@@ -673,7 +673,7 @@
        <widget class="QComboBox" name="quic_disable_path_mtu_discovery">
         <item>
          <property name="text">
-          <string>Keep Default</string>
+          <string>Keep default</string>
          </property>
         </item>
         <item>

@@ -25,7 +25,7 @@
 #include "include/database/IpScansRepo.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/engine/EditLocks.h"
-#include "include/global/RunningProfiles.hpp"
+#include "include/engine/services/ProfileService.h"
 #include "include/global/Utils.hpp"
 #include "include/scanner/ScanManager.h"
 #include "include/scanner/TuneProfiles.h"
@@ -257,8 +257,8 @@ void DialogScanInstance::updateTuneControls() {
 
     QString hint = tr("Choose the profile whose settings to search.");
     if (profile != nullptr) {
-        const auto host = DialHost(profile);
-        hint = host.isEmpty() ? tr("The profile has no server address to test.") : tr("Tests through %1").arg(host);
+        const auto dial = DialTargetFor(profile);
+        hint = dial.host.isEmpty() ? tr("The profile has no server address to test.") : tr("Tests through %1").arg(dial.Display());
     } else if (id < 0 && config.tune.profileId >= 0) {
         const auto stored = Configs::dataManager->profilesRepo->GetProfile(config.tune.profileId);
         if (stored == nullptr) {
@@ -436,15 +436,10 @@ void DialogScanInstance::applyTuneResult() {
                                tr("The settings could not be applied to \"%1\": %2.").arg(profileName, error));
         return;
     }
-    if (!Configs::dataManager->profilesRepo->Save(profile)) {
+    if (Engine::ProfileService::Save({profile})) {
         scanInstanceTuneNotice(this, QMessageBox::Warning, title, tr("Failed to store the profile."));
         return;
     }
-    QStringList args;
-    if (Configs::dataManager->settingsRepo->started_id == profileId || Configs::RunningUsesProfile(profileId))
-        args << MwArg::RestartProxy;
-    Configs::RepositionLater(QList<std::shared_ptr<Configs::Profile>>{profile}, Configs::SortInput::Config);
-    MW_dialog_message(MwMessage::ProfileChanged, args);
     scanInstanceTuneNotice(this, QMessageBox::Information, title,
                            tr("\"%1\" now uses: %2.").arg(profileName, Scanner::Tune::Describe(assignment)));
 }
@@ -476,14 +471,13 @@ void DialogScanInstance::saveTuneResultAsProfile() {
         scanInstanceTuneNotice(this, QMessageBox::Warning, title, tr("The settings could not be applied to the copy: %1.").arg(error));
         return;
     }
-    const QString name = tr("%1 (tuned)").arg(profile->outbound->name);
+    const QString name = tr("%1 (working settings)").arg(profile->outbound->name);
     copy->name = name;
     copy->outbound->name = name;
-    if (!Configs::dataManager->profilesRepo->AddProfile(copy, profile->gid)) {
+    if (Engine::ProfileService::Add(copy, profile->gid)) {
         scanInstanceTuneNotice(this, QMessageBox::Warning, title, tr("Failed to store the profile."));
         return;
     }
-    MW_dialog_message(MwMessage::ProfileChanged, {});
     scanInstanceTuneNotice(this, QMessageBox::Information, title,
                            tr("Saved \"%1\" with: %2.").arg(name, Scanner::Tune::Describe(assignment)));
 }

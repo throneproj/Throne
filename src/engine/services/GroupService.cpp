@@ -1,5 +1,6 @@
 #include "include/engine/services/GroupService.h"
 
+#include <algorithm>
 #include <memory>
 
 #include <QMetaObject>
@@ -10,7 +11,10 @@
 #include "include/database/RoutesRepo.h"
 #include "include/engine/EditLocks.h"
 #include "include/engine/EngineEvents.h"
+#include "include/engine/EngineHost.h"
+#include "include/engine/Lifecycle.h"
 #include "include/engine/ThreadCheck.h"
+#include "include/global/RunningProfiles.hpp"
 #include "include/global/Utils.hpp"
 #include "include/global/Validation.hpp"
 
@@ -62,10 +66,27 @@ namespace Engine::GroupService {
         group->skip_auto_update = !spec.autoUpdate;
         group->route_id = spec.routeId < 0 ? -1 : spec.routeId;
         group->import_sub_route = spec.importRoute;
-        if (!Configs::dataManager->groupsRepo->AddGroup(group)) {
+        if (auto refusal = Add(group)) return refusal;
+        if (groupId != nullptr) *groupId = group->id;
+        return std::nullopt;
+    }
+
+    std::optional<ServiceError> Add(const std::shared_ptr<Configs::Group> &group) {
+        ENGINE_CHECK_MAIN_THREAD();
+        auto added = group;
+        if (!Configs::dataManager->groupsRepo->AddGroup(added)) {
             return ServiceError{500, QStringLiteral("internal"), QStringLiteral("Could not save the group")};
         }
-        if (groupId != nullptr) *groupId = group->id;
+        EngineEvents::GroupsChanged();
+        return std::nullopt;
+    }
+
+    std::optional<ServiceError> Save(const std::shared_ptr<Configs::Group> &group, bool restartNeeded) {
+        ENGINE_CHECK_MAIN_THREAD();
+        if (!Configs::dataManager->groupsRepo->Save(group)) {
+            return ServiceError{404, QStringLiteral("not_found"), QStringLiteral("Group %1 was deleted meanwhile").arg(group->id)};
+        }
+        if (auto *engine = host(); engine != nullptr && restartNeeded) engine->noteRestartNeeded(RestartReason::Group);
         EngineEvents::GroupsChanged();
         return std::nullopt;
     }
@@ -145,6 +166,12 @@ namespace Engine::GroupService {
             return ServiceError{409, QStringLiteral("editing"),
                                 QStringLiteral("The group or one of its profiles is open in an editor in Throne's window")};
         }
+        // Delete takes the routing profiles its subscription provided along.
+        for (const int routeId : Configs::dataManager->routesRepo->OwnedBy(groupId)) {
+            if (!IsBeingEdited(EditTarget::Routes, routeId)) continue;
+            return ServiceError{409, QStringLiteral("routes_editing"),
+                                QStringLiteral("The group's routing profile is open for editing in Throne's window; close it and try again")};
+        }
         return std::nullopt;
     }
 
@@ -154,6 +181,7 @@ namespace Engine::GroupService {
         const auto group = Configs::dataManager->groupsRepo->GetGroup(groupId);
         const auto profileIds = group->Profiles();
         const QSet<int> deletedProfiles(profileIds.cbegin(), profileIds.cend());
+        const bool usedByRunning = std::any_of(profileIds.cbegin(), profileIds.cend(), [](int id) { return Configs::RunningUsesProfile(id); });
         if (!Configs::dataManager->groupsRepo->DeleteGroup(groupId)) {
             return ServiceError{500, QStringLiteral("internal"), QStringLiteral("Could not delete the group")};
         }
@@ -164,31 +192,15 @@ namespace Engine::GroupService {
         }
 
         auto *settings = Configs::dataManager->settingsRepo.get();
-        // The caller stopped a running profile of the group, but a non-manual stop leaves started_id naming it.
-        if (deletedProfiles.contains(settings->started_id)) settings->UpdateStartedId(Configs::NoProfileId);
+        // The caller stopped a running profile of the group, but a non-manual stop leaves it as the resume target.
+        if (const int target = Lifecycle::ResumeTargetId(); deletedProfiles.contains(target)) Lifecycle::ForgetResumeTarget(target);
         if (settings->current_group == groupId) {
             const auto tabGroups = groupServiceTabGroups();
             settings->current_group = tabGroups.isEmpty() ? -1 : tabGroups.first();
             settings->Save();
         }
 
-        for (const int gid : Configs::dataManager->groupsRepo->GetAllGroupIds()) {
-            const auto other = Configs::dataManager->groupsRepo->GetGroup(gid);
-            if (other == nullptr) continue;
-            bool changed = false;
-            if (deletedProfiles.contains(other->front_proxy_id)) {
-                other->front_proxy_id = -1;
-                changed = true;
-                MW_show_log(QStringLiteral("[Groups] %1: front proxy removed (its profile was deleted)").arg(other->name));
-            }
-            if (deletedProfiles.contains(other->landing_proxy_id)) {
-                other->landing_proxy_id = -1;
-                changed = true;
-                MW_show_log(QStringLiteral("[Groups] %1: landing proxy removed (its profile was deleted)").arg(other->name));
-            }
-            if (changed) Configs::dataManager->groupsRepo->Save(other);
-        }
-
+        if (auto *engine = host(); engine != nullptr && usedByRunning) engine->noteRestartNeeded(RestartReason::Group);
         EngineEvents::GroupsChanged();
         return std::nullopt;
     }

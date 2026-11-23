@@ -86,8 +86,8 @@ func StartServiceTest(platform PlatformInterface, request *TestRequest, handler 
 	timeout := time.Duration(request.TimeoutMs) * time.Millisecond
 	go func() {
 		defer handler.OnDone()
-		defer env.close()
-		newTestReporter(env.tags, probe.ServiceReporter.Results,
+		defer env.Close()
+		newTestReporter(env.Tags, probe.ServiceReporter.Results,
 			func(result *probe.ServiceTestResult) string { return result.Tag },
 			func(result *probe.ServiceTestResult) {
 				if result.Error != nil {
@@ -97,7 +97,7 @@ func StartServiceTest(platform PlatformInterface, request *TestRequest, handler 
 				handler.OnResult(result.Tag, serviceResultString(result.Result), "")
 			},
 		).run(func() []*probe.ServiceTestResult {
-			return probe.BatchServiceTest(testCtx, env.box, env.tags, int(request.MaxConcurrency), true, defs, timeout, options)
+			return probe.BatchServiceTest(testCtx, env.Box, env.Tags, int(request.MaxConcurrency), true, defs, timeout, options)
 		})
 	}()
 	return nil

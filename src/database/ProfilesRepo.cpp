@@ -75,13 +75,8 @@ namespace Configs {
         profile->ip_out = json["ip_out"].toString();
         profile->service_checks = json["service_checks"].toString();
         profile->endpoint = EndpointSource::FromJson(json["endpoint"].toObject());
-        
-        QString type = profile->type;
-        if (type == "hysteria2") {
-            type = "hysteria";
-        }
 
-        Configs::outbound* outbound = Configs::NewOutboundByType(type);
+        Configs::outbound* outbound = Configs::NewOutboundByType(profile->type);
 
         profile->outbound = std::shared_ptr<Configs::outbound>(outbound);
         profile->outbound->profile_id = profile->id;
@@ -415,11 +410,11 @@ namespace Configs {
         return names;
     }
 
-    bool ProfilesRepo::BatchDeleteProfiles(QList<int>& ids, bool stopRunningProfile, bool interactive) {
+    bool ProfilesRepo::BatchDeleteProfiles(QList<int>& ids, bool stopRunningProfile, bool interactive, QList<HopReference>* clearedHops) {
         QSet<int> groupIDs;
-        if (ids.contains(dataManager->settingsRepo->started_id)) {
+        if (const int startedId = Engine::Lifecycle::ResumeTargetId(); ids.contains(startedId)) {
             if (stopRunningProfile) Engine::Lifecycle::StopRunningProfile(false, true, false, interactive);
-            else ids.removeAll(dataManager->settingsRepo->started_id);
+            else ids.removeAll(startedId);
         }
         if (ids.isEmpty()) return true;
         auto profiles = GetProfileBatch(ids);
@@ -448,6 +443,8 @@ namespace Configs {
             group->RemoveProfileBatch(ids);
             dataManager->groupsRepo->Save(group);
         }
+        auto cleared = dataManager->groupsRepo->ClearHopReferences(QSet<int>(existing.cbegin(), existing.cend()));
+        if (clearedHops != nullptr) *clearedHops = std::move(cleared);
         return true;
     }
 

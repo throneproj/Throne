@@ -5,7 +5,7 @@ import (
 	"errors"
 	"sync"
 
-	"ThroneCore/internal/boxbox"
+	"ThroneCore/internal/boxmain"
 	"ThroneCore/internal/process"
 	"ThroneCore/internal/xray"
 
@@ -19,17 +19,12 @@ var lifecycleMu sync.Mutex
 // Guards the instance pointers; never held across a Create/Start, so pollers do not block behind a profile start.
 var stateMu sync.RWMutex
 
-var boxInstance *boxbox.Box
+var boxInstance *boxmain.Box
 
 var instanceCancel context.CancelFunc
 
-// Exactly one is set while a profile runs: xrayInstance when eager, xrayGate when the profile asked it to stay cold.
-var xrayInstance *core.Instance
-
-var xrayGate *xray.Gate
-
-// One gate per opaque full config; never merged into the sidecar above.
-var xrayFullGates []*xray.Gate
+// Published before its sidecars start, so each one is visible as soon as it is up.
+var xrayStack *xray.Stack
 
 // Reached only from Start/Stop, i.e. always under lifecycleMu.
 var extraProcess *process.Process
@@ -40,56 +35,43 @@ var untrackDNSTunnels func()
 
 var errInstanceNotRunning = errors.New("Instance is not running")
 
-func currentBox() *boxbox.Box {
+func currentBox() *boxmain.Box {
 	stateMu.RLock()
 	defer stateMu.RUnlock()
 	return boxInstance
 }
 
-func currentInstance() (*boxbox.Box, context.CancelFunc) {
+func currentInstance() (*boxmain.Box, context.CancelFunc) {
 	stateMu.RLock()
 	defer stateMu.RUnlock()
 	return boxInstance, instanceCancel
 }
 
-func setBoxInstance(box *boxbox.Box, cancel context.CancelFunc, routeRules []option.Rule) {
+func setBoxInstance(box *boxmain.Box, cancel context.CancelFunc, routeRules []option.Rule) {
 	stateMu.Lock()
 	defer stateMu.Unlock()
 	boxInstance, instanceCancel = box, cancel
 	connRules.reset(box, routeRules)
 }
 
-func setXray(instance *core.Instance, gate *xray.Gate) {
+func setXrayStack(stack *xray.Stack) {
 	stateMu.Lock()
 	defer stateMu.Unlock()
-	xrayInstance, xrayGate = instance, gate
+	xrayStack = stack
 }
 
-func setXrayFullGates(gates []*xray.Gate) {
+// The slot is cleared before the close so no reader picks up a stack that is going away.
+func closeXray() {
 	stateMu.Lock()
-	defer stateMu.Unlock()
-	xrayFullGates = gates
+	stack := xrayStack
+	xrayStack = nil
+	stateMu.Unlock()
+	stack.Close()
 }
 
-// Shorter than the profile's config list: a gated instance is absent between activations.
 func liveXrayInstances() []*core.Instance {
 	stateMu.RLock()
-	instance, gate := xrayInstance, xrayGate
-	fullGates := xrayFullGates
+	stack := xrayStack
 	stateMu.RUnlock()
-
-	var instances []*core.Instance
-	if instance != nil {
-		instances = append(instances, instance)
-	} else if gate != nil {
-		if live := gate.Instance(); live != nil {
-			instances = append(instances, live)
-		}
-	}
-	for _, fullGate := range fullGates {
-		if live := fullGate.Instance(); live != nil {
-			instances = append(instances, live)
-		}
-	}
-	return instances
+	return stack.Instances()
 }

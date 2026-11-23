@@ -88,8 +88,6 @@ namespace API {
 
         libcore::QuerySpeedTestResponse QueryCurrentSpeedTests(bool *rpcOK);
 
-        libcore::QueryCountryTestResponse QueryCountryTestResults(bool *rpcOK);
-
         libcore::GenWgKeyPairResponse GenWgKeyPair(bool *rpcOK);
 
         libcore::WarpRegisterResponse WarpRegister(bool *rpcOK, const QString &tunnelType, const QString &proxy,
@@ -101,6 +99,18 @@ namespace API {
         QString InstallDashboard(bool *rpcOK, const QString &archivePath, const QString &targetDir) const;
 
         QString InstallTor(bool *rpcOK, const QString &archivePath, const QString &sha256) const;
+
+        // Empty document parses the core's embedded copy; a non-empty reply.error rejects the document.
+        libcore::ParseTorBridgesResponse ParseTorBridges(bool *rpcOK, const QByteArray &document, QString *coreError = nullptr) const;
+
+        // Blocks while the core asks the bridge service through its domain front.
+        libcore::TorMoatSettingsResponse TorMoatSettings(bool *rpcOK, const libcore::TorMoatSettingsRequest &request,
+                                                         QString *coreError = nullptr) const;
+
+        // Running instance only: every Tor outbound builds fresh circuits.
+        QString TorNewIdentity(bool *rpcOK) const;
+
+        [[nodiscard]] libcore::PsiphonRegionsResponse PsiphonRegions(bool *rpcOK) const;
 
         // Empty name = the OS has no default route.
         [[nodiscard]] libcore::GetDefaultInterfaceResponse GetDefaultInterface(bool *rpcOK) const;

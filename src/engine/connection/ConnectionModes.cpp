@@ -4,10 +4,12 @@
 #include "include/database/DatabaseManager.h"
 #include "include/database/GroupsRepo.h"
 #include "include/database/entities/Profile.h"
+#include "include/engine/EditLocks.h"
 #include "include/engine/EnginePolicy.h"
 #include "include/engine/EngineTr.h"
 #include "include/engine/ThreadCheck.h"
-#include "include/engine/supervisor/CoreSupervisor.h"
+#include "include/engine/connection/EngineState.h"
+#include "include/engine/connection/StartCoordinator.h"
 #include "include/global/Configs.hpp"
 #include "include/global/LocalNetwork.hpp"
 #include "include/global/Notice.hpp"
@@ -59,7 +61,7 @@ namespace Engine {
         }
         if (const auto blocker = connectionModesTunCapsBlocker(interactive); !blocker.isEmpty()) {
             MW_show_log(QStringLiteral("[Tun] The core cannot use Tun: %1").arg(blocker));
-            if (interactive && !m_options.headless) PostNotice({NoticeLevel::Warning, MainWindowTr::tr("Tun Mode"), blocker});
+            if (interactive && !m_options.headless) PostNotice({NoticeLevel::Warning, MainWindowTr::tr("Tun mode"), blocker});
             return false;
         }
         if (tunPrivileged()) return true;
@@ -146,8 +148,7 @@ namespace Engine {
         if (const auto running = runningSnapshot()) {
             applySystemProxy(enable);
             if (!enable && settings->reset_proxy_on_disable_sp && change.restart) {
-                start(StartRequest{running->id, change.interactive, change.restartSerial});
-                restarted = true;
+                restarted = m_coordinator->restart(running->id, change.interactive, change.restartSerial);
             }
         }
 
@@ -178,7 +179,7 @@ namespace Engine {
             if (const auto reason = tunBlockedReason(); !reason.isEmpty()) {
                 MW_show_log(QStringLiteral("[Tun] Not enabling Tun: %1").arg(reason));
                 // Headless has no notice sink, so a notice there would only repeat the line above.
-                if (!m_options.headless) PostNotice({NoticeLevel::Warning, MainWindowTr::tr("Tun Mode"), reason});
+                if (!m_options.headless) PostNotice({NoticeLevel::Warning, MainWindowTr::tr("Tun mode"), reason});
                 emit statusChanged();
                 return false;
             }
@@ -201,18 +202,22 @@ namespace Engine {
         settings->spmode_vpn = enable;
         emit statusChanged();
 
-        if (!change.restart || settings->started_id < 0) return false;
-        start(StartRequest{settings->started_id, change.interactive, change.restartSerial});
-        return true;
+        if (!change.restart) return false;
+        return m_coordinator->restartResumeTarget(change.interactive, change.restartSerial);
     }
 
     bool ConnectionManager::chooseRoute(int routeId, bool interactive, quint64 restartSerial) {
         ENGINE_CHECK_MAIN_THREAD();
         const auto &settings = Configs::dataManager->settingsRepo;
         if (settings->current_route_id == routeId) return false;
+        // The modeless editor writes current_route_id back on OK.
+        if (IsBeingEdited(EditTarget::Routes)) {
+            MW_show_log(MainWindowTr::tr("Close Routing Settings before switching the routing profile."));
+            return false;
+        }
         settings->current_route_id = routeId;
         settings->Save();
-        if (settings->started_id < 0) return false;
+        if (m_state->resumeTarget() < 0) return false;
         if (const auto running = runningSnapshot(); running != nullptr && Configs::RunningRouteId() >= 0 &&
                                                     Configs::RouteIdFor(running->gid) == Configs::RunningRouteId()) {
             const auto group = Configs::dataManager->groupsRepo->GetGroup(running->gid);
@@ -220,8 +225,7 @@ namespace Engine {
                             .arg(group != nullptr ? group->name : QString::number(running->gid)));
             return false;
         }
-        start(StartRequest{settings->started_id, interactive, restartSerial});
-        return true;
+        return m_coordinator->restartResumeTarget(interactive, restartSerial);
     }
 
     void ConnectionManager::attachKillSwitch() {
@@ -241,15 +245,7 @@ namespace Engine {
         emit statusChanged();
         if (!failed) policy()->killSwitchProblemResolved();
         if (enteredFailed) policy()->killSwitchProblem();
-        if (enteredArmed && !guardRestartPending() && m_coreSupervisor->runningWithoutGuardIdentity()) {
-            StartRequest request{Configs::dataManager->settingsRepo->started_id};
-            if (m_coreSupervisor->awaitingCoreStarted() && m_coreSupervisor->startWhenUp() >= 0) {
-                // The start waiting for the probing core has not run yet; the guard restart carries it over.
-                request = m_coreStartRequest.profileId >= 0 ? std::exchange(m_coreStartRequest, StartRequest{})
-                                                            : StartRequest{m_coreSupervisor->startWhenUp()};
-            }
-            restartCoreForGuard(request);
-        }
+        if (enteredArmed) m_coordinator->onGuardArmed();
     }
 
     void ConnectionManager::disableKillSwitch() {
@@ -258,41 +254,19 @@ namespace Engine {
         Sys::KillSwitch::instance()->apply();
     }
 
-    bool ConnectionManager::guardRestartPending() const {
-        return m_guardCoreRestart.isValid() && !m_guardCoreRestart.hasExpired(kGuardRestartWindowMs);
-    }
-
-    void ConnectionManager::restartCoreForGuard(const StartRequest &request) {
-        const bool haveCore = m_coreSupervisor->setStartWhenUp(request.profileId);
-        if (!haveCore) {
-            emit startFinished(request.serial, request.profileId, StartOutcome::CoreUnavailable, {});
-            return;
-        }
-        deferStartToCore(request);
-        if (guardRestartPending()) return;
-        m_guardCoreRestart.start();
-        MW_show_log(MainWindowTr::tr("[Kill switch] Restarting the core so that its own traffic passes the kill switch..."));
-        m_coreSupervisor->restartForGuard();
-    }
-
     void ConnectionManager::noteRestartNeeded(RestartReason reason) {
-        ENGINE_CHECK_MAIN_THREAD();
-        if (Configs::dataManager->settingsRepo->started_id < 0 || m_restartReasons.contains(reason)) return;
-        m_restartReasons << reason;
-        emit restartReasonsChanged();
+        m_coordinator->noteRestartNeeded(reason);
     }
 
     void ConnectionManager::clearRestartNeeded() {
-        if (m_restartReasons.isEmpty()) return;
-        m_restartReasons.clear();
-        emit restartReasonsChanged();
+        m_coordinator->clearRestartNeeded();
     }
 
     QList<RestartReason> ConnectionManager::restartReasons() const {
-        return m_restartReasons;
+        return m_coordinator->restartReasons();
     }
 
     bool ConnectionManager::restartPending() const {
-        return !m_restartReasons.isEmpty();
+        return m_coordinator->restartPending();
     }
 } // namespace Engine

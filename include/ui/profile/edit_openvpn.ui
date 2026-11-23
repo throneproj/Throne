@@ -62,7 +62,7 @@
       <item row="3" column="0">
        <widget class="QLabel" name="static_challenge_l">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Static challenge text shown by the server when it asks for a second authentication response. When a challenge is set and an OTP profile is bound, Throne sends the answer itself and no interactive prompt appears.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>The server's static challenge text; a bound OTP entry answers it.</string>
         </property>
         <property name="text">
          <string>Static Challenge</string>
@@ -117,7 +117,7 @@
       <item row="7" column="0" colspan="2">
        <widget class="QCheckBox" name="only_advertised_routes">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Traffic that falls through to this profile reaches the tunnel only when the destination is inside a subnet the VPN server advertises; anything else is blocked. Routing rules that name this profile explicitly are not affected and always win.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>Block traffic outside the subnets the VPN server advertises.</string>
         </property>
         <property name="text">
          <string>Only route advertised network</string>
@@ -130,7 +130,7 @@
       <item row="8" column="0">
        <widget class="QLabel" name="tunnel_dns_l">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;How DNS uses the resolvers the VPN server pushes when this profile is started.&lt;/p&gt;&lt;p&gt;None: ignore them. Use this if the server claims every domain and breaks public DNS.&lt;br/&gt;Prefer: resolve the names the server claims - its split-DNS suffixes and search domains - through them, and everything else as usual.&lt;br/&gt;Strict: also send every remote DNS query to them instead of the remote DNS server, and fail the lookups they cannot answer. Direct lookups are unchanged.&lt;/p&gt;&lt;p&gt;As an endpoint in a routing profile, Prefer and Strict both resolve only the names the server claims.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>How DNS uses the resolvers the VPN server pushes.</string>
         </property>
         <property name="text">
          <string>Tunnel DNS</string>
@@ -222,7 +222,7 @@
       <item>
        <widget class="QGroupBox" name="control_wrap_box">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;OpenVPN tls-auth / tls-crypt / tls-crypt-v2 control channel wrapping. Disabled when the type is empty.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>Control channel wrapping: tls-auth, tls-crypt or tls-crypt-v2. Empty: off.</string>
         </property>
         <property name="title">
          <string>Control Channel Wrap</string>
@@ -264,7 +264,7 @@
          <item row="2" column="0">
           <widget class="QLabel" name="control_wrap_direction_l">
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;tls-auth key direction. Only used when the type is tls_auth; the key is bidirectional when empty.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>tls-auth key direction. Empty: bidirectional.</string>
            </property>
            <property name="text">
             <string>Direction</string>

@@ -777,7 +777,6 @@ namespace Scanner {
             req.url = test.url.toStdString();
             req.max_concurrency = test.concurrency;
             req.test_timeout_ms = test.timeoutMs;
-            for (const auto &tag : build.vpnEndpointTags) req.vpn_endpoint_tags.push_back(tag.toStdString());
             request.test = std::move(req);
             request.warm_latency = test.warmLatency;
 
@@ -785,7 +784,7 @@ namespace Scanner {
             QString coreError;
             const auto response = API::defaultClient->ScanURLTest(
                 &ok, request, &coreError,
-                scanWorkerUrlTestTimeoutMs(build.build->outboundTags.size(), test, Configs::DnsTunnelStartupAllowanceMs(base_)));
+                scanWorkerUrlTestTimeoutMs(build.build->outboundTags.size(), test, Configs::StartupAllowanceMs(base_)));
             if (!ok) {
                 if (scanWorkerIsStopped(coreError)) stop_.store(true);
                 if (stop_) {
@@ -795,10 +794,6 @@ namespace Scanner {
                 return coreError.isEmpty() ? ScanManager::tr("The core did not answer the config test") : coreError;
             }
 
-            QSet<QString> tunnelsUp;
-            for (const auto &status : response.vpn_status) {
-                if (status.connected.value()) tunnelsUp.insert(scanWorkerText(status.tag.value()));
-            }
             QSet<int> reported;
             for (const auto &item : response.results) {
                 const auto tag = scanWorkerText(item.outbound_tag.value());
@@ -811,9 +806,6 @@ namespace Scanner {
                     addHit(result, candidate, configPort(candidate), item.latency_ms.value());
                 } else if (scanWorkerIsAborted(error)) {
                     result.aborted = true;
-                } else if (tunnelsUp.contains(tag)) {
-                    // The tunnel came up, so the server answers; only the probe URL failed behind it.
-                    addHit(result, candidate, configPort(candidate), 0);
                 } else {
                     result.failures << scanWorkerEntry(candidate.address, candidate.port, 0);
                 }

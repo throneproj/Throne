@@ -80,6 +80,15 @@ namespace Engine::ServiceChecks {
             return categories;
         }
 
+        QList<Check> serviceChecksChecks(const libcore::ParseServiceChecksResponse &parsed) {
+            QList<Check> checks;
+            for (const auto &check : parsed.checks) {
+                checks << Check{QString::fromStdString(check.id.value()), QString::fromStdString(check.name.value()),
+                                QString::fromStdString(check.category.value())};
+            }
+            return checks;
+        }
+
         // On a newer valid download, stores it and hands it back through cached, parsed and usable.
         void serviceChecksRefresh(QByteArray *cached, libcore::ParseServiceChecksResponse *parsed, bool *usable) {
             auto meta = serviceChecksReadMeta();
@@ -119,40 +128,57 @@ namespace Engine::ServiceChecks {
             *parsed = std::move(fresh);
             *usable = true;
         }
+
+        Definitions serviceChecksPick(bool refresh) {
+            Definitions defs;
+            bool ok = false;
+            QString coreError;
+            const auto embedded = API::defaultClient->ParseServiceChecks(&ok, {}, &coreError);
+            if (!ok) {
+                defs.error = coreError.isEmpty() ? QStringLiteral("IPC error") : coreError;
+                return defs;
+            }
+            if (!embedded.error.value().empty()) {
+                defs.error = QString::fromStdString(embedded.error.value());
+                return defs;
+            }
+
+            auto cached = serviceChecksReadCache();
+            libcore::ParseServiceChecksResponse parsed;
+            bool usable = false;
+            if (!cached.isEmpty()) {
+                bool cacheOK = false;
+                parsed = API::defaultClient->ParseServiceChecks(&cacheOK, cached);
+                usable = serviceChecksUsable(cacheOK, parsed);
+            }
+            if (refresh) serviceChecksRefresh(&cached, &parsed, &usable);
+
+            const bool useCache = usable && parsed.revision.value() > embedded.revision.value();
+            if (useCache) defs.text = cached;
+            const auto &picked = useCache ? parsed : embedded;
+            defs.categories = serviceChecksCategories(picked);
+            defs.checks = serviceChecksChecks(picked);
+            return defs;
+        }
     } // namespace
 
     Definitions Prepare() {
         QMutexLocker locker(&serviceChecksMutex);
-        Definitions defs;
-        bool ok = false;
-        QString coreError;
-        const auto embedded = API::defaultClient->ParseServiceChecks(&ok, {}, &coreError);
-        if (!ok) {
-            defs.error = coreError.isEmpty() ? QStringLiteral("IPC error") : coreError;
-            return defs;
-        }
-        if (!embedded.error.value().empty()) {
-            defs.error = QString::fromStdString(embedded.error.value());
-            return defs;
-        }
+        return serviceChecksPick(true);
+    }
 
-        auto cached = serviceChecksReadCache();
-        libcore::ParseServiceChecksResponse parsed;
-        bool usable = false;
-        if (!cached.isEmpty()) {
-            bool cacheOK = false;
-            parsed = API::defaultClient->ParseServiceChecks(&cacheOK, cached);
-            usable = serviceChecksUsable(cacheOK, parsed);
-        }
-        serviceChecksRefresh(&cached, &parsed, &usable);
+    // Unlocked: the refresh replaces the cache file atomically, and waiting out a download would stall the caller.
+    Definitions Current() {
+        return serviceChecksPick(false);
+    }
 
-        if (usable && parsed.revision.value() > embedded.revision.value()) {
-            defs.text = cached;
-            defs.categories = serviceChecksCategories(parsed);
-        } else {
-            defs.categories = serviceChecksCategories(embedded);
+    QStringList Enabled(const Definitions &definitions) {
+        const auto disabled = Configs::dataManager->settingsRepo->service_check_disabled;
+        QStringList ids;
+        for (const auto &check : definitions.checks) {
+            if (!disabled.contains(check.id)) ids << check.id;
         }
-        return defs;
+        return ids;
     }
 
     QString ResultJson(const libcore::ServiceTestResult &result, const QList<Category> &categories, qint64 checkedAt) {

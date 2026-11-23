@@ -68,7 +68,7 @@
       <item row="3" column="0">
        <widget class="QLabel" name="auth_group_l">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Preselects a matching group, realm, domain or gateway choice when the flavor supports it.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>Group, realm, domain or gateway to preselect at login.</string>
         </property>
         <property name="text">
          <string>Auth Group</string>
@@ -84,7 +84,7 @@
       <item row="4" column="0">
        <widget class="QLabel" name="server_path_l">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Path part of the server URL, appended to the address above. Load-bearing on gp, f5 and fortinet portals.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>Path appended to the server address; matters on gp, f5 and fortinet.</string>
         </property>
         <property name="text">
          <string>Server Path</string>
@@ -104,7 +104,7 @@
       <item row="5" column="0">
        <widget class="QLabel" name="mtu_l">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Preferred tunnel MTU. Values below 576 are treated as 576; the maximum is 65535.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>Preferred tunnel MTU, from 576 to 65535.</string>
         </property>
         <property name="text">
          <string>MTU</string>
@@ -133,7 +133,7 @@
       <item row="7" column="0" colspan="2">
        <widget class="QCheckBox" name="only_advertised_routes">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Traffic that falls through to this profile reaches the tunnel only when the destination is inside a subnet the VPN server advertises; anything else is blocked. Routing rules that name this profile explicitly are not affected and always win.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>Block traffic outside the subnets the VPN server advertises.</string>
         </property>
         <property name="text">
          <string>Only route advertised network</string>
@@ -146,7 +146,7 @@
       <item row="8" column="0">
        <widget class="QLabel" name="tunnel_dns_l">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;How DNS uses the resolvers the VPN server pushes when this profile is started.&lt;/p&gt;&lt;p&gt;None: ignore them. Use this if the server claims every domain and breaks public DNS.&lt;br/&gt;Prefer: resolve the names the server claims - its split-DNS suffixes and search domains - through them, and everything else as usual.&lt;br/&gt;Strict: also send every remote DNS query to them instead of the remote DNS server, and fail the lookups they cannot answer. Direct lookups are unchanged.&lt;/p&gt;&lt;p&gt;As an endpoint in a routing profile, Prefer and Strict both resolve only the names the server claims.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>How DNS uses the resolvers the VPN server pushes.</string>
         </property>
         <property name="text">
          <string>Tunnel DNS</string>
@@ -181,7 +181,7 @@
          <item row="0" column="0" colspan="2">
           <widget class="QCheckBox" name="insecure">
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Disables verification of the server certificate and hostname. This lets an active attacker impersonate the VPN server; prefer a CA certificate or a peer fingerprint.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>Skip server certificate and hostname checks (unsafe).</string>
            </property>
            <property name="text">
             <string>Allow insecure</string>
@@ -191,7 +191,7 @@
          <item row="1" column="0">
           <widget class="QLabel" name="tls_server_name_l">
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Server name used for TLS SNI and certificate hostname verification. The hostname from the address is used when empty.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>Name for SNI and certificate checks. Empty: the address's hostname.</string>
            </property>
            <property name="text">
             <string>Server Name</string>
@@ -207,7 +207,7 @@
          <item row="2" column="0">
           <widget class="QLabel" name="certificate_authority_l">
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Additional trusted CA certificate content in PEM format, added to the system certificate pool.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>Extra trusted CA certificate in PEM, added to the system pool.</string>
            </property>
            <property name="text">
             <string>CA Certificate</string>

@@ -24,9 +24,9 @@ namespace Engine {
                         .arg(contextName, needed, whichFile));
     }
 
-    bool HeadlessPolicy::confirmGeoAssetDownload(const QString &contextName) {
+    void HeadlessPolicy::confirmGeoAssetDownload(const QString &contextName, std::function<void(bool)> answered) {
         MW_show_log(QStringLiteral("[Geo assets] Downloading geoip.dat / geosite.dat for the Xray config \"%1\".").arg(contextName));
-        return true;
+        answered(true);
     }
 
     void HeadlessPolicy::geoAssetDownloadFinished(const QString &error) {
@@ -35,6 +35,11 @@ namespace Engine {
         } else {
             MW_show_log(QStringLiteral("[Geo assets] Download failed: %1").arg(error.trimmed()));
         }
+    }
+
+    void HeadlessPolicy::confirmTorDownload(const QString &profileName, std::function<void(bool)> answered) {
+        MW_show_log(QStringLiteral("[Tor] Downloading Tor for the profile \"%1\"; it starts again once Tor is installed.").arg(profileName));
+        answered(true);
     }
 
     void HeadlessPolicy::killSwitchProblem() {
@@ -69,17 +74,17 @@ namespace Engine {
     }
 
     void HeadlessPolicy::strictRouteUnavailable(const QString &error) {
-        MW_show_log(QStringLiteral("Windows could not enable strict routing; disable Strict Route in the Tun settings. Error: %1").arg(error));
+        MW_show_log(QStringLiteral("Windows could not enable strict routing; disable Strict route in the Tun Settings. Error: %1").arg(error));
     }
 
-    bool HeadlessPolicy::offerCoreReset(const QString &error) {
+    void HeadlessPolicy::offerCoreReset(const QString &error, std::function<void(bool)> answered) {
         MW_show_log(QStringLiteral("Tun did not come up, the core is left running: %1").arg(error));
-        return false;
+        answered(false);
     }
 
-    bool HeadlessPolicy::offerLeftoverTunAdapterRetry(const QString &error) {
+    void HeadlessPolicy::offerLeftoverTunAdapterRetry(const QString &error, std::function<void(bool)> answered) {
         MW_show_log(QStringLiteral("Windows still held the Tun adapter of an earlier session; start the profile again: %1").arg(error));
-        return false;
+        answered(false);
     }
 
     void HeadlessPolicy::stopFailed(const QString &error) {
@@ -135,10 +140,16 @@ namespace Engine {
                         .arg(Stats::VpnEndpointDisplayName(challenge.endpointTag), QString::number(profileId)));
     }
 
+    void HeadlessPolicy::offerVpnSignInRestart(const QString &endpointName, const QString &,
+                                               std::function<void(bool restart)> answered) {
+        MW_show_log(QStringLiteral("[VPN] %1: restart the profile to sign it in again (status: vpn_auth_failed).").arg(endpointName));
+        answered(false);
+    }
+
     void HeadlessPolicy::vpnChallengesCleared() {}
 
     void HeadlessPolicy::settingsNeedTunRestart() {
-        MW_show_log(QStringLiteral("Tun settings changed; they take effect when Tun restarts."));
+        MW_show_log(QStringLiteral("Tun Settings changed; they take effect when Tun restarts."));
     }
 
     bool HeadlessPolicy::confirmRestartProgram() {

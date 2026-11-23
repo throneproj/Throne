@@ -25,9 +25,15 @@
 #include <QLabel>
 #include <QRegularExpression>
 #include <QDialogButtonBox>
+#include <QApplication>
+#include <QButtonGroup>
+#include <QImage>
+#include <QPainter>
+#include <QStyledItemDelegate>
 
 #include <algorithm>
 #include <climits>
+#include <cmath>
 
 #include "include/configs/generate.h"
 #include "include/configs/sub/warp.h"
@@ -36,9 +42,15 @@
 #include "include/database/GroupsRepo.h"
 #include "include/database/RoutesRepo.h"
 #include "include/engine/services/AssetUpdates.h"
+#include "include/engine/services/ImportService.h"
+#include "include/engine/services/RouteService.h"
+#include "include/engine/services/SettingsService.h"
+#include "include/ui/mainwindow.h"
+#include "include/ui/profile/edit_psiphon.h"
+#include "include/ui/profile/edit_tor.h"
 #include "include/ui/setting/RawRouteItem.h"
 #include "include/ui/setting/RouteDnsEditor.h"
-#include "include/ui/utils/UiMode.h"
+#include "include/ui/setting/ThemeManager.hpp"
 
 namespace {
     constexpr auto defaultWarpApiHost = "api.cloudflareclient.com";
@@ -75,6 +87,24 @@ namespace {
     // Shown before import: those servers would see every query made while the profile is in use.
     QString manageRoutesDnsNote(const Configs::RouteDns &dns) {
         return DialogManageRoutes::tr("It uses its own DNS servers: remote %1, direct %2.").arg(dns.remote_dns, dns.direct_dns);
+    }
+
+    // ProfilesRepo::AddProfile files them under the group the main window shows.
+    QString manageRoutesEndpointsNote(int count) {
+        const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
+        return DialogManageRoutes::tr("Its endpoints will be added as %n new profile(s) to the group \"%1\".", nullptr, count)
+            .arg(group != nullptr ? group->name : QString());
+    }
+
+    bool manageRoutesEndpointTargetAccepted(const QString &title) {
+        const auto refusal = Engine::ImportService::CheckTarget(Configs::dataManager->settingsRepo->current_group);
+        if (refusal) MessageBoxWarning(title, ImportTargetRefusalText(*refusal));
+        return !refusal;
+    }
+
+    // FromShareInput adds the endpoint profiles through ProfilesRepo itself, so no ProfilesChanged refreshes the main window's list.
+    void manageRoutesRefreshProxyList() {
+        if (auto *window = GetMainWindow()) window->refresh_proxy_list({}, true);
     }
 
     // dns-local resolves the other servers' names, so it cannot depend on one itself.
@@ -177,8 +207,13 @@ namespace {
 
         QObject::connect(buttons, &QDialogButtonBox::accepted, w, [=] {
             if (!popupForm->validateAll()) return;
-            Configs::dataManager->settingsRepo->warp_api_hosts = normalizeWarpApiHosts(tEdit->toPlainText());
-            Configs::dataManager->settingsRepo->Save();
+            const auto hosts = normalizeWarpApiHosts(tEdit->toPlainText());
+            const auto error = Engine::SettingsService::Update([&hosts](Configs::SettingsValues &values) { values.warp_api_hosts = hosts; },
+                                                               {.interactive = true});
+            if (error) {
+                MessageBoxWarning(w->windowTitle(), SettingsApplyErrorText(*error));
+                return;
+            }
             w->accept();
         });
         QObject::connect(buttons, &QDialogButtonBox::rejected, w, &QDialog::reject);
@@ -229,10 +264,15 @@ namespace {
 
         QObject::connect(buttons, &QDialogButtonBox::accepted, w, [=] {
             if (!popupForm->validateAll()) return;
-            settings->warp_api_tls_fragment = fragment->isChecked();
-            settings->warp_api_tls_record_fragment = recordFragment->isChecked();
-            settings->warp_api_tls_fragment_fallback_delay = fallbackDelay->text().trimmed();
-            settings->Save();
+            const auto error = Engine::SettingsService::Update([=](Configs::SettingsValues &values) {
+                values.warp_api_tls_fragment = fragment->isChecked();
+                values.warp_api_tls_record_fragment = recordFragment->isChecked();
+                values.warp_api_tls_fragment_fallback_delay = fallbackDelay->text().trimmed();
+            }, {.interactive = true});
+            if (error) {
+                MessageBoxWarning(w->windowTitle(), SettingsApplyErrorText(*error));
+                return;
+            }
             w->accept();
         });
         QObject::connect(buttons, &QDialogButtonBox::rejected, w, &QDialog::reject);
@@ -241,6 +281,79 @@ namespace {
         w->exec();
         w->deleteLater();
     }
+
+    QColor manageRoutesMix(const QColor &top, const QColor &bottom, const float amount) {
+        return QColor::fromRgbF(top.redF() * amount + bottom.redF() * (1 - amount), top.greenF() * amount + bottom.greenF() * (1 - amount),
+                                top.blueF() * amount + bottom.blueF() * (1 - amount));
+    }
+
+    // What the mark sits on, as the style paints the row over the list's base: a selected row may be filled with the accent itself.
+    QColor manageRoutesBackdrop(const QStyleOptionViewItem &item, const QPoint &at, const QStyle *style, const QWidget *widget) {
+        QStyleOptionViewItem row(item);
+        row.state &= ~QStyle::State_HasFocus;
+        row.styleObject = nullptr;
+        QImage sample(1, 1, QImage::Format_ARGB32_Premultiplied);
+        sample.fill(item.palette.color(QPalette::Base));
+        QPainter painter(&sample);
+        painter.translate(-at.x(), -at.y());
+        style->drawControl(QStyle::CE_ItemViewItem, &row, &painter, widget);
+        painter.end();
+        return sample.pixelColor(0, 0);
+    }
+
+    // Only one profile is in use, so its mark is a radio: a solid accent disc, or a muted ring.
+    // Drawn where the style puts the check box, which keeps the stock hit area, Space toggling and the text's place.
+    class ManageRoutesRadioDelegate : public QStyledItemDelegate {
+    public:
+        using QStyledItemDelegate::QStyledItemDelegate;
+
+        void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override {
+            QStyleOptionViewItem item(option);
+            initStyleOption(&item, index);
+            if (!(item.features & QStyleOptionViewItem::HasCheckIndicator) || (item.features & QStyleOptionViewItem::HasDecoration)) {
+                QStyledItemDelegate::paint(painter, option, index);
+                return;
+            }
+            const QWidget *widget = item.widget;
+            QStyle *style = widget != nullptr ? widget->style() : QApplication::style();
+            const QSize indicator(style->pixelMetric(QStyle::PM_IndicatorWidth, &item, widget), style->pixelMetric(QStyle::PM_IndicatorHeight, &item, widget));
+            const int side = qMin(indicator.width(), indicator.height());
+            // Centred on the check box's own rect: that is where a click toggles.
+            const QRect box = QStyle::alignedRect(item.direction, Qt::AlignCenter, QSize(side, side),
+                                                  style->subElementRect(QStyle::SE_ItemViewItemCheckIndicator, &item, widget));
+            const bool checked = item.checkState == Qt::Checked;
+            item.features &= ~QStyleOptionViewItem::HasCheckIndicator;
+            item.features |= QStyleOptionViewItem::HasDecoration;
+            item.decorationSize = indicator;
+            item.icon = QIcon();
+            style->drawControl(QStyle::CE_ItemViewItem, &item, painter, widget);
+
+            const QColor backdrop = manageRoutesBackdrop(item, box.center(), style, widget);
+            const auto &tokens = themeManager()->tokens;
+            const QColor surface = tokens.surface.isValid() ? tokens.surface : item.palette.color(QPalette::Base);
+            const QColor onSurface = tokens.onSurface.isValid() ? tokens.onSurface : item.palette.color(QPalette::Text);
+            const QColor accent = tokens.accent.isValid() ? tokens.accent : item.palette.color(QPalette::Highlight);
+
+            // Edges and stroke on whole device pixels keep the circle crisp at fractional scales.
+            const qreal ratio = painter->device() != nullptr ? painter->device()->devicePixelRatioF() : 1.0;
+            const auto snap = [ratio](const qreal at) { return std::round(at * ratio) / ratio; };
+            const QRectF circle(QPointF(snap(box.left()), snap(box.top())), QPointF(snap(box.left() + side), snap(box.top() + side)));
+            painter->save();
+            painter->setRenderHint(QPainter::Antialiasing);
+            if (!(item.state & QStyle::State_Enabled)) painter->setOpacity(0.4);
+            if (checked) {
+                painter->setPen(Qt::NoPen);
+                painter->setBrush(ContrastSeparated(accent, backdrop, 3.0));
+                painter->drawEllipse(circle);
+            } else {
+                const qreal stroke = qMax(1.0, std::round(1.2 * ratio)) / ratio;
+                painter->setPen(QPen(ContrastSeparated(manageRoutesMix(onSurface, surface, 0.55f), backdrop, 3.0), stroke));
+                painter->setBrush(Qt::NoBrush);
+                painter->drawEllipse(circle.adjusted(stroke / 2, stroke / 2, -stroke / 2, -stroke / 2));
+            }
+            painter->restore();
+        }
+    };
 }
 
 void DialogManageRoutes::reloadProfileItems() {
@@ -249,36 +362,37 @@ void DialogManageRoutes::reloadProfileItems() {
         return;
     }
 
-    QSignalBlocker blocker = QSignalBlocker(ui->route_prof); // currentIndexChanged during clear() crashes us
-    ui->route_prof->clear();
-
+    if (!chainList.contains(currentRoute)) currentRoute = chainList[0];
+    // Or itemChanged would see the half-built list.
+    const QSignalBlocker blocker(ui->route_profiles);
     ui->route_profiles->clear();
-    bool selectedChainGone = true;
-    int i=0;
     for (const auto &item: chainList) {
-        ui->route_prof->addItem(item->name);
+        QListWidgetItem *row = nullptr;
         if (const auto owner = Configs::dataManager->groupsRepo->GetGroup(item->source_gid); owner != nullptr && owner->import_sub_route) {
-            auto *row = new QListWidgetItem(tr("%1 (updated by subscription \"%2\")").arg(item->name, owner->name), ui->route_profiles);
-            row->setToolTip(tr("Every update of the subscription \"%1\" overwrites its rules. Deleting it stops the import.").arg(owner->name));
+            row = new QListWidgetItem(tr("%1 (updated by subscription \"%2\")").arg(item->name, owner->name), ui->route_profiles);
+            row->setToolTip(tr("Each update of \"%1\" overwrites this profile's rules.").arg(owner->name));
         } else {
-            ui->route_profiles->addItem(item->name);
+            row = new QListWidgetItem(item->name, ui->route_profiles);
         }
-        if (item == currentRoute) {
-            ui->route_prof->setCurrentIndex(i);
-            selectedChainGone=false;
-        }
-        i++;
+        row->setFlags(row->flags() | Qt::ItemIsUserCheckable);
+        row->setCheckState(item == currentRoute ? Qt::Checked : Qt::Unchecked);
     }
-    if (selectedChainGone) {
-        currentRoute=chainList[0];
-        ui->route_prof->setCurrentIndex(0);
+}
+
+// The checked profile is the one in use, so checking another moves the mark and unchecking it puts it back.
+void DialogManageRoutes::syncRouteChecks(QListWidgetItem *changed) {
+    const int row = ui->route_profiles->row(changed);
+    if (row < 0 || row >= chainList.size()) return;
+    if (changed->checkState() == Qt::Checked) currentRoute = chainList[row];
+    const QSignalBlocker blocker(ui->route_profiles);
+    for (int i = 0; i < ui->route_profiles->count() && i < chainList.size(); ++i) {
+        ui->route_profiles->item(i)->setCheckState(chainList[i] == currentRoute ? Qt::Checked : Qt::Unchecked);
     }
-    blocker.unblock();
 }
 
 void DialogManageRoutes::show_predefined_dns_editor() {
     auto w = new QDialog(this);
-    w->setWindowTitle(tr("Predefined DNS Answers"));
+    w->setWindowTitle(tr("Predefined Answers"));
     w->setWindowModality(Qt::ApplicationModal);
 
     auto layout = new QGridLayout(w);
@@ -340,10 +454,8 @@ void DialogManageRoutes::show_dns_advanced_editor() {
     queryTimeout->setPlaceholderText(tr("10s (default)"));
     layout->addRow(tr("Query Timeout"), queryTimeout);
 
-    auto optimistic = new QCheckBox(tr("Optimistic Cache"), w);
-    optimistic->setToolTip(tr("<html><head/><body><p>Keep serving an expired answer while it is "
-                              "refreshed in the background. Cannot be combined with Disable Cache "
-                              "or Disable Expire.</p></body></html>"));
+    auto optimistic = new QCheckBox(tr("Optimistic cache"), w);
+    optimistic->setToolTip(tr("Serve expired answers while refreshing them in the background."));
     optimistic->setChecked(dns_advanced.optimistic);
     layout->addRow(optimistic);
 
@@ -351,21 +463,20 @@ void DialogManageRoutes::show_dns_advanced_editor() {
     optimisticTimeout->setPlaceholderText(tr("3d (default)"));
     layout->addRow(tr("Optimistic Timeout"), optimisticTimeout);
 
-    auto disableCache = new QCheckBox(tr("Disable Cache"), w);
+    auto disableCache = new QCheckBox(tr("Disable cache"), w);
     disableCache->setChecked(dns_advanced.disable_cache);
     layout->addRow(disableCache);
 
-    auto disableExpire = new QCheckBox(tr("Disable Expire"), w);
+    auto disableExpire = new QCheckBox(tr("Disable expire"), w);
     disableExpire->setChecked(dns_advanced.disable_expire);
     layout->addRow(disableExpire);
 
-    auto persistCache = new QCheckBox(tr("Save Cache To File"), w);
-    persistCache->setToolTip(tr("<html><head/><body><p>Write cached DNS answers and FakeIP mappings to the core's cache "
-                                "file so they survive a restart. Off by default: each entry costs a disk write.</p></body></html>"));
+    auto persistCache = new QCheckBox(tr("Save cache to file"), w);
+    persistCache->setToolTip(tr("Keep cached DNS answers and FakeIP mappings across restarts."));
     persistCache->setChecked(dns_advanced.persist_cache);
     layout->addRow(persistCache);
 
-    auto reverseMapping = new QCheckBox(tr("Reverse Mapping"), w);
+    auto reverseMapping = new QCheckBox(tr("Reverse mapping"), w);
     reverseMapping->setChecked(dns_advanced.reverse_mapping);
     layout->addRow(reverseMapping);
 
@@ -471,6 +582,7 @@ void DialogManageRoutes::show_dns_object_editor() {
 }
 
 DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(new Ui::DialogManageRoutes) {
+    snapshot_ = *Configs::dataManager->settingsRepo;
     ui->setupUi(this);
     form = new Validation::Form(this);
     form->attachStatus(ui->buttonBox);
@@ -480,34 +592,34 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     }
     if (chainList.empty()) {
         auto defaultChain = Configs::RouteProfile::GetDefaultChain();
-        Configs::dataManager->routesRepo->AddRouteProfile(defaultChain);
+        if (const auto error = Engine::RouteService::Add(defaultChain)) MW_show_log(error->message);
         chainList.append(defaultChain);
     }
-    currentRoute = Configs::dataManager->routesRepo->GetRouteProfile(Configs::dataManager->settingsRepo->current_route_id);
+    currentRoute = Configs::dataManager->routesRepo->GetRouteProfile(snapshot_.current_route_id);
     if (currentRoute == nullptr) currentRoute = chainList[0];
 
     // Both strategy pickers must stay on one shared item order.
     ui->default_domain_strategy->addItems(Configs::DomainStrategy::DomainStrategy);
     ui->domainStrategyCombo->addItems(Configs::DomainStrategy::DomainStrategy);
-    ui->local_override->setText(Configs::dataManager->settingsRepo->core_box_underlying_dns);
-    ui->enable_fakeip->setChecked(Configs::dataManager->settingsRepo->fake_dns);
-    ui->fakeip_disable_ipv6->setChecked(Configs::dataManager->settingsRepo->fakeip_disable_ipv6);
-    ui->fakeip_disable_ipv6->setEnabled(Configs::dataManager->settingsRepo->fake_dns);
+    ui->local_override->setText(snapshot_.core_box_underlying_dns);
+    ui->enable_fakeip->setChecked(snapshot_.fake_dns);
+    S_LOAD_BOOL(fakeip_disable_ipv6)
+    ui->fakeip_disable_ipv6->setEnabled(snapshot_.fake_dns);
     connect(ui->enable_fakeip, &QCheckBox::toggled, ui->fakeip_disable_ipv6, &QCheckBox::setEnabled);
 
     dns_advanced = {
-        Configs::dataManager->settingsRepo->dns_cache_capacity,
-        Configs::dataManager->settingsRepo->dns_disable_cache,
-        Configs::dataManager->settingsRepo->dns_disable_expire,
-        Configs::dataManager->settingsRepo->dns_persist_cache,
-        Configs::dataManager->settingsRepo->dns_reverse_mapping,
-        Configs::dataManager->settingsRepo->dns_optimistic,
-        Configs::dataManager->settingsRepo->dns_optimistic_timeout,
-        Configs::dataManager->settingsRepo->dns_query_timeout,
+        snapshot_.dns_cache_capacity,
+        snapshot_.dns_disable_cache,
+        snapshot_.dns_disable_expire,
+        snapshot_.dns_persist_cache,
+        snapshot_.dns_reverse_mapping,
+        snapshot_.dns_optimistic,
+        snapshot_.dns_optimistic_timeout,
+        snapshot_.dns_query_timeout,
     };
     connect(ui->dns_advanced, &QPushButton::clicked, this, &DialogManageRoutes::show_dns_advanced_editor);
 
-    dns_object_text = Configs::dataManager->settingsRepo->dns_object;
+    dns_object_text = snapshot_.dns_object;
     connect(ui->dns_object_edit, &QPushButton::clicked, this, &DialogManageRoutes::show_dns_object_editor);
     connect(ui->use_dns_object, &QCheckBox::stateChanged, this, [=,this](int state) {
         auto useDNSObject = state == Qt::Checked;
@@ -517,30 +629,39 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
         ui->dns_object_edit->setDisabled(!useDNSObject);
     });
     ui->use_dns_object->stateChanged(Qt::Unchecked);
-    ui->ruleset_mirror->setCurrentIndex(Configs::dataManager->settingsRepo->ruleset_mirror);
-    D_LOAD_INT_ENABLE(route_auto_update, route_auto_update_enable)
-    ui->default_domain_strategy->setCurrentText(Configs::dataManager->settingsRepo->default_domain_strategy);
-    ui->domainStrategyCombo->setCurrentText(Configs::dataManager->settingsRepo->resolve_domain_strategy);
-    ui->use_dns_object->setChecked(Configs::dataManager->settingsRepo->use_dns_object);
-    DnsServerHistory::Fill(ui->remote_dns, Configs::dataManager->settingsRepo->remote_dns_history,
-                           DnsServerHistory::RemotePresets(), Configs::dataManager->settingsRepo->remote_dns);
-    ui->remote_dns_disable_ipv6->setChecked(Configs::dataManager->settingsRepo->remote_dns_disable_ipv6);
-    DnsServerHistory::Fill(ui->direct_dns, Configs::dataManager->settingsRepo->direct_dns_history,
-                           DnsServerHistory::DirectPresets(), Configs::dataManager->settingsRepo->direct_dns);
-    ui->direct_dns_disable_ipv6->setChecked(Configs::dataManager->settingsRepo->direct_dns_disable_ipv6);
-    ui->dns_final_out->setCurrentText(Configs::dataManager->settingsRepo->dns_final_out);
-    ui->enable_dns_routing->setChecked(Configs::dataManager->settingsRepo->enable_dns_routing);
-    ui->respect_hosts->setChecked(Configs::dataManager->settingsRepo->dns_use_hosts);
-    predefined_dns_enabled = Configs::dataManager->settingsRepo->dns_predefined_enable;
-    predefined_dns_text = Configs::dataManager->settingsRepo->dns_predefined_rules.join("\n");
+    ui->ruleset_mirror->setCurrentIndex(snapshot_.ruleset_mirror);
+    S_LOAD_INT_ENABLE(route_auto_update, route_auto_update_enable)
+    S_LOAD_COMBO_STRING(default_domain_strategy)
+    ui->domainStrategyCombo->setCurrentText(snapshot_.resolve_domain_strategy);
+    S_LOAD_BOOL(use_dns_object)
+    ui->remote_dns->setPresets(DnsServerHistory::RemotePresets());
+    ui->remote_dns->setRecent(snapshot_.remote_dns_history);
+    ui->remote_dns->setServers(snapshot_.remote_dns);
+    S_LOAD_BOOL(remote_dns_disable_ipv6)
+    ui->direct_dns->setPresets(DnsServerHistory::DirectPresets());
+    ui->direct_dns->setRecent(snapshot_.direct_dns_history);
+    ui->direct_dns->setPrimaryNote(true);
+    ui->direct_dns->setServers(snapshot_.direct_dns);
+    S_LOAD_BOOL(direct_dns_disable_ipv6)
+    // A top-aligned label beside a tall field: 7/4 of its own height centers its text on the first row.
+    for (auto *label : {ui->label_9, ui->label_8}) {
+        label->ensurePolished();
+        label->setMinimumHeight(label->sizeHint().height() * 7 / 4);
+    }
+    S_LOAD_COMBO_STRING(dns_final_out)
+    S_LOAD_BOOL(enable_dns_routing)
+    ui->respect_hosts->setChecked(snapshot_.dns_use_hosts);
+    predefined_dns_enabled = snapshot_.dns_predefined_enable;
+    predefined_dns_text = snapshot_.dns_predefined_rules.join("\n");
     connect(ui->predefined_dns, &QPushButton::clicked, this, &DialogManageRoutes::show_predefined_dns_editor);
+    ui->route_profiles->setItemDelegate(new ManageRoutesRadioDelegate(ui->route_profiles));
     reloadProfileItems();
 
     connect(ui->route_profiles, &QListWidget::itemDoubleClicked, this, [=,this](const QListWidgetItem* item){
         on_edit_route_clicked();
     });
 
-    connect(ui->route_prof, &QComboBox::currentIndexChanged, this, &DialogManageRoutes::updateCurrentRouteProfile);
+    connect(ui->route_profiles, &QListWidget::itemChanged, this, &DialogManageRoutes::syncRouteChecks);
 
     deleteShortcut = new QShortcut(QKeySequence(Qt::Key_Delete), this);
 
@@ -561,29 +682,32 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
         on_import_route_clicked();
     });
 
-    if (Configs::dataManager->settingsRepo->enable_tor) ui->enable_tor->setChecked(true);
-    else if (Configs::dataManager->settingsRepo->enable_warp) ui->enable_warp->setChecked(true);
-    else ui->exit_server->setChecked(true);
+    exitButtons = new QButtonGroup(this);
+    exitButtons->addButton(ui->exit_server, static_cast<int>(Configs::ExitThrough::Server));
+    exitButtons->addButton(ui->exit_warp, static_cast<int>(Configs::ExitThrough::Warp));
+    exitButtons->addButton(ui->exit_tor, static_cast<int>(Configs::ExitThrough::Tor));
+    exitButtons->addButton(ui->exit_psiphon, static_cast<int>(Configs::ExitThrough::Psiphon));
+    if (auto *current = exitButtons->button(static_cast<int>(Configs::ExitOf(snapshot_.exit_through)))) current->setChecked(true);
     // Lines each hint up with its radio button's text.
     const int hintIndent = style()->pixelMetric(QStyle::PM_ExclusiveIndicatorWidth, nullptr, ui->exit_server)
                          + style()->pixelMetric(QStyle::PM_RadioButtonLabelSpacing, nullptr, ui->exit_server);
-    for (auto *hint : {ui->exit_server_hint, ui->enable_warp_hint, ui->tor_status}) hint->setIndent(hintIndent);
-    ui->warp_mode->setCurrentIndex(Configs::dataManager->settingsRepo->warp_mode == "masque" ? 1 : Configs::dataManager->settingsRepo->warp_mode == "amnezia" ? 2 : 0);
-    ui->warp_private_key->setText(Configs::dataManager->settingsRepo->warp_private_key);
-    ui->warp_public_key->setText(Configs::dataManager->settingsRepo->warp_public_key);
-    ui->warp_ifc_addrs->setText(Configs::dataManager->settingsRepo->warp_ifc_addrs.join(","));
-    ui->warp_ep->setText(Configs::dataManager->settingsRepo->warp_ep);
-    ui->warp_reserved->setText(Configs::dataManager->settingsRepo->warp_reserved.join(","));
-    ui->warp_masque_ep->setText(Configs::dataManager->settingsRepo->warp_masque_ep);
-    ui->warp_masque_private_key->setText(Configs::dataManager->settingsRepo->warp_masque_private_key);
-    ui->warp_masque_peer_public_key->setText(Configs::dataManager->settingsRepo->warp_masque_peer_public_key);
-    ui->warp_masque_ifc_addrs->setText(Configs::dataManager->settingsRepo->warp_masque_ifc_addrs.join(","));
-    ui->warp_masque_sni->setText(Configs::dataManager->settingsRepo->warp_masque_sni);
-    ui->warp_masque_http_mode->setCurrentIndex(std::clamp(Configs::dataManager->settingsRepo->warp_masque_http_mode, 0, 2));
-    warpAmneziaPackets = Configs::dataManager->settingsRepo->warp_amnezia_packets;
+    for (auto *hint : {ui->exit_server_hint, ui->exit_warp_hint, ui->tor_status, ui->exit_psiphon_hint}) hint->setIndent(hintIndent);
+    ui->warp_mode->setCurrentIndex(snapshot_.warp_mode == "masque" ? 1 : snapshot_.warp_mode == "amnezia" ? 2 : 0);
+    S_LOAD_STRING(warp_private_key)
+    S_LOAD_STRING(warp_public_key)
+    ui->warp_ifc_addrs->setText(snapshot_.warp_ifc_addrs.join(","));
+    S_LOAD_STRING(warp_ep)
+    ui->warp_reserved->setText(snapshot_.warp_reserved.join(","));
+    S_LOAD_STRING(warp_masque_ep)
+    S_LOAD_STRING(warp_masque_private_key)
+    S_LOAD_STRING(warp_masque_peer_public_key)
+    ui->warp_masque_ifc_addrs->setText(snapshot_.warp_masque_ifc_addrs.join(","));
+    S_LOAD_STRING(warp_masque_sni)
+    ui->warp_masque_http_mode->setCurrentIndex(std::clamp(snapshot_.warp_masque_http_mode, 0, 2));
+    warpAmneziaPackets = snapshot_.warp_amnezia_packets;
     auto showWarpMode = [this](int index) {
-        UiMode::SetVisible(ui->warp_wg_box, index != 1);
-        UiMode::SetVisible(ui->warp_masque_box, index == 1);
+        ui->warp_wg_box->setVisible(index != 1);
+        ui->warp_masque_box->setVisible(index == 1);
         if (index == 2 && warpAmneziaPackets.isEmpty()) generate_amnezia_packets();
     };
     showWarpMode(ui->warp_mode->currentIndex());
@@ -592,21 +716,27 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     connect(ui->warp_api_hosts_btn, &QPushButton::clicked, this, [this] { editWarpApiHosts(this); });
     connect(ui->warp_advanced_btn, &QPushButton::clicked, this, [this] { editWarpAdvanced(this); });
 
+    EditTor::FillExitCountries(ui->tor_exit_country, snapshot_.tor_exit_country);
     const auto showTorStatus = [this] {
         const bool installed = Engine::AssetUpdates::TorInstalled();
         ui->tor_status->setText(installed ? tr("Tor is installed.") : tr("Tor will be downloaded when you press OK."));
-        ui->tor_status->setVisible(installed || ui->enable_tor->isChecked());
+        ui->tor_status->setVisible(installed || ui->exit_tor->isChecked());
+        ui->tor_exit_country_l->setEnabled(ui->exit_tor->isChecked());
+        ui->tor_exit_country->setEnabled(ui->exit_tor->isChecked());
     };
     showTorStatus();
-    connect(ui->enable_tor, &QAbstractButton::toggled, this, showTorStatus);
+    connect(ui->exit_tor, &QAbstractButton::toggled, this, showTorStatus);
 
-    // A custom DNS object greys out the DNS fields, so Simple mode keeps its switch beside them while it is on.
-    if (ui->use_dns_object->isChecked()) UiMode::Unmark(ui->groupBox);
-    UiMode::Apply(this);
-    UiMode::Fold(this);
+    EditPsiphon::FillRegions(ui->psiphon_egress_region, snapshot_.psiphon_egress_region);
+    const auto enablePsiphonRegion = [this] {
+        ui->psiphon_egress_region_l->setEnabled(ui->exit_psiphon->isChecked());
+        ui->psiphon_egress_region->setEnabled(ui->exit_psiphon->isChecked());
+    };
+    enablePsiphonRegion();
+    connect(ui->exit_psiphon, &QAbstractButton::toggled, this, enablePsiphonRegion);
 
-    form->bind(ui->remote_dns, Configs::DnsAddressListProblem).label(ui->label_9->text());
-    form->bind(ui->direct_dns, Configs::DnsAddressListProblem).label(ui->label_8->text());
+    ui->remote_dns->bindTo(form, ui->label_9->text());
+    ui->direct_dns->bindTo(form, ui->label_8->text());
     form->bind(ui->local_override, manageRoutesLocalDnsProblem).label(ui->label_2->text());
     form->bind(ui->route_auto_update, Validation::Rules::Int(30, 525600, Validation::Empty::Required))
         .when([this] { return ui->route_auto_update_enable->isChecked(); });
@@ -624,11 +754,11 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     // The fields the build refuses to start without while WARP is on; it ignores them all while WARP is off.
     const auto warpField = [this](Validation::Rule rule) -> Validation::Rule {
         return [this, rule = std::move(rule)](const QString &text) {
-            if (text.isEmpty()) return tr("Required while WARP is on: click Generate Warp Config, or fill it in.");
+            if (text.isEmpty()) return tr("Required while WARP is on: click Generate WARP config, or fill it in.");
             return rule ? rule(text) : QString();
         };
     };
-    const auto warpOn = [this] { return ui->enable_warp->isChecked(); };
+    const auto warpOn = [this] { return ui->exit_warp->isChecked(); };
     const auto addresses = Validation::Rules::List(Validation::Split::Comma, Validation::Rules::Cidr(Validation::Family::Any, true));
     form->bind(ui->warp_ep, warpField(Validation::Rules::HostPort(false))).when(warpOn);
     form->bind(ui->warp_private_key, warpField(Validation::Rules::Base64Key(32))).when(warpOn);
@@ -644,27 +774,27 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     const auto revalidateWarp = [this, warpFields] {
         for (auto *field : warpFields) form->revalidate(field);
     };
-    connect(ui->enable_warp, &QAbstractButton::toggled, form, revalidateWarp);
+    connect(ui->exit_warp, &QAbstractButton::toggled, form, revalidateWarp);
     connect(ui->warp_mode, &QComboBox::currentIndexChanged, form, revalidateWarp);
-    // Simple mode hides the fields above, and hidden fields are not validated.
-    form->addRule({ui->enable_warp, ui->warp_mode}, [this] {
-        if (!UiMode::Simple() || !ui->enable_warp->isChecked()) return QString();
-        const QList<QLineEdit *> fields = ui->warp_mode->currentIndex() == 1
-            ? QList<QLineEdit *>{ui->warp_masque_ep, ui->warp_masque_private_key, ui->warp_masque_peer_public_key, ui->warp_masque_ifc_addrs}
-            : QList<QLineEdit *>{ui->warp_ep, ui->warp_private_key, ui->warp_public_key, ui->warp_ifc_addrs};
-        const bool missing = std::any_of(fields.cbegin(), fields.cend(), [](const QLineEdit *edit) { return edit->text().trimmed().isEmpty(); });
-        return missing ? tr("WARP has no config yet: click Generate Warp Config.") : QString();
-    }, nullptr, Validation::Severity::Error, ui->enable_warp->text());
-    form->addRule({ui->enable_warp, ui->warp_mode}, [this] {
-        if (!ui->enable_warp->isChecked() || ui->warp_mode->currentIndex() != 2 || !warpAmneziaPackets.isEmpty()) return QString();
+    form->addRule({ui->exit_warp, ui->warp_mode}, [this] {
+        if (!ui->exit_warp->isChecked() || ui->warp_mode->currentIndex() != 2 || !warpAmneziaPackets.isEmpty()) return QString();
         if (warpAmneziaPending) return tr("Generating the AmneziaWG QUIC signature...");
-        return warpAmneziaError.isEmpty() ? tr("AmneziaWG has no QUIC signature yet: click Generate Warp Config.") : warpAmneziaError;
+        return warpAmneziaError.isEmpty() ? tr("AmneziaWG has no QUIC signature yet: click Generate WARP config.") : warpAmneziaError;
     }, nullptr, Validation::Severity::Error, ui->warp_mode_l->text());
     form->markAll();
 
     ADD_ASTERISK(this)
-    // Frozen .ui geometry clips this dialog once a translation outgrows it.
-    resize(sizeHint().expandedTo(size()).boundedTo(screen()->availableGeometry().size()));
+    // The size it was last closed at, which the layout still grows to its minimum; else the .ui geometry, grown once a translation outgrows it.
+    const QStringList savedSize = snapshot_.routing_settings_size.split('x');
+    QSize initialSize = savedSize.size() == 2 ? QSize(savedSize[0].toInt(), savedSize[1].toInt()) : QSize();
+    if (initialSize.isEmpty()) initialSize = sizeHint().expandedTo(size());
+    resize(initialSize.boundedTo(screen()->availableGeometry().size()));
+    connect(this, &QDialog::finished, this, [this] {
+        if (windowState() & (Qt::WindowMaximized | Qt::WindowFullScreen)) return;
+        const auto &settings = Configs::dataManager->settingsRepo;
+        settings->routing_settings_size = QStringLiteral("%1x%2").arg(width()).arg(height());
+        settings->Save();
+    });
 }
 
 void DialogManageRoutes::generate_warp_config() {
@@ -688,7 +818,7 @@ void DialogManageRoutes::generate_warp_config() {
             if (!conf) {
                 dialog->ui->warp_autogen->setText(originalText);
                 dialog->ui->warp_autogen->setEnabled(true);
-                MessageBoxWarning(tr("Failed to generate warp config"), error);
+                MessageBoxWarning(tr("Failed to generate WARP config"), error);
                 return;
             }
             if (amnezia) {
@@ -714,7 +844,7 @@ void DialogManageRoutes::generate_warp_config() {
             if (!packetError.isEmpty()) {
                 dialog->ui->warp_autogen->setText(originalText);
                 dialog->ui->warp_autogen->setEnabled(true);
-                MessageBoxWarning(tr("Failed to generate warp config"), packetError);
+                MessageBoxWarning(tr("Failed to generate WARP config"), packetError);
                 return;
             }
             dialog->ui->warp_autogen->setText(tr("Success!"));
@@ -744,11 +874,8 @@ void DialogManageRoutes::generate_amnezia_packets() {
     });
 }
 
-void DialogManageRoutes::updateCurrentRouteProfile(int idx) {
-    currentRoute = chainList[idx];
-}
-
 DialogManageRoutes::~DialogManageRoutes() {
+    if (routeUpdateCancel) *routeUpdateCancel = true;
     delete ui;
 }
 
@@ -759,67 +886,82 @@ void DialogManageRoutes::accept() {
         return;
     }
 
-    Configs::dataManager->settingsRepo->ruleset_mirror = ui->ruleset_mirror->currentIndex();
-    D_SAVE_INT_ENABLE(route_auto_update, route_auto_update_enable)
-    Configs::dataManager->settingsRepo->resolve_domain_strategy = ui->domainStrategyCombo->currentText();
-    Configs::dataManager->settingsRepo->default_domain_strategy = ui->default_domain_strategy->currentText();
-    Configs::dataManager->settingsRepo->use_dns_object = ui->use_dns_object->isChecked();
-    Configs::dataManager->settingsRepo->dns_object = dns_object_text;
-    const auto remoteDns = Configs::NormalizeDnsAddressList(ui->remote_dns->currentText());
-    const auto directDns = Configs::NormalizeDnsAddressList(ui->direct_dns->currentText());
-    if (remoteDns != Configs::dataManager->settingsRepo->remote_dns)
-        DnsServerHistory::Remember(Configs::dataManager->settingsRepo->remote_dns_history, DnsServerHistory::RemotePresets(), remoteDns);
-    if (directDns != Configs::dataManager->settingsRepo->direct_dns)
-        DnsServerHistory::Remember(Configs::dataManager->settingsRepo->direct_dns_history, DnsServerHistory::DirectPresets(), directDns);
-    Configs::dataManager->settingsRepo->remote_dns = remoteDns;
-    Configs::dataManager->settingsRepo->remote_dns_disable_ipv6 = ui->remote_dns_disable_ipv6->isChecked();
-    Configs::dataManager->settingsRepo->dns_cache_capacity = dns_advanced.cache_capacity;
-    Configs::dataManager->settingsRepo->dns_disable_cache = dns_advanced.disable_cache;
-    Configs::dataManager->settingsRepo->dns_disable_expire = dns_advanced.disable_expire;
-    Configs::dataManager->settingsRepo->dns_persist_cache = dns_advanced.persist_cache;
-    Configs::dataManager->settingsRepo->dns_reverse_mapping = dns_advanced.reverse_mapping;
-    Configs::dataManager->settingsRepo->dns_optimistic = dns_advanced.optimistic;
-    Configs::dataManager->settingsRepo->dns_optimistic_timeout = dns_advanced.optimistic_timeout;
-    Configs::dataManager->settingsRepo->dns_query_timeout = dns_advanced.query_timeout;
-    Configs::dataManager->settingsRepo->direct_dns = directDns;
-    Configs::dataManager->settingsRepo->direct_dns_disable_ipv6 = ui->direct_dns_disable_ipv6->isChecked();
-    Configs::dataManager->settingsRepo->core_box_underlying_dns = ui->local_override->text().trimmed();
-    Configs::dataManager->settingsRepo->dns_final_out = ui->dns_final_out->currentText();
-    Configs::dataManager->settingsRepo->fake_dns = ui->enable_fakeip->isChecked();
-    Configs::dataManager->settingsRepo->fakeip_disable_ipv6 = ui->fakeip_disable_ipv6->isChecked();
-    Configs::dataManager->settingsRepo->enable_dns_routing = ui->enable_dns_routing->isChecked();
-    Configs::dataManager->settingsRepo->dns_use_hosts = ui->respect_hosts->isChecked();
-    Configs::dataManager->settingsRepo->dns_predefined_enable = predefined_dns_enabled;
+    Configs::SettingsValues proposed = snapshot_;
+    proposed.ruleset_mirror = ui->ruleset_mirror->currentIndex();
+    S_SAVE_INT_ENABLE(route_auto_update, route_auto_update_enable)
+    proposed.resolve_domain_strategy = ui->domainStrategyCombo->currentText();
+    S_SAVE_COMBO_STRING(default_domain_strategy)
+    S_SAVE_BOOL(use_dns_object)
+    proposed.dns_object = dns_object_text;
+    const auto remoteDns = ui->remote_dns->servers();
+    const auto directDns = ui->direct_dns->servers();
+    if (remoteDns != snapshot_.remote_dns)
+        DnsServerHistory::Remember(proposed.remote_dns_history, DnsServerHistory::RemotePresets(), remoteDns);
+    if (directDns != snapshot_.direct_dns)
+        DnsServerHistory::Remember(proposed.direct_dns_history, DnsServerHistory::DirectPresets(), directDns);
+    proposed.remote_dns = remoteDns;
+    S_SAVE_BOOL(remote_dns_disable_ipv6)
+    proposed.dns_cache_capacity = dns_advanced.cache_capacity;
+    proposed.dns_disable_cache = dns_advanced.disable_cache;
+    proposed.dns_disable_expire = dns_advanced.disable_expire;
+    proposed.dns_persist_cache = dns_advanced.persist_cache;
+    proposed.dns_reverse_mapping = dns_advanced.reverse_mapping;
+    proposed.dns_optimistic = dns_advanced.optimistic;
+    proposed.dns_optimistic_timeout = dns_advanced.optimistic_timeout;
+    proposed.dns_query_timeout = dns_advanced.query_timeout;
+    proposed.direct_dns = directDns;
+    S_SAVE_BOOL(direct_dns_disable_ipv6)
+    proposed.core_box_underlying_dns = ui->local_override->text().trimmed();
+    S_SAVE_COMBO_STRING(dns_final_out)
+    proposed.fake_dns = ui->enable_fakeip->isChecked();
+    S_SAVE_BOOL(fakeip_disable_ipv6)
+    S_SAVE_BOOL(enable_dns_routing)
+    proposed.dns_use_hosts = ui->respect_hosts->isChecked();
+    proposed.dns_predefined_enable = predefined_dns_enabled;
     QStringList predefinedRules;
     for (const auto &line : predefined_dns_text.split("\n")) {
         if (!line.trimmed().isEmpty()) predefinedRules.append(line.trimmed());
     }
-    Configs::dataManager->settingsRepo->dns_predefined_rules = predefinedRules;
+    proposed.dns_predefined_rules = predefinedRules;
 
-    Configs::dataManager->routesRepo->UpdateRouteProfiles(chainList, removedIds);
-    Configs::dataManager->settingsRepo->current_route_id = currentRoute->id;
-
-    Configs::dataManager->settingsRepo->enable_warp = ui->enable_warp->isChecked();
-    const bool torWanted = ui->enable_tor->isChecked();
-    const bool torMissing = torWanted && !Engine::AssetUpdates::TorInstalled();
-    // Switched on only once downloaded: a restart without the binary would drop the proxy the download runs through.
-    Configs::dataManager->settingsRepo->enable_tor = torWanted && !torMissing;
-    Configs::dataManager->settingsRepo->warp_ep = ui->warp_ep->text().trimmed();
-    Configs::dataManager->settingsRepo->warp_ifc_addrs = manageRoutesWithPrefix(SplitAndTrim(ui->warp_ifc_addrs->text(), ",", false));
-    Configs::dataManager->settingsRepo->warp_private_key = ui->warp_private_key->text().trimmed();
-    Configs::dataManager->settingsRepo->warp_public_key = ui->warp_public_key->text().trimmed();
-    Configs::dataManager->settingsRepo->warp_reserved = SplitAndTrim(ui->warp_reserved->text(), ",", false);
-    Configs::dataManager->settingsRepo->warp_mode = ui->warp_mode->currentIndex() == 1 ? "masque"
+    const int chosenExit = exitButtons->checkedId();
+    const bool torMissing = chosenExit == static_cast<int>(Configs::ExitThrough::Tor) && !Engine::AssetUpdates::TorInstalled();
+    // Tor is switched on only once downloaded: a restart without the binary would drop the proxy the download runs through.
+    if (chosenExit >= 0)
+        proposed.exit_through = Configs::ExitValue(torMissing ? Configs::ExitThrough::Server : static_cast<Configs::ExitThrough>(chosenExit));
+    proposed.tor_exit_country = ui->tor_exit_country->currentData().toString();
+    proposed.psiphon_egress_region = ui->psiphon_egress_region->currentData().toString();
+    proposed.warp_ep = ui->warp_ep->text().trimmed();
+    proposed.warp_ifc_addrs = manageRoutesWithPrefix(SplitAndTrim(ui->warp_ifc_addrs->text(), ",", false));
+    proposed.warp_private_key = ui->warp_private_key->text().trimmed();
+    proposed.warp_public_key = ui->warp_public_key->text().trimmed();
+    proposed.warp_reserved = SplitAndTrim(ui->warp_reserved->text(), ",", false);
+    proposed.warp_mode = ui->warp_mode->currentIndex() == 1 ? "masque"
         : ui->warp_mode->currentIndex() == 2 ? "amnezia" : "wireguard";
-    Configs::dataManager->settingsRepo->warp_amnezia_packets = warpAmneziaPackets;
-    Configs::dataManager->settingsRepo->warp_masque_ep = ui->warp_masque_ep->text().trimmed();
-    Configs::dataManager->settingsRepo->warp_masque_private_key = ui->warp_masque_private_key->text().trimmed();
-    Configs::dataManager->settingsRepo->warp_masque_peer_public_key = ui->warp_masque_peer_public_key->text().trimmed();
-    Configs::dataManager->settingsRepo->warp_masque_ifc_addrs = manageRoutesWithPrefix(SplitAndTrim(ui->warp_masque_ifc_addrs->text(), ",", false));
-    Configs::dataManager->settingsRepo->warp_masque_sni = ui->warp_masque_sni->text().trimmed();
-    Configs::dataManager->settingsRepo->warp_masque_http_mode = ui->warp_masque_http_mode->currentIndex();
+    proposed.warp_amnezia_packets = warpAmneziaPackets;
+    proposed.warp_masque_ep = ui->warp_masque_ep->text().trimmed();
+    proposed.warp_masque_private_key = ui->warp_masque_private_key->text().trimmed();
+    proposed.warp_masque_peer_public_key = ui->warp_masque_peer_public_key->text().trimmed();
+    proposed.warp_masque_ifc_addrs = manageRoutesWithPrefix(SplitAndTrim(ui->warp_masque_ifc_addrs->text(), ",", false));
+    proposed.warp_masque_sni = ui->warp_masque_sni->text().trimmed();
+    proposed.warp_masque_http_mode = ui->warp_masque_http_mode->currentIndex();
 
-    MW_dialog_message(MwMessage::UpdateSettings, {MwArg::Route});
+    QList<std::shared_ptr<Configs::RouteProfile>> changed;
+    for (const auto &route : chainList) {
+        if (route->id < 0 || editedIds.contains(route->id)) changed << route;
+    }
+    if (const auto error = Engine::RouteService::Commit(changed, removedIds)) {
+        MessageBoxWarning(windowTitle(), error->message);
+        return;
+    }
+    editedIds.clear();
+    removedIds.clear();
+    // After Commit: the selected profile may be a new one, which only now has an id.
+    proposed.current_route_id = currentRoute->id;
+    if (const auto error = Engine::SettingsService::ApplyEdit(snapshot_, proposed, {.interactive = true})) {
+        MessageBoxWarning(windowTitle(), SettingsApplyErrorText(*error));
+        return;
+    }
 
     if (torMissing) {
         const bool started = Engine::AssetUpdates::InstallTor([](const QString &error) {
@@ -827,9 +969,9 @@ void DialogManageRoutes::accept() {
                 MessageBoxWarning(tr("Tor download failed"), error);
                 return;
             }
-            Configs::dataManager->settingsRepo->enable_tor = true;
-            Configs::dataManager->settingsRepo->enable_warp = false;
-            MW_dialog_message(MwMessage::UpdateSettings, {MwArg::Route});
+            Engine::SettingsService::Update([](Configs::SettingsValues &values) {
+                values.exit_through = Configs::ExitValue(Configs::ExitThrough::Tor);
+            }, {.interactive = true});
         });
         if (!started) MW_show_log(tr("[Tor] A download is already running; turn Tor on again once it finishes."));
     }
@@ -848,6 +990,8 @@ void DialogManageRoutes::on_new_route_clicked() {
     auto newProfile = Configs::dataManager->routesRepo->NewRouteProfile();
     auto onCreated = [=, this](const std::shared_ptr<Configs::RouteProfile>& chain) {
         chainList << chain;
+        // Saved at once: Cancel here must not undo the editor's Save.
+        if (const auto error = Engine::RouteService::Commit({chain}, {})) MessageBoxWarning(windowTitle(), error->message);
         reloadProfileItems();
     };
     if (chosen == rawAct) {
@@ -897,6 +1041,8 @@ void DialogManageRoutes::applyImportedProfile(const std::shared_ptr<Configs::Rou
         routeChainWidget->show();
         connect(routeChainWidget, &RouteItem::settingsChanged, this, [=, this](const std::shared_ptr<Configs::RouteProfile>& chain) {
             chainList << chain;
+            // Saved at once: Cancel here must not undo the editor's Save.
+            if (const auto error = Engine::RouteService::Commit({chain}, {})) MessageBoxWarning(windowTitle(), error->message);
             reloadProfileItems();
         });
     } else {
@@ -944,25 +1090,31 @@ void DialogManageRoutes::on_import_route_clicked()
     if (!clip.isEmpty()) {
         QString fatal, warnings;
         bool wasOldArray = false;
-        if (auto profile = Configs::RouteProfile::FromShareInput(clip, &fatal, &warnings, &wasOldArray)) {
+        int newEndpoints = 0;
+        if (auto profile = Configs::RouteProfile::FromShareInput(clip, &fatal, &warnings, &wasOldArray, false, &newEndpoints)) {
+            if (newEndpoints > 0 && !manageRoutesEndpointTargetAccepted(tr("Import from clipboard"))) return;
             const QString what = wasOldArray ? tr("a routing rule list")
                                              : tr("routing profile \"%1\"").arg(profile->name);
             QString prompt = tr("Import %1 from the clipboard?").arg(what);
             if (const auto dns = profile->ActiveDns()) prompt += "\n\n" + manageRoutesDnsNote(*dns);
-            // endpoints are already created by the parse above, before this prompt
+            if (newEndpoints > 0) prompt += "\n\n" + manageRoutesEndpointsNote(newEndpoints);
             if (!warnings.isEmpty()) prompt += "\n\n" + tr("Note:") + "\n" + warnings.trimmed();
             QMessageBox box(QMessageBox::Question, tr("Import from clipboard"), prompt,
                             QMessageBox::Yes | QMessageBox::No, this);
             box.setTextFormat(Qt::PlainText);
             if (box.exec() == QMessageBox::Yes) {
-                applyImportedProfile(profile, wasOldArray);
+                if (newEndpoints > 0) {
+                    profile = Configs::RouteProfile::FromShareInput(clip, &fatal, &warnings, &wasOldArray);
+                    manageRoutesRefreshProxyList();
+                }
+                if (profile != nullptr) applyImportedProfile(profile, wasOldArray);
                 return;
             }
         }
     }
 
     auto w = new QDialog(this);
-    w->setWindowTitle(tr("Import routing profile"));
+    w->setWindowTitle(tr("Import Routing Profile"));
     w->setWindowModality(Qt::ApplicationModal);
 
     auto layout = new QGridLayout(w);
@@ -977,10 +1129,18 @@ void DialogManageRoutes::on_import_route_clicked()
         if (tryImportRemoteRoutesLink(tEdit->toPlainText())) { w->accept(); return; }
         QString fatal, warnings;
         bool wasOldArray = false;
-        auto profile = Configs::RouteProfile::FromShareInput(tEdit->toPlainText(), &fatal, &warnings, &wasOldArray);
+        int newEndpoints = 0;
+        auto profile = Configs::RouteProfile::FromShareInput(tEdit->toPlainText(), &fatal, &warnings, &wasOldArray, false, &newEndpoints);
         if (!profile) {
             MessageBoxWarning(tr("Invalid input"), tr("Could not import this routing profile:\n") + fatal);
             return;
+        }
+        if (newEndpoints > 0) {
+            if (!manageRoutesEndpointTargetAccepted(tr("Import routing profile"))) return;
+            warnings.clear();
+            profile = Configs::RouteProfile::FromShareInput(tEdit->toPlainText(), &fatal, &warnings, &wasOldArray);
+            manageRoutesRefreshProxyList();
+            if (profile == nullptr) return;
         }
         if (const auto dns = profile->ActiveDns()) warnings.prepend(manageRoutesDnsNote(*dns) + "\n");
         if (!warnings.isEmpty()) manageRoutesPlainBox(w, QMessageBox::Information, tr("Imported with warnings"), warnings.trimmed());
@@ -1013,6 +1173,13 @@ void DialogManageRoutes::on_edit_route_clicked() {
     auto onEdited = [=, this](const std::shared_ptr<Configs::RouteProfile>& chain) {
         if (currentRoute == chainList[idx]) currentRoute = chain;
         chainList[idx] = chain;
+        // Saved at once: Cancel here must not undo the editor's Save.
+        if (const auto error = Engine::RouteService::Commit({chain}, {})) {
+            editedIds.insert(chain->id);
+            MessageBoxWarning(windowTitle(), error->message);
+        } else {
+            editedIds.remove(chain->id);
+        }
         reloadProfileItems();
     };
 
@@ -1055,7 +1222,7 @@ void DialogManageRoutes::on_update_route_clicked() {
         auto* chosen = menu.exec(ui->update_route->mapToGlobal(QPoint(0, ui->update_route->height())));
         // Guard against the batch having finished while the menu was open.
         if (chosen == cancelAct && routeUpdateRunning) {
-            routeUpdateCancel = true;
+            *routeUpdateCancel = true;
             ui->update_route->setText(tr("Cancelling..."));
         }
         return;
@@ -1091,8 +1258,12 @@ void DialogManageRoutes::on_update_route_clicked() {
 void DialogManageRoutes::updateRemoteProfiles(const QList<std::shared_ptr<Configs::RouteProfile>>& profiles) {
     if (routeUpdateRunning || profiles.isEmpty()) return;
     routeUpdateRunning = true;
-    routeUpdateCancel = false;
+    const auto cancel = std::make_shared<std::atomic<bool>>(false);
+    routeUpdateCancel = cancel;
     const int total = profiles.size();
+    // The entries may be the live routes a config build reads, so the worker updates copies.
+    QList<std::shared_ptr<Configs::RouteProfile>> copies;
+    for (const auto& p : profiles) copies << std::make_shared<Configs::RouteProfile>(*p);
 
     // The button stays enabled during the run so its click can offer Cancel (see the slot above).
     auto progressText = [total](int current) {
@@ -1100,27 +1271,39 @@ void DialogManageRoutes::updateRemoteProfiles(const QList<std::shared_ptr<Config
     };
     ui->update_route->setText(progressText(1));
 
+    // Closing the window deletes it mid-run: the worker sees the cancel flag, the UI callbacks the null pointer.
+    QPointer<DialogManageRoutes> self(this);
     runOnNewThread([=, this] {
         QStringList failures;
         QStringList warned;
-        int ok = 0;
-        for (int i = 0; i < profiles.size(); ++i) {
-            if (routeUpdateCancel.load()) break;
+        QList<int> updated;
+        for (int i = 0; i < copies.size(); ++i) {
+            if (cancel->load()) break;
             const int current = i + 1;
             runOnUiThread([=, this] {
-                if (routeUpdateRunning && !routeUpdateCancel.load())
+                if (self && routeUpdateRunning && !cancel->load())
                     ui->update_route->setText(progressText(current));
             });
             QString warnings;
-            const QString err = RouteUpdate::UpdateProfile(profiles[i], &warnings);
-            if (err.isEmpty()) ok++;
-            else failures << (profiles[i]->name + ": " + err);
-            if (err.isEmpty() && !warnings.trimmed().isEmpty()) warned << (profiles[i]->name + ":\n" + warnings.trimmed());
+            const QString err = RouteUpdate::UpdateProfile(copies[i], &warnings);
+            if (err.isEmpty()) updated << i;
+            else failures << (copies[i]->name + ": " + err);
+            if (err.isEmpty() && !warnings.trimmed().isEmpty()) warned << (copies[i]->name + ":\n" + warnings.trimmed());
         }
-        const bool cancelled = routeUpdateCancel.load();
+        const int ok = static_cast<int>(updated.size());
+        const bool cancelled = cancel->load();
         runOnUiThread([=, this] {
+            if (!self) return;
             routeUpdateRunning = false;
             ui->update_route->setText(tr("Update"));
+            for (const int i : updated) {
+                // Gone once edited or deleted meanwhile: that edit wins.
+                const auto index = chainList.indexOf(profiles[i]);
+                if (index < 0) continue;
+                if (currentRoute == profiles[i]) currentRoute = copies[i];
+                chainList[index] = copies[i];
+                editedIds.insert(copies[i]->id);
+            }
             reloadProfileItems();
             const QString details = warned.join("\n\n");
             const QString note = warned.isEmpty() ? QString()

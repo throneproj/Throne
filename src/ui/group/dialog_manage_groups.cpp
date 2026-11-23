@@ -72,10 +72,9 @@ void DialogManageGroups::on_add_clicked() {
     int ret = dialog->exec();
     dialog->deleteLater();
 
+    // The row comes from refreshGroups(), queued on the groupsChanged that Add emits.
     if (ret == QDialog::Accepted) {
-        Configs::dataManager->groupsRepo->AddGroup(ent);
-        addGroupItem(ent->id);
-        MW_dialog_message(MwMessage::GroupsChanged, {});
+        if (const auto error = Engine::GroupService::Add(ent)) MW_show_log(error->message);
     }
 }
 

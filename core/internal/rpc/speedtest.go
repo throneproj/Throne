@@ -45,9 +45,9 @@ func (s *server) SpeedTest(ctx context.Context, in *gen.SpeedTestRequest) (*gen.
 		}
 		return nil, err
 	}
-	defer env.close()
+	defer env.Close()
 
-	results := probe.BatchSpeedTest(probe.TestContext(), env.box, env.tags,
+	results := probe.BatchSpeedTest(probe.TestContext(), env.Box, env.Tags,
 		*in.TestDownload, *in.TestUpload, *in.SimpleDownload, *in.SimpleDownloadAddr,
 		time.Duration(*in.TimeoutMs)*time.Millisecond, *in.OnlyCountry, *in.CountryConcurrency)
 

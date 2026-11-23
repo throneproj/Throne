@@ -12,6 +12,39 @@
 #include "include/ui/widget/TrayOtpCodes.hpp"
 #include "include/ui/widget/TrayProfileSelector.hpp"
 
+#ifdef Q_OS_MACOS
+#include "include/sys/macos/MacOS.h"
+#endif
+
+namespace {
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    // GNOME and the shells built on it draw no app icon in a title bar.
+    bool mainWindowTitleShowsNoIcon() {
+        const auto desktops = qEnvironmentVariable("XDG_CURRENT_DESKTOP").split(QLatin1Char(':'), Qt::SkipEmptyParts);
+        for (const auto &desktop : desktops) {
+            for (const char *name : {"GNOME", "Unity", "Pantheon", "Budgie"}) {
+                if (desktop.compare(QLatin1String(name), Qt::CaseInsensitive) == 0) return true;
+            }
+        }
+        return false;
+    }
+#endif
+
+    // A bare name is worse than no title, so it shows only where the bar has the app icon beside it.
+    void applyNativeWindowTitle(QWidget *window) {
+#ifdef Q_OS_MACOS
+        // Hidden rather than cleared, so the title still names the window in the Dock, Mission Control and VoiceOver.
+        Mac_HideWindowTitle(window->winId());
+#elif defined(Q_OS_UNIX)
+        // A space: Qt shows the application name for an empty title.
+        static const bool blank = mainWindowTitleShowsNoIcon();
+        if (blank) window->setWindowTitle(QStringLiteral(" "));
+#else
+        Q_UNUSED(window)
+#endif
+    }
+}
+
 void MainWindow::trayClickEvent() {
     constexpr qint64 recentlyActiveMs = 350;
     const bool wasRecentlyActive = isActiveWindow() ||
@@ -90,6 +123,7 @@ void MainWindow::changeEvent(QEvent *event) {
 
 void MainWindow::showEvent(QShowEvent *event) {
     QMainWindow::showEvent(event);
+    applyNativeWindowTitle(this);
     syncConnectionViewState();
     scheduleProxyListRefresh();
 }
@@ -210,11 +244,14 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event) {
         if (resize->size().width() != resize->oldSize().width()) refresh_proxy_list_column_size();
     }
     // QMenu triggers an action on a right-button release too, which would switch to the profile instead of editing it.
-    if ((type == QEvent::MouseButtonPress || type == QEvent::MouseButtonRelease) && obj == ui->menuRouting_Menu
+    auto *routeMenu = qobject_cast<QMenu *>(obj);
+    if ((type == QEvent::MouseButtonPress || type == QEvent::MouseButtonRelease) && routeMenu != nullptr
+        && (routeMenu == ui->menuRouting_Menu || routeMenu->parent() == ui->menuRouting_Menu)
         && static_cast<QMouseEvent *>(event)->button() == Qt::RightButton) {
-        const QAction *action = ui->menuRouting_Menu->actionAt(static_cast<QMouseEvent *>(event)->position().toPoint());
+        const QAction *action = routeMenu->actionAt(static_cast<QMouseEvent *>(event)->position().toPoint());
         if (const QVariant routeId = action != nullptr ? action->property("routeProfileId") : QVariant(); routeId.isValid()) {
             if (type == QEvent::MouseButtonRelease) {
+                routeMenu->close();
                 ui->menuRouting_Menu->close();
                 QTimer::singleShot(0, this, [this, id = routeId.toInt()] { openRouteProfileEditor(id); });
             }

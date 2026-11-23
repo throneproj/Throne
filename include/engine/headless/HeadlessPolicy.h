@@ -8,9 +8,11 @@ namespace Engine {
     public:
         void geoAssetMissingCategory(const QString &contextName, const QString &needed, const QString &whichFile) override;
 
-        bool confirmGeoAssetDownload(const QString &contextName) override;
+        void confirmGeoAssetDownload(const QString &contextName, std::function<void(bool download)> answered) override;
 
         void geoAssetDownloadFinished(const QString &error) override;
+
+        void confirmTorDownload(const QString &profileName, std::function<void(bool download)> answered) override;
 
         void killSwitchProblem() override;
 
@@ -22,9 +24,9 @@ namespace Engine {
 
         void strictRouteUnavailable(const QString &error) override;
 
-        bool offerCoreReset(const QString &error) override;
+        void offerCoreReset(const QString &error, std::function<void(bool reset)> answered) override;
 
-        bool offerLeftoverTunAdapterRetry(const QString &error) override;
+        void offerLeftoverTunAdapterRetry(const QString &error, std::function<void(bool retry)> answered) override;
 
         void stopFailed(const QString &error) override;
 
@@ -40,6 +42,9 @@ namespace Engine {
 
         void vpnCredentialsRejected(int profileId, const VpnAuthChallenge &challenge,
                                     const std::function<void(const QString &username, const QString &password)> &retryWith) override;
+
+        void offerVpnSignInRestart(const QString &endpointName, const QString &error,
+                                   std::function<void(bool restart)> answered) override;
 
         void vpnChallengesCleared() override;
 

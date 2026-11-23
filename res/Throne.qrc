@@ -1,15 +1,9 @@
 <RCC>
     <qresource prefix="/">
         <file alias="icon/b-internet-web-browser.png">icon/internet-web-browser.png</file>
-        <file alias="icon/b-system-run.png">icon/system-run.png</file>
-        <file alias="icon/b-preferences.png">icon/preferences.png</file>
         <file alias="icon/b-network-server.png">icon/network-server.png</file>
         <file alias="icon/b-dialog-question.png">icon/dialog-question.png</file>
         <file alias="icon/b-system-software-update.png">icon/system-software-update.png</file>
-        <file alias="icon/b-network-routing.png">icon/network-routing.png</file>
-        <file alias="icon/b-tools-button.png">icon/tools-button.png</file>
-        <file alias="icon/b-testing-button.png">icon/testing-button.png</file>
-        <file>icon/filter.png</file>
         <file>icon/material/lock-open-outline.png</file>
         <file>icon/material/lock-outline.png</file>
         <file>icon/material/cancel.png</file>
@@ -20,8 +14,34 @@
         <file>icon/material/qrcode.png</file>
         <file>icon/material/eye-outline.png</file>
         <file>icon/material/eye-off-outline.png</file>
-        <file>icon/material/swap-horizontal.png</file>
         <file>icon/material/keep.png</file>
+        <file>icon/lucide/arrow-left-right.png</file>
+        <file>icon/lucide/arrow-left-right@2x.png</file>
+        <file>icon/lucide/arrow-left-right@3x.png</file>
+        <file>icon/lucide/copy.png</file>
+        <file>icon/lucide/copy@2x.png</file>
+        <file>icon/lucide/copy@3x.png</file>
+        <file>icon/lucide/folders.png</file>
+        <file>icon/lucide/folders@2x.png</file>
+        <file>icon/lucide/folders@3x.png</file>
+        <file>icon/lucide/funnel.png</file>
+        <file>icon/lucide/funnel@2x.png</file>
+        <file>icon/lucide/funnel@3x.png</file>
+        <file>icon/lucide/menu.png</file>
+        <file>icon/lucide/menu@2x.png</file>
+        <file>icon/lucide/menu@3x.png</file>
+        <file>icon/lucide/route.png</file>
+        <file>icon/lucide/route@2x.png</file>
+        <file>icon/lucide/route@3x.png</file>
+        <file>icon/lucide/sliders-horizontal.png</file>
+        <file>icon/lucide/sliders-horizontal@2x.png</file>
+        <file>icon/lucide/sliders-horizontal@3x.png</file>
+        <file>icon/lucide/trash.png</file>
+        <file>icon/lucide/trash@2x.png</file>
+        <file>icon/lucide/trash@3x.png</file>
+        <file>icon/lucide/wrench.png</file>
+        <file>icon/lucide/wrench@2x.png</file>
+        <file>icon/lucide/wrench@3x.png</file>
     </qresource>
     <qresource prefix="/Throne">
         <file alias="Throne.png">public/Throne.png</file>

@@ -2,6 +2,7 @@
 
 #include "include/api/remote/Server.hpp"
 #include "include/engine/EnginePolicy.h"
+#include "include/engine/Lifecycle.h"
 #include "include/engine/ThreadCheck.h"
 #include "include/engine/connection/ConnectionManager.h"
 #include "include/engine/supervisor/CoreSupervisor.h"
@@ -70,7 +71,7 @@ namespace Engine {
         auto* settings = Configs::dataManager->settingsRepo.get();
 
         // Backstop only: this runs on a graceful exit, so it must never be the sole write.
-        if (settings->remember_enable && settings->started_id >= 0) settings->remember_id = settings->started_id;
+        if (const int target = Lifecycle::ResumeTargetId(); settings->remember_enable && target >= 0) settings->remember_id = target;
         if (m_shutdownOptions.persistModes) {
             settings->remember_system_proxy = settings->spmode_system_proxy;
             settings->remember_tun = settings->spmode_vpn;

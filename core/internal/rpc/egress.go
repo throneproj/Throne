@@ -156,7 +156,9 @@ func configAutoRedirectMark(coreConfig []byte) uint32 {
 	return 0
 }
 
-func init() {
+// Before the first request: the handlers read the monitor, and every Xray instance follows its default interface.
+func startEgressMonitor() {
+	netmon.Start()
 	monitor := netmon.Monitor()
 	if monitor == nil {
 		return

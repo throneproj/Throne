@@ -6,6 +6,7 @@
 #include <QShortcut>
 
 #include "include/sys/GlobalHotkeys.hpp"
+#include "include/ui/utils/CommandPalette.h"
 
 namespace {
     // Other actions carry data of their own (route ids, protocol names); only "m<digits>" is a shortcut id.
@@ -18,6 +19,20 @@ namespace {
             if (id[i] < QLatin1Char('0') || id[i] > QLatin1Char('9')) return {};
         }
         return id;
+    }
+
+    // Same walk as CommandPalette::collect: each menu once, an action keeps the first path it is found under.
+    void collectShortcutMenuPaths(QMenu *menu, const QString &path, QSet<const QMenu *> &visited, QHash<const QAction *, QString> &out) {
+        if (visited.contains(menu)) return;
+        visited.insert(menu);
+        for (QAction *action : menu->actions()) {
+            if (action->isSeparator()) continue;
+            if (auto *sub = action->menu()) {
+                collectShortcutMenuPaths(sub, path + " › " + CommandPalette::plainText(sub->title()), visited, out);
+            } else if (!out.contains(action)) {
+                out.insert(action, path + " › " + CommandPalette::plainText(action->text()));
+            }
+        }
     }
 }
 
@@ -34,12 +49,12 @@ QStringList MainWindow::RegisterHotkey(bool unregister) {
     const auto &settings = Configs::dataManager->settingsRepo;
     const QList<GlobalHotkeys::Action> actions{
         {"show-main-window", tr("Trigger main window"), QKeySequence(settings->hotkey_mainwindow)},
-        {"show-groups", tr("Show groups"), QKeySequence(settings->hotkey_group)},
-        {"show-routes", tr("Show routes"), QKeySequence(settings->hotkey_route)},
+        {"show-groups", tr("Manage groups"), QKeySequence(settings->hotkey_group)},
+        {"show-routes", tr("Open Routing Settings"), QKeySequence(settings->hotkey_route)},
         {"proxy-mode-menu", tr("Proxy mode"), QKeySequence(settings->hotkey_system_proxy_menu)},
-        {"toggle-system-proxy", tr("Toggle System Proxy"), QKeySequence(settings->hotkey_toggle_system_proxy)},
+        {"toggle-system-proxy", tr("Toggle system proxy"), QKeySequence(settings->hotkey_toggle_system_proxy)},
         {"toggle-connection", tr("Start/Stop Profile"), QKeySequence(settings->hotkey_toggle_connection)},
-        {"toggle-tun", tr("Toggle Tun Mode"), QKeySequence(settings->hotkey_toggle_tun)},
+        {"toggle-tun", tr("Toggle Tun mode"), QKeySequence(settings->hotkey_toggle_tun)},
     };
     const auto failures = globalHotkeys->setActions(actions);
 
@@ -104,6 +119,7 @@ void MainWindow::RegisterHiddenMenuShortcuts(bool unregister) {
 
     registerMenuShortcuts(ui->menuHidden_menu, claimed);
     registerMenuShortcuts(ui->menu_server, claimed);
+    registerMenuShortcuts(ui->menu_profiles_space, claimed);
 }
 
 void MainWindow::setActionsData()
@@ -161,15 +177,38 @@ void MainWindow::setActionsData()
     ui->actionAdblock->setData(QString("m53"));
     ui->actionWarp->setData(QString("m54"));
     ui->menu_pin->setData(QString("m55"));
+    ui->menu_edit->setData(QString("m56"));
+    ui->menu_add_subscription->setData(QString("m57"));
+    ui->menu_exit_server->setData(QString("m58"));
+    ui->menu_exit_warp->setData(QString("m59"));
+    ui->menu_exit_tor->setData(QString("m60"));
+    ui->menu_edit_route->setData(QString("m61"));
+    ui->actionNew_Tor_Circuit->setData(QString("m62"));
+    ui->menu_exit_psiphon->setData(QString("m63"));
 }
 
 QList<QAction*> MainWindow::getActionsForShortcut()
 {
+    // The command palette's roots, plus the empty-space menu.
+    const QList<QPair<QString, QMenu *>> roots{
+        {ui->toolButton_program->text(), ui->menu_program},
+        {ui->toolButton_preferences->text(), ui->menu_preferences},
+        {ui->toolButton_testing->text(), ui->menuTesting},
+        {ui->toolButton_routing->text(), ui->menuRouting_Menu},
+        {ui->toolButton_tools->text(), ui->menuTools},
+        {ui->menu_server->title(), ui->menu_server},
+        {ui->menu_profiles_space->title(), ui->menu_profiles_space},
+    };
+    QSet<const QMenu *> visited;
+    QHash<const QAction *, QString> paths;
+    for (const auto &[title, menu] : roots) collectShortcutMenuPaths(menu, CommandPalette::plainText(title), visited, paths);
+
     QList<QAction*> list;
     QList<QAction *> actions = findChildren<QAction *>();
 
     for (QAction *action : actions) {
         if (shortcutId(action).isEmpty()) continue;
+        action->setProperty("shortcutLabel", paths.value(action, CommandPalette::plainText(action->text())));
         list.append(action);
     }
     return list;

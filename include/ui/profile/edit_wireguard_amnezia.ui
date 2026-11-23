@@ -249,10 +249,10 @@
          <item>
           <widget class="QPushButton" name="generate_signature">
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fills the signature packets with the first QUIC packets Chrome would send to the given domain, so the handshake starts like an HTTP/3 connection to it. Generated locally; nothing is sent. Replaces I1-I5.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>Fill I1-I5 with Chrome's first QUIC packets to the given domain.</string>
            </property>
            <property name="text">
-            <string>Generate QUIC Signature...</string>
+            <string>Generate QUIC signature</string>
            </property>
           </widget>
          </item>
@@ -274,7 +274,7 @@
        <item row="9" column="0">
         <widget class="QLabel" name="header_protection_key_l">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Base64 key. Requires S1-S4 to be at least 12.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>AmneziaWG 3.0. Base64 key; needs S1-S4 of at least 12.</string>
          </property>
          <property name="text">
           <string>Header Protection Key</string>
@@ -354,7 +354,7 @@
        <item row="11" column="2">
         <widget class="QLabel" name="keepalive_timeout_l">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.0. Seconds of idle time before a keepalive is sent, as a value or range.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>AmneziaWG 3.0. Idle seconds before a keepalive, as a value or range.</string>
          </property>
          <property name="text">
           <string>Keepalive Timeout</string>
@@ -386,20 +386,20 @@
        <item row="13" column="0" colspan="2">
         <widget class="QCheckBox" name="random_trailers">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.1. Appends a random trailer to every packet, so message types are no longer identifiable by size.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>AmneziaWG 3.1. Append a random trailer to every packet to hide its type.</string>
          </property>
          <property name="text">
-          <string>Random Trailers</string>
+          <string>Random trailers</string>
          </property>
         </widget>
        </item>
        <item row="13" column="2" colspan="2">
         <widget class="QCheckBox" name="disable_cookies">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AmneziaWG 3.1. Never send cookie replies, so an under-load peer stays silent instead of answering with a fixed-size message.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>AmneziaWG 3.1. Never send fixed-size cookie replies under load.</string>
          </property>
          <property name="text">
-          <string>Disable Cookies</string>
+          <string>Disable cookies</string>
          </property>
         </widget>
        </item>

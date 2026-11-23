@@ -16,9 +16,6 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QGroupBox" name="groupBox">
-     <property name="uiLevel" stdset="0">
-      <string notr="true">advanced</string>
-     </property>
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
        <horstretch>0</horstretch>
@@ -67,24 +64,24 @@
         <item>
          <widget class="QCheckBox" name="vpn_ipv6">
           <property name="text">
-           <string>Tun Enable IPv6</string>
+           <string>Enable IPv6</string>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QCheckBox" name="strict_route">
           <property name="text">
-           <string>Strict Route</string>
+           <string>Strict route</string>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QCheckBox" name="tun_routing">
           <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, Direct IP CIDRs and rule sets will also be added to the Tun setting to be excluded at OS routing level. IMPORTANT: Large rule sets have been reported to cause massive CPU usage in windows, please enable this option with caution.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <string>Also exclude direct IPs and rule-sets in OS routing; big rule-sets cost CPU.</string>
           </property>
           <property name="text">
-           <string>Enable Tun Routing</string>
+           <string>Enable Tun routing</string>
           </property>
          </widget>
         </item>
@@ -107,27 +104,21 @@
        <layout class="QHBoxLayout" name="checksRow2">
         <item>
          <widget class="QCheckBox" name="auto_redirect">
-          <property name="uiLevel" stdset="0">
-           <string notr="true">advanced</string>
-          </property>
           <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Improves Tun routing and performance using nftables. While enabled, this machine cannot be used as a network gateway for other devices.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <string>Faster Tun routing with nftables; this machine can't act as a gateway.</string>
           </property>
           <property name="text">
-           <string>Auto Redirect</string>
+           <string>Auto redirect</string>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QCheckBox" name="l3_bridge">
-          <property name="uiLevel" stdset="0">
-           <string notr="true">advanced</string>
-          </property>
           <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Forwards bypassed traffic straight out of the network interface instead of rebuilding it as a new connection, which is faster and keeps NAT intact for games and P2P. Applies to UDP and ICMP only; TCP still needs to be sniffed and keeps taking the normal direct path.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <string>Forward bypassed UDP and ICMP straight out, keeping NAT intact for games.</string>
           </property>
           <property name="text">
-           <string>L3 Bridge Bypass</string>
+           <string>L3 bridge bypass</string>
           </property>
          </widget>
         </item>
@@ -151,9 +142,6 @@
    </item>
    <item>
     <widget class="QGroupBox" name="tunAddressGroupBox">
-     <property name="uiLevel" stdset="0">
-      <string notr="true">advanced</string>
-     </property>
      <property name="title">
       <string>Tun Address</string>
      </property>
@@ -198,11 +186,8 @@
    </item>
    <item>
     <widget class="QGroupBox" name="privRangeGroupBox">
-     <property name="uiLevel" stdset="0">
-      <string notr="true">advanced</string>
-     </property>
      <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Address ranges handed straight to the physical NIC instead of being routed through the core, one CIDR per line. Uncheck to let the core hijack private range traffic instead. Loopback and broadcast are always bypassed and cannot be listed here.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>CIDRs that skip the core and go straight to the network card, one per line.</string>
      </property>
      <property name="title">
       <string>Private Range Bypass</string>
@@ -256,10 +241,10 @@
      <item>
       <widget class="QPushButton" name="restart_core">
        <property name="toolTip">
-        <string>Stops the running profile and restarts the core. Try this when Tun fails to start, then start the profile again.</string>
+        <string>Stop the running profile and restart the core, e.g. when Tun fails to start.</string>
        </property>
        <property name="text">
-        <string>Restart Core</string>
+        <string>Restart core</string>
        </property>
       </widget>
      </item>

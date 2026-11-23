@@ -161,12 +161,11 @@ namespace Configs {
         return settings;
     }
 
-    void XrayMuxSettings::SaveAsPreset() const {
-        auto& repo = *Configs::dataManager->settingsRepo;
-        repo.xray_mux_concurrency = concurrency;
-        repo.xray_mux_max_connections = max_connections;
-        repo.xray_mux_xudp_concurrency = xudp_concurrency;
-        repo.xray_mux_xudp_proxy_udp443 = xudp_proxy_udp443;
+    void XrayMuxSettings::SaveAsPreset(SettingsValues &values) const {
+        values.xray_mux_concurrency = concurrency;
+        values.xray_mux_max_connections = max_connections;
+        values.xray_mux_xudp_concurrency = xudp_concurrency;
+        values.xray_mux_xudp_proxy_udp443 = xudp_proxy_udp443;
     }
 
     QJsonObject XrayMuxSettings::Build() const {

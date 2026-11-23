@@ -815,7 +815,7 @@ namespace Configs {
         if (otp_profile_id >= 0) {
             otp_profile_id = -1;
             issues << Validation::Issue{Validation::Severity::Warning, "otp_profile_id",
-                                        QCoreApplication::translate("Validation", "Removed the link to a one-time password entry; choose the entry again in the profile's settings."), {}};
+                                        QCoreApplication::translate("Validation", "Removed the link to an OTP entry; choose the entry again in the profile's settings."), {}};
         }
         // Each wrapper is an executable the core starts during authentication.
         if (!csd->wrapper_path.isEmpty()) {

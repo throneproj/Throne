@@ -3,6 +3,9 @@
 #include <QMessageBox>
 #include <QPushButton>
 
+#include <memory>
+#include <utility>
+
 #include "include/engine/app/ExitController.h"
 #include "include/engine/connection/ConnectionManager.h"
 #include "include/global/Logger.hpp"
@@ -18,11 +21,50 @@
 #include "include/sys/macos/MacOS.h"
 #endif
 
+namespace {
+    using PolicyBoxes = QHash<QString, QPointer<QMessageBox>>;
+
+    // A closed box lingers until its deferred delete, so only a visible one counts as open.
+    QMessageBox *policyOpenBox(const PolicyBoxes &boxes, const char *method) {
+        const auto box = boxes.value(QString::fromLatin1(method));
+        return box && box->isVisible() ? box.data() : nullptr;
+    }
+
+    void policyNotice(PolicyBoxes &boxes, const char *method, QWidget *parent, QMessageBox::Icon icon, const QString &title,
+                      const QString &text) {
+        if (auto *open = policyOpenBox(boxes, method)) {
+            if (open->icon() != icon) open->setIcon(icon);
+            if (open->windowTitle() != title) open->setWindowTitle(title);
+            if (open->text() != text) open->setText(text);
+            return;
+        }
+        auto *box = new QMessageBox(icon, title, text, QMessageBox::Ok, parent);
+        box->setAttribute(Qt::WA_DeleteOnClose);
+        boxes.insert(QString::fromLatin1(method), box);
+        box->open();
+    }
+
+    // answered runs exactly once: true when accept was clicked, false however else the box goes away.
+    void policyAsk(PolicyBoxes &boxes, const char *method, QMessageBox *box, const QAbstractButton *accept,
+                   std::function<void(bool)> answered) {
+        const auto pending = std::make_shared<std::function<void(bool)>>(std::move(answered));
+        const auto answer = [pending](bool value) {
+            if (const auto callback = std::exchange(*pending, {})) callback(value);
+        };
+        QObject::connect(box, &QMessageBox::finished, box, [box, accept, answer] { answer(box->clickedButton() == accept); });
+        // A box deleted with its parent never emits finished.
+        QObject::connect(box, &QObject::destroyed, [answer] { answer(false); });
+        box->setAttribute(Qt::WA_DeleteOnClose);
+        boxes.insert(QString::fromLatin1(method), box);
+        box->open();
+    }
+} // namespace
+
 #ifdef Q_OS_WIN
 namespace {
     bool policyOfferElevatedRestart(QWidget *parent, const QString &text) {
         QMessageBox box(QMessageBox::Warning, software_name, text, QMessageBox::NoButton, parent);
-        auto *restart = box.addButton(MainWindow::tr("Restart as Administrator"), QMessageBox::AcceptRole);
+        auto *restart = box.addButton(MainWindow::tr("Restart as administrator"), QMessageBox::AcceptRole);
         auto *cancel = box.addButton(QMessageBox::Cancel);
         box.setDefaultButton(restart);
         box.setEscapeButton(cancel);
@@ -33,7 +75,7 @@ namespace {
 #endif
 
 void MainWindow::geoAssetMissingCategory(const QString &contextName, const QString &needed, const QString &whichFile) {
-    MessageBoxWarning(
+    policyNotice(m_policyBoxes, __func__, this, QMessageBox::Warning,
         tr("Geo asset missing category"),
         tr("The Xray config \"%1\" needs \"%2\", but the installed %3 does "
            "not contain it.\n\n"
@@ -44,21 +86,43 @@ void MainWindow::geoAssetMissingCategory(const QString &contextName, const QStri
             .arg(contextName, needed, whichFile));
 }
 
-bool MainWindow::confirmGeoAssetDownload(const QString &contextName) {
-    return QMessageBox::question(this, tr("Geo asset files required"),
+void MainWindow::confirmGeoAssetDownload(const QString &contextName, std::function<void(bool download)> answered) {
+    if (policyOpenBox(m_policyBoxes, __func__) != nullptr) {
+        answered(false);
+        return;
+    }
+    auto *box = new QMessageBox(QMessageBox::Question, tr("Geo asset files required"),
             tr("The Xray config \"%1\" uses geoip/geosite routing rules, but the "
                "required data files (geoip.dat / geosite.dat) are not installed.\n\n"
-               "Download them now?").arg(contextName)) == QMessageBox::Yes;
+               "Download them now?").arg(contextName),
+            QMessageBox::Yes | QMessageBox::No, this);
+    policyAsk(m_policyBoxes, __func__, box, box->button(QMessageBox::Yes), std::move(answered));
 }
 
 void MainWindow::geoAssetDownloadFinished(const QString &error) {
     if (!error.isEmpty()) {
-        MessageBoxWarning(tr("Geo asset download failed"), error);
+        policyNotice(m_policyBoxes, __func__, this, QMessageBox::Warning, tr("Geo asset download failed"), error);
     } else {
-        QMessageBox::information(this, tr("Geo assets installed"),
-            tr("Geo data files were downloaded successfully.\n\n"
+        policyNotice(m_policyBoxes, __func__, this, QMessageBox::Information, tr("Geo assets installed"),
+            tr("Geo assets were downloaded successfully.\n\n"
                "Please try again."));
     }
+}
+
+void MainWindow::confirmTorDownload(const QString &profileName, std::function<void(bool download)> answered) {
+    if (policyOpenBox(m_policyBoxes, __func__) != nullptr) {
+        answered(false);
+        return;
+    }
+    auto *box = new QMessageBox(QMessageBox::Question, tr("Tor is not downloaded"),
+            tr("The profile \"%1\" connects through Tor, which is not downloaded yet.\n\n"
+               "Download Tor from the Tor Project now? The profile starts once it is installed.").arg(profileName),
+            QMessageBox::NoButton, this);
+    auto *download = box->addButton(tr("Download"), QMessageBox::AcceptRole);
+    auto *cancel = box->addButton(tr("Cancel"), QMessageBox::RejectRole);
+    box->setDefaultButton(download);
+    box->setEscapeButton(cancel);
+    policyAsk(m_policyBoxes, __func__, box, download, std::move(answered));
 }
 
 void MainWindow::killSwitchProblem() {
@@ -89,10 +153,10 @@ void MainWindow::killSwitchProblem() {
     const bool restartElevated = false;
 #endif
     if (!identity) {
-        fix = box->addButton(!privilege ? tr("Retry") : restartElevated ? tr("Restart as Administrator") : tr("Grant Privileges"),
+        fix = box->addButton(!privilege ? tr("Retry") : restartElevated ? tr("Restart as administrator") : tr("Grant privileges"),
                              QMessageBox::AcceptRole);
     }
-    auto *disable = box->addButton(tr("Disable Kill Switch"), QMessageBox::DestructiveRole);
+    auto *disable = box->addButton(tr("Disable kill switch"), QMessageBox::DestructiveRole);
     auto *cancel = box->addButton(QMessageBox::Cancel);
     box->setDefaultButton(fix != nullptr ? fix : cancel);
     box->setEscapeButton(cancel);
@@ -131,37 +195,44 @@ void MainWindow::extraCoreNotPermitted() {
 }
 
 void MainWindow::startFailed(const StartRequest &, StartOutcome, const QString &title, const QString &error) {
-    MessageBoxWarning(title, error);
+    policyNotice(m_policyBoxes, __func__, this, QMessageBox::Warning, title, error);
 }
 
 void MainWindow::strictRouteUnavailable(const QString &error) {
-    MessageBoxWarning(
+    policyNotice(m_policyBoxes, __func__, this, QMessageBox::Warning,
         tr("Strict routing unavailable"),
         tr("Windows could not enable strict routing. Open Tun Settings, "
-           "disable Strict Route, and start the profile again.\n\n"
-           "Disabling Strict Route may cause DNS leaks.\n\nError: %1").arg(error));
+           "disable Strict route, and start the profile again.\n\n"
+           "Disabling Strict route may cause DNS leaks.\n\nError: %1").arg(error));
 }
 
-bool MainWindow::offerCoreReset(const QString &error) {
-    QMessageBox msg(
+void MainWindow::offerCoreReset(const QString &error, std::function<void(bool reset)> answered) {
+    if (policyOpenBox(m_policyBoxes, __func__) != nullptr) {
+        answered(false);
+        return;
+    }
+    auto *msg = new QMessageBox(
         QMessageBox::Information,
         tr("Tun device misbehaving"),
         tr("If you have trouble starting VPN, you can force reset Core process here and then try starting the profile again. The error is %1").arg(error),
         QMessageBox::NoButton,
         this
     );
-    auto reset = msg.addButton(tr("Reset"), QMessageBox::ActionRole);
-    auto cancel = msg.addButton(tr("Cancel"), QMessageBox::ActionRole);
+    auto reset = msg->addButton(tr("Reset"), QMessageBox::ActionRole);
+    auto cancel = msg->addButton(tr("Cancel"), QMessageBox::ActionRole);
 
-    msg.setDefaultButton(cancel);
-    msg.setEscapeButton(cancel);
+    msg->setDefaultButton(cancel);
+    msg->setEscapeButton(cancel);
 
-    msg.exec();
-    return msg.clickedButton() == reset;
+    policyAsk(m_policyBoxes, __func__, msg, reset, std::move(answered));
 }
 
-bool MainWindow::offerLeftoverTunAdapterRetry(const QString &error) {
-    QMessageBox msg(
+void MainWindow::offerLeftoverTunAdapterRetry(const QString &error, std::function<void(bool retry)> answered) {
+    if (policyOpenBox(m_policyBoxes, __func__) != nullptr) {
+        answered(false);
+        return;
+    }
+    auto *msg = new QMessageBox(
         QMessageBox::Information,
         tr("Leftover Tun adapter"),
         tr("Windows was still holding the Tun adapter from an earlier session that did not close cleanly. "
@@ -169,18 +240,17 @@ bool MainWindow::offerLeftoverTunAdapterRetry(const QString &error) {
         QMessageBox::NoButton,
         this
     );
-    auto startAgain = msg.addButton(tr("Start Again"), QMessageBox::AcceptRole);
-    auto cancel = msg.addButton(tr("Cancel"), QMessageBox::RejectRole);
+    auto startAgain = msg->addButton(tr("Start again"), QMessageBox::AcceptRole);
+    auto cancel = msg->addButton(tr("Cancel"), QMessageBox::RejectRole);
 
-    msg.setDefaultButton(startAgain);
-    msg.setEscapeButton(cancel);
+    msg->setDefaultButton(startAgain);
+    msg->setEscapeButton(cancel);
 
-    msg.exec();
-    return msg.clickedButton() == startAgain;
+    policyAsk(m_policyBoxes, __func__, msg, startAgain, std::move(answered));
 }
 
 void MainWindow::stopFailed(const QString &error) {
-    MessageBoxWarning(tr("Stop return error"), error);
+    policyNotice(m_policyBoxes, __func__, this, QMessageBox::Warning, tr("Stop return error"), error);
 }
 
 Engine::SlowOperation MainWindow::slowOperation(Engine::SlowOperationKind, int delayMs) {
@@ -223,7 +293,7 @@ bool MainWindow::requestCorePrivileges() {
     if (Sys::CoreElevation::GrantIneffective()) {
         if (policyOfferElevatedRestart(GetMessageBoxParent(),
                                        tr("The core did not get administrator rights, although they were granted. The log shows why.\n\n"
-                                          "Restart Throne as administrator to use Tun Mode and the kill switch."))) {
+                                          "Restart Throne as administrator to use Tun mode and the kill switch."))) {
             this->exit_reason = ExitReason::RestartWithTun;
             on_menu_exit_triggered();
         }
@@ -231,10 +301,10 @@ bool MainWindow::requestCorePrivileges() {
     }
     if (Sys::CoreElevation::CanGrant()) {
         QMessageBox box(QMessageBox::Warning, software_name,
-                        tr("Tun Mode and the kill switch need the core to run with administrator rights.\n\n"
+                        tr("Tun mode and the kill switch need the core to run with administrator rights.\n\n"
                            "Grant them once with a Windows confirmation; Throne itself keeps running as a standard user."),
                         QMessageBox::NoButton, GetMessageBoxParent());
-        auto *grant = box.addButton(tr("Grant Privileges"), QMessageBox::AcceptRole);
+        auto *grant = box.addButton(tr("Grant privileges"), QMessageBox::AcceptRole);
         auto *cancel = box.addButton(QMessageBox::Cancel);
         box.setDefaultButton(grant);
         box.setEscapeButton(cancel);
@@ -289,7 +359,8 @@ bool MainWindow::requestCorePrivileges() {
 }
 
 void MainWindow::systemProxyNeedsMixedInbound() {
-    MessageBoxWarning("Invalid Operation", "Cannot set system proxy when mixed inbound is disabled.");
+    policyNotice(m_policyBoxes, __func__, this, QMessageBox::Warning, "Invalid Operation",
+                 "Cannot set system proxy when mixed inbound is disabled.");
 }
 
 bool MainWindow::vpnPromptOpen() const {
@@ -316,8 +387,34 @@ void MainWindow::vpnCredentialsRejected(int, const VpnAuthChallenge &challenge,
     ActivateWindow(dialog);
 }
 
+void MainWindow::offerVpnSignInRestart(const QString &endpointName, const QString &error,
+                                       std::function<void(bool restart)> answered) {
+    if (policyOpenBox(m_policyBoxes, __func__) != nullptr) {
+        answered(false);
+        return;
+    }
+    auto *msg = new QMessageBox(
+        QMessageBox::Warning,
+        tr("VPN sign-in refused"),
+        tr("%1 refused its sign-in, so traffic routed through it fails. Restarting the profile signs it in again with a new "
+           "one-time code, but drops every open connection.\n\nError: %2").arg(endpointName, error),
+        QMessageBox::NoButton,
+        this
+    );
+    auto restart = msg->addButton(tr("Restart profile"), QMessageBox::AcceptRole);
+    auto later = msg->addButton(tr("Not now"), QMessageBox::RejectRole);
+
+    // Not a default restart: the box can pop up while the user is typing elsewhere.
+    msg->setDefaultButton(later);
+    msg->setEscapeButton(later);
+
+    policyAsk(m_policyBoxes, __func__, msg, restart, std::move(answered));
+}
+
 void MainWindow::vpnChallengesCleared() {
     if (m_vpnAuthDialog != nullptr) m_vpnAuthDialog->close();
+    // The question belongs to the run that just ended.
+    if (auto *box = policyOpenBox(m_policyBoxes, "offerVpnSignInRestart")) box->close();
 }
 
 void MainWindow::settingsNeedTunRestart() {

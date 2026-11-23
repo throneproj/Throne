@@ -78,11 +78,9 @@ MuxSettingsWidget::MuxSettingsWidget(QWidget *parent) : QWidget(parent) {
     m_protocol->addItems(Configs::muxProtocols);
     addField(0, 0, "mux_protocol_l", tr("Protocol"), m_protocol);
     m_mode = new QComboBox(this);
-    m_mode->addItems({tr("Max Streams"), tr("Max Connections")});
+    m_mode->addItems({tr("Max streams"), tr("Max connections")});
     m_modeLabel = addField(0, 2, "mux_mode_l", tr("Mode"), m_mode);
-    m_modeLabel->setToolTip(tr("<html><head/><body><p><b>Max Streams</b>: reuse a connection until it carries this many streams, then open another.</p>"
-                               "<p><b>Max Connections</b>: keep at most this many connections, and open a new one only while the least busy "
-                               "connection already carries Min Streams streams.</p></body></html>"));
+    m_modeLabel->setToolTip(tr("Cap streams per connection, or the number of connections."));
 
     m_maxStreams = numberEdit();
     m_maxStreamsLabel = addField(1, 0, "mux_max_streams_l", tr("Max Streams"), m_maxStreams);
@@ -96,8 +94,7 @@ MuxSettingsWidget::MuxSettingsWidget(QWidget *parent) : QWidget(parent) {
     grid->addWidget(m_padding, 3, 0, 1, 4);
     m_brutal = new QCheckBox(tr("TCP Brutal"), this);
     m_brutal->setObjectName("mux_brutal");
-    m_brutal->setToolTip(tr("<html><head/><body><p>TCP Brutal congestion control at the speeds below; the server must support it. "
-                            "Every stream then shares one connection, so the mode is ignored.</p></body></html>"));
+    m_brutal->setToolTip(tr("Use TCP Brutal at the speeds below; the server must support it."));
     grid->addWidget(m_brutal, 4, 0, 1, 4);
     m_brutalUp = numberEdit();
     m_brutalUpLabel = addField(5, 0, "mux_brutal_up_l", tr("Upload (Mb/s)"), m_brutalUp);
@@ -185,23 +182,19 @@ XrayMuxSettingsWidget::XrayMuxSettingsWidget(QWidget *parent) : QWidget(parent) 
 
     m_concurrency = countEdit(-1);
     m_concurrencyLabel = addMuxField(this, grid, 0, 0, "xray_mux_concurrency_l", tr("Concurrency"), m_concurrency);
-    m_concurrencyLabel->setToolTip(tr("<html><head/><body><p>Streams one connection carries before another opens. "
-                                      "0 uses Xray's 8, and -1 sends TCP outside the mux.</p></body></html>"));
+    m_concurrencyLabel->setToolTip(tr("Streams per connection. 0: Xray's default 8; -1: TCP skips the mux."));
     m_maxConnections = countEdit(0);
     m_maxConnections->setPlaceholderText(tr("No limit"));
     m_maxConnectionsLabel = addMuxField(this, grid, 0, 2, "xray_mux_max_connections_l", tr("Max Connections"), m_maxConnections);
-    m_maxConnectionsLabel->setToolTip(tr("<html><head/><body><p>Keep at most this many connections, for TCP and for XUDP each. Once every one "
-                                         "carries Concurrency streams, new streams join the least busy one.</p></body></html>"));
+    m_maxConnectionsLabel->setToolTip(tr("Most connections for TCP and for XUDP each. Empty: no limit."));
     m_xudpConcurrency = countEdit(-1);
     m_xudpConcurrencyLabel = addMuxField(this, grid, 1, 0, "xray_mux_xudp_concurrency_l", tr("XUDP Concurrency"), m_xudpConcurrency);
-    m_xudpConcurrencyLabel->setToolTip(tr("<html><head/><body><p>UDP streams per connection, on connections of their own. "
-                                          "0 carries UDP on the TCP connections, and -1 sends it outside the mux.</p></body></html>"));
+    m_xudpConcurrencyLabel->setToolTip(tr("UDP streams per XUDP connection. 0: use TCP connections; -1: skip the mux."));
     // Same order as Configs::xrayXudpProxyUDP443Modes.
     m_xudpProxyUDP443 = new QComboBox(this);
     m_xudpProxyUDP443->addItems({tr("Reject"), tr("Allow"), tr("Skip")});
     auto *udp443Label = addMuxField(this, grid, 1, 2, "xray_mux_xudp_proxy_udp443_l", tr("UDP/443"), m_xudpProxyUDP443);
-    udp443Label->setToolTip(tr("<html><head/><body><p>UDP to port 443, mostly QUIC. <b>Reject</b> makes browsers fall back to TCP (Xray's default), "
-                               "<b>Allow</b> carries it through the mux, and <b>Skip</b> sends it outside the mux.</p></body></html>"));
+    udp443Label->setToolTip(tr("How the mux handles UDP to port 443 (QUIC). Default: Reject."));
     grid->setColumnStretch(4, 1);
     ADD_ASTERISK(this)
 }
@@ -232,5 +225,5 @@ void XrayMuxSettingsWidget::bindValidation(Validation::Form *form, const QString
 
 void XrayMuxSettingsWidget::openDialog(QWidget *parent, const Configs::XrayMuxSettings &settings,
                                        std::function<void(const Configs::XrayMuxSettings &)> done) {
-    openMuxDialog<XrayMuxSettingsWidget>(parent, tr("Custom Mux"), settings, std::move(done));
+    openMuxDialog<XrayMuxSettingsWidget>(parent, tr("Custom Multiplex"), settings, std::move(done));
 }

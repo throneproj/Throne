@@ -150,7 +150,6 @@ void DialogEditProfile::loadSingboxStream() {
     if (outbound->HasMux()) {
         const auto mux = outbound->GetMux();
         ui->multiplex->setCurrentIndex(mux->getMuxState());
-        offerCustomMux(ui->multiplex, Configs::kMuxCustom);
         CACHE.mux = mux->CustomSettings();
     }
 }

@@ -3,7 +3,6 @@
 #include <QJsonArray>
 #include <QUrl>
 
-#include <algorithm>
 #include <memory>
 
 #include "include/configs/sub/GroupUpdater.hpp"
@@ -17,7 +16,6 @@
 #include "include/engine/services/ServiceTypes.h"
 #include "include/engine/services/SettingsRegistry.h"
 #include "include/global/Configs.hpp"
-#include "include/global/RunningProfiles.hpp"
 #include "include/global/Validation.hpp"
 
 namespace RemoteApi::RouterManageImpl {
@@ -45,10 +43,6 @@ namespace RemoteApi::RouterManageImpl {
         if (!url.isValid() || url.host().isEmpty()) return false;
         return url.scheme().compare(QLatin1String("http"), Qt::CaseInsensitive) == 0 ||
                url.scheme().compare(QLatin1String("https"), Qt::CaseInsensitive) == 0;
-    }
-
-    bool anyRunningUses(const QList<int> &profileIds) {
-        return std::any_of(profileIds.cbegin(), profileIds.cend(), [](int id) { return Configs::RunningUsesProfile(id); });
     }
 
     QString failureText(const Subscription::UpdateOutcome &outcome) {
@@ -343,15 +337,11 @@ namespace RemoteApi {
                 fail(waiter, Response::Error(409, QStringLiteral("busy"), QStringLiteral("A profile of the group is running")));
                 return;
             }
-            QList<int> members;
-            if (const auto group = Configs::dataManager->groupsRepo->GetGroup(id)) members = group->Profiles();
-            const bool usedByRunning = RouterManageImpl::anyRunningUses(members);
             if (const auto refused = Engine::GroupService::Delete(id)) {
                 fail(waiter, serviceError(*refused));
                 return;
             }
             noteChanged(Engine::ChangeTopic::Groups | Engine::ChangeTopic::Profiles);
-            if (usedByRunning) engine_->noteRestartNeeded(Engine::RestartReason::Group);
             answer(waiter, Response::Ok(QJsonObject{{"deleted", id}}));
         });
         if (busy) answer(waiter, *busy);
@@ -385,11 +375,9 @@ namespace RemoteApi {
                 fail(waiter, Response::Error(409, QStringLiteral("busy"), QStringLiteral("One of the profiles is running")));
                 return;
             }
-            const bool usedByRunning = RouterManageImpl::anyRunningUses(ids);
             int deleted = 0;
             const auto refused = Engine::ProfileService::Delete(ids, &deleted);
             if (deleted > 0) noteChanged(Engine::ChangeTopic::Groups | Engine::ChangeTopic::Profiles);
-            if (usedByRunning && deleted > 0) engine_->noteRestartNeeded(Engine::RestartReason::Profile);
             if (refused) {
                 fail(waiter, serviceError(*refused));
                 return;
@@ -424,17 +412,13 @@ namespace RemoteApi {
             respond(Response::Error(409, QStringLiteral("busy"), QStringLiteral("A test is running")));
             return;
         }
-        const auto &settings = Configs::dataManager->settingsRepo;
         Engine::SettingsRegistry::Context context;
-        context.profileRunning = engine_->runningSnapshot() != nullptr;
-        context.tunOn = settings->spmode_vpn;
-        context.systemProxyOn = settings->spmode_system_proxy;
+        context.systemProxyOn = Configs::dataManager->settingsRepo->spmode_system_proxy;
         Engine::SettingsRegistry::PutResult result;
         if (const auto refused = Engine::SettingsRegistry::Put(patch.toObject(), context, &result)) {
             respond(serviceError(*refused));
             return;
         }
-        if (result.restartNeeded) engine_->noteRestartNeeded(Engine::RestartReason::Settings);
         if (!result.changed.isEmpty()) noteChanged(Engine::ChangeTopic::Settings | Engine::ChangeTopic::Status);
         respond(Response::Ok(QJsonObject{
             {"settings", Engine::SettingsRegistry::Values()},

@@ -226,6 +226,8 @@ set(PROJECT_SOURCES
         src/ui/mainWindow/mainwindow_deeplink.cpp
         src/ui/mainWindow/mainwindow_system.cpp
         src/ui/mainWindow/mainwindow_log.cpp
+        src/ui/mainWindow/mainwindow_icons.cpp
+        src/ui/mainWindow/mainwindow_menus.cpp
         src/ui/mainWindow/mainwindow_hotkeys.cpp
         src/ui/mainWindow/mainwindow_palette.cpp
         src/ui/mainWindow/mainwindow_profile_lifecycle.cpp
@@ -257,6 +259,8 @@ set(PROJECT_SOURCES
         src/ui/widget/ResolverSourceWidget.cpp
         include/ui/widget/ElidingLabel.hpp
         src/ui/widget/ElidingLabel.cpp
+        include/ui/widget/DnsServerListEdit.h
+        src/ui/widget/DnsServerListEdit.cpp
         include/ui/widget/json/JsonTree.h
         src/ui/widget/json/JsonTree.cpp
         include/ui/widget/json/JsonValidator.h
@@ -282,6 +286,10 @@ set(PROJECT_SOURCES
         src/ui/utils/ProfilesTableVerticalHeader.cpp
         include/ui/utils/ServiceCheckHtml.h
         src/ui/utils/ServiceCheckHtml.cpp
+        include/ui/utils/ServiceIcons.h
+        src/ui/utils/ServiceIcons.cpp
+        include/ui/setting/ServiceCheckSelector.h
+        src/ui/setting/ServiceCheckSelector.cpp
         include/ui/utils/ProfilesTableFilterHeader.h
         include/ui/utils/ConnectionsFilterHeader.h
         include/ui/utils/HeaderSortArrow.h
@@ -294,14 +302,15 @@ set(PROJECT_SOURCES
         include/ui/utils/NoWheelComboBox.h
         include/ui/utils/MyPlainTextEdit.h
         include/ui/utils/GuiUtils.hpp
+        src/ui/utils/GuiUtils.cpp
         include/ui/utils/ValidationForm.h
         src/ui/utils/ValidationForm.cpp
         include/ui/utils/CommandPalette.h
         src/ui/utils/CommandPalette.cpp
         include/ui/utils/SettingsIndex.h
         src/ui/utils/SettingsIndex.cpp
-        include/ui/utils/UiMode.h
-        src/ui/utils/UiMode.cpp
+        include/ui/utils/ThemedIcon.hpp
+        src/ui/utils/ThemedIcon.cpp
 
         include/ui/profile/dialog_edit_profile.h
         src/ui/profile/dialog_edit_profile.cpp
@@ -529,6 +538,22 @@ set(PROJECT_SOURCES
         src/ui/setting/RouteItem.cpp
         include/ui/setting/RouteItem.h
         include/ui/setting/RouteItem.ui
+        src/ui/setting/route/RouteEditorCommon.cpp
+        include/ui/setting/route/RouteEditorCommon.h
+        src/ui/setting/route/RouteEditorWidgets.cpp
+        include/ui/setting/route/RouteEditorWidgets.h
+        src/ui/setting/route/RouteRulesPage.cpp
+        include/ui/setting/route/RouteRulesPage.h
+        src/ui/setting/route/RouteRuleList.cpp
+        include/ui/setting/route/RouteRuleList.h
+        src/ui/setting/route/RouteRuleEditor.cpp
+        include/ui/setting/route/RouteRuleEditor.h
+        src/ui/setting/route/RouteThenPicker.cpp
+        include/ui/setting/route/RouteThenPicker.h
+        src/ui/setting/route/RouteQuickLists.cpp
+        include/ui/setting/route/RouteQuickLists.h
+        src/ui/setting/route/RouteEndpointPanel.cpp
+        include/ui/setting/route/RouteEndpointPanel.h
 
         src/ui/setting/RawRouteItem.cpp
         include/ui/setting/RawRouteItem.h
@@ -552,6 +577,12 @@ set(PROJECT_SOURCES
         src/ui/profile/edit_masterdns.cpp
         include/ui/profile/edit_masterdns.h
         include/ui/profile/edit_masterdns.ui
+        src/ui/profile/edit_tor.cpp
+        include/ui/profile/edit_tor.h
+        include/ui/profile/edit_tor.ui
+        src/ui/profile/edit_psiphon.cpp
+        include/ui/profile/edit_psiphon.h
+        include/ui/profile/edit_psiphon.ui
         include/stats/connections/connectionLister.hpp
         src/stats/connectionLister/connectionLister.cpp
         include/sys/windows/eventHandler.h
@@ -563,6 +594,7 @@ set(PROJECT_SOURCES
         include/configs/common/transport.h
         include/configs/common/Outbound.h
         include/configs/common/OutboundFactory.h
+        include/configs/common/Protocols.h
 
         # common impl
         src/configs/common/DialFields.cpp
@@ -571,7 +603,7 @@ set(PROJECT_SOURCES
         src/configs/common/multiplex.cpp
         src/configs/common/transport.cpp
         src/configs/common/Outbound.cpp
-        src/configs/common/OutboundFactory.cpp
+        src/configs/common/Protocols.cpp
         include/configs/common/ResolverSource.h
         src/configs/common/ResolverSource.cpp
         include/configs/common/DnsTunnel.h
@@ -624,9 +656,25 @@ set(PROJECT_SOURCES
         src/configs/outbounds/masterdns.cpp
         include/configs/outbounds/tor.h
         src/configs/outbounds/tor.cpp
+        include/configs/outbounds/psiphon.h
+        src/configs/outbounds/psiphon.cpp
         src/configs/outbounds/custom.cpp
         include/configs/generate.h
+        include/configs/ConfigBuild.h
+        include/configs/DnsAddress.h
+        include/configs/EndpointOverride.h
+        include/configs/RuleSetMirror.h
+        include/configs/Warp.h
+        include/configs/generate_internal.h
         src/configs/generate.cpp
+        src/configs/generate_profiles.cpp
+        src/configs/generate_plan.cpp
+        src/configs/generate_dns.cpp
+        src/configs/generate_chain.cpp
+        src/configs/generate_outbounds.cpp
+        src/configs/generate_route.cpp
+        src/configs/generate_xray.cpp
+        src/configs/generate_test.cpp
         include/configs/common/utils.h
         src/configs/common/utils.cpp
         include/configs/outbounds/custom.h
@@ -698,6 +746,9 @@ set(PROJECT_SOURCES
         include/database/DatabaseManager.h
         src/database/DatabaseManager.cpp
 
+        include/database/SettingsValues.h
+        include/database/SettingsSchema.h
+        src/database/SettingsSchema.cpp
         include/database/SettingsRepo.h
         src/database/SettingsRepo.cpp
         include/configs/sub/warp.h
@@ -782,6 +833,8 @@ set(ENGINE_SOURCES
         src/engine/services/ProfileService.cpp
         include/engine/services/SettingsRegistry.h
         src/engine/services/SettingsRegistry.cpp
+        include/engine/services/SettingsService.h
+        src/engine/services/SettingsService.cpp
         include/engine/services/BackupArchive.h
         src/engine/services/BackupArchive.cpp
         include/engine/services/WebDavBackup.h
@@ -794,6 +847,8 @@ set(ENGINE_SOURCES
         src/engine/services/RouteService.cpp
         include/engine/services/WarpService.h
         src/engine/services/WarpService.cpp
+        include/engine/services/TorBridges.h
+        src/engine/services/TorBridges.cpp
         include/engine/tests/TestObserver.h
         include/engine/tests/TestRunner.h
         src/engine/tests/TestRunner.cpp
@@ -804,6 +859,10 @@ set(ENGINE_SOURCES
         include/engine/connection/ConnectionManager.h
         src/engine/connection/ConnectionManager.cpp
         src/engine/connection/ConnectionModes.cpp
+        include/engine/connection/EngineState.h
+        src/engine/connection/EngineState.cpp
+        include/engine/connection/StartCoordinator.h
+        src/engine/connection/StartCoordinator.cpp
         include/engine/vpn/VpnAuthController.h
         src/engine/vpn/VpnAuthController.cpp
         include/engine/services/Dashboard.h

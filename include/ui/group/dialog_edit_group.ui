@@ -34,9 +34,6 @@
      <layout class="QGridLayout" name="main">
       <item row="3" column="1">
        <widget class="QComboBox" name="landing_proxy">
-        <property name="uiLevel" stdset="0">
-         <string notr="true">advanced</string>
-        </property>
        </widget>
       </item>
       <item row="1" column="1">
@@ -62,9 +59,6 @@
       </item>
       <item row="3" column="0">
        <widget class="QLabel" name="landing_proxy_l">
-        <property name="uiLevel" stdset="0">
-         <string notr="true">advanced</string>
-        </property>
         <property name="text">
          <string>Landing Proxy</string>
         </property>
@@ -74,9 +68,6 @@
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
          <widget class="QComboBox" name="front_proxy">
-          <property name="uiLevel" stdset="0">
-           <string notr="true">advanced</string>
-          </property>
          </widget>
         </item>
        </layout>
@@ -90,9 +81,6 @@
       </item>
       <item row="2" column="0">
        <widget class="QLabel" name="front_proxy_l">
-        <property name="uiLevel" stdset="0">
-         <string notr="true">advanced</string>
-        </property>
         <property name="text">
          <string>Front Proxy</string>
         </property>
@@ -111,7 +99,7 @@
       <item row="4" column="1">
        <widget class="QComboBox" name="route">
         <property name="toolTip">
-         <string>The routing profile this group's profiles connect with. Default follows the routing profile chosen in the Routing menu.</string>
+         <string>Routing profile this group's profiles use. Default: the Routing menu's choice.</string>
         </property>
        </widget>
       </item>
@@ -120,7 +108,7 @@
         <item>
          <widget class="QCheckBox" name="auto_clear_unavailable">
           <property name="text">
-           <string>Auto Clear Unavailable Profiles</string>
+           <string>Auto clear unavailable profiles</string>
           </property>
          </widget>
         </item>
@@ -139,9 +127,6 @@
         </item>
         <item>
          <widget class="QPushButton" name="advanced">
-          <property name="uiLevel" stdset="0">
-           <string notr="true">advanced</string>
-          </property>
           <property name="text">
            <string>Advanced</string>
           </property>
@@ -186,7 +171,7 @@
       <item row="2" column="1">
        <widget class="QCheckBox" name="import_sub_route">
         <property name="toolTip">
-         <string>Each update saves the routing profile the subscription provides (Happ format) as this group's own routing profile. DNS settings from the subscription are never used.</string>
+         <string>Each update saves the subscription's Happ routing profile for this group.</string>
         </property>
         <property name="text">
          <string>Use the subscription's routing profile</string>
@@ -212,7 +197,7 @@
       <item>
        <widget class="QPushButton" name="copy_links_nkr">
         <property name="text">
-         <string>Copy profile share links (Deep Links)</string>
+         <string>Copy profile share links (deep links)</string>
         </property>
        </widget>
       </item>

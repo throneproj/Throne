@@ -4,14 +4,20 @@
 #include <QApplication>
 #include <QMenu>
 #include <QMutexLocker>
+#include <QPainter>
 #include <QScrollBar>
 #include <QTextCursor>
 
 #include <algorithm>
 
 #include "3rdparty/qv2ray/v2/ui/LogHighlighter.hpp"
+#include "include/ui/setting/ThemeManager.hpp"
+#include "include/ui/utils/ThemedIcon.hpp"
+
+using Qv2ray::ui::LogLevel;
 
 namespace {
+    constexpr quint8 ALL_LOG_LEVELS = 0x0F;
     constexpr qsizetype MAX_PENDING_LOG_CHARS = 2 * 1024 * 1024;
     // Slack so a fractional layout height still counts as scrolled to the bottom.
     constexpr int LOG_BOTTOM_SLACK = 4;
@@ -44,6 +50,51 @@ namespace {
         cursor.movePosition(QTextCursor::NextBlock, QTextCursor::KeepAnchor, count);
         cursor.removeSelectedText();
     }
+
+    quint8 levelBit(LogLevel level) {
+        return static_cast<quint8>(1u << static_cast<int>(level));
+    }
+
+    QColor mixColors(const QColor &a, const QColor &b, float amount) {
+        return QColor::fromRgbF(a.redF() + (b.redF() - a.redF()) * amount, a.greenF() + (b.greenF() - a.greenF()) * amount,
+                                a.blueF() + (b.blueF() - a.blueF()) * amount);
+    }
+
+    // Level colours read calmer desaturated and drawn toward the text colour.
+    QColor calmLogColor(const QColor &color, const QColor &text, float maxSaturation = 0.38f) {
+        float h = 0, s = 0, l = 0, a = 1;
+        color.getHslF(&h, &s, &l, &a);
+        return mixColors(QColor::fromHslF(h, std::min(s, maxSaturation), l, a), text, 0.2f);
+    }
+
+    // Debug, Info, Warn, Error.
+    std::array<QColor, 4> logLevelColors(const ThemeTokens &tokens) {
+        return {tokens.muted, calmLogColor(tokens.info, tokens.onSurface), calmLogColor(tokens.warning, tokens.onSurface, 0.55f),
+                calmLogColor(tokens.danger, tokens.onSurface, 0.55f)};
+    }
+
+    QPixmap levelDotPixmap(const QColor &color, int size, qreal dpr) {
+        QPixmap pixmap(QSize(size, size) * dpr);
+        pixmap.setDevicePixelRatio(dpr);
+        pixmap.fill(Qt::transparent);
+        QPainter painter(&pixmap);
+        painter.setRenderHint(QPainter::Antialiasing);
+        painter.setPen(Qt::NoPen);
+        painter.setBrush(color);
+        painter.drawEllipse(QRectF(1, 1, size - 2, size - 2));
+        return pixmap;
+    }
+
+    QIcon levelDotIcon(const QColor &color) {
+        QColor faded = color;
+        faded.setAlphaF(0.35f);
+        QIcon icon;
+        for (const qreal dpr : {1.0, 2.0}) {
+            icon.addPixmap(levelDotPixmap(color, 10, dpr), QIcon::Normal, QIcon::On);
+            icon.addPixmap(levelDotPixmap(faded, 10, dpr), QIcon::Normal, QIcon::Off);
+        }
+        return icon;
+    }
 }
 
 void MainWindow::applyLogBrowserFont() {
@@ -61,10 +112,49 @@ void MainWindow::applyLogBrowserFont() {
 }
 
 void MainWindow::setLogHighlighter(bool darkMode) {
+    const auto &tokens = themeManager()->tokens;
+    const auto levels = logLevelColors(tokens);
+    Qv2ray::ui::LogColors colors;
+    colors.text = tokens.onSurface;
+    colors.muted = levels[0];
+    colors.info = levels[1];
+    colors.warn = levels[2];
+    colors.error = levels[3];
+    colors.ok = tokens.success;
+    colors.host = mixColors(tokens.info, tokens.onSurface, 0.35f);
+    colors.inbound = tokens.chartSeries[2];
+    colors.outbound = tokens.chartSeries[4];
+    colors.dns = tokens.chartSeries[1];
+    colors.router = tokens.chartSeries[3];
+    colors.other = tokens.chartContext;
+    colors.searchBackground = darkMode ? QColor(150, 110, 0) : QColor(255, 225, 90);
+    colors.searchForeground = darkMode ? QColor(Qt::white) : QColor(Qt::black);
+
     // A QSyntaxHighlighter is never evicted by constructing another, so the old one must be deleted.
     delete logHighlighter;
-    logHighlighter = new SyntaxHighlighter(darkMode, qvLogDocument);
+    logHighlighter = new Qv2ray::ui::SyntaxHighlighter(colors, qvLogDocument);
     logHighlighter->setSearchPattern(m_logSearch);
+    refreshLogLevelChips();
+}
+
+void MainWindow::refreshLogLevelChips() {
+    const auto dots = logLevelColors(themeManager()->tokens);
+    for (int i = 0; i < 4; ++i) {
+        if (logLevelChips[i] != nullptr) logLevelChips[i]->setIcon(levelDotIcon(dots[i]));
+    }
+}
+
+void MainWindow::pushLogLine(QString &&text) {
+    const auto level = Qv2ray::ui::ClassifyLogLine(text);
+    ++m_logLevelCounts[static_cast<int>(level)];
+    LogLine line{std::move(text), level, true};
+    line.visible = logLineVisible(line);
+    m_logLines.push_back(std::move(line));
+}
+
+bool MainWindow::logLineVisible(const LogLine &line) const {
+    if ((m_logLevelFilter & levelBit(line.level)) == 0) return false;
+    return m_logSearch.pattern().isEmpty() || m_logSearch.match(line.text).hasMatch();
 }
 
 void MainWindow::setupLogView() {
@@ -94,12 +184,29 @@ void MainWindow::setupLogView() {
 
     // Both sit in the stats tab corner, which setupConnectionFilter() builds.
     logJumpLatestButton = new QToolButton(this);
-    logJumpLatestButton->setToolTip(tr("New logs are held while the view is scrolled up"));
+    logJumpLatestButton->setToolTip(tr("Scroll to the newest logs and keep following them."));
     connect(logJumpLatestButton, &QToolButton::clicked, this, [this] { releaseHeldLogs(); });
     logFilterButton = new QToolButton(this);
-    logFilterButton->setIcon(QIcon(":/icon/filter.png"));
+    logFilterButton->setIcon(ThemedIcon(QStringLiteral("funnel")));
     logFilterButton->setCheckable(true);
     connect(logFilterButton, &QToolButton::toggled, this, &MainWindow::setLogFilterVisible);
+
+    int chipIndex = 0;
+    for (const auto level : {LogLevel::Error, LogLevel::Warn, LogLevel::Info, LogLevel::Debug}) {
+        auto *chip = new QToolButton(ui->logToolbar);
+        chip->setCheckable(true);
+        chip->setChecked(true);
+        chip->setAutoRaise(true);
+        chip->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        connect(chip, &QToolButton::toggled, this, [this, level](bool shown) {
+            m_logLevelChoice = shown ? (m_logLevelChoice | levelBit(level)) : (m_logLevelChoice & ~levelBit(level));
+            applyLogSearch();
+        });
+        ui->logToolbarLayout->insertWidget(chipIndex++, chip);
+        logLevelChips[static_cast<int>(level)] = chip;
+    }
+    ui->logToolbarLayout->insertSpacing(chipIndex, 8);
+    refreshLogLevelChips();
     for (auto *w : ui->logToolbar->findChildren<QWidget*>()) w->installEventFilter(this);
 
     m_logSearchDebounce = new QTimer(this);
@@ -199,15 +306,14 @@ void MainWindow::releaseHeldLogs() {
     // Set first so the range growth from the append below already snaps to the bottom.
     m_logFollow = true;
     if (!m_logHeld.empty()) {
-        const bool filtering = !m_logSearch.pattern().isEmpty();
         QString shown;
         for (auto &text : m_logHeld) {
-            const bool visible = !filtering || m_logSearch.match(text).hasMatch();
-            if (visible) {
+            pushLogLine(std::move(text));
+            const auto &line = m_logLines.back();
+            if (line.visible) {
                 if (!shown.isEmpty()) shown += '\n';
-                shown += text;
+                shown += line.text;
             }
-            m_logLines.push_back({std::move(text), visible});
         }
         m_logHeld.clear();
         appendDocumentLines(qvLogDocument, shown);
@@ -222,7 +328,9 @@ int MainWindow::trimLogLines() {
     const auto limit = static_cast<size_t>(logLineLimit());
     int droppedVisible = 0;
     while (m_logLines.size() > limit) {
-        if (m_logLines.front().visible) ++droppedVisible;
+        const auto &front = m_logLines.front();
+        if (front.visible) ++droppedVisible;
+        --m_logLevelCounts[static_cast<int>(front.level)];
         m_logLines.pop_front();
     }
     while (m_logHeld.size() > limit) m_logHeld.pop_front();
@@ -230,10 +338,9 @@ int MainWindow::trimLogLines() {
 }
 
 void MainWindow::rebuildLogView() {
-    const bool filtering = !m_logSearch.pattern().isEmpty();
     QString shown;
     for (auto &line : m_logLines) {
-        line.visible = !filtering || m_logSearch.match(line.text).hasMatch();
+        line.visible = logLineVisible(line);
         if (line.visible) {
             if (!shown.isEmpty()) shown += '\n';
             shown += line.text;
@@ -248,7 +355,8 @@ void MainWindow::rebuildLogView() {
 
 void MainWindow::applyLogSearch() {
     // A hidden bar keeps its text and toggles but stops filtering.
-    const QString text = logFilterButton->isChecked() ? ui->logSearchEdit->text() : QString();
+    const bool barShown = logFilterButton->isChecked();
+    const QString text = barShown ? ui->logSearchEdit->text() : QString();
     QRegularExpression search;
     if (!text.isEmpty()) {
         search.setPattern(ui->logSearchRegex->isChecked() ? text : QRegularExpression::escape(text));
@@ -263,12 +371,14 @@ void MainWindow::applyLogSearch() {
     }
     ui->logSearchEdit->setStyleSheet({});
     ui->logSearchEdit->setToolTip({});
-    if (search == m_logSearch) return;
+    const quint8 levels = barShown ? m_logLevelChoice : ALL_LOG_LEVELS;
+    if (search == m_logSearch && levels == m_logLevelFilter) return;
 
     m_logSearch = search;
+    m_logLevelFilter = levels;
     if (logHighlighter) logHighlighter->setSearchPattern(m_logSearch);
     // A new filter jumps to the newest results, so fold in whatever was held.
-    for (auto &held : m_logHeld) m_logLines.push_back({std::move(held), true});
+    for (auto &held : m_logHeld) pushLogLine(std::move(held));
     m_logHeld.clear();
     trimLogLines();
     rebuildLogView();
@@ -283,11 +393,20 @@ void MainWindow::setLogFilterVisible(bool visible) {
 }
 
 void MainWindow::updateLogStatus() {
-    if (m_logSearch.pattern().isEmpty()) {
+    if (m_logSearch.pattern().isEmpty() && m_logLevelFilter == ALL_LOG_LEVELS) {
         ui->logMatchCount->clear();
     } else {
         const auto matched = std::count_if(m_logLines.begin(), m_logLines.end(), [](const LogLine &line) { return line.visible; });
         ui->logMatchCount->setText(QStringLiteral("%1 / %2").arg(matched).arg(m_logLines.size()));
+    }
+    const std::array<QString, 4> chipTexts = {
+        tr("Debug %1").arg(m_logLevelCounts[static_cast<int>(LogLevel::Debug)]),
+        tr("Info %1").arg(m_logLevelCounts[static_cast<int>(LogLevel::Info)]),
+        tr("Warnings %1").arg(m_logLevelCounts[static_cast<int>(LogLevel::Warn)]),
+        tr("Errors %1").arg(m_logLevelCounts[static_cast<int>(LogLevel::Error)]),
+    };
+    for (int i = 0; i < 4; ++i) {
+        if (logLevelChips[i] != nullptr) logLevelChips[i]->setText(chipTexts[i]);
     }
     logJumpLatestButton->setVisible(!m_logFollow);
     logJumpLatestButton->setText(m_logHeld.empty() ? tr("Jump to latest") : tr("Jump to latest (%1 new)").arg(m_logHeld.size()));
@@ -339,6 +458,7 @@ void MainWindow::on_masterLogBrowser_customContextMenuRequested(const QPoint &po
         }
         m_logLines.clear();
         m_logHeld.clear();
+        m_logLevelCounts.fill(0);
         qvLogDocument->clear();
         m_logFollow = true;
         updateLogStatus();

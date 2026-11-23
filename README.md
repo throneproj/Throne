@@ -14,7 +14,7 @@
 
 </div>
 
-Throne manages proxy profiles and subscriptions, routes traffic with rule-based routing profiles, and works either as a system proxy or as a Tun VPN. It also runs headless, as a service or in a container, controlled with [thronectl](https://github.com/throneproj/Throne-api): see [Headless Throne](https://throneproj.github.io/headless/).
+Throne manages proxy profiles and subscriptions, routes traffic with rule-based routing profiles, and works either as a system proxy or in Tun mode. It also runs headless, as a service or in a container, controlled with [thronectl](https://github.com/throneproj/Throne-api): see [Headless Throne](https://throneproj.github.io/headless/).
 
 <p align="center">
   <img width="820" alt="Throne main window" src="https://github.com/user-attachments/assets/af4a8e32-7e55-430c-9402-ec2d665cf71a" />
@@ -50,35 +50,40 @@ brew install --cask throneproj/tap/throne
 - Juicity
 - TrustTunnel
 - ShadowTLS
-- Wireguard
+- WireGuard
 - AmneziaWG
 - MASQUE
 - SSH
 - DNSTT / VayDNS
 - MasterDNS
-- Xray VLESS (XHTTP/XDrive)
+- Tor (with obfs4, WebTunnel, Snowflake and meek bridges)
+- Psiphon
+- Xray VLESS (XHTTP/XDRIVE)
 - OpenVPN/OpenConnect
-- Custom Outbound (Both Sing-box and Xray)
-- Custom Config (Both Sing-box and Xray)
+- Custom Outbound (Both sing-box and Xray)
+- Custom Config (Both sing-box and Xray)
 - Chaining outbounds
 - Extra Core
 
 ## Subscription Formats
 
-Various formats are supported, including share links, various JSON representation of Sing-box configs, and v2rayN link format as well as limited support for Shadowsocks and Clash formats.
+Various formats are supported, including share links, various JSON representation of sing-box configs, and v2rayN link format as well as limited support for Shadowsocks and Clash formats.
 
-Deeplinks are also supported, read the [documentation](https://throneproj.github.io/advanced/deeplinks/) for more information.
+Deep links are also supported, read the [documentation](https://throneproj.github.io/advanced/deeplinks/) for more information.
 
 ## Credits
 
 - [SagerNet/sing-box](https://github.com/SagerNet/sing-box)
 - [XTLS/Xray-core](https://github.com/xtls/xray-core)
+- [Tor](https://www.torproject.org/), [lyrebird](https://gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird) and [Snowflake](https://gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/snowflake)
+- [Psiphon](https://github.com/Psiphon-Labs/psiphon-tunnel-core)
 - [Qv2ray](https://github.com/Qv2ray/Qv2ray)
 - [Qt](https://www.qt.io/)
 - [simple-protobuf](https://github.com/tonda-kriz/simple-protobuf)
 - [fkYAML](https://github.com/fktn-k/fkYAML)
 - [quirc](https://github.com/dlbeer/quirc)
 - [srombauts/sqlitecpp](https://github.com/srombauts/sqlitecpp)
+- Service logos: [Simple Icons](https://github.com/simple-icons/simple-icons), [theSVG](https://github.com/glincker/thesvg) and [selfh.st/icons](https://github.com/selfhst/icons) (CC BY 4.0)
 
 ## Supporting Throne
 

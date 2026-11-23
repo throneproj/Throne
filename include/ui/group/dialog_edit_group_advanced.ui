@@ -110,7 +110,7 @@
           <item row="1" column="0">
            <widget class="QLabel" name="tls_version_l">
             <property name="toolTip">
-             <string>TLS versions offered when fetching this subscription. Some servers answer the default handshake with a CAPTCHA or a block page; TLS 1.2 often gets through. Keep Default follows the Subscription settings.</string>
+             <string>TLS versions offered when fetching; TLS 1.2 often gets past blocks.</string>
             </property>
             <property name="text">
              <string>TLS Version</string>
@@ -121,7 +121,7 @@
            <widget class="QComboBox" name="tls_version">
             <item>
              <property name="text">
-              <string>Keep Default</string>
+              <string>Keep default</string>
              </property>
             </item>
             <item>
@@ -144,7 +144,7 @@
           <item row="2" column="0">
            <widget class="QLabel" name="http_version_l">
             <property name="toolTip">
-             <string>Auto uses HTTP/2 when the server offers it. Keep Default follows the Subscription settings.</string>
+             <string>HTTP version used to fetch this subscription; Auto prefers HTTP/2.</string>
             </property>
             <property name="text">
              <string>HTTP Version</string>
@@ -155,7 +155,7 @@
            <widget class="QComboBox" name="http_version">
             <item>
              <property name="text">
-              <string>Keep Default</string>
+              <string>Keep default</string>
              </property>
             </item>
             <item>
@@ -173,7 +173,7 @@
           <item row="3" column="0">
            <widget class="QLabel" name="send_hwid_l">
             <property name="toolTip">
-             <string>Send the HWID, OS, OS version and device model headers with this subscription's requests. Keep Default follows the Subscription settings.</string>
+             <string>Send HWID, OS and device model headers when fetching this subscription.</string>
             </property>
             <property name="text">
              <string>Send HWID</string>
@@ -184,7 +184,7 @@
            <widget class="QComboBox" name="send_hwid">
             <item>
              <property name="text">
-              <string>Keep Default</string>
+              <string>Keep default</string>
              </property>
             </item>
             <item>
@@ -251,7 +251,7 @@
           <item row="0" column="0">
            <widget class="QLabel" name="name_filter_l">
             <property name="toolTip">
-             <string>Keeps only the profiles whose name matches this regular expression, case-insensitively, each time the subscription is fetched. Empty keeps every profile.</string>
+             <string>Keep only profiles whose name matches this regex (any case). Empty: keep all.</string>
             </property>
             <property name="text">
              <string>Keep only matching</string>
@@ -268,7 +268,7 @@
           <item row="1" column="0">
            <widget class="QLabel" name="name_exclude_l">
             <property name="toolTip">
-             <string>Removes the profiles whose name matches this regular expression, case-insensitively, each time the subscription is fetched. It wins over Keep only matching.</string>
+             <string>Remove profiles whose name matches this regex (any case).</string>
             </property>
             <property name="text">
              <string>Remove matching</string>
@@ -285,7 +285,7 @@
           <item row="2" column="0">
            <widget class="QLabel" name="type_exclude_l">
             <property name="toolTip">
-             <string>Removes every profile of the ticked protocols each time the subscription is fetched.</string>
+             <string>Remove every profile of the ticked protocols.</string>
             </property>
             <property name="text">
              <string>Remove types</string>
@@ -298,7 +298,7 @@
           <item row="3" column="0">
            <widget class="QLabel" name="country_filter_l">
             <property name="toolTip">
-             <string>Exit countries by two-letter code: HK,JP keeps only those, !RU removes one. After each update, profiles whose exit country is unknown get an IP test, and the ones outside these countries are removed. Profiles whose test fails are kept. To filter by a country written in profile names, use Keep only matching.</string>
+             <string>Exit countries to keep, e.g. HK,JP, or to remove, e.g. !RU.</string>
             </property>
             <property name="text">
              <string>Countries</string>
@@ -339,7 +339,7 @@
             <item row="0" column="0">
              <widget class="QLabel" name="update_interval_l">
               <property name="toolTip">
-               <string>Minutes between automatic updates of this subscription. Keep Default follows the Subscription settings, where automatic updates must be enabled.</string>
+               <string>Minutes between automatic updates of this subscription.</string>
               </property>
               <property name="text">
                <string>Update Interval</string>
@@ -359,7 +359,7 @@
             <item row="1" column="0">
              <widget class="QLabel" name="server_interval_l">
               <property name="toolTip">
-               <string>Use the update interval sent by the subscription server; the interval above applies when it sends none. Keep Default follows the Subscription settings.</string>
+               <string>Use the update interval the subscription server sends, if any.</string>
               </property>
               <property name="text">
                <string>Server Interval</string>
@@ -370,7 +370,7 @@
              <widget class="QComboBox" name="server_interval">
               <item>
                <property name="text">
-                <string>Keep Default</string>
+                <string>Keep default</string>
                </property>
               </item>
               <item>
@@ -390,7 +390,7 @@
           <item>
            <widget class="QCheckBox" name="keep_working">
             <property name="toolTip">
-             <string>Profiles whose last test succeeded are kept when the subscription no longer lists them.</string>
+             <string>Keep profiles that last tested OK when the subscription drops them.</string>
             </property>
             <property name="text">
              <string>Keep working profiles</string>
@@ -421,7 +421,7 @@
           <item>
            <widget class="QCheckBox" name="remove_invalid">
             <property name="toolTip">
-             <string>Profiles the core rejects. Skipped while the core is unreachable.</string>
+             <string>Remove profiles the core rejects.</string>
             </property>
             <property name="text">
              <string>Remove invalid profiles</string>
@@ -431,7 +431,7 @@
           <item>
            <widget class="QCheckBox" name="url_test">
             <property name="toolTip">
-             <string>Tests the group's profiles once the update finishes, after any test already running.</string>
+             <string>Test the group's profiles after each update.</string>
             </property>
             <property name="text">
              <string>Run URL test</string>

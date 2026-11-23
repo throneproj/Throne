@@ -3,7 +3,7 @@
 # Run it after bumping that pin, otherwise the JSON editors validate against a stale schema.
 set -e
 
-TAGS="with_clash_api,with_quic,with_wireguard,with_utls,with_dhcp,with_tailscale,with_openvpn,with_openconnect,with_naive_outbound,badlinkname,tfogo_checklinkname0"
+TAGS="with_clash_api,with_quic,with_wireguard,with_utls,with_dhcp,with_tailscale,with_openvpn,with_openconnect,with_naive_outbound,with_tor_transports,with_psiphon,PSIPHON_DISABLE_QUIC,PSIPHON_DISABLE_INPROXY,badlinkname,tfogo_checklinkname0"
 
 cd "$(dirname "$0")/.."
 OUT="$PWD/res/schema/sing-box.json"

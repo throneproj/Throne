@@ -27,6 +27,8 @@ public:
 
     ~DialogEditGroup() override;
 
+    void StartAsSubscription();
+
     // The accepted edit changed the endpoint of a group whose inheriting profile the running config uses,
     // or the routing profile the running profile of this group is built with.
     [[nodiscard]] bool RestartNeeded() const { return restartNeeded; }
@@ -48,6 +50,9 @@ private:
     struct {
         int landing_proxy;
     } LANDING;
+
+    int loadedFrontProxy = -1;
+    int loadedLandingProxy = -1;
 
     Configs::SubscriptionOptions subOptions;
 

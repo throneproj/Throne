@@ -43,10 +43,6 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="icon">
-        <iconset resource="../../res/Throne.qrc">
-         <normaloff>:/icon/material/swap-horizontal.png</normaloff>:/icon/material/swap-horizontal.png</iconset>
-       </property>
       </widget>
      </item>
      <item>
@@ -56,10 +52,6 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
-       </property>
-       <property name="icon">
-        <iconset resource="../../res/Throne.qrc">
-         <normaloff>:/icon/material/delete.png</normaloff>:/icon/material/delete.png</iconset>
        </property>
       </widget>
      </item>

@@ -100,7 +100,7 @@ DialogEditIpList::DialogEditIpList(QWidget *parent, const int listId, const Conf
         loadList(listId);
     } else {
         list = Configs::IpListsRepo::NewIpList();
-        setWindowTitle(tr("New IP list"));
+        setWindowTitle(tr("New IP List"));
         ui->source_kind->setCurrentIndex(static_cast<int>(kind));
         ui->auto_update->setChecked(list->auto_update);
         ui->update_interval->setText(QString::number(std::max(kEditIpListMinInterval, list->update_interval)));
@@ -202,7 +202,7 @@ void DialogEditIpList::loadList(const int listId) {
             break;
         }
     }
-    setWindowTitle(tr("Edit IP list"));
+    setWindowTitle(tr("Edit IP List"));
     if (!list) {
         missing = true;
         list = Configs::IpListsRepo::NewIpList();
@@ -212,7 +212,7 @@ void DialogEditIpList::loadList(const int listId) {
 
     isNew = false;
     scanOwned = list->role != Configs::IpList::Role::User;
-    if (scanOwned) setWindowTitle(tr("IP list"));
+    if (scanOwned) setWindowTitle(tr("IP List"));
 
     ui->name->setText(list->name);
     ui->source_kind->setCurrentIndex(static_cast<int>(list->source_kind));

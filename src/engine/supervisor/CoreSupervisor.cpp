@@ -60,6 +60,22 @@ namespace {
     }
 
 #ifdef Q_OS_MACOS
+    // Must match restoreFailedMarker in core/internal/sysdns/sysdns_darwin.go.
+    constexpr char kCoreSupervisorDnsRestoreMarker[] = "The system DNS could not be restored on: ";
+
+    void coreSupervisorWarnDnsRestore(const QByteArray &log) {
+        const auto at = log.indexOf(kCoreSupervisorDnsRestoreMarker);
+        if (at < 0) return;
+        const auto from = at + qsizetype(sizeof(kCoreSupervisorDnsRestoreMarker) - 1);
+        const auto end = log.indexOf('\n', from);
+        const auto services = QString::fromUtf8(log.mid(from, end < 0 ? -1 : end - from)).trimmed();
+        PostNotice({NoticeLevel::Warning, QObject::tr("System DNS not restored"),
+                    QObject::tr("After Tun stopped, Throne could not put back the DNS servers of these network services: %1. "
+                                "Websites may not load until they are restored.\n\n"
+                                "Throne keeps retrying in the background, and restarting Throne retries as well.")
+                        .arg(services)});
+    }
+
     // A dead core cannot put back the system DNS it pointed at its lo0 listener; the setuid core replays its own record.
     void coreSupervisorRestoreSystemDns(const QString &corePath) {
         auto *restore = new QProcess;
@@ -243,7 +259,7 @@ namespace Engine {
         if (was == CoreState::Backoff || was == CoreState::GaveUp) {
             // That exit was already handled, so no exit report would restart the core.
             m_startWhenUp = -1;
-            Configs::dataManager->settingsRepo->started_id = Configs::NoProfileId;
+            Lifecycle::ClearResumeTarget();
             MW_show_log("[Warn] " + QObject::tr("Restarting the core ..."));
             postProcessRestart([] { Lifecycle::StopRunningProfile(true, true, true); });
             return true;
@@ -251,8 +267,8 @@ namespace Engine {
         runOnThread([this] {
             if (!m_process) return;
             Lifecycle::StopRunningProfile(true, true, true);
-            // With nothing running the stop leaves a crashed profile's started_id, which the exit would resume.
-            Configs::dataManager->settingsRepo->started_id = Configs::NoProfileId;
+            // With nothing running the stop leaves a crashed profile as the resume target, which the exit would resume.
+            Lifecycle::ClearResumeTarget();
             m_expectedExitGen = m_process->generation.load();
             m_process->Kill();
         }, DS_cores);
@@ -279,7 +295,7 @@ namespace Engine {
         if (current == CoreState::Backoff || current == CoreState::GaveUp) {
             // Nothing to kill, and the restart timer may only be touched on the main thread.
             QMetaObject::invokeMethod(this, [this] {
-                restartDeadCore(Configs::dataManager->settingsRepo->started_id);
+                restartDeadCore(Lifecycle::ResumeTargetId());
             }, Qt::QueuedConnection);
             return;
         }
@@ -297,10 +313,17 @@ namespace Engine {
         return haveCore;
     }
 
+    bool CoreSupervisor::deferToStartingCore(int profileId) {
+        ENGINE_CHECK_MAIN_THREAD();
+        if (m_state != CoreState::Starting || exiting()) return false;
+        m_startWhenUp = profileId;
+        return true;
+    }
+
     void CoreSupervisor::cancelResume() {
         ENGINE_CHECK_MAIN_THREAD();
         m_startWhenUp = -1;
-        Configs::dataManager->settingsRepo->started_id = Configs::NoProfileId;
+        Lifecycle::ClearResumeTarget();
         emit resumeCancelled();
     }
 
@@ -503,6 +526,9 @@ namespace Engine {
                 EngineEvents::ExtraCoreExited();
             }
             coreSupervisorWarnEgressForwarding(log);
+#ifdef Q_OS_MACOS
+            coreSupervisorWarnDnsRestore(log);
+#endif
             // The window opens at the first chunk after the last one expired; the pre-add count is compared, so the crossing chunk still shows.
             const qint64 now = MonotonicMs();
             if (now - m_logWindowStartMs >= kLogWindowMs) {
@@ -614,12 +640,11 @@ namespace Engine {
         if (exiting()) return;
         m_connectTimer->stop();
 
-        const auto &settings = Configs::dataManager->settingsRepo;
         if (m_expectedExitGen.load() == gen) {
             m_failures = 0;
             m_startFailures = 0;
             // A start still waiting for the probing core carries over to the restarted one.
-            if (!wasProbing || m_startWhenUp < 0) m_startWhenUp = settings->started_id;
+            if (!wasProbing || m_startWhenUp < 0) m_startWhenUp = Lifecycle::ResumeTargetId();
             MW_show_log("[Warn] " + QObject::tr("Restarting the core ..."));
             scheduleRestart(kIntentRestartDelayMs);
             return;
@@ -653,13 +678,13 @@ namespace Engine {
             }
         }
         if (wasConnected || m_startWhenUp < 0) {
-            if (tooFrequent && settings->started_id >= 0) {
+            if (tooFrequent && Lifecycle::ResumeTargetId() >= 0) {
                 MW_show_log("[ERROR] " + QObject::tr("Core exits too frequently, stop automatic restart this profile."));
                 m_startWhenUp = -1;
                 // Declined for good: a later restart that resumes the started profile must not bring it back.
-                settings->started_id = Configs::NoProfileId;
+                Lifecycle::ClearResumeTarget();
             } else {
-                m_startWhenUp = settings->started_id;
+                m_startWhenUp = Lifecycle::ResumeTargetId();
             }
         }
 
@@ -667,9 +692,9 @@ namespace Engine {
 
         if ((m_failures >= kGiveUpAfter && m_startWhenUp < 0) || (!wasConnected && m_startFailures >= kGiveUpAfter)) {
             m_startWhenUp = -1;
-            settings->started_id = Configs::NoProfileId;
+            Lifecycle::ClearResumeTarget();
             if (IsGuiApp()) {
-                m_lastFailure = tr("The core keeps exiting, so it is no longer restarted. Use Restart Core to try again.");
+                m_lastFailure = tr("The core keeps exiting, so it is no longer restarted. Use Restart core to try again.");
             } else {
                 m_lastFailure = !wasConnected && m_startFailures >= kGiveUpAfter
                                     ? QStringLiteral("the core exited %1 times without connecting").arg(m_startFailures)

@@ -165,6 +165,7 @@ namespace Configs
         typeBy type_sort_by = typeBy::byType;
         // The underlying order maintained by the active sort; custom_order is its saved baseline.
         GroupSortAction sort;
+        bool show_services = true;
         // Memory only. Pairs of (profileID, row as displayed).
         QList<std::pair<int, int>> selectedProfilesIdIdxPairs;
 

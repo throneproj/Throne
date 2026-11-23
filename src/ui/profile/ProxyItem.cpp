@@ -4,6 +4,7 @@
 #include <QStyle>
 
 #include "include/configs/generate.h"
+#include "include/ui/utils/ThemedIcon.hpp"
 
 void ProxyItem::setColorRole(QWidget *widget, const QString &role) {
     if (widget->property("colorRole").toString() == role) return;
@@ -15,6 +16,8 @@ void ProxyItem::setColorRole(QWidget *widget, const QString &role) {
 ProxyItem::ProxyItem(QWidget *parent, const std::shared_ptr<Configs::Profile> &ent, QListWidgetItem *item)
     : QWidget(parent), ui(new Ui::ProxyItem) {
     ui->setupUi(this);
+    ui->change->setIcon(ThemedIcon(QStringLiteral("arrow-left-right")));
+    ui->remove->setIcon(ThemedIcon(QStringLiteral("trash")));
     this->setLayoutDirection(Qt::LeftToRight);
 
     this->item = item;

@@ -74,7 +74,6 @@ namespace RemoteApi {
             respond(serviceError(*refused));
             return;
         }
-        if (applied.usedByRunning) engine_->noteRestartNeeded(Engine::RestartReason::Profile);
         noteChanged(Engine::ChangeTopic::Profiles);
         const auto profile = Configs::dataManager->profilesRepo->GetProfile(id);
         if (profile == nullptr) {

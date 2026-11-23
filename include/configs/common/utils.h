@@ -19,6 +19,9 @@ namespace Configs
     // Builds up to 1.3.2 saved translated combo labels ("BBR v2", "нативный", #1943); maps one back to its identifier, else returns it trimmed.
     QString LegacyComboValue(const QString& value, const QStringList& identifiers);
 
+    // The English name of an ISO 3166-1 alpha-2 code in either case, or the code uppercased when Qt does not know it.
+    QString TerritoryName(const QString& code);
+
     namespace Checks {
         // The editors' header text: Name=value pairs separated by spaces, values optionally quoted.
         QString HeaderPairs(const QString& text);
@@ -43,6 +46,18 @@ namespace Configs
     QStringList jsonObjectToQStringList(const QJsonObject& obj);
 
     QJsonObject qStringListToJsonObject(const QStringList& list);
+
+    // What the choice between sing-box and Xray VLESS reads, from a link or any other import format.
+    struct VlessTraits {
+        // An XrayNetworks name, else the format's own spelling; empty for the default.
+        QString transport;
+        bool reality = false;
+        // Carries a value only Xray runs.
+        bool xrayOnly = false;
+        bool rawHttpOverTls = false;
+    };
+
+    bool useXrayVless(const VlessTraits& traits);
 
     bool useXrayVless(const QString& link);
 

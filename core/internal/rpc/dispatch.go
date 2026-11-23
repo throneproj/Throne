@@ -30,6 +30,8 @@ func Serve(conn net.Conn, debug bool) {
 	debugLog = debug
 	defer conn.Close()
 
+	startEgressMonitor()
+
 	var writeMu sync.Mutex
 
 	writeResponse := func(reqId uint32, status uint8, data []byte) {
@@ -154,6 +156,10 @@ var handlers = map[string]handlerFn{
 	"ServiceTest":         handle(globalServer.ServiceTest),
 	"QueryServiceTest":    handle(globalServer.QueryServiceTest),
 	"ParseServiceChecks":  handle(globalServer.ParseServiceChecks),
+	"ParseTorBridges":     handle(globalServer.ParseTorBridges),
+	"TorMoatSettings":     handle(globalServer.TorMoatSettings),
+	"TorNewIdentity":      handle(globalServer.TorNewIdentity),
+	"PsiphonRegions":      handle(globalServer.PsiphonRegions),
 }
 
 func dispatch(methodName string, payload []byte) ([]byte, error) {

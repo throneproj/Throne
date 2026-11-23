@@ -16,6 +16,14 @@
 #include "include/configs/generate.h"
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
+#include "include/engine/Lifecycle.h"
+
+namespace {
+    bool showsServices(const Configs::Profile &profile) {
+        const auto group = Configs::dataManager->groupsRepo->GetGroup(profile.gid);
+        return group == nullptr || group->show_services;
+    }
+}
 
 ProfilesTableModel::ProfilesTableModel(QObject *parent)
     : QAbstractTableModel(parent) {}
@@ -105,8 +113,12 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
     if (it == m_cache.constEnd()) return {};
     const std::shared_ptr<Configs::Profile> &profile = it.value();
     if (!profile) return {};
+    if (role == ServiceItemsRole) {
+        if (index.column() != ColExitIP || !showsServices(*profile)) return {};
+        return QVariant::fromValue(ServiceCheckHtml::items(*profile));
+    }
 
-    const int startedId = Configs::dataManager->settingsRepo->started_id;
+    const int startedId = Engine::Lifecycle::ResumeTargetId();
     const bool isRunning = (profile->id == startedId);
     const ThemeTokens &tokens = themeManager()->tokens;
     QColor linkColor = !isRunning                  ? QColor()
@@ -140,11 +152,13 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
     if (role == Qt::ToolTipRole) {
         if (index.column() == ColType && Configs::dataManager->settingsRepo->show_config_security && profile->outbound) {
             const auto security = profile->outbound->EffectiveSecurity();
-            if (security.compromised) return tr("Certificate checks are turned off by the \"Skip TLS certificate authentication\" setting.");
+            if (security.compromised) return tr("Certificate checks off: \"Skip TLS certificate authentication\" is "
+                                                "set.");
             if (security.isDangerous()) return tr("This config's traffic is not properly protected.");
         }
-        if ((index.column() == ColLatency || index.column() == ColExitIP || index.column() == ColSpeed)
-            && !profile->service_checks.isEmpty()) return ServiceCheckHtml::details(*profile);
+        if (index.column() == ColExitIP && !profile->service_checks.isEmpty() && showsServices(*profile)) {
+            return ServiceCheckHtml::summaryLine(*profile);
+        }
         return {};
     }
     if (role == Qt::ForegroundRole) {
@@ -217,13 +231,16 @@ namespace {
             categoryNames.insert(category["id"].toString(), category["name"].toString());
         }
         static const QRegularExpression separators(QStringLiteral("[^\\p{L}\\p{N}]+"));
+        const auto &disabled = Configs::dataManager->settingsRepo->service_check_disabled;
         QList<ProfilesTableModel::ServiceFilterKey> services;
         for (const auto &value : root["checks"].toArray()) {
             const auto check = value.toObject();
+            if (disabled.contains(check["id"].toString())) continue;
             const auto category = check["cat"].toString();
             const auto status = check["status"].toString();
             ProfilesTableModel::ServiceFilterKey service;
             service.state = status == "available" || status == "partial" ? 1 : status == "restricted" || status == "blocked" ? -1 : 0;
+            service.region = check["region"].toString().toLower();
             for (const auto &name : {check["id"].toString(), check["name"].toString(), category, categoryNames.value(category)}) {
                 if (name.isEmpty()) continue;
                 service.names << name.toLower();
@@ -254,9 +271,19 @@ void ProfilesTableModel::ensureFilterIndex() const {
     m_filterIndexBuilt = true;
     m_filterKeys.clear();
     m_filterKeys.reserve(m_profileIds.size());
+    m_serviceNames.clear();
+    m_serviceWords.clear();
     for (const auto &profile : Configs::dataManager->profilesRepo->GetProfileBatch(m_profileIds)) {
-        if (profile) m_filterKeys.insert(profile->id, makeFilterKey(profile));
+        if (profile) insertFilterKey(profile->id, makeFilterKey(profile));
     }
+}
+
+void ProfilesTableModel::insertFilterKey(int profileId, FilterKey key) const {
+    for (const auto &service : key.services) {
+        for (const auto &name : service.names) m_serviceNames.insert(name);
+        for (const auto &word : service.words) m_serviceWords.insert(word);
+    }
+    m_filterKeys.insert(profileId, std::move(key));
 }
 
 const ProfilesTableModel::FilterKey *ProfilesTableModel::filterKeyAt(int row) const {
@@ -264,6 +291,11 @@ const ProfilesTableModel::FilterKey *ProfilesTableModel::filterKeyAt(int row) co
     ensureFilterIndex();
     auto it = m_filterKeys.constFind(m_profileIds[row]);
     return it == m_filterKeys.constEnd() ? nullptr : &it.value();
+}
+
+bool ProfilesTableModel::termPicksAnyService(const QString &term) const {
+    ensureFilterIndex();
+    return termPicksService(m_serviceNames, m_serviceWords, term);
 }
 
 void ProfilesTableModel::refreshTable(const QList<int> &ids, int pinnedCount, bool mayNeedReset) {
@@ -292,7 +324,7 @@ void ProfilesTableModel::refreshProfileId(int profileId) {
     // Keep the filter key in step before dataChanged makes the proxy re-test the row.
     if (m_filterIndexBuilt) {
         if (auto profile = Configs::dataManager->profilesRepo->GetProfile(profileId)) {
-            m_filterKeys.insert(profileId, makeFilterKey(profile));
+            insertFilterKey(profileId, makeFilterKey(profile));
         }
     }
     auto r = id2row.value(profileId);
@@ -349,7 +381,7 @@ GroupSortMethod::GroupSortMethod ProfilesTableModel::sortOfColumn(int column) {
 
 bool ProfilesTableModel::isStartedRow(int sourceRow) const {
     return sourceRow >= 0 && sourceRow < m_profileIds.size()
-        && m_profileIds[sourceRow] == Configs::dataManager->settingsRepo->started_id;
+        && m_profileIds[sourceRow] == Engine::Lifecycle::ResumeTargetId();
 }
 
 bool ProfilesTableModel::endsPinnedBlock(const QModelIndex &index) {

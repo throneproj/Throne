@@ -1,21 +1,26 @@
 #pragma once
 
-#include <QWidget>
-#include <QListWidgetItem>
 #include <QDialog>
-#include <QEvent>
-#include <QHash>
-#include <QPointer>
+#include <QList>
+#include <QPair>
+// dialog_manage_routes.h declares a QShortcut member and takes the class from here.
 #include <QShortcut>
 
-#include "3rdparty/qv2ray/v2/ui/QvAutoCompleteTextEdit.hpp"
-#include "ui_RouteItem.h"
-#include "include/database/entities/RouteProfile.h"
-#include "include/ui/utils/ValidationForm.h"
+#include <memory>
 
-class QListWidget;
+#include "include/database/entities/RouteProfile.h"
+#include "ui_RouteItem.h"
+
+class QCheckBox;
+class QCloseEvent;
+class QKeyEvent;
+class QLabel;
 class RouteDnsEditor;
-class RouteOutboundModel;
+class RouteRulesPage;
+
+namespace Validation {
+    class Form;
+}
 
 class RouteItem : public QDialog {
     Q_OBJECT
@@ -25,92 +30,57 @@ public:
     ~RouteItem() override;
 
     std::shared_ptr<Configs::RouteProfile> chain;
+
+public slots:
+    void accept() override;
+
+    // Asks before throwing away changes.
+    void reject() override;
+
 signals:
     void settingsChanged(std::shared_ptr<Configs::RouteProfile> routingChain);
 
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
+    void keyPressEvent(QKeyEvent *event) override;
+
 private:
+    struct EndpointRow {
+        int profileId = -1;
+        bool innerHops = false;
+        QWidget* widget = nullptr;
+        QLabel* subtitle = nullptr;
+        QCheckBox* toggle = nullptr;
+    };
+
     Ui::RouteItem *ui;
-    int currentIndex = -1;
-
-    int lastNum = 0;
-
-    QShortcut* deleteShortcut;
-
-    RouteOutboundModel* outboundsModel = nullptr;
-
-    int outboundsPopupWidth = -1;
-
-    AutoCompleteTextEdit* simpleDirect;
-
-    AutoCompleteTextEdit* simpleBlock;
-
-    AutoCompleteTextEdit* simpleProxy;
-
-    AutoCompleteTextEdit* simpleWarpBypass;
-
-    QListWidget* ruleAttrPlusList = nullptr;
-
-    QWidget* lastTabPage = nullptr;
-
-    RouteDnsEditor* dnsEditor = nullptr;
 
     Validation::Form* form = nullptr;
 
-    // Owns the selected rule's Form registrations that live outside its attribute pages; replaced with the pages.
-    QObject* ruleScope = nullptr;
+    RouteRulesPage* rulesPage = nullptr;
 
-    QHash<QString, QPointer<QWidget>> attrEditors;
+    RouteDnsEditor* dnsEditor = nullptr;
 
-    // The rule the attribute pages were last built for.
-    std::shared_ptr<Configs::RouteRule> shownRule;
+    QList<QPair<QString, int>> endpointCandidates;
 
-    // Worst issue severity per rule, kept so rebuilding the list does not re-validate every rule.
-    QHash<const Configs::RouteRule*, int> ruleMarks;
+    QList<EndpointRow> endpointRows;
 
-    bool ruleCheckQueued = false;
+    // The state Cancel compares against.
+    QString openedFingerprint;
 
-    // Basic-tab lines that could not be added, put back when the editors are refilled from the rules.
-    QHash<int, QStringList> rejectedSimpleLines;
+    // Set once the user agreed to discard, so closing does not ask twice.
+    bool discardConfirmed = false;
 
-    // The simple rules as the Basic tab last left them; unchanged means the editors still match.
-    QStringList simpleTextsAtLeave;
-
-    [[nodiscard]] std::shared_ptr<Configs::RouteRule> currentRule() const;
-
-    [[nodiscard]] QList<QPair<AutoCompleteTextEdit*, Configs::simpleAction>> simpleEditors() const;
-
-    [[nodiscard]] QStringList simpleRuleTexts() const;
-
-    void loadSimpleEditors();
-
-    QString applySimpleEditors();
-
-    [[nodiscard]] QWidget* attributeEditor(const QString& attr) const;
-
-    void bindAttributeEditor(const QString& attr, QWidget* editor, QWidget* page);
-
-    void bindCurrentRule();
-
-    QList<Validation::FormIssue> otherRuleIssues();
-
-    QWidget* revealRuleIssue(const std::shared_ptr<Configs::RouteRule>& rule, const QString& attr);
-
-    void refreshIssueIcons();
-
-    void applyRuleMarks();
-
-    // Deferred so it runs after the Form handled the same focus-out or change.
-    void scheduleRuleCheck();
+    void setupHeader();
 
     void setupRemoteSection();
 
     void fetchRemote(bool applyToChain);
 
-    QList<QPair<QString, int>> endpointCandidates;
-
     void setupEndpointsSection();
 
-    void refreshEndpointCandidates() const;
+    void refreshEndpointCandidates();
 
     void addEndpointRow(int profileId, bool innerHops);
 
@@ -120,52 +90,21 @@ private:
 
     [[nodiscard]] QList<int> listedInnerHopEndpointIDs() const;
 
-    // The listed endpoint profileId is an opened-up inner hop of, or -1.
-    [[nodiscard]] int innerHopOwner(int profileId) const;
-
     void setEndpointRowInnerHops(int profileId, bool innerHops);
 
     // One endpointPreferredBy rule per listed endpoint and opened-up inner hop, keeping existing rules where they sit.
     void syncEndpointRules();
 
-    [[nodiscard]] bool currentRuleIsEndpoint() const;
+    void refreshEndpointSubtitles();
 
-    void applyRuleEditLock();
+    void reloadRules();
 
-    void reloadRuleViewsFromChain();
+    void setDefaultOutbound(int outboundID);
 
-    void ensurePlusTabBuiltOnce();
+    [[nodiscard]] int defaultOutbound() const;
 
-    void removeAllAttributeTabsExceptPlus();
+    [[nodiscard]] QString fingerprint() const;
 
-    void syncPlusListCheckStatesFromRule();
-
-    void persistCurrentRuleAttrTabLabel();
-
-    void applyStoredRuleAttrTabSelection();
-
-    void syncRuleActionCombo();
-
-    void rebuildRuleAttributeTabs();
-
-    [[nodiscard]] QWidget* makeAttributeEditorPage(const QString& attr);
-
-    void updateRuleSection();
-
-    void updateRulePreview();
-
-    void updateRouteItemsView();
-
-    void applyAttributeVisibilityChange(const QString& attr, bool visible);
-
-protected:
-    bool eventFilter(QObject* watched, QEvent* event) override;
-
-private slots:
-    void accept() override;
-
-    void on_new_route_item_clicked();
-    void on_moveup_route_item_clicked();
-    void on_movedown_route_item_clicked();
-    void on_delete_route_item_clicked();
+    // True when nothing changed or the user chose to discard.
+    bool confirmDiscard();
 };

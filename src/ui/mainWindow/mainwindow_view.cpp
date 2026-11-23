@@ -1,5 +1,4 @@
 #include "include/ui/mainwindow.h"
-#include "NkrVersion.h"
 
 #include <algorithm>
 
@@ -99,8 +98,7 @@ void MainWindow::testPanelSeeded(Engine::TestKind kind, int totalProfiles, const
             break;
         case Engine::TestKind::Speed:
             dataViewHtmlGenerator_.seedSpeedTest(totalProfiles);
-            column = Configs::dataManager->settingsRepo->speed_test_mode == Configs::TestConfig::COUNTRY
-                         ? ProfilesTableModel::ColExitIP : ProfilesTableModel::ColSpeed;
+            column = ProfilesTableModel::ColSpeed;
             break;
     }
     runOnUiThread([this] { ui->menu_stop_testing->setEnabled(true); });
@@ -264,14 +262,14 @@ void MainWindow::refresh_status(const QString &traffic_update) {
             display_socks = DisplayAddress(lan, settings->inbound_socks_port);
         }
     }
-    ui->label_inbound->setText(QString("Mixed: %1").arg(inbound_disabled ? "Disabled" : display_socks));
+    ui->label_inbound->setText(tr("Mixed: %1").arg(inbound_disabled ? tr("Disabled") : display_socks));
     ui->label_inbound->setToolTip(inbound_tip);
     syncConnectionSourceColumn();
     ui->checkBox_VPN->setChecked(settings->spmode_vpn);
     ui->checkBox_SystemProxy->setChecked(settings->spmode_system_proxy);
     if (select_mode) {
         ui->label_running->setText(tr("Select") + " *");
-        ui->label_running->setToolTip(tr("Select mode, double-click or press Enter to select a profile, press ESC to exit."));
+        ui->label_running->setToolTip(tr("Double-click or press Enter to pick a profile; Esc to cancel."));
     } else {
         ui->label_running->setToolTip({});
     }
@@ -281,20 +279,20 @@ void MainWindow::refresh_status(const QString &traffic_update) {
     const auto killSwitchState = Sys::KillSwitch::instance()->state();
     const bool killSwitchBlocking = killSwitchState == Sys::KillSwitch::State::Failed && Sys::KillSwitch::instance()->failedForIdentity();
 
-    auto make_title = [=,this](bool isTray) {
+    // The window title stays the plain "Throne" from the .ui: this status shows in the window itself.
+    if (tray != nullptr) {
         QStringList tt;
-        if (!isTray && Configs::KnownAdmin().value_or(false)) tt << "[Admin]";
+        if (Configs::KnownAdmin().value_or(false)) tt << "[Admin]";
         if (select_mode) tt << "[" + tr("Select") + "]";
         if (!title_error.isEmpty()) tt << "[" + title_error + "]";
         if (settings->spmode_vpn && !settings->spmode_system_proxy) tt << "[Tun]";
-        if (!settings->spmode_vpn && settings->spmode_system_proxy) tt << "[" + tr("System Proxy") + "]";
-        if (settings->spmode_vpn && settings->spmode_system_proxy) tt << "[Tun+" + tr("System Proxy") + "]";
+        if (!settings->spmode_vpn && settings->spmode_system_proxy) tt << "[" + tr("System proxy") + "]";
+        if (settings->spmode_vpn && settings->spmode_system_proxy) tt << "[Tun+" + tr("System proxy") + "]";
         if (settings->kill_switch && killSwitchState == Sys::KillSwitch::State::Armed) tt << "[" + tr("Kill switch") + "]";
         if (settings->kill_switch && killSwitchState == Sys::KillSwitch::State::Failed) {
             tt << "[" + (killSwitchBlocking ? tr("Kill switch is blocking traffic") : tr("Kill switch: not active")) + "]";
         }
         tt << software_name;
-        if (!isTray) tt << QString(NKR_VERSION);
         if (!activeRouteName.isEmpty()) {
             tt << "[" + activeRouteName + "]";
         }
@@ -304,11 +302,8 @@ void MainWindow::refresh_status(const QString &traffic_update) {
                 tt << runningDetail;
             }
         }
-        return tt.join(isTray ? "\n" : " ");
-    };
-
-    setWindowTitle(make_title(false));
-    if (tray != nullptr) tray->setToolTip(make_title(true));
+        tray->setToolTip(tt.join("\n"));
+    }
 
     refresh_startstop_button();
 }
@@ -331,9 +326,10 @@ void MainWindow::refresh_startstop_button() {
     }
     btn->setMode(mode);
 
+    const bool stopHeld = connecting && connection()->stopPending();
     StartStopButton::State state;
-    if (connecting) state = StartStopButton::State::Connecting;
-    else if (disconnecting) state = StartStopButton::State::Disconnecting;
+    if (connecting && !stopHeld) state = StartStopButton::State::Connecting;
+    else if (connecting || disconnecting) state = StartStopButton::State::Disconnecting;
     else if (running != nullptr) state = StartStopButton::State::Running;
     else if (get_profile_to_start() >= 0) state = StartStopButton::State::Idle;
     else state = StartStopButton::State::Disabled;
@@ -353,15 +349,16 @@ void MainWindow::refresh_startstop_button() {
     btn->setLock(lock);
 
     if (trayConnectAction != nullptr) {
-        if (connecting) {
+        if (connecting && !stopHeld) {
             trayConnectAction->setText(tr("Connecting"));
-        } else if (disconnecting) {
+        } else if (connecting || disconnecting) {
             trayConnectAction->setText(tr("Disconnecting"));
         } else {
             trayConnectAction->setText(running != nullptr ? tr("Disconnect") : tr("Connect"));
         }
         trayConnectAction->setEnabled(!connecting && !disconnecting &&
                                       (running != nullptr || get_profile_to_start() >= 0));
+        refreshTrayMenu();
     }
 
     // Here rather than in refresh_status(): the connecting/disconnecting flags only ever refresh this button.
@@ -396,6 +393,7 @@ void MainWindow::refresh_action_states() {
 
     const bool running = runningSnapshot() != nullptr;
     ui->actionSpeedtest_Current->setEnabled(running);
+    ui->actionNew_Tor_Circuit->setEnabled(running && Configs::RunningUsesTor());
     ui->actionUpdate_Rule_Sets->setEnabled(running);
 }
 
@@ -456,8 +454,8 @@ void MainWindow::refresh_traffic_graph_settings() {
     if (m_trafficStatsChartAction != nullptr) m_trafficStatsChartAction->setVisible(!settings->disable_traffic_aggregation);
     if (trafficChart == nullptr) return;
     if (settings->disable_traffic_stats) {
-        trafficChart->setBlocked(tr("Traffic statistics are disabled"),
-                                 tr("Untick “Disable Traffic Stats” in Basic Settings → Core → Statistics to record speeds again."));
+        trafficChart->setBlocked(tr("Traffic counters are disabled"),
+                                 tr("Untick “Disable traffic counters” in Basic Settings → Core → Statistics to record speeds again."));
     } else {
         trafficChart->setBlocked({});
     }
@@ -596,7 +594,7 @@ void MainWindow::url_test_current() {
 
         runOnUiThread([=,this] {
             if (!result.results[0].error.value().empty()) {
-                MW_show_log(QString("UrlTest error: %1").arg(QString::fromStdString(result.results[0].error.value())));
+                MW_show_log(QString("URL test error: %1").arg(QString::fromStdString(result.results[0].error.value())));
             }
             if (latency <= 0) {
                 ui->label_running->setText(tr("Test Result") + ": " + (vpnText.isEmpty() ? tr("Unavailable") : vpnText));

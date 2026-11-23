@@ -37,6 +37,7 @@
 #include <vector>
 
 #include "include/configs/common/DnsTunnel.h"
+#include "include/configs/common/Protocols.h"
 #include "include/configs/common/ResolverSource.h"
 #include "include/configs/common/TLS.h"
 #include "include/configs/sub/warp.h"
@@ -46,7 +47,7 @@
 #include "include/database/IpScansRepo.h"
 #include "include/database/ProfilesRepo.h"
 #include "include/engine/EditLocks.h"
-#include "include/global/RunningProfiles.hpp"
+#include "include/engine/services/ProfileService.h"
 #include "include/global/Utils.hpp"
 #include "include/global/Validation.hpp"
 #include "include/scanner/DefaultIpLists.h"
@@ -68,11 +69,6 @@
 namespace {
     constexpr int kScanInstanceResultsPreview = 50000;
     constexpr int kScanInstanceProtocolRole = Qt::UserRole + 1;
-
-    const QStringList kScanInstanceCandidateExclusions = {
-        QStringLiteral("custom"), QStringLiteral("extracore"), QStringLiteral("tailscale"),
-        QStringLiteral("autoselector"), QStringLiteral("direct"), QStringLiteral("dnstt"), QStringLiteral("masterdns"),
-    };
 
     const QStringList kScanInstanceTimeoutPresets = {
         QStringLiteral("1000"), QStringLiteral("2000"), QStringLiteral("3000"), QStringLiteral("5000"),
@@ -867,7 +863,7 @@ bool DialogScanInstance::collect(Configs::ScanConfig &out, int &baseListId, QStr
         resolver.level = phasesUi->resolver_level->currentData().toString();
         resolver.timeoutMs = 0;
         if (!phasesUi->resolver_timeout->text().trimmed().isEmpty() &&
-            !number(phasesUi->resolver_timeout, resolver.timeoutMs, true, tr("DNS tunnel test: the timeout must be between %1 and %2 ms.")))
+            !number(phasesUi->resolver_timeout, resolver.timeoutMs, true, tr("DNS Tunnel Test: the timeout must be between %1 and %2 ms.")))
             return false;
     }
 
@@ -878,10 +874,10 @@ bool DialogScanInstance::collect(Configs::ScanConfig &out, int &baseListId, QStr
     if (isGeneric()) {
         out.tcp.enabled = phasesUi->tcp_box->isChecked();
         if (!number(phasesUi->tcp_timeout, out.tcp.timeoutMs, out.tcp.enabled,
-                    tr("TCP connect: the timeout must be between %1 and %2 ms.")))
+                    tr("TCP Connect: the timeout must be between %1 and %2 ms.")))
             return false;
         if (!number(phasesUi->tcp_attempts, out.tcp.attempts, out.tcp.enabled,
-                    tr("TCP connect: attempts must be between %1 and %2.")))
+                    tr("TCP Connect: attempts must be between %1 and %2.")))
             return false;
     }
 
@@ -922,7 +918,7 @@ bool DialogScanInstance::collect(Configs::ScanConfig &out, int &baseListId, QStr
         test.profileId = selectedConfigProfile();
         test.url = phasesUi->config_url->text().trimmed();
         if (!number(phasesUi->config_timeout, test.timeoutMs, test.enabled,
-                    tr("Config test: the timeout must be between %1 and %2 ms.")))
+                    tr("Config Test: the timeout must be between %1 and %2 ms.")))
             return false;
         test.warmLatency = phasesUi->config_warm->isChecked();
     }
@@ -933,13 +929,13 @@ bool DialogScanInstance::collect(Configs::ScanConfig &out, int &baseListId, QStr
         warp.httpMode = phasesUi->warp_http_mode->currentData().toInt();
         warp.identity = phasesUi->warp_identity->currentData().toString();
         warp.profileId = phasesUi->warp_profile->currentData().toInt();
-        if (!number(phasesUi->warp_mtu, warp.mtu, true, tr("WARP test: the MTU must be between %1 and %2."))) return false;
+        if (!number(phasesUi->warp_mtu, warp.mtu, true, tr("WARP Test: the MTU must be between %1 and %2."))) return false;
         warp.sni = phasesUi->warp_sni->text().trimmed();
         warp.quicOpener = phasesUi->warp_quic_opener->isChecked();
         const bool amnezia = warp.mode == QStringLiteral("amneziawg");
-        if (!number(phasesUi->warp_jc, warp.jc, amnezia, tr("WARP test: Jc must be between %1 and %2."))) return false;
-        if (!number(phasesUi->warp_jmin, warp.jmin, amnezia, tr("WARP test: Jmin must be between %1 and %2."))) return false;
-        if (!number(phasesUi->warp_jmax, warp.jmax, amnezia, tr("WARP test: Jmax must be between %1 and %2."))) return false;
+        if (!number(phasesUi->warp_jc, warp.jc, amnezia, tr("WARP Test: Jc must be between %1 and %2."))) return false;
+        if (!number(phasesUi->warp_jmin, warp.jmin, amnezia, tr("WARP Test: Jmin must be between %1 and %2."))) return false;
+        if (!number(phasesUi->warp_jmax, warp.jmax, amnezia, tr("WARP Test: Jmax must be between %1 and %2."))) return false;
         QStringList packets;
         for (const auto *packet : warpPackets) packets << packet->text().trimmed();
         while (packets.size() < 5) packets << QString();
@@ -949,10 +945,10 @@ bool DialogScanInstance::collect(Configs::ScanConfig &out, int &baseListId, QStr
         warp.i4 = packets[3];
         warp.i5 = packets[4];
         warp.url = phasesUi->warp_url->text().trimmed();
-        if (!number(phasesUi->warp_timeout, warp.timeoutMs, true, tr("WARP test: the timeout must be between %1 and %2 ms.")))
+        if (!number(phasesUi->warp_timeout, warp.timeoutMs, true, tr("WARP Test: the timeout must be between %1 and %2 ms.")))
             return false;
         warp.warmLatency = phasesUi->warp_warm->isChecked();
-        if (amnezia && warp.jmin > warp.jmax) return fail(tr("WARP test: Jmin must not be larger than Jmax."));
+        if (amnezia && warp.jmin > warp.jmax) return fail(tr("WARP Test: Jmin must not be larger than Jmax."));
     }
 
     if (tuneUi != nullptr) {
@@ -1128,8 +1124,7 @@ void DialogScanInstance::reloadConfigProfiles(int selectId) {
     QHash<int, QString> idToName;
     for (const auto &[id, profileName] : profiles->GetAllProfileIDNameMapped()) idToName.insert(id, profileName);
     QSet<int> excluded;
-    for (const auto &type : kScanInstanceCandidateExclusions) {
-        if (Scanner::IsScanBaseType(type)) continue;
+    for (const auto &type : Configs::Protocols::IdsWith(Configs::Protocols::NoScan)) {
         for (const int id : profiles->GetProfileIdsByType(type)) excluded.insert(id);
     }
     const auto xdnsCandidates = profiles->GetProfileIdsByTypeContaining(QStringLiteral("xrayvless"), QStringLiteral("xdns"));
@@ -1198,7 +1193,7 @@ void DialogScanInstance::reloadResolverProfiles(int selectId) {
     const QString level = phasesUi->resolver_level->currentData().toString();
     auto *profiles = Configs::dataManager->profilesRepo.get();
     QHash<int, QString> protocols;
-    for (const auto &type : {QStringLiteral("dnstt"), QStringLiteral("masterdns")}) {
+    for (const auto &type : Configs::Protocols::IdsWith(Configs::Protocols::DnsTunnel)) {
         for (const int id : profiles->GetProfileIdsByType(type)) protocols.insert(id, type);
     }
     const auto xdnsCandidates = profiles->GetProfileIdsByTypeContaining(QStringLiteral("xrayvless"), QStringLiteral("xdns"));
@@ -1612,16 +1607,11 @@ void DialogScanInstance::useResultsAsResolvers() {
     if (source->ipListId != listId) {
         const int previous = source->ipListId;
         source->ipListId = listId;
-        if (!Configs::dataManager->profilesRepo->Save(profile)) {
+        if (Engine::ProfileService::Save({profile})) {
             source->ipListId = previous;
             scanInstanceNotice(this, QMessageBox::Warning, title, tr("Failed to store the profile."));
             return;
         }
-        QStringList args;
-        if (Configs::dataManager->settingsRepo->started_id == profileId || Configs::RunningUsesProfile(profileId))
-            args << MwArg::RestartProxy;
-        Configs::RepositionLater(QList<std::shared_ptr<Configs::Profile>>{profile}, Configs::SortInput::Config);
-        MW_dialog_message(MwMessage::ProfileChanged, args);
     }
     scanInstanceNotice(this, QMessageBox::Information, title,
                        tr("\"%1\" now takes resolvers from the IP list \"%2\".").arg(profileName, listName));

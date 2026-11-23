@@ -91,39 +91,6 @@
             </item>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="ui_mode_l">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string>Simple hides the advanced options. They keep their values and still apply.</string>
-            </property>
-            <property name="text">
-             <string>Interface</string>
-            </property>
-            <property name="buddy">
-             <cstring>ui_mode</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QComboBox" name="ui_mode">
-            <item>
-             <property name="text">
-              <string>Simple</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Advanced</string>
-             </property>
-            </item>
-           </widget>
-          </item>
          </layout>
         </widget>
        </item>
@@ -142,7 +109,7 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>Hide dashboard at startup</string>
+             <string>Hide main window at startup</string>
             </property>
            </widget>
           </item>
@@ -155,7 +122,7 @@
              </sizepolicy>
             </property>
             <property name="toolTip">
-             <string>Prevents the app from minimizing to the tray when the window is closed. The app will exit instead</string>
+             <string>Exit when the window is closed instead of minimizing to the tray.</string>
             </property>
             <property name="text">
              <string>Disable tray</string>
@@ -165,7 +132,7 @@
           <item row="2" column="0">
            <widget class="QCheckBox" name="skip_delete_confirm">
             <property name="text">
-             <string>Skip confirmation When Deleting Profiles</string>
+             <string>Skip confirmation when deleting profiles</string>
             </property>
            </widget>
           </item>
@@ -181,7 +148,7 @@
           </sizepolicy>
          </property>
          <property name="title">
-          <string>Updates and downloads</string>
+          <string>Updates and Downloads</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_12">
           <item row="0" column="0">
@@ -194,7 +161,7 @@
           <item row="1" column="0">
            <widget class="QCheckBox" name="net_use_proxy">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use proxy for subscription request, update request etc&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Send subscription updates and downloads through the proxy.</string>
             </property>
             <property name="text">
              <string>Send Throne's own requests through the proxy</string>
@@ -203,9 +170,6 @@
           </item>
           <item row="2" column="0">
            <widget class="QCheckBox" name="net_insecure">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="text">
              <string>Ignore TLS errors in Throne's own requests</string>
             </property>
@@ -216,9 +180,6 @@
        </item>
        <item>
         <widget class="QGroupBox" name="url_scheme_box">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
          <property name="title">
           <string>Links and Files</string>
          </property>
@@ -226,7 +187,7 @@
           <item row="0" column="0">
            <widget class="QCheckBox" name="url_scheme_auto_register">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Registers Throne as the handler for throne:// links, re-applying the registration whenever the install is moved.&lt;/p&gt;&lt;p&gt;Turning this off does not undo an existing registration: use Uninstall for that.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Make Throne the throne:// link handler at every start.</string>
             </property>
             <property name="text">
              <string>Register throne:// links at startup</string>
@@ -266,7 +227,7 @@
           <item row="0" column="4">
            <widget class="QPushButton" name="url_scheme_uninstall">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Removes the throne:// handler Throne wrote. Entries owned by other applications are left alone.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Remove the throne:// handler Throne registered.</string>
             </property>
             <property name="text">
              <string>Uninstall</string>
@@ -276,7 +237,7 @@
           <item row="1" column="0">
            <widget class="QCheckBox" name="file_assoc_auto_register">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adds Throne to the &quot;Open with&quot; list for config files such as JSON and YAML, re-applying the registration whenever the install is moved.&lt;/p&gt;&lt;p&gt;Turning this off does not undo an existing registration: use Uninstall for that.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Add Throne to Open with for JSON and YAML config files at every start.</string>
             </property>
             <property name="text">
              <string>Register config files at startup</string>
@@ -303,7 +264,7 @@
           <item row="1" column="4">
            <widget class="QPushButton" name="file_assoc_uninstall">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Removes every config file association Throne wrote, including those added by older versions. Associations owned by other applications are left alone.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Remove the config file associations Throne added.</string>
             </property>
             <property name="text">
              <string>Uninstall</string>
@@ -335,9 +296,6 @@
       <layout class="QVBoxLayout" name="verticalLayout_appearance">
        <item>
         <widget class="QGroupBox" name="theme_box">
-         <property name="uiFoldInto" stdset="0">
-          <string notr="true">tab_general</string>
-         </property>
          <property name="title">
           <string>Theme</string>
          </property>
@@ -368,19 +326,13 @@
            <layout class="QHBoxLayout" name="horizontalLayout_custom_icon">
             <item>
              <widget class="QCheckBox" name="enable_custom_icon">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <property name="text">
-               <string>Enable Custom Icons</string>
+               <string>Enable custom icons</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="select_custom_icon">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <property name="text">
                <string>Select</string>
               </property>
@@ -403,14 +355,11 @@
           </item>
           <item row="2" column="0" colspan="2">
            <widget class="QCheckBox" name="follow_status_in_taskbar">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="toolTip">
-             <string>Follow the connection status icon in the dock/taskbar. When off, it always shows the Throne icon</string>
+             <string>Show the connection status icon in the dock or taskbar.</string>
             </property>
             <property name="text">
-             <string>Follow Status Icon in Taskbar</string>
+             <string>Follow status icon in taskbar</string>
             </property>
            </widget>
           </item>
@@ -419,9 +368,6 @@
        </item>
        <item>
         <widget class="QGroupBox" name="font_box">
-         <property name="uiFoldInto" stdset="0">
-          <string notr="true">tab_general</string>
-         </property>
          <property name="title">
           <string>Font</string>
          </property>
@@ -455,20 +401,17 @@
        </item>
        <item>
         <widget class="QGroupBox" name="profile_list_box">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
          <property name="title">
-          <string>Profile list</string>
+          <string>Profile List</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_profile_list">
           <item row="0" column="0">
            <widget class="QCheckBox" name="show_config_security">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show each config's security next to its type in the proxy list, e.g. &quot;Trojan (WebSocket+TLS)&quot;. Insecure configs are marked with a warning sign.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Show each profile's security next to its type, e.g. Trojan (WebSocket+TLS).</string>
             </property>
             <property name="text">
-             <string>Show Config Security</string>
+             <string>Show profile security</string>
             </property>
            </widget>
           </item>
@@ -504,14 +447,11 @@
           </sizepolicy>
          </property>
          <property name="title">
-          <string>Local proxy</string>
+          <string>Local Proxy</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_9">
           <item row="0" column="0">
            <widget class="QLabel" name="label">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="text">
              <string>Listen Address</string>
             </property>
@@ -519,17 +459,12 @@
           </item>
           <item row="0" column="1">
            <widget class="QLineEdit" name="inbound_address">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
            </widget>
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="inbound_socks_port_l">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Socks
-                                                                + HTTP Proxy&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
-                                                            </string>
+             <string>Port of the local SOCKS and HTTP proxy.</string>
             </property>
             <property name="text">
              <string>Listen Port</string>
@@ -550,9 +485,6 @@
             </item>
             <item>
              <widget class="QCheckBox" name="random_listen_port">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <property name="toolTip">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Selects a random available port on every run&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
@@ -565,9 +497,6 @@
           </item>
           <item row="2" column="0">
            <widget class="QLabel" name="proxy_scheme_l">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="text">
              <string>Proxy Format</string>
             </property>
@@ -575,9 +504,6 @@
           </item>
           <item row="2" column="1">
            <widget class="QComboBox" name="proxy_scheme">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <item>
              <property name="text">
               <string notr="true">{ip}:{port}</string>
@@ -597,19 +523,13 @@
           </item>
           <item row="3" column="0" colspan="2">
            <widget class="QCheckBox" name="disable_mixed_inbound">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="text">
-             <string>Disable Mixed Inbound</string>
+             <string>Disable mixed inbound</string>
             </property>
            </widget>
           </item>
           <item row="4" column="0">
            <widget class="QLabel" name="label_11">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="text">
              <string>Custom Inbound</string>
             </property>
@@ -619,9 +539,6 @@
            <layout class="QHBoxLayout" name="horizontalLayout_custom_inbound">
             <item>
              <widget class="QPushButton" name="custom_inbound_edit">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <property name="text">
                <string>Edit</string>
               </property>
@@ -644,9 +561,6 @@
           </item>
           <item row="5" column="0" colspan="2">
            <widget class="QCheckBox" name="reset_proxy_on_disable_sp">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="text">
              <string>Restart proxy when the system proxy is turned off</string>
             </property>
@@ -657,28 +571,19 @@
        </item>
        <item>
         <widget class="QGroupBox" name="auth_box">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
          <property name="title">
           <string>Authentication</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_auth">
           <item row="0" column="0" colspan="2">
            <widget class="QCheckBox" name="inbound_auth">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="text">
-             <string>Enable Authorization</string>
+             <string>Enable authorization</string>
             </property>
            </widget>
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="inbound_user_l">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="text">
              <string>Inbound Username</string>
             </property>
@@ -686,16 +591,10 @@
           </item>
           <item row="1" column="1">
            <widget class="QLineEdit" name="inbound_user">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
            </widget>
           </item>
           <item row="2" column="0">
            <widget class="QLabel" name="inbound_pass_l">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="text">
              <string>Inbound Password</string>
             </property>
@@ -703,9 +602,6 @@
           </item>
           <item row="2" column="1">
            <widget class="QLineEdit" name="inbound_pass">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
            </widget>
           </item>
          </layout>
@@ -713,17 +609,14 @@
        </item>
        <item>
         <widget class="QGroupBox" name="dns_server_box">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
          <property name="title">
-          <string>Local DNS server</string>
+          <string>Local DNS Server</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_dns_server">
           <item row="0" column="0">
            <widget class="QLabel" name="label_29">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A DNS server for local use will be deployed on this port&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Port of the local DNS server.</string>
             </property>
             <property name="text">
              <string>Listen Port</string>
@@ -736,10 +629,10 @@
           <item row="1" column="0" colspan="2">
            <widget class="QCheckBox" name="dns_in_lan">
             <property name="toolTip">
-             <string>Lets other devices on your network use this DNS server, for example a router that sends its DNS through this computer. Anyone who can reach this port can then resolve names through your DNS settings.</string>
+             <string>Let other devices on your network use this DNS server.</string>
             </property>
             <property name="text">
-             <string>Allow other devices to connect</string>
+             <string>Allow other devices to use this DNS server</string>
             </property>
            </widget>
           </item>
@@ -768,9 +661,6 @@
       <layout class="QVBoxLayout" name="verticalLayout_testing">
        <item>
         <widget class="QGroupBox" name="latency_box">
-         <property name="uiFoldInto" stdset="0">
-          <string notr="true">tab_connection</string>
-         </property>
          <property name="title">
           <string>Latency</string>
          </property>
@@ -787,9 +677,6 @@
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_14">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="text">
              <string>Concurrency</string>
             </property>
@@ -799,18 +686,12 @@
            <layout class="QHBoxLayout" name="horizontalLayout_url_test" stretch="1,0,1">
             <item>
              <widget class="QLineEdit" name="test_concurrent">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
              </widget>
             </item>
             <item>
              <widget class="QLabel" name="label_22">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Timeout for URLtest in ms&lt;br/&gt;Note that muxed connections take a much longer time for their initial request, and setting this value too low will cause the test to falsely report that the config is not working&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>URL test timeout in ms; multiplexed profiles need more time.</string>
               </property>
               <property name="text">
                <string>Timeout</string>
@@ -819,20 +700,14 @@
             </item>
             <item>
              <widget class="QLineEdit" name="url_timeout">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
              </widget>
             </item>
            </layout>
           </item>
           <item row="2" column="0">
            <widget class="QLabel" name="label_direct_test_url">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fetched &lt;span style=&quot; font-weight:600;&quot;&gt;without&lt;/span&gt; any proxy, so features that must tell a dead internet connection apart from dead servers — such as the auto selector — can check the connection itself, and notice the moment it comes back.&lt;/p&gt;&lt;p&gt;Only put a URL here that is reachable &lt;span style=&quot; font-weight:600;&quot;&gt;directly&lt;/span&gt; on your network. Leave it empty to rely on the operating system's network state instead.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Fetched without proxy to check internet access. Empty: OS network state.</string>
             </property>
             <property name="text">
              <string>Direct Test URL</string>
@@ -841,9 +716,6 @@
           </item>
           <item row="2" column="1">
            <widget class="QLineEdit" name="direct_test_url">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="placeholderText">
              <string>optional — use the OS network state</string>
             </property>
@@ -854,20 +726,14 @@
        </item>
        <item>
         <widget class="QGroupBox" name="speedtest_box">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
          <property name="title">
-          <string>Speed test</string>
+          <string>Speed Test</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_speedtest">
           <item row="0" column="0">
            <widget class="QLabel" name="label_12">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="text">
-             <string>Speedtest mode</string>
+             <string>Speed test mode</string>
             </property>
            </widget>
           </item>
@@ -875,43 +741,32 @@
            <layout class="QHBoxLayout" name="horizontalLayout_speedtest" stretch="1,0,1">
             <item>
              <widget class="QComboBox" name="speedtest_mode">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <item>
                <property name="text">
-                <string>Download + Upload</string>
+                <string>Download + upload</string>
                </property>
               </item>
               <item>
                <property name="text">
-                <string>Only Download</string>
+                <string>Only download</string>
                </property>
               </item>
               <item>
                <property name="text">
-                <string>Only Upload</string>
+                <string>Only upload</string>
                </property>
               </item>
               <item>
                <property name="text">
-                <string>Simple Download</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Only Country</string>
+                <string>Simple download</string>
                </property>
               </item>
              </widget>
             </item>
             <item>
              <widget class="QLabel" name="label_19">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;timeout in milliseconds&lt;br/&gt;applies to all tests individually&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>Timeout for each speed test, in milliseconds.</string>
               </property>
               <property name="text">
                <string>Timeout</string>
@@ -920,18 +775,12 @@
             </item>
             <item>
              <widget class="QLineEdit" name="test_timeout">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
              </widget>
             </item>
            </layout>
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_16">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="text">
              <string>Simple Download URL</string>
             </property>
@@ -939,9 +788,6 @@
           </item>
           <item row="1" column="1">
            <widget class="QLineEdit" name="simple_down_url">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
            </widget>
           </item>
          </layout>
@@ -949,17 +795,14 @@
        </item>
        <item>
         <widget class="QGroupBox" name="exit_country_box">
-         <property name="uiFoldInto" stdset="0">
-          <string notr="true">tab_connection</string>
-         </property>
          <property name="title">
-          <string>Exit country</string>
+          <string>Exit Country</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_exit_country">
           <item row="0" column="0" colspan="2">
            <widget class="QCheckBox" name="exit_country_lookup">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;After connecting, Throne asks an IP lookup service — through the proxy — which IP and country the connection exits from.&lt;/p&gt;&lt;p&gt;Turn this off to never contact such a service automatically.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>After connecting, look up the exit IP and country through the proxy.</string>
             </property>
             <property name="text">
              <string>Look up exit country</string>
@@ -968,9 +811,6 @@
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_exit_lookup_provider">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="text">
              <string>Lookup service</string>
             </property>
@@ -981,12 +821,17 @@
           </item>
           <item row="1" column="1">
            <widget class="QComboBox" name="exit_lookup_provider">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
            </widget>
           </item>
          </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="service_check_box">
+         <property name="title">
+          <string>Service Check</string>
+         </property>
+         <layout class="QVBoxLayout" name="serviceCheckLayout"/>
         </widget>
        </item>
        <item>
@@ -1012,7 +857,7 @@
        <item>
         <widget class="QGroupBox" name="sub_auto_update_box">
          <property name="title">
-          <string>Auto update</string>
+          <string>Auto Update</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_sub_auto_update">
           <item row="0" column="0">
@@ -1051,11 +896,8 @@
           </item>
           <item row="1" column="0">
            <widget class="QCheckBox" name="sub_respect_server_interval">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="toolTip">
-             <string>Subscriptions whose server sends an update interval (profile-update-interval) follow it; the interval above applies when a server sends none. Groups can override this in their Advanced settings.</string>
+             <string>Use the update interval a subscription server sends, if any.</string>
             </property>
             <property name="text">
              <string>Use the update interval sent by the server</string>
@@ -1068,23 +910,20 @@
        <item>
         <widget class="QGroupBox" name="sub_update_box">
          <property name="title">
-          <string>When updating</string>
+          <string>When Updating</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_sub_update">
           <item row="0" column="0">
            <widget class="QCheckBox" name="sub_clear">
             <property name="text">
-             <string>Clear servers before updating subscription</string>
+             <string>Clear profiles before updating subscription</string>
             </property>
            </widget>
           </item>
           <item row="1" column="0">
            <widget class="QCheckBox" name="sub_show_change_popup">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, a window listing added / updated / deleted profiles is shown after a manual subscription update. The same information is always written to the log.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>List the added, updated and deleted profiles after a manual update.</string>
             </property>
             <property name="text">
              <string>Show the changes window after a manual subscription update</string>
@@ -1093,11 +932,8 @@
           </item>
           <item row="2" column="0">
            <widget class="QCheckBox" name="allow_stopping_active_profile">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, If the currently active profile needs to be removed, it will be stopped and removed, otherwise it will not be removed at all&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Let subscription updates stop the running profile to remove or update it.</string>
             </property>
             <property name="text">
              <string>Allow stopping the active profile</string>
@@ -1109,18 +945,12 @@
        </item>
        <item>
         <widget class="QGroupBox" name="sub_request_box">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
          <property name="title">
           <string>Requests</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_sub_request">
           <item row="0" column="0">
            <widget class="QLabel" name="label_4">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="text">
              <string>User Agent</string>
             </property>
@@ -1128,18 +958,12 @@
           </item>
           <item row="0" column="1">
            <widget class="MyLineEdit" name="user_agent">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
            </widget>
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="sub_tls_version_l">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="toolTip">
-             <string>TLS versions offered when fetching subscriptions. Some servers answer the default handshake with a CAPTCHA or a block page; TLS 1.2 often gets through.</string>
+             <string>TLS versions offered when fetching; TLS 1.2 often gets past blocks.</string>
             </property>
             <property name="text">
              <string>TLS Version</string>
@@ -1150,9 +974,6 @@
            <layout class="QHBoxLayout" name="horizontalLayout_sub_versions" stretch="1,0,1">
             <item>
              <widget class="QComboBox" name="sub_tls_version">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <item>
                <property name="text">
                 <string>Auto</string>
@@ -1172,9 +993,6 @@
             </item>
             <item>
              <widget class="QLabel" name="sub_http_version_l">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <property name="toolTip">
                <string>Auto uses HTTP/2 when the server offers it.</string>
               </property>
@@ -1185,9 +1003,6 @@
             </item>
             <item>
              <widget class="QComboBox" name="sub_http_version">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <item>
                <property name="text">
                 <string>Auto</string>
@@ -1204,9 +1019,6 @@
           </item>
           <item row="2" column="0" colspan="2">
            <widget class="QCheckBox" name="sub_send_hwid">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="toolTip">
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;HWID=%1&lt;/p&gt;&lt;p&gt;OS=%2&lt;/p&gt;&lt;p&gt;OS Version=%3&lt;/p&gt;&lt;p&gt;Model=%4&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
@@ -1217,11 +1029,8 @@
           </item>
           <item row="3" column="0">
            <widget class="QLabel" name="label_custom_hwid_params">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Format: hwid=value,os=value,osVersion=value,model=value&lt;/p&gt;&lt;p&gt;Leave empty to use default values. Only specify the parameters you want to override.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Overrides, e.g. hwid=value,os=value,model=value. Empty: defaults.</string>
             </property>
             <property name="text">
              <string>Custom System Parameters (optional)</string>
@@ -1230,9 +1039,6 @@
           </item>
           <item row="3" column="1">
            <widget class="QLineEdit" name="sub_custom_hwid_params">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="placeholderText">
              <string>hwid=custom_value,os=custom_os,osVersion=custom_version,model=custom_model</string>
             </property>
@@ -1257,9 +1063,6 @@
       </layout>
      </widget>
      <widget class="QWidget" name="tab_core">
-      <property name="uiLevel" stdset="0">
-       <string notr="true">advanced</string>
-      </property>
       <attribute name="title">
        <string>Core</string>
       </attribute>
@@ -1273,10 +1076,10 @@
           <item row="0" column="0">
            <widget class="QCheckBox" name="disable_stats">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Might Improve Ping and Performance&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Stop counting traffic for a small performance gain.</string>
             </property>
             <property name="text">
-             <string>Disable Traffic Stats</string>
+             <string>Disable traffic counters</string>
             </property>
            </widget>
           </item>
@@ -1290,10 +1093,10 @@
           <item row="2" column="0">
            <widget class="QCheckBox" name="disable_traffic_aggregation">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fully disables the traffic aggregation feature (per-config and per-app usage history kept in a separate database, shown in the Traffic Stats dashboard). Does not affect the per-profile traffic counters in the main window.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Stop recording per-profile and per-app usage history for Traffic Statistics.</string>
             </property>
             <property name="text">
-             <string>Disable Traffic Aggregation</string>
+             <string>Disable traffic statistics</string>
             </property>
            </widget>
           </item>
@@ -1302,11 +1105,8 @@
        </item>
        <item>
         <widget class="QGroupBox" name="ntp_box">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Settings for the sing-box's built-in NTP client&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>Settings for sing-box's built-in NTP client.</string>
          </property>
          <property name="title">
           <string>NTP Settings</string>
@@ -1387,7 +1187,7 @@
             <item>
              <widget class="QComboBox" name="ntp_outbound">
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Which outbound the NTP query is sent through&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>Outbound the NTP query goes through.</string>
               </property>
               <item>
                <property name="text">
@@ -1421,7 +1221,7 @@
           <item row="0" column="0">
            <widget class="QLabel" name="label_24">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When to choose Xray when importing vless profiles&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>When imported VLESS profiles use Xray.</string>
             </property>
             <property name="text">
              <string>Xray VLESS Preference</string>
@@ -1434,7 +1234,7 @@
           <item row="1" column="0">
            <widget class="QLabel" name="label_xray_geoip_url">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;URL for geoip.dat, downloaded when a full Xray config's routing needs geoip: rules.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Where to get geoip.dat for Xray configs with geoip: rules.</string>
             </property>
             <property name="text">
              <string>GeoIP Asset URL</string>
@@ -1488,7 +1288,7 @@
           <item row="2" column="0">
            <widget class="QLabel" name="label_xray_geosite_url">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;URL for geosite.dat, downloaded when a full Xray config's routing needs geosite: rules.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Where to get geosite.dat for Xray configs with geosite: rules.</string>
             </property>
             <property name="text">
              <string>GeoSite Asset URL</string>
@@ -1558,9 +1358,6 @@
       </layout>
      </widget>
      <widget class="QWidget" name="tab_logs">
-      <property name="uiLevel" stdset="0">
-       <string notr="true">advanced</string>
-      </property>
       <attribute name="title">
        <string>Logs</string>
       </attribute>
@@ -1568,7 +1365,7 @@
        <item>
         <widget class="QGroupBox" name="log_panel_box">
          <property name="title">
-          <string>Log panel</string>
+          <string>Logs Tab</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_log_panel">
           <item row="0" column="0">
@@ -1590,11 +1387,8 @@
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_log_font">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="text">
-             <string>Log Browser Font</string>
+             <string>Font</string>
             </property>
            </widget>
           </item>
@@ -1602,32 +1396,23 @@
            <layout class="QHBoxLayout" name="horizontalLayout_log_font" stretch="1,0,0">
             <item>
              <widget class="QFontComboBox" name="log_font_family">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <property name="fontFilters">
                <set>QFontComboBox::FontFilter::MonospacedFonts</set>
               </property>
               <property name="toolTip">
-               <string>Only monospaced fonts are listed. An unavailable family falls back to a built-in monospace list.</string>
+               <string>Monospaced font for the log view.</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QLabel" name="label_log_font_size">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
               <property name="text">
-               <string>Log Browser Font Size</string>
+               <string>Font size</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QComboBox" name="log_font_size">
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
              </widget>
             </item>
            </layout>
@@ -1638,13 +1423,13 @@
        <item>
         <widget class="QGroupBox" name="log_level_box">
          <property name="title">
-          <string>Log level</string>
+          <string>Log Level</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_log_level">
           <item row="0" column="0">
            <widget class="QLabel" name="label_3">
             <property name="text">
-             <string>Sing-box Log level</string>
+             <string>sing-box Log level</string>
             </property>
            </widget>
           </item>
@@ -1716,7 +1501,7 @@
              <item row="0" column="0">
               <widget class="QCheckBox" name="enable_log_include">
                <property name="text">
-                <string>Enable Include Rules</string>
+                <string>Enable include rules</string>
                </property>
               </widget>
              </item>
@@ -1735,7 +1520,7 @@
              <item row="0" column="0">
               <widget class="QCheckBox" name="enable_log_exclude">
                <property name="text">
-                <string>Enable Exclude Rules</string>
+                <string>Enable exclude rules</string>
                </property>
               </widget>
              </item>
@@ -1774,9 +1559,6 @@
       <layout class="QVBoxLayout" name="verticalLayout_security">
        <item>
         <widget class="QGroupBox" name="protection_box">
-         <property name="uiFoldInto" stdset="0">
-          <string notr="true">tab_connection</string>
-         </property>
          <property name="title">
           <string>Protection</string>
          </property>
@@ -1784,11 +1566,10 @@
           <item row="0" column="0">
            <widget class="QCheckBox" name="kill_switch">
             <property name="toolTip">
-             <string>While Throne is running, block all traffic that does not go through Throne, including when no profile is running.
-The local network stays reachable unless Private Range Bypass is turned off in Tun Settings.</string>
+             <string>Block all traffic outside Throne while it runs, even with no profile on.</string>
             </property>
             <property name="text">
-             <string>Kill Switch</string>
+             <string>Kill switch</string>
             </property>
            </widget>
           </item>
@@ -1797,41 +1578,29 @@ The local network stays reachable unless Private Range Bypass is turned off in T
        </item>
        <item>
         <widget class="QGroupBox" name="cert_box">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
          <property name="title">
           <string>Certificates</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_cert">
           <item row="0" column="0">
            <widget class="QCheckBox" name="mozilla_cert">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="text">
-             <string>Use Mozilla Certificate Store</string>
+             <string>Use Mozilla certificate store</string>
             </property>
            </widget>
           </item>
           <item row="1" column="0">
            <widget class="QCheckBox" name="xray_use_system_ca">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="toolTip">
-             <string>Xray verifies servers only against its built-in root certificates. Turn this on to also trust the certificates installed in the system, such as a company or self-signed root. A profile or Xray config that sets useSystemCA itself keeps its own value.</string>
+             <string>Let Xray also trust the root certificates installed in the system.</string>
             </property>
             <property name="text">
-             <string>Trust System Certificates in Xray</string>
+             <string>Trust system certificates in Xray</string>
             </property>
            </widget>
           </item>
           <item row="2" column="0">
            <widget class="QCheckBox" name="skip_cert">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="text">
              <string>Skip TLS certificate authentication by default (allowInsecure)</string>
             </property>
@@ -1842,33 +1611,24 @@ The local network stays reachable unless Private Range Bypass is turned off in T
        </item>
        <item>
         <widget class="QGroupBox" name="priv_box">
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
          <property name="title">
           <string>Privileges</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_priv">
           <item row="0" column="0">
            <widget class="QCheckBox" name="disable_priv_req">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="text">
-             <string>Disable Privilege request</string>
+             <string>Disable privilege request</string>
             </property>
            </widget>
           </item>
           <item row="1" column="0">
            <widget class="QCheckBox" name="windows_no_admin">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Do not attempt to start as Admin unless explicitly requested&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Never start as administrator unless you ask for it.</string>
             </property>
             <property name="text">
-             <string>Always Start as Standard User</string>
+             <string>Always start as standard user</string>
             </property>
            </widget>
           </item>
@@ -1950,7 +1710,7 @@ The local network stays reachable unless Private Range Bypass is turned off in T
           <item>
            <widget class="QCheckBox" name="backup_inc_otp">
             <property name="text">
-             <string>OTP profiles</string>
+             <string>OTP entries</string>
             </property>
             <property name="checked">
              <bool>true</bool>
@@ -1982,7 +1742,7 @@ The local network stays reachable unless Private Range Bypass is turned off in T
             <item>
              <widget class="QPushButton" name="backup_create">
               <property name="text">
-               <string>Create Backup...</string>
+               <string>Create backup</string>
               </property>
              </widget>
             </item>
@@ -2031,7 +1791,7 @@ The local network stays reachable unless Private Range Bypass is turned off in T
             <item>
              <widget class="QPushButton" name="backup_restore">
               <property name="text">
-               <string>Restore from Backup...</string>
+               <string>Restore from backup</string>
               </property>
              </widget>
             </item>
@@ -2080,7 +1840,7 @@ The local network stays reachable unless Private Range Bypass is turned off in T
             <item>
              <widget class="QPushButton" name="webdav_settings">
               <property name="text">
-               <string>WebDAV Settings...</string>
+               <string>WebDAV Settings</string>
               </property>
              </widget>
             </item>
@@ -2094,7 +1854,7 @@ The local network stays reachable unless Private Range Bypass is turned off in T
             <item>
              <widget class="QPushButton" name="webdav_restore">
               <property name="text">
-               <string>Restore from WebDAV...</string>
+               <string>Restore from WebDAV</string>
               </property>
              </widget>
             </item>

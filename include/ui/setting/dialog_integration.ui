@@ -40,7 +40,7 @@
        <item row="1" column="0">
         <widget class="QLabel" name="label_3">
          <property name="text">
-          <string>Show groups</string>
+          <string>Manage groups</string>
          </property>
          <property name="buddy">
           <cstring>show_groups</cstring>
@@ -53,7 +53,7 @@
        <item row="2" column="0">
         <widget class="QLabel" name="label_4">
          <property name="text">
-          <string>Show routes</string>
+          <string>Open Routing Settings</string>
          </property>
          <property name="buddy">
           <cstring>show_routes</cstring>
@@ -79,7 +79,7 @@
        <item row="4" column="0">
         <widget class="QLabel" name="toggle_proxy_l">
          <property name="text">
-          <string>Toggle System Proxy</string>
+          <string>Toggle system proxy</string>
          </property>
          <property name="buddy">
           <cstring>toggle_proxy</cstring>
@@ -105,7 +105,7 @@
        <item row="6" column="0">
         <widget class="QLabel" name="toggle_tun_l">
          <property name="text">
-          <string>Toggle Tun Mode</string>
+          <string>Toggle Tun mode</string>
          </property>
          <property name="buddy">
           <cstring>toggle_tun</cstring>
@@ -223,7 +223,7 @@
        <item row="4" column="0" colspan="2">
         <widget class="QCheckBox" name="api_admin_lan">
          <property name="toolTip">
-          <string>Lets devices on the local network import, delete, change settings, back up and restore through the Throne API. This device can always do so.</string>
+          <string>Let local devices import, delete, change settings, back up and restore.</string>
          </property>
          <property name="text">
           <string>Allow management from the local network</string>
@@ -443,7 +443,7 @@
           <item row="1" column="3">
            <widget class="QPushButton" name="core_box_api_regen">
             <property name="text">
-             <string>Regenerate Secret</string>
+             <string>Regenerate secret</string>
             </property>
            </widget>
           </item>

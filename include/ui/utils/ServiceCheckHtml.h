@@ -1,16 +1,23 @@
 #pragma once
 
+#include <QList>
 #include <QString>
+
+#include "include/ui/utils/ServiceIcons.h"
 
 namespace Configs {
     class Profile;
 }
 
-// Rich text for a profile's stored service check, colored with the theme's tokens.
+// A profile's stored service check for display; the rich forms are colored with the theme's tokens.
 namespace ServiceCheckHtml {
-    // Each category's name colored by its services' status, then the exit IP's kind; empty without a service check.
-    [[nodiscard]] QString summary(const Configs::Profile &profile);
+    // UI thread only: parsed results are cached in a static. Skips the services turned off in the settings.
+    [[nodiscard]] QList<ServiceIcons::Item> items(const Configs::Profile &profile);
 
-    // Every service's status, for a tooltip; empty without a service check.
-    [[nodiscard]] QString details(const Configs::Profile &profile);
+    [[nodiscard]] QString ipKind(const Configs::Profile &profile, bool rich);
+
+    // Why the whole check failed; empty when it ran.
+    [[nodiscard]] QString failure(const Configs::Profile &profile);
+
+    [[nodiscard]] QString summaryLine(const Configs::Profile &profile);
 }

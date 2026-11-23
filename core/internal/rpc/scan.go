@@ -180,12 +180,12 @@ func (s *server) ScanURLTest(ctx context.Context, in *gen.ScanURLTestRequest) (*
 	if err != nil {
 		return nil, err
 	}
-	defer env.close()
+	defer env.Close()
 
 	scanCtx := session.Context()
 	labels := in.GetTargetLabels()
-	labelOf := make(map[string]string, len(env.tags))
-	for idx, tag := range env.tags {
+	labelOf := make(map[string]string, len(env.Tags))
+	for idx, tag := range env.Tags {
 		labelOf[tag] = tag
 		if idx < len(labels) && labels[idx] != "" {
 			labelOf[tag] = labels[idx]
@@ -200,10 +200,10 @@ func (s *server) ScanURLTest(ctx context.Context, in *gen.ScanURLTestRequest) (*
 	}
 	var results []*probe.URLTestResult
 	if bodyBytes := in.GetBodyBytes(); bodyBytes > 0 {
-		results = probe.BatchDownloadTestTo(scanCtx, env.box, env.tags, test.GetUrl(), bodyBytes, int(test.GetMaxConcurrency()),
+		results = probe.BatchDownloadTestTo(scanCtx, env.Box, env.Tags, test.GetUrl(), bodyBytes, int(test.GetMaxConcurrency()),
 			milliseconds(test.GetTestTimeoutMs()), publish)
 	} else {
-		results = probe.BatchURLTestTo(scanCtx, env.box, env.tags, test.GetUrl(), int(test.GetMaxConcurrency()),
+		results = probe.BatchURLTestTo(scanCtx, env.Box, env.Tags, test.GetUrl(), int(test.GetMaxConcurrency()),
 			in.GetWarmLatency(), milliseconds(test.GetTestTimeoutMs()), publish)
 	}
 	if scanCtx.Err() == nil && egressLost() {
@@ -222,9 +222,9 @@ func (s *server) ScanURLTest(ctx context.Context, in *gen.ScanURLTestRequest) (*
 				errStr = probe.ErrTestAborted.Error()
 			}
 		}
-		failed[env.tags[idx]] = errStr != ""
+		failed[env.Tags[idx]] = errStr != ""
 		res = append(res, &gen.URLTestResp{
-			OutboundTag: To(env.tags[idx]),
+			OutboundTag: To(env.Tags[idx]),
 			LatencyMs:   To(int32(data.Duration.Milliseconds())),
 			Error:       To(errStr),
 		})
@@ -237,7 +237,7 @@ func (s *server) ScanURLTest(ctx context.Context, in *gen.ScanURLTestRequest) (*
 		}
 	}
 	if len(pending) > 0 {
-		out.VpnStatus = collectVPNStatus(scanCtx, env.box, pending, 0)
+		out.VpnStatus = collectVPNStatus(scanCtx, env.Box, pending, 0)
 	}
 	return out, nil
 }

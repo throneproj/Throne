@@ -272,13 +272,20 @@ namespace Scanner::Tune {
         return {};
     }
 
-    QString DialHost(const std::shared_ptr<Configs::Profile> &profile) {
-        if (profile == nullptr || profile->outbound == nullptr) return {};
-        if (const auto host = Configs::EffectiveEndpointHost(profile); !host.isEmpty()) return host;
-        return profile->outbound->GetAddress();
+    QString DialTarget::Display() const {
+        return port > 0 ? DisplayAddress(host, port) : host;
     }
 
-    QString SpecHash(const Configs::Profile &profile, const QString &dialHost, const Configs::ScanTuneOptions &options) {
+    DialTarget DialTargetFor(const std::shared_ptr<Configs::Profile> &profile) {
+        if (profile == nullptr || profile->outbound == nullptr) return {};
+        if (Configs::EndpointOverrideBlocker(profile).isEmpty()) {
+            const auto endpoint = Configs::ResolveEndpointSource(Configs::EffectiveEndpointSource(*profile));
+            if (!endpoint.address.isEmpty()) return {endpoint.address, endpoint.port};
+        }
+        return {profile->outbound->GetAddress(), 0};
+    }
+
+    QString SpecHash(const Configs::Profile &profile, const DialTarget &dial, const Configs::ScanTuneOptions &options) {
         Configs::ScanConfig config;
         config.tune = options;
         auto tune = config.ToJson().value(QLatin1String("tune")).toObject();
@@ -288,7 +295,8 @@ namespace Scanner::Tune {
         QJsonObject object;
         object["type"] = profile.type;
         object["outbound"] = profile.outbound != nullptr ? profile.outbound->ExportToJson() : QJsonObject();
-        object["host"] = dialHost;
+        // Without a port override this is the bare host, as before, so saved searches still resume.
+        object["host"] = dial.Display();
         object["options"] = tune;
         object["utlsFingerprint"] = settings.utlsFingerprint;
         object["fragmentDefaultOn"] = settings.fragment_default_on;

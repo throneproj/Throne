@@ -42,7 +42,7 @@ namespace Scanner {
         std::atomic<quint32> tuneWorkerSessionCounter{0};
     } // namespace
 
-    TuneWorker::TuneWorker(const Configs::IpScan &scan, std::shared_ptr<Configs::Profile> base, QString dialHost, QString specHash,
+    TuneWorker::TuneWorker(const Configs::IpScan &scan, std::shared_ptr<Configs::Profile> base, Tune::DialTarget dial, QString specHash,
                            bool resume, ScanRunHooks hooks)
         : scanId_(scan.id),
           sessionId_(QStringLiteral("tune-%1-%2-%3")
@@ -50,7 +50,7 @@ namespace Scanner {
                          .arg(QDateTime::currentMSecsSinceEpoch())
                          .arg(tuneWorkerSessionCounter.fetch_add(1))),
           base_(std::move(base)),
-          dialHost_(std::move(dialHost)),
+          dial_(std::move(dial)),
           specHash_(std::move(specHash)),
           resume_(resume),
           hooks_(std::move(hooks)),
@@ -143,7 +143,7 @@ namespace Scanner {
             if (persist_) Configs::dataManager->ipScansRepo->SaveTuneState(scanId_, {});
             saveRow();
         }
-        pushLog(ScanManager::tr("Every variant connects to %1").arg(dialHost_));
+        pushLog(ScanManager::tr("Every variant connects to %1").arg(dial_.Display()));
         persist(planner);
 
         const qint64 timeLimitMs = static_cast<qint64>(options.maxMinutes) * 60000;
@@ -220,11 +220,11 @@ namespace Scanner {
         } else if (auto problem = Configs::ValidateScanBase(profile); !problem.isEmpty()) {
             built.error = problem;
         } else {
-            const auto build = Configs::BuildScanTestConfig(profile, {Configs::ScanTestTarget{dialHost_, 0}});
+            const auto build = Configs::BuildScanTestConfig(profile, {Configs::ScanTestTarget{dial_.host, dial_.port}});
             if (!build.error.isEmpty()) {
                 built.error = build.error;
             } else if (build.build == nullptr || build.build->outboundTags.isEmpty()) {
-                built.error = ScanManager::tr("This profile cannot be pointed at %1").arg(dialHost_);
+                built.error = ScanManager::tr("This profile cannot be pointed at %1").arg(dial_.Display());
             } else {
                 built.build = build.build;
                 built.vpnEndpointTags = build.vpnEndpointTags;
@@ -291,7 +291,7 @@ namespace Scanner {
     bool TuneWorker::networkUp() {
         const auto previous = stageText_;
         setStage(ScanManager::tr("Checking network"));
-        const bool ipv6 = QHostAddress(dialHost_).protocol() == QAbstractSocket::IPv6Protocol;
+        const bool ipv6 = QHostAddress(dial_.host).protocol() == QAbstractSocket::IPv6Protocol;
         bool ok = false;
         QString detail;
         const bool up = API::defaultClient->ScanCheckNetwork(&ok, ipv6 ? kTuneWorkerNetworkTargetsV6 : kTuneWorkerNetworkTargets,
@@ -406,7 +406,7 @@ namespace Scanner {
         object["best"] = best_;
         object["mtuWinner"] = mtuWinner_;
         object["elapsedMs"] = elapsedMs();
-        object["dialHost"] = dialHost_;
+        object["dialHost"] = dial_.Display();
         object["profileId"] = scan_.config.tune.profileId;
         if (!note_.isEmpty()) object["note"] = note_;
         return object;

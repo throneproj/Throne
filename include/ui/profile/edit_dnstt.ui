@@ -342,7 +342,7 @@
             <item>
              <widget class="QPushButton" name="ssh_choose_pk">
               <property name="text">
-               <string>Choose File</string>
+               <string>Choose file</string>
               </property>
              </widget>
             </item>
@@ -416,9 +416,6 @@
       </item>
       <item>
        <widget class="QGroupBox" name="advanced_box">
-        <property name="uiLevel" stdset="0">
-         <string notr="true">advanced</string>
-        </property>
         <property name="title">
          <string>Advanced</string>
         </property>

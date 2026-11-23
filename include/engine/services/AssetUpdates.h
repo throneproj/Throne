@@ -87,8 +87,8 @@ namespace Engine::AssetUpdates {
     // Any thread; the executable sits where the core pins it, under tor/ in the config folder.
     bool TorInstalled();
 
-    // Main thread; false while an install runs. Downloads the Tor Expert Bundle and has the core unpack it; done runs on the
-    // main thread with the error, empty on success.
+    // Main thread; false while an install runs. Downloads the Tor Expert Bundle, from the GitHub mirror when torproject.org fails,
+    // and has the core unpack it; done runs on the main thread with the error, empty on success.
     bool InstallTor(std::function<void(const QString &error)> done);
 
     // Main thread, once from EngineHost::create().

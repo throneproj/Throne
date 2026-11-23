@@ -19,8 +19,10 @@
 #include <QUuid>
 
 #include "NkrVersion.h"
+#include "include/configs/common/Protocols.h"
 #include "include/configs/sub/GroupUpdater.hpp"
 #include "include/database/ProfilesRepo.h"
+#include "include/database/SettingsSchema.h"
 #include "include/engine/ThreadCheck.h"
 #include "include/global/Configs.hpp"
 #include "include/global/Validation.hpp"
@@ -168,7 +170,7 @@ namespace Engine::BackupArchive {
                         const auto outbound = QJsonDocument::fromJson(QString::fromStdString(rows.getColumn(3).getText()).toUtf8());
                         if (outbound.isObject()) profile->outbound->ParseFromJson(outbound.object());
                         if (!profile->outbound->name.isEmpty()) name = profile->outbound->name;
-                        if (type == QLatin1String("extracore")) {
+                        if (Configs::Protocols::Is(type, Configs::Protocols::RunsProgram)) {
                             offend(QStringLiteral("Extra Core profile %1").arg(BackupShownName(name, fallback)));
                             continue;
                         }
@@ -226,10 +228,7 @@ namespace Engine::BackupArchive {
     }
 
     const QStringList &DeviceLocalSettingKeys() {
-        static const QStringList keys = {
-            QStringLiteral("webdav_server"), QStringLiteral("webdav_user"), QStringLiteral("webdav_pass"), QStringLiteral("webdav_path"),
-            QStringLiteral("webdav_use_proxy"), QStringLiteral("device_id"), QStringLiteral("device_name"),
-        };
+        static const QStringList keys = Configs::SettingsSchema::KeysIn(Configs::SettingsSchema::Scope::Device);
         return keys;
     }
 

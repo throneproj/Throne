@@ -14,6 +14,7 @@
 #include <QtDBus>
 #endif
 
+#include <array>
 #include <deque>
 #include <optional>
 #include <QKeyEvent>
@@ -71,7 +72,10 @@ class DialogIpLists;
 class DialogRuleTester;
 class CommandPalette;
 
-namespace Qv2ray::ui { class SyntaxHighlighter; }
+namespace Qv2ray::ui {
+    class SyntaxHighlighter;
+    enum class LogLevel : quint8;
+}
 namespace SettingsIndex { struct Item; }
 
 QT_BEGIN_NAMESPACE
@@ -112,6 +116,9 @@ public:
     void updateTabToolTip(int gid);
 
     void refresh_status(const QString &traffic_update = "");
+
+    // After the custom tray icons on disk changed.
+    void refreshTrayIcon();
 
     // Lines of the config about to run; must arrive before its first add_traffic_point.
     void set_traffic_lines(const QList<Stats::TrafficLine> &lines);
@@ -234,6 +241,14 @@ private slots:
 
     void on_profilesTableView_customContextMenuRequested(const QPoint &pos);
 
+    void showProfilesContextMenu(const QPoint &pos);
+
+    void on_menu_server_aboutToHide();
+
+    void on_menu_edit_triggered();
+
+    void on_menu_add_subscription_triggered();
+
     void on_tabWidget_currentChanged(int index);
 
     void on_tabWidget_customContextMenuRequested(const QPoint& p);
@@ -246,11 +261,17 @@ private:
     ProfilesFilterProxyModel *profilesFilterModel = nullptr;
     TrayIcon *tray = nullptr;
     QMenu *trayMenu = nullptr;
+    QAction *trayStatusAction = nullptr;
     QAction *trayConnectAction = nullptr;
+    QAction *trayProfileAction = nullptr;
+    QAction *trayRoutingAction = nullptr;
     QPointer<TrayProfileSelector> traySelector;
     void openTraySelector(bool routing);
     QPointer<TrayOtpCodes> trayOtpCodes;
     void openTrayOtpCodes();
+    void setupTrayMenu();
+    // DBusMenu may never send aboutToShow, so state changes call this instead.
+    void refreshTrayMenu();
     QThreadPool *parallelCoreCallPool = new QThreadPool(this);
     // Engine::host()'s objects, in mainwindow_engine_control.cpp.
     Engine::ConnectionManager *connection() const;
@@ -324,12 +345,18 @@ private:
     // while the user is scrolled up, arrivals wait in m_logHeld so the view stays frozen.
     struct LogLine {
         QString text;
+        Qv2ray::ui::LogLevel level{};
         bool visible = true;
     };
     std::deque<LogLine> m_logLines;
     std::deque<QString> m_logHeld;
     bool m_logFollow = true;
     QRegularExpression m_logSearch;
+    // One bit per LogLevel: what the chips select, and what the view is filtered by (all while the bar is hidden).
+    quint8 m_logLevelChoice = 0x0F;
+    quint8 m_logLevelFilter = 0x0F;
+    std::array<int, 4> m_logLevelCounts{};
+    std::array<QToolButton *, 4> logLevelChips{};
     QTimer *m_logSearchDebounce = nullptr;
     QToolButton *logFilterButton = nullptr;
     QToolButton *logJumpLatestButton = nullptr;
@@ -351,6 +378,14 @@ private:
     void flush_log_batch();
 
     void setupLogView();
+
+    void setupThemedIcons();
+
+    void pushLogLine(QString &&text);
+
+    [[nodiscard]] bool logLineVisible(const LogLine &line) const;
+
+    void refreshLogLevelChips();
 
     void releaseHeldLogs();
 
@@ -411,6 +446,9 @@ private:
     void delete_group(int gid, const QString &title);
 
     void dialog_message_impl(MwMessage cmd, const QStringList &args);
+
+    // The SettingsSchema Ui bits in effects, for a settings commit.
+    void applySettingsUi(quint32 effects);
 
     void handle_deeplink_impl(const QString &url);
 
@@ -506,10 +544,6 @@ private:
 
     void revealSetting(const SettingsIndex::Item &item);
 
-    void applyUiMode();
-
-    void setSimpleMode(bool simple);
-
     // Takes or frees the one-settings-dialog slot (dialog_is_using) and lets an open command palette catch up.
     void setDialogInUse(bool inUse);
 
@@ -520,6 +554,8 @@ private:
     void confirm_disable_kill_switch();
 
     QPointer<QMessageBox> m_killSwitchDialog;
+    // The last box each EnginePolicy method opened, keyed by the method's name; at most one is open per method.
+    QHash<QString, QPointer<QMessageBox>> m_policyBoxes;
 
     QPointer<DialogVpnAuth> m_vpnAuthDialog;
     QPointer<DialogScanner> m_scannerDialog;
@@ -535,6 +571,8 @@ private:
     void setupConnectionList();
 
     void setupTrafficGraph();
+
+    void setupRoutingMenu();
 
     void refresh_traffic_graph_settings();
 
@@ -576,9 +614,11 @@ private:
     // EnginePolicy, in mainwindow_policy.cpp; reached through EngineHost::policy().
     void geoAssetMissingCategory(const QString &contextName, const QString &needed, const QString &whichFile) override;
 
-    bool confirmGeoAssetDownload(const QString &contextName) override;
+    void confirmGeoAssetDownload(const QString &contextName, std::function<void(bool download)> answered) override;
 
     void geoAssetDownloadFinished(const QString &error) override;
+
+    void confirmTorDownload(const QString &profileName, std::function<void(bool download)> answered) override;
 
     void killSwitchProblem() override;
 
@@ -590,9 +630,9 @@ private:
 
     void strictRouteUnavailable(const QString &error) override;
 
-    bool offerCoreReset(const QString &error) override;
+    void offerCoreReset(const QString &error, std::function<void(bool reset)> answered) override;
 
-    bool offerLeftoverTunAdapterRetry(const QString &error) override;
+    void offerLeftoverTunAdapterRetry(const QString &error, std::function<void(bool retry)> answered) override;
 
     void stopFailed(const QString &error) override;
 
@@ -608,6 +648,9 @@ private:
 
     void vpnCredentialsRejected(int profileId, const VpnAuthChallenge &challenge,
                                 const std::function<void(const QString &username, const QString &password)> &retryWith) override;
+
+    void offerVpnSignInRestart(const QString &endpointName, const QString &error,
+                               std::function<void(bool restart)> answered) override;
 
     void vpnChallengesCleared() override;
 

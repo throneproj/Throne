@@ -72,7 +72,7 @@
    <item>
     <widget class="QGroupBox" name="try_box">
      <property name="title">
-      <string>What to try</string>
+      <string>What to Try</string>
      </property>
      <layout class="QFormLayout" name="try_box_form">
       <item row="0" column="0" colspan="2">

@@ -14,8 +14,10 @@
 
 
 
+#include "include/engine/Lifecycle.h"
 #include "include/global/Configs.hpp"
 #include "include/global/LocalNetwork.hpp"
+#include "include/sys/KillSwitch.hpp"
 
 namespace Configs_network {
     namespace {
@@ -53,13 +55,15 @@ namespace Configs_network {
 
     bool RequestUsesMixedInbound(bool useProxy, QString *error) {
         const auto &settings = Configs::dataManager->settingsRepo;
-        if (!settings->net_use_proxy && !settings->spmode_system_proxy && !useProxy) return false;
-        if (settings->started_id < 0) {
-            *error = QObject::tr("Request with proxy but no profile started.");
+        const bool guarded = Sys::KillSwitch::BlocksAppTraffic();
+        if (!settings->net_use_proxy && !settings->spmode_system_proxy && !useProxy && !guarded) return false;
+        if (Engine::Lifecycle::RunningProfileId() < 0) {
+            *error = guarded ? QObject::tr("The kill switch blocks this request while no profile is running.")
+                             : QObject::tr("Request with proxy but no profile started.");
             return false;
         }
         if (!settings->disable_mixed_inbound) return true;
-        if (!settings->spmode_vpn) *error = QObject::tr("Request with proxy but the mixed inbound is disabled and Tun Mode is off.");
+        if (!settings->spmode_vpn) *error = QObject::tr("Request with proxy but the mixed inbound is disabled and Tun mode is off.");
         return false;
     }
 

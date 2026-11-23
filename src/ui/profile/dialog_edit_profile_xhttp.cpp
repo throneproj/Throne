@@ -22,7 +22,7 @@ void DialogEditProfile::setXrayXHTTPHelp(QWidget *caption, QWidget *field,
                                          const QString &text,
                                          const QString &jsonKey,
                                          const QString &description) {
-    const auto tooltip = tr("JSON: %1\n%2").arg(jsonKey, description);
+    const auto tooltip = tr("%1: %2").arg(jsonKey, description);
     if (auto *label = qobject_cast<QLabel *>(caption)) {
         label->setText(text);
     } else if (auto *button = qobject_cast<QAbstractButton *>(caption)) {
@@ -60,103 +60,97 @@ void DialogEditProfile::setupXrayXHTTPDescriptions() {
     ui->xray_xhttp_xmux_box->setTitle(tr("Xmux Reuse"));
 
     setXrayXHTTPHelp(ui->xray_mode_l, ui->xray_mode, tr("Mode"), "mode",
-                     tr("XHTTP mode: auto usually uses packet-up, REALITY uses stream-one, "
-                        "and REALITY with downloadSettings uses stream-up. downloadSettings "
-                        "is removed when saving stream-one mode."));
+                     tr("XHTTP mode; auto picks packet-up, or stream-one with REALITY."));
     setXrayXHTTPHelp(ui->xray_xpaddingbytes_l, ui->xray_xpaddingbytes, tr("X Padding Bytes"), "xPaddingBytes",
-                     tr("Range of extra XHTTP padding bytes. Default: 100-1000. If set, both bounds must be positive."));
+                     tr("Range of extra padding bytes. Default: 100-1000."));
     setXrayXHTTPHelp(ui->xray_serverMaxHeaderBytes_l, ui->xray_serverMaxHeaderBytes,
                      tr("Server Max Header Bytes"), "serverMaxHeaderBytes",
-                     tr("Maximum request header size accepted by the server. Default: 8192."));
-    setXrayXHTTPHelp(ui->xray_xpadding_obfs_mode, nullptr, tr("Enable Padding Obfuscation"),
+                     tr("Largest request header the server accepts. Default: 8192."));
+    setXrayXHTTPHelp(ui->xray_xpadding_obfs_mode, nullptr, tr("Enable padding obfuscation"),
                      "xPaddingObfsMode",
-                     tr("Enable custom X-Padding placement, key, header, and method. When disabled, "
-                        "the client uses Referer?...x_padding and the server uses X-Padding."));
+                     tr("Customize the X-Padding method, placement, key and header."));
     setXrayXHTTPHelp(ui->label_xpadding_method, ui->xray_xpadding_method,
                      tr("Padding Method"), "xPaddingMethod",
-                     tr("Padding value format: repeat-x or tokenish. Default: repeat-x."));
+                     tr("Padding value format. Default: repeat-x."));
     setXrayXHTTPHelp(ui->label_xpadding_placement, ui->xray_xpadding_placement,
                      tr("Padding Placement"), "xPaddingPlacement",
-                     tr("Where X-Padding is sent: queryInHeader, cookie, header, or query. Default: queryInHeader."));
+                     tr("Where X-Padding is sent. Default: queryInHeader."));
     setXrayXHTTPHelp(ui->label_xpadding_key, ui->xray_xpadding_key,
                      tr("Padding Key"), "xPaddingKey",
-                     tr("Query or cookie key for X-Padding, and query key inside queryInHeader. Default: x_padding."));
+                     tr("Query or cookie key for X-Padding. Default: x_padding."));
     setXrayXHTTPHelp(ui->label_xpadding_header, ui->xray_xpadding_header,
                      tr("Padding Header"), "xPaddingHeader",
-                     tr("Header name used by header or queryInHeader padding. Default: X-Padding."));
+                     tr("Header name for X-Padding. Default: X-Padding."));
 
     setXrayXHTTPHelp(ui->xray_scMaxEachPostBytes_l, ui->xray_scMaxEachPostBytes,
                      tr("Max Post Bytes"), "scMaxEachPostBytes",
-                     tr("Packet-up upload POST size: client split size and server reject limit. Default: 1000000."));
+                     tr("Largest upload POST in packet-up mode. Default: 1000000."));
     setXrayXHTTPHelp(ui->xray_scMinPostsIntervalMs_l, ui->xray_scMinPostsIntervalMs,
                      tr("Min Post Interval"), "scMinPostsIntervalMs",
-                     tr("Packet-up client interval between upload POST requests per proxied connection, in milliseconds. Default: 30."));
+                     tr("Milliseconds between upload POSTs. Default: 30."));
     setXrayXHTTPHelp(ui->xray_scMaxBufferedPosts_l, ui->xray_scMaxBufferedPosts,
                      tr("Max Buffered Posts"), "scMaxBufferedPosts",
-                     tr("Packet-up server upload queue size per proxied connection. Default: 30."));
+                     tr("Upload POSTs the server queues per connection. Default: 30."));
     setXrayXHTTPHelp(ui->xray_uplink_http_method_l, ui->xray_uplink_http_method,
                      tr("Uplink HTTP Method"), "uplinkHTTPMethod",
-                     tr("HTTP method for upload requests. Default: POST. Xray uppercases it; GET is accepted only in packet-up mode."));
+                     tr("HTTP method for upload requests. Default: POST."));
     setXrayXHTTPHelp(ui->xray_uplink_data_placement_l, ui->xray_uplink_data_placement,
                      tr("Uplink Data Placement"), "uplinkDataPlacement",
-                     tr("Where upload data is placed. Default: auto. cookie/header are accepted only in packet-up mode; auto/body are always accepted."));
+                     tr("Where upload data is placed. Default: auto."));
     setXrayXHTTPHelp(ui->xray_uplink_data_key_l, ui->xray_uplink_data_key,
                      tr("Uplink Data Key"), "uplinkDataKey",
-                     tr("Key used when upload data is placed in a cookie or header. Defaults: X-Data for auto/header, x_data for cookie."));
+                     tr("Upload data key. Default: X-Data, or x_data for cookie."));
     setXrayXHTTPHelp(ui->xray_uplink_chunk_size_l, ui->xray_uplink_chunk_size,
                      tr("Uplink Chunk Size"), "uplinkChunkSize",
-                     tr("Packet-up header/cookie payload chunk size range. Defaults: cookie 2-3 KiB, header 3-4 KB, otherwise scMaxEachPostBytes. Values below 64 are clamped."));
+                     tr("Chunk size range for upload data in headers or cookies."));
 
-    setXrayXHTTPHelp(ui->xray_no_grpc, nullptr, tr("No GRPC Headers"), "noGRPCHeader",
-                     tr("Client-side stream-up/stream-one option: do not add Content-Type: application/grpc to upload requests."));
-    setXrayXHTTPHelp(ui->xray_no_sse, nullptr, tr("No SSE Headers"), "noSSEHeader",
-                     tr("Server-side downstream/stream-one option: do not send Content-Type: text/event-stream in responses."));
+    setXrayXHTTPHelp(ui->xray_no_grpc, nullptr, tr("No gRPC headers"), "noGRPCHeader",
+                     tr("Don't send Content-Type: application/grpc on uploads."));
+    setXrayXHTTPHelp(ui->xray_no_sse, nullptr, tr("No SSE headers"), "noSSEHeader",
+                     tr("Server doesn't send Content-Type: text/event-stream."));
     setXrayXHTTPHelp(ui->xray_scStreamUpServerSecs_l, ui->xray_scStreamUpServerSecs,
                      tr("Stream Up Server Seconds"), "scStreamUpServerSecs",
-                     tr("Stream-up server interval for periodic xPaddingBytes keepalive writes, in seconds. Default: 20-80; values <= 0 disable periodic padding."));
+                     tr("Stream-up keepalive interval, in seconds. Default: 20-80."));
     setXrayXHTTPHelp(ui->xray_session_placement_l, ui->xray_session_placement,
                      tr("Session Placement"), "sessionIDPlacement",
-                     tr("Where the XHTTP session id is sent: path, cookie, header, or query. Default: path."));
+                     tr("Where the session ID is sent. Default: path."));
     setXrayXHTTPHelp(ui->xray_session_key_l, ui->xray_session_key,
                      tr("Session Key"), "sessionIDKey",
-                     tr("Key used for the session id outside path placement. Defaults: x_session for cookie/query, X-Session for header."));
+                     tr("Session ID key. Default: x_session, or X-Session for header."));
     setXrayXHTTPHelp(ui->xray_session_id_table_l, ui->xray_session_id_table,
                      tr("Session ID Table"), "sessionIDTable",
-                     tr("Charset for generating the XHTTP session id: a predefined name "
-                        "(number, hex, HEX, base36, BASE36, alphabet, ALPHABET, Alphabet, Base62) "
-                        "or a literal ASCII string. Empty falls back to a random UUID."));
+                     tr("Session ID charset, e.g. hex or base36. Empty: random UUID."));
     setXrayXHTTPHelp(ui->xray_session_id_length_l, ui->xray_session_id_length,
                      tr("Session ID Length"), "sessionIDLength",
-                     tr("Length range of the generated session id, e.g. 8-16. "
-                        "Only used together with sessionIDTable; \"from\" must be greater than 0."));
+                     tr("Session ID length range, e.g. 8-16; needs sessionIDTable."));
     setXrayXHTTPHelp(ui->xray_seq_placement_l, ui->xray_seq_placement,
                      tr("Sequence Placement"), "seqPlacement",
-                     tr("Where the XHTTP packet sequence is sent: path, cookie, header, or query. Default: path."));
+                     tr("Where the packet sequence is sent. Default: path."));
     setXrayXHTTPHelp(ui->xray_seq_key_l, ui->xray_seq_key,
                      tr("Sequence Key"), "seqKey",
-                     tr("Key used for the sequence value outside path placement. Defaults: x_seq for cookie/query, X-Seq for header."));
+                     tr("Sequence key. Default: x_seq, or X-Seq for header."));
 
     setXrayXHTTPHelp(ui->xray_max_concurrency_l, ui->xray_max_concurrency,
                      tr("Max Concurrency"), "xmux.maxConcurrency",
-                     tr("Client-side H2/H3 xmux limit: maximum concurrent uses per underlying connection. Cannot be used together with maxConnections. Empty xmux defaults to 1-1."));
+                     tr("Most concurrent uses per connection. Empty xmux: 1-1."));
     setXrayXHTTPHelp(ui->xray_max_connections_l, ui->xray_max_connections,
                      tr("Max Connections"), "xmux.maxConnections",
-                     tr("Client-side H2/H3 xmux limit: maximum parallel underlying connections. Cannot be used together with maxConcurrency."));
+                     tr("Most parallel underlying H2/H3 connections."));
     setXrayXHTTPHelp(ui->xray_max_reuse_times_l, ui->xray_max_reuse_times,
                      tr("Max Reuse times"), "xmux.cMaxReuseTimes",
-                     tr("Client-side H2/H3 xmux limit: maximum times an underlying connection may be selected for reuse."));
+                     tr("Most times one connection is reused."));
     setXrayXHTTPHelp(ui->xray_hMaxRequestTimes_l, ui->xray_hMaxRequestTimes,
                      tr("Max Request Times"), "xmux.hMaxRequestTimes",
-                     tr("Client-side H2/H3 xmux limit: maximum upload/download requests per underlying connection. Empty xmux defaults to 600-900."));
+                     tr("Most requests per connection. Empty xmux: 600-900."));
     setXrayXHTTPHelp(ui->xray_hMaxReusableSecs_l, ui->xray_hMaxReusableSecs,
                      tr("Max Reusable Secs"), "xmux.hMaxReusableSecs",
-                     tr("Client-side H2/H3 xmux limit: maximum seconds an underlying connection stays reusable. Empty xmux defaults to 1800-3000."));
+                     tr("Seconds a connection is reusable. Empty xmux: 1800-3000."));
     setXrayXHTTPHelp(ui->xray_keep_alive_period_l, ui->xray_keep_alive_period,
                      tr("Keep Alive Period"), "xmux.hKeepAlivePeriod",
-                     tr("Client-side H2/H3 keepalive interval for underlying connections, in seconds. 0 uses Xray defaults; negative values disable keepalive where supported."));
+                     tr("Keepalive seconds. 0: Xray default; below 0: off."));
     setXrayXHTTPHelp(ui->xray_downloadsettings_l, ui->xray_downloadsettings_edit,
                      tr("Download Settings"), "downloadSettings",
-                     tr("Client-only downstream streamSettings, including address and port, for an independent download path. Not allowed in stream-one and removed when saving stream-one mode."));
+                     tr("Separate streamSettings, address and port for downloads."));
 }
 
 void DialogEditProfile::loadXrayXHTTP(const Configs::xrayXHTTP &xhttp) {

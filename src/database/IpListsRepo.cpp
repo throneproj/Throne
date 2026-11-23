@@ -543,6 +543,30 @@ namespace Configs {
         return {};
     }
 
+    std::optional<IpListEntry> IpListsRepo::GetBestEntry(int id) const {
+        try {
+            // Spans the lookup and the read, so the generation cannot change in between.
+            std::lock_guard lock(db.WriteMutex());
+            const qint64 generation = ipListsRepoLockedGeneration(db, id, "IpListsRepo::GetBestEntry");
+            if (generation < 0) return std::nullopt;
+            const auto query = db.queryThrow("SELECT entry_order, cidr, port, latency_ms, max_qname, upload_mtu, download_mtu "
+                                             "FROM ip_list_entries "
+                                             "WHERE ip_list_id = ? AND generation = ? "
+                                             "ORDER BY latency_ms <= 0, CASE WHEN latency_ms > 0 THEN latency_ms END, entry_order "
+                                             "LIMIT 1",
+                                             id, generation);
+            if (!query->executeStep()) return std::nullopt;
+            const auto cidrColumn = query->getColumn(1);
+            const char *cidr = cidrColumn.getText();
+            const int cidrBytes = cidrColumn.getBytes();
+            return IpListEntry{QString::fromUtf8(cidr, cidrBytes), query->getColumn(2).getInt(), query->getColumn(3).getInt(),
+                               query->getColumn(4).getInt(), query->getColumn(5).getInt(), query->getColumn(6).getInt()};
+        } catch (const std::exception &e) {
+            NotifyError("IpListsRepo::GetBestEntry", e);
+        }
+        return std::nullopt;
+    }
+
     int IpListsRepo::EntryCount(int id) const {
         try {
             std::lock_guard lock(db.WriteMutex());

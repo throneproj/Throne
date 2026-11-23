@@ -45,6 +45,12 @@ namespace Configs {
     // Turns on useSystemCA in every TLS block of an Xray outbound, the XHTTP download leg included, unless the block sets it itself.
     void UseXraySystemCA(QJsonObject& outbound);
 
+    // The inbound Throne feeds an Xray full config through, in place of the config's own listeners.
+    inline constexpr auto XrayFullConfigBridgeTag = "throne-bridge";
+
+    // Adds the bridge tag to every routing rule bound to a client listener inbound of config, so bridged traffic takes those rules too.
+    void RouteXrayListenerRulesViaBridge(QJsonObject& config);
+
     // Rules the Xray stream editor and the import check share; each returns an empty string when acceptable.
     namespace Checks {
         QString XrayNetwork(const QString& network);

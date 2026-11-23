@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"ThroneCore/internal/probe"
+	"ThroneCore/internal/xray"
 
 	box "github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/adapter"
@@ -64,7 +65,7 @@ type Instance struct {
 	platform PlatformInterface
 	handle   *boxHandle
 	cancel   context.CancelFunc
-	xray     *xrayStack
+	xray     *xray.Stack
 
 	pauseManager   pause.Manager
 	outbounds      adapter.OutboundManager
@@ -115,8 +116,17 @@ func NewInstance(platform PlatformInterface, options *StartOptions) (*Instance, 
 	}
 	installProtector(platform)
 
-	holder := new(boxContextHolder)
-	xrayStack, err := startMainXray(options, xrayPreparer(options.XrayOutboundDNSStrategy, holder.get))
+	// No Egress: BindToDevice needs CAP_NET_RAW, which an app never has; the protect controller covers the plain dial path.
+	xrayStack := new(xray.Stack)
+	err := xrayStack.Start(xray.StackOptions{
+		NeedXray:    options.NeedXray,
+		Config:      options.XrayConfig,
+		Lazy:        options.XrayLazyStart,
+		Idle:        time.Duration(options.XrayIdleSeconds) * time.Second,
+		FullConfigs: options.xrayFullConfigs,
+		FullIdle:    time.Duration(options.XrayFullIdleSeconds) * time.Second,
+		DNSStrategy: options.XrayOutboundDNSStrategy,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +134,7 @@ func NewInstance(platform PlatformInterface, options *StartOptions) (*Instance, 
 	ctx := newBoxContext(platform, newPlatformInterfaceWrapper(platform))
 	boxOptions, err := parseConfig(ctx, options.CoreConfig)
 	if err != nil {
-		xrayStack.close()
+		xrayStack.Close()
 		return nil, err
 	}
 	ctx, cancel := context.WithCancel(ctx)
@@ -138,12 +148,10 @@ func NewInstance(platform PlatformInterface, options *StartOptions) (*Instance, 
 	if err != nil {
 		cancel()
 		urlTestHistory.Close()
-		xrayStack.close()
+		xrayStack.Close()
 		return nil, E.Cause(err, "create service")
 	}
-	// Published before Start, not after: a remote rule-set fetched during Start may already dial
-	// through an Xray outbound, whose resolver needs this box's DNS router (see xraydns).
-	holder.publish(ctx)
+	xrayStack.PublishBoxContext(ctx)
 	var routeRules []option.Rule
 	if boxOptions.Route != nil {
 		routeRules = boxOptions.Route.Rules
@@ -190,7 +198,7 @@ func (i *Instance) defaultInterfaceUpdated(defaultInterface *control.Interface, 
 	i.interfaceName, i.interfaceIndex = defaultInterface.Name, defaultInterface.Index
 	i.interfaceAccess.Unlock()
 	if switched {
-		go i.xray.recycle()
+		go i.xray.Recycle(xrayRecycleCooldown)
 	}
 }
 
@@ -255,7 +263,7 @@ func (i *Instance) Close() error {
 	}
 	err := closeBoxWithTimeout(i.cancel, i.handle.Box, boxCloseTimeout, true)
 	i.urlTestHistory.Close()
-	i.xray.close()
+	i.xray.Close()
 	releaseProtector(i.platform)
 	return err
 }
@@ -294,11 +302,11 @@ func (i *Instance) UpdateWIFIState() {
 func (i *Instance) ResetNetwork() {
 	if i.running() {
 		i.handle.Network().ResetNetwork(i.handle.ctx)
-		i.xray.recycle()
+		i.xray.Recycle(xrayRecycleCooldown)
 	}
 }
 
-// boxbox.CloseWithTimeout's semantics: cancel and Close on a goroutine, warn once the timer fires,
+// boxmain.Box.CloseWithTimeout's semantics: cancel and Close on a goroutine, warn once the timer fires,
 // and only a blocking caller learns the close error.
 func closeBoxWithTimeout(cancel context.CancelFunc, closer io.Closer, timeout time.Duration, block bool) error {
 	start := time.Now()

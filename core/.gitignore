@@ -2,6 +2,7 @@
 *.pem
 *.json
 !internal/servicecheck/checks.json
+!internal/torbridges/bridges.json
 *.exe
 *.dat
 *.db

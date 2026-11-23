@@ -93,7 +93,8 @@ QVariant IpEntriesModel::data(const QModelIndex &index, int role) const {
 QVariant IpEntriesModel::headerData(int section, Qt::Orientation orientation, int role) const {
     if (orientation == Qt::Horizontal && role == Qt::ToolTipRole) {
         switch (section) {
-            case MaxQNameColumn: return tr("The longest query name the resolver relays: max_qname_len for DNSTT, lenLimit for XDNS.");
+            case MaxQNameColumn: return tr("Longest query name the resolver relays (DNSTT max_qname_len, XDNS "
+                                           "lenLimit).");
             case UploadMtuColumn: return tr("The largest payload per query the resolver relays.");
             case DownloadMtuColumn: return tr("The largest payload per answer the resolver relays.");
             default: break;

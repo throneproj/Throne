@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>890</width>
-    <height>310</height>
+    <width>520</width>
+    <height>440</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,86 +27,85 @@
        <string>Multiplex</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_mux">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_mux">
-         <item>
-          <widget class="QGroupBox" name="mux_singbox_box">
-           <property name="title">
-            <string notr="true">Sing-box</string>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_mux_singbox">
-            <item>
-             <widget class="MuxSettingsWidget" name="mux_singbox" native="true"/>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="mux_default_on">
-              <property name="text">
-               <string>Default On</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="verticalSpacer_mux_singbox">
-              <property name="orientation">
-               <enum>Qt::Orientation::Vertical</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>0</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <widget class="QGroupBox" name="mux_xray_box">
-           <property name="title">
-            <string notr="true">Xray</string>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_mux_xray">
-            <item>
-             <widget class="XrayMuxSettingsWidget" name="mux_xray" native="true"/>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="xray_default_mux">
-              <property name="text">
-               <string>Default Mux On</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="verticalSpacer_mux_xray">
-              <property name="orientation">
-               <enum>Qt::Orientation::Vertical</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>0</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_mux">
-         <property name="orientation">
-          <enum>Qt::Orientation::Vertical</enum>
+        <widget class="QScrollArea" name="mux_scroll">
+         <property name="frameShape">
+          <enum>QFrame::Shape::NoFrame</enum>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>0</height>
-          </size>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
          </property>
-        </spacer>
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <widget class="QWidget" name="mux_scroll_contents">
+          <layout class="QVBoxLayout" name="verticalLayout_mux_contents">
+           <item>
+            <widget class="QGroupBox" name="mux_singbox_box">
+             <property name="title">
+              <string notr="true">Sing-box</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_mux_singbox">
+              <item>
+               <widget class="MuxSettingsWidget" name="mux_singbox" native="true"/>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="mux_default_on">
+                <property name="text">
+                 <string>Default on</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="mux_xray_box">
+             <property name="title">
+              <string notr="true">Xray</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_mux_xray">
+              <item>
+               <widget class="XrayMuxSettingsWidget" name="mux_xray" native="true"/>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="xray_default_mux">
+                <property name="text">
+                 <string>Multiplex by default</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_mux">
+             <property name="orientation">
+              <enum>Qt::Orientation::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>0</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -115,206 +114,218 @@
        <string notr="true">TLS</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_tls">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item>
-        <widget class="QGroupBox" name="tls_fragment_box">
-         <property name="title">
-          <string>TLS Fragment</string>
+        <widget class="QScrollArea" name="tls_scroll">
+         <property name="frameShape">
+          <enum>QFrame::Shape::NoFrame</enum>
          </property>
-         <layout class="QGridLayout" name="gridLayout_tls_fragment">
-          <item row="0" column="0">
-           <widget class="QLabel" name="fragment_implementation_l">
-            <property name="text">
-             <string>Implementation</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QComboBox" name="fragment_implementation">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Which TLS fragmentation implementation profiles use: built-in (sing-box tls.fragment) or custom (Hiddify dialer-level ClientHello fragmentation).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QLabel" name="fragment_size_l">
-            <property name="text">
-             <string>Size</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="3">
-           <widget class="QLineEdit" name="fragment_size">
-            <property name="maximumSize">
-             <size>
-              <width>80</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Custom implementation only: bytes per ClientHello fragment, as a range min-max (e.g. 10-100).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="4">
-           <widget class="QLabel" name="fragment_sleep_l">
-            <property name="text">
-             <string>Sleep</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="5">
-           <widget class="QLineEdit" name="fragment_sleep">
-            <property name="maximumSize">
-             <size>
-              <width>80</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Custom implementation only: milliseconds to sleep between fragment bursts, as a range min-max (e.g. 2-5).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0" colspan="6">
-           <widget class="QCheckBox" name="fragment_default_on">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fragment profiles whose Fragment setting is left on &amp;quot;Keep Default&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Default On</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+         </property>
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <widget class="QWidget" name="tls_scroll_contents">
+          <layout class="QVBoxLayout" name="verticalLayout_tls_contents">
+           <item>
+            <widget class="QGroupBox" name="tls_fragment_box">
+             <property name="title">
+              <string>TLS Fragment</string>
+             </property>
+             <layout class="QFormLayout" name="formLayout_tls_fragment">
+              <item row="0" column="0">
+               <widget class="QLabel" name="fragment_implementation_l">
+                <property name="text">
+                 <string>Implementation</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="fragment_implementation">
+                <property name="toolTip">
+                 <string>TLS fragmentation used by profiles: built-in (sing-box) or custom (Hiddify).</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="fragment_size_l">
+                <property name="text">
+                 <string>Size</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLineEdit" name="fragment_size">
+                <property name="maximumSize">
+                 <size>
+                  <width>80</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>Custom only: bytes per ClientHello fragment, as min-max (e.g. 10-100).</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="fragment_sleep_l">
+                <property name="text">
+                 <string>Sleep</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QLineEdit" name="fragment_sleep">
+                <property name="maximumSize">
+                 <size>
+                  <width>80</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>Custom only: milliseconds between fragment bursts, as min-max (e.g. 2-5).</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0" colspan="2">
+               <widget class="QCheckBox" name="fragment_default_on">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fragment profiles whose Fragment setting is left on &amp;quot;Keep default&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Default on</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="tls_tricks_box">
+             <property name="title">
+              <string>TLS Tricks</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_tls_tricks">
+              <item>
+               <widget class="QCheckBox" name="tls_tricks_default_on">
+                <property name="toolTip">
+                 <string>Use mixed-case SNI where TLS Tricks is left on "Keep default".</string>
+                </property>
+                <property name="text">
+                 <string>Default on</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="utls_box">
+             <property name="title">
+              <string notr="true">uTLS</string>
+             </property>
+             <layout class="QFormLayout" name="formLayout_utls">
+              <item row="0" column="0">
+               <widget class="QLabel" name="utlsFingerprint_l">
+                <property name="text">
+                 <string>Default Fingerprint</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="utlsFingerprint">
+                <property name="editable">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="tls_spoof_box">
+             <property name="title">
+              <string>TLS Spoof</string>
+             </property>
+             <layout class="QFormLayout" name="formLayout_tls_spoof">
+              <item row="0" column="0">
+               <widget class="QLabel" name="tls_spoof_l">
+                <property name="toolTip">
+                 <string>SNI for a forged ClientHello sent before the real one; needs admin.</string>
+                </property>
+                <property name="text">
+                 <string>Spoof SNI</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLineEdit" name="tls_spoof">
+                <property name="maximumSize">
+                 <size>
+                  <width>160</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="placeholderText">
+                 <string>Allowed SNI to forge</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="tls_spoof_method_l">
+                <property name="text">
+                 <string>Method</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QComboBox" name="tls_spoof_method">
+                <property name="toolTip">
+                 <string>How the forged ClientHello is made invalid. Empty: core default.</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0" colspan="2">
+               <widget class="QCheckBox" name="tls_spoof_default_on">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Spoof profiles whose TLS Spoof setting is left on &amp;quot;Keep default&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Default on</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_tls">
+             <property name="orientation">
+              <enum>Qt::Orientation::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>0</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
         </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_tls">
-         <item>
-          <widget class="QGroupBox" name="tls_tricks_box">
-           <property name="title">
-            <string>TLS Tricks</string>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_tls_tricks">
-            <item>
-             <widget class="QCheckBox" name="tls_tricks_default_on">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable mixed-case SNI for profiles whose TLS Tricks setting is left on &amp;quot;Keep Default&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="text">
-               <string>Default On</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <widget class="QGroupBox" name="utls_box">
-           <property name="title">
-            <string notr="true">uTLS</string>
-           </property>
-           <layout class="QHBoxLayout" name="horizontalLayout_utls">
-            <item>
-             <widget class="QLabel" name="utlsFingerprint_l">
-              <property name="text">
-               <string>Default Fingerprint</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="utlsFingerprint">
-              <property name="editable">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="tls_spoof_box">
-         <property name="title">
-          <string>TLS Spoof</string>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_tls_spoof">
-          <item>
-           <widget class="QLabel" name="tls_spoof_l">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Inject a forged TLS ClientHello carrying this SNI before the real one, to pass SNI filtering that allows specific hostnames. Profiles that set their own Spoof SNI override this one.&lt;/p&gt;&lt;p&gt;Client only. Requires elevated privileges (root on macOS, CAP_NET_RAW and CAP_NET_ADMIN on Linux, Administrator on Windows for the WinDivert driver). Not supported on Windows ARM64. &amp;quot;wrong-timestamp&amp;quot; is not supported on macOS.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Spoof SNI</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="tls_spoof">
-            <property name="maximumSize">
-             <size>
-              <width>160</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="placeholderText">
-             <string>Allowed SNI to forge</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="tls_spoof_method_l">
-            <property name="text">
-             <string>Method</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="tls_spoof_method">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;How the forged ClientHello is made invalid for the server, so only the filter acts on it. Empty keeps the core's default.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="tls_spoof_default_on">
-            <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Spoof profiles whose TLS Spoof setting is left on &amp;quot;Keep Default&amp;quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-            <property name="text">
-             <string>Default On</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_tls_spoof">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>0</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_tls">
-         <property name="orientation">
-          <enum>Qt::Orientation::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>0</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>
@@ -323,167 +334,196 @@
        <string>HTTP/2 &amp;&amp; QUIC</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_h2_quic">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item>
-        <widget class="QLabel" name="h2_note">
-         <property name="text">
-          <string>HTTP/2 parameters also apply to Hysteria, Hysteria2 and TUIC. Empty keeps the core's default.</string>
+        <widget class="QScrollArea" name="h2_quic_scroll">
+         <property name="frameShape">
+          <enum>QFrame::Shape::NoFrame</enum>
          </property>
-         <property name="wordWrap">
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+         </property>
+         <property name="widgetResizable">
           <bool>true</bool>
          </property>
+         <widget class="QWidget" name="h2_quic_scroll_contents">
+          <layout class="QVBoxLayout" name="verticalLayout_h2_quic_contents">
+           <item>
+            <widget class="QLabel" name="h2_note">
+             <property name="text">
+              <string>HTTP/2 parameters also apply to Hysteria, Hysteria2 and TUIC. Empty keeps the core's default.</string>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="h2_box">
+             <property name="title">
+              <string>HTTP/2 Parameters</string>
+             </property>
+             <layout class="QFormLayout" name="formLayout_h2">
+              <item row="0" column="0">
+               <widget class="QLabel" name="h2_idle_timeout_l">
+                <property name="text">
+                 <string>Idle Timeout</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLineEdit" name="h2_idle_timeout">
+                <property name="maximumSize">
+                 <size>
+                  <width>120</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="placeholderText">
+                 <string notr="true">30s</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="h2_keep_alive_period_l">
+                <property name="text">
+                 <string>Keep Alive Period</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLineEdit" name="h2_keep_alive_period">
+                <property name="maximumSize">
+                 <size>
+                  <width>120</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="placeholderText">
+                 <string notr="true">15s</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="h2_stream_receive_window_l">
+                <property name="text">
+                 <string>Stream Receive Window</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QLineEdit" name="h2_stream_receive_window">
+                <property name="maximumSize">
+                 <size>
+                  <width>120</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="placeholderText">
+                 <string notr="true">8 MB</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="h2_connection_receive_window_l">
+                <property name="text">
+                 <string>Connection Receive Window</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QLineEdit" name="h2_connection_receive_window">
+                <property name="maximumSize">
+                 <size>
+                  <width>120</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="placeholderText">
+                 <string notr="true">64 MB</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="h2_max_concurrent_streams_l">
+                <property name="text">
+                 <string>Max Concurrent Streams</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="QLineEdit" name="h2_max_concurrent_streams">
+                <property name="maximumSize">
+                 <size>
+                  <width>120</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="quic_box">
+             <property name="title">
+              <string>QUIC Parameters</string>
+             </property>
+             <layout class="QFormLayout" name="formLayout_quic">
+              <item row="0" column="0">
+               <widget class="QLabel" name="quic_initial_packet_size_l">
+                <property name="text">
+                 <string>Initial Packet Size</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLineEdit" name="quic_initial_packet_size">
+                <property name="maximumSize">
+                 <size>
+                  <width>120</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0" colspan="2">
+               <widget class="QCheckBox" name="quic_disable_path_mtu_discovery">
+                <property name="text">
+                 <string>Disable Path MTU Discovery</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_h2_quic">
+             <property name="orientation">
+              <enum>Qt::Orientation::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>0</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
         </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="h2_box">
-         <property name="title">
-          <string>HTTP/2 Parameters</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_h2">
-          <item row="0" column="0">
-           <widget class="QLabel" name="h2_idle_timeout_l">
-            <property name="text">
-             <string>Idle Timeout</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="h2_idle_timeout">
-            <property name="maximumSize">
-             <size>
-              <width>120</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="placeholderText">
-             <string notr="true">30s</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QLabel" name="h2_keep_alive_period_l">
-            <property name="text">
-             <string>Keep Alive Period</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="3">
-           <widget class="QLineEdit" name="h2_keep_alive_period">
-            <property name="maximumSize">
-             <size>
-              <width>120</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="placeholderText">
-             <string notr="true">15s</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="h2_stream_receive_window_l">
-            <property name="text">
-             <string>Stream Receive Window</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLineEdit" name="h2_stream_receive_window">
-            <property name="maximumSize">
-             <size>
-              <width>120</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="placeholderText">
-             <string notr="true">8 MB</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QLabel" name="h2_connection_receive_window_l">
-            <property name="text">
-             <string>Connection Receive Window</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="3">
-           <widget class="QLineEdit" name="h2_connection_receive_window">
-            <property name="maximumSize">
-             <size>
-              <width>120</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="placeholderText">
-             <string notr="true">64 MB</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="h2_max_concurrent_streams_l">
-            <property name="text">
-             <string>Max Concurrent Streams</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="h2_max_concurrent_streams">
-            <property name="maximumSize">
-             <size>
-              <width>120</width>
-              <height>16777215</height>
-             </size>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="quic_box">
-         <property name="title">
-          <string>QUIC Parameters</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_quic">
-          <item row="0" column="0">
-           <widget class="QLabel" name="quic_initial_packet_size_l">
-            <property name="text">
-             <string>Initial Packet Size</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="quic_initial_packet_size">
-            <property name="maximumSize">
-             <size>
-              <width>120</width>
-              <height>16777215</height>
-             </size>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QCheckBox" name="quic_disable_path_mtu_discovery">
-            <property name="text">
-             <string>Disable Path MTU Discovery</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_h2_quic">
-         <property name="orientation">
-          <enum>Qt::Orientation::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>0</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>

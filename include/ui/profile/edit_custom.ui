@@ -38,7 +38,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Json Editor</string>
+        <string>JSON Editor</string>
        </property>
       </widget>
      </item>

@@ -11,6 +11,7 @@
 #include "include/database/GroupsRepo.h"
 #include "include/engine/EngineHost.h"
 #include "include/engine/connection/ConnectionManager.h"
+#include "include/engine/services/GroupService.h"
 #include "include/ui/stats/dialog_endpoint_details.h"
 #include "include/ui/widget/SubscriptionInfoCard.hpp"
 
@@ -101,12 +102,10 @@ void GroupItem::on_edit_clicked() {
     connect(dialog, &QDialog::finished, this, [=,this] {
         dialog->deleteLater();
         if (dialog->result() != QDialog::Accepted) return;
-        if (!Configs::dataManager->groupsRepo->Save(ent)) {
+        if (Engine::GroupService::Save(ent, dialog->RestartNeeded())) {
             MessageBoxWarning(software_name, tr("This group was deleted while you were editing it."));
             return;
         }
-        refresh_data();
-        MW_dialog_message(MwMessage::GroupsChanged, dialog->RestartNeeded() ? QStringList{MwArg::RestartProxy} : QStringList{});
         if (dialog->RefreshNeeded()) Subscription::updater()->RefreshGroup(ent->id, nullptr, true);
     });
     dialog->show();
@@ -122,7 +121,7 @@ void GroupItem::on_remove_clicked() {
     }
     // The question box and a blocking stop run nested loops, where a refresh may remove this row; the box hangs off the dialog.
     const QPointer<GroupItem> self(this);
-    if (QMessageBox::question(manage, tr("Confirmation"), tr("Remove %1?").arg(ent->name)) != QMessageBox::StandardButton::Yes || self == nullptr) {
+    if (QMessageBox::question(manage, tr("Confirmation"), tr("Remove %1?").arg(ent->name) + HopReferenceWarning(ent->Profiles(), id)) != QMessageBox::StandardButton::Yes || self == nullptr) {
         return;
     }
     if (const auto running = Engine::host()->connection()->runningSnapshot(); running != nullptr && running->gid == id) {

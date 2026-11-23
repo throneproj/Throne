@@ -48,7 +48,7 @@
              <item row="0" column="0">
               <widget class="QLabel" name="cookie_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Existing authentication session used to connect without first prompting for credentials. The accepted format depends on the flavor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Existing session cookie, to connect without logging in again.</string>
                </property>
                <property name="text">
                 <string>Cookie</string>
@@ -64,7 +64,7 @@
              <item row="1" column="0">
               <widget class="QLabel" name="reported_os_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Operating system identity reported to the server. anyconnect, gp and pulse accept linux, linux-64, win, mac-intel, android and apple-ios. The system platform is used by default.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>OS reported to the server, e.g. win or linux-64. Empty: this system.</string>
                </property>
                <property name="text">
                 <string>Reported OS</string>
@@ -96,7 +96,7 @@
              <item row="3" column="0">
               <widget class="QLabel" name="version_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Client version reported separately from the user agent. Currently used by AnyConnect XML authentication.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Client version reported for AnyConnect XML authentication.</string>
                </property>
                <property name="text">
                 <string>Version</string>
@@ -138,7 +138,7 @@
        <item>
         <widget class="QGroupBox" name="token_box">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the token the core generates itself. To use a Throne OTP profile, bind it on the main editor instead.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>Token the core generates itself; bind Throne OTP entries in the main editor.</string>
          </property>
          <property name="title">
           <string>Software Token</string>
@@ -150,7 +150,7 @@
              <item row="0" column="0">
               <widget class="QLabel" name="token_mode_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;totp and hotp are one-time password modes, stoken is an RSA SecurID software token and oidc is an access token used for HTTP Bearer authentication.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Token type: TOTP/HOTP code, RSA SecurID (stoken) or OIDC bearer token.</string>
                </property>
                <property name="text">
                 <string>Mode</string>
@@ -166,7 +166,7 @@
              <item row="1" column="0">
               <widget class="QLabel" name="token_secret_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A Base32 secret, a base32: prefixed secret or an otpauth:// URI for totp and hotp; the encoded CTF content for stoken; the access token for oidc. Conflicts with the secret path.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Base32 secret or otpauth:// URI; CTF data for stoken; access token for oidc.</string>
                </property>
                <property name="text">
                 <string>Secret</string>
@@ -182,7 +182,7 @@
              <item row="2" column="0">
               <widget class="QLabel" name="token_secret_path_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Path to the token secret or access token. Conflicts with the inline secret.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>File holding the token secret or access token.</string>
                </property>
                <property name="text">
                 <string>Secret Path</string>
@@ -246,7 +246,7 @@
              <item row="6" column="0">
               <widget class="QLabel" name="token_counter_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Initial counter for hotp mode. Empty uses the counter from an otpauth:// URI, otherwise zero.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Initial HOTP counter. Empty: from the otpauth:// URI, else 0.</string>
                </property>
                <property name="text">
                 <string>Counter</string>
@@ -277,7 +277,7 @@
              <item row="0" column="0">
               <widget class="QLabel" name="tls_peer_fingerprint_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Allowed server certificate fingerprints, one per line. Accepts a bare SHA-1 fingerprint or sha1:, sha256: and pin-sha256: values, abbreviated to at least four characters.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Allowed server certificate fingerprints, one per line.</string>
                </property>
                <property name="text">
                 <string>Peer Fingerprint</string>
@@ -297,7 +297,7 @@
              <item row="1" column="0" colspan="2">
               <widget class="QCheckBox" name="tls_system_trust_disabled">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use a CA certificate or a peer fingerprint to establish trust when this is enabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Trust only your CA certificate or peer fingerprints, not the system's.</string>
                </property>
                <property name="text">
                 <string>Disable the system CA certificate pool</string>
@@ -355,7 +355,7 @@
              <item row="5" column="0">
               <widget class="QLabel" name="tls_mca_certificate_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AnyConnect multiple-certificate authentication chain in PEM format. Conflicts with the MCA certificate path.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>AnyConnect multiple-certificate authentication chain, in PEM.</string>
                </property>
                <property name="text">
                 <string>MCA Certificate</string>
@@ -391,7 +391,7 @@
              <item row="7" column="0">
               <widget class="QLabel" name="tls_mca_key_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;AnyConnect multiple-certificate authentication private key in PEM format. Conflicts with the MCA key path.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>AnyConnect multiple-certificate authentication key, in PEM.</string>
                </property>
                <property name="text">
                 <string>MCA Key</string>
@@ -524,7 +524,7 @@
              <item row="0" column="0">
               <widget class="QLabel" name="csd_wrapper_path_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;External AnyConnect CSD / host scan wrapper executable. Built-in handling is used when empty.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>AnyConnect CSD/host scan wrapper program. Empty: built-in handling.</string>
                </property>
                <property name="text">
                 <string>CSD Wrapper Path</string>
@@ -540,7 +540,7 @@
              <item row="1" column="0">
               <widget class="QLabel" name="hip_wrapper_path_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;External GlobalProtect HIP report wrapper executable. Built-in reporting is used when empty.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>GlobalProtect HIP report wrapper program. Empty: built-in reporting.</string>
                </property>
                <property name="text">
                 <string>HIP Wrapper Path</string>
@@ -556,7 +556,7 @@
              <item row="2" column="0">
               <widget class="QLabel" name="fortinet_hostcheck_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fortinet hostcheck result string, conventionally security-status,os-version such as 0100,10.0.19042. An empty value disables hostcheck.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Fortinet hostcheck result, e.g. 0100,10.0.19042. Empty: no hostcheck.</string>
                </property>
                <property name="text">
                 <string>Fortinet Hostcheck</string>
@@ -572,7 +572,7 @@
              <item row="3" column="0">
               <widget class="QLabel" name="fortinet_check_virtual_desktop_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fortinet virtual desktop check result, conventionally colon separated MAC addresses joined by a vertical bar.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Fortinet virtual desktop check result: MAC addresses joined by |.</string>
                </property>
                <property name="text">
                 <string>Fortinet Virtual Desktop</string>
@@ -603,7 +603,7 @@
              <item row="0" column="0">
               <widget class="QLabel" name="tncc_wrapper_path_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;External Network Connect TNCC wrapper executable. Conflicts with every other field in this group.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>External Network Connect TNCC wrapper program.</string>
                </property>
                <property name="text">
                 <string>Wrapper Path</string>
@@ -651,7 +651,7 @@
              <item row="3" column="0" colspan="2">
               <widget class="QCheckBox" name="tncc_machine_identification_enabled">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reports the platform, hostname and observed MAC addresses. Required before machine certificates are used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Report platform, hostname and MAC addresses; needed for machine certificates.</string>
                </property>
                <property name="text">
                 <string>Enable machine identification</string>
@@ -664,7 +664,7 @@
           <item>
            <widget class="QTableWidget" name="tncc_certificates_table">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Machine certificates used by the built-in TNCC handler to answer certificate requests. Requires machine identification.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Machine certificates the built-in TNCC handler presents.</string>
             </property>
             <property name="selectionBehavior">
              <enum>QAbstractItemView::SelectRows</enum>
@@ -703,7 +703,7 @@
             <item>
              <widget class="QPushButton" name="tncc_certificates_table_edit">
               <property name="text">
-               <string>Edit Certificate</string>
+               <string>Edit certificate</string>
               </property>
              </widget>
             </item>
@@ -734,7 +734,7 @@
           <item>
            <widget class="QTableWidget" name="form_entries_table">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;An entry matches by submission key when set, or by the combination of form ID and name. Later matching entries take precedence. Ask interactively conflicts with a value.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Login form answers, matched by submission key or by form ID and name.</string>
             </property>
             <property name="selectionBehavior">
              <enum>QAbstractItemView::SelectRows</enum>
@@ -825,7 +825,7 @@
              <item row="1" column="0">
               <widget class="QLabel" name="dtls_local_port_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Local UDP port used by the secondary data channel. An ephemeral port is selected by default.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Local UDP port for the DTLS channel. Default: random.</string>
                </property>
                <property name="text">
                 <string>DTLS Local Port</string>
@@ -841,7 +841,7 @@
              <item row="2" column="0" colspan="2">
               <widget class="QCheckBox" name="compression_disabled">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Compression can weaken traffic confidentiality. Conflicts with the compression mode all.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Don't negotiate compression, which can weaken confidentiality.</string>
                </property>
                <property name="text">
                 <string>Disable compression negotiation</string>
@@ -851,7 +851,7 @@
              <item row="3" column="0">
               <widget class="QLabel" name="compression_mode_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;stateless is used by default. all additionally advertises stateful deflate for CSTP and carries extra confidentiality risk.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Compression to offer; all adds stateful deflate. Default: stateless.</string>
                </property>
                <property name="text">
                 <string>Compression Mode</string>
@@ -894,7 +894,7 @@
              <item row="7" column="0" colspan="2">
               <widget class="QCheckBox" name="external_auth_disabled">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;External authentication is not advertised and any unexpected SSO or SAML request is rejected.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Don't offer browser (SSO/SAML) login; reject such requests.</string>
                </property>
                <property name="text">
                 <string>Disable external browser authentication</string>
@@ -904,7 +904,7 @@
              <item row="8" column="0" colspan="2">
               <widget class="QCheckBox" name="password_authentication_disabled">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Matches OpenConnect --no-passwd. Does not affect other flavors or a session supplied by a cookie.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Abort instead of answering a password form (OpenConnect --no-passwd).</string>
                </property>
                <property name="text">
                 <string>Abort on a non-success authentication form</string>
@@ -924,7 +924,7 @@
              <item row="10" column="0" colspan="2">
               <widget class="QCheckBox" name="pfs">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;For TLS 1.2 and earlier. Disabled by default for servers that require RSA key exchange.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Applies to TLS 1.2 and earlier. Default: off.</string>
                </property>
                <property name="text">
                 <string>Require forward-secret cipher suites</string>
@@ -934,7 +934,7 @@
              <item row="11" column="0" colspan="2">
               <widget class="QCheckBox" name="allow_insecure_crypto">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enables weak cipher suites and TLS 1.0 compatibility. It does not disable server certificate verification.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Allow weak cipher suites and TLS 1.0.</string>
                </property>
                <property name="text">
                 <string>Allow legacy TLS and DTLS crypto</string>
@@ -944,7 +944,7 @@
              <item row="12" column="0">
               <widget class="QLabel" name="base_mtu_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Base path MTU used to calculate the tunnel MTU after outer IP, transport and protocol overhead. Values below 1280 are treated as 1280.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Path MTU the tunnel MTU is derived from; at least 1280.</string>
                </property>
                <property name="text">
                 <string>Base MTU</string>
@@ -964,7 +964,7 @@
              <item row="13" column="0">
               <widget class="QLabel" name="dpd_interval_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overrides the dead peer detection interval. Positive values below 2s are treated as 2s.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Dead peer detection interval, at least 2s.</string>
                </property>
                <property name="text">
                 <string>DPD Interval</string>
@@ -1000,7 +1000,7 @@
              <item row="15" column="0">
               <widget class="QLabel" name="trojan_interval_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Overrides the interval between GlobalProtect HIP reports or Network Connect TNCC checks.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Interval between GlobalProtect HIP reports or TNCC checks.</string>
                </property>
                <property name="text">
                 <string>Trojan Interval</string>
@@ -1016,7 +1016,7 @@
              <item row="16" column="0">
               <widget class="QLabel" name="queue_length_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Inbound and outbound packet queue length between the VPN transport and the tunnel interface.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Packet queue length between the VPN transport and the tunnel.</string>
                </property>
                <property name="text">
                 <string>Queue Length</string>

@@ -1,8 +1,11 @@
 #include "include/configs/sub/SubscriptionFilter.hpp"
 
+#include "include/configs/common/Protocols.h"
 #include "include/database/entities/Profile.h"
 
 #include <QCoreApplication>
+
+#include <algorithm>
 
 namespace Subscription {
     namespace {
@@ -35,31 +38,19 @@ namespace Subscription {
     }
 
     const QList<FilterProtocol> &FilterProtocols() {
-        static const QList<FilterProtocol> protocols = {
-            {QStringLiteral("shadowsocks"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "Shadowsocks"), {QStringLiteral("shadowsocks")}},
-            {QStringLiteral("vmess"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "VMess"), {QStringLiteral("vmess")}},
-            {QStringLiteral("vless"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "VLESS"), {QStringLiteral("vless"), QStringLiteral("xrayvless")}},
-            {QStringLiteral("trojan"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "Trojan"), {QStringLiteral("trojan")}},
-            {QStringLiteral("hysteria"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "Hysteria / Hysteria2"), {QStringLiteral("hysteria")}},
-            {QStringLiteral("tuic"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "TUIC"), {QStringLiteral("tuic")}},
-            {QStringLiteral("anytls"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "AnyTLS"), {QStringLiteral("anytls")}},
-            {QStringLiteral("shadowtls"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "ShadowTLS"), {QStringLiteral("shadowtls")}},
-            {QStringLiteral("wireguard"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "WireGuard / AmneziaWG"), {QStringLiteral("wireguard")}},
-            {QStringLiteral("socks"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "SOCKS"), {QStringLiteral("socks")}},
-            {QStringLiteral("http"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "HTTP"), {QStringLiteral("http")}},
-            {QStringLiteral("ssh"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "SSH"), {QStringLiteral("ssh")}},
-            {QStringLiteral("snell"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "Snell"), {QStringLiteral("snell")}},
-            {QStringLiteral("juicity"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "Juicity"), {QStringLiteral("juicity")}},
-            {QStringLiteral("mieru"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "Mieru"), {QStringLiteral("mieru")}},
-            {QStringLiteral("naive"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "NaiveProxy"), {QStringLiteral("naive")}},
-            {QStringLiteral("trusttunnel"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "TrustTunnel"), {QStringLiteral("trusttunnel")}},
-            {QStringLiteral("masque"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "MASQUE"), {QStringLiteral("masque")}},
-            {QStringLiteral("dnstt"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "DNSTT"), {QStringLiteral("dnstt")}},
-            {QStringLiteral("masterdns"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "MasterDNS"), {QStringLiteral("masterdns")}},
-            {QStringLiteral("openvpn"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "OpenVPN"), {QStringLiteral("openvpn")}},
-            {QStringLiteral("openconnect"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "OpenConnect"), {QStringLiteral("openconnect")}},
-            {QStringLiteral("custom"), QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "Custom (JSON)"), {QStringLiteral("custom")}},
-        };
+        static const QList<FilterProtocol> protocols = [] {
+            const auto rows = Configs::Protocols::All();
+            QList<FilterProtocol> list;
+            for (int rank = 1;; ++rank) {
+                const auto row = std::ranges::find(rows, rank, &Configs::Protocols::ProtocolInfo::filterRank);
+                if (row == rows.end()) return list;
+                QStringList types{QString(row->Id())};
+                for (const auto &p : rows) {
+                    if (p.filterAs == row->id) types << QString(p.Id());
+                }
+                list.append({QString(row->Id()), row->filterLabel, types});
+            }
+        }();
         return protocols;
     }
 

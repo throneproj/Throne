@@ -17,7 +17,9 @@
 #include "include/database/RoutesRepo.h"
 #include "include/engine/EditLocks.h"
 #include "include/engine/EngineEvents.h"
+#include "include/engine/EngineHost.h"
 #include "include/engine/ThreadCheck.h"
+#include "include/global/RunningProfiles.hpp"
 #include "include/global/Utils.hpp"
 
 namespace Engine::RouteService {
@@ -172,6 +174,7 @@ namespace Engine::RouteService {
                 {"type", Configs::ruleTypeToToken(rule.type)},
                 {"name", rule.name},
                 {"disabled", rule.disabled},
+                {"remote", rule.remote},
                 {"attributes", attributes},
             };
         }
@@ -228,9 +231,11 @@ namespace Engine::RouteService {
             std::optional<QString> token;
             std::optional<QString> name;
             std::optional<bool> disabled;
+            std::optional<bool> remote;
             if (auto error = routeServiceReadString(object, QStringLiteral("type"), &token)) return bad(error->message);
             if (auto error = routeServiceReadString(object, QStringLiteral("name"), &name)) return bad(error->message);
             if (auto error = routeServiceReadBool(object, QStringLiteral("disabled"), &disabled)) return bad(error->message);
+            if (auto error = routeServiceReadBool(object, QStringLiteral("remote"), &remote)) return bad(error->message);
             const int type = Configs::tokenToRuleType(token.value_or(QStringLiteral("custom")));
             if (Configs::ruleTypeToToken(type) != token.value_or(QStringLiteral("custom"))) {
                 return bad(QStringLiteral("unknown type \"%1\"").arg(*token));
@@ -264,6 +269,8 @@ namespace Engine::RouteService {
                 }
             }
             if (disabled && type != Configs::endpointPreferredBy) rule->disabled = *disabled;
+            // Echoed back from a read, it keeps the rule replaced by the next update.
+            if (remote && type != Configs::endpointPreferredBy) rule->remote = *remote;
             *out = rule;
             return std::nullopt;
         }
@@ -620,12 +627,9 @@ namespace Engine::RouteService {
         if (auto error = routeServiceApply(*route, body, &problems, &notes)) return error;
         routeServiceValidate(*route, &problems, &notes);
         if (!problems.isEmpty()) return routeServiceInvalid(problems);
-        if (!Configs::dataManager->routesRepo->AddRouteProfile(route)) {
-            return ServiceError{500, QStringLiteral("internal"), QStringLiteral("Could not save the routing profile")};
-        }
+        if (auto refusal = Add(route)) return refusal;
         if (routeId != nullptr) *routeId = route->id;
         if (warnings != nullptr) *warnings = notes;
-        EngineEvents::RoutesChanged();
         return std::nullopt;
     }
 
@@ -641,11 +645,8 @@ namespace Engine::RouteService {
         if (auto error = routeServiceApply(*route, body, &problems, &notes)) return error;
         routeServiceValidate(*route, &problems, &notes);
         if (!problems.isEmpty()) return routeServiceInvalid(problems);
-        if (!Configs::dataManager->routesRepo->Save(route)) {
-            return ServiceError{500, QStringLiteral("internal"), QStringLiteral("Could not save the routing profile")};
-        }
+        if (auto refusal = Save(route)) return refusal;
         if (warnings != nullptr) *warnings = notes;
-        EngineEvents::RoutesChanged();
         return std::nullopt;
     }
 
@@ -656,7 +657,49 @@ namespace Engine::RouteService {
             return ServiceError{409, QStringLiteral("last_route"),
                                 QStringLiteral("Throne needs at least one routing profile; add another one before deleting this one")};
         }
+        // Read before the delete moves current_route_id elsewhere.
+        const bool active = routeId == Configs::ActiveRouteId();
         Configs::dataManager->routesRepo->DeleteRouteProfile(routeId);
+        if (auto *engine = host(); engine != nullptr && active) engine->noteRestartNeeded(RestartReason::Routing);
+        EngineEvents::RoutesChanged();
+        return std::nullopt;
+    }
+
+    std::optional<ServiceError> Add(const std::shared_ptr<Configs::RouteProfile> &route) {
+        ENGINE_CHECK_MAIN_THREAD();
+        auto added = route;
+        if (!Configs::dataManager->routesRepo->AddRouteProfile(added)) {
+            return ServiceError{500, QStringLiteral("internal"), QStringLiteral("Could not save the routing profile")};
+        }
+        EngineEvents::RoutesChanged();
+        return std::nullopt;
+    }
+
+    std::optional<ServiceError> Save(const std::shared_ptr<Configs::RouteProfile> &route) {
+        ENGINE_CHECK_MAIN_THREAD();
+        // RoutesRepo::Save upserts, so it would bring back a route deleted meanwhile.
+        if (route == nullptr || !Configs::dataManager->routesRepo->GetAllRouteProfileIds().contains(route->id)) {
+            return ServiceError{404, QStringLiteral("not_found"), QStringLiteral("The routing profile was deleted meanwhile")};
+        }
+        if (!Configs::dataManager->routesRepo->Save(route)) {
+            return ServiceError{500, QStringLiteral("internal"), QStringLiteral("Could not save the routing profile")};
+        }
+        if (auto *engine = host(); engine != nullptr && route->id == Configs::ActiveRouteId()) engine->noteRestartNeeded(RestartReason::Routing);
+        EngineEvents::RoutesChanged();
+        return std::nullopt;
+    }
+
+    std::optional<ServiceError> Commit(const QList<std::shared_ptr<Configs::RouteProfile>> &changed, const QList<int> &removedIds) {
+        ENGINE_CHECK_MAIN_THREAD();
+        if (changed.isEmpty() && removedIds.isEmpty()) return std::nullopt;
+        // Read before a delete moves current_route_id elsewhere.
+        const int activeId = Configs::ActiveRouteId();
+        const bool active = removedIds.contains(activeId) ||
+                            std::any_of(changed.cbegin(), changed.cend(), [activeId](const std::shared_ptr<RouteProfile> &route) {
+                                return route->id == activeId;
+                            });
+        Configs::dataManager->routesRepo->UpdateRouteProfiles(changed, removedIds);
+        if (auto *engine = host(); engine != nullptr && active) engine->noteRestartNeeded(RestartReason::Routing);
         EngineEvents::RoutesChanged();
         return std::nullopt;
     }

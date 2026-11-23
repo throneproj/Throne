@@ -101,7 +101,7 @@
    <item row="6" column="0">
     <widget class="QLabel" name="mode_l">
      <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Traffic shaping used by Snell v6. &quot;unsafe-raw&quot; disables padding and is faster but easier to fingerprint.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>Snell v6 traffic shaping; unsafe-raw is faster but easier to fingerprint.</string>
      </property>
      <property name="text">
       <string>Mode</string>

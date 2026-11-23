@@ -6,28 +6,33 @@
 namespace {
     const QString portPrefix = QStringLiteral("port=");
 
-    // Two letters could be a country code, so they only pick a service by its exact id or category ("ai").
-    bool serviceMatches(const ProfilesTableModel::ServiceFilterKey &service, const QString &term) {
-        if (service.names.contains(term)) return true;
-        if (term.size() < 3) return false;
-        for (const auto &word : service.words) {
-            if (word.startsWith(term)) return true;
-        }
-        return false;
+    using TestTerm = ProfilesFilterProxyModel::TestTerm;
+
+    // An unknown region never matches, so a failed region read doesn't pass as "not RU".
+    bool regionMatches(const ProfilesTableModel::ServiceFilterKey &service, const TestTerm &term) {
+        if (term.region.isEmpty()) return true;
+        return !service.region.isEmpty() && (service.region == term.region) != term.regionNegated;
     }
 
     // Every service the term picks must work; "!term" needs one of them refused. Unpicked terms fall back to the country.
-    bool testTermMatches(const ProfilesTableModel::FilterKey &key, const QString &term, bool refused) {
+    bool testTermMatches(const ProfilesTableModel &model, const ProfilesTableModel::FilterKey &key, const TestTerm &term) {
         int picked = 0, working = 0, refusing = 0;
         for (const auto &service : key.services) {
-            if (!serviceMatches(service, term)) continue;
+            if (!ProfilesTableModel::termPicksService(service.names, service.words, term.text)) continue;
             ++picked;
+            if (!regionMatches(service, term)) continue;
             if (service.state > 0) ++working;
             else if (service.state < 0) ++refusing;
         }
-        if (refused) return refusing > 0;
+        const bool countryTerm = term.region.isEmpty();
+        if (term.refused) {
+            if (refusing > 0) return true;
+            // Checked table-wide: "!ai" on a profile without results must not turn into "not Anguilla".
+            return countryTerm && term.text.size() == 2 && !key.country.isEmpty() &&
+                   !key.country.contains(term.text, Qt::CaseInsensitive) && !model.termPicksAnyService(term.text);
+        }
         if (picked > 0 && working == picked) return true;
-        return key.country.contains(term, Qt::CaseInsensitive);
+        return countryTerm && key.country.contains(term.text, Qt::CaseInsensitive);
     }
 }
 
@@ -54,9 +59,17 @@ void ProfilesFilterProxyModel::setFilters(const QString &type, const QString &ad
     m_testTerms.clear();
     static const QRegularExpression separators(QStringLiteral("[\\s,]+"));
     for (auto word : test.toLower().split(separators, Qt::SkipEmptyParts)) {
-        const bool refused = word.startsWith(u'!');
-        if (refused) word.remove(0, 1);
-        if (!word.isEmpty()) m_testTerms.append({word, refused});
+        TestTerm term;
+        term.refused = word.startsWith(u'!');
+        if (term.refused) word.remove(0, 1);
+        if (const auto plus = word.indexOf(u'+'); plus >= 0) {
+            term.region = word.mid(plus + 1);
+            word.truncate(plus);
+            term.regionNegated = term.region.startsWith(u'!');
+            if (term.regionNegated) term.region.remove(0, 1);
+        }
+        term.text = word;
+        if (!term.text.isEmpty()) m_testTerms.append(term);
     }
     invalidateRowsFilter();
 }
@@ -102,7 +115,7 @@ bool ProfilesFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex
     if (!m_name.isEmpty() && !key->name.contains(m_name, Qt::CaseInsensitive)) return false;
     if (!m_type.isEmpty() && !key->type.contains(m_type, Qt::CaseInsensitive)) return false;
     for (const auto &term : m_testTerms) {
-        if (!testTermMatches(*key, term.text, term.refused)) return false;
+        if (!testTermMatches(*model, *key, term)) return false;
     }
     return true;
 }

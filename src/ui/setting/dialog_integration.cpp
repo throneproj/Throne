@@ -3,6 +3,7 @@
 #include <include/ui/utils/GuiUtils.hpp>
 
 #include "include/api/remote/Server.hpp"
+#include "include/engine/services/SettingsService.h"
 #include "include/global/LocalNetwork.hpp"
 #include "include/global/Validation.hpp"
 #include "include/ui/mainwindow.h"
@@ -49,16 +50,17 @@ namespace {
 }
 
 DialogIntegration::DialogIntegration(QWidget *parent, const QList<QAction*>& actions) : QDialog(parent), ui(new Ui::DialogIntegration) {
+    snapshot_ = *Configs::dataManager->settingsRepo;
     ui->setupUi(this);
     form = new Validation::Form(this);
     form->attachStatus(ui->buttonBox);
-    ui->show_mainwindow->setKeySequence(Configs::dataManager->settingsRepo->hotkey_mainwindow);
-    ui->show_groups->setKeySequence(Configs::dataManager->settingsRepo->hotkey_group);
-    ui->show_routes->setKeySequence(Configs::dataManager->settingsRepo->hotkey_route);
-    ui->system_proxy->setKeySequence(Configs::dataManager->settingsRepo->hotkey_system_proxy_menu);
-    ui->toggle_proxy->setKeySequence(Configs::dataManager->settingsRepo->hotkey_toggle_system_proxy);
-    ui->toggle_connection->setKeySequence(Configs::dataManager->settingsRepo->hotkey_toggle_connection);
-    ui->toggle_tun->setKeySequence(Configs::dataManager->settingsRepo->hotkey_toggle_tun);
+    ui->show_mainwindow->setKeySequence(snapshot_.hotkey_mainwindow);
+    ui->show_groups->setKeySequence(snapshot_.hotkey_group);
+    ui->show_routes->setKeySequence(snapshot_.hotkey_route);
+    ui->system_proxy->setKeySequence(snapshot_.hotkey_system_proxy_menu);
+    ui->toggle_proxy->setKeySequence(snapshot_.hotkey_toggle_system_proxy);
+    ui->toggle_connection->setKeySequence(snapshot_.hotkey_toggle_connection);
+    ui->toggle_tun->setKeySequence(snapshot_.hotkey_toggle_tun);
 
     generateShortcutItems(actions);
     bindHotkeyValidation();
@@ -98,8 +100,11 @@ void DialogIntegration::generateShortcutItems(const QList<QAction*>& actions)
         auto kseq = new QtExtKeySequenceEdit(this);
         if (!action->shortcut().isEmpty()) kseq->setKeySequence(action->shortcut());
         seqEdit2ID[kseq] = action->data().toString();
-        layout->addRow(action->text(), kseq);
-        hotkeyEdits.append({kseq, action->text(), false});
+        // Menus share short texts such as "URL test"; the label names the menu path.
+        QString label = action->property("shortcutLabel").toString();
+        if (label.isEmpty()) label = action->text();
+        layout->addRow(label, kseq);
+        hotkeyEdits.append({kseq, label, false});
     }
 }
 
@@ -139,14 +144,14 @@ void DialogIntegration::bindHotkeyValidation()
 
 void DialogIntegration::setupApiTab()
 {
-    const auto &settings = Configs::dataManager->settingsRepo;
-    const auto key = RemoteApi::KeyFromText(settings->remote_api_key);
+    const auto &settings = snapshot_;
+    const auto key = RemoteApi::KeyFromText(settings.remote_api_key);
     savedApiKey = key.isEmpty() ? QString() : RemoteApi::KeyToText(key);
-    ui->api_enable->setChecked(settings->remote_api_enable);
-    ui->api_listen->setCurrentIndex(settings->remote_api_lan ? 1 : 0);
-    ui->api_port->setValue(IsValidPort(settings->remote_api_port) ? settings->remote_api_port : RemoteApi::kDefaultPort);
-    ui->api_allow->setText(settings->remote_api_allow);
-    ui->api_admin_lan->setChecked(settings->remote_api_admin_lan);
+    ui->api_enable->setChecked(settings.remote_api_enable);
+    ui->api_listen->setCurrentIndex(settings.remote_api_lan ? 1 : 0);
+    ui->api_port->setValue(IsValidPort(settings.remote_api_port) ? settings.remote_api_port : RemoteApi::kDefaultPort);
+    ui->api_allow->setText(settings.remote_api_allow);
+    ui->api_admin_lan->setChecked(settings.remote_api_admin_lan);
     ui->api_key->setText(savedApiKey);
     if (ui->api_enable->isChecked() && savedApiKey.isEmpty()) ui->api_key->setText(RemoteApi::KeyToText(RemoteApi::GenerateKey()));
     ui->api_help->setText(tr("Scripts connect with thronectl or the Throne API library.").toHtmlEscaped()
@@ -187,7 +192,7 @@ void DialogIntegration::updateApiControls()
 void DialogIntegration::regenerateApiKey()
 {
     if (!savedApiKey.isEmpty() && ui->api_key->text() == savedApiKey) {
-        QMessageBox box(QMessageBox::Question, tr("Regenerate Key"), tr("Generate a new key?"), QMessageBox::Yes | QMessageBox::Cancel, this);
+        QMessageBox box(QMessageBox::Question, tr("Regenerate key"), tr("Generate a new key?"), QMessageBox::Yes | QMessageBox::Cancel, this);
         box.setInformativeText(tr("Scripts using the current key will stop working."));
         if (box.exec() != QMessageBox::Yes) return;
     }
@@ -205,16 +210,16 @@ void DialogIntegration::copyForScripts()
 
 void DialogIntegration::setupCoreApisTab()
 {
-    const auto &settings = Configs::dataManager->settingsRepo;
-    ui->core_box_clash_listen_addr->setText(settings->core_box_clash_listen_addr);
+    const auto &settings = snapshot_;
+    ui->core_box_clash_listen_addr->setText(settings.core_box_clash_listen_addr);
     ui->core_box_clash_listen_addr->setPlaceholderText(tr("127.0.0.1 (default)"));
     ui->core_box_clash_api->setValidator(new QIntValidator(1, 65535, ui->core_box_clash_api));
-    ui->core_box_clash_api->setText(settings->core_box_clash_api > 0 ? Int2String(settings->core_box_clash_api) : QString());
-    ui->core_box_clash_api_secret->setText(settings->core_box_clash_api_secret);
+    ui->core_box_clash_api->setText(settings.core_box_clash_api > 0 ? Int2String(settings.core_box_clash_api) : QString());
+    ui->core_box_clash_api_secret->setText(settings.core_box_clash_api_secret);
 
     ui->core_box_api_port->setValidator(new QIntValidator(1, 65535, ui->core_box_api_port));
-    ui->core_box_api_port->setText(settings->core_box_api_port > 0 ? Int2String(settings->core_box_api_port) : QString());
-    ui->core_box_api_secret->setText(settings->core_box_api_secret);
+    ui->core_box_api_port->setText(settings.core_box_api_port > 0 ? Int2String(settings.core_box_api_port) : QString());
+    ui->core_box_api_secret->setText(settings.core_box_api_secret);
     connect(ui->core_box_api_regen, &QPushButton::clicked, this, [this] {
         ui->core_box_api_secret->setText(QUuid::createUuid().toString(QUuid::WithoutBraces).remove('-'));
     });
@@ -275,59 +280,43 @@ void DialogIntegration::accept()
 {
     if (!form->validateAll()) return;
 
-    const auto &settings = Configs::dataManager->settingsRepo;
-    settings->hotkey_mainwindow = ui->show_mainwindow->keySequence().toString();
-    settings->hotkey_group = ui->show_groups->keySequence().toString();
-    settings->hotkey_route = ui->show_routes->keySequence().toString();
-    settings->hotkey_system_proxy_menu = ui->system_proxy->keySequence().toString();
-    settings->hotkey_toggle_system_proxy = ui->toggle_proxy->keySequence().toString();
-    settings->hotkey_toggle_connection = ui->toggle_connection->keySequence().toString();
-    settings->hotkey_toggle_tun = ui->toggle_tun->keySequence().toString();
+    Configs::SettingsValues proposed = snapshot_;
+    proposed.hotkey_mainwindow = ui->show_mainwindow->keySequence().toString();
+    proposed.hotkey_group = ui->show_groups->keySequence().toString();
+    proposed.hotkey_route = ui->show_routes->keySequence().toString();
+    proposed.hotkey_system_proxy_menu = ui->system_proxy->keySequence().toString();
+    proposed.hotkey_toggle_system_proxy = ui->toggle_proxy->keySequence().toString();
+    proposed.hotkey_toggle_connection = ui->toggle_connection->keySequence().toString();
+    proposed.hotkey_toggle_tun = ui->toggle_tun->keySequence().toString();
 
     auto mp = seqEdit2ID.toStdMap();
     for (const auto& [kseq, actionID] : mp)
     {
-        settings->shortcuts[actionID] = kseq->keySequence();
+        proposed.shortcuts[actionID] = kseq->keySequence();
     }
 
-    const bool apiEnable = ui->api_enable->isChecked();
-    const bool apiLan = ui->api_listen->currentIndex() == 1;
-    const int apiPort = ui->api_port->value();
-    const auto apiKey = ui->api_key->text();
-    const auto apiAllow = ui->api_allow->text().trimmed();
-    const bool apiAdminLan = ui->api_admin_lan->isChecked();
-    const bool apiChanged = apiEnable != settings->remote_api_enable || apiLan != settings->remote_api_lan || apiPort != settings->remote_api_port
-                            || apiKey != settings->remote_api_key || apiAllow != settings->remote_api_allow
-                            || apiAdminLan != settings->remote_api_admin_lan;
-    settings->remote_api_enable = apiEnable;
-    settings->remote_api_lan = apiLan;
-    settings->remote_api_port = apiPort;
-    settings->remote_api_key = apiKey;
-    settings->remote_api_allow = apiAllow;
-    settings->remote_api_admin_lan = apiAdminLan;
+    proposed.remote_api_enable = ui->api_enable->isChecked();
+    proposed.remote_api_lan = ui->api_listen->currentIndex() == 1;
+    proposed.remote_api_port = ui->api_port->value();
+    proposed.remote_api_key = ui->api_key->text();
+    proposed.remote_api_allow = ui->api_allow->text().trimmed();
+    proposed.remote_api_admin_lan = ui->api_admin_lan->isChecked();
 
-    const auto clashListen = ui->core_box_clash_listen_addr->text().trimmed();
-    const int clashPort = ui->core_box_clash_api->text().trimmed().toInt();
-    const auto clashSecret = ui->core_box_clash_api_secret->text().trimmed();
-    const int boxApiPort = ui->core_box_api_port->text().trimmed().toInt();
+    // A stored port <= 0 is off, the same as an empty field, so an empty field keeps it as stored.
+    const auto portOrOff = [](int field, int stored) { return field > 0 || stored > 0 ? field : stored; };
+    proposed.core_box_clash_listen_addr = ui->core_box_clash_listen_addr->text().trimmed();
+    proposed.core_box_clash_api = portOrOff(ui->core_box_clash_api->text().trimmed().toInt(), snapshot_.core_box_clash_api);
+    proposed.core_box_clash_api_secret = ui->core_box_clash_api_secret->text().trimmed();
+    proposed.core_box_api_port = portOrOff(ui->core_box_api_port->text().trimmed().toInt(), snapshot_.core_box_api_port);
     auto boxApiSecret = ui->core_box_api_secret->text().trimmed();
     // Blank means "no authentication" to sing-box, so never let the field clear it.
-    if (boxApiSecret.isEmpty()) boxApiSecret = settings->core_box_api_secret;
-    // A stored port <= 0 is off, the same as an empty field.
-    const auto portOrOff = [](int port) { return port > 0 ? port : 0; };
-    const bool coreApisChanged = clashListen != settings->core_box_clash_listen_addr || clashPort != portOrOff(settings->core_box_clash_api)
-                                 || clashSecret != settings->core_box_clash_api_secret || boxApiPort != portOrOff(settings->core_box_api_port)
-                                 || boxApiSecret != settings->core_box_api_secret;
-    settings->core_box_clash_listen_addr = clashListen;
-    settings->core_box_clash_api = clashPort;
-    settings->core_box_clash_api_secret = clashSecret;
-    settings->core_box_api_port = boxApiPort;
-    settings->core_box_api_secret = boxApiSecret;
-    settings->Save();
+    if (boxApiSecret.isEmpty()) boxApiSecret = snapshot_.core_box_api_secret;
+    proposed.core_box_api_secret = boxApiSecret;
 
-    MW_dialog_message(MwMessage::UpdateShortcuts, {});
-    if (apiChanged || coreApisChanged)
-        MW_dialog_message(MwMessage::UpdateSettings, apiChanged ? QStringList{MwArg::RemoteApi} : QStringList{});
+    if (const auto error = Engine::SettingsService::ApplyEdit(snapshot_, proposed, {.interactive = true})) {
+        MessageBoxWarning(windowTitle(), SettingsApplyErrorText(*error));
+        return;
+    }
     const auto failures = GetMainWindow()->RegisterHotkey(false);
     if (!failures.isEmpty() && GetMainWindow()->IsGlobalHotkeySupported()) {
         QMessageBox box(QMessageBox::Warning, tr("Hotkey"), tr("These global hotkeys could not be registered:") + "\n\n" + failures.join('\n'), QMessageBox::Ok, this);

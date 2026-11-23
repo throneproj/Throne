@@ -14,7 +14,7 @@
    <enum>Qt::TabFocus</enum>
   </property>
   <property name="windowTitle">
-   <string>Groups</string>
+   <string>Manage Groups</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

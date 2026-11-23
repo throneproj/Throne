@@ -8,6 +8,9 @@
 #include "include/configs/outbounds/custom.h"
 #include "include/global/Utils.hpp"
 
+#include <algorithm>
+#include <optional>
+
 namespace Configs {
     namespace {
         // Xray has no dial fields: bind_interface travels as streamSettings.sockopt.interface.
@@ -42,6 +45,49 @@ namespace Configs {
         void dropUnusableXrayVlessFlow(xrayVless &v) {
             if (!AcceptOptional("flow", xrayVlessFlowProblem(v), v.flow)) v.flow.clear();
         }
+
+        // FIPS 203 modulus check, as Go's mlkem.NewEncapsulationKey768: the first 1152 bytes pack 768 12-bit coefficients, each below q.
+        bool mlkem768KeyValid(const QByteArray &key) {
+            constexpr int q = 3329;
+            if (key.size() != 1184) return false;
+            const auto *b = reinterpret_cast<const uchar *>(key.constData());
+            for (int i = 0; i < 1152; i += 3) {
+                if ((b[i] | ((b[i + 1] & 0x0F) << 8)) >= q || ((b[i + 1] >> 4) | (b[i + 2] << 4)) >= q) return false;
+            }
+            return true;
+        }
+
+        // strconv.Atoi: digits with an optional sign, and '-' is the separator here.
+        std::optional<qint64> xrayPaddingNumber(const QString &text) {
+            const QStringView digits = text.startsWith(u'+') ? QStringView(text).mid(1) : QStringView(text);
+            if (digits.isEmpty()) return std::nullopt;
+            for (const QChar c : digits) {
+                if (c < u'0' || c > u'9') return std::nullopt;
+            }
+            bool ok = false;
+            const qint64 value = digits.toLongLong(&ok);
+            return ok ? std::optional(value) : std::nullopt;
+        }
+
+        // Xray's ParsePadding: parts alternate chance-min-max lengths and gaps; only lengths count toward the cap.
+        QString xrayVlessPaddingProblem(const QStringList &padding) {
+            constexpr qint64 maxTotal = 18 + 65535;
+            qint64 total = 0;
+            for (qsizetype i = 0; i < padding.size(); ++i) {
+                const QStringList fields = padding[i].split(u'-');
+                qint64 y[3]{};
+                for (int j = 0; j < 3; ++j) {
+                    const auto value = j < fields.size() ? xrayPaddingNumber(fields[j]) : std::nullopt;
+                    if (!value) return QCoreApplication::translate("Validation", "Each padding part must be three numbers joined by dashes, like 100-111-1111.");
+                    y[j] = *value;
+                }
+                if (i == 0 && (y[0] < 100 || y[1] < 18 + 17 || y[2] < 18 + 17))
+                    return QCoreApplication::translate("Validation", "The first padding part needs a chance of at least 100 and lengths of at least 35, like 100-111-1111.");
+                if (i % 2 == 0) total = std::min(total + std::min(std::max(y[1], y[2]), maxTotal + 1), maxTotal + 1);
+            }
+            if (total > maxTotal) return QCoreApplication::translate("Validation", "The padding lengths can add up to more than 65553 bytes.");
+            return {};
+        }
     }
 
     namespace Checks {
@@ -55,13 +101,25 @@ namespace Configs {
                 return QCoreApplication::translate("Validation", "The part after mlkem768x25519plus must be native, xorpub or random.");
             if (parts[2] != "1rtt" && parts[2] != "0rtt")
                 return QCoreApplication::translate("Validation", "The part after the mode must be 1rtt or 0rtt.");
-            // Shorter parts are padding specs.
+            // Parts under 20 characters are padding; Xray cuts their total length off the front, so they must lead.
+            QStringList padding;
+            qsizetype keys = 0;
             for (qsizetype i = 3; i < parts.size(); ++i) {
-                if (parts[i].size() < 20) continue;
-                if (Validation::Base64Key(parts[i], 32, true, false).isEmpty() || Validation::Base64Key(parts[i], 1184, true, false).isEmpty()) continue;
-                return QCoreApplication::translate("Validation", "Each key in the string must be URL-safe base64 of 32 or 1184 bytes, without padding.");
+                if (parts[i].size() < 20) {
+                    if (keys > 0) return QCoreApplication::translate("Validation", "Put the padding parts before the keys.");
+                    padding << parts[i];
+                    continue;
+                }
+                ++keys;
+                if (Validation::Base64Key(parts[i], 32, true, false).isEmpty()) continue;
+                if (!Validation::Base64Key(parts[i], 1184, true, false).isEmpty())
+                    return QCoreApplication::translate("Validation", "Each key in the string must be URL-safe base64 of 32 or 1184 bytes, without padding.");
+                const auto key = QByteArray::fromBase64(parts[i].trimmed().toLatin1(), QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
+                if (!mlkem768KeyValid(key))
+                    return QCoreApplication::translate("Validation", "A 1184-byte key in the string is not a valid ML-KEM-768 key: copy the string from the server again.");
             }
-            return {};
+            if (keys == 0) return QCoreApplication::translate("Validation", "The string has no key: copy the whole string the server gives.");
+            return xrayVlessPaddingProblem(padding);
         }
 
         QString XrayVlessVision(const QString &flow, const QString &encryption, const QString &network, const QString &security) {
@@ -84,7 +142,7 @@ namespace Configs {
 
         QString XrayXDriveMux(int muxState, const QString &network) {
             if (NormalizeXrayNetwork(network.trimmed()) != "xdrive" || muxState != 2) return {};
-            return QCoreApplication::translate("Validation", "XDRIVE needs Mux: set it to On or Keep Default.");
+            return QCoreApplication::translate("Validation", "XDRIVE needs Multiplex: set it to On or Keep default.");
         }
     }
 

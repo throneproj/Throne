@@ -15,6 +15,7 @@ namespace Configs {
         QSet<int> runningProfiles;
         RunningRouteRules runningRouteRules;
         std::atomic<int> runningRoute{-1};
+        std::atomic<bool> runningUsesTor{false};
         thread_local int buildRoute = -1;
     }
 
@@ -34,6 +35,7 @@ namespace Configs {
         runningProfiles.clear();
         runningRouteRules = {};
         runningRoute = -1;
+        runningUsesTor = false;
     }
 
     bool RunningUsesProfile(int profileID)
@@ -41,6 +43,16 @@ namespace Configs {
         if (profileID < 0) return false;
         QMutexLocker lk(&runningProfilesMu);
         return runningProfiles.contains(profileID);
+    }
+
+    void SetRunningUsesTor(bool usesTor)
+    {
+        runningUsesTor = usesTor;
+    }
+
+    bool RunningUsesTor()
+    {
+        return runningUsesTor;
     }
 
     void SetRunningRoute(int routeId)

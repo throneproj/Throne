@@ -196,6 +196,15 @@ static QColor separate(QColor c, const QColor &surface, double target) {
     return c;
 }
 
+QColor ContrastSeparated(const QColor &color, const QColor &surface, double ratio) {
+    return separate(color, surface, ratio);
+}
+
+QColor MutedTint(int hue, const QColor &surface) {
+    const QColor muted = QColor::fromHslF(static_cast<float>(qMax(0, hue) % 360) / 360.0f, 0.38f, surface.lightnessF() < 0.5f ? 0.68f : 0.42f);
+    return separate(muted, surface, 3.0);
+}
+
 static QColor paletteAccent(const QPalette &pal) {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
     return pal.color(QPalette::Active, QPalette::Accent);
@@ -244,6 +253,8 @@ static QString overlayStyleSheet(const ThemeTokens &t) {
         "*[colorRole=\"tag\"] { color: %2; }\n"
         "*[colorRole=\"danger\"] { color: %3; }\n"
         "*[colorRole=\"success\"] { color: %4; }\n"
+        // The tray menu's connected status line, which TrayMenu marks :read-only.
+        "QMenu::item:read-only { color: %5; }\n"
         // Colour only: any border rule makes QStyleSheetStyle replace the native frame.
         "QLineEdit[invalid=\"true\"], QLineEdit[invalid=\"true\"]:focus, QLineEdit[invalid=\"true\"]:hover,\n"
         "QPlainTextEdit[invalid=\"true\"], QTextEdit[invalid=\"true\"],\n"
@@ -253,7 +264,7 @@ static QString overlayStyleSheet(const ThemeTokens &t) {
         "QComboBox[invalid=\"true\"]:read-only, QComboBox[invalid=\"true\"]:read-only:focus, QComboBox[invalid=\"true\"]:read-only:hover,\n"
         // Qt polishes a non-editable combo's inactive palette without :read-only.
         "QComboBox[invalid=\"true\"]:!editable:!active { color: %3; }\n"
-    ).arg(hex(t.muted), hex(t.tag), hex(t.danger), hex(t.success));
+    ).arg(hex(t.muted), hex(t.tag), hex(t.danger), hex(t.success), hex(MutedTint(t.success.hslHue(), t.surface)));
 #ifdef Q_OS_MACOS
     // QMacStyle centres non-document tabs and elides them instead of scrolling.
     sheet += QStringLiteral(

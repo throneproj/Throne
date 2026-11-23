@@ -76,7 +76,7 @@
    <item row="3" column="1" colspan="3">
     <widget class="QLineEdit" name="realm_stun_servers">
      <property name="toolTip">
-      <string>Comma separated host or host:port entries used to discover this client's public addresses.</string>
+      <string>STUN servers (host or host:port, comma-separated) to find public addresses.</string>
      </property>
      <property name="placeholderText">
       <string notr="true">stun.example.com:3478,...</string>
@@ -115,11 +115,10 @@
    <item row="4" column="2" colspan="2">
     <widget class="QCheckBox" name="realm_port_mapping">
      <property name="toolTip">
-      <string>Maintain a UDP port mapping on the local gateway via UPnP or NAT-PMP.
-Improves hole-punching reliability. Requires IPv4.</string>
+      <string>Map a UDP port on the router via UPnP or NAT-PMP; IPv4 only.</string>
      </property>
      <property name="text">
-      <string>Port Mapping</string>
+      <string>Port mapping</string>
      </property>
     </widget>
    </item>

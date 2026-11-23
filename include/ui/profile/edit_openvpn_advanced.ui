@@ -48,7 +48,7 @@
              <item row="0" column="0">
               <widget class="QLabel" name="mode_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;OpenVPN session mode. tls is used by default; static_key is a deprecated mode without a TLS control channel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Session mode. Default: tls; static_key is deprecated.</string>
                </property>
                <property name="text">
                 <string>Mode</string>
@@ -64,7 +64,7 @@
              <item row="1" column="0">
               <widget class="QLabel" name="topology_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tunnel topology. The topology pulled from the server is used when empty in TLS mode.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Tunnel topology. Empty: pulled from the server.</string>
                </property>
                <property name="text">
                 <string>Topology</string>
@@ -80,7 +80,7 @@
              <item row="2" column="0">
               <widget class="QLabel" name="auth_retry_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Behavior after username/password authentication fails. none is used by default and treats a permanent failure as terminal.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>What to do after a failed login. Default: none (give up).</string>
                </property>
                <property name="text">
                 <string>Auth Retry</string>
@@ -106,7 +106,7 @@
              <item row="4" column="0">
               <widget class="QLabel" name="address_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma separated local tunnel prefixes. At least one is required in static_key mode.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Comma-separated local tunnel prefixes; required in static_key mode.</string>
                </property>
                <property name="text">
                 <string>Local Address</string>
@@ -126,7 +126,7 @@
              <item row="5" column="0">
               <widget class="QLabel" name="peer_address_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;IPv4 tunnel peer address and VPN gateway. Required with an IPv4 local address in static_key mode.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>IPv4 tunnel peer and gateway address, for static_key mode.</string>
                </property>
                <property name="text">
                 <string>Peer Address</string>
@@ -142,7 +142,7 @@
              <item row="6" column="0">
               <widget class="QLabel" name="peer_address_ipv6_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;IPv6 tunnel peer address and VPN gateway. Required with an IPv6 local address in static_key mode.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>IPv6 tunnel peer and gateway address, for static_key mode.</string>
                </property>
                <property name="text">
                 <string>Peer Address (IPv6)</string>
@@ -170,7 +170,7 @@
           <item>
            <widget class="QTableWidget" name="servers_table">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Servers are tried in order and the client moves to the next one when a connection fails. Leave empty to use the address and port from the profile.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Servers to try in order. Empty: the profile's address and port.</string>
             </property>
             <property name="selectionBehavior">
              <enum>QAbstractItemView::SelectRows</enum>
@@ -241,7 +241,7 @@
              <item row="0" column="0">
               <widget class="QLabel" name="static_key_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Static key content. Required in static_key mode. Conflicts with the static key path.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Static key content, for static_key mode.</string>
                </property>
                <property name="text">
                 <string>Static Key</string>
@@ -277,7 +277,7 @@
              <item row="2" column="0">
               <widget class="QLabel" name="key_direction_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Static key direction. The key is used bidirectionally when empty. Only available in static_key mode.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Static key direction. Empty: bidirectional.</string>
                </property>
                <property name="text">
                 <string>Key Direction</string>
@@ -293,7 +293,7 @@
              <item row="3" column="0">
               <widget class="QLabel" name="cipher_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Data channel cipher used in static_key mode. The upstream default BF-CBC is used when empty.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Data channel cipher in static_key mode. Empty: BF-CBC.</string>
                </property>
                <property name="text">
                 <string>Data Cipher</string>
@@ -340,7 +340,7 @@
              <item row="1" column="0">
               <widget class="QLabel" name="tls_server_name_type_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Certificate field matched by the server name. name is used by default and matches the common name exactly.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Certificate field the server name must match. Default: name (exact CN).</string>
                </property>
                <property name="text">
                 <string>Server Name Type</string>
@@ -420,7 +420,7 @@
              <item row="6" column="0">
               <widget class="QLabel" name="tls_peer_fingerprint_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Allowed SHA-256 fingerprints of the server leaf certificate, one per line, 64 lowercase hexadecimal characters without separators.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Allowed SHA-256 fingerprints of the server certificate, one per line, in hex.</string>
                </property>
                <property name="text">
                 <string>Peer Fingerprint</string>
@@ -472,7 +472,7 @@
              <item row="9" column="0">
               <widget class="QLabel" name="tls_remote_certificate_eku_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Required extended key usage. Conflicts with an explicit remote certificate TLS check.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Required extended key usage of the server certificate.</string>
                </property>
                <property name="text">
                 <string>Remote Certificate EKU</string>
@@ -504,7 +504,7 @@
              <item row="11" column="0">
               <widget class="QLabel" name="tls_certificate_profile_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;legacy is used by default. insecure accepts MD5 and SHA-1 signed chains; preferred requires stronger signatures and keys.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Required certificate strength. Default: legacy.</string>
                </property>
                <property name="text">
                 <string>Certificate Profile</string>
@@ -520,7 +520,7 @@
              <item row="12" column="0">
               <widget class="QLabel" name="tls_ns_certificate_type_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Deprecated Netscape certificate type check. Prefer Remote Certificate TLS.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Deprecated Netscape certificate type check.</string>
                </property>
                <property name="text">
                 <string>NS Certificate Type</string>
@@ -552,7 +552,7 @@
              <item row="14" column="0">
               <widget class="QLabel" name="tls_version_max_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The maximum supported version is used by default. It cannot be lower than the minimum.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Highest TLS version. Default: the highest supported.</string>
                </property>
                <property name="text">
                 <string>Max TLS Version</string>
@@ -584,7 +584,7 @@
              <item row="16" column="0">
               <widget class="QLabel" name="tls_groups_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Colon separated key exchange groups in preference order: X25519, SECP256R1, SECP384R1, SECP521R1.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Colon-separated key exchange groups in order, e.g. X25519:SECP256R1.</string>
                </property>
                <property name="text">
                 <string>TLS Groups</string>
@@ -615,7 +615,7 @@
              <item row="0" column="0">
               <widget class="QLabel" name="data_ciphers_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma separated allowed data channel ciphers. Only available in TLS mode.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Comma-separated allowed data channel ciphers, for TLS mode.</string>
                </property>
                <property name="text">
                 <string>Data Ciphers</string>
@@ -651,7 +651,7 @@
              <item row="2" column="0">
               <widget class="QLabel" name="auth_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Data channel authentication digest. SHA1 is used by default and only applies to non-AEAD ciphers and tls_auth.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Data channel auth digest for non-AEAD ciphers and tls_auth. Default: SHA1.</string>
                </property>
                <property name="text">
                 <string>Auth Digest</string>
@@ -667,7 +667,7 @@
              <item row="3" column="0">
               <widget class="QLabel" name="mss_fix_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum UDP packet size used to clamp the MSS of TCP connections sent through the tunnel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Clamp the MSS of tunneled TCP to fit this UDP packet size.</string>
                </property>
                <property name="text">
                 <string>MSS Fix</string>
@@ -683,7 +683,7 @@
              <item row="4" column="0" colspan="2">
               <widget class="QCheckBox" name="mss_fix_disabled">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Disables MSS clamping including the default clamp. Conflicts with MSS Fix and MSS Fix Mode.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Turn off MSS clamping, including the default clamp.</string>
                </property>
                <property name="text">
                 <string>Disable MSS clamping</string>
@@ -693,7 +693,7 @@
              <item row="5" column="0">
               <widget class="QLabel" name="mss_fix_mode_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;mtu also accounts for the outer IP and transport headers; fixed treats MSS Fix as an inner IPv4 packet size. Requires MSS Fix.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>How MSS Fix counts: with outer headers (mtu) or inner IPv4 only (fixed).</string>
                </property>
                <property name="text">
                 <string>MSS Fix Mode</string>
@@ -709,7 +709,7 @@
              <item row="6" column="0">
               <widget class="QLabel" name="fragment_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum UDP packet size used for data channel fragmentation. A non-zero value must be at least 68. Conflicts with TCP transport.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Largest UDP packet before data channel fragmentation, at least 68.</string>
                </property>
                <property name="text">
                 <string>Fragment</string>
@@ -741,7 +741,7 @@
              <item row="8" column="0">
               <widget class="QLabel" name="replay_window_time_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;UDP replay window duration in whole seconds. The maximum is 10m.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>UDP replay window duration in whole seconds, up to 10m.</string>
                </property>
                <property name="text">
                 <string>Replay Window Time</string>
@@ -776,7 +776,7 @@
              <item row="0" column="0">
               <widget class="QLabel" name="compression_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;OpenVPN compress framing mode. Disabled by default. Compression can weaken traffic confidentiality.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Compress framing mode; can weaken confidentiality. Default: off.</string>
                </property>
                <property name="text">
                 <string>Compression</string>
@@ -792,7 +792,7 @@
              <item row="1" column="0">
               <widget class="QLabel" name="compression_lzo_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;OpenVPN comp-lzo mode. Disabled by default. Enable it only when required by the server.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>comp-lzo mode, only if the server requires it. Default: off.</string>
                </property>
                <property name="text">
                 <string>Compression LZO</string>
@@ -808,7 +808,7 @@
              <item row="2" column="0">
               <widget class="QLabel" name="allow_compression_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Policy for compression pushed by the server. no is used by default and permits only stub framing.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Policy for compression the server pushes. Default: no (stub framing only).</string>
                </property>
                <property name="text">
                 <string>Allow Compression</string>
@@ -839,7 +839,7 @@
              <item row="0" column="0" colspan="2">
               <widget class="QCheckBox" name="route_no_pull">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Ignores routes, DNS, route metrics, redirect-gateway, redirect-private and block-ipv6 pushed by the server.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Ignore routes, DNS, metrics and gateway options the server pushes.</string>
                </property>
                <property name="text">
                 <string>Ignore pushed routes, DNS and gateway options</string>
@@ -849,7 +849,7 @@
              <item row="1" column="0">
               <widget class="QLabel" name="routes_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma separated prefixes preferred for this endpoint, in addition to routes accepted from the server.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Comma-separated prefixes routed to this endpoint, besides the server's.</string>
                </property>
                <property name="text">
                 <string>Routes</string>
@@ -865,7 +865,7 @@
              <item row="2" column="0">
               <widget class="QLabel" name="route_gateway_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;IPv4 gateway for routes through the endpoint. The gateway received from the server is used when empty.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>IPv4 gateway for routes through the endpoint. Empty: from the server.</string>
                </property>
                <property name="text">
                 <string>Route Gateway</string>
@@ -881,7 +881,7 @@
              <item row="3" column="0">
               <widget class="QLabel" name="route_metric_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Default metric for routes through the endpoint. The platform default is used when empty.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Metric for routes through the endpoint. Empty: platform default.</string>
                </property>
                <property name="text">
                 <string>Route Metric</string>
@@ -940,7 +940,7 @@
           <item>
            <widget class="QTableWidget" name="pull_filters_table">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Ordered filters for options pushed by the server. The first filter whose text is a case-sensitive prefix of the complete pushed option is applied.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Ordered filters for the options the server pushes.</string>
             </property>
             <property name="selectionBehavior">
              <enum>QAbstractItemView::SelectRows</enum>
@@ -1006,7 +1006,7 @@
              <item row="0" column="0">
               <widget class="QLabel" name="ping_interval_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Whole seconds of silence before a data channel ping is sent. A server-pushed value overrides it.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Seconds of silence before a data channel ping is sent.</string>
                </property>
                <property name="text">
                 <string>Ping Interval</string>
@@ -1022,7 +1022,7 @@
              <item row="1" column="0">
               <widget class="QLabel" name="ping_restart_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Whole seconds without a received packet before reconnecting. 120s is used for UDP with pull enabled.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Seconds without a packet before reconnecting. Default: 120s on UDP with pull.</string>
                </property>
                <property name="text">
                 <string>Ping Restart</string>
@@ -1038,7 +1038,7 @@
              <item row="2" column="0" colspan="2">
               <widget class="QCheckBox" name="ping_restart_disabled">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Disables the initial 120s UDP pull timeout and any configured ping restart. Conflicts with Ping Restart.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Turn off ping restart, including the initial 120s UDP timeout.</string>
                </property>
                <property name="text">
                 <string>Disable ping restart</string>
@@ -1078,7 +1078,7 @@
              <item row="5" column="0">
               <widget class="QLabel" name="renegotiate_bytes_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Renegotiate data channel keys after this many bytes. Empty uses the cipher-dependent default.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Renegotiate data channel keys after this many bytes. Empty: cipher default.</string>
                </property>
                <property name="text">
                 <string>Renegotiate Bytes</string>
@@ -1094,7 +1094,7 @@
              <item row="6" column="0">
               <widget class="QLabel" name="renegotiate_packets_l">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Renegotiate data channel keys after this many packets. Empty uses the cipher-dependent default.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Renegotiate data channel keys after this many packets. Empty: cipher default.</string>
                </property>
                <property name="text">
                 <string>Renegotiate Packets</string>
