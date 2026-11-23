@@ -53,7 +53,10 @@
 #include "include/ui/setting/ThemeManager.hpp"
 
 namespace {
-    constexpr auto defaultWarpApiHost = "api.cloudflareclient.com";
+    // Mirrors the core's warp defaultAPIHosts.
+    QStringList defaultWarpApiHosts() {
+        return {QStringLiteral("api.cloudflareclient.com"), QStringLiteral("api.devices.cloudflare.com")};
+    }
 
     constexpr int manageRoutesDefaultCacheCapacity = 65536;
 
@@ -181,13 +184,13 @@ namespace {
         auto layout = new QVBoxLayout(w);
 
         auto hint = new QLabel(DialogManageRoutes::tr("One domain per line. They are tried in order and the first one that accepts the registration is used. "
-                                                      "Leave empty to use %1.").arg(defaultWarpApiHost), w);
+                                                      "Leave empty to use %1.").arg(defaultWarpApiHosts().join(", ")), w);
         hint->setWordWrap(true);
         layout->addWidget(hint);
 
         const auto &saved = Configs::dataManager->settingsRepo->warp_api_hosts;
         auto tEdit = new QPlainTextEdit(w);
-        tEdit->setPlainText(saved.isEmpty() ? QString(defaultWarpApiHost) : saved.join('\n'));
+        tEdit->setPlainText((saved.isEmpty() ? defaultWarpApiHosts() : saved).join('\n'));
         layout->addWidget(tEdit);
 
         auto buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, w);
@@ -207,7 +210,9 @@ namespace {
 
         QObject::connect(buttons, &QDialogButtonBox::accepted, w, [=] {
             if (!popupForm->validateAll()) return;
-            const auto hosts = normalizeWarpApiHosts(tEdit->toPlainText());
+            auto hosts = normalizeWarpApiHosts(tEdit->toPlainText());
+            // Saving the defaults verbatim would freeze them and miss later changes to the built-in list.
+            if (hosts == defaultWarpApiHosts()) hosts.clear();
             const auto error = Engine::SettingsService::Update([&hosts](Configs::SettingsValues &values) { values.warp_api_hosts = hosts; },
                                                                {.interactive = true});
             if (error) {

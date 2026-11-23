@@ -15,10 +15,7 @@ const (
 )
 
 func (s *server) WarpRegister(ctx context.Context, in *gen.WarpRegisterRequest) (*gen.WarpRegisterResponse, error) {
-	hosts := len(in.GetApiHosts())
-	if hosts == 0 {
-		hosts = 1
-	}
+	hosts := warp.HostCount(in.GetApiHosts())
 	ctx, cancel := context.WithTimeout(ctx, warpRegisterTimeout+time.Duration(hosts)*warpRegisterHostTimeout)
 	defer cancel()
 	identity, err := warp.Register(ctx, in.GetTunnelType(), in.GetProxy(), in.GetApiHosts(), warp.TLSFragmentOptions{
