@@ -270,6 +270,7 @@ namespace Configs::SettingsSchema {
                 {"xray_geosite_url", &SettingsValues::xray_geosite_url},
                 {"xray_geoip_url_history", &SettingsValues::xray_geoip_url_history},
                 {"xray_geosite_url_history", &SettingsValues::xray_geosite_url_history},
+                {"backup_parts", &SettingsValues::backup_parts, Host},
                 {"extra_core_paths", &SettingsValues::extraCorePaths, Host},
                 {"dial_bind_ifc_history", &SettingsValues::dial_bind_interface_history, Host},
                 {"dial_inet4_bind_history", &SettingsValues::dial_inet4_bind_address_history, Host},

@@ -312,6 +312,9 @@ namespace Configs {
         QStringList xray_geoip_url_history = {};
         QStringList xray_geosite_url_history = {};
 
+        // Parts ticked for the last backup made; empty means all.
+        QStringList backup_parts = {};
+
         // Extra Core Paths
         QStringList extraCorePaths = {};
 

@@ -172,6 +172,26 @@ namespace {
         return parts;
     }
 
+    void basicSettingsRestoreCheckedParts(Ui::DialogBasicSettings *ui) {
+        Configs::BackupParts parts;
+        const QStringList &saved = Configs::dataManager->settingsRepo->backup_parts;
+        if (saved.isEmpty() || !Engine::BackupArchive::PartsFromNames(saved, &parts, nullptr) || !parts.any()) return;
+        ui->backup_inc_profiles->setChecked(parts.profiles);
+        ui->backup_inc_routes->setChecked(parts.routes);
+        ui->backup_inc_settings->setChecked(parts.settings);
+        ui->backup_inc_otp->setChecked(parts.otp);
+        ui->backup_inc_ip_lists->setChecked(parts.ipLists);
+        ui->backup_inc_icons->setChecked(parts.icons);
+    }
+
+    void basicSettingsRememberCheckedParts(const Configs::BackupParts &parts) {
+        auto &settings = *Configs::dataManager->settingsRepo;
+        const QStringList names = Engine::BackupArchive::PartNames(parts);
+        if (settings.backup_parts == names) return;
+        settings.backup_parts = names;
+        settings.Save();
+    }
+
     // Text a WebDAV server or another device wrote, for plain-text display only.
     QString basicSettingsRemoteText(const QString &text) {
         return text.simplified().left(200);
@@ -244,6 +264,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->xray_loglevel->addItems(Configs::Xray::XrayLogLevels);
     ui->disable_stats->setChecked(snapshot_.disable_traffic_stats);
     ui->proxy_scheme->setCurrentText(snapshot_.proxy_scheme);
+    basicSettingsRestoreCheckedParts(ui);
 
     S_LOAD_STRING(inbound_address)
     CACHE.custom_inbound = snapshot_.custom_inbound;
@@ -833,6 +854,7 @@ void DialogBasicSettings::on_backup_create_clicked() {
         tr("Throne Backup (*.thrbackup)")
     );
     if (filePath.isEmpty()) return;
+    basicSettingsRememberCheckedParts(parts);
 
     if (const auto error = Engine::BackupArchive::Build(parts, filePath); !error.isEmpty()) {
         QMessageBox::critical(this, tr("Backup failed"), basicSettingsBackupError(error));
@@ -1064,6 +1086,7 @@ void DialogBasicSettings::on_webdav_upload_clicked() {
         QMessageBox::warning(this, title, tr("Select at least one part to include in the backup."));
         return;
     }
+    basicSettingsRememberCheckedParts(parts);
 
     Engine::BackupArchive::Prepare(parts);
     const auto config = Engine::WebDavBackup::FromSettings();
