@@ -47,10 +47,15 @@ func newBoxContext(platform PlatformInterface, platformInterface adapter.Platfor
 	return ctx
 }
 
+// Every box goes through here, like boxmain.Create on the desktop.
 func parseConfig(ctx context.Context, configContent string) (option.Options, error) {
 	options, err := json.UnmarshalExtendedContext[option.Options](ctx, []byte(configContent))
 	if err != nil {
 		return option.Options{}, E.Cause(err, "decode config")
+	}
+	// Otherwise sing-box serves pprof on debug.listen and applies the config's GC and memory limits to this whole process.
+	if options.Experimental != nil {
+		options.Experimental.Debug = nil
 	}
 	return options, nil
 }
