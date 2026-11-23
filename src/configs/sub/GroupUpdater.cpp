@@ -1346,7 +1346,7 @@ namespace Subscription {
                 if (!restore(id)) continue;
                 if (const auto ent = profilesRepo->GetProfile(id); ent != nullptr) workingNames << ent->outbound->DisplayTypeAndName();
             }
-            // plan.order knows nothing of pins: surviving pinned profiles return to the head, deleted ones drop out.
+            // Deleted profiles leave the pins and the custom arrangement; the rest keep their order there.
             group->NormalizePins();
             if (!outcome.kept.isEmpty() || !keptWorking.isEmpty()) groupsRepo->Save(group);
 

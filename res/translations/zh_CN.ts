@@ -9888,6 +9888,30 @@ Close without saving?</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>Changing the order will prevent you from restoring the order before sorting. Are you sure you want to change the order?</source>
+        <translation>更改顺序后，将无法恢复到排序前的顺序。确定更改顺序？</translation>
+    </message>
+    <message>
+        <source>Restore original order</source>
+        <translation>恢复原顺序</translation>
+    </message>
+    <message>
+        <source>Show:</source>
+        <translation>显示：</translation>
+    </message>
+    <message>
+        <source>Test latency</source>
+        <translation>测试延迟</translation>
+    </message>
+    <message>
+        <source>Test exit IP</source>
+        <translation>测试出口 IP</translation>
+    </message>
+    <message>
+        <source>Test speed</source>
+        <translation>测试速度</translation>
+    </message>
+    <message>
         <source>Program</source>
         <translation>程序</translation>
     </message>
@@ -10830,10 +10854,6 @@ Close without saving?</source>
         </translation>
     </message>
     <message>
-        <source>Stop sorting</source>
-        <translation>停止排序</translation>
-    </message>
-    <message>
         <source>Type</source>
         <translation>类型</translation>
     </message>
@@ -10846,16 +10866,8 @@ Close without saving?</source>
         <translation>包含:</translation>
     </message>
     <message>
-        <source>Speed</source>
-        <translation>速度</translation>
-    </message>
-    <message>
         <source>Services</source>
         <translation>服务</translation>
-    </message>
-    <message>
-        <source>Latency</source>
-        <translation>延迟</translation>
     </message>
     <message>
         <source>Connect</source>
@@ -11698,8 +11710,16 @@ Download Tor from the Tor Project now? The profile starts once it is installed.<
         <translation>名称</translation>
     </message>
     <message>
-        <source>Test Result</source>
-        <translation>测试结果</translation>
+        <source>Latency</source>
+        <translation>延迟</translation>
+    </message>
+    <message>
+        <source>Exit IP</source>
+        <translation>出口 IP</translation>
+    </message>
+    <message>
+        <source>Speed</source>
+        <translation>速度</translation>
     </message>
     <message>
         <source>Traffic</source>

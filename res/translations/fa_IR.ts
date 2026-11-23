@@ -4713,6 +4713,30 @@ Close without saving?</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>Changing the order will prevent you from restoring the order before sorting. Are you sure you want to change the order?</source>
+        <translation>پس از تغییر ترتیب، دیگر نمی‌توانید ترتیب پیش از مرتب‌سازی را بازیابی کنید. آیا مطمئن هستید که می‌خواهید ترتیب را تغییر دهید؟</translation>
+    </message>
+    <message>
+        <source>Restore original order</source>
+        <translation>بازیابی ترتیب اولیه</translation>
+    </message>
+    <message>
+        <source>Show:</source>
+        <translation>نمایش:</translation>
+    </message>
+    <message>
+        <source>Test latency</source>
+        <translation>آزمایش تأخیر</translation>
+    </message>
+    <message>
+        <source>Test exit IP</source>
+        <translation>آزمایش IP خروجی</translation>
+    </message>
+    <message>
+        <source>Test speed</source>
+        <translation>آزمایش سرعت</translation>
+    </message>
+    <message>
         <source>Connect</source>
         <translation>اتصال</translation>
     </message>
@@ -5025,16 +5049,8 @@ Error: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Speed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Services</source>
         <translation>سرویس‌ها</translation>
-    </message>
-    <message>
-        <source>Latency</source>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Replace domain server addresses with their resolved IPs?</source>
@@ -5747,8 +5763,16 @@ Tor همین حالا از پروژهٔ Tor دانلود شود؟ پس از نص
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Test Result</source>
-        <translation type="unfinished">نتیجه تست</translation>
+        <source>Latency</source>
+        <translation>تأخیر</translation>
+    </message>
+    <message>
+        <source>Exit IP</source>
+        <translation>IP خروجی</translation>
+    </message>
+    <message>
+        <source>Speed</source>
+        <translation>سرعت</translation>
     </message>
     <message>
         <source>Traffic</source>

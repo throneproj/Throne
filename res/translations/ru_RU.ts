@@ -9972,6 +9972,30 @@ Close without saving?</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <source>Changing the order will prevent you from restoring the order before sorting. Are you sure you want to change the order?</source>
+        <translation>После изменения порядка восстановить порядок до сортировки будет невозможно. Вы уверены, что хотите изменить порядок?</translation>
+    </message>
+    <message>
+        <source>Restore original order</source>
+        <translation>Восстановить исходный порядок</translation>
+    </message>
+    <message>
+        <source>Show:</source>
+        <translation>Показывать:</translation>
+    </message>
+    <message>
+        <source>Test latency</source>
+        <translation>Проверить задержку</translation>
+    </message>
+    <message>
+        <source>Test exit IP</source>
+        <translation>Проверить выходной IP</translation>
+    </message>
+    <message>
+        <source>Test speed</source>
+        <translation>Проверить скорость</translation>
+    </message>
+    <message>
         <source>Connect</source>
         <translation>Подключиться</translation>
     </message>
@@ -10670,10 +10694,6 @@ Error: %1</source>
         <translation>Показывать:</translation>
     </message>
     <message>
-        <source>Speed</source>
-        <translation>Скорость</translation>
-    </message>
-    <message>
         <source>Services</source>
         <translation>Сервисы</translation>
     </message>
@@ -10688,14 +10708,6 @@ Error: %1</source>
             <numerusform>%n удаленных набора правил были обновлены</numerusform>
             <numerusform>%n удаленных наборов правил было обновлено</numerusform>
         </translation>
-    </message>
-    <message>
-        <source>Stop sorting</source>
-        <translation>Отключить сортировку</translation>
-    </message>
-    <message>
-        <source>Latency</source>
-        <translation>Пингу</translation>
     </message>
     <message>
         <source>Download speed</source>
@@ -11727,8 +11739,16 @@ Download Tor from the Tor Project now? The profile starts once it is installed.<
         <translation>Название</translation>
     </message>
     <message>
-        <source>Test Result</source>
-        <translation>Результат теста</translation>
+        <source>Latency</source>
+        <translation>Задержка</translation>
+    </message>
+    <message>
+        <source>Exit IP</source>
+        <translation>Выходной IP</translation>
+    </message>
+    <message>
+        <source>Speed</source>
+        <translation>Скорость</translation>
     </message>
     <message>
         <source>Traffic</source>

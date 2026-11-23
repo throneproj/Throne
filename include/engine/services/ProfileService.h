@@ -9,6 +9,7 @@
 #include <QStringList>
 
 #include "include/engine/services/ServiceTypes.h"
+#include "include/engine/EngineTypes.h"
 
 namespace Configs {
     class Profile;
@@ -47,8 +48,9 @@ namespace Engine::ProfileService {
     // SubscriptionGroupChanged per source group, ProfilesChanged and GroupsChanged.
     std::optional<ServiceError> MoveToGroup(const QList<int> &profileIds, int targetGid, int *moved = nullptr);
 
-    // Main thread. Clears the test results of the profiles; *groupIds gets their groups. Returns how many were cleared.
-    int ClearTestResults(const QList<int> &profileIds, QList<int> *groupIds = nullptr);
+    // Main thread. Clears all results, or only kind when supplied; *groupIds gets the affected groups.
+    int ClearTestResults(const QList<int> &profileIds, QList<int> *groupIds = nullptr,
+                         std::optional<TestKind> kind = std::nullopt);
 
     struct ProfileConfig {
         QString type;

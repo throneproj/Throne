@@ -11,6 +11,7 @@
 
 namespace Configs {
     class Profile;
+    class Group;
 }
 
 class ProfilesTableModel : public QAbstractTableModel {
@@ -19,11 +20,14 @@ public:
     // ServiceItemsRole: the test column's QList<ServiceIcons::Item>.
     enum { ProfileIdRole = Qt::UserRole, PinnedRole, ServiceItemsRole };
 
+    // Persisted as bits in Group::visible_columns; append new columns without renumbering these.
     enum Column {
         ColType = 0,
         ColAddress,
         ColName,
-        ColTestResult,
+        ColLatency,
+        ColExitIP,
+        ColSpeed,
         ColTraffic,
         ColumnCount,
     };
@@ -77,9 +81,6 @@ public:
     // Re-resolves the Address column after IP lists or group endpoints change.
     void invalidateAddresses();
 
-    // `to` is the row's index after the move.
-    void moveProfile(int from, int to, int pinnedCount);
-
     int indexOfProfile(int id);
 
     bool isStartedRow(int sourceRow) const;
@@ -99,7 +100,7 @@ public:
     bool termPicksAnyService(const QString &term) const;
 
     // -1 for a method no column shows.
-    static int columnOfSort(GroupSortMethod::GroupSortMethod method);
+    static int columnOfSort(const Configs::Group &group);
 
     // Raw for a column that does not sort.
     static GroupSortMethod::GroupSortMethod sortOfColumn(int column);

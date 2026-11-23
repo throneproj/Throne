@@ -105,7 +105,7 @@ DialogEditGroup::DialogEditGroup(const std::shared_ptr<Configs::Group> &ent, QWi
         auto group = Configs::dataManager->groupsRepo->GetGroup(groupID);
         if (!group) continue;
         const QString prefix = "[" + group->name + "] ";
-        for (int profileID : group->profiles) {
+        for (int profileID : group->DisplayedProfiles()) {
             if (selectorIDs.contains(profileID)) continue;
             auto it = idToName.constFind(profileID);
             if (it == idToName.constEnd()) continue;

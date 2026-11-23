@@ -175,7 +175,7 @@ void TrayProfileSelector::rebuild() {
             }
             showBack = true;
             title = group->name;
-            auto mapped = Configs::dataManager->profilesRepo->GetProfileIDNameMappedBatch(group->Profiles());
+            auto mapped = Configs::dataManager->profilesRepo->GetProfileIDNameMappedBatch(group->DisplayedProfiles());
             mapped = FixProfileDisplayName(mapped);
             for (const auto &[id, name] : mapped) {
                 entries.append({KindProfile, id, name, true, id == rid});

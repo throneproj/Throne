@@ -15,14 +15,13 @@ public:
     ProfilesTableModel *profilesModel() const { return m_model; }
 
     void updateWidthFromRowCount();
+    bool setPinnedVisible(bool visible);
 
 protected:
     void paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const override;
 
 private:
-    // Width reserved left of the labels for the pin mark; none while the group has no pins.
-    int pinRoom() const;
-
     ProfilesTableModel *m_model = nullptr;
     ProfilesFilterProxyModel *m_proxy = nullptr;
+    bool m_pinnedVisible = false;
 };

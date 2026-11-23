@@ -164,8 +164,8 @@ namespace Engine {
     public:
         void bind(TestObserver *observer) { m_target.store(observer); }
 
-        void testPanelSeeded(TestKind kind, int totalProfiles) override {
-            if (auto *target = m_target.load()) target->testPanelSeeded(kind, totalProfiles);
+        void testPanelSeeded(TestKind kind, int totalProfiles, const QList<int> &profileIds) override {
+            if (auto *target = m_target.load()) target->testPanelSeeded(kind, totalProfiles, profileIds);
         }
 
         void testProgressed() override {
@@ -447,9 +447,9 @@ namespace Engine {
         return m_connection->chooseRoute(routeId, interactive, serial);
     }
 
-    int EngineHost::clearTestResults(const QList<int> &profileIds) {
+    int EngineHost::clearTestResults(const QList<int> &profileIds, std::optional<TestKind> kind) {
         QList<int> gids;
-        const int n = ProfileService::ClearTestResults(profileIds, &gids);
+        const int n = ProfileService::ClearTestResults(profileIds, &gids, kind);
         if (n > 0) emit testResultsCleared(gids);
         return n;
     }

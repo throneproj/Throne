@@ -40,6 +40,7 @@ public:
     ThemeTokens tokens;          // rebuilt by every ApplyTheme(), before themeChanged fires
 
     void ApplyTheme(const QString &theme, bool force = false);
+    int paneCornerRadius() const { return m_paneCornerRadius; }
 
     // QStyle::standardIcon loads from the system on every call: about 9 ms for a message box icon on Windows.
     QIcon standardIcon(QStyle::StandardPixmap pixmap);
@@ -47,6 +48,7 @@ signals:
     void themeChanged(QString themeName);
 
 private:
+    int m_paneCornerRadius = 0;
     QHash<int, QIcon> standardIcons; // the current style's; ApplyTheme() reloads the message box icons
     bool applying = false;
 };

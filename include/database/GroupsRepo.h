@@ -91,7 +91,7 @@ namespace Configs {
     class Profile;
 
     // Keep sorted groups sorted from a background queue, one sort at a time; callable from any thread.
-    // The main window gets GroupOrderChanged for each group whose order moved.
+    // The main window gets GroupOrderChanged for each group whose order moved, and for every full sort.
 
     // For changes that can move any row.
     void ResortLater(int gid);

@@ -1141,7 +1141,7 @@ void DialogScanInstance::reloadConfigProfiles(int selectId) {
         const auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
         if (group == nullptr) continue;
         const QString prefix = QStringLiteral("[") + group->name + QStringLiteral("] ");
-        for (const int id : group->profiles) {
+        for (const int id : group->DisplayedProfiles()) {
             if (excluded.contains(id)) continue;
             const auto found = idToName.constFind(id);
             if (found == idToName.constEnd()) continue;

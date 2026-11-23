@@ -230,7 +230,7 @@ namespace Configs
                 const auto front = group->front_proxy_id >= 0
                                        ? dataManager->profilesRepo->GetProfile(group->front_proxy_id)
                                        : nullptr;
-                for (int id : group->Profiles()) {
+                for (int id : group->DisplayedProfiles()) {
                     if (id == ent->id || seen.contains(id)) continue;
                     seen.insert(id);
                     auto member = dataManager->profilesRepo->GetProfile(id);

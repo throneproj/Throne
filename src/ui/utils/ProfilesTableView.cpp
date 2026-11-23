@@ -20,7 +20,7 @@ namespace {
     constexpr int kProfilesTableServiceGap = 6;
 
     QList<ServiceIcons::Item> profilesTableServiceItems(const QModelIndex &index) {
-        if (index.column() != ProfilesTableModel::ColTestResult) return {};
+        if (index.column() != ProfilesTableModel::ColExitIP) return {};
         return index.data(ProfilesTableModel::ServiceItemsRole).value<QList<ServiceIcons::Item>>();
     }
 
@@ -125,6 +125,21 @@ void ProfilesTableView::setModel(QAbstractItemModel *model) {
     auto *pm = m_filterProxy ? m_filterProxy->profilesModel()
                              : qobject_cast<ProfilesTableModel*>(model);
     m_verticalHeader->setProfilesModel(pm, m_filterProxy);
+    if (pm) {
+        connect(pm, &QAbstractItemModel::modelReset, this, &ProfilesTableView::updatePinnedIndicator);
+        connect(pm, &ProfilesTableModel::pinnedCountChanged, this, &ProfilesTableView::updatePinnedIndicator);
+    }
+    updatePinnedIndicator();
+}
+
+void ProfilesTableView::updatePinnedIndicator() {
+    auto *source = m_filterProxy ? m_filterProxy->profilesModel()
+                                 : qobject_cast<ProfilesTableModel *>(model());
+    if (m_verticalHeader->setPinnedVisible(source && source->pinnedCount() > 0)) {
+        updateGeometries();
+        horizontalHeader()->updateGeometry();
+        viewport()->update();
+    }
 }
 
 int ProfilesTableView::firstVisibleRow() {
@@ -155,8 +170,14 @@ void ProfilesTableView::keyPressEvent(QKeyEvent *event) {
     QTableView::keyPressEvent(event);
 }
 
+void ProfilesTableView::startDrag(Qt::DropActions supportedActions) {
+    if (m_filterProxy && m_filterProxy->hasActiveFilter()) return;
+    QTableView::startDrag(supportedActions);
+}
+
 void ProfilesTableView::dragEnterEvent(QDragEnterEvent *event) {
-    if (event->mimeData()->hasFormat("application/profile-row-number")) {
+    if (event->mimeData()->hasFormat("application/profile-id")) {
+        if (m_filterProxy && m_filterProxy->hasActiveFilter()) { event->ignore(); return; }
 
         event->accept();
         QTableView::dragEnterEvent(event);
@@ -166,7 +187,8 @@ void ProfilesTableView::dragEnterEvent(QDragEnterEvent *event) {
 }
 
 void ProfilesTableView::dragMoveEvent(QDragMoveEvent *event) {
-    if (event->mimeData()->hasFormat("application/profile-row-number")) {
+    if (event->mimeData()->hasFormat("application/profile-id")) {
+        if (m_filterProxy && m_filterProxy->hasActiveFilter()) { event->ignore(); return; }
         QPoint pos = event->position().toPoint();
         QModelIndex targetIndex = indexAt(pos);
         if (!targetIndex.isValid()) {
@@ -195,25 +217,29 @@ void ProfilesTableView::dragMoveEvent(QDragMoveEvent *event) {
 }
 
 void ProfilesTableView::dropEvent(QDropEvent *event) {
-    if (event->source() == this && event->mimeData()->hasFormat("application/profile-row-number")) {
-        QByteArray encodedData = event->mimeData()->data("application/profile-row-number");
+    if (event->source() == this && event->mimeData()->hasFormat("application/profile-id")) {
+        if (m_filterProxy && m_filterProxy->hasActiveFilter()) { event->ignore(); return; }
+        QByteArray encodedData = event->mimeData()->data("application/profile-id");
         QDataStream stream(&encodedData, QIODevice::ReadOnly);
-        // The proxy maps drag indices to the source, so this is a source row.
-        int rowNum;
-        stream >> rowNum;
+        int profileId = -1;
+        stream >> profileId;
+        // Sorting can move the dragged profile while the drag is in progress.
+        auto *source = m_filterProxy ? m_filterProxy->profilesModel() : qobject_cast<ProfilesTableModel *>(model());
+        const int rowNum = source ? source->indexOfProfile(profileId) : -1;
 
         QPoint pos = event->position().toPoint();
         QModelIndex targetIndex = indexAt(pos);
 
-        // Rows are not drop targets, so the indicator is above or below: the upper or lower half of the row.
-        int target = model()->rowCount() - 1;
+        int target = model()->rowCount();
         bool below = true;
         if (targetIndex.isValid()) {
-            target = targetIndex.row();
+            target = m_filterProxy ? m_filterProxy->toSourceRow(targetIndex.row()) : targetIndex.row();
             below = dropIndicatorPosition() != AboveItem;
         }
-        if (m_filterProxy) target = m_filterProxy->toSourceRow(target);
-        if (target < 0) return;
+        if (rowNum < 0 || rowNum >= model()->rowCount() || target < 0) {
+            event->ignore();
+            return;
+        }
         if (rowDropped) rowDropped(rowNum, target, below);
         event->accept();
     } else {

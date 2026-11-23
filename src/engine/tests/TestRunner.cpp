@@ -174,7 +174,7 @@ namespace Engine {
 
         class TestRunnerNullObserver final : public TestObserver {
         public:
-            void testPanelSeeded(TestKind, int) override {}
+            void testPanelSeeded(TestKind, int, const QList<int>&) override {}
             void testProgressed() override {}
             void testPanelsCleared() override {}
             void testViewChanged(bool) override {}
@@ -614,7 +614,7 @@ namespace Engine {
         interactive_.store(interactive);
 
         runOnNewThread([this, profileIDs, panelKind, isUrl, finish, onResult]() {
-            observer_->testPanelSeeded(panelKind, profileIDs.size());
+            observer_->testPanelSeeded(panelKind, profileIDs.size(), profileIDs);
             observer_->testViewChanged(true);
 
             QHash<int, QList<int>> tested;
@@ -738,7 +738,7 @@ namespace Engine {
         interactive_.store(interactive);
 
         runOnNewThread([this, profileIDs, testCurrent, finish] {
-            observer_->testPanelSeeded(TestKind::Service, profileIDs.size());
+            observer_->testPanelSeeded(TestKind::Service, profileIDs.size(), profileIDs);
             observer_->testViewChanged(true);
 
             const auto definitions = std::make_shared<const ServiceChecks::Definitions>(ServiceChecks::Prepare());
@@ -831,7 +831,7 @@ namespace Engine {
             QHash<int, QList<int>> tested;
             if (!testCurrent)
             {
-                observer_->testPanelSeeded(TestKind::Speed, profileIDs.size());
+                observer_->testPanelSeeded(TestKind::Speed, profileIDs.size(), profileIDs);
                 observer_->testViewChanged(true);
                 auto runBatch = [this](const QList<std::shared_ptr<Configs::Profile>>& profileSlice) {
                     auto buildObject = Configs::BuildTestConfig(profileSlice);
@@ -867,7 +867,8 @@ namespace Engine {
                 }
             } else
             {
-                observer_->testPanelSeeded(TestKind::Speed, 1);
+                const int currentId = runningProfileId();
+                observer_->testPanelSeeded(TestKind::Speed, 1, currentId >= 0 ? QList<int>{currentId} : QList<int>{});
                 observer_->testViewChanged(true);
                 Target target;
                 target.testCurrent = true;
