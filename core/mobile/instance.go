@@ -26,6 +26,7 @@ import (
 	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
 	F "github.com/sagernet/sing/common/format"
+	N "github.com/sagernet/sing/common/network"
 	"github.com/sagernet/sing/common/x/list"
 	"github.com/sagernet/sing/service"
 	"github.com/sagernet/sing/service/pause"
@@ -251,6 +252,42 @@ func (i *Instance) Start() error {
 	i.resetAccess.Unlock()
 	warmProxyChain(i.outbounds)
 	return nil
+}
+
+// rpc.warmProxyChain: Tor outbounds start on their first dial, the ones the main route uses start now. Outbounds only
+// rules reach, and group members not selected, stay lazy: connecting to Tor unasked can give a user away.
+func warmProxyChain(outbounds adapter.OutboundManager) {
+	if outbounds == nil {
+		return
+	}
+	visited := make(map[string]bool)
+	pending := []string{"proxy"}
+	for len(pending) > 0 {
+		tag := pending[len(pending)-1]
+		pending = pending[:len(pending)-1]
+		if visited[tag] {
+			continue
+		}
+		visited[tag] = true
+		outbound, found := outbounds.Outbound(tag)
+		if !found {
+			continue
+		}
+		if warmer, isWarmer := outbound.(interface{ Warm() }); isWarmer {
+			go warmer.Warm()
+		}
+		group, isGroup := outbound.(adapter.OutboundGroup)
+		if !isGroup {
+			pending = append(pending, outbound.Dependencies()...)
+			continue
+		}
+		// By tag: the auto selector hands out a wrapper that hides the member's own methods.
+		for _, network := range []string{N.NetworkTCP, N.NetworkUDP} {
+			if selected := group.Selected(network); selected != nil {
+				pending = append(pending, selected.Tag())
+			}
+		}
+	}
 }
 
 // LocalDNSFailure describes a start that failed because the local DNS server got no answer.
