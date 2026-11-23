@@ -4,10 +4,6 @@
 <context>
     <name>CommandPalette</name>
     <message>
-        <source>Settings in Advanced mode</source>
-        <translation>تنظیمات حالت پیشرفته</translation>
-    </message>
-    <message>
         <source>Settings</source>
         <translation>تنظیمات</translation>
     </message>
@@ -482,8 +478,8 @@
         <translation>نشانی سرورهای پروکسی را هم حل می‌کند</translation>
     </message>
     <message>
-        <source>Add</source>
-        <translation>افزودن</translation>
+        <source>Add server</source>
+        <translation>افزودن سرور</translation>
     </message>
     <message>
         <source>Recent</source>
@@ -884,8 +880,8 @@ How to update?</source>
         <translation>شناخته‌شده به‌عنوان %1</translation>
     </message>
     <message>
-        <source>Tor is enabled but not downloaded yet. Open Routing Settings &gt; Exit and press OK to download it.</source>
-        <translation>Tor فعال است ولی هنوز دانلود نشده است. «تنظیمات مسیریابی &gt; خروجی» را باز کنید و «تایید» را بزنید تا دانلود شود.</translation>
+        <source>Tor is not downloaded yet; starting a profile that uses it offers the download.</source>
+        <translation>Tor هنوز دانلود نشده است؛ هنگام اجرای نمایه‌ای که از آن استفاده می‌کند، دانلود آن پیشنهاد می‌شود.</translation>
     </message>
     <message>
         <source>The custom Xray config uses the tag &quot;%1&quot;, which Throne also generates for another Xray profile; rename it in the custom config</source>
@@ -970,6 +966,18 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
 در این حالت ویندوز بایند شدن به آداپتور را که اتصال‌های خود Throne را بیرون از Tun نگه می‌دارد نادیده می‌گیرد، پس این اتصال‌ها دوباره وارد Tun می‌شوند و شکست می‌خورند.
 
 برای رفع این مشکل، هات‌اسپات را به‌جای «%1» از آداپتور throne-tun به اشتراک بگذارید (Settings &gt; Mobile hotspot &gt; Share my internet connection from)، یا هنگام استفاده از حالت Tun هات‌اسپات را خاموش کنید.</translation>
+    </message>
+    <message>
+        <source>System DNS not restored</source>
+        <translation>DNS سیستم بازگردانده نشد</translation>
+    </message>
+    <message>
+        <source>After Tun stopped, Throne could not put back the DNS servers of these network services: %1. Websites may not load until they are restored.
+
+Throne keeps retrying in the background, and restarting Throne retries as well.</source>
+        <translation>پس از توقف Tun، Throne نتوانست سرورهای DNS این سرویس‌های شبکه را بازگرداند: %1. تا زمان بازگردانی، ممکن است وب‌سایت‌ها باز نشوند.
+
+Throne در پس‌زمینه دوباره تلاش می‌کند و راه‌اندازی دوباره Throne هم دوباره تلاش می‌کند.</translation>
     </message>
     <message>
         <source>No profile can be used to build the routing configuration: add a proxy profile first.</source>
@@ -1062,6 +1070,42 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
     <message>
         <source>Settings</source>
         <translation>تنظیمات</translation>
+    </message>
+    <message>
+        <source>The selected profile leaves through %1, which carries only TCP, but WARP needs UDP in its current mode. In Routing Settings &gt; Exit, set WARP to MASQUE with HTTP Version HTTP/2, or choose another exit.</source>
+        <translation>نمایهٔ انتخاب‌شده از طریق %1 خارج می‌شود که فقط TCP را منتقل می‌کند، اما WARP در حالت فعلی به UDP نیاز دارد. در «تنظیمات مسیریابی &gt; خروجی»، WARP را روی MASQUE با «HTTP Version» برابر HTTP/2 بگذارید، یا خروجی دیگری انتخاب کنید.</translation>
+    </message>
+    <message>
+        <source>The selected profile already leaves through %1, so the %1 exit cannot run over it. Choose another exit in Routing Settings &gt; Exit.</source>
+        <translation>نمایهٔ انتخاب‌شده خودش از طریق %1 خارج می‌شود، پس خروجی %1 نمی‌تواند روی آن اجرا شود. در «تنظیمات مسیریابی &gt; خروجی» خروجی دیگری انتخاب کنید.</translation>
+    </message>
+    <message>
+        <source>Best performance</source>
+        <translation>بهترین عملکرد</translation>
+    </message>
+    <message>
+        <source>Tor network</source>
+        <translation>شبکهٔ Tor</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n bridge(s)</source>
+        <translation>
+            <numerusform>%n پل</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Plain</source>
+        <translation>ساده</translation>
+    </message>
+    <message>
+        <source>%1, built-in</source>
+        <translation>%1، داخلی</translation>
+    </message>
+    <message numerus="yes">
+        <source>%1, %n bridge(s)</source>
+        <translation>
+            <numerusform>%1، %n پل</numerusform>
+        </translation>
     </message>
 </context>
 <context>
@@ -1357,18 +1401,6 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
     <message>
         <source>Interface</source>
         <translation>رابط کاربری</translation>
-    </message>
-    <message>
-        <source>Simple hides the advanced options.</source>
-        <translation>حالت ساده گزینه‌های پیشرفته را پنهان می‌کند.</translation>
-    </message>
-    <message>
-        <source>Simple</source>
-        <translation>ساده</translation>
-    </message>
-    <message>
-        <source>Advanced</source>
-        <translation>پیشرفته</translation>
     </message>
     <message>
         <source>Allow other devices to use this DNS server</source>
@@ -1799,6 +1831,14 @@ Included: %2</source>
     <message>
         <source>Remove insecure profiles</source>
         <translation>حذف نمایه‌های ناامن</translation>
+    </message>
+    <message>
+        <source>Tor</source>
+        <translation>Tor</translation>
+    </message>
+    <message>
+        <source>Psiphon</source>
+        <translation>Psiphon</translation>
     </message>
 </context>
 <context>
@@ -2505,10 +2545,6 @@ Included: %2</source>
         <translation>ریزالور نام سرورهای DNS</translation>
     </message>
     <message>
-        <source>WARP has no config yet: click Generate WARP config.</source>
-        <translation>WARP هنوز پیکربندی ندارد: روی «Generate WARP config» کلیک کنید.</translation>
-    </message>
-    <message>
         <source>%1 (updated by subscription &quot;%2&quot;)</source>
         <translation>%1 (به‌روزشده توسط اشتراک «%2»)</translation>
     </message>
@@ -2657,6 +2693,30 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
     <message>
         <source>Exit Through</source>
         <translation>خروج از طریق</translation>
+    </message>
+    <message>
+        <source>Exit country</source>
+        <translation>کشور خروجی</translation>
+    </message>
+    <message>
+        <source>The country of the last Tor relay; Any lets Tor choose.</source>
+        <translation>کشور آخرین رلهٔ Tor؛ با «هر کشوری»، Tor خودش انتخاب می‌کند.</translation>
+    </message>
+    <message>
+        <source>Send proxied traffic out through Psiphon over the selected profile.</source>
+        <translation>ترافیک پروکسی‌شده را روی نمایهٔ انتخاب‌شده از طریق Psiphon خارج می‌کند.</translation>
+    </message>
+    <message>
+        <source>Region</source>
+        <translation>منطقه</translation>
+    </message>
+    <message>
+        <source>The country of the Psiphon server; Best performance lets Psiphon choose.</source>
+        <translation>کشور سرور Psiphon؛ با «بهترین عملکرد»، Psiphon خودش انتخاب می‌کند.</translation>
+    </message>
+    <message>
+        <source>Psiphon is a free network run by Psiphon Inc., which can see the sites you visit, like any VPN provider.</source>
+        <translation>Psiphon شبکه‌ای رایگان است که Psiphon Inc. آن را اداره می‌کند و مانند هر ارائه‌دهندهٔ VPN می‌تواند سایت‌هایی را که بازدید می‌کنید ببیند.</translation>
     </message>
 </context>
 <context>
@@ -3468,6 +3528,13 @@ Close without saving?</source>
     </message>
 </context>
 <context>
+    <name>DialogTrafficStats</name>
+    <message>
+        <source>%1 exit</source>
+        <translation>خروجی %1</translation>
+    </message>
+</context>
+<context>
     <name>DialogVPNSettings</name>
     <message>
         <source>Tun Settings</source>
@@ -4129,6 +4196,21 @@ Close without saving?</source>
     </message>
 </context>
 <context>
+    <name>EditPsiphon</name>
+    <message>
+        <source>Region</source>
+        <translation>منطقه</translation>
+    </message>
+    <message>
+        <source>The country of the Psiphon server; Best performance lets Psiphon choose.</source>
+        <translation>کشور سرور Psiphon؛ با «بهترین عملکرد»، Psiphon خودش انتخاب می‌کند.</translation>
+    </message>
+    <message>
+        <source>Psiphon is a free network run by Psiphon Inc., which can see the sites you visit, like any VPN provider.</source>
+        <translation>Psiphon شبکه‌ای رایگان است که Psiphon Inc. آن را اداره می‌کند و مانند هر ارائه‌دهندهٔ VPN می‌تواند سایت‌هایی را که بازدید می‌کنید ببیند.</translation>
+    </message>
+</context>
+<context>
     <name>EditSSH</name>
     <message>
         <source>User</source>
@@ -4242,6 +4324,159 @@ Close without saving?</source>
     <message>
         <source>Global DNS</source>
         <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>EditTor</name>
+    <message>
+        <source>Bridges</source>
+        <translation>پل‌ها</translation>
+    </message>
+    <message>
+        <source>Connect to the Tor network directly; works only where Tor is not blocked.</source>
+        <translation>مستقیم به شبکهٔ Tor وصل می‌شود؛ فقط جایی کار می‌کند که Tor مسدود نباشد.</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation>هیچ‌کدام</translation>
+    </message>
+    <message>
+        <source>Use the bridges built into Throne.</source>
+        <translation>پل‌های داخلی Throne را به کار می‌برد.</translation>
+    </message>
+    <message>
+        <source>Built-in</source>
+        <translation>داخلی</translation>
+    </message>
+    <message>
+        <source>Use bridge lines from the Tor Project or someone you trust.</source>
+        <translation>خط‌های پل را از پروژهٔ Tor یا کسی که به او اعتماد دارید به کار می‌برد.</translation>
+    </message>
+    <message>
+        <source>Custom</source>
+        <translation>سفارشی</translation>
+    </message>
+    <message>
+        <source>One bridge per line, with or without the Bridge keyword</source>
+        <translation>هر پل در یک خط، با کلیدواژهٔ Bridge یا بدون آن</translation>
+    </message>
+    <message>
+        <source>Snowflake works in most censored networks. WebTunnel and obfs4 bridges come from Get bridges.</source>
+        <translation>Snowflake در بیشتر شبکه‌های سانسورشده کار می‌کند. پل‌های WebTunnel و obfs4 را از «دریافت پل‌ها» بگیرید.</translation>
+    </message>
+    <message>
+        <source>Ask the Tor Project&apos;s bridge service which bridges work in a country.</source>
+        <translation>از سرویس پل پروژهٔ Tor می‌پرسد کدام پل‌ها در یک کشور کار می‌کنند.</translation>
+    </message>
+    <message>
+        <source>Get bridges</source>
+        <translation>دریافت پل‌ها</translation>
+    </message>
+    <message>
+        <source>Copy the bridge lines this profile uses.</source>
+        <translation>خط‌های پلی را که این نمایه به کار می‌برد کپی می‌کند.</translation>
+    </message>
+    <message>
+        <source>Copy bridges</source>
+        <translation>کپی پل‌ها</translation>
+    </message>
+    <message>
+        <source>Exit country</source>
+        <translation>کشور خروجی</translation>
+    </message>
+    <message>
+        <source>The country of the last Tor relay; Any lets Tor choose.</source>
+        <translation>کشور آخرین رلهٔ Tor؛ با «هر کشوری»، Tor خودش انتخاب می‌کند.</translation>
+    </message>
+    <message>
+        <source>Download the Tor program from the Tor Project.</source>
+        <translation>برنامهٔ Tor را از پروژهٔ Tor دانلود می‌کند.</translation>
+    </message>
+    <message>
+        <source>Download</source>
+        <translation>دانلود</translation>
+    </message>
+    <message>
+        <source>The bridge service suggested nothing for this country.</source>
+        <translation>سرویس پل برای این کشور پیشنهادی نداد.</translation>
+    </message>
+    <message>
+        <source>The bridge service is unreachable; showing the built-in list.</source>
+        <translation>سرویس پل در دسترس نیست؛ فهرست داخلی نمایش داده می‌شود.</translation>
+    </message>
+    <message>
+        <source>The bridge service is unreachable; showing the built-in list for %1.</source>
+        <translation>سرویس پل در دسترس نیست؛ فهرست داخلی برای %1 نمایش داده می‌شود.</translation>
+    </message>
+    <message>
+        <source>Answered for %1.</source>
+        <translation>پاسخ برای %1 داده شد.</translation>
+    </message>
+    <message>
+        <source>Asked through the running proxy, so Automatic used the proxy&apos;s location.</source>
+        <translation>درخواست از طریق پروکسی در حال اجرا فرستاده شد، پس «خودکار» موقعیت پروکسی را به کار برد.</translation>
+    </message>
+    <message>
+        <source>Where the bridges have to work; Automatic lets the service tell from your connection.</source>
+        <translation>جایی که پل‌ها باید در آن کار کنند؛ با «خودکار»، سرویس آن را از روی اتصال شما تشخیص می‌دهد.</translation>
+    </message>
+    <message>
+        <source>Automatic</source>
+        <translation>خودکار</translation>
+    </message>
+    <message>
+        <source>Country</source>
+        <translation>کشور</translation>
+    </message>
+    <message>
+        <source>Request</source>
+        <translation>درخواست</translation>
+    </message>
+    <message>
+        <source>Ask the Tor Project&apos;s bridge service for bridges that work in this country.</source>
+        <translation>از سرویس پل پروژهٔ Tor، پل‌هایی را می‌خواهد که در این کشور کار می‌کنند.</translation>
+    </message>
+    <message>
+        <source>Asking the bridge service; this can take a minute.</source>
+        <translation>در حال پرسیدن از سرویس پل؛ ممکن است یک دقیقه طول بکشد.</translation>
+    </message>
+    <message>
+        <source>The core did not answer: %1</source>
+        <translation>هسته پاسخ نداد: %1</translation>
+    </message>
+    <message>
+        <source>Any</source>
+        <translation>هر کشوری</translation>
+    </message>
+    <message>
+        <source>Tor is installed.</source>
+        <translation>Tor نصب شده است.</translation>
+    </message>
+    <message>
+        <source>Tor is not downloaded yet.</source>
+        <translation>Tor هنوز دانلود نشده است.</translation>
+    </message>
+    <message numerus="yes">
+        <source>Copied %n bridge line(s).</source>
+        <translation>
+            <numerusform>%n خط پل کپی شد.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>There are no bridge lines to copy.</source>
+        <translation>خط پلی برای کپی وجود ندارد.</translation>
+    </message>
+    <message>
+        <source>Tor download failed: %1</source>
+        <translation>دانلود Tor ناموفق بود: %1</translation>
+    </message>
+    <message>
+        <source>A Tor download is already running.</source>
+        <translation>یک دانلود Tor در حال انجام است.</translation>
+    </message>
+    <message>
+        <source>Downloading Tor.</source>
+        <translation>در حال دانلود Tor.</translation>
     </message>
 </context>
 <context>
@@ -4794,6 +5029,10 @@ Error: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <source>Services</source>
+        <translation>سرویس‌ها</translation>
+    </message>
+    <message>
         <source>Latency</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5322,6 +5561,14 @@ Error: %1</source>
         <translation>دانلود نمایهٔ مسیریابی</translation>
     </message>
     <message>
+        <source>Choose profile:</source>
+        <translation>انتخاب نمایه:</translation>
+    </message>
+    <message>
+        <source>More</source>
+        <translation>بیشتر</translation>
+    </message>
+    <message>
         <source>Update rule-sets</source>
         <translation>به‌روزرسانی مجموعه‌قوانین</translation>
     </message>
@@ -5386,8 +5633,8 @@ Error: %1</source>
         <translation>هیچ سرویسی برای بررسی سرویس‌ها انتخاب نشده است. آن‌ها را در تنظیمات پایه انتخاب کنید.</translation>
     </message>
     <message>
-        <source>Proxy without WARP</source>
-        <translation>پروکسی بدون WARP</translation>
+        <source>Proxy without exit</source>
+        <translation>پروکسی بدون خروجی</translation>
     </message>
     <message>
         <source>[VPN] %1 rejected its sign-in; it stays down until the profile restarts.</source>
@@ -5441,6 +5688,38 @@ Error: %2</source>
         <source>Toggle system proxy</source>
         <translation>تغییر وضعیت پروکسی سیستم</translation>
     </message>
+    <message>
+        <source>New Tor circuit</source>
+        <translation>مدار جدید Tor</translation>
+    </message>
+    <message>
+        <source>Tor is not downloaded</source>
+        <translation>Tor دانلود نشده است</translation>
+    </message>
+    <message>
+        <source>The profile &quot;%1&quot; connects through Tor, which is not downloaded yet.
+
+Download Tor from the Tor Project now? The profile starts once it is installed.</source>
+        <translation>نمایهٔ «%1» از طریق Tor وصل می‌شود، اما Tor هنوز دانلود نشده است.
+
+Tor همین حالا از پروژهٔ Tor دانلود شود؟ پس از نصب آن، نمایه اجرا می‌شود.</translation>
+    </message>
+    <message>
+        <source>Download</source>
+        <translation>دانلود</translation>
+    </message>
+    <message>
+        <source>[Tor] A download is already running; start the profile again once it finishes.</source>
+        <translation>[Tor] یک دانلود در حال انجام است؛ پس از پایان آن، نمایه را دوباره اجرا کنید.</translation>
+    </message>
+    <message>
+        <source>[Tor] New circuit requested; new connections take a different path.</source>
+        <translation>[Tor] مدار جدید درخواست شد؛ اتصال‌های جدید از مسیر دیگری می‌روند.</translation>
+    </message>
+    <message>
+        <source>[Tor] Could not switch to a new circuit: %1</source>
+        <translation>[Tor] تغییر به مدار جدید ممکن نشد: %1</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableFilterHeader</name>
@@ -5449,8 +5728,8 @@ Error: %2</source>
         <translation>فیلتر بر اساس کشور یا سرویس...</translation>
     </message>
     <message>
-        <source>Countries or working services, e.g. &quot;DE gemini&quot;; &quot;!netflix&quot; finds refusals.</source>
-        <translation>کشورها یا سرویس‌های فعال، مثلاً «DE gemini»؛ «!netflix» موارد ردشده را می‌یابد.</translation>
+        <source>Countries or working services, e.g. &quot;!RU gemini+US&quot; (Gemini sees US); &quot;!netflix&quot; finds refusals.</source>
+        <translation>کشورها یا سرویس‌های فعال، مثلاً «!RU gemini+US» (Gemini منطقه را US می‌بیند)؛ «!netflix» موارد ردشده را می‌یابد.</translation>
     </message>
 </context>
 <context>
@@ -5809,10 +6088,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>پرس‌وجوهای DNS</translation>
     </message>
     <message>
-        <source>Lists</source>
-        <translation>فهرست‌ها</translation>
-    </message>
-    <message>
         <source>%1 · rule %2 in the list</source>
         <translation>%1 · قانون %2 در فهرست</translation>
     </message>
@@ -5833,8 +6108,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>ادامهٔ ویرایش</translation>
     </message>
     <message>
-        <source>Everything else goes to</source>
-        <translation>بقیهٔ ترافیک:</translation>
+        <source>Final Exit</source>
+        <translation>خروجی نهایی</translation>
     </message>
     <message>
         <source>Remote profile</source>
@@ -5849,8 +6124,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>اکنون دریافت شود</translation>
     </message>
     <message>
-        <source>Each update replaces the rules, so changes made here last until the next one.</source>
-        <translation>هر به‌روزرسانی قوانین را جایگزین می‌کند، پس تغییراتی که اینجا می‌دهید تا به‌روزرسانی بعدی می‌مانند.</translation>
+        <source>Each update replaces the rules that came from the URL, so edits to them last until the next one. Rules added here are kept.</source>
+        <translation>هر به‌روزرسانی قوانینی را که از URL آمده‌اند جایگزین می‌کند، پس تغییرات شما در آن‌ها تا به‌روزرسانی بعدی می‌مانند. قوانینی که اینجا اضافه می‌کنید حفظ می‌شوند.</translation>
     </message>
     <message>
         <source>OpenVPN and OpenConnect profiles started together with this routing profile. Each one adds an endpoint rule to the list, which you can move but not edit.</source>
@@ -5873,8 +6148,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>دریافت از راه دور</translation>
     </message>
     <message>
-        <source>This will replace the current rules with the ones fetched from the URL. Continue?</source>
-        <translation>این کار قوانین فعلی را با قوانین دریافت‌شده از URL جایگزین می‌کند. ادامه می‌دهید؟</translation>
+        <source>This will replace the rules that came from the URL, edits to them included, with the ones fetched now. Rules added here are kept. Continue?</source>
+        <translation>این کار قوانینی را که از URL آمده‌اند، همراه با تغییراتی که در آن‌ها داده‌اید، با قوانین تازه دریافت‌شده جایگزین می‌کند. قوانینی که اینجا اضافه کرده‌اید حفظ می‌شوند. ادامه می‌دهید؟</translation>
     </message>
     <message>
         <source>Fetching...</source>
@@ -7424,6 +7699,98 @@ Remove that endpoint from this routing profile as well?</source>
         <source>Write only the domain, without a scheme such as https://; as written, this never matches.</source>
         <translation>فقط دامنه را بنویسید، بدون طرحی مثل https://؛ به این شکل هرگز تطبیق پیدا نمی‌کند.</translation>
     </message>
+    <message>
+        <source>Ignored %1: Psiphon profiles take only a region.</source>
+        <translation>%1 نادیده گرفته شد: نمایه‌های Psiphon فقط منطقه را می‌پذیرند.</translation>
+    </message>
+    <message>
+        <source>Use a two-letter country code, like US.</source>
+        <translation>یک کد دوحرفی کشور به کار ببرید، مانند US.</translation>
+    </message>
+    <message>
+        <source>Add at least one bridge line, or choose another bridge mode.</source>
+        <translation>دست‌کم یک خط پل اضافه کنید، یا حالت دیگری برای پل‌ها انتخاب کنید.</translation>
+    </message>
+    <message>
+        <source>The bridge address must be an IP address with a port, like 192.0.2.1:443 or [2001:db8::1]:443.</source>
+        <translation>نشانی پل باید یک نشانی IP همراه با پورت باشد، مانند 192.0.2.1:443 یا [2001:db8::1]:443.</translation>
+    </message>
+    <message>
+        <source>Only the first exit country was imported.</source>
+        <translation>فقط نخستین کشور خروجی وارد شد.</translation>
+    </message>
+    <message>
+        <source>Ignored %1: Tor profiles take only bridges and an exit country.</source>
+        <translation>%1 نادیده گرفته شد: نمایه‌های Tor فقط پل‌ها و کشور خروجی را می‌پذیرند.</translation>
+    </message>
+    <message>
+        <source>Bridge line %1: %2</source>
+        <translation>خط پل %1: %2</translation>
+    </message>
+    <message>
+        <source>The built-in Tor bridges are not available: the core has not reported them.</source>
+        <translation>پل‌های داخلی Tor در دسترس نیستند: هسته آن‌ها را گزارش نکرده است.</translation>
+    </message>
+    <message>
+        <source>The bridge line is empty.</source>
+        <translation>خط پل خالی است.</translation>
+    </message>
+    <message>
+        <source>%1 bridges are not supported; use obfs4, WebTunnel, Snowflake, meek or plain bridges.</source>
+        <translation>پل‌های %1 پشتیبانی نمی‌شوند؛ از پل‌های obfs4، WebTunnel، Snowflake، meek یا ساده استفاده کنید.</translation>
+    </message>
+    <message>
+        <source>The bridge address is missing.</source>
+        <translation>نشانی پل وارد نشده است.</translation>
+    </message>
+    <message>
+        <source>The bridge fingerprint must be 40 hexadecimal characters.</source>
+        <translation>اثرانگشت پل باید 40 نویسهٔ هگزادسیمال باشد.</translation>
+    </message>
+    <message>
+        <source>Write bridge options as key=value, like iat-mode=0.</source>
+        <translation>گزینه‌های پل را به‌صورت key=value بنویسید، مانند iat-mode=0.</translation>
+    </message>
+    <message>
+        <source>%1 bridges need the %2 option.</source>
+        <translation>پل‌های %1 به گزینهٔ %2 نیاز دارند.</translation>
+    </message>
+    <message>
+        <source>Use a two-letter country code, like de.</source>
+        <translation>یک کد دوحرفی کشور به کار ببرید، مانند de.</translation>
+    </message>
+    <message>
+        <source>Skipped a bridge line: %1</source>
+        <translation>یک خط پل نادیده گرفته شد: %1</translation>
+    </message>
+    <message>
+        <source>Tor bridges: %1</source>
+        <translation>پل‌های Tor: %1</translation>
+    </message>
+    <message>
+        <source>Put the padding parts before the keys.</source>
+        <translation>بخش‌های padding را پیش از کلیدها بگذارید.</translation>
+    </message>
+    <message>
+        <source>A 1184-byte key in the string is not a valid ML-KEM-768 key: copy the string from the server again.</source>
+        <translation>کلید 1184 بایتی در رشته یک کلید معتبر ML-KEM-768 نیست: رشته را دوباره از سرور کپی کنید.</translation>
+    </message>
+    <message>
+        <source>The string has no key: copy the whole string the server gives.</source>
+        <translation>رشته هیچ کلیدی ندارد: کل رشته‌ای را که سرور می‌دهد کپی کنید.</translation>
+    </message>
+    <message>
+        <source>Each padding part must be three numbers joined by dashes, like 100-111-1111.</source>
+        <translation>هر بخش padding باید سه عدد باشد که با خط تیره به هم وصل شده‌اند، مانند 100-111-1111.</translation>
+    </message>
+    <message>
+        <source>The first padding part needs a chance of at least 100 and lengths of at least 35, like 100-111-1111.</source>
+        <translation>بخش نخست padding باید احتمالی دست‌کم 100 و طول‌هایی دست‌کم 35 داشته باشد، مانند 100-111-1111.</translation>
+    </message>
+    <message>
+        <source>The padding lengths can add up to more than 65553 bytes.</source>
+        <translation>مجموع طول‌های padding می‌تواند از 65553 بایت بیشتر شود.</translation>
+    </message>
 </context>
 <context>
     <name>GuiStartup</name>
@@ -7530,6 +7897,14 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Exit IP</source>
         <translation>IP خروجی</translation>
+    </message>
+    <message>
+        <source>Admin</source>
+        <translation>سرپرست</translation>
+    </message>
+    <message>
+        <source>capabilities</source>
+        <translation>قابلیت‌ها</translation>
     </message>
 </context>
 <context>
@@ -8509,8 +8884,8 @@ Remove that endpoint from this routing profile as well?</source>
 <context>
     <name>RouteEditor</name>
     <message>
-        <source>Unnamed rule</source>
-        <translation>قانون بی‌نام</translation>
+        <source>Protocol</source>
+        <translation>پروتکل</translation>
     </message>
     <message>
         <source>Proxy</source>
@@ -8521,8 +8896,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>مستقیم</translation>
     </message>
     <message>
-        <source>Proxy without WARP</source>
-        <translation>پروکسی بدون WARP</translation>
+        <source>Proxy without exit</source>
+        <translation>پروکسی بدون خروجی</translation>
     </message>
     <message>
         <source>Block</source>
@@ -8827,8 +9202,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>%1 خطا</translation>
     </message>
     <message>
-        <source>Only differs from Proxy while WARP or Tor is on: these sites skip that layer.</source>
-        <translation>فقط وقتی WARP یا Tor روشن است با «پروکسی» فرق دارد: این سایت‌ها آن لایه را دور می‌زنند.</translation>
+        <source>Only differs from Proxy while an exit is on (Routing Settings &gt; Exit): these sites skip it and leave through the selected profile.</source>
+        <translation>فقط وقتی یک خروجی روشن است با «پروکسی» فرق دارد (تنظیمات مسیریابی &gt; خروجی): این سایت‌ها آن را دور می‌زنند و از طریق نمایهٔ انتخاب‌شده خارج می‌شوند.</translation>
     </message>
 </context>
 <context>
@@ -8856,45 +9231,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>The %1 list also has rows at %2.</source>
         <translation>فهرست «%1» ردیف‌های دیگری هم دارد: %2.</translation>
-    </message>
-</context>
-<context>
-    <name>QuickListsView</name>
-    <message>
-        <source>Empty.</source>
-        <translation>خالی.</translation>
-    </message>
-    <message>
-        <source>Add an entry</source>
-        <translation>افزودن مورد</translation>
-    </message>
-    <message>
-        <source>Add</source>
-        <translation>افزودن</translation>
-    </message>
-    <message>
-        <source>A line without a prefix is typed by its shape: example.com is a domain suffix, 10.0.0.0/8 an IP range, app.exe a process. The prefixes domain:, keyword:, regex:, ruleset: and processPath: still work.</source>
-        <translation>خطی که پیشوند ندارد از شکلش شناخته می‌شود: example.com پسوند دامنه است، 10.0.0.0/8 محدودهٔ IP و app.exe یک فرآیند. پیشوندهای domain:، keyword:، regex:، ruleset: و processPath: هم همچنان کار می‌کنند.</translation>
-    </message>
-    <message>
-        <source>%1 list</source>
-        <translation>فهرست «%1»</translation>
-    </message>
-    <message>
-        <source>Entry %1 (&quot;%2&quot;): %3</source>
-        <translation>مورد %1 («%2»): %3</translation>
-    </message>
-    <message>
-        <source>Advanced mode shows other rules too. Before these lists: %1. After them: %2.</source>
-        <translation>حالت پیشرفته قوانین دیگری را هم نشان می‌دهد. پیش از این فهرست‌ها: %1. پس از آن‌ها: %2.</translation>
-    </message>
-    <message>
-        <source>Show fewer</source>
-        <translation>نمایش کمتر</translation>
-    </message>
-    <message>
-        <source>%1 more</source>
-        <translation>%1 مورد دیگر</translation>
     </message>
 </context>
 <context>
@@ -8984,12 +9320,12 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>مسیر پیش‌فرض. همیشه آخر است و بالای فهرست تنظیم می‌شود.</translation>
     </message>
     <message>
-        <source>Set above the list, under Everything else goes to.</source>
-        <translation>بالای فهرست، در «بقیهٔ ترافیک» تنظیم می‌شود.</translation>
-    </message>
-    <message>
         <source>Quick list</source>
         <translation>فهرست سریع</translation>
+    </message>
+    <message>
+        <source>empty</source>
+        <translation>خالی</translation>
     </message>
     <message>
         <source>Off · %1</source>
@@ -9004,18 +9340,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>نقطهٔ پایانی</translation>
     </message>
     <message>
-        <source>#</source>
-        <translation>#</translation>
-    </message>
-    <message>
-        <source>Then</source>
-        <translation>اقدام</translation>
-    </message>
-    <message>
-        <source>Rule</source>
-        <translation>قانون</translation>
-    </message>
-    <message>
         <source>Rules</source>
         <translation>قوانین</translation>
     </message>
@@ -9023,12 +9347,16 @@ Remove that endpoint from this routing profile as well?</source>
 <context>
     <name>RouteRuleEditor</name>
     <message>
-        <source>Name</source>
-        <translation>نام</translation>
+        <source>Rule name</source>
+        <translation>نام قانون</translation>
     </message>
     <message>
-        <source>When</source>
-        <translation>شرط‌ها</translation>
+        <source>AND</source>
+        <translation>و</translation>
+    </message>
+    <message>
+        <source>OR</source>
+        <translation>یا</translation>
     </message>
     <message>
         <source>+ Add condition</source>
@@ -9037,10 +9365,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Invert: match only what this rule would not match</source>
         <translation>وارونه: فقط چیزی را بگیرد که این قانون در حالت عادی نمی‌گیرد</translation>
-    </message>
-    <message>
-        <source>Then</source>
-        <translation>اقدام</translation>
     </message>
     <message>
         <source>Default</source>
@@ -9103,16 +9427,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>sing-box JSON</translation>
     </message>
     <message>
-        <source>Any of these</source>
-        <translation>هر کدام از این‌ها</translation>
-    </message>
-    <message>
-        <source>Any of these values</source>
-        <translation>هر کدام از این مقدارها</translation>
-    </message>
-    <message>
-        <source>+ Add</source>
-        <translation>+ افزودن</translation>
+        <source>Add a value</source>
+        <translation>افزودن مقدار</translation>
     </message>
     <message>
         <source>Choose app</source>
@@ -9140,6 +9456,10 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Delete</source>
         <translation>حذف</translation>
+    </message>
+    <message>
+        <source>Filter rules</source>
+        <translation>فیلتر قوانین</translation>
     </message>
     <message>
         <source>Filter by name, domain or app</source>

@@ -170,6 +170,12 @@ namespace Engine {
         // manual stop moved token on since that start was requested.
         void retryAfterGeoFetch(int profileId, quint64 token);
 
+        // Interactive starts ask whether to download Tor; after a clean install the profile starts again, unless a start or a
+        // manual stop moved token on meanwhile.
+        void offerTorDownload(const StartRequest &request, const QString &profileName, quint64 token);
+
+        void retryAfterTorInstall(int profileId, quint64 token);
+
         std::shared_ptr<EngineState> m_state;
         EnginePolicy *m_policy;
         CoreSupervisor *m_core;

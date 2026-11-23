@@ -585,7 +585,7 @@ void MainWindow::onConnectionContextMenu(const QPoint& pos)
         { Configs::proxy,      tr("Proxy") },
         { Configs::block,      tr("Block") },
         // Not offered from here, but a target already sitting in its list still has to show up as taken.
-        { Configs::warpBypass, tr("Proxy without WARP"), false },
+        { Configs::warpBypass, tr("Proxy without exit"), false },
     };
 
     // Looked up once per menu: the dialog asks for a server's name on every refresh.

@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>EditTor</class>
+ <widget class="QWidget" name="EditTor">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>420</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string notr="true">EditTor</string>
+  </property>
+  <layout class="QVBoxLayout" name="tor_layout">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <layout class="QFormLayout" name="tor_form">
+     <item row="0" column="0">
+      <widget class="QLabel" name="bridge_mode_l">
+       <property name="text">
+        <string>Bridges</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <layout class="QHBoxLayout" name="bridge_mode_row">
+       <item>
+        <widget class="QRadioButton" name="bridges_none">
+         <property name="toolTip">
+          <string>Connect to the Tor network directly; works only where Tor is not blocked.</string>
+         </property>
+         <property name="text">
+          <string>None</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="bridges_builtin">
+         <property name="toolTip">
+          <string>Use the bridges built into Throne.</string>
+         </property>
+         <property name="text">
+          <string>Built-in</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="bridges_custom">
+         <property name="toolTip">
+          <string>Use bridge lines from the Tor Project or someone you trust.</string>
+         </property>
+         <property name="text">
+          <string>Custom</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="bridge_mode_spacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item row="1" column="1">
+      <widget class="QComboBox" name="builtin_type"/>
+     </item>
+     <item row="2" column="1">
+      <widget class="MyPlainTextEdit" name="bridges">
+       <property name="tabChangesFocus">
+        <bool>true</bool>
+       </property>
+       <property name="lineWrapMode">
+        <enum>QPlainTextEdit::NoWrap</enum>
+       </property>
+       <property name="placeholderText">
+        <string>One bridge per line, with or without the Bridge keyword</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLabel" name="bridges_hint">
+       <property name="text">
+        <string>Snowflake works in most censored networks. WebTunnel and obfs4 bridges come from Get bridges.</string>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+       <property name="colorRole" stdset="0">
+        <string notr="true">muted</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <layout class="QHBoxLayout" name="bridge_actions_row">
+       <item>
+        <widget class="QPushButton" name="get_bridges">
+         <property name="toolTip">
+          <string>Ask the Tor Project's bridge service which bridges work in a country.</string>
+         </property>
+         <property name="text">
+          <string>Get bridges</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="copy_bridges">
+         <property name="toolTip">
+          <string>Copy the bridge lines this profile uses.</string>
+         </property>
+         <property name="text">
+          <string>Copy bridges</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="bridge_actions_spacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="exit_country_l">
+       <property name="text">
+        <string>Exit country</string>
+       </property>
+       <property name="buddy">
+        <cstring>exit_country</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QComboBox" name="exit_country">
+       <property name="toolTip">
+        <string>The country of the last Tor relay; Any lets Tor choose.</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="0" colspan="2">
+      <layout class="QHBoxLayout" name="tor_status_row">
+       <item>
+        <widget class="QLabel" name="tor_status">
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+         <property name="colorRole" stdset="0">
+          <string notr="true">muted</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="download_tor">
+         <property name="toolTip">
+          <string>Download the Tor program from the Tor Project.</string>
+         </property>
+         <property name="text">
+          <string>Download</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="tor_status_spacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MyPlainTextEdit</class>
+   <extends>QPlainTextEdit</extends>
+   <header>include/ui/utils/MyPlainTextEdit.h</header>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>bridges_none</tabstop>
+  <tabstop>bridges_builtin</tabstop>
+  <tabstop>bridges_custom</tabstop>
+  <tabstop>builtin_type</tabstop>
+  <tabstop>bridges</tabstop>
+  <tabstop>get_bridges</tabstop>
+  <tabstop>copy_bridges</tabstop>
+  <tabstop>exit_country</tabstop>
+  <tabstop>download_tor</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

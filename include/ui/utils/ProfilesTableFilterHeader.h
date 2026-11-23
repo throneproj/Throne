@@ -59,7 +59,7 @@ public:
 
         test_filter = new QLineEdit(this->viewport()); 
         test_filter->setPlaceholderText(tr("Filter by country or service..."));
-        test_filter->setToolTip(tr("Countries or working services, e.g. \"DE gemini\"; \"!netflix\" finds refusals."));
+        test_filter->setToolTip(tr("Countries or working services, e.g. \"!RU gemini+US\" (Gemini sees US); \"!netflix\" finds refusals."));
         test_filter->setClearButtonEnabled(true);
         connect(test_filter, &QLineEdit::textChanged, [this](const QString &text) {
             emit testFilterChanged(text);

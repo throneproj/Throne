@@ -23,7 +23,6 @@
 #include "include/ui/group/dialog_edit_group.h"
 #include "include/ui/setting/dialog_rule_tester.h"
 #include "include/ui/utils/GuiUtils.hpp"
-#include "include/ui/utils/UiMode.h"
 
 namespace {
     QString moveRefusalText(const Engine::ServiceError &error) {
@@ -159,10 +158,10 @@ void MainWindow::setupRoutingMenu() {
     });
 
     connect(ui->actionWarp, &QAction::triggered, this, [this] {
-        const auto &settings = Configs::dataManager->settingsRepo;
+        const auto warpIsExit = [] { return Configs::ExitOf(Configs::dataManager->settingsRepo->exit_through) == Configs::ExitThrough::Warp; };
         Engine::WarpService::ChangeResult result;
-        const auto refused = Engine::WarpService::Apply({.enabled = !settings->enable_warp}, {}, &result);
-        ui->actionWarp->setChecked(settings->enable_warp);
+        const auto refused = Engine::WarpService::Apply({.enabled = !warpIsExit()}, {}, &result);
+        ui->actionWarp->setChecked(warpIsExit());
         if (refused) {
             if (const QString reason = warpRefusalText(*refused); !reason.isEmpty()) MessageBoxWarning(ui->actionWarp->text(), reason);
             return;
@@ -170,69 +169,62 @@ void MainWindow::setupRoutingMenu() {
         if (result.restartNeeded) connection()->applyPendingRestart();
     });
 
-    // Tor outranks WARP, as in Routing Settings.
-    const auto syncExitChecks = [this] {
-        const auto &settings = Configs::dataManager->settingsRepo;
-        (settings->enable_tor ? ui->menu_exit_tor : settings->enable_warp ? ui->menu_exit_warp : ui->menu_exit_server)->setChecked(true);
+    const QList<std::pair<QAction *, Configs::ExitThrough>> exitActions{
+        {ui->menu_exit_server, Configs::ExitThrough::Server},
+        {ui->menu_exit_warp, Configs::ExitThrough::Warp},
+        {ui->menu_exit_tor, Configs::ExitThrough::Tor},
+        {ui->menu_exit_psiphon, Configs::ExitThrough::Psiphon},
     };
-    const auto turnTorOn = [this] {
+    const auto syncExitChecks = [exitActions] {
+        const auto exit = Configs::ExitOf(Configs::dataManager->settingsRepo->exit_through);
+        for (const auto &[action, value] : exitActions) action->setChecked(value == exit);
+    };
+    const auto setExit = [this](Configs::ExitThrough exit) {
         Engine::SettingsService::ApplyResult result;
-        Engine::SettingsService::Update([](Configs::SettingsValues &values) {
-            values.enable_tor = true;
-            values.enable_warp = false;
-        }, {.interactive = true}, &result);
+        Engine::SettingsService::Update([exit](Configs::SettingsValues &values) { values.exit_through = Configs::ExitValue(exit); },
+                                        {.interactive = true}, &result);
         if (!result.changed.isEmpty()) connection()->applyPendingRestart();
     };
-    const auto chooseExit = [this, syncExitChecks, turnTorOn](QAction *clicked) {
-        const auto &settings = Configs::dataManager->settingsRepo;
-        const QAction *current = settings->enable_tor ? ui->menu_exit_tor : settings->enable_warp ? ui->menu_exit_warp : ui->menu_exit_server;
+    const auto chooseExit = [this, syncExitChecks, setExit](QAction *clicked, Configs::ExitThrough wanted) {
         // The exclusive group has already checked the clicked item.
         syncExitChecks();
-        if (clicked == current) return;
+        if (Configs::ExitOf(Configs::dataManager->settingsRepo->exit_through) == wanted) return;
         if (Engine::IsBeingEdited(Engine::EditTarget::Routes)) {
             MessageBoxWarning(clicked->text(), tr("Routing Settings is open; close it and try again."));
             return;
         }
-        if (clicked == ui->menu_exit_tor) {
-            if (Engine::AssetUpdates::TorInstalled()) {
-                turnTorOn();
-            } else {
-                // False while a download runs; whoever started that one turns Tor on when it finishes.
-                Engine::AssetUpdates::InstallTor([self = QPointer<MainWindow>(this), turnTorOn, syncExitChecks](const QString &error) {
-                    if (!self) return;
-                    if (!error.isEmpty()) {
-                        MessageBoxWarning(QCoreApplication::translate("DialogManageRoutes", "Tor download failed"), error);
-                        return;
-                    }
-                    turnTorOn();
-                    syncExitChecks();
-                });
-                MW_show_log(tr("[Tor] Downloading Tor; it turns on when the download finishes."));
-            }
-        } else {
-            const bool warp = clicked == ui->menu_exit_warp;
+        if (wanted == Configs::ExitThrough::Warp) {
             Engine::WarpService::ChangeResult warpResult;
-            if (warp || settings->enable_warp) {
-                if (const auto refused = Engine::WarpService::Apply({.enabled = warp}, {}, &warpResult)) {
-                    if (const QString reason = warpRefusalText(*refused); !reason.isEmpty()) MessageBoxWarning(clicked->text(), reason);
+            if (const auto refused = Engine::WarpService::Apply({.enabled = true}, {}, &warpResult)) {
+                if (const QString reason = warpRefusalText(*refused); !reason.isEmpty()) MessageBoxWarning(clicked->text(), reason);
+                return;
+            }
+            if (warpResult.restartNeeded) connection()->applyPendingRestart();
+        } else if (wanted == Configs::ExitThrough::Tor && !Engine::AssetUpdates::TorInstalled()) {
+            // False while a download runs; whoever started that one turns Tor on when it finishes.
+            Engine::AssetUpdates::InstallTor([self = QPointer<MainWindow>(this), setExit, syncExitChecks](const QString &error) {
+                if (!self) return;
+                if (!error.isEmpty()) {
+                    MessageBoxWarning(QCoreApplication::translate("DialogManageRoutes", "Tor download failed"), error);
                     return;
                 }
-            }
-            // Turning WARP on turns Tor off as well, but not when WARP was on already and Tor only outranked it.
-            Engine::SettingsService::ApplyResult result;
-            if (settings->enable_tor) {
-                Engine::SettingsService::Update([](Configs::SettingsValues &values) { values.enable_tor = false; }, {.interactive = true}, &result);
-            }
-            if (warpResult.restartNeeded || !result.changed.isEmpty()) connection()->applyPendingRestart();
+                setExit(Configs::ExitThrough::Tor);
+                syncExitChecks();
+            });
+            MW_show_log(tr("[Tor] Downloading Tor; it turns on when the download finishes."));
+        } else {
+            setExit(wanted);
         }
         syncExitChecks();
     };
     auto *exitMenu = new QMenu(QCoreApplication::translate("DialogManageRoutes", "Exit through"), menu);
     auto *exitGroup = new QActionGroup(exitMenu);
-    for (QAction *item : {ui->menu_exit_server, ui->menu_exit_warp, ui->menu_exit_tor}) {
+    for (const auto &entry : exitActions) {
+        QAction *item = entry.first;
+        const auto exit = entry.second;
         exitGroup->addAction(item);
         exitMenu->addAction(item);
-        connect(item, &QAction::triggered, this, [chooseExit, item] { chooseExit(item); });
+        connect(item, &QAction::triggered, this, [chooseExit, item, exit] { chooseExit(item, exit); });
     }
 
     auto *downloadMenu = new QMenu(tr("Download routing profile"), menu);
@@ -273,28 +265,36 @@ void MainWindow::setupRoutingMenu() {
         ActivateWindow(m_ruleTesterDialog);
     });
 
-    QAction *routesEnd = menu->addSeparator();
+    auto *routesHeading = new QAction(tr("Choose profile:"), menu);
+    routesHeading->setEnabled(false);
+    routesHeading->setProperty("menuHeading", true);
+    auto *moreRoutesMenu = new QMenu(tr("More"), menu);
+    moreRoutesMenu->installEventFilter(this);
+
+    menu->addAction(ui->menu_routing_settings);
+    menu->addAction(ui->menu_edit_route);
     menu->addMenu(exitMenu);
     menu->addAction(ui->actionAdblock);
     menu->addSeparator();
-    menu->addAction(ui->menu_edit_route);
+    menu->addAction(routesHeading);
+    QAction *moreRoutesAction = menu->addMenu(moreRoutesMenu);
+    menu->addSeparator();
     menu->addAction(ui->actionRule_Tester);
     menu->addAction(ui->actionUpdate_Rule_Sets);
     menu->addMenu(downloadMenu);
-    menu->addAction(ui->menu_routing_settings);
 
     auto *routeGroup = new QActionGroup(menu);
     const auto syncRouteChecks = [routeGroup] {
         const int current = Configs::dataManager->settingsRepo->current_route_id;
         for (auto *action : routeGroup->actions()) action->setChecked(action->data().toInt() == current);
     };
-    connect(menu, &QMenu::aboutToShow, this, [this, menu, routesEnd, routeGroup, syncExitChecks, syncRouteChecks] {
+    connect(menu, &QMenu::aboutToShow, this, [this, menu, routesHeading, moreRoutesMenu, moreRoutesAction, routeGroup, syncExitChecks, syncRouteChecks] {
         ui->actionAdblock->setChecked(Configs::dataManager->settingsRepo->adblock_enable);
         syncExitChecks();
         refresh_action_states();
 
         // Kept across shows unless the profiles' ids or names changed: the command palette holds on to these actions.
-        const auto routeActions = routeGroup->actions();
+        auto routeActions = routeGroup->actions();
         const auto routes = Configs::dataManager->routesRepo->GetAllRouteProfiles();
         bool changed = routes.size() != routeActions.size();
         for (int i = 0; !changed && i < routes.size(); ++i) {
@@ -312,9 +312,35 @@ void MainWindow::setupRoutingMenu() {
                     connection()->chooseRoute(action->data().toInt());
                     syncRouteChecks();
                 });
-                menu->insertAction(routesEnd, action);
             }
+            routeActions = routeGroup->actions();
         }
+
+        // At most five rows, "More" counting as one; the current profile always keeps a row.
+        constexpr qsizetype maxRouteRows = 5;
+        const qsizetype shownCount = routeActions.size() <= maxRouteRows ? routeActions.size() : maxRouteRows - 1;
+        QList<QAction *> shown = routeActions.mid(0, shownCount);
+        QList<QAction *> hidden = routeActions.mid(shownCount);
+        const int current = Configs::dataManager->settingsRepo->current_route_id;
+        for (qsizetype i = 0; i < hidden.size(); ++i) {
+            if (hidden[i]->data().toInt() != current) continue;
+            QAction *pinned = hidden.takeAt(i);
+            hidden.prepend(shown.takeLast());
+            shown.append(pinned);
+            break;
+        }
+        const auto menuActions = menu->actions();
+        const qsizetype first = menuActions.indexOf(routesHeading) + 1;
+        if (menuActions.mid(first, menuActions.indexOf(moreRoutesAction) - first) != shown || moreRoutesMenu->actions() != hidden) {
+            for (auto *action : routeActions) {
+                menu->removeAction(action);
+                moreRoutesMenu->removeAction(action);
+            }
+            menu->insertActions(moreRoutesAction, shown);
+            moreRoutesMenu->addActions(hidden);
+        }
+        routesHeading->setVisible(!routeActions.isEmpty());
+        moreRoutesAction->setVisible(!hidden.isEmpty());
         syncRouteChecks();
     });
 }
@@ -347,7 +373,6 @@ void MainWindow::setupTrayMenu() {
 
     auto *actOtpCodes = new QAction(tr("OTP codes"), trayMenu);
     connect(actOtpCodes, &QAction::triggered, this, [this]() { openTrayOtpCodes(); });
-    UiMode::MarkAdvanced(actOtpCodes);
     trayMenu->addAction(actOtpCodes);
     trayMenu->addAction(ui->actionShow_window);
     auto *preferencesMenu = trayMenu->addMenu(tr("Program"));

@@ -10,7 +10,8 @@ namespace Configs {
     inline bool IsVlessEncrypted(const QString& encryption) { return !encryption.isEmpty() && encryption != "none"; }
 
     namespace Checks {
-        // Xray infra/conf/vless.go: "none" or mlkem768x25519plus.<native|xorpub|random>.<1rtt|0rtt>.<parts>, parts of 20+ chars being keys.
+        // "none" or mlkem768x25519plus.<native|xorpub|random>.<1rtt|0rtt>.<padding>.<keys>. Also runs the key and padding checks Xray
+        // leaves to outbound start, where one bad string fails the whole instance (#2165).
         QString XrayVlessEncryption(const QString &encryption);
 
         // Without VLESS encryption, Vision needs TLS or REALITY directly on the raw network.

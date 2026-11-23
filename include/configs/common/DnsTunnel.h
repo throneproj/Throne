@@ -13,8 +13,11 @@ namespace Configs {
     // Includes Xray VLESS over mKCP with an xdns mask.
     bool IsDnsTunnelProfile(const Profile &profile);
 
-    // Summed over the profile's chain hops and its group's front and landing proxies.
-    int DnsTunnelStartupAllowanceMs(const std::shared_ptr<Profile> &profile);
+    // The time DNS tunnels and slow starters (Tor, Psiphon) take to come up, summed over chain hops and the group's front and landing proxies.
+    int StartupAllowanceMs(const std::shared_ptr<Profile> &profile);
+
+    // A Tor or Psiphon profile among the hops StartupAllowanceMs sums over.
+    bool HasSlowStartHop(const std::shared_ptr<Profile> &profile);
 
     ResolverSource *ProfileResolverSource(const Profile &profile);
 

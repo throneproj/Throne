@@ -176,6 +176,7 @@ namespace Configs {
         for (auto &r : cleanRules) {
             if (r->type == rule->type) {
                 r->disabled = rule->disabled;
+                r->remote = rule->remote;
                 rule = std::move(r);
                 return;
             }

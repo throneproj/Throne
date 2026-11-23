@@ -26,6 +26,7 @@
 #include <QMenu>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QPainterPath>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QRegularExpression>
@@ -48,30 +49,16 @@ namespace {
         return attrs;
     }
 
-    QFont ruleEditorFont(const QFont& base, qreal scale, bool bold) {
-        QFont font = base;
-        if (scale != 1.0) {
-            if (font.pointSizeF() > 0) font.setPointSizeF(font.pointSizeF() * scale);
-            else if (font.pixelSize() > 0) font.setPixelSize(qMax(8, qRound(font.pixelSize() * scale)));
-        }
-        if (bold) font.setWeight(QFont::DemiBold);
-        return font;
-    }
-
-    QLabel* ruleEditorLabel(const QString& text, QWidget* parent, const char* role = nullptr, qreal scale = 1.0, bool bold = false, bool wrap = false) {
-        auto* label = new QLabel(text, parent);
+    // Word-wrapped, a little smaller than the text around it, and hidden until there is something to say.
+    QLabel* ruleEditorIssuesLabel(QWidget* parent) {
+        auto* label = new QLabel(parent);
         label->setTextFormat(Qt::PlainText);
-        label->setWordWrap(wrap);
-        if (role != nullptr) label->setProperty("colorRole", QString::fromLatin1(role));
-        if (scale != 1.0 || bold) label->setFont(ruleEditorFont(label->font(), scale, bold));
-        return label;
-    }
-
-    QLabel* ruleEditorHeading(const QString& text, QWidget* parent) {
-        auto* label = ruleEditorLabel(text, parent, "muted", 0.85, true);
+        label->setWordWrap(true);
         QFont font = label->font();
-        font.setCapitalization(QFont::AllUppercase);
+        if (font.pointSizeF() > 0) font.setPointSizeF(font.pointSizeF() * 0.95);
+        else if (font.pixelSize() > 0) font.setPixelSize(qMax(8, qRound(font.pixelSize() * 0.95)));
         label->setFont(font);
+        label->hide();
         return label;
     }
 
@@ -158,34 +145,26 @@ namespace {
         return model;
     }
 
-    // A rounded frame around a box or a settings group, with an optional rule under its header.
+    RouteEditor::ValueChip* ruleEditorChip(const QString& text, QWidget* parent) {
+        auto* chip = new RouteEditor::ValueChip(text, parent);
+        chip->setCompact(true);
+        return chip;
+    }
+
+    // A rounded outline around a group of settings.
     class RuleEditorPanel : public QWidget {
     public:
-        RuleEditorPanel(QWidget* parent, bool filled) : QWidget(parent), fill(filled) {}
-
-        void setDivider(QWidget* widget) {
-            divider = widget;
-            update();
-        }
+        using QWidget::QWidget;
 
     protected:
         void paintEvent(QPaintEvent*) override {
             const auto& tokens = themeManager()->tokens;
             QPainter painter(this);
             painter.setRenderHint(QPainter::Antialiasing, true);
-            const QColor line = RouteEditor::Mix(tokens.onSurface, tokens.surface, 0.16);
-            painter.setPen(QPen(line, 1));
-            painter.setBrush(fill ? QBrush(RouteEditor::Mix(tokens.onSurface, tokens.surface, 0.025)) : QBrush(Qt::NoBrush));
+            painter.setPen(QPen(RouteEditor::Mix(tokens.onSurface, tokens.surface, 0.16), 1));
+            painter.setBrush(Qt::NoBrush);
             painter.drawRoundedRect(QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5), 7, 7);
-            if (divider != nullptr && divider->isVisible()) {
-                const qreal y = divider->geometry().bottom() + 4.5;
-                painter.drawLine(QPointF(1, y), QPointF(width() - 1, y));
-            }
         }
-
-    private:
-        QPointer<QWidget> divider;
-        bool fill;
     };
 
     // Wide enough for a typical value, without raising the line's minimum width.
@@ -202,37 +181,116 @@ namespace {
     private:
         int wideChars;
     };
+
+    // A square flat "+", as tall as a compact chip.
+    class RuleEditorAddButton : public QToolButton {
+    public:
+        RuleEditorAddButton(const QString& tip, QWidget* parent) : QToolButton(parent) {
+            setText(QStringLiteral("+"));
+            setToolTip(tip);
+            setAccessibleName(tip);
+            setAutoRaise(true);
+            setToolButtonStyle(Qt::ToolButtonTextOnly);
+            setCursor(Qt::PointingHandCursor);
+        }
+
+        [[nodiscard]] QSize sizeHint() const override {
+            const int side = fontMetrics().height() + 4;
+            return {side, side};
+        }
+
+        [[nodiscard]] QSize minimumSizeHint() const override { return sizeHint(); }
+    };
+
+    // The condition tree's last branch: a dashed outline with muted text.
+    class RuleEditorGhostButton : public QPushButton {
+    public:
+        RuleEditorGhostButton(const QString& text, QWidget* parent) : QPushButton(text, parent) {
+            setAutoDefault(false);
+            setAttribute(Qt::WA_Hover);
+            setCursor(Qt::PointingHandCursor);
+            setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        }
+
+        [[nodiscard]] QSize sizeHint() const override {
+            const QFontMetrics metrics = fontMetrics();
+            return {RouteEditor::TextWidth(metrics, text()) + 14, metrics.height() + 6};
+        }
+
+        [[nodiscard]] QSize minimumSizeHint() const override { return sizeHint(); }
+
+    protected:
+        void paintEvent(QPaintEvent*) override {
+            const auto& tokens = themeManager()->tokens;
+            const bool hot = underMouse() || isDown();
+            // As styles do: a focus mark only after keyboard navigation.
+            const bool focusMark = hasFocus() && window()->testAttribute(Qt::WA_KeyboardFocusChange);
+            QPainter painter(this);
+            painter.setRenderHint(QPainter::Antialiasing, true);
+            QPen pen(focusMark ? tokens.accent : RouteEditor::Mix(tokens.onSurface, tokens.surface, 0.28), 1, Qt::SolidLine, Qt::FlatCap);
+            if (!focusMark) pen.setDashPattern({3.0, 3.0});
+            painter.setPen(pen);
+            painter.setBrush(hot ? QBrush(RouteEditor::Mix(tokens.onSurface, tokens.surface, isDown() ? 0.1 : 0.05)) : QBrush(Qt::NoBrush));
+            painter.drawRoundedRect(QRectF(rect()).adjusted(0.5, 0.5, -0.5, -0.5), 5, 5);
+            painter.setPen(hot ? tokens.onSurface : tokens.muted);
+            painter.drawText(rect(), Qt::AlignCenter, text());
+        }
+    };
+
+    // The muted arrow before the Then picker, on the condition tree's spine.
+    class RuleEditorThenArrow : public QWidget {
+    public:
+        RuleEditorThenArrow(RouteEditor::TreeNode* conditions, QWidget* parent) : QWidget(parent), tree(conditions) {
+            setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        }
+
+        // As wide as the tree's indent, so the picker lines up with its branches.
+        [[nodiscard]] QSize sizeHint() const override { return {tree != nullptr ? tree->indent() : 0, 10}; }
+        [[nodiscard]] QSize minimumSizeHint() const override { return sizeHint(); }
+
+    protected:
+        void paintEvent(QPaintEvent*) override {
+            if (tree == nullptr) return;
+            const qreal x = mapFrom(window(), tree->mapTo(window(), QPoint(tree->spineX(), 0))).x() + 0.5;
+            const qreal y = height() / 2.0;
+            const qreal dir = isRightToLeft() ? -1 : 1;
+            QPainterPath arrow;
+            arrow.moveTo(x - dir * 5.5, y);
+            arrow.lineTo(x + dir * 5.5, y);
+            arrow.moveTo(x + dir * 2, y - 3.5);
+            arrow.lineTo(x + dir * 5.5, y);
+            arrow.lineTo(x + dir * 2, y + 3.5);
+            QPainter painter(this);
+            painter.setRenderHint(QPainter::Antialiasing, true);
+            painter.setPen(QPen(themeManager()->tokens.muted, 1.3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+            painter.drawPath(arrow);
+        }
+
+    private:
+        QPointer<RouteEditor::TreeNode> tree;
+    };
 } // namespace
 
 RouteRuleEditor::RouteRuleEditor(QWidget* parent) : QWidget(parent) {
     auto* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(8);
+    layout->setSpacing(10);
 
-    auto* nameRow = new QHBoxLayout;
-    nameRow->setSpacing(8);
-    auto* nameLabel = ruleEditorLabel(tr("Name"), this, "muted");
     nameEdit = new QLineEdit(this);
-    nameLabel->setBuddy(nameEdit);
-    nameRow->addWidget(nameLabel);
-    nameRow->addWidget(nameEdit, 1);
-    layout->addLayout(nameRow);
+    nameEdit->setPlaceholderText(tr("Rule name"));
+    nameEdit->setAccessibleName(tr("Rule name"));
+    layout->addWidget(nameEdit);
     connect(nameEdit, &QLineEdit::textEdited, this, [this](const QString& text) {
         if (loading || current == nullptr) return;
         current->name = text;
         emitChanged();
     });
 
-    layout->addSpacing(6);
-    layout->addWidget(ruleEditorHeading(tr("When"), this));
-    boxesHost = new QWidget(this);
-    boxesLayout = new QVBoxLayout(boxesHost);
-    boxesLayout->setContentsMargins(0, 0, 0, 0);
-    boxesLayout->setSpacing(8);
-    layout->addWidget(boxesHost);
-
-    addConditionButton = new QPushButton(tr("+ Add condition"), this);
-    addConditionButton->setAutoDefault(false);
+    tree = new RouteEditor::TreeNode(tr("AND"), this);
+    invertCheck = new QCheckBox(RouteEditor::ConditionLabel(QStringLiteral("invert")), tree);
+    invertCheck->setToolTip(tr("Invert: match only what this rule would not match"));
+    tree->head()->addWidget(invertCheck);
+    addConditionButton = new RuleEditorGhostButton(tr("+ Add condition"), tree);
     auto* conditionMenu = new QMenu(addConditionButton);
     for (const auto& group : RouteEditor::ConditionMenu()) {
         conditionMenu->addSection(group.title);
@@ -241,13 +299,9 @@ RouteRuleEditor::RouteRuleEditor(QWidget* parent) : QWidget(parent) {
         }
     }
     addConditionButton->setMenu(conditionMenu);
-    invertCheck = new QCheckBox(RouteEditor::ConditionLabel(QStringLiteral("invert")), this);
-    invertCheck->setToolTip(tr("Invert: match only what this rule would not match"));
-    auto* addRow = new QHBoxLayout;
-    addRow->addWidget(addConditionButton);
-    addRow->addStretch(1);
-    addRow->addWidget(invertCheck);
-    layout->addLayout(addRow);
+    tree->setTail(addConditionButton);
+    tree->setLinesShown(false);
+    layout->addWidget(tree);
     connect(invertCheck, &QCheckBox::toggled, this, [this](bool on) {
         if (loading || current == nullptr) return;
         current->invert = on;
@@ -255,39 +309,48 @@ RouteRuleEditor::RouteRuleEditor(QWidget* parent) : QWidget(parent) {
         emitChanged();
     });
 
-    layout->addSpacing(6);
     buildThenSection(layout);
-    buildOptions(layout);
-    buildJson(layout);
+    auto* drawers = new QVBoxLayout;
+    drawers->setSpacing(8);
+    // Side by side, wrapping rather than widening the editor.
+    auto* toggles = new RouteEditor::FlowLayout(nullptr, 14, 4);
+    drawers->addLayout(toggles);
+    buildOptions(drawers, toggles);
+    buildJson(drawers, toggles);
+    layout->addLayout(drawers);
     layout->addStretch(1);
 
     // Warnings carry their colour in a style sheet of their own.
-    connect(themeManager(), &ThemeManager::themeChanged, this, [this] { refreshIssues(); });
+    connect(themeManager(), &ThemeManager::themeChanged, this, [this] {
+        refreshIssues();
+        update();
+    });
     setEnabled(false);
 }
 
 RouteRuleEditor::~RouteRuleEditor() = default;
 
 QLabel* RouteRuleEditor::addSettingIssues(const QStringList& attrs, QWidget* parent) {
-    auto* label = ruleEditorLabel({}, parent, nullptr, 0.95, false, true);
-    label->hide();
+    auto* label = ruleEditorIssuesLabel(parent);
     settings.append(Setting{attrs, label});
     return label;
 }
 
 void RouteRuleEditor::buildThenSection(QVBoxLayout* layout) {
-    layout->addWidget(ruleEditorHeading(tr("Then"), this));
+    auto* section = new QVBoxLayout;
+    section->setSpacing(8);
     thenPicker = new RouteThenPicker(this);
     auto* pickerRow = new QHBoxLayout;
+    pickerRow->setSpacing(0);
+    pickerRow->addWidget(new RuleEditorThenArrow(tree, this));
     pickerRow->addWidget(thenPicker);
     pickerRow->addStretch(1);
-    layout->addLayout(pickerRow);
+    section->addLayout(pickerRow);
     connect(thenPicker, &RouteThenPicker::picked, this, &RouteRuleEditor::onThenPicked);
-    thenIssues = ruleEditorLabel({}, this, nullptr, 0.95, false, true);
-    thenIssues->hide();
-    layout->addWidget(thenIssues);
+    thenIssues = ruleEditorIssuesLabel(this);
+    section->addWidget(thenIssues);
 
-    auto* extras = new RuleEditorPanel(this, false);
+    auto* extras = new RuleEditorPanel(this);
     extrasFrame = extras;
     auto* extrasLayout = new QVBoxLayout(extras);
     extrasLayout->setContentsMargins(10, 8, 10, 8);
@@ -361,36 +424,28 @@ void RouteRuleEditor::buildThenSection(QVBoxLayout* layout) {
         if (!loading && current != nullptr) setScopedText(QStringLiteral("strategy"), strategyCombo->currentData().toString());
     });
 
-    layout->addWidget(extras);
+    section->addWidget(extras);
+    layout->addLayout(section);
     settingWidgets.insert(QStringLiteral("method"), rejectCombo);
     settingWidgets.insert(QStringLiteral("no_drop"), noDropCheck);
     settingWidgets.insert(QStringLiteral("override_destination"), sniffOverrideCheck);
     settingWidgets.insert(QStringLiteral("strategy"), strategyCombo);
 }
 
-void RouteRuleEditor::buildOptions(QVBoxLayout* layout) {
-    auto* frame = new RuleEditorPanel(this, false);
-    optionsFrame = frame;
-    auto* frameLayout = new QVBoxLayout(frame);
-    frameLayout->setContentsMargins(4, 2, 10, 8);
-    frameLayout->setSpacing(6);
-    auto* head = new QHBoxLayout;
-    head->setSpacing(8);
-    optionsToggle = ruleEditorDisclosure(tr("Connection options"), frame);
+void RouteRuleEditor::buildOptions(QVBoxLayout* layout, QLayout* toggles) {
+    optionsToggle = ruleEditorDisclosure(tr("Connection options"), this);
     optionsToggle->setToolTip(tr("Override, TLS fragment, TLS spoof"));
-    head->addWidget(optionsToggle);
-    head->addStretch(1);
-    frameLayout->addLayout(head);
+    toggles->addWidget(optionsToggle);
     connect(optionsToggle, &QToolButton::toggled, this, [this](bool open) { setOptionsOpen(open); });
 
-    optionsBody = new QWidget(frame);
-    auto* grid = new QGridLayout(optionsBody);
-    grid->setContentsMargins(6, 0, 0, 0);
+    optionsFrame = new RuleEditorPanel(this);
+    auto* grid = new QGridLayout(optionsFrame);
+    grid->setContentsMargins(10, 8, 10, 8);
     grid->setHorizontalSpacing(10);
     grid->setVerticalSpacing(4);
     int row = 0;
     const auto finishRow = [this, grid, &row](const QStringList& attrs) {
-        grid->addWidget(addSettingIssues(attrs, optionsBody), row + 1, 0, 1, 2);
+        grid->addWidget(addSettingIssues(attrs, optionsFrame), row + 1, 0, 1, 2);
         row += 2;
     };
     const auto bindText = [this](QLineEdit* edit, const QString& attr) {
@@ -403,8 +458,8 @@ void RouteRuleEditor::buildOptions(QVBoxLayout* layout) {
         settingWidgets.insert(attr, edit);
     };
 
-    auto* addressLabel = new QLabel(RouteEditor::ConditionLabel(QStringLiteral("override_address")), optionsBody);
-    overrideAddressEdit = new QLineEdit(optionsBody);
+    auto* addressLabel = new QLabel(RouteEditor::ConditionLabel(QStringLiteral("override_address")), optionsFrame);
+    overrideAddressEdit = new QLineEdit(optionsFrame);
     overrideAddressEdit->setPlaceholderText(tr("Keep the original"));
     addressLabel->setBuddy(overrideAddressEdit);
     grid->addWidget(addressLabel, row, 0);
@@ -412,8 +467,8 @@ void RouteRuleEditor::buildOptions(QVBoxLayout* layout) {
     bindText(overrideAddressEdit, QStringLiteral("override_address"));
     finishRow({QStringLiteral("override_address")});
 
-    auto* portLabel = new QLabel(RouteEditor::ConditionLabel(QStringLiteral("override_port")), optionsBody);
-    overridePortEdit = new QLineEdit(optionsBody);
+    auto* portLabel = new QLabel(RouteEditor::ConditionLabel(QStringLiteral("override_port")), optionsFrame);
+    overridePortEdit = new QLineEdit(optionsFrame);
     overridePortEdit->setPlaceholderText(tr("Keep the original"));
     portLabel->setBuddy(overridePortEdit);
     grid->addWidget(portLabel, row, 0);
@@ -421,8 +476,8 @@ void RouteRuleEditor::buildOptions(QVBoxLayout* layout) {
     bindText(overridePortEdit, QStringLiteral("override_port"));
     finishRow({QStringLiteral("override_port")});
 
-    fragmentCheck = new QCheckBox(RouteEditor::ConditionLabel(QStringLiteral("tls_fragment")), optionsBody);
-    fragmentDelayEdit = new QLineEdit(optionsBody);
+    fragmentCheck = new QCheckBox(RouteEditor::ConditionLabel(QStringLiteral("tls_fragment")), optionsFrame);
+    fragmentDelayEdit = new QLineEdit(optionsFrame);
     fragmentDelayEdit->setPlaceholderText(tr("Fallback delay, such as 500ms"));
     fragmentDelayEdit->setAccessibleName(RouteEditor::ConditionLabel(QStringLiteral("tls_fragment_fallback_delay")));
     grid->addWidget(fragmentCheck, row, 0);
@@ -434,18 +489,18 @@ void RouteRuleEditor::buildOptions(QVBoxLayout* layout) {
         if (!loading && current != nullptr) setScopedFlag(QStringLiteral("tls_fragment"), on);
     });
 
-    recordFragmentCheck = new QCheckBox(RouteEditor::ConditionLabel(QStringLiteral("tls_record_fragment")), optionsBody);
+    recordFragmentCheck = new QCheckBox(RouteEditor::ConditionLabel(QStringLiteral("tls_record_fragment")), optionsFrame);
     grid->addWidget(recordFragmentCheck, row, 0, 1, 2);
     finishRow({QStringLiteral("tls_record_fragment")});
     connect(recordFragmentCheck, &QCheckBox::toggled, this, [this](bool on) {
         if (!loading && current != nullptr) setScopedFlag(QStringLiteral("tls_record_fragment"), on);
     });
 
-    auto* spoofLabel = new QLabel(RouteEditor::ConditionLabel(QStringLiteral("tls_spoof")), optionsBody);
-    spoofEdit = new QLineEdit(optionsBody);
+    auto* spoofLabel = new QLabel(RouteEditor::ConditionLabel(QStringLiteral("tls_spoof")), optionsFrame);
+    spoofEdit = new QLineEdit(optionsFrame);
     spoofEdit->setPlaceholderText(tr("Server name to send"));
     spoofLabel->setBuddy(spoofEdit);
-    spoofMethodCombo = new NoWheelComboBox(optionsBody);
+    spoofMethodCombo = new NoWheelComboBox(optionsFrame);
     spoofMethodCombo->setAccessibleName(RouteEditor::ConditionLabel(QStringLiteral("tls_spoof_method")));
     for (const QString& value : Configs::RouteRule::get_values_for_field(QStringLiteral("tls_spoof_method"))) {
         spoofMethodCombo->addItem(value.isEmpty() ? tr("Default method") : value, value);
@@ -464,22 +519,16 @@ void RouteRuleEditor::buildOptions(QVBoxLayout* layout) {
     });
 
     grid->setColumnStretch(1, 1);
-    frameLayout->addWidget(optionsBody);
-    optionsBody->hide();
-    layout->addWidget(frame);
+    optionsFrame->hide();
+    layout->addWidget(optionsFrame);
     settingWidgets.insert(QStringLiteral("tls_fragment"), fragmentCheck);
     settingWidgets.insert(QStringLiteral("tls_record_fragment"), recordFragmentCheck);
     settingWidgets.insert(QStringLiteral("tls_spoof_method"), spoofMethodCombo);
 }
 
-void RouteRuleEditor::buildJson(QVBoxLayout* layout) {
-    auto* head = new QHBoxLayout;
-    head->setSpacing(8);
+void RouteRuleEditor::buildJson(QVBoxLayout* layout, QLayout* toggles) {
     jsonToggle = ruleEditorDisclosure(tr("sing-box JSON"), this);
-    head->addWidget(jsonToggle);
-    head->addStretch(1);
-    layout->addSpacing(4);
-    layout->addLayout(head);
+    toggles->addWidget(jsonToggle);
     jsonView = new QPlainTextEdit(this);
     jsonView->setReadOnly(true);
     jsonView->setLineWrapMode(QPlainTextEdit::NoWrap);
@@ -546,6 +595,7 @@ void RouteRuleEditor::loadThenSection() {
     if (current == nullptr) {
         thenIssues->hide();
         extrasFrame->hide();
+        optionsToggle->hide();
         optionsFrame->hide();
         return;
     }
@@ -558,7 +608,9 @@ void RouteRuleEditor::loadThenSection() {
     sniffGroup->setVisible(sniff);
     resolveGroup->setVisible(resolve);
     extrasFrame->setVisible(reject || sniff || resolve);
-    optionsFrame->setVisible(RouteEditor::ThenUses(then, QStringLiteral("override_address")));
+    const bool options = RouteEditor::ThenUses(then, QStringLiteral("override_address"));
+    optionsToggle->setVisible(options);
+    optionsFrame->setVisible(options && optionsToggle->isChecked());
 
     const bool wasLoading = std::exchange(loading, true);
     QString method = current->rejectMethod.trimmed().toLower();
@@ -594,59 +646,46 @@ void RouteRuleEditor::rebuildBoxes() {
     refillAttrs.clear();
     detachInline(true);
     // Later, as this can run from a signal of a chip inside them.
-    for (const BoxView& box : std::as_const(boxViews)) {
-        box.frame->hide();
-        box.frame->deleteLater();
-    }
-    boxViews.clear();
+    tree->clearBranches();
     lines.clear();
     builtAttrs = shownAttrs();
     if (inlineState.open && !builtAttrs.contains(inlineState.attr)) inlineState = Inline{};
-    for (const RouteEditor::Box& box : RouteEditor::BoxesFor(builtAttrs)) buildBox(box.title, box.attrs, box.grouped);
+    // sing-box ORs the attributes of a box; an OR group with one of them is a plain leaf.
+    const QList<RouteEditor::Box> boxes = RouteEditor::BoxesFor(builtAttrs);
+    const auto isGroup = [](const RouteEditor::Box& box) { return box.grouped && box.attrs.size() > 1; };
+    QStringList rootLabels;
+    for (const RouteEditor::Box& box : boxes) {
+        if (!isGroup(box)) rootLabels << RouteEditor::ShortConditionLabel(box.attrs.first());
+    }
+    for (const RouteEditor::Box& box : boxes) {
+        if (!isGroup(box)) {
+            buildLeaf(tree, box.attrs.first(), rootLabels);
+            continue;
+        }
+        auto* group = new RouteEditor::TreeNode(tr("OR"), tree);
+        QStringList labels;
+        for (const QString& attr : box.attrs) labels << RouteEditor::ShortConditionLabel(attr);
+        for (const QString& attr : box.attrs) buildLeaf(group, attr, labels);
+        tree->addBranch(group);
+    }
+    tree->setLinesShown(boxes.size() > 1);
     refreshIssues();
 }
 
-void RouteRuleEditor::buildBox(const QString& title, const QStringList& attrs, bool grouped) {
-    auto* frame = new RuleEditorPanel(boxesHost, true);
-    auto* grid = new QGridLayout(frame);
-    grid->setContentsMargins(10, 7, 10, 8);
-    grid->setHorizontalSpacing(10);
-    grid->setVerticalSpacing(8);
-    auto* header = new QWidget(frame);
-    auto* headerLayout = new QHBoxLayout(header);
-    headerLayout->setContentsMargins(0, 0, 0, 0);
-    headerLayout->setSpacing(10);
-    headerLayout->addWidget(ruleEditorLabel(title, header, nullptr, 1.0, true));
-    headerLayout->addStretch(1);
-    headerLayout->addWidget(ruleEditorLabel(grouped ? tr("Any of these") : tr("Any of these values"), header, "muted", 0.92));
-    grid->addWidget(header, 0, 0, 1, 2);
-    frame->setDivider(header);
-
-    int row = 1;
-    for (const QString& attr : attrs) {
-        if (grouped) {
-            auto* label = ruleEditorLabel(RouteEditor::ConditionLabel(attr), frame);
-            label->setContentsMargins(0, 3, 0, 0);
-            grid->addWidget(label, row, 0, Qt::AlignLeft | Qt::AlignTop);
-        }
-        auto* host = new QWidget(frame);
-        auto* flow = new RouteEditor::FlowLayout(host, 5, 5);
-        flow->setStacked(true);
-        grid->addWidget(host, row, grouped ? 1 : 0, 1, grouped ? 1 : 2);
-        if (Configs::RouteRule::get_input_type(attr) == Configs::select) {
-            host->setProperty(ruleEditorSelectProperty, attr);
-            host->installEventFilter(this);
-        }
-        lines.insert(attr, Line{host, flow, nullptr, {}});
-        fillLine(attr);
-        ++row;
+void RouteRuleEditor::buildLeaf(RouteEditor::TreeNode* node, const QString& attr, const QStringList& labels) {
+    auto* leaf = new RouteEditor::TreeLeaf(node);
+    const QString label = RouteEditor::ShortConditionLabel(attr);
+    const QString full = RouteEditor::ConditionLabel(attr);
+    leaf->setLabel(label, label != full ? full : QString());
+    leaf->setLabelColumn(labels);
+    if (Configs::RouteRule::get_input_type(attr) == Configs::select) {
+        leaf->setProperty(ruleEditorSelectProperty, attr);
+        leaf->installEventFilter(this);
     }
-    grid->setColumnStretch(1, 1);
-    auto* issues = ruleEditorLabel({}, frame, nullptr, 0.95, false, true);
-    issues->hide();
-    grid->addWidget(issues, row, 0, 1, 2);
-    boxesLayout->addWidget(frame);
-    boxViews.append(BoxView{attrs, grouped, frame, issues});
+    auto* issues = ruleEditorIssuesLabel(node);
+    node->addBranch(leaf, issues);
+    lines.insert(attr, Line{leaf, leaf->flow(), nullptr, {}, issues});
+    fillLine(attr);
 }
 
 void RouteRuleEditor::fillLine(const QString& attr) {
@@ -662,7 +701,7 @@ void RouteRuleEditor::fillLine(const QString& attr) {
 
     if (input == Configs::trufalse) {
         if (current->get_current_value_bool(attr) == QLatin1String("true")) {
-            auto* chip = new RouteEditor::ValueChip(RouteEditor::ValueText(attr, QStringLiteral("true")), host);
+            auto* chip = ruleEditorChip(RouteEditor::ValueText(attr, QStringLiteral("true")), host);
             connect(chip, &RouteEditor::ValueChip::removeRequested, this, [this, attr] { removeValue(attr, {}); });
             line.flow->addWidget(chip);
             line.chips << chip;
@@ -673,13 +712,13 @@ void RouteRuleEditor::fillLine(const QString& attr) {
     if (input == Configs::select) {
         const QString value = current->get_current_value_string(attr).value(0).trimmed();
         if (!value.isEmpty()) {
-            auto* chip = new RouteEditor::ValueChip(RouteEditor::ValueText(attr, value), host);
+            auto* chip = ruleEditorChip(RouteEditor::ValueText(attr, value), host);
             connect(chip, &RouteEditor::ValueChip::removeRequested, this, [this, attr] { removeValue(attr, {}); });
             connect(chip, &RouteEditor::ValueChip::editRequested, this, [this, attr, chip] { openSelectMenu(attr, chip); });
             line.flow->addWidget(chip);
             line.chips << chip;
         } else {
-            auto* add = ruleEditorFlatButton(tr("+ Add"), host);
+            auto* add = new RuleEditorAddButton(tr("Add a value"), host);
             connect(add, &QToolButton::clicked, this, [this, attr, add] { openSelectMenu(attr, add); });
             line.flow->addWidget(add);
             line.add = add;
@@ -695,7 +734,7 @@ void RouteRuleEditor::fillLine(const QString& attr) {
             placed = true;
             continue;
         }
-        auto* chip = new RouteEditor::ValueChip(value, host);
+        auto* chip = ruleEditorChip(value, host);
         connect(chip, &RouteEditor::ValueChip::removeRequested, this, [this, attr, value] { removeValue(attr, value); });
         connect(chip, &RouteEditor::ValueChip::editRequested, this, [this, attr, value] { startInline(attr, value, true); });
         line.flow->addWidget(chip);
@@ -707,7 +746,7 @@ void RouteRuleEditor::fillLine(const QString& attr) {
         inlineState.original.clear();
         line.flow->addWidget(makeInlineEdit(attr, host));
     } else {
-        auto* add = ruleEditorFlatButton(tr("+ Add"), host);
+        auto* add = new RuleEditorAddButton(tr("Add a value"), host);
         connect(add, &QToolButton::clicked, this, [this, attr] { startInline(attr, {}, false); });
         line.flow->addWidget(add);
         line.add = add;
@@ -797,7 +836,7 @@ void RouteRuleEditor::applyScheduled() {
     focusInline = false;
 }
 
-// index < 0 prefers the line's "+ Add" button; otherwise the chip there, or the last one.
+// index < 0 prefers the line's "+" button; otherwise the chip there, or the last one.
 void RouteRuleEditor::focusLine(const QString& attr, int index) {
     const auto it = lines.constFind(attr);
     if (it == lines.cend()) return;
@@ -1059,7 +1098,8 @@ void RouteRuleEditor::setOptionsOpen(bool open) {
     const QSignalBlocker blocker(optionsToggle);
     optionsToggle->setChecked(open);
     optionsToggle->setArrowType(open ? Qt::DownArrow : Qt::RightArrow);
-    optionsBody->setVisible(open);
+    // The toggle is hidden for actions without these options.
+    optionsFrame->setVisible(open && !optionsToggle->isHidden());
     refreshIssues();
 }
 
@@ -1091,16 +1131,16 @@ void RouteRuleEditor::refreshIssues() {
         return error;
     };
 
-    for (const BoxView& box : std::as_const(boxViews)) {
+    // A leaf holds one condition, so the issues under it need no label.
+    for (auto it = lines.cbegin(); it != lines.cend(); ++it) {
         QStringList texts;
         bool error = false;
-        if (inlineState.open && !inlineState.error.isEmpty() && box.attrs.contains(inlineState.attr)) {
-            texts << (box.grouped ? QCoreApplication::translate("Validation", "%1: %2").arg(RouteEditor::ConditionLabel(inlineState.attr), inlineState.error)
-                                  : inlineState.error);
+        if (inlineState.open && !inlineState.error.isEmpty() && inlineState.attr == it.key()) {
+            texts << inlineState.error;
             error = true;
         }
-        error = collect(box.attrs, box.grouped, &texts) || error;
-        ruleEditorShowIssues(box.issues, texts, error);
+        error = collect({it.key()}, false, &texts) || error;
+        ruleEditorShowIssues(it->issues, texts, error);
     }
     for (const Setting& setting : std::as_const(settings)) {
         QStringList texts;

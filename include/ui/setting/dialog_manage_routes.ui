@@ -29,9 +29,6 @@
          <property name="title">
           <string>Domain Strategy</string>
          </property>
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
          <layout class="QGridLayout" name="domain_strategy_layout">
           <item row="0" column="0">
            <widget class="QLabel" name="label_3">
@@ -44,18 +41,12 @@
             <property name="buddy">
              <cstring>default_domain_strategy</cstring>
             </property>
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
            </widget>
           </item>
           <item row="0" column="1">
            <widget class="QComboBox" name="default_domain_strategy">
             <property name="editable">
              <bool>false</bool>
-            </property>
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
             </property>
            </widget>
           </item>
@@ -70,18 +61,12 @@
             <property name="buddy">
              <cstring>domainStrategyCombo</cstring>
             </property>
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
            </widget>
           </item>
           <item row="1" column="1">
            <widget class="QComboBox" name="domainStrategyCombo">
             <property name="editable">
              <bool>false</bool>
-            </property>
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
             </property>
            </widget>
           </item>
@@ -178,9 +163,6 @@
          <property name="title">
           <string>Updates</string>
          </property>
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
-         </property>
          <layout class="QGridLayout" name="route_updates_layout">
           <item row="0" column="0">
            <widget class="QLabel" name="label_route_auto_update">
@@ -192,9 +174,6 @@
             </property>
             <property name="text">
              <string>Routing profiles auto update</string>
-            </property>
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
             </property>
            </widget>
           </item>
@@ -211,18 +190,12 @@
               <property name="text">
                <string>Enable</string>
               </property>
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
              </widget>
             </item>
             <item>
              <widget class="QLabel" name="label_route_auto_update_interval">
               <property name="text">
                <string>Interval (minute, invalid if less than 30)</string>
-              </property>
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
               </property>
              </widget>
             </item>
@@ -233,9 +206,6 @@
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
-              </property>
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
               </property>
              </widget>
             </item>
@@ -249,16 +219,10 @@
             <property name="buddy">
              <cstring>ruleset_mirror</cstring>
             </property>
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
            </widget>
           </item>
           <item row="1" column="1">
            <widget class="QComboBox" name="ruleset_mirror">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
             <item>
              <property name="text">
               <string>GitHub</string>
@@ -374,9 +338,6 @@
               <property name="text">
                <string>Disable IPv6</string>
               </property>
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
              </widget>
             </item>
            </layout>
@@ -407,9 +368,6 @@
               <property name="text">
                <string>Disable IPv6</string>
               </property>
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
              </widget>
             </item>
            </layout>
@@ -425,16 +383,10 @@
             <property name="buddy">
              <cstring>local_override</cstring>
             </property>
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
            </widget>
           </item>
           <item row="3" column="1">
            <widget class="QLineEdit" name="local_override">
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
-            </property>
            </widget>
           </item>
          </layout>
@@ -444,9 +396,6 @@
         <widget class="QGroupBox" name="dns_resolution_box">
          <property name="title">
           <string>Resolution</string>
-         </property>
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
@@ -459,9 +408,6 @@
               <property name="text">
                <string>Enable DNS routing</string>
               </property>
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
              </widget>
             </item>
             <item>
@@ -471,9 +417,6 @@
               </property>
               <property name="text">
                <string>Respect hosts file</string>
-              </property>
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
               </property>
              </widget>
             </item>
@@ -488,9 +431,6 @@
               <property name="text">
                <string>Predefined Answers</string>
               </property>
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
              </widget>
             </item>
            </layout>
@@ -502,9 +442,6 @@
               <property name="text">
                <string>Enable FakeIP</string>
               </property>
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
              </widget>
             </item>
             <item>
@@ -514,9 +451,6 @@
               </property>
               <property name="text">
                <string>Disable IPv6 for FakeIP</string>
-              </property>
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
               </property>
              </widget>
             </item>
@@ -548,9 +482,6 @@
          </property>
          <property name="title">
           <string>Advanced</string>
-         </property>
-         <property name="uiLevel" stdset="0">
-          <string notr="true">advanced</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
@@ -650,12 +581,12 @@
            </layout>
           </item>
           <item row="1" column="0">
-           <layout class="QVBoxLayout" name="enable_warp_option">
+           <layout class="QVBoxLayout" name="exit_warp_option">
             <property name="spacing">
              <number>2</number>
             </property>
             <item>
-             <widget class="QRadioButton" name="enable_warp">
+             <widget class="QRadioButton" name="exit_warp">
               <property name="toolTip">
                <string>Send traffic out through WARP, for services that block other VPNs.</string>
               </property>
@@ -665,7 +596,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="enable_warp_hint">
+             <widget class="QLabel" name="exit_warp_hint">
               <property name="text">
                <string>WARP runs over the selected profile.</string>
               </property>
@@ -680,22 +611,152 @@
            </layout>
           </item>
           <item row="2" column="0">
-           <layout class="QVBoxLayout" name="enable_tor_option">
+           <layout class="QVBoxLayout" name="exit_tor_option">
             <property name="spacing">
              <number>2</number>
             </property>
             <item>
-             <widget class="QRadioButton" name="enable_tor">
-              <property name="toolTip">
-               <string>Send proxied traffic out through Tor over the selected profile; TCP only.</string>
-              </property>
-              <property name="text">
-               <string notr="true">Tor</string>
-              </property>
-             </widget>
+             <layout class="QHBoxLayout" name="exit_tor_row">
+              <item>
+               <widget class="QRadioButton" name="exit_tor">
+                <property name="toolTip">
+                 <string>Send proxied traffic out through Tor over the selected profile; TCP only.</string>
+                </property>
+                <property name="text">
+                 <string notr="true">Tor</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="exit_tor_gap">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Fixed</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>12</width>
+                  <height>0</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QLabel" name="tor_exit_country_l">
+                <property name="text">
+                 <string>Exit country</string>
+                </property>
+                <property name="buddy">
+                 <cstring>tor_exit_country</cstring>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="tor_exit_country">
+                <property name="toolTip">
+                 <string>The country of the last Tor relay; Any lets Tor choose.</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="exit_tor_spacer">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
             </item>
             <item>
              <widget class="QLabel" name="tor_status">
+              <property name="wordWrap">
+               <bool>true</bool>
+              </property>
+              <property name="colorRole" stdset="0">
+               <string notr="true">muted</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="3" column="0">
+           <layout class="QVBoxLayout" name="exit_psiphon_option">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <layout class="QHBoxLayout" name="exit_psiphon_row">
+              <item>
+               <widget class="QRadioButton" name="exit_psiphon">
+                <property name="toolTip">
+                 <string>Send proxied traffic out through Psiphon over the selected profile.</string>
+                </property>
+                <property name="text">
+                 <string notr="true">Psiphon</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="exit_psiphon_gap">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Fixed</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>12</width>
+                  <height>0</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QLabel" name="psiphon_egress_region_l">
+                <property name="text">
+                 <string>Region</string>
+                </property>
+                <property name="buddy">
+                 <cstring>psiphon_egress_region</cstring>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="psiphon_egress_region">
+                <property name="toolTip">
+                 <string>The country of the Psiphon server; Best performance lets Psiphon choose.</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="exit_psiphon_spacer">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QLabel" name="exit_psiphon_hint">
+              <property name="text">
+               <string>Psiphon is a free network run by Psiphon Inc., which can see the sites you visit, like any VPN provider.</string>
+              </property>
               <property name="wordWrap">
                <bool>true</bool>
               </property>
@@ -754,9 +815,6 @@
            <widget class="QGroupBox" name="warp_wg_box">
             <property name="title">
              <string notr="true">WireGuard</string>
-            </property>
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
             </property>
             <layout class="QFormLayout" name="warp_wg_form">
              <item row="0" column="0">
@@ -831,9 +889,6 @@
            <widget class="QGroupBox" name="warp_masque_box">
             <property name="title">
              <string notr="true">MASQUE</string>
-            </property>
-            <property name="uiLevel" stdset="0">
-             <string notr="true">advanced</string>
             </property>
             <layout class="QFormLayout" name="warp_masque_form">
              <item row="0" column="0">
@@ -962,9 +1017,6 @@
               <property name="text">
                <string>Registration Domains</string>
               </property>
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
-              </property>
              </widget>
             </item>
             <item>
@@ -974,9 +1026,6 @@
               </property>
               <property name="text">
                <string>Advanced</string>
-              </property>
-              <property name="uiLevel" stdset="0">
-               <string notr="true">advanced</string>
               </property>
              </widget>
             </item>

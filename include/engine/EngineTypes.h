@@ -26,6 +26,8 @@ namespace Engine {
         StrictRouteUnavailable,
         TunFailed,
         StartFailed,
+        // The config has a tor outbound and the Tor executable is not downloaded.
+        TorMissing,
     };
 
     struct StartRequest {

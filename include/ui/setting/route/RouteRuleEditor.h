@@ -14,6 +14,7 @@
 class NoWheelComboBox;
 class QCheckBox;
 class QLabel;
+class QLayout;
 class QLineEdit;
 class QPlainTextEdit;
 class QPushButton;
@@ -23,10 +24,11 @@ class RouteThenPicker;
 
 namespace RouteEditor {
     class FlowLayout;
+    class TreeNode;
     class ValueChip;
 } // namespace RouteEditor
 
-// A custom rule's editor: its name, the condition boxes, Then with the action's settings, and the JSON drawer.
+// A custom rule's editor: its name, the condition tree, Then with the action's settings, and the JSON drawer.
 class RouteRuleEditor : public QWidget {
     Q_OBJECT
 
@@ -58,17 +60,12 @@ protected:
     bool eventFilter(QObject* watched, QEvent* event) override;
 
 private:
+    // A condition's leaf in the tree, with the issues label under it.
     struct Line {
         QWidget* host = nullptr;
         RouteEditor::FlowLayout* flow = nullptr;
         QWidget* add = nullptr;
         QList<RouteEditor::ValueChip*> chips;
-    };
-
-    struct BoxView {
-        QStringList attrs;
-        bool grouped = false;
-        QWidget* frame = nullptr;
         QLabel* issues = nullptr;
     };
 
@@ -97,15 +94,17 @@ private:
     };
 
     void buildThenSection(QVBoxLayout* layout);
-    void buildOptions(QVBoxLayout* layout);
-    void buildJson(QVBoxLayout* layout);
+    // Each adds its toggle to toggles and its drawer to layout.
+    void buildOptions(QVBoxLayout* layout, QLayout* toggles);
+    void buildJson(QVBoxLayout* layout, QLayout* toggles);
     QLabel* addSettingIssues(const QStringList& attrs, QWidget* parent);
 
     void loadRule();
     void loadThenSection();
     [[nodiscard]] QStringList shownAttrs() const;
     void rebuildBoxes();
-    void buildBox(const QString& title, const QStringList& attrs, bool grouped);
+    // labels: those of the leaf's siblings, which share one width.
+    void buildLeaf(RouteEditor::TreeNode* node, const QString& attr, const QStringList& labels);
     void fillLine(const QString& attr);
     QLineEdit* makeInlineEdit(const QString& attr, QWidget* host);
     // Stops watching the inline field before it goes; keepText carries its text into the next one.
@@ -137,8 +136,7 @@ private:
     bool loading = false;
 
     QLineEdit* nameEdit = nullptr;
-    QWidget* boxesHost = nullptr;
-    QVBoxLayout* boxesLayout = nullptr;
+    RouteEditor::TreeNode* tree = nullptr;
     QPushButton* addConditionButton = nullptr;
     QCheckBox* invertCheck = nullptr;
 
@@ -155,7 +153,6 @@ private:
 
     QWidget* optionsFrame = nullptr;
     QToolButton* optionsToggle = nullptr;
-    QWidget* optionsBody = nullptr;
     QLineEdit* overrideAddressEdit = nullptr;
     QLineEdit* overridePortEdit = nullptr;
     QCheckBox* fragmentCheck = nullptr;
@@ -172,7 +169,6 @@ private:
 
     QStringList pending;
     QStringList builtAttrs;
-    QList<BoxView> boxViews;
     QHash<QString, Line> lines;
     Inline inlineState;
 

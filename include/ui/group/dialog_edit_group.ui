@@ -34,9 +34,6 @@
      <layout class="QGridLayout" name="main">
       <item row="3" column="1">
        <widget class="QComboBox" name="landing_proxy">
-        <property name="uiLevel" stdset="0">
-         <string notr="true">advanced</string>
-        </property>
        </widget>
       </item>
       <item row="1" column="1">
@@ -62,9 +59,6 @@
       </item>
       <item row="3" column="0">
        <widget class="QLabel" name="landing_proxy_l">
-        <property name="uiLevel" stdset="0">
-         <string notr="true">advanced</string>
-        </property>
         <property name="text">
          <string>Landing Proxy</string>
         </property>
@@ -74,9 +68,6 @@
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
          <widget class="QComboBox" name="front_proxy">
-          <property name="uiLevel" stdset="0">
-           <string notr="true">advanced</string>
-          </property>
          </widget>
         </item>
        </layout>
@@ -90,9 +81,6 @@
       </item>
       <item row="2" column="0">
        <widget class="QLabel" name="front_proxy_l">
-        <property name="uiLevel" stdset="0">
-         <string notr="true">advanced</string>
-        </property>
         <property name="text">
          <string>Front Proxy</string>
         </property>
@@ -139,9 +127,6 @@
         </item>
         <item>
          <widget class="QPushButton" name="advanced">
-          <property name="uiLevel" stdset="0">
-           <string notr="true">advanced</string>
-          </property>
           <property name="text">
            <string>Advanced</string>
           </property>

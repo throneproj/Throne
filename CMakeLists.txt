@@ -309,8 +309,6 @@ set(PROJECT_SOURCES
         src/ui/utils/CommandPalette.cpp
         include/ui/utils/SettingsIndex.h
         src/ui/utils/SettingsIndex.cpp
-        include/ui/utils/UiMode.h
-        src/ui/utils/UiMode.cpp
         include/ui/utils/ThemedIcon.hpp
         src/ui/utils/ThemedIcon.cpp
 
@@ -579,6 +577,12 @@ set(PROJECT_SOURCES
         src/ui/profile/edit_masterdns.cpp
         include/ui/profile/edit_masterdns.h
         include/ui/profile/edit_masterdns.ui
+        src/ui/profile/edit_tor.cpp
+        include/ui/profile/edit_tor.h
+        include/ui/profile/edit_tor.ui
+        src/ui/profile/edit_psiphon.cpp
+        include/ui/profile/edit_psiphon.h
+        include/ui/profile/edit_psiphon.ui
         include/stats/connections/connectionLister.hpp
         src/stats/connectionLister/connectionLister.cpp
         include/sys/windows/eventHandler.h
@@ -652,6 +656,8 @@ set(PROJECT_SOURCES
         src/configs/outbounds/masterdns.cpp
         include/configs/outbounds/tor.h
         src/configs/outbounds/tor.cpp
+        include/configs/outbounds/psiphon.h
+        src/configs/outbounds/psiphon.cpp
         src/configs/outbounds/custom.cpp
         include/configs/generate.h
         include/configs/ConfigBuild.h
@@ -841,6 +847,8 @@ set(ENGINE_SOURCES
         src/engine/services/RouteService.cpp
         include/engine/services/WarpService.h
         src/engine/services/WarpService.cpp
+        include/engine/services/TorBridges.h
+        src/engine/services/TorBridges.cpp
         include/engine/tests/TestObserver.h
         include/engine/tests/TestRunner.h
         src/engine/tests/TestRunner.cpp

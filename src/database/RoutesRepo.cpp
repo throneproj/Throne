@@ -39,6 +39,25 @@ namespace Configs {
             QJsonDocument doc = QJsonDocument::fromJson(QString::fromStdString(s).toUtf8());
             return QJsonArray2QListString(doc.isArray() ? doc.array() : QJsonArray());
         }
+
+        // NULL: written before rule origins were kept, or restored from such a backup.
+        std::optional<QSet<int>> routesRepoRemoteIndexes(const SQLite::Column& column) {
+            if (column.isNull()) return std::nullopt;
+            QSet<int> indexes;
+            for (const auto& value : QJsonDocument::fromJson(QByteArray(column.getText())).array()) {
+                if (value.isDouble()) indexes.insert(value.toInt());
+            }
+            return indexes;
+        }
+
+        // Untracked, a remote-sourced profile's rules all came from its source, as updates used to replace them all.
+        void routesRepoMarkRemote(RouteProfile& profile, const std::optional<QSet<int>>& indexes) {
+            const bool sourced = profile.isRemote || profile.source_gid >= 0;
+            for (int i = 0; i < profile.Rules.size(); ++i) {
+                auto& rule = *profile.Rules[i];
+                rule.remote = indexes ? indexes->contains(i) : sourced && rule.type != endpointPreferredBy;
+            }
+        }
     }
 
     RoutesRepo::RoutesRepo(Database& database) : db(database) {
@@ -63,6 +82,7 @@ namespace Configs {
                 dns_json TEXT NOT NULL DEFAULT '',
                 custom_dns INTEGER NOT NULL DEFAULT 0,
                 source_gid INTEGER NOT NULL DEFAULT -1,
+                remote_rules TEXT,
                 created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
             )
@@ -91,6 +111,8 @@ namespace Configs {
             db.exec("ALTER TABLE route_profiles ADD COLUMN custom_dns INTEGER NOT NULL DEFAULT 0");
         if (!routeProfilesColumnExists("source_gid"))
             db.exec("ALTER TABLE route_profiles ADD COLUMN source_gid INTEGER NOT NULL DEFAULT -1");
+        if (!routeProfilesColumnExists("remote_rules"))
+            db.exec("ALTER TABLE route_profiles ADD COLUMN remote_rules TEXT");
 
         db.exec(R"(
             CREATE TABLE IF NOT EXISTS route_rules (
@@ -223,11 +245,17 @@ namespace Configs {
         const QString dnsJson = routeProfile->dns
             ? QString::fromUtf8(QJsonDocument(routeProfile->dns->ToJson()).toJson(QJsonDocument::Compact)) : QString();
 
+        QJsonArray remoteArray;
+        for (int i = 0; i < routeProfile->Rules.size(); ++i) {
+            if (routeProfile->Rules[i]->remote) remoteArray.append(i);
+        }
+        const QString remoteJson = QString::fromUtf8(QJsonDocument(remoteArray).toJson(QJsonDocument::Compact));
+
         db.execThrow(R"(
             INSERT INTO route_profiles (id, name, default_outbound_id, is_raw, raw_route, prevent_modifications,
                 is_remote, remote_url, auto_update, remote_last_update, endpoint_profile_ids,
-                inner_hop_endpoint_ids, dns_json, custom_dns, source_gid)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                inner_hop_endpoint_ids, dns_json, custom_dns, source_gid, remote_rules)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 name = excluded.name, default_outbound_id = excluded.default_outbound_id,
                 is_raw = excluded.is_raw, raw_route = excluded.raw_route,
@@ -237,7 +265,7 @@ namespace Configs {
                 endpoint_profile_ids = excluded.endpoint_profile_ids,
                 inner_hop_endpoint_ids = excluded.inner_hop_endpoint_ids,
                 dns_json = excluded.dns_json, custom_dns = excluded.custom_dns,
-                source_gid = excluded.source_gid,
+                source_gid = excluded.source_gid, remote_rules = excluded.remote_rules,
                 updated_at = strftime('%s', 'now')
         )",
             id,
@@ -254,7 +282,8 @@ namespace Configs {
             innerHopsJson.toStdString(),
             dnsJson.toStdString(),
             routeProfile->customDns ? 1 : 0,
-            routeProfile->source_gid
+            routeProfile->source_gid,
+            remoteJson.toStdString()
         );
 
         db.execThrow("DELETE FROM route_rules WHERE route_profile_id = ?", id);
@@ -345,22 +374,24 @@ namespace Configs {
         auto profileQuery = db.query(R"(
             SELECT id, name, default_outbound_id, is_raw, raw_route, prevent_modifications,
                    is_remote, remote_url, auto_update, remote_last_update, endpoint_profile_ids,
-                   inner_hop_endpoint_ids, dns_json, custom_dns, source_gid
+                   inner_hop_endpoint_ids, dns_json, custom_dns, source_gid, remote_rules
             FROM route_profiles WHERE id = ?
         )", id);
         if (!profileQuery || !profileQuery->executeStep()) {
             return nullptr;
         }
-        
+
         auto routeProfile = routeProfileFromProfileRow(*profileQuery);
-        
+        const auto remoteIndexes = routesRepoRemoteIndexes(profileQuery->getColumn(15));
+
         auto rulesQuery = db.query("SELECT " + routesRepoRuleColumns() + " FROM route_rules WHERE route_profile_id = ? ORDER BY rule_order", id);
         if (rulesQuery) {
             while (rulesQuery->executeStep()) {
                 routeProfile->Rules.append(ruleFromRow(*rulesQuery, 0));
             }
         }
-        
+        routesRepoMarkRemote(*routeProfile, remoteIndexes);
+
         return routeProfile;
     }
 
@@ -515,8 +546,9 @@ namespace Configs {
         std::map<int, std::shared_ptr<RouteProfile>> byId;
         QList<int> idsInOrder;
         QSet<int> cachedProfiles;
+        std::map<int, std::optional<QSet<int>>> remoteIndexes;
 
-        auto profileQuery = db.query("SELECT id, name, default_outbound_id, is_raw, raw_route, prevent_modifications, is_remote, remote_url, auto_update, remote_last_update, endpoint_profile_ids, inner_hop_endpoint_ids, dns_json, custom_dns, source_gid FROM route_profiles ORDER BY id");
+        auto profileQuery = db.query("SELECT id, name, default_outbound_id, is_raw, raw_route, prevent_modifications, is_remote, remote_url, auto_update, remote_last_update, endpoint_profile_ids, inner_hop_endpoint_ids, dns_json, custom_dns, source_gid, remote_rules FROM route_profiles ORDER BY id");
         if (!profileQuery) return routeProfiles;
 
         QMutexLocker locker(&mutex);
@@ -534,6 +566,7 @@ namespace Configs {
                 identityMap.erase(it);
             }
             profile = routeProfileFromProfileRow(*profileQuery);
+            remoteIndexes[id] = routesRepoRemoteIndexes(profileQuery->getColumn(15));
             byId[id] = profile;
             idsInOrder.append(id);
             identityMap[id] = std::weak_ptr<RouteProfile>(profile);
@@ -550,7 +583,8 @@ namespace Configs {
             if (chunk.isEmpty()) continue;
             loadRulesForProfileIdsChunk(chunk, byId);
         }
-        
+        for (const auto& [id, indexes] : remoteIndexes) routesRepoMarkRemote(*byId[id], indexes);
+
         for (int id : idsInOrder) {
             routeProfiles.append(byId[id]);
         }

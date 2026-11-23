@@ -278,9 +278,6 @@
    </item>
    <item>
     <widget class="QPushButton" name="advanced_toggle">
-     <property name="uiLevel" stdset="0">
-      <string notr="true">advanced</string>
-     </property>
      <property name="text">
       <string>Advanced ▾</string>
      </property>

@@ -31,7 +31,6 @@ namespace Configs::SettingsSchema {
         UiLogLines = 1u << 18,
         UiLogFont = 1u << 19,
         UiLogFilter = 1u << 20,
-        UiMode = 1u << 21,
         UiProfileList = 1u << 22,
         UiTrafficStats = 1u << 23,
         UiShortcuts = 1u << 24,

@@ -168,14 +168,6 @@ namespace RouteEditor {
         profile.Rules = rules;
     }
 
-    QString RowTitle(const Configs::RouteProfile& profile, const Row& row) {
-        if (row.kind == RowKind::QuickList) return ListName(row.list);
-        if (row.first < 0 || row.first >= profile.Rules.size()) return {};
-        const auto& rule = profile.Rules[row.first];
-        if (row.kind == RowKind::Endpoint) return ProfileName(rule->outboundID);
-        return rule->name.trimmed().isEmpty() ? tr("Unnamed rule") : rule->name;
-    }
-
     const QList<Configs::simpleAction>& QuickListOrder() {
         static const QList<Configs::simpleAction> order = {Configs::bypass, Configs::proxy, Configs::block, Configs::warpBypass};
         return order;
@@ -329,7 +321,7 @@ namespace RouteEditor {
         switch (then) {
             case Then::Proxy: return tr("Proxy");
             case Then::Direct: return tr("Direct");
-            case Then::NoWarp: return tr("Proxy without WARP");
+            case Then::NoWarp: return tr("Proxy without exit");
             case Then::Block: return tr("Block");
             case Then::HijackDns: return tr("Hijack DNS");
             case Then::Sniff: return tr("Sniff");
@@ -499,6 +491,11 @@ namespace RouteEditor {
         };
         const char* label = labels.value(attr, nullptr);
         return label != nullptr ? tr(label) : attr;
+    }
+
+    QString ShortConditionLabel(const QString& attr) {
+        if (attr == QLatin1String("protocol")) return tr("Protocol");
+        return ConditionLabel(attr);
     }
 
     QList<ConditionGroup> ConditionMenu() {

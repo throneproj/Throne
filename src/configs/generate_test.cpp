@@ -86,12 +86,19 @@ namespace Configs {
         constexpr int kScanSyntheticIdBase = -1000000;
         constexpr int kChainStepSyntheticIdBase = -2000000;
 
+        bool chainNeedsMissingTor(const ChainOutput &out) {
+            for (const auto item : out.outbounds) {
+                if (item.toObject().value("type").toString() == QLatin1String("tor")) return !tor::Installed();
+            }
+            return false;
+        }
+
         bool isVpnEndpointType(const QString &type) {
             return Protocols::Is(type, Protocols::VpnEndpoint);
         }
 
         std::shared_ptr<Profile> scanChainHop(int id) {
-            return id == warpProfileID ? getWarpProfile() : getProfile(id);
+            return id == warpProfileID ? exitProfile() : getProfile(id);
         }
 
         // A chain is scanned through the hop it dials directly, the first of its in-to-out list.
@@ -286,6 +293,14 @@ namespace Configs {
             if (!out.error.isEmpty()) {
                 if (!skipFailedBuild(item, out.error)) {
                     res->error = out.error;
+                    return res;
+                }
+                suffix++;
+                continue;
+            }
+            if (chainNeedsMissingTor(out)) {
+                if (!skipFailedBuild(item, TorNotDownloadedError())) {
+                    res->error = TorNotDownloadedError();
                     return res;
                 }
                 suffix++;

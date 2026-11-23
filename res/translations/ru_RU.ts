@@ -28,10 +28,6 @@
         <translation> (выкл.)</translation>
     </message>
     <message>
-        <source>Settings in Advanced mode</source>
-        <translation>Настройки в расширенном режиме</translation>
-    </message>
-    <message>
         <source>Search Settings</source>
         <translation>Поиск настроек</translation>
     </message>
@@ -1242,18 +1238,6 @@ Throne will restart to complete the restore.</source>
         <translation>Интерфейс</translation>
     </message>
     <message>
-        <source>Simple hides the advanced options.</source>
-        <translation>Простой режим скрывает дополнительные параметры.</translation>
-    </message>
-    <message>
-        <source>Simple</source>
-        <translation>Простой</translation>
-    </message>
-    <message>
-        <source>Advanced</source>
-        <translation>Расширенный</translation>
-    </message>
-    <message>
         <source>Allow other devices to use this DNS server</source>
         <translation>Разрешить другим устройствам использовать этот DNS-сервер</translation>
     </message>
@@ -2066,6 +2050,14 @@ Throne will restart to complete the restore.</source>
     <message>
         <source>WireGuard / AmneziaWG</source>
         <translation>WireGuard / AmneziaWG</translation>
+    </message>
+    <message>
+        <source>Tor</source>
+        <translation>Tor</translation>
+    </message>
+    <message>
+        <source>Psiphon</source>
+        <translation>Psiphon</translation>
     </message>
 </context>
 <context>
@@ -4402,10 +4394,6 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>Добавить эти удалённые профили маршрутизации?</translation>
     </message>
     <message>
-        <source>WARP has no config yet: click Generate WARP config.</source>
-        <translation>У WARP еще нет конфигурации: нажмите «Сгенерировать конфигурацию WARP».</translation>
-    </message>
-    <message>
         <source>Generating the AmneziaWG QUIC signature...</source>
         <translation>Генерация QUIC-сигнатуры AmneziaWG...</translation>
     </message>
@@ -4544,6 +4532,30 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
     <message>
         <source>Import Routing Profile</source>
         <translation>Импорт профиля маршрутизации</translation>
+    </message>
+    <message>
+        <source>Exit country</source>
+        <translation>Страна выхода</translation>
+    </message>
+    <message>
+        <source>The country of the last Tor relay; Any lets Tor choose.</source>
+        <translation>Страна последнего узла Tor; при варианте «Любая» выбирает Tor.</translation>
+    </message>
+    <message>
+        <source>Send proxied traffic out through Psiphon over the selected profile.</source>
+        <translation>Направлять проксируемый трафик на выход через Psiphon поверх выбранного профиля.</translation>
+    </message>
+    <message>
+        <source>Region</source>
+        <translation>Регион</translation>
+    </message>
+    <message>
+        <source>The country of the Psiphon server; Best performance lets Psiphon choose.</source>
+        <translation>Страна сервера Psiphon; при варианте «Лучшая производительность» выбирает Psiphon.</translation>
+    </message>
+    <message>
+        <source>Psiphon is a free network run by Psiphon Inc., which can see the sites you visit, like any VPN provider.</source>
+        <translation>Psiphon — бесплатная сеть под управлением Psiphon Inc.; как и любой VPN-провайдер, она может видеть, какие сайты вы посещаете.</translation>
     </message>
 </context>
 <context>
@@ -5787,6 +5799,10 @@ Close without saving?</source>
         <source>App</source>
         <translation>Приложение</translation>
     </message>
+    <message>
+        <source>%1 exit</source>
+        <translation>Выход %1</translation>
+    </message>
 </context>
 <context>
     <name>DialogVPNSettings</name>
@@ -5949,8 +5965,8 @@ Close without saving?</source>
         <translation>Также преобразует адреса прокси-серверов в IP</translation>
     </message>
     <message>
-        <source>Add</source>
-        <translation>Добавить</translation>
+        <source>Add server</source>
+        <translation>Добавить сервер</translation>
     </message>
     <message>
         <source>Recent</source>
@@ -8874,6 +8890,21 @@ Close without saving?</source>
     </message>
 </context>
 <context>
+    <name>EditPsiphon</name>
+    <message>
+        <source>Region</source>
+        <translation>Регион</translation>
+    </message>
+    <message>
+        <source>The country of the Psiphon server; Best performance lets Psiphon choose.</source>
+        <translation>Страна сервера Psiphon; при варианте «Лучшая производительность» выбирает Psiphon.</translation>
+    </message>
+    <message>
+        <source>Psiphon is a free network run by Psiphon Inc., which can see the sites you visit, like any VPN provider.</source>
+        <translation>Psiphon — бесплатная сеть под управлением Psiphon Inc.; как и любой VPN-провайдер, она может видеть, какие сайты вы посещаете.</translation>
+    </message>
+</context>
+<context>
     <name>EditSSH</name>
     <message>
         <source>User</source>
@@ -9065,6 +9096,161 @@ Close without saving?</source>
     <message>
         <source>Global DNS</source>
         <translation>Глобальный DNS</translation>
+    </message>
+</context>
+<context>
+    <name>EditTor</name>
+    <message>
+        <source>Bridges</source>
+        <translation>Мосты</translation>
+    </message>
+    <message>
+        <source>Connect to the Tor network directly; works only where Tor is not blocked.</source>
+        <translation>Подключаться к сети Tor напрямую; работает, только если Tor не заблокирован.</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation>Нет</translation>
+    </message>
+    <message>
+        <source>Use the bridges built into Throne.</source>
+        <translation>Использовать мосты, встроенные в Throne.</translation>
+    </message>
+    <message>
+        <source>Built-in</source>
+        <translation>Встроенные</translation>
+    </message>
+    <message>
+        <source>Use bridge lines from the Tor Project or someone you trust.</source>
+        <translation>Использовать строки мостов от Tor Project или от того, кому вы доверяете.</translation>
+    </message>
+    <message>
+        <source>Custom</source>
+        <translation>Пользовательские</translation>
+    </message>
+    <message>
+        <source>One bridge per line, with or without the Bridge keyword</source>
+        <translation>По одному мосту в строке, с ключевым словом Bridge или без него</translation>
+    </message>
+    <message>
+        <source>Snowflake works in most censored networks. WebTunnel and obfs4 bridges come from Get bridges.</source>
+        <translation>Snowflake работает в большинстве сетей с цензурой. Мосты WebTunnel и obfs4 можно получить кнопкой «Получить мосты».</translation>
+    </message>
+    <message>
+        <source>Ask the Tor Project&apos;s bridge service which bridges work in a country.</source>
+        <translation>Узнать у службы мостов Tor Project, какие мосты работают в стране.</translation>
+    </message>
+    <message>
+        <source>Get bridges</source>
+        <translation>Получить мосты</translation>
+    </message>
+    <message>
+        <source>Copy the bridge lines this profile uses.</source>
+        <translation>Скопировать строки мостов, которые использует этот профиль.</translation>
+    </message>
+    <message>
+        <source>Copy bridges</source>
+        <translation>Копировать мосты</translation>
+    </message>
+    <message>
+        <source>Exit country</source>
+        <translation>Страна выхода</translation>
+    </message>
+    <message>
+        <source>The country of the last Tor relay; Any lets Tor choose.</source>
+        <translation>Страна последнего узла Tor; при варианте «Любая» выбирает Tor.</translation>
+    </message>
+    <message>
+        <source>Download the Tor program from the Tor Project.</source>
+        <translation>Загрузить программу Tor с сайта Tor Project.</translation>
+    </message>
+    <message>
+        <source>Download</source>
+        <translation>Загрузить</translation>
+    </message>
+    <message>
+        <source>The bridge service suggested nothing for this country.</source>
+        <translation>Служба мостов ничего не предложила для этой страны.</translation>
+    </message>
+    <message>
+        <source>The bridge service is unreachable; showing the built-in list.</source>
+        <translation>Служба мостов недоступна; показан встроенный список.</translation>
+    </message>
+    <message>
+        <source>The bridge service is unreachable; showing the built-in list for %1.</source>
+        <translation>Служба мостов недоступна; показан встроенный список для страны %1.</translation>
+    </message>
+    <message>
+        <source>Answered for %1.</source>
+        <translation>Ответ для страны: %1.</translation>
+    </message>
+    <message>
+        <source>Asked through the running proxy, so Automatic used the proxy&apos;s location.</source>
+        <translation>Запрос шел через запущенный прокси, поэтому вариант «Автоматически» использовал местоположение прокси.</translation>
+    </message>
+    <message>
+        <source>Where the bridges have to work; Automatic lets the service tell from your connection.</source>
+        <translation>Где должны работать мосты; при варианте «Автоматически» служба определит это по вашему подключению.</translation>
+    </message>
+    <message>
+        <source>Automatic</source>
+        <translation>Автоматически</translation>
+    </message>
+    <message>
+        <source>Country</source>
+        <translation>Страна</translation>
+    </message>
+    <message>
+        <source>Request</source>
+        <translation>Запросить</translation>
+    </message>
+    <message>
+        <source>Ask the Tor Project&apos;s bridge service for bridges that work in this country.</source>
+        <translation>Запросить у службы мостов Tor Project мосты, которые работают в этой стране.</translation>
+    </message>
+    <message>
+        <source>Asking the bridge service; this can take a minute.</source>
+        <translation>Запрос к службе мостов; это может занять минуту.</translation>
+    </message>
+    <message>
+        <source>The core did not answer: %1</source>
+        <translation>Ядро не ответило: %1</translation>
+    </message>
+    <message>
+        <source>Any</source>
+        <translation>Любая</translation>
+    </message>
+    <message>
+        <source>Tor is installed.</source>
+        <translation>Tor установлен.</translation>
+    </message>
+    <message>
+        <source>Tor is not downloaded yet.</source>
+        <translation>Tor еще не загружен.</translation>
+    </message>
+    <message numerus="yes">
+        <source>Copied %n bridge line(s).</source>
+        <translation>
+            <numerusform>Скопирована %n строка моста.</numerusform>
+            <numerusform>Скопированы %n строки мостов.</numerusform>
+            <numerusform>Скопировано %n строк мостов.</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>There are no bridge lines to copy.</source>
+        <translation>Нет строк мостов для копирования.</translation>
+    </message>
+    <message>
+        <source>Tor download failed: %1</source>
+        <translation>Ошибка загрузки Tor: %1</translation>
+    </message>
+    <message>
+        <source>A Tor download is already running.</source>
+        <translation>Загрузка Tor уже выполняется.</translation>
+    </message>
+    <message>
+        <source>Downloading Tor.</source>
+        <translation>Загрузка Tor.</translation>
     </message>
 </context>
 <context>
@@ -10488,6 +10674,10 @@ Error: %1</source>
         <translation>Скорость</translation>
     </message>
     <message>
+        <source>Services</source>
+        <translation>Сервисы</translation>
+    </message>
+    <message>
         <source>Sort by:</source>
         <translation>Сортировать по:</translation>
     </message>
@@ -11344,6 +11534,14 @@ Restart Throne as administrator to use Tun mode and the kill switch.</source>
         <translation>Скачать профиль маршрутизации</translation>
     </message>
     <message>
+        <source>Choose profile:</source>
+        <translation>Выберите профиль:</translation>
+    </message>
+    <message>
+        <source>More</source>
+        <translation>Ещё</translation>
+    </message>
+    <message>
         <source>%1 (downloading)</source>
         <translation>%1 (загрузка)</translation>
     </message>
@@ -11392,8 +11590,8 @@ Restart Throne as administrator to use Tun mode and the kill switch.</source>
         <translation>Для проверки сервисов не выбрано ни одного сервиса. Выберите их в «Основных настройках».</translation>
     </message>
     <message>
-        <source>Proxy without WARP</source>
-        <translation>Прокси без WARP</translation>
+        <source>Proxy without exit</source>
+        <translation>Прокси без выхода</translation>
     </message>
     <message>
         <source>[VPN] %1 rejected its sign-in; it stays down until the profile restarts.</source>
@@ -11426,6 +11624,38 @@ Error: %2</source>
     <message>
         <source>Export Config</source>
         <translation>Экспортировать конфиг</translation>
+    </message>
+    <message>
+        <source>New Tor circuit</source>
+        <translation>Новая цепочка Tor</translation>
+    </message>
+    <message>
+        <source>Tor is not downloaded</source>
+        <translation>Tor не загружен</translation>
+    </message>
+    <message>
+        <source>The profile &quot;%1&quot; connects through Tor, which is not downloaded yet.
+
+Download Tor from the Tor Project now? The profile starts once it is installed.</source>
+        <translation>Профиль «%1» подключается через Tor, который еще не загружен.
+
+Загрузить Tor с сайта Tor Project сейчас? Профиль запустится, как только Tor будет установлен.</translation>
+    </message>
+    <message>
+        <source>Download</source>
+        <translation>Загрузить</translation>
+    </message>
+    <message>
+        <source>[Tor] A download is already running; start the profile again once it finishes.</source>
+        <translation>[Tor] Загрузка уже выполняется; запустите профиль снова, когда она завершится.</translation>
+    </message>
+    <message>
+        <source>[Tor] New circuit requested; new connections take a different path.</source>
+        <translation>[Tor] Запрошена новая цепочка; новые подключения пойдут другим путем.</translation>
+    </message>
+    <message>
+        <source>[Tor] Could not switch to a new circuit: %1</source>
+        <translation>[Tor] Не удалось сменить цепочку: %1</translation>
     </message>
 </context>
 <context>
@@ -11462,8 +11692,8 @@ Error: %2</source>
         <translation>Фильтр по стране или сервису...</translation>
     </message>
     <message>
-        <source>Countries or working services, e.g. &quot;DE gemini&quot;; &quot;!netflix&quot; finds refusals.</source>
-        <translation>Страны или работающие сервисы, например «DE gemini»; «!netflix» находит отказы.</translation>
+        <source>Countries or working services, e.g. &quot;!RU gemini+US&quot; (Gemini sees US); &quot;!netflix&quot; finds refusals.</source>
+        <translation>Страны или работающие сервисы, например «!RU gemini+US» (Gemini видит US); «!netflix» находит отказы.</translation>
     </message>
     <message>
         <source>Disable Filter</source>
@@ -11714,6 +11944,18 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
 В этом случае Windows игнорирует привязку к адаптеру, которая не пускает собственные подключения Throne в Tun, поэтому они зацикливаются обратно в него и не работают.
 
 Чтобы это исправить, раздавайте хот-спот с адаптера throne-tun вместо «%1» (Параметры &gt; Мобильный хот-спот &gt; Совместное использование подключения к Интернету) или отключайте хот-спот на время работы в режиме Tun.</translation>
+    </message>
+    <message>
+        <source>System DNS not restored</source>
+        <translation>Системный DNS не восстановлен</translation>
+    </message>
+    <message>
+        <source>After Tun stopped, Throne could not put back the DNS servers of these network services: %1. Websites may not load until they are restored.
+
+Throne keeps retrying in the background, and restarting Throne retries as well.</source>
+        <translation>После остановки Tun Throne не смог вернуть DNS-серверы следующих сетевых служб: %1. Пока они не восстановлены, сайты могут не открываться.
+
+Throne продолжает попытки в фоне; перезапуск Throne тоже повторит попытку.</translation>
     </message>
     <message>
         <source>Core exited, cleaning up...</source>
@@ -13176,8 +13418,8 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
         <translation>Неверное имя пользователя или пароль.</translation>
     </message>
     <message>
-        <source>Tor is enabled but not downloaded yet. Open Routing Settings &gt; Exit and press OK to download it.</source>
-        <translation>Tor включен, но еще не загружен. Откройте «Настройки маршрутизации &gt; Выход» и нажмите OK, чтобы загрузить его.</translation>
+        <source>Tor is not downloaded yet; starting a profile that uses it offers the download.</source>
+        <translation>Tor еще не загружен; при запуске профиля, который его использует, будет предложено загрузить его.</translation>
     </message>
     <message>
         <source>The custom Xray config uses the tag &quot;%1&quot;, which Throne also generates for another Xray profile; rename it in the custom config</source>
@@ -13334,6 +13576,46 @@ To fix this, share the hotspot from the throne-tun adapter instead of &quot;%1&q
     <message>
         <source>Extra Core</source>
         <translation>Доп. ядро</translation>
+    </message>
+    <message>
+        <source>The selected profile leaves through %1, which carries only TCP, but WARP needs UDP in its current mode. In Routing Settings &gt; Exit, set WARP to MASQUE with HTTP Version HTTP/2, or choose another exit.</source>
+        <translation>Выбранный профиль выходит через %1, который передает только TCP, а WARP в текущем режиме нужен UDP. В разделе «Настройки маршрутизации &gt; Выход» выберите для WARP режим MASQUE и в поле «Версия HTTP» — HTTP/2 или выберите другой выход.</translation>
+    </message>
+    <message>
+        <source>The selected profile already leaves through %1, so the %1 exit cannot run over it. Choose another exit in Routing Settings &gt; Exit.</source>
+        <translation>Выбранный профиль уже выходит через %1, поэтому выход %1 не может работать поверх него. Выберите другой выход в разделе «Настройки маршрутизации &gt; Выход».</translation>
+    </message>
+    <message>
+        <source>Best performance</source>
+        <translation>Лучшая производительность</translation>
+    </message>
+    <message>
+        <source>Tor network</source>
+        <translation>Сеть Tor</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n bridge(s)</source>
+        <translation>
+            <numerusform>%n мост</numerusform>
+            <numerusform>%n моста</numerusform>
+            <numerusform>%n мостов</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Plain</source>
+        <translation>Обычные</translation>
+    </message>
+    <message>
+        <source>%1, built-in</source>
+        <translation>%1, встроенные</translation>
+    </message>
+    <message numerus="yes">
+        <source>%1, %n bridge(s)</source>
+        <translation>
+            <numerusform>%1, %n мост</numerusform>
+            <numerusform>%1, %n моста</numerusform>
+            <numerusform>%1, %n мостов</numerusform>
+        </translation>
     </message>
 </context>
 <context>
@@ -13772,8 +14054,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Предпросмотр удалённого профиля</translation>
     </message>
     <message>
-        <source>This will replace the current rules with the ones fetched from the URL. Continue?</source>
-        <translation>Текущие правила будут заменены правилами, загруженными по URL. Продолжить?</translation>
+        <source>This will replace the rules that came from the URL, edits to them included, with the ones fetched now. Rules added here are kept. Continue?</source>
+        <translation>Правила, полученные по URL, будут заменены загруженными сейчас, вместе с вашими правками в них. Добавленные здесь правила сохранятся. Продолжить?</translation>
     </message>
     <message>
         <source>Enter a valid http(s) URL first.</source>
@@ -13804,10 +14086,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>DNS-запросы</translation>
     </message>
     <message>
-        <source>Lists</source>
-        <translation>Списки</translation>
-    </message>
-    <message>
         <source>%1 · rule %2 in the list</source>
         <translation>%1 · правило %2 в списке</translation>
     </message>
@@ -13828,8 +14106,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Продолжить редактирование</translation>
     </message>
     <message>
-        <source>Everything else goes to</source>
-        <translation>Остальной трафик:</translation>
+        <source>Final Exit</source>
+        <translation>Конечный выход</translation>
     </message>
     <message>
         <source>Remote profile</source>
@@ -13844,8 +14122,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Загрузить сейчас</translation>
     </message>
     <message>
-        <source>Each update replaces the rules, so changes made here last until the next one.</source>
-        <translation>Каждое обновление заменяет правила, поэтому сделанные здесь изменения сохранятся только до следующего.</translation>
+        <source>Each update replaces the rules that came from the URL, so edits to them last until the next one. Rules added here are kept.</source>
+        <translation>Каждое обновление заменяет правила, полученные по URL, поэтому правки в них сохранятся только до следующего. Добавленные здесь правила сохраняются.</translation>
     </message>
     <message>
         <source>OpenVPN and OpenConnect profiles started together with this routing profile. Each one adds an endpoint rule to the list, which you can move but not edit.</source>
@@ -13876,7 +14154,7 @@ Remove that endpoint from this routing profile as well?</source>
     </message>
     <message>
         <source>Disabled</source>
-        <translation>Выключено</translation>
+        <translation>Выкл.</translation>
     </message>
     <message>
         <source>Due now</source>
@@ -13911,6 +14189,14 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Ядро</translation>
     </message>
     <message>
+        <source>capabilities</source>
+        <translation>возможности</translation>
+    </message>
+    <message>
+        <source>Admin</source>
+        <translation>Администратор</translation>
+    </message>
+    <message>
         <source>Network</source>
         <translation>Сеть</translation>
     </message>
@@ -13928,11 +14214,11 @@ Remove that endpoint from this routing profile as well?</source>
     </message>
     <message>
         <source>Next sub update</source>
-        <translation>След. обновл. подписки</translation>
+        <translation>Обновл. подписки</translation>
     </message>
     <message>
         <source>Next remote routing profile update</source>
-        <translation>След. обновл. удаленного профиля маршрутизации</translation>
+        <translation>Обновл. маршрутов</translation>
     </message>
     <message>
         <source>System</source>
@@ -16428,6 +16714,30 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Каждый ключ в строке должен быть в URL-safe base64 длиной 32 или 1184 байта, без дополнения (padding).</translation>
     </message>
     <message>
+        <source>Put the padding parts before the keys.</source>
+        <translation>Поместите части padding перед ключами.</translation>
+    </message>
+    <message>
+        <source>A 1184-byte key in the string is not a valid ML-KEM-768 key: copy the string from the server again.</source>
+        <translation>Ключ длиной 1184 байта в строке не является корректным ключом ML-KEM-768: скопируйте строку с сервера заново.</translation>
+    </message>
+    <message>
+        <source>The string has no key: copy the whole string the server gives.</source>
+        <translation>В строке нет ключа: скопируйте всю строку, которую выдаёт сервер.</translation>
+    </message>
+    <message>
+        <source>Each padding part must be three numbers joined by dashes, like 100-111-1111.</source>
+        <translation>Каждая часть padding должна состоять из трёх чисел через дефис, например 100-111-1111.</translation>
+    </message>
+    <message>
+        <source>The first padding part needs a chance of at least 100 and lengths of at least 35, like 100-111-1111.</source>
+        <translation>Первая часть padding должна иметь вероятность не меньше 100 и длины не меньше 35, например 100-111-1111.</translation>
+    </message>
+    <message>
+        <source>The padding lengths can add up to more than 65553 bytes.</source>
+        <translation>Сумма длин padding может превысить 65553 байта.</translation>
+    </message>
+    <message>
         <source>XTLS Vision needs the raw network with TLS or REALITY, or VLESS encryption: change the network or security, or clear the flow.</source>
         <translation>XTLS Vision требует сеть raw с TLS или REALITY либо шифрование VLESS: измените сеть или безопасность либо очистите flow.</translation>
     </message>
@@ -17639,6 +17949,74 @@ Remove that endpoint from this routing profile as well?</source>
         <source>Windows reports program paths with \, so a path written with / never matches.</source>
         <translation>Windows записывает пути программ через \, поэтому путь, записанный через /, никогда не сработает.</translation>
     </message>
+    <message>
+        <source>Ignored %1: Psiphon profiles take only a region.</source>
+        <translation>Проигнорировано %1: в профилях Psiphon задается только регион.</translation>
+    </message>
+    <message>
+        <source>Use a two-letter country code, like US.</source>
+        <translation>Укажите двухбуквенный код страны, например US.</translation>
+    </message>
+    <message>
+        <source>Add at least one bridge line, or choose another bridge mode.</source>
+        <translation>Добавьте хотя бы одну строку моста или выберите другой режим мостов.</translation>
+    </message>
+    <message>
+        <source>The bridge address must be an IP address with a port, like 192.0.2.1:443 or [2001:db8::1]:443.</source>
+        <translation>Адрес моста должен быть IP-адресом с портом, например 192.0.2.1:443 или [2001:db8::1]:443.</translation>
+    </message>
+    <message>
+        <source>Only the first exit country was imported.</source>
+        <translation>Импортирована только первая страна выхода.</translation>
+    </message>
+    <message>
+        <source>Ignored %1: Tor profiles take only bridges and an exit country.</source>
+        <translation>Проигнорировано %1: в профилях Tor задаются только мосты и страна выхода.</translation>
+    </message>
+    <message>
+        <source>Bridge line %1: %2</source>
+        <translation>Строка моста %1: %2</translation>
+    </message>
+    <message>
+        <source>The built-in Tor bridges are not available: the core has not reported them.</source>
+        <translation>Встроенные мосты Tor недоступны: ядро их не передало.</translation>
+    </message>
+    <message>
+        <source>The bridge line is empty.</source>
+        <translation>Строка моста пуста.</translation>
+    </message>
+    <message>
+        <source>%1 bridges are not supported; use obfs4, WebTunnel, Snowflake, meek or plain bridges.</source>
+        <translation>Мосты %1 не поддерживаются; используйте мосты obfs4, WebTunnel, Snowflake, meek или обычные.</translation>
+    </message>
+    <message>
+        <source>The bridge address is missing.</source>
+        <translation>Не указан адрес моста.</translation>
+    </message>
+    <message>
+        <source>The bridge fingerprint must be 40 hexadecimal characters.</source>
+        <translation>Отпечаток моста должен состоять из 40 шестнадцатеричных символов.</translation>
+    </message>
+    <message>
+        <source>Write bridge options as key=value, like iat-mode=0.</source>
+        <translation>Указывайте параметры моста в виде key=value, например iat-mode=0.</translation>
+    </message>
+    <message>
+        <source>%1 bridges need the %2 option.</source>
+        <translation>Мостам %1 нужен параметр %2.</translation>
+    </message>
+    <message>
+        <source>Use a two-letter country code, like de.</source>
+        <translation>Укажите двухбуквенный код страны, например de.</translation>
+    </message>
+    <message>
+        <source>Skipped a bridge line: %1</source>
+        <translation>Пропущена строка моста: %1</translation>
+    </message>
+    <message>
+        <source>Tor bridges: %1</source>
+        <translation>Мосты Tor: %1</translation>
+    </message>
 </context>
 <context>
     <name>Sys::CoreElevation</name>
@@ -18553,8 +18931,8 @@ Remove that endpoint from this routing profile as well?</source>
 <context>
     <name>RouteEditor</name>
     <message>
-        <source>Unnamed rule</source>
-        <translation>Правило без названия</translation>
+        <source>Protocol</source>
+        <translation>Протокол</translation>
     </message>
     <message>
         <source>Proxy</source>
@@ -18565,8 +18943,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Напрямую</translation>
     </message>
     <message>
-        <source>Proxy without WARP</source>
-        <translation>Прокси без WARP</translation>
+        <source>Proxy without exit</source>
+        <translation>Прокси без выхода</translation>
     </message>
     <message>
         <source>Block</source>
@@ -18871,8 +19249,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Ошибок: %1</translation>
     </message>
     <message>
-        <source>Only differs from Proxy while WARP or Tor is on: these sites skip that layer.</source>
-        <translation>Отличается от «Прокси» только при включенном WARP или Tor: эти сайты идут в обход этого слоя.</translation>
+        <source>Only differs from Proxy while an exit is on (Routing Settings &gt; Exit): these sites skip it and leave through the selected profile.</source>
+        <translation>Отличается от «Прокси» только при включенном выходе (Настройки маршрутизации &gt; Выход): эти сайты идут в обход него и выходят через выбранный профиль.</translation>
     </message>
 </context>
 <context>
@@ -18900,45 +19278,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>The %1 list also has rows at %2.</source>
         <translation>У списка «%1» есть и другие строки: %2.</translation>
-    </message>
-</context>
-<context>
-    <name>QuickListsView</name>
-    <message>
-        <source>Empty.</source>
-        <translation>Пусто.</translation>
-    </message>
-    <message>
-        <source>Add an entry</source>
-        <translation>Добавить запись</translation>
-    </message>
-    <message>
-        <source>Add</source>
-        <translation>Добавить</translation>
-    </message>
-    <message>
-        <source>A line without a prefix is typed by its shape: example.com is a domain suffix, 10.0.0.0/8 an IP range, app.exe a process. The prefixes domain:, keyword:, regex:, ruleset: and processPath: still work.</source>
-        <translation>Строка без префикса распознается по виду: example.com — суффикс домена, 10.0.0.0/8 — диапазон IP, app.exe — процесс. Префиксы domain:, keyword:, regex:, ruleset: и processPath: тоже работают.</translation>
-    </message>
-    <message>
-        <source>%1 list</source>
-        <translation>Список «%1»</translation>
-    </message>
-    <message>
-        <source>Entry %1 (&quot;%2&quot;): %3</source>
-        <translation>Запись %1 («%2»): %3</translation>
-    </message>
-    <message>
-        <source>Advanced mode shows other rules too. Before these lists: %1. After them: %2.</source>
-        <translation>В расширенном режиме видны и другие правила. Перед этими списками: %1. После них: %2.</translation>
-    </message>
-    <message>
-        <source>Show fewer</source>
-        <translation>Свернуть</translation>
-    </message>
-    <message>
-        <source>%1 more</source>
-        <translation>Еще %1</translation>
     </message>
 </context>
 <context>
@@ -19030,12 +19369,12 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Маршрут по умолчанию. Всегда последний, задается над списком.</translation>
     </message>
     <message>
-        <source>Set above the list, under Everything else goes to.</source>
-        <translation>Задается над списком, в поле «Остальной трафик».</translation>
-    </message>
-    <message>
         <source>Quick list</source>
         <translation>Быстрый список</translation>
+    </message>
+    <message>
+        <source>empty</source>
+        <translation>пусто</translation>
     </message>
     <message>
         <source>Off · %1</source>
@@ -19050,18 +19389,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Конечная точка</translation>
     </message>
     <message>
-        <source>#</source>
-        <translation>#</translation>
-    </message>
-    <message>
-        <source>Then</source>
-        <translation>Действие</translation>
-    </message>
-    <message>
-        <source>Rule</source>
-        <translation>Правило</translation>
-    </message>
-    <message>
         <source>Rules</source>
         <translation>Правила</translation>
     </message>
@@ -19069,12 +19396,16 @@ Remove that endpoint from this routing profile as well?</source>
 <context>
     <name>RouteRuleEditor</name>
     <message>
-        <source>Name</source>
-        <translation>Название</translation>
+        <source>Rule name</source>
+        <translation>Название правила</translation>
     </message>
     <message>
-        <source>When</source>
-        <translation>Условия</translation>
+        <source>AND</source>
+        <translation>И</translation>
+    </message>
+    <message>
+        <source>OR</source>
+        <translation>ИЛИ</translation>
     </message>
     <message>
         <source>+ Add condition</source>
@@ -19083,10 +19414,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Invert: match only what this rule would not match</source>
         <translation>Инвертировать: срабатывать только на то, что не подходит под условия</translation>
-    </message>
-    <message>
-        <source>Then</source>
-        <translation>Действие</translation>
     </message>
     <message>
         <source>Default</source>
@@ -19149,16 +19476,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>sing-box JSON</translation>
     </message>
     <message>
-        <source>Any of these</source>
-        <translation>Любое из условий</translation>
-    </message>
-    <message>
-        <source>Any of these values</source>
-        <translation>Любое из значений</translation>
-    </message>
-    <message>
-        <source>+ Add</source>
-        <translation>+ Добавить</translation>
+        <source>Add a value</source>
+        <translation>Добавить значение</translation>
     </message>
     <message>
         <source>Choose app</source>
@@ -19186,6 +19505,10 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Delete</source>
         <translation>Удалить</translation>
+    </message>
+    <message>
+        <source>Filter rules</source>
+        <translation>Фильтр правил</translation>
     </message>
     <message>
         <source>Filter by name, domain or app</source>

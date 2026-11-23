@@ -54,10 +54,7 @@ func WarpRegister(request *WarpRegisterRequest) (*WarpIdentity, error) {
 	if request == nil {
 		return nil, E.New("nil request")
 	}
-	hosts := len(request.apiHosts)
-	if hosts == 0 {
-		hosts = 1
-	}
+	hosts := warp.HostCount(request.apiHosts)
 	ctx, cancel := context.WithTimeout(context.Background(), warpRegisterTimeout+time.Duration(hosts)*warpRegisterHostTimeout)
 	defer cancel()
 	identity, err := warp.Register(ctx, request.TunnelType, request.Proxy, request.apiHosts, warp.TLSFragmentOptions{

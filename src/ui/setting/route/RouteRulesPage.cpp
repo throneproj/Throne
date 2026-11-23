@@ -5,6 +5,7 @@
 #include "include/ui/setting/route/RouteQuickLists.h"
 #include "include/ui/setting/route/RouteRuleEditor.h"
 #include "include/ui/setting/route/RouteRuleList.h"
+#include "include/ui/utils/ThemedIcon.hpp"
 
 #include <QCoreApplication>
 #include <QHBoxLayout>
@@ -19,6 +20,7 @@
 #include <QSet>
 #include <QSplitter>
 #include <QStackedWidget>
+#include <QStyleOption>
 #include <QTimer>
 #include <QVBoxLayout>
 
@@ -63,16 +65,26 @@ namespace {
         return true;
     }
 
-    // As wide as its placeholder where there is room.
-    class RulesPageFilter : public QLineEdit {
+    // QPushButton sizes an icon-only button by its icon alone; this one is square and as tall as a text button.
+    class RulesPageIconButton : public QPushButton {
     public:
-        using QLineEdit::QLineEdit;
+        RulesPageIconButton(const QString& icon, const QString& name, QWidget* parent) : QPushButton(parent) {
+            setIcon(ThemedIcon(icon));
+            setToolTip(name);
+            setAccessibleName(name);
+            setAutoDefault(false);
+        }
 
         [[nodiscard]] QSize sizeHint() const override {
-            QSize size = QLineEdit::sizeHint();
-            const QFontMetrics metrics = fontMetrics();
-            size.setWidth(qMax(size.width(), metrics.horizontalAdvance(placeholderText()) + 2 * metrics.height() + 12));
-            return size;
+            QStyleOptionButton option;
+            initStyleOption(&option);
+            const QSize contents(iconSize().width(), fontMetrics().size(Qt::TextShowMnemonic, QStringLiteral("X")).height());
+            const int side = style()->sizeFromContents(QStyle::CT_PushButton, &option, contents, this).height();
+            return {side, side};
+        }
+
+        [[nodiscard]] QSize minimumSizeHint() const override {
+            return sizeHint();
         }
     };
 
@@ -117,16 +129,16 @@ RouteRulesPage::RouteRulesPage(std::shared_ptr<Configs::RouteProfile> routeProfi
     auto* toolbar = new QHBoxLayout;
     toolbar->setSpacing(6);
     newButton = rulesPageButton(tr("New rule"), left);
-    duplicateButton = rulesPageButton(tr("Duplicate"), left);
-    deleteButton = rulesPageButton(tr("Delete"), left);
-    filterEdit = new RulesPageFilter(left);
-    filterEdit->setPlaceholderText(tr("Filter by name, domain or app"));
+    duplicateButton = new RulesPageIconButton(QStringLiteral("copy"), tr("Duplicate"), left);
+    deleteButton = new RulesPageIconButton(QStringLiteral("trash"), tr("Delete"), left);
+    filterEdit = new QLineEdit(left);
+    filterEdit->setPlaceholderText(tr("Filter rules"));
+    filterEdit->setToolTip(tr("Filter by name, domain or app"));
     filterEdit->setClearButtonEnabled(true);
     toolbar->addWidget(newButton);
     toolbar->addWidget(duplicateButton);
     toolbar->addWidget(deleteButton);
-    toolbar->addStretch(1);
-    toolbar->addWidget(filterEdit);
+    toolbar->addWidget(filterEdit, 1);
     leftLayout->addLayout(toolbar);
     list = new RouteRuleList(profile, left);
     leftLayout->addWidget(list, 1);
@@ -167,7 +179,7 @@ RouteRulesPage::RouteRulesPage(std::shared_ptr<Configs::RouteProfile> routeProfi
     splitter->setStretchFactor(0, 1);
     splitter->setStretchFactor(1, 1);
     // Weights until the handle is dragged; without them the list's size hint takes most of the width.
-    splitter->setSizes({1100, 900});
+    splitter->setSizes({700, 1300});
 
     connect(newButton, &QPushButton::clicked, this, &RouteRulesPage::addRule);
     connect(duplicateButton, &QPushButton::clicked, this, [this] { duplicateRow(list->selectedRow()); });
@@ -331,10 +343,11 @@ void RouteRulesPage::updateActions() {
     const RouteEditor::RowKind kind = valid ? rows.at(row).kind : RouteEditor::RowKind::Rule;
     duplicateButton->setEnabled(valid && kind == RouteEditor::RowKind::Rule);
     deleteButton->setEnabled(valid && !(kind == RouteEditor::RowKind::QuickList && rulesPageRowEmpty(*profile, rows.at(row))));
-    QString tip;
+    QString tip = tr("Delete");
     if (valid && kind == RouteEditor::RowKind::QuickList) tip = tr("Remove all entries");
     else if (valid && kind == RouteEditor::RowKind::Endpoint) tip = tr("Remove endpoint");
     deleteButton->setToolTip(tip);
+    deleteButton->setAccessibleName(tip);
 }
 
 void RouteRulesPage::rowEdited(int row) {
@@ -388,6 +401,7 @@ void RouteRulesPage::duplicateRow(int row) {
     for (int n = 2; taken.contains(name); ++n) name = QStringLiteral("%1 (%2)").arg(base, QString::number(n));
     auto copy = std::make_shared<Configs::RouteRule>(*source);
     copy->name = name;
+    copy->remote = false;
     profile->Rules.insert(at + 1, copy);
     rebuild(copy, false);
     emit changed();

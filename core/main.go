@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"os"
+	"os/signal"
 	"runtime"
 	runtimeDebug "runtime/debug"
 	"runtime/metrics"
@@ -22,6 +25,7 @@ import (
 	"ThroneCore/internal/parentcheck"
 	"ThroneCore/internal/rpc"
 	"ThroneCore/internal/sysdns"
+	"ThroneCore/internal/torproc"
 
 	C "github.com/sagernet/sing-box/constant"
 
@@ -104,6 +108,15 @@ func watchParent(pid int, name string) {
 	}
 }
 
+// Logout and shutdown end the core with SIGTERM, whose default action would leave the system DNS on a listener that is gone.
+func releaseOnSignal() {
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
+	received := <-signals
+	sysdns.Release()
+	log.Fatalln("received", received)
+}
+
 // attached is set in the elevated child of a Windows stub, which already holds Throne's pipe and has no parentcheck parent.
 func RunCore(attached *elevation.Attached) {
 	socketName := os.Getenv("THRONE_CORE_SOCKET")
@@ -121,6 +134,10 @@ func RunCore(attached *elevation.Attached) {
 	}
 	guard.CleanupStale()
 	sysdns.RestoreStale()
+	torproc.CleanupInstances()
+	if runtime.GOOS == "darwin" {
+		go releaseOnSignal()
+	}
 
 	go watchParent(parentcheck.ParentPID, "parent")
 	if attached != nil {
@@ -159,6 +176,16 @@ func printVersions() {
 	fmt.Println("Go:", runtime.Version())
 }
 
+// Snowflake logs its traffic counters through the standard logger every few seconds while it carries traffic.
+type trafficLogFilter struct{ io.Writer }
+
+func (f trafficLogFilter) Write(p []byte) (int, error) {
+	if bytes.Contains(p, []byte("Traffic Bytes (in|out)")) {
+		return len(p), nil
+	}
+	return f.Writer.Write(p)
+}
+
 func runCore(attached *elevation.Attached) {
 	defer func() {
 		if err := recover(); err != nil {
@@ -167,6 +194,7 @@ func runCore(attached *elevation.Attached) {
 			os.Exit(2)
 		}
 	}()
+	log.SetOutput(trafficLogFilter{log.Writer()})
 	printVersions()
 	fmt.Println()
 	runtimeDebug.SetMemoryLimit(memoryLimit)

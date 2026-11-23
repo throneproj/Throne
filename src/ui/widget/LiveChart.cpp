@@ -2120,10 +2120,12 @@ void LiveChart::setState(const LiveChartState &state) {
 
 void LiveChart::paintEvent(QPaintEvent *event) {
     const QRegion &region = event->region();
-    const bool full = region.rectCount() == 1 && event->rect().contains(rect());
+    // Measured against what can be seen: a chart clipped by a scroll area never gets a paint covering rect() (#2143).
+    const bool full = (visibleRegion() - region).isEmpty();
     // A partial expose after a layout change would leave the rest of the widget showing the old layout.
     if (!full && (d->layoutDirty || d->pendingRepaint)) update();
-    if (full) d->pendingRepaint = false;
+    // Painted or rescheduled either way; left set, a mismatch between the two regions would repaint forever.
+    d->pendingRepaint = false;
     if (d->layoutDirty) d->layout();
     QPainter p(this);
     d->fullPaint = full;

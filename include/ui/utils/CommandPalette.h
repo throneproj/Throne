@@ -35,8 +35,6 @@ public:
         std::function<void()> run;
         // The Blocker's answer for action, refreshed on each open, return to the palette and blockersChanged().
         QString blocked;
-        // A setting Simple mode hides: only a query finds it, under its own heading, and run must leave Simple mode.
-        bool advanced = false;
     };
 
     // Why an entry's action cannot run right now, or empty when it can.

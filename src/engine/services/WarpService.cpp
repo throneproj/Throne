@@ -50,7 +50,7 @@ namespace Engine::WarpService {
         const auto &settings = Configs::dataManager->settingsRepo;
         const bool masque = settings->warp_mode == QLatin1String("masque");
         return Status{
-            .enabled = settings->enable_warp,
+            .enabled = Configs::ExitOf(settings->exit_through) == Configs::ExitThrough::Warp,
             .mode = settings->warp_mode,
             .configured = Configs::WarpConfigured(settings->warp_mode),
             .endpoint = masque ? settings->warp_masque_ep : settings->warp_ep,
@@ -71,7 +71,8 @@ namespace Engine::WarpService {
             if (auto refused = warpServiceCheckMode(*change.mode)) return refused;
         }
         const auto &settings = Configs::dataManager->settingsRepo;
-        const bool wasEnabled = settings->enable_warp;
+        const auto exitWas = Configs::ExitOf(settings->exit_through);
+        const bool wasEnabled = exitWas == Configs::ExitThrough::Warp;
         const bool enabled = change.enabled.value_or(wasEnabled);
         const QString mode = change.mode.value_or(settings->warp_mode);
         if (enabled == wasEnabled && mode == settings->warp_mode) return std::nullopt;
@@ -84,18 +85,19 @@ namespace Engine::WarpService {
         if (beforeWrite) {
             if (auto refused = beforeWrite()) return refused;
         }
-        const bool torWas = settings->enable_tor;
         const auto refused = SettingsService::Update([enabled, &mode](Configs::SettingsValues &values) {
-            values.enable_warp = enabled;
-            if (enabled) values.enable_tor = false;
+            if (enabled) values.exit_through = Configs::ExitValue(Configs::ExitThrough::Warp);
+            else if (Configs::ExitOf(values.exit_through) == Configs::ExitThrough::Warp)
+                values.exit_through = Configs::ExitValue(Configs::ExitThrough::Server);
             values.warp_mode = mode;
         });
         if (refused) return refused;
         result->changed = true;
-        // Tor outranks WARP, so WARP changes under a Tor that stays on change nothing.
-        result->restartNeeded = torWas ? enabled : wasEnabled || enabled;
-        result->torTurnedOff = torWas && enabled;
-        if (result->torTurnedOff) MW_show_log(QStringLiteral("[WARP] Tor turned off: WARP and Tor cannot run together"));
+        result->restartNeeded = wasEnabled || enabled;
+        result->replacedExit = enabled && !wasEnabled ? exitWas : Configs::ExitThrough::Server;
+        if (result->replacedExit != Configs::ExitThrough::Server) {
+            MW_show_log(QStringLiteral("[WARP] %1 turned off: WARP and %1 cannot run together").arg(Configs::ExitName(result->replacedExit)));
+        }
         return std::nullopt;
     }
 
@@ -137,7 +139,7 @@ namespace Engine::WarpService {
                     result.error = refused;
                 } else {
                     warpServiceStore(mode, *identity, packets);
-                    result.restartNeeded = Configs::dataManager->settingsRepo->enable_warp && !Configs::dataManager->settingsRepo->enable_tor;
+                    result.restartNeeded = Configs::ExitOf(Configs::dataManager->settingsRepo->exit_through) == Configs::ExitThrough::Warp;
                 }
                 done(result);
             });

@@ -15,10 +15,7 @@ namespace SettingsIndex {
         QString label;
         // Tabs and group boxes inside the dialog: "Logging › Log Filtering".
         QString path;
-        // The same in Simple mode, where a folded tab or group box sits as a section of another page.
-        QString simplePath;
         QString keywords;
-        bool advanced = false;
     };
 
     QList<Item> Build();

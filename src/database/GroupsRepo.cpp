@@ -45,6 +45,7 @@ namespace Configs {
                 route_id INTEGER NOT NULL DEFAULT -1,
                 import_sub_route INTEGER NOT NULL DEFAULT 0,
                 pinned_json TEXT NOT NULL DEFAULT '[]',
+                show_services INTEGER NOT NULL DEFAULT 1,
                 created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
             )
@@ -68,6 +69,8 @@ namespace Configs {
             db.exec("ALTER TABLE groups ADD COLUMN import_sub_route INTEGER NOT NULL DEFAULT 0");
         if (!groupsColumnExists("pinned_json"))
             db.exec("ALTER TABLE groups ADD COLUMN pinned_json TEXT NOT NULL DEFAULT '[]'");
+        if (!groupsColumnExists("show_services"))
+            db.exec("ALTER TABLE groups ADD COLUMN show_services INTEGER NOT NULL DEFAULT 1");
 
         db.exec(R"(
             CREATE TABLE IF NOT EXISTS groups_order (
@@ -146,6 +149,7 @@ namespace Configs {
         json["sort_method"] = static_cast<int>(group->sort.method);
         json["sort_descending"] = group->sort.descending;
         json["test_items_to_show"] = static_cast<int>(group->test_items_to_show);
+        json["show_services"] = group->show_services;
 
         return json;
     }
@@ -182,6 +186,7 @@ namespace Configs {
             group->sort.descending = json["sort_descending"].toBool();
         }
         group->test_items_to_show = static_cast<testShowItems>(json["test_items_to_show"].toInt(0));
+        group->show_services = json["show_services"].toBool(true);
 
         return group;
     }
@@ -206,8 +211,8 @@ namespace Configs {
              front_proxy_id, landing_proxy_id,
              column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by, test_items_to_show,
              type_sort_by, sub_options_json, sub_metadata_json, endpoint_json, sort_method, sort_descending,
-             route_id, import_sub_route, pinned_json)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             route_id, import_sub_route, pinned_json, show_services)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 archive = excluded.archive, skip_auto_update = excluded.skip_auto_update,
                 auto_clear_unavailable = excluded.auto_clear_unavailable, name = excluded.name,
@@ -220,7 +225,7 @@ namespace Configs {
                 sub_metadata_json = excluded.sub_metadata_json, endpoint_json = excluded.endpoint_json,
                 sort_method = excluded.sort_method, sort_descending = excluded.sort_descending,
                 route_id = excluded.route_id, import_sub_route = excluded.import_sub_route,
-                pinned_json = excluded.pinned_json,
+                pinned_json = excluded.pinned_json, show_services = excluded.show_services,
                 updated_at = strftime('%s', 'now')
         )",
             id,
@@ -247,7 +252,8 @@ namespace Configs {
             group->sort.descending ? 1 : 0,
             group->route_id,
             group->import_sub_route ? 1 : 0,
-            pinnedJson.toStdString()
+            pinnedJson.toStdString(),
+            group->show_services ? 1 : 0
         );
     }
 
@@ -257,7 +263,7 @@ namespace Configs {
                    front_proxy_id, landing_proxy_id,
                    column_width_json, profiles_json, scroll_last_profile, test_sort_by, traffic_sort_by, test_items_to_show,
                    type_sort_by, sub_options_json, sub_metadata_json, endpoint_json, sort_method, sort_descending,
-                   route_id, import_sub_route, pinned_json
+                   route_id, import_sub_route, pinned_json, show_services
             FROM groups WHERE id = ?
         )", id);
         if (!query || !query->executeStep()) {
@@ -317,6 +323,7 @@ namespace Configs {
             pinnedDoc.isArray()) {
             json["pinned"] = pinnedDoc.array();
         }
+        json["show_services"] = query->getColumn(25).getInt() != 0;
 
         auto group = groupFromJson(json);
         // Refreshes could map several identical servers onto one id, leaving it in the persisted list once per server (#1775).

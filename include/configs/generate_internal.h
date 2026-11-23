@@ -15,6 +15,7 @@
 
 #include "include/configs/generate.h"
 #include "include/configs/common/ResolverSource.h"
+#include "include/configs/common/xrayStreamSetting.h"
 #include "include/database/entities/Profile.h"
 #include "include/database/entities/RouteProfile.h"
 #include "include/global/Utils.hpp"
@@ -43,7 +44,7 @@ namespace Configs {
             constexpr auto dnsSystem = "dns-system";
             constexpr auto mixedIn = "mixed-in";
             constexpr auto tunIn = "tun-in";
-            constexpr auto xrayFullConfigIn = "throne-bridge";
+            constexpr auto xrayFullConfigIn = XrayFullConfigBridgeTag;
 
             constexpr auto adblockRuleSet = "throne-adblocksingbox";
             constexpr auto privateRangesRuleSet = "throne-private-ranges";
@@ -282,9 +283,15 @@ namespace Configs {
         bool isCustomFullConfig(const std::shared_ptr<Profile> &profile);
         bool isXrayFullConfig(const std::shared_ptr<Profile> &profile);
         bool usesXrayCore(const std::shared_ptr<Profile> &profile);
-        bool torExit();
+        ExitThrough activeExit();
         bool exitWrapperOn();
-        std::shared_ptr<Profile> getWarpProfile();
+        // Wraps the selected profile under the "proxy" tag; nullptr, with *error saying why, when the active exit cannot be built.
+        std::shared_ptr<Profile> exitProfile(QString *error = nullptr);
+        QString exitError(const std::shared_ptr<Profile> &ent);
+        // The hop ent's traffic leaves through before any exit wrapper: its group's landing proxy, a chain's last hop, or ent.
+        std::shared_ptr<Profile> exitHopOf(const std::shared_ptr<Profile> &ent);
+        bool exitCarriesOnlyTcp(const std::shared_ptr<Profile> &ent);
+        bool exitReachesOnion(const std::shared_ptr<Profile> &ent);
         std::shared_ptr<Profile> resolveExtraCoreProfile(const std::shared_ptr<Profile> &ent);
         QString scanCloneBlocker(const std::shared_ptr<Profile> &profile);
         std::shared_ptr<Profile> scanDeepClone(const std::shared_ptr<Profile> &base);

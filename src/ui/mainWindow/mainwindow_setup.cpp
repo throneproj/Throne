@@ -9,6 +9,8 @@
 #include "include/engine/autoselector/AutoSelectorController.h"
 #include "include/engine/tests/TestRunner.h"
 
+#include <atomic>
+
 #include <QMenu>
 
 #include "include/configs/sub/GroupUpdater.hpp"
@@ -26,6 +28,7 @@
 #include "include/engine/vpn/VpnAuthController.h"
 #include "include/global/PeriodicRunner.hpp"
 #include "include/global/Logger.hpp"
+#include "include/global/RunningProfiles.hpp"
 #include "include/scanner/IpListUpdater.h"
 #include "include/scanner/ScanManager.h"
 #include "include/ui/stats/dialog_auto_selector.h"
@@ -51,7 +54,6 @@
 #include "include/ui/utils/ProfilesTableFilterHeader.h"
 #include "include/ui/utils/ProfilesTableModel.h"
 #include "include/ui/utils/ThemedIcon.hpp"
-#include "include/ui/utils/UiMode.h"
 
 #include "include/ui/group/dialog_edit_group.h"
 #include "include/ui/utils/NativeFileDialog.h"
@@ -495,13 +497,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             actionShowSpeed->setChecked(group->test_items_to_show == Configs::testShowItems::all ||
                 group->test_items_to_show == Configs::testShowItems::speedOnly);
 
-            auto updateTestItemsToShow = [this, group, actionShowOutIP, actionShowSpeed] {
+            auto* actionShowServices = menu.addAction(tr("Services"));
+            actionShowServices->setCheckable(true);
+            actionShowServices->setChecked(group->show_services);
+
+            auto updateTestItemsToShow = [this, group, actionShowOutIP, actionShowSpeed, actionShowServices] {
                     const bool ip = actionShowOutIP->isChecked();
                     const bool speed = actionShowSpeed->isChecked();
                     if (ip && speed) group->test_items_to_show = Configs::testShowItems::all;
                     else if (ip) group->test_items_to_show = Configs::testShowItems::ipOnly;
                     else if (speed) group->test_items_to_show = Configs::testShowItems::speedOnly;
                     else group->test_items_to_show = Configs::testShowItems::none;
+                    group->show_services = actionShowServices->isChecked();
                     Configs::dataManager->groupsRepo->Save(group);
                     if (group->calculated_column_width.size() > ProfilesTableModel::ColTestResult) {
                         group->calculated_column_width[ProfilesTableModel::ColTestResult] = 0;
@@ -511,6 +518,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
             connect(actionShowOutIP, &QAction::triggered, this, updateTestItemsToShow);
             connect(actionShowSpeed, &QAction::triggered, this, updateTestItemsToShow);
+            connect(actionShowServices, &QAction::triggered, this, updateTestItemsToShow);
 
             menu.addSeparator();
             auto* sortByLabel = menu.addAction(tr("Sort by:"));
@@ -662,7 +670,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         Engine::SettingsService::Update([&address](Configs::SettingsValues &values) { values.inbound_address = address; }, {.interactive = true});
         syncSettingsMirrors();
     });
-    applyUiMode();
     connect(ui->checkBox_VPN, &QCheckBox::clicked, this, [=,this](bool checked) { connection()->setTun(checked); });
     connect(ui->checkBox_SystemProxy, &QCheckBox::clicked, this, [=,this](bool checked) { connection()->setSystemProxy(checked); });
     connect(ui->menu_spmode, &QMenu::aboutToShow, this, [=,this]() {
@@ -758,6 +765,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             tests()->runSpeedTests({}, true);
         }
     });
+    connect(ui->actionNew_Tor_Circuit, &QAction::triggered, this, [this, inFlight = std::make_shared<std::atomic_bool>(false)] {
+        if (runningSnapshot() == nullptr || !Configs::RunningUsesTor() || inFlight->exchange(true)) return;
+        runOnNewThread([inFlight] {
+            bool ok = false;
+            const QString error = API::defaultClient->TorNewIdentity(&ok);
+            inFlight->store(false);
+            runOnUiThread([ok, error] {
+                if (ok && error.isEmpty()) MW_show_log(MainWindow::tr("[Tor] New circuit requested; new connections take a different path."));
+                else MW_show_log(MainWindow::tr("[Tor] Could not switch to a new circuit: %1").arg(error));
+            });
+        });
+    });
     connect(ui->actionSpeedtest_Selected, &QAction::triggered, this, [=,this]()
     {
         tests()->runSpeedTests(get_now_selected_list());
@@ -813,7 +832,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         QString name;
         auto selected = get_now_selected_list();
 
-        UiMode::SetVisible(ui->menu_export_config, false);
+        ui->menu_export_config->setVisible(false);
         if (selected.isEmpty()) return;
 
         auto profile = Configs::dataManager->profilesRepo->GetProfile(selected.first());
@@ -825,7 +844,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             ui->actionCopy_Test_Result->setVisible(true);
         }
 
-        UiMode::SetVisible(ui->menu_export_config, true);
+        ui->menu_export_config->setVisible(true);
     });
     connect(ui->actionCopy_Test_Result, &QAction::triggered, this, [=,this]() {
         auto ents = get_now_selected_list();

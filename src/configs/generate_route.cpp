@@ -410,7 +410,7 @@ namespace Configs {
                 };
             }
             // Ahead of resolve, which would swap the name for a fake address Tor cannot dial.
-            if (ctx.policy.fullRouting && torExit()) {
+            if (ctx.policy.fullRouting && exitReachesOnion(ctx.ent)) {
                 injected.torOnion = QJsonObject{
                     {"domain_suffix", QJsonArray{"onion"}},
                     {"action", "route"},

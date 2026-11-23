@@ -15,7 +15,6 @@
 #include "include/engine/services/BackupArchive.h"
 #include "include/engine/services/SettingsService.h"
 #include "include/ui/setting/ServiceCheckSelector.h"
-#include "include/ui/utils/UiMode.h"
 #include "include/ui/utils/ValidationForm.h"
 
 #include <QStyleFactory>
@@ -335,7 +334,6 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->skip_delete_confirm->setChecked(snapshot_.skip_delete_confirmation);
     S_LOAD_BOOL(show_config_security)
     ui->language->setCurrentIndex(snapshot_.language);
-    ui->ui_mode->setCurrentIndex(snapshot_.simple_mode ? 0 : 1);
     CACHE.theme = snapshot_.theme;
     CACHE.font = snapshot_.font;
     CACHE.font_size = snapshot_.font_size;
@@ -483,16 +481,6 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     S_LOAD_BOOL(skip_cert)
 
     ui->tabWidget->addTab(new DiagnosticsTab(ui->tabWidget), tr("Diagnostics"));
-    if (ui->random_listen_port->isChecked()) UiMode::Unmark(ui->random_listen_port);
-    if (ui->disable_mixed_inbound->isChecked()) UiMode::Unmark(ui->disable_mixed_inbound);
-    if (ui->enable_custom_icon->isChecked()) {
-        for (QWidget *widget : {static_cast<QWidget *>(ui->enable_custom_icon), static_cast<QWidget *>(ui->select_custom_icon),
-                                static_cast<QWidget *>(ui->follow_status_in_taskbar)}) {
-            UiMode::Unmark(widget);
-        }
-    }
-    UiMode::Apply(this);
-    UiMode::Fold(this);
     bindValidation();
 
     // The .ui geometry underruns real font metrics/translations and Qt then overlaps the rows (#1671).
@@ -683,7 +671,6 @@ void DialogBasicSettings::accept() {
     proposed.enable_stats = ui->connection_statistics->isChecked();
     proposed.disable_traffic_aggregation = ui->disable_traffic_aggregation->isChecked();
     proposed.language = ui->language->currentIndex();
-    proposed.simple_mode = ui->ui_mode->currentIndex() == 0;
     proposed.use_custom_icons = ui->enable_custom_icon->isChecked();
     proposed.follow_status_in_taskbar = ui->follow_status_in_taskbar->isChecked();
     S_SAVE_BOOL(start_minimal)

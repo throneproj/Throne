@@ -8,7 +8,6 @@
 #include "include/engine/services/SettingsService.h"
 #include "include/engine/supervisor/CoreSupervisor.h"
 #include "include/ui/utils/ValidationForm.h"
-#include "include/ui/utils/UiMode.h"
 
 #include <QHostAddress>
 
@@ -52,7 +51,6 @@ DialogVPNSettings::DialogVPNSettings(QWidget *parent) : QDialog(parent), ui(new 
     ui->auto_redirect->setChecked(snapshot_.vpn_auto_redirect);
     ui->l3_bridge->setChecked(snapshot_.vpn_l3_bridge);
     for (auto *widget : UnavailableWidgets(ui)) widget->hide();
-    UiMode::Apply(this);
 
     using namespace Validation;
     const auto *mtuKey = Configs::SettingsSchema::Find(QStringLiteral("vpn_mtu"));

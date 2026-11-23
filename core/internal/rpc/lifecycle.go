@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"runtime"
@@ -17,13 +16,20 @@ import (
 	"ThroneCore/internal/xray"
 
 	"github.com/google/shlex"
+	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/option"
 	E "github.com/sagernet/sing/common/exceptions"
+	N "github.com/sagernet/sing/common/network"
 )
 
 func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.ErrorResp, _ error) {
 	lifecycleMu.Lock()
 	defer lifecycleMu.Unlock()
+
+	// Ahead of the cleanup below, which would orphan the running box and the system DNS it owns.
+	if currentBox() != nil {
+		return &gen.ErrorResp{Error: To("instance already started")}, nil
+	}
 
 	var err error
 
@@ -41,11 +47,6 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 		if in.XrayConfig != nil {
 			log.Println("Start Xray:", *in.XrayConfig)
 		}
-	}
-
-	if currentBox() != nil {
-		err = errors.New("instance already started")
-		return
 	}
 
 	if *in.NeedExtraProcess {
@@ -150,7 +151,43 @@ func (s *server) Start(ctx context.Context, in *gen.LoadConfigReq) (out *gen.Err
 		stopEgressForwardingWatch = watchEgressForwarding(box.Network())
 	}
 
+	warmProxyChain(box)
+
 	return
+}
+
+// Tor and Psiphon start on their first dial; the ones the main route uses start now. Outbounds only rules reach, and group
+// members not selected, stay lazy: connecting to Tor or Psiphon unasked can give a user away.
+func warmProxyChain(box *boxmain.Box) {
+	outbounds := box.Outbound()
+	visited := make(map[string]bool)
+	pending := []string{"proxy"}
+	for len(pending) > 0 {
+		tag := pending[len(pending)-1]
+		pending = pending[:len(pending)-1]
+		if visited[tag] {
+			continue
+		}
+		visited[tag] = true
+		outbound, found := outbounds.Outbound(tag)
+		if !found {
+			continue
+		}
+		if warmer, isWarmer := outbound.(interface{ Warm() }); isWarmer {
+			go warmer.Warm()
+		}
+		group, isGroup := outbound.(adapter.OutboundGroup)
+		if !isGroup {
+			pending = append(pending, outbound.Dependencies()...)
+			continue
+		}
+		// By tag: the auto selector hands out a wrapper that hides the member's own methods.
+		for _, network := range []string{N.NetworkTCP, N.NetworkUDP} {
+			if selected := group.Selected(network); selected != nil {
+				pending = append(pending, selected.Tag())
+			}
+		}
+	}
 }
 
 func (s *server) Stop(ctx context.Context, in *gen.EmptyReq) (out *gen.ErrorResp, _ error) {
@@ -165,6 +202,10 @@ func (s *server) Stop(ctx context.Context, in *gen.EmptyReq) (out *gen.ErrorResp
 			out.Error = To(err.Error())
 		}
 	}()
+
+	// Before the box closes, so the system resolver never points at a listener that is already gone; also without a box,
+	// so no lost instance can keep the system DNS.
+	sysdns.Release()
 
 	box, cancel := currentInstance()
 	if box == nil {
@@ -181,8 +222,6 @@ func (s *server) Stop(ctx context.Context, in *gen.EmptyReq) (out *gen.ErrorResp
 		untrackDNSTunnels = nil
 	}
 
-	// Before the box closes, so the system resolver never points at a listener that is already gone.
-	sysdns.Release()
 	// Unpublished first, so a poll mid-teardown sees no instance rather than a dying one.
 	setBoxInstance(nil, nil, nil)
 	box.CloseWithTimeout(cancel, time.Second*2, log.Println, true)

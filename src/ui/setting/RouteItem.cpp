@@ -10,7 +10,6 @@
 #include "include/ui/setting/route/RouteEditorCommon.h"
 #include "include/ui/setting/route/RouteQuickLists.h"
 #include "include/ui/setting/route/RouteRulesPage.h"
-#include "include/ui/utils/UiMode.h"
 #include "include/ui/utils/ValidationForm.h"
 
 #include <algorithm>
@@ -154,7 +153,8 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     ui->setupUi(this);
 
     chain = std::make_shared<Configs::RouteProfile>(*routeChain);
-    if (chain->IsEmpty()) {
+    // Not for a remote profile: a seeded rule would be local and outlive every update.
+    if (chain->IsEmpty() && !chain->isRemote) {
         auto rule = std::make_shared<Configs::RouteRule>();
         rule->name = tr("DNS queries");
         rule->protocol = "dns";
@@ -169,37 +169,25 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     setupEndpointsSection();
     syncEndpointRules();
 
-    if (UiMode::Simple()) {
-        quickListsView = new QuickListsView(chain, ui->rulesTab);
-        ui->rulesTabLayout->addWidget(quickListsView);
-        ui->tabWidget->setTabText(ui->tabWidget->indexOf(ui->rulesTab), tr("Lists"));
-    } else {
-        rulesPage = new RouteRulesPage(chain, ui->rulesTab);
-        ui->rulesTabLayout->addWidget(rulesPage);
-        connect(rulesPage, &RouteRulesPage::changed, this, &RouteItem::refreshEndpointSubtitles);
-        connect(rulesPage, &RouteRulesPage::openEndpointsRequested, this, [this] { ui->tabWidget->setCurrentWidget(ui->endpointsTab); });
-        // Deferred: both come from the page's own handlers, and syncing the endpoints reloads the page.
-        connect(rulesPage, &RouteRulesPage::endpointRemovalRequested, this, [this](int profileId) {
-            QTimer::singleShot(0, this, [this, profileId] { removeEndpointRow(profileId); });
-        });
-        connect(rulesPage, &RouteRulesPage::innerHopsOffRequested, this, [this](int ownerProfileId) {
-            QTimer::singleShot(0, this, [this, ownerProfileId] { setEndpointRowInnerHops(ownerProfileId, false); });
-        });
-        connect(ui->defaultCombo, &QComboBox::currentIndexChanged, this, [this] { rulesPage->setDefaultOutbound(defaultOutbound()); });
-        rulesPage->setDefaultOutbound(defaultOutbound());
-    }
+    rulesPage = new RouteRulesPage(chain, ui->rulesTab);
+    ui->rulesTabLayout->addWidget(rulesPage);
+    connect(rulesPage, &RouteRulesPage::changed, this, &RouteItem::refreshEndpointSubtitles);
+    connect(rulesPage, &RouteRulesPage::openEndpointsRequested, this, [this] { ui->tabWidget->setCurrentWidget(ui->endpointsTab); });
+    // Deferred: both come from the page's own handlers, and syncing the endpoints reloads the page.
+    connect(rulesPage, &RouteRulesPage::endpointRemovalRequested, this, [this](int profileId) {
+        QTimer::singleShot(0, this, [this, profileId] { removeEndpointRow(profileId); });
+    });
+    connect(rulesPage, &RouteRulesPage::innerHopsOffRequested, this, [this](int ownerProfileId) {
+        QTimer::singleShot(0, this, [this, ownerProfileId] { setEndpointRowInnerHops(ownerProfileId, false); });
+    });
+    connect(ui->defaultCombo, &QComboBox::currentIndexChanged, this, [this] { rulesPage->setDefaultOutbound(defaultOutbound()); });
+    rulesPage->setDefaultOutbound(defaultOutbound());
     refreshEndpointSubtitles();
 
     dnsEditor = new RouteDnsEditor(*chain, ui->tabWidget);
     ui->tabWidget->addTab(dnsEditor, tr("DNS"));
 
-    const int endpointsIndex = ui->tabWidget->indexOf(ui->endpointsTab);
-    if (UiMode::Simple()) {
-        ui->tabWidget->setTabVisible(endpointsIndex, !endpointRows.isEmpty());
-        ui->tabWidget->setTabVisible(ui->tabWidget->indexOf(dnsEditor), chain->customDns);
-    } else {
-        ui->tabWidget->setTabVisible(endpointsIndex, !endpointRows.isEmpty() || !endpointCandidates.isEmpty());
-    }
+    ui->tabWidget->setTabVisible(ui->tabWidget->indexOf(ui->endpointsTab), !endpointRows.isEmpty() || !endpointCandidates.isEmpty());
     int visibleTabs = 0;
     for (int i = 0; i < ui->tabWidget->count(); i++) {
         if (ui->tabWidget->isTabVisible(i)) visibleTabs++;
@@ -213,13 +201,12 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     if (chain->isRemote) {
         form->bind(ui->remoteUrlEdit, Validation::Rules::Url({"http", "https"}, Validation::Empty::Required)).label(ui->remoteUrlLabel->text());
     }
-    form->addIssueSource([this] { return rulesPage != nullptr ? rulesPage->issues() : quickListsView->issues(); }, this);
+    form->addIssueSource([this] { return rulesPage->issues(); }, this);
     dnsEditor->bindTo(form);
 
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &RouteItem::accept);
     connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &RouteItem::reject);
 
-    UiMode::Apply(this);
     form->markAll();
 
     const auto *scr = screen() != nullptr ? screen() : QGuiApplication::primaryScreen();
@@ -274,9 +261,10 @@ void RouteItem::fetchRemote(bool applyToChain) {
         MessageBoxWarning(tr("Invalid URL"), tr("Enter a valid http(s) URL first."));
         return;
     }
-    if (applyToChain && !chain->IsEmpty()) {
+    const bool hasRemoteRules = std::any_of(chain->Rules.cbegin(), chain->Rules.cend(), [](const auto& rule) { return rule->remote; });
+    if (applyToChain && hasRemoteRules) {
         if (QMessageBox::question(this, tr("Fetch from remote"),
-                                  tr("This will replace the current rules with the ones fetched from the URL. Continue?"))
+                                  tr("This will replace the rules that came from the URL, edits to them included, with the ones fetched now. Rules added here are kept. Continue?"))
             != QMessageBox::StandardButton::Yes) {
             return;
         }
@@ -309,6 +297,7 @@ void RouteItem::fetchRemote(bool applyToChain) {
                 MessageBoxWarning(tr("Could not fetch routing profile"), err);
                 return;
             }
+            const auto fetchedCount = std::count_if(target->Rules.cbegin(), target->Rules.cend(), [](const auto& rule) { return rule->remote; });
             if (applyToChain) {
                 chain->Rules = target->Rules;
                 chain->defaultOutboundID = target->defaultOutboundID;
@@ -320,17 +309,21 @@ void RouteItem::fetchRemote(bool applyToChain) {
                 setDefaultOutbound(chain->defaultOutboundID);
                 syncEndpointRules();
                 form->refresh();
-                const QString msg = tr("Loaded %1 rule(s) from the remote URL.").arg(target->Rules.size());
+                const QString msg = tr("Loaded %1 rule(s) from the remote URL.").arg(fetchedCount);
                 if (warnings.isEmpty()) MessageBoxInfo(tr("Fetched"), msg);
                 else routeItemPlainBox(this, QMessageBox::Information, tr("Fetched with warnings"), msg + "\n\n" + warnings.trimmed());
                 return;
             }
+            // Only what the URL serves: the local rules and endpoints merged into target are not part of it.
+            target->Rules.removeIf([](const auto& rule) { return !rule->remote; });
+            target->endpointProfileIDs.clear();
+            target->innerHopEndpointIDs.clear();
             auto* dlg = new QDialog(this);
             dlg->setAttribute(Qt::WA_DeleteOnClose);
             dlg->setWindowTitle(tr("Remote Routing Profile Preview"));
             auto* lay = new QVBoxLayout(dlg);
             auto* header = new QLabel(tr("%1 — %2 rule(s)").arg(target->name.isEmpty() ? tr("(unnamed)") : target->name,
-                                                               QString::number(target->Rules.size())), dlg);
+                                                               QString::number(fetchedCount)), dlg);
             header->setTextFormat(Qt::PlainText);
             lay->addWidget(header);
             if (!warnings.isEmpty()) {
@@ -531,13 +524,10 @@ void RouteItem::refreshEndpointSubtitles() {
         const auto ent = Configs::dataManager->profilesRepo->GetProfile(row.profileId);
         const QString type = ent != nullptr && ent->outbound != nullptr ? ent->outbound->DisplayType() : QString();
         int number = 0;
-        // Simple mode shows no rule list to point at.
-        if (rulesPage != nullptr) {
-            for (const auto& rule : chain->Rules) {
-                if (!routeItemIsEndpointRule(rule) || rule->outboundID != row.profileId) continue;
-                number = RouteEditor::RowNumber(rows, *chain, rule);
-                break;
-            }
+        for (const auto& rule : chain->Rules) {
+            if (!routeItemIsEndpointRule(rule) || rule->outboundID != row.profileId) continue;
+            number = RouteEditor::RowNumber(rows, *chain, rule);
+            break;
         }
         row.subtitle->setText(number > 0 ? tr("%1 · rule %2 in the list").arg(type, QString::number(number)) : type);
     }
@@ -545,7 +535,6 @@ void RouteItem::refreshEndpointSubtitles() {
 
 void RouteItem::reloadRules() {
     if (rulesPage != nullptr) rulesPage->reload();
-    if (quickListsView != nullptr) quickListsView->reload();
 }
 
 QString RouteItem::fingerprint() const {

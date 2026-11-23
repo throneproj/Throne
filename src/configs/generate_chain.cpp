@@ -128,7 +128,9 @@ namespace Configs {
                         scan.coreTransitions++;
                     }
                     inXray = false;
-                    ents.append(getWarpProfile());
+                    auto exitEnt = exitProfile(&res.error);
+                    if (exitEnt == nullptr) return res;
+                    ents.append(std::move(exitEnt));
                     continue;
                 }
                 auto ent = getProfile(id);
@@ -257,10 +259,10 @@ namespace Configs {
                 QString nextTag;
                 if (idx < ents.size() - 1) nextTag = hopTag(opts.prefix, opts.startSuffix + idx + 1);
                 if (opts.includeProxy && idx == 0) tag = tags::proxy;
-                // idx 0 is warp under the tag "proxy", so idx 1 takes "warp-bypass" for rules to name.
+                // idx 0 is the exit under the tag "proxy", so idx 1 takes "warp-bypass" for rules to name.
                 if (opts.warpWrap && idx == 1) tag = tags::warpBypass;
                 const auto& ent = ents[idx];
-                // Only the head hop (and warp's wrapped outbound) gets a tag rules can name.
+                // Only the head hop (and the exit's wrapped outbound) gets a tag rules can name.
                 const bool addressableHop = idx == 0 || (opts.warpWrap && idx == 1) || opts.addressableTags.contains(tag);
                 if (addressableHop && Protocols::Is(ent->type, Protocols::VpnEndpoint)) {
                     out.vpnEndpointProfiles.insert(tag, ent->id);
@@ -389,6 +391,7 @@ namespace Configs {
                     {"destOverride", QJsonArray{"http", "tls", "quic"}},
                     {"routeOnly", false}
                 };
+                RouteXrayListenerRulesViaBridge(userXrayConfig);
                 auto inbounds = (!ctx.policy.listeners || req.soleXrayInbound) ? QJsonArray()
                                                                                : userXrayConfig["inbounds"].toArray();
                 inbounds.prepend(bridgeInbound);

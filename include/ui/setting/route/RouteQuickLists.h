@@ -7,7 +7,7 @@
 #include "include/ui/setting/route/RouteEditorCommon.h"
 #include "include/ui/utils/ValidationForm.h"
 
-// The four quick lists (Direct, Proxy, Block, Server without WARP): simple rules edited as typed entries.
+// The four quick lists (Direct, Proxy, Block, Proxy without exit): simple rules edited as typed entries.
 namespace QuickLists {
     struct Entry {
         // domain, suffix, keyword, regex, ruleset, ip, processName or processPath.
@@ -23,17 +23,11 @@ namespace QuickLists {
     // The entries of profile.Rules[first, first + count), in display order.
     QList<Entry> Entries(const Configs::RouteProfile& profile, int first, int count);
 
-    // Every entry of a list, across all the rows it is split into.
-    QList<Entry> ListEntries(const Configs::RouteProfile& profile, Configs::simpleAction list);
-
     // "prefix:value" for a line typed by its prefix or by its shape; empty, with *error set, when it is neither.
     QString Canonical(const QString& line, QString* error);
 
     // Into the row's rule of that kind, else into a new rule placed right after the row.
     bool Add(Configs::RouteProfile& profile, const RouteEditor::Row& row, const QString& line, QString* error);
-
-    // Into the list's first rule of that kind, else into a new rule placed right after the list's last rule.
-    bool AddToList(Configs::RouteProfile& profile, Configs::simpleAction list, const QString& line, QString* error);
 
     // Leaves the rule in place even when it empties: an empty list keeps its row until saving drops it.
     void Remove(const Entry& entry);
@@ -75,35 +69,4 @@ private:
     void submit();
     void removeEntry(int row);
     void editEntry(int row);
-};
-
-// Simple mode's view: one card per quick list.
-class QuickListsView : public QWidget {
-    Q_OBJECT
-
-public:
-    explicit QuickListsView(std::shared_ptr<Configs::RouteProfile> profile, QWidget* parent = nullptr);
-    ~QuickListsView() override;
-
-    // After the rules changed elsewhere, such as a remote fetch.
-    void reload();
-
-    // Entry problems for the dialog's Form; each reveal scrolls to the card and selects the entry.
-    QList<Validation::FormIssue> issues();
-
-signals:
-    void changed();
-
-private:
-    struct Card;
-    struct Private;
-    std::unique_ptr<Private> d;
-
-    void reloadCard(Card& card, int current, int scroll);
-    void updateBanner();
-    void submit(Card& card);
-    void removeEntry(Card& card, int row);
-    void editEntry(Card& card, int row);
-    void setExpanded(Card& card, bool expanded);
-    QWidget* reveal(Configs::simpleAction list, int index);
 };

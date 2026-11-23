@@ -37,6 +37,11 @@ namespace Engine {
         }
     }
 
+    void HeadlessPolicy::confirmTorDownload(const QString &profileName, std::function<void(bool)> answered) {
+        MW_show_log(QStringLiteral("[Tor] Downloading Tor for the profile \"%1\"; it starts again once Tor is installed.").arg(profileName));
+        answered(true);
+    }
+
     void HeadlessPolicy::killSwitchProblem() {
         const auto *killSwitch = Sys::KillSwitch::instance();
         if (killSwitch->state() != Sys::KillSwitch::State::Failed) return;

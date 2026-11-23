@@ -1266,6 +1266,44 @@ namespace Configs {
         });
     }
 
+    void RouteXrayListenerRulesViaBridge(QJsonObject& config)
+    {
+        // A dokodemo with a fixed target (api, dns-in) is not the client's traffic; mapping it would pull everything into its rule.
+        QSet<QString> listenerTags;
+        for (const auto& value : config.value("inbounds").toArray()) {
+            const auto inbound = value.toObject();
+            const auto tag = inbound.value("tag").toString();
+            if (tag.isEmpty()) continue;
+            const auto protocol = XrayLower(inbound.value("protocol").toString());
+            const bool transparent = (protocol == "dokodemo-door" || protocol == "tunnel")
+                                     && inbound.value("settings").toObject().value("followRedirect").toBool();
+            if (transparent || protocol == "socks" || protocol == "mixed" || protocol == "http" || protocol == "tun")
+                listenerTags.insert(tag);
+        }
+        if (listenerTags.isEmpty()) return;
+
+        auto routing = config.value("routing").toObject();
+        auto rules = routing.value("rules").toArray();
+        bool changed = false;
+        for (qsizetype i = 0; i < rules.size(); ++i) {
+            auto rule = rules[i].toObject();
+            const auto inboundTag = rule.value("inboundTag");
+            // Xray's StringList also takes one comma-joined string, split without trimming.
+            QStringList ruleTags;
+            if (inboundTag.isString()) ruleTags = inboundTag.toString().split(',');
+            else for (const auto& tag : inboundTag.toArray()) ruleTags << tag.toString();
+            if (ruleTags.contains(XrayFullConfigBridgeTag)) continue;
+            if (std::none_of(ruleTags.cbegin(), ruleTags.cend(), [&](const QString& tag) { return listenerTags.contains(tag); })) continue;
+            ruleTags << XrayFullConfigBridgeTag;
+            rule["inboundTag"] = QJsonArray::fromStringList(ruleTags);
+            rules[i] = rule;
+            changed = true;
+        }
+        if (!changed) return;
+        routing["rules"] = rules;
+        config["routing"] = routing;
+    }
+
     bool xrayTLS::ParseFromLink(const QString &link) {
         auto url = QUrl(link);
         if (!url.isValid()) return false;

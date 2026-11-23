@@ -20,12 +20,14 @@
 #include "include/ui/profile/edit_naive.h"
 #include "include/ui/profile/edit_openconnect.h"
 #include "include/ui/profile/edit_openvpn.h"
+#include "include/ui/profile/edit_psiphon.h"
 #include "include/ui/profile/edit_shadowsocks.h"
 #include "include/ui/profile/edit_shadowtls.h"
 #include "include/ui/profile/edit_snell.h"
 #include "include/ui/profile/edit_socks.h"
 #include "include/ui/profile/edit_ssh.h"
 #include "include/ui/profile/edit_tailscale.h"
+#include "include/ui/profile/edit_tor.h"
 #include "include/ui/profile/edit_trojan.h"
 #include "include/ui/profile/edit_trusttunnel.h"
 #include "include/ui/profile/edit_tuic.h"
@@ -39,16 +41,13 @@
 #include "include/engine/services/ProfileService.h"
 #include "include/ui/utils/GuiUtils.hpp"
 #include "include/global/Utils.hpp"
-#include "include/ui/utils/UiMode.h"
 #include "include/ui/utils/ValidationForm.h"
 
 #include <QDebug>
 #include <QLabel>
 #include <QLineEdit>
-#include <QListView>
 #include <QPointer>
 #include <QSet>
-#include <QStandardItemModel>
 
 namespace {
 using EditorFactory = std::pair<QWidget *, ProfileEditor *> (*)(QWidget *);
@@ -85,6 +84,8 @@ EditorFactory editorFactory(const QString &type) {
         {"ssh", makeEditor<EditSSH>},
         {"dnstt", makeEditor<EditDnstt>},
         {"masterdns", makeEditor<EditMasterDns>},
+        {"tor", makeEditor<EditTor>},
+        {"psiphon", makeEditor<EditPsiphon>},
         {"direct", makeEditor<EditDirect>},
         {"chain", makeEditor<EditChain>},
         {"autoselector", makeEditor<EditAutoSelector>},
@@ -105,10 +106,6 @@ EditorFactory editorFactory(const QString &type) {
 bool isCustomSubtype(const QString &type) {
     return type == Configs::Custom::CustomOutbound || type == Configs::Custom::CustomFullConfig ||
            type == Configs::Custom::CustomXrayOutbound || type == Configs::Custom::CustomXrayFullConfig;
-}
-
-bool advancedType(const QString &type) {
-    return isCustomSubtype(type) || Configs::Protocols::Is(type, Configs::Protocols::Advanced);
 }
 
 bool hasServerAddress(const QString &type) {
@@ -240,7 +237,6 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
         deleteLater();
         return;
     }
-    UiMode::Apply(this);
     runOnThread([self = QPointer<DialogEditProfile>(this)] {
         if (self == nullptr) return;
         self->fitToContent();
@@ -255,13 +251,9 @@ DialogEditProfile::~DialogEditProfile() {
 }
 
 void DialogEditProfile::setupTypeList() {
-    // The type the dialog opened with stays listed, or the combo would name another type than the editor shows.
-    const auto offered = [this](const QString &t) { return !UiMode::Simple() || t == type || !advancedType(t); };
-    const auto addNamedType = [this, offered](const QString &text, const QString &t) {
-        if (offered(t)) ui->type->addItem(text, t);
-    };
-    const auto addType = [this, offered](const QString &t) {
-        if (offered(t)) ui->type->addItem(Configs::dataManager->profilesRepo->NewProfile(t)->outbound->DisplayType(), t);
+    const auto addNamedType = [this](const QString &text, const QString &t) { ui->type->addItem(text, t); };
+    const auto addType = [this](const QString &t) {
+        ui->type->addItem(Configs::dataManager->profilesRepo->NewProfile(t)->outbound->DisplayType(), t);
     };
     for (const auto &protocol : Configs::Protocols::All()) {
         const QString t = protocol.Id();
@@ -340,7 +332,6 @@ void DialogEditProfile::mountEditor(QWidget *widget, ProfileEditor *editor) {
     beanLayout->addWidget(widget);
     innerWidget = widget;
     innerEditor = editor;
-    UiMode::Apply(widget);
 
     const auto innerTabOrder = collectTabOrder(this, widget);
     if (!innerTabOrder.isEmpty() && innerTabOrderIndex >= 0 && innerTabOrderIndex <= outerTabOrder.size()) {
@@ -393,7 +384,7 @@ void DialogEditProfile::updateCommonRows() {
     addressEffective->setToolTip(!overridden ? QString()
                                  : own.isEmpty() ? tr("Set by %1.").arg(endpoint.origin)
                                                  : tr("Set by %1; the profile's own address is %2.").arg(endpoint.origin, own));
-    UiMode::SetVisible(ui->advanced_button, server || type == "direct");
+    ui->advanced_button->setVisible(server || type == "direct");
 }
 
 void DialogEditProfile::relayout() {
@@ -463,11 +454,3 @@ void DialogEditProfile::selectComboText(QComboBox *combo, const QString &text) {
     combo->setCurrentIndex(qMax(0, combo->findText(text)));
 }
 
-// The item stays for index-based load/save; disabling it also keeps the keyboard and wheel from landing on it.
-void DialogEditProfile::offerCustomMux(QComboBox *combo, int customIndex) {
-    const bool offered = !UiMode::Simple() || combo->currentIndex() == customIndex;
-    if (auto *view = qobject_cast<QListView *>(combo->view())) view->setRowHidden(customIndex, !offered);
-    if (auto *model = qobject_cast<QStandardItemModel *>(combo->model())) {
-        if (auto *item = model->item(customIndex)) item->setEnabled(offered);
-    }
-}

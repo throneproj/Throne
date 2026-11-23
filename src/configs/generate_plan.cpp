@@ -191,13 +191,8 @@ namespace Configs {
             // A verbatim raw profile takes no twins, and an unreachable bridge still starts a tun.
             ctx.l3Bridge = l3BridgeEnabled(ctx) && !(routeChain->isRaw && routeChain->preventModifications);
 
-            if (torExit()) {
-                if (!tor::Installed()) {
-                    ctx.error = QObject::tr("Tor is enabled but not downloaded yet. Open Routing Settings > Exit and press OK to download it.");
-                    return;
-                }
-            } else if (settings.enable_warp && !WarpConfigured(settings.warp_mode)) {
-                ctx.error = "WARP is enabled but its config has not been generated. Please generate the WARP config first in Routing Settings.";
+            if (auto exitRefusal = exitError(ctx.ent); !exitRefusal.isEmpty()) {
+                ctx.error = std::move(exitRefusal);
                 return;
             }
 

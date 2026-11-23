@@ -544,10 +544,6 @@ private:
 
     void revealSetting(const SettingsIndex::Item &item);
 
-    void applyUiMode();
-
-    void setSimpleMode(bool simple);
-
     // Takes or frees the one-settings-dialog slot (dialog_is_using) and lets an open command palette catch up.
     void setDialogInUse(bool inUse);
 
@@ -621,6 +617,8 @@ private:
     void confirmGeoAssetDownload(const QString &contextName, std::function<void(bool download)> answered) override;
 
     void geoAssetDownloadFinished(const QString &error) override;
+
+    void confirmTorDownload(const QString &profileName, std::function<void(bool download)> answered) override;
 
     void killSwitchProblem() override;
 

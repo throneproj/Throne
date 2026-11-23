@@ -195,6 +195,8 @@ namespace Engine::AssetUpdates {
 
     namespace {
         constexpr auto kAssetTorManifestUrl = "https://aus1.torproject.org/torbrowser/update_3/release/downloads.json";
+        // The same three files for networks that block torproject.org; never through jsDelivr, whose 20 MB cap the bundles exceed.
+        constexpr auto kAssetTorMirror = "https://raw.githubusercontent.com/throneproj/routeprofiles/tor/";
         constexpr auto kAssetTorArchive = "tor-expert-bundle.tar.gz";
 
         std::atomic<bool> assetTorBusy{false};
@@ -234,22 +236,28 @@ namespace Engine::AssetUpdates {
         }
 #endif
 
-        QString assetTorInstall(bool viaProxy) {
-            const QString platform = assetTorPlatform();
-            if (platform.isEmpty()) return QObject::tr("The Tor Project publishes no Tor build for this platform.");
-
-            MW_show_log(QStringLiteral("[Tor] Looking up the latest version."));
-            const auto manifest = NetworkRequestHelper::HttpGet(QString::fromLatin1(kAssetTorManifestUrl), viaProxy);
-            if (!manifest.error.isEmpty()) return QObject::tr("Could not look up the Tor version: %1").arg(manifest.error);
+        // Version, checksums and bundle all from one source; *fetchFailed when one of those requests failed, which the mirror may get past.
+        QString assetTorInstallFrom(bool mirror, const QString &platform, bool viaProxy, bool *fetchFailed) {
+            const QString source = mirror ? QStringLiteral("the GitHub mirror") : QStringLiteral("torproject.org");
+            MW_show_log(QStringLiteral("[Tor] Looking up the latest version from %1.").arg(source));
+            const QString manifestUrl = mirror ? QString::fromLatin1(kAssetTorMirror) + "downloads.json" : QString::fromLatin1(kAssetTorManifestUrl);
+            const auto manifest = NetworkRequestHelper::HttpGet(manifestUrl, viaProxy);
+            if (!manifest.error.isEmpty()) {
+                *fetchFailed = true;
+                return QObject::tr("Could not look up the Tor version: %1").arg(manifest.error);
+            }
             const QString version = QJsonDocument::fromJson(manifest.data).object().value("version").toString().trimmed();
             // It becomes a URL path segment.
             static const QRegularExpression versionRe(QStringLiteral("^[0-9][0-9a-z.]*$"));
             if (!versionRe.match(version).hasMatch()) return QObject::tr("The Tor download list names no usable version.");
 
-            const QString folder = QStringLiteral("https://dist.torproject.org/torbrowser/%1/").arg(version);
+            const QString folder = mirror ? QString::fromLatin1(kAssetTorMirror) : QStringLiteral("https://dist.torproject.org/torbrowser/%1/").arg(version);
             const QString fileName = QStringLiteral("tor-expert-bundle-%1-%2.tar.gz").arg(platform, version);
             const auto sums = NetworkRequestHelper::HttpGet(folder + "sha256sums-signed-build.txt", viaProxy);
-            if (!sums.error.isEmpty()) return QObject::tr("Could not get the Tor checksums: %1").arg(sums.error);
+            if (!sums.error.isEmpty()) {
+                *fetchFailed = true;
+                return QObject::tr("Could not get the Tor checksums: %1").arg(sums.error);
+            }
             QString sha256;
             for (const auto &line : QString::fromUtf8(sums.data).split('\n')) {
                 const auto fields = line.simplified().split(' ');
@@ -261,16 +269,31 @@ namespace Engine::AssetUpdates {
             static const QRegularExpression sha256Re(QStringLiteral("^[0-9a-f]{64}$"));
             if (!sha256Re.match(sha256).hasMatch()) return QObject::tr("%1 is not in the Tor Project's checksum list.").arg(fileName);
 
-            MW_show_log(QStringLiteral("[Tor] Downloading %1.").arg(fileName));
+            MW_show_log(QStringLiteral("[Tor] Downloading %1 from %2.").arg(fileName, source));
             const QString archivePath = Configs::GetBasePath() + "/" + kAssetTorArchive;
             QString error = NetworkRequestHelper::DownloadAsset(folder + fileName, QString::fromLatin1(kAssetTorArchive), viaProxy);
-            if (error.isEmpty()) {
+            if (!error.isEmpty()) {
+                *fetchFailed = true;
+            } else {
                 MW_show_log(QStringLiteral("[Tor] Unpacking."));
                 bool ok = false;
-                error = API::defaultClient->InstallTor(&ok, archivePath, sha256);
+                if (API::defaultClient != nullptr) error = API::defaultClient->InstallTor(&ok, archivePath, sha256);
                 if (!ok && error.isEmpty()) error = QObject::tr("The core did not answer.");
             }
             QFile::remove(archivePath);
+            return error;
+        }
+
+        QString assetTorInstall(bool viaProxy) {
+            const QString platform = assetTorPlatform();
+            if (platform.isEmpty()) return QObject::tr("The Tor Project publishes no Tor build for this platform.");
+
+            bool fetchFailed = false;
+            QString error = assetTorInstallFrom(false, platform, viaProxy, &fetchFailed);
+            if (fetchFailed) {
+                MW_show_log(QStringLiteral("[Tor] torproject.org failed (%1); trying the GitHub mirror.").arg(error));
+                error = assetTorInstallFrom(true, platform, viaProxy, &fetchFailed);
+            }
             if (!error.isEmpty()) return error;
 #ifdef Q_OS_MACOS
             return assetTorAdHocSign();

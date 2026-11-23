@@ -71,13 +71,13 @@ namespace Configs {
         QString rawRoute = "";
         bool preventModifications = false;
 
-        // Remote profiles stay structured and user-editable; an update re-fetches remoteURL and overwrites Rules, keeping the local name.
+        // Remote profiles stay structured and user-editable; an update re-fetches remoteURL and replaces the remote rules, keeping local ones and the local name.
         bool isRemote = false;
         QString remoteURL = "";
         bool autoUpdate = false;
         qint64 remoteLastUpdate = 0; // epoch seconds
 
-        // The subscription group whose updates overwrite Rules (Group::import_sub_route); -1 for none. Local only.
+        // The subscription group whose updates replace the remote rules (Group::import_sub_route); -1 for none. Local only.
         int source_gid = -1;
 
         // Profile ids of openvpn/openconnect profiles run alongside this routing profile.

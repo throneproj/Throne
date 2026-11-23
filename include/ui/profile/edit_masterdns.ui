@@ -293,9 +293,6 @@
       </item>
       <item>
        <widget class="QGroupBox" name="advanced_box">
-        <property name="uiLevel" stdset="0">
-         <string notr="true">advanced</string>
-        </property>
         <property name="title">
          <string>Advanced</string>
         </property>

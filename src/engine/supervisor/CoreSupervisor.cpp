@@ -60,6 +60,22 @@ namespace {
     }
 
 #ifdef Q_OS_MACOS
+    // Must match restoreFailedMarker in core/internal/sysdns/sysdns_darwin.go.
+    constexpr char kCoreSupervisorDnsRestoreMarker[] = "The system DNS could not be restored on: ";
+
+    void coreSupervisorWarnDnsRestore(const QByteArray &log) {
+        const auto at = log.indexOf(kCoreSupervisorDnsRestoreMarker);
+        if (at < 0) return;
+        const auto from = at + qsizetype(sizeof(kCoreSupervisorDnsRestoreMarker) - 1);
+        const auto end = log.indexOf('\n', from);
+        const auto services = QString::fromUtf8(log.mid(from, end < 0 ? -1 : end - from)).trimmed();
+        PostNotice({NoticeLevel::Warning, QObject::tr("System DNS not restored"),
+                    QObject::tr("After Tun stopped, Throne could not put back the DNS servers of these network services: %1. "
+                                "Websites may not load until they are restored.\n\n"
+                                "Throne keeps retrying in the background, and restarting Throne retries as well.")
+                        .arg(services)});
+    }
+
     // A dead core cannot put back the system DNS it pointed at its lo0 listener; the setuid core replays its own record.
     void coreSupervisorRestoreSystemDns(const QString &corePath) {
         auto *restore = new QProcess;
@@ -510,6 +526,9 @@ namespace Engine {
                 EngineEvents::ExtraCoreExited();
             }
             coreSupervisorWarnEgressForwarding(log);
+#ifdef Q_OS_MACOS
+            coreSupervisorWarnDnsRestore(log);
+#endif
             // The window opens at the first chunk after the last one expired; the pre-add count is compared, so the crossing chunk still shows.
             const qint64 now = MonotonicMs();
             if (now - m_logWindowStartMs >= kLogWindowMs) {

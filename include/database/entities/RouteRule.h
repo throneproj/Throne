@@ -123,6 +123,8 @@ namespace Configs {
         int type = custom;
         // Kept in the profile but left out of the generated config.
         bool disabled = false;
+        // Came from the profile's remote source, so the next update replaces it. Local state, never shared.
+        bool remote = false;
         QString ip_version;
         QString network;
         QString protocol;
