@@ -5397,6 +5397,10 @@ Error: %2</source>
         <source>Toggle system proxy</source>
         <translation>تغییر وضعیت پروکسی سیستم</translation>
     </message>
+    <message>
+        <source>Refresh column widths</source>
+        <translation>بازنشانی عرض ستون‌ها</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableFilterHeader</name>

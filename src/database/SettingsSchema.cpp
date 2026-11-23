@@ -115,6 +115,7 @@ namespace Configs::SettingsSchema {
                 {"traffic_graph_markers", &SettingsValues::traffic_graph_markers},
                 {"connection_sort", &SettingsValues::connection_sort},
                 {"connection_sort_asc", &SettingsValues::connection_sort_asc},
+                {"connection_column_widths", &SettingsValues::connection_column_widths, Host},
                 {"traffic_stats_retention_days", &SettingsValues::traffic_stats_retention_days},
                 {"disable_traffic_aggregation", &SettingsValues::disable_traffic_aggregation, Portable, UiTrafficStats},
                 {"speed_test_mode", &SettingsValues::speed_test_mode},

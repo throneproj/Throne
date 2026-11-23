@@ -19,6 +19,9 @@
 #include "include/ui/utils/ConnectionsTreeModel.h"
 #include "include/ui/utils/ThemedIcon.hpp"
 
+#include <algorithm>
+#include <array>
+
 #include <QHostAddress>
 
 #include <QAbstractItemView>
@@ -171,6 +174,37 @@ namespace
         default:                     return -1;
         }
     }
+
+    // Saved by name, so a reordered column enum doesn't hand one column's width to another.
+    const std::array<QLatin1String, ConnectionsTreeModel::ColumnCount> kConnectionColumnKeys = {
+        QLatin1String("target"), QLatin1String("source"), QLatin1String("protocol"),
+        QLatin1String("outbound"), QLatin1String("traffic"), QLatin1String("speed")};
+
+    QHash<int, int> ParseConnectionColumnWidths(const QStringList& saved)
+    {
+        QHash<int, int> widths;
+        for (const auto& entry : saved)
+        {
+            const auto key = entry.section('=', 0, 0);
+            bool ok = false;
+            const int width = entry.section('=', 1).toInt(&ok);
+            const auto column = std::find(kConnectionColumnKeys.cbegin(), kConnectionColumnKeys.cend(), key);
+            if (ok && width > 0 && column != kConnectionColumnKeys.cend())
+                widths.insert(static_cast<int>(column - kConnectionColumnKeys.cbegin()), width);
+        }
+        return widths;
+    }
+
+    QStringList SerializeConnectionColumnWidths(const QHash<int, int>& widths)
+    {
+        QStringList saved;
+        for (int column = 0; column < ConnectionsTreeModel::ColumnCount; ++column)
+        {
+            if (widths.contains(column))
+                saved << QStringLiteral("%1=%2").arg(kConnectionColumnKeys[column]).arg(widths.value(column));
+        }
+        return saved;
+    }
 }
 
 void MainWindow::setupConnectionList()
@@ -188,13 +222,13 @@ void MainWindow::setupConnectionList()
 
     auto* header = ui->connections->header();
     header->setHighlightSections(false);
-    header->setSectionResizeMode(ConnectionsTreeModel::ColTarget, QHeaderView::Stretch);
-    header->setSectionResizeMode(ConnectionsTreeModel::ColSource, QHeaderView::ResizeToContents);
-    header->setSectionResizeMode(ConnectionsTreeModel::ColProtocol, QHeaderView::ResizeToContents);
-    // Sized by the header itself, since it has to give way to a long Target.
-    header->setSectionResizeMode(ConnectionsTreeModel::ColOutbound, QHeaderView::Fixed);
-    header->setSectionResizeMode(ConnectionsTreeModel::ColTraffic, QHeaderView::ResizeToContents);
-    header->setSectionResizeMode(ConnectionsTreeModel::ColSpeed, QHeaderView::ResizeToContents);
+    connectionFilterHeader->setUserWidths(ParseConnectionColumnWidths(Configs::dataManager->settingsRepo->connection_column_widths));
+    connect(connectionFilterHeader, &ConnectionsFilterHeader::userWidthsChanged, this, [this]
+    {
+        auto* settings = Configs::dataManager->settingsRepo.get();
+        settings->connection_column_widths = SerializeConnectionColumnWidths(connectionFilterHeader->userWidths());
+        settings->Save();
+    });
 
     header->setResizeContentsPrecision(20);
     ui->connections->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -361,34 +395,50 @@ void MainWindow::setupConnectionSortMenu()
         const int columnIndex = header->logicalIndexAt(pos);
         const bool isTraffic = columnIndex == ConnectionsTreeModel::ColTraffic;
         const bool isSpeed = columnIndex == ConnectionsTreeModel::ColSpeed;
-        if (!isTraffic && !isSpeed) return;
-
-        struct SortOption { Stats::ConnectionSort value; QString label; };
-        const QList<SortOption> options = isTraffic
-            ? QList<SortOption>{
-                { Stats::ByTraffic, tr("Total") },
-                { Stats::ByDownload, tr("Downloaded") },
-                { Stats::ByUpload, tr("Uploaded") } }
-            : QList<SortOption>{
-                { Stats::BySpeed, tr("Total") },
-                { Stats::ByDownloadSpeed, tr("Download speed") },
-                { Stats::ByUploadSpeed, tr("Upload speed") } };
+        const bool resized = !connectionFilterHeader->userWidths().isEmpty();
+        if (!isTraffic && !isSpeed && !resized) return;
 
         QMenu menu(this);
-        auto* sortByLabel = menu.addAction(tr("Sort by:"));
-        sortByLabel->setEnabled(false);
-
-        const auto current = Stats::connection_lister->getSort();
-        for (const auto& opt : options)
+        if (isTraffic || isSpeed)
         {
-            auto* act = menu.addAction(opt.label);
-            act->setData(static_cast<int>(opt.value));
-            act->setCheckable(true);
-            act->setChecked(current == opt.value);
+            struct SortOption { Stats::ConnectionSort value; QString label; };
+            const QList<SortOption> options = isTraffic
+                ? QList<SortOption>{
+                    { Stats::ByTraffic, tr("Total") },
+                    { Stats::ByDownload, tr("Downloaded") },
+                    { Stats::ByUpload, tr("Uploaded") } }
+                : QList<SortOption>{
+                    { Stats::BySpeed, tr("Total") },
+                    { Stats::ByDownloadSpeed, tr("Download speed") },
+                    { Stats::ByUploadSpeed, tr("Upload speed") } };
+
+            auto* sortByLabel = menu.addAction(tr("Sort by:"));
+            sortByLabel->setEnabled(false);
+
+            const auto current = Stats::connection_lister->getSort();
+            for (const auto& opt : options)
+            {
+                auto* act = menu.addAction(opt.label);
+                act->setData(static_cast<int>(opt.value));
+                act->setCheckable(true);
+                act->setChecked(current == opt.value);
+            }
+        }
+        QAction* resetWidths = nullptr;
+        if (resized)
+        {
+            if (!menu.isEmpty()) menu.addSeparator();
+            resetWidths = menu.addAction(tr("Refresh column widths"));
         }
 
         auto* chosen = menu.exec(header->mapToGlobal(pos));
-        if (chosen == nullptr || !chosen->data().isValid()) return;
+        if (chosen == nullptr) return;
+        if (chosen == resetWidths)
+        {
+            connectionFilterHeader->resetUserWidths();
+            return;
+        }
+        if (!chosen->data().isValid()) return;
 
         applyConnectionSort(static_cast<Stats::ConnectionSort>(chosen->data().toInt()));
     });

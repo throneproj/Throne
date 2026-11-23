@@ -1,11 +1,14 @@
 #pragma once
 
 #include <array>
+#include <utility>
 
 #include <QHash>
 #include <QHeaderView>
 #include <QKeyEvent>
 #include <QLineEdit>
+#include <QMouseEvent>
+#include <QStyle>
 #include <QToolButton>
 
 #include "include/ui/utils/ConnectionsTreeModel.h"
@@ -32,8 +35,54 @@ public:
         outbound_filter = makeEdit();
 
         connect(this, &QHeaderView::sectionResized, this, &ConnectionsFilterHeader::adjustPositions);
+        connect(this, &QHeaderView::sectionHandleDoubleClicked, this, &ConnectionsFilterHeader::resetUserWidth);
 
         setFiltersVisible(false);
+    }
+
+    static ResizeMode autoResizeMode(int section) {
+        switch (section) {
+        case ConnectionsTreeModel::ColTarget:   return Stretch;
+        // Sized by fitOutboundSection, since it has to give way to a long Target.
+        case ConnectionsTreeModel::ColOutbound: return Fixed;
+        default:                                return ResizeToContents;
+        }
+    }
+
+    void applyAutoResizeModes() {
+        for (int section = 0; section < count(); ++section) {
+            if (!m_userWidths.contains(section)) setSectionResizeMode(section, autoResizeMode(section));
+        }
+    }
+
+    const QHash<int, int> &userWidths() const { return m_userWidths; }
+
+    void setUserWidths(const QHash<int, int> &widths) {
+        m_userWidths.clear();
+        for (auto it = widths.cbegin(); it != widths.cend(); ++it) {
+            if (!isUserResizable(it.key()) || it.value() <= 0) continue;
+            m_userWidths.insert(it.key(), it.value());
+            setSectionResizeMode(it.key(), Interactive);
+            resizeSection(it.key(), it.value());
+        }
+        applyAutoResizeModes();
+    }
+
+    void resetUserWidths() {
+        if (m_userWidths.isEmpty()) return;
+        m_userWidths.clear();
+        applyAutoResizeModes();
+        resizeSections();
+        fitOutboundSection();
+        emit userWidthsChanged();
+    }
+
+    void resetUserWidth(int section) {
+        if (!m_userWidths.remove(section)) return;
+        setSectionResizeMode(section, autoResizeMode(section));
+        resizeSections();
+        fitOutboundSection();
+        emit userWidthsChanged();
     }
 
     bool filtersVisible() const { return m_filtersVisible; }
@@ -95,6 +144,38 @@ protected:
     void paintSection(QPainter *painter, const QRect &rect, int logicalIndex) const override {
         QHeaderView::paintSection(painter, rect, logicalIndex);
         if (logicalIndex == m_sortSection) HeaderSortArrow::paint(this, painter, rect, logicalIndex, m_sortDescending);
+    }
+
+    // Qt offers a resize grip only on Interactive sections, so an auto-sized one turns Interactive when its edge is pressed.
+    void mousePressEvent(QMouseEvent *event) override {
+        if (event->button() == Qt::LeftButton) {
+            const int section = resizeHandleAt(event->position().toPoint().x());
+            if (isUserResizable(section)) {
+                m_pressedHandle = section;
+                m_pressedHandleSize = sectionSize(section);
+                if (!m_userWidths.contains(section)) setSectionResizeMode(section, Interactive);
+            }
+        }
+        QHeaderView::mousePressEvent(event);
+    }
+
+    void mouseReleaseEvent(QMouseEvent *event) override {
+        QHeaderView::mouseReleaseEvent(event);
+        if (m_pressedHandle < 0) return;
+        const int section = std::exchange(m_pressedHandle, -1);
+        if (sectionSize(section) == m_pressedHandleSize) {
+            if (!m_userWidths.contains(section)) setSectionResizeMode(section, autoResizeMode(section));
+            return;
+        }
+        m_userWidths.insert(section, sectionSize(section));
+        emit userWidthsChanged();
+    }
+
+    void mouseMoveEvent(QMouseEvent *event) override {
+        QHeaderView::mouseMoveEvent(event);
+        if (event->buttons() != Qt::NoButton) return;
+        const int section = resizeHandleAt(event->position().toPoint().x());
+        if (isUserResizable(section) && sectionResizeMode(section) != Interactive) setCursor(Qt::SplitHCursor);
     }
 
     // Runs after every relayout, expand, viewport resize and (via the view's column timer) section resize.
@@ -170,6 +251,7 @@ public slots:
 
 signals:
     void filtersChanged();
+    void userWidthsChanged();
     // The checkable toolbutton owns the visible state, so it has to be the one to untoggle us.
     void closeRequested();
 
@@ -179,6 +261,7 @@ private:
         using Model = ConnectionsTreeModel;
         const auto *view = qobject_cast<QAbstractItemView *>(parent());
         if (view == nullptr || count() < Model::ColumnCount) return;
+        if (m_userWidths.contains(Model::ColOutbound) || m_pressedHandle == Model::ColOutbound) return;
 
         const int floor = sectionSizeHint(Model::ColOutbound);
         const int wanted = qMax(floor, view->sizeHintForColumn(Model::ColOutbound));
@@ -189,6 +272,30 @@ private:
         }
         const int width = qBound(floor, room, wanted);
         if (width != sectionSize(Model::ColOutbound)) resizeSection(Model::ColOutbound, width);
+    }
+
+    // Target stretches into whatever the other columns leave, so it has no width of its own to keep.
+    bool isUserResizable(int section) const {
+        return section > ConnectionsTreeModel::ColTarget && section < count();
+    }
+
+    // Mirrors QHeaderViewPrivate::sectionHandleAt: a grip at a section's start belongs to the visible section before it.
+    int resizeHandleAt(int position) const {
+        int visual = visualIndexAt(position);
+        if (visual < 0) return -1;
+        const int section = logicalIndex(visual);
+        const int grip = style()->pixelMetric(QStyle::PM_HeaderGripMargin, nullptr, this);
+        const int start = sectionViewportPosition(section);
+        bool atStart = position < start + grip;
+        bool atEnd = position > start + sectionSize(section) - grip;
+        if (isRightToLeft()) std::swap(atStart, atEnd);
+        if (atEnd) return section;
+        if (!atStart) return -1;
+        while (--visual >= 0) {
+            const int previous = logicalIndex(visual);
+            if (!isSectionHidden(previous)) return previous;
+        }
+        return -1;
     }
 
     QLineEdit *makeEdit() {
@@ -243,4 +350,7 @@ private:
     int m_sortSection = -1;
     bool m_sortDescending = false;
     QHash<int, int> m_grownWidths;
+    QHash<int, int> m_userWidths;
+    int m_pressedHandle = -1;
+    int m_pressedHandleSize = 0;
 };
