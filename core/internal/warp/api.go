@@ -103,11 +103,15 @@ type client struct {
 	httpClient *http.Client
 }
 
-func newClient(proxy string, fragment TLSFragmentOptions) (*client, error) {
+type DialFunc func(ctx context.Context, network, address string) (net.Conn, error)
+
+func newClient(proxy string, fragment TLSFragmentOptions, dial DialFunc) (*client, error) {
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	transport.Proxy = nil
-	dialer := &net.Dialer{Timeout: dialTimeout, KeepAlive: 30 * time.Second}
-	transport.DialContext = dialer.DialContext
+	if dial == nil {
+		dial = (&net.Dialer{Timeout: dialTimeout, KeepAlive: 30 * time.Second}).DialContext
+	}
+	transport.DialContext = dial
 	transport.TLSHandshakeTimeout = tlsHandshakeTimeout
 	if proxy != "" {
 		proxyURL, err := url.Parse(proxy)
@@ -130,7 +134,7 @@ func newClient(proxy string, fragment TLSFragmentOptions) (*client, error) {
 			fallbackDelay = delay.Build()
 		}
 		transport.DialContext = func(ctx context.Context, network, address string) (net.Conn, error) {
-			conn, err := dialer.DialContext(ctx, network, address)
+			conn, err := dial(ctx, network, address)
 			if err != nil {
 				return nil, err
 			}

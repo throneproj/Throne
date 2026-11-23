@@ -45,11 +45,12 @@ type TLSFragmentOptions struct {
 	FallbackDelay  string
 }
 
-func Register(ctx context.Context, tunnelType string, proxy string, apiHosts []string, fragment TLSFragmentOptions) (*Identity, error) {
+// dial, when not nil, makes the API calls' connections in place of a plain dialer.
+func Register(ctx context.Context, tunnelType string, proxy string, apiHosts []string, fragment TLSFragmentOptions, dial DialFunc) (*Identity, error) {
 	if tunnelType != TunnelWireGuard && tunnelType != TunnelMASQUE {
 		return nil, E.New("unknown tunnel type: ", tunnelType)
 	}
-	apiClient, err := newClient(proxy, fragment)
+	apiClient, err := newClient(proxy, fragment, dial)
 	if err != nil {
 		return nil, err
 	}

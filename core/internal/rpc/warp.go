@@ -22,7 +22,7 @@ func (s *server) WarpRegister(ctx context.Context, in *gen.WarpRegisterRequest) 
 		Fragment:       in.GetTlsFragment(),
 		RecordFragment: in.GetTlsRecordFragment(),
 		FallbackDelay:  in.GetTlsFragmentFallbackDelay(),
-	})
+	}, nil)
 	if err != nil {
 		return &gen.WarpRegisterResponse{Error: To(err.Error())}, nil
 	}

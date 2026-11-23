@@ -36,6 +36,9 @@ const boxCloseTimeout = 2 * time.Second
 // Main boxes past Start and not yet closed; probe boxes are not Instances.
 var runningInstances atomic.Int32
 
+// The last Instance started and not yet closed.
+var activeInstance atomic.Pointer[Instance]
+
 type StartOptions struct {
 	CoreConfig              string
 	NeedXray                bool
@@ -240,6 +243,7 @@ func (i *Instance) Start() error {
 	if !i.closed {
 		i.counted = true
 		runningInstances.Add(1)
+		activeInstance.Store(i)
 	}
 	i.stateAccess.Unlock()
 	i.resetAccess.Lock()
@@ -273,6 +277,7 @@ func (i *Instance) Close() error {
 		i.counted = false
 		runningInstances.Add(-1)
 	}
+	activeInstance.CompareAndSwap(i, nil)
 	i.stateAccess.Unlock()
 	if i.interfaceCallback != nil {
 		i.interfaceMonitor.UnregisterCallback(i.interfaceCallback)
