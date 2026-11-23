@@ -723,8 +723,8 @@ namespace API {
         request.tls_fragment_fallback_delay = tlsFragmentFallbackDelay.toStdString();
         libcore::WarpRegisterResponse reply;
         std::vector<uint8_t> resp;
-        // Must outlast the core's per-host budget in server_warp.go.
-        const int timeoutMs = qMax(60000, 30000 + 25000 * static_cast<int>(apiHosts.size()));
+        // Must outlast the core's per-host budget in rpc/warp.go; empty means the core's two default hosts.
+        const int timeoutMs = qMax(60000, 30000 + 25000 * static_cast<int>(qMax<qsizetype>(apiHosts.size(), 2)));
         auto status = channel->Call("WarpRegister", spb::pb::serialize<std::string>(request), resp, timeoutMs);
 
         if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {

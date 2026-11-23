@@ -342,6 +342,8 @@ github.com/minio/crc64nvme v1.1.1 h1:8dwx/Pz49suywbO+auHCBpCtlW1OfpcLN7wYgVR6wAI
 github.com/minio/crc64nvme v1.1.1/go.mod h1:eVfm2fAzLlxMdUGc0EEBGSMmPwmXD5XiNRpnu9J3bvg=
 github.com/mitchellh/go-ps v1.0.0 h1:i6ampVEEF4wQFF+bkYfwYgY+F/uYJDktmvLPf7qIgjc=
 github.com/mitchellh/go-ps v1.0.0/go.mod h1:J4lOc8z8yJs6vUwklHw2XEIiT4z4C40KtWVN3nvg8Pg=
+github.com/molecule-man/go-brrr v1.2.0 h1:dOJU45BC3Gc2WXoxAW0rgCAgVuu2gruAOGncfieA0Jw=
+github.com/molecule-man/go-brrr v1.2.0/go.mod h1:7ybW6/7gA3oKY45jOfVNjSJDtrr6ea4tzbsTkjmQDC4=
 github.com/mroth/weightedrand v1.0.0 h1:V8JeHChvl2MP1sAoXq4brElOcza+jxLkRuwvtQu8L3E=
 github.com/mroth/weightedrand v1.0.0/go.mod h1:3p2SIcC8al1YMzGhAIoXD+r9olo/g/cdJgAD905gyNE=
 github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 h1:zYyBkD/k9seD2A7fsi6Oo2LfFZAehjjQMERAvZLEDnQ=
@@ -435,8 +437,8 @@ github.com/refraction-networking/gotapdance v1.7.10 h1:vPtvuihP95SqrnnpX//KI1PTq
 github.com/refraction-networking/gotapdance v1.7.10/go.mod h1:N7Xmt+/bLv+1VctiBHtsaL6YBknW2ox5LRLzPTISMzY=
 github.com/refraction-networking/obfs4 v0.1.2 h1:J842O4fGSkd2W8ogYj0KN6gqVVY+Cpqodw9qFGL7wVU=
 github.com/refraction-networking/obfs4 v0.1.2/go.mod h1:wAl/+gWiLsrcykJA3nKJHx89f5/gXGM8UKvty7+mvbM=
-github.com/refraction-networking/utls v1.8.3-0.20260301010127-aa6edf4b11af h1:er2acxbi3N1nvEq6HXHUAR1nTWEJmQfqiGR8EVT9rfs=
-github.com/refraction-networking/utls v1.8.3-0.20260301010127-aa6edf4b11af/go.mod h1:jkSOEkLqn+S/jtpEHPOsVv/4V4EVnelwbMQl4vCWXAM=
+github.com/refraction-networking/utls v1.8.3-0.20261108164504-a13c59ffe98b h1:Mi/DuaTxHeNIQ9g1ylZicAqa6Cb9wkHRiNtQH9uZ7Ts=
+github.com/refraction-networking/utls v1.8.3-0.20261108164504-a13c59ffe98b/go.mod h1:rc/ctWeKlh9LSk5k90KlSPcwF7P6D31mn/9GI2NAfBI=
 github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 h1:f/FNXud6gA3MNr8meMVVGxhp+QBTqY91tM8HjEuMjGg=
 github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3/go.mod h1:HgjTstvQsPGkxUsCd2KWxErBblirPizecHcpD3ffK+s=
 github.com/robfig/cron/v3 v3.0.1 h1:WdRxkvbJztn8LMz/QEvLN5sBU+xKpSqwwUO1Pjr4qDs=

@@ -23,15 +23,22 @@ import (
 )
 
 const (
-	defaultAPIHost = "api.cloudflareclient.com"
-	apiVersion     = "v0a4471"
-	clientVersion  = "a-6.35-4471"
-	userAgent      = "WARP for Android"
-	maxBodySize    = 1 << 20
-	dialTimeout    = 10 * time.Second
+	apiVersion    = "v0a4471"
+	clientVersion = "a-6.35-4471"
+	userAgent     = "WARP for Android"
+	maxBodySize   = 1 << 20
+	dialTimeout   = 10 * time.Second
 	// Some ISPs stall the handshake for 5-10 s before letting it complete.
 	tlsHandshakeTimeout = 10 * time.Second
 )
+
+// Used when none are configured; api.devices.cloudflare.com still answers where DPI stalls api.cloudflareclient.com.
+var defaultAPIHosts = []string{"api.cloudflareclient.com", "api.devices.cloudflare.com"}
+
+// HostCount is how many hosts a registration with apiHosts may try, for sizing its deadline.
+func HostCount(apiHosts []string) int {
+	return len(normalizeHosts(apiHosts))
+}
 
 type registerRequest struct {
 	Key          string `json:"key"`
@@ -238,7 +245,7 @@ func normalizeHosts(hosts []string) []string {
 		}
 	}
 	if len(result) == 0 {
-		return []string{defaultAPIHost}
+		return slices.Clone(defaultAPIHosts)
 	}
 	return result
 }
