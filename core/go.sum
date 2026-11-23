@@ -609,8 +609,8 @@ github.com/throneproj/cronet-go/lib/darwin_arm64 v0.0.0-20260923015522-0dc5a60c5
 github.com/throneproj/cronet-go/lib/darwin_arm64 v0.0.0-20260923015522-0dc5a60c5c47/go.mod h1:kojvtUc29KKnk8hs2QIANynVR59921SnGWA9kXohHc0=
 github.com/throneproj/sing v0.9.4-0.20261113121621-2ce66de7d09b h1:GAgVstp+5opgbk0ADLwxREJEdqLoHyAAIRSJjYY9Du0=
 github.com/throneproj/sing v0.9.4-0.20261113121621-2ce66de7d09b/go.mod h1:K3Owt3xPhHugvlnlPPxZJ/exXdaJfEPOTNorGk4AXjo=
-github.com/throneproj/sing-box v1.11.16-0.20261123082941-bf0db9a762a4 h1:u0KKwg2HOi110I2f+AExRIw2QQCgNCI4mHMNJDCJ5Fo=
-github.com/throneproj/sing-box v1.11.16-0.20261123082941-bf0db9a762a4/go.mod h1:vgmo4sJKs8+bvflV/cpyl7/5poSP2PWBt92HctSw030=
+github.com/throneproj/sing-box v1.11.16-0.20261123132537-aecf712a3e11 h1:TqAPWyyvwpG4wSQdVnn/dxBldFbH0LbprGrz7x7Qkyc=
+github.com/throneproj/sing-box v1.11.16-0.20261123132537-aecf712a3e11/go.mod h1:vgmo4sJKs8+bvflV/cpyl7/5poSP2PWBt92HctSw030=
 github.com/throneproj/snowflake/v2 v2.15.5-0.20261123082518-be5992caba99 h1:4gzcUWfkYjfgZddApxv/E0hlo9wccwawGTZMGUxJAOw=
 github.com/throneproj/snowflake/v2 v2.15.5-0.20261123082518-be5992caba99/go.mod h1:OYTSCvNtj7WA/xsq85NlMKY+OmQBBocXTnZ43c2reL4=
 github.com/throneproj/utls v0.0.0-20261122110438-55d28d9fd9a0 h1:OUAT4pL0I4+a8xwB4p2lbOSiqrvgsL4LXOaISJWbaxk=
