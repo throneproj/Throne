@@ -16436,6 +16436,30 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Каждый ключ в строке должен быть в URL-safe base64 длиной 32 или 1184 байта, без дополнения (padding).</translation>
     </message>
     <message>
+        <source>Put the padding parts before the keys.</source>
+        <translation>Поместите части padding перед ключами.</translation>
+    </message>
+    <message>
+        <source>A 1184-byte key in the string is not a valid ML-KEM-768 key: copy the string from the server again.</source>
+        <translation>Ключ длиной 1184 байта в строке не является корректным ключом ML-KEM-768: скопируйте строку с сервера заново.</translation>
+    </message>
+    <message>
+        <source>The string has no key: copy the whole string the server gives.</source>
+        <translation>В строке нет ключа: скопируйте всю строку, которую выдаёт сервер.</translation>
+    </message>
+    <message>
+        <source>Each padding part must be three numbers joined by dashes, like 100-111-1111.</source>
+        <translation>Каждая часть padding должна состоять из трёх чисел через дефис, например 100-111-1111.</translation>
+    </message>
+    <message>
+        <source>The first padding part needs a chance of at least 100 and lengths of at least 35, like 100-111-1111.</source>
+        <translation>Первая часть padding должна иметь вероятность не меньше 100 и длины не меньше 35, например 100-111-1111.</translation>
+    </message>
+    <message>
+        <source>The padding lengths can add up to more than 65553 bytes.</source>
+        <translation>Сумма длин padding может превысить 65553 байта.</translation>
+    </message>
+    <message>
         <source>XTLS Vision needs the raw network with TLS or REALITY, or VLESS encryption: change the network or security, or clear the flow.</source>
         <translation>XTLS Vision требует сеть raw с TLS или REALITY либо шифрование VLESS: измените сеть или безопасность либо очистите flow.</translation>
     </message>

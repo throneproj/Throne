@@ -7424,6 +7424,30 @@ Remove that endpoint from this routing profile as well?</source>
         <source>Write only the domain, without a scheme such as https://; as written, this never matches.</source>
         <translation>فقط دامنه را بنویسید، بدون طرحی مثل https://؛ به این شکل هرگز تطبیق پیدا نمی‌کند.</translation>
     </message>
+    <message>
+        <source>Put the padding parts before the keys.</source>
+        <translation>بخش‌های padding را پیش از کلیدها بگذارید.</translation>
+    </message>
+    <message>
+        <source>A 1184-byte key in the string is not a valid ML-KEM-768 key: copy the string from the server again.</source>
+        <translation>کلید 1184 بایتی در رشته یک کلید معتبر ML-KEM-768 نیست: رشته را دوباره از سرور کپی کنید.</translation>
+    </message>
+    <message>
+        <source>The string has no key: copy the whole string the server gives.</source>
+        <translation>رشته هیچ کلیدی ندارد: کل رشته‌ای را که سرور می‌دهد کپی کنید.</translation>
+    </message>
+    <message>
+        <source>Each padding part must be three numbers joined by dashes, like 100-111-1111.</source>
+        <translation>هر بخش padding باید سه عدد باشد که با خط تیره به هم وصل شده‌اند، مانند 100-111-1111.</translation>
+    </message>
+    <message>
+        <source>The first padding part needs a chance of at least 100 and lengths of at least 35, like 100-111-1111.</source>
+        <translation>بخش نخست padding باید احتمالی دست‌کم 100 و طول‌هایی دست‌کم 35 داشته باشد، مانند 100-111-1111.</translation>
+    </message>
+    <message>
+        <source>The padding lengths can add up to more than 65553 bytes.</source>
+        <translation>مجموع طول‌های padding می‌تواند از 65553 بایت بیشتر شود.</translation>
+    </message>
 </context>
 <context>
     <name>GuiStartup</name>

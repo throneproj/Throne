@@ -16470,6 +16470,30 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>字符串中的每个钥匙必须是 32 或 1184 字节的 URL 安全的 base64，不带填充。</translation>
     </message>
     <message>
+        <source>Put the padding parts before the keys.</source>
+        <translation>请将填充部分放在钥匙之前。</translation>
+    </message>
+    <message>
+        <source>A 1184-byte key in the string is not a valid ML-KEM-768 key: copy the string from the server again.</source>
+        <translation>字符串中的 1184 字节钥匙不是有效的 ML-KEM-768 钥匙：请重新从服务器复制该字符串。</translation>
+    </message>
+    <message>
+        <source>The string has no key: copy the whole string the server gives.</source>
+        <translation>字符串中没有钥匙：请复制服务器提供的完整字符串。</translation>
+    </message>
+    <message>
+        <source>Each padding part must be three numbers joined by dashes, like 100-111-1111.</source>
+        <translation>每个填充部分必须是用短横线连接的三个数字，例如 100-111-1111。</translation>
+    </message>
+    <message>
+        <source>The first padding part needs a chance of at least 100 and lengths of at least 35, like 100-111-1111.</source>
+        <translation>第一个填充部分的概率必须至少为 100，长度至少为 35，例如 100-111-1111。</translation>
+    </message>
+    <message>
+        <source>The padding lengths can add up to more than 65553 bytes.</source>
+        <translation>填充长度之和可能超过 65553 字节。</translation>
+    </message>
+    <message>
         <source>XTLS Vision needs the raw network with TLS or REALITY, or VLESS encryption: change the network or security, or clear the flow.</source>
         <translation>XTLS Vision 需要搭配 TLS 或 REALITY，或 VLESS 加密的原始网络: 更改 network (网络)或 security (安全性)，或清除 flow (流)设置。</translation>
     </message>
