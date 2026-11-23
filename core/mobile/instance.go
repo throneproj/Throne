@@ -5,6 +5,8 @@ import (
 	"errors"
 	"io"
 	stdlog "log"
+	"slices"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -16,12 +18,14 @@ import (
 	"github.com/sagernet/sing-box/adapter"
 	"github.com/sagernet/sing-box/common/trafficcontrol"
 	"github.com/sagernet/sing-box/common/urltest"
+	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/experimental/clashmode"
 	"github.com/sagernet/sing-box/log"
 	"github.com/sagernet/sing-box/option"
 	tun "github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
+	F "github.com/sagernet/sing/common/format"
 	"github.com/sagernet/sing/common/x/list"
 	"github.com/sagernet/sing/service"
 	"github.com/sagernet/sing/service/pause"
@@ -63,6 +67,7 @@ func (h *boxHandle) Context() context.Context {
 
 type Instance struct {
 	platform PlatformInterface
+	wrapper  *platformInterfaceWrapper
 	handle   *boxHandle
 	cancel   context.CancelFunc
 	xray     *xray.Stack
@@ -83,6 +88,11 @@ type Instance struct {
 	interfaceAccess   sync.Mutex
 	interfaceName     string
 	interfaceIndex    int
+
+	wokeAt          atomic.Int64
+	resetAccess     sync.Mutex
+	resetAt         int64
+	resetNetworkKey string
 
 	stateAccess     sync.Mutex
 	started         bool
@@ -131,7 +141,8 @@ func NewInstance(platform PlatformInterface, options *StartOptions) (*Instance, 
 		return nil, err
 	}
 
-	ctx := newBoxContext(platform, newPlatformInterfaceWrapper(platform))
+	wrapper := newPlatformInterfaceWrapper(platform)
+	ctx := newBoxContext(platform, wrapper)
 	boxOptions, err := parseConfig(ctx, options.CoreConfig)
 	if err != nil {
 		xrayStack.Close()
@@ -158,6 +169,7 @@ func NewInstance(platform PlatformInterface, options *StartOptions) (*Instance, 
 	}
 	instance := &Instance{
 		platform:       platform,
+		wrapper:        wrapper,
 		handle:         &boxHandle{ctx: ctx, Box: boxInstance},
 		cancel:         cancel,
 		xray:           xrayStack,
@@ -230,6 +242,9 @@ func (i *Instance) Start() error {
 		runningInstances.Add(1)
 	}
 	i.stateAccess.Unlock()
+	i.resetAccess.Lock()
+	i.resetNetworkKey = defaultNetworkKey(i.handle.Network())
+	i.resetAccess.Unlock()
 	warmProxyChain(i.outbounds)
 	return nil
 }
@@ -282,7 +297,11 @@ func (i *Instance) Pause() {
 }
 
 func (i *Instance) Wake() {
-	if i.running() && i.pauseManager != nil {
+	if !i.running() {
+		return
+	}
+	i.wokeAt.Store(time.Now().UnixNano())
+	if i.pauseManager != nil {
 		i.pauseManager.DeviceWake()
 	}
 }
@@ -300,11 +319,77 @@ func (i *Instance) UpdateWIFIState() {
 	}
 }
 
+// The app resets right after a wake and after a default-network report; a reset this soon after one is that one.
+const automaticResetWindow = 10 * time.Second
+
+// An automatic reset on the default network the last reset found still closes every connection, but leaves WireGuard
+// its flow and Xray its transports: rebinding and recycling them would make a WireGuard peer behind a slow detour
+// start its handshake over after every wake. Any other reset, the user's included, is a full one.
 func (i *Instance) ResetNetwork() {
-	if i.running() {
-		i.handle.Network().ResetNetwork(i.handle.ctx)
-		i.xray.Recycle(xrayRecycleCooldown)
+	if !i.running() {
+		return
 	}
+	network := i.handle.Network()
+	key := defaultNetworkKey(network)
+	trigger := max(i.wokeAt.Load(), i.wrapper.reportedAt.Load())
+	now := time.Now().UnixNano()
+	i.resetAccess.Lock()
+	automatic := trigger > i.resetAt && time.Duration(now-trigger) < automaticResetWindow
+	sameNetwork := automatic && key != "" && key == i.resetNetworkKey
+	i.resetAt = now
+	i.resetNetworkKey = key
+	i.resetAccess.Unlock()
+	if sameNetwork {
+		i.resetConnections()
+		return
+	}
+	network.ResetNetwork(i.handle.ctx)
+	i.xray.Recycle(xrayRecycleCooldown)
+}
+
+// NetworkManager.ResetNetwork without the WireGuard rebind.
+func (i *Instance) resetConnections() {
+	ctx := i.handle.ctx
+	if i.connections != nil {
+		i.connections.CloseAll()
+	}
+	var listeners []adapter.InterfaceUpdateListener
+	for _, endpoint := range i.handle.Endpoint().Endpoints() {
+		if listener, isListener := endpoint.(adapter.InterfaceUpdateListener); isListener && endpoint.Type() != C.TypeWireGuard {
+			listeners = append(listeners, listener)
+		}
+	}
+	for _, inbound := range i.handle.Inbound().Inbounds() {
+		if listener, isListener := inbound.(adapter.InterfaceUpdateListener); isListener {
+			listeners = append(listeners, listener)
+		}
+	}
+	for _, outbound := range i.handle.Outbound().Outbounds() {
+		if listener, isListener := outbound.(adapter.InterfaceUpdateListener); isListener {
+			listeners = append(listeners, listener)
+		}
+	}
+	for _, listener := range listeners {
+		listener.InterfaceUpdated(ctx)
+	}
+	i.handle.Router().ResetNetwork()
+}
+
+// The default interface's name, index and addresses as the app last reported them; empty when there is none.
+func defaultNetworkKey(network adapter.NetworkManager) string {
+	if network.InterfaceMonitor() == nil {
+		return ""
+	}
+	defaultInterface := network.DefaultNetworkInterface()
+	if defaultInterface == nil {
+		return ""
+	}
+	addresses := make([]string, 0, len(defaultInterface.Addresses))
+	for _, address := range defaultInterface.Addresses {
+		addresses = append(addresses, address.String())
+	}
+	slices.Sort(addresses)
+	return F.ToString(defaultInterface.Name, "/", defaultInterface.Index, "/", strings.Join(addresses, ","))
 }
 
 // boxmain.Box.CloseWithTimeout's semantics: cancel and Close on a goroutine, warn once the timer fires,

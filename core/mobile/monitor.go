@@ -1,6 +1,8 @@
 package mobile
 
 import (
+	"time"
+
 	tun "github.com/sagernet/sing-tun"
 	"github.com/sagernet/sing/common/control"
 	E "github.com/sagernet/sing/common/exceptions"
@@ -62,6 +64,7 @@ func (m *platformDefaultInterfaceMonitor) UpdateNetworkPath(networkPath string) 
 // libbox's FixAndroidStack path (golang/go#68760) made unconditional: the call arrives on a Java
 // thread, so the update runs on a fresh goroutine and the caller waits for it.
 func (m *platformDefaultInterfaceMonitor) UpdateDefaultInterface(interfaceName string, interfaceIndex32 int32, isExpensive bool, isConstrained bool) {
+	m.reportedAt.Store(time.Now().UnixNano())
 	done := make(chan struct{})
 	go func() {
 		m.updateDefaultInterface(interfaceName, interfaceIndex32, isExpensive, isConstrained)

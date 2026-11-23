@@ -5,6 +5,7 @@ import (
 	"net/netip"
 	"os"
 	"sync"
+	"sync/atomic"
 	"syscall"
 
 	"github.com/sagernet/sing-box/adapter"
@@ -32,6 +33,8 @@ type platformInterfaceWrapper struct {
 	defaultInterface       *control.Interface
 	isExpensive            bool
 	isConstrained          bool
+	// Unix nanoseconds of the app's last default-interface report.
+	reportedAt atomic.Int64
 }
 
 func newPlatformInterfaceWrapper(iif PlatformInterface) *platformInterfaceWrapper {
