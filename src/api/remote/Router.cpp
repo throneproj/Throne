@@ -484,7 +484,7 @@ namespace RemoteApi {
         const auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
         if (group == nullptr) return profiles;
         QSet<int> seen;
-        for (const auto &profile : Configs::dataManager->profilesRepo->GetProfileBatch(group->Profiles())) {
+        for (const auto &profile : Configs::dataManager->profilesRepo->GetProfileBatch(group->DisplayedProfiles())) {
             if (seen.contains(profile->id)) continue;
             seen.insert(profile->id);
             if (nameFilter.match(RouterImpl::profileDisplayName(*profile)).hasMatch()) profiles.append(profile);

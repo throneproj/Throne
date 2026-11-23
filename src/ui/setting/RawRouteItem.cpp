@@ -163,7 +163,7 @@ RawRouteItem::RawRouteItem(QWidget* parent, const std::shared_ptr<Configs::Route
     for (int groupID : Configs::dataManager->groupsRepo->GetGroupsTabOrder()) {
         auto group = Configs::dataManager->groupsRepo->GetGroup(groupID);
         if (!group) continue;
-        for (int profileID : group->profiles) {
+        for (int profileID : group->DisplayedProfiles()) {
             if (!idToName.contains(profileID)) continue;
             items.append({QString("[%1] %2").arg(group->name, idToName[profileID]), QString::number(profileID)});
         }

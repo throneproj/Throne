@@ -4717,7 +4717,7 @@ Close without saving?</source>
         <translation>پس از تغییر ترتیب، دیگر نمی‌توانید ترتیب پیش از مرتب‌سازی را بازیابی کنید. آیا مطمئن هستید که می‌خواهید ترتیب را تغییر دهید؟</translation>
     </message>
     <message>
-        <source>Restore Original Order</source>
+        <source>Restore original order</source>
         <translation>بازیابی ترتیب اولیه</translation>
     </message>
     <message>
@@ -4725,20 +4725,16 @@ Close without saving?</source>
         <translation>نمایش:</translation>
     </message>
     <message>
-        <source>Test Latency</source>
+        <source>Test latency</source>
         <translation>آزمایش تأخیر</translation>
     </message>
     <message>
-        <source>Test Exit IP</source>
+        <source>Test exit IP</source>
         <translation>آزمایش IP خروجی</translation>
     </message>
     <message>
-        <source>Test Speed</source>
+        <source>Test speed</source>
         <translation>آزمایش سرعت</translation>
-    </message>
-    <message>
-        <source>Clear Results</source>
-        <translation>پاک کردن نتایج</translation>
     </message>
     <message>
         <source>Connect</source>
@@ -5053,16 +5049,8 @@ Error: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Speed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Services</source>
         <translation>سرویس‌ها</translation>
-    </message>
-    <message>
-        <source>Latency</source>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Replace domain server addresses with their resolved IPs?</source>

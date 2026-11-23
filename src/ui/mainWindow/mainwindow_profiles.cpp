@@ -111,6 +111,8 @@ void MainWindow::on_menu_pin_triggered() {
     }
     Configs::dataManager->groupsRepo->Save(group);
     refresh_proxy_list({}, true);
+    // Older versions kept pins at the head of a sorted list, outside the sort; a full sort places them.
+    if (!unpinned.isEmpty() && group->KeepsSorted()) Configs::ResortLater(group->id);
 }
 
 void MainWindow::on_menu_delete_repeat_triggered() {
@@ -119,7 +121,8 @@ void MainWindow::on_menu_delete_repeat_triggered() {
 
     // Duplicates are positional: one id can own several rows, and distinct ids can share a config (#1775).
     const auto groupIds = group->Profiles();
-    const auto groupProfiles = Configs::dataManager->profilesRepo->GetProfileBatch(groupIds);
+    // In the order shown, so the topmost row of each set of duplicates stays.
+    const auto groupProfiles = Configs::dataManager->profilesRepo->GetProfileBatch(group->DisplayedProfiles());
 
     QList<std::shared_ptr<Configs::Profile>> uniq;
     Configs::ProfileFilter::Uniq(groupProfiles, uniq, false);
@@ -601,9 +604,9 @@ QList<int> MainWindow::get_selected_or_group() {
     QList<int> profileIDs;
     if (selected_or_group > 0) {
         profileIDs = get_now_selected_list();
-        if (profileIDs.isEmpty() && selected_or_group == 2) profileIDs = Configs::dataManager->groupsRepo->CurrentGroup()->Profiles();
+        if (profileIDs.isEmpty() && selected_or_group == 2) profileIDs = Configs::dataManager->groupsRepo->CurrentGroup()->DisplayedProfiles();
     } else {
-        profileIDs = Configs::dataManager->groupsRepo->CurrentGroup()->Profiles();
+        profileIDs = Configs::dataManager->groupsRepo->CurrentGroup()->DisplayedProfiles();
     }
     return profileIDs;
 }

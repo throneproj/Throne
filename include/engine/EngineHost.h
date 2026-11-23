@@ -100,7 +100,7 @@ namespace Engine {
 
         bool chooseRoute(int routeId, bool interactive, quint64 serial) override;
 
-        int clearTestResults(const QList<int> &profileIds) override;
+        int clearTestResults(const QList<int> &profileIds, std::optional<TestKind> kind = std::nullopt) override;
 
         std::optional<LiveRates> freshLiveRates(qint64 maxAgeMs) const override;
 

@@ -7,6 +7,7 @@
 #include <QRegularExpression>
 #include <QSet>
 
+#include <algorithm>
 #include <bit>
 
 namespace Configs
@@ -146,42 +147,38 @@ namespace Configs
         return profiles;
     }
 
+    namespace {
+        // Every member once: in `preferred` order first, then the rest in `members` order.
+        QList<int> orderedMembers(const QList<int> &preferred, const QList<int> &members) {
+            QSet<int> remaining(members.cbegin(), members.cend());
+            QList<int> order;
+            order.reserve(remaining.size());
+            for (int id : preferred) {
+                if (remaining.remove(id)) order << id;
+            }
+            for (int id : members) {
+                if (remaining.remove(id)) order << id;
+            }
+            return order;
+        }
+    }
+
+    QList<int> Group::Arrangement() const {
+        return KeepsSorted() ? orderedMembers({}, profiles) : orderedMembers(custom_order, profiles);
+    }
+
     QList<int> Group::DisplayedProfiles() const {
-        const QSet<int> existing(profiles.cbegin(), profiles.cend());
-        QSet<int> pinnedSet(pinned.cbegin(), pinned.cend());
-        pinnedSet.intersect(existing);
-
-        if (KeepsSorted()) {
-            QList<int> pinned;
-            QList<int> ordinary;
-            pinned.reserve(profiles.size());
-            ordinary.reserve(profiles.size());
-            for (int id : profiles) {
-                (pinnedSet.contains(id) ? pinned : ordinary).append(id);
-            }
-            pinned += ordinary;
-            return pinned;
-        }
-
+        const QSet<int> members(profiles.cbegin(), profiles.cend());
+        QSet<int> pins;
         QList<int> displayed;
-        displayed.reserve(profiles.size());
-        for (int id : pinned) if (existing.contains(id)) displayed.append(id);
-
-        QHash<int, int> remaining;
-        for (int id : profiles) {
-            if (!pinnedSet.contains(id)) ++remaining[id];
+        displayed.reserve(members.size());
+        for (int id : pinned) {
+            if (!members.contains(id) || pins.contains(id)) continue;
+            pins.insert(id);
+            displayed << id;
         }
-        for (int id : custom_order) {
-            if (!pinnedSet.contains(id) && remaining.value(id) > 0) {
-                displayed.append(id);
-                --remaining[id];
-            }
-        }
-        for (int id : profiles) {
-            if (!pinnedSet.contains(id) && remaining.value(id) > 0) {
-                displayed.append(id);
-                --remaining[id];
-            }
+        for (int id : Arrangement()) {
+            if (!pins.contains(id)) displayed << id;
         }
         return displayed;
     }
@@ -336,7 +333,13 @@ namespace Configs
         Commit commit(Group &group, const QList<int> &snapshot, const QList<int> &pins, GroupSortAction action, QList<int> order) {
             QMutexLocker locker(&group.mutex);
             if (group.profiles != snapshot || group.pinned != pins || group.sort != action) return Commit::Stale;
-            if (order == group.profiles) return Commit::Unchanged;
+            // A group sorted before the arrangement was kept restores to import order.
+            const bool baseline = group.custom_order.isEmpty();
+            if (baseline) {
+                group.custom_order = order;
+                std::ranges::sort(group.custom_order);
+            }
+            if (order == group.profiles) return baseline ? Commit::Moved : Commit::Unchanged;
             group.profiles = std::move(order);
             return Commit::Moved;
         }
@@ -352,38 +355,31 @@ namespace Configs
 
     void Group::SetSort(GroupSortAction action) {
         QMutexLocker locker(&mutex);
-        if (custom_order.isEmpty() && !KeepsSorted() && action.method != GroupSortMethod::Raw) custom_order = profiles;
+        // Starting a kept sort saves the arrangement it replaces; the sort starts from it so ties keep their rows.
+        if (!KeepsSorted() && sortReads(action.method, SortInput::Membership)) {
+            custom_order = Arrangement();
+            profiles = custom_order;
+        }
         sort = action;
     }
 
     void Group::RestoreOriginalOrder() {
         QMutexLocker locker(&mutex);
-        sort = {};
+        QSet<int> remaining(profiles.cbegin(), profiles.cend());
         QList<int> restored;
-        restored.reserve(profiles.size());
-        if (custom_order.isEmpty()) {
-            restored = profiles;
-            std::ranges::sort(restored);
-        } else {
-            QHash<int, int> remaining;
-            for (int id : profiles) ++remaining[id];
-            for (int id : custom_order) {
-                if (remaining.value(id) > 0) {
-                    restored.append(id);
-                    --remaining[id];
-                }
-            }
-            // Newly imported members follow the current baseline in import order.
-            const auto baselineSize = restored.size();
-            for (int id : profiles) {
-                if (remaining.value(id) > 0) {
-                    restored.append(id);
-                    --remaining[id];
-                }
-            }
-            std::ranges::sort(restored.begin() + baselineSize, restored.end());
+        restored.reserve(remaining.size());
+        for (int id : custom_order) {
+            if (remaining.remove(id)) restored << id;
         }
-        profiles = std::move(restored);
+        const auto saved = restored.size();
+        for (int id : profiles) {
+            if (remaining.remove(id)) restored << id;
+        }
+        // Members that joined since the arrangement was saved follow it in import order.
+        std::sort(restored.begin() + saved, restored.end());
+        sort = {};
+        profiles = restored;
+        custom_order = std::move(restored);
     }
 
     bool Group::SortProfiles(GroupSortAction action) {
@@ -427,13 +423,17 @@ namespace Configs
             QList<int> snapshot;
             QList<int> pins;
             GroupSortAction action;
+            bool unplaced;
             {
                 QMutexLocker locker(&mutex);
                 if (!KeepsSorted()) return false;
                 snapshot = profiles;
                 pins = pinned;
                 action = sort;
+                // Sorted before the arrangement was kept: the pins headed `profiles` outside the sort, so place every row once.
+                unplaced = custom_order.isEmpty() && !pinned.isEmpty();
             }
+            if (unplaced) return Resort();
 
             const qsizetype count = snapshot.size();
             QList<qsizetype> positions;
@@ -545,7 +545,12 @@ namespace Configs
     }
 
     int Group::PinnedCount() const {
-        return static_cast<int>(pinned.size());
+        const QSet<int> members(profiles.cbegin(), profiles.cend());
+        QSet<int> pins;
+        for (int id : pinned) {
+            if (members.contains(id)) pins.insert(id);
+        }
+        return static_cast<int>(pins.size());
     }
 
     bool Group::IsPinned(int ID) const {
@@ -573,60 +578,38 @@ namespace Configs
         return leaving;
     }
 
-    int Group::MoveProfile(int from, int target, bool below)
-    {
+    int Group::MoveProfile(int from, int target, bool below) {
         QMutexLocker locker(&mutex);
-        const bool wasSorted = KeepsSorted();
         const auto displayed = DisplayedProfiles();
         const auto count = static_cast<int>(displayed.size());
         if (from < 0 || from >= count || target < 0 || target > count) return -1;
+        const QSet<int> pins(pinned.cbegin(), pinned.cend());
+        int pinnedRows = 0;
+        while (pinnedRows < count && pins.contains(displayed[pinnedRows])) ++pinnedRows;
 
-        const int pinnedRows = std::count_if(displayed.cbegin(), displayed.cend(), [this](int id) {
-            return pinned.contains(id);
-        });
-        const bool sourcePinned = from < pinnedRows;
-        const bool targetPinned = target < pinnedRows;
-        int to = target == count ? count : target + (below ? 1 : 0);
+        const bool fromPinned = from < pinnedRows;
+        const bool toPinned = target < pinnedRows;
+        int to = below && target < count ? target + 1 : target;
         if (from < to) --to;
-        if (to == from && sourcePinned == targetPinned) return -1;
+        if (to == from && fromPinned == toPinned) return -1;
 
-        QList<int> reordered = displayed;
-        reordered.move(from, to);
-        if (wasSorted || sourcePinned || targetPinned) {
-            QList<int> newPinned;
-            QSet<int> seen;
-            const int newPinnedRows = pinnedRows - (sourcePinned ? 1 : 0) + (targetPinned ? 1 : 0);
-            for (int id : reordered.mid(0, newPinnedRows)) {
-                if (seen.contains(id)) continue;
-                seen.insert(id);
-                newPinned.append(id);
-            }
-            pinned = std::move(newPinned);
+        // The moved row lands inside the block of its target, so the pins stay the head of `order`.
+        QList<int> order = displayed;
+        order.move(from, to);
+        const int newPinnedRows = pinnedRows - (fromPinned ? 1 : 0) + (toPinned ? 1 : 0);
+        pinned = order.first(newPinnedRows);
+        // The kept sort still places the rows below the pins.
+        if (KeepsSorted() && toPinned) return to;
+
+        // Both lists hold every member once, so the unpinned slots match the unpinned rows one for one.
+        const QSet<int> nowPinned(pinned.cbegin(), pinned.cend());
+        QList<int> arranged = Arrangement();
+        qsizetype next = newPinnedRows;
+        for (int &id : arranged) {
+            if (!nowPinned.contains(id)) id = order[next++];
         }
-        if (wasSorted) {
-            // A sorted drag replaces both manual arrangements with the final displayed order.
-            custom_order = reordered;
-            profiles = custom_order;
-        } else if (!targetPinned) {
-            const QList<int> ordinary = reordered.mid(pinned.size());
-            QList<int> baseline = custom_order.isEmpty() ? profiles : custom_order;
-            const QSet<int> pinnedSet(pinned.cbegin(), pinned.cend());
-            const QSet<int> profileSet(profiles.cbegin(), profiles.cend());
-            baseline.removeIf([&profileSet](int id) { return !profileSet.contains(id); });
-            QSet<int> seen;
-            int ordinaryIndex = 0;
-            for (int &id : baseline) {
-                if (!pinnedSet.contains(id)) id = ordinary[ordinaryIndex++];
-                seen.insert(id);
-            }
-            for (int id : profiles) {
-                if (seen.contains(id)) continue;
-                baseline.append(pinnedSet.contains(id) ? id : ordinary[ordinaryIndex++]);
-                seen.insert(id);
-            }
-            custom_order = baseline;
-            profiles = custom_order;
-        }
+        custom_order = arranged;
+        profiles = std::move(arranged);
         sort = {};
         return to;
     }
@@ -634,16 +617,21 @@ namespace Configs
     bool Group::NormalizePins() {
         QMutexLocker locker(&mutex);
         const QSet<int> listed(profiles.cbegin(), profiles.cend());
-        QList<int> kept;
-        QSet<int> keptSet;
-        for (int id : pinned) {
-            if (listed.contains(id) && !keptSet.contains(id)) {
+        const auto prune = [&listed](QList<int> &ids) {
+            QSet<int> seen;
+            QList<int> kept;
+            kept.reserve(ids.size());
+            for (int id : ids) {
+                if (!listed.contains(id) || seen.contains(id)) continue;
+                seen.insert(id);
                 kept << id;
-                keptSet.insert(id);
             }
-        }
-        const bool pruned = kept != pinned;
-        pinned = std::move(kept);
-        return pruned;
+            if (kept.size() == ids.size()) return false;
+            ids = std::move(kept);
+            return true;
+        };
+        const bool prunedPins = prune(pinned);
+        const bool prunedOrder = prune(custom_order);
+        return prunedPins || prunedOrder;
     }
 }

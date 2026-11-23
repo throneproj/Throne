@@ -9892,7 +9892,7 @@ Close without saving?</source>
         <translation>更改顺序后，将无法恢复到排序前的顺序。确定更改顺序？</translation>
     </message>
     <message>
-        <source>Restore Original Order</source>
+        <source>Restore original order</source>
         <translation>恢复原顺序</translation>
     </message>
     <message>
@@ -9900,20 +9900,16 @@ Close without saving?</source>
         <translation>显示：</translation>
     </message>
     <message>
-        <source>Test Latency</source>
+        <source>Test latency</source>
         <translation>测试延迟</translation>
     </message>
     <message>
-        <source>Test Exit IP</source>
+        <source>Test exit IP</source>
         <translation>测试出口 IP</translation>
     </message>
     <message>
-        <source>Test Speed</source>
+        <source>Test speed</source>
         <translation>测试速度</translation>
-    </message>
-    <message>
-        <source>Clear Results</source>
-        <translation>清空测试结果</translation>
     </message>
     <message>
         <source>Program</source>
@@ -10858,10 +10854,6 @@ Close without saving?</source>
         </translation>
     </message>
     <message>
-        <source>Stop sorting</source>
-        <translation>停止排序</translation>
-    </message>
-    <message>
         <source>Type</source>
         <translation>类型</translation>
     </message>
@@ -10874,16 +10866,8 @@ Close without saving?</source>
         <translation>包含:</translation>
     </message>
     <message>
-        <source>Speed</source>
-        <translation>速度</translation>
-    </message>
-    <message>
         <source>Services</source>
         <translation>服务</translation>
-    </message>
-    <message>
-        <source>Latency</source>
-        <translation>延迟</translation>
     </message>
     <message>
         <source>Connect</source>

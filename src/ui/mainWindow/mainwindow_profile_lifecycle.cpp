@@ -19,7 +19,7 @@ int MainWindow::get_profile_to_start() {
         }
         const auto currentGroup = Configs::dataManager->groupsRepo->CurrentGroup();
         if (currentGroup) {
-            const auto profiles = currentGroup->Profiles();
+            const auto profiles = currentGroup->DisplayedProfiles();
             if (!profiles.isEmpty()) {
                 const int firstId = profiles.first();
                 if (Configs::dataManager->profilesRepo->GetProfile(firstId) != nullptr) {

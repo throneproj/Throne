@@ -9976,7 +9976,7 @@ Close without saving?</source>
         <translation>После изменения порядка восстановить порядок до сортировки будет невозможно. Вы уверены, что хотите изменить порядок?</translation>
     </message>
     <message>
-        <source>Restore Original Order</source>
+        <source>Restore original order</source>
         <translation>Восстановить исходный порядок</translation>
     </message>
     <message>
@@ -9984,20 +9984,16 @@ Close without saving?</source>
         <translation>Показывать:</translation>
     </message>
     <message>
-        <source>Test Latency</source>
+        <source>Test latency</source>
         <translation>Проверить задержку</translation>
     </message>
     <message>
-        <source>Test Exit IP</source>
+        <source>Test exit IP</source>
         <translation>Проверить выходной IP</translation>
     </message>
     <message>
-        <source>Test Speed</source>
+        <source>Test speed</source>
         <translation>Проверить скорость</translation>
-    </message>
-    <message>
-        <source>Clear Results</source>
-        <translation>Очистить результаты</translation>
     </message>
     <message>
         <source>Connect</source>
@@ -10698,10 +10694,6 @@ Error: %1</source>
         <translation>Показывать:</translation>
     </message>
     <message>
-        <source>Speed</source>
-        <translation>Скорость</translation>
-    </message>
-    <message>
         <source>Services</source>
         <translation>Сервисы</translation>
     </message>
@@ -10716,14 +10708,6 @@ Error: %1</source>
             <numerusform>%n удаленных набора правил были обновлены</numerusform>
             <numerusform>%n удаленных наборов правил было обновлено</numerusform>
         </translation>
-    </message>
-    <message>
-        <source>Stop sorting</source>
-        <translation>Отключить сортировку</translation>
-    </message>
-    <message>
-        <source>Latency</source>
-        <translation>Пингу</translation>
     </message>
     <message>
         <source>Download speed</source>

@@ -178,7 +178,7 @@ void DialogScanInstance::reloadTuneProfiles(int selectId) {
         const auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
         if (group == nullptr) continue;
         const QString prefix = QStringLiteral("[") + group->name + QStringLiteral("] ");
-        for (const int id : group->profiles) {
+        for (const int id : group->DisplayedProfiles()) {
             if (!tuneSupported.value(id, false)) continue;
             const auto found = idToName.constFind(id);
             if (found == idToName.constEnd()) continue;

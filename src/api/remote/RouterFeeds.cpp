@@ -204,7 +204,7 @@ namespace RemoteApi {
             if (group == nullptr) continue;
             seed = qHashMulti(seed, gid, group->name, group->url, group->archive, group->sub_last_update, group->route_id,
                               group->import_sub_route);
-            const auto ids = group->Profiles();
+            const auto ids = group->DisplayedProfiles();
             seed = qHashRange(ids.cbegin(), ids.cend(), seed);
         }
         return seed;

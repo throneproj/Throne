@@ -164,15 +164,18 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
     if (role == Qt::ForegroundRole) {
         if (index.column() == ColLatency) {
             const QColor latencyColor = profile->DisplayLatencyColor();
-            return latencyColor.isValid() ? QVariant(latencyColor) : QVariant();
+            if (latencyColor.isValid()) return latencyColor;
         }
-        if (index.column() == ColExitIP || index.column() == ColSpeed) return {};
         if (isRunning && linkColor.isValid()) return linkColor;
         return {};
     }
     if (role == Qt::BackgroundRole) {
-        if (isPinnedRow(index.row())) return QColor(220, 242, 220);
         if (isRunning && tokens.runningRow.isValid()) return tokens.runningRow;
+        if (isPinnedRow(index.row())) {
+            QColor tint = tokens.success;
+            tint.setAlphaF(0.14f);
+            return tint;
+        }
     }
     return {};
 }

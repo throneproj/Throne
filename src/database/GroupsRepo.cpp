@@ -45,7 +45,7 @@ namespace Configs {
                 import_sub_route INTEGER NOT NULL DEFAULT 0,
                 pinned_json TEXT NOT NULL DEFAULT '[]',
                 show_services INTEGER NOT NULL DEFAULT 1,
-                visible_columns INTEGER NOT NULL DEFAULT 71,
+                visible_columns INTEGER NOT NULL DEFAULT 79,
                 custom_order_json TEXT NOT NULL DEFAULT '[]',
                 created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
@@ -70,8 +70,12 @@ namespace Configs {
             db.exec("ALTER TABLE groups ADD COLUMN import_sub_route INTEGER NOT NULL DEFAULT 0");
         if (!groupsColumnExists("custom_order_json"))
             db.exec("ALTER TABLE groups ADD COLUMN custom_order_json TEXT NOT NULL DEFAULT '[]'");
-        if (!groupsColumnExists("visible_columns"))
-            db.exec("ALTER TABLE groups ADD COLUMN visible_columns INTEGER NOT NULL DEFAULT 71");
+        if (!groupsColumnExists("visible_columns")) {
+            db.exec("ALTER TABLE groups ADD COLUMN visible_columns INTEGER NOT NULL DEFAULT 79");
+            // The old combined column always showed latency, plus the exit IP and speed test_items_to_show kept.
+            if (groupsColumnExists("test_items_to_show"))
+                db.exec("UPDATE groups SET visible_columns = CASE test_items_to_show WHEN 0 THEN 127 WHEN 2 THEN 95 WHEN 3 THEN 111 ELSE 79 END");
+        }
         if (!groupsColumnExists("pinned_json"))
             db.exec("ALTER TABLE groups ADD COLUMN pinned_json TEXT NOT NULL DEFAULT '[]'");
         if (!groupsColumnExists("show_services"))
@@ -338,7 +342,10 @@ namespace Configs {
         }
         json["show_services"] = query->getColumn(24).getInt() != 0;
         json["visible_columns"] = query->getColumn(25).getInt();
-        json["custom_order"] = QJsonDocument::fromJson(QByteArray(query->getColumn(26).getText())).array();
+        if (const auto customOrderDoc = QJsonDocument::fromJson(QByteArray(query->getColumn(26).getText()));
+            customOrderDoc.isArray()) {
+            json["custom_order"] = customOrderDoc.array();
+        }
 
         auto group = groupFromJson(json);
         // Refreshes could map several identical servers onto one id, leaving it in the persisted list once per server (#1775).

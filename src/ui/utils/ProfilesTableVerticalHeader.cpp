@@ -6,6 +6,7 @@
 #include <QTableView>
 #include <QFontMetrics>
 #include <QIcon>
+#include <QPixmap>
 
 ProfilesTableVerticalHeader::ProfilesTableVerticalHeader(QWidget *parent)
     : QHeaderView(Qt::Vertical, parent) {
@@ -67,9 +68,15 @@ void ProfilesTableVerticalHeader::paintSection(QPainter *painter, const QRect &r
     painter->fillRect(rect, marked ? tokens.runningMark : palette().color(QPalette::Button));
     const int pinWidth = m_pinnedVisible ? fontMetrics().height() + 6 : 0;
     if (m_pinnedVisible && m_model && m_model->isPinnedRow(sourceRow)) {
-        static const QIcon keepIcon(":/icon/material/keep.png");
-        const QRect iconRect(rect.left() + 3, rect.center().y() - fontMetrics().height() / 2, fontMetrics().height(), fontMetrics().height());
-        keepIcon.paint(painter, iconRect);
+        const int side = fontMetrics().height();
+        const QRect iconRect(rect.left() + 3, rect.center().y() - side / 2, side, side);
+        // The glyph is drawn dark; recolored like the row number so it shows on every theme.
+        QPixmap pin = QIcon(QStringLiteral(":/icon/material/keep.png")).pixmap(iconRect.size(), devicePixelRatioF());
+        QPainter tint(&pin);
+        tint.setCompositionMode(QPainter::CompositionMode_SourceIn);
+        tint.fillRect(pin.rect(), marked ? tokens.onRunningMark : tokens.accent);
+        tint.end();
+        painter->drawPixmap(iconRect, pin);
     }
     if (rect.width() > 1) {
         painter->setPen(palette().color(QPalette::Mid));

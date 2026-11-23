@@ -95,6 +95,7 @@ void MainWindow::testPanelSeeded(Engine::TestKind kind, int totalProfiles, const
             break;
         case Engine::TestKind::Service:
             dataViewHtmlGenerator_.seedLatencyTest(DataViewHtmlGenerator::LatencyTestPanelState::Kind::Service, totalProfiles);
+            column = ProfilesTableModel::ColExitIP;
             break;
         case Engine::TestKind::Speed:
             dataViewHtmlGenerator_.seedSpeedTest(totalProfiles);
@@ -103,13 +104,15 @@ void MainWindow::testPanelSeeded(Engine::TestKind kind, int totalProfiles, const
     }
     runOnUiThread([this] { ui->menu_stop_testing->setEnabled(true); });
     if (column < 0) return;
-    runOnUiThread([this, column, profileIds] {
+    runOnUiThread([this, kind, column, profileIds] {
         QSet<int> groups;
         for (const auto &profile : Configs::dataManager->profilesRepo->GetProfileBatch(profileIds)) groups.insert(profile->gid);
         bool currentChanged = false;
         for (int gid : groups) {
             const auto group = Configs::dataManager->groupsRepo->GetGroup(gid);
             if (!group || (group->visible_columns & (1 << column))) continue;
+            // Service icons show in the Exit IP column only while the group includes them.
+            if (kind == Engine::TestKind::Service && !group->show_services) continue;
             group->visible_columns |= 1 << column;
             Configs::dataManager->groupsRepo->Save(group);
             currentChanged |= gid == Configs::dataManager->settingsRepo->current_group;
@@ -497,7 +500,7 @@ void MainWindow::refresh_proxy_list_column_size() {
                     hHeader->resizeSection(col, group->calculated_column_width[col]);
                 }
             }
-            ui->profilesTableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+            ui->profilesTableView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
             group->clearCalculatedColumnWidth();
             for (int i = 0; i < columnCount; i++) {
                 const auto size = hHeader->isSectionHidden(i) ? 0 : hHeader->sectionSize(i);

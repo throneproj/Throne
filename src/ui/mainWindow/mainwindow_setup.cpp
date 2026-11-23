@@ -23,7 +23,6 @@
 #include "include/engine/connection/ConnectionManager.h"
 #include "include/engine/services/AssetUpdates.h"
 #include "include/engine/services/GroupService.h"
-#include "include/engine/services/ProfileService.h"
 #include "include/engine/services/SettingsService.h"
 #include "include/engine/services/StatsService.h"
 #include "include/engine/supervisor/CoreSupervisor.h"
@@ -420,31 +419,41 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     {
         // A drop position in a filtered list says nothing about the group's real order.
         if (profilesFilterModel->hasActiveFilter()) return;
-        auto group = Configs::dataManager->groupsRepo->CurrentGroup();
+        const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
         if (group == nullptr) return;
-        const auto previousProfiles = group->Profiles();
-        const auto previousOrder = group->DisplayedProfiles();
-        const auto previousPins = group->pinned;
-        const auto previousSort = group->sort;
-        if (from < 0 || from >= previousOrder.size() || target < 0 || target > previousOrder.size()) return;
-        // A background sort may have finished before the table receives its refresh.
-        if (profilesTableModel->rowCount() != previousOrder.size()) return;
-        for (int row = 0; row < previousOrder.size(); ++row) {
-            if (profilesTableModel->index(row, 0).data(ProfilesTableModel::ProfileIdRole).toInt() != previousOrder[row]) return;
+        const auto displayed = group->DisplayedProfiles();
+        const auto rows = static_cast<int>(displayed.size());
+        if (from < 0 || from >= rows || target < 0 || target > rows) return;
+        // A background sort may have finished before the table received its refresh.
+        if (profilesTableModel->rowCount() != rows) return;
+        for (int row = 0; row < rows; ++row) {
+            if (profilesTableModel->index(row, 0).data(ProfilesTableModel::ProfileIdRole).toInt() != displayed[row]) return;
         }
-        int to = target == previousOrder.size() ? target : target + (below ? 1 : 0);
+        const int pinnedRows = group->PinnedCount();
+        const bool toPinned = target < pinnedRows;
+        int to = below && target < rows ? target + 1 : target;
         if (from < to) --to;
-        if (to == from && (from < group->PinnedCount()) == (target < group->PinnedCount())) return;
-        if (QMessageBox::question(this, tr("Confirmation"),
-                                  tr("Changing the order will prevent you from restoring the order before sorting. Are you sure you want to change the order?"),
-                                  QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes) return;
-        // The modal dialog can process test results or subscription updates that change these row positions.
-        if (group != Configs::dataManager->groupsRepo->CurrentGroup() || group->Profiles() != previousProfiles
-            || group->DisplayedProfiles() != previousOrder || group->pinned != previousPins
-            || group->sort != previousSort || profilesFilterModel->hasActiveFilter()) return;
-        if (group->MoveProfile(from, target, below) < 0) return;
-        Configs::dataManager->groupsRepo->Save(group);
-        refresh_proxy_list({}, true);
+        if (to == from && (from < pinnedRows) == toPinned) return;
+        const auto move = [this, group, from, target, below] {
+            if (group->MoveProfile(from, target, below) < 0) return;
+            Configs::dataManager->groupsRepo->Save(group);
+            refresh_proxy_list({}, true);
+        };
+        // Only a drop among the unpinned rows of a sorted group replaces the order saved when the sort started.
+        if (!group->KeepsSorted() || toPinned) {
+            move();
+            return;
+        }
+        // Asked once the drop has returned, outside the platform's drag loop.
+        QTimer::singleShot(0, this, [this, group, displayed, pins = group->pinned, sort = group->sort, move] {
+            if (QMessageBox::question(this, tr("Confirmation"),
+                                      tr("Changing the order will prevent you from restoring the order before sorting. Are you sure you want to change the order?"),
+                                      QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes) return;
+            // The dialog's event loop can deliver test results or refreshes that move the rows.
+            if (group != Configs::dataManager->groupsRepo->CurrentGroup() || profilesFilterModel->hasActiveFilter()
+                || group->DisplayedProfiles() != displayed || group->pinned != pins || group->sort != sort) return;
+            move();
+        });
     };
     connect(ui->profilesTableView->horizontalHeader(), &QHeaderView::sectionClicked, this, [this](int logicalIndex) {
         const auto group = Configs::dataManager->groupsRepo->CurrentGroup();
@@ -486,15 +495,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
             switch (columnIndex) {
                 case ProfilesTableModel::ColLatency:
                     testKind = Engine::TestKind::Latency;
-                    testLabel = tr("Test Latency");
+                    testLabel = tr("Test latency");
                     break;
                 case ProfilesTableModel::ColExitIP:
                     testKind = Engine::TestKind::Ip;
-                    testLabel = tr("Test Exit IP");
+                    testLabel = tr("Test exit IP");
                     break;
                 case ProfilesTableModel::ColSpeed:
                     testKind = Engine::TestKind::Speed;
-                    testLabel = tr("Test Speed");
+                    testLabel = tr("Test speed");
                     break;
                 default: break;
             }
@@ -502,12 +511,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                 if (!menu.isEmpty()) menu.addSeparator();
                 runTest = menu.addAction(testLabel);
                 runTest->setEnabled(!tests()->isRunning() && !group->Profiles().isEmpty());
-                clearResults = menu.addAction(tr("Clear Results"));
+                clearResults = menu.addAction(tr("Clear results"));
                 // Results still arriving from the test worker would immediately refill the column.
                 clearResults->setEnabled(!tests()->isRunning());
             }
             if (!menu.isEmpty()) menu.addSeparator();
-            auto *restoreOrder = menu.addAction(tr("Restore Original Order"));
+            QAction *restoreOrder = group->KeepsSorted() ? menu.addAction(tr("Restore original order")) : nullptr;
             menu.addAction(ui->actionRefresh_Column_Widths);
             menu.addSeparator();
             auto *showLabel = menu.addAction(tr("Show:"));
@@ -520,16 +529,17 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                 visibilityActions[column] = action;
             }
             auto* chosen = menu.exec(header->mapToGlobal(pos));
+            if (chosen == nullptr) return nullptr;
             for (int column = 0; column < ProfilesTableModel::ColumnCount; ++column) {
-                if (!chosen || chosen != visibilityActions[column]) continue;
+                if (chosen != visibilityActions[column]) continue;
                 if (chosen->isChecked()) group->visible_columns |= 1 << column;
                 else group->visible_columns &= ~(1 << column);
                 Configs::dataManager->groupsRepo->Save(group);
                 if (group == Configs::dataManager->groupsRepo->CurrentGroup()) refresh_proxy_list_column_size();
                 return nullptr;
             }
-            if (chosen != nullptr && chosen == runTest) {
-                const auto profileIds = group->Profiles();
+            if (chosen == runTest) {
+                const auto profileIds = group->DisplayedProfiles();
                 switch (*testKind) {
                     case Engine::TestKind::Latency: tests()->runUrlTests(profileIds); break;
                     case Engine::TestKind::Ip: tests()->runIpTests(profileIds); break;
@@ -538,10 +548,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
                 }
                 return nullptr;
             }
-            if (chosen != nullptr && chosen == clearResults) {
-                Engine::ProfileService::ClearTestResults(group->Profiles(), nullptr, testKind);
-                group->clearCalculatedColumnWidth();
-                refresh_proxy_list();
+            if (chosen == clearResults) {
+                const auto profileIds = group->Profiles();
+                Engine::host()->clearTestResults(profileIds, testKind);
+                // The service icons share the Exit IP column.
+                if (testKind == Engine::TestKind::Ip && group->show_services) {
+                    Engine::host()->clearTestResults(profileIds, Engine::TestKind::Service);
+                }
                 return nullptr;
             }
             if (chosen == restoreOrder) {
@@ -578,6 +591,21 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
             group->type_sort_by = static_cast<Configs::typeBy>(chosen->data().toInt());
             sortColumn(ProfilesTableModel::ColType, false);
+            return;
+        }
+        if (columnIndex == ProfilesTableModel::ColExitIP) {
+            QMenu menu(this);
+            auto* includeLabel = menu.addAction(tr("Include:"));
+            includeLabel->setEnabled(false);
+            auto* actionShowServices = menu.addAction(tr("Services"));
+            actionShowServices->setCheckable(true);
+            actionShowServices->setChecked(group->show_services);
+            if (execHeaderMenu(menu) != actionShowServices) return;
+
+            group->show_services = actionShowServices->isChecked();
+            Configs::dataManager->groupsRepo->Save(group);
+            group->clearCalculatedColumnWidth();
+            refresh_proxy_list();
             return;
         }
         if (columnIndex == ProfilesTableModel::ColSpeed) {
@@ -815,7 +843,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         tests()->runUrlTests(get_now_selected_list());
     });
     connect(ui->actionUrl_Test_Group, &QAction::triggered, this, [=,this]() {
-        tests()->runUrlTests(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles());
+        tests()->runUrlTests(Configs::dataManager->groupsRepo->CurrentGroup()->DisplayedProfiles());
     });
     connect(ui->actionSpeedtest_Current, &QAction::triggered, this, [=,this]()
     {
@@ -842,13 +870,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     });
     connect(ui->actionSpeedtest_Group, &QAction::triggered, this, [=,this]()
     {
-        tests()->runSpeedTests(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles());
+        tests()->runSpeedTests(Configs::dataManager->groupsRepo->CurrentGroup()->DisplayedProfiles());
     });
     connect(ui->actionResolve_Selected_Out_IP, &QAction::triggered, this, [=,this]() {
         tests()->runIpTests(get_now_selected_list());
     });
     connect(ui->actionResolve_Out_IP, &QAction::triggered, this, [=,this]() {
-        tests()->runIpTests(Configs::dataManager->groupsRepo->CurrentGroup()->Profiles());
+        tests()->runIpTests(Configs::dataManager->groupsRepo->CurrentGroup()->DisplayedProfiles());
     });
     const auto startServiceChecks = [this](const QList<int>& ids) {
         if (ids.size() > Engine::TestRunner::kMaxServiceCheckProfiles) {
@@ -867,7 +895,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         startServiceChecks(get_now_selected_list());
     });
     connect(ui->actionService_Check_Group, &QAction::triggered, this, [startServiceChecks] {
-        if (const auto group = Configs::dataManager->groupsRepo->CurrentGroup()) startServiceChecks(group->Profiles());
+        if (const auto group = Configs::dataManager->groupsRepo->CurrentGroup()) startServiceChecks(group->DisplayedProfiles());
     });
     ui->menu_stop_testing->setEnabled(false);
     // Kept on the window so Ctrl+. works while no menu holds it; the menus add it only to show it.

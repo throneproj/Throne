@@ -77,7 +77,7 @@ namespace RouteEditor {
             for (const int groupId : Configs::dataManager->groupsRepo->GetGroupsTabOrder()) {
                 const auto group = Configs::dataManager->groupsRepo->GetGroup(groupId);
                 if (group == nullptr) continue;
-                for (const int profileId : group->profiles) {
+                for (const int profileId : group->DisplayedProfiles()) {
                     const auto it = next.names.constFind(profileId);
                     if (it == next.names.cend()) continue;
                     const QString label = QStringLiteral("[%1] %2").arg(group->name, it.value());

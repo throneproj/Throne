@@ -47,7 +47,8 @@ namespace Engine {
 
         virtual bool chooseRoute(int routeId, bool interactive, quint64 serial) = 0;
 
-        virtual int clearTestResults(const QList<int> &profileIds) = 0;
+        // Every result, or only those of `kind`.
+        virtual int clearTestResults(const QList<int> &profileIds, std::optional<TestKind> kind = std::nullopt) = 0;
 
         // Empty when nothing runs, stats are off, or the last sample is older than maxAgeMs.
         virtual std::optional<LiveRates> freshLiveRates(qint64 maxAgeMs) const = 0;

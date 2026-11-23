@@ -104,7 +104,7 @@ namespace
             const auto group = Configs::dataManager->groupsRepo->GetGroup(groupID);
             if (!group) continue;
             const QString shortGroup = ShortDisplayName(group->name, 20);
-            for (const int profileID : group->profiles)
+            for (const int profileID : group->DisplayedProfiles())
                 if (const auto it = names.constFind(profileID); it != names.cend())
                     servers << RoutableServer{profileID, "[" + shortGroup + "] " + it.value(), "[" + group->name + "] " + it.value()};
         }
