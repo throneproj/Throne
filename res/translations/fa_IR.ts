@@ -5453,8 +5453,8 @@ Error: %2</source>
         <translation>فیلتر بر اساس کشور یا سرویس...</translation>
     </message>
     <message>
-        <source>Countries or working services, e.g. &quot;DE gemini&quot;; &quot;!netflix&quot; finds refusals.</source>
-        <translation>کشورها یا سرویس‌های فعال، مثلاً «DE gemini»؛ «!netflix» موارد ردشده را می‌یابد.</translation>
+        <source>Countries or working services, e.g. &quot;!RU gemini+US&quot; (Gemini sees US); &quot;!netflix&quot; finds refusals.</source>
+        <translation>کشورها یا سرویس‌های فعال، مثلاً «!RU gemini+US» (Gemini منطقه را US می‌بیند)؛ «!netflix» موارد ردشده را می‌یابد.</translation>
     </message>
 </context>
 <context>

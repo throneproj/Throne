@@ -11427,8 +11427,8 @@ Error: %2</source>
         <translation>按国家或服务筛选...</translation>
     </message>
     <message>
-        <source>Countries or working services, e.g. &quot;DE gemini&quot;; &quot;!netflix&quot; finds refusals.</source>
-        <translation>国家或可用的服务，例如“DE gemini”；“!netflix”查找被其拒绝的配置。</translation>
+        <source>Countries or working services, e.g. &quot;!RU gemini+US&quot; (Gemini sees US); &quot;!netflix&quot; finds refusals.</source>
+        <translation>国家或可用的服务，例如“!RU gemini+US”（Gemini 识别为 US）；“!netflix”查找被其拒绝的配置。</translation>
     </message>
     <message>
         <source>Disable Filter</source>

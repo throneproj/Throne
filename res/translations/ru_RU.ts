@@ -11454,8 +11454,8 @@ Error: %2</source>
         <translation>Фильтр по стране или сервису...</translation>
     </message>
     <message>
-        <source>Countries or working services, e.g. &quot;DE gemini&quot;; &quot;!netflix&quot; finds refusals.</source>
-        <translation>Страны или работающие сервисы, например «DE gemini»; «!netflix» находит отказы.</translation>
+        <source>Countries or working services, e.g. &quot;!RU gemini+US&quot; (Gemini sees US); &quot;!netflix&quot; finds refusals.</source>
+        <translation>Страны или работающие сервисы, например «!RU gemini+US» (Gemini видит US); «!netflix» находит отказы.</translation>
     </message>
     <message>
         <source>Disable Filter</source>

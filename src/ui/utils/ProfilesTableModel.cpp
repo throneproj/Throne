@@ -234,6 +234,7 @@ namespace {
             const auto status = check["status"].toString();
             ProfilesTableModel::ServiceFilterKey service;
             service.state = status == "available" || status == "partial" ? 1 : status == "restricted" || status == "blocked" ? -1 : 0;
+            service.region = check["region"].toString().toLower();
             for (const auto &name : {check["id"].toString(), check["name"].toString(), category, categoryNames.value(category)}) {
                 if (name.isEmpty()) continue;
                 service.names << name.toLower();
@@ -264,9 +265,19 @@ void ProfilesTableModel::ensureFilterIndex() const {
     m_filterIndexBuilt = true;
     m_filterKeys.clear();
     m_filterKeys.reserve(m_profileIds.size());
+    m_serviceNames.clear();
+    m_serviceWords.clear();
     for (const auto &profile : Configs::dataManager->profilesRepo->GetProfileBatch(m_profileIds)) {
-        if (profile) m_filterKeys.insert(profile->id, makeFilterKey(profile));
+        if (profile) insertFilterKey(profile->id, makeFilterKey(profile));
     }
+}
+
+void ProfilesTableModel::insertFilterKey(int profileId, FilterKey key) const {
+    for (const auto &service : key.services) {
+        for (const auto &name : service.names) m_serviceNames.insert(name);
+        for (const auto &word : service.words) m_serviceWords.insert(word);
+    }
+    m_filterKeys.insert(profileId, std::move(key));
 }
 
 const ProfilesTableModel::FilterKey *ProfilesTableModel::filterKeyAt(int row) const {
@@ -274,6 +285,11 @@ const ProfilesTableModel::FilterKey *ProfilesTableModel::filterKeyAt(int row) co
     ensureFilterIndex();
     auto it = m_filterKeys.constFind(m_profileIds[row]);
     return it == m_filterKeys.constEnd() ? nullptr : &it.value();
+}
+
+bool ProfilesTableModel::termPicksAnyService(const QString &term) const {
+    ensureFilterIndex();
+    return termPicksService(m_serviceNames, m_serviceWords, term);
 }
 
 void ProfilesTableModel::refreshTable(const QList<int> &ids, int pinnedCount, bool mayNeedReset) {
@@ -302,7 +318,7 @@ void ProfilesTableModel::refreshProfileId(int profileId) {
     // Keep the filter key in step before dataChanged makes the proxy re-test the row.
     if (m_filterIndexBuilt) {
         if (auto profile = Configs::dataManager->profilesRepo->GetProfile(profileId)) {
-            m_filterKeys.insert(profileId, makeFilterKey(profile));
+            insertFilterKey(profileId, makeFilterKey(profile));
         }
     }
     auto r = id2row.value(profileId);
