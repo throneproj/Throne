@@ -4,6 +4,7 @@
 #include "include/api/remote/Server.hpp"
 #include "include/configs/common/xrayStreamSetting.h"
 #include "include/configs/generate.h"
+#include "include/configs/outbounds/tor.h"
 #include "include/database/DatabaseManager.h"
 #include "include/database/GroupsRepo.h"
 #include "include/database/ProfilesRepo.h"
@@ -14,6 +15,7 @@
 #include "include/engine/connection/EngineState.h"
 #include "include/engine/services/AssetUpdates.h"
 #include "include/engine/services/StatsService.h"
+#include "include/engine/services/TorBridges.h"
 #include "include/engine/supervisor/CoreSupervisor.h"
 #include "include/engine/tests/TestRunner.h"
 #include "include/engine/vpn/VpnAuthController.h"
@@ -194,6 +196,12 @@ namespace Engine {
             failStart(resolved, StartOutcome::BuildFailed, MainWindowTr::tr("BuildConfig return error"), result->error);
             return;
         }
+        // Refused before the previous profile stops, so the download can still go through it.
+        if (result->torMissing) {
+            offerTorDownload(resolved, ent->outbound->DisplayTypeAndName(), intent);
+            return;
+        }
+        if (result->usesTor) Engine::TorBridges::RefreshInBackground();
         const auto finish = [=, this](StartOutcome outcome, const QString &error) {
             if (!resolved.interactive && !error.isEmpty()) MW_show_log(error);
             runOnUiThread([=, this] { emit startFinished(resolved.serial, resolved.profileId, outcome, error); });
@@ -299,6 +307,7 @@ namespace Engine {
             Stats::SetVpnEndpointProfiles(result->vpnEndpointProfiles);
             m_stats->setOutboundNames(result->outboundNames);
             Configs::SetRunningProfiles(result->involvedProfiles);
+            Configs::SetRunningUsesTor(result->usesTor);
             Configs::SetRunningRoute(result->routeId);
             Configs::SetRunningRouteRules({result->routeRuleOrigins, result->outboundNames, result->vpnEndpointProfiles});
             m_state->setRunning(ent, !result->tunIPv4CIDR.isEmpty());
@@ -753,6 +762,36 @@ namespace Engine {
         }
         MW_show_log(QStringLiteral("Geo assets installed; starting profile %1 again.").arg(profileId));
         requestStart(StartRequest{profileId, false});
+    }
+
+    void StartCoordinator::offerTorDownload(const StartRequest &request, const QString &profileName, quint64 token) {
+        ENGINE_CHECK_MAIN_THREAD();
+        const QString error = Configs::TorNotDownloadedError();
+        emit startFinished(request.serial, request.profileId, StartOutcome::TorMissing, error);
+        if (!request.interactive) {
+            MW_show_log(MainWindowTr::tr("BuildConfig return error") + ": " + error);
+            return;
+        }
+        policy()->confirmTorDownload(profileName, [this, self = QPointer<StartCoordinator>(this), request, token](bool download) {
+            if (!download || !self) return;
+            const bool started = Engine::AssetUpdates::InstallTor([this, self, request, token](const QString &installError) {
+                if (!self) return;
+                if (!installError.isEmpty()) {
+                    policy()->startFailed(request, StartOutcome::TorMissing, QCoreApplication::translate("DialogManageRoutes", "Tor download failed"),
+                                          installError);
+                    return;
+                }
+                retryAfterTorInstall(request.profileId, token);
+            });
+            if (!started) MW_show_log(MainWindowTr::tr("[Tor] A download is already running; start the profile again once it finishes."));
+        });
+    }
+
+    void StartCoordinator::retryAfterTorInstall(int profileId, quint64 token) {
+        ENGINE_CHECK_MAIN_THREAD();
+        if (token != m_intentToken.load() || Configs::dataManager->settingsRepo->prepare_exit) return;
+        MW_show_log(QStringLiteral("[Tor] Installed; starting profile %1 again.").arg(profileId));
+        requestStart(StartRequest{profileId});
     }
 
     void StartCoordinator::lookupExitCountry(const std::shared_ptr<Configs::Profile> &ent) {

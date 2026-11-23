@@ -164,6 +164,7 @@ namespace RemoteApi::RouterImpl {
             case Engine::StartOutcome::StrictRouteUnavailable:
                 return make(422, "strict_route_unavailable", "Windows could not enable strict routing");
             case Engine::StartOutcome::TunFailed: return make(422, "tun_failed", "The Tun interface could not be configured");
+            case Engine::StartOutcome::TorMissing: return make(422, "tor_missing", "The profile uses Tor, which is not downloaded yet");
             case Engine::StartOutcome::StartFailed:
             case Engine::StartOutcome::Started: break;
         }
@@ -174,7 +175,8 @@ namespace RemoteApi::RouterImpl {
         if (profileId == Stats::DIRECT_STAT_PROFILE_ID) return QStringLiteral("Direct");
         if (const auto name = metaNames.value(profileId); !name.isEmpty()) return name;
         if (const auto profile = Configs::dataManager->profilesRepo->GetProfile(profileId)) return profileDisplayName(*profile);
-        if (profileId == Configs::warpProfileID) return QStringLiteral("built-in WARP");
+        if (const auto exit = Configs::ExitOfProfileID(profileId); exit != Configs::ExitThrough::Server)
+            return QStringLiteral("%1 exit").arg(Configs::ExitName(exit));
         return {};
     }
 }

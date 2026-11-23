@@ -321,7 +321,7 @@ namespace RouteEditor {
         switch (then) {
             case Then::Proxy: return tr("Proxy");
             case Then::Direct: return tr("Direct");
-            case Then::NoWarp: return tr("Proxy without WARP");
+            case Then::NoWarp: return tr("Proxy without exit");
             case Then::Block: return tr("Block");
             case Then::HijackDns: return tr("Hijack DNS");
             case Then::Sniff: return tr("Sniff");

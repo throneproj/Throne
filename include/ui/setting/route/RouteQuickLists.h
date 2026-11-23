@@ -7,7 +7,7 @@
 #include "include/ui/setting/route/RouteEditorCommon.h"
 #include "include/ui/utils/ValidationForm.h"
 
-// The four quick lists (Direct, Proxy, Block, Server without WARP): simple rules edited as typed entries.
+// The four quick lists (Direct, Proxy, Block, Proxy without exit): simple rules edited as typed entries.
 namespace QuickLists {
     struct Entry {
         // domain, suffix, keyword, regex, ruleset, ip, processName or processPath.

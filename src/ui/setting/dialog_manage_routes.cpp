@@ -26,6 +26,7 @@
 #include <QRegularExpression>
 #include <QDialogButtonBox>
 #include <QApplication>
+#include <QButtonGroup>
 #include <QImage>
 #include <QPainter>
 #include <QStyledItemDelegate>
@@ -45,6 +46,8 @@
 #include "include/engine/services/RouteService.h"
 #include "include/engine/services/SettingsService.h"
 #include "include/ui/mainwindow.h"
+#include "include/ui/profile/edit_psiphon.h"
+#include "include/ui/profile/edit_tor.h"
 #include "include/ui/setting/RawRouteItem.h"
 #include "include/ui/setting/RouteDnsEditor.h"
 #include "include/ui/setting/ThemeManager.hpp"
@@ -679,13 +682,16 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
         on_import_route_clicked();
     });
 
-    if (snapshot_.enable_tor) ui->enable_tor->setChecked(true);
-    else if (snapshot_.enable_warp) ui->enable_warp->setChecked(true);
-    else ui->exit_server->setChecked(true);
+    exitButtons = new QButtonGroup(this);
+    exitButtons->addButton(ui->exit_server, static_cast<int>(Configs::ExitThrough::Server));
+    exitButtons->addButton(ui->exit_warp, static_cast<int>(Configs::ExitThrough::Warp));
+    exitButtons->addButton(ui->exit_tor, static_cast<int>(Configs::ExitThrough::Tor));
+    exitButtons->addButton(ui->exit_psiphon, static_cast<int>(Configs::ExitThrough::Psiphon));
+    if (auto *current = exitButtons->button(static_cast<int>(Configs::ExitOf(snapshot_.exit_through)))) current->setChecked(true);
     // Lines each hint up with its radio button's text.
     const int hintIndent = style()->pixelMetric(QStyle::PM_ExclusiveIndicatorWidth, nullptr, ui->exit_server)
                          + style()->pixelMetric(QStyle::PM_RadioButtonLabelSpacing, nullptr, ui->exit_server);
-    for (auto *hint : {ui->exit_server_hint, ui->enable_warp_hint, ui->tor_status}) hint->setIndent(hintIndent);
+    for (auto *hint : {ui->exit_server_hint, ui->exit_warp_hint, ui->tor_status, ui->exit_psiphon_hint}) hint->setIndent(hintIndent);
     ui->warp_mode->setCurrentIndex(snapshot_.warp_mode == "masque" ? 1 : snapshot_.warp_mode == "amnezia" ? 2 : 0);
     S_LOAD_STRING(warp_private_key)
     S_LOAD_STRING(warp_public_key)
@@ -710,13 +716,24 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     connect(ui->warp_api_hosts_btn, &QPushButton::clicked, this, [this] { editWarpApiHosts(this); });
     connect(ui->warp_advanced_btn, &QPushButton::clicked, this, [this] { editWarpAdvanced(this); });
 
+    EditTor::FillExitCountries(ui->tor_exit_country, snapshot_.tor_exit_country);
     const auto showTorStatus = [this] {
         const bool installed = Engine::AssetUpdates::TorInstalled();
         ui->tor_status->setText(installed ? tr("Tor is installed.") : tr("Tor will be downloaded when you press OK."));
-        ui->tor_status->setVisible(installed || ui->enable_tor->isChecked());
+        ui->tor_status->setVisible(installed || ui->exit_tor->isChecked());
+        ui->tor_exit_country_l->setEnabled(ui->exit_tor->isChecked());
+        ui->tor_exit_country->setEnabled(ui->exit_tor->isChecked());
     };
     showTorStatus();
-    connect(ui->enable_tor, &QAbstractButton::toggled, this, showTorStatus);
+    connect(ui->exit_tor, &QAbstractButton::toggled, this, showTorStatus);
+
+    EditPsiphon::FillRegions(ui->psiphon_egress_region, snapshot_.psiphon_egress_region);
+    const auto enablePsiphonRegion = [this] {
+        ui->psiphon_egress_region_l->setEnabled(ui->exit_psiphon->isChecked());
+        ui->psiphon_egress_region->setEnabled(ui->exit_psiphon->isChecked());
+    };
+    enablePsiphonRegion();
+    connect(ui->exit_psiphon, &QAbstractButton::toggled, this, enablePsiphonRegion);
 
     ui->remote_dns->bindTo(form, ui->label_9->text());
     ui->direct_dns->bindTo(form, ui->label_8->text());
@@ -741,7 +758,7 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
             return rule ? rule(text) : QString();
         };
     };
-    const auto warpOn = [this] { return ui->enable_warp->isChecked(); };
+    const auto warpOn = [this] { return ui->exit_warp->isChecked(); };
     const auto addresses = Validation::Rules::List(Validation::Split::Comma, Validation::Rules::Cidr(Validation::Family::Any, true));
     form->bind(ui->warp_ep, warpField(Validation::Rules::HostPort(false))).when(warpOn);
     form->bind(ui->warp_private_key, warpField(Validation::Rules::Base64Key(32))).when(warpOn);
@@ -757,10 +774,10 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
     const auto revalidateWarp = [this, warpFields] {
         for (auto *field : warpFields) form->revalidate(field);
     };
-    connect(ui->enable_warp, &QAbstractButton::toggled, form, revalidateWarp);
+    connect(ui->exit_warp, &QAbstractButton::toggled, form, revalidateWarp);
     connect(ui->warp_mode, &QComboBox::currentIndexChanged, form, revalidateWarp);
-    form->addRule({ui->enable_warp, ui->warp_mode}, [this] {
-        if (!ui->enable_warp->isChecked() || ui->warp_mode->currentIndex() != 2 || !warpAmneziaPackets.isEmpty()) return QString();
+    form->addRule({ui->exit_warp, ui->warp_mode}, [this] {
+        if (!ui->exit_warp->isChecked() || ui->warp_mode->currentIndex() != 2 || !warpAmneziaPackets.isEmpty()) return QString();
         if (warpAmneziaPending) return tr("Generating the AmneziaWG QUIC signature...");
         return warpAmneziaError.isEmpty() ? tr("AmneziaWG has no QUIC signature yet: click Generate WARP config.") : warpAmneziaError;
     }, nullptr, Validation::Severity::Error, ui->warp_mode_l->text());
@@ -907,11 +924,13 @@ void DialogManageRoutes::accept() {
     }
     proposed.dns_predefined_rules = predefinedRules;
 
-    proposed.enable_warp = ui->enable_warp->isChecked();
-    const bool torWanted = ui->enable_tor->isChecked();
-    const bool torMissing = torWanted && !Engine::AssetUpdates::TorInstalled();
-    // Switched on only once downloaded: a restart without the binary would drop the proxy the download runs through.
-    proposed.enable_tor = torWanted && !torMissing;
+    const int chosenExit = exitButtons->checkedId();
+    const bool torMissing = chosenExit == static_cast<int>(Configs::ExitThrough::Tor) && !Engine::AssetUpdates::TorInstalled();
+    // Tor is switched on only once downloaded: a restart without the binary would drop the proxy the download runs through.
+    if (chosenExit >= 0)
+        proposed.exit_through = Configs::ExitValue(torMissing ? Configs::ExitThrough::Server : static_cast<Configs::ExitThrough>(chosenExit));
+    proposed.tor_exit_country = ui->tor_exit_country->currentData().toString();
+    proposed.psiphon_egress_region = ui->psiphon_egress_region->currentData().toString();
     proposed.warp_ep = ui->warp_ep->text().trimmed();
     proposed.warp_ifc_addrs = manageRoutesWithPrefix(SplitAndTrim(ui->warp_ifc_addrs->text(), ",", false));
     proposed.warp_private_key = ui->warp_private_key->text().trimmed();
@@ -951,8 +970,7 @@ void DialogManageRoutes::accept() {
                 return;
             }
             Engine::SettingsService::Update([](Configs::SettingsValues &values) {
-                values.enable_tor = true;
-                values.enable_warp = false;
+                values.exit_through = Configs::ExitValue(Configs::ExitThrough::Tor);
             }, {.interactive = true});
         });
         if (!started) MW_show_log(tr("[Tor] A download is already running; turn Tor on again once it finishes."));

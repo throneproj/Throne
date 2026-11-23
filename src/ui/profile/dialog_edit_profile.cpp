@@ -20,12 +20,14 @@
 #include "include/ui/profile/edit_naive.h"
 #include "include/ui/profile/edit_openconnect.h"
 #include "include/ui/profile/edit_openvpn.h"
+#include "include/ui/profile/edit_psiphon.h"
 #include "include/ui/profile/edit_shadowsocks.h"
 #include "include/ui/profile/edit_shadowtls.h"
 #include "include/ui/profile/edit_snell.h"
 #include "include/ui/profile/edit_socks.h"
 #include "include/ui/profile/edit_ssh.h"
 #include "include/ui/profile/edit_tailscale.h"
+#include "include/ui/profile/edit_tor.h"
 #include "include/ui/profile/edit_trojan.h"
 #include "include/ui/profile/edit_trusttunnel.h"
 #include "include/ui/profile/edit_tuic.h"
@@ -82,6 +84,8 @@ EditorFactory editorFactory(const QString &type) {
         {"ssh", makeEditor<EditSSH>},
         {"dnstt", makeEditor<EditDnstt>},
         {"masterdns", makeEditor<EditMasterDns>},
+        {"tor", makeEditor<EditTor>},
+        {"psiphon", makeEditor<EditPsiphon>},
         {"direct", makeEditor<EditDirect>},
         {"chain", makeEditor<EditChain>},
         {"autoselector", makeEditor<EditAutoSelector>},

@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"io"
 	"os"
 	"path"
@@ -21,9 +22,43 @@ import (
 )
 
 const (
-	torArchiveDir       = "tor"
-	torMaxExtractedSize = 256 << 20
+	torArchiveDir     = "tor"
+	torArchiveDataDir = "data"
+	// tor with its libraries, plus about 26 MB of GeoIP databases.
+	torMaxExtractedSize = 320 << 20
 )
+
+// Our own entries beside tor, which an archive entry must never replace.
+var torReservedNames = []string{path.Base(torproc.DataDirectory), torproc.InstancesFolder, torproc.GeoIPFile, torproc.GeoIPv6File}
+
+// Every Tor outbound of the running box switches to fresh circuits for new streams.
+func (s *server) TorNewIdentity(ctx context.Context, in *gen.EmptyReq) (*gen.ErrorResp, error) {
+	box := currentBox()
+	if box == nil {
+		return &gen.ErrorResp{Error: To("Tor is not running")}, nil
+	}
+	// Tor outbounds that only rules reach start on their first connection, so one that is not running yet is no failure.
+	renewed := false
+	var errs []error
+	for _, outbound := range box.Outbound().Outbounds() {
+		identity, isTor := outbound.(interface{ NewIdentity() error })
+		if !isTor {
+			continue
+		}
+		if err := identity.NewIdentity(); err != nil {
+			errs = append(errs, E.Cause(err, outbound.Tag()))
+		} else {
+			renewed = true
+		}
+	}
+	if renewed {
+		return &gen.ErrorResp{}, nil
+	}
+	if len(errs) == 0 {
+		return &gen.ErrorResp{Error: To("Tor is not running")}, nil
+	}
+	return &gen.ErrorResp{Error: To(errors.Join(errs...).Error())}, nil
+}
 
 func (s *server) InstallTor(ctx context.Context, in *gen.InstallTorRequest) (*gen.ErrorResp, error) {
 	archivePath := in.GetArchivePath()
@@ -77,11 +112,11 @@ func installTor(archivePath, expectedSHA256 string) error {
 		if strings.HasPrefix(header.Name, "/") || slices.Contains(elements, "..") {
 			return E.New("invalid tor archive entry: ", header.Name)
 		}
-		if header.Typeflag != tar.TypeReg || len(elements) != 2 || elements[0] != torArchiveDir {
+		if header.Typeflag != tar.TypeReg {
 			continue
 		}
-		name := elements[1]
-		if name == "" || strings.HasPrefix(name, "tor-gencert") || strings.EqualFold(name, path.Base(torproc.DataDirectory)) {
+		name, wanted := torInstallName(elements)
+		if !wanted {
 			continue
 		}
 		if !filepath.IsLocal(name) || strings.Contains(name, `\`) {
@@ -110,6 +145,26 @@ func installTor(archivePath, expectedSHA256 string) error {
 		delete(staged, name)
 	}
 	return nil
+}
+
+// Where an archive entry lands in torproc.Folder: tor's own files, and the GeoIP databases from data/ beside them.
+// Pluggable transports and docs sit deeper or elsewhere, so they are never taken.
+func torInstallName(elements []string) (string, bool) {
+	if len(elements) != 2 || elements[1] == "" {
+		return "", false
+	}
+	name := elements[1]
+	switch elements[0] {
+	case torArchiveDataDir:
+		return name, name == torproc.GeoIPFile || name == torproc.GeoIPv6File
+	case torArchiveDir:
+		lower := strings.ToLower(name)
+		if strings.HasPrefix(lower, "tor-gencert") || strings.HasPrefix(name, ".") || slices.Contains(torReservedNames, lower) {
+			return "", false
+		}
+		return name, true
+	}
+	return "", false
 }
 
 func verifySHA256(file *os.File, expected string) error {

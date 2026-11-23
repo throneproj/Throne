@@ -19,6 +19,9 @@ namespace Configs
     // Builds up to 1.3.2 saved translated combo labels ("BBR v2", "нативный", #1943); maps one back to its identifier, else returns it trimmed.
     QString LegacyComboValue(const QString& value, const QStringList& identifiers);
 
+    // The English name of an ISO 3166-1 alpha-2 code in either case, or the code uppercased when Qt does not know it.
+    QString TerritoryName(const QString& code);
+
     namespace Checks {
         // The editors' header text: Name=value pairs separated by spaces, values optionally quoted.
         QString HeaderPairs(const QString& text);

@@ -103,7 +103,7 @@ namespace Configs {
             // Every member dials through this outbound; empty when they are dialed directly.
             QString upstreamTag;
             bool upstreamResolvesViaDns = false;
-            // Bytes land on warp rather than on a member, so the member groups collapse into one.
+            // Bytes land on the exit rather than on a member, so the member groups collapse into one.
             bool warpWrap = false;
             // Off when exit hops wrap the group: connections name the exit hop, which cannot tell the members apart.
             bool memberTraffic = true;
@@ -254,7 +254,7 @@ namespace Configs {
 
             if (req.memberTraffic && req.warpWrap)
             {
-                // Bytes land on the warp outbound now, so the per-member watch tags would all read zero.
+                // Bytes land on the exit outbound now, so the per-member watch tags would all read zero.
                 TrafficChainGroup warpGroup;
                 warpGroup.watchTag = tags::proxy;
                 for (auto it = memberChainGroups.crbegin(); it != memberChainGroups.crend(); ++it) warpGroup.profiles << it->profiles;
@@ -311,20 +311,26 @@ namespace Configs {
             return groupTag;
         }
 
-        // The group already holds warp-bypass, so warp itself is emitted here as "proxy" and points at it.
-        void buildWarpInFrontOfSelector(BuildContext &ctx)
+        // The group already holds warp-bypass, so the exit itself is emitted here as "proxy" and points at it.
+        void buildExitInFrontOfSelector(BuildContext &ctx)
         {
-            auto warpEnt = getWarpProfile();
-            auto [warpObject, warpError] = warpEnt->outbound->Build();
-            if (!warpError.isEmpty())
+            QString refusal;
+            const auto exitEnt = exitProfile(&refusal);
+            if (exitEnt == nullptr)
             {
-                ctx.error += warpError;
+                ctx.error += refusal;
                 return;
             }
-            warpObject["tag"] = tags::proxy;
-            warpObject["detour"] = tags::warpBypass;
-            if (warpEnt->outbound->IsEndpoint()) ctx.endpoints.append(warpObject);
-            else ctx.outbounds.append(warpObject);
+            auto [exitObject, exitBuildError] = exitEnt->outbound->Build();
+            if (!exitBuildError.isEmpty())
+            {
+                ctx.error += exitBuildError;
+                return;
+            }
+            exitObject["tag"] = tags::proxy;
+            exitObject["detour"] = tags::warpBypass;
+            if (exitEnt->outbound->IsEndpoint()) ctx.endpoints.append(exitObject);
+            else ctx.outbounds.append(exitObject);
         }
 
         // The hops above the selector are built once and every member detours into them; the hops below detour into the group.
@@ -414,12 +420,12 @@ namespace Configs {
             const bool warpWrap = exitWrapperOn();
             if (ctx.ent->type == "autoselector")
             {
-                // With warp in front every member sits behind the single "proxy"-tagged warp outbound, so the group takes warp-bypass.
+                // With an exit in front every member sits behind the single "proxy"-tagged exit outbound, so the group takes warp-bypass.
                 buildAutoSelectorGroup(ctx, ctx.ent, {.groupTag = warpWrap ? tags::warpBypass : tags::proxy, .warpWrap = warpWrap});
                 if (!ctx.error.isEmpty()) return;
                 if (warpWrap)
                 {
-                    buildWarpInFrontOfSelector(ctx);
+                    buildExitInFrontOfSelector(ctx);
                     if (!ctx.error.isEmpty()) return;
                 }
             }
@@ -465,7 +471,7 @@ namespace Configs {
                 }
             }
             ctx.result->outboundNames.insert(warpWrap ? tags::warpBypass : tags::proxy, profileDisplayName(ctx.ent));
-            if (warpWrap) ctx.result->outboundNames.insert(tags::proxy, torExit() ? QStringLiteral("Tor") : QStringLiteral("WARP"));
+            if (warpWrap) ctx.result->outboundNames.insert(tags::proxy, ExitName(activeExit()));
 
             int routeSuffix = 0;
             for (const auto& routeGroup : ctx.prerequisites.routing.routeOutboundGroups) {

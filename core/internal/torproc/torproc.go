@@ -19,6 +19,22 @@ const (
 	DataDirectory = Folder + "/data"
 )
 
+// Names inside Folder.
+const (
+	InstancesFolder = "instances"
+	GeoIPFile       = "geoip"
+	GeoIPv6File     = "geoip6"
+)
+
+// Installed beside tor from the expert bundle's data folder; absent before the first install.
+func GeoIPPath() string {
+	return absolute(filepath.Join(Folder, GeoIPFile))
+}
+
+func GeoIPv6Path() string {
+	return absolute(filepath.Join(Folder, GeoIPv6File))
+}
+
 func ExecutableName() string {
 	if runtime.GOOS == "windows" {
 		return "tor.exe"
@@ -29,11 +45,6 @@ func ExecutableName() string {
 // Never "": an empty executable_path makes the outbound look tor up on PATH.
 func ExecutablePath() string {
 	return absolute(filepath.Join(Folder, ExecutableName()))
-}
-
-// Absolute, so tor resolves it the same whatever directory it was started in.
-func DataDirectoryPath() string {
-	return absolute(filepath.FromSlash(DataDirectory))
 }
 
 func absolute(path string) string {

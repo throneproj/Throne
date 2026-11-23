@@ -41,7 +41,7 @@ namespace RouteEditor {
     // Moves rows[from] whole so that it becomes row to of the new order.
     void MoveRow(Configs::RouteProfile& profile, const QList<Row>& rows, int from, int to);
 
-    // Direct, Proxy, Block, Server without WARP.
+    // Direct, Proxy, Block, Proxy without exit.
     const QList<Configs::simpleAction>& QuickListOrder();
     QString ListName(Configs::simpleAction list);
 

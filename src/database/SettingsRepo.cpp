@@ -2,6 +2,7 @@
 #include "NkrVersion.h"
 #include <QUuid>
 
+#include "include/configs/ExitThrough.h"
 #include "include/database/SettingsSchema.h"
 #include "include/global/Utils.hpp"
 #include "include/global/Validation.hpp"
@@ -33,6 +34,8 @@ namespace Configs {
         auto query = db.query("SELECT key, value FROM settings");
         if (!query) return;
 
+        bool legacyTor = false;
+        bool legacyWarp = false;
         while (query->executeStep()) {
             const QString key = QString::fromStdString(query->getColumn(0).getText());
             std::string raw = query->getColumn(1).getText();
@@ -48,7 +51,15 @@ namespace Configs {
                 remote_dns_disable_ipv6 = str == "ipv4_only";
                 continue;
             }
+            // Before exit_through, Tor and WARP were two exclusive switches, Tor outranking WARP.
+            if (key == "enable_tor" || key == "enable_warp") {
+                (key == "enable_tor" ? legacyTor : legacyWarp) = str == "true" || str == "1";
+                continue;
+            }
             if (const auto *entry = SettingsSchema::Find(key)) SettingsSchema::Parse(*this, *entry, str);
+        }
+        if (!stored.contains(QStringLiteral("exit_through")) && (legacyTor || legacyWarp)) {
+            exit_through = ExitValue(legacyTor ? ExitThrough::Tor : ExitThrough::Warp);
         }
         // Builds before 1.2.1 saved the translated interval label ("5 мин.", "۱۰ دقیقه"), which the core rejects.
         if (!Validation::Duration(ntp_interval).isEmpty()) {
@@ -59,7 +70,8 @@ namespace Configs {
             ntp_interval = minutes.isEmpty() ? QStringLiteral("30m") : minutes + u'm';
         }
         // Retired keys nothing writes back; the DNS ones would otherwise keep overriding the migrated flags on every load.
-        db.exec("DELETE FROM settings WHERE key IN ('direct_dns_strategy', 'remote_dns_strategy', 'log_auto_scroll', 'simple_mode')");
+        db.exec("DELETE FROM settings WHERE key IN ('direct_dns_strategy', 'remote_dns_strategy', 'log_auto_scroll', 'simple_mode', "
+                "'enable_tor', 'enable_warp')");
     }
 
     std::vector<std::pair<QString, std::string>> SettingsRepo::serializeAll() const {

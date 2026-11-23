@@ -789,6 +789,75 @@ namespace API {
         }
     }
 
+    libcore::ParseTorBridgesResponse Client::ParseTorBridges(bool *rpcOK, const QByteArray &document, QString *coreError) const
+    {
+        libcore::ParseTorBridgesRequest request;
+        request.document = document.toStdString();
+        libcore::ParseTorBridgesResponse reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("ParseTorBridges", spb::pb::serialize<std::string>(request), resp);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return reply;
+        } else {
+            if (coreError && !resp.empty())
+                *coreError = QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
+            NOT_OK
+            return {};
+        }
+    }
+
+    libcore::TorMoatSettingsResponse Client::TorMoatSettings(bool *rpcOK, const libcore::TorMoatSettingsRequest &request,
+                                                             QString *coreError) const
+    {
+        libcore::TorMoatSettingsResponse reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("TorMoatSettings", spb::pb::serialize<std::string>(request), resp, 90000);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return reply;
+        } else {
+            if (coreError && !resp.empty())
+                *coreError = QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
+            NOT_OK
+            return {};
+        }
+    }
+
+    QString Client::TorNewIdentity(bool *rpcOK) const
+    {
+        libcore::EmptyReq request;
+        libcore::ErrorResp reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("TorNewIdentity", spb::pb::serialize<std::string>(request), resp);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return QString::fromStdString(reply.error.value());
+        } else {
+            NOT_OK
+            return "IPC error";
+        }
+    }
+
+    libcore::PsiphonRegionsResponse Client::PsiphonRegions(bool *rpcOK) const
+    {
+        libcore::EmptyReq request;
+        libcore::PsiphonRegionsResponse reply;
+        std::vector<uint8_t> resp;
+        auto status = channel->Call("PsiphonRegions", spb::pb::serialize<std::string>(request), resp);
+
+        if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
+            *rpcOK = true;
+            return reply;
+        } else {
+            NOT_OK
+            return {};
+        }
+    }
+
     libcore::DiagnosticsResponse Client::CaptureDiagnostics(bool *rpcOK, const libcore::DiagnosticsRequest &request, int timeoutMs)
     {
         libcore::DiagnosticsResponse reply;

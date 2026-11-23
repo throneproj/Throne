@@ -55,6 +55,10 @@ service LibcoreService {
   rpc ServiceTest(ServiceTestRequest) returns (ServiceTestResponse);
   rpc QueryServiceTest(EmptyReq) returns (QueryServiceTestResponse);
   rpc ParseServiceChecks(ParseServiceChecksRequest) returns (ParseServiceChecksResponse);
+  rpc ParseTorBridges(ParseTorBridgesRequest) returns (ParseTorBridgesResponse);
+  rpc TorMoatSettings(TorMoatSettingsRequest) returns (TorMoatSettingsResponse);
+  rpc TorNewIdentity(EmptyReq) returns (ErrorResp);
+  rpc PsiphonRegions(EmptyReq) returns (PsiphonRegionsResponse);
 }
 
 message EmptyReq {}
@@ -902,4 +906,52 @@ message ParseServiceChecksResponse {
   optional int64 revision = 3 [default = 0];
   repeated ServiceCategory categories = 4;
   repeated ServiceCheckInfo checks = 5;
+}
+
+// One way to reach Tor: built-in lines (source "builtin") or lines handed out by the bridge service ("bridgedb").
+message TorBridgeSetting {
+  // snowflake, webtunnel, obfs4, meek or vanilla.
+  optional string type = 1 [default = ""];
+  optional string source = 2 [default = ""];
+  repeated string bridges = 3;
+}
+
+message ParseTorBridgesRequest {
+  // A bridges-v1.json document; empty parses the copy built into the core.
+  optional string document = 1 [default = ""];
+}
+
+message ParseTorBridgesResponse {
+  // Why the document was rejected; the other fields are then empty.
+  optional string error = 1 [default = ""];
+  optional int32 version = 2 [default = 0];
+  optional int64 revision = 3 [default = 0];
+  // One entry per built-in type, each with source "builtin".
+  repeated TorBridgeSetting builtin = 4;
+}
+
+message TorMoatSettingsRequest {
+  // Lowercase ISO 3166-1 alpha-2; empty lets the service locate the request.
+  optional string country = 1 [default = ""];
+  // Empty asks for every type Throne supports.
+  repeated string transports = 2;
+  // The cached bridges-v1.json when it is newer than the built-in copy; its Moat front and built-in lines win.
+  optional string bridges_document = 3 [default = ""];
+}
+
+message TorMoatSettingsResponse {
+  optional string error = 1 [default = ""];
+  // The country the service answered for.
+  optional string country = 2 [default = ""];
+  // Most promising first; "builtin" entries carry the built-in lines already.
+  repeated TorBridgeSetting settings = 3;
+  // The service was unreachable and the settings come from the built-in per-country list.
+  optional bool offline = 4 [default = false];
+  // Asked through the running proxy, so an automatic location is the proxy's.
+  optional bool via_proxy = 5 [default = false];
+}
+
+message PsiphonRegionsResponse {
+  // ISO 3166-1 alpha-2 codes the Psiphon network offers right now; empty until a Psiphon outbound has connected.
+  repeated string regions = 1;
 }

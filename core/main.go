@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"os"
@@ -23,6 +25,7 @@ import (
 	"ThroneCore/internal/parentcheck"
 	"ThroneCore/internal/rpc"
 	"ThroneCore/internal/sysdns"
+	"ThroneCore/internal/torproc"
 
 	C "github.com/sagernet/sing-box/constant"
 
@@ -131,6 +134,7 @@ func RunCore(attached *elevation.Attached) {
 	}
 	guard.CleanupStale()
 	sysdns.RestoreStale()
+	torproc.CleanupInstances()
 	if runtime.GOOS == "darwin" {
 		go releaseOnSignal()
 	}
@@ -172,6 +176,16 @@ func printVersions() {
 	fmt.Println("Go:", runtime.Version())
 }
 
+// Snowflake logs its traffic counters through the standard logger every few seconds while it carries traffic.
+type trafficLogFilter struct{ io.Writer }
+
+func (f trafficLogFilter) Write(p []byte) (int, error) {
+	if bytes.Contains(p, []byte("Traffic Bytes (in|out)")) {
+		return len(p), nil
+	}
+	return f.Writer.Write(p)
+}
+
 func runCore(attached *elevation.Attached) {
 	defer func() {
 		if err := recover(); err != nil {
@@ -180,6 +194,7 @@ func runCore(attached *elevation.Attached) {
 			os.Exit(2)
 		}
 	}()
+	log.SetOutput(trafficLogFilter{log.Writer()})
 	printVersions()
 	fmt.Println()
 	runtimeDebug.SetMemoryLimit(memoryLimit)

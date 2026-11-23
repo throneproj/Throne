@@ -2013,6 +2013,14 @@ Included: %2</source>
         <source>WireGuard / AmneziaWG</source>
         <translation>WireGuard / AmneziaWG</translation>
     </message>
+    <message>
+        <source>Tor</source>
+        <translation>Tor</translation>
+    </message>
+    <message>
+        <source>Psiphon</source>
+        <translation>Psiphon</translation>
+    </message>
 </context>
 <context>
     <name>DialogEditIpList</name>
@@ -4457,6 +4465,30 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <source>Import Routing Profile</source>
         <translation>导入路由配置档</translation>
     </message>
+    <message>
+        <source>Exit country</source>
+        <translation>出口国家</translation>
+    </message>
+    <message>
+        <source>The country of the last Tor relay; Any lets Tor choose.</source>
+        <translation>最后一个 Tor 中继所在的国家；选择“任意”时由 Tor 自行选择。</translation>
+    </message>
+    <message>
+        <source>Send proxied traffic out through Psiphon over the selected profile.</source>
+        <translation>经由所选配置档，通过 Psiphon 发出代理流量。</translation>
+    </message>
+    <message>
+        <source>Region</source>
+        <translation>地区</translation>
+    </message>
+    <message>
+        <source>The country of the Psiphon server; Best performance lets Psiphon choose.</source>
+        <translation>Psiphon 服务器所在的国家；选择“最佳性能”时由 Psiphon 自行选择。</translation>
+    </message>
+    <message>
+        <source>Psiphon is a free network run by Psiphon Inc., which can see the sites you visit, like any VPN provider.</source>
+        <translation>Psiphon 是由 Psiphon Inc. 运营的免费网络，与任何 VPN 提供商一样，它能看到你访问的网站。</translation>
+    </message>
 </context>
 <context>
     <name>DialogNewScan</name>
@@ -5684,6 +5716,10 @@ Close without saving?</source>
     <message>
         <source>Unknown</source>
         <translation>未知</translation>
+    </message>
+    <message>
+        <source>%1 exit</source>
+        <translation>%1 出口</translation>
     </message>
 </context>
 <context>
@@ -8800,6 +8836,21 @@ Close without saving?</source>
     </message>
 </context>
 <context>
+    <name>EditPsiphon</name>
+    <message>
+        <source>Region</source>
+        <translation>地区</translation>
+    </message>
+    <message>
+        <source>The country of the Psiphon server; Best performance lets Psiphon choose.</source>
+        <translation>Psiphon 服务器所在的国家；选择“最佳性能”时由 Psiphon 自行选择。</translation>
+    </message>
+    <message>
+        <source>Psiphon is a free network run by Psiphon Inc., which can see the sites you visit, like any VPN provider.</source>
+        <translation>Psiphon 是由 Psiphon Inc. 运营的免费网络，与任何 VPN 提供商一样，它能看到你访问的网站。</translation>
+    </message>
+</context>
+<context>
     <name>EditSSH</name>
     <message>
         <source>User</source>
@@ -8991,6 +9042,159 @@ Close without saving?</source>
     <message>
         <source>Global DNS</source>
         <translation>全局 DNS</translation>
+    </message>
+</context>
+<context>
+    <name>EditTor</name>
+    <message>
+        <source>Bridges</source>
+        <translation>网桥</translation>
+    </message>
+    <message>
+        <source>Connect to the Tor network directly; works only where Tor is not blocked.</source>
+        <translation>直接连接 Tor 网络；仅在 Tor 未被封锁的地方可用。</translation>
+    </message>
+    <message>
+        <source>None</source>
+        <translation>无</translation>
+    </message>
+    <message>
+        <source>Use the bridges built into Throne.</source>
+        <translation>使用 Throne 内置的网桥。</translation>
+    </message>
+    <message>
+        <source>Built-in</source>
+        <translation>内置</translation>
+    </message>
+    <message>
+        <source>Use bridge lines from the Tor Project or someone you trust.</source>
+        <translation>使用来自 Tor Project 或你信任的人的网桥行。</translation>
+    </message>
+    <message>
+        <source>Custom</source>
+        <translation>自定义</translation>
+    </message>
+    <message>
+        <source>One bridge per line, with or without the Bridge keyword</source>
+        <translation>每行一个网桥，可带或不带 Bridge 关键字</translation>
+    </message>
+    <message>
+        <source>Snowflake works in most censored networks. WebTunnel and obfs4 bridges come from Get bridges.</source>
+        <translation>Snowflake 在大多数受审查的网络中可用。WebTunnel 和 obfs4 网桥可通过“获取网桥”获得。</translation>
+    </message>
+    <message>
+        <source>Ask the Tor Project&apos;s bridge service which bridges work in a country.</source>
+        <translation>向 Tor Project 的网桥服务查询某个国家可用的网桥。</translation>
+    </message>
+    <message>
+        <source>Get bridges</source>
+        <translation>获取网桥</translation>
+    </message>
+    <message>
+        <source>Copy the bridge lines this profile uses.</source>
+        <translation>复制此配置档使用的网桥行。</translation>
+    </message>
+    <message>
+        <source>Copy bridges</source>
+        <translation>复制网桥</translation>
+    </message>
+    <message>
+        <source>Exit country</source>
+        <translation>出口国家</translation>
+    </message>
+    <message>
+        <source>The country of the last Tor relay; Any lets Tor choose.</source>
+        <translation>最后一个 Tor 中继所在的国家；选择“任意”时由 Tor 自行选择。</translation>
+    </message>
+    <message>
+        <source>Download the Tor program from the Tor Project.</source>
+        <translation>从 Tor Project 下载 Tor 程序。</translation>
+    </message>
+    <message>
+        <source>Download</source>
+        <translation>下载</translation>
+    </message>
+    <message>
+        <source>The bridge service suggested nothing for this country.</source>
+        <translation>网桥服务没有为该国家给出任何建议。</translation>
+    </message>
+    <message>
+        <source>The bridge service is unreachable; showing the built-in list.</source>
+        <translation>无法访问网桥服务；显示内置列表。</translation>
+    </message>
+    <message>
+        <source>The bridge service is unreachable; showing the built-in list for %1.</source>
+        <translation>无法访问网桥服务；显示适用于 %1 的内置列表。</translation>
+    </message>
+    <message>
+        <source>Answered for %1.</source>
+        <translation>答复适用于 %1。</translation>
+    </message>
+    <message>
+        <source>Asked through the running proxy, so Automatic used the proxy&apos;s location.</source>
+        <translation>请求经由正在运行的代理发出，因此“自动”使用了代理所在的位置。</translation>
+    </message>
+    <message>
+        <source>Where the bridges have to work; Automatic lets the service tell from your connection.</source>
+        <translation>网桥需要在哪里可用；选择“自动”时由服务根据你的连接判断。</translation>
+    </message>
+    <message>
+        <source>Automatic</source>
+        <translation>自动</translation>
+    </message>
+    <message>
+        <source>Country</source>
+        <translation>国家</translation>
+    </message>
+    <message>
+        <source>Request</source>
+        <translation>请求</translation>
+    </message>
+    <message>
+        <source>Ask the Tor Project&apos;s bridge service for bridges that work in this country.</source>
+        <translation>向 Tor Project 的网桥服务请求在该国家可用的网桥。</translation>
+    </message>
+    <message>
+        <source>Asking the bridge service; this can take a minute.</source>
+        <translation>正在询问网桥服务，可能需要一分钟。</translation>
+    </message>
+    <message>
+        <source>The core did not answer: %1</source>
+        <translation>核心未应答：%1</translation>
+    </message>
+    <message>
+        <source>Any</source>
+        <translation>任意</translation>
+    </message>
+    <message>
+        <source>Tor is installed.</source>
+        <translation>Tor 已安装。</translation>
+    </message>
+    <message>
+        <source>Tor is not downloaded yet.</source>
+        <translation>Tor 尚未下载。</translation>
+    </message>
+    <message numerus="yes">
+        <source>Copied %n bridge line(s).</source>
+        <translation>
+            <numerusform>已复制 %n 条网桥行。</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>There are no bridge lines to copy.</source>
+        <translation>没有可复制的网桥行。</translation>
+    </message>
+    <message>
+        <source>Tor download failed: %1</source>
+        <translation>Tor 下载失败：%1</translation>
+    </message>
+    <message>
+        <source>A Tor download is already running.</source>
+        <translation>已有 Tor 下载正在进行。</translation>
+    </message>
+    <message>
+        <source>Downloading Tor.</source>
+        <translation>正在下载 Tor。</translation>
     </message>
 </context>
 <context>
@@ -11298,8 +11502,8 @@ Error: %1</source>
         <translation>服务检查未选择任何服务。请在“基本设置”中选择。</translation>
     </message>
     <message>
-        <source>Proxy without WARP</source>
-        <translation>不经 WARP 的代理</translation>
+        <source>Proxy without exit</source>
+        <translation>不经出口的代理</translation>
     </message>
     <message>
         <source>[VPN] %1 rejected its sign-in; it stays down until the profile restarts.</source>
@@ -11332,6 +11536,38 @@ Error: %2</source>
     <message>
         <source>Export Config</source>
         <translation>导出配置</translation>
+    </message>
+    <message>
+        <source>New Tor circuit</source>
+        <translation>新的 Tor 线路</translation>
+    </message>
+    <message>
+        <source>Tor is not downloaded</source>
+        <translation>Tor 尚未下载</translation>
+    </message>
+    <message>
+        <source>The profile &quot;%1&quot; connects through Tor, which is not downloaded yet.
+
+Download Tor from the Tor Project now? The profile starts once it is installed.</source>
+        <translation>配置档“%1”通过 Tor 连接，但 Tor 尚未下载。
+
+现在从 Tor Project 下载 Tor 吗？安装完成后，该配置档会自动启动。</translation>
+    </message>
+    <message>
+        <source>Download</source>
+        <translation>下载</translation>
+    </message>
+    <message>
+        <source>[Tor] A download is already running; start the profile again once it finishes.</source>
+        <translation>[Tor] 已有下载正在进行；请在其完成后再次启动配置档。</translation>
+    </message>
+    <message>
+        <source>[Tor] New circuit requested; new connections take a different path.</source>
+        <translation>[Tor] 已请求新的线路；新连接将使用不同的路径。</translation>
+    </message>
+    <message>
+        <source>[Tor] Could not switch to a new circuit: %1</source>
+        <translation>[Tor] 无法切换到新的线路：%1</translation>
     </message>
 </context>
 <context>
@@ -13117,8 +13353,8 @@ How to update?</source>
         <translation>被标记为 %1</translation>
     </message>
     <message>
-        <source>Tor is enabled but not downloaded yet. Open Routing Settings &gt; Exit and press OK to download it.</source>
-        <translation>Tor 已启用但尚未下载。打开“路由设置 &gt; 出口”并按“确定”即可下载。</translation>
+        <source>Tor is not downloaded yet; starting a profile that uses it offers the download.</source>
+        <translation>Tor 尚未下载；启动使用它的配置档时会提示下载。</translation>
     </message>
     <message>
         <source>The custom Xray config uses the tag &quot;%1&quot;, which Throne also generates for another Xray profile; rename it in the custom config</source>
@@ -13303,6 +13539,42 @@ Throne 会在后台持续重试，重启 Throne 也会重试。</translation>
     <message>
         <source>Extra Core</source>
         <translation>额外核心</translation>
+    </message>
+    <message>
+        <source>The selected profile leaves through %1, which carries only TCP, but WARP needs UDP in its current mode. In Routing Settings &gt; Exit, set WARP to MASQUE with HTTP Version HTTP/2, or choose another exit.</source>
+        <translation>所选配置档经由 %1 出去，而它只承载 TCP，但 WARP 在当前模式下需要 UDP。请在“路由设置 &gt; 出口”中将 WARP 设为 MASQUE，并将“HTTP 版本”设为 HTTP/2，或选择其他出口。</translation>
+    </message>
+    <message>
+        <source>The selected profile already leaves through %1, so the %1 exit cannot run over it. Choose another exit in Routing Settings &gt; Exit.</source>
+        <translation>所选配置档本身已经经由 %1 出去，因此 %1 出口无法在其之上运行。请在“路由设置 &gt; 出口”中选择其他出口。</translation>
+    </message>
+    <message>
+        <source>Best performance</source>
+        <translation>最佳性能</translation>
+    </message>
+    <message>
+        <source>Tor network</source>
+        <translation>Tor 网络</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n bridge(s)</source>
+        <translation>
+            <numerusform>%n 个网桥</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Plain</source>
+        <translation>普通</translation>
+    </message>
+    <message>
+        <source>%1, built-in</source>
+        <translation>%1，内置</translation>
+    </message>
+    <message numerus="yes">
+        <source>%1, %n bridge(s)</source>
+        <translation>
+            <numerusform>%1，%n 个网桥</numerusform>
+        </translation>
     </message>
 </context>
 <context>
@@ -17561,6 +17833,74 @@ Remove that endpoint from this routing profile as well?</source>
         <source>Windows reports program paths with \, so a path written with / never matches.</source>
         <translation>Windows 报告的程序路径使用 \，因此用 / 书写的路径永远不会匹配。</translation>
     </message>
+    <message>
+        <source>Ignored %1: Psiphon profiles take only a region.</source>
+        <translation>已忽略 %1：Psiphon 配置档只接受地区。</translation>
+    </message>
+    <message>
+        <source>Use a two-letter country code, like US.</source>
+        <translation>使用两字母的国家/地区代码，例如 US。</translation>
+    </message>
+    <message>
+        <source>Add at least one bridge line, or choose another bridge mode.</source>
+        <translation>请至少添加一条网桥行，或选择其他网桥模式。</translation>
+    </message>
+    <message>
+        <source>The bridge address must be an IP address with a port, like 192.0.2.1:443 or [2001:db8::1]:443.</source>
+        <translation>网桥地址必须是带端口的 IP 地址，例如 192.0.2.1:443 或 [2001:db8::1]:443。</translation>
+    </message>
+    <message>
+        <source>Only the first exit country was imported.</source>
+        <translation>只导入了第一个出口国家。</translation>
+    </message>
+    <message>
+        <source>Ignored %1: Tor profiles take only bridges and an exit country.</source>
+        <translation>已忽略 %1：Tor 配置档只接受网桥和出口国家。</translation>
+    </message>
+    <message>
+        <source>Bridge line %1: %2</source>
+        <translation>网桥行 %1：%2</translation>
+    </message>
+    <message>
+        <source>The built-in Tor bridges are not available: the core has not reported them.</source>
+        <translation>内置 Tor 网桥不可用：核心尚未报告它们。</translation>
+    </message>
+    <message>
+        <source>The bridge line is empty.</source>
+        <translation>网桥行为空。</translation>
+    </message>
+    <message>
+        <source>%1 bridges are not supported; use obfs4, WebTunnel, Snowflake, meek or plain bridges.</source>
+        <translation>不支持 %1 网桥；请使用 obfs4、WebTunnel、Snowflake、meek 或普通网桥。</translation>
+    </message>
+    <message>
+        <source>The bridge address is missing.</source>
+        <translation>缺少网桥地址。</translation>
+    </message>
+    <message>
+        <source>The bridge fingerprint must be 40 hexadecimal characters.</source>
+        <translation>网桥指纹必须是 40 个十六进制字符。</translation>
+    </message>
+    <message>
+        <source>Write bridge options as key=value, like iat-mode=0.</source>
+        <translation>请按 key=value 的格式填写网桥选项，例如 iat-mode=0。</translation>
+    </message>
+    <message>
+        <source>%1 bridges need the %2 option.</source>
+        <translation>%1 网桥需要 %2 选项。</translation>
+    </message>
+    <message>
+        <source>Use a two-letter country code, like de.</source>
+        <translation>使用两字母的国家/地区代码，例如 de。</translation>
+    </message>
+    <message>
+        <source>Skipped a bridge line: %1</source>
+        <translation>已跳过一条网桥行：%1</translation>
+    </message>
+    <message>
+        <source>Tor bridges: %1</source>
+        <translation>Tor 网桥：%1</translation>
+    </message>
 </context>
 <context>
     <name>XrayMuxSettingsWidget</name>
@@ -18347,8 +18687,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>直连</translation>
     </message>
     <message>
-        <source>Proxy without WARP</source>
-        <translation>不经 WARP 的代理</translation>
+        <source>Proxy without exit</source>
+        <translation>不经出口的代理</translation>
     </message>
     <message>
         <source>Block</source>
@@ -18653,8 +18993,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>%1 个错误</translation>
     </message>
     <message>
-        <source>Only differs from Proxy while WARP or Tor is on: these sites skip that layer.</source>
-        <translation>仅在 WARP 或 Tor 开启时与“代理”不同：这些网站会跳过该层。</translation>
+        <source>Only differs from Proxy while an exit is on (Routing Settings &gt; Exit): these sites skip it and leave through the selected profile.</source>
+        <translation>仅在开启出口（路由设置 &gt; 出口）时与“代理”不同：这些网站会跳过出口，经由所选配置档发出。</translation>
     </message>
 </context>
 <context>

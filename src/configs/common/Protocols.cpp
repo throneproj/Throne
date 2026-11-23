@@ -34,6 +34,8 @@
 #include "include/configs/outbounds/direct.h"
 #include "include/configs/outbounds/dnstt.h"
 #include "include/configs/outbounds/masterdns.h"
+#include "include/configs/outbounds/tor.h"
+#include "include/configs/outbounds/psiphon.h"
 
 namespace Configs::Protocols {
     namespace {
@@ -99,9 +101,9 @@ namespace Configs::Protocols {
              .importSingBox = {"masque"}, .importClash = {"masque"},
              .filterRank = 18, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "MASQUE")},
             {.id = "openvpn", .create = protocolsCreate<openvpn>, .flags = VpnEndpoint,
-             .filterRank = 21, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "OpenVPN")},
+             .filterRank = 23, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "OpenVPN")},
             {.id = "openconnect", .create = protocolsCreate<openconnect>, .flags = VpnEndpoint,
-             .filterRank = 22, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "OpenConnect")},
+             .filterRank = 24, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "OpenConnect")},
             {.id = "tailscale", .create = protocolsCreate<tailscale>, .flags = Serverless | NoScan},
             {.id = "ssh", .create = protocolsCreate<ssh>,
              .importSchemes = {"ssh://"}, .importSingBox = {"ssh"}, .importClash = {"ssh"},
@@ -113,9 +115,15 @@ namespace Configs::Protocols {
             {.id = "masterdns", .create = protocolsCreate<masterdns>, .flags = Serverless | NoScan | DnsTunnel,
              .importSchemes = {"masterdns://", "stormdns://"}, .importSingBox = {"masterdns"},
              .filterRank = 20, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "MasterDNS")},
+            {.id = "tor", .create = protocolsCreate<tor>, .flags = Serverless | NoScan | SlowStart,
+             .importSingBox = {"tor"},
+             .filterRank = 21, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "Tor")},
+            {.id = "psiphon", .create = protocolsCreate<psiphon>, .flags = Serverless | NoScan | SlowStart,
+             .importSingBox = {"psiphon"},
+             .filterRank = 22, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "Psiphon")},
             {.id = "direct", .create = protocolsCreate<direct>, .flags = Serverless | NoScan},
             {.id = "custom", .create = protocolsCreate<Custom>, .flags = Serverless | NoScan,
-             .filterRank = 23, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "Custom (JSON)")},
+             .filterRank = 25, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "Custom (JSON)")},
             {.id = "extracore", .create = protocolsCreate<extracore>, .flags = Serverless | NoScan | RunsProgram,
              .foreignRefusal = QT_TRANSLATE_NOOP("Validation", "Refused to import an Extra Core profile: it would run a program on this computer.")},
             {.id = "chain", .create = protocolsCreate<chain>, .flags = Serverless | Composite,

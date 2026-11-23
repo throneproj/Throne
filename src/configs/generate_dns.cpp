@@ -301,10 +301,11 @@ namespace Configs {
                 const auto remoteAddresses = roleAddresses(ctx.dns.remote_dns);
                 const auto remoteTags = dnsRoleTags(tags::dnsRemote, remoteAddresses.size());
                 race.members[tags::dnsRemote] = remoteTags;
+                // Xray handles UDP DNS poorly, and a TCP-only exit carries no UDP at all.
+                const bool remoteDnsOverTcp = ctx.proxyUsesXray || exitCarriesOnlyTcp(ctx.ent);
                 for (qsizetype i = 0; i < remoteAddresses.size(); ++i) {
                     auto remoteDnsObj = buildDnsObj(ctx, remoteAddresses[i]);
-                    // overwrite remote dns to TCP based since Xray is shit, and Tor carries no UDP
-                    if ((ctx.proxyUsesXray || torExit()) && ( remoteDnsObj.value("type").toString() == "udp" || remoteDnsObj.value("type").toString() == "quic" )) {
+                    if (remoteDnsOverTcp && ( remoteDnsObj.value("type").toString() == "udp" || remoteDnsObj.value("type").toString() == "quic" )) {
                         remoteDnsObj = buildDnsObj(ctx, upgradeUdpDnsToDoH(remoteDnsObj.value("server").toString()));
                     }
                     remoteDnsObj["tag"] = remoteTags[i];
@@ -453,7 +454,7 @@ namespace Configs {
                                tags::dnsDirect, ctx.dns.direct_dns_disable_ipv6, race);
             }
 
-            const bool torOnion = ctx.policy.fullDns && torExit();
+            const bool torOnion = ctx.policy.fullDns && exitReachesOnion(ctx.ent);
             if (ctx.dns.fake_dns || torOnion) {
                 QJsonObject fakeServer{
                         {"tag", tags::dnsFake},

@@ -165,8 +165,8 @@ void DialogTrafficStats::populateProfileTable(long long fromSecs, long long toSe
                 name = tr("Direct");
             } else if (const auto prof = Configs::dataManager->profilesRepo->GetProfile(u.profile_id)) {
                 name = prof->name;
-            } else if (u.profile_id == Configs::warpProfileID) {
-                name = "built-in WARP";
+            } else if (const auto exit = Configs::ExitOfProfileID(u.profile_id); exit != Configs::ExitThrough::Server) {
+                name = tr("%1 exit").arg(Configs::ExitName(exit));
             } else {
                 name = tr("Profile #%1 (deleted)").arg(u.profile_id);
             }

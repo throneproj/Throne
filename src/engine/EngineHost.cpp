@@ -26,6 +26,7 @@
 #include "include/engine/services/Dashboard.h"
 #include "include/engine/services/ProfileService.h"
 #include "include/engine/services/StatsService.h"
+#include "include/engine/services/TorBridges.h"
 #include "include/engine/supervisor/CoreSupervisor.h"
 #include "include/engine/tests/TestObserver.h"
 #include "include/engine/tests/TestRunner.h"
@@ -57,6 +58,10 @@ namespace Engine {
 
         void geoAssetDownloadFinished(const QString &error) override {
             target(__func__)->geoAssetDownloadFinished(error);
+        }
+
+        void confirmTorDownload(const QString &profileName, std::function<void(bool download)> answered) override {
+            target(__func__)->confirmTorDownload(profileName, std::move(answered));
         }
 
         void killSwitchProblem() override {
@@ -217,6 +222,7 @@ namespace Engine {
         Subscription::updater();
         EngineEvents::instance();
         AssetUpdates::SetUnattendedFetch(options.geoAutoDownload);
+        TorBridges::Install();
         auto *created = new EngineHost(options);
         engineHostInstance = created;
         created->construct();

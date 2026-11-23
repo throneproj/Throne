@@ -6,9 +6,10 @@
 #include <QString>
 #include <QStringList>
 
+#include "include/configs/ExitThrough.h"
 #include "include/engine/services/ServiceTypes.h"
 
-// The built-in WARP of Routing Settings (settings enable_warp and warp_*), for the Throne API. Main thread only.
+// The built-in WARP of Routing Settings (settings exit_through and warp_*), for the Throne API. Main thread only.
 namespace Engine::WarpService {
     inline constexpr auto kTermsUrl = "https://www.cloudflare.com/application/terms/";
 
@@ -37,21 +38,23 @@ namespace Engine::WarpService {
 
     struct ChangeResult {
         bool changed = false;
-        // The exit wrapper (WARP or Tor) changed, so the running config is out of date.
+        // The exit, or WARP's mode while WARP is the exit, changed, so the running config is out of date.
         bool restartNeeded = false;
-        bool torTurnedOff = false;
+        // The exit that turning WARP on replaced; Server when there was none.
+        Configs::ExitThrough replacedExit = Configs::ExitThrough::Server;
     };
 
-    // Commits enable_warp and warp_mode through SettingsService, which raises the restart hint; enabling WARP turns enable_tor off and logs
-    // it. Refuses an unknown mode; a change that changes nothing succeeds. A real change is refused while Routing Settings is open, when
-    // enabled with an unconfigured mode, when beforeWrite refuses, and while Throne exits.
+    // Commits exit_through and warp_mode through SettingsService, which raises the restart hint; enabling WARP replaces any other exit and
+    // logs it, disabling it falls back to the selected profile only while WARP is the exit. Refuses an unknown mode; a change that changes
+    // nothing succeeds. A real change is refused while Routing Settings is open, when enabled with an unconfigured mode, when beforeWrite
+    // refuses, and while Throne exits.
     std::optional<ServiceError> Apply(const Change &change, const std::function<std::optional<ServiceError>()> &beforeWrite,
                                       ChangeResult *result);
 
     struct RegisterResult {
         // Nothing was stored when set.
         std::optional<ServiceError> error;
-        // WARP is on and Tor is not, so the running config's identity is out of date.
+        // WARP is the exit, so the running config's identity is out of date.
         bool restartNeeded = false;
     };
 

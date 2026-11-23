@@ -44,6 +44,9 @@ namespace Engine {
         // error is empty when every file arrived.
         virtual void geoAssetDownloadFinished(const QString &error) = 0;
 
+        // Interactive starts only: the profile needs Tor, which is not downloaded; whether to download it and start again.
+        virtual void confirmTorDownload(const QString &profileName, std::function<void(bool download)> answered) = 0;
+
         // The kill switch is Failed, or it refused a start; Sys::KillSwitch holds the details.
         virtual void killSwitchProblem() = 0;
 

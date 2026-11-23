@@ -309,7 +309,7 @@ namespace QuickListsDetail {
     }
 
     QString noWarpHint() {
-        return QCoreApplication::translate("QuickLists", "Only differs from Proxy while WARP or Tor is on: these sites skip that layer.");
+        return QCoreApplication::translate("QuickLists", "Only differs from Proxy while an exit is on (Routing Settings > Exit): these sites skip it and leave through the selected profile.");
     }
 
     const QStringList& ruleSetLines() {
@@ -852,7 +852,7 @@ void QuickListEditor::reload(int current, int scroll) {
     const auto then = RouteEditor::ThenOfList(list);
     d->title->setText(tr("%1 list").arg(RouteEditor::ListName(list)));
     d->pill->setPill(RouteEditor::ThenLabel(then), RouteEditor::ToneOf(then));
-    // The pill already says where entries go; only WARP bypass needs a word on when it differs from Proxy.
+    // The pill already says where entries go; only Proxy without exit needs a word on when it differs from Proxy.
     d->intro->setText(list == Configs::warpBypass ? noWarpHint() : QString());
     d->intro->setVisible(list == Configs::warpBypass);
 

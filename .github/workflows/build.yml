@@ -153,6 +153,23 @@ jobs:
           set -xeuo pipefail
           cd ~/cronet-go
           go run ./cmd/build-naive --target=linux/${{ matrix.cross_arch }} env >> $GITHUB_ENV
+      # The core embeds it so a first Psiphon connection needs no remote server list; without it the core still builds.
+      - name: Download Psiphon server list
+        if: steps.cache-common.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          LIST="$RUNNER_TEMP/server_list_compressed"
+          for url in https://raw.githubusercontent.com/throneproj/routeprofiles/psiphon/server_list_compressed \
+                     https://s3.amazonaws.com//psiphon/web/mjr4-p23r-puwl/server_list_compressed; do
+            # a signed zlib stream, so anything not starting with 0x78 is an error page
+            if curl -fsSL --retry 2 --max-time 60 --max-filesize 16777216 -o "$LIST" "$url" &&
+               [[ "$(head -c 1 "$LIST" | od -An -tx1 | tr -d ' \n')" == 78 ]]; then
+              mv "$LIST" core/internal/psiphonlist/server_list_compressed
+              echo "Psiphon server list: $(wc -c < core/internal/psiphonlist/server_list_compressed) bytes from $url"
+              exit 0
+            fi
+          done
+          echo "::warning::Psiphon server list download failed, the core embeds none"
       - name: Build golang parts
         if: steps.cache-common.outputs.cache-hit != 'true'
         shell: bash

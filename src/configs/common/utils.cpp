@@ -5,6 +5,7 @@
 #include <QHash>
 #include <QHostAddress>
 #include <QJsonArray>
+#include <QLocale>
 #include <QRegularExpression>
 
 #include "include/configs/common/xrayStreamSetting.h"
@@ -44,6 +45,12 @@ namespace Configs
             if (identifiers.contains(candidate)) return candidate;
         }
         return value.trimmed();
+    }
+
+    QString TerritoryName(const QString& code)
+    {
+        const auto territory = QLocale::codeToTerritory(code);
+        return territory == QLocale::AnyTerritory ? code.toUpper() : QLocale::territoryToString(territory);
     }
 
     QStringList JsonStringList(const QJsonValue& value, const QString& field)

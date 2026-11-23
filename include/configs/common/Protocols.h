@@ -23,6 +23,8 @@ namespace Configs::Protocols {
         DnsTunnel = 1u << 4,
         Composite = 1u << 5,
         RunsProgram = 1u << 6,
+        // Bootstraps a network of its own before its first connection (Tor, Psiphon).
+        SlowStart = 1u << 7,
     };
 
     struct ProtocolInfo {
@@ -52,7 +54,7 @@ namespace Configs::Protocols {
     // Editor type-list order.
     std::span<const ProtocolInfo> All();
 
-    // Exact id or alias; nullptr for "", unknown types, "tor" and the custom subtypes.
+    // Exact id or alias; nullptr for "", unknown types and the custom subtypes.
     const ProtocolInfo *Find(QStringView type);
 
     bool Is(QStringView type, Flag flag);

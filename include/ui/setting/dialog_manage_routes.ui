@@ -581,12 +581,12 @@
            </layout>
           </item>
           <item row="1" column="0">
-           <layout class="QVBoxLayout" name="enable_warp_option">
+           <layout class="QVBoxLayout" name="exit_warp_option">
             <property name="spacing">
              <number>2</number>
             </property>
             <item>
-             <widget class="QRadioButton" name="enable_warp">
+             <widget class="QRadioButton" name="exit_warp">
               <property name="toolTip">
                <string>Send traffic out through WARP, for services that block other VPNs.</string>
               </property>
@@ -596,7 +596,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="enable_warp_hint">
+             <widget class="QLabel" name="exit_warp_hint">
               <property name="text">
                <string>WARP runs over the selected profile.</string>
               </property>
@@ -611,22 +611,152 @@
            </layout>
           </item>
           <item row="2" column="0">
-           <layout class="QVBoxLayout" name="enable_tor_option">
+           <layout class="QVBoxLayout" name="exit_tor_option">
             <property name="spacing">
              <number>2</number>
             </property>
             <item>
-             <widget class="QRadioButton" name="enable_tor">
-              <property name="toolTip">
-               <string>Send proxied traffic out through Tor over the selected profile; TCP only.</string>
-              </property>
-              <property name="text">
-               <string notr="true">Tor</string>
-              </property>
-             </widget>
+             <layout class="QHBoxLayout" name="exit_tor_row">
+              <item>
+               <widget class="QRadioButton" name="exit_tor">
+                <property name="toolTip">
+                 <string>Send proxied traffic out through Tor over the selected profile; TCP only.</string>
+                </property>
+                <property name="text">
+                 <string notr="true">Tor</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="exit_tor_gap">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Fixed</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>12</width>
+                  <height>0</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QLabel" name="tor_exit_country_l">
+                <property name="text">
+                 <string>Exit country</string>
+                </property>
+                <property name="buddy">
+                 <cstring>tor_exit_country</cstring>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="tor_exit_country">
+                <property name="toolTip">
+                 <string>The country of the last Tor relay; Any lets Tor choose.</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="exit_tor_spacer">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
             </item>
             <item>
              <widget class="QLabel" name="tor_status">
+              <property name="wordWrap">
+               <bool>true</bool>
+              </property>
+              <property name="colorRole" stdset="0">
+               <string notr="true">muted</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="3" column="0">
+           <layout class="QVBoxLayout" name="exit_psiphon_option">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <item>
+             <layout class="QHBoxLayout" name="exit_psiphon_row">
+              <item>
+               <widget class="QRadioButton" name="exit_psiphon">
+                <property name="toolTip">
+                 <string>Send proxied traffic out through Psiphon over the selected profile.</string>
+                </property>
+                <property name="text">
+                 <string notr="true">Psiphon</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="exit_psiphon_gap">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Fixed</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>12</width>
+                  <height>0</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QLabel" name="psiphon_egress_region_l">
+                <property name="text">
+                 <string>Region</string>
+                </property>
+                <property name="buddy">
+                 <cstring>psiphon_egress_region</cstring>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="psiphon_egress_region">
+                <property name="toolTip">
+                 <string>The country of the Psiphon server; Best performance lets Psiphon choose.</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="exit_psiphon_spacer">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QLabel" name="exit_psiphon_hint">
+              <property name="text">
+               <string>Psiphon is a free network run by Psiphon Inc., which can see the sites you visit, like any VPN provider.</string>
+              </property>
               <property name="wordWrap">
                <bool>true</bool>
               </property>

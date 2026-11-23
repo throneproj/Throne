@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/fs"
+	"os"
 	"time"
 
 	box "github.com/sagernet/sing-box"
@@ -12,11 +14,42 @@ import (
 // ctx is the one handed to box.New, which registers every service into its registry instead of deriving its own.
 type Box struct {
 	*box.Box
-	ctx context.Context
+	ctx     context.Context
+	psiphon bool
 }
 
 func (s *Box) Context() context.Context {
 	return s.ctx
+}
+
+func (s *Box) Close() error {
+	err := s.Box.Close()
+	if s.psiphon {
+		chownPsiphonDirectory()
+	}
+	return err
+}
+
+// A root core writes Psiphon's datastore as root; Lchown within an os.Root so planted symlinks cannot redirect it.
+func chownPsiphonDirectory() {
+	uid, gid, known := fileOwner()
+	if !known || os.Geteuid() != 0 {
+		return
+	}
+	config, err := os.OpenRoot(".")
+	if err != nil {
+		return
+	}
+	defer config.Close()
+	if info, err := config.Lstat(psiphonFolder); err != nil || !info.IsDir() {
+		return
+	}
+	_ = fs.WalkDir(config.FS(), psiphonFolder, func(name string, _ fs.DirEntry, err error) error {
+		if err == nil {
+			_ = config.Lchown(name, uid, gid)
+		}
+		return nil
+	})
 }
 
 func (s *Box) CloseWithTimeout(cancel context.CancelFunc, d time.Duration, logFunc func(v ...any), block bool) {

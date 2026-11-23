@@ -15,6 +15,7 @@
 #include "include/database/entities/RouteProfile.h"
 
 QT_BEGIN_NAMESPACE
+class QButtonGroup;
 namespace Ui {
     class DialogManageRoutes;
 }
@@ -37,6 +38,9 @@ private:
     Engine::EditLock routesLock{Engine::EditTarget::Routes};
 
     Configs::SettingsValues snapshot_;
+
+    // Button ids are Configs::ExitThrough values.
+    QButtonGroup *exitButtons = nullptr;
 
     RouteItem* routeChainWidget;
 

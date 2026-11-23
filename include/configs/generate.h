@@ -2,6 +2,7 @@
 #include "include/configs/ConfigBuild.h"
 #include "include/configs/DnsAddress.h"
 #include "include/configs/EndpointOverride.h"
+#include "include/configs/ExitThrough.h"
 #include "include/configs/RuleSetMirror.h"
 #include "include/configs/Warp.h"
 

@@ -12,10 +12,13 @@ import (
 	"github.com/sagernet/sing-box/option"
 )
 
-// Matches the GUI's DnsTunnelStartupAllowanceMs: a DNS tunnel opens its session over many slow queries.
+// Matches the GUI's StartupAllowanceMs: a DNS tunnel opens its session over many slow queries, Tor bootstraps
+// its circuits and Psiphon searches its server list before the first stream gets through.
 const (
 	DNSTunnelStartupTimeout = 30 * time.Second
 	MasterDNSStartupTimeout = 90 * time.Second
+	TorStartupTimeout       = 90 * time.Second
+	PsiphonStartupTimeout   = 60 * time.Second
 )
 
 // Box → map[string]int from XrayDNSTunnelHops.
@@ -140,7 +143,7 @@ func XrayDNSTunnelHops(options *option.Options, xrayConfig string) map[string]in
 }
 
 // Stacked tunnels start one after another, so their allowances add up.
-func dnsTunnelAllowance(i Box, tag string) time.Duration {
+func startupAllowance(i Box, tag string) time.Duration {
 	var xrayHops map[string]int
 	if tracked, loaded := xrayDNSTunnels.Load(i); loaded {
 		xrayHops = tracked.(map[string]int)
@@ -152,6 +155,10 @@ func dnsTunnelAllowance(i Box, tag string) time.Duration {
 			allowance += DNSTunnelStartupTimeout
 		case C.TypeMasterDNS:
 			allowance += MasterDNSStartupTimeout
+		case C.TypeTor:
+			allowance += TorStartupTimeout
+		case C.TypePsiphon:
+			allowance += PsiphonStartupTimeout
 		}
 		allowance += time.Duration(xrayHops[tag]) * DNSTunnelStartupTimeout
 	})
