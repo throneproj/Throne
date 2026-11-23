@@ -63,7 +63,18 @@ func serviceResultString(result servicecheck.Result) string {
 	return string(data)
 }
 
+// Builds its own box for the request's outbounds; Instance.StartServiceTest checks through the running one.
 func StartServiceTest(platform PlatformInterface, request *TestRequest, handler ServiceTestHandler) error {
+	return startServiceTest(nil, platform, request, handler)
+}
+
+// The desktop's TestCurrent: checks the instance's "proxy" outbound (its default one with UseDefaultOutbound or when it
+// has none) through the live box, whatever request.TestCurrent says; the core config and tag fields are ignored.
+func (i *Instance) StartServiceTest(request *TestRequest, handler ServiceTestHandler) error {
+	return startServiceTest(i, nil, request, handler)
+}
+
+func startServiceTest(current *Instance, platform PlatformInterface, request *TestRequest, handler ServiceTestHandler) error {
 	if request == nil || handler == nil {
 		return E.New("nil request or handler")
 	}
@@ -78,11 +89,15 @@ func StartServiceTest(platform PlatformInterface, request *TestRequest, handler 
 			options.Only[id] = true
 		}
 	}
-	env, err := prepareTestEnv(nil, false, platform, request)
+	testCurrent := current != nil
+	env, err := prepareTestEnv(current, testCurrent, platform, request)
 	if err != nil {
 		return err
 	}
 	testCtx := probe.TestContext()
+	if testCurrent {
+		testCtx = probe.LiveInstance(testCtx)
+	}
 	timeout := time.Duration(request.TimeoutMs) * time.Millisecond
 	go func() {
 		defer handler.OnDone()
@@ -97,7 +112,7 @@ func StartServiceTest(platform PlatformInterface, request *TestRequest, handler 
 				handler.OnResult(result.Tag, serviceResultString(result.Result), "")
 			},
 		).run(func() []*probe.ServiceTestResult {
-			return probe.BatchServiceTest(testCtx, env.Box, env.Tags, int(request.MaxConcurrency), true, defs, timeout, options)
+			return probe.BatchServiceTest(testCtx, env.Box, env.Tags, int(request.MaxConcurrency), !testCurrent, defs, timeout, options)
 		})
 	}()
 	return nil
