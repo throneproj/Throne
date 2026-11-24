@@ -37,7 +37,29 @@ namespace Configs {
 
         int dnsTunnelOwnAllowanceMs(const Profile &profile) {
             if (profile.type == QLatin1String("masterdns")) return kDnsTunnelMasterDnsStartupMs;
-            if (profile.type == QLatin1String("dnstt") || dnsTunnelIsXdns(profile)) return kDnsTunnelStartupMs;
+            if (profile.type == QLatin1String("dnstt")) return kDnsTunnelStartupMs;
+            // This is an outer RPC deadline. The core decides which mask the dial actually uses.
+            if (const auto *vless = profile.XrayVLESS(); vless && vless->streamSetting) {
+                const auto &stream = *vless->streamSetting;
+                if (XrayFinalmaskHasXdns(stream.finalmask) ||
+                    (NormalizeXrayNetwork(stream.network) == "xhttp" && stream.xhttp &&
+                     XrayFinalmaskHasXdns(QString2QJsonObject(stream.xhttp->downloadSettings).value("finalmask").toObject())))
+                    return kDnsTunnelStartupMs;
+            }
+            if (auto *custom = profile.Custom(); custom && (custom->IsXray() || custom->IsXrayFullConfig())) {
+                const auto config = QString2QJsonObject(custom->config);
+                const auto outs = custom->IsXrayFullConfig() ? config.value("outbounds").toArray() : QJsonArray{config};
+                int allowance = 0;
+                for (const auto &out : outs) {
+                    const auto ob = out.toObject();
+                    const auto legs = XrayDownloadLeg(ob);
+                    if (XrayFinalmaskHasXdns(ob.value("streamSettings").toObject().value("finalmask").toObject()) ||
+                        std::any_of(legs.cbegin(), legs.cend(), [](const QJsonObject &leg) {
+                            return XrayFinalmaskHasXdns(leg.value("finalmask").toObject());
+                        })) allowance += kDnsTunnelStartupMs;
+                }
+                return allowance;
+            }
             return 0;
         }
 

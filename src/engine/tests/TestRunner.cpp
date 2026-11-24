@@ -12,6 +12,7 @@
 #include "include/engine/services/ProfileService.h"
 #include "include/engine/tests/TestObserver.h"
 #include "include/global/Configs.hpp"
+#include "include/global/ExitLookup.hpp"
 #include "include/stats/traffic/TrafficStatsManager.hpp"
 
 #include <QCoreApplication>
@@ -52,19 +53,19 @@ namespace Engine {
         }
 
         // Mirror the core's URLTestTimeout, TunnelStartupTimeout, TunnelHandshakeTimeout and normalizeConcurrency.
-        constexpr int kTestRunnerCoreDefaultTimeoutMs = 3000;
         constexpr int kTestRunnerTunnelStartupMs = 5000;
         constexpr int kTestRunnerTunnelHandshakeMs = 10000;
         constexpr int kTestRunnerCoreMaxConcurrency = 100;
         constexpr int kTestRunnerRpcSlackMs = 30000;
 
         // Test/IPTest answer only once the whole batch is done, so the deadline covers its worst case.
-        int testRunnerBatchRpcTimeoutMs(qsizetype tagCount, int requestsPerTag, int startupAllowanceMs) {
+        int testRunnerBatchRpcTimeoutMs(const auto& target, int requestsPerTag, int startupAllowanceMs) {
             const auto& settings = Configs::dataManager->settingsRepo;
             int concurrency = settings->test_concurrent;
             if (concurrency <= 0 || concurrency >= 500) concurrency = kTestRunnerCoreMaxConcurrency;
-            const qint64 timeoutMs = settings->url_test_timeout_ms > 0 ? settings->url_test_timeout_ms : kTestRunnerCoreDefaultTimeoutMs;
-            const qint64 rounds = (qMax<qsizetype>(tagCount, 1) + concurrency - 1) / concurrency;
+            qint64 timeoutMs = settings->url_test_timeout_ms > 0 ? settings->url_test_timeout_ms : Configs::kDefaultUrlTestTimeoutMs;
+            if (!target.xrayConfig.isEmpty() || !target.xrayFullConfigs.isEmpty()) timeoutMs = qMax<qint64>(timeoutMs, Configs::kFinalMaskTestMinTimeoutMs);
+            const qint64 rounds = (qMax<qsizetype>(target.outboundTags.size(), 1) + concurrency - 1) / concurrency;
             const qint64 total = rounds * (kTestRunnerTunnelHandshakeMs + requestsPerTag * timeoutMs + kTestRunnerTunnelStartupMs + startupAllowanceMs) +
                                  kTestRunnerRpcSlackMs;
             return static_cast<int>(qMin<qint64>(total, std::numeric_limits<int>::max()));
@@ -302,7 +303,7 @@ namespace Engine {
             }, kTestRunnerLatencyPollIntervalMs);
 
             result = API::defaultClient->Test(&rpcOK, req, &coreError,
-                                              testRunnerBatchRpcTimeoutMs(target.outboundTags.size(), 2,
+                                              testRunnerBatchRpcTimeoutMs(target, 2,
                                                                           testRunnerStartupAllowanceMs(target.tag2entID, target.entID)));
         }
 
@@ -342,7 +343,8 @@ namespace Engine {
         testRunnerFillCommonTestReq(req, target);
         req.max_concurrency = Configs::dataManager->settingsRepo->test_concurrent;
         req.test_timeout_ms = Configs::dataManager->settingsRepo->url_test_timeout_ms;
-        req.provider = Configs::dataManager->settingsRepo->exit_lookup_provider.toStdString();
+        const auto provider = Configs::dataManager->settingsRepo->exit_lookup_provider;
+        req.provider = provider.toStdString();
 
         bool rpcOK = false;
         QString coreError;
@@ -371,7 +373,7 @@ namespace Engine {
             }, kTestRunnerLatencyPollIntervalMs);
 
             result = API::defaultClient->IPTest(&rpcOK, req, &coreError,
-                                                testRunnerBatchRpcTimeoutMs(target.outboundTags.size(), 1,
+                                                testRunnerBatchRpcTimeoutMs(target, Configs_network::ExitLookupRequestCount(provider),
                                                                             testRunnerStartupAllowanceMs(target.tag2entID, target.entID)));
         }
 
@@ -519,7 +521,7 @@ namespace Engine {
                 bool rpcOK = false;
                 QString coreError;
                 const auto result = API::defaultClient->Test(&rpcOK, req, &coreError,
-                                                             testRunnerBatchRpcTimeoutMs(target.outboundTags.size(), 2, allowance));
+                                                             testRunnerBatchRpcTimeoutMs(target, 2, allowance));
                 // Test also queues every result for QueryURLTest; drain them so a later run's poller never sees these tags.
                 bool drained = false;
                 API::defaultClient->QueryURLTest(&drained);

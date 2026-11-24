@@ -181,17 +181,20 @@ namespace Scanner {
             }
             if (test.url.trimmed().isEmpty()) test.url = Configs::dataManager->settingsRepo->test_latency_url;
             if (test.timeoutMs <= 0) test.timeoutMs = Configs::dataManager->settingsRepo->url_test_timeout_ms;
+            if (test.timeoutMs <= 0) test.timeoutMs = Configs::kDefaultUrlTestTimeoutMs;
             return test;
         }
 
         // Test answers only once the whole batch is done, so the deadline covers its worst case.
-        int scanWorkerUrlTestTimeoutMs(qsizetype tagCount, const ScanWorkerConfigTest &test, qint64 startupAllowanceMs) {
+        int scanWorkerUrlTestTimeoutMs(const Configs::BuildTestConfigResult &build, const ScanWorkerConfigTest &test, qint64 startupAllowanceMs) {
             int concurrency = test.concurrency;
             if (concurrency <= 0 || concurrency >= 500) concurrency = kScanWorkerCoreMaxConcurrency;
             const qint64 requests = test.warmLatency ? 2 : 1;
-            const qint64 rounds = (std::max<qsizetype>(tagCount, 1) + concurrency - 1) / concurrency;
+            const qint64 rounds = (std::max<qsizetype>(build.outboundTags.size(), 1) + concurrency - 1) / concurrency;
+            const int timeoutMs = build.isXrayNeeded || !build.xrayFullConfigs.isEmpty()
+                ? std::max(test.timeoutMs, Configs::kFinalMaskTestMinTimeoutMs) : test.timeoutMs;
             return scanWorkerClampTimeout(
-                rounds * (kScanWorkerTunnelHandshakeMs + requests * test.timeoutMs + kScanWorkerTunnelStartupMs + startupAllowanceMs) +
+                rounds * (kScanWorkerTunnelHandshakeMs + requests * timeoutMs + kScanWorkerTunnelStartupMs + startupAllowanceMs) +
                 kScanWorkerRpcSlackMs);
         }
     } // namespace
@@ -784,7 +787,7 @@ namespace Scanner {
             QString coreError;
             const auto response = API::defaultClient->ScanURLTest(
                 &ok, request, &coreError,
-                scanWorkerUrlTestTimeoutMs(build.build->outboundTags.size(), test, Configs::DnsTunnelStartupAllowanceMs(base_)));
+                scanWorkerUrlTestTimeoutMs(*build.build, test, Configs::DnsTunnelStartupAllowanceMs(base_)));
             if (!ok) {
                 if (scanWorkerIsStopped(coreError)) stop_.store(true);
                 if (stop_) {

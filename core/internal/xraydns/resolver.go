@@ -51,6 +51,9 @@ func (r *resolver) LookupIP(domain string, option dnsfeature.IPOption) ([]net.IP
 	if ctx == nil {
 		return nil, 0, E.New("throne-dns: sing-box instance is not up yet")
 	}
+	if err := ctx.Err(); err != nil {
+		return nil, 0, err
+	}
 	router := service.FromContext[adapter.DNSRouter](ctx)
 	if router == nil {
 		return nil, 0, E.New("throne-dns: sing-box DNS router is not registered")

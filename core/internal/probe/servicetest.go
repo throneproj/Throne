@@ -46,10 +46,11 @@ func BatchServiceTest(ctx context.Context, i Box, outboundTags []string, maxConc
 			}()
 			runCtx, cancel := context.WithTimeout(ctx, serviceTestBudget)
 			defer cancel()
+			first, regular := requestTimeouts(i, tag, cold, timeout)
 			client := &servicecheck.Client{
 				Dial:         dialer.DialContext,
-				Timeout:      timeout,
-				FirstTimeout: firstRequestTimeout(i, tag, cold, timeout),
+				Timeout:      regular,
+				FirstTimeout: first,
 				Context:      runCtx,
 			}
 			result, err := servicecheck.Run(runCtx, defs, client, options)

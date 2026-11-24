@@ -174,7 +174,8 @@ func (s *server) ScanURLTest(ctx context.Context, in *gen.ScanURLTestRequest) (*
 	if egressLost() {
 		return nil, scan.ErrEgressLost
 	}
-	env, err := prepareTestEnv(false, test.GetNeedXray(), test.GetXrayConfig(),
+	scanCtx := session.Context()
+	env, err := prepareTestEnv(scanCtx, false, test.GetNeedXray(), test.GetXrayConfig(),
 		test.XrayFullConfigs, test.GetConfig(), test.OutboundTags, test.GetUseDefaultOutbound(),
 		test.GetXrayOutboundDnsStrategy())
 	if err != nil {
@@ -182,7 +183,6 @@ func (s *server) ScanURLTest(ctx context.Context, in *gen.ScanURLTestRequest) (*
 	}
 	defer env.Close()
 
-	scanCtx := session.Context()
 	labels := in.GetTargetLabels()
 	labelOf := make(map[string]string, len(env.Tags))
 	for idx, tag := range env.Tags {

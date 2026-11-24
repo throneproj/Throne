@@ -25,6 +25,7 @@ namespace Configs_network {
 
     // In the order the settings combo lists them, after "Automatic".
     const QList<ExitLookupProvider> &ExitLookupProviders();
+    int ExitLookupRequestCount(const QString &providerId);
 
     // Blocking, through the mixed inbound; never on the UI thread. "auto" or an unknown id tries several providers in turn.
     // A failure can still carry the IP of an answer that named no country.

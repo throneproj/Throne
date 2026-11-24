@@ -1,150 +1,224 @@
 package probe
 
 import (
+	"context"
 	"encoding/json"
+	"net/netip"
+	"slices"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
 	C "github.com/sagernet/sing-box/constant"
 	"github.com/sagernet/sing-box/option"
+	"github.com/sagernet/sing/service"
+	"github.com/xtls/xray-core/infra/conf"
 )
 
-// Matches the GUI's StartupAllowanceMs: a DNS tunnel opens its session over many slow queries.
+// Matches the GUI's DnsTunnelStartupAllowanceMs: a DNS tunnel opens its session over many slow queries.
 const (
 	DNSTunnelStartupTimeout = 30 * time.Second
 	MasterDNSStartupTimeout = 90 * time.Second
+	finalMaskMinTimeout     = 10 * time.Second
 )
 
-// Box → map[string]int from XrayDNSTunnelHops.
-var xrayDNSTunnels sync.Map
+type xrayProbeRoute struct {
+	xdnsHops int
+	masked   bool
+}
 
-// TrackDNSTunnels lets first requests through i wait for the Xray xdns hops; the returned func forgets them.
-func TrackDNSTunnels(i Box, xrayHops map[string]int) func() {
-	if len(xrayHops) == 0 {
-		return func() {}
+type XrayProbeRoutes map[string]xrayProbeRoute
+
+func (routes XrayProbeRoutes) Register(ctx context.Context) {
+	if len(routes) > 0 {
+		service.MustRegister(ctx, routes)
 	}
-	xrayDNSTunnels.Store(i, xrayHops)
-	return func() { xrayDNSTunnels.Delete(i) }
 }
 
-type xrayOutboundShape struct {
-	Tag            string `json:"tag"`
-	StreamSettings struct {
-		Finalmask struct {
-			UDP []struct {
-				Type string `json:"type"`
-			} `json:"udp"`
-		} `json:"finalmask"`
-		Sockopt struct {
-			DialerProxy string `json:"dialerProxy"`
-		} `json:"sockopt"`
-	} `json:"streamSettings"`
+func usesH3(s *conf.StreamConfig) bool {
+	return strings.EqualFold(s.Security, "tls") && s.TLSSettings != nil && s.TLSSettings.ALPN != nil &&
+		slices.Equal(*s.TLSSettings.ALPN, conf.StringList{"h3"})
 }
 
-type xrayInboundShape struct {
-	Tag  string          `json:"tag"`
-	Port json.RawMessage `json:"port"`
-}
-
-type xrayRuleShape struct {
-	InboundTag  json.RawMessage `json:"inboundTag"`
-	OutboundTag string          `json:"outboundTag"`
-}
-
-// XrayDNSTunnelHops maps each sing-box socks bridge into Xray to the xdns hops of the Xray chain behind it;
-// the bridge reaches that chain through the Xray inbound on its server port.
-func XrayDNSTunnelHops(options *option.Options, xrayConfig string) map[string]int {
-	var config struct {
-		Inbounds  []json.RawMessage `json:"inbounds"`
-		Outbounds []json.RawMessage `json:"outbounds"`
-		Routing   struct {
-			Rules []json.RawMessage `json:"rules"`
-		} `json:"routing"`
+func maskRoute(mask *conf.FinalMask, udp bool) xrayProbeRoute {
+	if mask == nil {
+		return xrayProbeRoute{}
 	}
-	if xrayConfig == "" || json.Unmarshal([]byte(xrayConfig), &config) != nil {
-		return nil
+	if !udp {
+		return xrayProbeRoute{masked: len(mask.Tcp) > 0}
 	}
-	xdns := make(map[string]bool)
-	next := make(map[string]string)
-	for _, raw := range config.Outbounds {
-		var outbound xrayOutboundShape
-		if json.Unmarshal(raw, &outbound) != nil || outbound.Tag == "" {
-			continue
+	for _, m := range mask.Udp {
+		if strings.EqualFold(m.Type, "xdns") {
+			return xrayProbeRoute{masked: true, xdnsHops: 1}
 		}
-		next[outbound.Tag] = outbound.StreamSettings.Sockopt.DialerProxy
-		for _, mask := range outbound.StreamSettings.Finalmask.UDP {
-			if strings.EqualFold(mask.Type, "xdns") {
-				xdns[outbound.Tag] = true
+	}
+	return xrayProbeRoute{masked: len(mask.Udp) > 0}
+}
+
+func streamRoute(s *conf.StreamConfig) xrayProbeRoute {
+	network := s.Network
+	if s.Method != nil {
+		network = s.Method
+	}
+	if network != nil {
+		switch strings.ToLower(string(*network)) {
+		case "mkcp", "kcp", "hysteria":
+			return maskRoute(s.FinalMask, true)
+		case "masque":
+			udp := true
+			if s.TLSSettings != nil && s.TLSSettings.ALPN != nil {
+				alpn := *s.TLSSettings.ALPN
+				udp = !slices.Contains(alpn, "h2") || slices.Contains(alpn, "h3")
+			}
+			return maskRoute(s.FinalMask, udp)
+		case "xdrive":
+			return maskRoute(s.FinalMask, usesH3(s))
+		case "xhttp", "splithttp":
+			r := maskRoute(s.FinalMask, usesH3(s))
+			http := s.XHTTPSettings
+			if http == nil {
+				http = s.SplitHTTPSettings
+			}
+			if http != nil {
+				if http.Extra != nil {
+					var extra conf.SplitHTTPConfig
+					if json.Unmarshal(http.Extra, &extra) != nil {
+						return r
+					}
+					http = &extra
+				}
+				if d := http.DownloadSettings; d != nil {
+					down := maskRoute(d.FinalMask, usesH3(d))
+					r.masked = r.masked || down.masked
+					r.xdnsHops = max(r.xdnsHops, down.xdnsHops)
+				}
+			}
+			return r
+		}
+	}
+	return maskRoute(s.FinalMask, false)
+}
+
+// A batch can have several independent Xray instances. Match the generated bridge endpoint exactly.
+func CollectXrayProbeRoutes(options *option.Options, config string, fullConfigs []string) XrayProbeRoutes {
+	routes := make(XrayProbeRoutes)
+	routes.collect(options, config)
+	for _, full := range fullConfigs {
+		routes.collect(options, full)
+	}
+	return routes
+}
+
+func (routes XrayProbeRoutes) collect(options *option.Options, xrayConfig string) {
+	var config struct {
+		Inbounds []struct {
+			Tag, Listen, Protocol string
+			Port                  json.RawMessage
+		}
+		Outbounds []struct {
+			Tag            string
+			StreamSettings conf.StreamConfig
+		}
+		Routing struct {
+			Rules []struct {
+				InboundTag  conf.StringList
+				OutboundTag string
+				BalancerTag string
 			}
 		}
 	}
-	if len(xdns) == 0 {
-		return nil
+	if xrayConfig == "" || json.Unmarshal([]byte(xrayConfig), &config) != nil || len(config.Outbounds) == 0 {
+		return
 	}
-	inboundAt := make(map[uint16]string)
-	for _, raw := range config.Inbounds {
-		var inbound xrayInboundShape
-		if json.Unmarshal(raw, &inbound) != nil {
+	byTag := make(map[string]int)
+	hops := make([]xrayProbeRoute, len(config.Outbounds))
+	var anyMasked bool
+	for i, out := range config.Outbounds {
+		if out.Tag != "" {
+			byTag[out.Tag] = i
+		}
+		hops[i] = streamRoute(&out.StreamSettings)
+		anyMasked = anyMasked || hops[i].masked
+	}
+	if !anyMasked {
+		return
+	}
+	inboundAt := make(map[netip.AddrPort]string)
+	for _, in := range config.Inbounds {
+		ip, err := netip.ParseAddr(in.Listen)
+		if err != nil || !ip.IsLoopback() || in.Protocol != "socks" {
 			continue
 		}
-		if port, err := strconv.ParseUint(strings.Trim(string(inbound.Port), `"`), 10, 16); err == nil {
-			inboundAt[uint16(port)] = inbound.Tag
+		if port, err := strconv.ParseUint(strings.Trim(string(in.Port), `"`), 10, 16); err == nil {
+			inboundAt[netip.AddrPortFrom(ip.Unmap(), uint16(port))] = in.Tag
 		}
 	}
-	routedTo := make(map[string]string)
-	for _, raw := range config.Routing.Rules {
-		var rule xrayRuleShape
-		if json.Unmarshal(raw, &rule) != nil {
+	chain := func(start int) (route xrayProbeRoute) {
+		seen := make(map[int]bool)
+		for i := start; !seen[i]; {
+			seen[i] = true
+			route.masked = route.masked || hops[i].masked
+			route.xdnsHops += hops[i].xdnsHops
+			socket := config.Outbounds[i].StreamSettings.SocketSettings
+			if socket == nil || socket.DialerProxy == "" {
+				break
+			}
+			next, ok := byTag[socket.DialerProxy]
+			if !ok {
+				break
+			}
+			i = next
+		}
+		return
+	}
+	for _, out := range options.Outbounds {
+		socks, ok := out.Options.(*option.SOCKSOutboundOptions)
+		if !ok || out.Type != C.TypeSOCKS {
 			continue
 		}
-		var inboundTags []string
-		if json.Unmarshal(rule.InboundTag, &inboundTags) != nil {
-			var single string
-			if json.Unmarshal(rule.InboundTag, &single) != nil {
+		ip, err := netip.ParseAddr(socks.Server)
+		if err != nil {
+			continue
+		}
+		tag, ok := inboundAt[netip.AddrPortFrom(ip.Unmap(), socks.ServerPort)]
+		if !ok {
+			continue
+		}
+		route := chain(0) // Xray sends unmatched traffic to its first outbound, even when it has no tag.
+		for _, rule := range config.Routing.Rules {
+			if len(rule.InboundTag) != 0 && !slices.Contains(rule.InboundTag, tag) {
 				continue
 			}
-			inboundTags = []string{single}
-		}
-		for _, tag := range inboundTags {
-			if _, routed := routedTo[tag]; !routed {
-				routedTo[tag] = rule.OutboundTag
+			if tag == "throne-bridge" && rule.BalancerTag != "" {
+				// The balancer selects at dial time; do not under-budget a slow member.
+				for i := range hops {
+					candidate := chain(i)
+					route.masked = route.masked || candidate.masked
+					route.xdnsHops = max(route.xdnsHops, candidate.xdnsHops)
+				}
+				break
+			}
+			if i, found := byTag[rule.OutboundTag]; found {
+				candidate := chain(i)
+				if tag != "throne-bridge" {
+					route = candidate
+					break
+				}
+				// In a user-supplied full config a rule can also depend on the destination.
+				route.masked = route.masked || candidate.masked
+				route.xdnsHops = max(route.xdnsHops, candidate.xdnsHops)
 			}
 		}
-	}
-	hops := make(map[string]int)
-	for _, outbound := range options.Outbounds {
-		socks, isSOCKS := outbound.Options.(*option.SOCKSOutboundOptions)
-		if outbound.Type != C.TypeSOCKS || !isSOCKS {
-			continue
-		}
-		inboundTag, bridged := inboundAt[socks.ServerPort]
-		if !bridged {
-			continue
-		}
-		count := 0
-		visited := make(map[string]bool)
-		for hop := routedTo[inboundTag]; hop != "" && !visited[hop]; hop = next[hop] {
-			visited[hop] = true
-			if xdns[hop] {
-				count++
-			}
-		}
-		if count > 0 {
-			hops[outbound.Tag] = count
+		if route.masked {
+			routes[out.Tag] = route
 		}
 	}
-	return hops
 }
 
 // Stacked tunnels start one after another, so their allowances add up.
-func startupAllowance(i Box, tag string) time.Duration {
-	var xrayHops map[string]int
-	if tracked, loaded := xrayDNSTunnels.Load(i); loaded {
-		xrayHops = tracked.(map[string]int)
-	}
+func routeProbeTimeout(i Box, tag string, timeout time.Duration) (regular, startup time.Duration) {
+	routes := service.FromContext[XrayProbeRoutes](i.Context())
 	var allowance time.Duration
 	walkChain(i, tag, func(tag string, outbound adapter.Outbound) {
 		switch outbound.Type() {
@@ -153,7 +227,11 @@ func startupAllowance(i Box, tag string) time.Duration {
 		case C.TypeMasterDNS:
 			allowance += MasterDNSStartupTimeout
 		}
-		allowance += time.Duration(xrayHops[tag]) * DNSTunnelStartupTimeout
+		route := routes[tag]
+		if route.masked {
+			timeout = max(timeout, finalMaskMinTimeout)
+		}
+		allowance += time.Duration(route.xdnsHops) * DNSTunnelStartupTimeout
 	})
-	return allowance
+	return timeout, allowance
 }

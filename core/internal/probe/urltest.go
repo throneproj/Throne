@@ -14,7 +14,7 @@ import (
 var URLReporter resultBuffer[URLTestResult]
 
 const (
-	URLTestTimeout    = 3 * time.Second
+	URLTestTimeout    = 5 * time.Second
 	urlTestDrainLimit = 64 * 1024
 )
 
@@ -43,9 +43,10 @@ func BatchURLTestTo(ctx context.Context, i Box, outboundTags []string, url strin
 			}
 			client, closeClient := outboundHTTPClient(ctx, i, tag, outbound)
 			defer closeClient()
-			duration, err := urlTest(ctx, client, url, firstRequestTimeout(i, tag, twice, timeout))
+			first, regular := requestTimeouts(i, tag, twice, timeout)
+			duration, err := urlTest(ctx, client, url, first)
 			if err == nil && twice {
-				duration, err = urlTest(ctx, client, url, timeout)
+				duration, err = urlTest(ctx, client, url, regular)
 			}
 			return &URLTestResult{Duration: duration, Tag: tag, Error: err}
 		},
@@ -70,7 +71,8 @@ func BatchDownloadTestTo(ctx context.Context, i Box, outboundTags []string, url 
 			}
 			client, closeClient := outboundHTTPClient(ctx, i, tag, outbound)
 			defer closeClient()
-			duration, err := downloadTest(ctx, client, url, bodyBytes, firstRequestTimeout(i, tag, true, timeout))
+			first, _ := requestTimeouts(i, tag, true, timeout)
+			duration, err := downloadTest(ctx, client, url, bodyBytes, first)
 			return &URLTestResult{Duration: duration, Tag: tag, Error: err}
 		},
 		fail: func(tag string, err error) *URLTestResult {

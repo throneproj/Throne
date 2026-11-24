@@ -12,6 +12,7 @@
 namespace Configs_network {
     namespace {
         constexpr qint64 kExitLookupAutoBudgetMs = 20000;
+        constexpr const char *kAutoProviders[] = {"ip2location", "ip-api", "ipwho", "ipinfo", "cloudflare"};
 
         enum class ExitLookupFormat { IpApi, IpWho, IpInfo, IpApiCo, Ip2Location, FreeIpApi, CloudflareTrace };
 
@@ -134,13 +135,17 @@ namespace Configs_network {
         return providers;
     }
 
+    int ExitLookupRequestCount(const QString &providerId) {
+        return exitLookupFind(providerId.trimmed()) ? 1 : static_cast<int>(std::size(kAutoProviders));
+    }
+
     ExitInfo LookupExit(const QString &providerId, QString *error) {
         QList<const ExitLookupEntry *> chain;
         if (const auto *chosen = exitLookupFind(providerId)) {
             chain << chosen;
         } else {
             // ip2location first: the IP & country test asks it too, so both name the same country.
-            for (const char *id : {"ip2location", "ip-api", "ipwho", "ipinfo", "cloudflare"}) {
+            for (const char *id : kAutoProviders) {
                 if (const auto *entry = exitLookupFind(QString::fromLatin1(id))) chain << entry;
             }
         }

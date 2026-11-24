@@ -516,7 +516,7 @@ void DialogBasicSettings::bindValidation() {
     // 0 means the default whatever the schema's minimum, so only its maximum applies.
     const int urlTimeoutMax = basicSettingsRange(QStringLiteral("url_test_timeout_ms"), {0, std::numeric_limits<int>::max()}).max;
     form->bind(ui->url_timeout, [urlTimeoutMax](const QString &text) {
-        if (auto problem = basicSettingsMillisError(text, 3000, true); !problem.isEmpty()) return problem;
+        if (auto problem = basicSettingsMillisError(text, Configs::kDefaultUrlTestTimeoutMs, true); !problem.isEmpty()) return problem;
         return Int(text, 0, urlTimeoutMax);
     }).label(tr("URL test timeout"));
 

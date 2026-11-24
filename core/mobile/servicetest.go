@@ -90,13 +90,13 @@ func startServiceTest(current *Instance, platform PlatformInterface, request *Te
 		}
 	}
 	testCurrent := current != nil
-	env, err := prepareTestEnv(current, testCurrent, platform, request)
-	if err != nil {
-		return err
-	}
 	testCtx := probe.TestContext()
 	if testCurrent {
 		testCtx = probe.LiveInstance(testCtx)
+	}
+	env, err := prepareTestEnv(testCtx, current, testCurrent, platform, request)
+	if err != nil {
+		return err
 	}
 	timeout := time.Duration(request.TimeoutMs) * time.Millisecond
 	go func() {

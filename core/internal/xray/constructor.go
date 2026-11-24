@@ -2,11 +2,17 @@ package xray
 
 import (
 	"bytes"
+	"context"
+
 	"github.com/xtls/xray-core/core"
 	"github.com/xtls/xray-core/infra/conf/serial"
 )
 
 func CreateXrayInstance(config string) (*core.Instance, error) {
+	return createXrayInstance(context.Background(), config)
+}
+
+func createXrayInstance(ctx context.Context, config string) (*core.Instance, error) {
 	r := bytes.NewReader([]byte(config))
 	conf, err := serial.DecodeJSONConfig(r)
 	if err != nil {
@@ -18,17 +24,19 @@ func CreateXrayInstance(config string) (*core.Instance, error) {
 		return nil, err
 	}
 
-	server, err := core.New(b)
-	if err != nil {
-		return nil, err
+	if ctx.Done() != nil {
+		return core.NewProbe(ctx, b)
 	}
-
-	return server, nil
+	return core.New(b)
 }
 
 // prepare runs between core.New and Start; an instance that fails either is closed.
 func StartInstance(config string, prepare func(*core.Instance) error) (*core.Instance, error) {
-	instance, err := CreateXrayInstance(config)
+	return startInstance(context.Background(), config, prepare)
+}
+
+func startInstance(ctx context.Context, config string, prepare func(*core.Instance) error) (*core.Instance, error) {
+	instance, err := createXrayInstance(ctx, config)
 	if err != nil {
 		return nil, err
 	}
@@ -44,10 +52,14 @@ func StartInstance(config string, prepare func(*core.Instance) error) (*core.Ins
 }
 
 // On failure the ones already started are closed; on success the caller must close them.
-func StartInstances(configs []string, prepare func(*core.Instance) error) ([]*core.Instance, error) {
+func StartInstances(ctx context.Context, configs []string, prepare func(*core.Instance) error) ([]*core.Instance, error) {
 	instances := make([]*core.Instance, 0, len(configs))
 	for _, config := range configs {
-		instance, err := StartInstance(config, prepare)
+		if err := ctx.Err(); err != nil {
+			CloseInstances(instances)
+			return nil, err
+		}
+		instance, err := startInstance(ctx, config, prepare)
 		if err != nil {
 			CloseInstances(instances)
 			return nil, err
