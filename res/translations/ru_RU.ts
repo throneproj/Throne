@@ -4963,6 +4963,77 @@ Close without saving?</source>
     </message>
 </context>
 <context>
+    <name>DialogWarpFinder</name>
+    <message>
+        <source>Find WARP endpoint</source>
+        <translation>Найти конечную точку WARP</translation>
+    </message>
+    <message>
+        <source>Endpoint</source>
+        <translation>Конечная точка</translation>
+    </message>
+    <message>
+        <source>Working endpoints appear here</source>
+        <translation>Здесь появятся рабочие конечные точки</translation>
+    </message>
+    <message>
+        <source>Use endpoint</source>
+        <translation>Использовать конечную точку</translation>
+    </message>
+    <message>
+        <source>The search could not be started</source>
+        <translation>Не удалось начать поиск</translation>
+    </message>
+    <message>
+        <source>Stopping</source>
+        <translation>Остановка</translation>
+    </message>
+    <message numerus="yes">
+        <source>Found %n endpoint(s) in %1 s</source>
+        <translation>
+            <numerusform>Найдена %n конечная точка за %1 с</numerusform>
+            <numerusform>Найдены %n конечные точки за %1 с</numerusform>
+            <numerusform>Найдено %n конечных точек за %1 с</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>No working endpoint found</source>
+        <translation>Рабочая конечная точка не найдена</translation>
+    </message>
+    <message>
+        <source>%1 s of %2 s</source>
+        <translation>%1 с из %2 с</translation>
+    </message>
+    <message numerus="yes">
+        <source>Found %n</source>
+        <translation>
+            <numerusform>Найдена %n</numerusform>
+            <numerusform>Найдены %n</numerusform>
+            <numerusform>Найдено %n</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Plain WireGuard is blocked on this network, but it gets through with AmneziaWG junk packets. Using an endpoint turns them on.</source>
+        <translation>Обычный WireGuard в этой сети заблокирован, но проходит с мусорными пакетами AmneziaWG. При использовании конечной точки они будут включены.</translation>
+    </message>
+    <message>
+        <source>HTTP/3 is blocked on this network, but HTTP/2 gets through. Using an endpoint switches the profile to HTTP/2.</source>
+        <translation>HTTP/3 в этой сети заблокирован, но HTTP/2 проходит. При использовании конечной точки профиль переключится на HTTP/2.</translation>
+    </message>
+    <message>
+        <source>This profile dials %1 instead of its own address. Using an endpoint switches it back to its own address.</source>
+        <translation>Этот профиль подключается через %1, а не по собственному адресу. При использовании конечной точки он вернётся к собственному адресу.</translation>
+    </message>
+    <message>
+        <source>Stop</source>
+        <translation>Остановить</translation>
+    </message>
+    <message>
+        <source>Search again</source>
+        <translation>Искать снова</translation>
+    </message>
+</context>
+<context>
     <name>DnsServerListEdit</name>
     <message>
         <source>Drag to reorder</source>
@@ -6311,6 +6382,14 @@ Close without saving?</source>
     <message>
         <source>Success!</source>
         <translation>Успешно!</translation>
+    </message>
+    <message>
+        <source>Find WARP endpoint</source>
+        <translation>Найти конечную точку WARP</translation>
+    </message>
+    <message>
+        <source>Search for a WARP endpoint that works on this network.</source>
+        <translation>Найти конечную точку WARP, которая работает в этой сети.</translation>
     </message>
 </context>
 <context>
@@ -7765,6 +7844,18 @@ Close without saving?</source>
     <message>
         <source>Open Amnezia Options and fix %1: %2</source>
         <translation>Откройте «Параметры Amnezia» и исправьте %1: %2</translation>
+    </message>
+    <message>
+        <source>Find WARP endpoint</source>
+        <translation>Найти конечную точку WARP</translation>
+    </message>
+    <message>
+        <source>Search for a WARP endpoint that works on this network.</source>
+        <translation>Найти конечную точку WARP, которая работает в этой сети.</translation>
+    </message>
+    <message>
+        <source>Only for Cloudflare WARP profiles.</source>
+        <translation>Только для профилей Cloudflare WARP.</translation>
     </message>
 </context>
 <context>
@@ -9904,6 +9995,22 @@ Error: %2</source>
     <message>
         <source>Time range</source>
         <translation>Период</translation>
+    </message>
+    <message>
+        <source>Find WARP endpoint</source>
+        <translation>Найти конечную точку WARP</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is open in an editor; close it and try again.</source>
+        <translation>«%1» открыт в редакторе; закройте его и повторите попытку.</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is no longer a WARP profile.</source>
+        <translation>«%1» больше не является профилем WARP.</translation>
+    </message>
+    <message>
+        <source>The profile was deleted meanwhile.</source>
+        <translation>Профиль тем временем был удалён.</translation>
     </message>
 </context>
 <context>
@@ -13028,6 +13135,18 @@ Remove that endpoint from this routing profile as well?</source>
             <numerusform>Ни один результат %1 не ответил, поэтому сохранено %n неудачных результата %1</numerusform>
             <numerusform>Ни один результат %1 не ответил, поэтому сохранено %n неудачных результатов %1</numerusform>
         </translation>
+    </message>
+    <message>
+        <source>Trying HTTP/2</source>
+        <translation>Проверка через HTTP/2</translation>
+    </message>
+    <message>
+        <source>HTTP/3 gets no answer here; continuing over HTTP/2</source>
+        <translation>HTTP/3 здесь не получает ответа; сканирование продолжается через HTTP/2</translation>
+    </message>
+    <message>
+        <source>These endpoints need HTTP/2: set the profile&apos;s HTTP version to HTTP/2</source>
+        <translation>Этим конечным точкам нужен HTTP/2: выберите HTTP/2 в качестве версии HTTP в профиле</translation>
     </message>
 </context>
 <context>

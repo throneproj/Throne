@@ -4,6 +4,10 @@
 #include "profile_editor.h"
 #include "ui_edit_masque.h"
 
+namespace Configs {
+    struct IpListEntry;
+}
+
 namespace Configs_network {
     struct WarpIdentity;
 }
@@ -28,6 +32,8 @@ public:
 
     void bindValidation(Validation::Form &form) override;
 
+    bool retarget(const std::shared_ptr<Configs::Profile> &profile) override;
+
     // The core dials 443 when the port is 0.
     bool serverPortOptional() override { return true; }
 
@@ -38,4 +44,8 @@ private:
     void generateWarpIdentity();
 
     void applyWarpIdentity(const Configs_network::WarpIdentity &identity);
+
+    void findWarpEndpoint();
+
+    void applyWarpEndpoint(const Configs::IpListEntry &entry, bool http2, bool ownAddress);
 };

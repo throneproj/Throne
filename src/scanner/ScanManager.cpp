@@ -4,15 +4,19 @@
 #include <QPointer>
 #include <QTimer>
 
+#include <algorithm>
 #include <utility>
 
 #include "include/api/RPC.h"
 #include "include/database/IpListsRepo.h"
 #include "include/database/IpScansRepo.h"
 #include "include/global/Configs.hpp"
+#include "include/scanner/DefaultIpLists.h"
+#include "include/scanner/IpListParse.h"
 #include "include/scanner/IpListUpdater.h"
 #include "include/scanner/ScanProfiles.h"
 #include "include/scanner/ScanWorker.h"
+#include "include/scanner/WarpPresets.h"
 #include "include/scanner/WarpWorker.h"
 
 namespace Scanner {
@@ -66,6 +70,22 @@ namespace Scanner {
                 if (header->id == listId) return header;
             }
             return nullptr;
+        }
+
+        // The carrier's default list, put back if it was deleted; the presets when it cannot be or holds nothing.
+        QList<Configs::IpListEntry> scanManagerWarpSeeds(bool masque) {
+            const auto &name = masque ? DefaultIpLists::kWarpMasqueName : DefaultIpLists::kWarpWireGuardName;
+            const auto lists = Configs::dataManager->ipListsRepo->GetAllIpLists();
+            const bool existed = std::any_of(lists.cbegin(), lists.cend(), [&name](const std::shared_ptr<Configs::IpList> &list) {
+                return list->role == Configs::IpList::Role::User && list->name == name;
+            });
+            QList<Configs::IpListEntry> entries;
+            if (const int listId = DefaultIpLists::Ensure(name); listId >= 0) {
+                if (!existed) IpListUpdater::instance()->NotifyListsChanged();
+                entries = Configs::dataManager->ipListsRepo->GetEntries(listId);
+            }
+            if (entries.isEmpty()) entries = EntriesFromCidrs(masque ? WarpPresets::kMasqueEndpoints : WarpPresets::kWireGuardRanges, 0);
+            return entries;
         }
     } // namespace
 
@@ -133,12 +153,12 @@ namespace Scanner {
         ScanRunHooks hooks;
         hooks.progress = [self, scanId] {
             runOnUiThread([self, scanId] {
-                if (self != nullptr) scanManagerQueueProgress(scanId);
+                if (self != nullptr && self->tracked(scanId)) scanManagerQueueProgress(scanId);
             });
         };
         hooks.results = [self, scanId] {
             runOnUiThread([self, scanId] {
-                if (self != nullptr) emit self->resultsChanged(scanId);
+                if (self != nullptr && self->tracked(scanId)) emit self->resultsChanged(scanId);
             });
         };
         hooks.finished = [self, scanId] {
@@ -166,7 +186,7 @@ namespace Scanner {
             if (!persist) worker->DisablePersist();
             worker->RequestStop();
             scanManagerSendStop(worker->SessionId());
-            if (write && !worker->IsFinalized())
+            if (write && it.key() >= 0 && !worker->IsFinalized())
                 Configs::dataManager->ipScansRepo->SaveStatus(it.key(), Configs::IpScan::Status::Paused, {});
         }
     }
@@ -176,11 +196,16 @@ namespace Scanner {
     }
 
     QList<int> ScanManager::RunningScans() const {
-        return workers.keys();
+        QList<int> ids;
+        for (auto it = workers.cbegin(); it != workers.cend(); ++it) {
+            if (it.key() >= 0) ids << it.key();
+        }
+        return ids;
     }
 
     ScanLiveState ScanManager::LiveState(int scanId) const {
         if (const auto it = workers.constFind(scanId); it != workers.constEnd()) return it.value()->LiveState();
+        if (scanId < 0) return finders.value(scanId);
         ScanLiveState state;
         const auto scan = Configs::dataManager->ipScansRepo->GetIpScan(scanId);
         if (scan == nullptr) return state;
@@ -193,6 +218,7 @@ namespace Scanner {
     }
 
     void ScanManager::SetWatched(int scanId, bool isWatched) {
+        if (scanId < 0) return;
         if (isWatched) watched.insert(scanId);
         else watched.remove(scanId);
     }
@@ -202,6 +228,7 @@ namespace Scanner {
     }
 
     QString ScanManager::DeleteScan(int scanId, bool deleteResultList) {
+        if (scanId < 0) return {};
         if (workers.contains(scanId)) return tr("Pause the scan first");
         auto &lists = *Configs::dataManager->ipListsRepo;
         const auto scan = Configs::dataManager->ipScansRepo->GetIpScan(scanId);
@@ -275,8 +302,43 @@ namespace Scanner {
         emit scansChanged();
     }
 
+    int ScanManager::StartWarpFinder(std::shared_ptr<Configs::Profile> base, QString *error) {
+        auto copy = CloneWarpScanBase(base, error);
+        if (copy == nullptr) return 0;
+        auto seeds = scanManagerWarpSeeds(WarpCarrier(*copy) == QLatin1String("masque"));
+        const int id = nextFinderId--;
+        const auto worker = std::make_shared<WarpWorker>(id, std::move(copy), std::move(seeds), hooksFor(id));
+        workers.insert(id, worker);
+        emit statusChanged(id);
+        worker->Start();
+        return id;
+    }
+
+    void ScanManager::ForgetWarpFinder(int id) {
+        if (id >= 0) return;
+        finders.remove(id);
+        scanManagerPendingProgress().remove(id);
+        // The run winds down on its own threads, which hold it; nothing it reports reaches views any more.
+        if (const auto worker = workers.take(id); worker != nullptr && !worker->IsStopping()) {
+            worker->RequestStop();
+            scanManagerSendStop(worker->SessionId());
+        }
+    }
+
+    bool ScanManager::tracked(int scanId) const {
+        return scanId >= 0 || workers.contains(scanId) || finders.contains(scanId);
+    }
+
     void ScanManager::onWorkerFinished(int scanId) {
         scanManagerPendingProgress().remove(scanId);
+        if (scanId < 0) {
+            const auto it = workers.constFind(scanId);
+            if (it == workers.constEnd()) return;
+            auto state = it.value()->LiveState();
+            state.running = false;
+            state.stopping = false;
+            finders.insert(scanId, state);
+        }
         // Still registered, so views read the worker's final log and stage.
         emit progressChanged(scanId);
         workers.remove(scanId);

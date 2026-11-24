@@ -8,9 +8,13 @@
 
 #include "include/configs/sub/warp.h"
 #include "include/global/Utils.hpp"
+#include "include/scanner/ScanProfiles.h"
+#include "include/ui/scanner/dialog_warp_finder.h"
 #include "include/ui/utils/ValidationForm.h"
 
 namespace {
+    constexpr auto kEditWireguardWarpHostSuffix = ".cloudflareclient.com";
+
     // The Amnezia Options labels, translated in that dialog's context.
     QString editWireguardAmneziaLabel(const QString &field) {
         static const QList<std::pair<const char *, const char *>> labels = {
@@ -56,6 +60,9 @@ EditWireguard::EditWireguard(QWidget *parent) : QWidget(parent), ui(new Ui::Edit
         amnezia->show();
     });
 
+    connect(ui->public_key, &QLineEdit::textChanged, this, [this] { updateWarpFind(); });
+    connect(ui->warp_find, &QPushButton::clicked, this, [this] { findWarpEndpoint(); });
+
     connect(ui->warp_autogen, &QPushButton::clicked, this, [this] {
         if (!Configs_network::ConfirmWarpTerms(this)) return;
 
@@ -89,6 +96,7 @@ EditWireguard::EditWireguard(QWidget *parent) : QWidget(parent), ui(new Ui::Edit
                     if (editor->set_edit_text_serverPort) editor->set_edit_text_serverPort(conf->endpoint.mid(sep + 1));
                 }
                 editor->ui->reserved->setText(QListInt2QListString(conf->reserved).join(","));
+                editor->updateWarpFind();
                 editor->ui->warp_autogen->setText(tr("Success!"));
                 setTimeout([editor, originalText] {
                     editor->ui->warp_autogen->setText(originalText);
@@ -122,6 +130,12 @@ void EditWireguard::onStart(std::shared_ptr<Configs::Profile> _ent) {
     ui->workers->setText(Int2String(outbound->worker_count));
 
     ui->enable_amnezia->setChecked(outbound->enable_amnezia);
+    updateWarpFind();
+}
+
+bool EditWireguard::retarget(const std::shared_ptr<Configs::Profile> &profile) {
+    ent = profile;
+    return true;
 }
 
 bool EditWireguard::onEnd() {
@@ -166,4 +180,42 @@ void EditWireguard::bindValidation(Validation::Form &form) {
         }
         return QString();
     }, this);
+}
+
+void EditWireguard::updateWarpFind() {
+    QString address = get_edit_text_serverAddress ? get_edit_text_serverAddress().trimmed() : QString();
+    // onStart() runs before the outer dialog fills its address field.
+    if (address.isEmpty() && ent != nullptr) address = ent->outbound->GetAddress().trimmed();
+    const bool warp = Scanner::IsWarpPeerKey(ui->public_key->text().trimmed()) ||
+                      address.endsWith(QLatin1String(kEditWireguardWarpHostSuffix), Qt::CaseInsensitive);
+    ui->warp_find->setEnabled(warp);
+    ui->warp_find->setToolTip(warp ? tr("Search for a WARP endpoint that works on this network.") : tr("Only for Cloudflare WARP profiles."));
+}
+
+void EditWireguard::findWarpEndpoint() {
+    if (ent == nullptr || !get_draft_profile) return;
+    const auto draft = get_draft_profile();
+    if (draft == nullptr) return;
+    const QString origin = DialogWarpFinder::OverrideOrigin(draft);
+    auto *finder = new DialogWarpFinder(draft, origin, get_edit_dialog ? get_edit_dialog() : window());
+    connect(finder, &DialogWarpFinder::endpointChosen, this, [this, origin](const Configs::IpListEntry &entry, bool junk, bool) {
+        applyWarpEndpoint(entry, junk, !origin.isEmpty());
+    });
+    finder->show();
+}
+
+void EditWireguard::applyWarpEndpoint(const Configs::IpListEntry &entry, bool junk, bool ownAddress) {
+    if (ent == nullptr) return;
+    if (set_edit_text_serverAddress) set_edit_text_serverAddress(entry.cidr);
+    if (set_edit_text_serverPort && entry.port > 0) set_edit_text_serverPort(QString::number(entry.port));
+    if (junk && !ui->enable_amnezia->isChecked()) {
+        // Values go into ent as Amnezia Options writes them; the switch waits in the checkbox, so a cancel leaves it off.
+        auto *wireguard = ent->Wireguard();
+        const bool enabled = wireguard->enable_amnezia;
+        Scanner::ApplyWarpJunk(*wireguard);
+        wireguard->enable_amnezia = enabled;
+        ui->enable_amnezia->setChecked(true);
+        if (form) form->revalidate(ui->enable_amnezia);
+    }
+    if (ownAddress && use_own_endpoint) use_own_endpoint();
 }

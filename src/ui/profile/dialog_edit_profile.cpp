@@ -45,6 +45,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPointer>
+#include <QScopeGuard>
 #include <QSet>
 
 namespace {
@@ -202,7 +203,9 @@ DialogEditProfile::DialogEditProfile(const QString &_type, int profileOrGroupId,
     connect(ui->advanced_button, &QPushButton::clicked, this, [this] {
         auto *advanced = new EditAdvanced(this, ent);
         advanced->setAttribute(Qt::WA_DeleteOnClose);
-        connect(advanced, &QDialog::accepted, this, [this] {
+        connect(advanced, &QDialog::accepted, this, [this, endpointBefore = ent->endpoint.ToJson()] {
+            // A source picked in Advanced overrides a pending switch to the own address.
+            if (ent->endpoint.ToJson() != endpointBefore) pendingOwnEndpoint = false;
             updateControls();
             // Rules anchored here also read what Advanced just wrote into the profile.
             for (QWidget *anchor: std::initializer_list<QWidget *>{ui->reality_pbk, ui->certificate_edit, ui->sni, ui->utlsFingerprint}) {
@@ -340,11 +343,18 @@ void DialogEditProfile::mountEditor(QWidget *widget, ProfileEditor *editor) {
     editor->get_edit_text_name = [this] { return ui->name->text(); };
     editor->get_edit_text_serverAddress = [this] { return ui->address->text(); };
     editor->get_edit_text_serverPort = [this] { return ui->port->text(); };
+    editor->get_edit_text_sni = [this] { return ui->sni->text(); };
     editor->set_edit_title = [this](const QString &v) { ui->bean->setTitle(v); };
     editor->set_edit_text_serverAddress = [this](const QString &v) { ui->address->setText(v); };
     editor->set_edit_text_serverPort = [this](const QString &v) { ui->port->setText(v); };
+    editor->set_edit_text_sni = [this](const QString &v) { ui->sni->setText(v); };
     editor->editor_cache_updated = [this] { editor_cache_updated_impl(); };
     editor->editor_state_changed = [this] { relayout(); };
+    editor->get_draft_profile = [this] { return draftProfile(); };
+    editor->use_own_endpoint = [this] {
+        pendingOwnEndpoint = true;
+        relayout();
+    };
 }
 
 // Visibility and enabled state are derived from the profile and the current input, never from other widgets.
@@ -363,7 +373,7 @@ void DialogEditProfile::updateCommonRows() {
         w->setVisible(server);
         w->setEnabled(!locked);
     }
-    const auto endpoint = endpointOverride(ent, server && !locked);
+    const auto endpoint = endpointOverride(ent, server && !locked && !pendingOwnEndpoint);
     const bool overridden = !endpoint.address.isEmpty();
     // An IP list entry with a port replaces the profile's port too.
     const bool portOverridden = overridden && endpoint.port > 0;
@@ -402,9 +412,31 @@ bool DialogEditProfile::onEnd() {
     ent->outbound->name = ui->name->text().trimmed();
     ent->outbound->SetAddress(ui->address->text().remove(' '));
     ent->outbound->SetPort(ui->port->text().trimmed().toInt());
+    if (pendingOwnEndpoint) ent->endpoint.mode = Configs::EndpointSource::Mode::Own;
     saveSingboxStream();
     saveXrayStream();
     return true;
+}
+
+std::shared_ptr<Configs::Profile> DialogEditProfile::draftProfile() {
+    if (ent == nullptr || innerEditor == nullptr || !form->validateAll()) return nullptr;
+    auto draft = Configs::ProfilesRepo::NewProfile(ent->type);
+    if (draft->outbound == nullptr || draft->outbound->invalid || !draft->outbound->ParseFromJson(ent->outbound->ExportToJson())) return nullptr;
+    draft->id = ent->id;
+    draft->gid = ent->gid;
+    draft->name = ent->name;
+    draft->endpoint = ent->endpoint;
+    draft->outbound->profile_id = ent->outbound->profile_id;
+    if (!innerEditor->retarget(draft)) return nullptr;
+
+    // onEnd() writes the form into ent, which is the live profile the repo hands out.
+    const auto live = ent;
+    ent = draft;
+    const auto restore = qScopeGuard([this, live] {
+        ent = live;
+        innerEditor->retarget(live);
+    });
+    return onEnd() ? draft : nullptr;
 }
 
 void DialogEditProfile::accept() {

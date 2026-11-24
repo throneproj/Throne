@@ -8,6 +8,12 @@
 #include <functional>
 #include <memory>
 
+#include "include/database/entities/IpList.h"
+
+namespace Configs {
+    class Profile;
+}
+
 namespace Scanner {
     class ScanRun;
 
@@ -35,6 +41,11 @@ namespace Scanner {
         QString stage;
         QStringList log;
         QString error;
+        // WARP runs: a setting the endpoints found need that the profile lacks.
+        bool warpJunk = false;  // plain WireGuard got no answer, AmneziaWG junk did
+        bool warpHttp2 = false; // MASQUE: HTTP/3 got no answer, HTTP/2 did
+        // Finder runs only: confirmed endpoints, best first.
+        QList<Configs::IpListEntry> hits;
     };
 
     struct ScanRunHooks {
@@ -77,14 +88,15 @@ namespace Scanner {
 
         StartResult Start(int scanId, StartMode mode);
 
-        // Asynchronous: the run persists its position and emits statusChanged when it has stopped.
+        // Asynchronous: the run persists its position and emits statusChanged when it has stopped. Stops a finder run too.
         void Pause(int scanId);
 
-        // persist=false (restore): no DB write from any run after this call.
+        // persist=false (restore): no DB write from any run after this call. Finder runs stop too.
         void StopAll(bool persist);
 
         [[nodiscard]] bool IsRunning(int scanId) const;
 
+        // Saved scans only, never finder runs.
         [[nodiscard]] QList<int> RunningScans() const;
 
         [[nodiscard]] ScanLiveState LiveState(int scanId) const;
@@ -105,6 +117,14 @@ namespace Scanner {
 
         void NotifyScansChanged();
 
+        // A one-off WARP search on a deep copy of base (an editor's unsaved draft works): the run writes nothing to the database
+        // (a deleted default WARP list is put back for its seeds), and hits arrive in LiveState(id).hits.
+        // Returns the run id (< 0), or 0 with *error set.
+        int StartWarpFinder(std::shared_ptr<Configs::Profile> base, QString *error);
+
+        // Stops a finder run if it is still running and drops its state; LiveState(id) is empty afterwards.
+        void ForgetWarpFinder(int id);
+
     signals:
         void progressChanged(int scanId);
         void statusChanged(int scanId);
@@ -118,8 +138,15 @@ namespace Scanner {
 
         [[nodiscard]] ScanRunHooks hooksFor(int scanId);
 
+        // False for a finder run already forgotten, whose late signals nobody wants.
+        [[nodiscard]] bool tracked(int scanId) const;
+
+        // Finder runs share it under negative ids.
         QHash<int, std::shared_ptr<ScanRun>> workers;
         QSet<int> watched;
         bool persistDisabled = false;
+        // Ended finder runs keep their final state until forgotten.
+        QHash<int, ScanLiveState> finders;
+        int nextFinderId = -1;
     };
 } // namespace Scanner

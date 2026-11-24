@@ -4,12 +4,14 @@
 
 #include "include/configs/sub/warp.h"
 #include "include/global/Utils.hpp"
+#include "include/ui/scanner/dialog_warp_finder.h"
 #include "include/ui/utils/ValidationForm.h"
 
 namespace {
     constexpr int kHttp3Fallback = 0;
     constexpr int kHttp3Only = 1;
     constexpr int kHttp2 = 2;
+    constexpr int kEditMasqueDefaultPort = 443;
 }
 
 EditMasque::EditMasque(QWidget *parent) : QWidget(parent), ui(new Ui::EditMasque) {
@@ -17,6 +19,7 @@ EditMasque::EditMasque(QWidget *parent) : QWidget(parent), ui(new Ui::EditMasque
     ui->mtu->setValidator(QRegExpValidator_Number);
 
     connect(ui->warp_autogen, &QPushButton::clicked, this, [this] { generateWarpIdentity(); });
+    connect(ui->warp_find, &QPushButton::clicked, this, [this] { findWarpEndpoint(); });
 }
 
 EditMasque::~EditMasque() {
@@ -34,6 +37,11 @@ void EditMasque::onStart(std::shared_ptr<Configs::Profile> _ent) {
     if (outbound->http_version == 2) ui->http_version->setCurrentIndex(kHttp2);
     else if (outbound->disable_version_fallback) ui->http_version->setCurrentIndex(kHttp3Only);
     else ui->http_version->setCurrentIndex(kHttp3Fallback);
+}
+
+bool EditMasque::retarget(const std::shared_ptr<Configs::Profile> &profile) {
+    ent = profile;
+    return true;
 }
 
 bool EditMasque::onEnd() {
@@ -116,4 +124,28 @@ void EditMasque::applyWarpIdentity(const Configs_network::WarpIdentity &identity
     if (host.startsWith('[') && host.endsWith(']')) host = host.mid(1, host.length() - 2);
     if (set_edit_text_serverAddress) set_edit_text_serverAddress(host);
     if (set_edit_text_serverPort) set_edit_text_serverPort(identity.endpoint.mid(sep + 1));
+}
+
+void EditMasque::findWarpEndpoint() {
+    if (ent == nullptr || !get_draft_profile) return;
+    const auto draft = get_draft_profile();
+    if (draft == nullptr) return;
+    const QString origin = DialogWarpFinder::OverrideOrigin(draft);
+    auto *finder = new DialogWarpFinder(draft, origin, get_edit_dialog ? get_edit_dialog() : window());
+    connect(finder, &DialogWarpFinder::endpointChosen, this, [this, origin](const Configs::IpListEntry &entry, bool, bool http2) {
+        applyWarpEndpoint(entry, http2, !origin.isEmpty());
+    });
+    finder->show();
+}
+
+void EditMasque::applyWarpEndpoint(const Configs::IpListEntry &entry, bool http2, bool ownAddress) {
+    QString previous = get_edit_text_serverAddress ? get_edit_text_serverAddress().trimmed() : QString();
+    UnwrapIPV6Host(previous);
+    // The search kept the old host name as SNI; an empty SNI would become the new address.
+    if (!previous.isEmpty() && !IsIpAddress(previous) && get_edit_text_sni && set_edit_text_sni && get_edit_text_sni().trimmed().isEmpty())
+        set_edit_text_sni(previous);
+    if (set_edit_text_serverAddress) set_edit_text_serverAddress(entry.cidr);
+    if (set_edit_text_serverPort) set_edit_text_serverPort(QString::number(entry.port > 0 ? entry.port : kEditMasqueDefaultPort));
+    if (http2) ui->http_version->setCurrentIndex(kHttp2);
+    if (ownAddress && use_own_endpoint) use_own_endpoint();
 }

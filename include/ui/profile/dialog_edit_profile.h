@@ -53,6 +53,8 @@ private:
     QString originalAddress;
     QString originalPort;
     std::optional<Engine::EditLock> editLock;
+    // Kept off ent until onEnd(): ent is the live profile, and a cancel must not switch its endpoint source.
+    bool pendingOwnEndpoint = false;
 
     QString network_title_base;
     // The Fragment item the profile loaded as; its fields are rewritten only when the choice changes.
@@ -79,6 +81,7 @@ private:
     void relayout();
     void fitToContent();
     bool onEnd();
+    std::shared_ptr<Configs::Profile> draftProfile();
     void editor_cache_updated_impl();
     void setCacheButtonText(QPushButton *button, bool isSet);
     static void setRowVisible(QWidget *label, QWidget *field, bool visible);

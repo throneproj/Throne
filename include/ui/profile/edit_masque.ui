@@ -118,14 +118,28 @@
        </widget>
       </item>
       <item row="5" column="0" colspan="2">
-       <widget class="QPushButton" name="warp_autogen">
-        <property name="toolTip">
-         <string>Register a Cloudflare WARP device for MASQUE and fill in its fields.</string>
-        </property>
-        <property name="text">
-         <string>Generate WARP identity</string>
-        </property>
-       </widget>
+       <layout class="QHBoxLayout" name="warp_buttons">
+        <item>
+         <widget class="QPushButton" name="warp_autogen">
+          <property name="toolTip">
+           <string>Register a Cloudflare WARP device for MASQUE and fill in its fields.</string>
+          </property>
+          <property name="text">
+           <string>Generate WARP identity</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="warp_find">
+          <property name="toolTip">
+           <string>Search for a WARP endpoint that works on this network.</string>
+          </property>
+          <property name="text">
+           <string>Find WARP endpoint</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
@@ -139,6 +153,7 @@
   <tabstop>mtu</tabstop>
   <tabstop>http_version</tabstop>
   <tabstop>warp_autogen</tabstop>
+  <tabstop>warp_find</tabstop>
  </tabstops>
  <resources/>
  <connections/>

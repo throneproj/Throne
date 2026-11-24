@@ -32,17 +32,25 @@
 
 namespace Scanner {
     namespace {
-        constexpr int kWarpWorkerConcurrency = 16;
+        // WireGuard probes in flight; discovery mostly waits on silent ports, so it sends more at once.
+        constexpr int kWarpWorkerConcurrency = 32;
+        constexpr int kWarpWorkerDiscoveryConcurrency = 48;
+        // More MASQUE TLS handshakes at once lose answers.
+        constexpr int kWarpWorkerMasqueConcurrency = 16;
         // Small calls, so the stop rule sees results as they arrive.
-        constexpr int kWarpWorkerChunk = 2 * kWarpWorkerConcurrency;
+        constexpr int kWarpWorkerChunk = 32;
         constexpr int kWarpWorkerSpawnIntervalMs = 2;
         constexpr int kWarpWorkerHandshakeTimeoutMs = 1000;
         constexpr int kWarpWorkerDiscoveryAttempts = 1;
         constexpr int kWarpWorkerAttempts = 3;
         constexpr int kWarpWorkerDiscoveryAddresses = 12;
         constexpr int kWarpWorkerFallbackAddresses = 4;
+        constexpr int kWarpWorkerHttp3Checks = 8;
+        // The core dials MASQUE on 443 when the profile has no port.
+        constexpr int kWarpWorkerMasqueDefaultPort = 443;
         constexpr int kWarpWorkerPerPrefix = 16;
-        constexpr int kWarpWorkerDataBatch = 8;
+        // A batch lasts as long as its slowest tunnel, and a failing one takes the whole data check bound.
+        constexpr int kWarpWorkerDataBatch = 4;
         constexpr int kWarpWorkerDataTimeoutMs = 3000;
         constexpr int kWarpWorkerStopAfter = 5;
         constexpr qint64 kWarpWorkerQuietMs = 10000;
@@ -54,10 +62,6 @@ namespace Scanner {
         constexpr int kWarpWorkerMaxPools = 256;
         constexpr int kWarpWorkerNetworkCheckTimeoutMs = 3000;
         constexpr qint64 kWarpWorkerNetworkReuseMs = 10000;
-        // Throne's built-in AmneziaWG junk for WARP.
-        constexpr int kWarpWorkerJunkCount = 4;
-        constexpr int kWarpWorkerJunkMin = 40;
-        constexpr int kWarpWorkerJunkMax = 70;
         // Mirror the core's TunnelHandshakeTimeout and TunnelStartupTimeout.
         constexpr qint64 kWarpWorkerTunnelHandshakeMs = 10000;
         constexpr qint64 kWarpWorkerTunnelStartupMs = 5000;
@@ -124,29 +128,47 @@ namespace Scanner {
             return bytes;
         }
 
-        // Plain WireGuard plus Throne's junk; leftover AmneziaWG fields would change the wire format Cloudflare expects.
-        std::shared_ptr<Configs::Profile> warpWorkerJunkCopy(const std::shared_ptr<Configs::Profile> &base) {
+        std::shared_ptr<Configs::Profile> warpWorkerCopy(const std::shared_ptr<Configs::Profile> &base) {
             auto copy = Configs::ProfilesRepo::NewProfile(base->type);
             if (copy->outbound == nullptr || !copy->outbound->ParseFromJson(base->outbound->ExportToJson())) return nullptr;
             copy->id = base->id;
             copy->gid = base->gid;
             copy->name = base->name;
             copy->outbound->profile_id = base->outbound->profile_id;
-            auto *wireguard = copy->Wireguard();
-            if (wireguard == nullptr) return nullptr;
-            wireguard->enable_amnezia = true;
-            wireguard->jc = kWarpWorkerJunkCount;
-            wireguard->jmin = kWarpWorkerJunkMin;
-            wireguard->jmax = kWarpWorkerJunkMax;
-            wireguard->s1 = wireguard->s2 = wireguard->s3 = wireguard->s4 = 0;
-            for (auto *field : {&wireguard->h1, &wireguard->h2, &wireguard->h3, &wireguard->h4, &wireguard->i1, &wireguard->i2,
-                                &wireguard->i3, &wireguard->i4, &wireguard->i5, &wireguard->header_protection_key,
-                                &wireguard->content_padding_addition, &wireguard->rekey_after_time, &wireguard->rekey_timeout,
-                                &wireguard->reject_after_time, &wireguard->keepalive_timeout, &wireguard->max_handshake_attempts})
-                field->clear();
-            wireguard->random_trailers = false;
-            wireguard->disable_cookies = false;
             return copy;
+        }
+
+        std::shared_ptr<Configs::Profile> warpWorkerJunkCopy(const std::shared_ptr<Configs::Profile> &base) {
+            auto copy = warpWorkerCopy(base);
+            auto *wireguard = copy != nullptr ? copy->Wireguard() : nullptr;
+            if (wireguard == nullptr) return nullptr;
+            ApplyWarpJunk(*wireguard);
+            return copy;
+        }
+
+        // MASQUE on HTTP/2 or HTTP/3 alone.
+        std::shared_ptr<Configs::Profile> warpWorkerHttpCopy(const std::shared_ptr<Configs::Profile> &base, int version) {
+            auto copy = warpWorkerCopy(base);
+            auto *masque = copy != nullptr ? copy->Masque() : nullptr;
+            if (masque == nullptr) return nullptr;
+            masque->http_version = version;
+            masque->disable_version_fallback = version == 3;
+            return copy;
+        }
+
+        // "" when the profile cannot be built.
+        QString warpWorkerProbeJson(const std::shared_ptr<Configs::Profile> &profile) {
+            if (profile == nullptr) return {};
+            QString error;
+            const auto endpoint = WarpProbeEndpoint(*profile, &error);
+            return endpoint.isEmpty() ? QString() : QJsonObject2QString(endpoint, true);
+        }
+
+        Configs::IpScan warpWorkerFinderScan(int id) {
+            Configs::IpScan scan;
+            scan.id = id;
+            scan.total = kWarpWorkerBudgetSeconds;
+            return scan;
         }
     } // namespace
 
@@ -171,6 +193,14 @@ namespace Scanner {
             live_.total = scan.ActiveTotal();
             live_.removed = scan.removed;
         }
+    }
+
+    WarpWorker::WarpWorker(int finderId, std::shared_ptr<Configs::Profile> base, QList<Configs::IpListEntry> seeds, ScanRunHooks hooks)
+        : WarpWorker(warpWorkerFinderScan(finderId), StartMode::FromInitial, std::move(base), std::move(hooks)) {
+        finder_ = true;
+        seeds_ = std::move(seeds);
+        persist_.store(false);
+        live_.total = scan_.total;
     }
 
     void WarpWorker::Start() {
@@ -212,7 +242,7 @@ namespace Scanner {
         try {
             finishRun(completed, error);
         } catch (...) {
-            MW_show_log(ScanManager::tr("Scan %1: saving its final state failed").arg(scanId_));
+            mainLog(ScanManager::tr("Scan %1: saving its final state failed").arg(scanId_));
         }
         tickStop_.store(true);
         if (hooks_.finished) hooks_.finished();
@@ -236,11 +266,13 @@ namespace Scanner {
     QString WarpWorker::execute(bool &completed) {
         clockStartMs_ = warpWorkerNowMs();
         if (auto error = prepare(); !error.isEmpty() || stop_) return error;
-        auto error = preparePass();
-        if (std::exchange(listsTouched_, false)) IpListUpdater::instance()->NotifyListsChanged();
-        if (!error.isEmpty() || stop_ || !persist_) return error;
-        if (rescanPass()) return rescan(completed);
-        if (error = loadPools(); !error.isEmpty() || stop_) return error;
+        if (!finder_) {
+            const auto error = preparePass();
+            if (std::exchange(listsTouched_, false)) IpListUpdater::instance()->NotifyListsChanged();
+            if (!error.isEmpty() || stop_ || !persist_) return error;
+            if (rescanPass()) return rescan(completed);
+        }
+        if (auto error = loadPools(); !error.isEmpty() || stop_) return error;
 
         // The budget starts here, so the IPv6 check costs none of it.
         budgetBaseMs_ = qint64(std::min(scan_.cursor, kWarpWorkerBudgetSeconds)) * 1000;
@@ -250,9 +282,10 @@ namespace Scanner {
         {
             const auto endSearch = qScopeGuard([this] {
                 scan_.cursor = budgetCursor();
+                searchMs_ = budgetBaseMs_ + elapsedMs();
                 searching_ = false;
             });
-            if (error = search(); !error.isEmpty() || stop_) return error;
+            if (auto error = search(); !error.isEmpty() || stop_) return error;
         }
         logOutcome();
         completed = true;
@@ -451,8 +484,9 @@ namespace Scanner {
     }
 
     QString WarpWorker::loadPools() {
-        const auto entries = Configs::dataManager->ipListsRepo->GetEntries(scan_.snapshot_list_id);
+        const auto entries = finder_ ? seeds_ : Configs::dataManager->ipListsRepo->GetEntries(scan_.snapshot_list_id);
         if (entries.isEmpty()) {
+            if (finder_) return ScanManager::tr("The base IP list is empty");
             scan_.snapshot_list_id = -1;
             return ScanManager::tr("The copy of the base IP list is gone; restart the scan");
         }
@@ -477,9 +511,19 @@ namespace Scanner {
     }
 
     QString WarpWorker::search() {
-        if (auto error = knownGood(); !error.isEmpty() || stop_ || stopRuleMet()) return error;
+        // A finder skips the known-endpoints pass: the profile's own endpoint joins round 1, checked with the settings discovery settled.
+        if (!finder_) {
+            if (auto error = knownGood(); !error.isEmpty() || stop_ || stopRuleMet()) return error;
+        }
         QList<Target> seeds;
         if (auto error = discoverPorts(seeds); !error.isEmpty() || stop_) return error;
+        if (finder_) {
+            const auto own = warpWorkerHost(base_->outbound->GetAddress());
+            int port = base_->outbound->GetPort().toInt();
+            if (port <= 0 && isMasque()) port = kWarpWorkerMasqueDefaultPort;
+            const bool seeded = std::any_of(seeds.cbegin(), seeds.cend(), [&own](const Target &target) { return target.address == own; });
+            if (!own.isEmpty() && port > 0 && !seeded) seeds.prepend(Target{own, port});
+        }
         return sampleRounds(seeds);
     }
 
@@ -506,7 +550,7 @@ namespace Scanner {
     }
 
     QString WarpWorker::discoverPorts(QList<Target> &seeds) {
-        const bool masque = carrier_ == QLatin1String("masque");
+        const bool masque = isMasque();
         const auto &primary = masque ? WarpPresets::kMasquePorts : WarpPresets::kWireGuardPorts;
         // .1 of each /24 answers WireGuard; for MASQUE it is a plain CDN edge.
         const auto addresses = discoveryAddresses(kWarpWorkerDiscoveryAddresses, !masque);
@@ -521,43 +565,28 @@ namespace Scanner {
 
         setStage(ScanManager::tr("Finding ports"));
         pushLog(ScanManager::tr("Finding open ports on %n address(es)", nullptr, static_cast<int>(addresses.size())));
+        const auto usual = cross(addresses, primary);
         QList<Candidate> found;
-        if (auto error = probeTargets(cross(addresses, primary), kWarpWorkerDiscoveryAttempts, false, &found, nullptr);
-            !error.isEmpty() || stop_)
+        if (auto error = probeTargets(usual, kWarpWorkerDiscoveryAttempts, false, &found, nullptr); !error.isEmpty() || stop_)
             return error;
 
-        if (found.isEmpty() && !masque && !stopRuleMet()) {
-            QList<int> extra;
-            for (const int port : WarpPresets::kWireGuardAllPorts) {
-                if (!primary.contains(port)) extra << port;
-            }
-            pushLog(ScanManager::tr("None of the usual ports answered; trying %n more", nullptr, static_cast<int>(extra.size())));
-            if (auto error = probeTargets(cross(addresses.mid(0, kWarpWorkerFallbackAddresses), extra), kWarpWorkerDiscoveryAttempts,
-                                          false, &found, nullptr);
-                !error.isEmpty() || stop_)
-                return error;
-        }
-
-        const auto *wireguard = base_->Wireguard();
-        if (found.isEmpty() && wireguard != nullptr && !wireguard->enable_amnezia && !stopRuleMet()) {
-            const auto junk = warpWorkerJunkCopy(base_);
-            QString error;
-            const auto endpoint = junk != nullptr ? WarpProbeEndpoint(*junk, &error) : QJsonObject();
-            if (!endpoint.isEmpty()) {
-                pushLog(ScanManager::tr("Trying AmneziaWG junk"));
-                const auto plain = std::exchange(probeJson_, QJsonObject2QString(endpoint, true));
-                if (auto failure = probeTargets(cross(addresses, primary), kWarpWorkerDiscoveryAttempts, false, &found, nullptr);
-                    !failure.isEmpty() || stop_)
-                    return failure;
-                if (found.isEmpty()) {
-                    probeJson_ = plain;
-                } else {
-                    base_ = junk;
-                    junkMode_ = true;
-                    const auto line = ScanManager::tr("Endpoints answer only with AmneziaWG junk; continuing with junk packets");
-                    pushLog(line);
-                    MW_show_log(ScanManager::tr("Scan %1: %2").arg(scan_.name, line));
+        if (masque) {
+            checkHttp3(found);
+            tryHttp2(usual, found);
+            if (stop_) return {};
+        } else {
+            // Junk on the usual ports comes before the rarer ports: where plain WireGuard is blocked, it answers within seconds.
+            if (auto error = tryJunk(usual, found); !error.isEmpty() || stop_) return error;
+            if (found.isEmpty() && !stopRuleMet()) {
+                QList<int> extra;
+                for (const int port : WarpPresets::kWireGuardAllPorts) {
+                    if (!primary.contains(port)) extra << port;
                 }
+                const auto rest = cross(addresses.mid(0, kWarpWorkerFallbackAddresses), extra);
+                pushLog(ScanManager::tr("None of the usual ports answered; trying %n more", nullptr, static_cast<int>(extra.size())));
+                if (auto error = probeTargets(rest, kWarpWorkerDiscoveryAttempts, false, &found, nullptr); !error.isEmpty() || stop_)
+                    return error;
+                if (auto error = tryJunk(rest, found); !error.isEmpty() || stop_) return error;
             }
         }
         if (found.isEmpty()) return {};
@@ -587,6 +616,91 @@ namespace Scanner {
             }
         }
         return {};
+    }
+
+    // Only for a profile without AmneziaWG of its own: an answer to Throne's junk switches the run to it.
+    QString WarpWorker::tryJunk(const QList<Target> &targets, QList<Candidate> &found) {
+        const auto *wireguard = base_->Wireguard();
+        if (!found.isEmpty() || wireguard == nullptr || wireguard->enable_amnezia || stopRuleMet()) return {};
+        const auto junk = warpWorkerJunkCopy(base_);
+        const auto json = warpWorkerProbeJson(junk);
+        if (json.isEmpty()) return {};
+        pushLog(ScanManager::tr("Trying AmneziaWG junk"));
+        const auto plain = std::exchange(probeJson_, json);
+        if (auto error = probeTargets(targets, kWarpWorkerDiscoveryAttempts, false, &found, nullptr); !error.isEmpty() || stop_)
+            return error;
+        if (found.isEmpty()) {
+            probeJson_ = plain;
+            return {};
+        }
+        base_ = junk;
+        junkMode_ = true;
+        {
+            QMutexLocker locker(&mutex_);
+            live_.warpJunk = true;
+        }
+        const auto line = ScanManager::tr("Endpoints answer only with AmneziaWG junk; continuing with junk packets");
+        pushLog(line);
+        mainLog(ScanManager::tr("Scan %1: %2").arg(scan_.name, line));
+        return {};
+    }
+
+    // A raced MASQUE profile passes on HTTP/2 alone, yet its tunnels wait out HTTP/3 first, often past the data check bound.
+    void WarpWorker::checkHttp3(const QList<Candidate> &found) {
+        const auto *masque = base_->Masque();
+        if (found.isEmpty() || masque == nullptr || masque->http_version == 2 || masque->disable_version_fallback) return;
+        const auto http3 = warpWorkerProbeJson(warpWorkerHttpCopy(base_, 3));
+        if (http3.isEmpty()) return;
+        auto ranked = found;
+        std::stable_sort(ranked.begin(), ranked.end(), &WarpWorker::better);
+        QList<Target> targets;
+        for (const auto &candidate : std::as_const(ranked)) {
+            if (targets.size() >= kWarpWorkerHttp3Checks) break;
+            if (ipv6Allowed_ || !warpWorkerIsIpv6(candidate.address)) targets << Target{candidate.address, candidate.port};
+        }
+        if (targets.isEmpty()) return;
+        // Straight to the core, past guard(): these just answered, so silence says nothing about the network.
+        const auto raced = std::exchange(probeJson_, http3);
+        const auto batch = probe(targets, kWarpWorkerDiscoveryAttempts);
+        probeJson_ = raced;
+        // Without a clear no, the raced profile stays: it works either way.
+        if (stop_ || batch.aborted || !batch.error.isEmpty() || batch.answered > 0 || batch.failures.isEmpty()) return;
+        const auto copy = warpWorkerHttpCopy(base_, 2);
+        if (const auto json = warpWorkerProbeJson(copy); !json.isEmpty()) useHttp2(copy, json);
+    }
+
+    // An HTTP/3-only profile nothing answered: HTTP/2 over TCP may get through where QUIC is blocked.
+    void WarpWorker::tryHttp2(const QList<Target> &targets, QList<Candidate> &found) {
+        const auto *masque = base_->Masque();
+        if (!found.isEmpty() || masque == nullptr || masque->http_version == 2 || !masque->disable_version_fallback || stopRuleMet())
+            return;
+        const auto copy = warpWorkerHttpCopy(base_, 2);
+        const auto json = warpWorkerProbeJson(copy);
+        if (json.isEmpty()) return;
+        pushLog(ScanManager::tr("Trying HTTP/2"));
+        const auto http3 = std::exchange(probeJson_, json);
+        const auto error = probeTargets(targets, kWarpWorkerDiscoveryAttempts, false, &found, nullptr);
+        if (stop_) return;
+        // A copy that cannot probe here (its ECH fetch needs a running instance) leaves the profile's own outcome.
+        if (!error.isEmpty() || found.isEmpty()) {
+            probeJson_ = http3;
+            found.clear();
+            return;
+        }
+        useHttp2(copy, json);
+    }
+
+    void WarpWorker::useHttp2(const std::shared_ptr<Configs::Profile> &copy, const QString &json) {
+        base_ = copy;
+        probeJson_ = json;
+        http2Mode_ = true;
+        {
+            QMutexLocker locker(&mutex_);
+            live_.warpHttp2 = true;
+        }
+        const auto line = ScanManager::tr("HTTP/3 gets no answer here; continuing over HTTP/2");
+        pushLog(line);
+        mainLog(ScanManager::tr("Scan %1: %2").arg(scan_.name, line));
     }
 
     QString WarpWorker::sampleRounds(const QList<Target> &seeds) {
@@ -677,8 +791,8 @@ namespace Scanner {
         if (removals_.WouldRemove(passes, failed, false) && !networkUp(false, &detail)) {
             writeResults(hits, dead);
             if (stop_) return {};
-            if (!detail.isEmpty()) MW_show_log(ScanManager::tr("Scan %1: network check failed: %2").arg(scan_.name, detail));
-            return ScanManager::tr("Network appears to be down; scan paused");
+            if (!detail.isEmpty()) mainLog(ScanManager::tr("Scan %1: network check failed: %2").arg(scan_.name, detail));
+            return networkDownError();
         }
         if (removals_.WouldRemove(passes, failed, true) && !networkUp(true, &detail)) {
             if (stop_) {
@@ -697,9 +811,10 @@ namespace Scanner {
 
     QString WarpWorker::probeTargets(const QList<Target> &targets, int attempts, bool confirm, QList<Candidate> *winners,
                                      QList<Target> *failures) {
-        for (qsizetype offset = 0; offset < targets.size(); offset += kWarpWorkerChunk) {
+        const int chunkSize = chunkFor(attempts);
+        for (qsizetype offset = 0; offset < targets.size(); offset += chunkSize) {
             if (stop_ || (!rescanPass() && stopRuleMet())) return {};
-            auto chunk = targets.mid(offset, kWarpWorkerChunk);
+            auto chunk = targets.mid(offset, chunkSize);
             if (!ipv6Allowed_) chunk.removeIf([](const Target &target) { return warpWorkerIsIpv6(target.address); });
             if (chunk.isEmpty()) continue;
             auto batch = probe(chunk, attempts);
@@ -737,17 +852,18 @@ namespace Scanner {
         warp.attempts = attempts;
         warp.timeout_ms = kWarpWorkerHandshakeTimeoutMs;
 
+        const int concurrency = concurrencyFor(attempts);
         libcore::ScanProbeRequest request;
         request.session_id = sessionId_.toStdString();
         request.spec = std::move(spec);
         request.cursor = 0;
         request.max_targets = static_cast<int>(targets.size());
-        request.concurrency = kWarpWorkerConcurrency;
+        request.concurrency = concurrency;
         request.spawn_interval_ms = kWarpWorkerSpawnIntervalMs;
         request.warp = std::move(warp);
 
         // The core bounds each target by attempts x timeout + 1 s.
-        const qint64 rounds = (targets.size() + kWarpWorkerConcurrency - 1) / kWarpWorkerConcurrency;
+        const qint64 rounds = (targets.size() + concurrency - 1) / concurrency;
         const qint64 timeout = rounds * (qint64(attempts) * kWarpWorkerHandshakeTimeoutMs + 1000) +
                                targets.size() * kWarpWorkerSpawnIntervalMs + kWarpWorkerRpcSlackMs;
         bool ok = false;
@@ -784,7 +900,7 @@ namespace Scanner {
 
     QString WarpWorker::guard(ProbeBatch &batch) {
         // Without a default route every target fails locally, with no lost egress to report.
-        if (batch.answered == 0 && batch.v4LocalFailure) return stop_ ? QString() : ScanManager::tr("Network appears to be down; scan paused");
+        if (batch.answered == 0 && batch.v4LocalFailure) return stop_ ? QString() : networkDownError();
         bool v6Blamed = false;
         if (batch.v6LocalFailure && ipv6Allowed_) {
             dropIpv6(ScanManager::tr("This host has no IPv6 route; skipping the IPv6 ranges"));
@@ -803,8 +919,8 @@ namespace Scanner {
                 // Nothing answered: either nothing is here, or the network is gone.
                 if (!networkUp(false, &detail)) {
                     if (stop_) return {};
-                    if (!detail.isEmpty()) MW_show_log(ScanManager::tr("Scan %1: network check failed: %2").arg(scan_.name, detail));
-                    return ScanManager::tr("Network appears to be down; scan paused");
+                    if (!detail.isEmpty()) mainLog(ScanManager::tr("Scan %1: network check failed: %2").arg(scan_.name, detail));
+                    return networkDownError();
                 }
                 networkUpAtMs_ = elapsedMs();
             }
@@ -928,7 +1044,27 @@ namespace Scanner {
         }
         runConfirmed_ += static_cast<int>(confirmed.size());
         pushLog(ScanManager::tr("Confirmed %n endpoint(s)", nullptr, static_cast<int>(confirmed.size())));
-        writeResults(entries, {});
+        if (finder_) addHits(confirmed);
+        else writeResults(entries, {});
+    }
+
+    void WarpWorker::addHits(const QList<Candidate> &confirmed) {
+        for (const auto &candidate : confirmed) {
+            const auto it = std::find_if(hits_.begin(), hits_.end(),
+                                         [&candidate](const Candidate &hit) { return hit.address == candidate.address; });
+            if (it == hits_.end()) hits_ << candidate;
+            else if (better(candidate, *it)) *it = candidate;
+        }
+        std::stable_sort(hits_.begin(), hits_.end(), &WarpWorker::better);
+        QList<Configs::IpListEntry> entries;
+        entries.reserve(hits_.size());
+        for (const auto &hit : std::as_const(hits_)) entries << entryOf(hit);
+        {
+            QMutexLocker locker(&mutex_);
+            live_.found = static_cast<int>(entries.size());
+            live_.hits = std::move(entries);
+        }
+        if (hooks_.results) hooks_.results();
     }
 
     void WarpWorker::writeResults(const QList<Configs::IpListEntry> &hits, const QList<Configs::IpListEntry> &dead) {
@@ -1088,13 +1224,19 @@ namespace Scanner {
     void WarpWorker::logOutcome() {
         if (runConfirmed_ > 0) {
             pushLog(ScanManager::tr("Found %n endpoint(s)", nullptr, static_cast<int>(confirmedAddresses_.size())));
-            if (junkMode_) {
-                const auto line = ScanManager::tr("These endpoints need AmneziaWG junk: turn on AmneziaWG in the profile (Jc %1, Jmin %2, Jmax %3)")
-                                      .arg(kWarpWorkerJunkCount)
-                                      .arg(kWarpWorkerJunkMin)
-                                      .arg(kWarpWorkerJunkMax);
+            // A finder run's caller applies these itself from LiveState().
+            if (finder_) return;
+            QString line;
+            if (junkMode_)
+                line = ScanManager::tr("These endpoints need AmneziaWG junk: turn on AmneziaWG in the profile (Jc %1, Jmin %2, Jmax %3)")
+                           .arg(WarpPresets::kJunkCount)
+                           .arg(WarpPresets::kJunkMin)
+                           .arg(WarpPresets::kJunkMax);
+            else if (http2Mode_)
+                line = ScanManager::tr("These endpoints need HTTP/2: set the profile's HTTP version to HTTP/2");
+            if (!line.isEmpty()) {
                 pushLog(line);
-                MW_show_log(ScanManager::tr("Scan %1: %2").arg(scan_.name, line));
+                mainLog(ScanManager::tr("Scan %1: %2").arg(scan_.name, line));
             }
             return;
         }
@@ -1103,10 +1245,22 @@ namespace Scanner {
         else if (junkMode_) line = ScanManager::tr("Endpoints answered only with AmneziaWG junk, and no data flowed through them");
         else line = ScanManager::tr("Endpoints answered the handshake, but no data flowed through them");
         pushLog(line);
-        MW_show_log(ScanManager::tr("Scan %1: %2").arg(scan_.name, line));
+        mainLog(ScanManager::tr("Scan %1: %2").arg(scan_.name, line));
     }
 
     void WarpWorker::finishRun(bool completed, const QString &error) {
+        if (finder_) {
+            // A stop ends on what was found too; an error speaks for itself.
+            if (!completed && error.isEmpty()) pushLog(ScanManager::tr("Found %n endpoint(s)", nullptr, static_cast<int>(hits_.size())));
+            finalized_.store(true);
+            QMutexLocker locker(&mutex_);
+            live_.running = false;
+            live_.error = error;
+            // The seconds the search took, where a scan would show its whole budget.
+            live_.tested = std::min<quint64>(scan_.total, static_cast<quint64>((searchMs_ + 500) / 1000));
+            live_.total = scan_.total;
+            return;
+        }
         using Status = Configs::IpScan::Status;
         if (completed) {
             if (rescanPass()) {
@@ -1119,7 +1273,7 @@ namespace Scanner {
                 }
                 for (const auto &line : lines) {
                     pushLog(line);
-                    MW_show_log(ScanManager::tr("Scan %1: %2").arg(scan_.name, line));
+                    mainLog(ScanManager::tr("Scan %1: %2").arg(scan_.name, line));
                 }
                 deleteList(scan_.rescan_snapshot_list_id);
                 scan_.rescan_snapshot_list_id = -1;
@@ -1150,7 +1304,7 @@ namespace Scanner {
         persistState();
         finalized_.store(true);
         if (persist_) IpListUpdater::instance()->NotifyListsChanged();
-        if (!error.isEmpty()) MW_show_log(ScanManager::tr("Scan %1 stopped: %2").arg(scan_.name, error));
+        if (!error.isEmpty()) mainLog(ScanManager::tr("Scan %1 stopped: %2").arg(scan_.name, error));
 
         QMutexLocker locker(&mutex_);
         live_.error = scan_.last_error;
@@ -1227,12 +1381,31 @@ namespace Scanner {
         notifyProgress();
     }
 
+    void WarpWorker::mainLog(const QString &line) const {
+        if (!finder_) MW_show_log(line);
+    }
+
     void WarpWorker::notifyProgress() const {
         if (hooks_.progress) hooks_.progress();
     }
 
+    // A finder run cannot resume, so its error promises no pause.
+    QString WarpWorker::networkDownError() const {
+        return finder_ ? ScanManager::tr("Network appears to be down") : ScanManager::tr("Network appears to be down; scan paused");
+    }
+
     bool WarpWorker::rescanResumable() const {
         return rescanPass() && scan_.rescan_snapshot_list_id >= 0 && scan_.rescan_cursor < scan_.rescan_total;
+    }
+
+    int WarpWorker::concurrencyFor(int attempts) const {
+        if (isMasque()) return kWarpWorkerMasqueConcurrency;
+        return attempts == kWarpWorkerDiscoveryAttempts ? kWarpWorkerDiscoveryConcurrency : kWarpWorkerConcurrency;
+    }
+
+    // Discovery calls hold two waves, so its usual targets go out at once; other calls stay small, so data checks start early.
+    int WarpWorker::chunkFor(int attempts) const {
+        return attempts == kWarpWorkerDiscoveryAttempts ? 2 * concurrencyFor(attempts) : kWarpWorkerChunk;
     }
 
     bool WarpWorker::better(const Candidate &a, const Candidate &b) {

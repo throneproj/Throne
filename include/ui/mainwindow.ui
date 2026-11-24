@@ -778,6 +778,7 @@ QToolButton::menu-indicator {
     <addaction name="menu_start"/>
     <addaction name="menu_stop"/>
     <addaction name="menu_edit"/>
+    <addaction name="menu_find_warp_endpoint"/>
     <addaction name="separator"/>
     <addaction name="menu_test_selected"/>
     <addaction name="menu_share_item"/>
@@ -1377,6 +1378,11 @@ QToolButton::menu-indicator {
   <action name="menu_edit_route">
    <property name="text">
     <string>Edit current profile</string>
+   </property>
+  </action>
+  <action name="menu_find_warp_endpoint">
+   <property name="text">
+    <string>Find WARP endpoint</string>
    </property>
   </action>
  </widget>

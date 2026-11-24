@@ -32,4 +32,9 @@ namespace Scanner::WarpPresets {
     };
     // HTTP/3 over UDP and HTTP/2 over TCP alike.
     inline const QList<int> kMasquePorts = {443, 500, 1701, 4500, 4443, 8443, 8095};
+
+    // Throne's built-in AmneziaWG junk for WARP: Jc, Jmin and Jmax.
+    inline constexpr int kJunkCount = 4;
+    inline constexpr int kJunkMin = 40;
+    inline constexpr int kJunkMax = 70;
 } // namespace Scanner::WarpPresets

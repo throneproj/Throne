@@ -388,6 +388,7 @@ void MainWindow::refresh_action_states() {
     ui->menu_resolve_selected->setEnabled(anySelected);
     ui->actionResolve_Selected_Out_IP->setEnabled(anySelected);
     ui->actionService_Check_Selected->setEnabled(anySelected);
+    ui->menu_find_warp_endpoint->setEnabled(selectedRows == 1 && warpFinderTarget() != nullptr);
 
     const bool running = runningSnapshot() != nullptr;
     ui->actionSpeedtest_Current->setEnabled(running);

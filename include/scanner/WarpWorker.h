@@ -22,6 +22,9 @@ namespace Scanner {
     public:
         WarpWorker(const Configs::IpScan &scan, StartMode mode, std::shared_ptr<Configs::Profile> base, ScanRunHooks hooks);
 
+        // A finder run: the same search over seeds for base alone, with no database access; hits stay in LiveState().hits.
+        WarpWorker(int finderId, std::shared_ptr<Configs::Profile> base, QList<Configs::IpListEntry> seeds, ScanRunHooks hooks);
+
         WarpWorker(const WarpWorker &) = delete;
         WarpWorker &operator=(const WarpWorker &) = delete;
 
@@ -91,6 +94,10 @@ namespace Scanner {
         QString search();
         QString knownGood();
         QString discoverPorts(QList<Target> &seeds);
+        QString tryJunk(const QList<Target> &targets, QList<Candidate> &found);
+        void checkHttp3(const QList<Candidate> &found);
+        void tryHttp2(const QList<Target> &targets, QList<Candidate> &found);
+        void useHttp2(const std::shared_ptr<Configs::Profile> &copy, const QString &json);
         QString sampleRounds(const QList<Target> &seeds);
         QString rescan(bool &completed);
         QString rescanRows(const QList<Configs::IpListEntry> &rows, quint64 start);
@@ -103,6 +110,7 @@ namespace Scanner {
         QString dataCheckAll(const QList<Candidate> &candidates, QList<Candidate> &confirmed, QList<Candidate> &failed);
         QString dataCheck(const QList<Candidate> &batch, QList<Candidate> &confirmed, QList<Candidate> &failed);
         void storeConfirmed(const QList<Candidate> &confirmed);
+        void addHits(const QList<Candidate> &confirmed);
         void writeResults(const QList<Configs::IpListEntry> &hits, const QList<Configs::IpListEntry> &dead);
         [[nodiscard]] bool stopRuleMet() const;
         [[nodiscard]] qint64 elapsedMs() const;
@@ -120,9 +128,15 @@ namespace Scanner {
         void setStage(const QString &stage);
         void setTested(quint64 tested, quint64 total);
         void pushLog(const QString &line);
+        // The main log; a finder run shows everything in its own dialog instead.
+        void mainLog(const QString &line) const;
         void notifyProgress() const;
+        [[nodiscard]] QString networkDownError() const;
         [[nodiscard]] bool rescanPass() const { return scan_.mode == Configs::IpScan::Mode::RescanResult; }
         [[nodiscard]] bool rescanResumable() const;
+        [[nodiscard]] bool isMasque() const { return carrier_ == QLatin1String("masque"); }
+        [[nodiscard]] int concurrencyFor(int attempts) const;
+        [[nodiscard]] int chunkFor(int attempts) const;
 
         static bool better(const Candidate &a, const Candidate &b);
         static int lossPct(const Candidate &candidate);
@@ -134,9 +148,13 @@ namespace Scanner {
         const ScanRunHooks hooks_;
         const Configs::IpScan::Status initialStatus_;
 
+        // Set before Start(): a finder run's seed entries stand in for the scan's base list.
+        bool finder_ = false;
+        QList<Configs::IpListEntry> seeds_;
+
         // Run thread only.
         Configs::IpScan scan_;
-        // A deep copy; junk mode swaps in a copy with AmneziaWG junk.
+        // A deep copy; junk and HTTP/2 mode swap in a copy with that setting.
         std::shared_ptr<Configs::Profile> base_;
         QString stage_;
         QString carrier_;
@@ -146,12 +164,17 @@ namespace Scanner {
         QList<int> ports_;
         int portCursor_ = 0;
         QList<Candidate> pending_;
+        // Finder runs: the best confirmation of each address, best first.
+        QList<Candidate> hits_;
         QSet<QString> confirmedAddresses_;
         qint64 lastConfirmMs_ = -1;
         qint64 networkUpAtMs_ = -1;
+        // Budget spent when the search ended.
+        qint64 searchMs_ = 0;
         int runConfirmed_ = 0;
         bool answeredAny_ = false;
         bool junkMode_ = false;
+        bool http2Mode_ = false;
         bool ipv6Allowed_ = true;
         // "Scan from the beginning": the pass's first confirmed endpoint replaces the old results.
         bool replacePending_ = false;

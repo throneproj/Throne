@@ -52,6 +52,7 @@
 namespace Configs {
     enum simpleAction : int;
     struct SimpleTarget;
+    struct IpListEntry;
 }
 
 namespace Engine {
@@ -245,6 +246,8 @@ private slots:
 
     void on_menu_edit_triggered();
 
+    void on_menu_find_warp_endpoint_triggered();
+
     void on_menu_add_subscription_triggered();
 
     void on_tabWidget_currentChanged(int index);
@@ -398,6 +401,11 @@ private:
     void refresh_startstop_button();
     void refresh_pin_action();
     void refresh_action_states();
+
+    // The one selected profile when it is a WARP profile, else nullptr.
+    std::shared_ptr<Configs::Profile> warpFinderTarget();
+
+    void applyFoundWarpEndpoint(int profileId, const Configs::IpListEntry &entry, bool junk, bool http2);
 
     // View slots of ConnectionManager and VpnAuthController, in mainwindow_view.cpp.
     void showRestartReasons();

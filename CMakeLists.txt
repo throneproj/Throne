@@ -482,6 +482,8 @@ set(PROJECT_SOURCES
         src/ui/scanner/dialog_edit_ip_list.cpp
         include/ui/scanner/dialog_edit_ip_list.h
         include/ui/scanner/dialog_edit_ip_list.ui
+        src/ui/scanner/dialog_warp_finder.cpp
+        include/ui/scanner/dialog_warp_finder.h
 
         include/scanner/IpListParse.h
         src/scanner/IpListParse.cpp

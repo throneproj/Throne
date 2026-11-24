@@ -444,6 +444,73 @@
     </message>
 </context>
 <context>
+    <name>DialogWarpFinder</name>
+    <message>
+        <source>Find WARP endpoint</source>
+        <translation>یافتن نقطهٔ پایانی WARP</translation>
+    </message>
+    <message>
+        <source>Endpoint</source>
+        <translation>نقطهٔ پایانی</translation>
+    </message>
+    <message>
+        <source>Working endpoints appear here</source>
+        <translation>نقاط پایانی کارا اینجا نمایش داده می‌شوند</translation>
+    </message>
+    <message>
+        <source>Use endpoint</source>
+        <translation>استفاده از نقطهٔ پایانی</translation>
+    </message>
+    <message>
+        <source>The search could not be started</source>
+        <translation>جستجو آغاز نشد</translation>
+    </message>
+    <message>
+        <source>Stopping</source>
+        <translation>در حال توقف</translation>
+    </message>
+    <message numerus="yes">
+        <source>Found %n endpoint(s) in %1 s</source>
+        <translation>
+            <numerusform>%n نقطهٔ پایانی در %1 ثانیه پیدا شد</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>No working endpoint found</source>
+        <translation>هیچ نقطهٔ پایانی کارایی پیدا نشد</translation>
+    </message>
+    <message>
+        <source>%1 s of %2 s</source>
+        <translation>%1 از %2 ثانیه</translation>
+    </message>
+    <message numerus="yes">
+        <source>Found %n</source>
+        <translation>
+            <numerusform>%n مورد پیدا شد</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Plain WireGuard is blocked on this network, but it gets through with AmneziaWG junk packets. Using an endpoint turns them on.</source>
+        <translation>WireGuard ساده در این شبکه مسدود است، اما با بسته‌های زائد AmneziaWG عبور می‌کند. استفاده از یک نقطهٔ پایانی آن‌ها را روشن می‌کند.</translation>
+    </message>
+    <message>
+        <source>HTTP/3 is blocked on this network, but HTTP/2 gets through. Using an endpoint switches the profile to HTTP/2.</source>
+        <translation>HTTP/3 در این شبکه مسدود است، اما HTTP/2 عبور می‌کند. استفاده از یک نقطهٔ پایانی نمایه را به HTTP/2 تغییر می‌دهد.</translation>
+    </message>
+    <message>
+        <source>This profile dials %1 instead of its own address. Using an endpoint switches it back to its own address.</source>
+        <translation>این نمایه به‌جای آدرس خودش به %1 وصل می‌شود. استفاده از یک نقطهٔ پایانی آن را به آدرس خودش برمی‌گرداند.</translation>
+    </message>
+    <message>
+        <source>Stop</source>
+        <translation>توقف</translation>
+    </message>
+    <message>
+        <source>Search again</source>
+        <translation>جستجوی دوباره</translation>
+    </message>
+</context>
+<context>
     <name>DnsServerListEdit</name>
     <message>
         <source>Drag to reorder</source>
@@ -480,6 +547,17 @@
     <message>
         <source>Add at least one server.</source>
         <translation>دست‌کم یک سرور بیفزایید.</translation>
+    </message>
+</context>
+<context>
+    <name>EditMasque</name>
+    <message>
+        <source>Find WARP endpoint</source>
+        <translation>یافتن نقطهٔ پایانی WARP</translation>
+    </message>
+    <message>
+        <source>Search for a WARP endpoint that works on this network.</source>
+        <translation>یک نقطهٔ پایانی WARP پیدا کنید که در این شبکه کار کند.</translation>
     </message>
 </context>
 <context>
@@ -3756,6 +3834,18 @@ Close without saving?</source>
         <source>Persistent Keepalive</source>
         <translation>نگه‌داری پایدار</translation>
     </message>
+    <message>
+        <source>Find WARP endpoint</source>
+        <translation>یافتن نقطهٔ پایانی WARP</translation>
+    </message>
+    <message>
+        <source>Search for a WARP endpoint that works on this network.</source>
+        <translation>یک نقطهٔ پایانی WARP پیدا کنید که در این شبکه کار کند.</translation>
+    </message>
+    <message>
+        <source>Only for Cloudflare WARP profiles.</source>
+        <translation>فقط برای نمایه‌های Cloudflare WARP.</translation>
+    </message>
 </context>
 <context>
     <name>EditXrayVless</name>
@@ -4847,6 +4937,22 @@ Error: %2</source>
     <message>
         <source>Time range</source>
         <translation>بازه زمانی</translation>
+    </message>
+    <message>
+        <source>Find WARP endpoint</source>
+        <translation>یافتن نقطهٔ پایانی WARP</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is open in an editor; close it and try again.</source>
+        <translation>«%1» در ویرایشگر باز است؛ آن را ببندید و دوباره تلاش کنید.</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is no longer a WARP profile.</source>
+        <translation>«%1» دیگر نمایهٔ WARP نیست.</translation>
+    </message>
+    <message>
+        <source>The profile was deleted meanwhile.</source>
+        <translation>نمایه در این فاصله حذف شد.</translation>
     </message>
 </context>
 <context>
@@ -5947,6 +6053,18 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>
             <numerusform>هیچ نتیجهٔ %1 پاسخ نداد، پس %n نتیجهٔ ناموفق %1 نگه داشته شد</numerusform>
         </translation>
+    </message>
+    <message>
+        <source>Trying HTTP/2</source>
+        <translation>در حال امتحان HTTP/2</translation>
+    </message>
+    <message>
+        <source>HTTP/3 gets no answer here; continuing over HTTP/2</source>
+        <translation>HTTP/3 در این شبکه پاسخی نمی‌گیرد؛ اسکن با HTTP/2 ادامه می‌یابد</translation>
+    </message>
+    <message>
+        <source>These endpoints need HTTP/2: set the profile&apos;s HTTP version to HTTP/2</source>
+        <translation>این نقاط پایانی به HTTP/2 نیاز دارند: نسخهٔ HTTP نمایه را روی HTTP/2 بگذارید</translation>
     </message>
 </context>
 <context>

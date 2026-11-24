@@ -84,6 +84,7 @@ void MainWindow::showProfilesContextMenu(const QPoint &pos) {
     const bool runningSelected = running != nullptr && get_now_selected_list().contains(running->id);
     ui->menu_start->setVisible(!runningSelected);
     ui->menu_stop->setVisible(runningSelected);
+    ui->menu_find_warp_endpoint->setVisible(warpFinderTarget() != nullptr);
 
     const auto moveTo = [this](const QList<int> &ids, int gid) {
         if (const auto refusal = Engine::ProfileService::MoveToGroup(ids, gid)) MessageBoxWarning(tr("Move to group"), moveRefusalText(*refusal));
@@ -122,6 +123,7 @@ void MainWindow::on_menu_server_aboutToHide() {
     // Shortcuts trigger hidden actions all the same; shown again so the command palette lists both.
     ui->menu_start->setVisible(true);
     ui->menu_stop->setVisible(true);
+    ui->menu_find_warp_endpoint->setVisible(true);
 }
 
 void MainWindow::on_menu_edit_triggered() {

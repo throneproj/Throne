@@ -181,6 +181,7 @@ void MainWindow::setActionsData()
     ui->menu_exit_server->setData(QString("m58"));
     ui->menu_exit_warp->setData(QString("m59"));
     ui->menu_edit_route->setData(QString("m61"));
+    ui->menu_find_warp_endpoint->setData(QString("m64"));
 }
 
 QList<QAction*> MainWindow::getActionsForShortcut()

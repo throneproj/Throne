@@ -20,13 +20,22 @@ public:
     std::function<QString()> get_edit_text_name;
     std::function<QString()> get_edit_text_serverAddress;
     std::function<QString()> get_edit_text_serverPort;
+    std::function<QString()> get_edit_text_sni;
     std::function<void(const QString &)> set_edit_title;
     std::function<void(const QString &)> set_edit_text_serverAddress;
     std::function<void(const QString &)> set_edit_text_serverPort;
+    std::function<void(const QString &)> set_edit_text_sni;
 
     std::function<void()> editor_cache_updated;
     // Fire when the editor's own layout or one of the constraints below may have changed.
     std::function<void()> editor_state_changed;
+    // A deep copy holding the dialog's validated input; nullptr when the form is invalid, which then shows its errors.
+    std::function<std::shared_ptr<Configs::Profile>()> get_draft_profile;
+    // The profile dials its own address from now on; written on save, so a cancelled dialog changes nothing.
+    std::function<void()> use_own_endpoint;
+
+    // Points onEnd() at another profile without reloading the UI; false when the editor cannot.
+    virtual bool retarget(const std::shared_ptr<Configs::Profile> &profile) { return false; }
 
     virtual QList<QPair<QPushButton *, QString>> get_editor_cached() { return {}; };
 

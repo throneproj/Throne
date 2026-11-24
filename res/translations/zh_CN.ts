@@ -4917,6 +4917,73 @@ Close without saving?</source>
     </message>
 </context>
 <context>
+    <name>DialogWarpFinder</name>
+    <message>
+        <source>Find WARP endpoint</source>
+        <translation>查找 WARP 端点</translation>
+    </message>
+    <message>
+        <source>Endpoint</source>
+        <translation>端点</translation>
+    </message>
+    <message>
+        <source>Working endpoints appear here</source>
+        <translation>可用的端点将显示在这里</translation>
+    </message>
+    <message>
+        <source>Use endpoint</source>
+        <translation>使用此端点</translation>
+    </message>
+    <message>
+        <source>The search could not be started</source>
+        <translation>无法开始搜索</translation>
+    </message>
+    <message>
+        <source>Stopping</source>
+        <translation>正在停止</translation>
+    </message>
+    <message numerus="yes">
+        <source>Found %n endpoint(s) in %1 s</source>
+        <translation>
+            <numerusform>在 %1 秒内找到 %n 个端点</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>No working endpoint found</source>
+        <translation>未找到可用的端点</translation>
+    </message>
+    <message>
+        <source>%1 s of %2 s</source>
+        <translation>%1 秒 / %2 秒</translation>
+    </message>
+    <message numerus="yes">
+        <source>Found %n</source>
+        <translation>
+            <numerusform>已找到 %n 个</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Plain WireGuard is blocked on this network, but it gets through with AmneziaWG junk packets. Using an endpoint turns them on.</source>
+        <translation>此网络拦截了普通 WireGuard，但附带 AmneziaWG 垃圾数据包时可以通过。使用端点时会开启它们。</translation>
+    </message>
+    <message>
+        <source>HTTP/3 is blocked on this network, but HTTP/2 gets through. Using an endpoint switches the profile to HTTP/2.</source>
+        <translation>此网络拦截了 HTTP/3，但 HTTP/2 可以通过。使用端点时会将配置档切换为 HTTP/2。</translation>
+    </message>
+    <message>
+        <source>This profile dials %1 instead of its own address. Using an endpoint switches it back to its own address.</source>
+        <translation>此配置档连接的是 %1，而不是自身地址。使用端点时会切换回自身地址。</translation>
+    </message>
+    <message>
+        <source>Stop</source>
+        <translation>停止</translation>
+    </message>
+    <message>
+        <source>Search again</source>
+        <translation>重新搜索</translation>
+    </message>
+</context>
+<context>
     <name>DnsServerListEdit</name>
     <message>
         <source>Drag to reorder</source>
@@ -6261,6 +6328,14 @@ Close without saving?</source>
     <message>
         <source>Success!</source>
         <translation>成功!</translation>
+    </message>
+    <message>
+        <source>Find WARP endpoint</source>
+        <translation>查找 WARP 端点</translation>
+    </message>
+    <message>
+        <source>Search for a WARP endpoint that works on this network.</source>
+        <translation>搜索在此网络上可用的 WARP 端点。</translation>
     </message>
 </context>
 <context>
@@ -7715,6 +7790,18 @@ Close without saving?</source>
     <message>
         <source>Open Amnezia Options and fix %1: %2</source>
         <translation>打开 Amnezia 选项并修复 %1: %2</translation>
+    </message>
+    <message>
+        <source>Find WARP endpoint</source>
+        <translation>查找 WARP 端点</translation>
+    </message>
+    <message>
+        <source>Search for a WARP endpoint that works on this network.</source>
+        <translation>搜索在此网络上可用的 WARP 端点。</translation>
+    </message>
+    <message>
+        <source>Only for Cloudflare WARP profiles.</source>
+        <translation>仅适用于 Cloudflare WARP 配置档。</translation>
     </message>
 </context>
 <context>
@@ -9822,6 +9909,22 @@ Error: %2</source>
     <message>
         <source>Time range</source>
         <translation>时间范围</translation>
+    </message>
+    <message>
+        <source>Find WARP endpoint</source>
+        <translation>查找 WARP 端点</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is open in an editor; close it and try again.</source>
+        <translation>“%1” 在编辑器中打开；请将其关闭并再次尝试。</translation>
+    </message>
+    <message>
+        <source>&quot;%1&quot; is no longer a WARP profile.</source>
+        <translation>“%1” 已不再是 WARP 配置档。</translation>
+    </message>
+    <message>
+        <source>The profile was deleted meanwhile.</source>
+        <translation>该配置档已在此期间被删除。</translation>
     </message>
 </context>
 <context>
@@ -12928,6 +13031,18 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>
             <numerusform>没有任何 %1 结果应答，因此保留了 %n 个失败的 %1 结果</numerusform>
         </translation>
+    </message>
+    <message>
+        <source>Trying HTTP/2</source>
+        <translation>正在尝试 HTTP/2</translation>
+    </message>
+    <message>
+        <source>HTTP/3 gets no answer here; continuing over HTTP/2</source>
+        <translation>HTTP/3 在此没有应答；改用 HTTP/2 继续</translation>
+    </message>
+    <message>
+        <source>These endpoints need HTTP/2: set the profile&apos;s HTTP version to HTTP/2</source>
+        <translation>这些端点需要 HTTP/2：请将配置档的 HTTP 版本设为 HTTP/2</translation>
     </message>
 </context>
 <context>
