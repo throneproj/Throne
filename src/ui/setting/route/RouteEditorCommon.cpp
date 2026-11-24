@@ -121,7 +121,7 @@ namespace RouteEditor {
         }
     } // namespace
 
-    QList<Row> BuildRows(const Configs::RouteProfile& profile) {
+    QList<Row> BuildRows(const Configs::RouteProfile& profile, bool includeEmptyLists) {
         QList<Row> rows;
         const auto& rules = profile.Rules;
         for (int i = 0; i < rules.size(); ++i) {
@@ -136,6 +136,13 @@ namespace RouteEditor {
                 continue;
             }
             rows.append({RowKind::QuickList, i, 1, list});
+        }
+        if (!includeEmptyLists) {
+            rows.removeIf([&rules](const Row& row) {
+                const auto first = rules.cbegin() + row.first;
+                return row.kind == RowKind::QuickList &&
+                       std::all_of(first, first + row.count, [](const auto& rule) { return rule->isEmpty(); });
+            });
         }
         return rows;
     }
@@ -155,17 +162,17 @@ namespace RouteEditor {
     }
 
     void MoveRow(Configs::RouteProfile& profile, const QList<Row>& rows, int from, int to) {
-        if (from < 0 || from >= rows.size() || rows.last().first + rows.last().count != profile.Rules.size()) return;
+        if (from < 0 || from >= rows.size()) return;
         to = std::clamp(to, 0, static_cast<int>(rows.size()) - 1);
         if (from == to) return;
-        QList<QList<std::shared_ptr<Configs::RouteRule>>> blocks;
-        blocks.reserve(rows.size());
-        for (const auto& row : rows) blocks.append(profile.Rules.mid(row.first, row.count));
-        blocks.move(from, to);
-        QList<std::shared_ptr<Configs::RouteRule>> rules;
-        rules.reserve(profile.Rules.size());
-        for (const auto& block : blocks) rules += block;
-        profile.Rules = rules;
+        const Row& source = rows.at(from);
+        const Row& target = rows.at(to);
+        if (source.first + source.count > profile.Rules.size() || target.first + target.count > profile.Rules.size()) return;
+        auto begin = profile.Rules.begin();
+        if (from < to)
+            std::rotate(begin + source.first, begin + source.first + source.count, begin + target.first + target.count);
+        else
+            std::rotate(begin + target.first, begin + source.first, begin + source.first + source.count);
     }
 
     const QList<Configs::simpleAction>& QuickListOrder() {
@@ -587,10 +594,10 @@ namespace RouteEditor {
         return rule.invert ? tr("Not: %1").arg(summary) : summary;
     }
 
-    QList<Configs::RuleIssue> RuleProblems(const Configs::RouteRule& rule) {
+    QList<Configs::RuleIssue> RuleProblems(const Configs::RouteRule& rule, bool profilePinsXray) {
         QList<Configs::RuleIssue> out;
         const bool catchAll = rule.type == Configs::custom && IsFinal(ThenOf(rule)) && !rule.has_match_conditions();
-        for (auto issue : rule.validate()) {
+        for (auto issue : rule.validate(profilePinsXray)) {
             // validate()'s own catch-all warning; the error below replaces it.
             if (catchAll && issue.attr == QLatin1String("action") && issue.severity == Validation::Severity::Warning && issue.related.isEmpty()) continue;
             if (rule.disabled) issue.severity = Validation::Severity::Warning;

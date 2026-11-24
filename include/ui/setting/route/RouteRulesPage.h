@@ -53,7 +53,7 @@ private:
     // The row holding rule, which need not be its first one.
     [[nodiscard]] int rowOf(const std::shared_ptr<Configs::RouteRule>& rule) const;
     // Rows from profile->Rules again, then the row holding keep is selected.
-    void rebuild(const std::shared_ptr<Configs::RouteRule>& keep, bool recompute);
+    void rebuild(const std::shared_ptr<Configs::RouteRule>& keep, bool recompute, bool keepDraft = false);
     void onRowSelected(int row);
     void showPage(QWidget* page);
     void fitDetailWidth();
@@ -62,6 +62,7 @@ private:
     void scheduleQuickListRebuild();
 
     void addRule();
+    void openQuickList(Configs::simpleAction kind);
     void duplicateRow(int row);
     void deleteRow(int row);
     void deleteRule(int row);
@@ -78,7 +79,6 @@ private:
     // The selected row's first rule: rows are rebuilt, rules keep their identity.
     std::shared_ptr<Configs::RouteRule> selected;
 
-    QPushButton* newButton = nullptr;
     QPushButton* duplicateButton = nullptr;
     QPushButton* deleteButton = nullptr;
     QLineEdit* filterEdit = nullptr;

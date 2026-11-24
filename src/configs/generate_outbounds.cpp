@@ -473,14 +473,23 @@ namespace Configs {
             if (warpWrap) ctx.result->outboundNames.insert(tags::proxy, ExitName(activeExit()));
 
             int routeSuffix = 0;
-            for (const auto& routeGroup : ctx.prerequisites.routing.routeOutboundGroups) {
+            const auto &routeGroups = ctx.prerequisites.routing.routeOutboundGroups;
+            auto fullPorts = MkManyPorts(static_cast<int>(std::count_if(routeGroups.cbegin(), routeGroups.cend(),
+                [](const auto &g) { return isXrayFullConfig(g.profile); })));
+            for (const auto& routeGroup : routeGroups) {
+                const bool separateXray = isXrayFullConfig(routeGroup.profile);
                 auto out = buildOutboundChain(ctx, {
                     .hopIDs = routeGroup.hopIDs,
                     .prefix = tags::routeChainPrefix,
                     .link = routeGroup.hopIDs.size() > 1,
                     .startSuffix = routeSuffix,
+                    .xrayFullConfigPort = separateXray ? fullPorts.takeFirst() : -1,
+                    .soleXrayInbound = separateXray,
+                    .pinXrayRuleExit = separateXray ? std::optional<bool>(routeGroup.pinXrayExit) : std::nullopt,
                 });
-                absorbWithXraySlot(ctx, out);
+                absorbChain(ctx, out);
+                if (!ctx.error.isEmpty()) return;
+                if (separateXray) ctx.result->xrayFullConfigs << QJsonObject2QString(out.xrayFullConfig, false);
                 const auto &tag = out.ingressTag;
                 if (routeGroup.chainWrapper != nullptr && out.traffic) {
                     out.traffic->profiles.append(routeGroup.chainWrapper);

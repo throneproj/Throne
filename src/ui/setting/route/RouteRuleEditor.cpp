@@ -1,6 +1,7 @@
 #include "include/ui/setting/route/RouteRuleEditor.h"
 
 #include "include/global/Configs.hpp"
+#include "include/database/ProfilesRepo.h"
 #include "include/ui/setting/ProcessPicker.h"
 #include "include/ui/setting/ThemeManager.hpp"
 #include "include/ui/setting/route/RouteEditorCommon.h"
@@ -271,7 +272,8 @@ namespace {
     };
 } // namespace
 
-RouteRuleEditor::RouteRuleEditor(QWidget* parent) : QWidget(parent) {
+RouteRuleEditor::RouteRuleEditor(std::shared_ptr<const Configs::RouteProfile> routeProfile, QWidget* parent)
+    : QWidget(parent), profile(std::move(routeProfile)) {
     auto* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(10);
@@ -283,6 +285,16 @@ RouteRuleEditor::RouteRuleEditor(QWidget* parent) : QWidget(parent) {
     connect(nameEdit, &QLineEdit::textEdited, this, [this](const QString& text) {
         if (loading || current == nullptr) return;
         current->name = text;
+        emitChanged();
+    });
+
+    ignoreXrayCheck = new QCheckBox(tr("Ignore built-in Xray routing rules for this rule"), this);
+    ignoreXrayCheck->setObjectName(QStringLiteral("ignoreXrayRuleCheck"));
+    layout->addWidget(ignoreXrayCheck);
+    connect(ignoreXrayCheck, &QCheckBox::toggled, this, [this](bool on) {
+        if (loading || !current) return;
+        current->ignoreXrayRouting = on;
+        refreshIssues();
         emitChanged();
     });
 
@@ -613,6 +625,13 @@ void RouteRuleEditor::loadThenSection() {
     optionsFrame->setVisible(options && optionsToggle->isChecked());
 
     const bool wasLoading = std::exchange(loading, true);
+    const auto ent = current->outboundID >= 0 ? Configs::dataManager->profilesRepo->GetProfile(current->outboundID) : nullptr;
+    const auto* full = ent && ent->outbound && ent->outbound->IsXrayFullConfig() ? ent->Custom() : nullptr;
+    const auto action = current->effective_action();
+    const bool applicable = (action == "route" || action == "bypass") && (current->outboundID == Configs::proxyID || full);
+    const bool inherited = profile->ignoreXrayRouting || (full && full->ignoreXrayRouting);
+    ignoreXrayCheck->setEnabled(applicable && !inherited);
+    ignoreXrayCheck->setChecked(applicable && (inherited || current->pinsXrayExit()));
     QString method = current->rejectMethod.trimmed().toLower();
     if (method == QLatin1String("default")) method.clear();
     ruleEditorSelectData(rejectCombo, method);
@@ -1113,7 +1132,7 @@ void RouteRuleEditor::setJsonOpen(bool open) {
 
 void RouteRuleEditor::refreshIssues() {
     if (current == nullptr) return;
-    const QList<Configs::RuleIssue> problems = RouteEditor::RuleProblems(*current);
+    const QList<Configs::RuleIssue> problems = RouteEditor::RuleProblems(*current, profile->ignoreXrayRouting);
     QList<bool> placed(problems.size(), false);
     const auto describe = [](const Configs::RuleIssue& issue, bool labelled) {
         const QString text = issue.value.isEmpty() ? issue.message : QStringLiteral("\"%1\": %2").arg(RouteEditor::ElideValue(issue.value), issue.message);

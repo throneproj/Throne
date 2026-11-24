@@ -11,7 +11,7 @@ namespace Configs {
         // ruleFromRow reads this order: the hand-written columns, then the attribute table's in table order.
         const std::string& routesRepoRuleColumns() {
             static const std::string columns = [] {
-                std::string out = "name, type, outbound_id, action, sniffers_json, disabled";
+                std::string out = "name, type, outbound_id, action, sniffers_json, disabled, ignore_xray_routing";
                 for (const auto& attr : RouteRule::attribute_table()) {
                     if (attr.column != nullptr) out += std::string(", ") + attr.column;
                 }
@@ -22,7 +22,7 @@ namespace Configs {
 
         const std::string& routesRepoRuleInsert() {
             static const std::string sql = [] {
-                std::string values = "?, ?, ?, ?, ?, ?, ?, ?";
+                std::string values = "?, ?, ?, ?, ?, ?, ?, ?, ?";
                 for (const auto& attr : RouteRule::attribute_table()) {
                     if (attr.column != nullptr) values += ", ?";
                 }
@@ -82,6 +82,7 @@ namespace Configs {
                 dns_json TEXT NOT NULL DEFAULT '',
                 custom_dns INTEGER NOT NULL DEFAULT 0,
                 source_gid INTEGER NOT NULL DEFAULT -1,
+                ignore_xray_routing INTEGER NOT NULL DEFAULT 0,
                 remote_rules TEXT,
                 created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
                 updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
@@ -111,6 +112,8 @@ namespace Configs {
             db.exec("ALTER TABLE route_profiles ADD COLUMN custom_dns INTEGER NOT NULL DEFAULT 0");
         if (!routeProfilesColumnExists("source_gid"))
             db.exec("ALTER TABLE route_profiles ADD COLUMN source_gid INTEGER NOT NULL DEFAULT -1");
+        if (!routeProfilesColumnExists("ignore_xray_routing"))
+            db.exec("ALTER TABLE route_profiles ADD COLUMN ignore_xray_routing INTEGER NOT NULL DEFAULT 0");
         if (!routeProfilesColumnExists("remote_rules"))
             db.exec("ALTER TABLE route_profiles ADD COLUMN remote_rules TEXT");
 
@@ -159,6 +162,7 @@ namespace Configs {
                 tls_fragment_fallback_delay TEXT,
                 tls_record_fragment INTEGER NOT NULL DEFAULT 0,
                 disabled INTEGER NOT NULL DEFAULT 0,
+                ignore_xray_routing INTEGER NOT NULL DEFAULT -1,
                 PRIMARY KEY (route_profile_id, rule_order),
                 FOREIGN KEY(route_profile_id) REFERENCES route_profiles(id) ON DELETE CASCADE
             )
@@ -181,6 +185,8 @@ namespace Configs {
             db.exec("ALTER TABLE route_rules ADD COLUMN tls_record_fragment INTEGER NOT NULL DEFAULT 0");
         if (!routeRulesColumnExists("disabled"))
             db.exec("ALTER TABLE route_rules ADD COLUMN disabled INTEGER NOT NULL DEFAULT 0");
+        if (!routeRulesColumnExists("ignore_xray_routing"))
+            db.exec("ALTER TABLE route_rules ADD COLUMN ignore_xray_routing INTEGER NOT NULL DEFAULT -1");
     }
 
     bool RoutesRepo::routeRulesColumnExists(const char* columnName) const {
@@ -207,6 +213,7 @@ namespace Configs {
         routeProfile->id = json["id"].toInt();
         routeProfile->name = json["name"].toString();
         routeProfile->defaultOutboundID = json["defaultOutboundID"].toInt();
+        routeProfile->ignoreXrayRouting = json["ignoreXrayRouting"].toBool();
         routeProfile->isRaw = json["isRaw"].toBool();
         routeProfile->rawRoute = json["rawRoute"].toString();
         routeProfile->preventModifications = json["preventModifications"].toBool();
@@ -254,8 +261,8 @@ namespace Configs {
         db.execThrow(R"(
             INSERT INTO route_profiles (id, name, default_outbound_id, is_raw, raw_route, prevent_modifications,
                 is_remote, remote_url, auto_update, remote_last_update, endpoint_profile_ids,
-                inner_hop_endpoint_ids, dns_json, custom_dns, source_gid, remote_rules)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                inner_hop_endpoint_ids, dns_json, custom_dns, source_gid, ignore_xray_routing, remote_rules)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET
                 name = excluded.name, default_outbound_id = excluded.default_outbound_id,
                 is_raw = excluded.is_raw, raw_route = excluded.raw_route,
@@ -265,7 +272,9 @@ namespace Configs {
                 endpoint_profile_ids = excluded.endpoint_profile_ids,
                 inner_hop_endpoint_ids = excluded.inner_hop_endpoint_ids,
                 dns_json = excluded.dns_json, custom_dns = excluded.custom_dns,
-                source_gid = excluded.source_gid, remote_rules = excluded.remote_rules,
+                source_gid = excluded.source_gid,
+                ignore_xray_routing = excluded.ignore_xray_routing,
+                remote_rules = excluded.remote_rules,
                 updated_at = strftime('%s', 'now')
         )",
             id,
@@ -283,6 +292,7 @@ namespace Configs {
             dnsJson.toStdString(),
             routeProfile->customDns ? 1 : 0,
             routeProfile->source_gid,
+            routeProfile->ignoreXrayRouting ? 1 : 0,
             remoteJson.toStdString()
         );
 
@@ -292,9 +302,10 @@ namespace Configs {
         for (const auto& rule : routeProfile->Rules) {
             const RouteRule& r = *rule;
             const auto insert = db.queryThrow(routesRepoRuleInsert(), id, ruleOrder++, r.name.toStdString(), r.type, r.outboundID,
-                                              r.action.toStdString(), routesRepoListJson(r.sniffers), r.disabled ? 1 : 0);
+                                              r.action.toStdString(), routesRepoListJson(r.sniffers), r.disabled ? 1 : 0,
+                                              r.ignoreXrayRouting ? int(*r.ignoreXrayRouting) : -1);
             // Bound here, as execThrow takes a fixed argument list.
-            int index = 8;
+            int index = 9;
             for (const auto& attr : RouteRule::attribute_table()) {
                 if (attr.column == nullptr) continue;
                 ++index;
@@ -317,6 +328,8 @@ namespace Configs {
         rule->sniffers = routesRepoParseList(stmt.getColumn(col++).getText());
         // The editor used to switch endpoint rules off by accident; they cannot be disabled.
         rule->disabled = stmt.getColumn(col++).getInt() != 0 && rule->type != endpointPreferredBy;
+        const int pin = stmt.getColumn(col++).getInt();
+        rule->ignoreXrayRouting = pin < 0 ? std::nullopt : std::optional<bool>(pin != 0);
         for (const auto& attr : RouteRule::attribute_table()) {
             if (attr.column == nullptr) continue;
             const SQLite::Column column = stmt.getColumn(col++);
@@ -347,6 +360,7 @@ namespace Configs {
             json["dns"] = dnsDoc.object();
         json["customDns"] = stmt.getColumn(13).getInt() != 0;
         json["sourceGid"] = stmt.getColumn(14).getInt();
+        json["ignoreXrayRouting"] = stmt.getColumn(15).getInt() != 0;
         return routeProfileFromJson(json);
     }
 
@@ -374,7 +388,7 @@ namespace Configs {
         auto profileQuery = db.query(R"(
             SELECT id, name, default_outbound_id, is_raw, raw_route, prevent_modifications,
                    is_remote, remote_url, auto_update, remote_last_update, endpoint_profile_ids,
-                   inner_hop_endpoint_ids, dns_json, custom_dns, source_gid, remote_rules
+                   inner_hop_endpoint_ids, dns_json, custom_dns, source_gid, ignore_xray_routing, remote_rules
             FROM route_profiles WHERE id = ?
         )", id);
         if (!profileQuery || !profileQuery->executeStep()) {
@@ -382,7 +396,7 @@ namespace Configs {
         }
 
         auto routeProfile = routeProfileFromProfileRow(*profileQuery);
-        const auto remoteIndexes = routesRepoRemoteIndexes(profileQuery->getColumn(15));
+        const auto remoteIndexes = routesRepoRemoteIndexes(profileQuery->getColumn(16));
 
         auto rulesQuery = db.query("SELECT " + routesRepoRuleColumns() + " FROM route_rules WHERE route_profile_id = ? ORDER BY rule_order", id);
         if (rulesQuery) {
@@ -548,7 +562,7 @@ namespace Configs {
         QSet<int> cachedProfiles;
         std::map<int, std::optional<QSet<int>>> remoteIndexes;
 
-        auto profileQuery = db.query("SELECT id, name, default_outbound_id, is_raw, raw_route, prevent_modifications, is_remote, remote_url, auto_update, remote_last_update, endpoint_profile_ids, inner_hop_endpoint_ids, dns_json, custom_dns, source_gid, remote_rules FROM route_profiles ORDER BY id");
+        auto profileQuery = db.query("SELECT id, name, default_outbound_id, is_raw, raw_route, prevent_modifications, is_remote, remote_url, auto_update, remote_last_update, endpoint_profile_ids, inner_hop_endpoint_ids, dns_json, custom_dns, source_gid, ignore_xray_routing, remote_rules FROM route_profiles ORDER BY id");
         if (!profileQuery) return routeProfiles;
 
         QMutexLocker locker(&mutex);
@@ -566,7 +580,7 @@ namespace Configs {
                 identityMap.erase(it);
             }
             profile = routeProfileFromProfileRow(*profileQuery);
-            remoteIndexes[id] = routesRepoRemoteIndexes(profileQuery->getColumn(15));
+            remoteIndexes[id] = routesRepoRemoteIndexes(profileQuery->getColumn(16));
             byId[id] = profile;
             idsInOrder.append(id);
             identityMap[id] = std::weak_ptr<RouteProfile>(profile);

@@ -65,6 +65,7 @@ namespace Configs {
         QString name = "";
         QList<std::shared_ptr<RouteRule>> Rules;
         int defaultOutboundID = proxyID;
+        bool ignoreXrayRouting = false;
 
         // rawRoute is a whole sing-box `route` JSON object; preventModifications uses it verbatim, otherwise Throne still injects its plumbing.
         bool isRaw = false;
@@ -101,7 +102,8 @@ namespace Configs {
         static QList<std::shared_ptr<RouteRule>> parseJsonArray(const QJsonArray& arr, QString* parseError, QString* warnings = nullptr);
 
         // sourceIndexes gets each returned rule's index in Rules, -1 for the injected adblock rule.
-        QJsonArray get_route_rules(bool forView = false, std::map<int, QString> outboundMap = {}, QList<int>* sourceIndexes = nullptr);
+        QJsonArray get_route_rules(bool forView = false, std::map<int, QString> outboundMap = {}, QList<int>* sourceIndexes = nullptr,
+                                   const QHash<int, QString>& ruleExitTags = {});
 
         // Endpoints travel as whole configs with credentials cleared; one that cannot is skipped into *warnings.
         QJsonObject ToShareObject(QString* warnings = nullptr);

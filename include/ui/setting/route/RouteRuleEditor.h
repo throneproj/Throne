@@ -21,6 +21,7 @@ class QPushButton;
 class QToolButton;
 class QVBoxLayout;
 class RouteThenPicker;
+namespace Configs { class RouteProfile; }
 
 namespace RouteEditor {
     class FlowLayout;
@@ -33,7 +34,7 @@ class RouteRuleEditor : public QWidget {
     Q_OBJECT
 
 public:
-    explicit RouteRuleEditor(QWidget* parent = nullptr);
+    explicit RouteRuleEditor(std::shared_ptr<const Configs::RouteProfile> profile, QWidget* parent = nullptr);
     ~RouteRuleEditor() override;
 
     // A condition added but not filled yet is dropped when another rule is loaded.
@@ -139,6 +140,8 @@ private:
     RouteEditor::TreeNode* tree = nullptr;
     QPushButton* addConditionButton = nullptr;
     QCheckBox* invertCheck = nullptr;
+    std::shared_ptr<const Configs::RouteProfile> profile;
+    QCheckBox* ignoreXrayCheck = nullptr;
 
     RouteThenPicker* thenPicker = nullptr;
     QLabel* thenIssues = nullptr;

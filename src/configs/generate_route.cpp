@@ -410,7 +410,7 @@ namespace Configs {
 
             QList<int> sourceIndexes;
             auto profileRules = routeChain->isRaw ? rawRouteObj.value("rules").toArray()
-                                                  : routeChain->get_route_rules(false, routeDeps.outboundMap, &sourceIndexes);
+                                                  : routeChain->get_route_rules(false, routeDeps.outboundMap, &sourceIndexes, routeDeps.ruleExitTags);
             QList<RouteRuleOrigin> profileOrigins;
             if (routeChain->isRaw) {
                 for (qsizetype i = 0; i < profileRules.size(); i++) profileOrigins.append({RouteRuleOriginKind::RawRule, static_cast<int>(i), {}});

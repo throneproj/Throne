@@ -33,6 +33,7 @@ private:
     Ui::EditCustom *ui;
     std::shared_ptr<Configs::Profile> ent;
     QPointer<Validation::Form> form;
+    void refreshRouteExits(const QString &selected);
 
 private slots:
 

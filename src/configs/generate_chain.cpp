@@ -373,6 +373,19 @@ namespace Configs {
                     out.error = "Custom Xray full config is not valid JSON";
                     return out;
                 }
+                // A rule sidecar drops the original listeners; map their tags before isolating it.
+                RouteXrayListenerRulesViaBridge(userXrayConfig);
+                if (req.pinXrayRuleExit.value_or(false) || ctx.ignoreXrayRouting || custom->ignoreXrayRouting) {
+                    auto pinned = PinXrayExit(std::move(userXrayConfig), custom->routeExitTag,
+                                              req.pinXrayRuleExit.has_value() ? XrayExitUse::RuleTarget : XrayExitUse::Profile);
+                    if (!pinned.error.isEmpty()) {
+                        out.error = custom->DisplayName() + ": " + pinned.error;
+                        return out;
+                    }
+                    userXrayConfig = std::move(pinned.object);
+                } else if (req.pinXrayRuleExit.has_value()) {
+                    IsolateXrayRuleTarget(userXrayConfig);
+                }
                 // A pre-probed 0 means the caller's probe failed; re-probe rather than bake in a dead port.
                 BridgeEndpoint bridge{.port = req.xrayFullConfigPort};
                 if (bridge.port <= 0) bridge.port = MkManyPorts(1, bridge.host)[0];
@@ -390,7 +403,6 @@ namespace Configs {
                     {"destOverride", QJsonArray{"http", "tls", "quic"}},
                     {"routeOnly", false}
                 };
-                RouteXrayListenerRulesViaBridge(userXrayConfig);
                 auto inbounds = (!ctx.policy.listeners || req.soleXrayInbound) ? QJsonArray()
                                                                                : userXrayConfig["inbounds"].toArray();
                 inbounds.prepend(bridgeInbound);

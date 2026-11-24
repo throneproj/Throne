@@ -3685,6 +3685,26 @@ Close without saving?</source>
 <context>
     <name>EditCustom</name>
     <message>
+        <source>Xray proxy exit</source>
+        <translation>خروجی پروکسی Xray</translation>
+    </message>
+    <message>
+        <source>Ignore built-in Xray routing rules</source>
+        <translation>نادیده گرفتن قوانین مسیریابی داخلی Xray</translation>
+    </message>
+    <message>
+        <source>When enabled, traffic from Throne uses the selected proxy exit. This can also be enabled in a routing profile or an individual rule.</source>
+        <translation>با فعال کردن این گزینه، ترافیک Throne از پروکسی انتخاب‌شده می‌گذرد. این گزینه را می‌توانید در پروفایل مسیریابی یا برای یک قانون جداگانه نیز فعال کنید.</translation>
+    </message>
+    <message>
+        <source>Automatic (single proxy)</source>
+        <translation>خودکار (یک پروکسی)</translation>
+    </message>
+    <message>
+        <source>Unavailable: %1</source>
+        <translation>در دسترس نیست: %1</translation>
+    </message>
+    <message>
         <source>Core</source>
         <translation>هسته</translation>
     </message>
@@ -5461,6 +5481,10 @@ Error: %2</source>
 <context>
     <name>QObject</name>
     <message>
+        <source>A rule cannot override Xray routing through a WARP exit. Use the routing profile setting instead.</source>
+        <translation>هنگام استفاده از خروجی WARP، یک قانون نمی‌تواند مسیریابی Xray را تغییر دهد. این گزینه را در پروفایل مسیریابی فعال کنید.</translation>
+    </message>
+    <message>
         <source>Used: %1 Remain: %2 Expire: %3</source>
         <translation>استفاده‌شده: %1 باقی‌مانده: %2 انقضا: %3</translation>
     </message>
@@ -5724,6 +5748,18 @@ Error: %2</source>
 </context>
 <context>
     <name>RouteItem</name>
+    <message>
+        <source>About this option</source>
+        <translation>دربارهٔ این گزینه</translation>
+    </message>
+    <message>
+        <source>Ignore built-in Xray routing rules for the whole profile</source>
+        <translation>نادیده گرفتن قوانین مسیریابی داخلی Xray برای کل پروفایل</translation>
+    </message>
+    <message>
+        <source>Xray sends Throne traffic through the selected proxy, even if the JSON says direct.</source>
+        <translation>حتی اگر در JSON مسیر direct تعیین شده باشد، Xray ترافیک Throne را از پروکسی انتخاب‌شده می‌فرستد.</translation>
+    </message>
     <message>
         <source>Routing Profile</source>
         <translation>نمایهٔ مسیریابی</translation>
@@ -7020,6 +7056,34 @@ Remove that endpoint from this routing profile as well?</source>
 </context>
 <context>
     <name>Validation</name>
+    <message>
+        <source>The Xray config has invalid or ambiguous outbound tags or routing fields.</source>
+        <translation>برچسب‌های خروجی یا فیلدهای مسیریابی پیکربندی Xray نامعتبر یا مبهم است.</translation>
+    </message>
+    <message>
+        <source>This Xray config has no proxy outbound for routing rules.</source>
+        <translation>این پیکربندی Xray خروجی پروکسی برای قوانین مسیریابی ندارد.</translation>
+    </message>
+    <message>
+        <source>Choose a tagged proxy under Xray proxy exit in the profile editor. Untagged outbounds must be named before they can be selected.</source>
+        <translation>در ویرایشگر پروفایل، در بخش «خروجی پروکسی Xray» یک پروکسی برچسب‌دار انتخاب کنید. خروجی‌های بدون برچسب ابتدا باید نام‌گذاری شوند.</translation>
+    </message>
+    <message>
+        <source>An Xray routing script cannot be combined with a Throne bridge rule.</source>
+        <translation>اسکریپت مسیریابی Xray را نمی‌توان با قانون پل Throne ترکیب کرد.</translation>
+    </message>
+    <message>
+        <source>An Xray full config used in a routing rule cannot have a group front or landing proxy.</source>
+        <translation>پیکربندی کامل Xray در یک قانون مسیریابی نمی‌تواند پروکسی ورودی یا خروجی گروه داشته باشد.</translation>
+    </message>
+    <message>
+        <source>Traffic uses the selected proxy in %1, ignoring its built-in Xray routing rules.</source>
+        <translation>ترافیک از پروکسی انتخاب‌شده در %1 می‌گذرد و قوانین مسیریابی داخلی Xray نادیده گرفته می‌شوند.</translation>
+    </message>
+    <message>
+        <source>Traffic uses the routing rules from the Xray config %1.</source>
+        <translation>ترافیک طبق قوانین مسیریابی داخلی پروفایل Xray با نام %1 هدایت می‌شود.</translation>
+    </message>
     <message>
         <source>%1: %2</source>
         <translation>%1: %2</translation>
@@ -8951,6 +9015,10 @@ Remove that endpoint from this routing profile as well?</source>
 </context>
 <context>
     <name>RouteRuleEditor</name>
+    <message>
+        <source>Ignore built-in Xray routing rules for this rule</source>
+        <translation>نادیده گرفتن قوانین مسیریابی داخلی Xray برای این قانون</translation>
+    </message>
     <message>
         <source>Rule name</source>
         <translation>نام قانون</translation>

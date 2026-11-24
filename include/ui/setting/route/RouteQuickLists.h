@@ -29,10 +29,10 @@ namespace QuickLists {
     // Into the row's rule of that kind, else into a new rule placed right after the row.
     bool Add(Configs::RouteProfile& profile, const RouteEditor::Row& row, const QString& line, QString* error);
 
-    // Leaves the rule in place even when it empties: an empty list keeps its row until saving drops it.
+    // Leaves the rule in place even when its row disappears.
     void Remove(const Entry& entry);
 
-    // Gives each list that has no rule an empty one at the end, so every list has a row to fill and drag.
+    // Gives each missing list a backing rule to fill.
     void EnsureLists(Configs::RouteProfile& profile);
 
     QString TypeLabel(const QString& prefix);
@@ -53,6 +53,7 @@ public:
 
     // rows is the whole row list, for the note naming the list's other rows.
     void setRow(const RouteEditor::Row& row, const QList<RouteEditor::Row>& rows);
+    bool hasPendingEntry() const;
 
     // Selects that entry; returns the widget to focus.
     QWidget* revealEntry(const QuickLists::Entry& entry);

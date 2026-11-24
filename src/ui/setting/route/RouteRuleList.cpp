@@ -294,7 +294,7 @@ private:
                 look.dimmed = rule->disabled;
                 look.checkable = true;
                 look.checked = !rule->disabled;
-                for (const auto& issue : RouteEditor::RuleProblems(*rule)) {
+                for (const auto& issue : RouteEditor::RuleProblems(*rule, profile->ignoreXrayRouting)) {
                     if (issue.severity != Validation::Severity::Error) continue;
                     look.error = true;
                     look.issue = issue.message;
