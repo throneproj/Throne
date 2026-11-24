@@ -287,11 +287,7 @@ namespace Configs {
         bool exitWrapperOn();
         // Wraps the selected profile under the "proxy" tag; nullptr, with *error saying why, when the active exit cannot be built.
         std::shared_ptr<Profile> exitProfile(QString *error = nullptr);
-        QString exitError(const std::shared_ptr<Profile> &ent);
-        // The hop ent's traffic leaves through before any exit wrapper: its group's landing proxy, a chain's last hop, or ent.
-        std::shared_ptr<Profile> exitHopOf(const std::shared_ptr<Profile> &ent);
-        bool exitCarriesOnlyTcp(const std::shared_ptr<Profile> &ent);
-        bool exitReachesOnion(const std::shared_ptr<Profile> &ent);
+        QString exitError();
         std::shared_ptr<Profile> resolveExtraCoreProfile(const std::shared_ptr<Profile> &ent);
         QString scanCloneBlocker(const std::shared_ptr<Profile> &profile);
         std::shared_ptr<Profile> scanDeepClone(const std::shared_ptr<Profile> &base);

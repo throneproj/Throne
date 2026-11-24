@@ -47,7 +47,6 @@ brew install --cask throneproj/tap/throne
 - Mieru
 - Snell
 - NaïveProxy
-- Juicity
 - TrustTunnel
 - ShadowTLS
 - WireGuard
@@ -56,8 +55,6 @@ brew install --cask throneproj/tap/throne
 - SSH
 - DNSTT / VayDNS
 - MasterDNS
-- Tor (with obfs4, WebTunnel, Snowflake and meek bridges)
-- Psiphon
 - Xray VLESS (XHTTP/XDRIVE)
 - OpenVPN/OpenConnect
 - Custom Outbound (Both sing-box and Xray)
@@ -75,8 +72,6 @@ Deep links are also supported, read the [documentation](https://throneproj.githu
 
 - [SagerNet/sing-box](https://github.com/SagerNet/sing-box)
 - [XTLS/Xray-core](https://github.com/xtls/xray-core)
-- [Tor](https://www.torproject.org/), [lyrebird](https://gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/lyrebird) and [Snowflake](https://gitlab.torproject.org/tpo/anti-censorship/pluggable-transports/snowflake)
-- [Psiphon](https://github.com/Psiphon-Labs/psiphon-tunnel-core)
 - [Qv2ray](https://github.com/Qv2ray/Qv2ray)
 - [Qt](https://www.qt.io/)
 - [simple-protobuf](https://github.com/tonda-kriz/simple-protobuf)

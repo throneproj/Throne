@@ -5,7 +5,6 @@
 #include "include/configs/common/Protocols.h"
 #include "include/configs/common/ResolverSource.h"
 #include "include/configs/common/utils.h"
-#include "include/configs/outbounds/tor.h"
 #include "include/global/Configs.hpp"
 
 #include <QApplication>
@@ -85,13 +84,6 @@ namespace Configs {
         // Far below every sentinel id (-1, warpProfileID), so a clone never resolves to one.
         constexpr int kScanSyntheticIdBase = -1000000;
         constexpr int kChainStepSyntheticIdBase = -2000000;
-
-        bool chainNeedsMissingTor(const ChainOutput &out) {
-            for (const auto item : out.outbounds) {
-                if (item.toObject().value("type").toString() == QLatin1String("tor")) return !tor::Installed();
-            }
-            return false;
-        }
 
         bool isVpnEndpointType(const QString &type) {
             return Protocols::Is(type, Protocols::VpnEndpoint);
@@ -293,14 +285,6 @@ namespace Configs {
             if (!out.error.isEmpty()) {
                 if (!skipFailedBuild(item, out.error)) {
                     res->error = out.error;
-                    return res;
-                }
-                suffix++;
-                continue;
-            }
-            if (chainNeedsMissingTor(out)) {
-                if (!skipFailedBuild(item, TorNotDownloadedError())) {
-                    res->error = TorNotDownloadedError();
                     return res;
                 }
                 suffix++;

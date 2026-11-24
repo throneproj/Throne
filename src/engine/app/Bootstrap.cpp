@@ -14,6 +14,7 @@
 #include <QStandardPaths>
 #include <QThread>
 
+#include "include/database/MarkersRepo.h"
 #include "include/engine/app/DataDirLock.h"
 #include "include/engine/app/InstanceServer.h"
 #include "include/engine/headless/HeadlessInstance.h"
@@ -162,6 +163,22 @@ namespace Engine::Bootstrap {
             ::unlinkat(parentFd, name, AT_REMOVEDIR);
         }
 #endif
+
+        // Once, failures ignored: what the retired Tor and Psiphon support left in the config folder.
+        void bootstrapRemoveTorPsiphonLeftovers() {
+            auto &markers = *Configs::dataManager->markersRepo;
+            if (markers.IsMarked(Configs::Markers::TorPsiphonLeftovers)) return;
+            for (const char *folder : {"tor", "psiphon"}) {
+#ifdef Q_OS_UNIX
+                bootstrapRemoveTree(AT_FDCWD, folder, 0);
+#else
+                QDir(QString::fromLatin1(folder)).removeRecursively();
+#endif
+            }
+            QFile::remove(QStringLiteral("tor_bridges.json"));
+            QFile::remove(QStringLiteral("tor_bridges.meta.json"));
+            markers.Mark(Configs::Markers::TorPsiphonLeftovers);
+        }
     } // namespace
 
     Launch PreScan(int argc, char **argv) {
@@ -363,6 +380,7 @@ namespace Engine::Bootstrap {
         appStartEpoch = QDateTime::currentSecsSinceEpoch();
 
         Configs::initDB(QString(QDir::currentPath() + QDir::separator() + "throne.db").toStdString());
+        bootstrapRemoveTorPsiphonLeftovers();
 
         Logging::SetLevel(Logging::LevelFromString(Configs::dataManager->settingsRepo->log_file_level));
 

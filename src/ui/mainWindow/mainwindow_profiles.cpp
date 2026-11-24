@@ -204,6 +204,7 @@ void MainWindow::on_menu_copy_links_triggered() {
     QStringList links;
     auto ents = Configs::dataManager->profilesRepo->GetProfileBatch(entIDs);
     for (const auto &ent: ents) {
+        if (ent->outbound->invalid) continue;
         auto link = ent->outbound->ExportToLink();
         if (link.isEmpty()) link = ent->outbound->ExportJsonLink();
         links += link;
@@ -218,7 +219,7 @@ void MainWindow::on_menu_copy_links_nkr_triggered() {
     QStringList links;
     auto ents = Configs::dataManager->profilesRepo->GetProfileBatch(entIDs);
     for (const auto &ent: ents) {
-        links += ent->outbound->ExportJsonLink();
+        if (!ent->outbound->invalid) links += ent->outbound->ExportJsonLink();
     }
     if (links.length() == 0) return;
     QApplication::clipboard()->setText(links.join("\n"));
@@ -351,6 +352,11 @@ void MainWindow::display_qr_link(bool nkrFormat) {
     };
 
     auto ent = Configs::dataManager->profilesRepo->GetProfile(ents.first());
+    if (ent->outbound->invalid) {
+        MessageBoxWarning(ent->outbound->DisplayTypeAndName(),
+                          QCoreApplication::translate("Validation", "Unsupported profile type \"%1\".").arg(ent->type));
+        return;
+    }
     auto link = ent->outbound->ExportToLink();
     auto link_deep = ent->outbound->ExportJsonLink();
     auto w = new W(link, link_deep, nkrFormat || link.isEmpty());

@@ -6,7 +6,6 @@
 #include "include/configs/common/Protocols.h"
 #include "include/configs/common/utils.h"
 #include "include/configs/common/xrayStreamSetting.h"
-#include "include/configs/outbounds/tor.h"
 #include "include/configs/sub/SubscriptionScan.hpp"
 #include "include/configs/sub/clash.hpp"
 #include "include/configs/sub/vpnFileImport.hpp"
@@ -27,7 +26,6 @@
 #include <initializer_list>
 #include <optional>
 #include <string_view>
-#include <utility>
 
 namespace Subscription {
     namespace {
@@ -191,35 +189,6 @@ namespace Subscription {
 
         QString toQString(std::string_view s) {
             return QString::fromUtf8(s.data(), static_cast<qsizetype>(s.size())).trimmed();
-        }
-
-        // Real bridge lines stay well under this; a snowflake line with all its options is about 700 bytes.
-        constexpr std::size_t kMaxTorBridgeBytes = 4096;
-
-        // A pasted line of Tor bridges, checked strictly so other text never turns into a Tor profile.
-        std::optional<QString> torBridgeLine(std::string_view item) {
-            const auto line = scan::trim(item);
-            if (line.empty() || line.size() > kMaxTorBridgeBytes) return std::nullopt;
-            auto text = toQString(line);
-            if (!Configs::LooksLikeTorBridgeLine(text)) return std::nullopt;
-            return text;
-        }
-
-        // Every non-blank line a bridge line, as copied from the bridge site or bot; empty otherwise.
-        QStringList torBridgeDocument(std::string_view text) {
-            QStringList lines;
-            bool all = true;
-            scan::forEachLine(text, [&](std::string_view raw) {
-                if (scan::trim(raw).empty()) return true;
-                const auto line = torBridgeLine(raw);
-                if (!line) {
-                    all = false;
-                    return false;
-                }
-                lines << *line;
-                return true;
-            });
-            return all ? lines : QStringList();
         }
 
         // Shared by document() and vpnLink() so both agree on what counts as a WireGuard conf.
@@ -792,7 +761,6 @@ namespace Subscription {
             void openVpnFile(std::string_view text);
             void openConnectProfile(std::string_view text);
             void link(std::string_view line, int depth, const QString &overrideName);
-            void torBridges(const QStringList &lines, const QString &overrideName);
             void jsonLink(const QString &str, bool throneAdd);
             void vpnLink(const QString &str, int depth);
         };
@@ -801,13 +769,6 @@ namespace Subscription {
             if (depth > kMaxDepth) return;
             const auto text = scan::trim(raw);
             if (text.empty()) return;
-
-            if (text.front() == '[' && text.size() <= 64 * kMaxTorBridgeBytes) {
-                if (const auto lines = Configs::ParseTorBridgeList(toQString(text)); !lines.isEmpty()) {
-                    torBridges(lines, overrideName);
-                    return;
-                }
-            }
 
             if (allowBase64 && scan::looksLikeBase64(text)) {
                 if (const auto decoded = scan::decodeBase64(text); !decoded.isEmpty()) {
@@ -858,56 +819,11 @@ namespace Subscription {
             }
 
             if (needParse && text.find('\n') != npos) {
-                // Whole-text first: a plain IPv6 bridge opens with '[', which forEachItem would take for a JSON block.
-                if (const auto lines = torBridgeDocument(text); !lines.isEmpty()) {
-                    torBridges(lines, overrideName);
-                    return;
-                }
-                // Consecutive bridge lines among other links make one profile; blank lines do not break the run.
-                QStringList bridgeRun;
-                const auto flushBridges = [&] {
-                    if (!bridgeRun.isEmpty()) torBridges(std::exchange(bridgeRun, {}), overrideName);
-                };
-                scan::forEachItem(text, [&](std::string_view item) {
-                    if (scan::trim(item).empty()) return;
-                    if (auto line = torBridgeLine(item)) {
-                        bridgeRun << *line;
-                        return;
-                    }
-                    flushBridges();
-                    document(item, true, false, depth + 1, overrideName);
-                });
-                flushBridges();
-                return;
-            }
-
-            if (auto line = torBridgeLine(text)) {
-                torBridges({*line}, overrideName);
+                scan::forEachItem(text, [&](std::string_view item) { document(item, true, false, depth + 1, overrideName); });
                 return;
             }
 
             link(text, depth, overrideName);
-        }
-
-        void Parser::torBridges(const QStringList &lines, const QString &overrideName) {
-            auto ent = Configs::ProfilesRepo::NewProfile("tor");
-            auto *bean = ent->Tor();
-            bean->bridge_mode = QStringLiteral("custom");
-            bean->name = overrideName.trimmed().isEmpty() ? QStringLiteral("Tor") : overrideName.trimmed();
-            // One bad line costs only itself; Validate refuses the profile when none is left.
-            Validation::Issues issues;
-            for (const auto &line : Configs::SplitTorBridgeText(lines.join(u'\n'))) {
-                if (const auto message = Configs::Checks::TorBridgeLine(line); !message.isEmpty()) {
-                    issues << Validation::Issue{Validation::Severity::Warning, QStringLiteral("bridges"),
-                                                QCoreApplication::translate("Validation", "Skipped a bridge line: %1").arg(message),
-                                                Configs::TorBridgeHint(line)};
-                    continue;
-                }
-                bean->bridges << line;
-            }
-            accept(ent, true, std::move(issues), [&] {
-                return QCoreApplication::translate("Validation", "Tor bridges: %1").arg(bean->DisplayAddress());
-            });
         }
 
         void Parser::reportJsonSyntax(std::string_view text, const QJsonParseError &error) {

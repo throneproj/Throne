@@ -164,7 +164,6 @@ namespace RemoteApi::RouterImpl {
             case Engine::StartOutcome::StrictRouteUnavailable:
                 return make(422, "strict_route_unavailable", "Windows could not enable strict routing");
             case Engine::StartOutcome::TunFailed: return make(422, "tun_failed", "The Tun interface could not be configured");
-            case Engine::StartOutcome::TorMissing: return make(422, "tor_missing", "The profile uses Tor, which is not downloaded yet");
             case Engine::StartOutcome::StartFailed:
             case Engine::StartOutcome::Started: break;
         }

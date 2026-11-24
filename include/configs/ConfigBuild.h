@@ -69,10 +69,6 @@ namespace Configs
         QString xrayDnsStrategy;
         // One per route.rules entry; empty for a custom full config.
         QList<RouteRuleOrigin> routeRuleOrigins;
-        // A tor outbound is in the config: an exit, a hop, a route or auto-selector member.
-        bool usesTor = false;
-        // usesTor while the Tor executable is not downloaded; starts offer the download instead.
-        bool torMissing = false;
     };
 
     class BuildTestConfigResult {

@@ -15,10 +15,6 @@ func Check(content []byte) error {
 		return err
 	}
 	pinTailscaleDirectories(options)
-	pinTor(options)
-	if _, err := pinPsiphon(options); err != nil {
-		return err
-	}
 	dropDebugOptions(options)
 	ctx, cancel := context.WithCancel(ctx)
 	instance, err := box.New(box.Options{

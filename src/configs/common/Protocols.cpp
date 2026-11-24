@@ -16,7 +16,6 @@
 #include "include/configs/outbounds/xrayVless.h"
 #include "include/configs/outbounds/hysteria.h"
 #include "include/configs/outbounds/tuic.h"
-#include "include/configs/outbounds/juicity.h"
 #include "include/configs/outbounds/trusttunnel.h"
 #include "include/configs/outbounds/anyTLS.h"
 #include "include/configs/outbounds/mieru.h"
@@ -34,8 +33,6 @@
 #include "include/configs/outbounds/direct.h"
 #include "include/configs/outbounds/dnstt.h"
 #include "include/configs/outbounds/masterdns.h"
-#include "include/configs/outbounds/tor.h"
-#include "include/configs/outbounds/psiphon.h"
 
 namespace Configs::Protocols {
     namespace {
@@ -73,21 +70,18 @@ namespace Configs::Protocols {
             {.id = "tuic", .create = protocolsCreate<tuic>,
              .importSchemes = {"tuic://"}, .importSingBox = {"tuic"}, .importClash = {"tuic"},
              .filterRank = 6, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "TUIC")},
-            {.id = "juicity", .create = protocolsCreate<juicity>,
-             .importSchemes = {"juicity://"}, .importSingBox = {"juicity"},
-             .filterRank = 14, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "Juicity")},
             {.id = "naive", .create = protocolsCreate<naive>,
              .importSchemes = {"naive+https://", "naive+quic://"}, .importSingBox = {"naive"},
-             .filterRank = 16, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "NaiveProxy")},
+             .filterRank = 15, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "NaiveProxy")},
             {.id = "trusttunnel", .create = protocolsCreate<trusttunnel>,
              .importSchemes = {"tt://"}, .importSingBox = {"trusttunnel"},
-             .filterRank = 17, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "TrustTunnel")},
+             .filterRank = 16, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "TrustTunnel")},
             {.id = "anytls", .create = protocolsCreate<anyTLS>,
              .importSchemes = {"anytls://"}, .importSingBox = {"anytls"}, .importClash = {"anytls"},
              .filterRank = 7, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "AnyTLS")},
             {.id = "mieru", .create = protocolsCreate<mieru>,
              .importSchemes = {"mierus://", "mieru://"}, .importSingBox = {"mieru"},
-             .filterRank = 15, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "Mieru")},
+             .filterRank = 14, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "Mieru")},
             {.id = "snell", .create = protocolsCreate<snell>,
              .importSchemes = {"snell://"}, .importSingBox = {"snell"}, .importClash = {"snell"},
              .filterRank = 13, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "Snell")},
@@ -99,11 +93,11 @@ namespace Configs::Protocols {
              .filterRank = 9, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "WireGuard / AmneziaWG")},
             {.id = "masque", .create = protocolsCreate<masque>,
              .importSingBox = {"masque"}, .importClash = {"masque"},
-             .filterRank = 18, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "MASQUE")},
+             .filterRank = 17, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "MASQUE")},
             {.id = "openvpn", .create = protocolsCreate<openvpn>, .flags = VpnEndpoint,
-             .filterRank = 23, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "OpenVPN")},
+             .filterRank = 20, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "OpenVPN")},
             {.id = "openconnect", .create = protocolsCreate<openconnect>, .flags = VpnEndpoint,
-             .filterRank = 24, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "OpenConnect")},
+             .filterRank = 21, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "OpenConnect")},
             {.id = "tailscale", .create = protocolsCreate<tailscale>, .flags = Serverless | NoScan},
             {.id = "ssh", .create = protocolsCreate<ssh>,
              .importSchemes = {"ssh://"}, .importSingBox = {"ssh"}, .importClash = {"ssh"},
@@ -111,19 +105,13 @@ namespace Configs::Protocols {
             // dnst:// links of the masterdns transport go to masterdns, see Subscription's Parser::link().
             {.id = "dnstt", .create = protocolsCreate<dnstt>, .flags = Serverless | NoScan | DnsTunnel,
              .importSchemes = {"dnst://", "slipnet://", "slipnet-enc://", "slipnet-bundle-enc://"}, .importSingBox = {"dnstt"},
-             .filterRank = 19, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "DNSTT")},
+             .filterRank = 18, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "DNSTT")},
             {.id = "masterdns", .create = protocolsCreate<masterdns>, .flags = Serverless | NoScan | DnsTunnel,
              .importSchemes = {"masterdns://", "stormdns://"}, .importSingBox = {"masterdns"},
-             .filterRank = 20, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "MasterDNS")},
-            {.id = "tor", .create = protocolsCreate<tor>, .flags = Serverless | NoScan | SlowStart,
-             .importSingBox = {"tor"},
-             .filterRank = 21, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "Tor")},
-            {.id = "psiphon", .create = protocolsCreate<psiphon>, .flags = Serverless | NoScan | SlowStart,
-             .importSingBox = {"psiphon"},
-             .filterRank = 22, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "Psiphon")},
+             .filterRank = 19, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "MasterDNS")},
             {.id = "direct", .create = protocolsCreate<direct>, .flags = Serverless | NoScan},
             {.id = "custom", .create = protocolsCreate<Custom>, .flags = Serverless | NoScan,
-             .filterRank = 25, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "Custom (JSON)")},
+             .filterRank = 22, .filterLabel = QT_TRANSLATE_NOOP("DialogEditGroupAdvanced", "Custom (JSON)")},
             {.id = "extracore", .create = protocolsCreate<extracore>, .flags = Serverless | NoScan | RunsProgram,
              .foreignRefusal = QT_TRANSLATE_NOOP("Validation", "Refused to import an Extra Core profile: it would run a program on this computer.")},
             {.id = "chain", .create = protocolsCreate<chain>, .flags = Serverless | Composite,
@@ -297,12 +285,33 @@ namespace Configs::Protocols {
 
 namespace Configs
 {
+    namespace {
+        // A stored type this version does not know: still listed, so it can be removed, but never built or shared.
+        class unsupportedOutbound final : public outbound
+        {
+        public:
+            explicit unsupportedOutbound(const QString& type) : type(type) { invalid = true; }
+
+            QString DisplayType() override { return type; }
+
+            SecurityInfo GetSecurity() override { return {}; }
+
+            QString ExportToLink() override { return {}; }
+
+            BuildResult Build() override
+            {
+                return {{}, QCoreApplication::translate("Validation", "Unsupported profile type \"%1\".").arg(type)};
+            }
+
+        private:
+            QString type;
+        };
+    }
+
     outbound* NewOutboundByType(const QString& type)
     {
         if (const auto* protocol = Protocols::Find(type)) return protocol->create();
-        auto* ob = new outbound();
-        ob->invalid = true;
-        return ob;
+        return new unsupportedOutbound(type);
     }
 
     QString RefusedForeignType(const QString& type)

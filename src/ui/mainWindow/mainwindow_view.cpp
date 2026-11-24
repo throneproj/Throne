@@ -396,7 +396,6 @@ void MainWindow::refresh_action_states() {
 
     const bool running = runningSnapshot() != nullptr;
     ui->actionSpeedtest_Current->setEnabled(running);
-    ui->actionNew_Tor_Circuit->setEnabled(running && Configs::RunningUsesTor());
     ui->actionUpdate_Rule_Sets->setEnabled(running);
 }
 

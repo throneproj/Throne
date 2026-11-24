@@ -5,7 +5,6 @@
 #include "include/configs/common/Protocols.h"
 #include "include/configs/common/ResolverSource.h"
 #include "include/configs/common/utils.h"
-#include "include/configs/outbounds/tor.h"
 #include "include/global/Configs.hpp"
 
 #include <QApplication>
@@ -191,7 +190,7 @@ namespace Configs {
             // A verbatim raw profile takes no twins, and an unreachable bridge still starts a tun.
             ctx.l3Bridge = l3BridgeEnabled(ctx) && !(routeChain->isRaw && routeChain->preventModifications);
 
-            if (auto exitRefusal = exitError(ctx.ent); !exitRefusal.isEmpty()) {
+            if (auto exitRefusal = exitError(); !exitRefusal.isEmpty()) {
                 ctx.error = std::move(exitRefusal);
                 return;
             }

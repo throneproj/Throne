@@ -181,10 +181,7 @@ void MainWindow::setActionsData()
     ui->menu_add_subscription->setData(QString("m57"));
     ui->menu_exit_server->setData(QString("m58"));
     ui->menu_exit_warp->setData(QString("m59"));
-    ui->menu_exit_tor->setData(QString("m60"));
     ui->menu_edit_route->setData(QString("m61"));
-    ui->actionNew_Tor_Circuit->setData(QString("m62"));
-    ui->menu_exit_psiphon->setData(QString("m63"));
 }
 
 QList<QAction*> MainWindow::getActionsForShortcut()

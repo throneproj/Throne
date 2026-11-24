@@ -20,7 +20,6 @@
 #include "include/configs/outbounds/ssh.h"
 #include "include/configs/outbounds/trojan.h"
 #include "include/configs/outbounds/tuic.h"
-#include "include/configs/outbounds/juicity.h"
 #include "include/configs/outbounds/trusttunnel.h"
 #include "include/configs/outbounds/naive.h"
 #include "include/configs/outbounds/openvpn.h"
@@ -31,8 +30,6 @@
 #include "include/configs/outbounds/xrayVless.h"
 #include "include/configs/outbounds/dnstt.h"
 #include "include/configs/outbounds/masterdns.h"
-#include "include/configs/outbounds/tor.h"
-#include "include/configs/outbounds/psiphon.h"
 
 #include "include/database/entities/EndpointSource.h"
 #include "include/global/CountryHelper.hpp"
@@ -153,10 +150,6 @@ namespace Configs {
             return dynamic_cast<Configs::tuic *>(outbound.get());
         };
 
-        [[nodiscard]] Configs::juicity *Juicity() const {
-            return dynamic_cast<Configs::juicity *>(outbound.get());
-        };
-
         [[nodiscard]] Configs::trusttunnel *TrustTunnel() const {
             return dynamic_cast<Configs::trusttunnel *>(outbound.get());
         };
@@ -211,14 +204,6 @@ namespace Configs {
 
         [[nodiscard]] Configs::masterdns *MasterDns() const {
             return dynamic_cast<Configs::masterdns *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::tor *Tor() const {
-            return dynamic_cast<Configs::tor *>(outbound.get());
-        };
-
-        [[nodiscard]] Configs::psiphon *Psiphon() const {
-            return dynamic_cast<Configs::psiphon *>(outbound.get());
         };
     };
     class ProfileFilter {

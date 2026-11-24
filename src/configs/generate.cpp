@@ -4,7 +4,6 @@
 #include "include/configs/AutoSelectorPlan.h"
 #include "include/configs/common/ResolverSource.h"
 #include "include/configs/common/utils.h"
-#include "include/configs/outbounds/tor.h"
 #include "include/global/Configs.hpp"
 
 #include <QApplication>
@@ -40,18 +39,6 @@ namespace Configs {
     namespace {
 
         thread_local int offlineValidationDepth = 0;
-
-        // Every way a profile reaches Tor ends as a tor outbound, so the finished config is the one place to look.
-        void markTorUse(BuildConfigResult &result) {
-            result.usesTor = false;
-            for (const auto item : result.coreConfig.value("outbounds").toArray()) {
-                if (item.toObject().value("type").toString() == QLatin1String("tor")) {
-                    result.usesTor = true;
-                    break;
-                }
-            }
-            result.torMissing = result.usesTor && !tor::Installed();
-        }
 
     } // namespace
 
@@ -201,7 +188,6 @@ namespace Configs {
                     }
                     if (!res->tunIPv4CIDR.isEmpty()) break;
                 }
-                markTorUse(*res);
                 return res;
             }
         }
@@ -254,7 +240,6 @@ namespace Configs {
         if (!ctx.result->xrayConfig.isEmpty() || !ctx.result->xrayFullConfigs.isEmpty())
             ctx.result->xrayDnsStrategy = getXrayOutboundDomainStrategy();
 
-        markTorUse(*ctx.result);
         return ctx.result;
     }
 
@@ -404,11 +389,6 @@ namespace Configs {
             {
                 // A bad global fragment setting fails every fragmenting profile alike; "invalid" here would delete them all.
                 if (const auto fragmentError = FragmentSettingsError(); !fragmentError.isEmpty() && out.error == fragmentError)
-                {
-                    MW_show_log("Could not check ent " + ent->outbound->name + ": " + out.error);
-                    return true;
-                }
-                if (out.error == TorBuiltinBridgesUnavailable())
                 {
                     MW_show_log("Could not check ent " + ent->outbound->name + ": " + out.error);
                     return true;

@@ -4,7 +4,6 @@
 #include "include/configs/AutoSelectorPlan.h"
 #include "include/configs/common/ResolverSource.h"
 #include "include/configs/common/utils.h"
-#include "include/configs/outbounds/tor.h"
 #include "include/global/Configs.hpp"
 
 #include <QApplication>
@@ -301,11 +300,10 @@ namespace Configs {
                 const auto remoteAddresses = roleAddresses(ctx.dns.remote_dns);
                 const auto remoteTags = dnsRoleTags(tags::dnsRemote, remoteAddresses.size());
                 race.members[tags::dnsRemote] = remoteTags;
-                // Xray handles UDP DNS poorly, and a TCP-only exit carries no UDP at all.
-                const bool remoteDnsOverTcp = ctx.proxyUsesXray || exitCarriesOnlyTcp(ctx.ent);
                 for (qsizetype i = 0; i < remoteAddresses.size(); ++i) {
                     auto remoteDnsObj = buildDnsObj(ctx, remoteAddresses[i]);
-                    if (remoteDnsOverTcp && ( remoteDnsObj.value("type").toString() == "udp" || remoteDnsObj.value("type").toString() == "quic" )) {
+                    // Xray handles UDP DNS poorly.
+                    if (ctx.proxyUsesXray && ( remoteDnsObj.value("type").toString() == "udp" || remoteDnsObj.value("type").toString() == "quic" )) {
                         remoteDnsObj = buildDnsObj(ctx, upgradeUdpDnsToDoH(remoteDnsObj.value("server").toString()));
                     }
                     remoteDnsObj["tag"] = remoteTags[i];
@@ -454,8 +452,7 @@ namespace Configs {
                                tags::dnsDirect, ctx.dns.direct_dns_disable_ipv6, race);
             }
 
-            const bool torOnion = ctx.policy.fullDns && exitReachesOnion(ctx.ent);
-            if (ctx.dns.fake_dns || torOnion) {
+            if (ctx.dns.fake_dns) {
                 QJsonObject fakeServer{
                         {"tag", tags::dnsFake},
                         {"type", "fakeip"},
@@ -465,9 +462,6 @@ namespace Configs {
                 // Not fc00::/18: the Tun's fc00::/7 private-range bypass would route fake addresses outside it.
                 if (!ctx.dns.fakeip_disable_ipv6) fakeServer["inet6_range"] = "2001:db8::/32";
                 servers += fakeServer;
-                independentCache = true;
-            }
-            if (ctx.dns.fake_dns) {
                 rules += QJsonObject{
                         {"query_type", QJsonArray{
                             "A",
@@ -476,6 +470,7 @@ namespace Configs {
                      {"action", "route"},
                      {"server", tags::dnsFake}
                 };
+                independentCache = true;
             }
 
             if (dns.needDirectDnsRules) {
@@ -517,22 +512,6 @@ namespace Configs {
             if (!headRules.isEmpty()) {
                 for (const auto &rule : rules) headRules.append(rule);
                 rules = headRules;
-            }
-
-            if (torOnion) {
-                // Tun apps resolve first and real resolvers NXDOMAIN .onion, so a fake address carries the name to Tor.
-                rules.insert(0, QJsonObject{
-                    {"domain_suffix", QJsonArray{"onion"}},
-                    {"query_type", QJsonArray{"A", "AAAA"}},
-                    {"action", "route"},
-                    {"server", tags::dnsFake},
-                });
-                // The fakeip transport answers only A/AAAA; any other type would leak the name to a resolver.
-                rules.insert(1, QJsonObject{
-                    {"domain_suffix", QJsonArray{"onion"}},
-                    {"action", "predefined"},
-                    {"rcode", "NOERROR"},
-                });
             }
 
             auto dnsObj = QJsonObject{

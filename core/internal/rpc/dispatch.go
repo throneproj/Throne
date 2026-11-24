@@ -138,7 +138,6 @@ var handlers = map[string]handlerFn{
 	"WarpRegister":        handle(globalServer.WarpRegister),
 	"GenQuicSignature":    handle(globalServer.GenQuicSignature),
 	"InstallDashboard":    handle(globalServer.InstallDashboard),
-	"InstallTor":          handle(globalServer.InstallTor),
 	"QueryVPNStatus":      handle(globalServer.QueryVPNStatus),
 	"SubmitVPNChallenge":  handle(globalServer.SubmitVPNChallenge),
 	"CancelVPNChallenge":  handle(globalServer.CancelVPNChallenge),
@@ -156,10 +155,6 @@ var handlers = map[string]handlerFn{
 	"ServiceTest":         handle(globalServer.ServiceTest),
 	"QueryServiceTest":    handle(globalServer.QueryServiceTest),
 	"ParseServiceChecks":  handle(globalServer.ParseServiceChecks),
-	"ParseTorBridges":     handle(globalServer.ParseTorBridges),
-	"TorMoatSettings":     handle(globalServer.TorMoatSettings),
-	"TorNewIdentity":      handle(globalServer.TorNewIdentity),
-	"PsiphonRegions":      handle(globalServer.PsiphonRegions),
 }
 
 func dispatch(methodName string, payload []byte) ([]byte, error) {

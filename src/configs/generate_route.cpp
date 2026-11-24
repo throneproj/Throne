@@ -4,7 +4,6 @@
 #include "include/configs/AutoSelectorPlan.h"
 #include "include/configs/common/ResolverSource.h"
 #include "include/configs/common/utils.h"
-#include "include/configs/outbounds/tor.h"
 #include "include/global/Configs.hpp"
 
 #include <QApplication>
@@ -375,7 +374,6 @@ namespace Configs {
 
             struct InjectedRules {
                 QJsonObject sniff;
-                QJsonObject torOnion;
                 QJsonObject resolve;
                 QJsonObject dnsHijack;
                 QJsonObject dnsInReject;
@@ -407,14 +405,6 @@ namespace Configs {
                 injected.dnsInReject = QJsonObject{
                     {"inbound", tags::dnsIn},
                     {"action", "reject"},
-                };
-            }
-            // Ahead of resolve, which would swap the name for a fake address Tor cannot dial.
-            if (ctx.policy.fullRouting && exitReachesOnion(ctx.ent)) {
-                injected.torOnion = QJsonObject{
-                    {"domain_suffix", QJsonArray{"onion"}},
-                    {"action", "route"},
-                    {"outbound", tags::proxy},
                 };
             }
 
@@ -512,7 +502,6 @@ namespace Configs {
             auto appendIfSet = [&append](const QJsonObject& r, Kind kind) { if (!r.isEmpty()) append(r, kind); };
             appendIfSet(injected.dnsSystem, Kind::SystemDns);
             appendIfSet(injected.sniff, Kind::Sniff);
-            appendIfSet(injected.torOnion, Kind::TorOnion);
             appendIfSet(injected.resolve, Kind::Resolve);
             appendIfSet(injected.dnsHijack, Kind::DnsHijack);
             appendIfSet(injected.dnsInReject, Kind::DnsInboundReject);

@@ -12,7 +12,6 @@
 #include "include/database/RoutesRepo.h"
 #include "include/engine/EditLocks.h"
 #include "include/engine/connection/ConnectionManager.h"
-#include "include/engine/services/AssetUpdates.h"
 #include "include/engine/services/GroupService.h"
 #include "include/engine/services/ImportService.h"
 #include "include/engine/services/ProfileService.h"
@@ -172,8 +171,6 @@ void MainWindow::setupRoutingMenu() {
     const QList<std::pair<QAction *, Configs::ExitThrough>> exitActions{
         {ui->menu_exit_server, Configs::ExitThrough::Server},
         {ui->menu_exit_warp, Configs::ExitThrough::Warp},
-        {ui->menu_exit_tor, Configs::ExitThrough::Tor},
-        {ui->menu_exit_psiphon, Configs::ExitThrough::Psiphon},
     };
     const auto syncExitChecks = [exitActions] {
         const auto exit = Configs::ExitOf(Configs::dataManager->settingsRepo->exit_through);
@@ -200,18 +197,6 @@ void MainWindow::setupRoutingMenu() {
                 return;
             }
             if (warpResult.restartNeeded) connection()->applyPendingRestart();
-        } else if (wanted == Configs::ExitThrough::Tor && !Engine::AssetUpdates::TorInstalled()) {
-            // False while a download runs; whoever started that one turns Tor on when it finishes.
-            Engine::AssetUpdates::InstallTor([self = QPointer<MainWindow>(this), setExit, syncExitChecks](const QString &error) {
-                if (!self) return;
-                if (!error.isEmpty()) {
-                    MessageBoxWarning(QCoreApplication::translate("DialogManageRoutes", "Tor download failed"), error);
-                    return;
-                }
-                setExit(Configs::ExitThrough::Tor);
-                syncExitChecks();
-            });
-            MW_show_log(tr("[Tor] Downloading Tor; it turns on when the download finishes."));
         } else {
             setExit(wanted);
         }

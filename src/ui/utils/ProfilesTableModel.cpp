@@ -150,6 +150,8 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
         }
     }
     if (role == Qt::ToolTipRole) {
+        if (index.column() == ColType && profile->outbound && profile->outbound->invalid)
+            return QCoreApplication::translate("Validation", "Unsupported profile type \"%1\".").arg(profile->type);
         if (index.column() == ColType && Configs::dataManager->settingsRepo->show_config_security && profile->outbound) {
             const auto security = profile->outbound->EffectiveSecurity();
             if (security.compromised) return tr("Certificate checks off: \"Skip TLS certificate authentication\" is "

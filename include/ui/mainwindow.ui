@@ -839,7 +839,6 @@ QToolButton::menu-indicator {
     <addaction name="actionAuto_Selector"/>
     <addaction name="menu_open_dashboard"/>
     <addaction name="actionSpeedtest_Current"/>
-    <addaction name="actionNew_Tor_Circuit"/>
     <addaction name="separator"/>
     <addaction name="menu_otp_manager"/>
     <addaction name="menu_scanner"/>
@@ -1216,11 +1215,6 @@ QToolButton::menu-indicator {
     <string notr="true">F6</string>
    </property>
   </action>
-  <action name="actionNew_Tor_Circuit">
-   <property name="text">
-    <string>New Tor circuit</string>
-   </property>
-  </action>
   <action name="actionSpeedtest_Selected">
    <property name="text">
     <string>Speed test</string>
@@ -1384,22 +1378,6 @@ QToolButton::menu-indicator {
    </property>
    <property name="text">
     <string notr="true">Cloudflare WARP</string>
-   </property>
-  </action>
-  <action name="menu_exit_tor">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string notr="true">Tor</string>
-   </property>
-  </action>
-  <action name="menu_exit_psiphon">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string notr="true">Psiphon</string>
    </property>
   </action>
   <action name="menu_edit_route">

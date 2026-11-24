@@ -133,7 +133,10 @@ namespace Configs
         options.name_filter = json["name_filter"].toString();
         options.name_exclude = json["name_exclude"].toString();
         for (const auto &type : json["type_exclude"].toArray()) {
-            if (const auto id = type.toString().trimmed(); !id.isEmpty() && !options.type_exclude.contains(id)) options.type_exclude << id;
+            const auto id = type.toString().trimmed();
+            // A retired protocol: excluding it means nothing, and keeping it would warn on every update.
+            if (id.isEmpty() || id == QLatin1String("juicity") || options.type_exclude.contains(id)) continue;
+            options.type_exclude << id;
         }
         options.country_filter = json["country_filter"].toString();
         return options;

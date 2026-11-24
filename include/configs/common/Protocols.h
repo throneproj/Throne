@@ -23,8 +23,6 @@ namespace Configs::Protocols {
         DnsTunnel = 1u << 4,
         Composite = 1u << 5,
         RunsProgram = 1u << 6,
-        // Bootstraps a network of its own before its first connection (Tor, Psiphon).
-        SlowStart = 1u << 7,
     };
 
     struct ProtocolInfo {

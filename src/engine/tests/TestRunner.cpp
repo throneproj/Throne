@@ -27,8 +27,6 @@
 namespace Engine {
     namespace {
         constexpr int kTestRunnerBatchSize = 100;
-        // Slow starters (Tor, Psiphon) each bootstrap a network of their own, so no more than this many start at once.
-        constexpr int kTestRunnerSlowStartConcurrency = 2;
         constexpr int kTestRunnerLatencyPollIntervalMs = 200;
         constexpr int kTestRunnerSpeedPollIntervalMs = 100;
         constexpr int kTestRunnerPoolThreads = 10;
@@ -60,16 +58,11 @@ namespace Engine {
         constexpr int kTestRunnerCoreMaxConcurrency = 100;
         constexpr int kTestRunnerRpcSlackMs = 30000;
 
-        int testRunnerConcurrency(bool slowStart) {
-            int concurrency = Configs::dataManager->settingsRepo->test_concurrent;
-            if (concurrency <= 0 || concurrency >= 500) concurrency = kTestRunnerCoreMaxConcurrency;
-            return slowStart ? qMin(concurrency, kTestRunnerSlowStartConcurrency) : concurrency;
-        }
-
         // Test/IPTest answer only once the whole batch is done, so the deadline covers its worst case.
-        int testRunnerBatchRpcTimeoutMs(qsizetype tagCount, int requestsPerTag, int startupAllowanceMs, bool slowStart = false) {
+        int testRunnerBatchRpcTimeoutMs(qsizetype tagCount, int requestsPerTag, int startupAllowanceMs) {
             const auto& settings = Configs::dataManager->settingsRepo;
-            const int concurrency = testRunnerConcurrency(slowStart);
+            int concurrency = settings->test_concurrent;
+            if (concurrency <= 0 || concurrency >= 500) concurrency = kTestRunnerCoreMaxConcurrency;
             const qint64 timeoutMs = settings->url_test_timeout_ms > 0 ? settings->url_test_timeout_ms : kTestRunnerCoreDefaultTimeoutMs;
             const qint64 rounds = (qMax<qsizetype>(tagCount, 1) + concurrency - 1) / concurrency;
             const qint64 total = rounds * (kTestRunnerTunnelHandshakeMs + requestsPerTag * timeoutMs + kTestRunnerTunnelStartupMs + startupAllowanceMs) +
@@ -80,7 +73,7 @@ namespace Engine {
         int testRunnerStartupAllowanceMs(const QMap<QString, int>& tag2entID, int entID) {
             int allowance = 0;
             const auto add = [&allowance](int id) {
-                if (id >= 0) allowance = qMax(allowance, Configs::StartupAllowanceMs(Configs::dataManager->profilesRepo->GetProfile(id)));
+                if (id >= 0) allowance = qMax(allowance, Configs::DnsTunnelStartupAllowanceMs(Configs::dataManager->profilesRepo->GetProfile(id)));
             };
             add(entID);
             for (const int id : tag2entID) add(id);
@@ -98,28 +91,9 @@ namespace Engine {
         constexpr qint64 kTestRunnerServiceRoundMs = 200000;
         constexpr qint64 kTestRunnerServiceSlackMs = 60000;
 
-        int testRunnerServiceRpcTimeoutMs(qsizetype tagCount, int startupAllowanceMs) {
+        int testRunnerServiceRpcTimeoutMs(qsizetype tagCount) {
             const qint64 rounds = (qMax<qsizetype>(tagCount, 1) + kTestRunnerServiceConcurrency - 1) / kTestRunnerServiceConcurrency;
-            return static_cast<int>(qMin<qint64>(rounds * (kTestRunnerServiceRoundMs + startupAllowanceMs) + kTestRunnerServiceSlackMs,
-                                                 std::numeric_limits<int>::max()));
-        }
-
-        // Slow starters (a Tor or Psiphon hop) go last, kTestRunnerSlowStartConcurrency to a batch; run must block until its batch is done.
-        void testRunnerForBatches(const QList<int>& ids, int batchSize, const std::atomic<bool>& stop,
-                                  const std::function<void(const QList<std::shared_ptr<Configs::Profile>>&)>& run) {
-            QList<int> slowIDs;
-            for (qsizetype i = 0; i < ids.size() && !stop.load(); i += batchSize) {
-                QList<std::shared_ptr<Configs::Profile>> batch;
-                for (const auto& profile : Configs::dataManager->profilesRepo->GetProfileBatch(ids.mid(i, batchSize))) {
-                    if (Configs::HasSlowStartHop(profile)) slowIDs << profile->id;
-                    else batch << profile;
-                }
-                if (!batch.isEmpty()) run(batch);
-            }
-            for (qsizetype i = 0; i < slowIDs.size() && !stop.load(); i += kTestRunnerSlowStartConcurrency) {
-                const auto batch = Configs::dataManager->profilesRepo->GetProfileBatch(slowIDs.mid(i, kTestRunnerSlowStartConcurrency));
-                if (!batch.isEmpty()) run(batch);
-            }
+            return static_cast<int>(qMin<qint64>(rounds * kTestRunnerServiceRoundMs + kTestRunnerServiceSlackMs, std::numeric_limits<int>::max()));
         }
 
         // A poll and the final reply can both carry a finished profile; whichever comes first applies it.
@@ -466,9 +440,7 @@ namespace Engine {
                 runOnUiThread([=, this] { observer_->testedProfilesChanged(updated); });
             }, kTestRunnerLatencyPollIntervalMs);
 
-            result = API::defaultClient->ServiceTest(&rpcOK, req, &coreError,
-                                                     testRunnerServiceRpcTimeoutMs(target.outboundTags.size(),
-                                                                                   testRunnerStartupAllowanceMs(target.tag2entID, target.entID)));
+            result = API::defaultClient->ServiceTest(&rpcOK, req, &coreError, testRunnerServiceRpcTimeoutMs(target.outboundTags.size()));
         }
 
         if (!rpcOK) {
@@ -533,25 +505,21 @@ namespace Engine {
                 target.outboundTags = build.build->outboundTags;
                 target.xrayDnsStrategy = build.build->xrayDnsStrategy;
 
-                int allowance = 0;
-                bool slowStart = false;
-                for (const int id : hops) {
-                    const auto hop = Configs::dataManager->profilesRepo->GetProfile(id);
-                    allowance = qMax(allowance, Configs::StartupAllowanceMs(hop));
-                    slowStart = slowStart || Configs::HasSlowStartHop(hop);
-                }
-
                 libcore::TestReq req;
                 testRunnerFillCommonTestReq(req, target);
                 req.url = Configs::dataManager->settingsRepo->test_latency_url.toStdString();
-                req.max_concurrency = testRunnerConcurrency(slowStart);
+                req.max_concurrency = Configs::dataManager->settingsRepo->test_concurrent;
                 req.test_timeout_ms = Configs::dataManager->settingsRepo->url_test_timeout_ms;
                 for (const auto& tag : build.vpnEndpointTags) req.vpn_endpoint_tags.push_back(tag.toStdString());
 
+                int allowance = 0;
+                for (const int id : hops) {
+                    allowance = qMax(allowance, Configs::DnsTunnelStartupAllowanceMs(Configs::dataManager->profilesRepo->GetProfile(id)));
+                }
                 bool rpcOK = false;
                 QString coreError;
                 const auto result = API::defaultClient->Test(&rpcOK, req, &coreError,
-                                                             testRunnerBatchRpcTimeoutMs(target.outboundTags.size(), 2, allowance, slowStart));
+                                                             testRunnerBatchRpcTimeoutMs(target.outboundTags.size(), 2, allowance));
                 // Test also queues every result for QueryURLTest; drain them so a later run's poller never sees these tags.
                 bool drained = false;
                 API::defaultClient->QueryURLTest(&drained);
@@ -617,13 +585,7 @@ namespace Engine {
             observer_->testPanelSeeded(panelKind, profileIDs.size(), profileIDs);
             observer_->testViewChanged(true);
 
-            QHash<int, QList<int>> tested;
-            auto runBatch = [this, isUrl, &onResult, &tested](const QList<std::shared_ptr<Configs::Profile>>& profileSlice) {
-                QList<int> ids;
-                for (const auto& profile : profileSlice) {
-                    tested[profile->gid] << profile->id;
-                    ids << profile->id;
-                }
+            auto runBatch = [this, isUrl, &onResult](const QList<std::shared_ptr<Configs::Profile>>& profileSlice, const QList<int>& ids) {
                 // Per batch, not per probe: a batch's probes drain each other's results, and tags restart each batch.
                 sessionGen_.fetch_add(1);
                 auto buildObject = Configs::BuildTestConfig(profileSlice);
@@ -671,7 +633,14 @@ namespace Engine {
                 });
             };
 
-            testRunnerForBatches(profileIDs, kTestRunnerBatchSize, stopRequested_, runBatch);
+            QHash<int, QList<int>> tested;
+            for (int i = 0; i < profileIDs.length(); i += kTestRunnerBatchSize) {
+                if (stopRequested_.load()) break;
+                const auto profileIDsSlice = profileIDs.mid(i, kTestRunnerBatchSize);
+                auto profiles = Configs::dataManager->profilesRepo->GetProfileBatch(profileIDsSlice);
+                for (const auto& profile : profiles) tested[profile->gid] << profile->id;
+                runBatch(profiles, profileIDsSlice);
+            }
             // Once the run is over, so rows do not jump while results stream in.
             Configs::RepositionLater(tested, Configs::SortInput::TestResult);
 
@@ -755,17 +724,17 @@ namespace Engine {
                 runServiceProbe(target, definitions);
                 runOnUiThread([=, this] { observer_->testedProfilesChanged(profileIDs); });
             }
-            const auto runBatch = [this, &definitions](const QList<std::shared_ptr<Configs::Profile>>& profiles) {
-                QList<int> ids;
-                for (const auto& profile : profiles) ids << profile->id;
+            for (int i = 0; !testCurrent && runnable && i < profileIDs.length(); i += kTestRunnerServiceBatchSize) {
+                if (stopRequested_.load()) break;
+                const auto ids = profileIDs.mid(i, kTestRunnerServiceBatchSize);
                 sessionGen_.fetch_add(1);
-                const auto buildObject = Configs::BuildTestConfig(profiles);
+                const auto buildObject = Configs::BuildTestConfig(Configs::dataManager->profilesRepo->GetProfileBatch(ids));
                 if (!buildObject->error.isEmpty()) {
                     MW_show_log(MainWindowTr::tr("Failed to build test config for batch: ") + buildObject->error);
-                    return;
+                    continue;
                 }
                 const int testCount = buildObject->fullConfigs.size() + (buildObject->outboundTags.empty() ? 0 : 1);
-                if (testCount == 0) return;
+                if (testCount == 0) continue;
 
                 QSemaphore batchDone;
                 const auto probe = [this, &definitions, &batchDone](const Target& target) {
@@ -793,8 +762,7 @@ namespace Engine {
                 }
                 batchDone.acquire(testCount);
                 runOnUiThread([=, this] { observer_->testedProfilesChanged(ids); });
-            };
-            if (!testCurrent && runnable) testRunnerForBatches(profileIDs, kTestRunnerServiceBatchSize, stopRequested_, runBatch);
+            }
 
             observer_->testPanelsCleared();
             observer_->testViewChanged(true);

@@ -13,21 +13,18 @@
 #include "include/ui/profile/edit_extra_core.h"
 #include "include/ui/profile/edit_http.h"
 #include "include/ui/profile/edit_hysteria.h"
-#include "include/ui/profile/edit_juicity.h"
 #include "include/ui/profile/edit_masque.h"
 #include "include/ui/profile/edit_masterdns.h"
 #include "include/ui/profile/edit_mieru.h"
 #include "include/ui/profile/edit_naive.h"
 #include "include/ui/profile/edit_openconnect.h"
 #include "include/ui/profile/edit_openvpn.h"
-#include "include/ui/profile/edit_psiphon.h"
 #include "include/ui/profile/edit_shadowsocks.h"
 #include "include/ui/profile/edit_shadowtls.h"
 #include "include/ui/profile/edit_snell.h"
 #include "include/ui/profile/edit_socks.h"
 #include "include/ui/profile/edit_ssh.h"
 #include "include/ui/profile/edit_tailscale.h"
-#include "include/ui/profile/edit_tor.h"
 #include "include/ui/profile/edit_trojan.h"
 #include "include/ui/profile/edit_trusttunnel.h"
 #include "include/ui/profile/edit_tuic.h"
@@ -43,6 +40,7 @@
 #include "include/global/Utils.hpp"
 #include "include/ui/utils/ValidationForm.h"
 
+#include <QCoreApplication>
 #include <QDebug>
 #include <QLabel>
 #include <QLineEdit>
@@ -69,7 +67,6 @@ EditorFactory editorFactory(const QString &type) {
         {"xrayvless", makeEditor<EditXrayVless>},
         {"hysteria", makeEditor<EditHysteria>},
         {"tuic", makeEditor<EditTuic>},
-        {"juicity", makeEditor<EditJuicity>},
         {"naive", makeEditor<EditNaive>},
         {"trusttunnel", makeEditor<EditTrustTunnel>},
         {"anytls", makeEditor<EditAnyTLS>},
@@ -84,8 +81,6 @@ EditorFactory editorFactory(const QString &type) {
         {"ssh", makeEditor<EditSSH>},
         {"dnstt", makeEditor<EditDnstt>},
         {"masterdns", makeEditor<EditMasterDns>},
-        {"tor", makeEditor<EditTor>},
-        {"psiphon", makeEditor<EditPsiphon>},
         {"direct", makeEditor<EditDirect>},
         {"chain", makeEditor<EditChain>},
         {"autoselector", makeEditor<EditAutoSelector>},
@@ -286,7 +281,7 @@ bool DialogEditProfile::typeSelected(const QString &newType) {
     }
     const auto factory = editorFactory(editorType);
     if (factory == nullptr) {
-        MessageBoxWarning(newType, "Wrong type");
+        MessageBoxWarning(newType, QCoreApplication::translate("Validation", "Unsupported profile type \"%1\".").arg(newType));
         return false;
     }
 

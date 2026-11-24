@@ -1980,10 +1980,6 @@ Throne will restart to complete the restore.</source>
         <translation>Hysteria / Hysteria2</translation>
     </message>
     <message>
-        <source>Juicity</source>
-        <translation>Juicity</translation>
-    </message>
-    <message>
         <source>MASQUE</source>
         <translation>MASQUE</translation>
     </message>
@@ -2050,14 +2046,6 @@ Throne will restart to complete the restore.</source>
     <message>
         <source>WireGuard / AmneziaWG</source>
         <translation>WireGuard / AmneziaWG</translation>
-    </message>
-    <message>
-        <source>Tor</source>
-        <translation>Tor</translation>
-    </message>
-    <message>
-        <source>Psiphon</source>
-        <translation>Psiphon</translation>
     </message>
 </context>
 <context>
@@ -4506,56 +4494,12 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         </translation>
     </message>
     <message>
-        <source>Send proxied traffic out through Tor over the selected profile; TCP only.</source>
-        <translation>Направлять проксируемый трафик на выход через Tor поверх выбранного профиля; только TCP.</translation>
-    </message>
-    <message>
-        <source>Tor download failed</source>
-        <translation>Ошибка загрузки Tor</translation>
-    </message>
-    <message>
-        <source>Tor is installed.</source>
-        <translation>Tor установлен.</translation>
-    </message>
-    <message>
-        <source>Tor will be downloaded when you press OK.</source>
-        <translation>Tor будет загружен после нажатия OK.</translation>
-    </message>
-    <message>
-        <source>[Tor] A download is already running; turn Tor on again once it finishes.</source>
-        <translation>[Tor] Загрузка уже выполняется; включите Tor снова, когда она завершится.</translation>
-    </message>
-    <message>
         <source>Exit Through</source>
         <translation>Выход через</translation>
     </message>
     <message>
         <source>Import Routing Profile</source>
         <translation>Импорт профиля маршрутизации</translation>
-    </message>
-    <message>
-        <source>Exit country</source>
-        <translation>Страна выхода</translation>
-    </message>
-    <message>
-        <source>The country of the last Tor relay; Any lets Tor choose.</source>
-        <translation>Страна последнего узла Tor; при варианте «Любая» выбирает Tor.</translation>
-    </message>
-    <message>
-        <source>Send proxied traffic out through Psiphon over the selected profile.</source>
-        <translation>Направлять проксируемый трафик на выход через Psiphon поверх выбранного профиля.</translation>
-    </message>
-    <message>
-        <source>Region</source>
-        <translation>Регион</translation>
-    </message>
-    <message>
-        <source>The country of the Psiphon server; Best performance lets Psiphon choose.</source>
-        <translation>Страна сервера Psiphon; при варианте «Лучшая производительность» выбирает Psiphon.</translation>
-    </message>
-    <message>
-        <source>Psiphon is a free network run by Psiphon Inc., which can see the sites you visit, like any VPN provider.</source>
-        <translation>Psiphon — бесплатная сеть под управлением Psiphon Inc.; как и любой VPN-провайдер, она может видеть, какие сайты вы посещаете.</translation>
     </message>
 </context>
 <context>
@@ -7223,25 +7167,6 @@ Close without saving?</source>
     </message>
 </context>
 <context>
-    <name>EditJuicity</name>
-    <message>
-        <source>Password</source>
-        <translation>Пароль</translation>
-    </message>
-    <message>
-        <source>UUID</source>
-        <translation>UUID</translation>
-    </message>
-    <message>
-        <source>Cert Chain SHA256</source>
-        <translation>SHA256 цепочки сертификатов</translation>
-    </message>
-    <message>
-        <source>Certificate chain hash printed by juicity-server; replaces CA checks.</source>
-        <translation>Хеш цепочки сертификатов, который выводит juicity-server; заменяет проверку через CA.</translation>
-    </message>
-</context>
-<context>
     <name>EditMasque</name>
     <message>
         <source>Base64 DER of the enrolled ECDSA P-256 key.</source>
@@ -8890,21 +8815,6 @@ Close without saving?</source>
     </message>
 </context>
 <context>
-    <name>EditPsiphon</name>
-    <message>
-        <source>Region</source>
-        <translation>Регион</translation>
-    </message>
-    <message>
-        <source>The country of the Psiphon server; Best performance lets Psiphon choose.</source>
-        <translation>Страна сервера Psiphon; при варианте «Лучшая производительность» выбирает Psiphon.</translation>
-    </message>
-    <message>
-        <source>Psiphon is a free network run by Psiphon Inc., which can see the sites you visit, like any VPN provider.</source>
-        <translation>Psiphon — бесплатная сеть под управлением Psiphon Inc.; как и любой VPN-провайдер, она может видеть, какие сайты вы посещаете.</translation>
-    </message>
-</context>
-<context>
     <name>EditSSH</name>
     <message>
         <source>User</source>
@@ -9096,161 +9006,6 @@ Close without saving?</source>
     <message>
         <source>Global DNS</source>
         <translation>Глобальный DNS</translation>
-    </message>
-</context>
-<context>
-    <name>EditTor</name>
-    <message>
-        <source>Bridges</source>
-        <translation>Мосты</translation>
-    </message>
-    <message>
-        <source>Connect to the Tor network directly; works only where Tor is not blocked.</source>
-        <translation>Подключаться к сети Tor напрямую; работает, только если Tor не заблокирован.</translation>
-    </message>
-    <message>
-        <source>None</source>
-        <translation>Нет</translation>
-    </message>
-    <message>
-        <source>Use the bridges built into Throne.</source>
-        <translation>Использовать мосты, встроенные в Throne.</translation>
-    </message>
-    <message>
-        <source>Built-in</source>
-        <translation>Встроенные</translation>
-    </message>
-    <message>
-        <source>Use bridge lines from the Tor Project or someone you trust.</source>
-        <translation>Использовать строки мостов от Tor Project или от того, кому вы доверяете.</translation>
-    </message>
-    <message>
-        <source>Custom</source>
-        <translation>Пользовательские</translation>
-    </message>
-    <message>
-        <source>One bridge per line, with or without the Bridge keyword</source>
-        <translation>По одному мосту в строке, с ключевым словом Bridge или без него</translation>
-    </message>
-    <message>
-        <source>Snowflake works in most censored networks. WebTunnel and obfs4 bridges come from Get bridges.</source>
-        <translation>Snowflake работает в большинстве сетей с цензурой. Мосты WebTunnel и obfs4 можно получить кнопкой «Получить мосты».</translation>
-    </message>
-    <message>
-        <source>Ask the Tor Project&apos;s bridge service which bridges work in a country.</source>
-        <translation>Узнать у службы мостов Tor Project, какие мосты работают в стране.</translation>
-    </message>
-    <message>
-        <source>Get bridges</source>
-        <translation>Получить мосты</translation>
-    </message>
-    <message>
-        <source>Copy the bridge lines this profile uses.</source>
-        <translation>Скопировать строки мостов, которые использует этот профиль.</translation>
-    </message>
-    <message>
-        <source>Copy bridges</source>
-        <translation>Копировать мосты</translation>
-    </message>
-    <message>
-        <source>Exit country</source>
-        <translation>Страна выхода</translation>
-    </message>
-    <message>
-        <source>The country of the last Tor relay; Any lets Tor choose.</source>
-        <translation>Страна последнего узла Tor; при варианте «Любая» выбирает Tor.</translation>
-    </message>
-    <message>
-        <source>Download the Tor program from the Tor Project.</source>
-        <translation>Загрузить программу Tor с сайта Tor Project.</translation>
-    </message>
-    <message>
-        <source>Download</source>
-        <translation>Загрузить</translation>
-    </message>
-    <message>
-        <source>The bridge service suggested nothing for this country.</source>
-        <translation>Служба мостов ничего не предложила для этой страны.</translation>
-    </message>
-    <message>
-        <source>The bridge service is unreachable; showing the built-in list.</source>
-        <translation>Служба мостов недоступна; показан встроенный список.</translation>
-    </message>
-    <message>
-        <source>The bridge service is unreachable; showing the built-in list for %1.</source>
-        <translation>Служба мостов недоступна; показан встроенный список для страны %1.</translation>
-    </message>
-    <message>
-        <source>Answered for %1.</source>
-        <translation>Ответ для страны: %1.</translation>
-    </message>
-    <message>
-        <source>Asked through the running proxy, so Automatic used the proxy&apos;s location.</source>
-        <translation>Запрос шел через запущенный прокси, поэтому вариант «Автоматически» использовал местоположение прокси.</translation>
-    </message>
-    <message>
-        <source>Where the bridges have to work; Automatic lets the service tell from your connection.</source>
-        <translation>Где должны работать мосты; при варианте «Автоматически» служба определит это по вашему подключению.</translation>
-    </message>
-    <message>
-        <source>Automatic</source>
-        <translation>Автоматически</translation>
-    </message>
-    <message>
-        <source>Country</source>
-        <translation>Страна</translation>
-    </message>
-    <message>
-        <source>Request</source>
-        <translation>Запросить</translation>
-    </message>
-    <message>
-        <source>Ask the Tor Project&apos;s bridge service for bridges that work in this country.</source>
-        <translation>Запросить у службы мостов Tor Project мосты, которые работают в этой стране.</translation>
-    </message>
-    <message>
-        <source>Asking the bridge service; this can take a minute.</source>
-        <translation>Запрос к службе мостов; это может занять минуту.</translation>
-    </message>
-    <message>
-        <source>The core did not answer: %1</source>
-        <translation>Ядро не ответило: %1</translation>
-    </message>
-    <message>
-        <source>Any</source>
-        <translation>Любая</translation>
-    </message>
-    <message>
-        <source>Tor is installed.</source>
-        <translation>Tor установлен.</translation>
-    </message>
-    <message>
-        <source>Tor is not downloaded yet.</source>
-        <translation>Tor еще не загружен.</translation>
-    </message>
-    <message numerus="yes">
-        <source>Copied %n bridge line(s).</source>
-        <translation>
-            <numerusform>Скопирована %n строка моста.</numerusform>
-            <numerusform>Скопированы %n строки мостов.</numerusform>
-            <numerusform>Скопировано %n строк мостов.</numerusform>
-        </translation>
-    </message>
-    <message>
-        <source>There are no bridge lines to copy.</source>
-        <translation>Нет строк мостов для копирования.</translation>
-    </message>
-    <message>
-        <source>Tor download failed: %1</source>
-        <translation>Ошибка загрузки Tor: %1</translation>
-    </message>
-    <message>
-        <source>A Tor download is already running.</source>
-        <translation>Загрузка Tor уже выполняется.</translation>
-    </message>
-    <message>
-        <source>Downloading Tor.</source>
-        <translation>Загрузка Tor.</translation>
     </message>
 </context>
 <context>
@@ -11590,10 +11345,6 @@ Restart Throne as administrator to use Tun mode and the kill switch.</source>
         <translation>Следующее обновление группы-подписки удалит перемещенные в нее профили. Выберите другую группу.</translation>
     </message>
     <message>
-        <source>[Tor] Downloading Tor; it turns on when the download finishes.</source>
-        <translation>[Tor] Скачивается Tor; он включится, когда скачивание завершится.</translation>
-    </message>
-    <message>
         <source>Select profile</source>
         <translation>Выбрать профиль</translation>
     </message>
@@ -11636,38 +11387,6 @@ Error: %2</source>
     <message>
         <source>Export Config</source>
         <translation>Экспортировать конфиг</translation>
-    </message>
-    <message>
-        <source>New Tor circuit</source>
-        <translation>Новая цепочка Tor</translation>
-    </message>
-    <message>
-        <source>Tor is not downloaded</source>
-        <translation>Tor не загружен</translation>
-    </message>
-    <message>
-        <source>The profile &quot;%1&quot; connects through Tor, which is not downloaded yet.
-
-Download Tor from the Tor Project now? The profile starts once it is installed.</source>
-        <translation>Профиль «%1» подключается через Tor, который еще не загружен.
-
-Загрузить Tor с сайта Tor Project сейчас? Профиль запустится, как только Tor будет установлен.</translation>
-    </message>
-    <message>
-        <source>Download</source>
-        <translation>Загрузить</translation>
-    </message>
-    <message>
-        <source>[Tor] A download is already running; start the profile again once it finishes.</source>
-        <translation>[Tor] Загрузка уже выполняется; запустите профиль снова, когда она завершится.</translation>
-    </message>
-    <message>
-        <source>[Tor] New circuit requested; new connections take a different path.</source>
-        <translation>[Tor] Запрошена новая цепочка; новые подключения пойдут другим путем.</translation>
-    </message>
-    <message>
-        <source>[Tor] Could not switch to a new circuit: %1</source>
-        <translation>[Tor] Не удалось сменить цепочку: %1</translation>
     </message>
 </context>
 <context>
@@ -13438,10 +13157,6 @@ Throne продолжает попытки в фоне; перезапуск Thr
         <translation>Неверное имя пользователя или пароль.</translation>
     </message>
     <message>
-        <source>Tor is not downloaded yet; starting a profile that uses it offers the download.</source>
-        <translation>Tor еще не загружен; при запуске профиля, который его использует, будет предложено загрузить его.</translation>
-    </message>
-    <message>
         <source>The custom Xray config uses the tag &quot;%1&quot;, which Throne also generates for another Xray profile; rename it in the custom config</source>
         <translation>Пользовательская конфигурация Xray использует тег «%1», который Throne также создаёт для другого профиля Xray; переименуйте его в пользовательской конфигурации</translation>
     </message>
@@ -13486,28 +13201,12 @@ Throne продолжает попытки в фоне; перезапуск Thr
         <translation>профили маршрутизации открыты для редактирования</translation>
     </message>
     <message>
-        <source>%1 is not in the Tor Project&apos;s checksum list.</source>
-        <translation>%1 отсутствует в списке контрольных сумм Tor Project.</translation>
-    </message>
-    <message>
         <source>%1 suspect</source>
         <translation>под подозрением %1</translation>
     </message>
     <message>
         <source>Auto selector on %1, tier %2 (%3 of %4 working)</source>
         <translation>Автовыбор: %1, уровень %2 (работает %3 из %4)</translation>
-    </message>
-    <message>
-        <source>Could not get the Tor checksums: %1</source>
-        <translation>Не удалось получить контрольные суммы Tor: %1</translation>
-    </message>
-    <message>
-        <source>Could not look up the Tor version: %1</source>
-        <translation>Не удалось узнать версию Tor: %1</translation>
-    </message>
-    <message>
-        <source>Could not sign %1 (codesign exit code %2).</source>
-        <translation>Не удалось подписать %1 (код выхода codesign: %2).</translation>
     </message>
     <message>
         <source>Group &quot;%1&quot; has a front or landing proxy that uses an extra core or is a full config, so its profiles cannot be routing rule outbounds</source>
@@ -13524,18 +13223,6 @@ Throne продолжает попытки в фоне; перезапуск Thr
     <message>
         <source>Suspect</source>
         <translation>Под подозрением</translation>
-    </message>
-    <message>
-        <source>The Tor Project publishes no Tor build for this platform.</source>
-        <translation>Tor Project не публикует сборку Tor для этой платформы.</translation>
-    </message>
-    <message>
-        <source>The Tor download list names no usable version.</source>
-        <translation>В списке загрузок Tor нет подходящей версии.</translation>
-    </message>
-    <message>
-        <source>The core did not answer.</source>
-        <translation>Ядро не ответило.</translation>
     </message>
     <message>
         <source>The routing profile no longer exists.</source>
@@ -13596,46 +13283,6 @@ Throne продолжает попытки в фоне; перезапуск Thr
     <message>
         <source>Extra Core</source>
         <translation>Доп. ядро</translation>
-    </message>
-    <message>
-        <source>The selected profile leaves through %1, which carries only TCP, but WARP needs UDP in its current mode. In Routing Settings &gt; Exit, set WARP to MASQUE with HTTP Version HTTP/2, or choose another exit.</source>
-        <translation>Выбранный профиль выходит через %1, который передает только TCP, а WARP в текущем режиме нужен UDP. В разделе «Настройки маршрутизации &gt; Выход» выберите для WARP режим MASQUE и в поле «Версия HTTP» — HTTP/2 или выберите другой выход.</translation>
-    </message>
-    <message>
-        <source>The selected profile already leaves through %1, so the %1 exit cannot run over it. Choose another exit in Routing Settings &gt; Exit.</source>
-        <translation>Выбранный профиль уже выходит через %1, поэтому выход %1 не может работать поверх него. Выберите другой выход в разделе «Настройки маршрутизации &gt; Выход».</translation>
-    </message>
-    <message>
-        <source>Best performance</source>
-        <translation>Лучшая производительность</translation>
-    </message>
-    <message>
-        <source>Tor network</source>
-        <translation>Сеть Tor</translation>
-    </message>
-    <message numerus="yes">
-        <source>%n bridge(s)</source>
-        <translation>
-            <numerusform>%n мост</numerusform>
-            <numerusform>%n моста</numerusform>
-            <numerusform>%n мостов</numerusform>
-        </translation>
-    </message>
-    <message>
-        <source>Plain</source>
-        <translation>Обычные</translation>
-    </message>
-    <message>
-        <source>%1, built-in</source>
-        <translation>%1, встроенные</translation>
-    </message>
-    <message numerus="yes">
-        <source>%1, %n bridge(s)</source>
-        <translation>
-            <numerusform>%1, %n мост</numerusform>
-            <numerusform>%1, %n моста</numerusform>
-            <numerusform>%1, %n мостов</numerusform>
-        </translation>
     </message>
 </context>
 <context>
@@ -17922,10 +17569,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Собственные настройки DNS профиля были сброшены, поэтому используются глобальные: %1</translation>
     </message>
     <message>
-        <source>Use the 32-byte certificate chain hash in base64 (44 characters ending in =), as juicity-server prints it.</source>
-        <translation>Укажите 32-байтовый хеш цепочки сертификатов в base64 (44 символа, в конце =), как его выводит juicity-server.</translation>
-    </message>
-    <message>
         <source>Use either Client Random or Client Random Key, not both.</source>
         <translation>Укажите либо Client Random, либо ключ Client Random, но не оба.</translation>
     </message>
@@ -17940,10 +17583,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Client Random Key needs a domain name as the SNI; set Custom SNI or the TLS server name.</source>
         <translation>Для ключа Client Random в SNI нужно доменное имя; укажите пользовательский SNI или имя сервера TLS.</translation>
-    </message>
-    <message>
-        <source>The certificate chain pin replaces certificate verification; clear the TLS certificate and certificate pins.</source>
-        <translation>Хеш цепочки сертификатов заменяет проверку сертификата; очистите сертификат TLS и закрепление сертификатов.</translation>
     </message>
     <message>
         <source>Add at least one tier to choose in priority order.</source>
@@ -17968,74 +17607,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Windows reports program paths with \, so a path written with / never matches.</source>
         <translation>Windows записывает пути программ через \, поэтому путь, записанный через /, никогда не сработает.</translation>
-    </message>
-    <message>
-        <source>Ignored %1: Psiphon profiles take only a region.</source>
-        <translation>Проигнорировано %1: в профилях Psiphon задается только регион.</translation>
-    </message>
-    <message>
-        <source>Use a two-letter country code, like US.</source>
-        <translation>Укажите двухбуквенный код страны, например US.</translation>
-    </message>
-    <message>
-        <source>Add at least one bridge line, or choose another bridge mode.</source>
-        <translation>Добавьте хотя бы одну строку моста или выберите другой режим мостов.</translation>
-    </message>
-    <message>
-        <source>The bridge address must be an IP address with a port, like 192.0.2.1:443 or [2001:db8::1]:443.</source>
-        <translation>Адрес моста должен быть IP-адресом с портом, например 192.0.2.1:443 или [2001:db8::1]:443.</translation>
-    </message>
-    <message>
-        <source>Only the first exit country was imported.</source>
-        <translation>Импортирована только первая страна выхода.</translation>
-    </message>
-    <message>
-        <source>Ignored %1: Tor profiles take only bridges and an exit country.</source>
-        <translation>Проигнорировано %1: в профилях Tor задаются только мосты и страна выхода.</translation>
-    </message>
-    <message>
-        <source>Bridge line %1: %2</source>
-        <translation>Строка моста %1: %2</translation>
-    </message>
-    <message>
-        <source>The built-in Tor bridges are not available: the core has not reported them.</source>
-        <translation>Встроенные мосты Tor недоступны: ядро их не передало.</translation>
-    </message>
-    <message>
-        <source>The bridge line is empty.</source>
-        <translation>Строка моста пуста.</translation>
-    </message>
-    <message>
-        <source>%1 bridges are not supported; use obfs4, WebTunnel, Snowflake, meek or plain bridges.</source>
-        <translation>Мосты %1 не поддерживаются; используйте мосты obfs4, WebTunnel, Snowflake, meek или обычные.</translation>
-    </message>
-    <message>
-        <source>The bridge address is missing.</source>
-        <translation>Не указан адрес моста.</translation>
-    </message>
-    <message>
-        <source>The bridge fingerprint must be 40 hexadecimal characters.</source>
-        <translation>Отпечаток моста должен состоять из 40 шестнадцатеричных символов.</translation>
-    </message>
-    <message>
-        <source>Write bridge options as key=value, like iat-mode=0.</source>
-        <translation>Указывайте параметры моста в виде key=value, например iat-mode=0.</translation>
-    </message>
-    <message>
-        <source>%1 bridges need the %2 option.</source>
-        <translation>Мостам %1 нужен параметр %2.</translation>
-    </message>
-    <message>
-        <source>Use a two-letter country code, like de.</source>
-        <translation>Укажите двухбуквенный код страны, например de.</translation>
-    </message>
-    <message>
-        <source>Skipped a bridge line: %1</source>
-        <translation>Пропущена строка моста: %1</translation>
-    </message>
-    <message>
-        <source>Tor bridges: %1</source>
-        <translation>Мосты Tor: %1</translation>
     </message>
 </context>
 <context>
@@ -18524,10 +18095,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Nothing is running, so the test builds the configuration this routing profile would start with. Outbounds are not dialed, endpoint rules are skipped and domains resolve with the system resolver.</source>
         <translation>Ничего не запущено, поэтому для проверки собирается конфигурация, с которой запустился бы этот профиль маршрутизации. Подключения к outbound не устанавливаются, правила для конечных точек пропускаются, а домены разрешаются системным резолвером.</translation>
-    </message>
-    <message>
-        <source>Onion sites via Tor (Throne)</source>
-        <translation>Onion-сайты через Tor (Throne)</translation>
     </message>
     <message>
         <source>Pick</source>

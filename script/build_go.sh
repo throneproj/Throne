@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-TAGS="with_clash_api,with_quic,with_wireguard,with_utls,with_dhcp,with_tailscale,with_openvpn,with_openconnect,with_tor_transports,with_psiphon,PSIPHON_DISABLE_QUIC,PSIPHON_DISABLE_INPROXY,badlinkname,tfogo_checklinkname0"
+TAGS="with_clash_api,with_quic,with_wireguard,with_utls,with_dhcp,with_tailscale,with_openvpn,with_openconnect,badlinkname,tfogo_checklinkname0"
 
 rm -rf $DEST
 mkdir -p $DEST

@@ -19,7 +19,7 @@ import (
 )
 
 // exec.Cmd+SysProcAttr.Token routes through CreateProcessAsUser, needing SeAssignPrimaryTokenPrivilege that elevated admins lack; CreateProcessWithTokenW needs only SeImpersonatePrivilege (#1482).
-func startChild(s childSpec) (Running, error) {
+func startChild(path string, args []string, noOut bool) (running, error) {
 	self, err := selfToken()
 	if err != nil {
 		return nil, fmt.Errorf("cannot open process token: %w", err)
@@ -27,29 +27,25 @@ func startChild(s childSpec) (Running, error) {
 	defer self.Close()
 
 	if !self.IsElevated() {
-		cmd := newCmd(s)
-		if s.noWindow {
-			cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CreationFlags: windows.CREATE_NO_WINDOW}
-		}
-		return startCmd(cmd)
+		return startCmd(newCmd(path, args, noOut))
 	}
 
-	tok, err := unprivilegedToken(self, s.logPrefix)
+	tok, err := unprivilegedToken(self)
 	if err != nil {
-		return nil, fmt.Errorf("refusing to start %s: cannot obtain an unprivileged user token: %w", s.name, err)
+		return nil, fmt.Errorf("refusing to start extra process: cannot obtain an unprivileged user token: %w", err)
 	}
 	defer tok.Close()
 
-	return startWithToken(s, tok)
+	return startWithToken(path, args, noOut, tok)
 }
 
 // CreateProcessWithTokenW is served by the Secondary Logon service, which some systems disable; CreateProcessAsUser then still works for a Core running as SYSTEM.
-func startWithToken(s childSpec, tok windows.Token) (Running, error) {
-	run, err := startWithTokenW(s, tok)
+func startWithToken(path string, args []string, noOut bool, tok windows.Token) (running, error) {
+	run, err := startWithTokenW(path, args, noOut, tok)
 	if err == nil {
 		return run, nil
 	}
-	cmd := newCmd(s)
+	cmd := newCmd(path, args, noOut)
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Token:         syscall.Token(tok),
 		HideWindow:    true,
@@ -65,8 +61,8 @@ func startWithToken(s childSpec, tok windows.Token) (Running, error) {
 var procCreateProcessWithTokenW = windows.NewLazySystemDLL("advapi32.dll").NewProc("CreateProcessWithTokenW")
 
 // CreateProcessWithTokenW inherits no arbitrary handles, but the secondary-logon service still duplicates the three std handles into a 64-bit child.
-func startWithTokenW(s childSpec, tok windows.Token) (Running, error) {
-	exe, err := exec.LookPath(s.path)
+func startWithTokenW(path string, args []string, noOut bool, tok windows.Token) (running, error) {
+	exe, err := exec.LookPath(path)
 	if err != nil {
 		return nil, err
 	}
@@ -105,12 +101,12 @@ func startWithTokenW(s childSpec, tok windows.Token) (Running, error) {
 		closeAll(outR, outW, errR, errW, nul)
 		return nil, err
 	}
-	cmdLine, err := windows.UTF16PtrFromString(windows.ComposeCommandLine(append([]string{exe}, s.args...)))
+	cmdLine, err := windows.UTF16PtrFromString(windows.ComposeCommandLine(append([]string{exe}, args...)))
 	if err != nil {
 		closeAll(outR, outW, errR, errW, nul)
 		return nil, err
 	}
-	envBlock, err := makeEnvBlock(s.env)
+	envBlock, err := makeEnvBlock(childEnv())
 	if err != nil {
 		closeAll(outR, outW, errR, errW, nul)
 		return nil, err
@@ -144,7 +140,7 @@ func startWithTokenW(s childSpec, tok windows.Token) (Running, error) {
 
 	done := make(chan struct{}, 2)
 	pump := func(r *os.File) {
-		_, _ = io.Copy(&pipeLogger{prefix: s.logPrefix, noOut: s.noOut}, r)
+		_, _ = io.Copy(&pipeLogger{prefix: extraCorePrefix, noOut: noOut}, r)
 		_ = r.Close()
 		done <- struct{}{}
 	}
@@ -240,12 +236,12 @@ var tokenSources = []tokenSource{
 	{"restricted self token", restrictedSelfToken},
 }
 
-func unprivilegedToken(self windows.Token, logPrefix string) (windows.Token, error) {
+func unprivilegedToken(self windows.Token) (windows.Token, error) {
 	var errs []error
 	for _, src := range tokenSources {
 		tok, err := src.get(self)
 		if err == nil {
-			log.Printf("%s: dropping privileges via %s", logPrefix, src.name)
+			log.Printf("%s: dropping privileges via %s", extraCorePrefix, src.name)
 			return tok, nil
 		}
 		errs = append(errs, fmt.Errorf("%s: %w", src.name, err))

@@ -6,7 +6,6 @@
 #include <QString>
 #include <QStringList>
 
-#include "include/configs/ExitThrough.h"
 #include "include/engine/services/ServiceTypes.h"
 
 // The built-in WARP of Routing Settings (settings exit_through and warp_*), for the Throne API. Main thread only.
@@ -40,14 +39,11 @@ namespace Engine::WarpService {
         bool changed = false;
         // The exit, or WARP's mode while WARP is the exit, changed, so the running config is out of date.
         bool restartNeeded = false;
-        // The exit that turning WARP on replaced; Server when there was none.
-        Configs::ExitThrough replacedExit = Configs::ExitThrough::Server;
     };
 
-    // Commits exit_through and warp_mode through SettingsService, which raises the restart hint; enabling WARP replaces any other exit and
-    // logs it, disabling it falls back to the selected profile only while WARP is the exit. Refuses an unknown mode; a change that changes
-    // nothing succeeds. A real change is refused while Routing Settings is open, when enabled with an unconfigured mode, when beforeWrite
-    // refuses, and while Throne exits.
+    // Commits exit_through and warp_mode through SettingsService, which raises the restart hint. Refuses an unknown mode; a change that
+    // changes nothing succeeds. A real change is refused while Routing Settings is open, when enabled with an unconfigured mode, when
+    // beforeWrite refuses, and while Throne exits.
     std::optional<ServiceError> Apply(const Change &change, const std::function<std::optional<ServiceError>()> &beforeWrite,
                                       ChangeResult *result);
 

@@ -784,7 +784,7 @@ namespace Scanner {
             QString coreError;
             const auto response = API::defaultClient->ScanURLTest(
                 &ok, request, &coreError,
-                scanWorkerUrlTestTimeoutMs(build.build->outboundTags.size(), test, Configs::StartupAllowanceMs(base_)));
+                scanWorkerUrlTestTimeoutMs(build.build->outboundTags.size(), test, Configs::DnsTunnelStartupAllowanceMs(base_)));
             if (!ok) {
                 if (scanWorkerIsStopped(coreError)) stop_.store(true);
                 if (stop_) {

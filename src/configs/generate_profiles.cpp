@@ -5,8 +5,6 @@
 #include "include/configs/common/Protocols.h"
 #include "include/configs/common/ResolverSource.h"
 #include "include/configs/common/utils.h"
-#include "include/configs/outbounds/psiphon.h"
-#include "include/configs/outbounds/tor.h"
 #include "include/global/Configs.hpp"
 
 #include <QApplication>
@@ -155,49 +153,6 @@ namespace Configs {
             if (const auto parsed = portText.toInt(); parsed > 0 && parsed <= 65535) port = parsed;
         }
 
-        // Tor and Psiphon profile types spell the exit_through values of the exits they duplicate; Server for any other hop.
-        ExitThrough hopDuplicatesExit(const std::shared_ptr<Profile> &hop) {
-            if (hop == nullptr) return ExitThrough::Server;
-            const auto exit = ExitOf(hop->type);
-            return exit == ExitThrough::Tor || exit == ExitThrough::Psiphon ? exit : ExitThrough::Server;
-        }
-
-        // Psiphon carries UDP through its servers' udpgw; Tor carries only TCP.
-        bool hopCarriesOnlyTcp(const std::shared_ptr<Profile> &hop) {
-            return hopDuplicatesExit(hop) == ExitThrough::Tor;
-        }
-
-        // WireGuard and AmneziaWG always run over UDP; MASQUE does only when it may not fall back to HTTP/2.
-        bool warpNeedsUdp(const SettingsValues &settings) {
-            return settings.warp_mode != QLatin1String("masque") || settings.warp_masque_http_mode == 1;
-        }
-
-        // Rides on the selected profile, which already gets past censorship, so it needs no bridges.
-        std::shared_ptr<Profile> torExitProfile(const SettingsValues &settings) {
-            auto torProfile = std::make_shared<Profile>();
-            torProfile->type = "tor";
-            torProfile->name = "Tor";
-            torProfile->id = torExitProfileID;
-            auto outbound = std::make_shared<tor>();
-            outbound->name = "Tor";
-            outbound->bridge_mode = "none";
-            outbound->exit_country = settings.tor_exit_country.trimmed().toLower();
-            torProfile->outbound = outbound;
-            return torProfile;
-        }
-
-        std::shared_ptr<Profile> psiphonExitProfile(const SettingsValues &settings) {
-            auto psiphonProfile = std::make_shared<Profile>();
-            psiphonProfile->type = "psiphon";
-            psiphonProfile->name = "Psiphon";
-            psiphonProfile->id = psiphonExitProfileID;
-            auto outbound = std::make_shared<psiphon>();
-            outbound->name = "Psiphon";
-            outbound->egress_region = settings.psiphon_egress_region.trimmed().toUpper();
-            psiphonProfile->outbound = outbound;
-            return psiphonProfile;
-        }
-
         std::shared_ptr<Profile> warpExitProfile(const SettingsValues &settings) {
             auto warpProfile = std::make_shared<Profile>();
             warpProfile->name = "warp";
@@ -282,73 +237,15 @@ namespace Configs {
                     if (WarpConfigured(settings.warp_mode)) profile = warpExitProfile(settings);
                     else refusal = "WARP is enabled but its config has not been generated. Please generate the WARP config first in Routing Settings.";
                     break;
-                case ExitThrough::Tor:
-                    // A missing executable is BuildConfigResult::torMissing, which offers the download.
-                    profile = torExitProfile(settings);
-                    break;
-                case ExitThrough::Psiphon:
-                    profile = psiphonExitProfile(settings);
-                    break;
             }
             if (error != nullptr) *error = refusal;
             return profile;
         }
 
-        std::shared_ptr<Profile> exitHopOf(const std::shared_ptr<Profile> &ent) {
-            // An auto selector's members leave through their own groups' landing proxies, so it has no one exit hop.
-            if (ent == nullptr || ent->type == "autoselector") return nullptr;
-            std::shared_ptr<Profile> hop = ent;
-            if (const auto group = dataManager->groupsRepo->GetGroup(ent->gid); group != nullptr && group->landing_proxy_id >= 0) {
-                hop = getProfile(group->landing_proxy_id);
-            } else if (ent->type == "chain") {
-                const auto *chain = ent->Chain();
-                if (chain == nullptr || chain->list.isEmpty()) return nullptr;
-                hop = getProfile(chain->list.last());
-            }
-            return hop != nullptr && hop->type == "autoselector" ? nullptr : hop;
-        }
-
-        bool exitCarriesOnlyTcp(const std::shared_ptr<Profile> &ent) {
-            switch (activeExit()) {
-                case ExitThrough::Server:
-                    return hopCarriesOnlyTcp(exitHopOf(ent));
-                case ExitThrough::Tor:
-                    return true;
-                case ExitThrough::Warp:
-                case ExitThrough::Psiphon:
-                    return false;
-            }
-            return false;
-        }
-
-        bool exitReachesOnion(const std::shared_ptr<Profile> &ent) {
-            switch (activeExit()) {
-                case ExitThrough::Server:
-                    return hopDuplicatesExit(exitHopOf(ent)) == ExitThrough::Tor;
-                case ExitThrough::Tor:
-                    return true;
-                case ExitThrough::Warp:
-                case ExitThrough::Psiphon:
-                    return false;
-            }
-            return false;
-        }
-
-        QString exitError(const std::shared_ptr<Profile> &ent) {
-            const auto exit = activeExit();
-            if (exit == ExitThrough::Server) return {};
-            if (QString error; exitProfile(&error) == nullptr) return error;
-            const auto hop = exitHopOf(ent);
-            if (exit == ExitThrough::Warp) {
-                if (!hopCarriesOnlyTcp(hop) || !warpNeedsUdp(*dataManager->settingsRepo)) return {};
-                return QObject::tr("The selected profile leaves through %1, which carries only TCP, but WARP needs UDP in its current mode. "
-                                   "In Routing Settings > Exit, set WARP to MASQUE with HTTP Version HTTP/2, or choose another exit.")
-                    .arg(ExitName(hopDuplicatesExit(hop)));
-            }
-            if (hopDuplicatesExit(hop) != exit) return {};
-            return QObject::tr("The selected profile already leaves through %1, so the %1 exit cannot run over it. "
-                               "Choose another exit in Routing Settings > Exit.")
-                .arg(ExitName(exit));
+        QString exitError() {
+            QString error;
+            exitProfile(&error);
+            return error;
         }
 
         // ------------------------------------------------------- prerequisites

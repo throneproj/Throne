@@ -225,8 +225,6 @@ namespace Configs::SettingsSchema {
                 {"ntp_interval", &SettingsValues::ntp_interval, Host, RestartProfile},
                 {"ntp_outbound", &SettingsValues::ntp_outbound, Host, RestartProfile},
                 {"exit_through", &SettingsValues::exit_through, Portable, RestartRouting},
-                {"tor_exit_country", &SettingsValues::tor_exit_country, Portable, RestartRouting},
-                {"psiphon_egress_region", &SettingsValues::psiphon_egress_region, Portable, RestartRouting},
                 {"warp_private_key", &SettingsValues::warp_private_key, Portable, RestartRouting},
                 {"warp_public_key", &SettingsValues::warp_public_key, Portable, RestartRouting},
                 {"warp_ifc_addrs", &SettingsValues::warp_ifc_addrs, Portable, RestartRouting},

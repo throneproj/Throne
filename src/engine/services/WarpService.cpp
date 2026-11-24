@@ -71,8 +71,7 @@ namespace Engine::WarpService {
             if (auto refused = warpServiceCheckMode(*change.mode)) return refused;
         }
         const auto &settings = Configs::dataManager->settingsRepo;
-        const auto exitWas = Configs::ExitOf(settings->exit_through);
-        const bool wasEnabled = exitWas == Configs::ExitThrough::Warp;
+        const bool wasEnabled = Configs::ExitOf(settings->exit_through) == Configs::ExitThrough::Warp;
         const bool enabled = change.enabled.value_or(wasEnabled);
         const QString mode = change.mode.value_or(settings->warp_mode);
         if (enabled == wasEnabled && mode == settings->warp_mode) return std::nullopt;
@@ -86,18 +85,12 @@ namespace Engine::WarpService {
             if (auto refused = beforeWrite()) return refused;
         }
         const auto refused = SettingsService::Update([enabled, &mode](Configs::SettingsValues &values) {
-            if (enabled) values.exit_through = Configs::ExitValue(Configs::ExitThrough::Warp);
-            else if (Configs::ExitOf(values.exit_through) == Configs::ExitThrough::Warp)
-                values.exit_through = Configs::ExitValue(Configs::ExitThrough::Server);
+            values.exit_through = Configs::ExitValue(enabled ? Configs::ExitThrough::Warp : Configs::ExitThrough::Server);
             values.warp_mode = mode;
         });
         if (refused) return refused;
         result->changed = true;
         result->restartNeeded = wasEnabled || enabled;
-        result->replacedExit = enabled && !wasEnabled ? exitWas : Configs::ExitThrough::Server;
-        if (result->replacedExit != Configs::ExitThrough::Server) {
-            MW_show_log(QStringLiteral("[WARP] %1 turned off: WARP and %1 cannot run together").arg(Configs::ExitName(result->replacedExit)));
-        }
         return std::nullopt;
     }
 

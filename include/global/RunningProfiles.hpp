@@ -17,11 +17,6 @@ namespace Configs
 
     bool RunningUsesProfile(int profileID);
 
-    // The running config has a tor outbound; ClearRunningProfiles resets it.
-    void SetRunningUsesTor(bool usesTor);
-
-    bool RunningUsesTor();
-
     // The routing profile the running config was built with; -1 when none (stopped, or a custom full config).
     void SetRunningRoute(int routeId);
 

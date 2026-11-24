@@ -9,8 +9,6 @@
 #include "include/engine/autoselector/AutoSelectorController.h"
 #include "include/engine/tests/TestRunner.h"
 
-#include <atomic>
-
 #include <QMenu>
 #include <array>
 
@@ -29,7 +27,6 @@
 #include "include/engine/vpn/VpnAuthController.h"
 #include "include/global/PeriodicRunner.hpp"
 #include "include/global/Logger.hpp"
-#include "include/global/RunningProfiles.hpp"
 #include "include/scanner/IpListUpdater.h"
 #include "include/scanner/ScanManager.h"
 #include "include/ui/stats/dialog_auto_selector.h"
@@ -851,18 +848,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
         {
             tests()->runSpeedTests({}, true);
         }
-    });
-    connect(ui->actionNew_Tor_Circuit, &QAction::triggered, this, [this, inFlight = std::make_shared<std::atomic_bool>(false)] {
-        if (runningSnapshot() == nullptr || !Configs::RunningUsesTor() || inFlight->exchange(true)) return;
-        runOnNewThread([inFlight] {
-            bool ok = false;
-            const QString error = API::defaultClient->TorNewIdentity(&ok);
-            inFlight->store(false);
-            runOnUiThread([ok, error] {
-                if (ok && error.isEmpty()) MW_show_log(MainWindow::tr("[Tor] New circuit requested; new connections take a different path."));
-                else MW_show_log(MainWindow::tr("[Tor] Could not switch to a new circuit: %1").arg(error));
-            });
-        });
     });
     connect(ui->actionSpeedtest_Selected, &QAction::triggered, this, [=,this]()
     {

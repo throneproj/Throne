@@ -252,9 +252,7 @@ namespace Configs {
         QString ntp_outbound = "direct"; // "direct" or "proxy"
 
         // Exit
-        QString exit_through = "server"; // Configs::ExitThrough: "server", "warp", "tor" or "psiphon"; others read as "server"
-        QString tor_exit_country = ""; // Lowercase ISO 3166-1 alpha-2 for the Tor exit's last relay; "" = any
-        QString psiphon_egress_region = ""; // Uppercase ISO 3166-1 alpha-2 for the Psiphon exit's server; "" = best performance
+        QString exit_through = "server"; // Configs::ExitThrough: "server" or "warp"; others read as "server"
 
         // Warp
         QString warp_private_key = "";

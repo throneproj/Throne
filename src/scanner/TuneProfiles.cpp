@@ -28,7 +28,6 @@ namespace Scanner::Tune {
             if (outbound == nullptr || outbound->IsXray() || !outbound->HasTLS() || outbound->HasQUIC() || outbound->LimitedTLS())
                 return nullptr;
             // QUIC carriers that HasQUIC does not report.
-            if (profile.type == QLatin1String("juicity")) return nullptr;
             if (const auto *trustTunnel = profile.TrustTunnel(); trustTunnel != nullptr && trustTunnel->quic) return nullptr;
             if (outbound->HasTransport() && outbound->GetTransport()->type == QLatin1String("quic")) return nullptr;
             auto tls = outbound->GetTLS();

@@ -34,7 +34,6 @@ namespace Configs {
         auto query = db.query("SELECT key, value FROM settings");
         if (!query) return;
 
-        bool legacyTor = false;
         bool legacyWarp = false;
         while (query->executeStep()) {
             const QString key = QString::fromStdString(query->getColumn(0).getText());
@@ -51,16 +50,16 @@ namespace Configs {
                 remote_dns_disable_ipv6 = str == "ipv4_only";
                 continue;
             }
-            // Before exit_through, Tor and WARP were two exclusive switches, Tor outranking WARP.
-            if (key == "enable_tor" || key == "enable_warp") {
-                (key == "enable_tor" ? legacyTor : legacyWarp) = str == "true" || str == "1";
+            // Before exit_through, WARP was a switch of its own.
+            if (key == "enable_warp") {
+                legacyWarp = str == "true" || str == "1";
                 continue;
             }
             if (const auto *entry = SettingsSchema::Find(key)) SettingsSchema::Parse(*this, *entry, str);
         }
-        if (!stored.contains(QStringLiteral("exit_through")) && (legacyTor || legacyWarp)) {
-            exit_through = ExitValue(legacyTor ? ExitThrough::Tor : ExitThrough::Warp);
-        }
+        if (!stored.contains(QStringLiteral("exit_through")) && legacyWarp) exit_through = ExitValue(ExitThrough::Warp);
+        // An exit this version lacks reads as the selected profile, and the row is rewritten.
+        exit_through = ExitValue(ExitOf(exit_through));
         // Builds before 1.2.1 saved the translated interval label ("5 мин.", "۱۰ دقیقه"), which the core rejects.
         if (!Validation::Duration(ntp_interval).isEmpty()) {
             QString minutes;

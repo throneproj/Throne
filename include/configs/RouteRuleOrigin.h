@@ -12,7 +12,6 @@ namespace Configs
         ExtraCore,
         SystemDns,
         Sniff,
-        TorOnion,
         Resolve,
         DnsHijack,
         DnsInboundReject,

@@ -372,9 +372,6 @@ set(PROJECT_SOURCES
         include/ui/profile/edit_tuic.h
         src/ui/profile/edit_tuic.cpp
         include/ui/profile/edit_tuic.ui
-        include/ui/profile/edit_juicity.h
-        src/ui/profile/edit_juicity.cpp
-        include/ui/profile/edit_juicity.ui
         include/ui/profile/edit_trusttunnel.h
         src/ui/profile/edit_trusttunnel.cpp
         include/ui/profile/edit_trusttunnel.ui
@@ -577,12 +574,6 @@ set(PROJECT_SOURCES
         src/ui/profile/edit_masterdns.cpp
         include/ui/profile/edit_masterdns.h
         include/ui/profile/edit_masterdns.ui
-        src/ui/profile/edit_tor.cpp
-        include/ui/profile/edit_tor.h
-        include/ui/profile/edit_tor.ui
-        src/ui/profile/edit_psiphon.cpp
-        include/ui/profile/edit_psiphon.h
-        include/ui/profile/edit_psiphon.ui
         include/stats/connections/connectionLister.hpp
         src/stats/connectionLister/connectionLister.cpp
         include/sys/windows/eventHandler.h
@@ -616,7 +607,6 @@ set(PROJECT_SOURCES
         include/configs/outbounds/hysteria.h
         include/configs/outbounds/vless.h
         include/configs/outbounds/tuic.h
-        include/configs/outbounds/juicity.h
         include/configs/outbounds/trusttunnel.h
         include/configs/outbounds/naive.h
         include/configs/outbounds/shadowtls.h
@@ -637,7 +627,6 @@ set(PROJECT_SOURCES
         src/configs/outbounds/tailscale.cpp
         src/configs/outbounds/trojan.cpp
         src/configs/outbounds/tuic.cpp
-        src/configs/outbounds/juicity.cpp
         src/configs/outbounds/trusttunnel.cpp
         src/configs/outbounds/naive.cpp
         src/configs/outbounds/shadowtls.cpp
@@ -654,10 +643,6 @@ set(PROJECT_SOURCES
         src/configs/outbounds/dnstt.cpp
         include/configs/outbounds/masterdns.h
         src/configs/outbounds/masterdns.cpp
-        include/configs/outbounds/tor.h
-        src/configs/outbounds/tor.cpp
-        include/configs/outbounds/psiphon.h
-        src/configs/outbounds/psiphon.cpp
         src/configs/outbounds/custom.cpp
         include/configs/generate.h
         include/configs/ConfigBuild.h
@@ -847,8 +832,6 @@ set(ENGINE_SOURCES
         src/engine/services/RouteService.cpp
         include/engine/services/WarpService.h
         src/engine/services/WarpService.cpp
-        include/engine/services/TorBridges.h
-        src/engine/services/TorBridges.cpp
         include/engine/tests/TestObserver.h
         include/engine/tests/TestRunner.h
         src/engine/tests/TestRunner.cpp

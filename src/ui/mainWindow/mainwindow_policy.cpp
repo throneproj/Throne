@@ -109,22 +109,6 @@ void MainWindow::geoAssetDownloadFinished(const QString &error) {
     }
 }
 
-void MainWindow::confirmTorDownload(const QString &profileName, std::function<void(bool download)> answered) {
-    if (policyOpenBox(m_policyBoxes, __func__) != nullptr) {
-        answered(false);
-        return;
-    }
-    auto *box = new QMessageBox(QMessageBox::Question, tr("Tor is not downloaded"),
-            tr("The profile \"%1\" connects through Tor, which is not downloaded yet.\n\n"
-               "Download Tor from the Tor Project now? The profile starts once it is installed.").arg(profileName),
-            QMessageBox::NoButton, this);
-    auto *download = box->addButton(tr("Download"), QMessageBox::AcceptRole);
-    auto *cancel = box->addButton(tr("Cancel"), QMessageBox::RejectRole);
-    box->setDefaultButton(download);
-    box->setEscapeButton(cancel);
-    policyAsk(m_policyBoxes, __func__, box, download, std::move(answered));
-}
-
 void MainWindow::killSwitchProblem() {
     auto *killSwitch = Sys::KillSwitch::instance();
     if (killSwitch->state() != Sys::KillSwitch::State::Failed) return;

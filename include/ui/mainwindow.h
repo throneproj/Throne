@@ -618,8 +618,6 @@ private:
 
     void geoAssetDownloadFinished(const QString &error) override;
 
-    void confirmTorDownload(const QString &profileName, std::function<void(bool download)> answered) override;
-
     void killSwitchProblem() override;
 
     void killSwitchProblemResolved() override;

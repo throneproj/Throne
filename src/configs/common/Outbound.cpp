@@ -1,6 +1,5 @@
 #include "include/configs/common/Outbound.h"
 #include "include/configs/common/utils.h"
-#include "include/configs/outbounds/juicity.h"
 #include "include/configs/outbounds/masque.h"
 #include "include/configs/outbounds/naive.h"
 #include "include/configs/outbounds/trusttunnel.h"
@@ -27,7 +26,7 @@ namespace Configs {
         {
             // warpmasque falls back to HTTP/2 over TCP unless that is turned off.
             if (const auto m = dynamic_cast<masque*>(&out)) return m->http_version == 2 || !m->disable_version_fallback;
-            if (out.HasQUIC() || dynamic_cast<juicity*>(&out) != nullptr) return false;
+            if (out.HasQUIC()) return false;
             if (const auto t = dynamic_cast<trusttunnel*>(&out)) return !t->quic;
             if (const auto n = dynamic_cast<naive*>(&out)) return !n->quic;
             return !out.HasTransport() || out.GetTransport()->type != "quic";
