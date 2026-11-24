@@ -49,7 +49,7 @@ jobs:
       - name: Install lupdate
         uses: jurplel/install-qt-action@v4.5.0
         with:
-          version: "6.12.0"
+          version: "6.12.1"
           archives: qtbase qtdeclarative qttools icu
           install-deps: false
           cache: true
@@ -217,13 +217,13 @@ jobs:
       matrix:
         include:
           - platform: windows-latest
-            qt_version: "6.12.0"
+            qt_version: "6.12.1"
             target: x64
             dest_suffix: windows-amd64
             common: windows-amd64
             launcher: sccache
           - platform: windows-11-arm
-            qt_version: "6.12.0"
+            qt_version: "6.12.1"
             target: arm64
             dest_suffix: windows-arm64
             common: windows-arm64
@@ -242,14 +242,14 @@ jobs:
             common: linux-arm64
             launcher: ccache
           - platform: macos-latest
-            qt_version: "6.12.0"
+            qt_version: "6.12.1"
             osx_target: "14.4"
             target: x86_64
             dest_suffix: darwin-amd64
             common: darwin-amd64
             launcher: ccache
           - platform: macos-latest
-            qt_version: "6.12.0"
+            qt_version: "6.12.1"
             osx_target: "14.4"
             target: arm64
             dest_suffix: darwin-arm64
@@ -424,12 +424,12 @@ jobs:
       matrix:
         include:
           - platform: ubuntu-24.04
-            qt_version: "6.12.0"
+            qt_version: "6.12.1"
             target: x86_64
             dest_suffix: linux-amd64
             common: linux-amd64
           - platform: ubuntu-24.04-arm
-            qt_version: "6.12.0"
+            qt_version: "6.12.1"
             target: aarch64
             dest_suffix: linux-arm64
             common: linux-arm64
