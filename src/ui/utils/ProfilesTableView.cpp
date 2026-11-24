@@ -17,22 +17,19 @@
 
 namespace {
     constexpr int kProfilesTableServiceIconSize = 16;
-    constexpr int kProfilesTableServiceGap = 6;
+    constexpr char16_t kUploadArrow = u'↑';
 
     QList<ServiceIcons::Item> profilesTableServiceItems(const QModelIndex &index) {
         if (index.column() != ProfilesTableModel::ColExitIP) return {};
         return index.data(ProfilesTableModel::ServiceItemsRole).value<QList<ServiceIcons::Item>>();
     }
 
-    int profilesTableServiceReserve(qsizetype count) {
-        return ServiceIcons::StripWidth(count, kProfilesTableServiceIconSize) + kProfilesTableServiceGap;
+    QStyle *profilesTableCellStyle(const QStyleOptionViewItem &option) {
+        return option.widget != nullptr ? option.widget->style() : QApplication::style();
     }
 
-    // Inside the reserve at the cell's trailing edge, with half the gap on either side.
-    QRect profilesTableServiceArea(const QStyleOptionViewItem &option, qsizetype count) {
-        const int width = ServiceIcons::StripWidth(count, kProfilesTableServiceIconSize);
-        const QRect area(option.rect.right() + 1 - kProfilesTableServiceGap / 2 - width, option.rect.top(), width, option.rect.height());
-        return QStyle::visualRect(option.direction, option.rect, area);
+    QRect profilesTableServiceArea(const QStyleOptionViewItem &cell) {
+        return profilesTableCellStyle(cell)->subElementRect(QStyle::SE_ItemViewItemDecoration, &cell, cell.widget);
     }
 
     // QStyleSheetStyle drops Qt::BackgroundRole once a sheet's ::item rule draws, as the feiyang themes' does.
@@ -44,10 +41,10 @@ namespace {
             if (const QVariant fill = index.data(Qt::BackgroundRole); fill.canConvert<QBrush>()) {
                 painter->fillRect(option.rect, qvariant_cast<QBrush>(fill));
             }
-            if (const auto items = profilesTableServiceItems(index); items.isEmpty()) {
-                QStyledItemDelegate::paint(painter, option, index);
-            } else {
+            if (const auto items = profilesTableServiceItems(index); !items.isEmpty()) {
                 paintWithServices(painter, option, index, items);
+            } else if (!paintSpeed(painter, option, index)) {
+                QStyledItemDelegate::paint(painter, option, index);
             }
             if (ProfilesTableModel::endsPinnedBlock(index)) {
                 painter->fillRect(QRect(option.rect.left(), option.rect.bottom() - 1, option.rect.width(), 2), themeManager()->tokens.muted);
@@ -55,16 +52,18 @@ namespace {
         }
 
         QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override {
-            QSize size = QStyledItemDelegate::sizeHint(option, index);
-            if (const auto items = profilesTableServiceItems(index); !items.isEmpty()) size.rwidth() += profilesTableServiceReserve(items.size());
-            return size;
+            const auto items = profilesTableServiceItems(index);
+            if (items.isEmpty()) return QStyledItemDelegate::sizeHint(option, index);
+            const QStyleOptionViewItem cell = serviceCell(option, index, items.size());
+            return profilesTableCellStyle(option)->sizeFromContents(QStyle::CT_ItemViewItem, &cell, QSize(), option.widget);
         }
 
         bool helpEvent(QHelpEvent *event, QAbstractItemView *view, const QStyleOptionViewItem &option, const QModelIndex &index) override {
             if (event != nullptr && view != nullptr && event->type() == QEvent::ToolTip) {
                 const auto items = profilesTableServiceItems(index);
-                const auto icons = ServiceIcons::StripRects(profilesTableServiceArea(option, items.size()), items.size(),
-                                                            kProfilesTableServiceIconSize);
+                const auto icons = items.isEmpty() ? QList<QRect>()
+                                                   : ServiceIcons::StripRects(profilesTableServiceArea(serviceCell(option, index, items.size())),
+                                                                              items.size(), kProfilesTableServiceIconSize);
                 for (qsizetype i = 0; i < items.size(); ++i) {
                     if (!icons[i].contains(event->pos())) continue;
                     // The viewport gets the mouse moves that hide the tip once the pointer leaves the icon.
@@ -76,19 +75,23 @@ namespace {
         }
 
     private:
+        // The strip rides as an empty trailing decoration, so the style lays out, aligns and elides the text in what is left.
+        QStyleOptionViewItem serviceCell(const QStyleOptionViewItem &option, const QModelIndex &index, qsizetype count) const {
+            QStyleOptionViewItem cell(option);
+            initStyleOption(&cell, index);
+            cell.features |= QStyleOptionViewItem::HasDecoration;
+            cell.icon = QIcon();
+            cell.decorationPosition = QStyleOptionViewItem::Right;
+            cell.decorationAlignment = Qt::AlignCenter;
+            cell.decorationSize = QSize(ServiceIcons::StripWidth(count, kProfilesTableServiceIconSize), kProfilesTableServiceIconSize);
+            return cell;
+        }
+
         // The selection and hover panel still spans the whole cell: only the text gives way to the icons.
         void paintWithServices(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index,
                                const QList<ServiceIcons::Item> &items) const {
-            QStyleOptionViewItem cell(option);
-            initStyleOption(&cell, index);
-            const QWidget *widget = option.widget;
-            QStyle *style = widget != nullptr ? widget->style() : QApplication::style();
-            QStyleOptionViewItem narrowed(cell);
-            narrowed.rect.setWidth(cell.rect.width() - profilesTableServiceReserve(items.size()));
-            const int textMargin = style->pixelMetric(QStyle::PM_FocusFrameHMargin, nullptr, widget) + 1;
-            const int textWidth = style->subElementRect(QStyle::SE_ItemViewItemText, &narrowed, widget).width() - 2 * textMargin;
-            cell.text = cell.fontMetrics.elidedText(cell.text, cell.textElideMode, qMax(0, textWidth));
-            style->drawControl(QStyle::CE_ItemViewItem, &cell, painter, widget);
+            const QStyleOptionViewItem cell = serviceCell(option, index, items.size());
+            profilesTableCellStyle(option)->drawControl(QStyle::CE_ItemViewItem, &cell, painter, option.widget);
 
             const auto group = !(option.state & QStyle::State_Enabled) ? QPalette::Disabled
                                : option.state & QStyle::State_Active   ? QPalette::Active
@@ -96,9 +99,54 @@ namespace {
             const auto role = option.state & QStyle::State_Selected ? QPalette::HighlightedText : QPalette::Text;
             painter->save();
             painter->setClipRect(option.rect, Qt::IntersectClip);
-            ServiceIcons::PaintStrip(painter, profilesTableServiceArea(option, items.size()), items, kProfilesTableServiceIconSize,
+            ServiceIcons::PaintStrip(painter, profilesTableServiceArea(cell), items, kProfilesTableServiceIconSize,
                                      option.palette.color(group, role));
             painter->restore();
+        }
+
+        // Download and upload wear the speed test panel's colours; a selected row keeps the style's text colour, as Latency does.
+        bool paintSpeed(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const {
+            if (index.column() != ProfilesTableModel::ColSpeed || option.state & QStyle::State_Selected) return false;
+            QStyleOptionViewItem cell(option);
+            initStyleOption(&cell, index);
+            const QString text = cell.text;
+            if (text.isEmpty()) return false;
+            const QWidget *widget = option.widget;
+            QStyle *style = profilesTableCellStyle(option);
+            const int textMargin = style->pixelMetric(QStyle::PM_FocusFrameHMargin, nullptr, widget) + 1;
+            const QRect textRect = style->subElementRect(QStyle::SE_ItemViewItemText, &cell, widget).adjusted(textMargin, 0, -textMargin, 0);
+            const QFontMetrics metrics = cell.fontMetrics;
+            const QString shown = metrics.elidedText(text, cell.textElideMode, qMax(0, textRect.width()));
+            cell.text.clear();
+            style->drawControl(QStyle::CE_ItemViewItem, &cell, painter, widget);
+
+            const ThemeTokens &tokens = themeManager()->tokens;
+            const QVariant fill = index.data(Qt::BackgroundRole);
+            const QColor backdrop = fill.canConvert<QBrush>() ? qvariant_cast<QBrush>(fill).color() : QColor();
+            const auto runColor = [&](const QString &run, const QColor &color) {
+                const QColor base = run.mid(1).trimmed() == QLatin1String("N/A") ? tokens.muted : color;
+                return backdrop.isValid() && backdrop.alpha() == 255 ? ContrastSeparated(base, backdrop, 4.0) : base;
+            };
+            const qsizetype upAt = text.indexOf(kUploadArrow);
+            const QColor downColor = runColor(upAt < 0 ? text : text.left(upAt), tokens.info);
+            const QColor upColor = runColor(upAt < 0 ? QString() : text.mid(upAt), tokens.success);
+            qsizetype split = shown.indexOf(kUploadArrow);
+            if (split < 0) split = upAt == 0 ? 0 : shown.size();
+
+            const QRect area = QStyle::alignedRect(cell.direction, cell.displayAlignment,
+                                                   QSize(metrics.horizontalAdvance(shown), metrics.height()), textRect);
+            painter->save();
+            painter->setClipRect(option.rect, Qt::IntersectClip);
+            painter->setFont(cell.font);
+            painter->setLayoutDirection(Qt::LeftToRight);
+            int x = area.left();
+            for (const auto &[run, color] : {std::pair{shown.left(split), downColor}, std::pair{shown.mid(split), upColor}}) {
+                painter->setPen(color);
+                painter->drawText(QPoint(x, area.top() + metrics.ascent()), run);
+                x += metrics.horizontalAdvance(run);
+            }
+            painter->restore();
+            return true;
         }
     };
 }

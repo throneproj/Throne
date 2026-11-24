@@ -108,6 +108,10 @@ QVariant ProfilesTableModel::data(const QModelIndex &index, int role) const {
     if (role == PinnedRole) {
         return isPinnedRow(index.row());
     }
+    if (role == Qt::TextAlignmentRole) {
+        // A flag alone sits lost at the edge of a column the header keeps wider.
+        return index.column() == ColExitIP ? QVariant(static_cast<int>(Qt::AlignCenter)) : QVariant();
+    }
     ensureCached(profileId);
     auto it = m_cache.constFind(profileId);
     if (it == m_cache.constEnd()) return {};
