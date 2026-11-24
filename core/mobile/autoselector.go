@@ -130,6 +130,12 @@ func (i *Instance) AutoSelectorAction(tag string, action string, member string) 
 	return nil
 }
 
+// SetScreenOff tells every auto-selector in the process whether the screen is off: while it is, they probe less
+// often, though urgent rounds still run at once. Not tied to an instance, so it holds across restarts.
+func SetScreenOff(off bool) {
+	group.SetScreenOff(off)
+}
+
 func (i *Instance) autoSelectors() []group.AutoSelectorGroup {
 	if !i.running() {
 		return nil

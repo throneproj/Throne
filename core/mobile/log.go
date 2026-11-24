@@ -181,12 +181,13 @@ func (stdLogWriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-var _ log.PlatformWriter = platformLogWriter{}
+var _ log.LeveledPlatformWriter = platformLogWriter{}
 
 // Always handed to box.New for the main instance, sink or not: a non-nil PlatformLogWriter is what
 // switches on trafficcontrol, clash mode and the cache file, which Status()/Groups()/QueryOutboundStats()
 // read. Probe boxes pass nil so they never share cache.db or pay for accounting, and get a testLogWriter.
-// Like testLogWriter it applies the config's own level, so lines the sink would drop never cross into Kotlin.
+// Like testLogWriter it keeps only the config's own level, so lines the sink would drop are neither
+// formatted nor cross into Kotlin.
 type platformLogWriter struct {
 	level log.Level
 }
@@ -200,6 +201,10 @@ func newPlatformLogWriter(options *option.LogOptions) platformLogWriter {
 	return platformLogWriter{level: level}
 }
 
+func (w platformLogWriter) LogLevel() log.Level {
+	return w.level
+}
+
 func (w platformLogWriter) WriteMessage(level log.Level, message string) {
 	if level > w.level {
 		return
@@ -207,12 +212,16 @@ func (w platformLogWriter) WriteMessage(level log.Level, message string) {
 	pump.push(int32(level), message)
 }
 
-var _ log.PlatformWriter = testLogWriter{}
+var _ log.LeveledPlatformWriter = testLogWriter{}
 
-// A probe box's lines, marked as test output, attached to its log factory after box.New. The factory hands
-// its platform writers every line whatever its level, so the probe config's own level is applied here.
+// A probe box's lines, marked as test output, attached to its log factory after box.New. Like
+// platformLogWriter it keeps only the probe config's own level.
 type testLogWriter struct {
 	level log.Level
+}
+
+func (w testLogWriter) LogLevel() log.Level {
+	return w.level
 }
 
 func (w testLogWriter) WriteMessage(level log.Level, message string) {

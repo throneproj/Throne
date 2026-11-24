@@ -1,7 +1,9 @@
 package mobile
 
 import (
+	"encoding/binary"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/sagernet/sing-box/adapter"
@@ -117,6 +119,45 @@ func (i *Instance) QueryOutboundStats(tag string, direction string) int64 {
 	}
 	i.outboundTraffic[tag] = pending
 	return value
+}
+
+// TrafficReader reads a fixed list of tags in one call. It drains the same counters QueryOutboundStats does, under
+// the same lock, so the two can be mixed without losing or double-counting bytes.
+type TrafficReader struct {
+	instance *Instance
+	tags     []string
+}
+
+// tags are joined with "\n".
+func (i *Instance) NewTrafficReader(tags string) *TrafficReader {
+	reader := &TrafficReader{instance: i}
+	if tags != "" {
+		reader.tags = strings.Split(tags, "\n")
+	}
+	return reader
+}
+
+// 16 bytes per tag, in the reader's order: the uplink and then the downlink bytes since that tag was last read, each
+// a little-endian int64. Like QueryOutboundStats it still reads after Close: the app collects the last bytes then.
+func (r *TrafficReader) Read() []byte {
+	result := make([]byte, 16*len(r.tags))
+	i := r.instance
+	if i == nil || i.traffic == nil {
+		return result
+	}
+	i.outboundTrafficAccess.Lock()
+	defer i.outboundTrafficAccess.Unlock()
+	for index, tag := range r.tags {
+		uplink, downlink := i.traffic.TotalOutbound(tag)
+		if pending, loaded := i.outboundTraffic[tag]; loaded {
+			uplink += pending.uplink
+			downlink += pending.downlink
+			delete(i.outboundTraffic, tag)
+		}
+		binary.LittleEndian.PutUint64(result[index*16:], uint64(uplink))
+		binary.LittleEndian.PutUint64(result[index*16+8:], uint64(downlink))
+	}
+	return result
 }
 
 func (i *Instance) Groups() OutboundGroupIterator {
