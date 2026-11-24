@@ -28,6 +28,7 @@ namespace Engine {
         static constexpr int kMaxOtpRejects = 3;
         static constexpr int kMaxAutoRestarts = 3;
         static constexpr qint64 kAutoRestartCooldownSecs = 20;
+        static constexpr qint64 kStableConnectedSecs = 60;
         static constexpr int kMaxCredentialPrompts = 3;
 
         // policy and control outlive the controller.
@@ -107,6 +108,7 @@ namespace Engine {
         QHash<QString, QString> m_vpnEndpointLastState;
         QHash<QString, QString> m_vpnOtpLastCode;
         QHash<QString, int> m_vpnOtpRejects;
+        QHash<QString, qint64> m_vpnOtpRejectAt;
         QSet<QString> m_vpnChallengeAnswering;
         QHash<int, int> m_vpnAutoRestarts;
         qint64 m_vpnAutoRestartAt = 0;

@@ -29,11 +29,13 @@ require (
 
 replace github.com/xtls/xray-core => github.com/throneproj/xray-core v1.251015.1-0.20261113120537-eea0cb078b79
 
-replace github.com/sagernet/sing-box => github.com/throneproj/sing-box v1.11.16-0.20261124191754-499dd88fcc88
+replace github.com/sagernet/sing-box => github.com/throneproj/sing-box v1.11.16-0.20261124193529-943c19bc6e25
 
 replace github.com/sagernet/wireguard-go => github.com/throneproj/wireguard-go v0.0.0-20261112143559-827ce83a4eed
 
 replace github.com/sagernet/sing => github.com/throneproj/sing v0.9.4-0.20261124191429-42da4537a24e
+
+replace github.com/sagernet/sing-openvpn => github.com/throneproj/sing-openvpn v0.1.1-0.20261124193421-24edd96c0581
 
 replace github.com/metacubex/utls => github.com/throneproj/utls v0.0.0-20261122110438-55d28d9fd9a0
 

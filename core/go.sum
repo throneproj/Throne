@@ -340,8 +340,6 @@ github.com/sagernet/sing-mux v0.3.10-0.20261110064256-375087483ea2 h1:bGC7//2xTN
 github.com/sagernet/sing-mux v0.3.10-0.20261110064256-375087483ea2/go.mod h1:jricpwCOndDsTEM1TM3piJvhL/2Mm7OhLkm+JadJJ1Q=
 github.com/sagernet/sing-openconnect v0.1.1-0.20261119021124-31db24231feb h1:gAt6mkxVJW9pgE9kNk/IvJRCLccDWQ1rTuZPSxnex4s=
 github.com/sagernet/sing-openconnect v0.1.1-0.20261119021124-31db24231feb/go.mod h1:4AKZLVcvY3r54UaK2Gbnm7aN8pOwdLz+y4EP0QFZ5Eg=
-github.com/sagernet/sing-openvpn v0.1.1-0.20261110111939-ad7a6ce7d11b h1:q4s4t1q+vNFSN4usnpfftPgHbEEs0paOMNxC7W8Ur0A=
-github.com/sagernet/sing-openvpn v0.1.1-0.20261110111939-ad7a6ce7d11b/go.mod h1:PWX7WygD8jpwfqfaGNySXpJYTn0SOwjBI1BKHHC2+Bw=
 github.com/sagernet/sing-quic v0.7.2-0.20261124143824-14ca3448d44b h1:I7h8MDkYIMofFW+BojM/2pNEBVWO1yiapP9keC9Uu9Y=
 github.com/sagernet/sing-quic v0.7.2-0.20261124143824-14ca3448d44b/go.mod h1:AOO1skHj0z1Iwz58ozMfJNY7p5dVg9O/HiSyWKTyrwY=
 github.com/sagernet/sing-shadowsocks v0.2.9-0.20260929204512-65740e0f0e3e h1:LKgE/uuqp/D2kgxYViOz8vf4slaCUfpFywXjtuwD5gU=
@@ -390,8 +388,10 @@ github.com/throneproj/cronet-go/lib/darwin_arm64 v0.0.0-20260923015522-0dc5a60c5
 github.com/throneproj/cronet-go/lib/darwin_arm64 v0.0.0-20260923015522-0dc5a60c5c47/go.mod h1:kojvtUc29KKnk8hs2QIANynVR59921SnGWA9kXohHc0=
 github.com/throneproj/sing v0.9.4-0.20261124191429-42da4537a24e h1:1IfbBQdIqtsss5jFju9Lnrn+T8KaahkPd/BzJbDScLc=
 github.com/throneproj/sing v0.9.4-0.20261124191429-42da4537a24e/go.mod h1:K3Owt3xPhHugvlnlPPxZJ/exXdaJfEPOTNorGk4AXjo=
-github.com/throneproj/sing-box v1.11.16-0.20261124191754-499dd88fcc88 h1:saJzpqZnaOWrQ2nGUwslQYbnkyaGFNypsS2V9ZSu7Rs=
-github.com/throneproj/sing-box v1.11.16-0.20261124191754-499dd88fcc88/go.mod h1:17hAWGhUpvSsI9oIMjK4GegZl9vWydqkrA3kYWuBKYs=
+github.com/throneproj/sing-box v1.11.16-0.20261124193529-943c19bc6e25 h1:EuapgLv82iDkwSie/fuVF6L5e1Smvf6UfMbeEkiba2k=
+github.com/throneproj/sing-box v1.11.16-0.20261124193529-943c19bc6e25/go.mod h1:mO7fYFJ4lzzg5uGhzhPXLx4LKYtLFXbQz7BnurEx7bY=
+github.com/throneproj/sing-openvpn v0.1.1-0.20261124193421-24edd96c0581 h1:g8k7ftZrw0i/Oo/HzunoPjeYRVpfmey/6m1iAkUsmBU=
+github.com/throneproj/sing-openvpn v0.1.1-0.20261124193421-24edd96c0581/go.mod h1:PWX7WygD8jpwfqfaGNySXpJYTn0SOwjBI1BKHHC2+Bw=
 github.com/throneproj/utls v0.0.0-20261122110438-55d28d9fd9a0 h1:OUAT4pL0I4+a8xwB4p2lbOSiqrvgsL4LXOaISJWbaxk=
 github.com/throneproj/utls v0.0.0-20261122110438-55d28d9fd9a0/go.mod h1:kncGGVhFaoGn5M3pFe3SXhZCzsbCJayNOH4UEqTKTko=
 github.com/throneproj/wireguard-go v0.0.0-20261112143559-827ce83a4eed h1:kiBqon1s689TBSghRQ/SDSJgdkPxAcffMYe8JgpCn+o=

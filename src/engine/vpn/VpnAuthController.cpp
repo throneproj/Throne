@@ -195,6 +195,7 @@ namespace Engine {
         m_vpnTroubleDetail.clear();
         m_vpnOtpLastCode.clear();
         m_vpnOtpRejects.clear();
+        m_vpnOtpRejectAt.clear();
         m_vpnChallengeAnswering.clear();
         m_vpnPendingChallenges.clear();
         for (const auto &timer : std::as_const(m_cancelTimers)) {
@@ -294,7 +295,13 @@ namespace Engine {
             const auto name = Stats::VpnEndpointDisplayName(state.tag);
             const auto text = Stats::VpnExitStateText(state.state, state.error);
             if (state.tag == QStringLiteral("proxy")) exitState = text;
-            if (state.connected) m_vpnOtpRejects.remove(state.tag);
+            // A renegotiation keeps the old keys up while its answer is judged, so a rejected one still polls as
+            // connected; only a link that outlived its last attempt refills the budgets.
+            if (state.connected) {
+                const auto now = QDateTime::currentSecsSinceEpoch();
+                if (now - m_vpnOtpRejectAt.value(state.tag) >= kStableConnectedSecs) m_vpnOtpRejects.remove(state.tag);
+                if (now - m_vpnAutoRestartAt >= kStableConnectedSecs) m_vpnAutoRestarts.remove(Stats::VpnEndpointProfileID(state.tag));
+            }
 
             const auto previous = m_vpnEndpointLastState.value(state.tag);
             seenStates.insert(state.tag, state.state);
@@ -377,7 +384,7 @@ namespace Engine {
         QString user, pass, secret;
         QMap<QString, QString> formValues;
         if (ovpn != nullptr) {
-            // The core packs the answer as SCRV1 whatever it gets, so the code rides the secret slot.
+            // A static challenge packs the secret as SCRV1; a query_credentials login stages user and password raw.
             secret = code;
             if (credentialsKind) {
                 user = Configs::SubstituteOtp(creds.username, code);
@@ -389,6 +396,7 @@ namespace Engine {
 
         if (!challenge.error.isEmpty()) {
             m_vpnOtpRejects[challenge.endpointTag] = m_vpnOtpRejects.value(challenge.endpointTag) + 1;
+            m_vpnOtpRejectAt.insert(challenge.endpointTag, QDateTime::currentSecsSinceEpoch());
         }
         m_vpnOtpLastCode.insert(challenge.endpointTag, code);
         submitAutoAnswer(challenge, user, pass, secret, formValues);
@@ -487,9 +495,9 @@ namespace Engine {
 
         // Only the exit's failure has already cut the proxy off; a restart for any other endpoint drops working connections.
         const bool isExit = endpointTag == QStringLiteral("proxy");
-        // The core reads credentials once, at build time; rebuilding is the only way to hand it a new code.
-        const int otpID = ovpn != nullptr ? ovpn->otp_profile_id : ocon->otp_profile_id;
-        if (otpID >= 0 && m_vpnAutoRestarts.value(profileID) < kMaxAutoRestarts) {
+        // OpenConnect reads credentials once, at build time, so only a rebuild hands it a new code. OpenVPN asks the poller
+        // on every session, so its terminal failure goes to the credentials prompt.
+        if (ocon != nullptr && ocon->otp_profile_id >= 0 && m_vpnAutoRestarts.value(profileID) < kMaxAutoRestarts) {
             if (isExit) autoRestartForAuth(endpointTag, profileID);
             else if (!m_vpnRestartOffered) offerRestartForAuth(endpointTag, profileID, error);
             return;
