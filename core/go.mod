@@ -27,7 +27,8 @@ require (
 	google.golang.org/protobuf v1.36.12
 )
 
-replace github.com/xtls/xray-core => github.com/throneproj/xray-core v1.251015.1-0.20261113120537-eea0cb078b79
+// Review pin for throneproj/Xray-core#3; switch back to upstream before merging.
+replace github.com/xtls/xray-core => github.com/FizzVPN/Xray-core v0.0.0-20261124101853-695b28c386a7
 
 replace github.com/sagernet/sing-box => github.com/throneproj/sing-box v1.11.16-0.20261123202031-e314b1ba4ea1
 
