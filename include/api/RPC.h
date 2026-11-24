@@ -136,8 +136,8 @@ namespace API {
         // Up when any target accepts a TCP connection through the default interface.
         [[nodiscard]] bool ScanCheckNetwork(bool *rpcOK, const QStringList &targets, int timeoutMs, QString *error = nullptr) const;
 
-        // Returns the error text; empty on success.
-        QString ParseRuleSet(bool *rpcOK, const QByteArray &content, QStringList *cidrs, int *skippedRules = nullptr) const;
+        // Up when a resolver of the physical network answers, or none is known; systemResolvers receives the ones asked.
+        [[nodiscard]] bool ScanCheckNetworkDns(bool *rpcOK, int timeoutMs, QStringList *systemResolvers, QString *error = nullptr) const;
 
         // Through the core's dns-direct; config is the probe box it starts when the running profile has none.
         libcore::ResolveDomainsResponse ResolveDomains(bool *rpcOK, const QStringList &domains, const QString &config,

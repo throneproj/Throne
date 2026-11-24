@@ -8,10 +8,6 @@
 #include <functional>
 #include <memory>
 
-namespace Configs {
-    class IpScan;
-}
-
 namespace Scanner {
     class ScanRun;
 
@@ -119,8 +115,6 @@ namespace Scanner {
         explicit ScanManager(QObject *parent);
 
         void onWorkerFinished(int scanId);
-
-        StartResult startTune(const std::shared_ptr<Configs::IpScan> &scan, StartMode mode);
 
         [[nodiscard]] ScanRunHooks hooksFor(int scanId);
 

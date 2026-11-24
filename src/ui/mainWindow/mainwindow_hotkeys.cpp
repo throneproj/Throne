@@ -157,7 +157,6 @@ void MainWindow::setActionsData()
     commandPaletteAction->setData(QString("m33"));
     ui->actionService_Check_Selected->setData(QString("m34"));
     ui->actionService_Check_Group->setData(QString("m35"));
-    ui->menu_find_settings->setData(QString("m36"));
     ui->actionRule_Tester->setData(QString("m37"));
     ui->actionRestart_Proxy->setData(QString("m38"));
     ui->menu_stop->setData(QString("m39"));

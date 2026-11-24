@@ -12,6 +12,8 @@ namespace Configs {
         inline constexpr auto DefaultResolverLists = "migration.default_resolver_lists";
         inline constexpr auto WarpMasqueRanges = "migration.warp_masque_ranges";
         inline constexpr auto TorPsiphonLeftovers = "migration.tor_psiphon_leftovers";
+        inline constexpr auto RetiredScanKinds = "migration.retired_scan_kinds";
+        inline constexpr auto ListSeedsNov2026 = "migration.list_seeds_2026_11";
     }
 
     class MarkersRepo {

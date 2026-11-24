@@ -48,7 +48,6 @@ service LibcoreService {
   rpc StopScan(StopScanRequest) returns (EmptyResp);
   rpc ScanURLTest(ScanURLTestRequest) returns (TestResp);
   rpc ScanCheckNetwork(ScanCheckNetworkRequest) returns (ScanCheckNetworkResponse);
-  rpc ParseRuleSet(ParseRuleSetRequest) returns (ParseRuleSetResponse);
   rpc ResolveDomains(ResolveDomainsRequest) returns (ResolveDomainsResponse);
   rpc TestRoute(TestRouteRequest) returns (TestRouteResponse);
   rpc ServiceTest(ServiceTestRequest) returns (ServiceTestResponse);
@@ -555,57 +554,26 @@ message ScanTargetSpec {
   optional string port_mode = 6 [default = ""];
 }
 
-message ScanIcmpOptions {
-  optional bool enabled = 1 [default = false];
-  optional int32 timeout_ms = 2 [default = 1000];
-  optional int32 count = 3 [default = 1];
-}
-
-message ScanTcpOptions {
-  optional bool enabled = 1 [default = false];
-  optional int32 timeout_ms = 2 [default = 2000];
-  optional int32 attempts = 3 [default = 1];
-  optional int32 fallback_port = 4 [default = 443];
-}
-
-message ScanHttpOptions {
-  optional bool enabled = 1 [default = false];
-  optional bool tls = 2 [default = true];
-  optional string server_name = 3 [default = ""];
-  optional string host = 4 [default = ""];
-  optional string path = 5 [default = "/"];
-  // GET | HEAD | NONE (TLS handshake only)
-  optional string method = 6 [default = "GET"];
-  // 1.1 | 2 | 3
-  optional string http_version = 7 [default = "1.1"];
-  repeated string alpn = 8;
-  optional string min_version = 9 [default = ""];
-  optional string max_version = 10 [default = ""];
-  // Empty = Go TLS; otherwise a uTLS fingerprint.
-  optional string fingerprint = 11 [default = ""];
-  optional bool insecure = 12 [default = false];
-  optional bool disable_sni = 13 [default = false];
-  optional bool fragment = 14 [default = false];
-  optional int32 fragment_fallback_delay_ms = 15 [default = 0];
-  optional bool record_fragment = 16 [default = false];
-  optional bool mixed_case_sni = 17 [default = false];
-  reserved 18, 19, 20;
-  reserved "expected_status", "body_contains", "user_agent";
-  optional int32 timeout_ms = 21 [default = 3000];
-  optional int32 fallback_port = 22 [default = 443];
-}
-
-// When enabled, a target is probed as a resolver only: no icmp, tcp or http phase runs. Port 0 = 53.
+// When enabled, a target is probed as a resolver only: no other phase runs. Port 0 = 53. A target takes at most 10 s.
 message ScanDnsOptions {
   optional bool enabled = 1 [default = false];
   // dnstt | masterdns | xdns
   optional string protocol = 2 [default = ""];
   // dnstt/masterdns: the base profile's sing-box outbound object; xdns: the base's xdns mask settings. Resolvers are replaced per target.
   optional string config_json = 3 [default = ""];
-  // dnstt: poll | qname | handshake; masterdns: quick | full; xdns: poll | qname
-  optional string level = 4 [default = ""];
-  // Bounds one target's whole probe.
-  optional int32 timeout_ms = 5 [default = 5000];
+  reserved 4, 5;
+  reserved "level", "timeout_ms";
+}
+
+// When enabled, each target is probed as a WARP endpoint only: no other phase runs. Port 0 = 2408 (WireGuard) or 443 (MASQUE).
+message ScanWarpOptions {
+  optional bool enabled = 1 [default = false];
+  // The WARP profile's sing-box endpoint object: wireguard (WireGuard or AmneziaWG) or masque. Its peer address and port are replaced per target.
+  optional string config_json = 2 [default = ""];
+  // Handshakes per target, each from a fresh source port; 0 = 3.
+  optional int32 attempts = 3 [default = 0];
+  // The wait for each handshake; 0 = 1000.
+  optional int32 timeout_ms = 4 [default = 0];
 }
 
 message ScanProbeRequest {
@@ -615,38 +583,42 @@ message ScanProbeRequest {
   optional uint64 cursor = 3 [default = 0];
   // 0 = count only: nothing is probed, total is still reported.
   optional int32 max_targets = 4 [default = 0];
-  optional ScanIcmpOptions icmp = 5;
-  optional ScanTcpOptions tcp = 6;
-  optional ScanHttpOptions http = 7;
+  reserved 5, 6, 7;
+  reserved "icmp", "tcp", "http";
   optional int32 concurrency = 8 [default = 0];
   optional int32 spawn_interval_ms = 9 [default = 0];
   optional ScanDnsOptions dns = 10;
+  optional ScanWarpOptions warp = 11;
 }
 
 message ScanProbeResult {
   optional string address = 1 [default = ""];
   optional int32 port = 2 [default = 0];
   optional bool passed = 3 [default = false];
-  // icmp | tcp | tls | http | dns; empty when passed
+  // dns | warp; empty when passed
   optional string failed_phase = 4 [default = ""];
   optional string error = 5 [default = ""];
-  optional int32 icmp_ms = 6 [default = 0];
-  optional int32 tcp_ms = 7 [default = 0];
-  optional int32 tls_ms = 8 [default = 0];
-  optional int32 http_ms = 9 [default = 0];
-  optional int32 http_status = 10 [default = 0];
-  // The port TCP/TLS/DNS actually used: the phase fallback when port is 0.
+  reserved 6, 7, 8, 9, 10;
+  reserved "icmp_ms", "tcp_ms", "tls_ms", "http_ms", "http_status";
+  // The port actually probed: the phase default when port is 0.
   optional int32 probe_port = 11 [default = 0];
   // The failure came from this machine (no route or address for the family), not the target.
   optional bool local_failure = 12 [default = false];
-  // dnstt/xdns: RTT of the first exchange the resolver answered, failed targets included; masterdns: mean RTT at the found MTUs, passes only. 0 = none.
+  // dns: RTT of the resolver's first reply of any kind, failed targets included; 0 = it never replied.
   optional int32 dns_ms = 13 [default = 0];
-  // dnstt: max_qname_len units; xdns: lenLimit units (wire length).
-  optional int32 max_qname = 14 [default = 0];
-  optional int32 upload_mtu = 15 [default = 0];
-  optional int32 download_mtu = 16 [default = 0];
-  // The stage a failed target stopped at.
+  reserved 14, 15, 16;
+  reserved "max_qname", "upload_mtu", "download_mtu";
+  // dns, failed targets: poll | qname
   optional string dns_stage = 17 [default = ""];
+  // warp: handshakes sent and answered; dns: the burst's queries sent and answered.
+  optional int32 sent = 18 [default = 0];
+  optional int32 answered = 19 [default = 0];
+  // warp: median time of the answered handshakes.
+  optional int32 handshake_ms = 20 [default = 0];
+  // dns: the profile's query name length failed but a 60-byte name passed.
+  optional bool short_names_only = 21 [default = false];
+  // dns, failed targets: timeout | rcode | answer (wrong or forged) | qname (name too long)
+  optional string dns_reason = 22 [default = ""];
 }
 
 message ScanProbeResponse {
@@ -665,7 +637,7 @@ message ScanEvent {
   optional int64 seq = 1 [default = 0];
   // start | ok | fail
   optional string kind = 2 [default = ""];
-  // icmp | tcp | tls | http | dns | url
+  // dns | warp | url
   optional string phase = 3 [default = ""];
   // Display form; IPv6 is bracketed.
   optional string target = 4 [default = ""];
@@ -701,32 +673,23 @@ message ScanURLTestRequest {
   repeated string target_labels = 3;
   // false = one request per target, so the latency includes the handshake.
   optional bool warm_latency = 4 [default = true];
-  // > 0: one cold GET per target that passes only with a 2xx and this many body bytes; warm_latency is ignored.
-  optional int64 body_bytes = 5 [default = 0];
+  reserved 5;
+  reserved "body_bytes";
 }
 
 message ScanCheckNetworkRequest {
   // host:port, TCP.
   repeated string targets = 1;
   optional int32 timeout_ms = 2 [default = 3000];
+  // Instead of targets: a root NS query to each system resolver over UDP/53; any reply means up. Up when no system resolver is known.
+  optional bool dns = 3 [default = false];
 }
 
 message ScanCheckNetworkResponse {
   optional bool up = 1 [default = false];
   optional string error = 2 [default = ""];
-}
-
-// Binary (.srs) or JSON source, sniffed from the magic.
-message ParseRuleSetRequest {
-  optional bytes content = 1;
-}
-
-message ParseRuleSetResponse {
-  optional string error = 1 [default = ""];
-  repeated string cidrs = 2;
-  // Inverted and AND rules: they do not describe a set of addresses.
-  optional int32 skipped_rules = 3 [default = 0];
-  optional int32 version = 4 [default = 0];
+  // dns: the physical network's resolvers that were asked; never our own Tun's.
+  repeated string system_resolvers = 3;
 }
 
 // Looked up through dns-direct, the resolver the core dials servers with, never the OS resolver.

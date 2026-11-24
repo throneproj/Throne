@@ -158,5 +158,7 @@ namespace Configs {
             }
             markersRepo->Mark(Markers::TunPrivateRangesIPv6);
         }
+        if (!markersRepo->IsMarked(Markers::RetiredScanKinds) && ipScansRepo->DeleteRetiredScans())
+            markersRepo->Mark(Markers::RetiredScanKinds);
     }
 }

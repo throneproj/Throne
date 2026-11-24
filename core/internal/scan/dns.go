@@ -1,6 +1,7 @@
 package scan
 
 import (
+	"cmp"
 	"context"
 	"crypto/rand"
 	"encoding/binary"
@@ -9,6 +10,8 @@ import (
 	"fmt"
 	"net"
 	"net/netip"
+	"os"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -17,7 +20,7 @@ import (
 	"github.com/sagernet/sing-box/include"
 	"github.com/sagernet/sing-box/option"
 	"github.com/sagernet/sing-box/protocol/dnstt"
-	"github.com/sagernet/sing-box/transport/masterdns"
+	"github.com/sagernet/sing-box/protocol/masterdns"
 	singjson "github.com/sagernet/sing/common/json"
 	"github.com/sagernet/sing/common/json/badjson"
 	M "github.com/sagernet/sing/common/metadata"
@@ -29,25 +32,31 @@ const (
 	DNSProtocolDNSTT     = "dnstt"
 	DNSProtocolMasterDNS = "masterdns"
 	DNSProtocolXDNS      = "xdns"
-
-	DNSLevelPoll      = "poll"
-	DNSLevelQName     = "qname"
-	DNSLevelHandshake = "handshake"
-	DNSLevelQuick     = "quick"
-	DNSLevelFull      = "full"
 )
 
 const (
-	dnsDefaultPort    = 53
-	defaultDNSTimeout = 5 * time.Second
-	maxDNSTimeout     = 5 * time.Minute
+	dnsStagePoll  = "poll"
+	dnsStageQName = "qname"
 
-	xdnsExchangeTimeout   = 5 * time.Second
-	xdnsAttempts          = 2
+	dnsReasonTimeout = "timeout"
+	dnsReasonRcode   = "rcode"
+	dnsReasonAnswer  = "answer"
+	dnsReasonQName   = "qname"
+)
+
+const (
+	dnsDefaultPort     = 53
+	dnsTargetTimeout   = 10 * time.Second
+	dnsExchangeTimeout = 3 * time.Second
+	dnsBurstSize       = 8
+	dnsBurstInterval   = 20 * time.Millisecond
+	dnsShortQNameLen   = 60
+
 	xdnsMaxLenLimit       = 255
 	xdnsDefaultLabelLimit = 63
 	xdnsMaxEDNS0          = 4096
 	xdnsPollFrame         = 17
+	xdnsCommandFrame      = 9
 	xdnsPollCommand       = 8
 	xdnsUnknownCommand    = 0
 )
@@ -56,37 +65,20 @@ type DNSOptions struct {
 	Enabled    bool
 	Protocol   string
 	ConfigJSON string
-	Level      string
-	Timeout    time.Duration
 }
 
 type dnsProbe func(ctx context.Context, egress Egress, server netip.AddrPort, result *Result) error
 
-type dnsPlan struct {
-	timeout time.Duration
-	probe   dnsProbe
-}
-
-func newDNSPlan(options DNSOptions) (*dnsPlan, error) {
-	plan := &dnsPlan{timeout: defaultDNSTimeout}
-	if options.Timeout > 0 {
-		plan.timeout = min(max(options.Timeout, minPhaseTimeout), maxDNSTimeout)
-	}
-	var err error
+func newDNSProbe(options DNSOptions) (dnsProbe, error) {
 	switch options.Protocol {
 	case DNSProtocolDNSTT:
-		plan.probe, err = newDNSTTProbe(options.ConfigJSON, options.Level)
+		return newDNSTTProbe(options.ConfigJSON)
 	case DNSProtocolMasterDNS:
-		plan.probe, err = newMasterDNSProbe(options.ConfigJSON, options.Level)
+		return newMasterDNSProbe(options.ConfigJSON)
 	case DNSProtocolXDNS:
-		plan.probe, err = newXDNSProbe(options.ConfigJSON, options.Level)
-	default:
-		err = fmt.Errorf("unsupported DNS tunnel protocol %q", options.Protocol)
+		return newXDNSProbe(options.ConfigJSON)
 	}
-	if err != nil {
-		return nil, err
-	}
-	return plan, nil
+	return nil, fmt.Errorf("unsupported DNS tunnel protocol %q", options.Protocol)
 }
 
 func (r *probeRun) dnsTarget(ctx context.Context, target Target) Result {
@@ -98,12 +90,9 @@ func (r *probeRun) dnsTarget(ctx context.Context, target Target) Result {
 	result.ProbePort = port
 	display := DisplayTarget(target.Addr, port)
 	r.session.emit(EventStart, PhaseDNS, display, 0, "")
-	probeCtx, cancel := context.WithTimeout(ctx, r.plan.dns.timeout)
+	probeCtx, cancel := context.WithTimeout(ctx, dnsTargetTimeout)
 	defer cancel()
-	if err := r.plan.dns.probe(probeCtx, r.egress, netip.AddrPortFrom(target.Addr.Unmap(), port), &result); err != nil {
-		if result.DNSStage != "" {
-			err = &dnsStageError{stage: result.DNSStage, err: err}
-		}
+	if err := r.plan.dns(probeCtx, r.egress, netip.AddrPortFrom(target.Addr.Unmap(), port), &result); err != nil {
 		return r.fail(ctx, &result, PhaseDNS, display, err)
 	}
 	r.session.emit(EventOK, PhaseDNS, display, time.Duration(result.DNSMs)*time.Millisecond, "")
@@ -124,9 +113,31 @@ func (e *dnsStageError) Unwrap() error {
 	return e.err
 }
 
-// DNSMs 0 means the resolver never answered, so an answer faster than the clock resolution still counts.
+var errNoReply = errors.New("timeout")
+
+func dnsReasonError(reason string, rcode int, shortNamesOnly bool) error {
+	switch reason {
+	case dnsReasonTimeout:
+		return errNoReply
+	case dnsReasonRcode:
+		if rcode > 0 {
+			return fmt.Errorf("rcode %d", rcode)
+		}
+		return errors.New("error reply")
+	case dnsReasonAnswer:
+		return errors.New("wrong answer")
+	case dnsReasonQName:
+		if shortNamesOnly {
+			return errors.New("name too long, short names pass")
+		}
+		return errors.New("name too long")
+	}
+	return errors.New("failed")
+}
+
+// DNSMs 0 means the resolver never replied, so a reply faster than the clock resolution still counts.
 func answeredMs(latency time.Duration) int32 {
-	return int32(min(max(latency.Milliseconds(), 1), int64(maxDNSTimeout/time.Millisecond)))
+	return int32(min(max(latency.Milliseconds(), 1), int64(dnsTargetTimeout/time.Millisecond)))
 }
 
 func listenUDP(ctx context.Context, egress Egress, destination netip.Addr) (net.PacketConn, error) {
@@ -160,6 +171,77 @@ func (d egressDialer) ListenPacket(ctx context.Context, destination M.Socksaddr)
 	return listenUDP(ctx, d.egress, destination.Addr)
 }
 
+type recordingDialer struct {
+	egressDialer
+	access sync.Mutex
+	err    error
+}
+
+func (d *recordingDialer) DialContext(ctx context.Context, network string, destination M.Socksaddr) (net.Conn, error) {
+	conn, err := d.egressDialer.DialContext(ctx, network, destination)
+	d.record(ctx, err)
+	if err != nil {
+		return nil, err
+	}
+	return &recordingConn{Conn: conn, ctx: ctx, dialer: d}, nil
+}
+
+func (d *recordingDialer) ListenPacket(ctx context.Context, destination M.Socksaddr) (net.PacketConn, error) {
+	conn, err := d.egressDialer.ListenPacket(ctx, destination)
+	d.record(ctx, err)
+	if err != nil {
+		return nil, err
+	}
+	return &recordingPacketConn{PacketConn: conn, ctx: ctx, dialer: d}, nil
+}
+
+// A connected socket can still meet a missing route when it sends, and the probes call that a timeout too.
+type recordingConn struct {
+	net.Conn
+	ctx    context.Context
+	dialer *recordingDialer
+}
+
+func (c *recordingConn) Write(p []byte) (int, error) {
+	n, err := c.Conn.Write(p)
+	c.dialer.record(c.ctx, err)
+	return n, err
+}
+
+// An unconnected socket meets a missing route only when it sends.
+type recordingPacketConn struct {
+	net.PacketConn
+	ctx    context.Context
+	dialer *recordingDialer
+}
+
+func (c *recordingPacketConn) WriteTo(p []byte, addr net.Addr) (int, error) {
+	n, err := c.PacketConn.WriteTo(p, addr)
+	c.dialer.record(c.ctx, err)
+	return n, err
+}
+
+func (d *recordingDialer) record(ctx context.Context, err error) {
+	if err == nil || ctx.Err() != nil {
+		return
+	}
+	d.access.Lock()
+	defer d.access.Unlock()
+	if d.err == nil {
+		d.err = err
+	}
+}
+
+// The probes report a failed dial or send as a timeout; the recorded error tells a lost egress or a local failure apart.
+func (d *recordingDialer) failure(reason string) error {
+	d.access.Lock()
+	defer d.access.Unlock()
+	if d.err != nil && (reason == dnsReasonTimeout || errors.Is(d.err, ErrNoEgress)) {
+		return d.err
+	}
+	return nil
+}
+
 var errDryRun = errors.New("dry run")
 
 type dryRunDialer struct{}
@@ -176,18 +258,7 @@ var boxContext = sync.OnceValue(func() context.Context {
 	return include.Context(context.Background())
 })
 
-var dnsttLevels = map[string]dnstt.ProbeLevel{
-	"":                dnstt.ProbeLevelPoll,
-	DNSLevelPoll:      dnstt.ProbeLevelPoll,
-	DNSLevelQName:     dnstt.ProbeLevelQName,
-	DNSLevelHandshake: dnstt.ProbeLevelHandshake,
-}
-
-func newDNSTTProbe(config, levelName string) (dnsProbe, error) {
-	level, known := dnsttLevels[levelName]
-	if !known {
-		return nil, fmt.Errorf("unknown dnstt probe level %q", levelName)
-	}
+func newDNSTTProbe(config string) (dnsProbe, error) {
 	outbound, err := singjson.UnmarshalExtendedContext[option.Outbound](boxContext(), []byte(config))
 	if err != nil {
 		return nil, fmt.Errorf("decode dnstt outbound: %w", err)
@@ -207,43 +278,32 @@ func newDNSTTProbe(config, levelName string) (dnsProbe, error) {
 			TCPFallback:   tcpFallback,
 		}
 	}
-	// Option errors surface before any exchange, with no stage.
-	probed, err := dnstt.Probe(context.Background(), dryRunDialer{}, *options, resolverAt(netip.AddrPortFrom(netip.IPv4Unspecified(), dnsDefaultPort)), dnstt.ProbeLevelPoll)
-	if err != nil && probed.Stage == "" {
+	// Only option errors are returned, and they surface before any exchange.
+	if _, err = dnstt.Probe(context.Background(), dryRunDialer{}, *options, resolverAt(netip.AddrPortFrom(netip.IPv4Unspecified(), dnsDefaultPort))); err != nil {
 		return nil, fmt.Errorf("dnstt outbound: %w", err)
 	}
 	return func(ctx context.Context, egress Egress, server netip.AddrPort, result *Result) error {
-		probed, err := dnstt.Probe(ctx, egressDialer{egress}, *options, resolverAt(server), level)
-		if probed.Rcode >= 0 {
-			result.DNSMs = answeredMs(probed.Latency)
-		}
-		result.MaxQName = int32(probed.MaxQNameLen)
+		dialer := &recordingDialer{egressDialer: egressDialer{egress}}
+		probed, err := dnstt.Probe(ctx, dialer, *options, resolverAt(server))
 		if err != nil {
-			result.DNSStage = probed.Stage
 			return err
 		}
-		return nil
+		if probed.FirstReply > 0 {
+			result.DNSMs = answeredMs(probed.FirstReply)
+		}
+		if probed.Passed {
+			result.Sent, result.Answered = int32(probed.BurstSent), int32(probed.BurstAnswered)
+			return nil
+		}
+		result.DNSStage, result.DNSReason, result.ShortNamesOnly = cmp.Or(probed.Stage, dnsStagePoll), probed.Reason, probed.ShortNamesOnly
+		if err = dialer.failure(probed.Reason); err == nil {
+			err = dnsReasonError(probed.Reason, probed.Rcode, probed.ShortNamesOnly)
+		}
+		return &dnsStageError{stage: result.DNSStage, err: err}
 	}, nil
 }
 
-var masterDNSModes = map[string]masterdns.ProbeMode{
-	"":            masterdns.ProbeModeQuick,
-	DNSLevelQuick: masterdns.ProbeModeQuick,
-	DNSLevelFull:  masterdns.ProbeModeFull,
-}
-
-var masterDNSStageErrors = map[string]error{
-	masterdns.ProbeStageTimeout:  errors.New("no answer"),
-	masterdns.ProbeStageDecode:   errors.New("undecodable answer"),
-	masterdns.ProbeStageUpload:   errors.New("no size passed"),
-	masterdns.ProbeStageDownload: errors.New("no size passed"),
-}
-
-func newMasterDNSProbe(config, levelName string) (dnsProbe, error) {
-	mode, known := masterDNSModes[levelName]
-	if !known {
-		return nil, fmt.Errorf("unknown masterdns probe level %q", levelName)
-	}
+func newMasterDNSProbe(config string) (dnsProbe, error) {
 	var outbound struct {
 		Type string `json:"type"`
 		Tag  string `json:"tag,omitempty"`
@@ -258,55 +318,29 @@ func newMasterDNSProbe(config, levelName string) (dnsProbe, error) {
 	if err := badjson.UnmarshallExcludedContext(boxContext(), []byte(config), &outbound, &options); err != nil {
 		return nil, fmt.Errorf("decode masterdns outbound: %w", err)
 	}
-	if _, err := masterdns.ProbeResolver(context.Background(), dryRunDialer{}, options, netip.AddrPortFrom(netip.AddrFrom4([4]byte{127, 0, 0, 1}), dnsDefaultPort), mode); err != nil {
+	if _, err := masterdns.ProbeResolver(context.Background(), dryRunDialer{}, options, netip.AddrPortFrom(netip.AddrFrom4([4]byte{127, 0, 0, 1}), dnsDefaultPort)); err != nil {
 		return nil, fmt.Errorf("masterdns outbound: %w", err)
 	}
 	return func(ctx context.Context, egress Egress, server netip.AddrPort, result *Result) error {
 		dialer := &recordingDialer{egressDialer: egressDialer{egress}}
-		probed, err := masterdns.ProbeResolver(ctx, dialer, options, server, mode)
+		probed, err := masterdns.ProbeResolver(ctx, dialer, options, server)
 		if err != nil {
 			return err
 		}
-		result.UploadMTU = int32(probed.UploadMTU)
-		result.DownloadMTU = int32(probed.DownloadMTU)
+		if probed.FirstReply > 0 {
+			result.DNSMs = answeredMs(probed.FirstReply)
+		}
 		if probed.Passed {
-			result.DNSMs = answeredMs(probed.Latency)
+			result.Sent, result.Answered = int32(probed.BurstSent), int32(probed.BurstAnswered)
 			return nil
 		}
-		result.DNSStage = probed.FailedStage
-		// The probe reports an undialable resolver as a timeout; the dial error is what tells a lost egress apart.
-		if dialErr := dialer.firstError(); dialErr != nil && probed.FailedStage == masterdns.ProbeStageTimeout {
-			return dialErr
+		// Both minimum-size checks only show whether the tunnel answers at all, which is the poll stage of the others.
+		result.DNSStage, result.DNSReason = dnsStagePoll, probed.Reason
+		if err = dialer.failure(probed.Reason); err == nil {
+			err = dnsReasonError(probed.Reason, 0, false)
 		}
-		if err = masterDNSStageErrors[probed.FailedStage]; err == nil {
-			err = errors.New("failed")
-		}
-		return err
+		return &dnsStageError{stage: cmp.Or(probed.FailedStage, dnsStagePoll), err: err}
 	}, nil
-}
-
-type recordingDialer struct {
-	egressDialer
-	access sync.Mutex
-	err    error
-}
-
-func (d *recordingDialer) DialContext(ctx context.Context, network string, destination M.Socksaddr) (net.Conn, error) {
-	conn, err := d.egressDialer.DialContext(ctx, network, destination)
-	if err != nil && ctx.Err() == nil {
-		d.access.Lock()
-		if d.err == nil {
-			d.err = err
-		}
-		d.access.Unlock()
-	}
-	return conn, err
-}
-
-func (d *recordingDialer) firstError() error {
-	d.access.Lock()
-	defer d.access.Unlock()
-	return d.err
 }
 
 type xdnsSettings struct {
@@ -318,15 +352,7 @@ type xdnsSettings struct {
 	} `json:"domains"`
 }
 
-func newXDNSProbe(config, levelName string) (dnsProbe, error) {
-	var qname bool
-	switch levelName {
-	case "", DNSLevelPoll:
-	case DNSLevelQName:
-		qname = true
-	default:
-		return nil, fmt.Errorf("unknown xdns probe level %q", levelName)
-	}
+func newXDNSProbe(config string) (dnsProbe, error) {
 	var settings xdnsSettings
 	if err := json.Unmarshal([]byte(config), &settings); err != nil {
 		return nil, fmt.Errorf("decode xdns settings: %w", err)
@@ -336,7 +362,7 @@ func newXDNSProbe(config, levelName string) (dnsProbe, error) {
 			if name = strings.TrimSpace(name); name == "" {
 				continue
 			}
-			prober, err := newXDNSProber(name, domain.LenLimit, domain.LabelLimit, domain.EDNS0, qname)
+			prober, err := newXDNSProber(name, domain.LenLimit, domain.LabelLimit, domain.EDNS0)
 			if err != nil {
 				return nil, err
 			}
@@ -354,16 +380,14 @@ var xdnsEncodedLen = func() [256]int {
 type xdnsProber struct {
 	domain     *xdns.Domain
 	nameLength int
-	lenLimit   int
 	labelLimit int
 	edns0      uint16
-	qname      bool
-	// Frame sizes in bytes: the largest the profile's lenLimit allows, and the largest any name allows.
+	// Frame sizes in bytes: the largest the profile's lenLimit allows, and the largest a 60-byte name allows (0 = no check).
 	required int
-	largest  int
+	short    int
 }
 
-func newXDNSProber(name string, lenLimit, labelLimit, edns0 int32, qname bool) (*xdnsProber, error) {
+func newXDNSProber(name string, lenLimit, labelLimit, edns0 int32) (*xdnsProber, error) {
 	if lenLimit == 0 {
 		lenLimit = xdnsMaxLenLimit
 	}
@@ -378,21 +402,24 @@ func newXDNSProber(name string, lenLimit, labelLimit, edns0 int32, qname bool) (
 		return nil, fmt.Errorf("xdns domain %s: %w", name, err)
 	}
 	p := &xdnsProber{
-		domain:     domain,
-		nameLength: len(name) + 1,
-		lenLimit:   int(lenLimit),
+		domain: domain,
+		// The bare domain as xdns sends it: punycode with the dots trimmed, which an IDN's raw string undercounts.
+		nameLength: int(domain.Encode(nil).Length),
 		labelLimit: int(labelLimit),
 		edns0:      uint16(edns0),
-		qname:      qname,
 	}
-	for frame := xdnsPollFrame; frame < len(xdnsEncodedLen) && p.wireLength(frame) <= xdnsMaxLenLimit; frame++ {
-		p.largest = frame
-		if p.wireLength(frame) <= p.lenLimit {
-			p.required = frame
+	limit := min(int(lenLimit), xdnsMaxLenLimit)
+	for frame := xdnsCommandFrame; frame < len(xdnsEncodedLen) && p.wireLength(frame) <= limit; frame++ {
+		p.required = frame
+		if p.wireLength(frame) <= dnsShortQNameLen {
+			p.short = frame
 		}
 	}
 	if p.required < xdnsPollFrame {
 		return nil, fmt.Errorf("xdns domain %s leaves no room for a poll", name)
+	}
+	if p.short == p.required {
+		p.short = 0
 	}
 	return p, nil
 }
@@ -403,19 +430,11 @@ func (p *xdnsProber) wireLength(frame int) int {
 	return p.nameLength + 1 + encoded + (encoded+p.labelLimit-1)/p.labelLimit
 }
 
-// The largest lenLimit whose frames all fit within frame bytes.
-func (p *xdnsProber) lenLimitFor(frame int) int {
-	if frame >= p.largest {
-		return xdnsMaxLenLimit
-	}
-	return p.wireLength(frame+1) - 1
-}
-
 func (p *xdnsProber) probe(ctx context.Context, egress Egress, server netip.AddrPort, result *Result) error {
 	conn, err := listenUDP(ctx, egress, server.Addr())
 	if err != nil {
-		result.DNSStage = DNSLevelPoll
-		return err
+		result.DNSStage, result.DNSReason = dnsStagePoll, dnsReasonTimeout
+		return &dnsStageError{stage: dnsStagePoll, err: err}
 	}
 	defer conn.Close()
 	stopClose := context.AfterFunc(ctx, func() { _ = conn.Close() })
@@ -424,95 +443,58 @@ func (p *xdnsProber) probe(ctx context.Context, egress Egress, server netip.Addr
 	var clientID [8]byte
 	_, _ = rand.Read(clientID[:])
 	clientID[0] = clientID[0]&0xFC | xdns.TypeMap[xdns.TypeTXT]
-	if err = p.poll(ctx, exchanger, clientID, result); err != nil {
-		result.DNSStage = DNSLevelPoll
-		return err
+
+	// The server holds a lone poll for up to a second and answers it early when another query arrives, so two go out together.
+	polls := []xdnsQuery{p.frameQuery(clientID, xdnsPollFrame, xdnsPollCommand), p.frameQuery(clientID, xdnsPollFrame, xdnsPollCommand)}
+	replies, err := exchanger.exchange(ctx, polls, 0, xdnsReply.valid)
+	first := firstXDNSReply(replies)
+	if first.rtt > 0 {
+		result.DNSMs = answeredMs(first.rtt)
 	}
-	if !p.qname {
-		return nil
+	if !slices.ContainsFunc(replies, xdnsReply.valid) {
+		result.DNSStage, result.DNSReason = dnsStagePoll, dnsReasonTimeout
+		switch {
+		case first.rtt > 0 && first.rcode != dnsmessage.RCodeSuccess:
+			result.DNSReason, err = dnsReasonRcode, dnsReasonError(dnsReasonRcode, int(first.rcode), false)
+		case first.rtt > 0:
+			result.DNSReason, err = dnsReasonAnswer, dnsReasonError(dnsReasonAnswer, 0, false)
+		case err == nil:
+			err = errNoReply
+		}
+		return &dnsStageError{stage: dnsStagePoll, err: err}
 	}
-	if err = p.searchQName(ctx, exchanger, clientID, result); err != nil {
-		result.DNSStage = DNSLevelQName
-		return err
+
+	// The server answers an unknown command at once and queues nothing, so NOERROR proves the name was forwarded.
+	if !p.forwarded(ctx, exchanger, clientID, p.required) {
+		result.DNSStage, result.DNSReason = dnsStageQName, dnsReasonQName
+		result.ShortNamesOnly = p.short > 0 && p.forwarded(ctx, exchanger, clientID, p.short)
+		return &dnsStageError{stage: dnsStageQName, err: dnsReasonError(dnsReasonQName, 0, result.ShortNamesOnly)}
+	}
+	burst := make([]xdnsQuery, dnsBurstSize)
+	for i := range burst {
+		burst[i] = p.frameQuery(clientID, p.required, xdnsUnknownCommand)
+	}
+	replies, _ = exchanger.exchange(ctx, burst, dnsBurstInterval, nil)
+	result.Sent = int32(len(replies))
+	for _, reply := range replies {
+		if reply.rtt > 0 && reply.rcode == dnsmessage.RCodeSuccess {
+			result.Answered++
+		}
 	}
 	return nil
 }
 
-// The server holds a lone poll for up to a second and answers it early when another query arrives, so two go out together.
-func (p *xdnsProber) poll(ctx context.Context, exchanger *xdnsExchanger, clientID [8]byte, result *Result) error {
-	for attempt := 1; ; attempt++ {
-		queries := make([]xdnsQuery, 2)
-		for i := range queries {
-			frame := make([]byte, xdnsPollFrame)
-			_, _ = rand.Read(frame)
-			copy(frame, clientID[:])
-			frame[8] = xdnsPollCommand
-			queries[i] = p.query(frame)
-		}
-		reply, latency, err := exchanger.exchange(ctx, queries...)
-		if err == nil {
-			result.DNSMs = answeredMs(latency)
-			if reply.rcode != dnsmessage.RCodeSuccess {
-				return fmt.Errorf("resolver answered with RCODE %d", reply.rcode)
-			}
-			if !reply.txt {
-				return errors.New("resolver answered without the tunnel's TXT record")
-			}
-			return nil
-		}
-		if attempt == xdnsAttempts || ctx.Err() != nil {
-			return err
-		}
-	}
+func (p *xdnsProber) forwarded(ctx context.Context, exchanger *xdnsExchanger, clientID [8]byte, frame int) bool {
+	replies, _ := exchanger.exchange(ctx, []xdnsQuery{p.frameQuery(clientID, frame, xdnsUnknownCommand)}, 0, nil)
+	return len(replies) == 1 && replies[0].rtt > 0 && replies[0].rcode == dnsmessage.RCodeSuccess
 }
 
-func (p *xdnsProber) searchQName(ctx context.Context, exchanger *xdnsExchanger, clientID [8]byte, result *Result) error {
-	// The server answers an unknown command at once and queues nothing, so NOERROR proves the name was forwarded.
-	forwarded := func(size int) (bool, error) {
-		for range xdnsAttempts {
-			frame := make([]byte, size)
-			_, _ = rand.Read(frame)
-			copy(frame, clientID[:])
-			frame[8] = xdnsUnknownCommand
-			reply, _, err := exchanger.exchange(ctx, p.query(frame))
-			if ctx.Err() != nil {
-				return false, ctx.Err()
-			}
-			if err == nil && reply.rcode == dnsmessage.RCodeSuccess {
-				return true, nil
-			}
-		}
-		return false, nil
-	}
-	low, high := xdnsPollFrame, p.largest+1
-	step := func(size int) error {
-		ok, err := forwarded(size)
-		if err != nil {
-			return err
-		}
-		if ok {
-			low = size
-		} else {
-			high = size
-		}
-		return nil
-	}
-	err := step(p.largest)
-	if err == nil && low < p.required && p.required < high {
-		err = step(p.required)
-	}
-	for err == nil && high-low > 1 {
-		err = step(low + (high-low)/2)
-	}
-	result.MaxQName = int32(p.lenLimitFor(low))
-	switch {
-	case low >= p.required:
-		return nil
-	case high <= p.required:
-		return fmt.Errorf("resolver forwards queries up to lenLimit %d, %d required", result.MaxQName, p.lenLimit)
-	default:
-		return err
-	}
+func (p *xdnsProber) frameQuery(clientID [8]byte, size int, command byte) xdnsQuery {
+	frame := make([]byte, size)
+	_, _ = rand.Read(frame)
+	copy(frame, clientID[:])
+	frame[8] = command
+	return p.query(frame)
 }
 
 type xdnsQuery struct {
@@ -539,9 +521,25 @@ func (p *xdnsProber) query(frame []byte) xdnsQuery {
 	return query
 }
 
+// rtt 0 = no reply.
 type xdnsReply struct {
+	rtt   time.Duration
 	rcode dnsmessage.RCode
 	txt   bool
+}
+
+func (r xdnsReply) valid() bool {
+	return r.rtt > 0 && r.rcode == dnsmessage.RCodeSuccess && r.txt
+}
+
+func firstXDNSReply(replies []xdnsReply) xdnsReply {
+	var first xdnsReply
+	for _, reply := range replies {
+		if reply.rtt > 0 && (first.rtt == 0 || reply.rtt < first.rtt) {
+			first = reply
+		}
+	}
+	return first
 }
 
 type xdnsExchanger struct {
@@ -550,33 +548,68 @@ type xdnsExchanger struct {
 	buffer []byte
 }
 
-func (x *xdnsExchanger) exchange(ctx context.Context, queries ...xdnsQuery) (xdnsReply, time.Duration, error) {
-	deadline := time.Now().Add(xdnsExchangeTimeout)
-	if ctxDeadline, ok := ctx.Deadline(); ok && ctxDeadline.Before(deadline) {
-		deadline = ctxDeadline
-	}
-	if err := x.conn.SetReadDeadline(deadline); err != nil {
-		return xdnsReply{}, 0, contextOr(ctx, err)
-	}
+// exchange sends the queries interval apart and returns the replies to those sent, once stop accepts one, every one
+// has a reply, or nothing came for dnsExchangeTimeout after the last.
+func (x *xdnsExchanger) exchange(ctx context.Context, queries []xdnsQuery, interval time.Duration, stop func(xdnsReply) bool) ([]xdnsReply, error) {
 	destination := net.UDPAddrFromAddrPort(x.server)
+	replies := make([]xdnsReply, 0, len(queries))
+	sentAt := make([]time.Time, 0, len(queries))
 	begin := time.Now()
-	for _, query := range queries {
-		if _, err := x.conn.WriteTo(query.packet, destination); err != nil {
-			return xdnsReply{}, 0, contextOr(ctx, err)
-		}
-	}
+	var (
+		waitUntil time.Time
+		pending   int
+	)
 	for {
+		if len(sentAt) < len(queries) && !time.Now().Before(begin.Add(time.Duration(len(sentAt))*interval)) {
+			if _, err := x.conn.WriteTo(queries[len(sentAt)].packet, destination); err != nil {
+				return replies, contextOr(ctx, err)
+			}
+			sentAt = append(sentAt, time.Now())
+			replies = append(replies, xdnsReply{})
+			pending++
+			if len(sentAt) == len(queries) {
+				waitUntil = time.Now().Add(dnsExchangeTimeout)
+			}
+			continue
+		}
+		if len(sentAt) == len(queries) && pending == 0 {
+			return replies, nil
+		}
+		deadline := waitUntil
+		if len(sentAt) < len(queries) {
+			deadline = begin.Add(time.Duration(len(sentAt)) * interval)
+		}
+		if err := x.conn.SetReadDeadline(deadline); err != nil {
+			return replies, contextOr(ctx, err)
+		}
 		n, from, err := x.conn.ReadFrom(x.buffer)
 		if err != nil {
-			return xdnsReply{}, 0, contextOr(ctx, err)
+			if ctx.Err() == nil && errors.Is(err, os.ErrDeadlineExceeded) {
+				if len(sentAt) < len(queries) {
+					continue
+				}
+				return replies, nil
+			}
+			return replies, contextOr(ctx, err)
 		}
 		if udpAddr, isUDP := from.(*net.UDPAddr); !isUDP || udpAddr.AddrPort().Addr().Unmap() != x.server.Addr() || udpAddr.AddrPort().Port() != x.server.Port() {
 			continue
 		}
-		for _, query := range queries {
-			if reply, matched := parseXDNSReply(x.buffer[:n], query); matched {
-				return reply, time.Since(begin), nil
+		for i := range replies {
+			if replies[i].rtt > 0 {
+				continue
 			}
+			reply, matched := parseXDNSReply(x.buffer[:n], queries[i])
+			if !matched {
+				continue
+			}
+			reply.rtt = max(time.Since(sentAt[i]), time.Nanosecond)
+			replies[i] = reply
+			pending--
+			if stop != nil && stop(reply) {
+				return replies, nil
+			}
+			break
 		}
 	}
 }

@@ -4,10 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"net/netip"
 	"os"
 	"runtime"
-	"slices"
 	"sync/atomic"
 	"syscall"
 
@@ -68,22 +66,6 @@ func (scanEgress) Control() (control.Func, error) {
 		controlFunc = control.Append(controlFunc, control.RoutingMark(mark))
 	}
 	return controlFunc, nil
-}
-
-func (scanEgress) InterfaceFor(destination netip.Addr) *control.Interface {
-	if box := currentBox(); box != nil {
-		network := box.Network()
-		if finder, monitor := network.InterfaceFinder(), network.InterfaceMonitor(); finder != nil && monitor != nil {
-			if iif, err := finder.ByAddr(destination); err == nil && !slices.Contains(monitor.MyInterfaces(), iif.Name) {
-				return iif
-			}
-		}
-	} else if finder := netmon.Finder(); finder != nil {
-		if iif, err := finder.ByAddr(destination); err == nil {
-			return iif
-		}
-	}
-	return netmon.DefaultInterface()
 }
 
 // route.NetworkManager.AutoDetectInterfaceFunc over the core's always-on monitor; no box means no Tun of ours to skip.

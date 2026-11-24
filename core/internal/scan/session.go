@@ -23,11 +23,8 @@ const (
 	EventOK    = "ok"
 	EventFail  = "fail"
 
-	PhaseICMP = "icmp"
-	PhaseTCP  = "tcp"
-	PhaseTLS  = "tls"
-	PhaseHTTP = "http"
 	PhaseDNS  = "dns"
+	PhaseWARP = "warp"
 	PhaseURL  = "url"
 )
 

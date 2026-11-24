@@ -15,362 +15,247 @@
   </property>
   <layout class="QVBoxLayout" name="layout_main">
    <item>
-    <layout class="QHBoxLayout" name="layout_header">
-     <item>
-      <widget class="QLabel" name="name_label">
-       <property name="text">
-        <string>Name</string>
-       </property>
-       <property name="buddy">
-        <cstring>name</cstring>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="name"/>
-     </item>
-     <item>
-      <widget class="QLabel" name="kind">
-       <property name="text">
-        <string notr="true"/>
-       </property>
-       <property name="colorRole" stdset="0">
-        <string notr="true">muted</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
+    <widget class="QWidget" name="settings">
+     <layout class="QFormLayout" name="settings_form">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="name_label">
+        <property name="text">
+         <string>Name</string>
+        </property>
+        <property name="buddy">
+         <cstring>name</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <layout class="QHBoxLayout" name="layout_name">
+        <item>
+         <widget class="QLineEdit" name="name"/>
+        </item>
+        <item>
+         <widget class="QLabel" name="kind">
+          <property name="text">
+           <string notr="true"/>
+          </property>
+          <property name="colorRole" stdset="0">
+           <string notr="true">muted</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="QLabel" name="intro">
+        <property name="text">
+         <string notr="true"/>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::TextFormat::PlainText</enum>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+        <property name="colorRole" stdset="0">
+         <string notr="true">muted</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="profile_label">
+        <property name="text">
+         <string>Profile</string>
+        </property>
+        <property name="buddy">
+         <cstring>profile</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="NoWheelComboBox" name="profile">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="sizeAdjustPolicy">
+         <enum>QComboBox::SizeAdjustPolicy::AdjustToMinimumContentsLengthWithIcon</enum>
+        </property>
+        <property name="minimumContentsLength">
+         <number>16</number>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="base_list_label">
+        <property name="text">
+         <string>Base IP list</string>
+        </property>
+        <property name="buddy">
+         <cstring>base_list</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <layout class="QHBoxLayout" name="layout_base_list">
+        <item>
+         <widget class="NoWheelComboBox" name="base_list">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>1</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QComboBox::SizeAdjustPolicy::AdjustToMinimumContentsLengthWithIcon</enum>
+          </property>
+          <property name="minimumContentsLength">
+           <number>16</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="manage_lists">
+          <property name="text">
+           <string>Manage</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="stop_after_label">
+        <property name="text">
+         <string>Stop after (results)</string>
+        </property>
+        <property name="buddy">
+         <cstring>stop_after</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QLineEdit" name="stop_after">
+        <property name="toolTip">
+         <string>Stop after this many results. Empty: no limit.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="concurrency_label">
+        <property name="text">
+         <string>Concurrency</string>
+        </property>
+        <property name="buddy">
+         <cstring>concurrency</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QLineEdit" name="concurrency">
+        <property name="toolTip">
+         <string>Targets checked at the same time.</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
    <item>
-    <widget class="QTabWidget" name="tabs">
-     <property name="currentIndex">
-      <number>0</number>
+    <widget class="QGroupBox" name="results_box">
+     <property name="title">
+      <string>Results</string>
      </property>
-     <widget class="QWidget" name="tab_targets">
-      <attribute name="title">
-       <string>Targets</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="layout_tab_targets">
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QScrollArea" name="targets_scroll">
-         <property name="frameShape">
-          <enum>QFrame::Shape::NoFrame</enum>
-         </property>
-         <property name="widgetResizable">
-          <bool>true</bool>
-         </property>
-         <widget class="QWidget" name="targets_content">
-          <layout class="QFormLayout" name="targets_form">
-           <item row="0" column="0">
-            <widget class="QLabel" name="base_list_label">
-             <property name="text">
-              <string>Base IP list</string>
-             </property>
-             <property name="buddy">
-              <cstring>base_list</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <layout class="QHBoxLayout" name="layout_base_list">
-             <item>
-              <widget class="NoWheelComboBox" name="base_list">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                 <horstretch>1</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="sizeAdjustPolicy">
-                <enum>QComboBox::SizeAdjustPolicy::AdjustToMinimumContentsLengthWithIcon</enum>
-               </property>
-               <property name="minimumContentsLength">
-                <number>16</number>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="manage_lists">
-               <property name="text">
-                <string>Manage</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="1" column="1">
-            <widget class="QPushButton" name="use_warp_ranges">
-             <property name="text">
-              <string>Use built-in WARP ranges</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="ports_label">
-             <property name="text">
-              <string>Ports</string>
-             </property>
-             <property name="buddy">
-              <cstring>ports</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <layout class="QHBoxLayout" name="layout_ports">
-             <item>
-              <widget class="QLineEdit" name="ports">
-               <property name="toolTip">
-                <string>Ports to scan. Targets without one use 443 (80 for plain HTTP).</string>
-               </property>
-               <property name="placeholderText">
-                <string notr="true">443, 2053</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="port_presets">
-               <property name="toolTip">
-                <string>WARP port presets</string>
-               </property>
-               <property name="text">
-                <string>WARP ports</string>
-               </property>
-               <property name="popupMode">
-                <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="NoWheelComboBox" name="port_mode">
-               <property name="toolTip">
-                <string>How these combine with the list's own ports.</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="3" column="1">
-            <widget class="QCheckBox" name="shuffle">
-             <property name="text">
-              <string>Shuffle the target order</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="1">
-            <widget class="QCheckBox" name="scan_ipv6">
-             <property name="toolTip">
-              <string>Off: IPv6 ranges in the list are skipped.</string>
-             </property>
-             <property name="text">
-              <string>Scan IPv6 addresses</string>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="0">
-            <widget class="QLabel" name="stop_after_label">
-             <property name="text">
-              <string>Stop after (results)</string>
-             </property>
-             <property name="buddy">
-              <cstring>stop_after</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="1">
-            <widget class="QLineEdit" name="stop_after">
-             <property name="toolTip">
-              <string>Stop after this many results. Empty: no limit.</string>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="0">
-            <widget class="QLabel" name="concurrency_label">
-             <property name="text">
-              <string>Concurrency</string>
-             </property>
-             <property name="buddy">
-              <cstring>concurrency</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="1">
-            <widget class="QLineEdit" name="concurrency">
-             <property name="toolTip">
-              <string>Targets checked at the same time.</string>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="0">
-            <widget class="QLabel" name="spawn_interval_label">
-             <property name="text">
-              <string>Spawn interval (ms)</string>
-             </property>
-             <property name="buddy">
-              <cstring>spawn_interval</cstring>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="1">
-            <widget class="QLineEdit" name="spawn_interval">
-             <property name="toolTip">
-              <string>Delay between starting two probes.</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
+     <layout class="QVBoxLayout" name="layout_results">
+      <item>
+       <widget class="QLabel" name="results_summary">
+        <property name="text">
+         <string notr="true"/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTableView" name="results_view">
+        <property name="editTriggers">
+         <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+        </property>
+        <property name="alternatingRowColors">
+         <bool>true</bool>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+        </property>
+        <property name="sortingEnabled">
+         <bool>true</bool>
+        </property>
+        <attribute name="verticalHeaderVisible">
+         <bool>false</bool>
+        </attribute>
+        <attribute name="horizontalHeaderStretchLastSection">
+         <bool>true</bool>
+        </attribute>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="layout_results_buttons">
+        <item>
+         <widget class="QPushButton" name="save_as_list">
+          <property name="text">
+           <string>Save as IP list</string>
+          </property>
          </widget>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tab_phases">
-      <attribute name="title">
-       <string>Phases</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="layout_tab_phases">
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QScrollArea" name="phases_scroll">
-         <property name="frameShape">
-          <enum>QFrame::Shape::NoFrame</enum>
-         </property>
-         <property name="widgetResizable">
-          <bool>true</bool>
-         </property>
-         <widget class="QWidget" name="phases_content">
-          <layout class="QVBoxLayout" name="phases_layout"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="copy_results">
+          <property name="toolTip">
+           <string>Copy the selected entries, or all if none are selected.</string>
+          </property>
+          <property name="text">
+           <string>Copy</string>
+          </property>
          </widget>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tab_results">
-      <attribute name="title">
-       <string>Results</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="layout_tab_results">
-       <item>
-        <widget class="QLabel" name="results_summary">
-         <property name="text">
-          <string notr="true"/>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QTableView" name="results_view">
-         <property name="editTriggers">
-          <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
-         </property>
-         <property name="alternatingRowColors">
-          <bool>true</bool>
-         </property>
-         <property name="selectionBehavior">
-          <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
-         </property>
-         <property name="sortingEnabled">
-          <bool>true</bool>
-         </property>
-         <attribute name="verticalHeaderVisible">
-          <bool>false</bool>
-         </attribute>
-         <attribute name="horizontalHeaderStretchLastSection">
-          <bool>true</bool>
-         </attribute>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="layout_results_buttons">
-         <item>
-          <widget class="QPushButton" name="apply_result">
-           <property name="toolTip">
-            <string>Save the selected variant into the profile.</string>
-           </property>
-           <property name="text">
-            <string>Apply to profile</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="save_result_as_profile">
-           <property name="toolTip">
-            <string>Add a copy of the profile with the selected variant.</string>
-           </property>
-           <property name="text">
-            <string>Save as new profile</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="save_as_list">
-           <property name="text">
-            <string>Save as IP list</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="copy_results">
-           <property name="toolTip">
-            <string>Copy the selected entries, or all if none are selected.</string>
-           </property>
-           <property name="text">
-            <string>Copy</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="export_results">
-           <property name="text">
-            <string>Export</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="spacer_results_buttons">
-           <property name="orientation">
-            <enum>Qt::Orientation::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>0</width>
-             <height>0</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QPushButton" name="remove_results">
-           <property name="text">
-            <string>Remove selected</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="export_results">
+          <property name="text">
+           <string>Export</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="spacer_results_buttons">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="remove_results">
+          <property name="text">
+           <string>Remove selected</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>

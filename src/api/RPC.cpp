@@ -889,30 +889,30 @@ namespace API {
         }
     }
 
-    QString Client::ParseRuleSet(bool *rpcOK, const QByteArray &content, QStringList *cidrs, int *skippedRules) const
+    bool Client::ScanCheckNetworkDns(bool *rpcOK, int timeoutMs, QStringList *systemResolvers, QString *error) const
     {
-        if (cidrs != nullptr) cidrs->clear();
-        if (skippedRules != nullptr) *skippedRules = 0;
-        libcore::ParseRuleSetRequest request;
-        const auto *begin = reinterpret_cast<const std::byte *>(content.constData());
-        request.content = std::vector<std::byte>(begin, begin + content.size());
-        libcore::ParseRuleSetResponse reply;
+        if (systemResolvers != nullptr) systemResolvers->clear();
+        libcore::ScanCheckNetworkRequest request;
+        request.timeout_ms = timeoutMs;
+        request.dns = true;
+        libcore::ScanCheckNetworkResponse reply;
         std::vector<uint8_t> resp;
-        auto status = channel->Call("ParseRuleSet", spb::pb::serialize<std::string>(request), resp, 60000);
+        auto status = channel->Call("ScanCheckNetwork", spb::pb::serialize<std::string>(request), resp, timeoutMs + 5000);
 
         if (status == LocalSocketChannel::CallOK && tryDeserialize(resp, reply)) {
             *rpcOK = true;
-            if (cidrs != nullptr) {
-                cidrs->reserve(static_cast<qsizetype>(reply.cidrs.size()));
-                for (const auto &cidr : reply.cidrs) cidrs->append(QString::fromStdString(cidr));
+            if (error != nullptr) *error = QString::fromStdString(reply.error.value());
+            if (systemResolvers != nullptr) {
+                for (const auto &resolver : reply.system_resolvers) systemResolvers->append(QString::fromStdString(resolver));
             }
-            if (skippedRules != nullptr) *skippedRules = reply.skipped_rules.value();
-            return QString::fromStdString(reply.error.value());
+            return reply.up.value();
         } else {
+            if (error != nullptr)
+                *error = status == LocalSocketChannel::CallOK || resp.empty()
+                             ? QStringLiteral("IPC error")
+                             : QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
             NOT_OK
-            if (status != LocalSocketChannel::CallOK && !resp.empty())
-                return QString::fromUtf8(reinterpret_cast<const char *>(resp.data()), static_cast<int>(resp.size()));
-            return "IPC error";
+            return false;
         }
     }
 

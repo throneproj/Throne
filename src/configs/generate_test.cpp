@@ -89,25 +89,9 @@ namespace Configs {
             return Protocols::Is(type, Protocols::VpnEndpoint);
         }
 
-        std::shared_ptr<Profile> scanChainHop(int id) {
-            return id == warpProfileID ? exitProfile() : getProfile(id);
-        }
-
-        // A chain is scanned through the hop it dials directly, the first of its in-to-out list.
         QString scanBaseBlocker(const std::shared_ptr<Profile> &base) {
             if (base == nullptr || base->outbound == nullptr) return QObject::tr("The profile no longer exists");
-            if (base->type != "chain") return scanCloneBlocker(base);
-            const auto *chain = base->Chain();
-            if (chain == nullptr || chain->list.isEmpty()) return QObject::tr("The chain has no hops");
-            for (const int hopId : chain->list) {
-                const auto hop = scanChainHop(hopId);
-                if (hop == nullptr || hop->outbound == nullptr) return QObject::tr("A hop of the chain no longer exists");
-                if (hop->outbound->IsExtraCore() || hop->outbound->IsXrayFullConfig())
-                    return QObject::tr("Chains with an extra-core or Xray full config hop cannot be tested");
-                if (hop->type == "autoselector")
-                    return QObject::tr("Chains with an auto selector cannot be scanned");
-            }
-            return scanCloneBlocker(scanChainHop(chain->list.first()));
+            return scanCloneBlocker(base);
         }
 
         struct TestBuildOptions {
@@ -356,14 +340,6 @@ namespace Configs {
             out.error = blocker;
             return out;
         }
-        const auto *chain = base->Chain();
-        std::shared_ptr<Profile> dialedHop;
-        QString exitType = base->type;
-        if (chain != nullptr) {
-            dialedHop = scanChainHop(chain->list.first());
-            const auto exitHop = chain->list.size() == 1 ? dialedHop : scanChainHop(chain->list.last());
-            exitType = exitHop != nullptr ? exitHop->type : QString();
-        }
 
         QHash<int, std::shared_ptr<Profile>> overrides;
         QHash<int, int> synth2target;
@@ -371,21 +347,7 @@ namespace Configs {
         int nextId = kScanSyntheticIdBase;
         for (int i = 0; i < targets.size(); ++i) {
             const auto &target = targets[i];
-            std::shared_ptr<Profile> item;
-            if (chain != nullptr) {
-                if (auto hop = CloneProfileWithServer(dialedHop, target.address, target.port); hop != nullptr) {
-                    item = scanDeepClone(base);
-                    if (item != nullptr && item->Chain() != nullptr) {
-                        hop->id = nextId--;
-                        overrides.insert(hop->id, hop);
-                        item->Chain()->list[0] = hop->id;
-                    } else {
-                        item = nullptr;
-                    }
-                }
-            } else {
-                item = CloneProfileWithServer(base, target.address, target.port);
-            }
+            auto item = CloneProfileWithServer(base, target.address, target.port);
             if (item == nullptr) {
                 out.unsupported << i;
                 continue;
@@ -410,7 +372,7 @@ namespace Configs {
         }
         for (auto it = out.build->tag2entID.cbegin(); it != out.build->tag2entID.cend(); ++it)
             out.tag2target.insert(it.key(), synth2target.value(it.value(), -1));
-        if (isVpnEndpointType(exitType)) out.vpnEndpointTags = out.build->outboundTags;
+        if (isVpnEndpointType(base->type)) out.vpnEndpointTags = out.build->outboundTags;
         return out;
     }
 

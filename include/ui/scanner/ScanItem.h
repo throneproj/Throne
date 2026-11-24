@@ -19,7 +19,8 @@ namespace ScannerUi {
 
     [[nodiscard]] int ResultCount(const Configs::IpScan &scan);
 
-    bool ConfirmWipe(QWidget *parent, const Configs::IpScan &scan);
+    // Asks only when starting over discards an unfinished pass or will replace results.
+    bool ConfirmStartOver(QWidget *parent, const Configs::IpScan &scan);
 
     bool StartScan(QWidget *parent, int scanId, Scanner::StartMode mode);
 
@@ -32,9 +33,6 @@ namespace ScannerUi {
 
     // Opens the newest DNS resolver scan of the profile, creating one when it has none.
     void FindResolvers(int profileId);
-
-    // Opens the newest settings search of the profile, creating one when it has none.
-    void FindSettings(int profileId);
 } // namespace ScannerUi
 
 class ScanItem : public QWidget {

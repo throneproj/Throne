@@ -2,18 +2,11 @@
 
 #include <QCoreApplication>
 #include <QDateTime>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QThread>
 #include <QUrl>
 
 #include <algorithm>
-#include <string>
-#include <string_view>
 
-#include <srslist.h>
-
-#include "include/api/RPC.h"
 #include "include/configs/generate.h"
 #include "include/database/IpListsRepo.h"
 #include "include/global/Configs.hpp"
@@ -29,13 +22,6 @@ namespace Scanner {
             auto head = bytes.left(4096);
             if (head.startsWith("\xEF\xBB\xBF")) head.remove(0, 3);
             return head.trimmed();
-        }
-
-        bool ipListUpdaterIsRuleSet(const QByteArray &bytes) {
-            if (bytes.startsWith("SRS")) return true;
-            if (!ipListUpdaterHead(bytes).startsWith('{')) return false;
-            const auto document = QJsonDocument::fromJson(bytes.startsWith("\xEF\xBB\xBF") ? bytes.mid(3) : bytes);
-            return document.isObject() && document.object().contains(QStringLiteral("rules"));
         }
 
         bool ipListUpdaterIsWebPage(const QByteArray &bytes) {
@@ -57,7 +43,7 @@ namespace Scanner {
         QString ipListUpdaterRefreshOne(int listId) {
             const auto header = ipListUpdaterHeader(listId);
             if (header == nullptr) return IpListUpdater::tr("The IP list no longer exists");
-            if (!ipListUpdaterRefreshable(*header)) return IpListUpdater::tr("Only lists with a URL or rule-set source can be updated");
+            if (!ipListUpdaterRefreshable(*header)) return IpListUpdater::tr("Only lists with a URL source can be updated");
 
             const auto name = header->name;
             const auto kind = header->source_kind;
@@ -95,20 +81,15 @@ namespace Scanner {
 
     ImportOutcome FetchEntries(Configs::IpList::SourceKind kind, const QString &source) {
         ImportOutcome outcome;
-        auto url = source.trimmed();
+        const auto url = source.trimmed();
         if (kind == Configs::IpList::SourceKind::Manual || url.isEmpty()) {
             outcome.error = IpListUpdater::tr("The list has no source to fetch");
             return outcome;
         }
-        if (kind == Configs::IpList::SourceKind::RuleSet) {
-            if (const auto builtin = BuiltinRuleSetUrl(url); !builtin.isEmpty()) url = builtin;
-        }
         const QUrl parsed(url);
         const auto scheme = parsed.scheme().toLower();
         if (!parsed.isValid() || parsed.host().isEmpty() || (scheme != QLatin1String("http") && scheme != QLatin1String("https"))) {
-            outcome.error = kind == Configs::IpList::SourceKind::RuleSet
-                                ? IpListUpdater::tr("Unknown rule-set: %1").arg(source.trimmed())
-                                : IpListUpdater::tr("The source must be an http(s) URL");
+            outcome.error = IpListUpdater::tr("The source must be an http(s) URL");
             return outcome;
         }
         HttpGetOptions options;
@@ -123,50 +104,16 @@ namespace Scanner {
 
     ImportOutcome ParseImportBytes(const QByteArray &bytes) {
         ImportOutcome outcome;
-        if (ipListUpdaterIsRuleSet(bytes)) {
-            if (API::defaultClient == nullptr || !API::defaultClient->IsConnected()) {
-                outcome.error = IpListUpdater::tr("The core is not running");
-                return outcome;
-            }
-            bool ok = false;
-            QStringList cidrs;
-            const auto error = API::defaultClient->ParseRuleSet(&ok, bytes, &cidrs);
-            if (!ok || !error.isEmpty()) {
-                outcome.error = error.isEmpty() ? IpListUpdater::tr("The core could not read the rule-set") : error;
-                return outcome;
-            }
-            outcome.entries = EntriesFromCidrs(cidrs, 0);
-        } else if (ipListUpdaterIsWebPage(bytes)) {
+        if (ipListUpdaterIsWebPage(bytes)) {
             outcome.error = IpListUpdater::tr("The address returned a web page instead of an IP list");
             return outcome;
-        } else {
-            auto parsed = ParseIpListText(bytes);
-            outcome.entries = std::move(parsed.entries);
-            outcome.rejected = parsed.rejected;
-            outcome.samples = std::move(parsed.samples);
         }
+        auto parsed = ParseIpListText(bytes);
+        outcome.entries = std::move(parsed.entries);
+        outcome.rejected = parsed.rejected;
+        outcome.samples = std::move(parsed.samples);
         if (outcome.entries.isEmpty()) outcome.error = IpListUpdater::tr("No addresses found");
         return outcome;
-    }
-
-    QStringList BuiltinIpRuleSets() {
-        static const QStringList keys = [] {
-            QStringList out;
-            for (const auto &[key, url] : ruleSetList) {
-                if (key.starts_with("geoip-")) out << QString::fromUtf8(key.data(), static_cast<qsizetype>(key.size()));
-            }
-            return out;
-        }();
-        return keys;
-    }
-
-    QString BuiltinRuleSetUrl(const QString &key) {
-        const std::string wanted = key.trimmed().toStdString();
-        const std::string_view view(wanted);
-        const auto it = std::lower_bound(ruleSetList.begin(), ruleSetList.end(), view,
-                                         [](const auto &entry, std::string_view k) { return entry.first < k; });
-        if (it == ruleSetList.end() || it->first != view) return {};
-        return QString::fromUtf8(it->second.data(), static_cast<qsizetype>(it->second.size()));
     }
 
     IpListUpdater::IpListUpdater(QObject *parent) : QObject(parent) {}

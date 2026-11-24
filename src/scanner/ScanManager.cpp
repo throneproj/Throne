@@ -9,13 +9,11 @@
 #include "include/api/RPC.h"
 #include "include/database/IpListsRepo.h"
 #include "include/database/IpScansRepo.h"
-#include "include/database/ProfilesRepo.h"
 #include "include/global/Configs.hpp"
 #include "include/scanner/IpListUpdater.h"
 #include "include/scanner/ScanProfiles.h"
 #include "include/scanner/ScanWorker.h"
-#include "include/scanner/TuneProfiles.h"
-#include "include/scanner/TuneWorker.h"
+#include "include/scanner/WarpWorker.h"
 
 namespace Scanner {
     namespace {
@@ -93,25 +91,11 @@ namespace Scanner {
         if (workers.contains(scanId)) return {tr("The scan is already running")};
         const auto scan = Configs::dataManager->ipScansRepo->GetIpScan(scanId);
         if (scan == nullptr) return {tr("The scan no longer exists")};
-        if (scan->kind == Configs::IpScan::Kind::Tune) return startTune(scan, mode);
         const auto &config = scan->config;
-        const bool warp = scan->kind == Configs::IpScan::Kind::Warp;
-        const bool resolver = scan->kind == Configs::IpScan::Kind::Resolver;
 
-        if (!warp && !resolver && !config.icmp.enabled && !config.tcp.enabled && !config.http.enabled && !config.config.enabled)
-            return {tr("Turn on at least one test phase")};
-        if (!warp && !resolver && config.http.enabled && !config.http.tls) {
-            if (config.http.method.compare(QStringLiteral("NONE"), Qt::CaseInsensitive) == 0)
-                return {tr("A TLS handshake check needs TLS turned on")};
-            if (config.http.httpVersion == QLatin1String("3")) return {tr("HTTP/3 needs TLS turned on")};
-        }
-
-        std::shared_ptr<Configs::Profile> base;
-        if (warp || resolver || config.config.enabled) {
-            QString error;
-            base = ResolveScanBase(*scan, &error);
-            if (base == nullptr) return {error.isEmpty() ? tr("The profile for the config test cannot be used") : error};
-        }
+        QString error;
+        const auto base = ResolveScanBase(*scan, &error);
+        if (base == nullptr) return {error.isEmpty() ? tr("The scan's profile cannot be used") : error};
 
         StartMode effective = mode;
         if (mode == StartMode::Resume && !scanManagerRescanResumable(*scan)) {
@@ -134,40 +118,9 @@ namespace Scanner {
         }
 
         persistDisabled = false;
-        auto worker = std::make_shared<ScanWorker>(*scan, effective, base, hooksFor(scanId));
-        Configs::dataManager->ipScansRepo->SaveStatus(scanId, Configs::IpScan::Status::Running, {});
-        workers.insert(scanId, worker);
-        emit statusChanged(scanId);
-        worker->Start();
-        return {};
-    }
-
-    StartResult ScanManager::startTune(const std::shared_ptr<Configs::IpScan> &scan, StartMode mode) {
-        const int scanId = scan->id;
-        const auto &options = scan->config.tune;
-        if (mode == StartMode::RescanResults) return {tr("A working settings search has no results to rescan")};
-        if (const auto error = Tune::CheckOptions(options); !error.isEmpty()) return {error};
-        QString error;
-        const auto base = ResolveScanBase(*scan, &error);
-        if (base == nullptr) return {error.isEmpty() ? tr("Choose the profile to find working settings for") : error};
-        if (Tune::SpaceFor(*base, options).IsEmpty()) return {tr("Nothing to try: turn on a setting this profile supports")};
-        // The live profile, not the copy: only it knows the endpoint override it dials instead of its own address.
-        const auto dial = Tune::DialTargetFor(Configs::dataManager->profilesRepo->GetProfile(options.profileId));
-        if (dial.host.isEmpty()) return {tr("The profile has no server address to test")};
-        const auto specHash = Tune::SpecHash(*base, dial, options);
-
-        bool resume = false;
-        if (mode == StartMode::Resume && !scan->tune_state.value(QLatin1String("trials")).toArray().isEmpty()) {
-            if (scan->spec_hash != specHash) {
-                StartResult result;
-                result.targetsChanged = true;
-                return result;
-            }
-            resume = true;
-        }
-
-        persistDisabled = false;
-        auto worker = std::make_shared<TuneWorker>(*scan, base, dial, specHash, resume, hooksFor(scanId));
+        std::shared_ptr<ScanRun> worker;
+        if (scan->kind == Configs::IpScan::Kind::Warp) worker = std::make_shared<WarpWorker>(*scan, effective, base, hooksFor(scanId));
+        else worker = std::make_shared<ScanWorker>(*scan, effective, base, hooksFor(scanId));
         Configs::dataManager->ipScansRepo->SaveStatus(scanId, Configs::IpScan::Status::Running, {});
         workers.insert(scanId, worker);
         emit statusChanged(scanId);
@@ -231,7 +184,6 @@ namespace Scanner {
         ScanLiveState state;
         const auto scan = Configs::dataManager->ipScansRepo->GetIpScan(scanId);
         if (scan == nullptr) return state;
-        // A Tune scan keeps attempts in cursor and the estimated total in total.
         state.tested = scan->ActiveCursor();
         state.total = scan->ActiveTotal();
         state.found = scan->found;

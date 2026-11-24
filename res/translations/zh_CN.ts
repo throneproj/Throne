@@ -2009,10 +2009,6 @@ Included: %2</source>
         <translation>URL</translation>
     </message>
     <message>
-        <source>Rule-set</source>
-        <translation>规则集</translation>
-    </message>
-    <message>
         <source>Auto update</source>
         <translation>自动更新</translation>
     </message>
@@ -2059,14 +2055,6 @@ Included: %2</source>
         <translation>输入一个 http(s) URL。</translation>
     </message>
     <message>
-        <source>Choose a rule-set.</source>
-        <translation>选择一个规则集。</translation>
-    </message>
-    <message>
-        <source>Unknown rule-set &quot;%1&quot;. Pick a geoip-* name from the list or enter a rule-set URL.</source>
-        <translation>未知规则集 &quot;%1&quot;。从列表中选取一个geoip-* 名称或输入一个规则集 URL。</translation>
-    </message>
-    <message>
         <source>IP list</source>
         <translation>IP 列表</translation>
     </message>
@@ -2081,10 +2069,6 @@ Included: %2</source>
     <message>
         <source>Managed by scan %1</source>
         <translation>由扫描 %1 管理</translation>
-    </message>
-    <message>
-        <source>geoip-ir, or a rule-set URL</source>
-        <translation>geoip-ir 或一个规则集 URL</translation>
     </message>
     <message>
         <source>Fetching…</source>
@@ -3210,10 +3194,6 @@ Included: %2</source>
         <translation>来自 URL</translation>
     </message>
     <message>
-        <source>From rule-set</source>
-        <translation>来自规则集</translation>
-    </message>
-    <message>
         <source>Add default lists</source>
         <translation>添加默认列表</translation>
     </message>
@@ -3290,8 +3270,8 @@ Included: %2</source>
         <translation>导入 IP 列表</translation>
     </message>
     <message>
-        <source>All files (*);;Text and CSV (*.txt *.csv *.lst *.list);;sing-box rule-sets (*.srs *.json)</source>
-        <translation>所有文件 (*);;文本和 CSV (*.txt *.csv *.lst *.list);;sing-box 规则集 (*.srs *.json)</translation>
+        <source>All files (*);;Text and CSV (*.txt *.csv *.lst *.list)</source>
+        <translation>所有文件 (*);;文本和 CSV (*.txt *.csv *.lst *.list)</translation>
     </message>
     <message>
         <source>%1: cannot be opened</source>
@@ -4065,20 +4045,12 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>名称</translation>
     </message>
     <message>
-        <source>Generic scan</source>
-        <translation>通用扫描</translation>
-    </message>
-    <message>
         <source>WARP scan</source>
         <translation>WARP 扫描</translation>
     </message>
     <message>
         <source>DNS resolver scan</source>
         <translation>DNS 解析器扫描</translation>
-    </message>
-    <message>
-        <source>Probe addresses with ping, TCP, TLS or HTTP, and optionally test them through one of your profiles.</source>
-        <translation>用 ping、TCP、TLS 或 HTTP 探测地址，并可选择通过你的其中一个配置档测试它们。</translation>
     </message>
     <message>
         <source>Find Cloudflare WARP endpoints that complete a WireGuard, AmneziaWG or MASQUE connection.</source>
@@ -4091,14 +4063,6 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
     <message>
         <source>Failed to store the scan.</source>
         <translation>存储该扫描失败。</translation>
-    </message>
-    <message>
-        <source>Find working settings</source>
-        <translation>查找可用设置</translation>
-    </message>
-    <message>
-        <source>Try variants of one profile&apos;s anti-censorship settings several times each and rank them; nothing changes in the profile until you apply a result.</source>
-        <translation>多次尝试一个配置档的反审查设置的不同变体并对它们进行排名；在你应用结果前，配置档本身不会改变。</translation>
     </message>
     <message>
         <source>New Scan</source>
@@ -4418,52 +4382,12 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>名称</translation>
     </message>
     <message>
-        <source>Targets</source>
-        <translation>目标</translation>
-    </message>
-    <message>
         <source>Base IP list</source>
         <translation>基础 IP 列表</translation>
     </message>
     <message>
         <source>Manage</source>
         <translation>管理</translation>
-    </message>
-    <message>
-        <source>Use built-in WARP ranges</source>
-        <translation>使用内置 WARP 范围</translation>
-    </message>
-    <message>
-        <source>Ports</source>
-        <translation>端口</translation>
-    </message>
-    <message>
-        <source>Ports to scan. Targets without one use 443 (80 for plain HTTP).</source>
-        <translation>要扫描的端口。不带端口的目标使用 443 (对于纯 HTTP 使用 80)。</translation>
-    </message>
-    <message>
-        <source>WARP port presets</source>
-        <translation>WARP 端口预设</translation>
-    </message>
-    <message>
-        <source>WARP ports</source>
-        <translation>WARP 端口</translation>
-    </message>
-    <message>
-        <source>How these combine with the list&apos;s own ports.</source>
-        <translation>这些与列表的自有端口的组合方式。</translation>
-    </message>
-    <message>
-        <source>Shuffle the target order</source>
-        <translation>打乱目标顺序</translation>
-    </message>
-    <message>
-        <source>Off: IPv6 ranges in the list are skipped.</source>
-        <translation>关闭：列表中的 IPv6 范围会被跳过。</translation>
-    </message>
-    <message>
-        <source>Scan IPv6 addresses</source>
-        <translation>扫描 IPv6 地址</translation>
     </message>
     <message>
         <source>Stop after (results)</source>
@@ -4480,18 +4404,6 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
     <message>
         <source>Targets checked at the same time.</source>
         <translation>同时检查的目标数。</translation>
-    </message>
-    <message>
-        <source>Spawn interval (ms)</source>
-        <translation>生成间隔 (毫秒)</translation>
-    </message>
-    <message>
-        <source>Delay between starting two probes.</source>
-        <translation>启动两个探针间的延时。</translation>
-    </message>
-    <message>
-        <source>Phases</source>
-        <translation>阶段</translation>
     </message>
     <message>
         <source>Results</source>
@@ -4534,120 +4446,12 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>必须在 %1 到 %2 之间。</translation>
     </message>
     <message>
-        <source>Must not contain control characters.</source>
-        <translation>不能包含控制字符。</translation>
-    </message>
-    <message>
-        <source>Use % only in an escape such as %20 (write a literal % as %25), for example /generate_204.</source>
-        <translation>仅在转义符中使用 %，例如 %20（字面上的 % 写成 %25），例如 /generate_204。</translation>
-    </message>
-    <message>
-        <source>The minimum TLS version is higher than the maximum, so every handshake would fail.</source>
-        <translation>最小的 TLS 版本比最大的还高，所以每次握手都会失败。</translation>
-    </message>
-    <message>
-        <source>HTTP/2 needs &quot;h2&quot; in the ALPN list; add it or leave ALPN empty.</source>
-        <translation>HTTP/2 需要 &quot;h2&quot; 在 ALPN 列表中；添加它或留空 ALPN 。</translation>
-    </message>
-    <message>
-        <source>The method &quot;None&quot; only checks the TLS handshake, so it needs TLS.</source>
-        <translation>方法“None” (无)只检查 TLS 握手，所以它需要 TLS。</translation>
-    </message>
-    <message>
-        <source>HTTP/3 needs TLS.</source>
-        <translation>HTTP/3 需要 TLS。</translation>
-    </message>
-    <message>
-        <source>Poll: relays one tunnel query</source>
-        <translation>轮询：​转发一条隧道查询</translation>
-    </message>
-    <message>
-        <source>Query names: also relays names as long as the profile sends</source>
-        <translation>查询名称：还转发配置档发送的名称</translation>
-    </message>
-    <message>
-        <source>Handshake: also opens a tunnel session</source>
-        <translation>握手：还打开一个隧道会话</translation>
-    </message>
-    <message>
-        <source>Quick: relays the smallest packets</source>
-        <translation>快速：转发最小的数据包</translation>
-    </message>
-    <message>
-        <source>Full: also measures the upload and download MTU</source>
-        <translation>完整：​还测量上传和下载方向的 MTU</translation>
-    </message>
-    <message>
-        <source>Ignore the list&apos;s ports</source>
-        <translation>忽略该列表的端口</translation>
-    </message>
-    <message>
-        <source>Merge with the list&apos;s ports</source>
-        <translation>与列表的端口合并</translation>
-    </message>
-    <message>
-        <source>Only the list&apos;s ports</source>
-        <translation>仅该列表的端口</translation>
-    </message>
-    <message>
-        <source>Entries without a port use 443 (80 for plain HTTP).</source>
-        <translation>不带端口的条目使用 443 (对于纯 HTTP 使用 80)。</translation>
-    </message>
-    <message>
         <source>No limit</source>
         <translation>无限制</translation>
     </message>
     <message>
-        <source>Use Cloudflare&apos;s WARP ranges and ports for this mode.</source>
-        <translation>对这个模式使用 Cloudflare 的 WARP 范围和端口。</translation>
-    </message>
-    <message>
         <source>Each address is tried as a resolver; the default port is 53.</source>
         <translation>每个地址都尝试作为解析器；默认端口是 53。</translation>
-    </message>
-    <message>
-        <source>None (TLS handshake only)</source>
-        <translation>无 (仅 TLS 握手)</translation>
-    </message>
-    <message>
-        <source>Default</source>
-        <translation>默认</translation>
-    </message>
-    <message>
-        <source>HTTP/3, falling back to HTTP/2</source>
-        <translation>HTTP/3, 回退到 HTTP/2</translation>
-    </message>
-    <message>
-        <source>HTTP/3 only</source>
-        <translation>仅 HTTP/3</translation>
-    </message>
-    <message>
-        <source>HTTP/2 only</source>
-        <translation>仅 HTTP/2</translation>
-    </message>
-    <message>
-        <source>Dedicated for this scan (recommended)</source>
-        <translation>专用于这个扫描 (推荐)</translation>
-    </message>
-    <message>
-        <source>From a profile</source>
-        <translation>来自配置档</translation>
-    </message>
-    <message>
-        <source>Built-in WARP settings</source>
-        <translation>内置 WARP 设置</translation>
-    </message>
-    <message>
-        <source>Register</source>
-        <translation>注册</translation>
-    </message>
-    <message>
-        <source>&quot;%1&quot; is not a valid port (1-65535).</source>
-        <translation>&quot;%1&quot; 不是有效的端口 (1-65535)。</translation>
-    </message>
-    <message>
-        <source>Jmin must not be larger than Jmax.</source>
-        <translation>Jmin 一定不能大于 Jmax。</translation>
     </message>
     <message>
         <source>Use as resolvers</source>
@@ -4666,10 +4470,6 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>DNS 解析器扫描</translation>
     </message>
     <message>
-        <source>Generic scan</source>
-        <translation>通用扫描</translation>
-    </message>
-    <message>
         <source>%1 - IP Scanner</source>
         <translation>%1 - IP 扫描器</translation>
     </message>
@@ -4684,66 +4484,6 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
     <message>
         <source>Concurrency must be between %1 and %2.</source>
         <translation>并发数必须在 %1 和 %2 之间。</translation>
-    </message>
-    <message>
-        <source>Spawn interval must be between %1 and %2 ms.</source>
-        <translation>生成间隔必须在 %1 和 %2 毫秒之间。</translation>
-    </message>
-    <message>
-        <source>ICMP (ping): the timeout must be between %1 and %2 ms.</source>
-        <translation>ICMP (ping): 超时时间必须在 %1 和 %2 毫秒之间。</translation>
-    </message>
-    <message>
-        <source>ICMP (ping): echo requests must be between %1 and %2.</source>
-        <translation>ICMP (ping): 回显请求必须在 %1 和 %2 毫秒之间。</translation>
-    </message>
-    <message>
-        <source>DNS Tunnel Test: the timeout must be between %1 and %2 ms.</source>
-        <translation>DNS 隧道测试：超时时间必须介于 %1 和 %2 毫秒之间。</translation>
-    </message>
-    <message>
-        <source>TCP Connect: the timeout must be between %1 and %2 ms.</source>
-        <translation>TCP 连接: 超时时间必须在 %1 到 %2 毫秒之间。</translation>
-    </message>
-    <message>
-        <source>TCP Connect: attempts must be between %1 and %2.</source>
-        <translation>TCP 连接：尝试次数必须在 %1 和 %2 之间。</translation>
-    </message>
-    <message>
-        <source>TLS / HTTP: the fragment fallback delay must be between %1 and %2 ms.</source>
-        <translation>TLS / HTTP: 分片回退延迟必须在 %1 和 %2 毫秒之间。</translation>
-    </message>
-    <message>
-        <source>TLS / HTTP: the timeout must be between %1 and %2 ms.</source>
-        <translation>TLS / HTTP: 超时时间必须在 %1 和 %2 毫秒之间。</translation>
-    </message>
-    <message>
-        <source>Config Test: the timeout must be between %1 and %2 ms.</source>
-        <translation>配置测试: 超时时间必须在 %1 到 %2 毫秒之间。</translation>
-    </message>
-    <message>
-        <source>WARP Test: the MTU must be between %1 and %2.</source>
-        <translation>WARP 测试: MTU 必须在 %1 和 %2 之间。</translation>
-    </message>
-    <message>
-        <source>WARP Test: Jc must be between %1 and %2.</source>
-        <translation>WARP 测试: Jc 必须在 %1 和 %2 之间。</translation>
-    </message>
-    <message>
-        <source>WARP Test: Jmin must be between %1 and %2.</source>
-        <translation>WARP 测试: Jmin 必须在 %1 和 %2 之间。</translation>
-    </message>
-    <message>
-        <source>WARP Test: Jmax must be between %1 and %2.</source>
-        <translation>WARP 测试: Jmax 必须在 %1 和 %2 之间。</translation>
-    </message>
-    <message>
-        <source>WARP Test: the timeout must be between %1 and %2 ms.</source>
-        <translation>WARP 测试: 超时时间必须在 %1 到 %2 毫秒之间。</translation>
-    </message>
-    <message>
-        <source>WARP Test: Jmin must not be larger than Jmax.</source>
-        <translation>WARP 测试: Jmin 必须不大于 Jmax。</translation>
     </message>
     <message>
         <source>Pause the scan before changing its settings.</source>
@@ -4768,58 +4508,12 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         </translation>
     </message>
     <message>
-        <source>None</source>
-        <translation>无</translation>
-    </message>
-    <message>
         <source>Select a profile…</source>
         <translation>选择一个配置档...</translation>
     </message>
     <message>
-        <source>Registering a WARP device…</source>
-        <translation>正在注册 WARP 设备...</translation>
-    </message>
-    <message>
-        <source>No device is registered for this scan yet.</source>
-        <translation>尚未为这个扫描注册设备。</translation>
-    </message>
-    <message>
-        <source>The registered device is for %1; register a new one for this mode.</source>
-        <translation>注册的设备是用于 %1 的; 请为这个模式注册一个新设备。</translation>
-    </message>
-    <message>
-        <source>A WARP device is registered for this scan.</source>
-        <translation>为这个扫描注册一个 WARP 设备。</translation>
-    </message>
-    <message>
-        <source>Register again</source>
-        <translation>再次注册</translation>
-    </message>
-    <message>
         <source>Failed to store the IP list.</source>
         <translation>存储 IP 列表失败。</translation>
-    </message>
-    <message>
-        <source>MASQUE: %1</source>
-        <translation>MASQUE: %1</translation>
-    </message>
-    <message>
-        <source>WireGuard: %1</source>
-        <translation>WireGuard: %1</translation>
-    </message>
-    <message numerus="yes">
-        <source>WireGuard, all %n known ports</source>
-        <translation>
-            <numerusform>WireGuard, 所有 %n 个已知端口</numerusform>
-        </translation>
-    </message>
-    <message>
-        <source>WARP registration failed</source>
-        <translation>WARP 注册失败</translation>
-    </message>
-    <message>
-        <source>Unknown error</source>
-        <translation>未知错误</translation>
     </message>
     <message>
         <source>Resume</source>
@@ -4900,256 +4594,6 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>重新扫描当前结果</translation>
     </message>
     <message>
-        <source>Sends a decoy packet before each UDP flow to get past QUIC blocking.</source>
-        <translation>在每个 UDP 流之前发送一个诱饵数据包以绕过 QUIC 拦截。</translation>
-    </message>
-    <message>
-        <source>&quot;%1&quot; already uses these settings.</source>
-        <translation>"%1" 已在使用这些设置。</translation>
-    </message>
-    <message>
-        <source>&quot;%1&quot; cannot be searched. %2.</source>
-        <translation>"%1" 无法被搜索。 %2.</translation>
-    </message>
-    <message>
-        <source>&quot;%1&quot; could not be copied.</source>
-        <translation>"%1" 无法被复制。</translation>
-    </message>
-    <message>
-        <source>&quot;%1&quot; is open in an editor; close the profile&apos;s editor first, then apply again.</source>
-        <translation>“%1” 在编辑器中打开；先关闭配置档的编辑器，然后再次应用。</translation>
-    </message>
-    <message>
-        <source>&quot;%1&quot; now uses: %2.</source>
-        <translation>"%1" 现在使用: %2。</translation>
-    </message>
-    <message>
-        <source>%1 (working settings)</source>
-        <translation>%1（可用设置）</translation>
-    </message>
-    <message>
-        <source>%1 ms</source>
-        <translation>%1 毫秒</translation>
-    </message>
-    <message>
-        <source>%1/%2</source>
-        <translation>%1/%2</translation>
-    </message>
-    <message>
-        <source>Add a copy of the profile with the selected variant.</source>
-        <translation>添加带有选定变体的配置档的副本。</translation>
-    </message>
-    <message>
-        <source>Apply to profile</source>
-        <translation>应用到配置档</translation>
-    </message>
-    <message>
-        <source>Best: %1 (passed %2/%3, median %4)</source>
-        <translation>最佳: %1 (通过了 %2/%3, 中位数 %4)</translation>
-    </message>
-    <message>
-        <source>Choose the profile whose settings to search.</source>
-        <translation>选择要搜索其设置的配置档。</translation>
-    </message>
-    <message>
-        <source>Comma-separated, e.g. 100ms, 500ms, 1s.</source>
-        <translation>逗号间隔，例如 100ms, 500ms, 1s。</translation>
-    </message>
-    <message>
-        <source>Comma-separated uTLS fingerprints; &quot;off&quot; tries Go&apos;s own TLS.</source>
-        <translation>逗号分隔的 uTLS 指纹；“off” 尝试 Go 自带的 TLS。</translation>
-    </message>
-    <message>
-        <source>Confirmed</source>
-        <translation>已确认</translation>
-    </message>
-    <message numerus="yes">
-        <source>Copied %n variant(s)</source>
-        <translation>
-            <numerusform>已复制 %n 个变体</numerusform>
-        </translation>
-    </message>
-    <message>
-        <source>Copies the table as tab-separated text.</source>
-        <translation>复制表格为制表符间隔的文本。</translation>
-    </message>
-    <message>
-        <source>Downloaded to check each MTU. Empty: Cloudflare&apos;s speed test.</source>
-        <translation>下载以检查每个 MTU。空: Cloudflare 的速度测试。</translation>
-    </message>
-    <message>
-        <source>Dropped early</source>
-        <translation>过早断开</translation>
-    </message>
-    <message>
-        <source>Find working settings</source>
-        <translation>查找有效的设置</translation>
-    </message>
-    <message>
-        <source>Finds the largest MTU that still works.</source>
-        <translation>查找仍可用的最大 MTU。</translation>
-    </message>
-    <message>
-        <source>How many bytes each MTU check downloads.</source>
-        <translation>每次 MTU 检查下载多少字节。</translation>
-    </message>
-    <message>
-        <source>Largest working MTU</source>
-        <translation>最大的可用 MTU</translation>
-    </message>
-    <message>
-        <source>MTU probe</source>
-        <translation>MTU 探针</translation>
-    </message>
-    <message>
-        <source>MTU: the download size must be between %1 and %2 bytes.</source>
-        <translation>MTU: 下载大小必须介于 %1 到 %2 字节之间。</translation>
-    </message>
-    <message>
-        <source>MTU: the largest MTU must be between %1 and %2; leave it empty for the profile&apos;s own.</source>
-        <translation>MTU: 最大的 MTU 必须介于 %1 和 %2 之间；留空以使用配置档自带的。</translation>
-    </message>
-    <message>
-        <source>MTU: the smallest MTU must be between %1 and %2.</source>
-        <translation>MTU: 最小的 MTU 必须介于 %1 到 %2 之间。</translation>
-    </message>
-    <message>
-        <source>MTU: the step must be between %1 and %2.</source>
-        <translation>MTU: 步长必须介于 %1 到 %2 之间。</translation>
-    </message>
-    <message>
-        <source>Median latency</source>
-        <translation>中位延时</translation>
-    </message>
-    <message>
-        <source>Needs SNI turned on with a domain name, and no REALITY.</source>
-        <translation>需要开启 SNI 并用域名，且没有 REALITY。</translation>
-    </message>
-    <message>
-        <source>Needs QUIC, MASQUE over HTTP/3 or WireGuard.</source>
-        <translation>需要 QUIC、基于HTTP/3 的 MASQUE，或 WireGuard。</translation>
-    </message>
-    <message>
-        <source>No variant has passed yet.</source>
-        <translation>尚无变体通过。</translation>
-    </message>
-    <message>
-        <source>No variant passed.</source>
-        <translation>无变体通过。</translation>
-    </message>
-    <message>
-        <source>Not usable</source>
-        <translation>不可使用</translation>
-    </message>
-    <message>
-        <source>Not usable: %1</source>
-        <translation>不可使用: %1</translation>
-    </message>
-    <message>
-        <source>Note</source>
-        <translation>记录</translation>
-    </message>
-    <message>
-        <source>Only WireGuard and AmneziaWG profiles have an MTU to search.</source>
-        <translation>只有 WireGuard 和 AmneziaWG 配置档具有可搜索的 MTU。</translation>
-    </message>
-    <message>
-        <source>Only the built-in fragment implementation uses a fallback delay.</source>
-        <translation>仅内置的分片实现使用后备延迟。</translation>
-    </message>
-    <message>
-        <source>Pacing: attempts per minute must be between %1 and %2.</source>
-        <translation>频率控制：每分钟的尝试次数必须介于 %1 和 %2 之间。</translation>
-    </message>
-    <message>
-        <source>Pacing: attempts per variant must be between %1 and %2.</source>
-        <translation>频率控制：每个变体的尝试次数必须介于 %1 和 %2 之间。</translation>
-    </message>
-    <message>
-        <source>Pacing: the attempt limit must be between %1 and %2.</source>
-        <translation>频率控制：尝试限制必须介于 %1 和 %2 之间。</translation>
-    </message>
-    <message>
-        <source>Pacing: the time limit must be between %1 and %2 minutes.</source>
-        <translation>频率控制：时间限制必须介于 %1 和 %2 分钟之间。</translation>
-    </message>
-    <message>
-        <source>Pacing: the timeout must be between %1 and %2 ms.</source>
-        <translation>频率控制：超时必须介于 %1 和 %2 毫秒之间。</translation>
-    </message>
-    <message>
-        <source>Passed</source>
-        <translation>已通过</translation>
-    </message>
-    <message>
-        <source>Profile as it is</source>
-        <translation>保持原样的配置档</translation>
-    </message>
-    <message>
-        <source>Recommended</source>
-        <translation>推荐</translation>
-    </message>
-    <message>
-        <source>Save as new profile</source>
-        <translation>另存为新配置档</translation>
-    </message>
-    <message>
-        <source>Saved &quot;%1&quot; with: %2.</source>
-        <translation>已保存 "%1" 使用方式: %2。</translation>
-    </message>
-    <message>
-        <source>Settings</source>
-        <translation>设置</translation>
-    </message>
-    <message>
-        <source>Tested through %1</source>
-        <translation>通过 %1 测试</translation>
-    </message>
-    <message>
-        <source>Tests through %1</source>
-        <translation>测试通过 %1</translation>
-    </message>
-    <message>
-        <source>The largest MTU must be above the smallest; leave it empty for the profile&apos;s own.</source>
-        <translation>最大的 MTU 必须在最小的之上；留空则表示使用配置档自带的。</translation>
-    </message>
-    <message>
-        <source>The profile has no server address to test.</source>
-        <translation>该配置档没有要测试的服务器地址。</translation>
-    </message>
-    <message>
-        <source>The profile of this search no longer exists.</source>
-        <translation>这个搜索的配置档不再存在。</translation>
-    </message>
-    <message>
-        <source>The profile this search was made for no longer exists.</source>
-        <translation>进行这个搜索的配置档不再存在。</translation>
-    </message>
-    <message>
-        <source>The settings could not be applied to &quot;%1&quot;: %2.</source>
-        <translation>设置无法应用到“%1”：%2。</translation>
-    </message>
-    <message>
-        <source>The settings could not be applied to the copy: %1.</source>
-        <translation>该设置无法应用到副本: %1。</translation>
-    </message>
-    <message>
-        <source>These results are for another profile; start the search to test the one chosen now.</source>
-        <translation>这些是另一个配置档的结果；启动搜索，以测试现在选定的配置档。</translation>
-    </message>
-    <message>
-        <source>This profile does not use TLS over TCP.</source>
-        <translation>这个配置档未使用基于 TCP 的 TLS。</translation>
-    </message>
-    <message>
-        <source>This type of profile has no uTLS fingerprint.</source>
-        <translation>这个类型的配置档没有 uTLS 指纹。</translation>
-    </message>
-    <message>
-        <source>Save the selected variant into the profile.</source>
-        <translation>保存选定的变体到配置档中。</translation>
-    </message>
-    <message>
         <source>The settings could not be saved:
 %1
 
@@ -5158,6 +4602,18 @@ Close without saving?</source>
 %1
 
 不保存就关闭吗?</translation>
+    </message>
+    <message>
+        <source>Profile</source>
+        <translation>配置档</translation>
+    </message>
+    <message>
+        <source>Each address is tried as the only resolver of this profile; those that relay its tunnel are kept.</source>
+        <translation>依次将每个地址作为这个配置档的唯一 DNS 解析器进行尝试；能够转发其隧道流量的地址会被保留。</translation>
+    </message>
+    <message>
+        <source>Endpoints are tried with this profile&apos;s own keys and settings; those that carry traffic are kept.</source>
+        <translation>使用这个配置档自身的密钥和设置逐一尝试各端点；能够传输流量的端点会被保留。</translation>
     </message>
 </context>
 <context>
@@ -8543,18 +7999,6 @@ Close without saving?</source>
         <translation>%1 毫秒</translation>
     </message>
     <message>
-        <source>Longest query name the resolver relays (DNSTT max_qname_len, XDNS lenLimit).</source>
-        <translation>该解析器转发的最长查询名称（DNSTT 为 max_qname_len，XDNS 为 lenLimit）。</translation>
-    </message>
-    <message>
-        <source>The largest payload per query the resolver relays.</source>
-        <translation>该 DNS 解析器转发的每条查询的最大有效载荷。</translation>
-    </message>
-    <message>
-        <source>The largest payload per answer the resolver relays.</source>
-        <translation>该 DNS 解析器转发的每条响应的最大有效载荷。</translation>
-    </message>
-    <message>
         <source>Address</source>
         <translation>地址</translation>
     </message>
@@ -8567,16 +8011,16 @@ Close without saving?</source>
         <translation>延迟</translation>
     </message>
     <message>
-        <source>Max QNAME</source>
-        <translation>最大 QNAME</translation>
+        <source>%1%</source>
+        <translation>%1%</translation>
     </message>
     <message>
-        <source>Upload MTU</source>
-        <translation>上传 MTU</translation>
+        <source>Share of probes left unanswered.</source>
+        <translation>未获应答的探测所占的比例。</translation>
     </message>
     <message>
-        <source>Download MTU</source>
-        <translation>下载 MTU</translation>
+        <source>Loss</source>
+        <translation>丢包率</translation>
     </message>
 </context>
 <context>
@@ -8612,10 +8056,6 @@ Close without saving?</source>
     <message>
         <source>URL %1</source>
         <translation>URL %1</translation>
-    </message>
-    <message>
-        <source>Rule-set %1</source>
-        <translation>规则集 %1</translation>
     </message>
     <message>
         <source>Refreshing…</source>
@@ -10242,10 +9682,6 @@ Error: %1</source>
     <message>
         <source>Debug %1</source>
         <translation>调试 %1</translation>
-    </message>
-    <message>
-        <source>Find working settings</source>
-        <translation>查找可用设置</translation>
     </message>
     <message>
         <source>Route lookup</source>
@@ -12009,52 +11445,24 @@ How to update?</source>
         <translation>下载的备份与备份列表不匹配；它可能已被替换或损坏。</translation>
     </message>
     <message>
-        <source>The built-in WARP MASQUE identity has not been generated yet (Routing Settings)</source>
-        <translation>内置的 WARP MASQUE 身份尚未生成（路由设置）</translation>
-    </message>
-    <message>
-        <source>The built-in WARP WireGuard identity has not been generated yet (Routing Settings)</source>
-        <translation>内置的 WARP WireGuard 身份尚未生成（路由设置）</translation>
-    </message>
-    <message>
         <source>Choose the DNS tunnel profile to find resolvers for</source>
         <translation>选择要为其查找解析器的 DNS 隧道配置档</translation>
-    </message>
-    <message>
-        <source>Choose a profile for the config test</source>
-        <translation>为配置测试选择一个配置档</translation>
     </message>
     <message>
         <source>Only DNSTT, MasterDNS and XDNS profiles can be used to find resolvers</source>
         <translation>仅 DNSTT、 MasterDNS 和 XDNS 配置档可用于查找解析器</translation>
     </message>
     <message>
-        <source>This type of profile cannot be pointed at scanned addresses</source>
-        <translation>这个类型的配置档无法指向扫描的地址</translation>
+        <source>A WARP scan needs a WARP profile: WireGuard, AmneziaWG or MASQUE</source>
+        <translation>WARP 扫描需要一个 WARP 配置档：WireGuard、AmneziaWG 或 MASQUE</translation>
     </message>
     <message>
-        <source>The profile for the config test could not be copied</source>
-        <translation>用于配置测试的配置档无法被复制</translation>
+        <source>The WARP profile could not be built</source>
+        <translation>无法为该 WARP 配置档构建配置</translation>
     </message>
     <message>
-        <source>Choose the WARP profile to take the identity from</source>
-        <translation>选择要获取身份的 WARP 配置档</translation>
-    </message>
-    <message>
-        <source>This mode needs a MASQUE profile</source>
-        <translation>这个模式需要一个 MASQUE 配置档</translation>
-    </message>
-    <message>
-        <source>This mode needs a WireGuard profile</source>
-        <translation>这个模式需要一个 WireGuard 配置档</translation>
-    </message>
-    <message>
-        <source>Register a new identity for this mode</source>
-        <translation>为这个模式注册一个新身份</translation>
-    </message>
-    <message>
-        <source>The WARP identity could not be read; register a new one</source>
-        <translation>无法读取 WARP 身份；注册一个新的</translation>
+        <source>Choose the WARP profile to scan with</source>
+        <translation>选择用于扫描的 WARP 配置档</translation>
     </message>
     <message>
         <source>The routing profile sends traffic to %1, which holds an auto selector; such a chain can only be started, not used in routing rules</source>
@@ -12073,10 +11481,6 @@ How to update?</source>
     <message>
         <source>Extra Core profiles and custom configs cannot share a chain with an auto selector</source>
         <translation>额外核心配置档和自定义配置不能与自动选择器共享一条代理链</translation>
-    </message>
-    <message>
-        <source>Chains with an auto selector cannot be scanned</source>
-        <translation>带自动选择器的代理链无法扫描</translation>
     </message>
     <message>
         <source>The group&apos;s front or landing proxy no longer exists</source>
@@ -12149,14 +11553,6 @@ How to update?</source>
     <message>
         <source>Failed</source>
         <translation>失败</translation>
-    </message>
-    <message>
-        <source>Choose the profile to find working settings for</source>
-        <translation>选择要为其查找可用设置的配置档</translation>
-    </message>
-    <message>
-        <source>The profile could not be copied</source>
-        <translation>该配置档无法被复制</translation>
     </message>
     <message>
         <source>Datacenter IP</source>
@@ -12963,31 +12359,9 @@ Remove that endpoint from this routing profile as well?</source>
 </context>
 <context>
     <name>ScanItem</name>
-    <message numerus="yes">
-        <source>Starting over clears the %n result(s) this scan has found. Continue?</source>
-        <translation>
-            <numerusform>重新开始会清除这次扫描已找到的 %n 个结果。继续吗?</numerusform>
-        </translation>
-    </message>
-    <message numerus="yes">
-        <source>This scan was paused partway. Starting over discards its progress and clears its %n result(s). Continue?</source>
-        <translation>
-            <numerusform>这次扫描被中途暂停。重新开始将丢弃其进度并清除其 %n 个结果。继续吗？</numerusform>
-        </translation>
-    </message>
-    <message>
-        <source>This scan was paused partway. Starting over discards its progress. Continue?</source>
-        <translation>这次扫描被中途暂停。重新开始将丢弃其进度。继续吗？</translation>
-    </message>
     <message>
         <source>IP Scanner</source>
         <translation>IP 扫描器</translation>
-    </message>
-    <message numerus="yes">
-        <source>The targets changed since this scan was paused, so it cannot resume. Start over from the beginning and clear its %n result(s)?</source>
-        <translation>
-            <numerusform>自从暂停这次扫描以来，目标已改变，所以无法继续。要重新从头开始并清除它的%n个结果吗？</numerusform>
-        </translation>
     </message>
     <message>
         <source>The targets changed since this scan was paused, so it cannot resume. Start over from the beginning?</source>
@@ -13046,10 +12420,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>DNS 解析器</translation>
     </message>
     <message>
-        <source>Generic</source>
-        <translation>通用</translation>
-    </message>
-    <message>
         <source>Only a saved DNSTT, MasterDNS or XDNS profile can be used to find resolvers; save the profile first.</source>
         <translation>仅已保存的 DNSTT、MasterDNS 或 XDNS 配置档才能用于查找解析器；请先保存配置档。</translation>
     </message>
@@ -13082,362 +12452,18 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>启动</translation>
     </message>
     <message>
-        <source>&quot;%1&quot; cannot be searched. %2.</source>
-        <translation>"%1" 无法被搜索。 %2。</translation>
-    </message>
-    <message>
-        <source>%1 / %2 attempts (%3%)</source>
-        <translation>%1 / %2 次尝试 (%3%)</translation>
+        <source>This scan stopped partway. Starting over discards its progress. Continue?</source>
+        <translation>这次扫描中途停止了。重新开始将丢弃其进度。继续吗？</translation>
     </message>
     <message numerus="yes">
-        <source>%n working variant(s)</source>
+        <source>Starting over keeps the %n current result(s) until the first new one replaces them. Continue?</source>
         <translation>
-            <numerusform>%n 个可用变体</numerusform>
+            <numerusform>重新开始会保留当前的 %n 个结果，直到第一个新结果将其替换。继续吗？</numerusform>
         </translation>
     </message>
     <message>
-        <source>Find working settings</source>
-        <translation>查找可用设置</translation>
-    </message>
-    <message>
-        <source>Only a saved profile can be searched; save the profile first.</source>
-        <translation>仅已保存的配置档可被搜索；先保存该配置档。</translation>
-    </message>
-    <message>
-        <source>Working settings for %1</source>
-        <translation>%1 的可用设置</translation>
-    </message>
-    <message numerus="yes">
-        <source>Start over and discard the %n tested variant(s)?</source>
-        <translation>
-            <numerusform>重新开始并放弃 %n 个已测试的变体吗？</numerusform>
-        </translation>
-    </message>
-    <message>
-        <source>The profile or the search options changed since this search was paused, so it cannot resume. Start over?</source>
-        <translation>自暂停这个搜索后，配置档或搜索选项发生了更改，所以无法继续。要重新开始吗？</translation>
-    </message>
-    <message>
-        <source>Working settings</source>
-        <translation>正常工作(可用)设置</translation>
-    </message>
-</context>
-<context>
-    <name>ScanPhases</name>
-    <message>
-        <source>ICMP (ping)</source>
-        <translation>ICMP (ping)</translation>
-    </message>
-    <message>
-        <source>Timeout (ms)</source>
-        <translation>超时 (毫秒)</translation>
-    </message>
-    <message>
-        <source>Echo requests</source>
-        <translation>回显请求</translation>
-    </message>
-    <message>
-        <source>TCP Connect</source>
-        <translation>TCP 连接</translation>
-    </message>
-    <message>
-        <source>Attempts</source>
-        <translation>尝试次数</translation>
-    </message>
-    <message>
-        <source>TLS / HTTP</source>
-        <translation>TLS / HTTP</translation>
-    </message>
-    <message>
-        <source>Use TLS</source>
-        <translation>使用 TLS</translation>
-    </message>
-    <message>
-        <source>SNI</source>
-        <translation>SNI</translation>
-    </message>
-    <message>
-        <source>The target address</source>
-        <translation>目标地址</translation>
-    </message>
-    <message>
-        <source>Host header</source>
-        <translation>主机标头</translation>
-    </message>
-    <message>
-        <source>The SNI, or the target address</source>
-        <translation>SNI 或目标地址</translation>
-    </message>
-    <message>
-        <source>Path</source>
-        <translation>路径</translation>
-    </message>
-    <message>
-        <source>Method</source>
-        <translation>方法</translation>
-    </message>
-    <message>
-        <source>Only a 200 OK answer passes.</source>
-        <translation>仅 200 OK 应答通过。</translation>
-    </message>
-    <message>
-        <source>HTTP version</source>
-        <translation>HTTP 版本</translation>
-    </message>
-    <message>
-        <source>ALPN</source>
-        <translation>ALPN</translation>
-    </message>
-    <message>
-        <source>From the HTTP version</source>
-        <translation>来自 HTTP 版本</translation>
-    </message>
-    <message>
-        <source>Minimum TLS version</source>
-        <translation>最低 TLS 版本</translation>
-    </message>
-    <message>
-        <source>Maximum TLS version</source>
-        <translation>最高 TLS 版本</translation>
-    </message>
-    <message>
-        <source>uTLS fingerprint</source>
-        <translation>uTLS 指纹</translation>
-    </message>
-    <message>
-        <source>Allow insecure certificates</source>
-        <translation>允许不安全证书</translation>
-    </message>
-    <message>
-        <source>Disable SNI</source>
-        <translation>禁用 SNI (不发送服务器名称指示)</translation>
-    </message>
-    <message>
-        <source>Fragment the TLS handshake</source>
-        <translation>分片 TLS 握手</translation>
-    </message>
-    <message>
-        <source>Fragment fallback delay (ms)</source>
-        <translation>分片回退延时 (毫秒)</translation>
-    </message>
-    <message>
-        <source>Fragment TLS records</source>
-        <translation>分片 TLS 记录</translation>
-    </message>
-    <message>
-        <source>Mixed-case SNI</source>
-        <translation>混合大小写 SNI</translation>
-    </message>
-    <message>
-        <source>Config Test</source>
-        <translation>配置测试</translation>
-    </message>
-    <message>
-        <source>Candidates that pass the probes are tested through a copy of this profile pointed at each of them.</source>
-        <translation>通过探针的候选者会通过一个指向它们中每一个的这个配置档的副本进行测试。</translation>
-    </message>
-    <message>
-        <source>Profile</source>
-        <translation>配置档</translation>
-    </message>
-    <message>
-        <source>Test URL</source>
-        <translation>测试 URL</translation>
-    </message>
-    <message>
-        <source>Report warm latency (two requests per target)</source>
-        <translation>报告热机延时 (每个目标的两次请求)</translation>
-    </message>
-    <message>
-        <source>WARP Test</source>
-        <translation>WARP 测试</translation>
-    </message>
-    <message>
-        <source>Candidates that pass the probes are tested by connecting to WARP through them.</source>
-        <translation>通过探测的候选项将通过经它们连接到 WARP 进行测试。</translation>
-    </message>
-    <message>
-        <source>Mode</source>
-        <translation>模式</translation>
-    </message>
-    <message>
-        <source>MASQUE transport</source>
-        <translation>MASQUE 传输</translation>
-    </message>
-    <message>
-        <source>Identity</source>
-        <translation>身份</translation>
-    </message>
-    <message>
-        <source>Device</source>
-        <translation>设备</translation>
-    </message>
-    <message>
-        <source>Register</source>
-        <translation>注册</translation>
-    </message>
-    <message>
-        <source>MTU</source>
-        <translation>MTU</translation>
-    </message>
-    <message>
-        <source>QUIC opener</source>
-        <translation>QUIC opener</translation>
-    </message>
-    <message>
-        <source>Sends a decoy packet before each UDP flow to get past QUIC blocking.</source>
-        <translation>在每个 UDP 流之前发送一个诱饵数据包以绕过 QUIC 拦截。</translation>
-    </message>
-    <message>
-        <source>Junk packets (Jc)</source>
-        <translation>垃圾数据包 (Jc)</translation>
-    </message>
-    <message>
-        <source>Junk minimum size (Jmin)</source>
-        <translation>垃圾数据包最小大小 (Jmin)</translation>
-    </message>
-    <message>
-        <source>Junk maximum size (Jmax)</source>
-        <translation>垃圾数据包最大大小 (Jmax)</translation>
-    </message>
-    <message>
-        <source>DNS Tunnel Test</source>
-        <translation>DNS 隧道测试</translation>
-    </message>
-    <message>
-        <source>Each address is tried as the only resolver of this profile; those that relay its tunnel are kept.</source>
-        <translation>依次将每个地址作为这个配置档的唯一 DNS 解析器进行尝试；能够转发其隧道流量的地址会被保留。</translation>
-    </message>
-    <message>
-        <source>Test</source>
-        <translation>测试</translation>
-    </message>
-    <message>
-        <source>Time limit per resolver. Empty: the test&apos;s default.</source>
-        <translation>每个解析器的时间限制。空：该测试的默认值。</translation>
-    </message>
-</context>
-<context>
-    <name>ScanTuneSettings</name>
-    <message>
-        <source>Profile</source>
-        <translation>配置档</translation>
-    </message>
-    <message>
-        <source>Variants of this profile&apos;s anti-censorship settings are tested through the core, one attempt at a time. The profile itself changes only when you apply a result.</source>
-        <translation>这个配置档的反审查设置的变体会通过核心逐一测试，每次只尝试一个。配置档本身仅在你应用结果时才会更改。</translation>
-    </message>
-    <message>
-        <source>What to Try</source>
-        <translation>要尝试的项目</translation>
-    </message>
-    <message>
-        <source>Each setting is first tried on its own, a switch flipped or a list value by value; the changes that help are then combined.</source>
-        <translation>首先逐项单独测试每个设置，逐个切换开关，或逐个尝试列表中的值；然后有效的更改被组合起来。</translation>
-    </message>
-    <message>
-        <source>uTLS fingerprint</source>
-        <translation>uTLS 指纹</translation>
-    </message>
-    <message>
-        <source>Fingerprints to try</source>
-        <translation>要尝试的指纹</translation>
-    </message>
-    <message>
-        <source>TLS fragment</source>
-        <translation>TLS 分片</translation>
-    </message>
-    <message>
-        <source>Fallback delays to try</source>
-        <translation>要尝试的后备（回退）延时</translation>
-    </message>
-    <message>
-        <source>TLS record fragment</source>
-        <translation>TLS 记录分片</translation>
-    </message>
-    <message>
-        <source>Mixed-case SNI</source>
-        <translation>混合大小写 SNI</translation>
-    </message>
-    <message>
-        <source>QUIC opener</source>
-        <translation>QUIC opener</translation>
-    </message>
-    <message>
-        <source>MTU (WireGuard)</source>
-        <translation>MTU (WireGuard)</translation>
-    </message>
-    <message>
-        <source>Smallest MTU</source>
-        <translation>最小的 MTU</translation>
-    </message>
-    <message>
-        <source>Largest MTU</source>
-        <translation>最大的 MTU</translation>
-    </message>
-    <message>
-        <source>The profile&apos;s own</source>
-        <translation>该配置档自带的</translation>
-    </message>
-    <message>
-        <source>MTU step</source>
-        <translation>MTU 步长</translation>
-    </message>
-    <message>
-        <source>Download URL</source>
-        <translation>下载 URL</translation>
-    </message>
-    <message>
-        <source>Download size (bytes)</source>
-        <translation>下载大小 (字节)</translation>
-    </message>
-    <message>
-        <source>Pacing</source>
-        <translation>发送节奏</translation>
-    </message>
-    <message>
-        <source>Attempts per variant</source>
-        <translation>每个变体的尝试次数</translation>
-    </message>
-    <message>
-        <source>More attempts tell a working variant from a lucky one.</source>
-        <translation>越多尝试次数，有助于区分真正可用的变体和偶然成功的变体。</translation>
-    </message>
-    <message>
-        <source>Attempts per minute</source>
-        <translation>每分钟尝试次数</translation>
-    </message>
-    <message>
-        <source>At most this many attempts start in any minute.</source>
-        <translation>每分钟启动的尝试次数至多为这个值。</translation>
-    </message>
-    <message>
-        <source>Attempt limit</source>
-        <translation>尝试限制</translation>
-    </message>
-    <message>
-        <source>The search stops after this many attempts in all.</source>
-        <translation>在总的尝试次数达到这个值后搜索停止。</translation>
-    </message>
-    <message>
-        <source>Time limit (minutes)</source>
-        <translation>时间限制(分钟)</translation>
-    </message>
-    <message>
-        <source>The search stops after this many minutes.</source>
-        <translation>在达到这个分钟数后搜索停止。</translation>
-    </message>
-    <message>
-        <source>Test URL</source>
-        <translation>测试 URL</translation>
-    </message>
-    <message>
-        <source>Requested through the profile on every attempt.</source>
-        <translation>每次尝试时通过该配置档请求。</translation>
-    </message>
-    <message>
-        <source>Timeout (ms)</source>
-        <translation>超时 (毫秒)</translation>
+        <source>%1 s of %2 s</source>
+        <translation>%1 秒 / %2 秒</translation>
     </message>
 </context>
 <context>
@@ -13447,8 +12473,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>该 IP 列表不再存在</translation>
     </message>
     <message>
-        <source>Only lists with a URL or rule-set source can be updated</source>
-        <translation>仅带有 URL 或规则集源的列表可被更新</translation>
+        <source>Only lists with a URL source can be updated</source>
+        <translation>仅带有 URL 源的列表可被更新</translation>
     </message>
     <message>
         <source>Updating IP list %1</source>
@@ -13481,20 +12507,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>该列表没有要获取的来源</translation>
     </message>
     <message>
-        <source>Unknown rule-set: %1</source>
-        <translation>未知的规则集: %1</translation>
-    </message>
-    <message>
         <source>The source must be an http(s) URL</source>
         <translation>来源必须是一个 HTTP(S) URL</translation>
-    </message>
-    <message>
-        <source>The core is not running</source>
-        <translation>核心未在运行</translation>
-    </message>
-    <message>
-        <source>The core could not read the rule-set</source>
-        <translation>核心无法读取该规则集</translation>
     </message>
     <message>
         <source>The address returned a web page instead of an IP list</source>
@@ -13524,22 +12538,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>该扫描不再存在</translation>
     </message>
     <message>
-        <source>Turn on at least one test phase</source>
-        <translation>开启至少一个测试阶段</translation>
-    </message>
-    <message>
-        <source>A TLS handshake check needs TLS turned on</source>
-        <translation>TLS 握手检查需要开启 TLS</translation>
-    </message>
-    <message>
-        <source>HTTP/3 needs TLS turned on</source>
-        <translation>HTTP/3 需要开启 TLS</translation>
-    </message>
-    <message>
-        <source>The profile for the config test cannot be used</source>
-        <translation>配置测试的配置档不能使用</translation>
-    </message>
-    <message>
         <source>Choose the IP list to scan</source>
         <translation>选择要扫描的 IP 列表</translation>
     </message>
@@ -13560,36 +12558,12 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>扫描 %1 结果</translation>
     </message>
     <message>
-        <source>config test</source>
-        <translation>配置测试</translation>
-    </message>
-    <message>
-        <source>Scanning %1 with %2</source>
-        <translation>正在用 %2 扫描 %1</translation>
+        <source>Testing %1 (%2)</source>
+        <translation>正在测试 %1 (%2)</translation>
     </message>
     <message>
         <source>%1 failed %2: %3</source>
         <translation>%1 失败 %2: %3</translation>
-    </message>
-    <message>
-        <source>Connected to %1 with TCP (%2 ms)</source>
-        <translation>已用 TCP 连接到 %1 (%2 毫秒)</translation>
-    </message>
-    <message>
-        <source>%1 replied to ping (%2 ms)</source>
-        <translation>%1 回复 ping (%2 毫秒)</translation>
-    </message>
-    <message>
-        <source>TLS handshake with %1 succeeded (%2 ms)</source>
-        <translation>与 %1 TLS 握手成功 (%2 毫秒)</translation>
-    </message>
-    <message>
-        <source>%1 answered over HTTP (%2 ms)</source>
-        <translation>%1 通过 HTTP 应答 (%2 毫秒)</translation>
-    </message>
-    <message>
-        <source>%1 passed the config test (%2 ms)</source>
-        <translation>%1 通过了配置测试 (%2 毫秒)</translation>
     </message>
     <message>
         <source>%1 relays the DNS tunnel (%2 ms)</source>
@@ -13612,10 +12586,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>正在准备目标...</translation>
     </message>
     <message>
-        <source>The scan has no profile for the config test</source>
-        <translation>该扫描没有用于配置测试的配置档</translation>
-    </message>
-    <message>
         <source>The result list could not be created</source>
         <translation>无法创建结果列表</translation>
     </message>
@@ -13628,10 +12598,6 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>基础 IP 列表是空的</translation>
     </message>
     <message>
-        <source>The base IP list holds only IPv6 ranges; enable IPv6 scanning</source>
-        <translation>基础 IP 列表仅存有 IPv6 范围；启用 IPv6 扫描</translation>
-    </message>
-    <message>
         <source>%1 snapshot</source>
         <translation>%1 快照</translation>
     </message>
@@ -13642,10 +12608,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>The base IP list holds no valid target</source>
         <translation>基础 IP 列表没有有效目标</translation>
-    </message>
-    <message>
-        <source>The result list holds only IPv6 entries; enable IPv6 scanning</source>
-        <translation>结果列表只有 IPv6 条目；启用 IPv6 扫描</translation>
     </message>
     <message>
         <source>%1 rescan snapshot</source>
@@ -13671,16 +12633,6 @@ Remove that endpoint from this routing profile as well?</source>
         <source>The DNS tunnel profile cannot be used to find resolvers</source>
         <translation>该 DNS 隧道配置档不能用于查找解析器</translation>
     </message>
-    <message numerus="yes">
-        <source>Found %n result(s); stopping as configured</source>
-        <translation>
-            <numerusform>找到 %n 个结果；已按配置停止中</numerusform>
-        </translation>
-    </message>
-    <message>
-        <source>IPv6 is unreachable from this network; scan paused (turn off IPv6 scanning to go on)</source>
-        <translation>无法从这个网络访问 IPv6；扫描已暂停 (关闭 IPv6 扫描以继续)</translation>
-    </message>
     <message>
         <source>Network appears to be down; scan paused</source>
         <translation>网络似乎中断了；扫描已暂停</translation>
@@ -13688,14 +12640,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Scan %1: network check failed: %2</source>
         <translation>扫描 %1: 网络检查失败: %2</translation>
-    </message>
-    <message>
-        <source>IPv4 is unreachable from this network; IPv4 results were kept</source>
-        <translation>从这个网络无法访问 IPv4；IPv4 结果已被保留</translation>
-    </message>
-    <message>
-        <source>IPv6 is unreachable from this network; IPv6 results were kept</source>
-        <translation>从这个网络无法访问 IPv6；IPv6 结果已被保留</translation>
     </message>
     <message>
         <source>The core ended the scan session early</source>
@@ -13721,20 +12665,6 @@ Remove that endpoint from this routing profile as well?</source>
         <source>The core did not answer the probe request</source>
         <translation>核心不应答探针请求</translation>
     </message>
-    <message numerus="yes">
-        <source>Testing %n candidate(s) through the config…</source>
-        <translation>
-            <numerusform>正在通过配置测试 %n 个候选项…</numerusform>
-        </translation>
-    </message>
-    <message>
-        <source>The core did not answer the config test</source>
-        <translation>核心不应答配置测试</translation>
-    </message>
-    <message>
-        <source>Checking the network…</source>
-        <translation>正在检查网络...</translation>
-    </message>
     <message>
         <source>Scan %1 stopped: %2</source>
         <translation>扫描 %1 已停止: %2</translation>
@@ -13750,207 +12680,254 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>正在探测</translation>
     </message>
     <message>
-        <source>Testing configs</source>
-        <translation>正在测试配置</translation>
-    </message>
-    <message>
         <source>Checking network</source>
         <translation>检查网络</translation>
     </message>
     <message>
-        <source>A working settings search has no results to rescan</source>
-        <translation>可用设置搜索没有可重新扫描的结果</translation>
+        <source>The scan&apos;s profile cannot be used</source>
+        <translation>该扫描的配置档无法使用</translation>
     </message>
     <message>
-        <source>Choose the profile to find working settings for</source>
-        <translation>选择要为其查找可用设置的配置档</translation>
+        <source>data check</source>
+        <translation>数据检查</translation>
     </message>
     <message>
-        <source>Nothing to try: turn on a setting this profile supports</source>
-        <translation>没有要尝试的内容：其余这个配置档支持的一个设置</translation>
+        <source>Network appears to be down</source>
+        <translation>网络似乎中断了</translation>
     </message>
     <message>
-        <source>The profile has no server address to test</source>
-        <translation>该配置档没有要测试的服务器地址</translation>
+        <source>Checking for DNS interception</source>
+        <translation>正在检查 DNS 劫持</translation>
     </message>
     <message>
-        <source>Every variant connects to %1</source>
-        <translation>每个变体都连接到 %1</translation>
+        <source>This network answers DNS for any address; probing only the system resolvers</source>
+        <translation>这个网络会应答发往任意地址的 DNS 查询；仅探测系统解析器</translation>
+    </message>
+    <message>
+        <source>Scan %1: %2</source>
+        <translation>扫描 %1: %2</translation>
     </message>
     <message numerus="yes">
-        <source>Stopped at the time limit of %n minute(s)</source>
+        <source>Probing %n system or profile resolver(s)</source>
         <translation>
-            <numerusform>停止在 %n 分钟的时间限制</numerusform>
+            <numerusform>正在探测 %n 个系统或配置档解析器</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>The tunnel answered through none of the system or profile resolvers; check the profile or the server</source>
+        <translation>隧道未能通过任何系统或配置档解析器应答；请检查配置档或服务器</translation>
+    </message>
+    <message numerus="yes">
+        <source>Found %n new result(s); stopping as configured</source>
+        <translation>
+            <numerusform>找到 %n 个新结果；按配置停止</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>no answer (%1)</source>
+        <translation>无应答 (%1)</translation>
+    </message>
+    <message>
+        <source>error reply (%1)</source>
+        <translation>返回错误 (%1)</translation>
+    </message>
+    <message>
+        <source>wrong answer (%1)</source>
+        <translation>答案错误 (%1)</translation>
+    </message>
+    <message>
+        <source>name too long (%1)</source>
+        <translation>名称过长 (%1)</translation>
+    </message>
+    <message>
+        <source>short names only (%1)</source>
+        <translation>仅限短名称 (%1)</translation>
+    </message>
+    <message>
+        <source>other (%1)</source>
+        <translation>其他 (%1)</translation>
+    </message>
+    <message>
+        <source>Failures: %1</source>
+        <translation>失败: %1</translation>
+    </message>
+    <message numerus="yes">
+        <source>%n passed with heavy loss</source>
+        <translation>
+            <numerusform>%n 个通过但丢包严重</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Lower Max QNAME Length in the profile to use the resolvers that pass only short names</source>
+        <translation>在配置档中调低“最大 QNAME 长度”，即可使用仅转发短名称的解析器</translation>
+    </message>
+    <message numerus="yes">
+        <source>The tunnel answered through none of the %n result(s), so none was removed</source>
+        <translation>
+            <numerusform>隧道未能通过这 %n 个结果中的任何一个应答，因此未移除任何结果</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Checking the WARP profile</source>
+        <translation>正在检查 WARP 配置档</translation>
+    </message>
+    <message>
+        <source>The scan has no WARP profile</source>
+        <translation>该扫描没有 WARP 配置档</translation>
+    </message>
+    <message>
+        <source>The WARP profile could not be built</source>
+        <translation>无法为该 WARP 配置档构建配置</translation>
+    </message>
+    <message>
+        <source>The base IP list holds no valid range</source>
+        <translation>基础 IP 列表没有有效范围</translation>
+    </message>
+    <message>
+        <source>The base IP list holds only IPv6 ranges, and this network has no IPv6</source>
+        <translation>基础 IP 列表仅存有 IPv6 范围，而这个网络没有 IPv6</translation>
+    </message>
+    <message>
+        <source>This network has no IPv6; skipping the IPv6 ranges</source>
+        <translation>这个网络没有 IPv6；跳过 IPv6 范围</translation>
+    </message>
+    <message>
+        <source>Re-checking known endpoints</source>
+        <translation>正在重新检查已知端点</translation>
+    </message>
+    <message numerus="yes">
+        <source>Re-checking %n known endpoint(s)</source>
+        <translation>
+            <numerusform>正在重新检查 %n 个已知端点</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Finding ports</source>
+        <translation>正在查找端口</translation>
+    </message>
+    <message numerus="yes">
+        <source>Finding open ports on %n address(es)</source>
+        <translation>
+            <numerusform>正在查找 %n 个地址上的开放端口</numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <source>Stopped at the limit of %n attempt(s)</source>
+        <source>None of the usual ports answered; trying %n more</source>
         <translation>
-            <numerusform>停止在 %n 次尝试的次数限制</numerusform>
+            <numerusform>常用端口均无应答；正在尝试另外 %n 个端口</numerusform>
         </translation>
     </message>
     <message>
-        <source>%1: cannot be used: %2</source>
-        <translation>%1: 不能被使用: %2</translation>
+        <source>Trying AmneziaWG junk</source>
+        <translation>正在尝试 AmneziaWG 垃圾数据包</translation>
     </message>
     <message>
-        <source>%1: passed in %2 ms (%3/%4)</source>
-        <translation>%1: 在 %2 毫秒内通过 (%3/%4)</translation>
+        <source>Endpoints answer only with AmneziaWG junk; continuing with junk packets</source>
+        <translation>端点仅在附带 AmneziaWG 垃圾数据包时才应答；继续使用垃圾数据包</translation>
     </message>
     <message>
-        <source>The network is down, so the search paused; resume it when the connection is back</source>
-        <translation>网络终端，因此搜索已暂停；当连接恢复时继续</translation>
+        <source>Ports answering: %1</source>
+        <translation>有应答的端口: %1</translation>
     </message>
     <message>
-        <source>%1: failed (%2/%3): %4</source>
-        <translation>%1: 连接失败 (%2/%3): %4</translation>
+        <source>Searching ranges</source>
+        <translation>正在搜索 IP 范围</translation>
+    </message>
+    <message numerus="yes">
+        <source>Round %1: probing %n address(es)</source>
+        <translation>
+            <numerusform>第 %1 轮：正在探测 %n 个地址</numerusform>
+        </translation>
     </message>
     <message>
-        <source>The profile could not be copied</source>
-        <translation>该配置档无法被复制</translation>
+        <source>Rescanning</source>
+        <translation>正在重新扫描</translation>
+    </message>
+    <message numerus="yes">
+        <source>Rescanning %n result(s)</source>
+        <translation>
+            <numerusform>正在重新扫描 %n 个结果</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <source>Re-checking data through %n endpoint(s)</source>
+        <translation>
+            <numerusform>正在通过 %n 个端点重新检查数据</numerusform>
+        </translation>
     </message>
     <message>
-        <source>This profile cannot be pointed at %1</source>
-        <translation>这个配置档无法指向 %1</translation>
+        <source>This host has no IPv6 route; skipping the IPv6 ranges</source>
+        <translation>本机没有 IPv6 路由；跳过 IPv6 范围</translation>
     </message>
     <message>
-        <source>The core returned no result</source>
-        <translation>核心未返回结果</translation>
+        <source>IPv6 is unreachable from this network; skipping the IPv6 ranges</source>
+        <translation>无法从这个网络访问 IPv6；跳过 IPv6 范围</translation>
     </message>
     <message>
-        <source>The core did not answer the network check, so the search paused</source>
-        <translation>核心未应答网络检查，因此搜索已暂停</translation>
+        <source>Checking data</source>
+        <translation>正在检查数据</translation>
+    </message>
+    <message numerus="yes">
+        <source>Checking data through %n endpoint(s)</source>
+        <translation>
+            <numerusform>正在通过 %n 个端点检查数据</numerusform>
+        </translation>
     </message>
     <message>
-        <source>Confirming the best variants</source>
-        <translation>正在确认最优变体</translation>
+        <source>The core did not answer the data check</source>
+        <translation>核心未响应数据检查</translation>
     </message>
     <message>
-        <source>Testing the profile as it is</source>
-        <translation>正在按原样测试配置档</translation>
+        <source>The core ended the data check early</source>
+        <translation>核心提前结束了数据检查</translation>
+    </message>
+    <message numerus="yes">
+        <source>Confirmed %n endpoint(s)</source>
+        <translation>
+            <numerusform>已确认 %n 个端点</numerusform>
+        </translation>
     </message>
     <message>
-        <source>Trying one change at a time</source>
-        <translation>正在尝试逐项更改</translation>
+        <source>Checking the network</source>
+        <translation>正在检查网络</translation>
+    </message>
+    <message numerus="yes">
+        <source>Found %n endpoint(s)</source>
+        <translation>
+            <numerusform>找到 %n 个端点</numerusform>
+        </translation>
     </message>
     <message>
-        <source>Combining what helped</source>
-        <translation>正在组合有帮助的设置</translation>
+        <source>These endpoints need AmneziaWG junk: turn on AmneziaWG in the profile (Jc %1, Jmin %2, Jmax %3)</source>
+        <translation>这些端点需要 AmneziaWG 垃圾数据包：请在配置档中开启 AmneziaWG（Jc %1，Jmin %2，Jmax %3）</translation>
     </message>
     <message>
-        <source>Trying fragment delays</source>
-        <translation>正在尝试分片延迟</translation>
+        <source>No endpoint answered the WARP handshake; this network may block it</source>
+        <translation>没有端点响应 WARP 握手；这个网络可能拦截了它</translation>
     </message>
     <message>
-        <source>Searching for the largest working MTU</source>
-        <translation>正在搜索最大的可用 MTU 值</translation>
-    </message>
-</context>
-<context>
-    <name>Scanner::Tune</name>
-    <message>
-        <source>The profile could not be read</source>
-        <translation>该配置档无法读取</translation>
+        <source>Endpoints answered only with AmneziaWG junk, and no data flowed through them</source>
+        <translation>端点仅在附带 AmneziaWG 垃圾数据包时才应答，且没有数据通过它们传输</translation>
     </message>
     <message>
-        <source>A chain cannot be searched as a whole; run the search on the profiles of its hops</source>
-        <translation>无法对代理链整体进行搜索；在链中各个跳点的配置档上运行搜索</translation>
+        <source>Endpoints answered the handshake, but no data flowed through them</source>
+        <translation>端点响应了握手，但没有数据通过它们传输</translation>
     </message>
     <message>
-        <source>Xray profiles are not supported yet: the search changes sing-box settings</source>
-        <translation>尚未支持 Xray 配置档：该搜索会更改 sing-box 设置</translation>
+        <source>No result passed, so none was removed; the network or the profile may be at fault</source>
+        <translation>没有结果通过，因此未移除任何结果；问题可能出在网络或配置档</translation>
     </message>
-    <message>
-        <source>This profile has no setting the search can change: that needs TLS over TCP, QUIC or WireGuard</source>
-        <translation>这个配置档没有可供搜索功能更改的设置：该功能需要基于 TCP 的 TLS、QUIC 或 WireGuard</translation>
+    <message numerus="yes">
+        <source>%n result(s) passed</source>
+        <translation>
+            <numerusform>%n 个结果通过</numerusform>
+        </translation>
     </message>
-    <message>
-        <source>The MTU applies only to WireGuard profiles</source>
-        <translation>MTU 仅适用于 WireGuard 配置档</translation>
-    </message>
-    <message>
-        <source>The profile no longer uses TLS over TCP</source>
-        <translation>该配置档不再使用基于 TCP 的 TLS</translation>
-    </message>
-    <message>
-        <source>This type of profile has no uTLS fingerprint</source>
-        <translation>这个类型的配置档没有 uTLS 指纹</translation>
-    </message>
-    <message>
-        <source>Unknown setting “%1”</source>
-        <translation>未知设置 “%1”</translation>
-    </message>
-    <message>
-        <source>The profile as it is</source>
-        <translation>该配置档原样</translation>
-    </message>
-    <message>
-        <source>uTLS off</source>
-        <translation>uTLS 关闭</translation>
-    </message>
-    <message>
-        <source>Fingerprint %1</source>
-        <translation>指纹 %1</translation>
-    </message>
-    <message>
-        <source>TLS fragment on</source>
-        <translation>TLS 分片开启</translation>
-    </message>
-    <message>
-        <source>TLS fragment off</source>
-        <translation>TLS 分片关闭</translation>
-    </message>
-    <message>
-        <source>Fragment delay %1</source>
-        <translation>分片延时 %1</translation>
-    </message>
-    <message>
-        <source>default</source>
-        <translation>默认</translation>
-    </message>
-    <message>
-        <source>Record fragment on</source>
-        <translation>记录分片开启</translation>
-    </message>
-    <message>
-        <source>Record fragment off</source>
-        <translation>记录分片关闭</translation>
-    </message>
-    <message>
-        <source>Mixed-case SNI on</source>
-        <translation>混合大小写 SNI 开启</translation>
-    </message>
-    <message>
-        <source>Mixed-case SNI off</source>
-        <translation>混合大小写 SNI 关闭</translation>
-    </message>
-    <message>
-        <source>QUIC opener on</source>
-        <translation>QUIC opener 开启</translation>
-    </message>
-    <message>
-        <source>QUIC opener off</source>
-        <translation>QUIC opener 关闭</translation>
-    </message>
-    <message>
-        <source>MTU %1</source>
-        <translation>MTU %1</translation>
-    </message>
-    <message>
-        <source>“%1” changes from one start to the next, so it cannot be tried</source>
-        <translation>“%1” 每次启动都会变化，因此无法尝试</translation>
-    </message>
-    <message>
-        <source>“%1” is not a uTLS fingerprint</source>
-        <translation>“%1” 不是一个 uTLS 指纹</translation>
-    </message>
-    <message>
-        <source>Fragment delay “%1”: %2</source>
-        <translation>分片延时 “%1”: %2</translation>
-    </message>
-    <message>
-        <source>The largest MTU must be above the smallest</source>
-        <translation>最大的 MTU 必须大于最小的 MTU</translation>
+    <message numerus="yes">
+        <source>No %1 result answered, so %n failed %1 result(s) were kept</source>
+        <translation>
+            <numerusform>没有任何 %1 结果应答，因此保留了 %n 个失败的 %1 结果</numerusform>
+        </translation>
     </message>
 </context>
 <context>

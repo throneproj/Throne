@@ -53,15 +53,11 @@ DialogNewScan::DialogNewScan(QWidget *parent) : QDialog(parent) {
     form->bind(nameEdit, Validation::Rules::Required());
 
     auto *kinds = new QButtonGroup(this);
-    genericRadio = new QRadioButton(tr("Generic scan"), this);
     warpRadio = new QRadioButton(tr("WARP scan"), this);
     resolverRadio = new QRadioButton(tr("DNS resolver scan"), this);
-    tuneRadio = new QRadioButton(tr("Find working settings"), this);
-    kinds->addButton(genericRadio);
     kinds->addButton(warpRadio);
     kinds->addButton(resolverRadio);
-    kinds->addButton(tuneRadio);
-    genericRadio->setChecked(true);
+    warpRadio->setChecked(true);
 
     const int indent = style()->pixelMetric(QStyle::PM_ExclusiveIndicatorWidth) +
                        style()->pixelMetric(QStyle::PM_RadioButtonLabelSpacing);
@@ -71,11 +67,8 @@ DialogNewScan::DialogNewScan(QWidget *parent) : QDialog(parent) {
         label->setContentsMargins(indent, 0, 0, 0);
         layout->addWidget(label);
     };
-    addKind(genericRadio, tr("Probe addresses with ping, TCP, TLS or HTTP, and optionally test them through one of your profiles."));
     addKind(warpRadio, tr("Find Cloudflare WARP endpoints that complete a WireGuard, AmneziaWG or MASQUE connection."));
     addKind(resolverRadio, tr("Find DNS resolvers that relay the tunnel of one of your DNSTT, MasterDNS or XDNS profiles."));
-    addKind(tuneRadio, tr("Try variants of one profile's anti-censorship settings several times each and rank them; nothing changes in "
-                          "the profile until you apply a result."));
     layout->addStretch(1);
 
     auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
@@ -94,10 +87,7 @@ void DialogNewScan::accept() {
     if (!form->validateAll()) return;
     const auto name = nameEdit->text().trimmed();
 
-    const auto kind = warpRadio->isChecked()       ? Configs::IpScan::Kind::Warp
-                      : resolverRadio->isChecked() ? Configs::IpScan::Kind::Resolver
-                      : tuneRadio->isChecked()     ? Configs::IpScan::Kind::Tune
-                                                   : Configs::IpScan::Kind::Generic;
+    const auto kind = resolverRadio->isChecked() ? Configs::IpScan::Kind::Resolver : Configs::IpScan::Kind::Warp;
     auto scan = Configs::IpScansRepo::NewIpScan(kind);
     scan->name = name;
     if (kind == Configs::IpScan::Kind::Warp) {

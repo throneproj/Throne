@@ -16,8 +16,6 @@ namespace Configs {
 
         void createTables() const;
 
-        [[nodiscard]] bool ipScansColumnExists(const char *columnName) const;
-
         [[nodiscard]] std::shared_ptr<IpScan> ipScanFromRow(SQLite::Statement &stmt) const;
 
         [[nodiscard]] int NewIpScanID() const;
@@ -39,9 +37,6 @@ namespace Configs {
 
         void SaveStatus(int id, IpScan::Status status, const QString &lastError);
 
-        // Empty clears it.
-        void SaveTuneState(int id, const QJsonObject &state);
-
         // Rows only; ScanManager::DeleteScan also removes the lists the scan owns.
         void DeleteIpScan(int id);
 
@@ -49,5 +44,8 @@ namespace Configs {
 
         // Rows still Running after a crash become Paused; call once at startup.
         void NormalizeInterrupted();
+
+        // Once: drops the retired kinds' rows; their result lists become user lists, their snapshots orphans.
+        bool DeleteRetiredScans();
     };
 } // namespace Configs

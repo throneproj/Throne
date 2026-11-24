@@ -5,6 +5,7 @@
 #include "include/scanner/IpListParse.h"
 #include "include/scanner/WarpPresets.h"
 
+#include <QCryptographicHash>
 #include <QFile>
 
 #include <algorithm>
@@ -12,8 +13,6 @@
 namespace {
     struct DefaultIpListSpec {
         QString name;
-        // Built-in rule-set key; empty = a manual list.
-        QString ruleSet;
         QString seedResource;
         const QStringList *seedCidrs = nullptr;
     };
@@ -21,13 +20,10 @@ namespace {
     QList<DefaultIpListSpec> defaultIpListSpecs() {
         using namespace Scanner::DefaultIpLists;
         return {
-            {kCloudflareCdnName, QStringLiteral("geoip-cloudflare"), QStringLiteral(":/scanner/cloudflare-cdn.txt")},
-            {kFastlyCdnName, QStringLiteral("geoip-fastly"), QStringLiteral(":/scanner/fastly-cdn.txt")},
-            {kGcoreCdnName, QStringLiteral("geoip-gcore"), QStringLiteral(":/scanner/gcore-cdn.txt")},
-            {kWarpWireGuardName, {}, {}, &Scanner::WarpPresets::kWireGuardRanges},
-            {kWarpMasqueName, {}, {}, &Scanner::WarpPresets::kMasqueEndpoints},
-            {kIranResolversName, {}, QStringLiteral(":/scanner/iran-resolvers.txt")},
-            {kRussiaResolversName, {}, QStringLiteral(":/scanner/russia-resolvers.txt")},
+            {kWarpWireGuardName, {}, &Scanner::WarpPresets::kWireGuardRanges},
+            {kWarpMasqueName, {}, &Scanner::WarpPresets::kMasqueEndpoints},
+            {kIranResolversName, QStringLiteral(":/scanner/iran-resolvers.txt")},
+            {kRussiaResolversName, QStringLiteral(":/scanner/russia-resolvers.txt")},
         };
     }
 
@@ -41,10 +37,6 @@ namespace {
     std::shared_ptr<Configs::IpList> defaultIpListBuild(const DefaultIpListSpec &spec) {
         auto list = Configs::IpListsRepo::NewIpList();
         list->name = spec.name;
-        if (!spec.ruleSet.isEmpty()) {
-            list->source_kind = Configs::IpList::SourceKind::RuleSet;
-            list->source = spec.ruleSet;
-        }
         if (spec.seedCidrs != nullptr) {
             list->entries = Scanner::EntriesFromCidrs(*spec.seedCidrs, 0);
         } else {
@@ -56,6 +48,15 @@ namespace {
         list->entryCount = static_cast<int>(list->entries.size());
         list->entriesLoaded = true;
         return list;
+    }
+
+    // SHA-256 of the sorted "cidr|port" lines, so list order does not matter.
+    QByteArray defaultIpListDigest(const QList<Configs::IpListEntry> &entries) {
+        QStringList keys;
+        keys.reserve(entries.size());
+        for (const auto &entry : entries) keys << entry.cidr + QLatin1Char('|') + QString::number(entry.port);
+        keys.sort();
+        return QCryptographicHash::hash(keys.join(QLatin1Char('\n')).toUtf8(), QCryptographicHash::Sha256).toHex();
     }
 } // namespace
 
@@ -116,5 +117,36 @@ namespace Scanner::DefaultIpLists {
         if (!changed) return true;
         if (!placed) migrated << ranges;
         return Configs::dataManager->ipListsRepo->ReplaceEntries(id, migrated);
+    }
+
+    bool MigrateListSeedsNov2026() {
+        struct OldSeed {
+            QString name;
+            qsizetype count;
+            QByteArray digest;
+        };
+        // Frozen: the seeds shipped before 2026-11-24, the resolver lists as the size and digest of their files then.
+        const QList<Configs::IpListEntry> oldWireGuard = Scanner::EntriesFromCidrs(
+            {QStringLiteral("162.159.192.0/24"), QStringLiteral("162.159.195.0/24"), QStringLiteral("188.114.96.0/22"),
+             QStringLiteral("2606:4700:d0::/64"), QStringLiteral("2606:4700:d1::/64")},
+            0);
+        const QList<OldSeed> oldSeeds = {
+            {kWarpWireGuardName, oldWireGuard.size(), defaultIpListDigest(oldWireGuard)},
+            {kIranResolversName, 7864, QByteArrayLiteral("0ae3da1934296b6e606414afe5414905872e1ec5ff297aa32d464fcc4568ffcb")},
+            {kRussiaResolversName, 958, QByteArrayLiteral("95373b977b4129332184af6666c877e263c7aeae923e80f9e74a5a165885f78c")},
+        };
+        bool ok = true;
+        for (const auto &seed : oldSeeds) {
+            const int id = defaultIpListFind(seed.name);
+            if (id < 0) continue;
+            const auto entries = Configs::dataManager->ipListsRepo->GetEntries(id);
+            if (entries.size() != seed.count || defaultIpListDigest(entries) != seed.digest) continue;
+            for (const auto &spec : defaultIpListSpecs()) {
+                if (spec.name != seed.name) continue;
+                const auto fresh = defaultIpListBuild(spec);
+                if (fresh == nullptr || !Configs::dataManager->ipListsRepo->ReplaceEntries(id, fresh->entries)) ok = false;
+            }
+        }
+        return ok;
     }
 } // namespace Scanner::DefaultIpLists

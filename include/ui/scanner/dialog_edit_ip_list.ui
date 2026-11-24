@@ -43,11 +43,6 @@
          <string>URL</string>
         </property>
        </item>
-       <item>
-        <property name="text">
-         <string>Rule-set</string>
-        </property>
-       </item>
       </widget>
      </item>
      <item row="2" column="0">
@@ -68,26 +63,6 @@
       </widget>
      </item>
      <item row="3" column="0">
-      <widget class="QLabel" name="label_rule_set">
-       <property name="text">
-        <string>Rule-set</string>
-       </property>
-       <property name="buddy">
-        <cstring>rule_set</cstring>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
-      <widget class="QComboBox" name="rule_set">
-       <property name="editable">
-        <bool>true</bool>
-       </property>
-       <property name="insertPolicy">
-        <enum>QComboBox::InsertPolicy::NoInsert</enum>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0">
       <widget class="QLabel" name="label_auto_update">
        <property name="text">
         <string>Auto update</string>
@@ -97,7 +72,7 @@
        </property>
       </widget>
      </item>
-     <item row="4" column="1">
+     <item row="3" column="1">
       <widget class="QWidget" name="auto_update_box" native="true">
        <layout class="QHBoxLayout" name="layout_auto_update">
         <property name="leftMargin">
@@ -229,7 +204,6 @@
   <tabstop>name</tabstop>
   <tabstop>source_kind</tabstop>
   <tabstop>url</tabstop>
-  <tabstop>rule_set</tabstop>
   <tabstop>auto_update</tabstop>
   <tabstop>update_interval</tabstop>
   <tabstop>fetch</tabstop>

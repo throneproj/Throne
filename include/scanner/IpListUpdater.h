@@ -20,15 +20,10 @@ namespace Scanner {
         QStringList samples;
     };
 
-    // Blocking network and core RPC: worker thread only.
+    // Blocking network: worker thread only.
     ImportOutcome FetchEntries(Configs::IpList::SourceKind kind, const QString &source);
 
-    // Rule-sets go through the core: worker thread only.
     ImportOutcome ParseImportBytes(const QByteArray &bytes);
-
-    QStringList BuiltinIpRuleSets();
-
-    QString BuiltinRuleSetUrl(const QString &key);
 
     class IpListUpdater : public QObject {
         Q_OBJECT

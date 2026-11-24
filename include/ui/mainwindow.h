@@ -191,8 +191,6 @@ private slots:
 
     void on_menu_scanner_triggered();
 
-    void on_menu_find_settings_triggered();
-
     void on_menu_integration_settings_triggered();
 
     void on_menu_add_from_input_triggered();

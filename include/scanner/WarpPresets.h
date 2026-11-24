@@ -3,10 +3,11 @@
 #include <QList>
 #include <QStringList>
 
-// Seeds for editable IP lists, not probe constants: Cloudflare changes them silently.
+// The ranges seed editable IP lists, since Cloudflare changes them silently; the port lists drive WARP port discovery.
 namespace Scanner::WarpPresets {
     inline const QStringList kWireGuardRanges = {
         QStringLiteral("162.159.192.0/24"),
+        QStringLiteral("162.159.193.0/24"),
         QStringLiteral("162.159.195.0/24"),
         QStringLiteral("188.114.96.0/22"),
         QStringLiteral("2606:4700:d0::/64"),

@@ -1,6 +1,5 @@
 #include "include/ui/scanner/dialog_edit_ip_list.h"
 
-#include <QCompleter>
 #include <QDateTime>
 #include <QFileInfo>
 #include <QFontDatabase>
@@ -83,9 +82,7 @@ DialogEditIpList::DialogEditIpList(QWidget *parent, const int listId, const Conf
     ui->summary->setTextFormat(Qt::PlainText);
     ui->update_interval->setValidator(new QIntValidator(kEditIpListMinInterval, kEditIpListMaxInterval, ui->update_interval));
     ui->update_interval->setPlaceholderText(QString::number(Configs::IpList().update_interval));
-    setupRuleSetPicker();
     form->bind(ui->url, [this](const QString &text) { return sourceError(Configs::IpList::SourceKind::Url, text); });
-    form->bind(ui->rule_set, [this](const QString &text) { return sourceError(Configs::IpList::SourceKind::RuleSet, text); });
     form->bind(ui->update_interval, [](const QString &text) {
         if (editIpListInterval(text)) return QString();
         return tr("Must be from %1 to %2 minutes.").arg(kEditIpListMinInterval).arg(kEditIpListMaxInterval);
@@ -118,10 +115,6 @@ DialogEditIpList::DialogEditIpList(QWidget *parent, const int listId, const Conf
         ui->name->setPlaceholderText(defaultName());
         summaryTimer->start();
     });
-    connect(ui->rule_set, &QComboBox::currentTextChanged, this, [this] {
-        ui->name->setPlaceholderText(defaultName());
-        summaryTimer->start();
-    });
     connect(ui->auto_update, &QCheckBox::toggled, this, [this] { updateControls(); });
     connect(ui->entries, &QPlainTextEdit::textChanged, this, [this] { summaryTimer->start(); });
     connect(ui->fetch, &QPushButton::clicked, this, [this] { startFetch(false); });
@@ -134,7 +127,6 @@ DialogEditIpList::DialogEditIpList(QWidget *parent, const int listId, const Conf
     if (!scanOwned && !missing) form->markAll();
 
     if (isNew && kind == Configs::IpList::SourceKind::Url) ui->url->setFocus();
-    else if (isNew && kind == Configs::IpList::SourceKind::RuleSet) ui->rule_set->setFocus();
     else ui->name->setFocus();
 
     const auto *scr = screen() != nullptr ? screen() : QGuiApplication::primaryScreen();
@@ -146,15 +138,13 @@ DialogEditIpList::~DialogEditIpList() {
 }
 
 Configs::IpList::SourceKind DialogEditIpList::currentKind() const {
-    return static_cast<Configs::IpList::SourceKind>(std::clamp(ui->source_kind->currentIndex(), 0, 2));
+    return static_cast<Configs::IpList::SourceKind>(std::clamp(ui->source_kind->currentIndex(), 0, 1));
 }
 
 QString DialogEditIpList::currentSource() const {
     switch (currentKind()) {
         case Configs::IpList::SourceKind::Url:
             return ui->url->text().trimmed();
-        case Configs::IpList::SourceKind::RuleSet:
-            return ui->rule_set->currentText().trimmed();
         case Configs::IpList::SourceKind::Manual:
             break;
     }
@@ -165,12 +155,6 @@ QString DialogEditIpList::sourceError(const Configs::IpList::SourceKind kind, co
     if (kind == Configs::IpList::SourceKind::Url) {
         if (!editIpListIsHttpUrl(source) || QUrl(source).host().isEmpty()) return tr("Enter an http(s) URL.");
         return {};
-    }
-    if (kind == Configs::IpList::SourceKind::RuleSet) {
-        if (source.isEmpty()) return tr("Choose a rule-set.");
-        if (editIpListIsHttpUrl(source)) return QUrl(source).host().isEmpty() ? tr("Enter an http(s) URL.") : QString();
-        if (Scanner::BuiltinRuleSetUrl(source).isEmpty())
-            return tr("Unknown rule-set \"%1\". Pick a geoip-* name from the list or enter a rule-set URL.").arg(source);
     }
     return {};
 }
@@ -217,7 +201,6 @@ void DialogEditIpList::loadList(const int listId) {
     ui->name->setText(list->name);
     ui->source_kind->setCurrentIndex(static_cast<int>(list->source_kind));
     if (list->source_kind == Configs::IpList::SourceKind::Url) ui->url->setText(list->source);
-    if (list->source_kind == Configs::IpList::SourceKind::RuleSet) ui->rule_set->setCurrentText(list->source);
     ui->auto_update->setChecked(list->auto_update);
     ui->update_interval->setText(QString::number(std::max(kEditIpListMinInterval, list->update_interval)));
 
@@ -233,21 +216,6 @@ void DialogEditIpList::loadList(const int listId) {
         ui->managed_note->show();
         ui->buttonBox->setStandardButtons(QDialogButtonBox::Close);
     }
-}
-
-void DialogEditIpList::setupRuleSetPicker() {
-    const QSignalBlocker blocker(ui->rule_set);
-    ui->rule_set->addItems(Scanner::BuiltinIpRuleSets());
-    ui->rule_set->setMaxVisibleItems(15);
-
-    auto *completer = new QCompleter(ui->rule_set->model(), this);
-    completer->setCompletionMode(QCompleter::PopupCompletion);
-    completer->setCaseSensitivity(Qt::CaseInsensitive);
-    completer->setFilterMode(Qt::MatchContains);
-    ui->rule_set->setCompleter(completer);
-
-    ui->rule_set->setCurrentIndex(-1);
-    ui->rule_set->lineEdit()->setPlaceholderText(tr("geoip-ir, or a rule-set URL"));
 }
 
 void DialogEditIpList::showEntries(const QList<Configs::IpListEntry> &entries, const int total, const bool fromDb) {
@@ -280,8 +248,6 @@ void DialogEditIpList::updateControls() {
 
     ui->label_url->setVisible(kind == Configs::IpList::SourceKind::Url);
     ui->url->setVisible(kind == Configs::IpList::SourceKind::Url);
-    ui->label_rule_set->setVisible(kind == Configs::IpList::SourceKind::RuleSet);
-    ui->rule_set->setVisible(kind == Configs::IpList::SourceKind::RuleSet);
     ui->label_auto_update->setVisible(remote && editable);
     ui->auto_update_box->setVisible(remote && editable);
     ui->fetch->setVisible(remote && editable);
@@ -289,7 +255,6 @@ void DialogEditIpList::updateControls() {
     ui->name->setReadOnly(!editable);
     ui->source_kind->setEnabled(inputsEnabled);
     ui->url->setReadOnly(!inputsEnabled);
-    ui->rule_set->setEnabled(inputsEnabled);
     ui->update_interval->setEnabled(ui->auto_update->isChecked());
     ui->fetch->setEnabled(!fetching && !saving);
     ui->fetch->setText(fetching ? tr("Fetching…") : tr("Fetch now"));

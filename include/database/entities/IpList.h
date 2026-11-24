@@ -10,16 +10,14 @@ namespace Configs {
         int port = 0;
         // Scan result lists only; 0 = unknown.
         int latencyMs = 0;
-        // DNS resolver scan results only; 0 = unknown. maxQName: dnstt max_qname_len or xdns lenLimit the resolver forwards.
-        int maxQName = 0;
-        int uploadMtu = 0;
-        int downloadMtu = 0;
+        // Scan result lists only: the share of handshakes (WARP) or burst queries (resolvers) left unanswered; -1 = unknown.
+        int lossPct = -1;
     };
 
     class IpList {
     public:
         enum class Role { User = 0, ScanResult = 1, ScanSnapshot = 2 };
-        enum class SourceKind { Manual = 0, Url = 1, RuleSet = 2 };
+        enum class SourceKind { Manual = 0, Url = 1 };
 
         int id = -1;
         QString name;
@@ -27,7 +25,7 @@ namespace Configs {
         int related_test_id = -1;
         Role role = Role::User;
         SourceKind source_kind = SourceKind::Manual;
-        // Url: an http(s) URL serving text or a rule-set. RuleSet: a built-in key ("geoip-ir") or a rule-set URL.
+        // Url: an http(s) URL serving text.
         QString source;
         bool auto_update = false;
         // Minutes; values below 30 are treated as 30.

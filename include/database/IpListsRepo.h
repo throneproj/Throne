@@ -48,9 +48,11 @@ namespace Configs {
         // Headers only; snapshot lists only with includeHidden.
         [[nodiscard]] QList<std::shared_ptr<IpList>> GetAllIpLists(bool includeHidden = false) const;
 
+        // Scan-result lists read best first: measured before unmeasured, then lower loss (unknown as 0), then lower
+        // latency, then list order. Other lists keep list order.
         [[nodiscard]] QList<IpListEntry> GetEntries(int id, int offset = 0, int limit = -1) const;
 
-        // Lowest positive latency; with none measured, the first entry in list order.
+        // The first entry GetEntries returns.
         [[nodiscard]] std::optional<IpListEntry> GetBestEntry(int id) const;
 
         [[nodiscard]] int EntryCount(int id) const;
@@ -60,7 +62,7 @@ namespace Configs {
         // Atomic; the first of duplicate (cidr, port) pairs wins.
         bool ReplaceEntries(int id, const QList<IpListEntry> &entries);
 
-        // Existing (cidr, port) pairs take the new latency; returns how many were appended.
+        // Existing (cidr, port) pairs take the new latency and loss; returns how many were appended.
         int UpsertEntries(int id, const QList<IpListEntry> &entries);
 
         int RemoveEntries(int id, const QList<IpListEntry> &entries);

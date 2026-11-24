@@ -3,142 +3,34 @@
 #include <QJsonObject>
 #include <QList>
 #include <QString>
-#include <QStringList>
 
 namespace Configs {
-    struct ScanIcmpOptions {
-        bool enabled = false;
-        int timeoutMs = 1000;
-        int count = 1;
-    };
-
-    struct ScanTcpOptions {
-        bool enabled = true;
-        int timeoutMs = 2000;
-        int attempts = 1;
-    };
-
-    struct ScanHttpOptions {
-        bool enabled = false;
-        bool tls = true;
-        // SNI; also the default Host header.
-        QString serverName;
-        QString host;
-        QString path = QStringLiteral("/");
-        // GET | HEAD | NONE (TLS handshake only)
-        QString method = QStringLiteral("GET");
-        // 1.1 | 2 | 3
-        QString httpVersion = QStringLiteral("1.1");
-        // Empty = derived from httpVersion.
-        QStringList alpn;
-        // "" | 1.0 | 1.1 | 1.2 | 1.3
-        QString minVersion;
-        QString maxVersion;
-        // "" = Go TLS; otherwise a uTLS fingerprint (chrome, firefox, edge, safari, 360, qq, ios, android, random, randomized).
-        QString fingerprint;
-        bool insecure = false;
-        bool disableSni = false;
-        bool fragment = false;
-        int fragmentFallbackDelayMs = 0;
-        bool recordFragment = false;
-        bool mixedCaseSni = false;
-        int timeoutMs = 3000;
-    };
-
-    struct ScanConfigTestOptions {
-        bool enabled = false;
-        int profileId = -1;
-        // Empty = the global test URL.
-        QString url;
-        int timeoutMs = 3000;
-        bool warmLatency = true;
-    };
-
     struct ScanWarpOptions {
-        // wireguard | amneziawg | masque
-        QString mode = QStringLiteral("wireguard");
-        // masque: 0 = HTTP/3 then HTTP/2, 1 = HTTP/3 only, 2 = HTTP/2 only
-        int httpMode = 0;
-        // generated | profile | builtin
-        QString identity = QStringLiteral("generated");
+        // The WARP profile probed with its own settings; nothing in the scan overrides them.
         int profileId = -1;
-        // Bean ExportToJson of the device registered for this scan; "wireguard" or "masque" in generatedMode.
-        QJsonObject generatedIdentity;
-        QString generatedMode;
-        int mtu = 1280;
-        // masque; empty = consumer-masque.cloudflareclient.com
-        QString sni;
-        // Overrides the identity source's own dial option.
-        bool quicOpener = false;
-        // amneziawg junk; Cloudflare runs vanilla WireGuard, so s1..s4 and h1..h4 never apply.
-        int jc = 0;
-        int jmin = 0;
-        int jmax = 0;
-        QString i1, i2, i3, i4, i5;
-        QString url;
-        int timeoutMs = 5000;
-        bool warmLatency = true;
     };
 
     struct ScanResolverOptions {
         int profileId = -1;
-        // dnstt: poll | qname | handshake; masterdns: quick | full; xdns: poll | qname. Empty = the protocol's default.
-        QString level;
-        // Bounds one resolver's whole probe; 0 = the level's default.
-        int timeoutMs = 0;
     };
 
-    // "Find working settings": variants of one profile's DPI-evasion and MTU settings.
-    struct ScanTuneOptions {
-        int profileId = -1;
-        bool fingerprints = true;
-        // uTLS names, comma separated; "off" = Go's own TLS.
-        QString fingerprintList = QStringLiteral("chrome, firefox, safari, edge, ios, android, off");
-        bool fragment = true;
-        // Tried on the best result while the built-in TLS fragment is on; empty = skip.
-        QString fragmentDelays = QStringLiteral("100ms, 500ms, 1s");
-        bool recordFragment = true;
-        bool mixedCaseSni = true;
-        bool quicOpener = true;
-        // WireGuard / AmneziaWG: the largest MTU in [mtuMin, mtuMax] that still carries a bulk download.
-        bool mtu = true;
-        int mtuMin = 1280;
-        // 0 = the profile's own MTU.
-        int mtuMax = 0;
-        int mtuStep = 10;
-        // Empty = speed.cloudflare.com serving mtuBytes.
-        QString mtuUrl;
-        int mtuBytes = 200000;
-        int attempts = 6;
-        int perMinute = 20;
-        int maxAttempts = 150;
-        int maxMinutes = 20;
-        // Empty = the global test URL.
-        QString url;
-        int timeoutMs = 5000;
-    };
-
+    // WARP scans use only warp.profileId: their flow fixes ports, concurrency and the stop rule.
     struct ScanConfig {
         // Ignore = only `ports`, Merge = the entry's own port plus `ports`, List = only the entry's own port.
         enum class PortMode { Ignore = 0, Merge = 1, List = 2 };
 
+        // Not editable; stored values stay so TargetSpecHash keeps paused scans resumable.
         QList<int> ports;
         PortMode portMode = PortMode::Merge;
         bool shuffle = true;
         bool scanIPv6 = false;
-        // Completes once the result list holds this many entries; 0 = no limit.
+        // Completes after this many hits since the run started; 0 = no limit.
         int stopAfter = 0;
-        // Every phase, the config/WARP test included.
         int concurrency = 64;
         int spawnIntervalMs = 2;
 
-        ScanIcmpOptions icmp;
-        ScanTcpOptions tcp;
-        ScanHttpOptions http;
-        ScanConfigTestOptions config;
         ScanWarpOptions warp;
         ScanResolverOptions resolver;
-        ScanTuneOptions tune;
 
         [[nodiscard]] QString PortModeKey() const;
 
@@ -151,13 +43,13 @@ namespace Configs {
 
     class IpScan {
     public:
-        enum class Kind { Generic = 0, Warp = 1, Resolver = 2, Tune = 3 };
+        enum class Kind { Warp = 1, Resolver = 2 };
         enum class Status { Idle = 0, Running = 1, Paused = 2, Completed = 3, Failed = 4 };
         enum class Mode { Initial = 0, RescanResult = 1 };
 
         int id = -1;
         QString name;
-        Kind kind = Kind::Generic;
+        Kind kind = Kind::Warp;
         int base_list_id = -1;
         int result_list_id = -1;
         ScanConfig config;
@@ -182,9 +74,6 @@ namespace Configs {
         QString last_error;
         qint64 started_at = 0;
         qint64 finished_at = 0;
-
-        // Tune scans: the search's trials; written only by IpScansRepo::SaveTuneState, never by Save.
-        QJsonObject tune_state;
 
         static ScanConfig DefaultConfig(Kind kind);
 

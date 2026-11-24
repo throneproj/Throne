@@ -45,12 +45,6 @@ namespace {
                 const QUrl url(list.source);
                 return IpListItem::tr("URL %1").arg(url.host().isEmpty() ? list.source : url.host());
             }
-            case Configs::IpList::SourceKind::RuleSet: {
-                const QUrl url(list.source);
-                const bool isUrl = list.source.startsWith(QStringLiteral("http://"), Qt::CaseInsensitive) ||
-                                   list.source.startsWith(QStringLiteral("https://"), Qt::CaseInsensitive);
-                return IpListItem::tr("Rule-set %1").arg(isUrl && !url.fileName().isEmpty() ? url.fileName() : list.source);
-            }
             case Configs::IpList::SourceKind::Manual:
                 break;
         }

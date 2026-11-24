@@ -55,6 +55,7 @@ namespace Configs {
             dataManager->markersRepo->Mark(Markers::DefaultIpLists);
             dataManager->markersRepo->Mark(Markers::DefaultResolverLists);
             dataManager->markersRepo->Mark(Markers::WarpMasqueRanges);
+            dataManager->markersRepo->Mark(Markers::ListSeedsNov2026);
         } else {
             if (!dataManager->markersRepo->IsMarked(Markers::DefaultResolverLists)) {
                 Scanner::DefaultIpLists::Ensure(Scanner::DefaultIpLists::kIranResolversName);
@@ -63,6 +64,8 @@ namespace Configs {
             }
             if (!dataManager->markersRepo->IsMarked(Markers::WarpMasqueRanges) && Scanner::DefaultIpLists::MigrateWarpMasqueRanges())
                 dataManager->markersRepo->Mark(Markers::WarpMasqueRanges);
+            if (!dataManager->markersRepo->IsMarked(Markers::ListSeedsNov2026) && Scanner::DefaultIpLists::MigrateListSeedsNov2026())
+                dataManager->markersRepo->Mark(Markers::ListSeedsNov2026);
         }
     }
 

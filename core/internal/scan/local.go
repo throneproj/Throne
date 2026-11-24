@@ -1,21 +1,11 @@
 package scan
 
 import (
-	"errors"
 	"net"
 	"net/netip"
 )
 
-var (
-	errICMPNotPermitted = errors.New("ICMP is not permitted: run privileged or allow net.ipv4.ping_group_range")
-	errNoIPv4Source     = errors.New("the default interface has no IPv4 address")
-	errNoIPv6Source     = errors.New("the default interface has no IPv6 address")
-)
-
 func localFailure(egress Egress, addr netip.Addr, err error) bool {
-	if errors.Is(err, errICMPNotPermitted) || errors.Is(err, errNoIPv4Source) || errors.Is(err, errNoIPv6Source) {
-		return true
-	}
 	return routingError(err) && routeMissing(egress, addr)
 }
 

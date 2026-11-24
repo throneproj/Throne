@@ -3,12 +3,13 @@ package rpc
 import (
 	"context"
 	"errors"
+	"net/netip"
 	"time"
 
 	"ThroneCore/gen"
 	"ThroneCore/internal/probe"
-	"ThroneCore/internal/rulesets"
 	"ThroneCore/internal/scan"
+	"ThroneCore/internal/warpprobe"
 )
 
 func milliseconds(ms int32) time.Duration {
@@ -21,7 +22,7 @@ func scanProbeRequest(in *gen.ScanProbeRequest) scan.ProbeRequest {
 	for _, entry := range spec.GetEntries() {
 		entries = append(entries, scan.Entry{CIDR: entry.GetCidr(), Port: entry.GetPort()})
 	}
-	icmp, tcp, http, dns := in.GetIcmp(), in.GetTcp(), in.GetHttp(), in.GetDns()
+	dns, warp := in.GetDns(), in.GetWarp()
 	return scan.ProbeRequest{
 		Spec: scan.Spec{
 			Entries:          entries,
@@ -33,44 +34,16 @@ func scanProbeRequest(in *gen.ScanProbeRequest) scan.ProbeRequest {
 		},
 		Cursor:     in.GetCursor(),
 		MaxTargets: int(in.GetMaxTargets()),
-		ICMP: scan.ICMPOptions{
-			Enabled: icmp.GetEnabled(),
-			Timeout: milliseconds(icmp.GetTimeoutMs()),
-			Count:   int(icmp.GetCount()),
-		},
-		TCP: scan.TCPOptions{
-			Enabled:      tcp.GetEnabled(),
-			Timeout:      milliseconds(tcp.GetTimeoutMs()),
-			Attempts:     int(tcp.GetAttempts()),
-			FallbackPort: tcp.GetFallbackPort(),
-		},
-		HTTP: scan.HTTPOptions{
-			Enabled:               http.GetEnabled(),
-			TLS:                   http.GetTls(),
-			ServerName:            http.GetServerName(),
-			Host:                  http.GetHost(),
-			Path:                  http.GetPath(),
-			Method:                http.GetMethod(),
-			Version:               http.GetHttpVersion(),
-			ALPN:                  http.GetAlpn(),
-			MinVersion:            http.GetMinVersion(),
-			MaxVersion:            http.GetMaxVersion(),
-			Fingerprint:           http.GetFingerprint(),
-			Insecure:              http.GetInsecure(),
-			DisableSNI:            http.GetDisableSni(),
-			Fragment:              http.GetFragment(),
-			FragmentFallbackDelay: milliseconds(http.GetFragmentFallbackDelayMs()),
-			RecordFragment:        http.GetRecordFragment(),
-			MixedCaseSNI:          http.GetMixedCaseSni(),
-			Timeout:               milliseconds(http.GetTimeoutMs()),
-			FallbackPort:          http.GetFallbackPort(),
-		},
 		DNS: scan.DNSOptions{
 			Enabled:    dns.GetEnabled(),
 			Protocol:   dns.GetProtocol(),
 			ConfigJSON: dns.GetConfigJson(),
-			Level:      dns.GetLevel(),
-			Timeout:    milliseconds(dns.GetTimeoutMs()),
+		},
+		WARP: scan.WARPOptions{
+			Enabled:    warp.GetEnabled(),
+			ConfigJSON: warp.GetConfigJson(),
+			Attempts:   int(warp.GetAttempts()),
+			Timeout:    milliseconds(warp.GetTimeoutMs()),
 		},
 		Concurrency:   int(in.GetConcurrency()),
 		SpawnInterval: milliseconds(in.GetSpawnIntervalMs()),
@@ -89,6 +62,9 @@ func (s *server) ScanProbe(ctx context.Context, in *gen.ScanProbeRequest) (*gen.
 		defer release()
 		session = acquired
 		ctx = session.Context()
+		if box := currentBox(); box != nil && request.WARP.Enabled {
+			ctx = warpprobe.WithServices(ctx, box.Context())
+		}
 	}
 	result, err := scan.Probe(ctx, session, scanEgress{}, request)
 	out := &gen.ScanProbeResponse{
@@ -104,23 +80,20 @@ func (s *server) ScanProbe(ctx context.Context, in *gen.ScanProbeRequest) (*gen.
 	}
 	for _, r := range result.Results {
 		out.Results = append(out.Results, &gen.ScanProbeResult{
-			Address:      To(r.Addr.String()),
-			Port:         To(int32(r.Port)),
-			Passed:       To(r.Passed),
-			FailedPhase:  To(r.FailedPhase),
-			Error:        To(r.Error),
-			IcmpMs:       To(r.ICMPMs),
-			TcpMs:        To(r.TCPMs),
-			TlsMs:        To(r.TLSMs),
-			HttpMs:       To(r.HTTPMs),
-			HttpStatus:   To(int32(r.HTTPStatus)),
-			ProbePort:    To(int32(r.ProbePort)),
-			LocalFailure: To(r.LocalFailure),
-			DnsMs:        To(r.DNSMs),
-			MaxQname:     To(r.MaxQName),
-			UploadMtu:    To(r.UploadMTU),
-			DownloadMtu:  To(r.DownloadMTU),
-			DnsStage:     To(r.DNSStage),
+			Address:        To(r.Addr.String()),
+			Port:           To(int32(r.Port)),
+			Passed:         To(r.Passed),
+			FailedPhase:    To(r.FailedPhase),
+			Error:          To(r.Error),
+			ProbePort:      To(int32(r.ProbePort)),
+			LocalFailure:   To(r.LocalFailure),
+			DnsMs:          To(r.DNSMs),
+			DnsStage:       To(r.DNSStage),
+			Sent:           To(r.Sent),
+			Answered:       To(r.Answered),
+			HandshakeMs:    To(r.HandshakeMs),
+			ShortNamesOnly: To(r.ShortNamesOnly),
+			DnsReason:      To(r.DNSReason),
 		})
 	}
 	return out, nil
@@ -198,14 +171,8 @@ func (s *server) ScanURLTest(ctx context.Context, in *gen.ScanURLTestRequest) (*
 		}
 		session.RecordURL(labelOf[result.Tag], result.Duration, result.Error)
 	}
-	var results []*probe.URLTestResult
-	if bodyBytes := in.GetBodyBytes(); bodyBytes > 0 {
-		results = probe.BatchDownloadTestTo(scanCtx, env.Box, env.Tags, test.GetUrl(), bodyBytes, int(test.GetMaxConcurrency()),
-			milliseconds(test.GetTestTimeoutMs()), publish)
-	} else {
-		results = probe.BatchURLTestTo(scanCtx, env.Box, env.Tags, test.GetUrl(), int(test.GetMaxConcurrency()),
-			in.GetWarmLatency(), milliseconds(test.GetTestTimeoutMs()), publish)
-	}
+	results := probe.BatchURLTestTo(scanCtx, env.Box, env.Tags, test.GetUrl(), int(test.GetMaxConcurrency()),
+		in.GetWarmLatency(), milliseconds(test.GetTestTimeoutMs()), publish)
 	if scanCtx.Err() == nil && egressLost() {
 		return nil, scan.ErrEgressLost
 	}
@@ -243,21 +210,23 @@ func (s *server) ScanURLTest(ctx context.Context, in *gen.ScanURLTestRequest) (*
 }
 
 func (s *server) ScanCheckNetwork(ctx context.Context, in *gen.ScanCheckNetworkRequest) (*gen.ScanCheckNetworkResponse, error) {
-	up, err := scan.CheckNetwork(ctx, scanEgress{}, in.GetTargets(), milliseconds(in.GetTimeoutMs()))
-	out := &gen.ScanCheckNetworkResponse{Up: To(up)}
-	if err != nil {
-		out.Error = To(err.Error())
+	out := &gen.ScanCheckNetworkResponse{}
+	var (
+		up  bool
+		err error
+	)
+	if in.GetDns() {
+		resolvers := systemResolvers()
+		targets := make([]netip.AddrPort, 0, len(resolvers))
+		for _, resolver := range resolvers {
+			out.SystemResolvers = append(out.SystemResolvers, resolver.String())
+			targets = append(targets, netip.AddrPortFrom(resolver, 53))
+		}
+		up, err = scan.CheckNetworkDNS(ctx, scanEgress{}, targets, milliseconds(in.GetTimeoutMs()))
+	} else {
+		up, err = scan.CheckNetwork(ctx, scanEgress{}, in.GetTargets(), milliseconds(in.GetTimeoutMs()))
 	}
-	return out, nil
-}
-
-func (s *server) ParseRuleSet(ctx context.Context, in *gen.ParseRuleSetRequest) (*gen.ParseRuleSetResponse, error) {
-	cidrs, skipped, version, err := rulesets.ParseIPCIDRs(in.GetContent())
-	out := &gen.ParseRuleSetResponse{
-		Cidrs:        cidrs,
-		SkippedRules: To(int32(skipped)),
-		Version:      To(int32(version)),
-	}
+	out.Up = To(up)
 	if err != nil {
 		out.Error = To(err.Error())
 	}

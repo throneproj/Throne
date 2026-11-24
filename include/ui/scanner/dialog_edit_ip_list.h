@@ -95,8 +95,6 @@ private:
 
     void loadList(int listId);
 
-    void setupRuleSetPicker();
-
     void showEntries(const QList<Configs::IpListEntry> &entries, int total, bool fromDb);
 
     void updateControls();

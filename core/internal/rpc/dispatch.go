@@ -149,7 +149,6 @@ var handlers = map[string]handlerFn{
 	"StopScan":            handle(globalServer.StopScan),
 	"ScanURLTest":         handle(globalServer.ScanURLTest),
 	"ScanCheckNetwork":    handle(globalServer.ScanCheckNetwork),
-	"ParseRuleSet":        handle(globalServer.ParseRuleSet),
 	"ResolveDomains":      handle(globalServer.ResolveDomains),
 	"TestRoute":           handle(globalServer.TestRoute),
 	"ServiceTest":         handle(globalServer.ServiceTest),
