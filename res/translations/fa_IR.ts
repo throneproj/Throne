@@ -5401,6 +5401,26 @@ Error: %2</source>
         <source>Refresh column widths</source>
         <translation>بازنشانی عرض ستون‌ها</translation>
     </message>
+    <message>
+        <source>Graph options</source>
+        <translation>گزینه‌های نمودار</translation>
+    </message>
+    <message>
+        <source>%1 min</source>
+        <translation>%1 دقیقه</translation>
+    </message>
+    <message>
+        <source>Show other outbounds</source>
+        <translation>نمایش خروجی‌های دیگر</translation>
+    </message>
+    <message>
+        <source>Lists route-rule and VPN outbounds; click one to draw its line.</source>
+        <translation>خروجی‌های قوانین مسیریابی و VPN را فهرست می‌کند؛ برای رسم خط هر کدام روی آن کلیک کنید.</translation>
+    </message>
+    <message>
+        <source>Time range</source>
+        <translation>بازه زمانی</translation>
+    </message>
 </context>
 <context>
     <name>ProfilesTableFilterHeader</name>
@@ -6853,28 +6873,12 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>اوج در %1 ثانیه</translation>
     </message>
     <message>
-        <source>Stopped</source>
-        <translation>متوقف شد</translation>
-    </message>
-    <message>
         <source>Not running</source>
         <translation>در حال اجرا نیست</translation>
     </message>
     <message>
-        <source>Started %1</source>
-        <translation>شروع %1</translation>
-    </message>
-    <message>
-        <source>Switched to %1</source>
-        <translation>تغییر به %1</translation>
-    </message>
-    <message>
         <source>Smooth lines</source>
         <translation>خطوط نرم</translation>
-    </message>
-    <message>
-        <source>Profile events</source>
-        <translation>رویدادهای نمایه</translation>
     </message>
     <message>
         <source>Show all lines</source>

@@ -308,6 +308,8 @@ private:
     int toolTipID;
     class LiveChart *trafficChart = nullptr;
     QList<Stats::TrafficLine> m_trafficLines;
+    // Route, aux and "other" lines summed into Proxy because the graph shows only Proxy and Direct.
+    bool m_trafficFolded = false;
     QTimer *m_trafficGraphSaveDebounce = nullptr;
     QAction *m_trafficStatsChartAction = nullptr;
     using LiveRates = Engine::LiveRates;
@@ -414,8 +416,6 @@ private:
     void refresh_action_states();
 
     // View slots of ConnectionManager and VpnAuthController, in mainwindow_view.cpp.
-    void addRunMarker(qint64 monoMs, Engine::RunMarker kind, const QString &name);
-
     void showRestartReasons();
 
     void showVpnEndpointStatus(const QString &summary, const QString &detail, bool problem);
@@ -571,6 +571,8 @@ private:
     void setupConnectionList();
 
     void setupTrafficGraph();
+
+    void show_traffic_graph_options();
 
     void setupRoutingMenu();
 

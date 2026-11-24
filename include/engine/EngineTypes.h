@@ -56,13 +56,6 @@ namespace Engine {
         quint64 restartSerial = 0;
     };
 
-    // Where the traffic chart marks a run.
-    enum class RunMarker {
-        Started,
-        Switched,
-        Stopped,
-    };
-
     // Why the running profile should restart to apply a change; the view translates it.
     enum class RestartReason {
         Settings,

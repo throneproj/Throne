@@ -101,8 +101,6 @@ namespace Engine {
 
         void profileRowsChanged(const QList<int> &profileIds);
 
-        void runMarker(qint64 monoMs, Engine::RunMarker kind, const QString &name);
-
         void restartReasonsChanged();
 
     private:

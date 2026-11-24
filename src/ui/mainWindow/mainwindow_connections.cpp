@@ -339,17 +339,23 @@ void MainWindow::setupConnectionFilter()
         for (auto* button : buttons) layout->addWidget(button);
         return group;
     };
+    auto* graphOptionsButton = new QToolButton(this);
+    graphOptionsButton->setIcon(ThemedIcon(QStringLiteral("settings")));
+    graphOptionsButton->setToolTip(tr("Graph options"));
+    connect(graphOptionsButton, &QToolButton::clicked, this, &MainWindow::show_traffic_graph_options);
+
     auto* connectionButtons = buttonGroup({btnFilter, connectionExpandButton, connectionCloseAllButton});
-    // A tab widget has one top-right corner, so the Logs tab's buttons share it.
+    // A tab widget has one top-right corner, so the Logs and Graph tabs' buttons share it.
     auto* logButtons = buttonGroup({logJumpLatestButton, logFilterButton});
-    auto* corner = buttonGroup({logButtons, connectionButtons});
+    auto* corner = buttonGroup({logButtons, connectionButtons, graphOptionsButton});
     ui->stats_widget->setCornerWidget(corner, Qt::TopRightCorner);
 
     auto syncCorner = [=,this] {
         const auto* current = ui->stats_widget->currentWidget();
         connectionButtons->setVisible(current == ui->connections_tab);
         logButtons->setVisible(current == ui->Logs);
-        corner->setVisible(current == ui->connections_tab || current == ui->Logs);
+        graphOptionsButton->setVisible(current == ui->graph_tab);
+        corner->setVisible(current == ui->connections_tab || current == ui->Logs || current == ui->graph_tab);
     };
     connect(ui->stats_widget, &QTabWidget::currentChanged, this, [syncCorner](int) { syncCorner(); });
     syncCorner();

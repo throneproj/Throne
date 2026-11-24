@@ -93,11 +93,14 @@ namespace Configs {
         int stats_tab = 0; // either connection or log
         // LiveChartState of the traffic graph; keys are Stats::TrafficLine keys.
         QStringList traffic_graph_hidden = {};
+        // Route, aux and "other" lines start hidden; these are the ones turned on.
+        QStringList traffic_graph_shown = {};
         // Bit 0 hides download, bit 1 upload.
         int traffic_graph_hidden_dirs = 0;
-        int traffic_graph_range = 1;
+        int traffic_graph_seconds = 120;
         bool traffic_graph_smooth = true;
-        bool traffic_graph_markers = true;
+        // Off: route, aux and "other" traffic is folded into the Proxy line.
+        bool traffic_graph_extras = false;
         // Stats::ConnectionSort; 0 == Stats::Default, the core's own ordering.
         int connection_sort = 0;
         bool connection_sort_asc = false;

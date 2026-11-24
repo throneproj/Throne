@@ -1,6 +1,8 @@
 #include "include/ui/mainwindow.h"
 
 #include <algorithm>
+#include <cmath>
+#include <limits>
 
 #include <QApplication>
 #include <QHeaderView>
@@ -402,6 +404,8 @@ void MainWindow::refresh_action_states() {
 void MainWindow::set_traffic_lines(const QList<Stats::TrafficLine> &lines) {
     m_trafficLines = lines;
     if (trafficChart == nullptr) return;
+    const bool extras = Configs::dataManager->settingsRepo->traffic_graph_extras;
+    m_trafficFolded = false;
     QList<LiveChartRow> rows;
     int nextSlot = 1;
     for (const auto &line : lines) {
@@ -415,13 +419,16 @@ void MainWindow::set_traffic_lines(const QList<Stats::TrafficLine> &lines) {
                 break;
             case Stats::TrafficLineKind::Route:
             case Stats::TrafficLineKind::Aux:
-                row.label = line.name;
-                row.kind = line.kind == Stats::TrafficLineKind::Route ? tr("route") : tr("aux");
-                row.paletteSlot = std::min(nextSlot++, 4);
-                break;
             case Stats::TrafficLineKind::Other:
+                if (!extras) {
+                    m_trafficFolded = true;
+                    continue;
+                }
                 row.label = line.name;
+                if (line.kind == Stats::TrafficLineKind::Route) row.kind = tr("route");
+                else if (line.kind == Stats::TrafficLineKind::Aux) row.kind = tr("aux");
                 row.paletteSlot = std::min(nextSlot++, 4);
+                row.minor = true;
                 break;
             case Stats::TrafficLineKind::Direct:
                 row.label = tr("Direct");
@@ -437,18 +444,21 @@ void MainWindow::add_traffic_point(qint64 monoMs, bool coreRunning, const QVecto
                                    double proxyDown, double proxyUp, double directDown, double directUp) {
     if (trafficChart == nullptr) return;
     if (coreRunning && values.size() != m_trafficLines.size() * 2) return;
-    trafficChart->addPoint(monoMs, coreRunning, values);
-}
-
-void MainWindow::addRunMarker(qint64 monoMs, Engine::RunMarker kind, const QString &name) {
-    if (trafficChart == nullptr) return;
-    auto marker = LiveChart::Marker::Started;
-    switch (kind) {
-        case Engine::RunMarker::Started: marker = LiveChart::Marker::Started; break;
-        case Engine::RunMarker::Switched: marker = LiveChart::Marker::Switched; break;
-        case Engine::RunMarker::Stopped: marker = LiveChart::Marker::Stopped; break;
+    if (!coreRunning || !m_trafficFolded) {
+        trafficChart->addPoint(monoMs, coreRunning, values);
+        return;
     }
-    trafficChart->addMarker(monoMs, marker, name);
+    QVector<double> folded(4, std::numeric_limits<double>::quiet_NaN());
+    for (qsizetype line = 0; line < m_trafficLines.size(); ++line) {
+        const int at = m_trafficLines[line].kind == Stats::TrafficLineKind::Direct ? 2 : 0;
+        for (int k = 0; k < 2; ++k) {
+            const double v = values[line * 2 + k];
+            if (std::isnan(v)) continue;
+            double &sum = folded[at + k];
+            sum = std::isnan(sum) ? v : sum + v;
+        }
+    }
+    trafficChart->addPoint(monoMs, true, folded);
 }
 
 void MainWindow::refresh_traffic_graph_settings() {

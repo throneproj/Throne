@@ -46,8 +46,7 @@ void SeriesBuffer::releaseDeadColumns(const QSet<QString> &keep) {
 
 void SeriesBuffer::push(qint64 t, bool running) {
     int s;
-    const bool evicting = m_size == m_capacity;
-    if (evicting) {
+    if (m_size == m_capacity) {
         s = m_head;
         m_head = m_head + 1 == m_capacity ? 0 : m_head + 1;
     } else {
@@ -58,9 +57,6 @@ void SeriesBuffer::push(qint64 t, bool running) {
     m_running[s] = running;
     for (auto &column : m_columns) column.values[s] = std::numeric_limits<float>::quiet_NaN();
     ++m_serial;
-    if (!evicting) return;
-    const qint64 oldest = time(0);
-    while (!m_markers.isEmpty() && m_markers.first().t < oldest) m_markers.removeFirst();
 }
 
 void SeriesBuffer::setLatest(int column, float value) {
@@ -79,12 +75,7 @@ int SeriesBuffer::lowerBound(qint64 t) const {
     return lo;
 }
 
-void SeriesBuffer::addMarker(qint64 t, int kind, const QString &text) {
-    m_markers.append(Marker{t, kind, text});
-}
-
 void SeriesBuffer::clear() {
     m_head = 0;
     m_size = 0;
-    m_markers.clear();
 }

@@ -380,7 +380,6 @@ namespace Engine {
         startCoordinatorQueue([=, this] {
             MW_show_log(">>>>>>>> " + MainWindowTr::tr("Starting profile %1").arg(ent->outbound->DisplayTypeAndName()));
             const bool started = profile_start_stage2(slowStart);
-            const auto markerAt = MonotonicMs();
             if (!started) {
                 MW_show_log("<<<<<<<< " + MainWindowTr::tr("Failed to start profile %1").arg(ent->outbound->DisplayTypeAndName()));
             }
@@ -401,12 +400,6 @@ namespace Engine {
                 if (!started) clearRestartNeeded();
                 syncState();
                 emit busyChanged();
-                if (started) {
-                    emit runMarker(markerAt, switching ? RunMarker::Switched : RunMarker::Started,
-                                   ent->outbound ? ent->outbound->DisplayName() : ent->name);
-                } else if (switching) {
-                    emit runMarker(markerAt, RunMarker::Stopped, {});
-                }
             });
         });
     }
@@ -569,12 +562,9 @@ namespace Engine {
             Configs::ClearRunningProfiles();
             m_stats->setOutboundNames({});
             m_state->setRunning(nullptr, false);
-            const auto stoppedAt = MonotonicMs();
 
             startCoordinatorRunOnMain([=, this] {
                 slowStop.dismiss();
-                if (!switching) emit runMarker(stoppedAt, RunMarker::Stopped, {});
-
                 m_state->disconnecting = false;
                 // A switch leaves the reasons to its start.
                 if (!switching) clearRestartNeeded();

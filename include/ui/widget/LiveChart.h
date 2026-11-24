@@ -20,6 +20,8 @@ struct LiveChartRow {
     QColor color;
     int paletteSlot = 0;
     bool wash = false;
+    // Smaller legend entry, hidden until the user turns it on.
+    bool minor = false;
 };
 
 struct LiveChartColumn {
@@ -28,12 +30,6 @@ struct LiveChartColumn {
     QString arrow;
     bool dashed = false;
     bool wash = false;
-};
-
-struct LiveChartRange {
-    int seconds = 60;
-    QString label;
-    int tickSeconds = 15;
 };
 
 struct LiveChartScale {
@@ -59,15 +55,11 @@ struct LiveChartOptions {
 
     QList<LiveChartColumn> columns;
     Legend legend = Legend::None;
-    // Empty: a fixed windowSeconds and no window control.
-    QList<LiveChartRange> ranges;
     int windowSeconds = 120;
     int pointIntervalMs = 1000;
     int capacity = 600;
     bool crosshair = true;
     bool axisPills = true;
-    bool markers = false;
-    bool stoppedBands = false;
     bool timeAxis = true;
     bool totalInCard = true;
     bool contextMenu = false;
@@ -84,10 +76,12 @@ struct LiveChartOptions {
 
 struct LiveChartState {
     QStringList hiddenRows;
+    // Minor rows the user turned on.
+    QStringList shownRows;
     QStringList hiddenColumns;
-    int range = 1;
+    // 0: the options' windowSeconds.
+    int windowSeconds = 0;
     bool smooth = true;
-    bool markers = true;
 
     bool operator==(const LiveChartState &) const = default;
 };
@@ -97,16 +91,13 @@ class LiveChart : public QWidget {
     Q_OBJECT
 
 public:
-    enum class Marker { Started, Switched, Stopped };
-
     explicit LiveChart(LiveChartOptions options, QWidget *parent = nullptr);
     ~LiveChart() override;
 
-    // Rows of the current source. Rows from earlier calls stay in the legend while they have data in the window.
+    // Rows of the current source. Earlier non-minor rows stay in the legend while they have data in the window.
     void setRows(const QList<LiveChartRow> &rows);
-    // One value per current row × column, row-major; NaN where a line has no value. running=false draws a stopped band.
+    // One value per current row × column, row-major; NaN where a line has no value. running=false breaks the lines.
     void addPoint(qint64 monoMs, bool running, const QVector<double> &values);
-    void addMarker(qint64 monoMs, Marker kind, const QString &text);
     // A non-empty title replaces the plot with the message; the buffer is kept.
     void setBlocked(const QString &title, const QString &body = {});
     void clearHistory();

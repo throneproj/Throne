@@ -62,7 +62,12 @@
 #include <QDBusReply>
 #endif
 
+#include <QCheckBox>
 #include <QClipboard>
+#include <QComboBox>
+#include <QDialogButtonBox>
+#include <QFormLayout>
+#include <QVBoxLayout>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QStackedWidget>
@@ -112,7 +117,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(host->connection(), &Engine::ConnectionManager::statusChanged, this, &MainWindow::refresh_action_states);
     connect(host->connection(), &Engine::ConnectionManager::busyChanged, this, &MainWindow::refresh_startstop_button);
     connect(host->connection(), &Engine::ConnectionManager::profileRowsChanged, this, [this](const QList<int> &ids) { refresh_proxy_list(ids); });
-    connect(host->connection(), &Engine::ConnectionManager::runMarker, this, &MainWindow::addRunMarker);
     connect(host->connection(), &Engine::ConnectionManager::restartReasonsChanged, this, &MainWindow::showRestartReasons);
     connect(host->vpnAuth(), &Engine::VpnAuthController::endpointStatusChanged, this, &MainWindow::showVpnEndpointStatus);
     connect(host->vpnAuth(), &Engine::VpnAuthController::exitStateChanged, this, [this] { refresh_status(); });
@@ -1007,25 +1011,29 @@ void MainWindow::setupTrafficGraph() {
         {QStringLiteral("direct"), tr("Direct"), Stats::TrafficLineKind::Direct},
     });
 
-    QStringList hidden;
-    for (const auto &key : settings->traffic_graph_hidden) {
-        const auto parts = key.split(':');
-        if (parts.size() == 2 && (parts[0] == QLatin1String("route") || parts[0] == QLatin1String("aux"))) {
-            bool ok = false;
-            const int id = parts[1].toInt(&ok);
-            if (!ok || Configs::dataManager->profilesRepo->GetProfile(id) == nullptr) continue;
+    const auto existing = [](const QStringList &keys) {
+        QStringList kept;
+        for (const auto &key : keys) {
+            const auto parts = key.split(':');
+            if (parts.size() == 2 && (parts[0] == QLatin1String("route") || parts[0] == QLatin1String("aux"))) {
+                bool ok = false;
+                const int id = parts[1].toInt(&ok);
+                if (!ok || Configs::dataManager->profilesRepo->GetProfile(id) == nullptr) continue;
+            }
+            kept << key;
         }
-        hidden << key;
-    }
-    settings->traffic_graph_hidden = hidden;
+        return kept;
+    };
+    settings->traffic_graph_hidden = existing(settings->traffic_graph_hidden);
+    settings->traffic_graph_shown = existing(settings->traffic_graph_shown);
 
     LiveChartState state;
-    state.hiddenRows = hidden;
+    state.hiddenRows = settings->traffic_graph_hidden;
+    state.shownRows = settings->traffic_graph_shown;
     if (settings->traffic_graph_hidden_dirs & 1) state.hiddenColumns << QStringLiteral("d");
     if (settings->traffic_graph_hidden_dirs & 2) state.hiddenColumns << QStringLiteral("u");
-    state.range = settings->traffic_graph_range;
+    state.windowSeconds = settings->traffic_graph_seconds;
     state.smooth = settings->traffic_graph_smooth;
-    state.markers = settings->traffic_graph_markers;
     trafficChart->setState(state);
 
     m_trafficGraphSaveDebounce = new QTimer(this);
@@ -1036,11 +1044,10 @@ void MainWindow::setupTrafficGraph() {
         const auto chartState = trafficChart->state();
         auto &repo = Configs::dataManager->settingsRepo;
         repo->traffic_graph_hidden = chartState.hiddenRows;
+        repo->traffic_graph_shown = chartState.shownRows;
         repo->traffic_graph_hidden_dirs = (chartState.hiddenColumns.contains(QStringLiteral("d")) ? 1 : 0) |
                                           (chartState.hiddenColumns.contains(QStringLiteral("u")) ? 2 : 0);
-        repo->traffic_graph_range = chartState.range;
         repo->traffic_graph_smooth = chartState.smooth;
-        repo->traffic_graph_markers = chartState.markers;
         m_trafficGraphSaveDebounce->start();
     });
 
@@ -1048,5 +1055,44 @@ void MainWindow::setupTrafficGraph() {
     connect(m_trafficStatsChartAction, &QAction::triggered, this, [this] { ui->actionTraffic_Stats->trigger(); });
     trafficChart->addMenuAction(m_trafficStatsChartAction);
     refresh_traffic_graph_settings();
+}
+
+void MainWindow::show_traffic_graph_options() {
+    if (trafficChart == nullptr) return;
+    auto &settings = Configs::dataManager->settingsRepo;
+    auto *dialog = new QDialog(this);
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->setWindowTitle(tr("Graph options"));
+
+    auto *range = new QComboBox(dialog);
+    for (const int minutes : {1, 2, 5, 10}) range->addItem(tr("%1 min").arg(minutes), minutes * 60);
+    const int selected = range->findData(settings->traffic_graph_seconds);
+    range->setCurrentIndex(selected >= 0 ? selected : 1);
+    auto *extras = new QCheckBox(tr("Show other outbounds"), dialog);
+    extras->setToolTip(tr("Lists route-rule and VPN outbounds; click one to draw its line."));
+    extras->setChecked(settings->traffic_graph_extras);
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Close, dialog);
+
+    auto *form = new QFormLayout;
+    form->addRow(tr("Time range"), range);
+    form->addRow(extras);
+    auto *layout = new QVBoxLayout(dialog);
+    layout->addLayout(form);
+    layout->addWidget(buttons);
+
+    connect(buttons, &QDialogButtonBox::rejected, dialog, &QDialog::reject);
+    connect(range, &QComboBox::currentIndexChanged, this, [this, range] {
+        auto state = trafficChart->state();
+        state.windowSeconds = range->currentData().toInt();
+        trafficChart->setState(state);
+        Configs::dataManager->settingsRepo->traffic_graph_seconds = state.windowSeconds;
+        m_trafficGraphSaveDebounce->start();
+    });
+    connect(extras, &QCheckBox::toggled, this, [this](bool on) {
+        Configs::dataManager->settingsRepo->traffic_graph_extras = on;
+        set_traffic_lines(m_trafficLines);
+        m_trafficGraphSaveDebounce->start();
+    });
+    dialog->open();
 }
 

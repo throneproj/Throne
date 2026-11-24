@@ -9598,10 +9598,6 @@ Close without saving?</source>
         <translation>合计(Σ)</translation>
     </message>
     <message>
-        <source>Stopped</source>
-        <translation>已停止</translation>
-    </message>
-    <message>
         <source>All lines are hidden</source>
         <translation>隐藏所有线条</translation>
     </message>
@@ -9618,20 +9614,8 @@ Close without saving?</source>
         <translation>未在运行</translation>
     </message>
     <message>
-        <source>Started %1</source>
-        <translation>已启动 %1</translation>
-    </message>
-    <message>
-        <source>Switched to %1</source>
-        <translation>已切换到 %1</translation>
-    </message>
-    <message>
         <source>Smooth lines</source>
         <translation>平滑线条</translation>
-    </message>
-    <message>
-        <source>Profile events</source>
-        <translation>配置档事件</translation>
     </message>
     <message>
         <source>Show all lines</source>
@@ -11301,6 +11285,26 @@ Error: %2</source>
     <message>
         <source>Export Config</source>
         <translation>导出配置</translation>
+    </message>
+    <message>
+        <source>Graph options</source>
+        <translation>图表选项</translation>
+    </message>
+    <message>
+        <source>%1 min</source>
+        <translation>%1 分钟</translation>
+    </message>
+    <message>
+        <source>Show other outbounds</source>
+        <translation>显示其它出站</translation>
+    </message>
+    <message>
+        <source>Lists route-rule and VPN outbounds; click one to draw its line.</source>
+        <translation>列出路由规则和 VPN 出站；点击其中一个以绘制其线条。</translation>
+    </message>
+    <message>
+        <source>Time range</source>
+        <translation>时间范围</translation>
     </message>
 </context>
 <context>

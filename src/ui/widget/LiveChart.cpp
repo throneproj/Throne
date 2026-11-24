@@ -146,15 +146,15 @@ namespace {
         p.drawEllipse(center, r, r);
     }
 
-    void liveChartLegendDot(QPainter &p, const QPointF &center, const QColor &color, bool filled) {
+    void liveChartLegendDot(QPainter &p, const QPointF &center, const QColor &color, bool filled, qreal r) {
         if (filled) {
             p.setPen(Qt::NoPen);
             p.setBrush(color);
         } else {
-            p.setPen(QPen(color, 1.5));
+            p.setPen(QPen(color, r < 4 ? 1.2 : 1.5));
             p.setBrush(Qt::NoBrush);
         }
-        p.drawEllipse(center, 4.5, 4.5);
+        p.drawEllipse(center, r, r);
     }
 
     void liveChartLineKey(QPainter &p, qreal x0, qreal x1, qreal y, const QColor &color, bool dashed) {
@@ -239,19 +239,11 @@ LiveChartOptions LiveChartOptions::trafficGraph() {
         LiveChartColumn{QStringLiteral("u"), LiveChart::tr("Up"), QStringLiteral("↑"), true, false},
     };
     o.legend = Legend::Side;
-    o.ranges = {
-        LiveChartRange{60, QStringLiteral("1m"), 15},
-        LiveChartRange{120, QStringLiteral("2m"), 30},
-        LiveChartRange{300, QStringLiteral("5m"), 60},
-        LiveChartRange{600, QStringLiteral("10m"), 120},
-    };
     o.windowSeconds = 120;
     o.pointIntervalMs = 1000;
     o.capacity = 600;
     o.crosshair = true;
     o.axisPills = true;
-    o.markers = true;
-    o.stoppedBands = true;
     o.timeAxis = true;
     o.totalInCard = true;
     o.contextMenu = true;
@@ -270,8 +262,6 @@ LiveChartOptions LiveChartOptions::sparkline(const QString &caption, LiveChartAx
     o.capacity = 64;
     o.crosshair = true;
     o.axisPills = false;
-    o.markers = false;
-    o.stoppedBands = false;
     o.timeAxis = false;
     o.totalInCard = false;
     o.contextMenu = false;
@@ -282,7 +272,7 @@ LiveChartOptions LiveChartOptions::sparkline(const QString &caption, LiveChartAx
 }
 
 struct LiveChart::Impl {
-    enum HitType { NoHit, RowHit, ColumnHit, RangeHit };
+    enum HitType { NoHit, RowHit, ColumnHit };
     enum MessageKind { NoMessage, BlockedMessage, EmptyMessage, HiddenMessage };
 
     struct Hit {
@@ -345,18 +335,6 @@ struct LiveChart::Impl {
         QRectF labelRect;
     };
 
-    struct Band {
-        QRectF rect;
-        bool labeled = false;
-    };
-
-    struct MarkerItem {
-        qreal x = 0;
-        bool flagged = false;
-        QRectF flag;
-        QString text;
-    };
-
     struct AxisLabel {
         qreal x = 0;
         qreal width = 0;
@@ -381,7 +359,7 @@ struct LiveChart::Impl {
     };
 
     struct Colors {
-        QColor base, ink, ink2, muted, grid, axis, border, hairline, eventLine, stoppedFill, hatch, hover, selected, panel, label, caption;
+        QColor base, ink, ink2, muted, grid, axis, border, hairline, hover, panel, label, caption;
     };
 
     struct View {
@@ -391,7 +369,7 @@ struct LiveChart::Impl {
         bool allHidden = false;
         MessageKind message = NoMessage;
         LiveChartOptions::Legend legend = LiveChartOptions::Legend::None;
-        QRectF panel, plot, topStrip, bottomStrip, rangeRect;
+        QRectF panel, plot, topStrip, bottomStrip;
         qreal sideX0 = 0, sideNameW = 0, sideColW = 0;
         qint64 start = 0, end = 0, span = 1, kms = 1, wallOffset = 0;
         double top = 1;
@@ -439,6 +417,7 @@ struct LiveChart::Impl {
     qint64 windowMs() const;
     qint64 tickMs() const;
     bool rowOn(int reg) const;
+    void setRowOn(int reg, bool on);
     bool columnOn(int column) const;
     qreal xOf(qint64 t) const;
     qreal yOf(double v) const;
@@ -455,10 +434,7 @@ struct LiveChart::Impl {
     void buildBuckets(bool perPoint);
     qreal layoutSide(qreal W, qreal H);
     qreal layoutTop(qreal W);
-    void addRangeHits();
     void layoutGrid(const LiveChartScale &scale);
-    void layoutBands();
-    void layoutMarkers();
     void layoutTimeAxis();
     void layoutMessage(MessageKind kind, const QString &title, const QString &body);
     void axisVisibility(qreal crossX, std::vector<char> &out) const;
@@ -474,11 +450,7 @@ struct LiveChart::Impl {
     void paintSideRow(QPainter &p, const SideRow &row);
     void paintTop(QPainter &p);
     void paintChip(QPainter &p, const Hit &hit);
-    void paintRange(QPainter &p);
     void paintGrid(QPainter &p);
-    void paintBands(QPainter &p);
-    void paintEventLines(QPainter &p);
-    void paintFlags(QPainter &p);
     void paintSeries(QPainter &p);
     void paintSegment(QPainter &p, int j, int a, int b, const QPen &pen, const QColor &color, const QColor &washColor, bool wash, bool dashed);
     void traceRun(QPainter &p, int j, int a, int b, const QPen &pen, const QColor &washColor, bool wash);
@@ -487,7 +459,6 @@ struct LiveChart::Impl {
     void paintCard(QPainter &p);
     void paintPill(QPainter &p, const QString &text, const QRectF &rect);
     void paintMessage(QPainter &p);
-    static QString markerText(const SeriesBuffer::Marker &marker, bool note);
 
     const Hit *hitAt(const QPointF &pos) const;
     int nearestByX(qreal x) const;
@@ -516,16 +487,14 @@ struct LiveChart::Impl {
     QFont fontBase, fontSmall, fontMedium, fontBold, fontSmallMedium, fontSmallBold, fontTitle, fontLabel, fontLabelBold;
     QFontMetricsF fmBase{QFont()}, fmSmall{QFont()}, fmMedium{QFont()}, fmBold{QFont()}, fmSmallMedium{QFont()}, fmSmallBold{QFont()},
         fmTitle{QFont()}, fmLabel{QFont()}, fmLabelBold{QFont()};
-    qreal legendRowH = 22, chipH = 24, headerH = 20, segW = 34, cardRowH = 19, compactRowH = 16, flagH = 17, pillH = 18, axisH = 24;
-    qreal gridLabelGap = 9, messageLineH = 17, messageTitleH = 20, valueWidth = 0, cardTotalWidth = 0, stoppedWidth = 0;
+    qreal legendRowH = 22, minorRowH = 18, chipH = 24, minorChipH = 20, headerH = 20, cardRowH = 19, compactRowH = 16, pillH = 18, axisH = 24;
+    qreal gridLabelGap = 9, messageLineH = 17, messageTitleH = 20, valueWidth = 0, cardTotalWidth = 0;
     QString totalText;
-    QString stoppedText;
     QStringList columnHeaders;
     std::vector<qreal> columnHeaderWidths;
     std::vector<qreal> columnArrowWidths;
 
     Colors c;
-    QBrush hatchBrush;
     View view;
     Overlay ov;
     std::vector<int> legendRows;
@@ -541,8 +510,6 @@ struct LiveChart::Impl {
     std::vector<SideRow> sideRows;
     std::vector<QString> legendValues;
     std::vector<GridLine> gridLines;
-    std::vector<Band> bands;
-    std::vector<MarkerItem> markerItems;
     std::vector<AxisLabel> axisLabels;
     std::vector<char> axisScratch;
     QStringList messageLines;
@@ -572,14 +539,10 @@ LiveChart::Impl::Impl(LiveChart *owner, LiveChartOptions options) : q(owner), o(
     if (!o.axis.format || !o.axis.scale) o.axis = LiveChartAxis::rateBytes();
     if (o.compact) {
         o.legend = LiveChartOptions::Legend::None;
-        o.ranges.clear();
         o.timeAxis = false;
         o.axisPills = false;
-        o.markers = false;
-        o.stoppedBands = false;
         o.contextMenu = false;
     }
-    if (!o.ranges.isEmpty()) s.range = std::clamp(s.range, 0, int(o.ranges.size()) - 1);
     animation.setInterval(16);
 }
 
@@ -673,11 +636,12 @@ void LiveChart::Impl::refreshFonts() {
 
     const qreal baseH = std::ceil(fmBase.height()), smallH = std::ceil(fmSmall.height());
     legendRowH = std::max<qreal>(22, baseH + 6);
+    minorRowH = std::max<qreal>(18, smallH + 5);
     chipH = std::max<qreal>(24, baseH + 8);
+    minorChipH = std::max<qreal>(20, smallH + 7);
     headerH = std::max<qreal>(20, smallH + 6);
     cardRowH = std::max<qreal>(19, baseH + 3);
     compactRowH = std::max<qreal>(16, smallH + 2);
-    flagH = std::max<qreal>(17, smallH + 3);
     pillH = std::max<qreal>(18, std::ceil(fmSmallBold.height()) + 4);
     axisH = std::max<qreal>(24, pillH + 6);
     gridLabelGap = std::max<qreal>(9, std::ceil(smallH / 2) + 2);
@@ -687,8 +651,6 @@ void LiveChart::Impl::refreshFonts() {
     valueWidth = 0;
     for (const auto &w : o.axis.widest) valueWidth = std::max(valueWidth, fmMedium.horizontalAdvance(w));
     valueWidth = std::ceil(valueWidth);
-    segW = 34;
-    for (const auto &range : o.ranges) segW = std::max(segW, std::ceil(fmBold.horizontalAdvance(range.label)) + 14);
 
     columnHeaders.clear();
     columnHeaderWidths.clear();
@@ -701,8 +663,6 @@ void LiveChart::Impl::refreshFonts() {
     }
     totalText = LiveChart::tr("Total");
     cardTotalWidth = (o.compact ? fmSmall : fmBase).horizontalAdvance(totalText);
-    stoppedText = LiveChart::tr("Stopped");
-    stoppedWidth = fmSmallMedium.horizontalAdvance(stoppedText);
     refreshRowMetrics();
 }
 
@@ -711,8 +671,8 @@ void LiveChart::Impl::refreshRowMetrics() {
     const QFontMetricsF &cardKind = o.compact ? fmLabel : fmSmall;
     for (auto &entry : registry) {
         entry.shortName = ShortDisplayName(entry.row.label);
-        entry.nameWidth = fmBase.horizontalAdvance(entry.shortName);
-        entry.kindWidth = entry.row.kind.isEmpty() ? 0 : fmSmall.horizontalAdvance(entry.row.kind);
+        entry.nameWidth = (entry.row.minor ? fmSmall : fmBase).horizontalAdvance(entry.shortName);
+        entry.kindWidth = entry.row.kind.isEmpty() ? 0 : (entry.row.minor ? fmLabel : fmSmall).horizontalAdvance(entry.row.kind);
         entry.cardNameWidth = cardName.horizontalAdvance(entry.shortName);
         entry.cardKindWidth = entry.row.kind.isEmpty() ? 0 : cardKind.horizontalAdvance(entry.row.kind);
     }
@@ -734,15 +694,10 @@ void LiveChart::Impl::refreshColors() {
     c.axis = liveChartAlpha(text, 70);
     c.border = liveChartAlpha(text, 60);
     c.hairline = liveChartAlpha(text, 92);
-    c.eventLine = liveChartAlpha(text, 92);
-    c.stoppedFill = liveChartAlpha(text, 10);
-    c.hatch = liveChartAlpha(text, 56);
     c.hover = liveChartAlpha(highlight, 30);
-    c.selected = liveChartAlpha(highlight, 45);
     c.panel = liveChartAlpha(text, 12);
     c.label = liveChartAlpha(text, 150);
     c.caption = liveChartAlpha(text, 190);
-    if (hatchBrush.color() != c.hatch || hatchBrush.style() != Qt::BDiagPattern) hatchBrush = QBrush(c.hatch, Qt::BDiagPattern);
 }
 
 QColor LiveChart::Impl::rowColor(const LiveChartRow &row) const {
@@ -794,17 +749,28 @@ void LiveChart::Impl::resetPointerState() {
 }
 
 qint64 LiveChart::Impl::windowMs() const {
-    const int seconds = o.ranges.isEmpty() ? o.windowSeconds : o.ranges[s.range].seconds;
+    const int seconds = s.windowSeconds > 0 ? s.windowSeconds : o.windowSeconds;
     return qint64(std::max(1, seconds)) * 1000;
 }
 
 qint64 LiveChart::Impl::tickMs() const {
-    const int seconds = o.ranges.isEmpty() ? 30 : o.ranges[s.range].tickSeconds;
-    return qint64(seconds > 0 ? seconds : 30) * 1000;
+    const qint64 window = windowMs();
+    for (const int seconds : {5, 10, 15, 30, 60, 120, 300, 600, 900, 1800}) {
+        if (qint64(seconds) * 5000 >= window) return qint64(seconds) * 1000;
+    }
+    return 3600 * 1000;
 }
 
 bool LiveChart::Impl::rowOn(int reg) const {
-    return !s.hiddenRows.contains(registry[reg].row.key);
+    const auto &row = registry[reg].row;
+    return row.minor ? s.shownRows.contains(row.key) : !s.hiddenRows.contains(row.key);
+}
+
+void LiveChart::Impl::setRowOn(int reg, bool on) {
+    const auto &row = registry[reg].row;
+    QStringList &list = row.minor ? s.shownRows : s.hiddenRows;
+    list.removeAll(row.key);
+    if (on == row.minor) list.append(row.key);
 }
 
 bool LiveChart::Impl::columnOn(int column) const {
@@ -851,8 +817,6 @@ bool LiveChart::Impl::layoutView() {
     sideRows.clear();
     legendValues.clear();
     gridLines.clear();
-    bands.clear();
-    markerItems.clear();
     axisLabels.clear();
     messageLines.clear();
     buckets.clear();
@@ -914,8 +878,6 @@ bool LiveChart::Impl::layoutView() {
     view.top = drawnTop;
 
     layoutGrid(scale);
-    if (o.stoppedBands) layoutBands();
-    if (o.markers && s.markers) layoutMarkers();
     if (o.timeAxis) layoutTimeAxis();
     view.allHidden = std::none_of(series.begin(), series.end(), [](const Series &x) { return x.on; });
     if (view.allHidden) {
@@ -1053,11 +1015,6 @@ qreal LiveChart::Impl::layoutSide(qreal W, qreal H) {
     view.sideColW = colW;
 
     qreal y = 8;
-    if (!o.ranges.isEmpty()) {
-        view.rangeRect = QRectF(W - 8 - segW * o.ranges.size(), y, segW * o.ranges.size(), chipH);
-        addRangeHits();
-        y += chipH + 10;
-    }
     if (nc > 1) {
         for (int k = 0; k < nc; ++k) {
             const qreal right = x0 + 30 + nameW + (k + 1) * colW, lw = columnHeaderWidths[k];
@@ -1068,7 +1025,7 @@ qreal LiveChart::Impl::layoutSide(qreal W, qreal H) {
     const int last = buf.size() - 1;
     const bool blocked = !blockedTitle.isEmpty();
     for (const int reg : legendRows) {
-        const qreal h = legendRowH;
+        const qreal h = registry[reg].row.minor ? minorRowH : legendRowH;
         if (y + h > H - 4) break;
         const QRectF rect(x0 + 4, y, sideW - 8, h);
         sideRows.push_back(SideRow{reg, rect, int(legendValues.size())});
@@ -1086,31 +1043,24 @@ qreal LiveChart::Impl::layoutSide(qreal W, qreal H) {
 qreal LiveChart::Impl::layoutTop(qreal W) {
     const qreal pad = 8, gap = 6, top = 8, h = chipH;
     const int nc = int(o.columns.size());
-    const qreal rangeW = o.ranges.isEmpty() ? 0 : segW * o.ranges.size();
-    const qreal limit = W - pad - (rangeW > 0 ? rangeW + 12 : 0);
+    const qreal limit = W - pad;
     qreal x = pad, y = top;
-    const auto place = [&](HitType type, int index, qreal w) {
+    const auto place = [&](HitType type, int index, qreal w, qreal ch) {
         if (x > pad && x + w > limit) {
             x = pad;
             y += h + 6;
         }
-        hits.push_back(Hit{type, index, QRectF(x, y, w, h)});
+        hits.push_back(Hit{type, index, QRectF(x, y + (h - ch) / 2, w, ch)});
         x += w + gap;
     };
-    for (const int reg : legendRows) place(RowHit, reg, 30 + std::ceil(registry[reg].nameWidth) + 10);
-    if (nc > 1) {
-        for (int k = 0; k < nc; ++k) place(ColumnHit, k, 30 + std::ceil(columnArrowWidths[k]) + 10);
+    for (const int reg : legendRows) {
+        const bool minor = registry[reg].row.minor;
+        place(RowHit, reg, (minor ? 22 : 30) + std::ceil(registry[reg].nameWidth) + (minor ? 8 : 10), minor ? minorChipH : h);
     }
-    if (rangeW > 0) {
-        view.rangeRect = QRectF(W - pad - rangeW, top, rangeW, h);
-        addRangeHits();
+    if (nc > 1) {
+        for (int k = 0; k < nc; ++k) place(ColumnHit, k, 30 + std::ceil(columnArrowWidths[k]) + 10, h);
     }
     return y + h;
-}
-
-void LiveChart::Impl::addRangeHits() {
-    const QRectF &r = view.rangeRect;
-    for (int i = 0; i < int(o.ranges.size()); ++i) hits.push_back(Hit{RangeHit, i, QRectF(r.left() + i * segW, r.top(), segW, r.height())});
 }
 
 void LiveChart::Impl::layoutGrid(const LiveChartScale &scale) {
@@ -1131,43 +1081,6 @@ void LiveChart::Impl::layoutGrid(const LiveChartScale &scale) {
             line.labelRect = QRectF(r.left() + 2, line.labelMid - lineH / 2 - 1, fmSmall.horizontalAdvance(line.label) + 2, lineH + 2);
         }
         gridLines.push_back(std::move(line));
-    }
-}
-
-void LiveChart::Impl::layoutBands() {
-    const QRectF &r = view.plot;
-    const qreal half = std::max(1.0, double(view.kms) / double(view.span) * r.width() / 2);
-    for (size_t i = 0; i < buckets.size();) {
-        if (buckets[i].run) {
-            ++i;
-            continue;
-        }
-        size_t j = i;
-        while (j + 1 < buckets.size() && !buckets[j + 1].run) ++j;
-        const qreal x0 = std::max(r.left(), buckets[i].x - half), x1 = std::min(r.right(), buckets[j].x + half);
-        if (x1 > x0) bands.push_back(Band{QRectF(x0, r.top(), x1 - x0, r.height()), x1 - x0 > stoppedWidth + 16});
-        i = j + 1;
-    }
-}
-
-void LiveChart::Impl::layoutMarkers() {
-    const QRectF &r = view.plot;
-    qreal lastRight = -std::numeric_limits<qreal>::infinity();
-    for (const auto &marker : buf.markers()) {
-        if (marker.t < view.start || marker.t > view.end) continue;
-        const qreal x = xOf(marker.t);
-        MarkerItem item;
-        item.x = std::round(x);
-        item.text = markerText(marker, false);
-        const qreal w = std::ceil(fmSmall.horizontalAdvance(item.text)) + 12;
-        qreal fx = x + 3;
-        if (fx + w > r.right()) fx = x - 3 - w;
-        if (fx >= r.left() && fx >= lastRight + 4) {
-            item.flagged = true;
-            item.flag = QRectF(fx, r.top() + 2, w, flagH);
-            lastRight = fx + w;
-        }
-        markerItems.push_back(std::move(item));
     }
 }
 
@@ -1327,12 +1240,6 @@ void LiveChart::Impl::computeCard(const Bucket &b, int focus, qreal cx, qreal an
             ov.lines.push_back(CardLine{CardLine::Total, -1, false, {}, offset});
         }
     }
-    if (o.markers) {
-        const qint64 reach = view.kms / 2 + o.pointIntervalMs / 2;
-        for (const auto &marker : buf.markers()) {
-            if (std::abs(marker.t - b.tx) <= reach) ov.lines.push_back(CardLine{CardLine::Note, -1, false, markerText(marker, true), -1});
-        }
-    }
 
     qreal nameW = cardTotalWidth, noteW = 0;
     for (const auto &line : ov.lines) {
@@ -1400,10 +1307,7 @@ void LiveChart::Impl::paint(QPainter &p) {
         return;
     }
     paintGrid(p);
-    if (!bands.empty()) paintBands(p);
-    if (!markerItems.empty()) paintEventLines(p);
     paintSeries(p);
-    if (!markerItems.empty()) paintFlags(p);
     if (o.timeAxis) paintAxis(p);
     if (view.message == HiddenMessage) {
         paintMessage(p);
@@ -1437,7 +1341,6 @@ void LiveChart::Impl::paintCompact(QPainter &p) {
 
 void LiveChart::Impl::paintSide(QPainter &p) {
     p.fillRect(QRectF(std::floor(view.sideX0), 8, 1, q->height() - 16), c.grid);
-    if (!o.ranges.isEmpty() && needs(view.rangeRect)) paintRange(p);
     for (const auto &hit : hits) {
         if (hit.type == ColumnHit && needs(hit.rect)) paintColumnHeader(p, hit);
     }
@@ -1465,7 +1368,7 @@ void LiveChart::Impl::paintColumnHeader(QPainter &p, const Hit &hit) {
 
 void LiveChart::Impl::paintSideRow(QPainter &p, const SideRow &row) {
     const auto &entry = registry[row.reg];
-    const bool on = rowOn(row.reg);
+    const bool on = rowOn(row.reg), minor = entry.row.minor;
     const qreal x0 = view.sideX0, my = row.rect.center().y();
     p.setRenderHint(QPainter::Antialiasing, true);
     if (hoverHit.type == RowHit && hoverHit.index == row.reg) {
@@ -1473,32 +1376,33 @@ void LiveChart::Impl::paintSideRow(QPainter &p, const SideRow &row) {
         p.setBrush(c.hover);
         p.drawRoundedRect(row.rect, 4, 4);
     }
-    liveChartLegendDot(p, QPointF(x0 + 17, my), entry.color, on);
+    liveChartLegendDot(p, QPointF(x0 + 17, my), entry.color, on, minor ? 3.25 : 4.5);
     p.setRenderHint(QPainter::Antialiasing, false);
-    p.setFont(fontBase);
+    p.setFont(minor ? fontSmall : fontBase);
     p.setPen(on ? c.ink : c.muted);
-    liveChartText(p, fmBase, entry.shortName, x0 + 30, my, kLiveChartLeft);
+    liveChartText(p, minor ? fmSmall : fmBase, entry.shortName, x0 + 30, my, kLiveChartLeft);
     if (!entry.row.kind.isEmpty()) {
-        p.setFont(fontSmall);
+        p.setFont(minor ? fontLabel : fontSmall);
         p.setPen(c.muted);
-        liveChartText(p, fmSmall, entry.row.kind, x0 + 30 + entry.nameWidth + 6, my, kLiveChartLeft);
+        liveChartText(p, minor ? fmLabel : fmSmall, entry.row.kind, x0 + 30 + entry.nameWidth + 6, my, kLiveChartLeft);
     }
-    p.setFont(fontMedium);
+    p.setFont(minor ? fontSmall : fontMedium);
     for (int k = 0; k < int(o.columns.size()); ++k) {
         p.setPen(on && columnOn(k) ? c.ink : c.muted);
-        liveChartText(p, fmMedium, legendValues[size_t(row.values + k)], x0 + 30 + view.sideNameW + (k + 1) * view.sideColW, my, kLiveChartRight);
+        liveChartText(p, minor ? fmSmall : fmMedium, legendValues[size_t(row.values + k)], x0 + 30 + view.sideNameW + (k + 1) * view.sideColW, my,
+                      kLiveChartRight);
     }
 }
 
 void LiveChart::Impl::paintTop(QPainter &p) {
     for (const auto &hit : hits) {
-        if ((hit.type == RowHit || hit.type == ColumnHit) && needs(hit.rect)) paintChip(p, hit);
+        if (needs(hit.rect)) paintChip(p, hit);
     }
-    if (!o.ranges.isEmpty() && needs(view.rangeRect)) paintRange(p);
 }
 
 void LiveChart::Impl::paintChip(QPainter &p, const Hit &hit) {
     const bool row = hit.type == RowHit;
+    const bool minor = row && registry[hit.index].row.minor;
     const bool on = row ? rowOn(hit.index) : columnOn(hit.index);
     const bool hovered = hoverHit.type == hit.type && hoverHit.index == hit.index;
     const QRectF &r = hit.rect;
@@ -1509,36 +1413,14 @@ void LiveChart::Impl::paintChip(QPainter &p, const Hit &hit) {
     p.setPen(border);
     p.setBrush(hovered ? QBrush(c.hover) : QBrush());
     p.drawRoundedRect(r.adjusted(0.5, 0.5, -0.5, -0.5), 5, 5);
-    if (row) liveChartLegendDot(p, QPointF(r.left() + 15, my), registry[hit.index].color, on);
+    if (minor) liveChartLegendDot(p, QPointF(r.left() + 12, my), registry[hit.index].color, on, 3.25);
+    else if (row) liveChartLegendDot(p, QPointF(r.left() + 15, my), registry[hit.index].color, on, 4.5);
     else liveChartLineKey(p, r.left() + 9, r.left() + 23, my, on ? c.ink2 : liveChartFaded(c.muted, 0.5), o.columns[hit.index].dashed);
     p.setRenderHint(QPainter::Antialiasing, false);
-    p.setFont(fontBase);
+    p.setFont(minor ? fontSmall : fontBase);
     p.setPen(on ? c.ink2 : c.muted);
-    liveChartText(p, fmBase, row ? registry[hit.index].shortName : o.columns[hit.index].arrow, r.left() + 30, my, kLiveChartLeft);
-}
-
-void LiveChart::Impl::paintRange(QPainter &p) {
-    const QRectF &r = view.rangeRect;
-    const int n = int(o.ranges.size());
-    p.setRenderHint(QPainter::Antialiasing, true);
-    p.setPen(QPen(c.axis, 1));
-    p.setBrush(Qt::NoBrush);
-    p.drawRoundedRect(r.adjusted(0.5, 0.5, -0.5, -0.5), 5, 5);
-    p.setPen(Qt::NoPen);
-    for (int i = 0; i < n; ++i) {
-        const bool selected = i == s.range;
-        if (selected || (hoverHit.type == RangeHit && hoverHit.index == i)) {
-            p.setBrush(selected ? c.selected : c.hover);
-            p.drawRoundedRect(QRectF(r.left() + i * segW + 2, r.top() + 2, segW - 4, r.height() - 4), 4, 4);
-        }
-    }
-    p.setRenderHint(QPainter::Antialiasing, false);
-    for (int i = 0; i < n; ++i) {
-        const bool selected = i == s.range;
-        p.setFont(selected ? fontBold : fontBase);
-        p.setPen(selected ? c.ink : c.ink2);
-        liveChartText(p, selected ? fmBold : fmBase, o.ranges[i].label, r.left() + i * segW + segW / 2, r.center().y() + 0.5, kLiveChartCenter);
-    }
+    liveChartText(p, minor ? fmSmall : fmBase, row ? registry[hit.index].shortName : o.columns[hit.index].arrow, r.left() + (minor ? 22 : 30), my,
+                  kLiveChartLeft);
 }
 
 void LiveChart::Impl::paintGrid(QPainter &p) {
@@ -1549,43 +1431,6 @@ void LiveChart::Impl::paintGrid(QPainter &p) {
         if (!line.label.isEmpty() && needs(line.labelRect)) {
             liveChartHalo(p, fmSmall, line.label, r.left() + 3, line.labelMid, c.muted, c.base, kLiveChartLeft);
         }
-    }
-}
-
-void LiveChart::Impl::paintBands(QPainter &p) {
-    const qreal labelH = fmSmallMedium.height();
-    p.setFont(fontSmallMedium);
-    for (const auto &band : bands) {
-        p.fillRect(band.rect, c.stoppedFill);
-        p.fillRect(band.rect, hatchBrush);
-        if (!band.labeled) continue;
-        const QPointF center = band.rect.center();
-        if (needs(QRectF(center.x() - stoppedWidth / 2 - 2, center.y() - labelH / 2 - 2, stoppedWidth + 4, labelH + 4))) {
-            liveChartHalo(p, fmSmallMedium, stoppedText, center.x(), center.y(), c.ink2, c.base, kLiveChartCenter);
-        }
-    }
-}
-
-void LiveChart::Impl::paintEventLines(QPainter &p) {
-    const QRectF &r = view.plot;
-    QPen pen(c.eventLine, 1);
-    pen.setCapStyle(Qt::FlatCap);
-    pen.setDashPattern({2, 3});
-    p.setPen(pen);
-    for (const auto &item : markerItems) p.drawLine(QPointF(item.x, r.top()), QPointF(item.x, r.bottom()));
-}
-
-void LiveChart::Impl::paintFlags(QPainter &p) {
-    p.setFont(fontSmall);
-    for (const auto &item : markerItems) {
-        if (!item.flagged || !needs(item.flag)) continue;
-        p.setRenderHint(QPainter::Antialiasing, true);
-        p.setPen(QPen(c.axis, 1));
-        p.setBrush(liveChartFaded(c.base, 0.94));
-        p.drawRoundedRect(item.flag.adjusted(0.5, 0.5, -0.5, -0.5), 4, 4);
-        p.setRenderHint(QPainter::Antialiasing, false);
-        p.setPen(c.ink2);
-        liveChartText(p, fmSmall, item.text, item.flag.left() + 6, item.flag.center().y() + 0.5, kLiveChartLeft);
     }
 }
 
@@ -1810,18 +1655,6 @@ void LiveChart::Impl::paintMessage(QPainter &p) {
     }
 }
 
-QString LiveChart::Impl::markerText(const SeriesBuffer::Marker &marker, bool note) {
-    switch (static_cast<LiveChart::Marker>(marker.kind)) {
-        case LiveChart::Marker::Started:
-            return QStringLiteral("▶ ") + (note ? LiveChart::tr("Started %1").arg(marker.text) : ShortDisplayName(marker.text));
-        case LiveChart::Marker::Switched:
-            return QStringLiteral("⇄ ") + (note ? LiveChart::tr("Switched to %1").arg(marker.text) : ShortDisplayName(marker.text));
-        case LiveChart::Marker::Stopped:
-            break;
-    }
-    return QStringLiteral("■ ") + LiveChart::tr("Stopped");
-}
-
 const LiveChart::Impl::Hit *LiveChart::Impl::hitAt(const QPointF &pos) const {
     for (auto it = hits.rbegin(); it != hits.rend(); ++it) {
         if (it->rect.contains(pos)) return &*it;
@@ -1994,18 +1827,11 @@ void LiveChart::Impl::updateToolTip(const Hit *hit, const QPoint &global) {
 void LiveChart::Impl::activate(const Hit &hit, bool alt) {
     switch (hit.type) {
         case RowHit:
-            if (alt) {
-                soloRow(hit.index);
-            } else if (s.hiddenRows.removeAll(registry[hit.index].row.key) == 0) {
-                s.hiddenRows.append(registry[hit.index].row.key);
-            }
+            if (alt) soloRow(hit.index);
+            else setRowOn(hit.index, !rowOn(hit.index));
             break;
         case ColumnHit:
             if (s.hiddenColumns.removeAll(o.columns[hit.index].key) == 0) s.hiddenColumns.append(o.columns[hit.index].key);
-            break;
-        case RangeHit:
-            if (s.range == hit.index) return;
-            s.range = hit.index;
             break;
         case NoHit:
             return;
@@ -2014,17 +1840,9 @@ void LiveChart::Impl::activate(const Hit &hit, bool alt) {
 }
 
 void LiveChart::Impl::soloRow(int reg) {
-    const QString key = registry[reg].row.key;
-    const bool already = std::all_of(legendRows.begin(), legendRows.end(), [&](int r) {
-        const QString &k = registry[r].row.key;
-        return s.hiddenRows.contains(k) == (k != key);
-    });
-    // Only legend rows change: hidden keys of rows not shown now must survive in the saved state.
-    for (const int r : legendRows) {
-        const QString &k = registry[r].row.key;
-        s.hiddenRows.removeAll(k);
-        if (!already && k != key) s.hiddenRows.append(k);
-    }
+    const bool already = std::all_of(legendRows.begin(), legendRows.end(), [&](int r) { return rowOn(r) == (r == reg); });
+    // Only legend rows change: keys of rows not shown now must survive in the saved state.
+    for (const int r : legendRows) setRowOn(r, already || r == reg);
 }
 
 LiveChart::LiveChart(LiveChartOptions options, QWidget *parent) : QWidget(parent), d(std::make_unique<Impl>(this, std::move(options))) {
@@ -2054,7 +1872,7 @@ void LiveChart::setRows(const QList<LiveChartRow> &rows) {
     }
     for (auto &old : d->registry) {
         const bool redefined = std::any_of(rows.begin(), rows.end(), [&](const LiveChartRow &row) { return row.key == old.row.key; });
-        if (redefined) continue;
+        if (redefined || old.row.minor) continue;
         old.current = false;
         next.push_back(std::move(old));
     }
@@ -2078,11 +1896,6 @@ void LiveChart::addPoint(qint64 monoMs, bool running, const QVector<double> &val
         if (!std::isnan(v)) d->buf.setLatest(d->registry[size_t(i / nc)].columns[i % nc], float(v));
     }
     d->invalidate();
-}
-
-void LiveChart::addMarker(qint64 monoMs, Marker kind, const QString &text) {
-    d->buf.addMarker(monoMs, int(kind), text);
-    if (d->o.markers) d->invalidate();
 }
 
 void LiveChart::setBlocked(const QString &title, const QString &body) {
@@ -2114,7 +1927,7 @@ LiveChartState LiveChart::state() const {
 
 void LiveChart::setState(const LiveChartState &state) {
     d->s = state;
-    if (!d->o.ranges.isEmpty()) d->s.range = std::clamp(d->s.range, 0, int(d->o.ranges.size()) - 1);
+    d->s.windowSeconds = std::clamp(d->s.windowSeconds, 0, d->o.capacity * std::max(1, d->o.pointIntervalMs) / 1000);
     d->invalidate();
 }
 
@@ -2207,21 +2020,13 @@ void LiveChart::contextMenuEvent(QContextMenuEvent *event) {
         d->s.smooth = on;
         d->notifyState();
     });
-    if (d->o.markers) {
-        QAction *markers = menu->addAction(tr("Profile events"));
-        markers->setCheckable(true);
-        markers->setChecked(d->s.markers);
-        connect(markers, &QAction::toggled, this, [this](bool on) {
-            d->s.markers = on;
-            d->notifyState();
-        });
-    }
     menu->addSeparator();
     connect(menu->addAction(tr("Show all lines")), &QAction::triggered, this, [this] {
-        if (d->s.hiddenRows.isEmpty() && d->s.hiddenColumns.isEmpty()) return;
+        const LiveChartState before = d->s;
         d->s.hiddenRows.clear();
         d->s.hiddenColumns.clear();
-        d->notifyState();
+        for (const int reg : d->legendRows) d->setRowOn(reg, true);
+        if (!(d->s == before)) d->notifyState();
     });
     connect(menu->addAction(tr("Clear history")), &QAction::triggered, this, &LiveChart::clearHistory);
     bool separated = false;

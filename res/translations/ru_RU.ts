@@ -9692,28 +9692,12 @@ Close without saving?</source>
         <translation>пик за %1 с</translation>
     </message>
     <message>
-        <source>Stopped</source>
-        <translation>Остановлено</translation>
-    </message>
-    <message>
         <source>Not running</source>
         <translation>Не запущен</translation>
     </message>
     <message>
-        <source>Started %1</source>
-        <translation>Запущен %1</translation>
-    </message>
-    <message>
-        <source>Switched to %1</source>
-        <translation>Переключено на %1</translation>
-    </message>
-    <message>
         <source>Smooth lines</source>
         <translation>Сглаживать линии</translation>
-    </message>
-    <message>
-        <source>Profile events</source>
-        <translation>События профилей</translation>
     </message>
     <message>
         <source>Show all lines</source>
@@ -11387,6 +11371,26 @@ Error: %2</source>
     <message>
         <source>Export Config</source>
         <translation>Экспортировать конфиг</translation>
+    </message>
+    <message>
+        <source>Graph options</source>
+        <translation>Параметры графика</translation>
+    </message>
+    <message>
+        <source>%1 min</source>
+        <translation>%1 мин.</translation>
+    </message>
+    <message>
+        <source>Show other outbounds</source>
+        <translation>Показывать прочие outbound</translation>
+    </message>
+    <message>
+        <source>Lists route-rule and VPN outbounds; click one to draw its line.</source>
+        <translation>Добавляет outbound правил маршрутизации и VPN; нажмите на один, чтобы нарисовать его линию.</translation>
+    </message>
+    <message>
+        <source>Time range</source>
+        <translation>Период</translation>
     </message>
 </context>
 <context>

@@ -125,8 +125,6 @@ namespace Engine {
 
         void profileRowsChanged(const QList<int> &profileIds);
 
-        void runMarker(qint64 monoMs, Engine::RunMarker kind, const QString &name);
-
         // Only when the set of pending reasons changed.
         void restartReasonsChanged();
 

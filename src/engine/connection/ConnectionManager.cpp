@@ -27,7 +27,6 @@ namespace Engine {
         connect(m_coordinator, &StartCoordinator::statusChanged, this, &ConnectionManager::statusChanged, Qt::DirectConnection);
         connect(m_coordinator, &StartCoordinator::busyChanged, this, &ConnectionManager::busyChanged, Qt::DirectConnection);
         connect(m_coordinator, &StartCoordinator::profileRowsChanged, this, &ConnectionManager::profileRowsChanged, Qt::DirectConnection);
-        connect(m_coordinator, &StartCoordinator::runMarker, this, &ConnectionManager::runMarker, Qt::DirectConnection);
         connect(m_coordinator, &StartCoordinator::restartReasonsChanged, this, &ConnectionManager::restartReasonsChanged, Qt::DirectConnection);
         connect(coreSupervisor, &CoreSupervisor::coreStarted, this, &ConnectionManager::onCoreStarted);
         connect(coreSupervisor, &CoreSupervisor::coreGaveUp, m_coordinator, &StartCoordinator::onCoreGaveUp);
