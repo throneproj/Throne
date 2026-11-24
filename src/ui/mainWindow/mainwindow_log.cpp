@@ -28,6 +28,11 @@ namespace {
         return limit > 0 ? limit : 500;
     }
 
+    bool shouldPrintLog(const QString &line, const QRegularExpression &hide) {
+        if (QStringView(line).trimmed().isEmpty()) return false;
+        return hide.pattern().isEmpty() || !hide.match(line).hasMatch();
+    }
+
     // Every log line must stay exactly one block: the view maps visible m_logLines to blocks by count.
     void appendDocumentLines(QTextDocument *doc, const QString &lines) {
         if (lines.isEmpty()) return;
@@ -241,18 +246,14 @@ void MainWindow::log_process_loop() {
         }
         QQueue<QString> pending;
         pending.swap(logQueue);
-        const LogFilter filter{
-            Configs::dataManager->settingsRepo->log_enable_include,
-            Configs::dataManager->settingsRepo->log_enable_exclude,
-            includeKeywords, excludeKeywords, includeCombined, excludeCombined,
-        };
+        const QRegularExpression hide = logHidePattern;
         logMutex.unlock();
 
         QString batchToPrint;
         for (const auto& entry : pending) {
             for (auto logLine : entry.split('\n')) {
                 if (logLine.endsWith('\r')) logLine.chop(1);
-                if (!should_print_log(logLine, filter)) continue;
+                if (!shouldPrintLog(logLine, hide)) continue;
                 // QTextCursor::insertText starts a new block at these; keep each log line a single block.
                 for (QChar &c : logLine) {
                     if (c == '\r' || c == QChar::ParagraphSeparator || c == QChar(0xfdd0) || c == QChar(0xfdd1)) c = ' ';
@@ -410,35 +411,6 @@ void MainWindow::updateLogStatus() {
     }
     logJumpLatestButton->setVisible(!m_logFollow);
     logJumpLatestButton->setText(m_logHeld.empty() ? tr("Jump to latest") : tr("Jump to latest (%1 new)").arg(m_logHeld.size()));
-}
-
-bool MainWindow::should_print_log(const QString &log, const LogFilter &filter) {
-    if (QStringView(log).trimmed().isEmpty()) return false;
-    bool result = true;
-    if (filter.enableInclude) {
-        result = false;
-        for (const auto& includeKeyword : filter.includeKeywords) {
-            if (log.contains(includeKeyword)) {
-                result = true;
-                break;
-            }
-        }
-        if (!result && !filter.includeCombined.pattern().isEmpty() && filter.includeCombined.match(log).hasMatch()) {
-            result = true;
-        }
-    }
-    if (result && filter.enableExclude) {
-        for (const auto& excludeKeyword : filter.excludeKeywords) {
-            if (log.contains(excludeKeyword)) {
-                result = false;
-                break;
-            }
-        }
-        if (result && !filter.excludeCombined.pattern().isEmpty() && filter.excludeCombined.match(log).hasMatch()) {
-            result = false;
-        }
-    }
-    return result;
 }
 
 void MainWindow::on_masterLogBrowser_customContextMenuRequested(const QPoint &pos) {

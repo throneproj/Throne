@@ -27,44 +27,69 @@
    <item row="0" column="1">
     <widget class="MyLineEdit" name="password"/>
    </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label_2">
+   <item row="1" column="0" colspan="2" alignment="Qt::AlignLeft">
+    <widget class="QToolButton" name="advanced_toggle">
      <property name="text">
-      <string>Idle Session Check Interval</string>
-     </property>
-     <property name="buddy">
-      <cstring>interval</cstring>
+      <string>Advanced</string>
      </property>
     </widget>
    </item>
-   <item row="1" column="1">
-    <widget class="QLineEdit" name="interval"/>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="label_3">
-     <property name="text">
-      <string>Idle Session Timeout</string>
-     </property>
-     <property name="buddy">
-      <cstring>timeout</cstring>
-     </property>
+   <item row="2" column="0" colspan="2">
+    <widget class="QWidget" name="advanced_box" native="true">
+     <layout class="QGridLayout" name="advanced_layout" columnstretch="0,1">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Idle Session Check Interval</string>
+        </property>
+        <property name="buddy">
+         <cstring>interval</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="interval"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Idle Session Timeout</string>
+        </property>
+        <property name="buddy">
+         <cstring>timeout</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="timeout"/>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Min Idle Session</string>
+        </property>
+        <property name="buddy">
+         <cstring>min</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="min"/>
+      </item>
+     </layout>
     </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QLineEdit" name="timeout"/>
-   </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="label_4">
-     <property name="text">
-      <string>Min Idle Session</string>
-     </property>
-     <property name="buddy">
-      <cstring>min</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="1">
-    <widget class="QLineEdit" name="min"/>
    </item>
   </layout>
  </widget>
@@ -77,6 +102,10 @@
  </customwidgets>
  <tabstops>
   <tabstop>password</tabstop>
+  <tabstop>advanced_toggle</tabstop>
+  <tabstop>interval</tabstop>
+  <tabstop>timeout</tabstop>
+  <tabstop>min</tabstop>
  </tabstops>
  <resources/>
  <connections/>

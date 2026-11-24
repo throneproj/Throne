@@ -275,14 +275,6 @@ namespace Engine::RouteService {
             return std::nullopt;
         }
 
-        std::shared_ptr<RouteRule> routeServiceDnsHijackRule() {
-            auto rule = std::make_shared<RouteRule>();
-            rule->name = QStringLiteral("dns-hijack");
-            rule->protocol = QStringLiteral("dns");
-            rule->action = QStringLiteral("hijack-dns");
-            return rule;
-        }
-
         // The example the window's raw editor starts a new profile with.
         QString routeServiceRawTemplate() {
             const QJsonObject route{
@@ -520,8 +512,6 @@ namespace Engine::RouteService {
                 }
                 return;
             }
-            // A remote profile may be saved before its first fetch.
-            if (!route.isRemote && route.IsEmpty()) problems->append(QStringLiteral("rules: No valid rules are in the profile"));
             for (qsizetype i = 0; i < route.Rules.size(); ++i) {
                 const auto &rule = *route.Rules[i];
                 for (const auto &issue : rule.validate()) {
@@ -616,12 +606,7 @@ namespace Engine::RouteService {
 
         auto route = Configs::RoutesRepo::NewRouteProfile();
         route->isRaw = kindName == QLatin1String("raw");
-        if (route->isRaw) {
-            route->rawRoute = routeServiceRawTemplate();
-        } else if (!routeServicePresent(body, QStringLiteral("rules"))) {
-            // What the window's editor starts a new structured profile with.
-            route->Rules << routeServiceDnsHijackRule();
-        }
+        if (route->isRaw) route->rawRoute = routeServiceRawTemplate();
         QStringList problems;
         QStringList notes;
         if (auto error = routeServiceApply(*route, body, &problems, &notes)) return error;

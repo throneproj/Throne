@@ -76,6 +76,8 @@ private:
 
     void show_dns_object_editor();
 
+    void show_warp_advanced_editor();
+
     void generate_warp_config();
 
     void generate_amnezia_packets();
@@ -95,11 +97,23 @@ private:
         QString query_timeout;
     };
 
+    // Untrimmed field text as WARP Advanced shows it; accept() trims and splits it.
+    struct WarpAdvancedDraft {
+        QString private_key;
+        QString public_key;
+        QString reserved;
+        QString masque_private_key;
+        QString masque_peer_public_key;
+        QString masque_sni;
+        int masque_http_mode = 0;
+    };
+
     // Held until accept() so the popups can be cancelled without touching the settings.
     bool predefined_dns_enabled = true;
     QString predefined_dns_text;
     DnsAdvancedDraft dns_advanced{};
     QString dns_object_text;
+    WarpAdvancedDraft warp_advanced{};
 
     QShortcut* deleteShortcut;
 public slots:

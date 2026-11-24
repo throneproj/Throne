@@ -503,6 +503,17 @@
     </message>
 </context>
 <context>
+    <name>EditNaive</name>
+    <message>
+        <source>Advanced</source>
+        <translation>پیشرفته</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>پیش‌فرض</translation>
+    </message>
+</context>
+<context>
     <name>IpListItem</name>
     <message>
         <source>%1 d</source>
@@ -1179,10 +1190,6 @@ Throne در پس‌زمینه دوباره تلاش می‌کند و راه‌ا
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Disable traffic counters</source>
-        <translation>غیرفعال کردن شمارنده‌های ترافیک</translation>
-    </message>
-    <message>
         <source>NTP Settings</source>
         <translation>تنظیمات NTP</translation>
     </message>
@@ -1491,6 +1498,14 @@ Included: %2</source>
     <message>
         <source>Settings</source>
         <translation>تنظیمات</translation>
+    </message>
+    <message>
+        <source>Hide lines matching</source>
+        <translation>پنهان کردن خطوط مطابق</translation>
+    </message>
+    <message>
+        <source>Log lines matching this regular expression are dropped before they reach the log.</source>
+        <translation>خطوطی که با این عبارت باقاعده مطابقت دارند، پیش از رسیدن به لاگ حذف می‌شوند.</translation>
     </message>
 </context>
 <context>
@@ -1836,51 +1851,11 @@ Included: %2</source>
         <translation>سربرگ‌ها</translation>
     </message>
     <message>
-        <source>Max Concurrency</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Max Post Bytes</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Max Reusable Secs</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Max Request Times</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Host</source>
         <translation>میزبان</translation>
     </message>
     <message>
-        <source>X Padding Bytes</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Min Post Interval</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Mode</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Max Reuse times</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Keep Alive Period</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Download Settings</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Max Connections</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1998,10 +1973,6 @@ Included: %2</source>
     <message>
         <source>Extra Core</source>
         <translation>هسته اضافی</translation>
-    </message>
-    <message>
-        <source>Fallback Delay</source>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>This profile was deleted while you were editing it.</source>
@@ -2230,6 +2201,34 @@ Included: %2</source>
     <message>
         <source>%1: %2</source>
         <translation>%1: %2</translation>
+    </message>
+    <message>
+        <source>Extra</source>
+        <translation>تنظیمات اضافی (Extra)</translation>
+    </message>
+    <message>
+        <source>Handshake</source>
+        <translation>دست‌دهی</translation>
+    </message>
+    <message>
+        <source>Handshake + Records</source>
+        <translation>دست‌دهی + رکوردها</translation>
+    </message>
+    <message>
+        <source>Handshake splits the ClientHello into TCP segments, Records into TLS records. Keep default: Preset Settings.</source>
+        <translation>«دست‌دهی» پیام ClientHello را به قطعه‌های TCP و «رکوردها» آن را به رکوردهای TLS تقسیم می‌کند. «نگه داری مقدار پیشفرض»: مطابق تنظیمات از پیش‌تعیین‌شده.</translation>
+    </message>
+    <message>
+        <source>No extra settings are set. Available keys:</source>
+        <translation>هیچ تنظیم اضافه‌ای مشخص نشده است. کلیدهای موجود:</translation>
+    </message>
+    <message>
+        <source>Records</source>
+        <translation>رکوردها</translation>
+    </message>
+    <message>
+        <source>XHTTP extra settings as JSON: padding, upload tuning, session keys, xmux and downloadSettings.</source>
+        <translation>تنظیمات اضافی XHTTP به صورت JSON: padding، تنظیم آپلود، کلیدهای نشست، xmux و downloadSettings.</translation>
     </message>
 </context>
 <context>
@@ -2473,10 +2472,6 @@ Included: %2</source>
         <translation>هر به‌روزرسانی «%1» قوانین این نمایه را بازنویسی می‌کند.</translation>
     </message>
     <message>
-        <source>TLS fragmentation for WARP registration</source>
-        <translation>قطعه‌بندی TLS برای ثبت‌نام WARP</translation>
-    </message>
-    <message>
         <source>Advanced</source>
         <translation>پیشرفته</translation>
     </message>
@@ -2495,10 +2490,6 @@ Included: %2</source>
     <message>
         <source>Fragment TLS</source>
         <translation>قطعه‌بندی TLS</translation>
-    </message>
-    <message>
-        <source>Record fragment</source>
-        <translation>قطعه‌بندی رکورد</translation>
     </message>
     <message>
         <source>Fallback delay</source>
@@ -2593,6 +2584,26 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
     <message>
         <source>Exit Through</source>
         <translation>خروج از طریق</translation>
+    </message>
+    <message>
+        <source>%1 in Advanced</source>
+        <translation>%1 در «پیشرفته»</translation>
+    </message>
+    <message>
+        <source>Handshake</source>
+        <translation>دست‌دهی</translation>
+    </message>
+    <message>
+        <source>Handshake + Records</source>
+        <translation>دست‌دهی + رکوردها</translation>
+    </message>
+    <message>
+        <source>Keys, MASQUE options, registration domains and TLS fragmentation</source>
+        <translation>کلیدها، گزینه‌های MASQUE، دامنه‌های ثبت‌نام و قطعه‌بندی TLS</translation>
+    </message>
+    <message>
+        <source>Records</source>
+        <translation>رکوردها</translation>
     </message>
 </context>
 <context>
@@ -3531,6 +3542,22 @@ Close without saving?</source>
         <source>Not set</source>
         <translation>تنظیم نشده</translation>
     </message>
+    <message>
+        <source>Fragment Fallback Delay</source>
+        <translation>تأخیر بازگشت قطعه‌بندی</translation>
+    </message>
+    <message>
+        <source>Randomizes the letter case of the SNI. Keep default: Preset Settings.</source>
+        <translation>حروف SNI را به‌طور تصادفی بزرگ و کوچک می‌کند. «نگه داری مقدار پیشفرض»: مطابق تنظیمات از پیش‌تعیین‌شده.</translation>
+    </message>
+    <message>
+        <source>TLS Tricks</source>
+        <translation>ترفندهای TLS</translation>
+    </message>
+    <message>
+        <source>Wait between handshake fragments when the round trip cannot be measured, e.g. on Windows without administrator rights.</source>
+        <translation>فاصلهٔ زمانی بین قطعه‌های دست‌دهی وقتی زمان رفت‌وبرگشت قابل اندازه‌گیری نیست، مثلاً در ویندوز بدون دسترسی مدیر.</translation>
+    </message>
 </context>
 <context>
     <name>EditAnyTLS</name>
@@ -3549,6 +3576,10 @@ Close without saving?</source>
     <message>
         <source>Min Idle Session</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>پیشرفته</translation>
     </message>
 </context>
 <context>
@@ -3909,10 +3940,6 @@ Close without saving?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Recv window conn</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Hop Interval</source>
         <translation type="unfinished">فاصله پرش</translation>
     </message>
@@ -3937,10 +3964,6 @@ Close without saving?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Recv window</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Password</source>
         <translation type="unfinished">کلمه عبور</translation>
     </message>
@@ -3951,6 +3974,10 @@ Close without saving?</source>
     <message>
         <source>Obfuscation needs a password; without one, it is off.</source>
         <translation>مبهم‌سازی به کلمه عبور نیاز دارد؛ بدون آن خاموش است.</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>پیشرفته</translation>
     </message>
 </context>
 <context>
@@ -4197,6 +4224,14 @@ Close without saving?</source>
         <source>QUIC</source>
         <translation>QUIC</translation>
     </message>
+    <message>
+        <source>Advanced</source>
+        <translation>پیشرفته</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>پیش‌فرض</translation>
+    </message>
 </context>
 <context>
     <name>EditTuic</name>
@@ -4219,6 +4254,14 @@ Close without saving?</source>
     <message>
         <source>Congestion Control</source>
         <translation type="unfinished">کنترل ازدحام</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>پیشرفته</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>پیش‌فرض</translation>
     </message>
 </context>
 <context>
@@ -4924,14 +4967,6 @@ Error: %1</source>
     <message>
         <source>aux</source>
         <translation>کمکی</translation>
-    </message>
-    <message>
-        <source>Traffic counters are disabled</source>
-        <translation>شمارنده‌های ترافیک غیرفعال هستند</translation>
-    </message>
-    <message>
-        <source>Untick “Disable traffic counters” in Basic Settings → Core → Statistics to record speeds again.</source>
-        <translation>تیک «غیرفعال کردن شمارنده‌های ترافیک» را در تنظیمات پایه ← هسته ← آمار بردارید تا سرعت‌ها دوباره ثبت شوند.</translation>
     </message>
     <message>
         <source>Open Traffic Statistics</source>
@@ -5761,14 +5796,6 @@ Error: %2</source>
         <translation>قوانین</translation>
     </message>
     <message>
-        <source>Empty routing profile</source>
-        <translation>نمایهٔ مسیریابی خالی</translation>
-    </message>
-    <message>
-        <source>No valid rules are in the profile</source>
-        <translation>هیچ قانون معتبری در نمایه وجود ندارد</translation>
-    </message>
-    <message>
         <source>DNS</source>
         <translation>DNS</translation>
     </message>
@@ -5791,10 +5818,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Rule %1</source>
         <translation>قانون %1</translation>
-    </message>
-    <message>
-        <source>DNS queries</source>
-        <translation>پرس‌وجوهای DNS</translation>
     </message>
     <message>
         <source>%1 · rule %2 in the list</source>
@@ -7408,6 +7431,10 @@ Remove that endpoint from this routing profile as well?</source>
         <source>The padding lengths can add up to more than 65553 bytes.</source>
         <translation>مجموع طول‌های padding می‌تواند از 65553 بایت بیشتر شود.</translation>
     </message>
+    <message>
+        <source>Must be a string.</source>
+        <translation>باید یک رشته باشد.</translation>
+    </message>
 </context>
 <context>
     <name>GuiStartup</name>
@@ -8673,16 +8700,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>جایگزینی پورت</translation>
     </message>
     <message>
-        <source>Fragment the TLS handshake</source>
-        <translation>قطعه‌قطعه کردن دست‌دهی TLS</translation>
-    </message>
-    <message>
         <source>Fallback delay</source>
         <translation>تأخیر بازگشت</translation>
-    </message>
-    <message>
-        <source>Split into TLS records</source>
-        <translation>تقسیم به رکوردهای TLS</translation>
     </message>
     <message>
         <source>Spoof SNI</source>
@@ -8743,6 +8762,10 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>This rule has no conditions, so it would catch all traffic. Add a condition, or turn the rule off.</source>
         <translation>این قانون هیچ شرطی ندارد، پس همهٔ ترافیک را می‌گیرد. یک شرط اضافه کنید یا قانون را خاموش کنید.</translation>
+    </message>
+    <message>
+        <source>Fragment TLS</source>
+        <translation>قطعه‌بندی TLS</translation>
     </message>
 </context>
 <context>
@@ -9055,6 +9078,22 @@ Remove that endpoint from this routing profile as well?</source>
         <source>This rule&apos;s profile no longer exists. Pick another one to see the JSON.</source>
         <translation>نمایهٔ این قانون دیگر وجود ندارد. برای دیدن JSON نمایهٔ دیگری انتخاب کنید.</translation>
     </message>
+    <message>
+        <source>Handshake</source>
+        <translation>دست‌دهی</translation>
+    </message>
+    <message>
+        <source>Handshake + Records</source>
+        <translation>دست‌دهی + رکوردها</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation>خاموش</translation>
+    </message>
+    <message>
+        <source>Records</source>
+        <translation>رکوردها</translation>
+    </message>
 </context>
 <context>
     <name>RouteRulesPage</name>
@@ -9187,16 +9226,25 @@ Remove that endpoint from this routing profile as well?</source>
         <source>Not set</source>
         <translation>تنظیم نشده</translation>
     </message>
-</context>
-<context>
-    <name>EditOpenVPNAdvanced</name>
     <message>
-        <source>Not set</source>
-        <translation>تنظیم نشده</translation>
+        <source>No advanced options are set. Available keys:</source>
+        <translation>هیچ گزینهٔ پیشرفته‌ای تنظیم نشده است. کلیدهای موجود:</translation>
     </message>
     <message>
-        <source>Routing</source>
-        <translation>مسیریابی</translation>
+        <source>OpenVPN Advanced</source>
+        <translation>تنظیمات پیشرفتهٔ OpenVPN</translation>
+    </message>
+    <message>
+        <source>OpenVPN options not on this page, edited as JSON.</source>
+        <translation>گزینه‌های OpenVPN که در این صفحه نیستند، به صورت JSON ویرایش می‌شوند.</translation>
+    </message>
+    <message>
+        <source>Set &quot;%1&quot; on the profile page.</source>
+        <translation>«%1» را در صفحهٔ پروفایل تنظیم کنید.</translation>
+    </message>
+    <message>
+        <source>Static key mode does not use the credentials, certificates or control channel wrap on the profile page; clear them there.</source>
+        <translation>حالت کلید ایستا از اعتبارنامه‌ها، گواهی‌ها یا پوشش کانال کنترل در صفحهٔ پروفایل استفاده نمی‌کند؛ آن‌ها را همان‌جا پاک کنید.</translation>
     </message>
 </context>
 <context>

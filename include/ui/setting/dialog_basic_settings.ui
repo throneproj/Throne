@@ -1074,23 +1074,13 @@
          </property>
          <layout class="QGridLayout" name="gridLayout_stats">
           <item row="0" column="0">
-           <widget class="QCheckBox" name="disable_stats">
-            <property name="toolTip">
-             <string>Stop counting traffic for a small performance gain.</string>
-            </property>
-            <property name="text">
-             <string>Disable traffic counters</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
            <widget class="QCheckBox" name="connection_statistics">
             <property name="text">
              <string>Enable connection statistics</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
+          <item row="1" column="0">
            <widget class="QCheckBox" name="disable_traffic_aggregation">
             <property name="toolTip">
              <string>Stop recording per-profile and per-app usage history for Traffic Statistics.</string>
@@ -1464,91 +1454,39 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_4">
+        <widget class="QGroupBox" name="log_filter_box">
          <property name="title">
           <string>Log Filtering</string>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <item>
-           <widget class="QFrame" name="log_include_frame">
-            <property name="frameShape">
-             <enum>QFrame::Shape::StyledPanel</enum>
+         <layout class="QGridLayout" name="gridLayout_log_filter">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_log_exclude_regex">
+            <property name="toolTip">
+             <string>Log lines matching this regular expression are dropped before they reach the log.</string>
             </property>
-            <property name="frameShadow">
-             <enum>QFrame::Shadow::Raised</enum>
+            <property name="text">
+             <string>Hide lines matching</string>
             </property>
-            <layout class="QFormLayout" name="formLayout_3">
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_25">
-               <property name="text">
-                <string>Include Keywords</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="MyTextEdit" name="log_include_keyword"/>
-             </item>
-             <item row="3" column="1">
-              <widget class="MyTextEdit" name="log_include_regex"/>
-             </item>
-             <item row="3" column="0">
-              <widget class="QLabel" name="label_26">
-               <property name="text">
-                <string>Include Regex</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QCheckBox" name="enable_log_include">
-               <property name="text">
-                <string>Enable include rules</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
            </widget>
           </item>
-          <item>
-           <widget class="QFrame" name="log_exclude_frame">
-            <property name="frameShape">
-             <enum>QFrame::Shape::StyledPanel</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Shadow::Raised</enum>
-            </property>
-            <layout class="QFormLayout" name="formLayout_4">
-             <item row="0" column="0">
-              <widget class="QCheckBox" name="enable_log_exclude">
-               <property name="text">
-                <string>Enable exclude rules</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="MyTextEdit" name="log_exclude_keyword"/>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_28">
-               <property name="text">
-                <string>Exclude Keywords</string>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="0">
-              <widget class="QLabel" name="label_27">
-               <property name="text">
-                <string>Exclude Regex</string>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="1">
-              <widget class="MyTextEdit" name="log_exclude_regex"/>
-             </item>
-            </layout>
-           </widget>
+          <item row="0" column="1">
+           <widget class="MyLineEdit" name="log_exclude_regex"/>
           </item>
          </layout>
         </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_logs">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
@@ -1900,11 +1838,6 @@
    <class>MyLineEdit</class>
    <extends>QLineEdit</extends>
    <header>include/ui/utils/MyLineEdit.h</header>
-  </customwidget>
-  <customwidget>
-   <class>MyTextEdit</class>
-   <extends>QTextEdit</extends>
-   <header>include/ui/utils/MyTextEdit.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

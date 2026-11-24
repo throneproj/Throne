@@ -1,5 +1,6 @@
 #include "include/ui/widget/json/JsonEditorDialog.h"
 
+#include <QCoreApplication>
 #include <QDialogButtonBox>
 #include <QHBoxLayout>
 #include <QJsonDocument>
@@ -59,6 +60,14 @@ namespace JsonEdit {
         m_editor->setValidator(std::move(validator));
     }
 
+    void JsonEditorDialog::SetPlaceholderText(const QString& text) {
+        m_editor->setPlaceholderText(text);
+    }
+
+    void JsonEditorDialog::SetAcceptCheck(std::function<QStringList(const QString& text)> check) {
+        m_acceptCheck = std::move(check);
+    }
+
     QJsonObject JsonEditorDialog::OpenEditor() {
         while (exec() == QDialog::Accepted) {
             const QString text = m_editor->toPlainText().trimmed();
@@ -66,7 +75,12 @@ namespace JsonEdit {
 
             QJsonParseError error{};
             const auto document = QJsonDocument::fromJson(text.toUtf8(), &error);
-            if (error.error == QJsonParseError::NoError && document.isObject()) return document.object();
+            if (error.error == QJsonParseError::NoError && document.isObject()) {
+                const auto problems = m_acceptCheck ? m_acceptCheck(m_editor->toPlainText()) : QStringList();
+                if (problems.isEmpty()) return document.object();
+                MessageBoxWarning(windowTitle(), QCoreApplication::translate("Validation", "Fix these before saving:") + "\n\n" + problems.join('\n'));
+                continue;
+            }
 
             MessageBoxWarning(QObject::tr("Invalid JSON"), error.error == QJsonParseError::NoError
                                                       ? QObject::tr("The document must be a JSON object.")

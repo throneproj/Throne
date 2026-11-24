@@ -862,7 +862,6 @@ namespace Engine {
     void TestRunner::creditTraffic(const std::shared_ptr<Configs::Profile>& profile, const QString& tag, qint64 curUp, qint64 curDown)
     {
         if (profile == nullptr || tag.isEmpty()) return;
-        if (Configs::dataManager->settingsRepo->disable_traffic_stats) return;
         QMutexLocker lk(&creditMu_);
         auto& base = credited_[tag];
         const qint64 dUp = curUp >= base.first ? curUp - base.first : curUp;

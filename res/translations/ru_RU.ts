@@ -758,30 +758,6 @@ Outbound: %4</translation>
         <translation>Фильтрация логов</translation>
     </message>
     <message>
-        <source>Include Keywords</source>
-        <translation>Ключевые слова</translation>
-    </message>
-    <message>
-        <source>Include Regex</source>
-        <translation>Регулярные выражения</translation>
-    </message>
-    <message>
-        <source>Enable include rules</source>
-        <translation>Использовать правила включения</translation>
-    </message>
-    <message>
-        <source>Enable exclude rules</source>
-        <translation>Использовать правила исключения</translation>
-    </message>
-    <message>
-        <source>Exclude Keywords</source>
-        <translation>Ключевые слова</translation>
-    </message>
-    <message>
-        <source>Exclude Regex</source>
-        <translation>Регулярные выражения</translation>
-    </message>
-    <message>
         <source>Monospaced font for the log view.</source>
         <translation>Моноширинный шрифт для просмотра логов.</translation>
     </message>
@@ -876,14 +852,6 @@ Outbound: %4</translation>
     <message>
         <source>Clash API</source>
         <translation>Clash API</translation>
-    </message>
-    <message>
-        <source>Stop counting traffic for a small performance gain.</source>
-        <translation>Перестать подсчитывать трафик ради небольшого прироста производительности.</translation>
-    </message>
-    <message>
-        <source>Disable traffic counters</source>
-        <translation>Отключить счетчики трафика</translation>
     </message>
     <message>
         <source>Port of the local DNS server.</source>
@@ -1556,6 +1524,14 @@ Throne will restart to complete the restore.</source>
     <message>
         <source>Restore backup</source>
         <translation>Восстановить из копии</translation>
+    </message>
+    <message>
+        <source>Hide lines matching</source>
+        <translation>Скрывать строки по шаблону</translation>
+    </message>
+    <message>
+        <source>Log lines matching this regular expression are dropped before they reach the log.</source>
+        <translation>Строки, совпадающие с этим регулярным выражением, отбрасываются до попадания в журнал.</translation>
     </message>
 </context>
 <context>
@@ -2475,18 +2451,6 @@ Throne will restart to complete the restore.</source>
         <translation>Фрагментация</translation>
     </message>
     <message>
-        <source>Fragment the TLS ClientHello. Keep default: as set in Preset Settings.</source>
-        <translation>Фрагментировать TLS ClientHello. «По умолчанию» — как в предустановленных настройках.</translation>
-    </message>
-    <message>
-        <source>TLS Tricks</source>
-        <translation>TLS Tricks</translation>
-    </message>
-    <message>
-        <source>Mixed-case SNI to evade exact-match filters. Keep default: Preset Settings.</source>
-        <translation>SNI в смешанном регистре для обхода фильтров по точному совпадению. «По умолчанию» — как в предустановленных настройках.</translation>
-    </message>
-    <message>
         <source>Cipher Suites</source>
         <translation>Наборы шифров</translation>
     </message>
@@ -2563,176 +2527,12 @@ Throne will restart to complete the restore.</source>
         <translation>Мультирежим (Multi Mode)</translation>
     </message>
     <message>
-        <source>xPaddingObfsMode</source>
-        <translation>xPaddingObfsMode</translation>
-    </message>
-    <message>
-        <source>xPaddingMethod</source>
-        <translation>xPaddingMethod</translation>
-    </message>
-    <message>
-        <source>xPaddingPlacement</source>
-        <translation>xPaddingPlacement</translation>
-    </message>
-    <message>
-        <source>xPaddingKey</source>
-        <translation>xPaddingKey</translation>
-    </message>
-    <message>
-        <source>xPaddingHeader</source>
-        <translation>xPaddingHeader</translation>
-    </message>
-    <message>
-        <source>Upload / Stream Tuning</source>
-        <translation>Настройка отправки и потока</translation>
-    </message>
-    <message>
-        <source>scMaxEachPostBytes</source>
-        <translation>scMaxEachPostBytes</translation>
-    </message>
-    <message>
-        <source>scMinPostsIntervalMs</source>
-        <translation>scMinPostsIntervalMs</translation>
-    </message>
-    <message>
-        <source>scMaxBufferedPosts</source>
-        <translation>scMaxBufferedPosts</translation>
-    </message>
-    <message>
-        <source>uplinkHTTPMethod</source>
-        <translation>uplinkHTTPMethod</translation>
-    </message>
-    <message>
-        <source>uplinkDataPlacement</source>
-        <translation>uplinkDataPlacement</translation>
-    </message>
-    <message>
-        <source>uplinkDataKey</source>
-        <translation>uplinkDataKey</translation>
-    </message>
-    <message>
-        <source>uplinkChunkSize</source>
-        <translation>uplinkChunkSize</translation>
-    </message>
-    <message>
-        <source>noGRPCHeader</source>
-        <translation>noGRPCHeader</translation>
-    </message>
-    <message>
-        <source>noSSEHeader</source>
-        <translation>noSSEHeader</translation>
-    </message>
-    <message>
-        <source>scStreamUpServerSecs</source>
-        <translation>scStreamUpServerSecs</translation>
-    </message>
-    <message>
-        <source>sessionPlacement</source>
-        <translation>sessionPlacement</translation>
-    </message>
-    <message>
-        <source>sessionKey</source>
-        <translation>sessionKey</translation>
-    </message>
-    <message>
-        <source>sessionIDTable</source>
-        <translation>sessionIDTable</translation>
-    </message>
-    <message>
-        <source>sessionIDLength</source>
-        <translation>sessionIDLength</translation>
-    </message>
-    <message>
-        <source>seqPlacement</source>
-        <translation>seqPlacement</translation>
-    </message>
-    <message>
-        <source>seqKey</source>
-        <translation>seqKey</translation>
-    </message>
-    <message>
-        <source>Xmux</source>
-        <translation>Xmux</translation>
-    </message>
-    <message>
-        <source>maxConcurrency</source>
-        <translation>maxConcurrency</translation>
-    </message>
-    <message>
-        <source>maxConnections</source>
-        <translation>maxConnections</translation>
-    </message>
-    <message>
-        <source>hMaxRequestTimes</source>
-        <translation>hMaxRequestTimes</translation>
-    </message>
-    <message>
-        <source>hMaxReusableSecs</source>
-        <translation>hMaxReusableSecs</translation>
-    </message>
-    <message>
-        <source>cMaxReuseTimes</source>
-        <translation>cMaxReuseTimes</translation>
-    </message>
-    <message>
-        <source>hKeepAlivePeriod</source>
-        <translation>hKeepAlivePeriod</translation>
-    </message>
-    <message>
-        <source>Max Concurrency</source>
-        <translation>Макс. параллельность</translation>
-    </message>
-    <message>
-        <source>Max Post Bytes</source>
-        <translation>Макс. размер POST (байт)</translation>
-    </message>
-    <message>
-        <source>Max Reusable Secs</source>
-        <translation>Макс. время переиспользования (с)</translation>
-    </message>
-    <message>
-        <source>Max Request Times</source>
-        <translation>Макс. число запросов</translation>
-    </message>
-    <message>
         <source>Host</source>
         <translation>Хост (Host)</translation>
     </message>
     <message>
-        <source>X Padding Bytes</source>
-        <translation>Размер X-Padding (байт)</translation>
-    </message>
-    <message>
-        <source>Min Post Interval</source>
-        <translation>Мин. интервал POST (мс)</translation>
-    </message>
-    <message>
         <source>Mode</source>
         <translation>Режим</translation>
-    </message>
-    <message>
-        <source>No gRPC headers</source>
-        <translation>Без заголовков gRPC</translation>
-    </message>
-    <message>
-        <source>Max Reuse times</source>
-        <translation>Макс. число переиспользований</translation>
-    </message>
-    <message>
-        <source>Keep Alive Period</source>
-        <translation>Период Keep-Alive</translation>
-    </message>
-    <message>
-        <source>Download Settings</source>
-        <translation>Настройки загрузки (Download)</translation>
-    </message>
-    <message>
-        <source>Padding Obfuscation</source>
-        <translation>Обфускация Padding</translation>
-    </message>
-    <message>
-        <source>Max Connections</source>
-        <translation>Макс. соединений</translation>
     </message>
     <message>
         <source>Path</source>
@@ -2803,18 +2603,6 @@ Throne will restart to complete the restore.</source>
         <translation>Доп. ядро</translation>
     </message>
     <message>
-        <source>Delay between fragments when it cannot be measured. Default: 500ms.</source>
-        <translation>Задержка между фрагментами, если ее нельзя измерить. По умолчанию: 500ms.</translation>
-    </message>
-    <message>
-        <source>Fallback Delay</source>
-        <translation>Задержка отката (Fallback)</translation>
-    </message>
-    <message>
-        <source>Enable TLS record fragment</source>
-        <translation>Включить фрагментацию записи TLS</translation>
-    </message>
-    <message>
         <source>REALITY short ID, a single value.</source>
         <translation>REALITY short ID, одно значение.</translation>
     </message>
@@ -2823,212 +2611,8 @@ Throne will restart to complete the restore.</source>
         <translation>%1: %2</translation>
     </message>
     <message>
-        <source>Xmux Reuse</source>
-        <translation>Переиспользование Xmux</translation>
-    </message>
-    <message>
         <source>XHTTP mode; auto picks packet-up, or stream-one with REALITY.</source>
         <translation>Режим XHTTP; auto выбирает packet-up, а с REALITY — stream-one.</translation>
-    </message>
-    <message>
-        <source>Range of extra padding bytes. Default: 100-1000.</source>
-        <translation>Диапазон дополнительных байтов заполнения. По умолчанию: 100-1000.</translation>
-    </message>
-    <message>
-        <source>Server Max Header Bytes</source>
-        <translation>Макс. размер заголовков сервера (байт)</translation>
-    </message>
-    <message>
-        <source>Largest request header the server accepts. Default: 8192.</source>
-        <translation>Максимальный размер заголовка запроса, который принимает сервер. По умолчанию: 8192.</translation>
-    </message>
-    <message>
-        <source>Enable padding obfuscation</source>
-        <translation>Включить обфускацию Padding</translation>
-    </message>
-    <message>
-        <source>Customize the X-Padding method, placement, key and header.</source>
-        <translation>Настроить метод, размещение, ключ и заголовок X-Padding.</translation>
-    </message>
-    <message>
-        <source>Padding Method</source>
-        <translation>Метод Padding</translation>
-    </message>
-    <message>
-        <source>Padding value format. Default: repeat-x.</source>
-        <translation>Формат значения padding. По умолчанию: repeat-x.</translation>
-    </message>
-    <message>
-        <source>Padding Placement</source>
-        <translation>Расположение Padding</translation>
-    </message>
-    <message>
-        <source>Where X-Padding is sent. Default: queryInHeader.</source>
-        <translation>Куда отправляется X-Padding. По умолчанию: queryInHeader.</translation>
-    </message>
-    <message>
-        <source>Padding Key</source>
-        <translation>Ключ Padding</translation>
-    </message>
-    <message>
-        <source>Query or cookie key for X-Padding. Default: x_padding.</source>
-        <translation>Ключ query или cookie для X-Padding. По умолчанию: x_padding.</translation>
-    </message>
-    <message>
-        <source>Padding Header</source>
-        <translation>Заголовок Padding</translation>
-    </message>
-    <message>
-        <source>Header name for X-Padding. Default: X-Padding.</source>
-        <translation>Имя заголовка для X-Padding. По умолчанию: X-Padding.</translation>
-    </message>
-    <message>
-        <source>Largest upload POST in packet-up mode. Default: 1000000.</source>
-        <translation>Максимальный размер upload POST-запроса в режиме packet-up. По умолчанию: 1000000.</translation>
-    </message>
-    <message>
-        <source>Milliseconds between upload POSTs. Default: 30.</source>
-        <translation>Интервал между upload POST-запросами в миллисекундах. По умолчанию: 30.</translation>
-    </message>
-    <message>
-        <source>Max Buffered Posts</source>
-        <translation>Макс. буферизованных POST</translation>
-    </message>
-    <message>
-        <source>Upload POSTs the server queues per connection. Default: 30.</source>
-        <translation>Сколько upload POST-запросов сервер ставит в очередь на одно соединение. По умолчанию: 30.</translation>
-    </message>
-    <message>
-        <source>Uplink HTTP Method</source>
-        <translation>HTTP-метод отправки (Uplink)</translation>
-    </message>
-    <message>
-        <source>HTTP method for upload requests. Default: POST.</source>
-        <translation>HTTP-метод upload-запросов. По умолчанию: POST.</translation>
-    </message>
-    <message>
-        <source>Uplink Data Placement</source>
-        <translation>Расположение данных отправки</translation>
-    </message>
-    <message>
-        <source>Where upload data is placed. Default: auto.</source>
-        <translation>Куда помещаются upload-данные. По умолчанию: auto.</translation>
-    </message>
-    <message>
-        <source>Uplink Data Key</source>
-        <translation>Ключ данных отправки</translation>
-    </message>
-    <message>
-        <source>Upload data key. Default: X-Data, or x_data for cookie.</source>
-        <translation>Ключ upload-данных. По умолчанию: X-Data, для cookie — x_data.</translation>
-    </message>
-    <message>
-        <source>Uplink Chunk Size</source>
-        <translation>Размер чанка отправки</translation>
-    </message>
-    <message>
-        <source>Chunk size range for upload data in headers or cookies.</source>
-        <translation>Диапазон размера фрагментов upload-данных в заголовках или cookie.</translation>
-    </message>
-    <message>
-        <source>Don&apos;t send Content-Type: application/grpc on uploads.</source>
-        <translation>Не отправлять Content-Type: application/grpc в upload-запросах.</translation>
-    </message>
-    <message>
-        <source>No SSE headers</source>
-        <translation>Без заголовков SSE</translation>
-    </message>
-    <message>
-        <source>Server doesn&apos;t send Content-Type: text/event-stream.</source>
-        <translation>Сервер не отправляет Content-Type: text/event-stream.</translation>
-    </message>
-    <message>
-        <source>Stream Up Server Seconds</source>
-        <translation>Интервал удержания stream-up (с)</translation>
-    </message>
-    <message>
-        <source>Stream-up keepalive interval, in seconds. Default: 20-80.</source>
-        <translation>Интервал keepalive для stream-up, в секундах. По умолчанию: 20-80.</translation>
-    </message>
-    <message>
-        <source>Session Placement</source>
-        <translation>Расположение ID сессии</translation>
-    </message>
-    <message>
-        <source>Where the session ID is sent. Default: path.</source>
-        <translation>Куда отправляется session ID. По умолчанию: path.</translation>
-    </message>
-    <message>
-        <source>Session Key</source>
-        <translation>Ключ ID сессии</translation>
-    </message>
-    <message>
-        <source>Session ID key. Default: x_session, or X-Session for header.</source>
-        <translation>Ключ session ID. По умолчанию: x_session, для header — X-Session.</translation>
-    </message>
-    <message>
-        <source>Session ID Table</source>
-        <translation>Алфавит ID сессии</translation>
-    </message>
-    <message>
-        <source>Session ID charset, e.g. hex or base36. Empty: random UUID.</source>
-        <translation>Набор символов session ID, например hex или base36. Если пусто — случайный UUID.</translation>
-    </message>
-    <message>
-        <source>Session ID Length</source>
-        <translation>Длина ID сессии</translation>
-    </message>
-    <message>
-        <source>Session ID length range, e.g. 8-16; needs sessionIDTable.</source>
-        <translation>Диапазон длины session ID, например 8-16; требует sessionIDTable.</translation>
-    </message>
-    <message>
-        <source>Sequence Placement</source>
-        <translation>Расположение номера пакета</translation>
-    </message>
-    <message>
-        <source>Where the packet sequence is sent. Default: path.</source>
-        <translation>Куда отправляется sequence пакета. По умолчанию: path.</translation>
-    </message>
-    <message>
-        <source>Sequence Key</source>
-        <translation>Ключ номера пакета</translation>
-    </message>
-    <message>
-        <source>Sequence key. Default: x_seq, or X-Seq for header.</source>
-        <translation>Ключ sequence. По умолчанию: x_seq, для header — X-Seq.</translation>
-    </message>
-    <message>
-        <source>Most concurrent uses per connection. Empty xmux: 1-1.</source>
-        <translation>Максимум одновременных использований одного соединения. При пустом xmux: 1-1.</translation>
-    </message>
-    <message>
-        <source>Most parallel underlying H2/H3 connections.</source>
-        <translation>Максимум параллельных нижележащих соединений H2/H3.</translation>
-    </message>
-    <message>
-        <source>Most times one connection is reused.</source>
-        <translation>Максимум повторных использований одного соединения.</translation>
-    </message>
-    <message>
-        <source>Most requests per connection. Empty xmux: 600-900.</source>
-        <translation>Максимум запросов на одно соединение. При пустом xmux: 600-900.</translation>
-    </message>
-    <message>
-        <source>Seconds a connection is reusable. Empty xmux: 1800-3000.</source>
-        <translation>Сколько секунд соединение можно переиспользовать. При пустом xmux: 1800-3000.</translation>
-    </message>
-    <message>
-        <source>Keepalive seconds. 0: Xray default; below 0: off.</source>
-        <translation>Интервал keepalive в секундах. 0 — значение Xray по умолчанию; меньше 0 — keepalive отключен.</translation>
-    </message>
-    <message>
-        <source>Separate streamSettings, address and port for downloads.</source>
-        <translation>Отдельные streamSettings, адрес и порт для скачивания.</translation>
-    </message>
-    <message>
-        <source>The padding method or placement is not supported, and Xray refuses it even with obfuscation off. Turn this on and fix the value, or clear it.</source>
-        <translation>Метод или размещение padding не поддерживается, и Xray отклоняет такое значение даже при выключенной обфускации. Включите этот параметр и исправьте значение или очистите его.</translation>
     </message>
     <message>
         <source>This profile was deleted while you were editing it.</source>
@@ -3329,6 +2913,34 @@ Throne will restart to complete the restore.</source>
     <message>
         <source>Host header for ws, http and httpUpgrade.</source>
         <translation>Заголовок Host для ws, http и httpUpgrade.</translation>
+    </message>
+    <message>
+        <source>Extra</source>
+        <translation>Дополнительно (Extra)</translation>
+    </message>
+    <message>
+        <source>Handshake</source>
+        <translation>Рукопожатие</translation>
+    </message>
+    <message>
+        <source>Handshake + Records</source>
+        <translation>Рукопожатие + записи</translation>
+    </message>
+    <message>
+        <source>Handshake splits the ClientHello into TCP segments, Records into TLS records. Keep default: Preset Settings.</source>
+        <translation>«Рукопожатие» разбивает ClientHello на TCP-сегменты, «Записи» — на TLS-записи. «По умолчанию» — как в предустановленных настройках.</translation>
+    </message>
+    <message>
+        <source>No extra settings are set. Available keys:</source>
+        <translation>Дополнительные настройки не заданы. Доступные ключи:</translation>
+    </message>
+    <message>
+        <source>Records</source>
+        <translation>Записи</translation>
+    </message>
+    <message>
+        <source>XHTTP extra settings as JSON: padding, upload tuning, session keys, xmux and downloadSettings.</source>
+        <translation>Дополнительные настройки XHTTP в формате JSON: заполнение (padding), настройка выгрузки, ключи сессии, xmux и downloadSettings.</translation>
     </message>
 </context>
 <context>
@@ -3978,10 +3590,6 @@ Throne will restart to complete the restore.</source>
         <translation>Только HTTP/3</translation>
     </message>
     <message>
-        <source>Cloudflare API domains to try, in order, when generating a WARP config</source>
-        <translation>Домены API Cloudflare, которые следует проверять по порядку при генерации конфигурации WARP</translation>
-    </message>
-    <message>
         <source>Registration Domains</source>
         <translation>Домены регистрации</translation>
     </message>
@@ -4278,10 +3886,6 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>Строка %1: «%2» никогда не совпадет: %3</translation>
     </message>
     <message>
-        <source>WARP Registration Domains</source>
-        <translation>Домены регистрации WARP</translation>
-    </message>
-    <message>
         <source>One domain per line. They are tried in order and the first one that accepts the registration is used. Leave empty to use %1.</source>
         <translation>По одному домену в строке. Домены проверяются по порядку, и используется первый, который принимает регистрацию. Оставьте поле пустым, чтобы использовать %1.</translation>
     </message>
@@ -4398,10 +4002,6 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
         <translation>Каждое обновление «%1» перезаписывает правила этого профиля.</translation>
     </message>
     <message>
-        <source>TLS fragmentation for WARP registration</source>
-        <translation>Фрагментация TLS при регистрации WARP</translation>
-    </message>
-    <message>
         <source>Advanced WARP Settings</source>
         <translation>Доп. настройки WARP</translation>
     </message>
@@ -4416,10 +4016,6 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
     <message>
         <source>Fragment TLS</source>
         <translation>Фрагментация TLS</translation>
-    </message>
-    <message>
-        <source>Record fragment</source>
-        <translation>Фрагментация записей</translation>
     </message>
     <message>
         <source>Fallback delay</source>
@@ -4500,6 +4096,26 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
     <message>
         <source>Import Routing Profile</source>
         <translation>Импорт профиля маршрутизации</translation>
+    </message>
+    <message>
+        <source>%1 in Advanced</source>
+        <translation>%1 в разделе «Дополнительно»</translation>
+    </message>
+    <message>
+        <source>Handshake</source>
+        <translation>Рукопожатие</translation>
+    </message>
+    <message>
+        <source>Handshake + Records</source>
+        <translation>Рукопожатие + записи</translation>
+    </message>
+    <message>
+        <source>Keys, MASQUE options, registration domains and TLS fragmentation</source>
+        <translation>Ключи, параметры MASQUE, домены регистрации и фрагментация TLS</translation>
+    </message>
+    <message>
+        <source>Records</source>
+        <translation>Записи</translation>
     </message>
 </context>
 <context>
@@ -6219,6 +5835,22 @@ Close without saving?</source>
         <source>QUIC opener</source>
         <translation>QUIC-приманка</translation>
     </message>
+    <message>
+        <source>Fragment Fallback Delay</source>
+        <translation>Задержка отката фрагментации</translation>
+    </message>
+    <message>
+        <source>Randomizes the letter case of the SNI. Keep default: Preset Settings.</source>
+        <translation>Случайно меняет регистр букв в SNI. «По умолчанию» — как в предустановленных настройках.</translation>
+    </message>
+    <message>
+        <source>TLS Tricks</source>
+        <translation>TLS Tricks</translation>
+    </message>
+    <message>
+        <source>Wait between handshake fragments when the round trip cannot be measured, e.g. on Windows without administrator rights.</source>
+        <translation>Пауза между фрагментами рукопожатия, когда время приема-передачи нельзя измерить, например в Windows без прав администратора.</translation>
+    </message>
 </context>
 <context>
     <name>EditAnyTLS</name>
@@ -6237,6 +5869,10 @@ Close without saving?</source>
     <message>
         <source>Min Idle Session</source>
         <translation>Мин. число свободных сессий</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>Дополнительно</translation>
     </message>
 </context>
 <context>
@@ -7015,10 +6651,6 @@ Close without saving?</source>
         <translation>Прием (Мбит/с)</translation>
     </message>
     <message>
-        <source>Recv window conn</source>
-        <translation>Окно приема соединения</translation>
-    </message>
-    <message>
         <source>Hop Interval</source>
         <translation>Интервал смены порта</translation>
     </message>
@@ -7071,14 +6703,6 @@ Close without saving?</source>
         <translation>Максимальный размер пакета</translation>
     </message>
     <message>
-        <source>Recv window</source>
-        <translation>Окно приема потока</translation>
-    </message>
-    <message>
-        <source>Disable Path MTU Discovery</source>
-        <translation>Отключить Path MTU Discovery</translation>
-    </message>
-    <message>
         <source>Password</source>
         <translation>Пароль</translation>
     </message>
@@ -7109,6 +6733,10 @@ Close without saving?</source>
     <message>
         <source>Obfuscation needs a password; without one, it is off.</source>
         <translation>Для обфускации нужен пароль; без него она выключена.</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>Дополнительно</translation>
     </message>
 </context>
 <context>
@@ -7404,6 +7032,14 @@ Close without saving?</source>
     <message>
         <source>Parallel tunnel connections; more are easier to detect. 0: off.</source>
         <translation>Параллельные туннельные соединения; чем их больше, тем легче их обнаружить. 0 — отключено.</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>Дополнительно</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>По умолчанию</translation>
     </message>
 </context>
 <context>
@@ -8230,584 +7866,21 @@ Close without saving?</source>
         <source>None</source>
         <translation>Нет</translation>
     </message>
-</context>
-<context>
-    <name>EditOpenVPNAdvanced</name>
+    <message>
+        <source>No advanced options are set. Available keys:</source>
+        <translation>Дополнительные параметры не заданы. Доступные ключи:</translation>
+    </message>
     <message>
         <source>OpenVPN Advanced</source>
         <translation>Доп. настройки OpenVPN</translation>
     </message>
     <message>
-        <source>Session</source>
-        <translation>Сессия</translation>
+        <source>OpenVPN options not on this page, edited as JSON.</source>
+        <translation>Параметры OpenVPN, которых нет на этой странице, редактируются в формате JSON.</translation>
     </message>
     <message>
-        <source>Session mode. Default: tls; static_key is deprecated.</source>
-        <translation>Режим сессии. По умолчанию: tls; static_key устарел.</translation>
-    </message>
-    <message>
-        <source>Mode</source>
-        <translation>Режим</translation>
-    </message>
-    <message>
-        <source>Tunnel topology. Empty: pulled from the server.</source>
-        <translation>Топология туннеля. Если пусто — полученная от сервера.</translation>
-    </message>
-    <message>
-        <source>Topology</source>
-        <translation>Топология</translation>
-    </message>
-    <message>
-        <source>What to do after a failed login. Default: none (give up).</source>
-        <translation>Что делать после неудачного входа. По умолчанию: none (прекратить попытки).</translation>
-    </message>
-    <message>
-        <source>Auth Retry</source>
-        <translation>Повтор аутентификации</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Randomize the server list before connecting.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Перемешать список серверов перед подключением.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Randomize server order</source>
-        <translation>Случайный порядок серверов</translation>
-    </message>
-    <message>
-        <source>Comma-separated local tunnel prefixes; required in static_key mode.</source>
-        <translation>Локальные префиксы туннеля через запятую; обязательны в режиме static_key.</translation>
-    </message>
-    <message>
-        <source>Local Address</source>
-        <translation>Локальный адрес</translation>
-    </message>
-    <message>
-        <source>10.8.0.2/24, fd00::2/64</source>
-        <translation>10.8.0.2/24, fd00::2/64</translation>
-    </message>
-    <message>
-        <source>IPv4 tunnel peer and gateway address, for static_key mode.</source>
-        <translation>IPv4-адрес пира и шлюза в туннеле, для режима static_key.</translation>
-    </message>
-    <message>
-        <source>Peer Address</source>
-        <translation>Адрес пира</translation>
-    </message>
-    <message>
-        <source>IPv6 tunnel peer and gateway address, for static_key mode.</source>
-        <translation>IPv6-адрес пира и шлюза в туннеле, для режима static_key.</translation>
-    </message>
-    <message>
-        <source>Peer Address (IPv6)</source>
-        <translation>Адрес пира (IPv6)</translation>
-    </message>
-    <message>
-        <source>Servers</source>
-        <translation>Серверы</translation>
-    </message>
-    <message>
-        <source>Servers to try in order. Empty: the profile&apos;s address and port.</source>
-        <translation>Серверы, перебираемые по порядку. Если пусто — адрес и порт из профиля.</translation>
-    </message>
-    <message>
-        <source>Server</source>
-        <translation>Сервер</translation>
-    </message>
-    <message>
-        <source>Port</source>
-        <translation>Порт</translation>
-    </message>
-    <message>
-        <source>Network</source>
-        <translation>Сеть</translation>
-    </message>
-    <message>
-        <source>Add</source>
-        <translation>Добавить</translation>
-    </message>
-    <message>
-        <source>Remove</source>
-        <translation>Удалить</translation>
-    </message>
-    <message>
-        <source>Static Key Mode</source>
-        <translation>Режим статического ключа</translation>
-    </message>
-    <message>
-        <source>Static key content, for static_key mode.</source>
-        <translation>Содержимое статического ключа, для режима static_key.</translation>
-    </message>
-    <message>
-        <source>Static Key</source>
-        <translation>Статический ключ</translation>
-    </message>
-    <message>
-        <source>Not set</source>
-        <translation>Не задано</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Conflicts with the inline static key.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Несовместимо со встроенным статическим ключом.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Static Key Path</source>
-        <translation>Путь к статическому ключу</translation>
-    </message>
-    <message>
-        <source>Static key direction. Empty: bidirectional.</source>
-        <translation>Направление статического ключа. Если пусто — двунаправленный.</translation>
-    </message>
-    <message>
-        <source>Key Direction</source>
-        <translation>Направление ключа</translation>
-    </message>
-    <message>
-        <source>Data channel cipher in static_key mode. Empty: BF-CBC.</source>
-        <translation>Шифр канала данных в режиме static_key. Если пусто — BF-CBC.</translation>
-    </message>
-    <message>
-        <source>Data Cipher</source>
-        <translation>Шифр данных</translation>
-    </message>
-    <message>
-        <source>TLS</source>
-        <translation>TLS</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Expected server certificate name. Name verification is disabled when empty.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Ожидаемое имя в сертификате сервера. Если пусто, проверка имени отключена.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Server Name</source>
-        <translation>Имя сервера (SNI)</translation>
-    </message>
-    <message>
-        <source>Certificate field the server name must match. Default: name (exact CN).</source>
-        <translation>Поле сертификата, которому должно соответствовать имя сервера. По умолчанию: name (точный CN).</translation>
-    </message>
-    <message>
-        <source>Server Name Type</source>
-        <translation>Тип проверки имени сервера</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Conflicts with the inline CA certificate on the main editor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Несовместимо со встроенным сертификатом CA в основном редакторе.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>CA Certificate Path</source>
-        <translation>Путь к сертификату CA</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Conflicts with the inline client certificate on the main editor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Несовместимо со встроенным сертификатом клиента в основном редакторе.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Client Certificate Path</source>
-        <translation>Путь к сертификату клиента</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Conflicts with the inline client key on the main editor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Несовместимо со встроенным ключом клиента в основном редакторе.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Client Key Path</source>
-        <translation>Путь к ключу клиента</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Conflicts with the inline control channel wrap key on the main editor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Несовместимо со встроенным ключом защиты управляющего канала в основном редакторе.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Control Wrap Key Path</source>
-        <translation>Путь к ключу защиты упр. канала</translation>
-    </message>
-    <message>
-        <source>Allowed SHA-256 fingerprints of the server certificate, one per line, in hex.</source>
-        <translation>Разрешенные отпечатки SHA-256 сертификата сервера, по одному на строку, в шестнадцатеричном виде.</translation>
-    </message>
-    <message>
-        <source>Peer Fingerprint</source>
-        <translation>Отпечаток сервера</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PEM or DER certificate revocation list used to reject revoked server certificates.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Список отзыва сертификатов (CRL) в формате PEM или DER для отклонения отозванных сертификатов сервера.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>CRL Path</source>
-        <translation>Путь к CRL</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma separated hexadecimal key usage masks in OpenVPN remote-cert-ku format.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Шестнадцатеричные маски key usage через запятую в формате OpenVPN remote-cert-ku.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Remote Certificate KU</source>
-        <translation>KU сертификата сервера</translation>
-    </message>
-    <message>
-        <source>Required extended key usage of the server certificate.</source>
-        <translation>Требуемое расширенное назначение ключа (EKU) сертификата сервера.</translation>
-    </message>
-    <message>
-        <source>Remote Certificate EKU</source>
-        <translation>EKU сертификата сервера</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Peer certificate purpose check. server is used by default; none disables the check.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Проверка назначения сертификата сервера. По умолчанию используется server; none отключает проверку.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Remote Certificate TLS</source>
-        <translation>Назначение сертификата (remote-cert-tls)</translation>
-    </message>
-    <message>
-        <source>Required certificate strength. Default: legacy.</source>
-        <translation>Требуемая стойкость сертификата. По умолчанию: legacy.</translation>
-    </message>
-    <message>
-        <source>Certificate Profile</source>
-        <translation>Профиль сертификатов</translation>
-    </message>
-    <message>
-        <source>Deprecated Netscape certificate type check.</source>
-        <translation>Устаревшая проверка типа сертификата Netscape.</translation>
-    </message>
-    <message>
-        <source>NS Certificate Type</source>
-        <translation>Тип сертификата NS</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;1.2 is used by default.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;По умолчанию используется 1.2.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Min TLS Version</source>
-        <translation>Мин. версия TLS</translation>
-    </message>
-    <message>
-        <source>Highest TLS version. Default: the highest supported.</source>
-        <translation>Максимальная версия TLS. По умолчанию: максимальная поддерживаемая.</translation>
-    </message>
-    <message>
-        <source>Max TLS Version</source>
-        <translation>Макс. версия TLS</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Colon separated OpenSSL cipher suite names allowed for TLS 1.2 and earlier.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Имена наборов шифров OpenSSL через двоеточие, разрешенные для TLS 1.2 и более ранних версий.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>TLS Cipher</source>
-        <translation>Шифр TLS</translation>
-    </message>
-    <message>
-        <source>Colon-separated key exchange groups in order, e.g. X25519:SECP256R1.</source>
-        <translation>Упорядоченные группы обмена ключами через двоеточие, например X25519:SECP256R1.</translation>
-    </message>
-    <message>
-        <source>TLS Groups</source>
-        <translation>Группы TLS</translation>
-    </message>
-    <message>
-        <source>Data Channel</source>
-        <translation>Канал данных</translation>
-    </message>
-    <message>
-        <source>Comma-separated allowed data channel ciphers, for TLS mode.</source>
-        <translation>Разрешенные шифры канала данных через запятую, для режима TLS.</translation>
-    </message>
-    <message>
-        <source>Data Ciphers</source>
-        <translation>Шифры данных</translation>
-    </message>
-    <message>
-        <source>AES-256-GCM,AES-128-GCM,CHACHA20-POLY1305</source>
-        <translation>AES-256-GCM,AES-128-GCM,CHACHA20-POLY1305</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Data channel cipher for peers that do not support cipher negotiation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Шифр канала данных для пиров, не поддерживающих согласование шифров.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Data Ciphers Fallback</source>
-        <translation>Резервный шифр данных</translation>
-    </message>
-    <message>
-        <source>Data channel auth digest for non-AEAD ciphers and tls_auth. Default: SHA1.</source>
-        <translation>Дайджест аутентификации канала данных для шифров без AEAD и tls_auth. По умолчанию: SHA1.</translation>
-    </message>
-    <message>
-        <source>Auth Digest</source>
-        <translation>Дайджест аутентификации</translation>
-    </message>
-    <message>
-        <source>Clamp the MSS of tunneled TCP to fit this UDP packet size.</source>
-        <translation>Ограничивать MSS туннелируемых TCP-соединений под этот размер UDP-пакета.</translation>
-    </message>
-    <message>
-        <source>MSS Fix</source>
-        <translation>MSS Fix</translation>
-    </message>
-    <message>
-        <source>Turn off MSS clamping, including the default clamp.</source>
-        <translation>Отключить ограничение MSS, включая ограничение по умолчанию.</translation>
-    </message>
-    <message>
-        <source>Disable MSS clamping</source>
-        <translation>Отключить ограничение MSS</translation>
-    </message>
-    <message>
-        <source>How MSS Fix counts: with outer headers (mtu) or inner IPv4 only (fixed).</source>
-        <translation>Как считается MSS Fix: с внешними заголовками (mtu) или только внутренний IPv4-пакет (fixed).</translation>
-    </message>
-    <message>
-        <source>MSS Fix Mode</source>
-        <translation>Режим MSS Fix</translation>
-    </message>
-    <message>
-        <source>Largest UDP packet before data channel fragmentation, at least 68.</source>
-        <translation>Максимальный размер UDP-пакета до фрагментации канала данных, не меньше 68.</translation>
-    </message>
-    <message>
-        <source>Fragment</source>
-        <translation>Фрагментация</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;UDP replay window size. 64 is used by default and the maximum is 65536.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Размер окна защиты от повтора для UDP. По умолчанию 64, максимум — 65536.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Replay Window</source>
-        <translation>Окно защиты от повтора</translation>
-    </message>
-    <message>
-        <source>UDP replay window duration in whole seconds, up to 10m.</source>
-        <translation>Длительность окна защиты от повтора для UDP в целых секундах, до 10m.</translation>
-    </message>
-    <message>
-        <source>Replay Window Time</source>
-        <translation>Время окна защиты от повтора</translation>
-    </message>
-    <message>
-        <source>15s (default)</source>
-        <translation>15s (по умолчанию)</translation>
-    </message>
-    <message>
-        <source>Compression</source>
-        <translation>Сжатие</translation>
-    </message>
-    <message>
-        <source>Compress framing mode; can weaken confidentiality. Default: off.</source>
-        <translation>Режим кадрирования compress; может ослабить конфиденциальность. По умолчанию отключен.</translation>
-    </message>
-    <message>
-        <source>comp-lzo mode, only if the server requires it. Default: off.</source>
-        <translation>Режим comp-lzo, только если его требует сервер. По умолчанию отключен.</translation>
-    </message>
-    <message>
-        <source>Compression LZO</source>
-        <translation>Сжатие LZO</translation>
-    </message>
-    <message>
-        <source>Policy for compression the server pushes. Default: no (stub framing only).</source>
-        <translation>Политика для сжатия, передаваемого сервером. По умолчанию: no (только кадрирование stub).</translation>
-    </message>
-    <message>
-        <source>Allow Compression</source>
-        <translation>Разрешить сжатие</translation>
-    </message>
-    <message>
-        <source>Routing</source>
-        <translation>Маршрутизация</translation>
-    </message>
-    <message>
-        <source>Ignore routes, DNS, metrics and gateway options the server pushes.</source>
-        <translation>Игнорировать маршруты, DNS, метрики и параметры шлюза, передаваемые сервером.</translation>
-    </message>
-    <message>
-        <source>Ignore pushed routes, DNS and gateway options</source>
-        <translation>Игнорировать маршруты, DNS и параметры шлюза от сервера</translation>
-    </message>
-    <message>
-        <source>Comma-separated prefixes routed to this endpoint, besides the server&apos;s.</source>
-        <translation>Префиксы через запятую, направляемые в эту конечную точку помимо маршрутов сервера.</translation>
-    </message>
-    <message>
-        <source>Routes</source>
-        <translation>Маршруты</translation>
-    </message>
-    <message>
-        <source>IPv4 gateway for routes through the endpoint. Empty: from the server.</source>
-        <translation>IPv4-шлюз для маршрутов через конечную точку. Если пусто — шлюз от сервера.</translation>
-    </message>
-    <message>
-        <source>Route Gateway</source>
-        <translation>Шлюз маршрутов</translation>
-    </message>
-    <message>
-        <source>Metric for routes through the endpoint. Empty: platform default.</source>
-        <translation>Метрика маршрутов через конечную точку. Если пусто — значение платформы по умолчанию.</translation>
-    </message>
-    <message>
-        <source>Route Metric</source>
-        <translation>Метрика маршрутов</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Does not install an operating system default route.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Не устанавливает маршрут по умолчанию в операционной системе.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Prefer this endpoint for all IPv4 destinations</source>
-        <translation>Предпочитать эту конечную точку для всех адресов IPv4</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma separated OpenVPN redirect-gateway flags, for example !ipv4, def1 or ipv6.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Флаги OpenVPN redirect-gateway через запятую, например !ipv4, def1 или ipv6.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Redirect Gateway Flags</source>
-        <translation>Флаги redirect-gateway</translation>
-    </message>
-    <message>
-        <source>Accept redirect gateway flags without a default route preference</source>
-        <translation>Принимать флаги redirect-gateway без предпочтения маршрута по умолчанию</translation>
-    </message>
-    <message>
-        <source>Reject IPv6 traffic locally instead of sending it through the VPN</source>
-        <translation>Отклонять IPv6-трафик локально, а не отправлять его через VPN</translation>
-    </message>
-    <message>
-        <source>Ordered filters for the options the server pushes.</source>
-        <translation>Упорядоченные фильтры для параметров, передаваемых сервером.</translation>
-    </message>
-    <message>
-        <source>Action</source>
-        <translation>Действие</translation>
-    </message>
-    <message>
-        <source>Text</source>
-        <translation>Текст</translation>
-    </message>
-    <message>
-        <source>Timers</source>
-        <translation>Таймеры</translation>
-    </message>
-    <message>
-        <source>Seconds of silence before a data channel ping is sent.</source>
-        <translation>Сколько секунд тишины ждать до отправки ping по каналу данных.</translation>
-    </message>
-    <message>
-        <source>Ping Interval</source>
-        <translation>Интервал ping</translation>
-    </message>
-    <message>
-        <source>Seconds without a packet before reconnecting. Default: 120s on UDP with pull.</source>
-        <translation>Сколько секунд без пакетов ждать до переподключения. По умолчанию: 120s для UDP с pull.</translation>
-    </message>
-    <message>
-        <source>Ping Restart</source>
-        <translation>Перезапуск по ping</translation>
-    </message>
-    <message>
-        <source>Turn off ping restart, including the initial 120s UDP timeout.</source>
-        <translation>Отключить перезапуск по ping, в том числе начальный 120-секундный таймаут UDP.</translation>
-    </message>
-    <message>
-        <source>Disable ping restart</source>
-        <translation>Отключить перезапуск по ping</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TLS renegotiation interval.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Интервал пересогласования TLS.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Renegotiate Interval</source>
-        <translation>Интервал пересогласования</translation>
-    </message>
-    <message>
-        <source>1h (default)</source>
-        <translation>1h (по умолчанию)</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Conflicts with Renegotiate Interval.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Несовместимо с параметром «Интервал пересогласования».&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Disable time based renegotiation</source>
-        <translation>Отключить пересогласование по времени</translation>
-    </message>
-    <message>
-        <source>Renegotiate data channel keys after this many bytes. Empty: cipher default.</source>
-        <translation>Пересогласовывать ключи канала данных после указанного числа байтов. Если пусто — значение по умолчанию для шифра.</translation>
-    </message>
-    <message>
-        <source>Renegotiate Bytes</source>
-        <translation>Байтов до пересогласования</translation>
-    </message>
-    <message>
-        <source>Renegotiate data channel keys after this many packets. Empty: cipher default.</source>
-        <translation>Пересогласовывать ключи канала данных после указанного числа пакетов. Если пусто — значение по умолчанию для шифра.</translation>
-    </message>
-    <message>
-        <source>Renegotiate Packets</source>
-        <translation>Пакетов до пересогласования</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Initial retransmission timeout for TLS control packets.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Начальный таймаут повторной передачи управляющих пакетов TLS.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>TLS Timeout</source>
-        <translation>Таймаут TLS</translation>
-    </message>
-    <message>
-        <source>2s (default)</source>
-        <translation>2s (по умолчанию)</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum time allowed for the initial handshake and each renegotiation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Максимальное время на начальный хендшейк и каждое пересогласование.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Handshake Window</source>
-        <translation>Окно хендшейка</translation>
-    </message>
-    <message>
-        <source>1m (default)</source>
-        <translation>1m (по умолчанию)</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of exit notifications sent one second apart when closing a UDP connection.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Сколько уведомлений о выходе отправлять с интервалом в одну секунду при закрытии UDP-соединения.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Explicit Exit Notify</source>
-        <translation>Уведомления о выходе</translation>
-    </message>
-    <message>
-        <source>Already set</source>
-        <translation>Уже задано</translation>
-    </message>
-    <message>
-        <source>Row %1, host: %2</source>
-        <translation>Строка %1, хост: %2</translation>
-    </message>
-    <message>
-        <source>Row %1, port: %2</source>
-        <translation>Строка %1, порт: %2</translation>
-    </message>
-    <message>
-        <source>Row %1 has no host, so it is not saved.</source>
-        <translation>В строке %1 не указан хост, поэтому она не сохраняется.</translation>
-    </message>
-    <message>
-        <source>Row %1 has no text, so it is not saved.</source>
-        <translation>В строке %1 нет текста, поэтому она не сохраняется.</translation>
-    </message>
-    <message>
-        <source>Pull Filters</source>
-        <translation>Фильтры pull</translation>
+        <source>Set &quot;%1&quot; on the profile page.</source>
+        <translation>Задайте «%1» на странице профиля.</translation>
     </message>
     <message>
         <source>Static key mode does not use the credentials, certificates or control channel wrap on the profile page; clear them there.</source>
@@ -9069,6 +8142,14 @@ Close without saving?</source>
         <source>Hex key of the server&apos;s client_random_auth_key rule; use instead of Client Random</source>
         <translation>Ключ в hex из правила client_random_auth_key на сервере; указывается вместо Client Random</translation>
     </message>
+    <message>
+        <source>Advanced</source>
+        <translation>Дополнительно</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>По умолчанию</translation>
+    </message>
 </context>
 <context>
     <name>EditTuic</name>
@@ -9099,6 +8180,14 @@ Close without saving?</source>
     <message>
         <source>UDP over stream</source>
         <translation>UDP over Stream</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>Дополнительно</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>По умолчанию</translation>
     </message>
 </context>
 <context>
@@ -10995,14 +10084,6 @@ Name: %1</source>
     <message>
         <source>aux</source>
         <translation>доп.</translation>
-    </message>
-    <message>
-        <source>Traffic counters are disabled</source>
-        <translation>Счетчики трафика отключены</translation>
-    </message>
-    <message>
-        <source>Untick “Disable traffic counters” in Basic Settings → Core → Statistics to record speeds again.</source>
-        <translation>Снимите флажок «Отключить счетчики трафика» в разделе «Основные настройки → Ядро → Статистика», чтобы снова записывать скорость.</translation>
     </message>
     <message>
         <source>Open Traffic Statistics</source>
@@ -13665,14 +12746,6 @@ Throne продолжает попытки в фоне; перезапуск Thr
         <translation>%1 — предпочтительный маршрут</translation>
     </message>
     <message>
-        <source>Empty routing profile</source>
-        <translation>Пустой профиль маршрутизации</translation>
-    </message>
-    <message>
-        <source>No valid rules are in the profile</source>
-        <translation>В профиле нет корректных правил</translation>
-    </message>
-    <message>
         <source>%1 endpoint profile(s) no longer exist and were removed from this routing profile.</source>
         <translation>Профили конечных точек больше не существуют и удалены из этого профиля маршрутизации: %1.</translation>
     </message>
@@ -13751,10 +12824,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Rule %1</source>
         <translation>Правило %1</translation>
-    </message>
-    <message>
-        <source>DNS queries</source>
-        <translation>DNS-запросы</translation>
     </message>
     <message>
         <source>%1 · rule %2 in the list</source>
@@ -17612,6 +16681,10 @@ Remove that endpoint from this routing profile as well?</source>
         <source>Windows reports program paths with \, so a path written with / never matches.</source>
         <translation>Windows записывает пути программ через \, поэтому путь, записанный через /, никогда не сработает.</translation>
     </message>
+    <message>
+        <source>Must be a string.</source>
+        <translation>Должно быть строкой.</translation>
+    </message>
 </context>
 <context>
     <name>Sys::CoreElevation</name>
@@ -18698,16 +17771,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Заменить порт</translation>
     </message>
     <message>
-        <source>Fragment the TLS handshake</source>
-        <translation>Фрагментировать TLS-рукопожатие</translation>
-    </message>
-    <message>
         <source>Fallback delay</source>
         <translation>Задержка перед откатом</translation>
-    </message>
-    <message>
-        <source>Split into TLS records</source>
-        <translation>Разбить на TLS-записи</translation>
     </message>
     <message>
         <source>Spoof SNI</source>
@@ -18768,6 +17833,10 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>This rule has no conditions, so it would catch all traffic. Add a condition, or turn the rule off.</source>
         <translation>У этого правила нет условий, поэтому оно перехватит весь трафик. Добавьте условие или отключите правило.</translation>
+    </message>
+    <message>
+        <source>Fragment TLS</source>
+        <translation>Фрагментация TLS</translation>
     </message>
 </context>
 <context>
@@ -19081,6 +18150,22 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>This rule&apos;s profile no longer exists. Pick another one to see the JSON.</source>
         <translation>Профиль этого правила больше не существует. Выберите другой, чтобы увидеть JSON.</translation>
+    </message>
+    <message>
+        <source>Handshake</source>
+        <translation>Рукопожатие</translation>
+    </message>
+    <message>
+        <source>Handshake + Records</source>
+        <translation>Рукопожатие + записи</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation>Выкл.</translation>
+    </message>
+    <message>
+        <source>Records</source>
+        <translation>Записи</translation>
     </message>
 </context>
 <context>

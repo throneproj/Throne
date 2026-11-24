@@ -273,7 +273,7 @@ LiveChartOptions LiveChartOptions::sparkline(const QString &caption, LiveChartAx
 
 struct LiveChart::Impl {
     enum HitType { NoHit, RowHit, ColumnHit };
-    enum MessageKind { NoMessage, BlockedMessage, EmptyMessage, HiddenMessage };
+    enum MessageKind { NoMessage, EmptyMessage, HiddenMessage };
 
     struct Hit {
         HitType type = NoHit;
@@ -480,8 +480,6 @@ struct LiveChart::Impl {
 
     std::vector<RowEntry> registry;
     int currentCount = 0;
-    QString blockedTitle;
-    QString blockedBody;
     QList<QPointer<QAction>> menuActions;
 
     QFont fontBase, fontSmall, fontMedium, fontBold, fontSmallMedium, fontSmallBold, fontTitle, fontLabel, fontLabelBold;
@@ -849,10 +847,6 @@ bool LiveChart::Impl::layoutView() {
     }
     if (view.plot.width() < 40 || view.plot.height() < 24) return false;
     view.plotValid = true;
-    if (!blockedTitle.isEmpty()) {
-        layoutMessage(BlockedMessage, blockedTitle, blockedBody);
-        return false;
-    }
     if (!prepareData()) {
         layoutMessage(EmptyMessage, o.emptyTitle, o.emptyBody);
         return false;
@@ -1023,7 +1017,6 @@ qreal LiveChart::Impl::layoutSide(qreal W, qreal H) {
         y += headerH + 4;
     }
     const int last = buf.size() - 1;
-    const bool blocked = !blockedTitle.isEmpty();
     for (const int reg : legendRows) {
         const qreal h = registry[reg].row.minor ? minorRowH : legendRowH;
         if (y + h > H - 4) break;
@@ -1031,7 +1024,7 @@ qreal LiveChart::Impl::layoutSide(qreal W, qreal H) {
         sideRows.push_back(SideRow{reg, rect, int(legendValues.size())});
         for (int k = 0; k < nc; ++k) {
             const int column = registry[reg].columns[k];
-            const float v = blocked || last < 0 || column < 0 ? kLiveChartNaN : buf.value(column, last);
+            const float v = last < 0 || column < 0 ? kLiveChartNaN : buf.value(column, last);
             legendValues.push_back(std::isnan(v) ? QStringLiteral("—") : o.axis.format(v));
         }
         hits.push_back(Hit{RowHit, reg, rect});
@@ -1302,7 +1295,7 @@ void LiveChart::Impl::paint(QPainter &p) {
     if (view.legend == LiveChartOptions::Legend::Side) paintSide(p);
     else if (view.legend == LiveChartOptions::Legend::Top) paintTop(p);
     if (!view.plotValid) return;
-    if (view.message == BlockedMessage || view.message == EmptyMessage) {
+    if (view.message == EmptyMessage) {
         paintMessage(p);
         return;
     }
@@ -1895,16 +1888,6 @@ void LiveChart::addPoint(qint64 monoMs, bool running, const QVector<double> &val
         const double v = values[i];
         if (!std::isnan(v)) d->buf.setLatest(d->registry[size_t(i / nc)].columns[i % nc], float(v));
     }
-    d->invalidate();
-}
-
-void LiveChart::setBlocked(const QString &title, const QString &body) {
-    if (title == d->blockedTitle && body == d->blockedBody) return;
-    d->blockedTitle = title;
-    d->blockedBody = body;
-    d->anchor = {};
-    d->ap = -1;
-    d->apSeries = -1;
     d->invalidate();
 }
 

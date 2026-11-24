@@ -14,6 +14,19 @@
    <string notr="true">Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Username</string>
+     </property>
+     <property name="buddy">
+      <cstring>username</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="username"/>
+   </item>
    <item row="1" column="0">
     <widget class="QLabel" name="label_2">
      <property name="text">
@@ -23,6 +36,9 @@
       <cstring>password</cstring>
      </property>
     </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLineEdit" name="password"/>
    </item>
    <item row="2" column="0">
     <widget class="QLabel" name="label_5">
@@ -88,71 +104,70 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="1">
-    <widget class="QLineEdit" name="username"/>
-   </item>
-   <item row="1" column="1">
-    <widget class="QLineEdit" name="password"/>
-   </item>
-   <item row="0" column="0">
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>Username</string>
-     </property>
-     <property name="buddy">
-      <cstring>username</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="1">
-    <widget class="QComboBox" name="congestion_control">
-     <item>
-      <property name="text">
-       <string notr="true">bbr</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string notr="true">cubic</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string notr="true">reno</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string notr="true">bbr_standard</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string notr="true">bbr2</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string notr="true">bbr_variant</string>
-      </property>
-     </item>
-    </widget>
-   </item>
-   <item row="7" column="0">
-    <widget class="QLabel" name="label_3">
-     <property name="text">
-      <string>Congestion Control</string>
-     </property>
-     <property name="buddy">
-      <cstring>congestion_control</cstring>
-     </property>
-    </widget>
-   </item>
    <item row="6" column="0">
     <widget class="QCheckBox" name="quic">
      <property name="text">
       <string>QUIC</string>
      </property>
+    </widget>
+   </item>
+   <item row="7" column="0" colspan="2" alignment="Qt::AlignLeft">
+    <widget class="QToolButton" name="advanced_toggle">
+     <property name="text">
+      <string>Advanced</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="0" colspan="2">
+    <widget class="QWidget" name="advanced_box" native="true">
+     <layout class="QGridLayout" name="advanced_layout" columnstretch="0,1">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Congestion Control</string>
+        </property>
+        <property name="buddy">
+         <cstring>congestion_control</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="congestion_control">
+        <item>
+         <property name="text">
+          <string>Default</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string notr="true">bbr</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string notr="true">cubic</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string notr="true">reno</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>
@@ -165,6 +180,7 @@
   <tabstop>client_random_auth_key</tabstop>
   <tabstop>health_check</tabstop>
   <tabstop>quic</tabstop>
+  <tabstop>advanced_toggle</tabstop>
   <tabstop>congestion_control</tabstop>
  </tabstops>
  <resources/>

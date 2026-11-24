@@ -93,6 +93,13 @@ EditAdvanced::EditAdvanced(QWidget *parent, const std::shared_ptr<Configs::Profi
         connect(ui->tls_spoof, &QLineEdit::textChanged, this, syncSpoofFields);
         connect(ui->tls_spoof_state, &QComboBox::currentIndexChanged, this, syncSpoofFields);
         syncSpoofFields();
+        ui->tls_tricks->setCurrentIndex(tlsObj->getTlsTricksState());
+        ui->fragment_fallback_delay->setText(tlsObj->fragment_fallback_delay);
+        if (ent->outbound->LimitedTLS()) {
+            for (QWidget *w: std::initializer_list<QWidget *>{ui->tls_tricks_l, ui->tls_tricks, ui->fragment_fallback_delay_l, ui->fragment_fallback_delay}) {
+                w->hide();
+            }
+        }
         ui->enable_ech->setChecked(tlsObj->ech->enabled);
         ui->ech_server_name->setText(tlsObj->ech->QueryTarget());
 
@@ -181,6 +188,7 @@ void EditAdvanced::bindValidation() {
         return Checks::TlsVersionOrder(ui->min_version->text(), ui->max_version->text());
     });
     form->bind(ui->tls_spoof, Rules::Host(Validation::Empty::Allowed)).warning();
+    form->bind(ui->fragment_fallback_delay, Rules::Duration());
     form->bind(ui->ech_server_name, [this](const QString &text) -> QString {
         Configs::ECH target;
         target.SetQueryTarget(text);
@@ -302,6 +310,8 @@ void EditAdvanced::accept() {
         tlsObj->saveSpoofState(ui->tls_spoof_state->currentIndex());
         tlsObj->spoof = ui->tls_spoof->text().trimmed();
         tlsObj->spoof_method = ui->tls_spoof_method->currentText().trimmed();
+        tlsObj->saveTlsTricksState(ui->tls_tricks->currentIndex());
+        tlsObj->fragment_fallback_delay = ui->fragment_fallback_delay->text().trimmed();
         tlsObj->ech->enabled = ui->enable_ech->isChecked();
         tlsObj->ech->SetQueryTarget(ui->ech_server_name->text());
         tlsObj->ech->config = CACHE.echConfig;

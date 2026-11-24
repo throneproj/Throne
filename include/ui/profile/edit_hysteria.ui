@@ -52,36 +52,6 @@
     <widget class="QLineEdit" name="server_ports"/>
    </item>
    <item row="2" column="0">
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>Hop Interval</string>
-     </property>
-     <property name="buddy">
-      <cstring>hop_interval</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QLineEdit" name="hop_interval"/>
-   </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="hop_interval_max_l">
-     <property name="text">
-      <string>Hop Interval Max</string>
-     </property>
-     <property name="buddy">
-      <cstring>hop_interval_max</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="1">
-    <widget class="QLineEdit" name="hop_interval_max">
-     <property name="toolTip">
-      <string>Hop at a random interval up to this value. Empty: fixed Hop Interval.</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="0">
     <widget class="QLabel" name="label_3">
      <property name="text">
       <string>Up Mbps</string>
@@ -91,10 +61,10 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="1">
+   <item row="2" column="1">
     <widget class="QLineEdit" name="up_mbps"/>
    </item>
-   <item row="5" column="0">
+   <item row="3" column="0">
     <widget class="QLabel" name="label_4">
      <property name="text">
       <string>Down Mbps</string>
@@ -104,47 +74,10 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="1">
+   <item row="3" column="1">
     <widget class="QLineEdit" name="down_mbps"/>
    </item>
-   <item row="6" column="0">
-    <widget class="QLabel" name="bbr_profile_l">
-     <property name="text">
-      <string>BBR Profile</string>
-     </property>
-     <property name="buddy">
-      <cstring>bbr_profile</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="1">
-    <widget class="QComboBox" name="bbr_profile">
-     <property name="toolTip">
-      <string>Congestion control aggressiveness. Leave empty to use the default (standard).</string>
-     </property>
-     <item>
-      <property name="text">
-       <string notr="true"/>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string notr="true">standard</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string notr="true">conservative</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string notr="true">aggressive</string>
-      </property>
-     </item>
-    </widget>
-   </item>
-   <item row="7" column="0">
+   <item row="4" column="0">
     <widget class="QLabel" name="auth_type_l">
      <property name="text">
       <string>Authentication Type</string>
@@ -154,7 +87,7 @@
      </property>
     </widget>
    </item>
-   <item row="7" column="1">
+   <item row="4" column="1">
     <widget class="QComboBox" name="auth_type">
      <item>
       <property name="text">
@@ -173,7 +106,7 @@
      </item>
     </widget>
    </item>
-   <item row="8" column="0">
+   <item row="5" column="0">
     <widget class="QLabel" name="auth_l">
      <property name="text">
       <string>Authentication Payload</string>
@@ -183,10 +116,10 @@
      </property>
     </widget>
    </item>
-   <item row="8" column="1">
+   <item row="5" column="1">
     <widget class="QLineEdit" name="auth"/>
    </item>
-   <item row="9" column="0">
+   <item row="6" column="0">
     <widget class="QLabel" name="obfuscation_type_l">
      <property name="text">
       <string>Obfuscation</string>
@@ -196,7 +129,7 @@
      </property>
     </widget>
    </item>
-   <item row="9" column="1">
+   <item row="6" column="1">
     <widget class="QComboBox" name="obfuscation_type">
      <item>
       <property name="text">
@@ -215,7 +148,7 @@
      </item>
     </widget>
    </item>
-   <item row="10" column="0">
+   <item row="7" column="0">
     <widget class="QLabel" name="label_5">
      <property name="text">
       <string>Obfuscation Password</string>
@@ -225,69 +158,10 @@
      </property>
     </widget>
    </item>
-   <item row="10" column="1">
+   <item row="7" column="1">
     <widget class="QLineEdit" name="obfs"/>
    </item>
-   <item row="11" column="0">
-    <widget class="QLabel" name="min_packet_size_l">
-     <property name="text">
-      <string>Minimum Packet Size</string>
-     </property>
-     <property name="buddy">
-      <cstring>min_packet_size</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="11" column="1">
-    <widget class="QLineEdit" name="min_packet_size"/>
-   </item>
-   <item row="12" column="0">
-    <widget class="QLabel" name="max_packet_size_l">
-     <property name="text">
-      <string>Maximum Packet Size</string>
-     </property>
-     <property name="buddy">
-      <cstring>max_packet_size</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="12" column="1">
-    <widget class="QLineEdit" name="max_packet_size"/>
-   </item>
-   <item row="13" column="0">
-    <widget class="QLabel" name="recv_window_conn_l">
-     <property name="text">
-      <string>Recv window conn</string>
-     </property>
-     <property name="buddy">
-      <cstring>recv_window_conn</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="13" column="1">
-    <widget class="QLineEdit" name="recv_window_conn"/>
-   </item>
-   <item row="14" column="0">
-    <widget class="QLabel" name="recv_window_l">
-     <property name="text">
-      <string>Recv window</string>
-     </property>
-     <property name="buddy">
-      <cstring>recv_window</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="14" column="1">
-    <widget class="QLineEdit" name="recv_window"/>
-   </item>
-   <item row="15" column="1">
-    <widget class="QCheckBox" name="disable_mtu_discovery">
-     <property name="text">
-      <string>Disable Path MTU Discovery</string>
-     </property>
-    </widget>
-   </item>
-   <item row="16" column="0">
+   <item row="8" column="0">
     <widget class="QLabel" name="password_l">
      <property name="text">
       <string>Password</string>
@@ -297,10 +171,10 @@
      </property>
     </widget>
    </item>
-   <item row="16" column="1">
+   <item row="8" column="1">
     <widget class="QLineEdit" name="password"/>
    </item>
-   <item row="17" column="1">
+   <item row="9" column="1">
     <widget class="QCheckBox" name="disable_chrome_parrot">
      <property name="toolTip">
       <string>Stop making the QUIC handshake look like Chrome's.</string>
@@ -310,7 +184,7 @@
      </property>
     </widget>
    </item>
-   <item row="18" column="1">
+   <item row="10" column="1">
     <layout class="QHBoxLayout" name="realm_row">
      <item>
       <widget class="QCheckBox" name="realm_enabled">
@@ -344,29 +218,145 @@
      </item>
     </layout>
    </item>
+   <item row="11" column="0" colspan="2" alignment="Qt::AlignLeft">
+    <widget class="QToolButton" name="advanced_toggle">
+     <property name="text">
+      <string>Advanced</string>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="0" colspan="2">
+    <widget class="QWidget" name="advanced_box" native="true">
+     <layout class="QGridLayout" name="advanced_layout" columnstretch="0,1">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Hop Interval</string>
+        </property>
+        <property name="buddy">
+         <cstring>hop_interval</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="hop_interval"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="hop_interval_max_l">
+        <property name="text">
+         <string>Hop Interval Max</string>
+        </property>
+        <property name="buddy">
+         <cstring>hop_interval_max</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="hop_interval_max">
+        <property name="toolTip">
+         <string>Hop at a random interval up to this value. Empty: fixed Hop Interval.</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="bbr_profile_l">
+        <property name="text">
+         <string>BBR Profile</string>
+        </property>
+        <property name="buddy">
+         <cstring>bbr_profile</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QComboBox" name="bbr_profile">
+        <property name="toolTip">
+         <string>Congestion control aggressiveness. Leave empty to use the default (standard).</string>
+        </property>
+        <item>
+         <property name="text">
+          <string notr="true"/>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string notr="true">standard</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string notr="true">conservative</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string notr="true">aggressive</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="min_packet_size_l">
+        <property name="text">
+         <string>Minimum Packet Size</string>
+        </property>
+        <property name="buddy">
+         <cstring>min_packet_size</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="min_packet_size"/>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="max_packet_size_l">
+        <property name="text">
+         <string>Maximum Packet Size</string>
+        </property>
+        <property name="buddy">
+         <cstring>max_packet_size</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QLineEdit" name="max_packet_size"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
   </layout>
  </widget>
  <tabstops>
   <tabstop>protocol_version</tabstop>
   <tabstop>server_ports</tabstop>
-  <tabstop>hop_interval</tabstop>
-  <tabstop>hop_interval_max</tabstop>
   <tabstop>up_mbps</tabstop>
   <tabstop>down_mbps</tabstop>
-  <tabstop>bbr_profile</tabstop>
   <tabstop>auth_type</tabstop>
   <tabstop>auth</tabstop>
   <tabstop>obfuscation_type</tabstop>
   <tabstop>obfs</tabstop>
-  <tabstop>min_packet_size</tabstop>
-  <tabstop>max_packet_size</tabstop>
-  <tabstop>recv_window_conn</tabstop>
-  <tabstop>recv_window</tabstop>
-  <tabstop>disable_mtu_discovery</tabstop>
   <tabstop>password</tabstop>
   <tabstop>disable_chrome_parrot</tabstop>
   <tabstop>realm_enabled</tabstop>
   <tabstop>realm_options</tabstop>
+  <tabstop>advanced_toggle</tabstop>
+  <tabstop>hop_interval</tabstop>
+  <tabstop>hop_interval_max</tabstop>
+  <tabstop>bbr_profile</tabstop>
+  <tabstop>min_packet_size</tabstop>
+  <tabstop>max_packet_size</tabstop>
  </tabstops>
  <resources/>
  <connections/>

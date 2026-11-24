@@ -418,6 +418,58 @@
        </widget>
       </item>
       <item row="4" column="0">
+       <widget class="QLabel" name="tls_tricks_l">
+        <property name="toolTip">
+         <string>Randomizes the letter case of the SNI. Keep default: Preset Settings.</string>
+        </property>
+        <property name="text">
+         <string>TLS Tricks</string>
+        </property>
+        <property name="buddy">
+         <cstring>tls_tricks</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QComboBox" name="tls_tricks">
+        <item>
+         <property name="text">
+          <string>Keep default</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>On</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Off</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="4" column="2">
+       <widget class="QLabel" name="fragment_fallback_delay_l">
+        <property name="toolTip">
+         <string>Wait between handshake fragments when the round trip cannot be measured, e.g. on Windows without administrator rights.</string>
+        </property>
+        <property name="text">
+         <string>Fragment Fallback Delay</string>
+        </property>
+        <property name="buddy">
+         <cstring>fragment_fallback_delay</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="3">
+       <widget class="QLineEdit" name="fragment_fallback_delay">
+        <property name="placeholderText">
+         <string notr="true">500ms</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
        <widget class="QLabel" name="label_2">
         <property name="text">
          <string>ECH Config</string>
@@ -427,14 +479,14 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
+      <item row="5" column="1">
        <widget class="QPushButton" name="ech_config">
         <property name="text">
          <string>Not set</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
+      <item row="6" column="0">
        <widget class="QLabel" name="label_3">
         <property name="toolTip">
          <string>Base64 SHA-256 of the server certificate, one per line; replaces CA checks.</string>
@@ -447,14 +499,14 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
+      <item row="6" column="1">
        <widget class="QPushButton" name="cert_sha256">
         <property name="text">
          <string>Not set</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="2">
+      <item row="6" column="2">
        <widget class="QLabel" name="cert_public_key_sha256_l">
         <property name="toolTip">
          <string>Base64 SHA-256 of the server's public key, one per line; replaces CA checks.</string>
@@ -467,14 +519,14 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="3">
+      <item row="6" column="3">
        <widget class="QPushButton" name="cert_public_key_sha256">
         <property name="text">
          <string>Not set</string>
         </property>
        </widget>
       </item>
-      <item row="6" column="0">
+      <item row="7" column="0">
        <widget class="QLabel" name="label_4">
         <property name="text">
          <string>Client Certificate</string>
@@ -484,14 +536,14 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="1">
+      <item row="7" column="1">
        <widget class="QPushButton" name="client_cert">
         <property name="text">
          <string>Not set</string>
         </property>
        </widget>
       </item>
-      <item row="6" column="2">
+      <item row="7" column="2">
        <widget class="QLabel" name="label_5">
         <property name="text">
          <string>Client Key</string>
@@ -501,7 +553,7 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="3">
+      <item row="7" column="3">
        <widget class="QPushButton" name="client_key">
         <property name="text">
          <string>Not set</string>
@@ -713,6 +765,8 @@
   <tabstop>tls_spoof</tabstop>
   <tabstop>tls_spoof_method</tabstop>
   <tabstop>ech_server_name</tabstop>
+  <tabstop>tls_tricks</tabstop>
+  <tabstop>fragment_fallback_delay</tabstop>
   <tabstop>ech_config</tabstop>
   <tabstop>cert_sha256</tabstop>
   <tabstop>cert_public_key_sha256</tabstop>

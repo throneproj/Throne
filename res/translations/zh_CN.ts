@@ -596,30 +596,6 @@ Outbound: %4</source>
         <translation>日志筛选</translation>
     </message>
     <message>
-        <source>Include Keywords</source>
-        <translation>包含关键字</translation>
-    </message>
-    <message>
-        <source>Include Regex</source>
-        <translation>包含正则表达式</translation>
-    </message>
-    <message>
-        <source>Enable include rules</source>
-        <translation>启用「包含」规则</translation>
-    </message>
-    <message>
-        <source>Enable exclude rules</source>
-        <translation>启用「排除」规则</translation>
-    </message>
-    <message>
-        <source>Exclude Keywords</source>
-        <translation>排除关键字</translation>
-    </message>
-    <message>
-        <source>Exclude Regex</source>
-        <translation>排除正则表达式</translation>
-    </message>
-    <message>
         <source>Font</source>
         <translation>字体</translation>
     </message>
@@ -815,14 +791,6 @@ Outbound: %4</source>
     <message>
         <source>Send subscription updates and downloads through the proxy.</source>
         <translation>通过代理进行订阅更新和下载。</translation>
-    </message>
-    <message>
-        <source>Stop counting traffic for a small performance gain.</source>
-        <translation>停止流量计数，以略微提升性能。</translation>
-    </message>
-    <message>
-        <source>Disable traffic counters</source>
-        <translation>禁用流量计数器</translation>
     </message>
     <message>
         <source>Port of the local DNS server.</source>
@@ -1520,6 +1488,14 @@ Included: %2</source>
     <message>
         <source>Restore backup</source>
         <translation>恢复备份</translation>
+    </message>
+    <message>
+        <source>Hide lines matching</source>
+        <translation>隐藏匹配的行</translation>
+    </message>
+    <message>
+        <source>Log lines matching this regular expression are dropped before they reach the log.</source>
+        <translation>与此正则表达式匹配的日志行在进入日志之前即被丢弃。</translation>
     </message>
 </context>
 <context>
@@ -2455,30 +2431,6 @@ Included: %2</source>
         <translation>分片</translation>
     </message>
     <message>
-        <source>Fragment the TLS ClientHello. Keep default: as set in Preset Settings.</source>
-        <translation>对 TLS ClientHello 进行分片。“保持默认”：按“预设设置”中的设定。</translation>
-    </message>
-    <message>
-        <source>Delay between fragments when it cannot be measured. Default: 500ms.</source>
-        <translation>无法测量时使用的分片间延时。默认值：500ms。</translation>
-    </message>
-    <message>
-        <source>Fallback Delay</source>
-        <translation>回退延时</translation>
-    </message>
-    <message>
-        <source>Enable TLS record fragment</source>
-        <translation>启用 TLS 记录分片</translation>
-    </message>
-    <message>
-        <source>TLS Tricks</source>
-        <translation>TLS 技巧</translation>
-    </message>
-    <message>
-        <source>Mixed-case SNI to evade exact-match filters. Keep default: Preset Settings.</source>
-        <translation>混合大小写的 SNI，用于规避精确匹配的过滤。“保持默认”：使用“预设设置”。</translation>
-    </message>
-    <message>
         <source>Cipher Suites</source>
         <translation>密码算法</translation>
     </message>
@@ -2577,138 +2529,6 @@ Included: %2</source>
     <message>
         <source>Mode</source>
         <translation>模式</translation>
-    </message>
-    <message>
-        <source>X Padding Bytes</source>
-        <translation>X 填充字节数</translation>
-    </message>
-    <message>
-        <source>Server Max Header Bytes</source>
-        <translation>服务器最大标头字节数</translation>
-    </message>
-    <message>
-        <source>Padding Obfuscation</source>
-        <translation>填充混淆</translation>
-    </message>
-    <message>
-        <source>xPaddingObfsMode</source>
-        <translation>xPaddingObfsMode</translation>
-    </message>
-    <message>
-        <source>xPaddingMethod</source>
-        <translation>xPaddingMethod</translation>
-    </message>
-    <message>
-        <source>xPaddingPlacement</source>
-        <translation>xPaddingPlacement</translation>
-    </message>
-    <message>
-        <source>xPaddingKey</source>
-        <translation>xPaddingKey</translation>
-    </message>
-    <message>
-        <source>xPaddingHeader</source>
-        <translation>xPaddingHeader</translation>
-    </message>
-    <message>
-        <source>Upload / Stream Tuning</source>
-        <translation>上传/串流调优</translation>
-    </message>
-    <message>
-        <source>scMaxEachPostBytes</source>
-        <translation>scMaxEachPostBytes</translation>
-    </message>
-    <message>
-        <source>scMinPostsIntervalMs</source>
-        <translation>scMinPostsIntervalMs</translation>
-    </message>
-    <message>
-        <source>scMaxBufferedPosts</source>
-        <translation>scMaxBufferedPosts</translation>
-    </message>
-    <message>
-        <source>uplinkHTTPMethod</source>
-        <translation>uplinkHTTPMethod</translation>
-    </message>
-    <message>
-        <source>uplinkDataPlacement</source>
-        <translation>uplinkDataPlacement</translation>
-    </message>
-    <message>
-        <source>uplinkDataKey</source>
-        <translation>uplinkDataKey</translation>
-    </message>
-    <message>
-        <source>uplinkChunkSize</source>
-        <translation>uplinkChunkSize</translation>
-    </message>
-    <message>
-        <source>noGRPCHeader</source>
-        <translation>noGRPCHeader</translation>
-    </message>
-    <message>
-        <source>noSSEHeader</source>
-        <translation>noSSEHeader</translation>
-    </message>
-    <message>
-        <source>scStreamUpServerSecs</source>
-        <translation>scStreamUpServerSecs</translation>
-    </message>
-    <message>
-        <source>sessionPlacement</source>
-        <translation>sessionPlacement</translation>
-    </message>
-    <message>
-        <source>sessionKey</source>
-        <translation>sessionKey</translation>
-    </message>
-    <message>
-        <source>sessionIDTable</source>
-        <translation>sessionIDTable</translation>
-    </message>
-    <message>
-        <source>sessionIDLength</source>
-        <translation>sessionIDLength</translation>
-    </message>
-    <message>
-        <source>seqPlacement</source>
-        <translation>seqPlacement</translation>
-    </message>
-    <message>
-        <source>seqKey</source>
-        <translation>seqKey</translation>
-    </message>
-    <message>
-        <source>Download Settings</source>
-        <translation>下载设置</translation>
-    </message>
-    <message>
-        <source>Xmux</source>
-        <translation>Xmux</translation>
-    </message>
-    <message>
-        <source>maxConcurrency</source>
-        <translation>maxConcurrency</translation>
-    </message>
-    <message>
-        <source>maxConnections</source>
-        <translation>maxConnections</translation>
-    </message>
-    <message>
-        <source>hMaxRequestTimes</source>
-        <translation>hMaxRequestTimes</translation>
-    </message>
-    <message>
-        <source>hMaxReusableSecs</source>
-        <translation>hMaxReusableSecs</translation>
-    </message>
-    <message>
-        <source>cMaxReuseTimes</source>
-        <translation>cMaxReuseTimes</translation>
-    </message>
-    <message>
-        <source>hKeepAlivePeriod</source>
-        <translation>hKeepAlivePeriod</translation>
     </message>
     <message>
         <source>Storage</source>
@@ -2883,244 +2703,8 @@ Included: %2</source>
         <translation>%1：%2</translation>
     </message>
     <message>
-        <source>Xmux Reuse</source>
-        <translation>Xmux 重用</translation>
-    </message>
-    <message>
         <source>XHTTP mode; auto picks packet-up, or stream-one with REALITY.</source>
         <translation>XHTTP 模式；auto 会选择 packet-up，使用 REALITY 时选择 stream-one。</translation>
-    </message>
-    <message>
-        <source>Range of extra padding bytes. Default: 100-1000.</source>
-        <translation>额外填充字节的范围。默认：100-1000。</translation>
-    </message>
-    <message>
-        <source>Largest request header the server accepts. Default: 8192.</source>
-        <translation>服务器接受的最大请求标头大小。默认：8192。</translation>
-    </message>
-    <message>
-        <source>Enable padding obfuscation</source>
-        <translation>启用填充混淆</translation>
-    </message>
-    <message>
-        <source>Customize the X-Padding method, placement, key and header.</source>
-        <translation>自定义 X-Padding 的方法、位置、键和标头。</translation>
-    </message>
-    <message>
-        <source>Padding Method</source>
-        <translation>填充方法</translation>
-    </message>
-    <message>
-        <source>Padding value format. Default: repeat-x.</source>
-        <translation>填充值格式。默认：repeat-x。</translation>
-    </message>
-    <message>
-        <source>Padding Placement</source>
-        <translation>填充位置</translation>
-    </message>
-    <message>
-        <source>Where X-Padding is sent. Default: queryInHeader.</source>
-        <translation>发送 X-Padding 的位置。默认：queryInHeader。</translation>
-    </message>
-    <message>
-        <source>Padding Key</source>
-        <translation>填充键名</translation>
-    </message>
-    <message>
-        <source>Query or cookie key for X-Padding. Default: x_padding.</source>
-        <translation>X-Padding 使用的查询或 cookie 键。默认：x_padding。</translation>
-    </message>
-    <message>
-        <source>Padding Header</source>
-        <translation>填充标头</translation>
-    </message>
-    <message>
-        <source>Header name for X-Padding. Default: X-Padding.</source>
-        <translation>X-Padding 使用的标头名称。默认：X-Padding。</translation>
-    </message>
-    <message>
-        <source>Max Post Bytes</source>
-        <translation>最大 Post 字节数</translation>
-    </message>
-    <message>
-        <source>Largest upload POST in packet-up mode. Default: 1000000.</source>
-        <translation>packet-up 模式下上传 POST 的最大大小。默认：1000000。</translation>
-    </message>
-    <message>
-        <source>Min Post Interval</source>
-        <translation>最小 Post 间隔</translation>
-    </message>
-    <message>
-        <source>Milliseconds between upload POSTs. Default: 30.</source>
-        <translation>上传 POST 之间的间隔毫秒数。默认：30。</translation>
-    </message>
-    <message>
-        <source>Max Buffered Posts</source>
-        <translation>最大缓冲的 POST 请求数</translation>
-    </message>
-    <message>
-        <source>Upload POSTs the server queues per connection. Default: 30.</source>
-        <translation>服务器为每个连接排队的上传 POST 数量。默认：30。</translation>
-    </message>
-    <message>
-        <source>Uplink HTTP Method</source>
-        <translation>上行 HTTP 方法</translation>
-    </message>
-    <message>
-        <source>HTTP method for upload requests. Default: POST.</source>
-        <translation>上传请求使用的 HTTP 方法。默认：POST。</translation>
-    </message>
-    <message>
-        <source>Uplink Data Placement</source>
-        <translation>上行数据位置</translation>
-    </message>
-    <message>
-        <source>Where upload data is placed. Default: auto.</source>
-        <translation>放置上传数据的位置。默认：auto。</translation>
-    </message>
-    <message>
-        <source>Uplink Data Key</source>
-        <translation>上行数据键</translation>
-    </message>
-    <message>
-        <source>Upload data key. Default: X-Data, or x_data for cookie.</source>
-        <translation>上传数据键。默认：X-Data，cookie 时为 x_data。</translation>
-    </message>
-    <message>
-        <source>Uplink Chunk Size</source>
-        <translation>上行分块大小</translation>
-    </message>
-    <message>
-        <source>Chunk size range for upload data in headers or cookies.</source>
-        <translation>上传数据放在 header 或 cookie 中时的分块大小范围。</translation>
-    </message>
-    <message>
-        <source>No gRPC headers</source>
-        <translation>无 GRPC 标头</translation>
-    </message>
-    <message>
-        <source>Don&apos;t send Content-Type: application/grpc on uploads.</source>
-        <translation>上传时不发送 Content-Type: application/grpc。</translation>
-    </message>
-    <message>
-        <source>No SSE headers</source>
-        <translation>无 SSE 标头</translation>
-    </message>
-    <message>
-        <source>Server doesn&apos;t send Content-Type: text/event-stream.</source>
-        <translation>服务器不发送 Content-Type: text/event-stream。</translation>
-    </message>
-    <message>
-        <source>Stream Up Server Seconds</source>
-        <translation>Stream-up (上行流)服务器秒数</translation>
-    </message>
-    <message>
-        <source>Stream-up keepalive interval, in seconds. Default: 20-80.</source>
-        <translation>Stream-up 保活间隔，以秒为单位。默认：20-80。</translation>
-    </message>
-    <message>
-        <source>Session Placement</source>
-        <translation>会话位置</translation>
-    </message>
-    <message>
-        <source>Where the session ID is sent. Default: path.</source>
-        <translation>发送会话 ID 的位置。默认：path。</translation>
-    </message>
-    <message>
-        <source>Session Key</source>
-        <translation>会话键</translation>
-    </message>
-    <message>
-        <source>Session ID key. Default: x_session, or X-Session for header.</source>
-        <translation>会话 ID 键。默认：x_session，header 时为 X-Session。</translation>
-    </message>
-    <message>
-        <source>Session ID Table</source>
-        <translation>会话 ID 表</translation>
-    </message>
-    <message>
-        <source>Session ID charset, e.g. hex or base36. Empty: random UUID.</source>
-        <translation>会话 ID 字符集，例如 hex 或 base36。留空：随机 UUID。</translation>
-    </message>
-    <message>
-        <source>Session ID Length</source>
-        <translation>会话 ID 长度</translation>
-    </message>
-    <message>
-        <source>Session ID length range, e.g. 8-16; needs sessionIDTable.</source>
-        <translation>会话 ID 长度范围，例如 8-16；需要 sessionIDTable。</translation>
-    </message>
-    <message>
-        <source>Sequence Placement</source>
-        <translation>序列位置</translation>
-    </message>
-    <message>
-        <source>Where the packet sequence is sent. Default: path.</source>
-        <translation>发送数据包序列的位置。默认：path。</translation>
-    </message>
-    <message>
-        <source>Sequence Key</source>
-        <translation>序列键</translation>
-    </message>
-    <message>
-        <source>Sequence key. Default: x_seq, or X-Seq for header.</source>
-        <translation>序列键。默认：x_seq，header 时为 X-Seq。</translation>
-    </message>
-    <message>
-        <source>Max Concurrency</source>
-        <translation>最大并发数</translation>
-    </message>
-    <message>
-        <source>Most concurrent uses per connection. Empty xmux: 1-1.</source>
-        <translation>每个连接的最多并发使用数。xmux 为空时：1-1。</translation>
-    </message>
-    <message>
-        <source>Max Connections</source>
-        <translation>最大连接数</translation>
-    </message>
-    <message>
-        <source>Most parallel underlying H2/H3 connections.</source>
-        <translation>最多并行的底层 H2/H3 连接数。</translation>
-    </message>
-    <message>
-        <source>Max Reuse times</source>
-        <translation>最大复用次数</translation>
-    </message>
-    <message>
-        <source>Most times one connection is reused.</source>
-        <translation>单个连接最多被复用的次数。</translation>
-    </message>
-    <message>
-        <source>Max Request Times</source>
-        <translation>最大请求次数</translation>
-    </message>
-    <message>
-        <source>Most requests per connection. Empty xmux: 600-900.</source>
-        <translation>每个连接的最多请求数。xmux 为空时：600-900。</translation>
-    </message>
-    <message>
-        <source>Max Reusable Secs</source>
-        <translation>最大可重用秒数</translation>
-    </message>
-    <message>
-        <source>Seconds a connection is reusable. Empty xmux: 1800-3000.</source>
-        <translation>连接可复用的秒数。xmux 为空时：1800-3000。</translation>
-    </message>
-    <message>
-        <source>Keep Alive Period</source>
-        <translation>保活周期</translation>
-    </message>
-    <message>
-        <source>Keepalive seconds. 0: Xray default; below 0: off.</source>
-        <translation>保活间隔秒数。0：Xray 默认值；小于 0：关闭。</translation>
-    </message>
-    <message>
-        <source>Separate streamSettings, address and port for downloads.</source>
-        <translation>用于下载的独立 streamSettings、地址和端口。</translation>
-    </message>
-    <message>
-        <source>The padding method or placement is not supported, and Xray refuses it even with obfuscation off. Turn this on and fix the value, or clear it.</source>
-        <translation>padding （填充）方法或 placement （位置）不被支持，而且即使关闭混淆 Xray 也拒绝它。打开它并修正该值，或者清除它。</translation>
     </message>
     <message>
         <source>Largest packet mKCP sends, in bytes, from 21 to 8192. Default: 1350.</source>
@@ -3277,6 +2861,34 @@ Included: %2</source>
     <message>
         <source>Host header for ws, http and httpUpgrade.</source>
         <translation>用于 ws、http 和 httpUpgrade 的 Host 标头。</translation>
+    </message>
+    <message>
+        <source>Extra</source>
+        <translation>额外设置 (Extra)</translation>
+    </message>
+    <message>
+        <source>Handshake</source>
+        <translation>握手</translation>
+    </message>
+    <message>
+        <source>Handshake + Records</source>
+        <translation>握手 + 记录</translation>
+    </message>
+    <message>
+        <source>Handshake splits the ClientHello into TCP segments, Records into TLS records. Keep default: Preset Settings.</source>
+        <translation>“握手”将 ClientHello 拆分为多个 TCP 分段，“记录”将其拆分为多个 TLS 记录。“保持默认”：使用“预设设置”。</translation>
+    </message>
+    <message>
+        <source>No extra settings are set. Available keys:</source>
+        <translation>未设置任何额外设置。可用的键：</translation>
+    </message>
+    <message>
+        <source>Records</source>
+        <translation>记录</translation>
+    </message>
+    <message>
+        <source>XHTTP extra settings as JSON: padding, upload tuning, session keys, xmux and downloadSettings.</source>
+        <translation>以 JSON 编辑的 XHTTP 额外设置：填充、上传调优、会话键、xmux 和 downloadSettings。</translation>
     </message>
 </context>
 <context>
@@ -3854,10 +3466,6 @@ Included: %2</source>
         <translation>仅 HTTP/3</translation>
     </message>
     <message>
-        <source>Cloudflare API domains to try, in order, when generating a WARP config</source>
-        <translation>当生成 WARP 配置时，按顺序尝试的 Cloudflare API 域名</translation>
-    </message>
-    <message>
         <source>Registration Domains</source>
         <translation>注册域名</translation>
     </message>
@@ -3984,10 +3592,6 @@ Included: %2</source>
     <message>
         <source>Update</source>
         <translation>更新</translation>
-    </message>
-    <message>
-        <source>WARP Registration Domains</source>
-        <translation>WARP 注册域名</translation>
     </message>
     <message>
         <source>One domain per line. They are tried in order and the first one that accepts the registration is used. Leave empty to use %1.</source>
@@ -4320,10 +3924,6 @@ Included: %2</source>
 %3</translation>
     </message>
     <message>
-        <source>TLS fragmentation for WARP registration</source>
-        <translation>WARP 注册的 TLS 分片</translation>
-    </message>
-    <message>
         <source>Advanced WARP Settings</source>
         <translation>高级 WARP 设置</translation>
     </message>
@@ -4338,10 +3938,6 @@ Included: %2</source>
     <message>
         <source>Fragment TLS</source>
         <translation>分片 TLS</translation>
-    </message>
-    <message>
-        <source>Record fragment</source>
-        <translation>记录分片</translation>
     </message>
     <message>
         <source>Fallback delay</source>
@@ -4432,6 +4028,26 @@ A domain listed with only one address family is answered NXDOMAIN for the other,
     <message>
         <source>Import Routing Profile</source>
         <translation>导入路由配置档</translation>
+    </message>
+    <message>
+        <source>%1 in Advanced</source>
+        <translation>“高级”中的%1</translation>
+    </message>
+    <message>
+        <source>Handshake</source>
+        <translation>握手</translation>
+    </message>
+    <message>
+        <source>Handshake + Records</source>
+        <translation>握手 + 记录</translation>
+    </message>
+    <message>
+        <source>Keys, MASQUE options, registration domains and TLS fragmentation</source>
+        <translation>密钥、MASQUE 选项、注册域名和 TLS 分片</translation>
+    </message>
+    <message>
+        <source>Records</source>
+        <translation>记录</translation>
     </message>
 </context>
 <context>
@@ -6169,6 +5785,22 @@ Close without saving?</source>
         <source>QUIC opener</source>
         <translation>QUIC 前导包</translation>
     </message>
+    <message>
+        <source>Fragment Fallback Delay</source>
+        <translation>分片回退延时</translation>
+    </message>
+    <message>
+        <source>Randomizes the letter case of the SNI. Keep default: Preset Settings.</source>
+        <translation>随机化 SNI 的字母大小写。“保持默认”：使用“预设设置”。</translation>
+    </message>
+    <message>
+        <source>TLS Tricks</source>
+        <translation>TLS 技巧</translation>
+    </message>
+    <message>
+        <source>Wait between handshake fragments when the round trip cannot be measured, e.g. on Windows without administrator rights.</source>
+        <translation>无法测量往返时间时（例如在没有管理员权限的 Windows 上）握手分片之间的等待时间。</translation>
+    </message>
 </context>
 <context>
     <name>EditAnyTLS</name>
@@ -6187,6 +5819,10 @@ Close without saving?</source>
     <message>
         <source>Min Idle Session</source>
         <translation>最小空闲会话</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>高级</translation>
     </message>
 </context>
 <context>
@@ -7017,18 +6653,6 @@ Close without saving?</source>
         <translation>最大数据包大小</translation>
     </message>
     <message>
-        <source>Recv window conn</source>
-        <translation>接收窗口连接</translation>
-    </message>
-    <message>
-        <source>Recv window</source>
-        <translation>接收窗口</translation>
-    </message>
-    <message>
-        <source>Disable Path MTU Discovery</source>
-        <translation>禁用路径 MTU 发现</translation>
-    </message>
-    <message>
         <source>Password</source>
         <translation>密码</translation>
     </message>
@@ -7055,6 +6679,10 @@ Close without saving?</source>
     <message>
         <source>Obfuscation needs a password; without one, it is off.</source>
         <translation>混淆需要密码，没有它，则功能关闭。</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>高级</translation>
     </message>
 </context>
 <context>
@@ -7350,6 +6978,14 @@ Close without saving?</source>
     <message>
         <source>Parallel tunnel connections; more are easier to detect. 0: off.</source>
         <translation>并行隧道连接数；越多越容易被检测到。0：禁用。</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>高级</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>默认</translation>
     </message>
 </context>
 <context>
@@ -8176,584 +7812,21 @@ Close without saving?</source>
         <source>None</source>
         <translation>无</translation>
     </message>
-</context>
-<context>
-    <name>EditOpenVPNAdvanced</name>
+    <message>
+        <source>No advanced options are set. Available keys:</source>
+        <translation>未设置任何高级选项。可用的键：</translation>
+    </message>
     <message>
         <source>OpenVPN Advanced</source>
         <translation>OpenVPN 高级</translation>
     </message>
     <message>
-        <source>Session</source>
-        <translation>会话</translation>
+        <source>OpenVPN options not on this page, edited as JSON.</source>
+        <translation>此页面之外的 OpenVPN 选项，以 JSON 编辑。</translation>
     </message>
     <message>
-        <source>Session mode. Default: tls; static_key is deprecated.</source>
-        <translation>会话模式。默认：tls；static_key 已弃用。</translation>
-    </message>
-    <message>
-        <source>Mode</source>
-        <translation>模式</translation>
-    </message>
-    <message>
-        <source>Tunnel topology. Empty: pulled from the server.</source>
-        <translation>隧道拓扑。留空：从服务器拉取。</translation>
-    </message>
-    <message>
-        <source>Topology</source>
-        <translation>拓扑</translation>
-    </message>
-    <message>
-        <source>What to do after a failed login. Default: none (give up).</source>
-        <translation>登录失败后的处理方式。默认：none（放弃）。</translation>
-    </message>
-    <message>
-        <source>Auth Retry</source>
-        <translation>认证重试</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Randomize the server list before connecting.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;连接前随机化服务器列表。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Randomize server order</source>
-        <translation>随机化服务器顺序</translation>
-    </message>
-    <message>
-        <source>Comma-separated local tunnel prefixes; required in static_key mode.</source>
-        <translation>逗号间隔的本地隧道前缀；static_key 模式下必填。</translation>
-    </message>
-    <message>
-        <source>Local Address</source>
-        <translation>本地地址</translation>
-    </message>
-    <message>
-        <source>10.8.0.2/24, fd00::2/64</source>
-        <translation>10.8.0.2/24, fd00::2/64</translation>
-    </message>
-    <message>
-        <source>IPv4 tunnel peer and gateway address, for static_key mode.</source>
-        <translation>IPv4 隧道对端和网关地址，用于 static_key 模式。</translation>
-    </message>
-    <message>
-        <source>Peer Address</source>
-        <translation>对端地址</translation>
-    </message>
-    <message>
-        <source>IPv6 tunnel peer and gateway address, for static_key mode.</source>
-        <translation>IPv6 隧道对端和网关地址，用于 static_key 模式。</translation>
-    </message>
-    <message>
-        <source>Peer Address (IPv6)</source>
-        <translation>对端地址 (IPv6)</translation>
-    </message>
-    <message>
-        <source>Servers</source>
-        <translation>服务器</translation>
-    </message>
-    <message>
-        <source>Servers to try in order. Empty: the profile&apos;s address and port.</source>
-        <translation>按顺序尝试的服务器。留空：使用配置档的地址和端口。</translation>
-    </message>
-    <message>
-        <source>Server</source>
-        <translation>服务器</translation>
-    </message>
-    <message>
-        <source>Port</source>
-        <translation>端口</translation>
-    </message>
-    <message>
-        <source>Network</source>
-        <translation>传输(网络)</translation>
-    </message>
-    <message>
-        <source>Add</source>
-        <translation>添加</translation>
-    </message>
-    <message>
-        <source>Remove</source>
-        <translation>删除</translation>
-    </message>
-    <message>
-        <source>Static Key Mode</source>
-        <translation>静态钥匙模式</translation>
-    </message>
-    <message>
-        <source>Static key content, for static_key mode.</source>
-        <translation>静态钥匙内容，用于 static_key 模式。</translation>
-    </message>
-    <message>
-        <source>Static Key</source>
-        <translation>静态钥匙</translation>
-    </message>
-    <message>
-        <source>Not set</source>
-        <translation>未设置</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Conflicts with the inline static key.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;与内联静态钥匙不能同时使用。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Static Key Path</source>
-        <translation>静态钥匙路径</translation>
-    </message>
-    <message>
-        <source>Static key direction. Empty: bidirectional.</source>
-        <translation>静态钥匙方向。留空：双向。</translation>
-    </message>
-    <message>
-        <source>Key Direction</source>
-        <translation>钥匙方向</translation>
-    </message>
-    <message>
-        <source>Data channel cipher in static_key mode. Empty: BF-CBC.</source>
-        <translation>static_key 模式下的数据通道密码算法。留空：BF-CBC。</translation>
-    </message>
-    <message>
-        <source>Data Cipher</source>
-        <translation>数据密码算法</translation>
-    </message>
-    <message>
-        <source>TLS</source>
-        <translation>TLS</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Expected server certificate name. Name verification is disabled when empty.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;预期的服务器证书名称。留空时禁用名称验证。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Server Name</source>
-        <translation>服务器名称</translation>
-    </message>
-    <message>
-        <source>Certificate field the server name must match. Default: name (exact CN).</source>
-        <translation>服务器名称必须匹配的证书字段。默认：name（精确匹配 CN）。</translation>
-    </message>
-    <message>
-        <source>Server Name Type</source>
-        <translation>服务器名称类型</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Conflicts with the inline CA certificate on the main editor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;与主编辑器上的内联 CA 证书冲突（不能同时使用）。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>CA Certificate Path</source>
-        <translation>CA 证书路径</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Conflicts with the inline client certificate on the main editor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;与主编辑器上的内联客户端证书冲突（不能同时使用）。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Client Certificate Path</source>
-        <translation>客户端证书路径</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Conflicts with the inline client key on the main editor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;与主编辑器上的内联客户端密钥冲突（不能同时使用）。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Client Key Path</source>
-        <translation>客户端钥匙路径</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Conflicts with the inline control channel wrap key on the main editor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;与主要编辑器上控制通道 wrap 钥匙不能同时使用。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Control Wrap Key Path</source>
-        <translation>控制 Wrap 钥匙路径</translation>
-    </message>
-    <message>
-        <source>Allowed SHA-256 fingerprints of the server certificate, one per line, in hex.</source>
-        <translation>允许的服务器证书 SHA-256 指纹，每行一个，十六进制。</translation>
-    </message>
-    <message>
-        <source>Peer Fingerprint</source>
-        <translation>对端指纹</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;PEM or DER certificate revocation list used to reject revoked server certificates.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;用于拒绝已撤销服务器证书的 PEM 或 DER 格式的 CRL (Certificate Revocation List 证书吊销列表)。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>CRL Path</source>
-        <translation>CRL 路径</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma separated hexadecimal key usage masks in OpenVPN remote-cert-ku format.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;逗号间隔的十六进制钥匙用法掩码，格式为 OpenVPN `remote-cert-ku` 格式。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Remote Certificate KU</source>
-        <translation>远程证书钥匙用法</translation>
-    </message>
-    <message>
-        <source>Required extended key usage of the server certificate.</source>
-        <translation>服务器证书要求的扩展钥匙用法。</translation>
-    </message>
-    <message>
-        <source>Remote Certificate EKU</source>
-        <translation>远程证书扩展钥匙用法</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Peer certificate purpose check. server is used by default; none disables the check.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;对端证书用途检查。默认使用 server (服务器)；选择 none (无)将禁用该检查。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Remote Certificate TLS</source>
-        <translation>远程证书 TLS</translation>
-    </message>
-    <message>
-        <source>Required certificate strength. Default: legacy.</source>
-        <translation>要求的证书强度。默认：legacy。</translation>
-    </message>
-    <message>
-        <source>Certificate Profile</source>
-        <translation>证书配置方案</translation>
-    </message>
-    <message>
-        <source>Deprecated Netscape certificate type check.</source>
-        <translation>已弃用的 Netscape 证书类型检查。</translation>
-    </message>
-    <message>
-        <source>NS Certificate Type</source>
-        <translation>NS 证书类型</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;1.2 is used by default.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;默认使用 1.2。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Min TLS Version</source>
-        <translation>最小 TLS 版本</translation>
-    </message>
-    <message>
-        <source>Highest TLS version. Default: the highest supported.</source>
-        <translation>最高 TLS 版本。默认：支持的最高版本。</translation>
-    </message>
-    <message>
-        <source>Max TLS Version</source>
-        <translation>最大 TLS 版本</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Colon separated OpenSSL cipher suite names allowed for TLS 1.2 and earlier.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;允许用于 TLS 1.2 及更早版本的以冒号间隔的 OpenSSL 密码（算法）套件名称。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>TLS Cipher</source>
-        <translation>TLS 密码套件</translation>
-    </message>
-    <message>
-        <source>Colon-separated key exchange groups in order, e.g. X25519:SECP256R1.</source>
-        <translation>按顺序以冒号间隔的密钥交换组，例如 X25519:SECP256R1。</translation>
-    </message>
-    <message>
-        <source>TLS Groups</source>
-        <translation>TLS 组</translation>
-    </message>
-    <message>
-        <source>Data Channel</source>
-        <translation>数据通道</translation>
-    </message>
-    <message>
-        <source>Comma-separated allowed data channel ciphers, for TLS mode.</source>
-        <translation>逗号间隔的允许的数据通道密码算法，用于 TLS 模式。</translation>
-    </message>
-    <message>
-        <source>Data Ciphers</source>
-        <translation>数据密码算法</translation>
-    </message>
-    <message>
-        <source>AES-256-GCM,AES-128-GCM,CHACHA20-POLY1305</source>
-        <translation>AES-256-GCM,AES-128-GCM,CHACHA20-POLY1305</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Data channel cipher for peers that do not support cipher negotiation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;用于不支持密码算法协商的对端的数据通道密码算法。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Data Ciphers Fallback</source>
-        <translation>数据密码算法回退</translation>
-    </message>
-    <message>
-        <source>Data channel auth digest for non-AEAD ciphers and tls_auth. Default: SHA1.</source>
-        <translation>用于非 AEAD 密码算法和 tls_auth 的数据通道认证摘要。默认：SHA1。</translation>
-    </message>
-    <message>
-        <source>Auth Digest</source>
-        <translation>认证摘要算法</translation>
-    </message>
-    <message>
-        <source>Clamp the MSS of tunneled TCP to fit this UDP packet size.</source>
-        <translation>限制隧道内 TCP 的 MSS，以适应此 UDP 数据包大小。</translation>
-    </message>
-    <message>
-        <source>MSS Fix</source>
-        <translation>MSS 修正</translation>
-    </message>
-    <message>
-        <source>Turn off MSS clamping, including the default clamp.</source>
-        <translation>关闭 MSS 限制，包括默认限制。</translation>
-    </message>
-    <message>
-        <source>Disable MSS clamping</source>
-        <translation>禁用 MSS 限制</translation>
-    </message>
-    <message>
-        <source>How MSS Fix counts: with outer headers (mtu) or inner IPv4 only (fixed).</source>
-        <translation>MSS 修正的计算方式：计入外层标头（mtu）或仅计内层 IPv4（fixed）。</translation>
-    </message>
-    <message>
-        <source>MSS Fix Mode</source>
-        <translation>MSS 修正模式</translation>
-    </message>
-    <message>
-        <source>Largest UDP packet before data channel fragmentation, at least 68.</source>
-        <translation>数据通道分片前的最大 UDP 数据包大小，至少 68。</translation>
-    </message>
-    <message>
-        <source>Fragment</source>
-        <translation>分片</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;UDP replay window size. 64 is used by default and the maximum is 65536.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;UDP 重放窗口大小。默认使用 64，最大值为 65536。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Replay Window</source>
-        <translation>重放窗口</translation>
-    </message>
-    <message>
-        <source>UDP replay window duration in whole seconds, up to 10m.</source>
-        <translation>UDP 重放窗口时长，以整秒为单位，最长 10 分钟。</translation>
-    </message>
-    <message>
-        <source>Replay Window Time</source>
-        <translation>重放窗口时间</translation>
-    </message>
-    <message>
-        <source>15s (default)</source>
-        <translation>15s (15秒，默认)</translation>
-    </message>
-    <message>
-        <source>Compression</source>
-        <translation>压缩</translation>
-    </message>
-    <message>
-        <source>Compress framing mode; can weaken confidentiality. Default: off.</source>
-        <translation>压缩帧模式；可能削弱机密性。默认：关闭。</translation>
-    </message>
-    <message>
-        <source>comp-lzo mode, only if the server requires it. Default: off.</source>
-        <translation>comp-lzo 模式，仅在服务器要求时使用。默认：关闭。</translation>
-    </message>
-    <message>
-        <source>Compression LZO</source>
-        <translation>压缩 LZO</translation>
-    </message>
-    <message>
-        <source>Policy for compression the server pushes. Default: no (stub framing only).</source>
-        <translation>服务器推送压缩时的处理策略。默认：no（仅 stub 帧格式）。</translation>
-    </message>
-    <message>
-        <source>Allow Compression</source>
-        <translation>允许压缩</translation>
-    </message>
-    <message>
-        <source>Routing</source>
-        <translation>路由</translation>
-    </message>
-    <message>
-        <source>Ignore routes, DNS, metrics and gateway options the server pushes.</source>
-        <translation>忽略服务器推送的路由、DNS、度量值和网关选项。</translation>
-    </message>
-    <message>
-        <source>Ignore pushed routes, DNS and gateway options</source>
-        <translation>忽略推送的路由、DNS 和网关选项</translation>
-    </message>
-    <message>
-        <source>Comma-separated prefixes routed to this endpoint, besides the server&apos;s.</source>
-        <translation>逗号间隔的前缀，在服务器的路由之外也路由到这个端点。</translation>
-    </message>
-    <message>
-        <source>Routes</source>
-        <translation>路由</translation>
-    </message>
-    <message>
-        <source>IPv4 gateway for routes through the endpoint. Empty: from the server.</source>
-        <translation>通过该端点的路由的 IPv4 网关。留空：取自服务器。</translation>
-    </message>
-    <message>
-        <source>Route Gateway</source>
-        <translation>路由网关</translation>
-    </message>
-    <message>
-        <source>Metric for routes through the endpoint. Empty: platform default.</source>
-        <translation>通过该端点的路由的度量值。留空：使用平台默认值。</translation>
-    </message>
-    <message>
-        <source>Route Metric</source>
-        <translation>路由度量</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Does not install an operating system default route.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;不安装操作系统默认路由。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Prefer this endpoint for all IPv4 destinations</source>
-        <translation>所有 IPv4 目标首选这个端点</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma separated OpenVPN redirect-gateway flags, for example !ipv4, def1 or ipv6.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;逗号间隔的 OpenVPN redirect-gateway (重定向网关)标志，例如 !ipv4、def1 或 ipv6。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Redirect Gateway Flags</source>
-        <translation>“重定向网关”标志</translation>
-    </message>
-    <message>
-        <source>Accept redirect gateway flags without a default route preference</source>
-        <translation>接受 redirect gateway (重定向网关)标志而不使用默认路由偏好</translation>
-    </message>
-    <message>
-        <source>Reject IPv6 traffic locally instead of sending it through the VPN</source>
-        <translation>本地拒绝 IPv6 流量，而不是通过 VPN 发送它</translation>
-    </message>
-    <message>
-        <source>Ordered filters for the options the server pushes.</source>
-        <translation>用于服务器推送选项的有序过滤器。</translation>
-    </message>
-    <message>
-        <source>Action</source>
-        <translation>动作</translation>
-    </message>
-    <message>
-        <source>Text</source>
-        <translation>文本</translation>
-    </message>
-    <message>
-        <source>Timers</source>
-        <translation>计时器</translation>
-    </message>
-    <message>
-        <source>Seconds of silence before a data channel ping is sent.</source>
-        <translation>静默多少秒后发送数据通道 ping。</translation>
-    </message>
-    <message>
-        <source>Ping Interval</source>
-        <translation>Ping 间隔</translation>
-    </message>
-    <message>
-        <source>Seconds without a packet before reconnecting. Default: 120s on UDP with pull.</source>
-        <translation>多少秒未收到数据包后重新连接。默认：启用 pull 的 UDP 为 120 秒。</translation>
-    </message>
-    <message>
-        <source>Ping Restart</source>
-        <translation>Ping 重启</translation>
-    </message>
-    <message>
-        <source>Turn off ping restart, including the initial 120s UDP timeout.</source>
-        <translation>关闭 ping 重启，包括初始的 120 秒 UDP 超时。</translation>
-    </message>
-    <message>
-        <source>Disable ping restart</source>
-        <translation>禁用 ping 重启</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TLS renegotiation interval.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TLS 重新协商间隔。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Renegotiate Interval</source>
-        <translation>重新协商间隔</translation>
-    </message>
-    <message>
-        <source>1h (default)</source>
-        <translation>1h (1小时，默认)</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Conflicts with Renegotiate Interval.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;与“重新协商间隔”冲突（不能同时使用）。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Disable time based renegotiation</source>
-        <translation>禁用基于时间的重新协商</translation>
-    </message>
-    <message>
-        <source>Renegotiate data channel keys after this many bytes. Empty: cipher default.</source>
-        <translation>传输此数量的字节后重新协商数据通道密钥。留空：密码算法的默认值。</translation>
-    </message>
-    <message>
-        <source>Renegotiate Bytes</source>
-        <translation>重新协商字节数</translation>
-    </message>
-    <message>
-        <source>Renegotiate data channel keys after this many packets. Empty: cipher default.</source>
-        <translation>传输此数量的数据包后重新协商数据通道密钥。留空：密码算法的默认值。</translation>
-    </message>
-    <message>
-        <source>Renegotiate Packets</source>
-        <translation>重新协商数据包数</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Initial retransmission timeout for TLS control packets.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;TLS 控制数据包的初始重传超时。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>TLS Timeout</source>
-        <translation>TLS 超时</translation>
-    </message>
-    <message>
-        <source>2s (default)</source>
-        <translation>2s (2秒，默认)</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Maximum time allowed for the initial handshake and each renegotiation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;初始握手和每次重新协商允许的最长时间。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Handshake Window</source>
-        <translation>握手窗口</translation>
-    </message>
-    <message>
-        <source>1m (default)</source>
-        <translation>1m (1分钟，默认)</translation>
-    </message>
-    <message>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of exit notifications sent one second apart when closing a UDP connection.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;关闭 UDP 连接时发送的退出通知数量(每条通知间隔一秒)。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
-    </message>
-    <message>
-        <source>Explicit Exit Notify</source>
-        <translation>显式退出通知</translation>
-    </message>
-    <message>
-        <source>Already set</source>
-        <translation>已设置</translation>
-    </message>
-    <message>
-        <source>Row %1, host: %2</source>
-        <translation>第 %1 行，主机: %2</translation>
-    </message>
-    <message>
-        <source>Row %1, port: %2</source>
-        <translation>第 %1 行, 端口: %2</translation>
-    </message>
-    <message>
-        <source>Row %1 has no host, so it is not saved.</source>
-        <translation>第 %1 行没有主机，所以没有被保存。</translation>
-    </message>
-    <message>
-        <source>Row %1 has no text, so it is not saved.</source>
-        <translation>第 %1 行没有文本，所以没有被保存。</translation>
-    </message>
-    <message>
-        <source>Pull Filters</source>
-        <translation>拉取过滤</translation>
+        <source>Set &quot;%1&quot; on the profile page.</source>
+        <translation>请在配置档页面上设置“%1”。</translation>
     </message>
     <message>
         <source>Static key mode does not use the credentials, certificates or control channel wrap on the profile page; clear them there.</source>
@@ -9015,6 +8088,14 @@ Close without saving?</source>
         <source>Hex key of the server&apos;s client_random_auth_key rule; use instead of Client Random</source>
         <translation>服务器的 client_random_auth_key (客户端随机认证钥匙)规则的十六进制钥匙；可替代 Client Random (客户端随机)使用</translation>
     </message>
+    <message>
+        <source>Advanced</source>
+        <translation>高级</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>默认</translation>
+    </message>
 </context>
 <context>
     <name>EditTuic</name>
@@ -9045,6 +8126,14 @@ Close without saving?</source>
     <message>
         <source>UDP over stream</source>
         <translation>基于流的 UDP</translation>
+    </message>
+    <message>
+        <source>Advanced</source>
+        <translation>高级</translation>
+    </message>
+    <message>
+        <source>Default</source>
+        <translation>默认</translation>
     </message>
 </context>
 <context>
@@ -10797,14 +9886,6 @@ Close without saving?</source>
     <message>
         <source>aux</source>
         <translation>辅助</translation>
-    </message>
-    <message>
-        <source>Traffic counters are disabled</source>
-        <translation>流量计数器已禁用</translation>
-    </message>
-    <message>
-        <source>Untick “Disable traffic counters” in Basic Settings → Core → Statistics to record speeds again.</source>
-        <translation>在 “基本设置 → 核心 → 统计” 中取消勾选 “禁用流量计数器”，就可以重新记录速度。</translation>
     </message>
     <message>
         <source>Connect OK</source>
@@ -13657,14 +12738,6 @@ Throne 会在后台持续重试，重启 Throne 也会重试。</translation>
         <translation>%1 路由首选</translation>
     </message>
     <message>
-        <source>Empty routing profile</source>
-        <translation>空路由配置档</translation>
-    </message>
-    <message>
-        <source>No valid rules are in the profile</source>
-        <translation>配置档中没有有效的规则</translation>
-    </message>
-    <message>
         <source>%1 endpoint profile(s) no longer exist and were removed from this routing profile.</source>
         <translation>%1 个端点配置档已不存在，已从这个路由配置档中移除。</translation>
     </message>
@@ -13691,10 +12764,6 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Rule %1</source>
         <translation>规则 %1</translation>
-    </message>
-    <message>
-        <source>DNS queries</source>
-        <translation>DNS 查询</translation>
     </message>
     <message>
         <source>%1 · rule %2 in the list</source>
@@ -17502,6 +16571,10 @@ Remove that endpoint from this routing profile as well?</source>
         <source>Windows reports program paths with \, so a path written with / never matches.</source>
         <translation>Windows 报告路径带 \，所以用 / 写的路径永远无法匹配。</translation>
     </message>
+    <message>
+        <source>Must be a string.</source>
+        <translation>必须是字符串。</translation>
+    </message>
 </context>
 <context>
     <name>XrayMuxSettingsWidget</name>
@@ -18448,16 +17521,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>覆盖端口</translation>
     </message>
     <message>
-        <source>Fragment the TLS handshake</source>
-        <translation>分片 TLS 握手</translation>
-    </message>
-    <message>
         <source>Fallback delay</source>
         <translation>回退延迟</translation>
-    </message>
-    <message>
-        <source>Split into TLS records</source>
-        <translation>拆分为 TLS 记录</translation>
     </message>
     <message>
         <source>Spoof SNI</source>
@@ -18518,6 +17583,10 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>This rule has no conditions, so it would catch all traffic. Add a condition, or turn the rule off.</source>
         <translation>此规则没有条件，会匹配所有流量。请添加条件，或关闭此规则。</translation>
+    </message>
+    <message>
+        <source>Fragment TLS</source>
+        <translation>分片 TLS</translation>
     </message>
 </context>
 <context>
@@ -18829,6 +17898,22 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>This rule&apos;s profile no longer exists. Pick another one to see the JSON.</source>
         <translation>此规则的配置档已不存在。请另选一个以查看 JSON。</translation>
+    </message>
+    <message>
+        <source>Handshake</source>
+        <translation>握手</translation>
+    </message>
+    <message>
+        <source>Handshake + Records</source>
+        <translation>握手 + 记录</translation>
+    </message>
+    <message>
+        <source>Off</source>
+        <translation>关闭</translation>
+    </message>
+    <message>
+        <source>Records</source>
+        <translation>记录</translation>
     </message>
 </context>
 <context>

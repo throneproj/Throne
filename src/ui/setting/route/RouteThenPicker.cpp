@@ -212,7 +212,10 @@ namespace {
             const auto matches = [&needle](const QString& text) { return needle.isEmpty() || text.contains(needle, Qt::CaseInsensitive); };
             list->clear();
 
-            QList<Then> others = {Then::HijackDns, Then::Sniff, Then::Resolve, Then::RouteOptions};
+            QList<Then> others;
+            // Throne already sniffs and hijacks DNS before the profile's rules, so these are offered only to a rule that has one.
+            if (current == Then::HijackDns || current == Then::Sniff) others.append(current);
+            others << Then::Resolve << Then::RouteOptions;
             if (offerBypass) others.append(Then::Bypass);
             const QList<QPair<QString, QList<Then>>> sections = {
                 {RouteThenPicker::tr("Send through"), {Then::Proxy, Then::Direct, Then::NoWarp}},

@@ -7,8 +7,28 @@
 #include "include/ui/widget/MuxSettingsWidget.h"
 
 #include <QInputDialog>
+#include <QStandardItemModel>
 
 #include <climits>
+
+namespace {
+// Fragment combo items; Off is Configs::kTriStateOff.
+constexpr int kFragmentDefault = 0;
+constexpr int kFragmentHandshake = 1;
+constexpr int kFragmentRecords = 3;
+constexpr int kFragmentBoth = 4;
+
+int fragmentIndex(const Configs::TLS &tls) {
+    if (tls.fragment) return tls.record_fragment ? kFragmentBoth : kFragmentHandshake;
+    // Records also shows Keep Default plus records, which has no item of its own.
+    if (tls.record_fragment) return kFragmentRecords;
+    return tls.fragment_unspecified ? kFragmentDefault : Configs::kTriStateOff;
+}
+
+bool recordFragment(int index) {
+    return index == kFragmentRecords || index == kFragmentBoth;
+}
+}
 
 void DialogEditProfile::setupSingboxStream() {
     network_title_base = ui->network_box->title();
@@ -16,7 +36,6 @@ void DialogEditProfile::setupSingboxStream() {
 
     connect(ui->network, &QComboBox::currentTextChanged, this, [this] { relayout(); });
     connect(ui->security, &QComboBox::currentTextChanged, this, [this] { relayout(); });
-    connect(ui->fragment, &QComboBox::currentIndexChanged, this, [this] { relayout(); });
     connect(ui->multiplex, &QComboBox::currentIndexChanged, this, [this] { relayout(); });
     connect(ui->multiplex_custom, &QPushButton::clicked, this, [this] {
         MuxSettingsWidget::openDialog(this, CACHE.mux, [this](const Configs::MuxSettings &settings) { CACHE.mux = settings; });
@@ -33,9 +52,12 @@ QString DialogEditProfile::ownTlsSpoof() {
 bool DialogEditProfile::singboxTlsFragmentOn() {
     if (ent == nullptr || ent->outbound->LimitedTLS()) return false;
     const auto &settings = *Configs::dataManager->settingsRepo;
-    const int state = ui->fragment->currentIndex();
-    // Build emits the TLS-level fragment (and its delay) only for the non-custom implementation.
-    return (state == 1 || (state == 0 && settings.fragment_default_on)) && settings.fragment_implementation != "custom";
+    const int index = ui->fragment->currentIndex();
+    // An unchanged combo keeps the loaded fields, so Records may still carry Keep Default.
+    const bool keepDefault = index == fragmentLoadedIndex ? ent->outbound->GetTLS()->fragment_unspecified : index == kFragmentDefault;
+    const bool on = index == kFragmentHandshake || index == kFragmentBoth || (keepDefault && settings.fragment_default_on);
+    // Build emits the TLS-level fragment only for the non-custom implementation.
+    return on && settings.fragment_implementation != "custom";
 }
 
 bool DialogEditProfile::singboxUtlsActive() {
@@ -85,7 +107,6 @@ void DialogEditProfile::bindSingboxStream() {
         if (ui->reality_sid->text().trimmed().isEmpty() || !ui->reality_pbk->text().trimmed().isEmpty()) return QString();
         return tr("The short ID has no effect without a Reality public key, so Reality stays off.");
     }, nullptr, Severity::Warning);
-    form->bind(ui->tls_frag_fall_delay, Validation::Rules::Duration()).when([this] { return singboxTlsFragmentOn(); });
     form->addRule({ui->certificate_edit}, [this] { return Checks::PemCertificates(CACHE.certificate); });
 
     // Rules over values the Advanced dialog keeps in the profile.
@@ -106,8 +127,9 @@ void DialogEditProfile::bindSingboxStream() {
         return Checks::SpoofServerName(ownTlsSpoof(), sni.isEmpty() ? ui->address->text().remove(' ') : sni,
                                        ent->outbound->GetTLS()->disable_sni);
     });
-    form->addRule({ui->utlsFingerprint, ui->fragment, ui->tls_rec_frag}, [this] {
-        return Checks::SpoofIgnored(!ownTlsSpoof().isEmpty(), singboxUtlsActive(), singboxTlsFragmentOn(), ui->tls_rec_frag->isChecked());
+    form->addRule({ui->utlsFingerprint, ui->fragment}, [this] {
+        return Checks::SpoofIgnored(!ownTlsSpoof().isEmpty(), singboxUtlsActive(), singboxTlsFragmentOn(),
+                                    recordFragment(ui->fragment->currentIndex()));
     }, nullptr, Severity::Warning);
 }
 
@@ -132,10 +154,8 @@ void DialogEditProfile::loadSingboxStream() {
         CACHE.certificate = tls->certificate;
         ui->sni->setText(tls->server_name);
         ui->alpn->setText(tls->alpn.join(","));
-        ui->fragment->setCurrentIndex(tls->getFragmentState());
-        ui->tls_frag_fall_delay->setText(tls->fragment_fallback_delay);
-        ui->tls_rec_frag->setChecked(tls->record_fragment);
-        ui->tls_tricks->setCurrentIndex(tls->getTlsTricksState());
+        fragmentLoadedIndex = fragmentIndex(*tls);
+        ui->fragment->setCurrentIndex(fragmentLoadedIndex);
         if (!tls->utls->supported || outbound->LimitedTLS()) {
             ui->utlsFingerprint->setCurrentText("");
         } else if (newEnt) {
@@ -173,10 +193,11 @@ void DialogEditProfile::saveSingboxStream() {
         tls->certificate = CACHE.certificate;
         tls->server_name = ui->sni->text().trimmed();
         tls->alpn = SplitAndTrim(ui->alpn->text(), ",", false);
-        tls->saveFragmentState(ui->fragment->currentIndex());
-        tls->fragment_fallback_delay = ui->tls_frag_fall_delay->text().trimmed();
-        tls->record_fragment = ui->tls_rec_frag->isChecked();
-        tls->saveTlsTricksState(ui->tls_tricks->currentIndex());
+        if (const int fragment = ui->fragment->currentIndex(); fragment != fragmentLoadedIndex) {
+            tls->fragment = fragment == kFragmentHandshake || fragment == kFragmentBoth;
+            tls->fragment_unspecified = fragment == kFragmentDefault;
+            tls->record_fragment = recordFragment(fragment);
+        }
         tls->utls->fingerPrint = ui->utlsFingerprint->currentText().trimmed();
         tls->utls->enabled = !tls->utls->fingerPrint.isEmpty();
         tls->cipher_suites = Configs::splitCipherSuites(ui->cipher_suites->text());
@@ -237,11 +258,10 @@ void DialogEditProfile::updateTlsControlsEnabled() {
     const bool quic = innerEditor->usesQuic();
     const bool utls = !limited && !quic && outbound->GetTLS()->utls->supported;
     const bool reality = !limited && !quic && ent->type != "masque";
-    // Limited-TLS outbounds only get the dialer-level ("custom") fragment, which has no fallback delay.
+    // Limited-TLS outbounds only get the dialer-level ("custom") fragment, which splits the handshake only.
     const bool fragment = !limited || Configs::dataManager->settingsRepo->fragment_implementation == "custom";
 
-    for (QWidget *w: std::initializer_list<QWidget *>{ui->alpn_l, ui->alpn, ui->insecure, ui->tls_rec_frag,
-                                                     ui->tls_tricks_l, ui->tls_tricks, ui->tls_frag_fall_delay_l}) {
+    for (QWidget *w: std::initializer_list<QWidget *>{ui->alpn_l, ui->alpn, ui->insecure}) {
         w->setEnabled(!limited);
     }
     for (QWidget *w: std::initializer_list<QWidget *>{ui->reality_pbk_l, ui->reality_pbk, ui->reality_sid_l, ui->reality_sid}) {
@@ -254,7 +274,9 @@ void DialogEditProfile::updateTlsControlsEnabled() {
     ui->cipher_suites->setEnabled(!limited && !quic);
     ui->fragment_l->setEnabled(fragment);
     ui->fragment->setEnabled(fragment);
-    ui->tls_frag_fall_delay->setEnabled(!limited && ui->fragment->currentIndex() != Configs::kTriStateOff);
+    if (auto *model = qobject_cast<QStandardItemModel *>(ui->fragment->model())) {
+        for (const int index: {kFragmentRecords, kFragmentBoth}) model->item(index)->setEnabled(!limited);
+    }
 }
 
 void DialogEditProfile::on_certificate_edit_clicked() {

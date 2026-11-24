@@ -342,6 +342,7 @@ void MainWindow::applySettingsUi(quint32 effects) {
         ui->actionTraffic_Stats->setVisible(!settings->disable_traffic_aggregation);
         refresh_traffic_graph_settings();
     }
+    if (has(Schema::UiDashboard)) ui->menu_open_dashboard->setVisible(settings->core_box_api_port > 0);
     if (has(Schema::UiTrayIcon)) {
         Icon::InvalidateTrayIconCache();
         icon_status.reset();

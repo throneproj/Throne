@@ -40,9 +40,6 @@ namespace Configs
         // Hysteria1
         QString auth_type;
         QString auth;
-        int recv_window_conn = 0;
-        int recv_window = 0;
-        bool disable_mtu_discovery = false;
 
         // Hysteria2
         QString password;

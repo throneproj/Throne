@@ -1,5 +1,8 @@
 #include "include/database/SettingsRepo.h"
 #include "NkrVersion.h"
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QRegularExpression>
 #include <QUuid>
 
 #include "include/configs/ExitThrough.h"
@@ -35,6 +38,9 @@ namespace Configs {
         if (!query) return;
 
         bool legacyWarp = false;
+        bool legacyExclude = false;
+        bool legacyExcludeOn = false;
+        QStringList legacyExcludeKeywords;
         while (query->executeStep()) {
             const QString key = QString::fromStdString(query->getColumn(0).getText());
             std::string raw = query->getColumn(1).getText();
@@ -55,7 +61,29 @@ namespace Configs {
                 legacyWarp = str == "true" || str == "1";
                 continue;
             }
+            // Log exclusion was a switch plus keywords and patterns; only the pattern list remains.
+            if (key == "log_enable_exclude") {
+                legacyExclude = true;
+                legacyExcludeOn = str == "true" || str == "1";
+                continue;
+            }
+            if (key == "log_exclude_keyword") {
+                for (const auto &item : QJsonDocument::fromJson(str.toUtf8()).array()) legacyExcludeKeywords << item.toString();
+                continue;
+            }
             if (const auto *entry = SettingsSchema::Find(key)) SettingsSchema::Parse(*this, *entry, str);
+        }
+        if (legacyExclude) {
+            QStringList patterns;
+            if (legacyExcludeOn) {
+                for (const auto &keyword : legacyExcludeKeywords) {
+                    if (!keyword.isEmpty()) patterns << QRegularExpression::escape(keyword);
+                }
+                for (const auto &pattern : log_exclude_regex) {
+                    if (!pattern.trimmed().isEmpty()) patterns << pattern;
+                }
+            }
+            log_exclude_regex = patterns;
         }
         if (!stored.contains(QStringLiteral("exit_through")) && legacyWarp) exit_through = ExitValue(ExitThrough::Warp);
         // An exit this version lacks reads as the selected profile, and the row is rewritten.
@@ -70,7 +98,8 @@ namespace Configs {
         }
         // Retired keys nothing writes back; the DNS ones would otherwise keep overriding the migrated flags on every load.
         db.exec("DELETE FROM settings WHERE key IN ('direct_dns_strategy', 'remote_dns_strategy', 'log_auto_scroll', 'simple_mode', "
-                "'enable_tor', 'enable_warp')");
+                "'enable_tor', 'enable_warp', 'disable_traffic_stats', 'log_enable_include', 'log_include_keyword', "
+                "'log_include_regex', 'log_enable_exclude', 'log_exclude_keyword')");
     }
 
     std::vector<std::pair<QString, std::string>> SettingsRepo::serializeAll() const {

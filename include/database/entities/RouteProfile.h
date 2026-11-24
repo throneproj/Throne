@@ -144,8 +144,6 @@ namespace Configs {
         // CIDRs pulled away from a direct exit, so Tun knows which ranges it must carry; rule-sets aren't resolvable at build time and are left out.
         QStringList get_hijacked_ips();
 
-        bool IsEmpty();
-
         void ResetRules();
 
         void ResetSimpleRule(ruleType type);

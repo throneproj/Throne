@@ -153,14 +153,6 @@ RouteItem::RouteItem(QWidget *parent, const std::shared_ptr<Configs::RouteProfil
     ui->setupUi(this);
 
     chain = std::make_shared<Configs::RouteProfile>(*routeChain);
-    // Not for a remote profile: a seeded rule would be local and outlive every update.
-    if (chain->IsEmpty() && !chain->isRemote) {
-        auto rule = std::make_shared<Configs::RouteRule>();
-        rule->name = tr("DNS queries");
-        rule->protocol = "dns";
-        rule->action = "hijack-dns";
-        chain->Rules << rule;
-    }
     routeItemNameRules(*chain, true);
     QuickLists::EnsureLists(*chain);
 
@@ -602,14 +594,6 @@ void RouteItem::accept() {
     // Endpoints whose profile is gone drop out here, and syncEndpointRules() drops their rules with them.
     const int missingEndpoints = static_cast<int>(endpointRows.size() - listedEndpointIDs().size());
     syncEndpointRules();
-
-    // A remote profile may be saved before its first fetch; only plain profiles must be non-empty.
-    if (!chain->isRemote && chain->IsEmpty()) {
-        QuickLists::EnsureLists(*chain);
-        reloadRules();
-        MessageBoxInfo(tr("Empty routing profile"), tr("No valid rules are in the profile"));
-        return;
-    }
 
     if (missingEndpoints > 0) {
         MessageBoxInfo(tr("Endpoints"),

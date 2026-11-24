@@ -98,8 +98,6 @@ public:
     void setRows(const QList<LiveChartRow> &rows);
     // One value per current row × column, row-major; NaN where a line has no value. running=false breaks the lines.
     void addPoint(qint64 monoMs, bool running, const QVector<double> &values);
-    // A non-empty title replaces the plot with the message; the buffer is kept.
-    void setBlocked(const QString &title, const QString &body = {});
     void clearHistory();
     // Appended to the context menu after the built-in entries; the chart does not take ownership.
     void addMenuAction(QAction *action);

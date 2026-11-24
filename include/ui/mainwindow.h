@@ -330,10 +330,7 @@ private:
     bool m_profilesTableHadFocus = false;
     int m_profilesScrollValue = 0;
 
-    QStringList includeKeywords;
-    QStringList excludeKeywords;
-    QRegularExpression includeCombined;
-    QRegularExpression excludeCombined;
+    QRegularExpression logHidePattern;
     QMutex logMutex;
     QQueue<QString> logQueue;
     QWaitCondition logWaiter;
@@ -362,15 +359,6 @@ private:
     QTimer *m_logSearchDebounce = nullptr;
     QToolButton *logFilterButton = nullptr;
     QToolButton *logJumpLatestButton = nullptr;
-
-    struct LogFilter {
-        bool enableInclude = false;
-        bool enableExclude = false;
-        QStringList includeKeywords;
-        QStringList excludeKeywords;
-        QRegularExpression includeCombined;
-        QRegularExpression excludeCombined;
-    };
 
     void append_log(const QString &log);
 
@@ -401,8 +389,6 @@ private:
     void setLogFilterVisible(bool visible);
 
     void updateLogStatus();
-
-    bool should_print_log(const QString &log, const LogFilter &filter);
 
     void updateLogFilterFields();
 

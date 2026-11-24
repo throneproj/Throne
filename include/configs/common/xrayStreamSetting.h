@@ -26,6 +26,9 @@ namespace Configs {
     // Go's strings.ToLower, for comparing against ASCII names: Qt lowercases U+0130 to two characters, Go to 'i'.
     QString XrayLower(const QString& text);
 
+    // An XHTTP extra object with every key in Xray's spelling, xmux ones included, as the link importer folds them.
+    QJsonObject CanonicalXHTTPExtra(const QJsonObject& extra);
+
     // The spellings Go merges into the one XHTTP download leg Xray dials for an outbound (the object holding streamSettings), in decode order.
     QList<QJsonObject> XrayDownloadLeg(const QJsonObject& outbound);
 
@@ -78,6 +81,8 @@ namespace Configs {
         QString XrayUplinkMethod(const QString& method, const QString& mode);
         QString XraySessionId(const QString& table, const QString& length);
         QString XrayXmuxExclusive(const QString& maxConnections, const QString& maxConcurrency);
+        // The stream editor's rules over an XHTTP extra object as xrayXHTTP::SetExtra reads it; stream-one drops downloadSettings unchecked.
+        void XrayXHTTPExtra(Validation::Issues& issues, const QString& at, const QJsonObject& extra, const QString& mode);
         // Errors for an outbound's XHTTP download leg that would crash the core: no address, no port 1-65535, or another network.
         void XrayXHTTPDownloadLeg(Validation::Issues& issues, const QString& at, const QJsonObject& outbound);
 
@@ -195,6 +200,10 @@ namespace Configs {
         // extra/downloadSettings
         QString downloadSettings;
 
+        // The extra object as links carry it, minus headers, which have their own field; downloadSettings stays in stream-one mode too.
+        QJsonObject ExportExtra() const;
+        // Replaces every extra field but headers with what extra holds, read as a link's extra is.
+        void SetExtra(const QJsonObject& extra);
         bool ParseExtraJson(const QString &str);
         bool ParseFromLink(const QString& link) override;
         bool ParseFromJson(const QJsonObject& object) override;

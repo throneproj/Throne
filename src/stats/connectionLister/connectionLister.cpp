@@ -238,47 +238,44 @@ namespace Stats
         speedSamples_ = newSamples; // drop ids for connections that have closed
 
         // Credits the live set plus the recently-closed ring (deduped by id), so a connection that opened and closed between polls still counts.
-        if (!Configs::dataManager->settingsRepo->disable_traffic_stats)
+        QHash<QString, QPair<qint64, qint64>> newLast;
+        QSet<QString> currentClosed;
+
+        auto credit = [&](const libcore::ConnectionMetaData& cm, qint64 curUp, qint64 curDown)
         {
-            QHash<QString, QPair<qint64, qint64>> newLast;
-            QSet<QString> currentClosed;
-
-            auto credit = [&](const libcore::ConnectionMetaData& cm, qint64 curUp, qint64 curDown)
+            const QString id = QString::fromStdString(cm.id.value());
+            qint64 baseUp = 0, baseDown = 0;
+            if (const auto it = lastBytes_.constFind(id); it != lastBytes_.constEnd())
             {
-                const QString id = QString::fromStdString(cm.id.value());
-                qint64 baseUp = 0, baseDown = 0;
-                if (const auto it = lastBytes_.constFind(id); it != lastBytes_.constEnd())
-                {
-                    baseUp = it->first;
-                    baseDown = it->second;
-                }
-                qint64 dUp = curUp - baseUp;
-                qint64 dDown = curDown - baseDown;
-                if (dUp < 0) dUp = 0;
-                if (dDown < 0) dDown = 0;
-                if (dUp == 0 && dDown == 0) return;
-                QString name = QString::fromStdString(cm.process.value());
-                if (name.isEmpty()) name = "Unknown";
-                trafficStatsManager->AddAppDelta(name, QString::fromStdString(cm.process_path.value()), dUp, dDown);
-            };
-
-            for (const auto& cm : resp.active)
-            {
-                const qint64 up = cm.upload.value();
-                const qint64 down = cm.download.value();
-                credit(cm, up, down);
-                newLast.insert(QString::fromStdString(cm.id.value()), {up, down});
+                baseUp = it->first;
+                baseDown = it->second;
             }
-            for (const auto& cm : resp.closed)
-            {
-                const QString id = QString::fromStdString(cm.id.value());
-                currentClosed.insert(id);
-                if (accountedClosed_.contains(id)) continue;
-                credit(cm, cm.upload.value(), cm.download.value());
-            }
-            lastBytes_ = newLast;             // drop evicted / now-closed live ids
-            accountedClosed_ = currentClosed; // everything in the ring is accounted
+            qint64 dUp = curUp - baseUp;
+            qint64 dDown = curDown - baseDown;
+            if (dUp < 0) dUp = 0;
+            if (dDown < 0) dDown = 0;
+            if (dUp == 0 && dDown == 0) return;
+            QString name = QString::fromStdString(cm.process.value());
+            if (name.isEmpty()) name = "Unknown";
+            trafficStatsManager->AddAppDelta(name, QString::fromStdString(cm.process_path.value()), dUp, dDown);
+        };
+
+        for (const auto& cm : resp.active)
+        {
+            const qint64 up = cm.upload.value();
+            const qint64 down = cm.download.value();
+            credit(cm, up, down);
+            newLast.insert(QString::fromStdString(cm.id.value()), {up, down});
         }
+        for (const auto& cm : resp.closed)
+        {
+            const QString id = QString::fromStdString(cm.id.value());
+            currentClosed.insert(id);
+            if (accountedClosed_.contains(id)) continue;
+            credit(cm, cm.upload.value(), cm.download.value());
+        }
+        lastBytes_ = newLast;             // drop evicted / now-closed live ids
+        accountedClosed_ = currentClosed; // everything in the ring is accounted
 
         if (pushToApi)
         {

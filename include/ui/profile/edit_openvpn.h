@@ -34,12 +34,15 @@ public:
 private:
     void editPem(QPushButton *button, const QString &title, QStringList &target);
 
+    // The options the page does not show, as JSON; applied to the profile when the editor is accepted.
+    void editAdvanced();
+
     // Writes this page's input: into the live profile on save, into a copy when checking.
     void saveInto(Configs::openvpn &outbound) const;
 
     std::shared_ptr<Configs::openvpn> withInput() const;
 
-    // The Advanced dialog and the PEM boxes change what the rules see without a focus-out.
+    // The Advanced editor and the PEM boxes change what the rules see without a focus-out.
     void revalidateInput();
 
     Ui::EditOpenVPN *ui;

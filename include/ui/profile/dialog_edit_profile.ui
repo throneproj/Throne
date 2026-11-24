@@ -725,156 +725,6 @@
           <number>7</number>
          </property>
          <item>
-          <widget class="QWidget" name="tls_camouflage_w" native="true">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_7">
-            <property name="spacing">
-             <number>0</number>
-            </property>
-            <property name="sizeConstraint">
-             <enum>QLayout::SizeConstraint::SetMinimumSize</enum>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="QWidget" name="widget_3" native="true">
-              <layout class="QHBoxLayout" name="horizontalLayout_6">
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="topMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <property name="bottomMargin">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="fragment_l">
-                 <property name="text">
-                  <string>Fragment</string>
-                 </property>
-                 <property name="buddy">
-                  <cstring>fragment</cstring>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QComboBox" name="fragment">
-                 <property name="toolTip">
-                  <string>Fragment the TLS ClientHello. Keep default: as set in Preset Settings.</string>
-                 </property>
-                 <item>
-                  <property name="text">
-                   <string>Keep default</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>On</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Off</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="tls_frag_fall_delay_l">
-                 <property name="toolTip">
-                  <string>Delay between fragments when it cannot be measured. Default: 500ms.</string>
-                 </property>
-                 <property name="text">
-                  <string>Fallback Delay</string>
-                 </property>
-                 <property name="buddy">
-                  <cstring>tls_frag_fall_delay</cstring>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="tls_frag_fall_delay"/>
-               </item>
-              </layout>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="tls_rec_frag">
-              <property name="text">
-               <string>Enable TLS record fragment</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QWidget" name="widget_tls_tricks" native="true">
-              <layout class="QHBoxLayout" name="horizontalLayout_tls_tricks">
-               <property name="leftMargin">
-                <number>0</number>
-               </property>
-               <property name="topMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>0</number>
-               </property>
-               <property name="bottomMargin">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="tls_tricks_l">
-                 <property name="text">
-                  <string>TLS Tricks</string>
-                 </property>
-                 <property name="buddy">
-                  <cstring>tls_tricks</cstring>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QComboBox" name="tls_tricks">
-                 <property name="toolTip">
-                  <string>Mixed-case SNI to evade exact-match filters. Keep default: Preset Settings.</string>
-                 </property>
-                 <item>
-                  <property name="text">
-                   <string>Keep default</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>On</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>Off</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-              </layout>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
           <widget class="QWidget" name="widget_2" native="true">
            <layout class="QFormLayout" name="formLayout">
             <property name="horizontalSpacing">
@@ -884,6 +734,48 @@
              <number>7</number>
             </property>
             <item row="0" column="0">
+             <widget class="QLabel" name="fragment_l">
+              <property name="text">
+               <string>Fragment</string>
+              </property>
+              <property name="buddy">
+               <cstring>fragment</cstring>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QComboBox" name="fragment">
+              <property name="toolTip">
+               <string>Handshake splits the ClientHello into TCP segments, Records into TLS records. Keep default: Preset Settings.</string>
+              </property>
+              <item>
+               <property name="text">
+                <string>Keep default</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Handshake</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Off</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Records</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Handshake + Records</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item row="1" column="0">
              <widget class="QLabel" name="utlsFingerprint_l">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
@@ -899,14 +791,14 @@
               </property>
              </widget>
             </item>
-            <item row="0" column="1">
+            <item row="1" column="1">
              <widget class="QComboBox" name="utlsFingerprint">
               <property name="editable">
                <bool>true</bool>
               </property>
              </widget>
             </item>
-            <item row="1" column="0">
+            <item row="2" column="0">
              <widget class="QLabel" name="cipher_suites_l">
               <property name="text">
                <string>Cipher Suites</string>
@@ -916,14 +808,14 @@
               </property>
              </widget>
             </item>
-            <item row="1" column="1">
+            <item row="2" column="1">
              <widget class="MyLineEdit" name="cipher_suites">
               <property name="toolTip">
                <string>Colon-separated TLS 1.2 cipher suites; only the "unsafe" fingerprint uses them.</string>
               </property>
              </widget>
             </item>
-            <item row="2" column="0">
+            <item row="3" column="0">
              <widget class="QLabel" name="reality_pbk_l">
               <property name="toolTip">
                <string>Reality public key. If not empty, turn TLS into REALITY.</string>
@@ -936,10 +828,10 @@
               </property>
              </widget>
             </item>
-            <item row="2" column="1">
+            <item row="3" column="1">
              <widget class="MyLineEdit" name="reality_pbk"/>
             </item>
-            <item row="3" column="0">
+            <item row="4" column="0">
              <widget class="QLabel" name="reality_sid_l">
               <property name="toolTip">
                <string>REALITY short ID, a single value.</string>
@@ -952,7 +844,7 @@
               </property>
              </widget>
             </item>
-            <item row="3" column="1">
+            <item row="4" column="1">
              <widget class="QLineEdit" name="reality_sid"/>
             </item>
            </layout>
@@ -1250,465 +1142,40 @@
                   </property>
                  </widget>
                 </item>
-               </layout>
-              </widget>
-             </item>
-             <item>
-              <widget class="QWidget" name="xray_xhttp_box" native="true">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <layout class="QVBoxLayout" name="verticalLayout_xray_xhttp">
-                <item>
-                 <widget class="QGroupBox" name="xray_xhttp_common_box">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
+                <item row="5" column="0">
+                 <widget class="QLabel" name="xray_mode_l">
+                  <property name="text">
+                   <string>Mode</string>
                   </property>
-                  <property name="title">
-                   <string>Common</string>
+                  <property name="buddy">
+                   <cstring>xray_mode</cstring>
                   </property>
-                  <layout class="QGridLayout" name="gridLayout_xray_xhttp_common">
-                   <item row="0" column="0">
-                    <widget class="QLabel" name="xray_mode_l">
-                     <property name="text">
-                      <string>Mode</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_mode</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="1">
-                    <widget class="NoWheelComboBox" name="xray_mode"/>
-                   </item>
-                   <item row="0" column="2">
-                    <widget class="QLabel" name="xray_xpaddingbytes_l">
-                     <property name="text">
-                      <string>X Padding Bytes</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_xpaddingbytes</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="3">
-                    <widget class="QLineEdit" name="xray_xpaddingbytes"/>
-                   </item>
-                   <item row="1" column="0">
-                    <widget class="QLabel" name="xray_serverMaxHeaderBytes_l">
-                     <property name="text">
-                      <string>Server Max Header Bytes</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_serverMaxHeaderBytes</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="1">
-                    <widget class="QLineEdit" name="xray_serverMaxHeaderBytes"/>
-                   </item>
-                  </layout>
                  </widget>
                 </item>
-                <item>
-                 <widget class="QGroupBox" name="xray_xhttp_padding_box">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
+                <item row="5" column="1">
+                 <widget class="NoWheelComboBox" name="xray_mode"/>
+                </item>
+                <item row="6" column="0">
+                 <widget class="QLabel" name="xray_xhttp_extra_l">
+                  <property name="toolTip">
+                   <string>XHTTP extra settings as JSON: padding, upload tuning, session keys, xmux and downloadSettings.</string>
                   </property>
-                  <property name="title">
-                   <string>Padding Obfuscation</string>
+                  <property name="text">
+                   <string>Extra</string>
                   </property>
-                  <layout class="QGridLayout" name="gridLayout_xray_xhttp_padding">
-                   <item row="0" column="0" colspan="4">
-                    <widget class="QCheckBox" name="xray_xpadding_obfs_mode">
-                     <property name="text">
-                      <string>xPaddingObfsMode</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="0">
-                    <widget class="QLabel" name="label_xpadding_method">
-                     <property name="text">
-                      <string>xPaddingMethod</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_xpadding_method</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="1">
-                    <widget class="NoWheelComboBox" name="xray_xpadding_method"/>
-                   </item>
-                   <item row="1" column="2">
-                    <widget class="QLabel" name="label_xpadding_placement">
-                     <property name="text">
-                      <string>xPaddingPlacement</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_xpadding_placement</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="3">
-                    <widget class="NoWheelComboBox" name="xray_xpadding_placement"/>
-                   </item>
-                   <item row="2" column="0">
-                    <widget class="QLabel" name="label_xpadding_key">
-                     <property name="text">
-                      <string>xPaddingKey</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_xpadding_key</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="1">
-                    <widget class="QLineEdit" name="xray_xpadding_key"/>
-                   </item>
-                   <item row="2" column="2">
-                    <widget class="QLabel" name="label_xpadding_header">
-                     <property name="text">
-                      <string>xPaddingHeader</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_xpadding_header</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="3">
-                    <widget class="QLineEdit" name="xray_xpadding_header"/>
-                   </item>
-                  </layout>
+                  <property name="buddy">
+                   <cstring>xray_xhttp_extra_edit</cstring>
+                  </property>
                  </widget>
                 </item>
-                <item>
-                 <widget class="QGroupBox" name="xray_xhttp_packet_box">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
+                <item row="6" column="1">
+                 <widget class="QPushButton" name="xray_xhttp_extra_edit">
+                  <property name="toolTip">
+                   <string>XHTTP extra settings as JSON: padding, upload tuning, session keys, xmux and downloadSettings.</string>
                   </property>
-                  <property name="title">
-                   <string>Upload / Stream Tuning</string>
+                  <property name="text">
+                   <string>Not set</string>
                   </property>
-                  <layout class="QGridLayout" name="gridLayout_xray_xhttp_packet">
-                   <item row="1" column="0">
-                    <widget class="QLabel" name="xray_scMaxEachPostBytes_l">
-                     <property name="text">
-                      <string>scMaxEachPostBytes</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_scMaxEachPostBytes</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="1">
-                    <widget class="QLineEdit" name="xray_scMaxEachPostBytes"/>
-                   </item>
-                   <item row="1" column="2">
-                    <widget class="QLabel" name="xray_scMinPostsIntervalMs_l">
-                     <property name="text">
-                      <string>scMinPostsIntervalMs</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_scMinPostsIntervalMs</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="3">
-                    <widget class="QLineEdit" name="xray_scMinPostsIntervalMs"/>
-                   </item>
-                   <item row="2" column="0">
-                    <widget class="QLabel" name="xray_scMaxBufferedPosts_l">
-                     <property name="text">
-                      <string>scMaxBufferedPosts</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_scMaxBufferedPosts</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="1">
-                    <widget class="QLineEdit" name="xray_scMaxBufferedPosts"/>
-                   </item>
-                   <item row="2" column="2">
-                    <widget class="QLabel" name="xray_uplink_http_method_l">
-                     <property name="text">
-                      <string>uplinkHTTPMethod</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_uplink_http_method</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="3">
-                    <widget class="NoWheelComboBox" name="xray_uplink_http_method"/>
-                   </item>
-                   <item row="3" column="0">
-                    <widget class="QLabel" name="xray_uplink_data_placement_l">
-                     <property name="text">
-                      <string>uplinkDataPlacement</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_uplink_data_placement</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="3" column="1">
-                    <widget class="NoWheelComboBox" name="xray_uplink_data_placement"/>
-                   </item>
-                   <item row="3" column="2">
-                    <widget class="QLabel" name="xray_uplink_data_key_l">
-                     <property name="text">
-                      <string>uplinkDataKey</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_uplink_data_key</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="3" column="3">
-                    <widget class="QLineEdit" name="xray_uplink_data_key"/>
-                   </item>
-                   <item row="4" column="0">
-                    <widget class="QLabel" name="xray_uplink_chunk_size_l">
-                     <property name="text">
-                      <string>uplinkChunkSize</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_uplink_chunk_size</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="4" column="1">
-                    <widget class="QLineEdit" name="xray_uplink_chunk_size"/>
-                   </item>
-                   <item row="0" column="0" colspan="2">
-                    <widget class="QCheckBox" name="xray_no_grpc">
-                     <property name="text">
-                      <string>noGRPCHeader</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="2" colspan="2">
-                    <widget class="QCheckBox" name="xray_no_sse">
-                     <property name="text">
-                      <string>noSSEHeader</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="5" column="0">
-                    <widget class="QLabel" name="xray_scStreamUpServerSecs_l">
-                     <property name="text">
-                      <string>scStreamUpServerSecs</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_scStreamUpServerSecs</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="5" column="1">
-                    <widget class="QLineEdit" name="xray_scStreamUpServerSecs"/>
-                   </item>
-                   <item row="6" column="0">
-                    <widget class="QLabel" name="xray_session_placement_l">
-                     <property name="text">
-                      <string>sessionPlacement</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_session_placement</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="6" column="1">
-                    <widget class="NoWheelComboBox" name="xray_session_placement"/>
-                   </item>
-                   <item row="6" column="2">
-                    <widget class="QLabel" name="xray_session_key_l">
-                     <property name="text">
-                      <string>sessionKey</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_session_key</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="6" column="3">
-                    <widget class="QLineEdit" name="xray_session_key"/>
-                   </item>
-                   <item row="7" column="0">
-                    <widget class="QLabel" name="xray_session_id_table_l">
-                     <property name="text">
-                      <string>sessionIDTable</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_session_id_table</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="7" column="1">
-                    <widget class="QLineEdit" name="xray_session_id_table"/>
-                   </item>
-                   <item row="7" column="2">
-                    <widget class="QLabel" name="xray_session_id_length_l">
-                     <property name="text">
-                      <string>sessionIDLength</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_session_id_length</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="7" column="3">
-                    <widget class="QLineEdit" name="xray_session_id_length"/>
-                   </item>
-                   <item row="8" column="0">
-                    <widget class="QLabel" name="xray_seq_placement_l">
-                     <property name="text">
-                      <string>seqPlacement</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_seq_placement</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="8" column="1">
-                    <widget class="NoWheelComboBox" name="xray_seq_placement"/>
-                   </item>
-                   <item row="8" column="2">
-                    <widget class="QLabel" name="xray_seq_key_l">
-                     <property name="text">
-                      <string>seqKey</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_seq_key</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="8" column="3">
-                    <widget class="QLineEdit" name="xray_seq_key"/>
-                   </item>
-                   <item row="9" column="0">
-                    <widget class="QLabel" name="xray_downloadsettings_l">
-                     <property name="text">
-                      <string>Download Settings</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_downloadsettings_edit</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="9" column="1" colspan="3">
-                    <widget class="QPushButton" name="xray_downloadsettings_edit">
-                     <property name="text">
-                      <string>Edit</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QGroupBox" name="xray_xhttp_xmux_box">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="title">
-                   <string>Xmux</string>
-                  </property>
-                  <layout class="QGridLayout" name="gridLayout_xray_xhttp_xmux">
-                   <item row="0" column="0">
-                    <widget class="QLabel" name="xray_max_concurrency_l">
-                     <property name="text">
-                      <string>maxConcurrency</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_max_concurrency</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="1">
-                    <widget class="QLineEdit" name="xray_max_concurrency"/>
-                   </item>
-                   <item row="0" column="2">
-                    <widget class="QLabel" name="xray_max_connections_l">
-                     <property name="text">
-                      <string>maxConnections</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_max_connections</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="3">
-                    <widget class="QLineEdit" name="xray_max_connections"/>
-                   </item>
-                   <item row="1" column="0">
-                    <widget class="QLabel" name="xray_hMaxRequestTimes_l">
-                     <property name="text">
-                      <string>hMaxRequestTimes</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_hMaxRequestTimes</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="1">
-                    <widget class="QLineEdit" name="xray_hMaxRequestTimes"/>
-                   </item>
-                   <item row="1" column="2">
-                    <widget class="QLabel" name="xray_hMaxReusableSecs_l">
-                     <property name="text">
-                      <string>hMaxReusableSecs</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_hMaxReusableSecs</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="3">
-                    <widget class="QLineEdit" name="xray_hMaxReusableSecs"/>
-                   </item>
-                   <item row="2" column="0">
-                    <widget class="QLabel" name="xray_max_reuse_times_l">
-                     <property name="text">
-                      <string>cMaxReuseTimes</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_max_reuse_times</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="1">
-                    <widget class="QLineEdit" name="xray_max_reuse_times"/>
-                   </item>
-                   <item row="2" column="2">
-                    <widget class="QLabel" name="xray_keep_alive_period_l">
-                     <property name="text">
-                      <string>hKeepAlivePeriod</string>
-                     </property>
-                     <property name="buddy">
-                      <cstring>xray_keep_alive_period</cstring>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="3">
-                    <widget class="QLineEdit" name="xray_keep_alive_period"/>
-                   </item>
-                  </layout>
                  </widget>
                 </item>
                </layout>
@@ -2243,9 +1710,6 @@
   <tabstop>sni</tabstop>
   <tabstop>alpn</tabstop>
   <tabstop>fragment</tabstop>
-  <tabstop>tls_frag_fall_delay</tabstop>
-  <tabstop>tls_rec_frag</tabstop>
-  <tabstop>tls_tricks</tabstop>
   <tabstop>utlsFingerprint</tabstop>
   <tabstop>cipher_suites</tabstop>
   <tabstop>reality_pbk</tabstop>
@@ -2267,36 +1731,7 @@
   <tabstop>xray_multi_mode</tabstop>
   <tabstop>xray_headers</tabstop>
   <tabstop>xray_mode</tabstop>
-  <tabstop>xray_xpaddingbytes</tabstop>
-  <tabstop>xray_serverMaxHeaderBytes</tabstop>
-  <tabstop>xray_xpadding_obfs_mode</tabstop>
-  <tabstop>xray_xpadding_method</tabstop>
-  <tabstop>xray_xpadding_placement</tabstop>
-  <tabstop>xray_xpadding_key</tabstop>
-  <tabstop>xray_xpadding_header</tabstop>
-  <tabstop>xray_no_grpc</tabstop>
-  <tabstop>xray_no_sse</tabstop>
-  <tabstop>xray_scMaxEachPostBytes</tabstop>
-  <tabstop>xray_scMinPostsIntervalMs</tabstop>
-  <tabstop>xray_scMaxBufferedPosts</tabstop>
-  <tabstop>xray_uplink_http_method</tabstop>
-  <tabstop>xray_uplink_data_placement</tabstop>
-  <tabstop>xray_uplink_data_key</tabstop>
-  <tabstop>xray_uplink_chunk_size</tabstop>
-  <tabstop>xray_scStreamUpServerSecs</tabstop>
-  <tabstop>xray_session_placement</tabstop>
-  <tabstop>xray_session_key</tabstop>
-  <tabstop>xray_session_id_table</tabstop>
-  <tabstop>xray_session_id_length</tabstop>
-  <tabstop>xray_seq_placement</tabstop>
-  <tabstop>xray_seq_key</tabstop>
-  <tabstop>xray_downloadsettings_edit</tabstop>
-  <tabstop>xray_max_concurrency</tabstop>
-  <tabstop>xray_max_connections</tabstop>
-  <tabstop>xray_hMaxRequestTimes</tabstop>
-  <tabstop>xray_hMaxReusableSecs</tabstop>
-  <tabstop>xray_max_reuse_times</tabstop>
-  <tabstop>xray_keep_alive_period</tabstop>
+  <tabstop>xray_xhttp_extra_edit</tabstop>
   <tabstop>xray_xdrive_service</tabstop>
   <tabstop>xray_xdrive_folder</tabstop>
   <tabstop>xray_xdrive_client_id</tabstop>

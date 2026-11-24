@@ -29,7 +29,7 @@ public slots:
 
 private slots:
     void on_certificate_edit_clicked();
-    void on_xray_downloadsettings_edit_clicked();
+    void on_xray_xhttp_extra_edit_clicked();
     void on_xray_finalmask_edit_clicked();
     void on_xray_xdrive_template_edit_clicked();
 
@@ -55,10 +55,14 @@ private:
     std::optional<Engine::EditLock> editLock;
 
     QString network_title_base;
+    // The Fragment item the profile loaded as; its fields are rewritten only when the choice changes.
+    int fragmentLoadedIndex = -1;
 
     struct {
         QStringList certificate;
-        QString XrayDownloadSettings;
+        QJsonObject XrayXHTTPExtra;
+        // Applied on save only once edited, so untouched values stay byte for byte.
+        bool XrayXHTTPExtraEdited = false;
         QJsonObject XrayFinalmask;
         QJsonObject XrayXDriveTemplate;
         // Saved into the profile only while Multiplex is Custom.
@@ -101,14 +105,14 @@ private:
     void updateXrayRows();
     static void keepXrayComboValue(QComboBox *combo, const QString &value);
 
-    // dialog_edit_profile_xhttp.cpp: the XHTTP panel of the Xray stream
+    // dialog_edit_profile_xhttp.cpp: XHTTP mode and extra of the Xray stream
     void setupXrayXHTTPControls();
-    void setupXrayXHTTPDescriptions();
     void bindXrayXHTTP();
     void setXrayXHTTPHelp(QWidget *caption, QWidget *field, const QString &text, const QString &jsonKey, const QString &description);
     void loadXrayXHTTP(const Configs::xrayXHTTP &xhttp);
     void saveXrayXHTTP(Configs::xrayXHTTP &xhttp);
-    void updateXrayXHTTPControls();
+    // The extra object the Extra button edits; stream-one hides downloadSettings.
+    QJsonObject shownXrayXHTTPExtra();
 
     // dialog_edit_profile_xdrive.cpp: the XDRIVE panel of the Xray stream
     void setupXrayXDriveControls();

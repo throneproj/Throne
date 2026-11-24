@@ -6,7 +6,6 @@
 
 #include "include/api/RPC.h"
 #include "include/configs/generate.h"
-#include "include/database/DatabaseManager.h"
 #include "include/engine/EngineTr.h"
 #include "include/engine/ThreadCheck.h"
 #include "include/global/Utils.hpp"
@@ -115,7 +114,7 @@ namespace Engine {
     }
 
     std::optional<LiveRates> StatsService::freshLiveRates(qint64 maxAgeMs) const {
-        if (Configs::dataManager->settingsRepo->disable_traffic_stats || !liveRatesAt_.isValid() || liveRatesAt_.hasExpired(maxAgeMs)) {
+        if (!liveRatesAt_.isValid() || liveRatesAt_.hasExpired(maxAgeMs)) {
             return std::nullopt;
         }
         return liveRates_;

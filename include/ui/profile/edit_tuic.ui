@@ -14,25 +14,18 @@
    <string notr="true">Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="5" column="0">
-    <widget class="QLabel" name="label_5">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
      <property name="text">
-      <string>Heartbeat</string>
+      <string>UUID</string>
      </property>
      <property name="buddy">
-      <cstring>heartbeat</cstring>
+      <cstring>uuid</cstring>
      </property>
     </widget>
    </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="label_4">
-     <property name="text">
-      <string>UDP Relay Mode</string>
-     </property>
-     <property name="buddy">
-      <cstring>udp_relay_mode</cstring>
-     </property>
-    </widget>
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="uuid"/>
    </item>
    <item row="1" column="0">
     <widget class="QLabel" name="label_2">
@@ -44,80 +37,117 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="1">
-    <widget class="QCheckBox" name="zero_rtt">
-     <property name="text">
-      <string>Zero RTT handshake</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="1">
-    <widget class="QLineEdit" name="uuid"/>
-   </item>
-   <item row="5" column="1">
-    <widget class="QLineEdit" name="heartbeat"/>
-   </item>
    <item row="1" column="1">
     <widget class="QLineEdit" name="password"/>
    </item>
-   <item row="0" column="0">
-    <widget class="QLabel" name="label">
+   <item row="2" column="0" colspan="2" alignment="Qt::AlignLeft">
+    <widget class="QToolButton" name="advanced_toggle">
      <property name="text">
-      <string>UUID</string>
-     </property>
-     <property name="buddy">
-      <cstring>uuid</cstring>
+      <string>Advanced</string>
      </property>
     </widget>
    </item>
-   <item row="2" column="1">
-    <widget class="QComboBox" name="congestion_control">
-     <item>
-      <property name="text">
-       <string notr="true">bbr</string>
+   <item row="3" column="0" colspan="2">
+    <widget class="QWidget" name="advanced_box" native="true">
+     <layout class="QGridLayout" name="advanced_layout" columnstretch="0,1">
+      <property name="leftMargin">
+       <number>0</number>
       </property>
-     </item>
-     <item>
-      <property name="text">
-       <string notr="true">cubic</string>
+      <property name="topMargin">
+       <number>0</number>
       </property>
-     </item>
-     <item>
-      <property name="text">
-       <string notr="true">new_reno</string>
+      <property name="rightMargin">
+       <number>0</number>
       </property>
-     </item>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="label_3">
-     <property name="text">
-      <string>Congestion Control</string>
-     </property>
-     <property name="buddy">
-      <cstring>congestion_control</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="1">
-    <widget class="QComboBox" name="udp_relay_mode">
-     <item>
-      <property name="text">
-       <string notr="true">native</string>
+      <property name="bottomMargin">
+       <number>0</number>
       </property>
-     </item>
-     <item>
-      <property name="text">
-       <string notr="true">quic</string>
-      </property>
-     </item>
-    </widget>
-   </item>
-   <item row="4" column="0">
-    <widget class="QCheckBox" name="udp_over_stream">
-     <property name="text">
-      <string>UDP over stream</string>
-     </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Congestion Control</string>
+        </property>
+        <property name="buddy">
+         <cstring>congestion_control</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="congestion_control">
+        <item>
+         <property name="text">
+          <string>Default</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string notr="true">bbr</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string notr="true">cubic</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string notr="true">new_reno</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>UDP Relay Mode</string>
+        </property>
+        <property name="buddy">
+         <cstring>udp_relay_mode</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QComboBox" name="udp_relay_mode">
+        <item>
+         <property name="text">
+          <string notr="true">native</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string notr="true">quic</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QCheckBox" name="udp_over_stream">
+        <property name="text">
+         <string>UDP over stream</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QCheckBox" name="zero_rtt">
+        <property name="text">
+         <string>Zero RTT handshake</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Heartbeat</string>
+        </property>
+        <property name="buddy">
+         <cstring>heartbeat</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLineEdit" name="heartbeat"/>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>
@@ -125,6 +155,7 @@
  <tabstops>
   <tabstop>uuid</tabstop>
   <tabstop>password</tabstop>
+  <tabstop>advanced_toggle</tabstop>
   <tabstop>congestion_control</tabstop>
   <tabstop>udp_relay_mode</tabstop>
   <tabstop>udp_over_stream</tabstop>

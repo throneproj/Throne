@@ -303,6 +303,7 @@ set(PROJECT_SOURCES
         include/ui/utils/MyPlainTextEdit.h
         include/ui/utils/GuiUtils.hpp
         src/ui/utils/GuiUtils.cpp
+        include/ui/utils/Disclosure.hpp
         include/ui/utils/ValidationForm.h
         src/ui/utils/ValidationForm.cpp
         include/ui/utils/CommandPalette.h
@@ -407,10 +408,6 @@ set(PROJECT_SOURCES
         include/ui/profile/edit_openvpn.h
         src/ui/profile/edit_openvpn.cpp
         include/ui/profile/edit_openvpn.ui
-
-        include/ui/profile/edit_openvpn_advanced.h
-        src/ui/profile/edit_openvpn_advanced.cpp
-        include/ui/profile/edit_openvpn_advanced.ui
 
         include/ui/profile/edit_openconnect.h
         src/ui/profile/edit_openconnect.cpp

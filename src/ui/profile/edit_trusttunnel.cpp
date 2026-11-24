@@ -4,7 +4,26 @@
 #include <QLineEdit>
 
 #include "include/configs/common/utils.h"
+#include "include/ui/utils/Disclosure.hpp"
 #include "include/ui/utils/ValidationForm.h"
+
+namespace {
+    // Index 0 is the translated "Default", stored empty. sing-trusttunnel runs every name but cubic and reno as BBR,
+    // so the other aliases are not listed; a stored one stays as an extra item and is saved unchanged.
+    void editTrustTunnelSelectCongestion(QComboBox *combo, const QString &value) {
+        const auto congestion = Configs::LegacyComboValue(value, Configs::trustTunnelCongestionControls);
+        if (congestion.isEmpty()) {
+            combo->setCurrentIndex(0);
+            return;
+        }
+        int index = combo->findText(congestion);
+        if (index <= 0) {
+            combo->addItem(congestion);
+            index = combo->count() - 1;
+        }
+        combo->setCurrentIndex(index);
+    }
+}
 
 EditTrustTunnel::EditTrustTunnel(QWidget *parent)
     : QWidget(parent),
@@ -12,6 +31,9 @@ EditTrustTunnel::EditTrustTunnel(QWidget *parent)
 
     ui->setupUi(this);
     connect(ui->quic, &QCheckBox::toggled, this, [this] {
+        if (editor_state_changed) editor_state_changed();
+    });
+    Disclosure::Setup(ui->advanced_toggle, ui->advanced_box, [this] {
         if (editor_state_changed) editor_state_changed();
     });
 }
@@ -31,9 +53,8 @@ void EditTrustTunnel::onStart(std::shared_ptr<Configs::Profile> _ent) {
     ui->client_random_auth_key->setText(outbound->client_random_auth_key);
     ui->health_check->setChecked(outbound->health_check);
     ui->quic->setChecked(outbound->quic);
-    // Older builds saved translated item text, e.g. "CUBIC"; unknown values fall back to bbr, as in sing-trusttunnel.
-    const auto congestion = outbound->congestion_control.trimmed().replace(' ', '_');
-    ui->congestion_control->setCurrentIndex(qMax(0, ui->congestion_control->findText(congestion, Qt::MatchFixedString)));
+    editTrustTunnelSelectCongestion(ui->congestion_control, outbound->congestion_control);
+    ui->advanced_toggle->setChecked(ui->congestion_control->currentIndex() != 0);
 }
 
 bool EditTrustTunnel::onEnd() {
@@ -46,7 +67,7 @@ bool EditTrustTunnel::onEnd() {
     outbound->client_random_auth_key = ui->client_random_auth_key->text().trimmed();
     outbound->health_check = ui->health_check->isChecked();
     outbound->quic = ui->quic->isChecked();
-    outbound->congestion_control = ui->congestion_control->currentText().trimmed();
+    outbound->congestion_control = ui->congestion_control->currentIndex() <= 0 ? QString() : ui->congestion_control->currentText().trimmed();
     return true;
 }
 

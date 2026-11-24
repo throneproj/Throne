@@ -5,6 +5,7 @@
 
 #include "include/global/Utils.hpp"
 #include "include/ui/profile/edit_hysteria_realm.h"
+#include "include/ui/utils/Disclosure.hpp"
 #include "include/ui/utils/ValidationForm.h"
 
 namespace {
@@ -42,6 +43,10 @@ EditHysteria::EditHysteria(QWidget *parent)
         realm->deleteLater();
         if (form) form->revalidate(ui->realm_enabled);
     });
+
+    Disclosure::Setup(ui->advanced_toggle, ui->advanced_box, [this] {
+        if (editor_state_changed) editor_state_changed();
+    });
 }
 
 EditHysteria::~EditHysteria() {
@@ -61,9 +66,6 @@ void EditHysteria::onStart(std::shared_ptr<Configs::Profile> _ent) {
     ui->obfs->setText(outbound->obfs);
     ui->auth_type->setCurrentText(outbound->auth_type);
     ui->auth->setText(outbound->auth);
-    ui->recv_window->setText(Int2String(outbound->recv_window));
-    ui->recv_window_conn->setText(Int2String(outbound->recv_window_conn));
-    ui->disable_mtu_discovery->setChecked(outbound->disable_mtu_discovery);
     ui->password->setText(outbound->password);
     ui->min_packet_size->setText(Int2String(outbound->min_packet_size));
     ui->max_packet_size->setText(Int2String(outbound->max_packet_size));
@@ -72,10 +74,17 @@ void EditHysteria::onStart(std::shared_ptr<Configs::Profile> _ent) {
     ui->obfuscation_type->setCurrentIndex(outbound->obfs.isEmpty() || storedType.isEmpty()
                                               ? 0 : qMax(1, ui->obfuscation_type->findText(storedType, Qt::MatchFixedString)));
     ui->bbr_profile->setCurrentText(outbound->bbr_profile);
-    ui->password->setText(outbound->password);
     ui->disable_chrome_parrot->setChecked(outbound->disable_chrome_parrot);
     ui->realm_enabled->setChecked(outbound->realm_enabled);
     editHysteriaLayout(outbound->protocol_version, obfsType());
+
+    // Only rows this version and obfuscation show count.
+    const auto shownSet = [](const QWidget *field, bool set) { return set && !field->isHidden(); };
+    ui->advanced_toggle->setChecked(shownSet(ui->hop_interval, !outbound->hop_interval.isEmpty()) ||
+                                    shownSet(ui->hop_interval_max, !outbound->hop_interval_max.isEmpty()) ||
+                                    shownSet(ui->bbr_profile, ui->bbr_profile->currentIndex() > 0) ||
+                                    shownSet(ui->min_packet_size, outbound->min_packet_size != 0) ||
+                                    shownSet(ui->max_packet_size, outbound->max_packet_size != 0));
 }
 
 bool EditHysteria::onEnd() {
@@ -90,9 +99,6 @@ bool EditHysteria::onEnd() {
     outbound->obfs = ui->obfs->text();
     outbound->auth_type = ui->auth_type->currentText().trimmed();
     outbound->auth = ui->auth->text();
-    outbound->recv_window = ui->recv_window->text().trimmed().toInt();
-    outbound->recv_window_conn = ui->recv_window_conn->text().trimmed().toInt();
-    outbound->disable_mtu_discovery = ui->disable_mtu_discovery->isChecked();
     outbound->password = ui->password->text();
     outbound->min_packet_size = ui->min_packet_size->text().trimmed().toInt();
     outbound->max_packet_size = ui->max_packet_size->text().trimmed().toInt();
@@ -116,14 +122,16 @@ void EditHysteria::bindValidation(Validation::Form &form) {
 
     form.bind(ui->server_ports, Rules::List(Split::Comma, Configs::Checks::HysteriaPortItem), this);
     form.bind(ui->server_ports, Rules::List(Split::Comma, Configs::Checks::HysteriaPortItemOrder), this).warning();
-    form.bind(ui->hop_interval, Rules::AllOf({Rules::Duration(), [this](const QString &text) {
+    const auto hopInterval = Rules::AllOf({Rules::Duration(), [this](const QString &text) {
         return Configs::Checks::HysteriaHopMinimum(hopping(), text);
-    }}), this);
-    form.bind(ui->hop_interval_max, Rules::Duration(), this);
-    form.addRule({ui->hop_interval_max, ui->hop_interval}, [this] {
+    }});
+    const auto hopMaximum = [this] {
         if (!isV2()) return QString();
         return Configs::Checks::HysteriaHopMaximum(hopping(), ui->hop_interval->text(), ui->hop_interval_max->text());
-    }, this);
+    };
+    form.bind(ui->hop_interval, hopInterval, this);
+    form.bind(ui->hop_interval_max, Rules::Duration(), this);
+    form.addRule({ui->hop_interval_max, ui->hop_interval}, hopMaximum, this);
     form.addRule({ui->hop_interval_max, ui->hop_interval}, [this] {
         if (!isV2()) return QString();
         return Configs::Checks::HysteriaHopMaximumIgnored(hopping(), ui->hop_interval->text(), ui->hop_interval_max->text());
@@ -143,21 +151,30 @@ void EditHysteria::bindValidation(Validation::Form &form) {
     form.addRule({ui->auth, ui->auth_type}, [this] {
         return Configs::Checks::HysteriaAuthType(ui->auth_type->currentText().trimmed(), ui->auth->text());
     }, this, Severity::Warning);
-    form.bind(ui->recv_window, Rules::Int(0, kIntMax), this);
-    form.bind(ui->recv_window_conn, Rules::Int(0, kIntMax), this);
 
     form.bind(ui->obfs, [this](const QString &text) {
         if (!isV2() || obfsType().isEmpty() || !text.isEmpty()) return QString();
         return tr("Obfuscation needs a password; without one, it is off.");
     }, this).raw().warning();
-    form.bind(ui->min_packet_size, Rules::Int(0, 2048), this);
-    form.bind(ui->max_packet_size, Rules::Int(0, 2048), this);
-    form.addRule({ui->min_packet_size, ui->max_packet_size}, [this] {
+    const auto packetSize = Rules::Int(0, 2048);
+    const auto geckoSizes = [this] {
         // Without a password Build() emits no obfs, so the sizes go unused.
         if (!isV2() || obfsType() != "gecko" || ui->obfs->text().isEmpty()) return QString();
         const auto minSize = editHysteriaNumber(ui->min_packet_size, 2048), maxSize = editHysteriaNumber(ui->max_packet_size, 2048);
         if (!minSize || !maxSize) return QString();
         return Configs::Checks::HysteriaGeckoSizes(*minSize, *maxSize);
+    };
+    form.bind(ui->min_packet_size, packetSize, this);
+    form.bind(ui->max_packet_size, packetSize, this);
+    form.addRule({ui->min_packet_size, ui->max_packet_size}, geckoSizes, this);
+
+    Disclosure::CheckCollapsed(form, ui->advanced_toggle, ui->advanced_box, {
+        Disclosure::FieldCheck(ui->hop_interval, hopInterval),
+        Disclosure::FieldCheck(ui->hop_interval_max, Rules::Duration()),
+        {ui->hop_interval_max, hopMaximum},
+        Disclosure::FieldCheck(ui->min_packet_size, packetSize),
+        Disclosure::FieldCheck(ui->max_packet_size, packetSize),
+        {ui->min_packet_size, geckoSizes},
     }, this);
 
     // EditHysteriaRealm writes its fields into the profile directly, so this reads them from there.
@@ -206,11 +223,6 @@ void EditHysteria::editHysteriaLayout(const QString& version, const QString& obf
         ui->auth_type_l->setVisible(true);
         ui->auth->setVisible(true);
         ui->auth_l->setVisible(true);
-        ui->recv_window_conn->setVisible(true);
-        ui->recv_window_conn_l->setVisible(true);
-        ui->recv_window->setVisible(true);
-        ui->recv_window_l->setVisible(true);
-        ui->disable_mtu_discovery->setVisible(true);
         ui->obfs->setVisible(true);
         ui->label_5->setVisible(true);
         ui->password->setVisible(false);
@@ -231,11 +243,6 @@ void EditHysteria::editHysteriaLayout(const QString& version, const QString& obf
         ui->auth_type_l->setVisible(false);
         ui->auth->setVisible(false);
         ui->auth_l->setVisible(false);
-        ui->recv_window_conn->setVisible(false);
-        ui->recv_window_conn_l->setVisible(false);
-        ui->recv_window->setVisible(false);
-        ui->recv_window_l->setVisible(false);
-        ui->disable_mtu_discovery->setVisible(false);
         ui->password->setVisible(true);
         ui->password_l->setVisible(true);
         ui->obfuscation_type->setVisible(true);

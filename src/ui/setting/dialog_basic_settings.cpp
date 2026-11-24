@@ -23,8 +23,6 @@
 #include <QMessageBox>
 #include <QPixmap>
 #include <QTimer>
-#include <QTextBlock>
-#include <QTextCursor>
 #include <qfontdatabase.h>
 #include <QJsonObject>
 #include <QDir>
@@ -91,41 +89,6 @@ namespace {
                 .arg(item.size() > 40 ? item.left(39) + QChar(0x2026) : item);
         }
         return {};
-    }
-
-    // Same per-line wording as Validation::Form::bindLines, which takes only a QPlainTextEdit.
-    QString basicSettingsRegexLinesError(const QString &text) {
-        const auto lines = text.split(QLatin1Char('\n'));
-        QString first;
-        int bad = 0;
-        for (qsizetype i = 0; i < lines.size(); ++i) {
-            const auto line = lines[i].trimmed();
-            const auto problem = Validation::Regex(line);
-            if (problem.isEmpty()) continue;
-            if (bad++ == 0) {
-                first = QCoreApplication::translate("Validation", "Line %1 (\"%2\"): %3")
-                            .arg(QString::number(i + 1), line.size() > 40 ? line.left(39) + QChar(0x2026) : line, problem);
-            }
-        }
-        if (bad > 1) first += QLatin1Char(' ') + QCoreApplication::translate("Validation", "%n more line(s) have problems.", nullptr, bad - 1);
-        return first;
-    }
-
-    // Underlines the lines that do not compile; extra selections stay off the undo stack.
-    void basicSettingsMarkRegexLines(QTextEdit *edit) {
-        QList<QTextEdit::ExtraSelection> selections;
-        QTextCharFormat format;
-        format.setUnderlineStyle(QTextCharFormat::WaveUnderline);
-        format.setUnderlineColor(themeManager()->tokens.danger.isValid() ? themeManager()->tokens.danger : QColor(Qt::red));
-        for (QTextBlock block = edit->document()->begin(); block.isValid(); block = block.next()) {
-            if (Validation::Regex(block.text()).isEmpty()) continue;
-            QTextEdit::ExtraSelection selection;
-            selection.cursor = QTextCursor(block);
-            selection.cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
-            selection.format = format;
-            selections.append(selection);
-        }
-        edit->setExtraSelections(selections);
     }
 
     // BackupArchive answers in English with these texts; the dialog shows their translations.
@@ -262,7 +225,6 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->inbound_socks_port_l->setText(ui->inbound_socks_port_l->text().replace("Socks", "Mixed (SOCKS+HTTP)"));
     ui->log_level->addItems(QString("trace debug info warn error fatal panic").split(" "));
     ui->xray_loglevel->addItems(Configs::Xray::XrayLogLevels);
-    ui->disable_stats->setChecked(snapshot_.disable_traffic_stats);
     ui->proxy_scheme->setCurrentText(snapshot_.proxy_scheme);
     basicSettingsRestoreCheckedParts(ui);
 
@@ -341,13 +303,7 @@ DialogBasicSettings::DialogBasicSettings(QWidget *parent)
     ui->max_log_line->setText(QString::number(snapshot_.max_log_line));
     ui->log_level->setCurrentText(snapshot_.log_level);
     ui->xray_loglevel->setCurrentText(snapshot_.xray_log_level);
-    ui->enable_log_include->setChecked(snapshot_.log_enable_include);
-    ui->enable_log_exclude->setChecked(snapshot_.log_enable_exclude);
-    ui->log_include_keyword->setText(snapshot_.log_include_keyword.join("\n"));
-    ui->log_exclude_keyword->setText(snapshot_.log_exclude_keyword.join("\n"));
-    ui->log_include_regex->setText(snapshot_.log_include_regex.join("\n"));
-    ui->log_exclude_regex->setText(snapshot_.log_exclude_regex.join("\n"));
-    applyRegexHighlighting();
+    ui->log_exclude_regex->setText(snapshot_.log_exclude_regex.join("|"));
 
     ui->connection_statistics->setChecked(snapshot_.enable_stats);
     ui->disable_traffic_aggregation->setChecked(snapshot_.disable_traffic_aggregation);
@@ -585,11 +541,7 @@ void DialogBasicSettings::bindValidation() {
     refreshOn(ui->random_listen_port);
 
     form->bind(ui->max_log_line, Rules::Int(1, std::numeric_limits<int>::max(), Empty::Required)).label(ui->label_17->text());
-    for (QTextEdit *edit : {static_cast<QTextEdit *>(ui->log_include_regex), static_cast<QTextEdit *>(ui->log_exclude_regex)})
-        form->addRule({edit}, [edit] {
-            basicSettingsMarkRegexLines(edit);
-            return basicSettingsRegexLinesError(edit->toPlainText());
-        });
+    form->bind(ui->log_exclude_regex, Rules::Regex());
 
     form->bind(ui->user_agent, [](const QString &text) { return basicSettingsHeaderValueError(text); });
     form->bind(ui->sub_custom_hwid_params, [](const QString &text) { return basicSettingsHwidParamsError(text); });
@@ -641,11 +593,6 @@ void DialogBasicSettings::refreshUrlSchemeStatus() {
     show(ui->file_assoc_status, Association::ConfigFiles);
 }
 
-void DialogBasicSettings::applyRegexHighlighting() {
-    basicSettingsMarkRegexLines(ui->log_include_regex);
-    basicSettingsMarkRegexLines(ui->log_exclude_regex);
-}
-
 void DialogBasicSettings::accept() {
     if (!form->validateAll()) return;
     Configs::SettingsValues proposed = snapshot_;
@@ -681,13 +628,8 @@ void DialogBasicSettings::accept() {
     proposed.max_log_line = ui->max_log_line->text().trimmed().toInt();
     proposed.log_level = ui->log_level->currentText().trimmed();
     proposed.xray_log_level = ui->xray_loglevel->currentText().trimmed();
-    proposed.log_enable_include = ui->enable_log_include->isChecked();
-    proposed.log_enable_exclude = ui->enable_log_exclude->isChecked();
-    proposed.log_include_keyword = SplitAndTrim(ui->log_include_keyword->toPlainText(), "\n", false);
-    proposed.log_exclude_keyword = SplitAndTrim(ui->log_exclude_keyword->toPlainText(), "\n", false);
-
-    proposed.log_include_regex = SplitAndTrim(ui->log_include_regex->toPlainText(), "\n", false);
-    proposed.log_exclude_regex = SplitAndTrim(ui->log_exclude_regex->toPlainText(), "\n", false);
+    const auto logExcludeRegex = ui->log_exclude_regex->text().trimmed();
+    proposed.log_exclude_regex = logExcludeRegex.isEmpty() ? QStringList() : QStringList{logExcludeRegex};
 
     proposed.enable_stats = ui->connection_statistics->isChecked();
     proposed.disable_traffic_aggregation = ui->disable_traffic_aggregation->isChecked();
@@ -723,7 +665,6 @@ void DialogBasicSettings::accept() {
     S_SAVE_INT_ENABLE(sub_auto_update, sub_auto_update_enable)
     S_SAVE_BOOL(sub_respect_server_interval)
 
-    proposed.disable_traffic_stats = ui->disable_stats->isChecked();
     proposed.core_dns_in_port = ui->dns_in_port->text().trimmed().toInt();
     proposed.core_dns_in_lan = ui->dns_in_lan->isChecked();
 

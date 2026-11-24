@@ -48,6 +48,7 @@
 #include "include/ui/setting/RawRouteItem.h"
 #include "include/ui/setting/RouteDnsEditor.h"
 #include "include/ui/setting/ThemeManager.hpp"
+#include "include/ui/utils/MyPlainTextEdit.h"
 
 namespace {
     // Mirrors the core's warp defaultAPIHosts.
@@ -126,6 +127,21 @@ namespace {
         return bytes ? QString() : DialogManageRoutes::tr("Use three numbers from 0 to 255, for example 12,34,56.");
     }
 
+    QString manageRoutesWarpMissing(const QString &text) {
+        return text.isEmpty() ? DialogManageRoutes::tr("Required while WARP is on: click Generate WARP config, or fill it in.") : QString();
+    }
+
+    // The fields the build refuses to start without while WARP is on; it ignores them all while WARP is off.
+    Validation::Rule manageRoutesWarpField(Validation::Rule rule) {
+        return [rule = std::move(rule)](const QString &text) {
+            if (const auto missing = manageRoutesWarpMissing(text); !missing.isEmpty()) return missing;
+            return rule ? rule(text) : QString();
+        };
+    }
+
+    constexpr int warpFragmentHandshake = 1;
+    constexpr int warpFragmentRecords = 2;
+
     // The core takes interface addresses as prefixes only.
     QStringList manageRoutesWithPrefix(QStringList addresses) {
         for (auto &address : addresses) {
@@ -171,117 +187,6 @@ namespace {
             }
         }
         return {};
-    }
-
-    void editWarpApiHosts(QWidget *parent) {
-        auto w = new QDialog(parent);
-        w->setWindowTitle(DialogManageRoutes::tr("WARP Registration Domains"));
-        w->setWindowModality(Qt::ApplicationModal);
-
-        auto layout = new QVBoxLayout(w);
-
-        auto hint = new QLabel(DialogManageRoutes::tr("One domain per line. They are tried in order and the first one that accepts the registration is used. "
-                                                      "Leave empty to use %1.").arg(defaultWarpApiHosts().join(", ")), w);
-        hint->setWordWrap(true);
-        layout->addWidget(hint);
-
-        const auto &saved = Configs::dataManager->settingsRepo->warp_api_hosts;
-        auto tEdit = new QPlainTextEdit(w);
-        tEdit->setPlainText((saved.isEmpty() ? defaultWarpApiHosts() : saved).join('\n'));
-        layout->addWidget(tEdit);
-
-        auto buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, w);
-        layout->addWidget(buttons);
-
-        auto popupForm = new Validation::Form(w);
-        popupForm->attachStatus(buttons);
-        popupForm->bindLines(tEdit, [](const QString &line) {
-            const auto host = normalizeWarpApiHost(line);
-            if (host.isEmpty()) return QString();
-            // The core requests "https://" + host, where a bare IPv6 address reads as host:port.
-            if (host.count(':') > 1 && !host.startsWith('['))
-                return DialogManageRoutes::tr("Put an IPv6 address in brackets, for example [2606:4700::1].");
-            return Validation::HostPort(host, false);
-        }).label(w->windowTitle());
-        popupForm->markAll();
-
-        QObject::connect(buttons, &QDialogButtonBox::accepted, w, [=] {
-            if (!popupForm->validateAll()) return;
-            auto hosts = normalizeWarpApiHosts(tEdit->toPlainText());
-            // Saving the defaults verbatim would freeze them and miss later changes to the built-in list.
-            if (hosts == defaultWarpApiHosts()) hosts.clear();
-            const auto error = Engine::SettingsService::Update([&hosts](Configs::SettingsValues &values) { values.warp_api_hosts = hosts; },
-                                                               {.interactive = true});
-            if (error) {
-                MessageBoxWarning(w->windowTitle(), SettingsApplyErrorText(*error));
-                return;
-            }
-            w->accept();
-        });
-        QObject::connect(buttons, &QDialogButtonBox::rejected, w, &QDialog::reject);
-
-        w->resize(w->sizeHint().boundedTo(parent->screen()->availableGeometry().size()));
-        w->exec();
-        w->deleteLater();
-    }
-
-    void editWarpAdvanced(QWidget *parent) {
-        auto w = new QDialog(parent);
-        w->setWindowTitle(DialogManageRoutes::tr("Advanced WARP Settings"));
-        w->setWindowModality(Qt::ApplicationModal);
-
-        auto *settings = Configs::dataManager->settingsRepo.get();
-        auto layout = new QVBoxLayout(w);
-
-        auto registration = new QGroupBox(DialogManageRoutes::tr("Registration"), w);
-        auto registrationForm = new QFormLayout(registration);
-        auto hint = new QLabel(DialogManageRoutes::tr("Applies only when registration connects directly, not through a running profile."),
-                               registration);
-        hint->setWordWrap(true);
-        registrationForm->addRow(hint);
-        auto fragment = new QCheckBox(DialogManageRoutes::tr("Fragment TLS"), registration);
-        fragment->setChecked(settings->warp_api_tls_fragment);
-        registrationForm->addRow(fragment);
-        auto recordFragment = new QCheckBox(DialogManageRoutes::tr("Record fragment"), registration);
-        recordFragment->setChecked(settings->warp_api_tls_record_fragment);
-        registrationForm->addRow(recordFragment);
-        auto fallbackDelay = new QLineEdit(settings->warp_api_tls_fragment_fallback_delay, registration);
-        fallbackDelay->setPlaceholderText(QStringLiteral("500ms"));
-        registrationForm->addRow(DialogManageRoutes::tr("Fallback delay"), fallbackDelay);
-        const auto syncFallbackDelay = [=] {
-            fallbackDelay->setEnabled(fragment->isChecked());
-            if (auto *label = registrationForm->labelForField(fallbackDelay)) label->setEnabled(fragment->isChecked());
-        };
-        QObject::connect(fragment, &QCheckBox::toggled, w, syncFallbackDelay);
-        syncFallbackDelay();
-        layout->addWidget(registration);
-
-        auto buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, w);
-        layout->addWidget(buttons);
-
-        auto popupForm = new Validation::Form(w);
-        popupForm->attachStatus(buttons);
-        popupForm->bind(fallbackDelay, Validation::Rules::Duration());
-        popupForm->markAll();
-
-        QObject::connect(buttons, &QDialogButtonBox::accepted, w, [=] {
-            if (!popupForm->validateAll()) return;
-            const auto error = Engine::SettingsService::Update([=](Configs::SettingsValues &values) {
-                values.warp_api_tls_fragment = fragment->isChecked();
-                values.warp_api_tls_record_fragment = recordFragment->isChecked();
-                values.warp_api_tls_fragment_fallback_delay = fallbackDelay->text().trimmed();
-            }, {.interactive = true});
-            if (error) {
-                MessageBoxWarning(w->windowTitle(), SettingsApplyErrorText(*error));
-                return;
-            }
-            w->accept();
-        });
-        QObject::connect(buttons, &QDialogButtonBox::rejected, w, &QDialog::reject);
-
-        w->resize(w->sizeHint().boundedTo(parent->screen()->availableGeometry().size()));
-        w->exec();
-        w->deleteLater();
     }
 
     QColor manageRoutesMix(const QColor &top, const QColor &bottom, const float amount) {
@@ -583,6 +488,159 @@ void DialogManageRoutes::show_dns_object_editor() {
     form->revalidate(ui->use_dns_object);
 }
 
+void DialogManageRoutes::show_warp_advanced_editor() {
+    auto w = new QDialog(this);
+    w->setWindowTitle(tr("Advanced WARP Settings"));
+    w->setWindowModality(Qt::ApplicationModal);
+
+    auto layout = new QVBoxLayout(w);
+    const auto addRow = [](QGridLayout *grid, int row, const QString &text, QWidget *field) {
+        auto label = new QLabel(text, grid->parentWidget());
+        label->setBuddy(field);
+        grid->addWidget(label, row, 0);
+        grid->addWidget(field, row, 1);
+        return label;
+    };
+    const auto addHint = [](QGridLayout *grid, int row, const QString &text) {
+        auto hint = new QLabel(text, grid->parentWidget());
+        hint->setWordWrap(true);
+        hint->setProperty("colorRole", QStringLiteral("muted"));
+        grid->addWidget(hint, row, 1);
+    };
+
+    const bool masque = ui->warp_mode->currentIndex() == 1;
+    const WarpAdvancedDraft opened = warp_advanced;
+
+    auto wireguardBox = new QGroupBox(QStringLiteral("WireGuard"), w);
+    auto wireguardGrid = new QGridLayout(wireguardBox);
+    auto privateKey = new QLineEdit(opened.private_key, wireguardBox);
+    addRow(wireguardGrid, 0, tr("Private Key"), privateKey);
+    auto publicKey = new QLineEdit(opened.public_key, wireguardBox);
+    addRow(wireguardGrid, 1, tr("Public Key"), publicKey);
+    auto reserved = new QLineEdit(opened.reserved, wireguardBox);
+    addRow(wireguardGrid, 2, tr("Reserved"), reserved);
+    wireguardBox->setHidden(masque);
+    layout->addWidget(wireguardBox);
+
+    auto masqueBox = new QGroupBox(QStringLiteral("MASQUE"), w);
+    auto masqueGrid = new QGridLayout(masqueBox);
+    auto masquePrivateKey = new QLineEdit(opened.masque_private_key, masqueBox);
+    addRow(masqueGrid, 0, tr("Private Key"), masquePrivateKey);
+    auto peerPublicKey = new QLineEdit(opened.masque_peer_public_key, masqueBox);
+    addRow(masqueGrid, 1, tr("Peer Public Key"), peerPublicKey)
+        ->setToolTip(tr("Base64 DER of the server's public key. When set, it pins the server certificate."));
+    auto sni = new QLineEdit(opened.masque_sni, masqueBox);
+    addRow(masqueGrid, 2, QStringLiteral("SNI"), sni);
+    auto httpMode = new QComboBox(masqueBox);
+    httpMode->addItems({tr("HTTP/3 (fallback to HTTP/2)"), tr("HTTP/3 only"), QStringLiteral("HTTP/2")});
+    httpMode->setCurrentIndex(opened.masque_http_mode);
+    httpMode->setToolTip(tr("HTTP/3 runs over UDP; HTTP/2 runs over TLS on TCP and works where UDP is blocked."));
+    addRow(masqueGrid, 3, tr("HTTP Version"), httpMode)->setToolTip(httpMode->toolTip());
+    masqueBox->setHidden(!masque);
+    layout->addWidget(masqueBox);
+
+    const auto *settings = Configs::dataManager->settingsRepo.get();
+    auto registration = new QGroupBox(tr("Registration"), w);
+    auto registrationGrid = new QGridLayout(registration);
+    auto hostsEdit = new MyPlainTextEdit(registration);
+    hostsEdit->setVisibleLines(4);
+    hostsEdit->setPlainText((settings->warp_api_hosts.isEmpty() ? defaultWarpApiHosts() : settings->warp_api_hosts).join('\n'));
+    auto hostsLabel = new QLabel(tr("Registration Domains"), registration);
+    hostsLabel->setBuddy(hostsEdit);
+    registrationGrid->addWidget(hostsLabel, 0, 0, Qt::AlignTop);
+    registrationGrid->addWidget(hostsEdit, 0, 1);
+    addHint(registrationGrid, 1, tr("One domain per line. They are tried in order and the first one that accepts the registration is used. "
+                                    "Leave empty to use %1.").arg(defaultWarpApiHosts().join(", ")));
+    auto fragment = new QComboBox(registration);
+    fragment->addItem(tr("Off"), 0);
+    fragment->addItem(tr("Handshake"), warpFragmentHandshake);
+    fragment->addItem(tr("Records"), warpFragmentRecords);
+    fragment->addItem(tr("Handshake + Records"), warpFragmentHandshake | warpFragmentRecords);
+    fragment->setCurrentIndex(fragment->findData((settings->warp_api_tls_fragment ? warpFragmentHandshake : 0)
+                                                 | (settings->warp_api_tls_record_fragment ? warpFragmentRecords : 0)));
+    addRow(registrationGrid, 2, tr("Fragment TLS"), fragment);
+    auto fallbackDelay = new QLineEdit(settings->warp_api_tls_fragment_fallback_delay, registration);
+    fallbackDelay->setPlaceholderText(QStringLiteral("500ms"));
+    auto fallbackDelayLabel = addRow(registrationGrid, 3, tr("Fallback delay"), fallbackDelay);
+    addHint(registrationGrid, 4, tr("Applies only when registration connects directly, not through a running profile."));
+    const auto syncFallbackDelay = [=] {
+        const bool handshake = (fragment->currentData().toInt() & warpFragmentHandshake) != 0;
+        fallbackDelayLabel->setEnabled(handshake);
+        fallbackDelay->setEnabled(handshake);
+    };
+    connect(fragment, &QComboBox::currentIndexChanged, w, syncFallbackDelay);
+    syncFallbackDelay();
+    layout->addWidget(registration);
+
+    auto buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, w);
+    layout->addWidget(buttons);
+    ADD_ASTERISK(w)
+
+    const auto warpOn = [this] { return ui->exit_warp->isChecked(); };
+    const auto warpKey = Validation::Rules::Base64Key(32, false, true, Validation::Empty::Allowed);
+    auto popupForm = new Validation::Form(w);
+    popupForm->attachStatus(buttons);
+    // Missing values only warn here, so registration can be set up before the first generate; accept() refuses them.
+    for (auto *edit : {privateKey, publicKey, masquePrivateKey, peerPublicKey})
+        popupForm->bind(edit, manageRoutesWarpMissing).when(warpOn).warning();
+    popupForm->bind(privateKey, warpKey).when(warpOn);
+    popupForm->bind(publicKey, warpKey).when(warpOn);
+    popupForm->bind(reserved, manageRoutesReservedProblem).when(warpOn);
+    popupForm->bindLines(hostsEdit, [](const QString &line) {
+        const auto host = normalizeWarpApiHost(line);
+        if (host.isEmpty()) return QString();
+        // The core requests "https://" + host, where a bare IPv6 address reads as host:port.
+        if (host.count(':') > 1 && !host.startsWith('['))
+            return tr("Put an IPv6 address in brackets, for example [2606:4700::1].");
+        return Validation::HostPort(host, false);
+    });
+    popupForm->bind(fallbackDelay, Validation::Rules::Duration());
+    popupForm->markAll();
+
+    connect(buttons, &QDialogButtonBox::accepted, w, [=, this] {
+        if (!popupForm->validateAll()) return;
+        auto hosts = normalizeWarpApiHosts(hostsEdit->toPlainText());
+        // Saving the defaults verbatim would freeze them and miss later changes to the built-in list.
+        if (hosts == defaultWarpApiHosts()) hosts.clear();
+        const int split = fragment->currentData().toInt();
+        const bool tlsFragment = (split & warpFragmentHandshake) != 0;
+        const bool recordFragment = (split & warpFragmentRecords) != 0;
+        const auto delay = fallbackDelay->text().trimmed();
+        // Generate WARP config reads these from the settings, so they are saved now, not with the dialog.
+        if (hosts != settings->warp_api_hosts || tlsFragment != settings->warp_api_tls_fragment
+            || recordFragment != settings->warp_api_tls_record_fragment || delay != settings->warp_api_tls_fragment_fallback_delay) {
+            const auto error = Engine::SettingsService::Update([&](Configs::SettingsValues &values) {
+                values.warp_api_hosts = hosts;
+                values.warp_api_tls_fragment = tlsFragment;
+                values.warp_api_tls_record_fragment = recordFragment;
+                values.warp_api_tls_fragment_fallback_delay = delay;
+            }, {.interactive = true});
+            if (error) {
+                MessageBoxWarning(w->windowTitle(), SettingsApplyErrorText(*error));
+                return;
+            }
+        }
+        // Edited fields only: a Generate WARP config that finished while this was open keeps the rest.
+        const auto keep = [](QString &value, const QString &before, const QString &now) {
+            if (now != before) value = now;
+        };
+        keep(warp_advanced.private_key, opened.private_key, privateKey->text());
+        keep(warp_advanced.public_key, opened.public_key, publicKey->text());
+        keep(warp_advanced.reserved, opened.reserved, reserved->text());
+        keep(warp_advanced.masque_private_key, opened.masque_private_key, masquePrivateKey->text());
+        keep(warp_advanced.masque_peer_public_key, opened.masque_peer_public_key, peerPublicKey->text());
+        keep(warp_advanced.masque_sni, opened.masque_sni, sni->text());
+        if (httpMode->currentIndex() != opened.masque_http_mode) warp_advanced.masque_http_mode = httpMode->currentIndex();
+        w->accept();
+    });
+    connect(buttons, &QDialogButtonBox::rejected, w, &QDialog::reject);
+
+    w->resize(w->sizeHint().expandedTo(QSize(560, 0)).boundedTo(screen()->availableGeometry().size()));
+    w->exec();
+    w->deleteLater();
+    form->revalidate(ui->warp_advanced_btn);
+}
+
 DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(new Ui::DialogManageRoutes) {
     snapshot_ = *Configs::dataManager->settingsRepo;
     ui->setupUi(this);
@@ -693,28 +751,35 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
                          + style()->pixelMetric(QStyle::PM_RadioButtonLabelSpacing, nullptr, ui->exit_server);
     for (auto *hint : {ui->exit_server_hint, ui->exit_warp_hint}) hint->setIndent(hintIndent);
     ui->warp_mode->setCurrentIndex(snapshot_.warp_mode == "masque" ? 1 : snapshot_.warp_mode == "amnezia" ? 2 : 0);
-    S_LOAD_STRING(warp_private_key)
-    S_LOAD_STRING(warp_public_key)
-    ui->warp_ifc_addrs->setText(snapshot_.warp_ifc_addrs.join(","));
     S_LOAD_STRING(warp_ep)
-    ui->warp_reserved->setText(snapshot_.warp_reserved.join(","));
+    ui->warp_ifc_addrs->setText(snapshot_.warp_ifc_addrs.join(","));
     S_LOAD_STRING(warp_masque_ep)
-    S_LOAD_STRING(warp_masque_private_key)
-    S_LOAD_STRING(warp_masque_peer_public_key)
     ui->warp_masque_ifc_addrs->setText(snapshot_.warp_masque_ifc_addrs.join(","));
-    S_LOAD_STRING(warp_masque_sni)
-    ui->warp_masque_http_mode->setCurrentIndex(std::clamp(snapshot_.warp_masque_http_mode, 0, 2));
+    warp_advanced = {
+        snapshot_.warp_private_key,
+        snapshot_.warp_public_key,
+        snapshot_.warp_reserved.join(","),
+        snapshot_.warp_masque_private_key,
+        snapshot_.warp_masque_peer_public_key,
+        snapshot_.warp_masque_sni,
+        std::clamp(snapshot_.warp_masque_http_mode, 0, 2),
+    };
     warpAmneziaPackets = snapshot_.warp_amnezia_packets;
+    // Each mode's fields share one grid cell and its label, so the label follows the shown field.
     auto showWarpMode = [this](int index) {
-        ui->warp_wg_box->setVisible(index != 1);
-        ui->warp_masque_box->setVisible(index == 1);
+        const bool masque = index == 1;
+        ui->warp_ep->setHidden(masque);
+        ui->warp_ifc_addrs->setHidden(masque);
+        ui->warp_masque_ep->setHidden(!masque);
+        ui->warp_masque_ifc_addrs->setHidden(!masque);
+        ui->warp_ep_l->setBuddy(masque ? ui->warp_masque_ep : ui->warp_ep);
+        ui->warp_ifc_addrs_l->setBuddy(masque ? ui->warp_masque_ifc_addrs : ui->warp_ifc_addrs);
         if (index == 2 && warpAmneziaPackets.isEmpty()) generate_amnezia_packets();
     };
     showWarpMode(ui->warp_mode->currentIndex());
     connect(ui->warp_mode, &QComboBox::currentIndexChanged, this, showWarpMode);
     connect(ui->warp_autogen, &QPushButton::clicked, this, &DialogManageRoutes::generate_warp_config);
-    connect(ui->warp_api_hosts_btn, &QPushButton::clicked, this, [this] { editWarpApiHosts(this); });
-    connect(ui->warp_advanced_btn, &QPushButton::clicked, this, [this] { editWarpAdvanced(this); });
+    connect(ui->warp_advanced_btn, &QPushButton::clicked, this, &DialogManageRoutes::show_warp_advanced_editor);
 
     ui->remote_dns->bindTo(form, ui->label_9->text());
     ui->direct_dns->bindTo(form, ui->label_8->text());
@@ -732,26 +797,26 @@ DialogManageRoutes::DialogManageRoutes(QWidget *parent) : QDialog(parent), ui(ne
         return QString();
     }, nullptr, Validation::Severity::Error, tr("DNS Object"));
 
-    // The fields the build refuses to start without while WARP is on; it ignores them all while WARP is off.
-    const auto warpField = [this](Validation::Rule rule) -> Validation::Rule {
-        return [this, rule = std::move(rule)](const QString &text) {
-            if (text.isEmpty()) return tr("Required while WARP is on: click Generate WARP config, or fill it in.");
-            return rule ? rule(text) : QString();
-        };
-    };
     const auto warpOn = [this] { return ui->exit_warp->isChecked(); };
     const auto addresses = Validation::Rules::List(Validation::Split::Comma, Validation::Rules::Cidr(Validation::Family::Any, true));
-    form->bind(ui->warp_ep, warpField(Validation::Rules::HostPort(false))).when(warpOn);
-    form->bind(ui->warp_private_key, warpField(Validation::Rules::Base64Key(32))).when(warpOn);
-    form->bind(ui->warp_public_key, warpField(Validation::Rules::Base64Key(32))).when(warpOn);
-    form->bind(ui->warp_ifc_addrs, warpField(addresses)).when(warpOn);
-    form->bind(ui->warp_reserved, manageRoutesReservedProblem).when(warpOn);
-    form->bind(ui->warp_masque_ep, warpField(Validation::Rules::HostPort(false))).when(warpOn);
-    form->bind(ui->warp_masque_private_key, warpField({})).when(warpOn);
-    form->bind(ui->warp_masque_peer_public_key, warpField({})).when(warpOn);
-    form->bind(ui->warp_masque_ifc_addrs, warpField(addresses)).when(warpOn);
-    const QList<QWidget *> warpFields = {ui->warp_ep, ui->warp_private_key, ui->warp_public_key, ui->warp_ifc_addrs, ui->warp_reserved,
-                                         ui->warp_masque_ep, ui->warp_masque_private_key, ui->warp_masque_peer_public_key, ui->warp_masque_ifc_addrs};
+    form->bind(ui->warp_ep, manageRoutesWarpField(Validation::Rules::HostPort(false))).when(warpOn);
+    form->bind(ui->warp_ifc_addrs, manageRoutesWarpField(addresses)).when(warpOn);
+    form->bind(ui->warp_masque_ep, manageRoutesWarpField(Validation::Rules::HostPort(false))).when(warpOn);
+    form->bind(ui->warp_masque_ifc_addrs, manageRoutesWarpField(addresses)).when(warpOn);
+    // Rechecked here so a bad stored value blocks OK even if WARP Advanced is never opened.
+    const auto warpAdvancedRule = [this, warpOn](bool masque, const QString &label, Validation::Rule rule, QString WarpAdvancedDraft::*value) {
+        form->addRule({ui->warp_advanced_btn}, [this, warpOn, masque, rule = std::move(rule), value] {
+            if (!warpOn() || (ui->warp_mode->currentIndex() == 1) != masque) return QString();
+            return rule((warp_advanced.*value).trimmed());
+        }, nullptr, Validation::Severity::Error, tr("%1 in Advanced").arg(label));
+    };
+    const auto warpKey = manageRoutesWarpField(Validation::Rules::Base64Key(32));
+    warpAdvancedRule(false, tr("Private Key"), warpKey, &WarpAdvancedDraft::private_key);
+    warpAdvancedRule(false, tr("Public Key"), warpKey, &WarpAdvancedDraft::public_key);
+    warpAdvancedRule(false, tr("Reserved"), manageRoutesReservedProblem, &WarpAdvancedDraft::reserved);
+    warpAdvancedRule(true, tr("Private Key"), manageRoutesWarpField({}), &WarpAdvancedDraft::masque_private_key);
+    warpAdvancedRule(true, tr("Peer Public Key"), manageRoutesWarpField({}), &WarpAdvancedDraft::masque_peer_public_key);
+    const QList<QWidget *> warpFields = {ui->warp_ep, ui->warp_ifc_addrs, ui->warp_masque_ep, ui->warp_masque_ifc_addrs, ui->warp_advanced_btn};
     const auto revalidateWarp = [this, warpFields] {
         for (auto *field : warpFields) form->revalidate(field);
     };
@@ -810,16 +875,16 @@ void DialogManageRoutes::generate_warp_config() {
             if (!conf->ipv4.isEmpty()) addrs << conf->ipv4 + "/32";
             if (!conf->ipv6.isEmpty()) addrs << conf->ipv6 + "/128";
             if (masque) {
-                dialog->ui->warp_masque_private_key->setText(conf->privateKey);
-                dialog->ui->warp_masque_peer_public_key->setText(conf->peerPublicKey);
+                dialog->warp_advanced.masque_private_key = conf->privateKey;
+                dialog->warp_advanced.masque_peer_public_key = conf->peerPublicKey;
                 dialog->ui->warp_masque_ep->setText(conf->endpoint);
                 dialog->ui->warp_masque_ifc_addrs->setText(addrs.join(","));
             } else {
-                dialog->ui->warp_private_key->setText(conf->privateKey);
-                dialog->ui->warp_public_key->setText(conf->peerPublicKey);
+                dialog->warp_advanced.private_key = conf->privateKey;
+                dialog->warp_advanced.public_key = conf->peerPublicKey;
+                dialog->warp_advanced.reserved = QListInt2QListString(conf->reserved).join(",");
                 dialog->ui->warp_ep->setText(conf->endpoint);
                 dialog->ui->warp_ifc_addrs->setText(addrs.join(","));
-                dialog->ui->warp_reserved->setText(QListInt2QListString(conf->reserved).join(","));
             }
             dialog->form->refresh();
             if (!packetError.isEmpty()) {
@@ -909,18 +974,18 @@ void DialogManageRoutes::accept() {
         proposed.exit_through = Configs::ExitValue(static_cast<Configs::ExitThrough>(chosenExit));
     proposed.warp_ep = ui->warp_ep->text().trimmed();
     proposed.warp_ifc_addrs = manageRoutesWithPrefix(SplitAndTrim(ui->warp_ifc_addrs->text(), ",", false));
-    proposed.warp_private_key = ui->warp_private_key->text().trimmed();
-    proposed.warp_public_key = ui->warp_public_key->text().trimmed();
-    proposed.warp_reserved = SplitAndTrim(ui->warp_reserved->text(), ",", false);
+    proposed.warp_private_key = warp_advanced.private_key.trimmed();
+    proposed.warp_public_key = warp_advanced.public_key.trimmed();
+    proposed.warp_reserved = SplitAndTrim(warp_advanced.reserved, ",", false);
     proposed.warp_mode = ui->warp_mode->currentIndex() == 1 ? "masque"
         : ui->warp_mode->currentIndex() == 2 ? "amnezia" : "wireguard";
     proposed.warp_amnezia_packets = warpAmneziaPackets;
     proposed.warp_masque_ep = ui->warp_masque_ep->text().trimmed();
-    proposed.warp_masque_private_key = ui->warp_masque_private_key->text().trimmed();
-    proposed.warp_masque_peer_public_key = ui->warp_masque_peer_public_key->text().trimmed();
+    proposed.warp_masque_private_key = warp_advanced.masque_private_key.trimmed();
+    proposed.warp_masque_peer_public_key = warp_advanced.masque_peer_public_key.trimmed();
     proposed.warp_masque_ifc_addrs = manageRoutesWithPrefix(SplitAndTrim(ui->warp_masque_ifc_addrs->text(), ",", false));
-    proposed.warp_masque_sni = ui->warp_masque_sni->text().trimmed();
-    proposed.warp_masque_http_mode = ui->warp_masque_http_mode->currentIndex();
+    proposed.warp_masque_sni = warp_advanced.masque_sni.trimmed();
+    proposed.warp_masque_http_mode = warp_advanced.masque_http_mode;
 
     QList<std::shared_ptr<Configs::RouteProfile>> changed;
     for (const auto &route : chainList) {

@@ -35,7 +35,6 @@ namespace Configs {
         int url_test_timeout_ms = 3000;
         bool disable_tray = false;
         int test_concurrent = 10;
-        bool disable_traffic_stats = false;
         int current_group = 0;
         QString mux_protocol = "smux";
         bool mux_padding = false;
@@ -75,11 +74,7 @@ namespace Configs {
         int font_size = 0;
         QString mw_size = "";
         QString routing_settings_size = "";
-        bool log_enable_include = false;
-        bool log_enable_exclude = false;
-        QStringList log_include_keyword = {};
-        QStringList log_include_regex = {};
-        QStringList log_exclude_keyword = {};
+        // Log lines matching any of these patterns are hidden.
         QStringList log_exclude_regex = {};
         bool start_minimal = false;
         int max_log_line = 500;

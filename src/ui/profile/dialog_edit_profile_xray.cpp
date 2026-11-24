@@ -36,8 +36,9 @@ void DialogEditProfile::setupXrayStream() {
         relayout();
     });
     connect(ui->xray_security, &QComboBox::currentTextChanged, this, [this] { relayout(); });
-    connect(ui->xray_mode, &QComboBox::currentTextChanged, this, [this] { relayout(); });
-    connect(ui->xray_xpadding_obfs_mode, &QCheckBox::toggled, this, [this] { relayout(); });
+    connect(ui->xray_mode, &QComboBox::currentTextChanged, this, [this] {
+        setCacheButtonText(ui->xray_xhttp_extra_edit, !shownXrayXHTTPExtra().isEmpty());
+    });
     connect(ui->xray_mux, &QComboBox::currentIndexChanged, this, [this] { relayout(); });
     connect(ui->xray_mux_custom, &QPushButton::clicked, this, [this] {
         XrayMuxSettingsWidget::openDialog(this, CACHE.xrayMux, [this](const Configs::XrayMuxSettings &settings) { CACHE.xrayMux = settings; });
@@ -96,7 +97,6 @@ void DialogEditProfile::loadXrayStream() {
     const auto stream = ent->outbound->GetXrayStream();
 
     loadXrayXHTTP(*stream->xhttp);
-    CACHE.XrayDownloadSettings = stream->xhttp->downloadSettings;
     CACHE.XrayFinalmask = stream->finalmask;
     Configs::UpgradeXrayFinalmask(CACHE.XrayFinalmask);
     CACHE.XrayXDriveTemplate = stream->xdrive->templateSpec;
@@ -239,27 +239,19 @@ void DialogEditProfile::updateXrayRows() {
     const bool networkBox = hasStream && network != "raw";
     ui->xray_network_box->setVisible(networkBox);
     ui->xray_common_box->setVisible(!xdrive && !kcp);
-    ui->xray_xhttp_box->setVisible(xhttp);
     ui->xray_xdrive_box->setVisible(xdrive);
     ui->xray_kcp_box->setVisible(kcp);
     setRowVisible(xdnsResolversLabel, xdnsResolvers, kcp && Configs::XrayFinalmaskHasXdns(CACHE.XrayFinalmask));
-    ui->xray_network_scroll->setMinimumWidth(xhttp || xdrive ? kXrayPanelNetworkMinWidth : 0);
+    ui->xray_network_scroll->setMinimumWidth(xdrive ? kXrayPanelNetworkMinWidth : 0);
     setRowVisible(ui->xray_ed_label, ui->xray_ed_length, !xhttp && !grpc);
     setRowVisible(ui->xray_headers_l, ui->xray_headers, !grpc);
+    setRowVisible(ui->xray_mode_l, ui->xray_mode, xhttp);
+    setRowVisible(ui->xray_xhttp_extra_l, ui->xray_xhttp_extra_edit, xhttp);
     ui->xray_multi_mode->setVisible(grpc);
     ui->xray_mux_custom->setVisible(ui->xray_mux->currentIndex() == Configs::kXrayMuxCustom);
-    updateXrayXHTTPControls();
     updateXrayXDriveControls();
 
     ui->xray_widget->setVisible(securityBox || networkBox);
-}
-
-void DialogEditProfile::on_xray_downloadsettings_edit_clicked() {
-    auto editor = new JsonEdit::JsonEditorDialog(QString2QJsonObject(CACHE.XrayDownloadSettings), this);
-    const auto result = editor->OpenEditor();
-    CACHE.XrayDownloadSettings = result.isEmpty() ? QString() : QJsonObject2QString(result, true);
-    editor->deleteLater();
-    editor_cache_updated_impl();
 }
 
 void DialogEditProfile::on_xray_finalmask_edit_clicked() {

@@ -18,6 +18,7 @@
 #include <climits>
 #include <cmath>
 #include <cstdint>
+#include <tuple>
 #include <utility>
 
 namespace Configs {
@@ -487,17 +488,16 @@ namespace Configs {
         }
 
         // Xray reads a range as "a-b" or a number; sing-box forks also write {"from": a, "to": b}.
-        void parseRange(const QJsonObject& object, const QString& key, QString& target) {
-            if (!object.contains(key)) return;
-            const auto value = object[key];
-            if (!value.isObject()) {
-                target = value.toVariant().toString();
-                return;
-            }
+        QString rangeText(const QJsonValue& value) {
+            if (!value.isObject()) return value.toVariant().toString();
             const auto from = value.toObject().value("from").toVariant().toString();
             const auto to = value.toObject().value("to").toVariant().toString();
-            if (from.isEmpty() || to.isEmpty() || from == to) target = from.isEmpty() ? to : from;
-            else target = from + QLatin1Char('-') + to;
+            if (from.isEmpty() || to.isEmpty() || from == to) return from.isEmpty() ? to : from;
+            return from + QLatin1Char('-') + to;
+        }
+
+        void parseRange(const QJsonObject& object, const QString& key, QString& target) {
+            if (object.contains(key)) target = rangeText(object[key]);
         }
 
         QString foldXHTTPKey(const QString& key) {
@@ -1617,15 +1617,8 @@ namespace Configs {
         return query.toString(QUrl::FullyEncoded);
     }
 
-    QJsonObject xrayXHTTP::ExportToJson() {
-        QJsonObject obj;
-        if (!host.isEmpty()) obj["host"] = toAceHost(host);
-        if (!path.isEmpty()) obj["path"] = path;
-        if (!mode.isEmpty()) obj["mode"] = mode;
-
+    QJsonObject xrayXHTTP::ExportExtra() const {
         QJsonObject extraObj = rawExtra;
-        if (!headers.isEmpty()) extraObj["headers"] = qStringListToJsonObject(headers);
-        else extraObj.remove("headers");
         exportString(extraObj, "xPaddingBytes", xPaddingBytes);
         exportBool(extraObj, "xPaddingObfsMode", xPaddingObfsMode);
         exportString(extraObj, "xPaddingKey", xPaddingKey);
@@ -1649,10 +1642,7 @@ namespace Configs {
         exportLongLong(extraObj, "scMaxBufferedPosts", scMaxBufferedPosts);
         exportString(extraObj, "scStreamUpServerSecs", scStreamUpServerSecs);
         exportInt(extraObj, "serverMaxHeaderBytes", serverMaxHeaderBytes);
-        if (mode == "stream-one") {
-            // Xray refuses downloadSettings in stream-one mode under any spelling.
-            xrayStreamRemoveNamed(extraObj, QStringLiteral("downloadSettings"));
-        } else if (!downloadSettings.isEmpty()) {
+        if (!downloadSettings.isEmpty()) {
             if (auto dsObj = QString2QJsonObject(downloadSettings); !dsObj.isEmpty()) {
                 extraObj["downloadSettings"] = dsObj;
             }
@@ -1668,7 +1658,37 @@ namespace Configs {
         exportLongLong(xmuxObj, "hKeepAlivePeriod", hKeepAlivePeriod);
         if (!xmuxObj.isEmpty()) extraObj["xmux"] = xmuxObj;
         else extraObj.remove("xmux");
+        return extraObj;
+    }
+
+    void xrayXHTTP::SetExtra(const QJsonObject& extra) {
+        xrayXHTTP parsed;
+        parseXHTTPExtraObject(&parsed, extra);
+        parsed.host = host;
+        parsed.path = path;
+        parsed.mode = mode;
+        parsed.headers = headers;
+        *this = parsed;
+    }
+
+    QJsonObject xrayXHTTP::ExportToJson() {
+        QJsonObject obj;
+        if (!host.isEmpty()) obj["host"] = toAceHost(host);
+        if (!path.isEmpty()) obj["path"] = path;
+        if (!mode.isEmpty()) obj["mode"] = mode;
+
+        auto extraObj = ExportExtra();
+        if (!headers.isEmpty()) extraObj["headers"] = qStringListToJsonObject(headers);
+        else extraObj.remove("headers");
+        // Xray refuses downloadSettings in stream-one mode under any spelling.
+        if (mode == "stream-one") xrayStreamRemoveNamed(extraObj, QStringLiteral("downloadSettings"));
         if (!extraObj.isEmpty()) obj["extra"] = extraObj;
+        return obj;
+    }
+
+    QJsonObject CanonicalXHTTPExtra(const QJsonObject& extra) {
+        auto obj = canonicalXHTTPKeys(extra, knownXHTTPExtraKeys());
+        if (const auto xmux = obj.value("xmux"); xmux.isObject()) obj["xmux"] = canonicalXHTTPKeys(xmux.toObject(), knownXHTTPXmuxKeys());
         return obj;
     }
 
@@ -2455,6 +2475,64 @@ namespace Configs {
             if (!xrayStreamRange(maxConnections, fromA, toA) || !xrayStreamRange(maxConcurrency, fromB, toB)) return {};
             if (toA <= 0 || toB <= 0) return {};
             return QCoreApplication::translate("Validation", "Set either Max Connections or Max Concurrency, not both.");
+        }
+
+        void XrayXHTTPExtra(Validation::Issues& issues, const QString& at, const QJsonObject& extra, const QString& mode)
+        {
+            using Validation::Severity;
+            const auto obj = CanonicalXHTTPExtra(extra);
+            const auto xmux = obj.value("xmux").toObject();
+            const auto value = [&](const QString& key) { return key.startsWith(QLatin1String("xmux.")) ? xmux.value(key.mid(5)) : obj.value(key); };
+            const auto set = [&](const QString& key) { return !value(key).isUndefined() && !value(key).isNull(); };
+            const auto add = [&](const QString& key, const QString& message, Severity severity = Severity::Error) {
+                xrayStreamAdd(issues, severity, at + key, message);
+            };
+
+            // Each value is checked as the importer stores it, so a type it would drop is reported instead.
+            for (const QString& key : {"xPaddingKey", "xPaddingHeader", "xPaddingPlacement", "xPaddingMethod", "uplinkHTTPMethod", "sessionPlacement",
+                                       "sessionKey", "sessionIDPlacement", "sessionIDKey", "sessionIDTable", "seqPlacement", "seqKey",
+                                       "uplinkDataPlacement", "uplinkDataKey"}) {
+                if (set(key) && !value(key).isString()) add(key, QCoreApplication::translate("Validation", "Must be a string."));
+            }
+            const auto text = [&](const QString& key) { return value(key).toString(); };
+            QHash<QString, QString> ranges;
+            for (const QString& key : {"xPaddingBytes", "sessionIDLength", "uplinkChunkSize", "scMaxEachPostBytes", "scMinPostsIntervalMs",
+                                       "scStreamUpServerSecs", "xmux.maxConcurrency", "xmux.maxConnections", "xmux.cMaxReuseTimes",
+                                       "xmux.hMaxRequestTimes", "xmux.hMaxReusableSecs"}) {
+                const auto v = value(key);
+                ranges[key] = rangeText(v);
+                if (v.isArray() || (v.isObject() && !v.toObject().contains("from") && !v.toObject().contains("to"))) {
+                    add(key, QCoreApplication::translate("Validation", "Must be a whole number or a range like 10-20."));
+                } else {
+                    add(key, key == QLatin1String("xPaddingBytes") ? XrayXPaddingBytes(ranges[key]) : XrayInt32Range(ranges[key]));
+                }
+            }
+            // Integers are checked as written: the importer would read a word as 0.
+            for (const auto& [key, lo, hi] : {std::tuple{QStringLiteral("serverMaxHeaderBytes"), qint64(0), qint64(INT_MAX)},
+                                              std::tuple{QStringLiteral("scMaxBufferedPosts"), qint64(0), qint64(LLONG_MAX)},
+                                              std::tuple{QStringLiteral("xmux.hKeepAlivePeriod"), qint64(LLONG_MIN), qint64(LLONG_MAX)}}) {
+                const auto v = value(key);
+                if (v.isArray() || v.isObject()) add(key, QCoreApplication::translate("Validation", "Must be a whole number."));
+                else add(key, Validation::Int(v.isString() ? v.toString() : v.toVariant().toString(), lo, hi));
+            }
+
+            add("xPaddingMethod", XrayPaddingMethod(text("xPaddingMethod")));
+            add("xPaddingPlacement", XrayPaddingPlacement(text("xPaddingPlacement")));
+            add("uplinkHTTPMethod", XrayUplinkMethod(text("uplinkHTTPMethod"), mode));
+            add("uplinkHTTPMethod", Validation::HttpToken(text("uplinkHTTPMethod")), Severity::Warning);
+            add("uplinkDataPlacement", XrayUplinkDataPlacement(text("uplinkDataPlacement"), mode));
+            // The importer reads the legacy name first, so the current one wins.
+            add("sessionIDPlacement", XrayMetaPlacement(text(obj.contains("sessionIDPlacement") ? "sessionIDPlacement" : "sessionPlacement")));
+            add("seqPlacement", XrayMetaPlacement(text("seqPlacement")));
+            add("sessionIDTable", XraySessionId(text("sessionIDTable"), ranges["sessionIDLength"]));
+            add("xmux.maxConnections", XrayXmuxExclusive(ranges["xmux.maxConnections"], ranges["xmux.maxConcurrency"]));
+            if (set("xmux") && !obj.value("xmux").isObject()) add("xmux", QCoreApplication::translate("Validation", "Must be a JSON object."));
+            if (mode != "stream-one" && set("downloadSettings")) {
+                const auto settings = obj.value("downloadSettings");
+                if (!settings.isObject() && QString2QJsonObject(settings.toString()).isEmpty()) {
+                    add("downloadSettings", QCoreApplication::translate("Validation", "Must be a JSON object."));
+                }
+            }
         }
 
         void XrayXHTTPDownloadLeg(Validation::Issues& issues, const QString& at, const QJsonObject& outbound)

@@ -190,15 +190,12 @@ void MainWindow::refresh_auto_selector_view()
 }
 
 void MainWindow::updateLogFilterFields() {
+    // Validated and compiled here, so the log thread neither compiles it nor warns on every line about an invalid pattern.
+    QRegularExpression hide(Configs::dataManager->settingsRepo->log_exclude_regex.join("|"));
+    if (hide.isValid()) hide.optimize();
+    else hide = QRegularExpression();
     QMutexLocker locker(&logMutex);
-    includeKeywords.clear();
-    excludeKeywords.clear();
-    for (const auto& inKeyword : Configs::dataManager->settingsRepo->log_include_keyword) includeKeywords.append(inKeyword);
-    for (const auto& exKeyword : Configs::dataManager->settingsRepo->log_exclude_keyword) excludeKeywords.append(exKeyword);
-    includeCombined.setPattern(Configs::dataManager->settingsRepo->log_include_regex.join("|"));
-    excludeCombined.setPattern(Configs::dataManager->settingsRepo->log_exclude_regex.join("|"));
-    includeCombined.optimize();
-    excludeCombined.optimize();
+    logHidePattern = hide;
 }
 
 void MainWindow::applyProfileFilters()
@@ -212,17 +209,14 @@ void MainWindow::refresh_status(const QString &traffic_update) {
     const auto* settings = Configs::dataManager->settingsRepo.get();
 
     auto refresh_speed_label = [=,this] {
-        if (settings->disable_traffic_stats) {
-            ui->label_speed->setText("");
-        }
-        else if (traffic_update_cache == "") {
+        if (traffic_update_cache == "") {
             ui->label_speed->setText(QObject::tr("Proxy: %1\nDirect: %2").arg("", ""));
         } else {
             ui->label_speed->setText(traffic_update_cache);
         }
     };
 
-    if (!traffic_update.isEmpty() && !settings->disable_traffic_stats) {
+    if (!traffic_update.isEmpty()) {
         traffic_update_cache = traffic_update;
         if (traffic_update == "STOP") {
             traffic_update_cache = "";
@@ -464,13 +458,6 @@ void MainWindow::add_traffic_point(qint64 monoMs, bool coreRunning, const QVecto
 void MainWindow::refresh_traffic_graph_settings() {
     const auto &settings = Configs::dataManager->settingsRepo;
     if (m_trafficStatsChartAction != nullptr) m_trafficStatsChartAction->setVisible(!settings->disable_traffic_aggregation);
-    if (trafficChart == nullptr) return;
-    if (settings->disable_traffic_stats) {
-        trafficChart->setBlocked(tr("Traffic counters are disabled"),
-                                 tr("Untick “Disable traffic counters” in Basic Settings → Core → Statistics to record speeds again."));
-    } else {
-        trafficChart->setBlocked({});
-    }
 }
 
 void MainWindow::refresh_proxy_list_column_size() {

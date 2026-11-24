@@ -2,6 +2,7 @@
 
 #include <QDialog>
 #include <QJsonObject>
+#include <functional>
 #include <memory>
 
 #include "include/ui/widget/json/JsonValidator.h"
@@ -21,10 +22,17 @@ namespace JsonEdit {
 
         void SetValidator(std::shared_ptr<Validator> validator);
 
+        // Shown while the document is empty.
+        void SetPlaceholderText(const QString& text);
+
+        // Runs on OK with the document as typed; any returned line keeps the editor open.
+        void SetAcceptCheck(std::function<QStringList(const QString& text)> check);
+
         QJsonObject OpenEditor();
 
     private:
         QJsonObject m_original;
+        std::function<QStringList(const QString&)> m_acceptCheck;
         JsonCodeEdit* m_editor = nullptr;
         JsonIssueList* m_issues = nullptr;
         QLabel* m_status = nullptr;

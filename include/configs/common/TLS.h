@@ -175,11 +175,6 @@ namespace Configs
         std::shared_ptr<Reality> reality = std::make_shared<Reality>();
 
         // Tri-state combo helpers (index: 0 = Keep Default, 1 = On, 2 = Off).
-        int getFragmentState() {
-            if (fragment) return 1;
-            if (fragment_unspecified) return 0;
-            return 2;
-        }
         void saveFragmentState(int state) {
             fragment = state == 1;
             fragment_unspecified = state == 0;

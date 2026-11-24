@@ -91,6 +91,8 @@ private:
     struct Stash {
         std::shared_ptr<Configs::RouteRule> rule;
         QHash<QString, QStringList> values;
+        // The fallback delay a Fragment TLS choice without the handshake cleared.
+        QString fragmentDelay;
     };
 
     void buildThenSection(QVBoxLayout* layout);
@@ -101,6 +103,7 @@ private:
 
     void loadRule();
     void loadThenSection();
+    void loadFragment();
     [[nodiscard]] QStringList shownAttrs() const;
     void rebuildBoxes();
     // labels: those of the leaf's siblings, which share one width.
@@ -126,6 +129,7 @@ private:
     void applyStash();
     void setScopedText(const QString& attr, const QString& text);
     void setScopedFlag(const QString& attr, bool on);
+    void setFragment(bool handshake, bool records);
     void setOptionsOpen(bool open);
     void setJsonOpen(bool open);
     void refreshIssues();
@@ -155,9 +159,8 @@ private:
     QToolButton* optionsToggle = nullptr;
     QLineEdit* overrideAddressEdit = nullptr;
     QLineEdit* overridePortEdit = nullptr;
-    QCheckBox* fragmentCheck = nullptr;
+    NoWheelComboBox* fragmentCombo = nullptr;
     QLineEdit* fragmentDelayEdit = nullptr;
-    QCheckBox* recordFragmentCheck = nullptr;
     QLineEdit* spoofEdit = nullptr;
     NoWheelComboBox* spoofMethodCombo = nullptr;
 

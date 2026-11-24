@@ -42,6 +42,9 @@
 namespace {
     constexpr char ruleEditorSelectProperty[] = "routeRuleEditorSelect";
     constexpr char ruleEditorBaseCountProperty[] = "routeRuleEditorBaseCount";
+    // A Fragment TLS choice's data: the bits of the flags it turns on.
+    constexpr int ruleEditorFragmentHandshake = 1;
+    constexpr int ruleEditorFragmentRecords = 2;
 
     const QStringList& ruleEditorOptionAttrs() {
         static const QStringList attrs = {"override_address", "override_port", "tls_fragment", "tls_fragment_fallback_delay",
@@ -476,24 +479,29 @@ void RouteRuleEditor::buildOptions(QVBoxLayout* layout, QLayout* toggles) {
     bindText(overridePortEdit, QStringLiteral("override_port"));
     finishRow({QStringLiteral("override_port")});
 
-    fragmentCheck = new QCheckBox(RouteEditor::ConditionLabel(QStringLiteral("tls_fragment")), optionsFrame);
+    auto* fragmentLabel = new QLabel(RouteEditor::ConditionLabel(QStringLiteral("tls_fragment")), optionsFrame);
+    fragmentCombo = new NoWheelComboBox(optionsFrame);
+    fragmentCombo->addItem(tr("Off"), 0);
+    fragmentCombo->addItem(tr("Handshake"), ruleEditorFragmentHandshake);
+    fragmentCombo->addItem(tr("Records"), ruleEditorFragmentRecords);
+    ruleEditorSealCombo(fragmentCombo);
+    fragmentLabel->setBuddy(fragmentCombo);
     fragmentDelayEdit = new QLineEdit(optionsFrame);
     fragmentDelayEdit->setPlaceholderText(tr("Fallback delay, such as 500ms"));
     fragmentDelayEdit->setAccessibleName(RouteEditor::ConditionLabel(QStringLiteral("tls_fragment_fallback_delay")));
-    grid->addWidget(fragmentCheck, row, 0);
-    grid->addWidget(fragmentDelayEdit, row, 1);
+    auto* fragmentRow = new QHBoxLayout;
+    fragmentRow->setSpacing(6);
+    fragmentRow->addWidget(fragmentCombo);
+    fragmentRow->addWidget(fragmentDelayEdit, 1);
+    fragmentRow->addStretch();
+    grid->addWidget(fragmentLabel, row, 0);
+    grid->addLayout(fragmentRow, row, 1);
     bindText(fragmentDelayEdit, QStringLiteral("tls_fragment_fallback_delay"));
-    finishRow({QStringLiteral("tls_fragment"), QStringLiteral("tls_fragment_fallback_delay")});
-    connect(fragmentCheck, &QCheckBox::toggled, this, [this](bool on) {
-        fragmentDelayEdit->setEnabled(on);
-        if (!loading && current != nullptr) setScopedFlag(QStringLiteral("tls_fragment"), on);
-    });
-
-    recordFragmentCheck = new QCheckBox(RouteEditor::ConditionLabel(QStringLiteral("tls_record_fragment")), optionsFrame);
-    grid->addWidget(recordFragmentCheck, row, 0, 1, 2);
-    finishRow({QStringLiteral("tls_record_fragment")});
-    connect(recordFragmentCheck, &QCheckBox::toggled, this, [this](bool on) {
-        if (!loading && current != nullptr) setScopedFlag(QStringLiteral("tls_record_fragment"), on);
+    finishRow({QStringLiteral("tls_fragment"), QStringLiteral("tls_record_fragment"), QStringLiteral("tls_fragment_fallback_delay")});
+    connect(fragmentCombo, &QComboBox::currentIndexChanged, this, [this](int) {
+        if (loading || current == nullptr) return;
+        const int mode = fragmentCombo->currentData().toInt();
+        setFragment((mode & ruleEditorFragmentHandshake) != 0, (mode & ruleEditorFragmentRecords) != 0);
     });
 
     auto* spoofLabel = new QLabel(RouteEditor::ConditionLabel(QStringLiteral("tls_spoof")), optionsFrame);
@@ -521,8 +529,8 @@ void RouteRuleEditor::buildOptions(QVBoxLayout* layout, QLayout* toggles) {
     grid->setColumnStretch(1, 1);
     optionsFrame->hide();
     layout->addWidget(optionsFrame);
-    settingWidgets.insert(QStringLiteral("tls_fragment"), fragmentCheck);
-    settingWidgets.insert(QStringLiteral("tls_record_fragment"), recordFragmentCheck);
+    settingWidgets.insert(QStringLiteral("tls_fragment"), fragmentCombo);
+    settingWidgets.insert(QStringLiteral("tls_record_fragment"), fragmentCombo);
     settingWidgets.insert(QStringLiteral("tls_spoof_method"), spoofMethodCombo);
 }
 
@@ -624,12 +632,25 @@ void RouteRuleEditor::loadThenSection() {
     };
     setText(overrideAddressEdit, current->override_address);
     setText(overridePortEdit, current->override_port);
-    fragmentCheck->setChecked(current->tls_fragment);
-    setText(fragmentDelayEdit, current->tls_fragment_fallback_delay);
-    fragmentDelayEdit->setEnabled(current->tls_fragment);
-    recordFragmentCheck->setChecked(current->tls_record_fragment);
+    loadFragment();
     setText(spoofEdit, current->tls_spoof);
     ruleEditorSelectData(spoofMethodCombo, current->tls_spoof_method.trimmed());
+    loading = wasLoading;
+}
+
+void RouteRuleEditor::loadFragment() {
+    const bool wasLoading = std::exchange(loading, true);
+    const int mode = (current->tls_fragment ? ruleEditorFragmentHandshake : 0) | (current->tls_record_fragment ? ruleEditorFragmentRecords : 0);
+    const int both = ruleEditorFragmentHandshake | ruleEditorFragmentRecords;
+    const int base = fragmentCombo->property(ruleEditorBaseCountProperty).toInt();
+    // route-options takes only one of them, so it offers both only to a rule that already has both.
+    const bool offerBoth = mode == both || RouteEditor::ThenOf(*current) != RouteEditor::Then::RouteOptions;
+    const bool listed = fragmentCombo->count() > base;
+    if (listed && !offerBoth) fragmentCombo->removeItem(base);
+    else if (!listed && offerBoth) fragmentCombo->addItem(tr("Handshake + Records"), both);
+    fragmentCombo->setCurrentIndex(fragmentCombo->findData(mode));
+    if (fragmentDelayEdit->text() != current->tls_fragment_fallback_delay) fragmentDelayEdit->setText(current->tls_fragment_fallback_delay);
+    fragmentDelayEdit->setVisible(current->tls_fragment || !current->tls_fragment_fallback_delay.trimmed().isEmpty());
     loading = wasLoading;
 }
 
@@ -1090,6 +1111,20 @@ void RouteRuleEditor::setScopedText(const QString& attr, const QString& text) {
 
 void RouteRuleEditor::setScopedFlag(const QString& attr, bool on) {
     current->set_field_value(attr, {on ? QStringLiteral("true") : QStringLiteral("false")});
+    refreshIssues();
+    emitChanged();
+}
+
+// The core reads the fallback delay only with tls_fragment: a choice without the handshake sets it aside until one with it is picked.
+void RouteRuleEditor::setFragment(bool handshake, bool records) {
+    Stash& stash = stashes[current.get()];
+    stash.rule = current;
+    QString& delay = current->tls_fragment_fallback_delay;
+    if (!handshake && !delay.trimmed().isEmpty()) stash.fragmentDelay = std::exchange(delay, {});
+    else if (handshake && delay.trimmed().isEmpty() && !stash.fragmentDelay.isEmpty()) delay = std::exchange(stash.fragmentDelay, {});
+    current->tls_fragment = handshake;
+    current->tls_record_fragment = records;
+    loadFragment();
     refreshIssues();
     emitChanged();
 }

@@ -66,7 +66,6 @@ namespace {
         info["tun"] = settings->spmode_vpn;
         info["system_proxy"] = settings->spmode_system_proxy;
         info["enable_stats"] = settings->enable_stats;
-        info["traffic_stats"] = !settings->disable_traffic_stats;
         info["traffic_aggregation"] = !settings->disable_traffic_aggregation;
         info["resolve_domain_strategy"] = settings->resolve_domain_strategy;
         bool routeOwnsDns = false;

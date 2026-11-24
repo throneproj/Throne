@@ -90,6 +90,25 @@ namespace Configs {
             const double mbps = std::min(bytesPerSecond / 125000.0, double(std::numeric_limits<int>::max()));
             return int(std::max<long long>(1, std::llround(mbps)));
         }
+
+        // A deprecated v1 window as the core reads it: a positive whole number of bytes.
+        QString hysteriaV1Window(const QString &text) {
+            bool ok = false;
+            const auto bytes = text.trimmed().toULongLong(&ok);
+            return ok && bytes > 0 ? QString::number(bytes) : QString();
+        }
+
+        // protocol/hysteria/quic.go reads the deprecated v1 fields only where the QUIC field is unset, ORs the MTU switch,
+        // and runs recv_window_conn as the connection window and recv_window as the stream window.
+        void hysteriaFoldV1Quic(QUICFields &quic, const QString &recvWindowConn, const QString &recvWindow, bool disableMtuDiscovery) {
+            if (const auto bytes = hysteriaV1Window(recvWindowConn); !bytes.isEmpty() && quic.connection_receive_window.trimmed().isEmpty()) {
+                quic.connection_receive_window = bytes;
+            }
+            if (const auto bytes = hysteriaV1Window(recvWindow); !bytes.isEmpty() && quic.stream_receive_window.trimmed().isEmpty()) {
+                quic.stream_receive_window = bytes;
+            }
+            if (disableMtuDiscovery) quic.savePathMtuState(1);
+        }
     }
 
     namespace Checks {
@@ -297,9 +316,6 @@ namespace Configs {
                 auth = query.queryItemValue("auth");
                 auth_type = "STRING";
             }
-            if (query.hasQueryItem("recv_window_conn")) recv_window_conn = query.queryItemValue("recv_window_conn").toInt();
-            if (query.hasQueryItem("recv_window")) recv_window = query.queryItemValue("recv_window").toInt();
-            if (query.hasQueryItem("disable_mtu_discovery")) disable_mtu_discovery = query.queryItemValue("disable_mtu_discovery") == "true";
         } else {
             protocol_version = "2";
             if (url.password().isEmpty()) {
@@ -369,6 +385,10 @@ namespace Configs {
             }
         }
         quic->ParseFromLink(link);
+        if (protocol_version == "1") {
+            hysteriaFoldV1Quic(*quic, query.queryItemValue("recv_window_conn"), query.queryItemValue("recv_window"),
+                               query.queryItemValue("disable_mtu_discovery") == "true");
+        }
 
         if (server_port == 0 && server_ports.isEmpty()) server_port = 443;
 
@@ -417,9 +437,6 @@ namespace Configs {
                 auth = object["auth_str"].toString();
                 auth_type = "STRING";
             }
-            if (object.contains("recv_window_conn")) recv_window_conn = object["recv_window_conn"].toInt();
-            if (object.contains("recv_window")) recv_window = object["recv_window"].toInt();
-            if (object.contains("disable_mtu_discovery")) disable_mtu_discovery = object["disable_mtu_discovery"].toBool();
         } else {
             if (object.contains("obfs")) {
                 auto obfsObj = object["obfs"].toObject();
@@ -471,6 +488,13 @@ namespace Configs {
         }
         if (object.contains("tls")) tls->ParseFromJson(object["tls"].toObject());
         quic->ParseFromJson(object);
+        if (protocol_version == "1") {
+            const auto window = [&object](const QString &key) {
+                const auto value = object[key];
+                return value.isDouble() ? QString::number(value.toInteger()) : QString();
+            };
+            hysteriaFoldV1Quic(*quic, window("recv_window_conn"), window("recv_window"), object["disable_mtu_discovery"].toBool());
+        }
         return true;
     }
 
@@ -498,17 +522,9 @@ namespace Configs {
                 auth_type = "STRING";
             }
             if (!object.obfs.empty()) obfs = QString::fromStdString(object.obfs);
-            if (object.recv_window > 0) {
-                recv_window = object.recv_window;
-            } else if (object.recv_window1 > 0) {
-                recv_window = object.recv_window1;
-            }
-            if (object.recv_window_conn > 0) {
-                recv_window_conn = object.recv_window_conn;
-            } else if (object.recv_window_conn1 > 0) {
-                recv_window_conn = object.recv_window_conn1;
-            }
-            disable_mtu_discovery = object.disable_mtu_discovery;
+            const int recvWindowConn = object.recv_window_conn > 0 ? object.recv_window_conn : object.recv_window_conn1;
+            const int recvWindow = object.recv_window > 0 ? object.recv_window : object.recv_window1;
+            hysteriaFoldV1Quic(*quic, QString::number(recvWindowConn), QString::number(recvWindow), object.disable_mtu_discovery);
         } else {
             if (!object.password.empty()) password = QString::fromStdString(object.password);
             // mihomo turns obfs on only by its type; a lone obfs-password is ignored there.
@@ -579,6 +595,7 @@ namespace Configs {
         
         if (!name.isEmpty()) url.setFragment(name);
 
+        QUrlQuery quicQuery(quic->ExportToLink());
         if (protocol_version == "1") {
             if (!obfs.isEmpty()) {
                 query.addQueryItem("obfsParam", QUrl::toPercentEncoding(obfs));
@@ -588,9 +605,18 @@ namespace Configs {
                 if (auth_type == "STRING") query.addQueryItem("auth", auth);
                 if (auth_type == "BASE64") query.addQueryItem("auth_base64", auth);
             }
-            if (recv_window_conn > 0) query.addQueryItem("recv_window_conn", QString::number(recv_window_conn));
-            if (recv_window > 0) query.addQueryItem("recv_window", QString::number(recv_window));
-            if (disable_mtu_discovery) query.addQueryItem("disable_mtu_discovery", "true");
+            // v1 links keep the deprecated keys that ParseFromLink folds into these QUIC fields.
+            const auto keepV1 = [&query, &quicQuery](const QString &key, const QString &quicKey, const QString &bytes) {
+                if (bytes.isEmpty()) return;
+                query.addQueryItem(key, bytes);
+                quicQuery.removeAllQueryItems(quicKey);
+            };
+            keepV1("recv_window_conn", "quic_connection_receive_window", hysteriaV1Window(quic->connection_receive_window));
+            keepV1("recv_window", "quic_stream_receive_window", hysteriaV1Window(quic->stream_receive_window));
+            if (quic->disable_path_mtu_discovery) {
+                query.addQueryItem("disable_mtu_discovery", "true");
+                quicQuery.removeAllQueryItems("quic_disable_path_mtu_discovery");
+            }
         } else {
             if (password.contains(":")) {
                 url.setUserName(SubStrBefore(password, ":"));
@@ -615,7 +641,7 @@ namespace Configs {
         if (!hop_interval.isEmpty()) query.addQueryItem("hop_interval", hop_interval);
         
         mergeUrlQuery(query, tls->ExportToLink());
-        mergeUrlQuery(query, quic->ExportToLink());
+        mergeUrlQuery(query, quicQuery.toString());
         mergeUrlQuery(query, outbound::ExportToLink());
         
         if (!query.isEmpty()) url.setQuery(query);
@@ -655,9 +681,6 @@ namespace Configs {
                 if (auth_type == "BASE64") object["auth"] = auth;
                 if (auth_type == "STRING") object["auth_str"] = auth;
             }
-            if (recv_window_conn > 0) object["recv_window_conn"] = recv_window_conn;
-            if (recv_window > 0) object["recv_window"] = recv_window;
-            if (disable_mtu_discovery) object["disable_mtu_discovery"] = disable_mtu_discovery;
         } else {
             if (!obfs.isEmpty()) {
                 object["obfs"] = QJsonObject{
@@ -718,9 +741,6 @@ namespace Configs {
                 if (auth_type == "BASE64") object["auth"] = auth;
                 if (auth_type == "STRING") object["auth_str"] = auth;
             }
-            if (recv_window_conn > 0) object["recv_window_conn"] = recv_window_conn;
-            if (recv_window > 0) object["recv_window"] = recv_window;
-            if (disable_mtu_discovery) object["disable_mtu_discovery"] = disable_mtu_discovery;
         } else {
             if (ObfsActive()) {
                 const auto obfsType = obfs_type.trimmed().toLower();

@@ -5,6 +5,18 @@ namespace Configs
 {
     inline const QStringList openvpnNetworks = {"", "udp", "udp4", "udp6", "tcp", "tcp4", "tcp6"};
 
+    // The JSON value ParseFromJson reads for an option.
+    enum class OpenVPNOptionKind { String, Bool, Int, Int64, Lines, Servers, PullFilters };
+
+    struct OpenVPNAdvancedOption {
+        // Dotted below the profile object, e.g. "tls.cipher".
+        QString path;
+        OpenVPNOptionKind kind;
+    };
+
+    // The options the profile page leaves to its Advanced editor.
+    const QList<OpenVPNAdvancedOption>& OpenVPNAdvancedOptions();
+
     class OpenVPNRemote : public baseConfig
     {
         public:
@@ -160,6 +172,11 @@ namespace Configs
 
         // A copy the editors can fill with unsaved input: the option objects they write are not shared with this one.
         std::shared_ptr<openvpn> DetachedCopy() const;
+
+        // The OpenVPNAdvancedOptions() that are set, in the stored keys.
+        QJsonObject ExportAdvancedJson();
+        // Every Advanced option becomes what `advanced` holds, read as ParseFromJson reads it, or its default; nothing else changes.
+        void ApplyAdvancedJson(const QJsonObject& advanced);
     };
 
     namespace Checks {

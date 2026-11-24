@@ -981,11 +981,6 @@ namespace Configs {
     std::shared_ptr<RouteProfile> RouteProfile::GetDefaultChain() {
         auto defaultChain = std::make_shared<RouteProfile>();
         defaultChain->name = "Default";
-        auto defaultRule = std::make_shared<RouteRule>();
-        defaultRule->name = "Route DNS";
-        defaultRule->action = "hijack-dns";
-        defaultRule->protocol = "dns";
-        defaultChain->Rules << defaultRule;
         return defaultChain;
     }
 
@@ -1092,14 +1087,6 @@ namespace Configs {
             for (const auto& cidr: item->ip_cidr) res << cidr;
         }
         return res;
-    }
-
-    bool RouteProfile::IsEmpty() {
-        if (isRaw) return rawRoute.trimmed().isEmpty();
-        for (const auto& item: Rules) {
-            if (!item->isEmpty()) return false;
-        }
-        return true;
     }
 
     void RouteProfile::ResetRules() {
