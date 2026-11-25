@@ -167,6 +167,8 @@ namespace Configs {
         // Generated on first use; an empty name means the host name.
         QString device_id = "";
         QString device_name = "";
+        // "gid=md5" of each subscription announcement already opened in the details dialog; device-local UI state.
+        QStringList sub_announce_seen = {};
 
         // Remember
         bool remember_system_proxy = false;

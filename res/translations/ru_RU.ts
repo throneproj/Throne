@@ -13053,20 +13053,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>Осталось %1 д. %2 ч.</translation>
     </message>
     <message>
-        <source>Announcement - %1</source>
-        <translation>Объявление - %1</translation>
-    </message>
-    <message>
         <source>Auto-update: every %1</source>
         <translation>Автообновление: раз в %1</translation>
-    </message>
-    <message>
-        <source>Provider: %1</source>
-        <translation>Провайдер: %1</translation>
-    </message>
-    <message>
-        <source>Last updated: %1</source>
-        <translation>Последнее обновление: %1</translation>
     </message>
     <message>
         <source>Expires: %1</source>
@@ -13103,6 +13091,50 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Technical Support: %1</source>
         <translation>Техническая поддержка: %1</translation>
+    </message>
+    <message>
+        <source>Subscription details</source>
+        <translation>Сведения о подписке</translation>
+    </message>
+    <message>
+        <source>Subscription details (new announcement)</source>
+        <translation>Сведения о подписке (новое объявление)</translation>
+    </message>
+    <message>
+        <source>Provider</source>
+        <translation>Провайдер</translation>
+    </message>
+    <message>
+        <source>Traffic</source>
+        <translation>Трафик</translation>
+    </message>
+    <message>
+        <source>%1 of %2 used (%3%)</source>
+        <translation>Использовано %1 из %2 (%3%)</translation>
+    </message>
+    <message>
+        <source>%1 used, no limit</source>
+        <translation>Использовано %1, без ограничений</translation>
+    </message>
+    <message>
+        <source>Expires</source>
+        <translation>Истекает</translation>
+    </message>
+    <message>
+        <source>Last updated</source>
+        <translation>Последнее обновление</translation>
+    </message>
+    <message>
+        <source>Auto-update</source>
+        <translation>Автообновление</translation>
+    </message>
+    <message>
+        <source>Announcement</source>
+        <translation>Объявление</translation>
+    </message>
+    <message>
+        <source>Website</source>
+        <translation>Веб-сайт</translation>
     </message>
 </context>
 <context>

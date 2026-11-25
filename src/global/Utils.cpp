@@ -319,6 +319,49 @@ QString ReadableSize(const qint64 &size) {
     return QString::fromLatin1("%1 %2").arg(sizeAsDouble, 0, 'f', 2).arg(measure);
 }
 
+namespace {
+    constexpr const char *kQuotaUnits[] = {"B", "KB", "MB", "GB", "TB", "PB", "EB"};
+    constexpr int kQuotaTopUnit = 6;
+
+    // The number as text and its index in kQuotaUnits.
+    std::pair<QString, int> quotaParts(qint64 bytes) {
+        if (bytes < 1024) return {QString::number(std::max<qint64>(bytes, 0)), 0};
+        double value = static_cast<double>(bytes);
+        int unit = 0;
+        while (value >= 1024.0 && unit < kQuotaTopUnit) {
+            value /= 1024.0;
+            ++unit;
+        }
+        QString text;
+        while (true) {
+            text = QString::number(value, 'f', value < 10 ? 2 : value < 100 ? 1 : 0);
+            if (unit == kQuotaTopUnit || text.toDouble() < 1024.0) break;
+            value /= 1024.0;
+            ++unit;
+        }
+        if (text.contains(QLatin1Char('.'))) {
+            while (text.endsWith(QLatin1Char('0'))) text.chop(1);
+            if (text.endsWith(QLatin1Char('.'))) text.chop(1);
+        }
+        return {text, unit};
+    }
+}
+
+QString QuotaSize(qint64 bytes) {
+    const auto [number, unit] = quotaParts(bytes);
+    return number + QLatin1Char(' ') + QLatin1String(kQuotaUnits[unit]);
+}
+
+QString QuotaUsage(qint64 used, qint64 total) {
+    const auto [usedNumber, usedUnit] = quotaParts(used);
+    const QLatin1String usedLabel(kQuotaUnits[usedUnit]);
+    if (total <= 0) return QStringLiteral("%1 %2 / ∞").arg(usedNumber, usedLabel);
+    const auto [totalNumber, totalUnit] = quotaParts(total);
+    const QLatin1String totalLabel(kQuotaUnits[totalUnit]);
+    if (usedUnit == totalUnit) return QStringLiteral("%1 / %2 %3").arg(usedNumber, totalNumber, totalLabel);
+    return QStringLiteral("%1 %2 / %3 %4").arg(usedNumber, usedLabel, totalNumber, totalLabel);
+}
+
 QString ShortDisplayName(const QString &name, int maxGraphemes) {
     if (name.size() <= maxGraphemes) return name;
     QTextBoundaryFinder finder(QTextBoundaryFinder::Grapheme, name);

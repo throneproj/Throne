@@ -12955,20 +12955,8 @@ Remove that endpoint from this routing profile as well?</source>
         <translation>剩下 %1 分</translation>
     </message>
     <message>
-        <source>Announcement - %1</source>
-        <translation>通告 - %1</translation>
-    </message>
-    <message>
         <source>Auto-update: every %1</source>
         <translation>自动更新: 每隔 %1</translation>
-    </message>
-    <message>
-        <source>Provider: %1</source>
-        <translation>提供方: %1</translation>
-    </message>
-    <message>
-        <source>Last updated: %1</source>
-        <translation>上次更新: %1</translation>
     </message>
     <message>
         <source>Expires: %1</source>
@@ -13003,6 +12991,50 @@ Remove that endpoint from this routing profile as well?</source>
     <message>
         <source>Technical Support: %1</source>
         <translation>技术支持: %1</translation>
+    </message>
+    <message>
+        <source>Subscription details</source>
+        <translation>订阅详情</translation>
+    </message>
+    <message>
+        <source>Subscription details (new announcement)</source>
+        <translation>订阅详情（新通告）</translation>
+    </message>
+    <message>
+        <source>Provider</source>
+        <translation>提供方</translation>
+    </message>
+    <message>
+        <source>Traffic</source>
+        <translation>流量</translation>
+    </message>
+    <message>
+        <source>%1 of %2 used (%3%)</source>
+        <translation>已用 %1，共 %2（%3%）</translation>
+    </message>
+    <message>
+        <source>%1 used, no limit</source>
+        <translation>已用 %1，无限制</translation>
+    </message>
+    <message>
+        <source>Expires</source>
+        <translation>到期时间</translation>
+    </message>
+    <message>
+        <source>Last updated</source>
+        <translation>上次更新</translation>
+    </message>
+    <message>
+        <source>Auto-update</source>
+        <translation>自动更新</translation>
+    </message>
+    <message>
+        <source>Announcement</source>
+        <translation>通告</translation>
+    </message>
+    <message>
+        <source>Website</source>
+        <translation>网站</translation>
     </message>
 </context>
 <context>

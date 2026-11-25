@@ -5993,6 +5993,115 @@ Remove that endpoint from this routing profile as well?</source>
     </message>
 </context>
 <context>
+    <name>SubscriptionInfoCard</name>
+    <message>
+        <source>Portal</source>
+        <translation>پورتال</translation>
+    </message>
+    <message>
+        <source>Support</source>
+        <translation>پشتیبانی</translation>
+    </message>
+    <message>
+        <source>Expired</source>
+        <translation>منقضی شده</translation>
+    </message>
+    <message>
+        <source>%1m left</source>
+        <translation>%1 دقیقه مانده</translation>
+    </message>
+    <message>
+        <source>%1h %2m left</source>
+        <translation>%1 ساعت و %2 دقیقه مانده</translation>
+    </message>
+    <message>
+        <source>%1d %2h left</source>
+        <translation>%1 روز و %2 ساعت مانده</translation>
+    </message>
+    <message>
+        <source>Auto-update: every %1</source>
+        <translation>به‌روزرسانی خودکار: هر %1</translation>
+    </message>
+    <message>
+        <source>Expires: %1</source>
+        <translation>انقضا: %1</translation>
+    </message>
+    <message>
+        <source>Interval provided by the server</source>
+        <translation>بازهٔ تعیین‌شده از سوی سرور</translation>
+    </message>
+    <message>
+        <source>Interval set for this group</source>
+        <translation>بازهٔ تنظیم‌شده برای این گروه</translation>
+    </message>
+    <message>
+        <source>Global interval from Settings</source>
+        <translation>بازهٔ سراسری از تنظیمات</translation>
+    </message>
+    <message numerus="yes">
+        <source>Server suggests every %n hour(s)</source>
+        <translation>
+            <numerusform>سرور هر %n ساعت را پیشنهاد می‌کند</numerusform>
+        </translation>
+    </message>
+    <message>
+        <source>Every %1</source>
+        <translation>هر %1</translation>
+    </message>
+    <message>
+        <source>Website / Portal: %1</source>
+        <translation>وب‌سایت / پورتال: %1</translation>
+    </message>
+    <message>
+        <source>Technical Support: %1</source>
+        <translation>پشتیبانی فنی: %1</translation>
+    </message>
+    <message>
+        <source>Subscription details</source>
+        <translation>جزئیات اشتراک</translation>
+    </message>
+    <message>
+        <source>Subscription details (new announcement)</source>
+        <translation>جزئیات اشتراک (اطلاعیهٔ جدید)</translation>
+    </message>
+    <message>
+        <source>Provider</source>
+        <translation>ارائه‌دهنده</translation>
+    </message>
+    <message>
+        <source>Traffic</source>
+        <translation>ترافیک</translation>
+    </message>
+    <message>
+        <source>%1 of %2 used (%3%)</source>
+        <translation>%1 از %2 مصرف شده (%3%)</translation>
+    </message>
+    <message>
+        <source>%1 used, no limit</source>
+        <translation>%1 مصرف شده، بدون محدودیت</translation>
+    </message>
+    <message>
+        <source>Expires</source>
+        <translation>انقضا</translation>
+    </message>
+    <message>
+        <source>Last updated</source>
+        <translation>آخرین به‌روزرسانی</translation>
+    </message>
+    <message>
+        <source>Auto-update</source>
+        <translation>به‌روزرسانی خودکار</translation>
+    </message>
+    <message>
+        <source>Announcement</source>
+        <translation>اطلاعیه</translation>
+    </message>
+    <message>
+        <source>Website</source>
+        <translation>وب‌سایت</translation>
+    </message>
+</context>
+<context>
     <name>Validation</name>
     <message>
         <source>%1: %2</source>

@@ -1,24 +1,33 @@
 #include "include/ui/widget/SubscriptionInfoCard.hpp"
 
 #include <QApplication>
+#include <QCryptographicHash>
 #include <QDateTime>
 #include <QDesktopServices>
+#include <QDialog>
+#include <QDialogButtonBox>
 #include <QFontMetrics>
+#include <QFormLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPainterPath>
 #include <QPalette>
+#include <QPlainTextEdit>
 #include <QProgressBar>
 #include <QPushButton>
 #include <QResizeEvent>
 #include <QStyle>
 #include <QTextDocument>
+#include <QTextOption>
 #include <QTimer>
+#include <QVBoxLayout>
 #include <algorithm>
 
 #include "include/configs/sub/GroupUpdater.hpp"
+#include "include/database/DatabaseManager.h"
+#include "include/database/GroupsRepo.h"
 #include "include/database/entities/Group.h"
 #include "include/global/Utils.hpp"
 #include "include/ui/setting/ThemeManager.hpp"
@@ -35,7 +44,7 @@ namespace {
     };
 
     // Drawn at 3x on a 12-unit grid; QLabel (scaled contents) and QIcon smooth-scale it to the screen.
-    QPixmap renderGlyph(Glyph glyph, const QColor &color, int size) {
+    QPixmap renderGlyph(Glyph glyph, const QColor &color, int size, bool dot = false) {
         constexpr int kScale = 3;
         QPixmap pix(QSize(size, size) * kScale);
         pix.setDevicePixelRatio(kScale);
@@ -118,6 +127,18 @@ namespace {
             break;
         }
 
+        if (dot) {
+            // Clears a ring around the dot first, so it stays distinct where it overlaps the outline.
+            const QPointF center(9.8, 2.2);
+            p.setPen(Qt::NoPen);
+            p.setCompositionMode(QPainter::CompositionMode_Clear);
+            p.setBrush(Qt::black);
+            p.drawEllipse(center, 2.9, 2.9);
+            p.setCompositionMode(QPainter::CompositionMode_SourceOver);
+            p.setBrush(color);
+            p.drawEllipse(center, 2.0, 2.0);
+        }
+
         p.end();
         return pix;
     }
@@ -151,6 +172,64 @@ namespace {
         widget->setProperty(name, value);
         widget->style()->unpolish(widget);
         widget->style()->polish(widget);
+    }
+
+    bool expiryUrgent(qint64 expire) {
+        return (expire - QDateTime::currentSecsSinceEpoch()) / 86400 <= 3;
+    }
+
+    QStringList autoUpdateSource(const Subscription::AutoUpdatePlan &plan, const Configs::SubUserInfo &sub) {
+        QStringList lines;
+        switch (plan.source) {
+        case Subscription::AutoUpdatePlan::Source::server:
+            lines << SubscriptionInfoCard::tr("Interval provided by the server");
+            break;
+        case Subscription::AutoUpdatePlan::Source::group:
+            lines << SubscriptionInfoCard::tr("Interval set for this group");
+            break;
+        default:
+            lines << SubscriptionInfoCard::tr("Global interval from Settings");
+            break;
+        }
+        if (plan.source != Subscription::AutoUpdatePlan::Source::server && sub.server_interval > 0)
+            lines << SubscriptionInfoCard::tr("Server suggests every %n hour(s)", nullptr, sub.server_interval);
+        return lines;
+    }
+
+    QString announcementText(const Configs::SubUserInfo &sub) {
+        const QString text = sub.announce.trimmed();
+        return text.compare(QLatin1String("base64:"), Qt::CaseInsensitive) == 0 ? QString() : text;
+    }
+
+    // qHash is seeded per process, so the seen marker needs a stable digest.
+    QString announcementHash(const QString &text) {
+        if (text.isEmpty())
+            return {};
+        return QString::fromLatin1(QCryptographicHash::hash(text.toUtf8(), QCryptographicHash::Md5).toHex());
+    }
+
+    QString seenAnnouncementHash(int gid) {
+        const QString prefix = QString::number(gid) + QLatin1Char('=');
+        for (const QString &entry : std::as_const(Configs::dataManager->settingsRepo->sub_announce_seen)) {
+            if (entry.startsWith(prefix))
+                return entry.mid(prefix.size());
+        }
+        return {};
+    }
+
+    void storeSeenAnnouncementHash(int gid, const QString &hash) {
+        auto &settings = *Configs::dataManager->settingsRepo;
+        const QList<int> groups = Configs::dataManager->groupsRepo->GetAllGroupIds();
+        QStringList entries;
+        for (const QString &entry : std::as_const(settings.sub_announce_seen)) {
+            bool ok = false;
+            const int id = entry.section(QLatin1Char('='), 0, 0).toInt(&ok);
+            if (ok && id != gid && groups.contains(id))
+                entries << entry;
+        }
+        entries << QString::number(gid) + QLatin1Char('=') + hash;
+        settings.sub_announce_seen = entries;
+        settings.Save();
     }
 } // namespace
 
@@ -221,6 +300,8 @@ void SubscriptionInfoCard::setupUi() {
     m_titleLabel->setObjectName(QStringLiteral("subTitle"));
     m_titleLabel->setTextFormat(Qt::PlainText);
     m_titleLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    m_titleLabel->setCursor(Qt::PointingHandCursor);
+    m_titleLabel->installEventFilter(this);
     row->addWidget(m_titleLabel);
 
     m_sepQuota = createDivider();
@@ -253,18 +334,14 @@ void SubscriptionInfoCard::setupUi() {
     m_intervalLabel->setProperty("colorRole", QStringLiteral("muted"));
     row->addWidget(m_intervalBadge);
 
-    m_sepAnnounce = createDivider();
-    row->addWidget(m_sepAnnounce);
-
-    m_announceBadge = createBadge(QStringLiteral("subAnnounceBadge"), m_announceIcon, m_announceLabel);
-    m_announceBadge->setCursor(Qt::PointingHandCursor);
-    m_announceBadge->installEventFilter(this);
-    row->addWidget(m_announceBadge);
-
     row->addStretch(1);
 
     m_sepActions = createDivider();
     row->addWidget(m_sepActions);
+
+    m_btnInfo = createLink(tr("Subscription details"));
+    connect(m_btnInfo, &QPushButton::clicked, this, &SubscriptionInfoCard::showDetails);
+    row->addWidget(m_btnInfo);
 
     m_btnPortal = createLink(tr("Portal"));
     connect(m_btnPortal, &QPushButton::clicked, this, [this] { QDesktopServices::openUrl(m_webUrl); });
@@ -282,14 +359,15 @@ void SubscriptionInfoCard::applyMetrics() {
     m_chipHeight = fm.height() + 4;
     m_iconSize = std::max(12, fm.height() * 3 / 4);
 
-    for (QFrame *badge : {m_expiryBadge, m_intervalBadge, m_announceBadge})
+    for (QFrame *badge : {m_expiryBadge, m_intervalBadge})
         badge->setFixedHeight(m_chipHeight);
-    for (QLabel *icon : {m_expiryIcon, m_intervalIcon, m_announceIcon})
+    for (QLabel *icon : {m_expiryIcon, m_intervalIcon})
         icon->setFixedSize(m_iconSize, m_iconSize);
-    for (QFrame *sep : {m_sepQuota, m_sepExpiry, m_sepInterval, m_sepAnnounce, m_sepActions})
+    for (QFrame *sep : {m_sepQuota, m_sepExpiry, m_sepInterval, m_sepActions})
         sep->setFixedSize(1, fm.height() - 2);
-    for (QPushButton *btn : {m_btnPortal, m_btnSupport})
+    for (QPushButton *btn : {m_btnInfo, m_btnPortal, m_btnSupport})
         btn->setIconSize(QSize(m_iconSize, m_iconSize));
+    m_btnInfo->setFixedSize(m_chipHeight, m_chipHeight);
     setLinksCompact(true);
 
     m_progressBar->setFixedHeight(std::max(10, fm.height() - 4));
@@ -344,7 +422,7 @@ void SubscriptionInfoCard::reportGeometry() {
 
 void SubscriptionInfoCard::resizeEvent(QResizeEvent *event) {
     QFrame::resizeEvent(event);
-    updateAnnouncementLayout();
+    updateLayout();
 }
 
 void SubscriptionInfoCard::changeEvent(QEvent *event) {
@@ -357,10 +435,10 @@ void SubscriptionInfoCard::changeEvent(QEvent *event) {
 }
 
 bool SubscriptionInfoCard::eventFilter(QObject *watched, QEvent *event) {
-    if (watched == m_announceBadge && event->type() == QEvent::MouseButtonRelease && m_group && !m_fullAnnounce.isEmpty()) {
+    if (watched == m_titleLabel && event->type() == QEvent::MouseButtonRelease && hasSubscription()) {
         const auto *me = static_cast<QMouseEvent *>(event);
-        if (me->button() == Qt::LeftButton && m_announceBadge->rect().contains(me->position().toPoint())) {
-            MessageBoxScrollable(tr("Announcement - %1").arg(m_group->name), m_group->sub_info.announce.trimmed());
+        if (me->button() == Qt::LeftButton && m_titleLabel->rect().contains(me->position().toPoint())) {
+            showDetails();
             return true;
         }
     }
@@ -381,7 +459,7 @@ int SubscriptionInfoCard::requiredWidth() const {
     return total + std::max(0, items - 1) * row->spacing();
 }
 
-void SubscriptionInfoCard::updateAnnouncementLayout() {
+void SubscriptionInfoCard::updateLayout() {
     if (!hasSubscription())
         return;
 
@@ -400,11 +478,12 @@ void SubscriptionInfoCard::updateAnnouncementLayout() {
         w->setVisible(sub.has_quota);
     m_sepExpiry->setVisible(sub.expire > 0);
     m_expiryBadge->setVisible(sub.expire > 0);
-    for (QWidget *w : {m_sepInterval, m_intervalBadge, m_sepAnnounce, m_announceBadge})
+    for (QWidget *w : {m_sepInterval, m_intervalBadge})
         w->hide();
+    m_sepActions->show();
+    m_btnInfo->show();
     m_btnPortal->setVisible(!m_webUrl.isEmpty());
     m_btnSupport->setVisible(!m_supportUrl.isEmpty());
-    m_sepActions->setVisible(!m_webUrl.isEmpty() || !m_supportUrl.isEmpty());
     setLinksCompact(true);
 
     // A squeezed QLabel clips instead of eliding, so shed width by priority until the row fits.
@@ -417,7 +496,7 @@ void SubscriptionInfoCard::updateAnnouncementLayout() {
         elideTitle(std::max(avgChar * 6, m_titleLabel->sizeHint().width() - overflow));
         overflow = requiredWidth() - width();
     }
-    const QList<QList<QWidget *>> dropOrder{{m_progressBar}, {m_sepQuota, m_quotaLabel}, {m_sepExpiry, m_expiryBadge}, {m_sepActions, m_btnPortal, m_btnSupport}};
+    const QList<QList<QWidget *>> dropOrder{{m_progressBar}, {m_sepQuota, m_quotaLabel}, {m_sepExpiry, m_expiryBadge}, {m_btnPortal, m_btnSupport}};
     for (const auto &widgets : dropOrder) {
         if (overflow <= 0)
             break;
@@ -434,24 +513,6 @@ void SubscriptionInfoCard::updateAnnouncementLayout() {
         if (requiredWidth() + avgChar * 10 > width()) {
             m_sepInterval->hide();
             m_intervalBadge->hide();
-        }
-    }
-
-    if (!m_fullAnnounce.isEmpty()) {
-        m_announceLabel->setText(m_fullAnnounce);
-        m_sepAnnounce->show();
-        m_announceBadge->show();
-        overflow = requiredWidth() - width();
-        if (overflow > 0) {
-            m_announceLabel->ensurePolished();
-            const QFontMetrics fm = m_announceLabel->fontMetrics();
-            const int textWidth = m_announceLabel->sizeHint().width() - overflow;
-            if (textWidth < avgChar * 4) {
-                m_sepAnnounce->hide();
-                m_announceBadge->hide();
-            } else {
-                m_announceLabel->setText(fm.elidedText(m_fullAnnounce, Qt::ElideRight, textWidth));
-            }
         }
     }
 
@@ -472,28 +533,19 @@ void SubscriptionInfoCard::updateData() {
     const auto &sub = m_group->sub_info;
     const auto &tk = themeManager()->tokens;
     const auto plan = Subscription::ResolveAutoUpdate(*m_group);
-    const QString autoUpdate = plan.interval > 0 ? tr("Auto-update: every %1").arg(Stats::HumanizeDuration(plan.interval)) : QString();
 
-    QStringList titleTip{m_group->name};
-    if (!sub.title.isEmpty() && sub.title != m_group->name)
-        titleTip << tr("Provider: %1").arg(sub.title);
-    if (!autoUpdate.isEmpty())
-        titleTip << autoUpdate;
-    if (m_group->sub_last_update > 0)
-        titleTip << tr("Last updated: %1").arg(DisplayTime(m_group->sub_last_update, QLocale::ShortFormat));
-    m_titleLabel->setToolTip(Qt::convertFromPlainText(titleTip.join(QLatin1Char('\n'))));
+    m_titleLabel->setToolTip(Qt::convertFromPlainText(m_group->name));
 
     if (sub.has_quota) {
         const int pct = static_cast<int>(sub.percentUsed());
         m_progressBar->setValue(sub.total > 0 ? pct : 100);
         setStyleProperty(m_progressBar, "level", sub.isExpired() || (sub.total > 0 && pct >= 90) ? QStringLiteral("danger") : QStringLiteral("ok"));
-        const QString used = ReadableSize(sub.used());
-        m_quotaLabel->setText(sub.total > 0 ? QStringLiteral("%1 / %2 (%3%)").arg(used, ReadableSize(sub.total), QString::number(pct))
-                                            : QStringLiteral("%1 / ∞").arg(used));
+        const QString usage = QuotaUsage(sub.used(), sub.total);
+        m_quotaLabel->setText(sub.total > 0 ? QStringLiteral("%1 · %2%").arg(usage, QString::number(pct)) : usage);
     }
 
     if (sub.expire > 0) {
-        const bool urgent = (sub.expire - QDateTime::currentSecsSinceEpoch()) / 86400 <= 3;
+        const bool urgent = expiryUrgent(sub.expire);
         m_expiryIcon->setPixmap(renderGlyph(urgent ? Glyph::Warn : Glyph::Hourglass, urgent ? tk.danger : tk.muted, m_iconSize));
         m_expiryLabel->setText(expiryText(sub.expire));
         setStyleProperty(m_expiryLabel, "colorRole", urgent ? QStringLiteral("danger") : QStringLiteral("muted"));
@@ -502,20 +554,7 @@ void SubscriptionInfoCard::updateData() {
 
     m_hasInterval = plan.interval > 0;
     if (m_hasInterval) {
-        QStringList tip{autoUpdate};
-        switch (plan.source) {
-        case Subscription::AutoUpdatePlan::Source::server:
-            tip << tr("Interval provided by the server");
-            break;
-        case Subscription::AutoUpdatePlan::Source::group:
-            tip << tr("Interval set for this group");
-            break;
-        default:
-            tip << tr("Global interval from Settings");
-            break;
-        }
-        if (plan.source != Subscription::AutoUpdatePlan::Source::server && sub.server_interval > 0)
-            tip << tr("Server suggests every %n hour(s)", nullptr, sub.server_interval);
+        const QStringList tip = QStringList{tr("Auto-update: every %1").arg(Stats::HumanizeDuration(plan.interval))} + autoUpdateSource(plan, sub);
         m_intervalLabel->setText(tr("Every %1").arg(Stats::HumanizeDuration(plan.interval)));
         m_intervalBadge->setToolTip(Qt::convertFromPlainText(tip.join(QLatin1Char('\n'))));
         m_intervalIcon->setPixmap(renderGlyph(Glyph::Sync, tk.muted, m_iconSize));
@@ -526,17 +565,111 @@ void SubscriptionInfoCard::updateData() {
     m_btnPortal->setToolTip(Qt::convertFromPlainText(tr("Website / Portal: %1").arg(sub.web_url.trimmed())));
     m_btnSupport->setToolTip(Qt::convertFromPlainText(tr("Technical Support: %1").arg(sub.support_url.trimmed())));
 
-    const QString announce = sub.announce.trimmed();
-    if (!announce.isEmpty() && announce.compare(QLatin1String("base64:"), Qt::CaseInsensitive) != 0) {
-        m_fullAnnounce = announce.simplified();
-        m_announceBadge->setToolTip(Qt::convertFromPlainText(announce, Qt::WhiteSpaceNormal));
-    } else {
-        m_fullAnnounce.clear();
-    }
+    m_announceHash = announcementHash(announcementText(sub));
+    m_announceUnseen = !m_announceHash.isEmpty() && m_announceHash != seenAnnouncementHash(m_group->id);
+    updateInfoButton();
 
     show();
     reportGeometry();
-    updateAnnouncementLayout();
+    updateLayout();
+}
+
+void SubscriptionInfoCard::updateInfoButton() {
+    const auto &tk = themeManager()->tokens;
+    m_btnInfo->setIcon(QIcon(renderGlyph(Glyph::Info, m_announceUnseen ? tk.accent : tk.onSurface, m_iconSize, m_announceUnseen)));
+    const QString label = m_announceUnseen ? tr("Subscription details (new announcement)") : tr("Subscription details");
+    m_btnInfo->setToolTip(label);
+    m_btnInfo->setAccessibleName(label);
+}
+
+void SubscriptionInfoCard::showDetails() {
+    if (!hasSubscription())
+        return;
+    const std::shared_ptr<Configs::Group> group = m_group;
+    const auto &sub = group->sub_info;
+    const auto &tk = themeManager()->tokens;
+
+    if (m_announceUnseen) {
+        storeSeenAnnouncementHash(group->id, m_announceHash);
+        m_announceUnseen = false;
+        updateInfoButton();
+    }
+
+    auto *dialog = new QDialog(window());
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->setWindowTitle(group->name);
+    const QFontMetrics fm = dialog->fontMetrics();
+
+    auto *form = new QFormLayout;
+    const auto addRow = [&](const QString &label, const QString &text, bool danger = false) {
+        auto *value = new QLabel(text, dialog);
+        value->setTextFormat(Qt::PlainText);
+        value->setTextInteractionFlags(Qt::TextSelectableByMouse);
+        value->setWordWrap(true);
+        if (danger)
+            value->setStyleSheet(QStringLiteral("color: %1;").arg(tk.danger.name()));
+        form->addRow(label, value);
+    };
+
+    if (!sub.title.isEmpty() && sub.title != group->name)
+        addRow(tr("Provider"), sub.title);
+    if (sub.has_quota) {
+        const QString used = QuotaSize(sub.used());
+        addRow(tr("Traffic"), sub.total > 0 ? tr("%1 of %2 used (%3%)").arg(used, QuotaSize(sub.total), QString::number(static_cast<int>(sub.percentUsed())))
+                                            : tr("%1 used, no limit").arg(used));
+    }
+    if (sub.expire > 0) {
+        const QString when = DisplayTime(sub.expire, QLocale::ShortFormat);
+        if (sub.isExpired())
+            addRow(tr("Expired"), when, true);
+        else
+            addRow(tr("Expires"), QStringLiteral("%1 (%2)").arg(when, expiryText(sub.expire)), expiryUrgent(sub.expire));
+    }
+    if (group->sub_last_update > 0)
+        addRow(tr("Last updated"), DisplayTime(group->sub_last_update, QLocale::ShortFormat));
+    if (const auto plan = Subscription::ResolveAutoUpdate(*group); plan.interval > 0) {
+        const QStringList lines = QStringList{tr("Every %1").arg(Stats::HumanizeDuration(plan.interval))} + autoUpdateSource(plan, sub);
+        addRow(tr("Auto-update"), lines.join(QLatin1Char('\n')));
+    }
+
+    auto *layout = new QVBoxLayout(dialog);
+    layout->addLayout(form);
+
+    const QString announce = announcementText(sub);
+    if (!announce.isEmpty()) {
+        layout->addSpacing(fm.height() / 2);
+        layout->addWidget(new QLabel(tr("Announcement"), dialog));
+        auto *view = new QPlainTextEdit(dialog);
+        view->setReadOnly(true);
+        view->setPlainText(announce);
+        const bool rtl = announce.isRightToLeft();
+        view->setLayoutDirection(rtl ? Qt::RightToLeft : Qt::LeftToRight);
+        QTextOption option = view->document()->defaultTextOption();
+        option.setTextDirection(rtl ? Qt::RightToLeft : Qt::LeftToRight);
+        view->document()->setDefaultTextOption(option);
+        view->setMinimumHeight(fm.lineSpacing() * 4);
+        layout->addWidget(view, 1);
+    }
+
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Close, dialog);
+    buttons->button(QDialogButtonBox::Close)->setDefault(true);
+    connect(buttons, &QDialogButtonBox::rejected, dialog, &QDialog::reject);
+    const auto addLink = [&](const QString &text, const QUrl &url, const QString &raw) {
+        if (!url.isValid())
+            return;
+        auto *button = buttons->addButton(text, QDialogButtonBox::ActionRole);
+        button->setAutoDefault(false);
+        button->setToolTip(raw);
+        connect(button, &QPushButton::clicked, dialog, [url] { QDesktopServices::openUrl(url); });
+    };
+    addLink(tr("Website"), m_webUrl, sub.web_url.trimmed());
+    addLink(tr("Support"), m_supportUrl, sub.support_url.trimmed());
+    layout->addWidget(buttons);
+
+    dialog->setMinimumWidth(fm.averageCharWidth() * 48);
+    if (!announce.isEmpty())
+        dialog->resize(fm.averageCharWidth() * 64, fm.lineSpacing() * 26);
+    dialog->open();
 }
 
 void SubscriptionInfoCard::applyTheme() {
@@ -558,22 +691,21 @@ void SubscriptionInfoCard::applyTheme() {
                         "QProgressBar#subQuotaBar { border: 1px solid %2; border-radius: %3px; background-color: %4; }"
                         "QProgressBar#subQuotaBar::chunk { border-radius: %5px; background-color: %6; }"
                         "QProgressBar#subQuotaBar[level=\"danger\"]::chunk { background-color: %7; }"
-                        "QFrame#subExpiryBadge, QFrame#subIntervalBadge, QFrame#subAnnounceBadge { background: transparent; border: none; }"
-                        "QFrame#subAnnounceBadge:hover { background-color: %8; }"
+                        "QFrame#subExpiryBadge, QFrame#subIntervalBadge { background: transparent; border: none; }"
                         "QPushButton#subLink { padding: 0px 6px; }")
                         .arg(surface.name(), line, QString::number(radius), solid(pal.color(QPalette::Active, QPalette::AlternateBase)),
-                             QString::number(std::max(1, radius - 1)), tk.success.name(), tk.danger.name(), solid(hover));
+                             QString::number(std::max(1, radius - 1)), tk.success.name(), tk.danger.name());
     if (themeDrawsChips()) {
         sheet += QStringLiteral(
-                     "QFrame#subExpiryBadge, QFrame#subIntervalBadge, QFrame#subAnnounceBadge, QPushButton#subLink {"
+                     "QFrame#subExpiryBadge, QFrame#subIntervalBadge, QPushButton#subLink {"
                      " background: transparent; border: 1px solid %1; border-radius: 4px; color: %2; }"
-                     "QFrame#subAnnounceBadge:hover, QPushButton#subLink:hover { background-color: %3; }")
+                     "QPushButton#subLink:hover { background-color: %3; }")
                      .arg(line, solid(pal.color(QPalette::Active, QPalette::WindowText)), solid(hover));
     }
     if (styleSheet() != sheet)
         setStyleSheet(sheet);
 
-    m_announceIcon->setPixmap(renderGlyph(Glyph::Info, tk.accent, m_iconSize));
+    updateInfoButton();
     m_btnPortal->setIcon(QIcon(renderGlyph(Glyph::Globe, tk.onSurface, m_iconSize)));
     m_btnSupport->setIcon(QIcon(renderGlyph(Glyph::Chat, tk.onSurface, m_iconSize)));
 }

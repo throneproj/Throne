@@ -20,9 +20,9 @@ namespace {
         const auto &sub = group.sub_info;
         QStringList parts;
         if (sub.valid && sub.has_quota) {
-            QString remainStr = (sub.total > 0) ? ReadableSize(sub.remaining()) : QString::fromUtf8("\u221E");
+            QString remainStr = (sub.total > 0) ? QuotaSize(sub.remaining()) : QString::fromUtf8("\u221E");
             QString expireStr = (sub.expire > 0) ? DisplayTime(sub.expire, QLocale::ShortFormat) : QObject::tr("None");
-            parts << QObject::tr("Used: %1 Remain: %2 Expire: %3").arg(ReadableSize(sub.used()), remainStr, expireStr);
+            parts << QObject::tr("Used: %1 Remain: %2 Expire: %3").arg(QuotaSize(sub.used()), remainStr, expireStr);
         }
         if (sub.valid && sub.expire > 0) {
             parts << SubscriptionInfoCard::expiryText(sub.expire);

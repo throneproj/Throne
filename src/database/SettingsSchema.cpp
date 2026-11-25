@@ -157,6 +157,7 @@ namespace Configs::SettingsSchema {
                 {"webdav_use_proxy", &SettingsValues::webdav_use_proxy, Device},
                 {"device_id", &SettingsValues::device_id, Device},
                 {"device_name", &SettingsValues::device_name, Device},
+                {"sub_announce_seen", &SettingsValues::sub_announce_seen, Device},
                 {"system_proxy_enabled", &SettingsValues::remember_system_proxy, Host},
                 {"tun_mode_enabled", &SettingsValues::remember_tun, Host},
                 {"remember_id", &SettingsValues::remember_id},

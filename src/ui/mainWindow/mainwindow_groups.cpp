@@ -55,10 +55,10 @@ void MainWindow::updateTabToolTip(int gid) {
             html += tr("Auto-update: every %1").arg(Stats::HumanizeDuration(plan.interval)) + QStringLiteral("<br>");
         }
         if (subInfo.has_quota) {
-            html += QStringLiteral("%1: %2<br>").arg(tr("Used"), ReadableSize(subInfo.used()));
+            html += QStringLiteral("%1: %2<br>").arg(tr("Used"), QuotaSize(subInfo.used()));
             if (subInfo.total > 0) {
                 html += QStringLiteral("%1: %2 (%3: %4)<br>").arg(
-                    tr("Total"), ReadableSize(subInfo.total), tr("Remaining"), ReadableSize(subInfo.remaining()));
+                    tr("Total"), QuotaSize(subInfo.total), tr("Remaining"), QuotaSize(subInfo.remaining()));
             }
         }
         if (subInfo.expire > 0) {

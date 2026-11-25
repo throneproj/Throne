@@ -189,6 +189,12 @@ QString DisplayTime(long long time, int formatType = 0);
 
 QString ReadableSize(const qint64 &size);
 
+// Subscription quota: 1024-based with B/KB/MB/GB labels, 2/1/0 decimals below 10/100, trailing zeros dropped ("3.22 GB", "5 GB").
+QString QuotaSize(qint64 bytes);
+
+// "3.22 / 5 GB", "40.1 KB / 50 GB", or "3.22 GB / ∞" when total is 0.
+QString QuotaUsage(qint64 used, qint64 total);
+
 // At most maxGraphemes, so a leading flag emoji is never cut in half; longer names end in "…".
 QString ShortDisplayName(const QString &name, int maxGraphemes = 15);
 
